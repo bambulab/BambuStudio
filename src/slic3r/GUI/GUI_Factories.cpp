@@ -70,32 +70,35 @@ static SettingsFactory::Bundle FREQ_SETTINGS_BUNDLE_SLA =
 //BBS: add setting data for table
 std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_CATEGORY_SETTINGS=
 {
-    { L("Quality"), {{"layer_height", "",1},{"initial_layer_print_height", "",2},{"adaptive_layer_height", "",3},{"seam_position", "",4},
-                    {"xy_hole_compensation", "",5}, {"xy_contour_compensation", "",6}, {"elefant_foot_compensation", "",7},{"support_line_width", "",12},
-                    {"support_transition_line_width", "",12}
+    { L("Quality"), {{"layer_height", "",1},
+                    //{"initial_layer_print_height", "",2},
+                    {"adaptive_layer_height", "",2},{"seam_position", "",3},
+                    {"xy_hole_compensation", "",4}, {"xy_contour_compensation", "",5}, {"elefant_foot_compensation", "",6}
                     }},
-    { L("Support material"), {{"enable_support", "",1},{"support_type", "",2},{"support_threshold_angle", "",3},{"support_on_build_plate_only", "",4},{"support_material_enforce_layers", "",5},
-                            {"tree_support_wall_count", "",6},{"tree_support_with_infill", "",7},//tree support
-                            {"support_top_z_distance", "",8},{"support_base_pattern", "",9},{"support_base_pattern_spacing", "",10},
-                            {"support_interface_top_layers", "",11},{"support_interface_bottom_layers", "",12},{"support_interface_spacing", "",13},{"support_material_bottom_interface_spacing", "",14},
-                            {"support_object_xy_distance", "",15}
+    { L("Support"), {{"brim_type", "",1},{"brim_width", "",2},{"brim_object_gap", "",3},
+                    {"enable_support", "",4},{"support_type", "",5},{"support_threshold_angle", "",6},{"support_on_build_plate_only", "",7},
+                    {"support_material_extruder", "",8},{"support_material_interface_extruder", "",9},
+                     {"tree_support_branch_angle", "",10}, {"tree_support_wall_count", "",11},{"tree_support_with_infill", "",12},//tree support
+                            {"support_top_z_distance", "",13},{"support_base_pattern", "",14},{"support_base_pattern_spacing", "",15},
+                            {"support_interface_top_layers", "",16},{"support_interface_bottom_layers", "",17},{"support_interface_spacing", "",18},{"support_material_bottom_interface_spacing", "",19},
+                            {"support_object_xy_distance", "",20}, {"bridge_no_support", "",21}, {"independent_support_layer_height", "",22}
                             }},
-    { L("Bed adhension"), {{"brim_type", "",1},{"brim_width", "",1},{"brim_object_gap", "",1},{"raft_layers", "",1}}}
+    { L("Speed"), {{"support_speed", "",12}, {"support_interface_speed", "",13}
+                    }}
 };
 
 std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CATEGORY_SETTINGS=
 {
-    { L("Quality"), {{"wall_infill_order", "",13},{"ironing_type", "",8},{"inner_wall_line_width", "",9},{"outer_wall_line_width", "",10},
-                    {"top_surface_line_width", "",11}
+    { L("Quality"), {{"ironing_type", "",7},{"ironing_flow", "",8},{"ironing_spacing", "",9},{"bridge_flow", "",10}
                     }},
-    { L("Shell"), {{"wall_loops", "",1},{"top_shell_layers", L("Top Solid Layers"),1},{"bottom_shell_layers", L("Bottom Solid Layers"),1},
-                    {"top_shell_thickness", L("Top Minimum Shell Thickness"),1}, {"bottom_shell_thickness", L("Bottom Minimum Shell Thickness"),1}
+    { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", L("Top Solid Layers"),1},{"top_shell_thickness", L("Top Minimum Shell Thickness"),1}, 
+                    {"bottom_shell_layers", L("Bottom Solid Layers"),1}, {"bottom_shell_thickness", L("Bottom Minimum Shell Thickness"),1},
+                    {"sparse_infill_density", "",1},{"sparse_infill_pattern", "",1},{"top_surface_pattern", "",1},{"bottom_surface_pattern", "",1},
+                    {"infill_combination", "",1}, {"infill_wall_overlap", "",1}, {"infill_direction", "",1}, {"minimum_sparse_infill_area", "",1}
                     }},
-    { L("Infill"), {{"sparse_infill_density", "",1},{"sparse_infill_pattern", "",1},{"top_surface_pattern", "",1},{"bottom_surface_pattern", "",1},
-                    {"infill_combination", "",1}, {"infill_direction", "",1}, {"infill_wall_overlap", "",1}
-                    }},
-    { L("Speed"), {{"inner_wall_speed", "",1},{"outer_wall_speed", "",1},{"sparse_infill_speed", "",1},{"internal_solid_infill_speed", "",1},
-                    {"top_surface_speed", "",1}, {"gap_infill_speed", "",1}
+    { L("Speed"), {{"outer_wall_speed", "",1},{"inner_wall_speed", "",2},{"sparse_infill_speed", "",3},{"top_surface_speed", "",4}, {"internal_solid_infill_speed", "",5},
+                    {"overhang_1_4_speed", "",6}, {"overhang_2_4_speed", "",7}, {"overhang_3_4_speed", "",8}, {"overhang_4_4_speed", "",9}, 
+                    {"bridge_speed", "",10}, {"gap_infill_speed", "",11}
                     }}
 };
 

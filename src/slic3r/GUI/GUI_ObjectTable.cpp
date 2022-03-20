@@ -29,7 +29,7 @@ static const int grid_cell_border_height = 2;
 static const int grid_cell_checkbox_size = 16;
 
 //min row count
-static const int g_min_row_count = 19;
+static const int g_min_row_count = 16;
 //when row count is bigger than overflow row count, will compute the total height by row_count*g_min_row_size
 //else will count the height one by one
 static const int g_overflow_row_count = 50;
@@ -1017,17 +1017,17 @@ wxString ObjectGridTable::GetValue (int row, int col)
                 return "Module";
             case col_name:
                 return "Name";
-            case col_unprintable:
-                return "Unprintable";
+            case col_printable:
+                return "Printable";
             case col_filaments:
                 return "Filaments";
             case col_layer_height:
                 return "Layer height";
-            case col_perimeters:
+            case col_wall_loops:
                 return "Perimeter";
             case col_fill_density:
                 return "Infill density(%)";
-            case col_support_material:
+            case col_enable_support:
                 return "Support";
             case col_brim_type:
                 return "Brim";
@@ -1190,8 +1190,8 @@ void ObjectGridTable::update_value_to_object(Model* model, ObjectGridRow* grid_r
             name_ptr = &(object->module_name);
             name_value = grid_row->assemble_name.value;
         }
-        else if (col == col_unprintable) {
-            object->printable = !(grid_row->unprintable.value);
+        else if (col == col_printable) {
+            object->printable = grid_row->printable.value;
             object->instances[0]->printable = object->printable;
 
             std::vector<ObjectVolumeID> object_volume_ids;
@@ -1492,7 +1492,7 @@ static wxString brim_choices[] =
     "Outer and inner brim"
 };
 
-void ObjectGridTable::init_cols()
+void ObjectGridTable::init_cols(ObjectGrid *object_grid)
 {
     const float font_size = 1.5f * wxGetApp().em_unit();
 
@@ -1506,18 +1506,21 @@ void ObjectGridTable::init_cols()
 
     //3th column: for object/volume name
     col = new ObjectGridCol(coString, "name", ObjectGridTable::category_all, false, false, true, false, wxALIGN_LEFT);
+    col->size = 128;
     m_col_data.push_back(col);
 
-    //unprintable for object
-    col = new ObjectGridCol(coBool, "unprintable", ObjectGridTable::category_all, true, false, true, false, wxALIGN_RIGHT);
+    //printable for object
+    col = new ObjectGridCol(coBool, "printable", ObjectGridTable::category_all, true, false, true, false, wxALIGN_RIGHT);
+    col->size = object_grid->GetTextExtent(L("Printable")).x;
     m_col_data.push_back(col);
 
-    //reset icon for unprintable
-    col = new ObjectGridCol(coBool, "unprintable_reset", ObjectGridTable::category_all, true, true, false, false, wxALIGN_CENTRE);
+    //reset icon for printable
+    col = new ObjectGridCol(coBool, "printable_reset", ObjectGridTable::category_all, true, true, false, false, wxALIGN_CENTRE);
     m_col_data.push_back(col);
 
     //object/volume extruder_id
     col = new ObjectGridCol(coEnum, "extruder", ObjectGridTable::category_all, false, false, true, true, wxALIGN_LEFT);
+    col->size = 128;
     //the spec now guarantees vectors store their elements contiguously
     col->choices = &m_panel->m_filaments_name[0];
     col->choice_count = m_panel->m_filaments_count;
@@ -1529,6 +1532,7 @@ void ObjectGridTable::init_cols()
 
     //object layer height
     col = new ObjectGridCol(coFloat, "layer_height", L("Quality"), true, false, true, true, wxALIGN_RIGHT);
+    col->size = object_grid->GetTextExtent(L("Layer height")).x;
     m_col_data.push_back(col);
 
     //reset icon for extruder_id
@@ -1536,58 +1540,62 @@ void ObjectGridTable::init_cols()
     m_col_data.push_back(col);
 
     //object/volume perimeters
-    col = new ObjectGridCol(coInt, "wall_loops", L("Shell"), false, false, true, true, wxALIGN_RIGHT);
+    col = new ObjectGridCol(coInt, "wall_loops", L("Strength"), false, false, true, true, wxALIGN_RIGHT);
+    col->size = object_grid->GetTextExtent(L("Wall loops")).x;
     m_col_data.push_back(col);
 
     //reset icon for perimeters
-    col = new ObjectGridCol(coInt, "perimeters_reset", L("Shell"), false, true, false, false, wxALIGN_CENTRE);
+    col = new ObjectGridCol(coInt, "wall_loops_reset", L("Strength"), false, true, false, false, wxALIGN_CENTRE);
     m_col_data.push_back(col);
 
     //object/volume fill density
-    col = new ObjectGridCol(coPercent, "sparse_infill_density", L("Infill"), false, false, true, true, wxALIGN_RIGHT);
+    col = new ObjectGridCol(coPercent, "sparse_infill_density", L("Strength"), false, false, true, true, wxALIGN_RIGHT);
+    col->size = object_grid->GetTextExtent(L("Infill density(%)")).x;
     m_col_data.push_back(col);
 
     //reset icon for fill density
-    col = new ObjectGridCol(coPercent, "fill_density_reset", L("Infill"), false, true, false, false, wxALIGN_CENTRE);
+    col = new ObjectGridCol(coPercent, "fill_density_reset", L("Strength"), false, true, false, false, wxALIGN_CENTRE);
     m_col_data.push_back(col);
 
     //support material
-    col = new ObjectGridCol(coBool, "enable_support", L("Support material"), true, false, true, true, wxALIGN_RIGHT);
+    col = new ObjectGridCol(coBool, "enable_support", L("Support"), true, false, true, true, wxALIGN_RIGHT);
+    col->size = object_grid->GetTextExtent(L("Support")).x;
     m_col_data.push_back(col);
 
     //reset icon for support material
-    col = new ObjectGridCol(coBool, "support_material_reset", L("Support material"), true, true, false, false, wxALIGN_CENTRE);
+    col = new ObjectGridCol(coBool, "support_reset", L("Support"), true, true, false, false, wxALIGN_CENTRE);
     m_col_data.push_back(col);
 
     //Bed Adhesion
-    col = new ObjectGridCol(coEnum, "brim_type", L("Bed adhension"), true, false, true, true, wxALIGN_RIGHT);
-    col->size = font_size*20; //20 char for the longest selection
+    col = new ObjectGridCol(coEnum, "brim_type", L("Support"), true, false, true, true, wxALIGN_RIGHT);
+    col->size = object_grid->GetTextExtent(L("Auto Brim")).x + 8; //add 8 for border
     col->choices = brim_choices;
     col->choice_count = WXSIZEOF(brim_choices);
     m_col_data.push_back(col);
 
     //reset icon for Bed Adhesion
-    col = new ObjectGridCol(coEnum, "brim_type_reset", L("Bed adhension"), true, true, false, false, wxALIGN_CENTRE);
+    col = new ObjectGridCol(coEnum, "brim_type_reset", L("Support"), true, true, false, false, wxALIGN_CENTRE);
     m_col_data.push_back(col);
 
     //object/volume speed
     col = new ObjectGridCol(coFloat, "inner_wall_speed", L("Speed"), false, false, true, true, wxALIGN_RIGHT);
+    col->size = object_grid->GetTextExtent(L("Inner wall speed")).x;
     m_col_data.push_back(col);
 
     //reset icon for speed
-    col = new ObjectGridCol(coFloat, "perimeter_speed_reset", L("Speed"), false, true, false, false, wxALIGN_CENTRE);
+    col = new ObjectGridCol(coFloat, "inner_wall_speed_reset", L("Speed"), false, true, false, false, wxALIGN_CENTRE);
     m_col_data.push_back(col);
 
     return;
 }
 
-void ObjectGridTable::construct_object_configs ()
+void ObjectGridTable::construct_object_configs(ObjectGrid *object_grid)
 {
     //release first
     release_object_configs();
 
     //init cols
-    init_cols();
+    init_cols(object_grid);
 
     if (!m_panel->m_model)
     {
@@ -1616,8 +1624,8 @@ void ObjectGridTable::construct_object_configs ()
             object_grid->plate_index.value = /*std::string("Plate ") + */std::to_string(plate_index+1);
         object_grid->assemble_name.value = object->module_name;
         object_grid->ori_assemble_name = object_grid->assemble_name;
-        object_grid->unprintable.value = !(object->instances[0]->printable);
-        object_grid->ori_unprintable.value = false;
+        object_grid->printable.value = object->instances[0]->printable;
+        object_grid->ori_printable.value = object_grid->printable.value;
         //auto extruder_id_ptr = get_object_config_value<ConfigOptionInt>(filament_config, object_grid->config, m_col_data[col_filaments]->key);
         auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(object_grid->config->option(m_col_data[col_filaments]->key));
         if (extruder_id_ptr) {
@@ -1635,12 +1643,12 @@ void ObjectGridTable::construct_object_configs ()
 
         object_grid->layer_height = *(get_object_config_value<ConfigOptionFloat>(global_config, object_grid->config, m_col_data[col_layer_height]->key));
         object_grid->ori_layer_height = *(global_config.option<ConfigOptionFloat>(m_col_data[col_layer_height]->key));
-        object_grid->wall_loops = *(get_object_config_value<ConfigOptionInt>(global_config, object_grid->config, m_col_data[col_perimeters]->key));
-        object_grid->ori_perimeters = *(global_config.option<ConfigOptionInt>(m_col_data[col_perimeters]->key));
+        object_grid->wall_loops = *(get_object_config_value<ConfigOptionInt>(global_config, object_grid->config, m_col_data[col_wall_loops]->key));
+        object_grid->ori_wall_loops = *(global_config.option<ConfigOptionInt>(m_col_data[col_wall_loops]->key));
         object_grid->sparse_infill_density = *(get_object_config_value<ConfigOptionPercent>(global_config, object_grid->config, m_col_data[col_fill_density]->key));
         object_grid->ori_fill_density = *(global_config.option<ConfigOptionPercent>(m_col_data[col_fill_density]->key));
-        object_grid->enable_support = *(get_object_config_value<ConfigOptionBool>(global_config, object_grid->config, m_col_data[col_support_material]->key));
-        object_grid->ori_support_material = *(global_config.option<ConfigOptionBool>(m_col_data[col_support_material]->key));
+        object_grid->enable_support = *(get_object_config_value<ConfigOptionBool>(global_config, object_grid->config, m_col_data[col_enable_support]->key));
+        object_grid->ori_enable_support = *(global_config.option<ConfigOptionBool>(m_col_data[col_enable_support]->key));
         object_grid->brim_type = *(get_object_config_value<ConfigOptionEnum<BrimType>>(global_config, object_grid->config, m_col_data[col_brim_type]->key));
         object_grid->ori_brim_type = *(global_config.option<ConfigOptionEnum<BrimType>>(m_col_data[col_brim_type]->key));
         object_grid->speed_perimeter = *(get_object_config_value<ConfigOptionFloat>(global_config, object_grid->config, m_col_data[col_speed_perimeter]->key));
@@ -1668,8 +1676,8 @@ void ObjectGridTable::construct_object_configs ()
                 volume_grid->plate_index.value = /*std::string("Plate ") +*/ std::to_string(plate_index+1);
             volume_grid->assemble_name.value = object->module_name;
             volume_grid->ori_assemble_name = volume_grid->assemble_name;
-            volume_grid->unprintable.value = !(object->instances[0]->printable);
-            volume_grid->ori_unprintable.value = volume_grid->unprintable.value;
+            volume_grid->printable.value = object->instances[0]->printable;
+            volume_grid->ori_printable.value = volume_grid->printable.value;
             //auto extruder_id_ptr = get_volume_config_value<ConfigOptionInt>(filament_config, object_grid->config, volume_grid->config, m_col_data[col_filaments]->key);
             auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(volume_grid->config->option(m_col_data[col_filaments]->key));
             if (extruder_id_ptr) {
@@ -1684,12 +1692,12 @@ void ObjectGridTable::construct_object_configs ()
             volume_grid->ori_filaments = object_grid->filaments;
             volume_grid->layer_height = *(get_volume_config_value<ConfigOptionFloat>(global_config, object_grid->config, volume_grid->config, m_col_data[col_layer_height]->key));
             volume_grid->ori_layer_height = object_grid->layer_height;
-            volume_grid->wall_loops = *(get_volume_config_value<ConfigOptionInt>(global_config, object_grid->config, volume_grid->config, m_col_data[col_perimeters]->key));
-            volume_grid->ori_perimeters = object_grid->wall_loops;
+            volume_grid->wall_loops = *(get_volume_config_value<ConfigOptionInt>(global_config, object_grid->config, volume_grid->config, m_col_data[col_wall_loops]->key));
+            volume_grid->ori_wall_loops = object_grid->wall_loops;
             volume_grid->sparse_infill_density = *(get_volume_config_value<ConfigOptionPercent>(global_config, object_grid->config, volume_grid->config, m_col_data[col_fill_density]->key));
             volume_grid->ori_fill_density = object_grid->sparse_infill_density;
-            volume_grid->enable_support = *(get_volume_config_value<ConfigOptionBool>(global_config, object_grid->config, volume_grid->config, m_col_data[col_support_material]->key));
-            volume_grid->ori_support_material = object_grid->enable_support;
+            volume_grid->enable_support = *(get_volume_config_value<ConfigOptionBool>(global_config, object_grid->config, volume_grid->config, m_col_data[col_enable_support]->key));
+            volume_grid->ori_enable_support = object_grid->enable_support;
             volume_grid->brim_type = *(get_volume_config_value<ConfigOptionEnum<BrimType>>(global_config, object_grid->config, volume_grid->config, m_col_data[col_brim_type]->key));
             volume_grid->ori_brim_type = object_grid->brim_type;
             volume_grid->speed_perimeter = *(get_volume_config_value<ConfigOptionFloat>(global_config, object_grid->config, volume_grid->config, m_col_data[col_speed_perimeter]->key));
@@ -1730,12 +1738,12 @@ void ObjectGridTable::reload_object_data(ObjectGridRow* grid_row, const std::str
     if (category == ObjectGridTable::category_all) {
         grid_row->layer_height = *(get_object_config_value<ConfigOptionFloat>(global_config, grid_row->config, m_col_data[col_layer_height]->key));
         grid_row->ori_layer_height = *(global_config.option<ConfigOptionFloat>(m_col_data[col_layer_height]->key));
-        grid_row->wall_loops = *(get_object_config_value<ConfigOptionInt>(global_config, grid_row->config, m_col_data[col_perimeters]->key));
-        grid_row->ori_perimeters = *(global_config.option<ConfigOptionInt>(m_col_data[col_perimeters]->key));
+        grid_row->wall_loops = *(get_object_config_value<ConfigOptionInt>(global_config, grid_row->config, m_col_data[col_wall_loops]->key));
+        grid_row->ori_wall_loops = *(global_config.option<ConfigOptionInt>(m_col_data[col_wall_loops]->key));
         grid_row->sparse_infill_density = *(get_object_config_value<ConfigOptionPercent>(global_config, grid_row->config, m_col_data[col_fill_density]->key));
         grid_row->ori_fill_density = *(global_config.option<ConfigOptionPercent>(m_col_data[col_fill_density]->key));
-        grid_row->enable_support = *(get_object_config_value<ConfigOptionBool>(global_config, grid_row->config, m_col_data[col_support_material]->key));
-        grid_row->ori_support_material = *(global_config.option<ConfigOptionBool>(m_col_data[col_support_material]->key));
+        grid_row->enable_support = *(get_object_config_value<ConfigOptionBool>(global_config, grid_row->config, m_col_data[col_enable_support]->key));
+        grid_row->ori_enable_support = *(global_config.option<ConfigOptionBool>(m_col_data[col_enable_support]->key));
         grid_row->brim_type = *(get_object_config_value<ConfigOptionEnum<BrimType>>(global_config, grid_row->config, m_col_data[col_brim_type]->key));
         grid_row->ori_brim_type = *(global_config.option<ConfigOptionEnum<BrimType>>(m_col_data[col_brim_type]->key));
         grid_row->speed_perimeter = *(get_object_config_value<ConfigOptionFloat>(global_config, grid_row->config, m_col_data[col_speed_perimeter]->key));
@@ -1745,19 +1753,17 @@ void ObjectGridTable::reload_object_data(ObjectGridRow* grid_row, const std::str
         grid_row->layer_height = *(get_object_config_value<ConfigOptionFloat>(global_config, grid_row->config, m_col_data[col_layer_height]->key));
         grid_row->ori_layer_height = *(global_config.option<ConfigOptionFloat>(m_col_data[col_layer_height]->key));
     }
-    else if (category == L("Shell")) {
-        grid_row->wall_loops = *(get_object_config_value<ConfigOptionInt>(global_config, grid_row->config, m_col_data[col_perimeters]->key));
-        grid_row->ori_perimeters = *(global_config.option<ConfigOptionInt>(m_col_data[col_perimeters]->key));
-    }
-    else if (category == L("Infill")) {
+    else if (category == L("Strength")) {
+        grid_row->wall_loops = *(get_object_config_value<ConfigOptionInt>(global_config, grid_row->config, m_col_data[col_wall_loops]->key));
+        grid_row->ori_wall_loops = *(global_config.option<ConfigOptionInt>(m_col_data[col_wall_loops]->key));
+
         grid_row->sparse_infill_density = *(get_object_config_value<ConfigOptionPercent>(global_config, grid_row->config, m_col_data[col_fill_density]->key));
-        grid_row->ori_fill_density = *(global_config.option<ConfigOptionPercent>(m_col_data[col_fill_density]->key));
+        grid_row->ori_fill_density      = *(global_config.option<ConfigOptionPercent>(m_col_data[col_fill_density]->key));
     }
-    else if (category == L("Support material")) {
-        grid_row->enable_support = *(get_object_config_value<ConfigOptionBool>(global_config, grid_row->config, m_col_data[col_support_material]->key));
-        grid_row->ori_support_material = *(global_config.option<ConfigOptionBool>(m_col_data[col_support_material]->key));
-    }
-    else if (category == L("Bed adhension")) {
+    else if (category == L("Support")) {
+        grid_row->enable_support = *(get_object_config_value<ConfigOptionBool>(global_config, grid_row->config, m_col_data[col_enable_support]->key));
+        grid_row->ori_enable_support = *(global_config.option<ConfigOptionBool>(m_col_data[col_enable_support]->key));
+
         grid_row->brim_type = *(get_object_config_value<ConfigOptionEnum<BrimType>>(global_config, grid_row->config, m_col_data[col_brim_type]->key));
         grid_row->ori_brim_type = *(global_config.option<ConfigOptionEnum<BrimType>>(m_col_data[col_brim_type]->key));
     }
@@ -1772,12 +1778,12 @@ void ObjectGridTable::reload_part_data(ObjectGridRow* volume_row, ObjectGridRow*
     if (category == ObjectGridTable::category_all) {
         volume_row->layer_height = *(get_volume_config_value<ConfigOptionFloat>(global_config, object_row->config, volume_row->config, m_col_data[col_layer_height]->key));
         volume_row->ori_layer_height = object_row->layer_height;
-        volume_row->wall_loops = *(get_volume_config_value<ConfigOptionInt>(global_config, object_row->config, volume_row->config, m_col_data[col_perimeters]->key));
-        volume_row->ori_perimeters = object_row->wall_loops;
+        volume_row->wall_loops = *(get_volume_config_value<ConfigOptionInt>(global_config, object_row->config, volume_row->config, m_col_data[col_wall_loops]->key));
+        volume_row->ori_wall_loops = object_row->wall_loops;
         volume_row->sparse_infill_density = *(get_volume_config_value<ConfigOptionPercent>(global_config, object_row->config, volume_row->config, m_col_data[col_fill_density]->key));
         volume_row->ori_fill_density = object_row->sparse_infill_density;
-        volume_row->enable_support = *(get_volume_config_value<ConfigOptionBool>(global_config, object_row->config, volume_row->config, m_col_data[col_support_material]->key));
-        volume_row->ori_support_material = object_row->enable_support;
+        volume_row->enable_support = *(get_volume_config_value<ConfigOptionBool>(global_config, object_row->config, volume_row->config, m_col_data[col_enable_support]->key));
+        volume_row->ori_enable_support = object_row->enable_support;
         volume_row->brim_type = *(get_volume_config_value<ConfigOptionEnum<BrimType>>(global_config, object_row->config, volume_row->config, m_col_data[col_brim_type]->key));
         volume_row->ori_brim_type = object_row->brim_type;
         volume_row->speed_perimeter = *(get_volume_config_value<ConfigOptionFloat>(global_config, object_row->config, volume_row->config, m_col_data[col_speed_perimeter]->key));
@@ -1790,28 +1796,26 @@ void ObjectGridTable::reload_part_data(ObjectGridRow* volume_row, ObjectGridRow*
         }
         volume_row->ori_layer_height = object_row->layer_height;
     }
-    else if (category == L("Shell")) {
-        volume_row->wall_loops = *(get_volume_config_value<ConfigOptionInt>(global_config, object_row->config, volume_row->config, m_col_data[col_perimeters]->key));
+    else if (category == L("Strength")) {
+        volume_row->wall_loops = *(get_volume_config_value<ConfigOptionInt>(global_config, object_row->config, volume_row->config, m_col_data[col_wall_loops]->key));
         if (volume_row->wall_loops == object_row->wall_loops) {
-            volume_row->config->erase(m_col_data[col_perimeters]->key);
+            volume_row->config->erase(m_col_data[col_wall_loops]->key);
         }
-        volume_row->ori_perimeters = object_row->wall_loops;
-    }
-    else if (category == L("Infill")) {
+        volume_row->ori_wall_loops        = object_row->wall_loops;
+
         volume_row->sparse_infill_density = *(get_volume_config_value<ConfigOptionPercent>(global_config, object_row->config, volume_row->config, m_col_data[col_fill_density]->key));
         if (volume_row->sparse_infill_density == object_row->sparse_infill_density) {
             volume_row->config->erase(m_col_data[col_fill_density]->key);
         }
         volume_row->ori_fill_density = object_row->sparse_infill_density;
     }
-    else if (category == L("Support material")) {
-        volume_row->enable_support = *(get_volume_config_value<ConfigOptionBool>(global_config, object_row->config, volume_row->config, m_col_data[col_support_material]->key));
+    else if (category == L("Support")) {
+        volume_row->enable_support = *(get_volume_config_value<ConfigOptionBool>(global_config, object_row->config, volume_row->config, m_col_data[col_enable_support]->key));
         if (volume_row->enable_support == object_row->enable_support) {
-            volume_row->config->erase(m_col_data[col_support_material]->key);
+            volume_row->config->erase(m_col_data[col_enable_support]->key);
         }
-        volume_row->ori_support_material = object_row->enable_support;
-    }
-    else if (category == L("Bed adhension")) {
+        volume_row->ori_enable_support = object_row->enable_support;
+
         volume_row->brim_type = *(get_volume_config_value<ConfigOptionEnum<BrimType>>(global_config, object_row->config, volume_row->config, m_col_data[col_brim_type]->key));
         if (volume_row->brim_type == object_row->brim_type) {
             volume_row->config->erase(m_col_data[col_brim_type]->key);
@@ -2203,7 +2207,7 @@ void ObjectGridTable::OnSelectCell(int row, int col)
         bool is_object = (grid_row->row_type == row_object);
         ModelObject* object = m_panel->m_model->objects[grid_row->object_id];
 
-        m_panel->m_object_settings->get_og()->set_name(GUI::from_u8(grid_row->name.value));
+        //m_panel->m_object_settings->get_og()->set_name(GUI::from_u8(grid_row->name.value));
         m_panel->m_page_text->SetLabel(GUI::from_u8(grid_row->name.value));
         m_panel->m_object_settings->UpdateAndShow(row, true, is_object, false, object, grid_row->config, grid_col->category);
 
@@ -2244,6 +2248,7 @@ void ObjectGridTable::OnSelectCell(int row, int col)
         wxGetApp().obj_list()->select_items(object_volume_ids);
     }
     m_panel->m_side_window->Layout();
+    m_panel->m_side_window->ShowScrollbars(wxSHOW_SB_NEVER, wxSHOW_SB_ALWAYS);
     m_panel->m_side_window->Thaw();
     m_current_row = row;
     m_current_col = col;
@@ -2381,6 +2386,8 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
     m_side_window->SetBackgroundColour(wxColour(0xff, 0xff, 0xff));
     m_side_window->SetSizer(m_page_sizer);
     m_side_window->SetScrollbars(1, 20, 1, 2);
+    m_side_window->ShowScrollbars(wxSHOW_SB_NEVER, wxSHOW_SB_NEVER);
+    //m_side_window->EnableScrolling(false, true);
     //m_side_window->SetSize(wxSize(128, 512));
     m_page_text = new wxStaticText(m_side_window, wxID_ANY, wxString("Per Object Setting"), wxDefaultPosition, wxSize(-1, 32), wxALIGN_CENTRE_HORIZONTAL|wxST_ELLIPSIZE_END);
     m_page_text->SetMaxSize(wxSize(256, 32));
@@ -2478,7 +2485,7 @@ void ObjectTablePanel::load_data()
     int rows, cols;
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", enter");
-    m_object_grid_table->construct_object_configs();
+    m_object_grid_table->construct_object_configs(m_object_grid);
     m_object_grid->AssignTable(m_object_grid_table);
 
     rows = m_object_grid_table->get_row_count();
@@ -2490,21 +2497,21 @@ void ObjectTablePanel::load_data()
     m_object_grid->SetColLabelValue(ObjectGridTable::col_plate_index, "Plate");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_assemble_name, "Module");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_name, "Name");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_unprintable, "Unprintable");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_unprintable_reset, "");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_printable, "Printable");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_printable_reset, "");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments, "Filaments");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments_reset, "");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height, "Layer height");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_perimeters, "Perimeter");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_perimeters_reset, "");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_wall_loops, "Wall Loops");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_wall_loops_reset, "");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_fill_density, "Infill density(%)");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_fill_density_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_support_material, "Support");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_support_material_reset, "");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_enable_support, "Support");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_enable_support_reset, "");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_brim_type, "Brim");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_brim_type_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_speed_perimeter, "Perimeter speed");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_speed_perimeter, "Inner Wall Speed");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_speed_perimeter_reset, "");
     m_object_grid->SetLabelFont(Label::Body_14); 
 #else
@@ -2529,12 +2536,12 @@ void ObjectTablePanel::load_data()
     //merges
     m_object_grid->SetCellSize(0, ObjectGridTable::col_assemble_name, 1, 1);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_name, 1, 1);
-    m_object_grid->SetCellSize(0, ObjectGridTable::col_unprintable, 1, 2);
+    m_object_grid->SetCellSize(0, ObjectGridTable::col_printable, 1, 2);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_filaments, 1, 2);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_layer_height, 1, 2);
-    m_object_grid->SetCellSize(0, ObjectGridTable::col_perimeters, 1, 2);
+    m_object_grid->SetCellSize(0, ObjectGridTable::col_wall_loops, 1, 2);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_fill_density, 1, 2);
-    m_object_grid->SetCellSize(0, ObjectGridTable::col_support_material, 1, 2);
+    m_object_grid->SetCellSize(0, ObjectGridTable::col_enable_support, 1, 2);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_brim_type, 1, 2);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_speed_perimeter, 1, 2);
 
@@ -2634,28 +2641,29 @@ void ObjectTablePanel::load_data()
     for (int i = 0; i < ObjectGridTable::col_max; i++)
     {
         ObjectGridTable::ObjectGridCol* grid_col = m_object_grid_table->get_grid_col(i);
-        if (grid_col->b_icon) {
+        if (grid_col->size > 0) {
             int fit_size1 = m_object_grid->GetColSize(i);
-            grid_col->size = 32;
-            m_object_grid->SetColSize(i, grid_col->size);
-
-            //adjust the left col
-            int delta = grid_col->size - fit_size1;
-            grid_col = m_object_grid_table->get_grid_col(i - 1);
-            int fit_size2 = m_object_grid->GetColSize(i-1);
-            grid_col->size = fit_size2 - delta;
-            m_object_grid->SetColSize(i-1, grid_col->size);
+            if (grid_col->size < fit_size1)
+                m_object_grid->SetColSize(i, grid_col->size);
         }
+        //else {
+            //adjust the left col
+            //int delta = grid_col->size - fit_size1;
+            //grid_col = m_object_grid_table->get_grid_col(i - 1);
+            //int fit_size2 = m_object_grid->GetColSize(i-1);
+            //grid_col->size = fit_size2 - delta;
+            //m_object_grid->SetColSize(i, grid_col->size);
+        //}
     }
 
     //set col size after fit
-    ObjectGridTable::ObjectGridCol* grid_col = m_object_grid_table->get_grid_col(ObjectGridTable::col_brim_type);
-    grid_col->size = m_object_grid->GetTextExtent(grid_col->choices[4]).x + 30;
+   /* ObjectGridTable::ObjectGridCol* grid_col = m_object_grid_table->get_grid_col(ObjectGridTable::col_brim_type);
+    grid_col->size = m_object_grid->GetTextExtent(grid_col->choices[0]).x + 30;
     m_object_grid->SetColSize(ObjectGridTable::col_brim_type, grid_col->size);
 
     grid_col = m_object_grid_table->get_grid_col(ObjectGridTable::col_filaments);
     grid_col->size = 128;
-    m_object_grid->SetColSize(ObjectGridTable::col_filaments, grid_col->size);
+    m_object_grid->SetColSize(ObjectGridTable::col_filaments, grid_col->size);*/
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", finished, got %1% rows, %2% cols") %m_object_grid_table->GetNumberRows() %m_object_grid_table->GetNumberCols() ;
 }
 
@@ -2862,7 +2870,8 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
     }
     this->SetSize(wxSize(g_dialog_width, g_dialog_height));
     g_dialog_max_width = (panel_size.GetWidth() > g_max_size_from_parent.GetWidth())?g_max_size_from_parent.GetWidth():panel_size.GetWidth();
-    g_dialog_max_height =(panel_size.GetHeight() > g_max_size_from_parent.GetHeight())?g_max_size_from_parent.GetHeight():panel_size.GetHeight();
+    g_dialog_max_height = g_max_size_from_parent.GetHeight();
+    //g_dialog_max_height = (panel_size.GetHeight() > g_max_size_from_parent.GetHeight()) ? g_max_size_from_parent.GetHeight() : panel_size.GetHeight();
     this->SetMaxSize(wxSize(g_dialog_max_width, g_dialog_max_height));
     //m_top_sizer->SetSizeHints(this);
     //this->SetSizer(m_top_sizer);

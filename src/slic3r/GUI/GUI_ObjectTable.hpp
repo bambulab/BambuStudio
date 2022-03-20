@@ -214,19 +214,19 @@ public:
         col_plate_index = 0,
         col_assemble_name = 1,
         col_name = col_assemble_name + 1,
-        col_unprintable = col_name + 1,
-        col_unprintable_reset = col_unprintable + 1,
-        col_filaments = col_unprintable_reset + 1,
+        col_printable = col_name + 1,
+        col_printable_reset = col_printable + 1,
+        col_filaments = col_printable_reset + 1,
         col_filaments_reset = col_filaments + 1,
         col_layer_height = col_filaments_reset + 1,
         col_layer_height_reset = col_layer_height + 1,
-        col_perimeters = col_layer_height_reset + 1,
-        col_perimeters_reset = col_perimeters + 1,
-        col_fill_density = col_perimeters_reset + 1,
+        col_wall_loops = col_layer_height_reset + 1,
+        col_wall_loops_reset = col_wall_loops + 1,
+        col_fill_density = col_wall_loops_reset + 1,
         col_fill_density_reset = col_fill_density + 1,
-        col_support_material = col_fill_density_reset + 1,
-        col_support_material_reset = col_support_material + 1,
-        col_brim_type = col_support_material_reset + 1,
+        col_enable_support = col_fill_density_reset + 1,
+        col_enable_support_reset = col_enable_support + 1,
+        col_brim_type = col_enable_support_reset + 1,
         col_brim_type_reset = col_brim_type + 1,
         col_speed_perimeter = col_brim_type_reset + 1,
         col_speed_perimeter_reset = col_speed_perimeter + 1,
@@ -243,18 +243,18 @@ public:
         ConfigOptionString          ori_assemble_name;
         ConfigOptionString          name;
         ConfigOptionString          ori_name;
-        ConfigOptionBool            unprintable;
-        ConfigOptionBool            ori_unprintable;
+        ConfigOptionBool            printable;
+        ConfigOptionBool            ori_printable;
         ConfigOptionInt             filaments;
         ConfigOptionInt             ori_filaments;
         ConfigOptionFloat           layer_height;
         ConfigOptionFloat           ori_layer_height;
         ConfigOptionInt             wall_loops;
-        ConfigOptionInt             ori_perimeters;
+        ConfigOptionInt             ori_wall_loops;
         ConfigOptionPercent         sparse_infill_density;
         ConfigOptionPercent         ori_fill_density;
         ConfigOptionBool            enable_support;
-        ConfigOptionBool            ori_support_material;
+        ConfigOptionBool            ori_enable_support;
         ConfigOptionEnum<BrimType>  brim_type;
         ConfigOptionEnum<BrimType>  ori_brim_type;
         ConfigOptionFloat           speed_perimeter;
@@ -278,10 +278,10 @@ public:
                     return assemble_name;
                 case col_name:
                     return name;
-                case col_unprintable:
-                    return unprintable;
-                case col_unprintable_reset:
-                    return ori_unprintable;
+                case col_printable:
+                    return printable;
+                case col_printable_reset:
+                    return ori_printable;
                 case col_filaments:
                     return filaments;
                 case col_filaments_reset:
@@ -290,18 +290,18 @@ public:
                     return layer_height;
                 case col_layer_height_reset:
                     return ori_layer_height;
-                case col_perimeters:
+                case col_wall_loops:
                     return wall_loops;
-                case col_perimeters_reset:
-                    return ori_perimeters;
+                case col_wall_loops_reset:
+                    return ori_wall_loops;
                 case col_fill_density:
                     return sparse_infill_density;
                 case col_fill_density_reset:
                     return ori_fill_density;
-                case col_support_material:
+                case col_enable_support:
                     return enable_support;
-                case col_support_material_reset:
-                    return ori_support_material;
+                case col_enable_support_reset:
+                    return ori_enable_support;
                 case col_brim_type:
                     return brim_type;
                 case col_brim_type_reset:
@@ -407,7 +407,7 @@ public:
     int get_col_count() { return m_col_data.size(); }
     ObjectGridCol* get_grid_col(int col) { return m_col_data[col]; }
     ObjectGridRow* get_grid_row(int row) { return m_grid_data[row]; }
-    void construct_object_configs();
+    void           construct_object_configs(ObjectGrid* object_grid);
     void update_value_to_config(ModelConfig* config, std::string& key, ConfigOption& new_value,  ConfigOption& ori_value);
     void update_filament_to_config(ModelConfig* config, std::string& key, ConfigOption& new_value,  ConfigOption& ori_value, bool is_object);
     void update_volume_values_from_object(int row, int col);
@@ -445,7 +445,7 @@ private:
 
     int m_sort_col{ -1 };
 
-    void init_cols();
+    void init_cols(ObjectGrid *object_grid);
     //generic function for sort row datas
     void sort_row_data(compare_row_func sort_func);
     //update the row properties for the data has been sorted
