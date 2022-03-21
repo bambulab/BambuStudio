@@ -3108,7 +3108,7 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 		if (with_gcode) {
             if (m_plate_list[i]->get_slice_result() && m_plate_list[i]->is_slice_result_valid()) {
                 // BBS only include current palte_idx
-                if (plate_idx == i) {
+                if (plate_idx == i || plate_idx == -1) {
                     plate_data_item->gcode_file       = m_plate_list[i]->m_gcode_result->filename;
                     plate_data_item->is_sliced_valid  = true;
                     plate_data_item->gcode_prediction = std::to_string(
