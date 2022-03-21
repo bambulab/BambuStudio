@@ -68,7 +68,7 @@
     "support_on_build_plate_only": "0",
     "support_material_enforce_layers": "0",
     "support_top_z_distance": "0.15",
-    "support_material_interface_contact_loops": "0",
+    "support_interface_loop_pattern": "0",
     "support_interface_top_layers": "2",
     "support_interface_spacing": "0",
     "support_interface_speed": "50%",

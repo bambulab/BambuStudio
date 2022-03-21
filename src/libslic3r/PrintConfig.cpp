@@ -2279,12 +2279,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloatOrPercent(0.6, false));
 
-    def = this->add("support_material_interface_contact_loops", coBool);
-    def->label = L("Interface loops");
+    def = this->add("support_interface_loop_pattern", coBool);
+    def->label = L("Interface loop pattern");
     def->category = L("Support material");
     def->tooltip = L("Cover the top contact layer of the supports with loops. Disabled by default.");
     //BBS
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("support_material_interface_extruder", coInt);

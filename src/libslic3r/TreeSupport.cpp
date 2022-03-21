@@ -1300,6 +1300,7 @@ void TreeSupport::generate_toolpaths()
 
     const size_t wall_count = object_config.tree_support_wall_count.value;
     const bool with_infill = object_config.tree_support_with_infill.value;
+    const bool contact_loops = object_config.support_interface_loop_pattern.value;
     auto m_support_material_flow = support_material_flow(m_object, float(m_slicing_params.layer_height));
 
     // coconut: use same intensity settings as SupportMaterial.cpp
@@ -1467,8 +1468,14 @@ void TreeSupport::generate_toolpaths()
                         // roof_areas
                         fill_params.density = interface_density;
                         filler_interface->spacing = m_support_material_interface_flow.spacing();
-                        fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys),
-                            filler_interface, fill_params, erSupportMaterialInterface, m_support_material_interface_flow);
+                        if (contact_loops) {
+                            make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object->print(), poly,
+                                std::numeric_limits<size_t>::max(), m_support_material_interface_flow, true);
+                        }
+                        else {
+                            fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys),
+                                filler_interface, fill_params, erSupportMaterialInterface, m_support_material_interface_flow);
+                        }
                     }
                     else {
                         // base_areas

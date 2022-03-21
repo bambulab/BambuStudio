@@ -1789,7 +1789,7 @@ void TabPrint::build()
         //optgroup->append_single_option_line("support_material_pattern");
         optgroup->append_single_option_line("support_interface_spacing");
         optgroup->append_single_option_line("support_material_bottom_interface_spacing");
-        //optgroup->append_single_option_line("support_material_interface_contact_loops");
+        optgroup->append_single_option_line("support_interface_loop_pattern");
         
         optgroup->append_single_option_line("support_object_xy_distance");
         optgroup->append_single_option_line("bridge_no_support");

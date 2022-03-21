@@ -162,7 +162,7 @@ public:
 	bool 		build_plate_only() 			const { return this->has_support() && m_object_config->support_on_build_plate_only.value; }
 	// BBS
 	bool 		synchronize_layers()		const { return m_slicing_params.soluble_interface && !m_object_config->independent_support_layer_height.value; }
-	bool 		has_contact_loops() 		const { return m_object_config->support_material_interface_contact_loops.value; }
+	bool 		has_contact_loops() 		const { return m_object_config->support_interface_loop_pattern.value; }
 
 	// Generate support material for the object.
 	// New support layers will be added to the object,

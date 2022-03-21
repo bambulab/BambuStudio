@@ -538,7 +538,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                 support_material_enforce_layers))
     ((ConfigOptionInt,                 support_material_extruder))
     ((ConfigOptionFloatOrPercent,      support_line_width))
-    ((ConfigOptionBool,                support_material_interface_contact_loops))
+    ((ConfigOptionBool,                support_interface_loop_pattern))
     ((ConfigOptionInt,                 support_material_interface_extruder))
     ((ConfigOptionInt,                 support_interface_top_layers))
     ((ConfigOptionInt,                 support_interface_bottom_layers))

@@ -640,7 +640,7 @@ static std::vector<std::string> s_Preset_print_options {
     "raft_layers", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
     "support_base_pattern", "support_material_with_sheath", "support_base_pattern_spacing", "support_material_closing_radius", "support_material_style",
     "independent_support_layer_height", "support_material_angle", "support_interface_top_layers", "support_interface_bottom_layers",
-    "support_material_pattern", "support_interface_spacing", "support_material_interface_contact_loops", 
+    "support_material_pattern", "support_interface_spacing", "support_interface_loop_pattern", 
     "support_top_z_distance", "support_bottom_z_distance",
     "support_on_build_plate_only", "bridge_no_support", "thick_bridges", "print_sequence", "extruder_clearance_radius",
     "gcode_label_objects", "filename_format", "perimeter_extruder",
