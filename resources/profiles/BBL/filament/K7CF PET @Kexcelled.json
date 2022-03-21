@@ -30,5 +30,8 @@
     ],
     "slow_down_layer_time": [
         "2"
+    ],
+    "filament_start_gcode": [
+        "; Filament gcode\n"
     ]
 }
