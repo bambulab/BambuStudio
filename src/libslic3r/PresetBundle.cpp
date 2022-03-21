@@ -145,8 +145,10 @@ void PresetBundle::reset(bool delete_files)
     this->filaments    .reset(delete_files);
     this->sla_materials.reset(delete_files);
     this->printers     .reset(delete_files);
-    this->filament_presets.clear();
-    this->filament_presets.emplace_back(this->filaments.get_selected_preset_name());
+    // BBS: filament_presets is load from project config, not handled here
+    //this->filament_presets.clear();
+    if (this->filament_presets.empty())
+        this->filament_presets.emplace_back(this->filaments.get_selected_preset_name());
     this->obsolete_presets.prints.clear();
     this->obsolete_presets.sla_prints.clear();
     this->obsolete_presets.filaments.clear();
