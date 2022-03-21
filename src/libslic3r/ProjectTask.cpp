@@ -86,32 +86,7 @@ namespace Slic3r {
     int BBLSubTask::parse_content_json(std::string json_str)
     {
         try {
-            json j = json::parse(json_str);
-
-            if (j.contains("info") && !j["info"].is_null()) {
-                
-                if (j["info"].contains("name") && !j["info"]["name"].is_null())
-                    task_name = j["info"]["name"].get<std::string>();
-                if (j["info"].contains("plate_idx") && !j["info"]["plate_idx"].is_null())
-                    task_partplate_idx = j["info"]["plate_idx"].get<std::string>();
-
-                if (j["info"].contains("printer") && !j["info"]["printer"].is_null())
-                    task_printer_dev_id = j["info"]["printer"].get<std::string>();
-
-                if (j["info"].contains("bed_type") && !j["info"]["bed_type"].is_null())
-                    task_bed_type = j["info"]["bed_type"].get<std::string>();
-
-                if (j["info"].contains("bed_leveling") && !j["info"]["bed_leveling"].is_null())
-                    task_bed_leveling = j["info"]["bed_leveling"].get<bool>();
-
-                if (j["info"].contains("flow_cali") && !j["info"]["flow_cali"].is_null())
-                    task_flow_cali = j["info"]["flow_cali"].get<bool>();
-
-                if (j["info"].contains("vibration_cali") && !j["info"]["vibration_cali"].is_null())
-                    task_vabration_cali = j["info"]["vibration_cali"].get<bool>();
-
-                return 0;
-            }
+            ;
         }
         catch (...) {
             BOOST_LOG_TRIVIAL(trace) << "parse_content_json failed! json=" << json_str;
