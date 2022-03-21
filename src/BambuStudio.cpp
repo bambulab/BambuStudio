@@ -803,6 +803,16 @@ int CLI::run(int argc, char **argv)
             // do not inflate brim_width. Objects are allowed to have overlapped brim.
             std::for_each(selected.begin(), selected.end(), [&](auto& ap) {ap.inflation = arrange_cfg.min_obj_distance / 2; });
 
+            {
+                BOOST_LOG_TRIVIAL(info) << "items selected before arranging: ";
+                for (auto selected : selected)
+                    BOOST_LOG_TRIVIAL(info) << selected.name << ", extruder: " << selected.extrude_id << ", bed: " << selected.bed_idx
+                                            << ", trans: " << selected.translation.transpose();
+            }
+            arrange_cfg.progressind= [](unsigned st, std::string str = "") {
+                boost::nowide::cout << "st=" << st << ", " << str << std::endl;
+            };
+
             //Step-3:do the arrange
             arrangement::arrange(selected, unselected, beds, arrange_cfg);
             arrangement::arrange(unprintable, {}, beds, arrange_cfg);

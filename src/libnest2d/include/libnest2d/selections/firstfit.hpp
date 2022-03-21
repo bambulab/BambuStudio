@@ -115,7 +115,8 @@ public:
                     score_all_plates = std::accumulate(placers.begin(), placers.begin() + j, score,
                         [](double sum, const Placer& elem) { return sum + elem.score(); });
 
-                    this->unfitindicator_(it->get().name + " j="+std::to_string(j) + ",score=" + std::to_string(score)+", score_all_plates"+std::to_string(score_all_plates));
+                    if(this->unfitindicator_)
+                        this->unfitindicator_(it->get().name + " j="+std::to_string(j) + ",score=" + std::to_string(score)+", score_all_plates"+std::to_string(score_all_plates));
 
                     if(score >= 0 && score < LARGE_COST_TO_REJECT) {
                         if (bed_id_firstfit == -1) {
@@ -134,7 +135,8 @@ public:
                     // item is not fit because we have tried all possible plates to find a good enough fit
                     if (bed_id_firstfit == MAX_NUM_PLATES) {
                         it->get().binId(BIN_ID_UNFIT);
-                        this->unfitindicator_(it->get().name + " bed_id_firstfit == MAX_NUM_PLATES" + ",best_score=" + std::to_string(best_score));
+                        if (this->unfitindicator_)
+                            this->unfitindicator_(it->get().name + " bed_id_firstfit == MAX_NUM_PLATES" + ",best_score=" + std::to_string(best_score));
                         break;
                     }
                     else {
