@@ -1547,6 +1547,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
             // and export G-code into file.
             this->process_layers(print, tool_ordering, collect_layers_to_print(object), *print_object_instance_sequential_active - object.instances().data(), file, prime_extruder);
+            //BBS: close spaghetti detector after printing last layer of object
+            if (print.config().spaghetti_detector.value) {
+                //BBS: don't need to close if the object has only one layer. Because spaghetti detector has not been opened in this case.
+                if (m_second_layer_things_done) {
+                    file.write(";close spaghetti detector\n");
+                    file.write("M981 S0 P20000\n");
+                }
+            }
 #ifdef HAS_PRESSURE_EQUALIZER
             if (m_pressure_equalizer)
                 file.write(m_pressure_equalizer->process("", true));
@@ -1608,6 +1616,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
         // and export G-code into file.
         this->process_layers(print, tool_ordering, print_object_instances_ordering, layers_to_print, file);
+        //BBS: close spaghetti detector after printing last layer of object
+        if (print.config().spaghetti_detector.value) {
+            //BBS: don't need to close if the object has only one layer. Because spaghetti detector has not been opened in this case.
+            if (m_second_layer_things_done) {
+                file.write(";close spaghetti detector\n");
+                file.write("M981 S0 P20000\n");
+            }
+        }
 #ifdef HAS_PRESSURE_EQUALIZER
         if (m_pressure_equalizer)
             file.write(m_pressure_equalizer->process("", true));
@@ -2792,23 +2808,6 @@ GCode::LayerResult GCode::process_layer(
             gcode += ";scan bed after print first layer\n";
             gcode += "M976 S1 P1\nM400 S5\n";
             gcode += this->unretract();
-        }
-    }
-    //BBS: close spaghetti detector after printing last layer of object
-    if (print.config().spaghetti_detector.value) {
-        //BBS: don't need to close if the object has only one layer.
-        //by object mode has different judgement for last layer
-        if (print.config().print_sequence == PrintSequence::ByObject) {
-            const PrintObject* object = layer.object();
-            if (!first_layer && object && (object->layer_count() == layer.id() + 1)) {
-                gcode += ";close spaghetti detector\n";
-                gcode += "M981 S0 P20000\n";
-            }
-        } else {
-            if (!first_layer && last_layer) {
-                gcode += ";close spaghetti detector\n";
-                gcode += "M981 S0 P20000\n";
-            }
         }
     }
 
