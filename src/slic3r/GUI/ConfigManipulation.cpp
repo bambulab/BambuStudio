@@ -352,7 +352,7 @@ void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::
 void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
 {
     bool have_perimeters = config->opt_int("wall_loops") > 0;
-    for (auto el : { "extra_perimeters", "detect_thin_wall", "detect_overhang_wall",
+    for (auto el : { "detect_thin_wall", "detect_overhang_wall",
                     "seam_position", "wall_infill_order", "outer_wall_line_width",
                     "inner_wall_speed", "small_perimeter_speed", "outer_wall_speed" })
         toggle_field(el, have_perimeters);
@@ -410,10 +410,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     SupportType support_type = config->opt_enum<SupportType>("support_type");
     bool have_support_interface = config->opt_int("support_interface_top_layers") > 0 || config->opt_int("support_interface_bottom_layers") > 0;
     bool have_support_soluble = have_support_material && config->opt_float("support_top_z_distance") == 0;
-    auto support_material_style = config->opt_enum<SupportMaterialStyle>("support_material_style");
-    for (auto el : { "support_material_style", "support_base_pattern", "support_material_with_sheath",
+    auto support_style = config->opt_enum<SupportMaterialStyle>("support_style");
+    for (auto el : { "support_style", "support_base_pattern", "support_with_sheath",
                     "support_base_pattern_spacing", "support_material_angle", 
-                    "support_material_pattern", "support_interface_top_layers", "support_interface_bottom_layers",
+                    "support_interface_pattern", "support_interface_top_layers", "support_interface_bottom_layers",
                     "bridge_no_support", "support_line_width", "support_top_z_distance",
                      //BBS: add more support params to dependent of enable_support
                     "support_sharp_tails","remove_small_overhangs","support_type","support_on_build_plate_only",
@@ -421,7 +421,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
         toggle_field(el, have_support_material);
     toggle_field("support_threshold_angle", have_support_material && (support_type == stNormalAuto || support_type == stTreeAuto || support_type==stHybridAuto));
     toggle_field("support_bottom_z_distance", have_support_material && ! have_support_soluble);
-    toggle_field("support_material_closing_radius", have_support_material && support_material_style == smsSnug);
+    toggle_field("support_closing_radius", have_support_material && support_style == smsSnug);
 
     for (auto el : { "tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter",
                     "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_wall_count", "tree_support_with_infill" })
@@ -429,7 +429,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
 
     for (auto el : { "support_interface_spacing", "support_material_interface_extruder",
                     "support_interface_speed", "support_interface_loop_pattern",
-                    "support_transition_speed","support_material_bottom_interface_spacing" })
+                    "support_transition_speed","support_bottom_interface_spacing" })
         toggle_field(el, have_support_material && have_support_interface);
 
     // BBS

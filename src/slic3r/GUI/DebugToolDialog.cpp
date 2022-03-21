@@ -1636,7 +1636,7 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
     dyn_config.set_key_value("second_flush_volume", new ConfigOptionFloat(5.f));
 
     try {
-        std::string parsed_command = m_placeholder_parser.process(print_config.tool_change_gcode.value, std::stoi(t.c_str()), &dyn_config, &m_placeholder_parser_context);
+        std::string parsed_command = m_placeholder_parser.process(print_config.change_filament_gcode.value, std::stoi(t.c_str()), &dyn_config, &m_placeholder_parser_context);
         // config xyz coordinate mode
         std::string auto_home_command = cbox_ams_auto_home->GetValue() ? "G28 X\n" : "";
         parsed_command = "G90\n" + auto_home_command + parsed_command;

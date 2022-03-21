@@ -82,7 +82,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "extruder_clearance_radius",
         "extruder_colour",
         "extruder_offset",
-        "extrusion_multiplier",
+        "filament_flow_ratio",
         "reduce_fan_stop_start_freq",
         "fan_cooling_layer_time",
         "full_fan_speed_layer",
@@ -123,7 +123,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "standby_temperature_delta",
         "machine_start_gcode",
         "filament_start_gcode",
-        "tool_change_gcode",
+        "change_filament_gcode",
         "wipe",
         // BBS
         "wipe_distance",
@@ -175,7 +175,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "enable_prime_tower"
             || opt_key == "prime_tower_width"
             || opt_key == "wipe_tower_brim_width"
-            || opt_key == "wipe_tower_bridging"
+            //|| opt_key == "wipe_tower_bridging"
             || opt_key == "wipe_tower_no_sparse_layers"
             || opt_key == "flush_volumes_matrix"
             // BBS

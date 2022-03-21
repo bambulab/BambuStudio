@@ -384,14 +384,14 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     }
 
     SupportMaterialPattern  support_pattern = m_object_config->support_base_pattern;
-    m_support_params.with_sheath            = m_object_config->support_material_with_sheath;
+    m_support_params.with_sheath            = m_object_config->support_with_sheath;
     m_support_params.base_fill_pattern      = 
         support_pattern == smpHoneycomb ? ipHoneycomb :
         m_support_params.support_density > 0.95 || m_support_params.with_sheath ? ipRectilinear : ipSupportBase;
     m_support_params.interface_fill_pattern = (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
     m_support_params.contact_fill_pattern   =
-        (m_object_config->support_material_pattern == smipAuto && m_slicing_params.soluble_interface) ||
-        m_object_config->support_material_pattern == smipConcentric ?
+        (m_object_config->support_interface_pattern == smipAuto && m_slicing_params.soluble_interface) ||
+        m_object_config->support_interface_pattern == smipConcentric ?
         ipConcentric :
         (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
 }
@@ -725,11 +725,11 @@ Polygons collect_slices_outer(const Layer &layer)
 
 struct SupportGridParams {
     SupportGridParams(const PrintObjectConfig &object_config, const Flow &support_material_flow) :
-        style(object_config.support_material_style.value),
+        style(object_config.support_style.value),
         grid_resolution(object_config.support_base_pattern_spacing.value + support_material_flow.spacing()),
         support_angle(Geometry::deg2rad(object_config.support_material_angle.value)),
         extrusion_width(support_material_flow.spacing()),
-        support_material_closing_radius(object_config.support_material_closing_radius.value),
+        support_closing_radius(object_config.support_closing_radius.value),
         expansion_to_slice(coord_t(support_material_flow.scaled_spacing() / 2 + 5)),
         expansion_to_propagate(-3) {}
 
@@ -737,7 +737,7 @@ struct SupportGridParams {
     double                  grid_resolution;
     double                  support_angle;
     double                  extrusion_width;
-    double                  support_material_closing_radius;
+    double                  support_closing_radius;
     coord_t                 expansion_to_slice;
     coord_t                 expansion_to_propagate;
 };
@@ -755,7 +755,7 @@ public:
         m_support_polygons(support_polygons), m_trimming_polygons(trimming_polygons),
         m_support_spacing(params.grid_resolution), m_support_angle(params.support_angle),
         m_extrusion_width(params.extrusion_width),
-        m_support_material_closing_radius(params.support_material_closing_radius)
+        m_support_material_closing_radius(params.support_closing_radius)
     {
         switch (m_style) {
         case smsGrid:
@@ -1824,7 +1824,7 @@ static inline void fill_contact_layer(
 #endif // SLIC3R_DEBUG
         ));
     // 2) infill polygons, expand them by half the extrusion width + a tiny bit of extra.
-    bool reduce_interfaces = object_config.support_material_style.value != smsSnug && layer_id > 0 && !slicing_params.soluble_interface;
+    bool reduce_interfaces = object_config.support_style.value != smsSnug && layer_id > 0 && !slicing_params.soluble_interface;
     if (reduce_interfaces) {
         // Reduce the amount of dense interfaces: Do not generate dense interfaces below overhangs with 60% overhang of the extrusions.
         Polygons dense_interface_polygons = diff(overhang_polygons, lower_layer_polygons_for_dense_interface());
@@ -3110,7 +3110,7 @@ std::pair<PrintObjectSupportMaterial::MyLayersPtr, PrintObjectSupportMaterial::M
         m_object_config->support_material_interface_extruder.value > 0 && m_print_config->filament_soluble.get_at(m_object_config->support_material_interface_extruder.value - 1) && 
         // Base extruder: Either "print with active extruder" not soluble.
         (m_object_config->support_material_extruder.value == 0 || ! m_print_config->filament_soluble.get_at(m_object_config->support_material_extruder.value - 1));
-    bool   snug_supports                 = m_object_config->support_material_style.value == smsSnug;
+    bool   snug_supports                 = m_object_config->support_style.value == smsSnug;
     int num_interface_layers_top         = m_object_config->support_interface_top_layers;
     int num_interface_layers_bottom      = m_object_config->support_interface_bottom_layers;
     if (num_interface_layers_bottom < 0)
@@ -3131,7 +3131,7 @@ std::pair<PrintObjectSupportMaterial::MyLayersPtr, PrintObjectSupportMaterial::M
             base_interface_layers.assign(intermediate_layers.size(), nullptr);
         auto smoothing_distance              = m_support_params.support_material_interface_flow.scaled_spacing() * 1.5;
         auto minimum_island_radius           = m_support_params.support_material_interface_flow.scaled_spacing() / m_support_params.interface_density;
-        auto closing_distance                = smoothing_distance; // scaled<float>(m_object_config->support_material_closing_radius.value);
+        auto closing_distance                = smoothing_distance; // scaled<float>(m_object_config->support_closing_radius.value);
         tbb::spin_mutex layer_storage_mutex;
         // Insert a new layer into base_interface_layers, if intersection with base exists.
         auto insert_layer = [&layer_storage, &layer_storage_mutex, snug_supports, closing_distance, smoothing_distance, minimum_island_radius](
@@ -4100,7 +4100,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         {
             SupportLayer &support_layer = *support_layers[support_layer_id];
             LayerCache   &layer_cache   = layer_caches[support_layer_id];
-            float         interface_angle_delta = m_object_config->support_material_style.value == smsSnug ? 
+            float         interface_angle_delta = m_object_config->support_style.value == smsSnug ? 
                 (support_layer.interface_id() & 1) ? float(- M_PI / 4.) : float(+ M_PI / 4.) :
                 0;
 

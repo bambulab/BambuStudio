@@ -106,7 +106,7 @@
         "60"
     ],
     "single_extruder_multi_material": "0",
-    "tool_change_gcode": "",
+    "change_filament_gcode": "",
     "wipe": [
         "1"
     ],

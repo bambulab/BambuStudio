@@ -46,7 +46,7 @@ public:
     double filament_crossection() const { return this->filament_diameter() * this->filament_diameter() * 0.25 * PI; }
     double filament_density() const;
     double filament_cost() const;
-    double extrusion_multiplier() const;
+    double filament_flow_ratio() const;
     double retract_before_wipe() const;
     double retraction_length() const;
     double retract_lift() const;

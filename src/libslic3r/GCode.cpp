@@ -303,12 +303,12 @@ namespace Slic3r {
         std::string toolchange_retract_str = gcodegen.retract(true);
         check_add_eol(toolchange_retract_str);
 
-        // Process the custom tool_change_gcode. If it is empty, provide a simple Tn command to change the filament.
+        // Process the custom change_filament_gcode. If it is empty, provide a simple Tn command to change the filament.
         // Otherwise, leave control to the user completely.
         std::string toolchange_gcode_str;
-        const std::string& tool_change_gcode = gcodegen.config().tool_change_gcode.value;
+        const std::string& change_filament_gcode = gcodegen.config().change_filament_gcode.value;
 //        m_max_layer_z = std::max(m_max_layer_z, tcr.print_z);
-        if (! tool_change_gcode.empty()) {
+        if (! change_filament_gcode.empty()) {
             DynamicConfig config;
             int previous_extruder_id = gcodegen.writer().extruder() ? (int)gcodegen.writer().extruder()->id() : -1;
             config.set_key_value("previous_extruder", new ConfigOptionInt(previous_extruder_id));
@@ -355,12 +355,12 @@ namespace Slic3r {
                 config.set_key_value("first_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
                 config.set_key_value("second_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
             }
-            toolchange_gcode_str = gcodegen.placeholder_parser_process("tool_change_gcode", tool_change_gcode, new_extruder_id, &config);
+            toolchange_gcode_str = gcodegen.placeholder_parser_process("change_filament_gcode", change_filament_gcode, new_extruder_id, &config);
             check_add_eol(toolchange_gcode_str);
 
             // retract before toolchange
             toolchange_gcode_str = toolchange_retract_str + toolchange_gcode_str;
-            //BBS: current position is unclear after interting tool_change_gcode
+            //BBS: current position is unclear after interting change_filament_gcode
             gcodegen.writer().set_current_position_clear(false);
 
             // move to start_pos for wiping after toolchange
@@ -399,7 +399,7 @@ namespace Slic3r {
         // Insert the end filament, toolchange, and start filament gcode into the generated gcode.
         DynamicConfig config;
         config.set_key_value("filament_end_gcode", new ConfigOptionString(end_filament_gcode_str));
-        config.set_key_value("tool_change_gcode", new ConfigOptionString(toolchange_gcode_str));
+        config.set_key_value("change_filament_gcode", new ConfigOptionString(toolchange_gcode_str));
         config.set_key_value("filament_start_gcode", new ConfigOptionString(start_filament_gcode_str));
         std::string tcr_gcode, tcr_escaped_gcode = gcodegen.placeholder_parser_process("tcr_rotated_gcode", tcr_rotated_gcode, new_extruder_id, &config);
         unescape_string_cstyle(tcr_escaped_gcode, tcr_gcode);
@@ -488,7 +488,7 @@ namespace Slic3r {
             gcode_out += line + "\n";
 
             // If this was a toolchange command, we should change current extruder offset
-            if (line == "[tool_change_gcode]") {
+            if (line == "[change_filament_gcode]") {
                 // BBS
                 if (!m_single_extruder_multi_material) {
                     extruder_offset = m_extruder_offsets[tcr.new_tool].cast<float>();
@@ -813,7 +813,7 @@ namespace DoExport {
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("End G-code")), config.machine_end_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Before layer change G-code")), config.before_layer_change_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("After layer change G-code")), config.layer_change_gcode.value);
-        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Tool change G-code")), config.tool_change_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Tool change G-code")), config.change_filament_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Between objects G-code (for sequential printing)")), config.printing_by_object_gcode.value);
         //BBS
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Color Change G-code")), config.color_change_gcode.value);
@@ -3803,11 +3803,11 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     dyn_config.set_key_value("first_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
     dyn_config.set_key_value("second_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
 
-    // Process the custom tool_change_gcode.
-    const std::string& tool_change_gcode = m_config.tool_change_gcode.value;
+    // Process the custom change_filament_gcode.
+    const std::string& change_filament_gcode = m_config.change_filament_gcode.value;
     std::string toolchange_gcode_parsed;
-    if (!tool_change_gcode.empty()) {
-        toolchange_gcode_parsed = placeholder_parser_process("tool_change_gcode", tool_change_gcode, extruder_id, &dyn_config);
+    if (!change_filament_gcode.empty()) {
+        toolchange_gcode_parsed = placeholder_parser_process("change_filament_gcode", change_filament_gcode, extruder_id, &dyn_config);
         gcode += toolchange_gcode_parsed;
         check_add_eol(gcode);
     }

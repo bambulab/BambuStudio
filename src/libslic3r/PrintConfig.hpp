@@ -32,7 +32,7 @@
 namespace Slic3r {
 
 enum GCodeFlavor : unsigned char {
-    gcfRepRapSprinter, gcfRepRapFirmware, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlinLegacy, gcfMarlinFirmware, gcfSailfish, gcfMach3, gcfMachinekit,
+    gcfMarlinLegacy, gcfRepRapSprinter, gcfRepRapFirmware, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlinFirmware, gcfSailfish, gcfMach3, gcfMachinekit,
     gcfSmoothie, gcfNoExtrusion,
 };
 
@@ -515,7 +515,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Force the generation of solid shells between adjacent materials/volumes.
     ((ConfigOptionBool,                interface_shells))
     ((ConfigOptionFloat,               layer_height))
-    ((ConfigOptionFloat,               mmu_segmented_region_max_width))
     ((ConfigOptionFloat,               raft_contact_distance))
     ((ConfigOptionFloat,               raft_expansion))
     ((ConfigOptionPercent,             raft_first_layer_density))
@@ -546,18 +545,18 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               support_interface_spacing))
     ((ConfigOptionFloatOrPercent,      support_interface_speed))
     ((ConfigOptionEnum<SupportMaterialPattern>, support_base_pattern))
-    ((ConfigOptionEnum<SupportMaterialInterfacePattern>, support_material_pattern))
+    ((ConfigOptionEnum<SupportMaterialInterfacePattern>, support_interface_pattern))
     // Morphological closing of support areas. Only used for "sung" supports.
-    ((ConfigOptionFloat,               support_material_closing_radius))
+    ((ConfigOptionFloat,               support_closing_radius))
     // Spacing between support material lines (the hatching distance).
     ((ConfigOptionFloat,               support_base_pattern_spacing))
     ((ConfigOptionFloat,               support_speed))
-    ((ConfigOptionEnum<SupportMaterialStyle>, support_material_style))
+    ((ConfigOptionEnum<SupportMaterialStyle>, support_style))
     // BBS
     ((ConfigOptionBool,                independent_support_layer_height))
     // Overhang angle threshold.
     ((ConfigOptionInt,                 support_threshold_angle))
-    ((ConfigOptionBool,                support_material_with_sheath))
+    ((ConfigOptionBool,                support_with_sheath))
     ((ConfigOptionFloatOrPercent,      support_object_xy_distance))
     ((ConfigOptionBool,                thick_bridges))
     ((ConfigOptionFloat,               xy_hole_compensation))
@@ -576,7 +575,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,               adaptive_layer_height))
     ((ConfigOptionFloatOrPercent,     support_transition_line_width))
     ((ConfigOptionFloatOrPercent,     support_transition_speed))
-    ((ConfigOptionFloat,              support_material_bottom_interface_spacing))
+    ((ConfigOptionFloat,              support_bottom_interface_spacing))
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.
@@ -591,7 +590,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<InfillPattern>,  bottom_surface_pattern))
     ((ConfigOptionFloatOrPercent,       outer_wall_line_width))
     ((ConfigOptionFloatOrPercent,       outer_wall_speed))
-    ((ConfigOptionBool,                 extra_perimeters))
     ((ConfigOptionFloat,                infill_direction))
     ((ConfigOptionPercent,              sparse_infill_density))
     ((ConfigOptionEnum<InfillPattern>,  sparse_infill_pattern))
@@ -680,7 +678,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                enable_arc_fitting))
     ((ConfigOptionString,              machine_end_gcode))
     ((ConfigOptionStrings,             filament_end_gcode))
-    ((ConfigOptionFloats,              extrusion_multiplier))
+    ((ConfigOptionFloats,              filament_flow_ratio))
     ((ConfigOptionFloats,              filament_diameter))
     ((ConfigOptionFloats,              filament_density))
     ((ConfigOptionStrings,             filament_type))
@@ -721,7 +719,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                single_extruder_multi_material))
     ((ConfigOptionBool,                single_extruder_multi_material_priming))
     ((ConfigOptionBool,                wipe_tower_no_sparse_layers))
-    ((ConfigOptionString,              tool_change_gcode))
+    ((ConfigOptionString,              change_filament_gcode))
     ((ConfigOptionFloat,               travel_speed))
     ((ConfigOptionFloat,               travel_speed_z))
     ((ConfigOptionBool,                silent_mode))
@@ -799,7 +797,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              wipe_tower_per_color_wipe))
     ((ConfigOptionFloat,              wipe_tower_rotation_angle))
     ((ConfigOptionFloat,              wipe_tower_brim_width))
-    ((ConfigOptionFloat,              wipe_tower_bridging))
+    //((ConfigOptionFloat,              wipe_tower_bridging))
     ((ConfigOptionFloats,             flush_volumes_matrix))
     ((ConfigOptionFloats,             flush_volumes_vector))
     // BBS: wipe tower is only used for priming

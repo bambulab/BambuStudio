@@ -100,7 +100,8 @@ void Layer::restore_untyped_slices_no_extra_perimeters()
 {
     if (layer_needs_raw_backup(this)) {
         for (LayerRegion *layerm : m_regions)
-        	if (! layerm->region().config().extra_perimeters.value)
+            //BBS: remove extra_perimeters. Always false
+        	//if (! layerm->region().config().extra_perimeters.value)
             	layerm->slices.set(layerm->raw_slices, stInternal);
     } else {
     	assert(m_regions.size() == 1);

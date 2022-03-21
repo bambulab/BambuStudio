@@ -135,7 +135,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
     // Current filament values
     double filament_diameter                = filament_config.opt_float("filament_diameter", 0);
     double filament_crossection             = M_PI * 0.25 * filament_diameter * filament_diameter;
-    // double extrusion_multiplier             = filament_config.opt_float("extrusion_multiplier", 0);
+    // double filament_flow_ratio             = filament_config.opt_float("filament_flow_ratio", 0);
     // The following value will be annotated by this hint, so it does not take part in the calculation.
 //    double filament_max_volumetric_speed    = filament_config.opt_float("filament_max_volumetric_speed", 0);
 

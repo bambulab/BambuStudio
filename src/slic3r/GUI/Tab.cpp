@@ -1770,7 +1770,7 @@ void TabPrint::build()
         //optgroup->append_single_option_line("tree_support_branch_diameter_angle");
         //optgroup->append_single_option_line("tree_support_collision_resolution");
         //optgroup = page->new_optgroup(L("Options for support material and raft"));
-        //optgroup->append_single_option_line("support_material_style");
+        //optgroup->append_single_option_line("support_style");
 
         //BBS
         optgroup = page->new_optgroup(L("Advanced"));
@@ -1780,15 +1780,15 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_top_z_distance");
         //optgroup->append_single_option_line("support_bottom_z_distance");
         optgroup->append_single_option_line("support_base_pattern");
-        //optgroup->append_single_option_line("support_material_with_sheath");
+        //optgroup->append_single_option_line("support_with_sheath");
         optgroup->append_single_option_line("support_base_pattern_spacing");
         //optgroup->append_single_option_line("support_material_angle");
-        //optgroup->append_single_option_line("support_material_closing_radius");
+        //optgroup->append_single_option_line("support_closing_radius");
         optgroup->append_single_option_line("support_interface_top_layers");
         optgroup->append_single_option_line("support_interface_bottom_layers");
-        //optgroup->append_single_option_line("support_material_pattern");
+        //optgroup->append_single_option_line("support_interface_pattern");
         optgroup->append_single_option_line("support_interface_spacing");
-        optgroup->append_single_option_line("support_material_bottom_interface_spacing");
+        optgroup->append_single_option_line("support_bottom_interface_spacing");
         optgroup->append_single_option_line("support_interface_loop_pattern");
         
         optgroup->append_single_option_line("support_object_xy_distance");
@@ -2373,7 +2373,7 @@ void TabFilament::build()
         // BBS
         //optgroup->append_single_option_line("filament_colour");
         optgroup->append_single_option_line("filament_diameter");
-        optgroup->append_single_option_line("extrusion_multiplier");
+        optgroup->append_single_option_line("filament_flow_ratio");
         optgroup->append_single_option_line("filament_density");
         optgroup->append_single_option_line("filament_cost");
         //BBS
@@ -2421,15 +2421,15 @@ void TabFilament::build()
         };
 
         //BBS
-        optgroup = page->new_optgroup(L("Print speed override"));
-        optgroup->append_single_option_line("filament_max_volumetric_speed", "max-volumetric-speed_127176");
+        optgroup = page->new_optgroup(L("Volumetric speed limitation"));
+        optgroup->append_single_option_line("filament_max_volumetric_speed");
 
-        line = { "", "" };
-        line.full_width = 1;
-        line.widget = [this](wxWindow* parent) {
-            return description_line_widget(parent, &m_volumetric_speed_description_line);
-        };
-        optgroup->append_line(line);
+        //line = { "", "" };
+        //line.full_width = 1;
+        //line.widget = [this](wxWindow* parent) {
+        //    return description_line_widget(parent, &m_volumetric_speed_description_line);
+        //};
+        //optgroup->append_line(line);
 
     page = add_options_page(L("Cooling"), "cooling");
         std::string category_path = "cooling_127569#";
@@ -2637,24 +2637,6 @@ void TabPrinter::build()
     m_printer_technology == ptSLA ? build_sla() : build_fff();
 }
 
-//BBS
-void TabPrinter::build_print_host_upload_group(Page* page)
-{
-    ConfigOptionsGroupShp optgroup = page->new_optgroup(L("Print Host upload"));
-
-    wxString description_line_text = _L(""
-        "Todo: show basic information of machine which is readonly here.\n\n");
-
-    Line line = { "", "" };
-    line.full_width = 1;
-    line.widget = [this, description_line_text](wxWindow* parent) {
-        return description_line_widget(parent, m_presets->get_selected_preset().printer_technology() == ptFFF ?
-                                       &m_fff_print_host_upload_description_line : &m_sla_print_host_upload_description_line,
-                                       description_line_text);
-    };
-    optgroup->append_line(line);
-}
-
 void TabPrinter::build_fff()
 {
     if (!m_pages.empty())
@@ -2673,9 +2655,6 @@ void TabPrinter::build_fff()
             static_cast<const ConfigOptionFloats*>(parent_preset->config.option("nozzle_diameter"))->values.size();
 
     auto page = add_options_page(L("Basic information"), "printer");
-        //BBS: todo: use machine introduce to replace here
-        build_print_host_upload_group(page.get());
-
         auto optgroup = page->new_optgroup(L("Printable space"));
 
         create_line_with_widget(optgroup.get(), "printable_area", "custom-svg-and-png-bed-textures_124612", [this](wxWindow* parent) {
@@ -2753,7 +2732,6 @@ void TabPrinter::build_fff()
         //};
 
         //optgroup = page->new_optgroup(L("Firmware"));
-        //optgroup->append_single_option_line("gcode_flavor");
 
         //optgroup->append_single_option_line("silent_mode");
 
@@ -2781,6 +2759,7 @@ void TabPrinter::build_fff()
 #endif
 
         optgroup = page->new_optgroup(L("Advanced"));
+        optgroup->append_single_option_line("gcode_flavor");
         optgroup->append_single_option_line("scan_first_layer");
         optgroup->append_single_option_line("spaghetti_detector");
         optgroup->append_single_option_line("machine_load_filament_time");
@@ -2833,7 +2812,7 @@ void TabPrinter::build_fff()
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-        option = optgroup->get_option("tool_change_gcode");
+        option = optgroup->get_option("change_filament_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
@@ -2910,8 +2889,6 @@ void TabPrinter::build_sla()
     //optgroup->append_single_option_line("max_exposure_time");
     //optgroup->append_single_option_line("min_initial_exposure_time");
     //optgroup->append_single_option_line("max_initial_exposure_time");
-
-    //build_print_host_upload_group(page.get());
 
     //page = add_options_page(L("Dependencies"), "wrench.png");
     //optgroup = page->new_optgroup(L("Profile dependencies"));
@@ -3318,7 +3295,7 @@ void TabPrinter::toggle_options()
 
     bool have_multiple_extruders = m_extruders_count > 1;
     if (m_active_page->title() == "Custom G-code") {
-        toggle_option("tool_change_gcode", have_multiple_extruders);
+        toggle_option("change_filament_gcode", have_multiple_extruders);
     }
     if (m_active_page->title() == "General") {
         toggle_option("single_extruder_multi_material", have_multiple_extruders);

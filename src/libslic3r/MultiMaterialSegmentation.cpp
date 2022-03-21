@@ -1927,10 +1927,10 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - layers segmentation in parallel - end";
     throw_on_cancel_callback();
 
-    if (auto w = print_object.config().mmu_segmented_region_max_width; w > 0.f) {
-        cut_segmented_layers(input_expolygons, segmented_regions, float(-scale_(w)), throw_on_cancel_callback);
-        throw_on_cancel_callback();
-    }
+    //if (auto w = print_object.config().mmu_segmented_region_max_width; w > 0.f) {
+    //    cut_segmented_layers(input_expolygons, segmented_regions, float(-scale_(w)), throw_on_cancel_callback);
+    //    throw_on_cancel_callback();
+    //}
 
     // The first index is extruder number (includes default extruder), and the second one is layer number
     std::vector<std::vector<ExPolygons>> top_and_bottom_layers = mmu_segmentation_top_and_bottom_layers(print_object, input_expolygons, throw_on_cancel_callback);

@@ -80,7 +80,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
                     {"support_material_extruder", "",8},{"support_material_interface_extruder", "",9},
                      {"tree_support_branch_angle", "",10}, {"tree_support_wall_count", "",11},{"tree_support_with_infill", "",12},//tree support
                             {"support_top_z_distance", "",13},{"support_base_pattern", "",14},{"support_base_pattern_spacing", "",15},
-                            {"support_interface_top_layers", "",16},{"support_interface_bottom_layers", "",17},{"support_interface_spacing", "",18},{"support_material_bottom_interface_spacing", "",19},
+                            {"support_interface_top_layers", "",16},{"support_interface_bottom_layers", "",17},{"support_interface_spacing", "",18},{"support_bottom_interface_spacing", "",19},
                             {"support_object_xy_distance", "",20}, {"bridge_no_support", "",21}, {"independent_support_layer_height", "",22}
                             }},
     { L("Speed"), {{"support_speed", "",12}, {"support_interface_speed", "",13}
@@ -142,7 +142,7 @@ std::vector<SimpleSettingData> SettingsFactory::get_visible_options(const std::s
         //tree support
         "tree_support_wall_count", "tree_support_with_infill",
         //support
-        "support_top_z_distance", "support_base_pattern", "support_base_pattern_spacing", "support_interface_top_layers", "support_interface_bottom_layers", "support_interface_spacing", "support_material_bottom_interface_spacing", "support_object_xy_distance",
+        "support_top_z_distance", "support_base_pattern", "support_base_pattern_spacing", "support_interface_top_layers", "support_interface_bottom_layers", "support_interface_spacing", "support_bottom_interface_spacing", "support_object_xy_distance",
         //adhesion
         "brim_type", "brim_width", "brim_object_gap", "raft_layers"
         };*/

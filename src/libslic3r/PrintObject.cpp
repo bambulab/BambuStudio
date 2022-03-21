@@ -147,7 +147,8 @@ void PrintObject::make_perimeters()
     // hollow objects
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         const PrintRegion &region = this->printing_region(region_id);
-        if (! region.config().extra_perimeters || region.config().wall_loops == 0 || region.config().sparse_infill_density == 0 || this->layer_count() < 2)
+        //BBS: remove extra_perimeters, always false
+        //if (! region.config().extra_perimeters || region.config().wall_loops == 0 || region.config().sparse_infill_density == 0 || this->layer_count() < 2)
             continue;
 
         BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - start";
@@ -557,7 +558,6 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posSupportMaterial);
         } else if (
                opt_key == "wall_loops"
-            || opt_key == "extra_perimeters"
             || opt_key == "initial_layer_line_width"
             || opt_key == "inner_wall_line_width"
             || opt_key == "infill_wall_overlap") {
@@ -585,7 +585,6 @@ bool PrintObject::invalidate_state_by_config_options(
                opt_key == "layer_height"
             //BBS
             || opt_key == "adaptive_layer_height"
-            || opt_key == "mmu_segmented_region_max_width"
             || opt_key == "raft_layers"
             || opt_key == "raft_contact_distance"
             || opt_key == "slice_closing_radius"
@@ -617,19 +616,19 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_bottom_z_distance"
             || opt_key == "support_interface_top_layers"
             || opt_key == "support_interface_bottom_layers"
-            || opt_key == "support_material_pattern"
+            || opt_key == "support_interface_pattern"
             || opt_key == "support_interface_loop_pattern"
             || opt_key == "support_material_interface_extruder"
             || opt_key == "support_interface_spacing"
-            || opt_key == "support_material_bottom_interface_spacing" //BBS
+            || opt_key == "support_bottom_interface_spacing" //BBS
             || opt_key == "support_base_pattern"
-            || opt_key == "support_material_style"
+            || opt_key == "support_style"
             || opt_key == "support_object_xy_distance"
             || opt_key == "support_base_pattern_spacing"
-            || opt_key == "support_material_closing_radius"
+            || opt_key == "support_closing_radius"
             || opt_key == "independent_support_layer_height" // BBS
             || opt_key == "support_threshold_angle"
-            || opt_key == "support_material_with_sheath"
+            || opt_key == "support_with_sheath"
             || opt_key == "raft_expansion"
             || opt_key == "raft_first_layer_density"
             || opt_key == "raft_first_layer_expansion"

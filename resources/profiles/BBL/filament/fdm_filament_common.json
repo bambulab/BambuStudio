@@ -20,7 +20,7 @@
     "filament_end_gcode": [
         "; Filament-specific end gcode \n;END gcode for filament\nM106 P3 S0\n"
     ],
-    "extrusion_multiplier": [
+    "filament_flow_ratio": [
         "1"
     ],
     "reduce_fan_stop_start_freq": [

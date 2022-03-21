@@ -14,7 +14,7 @@ Extruder::Extruder(unsigned int id, GCodeConfig *config, bool share_extruder) :
     reset();
     
     // cache values that are going to be called often
-    m_e_per_mm3 = this->extrusion_multiplier();
+    m_e_per_mm3 = this->filament_flow_ratio();
     m_e_per_mm3 /= this->filament_crossection();
 }
 
@@ -131,9 +131,9 @@ double Extruder::filament_cost() const
     return m_config->filament_cost.get_at(m_id);
 }
 
-double Extruder::extrusion_multiplier() const
+double Extruder::filament_flow_ratio() const
 {
-    return m_config->extrusion_multiplier.get_at(m_id);
+    return m_config->filament_flow_ratio.get_at(m_id);
 }
 
 // Return a "retract_before_wipe" percentage as a factor clamped to <0, 1>
