@@ -29,7 +29,7 @@ namespace GUI {
 class MediaPlayCtrl : public wxPanel
 {
 public:
-    MediaPlayCtrl(wxWindow * parent, wxMediaCtrl2 * media_ctrl);
+    MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
 
     ~MediaPlayCtrl();
 

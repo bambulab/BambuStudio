@@ -36,6 +36,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/ScrolledWindow.hpp
     GUI/Widgets/StaticBox.cpp
     GUI/Widgets/StaticBox.hpp
+    GUI/Widgets/ImageSwitchButton.cpp
+    GUI/Widgets/ImageSwitchButton.hpp
     GUI/Widgets/SwitchButton.cpp
     GUI/Widgets/SwitchButton.hpp
     GUI/Widgets/SpinInput.cpp
@@ -50,10 +52,14 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/TabCtrl.hpp
     GUI/Widgets/TextInput.cpp
     GUI/Widgets/TextInput.hpp
+    GUI/Widgets/TempInput.cpp
+    GUI/Widgets/TempInput.hpp
     GUI/Widgets/Scrollbar.cpp
     GUI/Widgets/Scrollbar.hpp
     GUI/Widgets/ScrolledWindow.cpp
     GUI/Widgets/ScrolledWindow.hpp
+    GUI/Widgets/ProgressBar.cpp
+    GUI/Widgets/ProgressBar.hpp
     GUI/AboutDialog.cpp
     GUI/AboutDialog.hpp
     GUI/AuxiliaryDialog.cpp
@@ -190,6 +196,14 @@ set(SLIC3R_GUI_SOURCES
     GUI/MediaPlayCtrl.h
     GUI/MonitorBasePanel.cpp
     GUI/MonitorBasePanel.h
+    GUI/UpgradePanel.cpp
+    GUI/UpgradePanel.hpp
+    GUI/MonitorPage.cpp
+    GUI/MonitorPage.hpp
+    GUI/StatusPanel.cpp
+    GUI/StatusPanel.cpp
+    GUI/SliceInfoPanel.cpp
+    GUI/SliceInfoPanel.hpp
     GUI/Monitor.cpp
     GUI/Monitor.hpp
     GUI/WebViewDialog.cpp
@@ -273,6 +287,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/DoubleSlider_Utils.hpp
     GUI/Notebook.cpp
     GUI/Notebook.hpp
+    GUI/TabButton.cpp
+    GUI/TabButton.hpp
+    GUI/Tabbook.cpp
+    GUI/Tabbook.hpp
     GUI/ObjectDataViewModel.cpp
     GUI/ObjectDataViewModel.hpp
     GUI/AuxiliaryDataViewModel.cpp

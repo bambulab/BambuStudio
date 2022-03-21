@@ -158,10 +158,10 @@ public:
     float  frame_temp;
 
     /* cooling */
-    int     heatbreak_fan_speed;
-    int     cooling_fan_speed;
-    int     big_fan1_speed;
-    int     big_fan2_speed;
+    int     heatbreak_fan_speed = 0;
+    int     cooling_fan_speed = 0;
+    int     big_fan1_speed = 0;
+    int     big_fan2_speed = 0;
 
     /* signals */
     std::string wifi_signal;

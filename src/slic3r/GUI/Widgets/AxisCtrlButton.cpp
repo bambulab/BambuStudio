@@ -4,11 +4,12 @@
 #include <wx/dcgraph.h>
 
 static const wxColour bd = wxColour(0x00AE42);
-static const wxColour bg = wxColour(0xD1D1D1);
-static const wxColour inner_bg = wxColour(0xE5E5E5);
+static const wxColour BUTTON_BG_COL = wxColour(238, 238, 238);
+static const wxColour BUTTON_IN_BG_COL = wxColour(206, 206, 206);
 static const wxColour blank_bg = wxColour(0xFFFFFF);
 static const wxColour text_xy_color = wxColour(0x352F2D);
 static const wxColour text_num_color = wxColour(0x898989);
+static const wxColour BUTTON_PRESS_COL = wxColour(172, 172, 172);
 static const double sqrt2 = std::sqrt(2);
 
 BEGIN_EVENT_TABLE(AxisCtrlButton, wxPanel)
@@ -18,26 +19,27 @@ EVT_MOTION(AxisCtrlButton::mouseMoving)
 EVT_PAINT(AxisCtrlButton::paintEvent)   
 END_EVENT_TABLE()
 
-AxisCtrlButton::AxisCtrlButton(wxWindow* parent, long stlye)
+AxisCtrlButton::AxisCtrlButton(wxWindow *parent, wxBitmap &icon, long stlye)
     : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, stlye)
-    , r_outer(105.0), r_inner(60.0), r_blank(15.0), gap(5.0), last_pos(8), current_pos(8)//don't change init value
+    , r_outer(105.0), r_inner(60.0), r_home(23.0), r_blank(24.0), gap(5.0), last_pos(8), current_pos(8)//don't change init value
 	, state_handler(this)
 {
+    m_icon = icon.GetSubBitmap(wxRect(0, 0, icon.GetWidth(), icon.GetHeight()));
 	wxWindow::SetBackgroundColour(parent->GetBackgroundColour());
 
     border_color.append(bd, StateColor::Hovered);
 
-    background_color.append(bg, StateColor::Disabled);
-    background_color.append(0xACACAC, StateColor::Pressed);
-    background_color.append(bg, StateColor::Hovered);
-    background_color.append(bg, StateColor::Normal);
-    background_color.append(bg, StateColor::Enabled);
+    background_color.append(BUTTON_BG_COL, StateColor::Disabled);
+    background_color.append(BUTTON_PRESS_COL, StateColor::Pressed);
+    background_color.append(BUTTON_BG_COL, StateColor::Hovered);
+    background_color.append(BUTTON_BG_COL, StateColor::Normal);
+    background_color.append(BUTTON_BG_COL, StateColor::Enabled);
 
-    inner_background_color.append(inner_bg, StateColor::Disabled);
-    inner_background_color.append(0xACACAC, StateColor::Pressed);
-    inner_background_color.append(inner_bg, StateColor::Hovered);
-    inner_background_color.append(inner_bg, StateColor::Normal);
-    inner_background_color.append(inner_bg, StateColor::Enabled);
+    inner_background_color.append(BUTTON_IN_BG_COL, StateColor::Disabled);
+    inner_background_color.append(BUTTON_PRESS_COL, StateColor::Pressed);
+    inner_background_color.append(BUTTON_IN_BG_COL, StateColor::Hovered);
+    inner_background_color.append(BUTTON_IN_BG_COL, StateColor::Normal);
+    inner_background_color.append(BUTTON_IN_BG_COL, StateColor::Enabled);
 
     state_handler.attach({ &border_color, &background_color });
     state_handler.update_binds();
@@ -49,6 +51,7 @@ void AxisCtrlButton::updateParams() {
 	r_outer *= stretch;
     r_inner *= stretch;
     r_blank *= stretch;
+	r_home *= stretch;
     gap *= stretch;
 }
 
@@ -72,7 +75,7 @@ void AxisCtrlButton::SetMinSize(const wxSize& size)
     }
     else {
 		stretch = 1.0;
-        minSize = wxSize(212, 212);
+        minSize = wxSize(228, 228);
     }
     wxWindow::SetMinSize(minSize);
     center = wxPoint(minSize.x / 2, minSize.y / 2);
@@ -101,7 +104,7 @@ void AxisCtrlButton::SetInnerBackgroundColor(StateColor const& color)
 
 void AxisCtrlButton::Rescale() {
 	int em = em_unit(this);
-	SetMinSize(wxSize(212, 212) * em / 10);
+    SetMinSize(wxSize(228, 228) * em / 10);
 	Refresh();
 }
 
@@ -132,16 +135,16 @@ void AxisCtrlButton::render(wxDC& dc)
     wxGraphicsPath outer_path = gc->CreatePath();
     outer_path.AddCircle(0, 0, r_outer);
     outer_path.AddCircle(0, 0, r_inner);
-    gc->SetPen(bg);
-    gc->SetBrush(bg);
+    gc->SetPen(BUTTON_BG_COL);
+    gc->SetBrush(BUTTON_BG_COL);
     gc->DrawPath(outer_path);
 
 	//draw the inner ring
     wxGraphicsPath inner_path = gc->CreatePath();
     inner_path.AddCircle(0, 0, r_inner);
     inner_path.AddCircle(0, 0, r_blank);
-	gc->SetPen(inner_bg);
-	gc->SetBrush(inner_bg);
+    gc->SetPen(BUTTON_IN_BG_COL);
+    gc->SetBrush(BUTTON_IN_BG_COL);
 	gc->DrawPath(inner_path);
 
 	//draw an arc in corresponding position
@@ -158,7 +161,7 @@ void AxisCtrlButton::render(wxDC& dc)
 			path.AddArc(0, 0, r_blank, (7 - 2 * current_pos) * PI / 4, (5 - 2 * current_pos) * PI / 4, false);
 			path.CloseSubpath();
 			gc->SetBrush(wxBrush(inner_background_color.colorForStates(states)));
-		}
+        }
 		gc->SetPen(wxPen(border_color.colorForStates(states),2));
 		gc->DrawPath(path);
 	}
@@ -173,25 +176,54 @@ void AxisCtrlButton::render(wxDC& dc)
 	gc->DrawRectangle(-sqrt2 * size.x / 2, -sqrt2 * gap / 2, sqrt2 * size.x, sqrt2 * gap);
 	gc->PopState();
 
+	// draw the home circle
+    wxGraphicsPath home_path = gc->CreatePath();
+    home_path.AddCircle(0, 0, r_home);
+    home_path.CloseSubpath();
+    gc->PushState();
+    if (current_pos == 8) {
+        gc->SetPen(wxPen(border_color.colorForStates(states), 2));
+        gc->SetBrush(wxBrush(background_color.colorForStates(states)));
+    } else {
+        gc->SetPen(BUTTON_BG_COL);
+        gc->SetBrush(BUTTON_BG_COL);
+    }
+    gc->DrawPath(home_path);
+
+    if (m_icon.IsOk()) {
+        gc->DrawBitmap(m_icon, -1 * m_icon.GetWidth() / 2, -1 * m_icon.GetHeight() / 2, m_icon.GetWidth(), m_icon.GetHeight());
+    }
+    gc->PopState();
+
 	//draw linear border of the arc
 	if (current_pos != CurrentPos::UNDEFINED) {
-		wxGraphicsPath line_path1 = gc->CreatePath();
-		wxGraphicsPath line_path2 = gc->CreatePath();
-		if (current_pos < 4) {
-			line_path1.MoveToPoint(r_inner, -sqrt2 * gap / 2); line_path1.AddLineToPoint(r_outer, -sqrt2 * gap / 2);
-			line_path2.MoveToPoint(-r_inner, -sqrt2 * gap / 2); line_path2.AddLineToPoint(-r_outer, -sqrt2 * gap / 2);
-		}
-		else if (current_pos < 8) {
-			line_path1.MoveToPoint(r_blank, -sqrt2 * gap / 2); line_path1.AddLineToPoint(r_inner, -sqrt2 * gap / 2);
-			line_path2.MoveToPoint(-r_blank, -sqrt2 * gap / 2); line_path2.AddLineToPoint(-r_inner, -sqrt2 * gap / 2);
-		}
-		gc->PushState();
-		gc->Rotate(-(1 + 2 * current_pos) * PI / 4);
-		gc->SetPen(wxPen(border_color.colorForStates(states),2));
-		gc->StrokePath(line_path1);
-		gc->Rotate(PI / 2);
-		gc->StrokePath(line_path2);
-		gc->PopState();
+        gc->PushState();
+        gc->SetPen(wxPen(border_color.colorForStates(states), 2));
+
+        if (current_pos == 8) {
+            wxGraphicsPath line_path = gc->CreatePath();
+            line_path.AddCircle(0, 0, r_home);
+            gc->StrokePath(line_path);
+        } else {
+            wxGraphicsPath line_path1 = gc->CreatePath();
+            wxGraphicsPath line_path2 = gc->CreatePath();
+            if (current_pos < 4) {
+                line_path1.MoveToPoint(r_inner, -sqrt2 * gap / 2);
+                line_path1.AddLineToPoint(r_outer, -sqrt2 * gap / 2);
+                line_path2.MoveToPoint(-r_inner, -sqrt2 * gap / 2);
+                line_path2.AddLineToPoint(-r_outer, -sqrt2 * gap / 2);
+            } else if (current_pos < 8) {
+                line_path1.MoveToPoint(r_blank, -sqrt2 * gap / 2);
+                line_path1.AddLineToPoint(r_inner, -sqrt2 * gap / 2);
+                line_path2.MoveToPoint(-r_blank, -sqrt2 * gap / 2);
+                line_path2.AddLineToPoint(-r_inner, -sqrt2 * gap / 2);
+            }
+            gc->Rotate(-(1 + 2 * current_pos) * PI / 4);
+            gc->StrokePath(line_path1);
+            gc->Rotate(PI / 2);
+            gc->StrokePath(line_path2);
+        }
+        gc->PopState();
 	}
 
 	//draw text
@@ -251,7 +283,7 @@ void AxisCtrlButton::mouseMoving(wxMouseEvent& event)
 	wxPoint mouse_pos(event.GetX(), event.GetY());
 	wxPoint transformed_mouse_pos = mouse_pos - center;
 	double r_temp = transformed_mouse_pos.x * transformed_mouse_pos.x + transformed_mouse_pos.y * transformed_mouse_pos.y;
-	if (r_temp > r_outer * r_outer || r_temp < r_blank * r_blank) {
+	if (r_temp > r_outer * r_outer) {
 		current_pos = CurrentPos::UNDEFINED;
 	}
 	else if (r_temp > r_inner * r_inner) {
@@ -295,7 +327,9 @@ void AxisCtrlButton::mouseMoving(wxMouseEvent& event)
         else {
             current_pos = CurrentPos::UNDEFINED;
         }
-	}
+    } else if (r_temp <= r_home * r_home) {
+        current_pos = INNER_HOME;
+    }
 	if (last_pos != current_pos) {
 		last_pos = current_pos;
 		Refresh();

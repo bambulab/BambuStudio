@@ -11,18 +11,20 @@
 class AxisCtrlButton : public wxWindow
 {
     wxSize minSize;
-    double
-        stretch,
-        r_outer,
-        r_inner,
-        r_blank,
-        gap;
+    double stretch;
+    double r_outer;
+    double r_inner;
+    double r_home;
+    double r_blank;
+    double gap;
 	wxPoint center;
 
     StateHandler    state_handler;
     StateColor      border_color;
     StateColor      background_color;
 	StateColor      inner_background_color;
+
+    wxBitmap m_icon;
 
 	bool pressedDown = false;
 
@@ -37,11 +39,12 @@ class AxisCtrlButton : public wxWindow
         INNER_LEFT = 5,
         INNER_DOWN = 6,
         INNER_RIGHT = 7,
-        UNDEFINED = 8
+        INNER_HOME = 8,
+        UNDEFINED = 9
     };
 
 public:
-    AxisCtrlButton(wxWindow* parent, long style = 0);
+    AxisCtrlButton(wxWindow *parent, wxBitmap &icon, long style = 0);
 
     void SetMinSize(const wxSize& size) override;
 

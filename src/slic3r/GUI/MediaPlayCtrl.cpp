@@ -9,14 +9,15 @@
 namespace Slic3r {
 namespace GUI {
 
-MediaPlayCtrl::MediaPlayCtrl(wxWindow * parent, wxMediaCtrl2* media_ctrl)
-    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
+MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const wxPoint &pos, const wxSize &size)
+    : wxPanel(parent, wxID_ANY, pos, size)
     , m_media_ctrl(media_ctrl)
 {
     SetBackgroundColour(*wxWHITE);
     m_media_ctrl->Bind(wxEVT_MEDIA_STATECHANGED, &MediaPlayCtrl::onStateChanged, this);
 
     m_button_play = new Button(this, "", "media_play", wxBORDER_NONE);
+
     m_label_status = new Label(Label::Body_14, this);
 
     m_button_play->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto & e) { TogglePlay(); });
@@ -26,12 +27,10 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow * parent, wxMediaCtrl2* media_ctrl)
     Bind(wxEVT_RIGHT_UP, [this](auto & e) { wxClipboard & c = *wxTheClipboard; if (c.Open()) { c.SetData(new wxTextDataObject(m_url)); c.Close(); } });
 
     wxBoxSizer * sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(m_button_play);
+    sizer->Add(m_button_play, 0, wxEXPAND | wxALIGN_CENTER_VERTICAL | wxALL, 0);
     sizer->AddStretchSpacer(1);
-    sizer->Add(m_label_status);
+    sizer->Add(m_label_status, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
     SetSizer(sizer);
-
-    SetMinSize({400, 60});
 
     m_thread = boost::thread([this] {
         media_proc();
