@@ -634,10 +634,10 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                     }
 
                     /* sync task info */
-                    if (task_id.has_value() && !task_id.value().empty() && (task_id.value().compare("0") != 0))
+                    /*if (task_id.has_value() && !task_id.value().empty() && (task_id.value().compare("0") != 0))
                     {
                         update_task(task_id.value());
-                    }
+                    }*/
 
                     /* valid subtask */
                     if (subtask_id.has_value() && !subtask_id.value().empty() && subtask_id.value().compare("0") != 0)
@@ -1156,7 +1156,40 @@ void MachineObject::update_subtask(std::string subtask_id)
     /* create a new subtask */
     subtask_ = new BBLSubTask();
     subtask_->task_id = subtask_id;
-    acc_.get_subtask(subtask_);
+
+    // modify to user-service api
+    unsigned http_code;
+    std::string http_body;
+    unsigned limit = 1;
+    int         result = acc_.get_tasks(this->dev_id, limit, http_code, http_body);
+    if (result == 0) {
+        BOOST_LOG_TRIVIAL(trace) << "parse_task_info: " << http_body;
+        try {
+            json j = json::parse(http_body);
+            if (j.contains("hits") && !j["hits"].is_null() && j["hits"].is_array()) {
+                for (auto task = j["hits"].begin(); task != j["hits"].end(); task++) {
+                    int task_id = (*task)["title"].get<int>();
+                    if (std::to_string(task_id).compare(subtask_->task_id) == 0) {
+                        subtask_->task_name          = (*task)["title"].get<std::string>();
+                        subtask_->task_partplate_idx = std::to_string((*task)["plateIndex"].get<int>());
+                        subtask_->task_weightF       = (*task)["weight"].get<double>();
+                        subtask_->task_thumbnail_url = (*task)["cover"].get<std::string>();
+                        subtask_->task_status        = BBLSubTask::parse_user_service_task_status((*task)["status"].get<int>());
+                        subtask_->task_start_time    = (*task)["startTime"].get<std::string>();
+                        subtask_->task_end_time      = (*task)["endTime"].get<std::string>();
+                    } else {
+                        BOOST_LOG_TRIVIAL(trace) << "parse_task_info: task_id mismatch curr = " << subtask_->task_id;
+                    }
+                }
+            }
+        }
+        catch (...) {
+            ;
+        }
+    }
+    else {
+        BOOST_LOG_TRIVIAL(trace) << "parse_task_info: failed, status = " << http_code << ", body = " << http_body;
+    }
 }
 
 void MachineObject::request_bind(ResultFn resFn, bool force_bind)

@@ -63,7 +63,8 @@ public:
         TASK_RUNNING = 2,
         TASK_PAUSE = 3,
         TASK_FAILED = 4,
-        TASK_FINISHED = 5
+        TASK_FINISHED = 5,
+        TASK_UNKNOWN = 6
     };
 
     BBLSubTask(BBLTask* task = nullptr);
@@ -97,8 +98,10 @@ public:
     std::string     task_gcode_in_3mf;  /* gcode in 3mf */
     std::string     task_create_time;   /* time created by cloud */
     std::string     task_update_time;   /* time updated by cloud */
-    std::string     task_start_time;    /* time created by machine, seconds from 1970-01-01 */
+    std::string     task_start_time;    /* start time */
+    std::string     task_end_time;      /* end time */
     std::string     task_duration;      /* duration created by machine, unit seconds */
+    std::string     task_thumbnail_url; /* url of task thumbnail */
     /* user options */
     bool            task_timelapse;     /* timelapse settings */
     std::string     task_bed_type;      /* bed_type of task */
@@ -109,6 +112,7 @@ public:
     // task of plate info
     std::string     task_prediction;    /* prediction printing time of plate, unit seconds */
     std::string     task_weight;        /* weight create by slicer */
+    float           task_weightF;       /* weight in task */
     BBLSliceInfo    slice_info;         /* slice info of subtask */
     std::string     task_partplate_idx; /* partplate_idx, start at 1, 2, etc. */
 
@@ -125,6 +129,7 @@ public:
     int parse_content_json(std::string json_str);
     bool is_report_done();
     static BBLSubTask::SubTaskStatus parse_status(std::string status);
+    static BBLSubTask::SubTaskStatus parse_user_service_task_status(int status);
 };
 
 class BBLTask {

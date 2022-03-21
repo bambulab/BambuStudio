@@ -396,7 +396,7 @@ public:
 
     // GET /my/tasks
     int get_tasks(std::string dev_id, unsigned limit, unsigned &http_code, std::string &http_body);
-;
+
     bool can_publish();
     
     /* preset settings api */

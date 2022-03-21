@@ -121,6 +121,17 @@ namespace Slic3r {
         }
     }
 
+    BBLSubTask::SubTaskStatus BBLSubTask::parse_user_service_task_status(int status)
+    {
+        if (status == 1)
+            return BBLSubTask::SubTaskStatus::TASK_RUNNING;
+        else if (status == 2)
+            return BBLSubTask::SubTaskStatus::TASK_FINISHED;
+        else if (status == 3)
+            return BBLSubTask::SubTaskStatus::TASK_FAILED;
+        return BBLSubTask::SubTaskStatus::TASK_UNKNOWN;
+    }
+
     std::string BBLTask::build_content_json()
     {
         /*

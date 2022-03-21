@@ -2536,20 +2536,20 @@ namespace Slic3r {
         http_code = 0;
         http_body = "";
 
-        std::string url = (boost::format("%1%/user-service/my/tasks?deviceId=%1%&limit=%2%") % host % dev_id % limit).str();
+        std::string url = (boost::format("%1%/user-service/my/tasks?deviceId=%2%&limit=%3%") % host % dev_id % limit).str();
         Http http = Http::get(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
             .on_complete(
                 [this, &result, &http_code, &http_body](std::string body, unsigned status) {
-                    try {
-                        http_code =status;
-                        http_body = body;
-                        if (status == 200)
-                            result = 0;
-                    } catch (...) {
-                        ;
-                    }
+                try {
+                    http_code = status;
+                    http_body = body;
+                    if (status == 200) result = 0;
+                }
+                catch(...) {
+                    ;
+                }
             })
             .on_error([this](std::string body, std::string error, unsigned status) {
                 ;
