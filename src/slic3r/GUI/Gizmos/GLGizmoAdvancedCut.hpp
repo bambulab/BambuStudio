@@ -74,10 +74,6 @@ protected:
 
     virtual void on_set_hover_id()
     {
-        if (m_hover_id != -1) {
-            int test = 15;
-        }
-
         for (int i = 0; i < 3; ++i)
             m_gizmos[i].set_hover_id((m_hover_id == i) ? 0 : -1);
     }

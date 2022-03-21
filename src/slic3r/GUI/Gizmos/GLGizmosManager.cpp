@@ -148,7 +148,7 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, "toolbar_support.svg", sprite_id++));
     //m_gizmos.emplace_back(new GLGizmoSeam(m_parent, "toolbar_seam.svg", sprite_id++));
     m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, "mmu_segmentation.svg", sprite_id++));
-    m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "toolbar_cut.svg", sprite_id++));
+    m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "reduce_triangles.svg", sprite_id++));
     //m_gizmos.emplace_back(new GLGizmoFaceDetector(m_parent, "face recognition.svg", sprite_id++));
 
     m_common_gizmos_data.reset(new CommonGizmosDataPool(&m_parent));
@@ -1267,11 +1267,6 @@ void GLGizmosManager::do_render_overlay() const
 #else
         zoomed_top_y -= zoomed_stride_y;
 #endif
-    }
-
-    // BBS simplify gizmo is not a selected gizmo and need to render input window
-    if (!is_render_current && m_current != Undefined) {
-        m_gizmos[m_current]->render_input_window(0.5 * cnv_w + zoomed_top_x * zoom, height, cnv_h);
     }
 }
 
