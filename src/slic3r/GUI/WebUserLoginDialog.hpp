@@ -1,5 +1,6 @@
-#ifndef slic3r_WebGuideDialog_hpp_
-#define slic3r_WebGuideDialog_hpp_
+#pragma once
+#ifndef slic3r_ZWebUserLogin_HEAD_
+#define slic3r_ZWebUserLogin_HEAD_
 
 #include "wx/artprov.h"
 #include "wx/cmdline.h"
@@ -27,28 +28,18 @@
 #include "wx/textctrl.h"
 
 #include "GUI_App.hpp"
-#include "libslic3r/PresetBundle.hpp"
-#include "slic3r/Utils/PresetUpdater.hpp"
-
-#include <nlohmann/json.hpp>
 
 namespace Slic3r { namespace GUI {
 
-class GuideFrame : public wxDialog
+class ZUserLogin : public wxDialog
 {
 public:
-    GuideFrame(GUI_App *pGUI);
-    virtual ~GuideFrame();
+    ZUserLogin();
+    virtual ~ZUserLogin();
 
-    enum GuidePage {
-        BBL_WELCOME,
-        BBL_MODELS,
-        BBL_FILAMENTS,
-    };
-
-    //Web Function
     void load_url(wxString &url);
-    wxString SetStartPage(GuidePage startpage=BBL_WELCOME);
+
+    std::string w2s(wxString sSrc);
 
     void UpdateState();
     void OnIdle(wxIdleEvent &evt);
@@ -66,34 +57,13 @@ public:
     void OnScriptResponseMessage(wxCommandEvent &evt);
     void RunScript(const wxString &javascript);
 
-    //Logic cccccccccccc
-    bool IsFirstUse();
-
-    //Model - Machine - Filaments
-    int LoadProfile();
-    int LoadProfileFamily(wxString strVendor, wxString strFilePath);
-    int SaveProfile();
-
-    bool apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater, bool& apply_keeped_changes);
-    bool run();
-
-    std::string w2s(wxString sSrc);
+    bool m_netwrokOk;
+    bool IsNetworkOK();
 
 private:
-    GUI_App *m_MainPtr;
-    AppConfig m_appconfig_new;
-
     wxWebView *m_browser;
-    wxButton * m_TestBtn;
 
-    wxString m_SectionName;
-
-    bool bbl_bundle_rsrc;
-    boost::filesystem::path vendor_dir;
-    boost::filesystem::path rsrc_vendor_dir;
-
-    // User Config
-    bool PrivacyUse;
+    std::string m_AutotestToken;
 
 #if wxUSE_WEBVIEW_IE
     wxMenuItem *m_script_object_el;
@@ -109,4 +79,4 @@ private:
 
 }} // namespace Slic3r::GUI
 
-#endif /* slic3r_Tab_hpp_ */
+#endif 

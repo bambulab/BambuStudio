@@ -180,6 +180,7 @@ public:
     };
 
     AccountInfo(std::string account, std::string user_id, AccountInfo::LoginStatus status = STATUS_LOGOUT);
+    AccountInfo(std::string account, std::string user_id, std::string strToken, std::string strName, std::string strAvatar, AccountInfo::LoginStatus status,std::string strAutotestToken="");
 
     std::string user_id() { return m_user_id; }
     void set_token(std::string token) { m_token = token; }
@@ -427,6 +428,7 @@ public:
     /* common apis */
     AccountInfo* get_curr_user() { return m_curr_user; }
     AccountInfo* user() { return m_curr_user; }
+    void         change_curr_user(AccountInfo * pAcc);
     std::string get_user_name();
     std::string get_token_str();
 

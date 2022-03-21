@@ -81,6 +81,7 @@
 //BBS: DailyTip and UserGuide Dialog
 #include "WebDailytipDialog.hpp"
 #include "WebGuideDialog.hpp"
+#include "WebUserLoginDialog.hpp"
 
 #ifdef __WXMSW__
 #include <dbt.h>
@@ -1842,9 +1843,15 @@ void GUI_App::keyboard_shortcuts()
 void GUI_App::ShowUserGuide() {
     // BBS:Show NewUser Guide
     try {
+        bool res = false;
         GuideFrame GuideDlg(this);
         //if (GuideDlg.IsFirstUse()) 
-            GuideDlg.ShowModal();
+        res = GuideDlg.run();
+        if (res) {
+            load_current_presets();
+
+            // BBS: remove SLA related message
+        }
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "", MB_OK);
     }
@@ -1860,6 +1867,19 @@ void GUI_App::ShowDailyTip() {
         // wxMessageBox(e.what(), "", MB_OK);
     }
 }
+
+
+void GUI_App::ShowUserLogin()
+{
+    // BBS: User Login Dialog
+    try {
+        ZUserLogin LoginDlg;
+        LoginDlg.ShowModal();
+    } catch (std::exception &e) {
+        // wxMessageBox(e.what(), "", MB_OK);
+    }
+}
+
 
 
 // static method accepting a wxWindow object as first parameter

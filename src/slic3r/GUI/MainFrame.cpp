@@ -1343,6 +1343,8 @@ static wxMenu* generate_help_menu()
     append_menu_item(helpMenu, wxID_ANY,_L("Beginner's Tutorial"),_L("Beginner's Tutorial"),[](wxCommandEvent &) {wxGetApp().ShowUserGuide();});
     // Show DailyTip
     append_menu_item(helpMenu, wxID_ANY, _L("Show Daily Tips"),_L("Show Daily Tips"),[](wxCommandEvent &) { wxGetApp().ShowDailyTip(); });
+    // Show UserLogin
+    append_menu_item(helpMenu, wxID_ANY, _L("New UserLogin"), _L("New UserLogin"), [](wxCommandEvent &) { wxGetApp().ShowUserLogin(); });
 
     helpMenu->AppendSeparator();
     // Open Config Folder

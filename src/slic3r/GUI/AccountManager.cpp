@@ -166,6 +166,18 @@ namespace Slic3r {
         m_login_status = status;
     }
 
+    AccountInfo::AccountInfo( std::string account, std::string user_id, std::string strToken, std::string strName, std::string strAvatar, AccountInfo::LoginStatus status, std::string strAutotestToken) 
+    {
+        m_account      = account;
+        m_user_id      = user_id;
+        m_token        = strToken;
+        m_name         = strName;
+        m_avatar       = strAvatar;
+        m_login_status = status;
+        m_autotest_token = strAutotestToken;
+    }
+
+
     int AccountInfo::save_to_json()
     {
         AppConfig* config = GUI::wxGetApp().app_config;
@@ -2842,6 +2854,22 @@ namespace Slic3r {
     void AccountManager::reset_project()
     {
         ;
+    }
+
+    void AccountManager::change_curr_user(AccountInfo *pAcc) 
+    {
+        if (m_curr_user) 
+        { 
+            delete m_curr_user;
+        }
+
+        m_curr_user = pAcc;
+        save_user_info();
+
+        if (is_user_login()) 
+        { 
+            on_user_login(); 
+        }
     }
 
     std::string AccountManager::get_user_name()

@@ -25,6 +25,8 @@
 #include "MsgDialog.hpp"
 #include "format.hpp"
 
+#include "WebUserLoginDialog.hpp"
+
 #include "libslic3r/Print.hpp"
 
 namespace Slic3r {
@@ -481,8 +483,15 @@ void about()
 
 void login()
 {
-	LoginDialog dlg;
+	//LoginDialog dlg;
+	//dlg.ShowModal();
+
+	ZUserLogin dlg;
+    if ( dlg.IsNetworkOK() )
 	dlg.ShowModal();
+    else {
+        wxMessageBox(L"Network disconnected, please check!", "Error", wxOK | wxICON_ERROR);
+	}
 }
 
 void desktop_open_datadir_folder()

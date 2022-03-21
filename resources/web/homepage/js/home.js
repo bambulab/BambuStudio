@@ -1,0 +1,165 @@
+function HandleStuido( pVal )
+{
+	let strCmd = pVal['command'];
+	//alert(strCmd);
+	
+	if(strCmd=='studio_send_recentfile')
+	{
+		ShowRecentFileList(pVal['data']);
+	}
+	else if(strCmd=='studio_userlogin')
+	{
+		SetLoginInfo(pVal['data']['avatar'],pVal['data']['name']);
+	}
+	else if(strCmd=='studio_useroffline')
+	{
+		SetUserOffline();
+	}
+	else if( strCmd=="studio_set_mallurl" )
+	{
+		SetMallUrl( pVal['data']['url'] );
+	}
+	else if( strCmd=="studio_clickmenu" )
+	{
+		let nNumber=pVal['data']['number']*1;
+		
+		GotoMenu(nNumber);
+	}
+}
+
+function GotoMenu( nNum)
+{
+	let MenuList=$(".BtnItem");
+	let nAll=MenuList.length;
+
+	if(nNum>nAll)
+		nNum=1;
+	
+	for(let n=0;n<nAll;n++)
+	{
+		let OneBtn=MenuList[n];
+		
+		if(n==(nNum-1))
+		{
+			$(".BtnItem").removeClass("BtnItemSelected");
+			
+			$(OneBtn).addClass("BtnItemSelected");
+			
+			switch(n)
+			{
+				case 0:
+					$("#ContentBoard").show();
+					$("#MallBoard").hide();
+					$("#ManualBoard").hide();
+					break;
+				case 1:
+					$("#ContentBoard").hide();
+					$("#MallBoard").show();
+					$("#ManualBoard").hide();					
+					break;
+				case 2:
+					$("#ContentBoard").hide();
+					$("#MallBoard").hide();
+					$("#ManualBoard").show();					
+					break
+			}
+		}
+	}
+}
+
+function SetLoginInfo( strAvatar, strName ) 
+{
+	$("#Login1").hide();
+	
+	$("#UserAvatarIcon").prop("src","../../image/cache/"+strAvatar);
+	$("#UserName").text(strName);
+	$("#Login2").show();
+}
+
+function SetUserOffline()
+{
+	$("#UserAvatarIcon").prop("src","img/c.jpg");
+	$("#UserName").text('');
+	$("#Login2").hide();	
+	
+	$("#Login1").show();
+}
+
+function SetMallUrl( strUrl )
+{
+	$("#MallWeb").prop("src",strUrl);
+}
+
+
+function ShowRecentFileList( pList )
+{
+	let nTotal=pList.length;
+	
+	let strHtml='';
+	for(let n=0;n<nTotal;n++)
+	{
+		let OneFile=pList[n];
+		
+		let sImg=OneFile["image"];
+		let sPath=OneFile['path'];
+		let sTime=OneFile['time'];
+		
+		let index=sPath.lastIndexOf('\\')>0?sPath.lastIndexOf('\\'):sPath.lastIndexOf('\/');
+		let sShortName=sPath.substring(index+1,sPath.length);
+		
+		let TmpHtml='<div class="FileItem" onClick="OnOpenRecentFile("'+sPath+'")">'+
+				'<a class="FileTip" title="'+sPath+'"></a>'+
+				'<div class="FileImg"><img src="..\..\img\temp\\'+sImg+'"/></div>'+
+				'<a>'+sShortName+'</a>'+
+				'<div class="FileDate">'+sTime+'</div>'+
+			    '</div>';
+		
+		strHtml+=TmpHtml;
+	}
+	
+	$("#FileList").html(strHtml);	
+}
+
+
+/*-------MX Message------*/
+
+function OnLoginOrRegister()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_login_or_register";
+	
+	SendWXMessage( JSON.stringify(tSend) );	
+}
+
+
+function OnClickNewProject()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_newproject";
+	
+	SendWXMessage( JSON.stringify(tSend) );		
+}
+
+function OnClickOpenProject()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_openproject";
+	
+	SendWXMessage( JSON.stringify(tSend) );		
+}
+
+function OnOpenRecentFile( strPath )
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_open_recentfile";
+	tSend['data']={};
+	tSend['data']['path']=strPath;
+	
+	SendWXMessage( JSON.stringify(tSend) );	
+}
+
+

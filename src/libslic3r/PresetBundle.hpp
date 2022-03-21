@@ -181,6 +181,9 @@ public:
 
     //BBS: add BBL as default
     static const char *BBL_BUNDLE;
+	static const char *BBL_DEFAULT_PRINTER_MODEL;
+	static const char *BBL_DEFAULT_PRINTER_VARIANT;
+	static const char *BBL_DEFAULT_FILAMENT;
 private:
     //std::pair<PresetsConfigSubstitutions, std::string> load_system_presets(ForwardCompatibilitySubstitutionRule compatibility_rule);
     //BBS: add json related logic

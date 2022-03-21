@@ -1,0 +1,64 @@
+*
+{
+	padding: 0;
+	border: 0;
+	margin: 0;		
+}
+
+html
+{
+	height:100%;
+	background-color: #626262;
+}
+
+body
+{
+	height:100%;
+	max-height: 800px;
+	max-width: 1280px;
+	padding: 0;
+	border: 0;
+	margin: 0;	
+	overflow: hidden;
+	background-color: #fff;
+	font-size: 14px;
+	line-height: 22px;
+}
+
+/*--Btn--*/
+.NormalBtn
+{
+	padding: 3mm 10mm;
+	font-size: 14px;
+	text-align: center;
+	background-color: #00AE42;
+	border-radius: 20px;
+	color: #fff;
+	cursor: pointer;
+	margin-left: 10px;
+}
+
+.GrayBtn
+{
+	padding: 3mm 10mm;
+	font-size: 14px;
+	text-align: center;
+	border: 1px solid #575757;
+	border-radius: 20px;
+	color: #575757;
+	cursor: pointer;
+	margin-left: 10px;	
+}
+
+.SmallBtn
+{
+	padding: 3px 4mm;
+	font-size: 14px;
+	text-align: center;
+	background-color: #00AE42;
+	border-radius: 3px;
+	color: #fff;
+	cursor: pointer;
+	display: inline-block;
+}
+

@@ -41,6 +41,9 @@ static std::vector<std::string> s_project_options {
 
 //BBS: add BBL as default
 const char *PresetBundle::BBL_BUNDLE = "BBL";
+const char *PresetBundle::BBL_DEFAULT_PRINTER_MODEL = "BBL-3DP-V5NORMAL";
+const char *PresetBundle::BBL_DEFAULT_PRINTER_VARIANT = "0.4";
+const char *PresetBundle::BBL_DEFAULT_FILAMENT = "Generic PLA";
 
 PresetBundle::PresetBundle() :
     prints(Preset::TYPE_PRINT, Preset::print_options(), static_cast<const PrintRegionConfig&>(FullPrintConfig::defaults())),

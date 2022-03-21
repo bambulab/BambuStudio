@@ -1,0 +1,403 @@
+#include "WebUserLoginDialog.hpp"
+
+#include <string.h>
+#include "I18N.hpp"
+#include "libslic3r/AppConfig.hpp"
+#include "slic3r/GUI/wxExtensions.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/AccountManager.hpp"
+#include "libslic3r_version.h"
+
+#include <wx/sizer.h>
+#include <wx/toolbar.h>
+#include <wx/textdlg.h>
+
+#include <wx/wx.h>
+#include <wx/fileconf.h>
+#include <wx/file.h>
+#include <wx/wfstream.h>
+
+#include <boost/cast.hpp>
+#include <boost/lexical_cast.hpp>
+
+#include <nlohmann/json.hpp>
+#include "MainFrame.hpp"
+#include <boost/dll.hpp>
+
+#include <sstream>
+using namespace std;
+
+using namespace nlohmann;
+
+namespace Slic3r { namespace GUI {
+
+string &replace_str(string &str, const string &to_replaced, const string &newchars)
+{
+    for (string::size_type pos(0); pos != string::npos; pos += newchars.length()) {
+        pos = str.find(to_replaced, pos);
+        if (pos != string::npos)
+            str.replace(pos, to_replaced.length(), newchars);
+        else
+            break;
+    }
+    return str;
+}
+
+ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_ANY, "BambuStudio")
+{
+    // Url
+    wxString TargetUrl = wxGetApp().app_config->get_web_host_url() + "/sign-in";
+    // wxString TargetUrl = "https://portal-dev.bambu-lab.com/sign-in";
+    // wxString TargetUrl = "https://ab3f-103-167-134-129.ngrok.io";
+
+    std::string strlang = wxGetApp().app_config->get("language");
+    if (strlang != "") { 
+        replace_str(strlang, "_", "-"); 
+
+        TargetUrl = wxGetApp().app_config->get_web_host_url() + "/" + strlang + "/sign-in";
+    }
+
+    m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION);
+
+    // set the frame icon
+
+    wxBoxSizer *topsizer = new wxBoxSizer(wxVERTICAL);
+
+#if wxUSE_WEBVIEW_EDGE
+    // Check if a fixed version of edge is present in
+    // $executable_path/edge_fixed and use it
+    wxFileName edgeFixedDir(wxStandardPaths::Get().GetExecutablePath());
+    edgeFixedDir.SetFullName("");
+    edgeFixedDir.AppendDir("edge_fixed");
+    if (edgeFixedDir.DirExists()) {
+        wxWebViewEdge::MSWSetBrowserExecutableDir(edgeFixedDir.GetFullPath());
+        wxLogMessage("Using fixed edge version");
+    }
+
+#endif
+    // Create the webview
+    m_browser = wxWebView::New();
+    if (m_browser) {
+        m_browser->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
+
+#ifndef __WXMAC__
+        // We register the wxfs:// protocol for testing purposes
+        m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("bbl")));
+        // And the memory: file system
+        m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
+#endif
+
+        if (!m_browser->AddScriptMessageHandler("wx")) wxLogError("Could not add script message handler");
+    } else {
+        wxLogError("Could not init m_browser");
+    }
+
+    bool bRet = m_browser->Create(this, wxID_ANY, TargetUrl, wxDefaultPosition, wxDefaultSize);
+    SetSizer(topsizer);
+
+#ifdef __WXMAC__
+    // With WKWebView handlers need to be registered before creation
+    m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("wxfs")));
+    m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
+#endif
+
+    topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
+
+    // Log backend information
+    // wxLogMessage(wxWebView::GetBackendVersionInfo().ToString());
+    // wxLogMessage("Backend: %s Version: %s",
+    // m_browser->GetClassInfo()->GetClassName(),wxWebView::GetBackendVersionInfo().ToString());
+    // wxLogMessage("User Agent: %s", m_browser->GetUserAgent());
+
+    // Set a more sensible size for web browsing
+    SetSize(FromDIP(wxSize(1280, 800)));
+
+    // Connect the webview events
+    Bind(wxEVT_WEBVIEW_NAVIGATING, &ZUserLogin::OnNavigationRequest, this, m_browser->GetId());
+    Bind(wxEVT_WEBVIEW_NAVIGATED, &ZUserLogin::OnNavigationComplete, this, m_browser->GetId());
+    Bind(wxEVT_WEBVIEW_LOADED, &ZUserLogin::OnDocumentLoaded, this, m_browser->GetId());
+    Bind(wxEVT_WEBVIEW_ERROR, &ZUserLogin::OnError, this, m_browser->GetId());
+    Bind(wxEVT_WEBVIEW_NEWWINDOW, &ZUserLogin::OnNewWindow, this, m_browser->GetId());
+    Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &ZUserLogin::OnTitleChanged, this, m_browser->GetId());
+    Bind(wxEVT_WEBVIEW_FULLSCREEN_CHANGED, &ZUserLogin::OnFullScreenChanged, this, m_browser->GetId());
+    Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &ZUserLogin::OnScriptMessage, this, m_browser->GetId());
+
+    // Connect the idle events
+    // Bind(wxEVT_IDLE, &ZUserLogin::OnIdle, this);
+    // Bind(wxEVT_CLOSE_WINDOW, &ZUserLogin::OnClose, this);
+
+    // UI
+    SetTitle(L"UserLogin");
+    CenterOnParent();
+
+    //Param
+    m_AutotestToken = "";
+
+    IsNetworkOK();
+}
+
+ZUserLogin::~ZUserLogin() {}
+
+void ZUserLogin::load_url(wxString &url)
+{
+    this->Show();
+    m_browser->LoadURL(url);
+    m_browser->SetFocus();
+    UpdateState();
+}
+
+
+/**
+ * Method that retrieves the current state from the web control and updates
+ * the GUI the reflect this current state.
+ */
+void ZUserLogin::UpdateState()
+{
+    // SetTitle(m_browser->GetCurrentTitle());
+}
+
+void ZUserLogin::OnIdle(wxIdleEvent &WXUNUSED(evt))
+{
+    if (m_browser->IsBusy()) {
+        wxSetCursor(wxCURSOR_ARROWWAIT);
+    } else {
+        wxSetCursor(wxNullCursor);
+    }
+}
+
+// void ZUserLogin::OnClose(wxCloseEvent& evt)
+//{
+//    this->Hide();
+//}
+
+/**
+ * Callback invoked when there is a request to load a new page (for instance
+ * when the user clicks a link)
+ */
+void ZUserLogin::OnNavigationRequest(wxWebViewEvent &evt)
+{
+    //wxLogMessage("%s", "Navigation request to '" + evt.GetURL() + "'(target='" + evt.GetTarget() + "')");
+
+    UpdateState();
+}
+
+/**
+ * Callback invoked when a navigation request was accepted
+ */
+void ZUserLogin::OnNavigationComplete(wxWebViewEvent &evt)
+{
+    // wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
+
+    UpdateState();
+}
+
+/**
+ * Callback invoked when a page is finished loading
+ */
+void ZUserLogin::OnDocumentLoaded(wxWebViewEvent &evt)
+{
+    // Only notify if the document is the main frame, not a subframe
+    wxString tmpUrl = evt.GetURL();
+    wxString NowUrl = m_browser->GetCurrentURL();
+
+    if (evt.GetURL() == m_browser->GetCurrentURL()) {
+        // wxLogMessage("%s", "Document loaded; url='" + evt.GetURL() + "'");
+    }
+    UpdateState();
+
+    // wxCommandEvent *event = new
+    // wxCommandEvent(EVT_WEB_RESPONSE_MESSAGE,this->GetId()); wxQueueEvent(this,
+    // event);
+}
+
+/**
+ * On new window, we veto to stop extra windows appearing
+ */
+void ZUserLogin::OnNewWindow(wxWebViewEvent &evt)
+{
+    wxString flag = " (other)";
+
+    if (evt.GetNavigationAction() == wxWEBVIEW_NAV_ACTION_USER) { flag = " (user)"; }
+
+    // wxLogMessage("%s", "New window; url='" + evt.GetURL() + "'" + flag);
+
+    // If we handle new window events then just load them in this window as we
+    // are a single window browser
+    // if (m_tools_handle_new_window->IsChecked())
+    //    m_browser->LoadURL(evt.GetURL());
+
+    UpdateState();
+}
+
+void ZUserLogin::OnTitleChanged(wxWebViewEvent &evt)
+{
+    // SetTitle(evt.GetString());
+    // wxLogMessage("%s", "Title changed; title='" + evt.GetString() + "'");
+}
+
+void ZUserLogin::OnFullScreenChanged(wxWebViewEvent &evt)
+{
+    // wxLogMessage("Full screen changed; status = %d", evt.GetInt());
+    ShowFullScreen(evt.GetInt() != 0);
+}
+
+void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
+{
+    wxString strInput = evt.GetString();
+
+    //wxLogMessage(wxString("LoginCB: ") + strInput);
+
+    try {
+        json     j        = json::parse(strInput);
+
+        wxString strCmd = j["command"];
+
+        if (strCmd == "autotest_token") 
+        { 
+            m_AutotestToken = j["data"]["token"];
+        }
+        if (strCmd == "user_login") {
+            wxString strToken = j["data"]["token"];
+
+            int nUserID         = j["data"]["user"]["uid"];
+            wxString strAccount = j["data"]["user"]["account"];
+            wxString strAvatar  = j["data"]["user"]["avatar"];
+            wxString strName    = j["data"]["user"]["name"];
+
+            //Save User Info
+            AccountInfo *pNewAcc = new Slic3r::AccountInfo(strAccount.ToStdString(), std::to_string(nUserID), strToken.ToStdString(), strName.ToStdString(),strAvatar.ToStdString(),AccountInfo::LoginStatus::STATUS_LOGIN,m_AutotestToken);
+            wxGetApp().getAccountManager()->change_curr_user(pNewAcc);
+
+            Close();
+        } 
+    } catch (std::exception &e) {
+        //wxMessageBox(e.what(), "json error", wxICON_WARNING);
+    }
+
+    // wxLogMessage("Script message received; value = %s, handler = %s",
+    // evt.GetString(), evt.GetMessageHandler()); Slic3r::AccountManager*
+    // account_manager = Slic3r::GUI::wxGetApp().getAccountManager(); std::string
+    // response =
+    // account_manager->handle_web_request(evt.GetString().ToStdString()); if
+    // (response.empty()) return;
+
+    ///* remove \n in response string */
+    // response.erase(std::remove(response.begin(), response.end(), '\n'),
+    // response.end()); if (!response.empty()) {
+    //    m_response_js = wxString::Format("window.postMessage('%s')", response);
+    //    wxCommandEvent* event = new wxCommandEvent(EVT_RESPONSE_MESSAGE,
+    //    this->GetId()); wxQueueEvent(this, event);
+    //}
+    // else {
+    //    m_response_js.clear();
+    //}
+}
+
+void ZUserLogin::RunScript(const wxString &javascript)
+{
+    // Remember the script we run in any case, so the next time the user opens
+    // the "Run Script" dialog box, it is shown there for convenient updating.
+    m_javascript = javascript;
+
+    // wxLogMessage("Running JavaScript:\n%s\n", javascript);
+
+    if (!m_browser) return;
+
+    wxString result;
+    try {
+        if (m_browser->RunScript(javascript, &result)) {
+            // wxLogMessage("RunScript() returned \"%s\"", result);
+        } else {
+            // wxLogWarning("RunScript() failed");
+        }
+    } catch (std::exception &e) {
+        // wxMessageBox(e.what(), "", MB_OK);
+    }
+}
+
+#if wxUSE_WEBVIEW_IE
+void ZUserLogin::OnRunScriptObjectWithEmulationLevel(wxCommandEvent &WXUNUSED(evt))
+{
+    wxWebViewIE::MSWSetModernEmulationLevel();
+    RunScript("function f(){var person = new Object();person.name = 'Foo'; \
+    person.lastName = 'Bar';return person;}f();");
+    wxWebViewIE::MSWSetModernEmulationLevel(false);
+}
+
+void ZUserLogin::OnRunScriptDateWithEmulationLevel(wxCommandEvent &WXUNUSED(evt))
+{
+    wxWebViewIE::MSWSetModernEmulationLevel();
+    RunScript("function f(){var d = new Date('10/08/2017 21:30:40'); \
+    var tzoffset = d.getTimezoneOffset() * 60000; return \
+    new Date(d.getTime() - tzoffset);}f();");
+    wxWebViewIE::MSWSetModernEmulationLevel(false);
+}
+
+void ZUserLogin::OnRunScriptArrayWithEmulationLevel(wxCommandEvent &WXUNUSED(evt))
+{
+    wxWebViewIE::MSWSetModernEmulationLevel();
+    RunScript("function f(){ return [\"foo\", \"bar\"]; }f();");
+    wxWebViewIE::MSWSetModernEmulationLevel(false);
+}
+#endif
+
+/**
+ * Callback invoked when a loading error occurs
+ */
+void ZUserLogin::OnError(wxWebViewEvent &evt)
+{
+#define WX_ERROR_CASE(type) \
+    case type: category = #type; break;
+
+    wxString category;
+    switch (evt.GetInt()) {
+        WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_CONNECTION);
+        WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_CERTIFICATE);
+        WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_AUTH);
+        WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_SECURITY);
+        WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_NOT_FOUND);
+        WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_REQUEST);
+        WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_USER_CANCELLED);
+        WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_OTHER);
+    }
+
+    // wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" +
+    // category + " (" + evt.GetString() + ")'");
+
+    // Show the info bar with an error
+    // m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() +
+    // "\n" + "'" + category + "'", wxICON_ERROR);
+
+    UpdateState();
+}
+
+void ZUserLogin::OnScriptResponseMessage(wxCommandEvent &WXUNUSED(evt))
+{
+    // if (!m_response_js.empty())
+    //{
+    //    RunScript(m_response_js);
+    //}
+
+    // RunScript("This is a message to Web!");
+    // RunScript("postMessage(\"AABBCCDD\");");
+}
+
+
+bool ZUserLogin::IsNetworkOK() 
+{
+    Http http = Http::get("https://www.baidu.com");
+    http.header("accept", "application/json")
+        .timeout_connect(1)
+        .timeout_max(1)
+        .on_complete([this](std::string body, unsigned) { m_netwrokOk = true;
+        })
+        .on_error([&](std::string body, std::string error, unsigned status) { 
+            m_netwrokOk = false;
+        })
+        .perform_sync();
+
+    return m_netwrokOk;
+}
+
+
+}} // namespace Slic3r::GUI

@@ -1,0 +1,39 @@
+html
+{
+	background-color: #fff;
+}
+
+body
+{
+	text-align:center;
+}
+
+#SlicerIcon
+{
+	margin-top:20%;
+}
+
+#Title
+{
+	height:20mm;
+	line-height: 20mm;
+	font-size: 6mm;
+	color: #00AE42;
+}
+
+#STip
+{
+	padding:0mm 20mm;
+	height: 15%;
+}
+
+#BtnArea
+{
+	align-items: center;
+}
+
+#StartBtn
+{
+	display: inline-block;
+    text-decoration:none;	
+}

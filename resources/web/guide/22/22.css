@@ -1,0 +1,156 @@
+
+body
+{
+	display:flex;
+	flex-direction: column;
+}
+
+
+#Title
+{
+	height: 10%;
+	display: flex;
+	text-align: center;
+	flex-direction:column;
+	justify-content: center;
+}
+
+#Title div
+{
+	font-size:28px;
+	line-height: 28px;
+	height: 28px;
+	color: #00AE42;
+}
+
+
+#Content
+{
+	height: 80%;
+	padding: 10mm 10mm;	
+	overflow-y:hidden;
+	text-align: left;
+	font-size: 14px;
+	line-height: 22px;
+	color: #464646;
+}
+
+#Content div
+{
+
+}
+
+
+#AcceptArea
+{
+	height:10%;
+	padding: 0mm 10mm;
+	text-align: left;
+	display: flex;
+	justify-content:flex-end;
+	align-items: center;	
+}
+
+
+
+.ChooseBlock
+{
+	display:flex;
+	line-height: 32px;
+}
+
+.CName
+{
+	width:130px;
+	min-width: 80px;
+	font-weight: 700;
+	height: 100%;
+	text-align: right;
+}
+
+.CValues
+{
+	display:flex;
+	justify-content: flex-start;
+	align-content: flex-start;
+	flex-wrap: wrap;
+}
+
+input
+{
+	margin-left: 20px;
+	margin-right: 6px;
+	vertical-align: middle;
+}
+
+
+#ItemBlockArea
+{
+	display:flex;
+	width: 100%;
+	overflow-x: auto;
+	flex-wrap: wrap;
+	flex-direction: column;
+	justify-content:flex-start;
+	align-items: flex-start;
+	align-content:stretch;
+	line-height: 32px;
+	height: 400px;
+	border-top: 1px solid #00AE42;
+	margin-top: 10px;
+	padding-top: 10px;
+}
+
+.MItem
+{
+	width: 220px;
+	height: 32px;
+}
+
+
+#NoticeMask
+{
+	background-color: #000;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	opacity: 0.05;
+	display: none;
+}
+
+#NoticeBody
+{
+	display: none;
+	width: 500px;
+	border: 1px solid #000;
+	border-radius: 4px;
+	background-color: #fff;	
+	position: absolute;
+	left: 50%;
+	top: 200px;
+	margin-left: -250px;
+}
+
+#NoticeBar
+{
+	background-color:#00B35C;
+	height: 40px;
+	line-height: 40px;
+	color: #fff;
+	text-align: center;
+}
+
+#NoticeContent
+{
+	padding: 4mm 10mm;	
+}
+
+
+#NoticeBtns
+{
+	margin-top: 4mm;
+	display: flex;
+	justify-content:space-around;
+}
