@@ -1269,8 +1269,8 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 		// 1 SLA material
         1;
 #else
-    // BBS
-    size_t num_filaments = config.option<ConfigOptionStrings>("filament_settings_id")->size();
+    // BBS: use filament_colour insteadof filament_settings_id, filament_settings_id sometimes is not generated
+    size_t num_filaments = config.option<ConfigOptionStrings>("filament_colour")->size();
 #endif
 
     //BBS: add config related logs

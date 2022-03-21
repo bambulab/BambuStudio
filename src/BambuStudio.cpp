@@ -225,7 +225,15 @@ int CLI::run(int argc, char **argv)
             boost::nowide::cerr << "invalid printer_technology " <<printer_technology<<", from filament file "<< file <<std::endl;
             flush_and_exit(1);
         }
-
+        ConfigOptionStrings *opt_filament_settings = static_cast<ConfigOptionStrings *> (m_print_config.option("filament_settings_id", true));
+        ConfigOptionStrings *opt_filament_settings_src = static_cast<ConfigOptionStrings *>(config.option("filament_settings_id", false));
+        if (opt_filament_settings_src)
+            opt_filament_settings->set_at(opt_filament_settings_src, index, 0);
+        else {
+            std::string name = file.erase(file.size() - 5);
+            ConfigOptionString option(name);
+            opt_filament_settings->set_at(&option, index, 0);
+        }
         //parse the filament value to index th
         //loop through options and apply them
         for (const t_config_option_key &opt_key : config.keys()) {
