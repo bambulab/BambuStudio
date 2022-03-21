@@ -5,15 +5,19 @@
 #include "libslic3r/Thread.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "GUI_Preview.hpp"
 #include "MainFrame.hpp"
 #include "format.hpp"
 #include "Widgets/ProgressDialog.hpp"
+#include "Widgets/RoundedRectangle.hpp"
 
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
-#include "Widgets/Label.hpp"
-
+#include <miniz.h>
 #include <algorithm>
+#include "GUI_ObjectManipulation.hpp"
+#include "Plater.hpp"
+#include "BitmapCache.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -80,9 +84,9 @@ bool MachineListModel::SetValueByRow(const wxVariant &variant, unsigned int row,
 MachineObjectPanel::MachineObjectPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
     : wxPanel(parent, id, pos, wxSize(parent->GetSize().GetWidth(), 8 * wxGetApp().em_unit()), style, name)
 {
-    m_text_color   = wxColour(38, 46, 48);
-    m_bg_colour    = wxColour(255, 255, 255);
-    m_hover_colour = wxColour(248, 248, 248);
+    m_text_color      = wxColour(38, 46, 48);
+    m_bg_colour       = wxColour(255, 255, 255);
+    m_hover_colour    = wxColour(248, 248, 248);
     m_leftdown_colour = wxColour(238, 238, 238);
     Bind(wxEVT_PAINT, &MachineObjectPanel::OnPaint, this);
 
@@ -198,40 +202,38 @@ wxBEGIN_EVENT_TABLE(SelectMachinePopup, wxPopupTransientWindow) EVT_MOUSE_EVENTS
     SetSizeHints(wxDefaultSize, wxDefaultSize);
 
     m_sizer_border = new wxBoxSizer(wxVERTICAL);
-    m_sizer_main = new wxBoxSizer(wxVERTICAL);
-    m_sizer_body = new wxBoxSizer(wxVERTICAL);
+    m_sizer_main   = new wxBoxSizer(wxVERTICAL);
+    m_sizer_body   = new wxBoxSizer(wxVERTICAL);
 
-    //border
+    // border
     m_border_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * wxGetApp().em_unit(), POPUP_HEIGHT * wxGetApp().em_unit()), wxTAB_TRAVERSAL);
     m_border_panel->SetBackgroundColour(m_bg_colour);
 
-
-    //client
+    // client
     m_client_panel = new wxPanel(m_border_panel, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * wxGetApp().em_unit(), POPUP_HEIGHT * wxGetApp().em_unit()), wxTAB_TRAVERSAL);
     m_client_panel->SetBackgroundColour(m_bg_colour);
 
     // title info
-     m_staticText_select = new wxStaticText(m_client_panel, wxID_ANY, wxT("Select Your Printer"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
-     m_staticText_select->SetForegroundColour(m_bold_colour);
-     m_staticText_select->SetFont(wxGetApp().bold_font());
-     m_staticText_select->Wrap(-1);
+    m_staticText_select = new wxStaticText(m_client_panel, wxID_ANY, wxT("Select Your Printer"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    m_staticText_select->SetForegroundColour(m_bold_colour);
+    m_staticText_select->SetFont(wxGetApp().bold_font());
+    m_staticText_select->Wrap(-1);
 
     // block line
-     m_block_line = new wxWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
-     m_block_line->SetForegroundColour(wxColour(115, 115, 115));
-     m_block_line->SetBackgroundColour(wxColour(115, 115, 115));
+    m_block_line = new wxWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
+    m_block_line->SetForegroundColour(wxColour(115, 115, 115));
+    m_block_line->SetBackgroundColour(wxColour(115, 115, 115));
 
-     auto block_top = new wxWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(0,0));
+    auto block_top = new wxWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(0, 0));
 
-     m_sizer_body->Add(m_staticText_select, 0, wxEXPAND | wxTOP, wxGetApp().em_unit() + wxGetApp().em_unit() / 2);
-     m_sizer_body->Add(block_top, 0, wxEXPAND | wxTOP, wxGetApp().em_unit());
-     m_sizer_body->Add(m_block_line, 0, wxEXPAND | wxRIGHT, wxGetApp().em_unit() + wxGetApp().em_unit() / 2);
+    m_sizer_body->Add(m_staticText_select, 0, wxEXPAND | wxTOP, wxGetApp().em_unit() + wxGetApp().em_unit() / 2);
+    m_sizer_body->Add(block_top, 0, wxEXPAND | wxTOP, wxGetApp().em_unit());
+    m_sizer_body->Add(m_block_line, 0, wxEXPAND | wxRIGHT, wxGetApp().em_unit() + wxGetApp().em_unit() / 2);
 
-
-     m_client_panel->SetSizer(m_sizer_body);
-     m_client_panel->Layout();
-     m_sizer_body->Fit(m_client_panel);
-     m_sizer_main->Add(m_client_panel, 1, wxEXPAND | wxLEFT, 13);
+    m_client_panel->SetSizer(m_sizer_body);
+    m_client_panel->Layout();
+    m_sizer_body->Fit(m_client_panel);
+    m_sizer_main->Add(m_client_panel, 1, wxEXPAND | wxLEFT, 13);
 
     m_border_panel->SetSizer(m_sizer_main);
     m_border_panel->Layout();
@@ -240,7 +242,6 @@ wxBEGIN_EVENT_TABLE(SelectMachinePopup, wxPopupTransientWindow) EVT_MOUSE_EVENTS
     SetSizer(m_sizer_border);
     Layout();
     m_sizer_border->Fit(this);
-
 
     //#ifdef __WXMAC__
     //    // On Mac, pop up window capture mouse events
@@ -316,8 +317,8 @@ void SelectMachinePopup::update_machine_list(std::vector<MachineObject *> obj_li
         block_line->SetForegroundColour(wxColour(206, 206, 206));
         block_line->SetBackgroundColour(wxColour(206, 206, 206));
 
-        auto block_top = new wxWindow(list, wxID_ANY, wxDefaultPosition, wxSize(0,0));
-  
+        auto block_top = new wxWindow(list, wxID_ANY, wxDefaultPosition, wxSize(0, 0));
+
         listsizer->Add(op, 0, wxEXPAND, 0);
         listsizer->Add(block_top, 0, wxEXPAND | wxTOP, wxGetApp().em_unit() / 3);
         listsizer->Add(block_line, 0, wxEXPAND | wxRIGHT, wxGetApp().em_unit() + wxGetApp().em_unit() / 2);
@@ -343,7 +344,8 @@ void SelectMachinePopup::OnKillFocus(wxFocusEvent &event) { event.Skip(); }
 
 void SelectMachinePopup::OnMouse(wxMouseEvent &event) { event.Skip(); }
 
-void SelectMachinePopup::OnLeftUp(wxMouseEvent &event) {
+void SelectMachinePopup::OnLeftUp(wxMouseEvent &event)
+{
     this->GetParent()->SetFocus();
     event.Skip();
 }
@@ -360,78 +362,398 @@ void SelectMachinePopup::on_timer(wxTimerEvent &event)
 }
 
 SelectMachineDialog::SelectMachineDialog(Plater *plater)
-    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send Task to"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send Task to"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_plater(plater)
     , m_export_3mf_cancel(false)
 {
-    /* auto created by wxFormBuilder */
-    this->SetSizeHints(wxSize(550, 480), wxSize(1920, 1280));
+    //bind
+    Bind(wxEVT_CLOSE_WINDOW, &SelectMachineDialog::on_cancel, this);
 
-    wxBoxSizer *bSizer;
-    bSizer = new wxBoxSizer(wxVERTICAL);
+    // bed type
+    m_bedtype_list.push_back(L("auto"));
+    m_bedtype_list.push_back(L("pe"));
+    m_bedtype_list.push_back(L("pc"));
+    m_bedtype_list.push_back(L("pei"));
 
-    wxBoxSizer *bSizer_machines;
-    bSizer_machines = new wxBoxSizer(wxVERTICAL);
+    // font
+    SetFont(wxGetApp().normal_font());
 
-    bSizer_machines->SetMinSize(wxSize(-1, 300));
-    m_dataViewListCtrl_machines = new wxDataViewCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
-    bSizer_machines->Add(m_dataViewListCtrl_machines, 1, wxALL | wxEXPAND, 5);
+    // icon
+    std::string icon_path = (boost::format("%1%/icons/BambuStudio.ico") % resources_dir()).str();
+    SetIcon(wxIcon(icon_path, wxBITMAP_TYPE_ICO));
 
-    bSizer->Add(bSizer_machines, 1, wxALL | wxEXPAND, 5);
+    this->SetSizeHints(wxSize(-1, -1), wxSize(-1, -1));
+    this->SetBackgroundColour(m_colour_def_color);
 
-    wxBoxSizer *bSizer_tips;
-    bSizer_tips = new wxBoxSizer(wxHORIZONTAL);
+    m_sizer_main = new wxBoxSizer(wxVERTICAL);
 
-    m_staticText_left = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_left->Wrap(-1);
-    bSizer_tips->Add(m_staticText_left, 0, wxALIGN_CENTER | wxALL, 5);
+    m_sizer_main->SetMinSize(wxSize(0, -1));
+    m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 
-    bSizer_tips->Add(0, 0, 1, wxEXPAND, 5);
+    m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
 
-    m_hyperlink_add_machine = new wxHyperlinkCtrl(this, wxID_ANY, wxT("how to add a printer?"), wxT("http://www.wxformbuilder.org"), wxDefaultPosition, wxDefaultSize,
-                                                  wxHL_DEFAULT_STYLE);
-    bSizer_tips->Add(m_hyperlink_add_machine, 0, wxALIGN_CENTER | wxALIGN_RIGHT | wxALL | wxRIGHT, 5);
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 30);
 
-    bSizer->Add(bSizer_tips, 0, wxEXPAND, 5);
+    m_image = new wxPanel(this, wxID_ANY, wxDefaultPosition,wxDefaultSize, wxTAB_TRAVERSAL);
+    m_image->SetBackgroundColour(m_colour_def_color);
 
-    bSizer->Add(0, 10, 0, wxEXPAND, 5);
+    sizer_thumbnail = new wxBoxSizer(wxVERTICAL);
 
-    m_panel_status = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    bSizer->Add(m_panel_status, 0, wxEXPAND | wxALL, 5);
+    m_image->SetSizer(sizer_thumbnail);
+    m_image->Layout();
 
-    /* add BBLStatusBar */
-    m_status_bar   = std::make_shared<BBLStatusBar>(this);
-    m_panel_status = m_status_bar->get_panel();
-    bSizer->Add(m_panel_status, 0, wxEXPAND | wxALL, 0);
+    m_sizer_main->Add(m_image, 0, wxEXPAND | wxLEFT | wxRIGHT, 100);
 
-    bSizer->Add(0, 10, 0, wxEXPAND, 5);
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 15);
 
-    wxBoxSizer *bSizer_buttons;
-    bSizer_buttons = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *m_sizer_basic = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *m_sizer_basic_time = new wxBoxSizer(wxHORIZONTAL);
 
-    bSizer_buttons->Add(0, 0, 1, wxEXPAND, 5);
+    m_sizer_basic_time->Add(0, 0, 1, wxEXPAND, 5);
 
-    m_button_ensure = new wxButton(this, wxID_ANY, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0);
-    bSizer_buttons->Add(m_button_ensure, 0, wxALIGN_CENTER | wxALL, 5);
+     auto timeimg = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("print-time", this, 18), wxDefaultPosition, wxSize(18, 18), 0);
 
-    bSizer->Add(bSizer_buttons, 0, wxEXPAND, 5);
+    m_sizer_basic_time->Add(timeimg, 0, wxALL | wxEXPAND, 5);
 
-    this->SetSizer(bSizer);
-    this->Layout();
+    m_stext_time = new wxStaticText(this, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+    m_stext_time->Wrap(-1);
+    m_stext_time->SetForegroundColour(wxColour(50, 58, 61));
+    m_stext_time->SetBackgroundColour(wxColour(255, 255, 255));
 
-    this->Centre(wxBOTH);
+    m_sizer_basic_time->Add(m_stext_time, 0, wxALL, 5);
 
-    this->SetSizeHints(wxSize(550, 480), wxSize(1920, 1280));
+    m_sizer_basic->Add(m_sizer_basic_time, 1, wxEXPAND, 5);
 
-    // Connect Events
-    m_button_ensure->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(SelectMachineDialog::on_ok), NULL, this);
+    m_sizer_basic->Add(0, 0, 0, wxEXPAND | wxLEFT | wxRIGHT, 20);
 
-    init_model();
+    wxBoxSizer *m_sizer_basic_weight;
+    m_sizer_basic_weight = new wxBoxSizer(wxHORIZONTAL);
+
+    auto weightimg = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("print-weight", this, 18), wxDefaultPosition,
+                                     wxSize(18, 18), 0);
+
+    m_sizer_basic_weight->Add(weightimg, 0, wxALL | wxEXPAND | wxLEFT, 5);
+
+    m_stext_weight = new wxStaticText(this, wxID_ANY, wxT("330g"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    m_stext_weight->Wrap(-1);
+    m_stext_weight->SetForegroundColour(wxColour(50, 58, 61));
+    m_stext_weight->SetBackgroundColour(m_colour_def_color);
+
+    m_sizer_basic_weight->Add(m_stext_weight, 1, wxALL, 5);
+
+    m_sizer_basic->Add(m_sizer_basic_weight, 1, wxEXPAND, 5);
+
+    m_sizer_main->Add(m_sizer_basic, 0, wxEXPAND, 0);
+
+    m_sizer_material = new wxWrapSizer(wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS);
+    m_sizer_main->Add(m_sizer_material, 1, wxEXPAND | wxLEFT | wxRIGHT, 80);
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 15);
+
+    m__line_materia = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m__line_materia->SetForegroundColour(wxColour(238, 238, 238));
+    m__line_materia->SetBackgroundColour(wxColour(238, 238, 238));
+
+    m_sizer_main->Add(m__line_materia, 0, wxEXPAND | wxLEFT | wxRIGHT, 30);
+
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 14);
+
+    wxBoxSizer *m_sizer_printer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_stext_printer_title = new wxStaticText(this, wxID_ANY, L("Printer"), wxDefaultPosition, wxSize(-1, -1), 0);
+    m_stext_printer_title->SetFont(::Label::Head_14);
+    m_stext_printer_title->Wrap(-1);
+    m_stext_printer_title->SetForegroundColour(m_colour_bold_color);
+    m_stext_printer_title->SetBackgroundColour(m_colour_def_color);
+
+    m_sizer_printer->Add(m_stext_printer_title, 0, wxALL | wxLEFT, 5);
+    m_sizer_printer->Add(0, 0, 0, wxEXPAND | wxLEFT, 12);
+
+    m_comboBox_printer = new ::ComboBox(this, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
+    m_comboBox_printer->Bind(wxEVT_COMBOBOX, &SelectMachineDialog::on_selection_changed, this);
+
+    m_sizer_printer->Add(m_comboBox_printer, 1, wxEXPAND | wxRIGHT, 40);
+
+    m_sizer_main->Add(m_sizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT, 40);
+
+    m_panel_warn = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    wxBoxSizer *m_sizer_warn = new wxBoxSizer(wxHORIZONTAL);
+
+    m_sizer_warn->Add(0, 0, 1, wxEXPAND, 5);
+
+    auto warimg = new wxStaticBitmap(m_panel_warn, wxID_ANY, create_scaled_bitmap("exclamation", m_panel_warn, wxGetApp().em_unit() * 3), wxDefaultPosition,
+                                     wxSize(wxGetApp().em_unit() * 3, wxGetApp().em_unit() * 3), 0);
+    m_sizer_warn->Add(warimg, 0, wxEXPAND, 0);
+
+    m_statictext_warn = new wxStaticText(m_panel_warn, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, 0);
+    m_statictext_warn->Wrap(-1);
+    m_statictext_warn->SetFont(::Label::Body_13);
+    m_statictext_warn->SetForegroundColour(wxColour(255, 111, 0));
+
+    m_sizer_warn->Add(m_statictext_warn, 0, wxALL | wxEXPAND, 5);
+
+    m_sizer_warn->Add(0, 0, 1, wxEXPAND, 5);
+
+    m_panel_warn->SetSizer(m_sizer_warn);
+    m_panel_warn->Layout();
+    m_sizer_warn->Fit(m_panel_warn);
+    m_sizer_main->Add(m_panel_warn, 0, wxEXPAND | wxTOP, 2);
+
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 14);
+
+    m_line_bed = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_line_bed->SetForegroundColour(wxColour(238, 238, 238));
+    m_line_bed->SetBackgroundColour(wxColour(238, 238, 238));
+
+    m_sizer_main->Add(m_line_bed, 0, wxEXPAND | wxLEFT | wxRIGHT, 30);
+
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 14);
+
+    wxBoxSizer *m_sizer_bed = new wxBoxSizer(wxHORIZONTAL);
+
+    m_staticText_bed_title = new wxStaticText(this, wxID_ANY, L("Bed style"), wxDefaultPosition, wxSize(-1, -1), 0);
+    m_staticText_bed_title->SetFont(::Label::Head_14);
+    m_staticText_bed_title->Wrap(-1);
+    m_staticText_bed_title->SetForegroundColour(m_colour_bold_color);
+    m_staticText_bed_title->SetBackgroundColour(m_colour_def_color);
+
+    m_sizer_bed->Add(m_staticText_bed_title, 0, wxALL | wxEXPAND, 5);
+
+    m_sizer_bed->Add(0, 0, 0, wxEXPAND | wxLEFT, 12);
+
+    m_comboBox_bed = new ::ComboBox(this, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
+
+    for (auto i = 0; i < m_bedtype_list.size(); i++) { m_comboBox_bed->Append(m_bedtype_list[i]); }
+
+    m_sizer_bed->Add(m_comboBox_bed, 1, wxEXPAND | wxRIGHT, 40);
+
+    m_sizer_main->Add(m_sizer_bed, 0, wxEXPAND | wxLEFT | wxRIGHT, 40);
+
+    wxGridSizer *m_sizer_select = new wxGridSizer(2, 2, 0, 0);
+
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 20);
+    auto select_bed       = create_item_checkbox(L("Bed Leveling"), this, L("Bed Leveling"), "bed_leveling");
+    auto select_vibration = create_item_checkbox(L("Vibration Calibration"), this, L("Vibration Calibration"), "vibration_cali");
+    auto select_flow      = create_item_checkbox(L("Flow Calibration"), this, L("Flow Calibration"), "flow_cali");
+    auto select_record    = create_item_checkbox(L("Record Timelapse"), this, L("Record Timelapse"), "time_lapse");
+
+    m_sizer_select->Add(select_bed);
+    m_sizer_select->Add(select_vibration);
+    m_sizer_select->Add(select_flow);
+    m_sizer_select->Add(select_record);
+    m_sizer_main->Add(m_sizer_select, 0, wxEXPAND | wxLEFT | wxRIGHT, 40);
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 11);
+
+    // error msg
+    m_panel_err             = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    wxBoxSizer *m_sizer_err = new wxBoxSizer(wxHORIZONTAL);
+    m_sizer_err->Add(0, 0, 0, wxEXPAND, 5);
+
+    auto errimg = new wxStaticBitmap(m_panel_err, wxID_ANY, create_scaled_bitmap("exclamation", m_panel_warn, wxGetApp().em_unit() * 3), wxDefaultPosition,
+                                     wxSize(wxGetApp().em_unit() * 3, wxGetApp().em_unit() * 3), 0);
+    m_sizer_err->Add(errimg, 0, wxEXPAND, 0);
+
+    m_statictext_err = new wxStaticText(m_panel_err, wxID_ANY, wxT("11111111111"), wxDefaultPosition, wxDefaultSize, 0);
+    m_statictext_err->Wrap(-1);
+    m_statictext_err->SetForegroundColour(wxColour(255, 111, 0));
+
+    m_sizer_err->Add(m_statictext_err, 0, wxALL | wxEXPAND, 5);
+    m_sizer_err->Add(0, 0, 1, wxEXPAND, 5);
+
+    m_panel_err->SetSizer(m_sizer_err);
+    m_panel_err->Layout();
+    m_sizer_err->Fit(m_panel_err);
+    m_sizer_main->Add(m_panel_err, 0, wxEXPAND | wxLEFT, 40);
+
+    // bottom  area
+    m_panel_bottom = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, wxGetApp().em_unit() * 6), wxTAB_TRAVERSAL);
+    m_panel_bottom->SetMinSize(wxSize(-1, wxGetApp().em_unit() * 6));
+    m_panel_bottom->SetMaxSize(wxSize(-1, wxGetApp().em_unit() * 6));
+    m_panel_bottom->SetBackgroundColour(m_colour_def_color);
+    m_sizer_bottom = new wxBoxSizer(wxVERTICAL);
+
+    // line schedule
+    m_line_schedule = new wxPanel(m_panel_bottom, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_line_schedule->SetBackgroundColour(wxColour(238, 238, 238));
+    m_sizer_bottom->Add(m_line_schedule, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
+
+    // perpare mode
+    m_panel_prepare             = new wxPanel(m_panel_bottom, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_panel_prepare->SetBackgroundColour(m_colour_def_color);
+    wxBoxSizer *m_sizer_prepare = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *m_sizer_pcont   = new wxBoxSizer(wxHORIZONTAL);
+
+    m_sizer_prepare->Add(0, 0, 1, wxEXPAND | wxTOP, 30);
+    m_sizer_pcont->Add(0, 0, 1, wxEXPAND, 0);
+    m_button_ensure = new Button(m_panel_prepare, _L("Send"));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), 
+                            std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    m_button_ensure->SetBackgroundColor(btn_bg_green);
+    m_button_ensure->SetBorderColor(wxColour(0, 174, 66));
+    m_button_ensure->SetTextColor(wxColour(255, 255, 255));
+    m_button_ensure->SetSize(wxSize(68, 24));
+    m_button_ensure->SetMinSize(wxSize(72, 24));
+    m_button_ensure->SetCornerRadius(12);
+    // m_button_ensure->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(SelectMachineDialog::on_ok), NULL, this);
+    m_button_ensure->Bind(wxEVT_LEFT_UP, &SelectMachineDialog::on_ok, this);
+    m_sizer_pcont->Add(m_button_ensure, 0, wxEXPAND | wxRIGHT, 0);
+    m_sizer_prepare->Add(m_sizer_pcont, 0, wxEXPAND, 0);
+    m_panel_prepare->SetSizer(m_sizer_prepare);
+    m_panel_prepare->Layout();
+    m_sizer_bottom->Add(m_panel_prepare, 0, wxEXPAND | wxLEFT | wxRIGHT, 10);
+
+    // sending mode
+    m_status_bar    = std::make_shared<BBLStatusBarSend>(m_panel_bottom);
+    m_panel_sending = m_status_bar->get_panel();
+    m_sizer_bottom->Add(m_panel_sending, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 10);
+
+    // finish mode
+    m_panel_finish             = new wxPanel(m_panel_bottom, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    wxBoxSizer *m_sizer_finish = new wxBoxSizer(wxHORIZONTAL);
+
+    m_sizer_finish->Add(0, 0, 1, wxEXPAND, 5);
+
+    auto imgsize      = wxGetApp().em_unit() * 2 + wxGetApp().em_unit() / 2;
+    auto completedimg = new wxStaticBitmap(m_panel_finish, wxID_ANY, create_scaled_bitmap("completed", m_panel_warn, imgsize), wxDefaultPosition, wxSize(imgsize, imgsize), 0);
+
+    m_sizer_finish->Add(completedimg, 0, wxEXPAND | wxRIGHT, 12);
+
+    m_statictext_finish = new wxStaticText(m_panel_finish, wxID_ANY, L("send completed"), wxDefaultPosition, wxDefaultSize, 0);
+    m_statictext_finish->Wrap(-1);
+    m_statictext_finish->SetForegroundColour(wxColour(0, 174, 66));
+
+    m_sizer_finish->Add(m_statictext_finish, 0, wxALL | wxEXPAND, 3);
+
+    m_sizer_finish->Add(0, 0, 1, wxEXPAND, 5);
+
+    m_panel_finish->SetSizer(m_sizer_finish);
+    m_panel_finish->Layout();
+    m_sizer_finish->Fit(m_panel_finish);
+    m_sizer_bottom->Add(m_panel_finish, 0, wxEXPAND | wxTOP, 25);
+    // m_sizer_bottom->Add(m_panel_sending, 0 ,wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 10);
+
+    m_panel_bottom->SetSizer(m_sizer_bottom);
+    m_panel_bottom->Layout();
+    m_sizer_main->Add(m_panel_bottom, 0, wxEXPAND | wxLEFT | wxRIGHT, 30);
+
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 30);
+
+    // sending_mode();
+    SetSizer(m_sizer_main);
+    Layout();
+    Fit();
+
+    // init_model();
+    prepare_mode();
     init_bind();
     init_timer();
+    CenterOnParent();
+}
+
+wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param)
+{
+    auto checkbox = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    checkbox->SetBackgroundColour(m_colour_def_color);
+
+    wxBoxSizer *sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *sizer_check    = new wxBoxSizer(wxVERTICAL);
+
+    auto check = new ::CheckBox(checkbox);
+
+    sizer_check->Add(check, 0, wxBOTTOM | wxEXPAND | wxTOP, 5);
+
+    sizer_checkbox->Add(sizer_check, 0, wxEXPAND, 5);
+    sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 11);
+
+    auto text = new wxStaticText(checkbox, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
+    text->SetFont(::Label::Body_13);
+    text->Wrap(-1);
+    sizer_checkbox->Add(text, 0, wxBOTTOM | wxEXPAND | wxTOP, 5);
+
+    checkbox->SetSizer(sizer_checkbox);
+    checkbox->Layout();
+    sizer_checkbox->Fit(checkbox);
+
+    checkbox->SetToolTip(tooltip);
+    text->SetToolTip(tooltip);
+
+    text->Bind(wxEVT_LEFT_DOWN, [this, check](wxMouseEvent &) { check->SetValue(check->GetValue() ? false : true); });
+    m_checkbox_list[param] = check;
+    return checkbox;
+}
+
+void SelectMachineDialog::prepare_mode()
+{
+    m_panel_warn->Hide();
+    m_panel_err->Hide();
+    m_panel_finish->Hide();
+    m_line_schedule->Hide();
+    m_panel_sending->Hide();
+    m_panel_prepare->Show();
+    m_sizer_bottom->Layout();
+    m_panel_bottom->Refresh();
 
     Fit();
-    CenterOnParent();
+    Refresh();
+}
+
+void SelectMachineDialog::sending_mode()
+{
+    m_panel_warn->Hide();
+    m_panel_err->Hide();
+    m_panel_finish->Hide();
+    m_panel_prepare->Hide();
+    m_line_schedule->Show();
+    m_panel_sending->Show();
+    m_sizer_bottom->Layout();
+    m_panel_bottom->Refresh();
+
+    Fit();
+    Refresh();
+}
+
+void SelectMachineDialog::finish_mode()
+{
+    m_panel_warn->Hide();
+    m_panel_err->Hide();
+    m_panel_sending->Hide();
+    m_panel_prepare->Hide();
+    m_line_schedule->Show();
+    m_panel_finish->Show();
+    m_sizer_bottom->Layout();
+    m_panel_bottom->Refresh();
+
+    Fit();
+    Refresh();
+}
+
+void SelectMachineDialog::update_warn_msg(wxString msg)
+{
+    if (msg.empty()) {
+        m_statictext_warn->SetLabel(wxEmptyString);
+        m_panel_warn->Hide();
+    } else {
+        m_statictext_warn->SetLabel(msg);
+        m_panel_warn->Show();
+    }
+
+    Fit();
+    Refresh();
+}
+
+void SelectMachineDialog::update_err_msg(wxString msg)
+{
+    if (msg.empty()) {
+        m_statictext_err->SetLabel(wxEmptyString);
+        m_panel_err->Hide();
+    } else {
+        m_statictext_err->SetLabel(msg);
+        m_panel_err->Show();
+    }
+
+    Fit();
+    Refresh();
 }
 
 void SelectMachineDialog::init_model()
@@ -457,7 +779,7 @@ void SelectMachineDialog::init_model()
 void SelectMachineDialog::init_bind()
 {
     Bind(wxEVT_TIMER, &SelectMachineDialog::on_timer, this);
-    m_dataViewListCtrl_machines->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, &SelectMachineDialog::on_selection_changed, this);
+    // m_dataViewListCtrl_machines->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, &SelectMachineDialog::on_selection_changed, this);
 }
 
 void SelectMachineDialog::init_timer()
@@ -466,11 +788,14 @@ void SelectMachineDialog::init_timer()
     m_refresh_timer->SetOwner(this);
 }
 
-void SelectMachineDialog::on_cancel(wxCommandEvent &event)
+void SelectMachineDialog::on_cancel(wxCloseEvent &event)
 {
     if (m_print_job) {
-        if (m_print_job->is_running()) m_print_job->cancel();
-        m_print_job->join();
+        if (m_print_job->is_running()) {
+            m_print_job->cancel();
+            m_print_job->join();
+        }
+            
     }
     this->EndModal(wxID_CANCEL);
 }
@@ -481,62 +806,82 @@ void SelectMachineDialog::reset()
     m_button_ensure->Enable();
 }
 
-void SelectMachineDialog::on_ok(wxCommandEvent &event)
+void SelectMachineDialog::on_ok(wxMouseEvent &event)
 {
-    wxDataViewItem item = m_dataViewListCtrl_machines->GetSelection();
-    wxVariant      val;
-    machine_model->GetValue(val, item, MachineListModel::Col_MachineSN);
-    std::string dev_id = val.GetString().ToStdString();
+    m_status_bar->set_status_text("exporting 3mf was cancelled");
 
-    Slic3r::AccountManager *                         c  = Slic3r::GUI::wxGetApp().getAccountManager();
+    if (m_printer_last_select <= -1) {
+        update_err_msg(_L("Please select a printer first!"));
+        return;
+    }
+
+    std::string             dev_id = m_list[m_printer_last_select]->dev_id;
+    Slic3r::AccountManager *c      = Slic3r::GUI::wxGetApp().getAccountManager();
+
     std::map<std::string, MachineObject *>::iterator it = c->myBindMachineList.find(dev_id);
     if (it == c->myBindMachineList.end()) {
-        wxString msg = _L("Please select a printer first!");
-        m_status_bar->set_status_text(msg);
+        update_err_msg(_L("Please select a printer first!"));
         return;
     }
 
     // TODO check printing status
-    /* if (!it->second->can_print()) {
-        m_status_bar->set_status_text("current printer is busy! please select another!");
+    if (!it->second->can_print()) {
+        update_err_msg(L("current printer is busy! please select another!"));
         return;
     }
-    */
 
 #ifdef BBL_CHECK_USER_REPORT
-    int  task_id   = 0;
-    bool printable = true;
-    c->user_check_report(&task_id, &printable);
-    if (task_id != 0 && !printable) {
+    /* int  task_id   = 0;
+     bool printable = true;
+     c->user_check_report(&task_id, &printable);
+     if (task_id != 0 && !printable) {
         m_status_bar->set_status_text(_L("Please fill report first!"));
         std::string report_url = (boost::format("https://autotest.bambu-lab.com/slicerAddReport?task_id=%1%&token=%2%") % task_id % c->get_curr_user()->m_autotest_token).str();
         wxLaunchDefaultBrowser(report_url);
         return;
-    }
+    }*/
 #endif
 
     m_need_disable_btn_ensure = true;
     m_button_ensure->Disable();
 
     ProgressDialog *progress_dlg = new ProgressDialog("Creating 3mf file", "", 100, this, wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_APP_MODAL);
-
     m_plater->send_gcode(m_print_plate_idx, [this, progress_dlg](int export_stage, int current, int total, bool &cancel) {
         bool     cont             = true;
         wxString msg              = wxString::Format("exporting 3mf stage %d, %d/%d", export_stage, current, total);
         cont                      = progress_dlg->Pulse(msg);
-        this->m_export_3mf_cancel = cancel = !cont;
+        m_export_3mf_cancel = cancel = !cont;
     });
     delete progress_dlg;
-    if (this->m_export_3mf_cancel) {
-        this->m_status_bar->set_status_text("exporting 3mf was cancelled");
+
+    if (m_export_3mf_cancel) {
+        m_status_bar->set_status_text("exporting 3mf was cancelled");
         return;
     }
 
-    m_status_bar->set_cancel_callback([this]() {
-        if (m_print_job->is_running()) m_print_job->cancel();
+    sending_mode();
+    m_status_bar->set_prog_block();
+    
+    m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, dev_id);
+
+    m_print_job->set_print_config(
+        m_bedtype_list[m_comboBox_bed->GetSelection()], 
+        m_checkbox_list["bed_leveling"]->GetValue(),
+        m_checkbox_list["flow_cali"]->GetValue(),
+        m_checkbox_list["vibration_cali"]->GetValue(),
+        m_checkbox_list["time_lapse"]->GetValue()
+    );
+
+
+    m_print_job->on_success([this]() { finish_mode(); });
+
+    m_status_bar->set_cancel_callback_fina([this]() {
+        if (m_print_job->is_running()) { m_print_job->cancel(); }
+        prepare_mode();
+        reset();
     });
 
-    m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, dev_id);
+    wxCommandEvent evt(m_plater->get_print_finished_event());
     m_print_job->start();
 }
 
@@ -548,8 +893,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     }
 
     // update machine list, collections of bind list and local free
-    Slic3r::AccountManager *               c = Slic3r::GUI::wxGetApp().getAccountManager();
-    std::map<std::string, MachineObject *> list;
+    Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
 
     if (c->is_user_login()) {
         boost::thread get_print_info_thread = Slic3r::create_thread([this] {
@@ -560,31 +904,35 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         });
     }
 
+    // clear machine list
+    m_list.clear();
+    m_comboBox_printer->Clear();
+
     // same machine only appear once
     std::map<std::string, MachineObject *>::iterator it;
     for (it = c->myBindMachineList.begin(); it != c->myBindMachineList.end(); it++) {
-        if (it->second && it->second->is_online) { list.insert(std::make_pair(it->first, it->second)); }
+        if (it->second && it->second->is_online) {
+            // m_list.insert(std::make_pair(it->first, it->second));
+            m_list.push_back(it->second);
+            m_comboBox_printer->Append(it->second->dev_name);
+        }
     }
 
-    machine_model->display_machines(list);
-
-    // select old items
-    wxVariant val;
-    int       row = machine_model->find_row_by_sn(machine_sn);
-    if (row >= 0) {
-        wxDataViewItem item = machine_model->GetItem(row);
-        m_dataViewListCtrl_machines->Select(item);
+    if (m_list.size() > 0) {
+        if (m_printer_last_select <= -1) { m_printer_last_select = 0; }
+        m_comboBox_printer->SetSelection(m_printer_last_select);
+    } else {
+        m_printer_last_select = -1;
     }
 }
 
-void SelectMachineDialog::on_selection_changed(wxDataViewEvent &event)
+void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 {
-    Slic3r::AccountManager *c    = Slic3r::GUI::wxGetApp().getAccountManager();
-    wxDataViewItem          item = event.GetItem();
-    wxVariant               val;
-    machine_model->GetValue(val, item, MachineListModel::Col_MachineSN);
-    machine_sn         = val.GetString();
-    c->default_machine = machine_sn.ToStdString();
+    Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
+    if (event.GetString().empty()) { return; }
+    if (m_printer_last_select == -1) { return; }
+    m_printer_last_select = event.GetSelection();
+    c->default_machine    = m_list[m_printer_last_select]->dev_id;
 }
 
 void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
@@ -593,8 +941,122 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
     Refresh();
 }
 
+wxImage *SelectMachineDialog::LoadImageFromBlob(const unsigned char *data, int size)
+{
+    if (data != NULL) {
+        wxMemoryInputStream mi(data, size);
+        wxImage *           img = new wxImage(mi, wxBITMAP_TYPE_ANY);
+        if (img != NULL && img->IsOk()) return img;
+        // wxLogDebug( wxT("DB::LoadImageFromBlob error: data=%p size=%d"), data, size);
+        // caller is responsible for deleting the pointer
+        delete img;
+    }
+    return NULL;
+}
+
 bool SelectMachineDialog::Show(bool show)
 {
+    //thumbmail
+    sizer_thumbnail->Clear();
+    ThumbnailData *data = wxGetApp().plater()->get_thumbnail()[m_plater->get_partplate_list().get_curr_plate_index()];
+    wxImage image(data->width, data->height);
+    image.InitAlpha();
+
+    for (unsigned int r = 0; r < data->height; ++r) {
+        unsigned int rr = (data->height - 1 - r) * data->width;
+        for (unsigned int c = 0; c < data->width; ++c) {
+            unsigned char *px = (unsigned char *) data->pixels.data() + 4 * (rr + c);
+            image.SetRGB((int) c, (int) r, px[0], px[1], px[2]);
+            image.SetAlpha((int) c, (int) r, px[3]);
+        }
+    }
+    
+    auto bitmap       = new wxBitmap(image);
+    auto staticbitmap = new wxStaticBitmap(m_image, wxID_ANY, *bitmap, wxDefaultPosition, wxDefaultSize);
+    sizer_thumbnail->Add(staticbitmap, 0, wxEXPAND, 0);
+    sizer_thumbnail->Layout();
+
+
+     std::vector<std::string> materials;
+    {
+         auto preset_bundle = wxGetApp().preset_bundle;
+         for (auto filament_name : preset_bundle->filament_presets) {
+             for (auto iter = preset_bundle->filaments.lbegin(); iter != preset_bundle->filaments.end(); iter++) {
+                 if (filament_name.compare(iter->name) == 0) {
+                     ConfigOption *       opt      = iter->config.option("filament_type");
+                     ConfigOptionStrings *opt_strs = dynamic_cast<ConfigOptionStrings *>(opt);
+                     materials.push_back(opt_strs->get_at(0));
+                 }
+             }
+         }
+    }
+
+
+    //material info
+    auto extruders      = m_plater->get_partplate_list().get_curr_plate()->get_extruders();
+    //auto materials      = wxGetApp().preset_bundle->filament_presets;
+    BitmapCache bmcache;
+
+    m_sizer_material->Clear();
+    for (auto i = 0; i < extruders.size(); i++) {
+        auto extruder = extruders[i]-1;
+        auto colour   = wxGetApp().preset_bundle->project_config.opt_string("filament_colour", (unsigned int) extruder);
+        unsigned char rgb[3];
+        bmcache.parse_color(colour, rgb);
+
+        auto colour_rgb = wxColour((int)rgb[0], (int)rgb[1], (int)rgb[2]);
+        auto       bk = new Button(this, _L(materials[extruder]));
+        /* StateColor btn_bg(std::pair<wxColour, int>(colour_rgb, StateColor::Pressed),
+                                 std::pair<wxColour, int>(colour_rgb, StateColor::Hovered),
+                                 std::pair<wxColour, int>(colour_rgb, StateColor::Normal));*/
+        bk->SetBackgroundColor(colour_rgb);
+        bk->SetBorderColor(m_colour_def_color);
+
+        auto  textcolor = wxColour(0,0,0);
+        float gray = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
+        if (gray < 80)
+            textcolor = wxColour(255,255,255);
+        else 
+            textcolor = wxColour(0, 0, 0);
+
+        bk->SetTextColor(textcolor);
+
+        bk->SetSize(wxSize(-1, 24));
+        bk->SetMinSize(wxSize(-1, 24));
+        bk->SetMaxSize(wxSize(-1, 24));
+        bk->SetCornerRadius(12);
+
+        bk->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {});
+        bk->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &e) {});
+        bk->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {});
+
+        bk->Layout();
+        m_sizer_material->Add(bk, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
+    }
+    m_sizer_material->Layout();
+
+
+    // basic info
+    auto aprint_stats = m_plater->get_partplate_list().get_current_fff_print().print_statistics();
+    auto time         = short_time(aprint_stats.estimated_normal_print_time);
+    char weight[64];
+    ::sprintf(weight, "  %.2f g", aprint_stats.total_weight);
+
+    m_stext_time->SetLabel(time);
+    m_stext_weight->SetLabel(weight);
+
+    // bed type
+    m_bed_last_select = 0;
+    m_comboBox_bed->SetSelection(m_bed_last_select);
+
+    // checkbox
+    m_checkbox_list["bed_leveling"]->SetValue(true);
+    m_checkbox_list["flow_cali"]->SetValue(true);
+    m_checkbox_list["vibration_cali"]->SetValue(false);
+    m_checkbox_list["time_lapse"]->SetValue(false);
+
+    prepare_mode();
+
     if (show) {
         m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
         wxPostEvent(this, wxTimerEvent());
@@ -604,6 +1066,6 @@ bool SelectMachineDialog::Show(bool show)
     return DPIDialog::Show(show);
 }
 
-SelectMachineDialog::~SelectMachineDialog() { m_button_ensure->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(SelectMachineDialog::on_ok), NULL, this); }
+SelectMachineDialog::~SelectMachineDialog() { /* m_button_ensure->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(SelectMachineDialog::on_ok), NULL, this); */ }
 
 }} // namespace Slic3r::GUI

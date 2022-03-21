@@ -7315,6 +7315,22 @@ void Plater::export_stl(bool extended, bool selection_only)
     }
 }*/
 
+
+std::vector<ThumbnailData *> Plater::get_thumbnail()
+{
+    // BBS: add plate logic for thumbnail generate
+    std::vector<ThumbnailData *> thumbnails;
+
+    for (int i = 0; i < p->partplate_list.get_plate_count(); i++) {
+        ThumbnailData *        thumbnail_data   = new ThumbnailData();
+        const ThumbnailsParams thumbnail_params = {{}, false, true, true, true, i};
+        p->generate_thumbnail(*thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho);
+        thumbnails.push_back(thumbnail_data);
+    }
+
+    return thumbnails;
+}
+
 // BBS: backup
 int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy strategy, int export_plate_idx, Export3mfProgressFn proFn)
 {

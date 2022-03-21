@@ -21,13 +21,18 @@
 #include <wx/popupwin.h>
 #include <wx/spinctrl.h>
 #include <wx/artprov.h>
+#include <wx/wrapsizer.h>
 
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 #include "DeviceManager.hpp"
 #include "Plater.hpp"
 #include "BBLStatusBar.hpp"
-
+#include "BBLStatusBarSend.hpp"
+#include "Widgets/Label.hpp"
+#include "Widgets/Button.hpp"
+#include "Widgets/CheckBox.hpp"
+#include "Widgets/ComboBox.hpp"
 #include "Widgets/ScrolledWindow.hpp"
 
 namespace Slic3r { 
@@ -184,13 +189,63 @@ private:
     void init_timer();
 
     int             m_print_plate_idx;
+    int             m_printer_last_select{-1};
+    int             m_bed_last_select{0};
+
     Plater*         m_plater { nullptr };
+    std::vector<std::string> m_bedtype_list;
+    std::map<std::string, ::CheckBox*> m_checkbox_list;
+
+
+    wxColour m_colour_def_color{wxColour(255,255,255)};
+    wxColour m_colour_bold_color{wxColour(38, 46, 48)};
+
+protected:
+    wxPanel *     m_line_top;
+    wxPanel *     m_image;
+    wxStaticText *m_stext_time;
+    wxStaticText *m_stext_weight;
+    wxPanel *     m__line_materia;
+    wxStaticText *m_stext_printer_title;
+    ::ComboBox *  m_comboBox_printer;
+    ::ComboBox *  m_comboBox_bed;
+    wxPanel *     m_panel_warn;
+    wxStaticText *m_statictext_warn;
+    wxPanel *     m_line_bed;
+    wxStaticText *m_staticText_bed_title;
+    wxPanel *     m_line_schedule;
+    wxPanel *     m_panel_err;
+    wxStaticText *m_statictext_err;
+    wxPanel *     m_panel_sending;
+    wxStaticText *m_stext_sending;
+    wxStaticText *m_stext_percent;
+    wxGauge *     m_sending_gauge;
+    Button *      m_cancel;
+    wxPanel *     m_panel_prepare;
+    Button *      m_button_ensure;
+    wxPanel *     m_panel_finish;
+    wxStaticText *m_statictext_finish;
+
+    wxBoxSizer *sizer_thumbnail;
+    wxWrapSizer *m_sizer_material;
+    wxBoxSizer *m_sizer_main;
+    wxBoxSizer *m_sizer_bottom;
+    wxPanel *   m_panel_bottom;
+
 
 public:
     SelectMachineDialog(Plater* plater = nullptr);
     ~SelectMachineDialog();
 
-    void prepare(int print_plate_idx) {
+    wxWindow *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param);
+    void prepare_mode();
+    void sending_mode();
+    void update_warn_msg(wxString msg);
+    void update_err_msg(wxString msg);
+	void finish_mode();
+
+    void prepare(int print_plate_idx)
+    {
         m_print_plate_idx = print_plate_idx;
         reset();
     }
@@ -199,20 +254,18 @@ public:
 
     /* model */
     wxObjectDataPtr<MachineListModel> machine_model;
-    wxString        machine_sn;
-    wxString        current_dev_id;
-
-    std::shared_ptr<BBLStatusBar> m_status_bar;
+    std::shared_ptr<BBLStatusBarSend> m_status_bar;
     bool            m_export_3mf_cancel{ false };
 
 protected:
+    std::vector<MachineObject *> m_list;
     wxDataViewCtrl* m_dataViewListCtrl_machines;
 	wxStaticText* m_staticText_left;
 	wxHyperlinkCtrl* m_hyperlink_add_machine;
 	wxGauge* m_gauge_job_progress;
 	wxPanel* m_panel_status;
 	wxButton* m_button_cancel;
-	wxButton* m_button_ensure;
+	//Button* m_button_ensure;
     bool      m_need_disable_btn_ensure{ false };
 
     wxTimer* m_refresh_timer;
@@ -220,11 +273,12 @@ protected:
     std::shared_ptr<PrintJob> m_print_job;
 
     // Virtual event handlers, overide them in your derived class
-    void on_cancel(wxCommandEvent& event);
-    void on_ok(wxCommandEvent& event);
-    void on_timer(wxTimerEvent& event);
-    void on_selection_changed(wxDataViewEvent& event);
+    void on_cancel(wxCloseEvent &event);
+    void on_ok(wxMouseEvent &event);
+    void on_timer(wxTimerEvent &event);
+    void on_selection_changed(wxCommandEvent &event);
     void on_dpi_changed(const wxRect& suggested_rect) override;
+    wxImage *LoadImageFromBlob(const unsigned char *data, int size);
 };
 
 } // namespace GUI

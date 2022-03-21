@@ -266,6 +266,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ProgressStatusBar.cpp
     GUI/BBLStatusBar.hpp
     GUI/BBLStatusBar.cpp
+    GUI/BBLStatusBarSend.hpp
+    GUI/BBLStatusBarSend.cpp
     GUI/Mouse3DController.cpp
     GUI/Mouse3DController.hpp
     GUI/DoubleSlider.cpp

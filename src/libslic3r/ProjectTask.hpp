@@ -108,6 +108,7 @@ public:
     bool            task_bed_leveling;  /* bed leveling of task */
     bool            task_flow_cali;     /* flow calibration of task */
     bool            task_vabration_cali;/* vabration calibration of task */
+    bool            task_record_timelapse; /* record timelapse of task */
 
     // task of plate info
     std::string     task_prediction;    /* prediction printing time of plate, unit seconds */

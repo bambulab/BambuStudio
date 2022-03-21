@@ -279,6 +279,7 @@ public:
     void export_gcode(bool prefer_removable);
     void export_gcode_3mf();
     void export_stl(bool extended = false, bool selection_only = false);
+    std::vector<ThumbnailData*> get_thumbnail();
     //BBS: remove amf
     //void export_amf();
     //BBS add extra param for exporting 3mf silence

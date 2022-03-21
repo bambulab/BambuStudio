@@ -39,6 +39,11 @@ void PrintJob::on_exception(const std::exception_ptr &eptr)
     }
 }
 
+void PrintJob::on_success(std::function<void()> success) 
+{ 
+    m_success_fun = success;
+}
+
 void PrintJob::process()
 {
     /* display info */
@@ -202,6 +207,13 @@ void PrintJob::process()
     }
 
     BBLSubTask* subTask = new BBLSubTask();
+
+    subTask->task_bed_type = this->task_bed_type;
+    subTask->task_bed_leveling = this->task_bed_leveling;
+    subTask->task_flow_cali = this->task_flow_cali;
+    subTask->task_vabration_cali = this->task_vabration_cali;
+    subTask->task_record_timelapse = this->task_record_timelapse;
+
     subTask->task_gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (curr_plate_idx)).str();
     subTask->task_partplate_idx = std::to_string(curr_plate_idx);
     subTask->task_printer_dev_id = m_dev_id;
@@ -225,6 +237,7 @@ void PrintJob::process()
     evt.SetString(m_dev_id);
     wxQueueEvent(m_plater, evt.Clone());
     m_job_finished = true;
+    if (m_success_fun != nullptr) { m_success_fun(); }
 }
 
 void PrintJob::finalize() {
