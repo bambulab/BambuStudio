@@ -1840,7 +1840,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Retraction Length");
     def->tooltip = L("When retraction is triggered, filament is pulled back by the specified amount "
                    "(the length is measured on raw filament, before it enters the extruder).");
-    def->sidetext = L("mm (zero to disable)");
+    def->sidetext = L("mm");
     //BBS
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats { 0.5 });
@@ -1851,7 +1851,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("When retraction is triggered before changing tool, filament is pulled back "
                    "by the specified amount (the length is measured on raw filament, before it enters "
                    "the extruder).");
-    def->sidetext = L("mm (zero to disable)");
+    def->sidetext = L("mm");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats { 10. });
 
