@@ -267,7 +267,6 @@ void ImGui::Text(const char* fmt, ...)
 
 void ImGui::TextCentered(const char* text, ...)
 {
-
     va_list vaList;
     va_start(vaList,&text);
 
@@ -277,6 +276,14 @@ void ImGui::TextCentered(const char* text, ...)
     ImGui::TextV(text, vaList);
 
     va_end(vaList);
+}
+
+void ImGui::TextAlignCenter(const char *label)
+{
+    float item_width = ImGui::CalcItemWidth();
+    float font_size  = ImGui::GetFontSize() * strlen(label) / 2;
+    ImGui::SameLine(ImGui::GetCursorPos().x + (item_width - font_size) / 2);
+    ImGui::Text(label);
 }
 
 void ImGui::TextV(const char* fmt, va_list args)

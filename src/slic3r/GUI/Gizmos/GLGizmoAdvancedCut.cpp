@@ -313,46 +313,42 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
 {
     float unit_size = m_imgui->get_style_scaling() * 48.0f;
     float space_size = m_imgui->get_style_scaling() * 8;
-    float caption_size = m_imgui->calc_text_size(_L("Movement:")).x + space_size;
+    float movement_cap = m_imgui->calc_text_size(_L("Movement:")).x;
+    float rotate_cap   = m_imgui->calc_text_size(_L("Rotate")).x;
+    float caption_size =  std::max(movement_cap, rotate_cap) + 2 * space_size;
     bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
     unsigned int current_active_id = ImGui::GetActiveID();
 
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
     ImGuiWrapper::push_toolbar_style();
-    m_imgui->begin(_L("Cut"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-    ImGui::AlignTextToFramePadding();
+    m_imgui->begin(_L("Cut"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
-    // Movement input box
-    double movement = m_movement;
-    m_imgui->text(_L("Movement:"));
-    ImGui::SameLine(caption_size + space_size);
+    ImGui::PushItemWidth(caption_size);
+    ImGui::Dummy(ImVec2(caption_size, -1));
+    ImGui::SameLine(caption_size + 1 * space_size);
     ImGui::PushItemWidth(unit_size);
-
-    ImGui::InputDouble("##cut_movement", &movement, 0.0f, 0.0f, "%.2f");
-    if (current_active_id != m_last_active_id) {
-        if (std::abs(m_buffered_movement - m_movement) > EPSILON) {
-            m_movement = m_buffered_movement;
-            m_buffered_movement = 0.0;
-            update_plane_points();
-            m_parent.post_event(SimpleEvent(wxEVT_PAINT));
-        }
-    }
-    else {
-        m_buffered_movement = movement;
-    }
-
-    // Rotation input box
-    Vec3d rotation = { Geometry::rad2deg(m_rotation(0)), Geometry::rad2deg(m_rotation(1)), Geometry::rad2deg(m_rotation(2)) };
-    m_imgui->text(_L("Rotation:"));
-    ImGui::SameLine(caption_size + space_size);
+    ImGui::TextAlignCenter("X");
+    ImGui::SameLine(caption_size + 1 * unit_size + 2 * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::InputDouble("##cut_rotation_x", &rotation[0], 0.0f, 0.0f, "%.2f");
-    ImGui::SameLine(caption_size + unit_size + 2 * space_size);
-    ImGui::PushItemWidth(unit_size);
-    ImGui::InputDouble("##cut_rotation_y", &rotation[1], 0.0f, 0.0f, "%.2f");
+    ImGui::TextAlignCenter("Y");
     ImGui::SameLine(caption_size + 2 * unit_size + 3 * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::InputDouble("##cut_rotation_z", &rotation[2], 0.0f, 0.0f, "%.2f");
+    ImGui::TextAlignCenter("Z");
+
+    ImGui::AlignTextToFramePadding();
+    // Rotation input box
+    Vec3d rotation = { Geometry::rad2deg(m_rotation(0)), Geometry::rad2deg(m_rotation(1)), Geometry::rad2deg(m_rotation(2)) };
+    ImGui::PushItemWidth(caption_size);
+    m_imgui->text(_L("Rotation:"));
+    ImGui::SameLine(caption_size + 1 * space_size);
+    ImGui::PushItemWidth(unit_size);
+    ImGui::BBLInputDouble("##cut_rotation_x", &rotation[0], 0.0f, 0.0f, "%.2f");
+    ImGui::SameLine(caption_size + 1 * unit_size + 2 * space_size);
+    ImGui::PushItemWidth(unit_size);
+    ImGui::BBLInputDouble("##cut_rotation_y", &rotation[1], 0.0f, 0.0f, "%.2f");
+    ImGui::SameLine(caption_size + 2 * unit_size + 3 * space_size);
+    ImGui::PushItemWidth(unit_size);
+    ImGui::BBLInputDouble("##cut_rotation_z", &rotation[2], 0.0f, 0.0f, "%.2f");
     if (current_active_id != m_last_active_id) {
         if (std::abs(Geometry::rad2deg(m_rotation(0)) - m_buffered_rotation(0)) > EPSILON ||
             std::abs(Geometry::rad2deg(m_rotation(1)) - m_buffered_rotation(1)) > EPSILON ||
@@ -371,11 +367,31 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
     }
 
     ImGui::Separator();
-
-    // Part selection
-    m_imgui->checkbox(_L("Keep upper part"), m_keep_upper);
-    m_imgui->checkbox(_L("Keep lower part"), m_keep_lower);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 10.0f));
+    // Movement input box
+    double movement = m_movement;
+    ImGui::PushItemWidth(caption_size);
+    m_imgui->text(_L("Movement:"));
+    ImGui::SameLine(caption_size + 1 * space_size);
+    ImGui::PushItemWidth(3 * unit_size + 2 * space_size);
+    ImGui::BBLInputDouble("##cut_movement", &movement, 0.0f, 0.0f, "%.2f");
+    if (current_active_id != m_last_active_id) {
+        if (std::abs(m_buffered_movement - m_movement) > EPSILON) {
+            m_movement          = m_buffered_movement;
+            m_buffered_movement = 0.0;
+            update_plane_points();
+            m_parent.post_event(SimpleEvent(wxEVT_PAINT));
+        }
+    } else {
+        m_buffered_movement = movement;
+    }
+    ImGui::PopStyleVar(1);
     ImGui::Separator();
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0, 6.0));
+    // Part selection
+    m_imgui->bbl_checkbox(_L("Keep upper part"), m_keep_upper);
+    m_imgui->bbl_checkbox(_L("Keep lower part"), m_keep_lower);
+    ImGui::SameLine();
 
 #if 0
     // Auto segment input
@@ -392,16 +408,13 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
 #endif
 
     // Cut button
+    const bool reset_clicked = m_imgui->button(_L("Reset"));
+    if (reset_clicked) { reset_all(); }
+    ImGui::SameLine();
     m_imgui->disabled_begin((!m_keep_upper && !m_keep_lower && !m_do_segment));
     const bool cut_clicked = m_imgui->button(_L("Perform cut"));
     m_imgui->disabled_end();
-
-    ImGui::SameLine();
-    const bool reset_clicked = m_imgui->button(_L("Reset"));
-    if (reset_clicked) {
-        reset_all();
-    }
-
+    ImGui::PopStyleVar(1);
     m_imgui->end();
     ImGuiWrapper::pop_toolbar_style();
 

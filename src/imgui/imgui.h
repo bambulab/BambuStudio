@@ -463,7 +463,9 @@ namespace ImGui
     // Widgets: Text
     IMGUI_API void          TextUnformatted(const char* text, const char* text_end = NULL); // raw text without formatting. Roughly equivalent to Text("%s", text) but: A) doesn't require null terminated string if 'text_end' is specified, B) it's faster, no memory copy is done, no buffer size limits, recommended for long chunks of text.
     IMGUI_API void          Text(const char* fmt, ...)                                      IM_FMTARGS(1); // formatted text
+    //BBS
     IMGUI_API void          TextCentered(const char *text, ...);                            // formatted text
+    IMGUI_API void          TextAlignCenter(const char* label);
     IMGUI_API void          TextV(const char* fmt, va_list args)                            IM_FMTLIST(1);
     IMGUI_API void          TextColored(const ImVec4& col, const char* fmt, ...)            IM_FMTARGS(2); // shortcut for PushStyleColor(ImGuiCol_Text, col); Text(fmt, ...); PopStyleColor();
     IMGUI_API void          TextColoredV(const ImVec4& col, const char* fmt, va_list args)  IM_FMTLIST(2);
