@@ -3,6 +3,7 @@
 #include "ParamsPanel.hpp"
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
+#include "Tab.hpp"
 
 #include "libslic3r/Utils.hpp"
 
@@ -34,6 +35,21 @@ ParamsDialog::ParamsDialog(wxWindow * parent)
         } else {
             delete m_winDisabler;
             m_winDisabler = nullptr;
+        }
+    });
+	Bind(wxEVT_CLOSE_WINDOW, [this](auto& event) {
+		auto tab = dynamic_cast<Tab *>(m_panel->get_current_tab());
+        if (event.CanVeto() && tab->m_presets->current_is_dirty()) {
+			bool ok = tab->may_discard_current_dirty_preset();
+			if (!ok)
+				event.Veto();
+            else {
+                tab->m_presets->discard_current_changes();
+                tab->load_current_preset();
+                Hide();
+            }
+        } else {
+            Hide();
         }
     });
 }

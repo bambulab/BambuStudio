@@ -792,6 +792,8 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *
                 wxDefaultSize, 
                 wxCAPTION | wxCLOSE_BOX)
 {
+    if (new_selected_preset.empty())
+        m_buttons &= ~ActionButtons::TRANSFER;
     build(type, dependent_presets, new_selected_preset);
     this->CenterOnScreen();
 }

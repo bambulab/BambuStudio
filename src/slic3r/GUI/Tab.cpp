@@ -1066,20 +1066,22 @@ void Tab::update_dirty()
     if (m_postpone_update_ui)
         return;
 
-    if (m_presets_choice)
+    if (m_presets_choice) {
         m_presets_choice->update_dirty();
-    else
+        on_presets_changed();
+    } else {
         m_presets->update_dirty();
-    on_presets_changed();
+    }
     update_changed_ui();
 }
 
 void Tab::update_tab_ui(bool update_plater_presets)
 {
-    if (m_presets_choice)
+    if (m_presets_choice) {
         m_presets_choice->update();
-    if (update_plater_presets)
-        on_presets_changed();
+        if (update_plater_presets)
+            on_presets_changed();
+    }
 }
 
 // Load a provied DynamicConfig into the tab, modifying the active preset.
