@@ -354,8 +354,25 @@ bool ImGuiWrapper::bbl_input_double(const wxString& label, const double& value, 
     return ImGui::InputDouble(label.c_str(), const_cast<double *>(&value), 0.0f, 0.0f, format.c_str(), ImGuiInputTextFlags_CharsDecimal);
 }
 
+bool ImGuiWrapper::bbl_slider_float_style(const std::string &label, float *v, float v_min, float v_max, const char *format, float power, bool clamp, const wxString &tooltip)
+{
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));
+    ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+
+    bool ret = bbl_slider_float(label, v, v_min,v_max, format, power, clamp,tooltip);
+
+    ImGui::PopStyleColor(4);
+    ImGui::PopStyleVar(1);
+
+    return ret;
+}
+
 bool ImGuiWrapper::bbl_slider_float(const std::string& label, float* v, float v_min, float v_max, const char* format, float power, bool clamp, const wxString& tooltip)
 {
+    
     const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 
     // let the label string start with "##" to hide the automatic label from ImGui::SliderFloat()
@@ -393,6 +410,7 @@ bool ImGuiWrapper::bbl_slider_float(const std::string& label, float* v, float v_
         this->text(out_label.c_str());
         ImGui::PopStyleVar();
     }
+
 
     return ret;
 }

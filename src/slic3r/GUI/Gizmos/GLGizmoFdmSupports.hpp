@@ -31,7 +31,7 @@ protected:
     // BBS
     void render_triangles(const Selection& selection) const override;
     void on_set_state() override;
-
+    void show_tooltip_information(float caption_max, float x, float y);
     wxString handle_snapshot_action_name(bool shift_down, Button button_down) const override;
 
     std::string get_gizmo_entering_text() const override { return _u8L("Entering Paint-on supports"); }
