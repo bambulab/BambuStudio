@@ -1470,7 +1470,7 @@ struct Plater::priv
         if (m_single == single) m_single = nullptr;
     }
 
-    void process_validation_warning(const std::string &warning, ObjectBase const *object = nullptr) const;
+    void process_validation_warning(StringObjectException const &warning) const;
 
     bool background_processing_enabled() const {
 #ifdef SUPPORT_BACKGROUND_PROCESSING
@@ -3281,14 +3281,29 @@ void Plater::priv::update_print_volume_state()
     this->q->model().update_print_volume_state(build_volume);
 }
 
-void Plater::priv::process_validation_warning(const std::string &warning, ObjectBase const *object) const
+void Plater::priv::process_validation_warning(StringObjectException const &warning) const
 {
-    if (warning.empty())
+    if (warning.string.empty())
         notification_manager->close_notification_of_type(NotificationType::ValidateWarning);
     else {
-        std::string text = warning;
-        std::string hypertext = "";
-        std::function<bool(wxEvtHandler*)> action_fn = [](wxEvtHandler*){ return false; };
+        std::string text = warning.string;
+        auto po = dynamic_cast<PrintObjectBase const *>(warning.object);
+        auto mo = po ? po->model_object() : dynamic_cast<ModelObject const *>(warning.object);
+        auto action_fn = (mo || !warning.opt_key.empty()) ? [id = mo ? mo->id() : 0, opt = warning.opt_key](wxEvtHandler *) {
+		    auto & objects = wxGetApp().model().objects;
+		    auto iter = id.id ? std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; }) : objects.end();
+            if (iter != objects.end())
+			    wxGetApp().obj_list()->select_items({{*iter, nullptr}});
+            if (!opt.empty()) {
+                if (iter != objects.end())
+				    wxGetApp().params_panel()->switch_to_object();
+                wxGetApp().sidebar().jump_to_option(opt, Preset::TYPE_PRINT, L"");
+		    }
+		    return false;
+	    } : std::function<bool(wxEvtHandler *)>();
+        auto hypertext = (mo || !warning.opt_key.empty()) ? _u8L("Jump to") : "";
+        if (mo) hypertext += std::string(" [") + mo->name + "]";
+        if (!warning.opt_key.empty()) hypertext += std::string(" (") + warning.opt_key + ")";
 
         // BBS disable support enforcer
         //if (text == "_SUPPORTS_OFF") {
@@ -3387,7 +3402,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 
             // Pass a warning from validation and either show a notification,
             // or hide the old one.
-            process_validation_warning(warning.string, warning.object);
+            process_validation_warning(warning);
             if (printer_technology == ptFFF) {
                 view3D->get_canvas3d()->reset_sequential_print_clearance();
                 view3D->get_canvas3d()->set_as_dirty();
@@ -3418,7 +3433,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     //actualizate warnings
     if (invalidated != Print::APPLY_STATUS_UNCHANGED || background_process.empty()) {
         if (background_process.empty())
-            process_validation_warning(std::string());
+            process_validation_warning({});
         actualize_slicing_warnings(*this->background_process.current_print());
         actualize_object_warnings(*this->background_process.current_print());
         show_warning_dialog = false;

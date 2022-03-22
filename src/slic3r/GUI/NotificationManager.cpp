@@ -626,6 +626,7 @@ void NotificationManager::PopNotification::update(const NotificationData& n)
 	m_text1          = n.text1;
 	m_hypertext      = n.hypertext;
     m_text2          = n.text2;
+    const_cast<NotificationData&>(m_data).callback	 = n.callback;
 	init();
 }
 bool NotificationManager::PopNotification::compare_text(const std::string& text) const 
