@@ -230,7 +230,8 @@ int CLI::run(int argc, char **argv)
         if (opt_filament_settings_src)
             opt_filament_settings->set_at(opt_filament_settings_src, index, 0);
         else {
-            std::string name = file.erase(file.size() - 5);
+            std::string name = file;
+            name.erase(name.size() - 5);
             ConfigOptionString option(name);
             opt_filament_settings->set_at(&option, index, 0);
         }
