@@ -859,7 +859,7 @@ void MenuFactory::create_bbl_object_menu()
     // Object Repair
     append_menu_item_fix_through_netfabb(&m_object_menu);
     // Object Simplify
-    append_menu_item_simplify(&m_object_menu);
+    //append_menu_item_simplify(&m_object_menu);
     // Object Split
     wxMenu* split_menu = new wxMenu();
     if (!split_menu)
@@ -1222,7 +1222,7 @@ void MenuFactory::append_menu_item_clone(wxMenu* menu)
 
 void MenuFactory::append_menu_item_simplify(wxMenu* menu)
 {
-    wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Simplify model"), "",
+    wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Reduce Triangles"), "",
         [](wxCommandEvent&) { obj_list()->simplify(); }, "", menu,
         []() {return plater()->can_simplify(); }, m_parent);
 }
