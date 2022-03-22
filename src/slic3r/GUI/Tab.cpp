@@ -1741,6 +1741,41 @@ void TabPrint::build()
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
         optgroup->append_single_option_line("reduce_infill_retraction");
 
+    page = add_options_page(L("Speed"), "time");
+        optgroup = page->new_optgroup(L("Initial layer speed"));
+        optgroup->append_single_option_line("initial_layer_speed");
+        optgroup->append_single_option_line("initial_layer_infill_speed");
+        optgroup = page->new_optgroup(L("Other layers speed"));
+        optgroup->append_single_option_line("outer_wall_speed");
+        optgroup->append_single_option_line("inner_wall_speed");
+        //optgroup->append_single_option_line("small_perimeter_speed");
+        optgroup->append_single_option_line("sparse_infill_speed");
+        optgroup->append_single_option_line("internal_solid_infill_speed");
+        optgroup->append_single_option_line("top_surface_speed");
+        Line line = { L("Overhang"), "" };
+        line.append_option(optgroup->get_option("overhang_1_4_speed"));
+        line.append_option(optgroup->get_option("overhang_2_4_speed"));
+        line.append_option(optgroup->get_option("overhang_3_4_speed"));
+        line.append_option(optgroup->get_option("overhang_4_4_speed"));
+        optgroup->append_line(line);
+        optgroup->append_single_option_line("bridge_speed");
+        optgroup->append_single_option_line("gap_infill_speed");
+        optgroup->append_single_option_line("support_speed");
+        optgroup->append_single_option_line("support_interface_speed");
+        optgroup->append_single_option_line("support_transition_speed");
+
+        optgroup = page->new_optgroup(L("Travel speed"));
+        optgroup->append_single_option_line("travel_speed");
+
+        optgroup = page->new_optgroup(L("Acceleration"));
+        optgroup->append_single_option_line("initial_layer_acceleration");
+        optgroup->append_single_option_line("default_acceleration");
+
+#ifdef HAS_PRESSURE_EQUALIZER
+        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_positive");
+        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_negative");
+#endif /* HAS_PRESSURE_EQUALIZER */
+
     page = add_options_page(L("Support"), "support");
         optgroup = page->new_optgroup(L("Bed adhension"));
         optgroup->append_single_option_line("skirt_loops");
@@ -1796,41 +1831,6 @@ void TabPrint::build()
         //optgroup->append_single_option_line("support_sharp_tails");
         //optgroup->append_single_option_line("remove_small_overhangs");
         optgroup->append_single_option_line("independent_support_layer_height");
-
-    page = add_options_page(L("Speed"), "time");
-        optgroup = page->new_optgroup(L("Initial layer speed"));
-        optgroup->append_single_option_line("initial_layer_speed");
-        optgroup->append_single_option_line("initial_layer_infill_speed");
-        optgroup = page->new_optgroup(L("Other layers speed"));
-        optgroup->append_single_option_line("outer_wall_speed");
-        optgroup->append_single_option_line("inner_wall_speed");
-        //optgroup->append_single_option_line("small_perimeter_speed");
-        optgroup->append_single_option_line("sparse_infill_speed");
-        optgroup->append_single_option_line("internal_solid_infill_speed");
-        optgroup->append_single_option_line("top_surface_speed");
-        Line line = { L("Overhang"), "" };
-        line.append_option(optgroup->get_option("overhang_1_4_speed"));
-        line.append_option(optgroup->get_option("overhang_2_4_speed"));
-        line.append_option(optgroup->get_option("overhang_3_4_speed"));
-        line.append_option(optgroup->get_option("overhang_4_4_speed"));
-        optgroup->append_line(line);
-        optgroup->append_single_option_line("bridge_speed");
-        optgroup->append_single_option_line("gap_infill_speed");
-        optgroup->append_single_option_line("support_speed");
-        optgroup->append_single_option_line("support_interface_speed");
-        optgroup->append_single_option_line("support_transition_speed");
-
-        optgroup = page->new_optgroup(L("Travel speed"));
-        optgroup->append_single_option_line("travel_speed");
-
-        optgroup = page->new_optgroup(L("Acceleration"));
-        optgroup->append_single_option_line("initial_layer_acceleration");
-        optgroup->append_single_option_line("default_acceleration");
-
-#ifdef HAS_PRESSURE_EQUALIZER
-        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_positive");
-        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_negative");
-#endif /* HAS_PRESSURE_EQUALIZER */
 
     page = add_options_page(L("Others"), "advanced");
         optgroup = page->new_optgroup(L("Prime tower"));
