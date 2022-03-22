@@ -5741,6 +5741,8 @@ void Plater::new_project()
     if ((result = close_with_confirm(check)) == wxID_CANCEL)
         return;
 
+    wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+
     Plater::TakeSnapshot snapshot(this, "New Project", UndoRedo::SnapshotType::ProjectSeparator);
 
     get_partplate_list().reinit();
@@ -5792,7 +5794,9 @@ void Plater::load_project(wxString const& filename2,
         return;
     }
 
-    auto path = into_path(filename);
+    wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+
+    auto path     = into_path(filename);
     auto strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig;
     if (originfile == "<silence>") {
         strategy = strategy | LoadStrategy::Silence;
@@ -6029,7 +6033,10 @@ void Plater::request_download_project(std::string project_id)
 // BBS: save logic
 bool Plater::up_to_date(bool saved, bool backup)
 {
-    if (saved) return p->up_to_date(saved, backup);
+    if (saved) {
+        Slic3r::clear_other_changes(backup);
+        return p->up_to_date(saved, backup);
+    }
     return p->model.objects.empty() || (p->up_to_date(saved, backup) &&
                                         !Slic3r::has_other_changes(backup));
 }

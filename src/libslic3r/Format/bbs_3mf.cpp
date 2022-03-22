@@ -5568,6 +5568,14 @@ public:
         m_other_changes_backup = true;
     }
 
+    void clear_other_changes(bool backup)
+    {
+        if (backup)
+            m_other_changes_backup = false;
+        else
+            m_other_changes = false;
+    }
+
     bool has_other_changes(bool backup)
     {
         return backup ? m_other_changes_backup : m_other_changes;
@@ -5921,6 +5929,11 @@ bool has_restore_data(std::string & path, std::string& origin)
 void put_other_changes()
 {
     _BBS_Backup_Manager::get().put_other_changes();
+}
+
+void clear_other_changes(bool backup)
+{
+    _BBS_Backup_Manager::get().clear_other_changes(backup);
 }
 
 bool has_other_changes(bool backup)
