@@ -106,7 +106,7 @@ protected:
 
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
-
+    void show_tooltip_information(float caption_max, float x, float y);
     bool on_is_selectable() const override;
     bool on_is_activable() const override;
 

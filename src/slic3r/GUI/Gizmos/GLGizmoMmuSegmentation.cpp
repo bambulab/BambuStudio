@@ -288,6 +288,28 @@ static std::string into_u8(const wxString& str)
     return std::string(buffer_utf8.data());
 }
 
+void GLGizmoMmuSegmentation::show_tooltip_information(float caption_max, float x, float y)
+{
+    ImTextureID normal_id = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP);
+    ImTextureID hover_id  = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP_HOVER);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    ImGui::ImageButton3(normal_id, hover_id, ImVec2(30.0f, 22.0f));
+
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip2(ImVec2(x, y));
+        auto draw_text_with_caption = [this, &caption_max](const wxString &caption, const wxString &text) {
+            m_imgui->text_colored(ImGuiWrapper::COL_ACTIVE, caption);
+            ImGui::SameLine(caption_max);
+            m_imgui->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);
+        };
+
+        for (const auto &t : std::array<std::string, 2>{"paint", "erase"}) draw_text_with_caption(m_desc.at(t + "_caption"), m_desc.at(t));
+        ImGui::EndTooltip();
+    }
+    ImGui::PopStyleVar(1);
+}
+
 void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bottom_limit)
 {
     if (!m_c->selection_info()->model_object())
@@ -300,12 +322,12 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     //BBS
     ImGuiWrapper::push_toolbar_style();
 
-    m_imgui->begin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+    m_imgui->begin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
     const float clipping_slider_left = m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f);
     const float cursor_slider_left = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.f);
-    const float smart_fill_slider_left = m_imgui->calc_text_size(m_desc.at("smart_fill_angle")).x + m_imgui->scaled(1.f);
+    const float smart_fill_slider_left = m_imgui->calc_text_size(m_desc.at("smart_fill_angle")).x + m_imgui->scaled(1.5f);
     const float edge_detect_slider_left = m_imgui->calc_text_size(m_desc.at("edge_detection")).x + m_imgui->scaled(1.f);
     const float tiny_filter_slider_left = m_imgui->calc_text_size(m_desc.at("tiny_patch_filter")).x + m_imgui->scaled(1.f);
     const float height_range_slider_left = m_imgui->calc_text_size(m_desc.at("height_range")).x + m_imgui->scaled(1.f);
@@ -342,14 +364,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 
-    auto draw_text_with_caption = [this, &caption_max](const wxString& caption, const wxString& text) {
-        m_imgui->text_colored(ImGuiWrapper::COL_BLUE_LIGHT, caption);
-        ImGui::SameLine(caption_max);
-        m_imgui->text(text);
-    };
-
-    for (const auto& t : std::array<std::string, 2>{"paint", "erase"})
-        draw_text_with_caption(m_desc.at(t + "_caption"), m_desc.at(t));
+    float slider_width_times = 1.8;
 
     ImGui::Separator();
 
@@ -359,7 +374,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         std::string color_label = std::string("##extruder color ") + std::to_string(extruder_idx);
         if (extruder_idx % max_filament_items_per_line != 0) {
             float button_offset = filament_item_width * (extruder_idx % max_filament_items_per_line) + m_imgui->scaled(0.5f);
-            ImGui::SameLine(button_offset);
+            ImGui::SameLine(2 * button_offset);
         }
 
         ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoInputs |
@@ -384,7 +399,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         std::wstring btn_name = paint_icons[i] + boost::nowide::widen(str_label);
 
         if (i != 0)
-            ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(0.5f));
+            ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(1.3f));
 
         if (m_current_tool == paint_icons[i]) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.80f, 0.80f, 1.00f, 1.00f)); // r, g, b, a
@@ -411,8 +426,13 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("cursor_size"));
         ImGui::SameLine(sliders_left_width);
-        ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
-        m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true, _L("Alt + Mouse wheel"));
+        ImGui::PushItemWidth(window_width - sliders_left_width - slider_width_times * slider_icon_width);
+        m_imgui->bbl_slider_float_style("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true, _L("Alt + Mouse wheel"));
+        ImGui::SameLine(window_width - 1.5 * slider_icon_width);
+        ImGui::PushItemWidth(1.5 * slider_icon_width);
+        ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
+
+
     }
     else if (m_current_tool == ImGui::TriangleButtonIcon) {
         m_cursor_type = TriangleSelector::CursorType::POINTER;
@@ -420,7 +440,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     }
     else if (m_current_tool == ImGui::FillButtonIcon) {
         m_cursor_type = TriangleSelector::CursorType::POINTER;
-        m_imgui->checkbox(m_desc["edge_detection"], m_detect_geometry_edge);
+        m_imgui->bbl_checkbox(m_desc["edge_detection"], m_detect_geometry_edge);
         m_tool_type = ToolType::BUCKET_FILL;
 
         if (m_detect_geometry_edge) {
@@ -429,12 +449,15 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             std::string format_str = std::string("%.f") + I18N::translate_utf8("°", "Face angle threshold,"
                 "placed after the number with no whitespace in between.");
             ImGui::SameLine(sliders_left_width);
-            ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
-            if (m_imgui->slider_float("##smart_fill_angle", &m_smart_fill_angle, SmartFillAngleMin, SmartFillAngleMax, format_str.data(), 1.0f, true, _L("Alt + Mouse wheel")))
+            ImGui::PushItemWidth(window_width - sliders_left_width - slider_width_times * slider_icon_width);
+            if (m_imgui->bbl_slider_float_style("##smart_fill_angle", &m_smart_fill_angle, SmartFillAngleMin, SmartFillAngleMax, format_str.data(), 1.0f, true, _L("Alt + Mouse wheel")))
                 for (auto& triangle_selector : m_triangle_selectors) {
                     triangle_selector->seed_fill_unselect_all_triangles();
                     triangle_selector->request_update_render_data();
                 }
+            ImGui::SameLine(window_width - 1.5 * slider_icon_width);
+            ImGui::PushItemWidth(1.5 * slider_icon_width);
+            ImGui::BBLDragFloat("##smart_fill_angle_input", &m_smart_fill_angle, 0.05f, 0.0f, 0.0f, "%.2f");
         }
         else {
             // set to negative value to disable edge detection
@@ -447,35 +470,54 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc["height_range"] + ":");
         ImGui::SameLine(sliders_left_width);
-        ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
+
         std::string format_str = std::string("%.2f") + I18N::translate_utf8("mm", "Heigh range,"
             "Facet in [cursor z, cursor z + height] will be selected.");
-        m_imgui->slider_float("##cursor_height", &m_cursor_height, CursorHeightMin, CursorHeightMax, format_str.data(), 1.0f, true, _L("Alt + Mouse wheel"));
+
+        ImGui::PushItemWidth(window_width - sliders_left_width - slider_width_times * slider_icon_width);
+        m_imgui->bbl_slider_float_style("##cursor_height", &m_cursor_height, CursorHeightMin, CursorHeightMax, format_str.data(), 1.0f, true, _L("Alt + Mouse wheel"));
+        ImGui::SameLine(window_width - 1.5 * slider_icon_width);
+        ImGui::PushItemWidth(1.5 * slider_icon_width);
+        ImGui::BBLDragFloat("##cursor_height_input", &m_cursor_height, 0.05f, 0.0f, 0.0f, "%.2f");
     }
 
     ImGui::Separator();
 
     m_imgui->text(m_desc["tiny_patch_filter"] + ":");
     ImGui::SameLine(sliders_left_width);
-    ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
     std::string format_str = std::string("%.2f") + I18N::translate_utf8("", "Triangle patch area threshold,"
         "triangle patch will be merged to neighbor if its area is less than threshold");
-    m_imgui->slider_float("##tiny_patch_area", &TriangleSelectorPatch::tiny_patch_area, TriangleSelectorPatch::TinyPatchAreaMin,
-        TriangleSelectorPatch::TinyPatchAreaMax, format_str.data(), 1.0f, true, _L("Alt + Mouse wheel"));
+
+    ImGui::PushItemWidth(window_width - sliders_left_width - slider_width_times * slider_icon_width);
+    m_imgui->bbl_slider_float_style("##tiny_patch_area", &TriangleSelectorPatch::tiny_patch_area, TriangleSelectorPatch::TinyPatchAreaMin,TriangleSelectorPatch::TinyPatchAreaMax,format_str.data(), 1.0f, true, _L("Alt + Mouse wheel"));
+    ImGui::SameLine(window_width - 1.5 * slider_icon_width);
+    ImGui::PushItemWidth(1.5 * slider_icon_width);
+    ImGui::BBLDragFloat("##tiny_patch_area_input", &TriangleSelectorPatch::tiny_patch_area, 0.05f, 0.0f, 0.0f, "%.2f");
 
     ImGui::Separator();
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("clipping_of_view"));
 
-    auto clp_dist = float(m_c->object_clipper()->get_position());
+    static auto clp_dist = float(m_c->object_clipper()->get_position());
     ImGui::SameLine(sliders_left_width);
-    ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
-    if (m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true, _L("Ctrl + Mouse wheel")))
-        m_c->object_clipper()->set_position(clp_dist, true);
+
+    ImGui::PushItemWidth(window_width - sliders_left_width - slider_width_times * slider_icon_width);
+    bool slider_clp_dist = m_imgui->bbl_slider_float_style("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true, _L("Ctrl + Mouse wheel"));
+    ImGui::SameLine(window_width - 1.5 * slider_icon_width);
+    ImGui::PushItemWidth(1.5 * slider_icon_width);
+    bool b_clp_dist_input = ImGui::BBLDragFloat("##clp_dist_input", &clp_dist, 0.05f, 0.0f, 0.0f, "%.2f");
+
+    if (slider_clp_dist || b_clp_dist_input) { m_c->object_clipper()->set_position(clp_dist, true); }
 
     ImGui::Separator();
-    if (m_imgui->button(m_desc.at("filter_tiny"))) {
+    ImGui::AlignTextToFramePadding();
+    float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
+    show_tooltip_information(caption_max, x, get_cur_y);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 20.0f));
+    ImGui::SameLine();
+    if (m_imgui->button(m_desc.at("filter_tiny")), 0.0, 24.0) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection",
             UndoRedo::SnapshotType::GizmoAction);
 
@@ -488,7 +530,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         m_parent.set_as_dirty();
     }
 
-    ImGui::SameLine(filter_btn_width + m_imgui->scaled(1.f));
+    ImGui::SameLine();
 
     if (m_imgui->button(m_desc.at("remove_all"))) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection",
@@ -505,6 +547,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         update_model_object();
         m_parent.set_as_dirty();
     }
+    ImGui::PopStyleVar(1);
 
     m_imgui->end();
 

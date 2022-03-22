@@ -3570,7 +3570,7 @@ bool ImGui::SliderScalarN(const char* label, ImGuiDataType data_type, void* v, i
 
 bool ImGui::BBLSliderFloat(const char *label, float *v, float v_min, float v_max, const char *format, float power)
 {
-    ImGuiSliderFlags slider_flags = ImGuiSliderFlags_None;
+    ImGuiSliderFlags slider_flags = ImGuiSliderFlags_NoInput;
     if (power != 1.0f) {
         IM_ASSERT(power == 1.0f && "Call function with ImGuiSliderFlags_Logarithmic flags instead of using the old 'float power' function!");
         slider_flags |= ImGuiSliderFlags_Logarithmic; // Fallback for non-asserting paths
