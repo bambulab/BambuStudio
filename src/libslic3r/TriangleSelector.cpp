@@ -1062,6 +1062,11 @@ bool TriangleSelector::Circle::is_edge_inside_cursor(const Triangle &tr, const s
 }
 
 // BBS
+bool TriangleSelector::HeightRange::is_pointer_in_triangle(const Vec3f& p1_, const Vec3f& p2_, const Vec3f& p3_) const
+{
+    return false;
+}
+
 bool TriangleSelector::HeightRange::is_mesh_point_inside(const Vec3f& point) const
 {
     const Vec3f transformed_point = trafo * point;

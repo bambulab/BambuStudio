@@ -439,8 +439,9 @@ std::vector<GLGizmoPainterBase::ProjectedHeightRange> GLGizmoPainterBase::get_pr
         return hit_triangles_by_mesh;
 
     ProjectedMousePosition mesh_hit_point = { m_rr.hit, m_rr.mesh_id, m_rr.facet };
-    float z_world = (trafo_matrices[m_rr.mesh_id] * Vec3d(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2))).z();
-    hit_triangles_by_mesh.push_back({ z_world, m_rr.mesh_id, size_t(m_rr.facet) });
+    float z_bot_world= (trafo_matrices[m_rr.mesh_id] * Vec3d(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2))).z();
+    float z_top_world = z_bot_world+ m_cursor_height;
+    hit_triangles_by_mesh.push_back({ z_bot_world, m_rr.mesh_id, size_t(m_rr.facet) });
 
     const Selection& selection = m_parent.get_selection();
     const ModelObject* mo = m_c->selection_info()->model_object();
@@ -464,7 +465,8 @@ std::vector<GLGizmoPainterBase::ProjectedHeightRange> GLGizmoPainterBase::get_pr
             float v0_z = (trafo * Vec3d(v0(0), v0(1), v0(2))).z();
             float v1_z = (trafo * Vec3d(v1(0), v1(1), v1(2))).z();
             float v2_z = (trafo * Vec3d(v2(0), v2(1), v2(2))).z();
-            bool outside_range = (v0_z < z_world&& v1_z < z_world&& v2_z < z_world) || (v0_z > z_world && v1_z > z_world && v2_z > z_world);
+            bool outside_range = (v0_z < z_bot_world&& v1_z < z_bot_world&& v2_z < z_bot_world) ||
+                                 (v0_z > z_top_world && v1_z > z_top_world && v2_z > z_top_world);
             if (!outside_range) {
                 first_hit_facet_idx = facet_idx;
                 break;
@@ -472,7 +474,7 @@ std::vector<GLGizmoPainterBase::ProjectedHeightRange> GLGizmoPainterBase::get_pr
         }
 
         if (first_hit_facet_idx != -1) {
-            hit_triangles_by_mesh.push_back({ z_world, mesh_idx, (size_t)first_hit_facet_idx });
+            hit_triangles_by_mesh.push_back({ z_bot_world, mesh_idx, (size_t)first_hit_facet_idx });
         }
     }
 
@@ -567,7 +569,10 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             std::vector<ProjectedHeightRange> projected_height_range_by_mesh = get_projected_height_range(mouse_position, 1., part_volumes, trafo_matrices);
             m_last_mouse_click = Vec2d::Zero();
 
-            for (int mesh_idx = 0; mesh_idx < projected_height_range_by_mesh.size(); mesh_idx++) {
+            for (int i = 0; i < projected_height_range_by_mesh.size(); i++) {
+                const ProjectedHeightRange& phr = projected_height_range_by_mesh[i];
+                int mesh_idx = phr.mesh_idx;
+
                 // The mouse button click detection is enabled when there is a valid hit.
                 // Missing the object entirely
                 // shall not capture the mouse.
@@ -581,7 +586,6 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 // Calculate direction from camera to the hit (in mesh coords):
                 Vec3f camera_pos = (trafo_matrix.inverse() * camera.get_position()).cast<float>();
                 const TriangleSelector::ClippingPlane& clp = this->get_clipping_plane_in_volume_coordinates(trafo_matrix);
-                const ProjectedHeightRange& phr = projected_height_range_by_mesh[mesh_idx];
 
                 std::unique_ptr<TriangleSelector::Cursor> cursor = TriangleSelector::SinglePointCursor::cursor_factory(phr.z_world,
                     camera_pos, m_cursor_height, trafo_matrix, clp);

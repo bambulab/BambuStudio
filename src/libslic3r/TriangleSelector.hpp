@@ -163,9 +163,10 @@ public:
         HeightRange() = delete;
         // BBS: set cursor_radius to 0.1 for high smooth edge
         explicit HeightRange(float z_world_, const Vec3f& source_, float height_, const Transform3d& trafo_, const ClippingPlane& clipping_plane_)
-            : SinglePointCursor(center, source_, 1.f, trafo_, clipping_plane_), m_z_world(z_world_), m_height(height_) {}
+            : SinglePointCursor(Vec3f(0.f, 0.f, 0.f), source_, 1.f, trafo_, clipping_plane_), m_z_world(z_world_), m_height(height_) {}
         ~HeightRange() override = default;
 
+        bool is_pointer_in_triangle(const Vec3f& p1, const Vec3f& p2, const Vec3f& p3) const override;
         bool is_mesh_point_inside(const Vec3f& point) const override;
         bool is_edge_inside_cursor(const Triangle& tr, const std::vector<Vertex>& vertices) const override;
         bool is_facet_visible(int facet_idx, const std::vector<Vec3f>& face_normals) const override
@@ -175,7 +176,6 @@ public:
     private:
         float m_z_world;
         float m_height;
-        Vec3f center;
     };
 
     class Capsule3D : public DoublePointCursor
