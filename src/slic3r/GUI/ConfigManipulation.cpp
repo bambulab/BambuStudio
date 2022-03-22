@@ -54,12 +54,12 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     // layer_height shouldn't be equal to zero
     if (config->opt_float("layer_height") < EPSILON)
     {
-        const wxString msg_text = _(L("Layer height is not valid.\n\nThe layer height will be reset to 0.01."));
-        MessageDialog dialog(m_msg_dlg_parent, msg_text, _(L("Layer height")), wxICON_WARNING | wxOK);
+        const wxString msg_text = _(L("Too small layer height.\nReset to 0.2"));
+        MessageDialog dialog(m_msg_dlg_parent, msg_text,"", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
         dialog.ShowModal();
-        new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.01));
+        new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.2));
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
@@ -67,12 +67,12 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     //BBS: limite the max layer_herght
     if (config->opt_float("layer_height") > 0.3 + EPSILON)
     {
-        const wxString msg_text = _(L("Too large layer height is not valid.\n\nThe layer height will be reset to 0.3."));
-        wxMessageDialog dialog(nullptr, msg_text, _(L("Layer height")), wxICON_WARNING | wxOK);
+        const wxString msg_text = _(L("Too large layer height.\nReset to 0.2"));
+        wxMessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
         dialog.ShowModal();
-        new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.3));
+        new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.2));
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
@@ -80,12 +80,12 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     //BBS: ironing_spacing shouldn't be too small or equal to zero
     if (config->opt_float("ironing_spacing") < 0.05)
     {
-        const wxString msg_text = _(L("Too small ironing spacing is not valid.\n\nThe ironing spacing will be reset to 0.05."));
-        wxMessageDialog dialog(nullptr, msg_text, _(L("Ironing spacing")), wxICON_WARNING | wxOK);
+        const wxString msg_text = _(L("Too small ironing spacing.\nReset to 0.1"));
+        wxMessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
         dialog.ShowModal();
-        new_conf.set_key_value("ironing_spacing", new ConfigOptionFloat(0.05));
+        new_conf.set_key_value("ironing_spacing", new ConfigOptionFloat(0.1));
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
@@ -93,8 +93,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     //BBS: tree_support_branch_distance shouldn't be equal to zero
     if (config->opt_float("tree_support_branch_distance") < EPSILON)
     {
-        const wxString msg_text = _(L("Zero tree support branch distance is not valid.\n\nThe tree support branch distance will be reset to 1."));
-        wxMessageDialog dialog(nullptr, msg_text, _(L("Tree support branch distance")), wxICON_WARNING | wxOK);
+        const wxString msg_text = _(L("Zero tree support branch distance is invalid.\nReset to 1"));
+        wxMessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
         dialog.ShowModal();
@@ -106,12 +106,12 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     //BBS: tree_support_branch_diameter shouldn't be equal to zero
     if (config->opt_float("tree_support_branch_diameter") < EPSILON)
     {
-        const wxString msg_text = _(L("Zero tree support branch diameter is not valid.\n\nThe tree support branch diameter will be reset to 2."));
-        wxMessageDialog dialog(nullptr, msg_text, _(L("Tree support branch diameter")), wxICON_WARNING | wxOK);
+        const wxString msg_text = _(L("Zero tree support branch diameter is invalid.\nReset to 5"));
+        wxMessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
         dialog.ShowModal();
-        new_conf.set_key_value("tree_support_branch_diameter", new ConfigOptionFloat(2));
+        new_conf.set_key_value("tree_support_branch_diameter", new ConfigOptionFloat(5));
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
@@ -119,8 +119,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     //BBS: tree_support_collision_resolution shouldn't be equal to zero
     if (config->opt_float("tree_support_collision_resolution") < EPSILON)
     {
-        const wxString msg_text = _(L("Zero tree support collision resolution is not valid.\n\nThe tree support collision resolution will be reset to 0.2"));
-        wxMessageDialog dialog(nullptr, msg_text, _(L("Tree support collision resolution")), wxICON_WARNING | wxOK);
+        const wxString msg_text = _(L("Zero tree support collision resolution is invalid.\nReset to 0.2"));
+        wxMessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
         dialog.ShowModal();
@@ -131,8 +131,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     if (config->option<ConfigOptionFloatOrPercent>("initial_layer_print_height")->value < EPSILON)
     {
-        const wxString msg_text = _(L("First layer height is not valid.\n\nThe first layer height will be reset to 0.01."));
-        MessageDialog dialog(m_msg_dlg_parent, msg_text, _(L("First layer height")), wxICON_WARNING | wxOK);
+        const wxString msg_text = _(L("Zero initial layer height is invalid.\n\nThe first layer height will be reset to 0.01."));
+        MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
         dialog.ShowModal();
@@ -151,15 +151,13 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
            config->opt_int("support_material_enforce_layers") == 0 &&
            ! config->opt_bool("detect_thin_wall")))
     {
-        wxString msg_text = _(L("Spiral mode requires:\n"
-                                "- one perimeter\n"
-                                "- no top solid layers\n"
-                                "- 0% fill density\n"
-                                "- no support material\n"
-               					"- Detect thin walls disabled"));
+        wxString msg_text = _(L("Spiral mode only works when wall loops is 1, \n"
+                                "support is disabled, top shell layers is 0 and sparse infill density is 0\n"));
         if (is_global_config)
-            msg_text += "\n\n" + _(L("Shall I adjust those settings in order to enable Spiral Vase?"));
-        MessageDialog dialog(m_msg_dlg_parent, msg_text, _(L("Spiral Vase")),
+            msg_text += "\n" + _(L("Change these settings automatically? \n"
+                                     "Yes - Change these settings and enable spiral mode automatically\n"
+                                     "No  - Give up using spiral mode this time"));
+        MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
                                wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
@@ -253,21 +251,10 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         if (!m_support_material_overhangs_queried) {
             m_support_material_overhangs_queried = true;
             if (!config->opt_bool("detect_overhang_wall")/* != 1*/) {
-                wxString msg_text = _(L("Supports work better, if the following feature is enabled:\n"
-                                        "- Detect bridging perimeters"));
-                if (is_global_config)
-                    msg_text += "\n\n" + _(L("Shall I adjust those settings for supports?"));
-                MessageDialog dialog(m_msg_dlg_parent, msg_text, _L("Support Generator"), wxICON_WARNING | wxYES | wxNO);
+                //BBS: detect_overhang_wall is setting in develop mode. Enable it directly.
                 DynamicPrintConfig new_conf = *config;
-                is_msg_dlg_already_exist = true;
-                auto answer = dialog.ShowModal();
-                if (answer == wxID_YES) {
-                    // Enable "detect bridging perimeters".
-                    new_conf.set_key_value("detect_overhang_wall", new ConfigOptionBool(true));
-                }
-                //else Do nothing, leave supports on and "detect bridging perimeters" off.
+                new_conf.set_key_value("detect_overhang_wall", new ConfigOptionBool(true));
                 apply(config, &new_conf);
-                is_msg_dlg_already_exist = false;
             }
         }
     }
@@ -286,11 +273,13 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             auto it_pattern = std::find(fill_pattern_def->enum_values.begin(), fill_pattern_def->enum_values.end(), sparse_infill_pattern);
             assert(it_pattern != fill_pattern_def->enum_values.end());
             if (it_pattern != fill_pattern_def->enum_values.end()) {
-                wxString msg_text = GUI::format_wxstr(_L("The %1% infill pattern is not supposed to work at 100%% density."), 
+                wxString msg_text = GUI::format_wxstr(_L("%1% infill pattern doesn't support 100%% density."), 
                     _(fill_pattern_def->enum_labels[it_pattern - fill_pattern_def->enum_values.begin()]));
                 if (is_global_config)
-                    msg_text += "\n\n" + _L("Shall I switch to rectilinear fill pattern?");
-                MessageDialog dialog(m_msg_dlg_parent, msg_text, _L("Infill"),
+                    msg_text += "\n" + _L("Switch to zig-zag pattern?\n"
+                                          "Yes - switch to zig-zag pattern automaticlly\n"
+                                          "No  - reset density to default non 100% value automaticlly\n");
+                MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
                                                   wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK) );
                 DynamicPrintConfig new_conf = *config;
                 is_msg_dlg_already_exist = true;
@@ -467,9 +456,11 @@ void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, con
     double head_penetration = config->opt_float("support_head_penetration");
     double head_width = config->opt_float("support_head_width");
     if (head_penetration > head_width) {
-        wxString msg_text = _(L("Head penetration should not be greater than the head width."));
+        //wxString msg_text = _(L("Head penetration should not be greater than the head width."));
+        wxString msg_text = "Head penetration should not be greater than the head width.";
 
-        MessageDialog dialog(m_msg_dlg_parent, msg_text, _(L("Invalid Head penetration")), wxICON_WARNING | wxOK);
+        //MessageDialog dialog(m_msg_dlg_parent, msg_text, _(L("Invalid Head penetration")), wxICON_WARNING | wxOK);
+        MessageDialog dialog(m_msg_dlg_parent, msg_text, "Invalid Head penetration", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         if (dialog.ShowModal() == wxID_OK) {
             new_conf.set_key_value("support_head_penetration", new ConfigOptionFloat(head_width));
@@ -480,9 +471,11 @@ void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, con
     double pinhead_d = config->opt_float("support_head_front_diameter");
     double pillar_d = config->opt_float("support_pillar_diameter");
     if (pinhead_d > pillar_d) {
-        wxString msg_text = _(L("Pinhead diameter should be smaller than the pillar diameter."));
+        //wxString msg_text = _(L("Pinhead diameter should be smaller than the pillar diameter."));
+        wxString msg_text = "Pinhead diameter should be smaller than the pillar diameter.";
 
-        MessageDialog dialog(m_msg_dlg_parent, msg_text, _(L("Invalid pinhead diameter")), wxICON_WARNING | wxOK);
+        //MessageDialog dialog(m_msg_dlg_parent, msg_text, _(L("Invalid pinhead diameter")), wxICON_WARNING | wxOK);
+        MessageDialog dialog(m_msg_dlg_parent, msg_text, "Invalid pinhead diameter", wxICON_WARNING | wxOK);
 
         DynamicPrintConfig new_conf = *config;
         if (dialog.ShowModal() == wxID_OK) {
