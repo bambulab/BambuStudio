@@ -18,7 +18,8 @@ namespace Slic3r {
 std::string PresetHints::cooling_description(const Preset &preset)
 {
 	std::string out;
-
+    //BBS: don't show cooling_description now
+    /*
     bool cooling              = preset.config.opt_bool("cooling", 0);
     int  fan_cooling_layer_time = preset.config.opt_int("fan_cooling_layer_time", 0);
     int  full_fan_speed_layer = preset.config.opt_int("full_fan_speed_layer", 0);
@@ -62,7 +63,7 @@ std::string PresetHints::cooling_description(const Preset &preset)
         }
     } else
        out += cooling ? _u8L("During the other layers, fan will be turned off.") : _u8L("Fan will be turned off.");
-
+    */
     return out;
 }
 
@@ -73,6 +74,9 @@ static const ConfigOptionFloatOrPercent& first_positive(const ConfigOptionFloatO
 
 std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle &preset_bundle)
 {
+    std::string out;
+    //BBS: don't show maximum_volumetric_flow_description now
+    /*
     // Find out, to which nozzle index is the current filament profile assigned.
     int idx_extruder  = 0;
 	int num_extruders = (int)preset_bundle.filament_presets.size();
@@ -138,8 +142,6 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
     // double filament_flow_ratio             = filament_config.opt_float("filament_flow_ratio", 0);
     // The following value will be annotated by this hint, so it does not take part in the calculation.
 //    double filament_max_volumetric_speed    = filament_config.opt_float("filament_max_volumetric_speed", 0);
-
-    std::string out;
     for (size_t idx_type = (initial_layer_line_width.value == 0) ? 1 : 0; idx_type < 3; ++ idx_type) {
         // First test the maximum volumetric extrusion speed for non-bridging extrusions.
         bool first_layer = idx_type == 0;
@@ -168,15 +170,15 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
             }
         };
         if (perimeter_extruder_active) {
-            test_flow(frExternalPerimeter, outer_wall_line_width, std::max(outer_wall_speed, small_perimeter_speed), L("external perimeters"));
-            test_flow(frPerimeter,         inner_wall_line_width,          std::max(inner_wall_speed,          small_perimeter_speed), L("perimeters"));
+            test_flow(frExternalPerimeter, outer_wall_line_width, std::max(outer_wall_speed, small_perimeter_speed), L("outer wall"));
+            test_flow(frPerimeter,         inner_wall_line_width,          std::max(inner_wall_speed,          small_perimeter_speed), L("inner wall"));
         }
         if (! bridging && infill_extruder_active)
-            test_flow(frInfill, sparse_infill_line_width, sparse_infill_speed, L("infill"));
+            test_flow(frInfill, sparse_infill_line_width, sparse_infill_speed, L("sparse infill"));
         if (solid_infill_extruder_active) {
-            test_flow(frInfill, internal_solid_infill_line_width, internal_solid_infill_speed, L("solid infill"));
+            test_flow(frInfill, internal_solid_infill_line_width, internal_solid_infill_speed, L("internal solid infill"));
             if (! bridging)
-                test_flow(frInfill, top_surface_line_width, top_surface_speed, L("top solid infill"));
+                test_flow(frInfill, top_surface_line_width, top_surface_speed, L("top surface"));
         }
         if (! bridging && support_material_extruder_active)
             test_flow(frSupportMaterial, support_line_width, support_speed, L("support"));
@@ -185,7 +187,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
         //FIXME handle gap_infill_speed
         if (! out.empty())
             out += "\n";
-        out += (first_layer ? _utf8(L("First layer volumetric")) : (bridging ? _utf8(L("Bridging volumetric")) : _utf8(L("Volumetric"))));
+        out += (first_layer ? _utf8(L("Initial layer volumetric")) : (bridging ? _utf8(L("Bridge volumetric")) : _utf8(L("Volumetric"))));
         out += " " + _utf8(L("flow rate is maximized")) + " ";
         bool limited_by_max_volumetric_speed = max_volumetric_speed > 0 && max_volumetric_speed < max_flow;
         out += (limited_by_max_volumetric_speed ? 
@@ -197,12 +199,15 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
 
         out += (boost::format(_utf8(L("%3.2f mm³/s at filament speed %3.2f mm/s."))) % max_flow % (max_flow / filament_crossection)).str();
     }
-
+    */
  	return out;
 }
 
 std::string PresetHints::recommended_thin_wall_thickness(const PresetBundle &preset_bundle)
 {
+    std::string out;
+    //BBS: don't show recommended_thin_wall_thickness description now
+    /*
     const DynamicPrintConfig &print_config    = preset_bundle.prints   .get_edited_preset().config;
     const DynamicPrintConfig &printer_config  = preset_bundle.printers .get_edited_preset().config;
 
@@ -240,7 +245,7 @@ std::string PresetHints::recommended_thin_wall_thickness(const PresetBundle &pre
 	    } catch (const FlowErrorNegativeSpacing &) {
             out = _utf8(L("Recommended object thin wall thickness: Not available due to excessively small extrusion width."));
         }
-    }
+    }*/
     return out;
 }
 
@@ -250,10 +255,11 @@ std::string PresetHints::recommended_thin_wall_thickness(const PresetBundle &pre
 // on the active layer height.
 std::string PresetHints::top_bottom_shell_thickness_explanation(const PresetBundle &preset_bundle)
 {
+    std::string out;
+    //BBS: don't show top_bottom_shell_thickness_explanation now
+    /*
     const DynamicPrintConfig &print_config    = preset_bundle.prints   .get_edited_preset().config;
     const DynamicPrintConfig &printer_config  = preset_bundle.printers .get_edited_preset().config;
-
-    std::string out;
 
     int 	top_shell_layers                = print_config.opt_int("top_shell_layers");
     int 	bottom_shell_layers             = print_config.opt_int("bottom_shell_layers");
@@ -305,7 +311,7 @@ std::string PresetHints::top_bottom_shell_thickness_explanation(const PresetBund
         }
     } else 
         out += _utf8(L("Bottom is open."));
-
+    */
     return out;
 }
 

@@ -1908,13 +1908,6 @@ void TabPrint::update_description_lines()
             from_u8(PresetHints::top_bottom_shell_thickness_explanation(*m_preset_bundle)));
     }
 
-    if (m_active_page && m_active_page->title() == "Output options" && m_post_process_explanation) {
-        m_post_process_explanation->SetText(
-            _L("Post processing scripts shall modify G-code file in place."));
-#ifndef __linux__
-        m_post_process_explanation->SetPathEnd("post-processing-scripts_283913");
-#endif // __linux__
-    }
 }
 
 void TabPrint::toggle_options()
@@ -1971,7 +1964,6 @@ void TabPrint::clear_pages()
 
     m_recommended_thin_wall_thickness_description_line = nullptr;
     m_top_bottom_shell_thickness_explanation = nullptr;
-    m_post_process_explanation = nullptr;
 }
 
 
@@ -2437,12 +2429,12 @@ void TabFilament::build()
         optgroup->append_single_option_line("reduce_fan_stop_start_freq");
         optgroup->append_single_option_line("cooling");
 
-        line = { "", "" };
-        line.full_width = 1;
-        line.widget = [this](wxWindow* parent) {
-            return description_line_widget(parent, &m_cooling_description_line);
-        };
-        optgroup->append_line(line);
+        //line = { "", "" };
+        //line.full_width = 1;
+        //line.widget = [this](wxWindow* parent) {
+        //    return description_line_widget(parent, &m_cooling_description_line);
+        //};
+        //optgroup->append_line(line);
 
         optgroup = page->new_optgroup(L("Fan settings"));
         line = { L("Fan speed"), "" };
@@ -2473,7 +2465,7 @@ void TabFilament::build()
         const int gcode_field_height = 15; // 150
 
     page = add_options_page(L("Advanced"), "advanced");
-        optgroup = page->new_optgroup(L("Filament start gcode"), 0);
+        optgroup = page->new_optgroup(L("Filament start G-code"), 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
@@ -2483,7 +2475,7 @@ void TabFilament::build()
         option.opt.height = gcode_field_height;// 150;
         optgroup->append_single_option_line(option);
 
-        optgroup = page->new_optgroup(L("Filament end gcode"), 0);
+        optgroup = page->new_optgroup(L("Filament end G-code"), 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
@@ -2767,7 +2759,7 @@ void TabPrinter::build_fff()
 
     const int gcode_field_height = 15; // 150
     page = add_options_page(L("Machine gcode"), "cog");
-        optgroup = page->new_optgroup(L("Start gcode"), 0);
+        optgroup = page->new_optgroup(L("Machine start G-code"), 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
@@ -2777,7 +2769,7 @@ void TabPrinter::build_fff()
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
-        optgroup = page->new_optgroup(L("End gcode"), 0);
+        optgroup = page->new_optgroup(L("Machine end G-code"), 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
@@ -2798,7 +2790,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line(option);
 #endif
 
-        optgroup = page->new_optgroup(L("Layer change gcode"), 0);
+        optgroup = page->new_optgroup(L("Layer change G-code"), 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
@@ -2808,7 +2800,7 @@ void TabPrinter::build_fff()
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
-        optgroup = page->new_optgroup(L("Tool change gcode"), 0);
+        optgroup = page->new_optgroup(L("Change filament G-code"), 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
@@ -2818,7 +2810,7 @@ void TabPrinter::build_fff()
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
-        optgroup = page->new_optgroup(L("Printing by object gcode"), 0);
+        optgroup = page->new_optgroup(L("Printing by object G-code"), 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };

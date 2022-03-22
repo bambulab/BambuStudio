@@ -126,8 +126,8 @@ void PrintObject::make_perimeters()
     if (! this->set_started(posPerimeters))
         return;
 
-    m_print->set_status(20, L("Generating perimeters"));
-    BOOST_LOG_TRIVIAL(info) << "Generating perimeters..." << log_memory_info();
+    m_print->set_status(20, L("Generating walls"));
+    BOOST_LOG_TRIVIAL(info) << "Generating walls..." << log_memory_info();
     
     // Revert the typed slices into untyped slices.
     if (m_typed_slices) {
@@ -230,7 +230,7 @@ void PrintObject::prepare_infill()
     if (! this->set_started(posPrepareInfill))
         return;
 
-    m_print->set_status(30, L("Preparing infill"));
+    m_print->set_status(30, L("Generating infill"));
 
     if (m_typed_slices) {
         // To improve robustness of detect_surfaces_type() when reslicing (working with typed slices), see GH issue #7442.
@@ -408,7 +408,7 @@ void PrintObject::generate_support_material()
         m_tree_support->detect_object_overhangs();
 
         if ((this->has_support() && m_layers.size() > 1) || (this->has_raft() && ! m_layers.empty())) {
-            m_print->set_status(85, L("Generating support material"));    
+            m_print->set_status(85, L("Generating support"));    
             this->_generate_support_material();
             m_print->throw_if_canceled();
         } else {

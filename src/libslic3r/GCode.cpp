@@ -641,8 +641,8 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
         // first layer may result in skirt/brim in the air and maybe other issues.
         if (layers_to_print.size() == 1u) {
             if (!has_extrusions)
-                throw Slic3r::SlicingError(_(L("There is an object with no extrusions in the first layer.")) + "\n" +
-                                           _(L("Object name")) + ": " + object.model_object()->name);
+                throw Slic3r::SlicingError(_(L("One object has empty initial layer and can't be printed.")) + "\n" +
+                                           _(L("Object")) + ": " + object.model_object()->name);
         }
 
         // In case there are extrusions on this layer, check there is a layer to lay it on.
@@ -671,15 +671,11 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
     if (! warning_ranges.empty()) {
         std::string warning;
         size_t i = 0;
-        for (i = 0; i < std::min(warning_ranges.size(), size_t(3)); ++i)
-            warning += Slic3r::format(_(L("Empty layer between %1% and %2%.")),
+        for (i = 0; i < std::min(warning_ranges.size(), size_t(5)); ++i)
+            warning += Slic3r::format(_(L("Object can't be printed for empty layer between %1% and %2%.")),
                                       warning_ranges[i].first, warning_ranges[i].second) + "\n";
-        if (i < warning_ranges.size())
-            warning += _(L("(Some lines not shown)")) + "\n";
-        warning += "\n";
-        warning += Slic3r::format(_(L("Object name: %1%")), object.model_object()->name) + "\n\n"
-            + _(L("Make sure the object is printable. This is usually caused by negligibly small extrusions or by a faulty model. "
-                "Try to repair the model or change its orientation on the bed."));
+        warning += Slic3r::format(_(L("Object: %1%")), object.model_object()->name) + "\n"
+            + _(L("Maybe parts of the object at these height are too thin, or the object has faulty mesh"));
 
         const_cast<Print*>(object.print())->active_step_add_warning(
             PrintStateBase::WarningLevel::CRITICAL, warning);
@@ -809,38 +805,39 @@ namespace DoExport {
         };
 
         const GCodeConfig& config = print.config();
-        check(_(L("Start G-code")), config.machine_start_gcode.value);
-        if (ret.size() < MAX_TAGS_COUNT) check(_(L("End G-code")), config.machine_end_gcode.value);
+        check(_(L("Machine start G-code")), config.machine_start_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Machine end G-code")), config.machine_end_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Before layer change G-code")), config.before_layer_change_gcode.value);
-        if (ret.size() < MAX_TAGS_COUNT) check(_(L("After layer change G-code")), config.layer_change_gcode.value);
-        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Tool change G-code")), config.change_filament_gcode.value);
-        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Between objects G-code (for sequential printing)")), config.printing_by_object_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Layer change G-code")), config.layer_change_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Change filament G-code")), config.change_filament_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Printing by object G-code")), config.printing_by_object_gcode.value);
         //BBS
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Color Change G-code")), config.color_change_gcode.value);
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Pause Print G-code")), config.pause_print_gcode.value);
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Template Custom G-code")), config.template_custom_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) {
             for (const std::string& value : config.filament_start_gcode.values) {
-                check(_(L("Filament Start G-code")), value);
+                check(_(L("Filament start G-code")), value);
                 if (ret.size() == MAX_TAGS_COUNT)
                     break;
             }
         }
         if (ret.size() < MAX_TAGS_COUNT) {
             for (const std::string& value : config.filament_end_gcode.values) {
-                check(_(L("Filament End G-code")), value);
+                check(_(L("Filament end G-code")), value);
                 if (ret.size() == MAX_TAGS_COUNT)
                     break;
             }
         }
-        if (ret.size() < MAX_TAGS_COUNT) {
-            const CustomGCode::Info& custom_gcode_per_print_z = print.model().custom_gcode_per_print_z;
-            for (const auto& gcode : custom_gcode_per_print_z.gcodes) {
-                check(_(L("Custom G-code")), gcode.extra);
-                if (ret.size() == MAX_TAGS_COUNT)
-                    break;
-            }
-        }
+        //BBS: no custom_gcode_per_print_z, don't need to check
+        //if (ret.size() < MAX_TAGS_COUNT) {
+        //    const CustomGCode::Info& custom_gcode_per_print_z = print.model().custom_gcode_per_print_z;
+        //    for (const auto& gcode : custom_gcode_per_print_z.gcodes) {
+        //        check(_(L("Custom G-code")), gcode.extra);
+        //        if (ret.size() == MAX_TAGS_COUNT)
+        //            break;
+        //    }
+        //}
 
         return ret;
     }
@@ -866,10 +863,12 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
         for (const auto& [source, keyword] : validation_res) {
             reports += source + ": \"" + keyword + "\"\n";
         }
-        print->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL,
-            _(L("In the custom G-code were found reserved keywords:")) + "\n" +
-            reports +
-            _(L("This may cause problems in g-code visualization and printing time estimation.")));
+        //print->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL,
+        //    _(L("In the custom G-code were found reserved keywords:")) + "\n" +
+        //    reports +
+        //    _(L("This may cause problems in g-code visualization and printing time estimation.")));
+        std::string temp = "Dangerous keywords in custom Gcode: " + reports + "\nThis may cause problems in g-code visualization and printing time estimation.";
+        BOOST_LOG_TRIVIAL(warning) << temp;
     }
 
     BOOST_LOG_TRIVIAL(info) << "Exporting G-code..." << log_memory_info();
@@ -1333,7 +1332,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         }
         if (initial_extruder_id == static_cast<unsigned int>(-1))
             // No object to print was found, cancel the G-code export.
-            throw Slic3r::SlicingError(_(L("No extrusions were generated for objects.")));
+            throw Slic3r::SlicingError(_(L("No object can be printed, maybe too small")));
         // We don't allow switching of extruders per layer by Model::custom_gcode_per_print_z in sequential mode.
         // Use the extruder IDs collected from Regions.
         this->set_extruders(print.extruders());
@@ -1344,7 +1343,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         tool_ordering.assign_custom_gcodes(print);
         if (tool_ordering.all_extruders().empty())
             // No object to print was found, cancel the G-code export.
-            throw Slic3r::SlicingError(_(L("No extrusions were generated for objects.")));
+            throw Slic3r::SlicingError(_(L("No object can be printed. Maybe too small")));
         has_wipe_tower = print.has_wipe_tower() && tool_ordering.has_wipe_tower();
         // BBS: priming logic is removed, so 1st layer tool_ordering also respect the object tool sequence 
 #if 0
@@ -1598,17 +1597,18 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                         //TODO Add a message explaining what the printer is waiting for. This needs a firmware fix.
                         file.write("M1 S10\n");
                     }
-                } else {
-                    // This is not Marlin, M1 command is probably not supported.
-                    if (overlap) {
-                        print.active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
-                            _(L("Your print is very close to the priming regions. "
-                              "Make sure there is no collision.")));
-                    } else {
-                        // Just continue printing, no action necessary.
-                    }
-
                 }
+                //BBS: only support Marlin
+                //else {
+                    // This is not Marlin, M1 command is probably not supported.
+                    //if (overlap) {
+                    //    print.active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
+                    //        _(L("Your print is very close to the priming regions. "
+                    //          "Make sure there is no collision.")));
+                    //} else {
+                    //    // Just continue printing, no action necessary.
+                    //}
+                //}
             }
             print.throw_if_canceled();
         }

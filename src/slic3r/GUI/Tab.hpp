@@ -434,7 +434,6 @@ public:
 private:
 	ogStaticText*	m_recommended_thin_wall_thickness_description_line = nullptr;
 	ogStaticText*	m_top_bottom_shell_thickness_explanation = nullptr;
-	ogStaticText*	m_post_process_explanation = nullptr;
 };
 
 class TabPrintModel : public TabPrint

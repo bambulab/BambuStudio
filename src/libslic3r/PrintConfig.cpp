@@ -614,7 +614,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height = 120;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionStrings { ";filament end gcode \n" });
+    def->set_default_value(new ConfigOptionStrings { " " });
 
     auto def_top_fill_pattern = def = this->add("top_surface_pattern", coEnum);
     def->label = L("Top surface pattern");
@@ -1982,7 +1982,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height = 12;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionStrings { "; Filament start gcode\n" });
+    def->set_default_value(new ConfigOptionStrings { " " });
 
     def = this->add("single_extruder_multi_material", coBool);
     def->label = L("Single Extruder Multi Material");
