@@ -114,7 +114,7 @@ void ButtonsListCtrl::Rescale()
     int em = em_unit(this);
     for (Button* btn : m_pageButtons) {
         //BBS
-        btn->SetMinSize({ 132 * em / 10, 36 * em / 10 });
+        btn->SetMinSize({(btn->GetLabel().empty() ? 40 : 132) * em / 10, 36 * em / 10});
         btn->Rescale();
     }
 
@@ -145,12 +145,12 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString& text, bool bSelect/* 
 {
     // BBS: use Button
     wxColour default_btn_bg("#3B4446"); // Gradient #414B4E
-    Button* btn = new Button(this, " " + text, bmp_name, wxNO_BORDER);
+    Button * btn = new Button(this, text.empty() ? text : " " + text, bmp_name, wxNO_BORDER);
     btn->SetCornerRadius(0);
 
     int em = em_unit(this);
     //BBS set size for button
-    btn->SetMinSize({ 132 * em / 10, 36 * em / 10 });
+    btn->SetMinSize({(text.empty() ? 40 : 132) * em / 10, 36 * em / 10});
 
     btn->SetBackgroundColor(default_btn_bg);
     btn->SetTextColor(*wxWHITE);

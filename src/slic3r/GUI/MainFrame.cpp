@@ -638,6 +638,16 @@ void MainFrame::init_tabpanel()
     });
 
     if (wxGetApp().is_editor()) {
+        wxString home_url = wxString(wxGetApp().app_config->get_web_host_url()) + MODEL_STORE_URL;
+        m_webview         = new WebViewPanel(m_tabpanel, home_url);
+        Bind(EVT_LOAD_URL, [this](wxCommandEvent &evt) {
+            wxString url = evt.GetString();
+            select_tab(MainFrame::tpHome);
+            m_webview->load_url(url);
+        });
+
+        m_tabpanel->AddPage(m_webview, "", "notebook_home_active");
+
         m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
     }
 
@@ -655,16 +665,6 @@ void MainFrame::init_tabpanel()
 
         m_debug_tool_dlg = new DebugToolDialog(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         m_tabpanel->AddPage(m_debug_tool_dlg, _L("Debug"), "debugtool");
-
-        wxString home_url = wxString(wxGetApp().app_config->get_web_host_url()) + MODEL_STORE_URL;
-        m_webview = new WebViewPanel(m_tabpanel, home_url);
-        Bind(EVT_LOAD_URL, [this](wxCommandEvent& evt) {
-            wxString url = evt.GetString();
-            select_tab(MainFrame::toWebView);
-            m_webview->load_url(url);
-        });
-
-        m_tabpanel->AddPage(m_webview, _L("Home"), "notebook_home_active");
     }
 
     if (m_plater) {
