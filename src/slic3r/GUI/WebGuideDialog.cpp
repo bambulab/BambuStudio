@@ -33,7 +33,7 @@ json m_ProfileJson;
 
 GuideFrame::GuideFrame(GUI_App *pGUI)
 	: wxDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "BambuStudio"),
-	m_appconfig_new(AppConfig::EAppMode::Editor)
+	m_appconfig_new()
 {
     // INI
     m_SectionName = "firstguide";

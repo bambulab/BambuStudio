@@ -205,6 +205,10 @@ public:
     void reload_gcode_from_disk();
     void refresh_print();
 
+    //BBS: add only gcode mode
+    bool only_gcode_mode() { return m_only_gcode; }
+    void set_only_gcode(bool only_gcode) { m_only_gcode = only_gcode; }
+
     // BBS
     wxString get_project_name();
     void update_platplate_thumbnails();
@@ -605,6 +609,8 @@ private:
     wxString m_tracking_popup_menu_error_message;
 
     wxString m_last_loaded_gcode;
+    //BBS: add only gcode mode
+    bool m_only_gcode { false };
 
     void suppress_snapshots();
     void allow_snapshots();

@@ -118,6 +118,7 @@ static wxString dots("...", wxConvUTF8);
 class GUI_App : public wxApp
 {
 public:
+    //BBS: remove GCodeViewer as seperate APP logic
     enum class EAppMode : unsigned char
     {
         Editor,
@@ -182,7 +183,9 @@ public:
     bool            OnInit() override;
     bool            initialized() const { return m_initialized; }
 
-    explicit GUI_App(EAppMode mode = EAppMode::Editor);
+    //BBS: remove GCodeViewer as seperate APP logic
+    explicit GUI_App();
+    //explicit GUI_App(EAppMode mode = EAppMode::Editor);
     ~GUI_App() override;
 
     void show_message_box(std::string msg) { wxMessageBox(msg); }

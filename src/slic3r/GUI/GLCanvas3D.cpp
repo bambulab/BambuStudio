@@ -1941,9 +1941,10 @@ void GLCanvas3D::load_shells(const Print& print, bool force_previewing)
     }
 }
 
-void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, const std::vector<std::string>& str_tool_colors)
+//BBS: add only gcode mode
+void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, const std::vector<std::string>& str_tool_colors, bool only_gcode)
 {
-    m_gcode_viewer.load(gcode_result, *this->fff_print(), m_initialized);
+    m_gcode_viewer.load(gcode_result, *this->fff_print(), m_initialized, only_gcode);
 
     if (wxGetApp().is_editor()) {
         //BBS: always load shell at preview, do this in load_shells
@@ -1976,7 +1977,7 @@ void GLCanvas3D::load_sla_preview()
     }
 }
 
-void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<CustomGCode::Item>& color_print_values)
+/*void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<CustomGCode::Item>& color_print_values)
 {
     const Print *print = this->fff_print();
     if (print == nullptr)
@@ -1994,7 +1995,7 @@ void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, c
         _load_print_object_toolpaths(*object, build_volume, str_tool_colors, color_print_values);
 
     _set_warning_notification_if_needed(EWarning::ToolpathOutside);
-}
+}*/
 
 void GLCanvas3D::bind_event_handlers()
 {

@@ -31,10 +31,11 @@ public:
 		GCodeViewer
 	};
 
-	explicit AppConfig(EAppMode mode) :
+    //BBS: remove GCodeViewer as seperate APP logic
+	explicit AppConfig() :
 		m_dirty(false),
 		m_orig_version(Semver::invalid()),
-		m_mode(mode),
+		m_mode(EAppMode::Editor),
 		m_legacy_datadir(false)
 	{
 		this->reset();

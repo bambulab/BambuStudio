@@ -676,9 +676,9 @@ static const FileWildcards file_wildcards_by_type[FT_SIZE] = {
     /* FT_OBJ */     { "OBJ files"sv,       { ".obj"sv } },
     /* FT_AMF */     { "AMF files"sv,       { ".amf"sv, ".zip.amf"sv, ".xml"sv } },
     /* FT_3MF */     { "3MF files"sv,       { ".3mf"sv } },
-    /* FT_GCODE */   { "G-code files"sv,    { ".gcode"sv, ".gco"sv, ".g"sv, ".ngc"sv } },
+    /* FT_GCODE */   { "G-code files"sv,    { ".gcode"sv } },
     /* FT_MODEL */   { "Known files"sv,     { ".stp"sv, ".step"sv, ".stl"sv, ".obj"sv, ".3mf"sv, ".amf"sv, ".zip.amf"sv, ".xml"sv } },
-    /* FT_PROJECT */ { "Project files"sv,   { ".3mf"sv, ".amf"sv, ".zip.amf"sv } },
+    /* FT_PROJECT */ { "Project files"sv,   { ".3mf"sv} },
     /* FT_GALLERY */ { "Known files"sv,     { ".stl"sv, ".obj"sv } },
 
     /* FT_INI */     { "INI files"sv,       { ".ini"sv } },
@@ -912,11 +912,13 @@ void GUI_App::post_init()
     if (! this->initialized())
         throw Slic3r::RuntimeError("Calling post_init() while not yet initialized");
 
-    if (this->init_params->start_as_gcodeviewer) {
+    //BBS: remove GCodeViewer as seperate APP logic
+    /*if (this->init_params->start_as_gcodeviewer) {
         if (! this->init_params->input_files.empty())
             this->plater()->load_gcode(wxString::FromUTF8(this->init_params->input_files[0].c_str()));
     }
-    else {
+    else*/
+    {
         if (! this->init_params->preset_substitutions.empty())
             show_substitutions_info(this->init_params->preset_substitutions);
 
@@ -997,9 +999,12 @@ void GUI_App::post_init()
 
 IMPLEMENT_APP(GUI_App)
 
-GUI_App::GUI_App(EAppMode mode)
+//BBS: remove GCodeViewer as seperate APP logic
+//GUI_App::GUI_App(EAppMode mode)
+GUI_App::GUI_App()
     : wxApp()
-    , m_app_mode(mode)
+    //, m_app_mode(mode)
+    , m_app_mode(EAppMode::Editor)
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
@@ -1123,8 +1128,10 @@ void GUI_App::init_app_config()
         m_datadir_redefined = true;
     }
 
+    //BBS: remove GCodeViewer as seperate APP logic
 	if (!app_config)
-        app_config = new AppConfig(is_editor() ? AppConfig::EAppMode::Editor : AppConfig::EAppMode::GCodeViewer);
+        app_config = new AppConfig();
+        //app_config = new AppConfig(is_editor() ? AppConfig::EAppMode::Editor : AppConfig::EAppMode::GCodeViewer);
 
 	// load settings
 	m_app_conf_exists = app_config->exists();
@@ -1986,7 +1993,7 @@ void GUI_App::load_project(wxWindow *parent, wxString& input_file) const
 {
     input_file.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
-        _L("Choose one file (3mf/amf):"),
+        _L("Choose one file (3mf):"),
         app_config->get_last_dir(), "",
         file_wildcards(FT_PROJECT), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
@@ -2974,7 +2981,8 @@ bool GUI_App::OnExceptionInMainLoop()
 // to a G-code viewer.
 void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
 {
-    size_t num_gcodes = 0;
+    //BBS: remove GCodeViewer as seperate APP logic
+    /*size_t num_gcodes = 0;
     for (const wxString &filename : fileNames)
         if (is_gcode_file(into_u8(filename)))
             ++ num_gcodes;
@@ -2987,7 +2995,7 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
             delete app_config;
         app_config = nullptr;
         init_app_config();
-    }
+    }*/
     wxApp::OSXStoreOpenFiles(fileNames);
 }
 // wxWidgets override to get an event on open files.
@@ -3004,7 +3012,8 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
             non_gcode_files.emplace_back(filename);
         }
     }
-    if (m_app_mode == EAppMode::GCodeViewer) {
+    //BBS: remove GCodeViewer as seperate APP logic
+    /*if (m_app_mode == EAppMode::GCodeViewer) {
         // Running in G-code viewer.
         // Load the first G-code into the G-code viewer.
         // Or if no G-codes, send other files to slicer. 
@@ -3012,16 +3021,27 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
             this->plater()->load_gcode(gcode_files.front());
         if (!non_gcode_files.empty()) 
             start_new_slicer(non_gcode_files, true);
-    } else {
+    } else*/
+    {
         if (! files.empty()) {
             wxArrayString input_files;
             for (size_t i = 0; i < non_gcode_files.size(); ++i) {
                 input_files.push_back(non_gcode_files[i]);
             }
             this->plater()->load_files(input_files);
+            if (gcode_files.size() > 0) {
+                show_info(this->plater(), _L("Gcode files can not be loaded with models together!"), _L("Gcode loading"));
+            }
         }
-        for (const wxString &filename : gcode_files)
-            start_new_gcodeviewer(&filename);
+        else {
+            wxArrayString input_files;
+            for (size_t i = 0; i < gcode_files.size(); ++i) {
+                input_files.push_back(gcode_files[i]);
+            }
+            this->plater()->load_files(input_files);
+        }
+        /*for (const wxString &filename : gcode_files)
+            start_new_gcodeviewer(&filename);*/
     }
 }
 #endif /* __APPLE */
@@ -3468,8 +3488,11 @@ void GUI_App::associate_gcode_files()
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
 
     std::wstring prog_path = L"\"" + std::wstring(app_path) + L"\"";
-    std::wstring prog_id = L"BambuStudio.GCodeViewer.1";
-    std::wstring prog_desc = L"BambuStudioGCodeViewer";
+    //BBS: remove GCodeViewer as seperate APP logic
+    std::wstring prog_id = L"Bambu.Slicer.1";
+    std::wstring prog_desc = L"BambuStudio";
+    //std::wstring prog_id = L"BambuStudio.GCodeViewer.1";
+    //std::wstring prog_desc = L"BambuStudioGCodeViewer";
     std::wstring prog_command = prog_path + L" \"%1\"";
     std::wstring reg_base = L"Software\\Classes";
     std::wstring reg_extension = reg_base + L"\\.gcode";

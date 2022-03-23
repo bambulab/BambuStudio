@@ -567,7 +567,7 @@ struct ConfigWizard::priv
 
     priv(ConfigWizard *q)
         : q(q)
-        , appconfig_new(AppConfig::EAppMode::Editor)
+        , appconfig_new()
         , filaments(T_FFF)
         , sla_materials(T_SLA)
     {}

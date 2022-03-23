@@ -20,7 +20,8 @@ struct GUI_InitParams
     DynamicPrintConfig          extra_config;
     std::vector<std::string>    input_files;
 
-	bool	                    start_as_gcodeviewer;
+    //BBS: remove start_as_gcodeviewer logic
+	//bool	                    start_as_gcodeviewer;
 };
 
 int GUI_Run(GUI_InitParams &params);

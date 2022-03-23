@@ -75,9 +75,7 @@ bool View3D::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig
     m_canvas->enable_selection(true);
     m_canvas->enable_main_toolbar(true);
     //BBS: GUI refactor: GLToolbar
-    if (wxGetApp().is_editor()) {
-        m_canvas->enable_select_plate_toolbar(false);
-    }
+    m_canvas->enable_select_plate_toolbar(false);
     m_canvas->enable_assemble_view_toolbar(true);
     m_canvas->enable_labels(true);
     m_canvas->enable_slope(true);
@@ -296,18 +294,20 @@ void Preview::set_drop_target(wxDropTarget* target)
         SetDropTarget(target);
 }
 
-void Preview::load_print(bool keep_z_range)
+//BBS: add only gcode mode
+void Preview::load_print(bool keep_z_range, bool only_gcode)
 {
     PrinterTechnology tech = m_process->current_printer_technology();
     if (tech == ptFFF)
-        load_print_as_fff(keep_z_range);
+        load_print_as_fff(keep_z_range, only_gcode);
     else if (tech == ptSLA)
         load_print_as_sla();
 
     Layout();
 }
 
-void Preview::reload_print(bool keep_volumes)
+//BBS: add only gcode mode
+void Preview::reload_print(bool keep_volumes, bool only_gcode)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: enter, keep_volumes %2%")%__LINE__ %keep_volumes;
 #ifdef __linux__
@@ -334,9 +334,11 @@ void Preview::reload_print(bool keep_volumes)
 #endif /* __linux__ */
     }
 
-    load_print();
+    load_print(false, only_gcode);
+    m_only_gcode = only_gcode;
 }
 
+//BBS: add only gcode mode
 void Preview::refresh_print()
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: enter, current m_loaded_print %2%")%__LINE__ %m_loaded_print;
@@ -347,7 +349,7 @@ void Preview::refresh_print()
     if (!IsShown())
         return;
 
-    load_print(true);
+    load_print(true, m_only_gcode);
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: exit")%__LINE__;
 }
 
@@ -737,7 +739,8 @@ void Preview::enable_moves_slider(bool enable)
     }
 }
 
-void Preview::load_print_as_fff(bool keep_z_range)
+//BBS: add only gcode mode
+void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
 {
     if (wxGetApp().mainframe == nullptr || wxGetApp().is_recreating_gui())
         // avoid processing while mainframe is being constructed
@@ -821,7 +824,8 @@ void Preview::load_print_as_fff(bool keep_z_range)
             // Load the real G-code preview.
             //BBS: add more log
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": will load gcode_preview from result, moves count %1%") % m_gcode_result->moves.size();
-            m_canvas->load_gcode_preview(*m_gcode_result, colors);
+            //BBS: add only gcode mode
+            m_canvas->load_gcode_preview(*m_gcode_result, colors, only_gcode);
             m_left_sizer->Show(m_bottom_toolbar_panel);
             m_left_sizer->Layout();
             //BBS: turn off shells for preview

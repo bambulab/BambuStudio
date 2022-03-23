@@ -709,7 +709,7 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
 }
 
 //BBS: always load shell at preview
-void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& print, bool initialized)
+void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& print, bool initialized, bool only_gcode)
 {
     // avoid processing if called with the same gcode_result
     if (m_last_result_id == gcode_result.id) {
@@ -737,6 +737,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     //BBS: move the id to the end of reset
     m_last_result_id = gcode_result.id;
     m_gcode_result = &gcode_result;
+    m_only_gcode_in_preview = only_gcode;
 
     if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop) {
         m_sequential_view.gcode_window.load_gcode(gcode_result.filename,
@@ -744,7 +745,9 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
             std::move(const_cast<std::vector<size_t>&>(gcode_result.lines_ends)));
     }
 
-    if (wxGetApp().is_gcode_viewer())
+    //BBS: add only gcode mode
+    //if (wxGetApp().is_gcode_viewer())
+    if (m_only_gcode_in_preview)
         m_custom_gcode_per_print_z = gcode_result.custom_gcode_per_print_z;
 
     m_max_print_height = gcode_result.printable_height;
@@ -762,11 +765,13 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     m_filament_densities = gcode_result.filament_densities;
 
     //BBS: always load shell at preview
-    if (wxGetApp().is_editor())
+    /*if (wxGetApp().is_editor())
     {
         //load_shells(print, initialized);
     }
-    else {
+    else {*/
+    //BBS: add only gcode mode
+    if (m_only_gcode_in_preview) {
         Pointfs printable_area;
         //BBS: add bed exclude area
         Pointfs bed_exclude_area = Pointfs();
@@ -784,8 +789,14 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
                     texture = PresetUtils::system_printer_bed_texture(*preset);
                 }
             }
+
+            //BBS: add bed exclude area
+            if (!gcode_result.bed_exclude_area.empty())
+                bed_exclude_area = gcode_result.bed_exclude_area;
+
+            wxGetApp().plater()->set_bed_shape(printable_area, bed_exclude_area, gcode_result.printable_height, texture, model, gcode_result.printable_area.empty());
         }
-        else {
+        /*else {
             // adjust printbed size in dependence of toolpaths bbox
             const double margin = 10.0;
             const Vec2d min(m_paths_bounding_box.min.x() - margin, m_paths_bounding_box.min.y() - margin);
@@ -805,12 +816,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
                 { min.x() + 0.4711325 * size.x(), max.y() + 10.0},
                 { min.x() + 0.442265 * size.x(), max.y()},
                 { min.x(), max.y() } };
-        }
-
-        //BBS: add bed exclude area
-        if (!gcode_result.bed_exclude_area.empty())
-            bed_exclude_area = gcode_result.bed_exclude_area;
-        wxGetApp().plater()->set_bed_shape(printable_area, bed_exclude_area, gcode_result.printable_height, texture, model, gcode_result.printable_area.empty());
+        }*/
     }
 
     m_print_statistics = gcode_result.print_statistics;
@@ -939,6 +945,9 @@ void GCodeViewer::reset()
     //BBS: should also reset the result id
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": current result id %1% ")%m_last_result_id;
     m_last_result_id = -1;
+    //BBS: add only gcode mode
+    m_only_gcode_in_preview = false;
+
     m_moves_count = 0;
     m_ssid_to_moveid_map.clear();
     for (TBuffer& buffer : m_buffers) {
@@ -1948,7 +1957,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
 
     unsigned int progress_count = 0;
     static const unsigned int progress_threshold = 1000;
-    ProgressDialog *          progress_dialog    = wxGetApp().is_gcode_viewer() ?
+    //BBS: add only gcode mode
+    ProgressDialog *          progress_dialog    = m_only_gcode_in_preview ?
         new ProgressDialog(_L("Loading G-codes"), "...",
             100, wxGetApp().mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL) : nullptr;
 
@@ -1958,18 +1968,20 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
     Points pts;
 
     // extract approximate paths bounding box from result
+    //BBS: add only gcode mode
     for (const GCodeProcessorResult::MoveVertex& move : gcode_result.moves) {
-        if (wxGetApp().is_gcode_viewer()) {
+        //if (wxGetApp().is_gcode_viewer()) {
+        //if (m_only_gcode_in_preview) {
             // for the gcode viewer we need to take in account all moves to correctly size the printbed
-            m_paths_bounding_box.merge(move.position.cast<double>());
-        }
-        else {
+        //    m_paths_bounding_box.merge(move.position.cast<double>());
+        //}
+        //else {
             if (move.type == EMoveType::Extrude && move.extrusion_role != erCustom && move.width != 0.0f && move.height != 0.0f) {
                 m_paths_bounding_box.merge(move.position.cast<double>());
                 //BBS: use convex_hull for toolpath outside check
                 pts.emplace_back(Point(scale_(move.position.x()), scale_(move.position.y())));
             }
-        }
+        //}
     }
 
     // BBS: also merge the point on arc to bounding box
@@ -1978,17 +1990,18 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
         if (!move.is_arc_move_with_interpolation_points())
             continue;
 
-        if (wxGetApp().is_gcode_viewer())
-            for (int i = 0; i < move.interpolation_points.size(); i++)
-                m_paths_bounding_box.merge(move.interpolation_points[i].cast<double>());
-        else {
+        //if (wxGetApp().is_gcode_viewer())
+        //if (m_only_gcode_in_preview)
+        //    for (int i = 0; i < move.interpolation_points.size(); i++)
+        //        m_paths_bounding_box.merge(move.interpolation_points[i].cast<double>());
+        //else {
             if (move.type == EMoveType::Extrude && move.width != 0.0f && move.height != 0.0f)
                 for (int i = 0; i < move.interpolation_points.size(); i++) {
                     m_paths_bounding_box.merge(move.interpolation_points[i].cast<double>());
                     //BBS: use convex_hull for toolpath outside check
                     pts.emplace_back(Point(scale_(move.interpolation_points[i].x()), scale_(move.interpolation_points[i].y())));
                 }
-        }
+        //}
     }
 
     // set approximate max bounding box (take in account also the tool marker)
@@ -4483,7 +4496,8 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
         has_filament_settings &= !fs.empty();
     }
     has_settings |= has_filament_settings;
-    bool show_settings = wxGetApp().is_gcode_viewer();
+    //BBS: add only gcode mode
+    bool show_settings = m_only_gcode_in_preview; //wxGetApp().is_gcode_viewer();
     show_settings &= (m_view_type == EViewType::FeatureType || m_view_type == EViewType::Tool);
     show_settings &= has_settings;
     if (show_settings) {

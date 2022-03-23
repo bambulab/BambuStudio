@@ -735,6 +735,8 @@ private:
     size_t m_moves_count{ 0 };
     //BBS: save m_gcode_result as well
     const GCodeProcessorResult* m_gcode_result;
+    //BBS: add only gcode mode
+    bool m_only_gcode_in_preview {false};
     std::vector<size_t> m_ssid_to_moveid_map;
 
     std::vector<TBuffer> m_buffers{ static_cast<size_t>(EMoveType::Extrude) };
@@ -787,7 +789,8 @@ public:
     void update_by_mode(ConfigOptionMode mode);
 
     // extract rendering data from the given parameters
-    void load(const GCodeProcessorResult& gcode_result, const Print& print, bool initialized);
+    //BBS: add only gcode mode
+    void load(const GCodeProcessorResult& gcode_result, const Print& print, bool initialized, bool only_gcode = false);
     // recalculate ranges in dependence of what is visible and sets tool/print colors
     void refresh(const GCodeProcessorResult& gcode_result, const std::vector<std::string>& str_tool_colors);
     void refresh_render_paths();
@@ -816,6 +819,8 @@ public:
     void update_sequential_view_current(unsigned int first, unsigned int last);
 
     bool is_contained_in_bed() const { return m_contained_in_bed; }
+    //BBS: add only gcode mode
+    bool is_only_gcode_in_preview() const { return m_only_gcode_in_preview; }
 
     EViewType get_view_type() const { return m_view_type; }
     void set_view_type(EViewType type) {

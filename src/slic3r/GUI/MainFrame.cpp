@@ -77,8 +77,8 @@ class BambuStudioTaskBarIcon : public wxTaskBarIcon
 {
 public:
     BambuStudioTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
-    wxMenu *CreatePopupMenu() override {
-        wxMenu *menu = new wxMenu;
+    //wxMenu *CreatePopupMenu() override {
+        //wxMenu *menu = new wxMenu;
         //BBS do not support multi instances in mac
         //if(wxGetApp().app_config->get("single_instance") == "0") {
         //    // Only allow opening a new BambuStudio instance on OSX if "single_instance" is disabled, 
@@ -86,12 +86,12 @@ public:
         //    append_menu_item(menu, wxID_ANY, _L("Open new instance"), _L("Open a new BambuStudio instance"),
         //    [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr);
         //}
-        append_menu_item(menu, wxID_ANY, _L("G-code Viewer") + dots, _L("Open G-code Viewer"),
-            [](wxCommandEvent&) { start_new_gcodeviewer_open_file(); }, "", nullptr);
-        return menu;
-    }
+        //append_menu_item(menu, wxID_ANY, _L("G-code Viewer") + dots, _L("Open G-code Viewer"),
+        //    [](wxCommandEvent&) { start_new_gcodeviewer_open_file(); }, "", nullptr);
+        //return menu;
+    //}
 };
-class GCodeViewerTaskBarIcon : public wxTaskBarIcon
+/*class GCodeViewerTaskBarIcon : public wxTaskBarIcon
 {
 public:
     GCodeViewerTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
@@ -99,11 +99,11 @@ public:
         wxMenu *menu = new wxMenu;
         append_menu_item(menu, wxID_ANY, _L("Open BambuStudio"), _L("Open a new BambuStudio"),
             [](wxCommandEvent&) { start_new_slicer(nullptr, true); }, "", nullptr);
-        append_menu_item(menu, wxID_ANY, _L("G-code Viewer") + dots, _L("Open new G-code Viewer"),
-            [](wxCommandEvent&) { start_new_gcodeviewer_open_file(); }, "", nullptr);
+        //append_menu_item(menu, wxID_ANY, _L("G-code Viewer") + dots, _L("Open new G-code Viewer"),
+        //    [](wxCommandEvent&) { start_new_gcodeviewer_open_file(); }, "", nullptr);
         return menu;
     }
-};
+};*/
 #endif // __APPLE__
 
 // Load the icon either from the exe, or from the ico file.
@@ -114,7 +114,8 @@ static wxIcon main_frame_icon(GUI_App::EAppMode app_mode)
     int len = int(::GetModuleFileName(nullptr, path.data(), MAX_PATH));
     if (len > 0 && len < MAX_PATH) {
         path.erase(path.begin() + len, path.end());
-        if (app_mode == GUI_App::EAppMode::GCodeViewer) {
+        //BBS: remove GCodeViewer as seperate APP logic
+        /*if (app_mode == GUI_App::EAppMode::GCodeViewer) {
             // Only in case the slicer was started with --gcodeviewer parameter try to load the icon from bambu-gcodeviewer.exe
             // Otherwise load it from the exe.
             for (const std::wstring_view exe_name : { std::wstring_view(L"bambu-studio.exe"), std::wstring_view(L"bambu-studio-console.exe") })
@@ -123,11 +124,12 @@ static wxIcon main_frame_icon(GUI_App::EAppMode app_mode)
                     path += L"bambu-gcodeviewer.exe";
                     break;
                 }
-        }
+        }*/
     }
     return wxIcon(path, wxBITMAP_TYPE_ICO);
 #else // _WIN32
-    return wxIcon(Slic3r::var(app_mode == GUI_App::EAppMode::Editor ? "BambuStudio_128px.png" : "BambuStudio-gcodeviewer_128px.png"), wxBITMAP_TYPE_PNG);
+    return wxIcon(Slic3r::var("BambuStudio_128px.png"), wxBITMAP_TYPE_PNG);
+    //return wxIcon(Slic3r::var(app_mode == GUI_App::EAppMode::Editor ? "BambuStudio_128px.png" : "BambuStudio-gcodeviewer_128px.png"), wxBITMAP_TYPE_PNG);
 #endif // _WIN32
 }
 
@@ -174,8 +176,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("BambuStudio-mac_128px.png"), wxBITMAP_TYPE_PNG), "BambuStudio");
         break;
     case GUI_App::EAppMode::GCodeViewer:
-        m_taskbar_icon = std::make_unique<GCodeViewerTaskBarIcon>(wxTBI_DOCK);
-        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("BambuStudio-gcodeviewer-mac_128px.png"), wxBITMAP_TYPE_PNG), "G-code Viewer");
+        //m_taskbar_icon = std::make_unique<GCodeViewerTaskBarIcon>(wxTBI_DOCK);
+        //m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("BambuStudio-gcodeviewer-mac_128px.png"), wxBITMAP_TYPE_PNG), "G-code Viewer");
         break;
     }
 #endif // __APPLE__
@@ -446,7 +448,8 @@ void MainFrame::update_layout()
     };
 
     //BBS GUI refactor: remove unused layout new/dlg
-    ESettingsLayout layout = wxGetApp().is_gcode_viewer() ? ESettingsLayout::GCodeViewer : ESettingsLayout::Old;
+    //ESettingsLayout layout = wxGetApp().is_gcode_viewer() ? ESettingsLayout::GCodeViewer : ESettingsLayout::Old;
+    ESettingsLayout layout =  ESettingsLayout::Old;
 
     if (m_layout == layout)
         return;

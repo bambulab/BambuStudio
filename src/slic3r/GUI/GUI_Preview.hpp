@@ -116,6 +116,8 @@ class Preview : public wxPanel
     //bool m_loaded { false };
     //BBS: add logic for preview print
     const Slic3r::PrintBase* m_loaded_print { nullptr };
+    //BBS: add only gcode mode
+    bool m_only_gcode { false };
 
     DoubleSlider::Control* m_layers_slider{ nullptr };
     DoubleSlider::Control* m_moves_slider{ nullptr };
@@ -153,8 +155,9 @@ public:
     void select_view(const std::string& direction);
     void set_drop_target(wxDropTarget* target);
 
-    void load_print(bool keep_z_range = false);
-    void reload_print(bool keep_volumes = false);
+    //BBS: add only gcode mode
+    void load_print(bool keep_z_range = false, bool only_gcode = false);
+    void reload_print(bool keep_volumes = false, bool only_gcode = false);
     void refresh_print();
     //BBS: always load shell at preview
     void load_shells(const Print& print, bool force_previewing = false);
@@ -192,7 +195,8 @@ private:
     // update vertical DoubleSlider after keyDown in canvas
     void update_layers_slider_from_canvas(wxKeyEvent& event);
 
-    void load_print_as_fff(bool keep_z_range = false);
+    //BBS: add only gcode mode
+    void load_print_as_fff(bool keep_z_range = false, bool only_gcode = false);
     void load_print_as_sla();
 
     void on_layers_slider_scroll_changed(wxCommandEvent& event);

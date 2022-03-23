@@ -137,13 +137,14 @@ int CLI::run(int argc, char **argv)
     PrinterTechnology printer_technology = get_printer_technology(m_config);
 
     bool							start_gui			= m_actions.empty();
-    bool 							start_as_gcodeviewer =
+    //BBS: remove GCodeViewer as seperate APP logic
+    /*bool 							start_as_gcodeviewer =
 #ifdef _WIN32
             false;
 #else
             // On Unix systems, the prusa-slicer binary may be symlinked to give the application a different meaning.
             boost::algorithm::iends_with(boost::filesystem::path(argv[0]).filename().string(), "gcodeviewer");
-#endif // _WIN32
+#endif // _WIN32*/
 
     const std::vector<std::string>              &load_configs		      = m_config.option<ConfigOptionStrings>("load_settings", true)->values;
     //BBS: always use ForwardCompatibilitySubstitutionRule::Enable
@@ -302,16 +303,16 @@ int CLI::run(int argc, char **argv)
     }
 
     // are we starting as gcodeviewer ?
-    for (auto it = m_actions.begin(); it != m_actions.end(); ++it) {
+    /*for (auto it = m_actions.begin(); it != m_actions.end(); ++it) {
         if (*it == "gcodeviewer") {
             start_gui = true;
             start_as_gcodeviewer = true;
             m_actions.erase(it);
             break;
         }
-    }
+    }*/
 
-    BOOST_LOG_TRIVIAL(info) << "start_gui="<< start_gui << ", start_as_gcodeviewer="<< start_as_gcodeviewer << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "start_gui="<< start_gui << std::endl;
 
     //BBS: add plate data related logic
     PlateDataPtrs plate_data;
@@ -323,13 +324,13 @@ int CLI::run(int argc, char **argv)
 
     // Read input file(s) if any.
     BOOST_LOG_TRIVIAL(info) << "Will start to read model file now, file count :" << m_input_files.size() << "\n";
-    for (const std::string& file : m_input_files)
+    /*for (const std::string& file : m_input_files)
         if (is_gcode_file(file) && boost::filesystem::exists(file)) {
             start_as_gcodeviewer = true;
             BOOST_LOG_TRIVIAL(info) << "found a gcode file:" << file << ", will start as gcode viewer\n";
             break;
-        }
-    if (!start_as_gcodeviewer) {
+        }*/
+    //if (!start_as_gcodeviewer) {
         for (const std::string& file : m_input_files) {
             if (!boost::filesystem::exists(file)) {
                 boost::nowide::cerr << "No such file: " << file << std::endl;
@@ -414,7 +415,7 @@ int CLI::run(int argc, char **argv)
             }
             m_models.push_back(model);
         }
-    }
+    //}
 
     //BBS: set default to ptFFF
     if (printer_technology == ptUnknown)
@@ -1134,7 +1135,8 @@ int CLI::run(int argc, char **argv)
         params.load_configs = load_configs;
         params.extra_config = std::move(m_extra_config);
         params.input_files  = std::move(m_input_files);
-        params.start_as_gcodeviewer = start_as_gcodeviewer;
+        //BBS: remove GCodeViewer as seperate APP logic
+        //params.start_as_gcodeviewer = start_as_gcodeviewer;
         return Slic3r::GUI::GUI_Run(params);
 #else // SLIC3R_GUI
         // No GUI support. Just print out a help.

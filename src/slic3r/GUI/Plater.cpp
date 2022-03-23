@@ -3140,6 +3140,9 @@ void Plater::priv::reset()
 
     m_ui_jobs.cancel_all();
 
+    //BBS: clear the partplate list's object before object cleared
+    partplate_list.clear();
+
     // Stop and reset the Print content.
     this->background_process.reset();
     model.clear_objects();
@@ -3366,6 +3369,9 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     if (invalidated == Print::APPLY_STATUS_INVALIDATED) {
         //BBS: update current plater's slicer result to invalid
         this->background_process.get_current_plate()->update_slice_result_valid_state(false);
+
+        //BBS: add only gcode mode
+        q->set_only_gcode(false);
         //no need, should be done in background_process.apply
         //this->background_process.get_current_gcode_result()->reset();
         // Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
@@ -4078,7 +4084,8 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
     if (current_panel == panel)
     {
         //BBS: add slice logic when switch to preview page
-        if ((current_panel == preview) && (wxGetApp().is_editor())) {
+        //BBS: add only gcode mode
+        if (!q->only_gcode_mode() && (current_panel == preview) && (wxGetApp().is_editor())) {
             do_reslice();
         }
         return;
@@ -4086,6 +4093,16 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
 
     wxPanel* old_panel = current_panel;
     current_panel = panel;
+    //BBS: add the collapse logic
+    if (current_panel == preview && q->only_gcode_mode()) {
+        this->sidebar->collapse(true);
+        preview->get_canvas3d()->enable_select_plate_toolbar(false);
+    }
+    else {
+        this->sidebar->collapse(false);
+        preview->get_canvas3d()->enable_select_plate_toolbar(true);
+    }
+
     // to reduce flickering when changing view, first set as visible the new current panel
     for (wxPanel* p : panels) {
         if (p == current_panel) {
@@ -4180,7 +4197,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             preview->reload_print(true);
 
             preview->set_as_dirty();*/
-            if (wxGetApp().is_editor())
+            if (wxGetApp().is_editor() && !q->only_gcode_mode())
                 do_reslice();
         }
 
@@ -4605,6 +4622,7 @@ void Plater::priv::on_action_add_plate(SimpleEvent&)
         take_snapshot("add partplate");
         this->partplate_list.create_plate();
         update();
+
         // BBS set default view
         //q->get_camera().select_view("topfront");
         q->get_camera().requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
@@ -5741,6 +5759,9 @@ void Plater::new_project()
     if ((result = close_with_confirm(check)) == wxID_CANCEL)
         return;
 
+    //BBS: add only gcode mode
+    m_only_gcode = false;
+
     wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
 
     Plater::TakeSnapshot snapshot(this, "New Project", UndoRedo::SnapshotType::ProjectSeparator);
@@ -5797,9 +5818,13 @@ void Plater::load_project(wxString const& filename2,
         return;
     }
 
+    //BBS: add only gcode mode
+    m_only_gcode = false;
+
     wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
 
     auto path     = into_path(filename);
+
     auto strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig;
     if (originfile == "<silence>") {
         strategy = strategy | LoadStrategy::Silence;
@@ -6103,22 +6128,35 @@ void Plater::load_gcode()
     load_gcode(input_file);
 }
 
+//BBS: remove GCodeViewer as seperate APP logic
 void Plater::load_gcode(const wxString& filename)
 {
-    if (! is_gcode_file(into_u8(filename)) || m_last_loaded_gcode == filename)
+    if (! is_gcode_file(into_u8(filename))
+        || (m_last_loaded_gcode == filename && m_only_gcode)
+        )
         return;
 
     m_last_loaded_gcode = filename;
 
-    // cleanup view before to start loading/processing
+    // BSS: create a new project when load_gcode, force close previous one
+    new_project();
+
+    m_only_gcode = true;
+
     // cleanup view before to start loading/processing
     //BBS: update gcode to current partplate's
     GCodeProcessorResult* current_result = p->partplate_list.get_current_slice_result();
-    current_result->reset();
+    Print& current_print = p->partplate_list.get_current_fff_print();
+    //BBS:already reset in new_project
+    //current_result->reset();
     //p->gcode_result.reset();
-    reset_gcode_toolpaths();
-    p->preview->reload_print(false);
+    //reset_gcode_toolpaths();
+    p->preview->reload_print(false, m_only_gcode);
+    wxGetApp().mainframe->select_tab(MainFrame::tpPreview);
+    p->set_current_panel(p->preview, true);
     p->get_current_canvas3D()->render();
+
+    current_print.apply(this->model(), wxGetApp().preset_bundle->full_config());
 
     wxBusyCursor wait;
 
@@ -6134,10 +6172,14 @@ void Plater::load_gcode(const wxString& filename)
         return;
     }
     *current_result = std::move(processor.extract_result());
+    //current_result->filename = filename;
+    current_print.set_gcode_file_ready();
 
     // show results
-    p->preview->reload_print(false);
-    p->preview->get_canvas3d()->zoom_to_gcode();
+    p->preview->reload_print(false, m_only_gcode);
+    //BBS: zoom to bed 0 for gcode preview
+    //p->preview->get_canvas3d()->zoom_to_gcode();
+    p->preview->get_canvas3d()->zoom_to_plate(0);
 
     if (p->preview->get_canvas3d()->get_gcode_layers_zs().empty()) {
         MessageDialog(this, _L("The selected file") + ":\n" + filename + "\n" + _L("does not contain valid gcode."),
@@ -6514,51 +6556,48 @@ void ProjectDropDialog::on_dpi_changed(const wxRect& suggested_rect)
     Refresh();
 }
 
+//BBS: remove GCodeViewer as seperate APP logic
 bool Plater::load_files(const wxArrayString& filenames)
 {
     const std::regex pattern_drop(".*[.](stp|step|stl|obj|amf|3mf)", std::regex::icase);
     const std::regex pattern_gcode_drop(".*[.](gcode|g)", std::regex::icase);
 
-    std::vector<fs::path> paths;
+    std::vector<fs::path> normal_paths;
+    std::vector<fs::path> gcode_paths;
 
-    // gcode viewer section
-    if (wxGetApp().is_gcode_viewer()) {
-        for (const auto& filename : filenames) {
-            fs::path path(into_path(filename));
-            if (std::regex_match(path.string(), pattern_gcode_drop))
-                paths.push_back(std::move(path));
-        }
-
-        if (paths.size() > 1) {
-            MessageDialog(static_cast<wxWindow*>(this), _L("Only one G-code file can be opened at the same time."),
-                 _L("Drag and drop G-code file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
-            return false;
-        }
-        else if (paths.size() == 1) {
-            load_gcode(from_path(paths.front()));
-            return true;
-        }
-        return false;
-    }
-
-    // editor section
     for (const auto& filename : filenames) {
         fs::path path(into_path(filename));
         if (std::regex_match(path.string(), pattern_drop))
-            paths.push_back(std::move(path));
+            normal_paths.push_back(std::move(path));
         else if (std::regex_match(path.string(), pattern_gcode_drop))
-            start_new_gcodeviewer(&filename);
+            gcode_paths.push_back(std::move(path));
         else
             continue;
     }
-    if (paths.empty()) {
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": normal_paths %1%, gcode_paths %2%")%normal_paths.size() %gcode_paths.size();
+    if (normal_paths.empty() && gcode_paths.empty()) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": can not find valid path, return directly");
-        // Likely all paths processed were gcodes, for which a G-code viewer instance has hopefully been started.
+        // Likely no supported files
+        return false;
+    }
+    else if (normal_paths.empty()){
+        //only gcode files
+        if (gcode_paths.size() > 1) {
+            show_info(this, _L("Only one G-code file can be opened at the same time."), _L("Gcode loading"));
+            return false;
+        }
+        load_gcode(from_path(gcode_paths.front()));
+        return true;
+    }
+
+    if (!gcode_paths.empty()) {
+        show_info(this, _L("Gcode files can not be loaded with models together!"), _L("Gcode loading"));
         return false;
     }
 
     // searches for project files
-    for (std::vector<fs::path>::const_reverse_iterator it = paths.rbegin(); it != paths.rend(); ++it) {
+    for (std::vector<fs::path>::const_reverse_iterator it = normal_paths.rbegin(); it != normal_paths.rend(); ++it) {
         std::string filename = (*it).filename().string();
         //BBS: only 3mf will be treated as project file
         if (boost::algorithm::iends_with(filename, ".3mf")) {
@@ -6588,24 +6627,24 @@ bool Plater::load_files(const wxArrayString& filenames)
                 return false;
 
             switch (load_type) {
-            case LoadType::OpenProject: {
-                if (wxGetApp().can_load_project())
-                    load_project(from_path(*it));
-                break;
-            }
-            case LoadType::LoadGeometry: {
-                Plater::TakeSnapshot snapshot(this, "Import Object");
-                load_files({ *it }, LoadStrategy::LoadModel);
-                break;
-            }
-            case LoadType::LoadConfig: {
-                load_files({ *it }, LoadStrategy::LoadConfig);
-                break;
-            }
-            case LoadType::Unknown : {
-                assert(false);
-                break;
-            }
+                case LoadType::OpenProject: {
+                    if (wxGetApp().can_load_project())
+                        load_project(from_path(*it));
+                    break;
+                }
+                case LoadType::LoadGeometry: {
+                    Plater::TakeSnapshot snapshot(this, "Import Object");
+                    load_files({ *it }, LoadStrategy::LoadModel);
+                    break;
+                }
+                case LoadType::LoadConfig: {
+                    load_files({ *it }, LoadStrategy::LoadConfig);
+                    break;
+                }
+                case LoadType::Unknown : {
+                    assert(false);
+                    break;
+                }
             }
 
             return true;
@@ -6614,23 +6653,23 @@ bool Plater::load_files(const wxArrayString& filenames)
 
     // other files
     std::string snapshot_label;
-    assert(!paths.empty());
-    if (paths.size() == 1) {
+    assert(!normal_paths.empty());
+    if (normal_paths.size() == 1) {
         snapshot_label = "Load File";
         snapshot_label += ": ";
-        snapshot_label += paths.front().filename().string().c_str();
+        snapshot_label += normal_paths.front().filename().string().c_str();
     }
     else {
         snapshot_label = "Load Files";
         snapshot_label += ": ";
-        snapshot_label += paths.front().filename().string().c_str();
-        for (size_t i = 1; i < paths.size(); ++i) {
+        snapshot_label += normal_paths.front().filename().string().c_str();
+        for (size_t i = 1; i < normal_paths.size(); ++i) {
             snapshot_label += ", ";
-            snapshot_label += paths[i].filename().string().c_str();
+            snapshot_label += normal_paths[i].filename().string().c_str();
         }
     }
     Plater::TakeSnapshot snapshot(this, snapshot_label);
-    load_files(paths, LoadStrategy::LoadModel);
+    load_files(normal_paths, LoadStrategy::LoadModel);
 
     return true;
 }
