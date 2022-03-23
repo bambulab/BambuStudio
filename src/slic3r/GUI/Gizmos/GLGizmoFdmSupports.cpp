@@ -274,17 +274,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         TriangleSelectorPatch::TinyPatchAreaMax, format_str.data(), 1.0f, true, _L("Alt + Mouse wheel"));
 
     ImGui::Separator();
-    if (m_c->object_clipper()->get_position() == 0.f) {
-        ImGui::AlignTextToFramePadding();
-        m_imgui->text(m_desc.at("clipping_of_view"));
-    }
-    else {
-        if (m_imgui->button(m_desc.at("reset_direction"))) {
-            wxGetApp().CallAfter([this](){
-                    m_c->object_clipper()->set_position(-1., false);
-                });
-        }
-    }
+    ImGui::AlignTextToFramePadding();
+    m_imgui->text(m_desc.at("clipping_of_view"));
 
     auto clp_dist = float(m_c->object_clipper()->get_position());
     ImGui::SameLine(sliders_left_width);
