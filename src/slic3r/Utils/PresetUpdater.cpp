@@ -706,6 +706,8 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
                         bundles.push_back(vendor_name);
                     }
                 }
+                else //if vendor has no file, copy it from resource
+                    bundles.push_back(vendor_name);
             }
             else //always update configs from resource to vendor
                 bundles.push_back(vendor_name);
