@@ -31,6 +31,7 @@
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Config/Version.hpp"
 #include "slic3r/Config/Snapshot.hpp"
+#include "slic3r/GUI/MarkdownTip.hpp"
 #include "libslic3r/miniz_extension.hpp"
 
 namespace fs = boost::filesystem;
@@ -38,7 +39,6 @@ using Slic3r::GUI::Config::Index;
 using Slic3r::GUI::Config::Version;
 using Slic3r::GUI::Config::Snapshot;
 using Slic3r::GUI::Config::SnapshotDB;
-
 
 
 // FIXME: Incompat bundle resolution doesn't deal with inherited user presets
@@ -202,16 +202,27 @@ struct PresetUpdater::priv
 	bool has_waiting_updates { false };
 	Updates waiting_updates;
 
-	priv();
+    struct Resource
+    {
+        std::string              version;
+        std::string              description;
+        std::string              url;
+        std::string              cache_root;
+        std::vector<std::string> sub_caches;
+    };
+
+    priv();
 
 	void set_download_prefs(AppConfig *app_config);
 	bool get_file(const std::string &url, const fs::path &target_path) const;
 	//BBS: refine preset update logic
-	bool extract_file(const fs::path &source_path);
+    bool extract_file(const fs::path &source_path, const fs::path &dest_path = {});
 	void prune_tmps() const;
 	void sync_version() const;
 	void parse_version_string(const std::string& body) const;
-	void sync_config(const VendorMap vendors);
+    void sync_resources(std::map<std::string, Resource> &resources);
+    void sync_config(const VendorMap vendors);
+    void sync_tooltip();
 
 	//BBS: refine preset update logic
 	bool install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const;
@@ -285,11 +296,11 @@ bool PresetUpdater::priv::get_file(const std::string &url, const fs::path &targe
 }
 
 //BBS: refine preset update logic
-bool PresetUpdater::priv::extract_file(const fs::path &source_path)
+bool PresetUpdater::priv::extract_file(const fs::path &source_path, const fs::path &dest_path)
 {
     bool res = true;
     std::string file_path = source_path.string();
-    std::string parent_path = source_path.parent_path().string();
+    std::string parent_path = (!dest_path.empty() ? dest_path : source_path.parent_path()).string();
     mz_zip_archive archive;
     mz_zip_zero_struct(&archive);
 
@@ -448,6 +459,148 @@ void PresetUpdater::priv::parse_version_string(const std::string& body) const
 		evt->SetString(GUI::from_u8(version));
 		GUI::wxGetApp().QueueEvent(evt);
 	}
+}
+
+//BBS: refine the Preset Updater logic
+// Download vendor indices. Also download new bundles if an index indicates there's a new one available.
+// Both are saved in cache.
+void PresetUpdater::priv::sync_resources(std::map<std::string, Resource> &resources)
+{
+    std::map<std::string, Resource>    resource_list;
+
+    Slic3r::AccountManager *account_manager = GUI::wxGetApp().getAccountManager();
+    if (!account_manager) {
+        BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: can not get account manager";
+        return;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << format("[BBL Updater]: get preferred setting version for app version %1%, url: `%2%`", SLIC3R_APP_NAME, version_check_url);
+
+    std::string query_params = "?";
+    bool        first        = true;
+    for (auto resource_it : resources) {
+        if (cancel) { return; }
+        auto resource_name = resource_it.first;
+        boost::to_lower(resource_name);
+        std::string query_resource = (boost::format("%1%=%2%") 
+            % resource_name % resource_it.second.version).str();
+        if (!first) query_params += "&";
+        query_params += query_resource;
+        first = false;
+    }
+
+    std::string url = account_manager->get_slicer_info_url();
+    // std::string url = (boost::format("%1%/iot-service/api/slicer/resource") % DEV_HOST_URL).str();
+    url += query_params;
+    Http http = Http::get(url);
+    /*http.header("accept", "application/json")
+        .header("client-type", "slicer")
+        .header("os-type", "windows")
+        .header("client-version", SLIC3R_VERSION)*/
+    http.on_complete([this, &resource_list, resources](std::string body, unsigned) {
+            try {
+                BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: request_resources, body=" << body;
+
+                json        j       = json::parse(body);
+                std::string message = j["message"].get<std::string>();
+
+                if (message == "success") {
+                    json resource = j.at("resources");
+                    if (resource.is_array()) {
+                        for (auto iter = resource.begin(); iter != resource.end(); iter++) {
+                            std::string version;
+                            std::string url;
+                            std::string resource;
+                            std::string description;
+                            for (auto sub_iter = iter.value().begin(); sub_iter != iter.value().end(); sub_iter++) {
+                                if (boost::iequals(sub_iter.key(), "type")) {
+                                    resource = sub_iter.value();
+                                    BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: get version of settings's type, " << sub_iter.value();
+                                } else if (boost::iequals(sub_iter.key(), "version")) {
+                                    version = sub_iter.value();
+                                } else if (boost::iequals(sub_iter.key(), "description")) {
+                                    description = sub_iter.value();
+                                } else if (boost::iequals(sub_iter.key(), "url")) {
+                                    url = sub_iter.value();
+                                }
+                            }
+                            BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: get type " << resource << ", version " << version << ", url " << url;
+
+                            resource_list.emplace(resource, Resource{version, description, url});
+                        }
+                    }
+                } else {
+                    BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: get version of settings failed, body=" << body;
+                }
+            } catch (std::exception &e) {
+                BOOST_LOG_TRIVIAL(trace) << (boost::format("[BBL Updater]: get version of settings failed, exception=%1% body=%2%") % e.what() % body).str();
+            } catch (...) {
+                BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: get version of settings failed,, body=" << body;
+            }
+        })
+        .on_error([&](std::string body, std::string error, unsigned status) {
+            BOOST_LOG_TRIVIAL(trace) << boost::format("[BBL Updater]: status=%1%, error=%2%, body=%3%") % status % error % body;
+        })
+        .perform_sync();
+
+    for (auto & resource_it : resources) {
+        if (cancel) { return; }
+
+        auto resource = resource_it.second;
+        std::string resource_name = resource_it.first;
+        boost::to_lower(resource_name);
+        auto        resource_update = resource_list.find(resource_name);
+        if (resource_update == resource_list.end()) {
+            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]Vendor " << resource_name << " can not get setting versions online";
+            continue;
+        }
+        Semver online_version = resource_update->second.version;
+        // Semver current_version = get_version_from_json(vendor_root_config.string());
+        Semver current_version = resource.version;
+        if (current_version < online_version) {
+            if (cancel) { return; }
+
+            // need to download the online files
+            fs::path cache_path(resource.cache_root);
+            std::string online_url      = resource_update->second.url;
+            std::string cache_file_path = (fs::temp_directory_path() / (fs::unique_path().string() + TMP_EXTENSION)).string();
+            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]Downloading resource: " << resource_name << ", version " << online_version.to_string();
+            if (!get_file(online_url, cache_file_path)) {
+                BOOST_LOG_TRIVIAL(warning) << "[BBL Updater]download resource " << resource_name << " failed, url: " << online_url;
+                continue;
+            }
+            if (cancel) { return; }
+
+            // remove previous files before
+            if (resource.sub_caches.empty()) {
+                if (fs::exists(cache_path)) fs::remove_all(cache_path);
+            } else {
+                for (auto sub : resource.sub_caches) {
+                    if (fs::exists(cache_path / sub)) fs::remove_all(cache_path / sub);
+                }
+            }
+            // extract the file downloaded
+            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]start to unzip the downloaded file " << cache_file_path;
+            fs::create_directories(cache_path);
+            if (!extract_file(cache_file_path, cache_path)) {
+                BOOST_LOG_TRIVIAL(warning) << "[BBL Updater]extract resource " << resource_it.first << " failed, path: " << cache_file_path;
+                continue;
+            }
+            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]finished unzip the downloaded file " << cache_file_path;
+
+            if (!resource_update->second.description.empty()) {
+                // save the description to disk
+                std::string changelog_file = (cache_path / "changelog").string();
+
+                boost::nowide::ofstream c;
+                c.open(changelog_file, std::ios::out | std::ios::trunc);
+                c << resource_update->second.description << std::endl;
+                c.close();
+            }
+
+            resource_it.second = resource_update->second;
+        }
+    }
 }
 
 //BBS: refine the Preset Updater logic
@@ -636,6 +789,37 @@ void PresetUpdater::priv::sync_config(const VendorMap vendors)
                 c.close();
             }
         }
+    }
+}
+
+void PresetUpdater::priv::sync_tooltip()
+{
+    try {
+        std::string language = GUI::into_u8(GUI::wxGetApp().current_language_code());
+        std::string common_version = "00.00.00.00";
+        std::string language_version = "00.00.00.00";
+        fs::path cache_root = fs::path(data_dir()) / "resources/tooltip";
+        try {
+            auto vf = cache_root / "common" / "version";
+            if (fs::exists(vf)) fs::load_string_file(vf, common_version);
+            vf = cache_root / language / "version";
+            if (fs::exists(vf)) fs::load_string_file(vf, language_version);
+        } catch (...) {}
+        std::map<std::string, Resource> resources
+        {
+            {"slicer/tooltip/common", { common_version, "", "", (cache_root / "common").string() }},
+            {"slicer/tooltip/" + language, { language_version, "", "", (cache_root / language).string() }}
+        };
+        sync_resources(resources);
+        for (auto &r : resources) {
+            if (!r.second.url.empty()) {
+                GUI::MarkdownTip::Reload();
+                break;
+            }
+        }
+    }
+    catch (std::exception& e) {
+        BOOST_LOG_TRIVIAL(warning) << format("[BBL Updater] sync_tooltip: %1%", e.what());
     }
 }
 
@@ -898,6 +1082,7 @@ void PresetUpdater::sync(PresetBundle *preset_bundle)
 		this->p->prune_tmps();
 		this->p->sync_version();
 		this->p->sync_config(std::move(vendors));
+        this->p->sync_tooltip();
     });
 }
 

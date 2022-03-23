@@ -1,4 +1,7 @@
 #include "MarkdownTip.hpp"
+#include "GUI_App.hpp"
+#include "GUI.hpp"
+#include "MainFrame.hpp"
 
 #include "libslic3r/Utils.hpp"
 
@@ -7,6 +10,8 @@
 #ifdef __WIN32__
 #include "WebView2.h"
 #endif
+
+namespace fs = boost::filesystem;
 
 namespace Slic3r { namespace GUI {
 
@@ -66,7 +71,7 @@ TODO:
 */
 
 MarkdownTip::MarkdownTip()
-    : wxFrame(NULL, wxID_ANY, "BBL MarkdownTip", { 0, 0 }, { 400, 300 }, wxBORDER_NONE)
+    : wxPopupTransientWindow(wxGetApp().mainframe, wxBORDER_NONE)
 {
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
 
@@ -74,9 +79,31 @@ MarkdownTip::MarkdownTip()
     topsizer->Add(_tipView, wxSizerFlags().Expand().Proportion(1));
 
     SetSizer(topsizer);
+    SetSize({400, 300});
+
+    LoadStyle();
 
     _timer = new wxTimer;
     _timer->Bind(wxEVT_TIMER, &MarkdownTip::OnTimer, this);
+}
+
+void MarkdownTip::LoadStyle()
+{
+    fs::path ph(data_dir());
+    ph /= "resources/tooltip/common/styled.html";
+    _data_dir = true;
+    if (!fs::exists(ph)) {
+        ph = resources_dir();
+        ph /= "tooltip/styled.html";
+        _data_dir = false;
+    } else {
+        _language = GUI::into_u8(GUI::wxGetApp().current_language_code());
+    }
+    auto url = encode_path(ph.string().c_str());
+    std::replace(url.begin(), url.end(), '\\', '/');
+    url = "file:///" + url;
+    _tipView->LoadURL(url);
+    _lastTip.clear();
 }
 
 bool MarkdownTip::ShowTip(wxPoint pos, std::string const& tip)
@@ -126,15 +153,28 @@ bool MarkdownTip::ShowTip(wxPoint pos, std::string const& tip)
 
 std::string MarkdownTip::LoadTip(std::string const& tip)
 {
-    auto old = var_dir();
-    set_var_dir(data_dir());
-    auto file = encode_path(var("tooltip/" + tip + ".md").c_str());
-    wxFile f;
-    set_var_dir(old);
-    if (wxFile::Exists(file) && f.Open(file)) {
-        std::string content(f.Length(), 0);
-        f.Read(&content[0], content.size());
-        return content;
+    fs::path ph;
+    wxString file;
+    wxFile   f;
+    if (_data_dir) {
+        if (!_language.empty()) {
+            ph = data_dir();
+            ph /= "resources/tooltip/" + _language +  "/" + tip + ".md";
+            file = encode_path(ph.string().c_str());
+            if (wxFile::Exists(file) && f.Open(file)) {
+                std::string content(f.Length(), 0);
+                f.Read(&content[0], content.size());
+                return content;
+            }
+        }
+        ph = data_dir();
+        ph /= "resources/tooltip/common/" + tip + ".md";
+        file = encode_path(ph.string().c_str());
+        if (wxFile::Exists(file) && f.Open(file)) {
+            std::string content(f.Length(), 0);
+            f.Read(&content[0], content.size());
+            return content;
+        }
     }
     /*
     file = var("tooltips.zip");
@@ -154,9 +194,9 @@ std::string MarkdownTip::LoadTip(std::string const& tip)
         }
     }
     */
-    set_var_dir(resources_dir());
-    file = encode_path(var("tooltip/" + tip + ".md").c_str());
-    set_var_dir(old);
+    ph = resources_dir();
+    ph /= "tooltip/" + tip + ".md";
+    file = encode_path(ph.string().c_str());
     if (wxFile::Exists(file) && f.Open(file)) {
         std::string content(f.Length(), 0);
         f.Read(&content[0], content.size());
@@ -223,18 +263,12 @@ wxWebView* MarkdownTip::CreateTipView(wxWindow* parent)
     wxWebView* tipView = wxWebView::New();
     if (tipView == nullptr)
         return new FakeWebView;
-    auto old = var_dir();
-    set_var_dir(resources_dir());
-    auto url = encode_path(var("tooltip/styled.html").c_str());
-    std::replace(url.begin(), url.end(), '\\', '/');
-    url = "file:///" + url;
-    set_var_dir(old);
 
 #ifdef __WIN32__
     tipView->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
-    tipView->Create(parent, wxID_ANY, url, wxDefaultPosition, { 400, 300 }, wxBORDER_NONE);
+    tipView->Create(parent, wxID_ANY, "", wxDefaultPosition, {400, 300}, wxBORDER_NONE);
 #else
-    tipView->Create(parent, wxID_ANY, url, wxDefaultPosition, { 400, 300 }, wxBORDER_NONE);
+    tipView->Create(parent, wxID_ANY, "", wxDefaultPosition, {400, 300}, wxBORDER_NONE);
     tipView->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
 #endif
     tipView->Bind(wxEVT_WEBVIEW_LOADED, &MarkdownTip::OnLoaded, this);
@@ -293,25 +327,34 @@ void MarkdownTip::OnTimer(wxTimerEvent& event)
     }
 }
 
-MarkdownTip& MarkdownTip::markdownTip()
+MarkdownTip* MarkdownTip::markdownTip(bool create)
 {
-    static MarkdownTip * markdownTip = new MarkdownTip;
-    return *markdownTip;
+    static MarkdownTip * markdownTip = nullptr;
+    if (markdownTip == nullptr && create)
+        markdownTip = new MarkdownTip;
+    return markdownTip;
 }
 
 bool MarkdownTip::ShowTip(std::string const& tip, wxPoint pos)
 {
-    return markdownTip().ShowTip(pos, tip);
+    return markdownTip()->ShowTip(pos, tip);
 }
 
 void MarkdownTip::ExitTip()
 {
-    markdownTip().Destroy();
+    if (auto tip = markdownTip(false))
+        tip->Destroy();
+}
+
+void MarkdownTip::Reload()
+{
+    if (auto tip = markdownTip(false)) 
+        tip->LoadStyle();
 }
 
 wxWindow* MarkdownTip::AttachTo(wxWindow* parent)
 {
-    MarkdownTip& tip = markdownTip();
+    MarkdownTip& tip = *markdownTip();
     tip._tipView = tip.CreateTipView(parent);
     tip._pendingScript = " ";
     return tip._tipView;
@@ -319,7 +362,7 @@ wxWindow* MarkdownTip::AttachTo(wxWindow* parent)
 
 wxWindow* MarkdownTip::DetachFrom(wxWindow* parent)
 {
-    MarkdownTip& tip = markdownTip();
+    MarkdownTip& tip = *markdownTip();
     if (tip._tipView->GetParent() == parent) {
         tip.Destroy();
     }

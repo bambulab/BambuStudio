@@ -1,30 +1,34 @@
 #ifndef slic3r_MarkdownTip_hpp_
 #define slic3r_MarkdownTip_hpp_
 
-#include <wx/frame.h>
+#include <wx/popupwin.h>
 #include <wx/timer.h>
 #include <wx/webview.h>
 
 
 namespace Slic3r { namespace GUI {
 
-class MarkdownTip : public wxFrame
+class MarkdownTip : public wxPopupTransientWindow
 {
 public:
     static bool ShowTip(std::string const & tip, wxPoint pos);
 
     static void ExitTip();
 
+    static void Reload();
+
     static wxWindow* AttachTo(wxWindow * parent);
 
     static wxWindow* DetachFrom(wxWindow * parent);
 
 private:
-    static MarkdownTip& markdownTip();
+    static MarkdownTip* markdownTip(bool create = true);
 
     MarkdownTip();
 
-    bool ShowTip(wxPoint pos, std::string const& tip);
+    void LoadStyle();
+
+    bool ShowTip(wxPoint pos, std::string const &tip);
 
     std::string LoadTip(std::string const& tip);
 
@@ -45,10 +49,12 @@ private:
     wxWebView* _tipView = NULL;
     std::string _lastTip;
     std::string _pendingScript = " ";
+    std::string _language;
     wxPoint _requestPos;
     double _lastHeight = 0;
     wxTimer* _timer;
     bool _hide = false;
+    bool _data_dir = false;
 };
 
 }
