@@ -1491,6 +1491,34 @@ void ImGui::ProgressBar(float fraction, const ImVec2& size_arg, const char* over
         RenderTextClipped(ImVec2(ImClamp(fill_br.x + style.ItemSpacing.x, bb.Min.x, bb.Max.x - overlay_size.x - style.ItemInnerSpacing.x), bb.Min.y), bb.Max, overlay, NULL, &overlay_size, ImVec2(0.0f, 0.5f), &bb);
 }
 
+void ImGui::BBLProgressBar(float fraction, const ImVec2 &size_arg, const char *overlay)
+{
+    ImGuiWindow *window = GetCurrentWindow();
+    if (window->SkipItems) return;
+
+    ImGuiContext &    g     = *GImGui;
+    const ImGuiStyle &style = g.Style;
+
+    ImVec2 pos  = window->DC.CursorPos;
+    ImVec2 size = CalcItemSize(size_arg, CalcItemWidth(), g.FontSize + style.FramePadding.y * 2.0f);
+    ImRect bb(pos, pos + size);
+    ItemSize(size, style.FramePadding.y);
+    if (!ItemAdd(bb, 0)) return;
+
+    // Render
+    fraction = ImSaturate(fraction);
+    RenderFrame(bb.Min, bb.Max, GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
+    bb.Expand(ImVec2(-style.FrameBorderSize, -style.FrameBorderSize));
+    RenderRectFilledRangeH(window->DrawList, bb, GetColorU32(ImGuiCol_PlotHistogram), 0.0f, fraction, style.FrameRounding);
+
+    // Default displaying the fraction as percentage string, but user can override it
+    char overlay_buf[32];
+    if (!overlay) {
+        ImFormatString(overlay_buf, IM_ARRAYSIZE(overlay_buf), "%.0f%%", fraction * 100 + 0.01f);
+        overlay = overlay_buf;
+    }
+}
+
 void ImGui::Bullet()
 {
     ImGuiWindow* window = GetCurrentWindow();
@@ -1884,6 +1912,119 @@ bool ImGui::BeginCombo(const char* label, const char* preview_value, ImGuiComboF
     {
         EndPopup();
         IM_ASSERT(0);   // This should never happen as we tested for IsPopupOpen() above
+        return false;
+    }
+    return true;
+}
+bool ImGui::BBLBeginCombo(const char *label, const char *preview_value, ImGuiComboFlags flags)
+{
+    // Always consume the SetNextWindowSizeConstraint() call in our early return paths
+    ImGuiContext &g = *GImGui;
+    bool has_window_size_constraint = (g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasSizeConstraint) != 0;
+    g.NextWindowData.Flags &= ~ImGuiNextWindowDataFlags_HasSizeConstraint;
+
+    ImGuiWindow *window = GetCurrentWindow();
+    if (window->SkipItems) return false;
+
+    IM_ASSERT((flags & (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)) != (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)); // Can't use both flags together
+
+    const ImGuiStyle &style = g.Style;
+    const ImGuiID id = window->GetID(label);
+
+    const float  arrow_size = (flags & ImGuiComboFlags_NoArrowButton) ? 0.0f : GetFrameHeight();
+    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+    const float  expected_w = CalcItemWidth();
+    const float  w  = (flags & ImGuiComboFlags_NoPreview) ? arrow_size : expected_w;
+    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
+    const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
+    ItemSize(total_bb, style.FramePadding.y);
+    if (!ItemAdd(total_bb, id, &frame_bb)) return false;
+
+    bool hovered, held;
+    bool pressed = ButtonBehavior(frame_bb, id, &hovered, &held);
+
+    bool push_color_count = 0;
+    if (hovered || g.ActiveId == id) {
+        ImGui::PushStyleColor(ImGuiCol_Border, GetColorU32(ImGuiCol_BorderActive));
+        push_color_count = 1;
+    }
+
+    const ImGuiID popup_id = ImHashStr("##ComboPopup", 0, id);
+    bool popup_open = IsPopupOpen(popup_id, ImGuiPopupFlags_None);
+
+    const ImU32 frame_col = GetColorU32(hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
+    const float value_x2 = ImMax(frame_bb.Min.x, frame_bb.Max.x - arrow_size);
+    RenderNavHighlight(frame_bb, id);
+    if (!(flags & ImGuiComboFlags_NoArrowButton)) {
+        ImU32 bg_col   = GetColorU32((popup_open || hovered) ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+        ImU32 text_col = GetColorU32(ImGuiCol_Text);
+        window->DrawList->AddRectFilled(frame_bb.Min, ImVec2(frame_bb.Min.x + arrow_size, frame_bb.Max.y), bg_col, style.FrameRounding,(w <= arrow_size) ? ImDrawFlags_RoundCornersAll : ImDrawFlags_RoundCornersLeft);
+        if (value_x2 + arrow_size - style.FramePadding.x <= frame_bb.Max.x)
+            BBLRenderArrow(window->DrawList, ImVec2(frame_bb.Min.x + style.FramePadding.y, frame_bb.Min.y + style.FramePadding.y), text_col, ImGuiDir_Down, 1.0f);
+    }
+    if (!(flags & ImGuiComboFlags_NoPreview))
+        window->DrawList->AddRectFilled(ImVec2(frame_bb.Min.x + arrow_size, frame_bb.Min.y), frame_bb.Max, frame_col, style.FrameRounding,(flags & ImGuiComboFlags_NoArrowButton) ? ImDrawFlags_RoundCornersAll : ImDrawFlags_RoundCornersRight);
+    RenderFrameBorder(frame_bb.Min, frame_bb.Max, style.FrameRounding);
+    if (preview_value != NULL && !(flags & ImGuiComboFlags_NoPreview)) {
+        ImVec2 preview_pos = ImVec2(frame_bb.Min.x + arrow_size, frame_bb.Min.y) + style.FramePadding;
+        if (g.LogEnabled) LogSetNextTextDecoration("{", "}");
+        RenderTextClipped(preview_pos,frame_bb.Max, preview_value, NULL, NULL, ImVec2(0.0f, 0.0f));
+    }
+    if (label_size.x > 0) RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, frame_bb.Min.y + style.FramePadding.y), label);
+
+    if ((pressed || g.NavActivateId == id) && !popup_open) {
+        if (window->DC.NavLayerCurrent == 0) window->NavLastIds[0] = id;
+        OpenPopupEx(popup_id, ImGuiPopupFlags_None);
+        popup_open = true;
+    }
+     if (push_color_count > 0) { ImGui::PopStyleColor(push_color_count); }
+    if (!popup_open) return false;
+
+    if (has_window_size_constraint) {
+        g.NextWindowData.Flags |= ImGuiNextWindowDataFlags_HasSizeConstraint;
+        g.NextWindowData.SizeConstraintRect.Min.x = ImMax(g.NextWindowData.SizeConstraintRect.Min.x, w);
+    } else {
+        if ((flags & ImGuiComboFlags_HeightMask_) == 0) flags |= ImGuiComboFlags_HeightRegular;
+        IM_ASSERT(ImIsPowerOfTwo(flags & ImGuiComboFlags_HeightMask_)); // Only one
+        int popup_max_height_in_items = -1;
+        if (flags & ImGuiComboFlags_HeightRegular)
+            popup_max_height_in_items = 8;
+        else if (flags & ImGuiComboFlags_HeightSmall)
+            popup_max_height_in_items = 4;
+        else if (flags & ImGuiComboFlags_HeightLarge)
+            popup_max_height_in_items = 20;
+        SetNextWindowSizeConstraints(ImVec2(w, 0.0f), ImVec2(FLT_MAX, CalcMaxPopupHeightFromItemCount(popup_max_height_in_items)));
+    }
+
+    char name[16];
+    ImFormatString(name, IM_ARRAYSIZE(name), "##Combo_%02d", g.BeginPopupStack.Size); // Recycle windows based on depth
+
+    // Position the window given a custom constraint (peak into expected window size so we can position it)
+    // This might be easier to express with an hypothetical SetNextWindowPosConstraints() function.
+    if (ImGuiWindow *popup_window = FindWindowByName(name))
+        if (popup_window->WasActive) {
+            // Always override 'AutoPosLastDirection' to not leave a chance for a past value to affect us.
+            ImVec2 size_expected = CalcWindowNextAutoFitSize(popup_window);
+            if (flags & ImGuiComboFlags_PopupAlignLeft)
+                popup_window->AutoPosLastDirection = ImGuiDir_Left; // "Below, Toward Left"
+            else
+                popup_window->AutoPosLastDirection = ImGuiDir_Down; // "Below, Toward Right (default)"
+            ImRect r_outer = GetWindowAllowedExtentRect(popup_window);
+            ImVec2 pos = FindBestWindowPosForPopupEx(frame_bb.GetBL(), size_expected, &popup_window->AutoPosLastDirection, r_outer, frame_bb, ImGuiPopupPositionPolicy_ComboBox);
+            SetNextWindowPos(pos);
+        }
+
+    // We don't use BeginPopupEx() solely because we have a custom name string, which we could make an argument to BeginPopupEx()
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_Popup | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+                                    ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove;
+
+    // Horizontally align ourselves with the framed text
+    PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(style.FramePadding.x, style.WindowPadding.y));
+    bool ret = Begin(name, NULL, window_flags);
+    PopStyleVar();
+    if (!ret) {
+        EndPopup();
+        IM_ASSERT(0); // This should never happen as we tested for IsPopupOpen() above
         return false;
     }
     return true;
@@ -6629,6 +6770,139 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
     {
         const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
         RenderFrame(bb.Min, bb.Max, col, false, 0.0f);
+        RenderNavHighlight(bb, id, ImGuiNavHighlightFlags_TypeThin | ImGuiNavHighlightFlags_NoRounding);
+    }
+
+    if (span_all_columns && window->DC.CurrentColumns)
+        PopColumnsBackground();
+    else if (span_all_columns && g.CurrentTable)
+        TablePopBackgroundChannel();
+
+    if (flags & ImGuiSelectableFlags_Disabled) PushStyleColor(ImGuiCol_Text, style.Colors[ImGuiCol_TextDisabled]);
+    RenderTextClipped(text_min, text_max, label, NULL, &label_size, style.SelectableTextAlign, &bb);
+    if (flags & ImGuiSelectableFlags_Disabled) PopStyleColor();
+
+    // Automatically close popups
+    if (pressed && (window->Flags & ImGuiWindowFlags_Popup) && !(flags & ImGuiSelectableFlags_DontClosePopups) && !(g.CurrentItemFlags & ImGuiItemFlags_SelectableDontClosePopup))
+        CloseCurrentPopup();
+
+    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags);
+    return pressed;
+}
+
+bool ImGui::BBLSelectable(const char *label, bool selected, ImGuiSelectableFlags flags, const ImVec2 &size_arg)
+{
+    ImGuiWindow *window = GetCurrentWindow();
+    if (window->SkipItems) return false;
+
+    ImGuiContext &    g     = *GImGui;
+    const ImGuiStyle &style = g.Style;
+
+    // Submit label or explicit size to ItemSize(), whereas ItemAdd() will submit a larger/spanning rectangle.
+    ImGuiID id         = window->GetID(label);
+    ImVec2  label_size = CalcTextSize(label, NULL, true);
+    ImVec2  size(size_arg.x != 0.0f ? size_arg.x : label_size.x, size_arg.y != 0.0f ? size_arg.y : label_size.y);
+    ImVec2  pos = window->DC.CursorPos;
+    pos.y += window->DC.CurrLineTextBaseOffset;
+    ItemSize(size, 0.0f);
+
+    // Fill horizontal space
+    // We don't support (size < 0.0f) in Selectable() because the ItemSpacing extension would make explicitly right-aligned sizes not visibly match other widgets.
+    const bool  span_all_columns = (flags & ImGuiSelectableFlags_SpanAllColumns) != 0;
+    const float min_x            = span_all_columns ? window->ParentWorkRect.Min.x : pos.x;
+    const float max_x            = span_all_columns ? window->ParentWorkRect.Max.x : window->WorkRect.Max.x;
+    if (size_arg.x == 0.0f || (flags & ImGuiSelectableFlags_SpanAvailWidth)) size.x = ImMax(label_size.x, max_x - min_x);
+
+    // Text stays at the submission position, but bounding box may be extended on both sides
+    const float  arrow_size = (flags & ImGuiComboFlags_NoArrowButton) ? 0.0f : GetFrameHeight();
+    const ImVec2 text_min = ImVec2(pos.x + arrow_size, pos.y);
+    const ImVec2 text_max(min_x + size.x, pos.y + size.y);
+
+    // Selectables are meant to be tightly packed together with no click-gap, so we extend their box to cover spacing between selectable.
+    ImRect bb(min_x, pos.y, text_max.x, text_max.y);
+    if ((flags & ImGuiSelectableFlags_NoPadWithHalfSpacing) == 0) {
+        const float spacing_x = span_all_columns ? 0.0f : style.ItemSpacing.x;
+        const float spacing_y = style.ItemSpacing.y;
+        const float spacing_L = IM_FLOOR(spacing_x * 0.50f);
+        const float spacing_U = IM_FLOOR(spacing_y * 0.50f);
+        bb.Min.x -= spacing_L;
+        bb.Min.y -= spacing_U;
+        bb.Max.x += (spacing_x - spacing_L);
+        bb.Max.y += (spacing_y - spacing_U);
+    }
+    // if (g.IO.KeyCtrl) { GetForegroundDrawList()->AddRect(bb.Min, bb.Max, IM_COL32(0, 255, 0, 255)); }
+
+    // Modify ClipRect for the ItemAdd(), faster than doing a PushColumnsBackground/PushTableBackground for every Selectable..
+    const float backup_clip_rect_min_x = window->ClipRect.Min.x;
+    const float backup_clip_rect_max_x = window->ClipRect.Max.x;
+    if (span_all_columns) {
+        window->ClipRect.Min.x = window->ParentWorkRect.Min.x;
+        window->ClipRect.Max.x = window->ParentWorkRect.Max.x;
+    }
+
+    bool item_add;
+    if (flags & ImGuiSelectableFlags_Disabled) {
+        ImGuiItemFlags backup_item_flags = g.CurrentItemFlags;
+        g.CurrentItemFlags |= ImGuiItemFlags_Disabled | ImGuiItemFlags_NoNavDefaultFocus;
+        item_add           = ItemAdd(bb, id);
+        g.CurrentItemFlags = backup_item_flags;
+    } else {
+        item_add = ItemAdd(bb, id);
+    }
+
+    if (span_all_columns) {
+        window->ClipRect.Min.x = backup_clip_rect_min_x;
+        window->ClipRect.Max.x = backup_clip_rect_max_x;
+    }
+
+    if (!item_add) return false;
+
+    // FIXME: We can standardize the behavior of those two, we could also keep the fast path of override ClipRect + full push on render only,
+    // which would be advantageous since most selectable are not selected.
+    if (span_all_columns && window->DC.CurrentColumns)
+        PushColumnsBackground();
+    else if (span_all_columns && g.CurrentTable)
+        TablePushBackgroundChannel();
+
+    // We use NoHoldingActiveID on menus so user can click and _hold_ on a menu then drag to browse child entries
+    ImGuiButtonFlags button_flags = 0;
+    if (flags & ImGuiSelectableFlags_NoHoldingActiveID) { button_flags |= ImGuiButtonFlags_NoHoldingActiveId; }
+    if (flags & ImGuiSelectableFlags_SelectOnClick) { button_flags |= ImGuiButtonFlags_PressedOnClick; }
+    if (flags & ImGuiSelectableFlags_SelectOnRelease) { button_flags |= ImGuiButtonFlags_PressedOnRelease; }
+    if (flags & ImGuiSelectableFlags_Disabled) { button_flags |= ImGuiButtonFlags_Disabled; }
+    if (flags & ImGuiSelectableFlags_AllowDoubleClick) { button_flags |= ImGuiButtonFlags_PressedOnClickRelease | ImGuiButtonFlags_PressedOnDoubleClick; }
+    if (flags & ImGuiSelectableFlags_AllowItemOverlap) { button_flags |= ImGuiButtonFlags_AllowItemOverlap; }
+
+    if (flags & ImGuiSelectableFlags_Disabled) selected = false;
+
+    const bool was_selected = selected;
+    bool       hovered, held;
+    bool       pressed = ButtonBehavior(bb, id, &hovered, &held, button_flags);
+    if (hovered || g.ActiveId == id) {
+        ImGui::PushStyleColor(ImGuiCol_Border, GetColorU32(ImGuiCol_BorderActive));
+        RenderFrameBorder(ImVec2(bb.Min.x + style.ItemSpacing.x,bb.Min.y), ImVec2(bb.Max.x - style.ItemSpacing.x,bb.Max.y), style.FrameRounding);
+        ImGui::PopStyleColor(1);
+    }
+    // Update NavId when clicking or when Hovering (this doesn't happen on most widgets), so navigation can be resumed with gamepad/keyboard
+    if (pressed || (hovered && (flags & ImGuiSelectableFlags_SetNavIdOnHover))) {
+        if (!g.NavDisableMouseHover && g.NavWindow == window && g.NavLayer == window->DC.NavLayerCurrent) {
+            SetNavID(id, window->DC.NavLayerCurrent, window->DC.NavFocusScopeIdCurrent, ImRect(bb.Min - window->Pos, bb.Max - window->Pos));
+            g.NavDisableHighlight = true;
+        }
+    }
+    if (pressed) MarkItemEdited(id);
+
+    if (flags & ImGuiSelectableFlags_AllowItemOverlap) SetItemAllowOverlap();
+
+    // In this branch, Selectable() cannot toggle the selection so this will never trigger.
+    if (selected != was_selected) //-V547
+        window->DC.LastItemStatusFlags |= ImGuiItemStatusFlags_ToggledSelection;
+
+    // Render
+    if (held && (flags & ImGuiSelectableFlags_DrawHoveredWhenHeld)) hovered = true;
+    if (hovered || selected) {
+        const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
+        RenderFrame(ImVec2(bb.Min.x + style.ItemSpacing.x, bb.Min.y), ImVec2(bb.Max.x - style.ItemSpacing.x, bb.Max.y), col, false, 0.0f);
         RenderNavHighlight(bb, id, ImGuiNavHighlightFlags_TypeThin | ImGuiNavHighlightFlags_NoRounding);
     }
 

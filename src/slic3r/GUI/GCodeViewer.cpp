@@ -3675,6 +3675,9 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
     //BBS: GUI refactor: move to the right
     imgui.set_next_window_pos(float(canvas_width), 0.0f, ImGuiCond_Always, 1.0f, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(1.0f,1.0f,1.0f,0.6f));
+    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
     ImGui::SetNextWindowBgAlpha(0.6f);
     const float max_height = 0.75f * static_cast<float>(cnv_size.get_height());
     const float child_height = 0.3333f * max_height;
@@ -3696,14 +3699,14 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
         (m_view_type == EViewType::ColorPrint && !time_mode.custom_gcode_times.empty()));*/
     bool show_estimated_time = time_mode.time > 0.0f && (m_view_type == EViewType::FeatureType || m_view_type == EViewType::ColorPrint);
 
-    const float icon_size = ImGui::GetTextLineHeight();
+    const float icon_size = ImGui::GetTextLineHeight() * 0.6;
     //BBS GUI refactor
     //const float percent_bar_size = 2.0f * ImGui::GetTextLineHeight();
     const float percent_bar_size = 0;
 
     bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
 
-    auto append_item = [icon_size, percent_bar_size, &imgui, imperial_units](EItemType type, const Color& color, const std::string& label,
+    auto append_item = [icon_size, percent_bar_size, &imgui, imperial_units](EItemType type, const Color &color, const std::string &label,
         bool visible = true, const std::string& time = "", float percent = 0.0f, float max_percent = 0.0f, const std::array<float, 4>& offsets = { 0.0f, 0.0f, 0.0f, 0.0f },
         double used_filament_m = 0.0, double used_filament_g = 0.0,
         std::function<void()> callback = nullptr) {
@@ -3718,22 +3721,22 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
         switch (type) {
         default:
         case EItemType::Rect: {
-            draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
+            draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 5.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size + 3.0f },
                 ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
             break;
         }
         case EItemType::Circle: {
-            ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
+            ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size + 5.0f));
             draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
             break;
         }
         case EItemType::Hexagon: {
-            ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size));
+            ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size + 5.0f));
             draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 6);
             break;
         }
         case EItemType::Line: {
-            draw_list->AddLine({ pos.x + 1, pos.y + icon_size - 1 }, { pos.x + icon_size - 1, pos.y + 1 }, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 3.0f);
+            draw_list->AddLine({ pos.x + 1, pos.y + icon_size + 2 }, { pos.x + icon_size - 1, pos.y + 4 }, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 3.0f);
             break;
         case EItemType::None:
             dummy_size = 0;
@@ -3790,12 +3793,26 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
                 */
 
                 ImGui::Dummy({ percent_bar_size, icon_size });
+                ImGui::SameLine(offsets[1]);
+
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0));
+                ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.20f, 0.64f, 1.00f, 1.00f));
+                ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.20f, 0.64f, 1.00f, 0.00f));
+                ImGui::BBLProgressBar(1.0 * percent, ImVec2(25.0f, 0.0f));
+                ImGui::PopStyleColor(2);
+
                 ImGui::SameLine();
                 char buf[64];
                 ::sprintf(buf, "%.1f%%", 100.0f * percent);
                 ImGui::TextUnformatted((percent > 0.0f) ? buf : "");
-                ImGui::SameLine(offsets[2]);
+
+                ImGui::SameLine(offsets[3] + 4.0);
+                ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
                 ImGui::Checkbox("", &visible);
+                ImGui::PopStyleColor(1);
+
+                ImGui::PopStyleVar(1);
+
                 /* TODO display checkbox */
                 /* BBS GUI refactor do not show Used filament
                 ImGui::SameLine(offsets[2]);
@@ -3941,13 +3958,16 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
 
     //BBS display Color Scheme
     ImGui::Text(_u8L("Color Scheme").c_str());
-
+    push_combo_style();
+    ImGui::PushItemWidth(176.0);
+    ImGui::SameLine();
     const char* view_type_value = view_type_items_str[m_view_type_sel].c_str();
     ImGuiComboFlags flags = 0;
-    if (ImGui::BeginCombo("", view_type_value, flags)) {
+    if (ImGui::BBLBeginCombo("", view_type_value, flags)) {
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
         for (int i = 0; i < view_type_items_str.size(); i++) {
             const bool is_selected = (m_view_type_sel == i);
-            if (ImGui::Selectable(view_type_items_str[i].c_str(), is_selected)) {
+            if (ImGui::BBLSelectable(view_type_items_str[i].c_str(), is_selected)) {
                 m_view_type_sel = i;
                 set_view_type(view_type_items[m_view_type_sel]);
                 reset_visible(view_type_items[m_view_type_sel]);
@@ -3960,9 +3980,10 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
                 ImGui::SetItemDefaultFocus();
             }
         }
+        ImGui::PopStyleVar(1);
         ImGui::EndCombo();
     }
-
+    pop_combo_style();
     // data used to properly align items in columns when showing time
     std::array<float, 4> offsets = { 0.0f, 0.0f, 0.0f, 0.0f };
     std::vector<std::string> labels;
@@ -4051,12 +4072,18 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
     {
     case EViewType::FeatureType:
     {
-        append_headers({ _u8L("Line type"), _u8L("Time"), _u8L("Percent"), _u8L("Display") }, offsets);
+        append_headers({_u8L("Line type"), _u8L("Time"), _u8L("Percent"), "", _u8L("Display")}, offsets);
         break;
     }
     case EViewType::Height:         { imgui.title(_u8L("Layer Height (mm)")); break; }
     case EViewType::Width:          { imgui.title(_u8L("Line Width (mm)")); break; }
-    case EViewType::Feedrate:       { imgui.title(_u8L("Speed (mm/s)")); break; }
+    case EViewType::Feedrate: 
+    {
+        imgui.title(_u8L("Speed (mm/s)"));
+        offsets = calculate_offsets(labels, times, {_u8L("Speed (mm/s)")}, icon_size);
+        break;
+    }
+
     case EViewType::FanSpeed:       { imgui.title(_u8L("Fan Speed (%)")); break; }
     case EViewType::Temperature:    { imgui.title(_u8L("Temperature (°C)")); break; }
     case EViewType::VolumetricRate: { imgui.title(_u8L("Volumetric flow rate (mm³/s)")); break; }
@@ -4065,11 +4092,16 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
         append_headers({ _u8L("Filament"), _u8L("Used filament") }, offsets);
         break;
     }
-    case EViewType::ColorPrint:     { imgui.title(_u8L("Color Print")); break; }
+    case EViewType::ColorPrint:
+    {
+        offsets = calculate_offsets(labels, times, {"color_prints", _u8L("Display")}, icon_size);
+        append_headers({_u8L("Color Print"), "", "", "", _u8L("Display")}, offsets);
+        break;
+    }
     default: { break; }
     }
 
-    auto append_option_item = [this, offsets, append_item](EMoveType type) {
+    auto append_option_item = [this,append_item](EMoveType type, std::array<float, 4> offsets) {
         auto append_option_item_with_type = [this, offsets, append_item](EMoveType type, const Color& color, const std::string& label, bool visible) {
             append_item(EItemType::Rect, color, label, visible, "", 0.0f, 0.0f, offsets, 0.0, 0.0, [this, type, visible]() {
                 m_buffers[buffer_id(type)].visible = !m_buffers[buffer_id(type)].visible;
@@ -4117,7 +4149,7 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
         }
 
         for(auto item : options_items) {
-            append_option_item(item);
+            append_option_item(item,offsets);
         }
         break;
     }
@@ -4126,8 +4158,9 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
     case EViewType::Feedrate:       {
         append_range(m_extrusions.ranges.feedrate, 1);
         ImGui::Spacing();
-        imgui.title(_u8L("Options"));
+        append_headers({_u8L("Options"), "", "", "", _u8L("Display")}, offsets);
         const bool travel_visible = m_buffers[buffer_id(EMoveType::Travel)].visible;
+
         append_item(EItemType::None, Travel_Colors[0], _u8L("travel"), travel_visible, "", 0.0f, 0.0f, offsets, 0.0, 0.0, [this, travel_visible]() {
             m_buffers[buffer_id(EMoveType::Travel)].visible = !m_buffers[buffer_id(EMoveType::Travel)].visible;
             // update buffers' render paths
@@ -4226,7 +4259,7 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
             ImGui::EndChild();
 
         for (auto item : options_items)
-            append_option_item(item);
+            append_option_item(item,offsets);
 
         break;
     }
@@ -4642,8 +4675,29 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
     legend_height = ImGui::GetCurrentWindow()->Size.y;
 
     imgui.end();
+    ImGui::PopStyleColor(3);
     ImGui::PopStyleVar();
 }
+
+void GCodeViewer::push_combo_style()
+{
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.3f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.0f, 0.0f, 0.3f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 0.3f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.0f, 0.0f, 0.0f, 0.3f));
+    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.0f, 0.0f, 0.0f, 0.8f));
+    ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.0f));
+    ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+}
+void GCodeViewer::pop_combo_style()
+{
+    ImGui::PopStyleVar(2);
+    ImGui::PopStyleColor(8);
+}
+
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
 void GCodeViewer::render_statistics()

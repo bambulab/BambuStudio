@@ -856,6 +856,8 @@ public:
 
     std::vector<CustomGCode::Item>& get_custom_gcode_per_print_z() { return m_custom_gcode_per_print_z; }
     size_t get_extruders_count() { return m_extruders_count; }
+    void push_combo_style();
+    void pop_combo_style();
 
 private:
     void load_toolpaths(const GCodeProcessorResult& gcode_result);

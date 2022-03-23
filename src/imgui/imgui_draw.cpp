@@ -3766,6 +3766,36 @@ void ImGui::RenderArrow(ImDrawList* draw_list, ImVec2 pos, ImU32 col, ImGuiDir d
     draw_list->AddTriangleFilled(center + a, center + b, center + c, col);
 }
 
+void ImGui::BBLRenderArrow(ImDrawList *draw_list, ImVec2 pos, ImU32 col, ImGuiDir dir, float scale)
+{
+    const float h      = draw_list->_Data->FontSize * 1.00f;
+    float       r      = h * 0.40f * scale;
+    ImVec2      center = pos + ImVec2(h * 0.50f, h * 0.50f * scale);
+
+    ImVec2 a, b, c;
+    switch (dir) {
+    case ImGuiDir_Up:
+    case ImGuiDir_Down:
+        if (dir == ImGuiDir_Up) r = -r;
+        a = ImVec2(+0.000f, +0.250f) * r;
+        b = ImVec2(-0.866f, -0.250f) * r;
+        c = ImVec2(+0.866f, -0.250f) * r;
+        break;
+    case ImGuiDir_Left:
+    case ImGuiDir_Right:
+        if (dir == ImGuiDir_Left) r = -r;
+        a = ImVec2(+0.250f, +0.000f) * r;
+        b = ImVec2(-0.250f, +0.866f) * r;
+        c = ImVec2(-0.250f, -0.866f) * r;
+        break;
+    case ImGuiDir_None:
+    case ImGuiDir_COUNT: IM_ASSERT(0); break;
+    }
+    //draw_list->AddTriangleFilled(center + a, center + b, center + c, col);
+    draw_list->AddLine(center + a, center + c,col);
+    draw_list->AddLine(center + a, center + b,col);
+}
+
 void ImGui::RenderBullet(ImDrawList* draw_list, ImVec2 pos, ImU32 col)
 {
     draw_list->AddCircleFilled(pos, draw_list->_Data->FontSize * 0.20f, col, 8);
