@@ -2103,6 +2103,7 @@ void MainFrame::add_to_recent_projects(const wxString& filename)
 
 void MainFrame::load_url(wxString url)
 {
+    BOOST_LOG_TRIVIAL(trace) << "load_url:" << url;
     auto evt = new wxCommandEvent(EVT_LOAD_URL, this->GetId());
     evt->SetString(url);
     wxQueueEvent(this, evt);

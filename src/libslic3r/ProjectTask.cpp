@@ -86,7 +86,21 @@ namespace Slic3r {
     int BBLSubTask::parse_content_json(std::string json_str)
     {
         try {
-            ;
+            json j = json::parse(json_str);
+
+            if (j.contains("info") && !j["info"].is_null()) {
+                if (j["info"].contains("name") && !j["info"]["name"].is_null())
+                    task_name = j["info"]["name"].get<std::string>();
+                if (j["info"].contains("plate_idx") && !j["info"]["plate_idx"].is_null()) {
+                    if (j["info"]["plate_idx"].is_number())
+                        task_partplate_idx = std::to_string(j["info"]["plate_idx"].get<int>());
+                    else
+                        task_partplate_idx = j["info"]["plate_idx"].get<std::string>();
+                }
+                if (j["info"].contains("printer") && !j["info"]["printer"].is_null())
+                    task_printer_dev_id = j["info"]["printer"].get<std::string>();
+                return 0;
+            }
         }
         catch (...) {
             BOOST_LOG_TRIVIAL(trace) << "parse_content_json failed! json=" << json_str;

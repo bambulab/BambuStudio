@@ -5973,8 +5973,8 @@ void Plater::import_model_id(const std::string& import_json)
     if (import_thread.joinable())
         import_thread.join();
 
+    dlg.Close();
     if (download_ok) {
-        dlg.Close();
         BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << target_path.string();
         /* load project */
         this->load_project(encode_path(target_path.string().c_str()), "<silence>");
@@ -5985,6 +5985,9 @@ void Plater::import_model_id(const std::string& import_json)
 
         // show save new project
         p->set_project_filename(filename);
+    } else {
+        wxMessageBox(msg);
+        return;
     }
 }
 
@@ -7494,7 +7497,7 @@ void Plater::publish_project()
         bool cancel = false;
         res = c->get_notification(profile, http_code, http_body,
             [cont]() {
-                return cont;
+                return !cont;
             }
         );
 
@@ -7543,6 +7546,7 @@ void Plater::publish_project()
     }
 
     if (upload_finish && load_url) {
+        dlg.Close();
         std::string url;
         if (publish_project) {
             url = (boost::format(MY_MODEL_PUBLISH_URL_FORMAT)
@@ -7559,6 +7563,7 @@ void Plater::publish_project()
         url = wxGetApp().app_config->get_web_host_url() + url;
         GUI::wxGetApp().load_url(wxString(url));
     } else {
+        BOOST_LOG_TRIVIAL(trace) << "publish failed: error = " << msg;
         while(cont_dlg) {
             wxMilliSleep(100);
             cont_dlg = dlg.Update(percent, msg);

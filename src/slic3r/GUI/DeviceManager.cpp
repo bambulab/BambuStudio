@@ -634,10 +634,10 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                     }
 
                     /* sync task info */
-                    /*if (task_id.has_value() && !task_id.value().empty() && (task_id.value().compare("0") != 0))
+                    if (task_id.has_value() && !task_id.value().empty() && (task_id.value().compare("0") != 0))
                     {
                         update_task(task_id.value());
-                    }*/
+                    }
 
                     /* valid subtask */
                     if (subtask_id.has_value() && !subtask_id.value().empty() && subtask_id.value().compare("0") != 0)
@@ -1157,8 +1157,10 @@ void MachineObject::update_subtask(std::string subtask_id)
     subtask_ = new BBLSubTask();
     subtask_->task_id = subtask_id;
 
+    acc_.get_subtask(subtask_);
+
     // modify to user-service api
-    unsigned http_code;
+    /*unsigned http_code;
     std::string http_body;
     unsigned limit = 1;
     int         result = acc_.get_tasks(this->dev_id, limit, http_code, http_body);
@@ -1189,7 +1191,7 @@ void MachineObject::update_subtask(std::string subtask_id)
     }
     else {
         BOOST_LOG_TRIVIAL(trace) << "parse_task_info: failed, status = " << http_code << ", body = " << http_body;
-    }
+    }*/
 }
 
 void MachineObject::request_bind(ResultFn resFn, bool force_bind)
