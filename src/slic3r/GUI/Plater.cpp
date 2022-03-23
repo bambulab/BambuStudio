@@ -5780,7 +5780,10 @@ void Plater::load_project(wxString const& filename2,
     wxString const& originfile)
 {
     auto filename = filename2;
-    auto check = [&filename, this] (bool) {
+    auto check = [&filename, this] (bool yes_or_no) {
+        if (!yes_or_no && !wxGetApp().check_and_save_current_preset_changes(_L("Load project"), 
+                _L("Some presets are modified.")))
+            return false;
         if (filename.empty()) {
             // Ask user for a project file name.
             wxGetApp().load_project(this, filename);
@@ -5865,7 +5868,7 @@ int Plater::save_project(bool saveAs)
     up_to_date(true, false);
     up_to_date(true, true);
     p->dirty_state.reset_after_save();
-    return wxID_OK;
+    return wxID_YES;
 }
 
 //BBS import model by model id
@@ -6683,7 +6686,7 @@ void Plater::reset_with_confirm()
 int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
 {
     if (up_to_date(false, false)) {
-        if (second_check && !second_check(true)) return wxID_CANCEL;
+        if (second_check && !second_check(false)) return wxID_CANCEL;
         model().set_backup_path("");
         return wxID_NO;
     }
