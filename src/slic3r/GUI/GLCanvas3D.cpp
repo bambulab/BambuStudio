@@ -4137,13 +4137,13 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
         settings_changed = true;
     }
 
-    if (imgui->checkbox(_L("Auto rotate for arrangement"), settings.enable_rotation)) {
+    if (imgui->bbl_checkbox(_L("Auto rotate for arrangement"), settings.enable_rotation)) {
         settings_out.enable_rotation = settings.enable_rotation;
         appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation? "1" : "0");
         settings_changed = true;
     }
 
-    if (imgui->checkbox(_L("Allow multiple materials on same plate"), settings.allow_multi_materials_on_same_plate)) {
+    if (imgui->bbl_checkbox(_L("Allow multiple materials on same plate"), settings.allow_multi_materials_on_same_plate)) {
         settings_out.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
         appcfg->set("arrange", multi_material_key.c_str(), settings_out.allow_multi_materials_on_same_plate ? "1" : "0");
         settings_changed = true;
