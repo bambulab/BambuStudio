@@ -3,7 +3,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-23 15:09+0800\n"
+"POT-Creation-Date: 2022-03-23 23:39+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1223,28 +1223,20 @@ msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:281
-msgid "Tool position"
-msgstr "Werkzeugposition"
+msgid "Extruder position"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:1952
-msgid "Generating toolpaths"
-msgstr "Generiere Werkzeugwege"
+msgid "Loading G-codes"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:2060
-msgid "Generating vertex buffer"
-msgstr "Erzeuge den Vertex-Puffer"
+msgid "Generating geometry vertex data"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:2445
-msgid "Generating index buffers"
-msgstr "Generiere Indexpuffer"
-
-#: src/slic3r/GUI/GCodeViewer.cpp:3743
-msgid "Click to hide"
-msgstr "Klicken zum Ausblenden"
-
-#: src/slic3r/GUI/GCodeViewer.cpp:3743
-msgid "Click to show"
-msgstr "Klicken zum Anzeigen"
+msgid "Generating geometry index data"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:3893
 msgid "up to"
@@ -1268,12 +1260,12 @@ msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:3984 src/slic3r/GUI/GCodeViewer.cpp:3985
 #: src/slic3r/GUI/GCodeViewer.cpp:4036
-msgid "Percentage"
-msgstr "Prozent"
+msgid "Percent"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:3997 src/slic3r/GUI/GCodeViewer.cpp:4036
-msgid "Feature type"
-msgstr "Merkmalstyp"
+msgid "Line type"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:3997 src/slic3r/GUI/GCodeViewer.cpp:4036
 msgid "Time"
@@ -1284,12 +1276,12 @@ msgid "Display"
 msgstr "Display"
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4039
-msgid "Height (mm)"
-msgstr "Höhe (mm)"
+msgid "Layer Height (mm)"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4040
-msgid "Width (mm)"
-msgstr "Breite (mm)"
+msgid "Line Width (mm)"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4041
 msgid "Speed (mm/s)"
@@ -1411,8 +1403,8 @@ msgid "Normal mode"
 msgstr "Normaler Modus"
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4557
-msgid "Stealth mode"
-msgstr "Stealth Modus"
+msgid "Silent mode"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4565 src/libslic3r/PrintConfig.cpp:975
 #: src/libslic3r/PrintConfig.cpp:1028
@@ -1424,12 +1416,12 @@ msgid "Total"
 msgstr "Gesamt"
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4614
-msgid "Show stealth mode"
-msgstr "Stealth Modus anzeigen"
+msgid "Switch to silent mode"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4618
-msgid "Show normal mode"
-msgstr "Normalen Modus zeigen"
+msgid "Switch to normal mode"
+msgstr ""
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:248
 msgid "Sequence"
@@ -1651,7 +1643,7 @@ msgid "Right mouse button"
 msgstr "Rechte Maustaste"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:85
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:457
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:505
 msgid "Block supports"
 msgstr "Stützen blockieren"
 
@@ -1682,13 +1674,13 @@ msgstr ""
 msgid "Filter tiny patch"
 msgstr ""
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:201
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:263
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:202
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:258
 msgid "Auto support threshold angle: "
 msgstr ""
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:237
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:274
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:233
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:284
 #: src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp:415
 #: src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp:433
 #: src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp:453
@@ -1702,31 +1694,31 @@ msgstr "Alt + Mausrad"
 msgid "Highlight faces according to overhang angle."
 msgstr ""
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:265
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:261
 msgid "No auto support"
 msgstr ""
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:283
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:297
 #: src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp:474
 #: src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp:192
 #: src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp:200
 msgid "Ctrl + Mouse wheel"
 msgstr "Strg + Mausrad"
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:452
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:500
 #: src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp:40
 #: src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp:285
 msgid "Remove selection"
 msgstr "Auswahl entfernen"
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:455
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:503
 msgid "Add supports"
 msgstr "Stützen hinzufügen"
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:671
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:682
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:689
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:700
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:719
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:730
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:737
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:748
 msgid "Support material Generated"
 msgstr ""
 
@@ -3055,19 +3047,19 @@ msgstr ""
 msgid "Line Type"
 msgstr ""
 
-#: src/slic3r/GUI/ImGuiWrapper.cpp:618
+#: src/slic3r/GUI/ImGuiWrapper.cpp:636
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: src/slic3r/GUI/ImGuiWrapper.cpp:1071
+#: src/slic3r/GUI/ImGuiWrapper.cpp:1089
 msgid "Use for search"
 msgstr "Zur Suche verwenden"
 
-#: src/slic3r/GUI/ImGuiWrapper.cpp:1072
+#: src/slic3r/GUI/ImGuiWrapper.cpp:1090
 msgid "Category"
 msgstr "Kategorie"
 
-#: src/slic3r/GUI/ImGuiWrapper.cpp:1074
+#: src/slic3r/GUI/ImGuiWrapper.cpp:1092
 msgid "Search in English"
 msgstr "Suche in Englisch"
 
@@ -5748,7 +5740,7 @@ msgstr ""
 msgid "Exit %s"
 msgstr "%s beenden"
 
-#: src/slic3r/GUI/UpdateDialogs.cpp:319 src/slic3r/Utils/PresetUpdater.cpp:911
+#: src/slic3r/GUI/UpdateDialogs.cpp:319 src/slic3r/Utils/PresetUpdater.cpp:913
 msgid "Configuration updates"
 msgstr "Konfigurationsupdates"
 
@@ -5864,11 +5856,11 @@ msgstr "Kopieren der Datei %1% nach %2% fehlgeschlagen: %3%"
 msgid "Copying directory %1% to %2% failed: %3%"
 msgstr ""
 
-#: src/slic3r/Utils/PresetUpdater.cpp:910
+#: src/slic3r/Utils/PresetUpdater.cpp:912
 msgid "Need to check the unsaved changes before configuration updates."
 msgstr ""
 
-#: src/slic3r/Utils/PresetUpdater.cpp:999
+#: src/slic3r/Utils/PresetUpdater.cpp:1001
 msgid "Configuration package updated to "
 msgstr ""
 
@@ -8480,6 +8472,49 @@ msgstr ""
 #: src/libslic3r/PrintObject.cpp:411
 msgid "Generating support"
 msgstr ""
+
+#: src/libslic3r/PrintObjectSlice.cpp:536
+msgid "Slicing mesh"
+msgstr ""
+
+#~ msgid "Tool position"
+#~ msgstr "Werkzeugposition"
+
+#~ msgid "Generating toolpaths"
+#~ msgstr "Generiere Werkzeugwege"
+
+#~ msgid "Generating vertex buffer"
+#~ msgstr "Erzeuge den Vertex-Puffer"
+
+#~ msgid "Generating index buffers"
+#~ msgstr "Generiere Indexpuffer"
+
+#~ msgid "Click to hide"
+#~ msgstr "Klicken zum Ausblenden"
+
+#~ msgid "Click to show"
+#~ msgstr "Klicken zum Anzeigen"
+
+#~ msgid "Percentage"
+#~ msgstr "Prozent"
+
+#~ msgid "Feature type"
+#~ msgstr "Merkmalstyp"
+
+#~ msgid "Height (mm)"
+#~ msgstr "Höhe (mm)"
+
+#~ msgid "Width (mm)"
+#~ msgstr "Breite (mm)"
+
+#~ msgid "Stealth mode"
+#~ msgstr "Stealth Modus"
+
+#~ msgid "Show stealth mode"
+#~ msgstr "Stealth Modus anzeigen"
+
+#~ msgid "Show normal mode"
+#~ msgstr "Normalen Modus zeigen"
 
 #, boost-format
 #~ msgid ""

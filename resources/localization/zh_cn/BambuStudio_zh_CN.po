@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-23 15:09+0800\n"
+"POT-Creation-Date: 2022-03-23 23:39+0800\n"
 "PO-Revision-Date: 2022-03-17 16:26+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -350,8 +350,7 @@ msgid ""
 "YES - Keep Prime Tower\n"
 "NO  - Keep Adaptive Layer Height and Independent Support Layer Height"
 msgstr ""
-"擦拭塔不支持和自适应层高或支撑独立层高。"
-"同时开启\n"
+"擦拭塔不支持和自适应层高或支撑独立层高。同时开启\n"
 "如何选择？\n"
 "是 - 选择开启擦拭塔\n"
 "否 - 选择保留自适应层高或支撑独立层高"
@@ -1171,27 +1170,19 @@ msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "无效格式，应该是\"%1%\"这种数组格式"
 
 #: src/slic3r/GUI/GCodeViewer.cpp:281
-msgid "Tool position"
+msgid "Extruder position"
 msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:1952
-msgid "Generating toolpaths"
+msgid "Loading G-codes"
 msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:2060
-msgid "Generating vertex buffer"
+msgid "Generating geometry vertex data"
 msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:2445
-msgid "Generating index buffers"
-msgstr ""
-
-#: src/slic3r/GUI/GCodeViewer.cpp:3743
-msgid "Click to hide"
-msgstr ""
-
-#: src/slic3r/GUI/GCodeViewer.cpp:3743
-msgid "Click to show"
+msgid "Generating geometry index data"
 msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:3893
@@ -1216,12 +1207,12 @@ msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:3984 src/slic3r/GUI/GCodeViewer.cpp:3985
 #: src/slic3r/GUI/GCodeViewer.cpp:4036
-msgid "Percentage"
+msgid "Percent"
 msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:3997 src/slic3r/GUI/GCodeViewer.cpp:4036
-msgid "Feature type"
-msgstr "功能类型"
+msgid "Line type"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:3997 src/slic3r/GUI/GCodeViewer.cpp:4036
 msgid "Time"
@@ -1232,12 +1223,12 @@ msgid "Display"
 msgstr "显示"
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4039
-msgid "Height (mm)"
-msgstr "高度（mm）"
+msgid "Layer Height (mm)"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4040
-msgid "Width (mm)"
-msgstr "宽度 (mm)"
+msgid "Line Width (mm)"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4041
 msgid "Speed (mm/s)"
@@ -1359,7 +1350,7 @@ msgid "Normal mode"
 msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4557
-msgid "Stealth mode"
+msgid "Silent mode"
 msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4565 src/libslic3r/PrintConfig.cpp:975
@@ -1372,11 +1363,11 @@ msgid "Total"
 msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4614
-msgid "Show stealth mode"
+msgid "Switch to silent mode"
 msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4618
-msgid "Show normal mode"
+msgid "Switch to normal mode"
 msgstr ""
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:248
@@ -1600,7 +1591,7 @@ msgid "Right mouse button"
 msgstr "鼠标右键"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:85
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:457
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:505
 msgid "Block supports"
 msgstr "屏蔽支撑"
 
@@ -1631,13 +1622,13 @@ msgstr "碎片过滤器"
 msgid "Filter tiny patch"
 msgstr "滤除碎片"
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:201
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:263
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:202
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:258
 msgid "Auto support threshold angle: "
 msgstr "自动支撑角度阈值："
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:237
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:274
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:233
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:284
 #: src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp:415
 #: src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp:433
 #: src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp:453
@@ -1651,31 +1642,31 @@ msgstr "Alt + 鼠标滚轮"
 msgid "Highlight faces according to overhang angle."
 msgstr "根据当前设置的悬空角度来高亮片面。"
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:265
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:261
 msgid "No auto support"
 msgstr "无自动支撑"
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:283
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:297
 #: src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp:474
 #: src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp:192
 #: src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp:200
 msgid "Ctrl + Mouse wheel"
 msgstr "Ctrl + 鼠标滚轮"
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:452
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:500
 #: src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp:40
 #: src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp:285
 msgid "Remove selection"
 msgstr "移除绘制"
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:455
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:503
 msgid "Add supports"
 msgstr "增加支撑"
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:671
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:682
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:689
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:700
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:719
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:730
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:737
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:748
 msgid "Support material Generated"
 msgstr "已生成支撑"
 
@@ -2422,7 +2413,7 @@ msgstr "顶部实心层"
 
 #: src/slic3r/GUI/GUI_Factories.cpp:94
 msgid "Top Minimum Shell Thickness"
-msgstr "顶部最小外壳厚度"
+msgstr "顶部外壳最小厚度"
 
 #: src/slic3r/GUI/GUI_Factories.cpp:95
 msgid "Bottom Solid Layers"
@@ -2430,7 +2421,7 @@ msgstr "底部实心层"
 
 #: src/slic3r/GUI/GUI_Factories.cpp:95
 msgid "Bottom Minimum Shell Thickness"
-msgstr "底部最小外壳厚度"
+msgstr "底部外壳最小厚度"
 
 #: src/slic3r/GUI/GUI_Factories.cpp:245 src/slic3r/GUI/Tab.cpp:1705
 #: src/libslic3r/ExtrusionEntity.cpp:330 src/libslic3r/ExtrusionEntity.cpp:361
@@ -3003,19 +2994,19 @@ msgstr "多色打印"
 msgid "Line Type"
 msgstr "走线类型"
 
-#: src/slic3r/GUI/ImGuiWrapper.cpp:618
+#: src/slic3r/GUI/ImGuiWrapper.cpp:636
 msgid "Edit"
 msgstr ""
 
-#: src/slic3r/GUI/ImGuiWrapper.cpp:1071
+#: src/slic3r/GUI/ImGuiWrapper.cpp:1089
 msgid "Use for search"
 msgstr ""
 
-#: src/slic3r/GUI/ImGuiWrapper.cpp:1072
+#: src/slic3r/GUI/ImGuiWrapper.cpp:1090
 msgid "Category"
 msgstr ""
 
-#: src/slic3r/GUI/ImGuiWrapper.cpp:1074
+#: src/slic3r/GUI/ImGuiWrapper.cpp:1092
 msgid "Search in English"
 msgstr ""
 
@@ -5641,7 +5632,7 @@ msgstr ""
 msgid "Exit %s"
 msgstr "退出 %s"
 
-#: src/slic3r/GUI/UpdateDialogs.cpp:319 src/slic3r/Utils/PresetUpdater.cpp:911
+#: src/slic3r/GUI/UpdateDialogs.cpp:319 src/slic3r/Utils/PresetUpdater.cpp:913
 msgid "Configuration updates"
 msgstr "配置更新"
 
@@ -5757,11 +5748,11 @@ msgstr "从%1%拷贝文件到%2%失败：%3%"
 msgid "Copying directory %1% to %2% failed: %3%"
 msgstr "从%1%拷贝目录到%2%失败：%3%"
 
-#: src/slic3r/Utils/PresetUpdater.cpp:910
+#: src/slic3r/Utils/PresetUpdater.cpp:912
 msgid "Need to check the unsaved changes before configuration updates."
 msgstr "需要在配置更新之前检查没有保存的参数改动。"
 
-#: src/slic3r/Utils/PresetUpdater.cpp:999
+#: src/slic3r/Utils/PresetUpdater.cpp:1001
 msgid "Configuration package updated to "
 msgstr "配置包更新到版本"
 
@@ -6178,15 +6169,13 @@ msgstr "象脚补偿"
 msgid ""
 "Shrink the initial layer on build plate to compensate for elephant foot "
 "effect"
-msgstr ""
-"将首层收缩用于补偿象脚效应"
+msgstr "将首层收缩用于补偿象脚效应"
 
 #: src/libslic3r/PrintConfig.cpp:264
 msgid ""
 "Slicing height for each layer. Smaller layer height means more accurate and "
 "more printing time"
-msgstr ""
-"每一层的切片高度。越小的层高意味着更高的精度和更长的打印时间"
+msgstr "每一层的切片高度。越小的层高意味着更高的精度和更长的打印时间"
 
 #: src/libslic3r/PrintConfig.cpp:270
 msgid "Printable height"
@@ -6283,7 +6272,8 @@ msgid ""
 "bottom_shell_thickness, the top shell layers number will be increased when "
 "slicing"
 msgstr ""
-"底部壳体实心层的层数，包括底面。如果由这个层数确定的厚度小于底部壳体厚度时，切片时将增加底部层数"
+"底部壳体实心层的层数，包括底面。如果由这个层数确定的厚度小于底部壳体厚度时，"
+"切片时将增加底部层数"
 
 #: src/libslic3r/PrintConfig.cpp:370 src/libslic3r/PrintConfig.cpp:374
 msgid "Bottom shell thickness"
@@ -6295,8 +6285,8 @@ msgid ""
 "calculated by bottom_shell_layers is thinner than this value. This can avoid "
 "too thin shell when layer height is small"
 msgstr ""
-"如果由底部壳体实心层层数确定的厚度小于底部壳体厚度，那么切片时将增加底部壳体实心层层数。"
-"这样可以避免层高过小时产生过薄的壳体"
+"如果由底部壳体实心层层数确定的厚度小于底部壳体厚度，那么切片时将增加底部壳体"
+"实心层层数。这样可以避免层高过小时产生过薄的壳体"
 
 #: src/libslic3r/PrintConfig.cpp:380
 msgid "Bridges fan speed"
@@ -6314,8 +6304,7 @@ msgstr "桥接流量"
 msgid ""
 "Decrease this value slightly(for example 0.9) to reduce the amount of "
 "material for bridge, to improve sag"
-msgstr ""
-"稍微减小这个数值（比如0.9）可以减小桥接的材料量，来改善下垂"
+msgstr "稍微减小这个数值（比如0.9）可以减小桥接的材料量，来改善下垂"
 
 #: src/libslic3r/PrintConfig.cpp:402
 #, c-format
@@ -6384,7 +6373,9 @@ msgid ""
 "This controls brim position including outer side of models, inner side of "
 "holes or both. Auto means both the brim position and brim width is analysed "
 "and calculated automatically"
-msgstr "设置brim生成位置，包括模型往外的外侧,模型的孔的内侧和内外侧都生成。选择自动意味着brim的位置和宽度都会自动分析计算生成"
+msgstr ""
+"设置brim生成位置，包括模型往外的外侧,模型的孔的内侧和内外侧都生成。选择自动意"
+"味着brim的位置和宽度都会自动分析计算生成"
 
 #: src/libslic3r/PrintConfig.cpp:470
 msgid "Auto brim"
@@ -6514,7 +6505,8 @@ msgstr "不支撑桥接"
 msgid ""
 "Don't support the whole bridge area which make support very large. Bridge "
 "usually can be printing directly without support if not very long"
-msgstr "不对整个桥接面进行支撑，否则支撑很大。不是很长的桥接通常可以无支撑直接打印"
+msgstr ""
+"不对整个桥接面进行支撑，否则支撑很大。不是很长的桥接通常可以无支撑直接打印"
 
 #: src/libslic3r/PrintConfig.cpp:588
 msgid "Add support for sharp tails"
@@ -6662,8 +6654,10 @@ msgid ""
 "filament in gcode proportionally. Recommended value range is between 0.95 "
 "and 1.05. Maybe you can tune this value to get nice flat surface when there "
 "has slight overflow or underflow"
-msgstr "材料经过融化后凝固可能会产生体积差异。这个设置会等比例改变所有挤出走线的挤出量。推荐的范围为0.95到1.05。"
-"发现大平层模型的顶面有轻微的缺料或多料时，或许可以尝试微调这个参数"
+msgstr ""
+"材料经过融化后凝固可能会产生体积差异。这个设置会等比例改变所有挤出走线的挤出"
+"量。推荐的范围为0.95到1.05。发现大平层模型的顶面有轻微的缺料或多料时，或许可"
+"以尝试微调这个参数"
 
 #: src/libslic3r/PrintConfig.cpp:760
 msgid "Default line width if some line width is set to be zero"
@@ -6678,7 +6672,9 @@ msgid ""
 "Starting fan from stop state usually costs lots's of time. If enable this "
 "setting, fan will never be stoped and will run at least at minimum speed to "
 "reduce the frequency of starting and stoping"
-msgstr "风扇的启停需要消耗较长时间。如果打开这个设置，那么风扇就不会停下。至少维持在最小转速运行，来避免频繁启停"
+msgstr ""
+"风扇的启停需要消耗较长时间。如果打开这个设置，那么风扇就不会停下。至少维持在"
+"最小转速运行，来避免频繁启停"
 
 #: src/libslic3r/PrintConfig.cpp:776
 msgid "Enable fan if layer print time is below"
@@ -6689,7 +6685,9 @@ msgid ""
 "Cooling fan will be enabled for layers of which estimated time is shorter "
 "than this value. Fan speed is interpolated between the minimum and maximum "
 "fan speeds according to layer printing time"
-msgstr "当层预估打印时间小于这个阈值时，冷却风扇将被开启。风扇转速会根据层时间的长短做线性插值"
+msgstr ""
+"当层预估打印时间小于这个阈值时，冷却风扇将被开启。风扇转速会根据层时间的长短"
+"做线性插值"
 
 #: src/libslic3r/PrintConfig.cpp:779 src/libslic3r/PrintConfig.cpp:816
 #: src/libslic3r/PrintConfig.cpp:824 src/libslic3r/PrintConfig.cpp:1876
@@ -6942,11 +6940,11 @@ msgstr "绒毛表面厚度"
 msgid ""
 "The width within which to jitter. It's adversed to be below outer wall line "
 "width"
-msgstr "产生绒毛感的抖动的宽度。建议小于外圈墙的线宽"
+msgstr "产生绒毛的抖动的宽度。建议小于外圈墙的线宽"
 
 #: src/libslic3r/PrintConfig.cpp:1072
 msgid "Fuzzy skin point distance"
-msgstr "绒面表面点距"
+msgstr "绒毛表面点间距"
 
 #: src/libslic3r/PrintConfig.cpp:1074
 msgid ""
@@ -7104,7 +7102,9 @@ msgstr "填充/外墙 重叠"
 msgid ""
 "Infill area is enlarged slightly to overlap with wall for better bonding. "
 "The percentage value is relative to line width of sparse infill"
-msgstr "填充区域被轻微扩大，并和外墙产生重叠，进而产生更好的粘接。表示为相对稀疏填充的线宽的百分比"
+msgstr ""
+"填充区域被轻微扩大，并和外墙产生重叠，进而产生更好的粘接。表示为相对稀疏填充"
+"的线宽的百分比"
 
 #: src/libslic3r/PrintConfig.cpp:1273
 msgid "Speed of internal sparse infill"
@@ -7130,7 +7130,9 @@ msgstr "熨烫类型"
 msgid ""
 "Ironing is using small flow to print on same height of surface again to make "
 "flat surface more smooth. This setting controls which layer being ironed"
-msgstr "熨烫指的是使用小流量在表面的同高度打印，进而是的平面更加光滑。这个设置用于设置哪些层进行熨烫"
+msgstr ""
+"熨烫指的是使用小流量在表面的同高度打印，进而是的平面更加光滑。这个设置用于设"
+"置哪些层进行熨烫"
 
 #: src/libslic3r/PrintConfig.cpp:1312
 msgid "No ironing"
@@ -7493,7 +7495,9 @@ msgid ""
 "G-code path is genereated after simplifing the contour of model to avoid too "
 "much points and gcode lines in gcode file. Smaller value means higher "
 "resolution and more time to slice"
-msgstr "为了避免G-code文件中过密集的点和走线，G-code走线通常是在简化模型的外轮廓之后生成。越小的数值代表更高的分辨率，同时需要更长的切片时间"
+msgstr ""
+"为了避免G-code文件中过密集的点和走线，G-code走线通常是在简化模型的外轮廓之后"
+"生成。越小的数值代表更高的分辨率，同时需要更长的切片时间"
 
 #: src/libslic3r/PrintConfig.cpp:1737
 msgid "Travel distance threshold"
@@ -7534,7 +7538,9 @@ msgstr "回抽长度"
 msgid ""
 "Some amount of material in extruder is pulled back to avoid ooze during long "
 "travel. Set zero to disable retraction"
-msgstr "挤出机中的一些材料会被拉回特定长度，避免旅行较长时材料渗出。设置为0表示关闭回抽"
+msgstr ""
+"挤出机中的一些材料会被拉回特定长度，避免旅行较长时材料渗出。设置为0表示关闭回"
+"抽"
 
 #: src/libslic3r/PrintConfig.cpp:1767
 msgid "Retraction Length (Toolchange)"
@@ -7549,7 +7555,9 @@ msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
 "clearance between nozzle and the print. It prevents nozzle from hitting the "
 "print when travel move. Using spiral line to lift z can prevent stringing"
-msgstr "回抽完成之后，喷嘴轻微抬升，和打印件之间产生一定间隙。这能够避免旅行时喷嘴和打印件剐蹭和碰撞。使用螺旋线抬升z能够减少拉丝"
+msgstr ""
+"回抽完成之后，喷嘴轻微抬升，和打印件之间产生一定间隙。这能够避免旅行时喷嘴和"
+"打印件剐蹭和碰撞。使用螺旋线抬升z能够减少拉丝"
 
 #: src/libslic3r/PrintConfig.cpp:1785 src/libslic3r/PrintConfig.cpp:1793
 msgid "Extra length on restart"
@@ -7645,7 +7653,8 @@ msgstr "降速当层时间小于"
 msgid ""
 "The printing speed in exported gcode will be slowed down, when the estimated "
 "layer time is shorter than this value, to get better cooling for these layers"
-msgstr "当层预估打印时间小于这个数值时，打印速度将会降低，从而获得更好的冷却效果"
+msgstr ""
+"当层预估打印时间小于这个数值时，打印速度将会降低，从而获得更好的冷却效果"
 
 #: src/libslic3r/PrintConfig.cpp:1883
 msgid "Small walls"
@@ -7683,7 +7692,9 @@ msgstr "内部实心填充的线宽。如果表示为百分数，则是相对喷
 msgid ""
 "Speed of internal solid infill, not the top and bottom surface. It's "
 "relative to sparse infill speed if it's percentage"
-msgstr "内部实心填充的打印速度，不是顶面和底面填充。如果表示为百分数，则是相对于稀疏填充的打印速度"
+msgstr ""
+"内部实心填充的打印速度，不是顶面和底面填充。如果表示为百分数，则是相对于稀疏"
+"填充的打印速度"
 
 #: src/libslic3r/PrintConfig.cpp:1934
 msgid "Solid layers"
@@ -7706,7 +7717,9 @@ msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
 "model into a single walled print with solid bottom layers. The final "
 "generated model has no seam"
-msgstr "外轮廓的z方向移动螺旋化。将实体模型转变为只有底面实心层和侧面单层墙壁。最终的获得的打印件没有接缝。"
+msgstr ""
+"外轮廓的z方向移动螺旋化。将实体模型转变为只有底面实心层和侧面单层墙壁。最终的"
+"获得的打印件没有接缝。"
 
 #: src/libslic3r/PrintConfig.cpp:1959
 msgid "Temperature variation"
@@ -8064,7 +8077,9 @@ msgstr ""
 msgid ""
 "If enabled, bridges may look worse but can cover longer distance. If "
 "disabled, bridges look better but just for shorter distance."
-msgstr "打开该设置，桥接表面看起来糟糕一些但是能跨越更长的距离。关闭该设置，桥接表面看起来更好但是只能跨越较短的距离"
+msgstr ""
+"打开该设置，桥接表面看起来糟糕一些但是能跨越更长的距离。关闭该设置，桥接表面"
+"看起来更好但是只能跨越较短的距离"
 
 #: src/libslic3r/PrintConfig.cpp:2450
 msgid "Detect thin wall"
@@ -8074,7 +8089,9 @@ msgstr "检查薄壁"
 msgid ""
 "Detect thin wall which can't contain two line width. And use single line to "
 "print. Maybe printed not very well, because it's not closed loop"
-msgstr "检查无法容纳两条走线的薄壁。使用单条走线打印。可能会打地不是很好，因为走线不再闭合"
+msgstr ""
+"检查无法容纳两条走线的薄壁。使用单条走线打印。可能会打地不是很好，因为走线不"
+"再闭合"
 
 #: src/libslic3r/PrintConfig.cpp:2459
 msgid ""
@@ -8092,7 +8109,8 @@ msgstr "顶面填充的线宽。如果表示为百分比，则相对于喷嘴直
 msgid ""
 "Speed of top surface infill which is solid. It's relative to internal solid "
 "infill speed if it's percentage"
-msgstr "顶部表面实心填充的打印速度。如果表示为百分比，则是相对于内部实心填充的速度"
+msgstr ""
+"顶部表面实心填充的打印速度。如果表示为百分比，则是相对于内部实心填充的速度"
 
 #: src/libslic3r/PrintConfig.cpp:2489
 msgid "Top shell layers"
@@ -8103,7 +8121,9 @@ msgid ""
 "The number of solid layers of top shell, including top surface layer. When "
 "the thickness calculated by this value is thinner than top_shell_thickness, "
 "the top shell layers number will be increased when slicing"
-msgstr "顶部壳体实心层层数，包括顶面。当由该层数计算的厚度小于顶部壳体厚度时，在切片时会增加顶部壳体层数"
+msgstr ""
+"顶部壳体实心层层数，包括顶面。当由该层数计算的厚度小于顶部壳体厚度时，在切片"
+"时会增加顶部壳体层数"
 
 #: src/libslic3r/PrintConfig.cpp:2493
 msgid "Top solid layers"
@@ -8118,7 +8138,9 @@ msgid ""
 "The number of top solid layers is increased when slicing if the thickness "
 "calculated by top_shell_layers is thinner than this value. This can avoid "
 "too thin shell when layer height is small"
-msgstr "如果有顶部壳体层数算出的厚度小于这个数值，那么切片时将自动增加顶部壳体层数。这能够避免当层高很小时，顶部壳体过薄"
+msgstr ""
+"如果有顶部壳体层数算出的厚度小于这个数值，那么切片时将自动增加顶部壳体层数。"
+"这能够避免当层高很小时，顶部壳体过薄"
 
 #: src/libslic3r/PrintConfig.cpp:2509
 msgid "Speed of travel which is faster and without extrusion"
@@ -8133,7 +8155,9 @@ msgid ""
 "Speed of vertical travel along z axis. This is typically lower because build "
 "plate or gantry is hard to be moved. Zero means using travel speed directly "
 "in gcode, but will be limited by printer's ability when run gcode"
-msgstr "Z方向垂直旅行的速度。一般这个数值更小一下，因为热床或者机架更难移动。0代表直接使用旅行速度"
+msgstr ""
+"Z方向垂直旅行的速度。一般这个数值更小一下，因为热床或者机架更难移动。0代表直"
+"接使用旅行速度"
 
 #: src/libslic3r/PrintConfig.cpp:2526
 msgid "Wipe while retracting"
@@ -8143,7 +8167,9 @@ msgstr "回抽时擦拭"
 msgid ""
 "Move nozzle along the last extrusion path when retracting to clean leaked "
 "material on nozzle. This can minimize blob when print new part after travel"
-msgstr "当回抽时，让喷嘴沿着前面的走线方向继续移动，清除掉喷嘴上的漏料。这能够避免旅行结束打印新的区域时产生斑点"
+msgstr ""
+"当回抽时，让喷嘴沿着前面的走线方向继续移动，清除掉喷嘴上的漏料。这能够避免旅"
+"行结束打印新的区域时产生斑点"
 
 #: src/libslic3r/PrintConfig.cpp:2533
 msgid "Wipe Distance"
@@ -8192,7 +8218,9 @@ msgid ""
 "Holes of object will be grown or shrunk in XY plane by the configured value. "
 "Negative value makes holes bigger. Positive value makes holes smaller. This "
 "function is used to adjust size when the object has assembling issue"
-msgstr "模型的孔洞会在XY平面上被拓展或者收缩特定值。负值代表扩大孔洞。正值代表收缩孔洞。该功能一般用于调整有装配问题的模型"
+msgstr ""
+"模型的孔洞会在XY平面上被拓展或者收缩特定值。负值代表扩大孔洞。正值代表收缩孔"
+"洞。该功能一般用于调整有装配问题的模型"
 
 #: src/libslic3r/PrintConfig.cpp:2646
 msgid "X-Y contour compensation"
@@ -8204,7 +8232,9 @@ msgid ""
 "value. Positive value makes contour bigger. Negative value makes contour "
 "smaller. This function is used to adjust size when the object has assembling "
 "issue"
-msgstr "模型的外轮廓会在XY平面上被拓展或者收缩特定值。正值代表扩大。负值代表收缩。该功能一般用于调整有装配问题的模型"
+msgstr ""
+"模型的外轮廓会在XY平面上被拓展或者收缩特定值。正值代表扩大。负值代表收缩。该"
+"功能一般用于调整有装配问题的模型"
 
 #: src/libslic3r/PrintConfig.cpp:2689
 msgid "Detect narrow internal solid infill"
@@ -8215,7 +8245,9 @@ msgid ""
 "This option will auto detect narrow internal solid infill area. If enabled, "
 "concentric pattern will be used for the area to speed printing up. "
 "Otherwise, rectilinear pattern is used defaultly."
-msgstr "该选项用于自动识别内部狭窄的实心填充。打开后，将对狭窄实心区域使用同心填充加快打印速度。否则使用默认的直线填充"
+msgstr ""
+"该选项用于自动识别内部狭窄的实心填充。打开后，将对狭窄实心区域使用同心填充加"
+"快打印速度。否则使用默认的直线填充"
 
 #: src/libslic3r/PrintConfig.cpp:3791
 msgid "Export 3MF"
@@ -8321,7 +8353,9 @@ msgstr "调试等级"
 msgid ""
 "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
 "trace\n"
-msgstr "设置调试日志等级。0:fatal， 1:error， 2:warning， 3:info， 4:debug， 5:trace\n"
+msgstr ""
+"设置调试日志等级。0:fatal， 1:error， 2:warning， 3:info， 4:debug， 5:"
+"trace\n"
 
 #: src/libslic3r/Zipper.cpp:27
 msgid "Error in zip archive"
@@ -8338,6 +8372,19 @@ msgstr "生成填充"
 #: src/libslic3r/PrintObject.cpp:411
 msgid "Generating support"
 msgstr "生成支撑"
+
+#: src/libslic3r/PrintObjectSlice.cpp:536
+msgid "Slicing mesh"
+msgstr "Mesh切片"
+
+#~ msgid "Feature type"
+#~ msgstr "功能类型"
+
+#~ msgid "Height (mm)"
+#~ msgstr "高度（mm）"
+
+#~ msgid "Width (mm)"
+#~ msgstr "宽度 (mm)"
 
 #~ msgid ""
 #~ "Wipe tower does not work when Adaptive Layer Height or Independent "

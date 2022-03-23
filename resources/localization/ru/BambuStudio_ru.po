@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-23 15:09+0800\n"
+"POT-Creation-Date: 2022-03-23 23:39+0800\n"
 "PO-Revision-Date: 2021-02-03 14:06+0100\n"
 "Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -1207,28 +1207,20 @@ msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:281
-msgid "Tool position"
-msgstr "Положение инструмента"
+msgid "Extruder position"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:1952
-msgid "Generating toolpaths"
-msgstr "Создание траекторий инструмента"
+msgid "Loading G-codes"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:2060
-msgid "Generating vertex buffer"
-msgstr "Генерация буфера вершин"
+msgid "Generating geometry vertex data"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:2445
-msgid "Generating index buffers"
-msgstr "Генерация буферов индекса"
-
-#: src/slic3r/GUI/GCodeViewer.cpp:3743
-msgid "Click to hide"
-msgstr "Нажмите, чтобы скрыть"
-
-#: src/slic3r/GUI/GCodeViewer.cpp:3743
-msgid "Click to show"
-msgstr "Нажмите, чтобы отобразить"
+msgid "Generating geometry index data"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:3893
 msgid "up to"
@@ -1252,12 +1244,12 @@ msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:3984 src/slic3r/GUI/GCodeViewer.cpp:3985
 #: src/slic3r/GUI/GCodeViewer.cpp:4036
-msgid "Percentage"
-msgstr "Процент"
+msgid "Percent"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:3997 src/slic3r/GUI/GCodeViewer.cpp:4036
-msgid "Feature type"
-msgstr "Типы линий"
+msgid "Line type"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:3997 src/slic3r/GUI/GCodeViewer.cpp:4036
 msgid "Time"
@@ -1268,12 +1260,12 @@ msgid "Display"
 msgstr "Дисплей"
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4039
-msgid "Height (mm)"
-msgstr "Высота (мм)"
+msgid "Layer Height (mm)"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4040
-msgid "Width (mm)"
-msgstr "Ширина (мм)"
+msgid "Line Width (mm)"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4041
 msgid "Speed (mm/s)"
@@ -1395,8 +1387,8 @@ msgid "Normal mode"
 msgstr "Нормальный режим"
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4557
-msgid "Stealth mode"
-msgstr "Тихий режим"
+msgid "Silent mode"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4565 src/libslic3r/PrintConfig.cpp:975
 #: src/libslic3r/PrintConfig.cpp:1028
@@ -1408,12 +1400,12 @@ msgid "Total"
 msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4614
-msgid "Show stealth mode"
-msgstr "Показать в тихом режиме"
+msgid "Switch to silent mode"
+msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4618
-msgid "Show normal mode"
-msgstr "Показать в нормальном режиме"
+msgid "Switch to normal mode"
+msgstr ""
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:248
 msgid "Sequence"
@@ -1635,7 +1627,7 @@ msgid "Right mouse button"
 msgstr "Правая кнопка мыши"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:85
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:457
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:505
 msgid "Block supports"
 msgstr "Блокировка поддержки"
 
@@ -1666,13 +1658,13 @@ msgstr ""
 msgid "Filter tiny patch"
 msgstr ""
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:201
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:263
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:202
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:258
 msgid "Auto support threshold angle: "
 msgstr ""
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:237
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:274
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:233
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:284
 #: src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp:415
 #: src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp:433
 #: src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp:453
@@ -1686,31 +1678,31 @@ msgstr "Alt + Колесо мыши"
 msgid "Highlight faces according to overhang angle."
 msgstr ""
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:265
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:261
 msgid "No auto support"
 msgstr ""
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:283
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:297
 #: src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp:474
 #: src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp:192
 #: src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp:200
 msgid "Ctrl + Mouse wheel"
 msgstr "Ctrl + Колесо мыши"
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:452
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:500
 #: src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp:40
 #: src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp:285
 msgid "Remove selection"
 msgstr "Удалить выделенное"
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:455
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:503
 msgid "Add supports"
 msgstr "Добавление поддержек"
 
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:671
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:682
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:689
-#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:700
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:719
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:730
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:737
+#: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:748
 msgid "Support material Generated"
 msgstr ""
 
@@ -3044,19 +3036,19 @@ msgstr ""
 msgid "Line Type"
 msgstr ""
 
-#: src/slic3r/GUI/ImGuiWrapper.cpp:618
+#: src/slic3r/GUI/ImGuiWrapper.cpp:636
 msgid "Edit"
 msgstr ""
 
-#: src/slic3r/GUI/ImGuiWrapper.cpp:1071
+#: src/slic3r/GUI/ImGuiWrapper.cpp:1089
 msgid "Use for search"
 msgstr "Использовать для поиска"
 
-#: src/slic3r/GUI/ImGuiWrapper.cpp:1072
+#: src/slic3r/GUI/ImGuiWrapper.cpp:1090
 msgid "Category"
 msgstr "Категория"
 
-#: src/slic3r/GUI/ImGuiWrapper.cpp:1074
+#: src/slic3r/GUI/ImGuiWrapper.cpp:1092
 msgid "Search in English"
 msgstr "Искать на английском языке"
 
@@ -5722,7 +5714,7 @@ msgstr ""
 msgid "Exit %s"
 msgstr "Выйти из %s"
 
-#: src/slic3r/GUI/UpdateDialogs.cpp:319 src/slic3r/Utils/PresetUpdater.cpp:911
+#: src/slic3r/GUI/UpdateDialogs.cpp:319 src/slic3r/Utils/PresetUpdater.cpp:913
 msgid "Configuration updates"
 msgstr "Обновление конфигурации"
 
@@ -5838,11 +5830,11 @@ msgstr ""
 msgid "Copying directory %1% to %2% failed: %3%"
 msgstr ""
 
-#: src/slic3r/Utils/PresetUpdater.cpp:910
+#: src/slic3r/Utils/PresetUpdater.cpp:912
 msgid "Need to check the unsaved changes before configuration updates."
 msgstr ""
 
-#: src/slic3r/Utils/PresetUpdater.cpp:999
+#: src/slic3r/Utils/PresetUpdater.cpp:1001
 msgid "Configuration package updated to "
 msgstr ""
 
@@ -8437,6 +8429,49 @@ msgstr ""
 #: src/libslic3r/PrintObject.cpp:411
 msgid "Generating support"
 msgstr ""
+
+#: src/libslic3r/PrintObjectSlice.cpp:536
+msgid "Slicing mesh"
+msgstr ""
+
+#~ msgid "Tool position"
+#~ msgstr "Положение инструмента"
+
+#~ msgid "Generating toolpaths"
+#~ msgstr "Создание траекторий инструмента"
+
+#~ msgid "Generating vertex buffer"
+#~ msgstr "Генерация буфера вершин"
+
+#~ msgid "Generating index buffers"
+#~ msgstr "Генерация буферов индекса"
+
+#~ msgid "Click to hide"
+#~ msgstr "Нажмите, чтобы скрыть"
+
+#~ msgid "Click to show"
+#~ msgstr "Нажмите, чтобы отобразить"
+
+#~ msgid "Percentage"
+#~ msgstr "Процент"
+
+#~ msgid "Feature type"
+#~ msgstr "Типы линий"
+
+#~ msgid "Height (mm)"
+#~ msgstr "Высота (мм)"
+
+#~ msgid "Width (mm)"
+#~ msgstr "Ширина (мм)"
+
+#~ msgid "Stealth mode"
+#~ msgstr "Тихий режим"
+
+#~ msgid "Show stealth mode"
+#~ msgstr "Показать в тихом режиме"
+
+#~ msgid "Show normal mode"
+#~ msgstr "Показать в нормальном режиме"
 
 #, boost-format
 #~ msgid ""
