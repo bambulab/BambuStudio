@@ -277,8 +277,8 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         imgui.set_next_window_pos(0.5f * static_cast<float>(canvas_width), static_cast<float>(canvas_height), ImGuiCond_Always, 0.5f, 1.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
         ImGui::SetNextWindowBgAlpha(0.25f);
-        imgui.begin(std::string("ToolPosition"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Tool position") + ":");
+        imgui.begin(std::string("ExtruderPosition"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Extruder position") + ":");
         ImGui::SameLine();
         char buf[1024];
         //BBS: minus the plate offset when show tool position
@@ -1949,7 +1949,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
     unsigned int progress_count = 0;
     static const unsigned int progress_threshold = 1000;
     ProgressDialog *          progress_dialog    = wxGetApp().is_gcode_viewer() ?
-        new ProgressDialog(_L("Generating toolpaths"), "...",
+        new ProgressDialog(_L("Loading G-codes"), "...",
             100, wxGetApp().mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL) : nullptr;
 
     wxBusyCursor busy;
@@ -2057,7 +2057,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
         ++progress_count;
         if (progress_dialog != nullptr && progress_count % progress_threshold == 0) {
             progress_dialog->Update(int(100.0f * float(i) / (2.0f * float(m_moves_count))),
-                _L("Generating vertex buffer") + ": " + wxNumberFormatter::ToString(100.0 * double(i) / double(m_moves_count), 0, wxNumberFormatter::Style_None) + "%");
+                _L("Generating geometry vertex data") + ": " + wxNumberFormatter::ToString(100.0 * double(i) / double(m_moves_count), 0, wxNumberFormatter::Style_None) + "%");
             progress_dialog->Fit();
             progress_count = 0;
         }
@@ -2442,7 +2442,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
         ++progress_count;
         if (progress_dialog != nullptr && progress_count % progress_threshold == 0) {
             progress_dialog->Update(int(100.0f * float(m_moves_count + i) / (2.0f * float(m_moves_count))),
-                _L("Generating index buffers") + ": " + wxNumberFormatter::ToString(100.0 * double(i) / double(m_moves_count), 0, wxNumberFormatter::Style_None) + "%");
+                _L("Generating geometry index data") + ": " + wxNumberFormatter::ToString(100.0 * double(i) / double(m_moves_count), 0, wxNumberFormatter::Style_None) + "%");
             progress_dialog->Fit();
             progress_count = 0;
         }
@@ -3737,12 +3737,12 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
                     if (!visible)
                         ImGui::PopStyleVar();
                     */
-                    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
+                    //ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
 
-                    ImGui::BeginTooltip();
-                    imgui.text(visible ? _u8L("Click to hide") : _u8L("Click to show"));
-                    ImGui::EndTooltip();
-                    ImGui::PopStyleColor();
+                    //ImGui::BeginTooltip();
+                    //imgui.text(visible ? _u8L("Click to hide") : _u8L("Click to show"));
+                    //ImGui::EndTooltip();
+                    //ImGui::PopStyleColor();
                     /* BBS GUI refactor */
                     /*
                     if (!visible)
@@ -3981,8 +3981,8 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
         /* BBS do not show percentage drawing
         longest_percentage_string += "            ";
         */
-        if (_u8L("Percentage").length() > longest_percentage_string.length())
-            longest_percentage_string = _u8L("Percentage");
+        if (_u8L("Percent").length() > longest_percentage_string.length())
+            longest_percentage_string = _u8L("Percent");
 
         std::string longest_used_filament_string = "";
         /* BBS do not show filament distance
@@ -3994,7 +3994,7 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
         }
          */
 
-        offsets = calculate_offsets(labels, times, { _u8L("Feature type"), _u8L("Time"), longest_percentage_string, longest_used_filament_string }, icon_size);
+        offsets = calculate_offsets(labels, times, { _u8L("Line type"), _u8L("Time"), longest_percentage_string, longest_used_filament_string }, icon_size);
     }
 
     // get used filament (meters and grams) from used volume in respect to the active extruder
@@ -4033,11 +4033,11 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
     {
     case EViewType::FeatureType:
     {
-        append_headers({ _u8L("Feature type"), _u8L("Time"), _u8L("Percentage"), _u8L("Display") }, offsets);
+        append_headers({ _u8L("Line type"), _u8L("Time"), _u8L("Percent"), _u8L("Display") }, offsets);
         break;
     }
-    case EViewType::Height:         { imgui.title(_u8L("Height (mm)")); break; }
-    case EViewType::Width:          { imgui.title(_u8L("Width (mm)")); break; }
+    case EViewType::Height:         { imgui.title(_u8L("Layer Height (mm)")); break; }
+    case EViewType::Width:          { imgui.title(_u8L("Line Width (mm)")); break; }
     case EViewType::Feedrate:       { imgui.title(_u8L("Speed (mm/s)")); break; }
     case EViewType::FanSpeed:       { imgui.title(_u8L("Fan Speed (%)")); break; }
     case EViewType::Temperature:    { imgui.title(_u8L("Temperature (°C)")); break; }
@@ -4554,7 +4554,7 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
             switch (m_time_estimate_mode)
             {
             case PrintEstimatedStatistics::ETimeMode::Normal: { time_title += " [" + _u8L("Normal mode") + "]"; break; }
-            case PrintEstimatedStatistics::ETimeMode::Stealth: { time_title += " [" + _u8L("Stealth mode") + "]"; break; }
+            case PrintEstimatedStatistics::ETimeMode::Stealth: { time_title += " [" + _u8L("Silent mode") + "]"; break; }
             default: { assert(false); break; }
             }
         }
@@ -4611,11 +4611,11 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
 
         switch (m_time_estimate_mode) {
         case PrintEstimatedStatistics::ETimeMode::Normal: {
-            show_mode_button(_L("Show stealth mode"), PrintEstimatedStatistics::ETimeMode::Stealth);
+            show_mode_button(_L("Switch to silent mode"), PrintEstimatedStatistics::ETimeMode::Stealth);
             break;
         }
         case PrintEstimatedStatistics::ETimeMode::Stealth: {
-            show_mode_button(_L("Show normal mode"), PrintEstimatedStatistics::ETimeMode::Normal);
+            show_mode_button(_L("Switch to normal mode"), PrintEstimatedStatistics::ETimeMode::Normal);
             break;
         }
         default : { assert(false); break; }
