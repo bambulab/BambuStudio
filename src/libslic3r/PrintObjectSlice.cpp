@@ -533,7 +533,7 @@ void PrintObject::slice()
     if (! this->set_started(posSlice))
         return;
     //BBS: add flag to reload scene for shell rendering
-    m_print->set_status(10, L("Processing triangulated mesh"), PrintBase::SlicingStatus::RELOAD_SCENE);
+    m_print->set_status(10, L("Slicing mesh"), PrintBase::SlicingStatus::RELOAD_SCENE);
     std::vector<coordf_t> layer_height_profile;
     this->update_layer_height_profile(*this->model_object(), m_slicing_params, layer_height_profile);
     m_print->throw_if_canceled();
@@ -763,11 +763,12 @@ void PrintObject::slice_volumes()
         // If XY Size compensation is also enabled, notify the user that XY Size compensation
         // would not be used because the object is multi-material painted.
         if (m_config.xy_hole_compensation.value != 0.f || m_config.xy_contour_compensation.value != 0.f) {
-            this->active_step_add_warning(
-                PrintStateBase::WarningLevel::CRITICAL,
-                L("An object has enabled XY Size compensation which will not be used because it is also multi-material painted.\nXY Size "
-                  "compensation cannot be combined with multi-material painting.") +
-                    "\n" + (L("Object name")) + ": " + this->model_object()->name);
+            //this->active_step_add_warning(
+            //    PrintStateBase::WarningLevel::CRITICAL,
+            //    L("An object has enabled XY Size compensation which will not be used because it is also multi-material painted.\nXY Size "
+            //      "compensation cannot be combined with multi-material painting.") +
+            //        "\n" + (L("Object")) + ": " + this->model_object()->name);
+            BOOST_LOG_TRIVIAL(info) << "xy compensation will not work for object " << this->model_object()->name << " for multi filament.";
         }
 
         BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - MMU segmentation";

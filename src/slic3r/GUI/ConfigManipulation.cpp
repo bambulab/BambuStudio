@@ -191,21 +191,21 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     if (has_wipe_tower && (config->opt_bool("adaptive_layer_height") || config->opt_bool("independent_support_layer_height"))) {
         wxString msg_text;
         if (config->opt_bool("adaptive_layer_height") && config->opt_bool("independent_support_layer_height")) {
-            msg_text = _(L("Wipe tower does not work when Adaptive Layer Height or Independent Support Layer Height is on.\n"
+            msg_text = _(L("Prime tower does not work when Adaptive Layer Height or Independent Support Layer Height is on.\n"
                 "Which do you want to keep?\n"
-                "YES - Keep Wipe Tower\n"
+                "YES - Keep Prime Tower\n"
                 "NO  - Keep Adaptive Layer Height and Independent Support Layer Height"));
         }
         else if (config->opt_bool("adaptive_layer_height")) {
-            msg_text = _(L("Wipe tower does not work when Adaptive Layer Height is on.\n"
+            msg_text = _(L("Prime tower does not work when Adaptive Layer Height is on.\n"
                 "Which do you want to keep?\n"
-                "YES - Keep Wipe Tower\n"
+                "YES - Keep Prime Tower\n"
                 "NO  - Keep Adaptive Layer Height"));
         }
         else {
-            msg_text = _(L("Wipe tower does not work when Independent Support Layer Height is on.\n"
+            msg_text = _(L("Prime tower does not work when Independent Support Layer Height is on.\n"
                 "Which do you want to keep?\n"
-                "YES - Keep Wipe Tower\n"
+                "YES - Keep Prime Tower\n"
                 "NO  - Keep Independent Support Layer Height"));
         }
 

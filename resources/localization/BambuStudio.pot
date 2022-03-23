@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-23 13:19+0800\n"
+"POT-Creation-Date: 2022-03-23 15:09+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -119,14 +119,6 @@ msgstr ""
 
 #: src/slic3r/GUI/BackgroundSlicingProcess.cpp:755
 msgid "Unknown error when export G-code."
-msgstr ""
-
-#: src/slic3r/GUI/BackgroundSlicingProcess.cpp:760
-#, possible-boost-format
-msgid ""
-"Copying of the temporary G-code to the output G-code failed. Maybe the SD "
-"card is write locked?\n"
-"Error message: %1%"
 msgstr ""
 
 #: src/slic3r/GUI/BackgroundSlicingProcess.cpp:775
@@ -347,26 +339,26 @@ msgstr ""
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:194
 msgid ""
-"Wipe tower does not work when Adaptive Layer Height or Independent Support "
+"Prime tower does not work when Adaptive Layer Height or Independent Support "
 "Layer Height is on.\n"
 "Which do you want to keep?\n"
-"YES - Keep Wipe Tower\n"
+"YES - Keep Prime Tower\n"
 "NO  - Keep Adaptive Layer Height and Independent Support Layer Height"
 msgstr ""
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:200
 msgid ""
-"Wipe tower does not work when Adaptive Layer Height is on.\n"
+"Prime tower does not work when Adaptive Layer Height is on.\n"
 "Which do you want to keep?\n"
-"YES - Keep Wipe Tower\n"
+"YES - Keep Prime Tower\n"
 "NO  - Keep Adaptive Layer Height"
 msgstr ""
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:206
 msgid ""
-"Wipe tower does not work when Independent Support Layer Height is on.\n"
+"Prime tower does not work when Independent Support Layer Height is on.\n"
 "Which do you want to keep?\n"
-"YES - Keep Wipe Tower\n"
+"YES - Keep Prime Tower\n"
 "NO  - Keep Independent Support Layer Height"
 msgstr ""
 
@@ -5795,11 +5787,7 @@ msgid ""
 "faulty mesh"
 msgstr ""
 
-#: src/libslic3r/GCode.cpp:1335
-msgid "No object can be printed, maybe too small"
-msgstr ""
-
-#: src/libslic3r/GCode.cpp:1346
+#: src/libslic3r/GCode.cpp:1335 src/libslic3r/GCode.cpp:1346
 msgid "No object can be printed. Maybe too small"
 msgstr ""
 
