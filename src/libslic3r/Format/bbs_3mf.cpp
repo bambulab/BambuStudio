@@ -968,6 +968,20 @@ namespace Slic3r {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
 
+        struct close_lock
+        {
+            mz_zip_archive * archive;
+            void close() {
+                if (archive) {
+                    close_zip_reader(archive);
+                    archive = nullptr;
+                }
+            }
+            ~close_lock() {
+                close();
+            }
+        } lock{ &archive };
+
         if (!open_zip_reader(&archive, filename)) {
             add_error("Unable to open the file");
             return false;
@@ -1134,7 +1148,6 @@ namespace Slic3r {
                 else if (boost::algorithm::iequals(name, BBS_MODEL_CONFIG_FILE)) {
                     // extract slic3r model config file
                     if (!_extract_xml_from_archive(archive, stat, _handle_start_config_xml_element, _handle_end_config_xml_element)) {
-                        close_zip_reader(&archive);
                         add_error("Archive does not contain a valid model config");
                         return false;
                     }
@@ -1157,7 +1170,7 @@ namespace Slic3r {
             }
         }
 
-        close_zip_reader(&archive);
+        lock.close();
 
         if (m_version == 0) {
             // if the 3mf was not produced by BambuStudio and there is more than one instance,
@@ -1421,14 +1434,12 @@ namespace Slic3r {
         try
         {
             if (!extract(archive, stat)) {
-                close_zip_reader(&archive);
                 return false;
             }
         }
         catch (const std::exception& e)
         {
             // ensure the zip archive is closed and rethrow the exception
-            close_zip_reader(&archive);
             add_error(e.what());
             return false;
         }
