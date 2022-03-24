@@ -2018,7 +2018,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
                     boost::filesystem::remove_all(last);
             }
             catch (...) {}
-            this->q->new_project();
+            this->q->new_project(true);
             });
         wxPostEvent(this->q, wxCommandEvent{EVT_RESTORE_PROJECT});
     }
@@ -5745,7 +5745,7 @@ Print&          Plater::fff_print()         { return p->fff_print; }
 const SLAPrint& Plater::sla_print() const   { return p->sla_print; }
 SLAPrint&       Plater::sla_print()         { return p->sla_print; }
 
-void Plater::new_project()
+void Plater::new_project(bool silent)
 {
     // BBS: save confirm
     auto check = [](bool yes_or_no) {
@@ -5765,7 +5765,8 @@ void Plater::new_project()
     //BBS: add only gcode mode
     m_only_gcode = false;
 
-    wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+    if (!silent)
+        wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
 
     Plater::TakeSnapshot snapshot(this, "New Project", UndoRedo::SnapshotType::ProjectSeparator);
 

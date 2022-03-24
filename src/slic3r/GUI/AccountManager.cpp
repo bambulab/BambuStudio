@@ -7,6 +7,8 @@
 #include "libslic3r/AppConfig.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/LoginDialog.hpp"
 #include "nlohmann/json.hpp"
 #include "slic3r/Utils/minilzo_extension.hpp"
 #include <boost/filesystem/path.hpp>
@@ -3092,6 +3094,33 @@ namespace Slic3r {
                         }
                     }
                 }
+                else if (command_str.compare("homepage_login_or_register") == 0) {
+                    this->request_login_or_register();
+                }
+                else if (command_str.compare("homepage_newproject") == 0) {
+                    this->request_open_project("<new>");
+                }
+                else if (command_str.compare("homepage_openproject") == 0) {
+                    this->request_open_project({});
+                }
+                else if (command_str.compare("homepage_open_recentfile") == 0) {
+                    if (root.get_child_optional("data") != boost::none) {
+                        pt::ptree data_node = root.get_child("data");
+                        boost::optional<std::string> path = data_node.get_optional<std::string>("path");
+                        if (path.has_value()) {
+                            this->request_open_project(path.value());
+                        }
+                    }
+                }
+                else if (command_str.compare("homepage_open_hotspot") == 0) {
+                    if (root.get_child_optional("data") != boost::none) {
+                        pt::ptree data_node = root.get_child("data");
+                        boost::optional<std::string> url       = data_node.get_optional<std::string>("url");
+                        if (url.has_value()) {
+                            this->request_open_project(url.value());
+                        }
+                    }
+                }
             }
         }
         catch (...) {
@@ -3126,7 +3155,23 @@ namespace Slic3r {
 
     void AccountManager::request_open_project(std::string project_id)
     {
-        ;
+        if (project_id == "<new>")
+            GUI::wxGetApp().plater()->new_project();
+        else if (project_id.empty())
+            GUI::wxGetApp().plater()->load_project();
+        else if (std::find_if_not(project_id.begin(), project_id.end(), 
+                [](char c) { return std::isdigit(c);}) == project_id.end())
+            ;
+        else if (boost::algorithm::starts_with(project_id, "http"))
+            ;
+        else
+            GUI::wxGetApp().plater()->load_project(wxString::FromUTF8(project_id));
+    }
+
+    void AccountManager::request_login_or_register()
+    {
+         GUI::LoginDialog dlg;
+         dlg.ShowModal();
     }
 
 } // namespace Slic3r

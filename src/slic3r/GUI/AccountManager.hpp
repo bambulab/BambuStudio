@@ -451,6 +451,7 @@ public:
     void request_model_download(std::string import_json);
     void request_project_download(std::string project_id);
     void request_open_project(std::string project_id);
+    void request_login_or_register();
 };
 
 } // namespace Slic3r

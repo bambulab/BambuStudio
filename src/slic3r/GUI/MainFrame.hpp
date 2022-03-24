@@ -270,6 +270,8 @@ public:
     bool save_project_as(const wxString& filename = wxString());
 
     void        add_to_recent_projects(const wxString& filename);
+    void        get_recent_projects(boost::property_tree::wptree & tree);
+
     void        technology_changed();
 
     //BBS

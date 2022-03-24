@@ -274,6 +274,7 @@ wxWebView* MarkdownTip::CreateTipView(wxWindow* parent)
     tipView->Bind(wxEVT_WEBVIEW_LOADED, &MarkdownTip::OnLoaded, this);
     tipView->Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &MarkdownTip::OnTitleChanged, this);
     tipView->Bind(wxEVT_WEBVIEW_ERROR, &MarkdownTip::OnError, this);
+    tipView->EnableContextMenu(false);
     return tipView;
 }
 

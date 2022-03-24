@@ -185,7 +185,7 @@ public:
     const SLAPrint& sla_print() const;
     SLAPrint& sla_print();
 
-    void new_project();
+    void new_project(bool silent = false);
     // BBS: save & backup
     void load_project(wxString const & filename = "", wxString const & originfile = "-");
     int save_project(bool saveAs = false);

@@ -32,7 +32,7 @@ namespace GUI {
 class WebViewPanel : public wxPanel
 {
 public:
-    WebViewPanel(wxWindow *parent, wxString url);
+    WebViewPanel(wxWindow *parent);
     virtual ~WebViewPanel();
 
     void load_url(wxString& url);
@@ -47,6 +47,7 @@ public:
     void OnNavigationRequest(wxWebViewEvent& evt);
     void OnNavigationComplete(wxWebViewEvent& evt);
     void OnDocumentLoaded(wxWebViewEvent& evt);
+    void OnTitleChanged(wxWebViewEvent &evt);
     void OnNewWindow(wxWebViewEvent& evt);
     void OnScriptMessage(wxWebViewEvent& evt);
     void OnScriptResponseMessage(wxCommandEvent& evt);
@@ -84,7 +85,8 @@ public:
     void OnEnableDevTools(wxCommandEvent& evt);
     void OnClose(wxCloseEvent& evt);
 
-
+private:
+    void SendRecentList();
 
 private:
 

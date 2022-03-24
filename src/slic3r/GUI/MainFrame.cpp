@@ -638,8 +638,7 @@ void MainFrame::init_tabpanel()
     });
 
     if (wxGetApp().is_editor()) {
-        wxString home_url = wxString(wxGetApp().app_config->get_web_host_url()) + MODEL_STORE_URL;
-        m_webview         = new WebViewPanel(m_tabpanel, home_url);
+        m_webview         = new WebViewPanel(m_tabpanel);
         Bind(EVT_LOAD_URL, [this](wxCommandEvent &evt) {
             wxString url = evt.GetString();
             select_tab(MainFrame::tpHome);
@@ -2105,6 +2104,22 @@ void MainFrame::add_to_recent_projects(const wxString& filename)
         }
         wxGetApp().app_config->set_recent_projects(recent_projects);
         wxGetApp().app_config->save();
+    }
+}
+
+void MainFrame::get_recent_projects(boost::property_tree::wptree &tree)
+{
+    for (size_t i = 0; i < m_recent_projects.GetCount(); ++i) {
+        boost::property_tree::wptree item;
+        std::wstring proj = m_recent_projects.GetHistoryFile(i).ToStdWstring();
+        if (!boost::filesystem::exists(proj)) continue;
+        item.put(L"path", proj);
+        boost::system::error_code ec;
+        std::time_t t = boost::filesystem::last_write_time(proj, ec);
+        if (ec) continue;
+        std::wstring time = wxDateTime(t).Format().ToStdWstring();
+        item.put(L"time", time);
+        tree.push_back({L"", item});
     }
 }
 

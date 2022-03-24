@@ -4,13 +4,17 @@
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/AccountManager.hpp"
+#include "slic3r/GUI/MainFrame.hpp"
 #include "libslic3r_version.h"
 
 #include <wx/sizer.h>
 #include <wx/toolbar.h>
 #include <wx/textdlg.h>
 
-
+#ifdef __WIN32__
+#include "WebView2.h"
+#include "wx/private/jsscriptwrapper.h"
+#endif
 
 namespace Slic3r {
 namespace GUI {
@@ -20,10 +24,11 @@ namespace GUI {
 
     
 
-WebViewPanel::WebViewPanel(wxWindow *parent, wxString url)
+WebViewPanel::WebViewPanel(wxWindow *parent)
         : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
-
+    //wxString url = wxString(wxGetApp().app_config->get_web_host_url()) + MODEL_STORE_URL;
+    wxString url = resources_dir() + "/web/homepage/index.html";
     m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION);
     
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
@@ -55,6 +60,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent, wxString url)
     // Create panel for find toolbar.
     wxPanel* panel = new wxPanel(this);
     topsizer->Add(bSizer_toolbar, 0, wxEXPAND, 0);
+    topsizer->Hide(topsizer->GetItemCount() - 1);
     topsizer->Add(panel, wxSizerFlags().Expand());
 
     // Create sizer for panel.
@@ -113,6 +119,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent, wxString url)
 
     SetSizer(topsizer);
     
+    m_browser->EnableContextMenu(false);
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
     // Log backend information
@@ -195,6 +202,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent, wxString url)
     Bind(wxEVT_WEBVIEW_NAVIGATING, &WebViewPanel::OnNavigationRequest, this, m_browser->GetId());
     Bind(wxEVT_WEBVIEW_NAVIGATED, &WebViewPanel::OnNavigationComplete, this, m_browser->GetId());
     Bind(wxEVT_WEBVIEW_LOADED, &WebViewPanel::OnDocumentLoaded, this, m_browser->GetId());
+    Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &WebViewPanel::OnTitleChanged, this, m_browser->GetId());
     Bind(wxEVT_WEBVIEW_ERROR, &WebViewPanel::OnError, this, m_browser->GetId());
     Bind(wxEVT_WEBVIEW_NEWWINDOW, &WebViewPanel::OnNewWindow, this, m_browser->GetId());
     Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &WebViewPanel::OnScriptMessage, this, m_browser->GetId());
@@ -413,6 +421,19 @@ void WebViewPanel::OnClose(wxCloseEvent& evt)
     this->Hide();
 }
 
+void WebViewPanel::SendRecentList()
+{
+    boost::property_tree::wptree req;
+    boost::property_tree::wptree data;
+    wxGetApp().mainframe->get_recent_projects(data);
+    req.put(L"sequence_id", L"0");
+    req.put(L"command", L"studio_send_recentfile");
+    req.put_child(L"data", data);
+    std::wostringstream oss;
+    pt::write_json(oss, req, false);
+    RunScript(wxString::Format("HandleStudio(%s)", oss.str()));
+}
+
 /**
     * Callback invoked when there is a request to load a new page (for instance
     * when the user clicks a link)
@@ -465,6 +486,11 @@ void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
     UpdateState();
 }
 
+void WebViewPanel::OnTitleChanged(wxWebViewEvent &evt)
+{
+    wxGetApp().CallAfter([this] { SendRecentList(); });
+}
+
 /**
     * On new window, we veto to stop extra windows appearing
     */
@@ -493,7 +519,7 @@ void WebViewPanel::OnScriptMessage(wxWebViewEvent& evt)
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("Script message received; value = %s, handler = %s", evt.GetString(), evt.GetMessageHandler());
     Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    std::string response = account_manager->handle_web_request(evt.GetString().ToStdString());
+    std::string response = account_manager->handle_web_request(evt.GetString().ToUTF8().data());
     if (response.empty()) return;
 
     /* remove \n in response string */
@@ -583,16 +609,20 @@ void WebViewPanel::RunScript(const wxString& javascript)
 
     wxString result;
     try {
-        if (m_browser->RunScript(javascript, &result))
-        {
+#ifdef __WIN32__
+        ICoreWebView2 *   webView = (ICoreWebView2 *) m_browser->GetNativeBackend();
+        int               count   = 0;
+        wxJSScriptWrapper wrapJS(javascript, &count);
+        webView->ExecuteScript(wrapJS.GetWrappedCode(), NULL);
+#else
+        if (m_browser->RunScript(javascript, &result)) {
             if (wxGetApp().get_mode() == comDevelop)
                 wxLogMessage("RunScript() returned \"%s\"", result);
-        }
-        else
-        {
+        } else {
             if (wxGetApp().get_mode() == comDevelop)
                 wxLogWarning("RunScript() failed");
         }
+#endif
     }
     catch (std::exception& e) {
         ;
