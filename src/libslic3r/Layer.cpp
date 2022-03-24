@@ -67,7 +67,9 @@ void Layer::make_slices()
 
 static inline bool layer_needs_raw_backup(const Layer *layer)
 {
-    return ! (layer->regions().size() == 1 && (layer->id() > 0 || layer->object()->config().elefant_foot_compensation.value == 0));
+    // BBS: backup raw slice for generating support
+    //return ! (layer->regions().size() == 1 && (layer->id() > 0 || layer->object()->config().elefant_foot_compensation.value == 0));
+    return true;
 }
 
 void Layer::backup_untyped_slices()

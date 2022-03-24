@@ -862,148 +862,142 @@ void TreeSupport::detect_object_overhangs()
         std::map<ExPolygon, int, ExPolygonComp> region_layers_below;  // regions and the number of layers below
         ExPolygons lower_overhang_dilated;  // for small overhang
 
-        tbb::parallel_for(
-            tbb::blocked_range<size_t>(0, m_object->layer_count(), m_object->layer_count()),
-            [&](const tbb::blocked_range<size_t>& range)
-            {
-                for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++)
-                {
-                    if (!is_auto && layer_nr > support_material_enforce_layers + range.begin())
-                        continue;
+        for (size_t layer_nr = 0; layer_nr < m_object->layer_count(); layer_nr++)
+        {
+            if (!is_auto && layer_nr > support_material_enforce_layers)
+                continue;
 
-                    Layer* layer = m_object->get_layer(layer_nr);
-                    for (auto& slice : layer->lslices)
-                        find_and_insert_cluster(regionClusters, region2clusterInd, slice, layer_nr, 0);
+            Layer* layer = m_object->get_layer(layer_nr);
+            for (auto& slice : layer->lslices)
+                find_and_insert_cluster(regionClusters, region2clusterInd, slice, layer_nr, 0);
 
-                    if (layer->lower_layer == nullptr) {
-                        for (auto& slice : layer->lslices) {
-                            auto bbox_size = get_extents(slice).size();
-                            if (slice.area() > area_thresh_well_supported
-                                || (bbox_size.x()>length_thresh_well_supported && bbox_size.y()>length_thresh_well_supported))
-                                regions_well_supported.emplace_back(slice);
-                        }
-                        continue;
-                    }
+            if (layer->lower_layer == nullptr) {
+                for (auto& slice : layer->lslices) {
+                    auto bbox_size = get_extents(slice).size();
+                    if (slice.area() > area_thresh_well_supported
+                        || (bbox_size.x()>length_thresh_well_supported && bbox_size.y()>length_thresh_well_supported))
+                        regions_well_supported.emplace_back(slice);
+                }
+                continue;
+            }
 
-                    Layer* lower_layer = layer->lower_layer;
-                    coordf_t lower_layer_offset = layer_nr < support_material_enforce_layers ? -0.15 * extrusion_width : (float)lower_layer->height / tan(threshold_rad);
-                    coordf_t support_offset_scaled = scale_(lower_layer_offset);
-                    // Filter out areas whose diameter that is smaller than extrusion_width. Do not use offset2() for this purpose!
-                    ExPolygons lower_polys;// = offset2_ex(lower_layer->lslices, -extrusion_width_scaled / 2, extrusion_width_scaled / 2);
-                    for (const ExPolygon& expoly : lower_layer->lslices) {
-                        if (!offset_ex(expoly, -extrusion_width_scaled / 2).empty()) {
-                            lower_polys.emplace_back(expoly);
-                        }
-                    }
-                    ExPolygons curr_polys;// = offset2_ex(layer->lslices, -extrusion_width_scaled / 2, extrusion_width_scaled / 2);
-                    for (const ExPolygon& expoly : layer->lslices) {
-                        if (!offset_ex(expoly, -extrusion_width_scaled / 2).empty()) {
-                            curr_polys.emplace_back(expoly);
-                        }
-                    }
-
-                    // normal overhang
-                    ExPolygons lower_layer_offseted = offset_ex(lower_polys, support_offset_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
-                    ExPolygons overhang_areas = std::move(diff_ex(curr_polys, lower_layer_offseted));
-                    //overhang_areas = std::move(offset2_ex(overhang_areas, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
-                    overhang_areas.erase(std::remove_if(overhang_areas.begin(), overhang_areas.end(), [extrusion_width_scaled](ExPolygon& area) {return offset_ex(area, -0.1 * extrusion_width_scaled).empty(); }), overhang_areas.end());
-
-                    ExPolygons overhangs_sharp_tail;
-                    if (is_auto && support_sharp_tails)
-                    {
-                        // detect sharp tail and add more supports around
-                        for (auto& lower_region : lower_layer_offseted) {
-                            auto radius = get_extents(lower_region).radius();
-                            auto out_of_well_supported_region = offset_ex(diff_ex({ lower_region }, regions_well_supported), -extrusion_width_scaled);
-                            auto bbox_size = get_extents(out_of_well_supported_region).size();
-                            double area_inter = area(intersection_ex({ lower_region }, regions_well_supported));
-                            if ((area_inter==0 ||
-                                ((bbox_size.x()> extrusion_width_scaled && bbox_size.y() > extrusion_width_scaled) && area_inter < area_thresh_well_supported ) )
-                                /*&& (obj_height - scale_(layer->slice_z)) > get_extents(lower_region).radius() * 5*/) {
-                                auto lower_region_unoffseted = offset_ex(lower_region, -support_offset_scaled);
-                                if (!lower_region_unoffseted.empty())
-                                    lower_region = lower_region_unoffseted.front();
-                            }
-                        }
-                        if (!lower_layer_offseted.empty()) {
-                            overhangs_sharp_tail = std::move(diff_ex(curr_polys, lower_layer_offseted));
-                            overhangs_sharp_tail = std::move(offset2_ex(overhangs_sharp_tail, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
-                            overhangs_sharp_tail = diff_ex(overhangs_sharp_tail, overhang_areas);
-                        }
-                        if (!overhangs_sharp_tail.empty())
-                            has_sharp_tail = true;
-                    }
-
-                    if (support_sharp_tails)
-                        overhang_areas = union_ex(overhang_areas, overhangs_sharp_tail);
-
-
-                    if (bridge_no_support && overhang_areas.size()>0) {
-                        auto bridge = remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, overhang_areas, max_bridge_length);
-                        all_bridges.emplace(layer_nr, bridge);
-                    }
-
-                    TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
-                    for (ExPolygon& poly : overhang_areas) {
-                        // NOTE: must push something into ts_layer->overhang_areas, can't be empty for any layer,
-                        // otherwise remove_small_overhangs can't correctly cluster overhangs
-#if 0
-                        ExPolygons poly_simp = poly.simplify(scale_(radius_sample_resolution));
-                        // simplify method may delete the entire polygon which is unwanted
-                        if(!poly_simp.empty())
-                            append(ts_layer->overhang_areas, poly_simp);
-                        else
-                            ts_layer->overhang_areas.emplace_back(poly);
-#else
-                        ts_layer->overhang_areas.emplace_back(poly);
-#endif
-                    }
-
-                    if (is_auto && remove_small_overhangs) {
-                        for (auto& overhang : ts_layer->overhang_areas) {
-                            find_and_insert_cluster(overhangClusters, overhang2clusterInd, overhang, layer_nr, extrusion_width_scaled);
-                        }
-                    }
-
-                    if (is_auto && support_sharp_tails)
-                    {  // update well supported regions
-                        ExPolygons regions_well_supported2;
-                        // regions intersects with lower regions_well_supported or large support are also well supported
-                        auto inters = intersection_ex(layer->lslices, regions_well_supported);
-                        auto inters2 = intersection_ex(layer->lslices, ts_layer->overhang_areas);
-                        inters.insert(inters.end(), inters2.begin(), inters2.end());
-                        for (auto inter : inters) {
-                            auto bbox_size = get_extents(inter).size();
-                            if (inter.area() >= area_thresh_well_supported
-                                || (bbox_size.x()>length_thresh_well_supported && bbox_size.y()>length_thresh_well_supported) )
-                            {
-                                auto tmp = offset_ex(inter, support_offset_scaled);
-                                if (!tmp.empty()) {
-                                    // if inter is a single line with only 2 valid points, clipper will return empty
-                                    regions_well_supported2.emplace_back(std::move(tmp[0]));
-                                }
-                            }
-                        }
-
-                        // experimental: regions high enough is also well supported
-                        for (auto& region : layer->lslices) {
-                            auto cluster = regionClusters[region2clusterInd[&region]];
-                            if (layer_nr - cluster.min_layer > thresh_layers_below)
-                                regions_well_supported2.push_back(region);
-                        }
-
-                        regions_well_supported = union_ex(regions_well_supported2);
-#ifdef SUPPORT_TREE_DEBUG_TO_SVG
-                        if (!regions_well_supported.empty()) {
-                            SVG svg(get_svg_filename(layer->id(), "regions_well_supported"), m_object->bounding_box());
-                            if (svg.is_opened())
-                                svg.draw(regions_well_supported, "yellow");
-                        }
-#endif
-                    }
+            Layer* lower_layer = layer->lower_layer;
+            coordf_t lower_layer_offset = layer_nr < support_material_enforce_layers ? -0.15 * extrusion_width : (float)lower_layer->height / tan(threshold_rad);
+            coordf_t support_offset_scaled = scale_(lower_layer_offset);
+            // Filter out areas whose diameter that is smaller than extrusion_width. Do not use offset2() for this purpose!
+            ExPolygons lower_polys;// = offset2_ex(lower_layer->lslices, -extrusion_width_scaled / 2, extrusion_width_scaled / 2);
+            for (const ExPolygon& expoly : lower_layer->lslices) {
+                if (!offset_ex(expoly, -extrusion_width_scaled / 2).empty()) {
+                    lower_polys.emplace_back(expoly);
                 }
             }
-        );
+            ExPolygons curr_polys;// = offset2_ex(layer->lslices, -extrusion_width_scaled / 2, extrusion_width_scaled / 2);
+            for (const ExPolygon& expoly : layer->lslices) {
+                if (!offset_ex(expoly, -extrusion_width_scaled / 2).empty()) {
+                    curr_polys.emplace_back(expoly);
+                }
+            }
+
+            // normal overhang
+            ExPolygons lower_layer_offseted = offset_ex(lower_polys, support_offset_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
+            ExPolygons overhang_areas = std::move(diff_ex(curr_polys, lower_layer_offseted));
+            //overhang_areas = std::move(offset2_ex(overhang_areas, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
+            overhang_areas.erase(std::remove_if(overhang_areas.begin(), overhang_areas.end(), [extrusion_width_scaled](ExPolygon& area) {return offset_ex(area, -0.1 * extrusion_width_scaled).empty(); }), overhang_areas.end());
+
+            ExPolygons overhangs_sharp_tail;
+            if (is_auto && support_sharp_tails)
+            {
+                // detect sharp tail and add more supports around
+                for (auto& lower_region : lower_layer_offseted) {
+                    auto radius = get_extents(lower_region).radius();
+                    auto out_of_well_supported_region = offset_ex(diff_ex({ lower_region }, regions_well_supported), -extrusion_width_scaled);
+                    auto bbox_size = get_extents(out_of_well_supported_region).size();
+                    double area_inter = area(intersection_ex({ lower_region }, regions_well_supported));
+                    if ((area_inter==0 ||
+                        ((bbox_size.x()> extrusion_width_scaled && bbox_size.y() > extrusion_width_scaled) && area_inter < area_thresh_well_supported ) )
+                        /*&& (obj_height - scale_(layer->slice_z)) > get_extents(lower_region).radius() * 5*/) {
+                        auto lower_region_unoffseted = offset_ex(lower_region, -support_offset_scaled);
+                        if (!lower_region_unoffseted.empty())
+                            lower_region = lower_region_unoffseted.front();
+                    }
+                }
+                if (!lower_layer_offseted.empty()) {
+                    overhangs_sharp_tail = std::move(diff_ex(curr_polys, lower_layer_offseted));
+                    overhangs_sharp_tail = std::move(offset2_ex(overhangs_sharp_tail, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
+                    overhangs_sharp_tail = diff_ex(overhangs_sharp_tail, overhang_areas);
+                }
+                if (!overhangs_sharp_tail.empty())
+                    has_sharp_tail = true;
+            }
+
+            if (support_sharp_tails)
+                overhang_areas = union_ex(overhang_areas, overhangs_sharp_tail);
+
+
+            if (bridge_no_support && overhang_areas.size()>0) {
+                auto bridge = remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, overhang_areas, max_bridge_length);
+                all_bridges.emplace(layer_nr, bridge);
+            }
+
+            TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
+            for (ExPolygon& poly : overhang_areas) {
+                // NOTE: must push something into ts_layer->overhang_areas, can't be empty for any layer,
+                // otherwise remove_small_overhangs can't correctly cluster overhangs
+#if 0
+                ExPolygons poly_simp = poly.simplify(scale_(radius_sample_resolution));
+                // simplify method may delete the entire polygon which is unwanted
+                if(!poly_simp.empty())
+                    append(ts_layer->overhang_areas, poly_simp);
+                else
+                    ts_layer->overhang_areas.emplace_back(poly);
+#else
+                ts_layer->overhang_areas.emplace_back(poly);
+#endif
+            }
+
+            if (is_auto && remove_small_overhangs) {
+                for (auto& overhang : ts_layer->overhang_areas) {
+                    find_and_insert_cluster(overhangClusters, overhang2clusterInd, overhang, layer_nr, extrusion_width_scaled);
+                }
+            }
+
+            if (is_auto && support_sharp_tails)
+            {  // update well supported regions
+                ExPolygons regions_well_supported2;
+                // regions intersects with lower regions_well_supported or large support are also well supported
+                auto inters = intersection_ex(layer->lslices, regions_well_supported);
+                auto inters2 = intersection_ex(layer->lslices, ts_layer->overhang_areas);
+                inters.insert(inters.end(), inters2.begin(), inters2.end());
+                for (auto inter : inters) {
+                    auto bbox_size = get_extents(inter).size();
+                    if (inter.area() >= area_thresh_well_supported
+                        || (bbox_size.x()>length_thresh_well_supported && bbox_size.y()>length_thresh_well_supported) )
+                    {
+                        auto tmp = offset_ex(inter, support_offset_scaled);
+                        if (!tmp.empty()) {
+                            // if inter is a single line with only 2 valid points, clipper will return empty
+                            regions_well_supported2.emplace_back(std::move(tmp[0]));
+                        }
+                    }
+                }
+
+                // experimental: regions high enough is also well supported
+                for (auto& region : layer->lslices) {
+                    auto cluster = regionClusters[region2clusterInd[&region]];
+                    if (layer_nr - cluster.min_layer > thresh_layers_below)
+                        regions_well_supported2.push_back(region);
+                }
+
+                regions_well_supported = union_ex(regions_well_supported2);
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
+                if (!regions_well_supported.empty()) {
+                    SVG svg(get_svg_filename(layer->id(), "regions_well_supported"), m_object->bounding_box());
+                    if (svg.is_opened())
+                        svg.draw(regions_well_supported, "yellow");
+                }
+#endif
+            }
+        }
     }
 
     auto enforcers = m_object->slice_support_enforcers();
