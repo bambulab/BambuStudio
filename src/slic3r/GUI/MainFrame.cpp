@@ -580,6 +580,7 @@ void MainFrame::shutdown()
     // set to null tabs and a plater
     // to avoid any manipulations with them from App->wxEVT_IDLE after of the mainframe closing 
     wxGetApp().tabs_list.clear();
+    wxGetApp().model_tabs_list.clear();
     // BBS: why clear ?
     //wxGetApp().plater_ = nullptr;
 }

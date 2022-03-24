@@ -156,7 +156,6 @@ namespace textconv_helper
 	};*/
 }
 
-//该结构定义于Psapi.h 文件，但是这里为了不影响获取到的模块结果，因此不包含该文件
 #define MAX_SYMBOL_PATH 1024
 #define MAX_MODULE_NAME32 255
 #define TH32CS_SNAPMODULE 0x00000008

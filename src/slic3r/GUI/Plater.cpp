@@ -1194,7 +1194,7 @@ struct Plater::priv
 
     MenuFactory menus;
 
-    std::shared_ptr<SelectMachineDialog> m_select_machine_dlg;
+    SelectMachineDialog* m_select_machine_dlg = nullptr;
 
     // Data
     Slic3r::DynamicPrintConfig *config;        // FIXME: leak?
@@ -1702,7 +1702,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     , collapse_toolbar(GLToolbar::Normal, "Collapse")
     //BBS :partplatelist construction
     , partplate_list(this->q, &model)
-    , m_select_machine_dlg(std::make_shared<SelectMachineDialog>(q))
 {
     this->q->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
@@ -4687,6 +4686,7 @@ void Plater::priv::on_action_print_plate(SimpleEvent&)
     }
 
     //BBS
+    if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);
     m_select_machine_dlg->prepare(partplate_list.get_curr_plate_index());
     m_select_machine_dlg->ShowModal();
 }
@@ -4705,6 +4705,7 @@ void Plater::priv::on_action_print_all(SimpleEvent&)
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print all event\n" ;
     }
     //BBS
+    if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);
     m_select_machine_dlg->prepare(PLATE_ALL_IDX);
     m_select_machine_dlg->ShowModal();
 }

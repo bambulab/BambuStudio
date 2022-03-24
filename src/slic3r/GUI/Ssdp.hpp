@@ -47,7 +47,7 @@ typedef ADDRESS_FAMILY sa_family_t;
 #define LSSDP_PARSE_INVALID     -2
 #define LSSDP_PARSE_COMMAND     -3
 
-typedef struct lssdp_packet {
+struct lssdp_packet {
     char            method[LSSDP_FIELD_LEN];      // M-SEARCH, NOTIFY, RESPONSE
     char            st[LSSDP_FIELD_LEN];      // Search Target
     char            usn[LSSDP_FIELD_LEN];      // Unique Service Name

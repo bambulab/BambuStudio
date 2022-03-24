@@ -2,6 +2,7 @@
 #include "GUI_ObjectList.hpp"
 #include "GUI_Factories.hpp"
 #include "Tab.hpp"
+#include "MainFrame.hpp"
 
 #include "OptionsGroup.hpp"
 #include "GUI_App.hpp"
@@ -186,6 +187,8 @@ bool ObjectSettings::update_settings_list()
 bool ObjectSettings::update_settings_list()
 {
     if (!wxGetApp().is_editor())
+        return false;
+    if (!wxGetApp().mainframe->IsShown())
         return false;
 
     auto objects_ctrl   = wxGetApp().obj_list();

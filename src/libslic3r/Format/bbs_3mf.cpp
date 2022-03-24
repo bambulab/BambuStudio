@@ -5693,7 +5693,7 @@ private:
                 {
                     timer t("backup cost");
                     try {
-                        callback(1);
+                        if (callback) callback(1);
                     } catch (...) {}
                 }
                 m_other_changes_backup = false;
