@@ -67,7 +67,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "printable_area",
         //BBS: add bed_exclude_area
         "bed_exclude_area",
-        "bed_temperature",
         "before_layer_change_gcode",
         "printing_by_object_gcode",
         "overhang_fan_speed",
@@ -172,6 +171,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "gcode_flavor"
             || opt_key == "single_extruder_multi_material"
             || opt_key == "nozzle_temperature"
+            || opt_key == "bed_temperature"
             || opt_key == "enable_prime_tower"
             || opt_key == "prime_tower_width"
             || opt_key == "wipe_tower_brim_width"

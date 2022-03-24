@@ -491,15 +491,16 @@ void PrintConfigDef::init_fff_params()
                      "Auto means both the brim position and brim width is analysed and calculated automatically");
     def->enum_keys_map = &ConfigOptionEnum<BrimType>::get_enum_values();
     def->enum_values.emplace_back("auto_brim");
-    def->enum_values.emplace_back("no_brim");
     def->enum_values.emplace_back("outer_only");
-    def->enum_values.emplace_back("inner_only");
-    def->enum_values.emplace_back("outer_and_inner");
-    def->enum_labels.emplace_back(L("Auto brim"));
-    def->enum_labels.emplace_back(L("No brim"));
-    def->enum_labels.emplace_back(L("Outer brim only"));
-    def->enum_labels.emplace_back(L("Inner brim only"));
-    def->enum_labels.emplace_back(L("Outer and inner brim"));
+    def->enum_values.emplace_back("no_brim");
+    //def->enum_values.emplace_back("inner_only");
+    //def->enum_values.emplace_back("outer_and_inner");
+    def->enum_labels.emplace_back(L("Auto"));
+    def->enum_labels.emplace_back(L("Manual"));
+    def->enum_labels.emplace_back(L("No-brim"));
+    // BBS: The following two types are disabled
+    //def->enum_labels.emplace_back(L("Inner brim only"));
+    //def->enum_labels.emplace_back(L("Outer and inner brim"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<BrimType>(btAutoBrim));
 

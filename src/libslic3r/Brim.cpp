@@ -888,7 +888,6 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
                     double brimWidthRaw = configBrimWidthByVolumes(deltaT, adhension, maxSpeed, currentModelVolumePtr, volumeSlices.slices.front());
                     if (has_brim_auto){
                         brim_width = scale_(floor(brimWidthRaw / flowWidth / 2) * flowWidth * 2);
-                        brim_offset = 0.;
                     }
                     for (const ExPolygon& ex_poly : volumeSlices.slices.front()) {
                         // BBS: additional brim width will be added if part's adhension area is too small and brim is not generated
@@ -900,13 +899,18 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
                         else {
                             brim_width_mod = brim_width;
                         }
+                        //BBS: brim width should be limited to the 1.5*boundingboxSize of a single polygon.
+                        BoundingBox bbox2 = ex_poly.contour.bounding_box();
+                        brim_width_mod = std::min(brim_width_mod, float(std::max(bbox2.size()(0), bbox2.size()(1))));
                         brim_width_mod = floor(brim_width_mod / scaled_flow_width / 2) * scaled_flow_width * 2;
                         // After prusa 2.4 offset and shrink don't work with CW polygons (holes), so let's make it CCW.
                         Polygons ex_poly_holes_reversed = ex_poly.holes;
                         polygons_reverse(ex_poly_holes_reversed);
 
                         if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) {
-                            append(brim_area_object, diff_ex(offset_ex(ex_poly.contour, brim_width_mod + brim_offset, jtRound, SCALED_RESOLUTION), offset_ex(ex_poly.contour, brim_offset)));
+                            // BBS: inner and outer boundary are offset from the same polygon incase of round off error.
+                            auto innerExpoly = offset_ex(ex_poly.contour, brim_offset, jtRound, SCALED_RESOLUTION);
+                            append(brim_area_object, diff_ex(offset_ex(innerExpoly, brim_width_mod, jtRound, SCALED_RESOLUTION), innerExpoly));
                         }
                         if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btOuterAndInner) {
                             append(brim_area_object, diff_ex(offset_ex(ex_poly_holes_reversed, -brim_offset), offset_ex(ex_poly_holes_reversed, -brim_width - brim_offset)));
@@ -918,7 +922,7 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
                         append(holes_object, ex_poly_holes_reversed);
                     }
                 }
-                append(no_brim_area_object, offset_ex(object->layers().front()->lslices, brim_offset));
+                append(no_brim_area_object, offset_ex(object->layers().front()->lslices, brim_offset, jtRound, SCALED_RESOLUTION));
                 brimToWrite.at(object->id()).obj = false;
                 for (const PrintInstance& instance : object->instances()) {
                     if (!brim_area_object.empty())
@@ -1495,15 +1499,15 @@ Polygons tryExPolygonOffset(const ExPolygons islandAreaEx, const Print& print)
     islands_ex = islandAreaEx;
     for (ExPolygon& poly_ex : islands_ex)
         poly_ex.douglas_peucker(resolution);
-    islands_ex = offset_ex(std::move(islands_ex), -0.5f * float(flow.scaled_spacing()), jtSquare, resolution);
+    islands_ex = offset_ex(std::move(islands_ex), -0.5f * float(flow.scaled_spacing()), jtRound, resolution);
     for (size_t i = 0; !islands_ex.empty(); ++i) {
         for (ExPolygon& poly_ex : islands_ex)
             poly_ex.douglas_peucker(resolution);
         polygons_append(loops, to_polygons(islands_ex));
-        islands_ex = offset_ex(std::move(islands_ex), -1.4f*float(flow.scaled_spacing()), jtSquare, resolution);
+        islands_ex = offset_ex(std::move(islands_ex), -1.4f*float(flow.scaled_spacing()), jtRound, resolution);
         for (ExPolygon& poly_ex : islands_ex)
             poly_ex.douglas_peucker(resolution);
-        islands_ex = offset_ex(std::move(islands_ex), 0.4f*float(flow.scaled_spacing()), jtSquare, resolution);
+        islands_ex = offset_ex(std::move(islands_ex), 0.4f*float(flow.scaled_spacing()), jtRound, resolution);
     }
     return loops;
 }
