@@ -3,7 +3,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-24 10:56+0800\n"
+"POT-Creation-Date: 2022-03-24 13:32+0800\n"
 "Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -158,8 +158,7 @@ msgstr ""
 #: src/slic3r/GUI/BedShapeDialog.cpp:64 src/slic3r/GUI/ConfigWizard.cpp:279
 #: src/slic3r/GUI/ConfigWizard.cpp:1346 src/slic3r/GUI/ConfigWizard.cpp:1360
 #: src/slic3r/GUI/GCodeViewer.cpp:3893 src/slic3r/GUI/GCodeViewer.cpp:3899
-#: src/slic3r/GUI/GCodeViewer.cpp:3907
-#: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:202
+#: src/slic3r/GUI/GCodeViewer.cpp:3907 src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:202
 #: src/slic3r/GUI/Gizmos/GizmoObjectManipulation.cpp:51
 #: src/slic3r/GUI/Gizmos/GizmoObjectManipulation.cpp:67
 #: src/slic3r/GUI/GUI_ObjectLayers.cpp:145
@@ -167,30 +166,29 @@ msgstr ""
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:408
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:476
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:477
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:149
-#: src/libslic3r/PrintConfig.cpp:256 src/libslic3r/PrintConfig.cpp:265
-#: src/libslic3r/PrintConfig.cpp:272 src/libslic3r/PrintConfig.cpp:375
-#: src/libslic3r/PrintConfig.cpp:453 src/libslic3r/PrintConfig.cpp:482
-#: src/libslic3r/PrintConfig.cpp:706 src/libslic3r/PrintConfig.cpp:716
-#: src/libslic3r/PrintConfig.cpp:724 src/libslic3r/PrintConfig.cpp:743
-#: src/libslic3r/PrintConfig.cpp:832 src/libslic3r/PrintConfig.cpp:1066
-#: src/libslic3r/PrintConfig.cpp:1075 src/libslic3r/PrintConfig.cpp:1335
-#: src/libslic3r/PrintConfig.cpp:1501 src/libslic3r/PrintConfig.cpp:1571
-#: src/libslic3r/PrintConfig.cpp:1587 src/libslic3r/PrintConfig.cpp:1683
-#: src/libslic3r/PrintConfig.cpp:1692 src/libslic3r/PrintConfig.cpp:1711
-#: src/libslic3r/PrintConfig.cpp:1731 src/libslic3r/PrintConfig.cpp:1739
-#: src/libslic3r/PrintConfig.cpp:1761 src/libslic3r/PrintConfig.cpp:1771
-#: src/libslic3r/PrintConfig.cpp:1780 src/libslic3r/PrintConfig.cpp:1788
-#: src/libslic3r/PrintConfig.cpp:1796 src/libslic3r/PrintConfig.cpp:1833
-#: src/libslic3r/PrintConfig.cpp:2012 src/libslic3r/PrintConfig.cpp:2093
-#: src/libslic3r/PrintConfig.cpp:2113 src/libslic3r/PrintConfig.cpp:2225
-#: src/libslic3r/PrintConfig.cpp:2234 src/libslic3r/PrintConfig.cpp:2244
-#: src/libslic3r/PrintConfig.cpp:2304 src/libslic3r/PrintConfig.cpp:2373
-#: src/libslic3r/PrintConfig.cpp:2385 src/libslic3r/PrintConfig.cpp:2411
-#: src/libslic3r/PrintConfig.cpp:2503 src/libslic3r/PrintConfig.cpp:2535
-#: src/libslic3r/PrintConfig.cpp:2593 src/libslic3r/PrintConfig.cpp:2641
-#: src/libslic3r/PrintConfig.cpp:2651 src/libslic3r/PrintConfig.cpp:3221
-#: src/libslic3r/PrintConfig.cpp:3362
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:149 src/libslic3r/PrintConfig.cpp:256
+#: src/libslic3r/PrintConfig.cpp:265 src/libslic3r/PrintConfig.cpp:272
+#: src/libslic3r/PrintConfig.cpp:375 src/libslic3r/PrintConfig.cpp:453
+#: src/libslic3r/PrintConfig.cpp:482 src/libslic3r/PrintConfig.cpp:706
+#: src/libslic3r/PrintConfig.cpp:716 src/libslic3r/PrintConfig.cpp:724
+#: src/libslic3r/PrintConfig.cpp:743 src/libslic3r/PrintConfig.cpp:832
+#: src/libslic3r/PrintConfig.cpp:1066 src/libslic3r/PrintConfig.cpp:1075
+#: src/libslic3r/PrintConfig.cpp:1335 src/libslic3r/PrintConfig.cpp:1501
+#: src/libslic3r/PrintConfig.cpp:1571 src/libslic3r/PrintConfig.cpp:1587
+#: src/libslic3r/PrintConfig.cpp:1683 src/libslic3r/PrintConfig.cpp:1692
+#: src/libslic3r/PrintConfig.cpp:1711 src/libslic3r/PrintConfig.cpp:1731
+#: src/libslic3r/PrintConfig.cpp:1739 src/libslic3r/PrintConfig.cpp:1761
+#: src/libslic3r/PrintConfig.cpp:1771 src/libslic3r/PrintConfig.cpp:1780
+#: src/libslic3r/PrintConfig.cpp:1788 src/libslic3r/PrintConfig.cpp:1796
+#: src/libslic3r/PrintConfig.cpp:1833 src/libslic3r/PrintConfig.cpp:2012
+#: src/libslic3r/PrintConfig.cpp:2093 src/libslic3r/PrintConfig.cpp:2113
+#: src/libslic3r/PrintConfig.cpp:2225 src/libslic3r/PrintConfig.cpp:2234
+#: src/libslic3r/PrintConfig.cpp:2244 src/libslic3r/PrintConfig.cpp:2304
+#: src/libslic3r/PrintConfig.cpp:2373 src/libslic3r/PrintConfig.cpp:2385
+#: src/libslic3r/PrintConfig.cpp:2411 src/libslic3r/PrintConfig.cpp:2503
+#: src/libslic3r/PrintConfig.cpp:2535 src/libslic3r/PrintConfig.cpp:2593
+#: src/libslic3r/PrintConfig.cpp:2641 src/libslic3r/PrintConfig.cpp:2651
+#: src/libslic3r/PrintConfig.cpp:3221 src/libslic3r/PrintConfig.cpp:3362
 msgid "mm"
 msgstr "mm"
 
@@ -397,7 +395,7 @@ msgid "Standard"
 msgstr "Standard"
 
 #: src/slic3r/GUI/ConfigWizard.cpp:348 src/slic3r/GUI/ConfigWizard.cpp:670
-#: src/slic3r/GUI/Tab.cpp:4370 src/slic3r/GUI/UnsavedChangesDialog.cpp:1230
+#: src/slic3r/GUI/Tab.cpp:4370 src/slic3r/GUI/UnsavedChangesDialog.cpp:1223
 msgid "All"
 msgstr "Tous"
 
@@ -749,8 +747,7 @@ msgstr "&Fin"
 #: src/slic3r/GUI/ConfigWizard.cpp:2674 src/slic3r/GUI/Plater.cpp:6354
 #: src/slic3r/GUI/ProgressStatusBar.cpp:26
 #: src/slic3r/GUI/SavePresetDialog.cpp:326
-#: src/slic3r/GUI/SendSystemInfoDialog.cpp:97
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:945
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:938
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -1195,8 +1192,8 @@ msgid "parameter name"
 msgstr "nom du paramètre"
 
 #: src/slic3r/GUI/Field.cpp:218 src/slic3r/GUI/OptionsGroup.cpp:899
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1143
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1155
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1136
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1148
 msgid "N/A"
 msgstr "N/A"
 
@@ -1912,7 +1909,6 @@ msgstr "Ignore les facettes opposées à la caméra."
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSimplify.cpp:317
 #: src/slic3r/GUI/Mouse3DController.cpp:543
-#: src/slic3r/GUI/SendSystemInfoDialog.cpp:126
 msgid "Close"
 msgstr "Fermer"
 
@@ -2288,7 +2284,7 @@ msgstr ""
 msgid "Select the language"
 msgstr "Sélectionner la langue"
 
-#: src/slic3r/GUI/GUI_App.cpp:2329 src/slic3r/GUI/Preferences.cpp:441
+#: src/slic3r/GUI/GUI_App.cpp:2329 src/slic3r/GUI/Preferences.cpp:440
 msgid "Language"
 msgstr "Langue"
 
@@ -3265,7 +3261,7 @@ msgid "Show/Hide object/instance labels"
 msgstr "Afficher/Masquer les labels de l'objet/instance"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:121
-#: src/slic3r/GUI/KBShortcutsDialog.cpp:123 src/slic3r/GUI/Preferences.cpp:245
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:123 src/slic3r/GUI/Preferences.cpp:244
 msgid "Preferences"
 msgstr "Préférences"
 
@@ -3708,7 +3704,7 @@ msgstr ""
 msgid "Monitor"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:653 src/slic3r/GUI/Preferences.cpp:314
+#: src/slic3r/GUI/MainFrame.cpp:653 src/slic3r/GUI/Preferences.cpp:313
 msgid "Debug"
 msgstr ""
 
@@ -4392,8 +4388,7 @@ msgstr "Zone"
 
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:273
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:515
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:731
-#: src/libslic3r/PrintConfig.cpp:694
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:731 src/libslic3r/PrintConfig.cpp:694
 msgid "default"
 msgstr "défaut"
 
@@ -4754,7 +4749,7 @@ msgstr "Tous les objets seront supprimés, continuer ?"
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:6685 src/slic3r/GUI/UnsavedChangesDialog.cpp:940
+#: src/slic3r/GUI/Plater.cpp:6685 src/slic3r/GUI/UnsavedChangesDialog.cpp:933
 msgid "Save"
 msgstr "Enregistrer"
 
@@ -4870,150 +4865,156 @@ msgid "Custom supports, seams and color painting were removed after repairing."
 msgstr ""
 
 #: src/slic3r/GUI/Preferences.cpp:94
-msgid "Changing of an application language"
-msgstr "Changer la langue d'une application"
+msgid "Changing application language"
+msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:290
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1511
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1907
+#: src/slic3r/GUI/Preferences.cpp:289
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1504
 msgid "General"
 msgstr "Général"
 
-#: src/slic3r/GUI/Preferences.cpp:296
+#: src/slic3r/GUI/Preferences.cpp:295
 msgid "GUI"
 msgstr "GUI"
 
-#: src/slic3r/GUI/Preferences.cpp:302
+#: src/slic3r/GUI/Preferences.cpp:301
 msgid "Sync"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:308
+#: src/slic3r/GUI/Preferences.cpp:307
 msgid "Shortcuts"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:430
+#: src/slic3r/GUI/Preferences.cpp:429
 msgid "General settings"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:446
+#: src/slic3r/GUI/Preferences.cpp:444
 msgid "Currency"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:448
-msgid "Associate files to BambuSlicer"
+#: src/slic3r/GUI/Preferences.cpp:446
+msgid "Associate files to BambuStudio"
+msgstr ""
+
+#: src/slic3r/GUI/Preferences.cpp:449
+msgid "Associate .3mf files to BambuStudio"
+msgstr ""
+
+#: src/slic3r/GUI/Preferences.cpp:450
+msgid "If enabled, sets BambuStudio as default application to open .3mf files"
 msgstr ""
 
 #: src/slic3r/GUI/Preferences.cpp:451
-msgid "Associate .3mf files to BambuSlicer"
+msgid "Associate .stl files to BambuStudio"
 msgstr ""
 
 #: src/slic3r/GUI/Preferences.cpp:452
-msgid "If enabled, sets BambuSlicer as default application to open .3mf files."
+msgid "If enabled, sets BambuStudio as default application to open .stl files"
 msgstr ""
 
 #: src/slic3r/GUI/Preferences.cpp:453
-msgid "Associate .stl files to BambuSlicer"
+msgid "Associate .step files to BambuStudio"
 msgstr ""
 
 #: src/slic3r/GUI/Preferences.cpp:454
-msgid "If enabled, sets BambuSlicer as default application to open .stl files."
+msgid "If enabled, sets BambuStudio as default application to open .step files"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:455
-msgid "Associate .step files to BambuSlicer"
+#: src/slic3r/GUI/Preferences.cpp:474
+msgid "Home page and Daily Tips"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:456
-msgid ""
-"If enabled, sets BambuSlicer as default application to open .step files."
-msgstr ""
-
-#: src/slic3r/GUI/Preferences.cpp:476
-msgid "home page and Tip"
-msgstr ""
-
-#: src/slic3r/GUI/Preferences.cpp:477
+#: src/slic3r/GUI/Preferences.cpp:475
 msgid "Show home page on startup"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:478
+#: src/slic3r/GUI/Preferences.cpp:476
 msgid "Show daily tip on startup"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:494
+#: src/slic3r/GUI/Preferences.cpp:492
 msgid "Sync settings"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:495
+#: src/slic3r/GUI/Preferences.cpp:493
 msgid "User sync"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:496
+#: src/slic3r/GUI/Preferences.cpp:494
 msgid "Preset sync"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:497
+#: src/slic3r/GUI/Preferences.cpp:495
 msgid "Preferences sync"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:514
+#: src/slic3r/GUI/Preferences.cpp:512
 msgid "View control settings"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:521
+#: src/slic3r/GUI/Preferences.cpp:519
 msgid "Rotate of view"
 msgstr ""
 
+#: src/slic3r/GUI/Preferences.cpp:521
+msgid "Move of view"
+msgstr ""
+
+#: src/slic3r/GUI/Preferences.cpp:522
+msgid "Zoom of view"
+msgstr ""
+
 #: src/slic3r/GUI/Preferences.cpp:523
-msgid "move_view"
+msgid "Precise of control"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:524
-msgid "zoom_view"
-msgstr ""
-
-#: src/slic3r/GUI/Preferences.cpp:525
-msgid "precise_control"
-msgstr ""
-
-#: src/slic3r/GUI/Preferences.cpp:528
+#: src/slic3r/GUI/Preferences.cpp:526
 msgid "Other"
 msgstr "Autre"
 
-#: src/slic3r/GUI/Preferences.cpp:529
+#: src/slic3r/GUI/Preferences.cpp:527
 msgid "Mouse wheel reverses when zooming"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:554 src/slic3r/GUI/Preferences.cpp:555
-msgid "develop mode"
+#: src/slic3r/GUI/Preferences.cpp:552 src/slic3r/GUI/Preferences.cpp:553
+msgid "Develop mode"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:556
-msgid "dump video"
+#: src/slic3r/GUI/Preferences.cpp:554
+msgid "Dump video"
+msgstr ""
+
+#: src/slic3r/GUI/Preferences.cpp:555
+msgid "Backup interval"
 msgstr ""
 
 #: src/slic3r/GUI/Preferences.cpp:557
-msgid "backup interval"
-msgstr ""
-
-#: src/slic3r/GUI/Preferences.cpp:557
-msgid "backup_interval"
-msgstr ""
-
-#: src/slic3r/GUI/Preferences.cpp:559
 msgid "DEV host: api-dev.bambu-lab.com/v1"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:560
+#: src/slic3r/GUI/Preferences.cpp:558
 msgid "QA  host: api-qa.bambu-lab.com/v1"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:561
+#: src/slic3r/GUI/Preferences.cpp:559
 msgid "PRE host: api-pre.bambu-lab.com/v1"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:627
-msgid "swith cloud environment, please log in again!"
+#: src/slic3r/GUI/Preferences.cpp:571
+msgid "debug save button"
+msgstr ""
+
+#: src/slic3r/GUI/Preferences.cpp:574
+msgid "save debug settings"
+msgstr ""
+
+#: src/slic3r/GUI/Preferences.cpp:574
+msgid "DEBUG settings have saved successfully!"
+msgstr ""
+
+#: src/slic3r/GUI/Preferences.cpp:625
+msgid "Swith cloud environment, Please login again!"
 msgstr ""
 
 #: src/slic3r/GUI/PresetComboBoxes.cpp:269
@@ -5169,92 +5170,6 @@ msgstr ""
 msgid "Simply switch to \"%1%\""
 msgstr ""
 
-#: src/slic3r/GUI/Search.cpp:79 src/slic3r/GUI/Search.cpp:316
-#: src/slic3r/GUI/Tab.cpp:2952
-msgid "Stealth"
-msgstr "Mode silencieux"
-
-#: src/slic3r/GUI/Search.cpp:79 src/slic3r/GUI/Search.cpp:316
-#: src/slic3r/GUI/Tab.cpp:2946
-msgid "Normal"
-msgstr "Normal"
-
-#: src/slic3r/GUI/SendSystemInfoDialog.cpp:118
-msgid "Data to send"
-msgstr "Données à envoyer"
-
-#: src/slic3r/GUI/SendSystemInfoDialog.cpp:558
-#: src/slic3r/GUI/SendSystemInfoDialog.cpp:633
-msgid "Send system info"
-msgstr "Envoyer les informations système"
-
-#: src/slic3r/GUI/SendSystemInfoDialog.cpp:596
-#, boost-format
-msgid ""
-"This is the first time you are running %1%. We would like to ask you to send "
-"some of your system information to us. This will only happen once and we "
-"will not ask you to do this again (only after you upgrade to the next "
-"version)."
-msgstr ""
-"C'est la première fois que vous exécutez %1%. Nous aimerions vous demander "
-"de nous envoyer certaines de vos informations système. Cela n'arrivera "
-"qu'une seule fois et nous ne vous demanderons pas de recommencer (uniquement "
-"après la mise à niveau vers la version suivante)."
-
-#: src/slic3r/GUI/SendSystemInfoDialog.cpp:600
-msgid ""
-"If we know your hardware, operating system, etc., it will greatly help us in "
-"development and prioritization, because we will be able to focus our effort "
-"more efficiently and spend time on features that are needed the most."
-msgstr ""
-"Si nous connaissons votre matériel, votre système d'exploitation, etc., cela "
-"nous aidera grandement dans le développement et la priorisation, car nous "
-"pourrons concentrer nos efforts plus efficacement et passer du temps sur les "
-"fonctionnalités les plus nécessaires."
-
-#: src/slic3r/GUI/SendSystemInfoDialog.cpp:603
-msgid "Is it safe?"
-msgstr "Is it safe?"
-
-#: src/slic3r/GUI/SendSystemInfoDialog.cpp:605
-#, boost-format
-msgid ""
-"We do not send any personal information nor anything that would allow us to "
-"identify you later. To detect duplicate entries, a unique number derived "
-"from your system is sent, but the source information cannot be "
-"reconstructed. Apart from that, only general data about your OS, hardware "
-"and OpenGL installation are sent. BambuStudio is open source, if you want to "
-"inspect the code actually performing the communication, see %1%."
-msgstr ""
-
-#: src/slic3r/GUI/SendSystemInfoDialog.cpp:629
-msgid "Show verbatim data that will be sent"
-msgstr "Afficher les données textuelles qui seront envoyées"
-
-#: src/slic3r/GUI/SendSystemInfoDialog.cpp:631
-msgid "Ask me next time"
-msgstr "Me demander la prochaine fois"
-
-#: src/slic3r/GUI/SendSystemInfoDialog.cpp:632
-msgid "Do not send anything"
-msgstr "Ne rien envoyer"
-
-#: src/slic3r/GUI/SendSystemInfoDialog.cpp:718
-msgid "System info sent successfully. Thank you."
-msgstr "Informations système envoyées avec succès. Merci."
-
-#: src/slic3r/GUI/SendSystemInfoDialog.cpp:721
-msgid "Sending system info failed!"
-msgstr "L'envoi des informations système a échoué !"
-
-#: src/slic3r/GUI/SendSystemInfoDialog.cpp:728
-msgid "Sending system info was cancelled."
-msgstr "L'envoi des informations système a été annulé."
-
-#: src/slic3r/GUI/SendSystemInfoDialog.cpp:735
-msgid "Sending system info..."
-msgstr "Envoi des informations système..."
-
 #: src/slic3r/GUI/SysInfoDialog.cpp:84
 msgid "System Information"
 msgstr "Informations sur le Système"
@@ -5264,8 +5179,8 @@ msgid "Blacklisted libraries loaded into BambuStudio process:"
 msgstr ""
 
 #: src/slic3r/GUI/SysInfoDialog.cpp:162
-msgid "Eigen vectorization supported:"
-msgstr "Vectorisation d'Eigen prise en charge :"
+msgid "Feature vectorization is supported:"
+msgstr ""
 
 #: src/slic3r/GUI/SysInfoDialog.cpp:169
 msgid "Copy to Clipboard"
@@ -5467,6 +5382,14 @@ msgstr ""
 msgid "Motion ability"
 msgstr ""
 
+#: src/slic3r/GUI/Tab.cpp:2946
+msgid "Normal"
+msgstr "Normal"
+
+#: src/slic3r/GUI/Tab.cpp:2952
+msgid "Stealth"
+msgstr "Mode silencieux"
+
 #: src/slic3r/GUI/Tab.cpp:2965
 msgid "Speed limitation"
 msgstr ""
@@ -5534,11 +5457,11 @@ msgstr ""
 
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:154
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:163
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1123
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1176
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1191
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1206
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1221
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1116
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1169
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1184
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1199
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1214
 msgid "Undef"
 msgstr "Undef"
 
@@ -5550,154 +5473,99 @@ msgstr "Modifications non enregistrées"
 msgid "Switching Presets: Unsaved Changes"
 msgstr "Changement de préréglages : modifications non enregistrées"
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:841
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:834
 msgid "Old Value"
 msgstr "Ancienne valeur"
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:842
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:835
 msgid "New Value"
 msgstr "Nouvelle Valeur"
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:928
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:931
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:921
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:924
 msgid "Keep"
 msgstr "Conserver"
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:928
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:921
 msgid "Transfer"
 msgstr "Transférer"
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:935
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:928
 msgid "Don't save"
 msgstr "Ne pas enregistrer"
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:935
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:928
 msgid "Discard"
 msgstr "Ignorer"
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:998
-msgid ""
-"Some fields are too long to fit. Right mouse click reveals the full text."
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:991
+msgid "Click the right mouse button to display the full text."
 msgstr ""
-"Certains champs sont trop longs pour s'afficher. Un clic droit de la souris "
-"révèle le texte intégral."
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1000
-msgid "All settings changes will not be saved"
-msgstr "Toutes les modifications de paramètres ne seront pas enregistrées"
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:993
+msgid "All changes will not be saved"
+msgstr ""
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1000
-msgid "All settings changes will be discarded."
-msgstr "Tous les changements de réglages seront perdus."
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:993
+msgid "All changes will be discarded."
+msgstr ""
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1003
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:996
 msgid "Save the selected options."
 msgstr "Enregistrer les options sélectionnées."
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1004
-msgid "Keep the selected settings."
-msgstr "Conserver les paramètres sélectionnés."
-
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1005
-msgid "Transfer the selected settings to the newly selected preset."
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:997
+msgid "Keep the selected options."
 msgstr ""
-"Transférez les réglages sélectionnés vers le nouveau préréglage sélectionné."
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1009
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:998
+msgid "Transfer the selected options to the newly selected preset."
+msgstr ""
+
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1002
 #, boost-format
 msgid "Save the selected options to preset \"%1%\"."
 msgstr "Enregistrer les options sélectionnées dans le préréglage \"%1%\"."
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1010
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1003
 #, boost-format
 msgid "Transfer the selected options to the newly selected preset \"%1%\"."
 msgstr ""
 "Transférer les options sélectionnées vers le nouveau préréglage \"%1%\"."
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1300
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1293
 msgid "The following preset was modified"
 msgid_plural "The following presets were modified"
 msgstr[0] "Le préréglage suivant a été modifié"
 msgstr[1] "Les préréglages suivants ont été modifiés"
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1306
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1299
 #, boost-format
-msgid "Preset \"%1%\" has the following unsaved changes:"
+msgid "Preset \"%1%\" contains the following unsaved changes:"
 msgstr ""
-"Le préréglage \"%1%\" comporte les modifications non enregistrées suivantes :"
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1310
-#, boost-format
-msgid ""
-"Preset \"%1%\" is not compatible with the new printer profile and it has the "
-"following unsaved changes:"
-msgstr ""
-"Le préréglage \"%1%\" n’est pas compatible avec le nouveau profil "
-"d’imprimante et comporte les modifications non enregistrées suivantes :"
-
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1311
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1303
 #, boost-format
 msgid ""
-"Preset \"%1%\" is not compatible with the new print profile and it has the "
-"following unsaved changes:"
+"Preset \"%1%\" is not compatible with the new printer profile and it "
+"contains the following unsaved changes:"
 msgstr ""
-"Le préréglage \"%1%\" n’est pas compatible avec le nouveau profil "
-"d’impression et comporte les modifications non enregistrées suivantes :"
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1503
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1903
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1304
+#, boost-format
+msgid ""
+"Preset \"%1%\" is not compatible with the new print profile and it contains "
+"the following unsaved changes:"
+msgstr ""
+
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1496
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1900
 msgid "Extruders count"
 msgstr "Nombre d'extrudeurs"
 
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1511
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1907
+#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1504
 msgid "Capabilities"
 msgstr "Fonctionnalités"
-
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1737
-msgid "Show all presets (including incompatible)"
-msgstr "Afficher tous les préréglages (y compris incompatibles)"
-
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1752
-msgid "Left Preset Value"
-msgstr "Valeur du Préréglage gauche"
-
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1753
-msgid "Right Preset Value"
-msgstr "Valeur du Préréglage droit"
-
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1798
-msgid "Compare Presets"
-msgstr "Comparer les préréglages"
-
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1860
-msgid "One of the presets doesn't found"
-msgstr "L'un des préréglages est introuvable"
-
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1871
-msgid "Compared presets has different printer technology"
-msgstr "Les préréglages comparés ont une technologie d'imprimante différente"
-
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1885
-msgid "Presets are the same"
-msgstr "Les préréglages sont les mêmes"
-
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1893
-msgid ""
-"Presets are different.\n"
-"Click this button to select the same preset for the right and left preset."
-msgstr ""
-"Les préréglages sont différents.\n"
-"Cliquez sur ce bouton pour sélectionner le même préréglage pour les "
-"préréglages droit et gauche."
-
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1917
-msgid "Undef category"
-msgstr "Catégorie non définie"
-
-#: src/slic3r/GUI/UnsavedChangesDialog.cpp:1917
-msgid "Undef group"
-msgstr "Groupe non défini"
 
 #: src/slic3r/GUI/UpdateDialogs.cpp:37
 #, c-format, boost-format
@@ -8485,6 +8353,143 @@ msgstr ""
 #: src/libslic3r/PrintObjectSlice.cpp:536
 msgid "Slicing mesh"
 msgstr ""
+
+#~ msgid ""
+#~ "Some fields are too long to fit. Right mouse click reveals the full text."
+#~ msgstr ""
+#~ "Certains champs sont trop longs pour s'afficher. Un clic droit de la "
+#~ "souris révèle le texte intégral."
+
+#~ msgid "All settings changes will not be saved"
+#~ msgstr "Toutes les modifications de paramètres ne seront pas enregistrées"
+
+#~ msgid "All settings changes will be discarded."
+#~ msgstr "Tous les changements de réglages seront perdus."
+
+#~ msgid "Keep the selected settings."
+#~ msgstr "Conserver les paramètres sélectionnés."
+
+#~ msgid "Transfer the selected settings to the newly selected preset."
+#~ msgstr ""
+#~ "Transférez les réglages sélectionnés vers le nouveau préréglage "
+#~ "sélectionné."
+
+#, boost-format
+#~ msgid "Preset \"%1%\" has the following unsaved changes:"
+#~ msgstr ""
+#~ "Le préréglage \"%1%\" comporte les modifications non enregistrées "
+#~ "suivantes :"
+
+#, boost-format
+#~ msgid ""
+#~ "Preset \"%1%\" is not compatible with the new printer profile and it has "
+#~ "the following unsaved changes:"
+#~ msgstr ""
+#~ "Le préréglage \"%1%\" n’est pas compatible avec le nouveau profil "
+#~ "d’imprimante et comporte les modifications non enregistrées suivantes :"
+
+#, boost-format
+#~ msgid ""
+#~ "Preset \"%1%\" is not compatible with the new print profile and it has "
+#~ "the following unsaved changes:"
+#~ msgstr ""
+#~ "Le préréglage \"%1%\" n’est pas compatible avec le nouveau profil "
+#~ "d’impression et comporte les modifications non enregistrées suivantes :"
+
+#~ msgid "Show all presets (including incompatible)"
+#~ msgstr "Afficher tous les préréglages (y compris incompatibles)"
+
+#~ msgid "Left Preset Value"
+#~ msgstr "Valeur du Préréglage gauche"
+
+#~ msgid "Right Preset Value"
+#~ msgstr "Valeur du Préréglage droit"
+
+#~ msgid "Compare Presets"
+#~ msgstr "Comparer les préréglages"
+
+#~ msgid "One of the presets doesn't found"
+#~ msgstr "L'un des préréglages est introuvable"
+
+#~ msgid "Compared presets has different printer technology"
+#~ msgstr ""
+#~ "Les préréglages comparés ont une technologie d'imprimante différente"
+
+#~ msgid "Presets are the same"
+#~ msgstr "Les préréglages sont les mêmes"
+
+#~ msgid ""
+#~ "Presets are different.\n"
+#~ "Click this button to select the same preset for the right and left preset."
+#~ msgstr ""
+#~ "Les préréglages sont différents.\n"
+#~ "Cliquez sur ce bouton pour sélectionner le même préréglage pour les "
+#~ "préréglages droit et gauche."
+
+#~ msgid "Undef category"
+#~ msgstr "Catégorie non définie"
+
+#~ msgid "Undef group"
+#~ msgstr "Groupe non défini"
+
+#~ msgid "Eigen vectorization supported:"
+#~ msgstr "Vectorisation d'Eigen prise en charge :"
+
+#~ msgid "Data to send"
+#~ msgstr "Données à envoyer"
+
+#~ msgid "Send system info"
+#~ msgstr "Envoyer les informations système"
+
+#, boost-format
+#~ msgid ""
+#~ "This is the first time you are running %1%. We would like to ask you to "
+#~ "send some of your system information to us. This will only happen once "
+#~ "and we will not ask you to do this again (only after you upgrade to the "
+#~ "next version)."
+#~ msgstr ""
+#~ "C'est la première fois que vous exécutez %1%. Nous aimerions vous "
+#~ "demander de nous envoyer certaines de vos informations système. Cela "
+#~ "n'arrivera qu'une seule fois et nous ne vous demanderons pas de "
+#~ "recommencer (uniquement après la mise à niveau vers la version suivante)."
+
+#~ msgid ""
+#~ "If we know your hardware, operating system, etc., it will greatly help us "
+#~ "in development and prioritization, because we will be able to focus our "
+#~ "effort more efficiently and spend time on features that are needed the "
+#~ "most."
+#~ msgstr ""
+#~ "Si nous connaissons votre matériel, votre système d'exploitation, etc., "
+#~ "cela nous aidera grandement dans le développement et la priorisation, car "
+#~ "nous pourrons concentrer nos efforts plus efficacement et passer du temps "
+#~ "sur les fonctionnalités les plus nécessaires."
+
+#~ msgid "Is it safe?"
+#~ msgstr "Is it safe?"
+
+#~ msgid "Show verbatim data that will be sent"
+#~ msgstr "Afficher les données textuelles qui seront envoyées"
+
+#~ msgid "Ask me next time"
+#~ msgstr "Me demander la prochaine fois"
+
+#~ msgid "Do not send anything"
+#~ msgstr "Ne rien envoyer"
+
+#~ msgid "System info sent successfully. Thank you."
+#~ msgstr "Informations système envoyées avec succès. Merci."
+
+#~ msgid "Sending system info failed!"
+#~ msgstr "L'envoi des informations système a échoué !"
+
+#~ msgid "Sending system info was cancelled."
+#~ msgstr "L'envoi des informations système a été annulé."
+
+#~ msgid "Sending system info..."
+#~ msgstr "Envoi des informations système..."
+
+#~ msgid "Changing of an application language"
+#~ msgstr "Changer la langue d'une application"
 
 #~ msgid "Bed filling canceled."
 #~ msgstr "Remplissage du plateau annulé."
@@ -12023,8 +12028,8 @@ msgstr ""
 #~ msgstr "Données avancées détectées"
 
 #~ msgid ""
-#~ "You can't to add the object(s) from %s because of one or some of them is"
-#~ "(are) multi-part"
+#~ "You can't to add the object(s) from %s because of one or some of them "
+#~ "is(are) multi-part"
 #~ msgstr ""
 #~ "Vous ne pouvez pas ajouter l'objet (les objets) depuis %s car l'un "
 #~ "d'entre eux est en plusieurs parties"
@@ -14767,8 +14772,8 @@ msgstr ""
 #~ "default extruder and bed temperature are reset using non-wait command; "
 #~ "however if M104, M109, M140 or M190 are detected in this custom code, "
 #~ "Slic3r will not add temperature commands. Note that you can use "
-#~ "placeholder variables for all Slic3r settings, so you can put a \"M109 S"
-#~ "[first_layer_temperature]\" command wherever you want."
+#~ "placeholder variables for all Slic3r settings, so you can put a \"M109 "
+#~ "S[first_layer_temperature]\" command wherever you want."
 #~ msgstr ""
 #~ "Ce code est inséré entre des objets lorsque vous utilisez l'impression "
 #~ "séquentielle. Par défaut la température de l'extrudeur et du plateau est "
@@ -14776,8 +14781,8 @@ msgstr ""
 #~ "commandes M104, M109, M140 ou M190 sont détectées dans ce code "
 #~ "personnalisé, Slic3r n'ajoutera pas de commandes de température. Notez "
 #~ "que vous pouvez utiliser des variables génériques pour tous les réglages "
-#~ "de Slic3r, donc vous pouvez entrer une commande \"M109S"
-#~ "[first_layer_temperature]\" où vous le souhaitez."
+#~ "de Slic3r, donc vous pouvez entrer une commande "
+#~ "\"M109S[first_layer_temperature]\" où vous le souhaitez."
 
 #~ msgid ""
 #~ "The number of bottom solid layers is increased above bottom_solid_layers "
@@ -15487,8 +15492,8 @@ msgstr ""
 #~ msgid ""
 #~ "This experimental setting uses outputs the E values in cubic millimeters "
 #~ "instead of linear millimeters. If your firmware doesn't already know "
-#~ "filament diameter(s), you can put commands like 'M200 D"
-#~ "[filament_diameter_0] T0' in your start G-code in order to turn "
+#~ "filament diameter(s), you can put commands like 'M200 "
+#~ "D[filament_diameter_0] T0' in your start G-code in order to turn "
 #~ "volumetric mode on and use the filament diameter associated to the "
 #~ "filament selected in Slic3r. This is only supported in recent Marlin."
 #~ msgstr ""
@@ -17111,8 +17116,8 @@ msgstr ""
 #~ "This custom code is inserted before every toolchange. Placeholder "
 #~ "variables for all PrusaSlicer settings as well as {toolchange_z}, "
 #~ "{previous_extruder} and {next_extruder} can be used. When a tool-changing "
-#~ "command which changes to the correct extruder is included (such as T"
-#~ "{next_extruder}), PrusaSlicer will emit no other such command. It is "
+#~ "command which changes to the correct extruder is included (such as "
+#~ "T{next_extruder}), PrusaSlicer will emit no other such command. It is "
 #~ "therefore possible to script custom behaviour both before and after the "
 #~ "toolchange."
 #~ msgstr ""

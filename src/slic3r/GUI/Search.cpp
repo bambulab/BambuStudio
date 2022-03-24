@@ -76,7 +76,8 @@ void OptionsSearcher::append_options(DynamicPrintConfig *config, Preset::Type ty
         wxString suffix;
         wxString suffix_local;
         if (gc.category == "Machine limits") {
-            suffix       = key.back() == '1' ? L("Stealth") : L("Normal");
+            //suffix       = key.back() == '1' ? L("Stealth") : L("Normal");
+            suffix       = key.back() == '1' ? wxEmptyString : wxEmptyString;
             suffix_local = " " + _(suffix);
             suffix       = " " + suffix;
         }
@@ -313,7 +314,8 @@ static Option create_option(const std::string &opt_key, const wxString &label, P
     wxString suffix;
     wxString suffix_local;
     if (gc.category == "Machine limits") {
-        suffix       = opt_key.back() == '1' ? L("Stealth") : L("Normal");
+        //suffix       = opt_key.back() == '1' ? L("Stealth") : L("Normal");
+        suffix       = opt_key.back() == '1' ? wxEmptyString : wxEmptyString;
         suffix_local = " " + _(suffix);
         suffix       = " " + suffix;
     }

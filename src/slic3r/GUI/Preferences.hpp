@@ -109,7 +109,7 @@ public:
     wxWindow *create_item_input(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
     wxWindow *create_item_multiple_combobox(
         wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string parama, std::vector<wxString> vlista, std::vector<wxString> vlistb);
-    wxWindow *create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, int groupid, wxString param);
+    wxWindow *create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, int groupid, std::string param);
 
     void create_select_tabel(const wxString &title, int id, int topleft, wxPanel *panel);
 
@@ -120,7 +120,7 @@ public:
     void create_debug_page();
 
     void on_select(int index);
-    void on_select_radio(wxString param);
+    void on_select_radio(std::string param);
 	wxString get_select_radio(int groupid);
     // BBS
 	void create_select_domain_widget();

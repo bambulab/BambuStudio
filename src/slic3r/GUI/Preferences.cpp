@@ -44,7 +44,7 @@ wxWindow *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pare
     wxStaticText *text = new wxStaticText(item, wxID_ANY, title, wxDefaultPosition, wxDefaultSize);
     text->SetPosition(wxPoint(padding_left, (item->GetSize().GetHeight() - text->GetSize().GetHeight()) / 2));
 
-    auto                            combobox = new ::ComboBox(item, wxID_ANY, wxString(""), wxDefaultPosition, wxSize(150, 24), 0, nullptr, wxCB_READONLY);
+    auto                            combobox = new ::ComboBox(item, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(150, 24), 0, nullptr, wxCB_READONLY);
     std::vector<wxString>::iterator iter;
     for (iter = vlist.begin(); iter != vlist.end(); iter++) { combobox->Append(*iter); }
 
@@ -73,7 +73,7 @@ wxWindow *PreferencesDialog::create_item_language_combobox(
     // app_config->set("language", "zh_CN");
     // app_config->save();
     auto current_language = app_config->get(param);
-    auto combobox         = new ::ComboBox(item, wxID_ANY, wxString(""), wxDefaultPosition, wxSize(150, 24), 0, nullptr, wxCB_READONLY);
+    auto combobox         = new ::ComboBox(item, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(150, 24), 0, nullptr, wxCB_READONLY);
 
     for (size_t i = 0; i < vlist.size(); ++i) {
         combobox->Append(vlist[i]->Description);
@@ -91,7 +91,7 @@ wxWindow *PreferencesDialog::create_item_language_combobox(
 
                     wxGetApp().load_language(vlist[i]->CanonicalName, false);
                     Close();
-                    wxGetApp().recreate_GUI(_L("Changing of an application language"));
+                    wxGetApp().recreate_GUI(_L("Changing application language"));
                     break;
                 }
             }
@@ -116,7 +116,7 @@ wxWindow *PreferencesDialog::create_item_multiple_combobox(
     Split(app_config->get(param), "/", params);
 
     std::vector<wxString>::iterator iter;
-    auto                            combobox_right = new ::ComboBox(item, wxID_ANY, wxString(""), wxDefaultPosition, wxSize(140, 24), 0, nullptr, wxCB_READONLY);
+    auto                            combobox_right = new ::ComboBox(item, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(140, 24), 0, nullptr, wxCB_READONLY);
     for (iter = vlistb.begin(); iter != vlistb.end(); iter++) { combobox_right->Append(*iter); }
 
     auto pad_right = item->GetSize().GetWidth() - combobox_right->GetSize().GetWidth();
@@ -128,7 +128,7 @@ wxWindow *PreferencesDialog::create_item_multiple_combobox(
     pad_right -= plus->GetSize().GetWidth();
     plus->SetPosition(wxPoint(pad_right, (item->GetSize().GetHeight() - plus->GetSize().GetHeight()) / 2));
 
-    auto combobox_left = new ::ComboBox(item, wxID_ANY, wxString(""), wxDefaultPosition, wxSize(100, 24), 0, nullptr, wxCB_READONLY);
+    auto combobox_left = new ::ComboBox(item, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(100, 24), 0, nullptr, wxCB_READONLY);
     for (iter = vlista.begin(); iter != vlista.end(); iter++) { combobox_left->Append(*iter); }
 
     pad_right -= combobox_left->GetSize().GetWidth();
@@ -194,13 +194,12 @@ wxWindow *PreferencesDialog::create_item_input(wxString title, wxWindow *parent,
     wxStaticText *s = new wxStaticText(item, wxID_ANY, wxString("S"), wxDefaultPosition, wxDefaultSize);
     s->SetPosition(wxPoint(item->GetSize().GetWidth() - s->GetSize().GetWidth() - 5, (item->GetSize().GetHeight() - text->GetSize().GetHeight()) / 2));
 
-    auto input = new ::TextInput(item, wxString(""), wxString(""), wxString(""), wxDefaultPosition, wxSize(80, 28));
+    auto input = new ::TextInput(item, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(80, 28));
     input->GetTextCtrl()->SetValue(app_config->get(param));
     input->SetPosition(wxPoint(item->GetSize().GetWidth() - input->GetSize().GetWidth() - 20, (item->GetSize().GetHeight() - input->GetSize().GetHeight()) / 2));
 
     // save config
     input->GetTextCtrl()->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this, param, input](wxCommandEvent &e) {
-        auto a                 = input->GetTextCtrl()->GetValue();
         m_backup_interval_time = input->GetTextCtrl()->GetValue();
         e.Skip();
     });
@@ -214,7 +213,7 @@ wxWindow *PreferencesDialog::create_item_input(wxString title, wxWindow *parent,
     return item;
 }
 
-wxWindow *PreferencesDialog ::create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, int groupid, wxString param)
+wxWindow *PreferencesDialog ::create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, int groupid, std::string param)
 {
     wxWindow *item = new wxWindow(parent, wxID_ANY, wxDefaultPosition, wxSize(parent->GetSize().GetWidth() - 126, 30));
     item->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
@@ -427,7 +426,7 @@ void PreferencesDialog::create_general_page()
     wxBoxSizer *bSizer;
     bSizer = new wxBoxSizer(wxVERTICAL);
 
-    wxWindow *title_general_settings = create_item_title(L("General settings"), m_panel_general, wxString("General settings"));
+    wxWindow *title_general_settings = create_item_title(_L("General settings"), m_panel_general, _L("General settings"));
 
     wxArrayString                       translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
     std::vector<const wxLanguageInfo *> language_infos;
@@ -438,22 +437,21 @@ void PreferencesDialog::create_general_page()
     }
     sort_remove_duplicates(language_infos);
     std::sort(language_infos.begin(), language_infos.end(), [](const wxLanguageInfo *l, const wxLanguageInfo *r) { return l->Description < r->Description; });
-    wxWindow *item_language = create_item_language_combobox(L("Language"), m_panel_general, wxString("Language"), 50, "language", language_infos);
-    // wxGetApp().recreate_GUI("asdasdasdasdasd");
-    // currency_supported
+    wxWindow *item_language = create_item_language_combobox(_L("Language"), m_panel_general, _L("Language"), 50, "language", language_infos);
+
     std::vector<wxString> currency_supported;
     Split(app_config->get("currency_supported"), "/", currency_supported);
-    wxWindow *item_currency = create_item_combobox(L("Currency"), m_panel_general, wxString("Currency"), 50, "currency", currency_supported);
+    wxWindow *item_currency = create_item_combobox(_L("Currency"), m_panel_general, _L("Currency"), 50, "currency", currency_supported);
 
-    wxWindow *title_associate_file = create_item_title(L("Associate files to BambuSlicer"), m_panel_general, wxString("Associate files to BambuSlicer"));
+    wxWindow *title_associate_file = create_item_title(_L("Associate files to BambuStudio"), m_panel_general, _L("Associate files to BambuStudio"));
 
     // associate file
-    wxWindow *item_associate_3mf  = create_item_checkbox(L("Associate .3mf files to BambuSlicer"), m_panel_general,
-                                                        L("If enabled, sets BambuSlicer as default application to open .3mf files."), 50, "associate_3mf");
-    wxWindow *item_associate_stl  = create_item_checkbox(L("Associate .stl files to BambuSlicer"), m_panel_general,
-                                                        L("If enabled, sets BambuSlicer as default application to open .stl files."), 50, "associate_stl");
-    wxWindow *item_associate_step = create_item_checkbox(L("Associate .step files to BambuSlicer"), m_panel_general,
-                                                         L("If enabled, sets BambuSlicer as default application to open .step files."), 50, "associate_step");
+    wxWindow *item_associate_3mf  = create_item_checkbox(_L("Associate .3mf files to BambuStudio"), m_panel_general,
+                                                        _L("If enabled, sets BambuStudio as default application to open .3mf files"), 50, "associate_3mf");
+    wxWindow *item_associate_stl  = create_item_checkbox(_L("Associate .stl files to BambuStudio"), m_panel_general,
+                                                        _L("If enabled, sets BambuStudio as default application to open .stl files"), 50, "associate_stl");
+    wxWindow *item_associate_step = create_item_checkbox(_L("Associate .step files to BambuStudio"), m_panel_general,
+                                                         _L("If enabled, sets BambuStudio as default application to open .step files"), 50, "associate_step");
 
     bSizer->Add(title_general_settings, 0, wxTOP, 26);
     bSizer->Add(item_language, 0, wxTOP, 5);
@@ -473,9 +471,9 @@ void PreferencesDialog::create_gui_page()
     bSizer = new wxBoxSizer(wxVERTICAL);
 
     // add item to page
-    wxWindow *title_index_and_tip = create_item_title(L("home page and Tip"), m_panel_gui, wxString("home page and Tip"));
-    wxWindow *item_home_page      = create_item_checkbox(L("Show home page on startup"), m_panel_gui, wxString("Show home page on startup"), 50, "show_home_page");
-    wxWindow *item_daily_tip      = create_item_checkbox(L("Show daily tip on startup"), m_panel_gui, wxString("Show daily tip on startup"), 50, "show_daily_tips");
+    wxWindow *title_index_and_tip = create_item_title(_L("Home page and Daily Tips"), m_panel_gui, _L("Home page and Daily Tips"));
+    wxWindow *item_home_page      = create_item_checkbox(_L("Show home page on startup"), m_panel_gui, _L("Show home page on startup"), 50, "show_home_page");
+    wxWindow *item_daily_tip      = create_item_checkbox(_L("Show daily tip on startup"), m_panel_gui, _L("Show daily tip on startup"), 50, "show_daily_tips");
 
     bSizer->Add(title_index_and_tip, 0, wxTOP, 26);
     bSizer->Add(item_home_page, 0, wxTOP, 5);
@@ -491,10 +489,10 @@ void PreferencesDialog::create_sync_page()
     bSizer = new wxBoxSizer(wxVERTICAL);
 
     // add item to page
-    wxWindow *title_sync_settingy   = create_item_title(L("Sync settings"), m_panel_sync, wxString("Sync settings"));
-    wxWindow *item_user_sync        = create_item_checkbox(L("User sync"), m_panel_sync, wxString("User sync"), 50, "user_sync_switch");
-    wxWindow *item_preset_sync      = create_item_checkbox(L("Preset sync"), m_panel_sync, wxString("Preset sync"), 50, "preset_sync_switch");
-    wxWindow *item_preferences_sync = create_item_checkbox(L("Preferences sync"), m_panel_sync, wxString("Preferences sync"), 50, "preferences_sync_switch");
+    wxWindow *title_sync_settingy   = create_item_title(_L("Sync settings"), m_panel_sync, _L("Sync settings"));
+    wxWindow *item_user_sync        = create_item_checkbox(_L("User sync"), m_panel_sync, _L("User sync"), 50, "user_sync_switch");
+    wxWindow *item_preset_sync      = create_item_checkbox(_L("Preset sync"), m_panel_sync, _L("Preset sync"), 50, "preset_sync_switch");
+    wxWindow *item_preferences_sync = create_item_checkbox(_L("Preferences sync"), m_panel_sync, _L("Preferences sync"), 50, "preferences_sync_switch");
 
     bSizer->Add(title_sync_settingy, 0, wxTOP, 26);
     bSizer->Add(item_user_sync, 0, wxTOP, 5);
@@ -511,22 +509,22 @@ void PreferencesDialog::create_shortcuts_page()
     bSizer = new wxBoxSizer(wxVERTICAL);
 
     // add item to page
-    wxWindow *            title_view_control = create_item_title(L("View control settings"), m_panel_shortcuts, wxString("View control settings"));
+    wxWindow *            title_view_control = create_item_title(_L("View control settings"), m_panel_shortcuts, _L("View control settings"));
     std::vector<wxString> keyboard_supported;
     Split(app_config->get("keyboard_supported"), "/", keyboard_supported);
 
     std::vector<wxString> mouse_supported;
     Split(app_config->get("mouse_supported"), "/", mouse_supported);
 
-    wxWindow *item_rotate_view = create_item_multiple_combobox(L("Rotate of view"), m_panel_shortcuts, wxString("Rotate of view"), 10, "rotate_view", keyboard_supported,
+    wxWindow *item_rotate_view     = create_item_multiple_combobox(_L("Rotate of view"), m_panel_shortcuts, _L("Rotate of view"), 10, "rotate_view", keyboard_supported,
                                                                mouse_supported);
-    wxWindow *item_move_view   = create_item_multiple_combobox(L("move_view"), m_panel_shortcuts, wxString("move of view"), 10, "move_view", keyboard_supported, mouse_supported);
-    wxWindow *item_zoom_view = create_item_multiple_combobox(L("zoom_view"), m_panel_shortcuts, wxString("zoom of view"), 10, "rotate_view", keyboard_supported, mouse_supported);
-    wxWindow *item_precise_control = create_item_multiple_combobox(L("precise_control"), m_panel_shortcuts, wxString("precise of control"), 10, "precise_control",
+    wxWindow *item_move_view   = create_item_multiple_combobox(_L("Move of view"), m_panel_shortcuts, _L("Move of view"), 10, "move_view", keyboard_supported, mouse_supported);
+    wxWindow *item_zoom_view = create_item_multiple_combobox(_L("Zoom of view"), m_panel_shortcuts, _L("Zoom of view"), 10, "rotate_view", keyboard_supported, mouse_supported);
+    wxWindow *item_precise_control = create_item_multiple_combobox(_L("Precise of control"), m_panel_shortcuts, _L("Precise of control"), 10, "precise_control",
                                                                    keyboard_supported, mouse_supported);
 
-    wxWindow *title_other = create_item_title(L("Other"), m_panel_shortcuts, wxString("Other"));
-    wxWindow *item_other  = create_item_checkbox(L("Mouse wheel reverses when zooming"), m_panel_shortcuts, wxString("Mouse wheel reverses when zooming"), 50, "mouse_wheel");
+    wxWindow *title_other = create_item_title(_L("Other"), m_panel_shortcuts, _L("Other"));
+    wxWindow *item_other  = create_item_checkbox(_L("Mouse wheel reverses when zooming"), m_panel_shortcuts, _L("Mouse wheel reverses when zooming"), 50, "mouse_wheel");
 
     bSizer->Add(title_view_control, 0, wxTOP, 26);
     bSizer->Add(item_rotate_view, 0, wxTOP, 5);
@@ -551,29 +549,29 @@ void PreferencesDialog::create_debug_page()
     wxBoxSizer *bSizer;
     bSizer = new wxBoxSizer(wxVERTICAL);
 
-    wxWindow *title_develop_mode    = create_item_title(L("develop mode"), m_panel_debug, wxString("develop mode"));
-    wxWindow *item_develop_mode     = create_item_checkbox(L("develop mode"), m_panel_debug, L("develop mode"), 50, "developer_mode");
-    wxWindow *item_dump_video     = create_item_checkbox(L("dump video"), m_panel_debug, L("dump video"), 50, "dump_video");
-    wxWindow *item_backup_interval = create_item_input(L("backup interval"), m_panel_debug, L("backup_interval"), 50, "backup_interval");
+    wxWindow *title_develop_mode   = create_item_title(_L("Develop mode"), m_panel_debug, _L("Develop mode"));
+    wxWindow *item_develop_mode    = create_item_checkbox(_L("Develop mode"), m_panel_debug, _L("Develop mode"), 50, "developer_mode");
+    wxWindow *item_dump_video      = create_item_checkbox(_L("Dump video"), m_panel_debug, _L("Dump video"), 50, "dump_video");
+    wxWindow *item_backup_interval = create_item_input(_L("Backup interval"), m_panel_debug, _L("Backup interval"), 50, "backup_interval");
 
-    auto radio1 = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), m_panel_debug, "", 50, 1, wxString("dev_host"));
-    auto radio2 = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), m_panel_debug, "", 50, 1, wxString("qa_host"));
-    auto radio3 = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"), m_panel_debug, "", 50, 1, wxString("pre_host"));
+    auto radio1 = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), m_panel_debug, wxEmptyString, 50, 1, "dev_host");
+    auto radio2 = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), m_panel_debug, wxEmptyString, 50, 1, "qa_host");
+    auto radio3 = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"), m_panel_debug, wxEmptyString, 50, 1, "pre_host");
 
    
 
     if (m_iot_environment_def == "0") {
-        on_select_radio(wxString("dev_host"));
+        on_select_radio("dev_host");
     } else if (m_iot_environment_def == "1") {
-        on_select_radio(wxString("qa_host"));
+        on_select_radio("qa_host");
     } else if (m_iot_environment_def == "2") {
-        on_select_radio(wxString("pre_host"));
+        on_select_radio("pre_host");
     }
 
-    wxButton *debug_button = new wxButton(m_panel_debug, wxID_ANY, wxT("debug save button"), wxDefaultPosition, wxDefaultSize, 0);
+    wxButton *debug_button = new wxButton(m_panel_debug, wxID_ANY, _L("debug save button"), wxDefaultPosition, wxDefaultSize, 0);
     debug_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         // success message box
-        wxMessageDialog dialog(this, _T("save debug settings"), _T("DEBUG settings have saved successfully!"), wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
+        wxMessageDialog dialog(this, _L("save debug settings"), _L("DEBUG settings have saved successfully!"), wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
         switch (dialog.ShowModal()) {
         case wxID_NO: {
             if (m_developer_mode_def != app_config->get("developer_mode")) { 
@@ -590,11 +588,11 @@ void PreferencesDialog::create_debug_page()
             }
 
             if (m_iot_environment_def == "0") {
-                    on_select_radio(wxString("dev_host"));
+                    on_select_radio("dev_host");
             } else if (m_iot_environment_def == "1") {
-                    on_select_radio(wxString("qa_host"));
+                    on_select_radio("qa_host");
             } else if (m_iot_environment_def == "2") {
-                    on_select_radio(wxString("pre_host"));
+                    on_select_radio("pre_host");
             }
 
             break;
@@ -624,7 +622,7 @@ void PreferencesDialog::create_debug_page()
                     manager->set_host(PRE_HOST_URL);
                 }
                 manager->user_logout();
-                wxMessageBox(_L("swith cloud environment, please log in again!"));
+                wxMessageBox(_L("Swith cloud environment, Please login again!"));
             }
 
             // bbs  backup
@@ -660,7 +658,7 @@ void PreferencesDialog::create_debug_page()
     bSizer->Fit(m_panel_debug);
 }
 
-void PreferencesDialog::on_select_radio(wxString param)
+void PreferencesDialog::on_select_radio(std::string param)
 {
     RadioSelectorList::Node *node    = m_radio_group.GetFirst();
     auto                     groupid = 0;
@@ -689,7 +687,7 @@ wxString PreferencesDialog::get_select_radio(int groupid)
         node = node->GetNext();
     }
 
-    return wxString("");
+    return wxEmptyString;
 }
 
 void PreferencesDialog::OnSelectRadio(wxMouseEvent &event)

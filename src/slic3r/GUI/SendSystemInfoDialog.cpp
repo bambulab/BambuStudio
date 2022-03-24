@@ -94,7 +94,8 @@ public:
         : wxDialog(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION)
     {
         auto* text = new wxStaticText(this, wxID_ANY, message, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
-        auto* btn = new wxButton(this, wxID_CANCEL, _L("Cancel"));
+        //auto* btn = new wxButton(this, wxID_CANCEL, _L("Cancel"));
+        auto* btn = new wxButton(this, wxID_CANCEL, wxEmptyString);
         auto* vsizer = new wxBoxSizer(wxVERTICAL);
         auto *top_sizer = new wxBoxSizer(wxVERTICAL);
         vsizer->Add(text, 1, wxEXPAND);
@@ -115,7 +116,8 @@ class ShowJsonDialog : public wxDialog
 {
 public:
     ShowJsonDialog(wxWindow* parent, const wxString& json, const wxSize& size)
-        : wxDialog(parent, wxID_ANY, _L("Data to send"), wxDefaultPosition, size, wxCAPTION|wxRESIZE_BORDER)
+        //: wxDialog(parent, wxID_ANY, _L("Data to send"), wxDefaultPosition, size, wxCAPTION|wxRESIZE_BORDER)
+        : wxDialog(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, size, wxCAPTION|wxRESIZE_BORDER)
     {
         auto* text = new wxTextCtrl(this, wxID_ANY, json,
                                     wxDefaultPosition, wxDefaultSize,
@@ -123,7 +125,8 @@ public:
         text->SetFont(wxGetApp().code_font());
         text->ShowPosition(0);
 
-        auto* btn = new wxButton(this, wxID_CANCEL, _L("Close"));
+        //auto* btn = new wxButton(this, wxID_CANCEL, _L("Close"));
+        auto* btn = new wxButton(this, wxID_CANCEL, wxEmptyString);
         auto* vsizer = new wxBoxSizer(wxVERTICAL);
         auto *top_sizer = new wxBoxSizer(wxVERTICAL);
         vsizer->Add(text, 1, wxEXPAND);
@@ -555,8 +558,10 @@ static std::string generate_system_info_json()
 
 SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     : m_system_info_json{generate_system_info_json()},
-    GUI::DPIDialog(parent, wxID_ANY, _L("Send system info"), wxDefaultPosition, wxDefaultSize,
-           wxDEFAULT_DIALOG_STYLE)
+    /*GUI::DPIDialog(parent, wxID_ANY, _L("Send system info"), wxDefaultPosition, wxDefaultSize,
+           wxDEFAULT_DIALOG_STYLE)*/
+    GUI::DPIDialog(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 
+        wxDEFAULT_DIALOG_STYLE)
 {
     const int em = GUI::wxGetApp().em_unit();
 
@@ -593,22 +598,28 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     auto *topSizer = new wxBoxSizer(wxVERTICAL);
     auto *vsizer = new wxBoxSizer(wxVERTICAL);
 
-    wxString text0 = GUI::format_wxstr(_L("This is the first time you are running %1%. We would like to "
+   /* wxString text0 = GUI::format_wxstr(_L("This is the first time you are running %1%. We would like to "
            "ask you to send some of your system information to us. This will only "
            "happen once and we will not ask you to do this again (only after you "
-           "upgrade to the next version)."), app_name );
-    wxString text1 = _L("If we know your hardware, operating system, etc., it will greatly help us "
+           "upgrade to the next version)."), app_name );*/
+    wxString text0  = GUI::format_wxstr(wxEmptyString, app_name);
+    /*wxString text1 = _L("If we know your hardware, operating system, etc., it will greatly help us "
         "in development and prioritization, because we will be able to focus our effort more efficiently "
-        "and spend time on features that are needed the most.");
-    wxString label2 = _L("Is it safe?");
-    wxString text2 = GUI::format_wxstr(
-        _L("We do not send any personal information nor anything that would allow us "
-           "to identify you later. To detect duplicate entries, a unique number derived "
-           "from your system is sent, but the source information cannot be reconstructed. "
-           "Apart from that, only general data about your OS, hardware and OpenGL "
-           "installation are sent. BambuStudio is open source, if you want to "
-           "inspect the code actually performing the communication, see %1%."),
-           std::string("<i>") + filename + "</i>");
+        "and spend time on features that are needed the most.");*/
+    wxString text1 = wxEmptyString;
+    //wxString label2 = _L("Is it safe?");
+    wxString label2 = wxEmptyString;
+    //wxString text2 = GUI::format_wxstr(
+    //    _L("We do not send any personal information nor anything that would allow us "
+    //       "to identify you later. To detect duplicate entries, a unique number derived "
+    //       "from your system is sent, but the source information cannot be reconstructed. "
+    //       "Apart from that, only general data about your OS, hardware and OpenGL "
+    //       "installation are sent. BambuStudio is open source, if you want to "
+    //       "inspect the code actually performing the communication, see %1%."),
+    //       std::string("<i>") + filename + "</i>");
+
+
+     wxString text2 = GUI::format_wxstr(wxEmptyString, std::string("<i>") + filename + "</i>");
 
     auto* html_window = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxSize(70*em, 34*em), wxHW_SCROLLBAR_NEVER);
     wxString html = GUI::format_wxstr(
@@ -626,11 +637,17 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
 
     vsizer->Add(html_window, 1, wxEXPAND);
 
-    m_btn_show_data = new wxButton(this, wxID_ANY, _L("Show verbatim data that will be sent"));
+    //m_btn_show_data = new wxButton(this, wxID_ANY, _L("Show verbatim data that will be sent"));
+    m_btn_show_data = new wxButton(this, wxID_ANY, wxEmptyString);
 
-    m_btn_ask_later = new wxButton(this, wxID_ANY, _L("Ask me next time"));
-    m_btn_dont_send = new wxButton(this, wxID_ANY, _L("Do not send anything"));
-    m_btn_send = new wxButton(this, wxID_ANY, _L("Send system info"));
+    //m_btn_ask_later = new wxButton(this, wxID_ANY, _L("Ask me next time"));
+    m_btn_ask_later = new wxButton(this, wxID_ANY, wxEmptyString);
+
+    //m_btn_dont_send = new wxButton(this, wxID_ANY, _L("Do not send anything"));
+    m_btn_dont_send = new wxButton(this, wxID_ANY, wxEmptyString);
+
+    //m_btn_send = new wxButton(this, wxID_ANY, _L("Send system info"));
+    m_btn_send = new wxButton(this, wxID_ANY, wxEmptyString);
 
     auto* hsizer = new wxBoxSizer(wxHORIZONTAL);
     hsizer->Add(m_btn_ask_later);
@@ -715,24 +732,29 @@ bool SendSystemInfoDialog::send_info(wxString& message)
             .timeout_max(6) // seconds
             .set_post_body(data)
             .on_complete([&result](std::string body, unsigned status) {
-                result = { Result::Success, _L("System info sent successfully. Thank you.") };
+                //result = { Result::Success, _L("System info sent successfully. Thank you.") };
+                result = {Result::Success, wxEmptyString};
             })
             .on_error([&result](std::string body, std::string error, unsigned status) {
-                result = { Result::Error, _L("Sending system info failed!") };
-                BOOST_LOG_TRIVIAL(error) << "Sending system info failed! STATUS: " << status;
+                //result = { Result::Error, _L("Sending system info failed!") };
+                result = {Result::Error, wxEmptyString};
+                //BOOST_LOG_TRIVIAL(error) << "Sending system info failed! STATUS: " << status;
+                BOOST_LOG_TRIVIAL(error) << "" << status;
             })
             .on_progress([&job_done, &result](Http::Progress, bool &cancel) {
                 if (job_done) // UI thread wants us to cancel.
                     cancel = true;
                 if (cancel)
-                    result = { Result::Cancelled, _L("Sending system info was cancelled.") };
+                    //result = { Result::Cancelled, _L("Sending system info was cancelled.") };
+                    result = {Result::Cancelled, wxEmptyString};
             })
             .perform_sync();
         job_done = true; // So that the dialog knows we are done.
     };
 
     std::thread sending_thread(send, m_system_info_json);
-    SendSystemInfoProgressDialog dlg(this, _L("Sending system info..."));
+    //SendSystemInfoProgressDialog dlg(this, _L("Sending system info..."));
+    SendSystemInfoProgressDialog dlg(this, wxEmptyString);
     wxTimer timer(&dlg); // Periodically check the status of the other thread, close dialog when done.
     dlg.Bind(wxEVT_TIMER, [&dlg, &job_done](wxTimerEvent&){ if (job_done) dlg.EndModal(0); });
     timer.Start(50);

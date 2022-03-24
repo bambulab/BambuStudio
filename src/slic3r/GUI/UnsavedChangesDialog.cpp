@@ -813,13 +813,6 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     m_action_line = new wxStaticText(this, wxID_ANY, "");
     m_action_line->SetForegroundColour(wxColour(38, 46, 48));
 
-    //m_tree = new DiffViewCtrl(this, wxSize(em * 60, em * 30));
-    //m_tree->AppendToggleColumn_(L"\u2714"      , DiffModel::colToggle, wxLinux ? 9 : 6);
-    //m_tree->AppendBmpTextColumn(""             , DiffModel::colIconText, 28);
-    //m_tree->AppendBmpTextColumn(_L("Old Value"), DiffModel::colOldValue, 12);
-    //m_tree->AppendBmpTextColumn(_L("New Value"), DiffModel::colNewValue, 12);
-
-
     // list
     auto list_area_width = 600;
     auto list_area_height = 380;
@@ -991,18 +984,18 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
 void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name)
 {
     if (action == Action::Undef && !m_has_long_strings)
-        m_info_line->SetLabel("");
+        m_info_line->SetLabel(wxEmptyString);
     else {
         wxString text;
         if (action == Action::Undef)
-            text = _L("Some fields are too long to fit. Right mouse click reveals the full text.");
+            text = _L("Click the right mouse button to display the full text.");
         else if (action == Action::Discard)
-            text = ActionButtons::DONT_SAVE & m_buttons ? _L("All settings changes will not be saved") :_L("All settings changes will be discarded.");
+            text = ActionButtons::DONT_SAVE & m_buttons ? _L("All changes will not be saved") :_L("All changes will be discarded.");
         else {
             if (preset_name.empty())
                 text = action == Action::Save           ? _L("Save the selected options.") : 
-                       ActionButtons::KEEP & m_buttons  ? _L("Keep the selected settings.") :
-                                                          _L("Transfer the selected settings to the newly selected preset.");
+                       ActionButtons::KEEP & m_buttons  ? _L("Keep the selected options.") :
+                                                          _L("Transfer the selected options to the newly selected preset.");
             else
                 text = format_wxstr(
                     action == Action::Save ?
@@ -1303,12 +1296,12 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
     else {
         wxString action_msg;
         if (type == dependent_presets->type()) {
-            action_msg = format_wxstr(_L("Preset \"%1%\" has the following unsaved changes:"), presets->get_edited_preset().name);
+            action_msg = format_wxstr(_L("Preset \"%1%\" contains the following unsaved changes:"), presets->get_edited_preset().name);
         }
         else {
             action_msg = format_wxstr(type == Preset::TYPE_PRINTER ?
-                _L("Preset \"%1%\" is not compatible with the new printer profile and it has the following unsaved changes:") :
-                _L("Preset \"%1%\" is not compatible with the new print profile and it has the following unsaved changes:"),
+                _L("Preset \"%1%\" is not compatible with the new printer profile and it contains the following unsaved changes:") :
+                _L("Preset \"%1%\" is not compatible with the new print profile and it contains the following unsaved changes:"),
                 presets->get_edited_preset().name);
         }
         m_action_line->SetLabel(action_msg);
@@ -1685,6 +1678,7 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
     m_preset_bundle_left  = std::make_unique<PresetBundle>(*wxGetApp().preset_bundle);
     m_preset_bundle_right = std::make_unique<PresetBundle>(*wxGetApp().preset_bundle);
 
+    //m_top_info_line = new wxStaticText(this, wxID_ANY, "Select presets to compare");
     m_top_info_line = new wxStaticText(this, wxID_ANY, "Select presets to compare");
     m_top_info_line->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold());
 
@@ -1734,7 +1728,7 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
         });
     }
 
-    m_show_all_presets = new wxCheckBox(this, wxID_ANY, _L("Show all presets (including incompatible)"));
+    m_show_all_presets = new wxCheckBox(this, wxID_ANY, "Show all presets (including incompatible)");
     m_show_all_presets->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
         bool show_all = m_show_all_presets->GetValue();
         for (auto preset_combos : m_preset_combos) {
@@ -1749,8 +1743,8 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
 
     m_tree = new DiffViewCtrl(this, wxSize(em * 65, em * 40));
     m_tree->AppendBmpTextColumn("",                      DiffModel::colIconText, 35);
-    m_tree->AppendBmpTextColumn(_L("Left Preset Value"), DiffModel::colOldValue, 15);
-    m_tree->AppendBmpTextColumn(_L("Right Preset Value"),DiffModel::colNewValue, 15);
+    m_tree->AppendBmpTextColumn("Left Preset Value", DiffModel::colOldValue, 15);
+    m_tree->AppendBmpTextColumn("Right Preset Value",DiffModel::colNewValue, 15);
     m_tree->Hide();
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
@@ -1795,7 +1789,7 @@ void DiffPresetDialog::update_bundles_from_app()
 
 void DiffPresetDialog::show(Preset::Type type /* = Preset::TYPE_INVALID*/)
 {
-    this->SetTitle(_L("Compare Presets"));
+    this->SetTitle("Compare Presets");
     m_view_type = type;
 
     update_bundles_from_app();
@@ -1857,7 +1851,7 @@ void DiffPresetDialog::update_tree()
         const Preset* left_preset  = presets->find_preset(get_selection(preset_combos.presets_left));
         const Preset* right_preset = presets->find_preset(get_selection(preset_combos.presets_right));
         if (!left_preset || !right_preset) {
-            bottom_info = _L("One of the presets doesn't found");
+            bottom_info = "One of the presets does not exist";
             preset_combos.equal_bmp->SetBitmap_(ScalableBitmap(this, "question"));
             preset_combos.equal_bmp->SetToolTip(bottom_info);
             continue;
@@ -1868,7 +1862,7 @@ void DiffPresetDialog::update_tree()
         const DynamicPrintConfig& right_congig  = right_preset->config;
 
         if (left_pt != right_preset->printer_technology()) {
-            bottom_info = _L("Compared presets has different printer technology");
+            bottom_info = "Compared presets has different printer technology";
             preset_combos.equal_bmp->SetBitmap_(ScalableBitmap(this, "question"));
             preset_combos.equal_bmp->SetToolTip(bottom_info);
             continue;
@@ -1882,7 +1876,8 @@ void DiffPresetDialog::update_tree()
                              presets->dirty_options(left_preset, right_preset, deep_compare);
 
         if (dirty_options.empty()) {
-            bottom_info = _L("Presets are the same");
+            //bottom_info = _L("Presets are the same");
+            bottom_info = wxEmptyString;
             preset_combos.equal_bmp->SetBitmap_(ScalableBitmap(this, "equal"));
             preset_combos.equal_bmp->SetToolTip(bottom_info);
             continue;
@@ -1890,8 +1885,10 @@ void DiffPresetDialog::update_tree()
 
         show_tree = true;
         preset_combos.equal_bmp->SetBitmap_(ScalableBitmap(this, "not_equal"));
-        preset_combos.equal_bmp->SetToolTip(_L("Presets are different.\n"
-                                               "Click this button to select the same preset for the right and left preset."));
+        /*preset_combos.equal_bmp->SetToolTip(_L("Presets are different.\n"
+                                               "Click this button to select the same preset for the right and left preset."));*/
+
+        preset_combos.equal_bmp->SetToolTip(wxEmptyString);
 
         m_tree->model->AddPreset(type, "\"" + from_u8(left_preset->name) + "\" vs \"" + from_u8(right_preset->name) + "\"", left_pt);
 
@@ -1904,7 +1901,7 @@ void DiffPresetDialog::update_tree()
             wxString left_val = from_u8((boost::format("%1%") % left_config.opt<ConfigOptionStrings>("extruder_colour")->values.size()).str());
             wxString right_val = from_u8((boost::format("%1%") % right_congig.opt<ConfigOptionStrings>("extruder_colour")->values.size()).str());
 
-            m_tree->Append("extruders_count", type, _L("General"), _L("Capabilities"), local_label, left_val, right_val, category_icon_map.at("General"));
+            m_tree->Append("extruders_count", type, "General", "Capabilities", local_label, left_val, right_val, category_icon_map.at("General"));
         }
 
         for (const std::string& opt_key : dirty_options) {
@@ -1914,7 +1911,7 @@ void DiffPresetDialog::update_tree()
             Search::Option option = searcher.get_option(opt_key, get_full_label(opt_key, left_config), type);
             if (option.opt_key() != opt_key) {
                 // temporary solution, just for testing
-                m_tree->Append(opt_key, type, _L("Undef category"), _L("Undef group"), opt_key, left_val, right_val, "question");
+                m_tree->Append(opt_key, type, "Undef category", "Undef group", opt_key, left_val, right_val, "question");
                 // When founded option isn't the correct one.
                 // It can be for dirty_options: "default_print_profile", "printer_model", "printer_settings_id",
                 // because of they don't exist in searcher
