@@ -742,7 +742,7 @@ void MainFrame::create_preset_tabs()
 
     //BBS: GUI refactor
     //m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
-    m_param_dialog = new ParamsDialog(nullptr);
+    m_param_dialog = new ParamsDialog(m_plater);
 
     add_created_tab(new TabPrint(m_param_panel), "cog");
     add_created_tab(new TabPrintObject(m_param_panel), "cog");
