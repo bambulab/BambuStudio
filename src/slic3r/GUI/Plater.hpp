@@ -456,6 +456,8 @@ public:
     bool is_background_process_slicing() const;
     //BBS: update slicing context
     void update_slicing_context_to_current_partplate();
+    //BBS: show object info
+    void show_object_info();
 
 #if ENABLE_ENVIRONMENT_MAP
     void init_environment_texture();
