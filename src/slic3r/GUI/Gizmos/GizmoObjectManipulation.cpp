@@ -525,20 +525,27 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
 
     float unit_size = imgui_wrapper->get_style_scaling() * 48.0f;
     float space_size = imgui_wrapper->get_style_scaling() * 8;
-    float caption_max = imgui_wrapper->calc_text_size(_L("Position:")).x + space_size;
+    float position_size = imgui_wrapper->calc_text_size(_L("Position")).x + space_size;
+    float World_size = imgui_wrapper->calc_text_size(_L("World coordinates")).x + space_size;
+    float caption_max = std::max(position_size, World_size) + 2 * space_size;
     float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
+
+    int index      = 1;
+    int index_unit = 1;
+
     ImGui::AlignTextToFramePadding();
     unsigned int current_active_id = ImGui::GetActiveID();
+    ImGui::PushItemWidth(caption_max);
     imgui_wrapper->text(_L("World coordinates"));
-    ImGui::SameLine(caption_max + 2.8 * unit_size);
+    ImGui::SameLine(caption_max + index * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::TextCentered("X");
-    ImGui::SameLine(caption_max + 5 * unit_size + space_size);
+    ImGui::TextAlignCenter("X");
+    ImGui::SameLine(caption_max + unit_size + (++index) * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::TextCentered("Y");
-    ImGui::SameLine(caption_max + 7 * unit_size + 3 * space_size);
+    ImGui::TextAlignCenter("Y");
+    ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::TextCentered("Z");
+    ImGui::TextAlignCenter("Z");
 
     //position
     Vec3d original_position;
@@ -548,8 +555,8 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
         original_position = this->m_new_position;
     Vec3d display_position = m_buffered_position;
 
-    int index = 3;
-    int index_unit  = 1;
+    index = 1;
+    index_unit  = 1;
     //ImGui::PushItemWidth(unit_size * 2);
     imgui_wrapper->text(_L("Position"));
     ImGui::SameLine(caption_max + index * space_size);
@@ -567,7 +574,7 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
     update(current_active_id, "position", original_position, m_buffered_position);
     //the init position values are not zero, won't add reset button
 
-    index = 3;
+    index = 1;
     index_unit = 1;
     //Rotation
     Vec3d rotation = this->m_buffered_rotation;
@@ -590,12 +597,12 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
 
 
     if (m_show_clear_rotation) {
-        ImGui::SameLine(caption_max + 3 * unit_size + 6 * space_size + end_text_size);
+        ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size + end_text_size);
         if (reset_button(imgui_wrapper, caption_max, unit_size, space_size, end_text_size)) {
             reset_rotation_value();
         }
     } else {
-        ImGui::SameLine(caption_max + 3 * unit_size + 7 * space_size + end_text_size);
+        ImGui::SameLine(caption_max + 3 * unit_size + 5 * space_size + end_text_size);
         ImGui::InvisibleButton("", ImVec2(14.0f, 14.0f));
     }
 
@@ -665,21 +672,26 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
 
 
     bool imperial_units = this->m_imperial_units;
-    
-    imgui_wrapper->text(_L(" "));
-    //ImGui::PushItemWidth(unit_size * 1.5);
-    ImGui::SameLine(caption_max + 2 * unit_size + space_size);
-    ImGui::PushItemWidth(unit_size);
-    ImGui::TextCentered("X");
-    ImGui::SameLine(caption_max + 4 * unit_size + 3 * space_size);
-    ImGui::PushItemWidth(unit_size);
-    ImGui::TextCentered("Y");
-    ImGui::SameLine(caption_max + 6 * unit_size + 5 * space_size);
-    ImGui::PushItemWidth(unit_size);
-    ImGui::TextCentered("Z");
 
     int index      = 2;
     int index_unit = 1;
+    
+    ImGui::PushItemWidth(caption_max);
+    ImGui::Dummy(ImVec2(caption_max, -1));
+    //imgui_wrapper->text(_L(" "));
+    //ImGui::PushItemWidth(unit_size * 1.5);
+    ImGui::SameLine(caption_max + space_size);
+    ImGui::PushItemWidth(unit_size);
+    ImGui::TextAlignCenter("X");
+    ImGui::SameLine(caption_max + unit_size + index * space_size);
+    ImGui::PushItemWidth(unit_size);
+    ImGui::TextAlignCenter("Y");
+    ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
+    ImGui::PushItemWidth(unit_size);
+    ImGui::TextAlignCenter("Z");
+
+    index      = 2;
+    index_unit = 1;
 
     //Scale
     Vec3d scale = m_buffered_scale;
