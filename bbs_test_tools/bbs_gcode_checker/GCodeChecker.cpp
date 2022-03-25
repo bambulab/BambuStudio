@@ -578,11 +578,12 @@ const std::map<std::string, ExtrusionRole> string_to_role_map = {
     { "Ironing",                    erIroning },
     { "Bridge",                     erBridgeInfill },
     { "Gap infill",                 erGapFill },
-    { "Skirt/Brim",                 erSkirt },
+    { "Skirt",                      erSkirt },
+    { "Brim",                       erBrim },
     { "Support",                    erSupportMaterial },
     { "Support interface",          erSupportMaterialInterface },
     { "Support transition",         erSupportTransition },
-    { "Prime tower",                 erWipeTower },
+    { "Prime tower",                erWipeTower },
     { "Custom",                     erCustom },
     { "Mixed",                      erMixed }
 };

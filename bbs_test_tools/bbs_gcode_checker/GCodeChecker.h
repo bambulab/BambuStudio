@@ -57,6 +57,7 @@ enum ExtrusionRole : uint8_t {
     erBridgeInfill,
     erGapFill,
     erSkirt,
+    erBrim,
     erSupportMaterial,
     erSupportMaterialInterface,
     erSupportTransition,
