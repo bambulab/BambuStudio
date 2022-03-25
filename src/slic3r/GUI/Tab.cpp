@@ -2442,17 +2442,17 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("fan_min_speed"));
         line.append_option(optgroup->get_option("fan_max_speed"));
         optgroup->append_line(line);
-        //BBS
+        optgroup->append_single_option_line("overhang_fan_threshold");
+        optgroup->append_single_option_line("overhang_fan_speed");
+        optgroup->append_single_option_line("close_fan_the_first_x_layers");
+        optgroup->append_single_option_line("full_fan_speed_layer");
         optgroup->append_single_option_line("additional_cooling_fan_speed");
 
-        optgroup->append_single_option_line("bridge_fan_speed", category_path + "fan-settings");
-        optgroup->append_single_option_line("close_fan_the_first_x_layers", category_path + "fan-settings");
-        optgroup->append_single_option_line("full_fan_speed_layer", category_path + "fan-settings");
-
         optgroup = page->new_optgroup(L("Cooling thresholds"), 25);
-        optgroup->append_single_option_line("fan_cooling_layer_time", category_path + "cooling-thresholds");
-        optgroup->append_single_option_line("slow_down_layer_time", category_path + "cooling-thresholds");
-        optgroup->append_single_option_line("slow_down_min_speed", category_path + "cooling-thresholds");
+        
+        optgroup->append_single_option_line("fan_cooling_layer_time");
+        optgroup->append_single_option_line("slow_down_layer_time");
+        optgroup->append_single_option_line("slow_down_min_speed");
 
         //BBS
         add_filament_overrides_page();

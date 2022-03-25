@@ -6,7 +6,10 @@
     "bed_temperature": [
         "60,60,60"
     ],
-    "bridge_fan_speed": [
+    "overhang_fan_threshold": [
+        "95%"
+    ],
+    "overhang_fan_speed": [
         "100"
     ],
     "coasting_enable": "0",

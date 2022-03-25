@@ -139,6 +139,15 @@ enum DraftShield {
 };
 
 // BBS
+enum OverhangFanThreshold {
+    Overhang_threshold_1_4 = 0,
+    Overhang_threshold_2_4,
+    Overhang_threshold_3_4,
+    Overhang_threshold_4_4,
+    Overhang_threshold_bridge
+};
+
+// BBS
 enum BedType {
     btPC = 0,
     btEP,
@@ -737,7 +746,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     // BBS
     ((ConfigOptionEnumsGeneric,       bed_type))
     ((ConfigOptionInts,               bed_temperature))
-    ((ConfigOptionInts,               bridge_fan_speed))
+    ((ConfigOptionInts,               overhang_fan_speed))
+    ((ConfigOptionEnumsGeneric,       overhang_fan_threshold))
     ((ConfigOptionEnum<PrintSequence>,print_sequence))
     ((ConfigOptionBools,              cooling))
     ((ConfigOptionFloat,              default_acceleration))

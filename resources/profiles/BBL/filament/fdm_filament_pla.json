@@ -43,7 +43,7 @@
     "fan_min_speed": [
         "100"
     ],
-    "bridge_fan_speed": [
+    "overhang_fan_speed": [
         "100"
     ],
     "close_fan_the_first_x_layers": [

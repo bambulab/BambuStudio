@@ -46,7 +46,7 @@
     "fan_min_speed": [
         "30"
     ],
-    "bridge_fan_speed": [
+    "overhang_fan_speed": [
         "50"
     ],
     "top_fan_speed": "0",

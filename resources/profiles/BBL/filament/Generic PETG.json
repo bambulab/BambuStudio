@@ -13,7 +13,7 @@
     "fan_cooling_layer_time": [
         "20"
     ],
-    "bridge_fan_speed": [
+    "overhang_fan_speed": [
         "80"
     ],
     "fan_max_speed": [

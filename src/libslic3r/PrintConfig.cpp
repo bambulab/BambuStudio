@@ -200,6 +200,14 @@ static const t_config_enum_values s_keys_map_ForwardCompatibilitySubstitutionRul
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 
+static const t_config_enum_values s_keys_map_OverhangFanThreshold = {
+    { "5%",         Overhang_threshold_1_4  },
+    { "25%",        Overhang_threshold_2_4  },
+    { "50%",        Overhang_threshold_3_4  },
+    { "75%",        Overhang_threshold_4_4  },
+    { "95%",        Overhang_threshold_bridge  }
+};
+
 // BBS
 static const t_config_enum_values s_keys_map_BedType = {
     { "Cool Plate",         btPC },
@@ -377,14 +385,33 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.));
 
-    def = this->add("bridge_fan_speed", coInts);
-    def->label = L("Bridges fan speed");
+    def = this->add("overhang_fan_speed", coInts);
+    def->label = L("Overhang fan speed");
     def->tooltip = L("Fan speed when printing bridge and overhang wall");
     def->sidetext = L("%");
     def->min = 0;
     def->max = 100;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInts { 100 });
+
+    def = this->add("overhang_fan_threshold", coEnums);
+    def->label = L("Cooling overhang threshold");
+    def->tooltip = L("Force cooling fan speed to be overhang_fan_speed when overhang degree of printed part exceeds this value. "
+                     "Expressed as percentage which indicides how many width of the line without support from lower layer");
+    def->sidetext = L("");
+    def->enum_keys_map = &s_keys_map_OverhangFanThreshold;
+    def->mode = comAdvanced;
+    def->enum_values.emplace_back("5%");
+    def->enum_values.emplace_back("25%");
+    def->enum_values.emplace_back("50%");
+    def->enum_values.emplace_back("75%");
+    def->enum_values.emplace_back("95%");
+    def->enum_labels.emplace_back("5%");
+    def->enum_labels.emplace_back("25%");
+    def->enum_labels.emplace_back("50%");
+    def->enum_labels.emplace_back("75%");
+    def->enum_labels.emplace_back("95%");
+    def->set_default_value(new ConfigOptionEnumsGeneric{ (int)Overhang_threshold_bridge });
 
     def = this->add("bridge_flow", coFloat);
     def->label = L("Bridge flow");
@@ -3334,6 +3361,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "prime_volume";
     } else if (opt_key == "tool_change_gcode") {
         opt_key = "change_filament_gcode";
+    }  else if (opt_key == "bridge_fan_speed") {
+        opt_key = "overhang_fan_speed";
     }
 
     // Ignore the following obsolete configuration keys:
