@@ -108,7 +108,7 @@ Control::Control( wxWindow *parent,
     m_cog_icon_dim    = m_bmp_cog.GetBmpWidth();
 
     m_selection = ssUndef;
-    m_ticks.set_pause_print_msg(_utf8(L("Place bearings in slots and resume printing")));
+    m_ticks.set_pause_print_msg(_utf8(_devL("Place bearings in slots and resume printing")));
     m_ticks.set_extruder_colors(&m_extruder_colors);
 
     // slider events
@@ -1390,26 +1390,23 @@ wxString Control::get_tooltip(int tick/*=-1*/)
     if (m_focus == fiNone)
         return "";
     if (m_focus == fiOneLayerIcon)
-        return _L("One layer mode");
+        return _devL("One layer mode");
     if (m_focus == fiRevertIcon)
-        return _L("Discard all custom changes");
+        return _devL("Discard all custom changes");
     if (m_focus == fiCogIcon)
     {
         if (m_draw_mode == dmSequentialGCodeView)
-            return _L("Jump to move") + " (Shift + G)";
+            return _devL("Jump to move");
         else
             return m_mode == MultiAsSingle ?
-            GUI::from_u8((boost::format(_u8L("Jump to height %s\n"
-                                               "Set ruler mode\n"
-                                               "or Set extruder sequence for the entire print")) % "(Shift + G)").str()) :
-            GUI::from_u8((boost::format(_u8L("Jump to height %s\n"
-                                                "or Set ruler mode")) % "(Shift + G)").str());
+            GUI::from_u8((boost::format(("Jump to height\nSet ruler mode\nor Set extruder sequence for the entire print"))).str()) :
+            GUI::from_u8((boost::format(("Jump to height\nor Set ruler mode"))).str());
     }
     if (m_focus == fiColorBand)
         return m_mode != SingleExtruder ? "" :
-               _L("Edit current color - Right click the colored slider segment");
+               _devL("Edit current color - Right click the colored slider segment");
     if (m_focus == fiSmartWipeTower)
-        return _L("This is wipe tower layer");
+        return _devL("This is wipe tower layer");
     if (m_draw_mode == dmSlaPrint)
         return ""; // no drawn ticks and no tooltips for them in SlaPrinting mode
 
@@ -1419,11 +1416,11 @@ wxString Control::get_tooltip(int tick/*=-1*/)
     if (tick_code_it == m_ticks.ticks.end() && m_focus == fiActionIcon)    // tick doesn't exist
     {
         if (m_draw_mode == dmSequentialFffPrint)
-            return  (_L("The sequential print is on.\n"
+            return  (_devL("The sequential print is on.\n"
                         "It's impossible to apply any custom G-code for objects printing sequentually.") + "\n");
 
         // Show mode as a first string of tooltop
-        tooltip = "    " + _L("Print mode") + ": ";
+        tooltip = "    " + _devL("Print mode") + ": ";
         tooltip += (m_mode == SingleExtruder ? SingleExtruderMode :
                     m_mode == MultiAsSingle  ? MultiAsSingleMode  :
                                                MultiExtruderMode );
@@ -1437,21 +1434,21 @@ wxString Control::get_tooltip(int tick/*=-1*/)
 
         // Show list of actions with new tick
         tooltip += ( m_mode == MultiAsSingle                                ?
-                  _L("Add extruder change - Left click")                    :
+                  _devL("Add extruder change - Left click")                    :
                      m_mode == SingleExtruder                               ?
-                  _L("Add color change - Left click for predefined color or "
+                  _devL("Add color change - Left click for predefined color or "
                      "Shift + Left click for custom color selection")       :
-                  _L("Add color change - Left click")  ) + " " +
-                  _L("or press \"+\" key") + "\n" + (
+                  _devL("Add color change - Left click")  ) + " " +
+                  _devL("or press \"+\" key") + "\n" + (
                      is_osx ? 
-                  _L("Add another code - Ctrl + Left click") :
-                  _L("Add another code - Right click") );
+                  _devL("Add another code - Ctrl + Left click") :
+                  _devL("Add another code - Right click") );
     }
 
     if (tick_code_it != m_ticks.ticks.end())                                    // tick exists
     {
         if (m_draw_mode == dmSequentialFffPrint)
-            return   _L("The sequential print is on.\n"
+            return   _devL("The sequential print is on.\n"
                         "It's impossible to apply any custom G-code for objects printing sequentually.\n" 
                         "This code won't be processed during G-code generation.");
         
@@ -1469,7 +1466,7 @@ wxString Control::get_tooltip(int tick/*=-1*/)
                 for (size_t i = 1; i < MAX_LINES; ++i) {
                     gcode += lines[i] + '\n';
                 }
-                gcode += "[" + into_u8(_L("continue")) + "]\n";
+                gcode += "[" + into_u8(_devL("continue")) + "]\n";
             }
             boost::replace_all(gcode, "\n", "\n" + space);
             return gcode;
@@ -1477,40 +1474,40 @@ wxString Control::get_tooltip(int tick/*=-1*/)
         tooltip +=  
         	tick_code_it->type == ColorChange ?
         		(m_mode == SingleExtruder ?
-                	format_wxstr(_L("Color change (\"%1%\")"), gcode(ColorChange)) :
-                    format_wxstr(_L("Color change (\"%1%\") for Extruder %2%"), gcode(ColorChange), tick_code_it->extruder)) :
+                	format_wxstr(_devL("Color change (\"%1%\")"), gcode(ColorChange)) :
+                    format_wxstr(_devL("Color change (\"%1%\") for Extruder %2%"), gcode(ColorChange), tick_code_it->extruder)) :
 	            tick_code_it->type == PausePrint ?
-	                format_wxstr(_L("Pause print (\"%1%\")"), gcode(PausePrint)) :
+	                format_wxstr(_devL("Pause print (\"%1%\")"), gcode(PausePrint)) :
 	            tick_code_it->type == Template ?
-	                format_wxstr(_L("Custom template (\"%1%\")"), gcode(Template)) :
+	                format_wxstr(_devL("Custom template (\"%1%\")"), gcode(Template)) :
 		            tick_code_it->type == ToolChange ?
-		                format_wxstr(_L("Extruder (tool) is changed to Extruder \"%1%\""), tick_code_it->extruder) :                
+		                format_wxstr(_devL("Extruder (tool) is changed to Extruder \"%1%\""), tick_code_it->extruder) :                
 		                from_u8(format_gcode(tick_code_it->extra));// tick_code_it->type == Custom
 
         // If tick is marked as a conflict (exclamation icon),
         // we should to explain why
         ConflictType conflict = m_ticks.is_conflict_tick(*tick_code_it, m_mode, m_only_extruder, m_values[tick]);
         if (conflict != ctNone)
-            tooltip += "\n\n" + _L("Note") + "! ";
+            tooltip += "\n\n" + _devL("Note") + "! ";
         if (conflict == ctModeConflict)
-            tooltip +=  _L("G-code associated to this tick mark is in a conflict with print mode.\n"
+            tooltip +=  _devL("G-code associated to this tick mark is in a conflict with print mode.\n"
                            "Editing it will cause changes of Slider data.");
         else if (conflict == ctMeaninglessColorChange)
-            tooltip +=  _L("There is a color change for extruder that won't be used till the end of print job.\n"
+            tooltip +=  _devL("There is a color change for extruder that won't be used till the end of print job.\n"
                            "This code won't be processed during G-code generation.");
         else if (conflict == ctMeaninglessToolChange)
-            tooltip +=  _L("There is an extruder change set to the same extruder.\n"
+            tooltip +=  _devL("There is an extruder change set to the same extruder.\n"
                            "This code won't be processed during G-code generation.");
         else if (conflict == ctRedundant)
-            tooltip +=  _L("There is a color change for extruder that has not been used before.\n"
+            tooltip +=  _devL("There is a color change for extruder that has not been used before.\n"
                            "Check your settings to avoid redundant color changes.");
 
         // Show list of actions with existing tick
         if (m_focus == fiActionIcon)
-        tooltip += "\n\n" + _L("Delete tick mark - Left click or press \"-\" key") + "\n" + (
+        tooltip += "\n\n" + _devL("Delete tick mark - Left click or press \"-\" key") + "\n" + (
                       is_osx ? 
-                   _L("Edit tick mark - Ctrl + Left click") :
-                   _L("Edit tick mark - Right click") );
+                   _devL("Edit tick mark - Ctrl + Left click") :
+                   _devL("Edit tick mark - Right click") );
     }
     return tooltip;
 
@@ -1613,8 +1610,8 @@ void Control::append_change_extruder_menu_item(wxMenu* menu, bool switch_current
 
         for (int i = 1; i <= filaments_cnt; i++) {
             const bool is_active_extruder = i == active_extruders[0] || i == active_extruders[1];
-            const wxString item_name = wxString::Format(_L("Filament %d"), i) +
-                                       (is_active_extruder ? " (" + _L("active") + ")" : "");
+            const wxString item_name = wxString::Format(_devL("Filament %d"), i) +
+                                       (is_active_extruder ? " (" + _devL("active") + ")" : "");
 
             if (m_mode == MultiAsSingle)
                 append_menu_item(change_extruder_menu, wxID_ANY, item_name, "",
@@ -1623,10 +1620,10 @@ void Control::append_change_extruder_menu_item(wxMenu* menu, bool switch_current
         }
 
         const wxString change_extruder_menu_name = m_mode == MultiAsSingle ? 
-                                                   (switch_current_code ? _L("Switch code to Change Filament") : _L("Change Filament") ) : 
-                                                   _L("Change Filament (N/A)");
+                                                   (switch_current_code ? _devL("Switch code to Change Filament") : _devL("Change Filament") ) : 
+                                                   _devL("Change Filament (N/A)");
 
-        append_submenu(menu, change_extruder_menu, wxID_ANY, change_extruder_menu_name, _L("Use another filament"),
+        append_submenu(menu, change_extruder_menu, wxID_ANY, change_extruder_menu_name, _devL("Use another filament"),
             active_extruders[1] > 0 ? "edit_uni" : "change_extruder",
             [this]() {return m_mode == MultiAsSingle && !GUI::wxGetApp().obj_list()->has_paint_on_segmentation(); }, GUI::wxGetApp().plater());
     }
@@ -1644,8 +1641,8 @@ void Control::append_add_color_change_menu_item(wxMenu* menu, bool switch_curren
         for (int i = 1; i <= filaments_cnt; i++) {
             const bool is_used_extruder = used_extruders_for_tick.empty() ? true : // #ys_FIXME till used_extruders_for_tick doesn't filled correct for mmMultiExtruder
                                           used_extruders_for_tick.find(i) != used_extruders_for_tick.end();
-            const wxString item_name = wxString::Format(_L("Extruder %d"), i) +
-                                       (is_used_extruder ? " (" + _L("used") + ")" : "");
+            const wxString item_name = wxString::Format(_devL("Extruder %d"), i) +
+                                       (is_used_extruder ? " (" + _devL("used") + ")" : "");
 
             append_menu_item(add_color_change_menu, wxID_ANY, item_name, "",
                 [this, i](wxCommandEvent&) { add_code_as_tick(ColorChange, i); }, "", menu,
@@ -1653,8 +1650,8 @@ void Control::append_add_color_change_menu_item(wxMenu* menu, bool switch_curren
         }
 
         const wxString menu_name = switch_current_code ? 
-                                   format_wxstr(_L("Switch code to Color change (%1%) for:"), gcode(ColorChange)) : 
-                                   format_wxstr(_L("Add color change (%1%) for:"), gcode(ColorChange));
+                                   format_wxstr(_devL("Switch code to Color change (%1%) for:"), gcode(ColorChange)) : 
+                                   format_wxstr(_devL("Add color change (%1%) for:"), gcode(ColorChange));
         wxMenuItem* add_color_change_menu_item = menu->AppendSubMenu(add_color_change_menu, menu_name, "");
         add_color_change_menu_item->SetBitmap(create_menu_bitmap("colorchange_add_m"));
     }
@@ -1979,7 +1976,7 @@ void Control::show_add_context_menu()
     wxMenu menu;
 
     if (m_mode == SingleExtruder) {
-        append_menu_item(&menu, wxID_ANY, _L("Add color change") + " (" + gcode(ColorChange) + ")", "",
+        append_menu_item(&menu, wxID_ANY, _devL("Add color change") + " (" + gcode(ColorChange) + ")", "",
             [this](wxCommandEvent&) { add_code_as_tick(ColorChange); }, "colorchange_add_m", &menu);
 
         UseDefaultColors(false);
@@ -1991,15 +1988,15 @@ void Control::show_add_context_menu()
     }
 
     if (!gcode(PausePrint).empty())
-        append_menu_item(&menu, wxID_ANY, _L("Add pause print") + " (" + gcode(PausePrint) + ")", "",
+        append_menu_item(&menu, wxID_ANY, _devL("Add pause print") + " (" + gcode(PausePrint) + ")", "",
             [this](wxCommandEvent&) { add_code_as_tick(PausePrint); }, "pause_print", &menu);
 
     if (!gcode(Template).empty())
-        append_menu_item(&menu, wxID_ANY, _L("Add custom template") + " (" + gcode(Template) + ")", "",
+        append_menu_item(&menu, wxID_ANY, _devL("Add custom template") + " (" + gcode(Template) + ")", "",
             [this](wxCommandEvent&) { add_code_as_tick(Template); }, "edit_gcode", &menu);
 
     /* BBS do not show custom gcode
-    append_menu_item(&menu, wxID_ANY, _L("Add custom G-code"), "",
+    append_menu_item(&menu, wxID_ANY, _devL("Add custom G-code"), "",
         [this](wxCommandEvent&) { add_code_as_tick(Custom); }, "edit_gcode", &menu);*/
 
     GUI::wxGetApp().plater()->PopupMenu(&menu);
@@ -2017,18 +2014,18 @@ void Control::show_edit_context_menu()
         append_add_color_change_menu_item(&menu, true);
     }
     else
-        append_menu_item(&menu, wxID_ANY, it->type == ColorChange ? _L("Edit color") :
-                                          it->type == PausePrint  ? _L("Edit pause print message") :
-                                          _L("Edit custom G-code"), "",
+        append_menu_item(&menu, wxID_ANY, it->type == ColorChange ? _devL("Edit color") :
+                                          it->type == PausePrint  ? _devL("Edit pause print message") :
+                                          _devL("Edit custom G-code"), "",
             [this](wxCommandEvent&) { edit_tick(); }, "edit_uni", &menu);
 
     if (it->type == ColorChange && m_mode == MultiAsSingle)
         append_change_extruder_menu_item(&menu, true);
 
-    append_menu_item(&menu, wxID_ANY, it->type == ColorChange ? _L("Delete color change") : 
-                                      it->type == ToolChange  ? _L("Delete tool change") :
-                                      it->type == PausePrint  ? _L("Delete pause print") :
-                                      _L("Delete custom G-code"), "",
+    append_menu_item(&menu, wxID_ANY, it->type == ColorChange ? _devL("Delete color change") : 
+                                      it->type == ToolChange  ? _devL("Delete tool change") :
+                                      it->type == PausePrint  ? _devL("Delete pause print") :
+                                      _devL("Delete custom G-code"), "",
         [this](wxCommandEvent&) { delete_current_tick();}, "colorchange_del_f", &menu);
 
     GUI::wxGetApp().plater()->PopupMenu(&menu);
@@ -2038,29 +2035,29 @@ void Control::show_cog_icon_context_menu()
 {
     wxMenu menu;
 
-    append_menu_item(&menu, wxID_ANY, _L("Jump to height") + " (Shift+G)", "",
+    append_menu_item(&menu, wxID_ANY, _devL("Jump to height") + " (Shift+G)", "",
                     [this](wxCommandEvent&) { jump_to_value(); }, "", & menu);
 
     wxMenu* ruler_mode_menu = new wxMenu();
     if (ruler_mode_menu) {
-        append_menu_check_item(ruler_mode_menu, wxID_ANY, _L("None"), _L("Hide ruler"), 
+        append_menu_check_item(ruler_mode_menu, wxID_ANY, _devL("None"), _devL("Hide ruler"), 
             [this](wxCommandEvent&) { if (m_extra_style != 0) m_extra_style = 0; }, ruler_mode_menu, 
             []() { return true; }, [this]() { return m_extra_style == 0; }, GUI::wxGetApp().plater());
 
-        append_menu_check_item(ruler_mode_menu, wxID_ANY, _L("Show object height"), _L("Show object height on the ruler"),
+        append_menu_check_item(ruler_mode_menu, wxID_ANY, _devL("Show object height"), _devL("Show object height on the ruler"),
             [this](wxCommandEvent&) { m_extra_style & wxSL_AUTOTICKS ? m_extra_style ^= wxSL_AUTOTICKS : m_extra_style |= wxSL_AUTOTICKS; }, ruler_mode_menu,
             []() { return true; }, [this]() { return m_extra_style & wxSL_AUTOTICKS; }, GUI::wxGetApp().plater());
 
-        append_menu_check_item(ruler_mode_menu, wxID_ANY, _L("Show estimated print time"), _L("Show estimated print time on the ruler"),
+        append_menu_check_item(ruler_mode_menu, wxID_ANY, _devL("Show estimated print time"), _devL("Show estimated print time on the ruler"),
             [this](wxCommandEvent&) { m_extra_style & wxSL_VALUE_LABEL ? m_extra_style ^= wxSL_VALUE_LABEL : m_extra_style |= wxSL_VALUE_LABEL; }, ruler_mode_menu,
             []() { return true; }, [this]() { return m_extra_style & wxSL_VALUE_LABEL; }, GUI::wxGetApp().plater());
 
-        append_submenu(&menu, ruler_mode_menu, wxID_ANY, _L("Ruler mode"), _L("Set ruler mode"), "",
+        append_submenu(&menu, ruler_mode_menu, wxID_ANY, _devL("Ruler mode"), _devL("Set ruler mode"), "",
             []() { return true; }, this);
     }
 
     if (GUI::wxGetApp().is_editor() && m_mode != MultiExtruder && m_draw_mode == dmRegular)
-        append_menu_item(&menu, wxID_ANY, _L("Set auto color changes"), "",
+        append_menu_item(&menu, wxID_ANY, _devL("Set auto color changes"), "",
             [this](wxCommandEvent&) { auto_color_change(); }, "", &menu);
 
     GUI::wxGetApp().plater()->PopupMenu(&menu);
@@ -2095,9 +2092,9 @@ bool check_color_change(PrintObject* object, size_t frst_layer_id, size_t layers
 void Control::auto_color_change()
 {
     if (!m_ticks.empty()) {
-        wxString msg_text = _L("This action will cause deletion of all ticks on vertical slider.") + "\n\n" +
-                            _L("This action is not revertible.\nDo you want to proceed?");
-        GUI::WarningDialog dialog(m_parent, msg_text, _L("Warning"), wxYES | wxNO);
+        wxString msg_text = _devL("This action will cause deletion of all ticks on vertical slider.") + "\n\n" +
+                            _devL("This action is not revertible.\nDo you want to proceed?");
+        GUI::WarningDialog dialog(m_parent, msg_text, _devL("Warning"), wxYES | wxNO);
         if (dialog.ShowModal() == wxID_NO)
             return;    
         m_ticks.ticks.clear();
@@ -2226,8 +2223,8 @@ static void upgrade_text_entry_dialog(wxTextEntryDialog* dlg, double min = -1.0,
 
 static std::string get_custom_code(const std::string& code_in, double height)
 {
-    wxString msg_text = _L("Enter custom G-code used on current layer") + ":";
-    wxString msg_header = format_wxstr(_L("Custom G-code on current layer (%1% mm)."), height);
+    wxString msg_text = _devL("Enter custom G-code used on current layer") + ":";
+    wxString msg_header = format_wxstr(_devL("Custom G-code on current layer (%1% mm)."), height);
 
     // get custom gcode
     wxTextEntryDialog dlg(nullptr, msg_text, msg_header, code_in,
@@ -2248,8 +2245,8 @@ static std::string get_custom_code(const std::string& code_in, double height)
 
 static std::string get_pause_print_msg(const std::string& msg_in, double height)
 {
-    wxString msg_text = _L("Enter short message shown on Printer display when a print is paused") + ":";
-    wxString msg_header = format_wxstr(_L("Message for pause print on current layer (%1% mm)."), height);
+    wxString msg_text = _devL("Enter short message shown on Printer display when a print is paused") + ":";
+    wxString msg_header = format_wxstr(_devL("Message for pause print on current layer (%1% mm)."), height);
 
     // get custom gcode
     wxTextEntryDialog dlg(nullptr, msg_text, msg_header, from_u8(msg_in),
@@ -2264,8 +2261,8 @@ static std::string get_pause_print_msg(const std::string& msg_in, double height)
 
 static double get_value_to_jump(double active_value, double min_z, double max_z, DrawMode mode)
 {
-    wxString msg_text = (mode == dmSequentialGCodeView) ? _L("Enter the move you want to jump to") + ":" : _L("Enter the height you want to jump to") + ":";
-    wxString msg_header = (mode == dmSequentialGCodeView) ? _L("Jump to move") : _L("Jump to height");
+    wxString msg_text = (mode == dmSequentialGCodeView) ? _devL("Enter the move you want to jump to") + ":" : _devL("Enter the height you want to jump to") + ":";
+    wxString msg_header = (mode == dmSequentialGCodeView) ? _devL("Jump to move") : _devL("Jump to height");
     wxString msg_in = GUI::double_to_string(active_value);
 
     // get custom gcode
@@ -2465,14 +2462,14 @@ bool Control::check_ticks_changed_event(Type type)
             return true;
 
         wxString message = (m_ticks.mode == SingleExtruder ?
-                            _L("The last color change data was saved for a single extruder printing.") :
-                            _L("The last color change data was saved for a multi extruder printing.") 
+                            _devL("The last color change data was saved for a single extruder printing.") :
+                            _devL("The last color change data was saved for a multi extruder printing.") 
                             ) + "\n" +
-                            _L("Your current changes will delete all saved color changes.") + "\n\n\t" +
-                            _L("Are you sure you want to continue?");
+                            _devL("Your current changes will delete all saved color changes.") + "\n\n\t" +
+                            _devL("Are you sure you want to continue?");
 
-        //wxMessageDialog msg(this, message, _L("Notice"), wxYES_NO);
-        GUI::MessageDialog msg(this, message, _L("Notice"), wxYES_NO);
+        //wxMessageDialog msg(this, message, _devL("Notice"), wxYES_NO);
+        GUI::MessageDialog msg(this, message, _devL("Notice"), wxYES_NO);
         if (msg.ShowModal() == wxID_YES) {
             m_ticks.erase_all_ticks_with_code(ColorChange);
             post_ticks_changed_event(ColorChange);
@@ -2482,18 +2479,18 @@ bool Control::check_ticks_changed_event(Type type)
     //          m_ticks_mode == MultiAsSingle
     if( m_ticks.has_tick_with_code(ToolChange) ) {
         wxString message =  m_mode == SingleExtruder ?                          (
-                            _L("The last color change data was saved for a multi extruder printing.") + "\n\n" +
-                            _L("Select YES if you want to delete all saved tool changes, \n"
+                            _devL("The last color change data was saved for a multi extruder printing.") + "\n\n" +
+                            _devL("Select YES if you want to delete all saved tool changes, \n"
                                "NO if you want all tool changes switch to color changes, \n"
                                "or CANCEL to leave it unchanged.") + "\n\n\t" +
-                            _L("Do you want to delete all saved tool changes?")  
+                            _devL("Do you want to delete all saved tool changes?")  
                             ): ( // MultiExtruder
-                            _L("The last color change data was saved for a multi extruder printing with tool changes for whole print.") + "\n\n" +
-                            _L("Your current changes will delete all saved extruder (tool) changes.") + "\n\n\t" +
-                            _L("Are you sure you want to continue?")                  ) ;
+                            _devL("The last color change data was saved for a multi extruder printing with tool changes for whole print.") + "\n\n" +
+                            _devL("Your current changes will delete all saved extruder (tool) changes.") + "\n\n\t" +
+                            _devL("Are you sure you want to continue?")                  ) ;
 
-        //wxMessageDialog msg(this, message, _L("Notice"), wxYES_NO | (m_mode == SingleExtruder ? wxCANCEL : 0));
-        GUI::MessageDialog msg(this, message, _L("Notice"), wxYES_NO | (m_mode == SingleExtruder ? wxCANCEL : 0));
+        //wxMessageDialog msg(this, message, _devL("Notice"), wxYES_NO | (m_mode == SingleExtruder ? wxCANCEL : 0));
+        GUI::MessageDialog msg(this, message, _devL("Notice"), wxYES_NO | (m_mode == SingleExtruder ? wxCANCEL : 0));
         const int answer = msg.ShowModal();
         if (answer == wxID_YES) {
             m_ticks.erase_all_ticks_with_code(ToolChange);

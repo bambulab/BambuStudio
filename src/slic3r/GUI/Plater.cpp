@@ -2958,7 +2958,7 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         {
             // XXX: Problem on OS X with double extension?
             output_file.replace_extension("zip.amf");
-            dlg_title = _L("Export AMF file:");
+            dlg_title = _devL("Export AMF file:");
             break;
         }
         case FT_3MF:
@@ -2970,7 +2970,7 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         case FT_OBJ:
         {
             output_file.replace_extension("obj");
-            dlg_title = _L("Export OBJ file:");
+            dlg_title = _devL("Export OBJ file:");
             break;
         }
         default: break;
@@ -3634,7 +3634,7 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
 {
     const std::string path = new_path.string();
     wxBusyCursor wait;
-    wxBusyInfo info(_L("Replace from:") + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
+    wxBusyInfo info(_devL("Replace from:") + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
 
     Model new_model;
     try {
@@ -3650,7 +3650,7 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
     }
 
     if (new_model.objects.size() > 1 || new_model.objects.front()->volumes.size() > 1) {
-        MessageDialog dlg(q, _L("Unable to replace with more than one volume"), _L("Error during replace"), wxOK | wxOK_DEFAULT | wxICON_WARNING);
+        MessageDialog dlg(q, _devL("Unable to replace with more than one volume"), _devL("Error during replace"), wxOK | wxOK_DEFAULT | wxICON_WARNING);
         dlg.ShowModal();
         return false;
     }
@@ -3852,7 +3852,7 @@ void Plater::priv::reload_from_disk()
             }
         }
         else {
-            wxString message = _L("Do you want to replace it") + " ?";
+            wxString      message = _devL("Do you want to replace it") + " ?";
             MessageDialog dlg(q, message, wxMessageBoxCaptionStr, wxYES_NO | wxYES_DEFAULT | wxICON_QUESTION);
             if (dlg.ShowModal() == wxID_YES)
                 replace_paths.push_back(sel_filename_path);
@@ -3873,7 +3873,7 @@ void Plater::priv::reload_from_disk()
         const auto& path = input_paths[i].string();
 
         wxBusyCursor wait;
-        wxBusyInfo info(_L("Reload from:") + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
+        wxBusyInfo info(_devL("Reload from:") + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
 
         Model new_model;
         try
@@ -3990,11 +3990,11 @@ void Plater::priv::reload_from_disk()
     }
 
     if (!fail_list.empty()) {
-        wxString message = _L("Unable to reload:") + "\n";
+        wxString message = _devL("Unable to reload:") + "\n";
         for (const wxString& s : fail_list) {
             message += s + "\n";
         }
-        MessageDialog dlg(q, message, _L("Error during reload"), wxOK | wxOK_DEFAULT | wxICON_WARNING);
+        MessageDialog dlg(q, message, _devL("Error during reload"), wxOK | wxOK_DEFAULT | wxICON_WARNING);
         dlg.ShowModal();
     }
 
@@ -7059,8 +7059,8 @@ void Plater::export_gcode(bool prefer_removable)
         if (dlg.ShowModal() == wxID_OK) {
             output_path = into_path(dlg.GetPath());
             while (has_illegal_filename_characters(output_path.filename().string())) {
-                show_error(this, _L("The provided file name is not valid.") + "\n" +
-                    _L("The following characters are not allowed by a FAT file system:") + " <>:/\\|?*\"");
+                show_error(this, _devL("The provided file name is not valid.") + "\n" +
+                    _devL("The following characters are not allowed by a FAT file system:") + " <>:/\\|?*\"");
                 dlg.SetFilename(from_path(output_path.filename()));
                 if (dlg.ShowModal() == wxID_OK)
                     output_path = into_path(dlg.GetPath());

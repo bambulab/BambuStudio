@@ -4413,15 +4413,15 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
             break;
         }
         default: {
-            /* BBS GUI:refactor
+            // BBS GUI:refactor
             // title
-            ImGui::Spacing();
-            imgui.title(_u8L("Travel"));
-            // items
-            append_item(EItemType::Line, Travel_Colors[0], _u8L("Movement"));
-            append_item(EItemType::Line, Travel_Colors[1], _u8L("Extrusion"));
-            append_item(EItemType::Line, Travel_Colors[2], _u8L("Retraction"));
-             */
+            //ImGui::Spacing();
+            //imgui.title(_u8L("Travel"));
+            //// items
+            //append_item(EItemType::Line, Travel_Colors[0], _u8L("Movement"));
+            //append_item(EItemType::Line, Travel_Colors[1], _u8L("Extrusion"));
+            //append_item(EItemType::Line, Travel_Colors[2], _u8L("Retraction"));
+
             break;
         }
         }
@@ -4469,23 +4469,22 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
     };
 
     /* BBS GUI refactor */
-    /*
     // options section
-    if (any_option_available()) {
-        // title
-        ImGui::Spacing();
-        imgui.title(_u8L("Options"));
+    //if (any_option_available()) {
+    //    // title
+    //    ImGui::Spacing();
+    //    imgui.title(_u8L("Options"));
 
-        // items
-        add_option(EMoveType::Retract, EOptionsColors::Retractions, _u8L("Retractions"));
-        add_option(EMoveType::Unretract, EOptionsColors::Unretractions, _u8L("Deretractions"));
-        add_option(EMoveType::Seam, EOptionsColors::Seams, _u8L("Seams"));
-        add_option(EMoveType::Tool_change, EOptionsColors::ToolChanges, _u8L("Tool changes"));
-        add_option(EMoveType::Color_change, EOptionsColors::ColorChanges, _u8L("Color changes"));
-        add_option(EMoveType::Pause_Print, EOptionsColors::PausePrints, _u8L("Print pauses"));
-        add_option(EMoveType::Custom_GCode, EOptionsColors::CustomGCodes, _u8L("Custom G-codes"));
-    }
-    */
+    //    // items
+    //    add_option(EMoveType::Retract, EOptionsColors::Retractions, _u8L("Retractions"));
+    //    add_option(EMoveType::Unretract, EOptionsColors::Unretractions, _u8L("Deretractions"));
+    //    add_option(EMoveType::Seam, EOptionsColors::Seams, _u8L("Seams"));
+    //    add_option(EMoveType::Tool_change, EOptionsColors::ToolChanges, _u8L("Tool changes"));
+    //    add_option(EMoveType::Color_change, EOptionsColors::ColorChanges, _u8L("Color changes"));
+    //    add_option(EMoveType::Pause_Print, EOptionsColors::PausePrints, _u8L("Print pauses"));
+    //    add_option(EMoveType::Custom_GCode, EOptionsColors::CustomGCodes, _u8L("Custom G-codes"));
+    //}
+    
 
     // settings section
     bool has_settings = false;
@@ -4569,7 +4568,6 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
             switch (m_time_estimate_mode)
             {
             case PrintEstimatedStatistics::ETimeMode::Normal: { time_title += " [" + _u8L("Normal mode") + "]"; break; }
-            case PrintEstimatedStatistics::ETimeMode::Stealth: { time_title += " [" + _u8L("Silent mode") + "]"; break; }
             default: { assert(false); break; }
             }
         }

@@ -1340,8 +1340,8 @@ static wxMenu* generate_help_menu()
             wxGetApp().app_config->set_bool("show_daily_tips", evt.GetInt() == 1);
         }, nullptr, []() {return true; }, []() {return wxGetApp().app_config->get("show_daily_tips").compare("true") == 0; }, nullptr);
     // shortcut key
-    append_menu_item(helpMenu, wxID_ANY, _L("Keyboard Shortcuts") + sep + "&?", _L("Show the list of the keyboard shortcuts"),
-        [](wxCommandEvent&) { wxGetApp().keyboard_shortcuts(); });
+    //append_menu_item(helpMenu, wxID_ANY, _L("Keyboard Shortcuts") + sep + "&?", _L("Show the list of the keyboard shortcuts"),
+    //    [](wxCommandEvent&) { wxGetApp().keyboard_shortcuts(); });
     // Show Beginner's Tutorial
     append_menu_item(helpMenu, wxID_ANY,_L("Beginner's Tutorial"),_L("Beginner's Tutorial"),[](wxCommandEvent &) {wxGetApp().ShowUserGuide();});
     // Show DailyTip
@@ -1351,13 +1351,13 @@ static wxMenu* generate_help_menu()
 
     helpMenu->AppendSeparator();
     // Open Config Folder
-    append_menu_item(helpMenu, wxID_ANY, _L("Show &Configuration Folder"), _L("Show Configuration Folder"),
+    append_menu_item(helpMenu, wxID_ANY, _L("Show Configuration Folder"), _L("Show Configuration Folder"),
         [](wxCommandEvent&) { Slic3r::GUI::desktop_open_datadir_folder(); });
     // Report a bug
-    append_menu_item(helpMenu, wxID_ANY, _L("Report Bug(TODO)"), _L("Report a bug of BambuStudio"),
-        [](wxCommandEvent&) {
-            //TODO
-        });
+    //append_menu_item(helpMenu, wxID_ANY, _L("Report Bug(TODO)"), _L("Report a bug of BambuStudio"),
+    //    [](wxCommandEvent&) {
+    //        //TODO
+    //    });
     // Check New Version
     append_menu_item(helpMenu, wxID_ANY, _L("Check for Update"), _L("Check for Update"),
         [](wxCommandEvent&) {
@@ -1372,9 +1372,9 @@ static wxMenu* generate_help_menu()
             return false;
         });
     // About
-    wxString about_title = wxString::Format(_L("&About %s"), SLIC3R_APP_NAME);
-    append_menu_item(helpMenu, wxID_ANY, about_title, about_title,
-            [](wxCommandEvent&) { Slic3r::GUI::about(); });
+    //wxString about_title = wxString::Format(_L("&About %s"), SLIC3R_APP_NAME);
+    //append_menu_item(helpMenu, wxID_ANY, about_title, about_title,
+    //        [](wxCommandEvent&) { Slic3r::GUI::about(); });
     return helpMenu;
 }
 
@@ -1743,49 +1743,50 @@ void MainFrame::open_menubar_item(const wxString& menu_name,const wxString& item
 
 void MainFrame::init_menubar_as_gcodeviewer()
 {
-    wxMenu* fileMenu = new wxMenu;
-    {
-        append_menu_item(fileMenu, wxID_ANY, _L("&Open G-code") + dots + "\tCtrl+O", _L("Open a G-code file"),
-            [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->load_gcode(); }, "open", nullptr,
-            [this]() {return m_plater != nullptr; }, this);
-        fileMenu->AppendSeparator();
-        append_menu_item(fileMenu, wxID_ANY, _L("Export &Toolpaths as OBJ") + dots, _L("Export toolpaths as OBJ"),
-            [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->export_toolpaths_to_obj(); }, "export_plater", nullptr,
-            [this]() {return can_export_toolpaths(); }, this);
-        append_menu_item(fileMenu, wxID_ANY, _L("Open &BambuStudio") + dots, _L("Open BambuStudio"),
-            [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr,
-            []() {return true; }, this);
-        fileMenu->AppendSeparator();
-        append_menu_item(fileMenu, wxID_EXIT, _L("&Quit"), wxString::Format(_L("Quit %s"), SLIC3R_APP_NAME),
-            [this](wxCommandEvent&) { Close(false); });
-    }
-
-    // View menu
-    wxMenu* viewMenu = nullptr;
-    if (m_plater != nullptr) {
-        viewMenu = new wxMenu();
-        add_common_view_menu_items(viewMenu, this, std::bind(&MainFrame::can_change_view, this));
-    }
-
-    // helpmenu
-    auto helpMenu = generate_help_menu();
-
-    m_topbar->SetFileMenu(fileMenu);
-    if (viewMenu != nullptr)
-        m_topbar->AddDropDownSubMenu(viewMenu, _L("&View"));
-    wxGetApp().add_config_menu(m_topbar->GetTopMenu());
-    m_topbar->AddDropDownSubMenu(helpMenu, _L("&Help"));
-
-#ifdef __APPLE__
-    // This fixes a bug on Mac OS where the quit command doesn't emit window close events
-    // wx bug: https://trac.wxwidgets.org/ticket/18328
-    wxMenu* apple_menu = m_menubar->OSXGetAppleMenu();
-    if (apple_menu != nullptr) {
-        apple_menu->Bind(wxEVT_MENU, [this](wxCommandEvent&) {
-            Close();
-            }, wxID_EXIT);
-    }
-#endif // __APPLE__
+//BBS do not show gcode viewer mebu
+//    wxMenu* fileMenu = new wxMenu;
+//    {
+//        append_menu_item(fileMenu, wxID_ANY, _L("&Open G-code") + dots + "\tCtrl+O", _L("Open a G-code file"),
+//            [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->load_gcode(); }, "open", nullptr,
+//            [this]() {return m_plater != nullptr; }, this);
+//        fileMenu->AppendSeparator();
+//        append_menu_item(fileMenu, wxID_ANY, _L("Export &Toolpaths as OBJ") + dots, _L("Export toolpaths as OBJ"),
+//            [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->export_toolpaths_to_obj(); }, "export_plater", nullptr,
+//            [this]() {return can_export_toolpaths(); }, this);
+//        append_menu_item(fileMenu, wxID_ANY, _L("Open &BambuStudio") + dots, _L("Open BambuStudio"),
+//            [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr,
+//            []() {return true; }, this);
+//        fileMenu->AppendSeparator();
+//        append_menu_item(fileMenu, wxID_EXIT, _L("&Quit"), wxString::Format(_L("Quit %s"), SLIC3R_APP_NAME),
+//            [this](wxCommandEvent&) { Close(false); });
+//    }
+//
+//    // View menu
+//    wxMenu* viewMenu = nullptr;
+//    if (m_plater != nullptr) {
+//        viewMenu = new wxMenu();
+//        add_common_view_menu_items(viewMenu, this, std::bind(&MainFrame::can_change_view, this));
+//    }
+//
+//    // helpmenu
+//    auto helpMenu = generate_help_menu();
+//
+//    m_topbar->SetFileMenu(fileMenu);
+//    if (viewMenu != nullptr)
+//        m_topbar->AddDropDownSubMenu(viewMenu, _L("&View"));
+//    wxGetApp().add_config_menu(m_topbar->GetTopMenu());
+//    m_topbar->AddDropDownSubMenu(helpMenu, _L("&Help"));
+//
+//#ifdef __APPLE__
+//    // This fixes a bug on Mac OS where the quit command doesn't emit window close events
+//    // wx bug: https://trac.wxwidgets.org/ticket/18328
+//    wxMenu* apple_menu = m_menubar->OSXGetAppleMenu();
+//    if (apple_menu != nullptr) {
+//        apple_menu->Bind(wxEVT_MENU, [this](wxCommandEvent&) {
+//            Close();
+//            }, wxID_EXIT);
+//    }
+//#endif // __APPLE__
 }
 
 void MainFrame::update_menubar()
@@ -2121,8 +2122,8 @@ void MainFrame::technology_changed()
 
     // update menu titles
     PrinterTechnology pt = plater()->printer_technology();
-    if (int id = m_menubar->FindMenu(pt == ptFFF ? _L("Material Settings") : _L("Filament Settings")); id != wxNOT_FOUND)
-        m_menubar->SetMenuLabel(id , pt == ptSLA ? _L("Material Settings") : _L("Filament Settings"));
+    if (int id = m_menubar->FindMenu(pt == ptFFF ? _omitL("Material Settings") : _L("Filament Settings")); id != wxNOT_FOUND)
+        m_menubar->SetMenuLabel(id, pt == ptSLA ? _omitL("Material Settings") : _L("Filament Settings"));
 }
 
 //

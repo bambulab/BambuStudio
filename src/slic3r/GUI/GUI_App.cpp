@@ -61,7 +61,6 @@
 #include "Preferences.hpp"
 #include "Tab.hpp"
 #include "SysInfoDialog.hpp"
-#include "KBShortcutsDialog.hpp"
 #include "UpdateDialogs.hpp"
 #include "Mouse3DController.hpp"
 #include "RemovableDriveManager.hpp"
@@ -1842,8 +1841,7 @@ void GUI_App::system_info()
 
 void GUI_App::keyboard_shortcuts()
 {
-    KBShortcutsDialog dlg;
-    dlg.ShowModal();
+    //BBS TODO add shortcut dialog
 }
 
 
