@@ -348,8 +348,8 @@ void ArrangeJob::on_exception(const std::exception_ptr &eptr)
         if (eptr)
             std::rethrow_exception(eptr);
     } catch (libnest2d::GeometryException &) {
-        show_error(m_plater, _(L("Could not arrange model objects! "
-                                 "Some geometries may be invalid.")));
+        show_error(m_plater, _(L("Arrange failed! "
+                                 "Found some exceptions when processing object Geometries")));
     } catch (std::exception &) {
         PlaterJob::on_exception(eptr);
     }
@@ -387,7 +387,7 @@ void ArrangeJob::process()
     params.brim_skirt_distance = skirt_distance + brim_max;
     params.bed_shrink_x = settings.bed_shrink_x + params.brim_skirt_distance;
     params.bed_shrink_y = settings.bed_shrink_y + params.brim_skirt_distance;
-    
+
     // do not inflate brim_width. Objects are allowed to have overlapped brim.
     std::for_each(m_selected.begin(), m_selected.end(), [&](auto& ap) {ap.inflation = params.min_obj_distance / 2; });
     std::for_each(m_unselected.begin(), m_unselected.end(), [&](auto& ap) {ap.inflation = ap.is_virt_object ? scaled(params.brim_skirt_distance) : params.min_obj_distance / 2; });

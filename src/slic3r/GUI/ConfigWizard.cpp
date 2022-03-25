@@ -39,6 +39,7 @@
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Utils.hpp"
+#include "I18N.hpp"
 #include "GUI_ObjectManipulation.hpp"
 #include "Field.hpp"
 #include "DesktopIntegrationDialog.hpp"
@@ -1270,7 +1271,7 @@ PageVendors::PageVendors(ConfigWizard *parent)
     }
 }
 
-PageBedShape::PageBedShape(ConfigWizard *parent)
+/*PageBedShape::PageBedShape(ConfigWizard *parent)
     : ConfigWizardPage(parent, _L("Bed Shape and Size"), _L("Bed Shape"), 1)
     , shape_panel(new BedShapePanel(this))
 {
@@ -1283,7 +1284,7 @@ void PageBedShape::apply_custom_config(DynamicPrintConfig &config)
 {
     const std::vector<Vec2d>& points = shape_panel->get_shape();
     config.set_key_value("printable_area", new ConfigOptionPoints(points));
-}
+}*/
 
 static void focus_event(wxFocusEvent& e, wxTextCtrl* ctrl, double def_value) 
 {
@@ -2716,7 +2717,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
 #ifdef _WIN32
     p->add_page(p->page_files_association = new PageFilesAssociation(this));
 #endif // _WIN32
-    p->add_page(p->page_bed      = new PageBedShape(this));
+    //p->add_page(p->page_bed      = new PageBedShape(this));
     p->add_page(p->page_diams    = new PageDiameters(this));
     p->add_page(p->page_temps    = new PageTemperatures(this));
 

@@ -1086,10 +1086,10 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
     ImGui::AlignTextToFramePadding();
 
     // add checkboxes for show/hide Categories and Groups
-    text(_L("Use for search")+":");
-    check_box(_L("Category"),   view_params.category);
-    if (is_localized)
-        check_box(_L("Search in English"), view_params.english);
+    //text(_L("Use for search")+":");
+    //check_box(_L("Category"),   view_params.category);
+    //if (is_localized)
+    //    check_box(_L("Search in English"), view_params.english);
 }
 
 void ImGuiWrapper::title(const std::string& str)

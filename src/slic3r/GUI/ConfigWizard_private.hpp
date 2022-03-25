@@ -24,7 +24,7 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"
-#include "BedShapeDialog.hpp"
+//#include "BedShapeDialog.hpp"
 #include "GUI.hpp"
 #include "wxExtensions.hpp"
 
@@ -423,13 +423,13 @@ struct PageVendors: ConfigWizardPage
     PageVendors(ConfigWizard *parent);
 };
 
-struct PageBedShape: ConfigWizardPage
+/*struct PageBedShape: ConfigWizardPage
 {
     BedShapePanel *shape_panel;
 
     PageBedShape(ConfigWizard *parent);
     virtual void apply_custom_config(DynamicPrintConfig &config);
-};
+};*/
 
 struct PageDiameters: ConfigWizardPage
 {
@@ -558,7 +558,7 @@ struct ConfigWizard::priv
     Pages3rdparty     pages_3rdparty;
 
     // Custom setup pages
-    PageBedShape     *page_bed = nullptr;
+    //PageBedShape     *page_bed = nullptr;
     PageDiameters    *page_diams = nullptr;
     PageTemperatures *page_temps = nullptr;
 
