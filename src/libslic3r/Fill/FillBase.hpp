@@ -98,6 +98,9 @@ public:
     // BBS: all no overlap expolygons in same layer
     ExPolygons  no_overlap_expolygons;
 
+    static float infill_anchor;
+    static float infill_anchor_max;
+
 public:
     virtual ~Fill() {}
     virtual Fill* clone() const = 0;

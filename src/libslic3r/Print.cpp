@@ -95,7 +95,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         // BBS
         "gcode_add_line_number",
         "bbl_bed_temperature_gcode",
-        "gcode_label_objects",
         "layer_change_gcode",
         "fan_min_speed",
         "fan_max_speed",

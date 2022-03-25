@@ -597,8 +597,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))
     ((ConfigOptionFloat,                gap_infill_speed))
-    ((ConfigOptionFloatOrPercent,       infill_anchor))
-    ((ConfigOptionFloatOrPercent,       infill_anchor_max))
     ((ConfigOptionInt,                  infill_extruder))
     ((ConfigOptionFloatOrPercent,       sparse_infill_line_width))
     ((ConfigOptionPercent,              infill_wall_overlap))
@@ -699,7 +697,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                remove_extrusion_calibration))
 
     ((ConfigOptionEnum<GCodeFlavor>,   gcode_flavor))
-    ((ConfigOptionBool,                gcode_label_objects))
     ((ConfigOptionString,              layer_change_gcode))
     ((ConfigOptionFloat,               max_print_speed))
     ((ConfigOptionFloat,               max_volumetric_speed))

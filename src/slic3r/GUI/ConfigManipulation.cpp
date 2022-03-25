@@ -349,11 +349,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     bool have_infill = config->option<ConfigOptionPercent>("sparse_infill_density")->value > 0;
     // infill_extruder uses the same logic as in Print::extruders()
     for (auto el : { "sparse_infill_pattern", "infill_combination",
-                    "minimum_sparse_infill_area", "infill_extruder", "infill_anchor_max" })
+                    "minimum_sparse_infill_area", "infill_extruder"})
         toggle_field(el, have_infill);
-    // Only allow configuration of open anchors if the anchoring is enabled.
-    bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("infill_anchor_max")->value > 0;
-    toggle_field("infill_anchor", has_infill_anchors);
 
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
     bool has_top_solid_infill 	 = config->opt_int("top_shell_layers") > 0;

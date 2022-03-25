@@ -319,7 +319,7 @@ double ExtrusionLoop::min_mm3_per_mm() const
 std::string ExtrusionEntity::role_to_string(ExtrusionRole role)
 {
     switch (role) {
-        case erNone                         : return L("Unknown");
+        case erNone                         : return L("Undefined");
         case erPerimeter                    : return L("Inner wall");
         case erExternalPerimeter            : return L("Outer wall");
         case erOverhangPerimeter            : return L("Overhang wall");
@@ -330,14 +330,14 @@ std::string ExtrusionEntity::role_to_string(ExtrusionRole role)
         case erIroning                      : return L("Ironing");
         case erBridgeInfill                 : return L("Bridge");
         case erGapFill                      : return L("Gap infill");
-        case erSkirt                        : return L("Skirt");
-        case erBrim                         : return L("Brim");
+        case erSkirt                        : return ("Skirt");
+        case erBrim                         : return ("Brim");
         case erSupportMaterial              : return L("Support");
         case erSupportMaterialInterface     : return L("Support interface");
         case erSupportTransition            : return L("Support transition");
         case erWipeTower                    : return L("Prime tower");
         case erCustom                       : return L("Custom");
-        case erMixed                        : return L("Mixed");
+        case erMixed                        : return L("Multiple");
         default                             : assert(false);
     }
     return "";
@@ -365,9 +365,9 @@ ExtrusionRole ExtrusionEntity::string_to_role(const std::string_view role)
         return erBridgeInfill;
     else if (role == L("Gap infill"))
         return erGapFill;
-    else if (role == L("Skirt"))
+    else if (role == ("Skirt"))
         return erSkirt;
-    else if (role == L("Brim"))
+    else if (role == ("Brim"))
         return erBrim;
     else if (role == L("Support"))
         return erSupportMaterial;
@@ -379,7 +379,7 @@ ExtrusionRole ExtrusionEntity::string_to_role(const std::string_view role)
         return erWipeTower;
     else if (role == L("Custom"))
         return erCustom;
-    else if (role == L("Mixed"))
+    else if (role == L("Multiple"))
         return erMixed;
     else
         return erNone;

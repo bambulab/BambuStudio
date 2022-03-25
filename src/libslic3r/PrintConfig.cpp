@@ -230,8 +230,9 @@ void PrintConfigDef::init_common_params()
     ConfigOptionDef* def;
 
     def = this->add("printer_technology", coEnum);
-    def->label = L("Printer technology");
-    def->tooltip = L("Printer technology");
+    //def->label = L("Printer technology");
+    def->label = "Printer technology";
+    //def->tooltip = L("Printer technology");
     def->enum_keys_map = &ConfigOptionEnum<PrinterTechnology>::get_enum_values();
     def->enum_values.push_back("FFF");
     def->enum_values.push_back("SLA");
@@ -349,7 +350,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("printing_by_object_gcode", coString);
-    def->label = L("Between objects G-code");
+    def->label = L("Printing by object G-code");
     def->tooltip = L("This G-code is inserted between objects when print object by object");
     def->multiline = true;
     def->full_width = true;
@@ -438,7 +439,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("bridge_speed", coFloat);
-    def->label = L("Bridges");
+    def->label = L("Bridge");
     def->category = L("Speed");
     def->tooltip = L("Speed of bridge and completely overhang wall");
     def->sidetext = L("mm/s");
@@ -1025,7 +1026,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(60.0));
 
     def = this->add("nozzle_temperature_initial_layer", coInts);
-    def->label = L("First layer");
+    def->label = L("Initial layer");
     def->full_label = L("Initial layer nozzle temperature");
     def->tooltip = L("Nozzle temperature to print initial layer when using this filament");
     def->sidetext = L("°C");
@@ -1172,14 +1173,6 @@ void PrintConfigDef::init_fff_params()
     def->readonly = true;
     def->set_default_value(new ConfigOptionEnum<GCodeFlavor>(gcfMarlinLegacy));
 
-    def = this->add("gcode_label_objects", coBool);
-    def->label = L("Label objects");
-    //def->tooltip = L("Enable this to add comments into the G-Code labeling print moves with what object they belong to,"
-    //               " which is useful for the Octoprint CancelObject plugin. This settings is NOT compatible with "
-    //               "Single Extruder Multi Material setup and Wipe into Object / Wipe into Infill.");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(0));
-
     //BBS
     def = this->add("infill_combination", coBool);
     def->label = L("Infill combination");
@@ -1188,57 +1181,6 @@ void PrintConfigDef::init_fff_params()
                      "with original layer height.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
-
-    auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
-    def->label = L("Sparse infill anchor length");
-    def->category = L("Strength");
-    //def->tooltip = L("Connect an infill line to an internal perimeter with a short segment of an additional perimeter. "
-    //                 "If expressed as percentage (example: 15%) it is calculated over infill extrusion width. "
-    //                 "BambuStudio tries to connect two close infill lines to a short perimeter segment. If no such perimeter segment "
-    //                 "shorter than infill_anchor_max is found, the infill line is connected to a perimeter segment at just one side "
-    //                 "and the length of the perimeter segment taken is limited to this parameter, but no longer than anchor_length_max. "
-    //                 "Set this parameter to zero to disable anchoring perimeters connected to a single infill line.");
-    def->sidetext = L("mm or %");
-    def->ratio_over = "sparse_infill_line_width";
-    def->max_literal = 1000;
-    def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
-    def->enum_values.push_back("0");
-    def->enum_values.push_back("1");
-    def->enum_values.push_back("2");
-    def->enum_values.push_back("5");
-    def->enum_values.push_back("10");
-    def->enum_values.push_back("1000");
-    def->enum_labels.push_back(L("0 (no open anchors)"));
-    def->enum_labels.push_back(L("1 mm"));
-    def->enum_labels.push_back(L("2 mm"));
-    def->enum_labels.push_back(L("5 mm"));
-    def->enum_labels.push_back(L("10 mm"));
-    def->enum_labels.push_back(L("1000 (unlimited)"));
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloatOrPercent(500, true));
-
-    def = this->add("infill_anchor_max", coFloatOrPercent);
-    def->label = L("Maximum length of the infill anchor");
-    def->category    = def_infill_anchor_min->category;
-    //def->tooltip = L("Connect an infill line to an internal perimeter with a short segment of an additional perimeter. "
-    //                 "If expressed as percentage (example: 15%) it is calculated over infill extrusion width. "
-    //                 "BambuStudio tries to connect two close infill lines to a short perimeter segment. If no such perimeter segment "
-    //                 "shorter than this parameter is found, the infill line is connected to a perimeter segment at just one side "
-    //                 "and the length of the perimeter segment taken is limited to infill_anchor, but no longer than this parameter. "
-    //                 "Set this parameter to zero to disable anchoring.");
-    def->sidetext    = def_infill_anchor_min->sidetext;
-    def->ratio_over  = def_infill_anchor_min->ratio_over;
-    def->max_literal = def_infill_anchor_min->max_literal;
-    def->gui_type    = def_infill_anchor_min->gui_type;
-    def->enum_values = def_infill_anchor_min->enum_values;
-    def->enum_labels.push_back(L("0 (not anchored)"));
-    def->enum_labels.push_back(L("1 mm"));
-    def->enum_labels.push_back(L("2 mm"));
-    def->enum_labels.push_back(L("5 mm"));
-    def->enum_labels.push_back(L("10 mm"));
-    def->enum_labels.push_back(L("1000 (unlimited)"));
-    def->mode        = def_infill_anchor_min->mode;
-    def->set_default_value(new ConfigOptionFloatOrPercent(50, false));
 
     def = this->add("infill_extruder", coInt);
     def->label = L("Infill");
@@ -1277,8 +1219,10 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(150));
 
     def = this->add("inherits", coString);
-    def->label = L("Inherits profile");
-    def->tooltip = L("Name of parent profile");
+    //def->label = L("Inherits profile");
+    def->label = "Inherits profile";
+    //def->tooltip = L("Name of parent profile");
+    def->tooltip = "Name of parent profile";
     def->full_width = true;
     def->height = 5;
     def->set_default_value(new ConfigOptionString());
@@ -1291,7 +1235,8 @@ void PrintConfigDef::init_fff_params()
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("interface_shells", coBool);
-    def->label = L("Interface shells");
+    //def->label = L("Interface shells");
+    def->label = "Interface shells";
     //def->tooltip = L("Force the generation of solid shells between adjacent materials/volumes. "
     //               "Useful for multi-extruder prints with translucent materials or manual soluble "
     //               "support material");
@@ -1348,7 +1293,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(20));
 
     def = this->add("layer_change_gcode", coString);
-    def->label = L("After layer change G-code");
+    def->label = L("Layer change G-code");
     def->tooltip = L("This gcode part is inserted at every layer change after lift z");
     def->multiline = true;
     def->full_width = true;
@@ -1618,11 +1563,13 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("perimeter_extruder", coInt);
-    def->label = L("Perimeter");
-    def->category = L("Extruders");
-    def->tooltip = L("Filament to print walls");
+    //def->label = L("Walls");
+    //def->category = L("Extruders");
+    //def->tooltip = L("Filament to print walls");
+    def->label = "Walls";
+    def->category = "Extruders";
+    def->tooltip = "Filament to print walls";
     def->min = 1;
-    //BBS
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(1));
 
@@ -1655,13 +1602,16 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInt(2));
 
     def = this->add("printer_model", coString);
-    def->label = L("Printer type");
-    def->tooltip = L("Type of the printer");
+    //def->label = L("Printer type");
+    //def->tooltip = L("Type of the printer");
+    def->label = "Printer type";
+    def->tooltip = "Type of the printer";
     def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("printer_variant", coString);
-    def->label = L("Printer variant");
+    //def->label = L("Printer variant");
+    def->label = "Printer variant";
     //def->tooltip = L("Name of the printer variant. For example, the printer variants may be differentiated by a nozzle diameter.");
     def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
@@ -1748,7 +1698,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionPercents { 100 });
 
     def = this->add("retract_when_changing_layer", coBools);
-    def->label = L("Retract on layer change");
+    def->label = L("Retract when change layer");
     def->tooltip = L("Force a retraction when changes layer");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBools { false });
@@ -1764,7 +1714,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("retract_length_toolchange", coFloats);
     def->label = L("Length");
-    def->full_label = L("Retraction Length (Toolchange)");
+    //def->full_label = L("Retraction Length (Toolchange)");
+    def->full_label = "Retraction Length (Toolchange)";
     //def->tooltip = L("When retraction is triggered before changing tool, filament is pulled back "
     //               "by the specified amount (the length is measured on raw filament, before it enters "
     //               "the extruder).");
@@ -1782,7 +1733,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloats { 0.4 });
 
     def = this->add("retract_restart_extra", coFloats);
-    def->label = L("Extra length on restart");
+    //def->label = L("Extra length on restart");
+    def->label = "Extra length on restart";
     //def->tooltip = L("When the retraction is compensated after the travel move, the extruder will push "
     //               "this additional amount of filament. This setting is rarely needed.");
     def->sidetext = L("mm");
@@ -1790,7 +1742,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloats { 0. });
 
     def = this->add("retract_restart_extra_toolchange", coFloats);
-    def->label = L("Extra length on restart");
+    //def->label = L("Extra length on restart");
+    def->label = "Extra length on restart";
     //def->tooltip = L("When the retraction is compensated after changing tool, the extruder will push "
     //               "this additional amount of filament.");
     def->sidetext = L("mm");
@@ -1837,15 +1790,17 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(2));
 
     def = this->add("skirt_height", coInt);
-    def->label = L("Skirt height");
-    def->tooltip = L("How many layers of skirt. Usually only one layer");
+    //def->label = L("Skirt height");
+    def->label = "Skirt height";
+    //def->tooltip = L("How many layers of skirt. Usually only one layer");
     def->sidetext = L("layers");
     def->mode = comDevelop;
     def->max = 10000;
     def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("draft_shield", coEnum);
-    def->label = L("Draft shield");
+    //def->label = L("Draft shield");
+    def->label = "Draft shield";
     //def->tooltip = L("With draft shield active, the skirt will be printed skirt_distance from the object, possibly intersecting brim.\n"
     //                 "Enabled = skirt is as tall as the highest printed object.\n"
     //                "Limited = skirt is as tall as specified by skirt_height.\n"
@@ -1854,15 +1809,15 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("disabled");
     def->enum_values.push_back("limited");
     def->enum_values.push_back("enabled");
-    def->enum_labels.push_back(L("Disabled"));
-    def->enum_labels.push_back(L("Limited"));
-    def->enum_labels.push_back(L("Enabled"));
+    def->enum_labels.push_back("Disabled");
+    def->enum_labels.push_back("Limited");
+    def->enum_labels.push_back("Enabled");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionEnum<DraftShield>(dsDisabled));
 
     def = this->add("skirt_loops", coInt);
     def->label = L("Skirt loops");
-    def->full_label = L("Skirt Loops");
+    def->full_label = L("Skirt loops");
     def->tooltip = L("Number of loops for the skirt. Zero means disabling skirt");
     def->min = 0;
     def->max = 10;
@@ -1901,11 +1856,14 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(5));
 
     def = this->add("solid_infill_extruder", coInt);
-    def->label = L("Solid infill");
-    def->category = L("Extruders");
-    def->tooltip = L("Filament to print solid infill.");
+    //def->label = L("Solid infill");
+    //def->category = L("Extruders");
+    //def->tooltip = L("Filament to print solid infill");
+    def->label = "Solid infill";
+    def->category = "Extruders";
+    def->tooltip = "Filament to print solid infill";
     def->min = 1;
-    def->mode = comAdvanced;
+    def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("internal_solid_infill_line_width", coFloatOrPercent);
@@ -1929,23 +1887,6 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(100, false));
-
-    def = this->add("solid_layers", coInt);
-    def->label = L("Solid layers");
-    //BBS: add category as Shell
-    def->category = L("Strength");
-    def->tooltip = L("Number of solid layers to generate on top and bottom surfaces.");
-    def->shortcut.push_back("top_shell_layers");
-    def->shortcut.push_back("bottom_shell_layers");
-    def->min = 0;
-
-    def = this->add("solid_min_thickness", coFloat);
-    def->label = L("Minimum thickness of a top / bottom shell");
-    //BBS: add category as Shell
-    def->tooltip = L("Minimum thickness of a top / bottom shell");
-    def->shortcut.push_back("top_shell_thickness");
-    def->shortcut.push_back("bottom_shell_thickness");
-    def->min = 0;
 
     def = this->add("spiral_mode", coBool);
     def->label = L("Spiral mode");
@@ -1985,19 +1926,19 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings { " " });
 
     def = this->add("single_extruder_multi_material", coBool);
-    def->label = L("Single Extruder Multi Material");
-    def->tooltip = L("Use single nozzle to print multi filament");
+    //def->label = L("Single Extruder Multi Material");
+    //def->tooltip = L("Use single nozzle to print multi filament");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("single_extruder_multi_material_priming", coBool);
-    def->label = L("Prime all printing extruders");
+    //def->label = L("Prime all printing extruders");
     //def->tooltip = L("If enabled, all printing extruders will be primed at the front edge of the print bed at the start of the print.");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("wipe_tower_no_sparse_layers", coBool);
-    def->label = L("No sparse layers (EXPERIMENTAL)");
+    //def->label = L("No sparse layers (EXPERIMENTAL)");
     //def->tooltip = L("If enabled, the wipe tower will not be printed on layers with no toolchanges. "
     //                 "On layers with a toolchange, extruder will travel downward to print the wipe tower. "
     //                 "User is responsible for ensuring there is no collision with the print.");
@@ -2005,7 +1946,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("slice_closing_radius", coFloat);
-    def->label = L("Slice gap closing radius");
+    //def->label = L("Slice gap closing radius");
+    def->label = "Slice gap closing radius";
     def->category = L("Advanced");
     //def->tooltip = L("Cracks smaller than 2x gap closing radius are being filled during the triangle mesh slicing. "
     //                 "The gap closing operation may reduce the final print resolution, therefore it is advisable to keep the value reasonably low.");
@@ -2015,16 +1957,20 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0.04));
 
     def = this->add("slicing_mode", coEnum);
-    def->label = L("Slicing Mode");
+    //def->label = L("Slicing Mode");
+    def->label = "Slicing Mode";
     def->category = L("Advanced");
     //def->tooltip = L("Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model.");
     def->enum_keys_map = &ConfigOptionEnum<SlicingMode>::get_enum_values();
     def->enum_values.push_back("regular");
     def->enum_values.push_back("even_odd");
     def->enum_values.push_back("close_holes");
-    def->enum_labels.push_back(L("Regular"));
-    def->enum_labels.push_back(L("Even-odd"));
-    def->enum_labels.push_back(L("Close holes"));
+    //def->enum_labels.push_back(L("Regular"));
+    //def->enum_labels.push_back(L("Even-odd"));
+    //def->enum_labels.push_back(L("Close holes"));
+    def->enum_labels.push_back("Regular");
+    def->enum_labels.push_back("Even-odd");
+    def->enum_labels.push_back("Close holes");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionEnum<SlicingMode>(SlicingMode::Regular));
 
@@ -2107,7 +2053,7 @@ void PrintConfigDef::init_fff_params()
     // It may be rounded to mulitple layer height when independent_support_layer_height is false.
     def = this->add("support_bottom_z_distance", coFloat);
     //def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
-    def->label = L("Bottom contact Z distance");
+    def->label = L("Bottom Z distance");
     def->category = L("Support");
     def->tooltip = L("The z gap between the bottom support interface and object");
     def->sidetext = L("mm");
@@ -2125,14 +2071,14 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("support_material_enforce_layers", coInt);
-    def->label = L("Enforce support for the first");
+    //def->label = L("Enforce support for the first");
     def->category = L("Support");
     //def->tooltip = L("Generate support material for the specified number of layers counting from bottom, "
     //               "regardless of whether normal support material is enabled or not and regardless "
     //               "of any angle threshold. This is useful for getting more adhesion of objects "
     //               "having a very thin or poor footprint on the build plate.");
     def->sidetext = L("layers");
-    def->full_label = L("Enforce support for the first n layers");
+    //def->full_label = L("Enforce support for the first n layers");
     def->min = 0;
     def->max = 5000;
     def->mode = comDevelop;
@@ -2205,20 +2151,20 @@ void PrintConfigDef::init_fff_params()
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Bottom interface layers");
     def->category = L("Support");
-    def->tooltip = L("Number of bottom interface layers. "
-                     "-1 means same with use top interface layers");
+    //def->tooltip = L("Number of bottom interface layers. "
+    //                 "-1 means same with use top interface layers");
     def->sidetext = L("layers");
     def->min = -1;
     def->enum_values.push_back("-1");
     append(def->enum_values, support_interface_top_layers->enum_values);
     //TRN To be shown in Print Settings "Bottom interface layers". Have to be as short as possible
-    def->enum_labels.push_back(L("Same as top"));
+    def->enum_labels.push_back("-1");
     append(def->enum_labels, support_interface_top_layers->enum_labels);
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("support_closing_radius", coFloat);
-    def->label = L("Closing radius");
+    //def->label = L("Closing radius");
     def->category = L("Support");
     //def->tooltip = L("For snug supports, the support regions will be merged using morphological closing operation."
     //                 " Gaps smaller than the closing radius will be filled in.");
@@ -2513,10 +2459,10 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(200));
 
     def = this->add("travel_speed_z", coFloat);
-    def->label = L("Z travel");
-    def->tooltip = L("Speed of vertical travel along z axis. "
-                     "This is typically lower because build plate or gantry is hard to be moved. "
-                     "Zero means using travel speed directly in gcode, but will be limited by printer's ability when run gcode");
+    //def->label = L("Z travel");
+    //def->tooltip = L("Speed of vertical travel along z axis. "
+    //                 "This is typically lower because build plate or gantry is hard to be moved. "
+    //                 "Zero means using travel speed directly in gcode, but will be limited by printer's ability when run gcode");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comDevelop;

@@ -480,6 +480,8 @@ private:
     coordf_t m_nominal_z;
     bool m_need_change_layer_lift_z = false;
 
+    static bool gcode_label_objects;
+
     // BBS
     void get_bed_temperature(const int extruder_id, const bool is_first_layer, std::vector<int>& temps_per_bed, int& default_temp) const;
 

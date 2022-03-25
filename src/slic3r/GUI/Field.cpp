@@ -344,15 +344,13 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                     break;
                 }
 
-                bool infill_anchors = m_opt.opt_key == "infill_anchor" || m_opt.opt_key == "infill_anchor_max";
-
                 const std::string sidetext = m_opt.sidetext.rfind("mm/s") != std::string::npos ? "mm/s" : "mm";
                 const wxString stVal = double_to_string(val, 2);
                 const wxString msg_text = from_u8((boost::format(_utf8(L("Is it %s%% or %s %s?\n"
                     "YES for %s%%, \n"
                     "NO for %s %s."))) % stVal % stVal % sidetext % stVal % stVal % sidetext).str());
                 WarningDialog dialog(m_parent, msg_text, _L("Parameter validation") + ": " + m_opt_id, wxYES | wxNO);
-                if ((!infill_anchors || val > 100) && dialog.ShowModal() == wxID_YES) {
+                if ((val > 100) && dialog.ShowModal() == wxID_YES) {
                     set_value(from_u8((boost::format("%s%%") % stVal).str()), false/*true*/);
                     str += "%%";
                 }
