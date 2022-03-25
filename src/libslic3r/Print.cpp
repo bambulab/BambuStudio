@@ -744,7 +744,7 @@ StringObjectException Print::validate(StringObjectException *warning) const
 
                 // BBS
                 if (this->has_wipe_tower() && object->config().independent_support_layer_height) {
-                    return {L("The wipe tower requires that support has the same layer height with object."), object, "support_material_extruder"};
+                    return {L("The prime tower requires that support has the same layer height with object."), object, "support_material_extruder"};
                 }
             }
 

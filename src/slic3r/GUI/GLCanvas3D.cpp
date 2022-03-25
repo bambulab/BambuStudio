@@ -6974,7 +6974,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     ErrorType error = ErrorType::PLATER_WARNING;
     switch (warning) {
     case EWarning::ObjectOutside:      text = _u8L("An object is layed over the boundary of plate."); break;
-    case EWarning::ToolpathOutside:    text = _u8L("A toolpath goes beyond the boundary of plate."); error = ErrorType::SLICING_ERROR; break;
+    case EWarning::ToolpathOutside:    text = _u8L("A G-code path goes beyond the boundary of plate."); error = ErrorType::SLICING_ERROR; break;
     // BBS: remove _u8L() for SLA
     case EWarning::SlaSupportsOutside: text = ("SLA supports outside the print area were detected."); error = ErrorType::PLATER_ERROR; break;
     case EWarning::SomethingNotShown:  text = _u8L("Objects being edited are not visible."); break;
