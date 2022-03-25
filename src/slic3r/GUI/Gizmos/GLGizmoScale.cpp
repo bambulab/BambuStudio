@@ -72,7 +72,8 @@ bool GLGizmoScale3D::on_init()
     m_grabbers[2].angles(0) = half_pi;
     m_grabbers[3].angles(0) = half_pi;
 
-    m_shortcut_key = WXK_CONTROL_S;
+    // BBS
+    m_shortcut_key = WXK_NONE;
 
     return true;
 }

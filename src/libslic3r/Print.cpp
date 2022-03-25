@@ -567,10 +567,10 @@ StringObjectException Print::validate(StringObjectException *warning) const
     std::vector<unsigned int> extruders = this->extruders();
 
     if (m_objects.empty())
-        return {L("All objects are outside of the print volume.")};
+        return { L("The selected plate is empty.") };
 
     if (extruders.empty())
-        return {L("The supplied settings will cause an empty print.")};
+        return { L("No extrusions under current settings.") };
 
     if (m_config.print_sequence == PrintSequence::ByObject) {
         auto ret = sequential_print_clearance_valid(*this);
@@ -591,11 +591,10 @@ StringObjectException Print::validate(StringObjectException *warning) const
             total_copies_count += object->instances().size();
         // #4043
         if (total_copies_count > 1 && m_config.print_sequence != PrintSequence::ByObject)
-            return {L("Only a single object may be printed at a time in Spiral Vase mode. "
-                     "Either remove all but the last object, or enable by object mode by \"print_sequence\"."), nullptr, "spiral_mode"};
+            return {L("Please select \"By object\" print sequence to print multiple objects in spiral vase mode."), nullptr, "spiral_mode"};
         assert(m_objects.size() == 1);
         if (m_objects.front()->all_regions().size() > 1)
-            return {L("The Spiral Vase option can only be used when printing single material objects."), nullptr, "spiral_mode"};
+            return {L("The spiral vase mode does not work when an object contains more than one materials."), nullptr, "spiral_mode"};
     }
 
     if (this->has_wipe_tower() && ! m_objects.empty()) {
@@ -607,25 +606,28 @@ StringObjectException Print::validate(StringObjectException *warning) const
             double nozzle_diam = m_config.nozzle_diameter.get_at(extruder_idx);
             double filament_diam = m_config.filament_diameter.get_at(extruder_idx);
             if (nozzle_diam - EPSILON > first_nozzle_diam || nozzle_diam + EPSILON < first_nozzle_diam
-             || std::abs((filament_diam-first_filament_diam)/first_filament_diam) > 0.1)
-                 return {L("The wipe tower is only supported if all extruders have the same nozzle diameter "
-                          "and use filaments of the same diameter.")};
+                || std::abs((filament_diam - first_filament_diam) / first_filament_diam) > 0.1)
+                // BBS: remove L()
+                return { ("Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled.") };
         }
 
+        // BBS: remove following logic and _L()
+#if 0
         if (m_config.gcode_flavor != gcfRepRapSprinter && m_config.gcode_flavor != gcfRepRapFirmware &&
             m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlinLegacy && m_config.gcode_flavor != gcfMarlinFirmware)
-            return {L("The Wipe Tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors.")};
+            return {("The prime tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors.")};
         if (m_config.ooze_prevention)
-            return {L("Ooze prevention is currently not supported with the wipe tower enabled.")};
+            return {("Ooze prevention is currently not supported with the prime tower enabled.")};
+#endif
         if ((m_config.print_sequence == PrintSequence::ByObject) && extruders.size() > 1)
-            return {L("The Prime Tower is currently not supported for multimaterial sequential prints."), nullptr, "enable_prime_tower"};
+            return { L("The prime tower is not supported in \"By object\" print."), nullptr, "enable_prime_tower" };
         
-        // BBS: When wipe tower is on, object layer and support layer must be aligned. So support gap should be multiple of object layer height.
+        // BBS: When prime tower is on, object layer and support layer must be aligned. So support gap should be multiple of object layer height.
         for (size_t i = 0; i < m_objects.size(); i++) {
             const PrintObject* object = m_objects[i];
             const SlicingParameters& slicing_params = object->slicing_parameters();
             if (object->config().adaptive_layer_height) {
-                return  { L("The Prime Tower requires that object has the same layer height."), object, "adaptive_layer_height" };
+                return  { L("The prime tower is not supported when adaptive layer height is on. It requires that all objects have the same layer height."), object, "adaptive_layer_height" };
             }
             
             if (!object->config().enable_support)
@@ -633,7 +635,7 @@ StringObjectException Print::validate(StringObjectException *warning) const
 
             double gap_layers = slicing_params.gap_object_support / slicing_params.layer_height;
             if (gap_layers - (int)gap_layers > EPSILON) {
-                return  { L("The Wipe Tower is only supported for support gap if it is multiple of layer height"), object };
+                return  { L("The prime tower requires \"support gap\" to be multiple of layer height"), object };
             }
         }
 
@@ -656,17 +658,17 @@ StringObjectException Print::validate(StringObjectException *warning) const
                 const SlicingParameters &slicing_params = object->slicing_parameters();
                 if (std::abs(slicing_params.first_print_layer_height - slicing_params0.first_print_layer_height) > EPSILON ||
                     std::abs(slicing_params.layer_height             - slicing_params0.layer_height            ) > EPSILON)
-                    return {L("The Wipe Tower is only supported for multiple objects if they have equal layer heights"), object, "initial_layer_print_height"};
+                    return {L("The prime tower requires that all objects have the same layer heights"), object, "initial_layer_print_height"};
                 if (slicing_params.raft_layers() != slicing_params0.raft_layers())
-                    return {L("The Wipe Tower is only supported for multiple objects if they are printed over an equal number of raft layers"), object, "raft_layers"};
-                // BBS: support gap can be multiple of object layer height
+                    return {L("The prime tower requires that all objects are printed over the same number of raft layers"), object, "raft_layers"};
+                // BBS: support gap can be multiple of object layer height, remove _L()
 #if 0
                 if (slicing_params0.gap_object_support != slicing_params.gap_object_support ||
                     slicing_params0.gap_support_object != slicing_params.gap_support_object)
-                    return  {L("The Wipe Tower is only supported for multiple objects if they are printed with the same support_top_z_distance"), object};
+                    return  {("The prime tower is only supported for multiple objects if they are printed with the same support_top_z_distance"), object};
 #endif
-                if (! equal_layering(slicing_params, slicing_params0))
-                    return  {L("The Wipe Tower is only supported for multiple objects if they are sliced equally."), object};
+                if (!equal_layering(slicing_params, slicing_params0))
+                    return  { L("The prime tower requires that all objects are sliced with the same layer heights."), object };
                 if (has_custom_layering) {
                     PrintObject::update_layer_height_profile(*object->model_object(), slicing_params, layer_height_profiles[i]);
                     if (*(layer_height_profiles[i].end()-2) > *(layer_height_profiles[tallest_object_idx].end()-2))
@@ -674,14 +676,17 @@ StringObjectException Print::validate(StringObjectException *warning) const
                 }
             }
 
+            // BBS: remove obsolete logics and _L()
+#if 0
             if (has_custom_layering) {
                 for (size_t idx_object = 0; idx_object < m_objects.size(); ++ idx_object) {
                     if (idx_object == tallest_object_idx)
                         continue;
                     if (layer_height_profiles[idx_object] != layer_height_profiles[tallest_object_idx])
-                        return {L("The Wipe tower is only supported if all objects have the same variable layer height"), m_objects[idx_object]};
+                        return {("The prime tower is only supported if all objects have the same variable layer height"), m_objects[idx_object]};
                 }
             }
+#endif
         }
     }
     
@@ -695,13 +700,14 @@ StringObjectException Print::validate(StringObjectException *warning) const
 			max_nozzle_diameter = std::max(max_nozzle_diameter, dmr);
 		}
 
+        // BBS: remove L()
 #if 0
         // We currently allow one to assign extruders with a higher index than the number
         // of physical extruders the machine is equipped with, as the Printer::apply() clamps them.
         unsigned int total_extruders_count = m_config.nozzle_diameter.size();
         for (const auto& extruder_idx : extruders)
             if ( extruder_idx >= total_extruders_count )
-                return L("One or more object were assigned an extruder that the printer does not have.");
+                return ("One or more object were assigned an extruder that the printer does not have.");
 #endif
 
         auto validate_extrusion_width = [/*min_nozzle_diameter,*/ max_nozzle_diameter](const ConfigBase &config, const char *opt_key, double layer_height, std::string &err_msg) -> bool {
@@ -714,28 +720,31 @@ StringObjectException Print::validate(StringObjectException *warning) const
         	if (extrusion_width_min == 0) {
         		// Default "auto-generated" extrusion width is always valid.
         	} else if (extrusion_width_min <= layer_height) {
-        		err_msg = (boost::format(L("%1%=%2% mm is too low to be printable at a layer height %3% mm")) % opt_key % extrusion_width_min % layer_height).str();
+                err_msg = L("Extrusion width value is too low.");
 				return false;
 			} else if (extrusion_width_max >= max_nozzle_diameter * 3.) {
-				err_msg = (boost::format(L("Excessive %1%=%2% mm to be printable with a nozzle diameter %3% mm")) % opt_key % extrusion_width_max % max_nozzle_diameter).str();
+                err_msg = L("Extrusion width value is too high.");
 				return false;
 			}
 			return true;
 		};
         for (PrintObject *object : m_objects) {
             if (object->has_support_material()) {
+                // BBS: remove useless logics and L()
+#if 0
 				if ((object->config().support_material_extruder == 0 || object->config().support_material_interface_extruder == 0) && max_nozzle_diameter - min_nozzle_diameter > EPSILON) {
                     // The object has some form of support and either support_material_extruder or support_material_interface_extruder
                     // will be printed with the current tool without a forced tool change. Play safe, assert that all object nozzles
                     // are of the same diameter.
-                    return {L("Printing with multiple extruders of differing nozzle diameters. "
+                    return {("Printing with multiple extruders of differing nozzle diameters. "
                            "If support is to be printed with the current extruder (support_material_extruder == 0 or support_material_interface_extruder == 0), "
                            "all nozzles have to be of the same diameter."), object, "support_material_extruder"};
                 }
+#endif
 
                 // BBS
                 if (this->has_wipe_tower() && object->config().independent_support_layer_height) {
-                    return {L("The Wipe Tower requires that support has the same layer height with object."), object, "support_material_extruder"};
+                    return {L("The wipe tower requires that support has the same layer height with object."), object, "support_material_extruder"};
                 }
             }
 
@@ -770,12 +779,12 @@ StringObjectException Print::validate(StringObjectException *warning) const
                 first_layer_min_nozzle_diameter = min_nozzle_diameter;
             }
             if (initial_layer_print_height > first_layer_min_nozzle_diameter)
-                return  {L("First layer height can't be greater than nozzle diameter"), object, "initial_layer_print_height"};
+                return  {L("Layer height cannot exceed nozzle diameter"), object, "initial_layer_print_height"};
             
             // validate layer_height
             double layer_height = object->config().layer_height.value;
             if (layer_height > min_nozzle_diameter)
-                return  {L("Layer height can't be greater than nozzle diameter"), object, "layer_height"};
+                return  {L("Layer height cannot exceed nozzle diameter"), object, "layer_height"};
 
             // Validate extrusion widths.
             std::string err_msg;
@@ -977,7 +986,7 @@ void Print::process()
     BOOST_LOG_TRIVIAL(info) << "Starting the slicing process." << log_memory_info();
     for (PrintObject *obj : m_objects)
         obj->make_perimeters();
-    this->set_status(70, L("Infilling layers"));
+    this->set_status(70, L("Generating infills"));
     for (PrintObject *obj : m_objects)
         obj->infill();
     for (PrintObject *obj : m_objects)
@@ -999,7 +1008,7 @@ void Print::process()
         this->set_done(psWipeTower);
     }
     if (this->set_started(psSkirtBrim)) {
-        this->set_status(88, L("Generating skirt and brim"));
+        this->set_status(88, L("Generating skirt & brim"));
 
         m_skirt.clear();
         m_skirt_convex_hull.clear();

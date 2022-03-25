@@ -70,14 +70,15 @@ void GLGizmoFdmSupports::on_opening()
 
 std::string GLGizmoFdmSupports::on_get_name() const
 {
-    return _u8L("Paint-on supports");
+    return _u8L("Supports Painting");
 }
 
 bool GLGizmoFdmSupports::on_init()
 {
-    m_shortcut_key = WXK_CONTROL_L;
+    // BBS
+    m_shortcut_key = WXK_NONE;
 
-    m_desc["clipping_of_view"]      = _L("Clipping of view") + ": ";
+    m_desc["clipping_of_view"]      = _L("Section view") + ": ";
     m_desc["cursor_size"]           = _L("Pen size") + ": ";
     m_desc["enforce_caption"]       = _L("Left mouse button") + ": ";
     m_desc["enforce"]               = _L("Enforce supports");
@@ -489,14 +490,15 @@ PainterGizmoType GLGizmoFdmSupports::get_painter_type() const
 
 wxString GLGizmoFdmSupports::handle_snapshot_action_name(bool shift_down, GLGizmoPainterBase::Button button_down) const
 {
+    // BBS remove _L()
     wxString action_name;
     if (shift_down)
-        action_name = _L("Remove selection");
+        action_name = ("Unselect all");
     else {
         if (button_down == Button::Left)
-            action_name = _L("Add supports");
+            action_name = ("Enforce supports");
         else
-            action_name = _L("Block supports");
+            action_name = ("Block supports");
     }
     return action_name;
 }

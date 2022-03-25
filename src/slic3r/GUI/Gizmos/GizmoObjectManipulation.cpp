@@ -74,7 +74,7 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
 {
 	m_new_move_label_string   = L("Position");
     m_new_rotate_label_string = L("Rotation");
-    m_new_scale_label_string  = L("Scale factors");
+    m_new_scale_label_string  = L("Scale ratios");
 
     m_world_coordinates = true;
 

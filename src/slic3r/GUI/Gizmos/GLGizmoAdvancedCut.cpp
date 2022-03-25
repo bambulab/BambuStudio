@@ -156,13 +156,13 @@ bool GLGizmoAdvancedCut::on_init()
     if (!GLGizmoRotate3D::on_init())
         return false;
 
-    m_shortcut_key = WXK_CONTROL_C;
+    m_shortcut_key = WXK_NONE;
     return true;
 }
 
 std::string GLGizmoAdvancedCut::on_get_name() const
 {
-    return (_(L("Cut")) + " [C]").ToUTF8().data();
+    return (_(L("Cut"))).ToUTF8().data();
 }
 
 void GLGizmoAdvancedCut::on_set_state()

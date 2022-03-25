@@ -23,7 +23,8 @@ GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent, const std::string& icon_filen
 
 bool GLGizmoFlatten::on_init()
 {
-    m_shortcut_key = WXK_CONTROL_F;
+    // BBS
+    m_shortcut_key = WXK_NONE;
     return true;
 }
 

@@ -9,7 +9,6 @@ src/slic3r/GUI/ExtraRenderers.cpp
 src/slic3r/GUI/Field.cpp
 src/slic3r/GUI/GCodeViewer.cpp
 src/slic3r/GUI/GLCanvas3D.cpp
-src/slic3r/GUI/Gizmos/GLGizmoCut.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFlatten.cpp
 src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp
@@ -17,7 +16,6 @@ src/slic3r/GUI/Gizmos/GLGizmoMove.cpp
 src/slic3r/GUI/Gizmos/GLGizmoRotate.cpp
 src/slic3r/GUI/Gizmos/GLGizmoScale.cpp
 src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp
-src/slic3r/GUI/Gizmos/GLGizmoSimplify.cpp
 src/slic3r/GUI/Gizmos/GLGizmosManager.cpp
 src/slic3r/GUI/Gizmos/GLGizmoPainterBase.cpp
 src/slic3r/GUI/Gizmos/GizmoObjectManipulation.cpp
