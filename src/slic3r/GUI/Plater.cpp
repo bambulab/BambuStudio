@@ -3361,6 +3361,10 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     }
     Print::ApplyStatus invalidated = background_process.apply(q->model(), wxGetApp().preset_bundle->full_config());
 
+    if ((invalidated == Print::APPLY_STATUS_CHANGED) || (invalidated == Print::APPLY_STATUS_INVALIDATED))
+        // BBS: add only gcode mode
+        q->set_only_gcode(false);
+
     //BBS: add slicing related logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": background process apply result=%1%")%invalidated;
     if (background_process.empty())
@@ -3370,8 +3374,6 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         //BBS: update current plater's slicer result to invalid
         this->background_process.get_current_plate()->update_slice_result_valid_state(false);
 
-        //BBS: add only gcode mode
-        q->set_only_gcode(false);
         //no need, should be done in background_process.apply
         //this->background_process.get_current_gcode_result()->reset();
         // Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
