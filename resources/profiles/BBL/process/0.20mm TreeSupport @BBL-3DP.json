@@ -10,6 +10,7 @@
     "enable_support": "1",
     "tree_support_wall_count": "0",
     "tree_support_with_infill": "1",
+    "support_top_z_distance": "0.4",
     "support_interface_top_layers": "2",
     "bridge_no_support": "1",
     "inner_wall_speed": "200",
