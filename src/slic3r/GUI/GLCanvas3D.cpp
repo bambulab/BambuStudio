@@ -1242,7 +1242,7 @@ void GLCanvas3D::render()
     if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop)
         _render_style_editor();
 #endif
-        
+
 
     std::string tooltip;
 
@@ -1441,7 +1441,7 @@ void GLCanvas3D::mirror_selection(Axis axis)
     //wxGetApp().obj_manipul()->set_dirty();
 }
 
-// Reload the 3D scene of 
+// Reload the 3D scene of
 // 1) Model / ModelObjects / ModelInstances / ModelVolumes
 // 2) Print bed
 // 3) SLA support meshes for their respective ModelObjects / ModelInstances
@@ -1454,7 +1454,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     if (!m_initialized)
         return;
-    
+
     _set_current();
 
     m_hover_volume_idxs.clear();
@@ -1747,7 +1747,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             for (size_t print_instance_idx = 0; print_instance_idx < print_object->instances().size(); ++ print_instance_idx) {
                 const SLAPrintObject::Instance &instance = print_object->instances()[print_instance_idx];
                 // Find index of ModelInstance corresponding to this SLAPrintObject::Instance.
-				auto it = std::find_if(model_object->instances.begin(), model_object->instances.end(), 
+				auto it = std::find_if(model_object->instances.begin(), model_object->instances.end(),
                     [&instance](const ModelInstance *mi) { return mi->id() == instance.instance_id; });
                 assert(it != model_object->instances.end());
                 int instance_idx = it - model_object->instances.begin();
@@ -2066,7 +2066,7 @@ void GLCanvas3D::on_size(wxSizeEvent& evt)
 {
     m_dirty = true;
 }
- 
+
 void GLCanvas3D::on_idle(wxIdleEvent& evt)
 {
     if (!m_initialized)
@@ -2094,7 +2094,7 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
 
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     // this needs to be done here.
-    // during the render launched by the refresh the value may be set again 
+    // during the render launched by the refresh the value may be set again
     wxGetApp().imgui()->reset_requires_extra_frame();
 #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 
@@ -2178,8 +2178,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #endif
 
 #ifdef __APPLE__
-            } 
-            else 
+            }
+            else
             // and Cmd+M to minimize application
                 wxGetApp().mainframe->Iconize();
 #endif // __APPLE__
@@ -2285,9 +2285,9 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         }
         case '-': {
             if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
-                post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt)); 
+                post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt));
             else
-                post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); 
+                post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1));
             break;
         }
         case '?': { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
@@ -2390,7 +2390,7 @@ public:
             {
             case WXK_SHIFT:
             {
-                if (m_running) 
+                if (m_running)
                     apply = true;
 
                 break;
@@ -2669,8 +2669,8 @@ void GLCanvas3D::on_render_timer(wxTimerEvent& evt)
 {
     // no need to wake up idle
     // right after this event, idle event is fired
-    // m_dirty = true; 
-    // wxWakeUpIdle(); 
+    // m_dirty = true;
+    // wxWakeUpIdle();
 }
 
 
@@ -2687,7 +2687,7 @@ void GLCanvas3D::schedule_extra_frame(int miliseconds)
             wxWakeUpIdle();
             return;
         }
-    } 
+    }
     int remaining_time = m_render_timer.GetInterval();
     // Timer is not running
     if (!m_render_timer.IsRunning()) {
@@ -2695,7 +2695,7 @@ void GLCanvas3D::schedule_extra_frame(int miliseconds)
     // Timer is running - restart only if new period is shorter than remaning period
     } else {
         if (miliseconds + 20 < remaining_time) {
-            m_render_timer.Stop(); 
+            m_render_timer.Stop();
             m_render_timer.StartOnce(miliseconds);
         }
     }
@@ -2794,7 +2794,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 		printf((format_mouse_event_debug_message(evt) + " - OnEnter workaround\n").c_str());
 #endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
 		on_enter_workaround = true;
-    } else 
+    } else
 #endif /* __WXMSW__ */
     {
 #ifdef SLIC3R_DEBUG_MOUSE_EVENTS
@@ -2919,7 +2919,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_tooltip_enabled = false;
             // 1) forces a frame render to ensure that m_hover_volume_idxs is updated even when the user right clicks while
             // the context menu is shown, ensuring it to disappear if the mouse is outside any volume and to
-            // change the volume hover state if any is under the mouse 
+            // change the volume hover state if any is under the mouse
             // 2) when switching between 3d view and preview the size of the canvas changes if the side panels are visible,
             // so forces a resize to avoid multiple renders with different sizes (seen as flickering)
             _refresh_if_shown_on_screen();
@@ -3190,7 +3190,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                      * To avoid extra "Add-Selection" snapshots,
                      * call add() with check_for_already_contained=true
                      * */
-                    m_selection.add(volume_idx, true, true); 
+                    m_selection.add(volume_idx, true, true);
                     m_gizmos.refresh_on_off_state();
                     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                     m_gizmos.update_data();
@@ -3305,7 +3305,7 @@ Vec2d GLCanvas3D::get_local_mouse_position() const
 		return Vec2d::Zero();
 
     wxPoint mouse_pos = m_canvas->ScreenToClient(wxGetMousePosition());
-    const double factor = 
+    const double factor =
 #if ENABLE_RETINA_GL
         m_retina_helper->get_scale_factor();
 #else
@@ -3784,7 +3784,7 @@ std::vector<Vec2f> GLCanvas3D::get_empty_cells(const Vec2f start_point)
         ModelInstance* model_instance0 = model_object->instances.front();
         Polygon hull_2d = model_object->convex_hull_2d(Geometry::assemble_transform({ 0.0, 0.0, model_instance0->get_offset().z() }, model_instance0->get_rotation(),
             model_instance0->get_scaling_factor(), model_instance0->get_mirror()));
-        
+
         const auto& instances = model_object->instances;
         double rotation_z0 = instances.front()->get_rotation().z();
         for (const auto& instance : instances) {
@@ -3977,7 +3977,7 @@ static bool string_getter(const bool is_undo, int idx, const char** out_text)
     return wxGetApp().plater()->undo_redo_string_getter(is_undo, idx, out_text);
 }
 
-// Getter for the const char*[] for the search list 
+// Getter for the const char*[] for the search list
 static bool search_string_getter(int idx, const char** label, const char** tooltip)
 {
     return wxGetApp().plater()->search_string_getter(idx, label, tooltip);
@@ -4021,7 +4021,7 @@ bool GLCanvas3D::_render_orient_menu(float left, float right, float bottom, floa
         angle_min = 45.f;
         postfix = "_sla";
     }
-    
+
 
     angle_key += postfix;
     rot_key += postfix;
@@ -4663,14 +4663,16 @@ bool GLCanvas3D::_init_main_toolbar()
 
     item.name = "orient";
     item.icon_filename = "toolbar_orient.svg";
+    item.tooltip = _utf8(L("Auto orient"));
     item.sprite_id++;
-    item.left.action_callback = []() {};
+    item.left.render_callback = nullptr;
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
-    item.left.toggable = true;  // allow right mouse click
+    item.left.toggable = false;  // allow right mouse click
     //BBS: GUI refactor: adjust the main toolbar position
-    item.left.render_callback = [this](float left, float right, float bottom, float top) {
+    item.left.action_callback = [this]() {
         if (m_canvas != nullptr)
         {
+            wxGetApp().plater()->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
             wxGetApp().plater()->orient();
             //BBS do not show orient menu
             //_render_orient_menu(left, right, bottom, top);
@@ -4681,6 +4683,7 @@ bool GLCanvas3D::_init_main_toolbar()
 
     item.name = "arrange";
     item.icon_filename = "toolbar_arrange.svg";
+    item.tooltip = _utf8(L("Auto arrange"));
     item.sprite_id++;
     item.left.action_callback = []() {};
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
@@ -4706,6 +4709,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.icon_filename = "split_objects.svg";
     item.tooltip = _utf8(L("Split to objects"));
     item.sprite_id++;
+    item.left.render_callback = nullptr;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_OBJECTS)); };
     item.visibility_callback = GLToolbarItem::Default_Visibility_Callback;
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_split_to_objects(); };
@@ -4990,7 +4994,7 @@ void GLCanvas3D::_picking_pass()
             glsafe(::glReadPixels(m_mouse.position(0), cnv_size.get_height() - m_mouse.position(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color));
             if (picking_checksum_alpha_channel(color[0], color[1], color[2]) == color[3]) {
                 // Only non-interpolated colors are valid, those have their lowest three bits zeroed.
-                // we reserve color = (0,0,0) for occluders (as the printbed) 
+                // we reserve color = (0,0,0) for occluders (as the printbed)
                 // volumes' id are shifted by 1
                 // see: _render_volumes_for_picking()
                 //BBS: remove the bed picking logic
@@ -5063,7 +5067,7 @@ void GLCanvas3D::_rectangular_selection_picking_pass()
                 std::array<GLubyte, 4> data;
             	// Only non-interpolated colors are valid, those have their lowest three bits zeroed.
                 bool valid() const { return picking_checksum_alpha_channel(data[0], data[1], data[2]) == data[3]; }
-                // we reserve color = (0,0,0) for occluders (as the printbed) 
+                // we reserve color = (0,0,0) for occluders (as the printbed)
                 // volumes' id are shifted by 1
                 // see: _render_volumes_for_picking()
                 //BBS: remove the bed picking logic
@@ -5356,7 +5360,7 @@ void GLCanvas3D::_render_sequential_clearance()
     case GLGizmosManager::EType::Seam: { return; }
     default: { break; }
     }
- 
+
     m_sequential_print_clearance.render();
 }
 
@@ -5402,7 +5406,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 
     float top_tb_width = m_main_toolbar.get_width() + m_gizmos.get_scaled_total_width() + m_assemble_view_toolbar.get_width() + collapse_toolbar_width;
     int   items_cnt = m_main_toolbar.get_visible_items_cnt() + m_gizmos.get_selectable_icons_cnt() + m_assemble_view_toolbar.get_visible_items_cnt() + collapse_toolbar.get_visible_items_cnt();
-    float noitems_width = top_tb_width - size * items_cnt; // width of separators and borders in top toolbars 
+    float noitems_width = top_tb_width - size * items_cnt; // width of separators and borders in top toolbars
 
     // calculate scale needed for items in all top toolbars
     float new_h_scale = (cnv_size.get_width() - noitems_width) / (items_cnt * GLToolbar::Default_Icons_Size);
@@ -5412,7 +5416,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 #else
     float top_tb_width = = collapse_toolbar.get_width();
     int   items_cnt = collapse_toolbar.get_visible_items_cnt();
-    float noitems_width = top_tb_width - size * items_cnt; // width of separators and borders in top toolbars 
+    float noitems_width = top_tb_width - size * items_cnt; // width of separators and borders in top toolbars
 
     // calculate scale needed for items in all top toolbars
     float new_h_scale = (cnv_size.get_width() - noitems_width) / (items_cnt * GLToolbar::Default_Icons_Size);
@@ -5606,7 +5610,7 @@ void GLCanvas3D::_render_volumes_for_picking() const
         for (const GLVolumeWithIdAndZ& volume : to_render)
 	        if (!volume.first->disabled && (volume.first->composite_id.volume_id >= 0 || m_render_sla_auxiliaries)) {
 		        // Object picking mode. Render the object with a color encoding the object index.
-                // we reserve color = (0,0,0) for occluders (as the printbed) 
+                // we reserve color = (0,0,0) for occluders (as the printbed)
                 // so we shift volumes' id by 1 to get the proper color
                 //BBS: remove the bed picking logic
                 unsigned int id = volume.second.first;
@@ -5904,14 +5908,14 @@ void GLCanvas3D::_render_return_toolbar() const
     ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
     ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     ImVec2 margin = ImVec2(10.0f, 5.0f);
-    
+
     if (ImGui::ImageTextButton(ImVec2(74.0f, 30.0f), "return", m_return_toolbar.get_return_texture_id(), ImVec2(20.0f, 20.0f), uv0, uv1, -1, bg_col, tint_col, margin)) {
         if (m_canvas != nullptr)
             wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
     }
     ImGui::PopStyleColor(5);
     ImGui::PopStyleVar(1);
-    
+
     imgui.end();
 }
 
@@ -6448,9 +6452,9 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                 // pause print or custom Gcode
                 if (type == CustomGCode::PausePrint ||
                     (type != CustomGCode::ColorChange && type != CustomGCode::ToolChange))
-                    return number_tools()-1; // last color item is a gray color for pause print or custom G-code 
+                    return number_tools()-1; // last color item is a gray color for pause print or custom G-code
 
-                // change tool (extruder) 
+                // change tool (extruder)
                 if (type == CustomGCode::ToolChange)
                     return get_color_idx_for_tool_change(it, extruder);
                 // change color for current extruder
@@ -6471,7 +6475,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                     if (color_idx >= 0)
                         return color_idx;
                 }
-                // change tool (extruder) 
+                // change tool (extruder)
                 if (it->type == CustomGCode::ToolChange)
                     return get_color_idx_for_tool_change(it, extruder);
             }
@@ -6585,8 +6589,8 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         auto                volume = [&ctxt, &vols](size_t layer_idx, int extruder, int feature) -> GLVolume& {
             return *vols[ctxt.color_by_color_print()?
                 ctxt.color_print_color_idx_by_layer_idx_and_extruder(layer_idx, extruder) :
-				ctxt.color_by_tool() ? 
-					std::min<int>(ctxt.number_tools() - 1, std::max<int>(extruder - 1, 0)) : 
+				ctxt.color_by_tool() ?
+					std::min<int>(ctxt.number_tools() - 1, std::max<int>(extruder - 1, 0)) :
 					feature
 				];
         };
@@ -6647,7 +6651,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                             const auto *fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
                             if (! fill->entities.empty())
                                 _3DScene::extrusionentity_to_verts(*fill, float(layer->print_z), copy,
-	                                volume(idx_layer, 
+	                                volume(idx_layer,
 		                                is_solid_infill(fill->entities.front()->role()) ?
 			                                layerm->region().config().solid_infill_extruder :
 			                                layerm->region().config().infill_extruder,
@@ -6660,7 +6664,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                     if (support_layer) {
                         for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities)
                             _3DScene::extrusionentity_to_verts(extrusion_entity, float(layer->print_z), copy,
-	                            volume(idx_layer, 
+	                            volume(idx_layer,
 		                            (extrusion_entity->role() == erSupportMaterial ||
                                      extrusion_entity->role() == erSupportTransition) ?
 			                            support_layer->object()->config().support_material_extruder :
@@ -6746,7 +6750,7 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const BuildVolume& build_volume, con
         ctxt.final.emplace_back(*print->wipe_tower_data().final_purge.get());
 
     ctxt.wipe_tower_angle = ctxt.print->config().wipe_tower_rotation_angle.value/180.f * PI;
-    
+
     // BBS: add partplate logic
     int plate_idx = print->get_plate_index();
     Vec3d plate_origin = print->get_plate_origin();
@@ -6865,7 +6869,7 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const BuildVolume& build_volume, con
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - end" << m_volumes.log_memory_info() << log_memory_info();
 }
 
-// While it looks like we can call 
+// While it looks like we can call
 // this->reload_scene(true, true)
 // the two functions are quite different:
 // 1) This function only loads objects, for which the step slaposSliceSupports already finished. Therefore objects outside of the print bed never load.
@@ -6896,7 +6900,7 @@ void GLCanvas3D::_load_sla_shells()
         v.set_convex_hull(mesh.convex_hull_3d());
     };
 
-    // adds objects' volumes 
+    // adds objects' volumes
     for (const SLAPrintObject* obj : print->objects())
         if (obj->is_step_done(slaposSliceSupports)) {
             unsigned int initial_volumes_count = (unsigned int)m_volumes.volumes.size();
@@ -7232,7 +7236,7 @@ void GLCanvas3D::ToolbarHighlighter::blink()
         char state = m_toolbar_item->get_highlight();
         if (state != (char)GLToolbarItem::EHighlightState::HighlightedShown)
             m_toolbar_item->set_highlight(GLToolbarItem::EHighlightState::HighlightedShown);
-        else 
+        else
             m_toolbar_item->set_highlight(GLToolbarItem::EHighlightState::HighlightedHidden);
 
         m_render_arrow = !m_render_arrow;

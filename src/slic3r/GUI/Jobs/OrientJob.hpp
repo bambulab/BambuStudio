@@ -20,7 +20,8 @@ class OrientJob : public PlaterJob
     // clear m_selected and m_unselected, reserve space for next usage
     void clear_input();
 
-    void prepare_selection(std::vector<bool> obj_sel);
+    //BBS: add only one plate mode
+    void prepare_selection(std::vector<bool> obj_sel, bool only_one_plate);
     
     // Prepare the selected and unselected items separately. If nothing is
     // selected, behaves as if everything would be selected.

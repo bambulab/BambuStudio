@@ -115,6 +115,8 @@ class PartPlate : public ObjectBase
     mutable unsigned int m_del_vbo_id{ 0 };
     GeometryBuffer m_arrange_icon;
     mutable unsigned int m_arrange_vbo_id{ 0 };
+    GeometryBuffer m_orient_icon;
+    mutable unsigned int m_orient_vbo_id{ 0 };
     GeometryBuffer m_lock_icon;
     mutable unsigned int m_lock_vbo_id{ 0 };
     GeometryBuffer m_plate_idx_icon;
@@ -153,7 +155,7 @@ class PartPlate : public ObjectBase
 
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
-    static const unsigned int GRABBER_COUNT = 4;
+    static const unsigned int GRABBER_COUNT = 5;
 
     static std::array<float, 4> SELECT_COLOR;
     static std::array<float, 4> UNSELECT_COLOR;
@@ -387,6 +389,7 @@ class PartPlateList : public ObjectBase
     bool m_intialized;
     GLTexture m_del_texture;
     GLTexture m_arrange_texture;
+    GLTexture m_orient_texture;
     GLTexture m_locked_texture;
     GLTexture m_lockopen_texture;
     GLTexture m_idx_textures[MAX_PLATE_COUNT];

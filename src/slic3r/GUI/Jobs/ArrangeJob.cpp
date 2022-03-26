@@ -3,11 +3,9 @@
 #include "libslic3r/BuildVolume.hpp"
 #include "libslic3r/SVG.hpp"
 #include "libslic3r/MTUtils.hpp"
-#include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/ModelArrange.hpp"
 
-#include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/PartPlate.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI.hpp"
@@ -15,8 +13,6 @@
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
 #include "slic3r/GUI/NotificationManager.hpp"
 #include "slic3r/GUI/format.hpp"
-#include "slic3r/GUI/GUI_App.hpp"
-#include "slic3r/GUI/NotificationManager.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 
 #include "libnest2d/common.hpp"
@@ -32,7 +28,7 @@ public:
     explicit WipeTower(const GLCanvas3D::WipeTowerInfo &wti)
         : GLCanvas3D::WipeTowerInfo(wti)
     {}
-    
+
     explicit WipeTower(GLCanvas3D::WipeTowerInfo &&wti)
         : GLCanvas3D::WipeTowerInfo(std::move(wti))
     {}
@@ -42,7 +38,7 @@ public:
         m_pos = unscaled(tr); m_rotation = rotation;
         apply_wipe_tower();
     }
-    
+
     ArrangePolygon get_arrange_polygon() const
     {
         Polygon ap({
@@ -51,7 +47,7 @@ public:
             {scaled(m_bb.max)},
             {scaled(m_bb.min.x()), scaled(m_bb.max.y())}
             });
-        
+
         ArrangePolygon ret;
         ret.poly.contour = std::move(ap);
         ret.translation  = scaled(m_pos);
@@ -83,12 +79,12 @@ arrangement::ArrangePolygon get_wipetower_arrange_poly(WipeTower* tower)
 void ArrangeJob::clear_input()
 {
     const Model &model = m_plater->model();
-    
+
     size_t count = 0, cunprint = 0; // To know how much space to reserve
     for (auto obj : model.objects)
         for (auto mi : obj->instances)
             mi->printable ? count++ : cunprint++;
-    
+
     m_selected.clear();
     m_unselected.clear();
     m_unprintable.clear();
@@ -112,29 +108,30 @@ void ArrangeJob::prepare_selected() {
     PartPlateList& plate_list = m_plater->get_partplate_list();
 
     clear_input();
-    
+
     Model &model = m_plater->model();
+    bool selected_is_locked = false;
     //BBS: remove logic for unselected object
     //double stride = bed_stride_x(m_plater);
-    
+
     std::vector<const Selection::InstanceIdxsList *>
             obj_sel(model.objects.size(), nullptr);
-    
+
     for (auto &s : m_plater->get_selection().get_content())
         if (s.first < int(obj_sel.size()))
             obj_sel[size_t(s.first)] = &s.second;
-    
+
     // Go through the objects and check if inside the selection
     for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) {
         const Selection::InstanceIdxsList * instlist = obj_sel[oidx];
         ModelObject *mo = model.objects[oidx];
-        
+
         std::vector<bool> inst_sel(mo->instances.size(), false);
-        
+
         if (instlist)
             for (auto inst_id : *instlist)
                 inst_sel[size_t(inst_id)] = true;
-        
+
         for (size_t i = 0; i < inst_sel.size(); ++i) {
             ModelInstance * mi = mo->instances[i];
             ArrangePolygon&& ap = prepare_arrange_polygon(mo->instances[i]);
@@ -156,15 +153,24 @@ void ArrangeJob::prepare_selected() {
                 //skip this object due to be locked in plate
                 ap.itemid = m_locked.size();
                 m_locked.emplace_back(std::move(ap));
+                if (inst_sel[i])
+                    selected_is_locked = true;
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % i;
-            }            
+            }
         }
     }
 
-    
-    // If the selection was empty arrange everything
-    if (m_selected.empty()) m_selected.swap(m_unselected);
 
+    // If the selection was empty arrange everything
+    //if (m_selected.empty()) m_selected.swap(m_unselected);
+    if (m_selected.empty()) {
+        if (!selected_is_locked)
+            m_selected.swap(m_unselected);
+        else {
+            m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
+                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("All the selected objects are on the locked plate,\nWe can not do auto-arriange on these objects!")));
+        }
+    }
 
     // BBS: prepare wipe tower for all possible plates
     for (int bedid = 0; bedid < MAX_NUM_PLATES; bedid++)
@@ -212,12 +218,18 @@ void ArrangeJob::prepare_partplate() {
         return;
     }
 
+    if (plate->is_locked()) {
+        m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
+            NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("This plate is locked,\nWe can not do auto-arrange on this plate!")));
+        return;
+    }
+
     Model& model = m_plater->model();
     //BBS: remove logic for unselected object
     //double stride = bed_stride_x(m_plater);
 
     // Go through the objects and check if inside the selection
-    for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) 
+    for (size_t oidx = 0; oidx < model.objects.size(); ++oidx)
     {
         ModelObject* mo = model.objects[oidx];
         for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
@@ -408,9 +420,9 @@ void ArrangeJob::process()
     BOOST_LOG_TRIVIAL(debug) << "arrange bed_shrink_x=" << params.bed_shrink_x
         << ", brim_max= "<<brim_max<<", "
         << "; bedpts:" << bedpts[0].transpose() << ", " << bedpts[1].transpose() << ", " << bedpts[2].transpose() << ", " << bedpts[3].transpose();
-    
+
     params.stopcondition = [this]() { return was_canceled(); };
-    
+
     auto count = unsigned(m_selected.size() + m_unprintable.size());
     params.progressind = [this, count](unsigned st, std::string str="") {
         st += m_unprintable.size();

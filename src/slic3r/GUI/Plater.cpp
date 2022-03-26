@@ -8712,6 +8712,22 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
     else if ((action == 2)&&(!right_click))
     {
         //arrange the plate
+        take_snapshot("select_orient partplate");
+        ret = select_plate(plate_index);
+        if (!ret)
+        {
+            set_prepare_state(Job::PREPARE_STATE_MENU);
+            orient();
+        }
+        else
+        {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;
+            ret = -1;
+        }
+    }
+    else if ((action == 3)&&(!right_click))
+    {
+        //arrange the plate
         take_snapshot("select_arrange partplate");
         ret = select_plate(plate_index);
         if (!ret)
@@ -8725,7 +8741,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             ret = -1;
         }
     }
-    else if ((action == 3)&&(!right_click))
+    else if ((action == 4)&&(!right_click))
     {
         //lock the plate
         take_snapshot("lock partplate");

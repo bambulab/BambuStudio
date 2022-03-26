@@ -2,8 +2,10 @@
 
 #include "libslic3r/Model.hpp"
 #include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
+#include "slic3r/GUI/NotificationManager.hpp"
 #include "libslic3r/PresetBundle.hpp"
 
 
@@ -13,12 +15,12 @@ namespace Slic3r { namespace GUI {
 void OrientJob::clear_input()
 {
     const Model &model = m_plater->model();
-    
+
     size_t count = 0, cunprint = 0; // To know how much space to reserve
     for (auto obj : model.objects)
         for (auto mi : obj->instances)
             mi->printable ? count++ : cunprint++;
-        
+
     m_selected.clear();
     m_unselected.clear();
     m_unprintable.clear();
@@ -27,9 +29,14 @@ void OrientJob::clear_input()
     m_unprintable.reserve(cunprint);
 }
 
-void OrientJob::prepare_selection(std::vector<bool> obj_sel)
+//BBS: add only one plate mode and lock logic
+void OrientJob::prepare_selection(std::vector<bool> obj_sel, bool only_one_plate)
 {
     Model& model = m_plater->model();
+    PartPlateList& plate_list = m_plater->get_partplate_list();
+    //OrientMeshs selected_in_lock, unselect_in_lock;
+    bool selected_is_locked = false;
+
     // Go through the objects and check if inside the selection
     for (size_t oidx = 0; oidx < obj_sel.size(); ++oidx) {
         bool selected = obj_sel[oidx];
@@ -38,28 +45,55 @@ void OrientJob::prepare_selection(std::vector<bool> obj_sel)
         for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
         {
             ModelInstance* mi = mo->instances[inst_idx];
-            auto& cont = mo->printable ? (selected ? m_selected : m_unselected) : m_unprintable;
             OrientMesh&& om = get_orient_mesh(mi, m_plater);
+
+            bool locked = false;
+            if (!only_one_plate) {
+                int plate_index = plate_list.find_instance(oidx, inst_idx);
+                if ((plate_index >= 0)&&(plate_index < plate_list.get_plate_count())) {
+                    if (plate_list.is_locked(plate_index)) {
+                        if (selected) {
+                            //selected_in_lock.emplace_back(std::move(om));
+                            selected_is_locked = true;
+                        }
+                        //else
+                        //    unselect_in_lock.emplace_back(std::move(om));
+                        continue;
+                    }
+                }
+            }
+            auto& cont = mo->printable ? (selected ? m_selected : m_unselected) : m_unprintable;
+
             cont.emplace_back(std::move(om));
         }
     }
 
     // If the selection was empty orient everything
-    if (m_selected.empty()) m_selected.swap(m_unselected);
+    if (m_selected.empty()) {
+        if (!selected_is_locked) {
+            m_selected.swap(m_unselected);
+            //m_unselected.insert(m_unselected.begin(), unselect_in_lock.begin(), unselect_in_lock.end());
+        }
+        else {
+            m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
+                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("All the selected objects are on the locked plate,\nWe can not do auto-orient on these objects!")));
+        }
+    }
 }
 
 void OrientJob::prepare_selected() {
     clear_input();
-    
+
     Model &model = m_plater->model();
-    
+
     std::vector<bool> obj_sel(model.objects.size(), false);
-    
+
     for (auto &s : m_plater->get_selection().get_content())
         if (s.first < int(obj_sel.size()))
             obj_sel[size_t(s.first)] = !s.second.empty();
-    
-    prepare_selection(obj_sel);
+
+   //BBS: add only one plate mode
+    prepare_selection(obj_sel, false);
 }
 
 //BBS: prepare current part plate for orienting
@@ -78,8 +112,14 @@ void OrientJob::prepare_partplate() {
         return;
     }
 
+    if (plate->is_locked()) {
+        m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
+            NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("This plate is locked,\nWe can not do auto-orient on this plate!")));
+        return;
+    }
+
     Model& model = m_plater->model();
-    
+
     std::vector<bool> obj_sel(model.objects.size(), false);
 
     // Go through the objects and check if inside the selection
@@ -92,7 +132,7 @@ void OrientJob::prepare_partplate() {
         }
     }
 
-    prepare_selection(obj_sel);
+    prepare_selection(obj_sel, true);
 }
 
 //BBS: add partplate logic
@@ -135,7 +175,7 @@ void OrientJob::process()
     else {
         params.min_volume = true;
     }
-  
+
     auto count = unsigned(m_selected.size() + m_unprintable.size());
     params.stopcondition = [this]() { return was_canceled(); };
 
@@ -168,8 +208,8 @@ void OrientJob::finalize() {
     {
         mesh.apply();
     }
-    
-    
+
+
     m_plater->update();
 
     // BBS

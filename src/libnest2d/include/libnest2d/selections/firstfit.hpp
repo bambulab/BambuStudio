@@ -104,7 +104,7 @@ public:
             bool was_packed = false;
             int best_bed_id = -1;
             int bed_id_firstfit = -1;
-            double score, best_score = LARGE_COST_TO_REJECT;
+            double score = LARGE_COST_TO_REJECT, best_score = LARGE_COST_TO_REJECT;
             double score_all_plates = 0, score_all_plates_best = std::numeric_limits<double>::max();
             typename Placer::PackResult result, result_best, result_firstfit;
             size_t j = 0;

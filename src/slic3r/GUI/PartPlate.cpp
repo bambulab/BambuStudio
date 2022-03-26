@@ -307,14 +307,14 @@ void PartPlate::render_icon_texture(int position_id, int tex_coords_id, const Ge
 	GLuint tex_id = (GLuint)texture.get_id();
 	glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
 	glsafe(::glBindBuffer(GL_ARRAY_BUFFER, vbo_id));
-    if (position_id != -1)
-        glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)buffer.get_position_offset()));
-    if (tex_coords_id != -1)
-        glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)buffer.get_tex_coords_offset()));
-    glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)buffer.get_vertices_count()));
+	if (position_id != -1)
+		glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)buffer.get_position_offset()));
+	if (tex_coords_id != -1)
+		glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)buffer.get_tex_coords_offset()));
+	glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)buffer.get_vertices_count()));
 
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-    glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
+	glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+	glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 }
 
 void PartPlate::render_icons(bool bottom) const
@@ -340,6 +340,7 @@ void PartPlate::render_icons(bool bottom) const
         }
 
         render_icon_texture(position_id, tex_coords_id, m_del_icon, m_partplate_list->m_del_texture, m_del_vbo_id);
+        render_icon_texture(position_id, tex_coords_id, m_orient_icon, m_partplate_list->m_orient_texture, m_orient_vbo_id);
         render_icon_texture(position_id, tex_coords_id, m_arrange_icon, m_partplate_list->m_arrange_texture, m_arrange_vbo_id);
         if (this->is_locked())
             render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_locked_texture, m_lock_vbo_id);
@@ -618,9 +619,15 @@ void PartPlate::on_render_for_picking() const {
 	m_grabber_color[1] = color[1];
 	m_grabber_color[2] = color[2];
 	m_grabber_color[3] = color[3];
-	//render_right_arrow(m_grabber_color, false);
+	render_rectangle_for_picking(m_orient_icon, m_grabber_color);
+    hover_id = 3;
+	color = picking_color_component(hover_id);
+	m_grabber_color[0] = color[0];
+	m_grabber_color[1] = color[1];
+	m_grabber_color[2] = color[2];
+	m_grabber_color[3] = color[3];
 	render_rectangle_for_picking(m_arrange_icon, m_grabber_color);
-	hover_id = 3;
+	hover_id = 4;
 	color = picking_color_component(hover_id);
 	m_grabber_color[0] = color[0];
 	m_grabber_color[1] = color[1];
@@ -651,6 +658,10 @@ void PartPlate::release_opengl_resource()
 	if (m_del_vbo_id > 0) {
 		glsafe(::glDeleteBuffers(1, &m_del_vbo_id));
 		m_del_vbo_id = 0;
+	}
+    if (m_orient_vbo_id > 0) {
+		glsafe(::glDeleteBuffers(1, &m_orient_vbo_id));
+		m_orient_vbo_id = 0;
 	}
 	if (m_arrange_vbo_id > 0) {
 		glsafe(::glDeleteBuffers(1, &m_arrange_vbo_id));
@@ -1201,9 +1212,10 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 	calc_gridlines(poly, pp_bbox);
 
 	calc_vertex_for_icons(0, m_del_icon);
-	calc_vertex_for_icons(1, m_arrange_icon);
-    calc_vertex_for_icons(2, m_lock_icon);
-	calc_vertex_for_icons(3, m_plate_idx_icon);
+	calc_vertex_for_icons(1, m_orient_icon);
+	calc_vertex_for_icons(2, m_arrange_icon);
+	calc_vertex_for_icons(3, m_lock_icon);
+	calc_vertex_for_icons(4, m_plate_idx_icon);
 
 	release_opengl_resource();
 
@@ -1564,6 +1576,14 @@ void PartPlateList::generate_icon_textures()
 		}
 	}
 
+	if (m_orient_texture.get_id() == 0)
+	{
+		file_name = path + "partplate_orient.svg";
+		if (!m_orient_texture.load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+		}
+	}
+
 	if (m_locked_texture.get_id() == 0)
 	{
 		file_name = path + "lock.svg";
@@ -1594,8 +1614,9 @@ void PartPlateList::release_icon_textures()
 {
 	m_del_texture.reset();
 	m_arrange_texture.reset();
-    m_locked_texture.reset();
-    m_lockopen_texture.reset();
+	m_orient_texture.reset();
+	m_locked_texture.reset();
+	m_lockopen_texture.reset();
 	for (int i = 0;i < MAX_PLATE_COUNT; i++) {
 		m_idx_textures[i].reset();
 	}
