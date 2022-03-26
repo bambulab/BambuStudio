@@ -230,7 +230,7 @@ void Tab::create_preset_tab()
 
     //add_scaled_button(panel, &m_btn_hide_incompatible_presets, m_bmp_hide_incompatible_presets.name());
 
-    m_btn_compare_preset->SetToolTip(_L("Compare this preset with some another"));
+    m_btn_compare_preset->SetToolTip(_L("Compare presets"));
     // TRN "Save current Settings"
     m_btn_save_preset->SetToolTip(from_u8((boost::format(_utf8(L("Save current %s"))) % m_title).str()));
     m_btn_delete_preset->SetToolTip(_(L("Delete this preset")));
@@ -2457,9 +2457,9 @@ void TabFilament::build()
         //BBS
         add_filament_overrides_page();
 #if 0
-    page = add_options_page(L("Advanced"), "advanced");
-        optgroup = page->new_optgroup(L("Wipe tower parameters"));
-        optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
+    //page = add_options_page(L("Advanced"), "advanced");
+    //    optgroup = page->new_optgroup(L("Wipe tower parameters"));
+    //    optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
 #endif
 
         const int gcode_field_height = 15; // 150
@@ -2516,16 +2516,16 @@ void TabFilament::reload_config()
     Tab::reload_config();
 }
 
-void TabFilament::update_volumetric_flow_preset_hints()
-{
-    wxString text;
-    try {
-        text = from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
-    } catch (std::exception &ex) {
-        text = _(L("Volumetric flow hints not available")) + "\n\n" + from_u8(ex.what());
-    }
-    m_volumetric_speed_description_line->SetText(text);
-}
+//void TabFilament::update_volumetric_flow_preset_hints()
+//{
+//    wxString text;
+//    try {
+//        text = from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
+//    } catch (std::exception &ex) {
+//        text = _(L("Volumetric flow hints not available")) + "\n\n" + from_u8(ex.what());
+//    }
+//    m_volumetric_speed_description_line->SetText(text);
+//}
 
 void TabFilament::update_description_lines()
 {
@@ -2537,8 +2537,8 @@ void TabFilament::update_description_lines()
     if (m_active_page->title() == "Cooling" && m_cooling_description_line)
         m_cooling_description_line->SetText(from_u8(PresetHints::cooling_description(m_presets->get_edited_preset())));
     //BBS
-    if (m_active_page->title() == "Filament" && m_volumetric_speed_description_line)
-        this->update_volumetric_flow_preset_hints();
+    //if (m_active_page->title() == "Filament" && m_volumetric_speed_description_line)
+    //    this->update_volumetric_flow_preset_hints();
 }
 
 void TabFilament::toggle_options()
@@ -3653,7 +3653,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
 		const PresetWithVendorProfile new_printer_preset_with_vendor_profile = m_presets->get_preset_with_vendor_profile(new_printer_preset);
         PrinterTechnology    old_printer_technology = m_presets->get_edited_preset().printer_technology();
         PrinterTechnology    new_printer_technology = new_printer_preset.printer_technology();
-        if (new_printer_technology == ptSLA && old_printer_technology == ptFFF && !wxGetApp().may_switch_to_SLA_preset(_L("New printer preset selected")))
+        if (new_printer_technology == ptSLA && old_printer_technology == ptFFF && !wxGetApp().may_switch_to_SLA_preset(_omitL("New printer preset selected")))
             canceled = true;
         else {
             struct PresetUpdate {
