@@ -4654,7 +4654,7 @@ bool GLCanvas3D::_init_main_toolbar()
 
     item.name = "addplate";
     item.icon_filename = "toolbar_add_plate.svg";
-    item.tooltip = _utf8(L("Add plate")) + " [Add]";
+    item.tooltip = _utf8(L("Add plate"));
     item.sprite_id++;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ADD_PLATE)); };
     item.enabling_callback = []()->bool {return wxGetApp().plater()->can_add_plate(); };

@@ -90,6 +90,8 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["highlight_by_angle"]    = _L("Highlight overhang areas");
     m_desc["tiny_patch_filter"]     = _L("Tiny patch filter");
     m_desc["filter_tiny"]           = _L("Filter tiny patch");
+    m_desc["brush_size"]            = _L("Set brush size");
+    m_desc["brush_size_caption"]    = _L("Ctrl + Mouse wheel") + ": ";
 
     memset(&m_print_instance, sizeof(m_print_instance), 0);
     return true;
@@ -210,7 +212,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     float caption_max    = 0.f;
     float total_text_max = 0.f;
-    for (const auto &t : std::array<std::string, 3>{"enforce", "block", "remove"}) {
+    for (const auto &t : std::array<std::string, 4>{"enforce", "block", "remove", "brush_size"}) {
         caption_max    = std::max(caption_max, m_imgui->calc_text_size(m_desc[t + "_caption"]).x);
         total_text_max = std::max(total_text_max, m_imgui->calc_text_size(m_desc[t]).x);
     }
@@ -231,7 +233,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     m_imgui->text(m_desc.at("cursor_size"));
     ImGui::SameLine(sliders_left_width);
     ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
-    m_imgui->bbl_slider_float_style("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true, _L("Alt + Mouse wheel"));
+    m_imgui->bbl_slider_float_style("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true);
     ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
     ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
@@ -279,7 +281,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
     format_str = std::string("%.2f") + I18N::translate_utf8("", "Triangle patch area threshold,"
                                                                 "triangle patch will be merged to neighbor if its area is less than threshold");
-    m_imgui->bbl_slider_float_style("##tiny_patch_area", &TriangleSelectorPatch::tiny_patch_area, TriangleSelectorPatch::TinyPatchAreaMin,TriangleSelectorPatch::TinyPatchAreaMax, format_str.data(), 1.0f, true, _L("Alt + Mouse wheel"));
+    m_imgui->bbl_slider_float_style("##tiny_patch_area", &TriangleSelectorPatch::tiny_patch_area, TriangleSelectorPatch::TinyPatchAreaMin,TriangleSelectorPatch::TinyPatchAreaMax, format_str.data(), 1.0f, true);
     ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
     ImGui::BBLDragFloat("##tiny_patch_area_input", &TriangleSelectorPatch::tiny_patch_area, 0.05f, 0.0f, 0.0f, "%.2f");
@@ -291,7 +293,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     static auto clp_dist = float(m_c->object_clipper()->get_position());
     ImGui::SameLine(sliders_left_width);
     ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
-    bool b_bbl_slider_float = m_imgui->bbl_slider_float_style("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true, _L("Ctrl + Mouse wheel"));
+    bool b_bbl_slider_float = m_imgui->bbl_slider_float_style("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true);
 
     ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
@@ -357,7 +359,7 @@ void GLGizmoFdmSupports::show_tooltip_information(float caption_max, float x, fl
             m_imgui->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);
         };
 
-        for (const auto &t : std::array<std::string, 3>{"enforce", "block", "remove"}) draw_text_with_caption(m_desc.at(t + "_caption"), m_desc.at(t));
+        for (const auto &t : std::array<std::string, 4>{"enforce", "block", "remove", "brush_size"}) draw_text_with_caption(m_desc.at(t + "_caption"), m_desc.at(t));
         ImGui::EndTooltip();
     }
     ImGui::PopStyleVar(1);

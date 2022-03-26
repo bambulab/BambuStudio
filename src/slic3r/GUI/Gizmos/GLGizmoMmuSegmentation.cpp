@@ -122,6 +122,9 @@ bool GLGizmoMmuSegmentation::on_init()
 
     m_desc["smart_fill_angle"]     = _L("Smart fill angle");
 
+    m_desc["brush_size"]         = _L("Set brush size");
+    m_desc["brush_size_caption"] = _L("Ctrl + Mouse wheel") + ": ";
+
     // BBS
     m_desc["height_range"]         = _L("Height range");
 
@@ -304,7 +307,7 @@ void GLGizmoMmuSegmentation::show_tooltip_information(float caption_max, float x
             m_imgui->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);
         };
 
-        for (const auto &t : std::array<std::string, 2>{"paint", "erase"}) draw_text_with_caption(m_desc.at(t + "_caption"), m_desc.at(t));
+        for (const auto &t : std::array<std::string, 3>{"paint", "erase", "brush_size"}) draw_text_with_caption(m_desc.at(t + "_caption"), m_desc.at(t));
         ImGui::EndTooltip();
     }
     ImGui::PopStyleVar(1);
@@ -326,7 +329,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
     const float clipping_slider_left  = m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f);
     const float cursor_slider_left = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.f);
-    const float smart_fill_slider_left = m_imgui->calc_text_size(m_desc.at("smart_fill_angle")).x + m_imgui->scaled(1.f);
+    const float smart_fill_slider_left = m_imgui->calc_text_size(m_desc.at("smart_fill_angle")).x + m_imgui->scaled(1.5f);
     const float edge_detect_slider_left = m_imgui->calc_text_size(m_desc.at("edge_detection")).x + m_imgui->scaled(1.f);
     const float tiny_filter_slider_left = m_imgui->calc_text_size(m_desc.at("tiny_patch_filter")).x + m_imgui->scaled(1.f);
     const float height_range_slider_left = m_imgui->calc_text_size(m_desc.at("height_range")).x + m_imgui->scaled(1.f);
@@ -339,7 +342,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     float caption_max = 0.f;
     float total_text_max = 0.f;
-    for (const auto &t : std::array<std::string, 2>{"paint", "erase"}) {
+    for (const auto &t : std::array<std::string, 3>{"paint", "erase", "brush_size"}) {
         caption_max = std::max(caption_max, m_imgui->calc_text_size(m_desc[t + "_caption"]).x);
         total_text_max = std::max(total_text_max, m_imgui->calc_text_size(m_desc[t]).x);
     }
@@ -414,7 +417,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         m_imgui->text(m_desc.at("cursor_size"));
         ImGui::SameLine(sliders_left_width);
         ImGui::PushItemWidth(window_width - sliders_left_width - slider_width_times * slider_icon_width);
-        m_imgui->bbl_slider_float_style("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true, _L("Alt + Mouse wheel"));
+        m_imgui->bbl_slider_float_style("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true);
         ImGui::SameLine(window_width - slider_icon_width);
         ImGui::PushItemWidth(1.5 * slider_icon_width);
         ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
@@ -433,8 +436,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
                                                                                     "placed after the number with no whitespace in between.");
             ImGui::SameLine(sliders_left_width);
             ImGui::PushItemWidth(window_width - sliders_left_width - slider_width_times * slider_icon_width);
-            if (m_imgui->bbl_slider_float_style("##smart_fill_angle", &m_smart_fill_angle, SmartFillAngleMin, SmartFillAngleMax, format_str.data(), 1.0f, true,
-                                                _L("Alt + Mouse wheel")))
+            if (m_imgui->bbl_slider_float_style("##smart_fill_angle", &m_smart_fill_angle, SmartFillAngleMin, SmartFillAngleMax, format_str.data(), 1.0f, true))
                 for (auto &triangle_selector : m_triangle_selectors) {
                     triangle_selector->seed_fill_unselect_all_triangles();
                     triangle_selector->request_update_render_data();
@@ -454,7 +456,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         ImGui::SameLine(sliders_left_width);
         ImGui::PushItemWidth(window_width - sliders_left_width - slider_width_times * slider_icon_width);
         std::string format_str = std::string("%.2f") + I18N::translate_utf8("mm", "Heigh range," "Facet in [cursor z, cursor z + height] will be selected.");
-        m_imgui->bbl_slider_float_style("##cursor_height", &m_cursor_height, CursorHeightMin, CursorHeightMax, format_str.data(), 1.0f, true, _L("Alt + Mouse wheel"));
+        m_imgui->bbl_slider_float_style("##cursor_height", &m_cursor_height, CursorHeightMin, CursorHeightMax, format_str.data(), 1.0f, true);
         ImGui::SameLine(window_width - slider_icon_width);
         ImGui::PushItemWidth(1.5 * slider_icon_width);
         ImGui::BBLDragFloat("##cursor_height_input", &m_cursor_height, 0.05f, 0.0f, 0.0f, "%.2f");
@@ -466,7 +468,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     ImGui::SameLine(sliders_left_width);
     ImGui::PushItemWidth(window_width - sliders_left_width - slider_width_times * slider_icon_width);
     std::string format_str = std::string("%.2f") + I18N::translate_utf8("", "Triangle patch area threshold,""triangle patch will be merged to neighbor if its area is less than threshold");
-    m_imgui->bbl_slider_float_style("##tiny_patch_area", &TriangleSelectorPatch::tiny_patch_area, TriangleSelectorPatch::TinyPatchAreaMin,TriangleSelectorPatch::TinyPatchAreaMax,format_str.data(), 1.0f, true, _L("Alt + Mouse wheel"));
+    m_imgui->bbl_slider_float_style("##tiny_patch_area", &TriangleSelectorPatch::tiny_patch_area, TriangleSelectorPatch::TinyPatchAreaMin,TriangleSelectorPatch::TinyPatchAreaMax,format_str.data(), 1.0f, true);
     ImGui::SameLine(window_width - slider_icon_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
     ImGui::BBLDragFloat("##tiny_patch_area_input", &TriangleSelectorPatch::tiny_patch_area, 0.05f, 0.0f, 0.0f, "%.2f");
@@ -478,7 +480,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     static auto clp_dist = float(m_c->object_clipper()->get_position());
     ImGui::SameLine(sliders_left_width);
     ImGui::PushItemWidth(window_width - sliders_left_width - slider_width_times * slider_icon_width);
-    bool slider_clp_dist = m_imgui->bbl_slider_float_style("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true, _L("Ctrl + Mouse wheel"));
+    bool slider_clp_dist = m_imgui->bbl_slider_float_style("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true);
     ImGui::SameLine(window_width - slider_icon_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
     bool b_clp_dist_input = ImGui::BBLDragFloat("##clp_dist_input", &clp_dist, 0.05f, 0.0f, 0.0f, "%.2f");
