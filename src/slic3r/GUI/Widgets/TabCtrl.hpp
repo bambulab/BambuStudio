@@ -63,6 +63,10 @@ public:
     bool IsVisible(unsigned int item) const;
 
 private:
+    virtual void DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
+
+    void relayout();
+
     void buttonClicked(wxCommandEvent & event);
 
     void doRender(wxDC & dc) override;

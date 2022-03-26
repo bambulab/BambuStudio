@@ -100,7 +100,11 @@ int TabCtrl::AppendItem(const wxString &item,
     btn->SetCornerRadius(0);
     btn->SetPaddingSize({TAB_BUTTON_PADDING});
     btns.push_back(btn);
+    if (btns.size() > 1)
+        sizer->GetItem(sizer->GetItemCount() - 1)->SetMinSize({0, 0});
     sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL | wxALL, TAB_BUTTON_SPACE * 2);
+    sizer->AddStretchSpacer(1);
+    relayout();
     return btns.size() - 1;
 }
 
@@ -186,7 +190,23 @@ bool TabCtrl::IsVisible(unsigned int item) const
     return true;
 }
 
-void TabCtrl::buttonClicked(wxCommandEvent& event)
+void TabCtrl::DoSetSize(int x, int y, int width, int height, int sizeFlags)
+{
+    wxWindow::DoSetSize(x, y, width, height, sizeFlags);
+    if (sizeFlags & wxSIZE_USE_EXISTING) return;
+    relayout();
+}
+
+void TabCtrl::relayout()
+{
+    int w = 10 + 10;
+    for (auto b : btns) w += b->GetSize().x + TAB_BUTTON_SPACE * 10;
+    int b = GetSize().x - w;
+    sizer->GetItem(sizer->GetItemCount() - 1)->SetMinSize({b > 0 ? b : 0, 0});
+    sizer->Layout();
+}
+
+void TabCtrl::buttonClicked(wxCommandEvent &event)
 {
     auto btn = event.GetEventObject();
     auto iter = std::find(btns.begin(), btns.end(), btn);
