@@ -82,9 +82,19 @@ wxWindow *PreferencesDialog::create_item_language_combobox(
     combobox->SetPosition(wxPoint(item->GetSize().GetWidth() - combobox->GetSize().GetWidth() - 60, (item->GetSize().GetHeight() - combobox->GetSize().GetHeight()) / 2));
 
     // save config
-    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param, vlist](wxCommandEvent &e) {
-        for (size_t i = 0; i < vlist.size(); ++i) {
-            if (e.GetString().mb_str() != app_config->get(param)) {
+    combobox->Bind(wxEVT_COMBOBOX, [this, param, vlist](wxCommandEvent &e) {
+        if (e.GetString().mb_str() != app_config->get(param)) {
+            if (wxGetApp().plater()->close_with_confirm() == wxID_CANCEL) {
+                wxString name = app_config->get(param);
+                for (size_t i = 0; i < vlist.size(); ++i) {
+                    if (name == vlist[i]->CanonicalName) {
+                        dynamic_cast<ComboBox *>(e.GetEventObject())->SetLabel(vlist[i]->Description);
+                        break;
+                    }
+                }
+                return;
+            }
+            for (size_t i = 0; i < vlist.size(); ++i) {
                 if (e.GetString().mb_str() == vlist[i]->Description) {
                     app_config->set(param, vlist[i]->CanonicalName.ToUTF8().data());
                     app_config->save();
