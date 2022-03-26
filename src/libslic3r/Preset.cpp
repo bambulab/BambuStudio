@@ -960,6 +960,9 @@ void PresetCollection::load_presets(
                         BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" <<
                             preset.file << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
                     preset.loaded = true;
+                    //BBS: add some workaround for previous incorrect settings
+                    if ((!preset.setting_id.empty())&&(preset.setting_id == preset.base_id))
+                        preset.setting_id.clear();
                     //BBS: add config related logs
                     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", preset type %1%, name %2%, path %3%, is_system %4%, is_default %5% is_visible %6%")%Preset::get_type_string(m_type) %preset.name %preset.file %preset.is_system %preset.is_default %preset.is_visible;
                 } catch (const std::ifstream::failure &err) {
@@ -1680,6 +1683,7 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         preset.vendor = nullptr;
 		preset.alias.clear();
         preset.renamed_from.clear();
+        preset.setting_id.clear();
         if (detach) {
         	// Clear the link to the parent profile.
         	inherits.clear();

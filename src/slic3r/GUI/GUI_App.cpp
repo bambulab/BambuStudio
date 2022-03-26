@@ -2095,20 +2095,19 @@ void GUI_App::sync_preset(Preset* preset)
     if (!preset->is_user()) return;
 
     if (preset->setting_id.empty() && preset->sync_info.empty() && !preset->base_id.empty()) {
-        m_account_manager->request_setting_id(preset);
-        if (!preset->setting_id.empty()) {
-            Preset* preset_to_upload = this->preset_bundle->get_preset_differed_for_save(*preset);
-            if (preset_to_upload) {
-                if (!preset_to_upload->base_id.empty())
-                    result = m_account_manager->put_setting(preset_to_upload);
-                delete preset_to_upload;
+        Preset* preset_to_upload = this->preset_bundle->get_preset_differed_for_save(*preset);
+        if (preset_to_upload) {
+            result = m_account_manager->request_setting_id(preset_to_upload);
+            if (!preset_to_upload->setting_id.empty()) {
+                preset->setting_id = preset_to_upload->setting_id;
             }
             else {
-                BOOST_LOG_TRIVIAL(trace) << "sync_preset: can not generate differed preset";
+                BOOST_LOG_TRIVIAL(trace) << "sync_preset: request_setting_id failed";
             }
+            delete preset_to_upload;
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "sync_preset: request setting id failed";
+            BOOST_LOG_TRIVIAL(trace) << "sync_preset: can not generate differed preset";
         }
     }
     else if ((preset->sync_info.compare("create") == 0) && !preset->base_id.empty()) {
@@ -2131,13 +2130,24 @@ void GUI_App::sync_preset(Preset* preset)
         if (!preset->setting_id.empty()) {
             Preset* preset_to_upload = this->preset_bundle->get_preset_differed_for_save(*preset);
             if (preset_to_upload) {
-                if (!preset_to_upload->base_id.empty())
-                    result = m_account_manager->put_setting(preset_to_upload);
+                if (!preset_to_upload->base_id.empty()) {
+                    if (preset_to_upload->base_id ==  preset_to_upload->setting_id) {
+                        //clear the setting_id in this case
+                        preset->setting_id.clear();
+                        result = 0;
+                    }
+                    else
+                        result = m_account_manager->put_setting(preset_to_upload);
+                }
                 delete preset_to_upload;
             }
             else {
                 BOOST_LOG_TRIVIAL(trace) << "sync_preset: can not generate differed preset";
             }
+        }
+        else {
+            //clear the sync_info
+            result = 0;
         }
     }
 
