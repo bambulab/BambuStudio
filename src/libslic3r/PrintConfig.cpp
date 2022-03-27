@@ -615,14 +615,14 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_sharp_tails", coBool);
     def->label = L("Add support for sharp tails");
     def->category = L("Support");
-    def->tooltip = L("Experimental option for adding support material for sharp tails");
+    def->tooltip = L("Experimental option for adding support for sharp tails");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("remove_small_overhangs", coBool);
     def->label = L("Remove support for small overhangs");
     def->category = L("Support");
-    def->tooltip = L("Experimental option for removing support material for small overhangs");
+    def->tooltip = L("Experimental option for removing support for small overhangs");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(true));
 
@@ -819,7 +819,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_max_volumetric_speed", coFloats);
     def->label = L("Max volumetric speed");
-    def->tooltip = L("This setting limits how much volume of filament can be milted and extruded per second. "
+    def->tooltip = L("This setting stands for how much volume of filament can be melted and extruded per second. "
                      "Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. "
                      "Zero means no limit");
     def->sidetext = L("mm³/s");
@@ -1000,8 +1000,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(300));
 
     def = this->add("bed_temperature_initial_layer", coInts);
-    def->label = L("First layer");
-    def->full_label = L("First layer bed temperature");
+    def->label = L("Initial layer");
+    def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer");
     def->sidetext = L("°C");
     def->max = 0;
@@ -1584,7 +1584,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("detect_overhang_wall", coBool);
     def->label = L("Detect overhang wall");
     def->category = L("Quality");
-    def->tooltip = L("Detect the overhang percentage retative to line width and use different speed to print. "
+    def->tooltip = L("Detect the overhang percentage relative to line width and use different speed to print. "
                      "For 100% overhang, bridge speed is used");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(true));
@@ -1672,7 +1672,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(1.5));
 
     def = this->add("raft_first_layer_density", coPercent);
-    def->label = L("First layer density");
+    def->label = L("Initial layer density");
     def->category = L("Support");
     def->tooltip = L("Density of the first raft or support layer");
     def->sidetext = L("%");
@@ -1682,7 +1682,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionPercent(90));
 
     def = this->add("raft_first_layer_expansion", coFloat);
-    def->label = L("First layer expansion");
+    def->label = L("Initial layer expansion");
     def->category = L("Support");
     def->tooltip = L("Expand the first raft or support layer to improve bed plate adhesion");
     def->sidetext = L("mm");
@@ -2042,7 +2042,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_material_angle", coFloat);
     def->label = L("Pattern angle");
     def->category = L("Support");
-    def->tooltip = L("Use this setting to rotate the support material pattern on the horizontal plane.");
+    def->tooltip = L("Use this setting to rotate the support pattern on the horizontal plane.");
     def->sidetext = L("°");
     def->min = 0;
     def->max = 359;
@@ -2306,7 +2306,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Independent support layer height");
     def->category = L("Support");
     def->tooltip = L("Support layer uses layer height independent with object layer. This is to support custom support gap,"
-                   "but may cause extra extruder switches if support is specified as different extruder with object");
+                   "but may cause extra filament switches if support is specified as different extruder with object");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -2321,7 +2321,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("support_with_sheath", coBool);
-    def->label = L("Sheath around the support");
+    def->label = L("Wall around the support");
     def->category = L("Support");
     //def->tooltip = L("Add a sheath (a single perimeter line) around the base support. This makes "
     //               "the support more reliable, but also more difficult to remove");
@@ -2516,7 +2516,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("flush_volumes_vector", coFloats);
-    def->label = L("Purging volumes - load/unload volumes");
+    // BBS: remove _L()
+    def->label = ("Purging volumes - load/unload volumes");
     //def->tooltip = L("This vector saves required volumes to change from/to each tool used on the "
     //                 "wipe tower. These values are used to simplify creation of the full purging "
     //                 "volumes below.");
@@ -2525,7 +2526,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloats { 140.f, 140.f, 140.f, 140.f, 140.f, 140.f, 140.f, 140.f });
 
     def = this->add("flush_volumes_matrix", coFloats);
-    def->label = L("Purging volumes - matrix");
+    def->label = L("Purging volumes");
     //def->tooltip = L("This matrix describes volumes (in cubic milimetres) required to purge the"
     //                 " new filament on the wipe tower for any given pair of tools.");
 
@@ -3651,7 +3652,7 @@ std::string validate(const FullPrintConfig &cfg)
         if (cfg.top_shell_layers > 0)
             return "Spiral vase mode is not compatible with top solid layers";
         if (cfg.enable_support || cfg.support_material_enforce_layers > 0)
-            return "Spiral vase mode is not compatible with support material";
+            return "Spiral vase mode is not compatible with support";
     }
 
     // extrusion widths
@@ -3785,8 +3786,9 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->set_default_value(new ConfigOptionBool(false));*/
 
     def = this->add("gcodeviewer", coBool);
-    def->label = L("G-code viewer");
-    def->tooltip = L("Visualize an already sliced and saved G-code");
+    // BBS: remove _L()
+    def->label = ("G-code viewer");
+    def->tooltip = ("Visualize an already sliced and saved G-code");
     def->cli = "gcodeviewer";
     def->set_default_value(new ConfigOptionBool(false));
 

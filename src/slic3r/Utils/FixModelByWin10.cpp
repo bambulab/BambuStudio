@@ -53,7 +53,7 @@ extern "C"{
 
 namespace Slic3r {
 
-static std::string saving_failed_str = L("Saving objects into the 3MF failed.");
+static std::string saving_failed_str = L("Saving objects into the 3mf failed.");
 
 HMODULE							s_hRuntimeObjectLibrary  = nullptr;
 FunctionRoInitialize			s_RoInitialize			 = nullptr;

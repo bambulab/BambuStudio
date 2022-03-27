@@ -54,7 +54,7 @@ static SettingsFactory::Bundle FREQ_SETTINGS_BUNDLE_FFF =
     { L("Shell"), { "wall_loops", "top_shell_layers", "bottom_shell_layers"} },
     { L("Infill")               , { "sparse_infill_density", "sparse_infill_pattern" } },
     // BBS
-    { L("Support material")     , { "enable_support", "support_type", "support_threshold_angle",
+    { L("Support")     , { "enable_support", "support_type", "support_threshold_angle",
                                     "support_base_pattern", "support_on_build_plate_only",
                                     "support_base_pattern_spacing" } }
     //BBS
@@ -561,7 +561,7 @@ wxMenuItem* MenuFactory::append_menu_item_instance_to_object(wxMenu* menu)
         {
             const Selection& selection = plater()->canvas3D()->get_selection();
             evt.SetText(selection.is_single_full_object() ?
-                _L("Set as an individual objects") : _L("Set as an individual object"));
+                _L("Set as individual objects") : _L("Set as an individual object"));
 
             evt.Enable(plater()->can_set_instance_to_object());
         }, menu_item->GetId());

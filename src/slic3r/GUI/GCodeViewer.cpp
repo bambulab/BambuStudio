@@ -4058,7 +4058,7 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
     case EViewType::VolumetricRate: { imgui.title(_u8L("Volumetric flow rate (mm³/s)")); break; }
     case EViewType::Tool:
     {
-        append_headers({ _u8L("Tool"), _u8L("Used filament") }, offsets);
+        append_headers({ _u8L("Filament"), _u8L("Used filament") }, offsets);
         break;
     }
     case EViewType::ColorPrint:     { imgui.title(_u8L("Color Print")); break; }
@@ -4087,7 +4087,7 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
         else if (type == EMoveType::Unretract)
             append_option_item_with_type(type, Options_Colors[(int)EOptionsColors::Unretractions], _u8L("Unretract"), visible);
         else if (type == EMoveType::Tool_change)
-            append_option_item_with_type(type, Options_Colors[(int)EOptionsColors::ToolChanges], _u8L("Tool Changes"), visible);
+            append_option_item_with_type(type, Options_Colors[(int)EOptionsColors::ToolChanges], _u8L("Filament Changes"), visible);
         else if (type == EMoveType::Wipe)
             append_option_item_with_type(type, Wipe_Color, _u8L("Wipe"), visible);
     };

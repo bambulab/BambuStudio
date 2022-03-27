@@ -121,7 +121,6 @@ bool GLGizmoMmuSegmentation::on_init()
     m_desc["tool_bucket_fill"]     = _L("Bucket fill");
 
     m_desc["smart_fill_angle"]     = _L("Smart fill angle");
-    m_desc["split_triangles"]      = _L("Split triangles");
 
     // BBS
     m_desc["height_range"]         = _L("Height range");

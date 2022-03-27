@@ -2949,7 +2949,7 @@ PageShp TabPrinter::build_kinematics_page()
         line.append_option(option);
 
         //def.tooltip = L("Values in this column are for Stealth mode");
-        def.set_default_value(new ConfigOptionString{ _(L("Stealth")).ToUTF8().data() });
+        def.set_default_value(new ConfigOptionString{ _(L("Silent")).ToUTF8().data() });
         option = Option(def, "silent_legend");
         line.append_option(option);
 

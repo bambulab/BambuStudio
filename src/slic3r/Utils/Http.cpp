@@ -76,7 +76,7 @@ struct CurlGlobalInit
                     _L("use system SSL certificate: %1%"),
                     bundle);
 
-             message += "\n" + Slic3r::GUI::format(_L("To manually specify the system certificate store, "
+             message += "\n" + Slic3r::GUI::format(_devL("To manually specify the system certificate store, "
                                                    "set the %1% environment variable to the correct CA and restart the application"),
                                                    SSL_CA_FILE);
         }

@@ -1335,7 +1335,7 @@ static wxMenu* generate_help_menu()
     wxMenu* helpMenu = new wxMenu();
 
     // BBS tips
-    append_menu_check_item(helpMenu, wxID_ANY, _L("Tips"), _L("Show daily tips(TODO)"),
+    append_menu_check_item(helpMenu, wxID_ANY, _L("Tips"), _L("Show daily tips"),
         [](wxCommandEvent& evt) {
             wxGetApp().app_config->set_bool("show_daily_tips", evt.GetInt() == 1);
         }, nullptr, []() {return true; }, []() {return wxGetApp().app_config->get("show_daily_tips").compare("true") == 0; }, nullptr);
@@ -1347,7 +1347,7 @@ static wxMenu* generate_help_menu()
     // Show DailyTip
     append_menu_item(helpMenu, wxID_ANY, _L("Show Daily Tips"),_L("Show Daily Tips"),[](wxCommandEvent &) { wxGetApp().ShowDailyTip(); });
     // Show UserLogin
-    append_menu_item(helpMenu, wxID_ANY, _L("New UserLogin"), _L("New UserLogin"), [](wxCommandEvent &) { wxGetApp().ShowUserLogin(); });
+    append_menu_item(helpMenu, wxID_ANY, _L("New User Login"), _L("New User Login"), [](wxCommandEvent &) { wxGetApp().ShowUserLogin(); });
 
     helpMenu->AppendSeparator();
     // Open Config Folder

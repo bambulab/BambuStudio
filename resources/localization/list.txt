@@ -1,9 +1,7 @@
-src/slic3r/GUI/AboutDialog.cpp
 src/slic3r/GUI/BackgroundSlicingProcess.cpp
 src/slic3r/GUI/BedShapeDialog.cpp
 src/slic3r/GUI/BedShapeDialog.hpp
 src/slic3r/GUI/ConfigManipulation.cpp
-src/slic3r/GUI/ConfigWizard.cpp
 src/slic3r/GUI/DoubleSlider.cpp
 src/slic3r/GUI/ExtraRenderers.cpp
 src/slic3r/GUI/Field.cpp
@@ -15,7 +13,6 @@ src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp
 src/slic3r/GUI/Gizmos/GLGizmoMove.cpp
 src/slic3r/GUI/Gizmos/GLGizmoRotate.cpp
 src/slic3r/GUI/Gizmos/GLGizmoScale.cpp
-src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp
 src/slic3r/GUI/Gizmos/GLGizmosManager.cpp
 src/slic3r/GUI/Gizmos/GLGizmoPainterBase.cpp
 src/slic3r/GUI/Gizmos/GizmoObjectManipulation.cpp
@@ -70,7 +67,6 @@ src/libslic3r/GCode.cpp
 src/libslic3r/ExtrusionEntity.cpp
 src/libslic3r/Flow.cpp
 src/libslic3r/Format/AMF.cpp
-src/libslic3r/GCode/PostProcessor.cpp
 src/libslic3r/miniz_extension.cpp
 src/libslic3r/Preset.cpp
 src/libslic3r/Print.cpp

@@ -483,7 +483,7 @@ void ArrangeJob::process()
     // finalize just here.
     update_status(int(count),
         was_canceled() ? _(L("Arranging canceled.")) :
-        we_have_unpackable_items ? _(L("Arranging is done but there are unpacked items! Reduce spacing or bed_shrink and try again!")) : _(L("Arranging done.")));
+        we_have_unpackable_items ? _(L("Arranging is done but there are unpacked items! Reduce spacing and try again!")) : _(L("Arranging done.")));
 }
 
 static std::string concat_strings(const std::set<std::string> &strings,

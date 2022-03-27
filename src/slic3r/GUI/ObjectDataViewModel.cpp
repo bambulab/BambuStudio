@@ -58,10 +58,10 @@ struct InfoItemAtributes {
 
 const std::map<InfoItemType, InfoItemAtributes> INFO_ITEMS{
 //           info_item Type                         info_item Name              info_item BitmapName
-            { InfoItemType::CustomSupports,      {L("Paint-on supports"),       "fdm_supports_" },     },
-            { InfoItemType::CustomSeam,          {L("Paint-on seam"),           "seam_" },             },
-            { InfoItemType::MmuSegmentation,     {L("Multimaterial painting"),  "mmu_segmentation_"},  },
-            { InfoItemType::Sinking,             {L("Sinking"),                 "sinking"},            },
+            { InfoItemType::CustomSupports,      {L("Support painting"),       "fdm_supports_" },     },
+            //{ InfoItemType::CustomSeam,          {L("Paint-on seam"),           "seam_" },             },
+            { InfoItemType::MmuSegmentation,     {L("Color painting"),          "mmu_segmentation_"},  },
+            //{ InfoItemType::Sinking,             {L("Sinking"),                 "sinking"},            },
 };
 
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode*   parent,
@@ -104,13 +104,13 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
         m_name = "Settings to modified";
     }
     else if (type == itInstanceRoot) {
-        m_name = _(L("Instances"));
+        m_name = _(_devL("Instances"));
         m_extruder = parent->m_extruder;
     }
     else if (type == itInstance)
     {
         m_idx = parent->GetChildCount();
-        m_name = wxString::Format(_(L("Instance %d")), m_idx + 1);
+        m_name = wxString::Format(_(_devL("Instance %d")), m_idx + 1);
         m_extruder = parent->GetParent()->m_extruder;
         set_action_and_extruder_icons();
     }
@@ -287,10 +287,10 @@ void ObjectDataViewModelNode::SetIdx(const int& idx)
     // update name if this node is instance
     if (m_type == itInstance) {
         if (m_plate_idx > 0) {
-            m_name = wxString::Format(_(L("[P%d]Instance %d")), m_plate_idx, m_idx + 1);
+            m_name = wxString::Format(_(_devL("[P%d]Instance %d")), m_plate_idx, m_idx + 1);
         }
         else {
-            m_name = wxString::Format(_(L("Instance %d")), m_idx + 1);
+            m_name = wxString::Format(_(_devL("Instance %d")), m_idx + 1);
         }
     }
 }

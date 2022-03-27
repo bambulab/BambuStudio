@@ -5983,7 +5983,7 @@ void Plater::import_model_id(const std::string& import_json)
                 if (progress.dltotal != 0) {
                     percent = progress.dlnow * 100 / progress.dltotal;
                 }
-                msg = wxString::Format(_L("Project Downloaded %d%%"), percent);
+                msg = wxString::Format(_L("Project downloaded %d%%"), percent);
             })
             .on_error([&msg, &cont](std::string body, std::string error, unsigned http_status) {
                 (void)body;
@@ -6187,7 +6187,7 @@ void Plater::load_gcode(const wxString& filename)
 
     if (p->preview->get_canvas3d()->get_gcode_layers_zs().empty()) {
         MessageDialog(this, _L("The selected file") + ":\n" + filename + "\n" + _L("does not contain valid gcode."),
-            wxString(GCODEVIEWER_APP_NAME) + " - " + _L("Error while loading G-code file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
+            wxString(GCODEVIEWER_APP_NAME) + " - " + _L("Error occurs while loading G-code file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
         set_project_filename(DEFAULT_PROJECT_NAME);
     }
     else
@@ -6588,7 +6588,7 @@ bool Plater::load_files(const wxArrayString& filenames)
     else if (normal_paths.empty()){
         //only gcode files
         if (gcode_paths.size() > 1) {
-            show_info(this, _L("Only one G-code file can be opened at the same time."), _L("Gcode loading"));
+            show_info(this, _L("Only one G-code file can be opened at the same time."), _L("G-code loading"));
             return false;
         }
         load_gcode(from_path(gcode_paths.front()));
@@ -6596,7 +6596,7 @@ bool Plater::load_files(const wxArrayString& filenames)
     }
 
     if (!gcode_paths.empty()) {
-        show_info(this, _L("Gcode files can not be loaded with models together!"), _L("Gcode loading"));
+        show_info(this, _L("G-code files can not be loaded with models together!"), _L("G-code loading"));
         return false;
     }
 
@@ -7052,7 +7052,7 @@ void Plater::export_gcode(bool prefer_removable)
     fs::path output_path;
     {
         std::string ext = default_output_file.extension().string();
-        wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _L("Save G-code file as:") : _L("Save SLA file as:"),
+        wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _L("Save G-code file as:") : _devL("Save SLA file as:"),
             start_dir,
             from_path(default_output_file.filename()),
             GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : FT_SL1, ext),
@@ -7456,11 +7456,11 @@ void Plater::publish_project()
 
     // upload project first and publish
     wxString msg;
-    wxString title = _L("Upload and publish your design");
+    wxString title = _L("Upload and publish your project");
     ProgressDialog dlg(title, "", 100, this, wxPD_CAN_ABORT | wxPD_AUTO_HIDE | wxPD_APP_MODAL);
 
     // export 3mf to temp folder
-    msg = _L("preparing your designs");
+    msg = _L("preparing your project");
     cont = dlg.Update(percent, msg);
 
 
@@ -7499,7 +7499,7 @@ void Plater::publish_project()
         int res = 0;
         unsigned int http_code;
         std::string http_body;
-        msg = _L("preparing your designs, reqeust project id...");
+        msg = _L("Preparing to upload your project...");
 
         // query design id
         if (!project->project_model_id.empty()) {

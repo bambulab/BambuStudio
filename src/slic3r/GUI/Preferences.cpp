@@ -481,7 +481,7 @@ void PreferencesDialog::create_gui_page()
     bSizer = new wxBoxSizer(wxVERTICAL);
 
     // add item to page
-    wxWindow *title_index_and_tip = create_item_title(_L("Home page and Daily Tips"), m_panel_gui, _L("Home page and Daily Tips"));
+    wxWindow *title_index_and_tip = create_item_title(_L("Home page and daily tips"), m_panel_gui, _L("Home page and daily tips"));
     wxWindow *item_home_page      = create_item_checkbox(_L("Show home page on startup"), m_panel_gui, _L("Show home page on startup"), 50, "show_home_page");
     wxWindow *item_daily_tip      = create_item_checkbox(_L("Show daily tip on startup"), m_panel_gui, _L("Show daily tip on startup"), 50, "show_daily_tips");
 

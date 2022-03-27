@@ -712,7 +712,7 @@ void GLGizmoFdmSupports::run_thread()
             if (!m_print_instance.print_object->tree_support_layers().size())
             {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",no tree support layer found, update status to 100%\n";
-                print->set_status(100, L("Support material Generated"));
+                print->set_status(100, L("Support Generated"));
                 goto _finished;
             }
             for (const TreeSupportLayer *support_layer : m_print_instance.print_object->tree_support_layers())
@@ -723,14 +723,14 @@ void GLGizmoFdmSupports::run_thread()
                 }
             }
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished extrusionentity_to_verts, update status to 100%";
-            print->set_status(100, L("Support material Generated"));
+            print->set_status(100, L("Support Generated"));
         }
         else
         {
             if (!m_print_instance.print_object->support_layers().size())
             {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",no support layer found, update status to 100%\n";
-                print->set_status(100, L("Support material Generated"));
+                print->set_status(100, L("Support Generated"));
                 goto _finished;
             }
             for (const SupportLayer *support_layer : m_print_instance.print_object->support_layers())
@@ -741,7 +741,7 @@ void GLGizmoFdmSupports::run_thread()
                 }
             }
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished extrusionentity_to_verts, update status to 100%";
-            print->set_status(100, L("Support material Generated"));
+            print->set_status(100, L("Support Generated"));
         }
         record_timestamp();
     }

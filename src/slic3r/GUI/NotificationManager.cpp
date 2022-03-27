@@ -944,9 +944,11 @@ void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType ty
 			continue;
 		switch ((*it).first) {
 		case InfoItemType::CustomSupports:      text += format(_L_PLURAL("%1$d Object has custom supports.",		"%1$d Objects have custom supports.",		(*it).second), (*it).second) + "\n"; break;
-		case InfoItemType::CustomSeam:          text += format(_L_PLURAL("%1$d Object has custom seam.",			"%1$d Objects have custom seam.",			(*it).second), (*it).second) + "\n"; break;
-		case InfoItemType::MmuSegmentation:     text += format(_L_PLURAL("%1$d Object has multimaterial painting.", "%1$d Objects have multimaterial painting.",(*it).second), (*it).second) + "\n"; break;
-		case InfoItemType::Sinking:             text += format(_L_PLURAL("%1$d Object has partial sinking.",		"%1$d Objects have partial sinking.",		(*it).second), (*it).second) + "\n"; break;
+		// BBS
+		//case InfoItemType::CustomSeam:          text += format(("%1$d Object has custom seam.",			"%1$d Objects have custom seam.",			(*it).second), (*it).second) + "\n"; break;
+		case InfoItemType::MmuSegmentation:     text += format(_L_PLURAL("%1$d Object has color painting.",			"%1$d Objects have color painting.",(*it).second), (*it).second) + "\n"; break;
+		// BBS
+		//case InfoItemType::Sinking:             text += format(("%1$d Object has partial sinking.",		"%1$d Objects have partial sinking.",		(*it).second), (*it).second) + "\n"; break;
 		default: BOOST_LOG_TRIVIAL(error) << "Unknown InfoItemType: " << (*it).second; break;
 		}
 	}
@@ -2075,7 +2077,7 @@ void NotificationManager::bbl_show_app_newversion_notification()
 
 void NotificationManager::bbl_show_need_support_on_notification()
 {
-    NotificationData data{NotificationType::BBLNeedSupportON, NotificationLevel::WarningNotificationLevel, 0,_u8L("WARNING:") + "\n" + _u8L("It seems your model needs support to print! Please enable support material.")};
+    NotificationData data{NotificationType::BBLNeedSupportON, NotificationLevel::WarningNotificationLevel, 0,_u8L("WARNING:") + "\n" + _u8L("It seems your model needs support to print!")};
 
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::BBLNeedSupportON) {
@@ -2100,7 +2102,7 @@ void NotificationManager::bbl_close_need_support_on_notification()
 void NotificationManager::bbl_show_gcode_overlap_notification()
 {
     NotificationData data{NotificationType::BBLGcodeOverlap, NotificationLevel::WarningNotificationLevel, 0,
-                          _u8L("WARNING:") + "\n" + _u8L("Gcode path overlap !")};
+                          _u8L("WARNING:") + "\n" + _u8L("G-code path overlap !")};
 
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::BBLGcodeOverlap) {

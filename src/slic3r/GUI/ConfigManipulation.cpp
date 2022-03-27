@@ -131,12 +131,12 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     if (config->option<ConfigOptionFloatOrPercent>("initial_layer_print_height")->value < EPSILON)
     {
-        const wxString msg_text = _(L("Zero initial layer height is invalid.\n\nThe first layer height will be reset to 0.01."));
+        const wxString msg_text = _(L("Zero initial layer height is invalid.\n\nThe first layer height will be reset to 0.2."));
         MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
         dialog.ShowModal();
-        new_conf.set_key_value("initial_layer_print_height", new ConfigOptionFloatOrPercent(0.01, false));
+        new_conf.set_key_value("initial_layer_print_height", new ConfigOptionFloatOrPercent(0.2, false));
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }

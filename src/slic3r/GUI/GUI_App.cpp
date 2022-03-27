@@ -3038,7 +3038,7 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
             }
             this->plater()->load_files(input_files);
             if (gcode_files.size() > 0) {
-                show_info(this->plater(), _L("Gcode files can not be loaded with models together!"), _L("Gcode loading"));
+                show_info(this->plater(), _L("G-code files can not be loaded with models together!"), _L("G-code loading"));
             }
         }
         else {
@@ -3226,7 +3226,7 @@ void GUI_App::gcode_thumbnails_debug()
     unsigned int width = 0;
     unsigned int height = 0;
 
-    wxFileDialog dialog(GetTopWindow(), _L("Select a gcode file:"), "", "", "G-code files (*.gcode)|*.gcode;*.GCODE;", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    wxFileDialog dialog(GetTopWindow(), _L("Select a G-code file:"), "", "", "G-code files (*.gcode)|*.gcode;*.GCODE;", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dialog.ShowModal() != wxID_OK)
         return;
 
