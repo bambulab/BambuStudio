@@ -20,6 +20,7 @@ class AxisCtrlButton : public wxWindow
 	wxPoint center;
 
     StateHandler    state_handler;
+    StateColor      text_color;
     StateColor      border_color;
     StateColor      background_color;
 	StateColor      inner_background_color;
@@ -47,6 +48,8 @@ public:
     AxisCtrlButton(wxWindow *parent, wxBitmap &icon, long style = 0);
 
     void SetMinSize(const wxSize& size) override;
+
+    void SetTextColor(StateColor const& color);
 
     void SetBorderColor(StateColor const& color);
 

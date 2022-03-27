@@ -25,7 +25,7 @@ TempInput::TempInput()
                    std::make_pair(*wxWHITE, (int) StateColor::Normal))
     , label_color(std::make_pair(0x323A3D, (int) StateColor::Normal))
     , text_color(std::make_pair(0x6B6B6B, (int) StateColor::Disabled), std::make_pair(0x6B6B6B, (int) StateColor::Normal))
-    , background_color(std::make_pair(0xF0F0F0, (int) StateColor::Disabled),
+    , background_color(std::make_pair(*wxWHITE, (int) StateColor::Disabled),
                        std::make_pair(*wxWHITE, (int) StateColor::Normal))
 {
     hover  = false;
@@ -107,6 +107,7 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
     });
     text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
     text_ctrl->SetFont(Label::Body_14);
+    text_ctrl->SetBackgroundColour(background_color.colorForStates(StateColor::Normal));
     text_ctrl->SetForegroundColour(text_color.colorForStates(StateColor::Normal));
     if (!normal_icon.IsEmpty()) { this->normal_icon = ScalableBitmap(this, normal_icon.ToStdString(), 16); }
     if (!actice_icon.IsEmpty()) { this->actice_icon = ScalableBitmap(this, actice_icon.ToStdString(), 16); }
@@ -255,6 +256,12 @@ void TempInput::SetTextColor(StateColor const &color)
     state_handler.update_binds();
 }
 
+void TempInput::SetLabelColor(StateColor const &color)
+{
+    label_color = color;
+    state_handler.update_binds();
+}
+
 void TempInput::SetBackgroundColor(StateColor const &color)
 {
     background_color = color;
@@ -382,6 +389,11 @@ void TempInput::render(wxDC &dc)
     dc.SetFont(::Label::Head_14);
     labelSize = dc.GetMultiLineTextExtent(wxWindow::GetLabel());
     dc.SetTextForeground(label_color.colorForStates((int) StateColor::Normal));
+    if (!IsEnabled())
+        dc.SetTextBackground(background_color.colorForStates((int) StateColor::Disabled));
+    else
+        dc.SetTextBackground(background_color.colorForStates((int) states));
+
     if (!text.IsEmpty()) {
         wxSize textSize = text_ctrl->GetSize();
         if (align_right) {
@@ -397,6 +409,7 @@ void TempInput::render(wxDC &dc)
     dc.SetFont(::Label::Body_14);
     auto sepSize = dc.GetMultiLineTextExtent(wxString("/"));
     dc.SetTextForeground(text_color.colorForStates(states));
+    dc.SetTextBackground(background_color.colorForStates(states));
     pt.x += labelSize.x + 10;
     pt.y = (size.y - sepSize.y) / 2;
     dc.DrawText(wxString("/"), pt);

@@ -26,12 +26,17 @@ static const wxColour BUTTON_NORMAL2_COL = wxColour(206, 206, 206);
 static const wxColour BUTTON_PRESS_COL   = wxColour(172, 172, 172);
 static const wxColour BUTTON_HOVER_COL   = wxColour(0, 174, 66);
 
+static const wxColour DISCONNECT_TEXT_COL = wxColour(172, 172, 172);
+static const wxColour NORMAL_TEXT_COL     = wxColour(0, 0, 0);
+static const wxColour NORMAL_FAN_TEXT_COL = wxColour(107, 107, 107);
+static const wxColour WARNING_INFO_BG_COL = wxColour(255, 111, 0);
+
 static const wxColour GROUP_STATIC_LINE_COL    = wxColour(206,206,206);
 
 static const wxFont PAGE_TITLE_FONT  = wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, 0, false, wxT("HarmonyOS Sans SC"));
 static const wxFont GROUP_TITLE_FONT = wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, 0, false, wxT("HarmonyOS Sans SC"));
 
-    /* size */
+/* size */
 static const int PAGE_TITLE_HEIGHT        = 36;
 static const int PAGE_TITLE_LEFT_MARGIN   = 17;
 static const int PAGE_MIN_WIDTH           = 566;
@@ -43,6 +48,7 @@ static const int PAGE_SPACING             = 10;
 static const wxSize TASK_BUTTON_SIZE = wxSize(48, 24);
 static const wxSize MISC_BUTTON_SIZE  = wxSize(72, 60);
 static const wxSize TASK_ITEM_MIN_SIZE  = wxSize(258, 60);
+static const wxSize TEMP_CTRL_MIN_SIZE = wxSize(140, 55);
 
 
 StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
@@ -154,7 +160,24 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_staticText_monitoring->Wrap(-1);
     m_staticText_monitoring->SetFont(PAGE_TITLE_FONT);
 
-    bSizer_monitoring_title->Add(m_staticText_monitoring, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, PAGE_TITLE_LEFT_MARGIN);
+    bSizer_monitoring_title->Add(m_staticText_monitoring, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, PAGE_TITLE_LEFT_MARGIN);
+
+    m_connection_info = new Button(m_panel_monitoring_title, "");
+    m_connection_info->SetBackgroundColor(WARNING_INFO_BG_COL);
+    m_connection_info->SetBorderColor(WARNING_INFO_BG_COL);
+    m_connection_info->SetTextColor(*wxWHITE);
+    m_connection_info->SetFont(PAGE_TITLE_FONT);
+    m_connection_info->SetCornerRadius(8);
+    m_connection_info->SetSize(wxSize(-1, 16));
+    m_connection_info->SetMinSize(wxSize(-1, 16));
+    m_connection_info->SetMaxSize(wxSize(-1, 16));
+    m_connection_info->SetPaddingSize(wxSize(11, 11));
+    m_connection_info->Hide();
+
+    bSizer_monitoring_title->Add(13, 0, 0, 0);
+    bSizer_monitoring_title->Add(m_connection_info, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 0);
+
+    bSizer_monitoring_title->AddStretchSpacer();
 
     m_staticText_timelapse = new wxStaticText(m_panel_monitoring_title, wxID_ANY, _L("Timelapse"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_timelapse->Wrap(-1);
@@ -427,9 +450,16 @@ wxBoxSizer *StatusBasePanel::create_temp_control()
     wxWindowID nozzle_id = wxWindow::NewControlId();
     m_tempCtrl_nozzle = new TempInput(this, nozzle_id, TEMP_BLANK_STR, TEMP_BLANK_STR, wxString("monitor_nozzle_temp"), wxString("monitor_nozzle_temp_active"),
                         wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER | wxBORDER_NONE);
-    m_tempCtrl_nozzle->SetMinSize(wxSize(140, 55));
+    m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE);
     m_tempCtrl_nozzle->SetMinTemp(nozzle_temp_range[0]);
     m_tempCtrl_nozzle->SetMaxTemp(nozzle_temp_range[1]);
+    m_tempCtrl_nozzle->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
+                                    std::make_pair(NORMAL_TEXT_COL,(int) StateColor::Normal)));
+    m_tempCtrl_nozzle->SetBorderColor(StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled),
+                   std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Focused),
+                   std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Hovered),
+                   std::make_pair(*wxWHITE, (int) StateColor::Normal)));
+
     sizer->Add(m_tempCtrl_nozzle, 1, wxEXPAND | wxALL, 0);
 
     auto line = new StaticLine(this);
@@ -442,7 +472,13 @@ wxBoxSizer *StatusBasePanel::create_temp_control()
                                    wxALIGN_CENTER | wxBORDER_NONE);
     m_tempCtrl_bed->SetMinTemp(bed_temp_range[0]);
     m_tempCtrl_bed->SetMaxTemp(bed_temp_range[1]);
-    m_tempCtrl_bed->SetMinSize(wxSize(140, 55));
+    m_tempCtrl_bed->SetMinSize(TEMP_CTRL_MIN_SIZE);
+    m_tempCtrl_bed->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
+                                std::make_pair(NORMAL_TEXT_COL,(int) StateColor::Normal)));
+    m_tempCtrl_bed->SetBorderColor(StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled),
+                   std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Focused),
+                   std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Hovered),
+                   std::make_pair(*wxWHITE, (int) StateColor::Normal)));
     sizer->Add(m_tempCtrl_bed, 1, wxEXPAND | wxALL, 0);
 
     line = new StaticLine(this);
@@ -453,7 +489,13 @@ wxBoxSizer *StatusBasePanel::create_temp_control()
     m_tempCtrl_frame    = new TempInput(this, frame_id, TEMP_BLANK_STR, TEMP_BLANK_STR, wxString("monitor_frame_temp"), wxString("monitor_frame_temp"), wxDefaultPosition,
                                      wxDefaultSize,
                                      wxALIGN_CENTER | wxBORDER_NONE);
-    m_tempCtrl_frame->SetMinSize(wxSize(140, 55));
+    m_tempCtrl_frame->SetMinSize(TEMP_CTRL_MIN_SIZE);
+    m_tempCtrl_frame->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
+                                std::make_pair(NORMAL_TEXT_COL,(int) StateColor::Normal)));
+    m_tempCtrl_frame->SetBorderColor(StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled),
+                   std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Focused),
+                   std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Hovered),
+                   std::make_pair(*wxWHITE, (int) StateColor::Normal)));
     sizer->Add(m_tempCtrl_frame, 1, wxEXPAND | wxALL, 0);
 
     line = new StaticLine(this);
@@ -476,6 +518,9 @@ wxBoxSizer *StatusBasePanel::create_misc_control()
     m_switch_speed = new ImageSwitchButton(this, m_bitmap_speed, m_bitmap_speed, wxBORDER_NONE);
     m_switch_speed->SetLabels(_L("100%"), _L("100%"));
     m_switch_speed->SetMinSize(MISC_BUTTON_SIZE);
+    m_switch_speed->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
+                                    std::make_pair(NORMAL_TEXT_COL,(int) StateColor::Normal)));
+
     line_sizer->Add(m_switch_speed, 0, wxALIGN_CENTER | wxALL, 0);
 
     auto line = new StaticLine(this, true);
@@ -486,6 +531,8 @@ wxBoxSizer *StatusBasePanel::create_misc_control()
     m_switch_lamp = new ImageSwitchButton(this, m_bitmap_lamp_on, m_bitmap_lamp_off, wxBORDER_NONE);
     m_switch_lamp->SetLabels(_L("Lamp"), _L("Lamp"));
     m_switch_lamp->SetMinSize(MISC_BUTTON_SIZE);
+    m_switch_lamp->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
+                                    std::make_pair(NORMAL_TEXT_COL,(int) StateColor::Normal)));
     line_sizer->Add(m_switch_lamp, 0, wxALIGN_CENTER | wxALL, 0);
 
     sizer->Add(line_sizer, 0, wxEXPAND, 5);
@@ -497,7 +544,8 @@ wxBoxSizer *StatusBasePanel::create_misc_control()
     m_switch_nozzle_fan = new ImageSwitchButton(this, m_bitmap_fan_on, m_bitmap_fan_off, wxBORDER_NONE);
     m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_nozzle_fan->SetLabels(_L("Chamber"), _L("Chamber"));
-    m_switch_nozzle_fan->SetTextColor(wxColour(107, 107, 107));
+    m_switch_nozzle_fan->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
+                                    std::make_pair(NORMAL_FAN_TEXT_COL,(int) StateColor::Normal)));
 
     line_sizer->Add(m_switch_nozzle_fan, 0, wxALIGN_CENTER | wxALL, 0);
     line = new StaticLine(this, true);
@@ -508,7 +556,8 @@ wxBoxSizer *StatusBasePanel::create_misc_control()
     m_switch_printing_fan->SetValue(true);
     m_switch_printing_fan->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_printing_fan->SetLabels(_L("Part"), _L("Part"));
-    m_switch_printing_fan->SetTextColor(wxColour(107, 107, 107));
+    m_switch_printing_fan->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
+                                    std::make_pair(NORMAL_FAN_TEXT_COL,(int) StateColor::Normal)));
 
     line_sizer->Add(m_switch_printing_fan, 0, wxALIGN_CENTER | wxALL, 0);
 
@@ -521,6 +570,9 @@ wxBoxSizer *StatusBasePanel::create_axis_control()
 {
     auto sizer = new wxBoxSizer(wxVERTICAL);
     m_bpButton_xy = new AxisCtrlButton(this, m_bitmap_axis_home);
+    m_bpButton_xy->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
+                                std::make_pair(NORMAL_TEXT_COL,(int) StateColor::Normal)));
+
     sizer->Add(m_bpButton_xy, 1, wxEXPAND | wxALL | wxALIGN_CENTER, 0);
 
     sizer->Add(0, 6, 0, wxEXPAND, 0);
@@ -548,12 +600,16 @@ wxBoxSizer *StatusBasePanel::create_bed_control()
     m_bpButton_z_10 = new Button(this, wxString("+10"));
     m_bpButton_z_10->SetBackgroundColor(z_10_ctrl_bg);
     m_bpButton_z_10->SetBorderColor(z_10_ctrl_bd);
+    m_bpButton_z_10->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
+                                std::make_pair(NORMAL_TEXT_COL,(int) StateColor::Normal)));
 
     bSizer_z_ctrl->Add(m_bpButton_z_10, 1, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
     m_bpButton_z_1 = new Button(this, wxString("+1"));
     m_bpButton_z_1->SetBackgroundColor(z_1_ctrl_bg);
     m_bpButton_z_1->SetBorderColor(z_1_ctrl_bd);
+    m_bpButton_z_1->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
+                                std::make_pair(NORMAL_TEXT_COL,(int) StateColor::Normal)));
 
     bSizer_z_ctrl->Add(m_bpButton_z_1, 1, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
@@ -562,12 +618,16 @@ wxBoxSizer *StatusBasePanel::create_bed_control()
     m_bpButton_z_down_1 = new Button(this, wxString("-1"));
     m_bpButton_z_down_1->SetBackgroundColor(z_1_ctrl_bg);
     m_bpButton_z_down_1->SetBorderColor(z_1_ctrl_bd);
+    m_bpButton_z_down_1->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
+                                std::make_pair(NORMAL_TEXT_COL,(int) StateColor::Normal)));
 
     bSizer_z_ctrl->Add(m_bpButton_z_down_1, 1, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
     m_bpButton_z_down_10 = new Button(this, wxString("-10"));
     m_bpButton_z_down_10->SetBackgroundColor(z_10_ctrl_bg);
     m_bpButton_z_down_10->SetBorderColor(z_10_ctrl_bd);
+    m_bpButton_z_down_10->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
+                                std::make_pair(NORMAL_TEXT_COL,(int) StateColor::Normal)));
 
     bSizer_z_ctrl->Add(m_bpButton_z_down_10, 1, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
@@ -622,11 +682,11 @@ wxBoxSizer *StatusBasePanel::create_ams_group()
     wxBoxSizer *bSizer_extruder_ctrl_caption;
     bSizer_extruder_ctrl_caption = new wxBoxSizer(wxHORIZONTAL);
 
-    m_staticText_extruder_ctrl_caption = new wxStaticText(this, wxID_ANY, _L("Extruder Control"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_extruder_ctrl_caption->Wrap(-1);
-    m_staticText_extruder_ctrl_caption->SetFont(GROUP_TITLE_FONT);
+    m_staticText_ams_ctrl_caption = new wxStaticText(this, wxID_ANY, _L("AMS Control"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_ams_ctrl_caption->Wrap(-1);
+    m_staticText_ams_ctrl_caption->SetFont(GROUP_TITLE_FONT);
 
-    bSizer_extruder_ctrl_caption->Add(m_staticText_extruder_ctrl_caption, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, GROUP_TITLE_LEFT_MARGIN);
+    bSizer_extruder_ctrl_caption->Add(m_staticText_ams_ctrl_caption, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, GROUP_TITLE_LEFT_MARGIN);
 
     auto m_staticline = new StaticLine(this);
     m_staticline->SetLineColour(GROUP_STATIC_LINE_COL);
@@ -1253,10 +1313,10 @@ void StatusPanel::on_printing_fan_switch(wxCommandEvent &event)
     bool value = m_switch_printing_fan->GetValue();
 
     if (value) {
-        obj->command_fan_on();
+        obj->command_control_fan(true);
         m_switch_printing_fan->SetValue(true);
     } else {
-        obj->command_fan_off();
+        obj->command_control_fan(false);
         m_switch_printing_fan->SetValue(false);
     }
 }
@@ -1268,10 +1328,10 @@ void StatusPanel::on_nozzle_fan_switch(wxCommandEvent &event)
     bool value = m_switch_nozzle_fan->GetValue();
 
     if (value) {
-        // TODO send command nozzle fan on
+        obj->command_control_fan(true);
         m_switch_nozzle_fan->SetValue(true);
     } else {
-        // TODO send command nozzle fan off
+        obj->command_control_fan(false);
         m_switch_nozzle_fan->SetValue(false);
     }
 }
@@ -1322,15 +1382,66 @@ void StatusPanel::set_default()
     clean_tasklist_info();
 }
 
-void StatusPanel::show_status(MonitorStatus status) {
+void StatusPanel::show_status(int status) {
     if (last_status == status)
         return;
     last_status = status;
 
-    if (status == MonitorStatus::MONITOR_DISCONNECTED) {
-        ;
-    } else if (status == MonitorStatus::MONITOR_NORMAL) {
-        ;
+    if (((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0) ||
+        ((status & (int)MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)) {
+        if ((status & (int)MonitorStatus::MONITOR_DISCONNECTED_SERVER))
+            m_connection_info->SetLabel(_L("Unable to connect server"));
+        else
+            m_connection_info->SetLabel(_L("Unable to get printer status"));
+        m_connection_info->Show();
+        m_panel_monitoring_title->Layout();
+        m_button_report->Enable(false);
+        m_button_pause_resume->Enable(false);
+        m_button_abort->Enable(false);
+        m_text_tasklist_caption->SetForegroundColour(DISCONNECT_TEXT_COL);
+        m_staticText_temp_caption->SetForegroundColour(DISCONNECT_TEXT_COL);
+        m_tempCtrl_nozzle->Enable(false);
+        m_tempCtrl_bed->Enable(false);
+        m_tempCtrl_frame->Enable(false);
+        m_switch_speed->Enable(false);
+        m_switch_lamp->Enable(false);
+        m_switch_nozzle_fan->Enable(false);
+        m_switch_printing_fan->Enable(false);
+        m_bpButton_xy->Enable(false);
+        m_staticText_xy->SetForegroundColour(DISCONNECT_TEXT_COL);
+        m_bpButton_z_10->Enable(false);
+        m_bpButton_z_1->Enable(false);
+        m_bpButton_z_down_1->Enable(false);
+        m_bpButton_z_down_10->Enable(false);
+        m_bpButton_e_10->Enable(false);
+        m_bpButton_e_down_10->Enable(false);
+        m_staticText_z_tip->SetForegroundColour(DISCONNECT_TEXT_COL);
+        m_staticText_e->SetForegroundColour(DISCONNECT_TEXT_COL);
+        m_staticText_ams_ctrl_caption->SetForegroundColour(DISCONNECT_TEXT_COL);
+        
+    } else if ((status & (int)MonitorStatus::MONITOR_NORMAL) != 0) {
+        m_connection_info->Hide();
+        m_panel_monitoring_title->Layout();
+        m_button_report->Enable();
+        m_button_pause_resume->Enable();
+        m_button_abort->Enable();
+        m_switch_speed->Enable();
+        m_switch_lamp->Enable();
+        m_switch_nozzle_fan->Enable();
+        m_switch_printing_fan->Enable();
+        m_bpButton_xy->Enable();
+        m_text_tasklist_caption->SetForegroundColour(NORMAL_TEXT_COL);
+        m_staticText_temp_caption->SetForegroundColour(NORMAL_TEXT_COL);
+        m_bpButton_z_10->Enable();
+        m_bpButton_z_1->Enable();
+        m_bpButton_z_down_1->Enable();
+        m_bpButton_z_down_10->Enable();
+        m_bpButton_e_10->Enable();
+        m_bpButton_e_down_10->Enable();
+        m_staticText_xy->SetForegroundColour(NORMAL_TEXT_COL);
+        m_staticText_z_tip->SetForegroundColour(NORMAL_TEXT_COL);
+        m_staticText_e->SetForegroundColour(NORMAL_TEXT_COL);
+        m_staticText_ams_ctrl_caption->SetForegroundColour(NORMAL_TEXT_COL);
     }
 }
 

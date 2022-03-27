@@ -225,8 +225,7 @@ public:
     int command_xyz_abs();
     int command_auto_leveling();
     int command_go_home();
-    int command_fan_on();
-    int command_fan_off();
+    int command_control_fan(bool on_off);
     int command_task_abort();
     int command_task_pause();
     int command_task_resume();
@@ -306,6 +305,7 @@ public:
     bool can_pause();
     bool can_abort();
     bool is_printing_finished();
+    void reset();
 
     void set_print_state(std::string status);
     

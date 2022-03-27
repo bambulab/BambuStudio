@@ -7,7 +7,6 @@ static const wxColour bd = wxColour(0x00AE42);
 static const wxColour BUTTON_BG_COL = wxColour(238, 238, 238);
 static const wxColour BUTTON_IN_BG_COL = wxColour(206, 206, 206);
 static const wxColour blank_bg = wxColour(0xFFFFFF);
-static const wxColour text_xy_color = wxColour(0x352F2D);
 static const wxColour text_num_color = wxColour(0x898989);
 static const wxColour BUTTON_PRESS_COL = wxColour(172, 172, 172);
 static const double sqrt2 = std::sqrt(2);
@@ -22,6 +21,7 @@ END_EVENT_TABLE()
 AxisCtrlButton::AxisCtrlButton(wxWindow *parent, wxBitmap &icon, long stlye)
     : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, stlye)
     , r_outer(105.0), r_inner(60.0), r_home(23.0), r_blank(24.0), gap(5.0), last_pos(8), current_pos(8)//don't change init value
+    , text_color(std::make_pair(0x6B6B6B, (int) StateColor::Disabled), std::make_pair(*wxBLACK, (int) StateColor::Normal))
 	, state_handler(this)
 {
     m_icon = icon.GetSubBitmap(wxRect(0, 0, icon.GetWidth(), icon.GetHeight()));
@@ -79,6 +79,13 @@ void AxisCtrlButton::SetMinSize(const wxSize& size)
     }
     wxWindow::SetMinSize(minSize);
     center = wxPoint(minSize.x / 2, minSize.y / 2);
+}
+
+void AxisCtrlButton::SetTextColor(StateColor const &color)
+{
+    text_color = color;
+    state_handler.update_binds();
+    Refresh();
 }
 
 void AxisCtrlButton::SetBorderColor(StateColor const& color)
@@ -227,9 +234,11 @@ void AxisCtrlButton::render(wxDC& dc)
 	}
 
 	//draw text
-	gc->SetFont(Label::Body_12, text_xy_color);
+    if (!IsEnabled())
+        gc->SetFont(Label::Body_12, text_color.colorForStates(StateColor::Disabled));
+    else
+	    gc->SetFont(Label::Body_12, text_color.colorForStates(states));
 	wxDouble w, h;
-
 	gc->GetTextExtent("Y", &w, &h);
 	gc->DrawText(wxT("Y"), -w / 2, -r_outer + (r_outer - r_inner) / 2 - h / 2);
 	gc->GetTextExtent("-X", &w, &h);

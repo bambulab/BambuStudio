@@ -16,7 +16,7 @@ public:
 
 	void SetLabels(wxString const & lbl_on, wxString const & lbl_off);
 	void SetImages(wxBitmap &img_on, wxBitmap &img_off);
-	void SetTextColor(const wxColour &color);
+    void SetTextColor(StateColor const &color);
 	void SetBorderColor(StateColor const &color);
 	void SetBgColor(StateColor const &color);
 	void SetValue(bool value);
@@ -48,7 +48,7 @@ private:
 	wxSize       minSize;
 
 	wxString labels[2];
-	wxColour     text_color;
+    StateColor   text_color;
 	StateColor   bg_color;
 	StateColor   border_color;
     StateHandler state_handler;

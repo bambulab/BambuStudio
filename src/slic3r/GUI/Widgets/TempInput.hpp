@@ -97,6 +97,8 @@ public:
 
     void SetTextColor(StateColor const &color);
 
+    void SetLabelColor(StateColor const &color);
+
     void SetBackgroundColor(StateColor const &color);
 
     virtual void Rescale();

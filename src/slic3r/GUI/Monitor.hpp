@@ -89,12 +89,13 @@ private:
     wxBitmap m_signal_strong_img;
     wxBitmap m_signal_middle_img;
     wxBitmap m_signal_weak_img;
+    wxBitmap m_signal_no_img;
     wxBitmap m_printer_img;
     wxBitmap m_arrow_img;
 
     int last_wifi_signal = -1;
     wxTimer* m_refresh_timer;
-    MonitorStatus last_status;
+    int last_status;
     bool m_initialized { false };
 
 public:
@@ -122,7 +123,7 @@ public:
 
     bool Show(bool show);
 
-    void show_status(MonitorStatus status);
+    void show_status(int status);
 
     MachineObject *obj;
 };

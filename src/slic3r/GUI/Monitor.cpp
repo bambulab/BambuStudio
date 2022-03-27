@@ -126,9 +126,10 @@ MonitorPanel::~MonitorPanel()
 
  void MonitorPanel::init_bitmap()
 {
-    m_signal_strong_img = create_scaled_bitmap("monitor_signal_strong", nullptr, FromDIP(18));
-    m_signal_middle_img = create_scaled_bitmap("monitor_signal_middle", nullptr, FromDIP(18));
-    m_signal_weak_img = create_scaled_bitmap("monitor_signal_weak", nullptr, FromDIP(18));
+    m_signal_strong_img = create_scaled_bitmap("monitor_signal_strong", nullptr, FromDIP(24));
+    m_signal_middle_img = create_scaled_bitmap("monitor_signal_middle", nullptr, FromDIP(24));
+    m_signal_weak_img = create_scaled_bitmap("monitor_signal_weak", nullptr, FromDIP(24));
+    m_signal_no_img   = create_scaled_bitmap("monitor_signal_no", nullptr, FromDIP(24));
     m_printer_img = create_scaled_bitmap("monitor_printer", nullptr, FromDIP(26));
     m_arrow_img = create_scaled_bitmap("monitor_arrow",nullptr, FromDIP(14));
 }
@@ -160,7 +161,7 @@ MonitorPanel::~MonitorPanel()
 
     m_initialized = true;
 
-    show_status(MonitorStatus::MONITOR_NO_PRINTER);
+    show_status((int)MonitorStatus::MONITOR_NO_PRINTER);
 }
 
 void MonitorPanel::set_default()
@@ -319,20 +320,23 @@ void MonitorPanel::update_all()
 
     //BBS check user login status
     if (!account_manager->is_user_login()) {
-        show_status(MONITOR_NO_PRINTER);
+        show_status((int)MONITOR_NO_PRINTER);
         return;
     }
 
     obj = account_manager->get_default_machine();
-
     m_status_info_panel->obj = obj;
     m_status_info_panel->m_media_play_ctrl->SetMachineObject(IsShown() ? obj : nullptr);
     m_media_file_panel->SetMachineObject(obj);
 
-    if (!obj) return;
+    if (!obj) {
+        show_status((int)MONITOR_NO_PRINTER);
+        return;
+    }
 
     if (!obj->is_connected()) {
-        show_status(MONITOR_DISCONNECTED);
+        int server_status = account_manager->is_mqtt_connected() ? 0 : (int)MONITOR_DISCONNECTED_SERVER;
+        show_status((int) MONITOR_DISCONNECTED + server_status);
         return;
     }
 
@@ -358,7 +362,7 @@ bool MonitorPanel::Show(bool show)
     return wxPanel::Show(show);
 }
 
-void MonitorPanel::show_status(MonitorStatus status)
+void MonitorPanel::show_status(int status)
 {
     if (!m_initialized) return;
 
@@ -366,8 +370,10 @@ void MonitorPanel::show_status(MonitorStatus status)
         return;
     last_status = status;
 
+    BOOST_LOG_TRIVIAL(trace) << "monitor: show_status = " << status;
+
     Freeze();
-    if (status == MonitorStatus::MONITOR_NO_PRINTER) {
+    if ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0) {
         set_default();
         m_staticText_printer_name->SetLabel(_L("No printer"));
         m_status_info_panel->show_status(status);
@@ -376,9 +382,14 @@ void MonitorPanel::show_status(MonitorStatus status)
         //m_tabpanel->InsertNewPage(0, m_status_add_machine_panel, _L("Status"), "", true);
         m_tabpanel->Refresh();
         m_tabpanel->Layout();
-    } else if (status == MonitorStatus::MONITOR_NORMAL ||
-        status == MonitorStatus::MONITOR_DISCONNECTED
+    } else if (((status & (int)MonitorStatus::MONITOR_NORMAL) != 0) ||
+        ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0) ||
+        ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
         ) {
+        if (((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0) ||
+            ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0))
+            m_bitmap_wifi_signal->SetBitmap(m_signal_no_img);
+
         m_status_info_panel->show_status(status);
         m_tabpanel->RemovePage(0);
         m_tabpanel->InsertNewPage(0, m_status_info_panel, _L("Status"), "", true);

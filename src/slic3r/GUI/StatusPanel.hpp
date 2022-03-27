@@ -27,10 +27,11 @@ namespace Slic3r {
 namespace GUI {
 
 enum MonitorStatus {
-    MONITOR_UNKNOWN,
-    MONITOR_NORMAL,
-    MONITOR_NO_PRINTER,
-    MONITOR_DISCONNECTED,
+    MONITOR_UNKNOWN = 0,
+    MONITOR_NORMAL = 1 << 1,
+    MONITOR_NO_PRINTER = 1 << 2,
+    MONITOR_DISCONNECTED = 1 << 3,
+    MONITOR_DISCONNECTED_SERVER = 1 << 4,
 };
 
 class StatusBasePanel : public wxPanel
@@ -55,6 +56,7 @@ protected:
     wxPanel *       m_panel_control_title;
 
     wxStaticText *  m_staticText_monitoring;
+    Button       *  m_connection_info;
     wxStaticText *  m_staticText_timelapse;
     SwitchButton *  m_bmToggleBtn_timelapse;
 
@@ -97,7 +99,7 @@ protected:
     Button *        m_bpButton_e_10;
     Button *        m_bpButton_e_down_10;
     wxStaticBitmap* m_bitmap_extruder_img;
-    wxStaticText *  m_staticText_extruder_ctrl_caption;
+    wxStaticText *  m_staticText_ams_ctrl_caption;
     Button *        m_bpButton_extruder_1;
     StaticLine *    m_staticline4;
     Button *        m_bpButton_extruder_2;
@@ -183,7 +185,7 @@ protected:
 
     std::map<wxString, wxImage> img_list; // key: url, value: wxBitmap png Image
     std::vector<Button *>       m_buttons;
-    MonitorStatus last_status;
+    int last_status;
 
     void init_scaled_buttons();
 
@@ -251,7 +253,7 @@ public:
     BBLProfile *   last_profile{nullptr};
 
     void set_default();
-    void show_status(MonitorStatus status);
+    void show_status(int status);
 
     void msw_rescale();
 };

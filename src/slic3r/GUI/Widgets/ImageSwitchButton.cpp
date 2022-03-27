@@ -19,7 +19,7 @@ static const wxColour DEFAULT_HOVER_COL = wxColour(0, 174, 66);
 static const wxColour DEFAULT_PRESS_COL = wxColour(238, 238, 238);
 
 ImageSwitchButton::ImageSwitchButton(wxWindow *parent, wxBitmap &img_on, wxBitmap &img_off, long style)
-    : text_color (*wxBLACK)
+    : text_color(std::make_pair(0x6B6B6B, (int) StateColor::Disabled), std::make_pair(*wxBLACK, (int) StateColor::Normal))
     , state_handler(this)
 {
     m_padding = 0;
@@ -54,9 +54,10 @@ void ImageSwitchButton::SetImages(wxBitmap &img_on, wxBitmap &img_off)
     Refresh();
 }
 
-void ImageSwitchButton::SetTextColor(const wxColour &color)
+void ImageSwitchButton::SetTextColor(StateColor const &color)
 {
 	text_color = color;
+    state_handler.update_binds();
     messureSize();
     Refresh();
 }
@@ -130,7 +131,10 @@ void ImageSwitchButton::render(wxDC& dc)
 	}
 	pt.x = (size.x - textSize.x) / 2;
 	dc.SetFont(GetFont());
-	dc.SetTextForeground(text_color);
+    if (!IsEnabled())
+        dc.SetTextForeground(text_color.colorForStates(StateColor::Disabled));
+    else
+        dc.SetTextForeground(text_color.colorForStates(states));
 	dc.DrawText(GetValue() ? labels[0] : labels[1], pt);
 }
 

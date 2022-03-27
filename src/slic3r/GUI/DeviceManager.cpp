@@ -175,6 +175,8 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
     /* create a dummy task to store info */
     temptask_ = new BBLSubTask(nullptr);
 
+    reset();
+
     /* temprature fields */
     nozzle_temp = 0.0f;
     nozzle_temp_target = 0.0f;
@@ -244,14 +246,13 @@ int MachineObject::command_go_home()
     return this->publish_gcode("G28 \n");
 }
 
-int MachineObject::command_fan_on()
+int MachineObject::command_control_fan(bool on_off)
 {
-    return this->publish_gcode("M106 S255 \n");
-}
+    if (on_off)
+        return this->publish_gcode("M106 S255 \n");
+    else
+        return this->publish_gcode("M106 S0 \n");
 
-int MachineObject::command_fan_off()
-{
-    return this->publish_gcode("M106 S0 \n");
 }
 
 int MachineObject::command_task_abort()
@@ -466,6 +467,7 @@ bool MachineObject::is_connected()
     std::chrono::system_clock::time_point curr_time = std::chrono::system_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_update_time);
     if (diff.count() > DISCONNECT_TIMEOUT) {
+        BOOST_LOG_TRIVIAL(trace) << "machine_object: diff count = " << diff.count();
         return false;
     }
     return true;
@@ -1282,6 +1284,11 @@ bool MachineObject::is_printing_finished()
         return true;
     }
     return false;
+}
+
+void MachineObject::reset()
+{
+    last_update_time = std::chrono::system_clock::now();
 }
 
 void MachineObject::set_print_state(std::string status)

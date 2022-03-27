@@ -293,6 +293,7 @@ public:
 
     /* mqtt apis */
     mqtt::async_client* get_client() { return mqtt_cli; }
+    bool is_mqtt_connected();
     int connect_mqtt(bool sync = false);
     int disconnect_mqtt();
     void check_mqtt_connection();

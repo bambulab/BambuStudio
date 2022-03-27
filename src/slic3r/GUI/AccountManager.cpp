@@ -301,6 +301,12 @@ namespace Slic3r {
         return 0;
     }
 
+    bool AccountManager::is_mqtt_connected()
+    {
+        if (mqtt_cli)
+            return mqtt_cli->is_connected();
+        return false;
+    }
 
     int AccountManager::connect_mqtt(bool sync)
     {
@@ -499,6 +505,11 @@ namespace Slic3r {
 
         //subscribe new machine
         this->add_subscribe(dev_id);
+
+        std::map<std::string, MachineObject *>::iterator it = myBindMachineList.find(dev_id);
+        if (it != myBindMachineList.end()) {
+            it->second->reset();
+        }
     }
 
     bool AccountManager::is_user_login()
