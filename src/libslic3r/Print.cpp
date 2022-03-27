@@ -68,7 +68,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         //BBS: add bed_exclude_area
         "bed_exclude_area",
         "before_layer_change_gcode",
-        "printing_by_object_gcode",
         "overhang_fan_speed",
         "overhang_fan_threshold",
         "cooling",

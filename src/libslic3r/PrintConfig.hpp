@@ -679,7 +679,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     GCodeConfig,
 
     ((ConfigOptionString,              before_layer_change_gcode))
-    ((ConfigOptionString,              printing_by_object_gcode))
     ((ConfigOptionFloats,              deretraction_speed))
     //BBS
     ((ConfigOptionBool,                enable_arc_fitting))

@@ -698,7 +698,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "printer_technology",
     "printable_area", "bed_exclude_area", "gcode_flavor",
     "single_extruder_multi_material", "machine_start_gcode", "machine_end_gcode", "before_layer_change_gcode", "layer_change_gcode", "change_filament_gcode",
-    "printing_by_object_gcode", "printer_model", "printer_variant", "printable_height",
+    "printer_model", "printer_variant", "printable_height",
     "default_print_profile", "inherits",
     "silent_mode",
     // BBS

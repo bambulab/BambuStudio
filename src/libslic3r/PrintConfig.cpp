@@ -357,15 +357,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionString(""));
 
-    def = this->add("printing_by_object_gcode", coString);
-    def->label = L("Printing by object G-code");
-    def->tooltip = L("This G-code is inserted between objects when print object by object");
-    def->multiline = true;
-    def->full_width = true;
-    def->height = 12;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionString(""));
-
     def = this->add("bottom_shell_layers", coInt);
     def->label = L("Bottom shell layers");
     def->category = L("Strength");
