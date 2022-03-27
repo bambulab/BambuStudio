@@ -432,10 +432,16 @@ void Preset::load_info(const std::string& file)
                 this->sync_info = v.second.get_value<std::string>();
             else if (v.first.compare("user_id") == 0)
                 this->user_id = v.second.get_value<std::string>();
-            else if (v.first.compare("setting_id") == 0)
+            else if (v.first.compare("setting_id") == 0) {
                 this->setting_id = v.second.get_value<std::string>();
-            else if (v.first.compare("base_id") == 0)
+                if (this->setting_id.compare("null") == 0)
+                    this->setting_id.clear();
+            }
+            else if (v.first.compare("base_id") == 0) {
                 this->base_id = v.second.get_value<std::string>();
+                if (this->base_id.compare("null") == 0)
+                    this->base_id.clear();
+            }
             else if (v.first.compare("updated_time") == 0) {
                 std::string time = v.second.get_value<std::string>();
                 this->updated_time = std::atoll(time.c_str());
@@ -873,7 +879,7 @@ void PresetCollection::add_default_preset(const std::vector<std::string> &keys, 
 // Load all presets found in dir_path.
 // Throws an exception on error.
 void PresetCollection::load_presets(
-    const std::string &dir_path, const std::string &subdir, 
+    const std::string &dir_path, const std::string &subdir,
     PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule substitution_rule)
 {
     // Don't use boost::filesystem::canonical() on Windows, it is broken in regard to reparse points,
@@ -1094,7 +1100,7 @@ void PresetCollection::load_project_embedded_presets(std::vector<Preset*>& proje
         throw Slic3r::RuntimeError(errors_cummulative);
 }
 
-//BBS: get project embedded presets from 
+//BBS: get project embedded presets from
 std::vector<Preset*> PresetCollection::get_project_embedded_presets()
 {
     std::vector<Preset*> project_presets;
@@ -1316,7 +1322,7 @@ void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_prese
             errors_cummulative += "\n";
         }
     }
-   
+
     //m_presets.insert(m_presets.end(), std::make_move_iterator(presets_loaded.begin()), std::make_move_iterator(presets_loaded.end()));
     std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
     this->select_preset(first_visible_idx());
@@ -2469,7 +2475,7 @@ PhysicalPrinterCollection::PhysicalPrinterCollection( const std::vector<std::str
 // Load all printers found in dir_path.
 // Throws an exception on error.
 void PhysicalPrinterCollection::load_printers(
-    const std::string& dir_path, const std::string& subdir, 
+    const std::string& dir_path, const std::string& subdir,
     PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule substitution_rule)
 {
     // Don't use boost::filesystem::canonical() on Windows, it is broken in regard to reparse points,

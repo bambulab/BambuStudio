@@ -168,7 +168,7 @@ namespace Slic3r {
         m_login_status = status;
     }
 
-    AccountInfo::AccountInfo( std::string account, std::string user_id, std::string strToken, std::string strName, std::string strAvatar, AccountInfo::LoginStatus status, std::string strAutotestToken) 
+    AccountInfo::AccountInfo( std::string account, std::string user_id, std::string strToken, std::string strName, std::string strAvatar, AccountInfo::LoginStatus status, std::string strAutotestToken)
     {
         m_account      = account;
         m_user_id      = user_id;
@@ -559,7 +559,7 @@ namespace Slic3r {
         if (!_check_valid(account, password)) {
             return -1;
         }
-        
+
         Http http = Http::post(std::move(_get_login_url()));
         std::string json_str = _get_login_request(account, password);
         http.header("accept", "application/json")
@@ -747,7 +747,7 @@ namespace Slic3r {
 
         while (retry < retry_max) {
             http.perform_sync();
-            /* failed */            
+            /* failed */
             if (result == -1) return -1;
 
             /* success */
@@ -930,7 +930,7 @@ namespace Slic3r {
     }
 
     MachineObject* AccountManager::get_default_machine()
-    {   
+    {
         std::map<std::string, MachineObject*>::iterator it;
         if (default_machine.empty() && !myBindMachineList.empty()) {
             it = myBindMachineList.begin();
@@ -1658,7 +1658,7 @@ namespace Slic3r {
                     catch (...) {
                         result = -1;
                     }
-                    
+
                     std::stringstream ss(body);
                     pt::ptree root;
                     pt::read_json(ss, root);
@@ -1718,7 +1718,7 @@ namespace Slic3r {
                                 }
                             }
                         }
-                    
+
                     } catch(...) {
                         ;
                     }
@@ -1945,7 +1945,7 @@ namespace Slic3r {
         return result;
     }
 
-    void AccountManager::get_task(BBLTask* &task) 
+    void AccountManager::get_task(BBLTask* &task)
     {
         std::string url = (boost::format("%1%/iot-service/api/user/task/%2%") % host % task->task_id).str();
         Http http = Http::get(url);
@@ -2173,7 +2173,7 @@ namespace Slic3r {
             })
             .on_error([this, callback](std::string body, std::string error,
                                         unsigned status) {
-                    BOOST_LOG_TRIVIAL(info) 
+                    BOOST_LOG_TRIVIAL(info)
                         << "get_camera_ttcode info failed! body=" << body;
                     callback("");
                 })
@@ -2302,7 +2302,7 @@ namespace Slic3r {
                                                             boost::optional<std::string> thumbnail_url = thumbnail_node.get_optional<std::string>("url");
                                                             if (thumbnail_url.has_value()) {
                                                                 info->thumbnail_url = thumbnail_url.value();
-                                                            }            
+                                                            }
                                                         }
                                                         if (plate->second.get_child_optional("gcode") != boost::none) {
                                                             pt::ptree gcode_node = plate->second.get_child("gcode");
@@ -2683,7 +2683,11 @@ namespace Slic3r {
                         boost::optional<std::string> type = root.get_optional<std::string>("type");
                         boost::optional<std::string> base_id = root.get_optional<std::string>("base_id");
 
-                        if (base_id.has_value()) preset->base_id = base_id.value();
+                        if (base_id.has_value()) {
+                            preset->base_id = base_id.value();
+                            if (preset->base_id.compare("null") == 0)
+                                preset->base_id.clear();
+                        }
 
                         // check setting field and update setting field
                         if (root.get_child_optional("setting") != boost::none) {
@@ -2869,19 +2873,19 @@ namespace Slic3r {
         ;
     }
 
-    void AccountManager::change_curr_user(AccountInfo *pAcc) 
+    void AccountManager::change_curr_user(AccountInfo *pAcc)
     {
-        if (m_curr_user) 
-        { 
+        if (m_curr_user)
+        {
             delete m_curr_user;
         }
 
         m_curr_user = pAcc;
         save_user_info();
 
-        if (is_user_login()) 
-        { 
-            on_user_login(); 
+        if (is_user_login())
+        {
+            on_user_login();
         }
     }
 
@@ -3170,7 +3174,7 @@ namespace Slic3r {
             GUI::wxGetApp().plater()->new_project();
         else if (project_id.empty())
             GUI::wxGetApp().plater()->load_project();
-        else if (std::find_if_not(project_id.begin(), project_id.end(), 
+        else if (std::find_if_not(project_id.begin(), project_id.end(),
                 [](char c) { return std::isdigit(c);}) == project_id.end())
             ;
         else if (boost::algorithm::starts_with(project_id, "http"))

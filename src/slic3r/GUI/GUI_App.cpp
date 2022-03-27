@@ -186,7 +186,7 @@ public:
         int width = bmp.GetWidth();
 
         // draw title and version
-        
+
         int text_padding = 3 * m_scale;
         memDc.SetFont(m_constant_text.title_font);
         int title_height = memDc.GetTextExtent(m_constant_text.title).GetHeight();
@@ -477,7 +477,7 @@ private:
 
             title_font = version_font = credits_font = init_font;
         }
-    } 
+    }
     m_constant_text;
 
     void init_constant_text()
@@ -648,7 +648,7 @@ static bool run_updater_win()
             FALSE,          // Set handle inheritance to FALSE
             0,              // No creation flags
             NULL,           // Use parent's environment block
-            NULL,           // Use parent's starting directory 
+            NULL,           // Use parent's starting directory
             &si,            // Pointer to STARTUPINFO structure
             &pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
         )) {
@@ -1012,7 +1012,7 @@ GUI_App::GUI_App()
 {
     m_backend = new Slic3r::CommuBackend();
     m_device_manager = new Slic3r::DeviceManager(*m_account_manager, *m_backend);
-    
+
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
 	this->init_app_config();
 
@@ -1184,7 +1184,7 @@ void GUI_App::init_http_extra_header()
 
 void GUI_App::init_single_instance_checker(const std::string &name, const std::string &path)
 {
-    BOOST_LOG_TRIVIAL(debug) << "init wx instance checker " << name << " "<< path; 
+    BOOST_LOG_TRIVIAL(debug) << "init wx instance checker " << name << " "<< path;
     m_single_instance_checker = std::make_unique<wxSingleInstanceChecker>(boost::nowide::widen(name), boost::nowide::widen(path));
 }
 
@@ -1329,12 +1329,12 @@ bool GUI_App::on_init_inner()
     // supplied as argument to --datadir; in that case we should still run the wizard
     preset_bundle->setup_directories();
 
-    
+
     if (m_init_app_config_from_older)
         copy_older_config();
 
     if (is_editor()) {
-#ifdef __WXMSW__ 
+#ifdef __WXMSW__
         if (app_config->get("associate_3mf") == "true")
             associate_3mf_files();
         if (app_config->get("associate_stl") == "true")
@@ -1372,7 +1372,7 @@ bool GUI_App::on_init_inner()
             });
     }
     else {
-#ifdef __WXMSW__ 
+#ifdef __WXMSW__
         if (app_config->get("associate_gcode") == "true")
             associate_gcode_files();
 #endif // __WXMSW__
@@ -1619,7 +1619,7 @@ static void update_dark_children_ui(wxWindow* window, bool just_buttons_update =
         wxGetApp().UpdateDarkUI(window, is_btn);
 
     auto children = window->GetChildren();
-    for (auto child : children) {        
+    for (auto child : children) {
         update_dark_children_ui(child);
     }
 }
@@ -1703,7 +1703,7 @@ void GUI_App::update_fonts(const MainFrame *main_frame)
     m_code_font.SetPointSize(m_normal_font.GetPointSize());
 }
 
-void GUI_App::set_label_clr_modified(const wxColour& clr) 
+void GUI_App::set_label_clr_modified(const wxColour& clr)
 {
     return;
     //BBS
@@ -1850,7 +1850,7 @@ void GUI_App::ShowUserGuide() {
     try {
         bool res = false;
         GuideFrame GuideDlg(this);
-        //if (GuideDlg.IsFirstUse()) 
+        //if (GuideDlg.IsFirstUse())
         res = GuideDlg.run();
         if (res) {
             load_current_presets();
@@ -1866,7 +1866,7 @@ void GUI_App::ShowDailyTip() {
     // BBS: Dialy Tip Dialog
     try {
         DailytipFrame TipDlg(this);
-        //if (TipDlg.IsWhetherShow()) 
+        //if (TipDlg.IsWhetherShow())
             TipDlg.ShowModal();
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "", MB_OK);
@@ -2062,7 +2062,7 @@ void GUI_App::request_new_version()
 {
     wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
     evt->SetString(GUI::from_u8(m_account_manager->version_info.version_str));
-    GUI::wxGetApp().QueueEvent(evt);   
+    GUI::wxGetApp().QueueEvent(evt);
 }
 
 void GUI_App::no_new_version()
@@ -2153,8 +2153,8 @@ void GUI_App::sync_preset(Preset* preset)
 
     //update sync_info preset info in file
     if (result == 0) {
-        PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-        if (!preset_bundle) return;
+        //PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+        if (!this->preset_bundle) return;
 
         BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: " << preset->sync_info << " success! preset = " << preset->name;
         if (preset->type == Preset::Type::TYPE_FILAMENT) {
@@ -2176,7 +2176,7 @@ void GUI_App::start_sync_service()
             std::vector<Preset> presets_to_sync;
             while (enable_sync) {
                 count++;
-                boost::this_thread::sleep_for(boost::chrono::milliseconds(500));
+                boost::this_thread::sleep_for(boost::chrono::milliseconds(2000));
                 if (!m_account_manager->is_user_login()) {
                     continue;
                 }
@@ -2374,7 +2374,7 @@ bool GUI_App::select_language()
             // 2) Current locale language may not match the dictionary name, see GH issue #3901
             //    m_wxLocale->GetCanonicalName()
             // 3) new_language_info->CanonicalName is a safe bet. It points to a valid dictionary name.
-			app_config->set("language", new_language_info->CanonicalName.ToUTF8().data());            
+			app_config->set("language", new_language_info->CanonicalName.ToUTF8().data());
 			app_config->save();
     		return true;
     	}
@@ -2409,9 +2409,9 @@ bool GUI_App::load_language(wxString language, bool initial)
 	    	// Set the current translation's language to default, otherwise GetBestTranslation() may not work (see the wxWidgets source code).
 	    	wxTranslations::Get()->SetLanguage(wxLANGUAGE_DEFAULT);
 	    	// Let the wxFileTranslationsLoader enumerate all translation dictionaries for BambuStudio
-	    	// and try to match them with the system specific "preferred languages". 
+	    	// and try to match them with the system specific "preferred languages".
 	    	// There seems to be a support for that on Windows and OSX, while on Linuxes the code just returns wxLocale::GetSystemLanguage().
-	    	// The last parameter gets added to the list of detected dictionaries. This is a workaround 
+	    	// The last parameter gets added to the list of detected dictionaries. This is a workaround
 	    	// for not having the English dictionary. Let's hope wxWidgets of various versions process this call the same way.
 			wxString best_language = wxTranslations::Get()->GetBestTranslation(SLIC3R_APP_KEY, wxLANGUAGE_ENGLISH);
 			if (! best_language.IsEmpty()) {
@@ -2538,14 +2538,14 @@ ConfigOptionMode GUI_App::get_mode()
            mode == "develop" ? comDevelop : comSimple;
 }
 
-void GUI_App::save_mode(const /*ConfigOptionMode*/int mode) 
+void GUI_App::save_mode(const /*ConfigOptionMode*/int mode)
 {
     //BBS
     const std::string mode_str = mode == comAdvanced ? "advanced" :
                                  mode == comSimple ? "simple" :
                                  mode == comDevelop ? "develop" : "simple";
     app_config->set("user_mode", mode_str);
-    app_config->save(); 
+    app_config->save();
     update_mode();
 }
 
@@ -2571,7 +2571,7 @@ void GUI_App::update_mode()
         tab->update_mode();
 
     //BBS plater()->update_menus();
-    
+
     plater()->canvas3D()->update_gizmos_on_off_state();
 }
 
@@ -2586,7 +2586,7 @@ void GUI_App::add_config_menu(wxMenu *menu)
     // Cmd+, is standard on OS X - what about other operating systems?
     if (is_editor()) {
         local_menu->Append(config_id_base + ConfigMenuWizard, config_wizard_name + dots, config_wizard_tooltip);
-        local_menu->Append(config_id_base + ConfigMenuUpdate, _L("Check for Configuration Updates"), _L("Check for configuration updates"));     
+        local_menu->Append(config_id_base + ConfigMenuUpdate, _L("Check for Configuration Updates"), _L("Check for configuration updates"));
         local_menu->AppendSeparator();
     }
     local_menu->Append(config_id_base + ConfigMenuPreferences, _L("&Preferences") + dots +
@@ -2701,7 +2701,7 @@ void GUI_App::add_config_menu(wxMenu *menu)
             break;
         }
     });
-    
+
     using std::placeholders::_1;
 
     if (mode_menu != nullptr) {
@@ -2830,11 +2830,11 @@ bool GUI_App::check_and_save_current_preset_changes(const wxString& caption, con
 
             load_current_presets(false);
 
-            // if we saved changes to the new presets, we should to 
+            // if we saved changes to the new presets, we should to
             // synchronize config.ini with the current selections.
             preset_bundle->export_selections(*app_config);
 
-            MessageDialog(nullptr, _L_PLURAL("Modifications to the preset have been saved", 
+            MessageDialog(nullptr, _L_PLURAL("Modifications to the preset have been saved",
                                              "Modifications to the presets have been saved", dlg.get_names_and_types().size())).ShowModal();
         }
     }
@@ -2890,7 +2890,7 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
                 for (const UnsavedChangesDialog::PresetData& nt : preset_names_and_types)
                     preset_bundle->save_changes_for_preset(nt.name, nt.type, dlg.get_unselected_options(nt.type), nt.save_to_project);
 
-                // if we saved changes to the new presets, we should to 
+                // if we saved changes to the new presets, we should to
                 // synchronize config.ini with the current selections.
                 preset_bundle->export_selections(*app_config);
 
@@ -2903,7 +2903,7 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
                 reset_modifications();
             }
             else if (dlg.transfer_changes() && (dlg.has_unselected_options() || is_called_from_configwizard)) {
-                // execute this part of code only if not all modifications are keeping to the new project 
+                // execute this part of code only if not all modifications are keeping to the new project
                 // OR this function is called when ConfigWizard is closed and "Keep modifications" is selected
                 for (const UnsavedChangesDialog::PresetData& nt : preset_names_and_types) {
                     Preset::Type type = nt.type;
@@ -3024,10 +3024,10 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
     /*if (m_app_mode == EAppMode::GCodeViewer) {
         // Running in G-code viewer.
         // Load the first G-code into the G-code viewer.
-        // Or if no G-codes, send other files to slicer. 
+        // Or if no G-codes, send other files to slicer.
         if (! gcode_files.empty())
             this->plater()->load_gcode(gcode_files.front());
-        if (!non_gcode_files.empty()) 
+        if (!non_gcode_files.empty())
             start_new_slicer(non_gcode_files, true);
     } else*/
     {
@@ -3351,7 +3351,7 @@ bool GUI_App::config_wizard_startup()
 }
 
 void GUI_App::check_updates(const bool verbose)
-{	
+{
 	PresetUpdater::UpdateResult updater_result;
 	try {
 		updater_result = preset_updater->config_update(app_config->orig_version(), verbose ? PresetUpdater::UpdateParams::SHOW_TEXT_BOX : PresetUpdater::UpdateParams::SHOW_NOTIFICATION);
@@ -3395,7 +3395,7 @@ bool GUI_App::open_browser_with_warning_dialog(const wxString& url, int flags/* 
 //     // try harder to attract user attention on OS X
 //     if (!frame->IsActive())
 //         frame->RequestUserAttention(defined(__WXOSX__/*&Wx::wxMAC */)? wxUSER_ATTENTION_ERROR : wxUSER_ATTENTION_INFO);
-// 
+//
 //     // There used to be notifier using a Growl application for OSX, but Growl is dead.
 //     // The notifier also supported the Linux X D - bus notifications, but that support was broken.
 //     //TODO use wxNotificationMessage ?
