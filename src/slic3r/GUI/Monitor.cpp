@@ -43,7 +43,7 @@ AddMachinePanel::AddMachinePanel(wxWindow* parent, wxWindowID id, const wxPoint&
     topsizer->AddStretchSpacer();
 
     m_bitmap_empty = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    m_bitmap_empty->SetBitmap(create_scaled_bitmap("monitor_status_empty", nullptr, FromDIP(250)));
+    m_bitmap_empty->SetBitmap(create_scaled_bitmap("monitor_status_empty", nullptr, 250));
     topsizer->Add(m_bitmap_empty, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
     topsizer->AddSpacer(46);
 
@@ -126,12 +126,12 @@ MonitorPanel::~MonitorPanel()
 
  void MonitorPanel::init_bitmap()
 {
-    m_signal_strong_img = create_scaled_bitmap("monitor_signal_strong", nullptr, FromDIP(24));
-    m_signal_middle_img = create_scaled_bitmap("monitor_signal_middle", nullptr, FromDIP(24));
-    m_signal_weak_img = create_scaled_bitmap("monitor_signal_weak", nullptr, FromDIP(24));
-    m_signal_no_img   = create_scaled_bitmap("monitor_signal_no", nullptr, FromDIP(24));
-    m_printer_img = create_scaled_bitmap("monitor_printer", nullptr, FromDIP(26));
-    m_arrow_img = create_scaled_bitmap("monitor_arrow",nullptr, FromDIP(14));
+    m_signal_strong_img = create_scaled_bitmap("monitor_signal_strong", nullptr, 24);
+    m_signal_middle_img = create_scaled_bitmap("monitor_signal_middle", nullptr, 24);
+    m_signal_weak_img = create_scaled_bitmap("monitor_signal_weak", nullptr, 24);
+    m_signal_no_img   = create_scaled_bitmap("monitor_signal_no", nullptr, 24);
+    m_printer_img = create_scaled_bitmap("monitor_printer", nullptr, 26);
+    m_arrow_img = create_scaled_bitmap("monitor_arrow",nullptr, 14);
 }
 
  void MonitorPanel::init_timer()
@@ -205,8 +205,15 @@ void MonitorPanel::msw_rescale()
 {
     init_bitmap();
 
+    /* side_tool rescale */
+    m_bitmap_printer_type->SetBitmap(m_printer_img);
+    m_bitmap_arrow->SetBitmap(m_arrow_img);
+
+    m_tabpanel->Rescale();
+    m_status_add_machine_panel->msw_rescale();
     m_status_info_panel->msw_rescale();
     m_media_file_panel->Rescale();
+    m_upgrade_panel->msw_rescale();
     
     Layout();
     Refresh();
@@ -268,7 +275,7 @@ void MonitorPanel::on_size(wxSizeEvent &event)
     // limit size
     if (!wxGetApp().mainframe) return;
 
-    wxGetApp().mainframe->SetMinSize(wxSize(FromDIP(1450), FromDIP(700)));
+    wxGetApp().mainframe->SetMinSize(wxSize(FromDIP(1480), FromDIP(700)));
     Layout();
     Refresh();
 }

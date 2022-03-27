@@ -57,6 +57,8 @@ public:
 
     void SetInnerBackgroundColor(StateColor const& color);
 
+    void SetBitmap(wxBitmap &bmp);
+
     void Rescale();
 
 private:

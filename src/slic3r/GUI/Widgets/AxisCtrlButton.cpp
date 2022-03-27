@@ -18,9 +18,21 @@ EVT_MOTION(AxisCtrlButton::mouseMoving)
 EVT_PAINT(AxisCtrlButton::paintEvent)   
 END_EVENT_TABLE()
 
+#define OUTER_SIZE      FromDIP(138)
+#define INNER_SIZE      FromDIP(78)
+#define HOME_SIZE       FromDIP(30)
+#define BLANK_SIZE      FromDIP(30)
+#define GAP_SIZE        FromDIP(5)
+
 AxisCtrlButton::AxisCtrlButton(wxWindow *parent, wxBitmap &icon, long stlye)
     : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, stlye)
-    , r_outer(105.0), r_inner(60.0), r_home(23.0), r_blank(24.0), gap(5.0), last_pos(8), current_pos(8)//don't change init value
+    , r_outer(OUTER_SIZE)
+    , r_inner(INNER_SIZE)
+    , r_home(HOME_SIZE)
+    , r_blank(BLANK_SIZE)
+    , gap(GAP_SIZE)
+    , last_pos(UNDEFINED)
+    , current_pos(UNDEFINED) // don't change init value
     , text_color(std::make_pair(0x6B6B6B, (int) StateColor::Disabled), std::make_pair(*wxBLACK, (int) StateColor::Normal))
 	, state_handler(this)
 {
@@ -43,16 +55,14 @@ AxisCtrlButton::AxisCtrlButton(wxWindow *parent, wxBitmap &icon, long stlye)
 
     state_handler.attach({ &border_color, &background_color });
     state_handler.update_binds();
-
-    SetMinSize(wxSize(-1,-1));
 }
 
 void AxisCtrlButton::updateParams() {
-	r_outer *= stretch;
-    r_inner *= stretch;
-    r_blank *= stretch;
-	r_home *= stretch;
-    gap *= stretch;
+    r_outer = OUTER_SIZE;
+    r_inner = INNER_SIZE;
+    r_home = HOME_SIZE;
+    r_blank = BLANK_SIZE;
+    gap = GAP_SIZE;
 }
 
 void AxisCtrlButton::SetMinSize(const wxSize& size)
@@ -109,9 +119,12 @@ void AxisCtrlButton::SetInnerBackgroundColor(StateColor const& color)
     Refresh();
 }
 
+void AxisCtrlButton::SetBitmap(wxBitmap &bmp)
+{
+    m_icon = bmp.GetSubBitmap(wxRect(0, 0, bmp.GetWidth(), bmp.GetHeight()));
+}
+
 void AxisCtrlButton::Rescale() {
-	int em = em_unit(this);
-    SetMinSize(wxSize(228, 228) * em / 10);
 	Refresh();
 }
 

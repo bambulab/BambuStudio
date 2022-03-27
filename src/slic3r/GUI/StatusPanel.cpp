@@ -39,17 +39,20 @@ static const wxFont GROUP_TITLE_FONT = wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTST
 /* size */
 static const int PAGE_TITLE_HEIGHT        = 36;
 static const int PAGE_TITLE_LEFT_MARGIN   = 17;
-static const int PAGE_MIN_WIDTH           = 566;
 static const int GROUP_TITLE_LEFT_MARGIN  = 15;
 static const int GROUP_TITLE_LINE_MARGIN  = 11;
 static const int GROUP_TITLE_RIGHT_MARGIN = 15;
 static const int PAGE_SPACING             = 10;
+#define PAGE_MIN_WIDTH          FromDIP(574)
+#define PROGRESSBAR_HEIGHT      FromDIP(14)
 
-static const wxSize TASK_BUTTON_SIZE = wxSize(48, 24);
-static const wxSize MISC_BUTTON_SIZE  = wxSize(72, 60);
-static const wxSize TASK_ITEM_MIN_SIZE  = wxSize(258, 60);
-static const wxSize TEMP_CTRL_MIN_SIZE = wxSize(140, 55);
-
+#define SWITCH_BUTTON_SIZE      (wxSize(FromDIP(40), -1))
+#define TASK_THUMBNAIL_SIZE     (wxSize(FromDIP(120), FromDIP(120)))
+#define TASK_BUTTON_SIZE        (wxSize(FromDIP(48), FromDIP(24)))
+#define MISC_BUTTON_SIZE        (wxSize(FromDIP(68), FromDIP(68)))
+#define TEMP_CTRL_MIN_SIZE      (wxSize(FromDIP(140), FromDIP(50)))
+#define AXIS_MIN_SIZE           (wxSize(FromDIP(280), FromDIP(280)))
+#define EXTRUDER_IMAGE_SIZE     (wxSize(FromDIP(48), FromDIP(96)))
 
 StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
     : wxPanel(parent, id, pos, size, style)
@@ -132,17 +135,17 @@ StatusBasePanel::~StatusBasePanel() {}
 void StatusBasePanel::init_bitmaps()
 {
     static Slic3r::GUI::BitmapCache cache;
-    m_item_placeholder       = create_scaled_bitmap("monitor_placeholder", nullptr, FromDIP(60));
-    m_bitmap_item_prediction = create_scaled_bitmap("monitor_item_prediction", nullptr, FromDIP(16));
-    m_bitmap_item_cost = create_scaled_bitmap("monitor_item_cost", nullptr, FromDIP(16));
-    m_bitmap_item_print = create_scaled_bitmap("monitor_item_print", nullptr, FromDIP(18));
-    m_bitmap_axis_home = create_scaled_bitmap("monitor_axis_home", nullptr, FromDIP(32));
-    m_bitmap_lamp_on  = create_scaled_bitmap("monitor_lamp_on", nullptr, FromDIP(24));
-    m_bitmap_lamp_off = create_scaled_bitmap("monitor_lamp_off", nullptr, FromDIP(24));
-    m_bitmap_fan_on   = create_scaled_bitmap("monitor_fan_on", nullptr, FromDIP(24));
-    m_bitmap_fan_off  = create_scaled_bitmap("monitor_fan_off", nullptr, FromDIP(24));
-    m_bitmap_speed    = create_scaled_bitmap("monitor_speed", nullptr, FromDIP(24));
-    m_thumbnail_placeholder = create_scaled_bitmap("monitor_placeholder", nullptr, FromDIP(120));
+    m_item_placeholder       = create_scaled_bitmap("monitor_placeholder", nullptr, 60);
+    m_bitmap_item_prediction = create_scaled_bitmap("monitor_item_prediction", nullptr, 16);
+    m_bitmap_item_cost = create_scaled_bitmap("monitor_item_cost", nullptr, 16);
+    m_bitmap_item_print = create_scaled_bitmap("monitor_item_print", nullptr, 18);
+    m_bitmap_axis_home = create_scaled_bitmap("monitor_axis_home", nullptr, 32);
+    m_bitmap_lamp_on  = create_scaled_bitmap("monitor_lamp_on", nullptr, 24);
+    m_bitmap_lamp_off = create_scaled_bitmap("monitor_lamp_off", nullptr, 24);
+    m_bitmap_fan_on   = create_scaled_bitmap("monitor_fan_on", nullptr, 24);
+    m_bitmap_fan_off  = create_scaled_bitmap("monitor_fan_off", nullptr, 24);
+    m_bitmap_speed    = create_scaled_bitmap("monitor_speed", nullptr, 24);
+    m_thumbnail_placeholder = create_scaled_bitmap("monitor_placeholder", nullptr, 120);
     m_bitmap_extruder = *cache.load_png("monitor_extruder", FromDIP(48), FromDIP(96), false, false);
 }
 
@@ -167,11 +170,11 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_connection_info->SetBorderColor(WARNING_INFO_BG_COL);
     m_connection_info->SetTextColor(*wxWHITE);
     m_connection_info->SetFont(PAGE_TITLE_FONT);
-    m_connection_info->SetCornerRadius(8);
-    m_connection_info->SetSize(wxSize(-1, 16));
-    m_connection_info->SetMinSize(wxSize(-1, 16));
-    m_connection_info->SetMaxSize(wxSize(-1, 16));
-    m_connection_info->SetPaddingSize(wxSize(11, 11));
+    m_connection_info->SetCornerRadius(FromDIP(8));
+    m_connection_info->SetSize(wxSize(-1, FromDIP(16)));
+    m_connection_info->SetMinSize(wxSize(-1, FromDIP(16)));
+    m_connection_info->SetMaxSize(wxSize(-1, FromDIP(16)));
+    m_connection_info->SetPaddingSize(wxSize(FromDIP(11), FromDIP(11)));
     m_connection_info->Hide();
 
     bSizer_monitoring_title->Add(13, 0, 0, 0);
@@ -181,11 +184,11 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
 
     m_staticText_timelapse = new wxStaticText(m_panel_monitoring_title, wxID_ANY, _L("Timelapse"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_timelapse->Wrap(-1);
-    bSizer_monitoring_title->Add(m_staticText_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    bSizer_monitoring_title->Add(m_staticText_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     m_bmToggleBtn_timelapse = new SwitchButton(m_panel_monitoring_title);
-    m_bmToggleBtn_timelapse->SetMinSize(wxSize(40, -1));
-    bSizer_monitoring_title->Add(m_bmToggleBtn_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    m_bmToggleBtn_timelapse->SetMinSize(SWITCH_BUTTON_SIZE);
+    bSizer_monitoring_title->Add(m_bmToggleBtn_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     bSizer_monitoring_title->Add(13, 0, 0);
 
     m_panel_monitoring_title->SetSizer(bSizer_monitoring_title);
@@ -193,23 +196,23 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     bSizer_monitoring_title->Fit(m_panel_monitoring_title);
     sizer->Add(m_panel_monitoring_title, 0, wxEXPAND | wxALL, 0);
 
-    auto        media_ctrl_panel  = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(512, 328));
+    auto        media_ctrl_panel  = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(512), FromDIP(328)));
     wxBoxSizer *bSizer_monitoring = new wxBoxSizer(wxVERTICAL);
 #ifdef __WXMAC__
     m_media_ctrl = new wxMediaCtrl2(media_ctrl_panel, wxSize(16, 9));
 #else
     m_media_ctrl = new wxMediaCtrl2();
-    m_media_ctrl->Create(media_ctrl_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(512, 288), wxMEDIACTRLPLAYERCONTROLS_NONE);
-    m_media_ctrl->SetMinSize(wxSize(512, 288));
+    m_media_ctrl->Create(media_ctrl_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(512), FromDIP(288)), wxMEDIACTRLPLAYERCONTROLS_NONE);
+    m_media_ctrl->SetMinSize(wxSize(FromDIP(512), FromDIP(288)));
 #endif
-    m_media_play_ctrl = new MediaPlayCtrl(media_ctrl_panel, m_media_ctrl, wxDefaultPosition, wxSize(-1, 40));
+    m_media_play_ctrl = new MediaPlayCtrl(media_ctrl_panel, m_media_ctrl, wxDefaultPosition, wxSize(-1, FromDIP(40)));
 
     bSizer_monitoring->Add(m_media_ctrl, 1, wxEXPAND | wxALIGN_CENTER_HORIZONTAL | wxTOP | wxRIGHT | wxLEFT | wxSHAPED, 0);
     bSizer_monitoring->Add(m_media_play_ctrl, 0, wxEXPAND | wxALIGN_CENTER_HORIZONTAL | wxALL, 0);
     media_ctrl_panel->SetSizer(bSizer_monitoring);
     media_ctrl_panel->Layout();
 
-    sizer->Add(media_ctrl_panel, 1, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL | wxSHAPED, 5);
+    sizer->Add(media_ctrl_panel, 1, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL | wxSHAPED, FromDIP(5));
 
     return sizer;
 }
@@ -235,15 +238,14 @@ wxBoxSizer *StatusBasePanel::create_project_task_page()
     sizer->Add(m_panel_printing_title, 0, wxEXPAND | wxALL, 0);
     sizer->Add(0, 12, 0);
 
-    wxBoxSizer *bSizer_printing;
-    bSizer_printing = new wxBoxSizer(wxHORIZONTAL);
+    m_printing_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    bSizer_printing->SetMinSize(wxSize(PAGE_MIN_WIDTH, -1));
-    m_bitmap_thumbnail = new wxStaticBitmap(this, wxID_ANY, m_thumbnail_placeholder, wxDefaultPosition, wxSize(120, 120), 0);
+    m_printing_sizer->SetMinSize(wxSize(PAGE_MIN_WIDTH, -1));
+    m_bitmap_thumbnail = new wxStaticBitmap(this, wxID_ANY, m_thumbnail_placeholder, wxDefaultPosition, TASK_THUMBNAIL_SIZE, 0);
 
-    bSizer_printing->Add(m_bitmap_thumbnail, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, 12);
+    m_printing_sizer->Add(m_bitmap_thumbnail, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, 12);
 
-    bSizer_printing->Add(8, 0, 0, wxEXPAND, 0);
+    m_printing_sizer->Add(8, 0, 0, wxEXPAND, 0);
 
     wxBoxSizer *bSizer_subtask_info;
     bSizer_subtask_info = new wxBoxSizer(wxVERTICAL);
@@ -267,8 +269,9 @@ wxBoxSizer *StatusBasePanel::create_project_task_page()
     fgSizer_task->SetFlexibleDirection(wxVERTICAL);
     fgSizer_task->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
-    m_gauge_progress = new ProgressBar(this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize   );
+    m_gauge_progress = new ProgressBar(this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize);
     m_gauge_progress->SetValue(0);
+    m_gauge_progress->SetHeight(PROGRESSBAR_HEIGHT);
     fgSizer_task->Add(m_gauge_progress, 0, wxALIGN_CENTER_VERTICAL | wxALL | wxEXPAND, 0);
 
     wxBoxSizer *bSizer_task_btn;
@@ -345,9 +348,9 @@ wxBoxSizer *StatusBasePanel::create_project_task_page()
 
     bSizer_subtask_info->Add(fgSizer_task, 0, wxEXPAND, 5);
 
-    bSizer_printing->Add(bSizer_subtask_info, 1, wxALL | wxEXPAND, 0);
+    m_printing_sizer->Add(bSizer_subtask_info, 1, wxALL | wxEXPAND, 0);
 
-    sizer->Add(bSizer_printing, 0, wxEXPAND | wxALL, 0);
+    sizer->Add(m_printing_sizer, 0, wxEXPAND | wxALL, 0);
 
     sizer->Add(0, 12, 0);
 
@@ -424,9 +427,9 @@ wxBoxSizer *StatusBasePanel::create_temp_axis_group()
     content_sizer->Add(m_temp_ctrl, 0, wxEXPAND | wxALL, 0);
 
     content_sizer->Add(10, 0, 0, wxEXPAND, 0);
-    auto line = new StaticLine(this, true);
-    line->SetLineColour(STATIC_BOX_LINE_COL);
-    content_sizer->Add(line, 0, wxEXPAND, 0);
+    m_temp_extruder_line = new StaticLine(this, true);
+    m_temp_extruder_line->SetLineColour(STATIC_BOX_LINE_COL);
+    content_sizer->Add(m_temp_extruder_line, 0, wxEXPAND, 0);
     content_sizer->Add(9, 0, 0, wxEXPAND, 0);
 
     auto m_axis_sizer = create_axis_control();
@@ -462,9 +465,10 @@ wxBoxSizer *StatusBasePanel::create_temp_control()
 
     sizer->Add(m_tempCtrl_nozzle, 1, wxEXPAND | wxALL, 0);
 
-    auto line = new StaticLine(this);
-    line->SetLineColour(STATIC_BOX_LINE_COL);
-    sizer->Add(line, 0, wxEXPAND | wxALL, 0);
+    m_line_nozzle = new StaticLine(this);
+    m_line_nozzle->SetLineColour(STATIC_BOX_LINE_COL);
+    m_line_nozzle->SetSize(wxSize(FromDIP(1), -1));
+    sizer->Add(m_line_nozzle, 0, wxEXPAND | wxALL, 0);
 
     wxWindowID bed_id = wxWindow::NewControlId();
     m_tempCtrl_bed    = new TempInput(this, bed_id, TEMP_BLANK_STR, TEMP_BLANK_STR, wxString("monitor_bed_temp"), wxString("monitor_bed_temp_active"), wxDefaultPosition,
@@ -481,7 +485,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control()
                    std::make_pair(*wxWHITE, (int) StateColor::Normal)));
     sizer->Add(m_tempCtrl_bed, 1, wxEXPAND | wxALL, 0);
 
-    line = new StaticLine(this);
+    auto line = new StaticLine(this);
     line->SetLineColour(STATIC_BOX_LINE_COL);
     sizer->Add(line, 0, wxEXPAND | wxALL, 0);
 
@@ -521,7 +525,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control()
     m_switch_speed->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
                                     std::make_pair(NORMAL_TEXT_COL,(int) StateColor::Normal)));
 
-    line_sizer->Add(m_switch_speed, 0, wxALIGN_CENTER | wxALL, 0);
+    line_sizer->Add(m_switch_speed, 1, wxALIGN_CENTER | wxALL, 0);
 
     auto line = new StaticLine(this, true);
     line->SetLineColour(STATIC_BOX_LINE_COL);
@@ -533,7 +537,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control()
     m_switch_lamp->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_lamp->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
                                     std::make_pair(NORMAL_TEXT_COL,(int) StateColor::Normal)));
-    line_sizer->Add(m_switch_lamp, 0, wxALIGN_CENTER | wxALL, 0);
+    line_sizer->Add(m_switch_lamp, 1, wxALIGN_CENTER | wxALL, 0);
 
     sizer->Add(line_sizer, 0, wxEXPAND, 5);
     line = new StaticLine(this);
@@ -547,7 +551,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control()
     m_switch_nozzle_fan->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
                                     std::make_pair(NORMAL_FAN_TEXT_COL,(int) StateColor::Normal)));
 
-    line_sizer->Add(m_switch_nozzle_fan, 0, wxALIGN_CENTER | wxALL, 0);
+    line_sizer->Add(m_switch_nozzle_fan, 1, wxALIGN_CENTER | wxALL, 0);
     line = new StaticLine(this, true);
     line->SetLineColour(STATIC_BOX_LINE_COL);
     line_sizer->Add(line, 0, wxEXPAND | wxALL, 0);
@@ -559,7 +563,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control()
     m_switch_printing_fan->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
                                     std::make_pair(NORMAL_FAN_TEXT_COL,(int) StateColor::Normal)));
 
-    line_sizer->Add(m_switch_printing_fan, 0, wxALIGN_CENTER | wxALL, 0);
+    line_sizer->Add(m_switch_printing_fan, 1, wxALIGN_CENTER | wxALL, 0);
 
     sizer->Add(line_sizer, 0, wxEXPAND, 5);
 
@@ -572,7 +576,8 @@ wxBoxSizer *StatusBasePanel::create_axis_control()
     m_bpButton_xy = new AxisCtrlButton(this, m_bitmap_axis_home);
     m_bpButton_xy->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
                                 std::make_pair(NORMAL_TEXT_COL,(int) StateColor::Normal)));
-
+    m_bpButton_xy->SetMinSize(AXIS_MIN_SIZE);
+    m_bpButton_xy->SetSize(AXIS_MIN_SIZE);
     sizer->Add(m_bpButton_xy, 1, wxEXPAND | wxALL | wxALIGN_CENTER, 0);
 
     sizer->Add(0, 6, 0, wxEXPAND, 0);
@@ -655,6 +660,7 @@ wxBoxSizer *StatusBasePanel::create_extruder_control()
     bSizer_e_ctrl->Add(m_bpButton_e_10, 0, wxALIGN_CENTER_HORIZONTAL | wxRIGHT | wxLEFT, 0);
 
     m_bitmap_extruder_img = new wxStaticBitmap(this, wxID_ANY, m_bitmap_extruder, wxDefaultPosition, wxDefaultSize, 0);
+    m_bitmap_extruder_img->SetMinSize(EXTRUDER_IMAGE_SIZE);
 
     bSizer_e_ctrl->AddStretchSpacer();
     bSizer_e_ctrl->Add(m_bitmap_extruder_img, 0, wxALIGN_CENTER_HORIZONTAL | wxRIGHT | wxLEFT, 0);
@@ -986,6 +992,7 @@ void StatusPanel::update_tasklist_info()
         slice_info_list.push_back(panel);
 
         panel->update(it->second);
+        panel->Layout();
         m_item_top_sizer->Add(panel, 0, wxEXPAND | wxALL, 0);
 
         m_tasklist_info_sizer->Add(m_item_top_sizer, wxGBPosition(idx / 2, idx % 2), wxGBSpan(1, 1), wxALL, 0);
@@ -1447,13 +1454,58 @@ void StatusPanel::show_status(int status) {
 
 void StatusPanel::msw_rescale()
 {
+    init_bitmaps();
+
+    m_panel_monitoring_title->SetSize(wxSize(-1, FromDIP(PAGE_TITLE_HEIGHT)));
+    m_bmToggleBtn_timelapse->Rescale();
+    m_panel_printing_title->SetSize(wxSize(-1, FromDIP(PAGE_TITLE_HEIGHT)));
+    m_bitmap_thumbnail->SetSize(TASK_THUMBNAIL_SIZE);
+    m_printing_sizer->SetMinSize(wxSize(PAGE_MIN_WIDTH, -1));
+    m_gauge_progress->SetHeight(PROGRESSBAR_HEIGHT);
+    m_panel_control_title->SetSize(wxSize(-1, FromDIP(PAGE_TITLE_HEIGHT)));
+    m_bpButton_xy->SetBitmap(m_bitmap_axis_home);
+    m_bpButton_xy->SetMinSize(AXIS_MIN_SIZE);
+    m_bpButton_xy->SetSize(AXIS_MIN_SIZE);
+    m_temp_extruder_line->SetSize(wxSize(FromDIP(1), -1));
+    m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder);
+    m_bitmap_extruder_img->SetMinSize(EXTRUDER_IMAGE_SIZE);
+
     for (Button *btn : m_buttons) { btn->Rescale(); }
     init_scaled_buttons();
 
-    m_bpButton_xy->Rescale();
+    m_connection_info->SetCornerRadius(FromDIP(8));
+    m_connection_info->SetSize(wxSize(-1, FromDIP(16)));
+    m_connection_info->SetMinSize(wxSize(-1, FromDIP(16)));
+    m_connection_info->SetMaxSize(wxSize(-1, FromDIP(16)));
+    m_connection_info->SetPaddingSize(wxSize(FromDIP(11), FromDIP(11)));
 
+    m_gauge_progress->Rescale();
+
+    for (int i = 0; i < slice_info_list.size(); i++) {
+        slice_info_list[i]->SetImages(m_bitmap_item_prediction, m_bitmap_item_cost, m_bitmap_item_print);
+        slice_info_list[i]->msw_rescale();
+    }
+
+    m_bpButton_xy->Rescale();
+    m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE);
+    m_tempCtrl_nozzle->Rescale();
+    m_line_nozzle->SetSize(wxSize(-1, FromDIP(1)));
+    m_tempCtrl_bed->SetMinSize(TEMP_CTRL_MIN_SIZE);
+    m_tempCtrl_bed->Rescale();
+    m_tempCtrl_frame->SetMinSize(TEMP_CTRL_MIN_SIZE);
+    m_tempCtrl_frame->Rescale();
+
+    m_switch_speed->SetImages(m_bitmap_speed, m_bitmap_speed);
+    m_switch_speed->SetMinSize(MISC_BUTTON_SIZE);
+    m_switch_speed->Rescale();
+    m_switch_lamp->SetImages(m_bitmap_lamp_on, m_bitmap_lamp_off);
+    m_switch_lamp->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_lamp->Rescale();
+    m_switch_nozzle_fan->SetImages(m_bitmap_fan_on, m_bitmap_fan_off);
+    m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_nozzle_fan->Rescale();
+    m_switch_printing_fan->SetImages(m_bitmap_fan_on, m_bitmap_fan_off);
+    m_switch_printing_fan->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_printing_fan->Rescale();
 
     Layout();

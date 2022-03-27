@@ -68,6 +68,11 @@ void TabButton::SetTextColor(StateColor const &color)
     Refresh();
 }
 
+void TabButton::SetBitmap(wxBitmap &bitmap)
+{
+    this->icon = bitmap.GetSubBitmap(wxRect(0, 0, bitmap.GetWidth(), bitmap.GetHeight()));
+}
+
 bool TabButton::Enable(bool enable)
 {
     bool result = wxWindow::Enable(enable);

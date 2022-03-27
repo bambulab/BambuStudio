@@ -6,6 +6,10 @@
 namespace Slic3r {
 namespace GUI {
 
+#define THUMBNAIL_SIZE  (wxSize(FromDIP(60), FromDIP(60)))
+#define ICON_SIZE       (wxSize(FromDIP(16), FromDIP(16)))
+#define PRINT_ICON_SIZE (wxSize(FromDIP(18), FromDIP(18)))
+
 SliceInfoPanel::SliceInfoPanel(wxWindow *parent, wxBitmap &prediction, wxBitmap &cost, wxBitmap &print,
     wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
     : wxPanel(parent, id, pos, size, style, name)
@@ -15,32 +19,31 @@ SliceInfoPanel::SliceInfoPanel(wxWindow *parent, wxBitmap &prediction, wxBitmap 
     m_item_top_sizer = new wxBoxSizer(wxHORIZONTAL);
     
     m_bmp_item_thumbnail = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | 0);
-    m_bmp_item_thumbnail->SetMinSize(wxSize(60, 60));
-    m_bmp_item_thumbnail->SetSize(wxSize(60, 60));
+    m_bmp_item_thumbnail->SetMinSize(THUMBNAIL_SIZE);
+    m_bmp_item_thumbnail->SetSize(THUMBNAIL_SIZE);
 
     m_item_top_sizer->Add(m_bmp_item_thumbnail, 0, wxALL, 0);
 
     wxBoxSizer *m_item_content_sizer;
     m_item_content_sizer = new wxBoxSizer(wxVERTICAL);
 
-    wxBoxSizer *m_item_info_sizer;
-    m_item_info_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *m_item_info_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_bmp_item_prediction = new wxStaticBitmap(this, wxID_ANY, prediction);
-    m_bmp_item_prediction->SetMinSize(wxSize(16, 16));
-    m_bmp_item_prediction->SetSize(wxSize(16, 16));
-    m_item_info_sizer->Add(m_bmp_item_prediction, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    m_bmp_item_prediction->SetMinSize(ICON_SIZE);
+    m_bmp_item_prediction->SetSize(ICON_SIZE);
+    m_item_info_sizer->Add(m_bmp_item_prediction, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
-    m_text_item_prediction = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxSize(60, -1));
+    m_text_item_prediction = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(60), -1));
     m_text_item_prediction->Wrap(-1);
     m_item_info_sizer->Add(m_text_item_prediction, 1, wxALIGN_CENTER_VERTICAL | wxALL, 0);
 
     m_bmp_item_cost = new wxStaticBitmap(this, wxID_ANY, cost);
-    m_bmp_item_cost->SetMinSize(wxSize(16, 16));
-    m_bmp_item_cost->SetSize(wxSize(16, 16));
-    m_item_info_sizer->Add(m_bmp_item_cost, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    m_bmp_item_cost->SetMinSize(ICON_SIZE);
+    m_bmp_item_cost->SetSize(ICON_SIZE);
+    m_item_info_sizer->Add(m_bmp_item_cost, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
-    m_text_item_cost = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxSize(35, -1));
+    m_text_item_cost = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(35), -1));
     m_text_item_cost->Wrap(-1);
     m_item_info_sizer->Add(m_text_item_cost, 1, wxALIGN_CENTER_VERTICAL | wxALL, 0);
 
@@ -56,15 +59,15 @@ SliceInfoPanel::SliceInfoPanel(wxWindow *parent, wxBitmap &prediction, wxBitmap 
     m_item_right_sizer = new wxBoxSizer(wxVERTICAL);
 
     m_bmp_item_print = new wxStaticBitmap(this, wxID_ANY, print, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | 0);
-    m_bmp_item_print->SetMinSize(wxSize(18, 18));
-    m_bmp_item_print->SetSize(wxSize(18, 18));
-    m_item_right_sizer->Add(m_bmp_item_print, 0, wxALL, 5);
+    m_bmp_item_print->SetMinSize(PRINT_ICON_SIZE);
+    m_bmp_item_print->SetSize(PRINT_ICON_SIZE);
+    m_item_right_sizer->Add(m_bmp_item_print, 0, wxALL, FromDIP(5));
 
-    m_item_right_sizer->Add(0, 0, 1, wxEXPAND, 5);
+    m_item_right_sizer->Add(0, 0, 1, wxEXPAND, FromDIP(5));
 
     m_text_plate_index = new wxStaticText(this, wxID_ANY, "");
     m_text_plate_index->Wrap(-1);
-    m_item_right_sizer->Add(m_text_plate_index, 0, wxALIGN_RIGHT | wxALL, 5);
+    m_item_right_sizer->Add(m_text_plate_index, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));
 
     m_item_top_sizer->Add(m_item_right_sizer, 0, wxEXPAND, 0);
 
@@ -85,6 +88,13 @@ SliceInfoPanel::~SliceInfoPanel()
     //m_bmp_item_thumbnail->Disconnect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(SliceInfoPanel::on_thumbnail_enter), NULL, this);
     //m_bmp_item_thumbnail->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(SliceInfoPanel::on_thumbnail_leave), NULL, this);
     m_bmp_item_print->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(SliceInfoPanel::on_subtask_print), NULL, this);
+}
+
+void SliceInfoPanel::SetImages(wxBitmap &prediction, wxBitmap &cost, wxBitmap &printing)
+{
+    m_bmp_item_prediction->SetBitmap(prediction);
+    m_bmp_item_cost->SetBitmap(cost);
+    m_bmp_item_print->SetBitmap(printing);
 }
 
 void SliceInfoPanel::on_subtask_print(wxCommandEvent &evt) {
@@ -150,6 +160,17 @@ void SliceInfoPanel::update(BBLSliceInfo *info)
         web_request.Start();
     }
 
+    this->Layout();
+}
+
+void SliceInfoPanel::msw_rescale()
+{
+    m_bmp_item_prediction->SetMinSize(ICON_SIZE);
+    m_bmp_item_prediction->SetSize(ICON_SIZE);
+    m_bmp_item_cost->SetMinSize(ICON_SIZE);
+    m_bmp_item_cost->SetSize(ICON_SIZE);
+    m_bmp_item_print->SetMinSize(PRINT_ICON_SIZE);
+    m_bmp_item_print->SetSize(PRINT_ICON_SIZE);
     this->Layout();
 }
 

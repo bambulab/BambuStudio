@@ -29,6 +29,8 @@ public:
     
     void SetTextColor(StateColor const &color);
 
+    void SetBitmap(wxBitmap &bitmap);
+
     bool Enable(bool enable = true);
 
     void Rescale();

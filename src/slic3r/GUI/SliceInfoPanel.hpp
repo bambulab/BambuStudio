@@ -44,6 +44,8 @@ public:
                  const wxString &name  = wxEmptyString);
     ~SliceInfoPanel();
 
+    void SetImages(wxBitmap &prediction, wxBitmap &cost, wxBitmap &printing);
+
     void on_subtask_print(wxCommandEvent &evt);
     void on_thumbnail_enter(wxMouseEvent &event);
     void on_thumbnail_leave(wxMouseEvent &event);
@@ -52,8 +54,8 @@ public:
     void on_mouse_leave(wxMouseEvent &event);
 
     void on_webrequest_state(wxWebRequestEvent &evt);
-
     void update(BBLSliceInfo* info);
+    void msw_rescale();
 };
 
 

@@ -39,8 +39,13 @@ public:
     void         SetRadius(double radius);
     void         SetProgressForedColour(wxColour colour);
     void         SetProgressBackgroundColour(wxColour colour);
+    void         Rescale();
+    void         SetHeight(int height) {
+        m_minHeight = height;
+        m_radius    = m_minHeight / 2;
+        SetSize(GetSize().x,  height);
+    }
     virtual void SetMinSize(const wxSize &size) override;
-
 
 protected:
     void         paintEvent(wxPaintEvent &evt);

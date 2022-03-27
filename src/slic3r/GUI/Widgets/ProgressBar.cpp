@@ -21,7 +21,7 @@ ProgressBar::ProgressBar(wxWindow *parent, wxWindowID id, int max, const wxPoint
     }
 
     m_max = max;
-    m_radius = m_miniHeight / 2.4;
+    m_radius = m_miniHeight / 2;
     wxSize temp_size(size.x, m_miniHeight);
     create(parent, id, pos, temp_size);
 }
@@ -75,6 +75,11 @@ void ProgressBar::SetProgressBackgroundColour(wxColour colour)
 { 
     m_progress_colour = colour; 
      Refresh();
+}
+
+void ProgressBar::Rescale()
+{
+    ;
 }
 
 void ProgressBar::Disable(wxString text) 

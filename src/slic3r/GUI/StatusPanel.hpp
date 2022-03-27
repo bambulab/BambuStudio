@@ -82,9 +82,9 @@ protected:
 
     /* TempInput */
     TempInput *     m_tempCtrl_nozzle;
+    StaticLine *    m_line_nozzle;
     TempInput *     m_tempCtrl_bed;
     TempInput *     m_tempCtrl_frame;
-
     ImageSwitchButton *m_switch_nozzle_fan;
     ImageSwitchButton *m_switch_printing_fan;
 
@@ -98,6 +98,7 @@ protected:
     wxStaticText *  m_staticText_e;
     Button *        m_bpButton_e_10;
     Button *        m_bpButton_e_down_10;
+    StaticLine *    m_temp_extruder_line;
     wxStaticBitmap* m_bitmap_extruder_img;
     wxStaticText *  m_staticText_ams_ctrl_caption;
     Button *        m_bpButton_extruder_1;
@@ -113,6 +114,7 @@ protected:
     wxPanel *       m_panel_separator_right;
     wxPanel *       m_panel_separotor_bottom;
     wxGridBagSizer *m_tasklist_info_sizer{nullptr};
+    wxBoxSizer *    m_printing_sizer;
     wxBoxSizer *    m_tasklist_sizer;
     wxBoxSizer *    m_tasklist_caption_sizer;
 

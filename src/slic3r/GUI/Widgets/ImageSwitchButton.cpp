@@ -106,7 +106,7 @@ void ImageSwitchButton::render(wxDC& dc)
 {
 	StaticBox::render(dc);
     int states = state_handler.states();
-	wxSize size = GetMinSize();
+	wxSize size = GetSize();
 
 	if (pressedDown) {
         dc.SetBrush(bg_color.colorForStates(StateColor::Pressed));

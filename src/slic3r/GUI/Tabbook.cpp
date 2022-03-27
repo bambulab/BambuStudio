@@ -34,7 +34,7 @@ TabButtonsListCtrl::TabButtonsListCtrl(wxWindow *parent, wxBoxSizer *side_tools)
     m_btn_margin = 0;
     m_line_margin = std::lround(0.1 * em);
 
-    m_arrow_img = create_scaled_bitmap("monitor_arrow", nullptr, FromDIP(14));
+    m_arrow_img = create_scaled_bitmap("monitor_arrow", nullptr, 14);
 
     m_sizer = new wxBoxSizer(wxVERTICAL);
     this->SetSizer(m_sizer);
@@ -83,9 +83,12 @@ void TabButtonsListCtrl::OnPaint(wxPaintEvent &)
 
 void TabButtonsListCtrl::Rescale()
 {
+    m_arrow_img = create_scaled_bitmap("monitor_arrow", nullptr, 14);
+
     int em = em_unit(this);
     for (TabButton *btn : m_pageButtons) {
         btn->SetMinSize({BUTTON_DEF_WIDTH * em / 10, BUTTON_DEF_HEIGHT * em / 10});
+        btn->SetBitmap(m_arrow_img);
         btn->Rescale();
     }
 
