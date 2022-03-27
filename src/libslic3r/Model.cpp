@@ -2242,7 +2242,8 @@ void ModelVolume::set_material(t_model_material_id material_id, const ModelMater
 int ModelVolume::extruder_id() const
 {
     int extruder_id = -1;
-    if (this->is_model_part()) {
+    //if (this->is_model_part())
+    {
         const ConfigOption *opt = this->config.option("extruder");
         if ((opt == nullptr) || (opt->getInt() == 0))
             opt = this->object->config.option("extruder");
@@ -2278,7 +2279,10 @@ std::vector<int> ModelVolume::get_extruders() const
     }
 
     std::vector<int> volume_extruders = mmuseg_extruders;
-    volume_extruders.push_back(this->extruder_id());
+
+    int volume_extruder_id = this->extruder_id();
+    if (volume_extruder_id > 0)
+        volume_extruders.push_back(volume_extruder_id);
 
     return volume_extruders;
 }
