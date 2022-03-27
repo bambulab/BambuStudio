@@ -125,6 +125,7 @@ struct NfpPConfig {
     //BBS: excluded region for V4 bed
     std::vector<_Item<RawShape> > m_excluded_regions;
     _ItemGroup<RawShape> m_excluded_items;
+    std::vector < _Item<RawShape> > m_nonprefered_regions;
 
     NfpPConfig(): rotations({0.0, Pi/2.0, Pi, 3*Pi/2}),
         alignment(Alignment::CENTER), starting_point(Alignment::CENTER) {}
@@ -1024,13 +1025,10 @@ private:
         if(items_.empty() ||
                 config_.alignment == Config::Alignment::DONT_ALIGN) return;
 
-        Box bb({ 0, 0 }, { 0, 0 });
+        Box bb;
         for (Item& item : items_)
             if (!item.is_virt_object)
-                if (bb.width() == 0)
-                    bb = item.boundingBox();
-                else
-                    bb = sl::boundingBox(item.boundingBox(), bb);
+                bb = sl::boundingBox(item.boundingBox(), bb);
 
         Vertex ci, cb;
 
@@ -1064,6 +1062,23 @@ private:
         }
 
         auto d = cb - ci;
+
+        // BBS TODO assume the nonprefered regions are at the bottom left corner
+        for (const auto& region : config_.m_nonprefered_regions)
+        {
+            Box bb1 = region.boundingBox();
+            if (bbin.height() - bb1.maxCorner().y() > bb.height()) {
+                // could use a tighter bound by moving bed center higher
+                d.y() += bb1.maxCorner().y() / 2;
+                continue;
+            }
+            if (bbin.width() - bb1.maxCorner().x() > bb.width()) {
+                // could use a tighter bound
+                d.x() += bb1.maxCorner().x() / 2;
+                continue;
+            }
+        }
+
         // BBS TODO we assume the exclude region contains bottom left corner. If not, change the code below
         if (!config_.m_excluded_regions.empty()) {
             d.x() = d.x() < 0 ? 0 : d.x();

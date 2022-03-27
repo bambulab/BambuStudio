@@ -31,6 +31,7 @@ struct BLConfig {
     //BBS: excluded region for V4 bed
     std::vector<_Item<RawShape> > m_excluded_regions;
     _ItemGroup<RawShape> m_excluded_items;
+    std::vector < _Item<RawShape> > m_nonprefered_regions;
 };
 
 template<class RawShape>

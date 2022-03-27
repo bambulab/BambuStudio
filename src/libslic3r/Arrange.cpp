@@ -110,9 +110,12 @@ void fill_config(PConf& pcfg, const ArrangeParams &params) {
     // Allow parallel execution.
     pcfg.parallel = params.parallel;
 
-    // BBS: excluded regions in V4 bed
+    // BBS: excluded regions in BBS bed
     for (auto& poly : params.excluded_regions)
         process_arrangeable(poly, pcfg.m_excluded_regions);
+    // BBS: nonprefered regions in BBS bed
+    for (auto& poly : params.nonprefered_regions)
+        process_arrangeable(poly, pcfg.m_nonprefered_regions);
     for (auto& itm : pcfg.m_excluded_regions) {
         itm.markAsFixedInBin(0);
         itm.inflate(scaled(-2. * EPSILON));
@@ -470,7 +473,8 @@ public:
 
             auto bb = sl::boundingBox(m_bin);
             // BBS: virtual objects docked on bed boundary (e.g. excluded region) should not affect final alignment
-            if (std::any_of(items.begin(), items.end(), [this, bb, bbox2expoly](Item& itm) {
+            // So, if not all of fixed items are docked on boundary, the final alignment should be disabled
+            if (!std::all_of(items.begin(), items.end(), [this, bb, bbox2expoly](Item& itm) {
                 itm.inflate(1);
                 auto diff = diff_ex(itm, bbox2expoly(bb));
                 itm.inflate(-1);

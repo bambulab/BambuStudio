@@ -286,6 +286,7 @@ void ArrangeJob::prepare()
 
     //add the virtual object into unselect list if has
     m_plater->get_partplate_list().preprocess_exclude_areas(m_unselected, MAX_NUM_PLATES);
+    m_plater->get_partplate_list().preprocess_nonprefered_areas(params.nonprefered_regions, 1);
 
 #if SAVE_ARRANGE_POLY
     if (1)
@@ -404,11 +405,11 @@ void ArrangeJob::process()
     std::for_each(m_selected.begin(), m_selected.end(), [&](auto& ap) {ap.inflation = params.min_obj_distance / 2; });
     std::for_each(m_unselected.begin(), m_unselected.end(), [&](auto& ap) {ap.inflation = ap.is_virt_object ? scaled(params.brim_skirt_distance) : params.min_obj_distance / 2; });
 
-     m_plater->get_partplate_list().preprocess_exclude_areas(params.excluded_regions, 1);
+    m_plater->get_partplate_list().preprocess_exclude_areas(params.excluded_regions, 1);
 
     // shrink bed by moving to center by dist
-     Points bedpts = get_bed_shape(*m_plater->config());
-     auto shrinkFun = [](Points& bedpts, double dist, int direction) {
+    Points bedpts = get_bed_shape(*m_plater->config());
+    auto shrinkFun = [](Points& bedpts, double dist, int direction) {
 #define SGN(x) ((x)>=0?1:-1)
         Point center = Polygon(bedpts).bounding_box().center();
         for (auto& pt : bedpts)
@@ -447,7 +448,7 @@ void ArrangeJob::process()
                 BOOST_LOG_TRIVIAL(debug) << item.name << ", extruder: " << item.extrude_id << ", bed: " << item.bed_idx
                 << ", trans: " << item.translation.transpose();
     }
-
+    params.parallel = false;
     arrangement::arrange(m_selected, m_unselected, bedpts, params);
 
     // sort by item id

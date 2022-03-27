@@ -124,7 +124,8 @@ struct ArrangeParams {
     float clearance_height_to_lid = 0;
     float cleareance_radius = 0;
 
-    ArrangePolygons excluded_regions;
+    ArrangePolygons excluded_regions;   // regions cant't be used
+    ArrangePolygons nonprefered_regions; // regions can be used but not prefered
     
     /// Progress indicator callback called when an object gets packed. 
     /// The unsigned argument is the number of items remaining to pack.

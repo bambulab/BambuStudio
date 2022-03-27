@@ -2633,6 +2633,38 @@ bool PartPlateList::preprocess_exclude_areas(arrangement::ArrangePolygons& unsel
 	return added;
 }
 
+bool PartPlateList::preprocess_nonprefered_areas(arrangement::ArrangePolygons& regions, int num_plates)
+{
+	bool added = false;
+
+	std::vector<BoundingBoxf> nonprefered_regions;
+	nonprefered_regions.emplace_back(Vec2d{ 45,15 }, Vec2d{ 225,25 }); // extrusion calibration region
+	nonprefered_regions.emplace_back(Vec2d{ 25,10 }, Vec2d{ 50,60 });  // hand-eye calibration region
+
+	//has exclude areas
+	PartPlate* plate = m_plate_list[0];
+	regions.clear();
+	for (int index = 0; index < nonprefered_regions.size(); index++)
+	{
+		Polygon ap = scaled(nonprefered_regions[index]).polygon();
+		for (int j = 0; j < num_plates; j++)
+		{
+			arrangement::ArrangePolygon ret;
+			ret.poly.contour = ap;
+			ret.translation = Vec2crd(0, 0);
+			ret.rotation = 0.0f;
+			ret.is_virt_object = true;
+			ret.bed_idx = j;
+			ret.height = 1;
+			ret.name = "NonpreferedRegion" + std::to_string(index);
+
+			regions.emplace_back(std::move(ret));
+		}
+		added = true;
+	}
+	return added;
+}
+
 
 //postprocess an arrangement::ArrangePolygon's bed index
 void PartPlateList::postprocess_bed_index_for_selected(arrangement::ArrangePolygon& arrange_polygon)
