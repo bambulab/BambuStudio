@@ -184,6 +184,7 @@ protected:
 
     bool bed_temp_input    = false;
     bool nozzle_temp_input = false;
+    int speed = 1; // 0 - 3
 
     std::map<wxString, wxImage> img_list; // key: url, value: wxBitmap png Image
     std::vector<Button *>       m_buttons;
@@ -225,6 +226,7 @@ protected:
     void on_select_space_3(wxCommandEvent &event);
     void on_select_space_4(wxCommandEvent &event);
 
+    void on_switch_speed(wxCommandEvent &event);
     void on_lamp_switch(wxCommandEvent &event);
     void on_printing_fan_switch(wxCommandEvent &event);
     void on_nozzle_fan_switch(wxCommandEvent &event);

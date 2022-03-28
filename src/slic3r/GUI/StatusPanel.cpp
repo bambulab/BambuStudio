@@ -3,7 +3,9 @@
 #include "I18N.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/Button.hpp"
+#include "Widgets/StepCtrl.hpp"
 #include "BitmapCache.hpp"
+#include "GUI_App.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -868,6 +870,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_bpButton_extruder_4->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_select_space_4), NULL, this); // TODO
     m_button_extruder_feed->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_extruder_feed), NULL, this); // TODO
     m_button_extruder_back->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_extruder_back), NULL, this); // TODO
+    m_switch_speed->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
 }
 
 StatusPanel::~StatusPanel()
@@ -1322,6 +1325,32 @@ void StatusPanel::on_nozzle_temp_set_focus(wxFocusEvent &event)
 {
     event.Skip();
     nozzle_temp_input = true;
+}
+
+void StatusPanel::on_switch_speed(wxCommandEvent &event)
+{
+    wxPopupTransientWindow *popUp = new wxPopupTransientWindow(m_switch_speed);
+    popUp->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    StepCtrl *step  = new StepCtrl(popUp, wxID_ANY);
+    step->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    wxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(step, 1, wxEXPAND, 0);
+    popUp->SetSizer(sizer);
+    auto em = em_unit(this);
+    popUp->SetSize(em * 32, em * 7);
+    step->AppendItem(_L("Silent Mode"), "60%");
+    step->AppendItem(_L("Standard"), "100%");
+    step->AppendItem(_L("Sport"), "140%");
+    step->AppendItem(_L("Ludicrous"), "180%");
+    step->SelectItem(speed);
+    step->Bind(EVT_STEP_CHANGED, [this](auto &e) { this->speed = e.GetInt(); });
+    popUp->Bind(wxEVT_SHOW, [](auto &e) {
+        if (!e.IsShown()) 
+            wxGetApp().CallAfter([popUp = e.GetEventObject()] { delete popUp; });
+    });
+    wxPoint pos = m_switch_speed->ClientToScreen(wxPoint(0, -6));
+    popUp->Position(pos, {0, m_switch_speed->GetSize().y + 12});
+    popUp->Popup();
 }
 
 void StatusPanel::on_printing_fan_switch(wxCommandEvent &event)
