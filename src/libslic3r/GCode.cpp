@@ -1076,7 +1076,8 @@ namespace DoExport {
 	                    encoded.resize(boost::beast::detail::base64::encoded_size(png_size));
 	                    encoded.resize(boost::beast::detail::base64::encode((void*)&encoded[0], (const void*)png_data, png_size));
 
-	                    output((boost::format("\n;\n; thumbnail begin %dx%d %d\n") % data.width % data.height % encoded.size()).str().c_str());
+                        output("; THUMBNAIL_BLOCK_START\n");
+	                    output((boost::format("; thumbnail begin %dx%d %d\n") % data.width % data.height % encoded.size()).str().c_str());
 
 	                    unsigned int row_count = 0;
 	                    while (encoded.size() > max_row_length)
@@ -1089,7 +1090,8 @@ namespace DoExport {
 	                    if (encoded.size() > 0)
 	                    	output((boost::format("; %s\n") % encoded).str().c_str());
 
-	                    output("; thumbnail end\n;\n");
+	                    output("; thumbnail end\n");
+                        output("; THUMBNAIL_BLOCK_END\n\n");
 
 	                    mz_free(png_data);
 	                }
@@ -1111,10 +1113,10 @@ namespace DoExport {
 	    print_statistics.clear();
         print_statistics.total_toolchanges = std::max(0, wipe_tower_data.number_of_toolchanges);
 	    if (! extruders.empty()) {
-	        std::pair<std::string, unsigned int> out_filament_used_mm ("; filament used [mm] = ", 0);
-	        std::pair<std::string, unsigned int> out_filament_used_cm3("; filament used [cm3] = ", 0);
-	        std::pair<std::string, unsigned int> out_filament_used_g  ("; filament used [g] = ", 0);
-	        std::pair<std::string, unsigned int> out_filament_cost    ("; filament cost = ", 0);
+	        //std::pair<std::string, unsigned int> out_filament_used_mm ("; filament used [mm] = ", 0);
+	        //std::pair<std::string, unsigned int> out_filament_used_cm3("; filament used [cm3] = ", 0);
+	        //std::pair<std::string, unsigned int> out_filament_used_g  ("; filament used [g] = ", 0);
+	        //std::pair<std::string, unsigned int> out_filament_cost    ("; filament cost = ", 0);
 	        for (const Extruder &extruder : extruders) {
 	            double used_filament   = extruder.used_filament() + (has_wipe_tower ? wipe_tower_data.used_filament[extruder.id()] : 0.f);
 	            double extruded_volume = extruder.extruded_volume() + (has_wipe_tower ? wipe_tower_data.used_filament[extruder.id()] * 2.4052f : 0.f); // assumes 1.75mm filament diameter
@@ -1134,14 +1136,14 @@ namespace DoExport {
 	                dst.first += buf;
 	                ++ dst.second;
 	            };
-	            append(out_filament_used_mm,  "%.2lf", used_filament);
-	            append(out_filament_used_cm3, "%.2lf", extruded_volume * 0.001);
+	            //append(out_filament_used_mm,  "%.2lf", used_filament);
+	            //append(out_filament_used_cm3, "%.2lf", extruded_volume * 0.001);
 	            if (filament_weight > 0.) {
 	                print_statistics.total_weight = print_statistics.total_weight + filament_weight;
-	                append(out_filament_used_g, "%.2lf", filament_weight);
+	                //append(out_filament_used_g, "%.2lf", filament_weight);
 	                if (filament_cost > 0.) {
 	                    print_statistics.total_cost = print_statistics.total_cost + filament_cost;
-	                    append(out_filament_cost, "%.2lf", filament_cost);
+	                    //append(out_filament_cost, "%.2lf", filament_cost);
 	                }
 	            }
 	            print_statistics.total_used_filament += used_filament;
@@ -1149,12 +1151,12 @@ namespace DoExport {
 	            print_statistics.total_wipe_tower_filament += has_wipe_tower ? used_filament - extruder.used_filament() : 0.;
 	            print_statistics.total_wipe_tower_cost += has_wipe_tower ? (extruded_volume - extruder.extruded_volume())* extruder.filament_density() * 0.001 * extruder.filament_cost() * 0.001 : 0.;
 	        }
-	        filament_stats_string_out += out_filament_used_mm.first;
-            filament_stats_string_out += "\n" + out_filament_used_cm3.first;
-            if (out_filament_used_g.second)
-                filament_stats_string_out += "\n" + out_filament_used_g.first;
-            if (out_filament_cost.second)
-                filament_stats_string_out += "\n" + out_filament_cost.first;
+	        //filament_stats_string_out += out_filament_used_mm.first;
+            //filament_stats_string_out += "\n" + out_filament_used_cm3.first;
+            //if (out_filament_used_g.second)
+                //filament_stats_string_out += "\n" + out_filament_used_g.first;
+            //if (out_filament_cost.second)
+            //    filament_stats_string_out += "\n" + out_filament_cost.first;
         }
         return filament_stats_string_out;
     }
@@ -1260,19 +1262,23 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_enable_extrusion_role_markers = false;
 #endif /* HAS_PRESSURE_EQUALIZER */
 
+    file.write_format("; HEADER_BLOCK_START\n");
     // Write information on the generator.
-    file.write_format("; %s\n\n", Slic3r::header_slic3r_generated().c_str());
+    file.write_format("; %s\n", Slic3r::header_slic3r_generated().c_str());
+    //BBS: total estimated printing time
+    file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Estimated_Printing_Time_Placeholder).c_str());
+    file.write_format("; HEADER_BLOCK_END\n\n");
 
     //BBS: write global config at the beginning of gcode file because printer need these config information
-    // Append full config, delimited by two 'phony' configuration keys bambuslicer_config = begin and bambuslicer_config = end.
+    // Append full config, delimited by two 'phony' configuration keys CONFIG_BLOCK_START and CONFIG_BLOCK_END.
     // The delimiters are structured as configuration key / value pairs to be parsable by older versions of BambuStudio G-code viewer.
     {
-        file.write("\n; bambuslicer_config = begin\n");
+        file.write("; CONFIG_BLOCK_START\n");
         std::string full_config;
         append_full_config(print, full_config);
         if (!full_config.empty())
             file.write(full_config);
-        file.write("; bambuslicer_config = end\n");
+        file.write("; CONFIG_BLOCK_END\n\n");
     }
 
     //BBS: add plate id into thumbnail render logic
@@ -1304,6 +1310,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     print.throw_if_canceled();
 #endif
 
+    file.write_format("; EXECUTABLE_BLOCK_START\n");
     // adds tags for time estimators
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::First_Line_M73_Placeholder).c_str());
 
@@ -1673,6 +1680,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // adds tags for time estimators
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Last_Line_M73_Placeholder).c_str());
+    file.write_format("; EXECUTABLE_BLOCK_END\n\n");
 
     print.throw_if_canceled();
 
@@ -1683,12 +1691,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_writer.extruders(),
         // Modifies
         print.m_print_statistics));
-    file.write("\n");
-    file.write_format("; total filament used [g] = %.2lf\n", print.m_print_statistics.total_weight);
-    file.write_format("; total filament cost = %.2lf\n", print.m_print_statistics.total_cost);
-    if (print.m_print_statistics.total_toolchanges > 0)
-    	file.write_format("; total toolchanges = %i\n", print.m_print_statistics.total_toolchanges);
-    file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Estimated_Printing_Time_Placeholder).c_str());
+    //file.write("\n");
+    //file.write_format("; total filament weight [g] = %.2lf\n", print.m_print_statistics.total_weight);
+    //file.write_format("; total filament cost = %.2lf\n", print.m_print_statistics.total_cost);
+    //if (print.m_print_statistics.total_toolchanges > 0)
+    //	file.write_format("; total filament change = %i\n", print.m_print_statistics.total_toolchanges);
 
     print.throw_if_canceled();
 }
@@ -2313,7 +2320,7 @@ GCode::LayerResult GCode::process_layer(
     gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change) + "\n";
     // export layer z
     char buf[64];
-    sprintf(buf, ";Z:%g\n", print_z);
+    sprintf(buf, "; Z_HEIGHT: %g\n", print_z);
     gcode += buf;
     // export layer height
     float height = first_layer ? static_cast<float>(print_z) : static_cast<float>(print_z) - m_last_layer_z;

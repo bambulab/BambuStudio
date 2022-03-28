@@ -19,8 +19,6 @@
         "8x256",
         "0x256"
     ],
-    "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\n\n",
-    "between_objects_gcode": "",
     "default_filament_profile": [
         "Generic PLA"
     ],
@@ -37,7 +35,6 @@
     ],
     "gcode_flavor": "marlin",
     "inherits": "fdm_machine_common",
-    "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
     "machine_max_acceleration_e": [
         "5000",
         "5000"
