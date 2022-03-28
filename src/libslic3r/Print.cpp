@@ -116,7 +116,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "retract_restart_extra",
         "retract_restart_extra_toolchange",
         "retraction_speed",
-        "single_extruder_multi_material_priming",
         "slow_down_layer_time",
         "standby_temperature_delta",
         "machine_start_gcode",
@@ -1046,11 +1045,15 @@ void Print::process()
             tool_ordering = this->tool_ordering();
             tool_ordering.assign_custom_gcodes(*this);
             has_wipe_tower = this->has_wipe_tower() && tool_ordering.has_wipe_tower();
+            //BBS: have no single_extruder_multi_material_priming
+#if 0
             initial_extruder_id = (has_wipe_tower && !this->config().single_extruder_multi_material_priming) ?
                 // The priming towers will be skipped.
                 tool_ordering.all_extruders().back() :
                 // Don't skip the priming towers.
                 tool_ordering.first_extruder();
+#endif
+            initial_extruder_id = tool_ordering.first_extruder();
             print_object_instances_ordering = chain_print_object_instances(*this);
             append(printExtruders, tool_ordering.tools_for_layer(layers_to_print.front().first).extruders);
         }

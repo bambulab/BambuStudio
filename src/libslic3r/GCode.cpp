@@ -1403,7 +1403,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_placeholder_parser.set("current_object_idx", 0);
     // For the start / end G-code to do the priming and final filament pull in case there is no wipe tower provided.
     m_placeholder_parser.set("has_wipe_tower", has_wipe_tower);
-    m_placeholder_parser.set("has_single_extruder_multi_material_priming", has_wipe_tower && print.config().single_extruder_multi_material_priming);
+    //m_placeholder_parser.set("has_single_extruder_multi_material_priming", has_wipe_tower && print.config().single_extruder_multi_material_priming);
     m_placeholder_parser.set("total_toolchanges", std::max(0, print.wipe_tower_data().number_of_toolchanges)); // Check for negative toolchanges (single extruder mode) and set to 0 (no tool change).
     {
         BoundingBoxf bbox(print.config().printable_area.values);
@@ -1585,6 +1585,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             //BBS
             //file.write(m_writer.travel_to_z(initial_layer_print_height + m_config.z_offset.value, "Move to the first layer height"));
             file.write(m_writer.travel_to_z(initial_layer_print_height, "Move to the first layer height"));
+#if 0
             if (print.config().single_extruder_multi_material_priming) {
                 file.write(m_wipe_tower->prime(*this));
                 // Verify, whether the print overaps the priming extrusions.
@@ -1621,6 +1622,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     //}
                 //}
             }
+#endif
             print.throw_if_canceled();
         }
         // Process all layers of all objects (non-sequential mode) with a parallel pipeline:
