@@ -6449,6 +6449,7 @@ wxWindow *ProjectDropDialog ::create_item_radiobox(wxString title, wxWindow *par
     text->SetForegroundColour(wxColour(107, 107, 107));
     body_bSizer->Add(text, 0, wxEXPAND | wxLEFT | wxTOP, (30 - text->GetSize().GetHeight()) / 2);
     radiobox->Bind(wxEVT_LEFT_DOWN, &ProjectDropDialog::on_select_radio, this);
+    text->Bind(wxEVT_LEFT_DOWN, [this, radiobox](auto &e) { e.SetId(radiobox->GetId()); on_select_radio(e); });
 
     RadioSelector *rs = new RadioSelector;
     rs->m_groupid     = groupid;
