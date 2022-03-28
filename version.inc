@@ -4,3 +4,7 @@
 set(SLIC3R_APP_NAME "BambuStudio")
 set(SLIC3R_APP_KEY "BambuStudio")
 set(SLIC3R_VERSION "01.00.00.04")
+
+if(NOT DEFINED BBL_RELEASE_TO_PUBLIC)
+set(BBL_RELEASE_TO_PUBLIC "0")
+endif()

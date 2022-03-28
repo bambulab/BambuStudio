@@ -128,12 +128,12 @@ int CLI::run(int argc, char **argv)
 		return 1;
     }
     BOOST_LOG_TRIVIAL(info) << "finished setup params, argc="<< argc << std::endl;
-    std::string temp_path = wxStandardPaths::Get().GetTempDir().utf8_str().data(); 
+    std::string temp_path = wxStandardPaths::Get().GetTempDir().utf8_str().data();
     set_temporary_dir(temp_path);
 
     m_extra_config.apply(m_config, true);
     m_extra_config.normalize_fdm();
-    
+
     PrinterTechnology printer_technology = get_printer_technology(m_config);
 
     bool							start_gui			= m_actions.empty();
@@ -462,13 +462,13 @@ int CLI::run(int argc, char **argv)
         flush_and_exit(1);
         /*assert(printer_technology == ptSLA);
         sla_print_config.filename_format.value = "[input_filename_base].sl1";
-        
+
         // The default bed shape should reflect the default display parameters
         // and not the fff defaults.
         double w = sla_print_config.display_width.getFloat();
         double h = sla_print_config.display_height.getFloat();
         sla_print_config.printable_area.values = { Vec2d(0, 0), Vec2d(w, 0), Vec2d(w, h), Vec2d(0, h) };
-        
+
         sla_print_config.apply(m_print_config, true);
         m_print_config.apply(sla_print_config, true);*/
     }
@@ -505,9 +505,9 @@ int CLI::run(int argc, char **argv)
             const Vec3d &instance_offset = model_instance->get_offset();
             BOOST_LOG_TRIVIAL(info) << boost::format("instance %1% transform {%2%,%3%,%4%} at %5%:%6%")% model_object->name % instance_offset.x() % instance_offset.y() %instance_offset.z() % __FUNCTION__ % __LINE__<< std::endl;
         }*/
-    
+
     // Loop through transform options.
-    bool user_center_specified = false;    
+    bool user_center_specified = false;
     Points beds = get_bed_shape(m_print_config);
     ArrangeParams arrange_cfg;
     arrange_cfg.min_obj_distance = scaled(min_object_distance(m_print_config));
@@ -552,10 +552,10 @@ int CLI::run(int argc, char **argv)
                     model.objects.begin(), model.objects.end(),
                     [](ModelObject* o){ return o->instances.empty(); }
                 );
-                
+
                 int dups = m_config.opt_int("copy");
                 if (!all_objects_have_instances) model.add_default_instances();
-                
+
                 try {
                     if (dups > 1) {
                         // if all input objects have defined position(s) apply duplication to the whole model
@@ -831,7 +831,7 @@ int CLI::run(int argc, char **argv)
             int beds = 0;
             //clear all the relations before apply the arrangement results
             partplate_list.clear();
-            
+
             // Apply the arrange result to all selected objects
             for (ArrangePolygon &ap : selected) {
                 //BBS: partplate postprocess
@@ -1156,16 +1156,21 @@ int CLI::run(int argc, char **argv)
 
 bool CLI::setup(int argc, char **argv)
 {
+#if !BBL_RELEASE_TO_PUBLIC
     {
 	    Slic3r::set_logging_level(1);
-        const char *loglevel = boost::nowide::getenv("SLIC3R_LOGLEVEL");
+        const char *loglevel = boost::nowide::getenv("BBL_LOGLEVEL");
         if (loglevel != nullptr) {
             if (loglevel[0] >= '0' && loglevel[0] <= '9' && loglevel[1] == 0)
                 set_logging_level(loglevel[0] - '0');
             else
-                boost::nowide::cerr << "Invalid SLIC3R_LOGLEVEL environment variable: " << loglevel << std::endl;
+                boost::nowide::cerr << "Invalid BBL_LOGLEVEL environment variable: " << loglevel << std::endl;
         }
     }
+#else
+    //set to fatal
+    Slic3r::set_logging_level(0);
+#endif
 
     // Detect the operating system flavor after SLIC3R_LOGLEVEL is set.
     detect_platform();
@@ -1234,12 +1239,14 @@ bool CLI::setup(int argc, char **argv)
             m_transforms.emplace_back(opt_key);
     }
 
+#if !BBL_RELEASE_TO_PUBLIC
     {
         const ConfigOptionInt *opt_loglevel = m_config.opt<ConfigOptionInt>("debug");
         if (opt_loglevel != 0)
             set_logging_level(opt_loglevel->value);
     }
-    
+#endif
+
     //FIXME Validating at this stage most likely does not make sense, as the config is not fully initialized yet.
     std::string validity = m_config.validate();
 
@@ -1249,7 +1256,7 @@ bool CLI::setup(int argc, char **argv)
             m_config.option(optdef.first, true);
 
     //set_data_dir(m_config.opt_string("datadir"));
-    
+
     //FIXME Validating at this stage most likely does not make sense, as the config is not fully initialized yet.
     if (!validity.empty()) {
         boost::nowide::cerr << "error: " << validity << std::endl;
@@ -1432,10 +1439,11 @@ extern "C" {
         for (size_t i = 0; i < argc; ++ i)
             argv_ptrs[i] = argv_narrow[i].data();
 
+#if !BBL_RELEASE_TO_PUBLIC
         //BBS: register default exception handler
         AddVectoredExceptionHandler(1, CBaseException::UnhandledExceptionFilter);
         //SET_DEFULTER_HANDLER();
-
+#endif
         // Call the UTF8 main.
         return CLI().run(argc, argv_ptrs.data());
     }
