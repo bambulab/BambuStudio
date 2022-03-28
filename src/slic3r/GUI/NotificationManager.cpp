@@ -1043,7 +1043,7 @@ void NotificationManager::SlicingProgressNotification::set_status_text(const std
 		break;
 	case Slic3r::GUI::NotificationManager::SlicingProgressNotification::SlicingProgressState::SP_COMPLETED:
 	{
-		NotificationData data{ NotificationType::SlicingProgress, NotificationLevel::ProgressBarNotificationLevel, 0,  _u8L("Slicing finished."), m_is_fff ? _u8L("Export G-Code.") : _u8L("Export.") };
+		NotificationData data{ NotificationType::SlicingProgress, NotificationLevel::ProgressBarNotificationLevel, 0,  _u8L("Slice ok."), m_is_fff ? _u8L("Export G-Code.") : _u8L("Export.") };
 		update(data);
 		m_state = EState::Shown;
 	}
@@ -1494,7 +1494,7 @@ void NotificationManager::close_slicing_errors_and_warnings()
 void NotificationManager::close_slicing_error_notification(const std::string& text)
 {
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
-		if (notification->get_type() == NotificationType::SlicingError && notification->compare_text(_u8L("ERROR:") + "\n" + text)) {
+		if (notification->get_type() == NotificationType::SlicingError && notification->compare_text(_u8L("Error:") + "\n" + text)) {
 			notification->close();
 		}
 	}
@@ -1554,7 +1554,7 @@ void NotificationManager::set_simplify_suggestion_multiline(const ObjectID oid, 
 void NotificationManager::push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable)
 {
 	close_notification_of_type(NotificationType::ExportFinished);
-	NotificationData data{ NotificationType::ExportFinished, NotificationLevel::RegularNotificationLevel, on_removable ? 0 : 20,  _u8L("Exporting finished.") + "\n" + path };
+	NotificationData data{ NotificationType::ExportFinished, NotificationLevel::RegularNotificationLevel, on_removable ? 0 : 20,  _u8L("Export ok.") + "\n" + path };
 	push_notification_data(std::make_unique<NotificationManager::ExportFinishedNotification>(data, m_id_provider, m_evt_handler, on_removable, path, dir_path), 0);
 	set_slicing_progress_hidden();
 }
@@ -2077,7 +2077,7 @@ void NotificationManager::bbl_show_app_newversion_notification()
 
 void NotificationManager::bbl_show_need_support_on_notification()
 {
-    NotificationData data{NotificationType::BBLNeedSupportON, NotificationLevel::WarningNotificationLevel, 0,_u8L("WARNING:") + "\n" + _u8L("It seems your model needs support to print!")};
+    NotificationData data{NotificationType::BBLNeedSupportON, NotificationLevel::WarningNotificationLevel, 0,_u8L("Warning:") + "\n" + _u8L("Your model needs support ! Please make support material enable.")};
 
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::BBLNeedSupportON) {
@@ -2102,7 +2102,7 @@ void NotificationManager::bbl_close_need_support_on_notification()
 void NotificationManager::bbl_show_gcode_overlap_notification()
 {
     NotificationData data{NotificationType::BBLGcodeOverlap, NotificationLevel::WarningNotificationLevel, 0,
-                          _u8L("WARNING:") + "\n" + _u8L("G-code path overlap !")};
+                          _u8L("Warning:") + "\n" + _u8L("Gcode path overlap")};
 
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::BBLGcodeOverlap) {

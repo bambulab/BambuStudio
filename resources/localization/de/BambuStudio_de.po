@@ -1,10 +1,10 @@
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2126 src/slic3r/GUI/Plater.cpp:6333
-#: src/slic3r/GUI/Plater.cpp:6339 src/slic3r/GUI/Tab.cpp:1525
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2126 src/slic3r/GUI/Plater.cpp:6334
+#: src/slic3r/GUI/Plater.cpp:6340 src/slic3r/GUI/Tab.cpp:1525
 #: src/libslic3r/PrintConfig.cpp:392
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-28 20:18+0800\n"
+"POT-Creation-Date: 2022-03-28 21:17+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -455,7 +455,8 @@ msgstr "Volumetrische Flussrate (mm³/s)"
 #: src/slic3r/GUI/GCodeViewer.cpp:4203 src/slic3r/GUI/GCodeViewer.cpp:4512
 #: src/slic3r/GUI/GCodeViewer.cpp:4538 src/slic3r/GUI/GCodeViewer.cpp:4577
 #: src/slic3r/GUI/GUI.cpp:346 src/slic3r/GUI/GUI_ObjectList.cpp:340
-#: src/slic3r/GUI/Tab.cpp:2357 src/slic3r/GUI/Tab.hpp:514
+#: src/slic3r/GUI/Plater.cpp:433 src/slic3r/GUI/Tab.cpp:2357
+#: src/slic3r/GUI/Tab.hpp:514
 msgid "Filament"
 msgstr "Filament"
 
@@ -1315,16 +1316,16 @@ msgstr[1] ""
 msgid "All modifications will be discarded for new project."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:3041 src/slic3r/GUI/Plater.cpp:6606
+#: src/slic3r/GUI/GUI_App.cpp:3041 src/slic3r/GUI/Plater.cpp:6607
 msgid "G-code files can not be loaded with models together!"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:3041 src/slic3r/GUI/Plater.cpp:6598
-#: src/slic3r/GUI/Plater.cpp:6606
+#: src/slic3r/GUI/GUI_App.cpp:3041 src/slic3r/GUI/Plater.cpp:6599
+#: src/slic3r/GUI/Plater.cpp:6607
 msgid "G-code loading"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:3229
+#: src/slic3r/GUI/GUI_App.cpp:3235
 msgid "Select a G-code file:"
 msgstr ""
 
@@ -1864,11 +1865,11 @@ msgstr ""
 msgid "Click the icon to reset printable property of the object"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1677 src/slic3r/GUI/Plater.cpp:2295
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1677 src/slic3r/GUI/Plater.cpp:2296
 msgid "Loading"
 msgstr "Lade"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1709 src/slic3r/GUI/Plater.cpp:2315
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1709 src/slic3r/GUI/Plater.cpp:2316
 msgid "Loading file"
 msgstr "Lade Datei"
 
@@ -2515,7 +2516,7 @@ msgstr "Lade ein Modell"
 msgid "Export all objects as STL"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:1486 src/slic3r/GUI/Plater.cpp:8250
+#: src/slic3r/GUI/MainFrame.cpp:1486 src/slic3r/GUI/Plater.cpp:8251
 msgid "Export G-code"
 msgstr "Export G-Code"
 
@@ -2523,7 +2524,7 @@ msgstr "Export G-Code"
 msgid "Export current plate as G-code"
 msgstr "Exportiere die aktuelle Plattenbelegung als G-Code"
 
-#: src/slic3r/GUI/MainFrame.cpp:1490 src/slic3r/GUI/Plater.cpp:8250
+#: src/slic3r/GUI/MainFrame.cpp:1490 src/slic3r/GUI/Plater.cpp:8251
 msgid "Export"
 msgstr "Export"
 
@@ -2575,7 +2576,7 @@ msgstr ""
 msgid "Clone copies of selections"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:1541 src/slic3r/GUI/Plater.cpp:6871
+#: src/slic3r/GUI/MainFrame.cpp:1541 src/slic3r/GUI/Plater.cpp:6872
 msgid "Number of copies:"
 msgstr ""
 
@@ -2790,59 +2791,40 @@ msgid "3D Mouse disconnected."
 msgstr "3D-Maus nicht angeschlossen."
 
 #: src/slic3r/GUI/NotificationManager.hpp:780
-msgid "Configuration update is available."
-msgstr "Konfigurationsupdate ist verfügbar."
+msgid "Configuration can update now."
+msgstr ""
 
 #: src/slic3r/GUI/NotificationManager.hpp:780
-msgid "See more."
-msgstr "Siehe mehr."
-
-#: src/slic3r/GUI/NotificationManager.hpp:788
-msgid ""
-"You have just added a G-code for color change, but its value is empty.\n"
-"To export the G-code correctly, check the \"Color Change G-code\" in "
-"\"Printer Settings > Custom G-code\""
+msgid "Detail."
 msgstr ""
-"Sie haben gerade einen G-Code für Farbwechsel hinzugefügt, aber sein Wert "
-"ist leer.\n"
-"Um den G-Code korrekt zu exportieren, überprüfen Sie den \"Farbwechsel-G-Code"
-"\" unter \"Druckereinstellungen > Benutzerdefinierter G-Code\"."
 
-#: src/slic3r/GUI/NotificationManager.hpp:791
-msgid ""
-"No color change event was added to the print. The print does not look like a "
-"sign."
+#: src/slic3r/GUI/NotificationManager.hpp:792
+msgid "Integration was successful."
 msgstr ""
-"Dem Druck wurde kein Farbwechsel hinzugefügt. Der Druck sieht nicht wie ein "
-"Schild aus."
 
-#: src/slic3r/GUI/NotificationManager.hpp:793
-msgid "Desktop integration was successful."
-msgstr "Desktop Integration war erfolgreich."
+#: src/slic3r/GUI/NotificationManager.hpp:794
+msgid "Integration failed."
+msgstr ""
 
-#: src/slic3r/GUI/NotificationManager.hpp:795
-msgid "Desktop integration failed."
-msgstr "Desktop Integration fehlgeschlagen."
+#: src/slic3r/GUI/NotificationManager.hpp:796
+msgid "Undo integration was successful."
+msgstr ""
 
-#: src/slic3r/GUI/NotificationManager.hpp:797
-msgid "Undo desktop integration was successful."
-msgstr "Die Desktop-Integration wurde erfolgreich rückgängig gemacht."
+#: src/slic3r/GUI/NotificationManager.hpp:798
+msgid "Undo integration failed."
+msgstr ""
 
 #: src/slic3r/GUI/NotificationManager.hpp:799
-msgid "Undo desktop integration failed."
-msgstr "Rücknahme der Desktop Integration fehlgeschlagen."
-
-#: src/slic3r/GUI/NotificationManager.hpp:800
 msgid "Exporting."
 msgstr "Exportiere."
 
-#: src/slic3r/GUI/NotificationManager.hpp:801
-msgid "New version is available."
+#: src/slic3r/GUI/NotificationManager.hpp:800
+msgid "Software has New version."
 msgstr ""
 
-#: src/slic3r/GUI/NotificationManager.hpp:801
-msgid "See Releases page."
-msgstr "Siehe Releases-Seite."
+#: src/slic3r/GUI/NotificationManager.hpp:800
+msgid "Goto download page."
+msgstr ""
 
 #: src/slic3r/GUI/NotificationManager.cpp:438
 #: src/slic3r/GUI/NotificationManager.cpp:456
@@ -2872,8 +2854,8 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: src/slic3r/GUI/NotificationManager.cpp:1046
-msgid "Slicing finished."
-msgstr "Slicing abgeschlossen."
+msgid "Slice ok."
+msgstr ""
 
 #: src/slic3r/GUI/NotificationManager.cpp:1046
 msgid "Export G-Code."
@@ -2883,7 +2865,7 @@ msgstr "G-Code exportieren."
 msgid "Export."
 msgstr "Export."
 
-#: src/slic3r/GUI/NotificationManager.cpp:1394 src/slic3r/GUI/Plater.cpp:3313
+#: src/slic3r/GUI/NotificationManager.cpp:1394 src/slic3r/GUI/Plater.cpp:3314
 msgid "Jump to"
 msgstr ""
 
@@ -2891,6 +2873,7 @@ msgstr ""
 #: src/slic3r/GUI/NotificationManager.cpp:1404
 #: src/slic3r/GUI/NotificationManager.cpp:1420
 #: src/slic3r/GUI/NotificationManager.cpp:1426
+#: src/slic3r/GUI/NotificationManager.cpp:1497
 msgid "Error:"
 msgstr ""
 
@@ -2898,29 +2881,25 @@ msgstr ""
 #: src/slic3r/GUI/NotificationManager.cpp:1436
 #: src/slic3r/GUI/NotificationManager.cpp:1444
 #: src/slic3r/GUI/NotificationManager.cpp:1455
+#: src/slic3r/GUI/NotificationManager.cpp:2080
+#: src/slic3r/GUI/NotificationManager.cpp:2105
 msgid "Warning:"
 msgstr ""
 
-#: src/slic3r/GUI/NotificationManager.cpp:1497
-msgid "ERROR:"
-msgstr "FEHLER:"
-
 #: src/slic3r/GUI/NotificationManager.cpp:1557
-msgid "Exporting finished."
-msgstr "Exportieren beendet."
+msgid "Export ok."
+msgstr ""
 
-#: src/slic3r/GUI/NotificationManager.cpp:2053
-#: src/slic3r/GUI/NotificationManager.cpp:2080
-#: src/slic3r/GUI/NotificationManager.cpp:2105 src/slic3r/GUI/Plater.cpp:3338
+#: src/slic3r/GUI/NotificationManager.cpp:2053 src/slic3r/GUI/Plater.cpp:3339
 msgid "WARNING:"
 msgstr "WARNUNG:"
 
 #: src/slic3r/GUI/NotificationManager.cpp:2080
-msgid "It seems your model needs support to print!"
+msgid "Your model needs support ! Please make support material enable."
 msgstr ""
 
 #: src/slic3r/GUI/NotificationManager.cpp:2105
-msgid "G-code path overlap !"
+msgid "Gcode path overlap"
 msgstr ""
 
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:61
@@ -3038,363 +3017,363 @@ msgstr ""
 msgid "Filament changes"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:509 src/slic3r/GUI/Plater.cpp:635
+#: src/slic3r/GUI/Plater.cpp:510 src/slic3r/GUI/Plater.cpp:636
 #: src/slic3r/GUI/PresetComboBoxes.cpp:616
 msgid "Click to edit preset"
 msgstr "Klicken zum Bearbeiten der Voreinstellung"
 
-#: src/slic3r/GUI/Plater.cpp:533
+#: src/slic3r/GUI/Plater.cpp:534
 msgid "Flushing volumes"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:1345 src/slic3r/GUI/Plater.cpp:2932
-#: src/slic3r/GUI/Plater.cpp:5791
+#: src/slic3r/GUI/Plater.cpp:1346 src/slic3r/GUI/Plater.cpp:2933
+#: src/slic3r/GUI/Plater.cpp:5792
 msgid "Untitled"
 msgstr "Unbenannt"
 
-#: src/slic3r/GUI/Plater.cpp:1347
+#: src/slic3r/GUI/Plater.cpp:1348
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2009
+#: src/slic3r/GUI/Plater.cpp:2010
 msgid "Previous unsaved project detected, do you want to restore it?"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2009
+#: src/slic3r/GUI/Plater.cpp:2010
 msgid "Restore"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2354 src/slic3r/GUI/Plater.cpp:2392
-#: src/slic3r/GUI/Plater.cpp:2422 src/slic3r/GUI/Plater.cpp:2693
-#: src/slic3r/GUI/Plater.cpp:2702
+#: src/slic3r/GUI/Plater.cpp:2355 src/slic3r/GUI/Plater.cpp:2393
+#: src/slic3r/GUI/Plater.cpp:2423 src/slic3r/GUI/Plater.cpp:2694
+#: src/slic3r/GUI/Plater.cpp:2703
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2366
+#: src/slic3r/GUI/Plater.cpp:2367
 msgid "The Config is not compatible, can not load!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2366 src/slic3r/GUI/Plater.cpp:2374
-#: src/slic3r/GUI/Plater.cpp:2452
+#: src/slic3r/GUI/Plater.cpp:2367 src/slic3r/GUI/Plater.cpp:2375
+#: src/slic3r/GUI/Plater.cpp:2453
 msgid "Incompatible 3mf"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2374 src/slic3r/GUI/Plater.cpp:2452
+#: src/slic3r/GUI/Plater.cpp:2375 src/slic3r/GUI/Plater.cpp:2453
 msgid "the 3mf is not compatible, load geometry data only!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2541
+#: src/slic3r/GUI/Plater.cpp:2542
 msgid "Name of components inside step file is not UTF8 format!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2541
+#: src/slic3r/GUI/Plater.cpp:2542
 msgid "The name may show garbage characters!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2542
+#: src/slic3r/GUI/Plater.cpp:2543
 msgid "Attention!"
 msgstr "Achtung!"
 
-#: src/slic3r/GUI/Plater.cpp:2572
+#: src/slic3r/GUI/Plater.cpp:2573
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2588
+#: src/slic3r/GUI/Plater.cpp:2589
 msgid "Objects with zero volume removed"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2588
+#: src/slic3r/GUI/Plater.cpp:2589
 msgid "The volume of the object is zero"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2710
+#: src/slic3r/GUI/Plater.cpp:2711
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2711
+#: src/slic3r/GUI/Plater.cpp:2712
 msgid "Object with multiple parts was detected"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2960
+#: src/slic3r/GUI/Plater.cpp:2961
 msgid "Export STL file:"
 msgstr "Exportiere STL Datei:"
 
-#: src/slic3r/GUI/Plater.cpp:2973
+#: src/slic3r/GUI/Plater.cpp:2974
 msgid "Save file as:"
 msgstr "Speichere Datei als:"
 
-#: src/slic3r/GUI/Plater.cpp:3235
+#: src/slic3r/GUI/Plater.cpp:3236
 msgid "The selected object couldn't be split."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3556
+#: src/slic3r/GUI/Plater.cpp:3557
 msgid "Another export job is running."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3830
+#: src/slic3r/GUI/Plater.cpp:3831
 msgid "Please select a file"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4314
+#: src/slic3r/GUI/Plater.cpp:4315
 msgid "Project Slicing: "
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4314
+#: src/slic3r/GUI/Plater.cpp:4315
 msgid "Single Plate Slicing: "
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4468
+#: src/slic3r/GUI/Plater.cpp:4469
 msgid "There are warnings after slicing models:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4478
+#: src/slic3r/GUI/Plater.cpp:4479
 msgid "warnings"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:4524
+#: src/slic3r/GUI/Plater.cpp:4525
 msgid "Invalid data"
 msgstr "Ungültige Daten"
 
-#: src/slic3r/GUI/Plater.cpp:5759 src/slic3r/GUI/Plater.cpp:5817
+#: src/slic3r/GUI/Plater.cpp:5760 src/slic3r/GUI/Plater.cpp:5818
 msgid "Some presets are modified."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:5760
+#: src/slic3r/GUI/Plater.cpp:5761
 msgid "You can keep the modified presets to the new project or discard them"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:5761
+#: src/slic3r/GUI/Plater.cpp:5762
 msgid ""
 "You can keep the modifield presets to the new project, discard or save "
 "changes as new presets."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:5766
+#: src/slic3r/GUI/Plater.cpp:5767
 msgid "Creating a new project"
 msgstr "Neues Projekt erstellen"
 
-#: src/slic3r/GUI/Plater.cpp:5816
+#: src/slic3r/GUI/Plater.cpp:5817
 msgid "Load project"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:5941
+#: src/slic3r/GUI/Plater.cpp:5942
 msgid "Importing Model"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:5965
+#: src/slic3r/GUI/Plater.cpp:5966
 msgid "prepare 3mf file..."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:5971 src/slic3r/GUI/Plater.cpp:7517
+#: src/slic3r/GUI/Plater.cpp:5972 src/slic3r/GUI/Plater.cpp:7518
 #, c-format, boost-format
 msgid "get_des,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:5972
+#: src/slic3r/GUI/Plater.cpp:5973
 msgid "Import project failed, Please try again!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:5977
+#: src/slic3r/GUI/Plater.cpp:5978
 msgid "downloading project ..."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:5993
+#: src/slic3r/GUI/Plater.cpp:5994
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:6196
+#: src/slic3r/GUI/Plater.cpp:6197
 msgid "The selected file"
 msgstr "Die gewählte Datei"
 
-#: src/slic3r/GUI/Plater.cpp:6196
+#: src/slic3r/GUI/Plater.cpp:6197
 msgid "does not contain valid gcode."
 msgstr "enthält keinen gültigen G-Code."
 
-#: src/slic3r/GUI/Plater.cpp:6197
+#: src/slic3r/GUI/Plater.cpp:6198
 msgid "Error occurs while loading G-code file"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:6298
+#: src/slic3r/GUI/Plater.cpp:6299
 msgid "Drop project file"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:6329
+#: src/slic3r/GUI/Plater.cpp:6330
 msgid "Plese select an action"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:6375
+#: src/slic3r/GUI/Plater.cpp:6376
 msgid "Open as project"
 msgstr "Als Projekt öffnen"
 
-#: src/slic3r/GUI/Plater.cpp:6376
+#: src/slic3r/GUI/Plater.cpp:6377
 msgid "Import geometry only"
 msgstr "Nur Geometrie importieren"
 
-#: src/slic3r/GUI/Plater.cpp:6377
+#: src/slic3r/GUI/Plater.cpp:6378
 msgid "Import presets only"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:6396
+#: src/slic3r/GUI/Plater.cpp:6397
 msgid "Don't show again"
 msgstr "Nicht mehr anzeigen"
 
-#: src/slic3r/GUI/Plater.cpp:6401 src/slic3r/GUI/SavePresetDialog.cpp:310
+#: src/slic3r/GUI/Plater.cpp:6402 src/slic3r/GUI/SavePresetDialog.cpp:310
 msgid "OK"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:6417 src/slic3r/GUI/ProgressStatusBar.cpp:26
+#: src/slic3r/GUI/Plater.cpp:6418 src/slic3r/GUI/ProgressStatusBar.cpp:26
 #: src/slic3r/GUI/SavePresetDialog.cpp:326
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:938
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: src/slic3r/GUI/Plater.cpp:6598
+#: src/slic3r/GUI/Plater.cpp:6599
 msgid "Only one G-code file can be opened at the same time."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:6728
+#: src/slic3r/GUI/Plater.cpp:6729
 msgid "All objects will be removed, continue?"
 msgstr "Alle Objekte werden entfernt, fortfahren?"
 
-#: src/slic3r/GUI/Plater.cpp:6728
+#: src/slic3r/GUI/Plater.cpp:6729
 msgid "Delete all"
 msgstr "Alle löschen"
 
-#: src/slic3r/GUI/Plater.cpp:6744
+#: src/slic3r/GUI/Plater.cpp:6745
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:6745 src/slic3r/GUI/UnsavedChangesDialog.cpp:933
+#: src/slic3r/GUI/Plater.cpp:6746 src/slic3r/GUI/UnsavedChangesDialog.cpp:933
 msgid "Save"
 msgstr "Speichern"
 
-#: src/slic3r/GUI/Plater.cpp:6872
+#: src/slic3r/GUI/Plater.cpp:6873
 msgid "Copies of the selected object"
 msgstr "Kopien des ausgewählten Objekts"
 
-#: src/slic3r/GUI/Plater.cpp:7062
+#: src/slic3r/GUI/Plater.cpp:7063
 msgid "Save G-code file as:"
 msgstr "Speichere G-Code Datei als:"
 
-#: src/slic3r/GUI/Plater.cpp:7119
+#: src/slic3r/GUI/Plater.cpp:7120
 msgid "Save Sliced file as:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7347
+#: src/slic3r/GUI/Plater.cpp:7348
 msgid "No objects to export."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7347
+#: src/slic3r/GUI/Plater.cpp:7348
 msgid "Save project"
 msgstr "Projekt speichern"
 
-#: src/slic3r/GUI/Plater.cpp:7462
+#: src/slic3r/GUI/Plater.cpp:7463
 msgid "Failed to publish your project. Please try agian!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7466
+#: src/slic3r/GUI/Plater.cpp:7467
 msgid "Upload and publish your project"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7470
+#: src/slic3r/GUI/Plater.cpp:7471
 msgid "preparing your project"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7490
+#: src/slic3r/GUI/Plater.cpp:7491
 msgid "preparing, export 3mf failed!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7509
+#: src/slic3r/GUI/Plater.cpp:7510
 msgid "Preparing to upload your project..."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7534
+#: src/slic3r/GUI/Plater.cpp:7535
 #, c-format, boost-format
 msgid "req_proj,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7546
+#: src/slic3r/GUI/Plater.cpp:7547
 #, c-format, boost-format
 msgid "req_prof,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7553
+#: src/slic3r/GUI/Plater.cpp:7554
 msgid "uploading..."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7565 src/slic3r/GUI/Plater.cpp:7602
+#: src/slic3r/GUI/Plater.cpp:7566 src/slic3r/GUI/Plater.cpp:7603
 msgid "Upload has been canceled."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7570
+#: src/slic3r/GUI/Plater.cpp:7571
 #, c-format, boost-format
 msgid "upload,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7580
+#: src/slic3r/GUI/Plater.cpp:7581
 #, c-format, boost-format
 msgid "put_no,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7581 src/slic3r/GUI/Plater.cpp:7608
+#: src/slic3r/GUI/Plater.cpp:7582 src/slic3r/GUI/Plater.cpp:7609
 msgid "Failed to publish. Please try again!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7596
+#: src/slic3r/GUI/Plater.cpp:7597
 msgid "Uploading is timed out. Please try again!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7607
+#: src/slic3r/GUI/Plater.cpp:7608
 #, c-format, boost-format
 msgid "get_no,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7634
+#: src/slic3r/GUI/Plater.cpp:7635
 msgid "Internal Error. design id is empty."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8251
+#: src/slic3r/GUI/Plater.cpp:8252
 msgid "Send G-code"
 msgstr "Sende G-code"
 
-#: src/slic3r/GUI/Plater.cpp:8251
+#: src/slic3r/GUI/Plater.cpp:8252
 msgid "Send to printer"
 msgstr "Zum Drucker senden"
 
-#: src/slic3r/GUI/Plater.cpp:8282
+#: src/slic3r/GUI/Plater.cpp:8283
 msgid "Custom supports, seams and color painting were removed after repairing."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8852
+#: src/slic3r/GUI/Plater.cpp:8853
 #, boost-format
 msgid "Part name: %1%\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8863
+#: src/slic3r/GUI/Plater.cpp:8864
 #, boost-format
 msgid "Object name: %1%\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8870
+#: src/slic3r/GUI/Plater.cpp:8871
 #, boost-format
 msgid "Size: %1% x %2% x %3% in\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8872
+#: src/slic3r/GUI/Plater.cpp:8873
 #, boost-format
 msgid "Size: %1% x %2% x %3% mm\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8879
+#: src/slic3r/GUI/Plater.cpp:8880
 #, boost-format
 msgid "Volume: %1% mm³\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8881
+#: src/slic3r/GUI/Plater.cpp:8882
 #, boost-format
 msgid "Triangles: %1%, "
 msgstr ""
@@ -3587,17 +3566,6 @@ msgstr "Voreinstellung bearbeiten"
 msgid "Project-inside presets"
 msgstr ""
 
-#: src/slic3r/GUI/PresetComboBoxes.cpp:985
-#: src/slic3r/GUI/PresetComboBoxes.cpp:1230
-msgid "Add/Remove filaments"
-msgstr "Filamente hinzufügen/entfernen"
-
-#: src/slic3r/GUI/PresetComboBoxes.cpp:987
-#: src/slic3r/GUI/PresetComboBoxes.cpp:1232
-msgid "Add/Remove materials"
-msgstr "Materialien hinzufügen/entfernen"
-
-#: src/slic3r/GUI/PresetComboBoxes.cpp:989
 #: src/slic3r/GUI/PresetComboBoxes.cpp:1223
 msgid "Add/Remove printers"
 msgstr "Drucker hinzufügen/entfernen"
@@ -3701,22 +3669,6 @@ msgstr ""
 #, boost-format
 msgid "Simply switch to \"%1%\""
 msgstr ""
-
-#: src/slic3r/GUI/SysInfoDialog.cpp:84
-msgid "System Information"
-msgstr "Systeminformationen"
-
-#: src/slic3r/GUI/SysInfoDialog.cpp:150
-msgid "Blacklisted libraries loaded into BambuStudio process:"
-msgstr ""
-
-#: src/slic3r/GUI/SysInfoDialog.cpp:162
-msgid "Feature vectorization is supported:"
-msgstr ""
-
-#: src/slic3r/GUI/SysInfoDialog.cpp:169
-msgid "Copy to Clipboard"
-msgstr "Zu Zwischenablage kopieren"
 
 #. TRN "Save current Settings"
 #: src/slic3r/GUI/Tab.cpp:235
@@ -6533,6 +6485,65 @@ msgstr ""
 #: src/libslic3r/PrintObjectSlice.cpp:536
 msgid "Slicing mesh"
 msgstr ""
+
+#~ msgid "Configuration update is available."
+#~ msgstr "Konfigurationsupdate ist verfügbar."
+
+#~ msgid "See more."
+#~ msgstr "Siehe mehr."
+
+#~ msgid ""
+#~ "You have just added a G-code for color change, but its value is empty.\n"
+#~ "To export the G-code correctly, check the \"Color Change G-code\" in "
+#~ "\"Printer Settings > Custom G-code\""
+#~ msgstr ""
+#~ "Sie haben gerade einen G-Code für Farbwechsel hinzugefügt, aber sein Wert "
+#~ "ist leer.\n"
+#~ "Um den G-Code korrekt zu exportieren, überprüfen Sie den \"Farbwechsel-G-"
+#~ "Code\" unter \"Druckereinstellungen > Benutzerdefinierter G-Code\"."
+
+#~ msgid ""
+#~ "No color change event was added to the print. The print does not look "
+#~ "like a sign."
+#~ msgstr ""
+#~ "Dem Druck wurde kein Farbwechsel hinzugefügt. Der Druck sieht nicht wie "
+#~ "ein Schild aus."
+
+#~ msgid "Desktop integration was successful."
+#~ msgstr "Desktop Integration war erfolgreich."
+
+#~ msgid "Desktop integration failed."
+#~ msgstr "Desktop Integration fehlgeschlagen."
+
+#~ msgid "Undo desktop integration was successful."
+#~ msgstr "Die Desktop-Integration wurde erfolgreich rückgängig gemacht."
+
+#~ msgid "Undo desktop integration failed."
+#~ msgstr "Rücknahme der Desktop Integration fehlgeschlagen."
+
+#~ msgid "See Releases page."
+#~ msgstr "Siehe Releases-Seite."
+
+#~ msgid "Slicing finished."
+#~ msgstr "Slicing abgeschlossen."
+
+#~ msgid "ERROR:"
+#~ msgstr "FEHLER:"
+
+#~ msgid "Exporting finished."
+#~ msgstr "Exportieren beendet."
+
+#~ msgid "Add/Remove filaments"
+#~ msgstr "Filamente hinzufügen/entfernen"
+
+#~ msgid "Add/Remove materials"
+#~ msgstr "Materialien hinzufügen/entfernen"
+
+#~ msgid "System Information"
+#~ msgstr "Systeminformationen"
+
+#~ msgid "Copy to Clipboard"
+#~ msgstr "Zu Zwischenablage kopieren"
 
 #~ msgid "&Preferences"
 #~ msgstr "&Einstellungen"

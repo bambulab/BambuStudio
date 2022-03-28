@@ -776,29 +776,29 @@ private:
 	//prepared (basic) notifications
 	// non-static so its not loaded too early. If static, the translations wont load correctly.
 	const std::vector<NotificationData> basic_notifications = {
-	{NotificationType::Mouse3dDisconnected, NotificationLevel::RegularNotificationLevel, 10,  _u8L("3D Mouse disconnected.") },
-	{NotificationType::PresetUpdateAvailable, NotificationLevel::ImportantNotificationLevel, 20,  _u8L("Configuration update is available."),  _u8L("See more."),
+        NotificationData{NotificationType::Mouse3dDisconnected, NotificationLevel::RegularNotificationLevel, 10, _u8L("3D Mouse disconnected.")},
+        NotificationData{NotificationType::PresetUpdateAvailable, NotificationLevel::ImportantNotificationLevel, 20, _u8L("Configuration can update now."), _u8L("Detail."),
 		[](wxEvtHandler* evnthndlr) {
 			if (evnthndlr != nullptr)
 				wxPostEvent(evnthndlr, PresetUpdateAvailableClickedEvent(EVT_PRESET_UPDATE_AVAILABLE_CLICKED));
 			return true;
 		}
 	},
-	{NotificationType::EmptyColorChangeCode, NotificationLevel::PrintInfoNotificationLevel, 10,
-		_u8L("You have just added a G-code for color change, but its value is empty.\n"
-			 "To export the G-code correctly, check the \"Color Change G-code\" in \"Printer Settings > Custom G-code\"") },
-	{NotificationType::EmptyAutoColorChange, NotificationLevel::PrintInfoNotificationLevel, 10,
-		_u8L("No color change event was added to the print. The print does not look like a sign.") },
-	{NotificationType::DesktopIntegrationSuccess, NotificationLevel::RegularNotificationLevel, 10,
-		_u8L("Desktop integration was successful.") },
-	{NotificationType::DesktopIntegrationFail, NotificationLevel::WarningNotificationLevel, 10,
-		_u8L("Desktop integration failed.") },
-	{NotificationType::UndoDesktopIntegrationSuccess, NotificationLevel::RegularNotificationLevel, 10,
-		_u8L("Undo desktop integration was successful.") },
-	{NotificationType::UndoDesktopIntegrationFail, NotificationLevel::WarningNotificationLevel, 10,
-		_u8L("Undo desktop integration failed.") },
-	{NotificationType::ExportOngoing, NotificationLevel::RegularNotificationLevel, 0, _u8L("Exporting.") },
-			{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotificationLevel, 20,  _u8L("New version is available."),  _u8L("See Releases page."), [](wxEvtHandler* evnthndlr) {
+        NotificationData{NotificationType::EmptyColorChangeCode, NotificationLevel::PrintInfoNotificationLevel, 10,
+         std::string(_devL("value can not be empty when you add a G-code for color change.\nPlease check the \"Color Change G-code\" in \"Printer Settings > Custom G-code\"").mb_str())},
+        NotificationData{NotificationType::EmptyAutoColorChange, NotificationLevel::PrintInfoNotificationLevel, 10,
+                         std::string(_devL("You need add a color change event to the print. The print need look like a sign.").mb_str())},
+        NotificationData{NotificationType::DesktopIntegrationSuccess, NotificationLevel::RegularNotificationLevel, 10,
+		_u8L("Integration was successful.") },
+        NotificationData{NotificationType::DesktopIntegrationFail, NotificationLevel::WarningNotificationLevel, 10,
+		_u8L("Integration failed.") },
+        NotificationData{NotificationType::UndoDesktopIntegrationSuccess, NotificationLevel::RegularNotificationLevel, 10,
+		_u8L("Undo integration was successful.") },
+        NotificationData{NotificationType::UndoDesktopIntegrationFail, NotificationLevel::WarningNotificationLevel, 10,
+		_u8L("Undo integration failed.") },
+        NotificationData{NotificationType::ExportOngoing, NotificationLevel::RegularNotificationLevel, 0, _u8L("Exporting.")},
+        NotificationData{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotificationLevel, 20, _u8L("Software has New version."), _u8L("Goto download page."),
+                         [](wxEvtHandler *evnthndlr) {
 				//BBS set feishu release page by default
 				wxGetApp().open_browser_with_warning_dialog("https://www.thingiverse.com/"); return true;
 			 }},
