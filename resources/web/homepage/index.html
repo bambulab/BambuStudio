@@ -11,7 +11,7 @@
 <script type="text/javascript" src="js/globalapi.js"></script>
 <script type="text/javascript" src="js/home.js"></script>
 </head>
-<body onLoad="TranslatePage()">
+<body onLoad="OnInit()">
 <div id="LeftBoard">
 	<div id="LoginArea">
 	<div id="Login1">
@@ -66,13 +66,13 @@
 	
     <div id="HotspotArea">
 		<div id="Hotspot-title" class="Content-Title trans" tid="t34">hotspot</div>
-		<iframe id="HotspotWEB" src="http://bambulab.com"></iframe>
+		<iframe id="HotspotWEB" src=""></iframe>
     </div>
 	
 	<div id="RecentFileArea">
 		<div id="RecentTitle" class="Content-Title trans" tid="t35">recent open</div>
 		<div id="FileList">
-		    <div class="FileItem">
+<!--		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')">
 				<a class="FileTip" title="d:\model\11.3mf"></a>
 				<div class="FileImg"><img src="img/b.jpg"/></div>
 				<a>abcd12334.3mf</a>
@@ -120,9 +120,9 @@
 				<a>abcd12334.3mf</a>
 				<div class="FileDate">2021/12/27 09:22</div>
 			</div>	
-		    <div class="FileItem">
+		    <div class="FileItem" >
 				<a class="FileTip" title="d:\model\11.3mf"></a>
-				<div class="FileImg"><img src="img/b.jpg"/></div>
+				<div class="FileImg"><img src="img/xxxx.jpg" onerror="this.onerror=null;this.src='img/d.png';"  alt="No Image"  /></div>
 				<a>abcd12334.3mf</a>
 				<div class="FileDate">2021/12/27 09:22</div>
 			</div>
@@ -137,7 +137,7 @@
 				<div class="FileImg"><img src="img/b.jpg"/></div>
 				<a>abcd12334.3mf</a>
 				<div class="FileDate">2021/12/27 09:22</div>
-			</div>				
+			</div>-->				
 		</div>
 	</div>
 	
@@ -158,6 +158,9 @@
 	
 </div>	
 </body>
+<script type="text/javascript">
+	//HandleStudio(TestData);
+</script>
 </html>
 
 

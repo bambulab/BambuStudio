@@ -235,6 +235,7 @@ body
 	width: 100%;
 	height: 150px;
 	border-radius: 8px;
+	display: inline-block;
 }
 
 .FileDate
