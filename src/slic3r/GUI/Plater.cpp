@@ -2355,28 +2355,17 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                                                  cont          = dlg.Update(progress_percent, msg);
                                                                  cancel        = !cont;
                                                              });
-                    if (plate_data.size() > 0) {
-                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", import 3mf UPDATE_GCODE_RESULT \n");
-                        wxString msg = wxString::Format(_L("Loading file: %s"), from_path(filename));
-                        dlg_cont     = dlg.Update(progress_percent, msg);
-                        if (!dlg_cont) return empty_result;
-
-                        if (load_config) {
-                            partplate_list.load_from_3mf_structure(plate_data);
-                            partplate_list.update_slice_context_to_current_plate(background_process);
-                            this->preview->update_gcode_result(partplate_list.get_current_slice_result());
-                            release_PlateData_list(plate_data);
-                            sidebar->obj_list()->reload_all_plates();
-                        } else {
-                            partplate_list.reload_all_objects();
-                        }
-                    }
 
                     // BBS: version check
                     Semver app_version = *(Semver::parse(SLIC3R_VERSION));
                     if (load_config && (file_version.maj() != app_version.maj())) {
                         // version mismatch, only load geometries
                         load_config      = false;
+                        if (!load_model) {
+                            //only load config case, return directly
+                            show_info(q, _L("The Config is not compatible, can not load!"), _L("Incompatible 3mf"));
+                            return empty_result;
+                        }
                         load_old_project = true;
                         // select view to 3D
                         q->select_view_3D("3D");
@@ -2394,6 +2383,24 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             model_object->config.reset();
                             // Is there any modifier or advanced config data?
                             for (ModelVolume *model_volume : model_object->volumes) model_volume->config.reset();
+                        }
+                    }
+
+                    //plate data
+                    if (plate_data.size() > 0) {
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", import 3mf UPDATE_GCODE_RESULT \n");
+                        wxString msg = wxString::Format(_L("Loading file: %s"), from_path(filename));
+                        dlg_cont     = dlg.Update(progress_percent, msg);
+                        if (!dlg_cont) return empty_result;
+
+                        if (load_config) {
+                            partplate_list.load_from_3mf_structure(plate_data);
+                            partplate_list.update_slice_context_to_current_plate(background_process);
+                            this->preview->update_gcode_result(partplate_list.get_current_slice_result());
+                            release_PlateData_list(plate_data);
+                            sidebar->obj_list()->reload_all_plates();
+                        } else {
+                            partplate_list.reload_all_objects();
                         }
                     }
 

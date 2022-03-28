@@ -603,6 +603,7 @@ namespace Slic3r {
         unsigned int m_version;
         bool m_check_version;
         bool m_load_aux;
+        bool m_load_config;
         // backup & restore
         bool m_load_restore;
         std::string m_backup_path;
@@ -814,7 +815,7 @@ namespace Slic3r {
         : m_version(0)
         , m_check_version(false)
         , m_xml_parser(nullptr)
-        , m_model(nullptr)   
+        , m_model(nullptr)
         , m_unit_factor(1.0f)
         , m_curr_metadata_name("")
         , m_curr_characters("")
@@ -863,6 +864,7 @@ namespace Slic3r {
         //BBS: auxiliary data
         m_load_aux = strategy & LoadStrategy::LoadAuxiliary;
         m_load_restore = strategy & LoadStrategy::Restore;
+        m_load_config = strategy & LoadStrategy::LoadConfig;
         m_model = &model;
         m_unit_factor = 1.0f;
         m_curr_object = nullptr;
@@ -1073,12 +1075,12 @@ namespace Slic3r {
         }
 
         //BBS: version check
-        bool b_incorrect_version = false;
+        bool dont_load_config = !m_load_config;
         if (m_bambuslicer_generator_version) {
             Semver app_version = *(Semver::parse(SLIC3R_VERSION));
             Semver file_version = *m_bambuslicer_generator_version;
             if (file_version.maj() != app_version.maj())
-                b_incorrect_version = true;
+                dont_load_config = true;
         }
 
         // we then loop again the entries to read other files stored in the archive
@@ -1101,7 +1103,7 @@ namespace Slic3r {
                     // extract slic3r layer heights profile file
                     _extract_layer_heights_profile_config_from_archive(archive, stat);
                 }
-                else 
+                else
                 if (boost::algorithm::iequals(name, LAYER_CONFIG_RANGES_FILE)) {
                     // extract slic3r layer config ranges file
                     _extract_layer_config_ranges_from_archive(archive, stat, config_substitutions);
@@ -1116,32 +1118,32 @@ namespace Slic3r {
                     _extract_sla_drain_holes_from_archive(archive, stat);
                 }*/
                 //BBS: project setting file
-                if (!b_incorrect_version && boost::algorithm::iequals(name, BBS_PRINT_CONFIG_FILE)) {
+                //if (!dont_load_config && boost::algorithm::iequals(name, BBS_PRINT_CONFIG_FILE)) {
                     // extract slic3r print config file
-                    _extract_print_config_from_archive(archive, stat, config, config_substitutions, filename);
-                }
-                else if (!b_incorrect_version && boost::algorithm::iequals(name, BBS_PROJECT_CONFIG_FILE)) {
+                //    _extract_print_config_from_archive(archive, stat, config, config_substitutions, filename);
+                //} else 
+                if (!dont_load_config && boost::algorithm::iequals(name, BBS_PROJECT_CONFIG_FILE)) {
                     // extract slic3r print config file
                     _extract_project_config_from_archive(archive, stat, config, config_substitutions, model);
                 }
                 //BBS: project embedded presets
-                else if (!b_incorrect_version && boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_PRINT_PRESETS_FILE)) {
+                else if (!dont_load_config && boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_PRINT_PRESETS_FILE)) {
                     // extract slic3r layer config ranges file
                     _extract_project_embedded_presets_from_archive(archive, stat, project_presets, model, Preset::TYPE_PRINT, false);
                 }
-                else if (!b_incorrect_version && boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_SLICE_PRESETS_FILE)) {
+                else if (!dont_load_config && boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_SLICE_PRESETS_FILE)) {
                     // extract slic3r layer config ranges file
                     _extract_project_embedded_presets_from_archive(archive, stat, project_presets, model, Preset::TYPE_PRINT);
                 }
-                else if (!b_incorrect_version && boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_FILAMENT_PRESETS_FILE)) {
+                else if (!dont_load_config && boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_FILAMENT_PRESETS_FILE)) {
                     // extract slic3r layer config ranges file
                     _extract_project_embedded_presets_from_archive(archive, stat, project_presets, model, Preset::TYPE_FILAMENT);
                 }
-                else if (!b_incorrect_version && boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_PRINTER_PRESETS_FILE)) {
+                else if (!dont_load_config && boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_PRINTER_PRESETS_FILE)) {
                     // extract slic3r layer config ranges file
                     _extract_project_embedded_presets_from_archive(archive, stat, project_presets, model, Preset::TYPE_PRINTER);
                 }
-                else if (!b_incorrect_version && boost::algorithm::iequals(name, CUSTOM_GCODE_PER_PRINT_Z_FILE)) {
+                else if (!dont_load_config && boost::algorithm::iequals(name, CUSTOM_GCODE_PER_PRINT_Z_FILE)) {
                     // extract slic3r layer config ranges file
                     _extract_custom_gcode_per_print_z_from_archive(archive, stat);
                 }
@@ -1152,7 +1154,7 @@ namespace Slic3r {
                         return false;
                     }
                 }
-                else if (!b_incorrect_version && boost::algorithm::iequals(name, SLICE_INFO_CONFIG_FILE)) {
+                else if (!dont_load_config && boost::algorithm::iequals(name, SLICE_INFO_CONFIG_FILE)) {
                     m_parsing_slice_info = true;
                     //extract slice info from archive
                     _extract_xml_from_archive(archive, stat, _handle_start_config_xml_element, _handle_end_config_xml_element);
@@ -1163,7 +1165,7 @@ namespace Slic3r {
                     if (m_load_aux && !m_load_restore)
                         _extract_auxiliary_file_from_archive(archive, stat, model);
                 }
-                else if (!b_incorrect_version && boost::algorithm::istarts_with(name, METADATA_DIR) && boost::algorithm::iends_with(name, GCODE_EXTENSION)) {
+                else if (!dont_load_config && boost::algorithm::istarts_with(name, METADATA_DIR) && boost::algorithm::iends_with(name, GCODE_EXTENSION)) {
                     //load gcode files
                     _extract_gcode_file_from_archive(archive, stat);
                 }
@@ -1961,7 +1963,7 @@ namespace Slic3r {
             }
         }
     }
-    
+
     void _BBS_3MF_Importer::_extract_sla_drain_holes_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)
     {
         if (stat.m_uncomp_size > 0) {
@@ -1971,13 +1973,13 @@ namespace Slic3r {
                 add_error("Error while reading sla support points data to buffer");
                 return;
             }
-            
+
             if (buffer.back() == '\n')
                 buffer.pop_back();
-            
+
             std::vector<std::string> objects;
             boost::split(objects, buffer, boost::is_any_of("\n"), boost::token_compress_off);
-            
+
             // Info on format versioning - see 3mf.hpp
             int version = 0;
             std::string key("drain_holes_format_version=");
@@ -1986,38 +1988,38 @@ namespace Slic3r {
                 version = std::stoi(objects[0]);
                 objects.erase(objects.begin()); // pop the header
             }
-            
+
             for (const std::string& object : objects) {
                 std::vector<std::string> object_data;
                 boost::split(object_data, object, boost::is_any_of("|"), boost::token_compress_off);
-                
+
                 if (object_data.size() != 2) {
                     add_error("Error while reading object data");
                     continue;
                 }
-                
+
                 std::vector<std::string> object_data_id;
                 boost::split(object_data_id, object_data[0], boost::is_any_of("="), boost::token_compress_off);
                 if (object_data_id.size() != 2) {
                     add_error("Error while reading object id");
                     continue;
                 }
-                
+
                 int object_id = std::atoi(object_data_id[1].c_str());
                 if (object_id == 0) {
                     add_error("Found invalid object id");
                     continue;
                 }
-                
+
                 IdToSlaDrainHolesMap::iterator object_item = m_sla_drain_holes.find(object_id);
                 if (object_item != m_sla_drain_holes.end()) {
                     add_error("Found duplicated SLA drain holes");
                     continue;
                 }
-                
+
                 std::vector<std::string> object_data_points;
                 boost::split(object_data_points, object_data[1], boost::is_any_of(" "), boost::token_compress_off);
-                
+
                 sla::DrainHoles sla_drain_holes;
 
                 if (version == 1) {
@@ -2040,7 +2042,7 @@ namespace Slic3r {
                     hole.pos += hole.normal.normalized();
                     hole.height -= 1.f;
                 }
-                
+
                 if (!sla_drain_holes.empty())
                     m_sla_drain_holes.insert({ object_id, sla_drain_holes });
             }
@@ -2088,11 +2090,11 @@ namespace Slic3r {
                 pt::ptree attr_tree = tree.find("<xmlattr>")->second;
                 if (attr_tree.find("type") == attr_tree.not_found()) {
                     // It means that data was saved in old version (2.2.0 and older) of BambuStudio
-                    // read old data ... 
+                    // read old data ...
                     std::string gcode       = tree.get<std::string> ("<xmlattr>.gcode");
                     // ... and interpret them to the new data
-                    type  = gcode == "M600"           ? CustomGCode::ColorChange : 
-                            gcode == "M601"           ? CustomGCode::PausePrint  :   
+                    type  = gcode == "M600"           ? CustomGCode::ColorChange :
+                            gcode == "M601"           ? CustomGCode::PausePrint  :
                             gcode == "tool_change"    ? CustomGCode::ToolChange  :   CustomGCode::Custom;
                     extra = type == CustomGCode::PausePrint ? color :
                             type == CustomGCode::Custom     ? gcode : "";
@@ -2977,7 +2979,7 @@ namespace Slic3r {
         if (!m_parsing_slice_info) {
             m_curr_plater = new PlateData();
         }
- 
+
         return true;
     }
 
@@ -3406,7 +3408,7 @@ namespace Slic3r {
                         tri_id -= min_id;
             }
 
-            /*if (m_bambuslicer_generator_version && 
+            /*if (m_bambuslicer_generator_version &&
                 *m_bambuslicer_generator_version >= *Semver::parse("2.4.0-alpha1") &&
                 *m_bambuslicer_generator_version < *Semver::parse("2.4.0-alpha3"))
                 // BambuStudio 2.4.0-alpha2 contained a bug, where all vertices of a single object were saved for each volume the object contained.
@@ -3524,7 +3526,7 @@ namespace Slic3r {
         if (importer != nullptr)
             importer->_handle_start_config_xml_element(name, attributes);
     }
-    
+
     void XMLCALL _BBS_3MF_Importer::_handle_end_config_xml_element(void* userData, const char* name)
     {
         _BBS_3MF_Importer* importer = (_BBS_3MF_Importer*)userData;
@@ -3833,7 +3835,7 @@ namespace Slic3r {
                 return false;
         }
 
-        // Adds relationships file ("_rels/.rels"). 
+        // Adds relationships file ("_rels/.rels").
         // The content of this file is the same for each BambuStudio 3mf.
         // The relationshis file contains a reference to the geometry file "3D/3dmodel.model", the name was chosen to be compatible with CURA.
         if (!_add_relationships_file_to_archive(archive)) {
@@ -3893,7 +3895,7 @@ namespace Slic3r {
         if (!_add_sla_support_points_file_to_archive(archive, model)) {
             return false;
         }
-        
+
         if (!_add_sla_drain_holes_file_to_archive(archive, model)) {
             return false;
         }*/
@@ -4030,7 +4032,7 @@ namespace Slic3r {
 #else
         std::string native_path = encode_path(path_in_zip.c_str());
         std::string extra = ZipUnicodePathExtraField::encode(path_in_zip, native_path);
-        bool result = mz_zip_writer_add_file_ex(&archive, native_path.c_str(), encode_path(src_file_path.c_str()).c_str(), NULL, 0, nocomp ? MZ_ZIP_FLAG_ASCII_FILENAME : MZ_DEFAULT_COMPRESSION, 
+        bool result = mz_zip_writer_add_file_ex(&archive, native_path.c_str(), encode_path(src_file_path.c_str()).c_str(), NULL, 0, nocomp ? MZ_ZIP_FLAG_ASCII_FILENAME : MZ_DEFAULT_COMPRESSION,
                 extra.c_str(), extra.length(), extra.c_str(), extra.length());
 #endif
         if (!result) {
@@ -4189,7 +4191,7 @@ namespace Slic3r {
         stream << std::setprecision(std::numeric_limits<float>::max_digits10);
     }
 
-    /* 
+    /*
     * BBS: Production Extension (SplitModel)
     *   save sub model if objects_data is not empty
     *   not collect build items in sub model
@@ -4206,11 +4208,11 @@ namespace Slic3r {
         std::string extra = sub_model ? ZipUnicodePathExtraField::encode(filename, zip_filename) : "";
 #endif
         mz_zip_writer_staged_context context;
-        if (!mz_zip_writer_add_staged_open(&archive, &context, sub_model ? zip_filename.c_str() : MODEL_FILE.c_str(), 
-            m_zip64 ? 
+        if (!mz_zip_writer_add_staged_open(&archive, &context, sub_model ? zip_filename.c_str() : MODEL_FILE.c_str(),
+            m_zip64 ?
                 // Maximum expected and allowed 3MF file size is 16GiB.
                 // This switches the ZIP file to a 64bit mode, which adds a tiny bit of overhead to file records.
-                (uint64_t(1) << 30) * 16 : 
+                (uint64_t(1) << 30) * 16 :
                 // Maximum expected 3MF file size is 4GB-1. This is a workaround for interoperability with Windows 10 3D model fixing API, see
                 // GH issue #6193.
                 (uint64_t(1) << 32) - 1,
@@ -4371,12 +4373,12 @@ namespace Slic3r {
             }
 
             stream << "</" << MODEL_TAG << ">\n";
-           
+
             std::string buf = stream.str();
 
             if ((! buf.empty() && ! mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) ||
                 ! encrypt.close() || // switch context if open
-                (sub_model && m_key_store && !m_key_store->finalize(path, encrypt)) || 
+                (sub_model && m_key_store && !m_key_store->finalize(path, encrypt)) ||
                 ! mz_zip_writer_add_staged_finish(&context)) {
                 add_error("Unable to add model file to archive");
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add model file to archive\n");
@@ -4474,7 +4476,7 @@ namespace Slic3r {
                     }
                     return true;
                 };
-                if ((! buf.empty() && ! mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) || 
+                if ((! buf.empty() && ! mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) ||
                     ! _add_mesh_to_object_stream(flush, object, backup_id, volumes_objectID, volume_start_id)) {
                     add_error("Unable to add mesh to archive");
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add mesh to archive\n");
@@ -4809,7 +4811,7 @@ namespace Slic3r {
                     sprintf(buffer, (i == 0) ? "%f" : ";%f", layer_height_profile[i]);
                     out += buffer;
                 }
-                
+
                 out += "\n";
             }
         }
@@ -4869,8 +4871,8 @@ namespace Slic3r {
             boost::replace_all(out, "><option",      ">\n   <option");
             boost::replace_all(out, "></range>",     ">\n  </range>");
             boost::replace_all(out, "></object>",    ">\n </object>");
-            // OR just 
-            boost::replace_all(out, "><",            ">\n<"); 
+            // OR just
+            boost::replace_all(out, "><",            ">\n<");
         }
 
         if (!out.empty()) {
@@ -4919,13 +4921,13 @@ namespace Slic3r {
         }
         return true;
     }
-    
+
     bool _BBS_3MF_Exporter::_add_sla_drain_holes_file_to_archive(mz_zip_archive& archive, Model& model)
     {
         assert(is_decimal_separator_point());
         const char *const fmt = "object_id=%d|";
         std::string out;
-        
+
         unsigned int count = 0;
         for (const ModelObject* object : model.objects) {
             ++count;
@@ -4942,7 +4944,7 @@ namespace Slic3r {
 
             if (!drain_holes.empty()) {
                 out += string_printf(fmt, count);
-                
+
                 // Store the layer height profile as a single space separated list.
                 for (size_t i = 0; i < drain_holes.size(); ++i)
                     out += string_printf((i == 0 ? "%f %f %f %f %f %f %f %f" : " %f %f %f %f %f %f %f %f"),
@@ -4954,15 +4956,15 @@ namespace Slic3r {
                                          drain_holes[i].normal(2),
                                          drain_holes[i].radius,
                                          drain_holes[i].height);
-                
+
                 out += "\n";
             }
         }
-        
+
         if (!out.empty()) {
             // Adds version header at the beginning:
             //out = std::string("drain_holes_format_version=") + std::to_string(drain_holes_format_version) + std::string("\n") + out;
-            
+
             if (!mz_zip_writer_add_mem(&archive, SLA_DRAIN_HOLES_FILE.c_str(), static_cast<const void*>(out.data()), out.length(), mz_uint(MZ_DEFAULT_COMPRESSION))) {
                 add_error("Unable to add sla support points file to archive");
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format("Unable to add sla support points file to archive\n");
@@ -5194,7 +5196,7 @@ namespace Slic3r {
                         stream << "    </" << INSTANCE_TAG << ">\n";
                     }
                 }
-                stream << "  </" << PLATE_TAG << ">\n"; 
+                stream << "  </" << PLATE_TAG << ">\n";
             }
         }
         // write model rels
@@ -5207,7 +5209,7 @@ namespace Slic3r {
             if (obj != nullptr) {
                 for (int instance_idx = 0; instance_idx < obj->instances.size(); ++instance_idx) {
                     if (obj->instances[instance_idx]->is_assemble_initialized()) {
-                        if (m_skip_static) 
+                        if (m_skip_static)
                             stream << "   <" << ASSEMBLE_ITEM_TAG << " " << OBJECT_ID_ATTR << "=\"" << obj_metadata.first << "\" ";
                         else
                             stream << "   <" << ASSEMBLE_ITEM_TAG << " " << OBJECT_ID_ATTR << "=\"" << obj_metadata.first  + obj->volumes.size() << "\" ";
@@ -5323,7 +5325,7 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
             mz_zip_zero_struct(&archive);
             mz_zip_writer_init_heap(&archive, 0, 1024 * 1024);
             {
-                mz_zip_writer_add_staged_open(&archive, &context, gcode_in_3mf.c_str(), m_zip64 ? (uint64_t(1) << 30) * 16 : (uint64_t(1) << 32) - 1, nullptr, nullptr, 0, 
+                mz_zip_writer_add_staged_open(&archive, &context, gcode_in_3mf.c_str(), m_zip64 ? (uint64_t(1) << 30) * 16 : (uint64_t(1) << 32) - 1, nullptr, nullptr, 0,
                     m_key_store ? MZ_BEST_SPEED : MZ_DEFAULT_COMPRESSION, nullptr, 0, nullptr, 0);
                 ZipEncrypt encrypt;
                 std::string path = "/" + gcode_in_3mf;
@@ -5384,12 +5386,12 @@ bool _BBS_3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_ar
             std::string gcode = //code.type == CustomGCode::ColorChange ? config->opt_string("color_change_gcode")    :
                                 //code.type == CustomGCode::PausePrint  ? config->opt_string("pause_print_gcode")     :
                                 //code.type == CustomGCode::Template    ? config->opt_string("template_custom_gcode") :
-                                code.type == CustomGCode::ToolChange  ? "tool_change"   : code.extra; 
+                                code.type == CustomGCode::ToolChange  ? "tool_change"   : code.extra;
             code_tree.put("<xmlattr>.gcode"     , gcode   );
         }
 
         pt::ptree& mode_tree = main_tree.add("mode", "");
-        // store mode of a custom_gcode_per_print_z 
+        // store mode of a custom_gcode_per_print_z
         mode_tree.put("<xmlattr>.value", model.custom_gcode_per_print_z.mode == CustomGCode::Mode::SingleExtruder ? CustomGCode::SingleExtruderMode :
                                          model.custom_gcode_per_print_z.mode == CustomGCode::Mode::MultiAsSingle ?  CustomGCode::MultiAsSingleMode :
                                          CustomGCode::MultiExtruderMode);
@@ -5402,7 +5404,7 @@ bool _BBS_3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_ar
             // Post processing("beautification") of the output string
             boost::replace_all(out, "><", ">\n<");
         }
-    } 
+    }
 
     if (!out.empty()) {
         if (!mz_zip_writer_add_mem(&archive, CUSTOM_GCODE_PER_PRINT_Z_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
@@ -5594,7 +5596,7 @@ public:
 
 private:
     enum TaskType {
-        None, 
+        None,
         Backup, // this task is working as response in ui thread
         AddObject,
         RemoveObject,
