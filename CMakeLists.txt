@@ -488,10 +488,11 @@ find_package(cereal REQUIRED)
 
 # l10n
 set(L10N_DIR "${SLIC3R_RESOURCES_DIR}/localization")
+set(BBL_L18N_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bbl/i18n")
 add_custom_target(gettext_make_pot
     COMMAND xgettext --keyword=L --keyword=_L --keyword=_u8L --keyword=L_CONTEXT:1,2c --keyword=_L_PLURAL:1,2 --add-comments=TRN --from-code=UTF-8 --debug --boost
-        -f "${L10N_DIR}/list.txt"
-        -o "${L10N_DIR}/BambuStudio.pot"
+        -f "${BBL_L18N_DIR}/list.txt"
+        -o "${BBL_L18N_DIR}/BambuStudio.pot"
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generate pot file from strings in the source tree"
 )
@@ -499,13 +500,13 @@ add_custom_target(gettext_merge_po_with_pot
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Merge localization po with new generted pot file"
 )
-file(GLOB L10N_PO_FILES "${L10N_DIR}/*/BambuStudio*.po")
-foreach(po_file ${L10N_PO_FILES})
+file(GLOB BBL_L10N_PO_FILES "${BBL_L18N_DIR}/*/BambuStudio*.po")
+foreach(po_file ${BBL_L10N_PO_FILES})
     GET_FILENAME_COMPONENT(po_dir "${po_file}" DIRECTORY)
     SET(po_new_file "${po_dir}/BambuStudio_.po")
     add_custom_command(
         TARGET gettext_merge_po_with_pot PRE_BUILD
-        COMMAND msgmerge -N -o ${po_file} ${po_file} "${L10N_DIR}/BambuStudio.pot"
+        COMMAND msgmerge -N -o ${po_file} ${po_file} "${BBL_L18N_DIR}/BambuStudio.pot"
         DEPENDS ${po_file}
     )
 endforeach()
@@ -513,10 +514,11 @@ add_custom_target(gettext_po_to_mo
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generate localization po files (binary) from mo files (texts)"
 )
-file(GLOB L10N_PO_FILES "${L10N_DIR}/*/BambuStudio*.po")
-foreach(po_file ${L10N_PO_FILES})
-    GET_FILENAME_COMPONENT(po_dir "${po_file}" DIRECTORY)
-    SET(mo_file "${po_dir}/BambuStudio.mo")
+file(GLOB L10N_PO_FILES "${BBL_L18N_DIR}/*/BambuStudio*.po")
+foreach(po_file ${BBL_L10N_PO_FILES})
+    GET_FILENAME_COMPONENT(SECOND_FOLDER_ABSOLUTE ${po_file} DIRECTORY)
+    string(REGEX REPLACE ".*/(.*)" "\\1" po_dir "${SECOND_FOLDER_ABSOLUTE}" )
+    SET(mo_file "${L10N_DIR}/${po_dir}/BambuStudio.mo")
     add_custom_command(
         TARGET gettext_po_to_mo PRE_BUILD
         COMMAND msgfmt ARGS --check-format -o ${mo_file} ${po_file}

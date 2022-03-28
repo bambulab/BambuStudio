@@ -292,6 +292,21 @@ wxBoxSizer *StatusBasePanel::create_project_task_page()
     m_button_report->SetFont(Label::Body_10);
     bSizer_task_btn->Add(m_button_report, 0, wxALL, 5);
 
+    m_button_pause_resume = new Button(this, _L("Pause"));
+
+    StateColor pause_resume_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+                               std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Enabled),
+                               std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    m_button_pause_resume->SetBackgroundColor(pause_resume_bg);
+    StateColor pause_resume_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Enabled));
+    m_button_pause_resume->SetBorderColor(pause_resume_bd);
+    StateColor pause_resume_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled));
+    m_button_pause_resume->SetTextColor(pause_resume_text);
+    m_button_pause_resume->SetFont(Label::Body_10);
+    m_button_pause_resume->SetMinSize(TASK_BUTTON_SIZE);
+
+    bSizer_task_btn->Add(m_button_pause_resume, 0, wxALIGN_RIGHT | wxALL, 5);
+
     m_button_abort = new Button(this, _L("Abort"));
 
     StateColor abort_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
@@ -310,25 +325,6 @@ wxBoxSizer *StatusBasePanel::create_project_task_page()
     m_button_abort->SetMinSize(TASK_BUTTON_SIZE);
 
     bSizer_task_btn->Add(m_button_abort, 0, wxALIGN_RIGHT | wxALL, 5);
-
-    m_button_pause_resume = new Button(this, _L("Pause"));
-
-    StateColor pause_resume_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
-                               std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
-                               std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                               std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Enabled),
-                               std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
-    m_button_pause_resume->SetBackgroundColor(pause_resume_bg);
-    StateColor pause_resume_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled),
-                               std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Enabled));
-    m_button_pause_resume->SetBorderColor(pause_resume_bd);
-    StateColor pause_resume_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled),
-                                 std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled));
-    m_button_pause_resume->SetTextColor(pause_resume_text);
-    m_button_pause_resume->SetFont(Label::Body_10);
-    m_button_pause_resume->SetMinSize(TASK_BUTTON_SIZE);
-
-    bSizer_task_btn->Add(m_button_pause_resume, 0, wxALIGN_RIGHT | wxALL, 5);
 
     fgSizer_task->Add(bSizer_task_btn, 0, wxEXPAND, 0);
 
@@ -1115,9 +1111,9 @@ void StatusPanel::update_subtask(MachineObject *obj)
     if (obj->can_pause() || obj->can_resume()) {
         m_button_pause_resume->Enable();
         if (obj->can_resume())
-            m_button_pause_resume->SetLabel("Resume");
+            m_button_pause_resume->SetLabel(_L("Resume"));
         else
-            m_button_pause_resume->SetLabel("Pause");
+            m_button_pause_resume->SetLabel(_L("Pause"));
     } else {
         m_button_pause_resume->Enable(false);
     }
