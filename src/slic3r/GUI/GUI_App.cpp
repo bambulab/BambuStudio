@@ -3195,8 +3195,14 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
             return false;
     }
 
-    auto wizard = new ConfigWizard(mainframe);
-    const bool res = wizard->run(reason, start_page);
+    //auto wizard = new ConfigWizard(mainframe);
+    //const bool res = wizard->run(reason, start_page);
+    GuideFrame wizard(this);
+    auto page = start_page == ConfigWizard::SP_WELCOME ? GuideFrame::BBL_WELCOME
+                : start_page == ConfigWizard::SP_FILAMENTS ? GuideFrame::BBL_FILAMENTS
+                : GuideFrame::BBL_MODELS;
+    wizard.SetStartPage(page);
+    bool       res = wizard.run();
 
     if (res) {
         load_current_presets();

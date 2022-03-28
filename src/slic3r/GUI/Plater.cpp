@@ -430,7 +430,7 @@ Sidebar::Sidebar(Plater *parent)
     wxBoxSizer* bSizer39;
     bSizer39 = new wxBoxSizer( wxHORIZONTAL );
     bSizer39->Add( 22 * em / 10, 0, 0, 0, 0 );
-    p->m_staticText_filament_settings = new wxStaticText( p->m_panel_filament_title, wxID_ANY, wxT("Filament"), wxDefaultPosition, wxDefaultSize, 0 );
+    p->m_staticText_filament_settings = new wxStaticText( p->m_panel_filament_title, wxID_ANY, _L("Filament"), wxDefaultPosition, wxDefaultSize, 0 );
     p->m_staticText_filament_settings->Wrap( -1 );
     p->m_staticText_filament_settings->SetFont(Label::Body_14);
     bSizer39->Add( p->m_staticText_filament_settings, 0, wxALIGN_CENTER );
@@ -442,9 +442,10 @@ Sidebar::Sidebar(Plater *parent)
 
     ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
     set_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
-        p->editing_filament = -1;
-        wxGetApp().params_dialog()->Popup();
-        wxGetApp().get_tab(Preset::TYPE_FILAMENT)->restore_last_select_item();
+        //p->editing_filament = -1;
+        //wxGetApp().params_dialog()->Popup();
+        //wxGetApp().get_tab(Preset::TYPE_FILAMENT)->restore_last_select_item();
+        wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
     });
 
     bSizer39->Add(set_btn, 0, wxALIGN_CENTER|wxALL, 5 * em / 10 );
