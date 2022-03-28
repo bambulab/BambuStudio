@@ -395,8 +395,7 @@ void GridCellSupportRenderer::Draw(wxGrid& grid,
                               int row, int col,
                               bool isSelected)
 {
-#if 0
-    ObjectGridTable *table = dynamic_cast<ObjectGridTable *>(grid.GetTable());
+    /*ObjectGridTable *table = dynamic_cast<ObjectGridTable *>(grid.GetTable());
     wxRect text_rect = rect;
 
     if (table) {
@@ -446,10 +445,9 @@ void GridCellSupportRenderer::Draw(wxGrid& grid,
             flags |= wxCONTROL_CHECKED;
 
         wxRendererNative::Get().DrawCheckBox( &grid, dc, text_rect, flags );
-    }
-#else
+    }*/
+
     wxGridCellBoolRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
-#endif
 }
 
 wxSize GridCellSupportRenderer::GetBestSize(wxGrid& grid,
@@ -458,15 +456,15 @@ wxSize GridCellSupportRenderer::GetBestSize(wxGrid& grid,
                                int WXUNUSED(row),
                                int WXUNUSED(col))
 {
-#if 0
+/*
     int text_width, text_height, width;
     grid.GetTextExtent(L("Support Disabled"), &text_width, &text_height, NULL, NULL, &Label::Body_10);
     width = text_width + 3*grid_cell_border_width + grid_cell_checkbox_size;
 
     wxSize size{width, 20};
-#else
+*/
     wxSize size{32, 20};
-#endif
+
     return size;
 }
 
@@ -860,7 +858,7 @@ void ObjectGrid::DrawColLabel(wxDC& dc, int col)
 // ObjectGridTable
 // ----------------------------------------------------------------------------
 std::string ObjectGridTable::category_all = "All";
-std::string ObjectGridTable::plate_outside = "Outside";
+std::string ObjectGridTable::plate_outside = L("Outside");
 
 ObjectGridTable::~ObjectGridTable()
 {
@@ -1485,11 +1483,11 @@ wxString ObjectGridTable::convert_filament_string(int index, wxString& filament_
 
 static wxString brim_choices[] =
 {
-    "Auto brim",
-    "No brim",
-    "Outer brim only",
-    "Inner brim only",
-    "Outer and inner brim"
+    L("Auto brim"),
+    L("No brim"),
+    L("Outer brim only"),
+    L("Inner brim only"),
+    L("Outer and inner brim")
 };
 
 void ObjectGridTable::init_cols(ObjectGrid *object_grid)
@@ -2173,7 +2171,7 @@ bool ObjectGridTable::OnCellLeftClick(int row, int col, ConfigOptionType &type)
                     else
                         wxGetApp().obj_list()->object_config_options_changed(object_volume_id);
 
-                    //update the right side setting list                    
+                    //update the right side setting list
                     bool is_object = (grid_row->row_type == row_object);
                     ModelObject* object = m_panel->m_model->objects[grid_row->object_id];
                     m_panel->m_side_window->Freeze();
@@ -2389,7 +2387,7 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
     m_side_window->ShowScrollbars(wxSHOW_SB_NEVER, wxSHOW_SB_NEVER);
     //m_side_window->EnableScrolling(false, true);
     //m_side_window->SetSize(wxSize(128, 512));
-    m_page_text = new wxStaticText(m_side_window, wxID_ANY, wxString("Per Object Setting"), wxDefaultPosition, wxSize(-1, 32), wxALIGN_CENTRE_HORIZONTAL|wxST_ELLIPSIZE_END);
+    m_page_text = new wxStaticText(m_side_window, wxID_ANY, wxString(L("Per Object Setting")), wxDefaultPosition, wxSize(-1, 32), wxALIGN_CENTRE_HORIZONTAL|wxST_ELLIPSIZE_END);
     m_page_text->SetMaxSize(wxSize(256, 32));
     m_page_text->SetFont(Label::Head_18);
     m_page_top_sizer->Add(m_page_text, 0, wxEXPAND, 5);
@@ -2494,26 +2492,26 @@ void ObjectTablePanel::load_data()
     //construct tables
     //m_object_grid->CreateGrid(rows, cols, wxGridSelectCells);
 #if HAS_COL_HEADER
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_plate_index, "Plate");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_assemble_name, "Module");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_name, "Name");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_printable, "Printable");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_plate_index, L("Plate"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_assemble_name, L("Module"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_name, L("Name"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_printable, L("Printable"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_printable_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments, "Filaments");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments, L("Filaments"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height, "Layer height");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height, L("Layer height"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_wall_loops, "Wall Loops");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_wall_loops, L("Wall loops"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_wall_loops_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_fill_density, "Infill density(%)");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_fill_density, L("Infill density(%)"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_fill_density_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_enable_support, "Support");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_enable_support, L("Support"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_enable_support_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_brim_type, "Brim");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_brim_type, L("Brim"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_brim_type_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_speed_perimeter, "Inner Wall Speed");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_speed_perimeter, L("Inner wall speed"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_speed_perimeter_reset, "");
-    m_object_grid->SetLabelFont(Label::Body_14); 
+    m_object_grid->SetLabelFont(Label::Body_14);
 #else
     m_object_grid->HideColLabels();
 #endif
@@ -2919,7 +2917,7 @@ void ObjectTableDialog::on_sys_color_changed()
 }
 
 void ObjectTableDialog::OnClose(wxCloseEvent &evt)
-{ 
+{
     this->GetSize(&g_dialog_width, &g_dialog_height);
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", g_dialog_width %1%, g_dialog_height %2%") %g_dialog_width % g_dialog_height;
     evt.Skip();

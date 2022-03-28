@@ -2589,7 +2589,7 @@ void GUI_App::add_config_menu(wxMenu *menu)
         local_menu->Append(config_id_base + ConfigMenuUpdate, _L("Check for Configuration Updates"), _L("Check for configuration updates"));
         local_menu->AppendSeparator();
     }
-    local_menu->Append(config_id_base + ConfigMenuPreferences, _L("&Preferences") + dots +
+    local_menu->Append(config_id_base + ConfigMenuPreferences, _L("Preferences") + dots +
 #ifdef __APPLE__
         "\tCtrl+,",
 #else
@@ -2608,7 +2608,7 @@ void GUI_App::add_config_menu(wxMenu *menu)
         local_menu->AppendSubMenu(mode_menu, _L("Mode"), wxString::Format(_L("%s Mode"), SLIC3R_APP_NAME));
     }
     local_menu->AppendSeparator();
-    local_menu->Append(config_id_base + ConfigMenuLanguage, _L("&Language"));
+    local_menu->Append(config_id_base + ConfigMenuLanguage, _L("Language"));
     if (is_editor()) {
         local_menu->AppendSeparator();
     }
@@ -2711,8 +2711,8 @@ void GUI_App::add_config_menu(wxMenu *menu)
     }
 
     // BBS
-    //menu->Append(local_menu, _L("&Configuration"));
-    menu->AppendSubMenu(local_menu, _L("&Configuration"));
+    //menu->Append(local_menu, _L("Configuration"));
+    menu->AppendSubMenu(local_menu, _L("Configuration"));
 }
 
 void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_option)

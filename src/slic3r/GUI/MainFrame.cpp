@@ -81,7 +81,7 @@ public:
         //wxMenu *menu = new wxMenu;
         //BBS do not support multi instances in mac
         //if(wxGetApp().app_config->get("single_instance") == "0") {
-        //    // Only allow opening a new BambuStudio instance on OSX if "single_instance" is disabled, 
+        //    // Only allow opening a new BambuStudio instance on OSX if "single_instance" is disabled,
         //    // as starting new instances would interfere with the locking mechanism of "single_instance" support.
         //    append_menu_item(menu, wxID_ANY, _L("Open new instance"), _L("Open a new BambuStudio instance"),
         //    [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr);
@@ -161,7 +161,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
     wxAuiToolBar* toolbar = new wxAuiToolBar();
 /*
-#ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList 
+#ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
     this->SetFont(this->normal_font());
 #endif
     // Font is already set in DPIFrame constructor
@@ -501,7 +501,7 @@ void MainFrame::update_layout()
 //#ifdef __APPLE__
 //    // Using SetMinSize() on Mac messes up the window position in some cases
 //    // cf. https://groups.google.com/forum/#!topic/wx-users/yUKPBBfXWO0
-//    // So, if we haven't possibility to set MinSize() for the MainFrame, 
+//    // So, if we haven't possibility to set MinSize() for the MainFrame,
 //    // set the MinSize() as a half of regular  for the m_plater and m_tabpanel, when settings layout is in slNew mode
 //    // Otherwise, MainFrame will be maximized by height
 //    if (m_layout == ESettingsLayout::New) {
@@ -515,7 +515,7 @@ void MainFrame::update_layout()
 #ifdef __APPLE__
     m_plater->sidebar().change_top_border_for_mode_sizer(m_layout != ESettingsLayout::Old);
 #endif
-    
+
     Layout();
     Thaw();
 }
@@ -578,7 +578,7 @@ void MainFrame::shutdown()
 //         Slic3r::GUI::deregister_on_request_update_callback();
 
     // set to null tabs and a plater
-    // to avoid any manipulations with them from App->wxEVT_IDLE after of the mainframe closing 
+    // to avoid any manipulations with them from App->wxEVT_IDLE after of the mainframe closing
     wxGetApp().tabs_list.clear();
     wxGetApp().model_tabs_list.clear();
     // BBS: why clear ?
@@ -714,14 +714,14 @@ void MainFrame::register_win32_callbacks()
             //SHCNE_UPDATEITEM,                                                     // Events of interest - use SHCNE_ALLEVENTS for all events
             WM_USER_MEDIACHANGED,                                                   // Notification message to be sent upon the event
             1,                                                                      // Number of entries in the pfsne array
-            &shCNE);                                                                // Array of SHChangeNotifyEntry structures that 
-                                                                                    // contain the notifications. This array should 
+            &shCNE);                                                                // Array of SHChangeNotifyEntry structures that
+                                                                                    // contain the notifications. This array should
                                                                                     // always be set to one when calling SHChnageNotifyRegister
                                                                                     // or SHChangeNotifyDeregister will not work properly.
         assert(m_ulSHChangeNotifyRegister != 0);    // Shell notification failed
     } else {
         // Failed to get desktop location
-        assert(false); 
+        assert(false);
     }
 
     {
@@ -1410,11 +1410,11 @@ void MainFrame::init_menubar_as_editor()
     wxMenu* fileMenu = new wxMenu;
     {
         // New Project
-        append_menu_item(fileMenu, wxID_ANY, _L("&New Project") + "\tCtrl+N", _L("Start a new project"),
+        append_menu_item(fileMenu, wxID_ANY, _L("New Project") + "\tCtrl+N", _L("Start a new project"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->new_project(); }, "", nullptr,
             [this](){return m_plater != nullptr && can_start_new_project(); }, this);
         // Open Project
-        append_menu_item(fileMenu, wxID_ANY, _L("&Open Project") + dots + "\tCtrl+O", _L("Open a project file"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Open Project") + dots + "\tCtrl+O", _L("Open a project file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "menu_open", nullptr,
             [this](){return m_plater != nullptr; }, this);
         // Recent Project
@@ -1458,14 +1458,14 @@ void MainFrame::init_menubar_as_editor()
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_recent_projects.GetCount() > 0); }, recent_projects_submenu->GetId());
 
         // BBS: close save project
-        append_menu_item(fileMenu, wxID_ANY, _L("&Save Project") + "\tCtrl+S", _L("Save current project to file"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Save Project") + "\tCtrl+S", _L("Save current project to file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(); }, "menu_save", nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
 
 #ifdef __APPLE__
-        append_menu_item(fileMenu, wxID_ANY, _L("Save Project &as") + dots + "\tCtrl+Shift+S", _L("Save current project as"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\tCtrl+Shift+S", _L("Save current project as"),
 #else
-        append_menu_item(fileMenu, wxID_ANY, _L("Save Project &as") + dots + "\tCtrl+Alt+S", _L("Save current project as"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\tCtrl+Alt+S", _L("Save current project as"),
 #endif // __APPLE__
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, "menu_save", nullptr,
             [this](){return m_plater != nullptr && can_save_as(); }, this);
@@ -1473,25 +1473,25 @@ void MainFrame::init_menubar_as_editor()
         fileMenu->AppendSeparator();
 
         //BBS
-        append_menu_item(fileMenu, wxID_ANY, _L("Import STL/STEP/OBJ/AM&F/3MF") + dots + "\tCtrl+I", _L("Load a model"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots + "\tCtrl+I", _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) { m_plater->add_model(); } }, "menu_import", nullptr,
             [this](){return m_plater != nullptr; }, this);
 
         wxMenu* export_menu = new wxMenu();
         // BBS export as STL
-        append_menu_item(export_menu, wxID_ANY, _L("Export all objects as &STL") + dots, _L("Export all objects as STL"),
+        append_menu_item(export_menu, wxID_ANY, _L("Export all objects as STL") + dots, _L("Export all objects as STL"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, "menu_export_stl", nullptr,
             [this](){return can_export_model(); }, this);
         // BBS export Gcode
-        wxMenuItem* item_export_gcode = append_menu_item(export_menu, wxID_ANY, _L("Export &G-code") + dots + "\tCtrl+G", _L("Export current plate as G-code"),
+        wxMenuItem* item_export_gcode = append_menu_item(export_menu, wxID_ANY, _L("Export G-code") + dots + "\tCtrl+G", _L("Export current plate as G-code"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(false); }, "menu_export_gcode", nullptr,
             [this](){return can_export_gcode(); }, this);
 
-        append_submenu(fileMenu, export_menu, wxID_ANY, _L("&Export"), "");
+        append_submenu(fileMenu, export_menu, wxID_ANY, _L("Export"), "");
 
         fileMenu->AppendSeparator();
 
-        append_menu_item(fileMenu, wxID_EXIT, _L("&Quit"), wxString::Format(_L("Quit")),
+        append_menu_item(fileMenu, wxID_EXIT, _L("Quit"), wxString::Format(_L("Quit")),
             [this](wxCommandEvent&) { Close(false); }, "menu_exit", nullptr);
     }
 
@@ -1508,33 +1508,33 @@ void MainFrame::init_menubar_as_editor()
     #endif
 
         // BBS undo
-        append_menu_item(editMenu, wxID_ANY, _L("&Undo") + "\tCtrl+Z",
+        append_menu_item(editMenu, wxID_ANY, _L("Undo") + "\tCtrl+Z",
             _L("Undo"), [this](wxCommandEvent&) { m_plater->undo(); },
             "menu_undo", nullptr, [this](){return m_plater->can_undo(); }, this);
         // BBS redo
-        append_menu_item(editMenu, wxID_ANY, _L("&Redo") + "\tCtrl+Y",
+        append_menu_item(editMenu, wxID_ANY, _L("Redo") + "\tCtrl+Y",
             _L("Redo"), [this](wxCommandEvent&) { m_plater->redo(); },
             "menu_redo", nullptr, [this](){return m_plater->can_redo(); }, this);
         editMenu->AppendSeparator();
         // BBS Cut TODO
-        append_menu_item(editMenu, wxID_ANY, _L("&Cut") + "\tCtrl+X",
+        append_menu_item(editMenu, wxID_ANY, _L("Cut") + "\tCtrl+X",
             _L("Cut selection to clipboard"), [this](wxCommandEvent&) {m_plater->cut_selection_to_clipboard(); },
             "menu_cut", nullptr, [this]() {return m_plater->can_copy_to_clipboard(); }, this);
         // BBS Copy
-        append_menu_item(editMenu, wxID_ANY, _L("&Copy") + "\tCtrl+C",
+        append_menu_item(editMenu, wxID_ANY, _L("Copy") + "\tCtrl+C",
             _L("Copy selection to clipboard"), [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); },
             "menu_copy", nullptr, [this](){return m_plater->can_copy_to_clipboard(); }, this);
         // BBS Paste
-        append_menu_item(editMenu, wxID_ANY, _L("&Paste") + "\tCtrl+V",
+        append_menu_item(editMenu, wxID_ANY, _L("Paste") + "\tCtrl+V",
             _L("Paste clipboard"), [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); },
             "menu_paste", nullptr, [this](){return m_plater->can_paste_from_clipboard(); }, this);
         // BBS Delete selected
-        append_menu_item(editMenu, wxID_ANY, _L("&Delete selected") + "\tDel",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete selected") + "\tDel",
             _L("Deletes the current selection"),[this](wxCommandEvent&) { m_plater->remove_selected(); },
             "menu_remove", nullptr, [this](){return can_delete(); }, this);
         editMenu->AppendSeparator();
         // BBS Clone Selected
-        append_menu_item(editMenu, wxID_ANY, _L("&Clone selected") + "\tCtrl+M",
+        append_menu_item(editMenu, wxID_ANY, _L("Clone selected") + "\tCtrl+M",
             _L("Clone copies of selections"),[this](wxCommandEvent&) {
                 long res = wxGetNumberFromUser("",
                     _L("Clone"),
@@ -1551,11 +1551,11 @@ void MainFrame::init_menubar_as_editor()
             "menu_remove", nullptr, [this](){return can_select(); }, this);
         editMenu->AppendSeparator();
         // BBS Select All
-        append_menu_item(editMenu, wxID_ANY, _L("&Select all") + "\tCtrl+A",
+        append_menu_item(editMenu, wxID_ANY, _L("Select all") + "\tCtrl+A",
             _L("Selects all objects"), [this](wxCommandEvent&) { m_plater->select_all(); },
             "", nullptr, [this](){return can_select(); }, this);
         // BBS Deslect All
-        append_menu_item(editMenu, wxID_ANY, _L("D&eselect all") + "\tEsc",
+        append_menu_item(editMenu, wxID_ANY, _L("Deselect all") + "\tEsc",
             _L("Deselects all objects"), [this](wxCommandEvent&) { m_plater->deselect_all(); },
             "", nullptr, [this](){return can_deselect(); }, this);
         editMenu->AppendSeparator();
@@ -1616,9 +1616,9 @@ void MainFrame::init_menubar_as_editor()
     auto config_wizard_name = _(ConfigWizard::name(true) + "(Debug)");
     const auto config_wizard_tooltip = from_u8((boost::format(_utf8(L("Run %s"))) % config_wizard_name).str());
     auto config_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuWizard + config_id_base, config_wizard_name, config_wizard_tooltip);
-    auto preference_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuPreferences + config_id_base, _L("&Preference"), "");
+    auto preference_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuPreferences + config_id_base, _L("Preferences"), "");
     auto printer_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuModeSimple + config_id_base, _L("Printer"), "");
-    auto language_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuLanguage + config_id_base, _L("&Switch Language"), "");
+    auto language_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuLanguage + config_id_base, _L("Switch Language"), "");
     m_topbar->GetTopMenu()->Bind(wxEVT_MENU, [this, config_id_base](wxEvent& event) {
         switch (event.GetId() - config_id_base) {
         case ConfigMenuLanguage:
@@ -1687,15 +1687,15 @@ void MainFrame::init_menubar_as_editor()
 
     m_topbar->SetFileMenu(fileMenu);
     if (editMenu)
-        m_topbar->AddDropDownSubMenu(editMenu, _L("&Edit"));
+        m_topbar->AddDropDownSubMenu(editMenu, _L("Edit"));
     if (viewMenu)
-        m_topbar->AddDropDownSubMenu(viewMenu, _L("&View"));
+        m_topbar->AddDropDownSubMenu(viewMenu, _L("View"));
     //BBS add Preference
     m_topbar->AddDropDownMenuItem(preference_item);
     m_topbar->AddDropDownMenuItem(printer_item);
     //m_topbar->AddDropDownMenuItem(language_item);
     m_topbar->AddDropDownMenuItem(config_item);
-    m_topbar->AddDropDownSubMenu(helpMenu, _L("&Help"));
+    m_topbar->AddDropDownSubMenu(helpMenu, _L("Help"));
 
 #ifdef _MSW_DARK_MODE
     if (wxGetApp().tabs_as_menu())
@@ -1960,7 +1960,7 @@ void MainFrame::load_config(const DynamicPrintConfig& config)
 				if (! boost::algorithm::ends_with(opt_key, "_settings_id"))
 					tab->get_config()->option(opt_key)->set(config.option(opt_key));
         }
-    
+
     wxGetApp().load_current_presets();
 #endif
 }
@@ -2198,7 +2198,7 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
     m_plater->sidebar().update_presets(Preset::TYPE_FILAMENT);
 }
 
-std::string MainFrame::get_base_name(const wxString &full_name, const char *extension) const 
+std::string MainFrame::get_base_name(const wxString &full_name, const char *extension) const
 {
     boost::filesystem::path filename = boost::filesystem::path(full_name.wx_str()).filename();
     if (extension != nullptr)
@@ -2206,7 +2206,7 @@ std::string MainFrame::get_base_name(const wxString &full_name, const char *exte
     return filename.string();
 }
 
-std::string MainFrame::get_dir_name(const wxString &full_name) const 
+std::string MainFrame::get_dir_name(const wxString &full_name) const
 {
     return boost::filesystem::path(full_name.wx_str()).parent_path().string();
 }
