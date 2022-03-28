@@ -2258,38 +2258,14 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
         http.auth_basic("slicer", "znFx94AAew8VVHv");
         http.on_complete([this](std::string body, unsigned) {
             try{
-                UPGRADE_MODULE upgrade_module = (UPGRADE_MODULE)cb_upgrade_module->GetCurrentSelection();
-                int version = cb_upgrade_version->GetCurrentSelection();
-
                 json j = json::parse(body);
                 for (json::iterator it = j.begin(); it != j.end(); ++it) {
-                    if (upgrade_module == MODULE_MC || upgrade_module == MODULE_TH || upgrade_module == MODULE_AMS) {
-                        std::string item = (*it)["name"];
-                        if (version == 0 && boost::contains(item, "rev5")) {
-                            UpgradeItem item;
-                            item.name = (*it)["name"];
-                            item.version = (*it)["version"];
-                            item.url = (*it)["url"];
-                            upgrade_file_list.push_back((*it)["name"]);
-                            upgrade_img_list.push_back(item);
-                        }
-                        else if (version == 1 && boost::contains(item, "rev4")) {
-                            UpgradeItem item;
-                            item.name = (*it)["name"];
-                            item.version = (*it)["version"];
-                            item.url = (*it)["url"];
-                            upgrade_file_list.push_back((*it)["name"]);
-                            upgrade_img_list.push_back(item);
-                        }
-                    }
-                    else {
-                        UpgradeItem item;
-                        item.name = (*it)["name"];
-                        item.version = (*it)["version"];
-                        item.url = (*it)["url"];
-                        upgrade_file_list.push_back((*it)["name"]);
-                        upgrade_img_list.push_back(item);
-                    }
+                    UpgradeItem item;
+                    item.name = (*it)["name"];
+                    item.version = (*it)["version"];
+                    item.url = (*it)["url"];
+                    upgrade_file_list.push_back((*it)["name"]);
+                    upgrade_img_list.push_back(item);
                 }
             }
             catch (...) {
