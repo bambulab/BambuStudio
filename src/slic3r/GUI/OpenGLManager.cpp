@@ -254,8 +254,7 @@ bool OpenGLManager::init_gl()
         if (!valid_version) {
             // Complain about the OpenGL version.
             wxString message = from_u8((boost::format(
-                _utf8(L("The application requires OpenGL 2.0 capable graphics driver to run correctly, \n"
-                    "current OpenGL version %s, render %s, vendor %s."))) % s_gl_info.get_version() % s_gl_info.get_renderer() % s_gl_info.get_vendor()).str());
+                _utf8(L("The application cannot run normally because OpenGL version is lower than 2.0.\n")))).str());
             message += "\n";
         	message += _L("Please upgrade your graphics card driver.");
         	wxMessageBox(message, _L("Unsupported OpenGL version"), wxOK | wxICON_ERROR);

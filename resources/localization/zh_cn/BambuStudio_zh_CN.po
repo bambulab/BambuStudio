@@ -2,15 +2,12 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
 #
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2126 src/slic3r/GUI/Plater.cpp:6334
-#: src/slic3r/GUI/Plater.cpp:6340 src/slic3r/GUI/Tab.cpp:1525
-#: src/libslic3r/PrintConfig.cpp:392
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-28 21:17+0800\n"
-"PO-Revision-Date: 2022-03-27 19:22+0800\n"
+"POT-Creation-Date: 2022-03-28 23:28+0800\n"
+"PO-Revision-Date: 2022-03-28 23:29+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -798,8 +795,8 @@ msgstr "滤除碎片"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:93
 #: src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp:125
-msgid "Set brush size"
-msgstr ""
+msgid "Set pen size"
+msgstr "设置画笔大小"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:94
 #: src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp:126
@@ -1343,12 +1340,12 @@ msgstr[0] "对预设的修改已被保存"
 msgid "All modifications will be discarded for new project."
 msgstr "在新项目中所有修改都会被丢弃。"
 
-#: src/slic3r/GUI/GUI_App.cpp:3041 src/slic3r/GUI/Plater.cpp:6607
+#: src/slic3r/GUI/GUI_App.cpp:3041 src/slic3r/GUI/Plater.cpp:6608
 msgid "G-code files can not be loaded with models together!"
 msgstr "G-code文件不能和模型一起加载"
 
-#: src/slic3r/GUI/GUI_App.cpp:3041 src/slic3r/GUI/Plater.cpp:6599
-#: src/slic3r/GUI/Plater.cpp:6607
+#: src/slic3r/GUI/GUI_App.cpp:3041 src/slic3r/GUI/Plater.cpp:6600
+#: src/slic3r/GUI/Plater.cpp:6608
 msgid "G-code loading"
 msgstr "正在加载G-code文件"
 
@@ -2546,7 +2543,7 @@ msgstr "加载模型"
 msgid "Export all objects as STL"
 msgstr "导出所有对象为STL"
 
-#: src/slic3r/GUI/MainFrame.cpp:1486 src/slic3r/GUI/Plater.cpp:8251
+#: src/slic3r/GUI/MainFrame.cpp:1486 src/slic3r/GUI/Plater.cpp:8252
 msgid "Export G-code"
 msgstr "导出 G-code"
 
@@ -2554,7 +2551,7 @@ msgstr "导出 G-code"
 msgid "Export current plate as G-code"
 msgstr "导出当前盘的G-code"
 
-#: src/slic3r/GUI/MainFrame.cpp:1490 src/slic3r/GUI/Plater.cpp:8251
+#: src/slic3r/GUI/MainFrame.cpp:1490 src/slic3r/GUI/Plater.cpp:8252
 msgid "Export"
 msgstr "导出"
 
@@ -2606,7 +2603,7 @@ msgstr "克隆所选项"
 msgid "Clone copies of selections"
 msgstr "克隆多份所选项"
 
-#: src/slic3r/GUI/MainFrame.cpp:1541 src/slic3r/GUI/Plater.cpp:6872
+#: src/slic3r/GUI/MainFrame.cpp:1541 src/slic3r/GUI/Plater.cpp:6873
 msgid "Number of copies:"
 msgstr "克隆数量："
 
@@ -2849,8 +2846,8 @@ msgid "Exporting."
 msgstr "正在导出。"
 
 #: src/slic3r/GUI/NotificationManager.hpp:800
-msgid "Software has new version."
-msgstr "软件有新版本。"
+msgid "Software has New version."
+msgstr ""
 
 #: src/slic3r/GUI/NotificationManager.hpp:800
 msgid "Goto download page."
@@ -2932,11 +2929,11 @@ msgstr "Gcode路径有重叠"
 
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:61
 msgid "Support painting"
-msgstr ""
+msgstr "支撑绘制"
 
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:63
 msgid "Color painting"
-msgstr ""
+msgstr "颜色绘制"
 
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:120
 msgid "Layers"
@@ -2953,30 +2950,27 @@ msgid "default"
 msgstr "缺省"
 
 #: src/slic3r/GUI/OpenGLManager.cpp:257
-#, c-format, boost-format
 msgid ""
-"The application requires OpenGL 2.0 capable graphics driver to run "
-"correctly, \n"
-"current OpenGL version %s, render %s, vendor %s."
-msgstr ""
-"应用程序需要OpenGL 2.0 图形化驱动。当前OpenGL 版本 %s, render %s, vendor %s."
+"The application cannot run normally because OpenGL version is lower than "
+"2.0.\n"
+msgstr "应用程序无法正常运行，因为OpenGL的版本低于2.0。\n"
 
-#: src/slic3r/GUI/OpenGLManager.cpp:260
+#: src/slic3r/GUI/OpenGLManager.cpp:259
 msgid "Please upgrade your graphics card driver."
 msgstr "请升级您的显卡驱动。"
 
-#: src/slic3r/GUI/OpenGLManager.cpp:261
+#: src/slic3r/GUI/OpenGLManager.cpp:260
 msgid "Unsupported OpenGL version"
 msgstr "不支持的OpenGL版本"
 
-#: src/slic3r/GUI/OpenGLManager.cpp:269
+#: src/slic3r/GUI/OpenGLManager.cpp:268
 #, c-format, boost-format
 msgid ""
 "Unable to load shaders:\n"
 "%s"
 msgstr "无法加载Shader: %s"
 
-#: src/slic3r/GUI/OpenGLManager.cpp:270
+#: src/slic3r/GUI/OpenGLManager.cpp:269
 msgid "Error loading shaders"
 msgstr "加载shader程序时发生错误"
 
@@ -3196,7 +3190,7 @@ msgstr "正在导入模型"
 msgid "prepare 3mf file..."
 msgstr "正在准备3mf文件..."
 
-#: src/slic3r/GUI/Plater.cpp:5972 src/slic3r/GUI/Plater.cpp:7518
+#: src/slic3r/GUI/Plater.cpp:5972 src/slic3r/GUI/Plater.cpp:7519
 #, c-format, boost-format
 msgid "get_des,err:code=%u,msg=%s"
 msgstr ""
@@ -3260,149 +3254,149 @@ msgstr "确认"
 msgid "Cancel"
 msgstr "取消"
 
-#: src/slic3r/GUI/Plater.cpp:6599
+#: src/slic3r/GUI/Plater.cpp:6600
 msgid "Only one G-code file can be opened at the same time."
 msgstr "只能同时打开一个G-code文件。"
 
-#: src/slic3r/GUI/Plater.cpp:6729
+#: src/slic3r/GUI/Plater.cpp:6730
 msgid "All objects will be removed, continue?"
 msgstr "即将删除所有对象，是否继续？"
 
-#: src/slic3r/GUI/Plater.cpp:6729
+#: src/slic3r/GUI/Plater.cpp:6730
 msgid "Delete all"
 msgstr "全部删除"
 
-#: src/slic3r/GUI/Plater.cpp:6745
+#: src/slic3r/GUI/Plater.cpp:6746
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr "当前项目包含未保存的修改，是否先保存？"
 
-#: src/slic3r/GUI/Plater.cpp:6746 src/slic3r/GUI/UnsavedChangesDialog.cpp:933
+#: src/slic3r/GUI/Plater.cpp:6747 src/slic3r/GUI/UnsavedChangesDialog.cpp:933
 msgid "Save"
 msgstr "保存"
 
-#: src/slic3r/GUI/Plater.cpp:6873
+#: src/slic3r/GUI/Plater.cpp:6874
 msgid "Copies of the selected object"
 msgstr "所选对象的克隆数量"
 
-#: src/slic3r/GUI/Plater.cpp:7063
+#: src/slic3r/GUI/Plater.cpp:7064
 msgid "Save G-code file as:"
 msgstr "G-code文件另存为："
 
-#: src/slic3r/GUI/Plater.cpp:7120
+#: src/slic3r/GUI/Plater.cpp:7121
 msgid "Save Sliced file as:"
 msgstr "切片文件另存为："
 
-#: src/slic3r/GUI/Plater.cpp:7348
+#: src/slic3r/GUI/Plater.cpp:7349
 msgid "No objects to export."
 msgstr "没有可导出的对象。"
 
-#: src/slic3r/GUI/Plater.cpp:7348
+#: src/slic3r/GUI/Plater.cpp:7349
 msgid "Save project"
 msgstr "保存项目"
 
-#: src/slic3r/GUI/Plater.cpp:7463
+#: src/slic3r/GUI/Plater.cpp:7464
 msgid "Failed to publish your project. Please try agian!"
 msgstr "项目发布失败。请重试！"
 
-#: src/slic3r/GUI/Plater.cpp:7467
+#: src/slic3r/GUI/Plater.cpp:7468
 msgid "Upload and publish your project"
 msgstr "上传和发布项目"
 
-#: src/slic3r/GUI/Plater.cpp:7471
+#: src/slic3r/GUI/Plater.cpp:7472
 msgid "preparing your project"
 msgstr "正在准备您的项目"
 
-#: src/slic3r/GUI/Plater.cpp:7491
+#: src/slic3r/GUI/Plater.cpp:7492
 msgid "preparing, export 3mf failed!"
 msgstr "正在准备中，导出 3mf 失败！"
 
-#: src/slic3r/GUI/Plater.cpp:7510
+#: src/slic3r/GUI/Plater.cpp:7511
 msgid "Preparing to upload your project..."
 msgstr "正在准备上传项目..."
 
-#: src/slic3r/GUI/Plater.cpp:7535
+#: src/slic3r/GUI/Plater.cpp:7536
 #, c-format, boost-format
 msgid "req_proj,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7547
+#: src/slic3r/GUI/Plater.cpp:7548
 #, c-format, boost-format
 msgid "req_prof,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7554
+#: src/slic3r/GUI/Plater.cpp:7555
 msgid "uploading..."
 msgstr "上传中..."
 
-#: src/slic3r/GUI/Plater.cpp:7566 src/slic3r/GUI/Plater.cpp:7603
+#: src/slic3r/GUI/Plater.cpp:7567 src/slic3r/GUI/Plater.cpp:7604
 msgid "Upload has been canceled."
 msgstr "上传已被取消。"
 
-#: src/slic3r/GUI/Plater.cpp:7571
+#: src/slic3r/GUI/Plater.cpp:7572
 #, c-format, boost-format
 msgid "upload,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7581
+#: src/slic3r/GUI/Plater.cpp:7582
 #, c-format, boost-format
 msgid "put_no,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7582 src/slic3r/GUI/Plater.cpp:7609
+#: src/slic3r/GUI/Plater.cpp:7583 src/slic3r/GUI/Plater.cpp:7610
 msgid "Failed to publish. Please try again!"
 msgstr "发布失败，请重试！"
 
-#: src/slic3r/GUI/Plater.cpp:7597
+#: src/slic3r/GUI/Plater.cpp:7598
 msgid "Uploading is timed out. Please try again!"
 msgstr "上传已超时，请重试！"
 
-#: src/slic3r/GUI/Plater.cpp:7608
+#: src/slic3r/GUI/Plater.cpp:7609
 #, c-format, boost-format
 msgid "get_no,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7635
+#: src/slic3r/GUI/Plater.cpp:7636
 msgid "Internal Error. design id is empty."
 msgstr "内部错误。获取design id失败。"
 
-#: src/slic3r/GUI/Plater.cpp:8252
+#: src/slic3r/GUI/Plater.cpp:8253
 msgid "Send G-code"
 msgstr "发送 G 代码"
 
-#: src/slic3r/GUI/Plater.cpp:8252
+#: src/slic3r/GUI/Plater.cpp:8253
 msgid "Send to printer"
 msgstr "发送到打印机"
 
-#: src/slic3r/GUI/Plater.cpp:8283
+#: src/slic3r/GUI/Plater.cpp:8284
 msgid "Custom supports, seams and color painting were removed after repairing."
 msgstr "修复后自定义支撑、接缝、上色配置会被删除。"
 
-#: src/slic3r/GUI/Plater.cpp:8853
+#: src/slic3r/GUI/Plater.cpp:8854
 #, boost-format
 msgid "Part name: %1%\n"
 msgstr "零件名字：%1%\n"
 
-#: src/slic3r/GUI/Plater.cpp:8864
+#: src/slic3r/GUI/Plater.cpp:8865
 #, boost-format
 msgid "Object name: %1%\n"
 msgstr "对象名字：%1%\n"
 
-#: src/slic3r/GUI/Plater.cpp:8871
+#: src/slic3r/GUI/Plater.cpp:8872
 #, boost-format
 msgid "Size: %1% x %2% x %3% in\n"
 msgstr "大小：%1% x %2% x %3% 英寸\n"
 
-#: src/slic3r/GUI/Plater.cpp:8873
+#: src/slic3r/GUI/Plater.cpp:8874
 #, boost-format
 msgid "Size: %1% x %2% x %3% mm\n"
-msgstr "大小： %1% x %2% x %3% 毫米"
+msgstr "大小： %1% x %2% x %3% 毫米\n"
 
-#: src/slic3r/GUI/Plater.cpp:8880
+#: src/slic3r/GUI/Plater.cpp:8881
 #, boost-format
 msgid "Volume: %1% mm³\n"
-msgstr "体积： %1% 毫米³"
+msgstr "体积： %1% 毫米³\n"
 
-#: src/slic3r/GUI/Plater.cpp:8882
+#: src/slic3r/GUI/Plater.cpp:8883
 #, boost-format
 msgid "Triangles: %1%, "
 msgstr "三角形数： %1%, "
@@ -4182,8 +4176,8 @@ msgid "Failed loading objects."
 msgstr "加载对象失败。"
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:245
-msgid "Repairing objects by the Netfabb service"
-msgstr "通过Netfabb服务修复对象。"
+msgid "Repairing object by Windows service"
+msgstr "通过Windows服务修复对象"
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:250
 msgid "Repair failed."
@@ -4255,7 +4249,7 @@ msgstr "使用系统的SSL证书：%1%"
 
 #: src/slic3r/Utils/Http.cpp:86
 msgid "CURL initialization failed. See the log for additional details."
-msgstr "CURAL初始化失败。查看日志以获取详细信息。"
+msgstr "CURL初始化失败。查看日志以获取详细信息。"
 
 #: src/slic3r/Utils/Process.cpp:157
 msgid "Open G-code file:"
@@ -4281,7 +4275,7 @@ msgid ""
 "faulty mesh"
 msgstr "部分模型在这些高度可能过薄，或者模型存在面片错误"
 
-#: src/libslic3r/GCode.cpp:1337 src/libslic3r/GCode.cpp:1348
+#: src/libslic3r/GCode.cpp:1344 src/libslic3r/GCode.cpp:1355
 msgid "No object can be printed. Maybe too small"
 msgstr "没有可打印的对象。可能是因为尺寸过小。"
 
@@ -4790,15 +4784,15 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:489
 msgid "Auto"
-msgstr ""
+msgstr "自动"
 
 #: src/libslic3r/PrintConfig.cpp:490
 msgid "Manual"
-msgstr ""
+msgstr "手动"
 
 #: src/libslic3r/PrintConfig.cpp:491
 msgid "No-brim"
-msgstr ""
+msgstr "无brim"
 
 #: src/libslic3r/PrintConfig.cpp:499
 msgid "Brim-object gap"
@@ -5273,7 +5267,7 @@ msgstr "首层加速度。使用较低值可以改善和构建板的粘接"
 
 #: src/libslic3r/PrintConfig.cpp:996
 msgid "Initial layer bed temperature"
-msgstr ""
+msgstr "首层床温"
 
 #: src/libslic3r/PrintConfig.cpp:997
 msgid "Bed temperature of the initial layer"
@@ -6232,8 +6226,8 @@ msgstr "阈值角度"
 #: src/libslic3r/PrintConfig.cpp:2308
 msgid ""
 "Support will be generated for overhangs whose slope angle is below the "
-"threshold. Zero means automatic detection"
-msgstr "将会为悬垂角度低于阈值的模型表面生成支撑。零值表示自动检测。"
+"threshold."
+msgstr "将会为悬垂角度低于阈值的模型表面生成支撑。"
 
 #: src/libslic3r/PrintConfig.cpp:2316
 msgid "Wall around the support"
@@ -6342,11 +6336,11 @@ msgstr "顶部壳体层数"
 #: src/libslic3r/PrintConfig.cpp:2456
 msgid ""
 "The number of solid layers of top shell, including top surface layer. When "
-"the thickness calculated by this value is thinner than top_shell_thickness, "
+"the thickness calculated by this value is thinner than top shell thickness, "
 "the top shell layers number will be increased when slicing"
 msgstr ""
 "顶部壳体实心层层数，包括顶面。当由该层数计算的厚度小于顶部壳体厚度时，在切片"
-"时会增加顶部壳体层数"
+"时会增加顶部壳体的层数"
 
 #: src/libslic3r/PrintConfig.cpp:2458
 msgid "Top solid layers"
@@ -6570,6 +6564,35 @@ msgstr "生成支撑"
 #: src/libslic3r/PrintObjectSlice.cpp:536
 msgid "Slicing mesh"
 msgstr "切片网格"
+
+#~ msgid "Software has new version."
+#~ msgstr "软件有新版本。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The application requires OpenGL 2.0 capable graphics driver to run "
+#~ "correctly, \n"
+#~ "current OpenGL version %s, render %s, vendor %s."
+#~ msgstr ""
+#~ "应用程序需要OpenGL 2.0 图形化驱动。当前OpenGL 版本 %s, render %s, vendor "
+#~ "%s."
+
+#~ msgid "Repairing objects by the Netfabb service"
+#~ msgstr "通过Netfabb服务修复对象。"
+
+#~ msgid ""
+#~ "Support will be generated for overhangs whose slope angle is below the "
+#~ "threshold. Zero means automatic detection"
+#~ msgstr "将会为悬垂角度低于阈值的模型表面生成支撑。零值表示自动检测。"
+
+#~ msgid ""
+#~ "The number of solid layers of top shell, including top surface layer. "
+#~ "When the thickness calculated by this value is thinner than "
+#~ "top_shell_thickness, the top shell layers number will be increased when "
+#~ "slicing"
+#~ msgstr ""
+#~ "顶部壳体实心层层数，包括顶面。当由该层数计算的厚度小于顶部壳体厚度时，在切"
+#~ "片时会增加顶部壳体层数"
 
 #~ msgid "Configuration update is available."
 #~ msgstr "检测到可用的配置更新。"
@@ -7189,9 +7212,6 @@ msgstr "切片网格"
 
 #~ msgid "Open new G-code Viewer"
 #~ msgstr "打开BambuStudio"
-
-#~ msgid "Software has new version."
-#~ msgstr "软件有新版本。"
 
 #~ msgid "Goto Download page."
 #~ msgstr "前往下载页面。"

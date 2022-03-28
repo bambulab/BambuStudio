@@ -242,7 +242,7 @@ void fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 		hr = model->get_Meshes(meshes.GetAddressOf());
 		unsigned num_meshes = 0;
 		hr = meshes->get_Size(&num_meshes);
-		on_progress(L("Repairing objects by the Netfabb service"), 40);
+		on_progress(L("Repairing object by Windows service"), 40);
 		Microsoft::WRL::ComPtr<ABI::Windows::Foundation::IAsyncAction>					  repairAsync;
 		hr = model->RepairAsync(repairAsync.GetAddressOf());
 		status = winrt_async_await(repairAsync, throw_on_cancel);

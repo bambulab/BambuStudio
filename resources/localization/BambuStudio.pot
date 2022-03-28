@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-28 21:17+0800\n"
+"POT-Creation-Date: 2022-03-28 23:28+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -772,7 +772,7 @@ msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:93
 #: src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp:125
-msgid "Set brush size"
+msgid "Set pen size"
 msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:94
@@ -1312,12 +1312,12 @@ msgstr[1] ""
 msgid "All modifications will be discarded for new project."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:3041 src/slic3r/GUI/Plater.cpp:6607
+#: src/slic3r/GUI/GUI_App.cpp:3041 src/slic3r/GUI/Plater.cpp:6608
 msgid "G-code files can not be loaded with models together!"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:3041 src/slic3r/GUI/Plater.cpp:6599
-#: src/slic3r/GUI/Plater.cpp:6607
+#: src/slic3r/GUI/GUI_App.cpp:3041 src/slic3r/GUI/Plater.cpp:6600
+#: src/slic3r/GUI/Plater.cpp:6608
 msgid "G-code loading"
 msgstr ""
 
@@ -2509,7 +2509,7 @@ msgstr ""
 msgid "Export all objects as STL"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:1486 src/slic3r/GUI/Plater.cpp:8251
+#: src/slic3r/GUI/MainFrame.cpp:1486 src/slic3r/GUI/Plater.cpp:8252
 msgid "Export G-code"
 msgstr ""
 
@@ -2517,7 +2517,7 @@ msgstr ""
 msgid "Export current plate as G-code"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:1490 src/slic3r/GUI/Plater.cpp:8251
+#: src/slic3r/GUI/MainFrame.cpp:1490 src/slic3r/GUI/Plater.cpp:8252
 msgid "Export"
 msgstr ""
 
@@ -2569,7 +2569,7 @@ msgstr ""
 msgid "Clone copies of selections"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:1541 src/slic3r/GUI/Plater.cpp:6872
+#: src/slic3r/GUI/MainFrame.cpp:1541 src/slic3r/GUI/Plater.cpp:6873
 msgid "Number of copies:"
 msgstr ""
 
@@ -2918,29 +2918,27 @@ msgid "default"
 msgstr ""
 
 #: src/slic3r/GUI/OpenGLManager.cpp:257
-#, possible-c-format, possible-boost-format
 msgid ""
-"The application requires OpenGL 2.0 capable graphics driver to run "
-"correctly, \n"
-"current OpenGL version %s, render %s, vendor %s."
+"The application cannot run normally because OpenGL version is lower than "
+"2.0.\n"
 msgstr ""
 
-#: src/slic3r/GUI/OpenGLManager.cpp:260
+#: src/slic3r/GUI/OpenGLManager.cpp:259
 msgid "Please upgrade your graphics card driver."
 msgstr ""
 
-#: src/slic3r/GUI/OpenGLManager.cpp:261
+#: src/slic3r/GUI/OpenGLManager.cpp:260
 msgid "Unsupported OpenGL version"
 msgstr ""
 
-#: src/slic3r/GUI/OpenGLManager.cpp:269
+#: src/slic3r/GUI/OpenGLManager.cpp:268
 #, possible-c-format, possible-boost-format
 msgid ""
 "Unable to load shaders:\n"
 "%s"
 msgstr ""
 
-#: src/slic3r/GUI/OpenGLManager.cpp:270
+#: src/slic3r/GUI/OpenGLManager.cpp:269
 msgid "Error loading shaders"
 msgstr ""
 
@@ -3160,7 +3158,7 @@ msgstr ""
 msgid "prepare 3mf file..."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:5972 src/slic3r/GUI/Plater.cpp:7518
+#: src/slic3r/GUI/Plater.cpp:5972 src/slic3r/GUI/Plater.cpp:7519
 #, possible-c-format, possible-boost-format
 msgid "get_des,err:code=%u,msg=%s"
 msgstr ""
@@ -3224,149 +3222,149 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:6599
+#: src/slic3r/GUI/Plater.cpp:6600
 msgid "Only one G-code file can be opened at the same time."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:6729
+#: src/slic3r/GUI/Plater.cpp:6730
 msgid "All objects will be removed, continue?"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:6729
+#: src/slic3r/GUI/Plater.cpp:6730
 msgid "Delete all"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:6745
+#: src/slic3r/GUI/Plater.cpp:6746
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:6746 src/slic3r/GUI/UnsavedChangesDialog.cpp:933
+#: src/slic3r/GUI/Plater.cpp:6747 src/slic3r/GUI/UnsavedChangesDialog.cpp:933
 msgid "Save"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:6873
+#: src/slic3r/GUI/Plater.cpp:6874
 msgid "Copies of the selected object"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7063
+#: src/slic3r/GUI/Plater.cpp:7064
 msgid "Save G-code file as:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7120
+#: src/slic3r/GUI/Plater.cpp:7121
 msgid "Save Sliced file as:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7348
+#: src/slic3r/GUI/Plater.cpp:7349
 msgid "No objects to export."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7348
+#: src/slic3r/GUI/Plater.cpp:7349
 msgid "Save project"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7463
+#: src/slic3r/GUI/Plater.cpp:7464
 msgid "Failed to publish your project. Please try agian!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7467
+#: src/slic3r/GUI/Plater.cpp:7468
 msgid "Upload and publish your project"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7471
+#: src/slic3r/GUI/Plater.cpp:7472
 msgid "preparing your project"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7491
+#: src/slic3r/GUI/Plater.cpp:7492
 msgid "preparing, export 3mf failed!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7510
+#: src/slic3r/GUI/Plater.cpp:7511
 msgid "Preparing to upload your project..."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7535
+#: src/slic3r/GUI/Plater.cpp:7536
 #, possible-c-format, possible-boost-format
 msgid "req_proj,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7547
+#: src/slic3r/GUI/Plater.cpp:7548
 #, possible-c-format, possible-boost-format
 msgid "req_prof,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7554
+#: src/slic3r/GUI/Plater.cpp:7555
 msgid "uploading..."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7566 src/slic3r/GUI/Plater.cpp:7603
+#: src/slic3r/GUI/Plater.cpp:7567 src/slic3r/GUI/Plater.cpp:7604
 msgid "Upload has been canceled."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7571
+#: src/slic3r/GUI/Plater.cpp:7572
 #, possible-c-format, possible-boost-format
 msgid "upload,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7581
+#: src/slic3r/GUI/Plater.cpp:7582
 #, possible-c-format, possible-boost-format
 msgid "put_no,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7582 src/slic3r/GUI/Plater.cpp:7609
+#: src/slic3r/GUI/Plater.cpp:7583 src/slic3r/GUI/Plater.cpp:7610
 msgid "Failed to publish. Please try again!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7597
+#: src/slic3r/GUI/Plater.cpp:7598
 msgid "Uploading is timed out. Please try again!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7608
+#: src/slic3r/GUI/Plater.cpp:7609
 #, possible-c-format, possible-boost-format
 msgid "get_no,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7635
+#: src/slic3r/GUI/Plater.cpp:7636
 msgid "Internal Error. design id is empty."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8252
+#: src/slic3r/GUI/Plater.cpp:8253
 msgid "Send G-code"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8252
+#: src/slic3r/GUI/Plater.cpp:8253
 msgid "Send to printer"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8283
+#: src/slic3r/GUI/Plater.cpp:8284
 msgid "Custom supports, seams and color painting were removed after repairing."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8853
+#: src/slic3r/GUI/Plater.cpp:8854
 #, possible-boost-format
 msgid "Part name: %1%\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8864
+#: src/slic3r/GUI/Plater.cpp:8865
 #, possible-boost-format
 msgid "Object name: %1%\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8871
+#: src/slic3r/GUI/Plater.cpp:8872
 #, possible-boost-format
 msgid "Size: %1% x %2% x %3% in\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8873
+#: src/slic3r/GUI/Plater.cpp:8874
 #, possible-boost-format
 msgid "Size: %1% x %2% x %3% mm\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8880
+#: src/slic3r/GUI/Plater.cpp:8881
 #, possible-boost-format
 msgid "Volume: %1% mm³\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8882
+#: src/slic3r/GUI/Plater.cpp:8883
 #, possible-boost-format
 msgid "Triangles: %1%, "
 msgstr ""
@@ -4147,7 +4145,7 @@ msgid "Failed loading objects."
 msgstr ""
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:245
-msgid "Repairing objects by the Netfabb service"
+msgid "Repairing object by Windows service"
 msgstr ""
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:250
@@ -4246,7 +4244,7 @@ msgid ""
 "faulty mesh"
 msgstr ""
 
-#: src/libslic3r/GCode.cpp:1337 src/libslic3r/GCode.cpp:1348
+#: src/libslic3r/GCode.cpp:1344 src/libslic3r/GCode.cpp:1355
 msgid "No object can be printed. Maybe too small"
 msgstr ""
 
@@ -6154,7 +6152,7 @@ msgstr ""
 #: src/libslic3r/PrintConfig.cpp:2308
 msgid ""
 "Support will be generated for overhangs whose slope angle is below the "
-"threshold. Zero means automatic detection"
+"threshold."
 msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:2316
@@ -6259,7 +6257,7 @@ msgstr ""
 #: src/libslic3r/PrintConfig.cpp:2456
 msgid ""
 "The number of solid layers of top shell, including top surface layer. When "
-"the thickness calculated by this value is thinner than top_shell_thickness, "
+"the thickness calculated by this value is thinner than top shell thickness, "
 "the top shell layers number will be increased when slicing"
 msgstr ""
 

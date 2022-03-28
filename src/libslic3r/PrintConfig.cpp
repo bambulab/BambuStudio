@@ -2305,12 +2305,12 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_threshold_angle", coInt);
     def->label = L("Threshold angle");
     def->category = L("Support");
-    def->tooltip = L("Support will be generated for overhangs whose slope angle is below the threshold. Zero means automatic detection");
+    def->tooltip = L("Support will be generated for overhangs whose slope angle is below the threshold.");
     def->sidetext = L("°");
-    def->min = 0;
+    def->min = 1;
     def->max = 90;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionInt(0));
+    def->set_default_value(new ConfigOptionInt(30));
 
     def = this->add("support_with_sheath", coBool);
     def->label = L("Wall around the support");
@@ -2454,7 +2454,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Top shell layers");
     def->category = L("Strength");
     def->tooltip = L("The number of solid layers of top shell, including top surface layer. When the thickness calculated by this value "
-                     "is thinner than top_shell_thickness, the top shell layers number will be increased when slicing");
+                     "is thinner than top shell thickness, the top shell layers number will be increased when slicing");
     def->full_label = L("Top solid layers");
     def->min = 0;
     def->set_default_value(new ConfigOptionInt(2));

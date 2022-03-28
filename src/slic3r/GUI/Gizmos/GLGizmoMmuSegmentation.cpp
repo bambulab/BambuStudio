@@ -122,7 +122,7 @@ bool GLGizmoMmuSegmentation::on_init()
 
     m_desc["smart_fill_angle"]     = _L("Smart fill angle");
 
-    m_desc["brush_size"]         = _L("Set brush size");
+    m_desc["brush_size"]         = _L("Set pen size");
     m_desc["brush_size_caption"] = _L("Ctrl + Mouse wheel") + ": ";
 
     // BBS

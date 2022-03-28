@@ -90,7 +90,7 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["highlight_by_angle"]    = _L("Highlight overhang areas");
     m_desc["tiny_patch_filter"]     = _L("Tiny patch filter");
     m_desc["filter_tiny"]           = _L("Filter tiny patch");
-    m_desc["brush_size"]            = _L("Set brush size");
+    m_desc["brush_size"]            = _L("Set pen size");
     m_desc["brush_size_caption"]    = _L("Ctrl + Mouse wheel") + ": ";
 
     memset(&m_print_instance, sizeof(m_print_instance), 0);

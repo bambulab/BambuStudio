@@ -159,7 +159,7 @@ SysInfoDialog::SysInfoDialog()
             "</html>", bgr_clr_str, text_clr_str, text_clr_str,
             blacklisted_libraries_message,
             get_mem_info(true), wxGetApp().get_gl_info(false),
-            "<b>" + _L("Feature vectorization is supported:") + "</b> " + Eigen::SimdInstructionSetsInUse());
+            "<b>" + _L("SIMD is supported:") + "</b> " + Eigen::SimdInstructionSetsInUse());
 
         m_opengl_info_html->SetPage(text);
         main_sizer->Add(m_opengl_info_html, 1, wxEXPAND | wxBOTTOM, 15);
