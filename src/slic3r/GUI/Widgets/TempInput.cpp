@@ -25,7 +25,7 @@ TempInput::TempInput()
                    std::make_pair(*wxWHITE, (int) StateColor::Normal))
     , label_color(std::make_pair(0x323A3D, (int) StateColor::Normal))
     , text_color(std::make_pair(0x6B6B6B, (int) StateColor::Disabled), std::make_pair(0x6B6B6B, (int) StateColor::Normal))
-    , background_color(std::make_pair(*wxWHITE, (int) StateColor::Disabled),
+    , background_color(std::make_pair(0xF0F0F0, (int) StateColor::Disabled),
                        std::make_pair(*wxWHITE, (int) StateColor::Normal))
 {
     hover  = false;
@@ -50,7 +50,6 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
     state_handler.update_binds();
 
     text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {5, 5}, wxDefaultSize, wxTE_PROCESS_ENTER | wxBORDER_NONE, wxTextValidator(wxFILTER_NUMERIC), wxTextCtrlNameStr);
-    //text_ctrl->SetBackgroundColour(background_color.colorForStates(StateColor::Normal));
     text_ctrl->SetMaxLength(3);
 
     text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
@@ -109,7 +108,6 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
     });
     text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
     text_ctrl->SetFont(Label::Body_14);
-    text_ctrl->SetBackgroundColour(background_color.colorForStates(StateColor::Normal));
     text_ctrl->SetForegroundColour(text_color.colorForStates(StateColor::Normal));
     if (!normal_icon.IsEmpty()) { this->normal_icon = ScalableBitmap(this, normal_icon.ToStdString(), 16); }
     if (!actice_icon.IsEmpty()) { this->actice_icon = ScalableBitmap(this, actice_icon.ToStdString(), 16); }
@@ -191,7 +189,7 @@ void TempInput::Warning(bool warn, WarningType type)
 
             wxBoxSizer *sizer_body = new wxBoxSizer(wxVERTICAL);
 
-            auto body = new wxPanel(wdialog, wxID_ANY, wxDefaultPosition, {this->GetSize().x, -1}, wxTAB_TRAVERSAL);
+            auto body = new wxPanel(wdialog, wxID_ANY, wxDefaultPosition, {this->GetSize().x - 4, -1}, wxTAB_TRAVERSAL);
             body->SetBackgroundColour(wxColour(0xFFFFFF));
 
             wxBoxSizer *sizer_text;
@@ -221,7 +219,7 @@ void TempInput::Warning(bool warn, WarningType type)
             sizer_body->Fit(wdialog);
         }
 
-        wxPoint pos = this->ClientToScreen(wxPoint(0, 0));
+        wxPoint pos = this->ClientToScreen(wxPoint(2, 0));
         pos.y += this->GetRect().height - (this->GetSize().y - this->text_ctrl->GetSize().y) / 2;
         wdialog->SetPosition(pos);
         wdialog->Popup();
