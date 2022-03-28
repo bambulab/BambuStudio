@@ -6624,7 +6624,7 @@ bool Plater::load_files(const wxArrayString& filenames)
                         wxGetApp().app_config->set("import_project_action", std::to_string(choice));
 
                         // BBS: jump to plater panel
-                        wxGetApp().mainframe->select_tab(size_t(0));
+                        wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
                     }
                 }
                 else
