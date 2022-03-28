@@ -1,7 +1,12 @@
+#ifndef slic3r_IMSlider_Utils_hpp_
+#define slic3r_IMSlider_Utils_hpp_
+
 #include <stdio.h>
 #include <random>
 
 #include "wx/colour.h"
+
+//double epsilon() { return 0.0011; }
 
 class ColorGenerator
 {
@@ -189,3 +194,5 @@ public:
         return opp_color;
     }
 };
+
+#endif

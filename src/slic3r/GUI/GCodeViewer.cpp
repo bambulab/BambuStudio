@@ -18,10 +18,11 @@
 #include "I18N.hpp"
 #include "GUI_Utils.hpp"
 #include "GUI.hpp"
-#include "DoubleSlider.hpp"
 #include "GLCanvas3D.hpp"
 #include "GLToolbar.hpp"
 #include "GUI_Preview.hpp"
+#include "libslic3r/Print.hpp"
+#include "libslic3r/Layer.hpp"
 #include "GUI_ObjectManipulation.hpp"
 #include "Widgets/ProgressDialog.hpp"
 
@@ -89,6 +90,28 @@ static float round_to_bin(const float value)
     // While the scaling factor is not yet large enough to get two integer digits after scaling and rounding:
     for (; value < threshold[i] && i < 4; ++ i) ;
     return std::round(value * scale[i]) * invscale[i];
+}
+
+// Find an index of a value in a sorted vector, which is in <z-eps, z+eps>.
+// Returns -1 if there is no such member.
+static int find_close_layer_idx(const std::vector<double> &zs, double &z, double eps)
+{
+    if (zs.empty()) return -1;
+    auto it_h = std::lower_bound(zs.begin(), zs.end(), z);
+    if (it_h == zs.end()) {
+        auto it_l = it_h;
+        --it_l;
+        if (z - *it_l < eps) return int(zs.size() - 1);
+    } else if (it_h == zs.begin()) {
+        if (*it_h - z < eps) return 0;
+    } else {
+        auto it_l = it_h;
+        --it_l;
+        double dist_l = z - *it_l;
+        double dist_h = *it_h - z;
+        if (std::min(dist_l, dist_h) < eps) { return (dist_l < dist_h) ? int(it_l - zs.begin()) : int(it_h - zs.begin()); }
+    }
+    return -1;
 }
 
 void GCodeViewer::VBuffer::reset()
@@ -602,6 +625,11 @@ const GCodeViewer::Color GCodeViewer::Neutral_Color = { 0.25f, 0.25f, 0.25f, 1.0
 
 GCodeViewer::GCodeViewer()
 {
+    m_moves_slider  = new IMSlider(0, 0, 0, 100, wxSL_HORIZONTAL);
+    m_layers_slider = new IMSlider(0, 0, 0, 100, wxSL_VERTICAL);
+
+    //TODO hide or show slider
+
     m_extrusions.reset_role_visibility_flags();
 
 //    m_sequential_view.skip_invisible_moves = true;
@@ -673,6 +701,8 @@ void GCodeViewer::init()
     // BBS initialzed view_type items
     m_user_mode = wxGetApp().get_mode();
     update_by_mode(m_user_mode);
+
+    m_layers_slider->init_texture();
 
     m_gl_data_initialized = true;
 }
@@ -979,7 +1009,7 @@ void GCodeViewer::reset()
 }
 
 //BBS: GUI refactor: add canvas width and height
-void GCodeViewer::render(int canvas_width, int canvas_height)
+void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
 {
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.reset_opengl();
@@ -996,7 +1026,7 @@ void GCodeViewer::render(int canvas_width, int canvas_height)
     render_toolpaths();
     //render_shells();
     float legend_height = 0.0f;
-    render_legend(legend_height, canvas_width, canvas_height);
+    render_legend(legend_height, canvas_width, canvas_height, right_margin);
 
     if (m_user_mode != wxGetApp().get_mode()) {
         update_by_mode(wxGetApp().get_mode());
@@ -1013,6 +1043,14 @@ void GCodeViewer::render(int canvas_width, int canvas_height)
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+    //BBS render slider
+    render_slider(canvas_width, canvas_height);
+
+    if (m_moves_slider->is_dirty()) {
+        update_sequential_view_current((m_moves_slider->GetLowerValueD() - 1.0),
+            static_cast<unsigned int>(m_moves_slider->GetHigherValueD() - 1.0));
+    }
 }
 
 #define ENABLE_CALIBRATION_THUMBNAIL_OUTPUT 0
@@ -1357,11 +1395,10 @@ bool GCodeViewer::can_export_toolpaths() const
 void GCodeViewer::update_sequential_view_current(unsigned int first, unsigned int last)
 {
     auto is_visible = [this](unsigned int id) {
-        for (const TBuffer& buffer : m_buffers) {
+        for (const TBuffer &buffer : m_buffers) {
             if (buffer.visible) {
-                for (const Path& path : buffer.paths) {
-                    if (path.sub_paths.front().first.s_id <= id && id <= path.sub_paths.back().last.s_id)
-                        return true;
+                for (const Path &path : buffer.paths) {
+                    if (path.sub_paths.front().first.s_id <= id && id <= path.sub_paths.back().last.s_id) return true;
                 }
             }
         }
@@ -1369,10 +1406,10 @@ void GCodeViewer::update_sequential_view_current(unsigned int first, unsigned in
     };
 
     const int first_diff = static_cast<int>(first) - static_cast<int>(m_sequential_view.last_current.first);
-    const int last_diff = static_cast<int>(last) - static_cast<int>(m_sequential_view.last_current.last);
+    const int last_diff  = static_cast<int>(last) - static_cast<int>(m_sequential_view.last_current.last);
 
     unsigned int new_first = first;
-    unsigned int new_last = last;
+    unsigned int new_last  = last;
 
     if (m_sequential_view.skip_invisible_moves) {
         while (!is_visible(new_first)) {
@@ -1391,13 +1428,85 @@ void GCodeViewer::update_sequential_view_current(unsigned int first, unsigned in
     }
 
     m_sequential_view.current.first = new_first;
-    m_sequential_view.current.last = new_last;
-    m_sequential_view.last_current = m_sequential_view.current;
+    m_sequential_view.current.last  = new_last;
+    m_sequential_view.last_current  = m_sequential_view.current;
 
     refresh_render_paths(true, true);
 
-    if (new_first != first || new_last != last)
-        wxGetApp().plater()->update_preview_moves_slider();
+    if (new_first != first || new_last != last) {
+        update_moves_slider();
+    }
+}
+
+void GCodeViewer::enable_moves_slider(bool enable) const
+{
+    bool render_as_disabled = !enable;
+    if (m_moves_slider != nullptr && m_moves_slider->is_rendering_as_disabled() != render_as_disabled) {
+        m_moves_slider->set_render_as_disabled(render_as_disabled);
+        m_moves_slider->set_as_dirty();
+    }
+}
+
+void GCodeViewer::update_moves_slider()
+{
+    const GCodeViewer::SequentialView &view = get_sequential_view();
+    // this should not be needed, but it is here to try to prevent rambling crashes on Mac Asan
+    if (view.endpoints.last < view.endpoints.first) return;
+
+    std::vector<double> values(view.endpoints.last - view.endpoints.first + 1);
+    std::vector<double> alternate_values(view.endpoints.last - view.endpoints.first + 1);
+    unsigned int        count = 0;
+    for (unsigned int i = view.endpoints.first; i <= view.endpoints.last; ++i) {
+        values[count] = static_cast<double>(i + 1);
+        if (view.gcode_ids[i] > 0) alternate_values[count] = static_cast<double>(view.gcode_ids[i]);
+        ++count;
+    }
+
+    m_moves_slider->SetSliderValues(values);
+    m_moves_slider->SetSliderAlternateValues(alternate_values);
+    m_moves_slider->SetMaxValue(view.endpoints.last - view.endpoints.first);
+    m_moves_slider->SetSelectionSpan(view.current.first - view.endpoints.first, view.current.last - view.endpoints.first);
+}
+
+void GCodeViewer::update_layers_slider_mode()
+{
+    //    true  -> single-extruder printer profile OR
+    //             multi-extruder printer profile , but whole model is printed by only one extruder
+    //    false -> multi-extruder printer profile , and model is printed by several extruders
+    bool one_extruder_printed_model = true;
+
+    // extruder used for whole model for multi-extruder printer profile
+    int only_extruder = -1;
+
+    // BBS
+    if (wxGetApp().filaments_cnt() > 1) {
+        const ModelObjectPtrs &objects = wxGetApp().plater()->model().objects;
+
+        // check if whole model uses just only one extruder
+        if (!objects.empty()) {
+            const int extruder = objects[0]->config.has("extruder") ? objects[0]->config.option("extruder")->getInt() : 0;
+
+            auto is_one_extruder_printed_model = [objects, extruder]() {
+                for (ModelObject *object : objects) {
+                    if (object->config.has("extruder") && object->config.option("extruder")->getInt() != extruder) return false;
+
+                    for (ModelVolume *volume : object->volumes)
+                        if ((volume->config.has("extruder") && volume->config.option("extruder")->getInt() != extruder) || !volume->mmu_segmentation_facets.empty()) return false;
+
+                    for (const auto &range : object->layer_config_ranges)
+                        if (range.second.has("extruder") && range.second.option("extruder")->getInt() != extruder) return false;
+                }
+                return true;
+            };
+
+            if (is_one_extruder_printed_model())
+                only_extruder = extruder;
+            else
+                one_extruder_printed_model = false;
+        }
+    }
+
+    // TODO m_layers_slider->SetModeAndOnlyExtruder(one_extruder_printed_model, only_extruder);
 }
 
 bool GCodeViewer::is_toolpath_move_type_visible(EMoveType type) const
@@ -1461,7 +1570,7 @@ void GCodeViewer::set_layers_z_range(const std::array<unsigned int, 2>& layers_z
     bool keep_sequential_current_last = layers_z_range[1] <= m_layers_z_range[1];
     m_layers_z_range = layers_z_range;
     refresh_render_paths(keep_sequential_current_first, keep_sequential_current_last);
-    wxGetApp().plater()->update_preview_moves_slider();
+    update_moves_slider();
 }
 
 void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
@@ -3314,7 +3423,8 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         }
     }
 
-    wxGetApp().plater()->enable_preview_moves_slider(!paths.empty());
+    //BBS
+    enable_moves_slider(!paths.empty());
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     for (const TBuffer& buffer : m_buffers) {
@@ -3663,7 +3773,7 @@ void GCodeViewer::render_shells()
 }
 
 //BBS: GUI refactor: add canvas size
-void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canvas_height)
+void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canvas_height, int right_margin)
 {
     if (!m_legend_enabled)
         return;
@@ -3673,7 +3783,7 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     //BBS: GUI refactor: move to the right
-    imgui.set_next_window_pos(float(canvas_width), 0.0f, ImGuiCond_Always, 1.0f, 0.0f);
+    imgui.set_next_window_pos(float(canvas_width - right_margin), 0.0f, ImGuiCond_Always, 1.0f, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(1.0f,1.0f,1.0f,0.6f));
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
@@ -3907,7 +4017,7 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
                 continue;
 
             const std::vector<double> zs = m_layers.get_zs();
-            auto lower_b = std::lower_bound(zs.begin(), zs.end(), item.print_z - Slic3r::DoubleSlider::epsilon());
+            auto lower_b = std::lower_bound(zs.begin(), zs.end(), item.print_z - epsilon());
             if (lower_b == zs.end())
                 continue;
 
@@ -3973,7 +4083,7 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
                 reset_visible(view_type_items[m_view_type_sel]);
                 // update buffers' render paths
                 refresh_render_paths(false, false);
-                wxGetApp().plater()->update_preview_moves_slider();
+                update_moves_slider();
                 wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
             }
             if (is_selected) {
@@ -4107,7 +4217,7 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
                 m_buffers[buffer_id(type)].visible = !m_buffers[buffer_id(type)].visible;
                 // update buffers' render paths
                 refresh_render_paths(false, false);
-                wxGetApp().plater()->update_preview_moves_slider();
+                update_moves_slider();
                 wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
                 });
         };
@@ -4143,7 +4253,7 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
                     m_extrusions.role_visibility_flags = visible ? m_extrusions.role_visibility_flags & ~(1 << role) : m_extrusions.role_visibility_flags | (1 << role);
                     // update buffers' render paths
                     refresh_render_paths(false, false);
-                    wxGetApp().plater()->update_preview_moves_slider();
+                    update_moves_slider();
                     wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
                 });
         }
@@ -4165,7 +4275,7 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
             m_buffers[buffer_id(EMoveType::Travel)].visible = !m_buffers[buffer_id(EMoveType::Travel)].visible;
             // update buffers' render paths
             refresh_render_paths(false, false);
-            wxGetApp().plater()->update_preview_moves_slider();
+            update_moves_slider();
             wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
             });
         break;
@@ -4230,7 +4340,7 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
                             m_tools.m_tool_visibles[i] = !m_tools.m_tool_visibles[i];
                             // update buffers' render paths
                             refresh_render_paths(false, false);
-                            wxGetApp().plater()->update_preview_moves_slider();
+                            update_moves_slider();
                             wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
                         });
                 }
@@ -4698,6 +4808,11 @@ void GCodeViewer::pop_combo_style()
     ImGui::PopStyleColor(8);
 }
 
+void GCodeViewer::render_slider(int canvas_width, int canvas_height) {
+
+    m_moves_slider->render(canvas_width, canvas_height);
+    m_layers_slider->render(canvas_width, canvas_height);
+}
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
 void GCodeViewer::render_statistics()

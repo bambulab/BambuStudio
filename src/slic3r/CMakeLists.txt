@@ -282,9 +282,9 @@ set(SLIC3R_GUI_SOURCES
     GUI/BBLStatusBarSend.cpp
     GUI/Mouse3DController.cpp
     GUI/Mouse3DController.hpp
-    GUI/DoubleSlider.cpp
-    GUI/DoubleSlider.hpp
-    GUI/DoubleSlider_Utils.hpp
+    GUI/IMSlider.cpp
+    GUI/IMSlider.hpp
+    GUI/IMSlider_Utils.hpp
     GUI/Notebook.cpp
     GUI/Notebook.hpp
     GUI/TabButton.cpp

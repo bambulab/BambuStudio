@@ -108,6 +108,12 @@ public:
     void tooltip(const char *label, float wrap_width);
     void tooltip(const wxString &label, float wrap_width);
 
+    // Int sliders will be rendered in preview
+    bool horizontal_slider(const char* str_id, int* v, int v_min, int v_max, ImVec2 size, int selection = 0);
+    bool vertical_slider(const char* str_id, int* higher_value, int* lower_value,
+                     std::string &higher_label, std::string &lower_label,
+                     int v_min, int v_max, ImVec2 size, int selection = 0, bool one_layer_flag = false);
+
     // Float sliders: Manually inserted values aren't clamped by ImGui.Using this wrapper function does (when clamp==true).
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     ImVec2 get_slider_icon_size() const;

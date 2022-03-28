@@ -1410,8 +1410,6 @@ struct Plater::priv
     void hide_select_machine_dlg() { m_select_machine_dlg->EndModal(wxID_OK); }
 
     void update_preview_bottom_toolbar();
-    void update_preview_moves_slider();
-    void enable_preview_moves_slider(bool enable);
 
     void reset_gcode_toolpaths();
 
@@ -1889,12 +1887,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
         preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
         preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_COLLAPSE_SIDEBAR, [this](SimpleEvent&) { this->q->collapse_sidebar(!this->q->is_sidebar_collapsed());  });
     }
-    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_JUMP_TO, [this](wxKeyEvent& evt) { preview->jump_layers_slider(evt); });
-    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOVE_SLIDERS, [this](wxKeyEvent& evt) {
-        preview->move_layers_slider(evt);
-        preview->move_moves_slider(evt);
-        });
-    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_EDIT_COLOR_CHANGE, [this](wxKeyEvent& evt) { preview->edit_layers_slider(evt); });
     if (wxGetApp().is_gcode_viewer())
         preview->Bind(EVT_GLCANVAS_RELOAD_FROM_DISK, [this](SimpleEvent&) { this->q->reload_gcode_from_disk(); });
 
@@ -1934,8 +1926,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     q->Layout();
 
     set_current_panel(wxGetApp().is_editor() ? static_cast<wxPanel*>(view3D) : static_cast<wxPanel*>(preview));
-    if (wxGetApp().is_gcode_viewer())
-        preview->hide_layers_slider();
 
     // updates camera type from .ini file
     camera.enable_update_config_on_type_change(true);
@@ -5144,16 +5134,6 @@ bool Plater::priv::init_collapse_toolbar()
 void Plater::priv::update_preview_bottom_toolbar()
 {
     ;
-}
-
-void Plater::priv::update_preview_moves_slider()
-{
-    preview->update_moves_slider();
-}
-
-void Plater::priv::enable_preview_moves_slider(bool enable)
-{
-    preview->enable_moves_slider(enable);
 }
 
 #if 0
@@ -8964,16 +8944,6 @@ GLToolbar& Plater::get_collapse_toolbar()
 void Plater::update_preview_bottom_toolbar()
 {
     p->update_preview_bottom_toolbar();
-}
-
-void Plater::update_preview_moves_slider()
-{
-    p->update_preview_moves_slider();
-}
-
-void Plater::enable_preview_moves_slider(bool enable)
-{
-    p->enable_preview_moves_slider(enable);
 }
 
 void Plater::reset_gcode_toolpaths()

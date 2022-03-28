@@ -197,7 +197,7 @@ void NotificationManager::PopNotification::restore_default_theme()
 }
 
 
-void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width)
+void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width, float right_margin)
 {
 
 	if (m_state == EState::Unknown)
@@ -217,7 +217,7 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 	Size          cnv_size = canvas.get_canvas_size();
 	ImGuiWrapper& imgui = *wxGetApp().imgui();
 	ImVec2        mouse_pos = ImGui::GetMousePos();
-	float         right_gap = SPACE_RIGHT_PANEL + (move_from_overlay ? overlay_width + m_line_height * 5 : 0);
+    float         right_gap  = right_margin + (move_from_overlay ? overlay_width + m_line_height * 5 : 0);
 	bool          fading_pop = false;
 
 	if (m_line_height != ImGui::CalcTextSize("A").y)
@@ -1817,19 +1817,18 @@ void NotificationManager::stop_delayed_notifications_of_type(const NotificationT
 	}
 }
 
-void NotificationManager::render_notifications(GLCanvas3D& canvas, float overlay_width)
+void NotificationManager::render_notifications(GLCanvas3D &canvas, float overlay_width, float bottom_margin, float right_margin)
 {
 	sort_notifications();
 
-	float last_y = 0.0f;
+	float last_y = bottom_margin;
 
 	for (const auto& notification : m_pop_notifications) {
 		if (notification->get_state() != PopNotification::EState::Hidden) {
-			notification->render(canvas, last_y, m_move_from_overlay && !m_in_preview, overlay_width);
+            notification->render(canvas, last_y, m_move_from_overlay && !m_in_preview, overlay_width, right_margin);
 			if (notification->get_state() != PopNotification::EState::Finished)
 				last_y = notification->get_top() + GAP_WIDTH;
 		}
-
 	}
 	m_last_render = GLCanvas3D::timestamp_now();
 }

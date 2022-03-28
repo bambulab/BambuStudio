@@ -67,11 +67,15 @@
 #include <float.h>
 #include <algorithm>
 #include <cmath>
-#include "DoubleSlider.hpp"
 
 #include <imgui/imgui_internal.h>
 
 static constexpr const float TRACKBALLSIZE = 0.8f;
+
+static const float SLIDER_DEFAULT_RIGHT_MARGIN  = 10.0f;
+static const float SLIDER_DEFAULT_BOTTOM_MARGIN = 10.0f;
+static const float SLIDER_RIGHT_MARGIN          = 75.0f;
+static const float SLIDER_BOTTOM_MARGIN         = 60.0f;
 
 
 float GLCanvas3D::DEFAULT_BG_LIGHT_COLOR[3] = { 0.906f, 0.906f, 0.906f };
@@ -1277,7 +1281,13 @@ void GLCanvas3D::render()
     wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog(*this);
 
     if (m_canvas_type != ECanvasType::CanvasAssembleView) {
-        wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width());
+        float right_margin = SLIDER_DEFAULT_RIGHT_MARGIN;
+        float bottom_margin = SLIDER_DEFAULT_BOTTOM_MARGIN;
+        if (m_canvas_type == ECanvasType::CanvasPreview) {
+            right_margin = SLIDER_RIGHT_MARGIN;
+            bottom_margin = SLIDER_BOTTOM_MARGIN;
+        }
+        wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width(), bottom_margin, right_margin);
     }
 
     wxGetApp().imgui()->render();
@@ -1391,25 +1401,9 @@ void GLCanvas3D::set_gcode_options_visibility_from_flags(unsigned int flags)
     m_gcode_viewer.set_options_visibility_from_flags(flags);
 }
 
-void GLCanvas3D::set_toolpath_role_visibility_flags(unsigned int flags)
-{
-    m_gcode_viewer.set_toolpath_role_visibility_flags(flags);
-}
-
-void GLCanvas3D::set_toolpath_view_type(GCodeViewer::EViewType type)
-{
-    m_gcode_viewer.set_view_type(type);
-}
-
 void GLCanvas3D::set_volumes_z_range(const std::array<double, 2>& range)
 {
     m_volumes.set_range(range[0] - 1e-6, range[1] + 1e-6);
-}
-
-void GLCanvas3D::set_toolpaths_z_range(const std::array<unsigned int, 2>& range)
-{
-    if (m_gcode_viewer.has_data())
-        m_gcode_viewer.set_layers_z_range(range);
 }
 
 std::vector<int> GLCanvas3D::load_object(const ModelObject& model_object, int obj_idx, std::vector<int> instance_idxs)
@@ -5343,7 +5337,16 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
 //BBS: GUI refactor: add canvas size as parameters
 void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
 {
-    m_gcode_viewer.render(canvas_width, canvas_height);
+    m_gcode_viewer.render(canvas_width, canvas_height, SLIDER_RIGHT_MARGIN);
+    IMSlider *layers_slider = m_gcode_viewer.get_layers_slider();
+
+    if (layers_slider->is_dirty()) {
+        set_volumes_z_range({layers_slider->GetLowerValueD(), layers_slider->GetHigherValueD()});
+        if (m_gcode_viewer.has_data())
+            m_gcode_viewer.set_layers_z_range({static_cast<unsigned int>(layers_slider->GetLowerValue()), static_cast<unsigned int>(layers_slider->GetHigherValue())});
+        layers_slider->set_as_dirty(false);
+        set_as_dirty();
+    }
 }
 
 void GLCanvas3D::_render_selection() const

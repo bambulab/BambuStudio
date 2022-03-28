@@ -142,12 +142,12 @@ void ImGuiWrapper::set_language(const std::string &language)
         0x0100, 0x017F, // Latin Extended-A
         0,
     };
-	static const ImWchar ranges_turkish[] = {
-		0x0020, 0x01FF, // Basic Latin + Latin Supplement
-		0x0100, 0x017F, // Latin Extended-A
-		0x0180, 0x01FF, // Turkish
-		0,
-	};
+    static const ImWchar ranges_turkish[] = {
+        0x0020, 0x01FF, // Basic Latin + Latin Supplement
+        0x0100, 0x017F, // Latin Extended-A
+        0x0180, 0x01FF, // Turkish
+        0,
+    };
     static const ImWchar ranges_vietnamese[] =
     {
         0x0020, 0x00FF, // Basic Latin
@@ -344,7 +344,7 @@ void ImGuiWrapper::set_next_window_bg_alpha(float alpha)
 
 void ImGuiWrapper::set_next_window_size(float x, float y, ImGuiCond cond)
 {
-	ImGui::SetNextWindowSize(ImVec2(x, y), cond);
+    ImGui::SetNextWindowSize(ImVec2(x, y), cond);
 }
 
 /* BBL style widgets */
@@ -448,8 +448,8 @@ bool ImGuiWrapper::button(const wxString &label)
 
 bool ImGuiWrapper::button(const wxString& label, float width, float height)
 {
-	auto label_utf8 = into_u8(label);
-	return ImGui::Button(label_utf8.c_str(), ImVec2(width, height));
+    auto label_utf8 = into_u8(label);
+    return ImGui::Button(label_utf8.c_str(), ImVec2(width, height));
 }
 
 bool ImGuiWrapper::radio_button(const wxString &label, bool active)
@@ -460,7 +460,7 @@ bool ImGuiWrapper::radio_button(const wxString &label, bool active)
 
 bool ImGuiWrapper::image_button()
 {
-	return false;
+    return false;
 }
 
 bool ImGuiWrapper::input_double(const std::string &label, const double &value, const std::string &format)
@@ -591,6 +591,308 @@ void ImGuiWrapper::tooltip(const wxString &label, float wrap_width)
 ImVec2 ImGuiWrapper::get_slider_icon_size() const
 {
     return this->calc_button_size(std::wstring(&ImGui::SliderFloatEditBtnIcon, 1));
+}
+
+bool static slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const ImS32 v_max, ImS32* out_value, ImRect* out_handle, ImGuiSliderFlags flags = 0)
+{
+    ImGuiContext& context = *GImGui;
+
+    const ImGuiAxis axis = (flags & ImGuiSliderFlags_Vertical) ? ImGuiAxis_Y : ImGuiAxis_X;
+
+    const float handle_sz = 10.0f * sqrt(2);
+    ImS32 v_range = (v_min < v_max ? v_max - v_min : v_min - v_max);
+    const float region_usable_sz = (region.Max[axis] - region.Min[axis]);
+    const float region_usable_pos_min = region.Min[axis];
+    const float region_usable_pos_max = region.Max[axis];
+
+    // Process interacting with the slider
+    bool value_changed = false;
+    if (context.ActiveId == id)
+    {
+        bool set_new_value = false;
+        float mouse_pos_ratio = 0.0f;
+        if (context.ActiveIdSource == ImGuiInputSource_Mouse)
+        {
+            if (!context.IO.MouseDown[0])
+            {
+                ImGui::ClearActiveID();
+            }
+            else
+            {
+                const float mouse_abs_pos = context.IO.MousePos[axis];
+                mouse_pos_ratio = (region_usable_sz > 0.0f) ? ImClamp((mouse_abs_pos - region_usable_pos_min) / region_usable_sz, 0.0f, 1.0f) : 0.0f;
+                if (axis == ImGuiAxis_Y)
+                    mouse_pos_ratio = 1.0f - mouse_pos_ratio;
+                set_new_value = true;
+            }
+        }
+
+        if (set_new_value)
+        {
+            ImU32 v_new = (ImU32)(v_min + (ImS32)(v_range * mouse_pos_ratio + 0.5f));
+            // apply result, output value
+            if (*out_value != v_new)
+            {
+                *out_value = v_new;
+                value_changed = true;
+            }
+        }
+    }
+
+    // Output handle position so it can be displayed by the caller
+    const ImS32 v_clamped = (v_min < v_max) ? ImClamp(*out_value, v_min, v_max) : ImClamp(*out_value, v_max, v_min);
+    float handle_pos_ratio = v_range != 0 ? ((float)(v_clamped - v_min) / (float)v_range) : 0.0f;
+    handle_pos_ratio = axis == ImGuiAxis_Y ? 1.0f - handle_pos_ratio : handle_pos_ratio;
+    const float handle_pos = region_usable_pos_min + (region_usable_pos_max - region_usable_pos_min) * handle_pos_ratio;
+
+    if (axis == ImGuiAxis_X)
+        *out_handle = ImRect(handle_pos - handle_sz * 0.5f, region.Min.y, handle_pos + handle_sz * 0.5f, region.Max.y);
+    else
+        *out_handle = ImRect(region.Min.x, handle_pos - handle_sz * 0.5f, region.Max.x, handle_pos + handle_sz * 0.5f);
+
+    return value_changed;
+}
+
+
+bool ImGuiWrapper::horizontal_slider(const char *str_id, int *value, int v_min, int v_max, ImVec2 size, int selection)
+{
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    ImGuiContext& context = *GImGui;
+    const ImGuiID id = window->GetID(str_id);
+
+    ImVec2 padding(11, 7);
+    float offset_of_handle = 10.0f / sqrt(2);
+    ImVec2 pos = window->DC.CursorPos;
+    const ImRect draw_region(pos, pos + size);
+    ImGui::ItemSize(draw_region);
+
+    // Draw background rect
+    float fixed_bar_height = 18.0f;
+    ImVec2 slider_bar_start = ImVec2(pos.x, pos.y + size.y - fixed_bar_height);
+    ImVec2 slider_bar_size  = ImVec2(size.x, fixed_bar_height);
+    const ImRect bg_rect(slider_bar_start, slider_bar_start + slider_bar_size);
+    const ImU32 bg_rect_col = IM_COL32(255, 255, 255, 255);
+    ImGui::RenderFrame(bg_rect.Min, bg_rect.Max, bg_rect_col, false, 0.5 * fixed_bar_height);
+
+    // Draw background of scroll line
+    const ImRect scroll_bg(bg_rect.Min + padding, bg_rect.Max - padding);
+    const ImU32 scroll_bg_col = IM_COL32(238, 238, 238, 255);
+    ImGui::RenderFrame(scroll_bg.Min, scroll_bg.Max, scroll_bg_col, false, 0.5 * fixed_bar_height - padding.y);
+
+    // Draw handle dynamically according to mouse position
+    // set draggable region
+    const ImRect draggable_region(ImVec2(scroll_bg.Min.x, bg_rect.Min.y), ImVec2(scroll_bg.Max.x, bg_rect.Max.y));
+    const bool hovered = ImGui::ItemHoverable(draggable_region, id);
+    // set active status when mouse press down.
+    const bool pressed = (hovered && context.IO.MouseDown[0]);
+    if (pressed)
+    {
+        ImGui::SetActiveID(id, window);
+        ImGui::SetFocusID(id, window);
+        ImGui::FocusWindow(window);
+    }
+    // update handle position and value & draw handle
+    ImRect handle;
+    const ImU32 handle_and_line_col = IM_COL32(0, 174, 66, 255);
+    const bool value_changed = slider_behavior(id, draggable_region, (const ImS32)v_min, (const ImS32)v_max, (ImS32*)value, &handle);
+    ImVec2 handle_center = handle.GetCenter();
+    window->DrawList->AddNgonFilled(handle_center, offset_of_handle, handle_and_line_col, 4);
+
+    // Draw scroll line
+    const ImRect scroll_line(scroll_bg.Min, ImVec2(handle_center.x, scroll_bg.Max.y));
+    ImGui::RenderFrame(scroll_line.Min, scroll_line.Max, handle_and_line_col, false, 0.5 * fixed_bar_height - padding.y);
+
+    // Draw value by text
+    ImVec2 text_content_size = calc_text_size(std::to_string(*value));
+    ImVec2 text_padding = ImVec2(5.0f, 1.0f);
+    ImVec2 text_size = text_content_size + text_padding * 2;
+    ImVec2 text_start = ImVec2(handle_center.x - 0.5 * text_size.x, pos.y);
+    ImRect text_rect(text_start, text_start + text_size);
+    ImGui::RenderFrame(text_rect.Min, text_rect.Max, bg_rect_col, false, 2.0f);
+    ImVec2 pos_1 = ImVec2(text_rect.GetCenter().x - 3.5f, text_rect.Max.y);
+    ImVec2 pos_2 = ImVec2(text_rect.GetCenter().x + 3.5f, text_rect.Max.y);
+    ImVec2 pos_3 = ImVec2(text_rect.GetCenter().x, text_rect.Max.y + 6.06f);
+    window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, bg_rect_col);
+    ImGui::RenderText(text_start + text_padding, std::to_string(*value).c_str());
+
+    return value_changed;
+}
+
+bool ImGuiWrapper::vertical_slider(const char* str_id, int* higher_value, int* lower_value, std::string &higher_label, std::string &lower_label, int v_min, int v_max, ImVec2 size, int selection, bool one_layer_flag) 
+{
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    ImGuiContext& context = *GImGui;
+    const ImGuiID id = window->GetID(str_id);
+
+    ImVec2 padding(7, 11);
+    float offset_of_handle = 10.0f / sqrt(2);
+    float line_offset = 4.0f;
+    float right_blank = 3.0f;
+    float half_edge = 8.0f;     // triangle half edge
+    ImVec2 pos = window->DC.CursorPos;
+    const ImRect draw_region(pos, pos + size);
+    ImGui::ItemSize(draw_region);
+
+    // Draw background rect
+    float fixed_bar_width = 18.0f;
+    float text_dummy_height = 10.0f;
+    ImVec2 slider_bar_start  = ImVec2(pos.x + size.x - fixed_bar_width - right_blank, pos.y + text_dummy_height);
+    ImVec2 slider_bar_size   = ImVec2(fixed_bar_width, size.y - text_dummy_height);
+
+    const ImRect bg_rect(slider_bar_start, slider_bar_start + slider_bar_size);
+    const ImU32 bg_rect_col = IM_COL32(255, 255, 255, 255);
+    ImGui::RenderFrame(bg_rect.Min, bg_rect.Max, bg_rect_col, false, 0.5 * fixed_bar_width);
+
+    // Draw background of scroll
+    const ImRect scroll_bg(bg_rect.Min + padding, bg_rect.Max - padding);
+    const ImU32 scroll_bg_col = IM_COL32(238, 238, 238, 255);
+    ImGui::RenderFrame(scroll_bg.Min, scroll_bg.Max, scroll_bg_col, false, 0.5 * fixed_bar_width - padding.x);
+
+    // Draw handle dynamically according to mouse position
+    // set draggable region
+    ImRect draggable_region = ImRect(ImVec2(bg_rect.Min.x, scroll_bg.Min.y), ImVec2(bg_rect.Max.x, scroll_bg.Max.y));
+    const bool hovered = ImGui::ItemHoverable(draggable_region, id);
+    // set active status when mouse press down.
+    const bool pressed = (hovered && context.IO.MouseDown[0]);
+    if (pressed) {
+        ImGui::SetActiveID(id, window);
+        ImGui::SetFocusID(id, window);
+        ImGui::FocusWindow(window);
+    }
+
+    const ImU32 handle_and_line_col = IM_COL32(0, 174, 66, 255);
+    ImRect higher_draggble_region;
+    ImRect lower_draggble_region;
+    higher_draggble_region = ImRect(draggable_region.Min, draggable_region.Max - ImVec2(0, offset_of_handle));
+    lower_draggble_region  = ImRect(draggable_region.Min + ImVec2(0, offset_of_handle), draggable_region.Max);
+    // set initial position of the tow handles.
+    ImS32 v_clamped        = (v_min < v_max) ? ImClamp(*lower_value, v_min, v_max) : ImClamp(*lower_value, v_max, v_min);
+    float handle_pos_ratio = (v_max - v_min) != 0 ? ((float) (v_clamped - v_min) / (float) (v_max - v_min)) : 0.0f;
+    handle_pos_ratio       = 1.0f - handle_pos_ratio;
+    float  handle_pos      = lower_draggble_region.Min[1] + (lower_draggble_region.Max[1] - lower_draggble_region.Min[1]) * handle_pos_ratio;
+    ImRect lower_handle    = ImRect(lower_draggble_region.Min.x, handle_pos - offset_of_handle, lower_draggble_region.Max.x, handle_pos + offset_of_handle);
+    v_clamped              = (v_min < v_max) ? ImClamp(*higher_value, v_min, v_max) : ImClamp(*higher_value, v_max, v_min);
+    handle_pos_ratio       = (v_max - v_min) != 0 ? ((float) (v_clamped - v_min) / (float) (v_max - v_min)) : 0.0f;
+    handle_pos_ratio       = 1.0f - handle_pos_ratio;
+    handle_pos             = higher_draggble_region.Min[1] + (higher_draggble_region.Max[1] - higher_draggble_region.Min[1]) * handle_pos_ratio;
+    ImRect higher_handle   = ImRect(higher_draggble_region.Min.x, handle_pos - offset_of_handle, higher_draggble_region.Max.x, handle_pos + offset_of_handle);
+
+    ImVec2 tri_left_center = ImVec2(higher_handle.GetCenter().x - half_edge * 2, higher_handle.GetCenter().y);
+    ImRect triangle_region = ImRect(tri_left_center + ImVec2(0.0f, -half_edge), tri_left_center + ImVec2(half_edge * 1.73, half_edge));
+
+    // set a select-region where can select a handle when clicked
+    const bool higher_handle_hovered = ImGui::ItemHoverable(higher_handle, id);
+    const bool lower_handle_hovered  = ImGui::ItemHoverable(lower_handle, id);
+    const bool higher_handle_clicked = (higher_handle_hovered && context.IO.MouseClicked[0]);
+    const bool lower_handle_clicked  = (lower_handle_hovered && context.IO.MouseClicked[0]);
+    // select higher handle by default
+    static bool selected_h = true;
+    if (higher_handle_clicked) { selected_h = true; }
+    if (lower_handle_clicked) { selected_h = false; }
+    
+
+    // update handle position and value & draw two handles
+    bool value_changed;
+    if (!one_layer_flag)
+        value_changed = slider_behavior(id, selected_h ? higher_draggble_region : lower_draggble_region,
+            v_min, v_max, selected_h ? higher_value : lower_value, selected_h ? &higher_handle : &lower_handle, ImGuiSliderFlags_Vertical);
+    else {
+        value_changed = slider_behavior(id, draggable_region, v_min, v_max, 
+            selected_h ? higher_value : lower_value, selected_h ? &higher_handle : &lower_handle, ImGuiSliderFlags_Vertical);
+    }
+    ImVec2 higher_handle_center = higher_handle.GetCenter();
+    ImVec2 lower_handle_center = lower_handle.GetCenter();
+    if (higher_handle_center.y + offset_of_handle > lower_handle_center.y && selected_h)
+    {
+        lower_handle = higher_handle;
+        lower_handle.TranslateY(offset_of_handle);
+        lower_handle_center.y = higher_handle_center.y + offset_of_handle;
+        *lower_value = *higher_value;
+    }
+    if (higher_handle_center.y + offset_of_handle > lower_handle_center.y && !selected_h)
+    {
+        higher_handle = lower_handle;
+        higher_handle.TranslateY(-offset_of_handle);
+        higher_handle_center.y = lower_handle_center.y - offset_of_handle;
+        *higher_value = *lower_value;
+    }
+    if (!one_layer_flag) {
+        window->DrawList->AddNgonFilled(higher_handle_center, offset_of_handle, handle_and_line_col, 4);
+        window->DrawList->AddNgonFilled(lower_handle_center, offset_of_handle, handle_and_line_col, 4);
+    }
+    else {
+        lower_handle = higher_handle;
+        lower_handle_center.y = higher_handle_center.y;
+        *lower_value = *higher_value;
+        ImGui::RenderFrame(higher_handle_center - ImVec2(0.5 * fixed_bar_width, 1.0f), higher_handle_center + ImVec2( 0.5f * fixed_bar_width + right_blank, 1.0f),
+            handle_and_line_col, false, 1.0f);
+        ImVec2 left_center = ImVec2(higher_handle_center.x - half_edge * 1.73f, higher_handle_center.y - 0.5f);
+        ImVec2 pos_1       = left_center + ImVec2(0.0f, half_edge);
+        ImVec2 pos_2       = left_center - ImVec2(0.0f, half_edge);
+        ImVec2 pos_3       = left_center + ImVec2(half_edge * 1.73f, 0.0f);
+        ImVec2 pos_4       = left_center + ImVec2(half_edge / 1.73f, 0.0f);
+        window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, handle_and_line_col);
+        window->DrawList->AddLine(pos_4 + ImVec2(-line_offset, 0.0f), pos_4 + ImVec2(line_offset, 0.0f), IM_COL32(255, 255, 255, 255));
+        window->DrawList->AddLine(pos_4 + ImVec2(0.0, -line_offset), pos_4 + ImVec2(0.0, line_offset), IM_COL32(255, 255, 255, 255));
+    }
+    // Draw scroll line
+    const ImRect scroll_line(ImVec2(scroll_bg.Min.x, higher_handle_center.y), ImVec2(scroll_bg.Max.x, lower_handle_center.y));
+    ImGui::RenderFrame(scroll_line.Min, scroll_line.Max, handle_and_line_col, false, 3.0f);
+
+    if (!one_layer_flag) {
+        if (selection == 2) {
+            window->DrawList->AddLine(higher_handle_center + ImVec2(-line_offset, 0.0f), higher_handle_center + ImVec2(line_offset, 0.0f), IM_COL32(255, 255, 255, 255));
+            window->DrawList->AddLine(higher_handle_center + ImVec2(0.0, -line_offset), higher_handle_center + ImVec2(0.0f, line_offset), IM_COL32(255, 255, 255, 255));
+        }
+        if (selection == 1) {
+            window->DrawList->AddLine(lower_handle_center + ImVec2(-line_offset, 0.0f), lower_handle_center + ImVec2(line_offset, 0.0f), IM_COL32(255, 255, 255, 255));
+            window->DrawList->AddLine(lower_handle_center + ImVec2(0.0, -line_offset), lower_handle_center + ImVec2(0.0f, line_offset), IM_COL32(255, 255, 255, 255));
+        }
+    }
+
+    // Draw higher-text and lower-text
+    //ImVec2 text_content_size = calc_text_size(higher_label);
+    ImVec2 text_content_size = ImVec2(28.0f, 30.0f);
+    ImVec2 text_padding      = ImVec2(4.0f, 0.0f);
+    ImVec2 text_size         = text_content_size + text_padding * 2;
+    if (!one_layer_flag)
+    {
+        // draw higher label
+        ImVec2 text_start        = ImVec2(pos.x, higher_handle_center.y - text_size.y);
+        ImRect text_rect(text_start, text_start + text_size);
+        ImGui::RenderFrame(text_rect.Min, text_rect.Max, bg_rect_col, false, 2.0f);
+        ImVec2 pos_1 = text_rect.Max;
+        ImVec2 pos_2 = ImVec2(pos_1.x, higher_handle_center.y - 6.0f);
+        ImVec2 pos_3 = ImVec2(higher_handle_center.x - 0.5 * fixed_bar_width, higher_handle_center.y);
+        window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, bg_rect_col);
+        ImGui::RenderText(text_start + text_padding, higher_label.c_str());
+
+        //draw lower label
+        text_start        = ImVec2(pos.x, lower_handle_center.y);
+        text_rect         = ImRect(text_start, text_start + text_size);
+        ImGui::RenderFrame(text_rect.Min, text_rect.Max, bg_rect_col, false, 2.0f);
+        pos_1 = ImVec2(text_rect.Max.x, text_rect.Min.y);
+        pos_2 = ImVec2(pos_1.x, lower_handle_center.y + 6.0f);
+        pos_3 = ImVec2(lower_handle_center.x - 0.5 * fixed_bar_width, lower_handle_center.y);
+        window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, bg_rect_col);
+        ImGui::RenderText(text_start + text_padding, lower_label.c_str());
+    }
+    else 
+    {
+        ImVec2 text_start = ImVec2(pos.x, higher_handle_center.y - 0.5 *text_size.y);
+        ImRect text_rect  = ImRect(text_start, text_start + text_size);
+        ImGui::RenderFrame(text_rect.Min, text_rect.Max, bg_rect_col, false, 2.0f);
+        ImGui::RenderText(text_start + text_padding, higher_label.c_str());
+    }
+
+
+    return value_changed;
 }
 
 bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/, bool clamp /*= true*/, const wxString& tooltip /*= ""*/, bool show_edit_btn /*= true*/)
@@ -1222,19 +1524,19 @@ void ImGuiWrapper::init_font(bool compress)
     io.Fonts->Clear();
 
     // Create ranges of characters from m_glyph_ranges, possibly adding some OS specific special characters.
-	ImVector<ImWchar> ranges;
-	ImFontAtlas::GlyphRangesBuilder builder;
-	builder.AddRanges(m_glyph_ranges);
+    ImVector<ImWchar> ranges;
+    ImFontAtlas::GlyphRangesBuilder builder;
+    builder.AddRanges(m_glyph_ranges);
 #ifdef __APPLE__
-	if (m_font_cjk)
-		// Apple keyboard shortcuts are only contained in the CJK fonts.
-		builder.AddRanges(ranges_keyboard_shortcuts);
+    if (m_font_cjk)
+        // Apple keyboard shortcuts are only contained in the CJK fonts.
+        builder.AddRanges(ranges_keyboard_shortcuts);
 #endif
-	builder.BuildRanges(&ranges); // Build the final result (ordered ranges with all the unique characters submitted)
+    builder.BuildRanges(&ranges); // Build the final result (ordered ranges with all the unique characters submitted)
 
     //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, ranges.Data);
     //https://github.com/ocornut/imgui/issues/220
-	ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + (m_font_cjk ? "NotoSansCJK-Regular.ttc" : "NotoSans-Regular.ttf")).c_str(), m_font_size, nullptr, ranges.Data);
+    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + (m_font_cjk ? "NotoSansCJK-Regular.ttc" : "NotoSans-Regular.ttf")).c_str(), m_font_size, nullptr, ranges.Data);
     if (font == nullptr) {
         font = io.Fonts->AddFontDefault();
         if (font == nullptr) {
@@ -1246,7 +1548,7 @@ void ImGuiWrapper::init_font(bool compress)
     ImFontConfig config;
     config.MergeMode = true;
     if (! m_font_cjk) {
-		// Apple keyboard shortcuts are only contained in the CJK fonts.
+        // Apple keyboard shortcuts are only contained in the CJK fonts.
         [[maybe_unused]]ImFont *font_cjk = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSansCJK-Regular.ttc").c_str(), m_font_size, &config, ranges_keyboard_shortcuts);
         assert(font_cjk != nullptr);
     }

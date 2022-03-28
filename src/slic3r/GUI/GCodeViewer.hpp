@@ -4,6 +4,7 @@
 #include "3DScene.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
+#include "IMSlider.hpp"
 #include "GLModel.hpp"
 #include "I18N.hpp"
 
@@ -716,19 +717,6 @@ public:
         _u8L("Filament")
     };
 
-    /*
-    get_option_type_string(OptionType::Travel) + "|0|" +
-    get_option_type_string(OptionType::Wipe) + "|0|" +
-    get_option_type_string(OptionType::Retractions) + "|0|" +
-    get_option_type_string(OptionType::Unretractions) + "|0|" +
-    get_option_type_string(OptionType::Seams) + "|0|" +
-
-    get_option_type_string(OptionType::ToolChanges) + "|0|" +
-    get_option_type_string(OptionType::ColorChanges) + "|0|" +
-    get_option_type_string(OptionType::ToolMarker) + "|1|" +
-    get_option_type_string(OptionType::Legend) + "|1"
-    */
-
 private:
     bool m_gl_data_initialized{ false };
     unsigned int m_last_result_id{ 0 };
@@ -759,6 +747,8 @@ private:
     std::vector<float> m_filament_densities;
     Extrusions m_extrusions;
     SequentialView m_sequential_view;
+    IMSlider* m_moves_slider;
+    IMSlider* m_layers_slider;
     Shells m_shells;
     /*BBS GUI refactor, store displayed items in color scheme combobox */
     std::vector<EViewType> view_type_items;
@@ -802,7 +792,7 @@ public:
     void load_shells(const Print& print, bool initialized, bool force_previewing = false);
     void set_shells_on_preview(bool is_previewing) { m_shells.previewing = is_previewing; }
     //BBS: GUI refactor: add canvas width and height
-    void render(int canvas_width, int canvas_height);
+    void render(int canvas_width, int canvas_height, int right_margin);
     //BBS 
     void _render_calibration_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params);
     void _render_calibration_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params);
@@ -817,6 +807,13 @@ public:
 
     const SequentialView& get_sequential_view() const { return m_sequential_view; }
     void update_sequential_view_current(unsigned int first, unsigned int last);
+
+    /* BBS IMSlider */
+    IMSlider *get_moves_slider() { return m_moves_slider; }
+    IMSlider *get_layers_slider() { return m_layers_slider; }
+    void enable_moves_slider(bool enable) const;
+    void update_moves_slider();
+    void update_layers_slider_mode();
 
     bool is_contained_in_bed() const { return m_contained_in_bed; }
     //BBS: add only gcode mode
@@ -866,9 +863,10 @@ private:
     void refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const;
     void render_toolpaths();
     void render_shells();
-
+    
     //BBS: GUI refactor: add canvas size
-    void render_legend(float& legend_height, int canvas_width, int canvas_height);
+    void render_legend(float &legend_height, int canvas_width, int canvas_height, int right_margin);
+    void render_slider(int canvas_width, int canvas_height);
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     void render_statistics();
