@@ -180,7 +180,7 @@ void Button::messureSize()
         if (szIcon.y > szContent.y)
             szContent.y = szIcon.y;
     }
-    wxWindow::SetMinSize(wxSize(szContent.x + paddingSize.x + paddingSize.y, szContent.y));
+    wxWindow::SetMinSize(szContent + paddingSize * 2);
 }
 
 void Button::mouseDown(wxMouseEvent& event)

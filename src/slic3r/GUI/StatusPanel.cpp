@@ -8,9 +8,12 @@
 namespace Slic3r {
 namespace GUI {
 
+#define TEMP_THRESHOLD_VAL      2
+
 /* const strings */
 static const wxString NA_STR = _L("N/A");
 static const wxString TEMP_BLANK_STR = wxString("_");
+static const wxFont   SWITCH_FONT    = Label::Body_10;
 
 /* const values */
 static const int bed_temp_range[2] = {20, 120};
@@ -174,7 +177,7 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_connection_info->SetSize(wxSize(-1, FromDIP(16)));
     m_connection_info->SetMinSize(wxSize(-1, FromDIP(16)));
     m_connection_info->SetMaxSize(wxSize(-1, FromDIP(16)));
-    m_connection_info->SetPaddingSize(wxSize(FromDIP(11), FromDIP(11)));
+    m_connection_info->SetPaddingSize(wxSize(FromDIP(11), 0));
     m_connection_info->Hide();
 
     bSizer_monitoring_title->Add(13, 0, 0, 0);
@@ -543,7 +546,8 @@ wxBoxSizer *StatusBasePanel::create_misc_control()
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_switch_nozzle_fan = new ImageSwitchButton(this, m_bitmap_fan_on, m_bitmap_fan_off, wxBORDER_NONE);
     m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_SIZE);
-    m_switch_nozzle_fan->SetLabels(_L("Chamber"), _L("Chamber"));
+    m_switch_nozzle_fan->SetLabels(_L("Hotend Fan"), _L("Hotend Fan"));
+    m_switch_nozzle_fan->SetFont(SWITCH_FONT);
     m_switch_nozzle_fan->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
                                     std::make_pair(NORMAL_FAN_TEXT_COL,(int) StateColor::Normal)));
 
@@ -555,7 +559,8 @@ wxBoxSizer *StatusBasePanel::create_misc_control()
     m_switch_printing_fan = new ImageSwitchButton(this, m_bitmap_fan_on, m_bitmap_fan_off, wxBORDER_NONE);
     m_switch_printing_fan->SetValue(true);
     m_switch_printing_fan->SetMinSize(MISC_BUTTON_SIZE);
-    m_switch_printing_fan->SetLabels(_L("Part"), _L("Part"));
+    m_switch_printing_fan->SetFont(SWITCH_FONT);
+    m_switch_printing_fan->SetLabels(_L("Big Fan"), _L("Big Fan"));
     m_switch_printing_fan->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
                                     std::make_pair(NORMAL_FAN_TEXT_COL,(int) StateColor::Normal)));
 
@@ -1077,10 +1082,21 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     if (!bed_temp_input) {
         m_tempCtrl_bed->SetTagTemp((int) obj->bed_temp_target);
     }
+    if (abs(obj->bed_temp - obj->bed_temp_target) >= TEMP_THRESHOLD_VAL) {
+        m_tempCtrl_bed->SetIconActive();
+    } else {
+        m_tempCtrl_bed->SetIconNormal();
+    }
 
     m_tempCtrl_nozzle->SetCurrTemp((int) obj->nozzle_temp);
     if (!nozzle_temp_input) {
         m_tempCtrl_nozzle->SetTagTemp((int) obj->nozzle_temp_target);
+    }
+
+    if (abs(obj->nozzle_temp - obj->nozzle_temp_target) >= TEMP_THRESHOLD_VAL) {
+        m_tempCtrl_nozzle->SetIconActive();
+    } else {
+        m_tempCtrl_nozzle->SetIconNormal();
     }
 
     m_tempCtrl_frame->SetCurrTemp(obj->chamber_temp);
@@ -1091,10 +1107,9 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
 {
     if (!obj) return;
 
-    // TODO: get big fan & case fan status from obj
-    //m_switch_lamp->SetValue(obj->lamp_on);
-    m_switch_nozzle_fan->SetValue(obj->heatbreak_fan_speed > 0);
-    m_switch_printing_fan->SetValue(obj->cooling_fan_speed > 0);
+    // speed and lamp
+    m_switch_nozzle_fan->SetValue(obj->cooling_fan_speed > 0);
+    m_switch_printing_fan->SetValue(obj->big_fan1_speed > 0);
 }
 
 void StatusPanel::update_subtask(MachineObject *obj)
@@ -1316,10 +1331,10 @@ void StatusPanel::on_printing_fan_switch(wxCommandEvent &event)
     bool value = m_switch_printing_fan->GetValue();
 
     if (value) {
-        obj->command_control_fan(true);
+        obj->command_control_fan(MachineObject::FanType::BIG_COOLING_FAN, true);
         m_switch_printing_fan->SetValue(true);
     } else {
-        obj->command_control_fan(false);
+        obj->command_control_fan(MachineObject::FanType::BIG_COOLING_FAN, false);
         m_switch_printing_fan->SetValue(false);
     }
 }
@@ -1331,10 +1346,10 @@ void StatusPanel::on_nozzle_fan_switch(wxCommandEvent &event)
     bool value = m_switch_nozzle_fan->GetValue();
 
     if (value) {
-        obj->command_control_fan(true);
+        obj->command_control_fan(MachineObject::FanType::COOLING_FAN, true);
         m_switch_nozzle_fan->SetValue(true);
     } else {
-        obj->command_control_fan(false);
+        obj->command_control_fan(MachineObject::FanType::COOLING_FAN, false);
         m_switch_nozzle_fan->SetValue(false);
     }
 }
@@ -1473,7 +1488,7 @@ void StatusPanel::msw_rescale()
     m_connection_info->SetSize(wxSize(-1, FromDIP(16)));
     m_connection_info->SetMinSize(wxSize(-1, FromDIP(16)));
     m_connection_info->SetMaxSize(wxSize(-1, FromDIP(16)));
-    m_connection_info->SetPaddingSize(wxSize(FromDIP(11), FromDIP(11)));
+    m_connection_info->SetPaddingSize(wxSize(FromDIP(11), 0));
 
     m_gauge_progress->Rescale();
 

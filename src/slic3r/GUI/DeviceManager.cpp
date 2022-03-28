@@ -246,13 +246,10 @@ int MachineObject::command_go_home()
     return this->publish_gcode("G28 \n");
 }
 
-int MachineObject::command_control_fan(bool on_off)
+int MachineObject::command_control_fan(FanType fan_type, bool on_off)
 {
-    if (on_off)
-        return this->publish_gcode("M106 S255 \n");
-    else
-        return this->publish_gcode("M106 S0 \n");
-
+    std::string gcode = (boost::format("M106 P%1% S%2% \n") % (int)fan_type % (on_off ? 255 : 0)).str();
+    return this->publish_gcode(gcode);
 }
 
 int MachineObject::command_task_abort()

@@ -127,6 +127,12 @@ public:
         LIGHT_EFFECT_UNKOWN,
     };
 
+    enum FanType {
+        COOLING_FAN = 1,
+        BIG_COOLING_FAN = 2,
+        CHAMBER_FAN = 3,
+    };
+
     static inline int m_sequence_id = 20000;
 
     MachineObject(AccountManager& acc, std::string name, std::string id, std::string ip);
@@ -225,7 +231,7 @@ public:
     int command_xyz_abs();
     int command_auto_leveling();
     int command_go_home();
-    int command_control_fan(bool on_off);
+    int command_control_fan(FanType fan_type, bool on_off);
     int command_task_abort();
     int command_task_pause();
     int command_task_resume();

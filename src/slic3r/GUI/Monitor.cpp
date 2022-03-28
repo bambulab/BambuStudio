@@ -275,7 +275,7 @@ void MonitorPanel::on_size(wxSizeEvent &event)
     // limit size
     if (!wxGetApp().mainframe) return;
 
-    wxGetApp().mainframe->SetMinSize(wxSize(FromDIP(1480), FromDIP(700)));
+    wxGetApp().mainframe->SetMinSize(wxSize(FromDIP(1500), FromDIP(700)));
     Layout();
     Refresh();
 }
