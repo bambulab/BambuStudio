@@ -1063,8 +1063,12 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
 #if ENABLE_GCODE_VIEWER_STATISTICS
         this
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
+    ](TBuffer &buffer, std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
         for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
+            // BBS skip skirt when generate calibraiton thumbnail
+            if (buffer.paths[it->path_id].role == ExtrusionRole::erSkirt) 
+                continue;
+
             const RenderPath& path = *it;
             // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
             assert(!path.sizes.empty());
@@ -1210,7 +1214,7 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
                     switch (buffer.render_primitive_type)
                     {
                     case TBuffer::ERenderPrimitiveType::Triangle: {
-                        render_as_triangles(it_path, buffer.render_paths.end(), *shader, uniform_color);
+                        render_as_triangles(buffer, it_path, buffer.render_paths.end(), *shader, uniform_color);
                         break;
                     }
                     default: { break; }
