@@ -1835,8 +1835,8 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 
 void GUI_App::system_info()
 {
-    SysInfoDialog dlg;
-    dlg.ShowModal();
+    //SysInfoDialog dlg;
+    //dlg.ShowModal();
 }
 
 void GUI_App::keyboard_shortcuts()
