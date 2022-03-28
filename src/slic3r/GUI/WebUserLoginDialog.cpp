@@ -93,6 +93,7 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
     }
 
     bool bRet = m_browser->Create(this, wxID_ANY, TargetUrl, wxDefaultPosition, wxDefaultSize);
+    m_browser->EnableContextMenu(false);
     SetSizer(topsizer);
 
 #ifdef __WXMAC__
@@ -101,7 +102,6 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
     m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
 #endif
 
-    m_browser->EnableContextMenu(false);
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
     // Log backend information
