@@ -63,6 +63,7 @@ public:
                 const wxSize & size        = wxDefaultSize,
                 long           style       = 0);
 
+	
     wxPopupTransientWindow *wdialog{nullptr};
     int  temp_type;
     bool actice = false;
@@ -75,7 +76,8 @@ public:
 
     void SetCurrTemp(int temp);
     void SetCurrTemp(wxString temp);
-    
+   
+    bool AllisNum(std::string str);
     void SetFinish();
     void Warning(bool warn, WarningType type = WARNING_UNKNOWN);
     void SetIconActive();

@@ -50,7 +50,7 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
     state_handler.update_binds();
 
     text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {5, 5}, wxDefaultSize, wxTE_PROCESS_ENTER | wxBORDER_NONE, wxTextValidator(wxFILTER_NUMERIC), wxTextCtrlNameStr);
-    // text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {5, 5}, wxDefaultSize, style | wxBORDER_NONE);
+    //text_ctrl->SetBackgroundColour(background_color.colorForStates(StateColor::Normal));
     text_ctrl->SetMaxLength(3);
 
     text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
@@ -72,7 +72,8 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
         ProcessEventLocally(e);
 
         auto temp = text_ctrl->GetValue();
-        if (temp.empty()) return;
+        if (!AllisNum(temp.ToStdString())) return;
+        if (temp.ToStdString().empty()) return;
         if (max_temp <= 0) return;
 
         auto tempint = std::stoi(temp.ToStdString());
@@ -93,7 +94,8 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
         ProcessEventLocally(e);
 
         auto temp = text_ctrl->GetValue();
-        if (temp.empty()) return;
+        if (temp.ToStdString().empty()) return;
+        if (!AllisNum(temp.ToStdString())) return;
         if (max_temp <= 0) return;
 
         auto tempint = std::stoi(temp.ToStdString());
@@ -113,6 +115,20 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
     if (!actice_icon.IsEmpty()) { this->actice_icon = ScalableBitmap(this, actice_icon.ToStdString(), 16); }
     this->degree_icon = ScalableBitmap(this, "degree", 16);
     messureSize();
+}
+
+
+bool TempInput::AllisNum(std::string str)
+{
+    for (int i = 0; i < str.size(); i++) {
+        int tmp = (int) str[i];
+        if (tmp >= 48 && tmp <= 57) {
+            continue;
+        } else {
+            return false;
+        }
+    }
+    return true;
 }
 
 void TempInput::SetFinish()
