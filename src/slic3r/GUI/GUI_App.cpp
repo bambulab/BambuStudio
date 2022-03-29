@@ -1809,7 +1809,7 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     mainframe = new MainFrame();
     if (is_editor())
         // hide settings tabs after first Layout
-        mainframe->select_tab(size_t(0));
+        mainframe->select_tab(size_t(MainFrame::tp3DEditor));
     // Propagate model objects to object list.
     sidebar().obj_list()->init();
     sidebar().aux_list()->init_auxiliary();
