@@ -209,17 +209,19 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
     // BBS
     wxAcceleratorEntry entries[11];
-    entries[0].Set(wxACCEL_CTRL, (int)'N', wxID_HIGHEST + wxID_NEW);
-    entries[1].Set(wxACCEL_CTRL, (int)'O', wxID_HIGHEST + wxID_OPEN);
-    entries[2].Set(wxACCEL_CTRL, (int)'S', wxID_HIGHEST + wxID_SAVE);
-    entries[3].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int)'S', wxID_HIGHEST + wxID_SAVEAS);
-    entries[4].Set(wxACCEL_CTRL, (int)'I', wxID_HIGHEST + wxID_ADD);
-    entries[5].Set(wxACCEL_CTRL, (int)'A', wxID_HIGHEST + wxID_SELECTALL);
-    entries[6].Set(wxACCEL_NORMAL, (int)27 /* escape */, wxID_HIGHEST + wxID_CANCEL);
-    entries[7].Set(wxACCEL_CTRL, (int)'Z', wxID_HIGHEST + wxID_UNDO);
-    entries[8].Set(wxACCEL_CTRL, (int)'Y', wxID_HIGHEST + wxID_REDO);
-    entries[9].Set(wxACCEL_CTRL, (int)'C', wxID_HIGHEST + wxID_COPY);
-    entries[10].Set(wxACCEL_CTRL, (int)'V', wxID_HIGHEST + wxID_PASTE);
+    int index = 0;
+    entries[index++].Set(wxACCEL_CTRL, (int)'N', wxID_HIGHEST + wxID_NEW);
+    entries[index++].Set(wxACCEL_CTRL, (int)'O', wxID_HIGHEST + wxID_OPEN);
+    entries[index++].Set(wxACCEL_CTRL, (int)'S', wxID_HIGHEST + wxID_SAVE);
+    entries[index++].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int)'S', wxID_HIGHEST + wxID_SAVEAS);
+    entries[index++].Set(wxACCEL_CTRL, (int)'X', wxID_HIGHEST + wxID_CUT);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'I', wxID_HIGHEST + wxID_ADD);
+    entries[index++].Set(wxACCEL_CTRL, (int)'A', wxID_HIGHEST + wxID_SELECTALL);
+    entries[index++].Set(wxACCEL_NORMAL, (int)27 /* escape */, wxID_HIGHEST + wxID_CANCEL);
+    entries[index++].Set(wxACCEL_CTRL, (int)'Z', wxID_HIGHEST + wxID_UNDO);
+    entries[index++].Set(wxACCEL_CTRL, (int)'Y', wxID_HIGHEST + wxID_REDO);
+    entries[index++].Set(wxACCEL_CTRL, (int)'C', wxID_HIGHEST + wxID_COPY);
+    entries[index++].Set(wxACCEL_CTRL, (int)'V', wxID_HIGHEST + wxID_PASTE);
     wxAcceleratorTable accel(sizeof(entries) / sizeof(entries[0]), entries);
     SetAcceleratorTable(accel);
 
@@ -228,7 +230,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     // BBS: close save project
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(); }, wxID_HIGHEST + wxID_SAVE);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, wxID_HIGHEST + wxID_SAVEAS);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, wxID_HIGHEST + wxID_ADD);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, wxID_HIGHEST + wxID_ADD);
     //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->remove_selected(); }, wxID_HIGHEST + wxID_DELETE);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->select_all(); }, wxID_HIGHEST + wxID_SELECTALL);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->deselect_all(); }, wxID_HIGHEST + wxID_CANCEL);
@@ -236,7 +238,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->redo(); }, wxID_HIGHEST + wxID_REDO);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); }, wxID_HIGHEST + wxID_COPY);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); }, wxID_HIGHEST + wxID_PASTE);
-
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->cut_selection_to_clipboard(); }, wxID_HIGHEST + wxID_CUT);
     Bind(wxEVT_SIZE, [this](wxSizeEvent&) {
             BOOST_LOG_TRIVIAL(trace) << "mainframe: size changed, is maximized = " << this->IsMaximized();
             if (this->IsMaximized()) {
@@ -1521,7 +1523,7 @@ void MainFrame::init_menubar_as_editor()
 #ifdef __APPLE__
         append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\tCtrl+Shift+S", _L("Save current project as"),
 #else
-        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\tCtrl+Alt+S", _L("Save current project as"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\tCtrl+Shift+S", _L("Save current project as"),
 #endif // __APPLE__
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, "menu_save", nullptr,
             [this](){return m_plater != nullptr && can_save_as(); }, this);
@@ -1529,7 +1531,7 @@ void MainFrame::init_menubar_as_editor()
         fileMenu->AppendSeparator();
 
         //BBS
-        append_menu_item(fileMenu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots + "\tCtrl+I", _L("Load a model"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots/* + "\tCtrl+I"*/, _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) { m_plater->add_model(); } }, "menu_import", nullptr,
             [this](){return m_plater != nullptr; }, this);
 
@@ -1539,7 +1541,7 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, "menu_export_stl", nullptr,
             [this](){return can_export_model(); }, this);
         // BBS export Gcode
-        wxMenuItem* item_export_gcode = append_menu_item(export_menu, wxID_ANY, _L("Export G-code") + dots + "\tCtrl+G", _L("Export current plate as G-code"),
+        wxMenuItem* item_export_gcode = append_menu_item(export_menu, wxID_ANY, _L("Export G-code") + dots/* + "\tCtrl+G"*/, _L("Export current plate as G-code"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(false); }, "menu_export_gcode", nullptr,
             [this](){return can_export_gcode(); }, this);
 
@@ -1588,21 +1590,15 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(editMenu, wxID_ANY, _L("Delete selected") + "\tDel",
             _L("Deletes the current selection"),[this](wxCommandEvent&) { m_plater->remove_selected(); },
             "menu_remove", nullptr, [this](){return can_delete(); }, this);
+        //BBS: delete all
+        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\tCtrl+D",
+            _L("Deletes all objects"),[this](wxCommandEvent&) { m_plater->delete_all_objects_from_model(); },
+            "menu_remove", nullptr, [this](){return can_delete_all(); }, this);
         editMenu->AppendSeparator();
         // BBS Clone Selected
         append_menu_item(editMenu, wxID_ANY, _L("Clone selected") + "\tCtrl+M",
             _L("Clone copies of selections"),[this](wxCommandEvent&) {
-                long res = wxGetNumberFromUser("",
-                    _L("Clone"),
-                    _L("Number of copies:"),
-                    1, 0, 100, this);
-                wxString msg;
-                if (res == -1) {
-                    msg = _L("Invalid number");
-                    return;
-                }
-                Selection& selection = plater()->canvas3D()->get_selection();
-                selection.clone(res);
+                m_plater->clone_selection();
             },
             "menu_remove", nullptr, [this](){return can_select(); }, this);
         editMenu->AppendSeparator();
@@ -1669,42 +1665,42 @@ void MainFrame::init_menubar_as_editor()
 
     wxWindowID config_id_base = wxWindow::NewControlId(int(ConfigMenuCnt));
     //TODO remove
-    auto config_wizard_name = _(ConfigWizard::name(true) + "(Debug)");
-    const auto config_wizard_tooltip = from_u8((boost::format(_utf8(L("Run %s"))) % config_wizard_name).str());
-    auto config_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuWizard + config_id_base, config_wizard_name, config_wizard_tooltip);
+    //auto config_wizard_name = _(ConfigWizard::name(true) + "(Debug)");
+    //const auto config_wizard_tooltip = from_u8((boost::format(_utf8(L("Run %s"))) % config_wizard_name).str());
+    //auto config_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuWizard + config_id_base, config_wizard_name, config_wizard_tooltip);
     auto preference_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuPreferences + config_id_base, _L("Preferences"), "");
-    auto printer_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuModeSimple + config_id_base, _L("Printer"), "");
-    auto language_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuLanguage + config_id_base, _L("Switch Language"), "");
+    auto printer_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuPrinter + config_id_base, _L("Printer"), "");
+    //auto language_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuLanguage + config_id_base, _L("Switch Language"), "");
     m_topbar->GetTopMenu()->Bind(wxEVT_MENU, [this, config_id_base](wxEvent& event) {
         switch (event.GetId() - config_id_base) {
-        case ConfigMenuLanguage:
-        {
-            /* Before change application language, let's check unsaved changes on 3D-Scene
-             * and draw user's attention to the application restarting after a language change
-             */
-            {
-                // the dialog needs to be destroyed before the call to switch_language()
-                // or sometimes the application crashes into wxDialogBase() destructor
-                // so we put it into an inner scope
-                wxString title = _L("Language selection");
-                wxMessageDialog dialog(nullptr,
-                    _L("Switching the language requires application restart.\n") + "\n\n" +
-                    _L("Do you want to continue?"),
-                    title,
-                    wxICON_QUESTION | wxOK | wxCANCEL);
-                if (dialog.ShowModal() == wxID_CANCEL)
-                    return;
-            }
+        //case ConfigMenuLanguage:
+        //{
+        //    /* Before change application language, let's check unsaved changes on 3D-Scene
+        //     * and draw user's attention to the application restarting after a language change
+        //     */
+        //    {
+        //        // the dialog needs to be destroyed before the call to switch_language()
+        //        // or sometimes the application crashes into wxDialogBase() destructor
+        //        // so we put it into an inner scope
+        //        wxString title = _L("Language selection");
+        //        wxMessageDialog dialog(nullptr,
+        //            _L("Switching the language requires application restart.\n") + "\n\n" +
+        //            _L("Do you want to continue?"),
+        //            title,
+        //            wxICON_QUESTION | wxOK | wxCANCEL);
+        //        if (dialog.ShowModal() == wxID_CANCEL)
+        //            return;
+        //    }
 
-            wxGetApp().switch_language();
-            break;
-        }
-        case ConfigMenuWizard:
-        {
-            wxGetApp().run_wizard(ConfigWizard::RR_USER);
-            break;
-        }
-        case ConfigMenuModeSimple:
+        //    wxGetApp().switch_language();
+        //    break;
+        //}
+        //case ConfigMenuWizard:
+        //{
+        //    wxGetApp().run_wizard(ConfigWizard::RR_USER);
+        //    break;
+        //}
+        case ConfigMenuPrinter:
         {
             wxGetApp().params_dialog()->Popup();
             wxGetApp().get_tab(Preset::TYPE_PRINTER)->restore_last_select_item();
@@ -1751,7 +1747,7 @@ void MainFrame::init_menubar_as_editor()
     m_topbar->AddDropDownMenuItem(preference_item);
     m_topbar->AddDropDownMenuItem(printer_item);
     //m_topbar->AddDropDownMenuItem(language_item);
-    m_topbar->AddDropDownMenuItem(config_item);
+    //m_topbar->AddDropDownMenuItem(config_item);
     m_topbar->AddDropDownSubMenu(helpMenu, _L("Help"));
 
 #ifdef _MSW_DARK_MODE

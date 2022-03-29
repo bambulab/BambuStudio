@@ -1812,10 +1812,22 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
         //BBS: add part plate related logic
         view3D_canvas->Bind(EVT_GLCANVAS_PLATE_RIGHT_CLICK, &priv::on_plate_right_click, this);
         view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
-        view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) {
+        view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent& evt) {
             //BBS arrage from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
             this->q->arrange(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE_PARTPLATE, [this](SimpleEvent& evt) {
+            //BBS arrage from EVT set default state.
+            this->q->set_prepare_state(Job::PREPARE_STATE_MENU);
+            this->q->arrange(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_ORIENT, [this](SimpleEvent& evt) {
+            //BBS oriant from EVT set default state.
+            this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
+            this->q->orient(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_ORIENT_PARTPLATE, [this](SimpleEvent& evt) {
+            //BBS oriant from EVT set default state.
+            this->q->set_prepare_state(Job::PREPARE_STATE_MENU);
+            this->q->orient(); });
         //BBS
         view3D_canvas->Bind(EVT_GLCANVAS_SELECT_CURR_PLATE_ALL, [this](SimpleEvent&) {this->q->select_curr_plate_all(); });
 
@@ -1860,6 +1872,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
         view3D_canvas->Bind(EVT_GLTOOLBAR_CUT, [q](SimpleEvent&) { q->cut_selection_to_clipboard(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_COPY, [q](SimpleEvent&) { q->copy_selection_to_clipboard(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_PASTE, [q](SimpleEvent&) { q->paste_from_clipboard(); });
+        //BBS: add clone
+        view3D_canvas->Bind(EVT_GLTOOLBAR_CLONE, [q](SimpleEvent&) { q->clone_selection(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_MORE, [q](SimpleEvent&) { q->increase_instances(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_FEWER, [q](SimpleEvent&) { q->decrease_instances(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_OBJECTS, &priv::on_action_split_objects, this);
@@ -3126,6 +3140,10 @@ void Plater::priv::delete_all_objects_from_model()
 
     // Stop and reset the Print content.
     background_process.reset();
+
+    //BBS: update partplate
+    partplate_list.clear();
+
     model.clear_objects();
     update();
     // Delete object from Sidebar list. Do it after update, so that the GLScene selection is updated with the modified model.
@@ -6770,6 +6788,12 @@ void Plater::trigger_restore_project(int skip_confirm)
 //BBS
 void Plater::delete_object_from_model(size_t obj_idx, bool refresh_immediately) { p->delete_object_from_model(obj_idx, refresh_immediately); }
 
+//BBS: delete all from model
+void Plater::delete_all_objects_from_model()
+{
+    p->delete_all_objects_from_model();
+}
+
 void Plater::remove_selected()
 {
     if (p->get_selection().is_empty())
@@ -8415,6 +8439,24 @@ void Plater::paste_from_clipboard()
     // and then paste from the 3DCanvas's clipboard if not
     if (!p->sidebar->obj_list()->paste_from_clipboard())
         p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
+}
+
+//BBS: add clone
+void Plater::clone_selection()
+{
+    if (is_selection_empty())
+        return;
+    long res = wxGetNumberFromUser("",
+        _L("Clone"),
+        _L("Number of copies:"),
+        1, 0, 100, this);
+    wxString msg;
+    if (res == -1) {
+        msg = _L("Invalid number");
+        return;
+    }
+    Selection& selection = p->get_selection();
+    selection.clone(res);
 }
 
 void Plater::search(bool plater_is_active, Preset::Type type, wxWindow *tag, wxTextCtrl *etag, wxWindow *stag)

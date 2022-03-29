@@ -56,14 +56,14 @@ class BitmapComboBox;
 struct ItemForDelete
 {
     ItemType    type;
-    int         obj_idx; 
+    int         obj_idx;
     int         sub_obj_idx;
 
     ItemForDelete(ItemType type, int obj_idx, int sub_obj_idx)
         : type(type), obj_idx(obj_idx), sub_obj_idx(sub_obj_idx)
     {}
 
-    bool operator==(const ItemForDelete& r) const 
+    bool operator==(const ItemForDelete& r) const
     {
         return (type == r.type && obj_idx == r.obj_idx && sub_obj_idx == r.sub_obj_idx);
     }
@@ -76,7 +76,7 @@ struct ItemForDelete
     }
 };
 
-struct MeshErrorsInfo 
+struct MeshErrorsInfo
 {
     wxString    tooltip;
     std::string warning_icon_name;
@@ -104,7 +104,7 @@ public:
     struct Clipboard
     {
         void reset() {
-            m_type = itUndef; 
+            m_type = itUndef;
             m_layer_config_ranges_cache .clear();
             m_config_cache.clear();
         }
@@ -174,11 +174,11 @@ private:
     std::vector<wxBitmap*>      m_bmp_vector;
 
     int			m_selected_object_id = -1;
-    bool		m_prevent_list_events = false;		// We use this flag to avoid circular event handling Select() 
-                                                    // happens to fire a wxEVT_LIST_ITEM_SELECTED on OSX, whose event handler 
+    bool		m_prevent_list_events = false;		// We use this flag to avoid circular event handling Select()
+                                                    // happens to fire a wxEVT_LIST_ITEM_SELECTED on OSX, whose event handler
                                                     // calls this method again and again and again
 
-    bool        m_prevent_update_filament_in_config = false; // We use this flag to avoid updating of the extruder value in config 
+    bool        m_prevent_update_filament_in_config = false; // We use this flag to avoid updating of the extruder value in config
                                                              // during updating of the extruder count.
 
     bool        m_prevent_canvas_selection_update = false; // This flag prevents changing selection on the canvas. See function
@@ -239,10 +239,10 @@ public:
     void                get_selection_indexes(std::vector<int>& obj_idxs, std::vector<int>& vol_idxs);
     // Get count of errors in the mesh
     int                 get_repaired_errors_count(const int obj_idx, const int vol_idx = -1) const;
-    // Get list of errors in the mesh and name of the warning icon 
+    // Get list of errors in the mesh and name of the warning icon
     // Return value is a pair <Tooltip, warning_icon_name>, used for the tooltip and related warning icon
-    // Function without parameters is for a call from Manipulation panel, 
-    // when we don't know parameters of selected item 
+    // Function without parameters is for a call from Manipulation panel,
+    // when we don't know parameters of selected item
     MeshErrorsInfo      get_mesh_errors_info(const int obj_idx, const int vol_idx = -1, wxString* sidebar_info = nullptr) const;
     MeshErrorsInfo      get_mesh_errors_info(wxString* sidebar_info = nullptr);
     void                set_tooltip_for_item(const wxPoint& pt);
@@ -256,7 +256,9 @@ public:
 
     void                copy();
     void                paste();
+    void                cut();
     //BBS
+    void                clone();
     bool                cut_to_clipboard();
     bool                copy_to_clipboard();
     bool                paste_from_clipboard();
@@ -343,8 +345,8 @@ public:
     // Rather providing the range by a value than by a reference, so that the memory referenced cannot be invalidated.
     void add_layer_range_after_current(const t_layer_height_range current_range);
     wxString can_add_new_range_after_current( t_layer_height_range current_range);
-    void add_layer_item (const t_layer_height_range& range, 
-                         const wxDataViewItem layers_item, 
+    void add_layer_item (const t_layer_height_range& range,
+                         const wxDataViewItem layers_item,
                          const int layer_idx = -1);
     bool edit_layer_range(const t_layer_height_range& range, coordf_t layer_height);
     // This function may be called when a text field loses focus for a "add layer" or "remove layer" button.
@@ -352,7 +354,7 @@ public:
     // are already planned for them and destroying these widgets leads to crashes at least on OSX.
     // In that case the "add layer" or "remove layer" button handlers are responsible for always rebuilding the panel
     // even if the "add layer" or "remove layer" buttons did not update the layer spans or layer heights.
-    bool edit_layer_range(const t_layer_height_range& range, 
+    bool edit_layer_range(const t_layer_height_range& range,
                           const t_layer_height_range& new_range,
                           // Don't destroy the panel with the "add layer" or "remove layer" buttons.
                           bool suppress_ui_update = false);
@@ -399,7 +401,7 @@ public:
     void paste_layers_into_list();
     void copy_settings_to_clipboard();
     void paste_settings_into_list();
-    bool clipboard_is_empty() const { return m_clipboard.empty(); } 
+    bool clipboard_is_empty() const { return m_clipboard.empty(); }
     void paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes);
     void paste_objects_into_list(const std::vector<size_t>& object_idxs);
 

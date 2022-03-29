@@ -2618,144 +2618,144 @@ void GUI_App::update_mode()
 }
 
 //void GUI_App::add_config_menu(wxMenuBar *menu)
-void GUI_App::add_config_menu(wxMenu *menu)
-{
-    auto local_menu = new wxMenu();
-    wxWindowID config_id_base = wxWindow::NewControlId(int(ConfigMenuCnt));
-
-    const auto config_wizard_name = _(ConfigWizard::name(true));
-    const auto config_wizard_tooltip = from_u8((boost::format(_utf8(L("Open %s"))) % config_wizard_name).str());
-    // Cmd+, is standard on OS X - what about other operating systems?
-    if (is_editor()) {
-        local_menu->Append(config_id_base + ConfigMenuWizard, config_wizard_name + dots, config_wizard_tooltip);
-        local_menu->Append(config_id_base + ConfigMenuUpdate, _L("Check for Configuration Updates"), _L("Check for configuration updates"));
-        local_menu->AppendSeparator();
-    }
-    local_menu->Append(config_id_base + ConfigMenuPreferences, _L("Preferences") + dots +
-#ifdef __APPLE__
-        "\tCtrl+,",
-#else
-        "\tCtrl+P",
-#endif
-        _L("Application preferences"));
-    wxMenu* mode_menu = nullptr;
-    if (is_editor()) {
-        local_menu->AppendSeparator();
-        mode_menu = new wxMenu();
-        mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _L("Simple"), _L("Simple Mode"));
-        mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _L("Advanced"), _L("Advanced Mode"));
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if (get_mode() == comSimple) evt.Check(true); }, config_id_base + ConfigMenuModeSimple);
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if (get_mode() == comAdvanced) evt.Check(true); }, config_id_base + ConfigMenuModeAdvanced);
-
-        local_menu->AppendSubMenu(mode_menu, _L("Mode"), wxString::Format(_L("%s Mode"), SLIC3R_APP_NAME));
-    }
-    local_menu->AppendSeparator();
-    local_menu->Append(config_id_base + ConfigMenuLanguage, _L("Language"));
-    if (is_editor()) {
-        local_menu->AppendSeparator();
-    }
-
-    local_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent &event) {
-        switch (event.GetId() - config_id_base) {
-        case ConfigMenuWizard:
-            run_wizard(ConfigWizard::RR_USER);
-            break;
-		case ConfigMenuUpdate:
-			check_updates(true);
-			break;
-#ifdef __linux__
-        case ConfigMenuDesktopIntegration:
-            show_desktop_integration_dialog();
-            break;
-#endif
-        case ConfigMenuSnapshots:
-            //BBS do not support task snapshot
-            break;
-        case ConfigMenuPreferences:
-        {
-            //BBS GUI refactor: remove unuse layout logic
-            //bool app_layout_changed = false;
-            {
-                // the dialog needs to be destroyed before the call to recreate_GUI()
-                // or sometimes the application crashes into wxDialogBase() destructor
-                // so we put it into an inner scope
-                PreferencesDialog dlg(mainframe);
-                dlg.ShowModal();
-                //BBS GUI refactor: remove unuse layout logic
-                //app_layout_changed = dlg.settings_layout_changed();
-                if (dlg.seq_top_layer_only_changed())
-                    this->plater_->refresh_print();
-
-                if (dlg.recreate_GUI()) {
-                    recreate_GUI(_L("Restart application") + dots);
-                    return;
-                }
-#ifdef _WIN32
-                if (is_editor()) {
-                    if (app_config->get("associate_3mf") == "true")
-                        associate_3mf_files();
-                    if (app_config->get("associate_stl") == "true")
-                        associate_stl_files();
-                }
-                else {
-                    if (app_config->get("associate_gcode") == "true")
-                        associate_gcode_files();
-                }
-#endif // _WIN32
-            }
-            //BBS GUI refactor: remove unuse layout logic
-            /*if (app_layout_changed) {
-                // hide full main_sizer for mainFrame
-                mainframe->GetSizer()->Show(false);
-                mainframe->update_layout();
-                mainframe->select_tab(size_t(0));
-            }*/
-            break;
-        }
-        case ConfigMenuLanguage:
-        {
-            /* Before change application language, let's check unsaved changes on 3D-Scene
-             * and draw user's attention to the application restarting after a language change
-             */
-            {
-                // the dialog needs to be destroyed before the call to switch_language()
-                // or sometimes the application crashes into wxDialogBase() destructor
-                // so we put it into an inner scope
-                wxString title = is_editor() ? wxString(SLIC3R_APP_NAME) : wxString(GCODEVIEWER_APP_NAME);
-                title += " - " + _L("Choose language");
-                //wxMessageDialog dialog(nullptr,
-                MessageDialog dialog(nullptr,
-                    _L("Switching the language requires application restart.\n") + "\n\n" +
-                    _L("Do you want to continue?"),
-                    title,
-                    wxICON_QUESTION | wxOK | wxCANCEL);
-                if (dialog.ShowModal() == wxID_CANCEL)
-                    return;
-            }
-
-            switch_language();
-            break;
-        }
-        case ConfigMenuFlashFirmware:
-            //BBS FirmwareDialog::run(mainframe);
-            break;
-        default:
-            break;
-        }
-    });
-
-    using std::placeholders::_1;
-
-    if (mode_menu != nullptr) {
-        auto modfn = [this](int mode, wxCommandEvent&) { if (get_mode() != mode) save_mode(mode); };
-        mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comSimple, _1), config_id_base + ConfigMenuModeSimple);
-        mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comAdvanced, _1), config_id_base + ConfigMenuModeAdvanced);
-    }
-
-    // BBS
-    //menu->Append(local_menu, _L("Configuration"));
-    menu->AppendSubMenu(local_menu, _L("Configuration"));
-}
+//void GUI_App::add_config_menu(wxMenu *menu)
+//{
+//    auto local_menu = new wxMenu();
+//    wxWindowID config_id_base = wxWindow::NewControlId(int(ConfigMenuCnt));
+//
+//    const auto config_wizard_name = _(ConfigWizard::name(true));
+//    const auto config_wizard_tooltip = from_u8((boost::format(_utf8(L("Open %s"))) % config_wizard_name).str());
+//    // Cmd+, is standard on OS X - what about other operating systems?
+//    if (is_editor()) {
+//        local_menu->Append(config_id_base + ConfigMenuWizard, config_wizard_name + dots, config_wizard_tooltip);
+//        local_menu->Append(config_id_base + ConfigMenuUpdate, _L("Check for Configuration Updates"), _L("Check for configuration updates"));
+//        local_menu->AppendSeparator();
+//    }
+//    local_menu->Append(config_id_base + ConfigMenuPreferences, _L("Preferences") + dots +
+//#ifdef __APPLE__
+//        "\tCtrl+,",
+//#else
+//        "\tCtrl+P",
+//#endif
+//        _L("Application preferences"));
+//    wxMenu* mode_menu = nullptr;
+//    if (is_editor()) {
+//        local_menu->AppendSeparator();
+//        mode_menu = new wxMenu();
+//        mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _L("Simple"), _L("Simple Mode"));
+//        mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _L("Advanced"), _L("Advanced Mode"));
+//        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if (get_mode() == comSimple) evt.Check(true); }, config_id_base + ConfigMenuModeSimple);
+//        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if (get_mode() == comAdvanced) evt.Check(true); }, config_id_base + ConfigMenuModeAdvanced);
+//
+//        local_menu->AppendSubMenu(mode_menu, _L("Mode"), wxString::Format(_L("%s Mode"), SLIC3R_APP_NAME));
+//    }
+//    local_menu->AppendSeparator();
+//    local_menu->Append(config_id_base + ConfigMenuLanguage, _L("Language"));
+//    if (is_editor()) {
+//        local_menu->AppendSeparator();
+//    }
+//
+//    local_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent &event) {
+//        switch (event.GetId() - config_id_base) {
+//        case ConfigMenuWizard:
+//            run_wizard(ConfigWizard::RR_USER);
+//            break;
+//		case ConfigMenuUpdate:
+//			check_updates(true);
+//			break;
+//#ifdef __linux__
+//        case ConfigMenuDesktopIntegration:
+//            show_desktop_integration_dialog();
+//            break;
+//#endif
+//        case ConfigMenuSnapshots:
+//            //BBS do not support task snapshot
+//            break;
+//        case ConfigMenuPreferences:
+//        {
+//            //BBS GUI refactor: remove unuse layout logic
+//            //bool app_layout_changed = false;
+//            {
+//                // the dialog needs to be destroyed before the call to recreate_GUI()
+//                // or sometimes the application crashes into wxDialogBase() destructor
+//                // so we put it into an inner scope
+//                PreferencesDialog dlg(mainframe);
+//                dlg.ShowModal();
+//                //BBS GUI refactor: remove unuse layout logic
+//                //app_layout_changed = dlg.settings_layout_changed();
+//                if (dlg.seq_top_layer_only_changed())
+//                    this->plater_->refresh_print();
+//
+//                if (dlg.recreate_GUI()) {
+//                    recreate_GUI(_L("Restart application") + dots);
+//                    return;
+//                }
+//#ifdef _WIN32
+//                if (is_editor()) {
+//                    if (app_config->get("associate_3mf") == "true")
+//                        associate_3mf_files();
+//                    if (app_config->get("associate_stl") == "true")
+//                        associate_stl_files();
+//                }
+//                else {
+//                    if (app_config->get("associate_gcode") == "true")
+//                        associate_gcode_files();
+//                }
+//#endif // _WIN32
+//            }
+//            //BBS GUI refactor: remove unuse layout logic
+//            /*if (app_layout_changed) {
+//                // hide full main_sizer for mainFrame
+//                mainframe->GetSizer()->Show(false);
+//                mainframe->update_layout();
+//                mainframe->select_tab(size_t(0));
+//            }*/
+//            break;
+//        }
+//        case ConfigMenuLanguage:
+//        {
+//            /* Before change application language, let's check unsaved changes on 3D-Scene
+//             * and draw user's attention to the application restarting after a language change
+//             */
+//            {
+//                // the dialog needs to be destroyed before the call to switch_language()
+//                // or sometimes the application crashes into wxDialogBase() destructor
+//                // so we put it into an inner scope
+//                wxString title = is_editor() ? wxString(SLIC3R_APP_NAME) : wxString(GCODEVIEWER_APP_NAME);
+//                title += " - " + _L("Choose language");
+//                //wxMessageDialog dialog(nullptr,
+//                MessageDialog dialog(nullptr,
+//                    _L("Switching the language requires application restart.\n") + "\n\n" +
+//                    _L("Do you want to continue?"),
+//                    title,
+//                    wxICON_QUESTION | wxOK | wxCANCEL);
+//                if (dialog.ShowModal() == wxID_CANCEL)
+//                    return;
+//            }
+//
+//            switch_language();
+//            break;
+//        }
+//        case ConfigMenuFlashFirmware:
+//            //BBS FirmwareDialog::run(mainframe);
+//            break;
+//        default:
+//            break;
+//        }
+//    });
+//
+//    using std::placeholders::_1;
+//
+//    if (mode_menu != nullptr) {
+//        auto modfn = [this](int mode, wxCommandEvent&) { if (get_mode() != mode) save_mode(mode); };
+//        mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comSimple, _1), config_id_base + ConfigMenuModeSimple);
+//        mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comAdvanced, _1), config_id_base + ConfigMenuModeAdvanced);
+//    }
+//
+//    // BBS
+//    //menu->Append(local_menu, _L("Configuration"));
+//    menu->AppendSubMenu(local_menu, _L("Configuration"));
+//}
 
 void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_option)
 {

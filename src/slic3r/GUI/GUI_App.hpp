@@ -86,16 +86,17 @@ enum FileType
 extern wxString file_wildcards(FileType file_type, const std::string &custom_extension = std::string{});
 
 enum ConfigMenuIDs {
-    ConfigMenuWizard,
-    ConfigMenuSnapshots,
-    ConfigMenuTakeSnapshot,
-    ConfigMenuUpdate,
-    ConfigMenuDesktopIntegration,
+    //ConfigMenuWizard,
+    //ConfigMenuSnapshots,
+    //ConfigMenuTakeSnapshot,
+    //ConfigMenuUpdate,
+    //ConfigMenuDesktopIntegration,
     ConfigMenuPreferences,
-    ConfigMenuModeSimple,
-    ConfigMenuModeAdvanced,
-    ConfigMenuLanguage,
-    ConfigMenuFlashFirmware,
+    ConfigMenuPrinter,
+    //ConfigMenuModeSimple,
+    //ConfigMenuModeAdvanced,
+    //ConfigMenuLanguage,
+    //ConfigMenuFlashFirmware,
     ConfigMenuCnt,
 };
 
@@ -296,7 +297,7 @@ public:
 
     // BBS
     //void            add_config_menu(wxMenuBar *menu);
-    void            add_config_menu(wxMenu* menu);
+    //void            add_config_menu(wxMenu* menu);
     bool            has_unsaved_preset_changes() const;
     bool            has_current_preset_changes() const;
     void            update_saved_preset_from_current_preset();
@@ -411,7 +412,7 @@ private:
 	void            check_updates(const bool verbose);
 
     bool                    m_init_app_config_from_older { false };
-    bool                    m_datadir_redefined { false }; 
+    bool                    m_datadir_redefined { false };
     std::string             m_older_data_dir_path;
     boost::optional<Semver> m_last_config_version;
 };

@@ -91,13 +91,13 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CAT
 {
     { L("Quality"), {{"ironing_type", "",7},{"ironing_flow", "",8},{"ironing_spacing", "",9},{"bridge_flow", "",10}
                     }},
-    { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", L("Top Solid Layers"),1},{"top_shell_thickness", L("Top Minimum Shell Thickness"),1}, 
+    { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", L("Top Solid Layers"),1},{"top_shell_thickness", L("Top Minimum Shell Thickness"),1},
                     {"bottom_shell_layers", L("Bottom Solid Layers"),1}, {"bottom_shell_thickness", L("Bottom Minimum Shell Thickness"),1},
                     {"sparse_infill_density", "",1},{"sparse_infill_pattern", "",1},{"top_surface_pattern", "",1},{"bottom_surface_pattern", "",1},
                     {"infill_combination", "",1}, {"infill_wall_overlap", "",1}, {"infill_direction", "",1}, {"minimum_sparse_infill_area", "",1}
                     }},
     { L("Speed"), {{"outer_wall_speed", "",1},{"inner_wall_speed", "",2},{"sparse_infill_speed", "",3},{"top_surface_speed", "",4}, {"internal_solid_infill_speed", "",5},
-                    {"overhang_1_4_speed", "",6}, {"overhang_2_4_speed", "",7}, {"overhang_3_4_speed", "",8}, {"overhang_4_4_speed", "",9}, 
+                    {"overhang_1_4_speed", "",6}, {"overhang_2_4_speed", "",7}, {"overhang_3_4_speed", "",8}, {"overhang_4_4_speed", "",9},
                     {"bridge_speed", "",10}, {"gap_infill_speed", "",11}
                     }}
 };
@@ -387,7 +387,7 @@ static void create_freq_settings_popupmenu(wxMenu* menu, const bool is_object_se
             [menu, item, is_object_settings, bundle](wxCommandEvent& event) {
                     wxString category_name = menu->GetLabel(event.GetId());
                     std::vector<std::string> options;
-                    for (auto& category : bundle) 
+                    for (auto& category : bundle)
                         if (category_name == _(category.first)) {
                             options = category.second;
                             break;
@@ -421,7 +421,7 @@ std::vector<wxBitmap> MenuFactory::get_volume_bitmaps()
 void MenuFactory::append_menu_item_delete(wxMenu* menu)
 {
     append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Delete the selected object"),
-        [](wxCommandEvent&) { plater()->remove_selected(); }, "delete", nullptr, 
+        [](wxCommandEvent&) { plater()->remove_selected(); }, "delete", nullptr,
         []() { return plater()->can_delete(); }, m_parent);
 }
 
@@ -836,10 +836,10 @@ void MenuFactory::create_object_menu()
         return;
 
     append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into multiple objects"),
-        [](wxCommandEvent&) { plater()->split_object(); }, "split_object_SMALL", &m_object_menu, 
+        [](wxCommandEvent&) { plater()->split_object(); }, "split_object_SMALL", &m_object_menu,
         []() { return plater()->can_split(true); }, m_parent);
     append_menu_item(split_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into multiple parts"),
-        [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts_SMALL", &m_object_menu, 
+        [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts_SMALL", &m_object_menu,
         []() { return plater()->can_split(false); }, m_parent);
 
     append_submenu(&m_object_menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
@@ -865,10 +865,10 @@ void MenuFactory::create_bbl_object_menu()
     if (!split_menu)
         return;
     append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into multiple objects"),
-        [](wxCommandEvent&) { plater()->split_object(); }, "split_object_SMALL", &m_object_menu, 
+        [](wxCommandEvent&) { plater()->split_object(); }, "split_object_SMALL", &m_object_menu,
         []() { return plater()->can_split(true); }, m_parent);
     append_menu_item(split_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into multiple parts"),
-        [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts_SMALL", &m_object_menu, 
+        [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts_SMALL", &m_object_menu,
         []() { return plater()->can_split(false); }, m_parent);
 
     append_submenu(&m_object_menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
@@ -928,14 +928,14 @@ void MenuFactory::create_part_menu()
     append_menu_item_merge_parts_to_single_part(menu);
 
     append_menu_item(menu, wxID_ANY, _L("Split"), _L("Split the selected object into multiple parts"),
-        [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts_SMALL", nullptr, 
+        [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts_SMALL", nullptr,
         []() { return plater()->can_split(false); }, m_parent);
-     
+
     menu->AppendSeparator();
     append_menu_item_change_type(menu);
     append_menu_items_mirror(&m_part_menu);
     append_menu_item(&m_part_menu, wxID_ANY, _L("Split"), _L("Split the selected object into multiple parts"),
-        [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts_SMALL", nullptr, 
+        [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts_SMALL", nullptr,
         []() { return plater()->can_split(false); }, m_parent);
     m_part_menu.AppendSeparator();
     append_menu_item_per_object_settings(&m_part_menu);
@@ -954,10 +954,10 @@ void MenuFactory::create_bbl_part_menu()
         return;
 
     append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into mutiple objects"),
-        [](wxCommandEvent&) { plater()->split_object(); }, "split_object_SMALL", menu, 
+        [](wxCommandEvent&) { plater()->split_object(); }, "split_object_SMALL", menu,
         []() { return plater()->can_split(true); }, m_parent);
     append_menu_item(split_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into mutiple parts"),
-        [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts_SMALL", menu, 
+        [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts_SMALL", menu,
         []() { return plater()->can_split(false); }, m_parent);
 
     append_submenu(menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
@@ -993,7 +993,7 @@ void MenuFactory::create_plate_menu()
     append_menu_item(menu, wxID_ANY, _L("Delete All"), _L("delete all objects on current plate"),
         [](wxCommandEvent&) {
             plater()->remove_curr_plate_all();
-        }, "", nullptr, []() { 
+        }, "", nullptr, []() {
             PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
             assert(plate);
             return plate->get_objects().empty();
@@ -1016,7 +1016,7 @@ void MenuFactory::create_plate_menu()
             //BBS TODO call auto rotate for current plate
             plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
             plater()->orient();
-        }, "", nullptr, []() {return true; }, plater()); 
+        }, "", nullptr, []() {return true; }, plater());
 
     // delete current plate
     append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Remove the selected plate"),
@@ -1141,10 +1141,10 @@ wxMenu* MenuFactory::multi_selection_menu()
         wxMenu* split_menu = new wxMenu();
         if (split_menu) {
             append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into multiple objects"),
-                [](wxCommandEvent&) { plater()->split_object(); }, "split_object_SMALL", menu, 
+                [](wxCommandEvent&) { plater()->split_object(); }, "split_object_SMALL", menu,
                 []() { return plater()->can_split(true); }, m_parent);
             append_menu_item(split_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into multiple parts"),
-                [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts_SMALL", menu, 
+                [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts_SMALL", menu,
                 []() { return plater()->can_split(false); }, m_parent);
 
             append_submenu(menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
@@ -1203,17 +1203,7 @@ void MenuFactory::append_menu_item_clone(wxMenu* menu)
 {
     append_menu_item(menu, wxID_ANY, _L("Clone") , "",
         [this](wxCommandEvent&) {
-            long res = wxGetNumberFromUser("",
-                    _L("Enter copies number:"),
-                    _L("Enter copies Number"),
-                    1, 0, 100, m_parent);
-                wxString msg;
-                if (res == -1) {
-                    msg = _L("Invalid number");
-                    return;
-                }
-            Selection& selection = plater()->canvas3D()->get_selection();
-            selection.clone(res);
+            plater()->clone_selection();
         }, "", nullptr,
         []() {
             return true;
@@ -1391,7 +1381,7 @@ void MenuFactory::sys_color_changed()
 {
     for (MenuWithSeparators* menu : { &m_object_menu, &m_sla_object_menu, &m_part_menu, &m_default_menu }) {
         msw_rescale_menu(dynamic_cast<wxMenu*>(menu));// msw_rescale_menu updates just icons, so use it
-#ifdef _WIN32 
+#ifdef _WIN32
         // but under MSW we have to update item's bachground color
         for (wxMenuItem* item : menu->GetMenuItems())
             update_menu_item_def_colors(item);
@@ -1406,7 +1396,7 @@ void MenuFactory::sys_color_changed(wxMenuBar* menubar)
     for (size_t id = 0; id < menubar->GetMenuCount(); id++) {
         wxMenu* menu = menubar->GetMenu(id);
         msw_rescale_menu(menu);
-#ifdef _WIN32 
+#ifdef _WIN32
         // but under MSW we have to update item's bachground color
         for (wxMenuItem* item : menu->GetMenuItems())
             update_menu_item_def_colors(item);
@@ -1418,4 +1408,4 @@ void MenuFactory::sys_color_changed(wxMenuBar* menubar)
 
 
 } //namespace GUI
-} //namespace Slic3r 
+} //namespace Slic3r

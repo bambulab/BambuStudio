@@ -93,7 +93,7 @@ void GLGizmoMmuSegmentation::init_extruders_data()
 bool GLGizmoMmuSegmentation::on_init()
 {
     // BBS
-    m_shortcut_key = WXK_CONTROL_N;
+    m_shortcut_key = WXK_NONE;
 
     m_desc["clipping_of_view"]     = _L("Section view") + ": ";
     m_desc["cursor_size"]          = _L("Pen size") + ": ";
@@ -170,7 +170,7 @@ void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
         this->init_extruders_data();
         // Reinitialize triangle selectors because of change of extruder count need also change the size of GLIndexedVertexArray
         if (prev_extruders_count != wxGetApp().filaments_cnt())
-            this->init_model_triangle_selectors(); 
+            this->init_model_triangle_selectors();
     }
     else if (get_extruders_colors() != m_extruders_colors) {
         this->init_extruders_data();

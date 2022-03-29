@@ -706,11 +706,11 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         {
             // Apply new temporary scale factors
             TransformationType transformation_type(TransformationType::Local_Absolute_Joint);
-            if (evt.AltDown())
-                transformation_type.set_independent();
+            //if (evt.AltDown())
+            //    transformation_type.set_independent();
             selection.scale(get_scale(), transformation_type);
-            if (control_down)
-                selection.translate(get_scale_offset(), true);
+            //if (control_down)
+            //    selection.translate(get_scale_offset(), true);
             // BBS
             //wxGetApp().obj_manipul()->set_dirty();
             break;
@@ -863,9 +863,9 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
         case WXK_CONTROL_A:
 #endif /* __APPLE__ */
         {
-            // Sla gizmo selects all support points
-            if ((m_current == SlaSupports || m_current == Hollow) && gizmo_event(SLAGizmoEventType::SelectAll))
-                processed = true;
+            //// Sla gizmo selects all support points
+            //if ((m_current == SlaSupports || m_current == Hollow) && gizmo_event(SLAGizmoEventType::SelectAll))
+            //    processed = true;
 
             break;
         }
@@ -887,64 +887,75 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
             }
             break;
         }
-        case WXK_RETURN:
-        {
-            if ((m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::ApplyChanges))
-                processed = true;
-
-            break;
-        }
-
-        case 'r' :
-        case 'R' :
-        {
-            if ((m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation) && gizmo_event(SLAGizmoEventType::ResetClippingPlane))
-                processed = true;
-
-            break;
-        }
-
-
-        case WXK_BACK:
-        case WXK_DELETE:
-        {
-            if ((m_current == SlaSupports || m_current == Hollow) && gizmo_event(SLAGizmoEventType::Delete))
-                processed = true;
-
-            break;
-        }
+        //skip some keys when gizmo
+        case 'r':
+        case 'R':
         case 'A':
         case 'a':
         {
-            if (m_current == SlaSupports)
-            {
-                gizmo_event(SLAGizmoEventType::AutomaticGeneration);
-                // set as processed no matter what's returned by gizmo_event() to avoid the calling canvas to process 'A' as arrange
+            if (is_running()) {
                 processed = true;
             }
             break;
         }
-        case 'M':
-        case 'm':
-        {
-            if ((m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::ManualEditing))
-                processed = true;
+        //case WXK_RETURN:
+        //{
+        //    if ((m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::ApplyChanges))
+        //        processed = true;
 
-            break;
-        }
-        case 'F':
-        case 'f':
-        {
-            if (m_current == Scale)
+        //    break;
+        //}
+
+        //case 'r' :
+        //case 'R' :
+        //{
+            //if ((m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation) && gizmo_event(SLAGizmoEventType::ResetClippingPlane))
+            //    processed = true;
+
+            //break;
+        //}
+
+
+        //case WXK_BACK:
+        //case WXK_DELETE:
+        //{
+        //    if ((m_current == SlaSupports || m_current == Hollow) && gizmo_event(SLAGizmoEventType::Delete))
+        //        processed = true;
+
+        //    break;
+        //}
+        //case 'A':
+        //case 'a':
+        //{
+        //    if (m_current == SlaSupports)
+        //    {
+        //        gizmo_event(SLAGizmoEventType::AutomaticGeneration);
+        //        // set as processed no matter what's returned by gizmo_event() to avoid the calling canvas to process 'A' as arrange
+        //        processed = true;
+        //    }
+        //    break;
+        //}
+        //case 'M':
+        //case 'm':
+        //{
+        //    if ((m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::ManualEditing))
+        //        processed = true;
+
+        //    break;
+        //}
+        //case 'F':
+        //case 'f':
+        //{
+           /* if (m_current == Scale)
             {
                 if (!is_dragging())
                     wxGetApp().plater()->scale_selection_to_fit_print_volume();
 
                 processed = true;
-            }
+            }*/
 
-            break;
-        }
+            //break;
+        //}
         }
     }
 
@@ -1032,7 +1043,7 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
 #endif
         } else if (m_current == Simplify && keyCode == WXK_ESCAPE) {
             GLGizmoSimplify *simplify = dynamic_cast<GLGizmoSimplify *>(get_current());
-            if (simplify != nullptr) 
+            if (simplify != nullptr)
                 processed = simplify->on_esc_key_down();
         }
         // BBS
@@ -1143,7 +1154,7 @@ void GLGizmosManager::render_arrow(const GLCanvas3D& parent, EType highlighted_t
     float zoomed_stride_y = m_layout.scaled_stride_y() * inv_zoom;
     for (size_t idx : selectable_idxs)
     {
-        if (idx == highlighted_type) {      
+        if (idx == highlighted_type) {
             int tex_width = m_icons_texture.get_width();
             int tex_height = m_icons_texture.get_height();
             unsigned int tex_id = m_arrow_texture.texture.get_id();
@@ -1154,7 +1165,7 @@ void GLGizmosManager::render_arrow(const GLCanvas3D& parent, EType highlighted_t
             float internal_right_uv = 1.0f - (float)m_arrow_texture.metadata.right * inv_tex_width;
             float internal_top_uv = 1.0f - (float)m_arrow_texture.metadata.top * inv_tex_height;
             float internal_bottom_uv = (float)m_arrow_texture.metadata.bottom * inv_tex_height;
-            
+
             float arrow_sides_ratio = (float)m_arrow_texture.texture.get_height() / (float)m_arrow_texture.texture.get_width();
 
             GLTexture::render_sub_texture(tex_id, zoomed_top_x + zoomed_icons_size * 1.2f, zoomed_top_x + zoomed_icons_size * 1.2f + zoomed_icons_size * 2.2f * arrow_sides_ratio, zoomed_top_y - zoomed_icons_size * 1.6f , zoomed_top_y + zoomed_icons_size * 0.6f, { { internal_left_uv, internal_bottom_uv }, { internal_left_uv, internal_top_uv }, { internal_right_uv, internal_top_uv }, { internal_right_uv, internal_bottom_uv } });
@@ -1314,7 +1325,7 @@ bool GLGizmosManager::generate_icons_texture() const
     std::vector<std::string> filenames;
     for (size_t idx=0; idx<m_gizmos.size(); ++idx)
     {
-        if (m_gizmos[idx] != nullptr)   
+        if (m_gizmos[idx] != nullptr)
         {
             const std::string& icon_filename = m_gizmos[idx]->get_icon_filename();
             if (!icon_filename.empty())

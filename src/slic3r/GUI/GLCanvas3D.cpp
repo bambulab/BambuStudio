@@ -467,6 +467,10 @@ wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, RBtnEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_PLATE_RIGHT_CLICK, RBtnPlateEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
+//BBS: add arrange and orient event
+wxDEFINE_EVENT(EVT_GLCANVAS_ARRANGE_PARTPLATE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_ORIENT, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_ORIENT_PARTPLATE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_SELECT_CURR_PLATE_ALL, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_SELECT_ALL, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_QUESTION_MARK, SimpleEvent);
@@ -2157,29 +2161,30 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case WXK_CONTROL_M:
 #endif /* __APPLE__ */
         {
-#ifdef _WIN32
-            if (wxGetApp().app_config->get("use_legacy_3DConnexion") == "1") {
-#endif //_WIN32
-#ifdef __APPLE__
-            // On OSX use Cmd+Shift+M to "Show/Hide 3Dconnexion devices settings dialog"
-            if ((evt.GetModifiers() & shiftMask) != 0) {
-#endif // __APPLE__
+//#ifdef _WIN32
+//            if (wxGetApp().app_config->get("use_legacy_3DConnexion") == "1") {
+//#endif //_WIN32
+//#ifdef __APPLE__
+//            // On OSX use Cmd+Shift+M to "Show/Hide 3Dconnexion devices settings dialog"
+//            if ((evt.GetModifiers() & shiftMask) != 0) {
+//#endif // __APPLE__
+//
+//#ifdef SUPPORT_3D_CONNEXION
+//                Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
+//                controller.show_settings_dialog(!controller.is_settings_dialog_shown());
+//                m_dirty = true;
+//#endif
 
-#ifdef SUPPORT_3D_CONNEXION
-                Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
-                controller.show_settings_dialog(!controller.is_settings_dialog_shown());
-                m_dirty = true;
-#endif
-
-#ifdef __APPLE__
-            }
-            else
-            // and Cmd+M to minimize application
-                wxGetApp().mainframe->Iconize();
-#endif // __APPLE__
-#ifdef _WIN32
-            }
-#endif //_WIN32
+//#ifdef __APPLE__
+//            }
+//            else
+//            // and Cmd+M to minimize application
+//                wxGetApp().mainframe->Iconize();
+//#endif // __APPLE__
+//#ifdef _WIN32
+//            }
+//#endif //_WIN32
+            post_event(SimpleEvent(EVT_GLTOOLBAR_CLONE));
             break;
         }
 #ifdef __APPLE__
@@ -2236,24 +2241,31 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case '6': { select_view("right"); break; }
         case '7': { select_plate(); break; }
 
-        case WXK_BACK:
-        case WXK_DELETE:
-             post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); break;
+        //case WXK_BACK:
+        //case WXK_DELETE:
+#ifdef __APPLE__
+        case 'd':
+        case 'D':
+#else /* __APPLE__ */
+        case WXK_CONTROL_D:
+#endif /* __APPLE__ */
+            post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL));
+            break;
         default:            evt.Skip();
         }
     } else {
         auto obj_list = wxGetApp().obj_list();
         switch (keyCode)
         {
-        case WXK_BACK:
+        //case WXK_BACK:
         case WXK_DELETE: { post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break; }
         case WXK_ESCAPE: { deselect_all(); break; }
-        case WXK_F5: {
-            if ((wxGetApp().is_editor() && !wxGetApp().plater()->model().objects.empty()) ||
-                (wxGetApp().is_gcode_viewer() && !wxGetApp().plater()->get_last_loaded_gcode().empty()))
-                post_event(SimpleEvent(EVT_GLCANVAS_RELOAD_FROM_DISK));
-            break;
-        }
+        //case WXK_F5: {
+        //    if ((wxGetApp().is_editor() && !wxGetApp().plater()->model().objects.empty()) ||
+        //        (wxGetApp().is_gcode_viewer() && !wxGetApp().plater()->get_last_loaded_gcode().empty()))
+        //        post_event(SimpleEvent(EVT_GLCANVAS_RELOAD_FROM_DISK));
+        //    break;
+        //}
 
         // BBS: use keypad to change extruder
         case '1':
@@ -2270,52 +2282,56 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             break;
         }
 
-        case '+': {
-            if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
-                post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt));
-            else
-                post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1));
-            break;
-        }
-        case '-': {
-            if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
-                post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt));
-            else
-                post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1));
-            break;
-        }
+        //case '+': {
+        //    if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+        //        post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt));
+        //    else
+        //        post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1));
+        //    break;
+        //}
+        //case '-': {
+        //    if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+        //        post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt));
+        //    else
+        //        post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1));
+        //    break;
+        //}
         case '?': { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
         case 'A':
         case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
-        case 'B':
-        case 'b': { zoom_to_bed(); break; }
+        case 'r':
+        case 'R': { post_event(SimpleEvent(EVT_GLCANVAS_ORIENT)); break; }
+        //case 'B':
+        //case 'b': { zoom_to_bed(); break; }
+#if !BBL_RELEASE_TO_PUBLIC
         case 'C':
         case 'c': { m_gcode_viewer.toggle_gcode_window_visibility(); m_dirty = true; request_extra_frame(); break; }
-        case 'E':
-        case 'e': { m_labels.show(!m_labels.is_shown()); m_dirty = true; break; }
-        case 'G':
-        case 'g': {
-            if ((evt.GetModifiers() & shiftMask) != 0) {
-                if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
-                    post_event(wxKeyEvent(EVT_GLCANVAS_JUMP_TO, evt));
-            }
-            break;
-        }
-        case 'I':
-        case 'i': { _update_camera_zoom(1.0); break; }
-        case 'K':
-        case 'k': { wxGetApp().plater()->get_camera().select_next_type(); m_dirty = true; break; }
-        case 'L':
-        case 'l': {
-            if (!m_main_toolbar.is_enabled()) {
-                m_gcode_viewer.enable_legend(!m_gcode_viewer.is_legend_enabled());
-                m_dirty = true;
-                wxGetApp().plater()->update_preview_bottom_toolbar();
-            }
-            break;
-        }
-        case 'O':
-        case 'o': { _update_camera_zoom(-1.0); break; }
+#endif
+        //case 'E':
+        //case 'e': { m_labels.show(!m_labels.is_shown()); m_dirty = true; break; }
+        //case 'G':
+        //case 'g': {
+        //    if ((evt.GetModifiers() & shiftMask) != 0) {
+        //        if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+        //            post_event(wxKeyEvent(EVT_GLCANVAS_JUMP_TO, evt));
+        //    }
+        //    break;
+        //}
+        //case 'I':
+        //case 'i': { _update_camera_zoom(1.0); break; }
+        //case 'K':
+        //case 'k': { wxGetApp().plater()->get_camera().select_next_type(); m_dirty = true; break; }
+        //case 'L':
+        //case 'l': {
+            //if (!m_main_toolbar.is_enabled()) {
+            //    m_gcode_viewer.enable_legend(!m_gcode_viewer.is_legend_enabled());
+            //    m_dirty = true;
+            //    wxGetApp().plater()->update_preview_bottom_toolbar();
+            //}
+            //break;
+        //}
+        //case 'O':
+        //case 'o': { _update_camera_zoom(-1.0); break; }
 #if ENABLE_RENDER_PICKING_PASS
         case 'T':
         case 't': {
@@ -2324,18 +2340,18 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             break;
         }
 #endif // ENABLE_RENDER_PICKING_PASS
-        case 'Z':
-        case 'z': {
-            if (!m_selection.is_empty())
-                zoom_to_selection();
-            else {
-                if (!m_volumes.empty())
-                    zoom_to_volumes();
-                else
-                    _zoom_to_box(m_gcode_viewer.get_paths_bounding_box());
-            }
-            break;
-        }
+        //case 'Z':
+        //case 'z': {
+        //    if (!m_selection.is_empty())
+        //        zoom_to_selection();
+        //    else {
+        //        if (!m_volumes.empty())
+        //            zoom_to_volumes();
+        //        else
+        //            _zoom_to_box(m_gcode_viewer.get_paths_bounding_box());
+        //    }
+        //    break;
+        //}
         default:  { evt.Skip(); break; }
         }
     }
@@ -2422,7 +2438,9 @@ public:
 
             if (apply) {
                 m_running = true;
-                m_down_action(m_direction, evt.ShiftDown(), evt.CmdDown());
+                //BBS: always move as camera space
+                //m_down_action(m_direction, evt.ShiftDown(), evt.CmdDown());
+                m_down_action(m_direction, evt.ShiftDown(), true);
             }
         }
     }
@@ -2474,17 +2492,27 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
         if (!m_gizmos.on_key(evt)) {
             if (evt.GetEventType() == wxEVT_KEY_UP) {
                 if (evt.ShiftDown() && evt.ControlDown() && keyCode == WXK_SPACE) {
+#if !BBL_RELEASE_TO_PUBLIC
                     wxGetApp().plater()->toggle_render_statistic_dialog();
                     m_dirty = true;
+#endif
                 }
-                if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
+                else if (evt.ShiftDown() && keyCode == 'A') {
+                    post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE_PARTPLATE));
+                    m_dirty = true;
+                }
+                else if (evt.ShiftDown() && keyCode == 'R') {
+                    post_event(SimpleEvent(EVT_GLCANVAS_ORIENT_PARTPLATE));
+                    m_dirty = true;
+                }
+                else if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
                     // Enable switching between 3D and Preview with Tab
                     // m_canvas->HandleAsNavigationKey(evt);   // XXX: Doesn't work in some cases / on Linux
-                    post_event(SimpleEvent(EVT_GLCANVAS_TAB));
+                    //post_event(SimpleEvent(EVT_GLCANVAS_TAB));
                 }
                 else if (keyCode == WXK_TAB && evt.ShiftDown() && ! wxGetApp().is_gcode_viewer()) {
                     // Collapse side-panel with Shift+Tab
-                    post_event(SimpleEvent(EVT_GLCANVAS_COLLAPSE_SIDEBAR));
+                    //post_event(SimpleEvent(EVT_GLCANVAS_COLLAPSE_SIDEBAR));
                 }
                 else if (keyCode == WXK_SHIFT) {
                     translationProcessor.process(evt);
@@ -2511,30 +2539,31 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 else if (m_gizmos.is_enabled() && !m_selection.is_empty()) {
                     translationProcessor.process(evt);
 
-                    switch (keyCode)
-                    {
-                    case WXK_NUMPAD_PAGEUP:   case WXK_PAGEUP:
-                    case WXK_NUMPAD_PAGEDOWN: case WXK_PAGEDOWN:
-                    {
-                        do_rotate(L("Tool Rotate"));
-                        m_gizmos.update_data();
+                    //switch (keyCode)
+                    //{
+                    //case WXK_NUMPAD_PAGEUP:   case WXK_PAGEUP:
+                    //case WXK_NUMPAD_PAGEDOWN: case WXK_PAGEDOWN:
+                    //{
+                    //    do_rotate(L("Tool Rotate"));
+                    //    m_gizmos.update_data();
 
-                        // BBS
-                        //wxGetApp().obj_manipul()->set_dirty();
-                        // Let the plater know that the dragging finished, so a delayed refresh
-                        // of the scene with the background processing data should be performed.
-                        post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
-                        // updates camera target constraints
-                        refresh_camera_scene_box();
-                        m_dirty = true;
+                    //    // BBS
+                    //    //wxGetApp().obj_manipul()->set_dirty();
+                    //    // Let the plater know that the dragging finished, so a delayed refresh
+                    //    // of the scene with the background processing data should be performed.
+                    //    post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
+                    //    // updates camera target constraints
+                    //    refresh_camera_scene_box();
+                    //    m_dirty = true;
 
-                        break;
-                    }
-                    default: { break; }
-                    }
+                    //    break;
+                    //}
+                    //default: { break; }
+                    //}
                 }
-                // BBS
-                else if (evt.ControlDown()) {
+
+                // BBS: add select view logic
+                if (evt.ControlDown()) {
                     switch (keyCode) {
                         case '0': { select_view("topfront"); break; }
                         case '1': { select_view("top"); break; }
@@ -2569,22 +2598,22 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 else if (keyCode == WXK_CONTROL)
                     m_dirty = true;
                 else if (m_gizmos.is_enabled() && !m_selection.is_empty()) {
-                    auto do_rotate = [this](double angle_z_rad) {
-                        m_selection.start_dragging();
-                        m_selection.rotate(Vec3d(0.0, 0.0, angle_z_rad), TransformationType(TransformationType::World_Relative_Joint));
-                        m_selection.stop_dragging();
-                        m_dirty = true;
-//                        wxGetApp().obj_manipul()->set_dirty();
-                    };
+//                    auto do_rotate = [this](double angle_z_rad) {
+//                        m_selection.start_dragging();
+//                        m_selection.rotate(Vec3d(0.0, 0.0, angle_z_rad), TransformationType(TransformationType::World_Relative_Joint));
+//                        m_selection.stop_dragging();
+//                        m_dirty = true;
+////                        wxGetApp().obj_manipul()->set_dirty();
+//                    };
 
                     translationProcessor.process(evt);
 
-                    switch (keyCode)
-                    {
-                    case WXK_NUMPAD_PAGEUP:   case WXK_PAGEUP:   { do_rotate(0.25 * M_PI); break; }
-                    case WXK_NUMPAD_PAGEDOWN: case WXK_PAGEDOWN: { do_rotate(-0.25 * M_PI); break; }
-                    default: { break; }
-                    }
+                    //switch (keyCode)
+                    //{
+                    //case WXK_NUMPAD_PAGEUP:   case WXK_PAGEUP:   { do_rotate(0.25 * M_PI); break; }
+                    //case WXK_NUMPAD_PAGEDOWN: case WXK_PAGEDOWN: { do_rotate(-0.25 * M_PI); break; }
+                    //default: { break; }
+                    //}
                 }
                 else if (!m_gizmos.is_enabled()) {
                     // DoubleSlider navigation in Preview
@@ -3148,7 +3177,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
         }
         else if (evt.LeftUp() && m_picking_enabled && m_rectangle_selection.is_dragging()) {
-            if (evt.ShiftDown() || evt.AltDown())
+            //BBS: don't use alt as de-select
+            //if (evt.ShiftDown() || evt.AltDown())
+            if (evt.ShiftDown())
                 _update_selection_from_hover();
 
             m_rectangle_selection.stop_dragging();

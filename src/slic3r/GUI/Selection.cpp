@@ -430,6 +430,8 @@ void Selection::remove_curr_plate()
 
 void Selection::clone(int numbers)
 {
+    if (numbers > 0)
+        wxGetApp().plater()->take_snapshot(std::string("Selection-clone!"));
     for (int i = 0; i < numbers; i++) {
         copy_to_clipboard();
         paste_from_clipboard();
@@ -483,7 +485,7 @@ void Selection::add_all()
 
     if ((unsigned int)m_list.size() == count)
         return;
-    
+
     wxGetApp().plater()->take_snapshot(std::string("Selection-Add All!"), UndoRedo::SnapshotType::Selection);
 
     m_mode = Instance;
@@ -505,7 +507,7 @@ void Selection::remove_all()
 
     if (is_empty())
         return;
-  
+
 // Not taking the snapshot with non-empty Redo stack will likely be more confusing than losing the Redo stack.
 // Let's wait for user feedback.
 //    if (!wxGetApp().plater()->can_redo())
@@ -996,12 +998,12 @@ void Selection::flattening_rotate(const Vec3d& normal)
         // Normal transformed from the object coordinate space to the world coordinate space.
         const auto &voldata = m_cache.volumes_data[i];
         Vec3d tnormal = (Geometry::assemble_transform(
-            Vec3d::Zero(), voldata.get_instance_rotation(), 
+            Vec3d::Zero(), voldata.get_instance_rotation(),
             voldata.get_instance_scaling_factor().cwiseInverse(), voldata.get_instance_mirror()) * normal).normalized();
         // Additional rotation to align tnormal with the down vector in the world coordinate space.
         auto  extra_rotation = Eigen::Quaterniond().setFromTwoVectors(tnormal, - Vec3d::UnitZ());
         v.set_instance_rotation(Geometry::extract_euler_angles(extra_rotation.toRotationMatrix() * m_cache.volumes_data[i].get_instance_rotation_matrix()));
-    
+
         BOOST_LOG_TRIVIAL(debug) << "flattening_rotate " << (*m_volumes)[i]->name << std::fixed << std::setprecision(4) << ": tnormal=" << tnormal.transpose() << "; extra_rotation=" << Geometry::extract_euler_angles(extra_rotation.toRotationMatrix()).transpose();
         flush_logs();
     }
@@ -1701,7 +1703,7 @@ TriangleMesh Selection::get_export_mesh()
             vol_mesh.transform(v->get_matrix(), true);
             mesh.merge(vol_mesh);
         }
-    
+
         TriangleMesh vols_mesh(mesh);
         mesh = TriangleMesh();
         for (const ModelInstance *i : object->instances) {
@@ -2348,7 +2350,7 @@ static void verify_instances_rotation_synchronized(const Model &model, const GLV
                 break;
             }
         }
-        assert(idx_volume_first != -1); // object without instances?
+        //assert(idx_volume_first != -1); // object without instances?
         if (idx_volume_first == -1)
             continue;
         const Vec3d &rotation0 = volumes[idx_volume_first]->get_instance_rotation();
@@ -2459,7 +2461,7 @@ void Selection::ensure_on_bed()
 
     for (size_t i = 0; i < m_volumes->size(); ++i) {
         GLVolume* volume = (*m_volumes)[i];
-        if (!volume->is_wipe_tower && !volume->is_modifier && 
+        if (!volume->is_wipe_tower && !volume->is_modifier &&
             std::find(m_cache.sinking_volumes.begin(), m_cache.sinking_volumes.end(), i) == m_cache.sinking_volumes.end()) {
             const double min_z = volume->transformed_convex_hull_bounding_box().min.z();
             std::pair<int, int> instance = std::make_pair(volume->object_idx(), volume->instance_idx());

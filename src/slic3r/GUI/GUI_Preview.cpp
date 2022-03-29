@@ -201,11 +201,11 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Model* model)
         return false;
 
     // to match the background of the sliders
-#ifdef _WIN32 
+#ifdef _WIN32
     wxGetApp().UpdateDarkUI(this);
 #else
     SetBackgroundColour(GetParent()->GetBackgroundColour());
-#endif // _WIN32 
+#endif // _WIN32
 
     m_canvas_widget = OpenGLManager::create_wxglcanvas(*this);
     if (m_canvas_widget == nullptr)
@@ -297,7 +297,7 @@ void Preview::reload_print(bool keep_volumes, bool only_gcode)
 #endif /* __linux__ */
     if (
 #ifdef __linux__
-        m_volumes_cleanup_required || 
+        m_volumes_cleanup_required ||
 #endif /* __linux__ */
         !keep_volumes)
     {
@@ -522,7 +522,7 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
 
     bool sequential_print     = (wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
     m_layers_slider->SetDrawMode(sequential_print);
-    
+
     auto print_mode_stat = m_gcode_result->print_statistics.modes.front();
     m_layers_slider->SetLayersTimes(print_mode_stat.layers_times, print_mode_stat.time);
 
@@ -628,7 +628,7 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
                 color_print_values = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
             else
                 color_print_values = m_canvas->get_custom_gcode_per_print_z();
-            colors.push_back("#808080"); // gray color for pause print or custom G-code 
+            colors.push_back("#808080"); // gray color for pause print or custom G-code
         }
     }
     else if (gcode_preview_data_valid || gcode_view_type == GCodeViewer::EViewType::Tool) {
