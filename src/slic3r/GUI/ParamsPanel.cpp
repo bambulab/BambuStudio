@@ -144,7 +144,7 @@ void ParamsPanel::create_layout()
 
     if (m_top_panel) {
         m_mode_sizer = new wxBoxSizer( wxHORIZONTAL );
-        m_mode_sizer->AddSpacer(22);
+        m_mode_sizer->AddSpacer(22 * em_unit(this) / 10);
         m_mode_sizer->Add( m_title_label, 0, wxALIGN_CENTER );
         m_mode_sizer->AddSpacer(9);
         m_mode_sizer->Add( m_mode_region, 0, wxALIGN_CENTER );

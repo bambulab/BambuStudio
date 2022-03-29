@@ -334,7 +334,8 @@ void Tab::create_preset_tab()
     m_top_sizer = new wxBoxSizer( wxHORIZONTAL );
     // BBS: model config
     if (m_presets_choice) {
-        m_top_sizer->Add(m_presets_choice, 1, wxEXPAND | wxALL, 10 );
+        m_presets_choice->Reparent(m_top_panel);
+        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, 10);
     } else {
         m_top_sizer->AddSpacer(10);
         m_top_sizer->AddStretchSpacer(1);
@@ -349,7 +350,7 @@ void Tab::create_preset_tab()
     m_top_sizer->Add( m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8  );
     m_top_sizer->Add( m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
     m_top_sizer->Add( m_btn_search, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
-    m_top_sizer->Add( m_search_item, 1, wxALIGN_CENTER_VERTICAL | wxALL, 10);
+    m_top_sizer->Add( m_search_item, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
 
     if (dynamic_cast<TabPrint*>(this) == nullptr) {
         m_static_title = new Label(Label::Body_12, _L("Advance"), m_top_panel);
@@ -368,8 +369,8 @@ void Tab::create_preset_tab()
 
     m_top_sizer->SetMinSize(-1, 3 * m_em_unit);
     m_top_panel->SetSizer(m_top_sizer);
-    if (m_presets_choice) 
-        m_main_sizer->Add(m_top_panel, 0, wxEXPAND, 0); 
+    if (m_presets_choice)
+        m_main_sizer->Add(m_top_panel, 0, wxEXPAND | wxUP | wxDOWN, m_em_unit); 
     else
         m_top_panel->Hide();
 

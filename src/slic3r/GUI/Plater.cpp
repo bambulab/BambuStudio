@@ -423,7 +423,7 @@ Sidebar::Sidebar(Plater *parent)
 #endif //__WINDOWS__
 
     // add filament title
-    p->m_panel_filament_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxSize(-1, 36 * em / 10), wxTAB_TRAVERSAL | wxBORDER_NONE);
+    p->m_panel_filament_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE);
     p->m_panel_filament_title->SetBackgroundColor(title_bg);
     p->m_panel_filament_title->SetBackgroundColor(0xF1F1F1);
 
@@ -435,10 +435,17 @@ Sidebar::Sidebar(Plater *parent)
     p->m_staticText_filament_settings->SetFont(Label::Body_14);
     bSizer39->Add( p->m_staticText_filament_settings, 0, wxALIGN_CENTER );
     bSizer39->Add( 10 * em / 10, 0, 0, 0, 0 );
+    bSizer39->SetMinSize(-1, 4 * em);
 
     p->m_panel_filament_title->SetSizer( bSizer39 );
     p->m_panel_filament_title->Layout();
+    auto spliter_1 = new ::StaticLine(p->scrolled);
+    spliter_1->SetBackgroundColour("#A6A9AA");
+    scrolled_sizer->Add(spliter_1, 0, wxEXPAND);
     scrolled_sizer->Add(p->m_panel_filament_title, 0, wxEXPAND | wxALL, 0);
+    auto spliter_2 = new ::StaticLine(p->scrolled);
+    spliter_2->SetBackgroundColour("#ACACAC");
+    scrolled_sizer->Add(spliter_2, 0, wxEXPAND);
 
     ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
     set_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
@@ -501,9 +508,9 @@ Sidebar::Sidebar(Plater *parent)
     combo_and_btn_sizer->Add(8 * em / 10, 0, 0, 0, 0);
     if (p->combos_filament[0]->clr_picker) {
         p->combos_filament[0]->clr_picker->SetLabel("1");
-        combo_and_btn_sizer->Add(p->combos_filament[0]->clr_picker, 0, wxALIGN_CENTER_VERTICAL, 0);
+        combo_and_btn_sizer->Add(p->combos_filament[0]->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 3 * em / 10);
     }
-    combo_and_btn_sizer->Add(p->combos_filament[0], 1, wxALL | wxEXPAND, 5 * em / 10);
+    combo_and_btn_sizer->Add(p->combos_filament[0], 1, wxALL | wxEXPAND, 2 * em / 10);
 
     ScalableButton* edit_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "edit");
     edit_btn->SetBackgroundColour(wxColour(255, 255, 255));
@@ -517,7 +524,7 @@ Sidebar::Sidebar(Plater *parent)
         });
     combobox->edit_btn = edit_btn;
 
-    combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
+    combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 3 * em / 10);
     combo_and_btn_sizer->Add(8 * em / 10, 0, 0, 0, 0);
 
     p->combos_filament[0]->set_extruder_idx(0);
@@ -527,7 +534,7 @@ Sidebar::Sidebar(Plater *parent)
     p->m_panel_filament_content->SetSizer(p->sizer_filaments);
     p->m_panel_filament_content->Layout();
 
-    scrolled_sizer->Add(p->m_panel_filament_content, 0, wxALL | wxEXPAND, 0);
+    scrolled_sizer->Add(p->m_panel_filament_content, 0, wxTOP | wxBOTTOM | wxEXPAND, 10);
 
     // BBS
     // add wiping dialog
@@ -565,7 +572,13 @@ Sidebar::Sidebar(Plater *parent)
     auto params_panel = ((MainFrame*)parent->GetParent())->m_param_panel;
     if (params_panel) {
         params_panel->get_top_panel()->Reparent(p->scrolled);
+        auto spliter_1 = new ::StaticLine(p->scrolled);
+        spliter_1->SetBackgroundColour("#A6A9AA");
+        scrolled_sizer->Add(spliter_1, 0, wxEXPAND);
         scrolled_sizer->Add(params_panel->get_top_panel(), 0, wxEXPAND);
+        auto spliter_2 = new ::StaticLine(p->scrolled);
+        spliter_2->SetBackgroundColour("#ACACAC");
+        scrolled_sizer->Add(spliter_2, 0, wxEXPAND);
     }
 
     //add project content
@@ -614,8 +627,8 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     int em = wxGetApp().em_unit();
     combo_and_btn_sizer->Add( 8 * em / 10, 0, 0, 0, 0 );
     (*combo)->clr_picker->SetLabel(wxString::Format("%d", filament_idx + 1));
-    combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL, 0);
-    combo_and_btn_sizer->Add(*combo, 1, wxALL | wxEXPAND, 5 * em / 10);
+    combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 3 * em / 10);
+    combo_and_btn_sizer->Add(*combo, 1, wxALL | wxEXPAND, 2 * em / 10);
 
     /* BBS hide del_btn
     ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "delete_filament");
@@ -643,7 +656,7 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
         });
     combobox->edit_btn = edit_btn;
 
-    combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
+    combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 3 * em / 10);
 
     combo_and_btn_sizer->Add(8 * em / 10, 0, 0, 0, 0);
 
@@ -799,6 +812,8 @@ void Sidebar::change_top_border_for_mode_sizer(bool increase_border)
 void Sidebar::msw_rescale()
 {
     SetMinSize(wxSize(42 * wxGetApp().em_unit(), -1));
+    p->m_panel_filament_title->GetSizer()
+        ->SetMinSize(-1, 4 * wxGetApp().em_unit());
     //BBS
 #if 0
     if (p->mode_sizer)
