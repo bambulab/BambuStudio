@@ -1,6 +1,9 @@
 
 var m_ProfileItem;
 
+var FilamentPriority=new Array( "pla","abs","pet","tpu","pc");
+var VendorPriority=new Array("bbl","kexcelled","polymaker","esun","generic");
+  
 function OnInit()
 {
 	TranslatePage();
@@ -88,6 +91,9 @@ function SortUI()
 	//Filament
 	let HtmlFilament='';
 	let SelectNumber=0;
+
+	var TypeHtmlArray={};
+    var VendorHtmlArray={};
 	for( let key in m_ProfileItem['filament'] )
 	{
 		let OneFila=m_ProfileItem['filament'][key];
@@ -128,23 +134,21 @@ function SortUI()
 		if(bFind)
 		{
 			//Type
-			let pType=$("#FilatypeList .CValues input[filatype='"+fType+"']");
-		    if(pType.length==0)
+			let LowType=fType.toLowerCase();
+		    if(!TypeHtmlArray.hasOwnProperty(LowType))
 		    {
 			    let HtmlType='<div><input type="checkbox" filatype="'+fType+'" onChange="FilaClick()"   />'+fType+'</div>';
 			
-			    $("#FilatypeList .CValues").append(HtmlType);
-				$("#FilatypeList .CValues input[filatype='"+fType+"']").prop("checked",true);
+				TypeHtmlArray[LowType]=HtmlType;
 		    }
 			
 			//Vendor
-			let pVendor=$("#VendorList .CValues input[vendor='"+fVendor+"']");
-	        if(pVendor.length==0)
+			let lowVendor=fVendor.toLowerCase();
+			if(!VendorHtmlArray.hasOwnProperty(lowVendor))
 		    {
 			    let HtmlVendor='<div><input type="checkbox" vendor="'+fVendor+'"  onChange="VendorClick()" />'+fVendor+'</div>';
-			
-			    $("#VendorList .CValues").append(HtmlVendor);
-				$("#VendorList .CValues input[vendor='"+fVendor+"']").prop("checked",true);
+				
+				VendorHtmlArray[lowVendor]=HtmlVendor;
 		    }
 			
 			//Filament
@@ -165,11 +169,45 @@ function SortUI()
 					$("#ItemBlockArea input[vendor='"+fVendor+"'][model='"+fModel+"'][filatype='"+fType+"'][name='"+key+"']").prop("checked",false);
 		    } 
 		}
-		
-		$("#FilatypeList .CValues input").prop("checked",true);
-		$("#VendorList .CValues input").prop("checked",true);
 	}
 
+	//Sort TypeArray
+	let TypeAdvNum=FilamentPriority.length;
+	for( let n=0;n<TypeAdvNum;n++ )
+	{
+		let strType=FilamentPriority[n];
+		
+		if( TypeHtmlArray.hasOwnProperty( strType ) )
+		{
+			$("#FilatypeList .CValues").append( TypeHtmlArray[strType] );
+			delete( TypeHtmlArray[strType] );
+		}
+	}
+    for(let key in TypeHtmlArray )
+	{
+		$("#FilatypeList .CValues").append( TypeHtmlArray[key] );
+	}
+	$("#FilatypeList .CValues input").prop("checked",true);
+	
+	//Sort VendorArray
+	let VendorAdvNum=VendorPriority.length;
+	for( let n=0;n<VendorAdvNum;n++ )
+	{
+		let strVendor=VendorPriority[n];
+		
+		if( VendorHtmlArray.hasOwnProperty( strVendor ) )
+		{
+			$("#VendorList .CValues").append( VendorHtmlArray[strVendor] );
+			delete( VendorHtmlArray[strVendor] );
+		}
+	}
+    for(let key in VendorHtmlArray )
+	{
+		$("#VendorList .CValues").append( VendorHtmlArray[key] );
+	}	
+	$("#VendorList .CValues input").prop("checked",true);
+	
+	//------
 	if(SelectNumber==0)
 		ChooseDefaultFilament();
 }
@@ -316,12 +354,12 @@ function SortFilament()
 			}
 			
 			if(HasModel)
-			    $(OneFF).prop("checked",true);
+			    $(OneNode).show();
 			else
-				$(OneFF).prop("checked",false);
+				$(OneNode).hide();
 		}
 		else
-			$(OneFF).prop("checked",false);
+			$(OneNode).hide();
 	}
 }
 

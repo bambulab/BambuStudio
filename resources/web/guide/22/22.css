@@ -93,7 +93,7 @@ input
 	flex-direction: column;
 	justify-content:flex-start;
 	align-items: flex-start;
-	align-content:stretch;
+	align-content:flex-start;
 	line-height: 32px;
 	height: 400px;
 	border-top: 1px solid #00AE42;

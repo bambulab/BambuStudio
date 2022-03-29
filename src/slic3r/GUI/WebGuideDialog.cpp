@@ -807,6 +807,12 @@ int GuideFrame::LoadProfile()
             }
         }
 
+        if (m_ProfileJson["model"].size() == 1) { 
+            std::string strNozzle = m_ProfileJson["model"][0]["nozzle_diameter"];
+            m_ProfileJson["model"][0]["nozzle_selected"]=strNozzle;
+        }
+
+
         for (auto it = m_ProfileJson["filament"].begin(); it != m_ProfileJson["filament"].end(); ++it) {
             //json temp_filament = it.value();
             std::string filament_name = it.key();
@@ -946,7 +952,7 @@ int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
                 if (strInstant.compare("true") == 0) {
                     bool bExist = pm.contains("filament_vendor");
 
-                    wxString sVendor = pm.contains("filament_vendor") ? pm["filament_vendor"][0] : "Unknow";
+                    wxString sVendor = pm.contains("filament_vendor") ? pm["filament_vendor"][0] : "Generic";
                     OneFF["vendor"]  = std::string(sVendor.mb_str());
 
                     wxString strInherits = pm["inherits"];
@@ -974,7 +980,9 @@ int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
             int bFind = 0;
             for (int m = 0; m < nm; m++) {
                 wxString strFF = m_ProfileJson["model"][m]["materials"];
-                if (strFF.find(s1) >= 0) {
+                strFF          = wxString::Format(";%s;", w2s(strFF));
+                wxString strTT = wxString::Format(";%s;", w2s(s1));
+                if (strFF.Find(strTT) >= 0) {
                     wxString sModel = m_ProfileJson["model"][m]["model"];
 
                     vModel = wxString::Format("%s[%s]", w2s(vModel), w2s(sModel)).mb_str();
