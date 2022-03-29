@@ -45,8 +45,8 @@ std::string GCodeWriter::preamble()
     std::ostringstream gcode;
     
     if (FLAVOR_IS_NOT(gcfMakerWare)) {
-        gcode << "G21 ; set units to millimeters\n";
-        gcode << "G90 ; use absolute coordinates\n";
+        gcode << "G90\n";
+        gcode << "G21\n";
     }
     if (FLAVOR_IS(gcfRepRapSprinter) ||
         FLAVOR_IS(gcfRepRapFirmware) ||
@@ -57,8 +57,10 @@ std::string GCodeWriter::preamble()
         FLAVOR_IS(gcfSmoothie))
     {
         if (RELATIVE_E_AXIS) {
-            gcode << "M83 ; use relative distances for extrusion\n";
+            gcode << "M83 ; only support relative e\n";
         } else {
+            //BBS: don't support absolute e distance
+            assert(0);
             gcode << "M82 ; use absolute distances for extrusion\n";
         }
         gcode << this->reset_e(true);
@@ -622,7 +624,7 @@ std::string GCodeWriter::set_fan(const GCodeFlavor gcode_flavor, unsigned int sp
         case gcfSailfish:
             gcode << "M127";    break;
         default:
-            gcode << "M107";    break;
+            gcode << "M106 S0";    break;
         }
         if (GCodeWriter::full_gcode_comment)
             gcode << " ; disable fan";

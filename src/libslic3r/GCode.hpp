@@ -61,7 +61,7 @@ public:
     Wipe() : enable(false) {}
     bool has_path() const { return !this->path.points.empty(); }
     void reset_path() { this->path = Polyline(); }
-    std::string wipe(GCode &gcodegen, bool toolchange = false);
+    std::string wipe(GCode &gcodegen, bool toolchange = false, bool is_last = false);
 };
 
 class WipeTowerIntegration {
@@ -395,7 +395,7 @@ private:
 
     std::string     travel_to(const Point &point, ExtrusionRole role, std::string comment);
     bool            needs_retraction(const Polyline &travel, ExtrusionRole role = erNone);
-    std::string     retract(bool toolchange = false);
+    std::string     retract(bool toolchange = false, bool is_last_retraction = false);
     std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
     std::string     set_extruder(unsigned int extruder_id, double print_z);
     std::set<ObjectID>              m_objsWithBrim; // indicates the objs with brim

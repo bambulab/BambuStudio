@@ -158,7 +158,7 @@ bool GCode::gcode_label_objects = false;
             : gcodegen.config().nozzle_temperature.get_at(gcodegen.writer().extruder()->id());
     }
 
-    std::string Wipe::wipe(GCode& gcodegen, bool toolchange)
+    std::string Wipe::wipe(GCode& gcodegen, bool toolchange, bool is_last)
     {
         std::string gcode;
 
@@ -202,14 +202,17 @@ bool GCode::gcode_label_objects = false;
 
                 // add tag for processor
                 gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Start) + "\n";
+                //BBS: don't need to enable cooling makers when this is the last wipe. Because no more cooling layer will clean this "_WIPE"
+                gcode += gcodegen.writer().set_speed(wipe_speed * 60, "", (gcodegen.enable_cooling_markers() && !is_last) ? ";_WIPE" : "");
                 for (const Line& line : wipe_path.lines()) {
                     double segment_length = line.length();
                     /*  Reduce retraction length a bit to avoid effective retraction speed to be greater than the configured one
                         due to rounding (TODO: test and/or better math for this)  */
                     double dE = length * (segment_length / wipe_dist) * 0.95;
+                    //BBS: fix this FIXME
                     //FIXME one shall not generate the unnecessary G1 Fxxx commands, here wipe_speed is a constant inside this cycle.
                     // Is it here for the cooling markers? Or should it be outside of the cycle?
-                    gcode += gcodegen.writer().set_speed(wipe_speed * 60, "", gcodegen.enable_cooling_markers() ? ";_WIPE" : "");
+                    //gcode += gcodegen.writer().set_speed(wipe_speed * 60, "", gcodegen.enable_cooling_markers() ? ";_WIPE" : "");
                     gcode += gcodegen.writer().extrude_to_xy(
                         gcodegen.point_to_gcode(line.b),
                         -dE,
@@ -302,7 +305,7 @@ bool GCode::gcode_label_objects = false;
         }
 
         // BBS: should be placed before toolchange parsing
-        std::string toolchange_retract_str = gcodegen.retract(true);
+        std::string toolchange_retract_str = gcodegen.retract(true, false);
         check_add_eol(toolchange_retract_str);
 
         // Process the custom change_filament_gcode. If it is empty, provide a simple Tn command to change the filament.
@@ -1560,10 +1563,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             //BBS: close spaghetti detector after printing last layer of object
             if (print.config().spaghetti_detector.value) {
                 //BBS: don't need to close if the object has only one layer. Because spaghetti detector has not been opened in this case.
-                if (m_second_layer_things_done) {
-                    file.write(";close spaghetti detector\n");
-                    file.write("M981 S0 P20000\n");
-                }
+                if (m_second_layer_things_done)
+                    file.write("M981 S0 P20000 ; close spaghetti detector\n");
             }
 #ifdef HAS_PRESSURE_EQUALIZER
             if (m_pressure_equalizer)
@@ -1632,10 +1633,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         //BBS: close spaghetti detector after printing last layer of object
         if (print.config().spaghetti_detector.value) {
             //BBS: don't need to close if the object has only one layer. Because spaghetti detector has not been opened in this case.
-            if (m_second_layer_things_done) {
-                file.write(";close spaghetti detector\n");
-                file.write("M981 S0 P20000\n");
-            }
+            if (m_second_layer_things_done)
+                file.write("M981 S0 P20000 ; close spaghetti detector\n");
         }
 #ifdef HAS_PRESSURE_EQUALIZER
         if (m_pressure_equalizer)
@@ -1646,8 +1645,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             file.write(m_wipe_tower->finalize(*this));
     }
 
+    //BBS: the last retraction
     // Write end commands to file.
-    file.write(this->retract());
+    file.write(this->retract(false, true));
     file.write(m_writer.set_fan(0));
     //BBS: make sure the additional fan is closed when end
     file.write(m_writer.set_additional_fan(0));
@@ -1881,12 +1881,12 @@ static bool custom_gcode_sets_temperature(const std::string &gcode, const int mc
 void GCode::print_machine_envelope(GCodeOutputStream &file, Print &print)
 {
     if (print.config().gcode_flavor.value == gcfMarlinLegacy || print.config().gcode_flavor.value == gcfMarlinFirmware) {
-        file.write_format("M201 X%d Y%d Z%d E%d ; sets maximum accelerations, mm/sec^2\n",
+        file.write_format("M201 X%d Y%d Z%d E%d\n",
             int(print.config().machine_max_acceleration_x.values.front() + 0.5),
             int(print.config().machine_max_acceleration_y.values.front() + 0.5),
             int(print.config().machine_max_acceleration_z.values.front() + 0.5),
             int(print.config().machine_max_acceleration_e.values.front() + 0.5));
-        file.write_format("M203 X%d Y%d Z%d E%d ; sets maximum feedrates, mm/sec\n",
+        file.write_format("M203 X%d Y%d Z%d E%d\n",
             int(print.config().machine_max_speed_x.values.front() + 0.5),
             int(print.config().machine_max_speed_y.values.front() + 0.5),
             int(print.config().machine_max_speed_z.values.front() + 0.5),
@@ -1898,20 +1898,22 @@ void GCode::print_machine_envelope(GCodeOutputStream &file, Print &print)
         int travel_acc = print.config().gcode_flavor == gcfMarlinLegacy
                        ? int(print.config().machine_max_acceleration_extruding.values.front() + 0.5)
                        : int(print.config().machine_max_acceleration_travel.values.front() + 0.5);
-        file.write_format("M204 P%d R%d T%d ; sets acceleration (P, T) and retract acceleration (R), mm/sec^2\n",
+        file.write_format("M204 P%d R%d T%d\n",
             int(print.config().machine_max_acceleration_extruding.values.front() + 0.5),
             int(print.config().machine_max_acceleration_retracting.values.front() + 0.5),
             travel_acc);
 
+
         assert(is_decimal_separator_point());
-        file.write_format("M205 X%.2lf Y%.2lf Z%.2lf E%.2lf ; sets the jerk limits, mm/sec\n",
+        file.write_format("M205 X%.2lf Y%.2lf Z%.2lf E%.2lf\n",
             print.config().machine_max_jerk_x.values.front(),
             print.config().machine_max_jerk_y.values.front(),
             print.config().machine_max_jerk_z.values.front(),
             print.config().machine_max_jerk_e.values.front());
-        file.write_format("M205 S%d T%d ; sets the minimum extruding and travel feed rate, mm/sec\n",
-            int(print.config().machine_min_extruding_rate.values.front() + 0.5),
-            int(print.config().machine_min_travel_rate.values.front() + 0.5));
+        //BBS: don't support M205 Sx Tx
+        //file.write_format("M205 S%d T%d\n",
+        //    int(print.config().machine_min_extruding_rate.values.front() + 0.5),
+        //    int(print.config().machine_min_travel_rate.values.front() + 0.5));
     }
 }
 
@@ -3689,7 +3691,7 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
     return true;
 }
 
-std::string GCode::retract(bool toolchange)
+std::string GCode::retract(bool toolchange, bool is_last_retraction)
 {
     std::string gcode;
 
@@ -3699,7 +3701,7 @@ std::string GCode::retract(bool toolchange)
     // wipe (if it's enabled for this extruder and we have a stored wipe path)
     if (EXTRUDER_CONFIG(wipe) && m_wipe.has_path()) {
         gcode += toolchange ? m_writer.retract_for_toolchange(true) : m_writer.retract(true);
-        gcode += m_wipe.wipe(*this, toolchange);
+        gcode += m_wipe.wipe(*this, toolchange, is_last_retraction);
     }
 
     /*  The parent class will decide whether we need to perform an actual retraction
@@ -3744,7 +3746,7 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     m_toolchange_count++;
 
     // prepend retraction on the current extruder
-    std::string gcode = this->retract(true);
+    std::string gcode = this->retract(true, false);
 
     // Always reset the extrusion path, even if the tool change retract is set to zero.
     m_wipe.reset_path();

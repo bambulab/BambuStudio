@@ -14,11 +14,11 @@ const double filament_diameter = 1.75;
 const double Pi = 3.14159265358979323846;
 
 const std::string Extrusion_Role_Tag = " FEATURE: ";
-const std::string Width_Tag          = " WIDTH: ";
+const std::string Width_Tag          = " LINE_WIDTH: ";
 const std::string Wipe_Start_Tag     = " WIPE_START";
 const std::string Wipe_End_Tag       = " WIPE_END";
 const std::string Layer_Change_Tag   = " CHANGE_LAYER";
-const std::string Height_Tag         = " HEIGHT: ";
+const std::string Height_Tag         = " LAYER_HEIGHT: ";
 
 GCodeCheckResult GCodeChecker::parse_file(const std::string& path)
 {
