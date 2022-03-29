@@ -193,7 +193,7 @@ void DropDown::render(wxDC &dc)
         rcContent.y = offset.y;
     }
     // draw checked rectangle
-    if (selection >= 0 && selection != hover_item) {
+    if (selection >= 0 && (selection != hover_item || (states & StateColor::Hovered) == 0)) {
         rcContent.y += rowSize.y * selection;
         if (rcContent.GetBottom() > 0 && rcContent.y < size.y) {
             dc.SetBrush(wxBrush(selector_background_color.colorForStates(states | StateColor::Checked)));
