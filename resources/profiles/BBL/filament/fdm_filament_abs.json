@@ -17,7 +17,7 @@
         "3"
     ],
     "fan_cooling_layer_time": [
-        "50"
+        "20"
     ],
     "filament_max_volumetric_speed": [
         "28.6"
@@ -41,17 +41,20 @@
         "0"
     ],
     "fan_max_speed": [
-        "50"
+        "20"
     ],
     "fan_min_speed": [
-        "30"
+        "10"
+    ],
+    "overhang_fan_threshold": [
+        "50%"
     ],
     "overhang_fan_speed": [
-        "50"
+        "30"
     ],
     "top_fan_speed": "0",
     "nozzle_temperature": [
-        "245"
+        "250"
     ],
     "temperature_vitrification": [
         "100"
