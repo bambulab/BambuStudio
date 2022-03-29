@@ -1051,9 +1051,11 @@ void TreeSupport::detect_object_overhangs()
     for (int layer_nr = 0; layer_nr < m_object->layer_count(); layer_nr++) {
         TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
 
-        auto it = all_bridges.find(layer_nr);
-        if (it != all_bridges.end()) {
-            ts_layer->overhang_areas = diff_ex(ts_layer->overhang_areas, it->second);
+        if (!all_bridges.empty()) {
+            auto it = all_bridges.find(layer_nr);
+            if (it != all_bridges.end()) {
+                ts_layer->overhang_areas = diff_ex(ts_layer->overhang_areas, it->second);
+            }
         }
 
         if (layer_nr < enforcers.size()) {
@@ -1795,6 +1797,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 {
     const PrintObjectConfig &config = m_object->config();
     bool has_brim = m_object->print()->has_brim();
+    int bottom_gap_layers = round(m_slicing_params.gap_object_support / m_slicing_params.layer_height);
     const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
     Polygon branch_circle; //Pre-generate a circle with correct diameter so that we don't have to recompute those (co)sines every time.
@@ -1981,9 +1984,9 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 #endif
                 //Subtract support floors. We can only compute floor_areas here instead of with roof_areas,
                 // or we'll get much wider floor than necessary.
-                if (bottom_interface_layers > 0)
+                if (bottom_interface_layers + bottom_gap_layers > 0)
                 {
-                    if (layer_nr >= bottom_interface_layers)
+                    if (layer_nr >= bottom_interface_layers + bottom_gap_layers)
                     {
                         const Layer* below_layer = m_object->get_layer(layer_nr - bottom_interface_layers);
                         ExPolygons bottom_interface = std::move(intersection_ex(base_areas, below_layer->lslices));
@@ -1993,6 +1996,13 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                         floor_areas = std::move(diff_ex(floor_areas, avoid_region_interface));
                         floor_areas = std::move(offset2_ex(floor_areas, contact_dist_scaled, -contact_dist_scaled));
                         base_areas = std::move(diff_ex(base_areas, offset_ex(floor_areas, 10)));
+                    }
+                }
+                if (bottom_gap_layers > 0 && layer_nr > bottom_gap_layers) {
+                    const Layer* below_layer = m_object->get_layer(layer_nr - bottom_gap_layers);
+                    ExPolygons bottom_gap = std::move(intersection_ex(floor_areas, below_layer->lslices));
+                    if (!bottom_gap.empty()) {
+                        floor_areas = std::move(diff_ex(floor_areas, bottom_gap));
                     }
                 }
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
@@ -2446,8 +2456,14 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
     }
 
     const coordf_t layer_height = config.layer_height.value;
-    const coordf_t z_distance_top = config.support_top_z_distance.value;
+    coordf_t z_distance_top = config.support_top_z_distance.value;
+    // BBS: add extra distance if thick bridge is enabled
+    // Note: normal support uses print_z, but tree support uses integer layers, so we need to subtract layer_height
+    if (!m_slicing_params.soluble_interface && config.thick_bridges) {
+        z_distance_top += m_object->layers()[0]->regions()[0]->region().bridging_height_avg(m_object->print()->config()) - layer_height;
+    }
     const size_t z_distance_top_layers = round_up_divide(scale_(z_distance_top), scale_(layer_height)) + 1; //Support must always be 1 layer below overhang.
+
     const size_t support_roof_layers = config.support_interface_top_layers.value + 1; // BBS: add a normal support layer below interface
     coordf_t half_overhang_distance = 0.;
     if (config.support_threshold_angle.value < EPSILON) {
