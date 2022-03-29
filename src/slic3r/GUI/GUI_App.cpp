@@ -1457,6 +1457,8 @@ bool GUI_App::on_init_inner()
 
     update_mode(); // update view mode after fix of the object_list size
 
+    plater_->trigger_restore_project();
+
 #ifdef __APPLE__
     other_instance_message_handler()->bring_instance_forward();
 #endif //__APPLE__
@@ -1826,6 +1828,9 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 
     obj_list()->set_min_height();
     update_mode();
+
+    //BBS: trigger restore project logic here, and skip confirm
+    plater_->trigger_restore_project(1);
 
     // #ys_FIXME_delete_after_testing  Do we still need this  ?
 //     CallAfter([]() {

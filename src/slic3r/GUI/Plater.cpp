@@ -2034,9 +2034,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
                     boost::filesystem::remove_all(last);
             }
             catch (...) {}
-            this->q->new_project(true);
+            int skip_confirm = e.GetInt();
+            this->q->new_project(skip_confirm, true);
             });
-        wxPostEvent(this->q, wxCommandEvent{EVT_RESTORE_PROJECT});
+        //wxPostEvent(this->q, wxCommandEvent{EVT_RESTORE_PROJECT});
     }
 
     this->q->Bind(EVT_LOAD_MODEL_OTHER_INSTANCE, [this](LoadFromOtherInstanceEvent& evt) {
@@ -5768,7 +5769,7 @@ Print&          Plater::fff_print()         { return p->fff_print; }
 const SLAPrint& Plater::sla_print() const   { return p->sla_print; }
 SLAPrint&       Plater::sla_print()         { return p->sla_print; }
 
-void Plater::new_project(bool silent)
+void Plater::new_project(bool skip_confirm, bool silent)
 {
     // BBS: save confirm
     auto check = [](bool yes_or_no) {
@@ -5782,7 +5783,7 @@ void Plater::new_project(bool silent)
         return wxGetApp().check_and_keep_current_preset_changes(_L("Creating a new project"), header, act_buttons);
     };
     int result;
-    if ((result = close_with_confirm(check)) == wxID_CANCEL)
+    if (!skip_confirm && (result = close_with_confirm(check)) == wxID_CANCEL)
         return;
 
     //BBS: add only gcode mode
@@ -6166,7 +6167,7 @@ void Plater::load_gcode(const wxString& filename)
     m_last_loaded_gcode = filename;
 
     // BSS: create a new project when load_gcode, force close previous one
-    new_project(true);
+    new_project(false, true);
 
     m_only_gcode = true;
 
@@ -6775,6 +6776,15 @@ int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
     up_to_date(true, true);
 
     return result;
+}
+
+//BBS: trigger a restore project event
+void Plater::trigger_restore_project(int skip_confirm)
+{
+    auto evt = new wxCommandEvent(EVT_RESTORE_PROJECT, this->GetId());
+    evt->SetInt(skip_confirm);
+    wxQueueEvent(this, evt);
+    //wxPostEvent(this, *evt);
 }
 
 //BBS

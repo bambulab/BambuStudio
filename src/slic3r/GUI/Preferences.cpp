@@ -84,7 +84,26 @@ wxWindow *PreferencesDialog::create_item_language_combobox(
     // save config
     combobox->Bind(wxEVT_COMBOBOX, [this, param, vlist](wxCommandEvent &e) {
         if (e.GetString().mb_str() != app_config->get(param)) {
-            if (wxGetApp().plater()->close_with_confirm() == wxID_CANCEL) {
+            {
+                // the dialog needs to be destroyed before the call to switch_language()
+                // or sometimes the application crashes into wxDialogBase() destructor
+                // so we put it into an inner scope
+                wxString title = _L("Language selection");
+                wxMessageDialog dialog(nullptr,
+                    _L("Switching the language requires application restart.\n") + "\n\n" +
+                    _L("Do you want to continue?"),
+                    title,
+                    wxICON_QUESTION | wxOK | wxCANCEL);
+                if (dialog.ShowModal() == wxID_CANCEL)
+                    return;
+            }
+            auto check = [this](bool yes_or_no) {
+                //if (yes_or_no)
+                //    return true;
+                int act_btns = UnsavedChangesDialog::ActionButtons::SAVE;
+                return wxGetApp().check_and_keep_current_preset_changes(_L("Switching application language"), _L("Switching application language while some presets are modified."), act_btns);
+            };
+            if (wxGetApp().plater()->close_with_confirm(check) == wxID_CANCEL) {
                 wxString name = app_config->get(param);
                 for (size_t i = 0; i < vlist.size(); ++i) {
                     if (name == vlist[i]->CanonicalName) {
@@ -215,7 +234,7 @@ wxWindow *PreferencesDialog::create_item_input(wxString title, wxWindow *parent,
     });
 
     //for debug mode
-    if (param == "backup_interval") { 
+    if (param == "backup_interval") {
         m_backup_interval_textinput = input;
     }
 
@@ -259,7 +278,7 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
 }
 
 void PreferencesDialog::Init()
-{    
+{
     app_config             = get_app_config();
     m_backup_interval_time = app_config->get("backup_interval");
 
@@ -550,7 +569,7 @@ void PreferencesDialog::create_shortcuts_page()
 
 void PreferencesDialog::create_debug_page()
 {
-    
+
     m_developer_mode_def = app_config->get("developer_mode");
     m_dump_video_def = app_config->get("dump_video");
     m_backup_interval_def = app_config->get("backup_interval");
@@ -568,7 +587,7 @@ void PreferencesDialog::create_debug_page()
     auto radio2 = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), m_panel_debug, wxEmptyString, 50, 1, "qa_host");
     auto radio3 = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"), m_panel_debug, wxEmptyString, 50, 1, "pre_host");
 
-   
+
 
     if (m_iot_environment_def == "0") {
         on_select_radio("dev_host");
@@ -584,17 +603,17 @@ void PreferencesDialog::create_debug_page()
         wxMessageDialog dialog(this, _L("save debug settings"), _L("DEBUG settings have saved successfully!"), wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
         switch (dialog.ShowModal()) {
         case wxID_NO: {
-            if (m_developer_mode_def != app_config->get("developer_mode")) { 
-                app_config->set_bool("developer_mode", m_developer_mode_def == "true"?true: false); 
+            if (m_developer_mode_def != app_config->get("developer_mode")) {
+                app_config->set_bool("developer_mode", m_developer_mode_def == "true"?true: false);
                 m_developer_mode_ckeckbox->SetValue(m_developer_mode_def == "true" ? true : false);
             }
-            if (m_dump_video_def != app_config->get("dump_video")) { 
-                app_config->set_bool("dump_video", m_dump_video_def == "true"?true: false); 
+            if (m_dump_video_def != app_config->get("dump_video")) {
+                app_config->set_bool("dump_video", m_dump_video_def == "true"?true: false);
                 m_dump_video_ckeckbox->SetValue(m_dump_video_def == "true" ? true : false);
             }
 
-            if (m_backup_interval_def != m_backup_interval_time) { 
-                m_backup_interval_textinput->GetTextCtrl()->SetValue(m_backup_interval_def); 
+            if (m_backup_interval_def != m_backup_interval_time) {
+                m_backup_interval_textinput->GetTextCtrl()->SetValue(m_backup_interval_def);
             }
 
             if (m_iot_environment_def == "0") {
@@ -611,7 +630,7 @@ void PreferencesDialog::create_debug_page()
         case wxID_YES: {
             // bbs  domain changed
             auto            param   = get_select_radio(1);
-            
+
             std::map<wxString, wxString> iot_environment_map;
             iot_environment_map["dev_host"]  = "0";
             iot_environment_map["qa_host"]   = "1";

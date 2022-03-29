@@ -1684,7 +1684,8 @@ void MainFrame::init_menubar_as_editor()
                 // so we put it into an inner scope
                 wxString title = _L("Language selection");
                 wxMessageDialog dialog(nullptr,
-                    _L("Switching the language will trigger the application restart.\nPlease confirm to switch?"),
+                    _L("Switching the language requires application restart.\n") + "\n\n" +
+                    _L("Do you want to continue?"),
                     title,
                     wxICON_QUESTION | wxOK | wxCANCEL);
                 if (dialog.ShowModal() == wxID_CANCEL)

@@ -185,7 +185,7 @@ public:
     const SLAPrint& sla_print() const;
     SLAPrint& sla_print();
 
-    void new_project(bool silent = false);
+    void new_project(bool skip_confirm = false, bool silent = false);
     // BBS: save & backup
     void load_project(wxString const & filename = "", wxString const & originfile = "-");
     int save_project(bool saveAs = false);
@@ -259,6 +259,8 @@ public:
     void reset_with_confirm();
     //BBS: return int for various result
     int close_with_confirm(std::function<bool(bool yes_or_no)> second_check = nullptr); // BBS close project
+    //BBS: trigger a restore project event
+    void trigger_restore_project(int skip_confirm = 0);
     void delete_object_from_model(size_t obj_idx, bool refresh_immediately = true); // BBS support refresh immediately
     void remove_selected();
     void increase_instances(size_t num = 1);
@@ -326,7 +328,7 @@ public:
     bool undo_redo_string_getter(const bool is_undo, int idx, const char** out_text);
     void undo_redo_topmost_string_getter(const bool is_undo, std::string& out_text);
     bool search_string_getter(int idx, const char** label, const char** tooltip);
-    // For the memory statistics. 
+    // For the memory statistics.
     const Slic3r::UndoRedo::Stack& undo_redo_stack_main() const;
     void clear_undo_redo_stack_main();
     // Enter / leave the Gizmos specific Undo / Redo stack. To be used by the SLA support point editing gizmo.
@@ -352,7 +354,7 @@ public:
     void set_project_filename(const wxString& filename);
 
     bool is_export_gcode_scheduled() const;
-    
+
     const Selection& get_selection() const;
     int get_selected_object_idx();
     bool is_single_full_object_selection() const;
@@ -360,7 +362,7 @@ public:
     const GLCanvas3D * canvas3D() const;
     GLCanvas3D* get_current_canvas3D();
     GLCanvas3D* get_view3D_canvas3D();
-    
+
     void arrange();
     void orient();
     void find_new_position(const ModelInstancePtrs  &instances);
@@ -499,7 +501,7 @@ public:
     void init_notification_manager();
 
     void bring_instance_forward();
-    
+
     // ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots
 	{
