@@ -403,6 +403,57 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 ;    }
 }
 
+#ifdef __WIN32__
+
+WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
+{
+    /* When we have a custom titlebar in the window, we don't need the non-client area of a normal window
+     * to be painted. In order to achieve this, we handle the "WM_NCCALCSIZE" which is responsible for the
+     * size of non-client area of a window and set the return value to 0. Also we have to tell the
+     * application to not paint this area on activate and deactivation events so we also handle
+     * "WM_NCACTIVATE" message. */
+    switch (nMsg) {
+    case WM_NCACTIVATE: {
+        /* Returning 0 from this message disable the window from receiving activate events which is not
+        desirable. However When a visual style is not active (?) for this window, "lParam" is a handle to an
+        optional update region for the nonclient area of the window. If this parameter is set to -1,
+        DefWindowProc does not repaint the nonclient area to reflect the state change. */
+        lParam = -1;
+        break;
+    }
+    /* To remove the standard window frame, you must handle the WM_NCCALCSIZE message, specifically when
+    its wParam value is TRUE and the return value is 0 */
+    case WM_NCCALCSIZE:
+        if (wParam) {
+            HWND hWnd = GetHandle();
+            /* Detect whether window is maximized or not. We don't need to change the resize border when win is
+             *  maximized because all resize borders are gone automatically */
+            WINDOWPLACEMENT wPos;
+            // GetWindowPlacement fail if this member is not set correctly.
+            wPos.length = sizeof(wPos);
+            GetWindowPlacement(hWnd, &wPos);
+            if (wPos.showCmd != SW_SHOWMAXIMIZED) {
+                RECT borderThickness;
+                SetRectEmpty(&borderThickness);
+                AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE) & ~WS_CAPTION, FALSE, NULL);
+                borderThickness.left *= -1;
+                borderThickness.top *= -1;
+                NCCALCSIZE_PARAMS *sz = reinterpret_cast<NCCALCSIZE_PARAMS *>(lParam);
+                // Add 1 pixel to the top border to make the window resizable from the top border
+                sz->rgrc[0].top += 1; // borderThickness.top;
+                sz->rgrc[0].left += borderThickness.left;
+                sz->rgrc[0].right -= borderThickness.right;
+                sz->rgrc[0].bottom -= borderThickness.bottom;
+                return 0;
+            }
+        }
+        break;
+    }
+    return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
+}
+
+#endif
+
 void  MainFrame::show_log_window()
 {
     m_log_window = new wxLogWindow(this, _L("Logging"), true, false);
