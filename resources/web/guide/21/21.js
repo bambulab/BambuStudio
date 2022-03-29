@@ -119,13 +119,14 @@ function HandleModelList( pVal )
 			    $("input[vendor='"+OneModel['vendor']+"'][model='"+OneModel['model']+"'][nozzel='"+nNozzel+"']").prop("checked", true);
 		    }
 		}
+		else
+		{
+			$("input[vendor='"+OneModel['vendor']+"'][model='"+OneModel['model']+"'][nozzel='"+0.4+"']").prop("checked", true);			
+		}
 	}	
 	
 	TranslatePage();
 }
-
-
-
 
 
 function SelectPrinterAll( sVendor )
@@ -145,9 +146,7 @@ function GotoFilamentPage()
 {
 	let nChoose=OnExit();
 	
-	if(nChoose==0)
-		window.open('../5/index.html','_self');
-	else
+	if(nChoose>0)
 		window.open('../22/index.html','_self');
 }
 
@@ -158,6 +157,13 @@ function OnExit()
 	let ModelSelect=$("input:checked");
 	let nTotal=ModelSelect.length;
 
+	if( nTotal==0 )
+	{
+		ShowNotice(1);
+		
+		return 0;
+	}
+	
 	for(let n=0;n<nTotal;n++)
 	{
 	    let OneItem=ModelSelect[n];
@@ -193,7 +199,19 @@ function OnExit()
 }
 
 
-
+function ShowNotice( nShow )
+{
+	if(nShow==0)
+	{
+		$("#NoticeMask").hide();
+		$("#NoticeBody").hide();
+	}
+	else
+	{
+		$("#NoticeMask").show();
+		$("#NoticeBody").show();
+	}
+}
 
 
 

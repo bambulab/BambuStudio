@@ -1894,6 +1894,24 @@ void GUI_App::ShowUserLogin()
 }
 
 
+void GUI_App::ShowOnlyFilament() {
+    // BBS:Show NewUser Guide
+    try {
+        bool       res = false;
+        GuideFrame GuideDlg(this);
+        GuideDlg.SetStartPage(GuideFrame::GuidePage::BBL_FILAMENT_ONLY);
+        res = GuideDlg.run();
+        if (res) {
+            load_current_presets();
+
+            // BBS: remove SLA related message
+        }
+    } catch (std::exception &e) {
+        // wxMessageBox(e.what(), "", MB_OK);
+    }
+}
+
+
 
 // static method accepting a wxWindow object as first parameter
 bool GUI_App::catch_error(std::function<void()> cb,

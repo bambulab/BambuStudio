@@ -34,7 +34,11 @@ var LangText={
 		"t32":"create new project",
 		"t33":"open project",
 		"t34":"hotspot",
-		"t35":"recent open"
+		"t35":"recent open",
+		"t36":"ok",
+		"t37":"At least one printer must be selected.",
+		"t38":"cancel",
+		"t39":"confirm"
 	},
 	"zh_CN":{
 		"t1":"欢迎使用BambuStudio",
@@ -71,7 +75,11 @@ var LangText={
 		"t32":"创建一个新项目",
 		"t33":"打开项目",
 		"t34":"热点",
-		"t35":"近期打开文件"		
+		"t35":"近期打开文件",
+		"t36":"确定",
+		"t37":"至少需要选择一款打印机。",
+		"t38":"取消",
+		"t39":"确定"
 	}
 };
 

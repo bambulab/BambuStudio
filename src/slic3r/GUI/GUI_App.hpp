@@ -267,6 +267,7 @@ public:
     void            ShowUserGuide();
     void            ShowDailyTip();
     void            ShowUserLogin();
+    void            ShowOnlyFilament();
     //BBS
     void            request_login();
     void            request_model_download(std::string import_json);

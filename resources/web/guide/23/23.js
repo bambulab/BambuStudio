@@ -6,9 +6,6 @@ function OnInit()
 	TranslatePage();
 	
 	RequestProfile();
-		
-	//m_ProfileItem=cData;
-	//SortUI();
 }
 
 function RequestProfile()
@@ -87,7 +84,6 @@ function SortUI()
 	
 	//Filament
 	let HtmlFilament='';
-	let SelectNumber=0;
 	for( let key in m_ProfileItem['filament'] )
 	{
 		let OneFila=m_ProfileItem['filament'][key];
@@ -156,11 +152,7 @@ function SortUI()
 			    $("#ItemBlockArea").append(HtmlFila);
 				
 				if(fSelect==1)
-				{
 					$("#ItemBlockArea input[vendor='"+fVendor+"'][model='"+fModel+"'][filatype='"+fType+"'][name='"+key+"']").prop("checked",true);
-					
-					SelectNumber++;
-				}
 				else
 					$("#ItemBlockArea input[vendor='"+fVendor+"'][model='"+fModel+"'][filatype='"+fType+"'][name='"+key+"']").prop("checked",false);
 		    } 
@@ -170,8 +162,6 @@ function SortUI()
 		$("#VendorList .CValues input").prop("checked",true);
 	}
 
-	if(SelectNumber==0)
-		ChooseDefaultFilament();
 }
 
 
@@ -413,23 +403,31 @@ function ResponseFilamentResult()
 }
 
 
-function ReturnPreviewPage()
+function CancelSelect()
 {
-	let nMode=m_ProfileItem["model"].length;
-	
-	if( nMode==1)
-		document.location.href="../3/index.html";
-	else
-		document.location.href="../21/index.html";	
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="user_guide_cancel";
+	tSend['data']={};
+		
+	SendWXMessage( JSON.stringify(tSend) );			
 }
 
 
-function GotoNewFeature()
+function ConfirmSelect()
 {
 	let bRet=ResponseFilamentResult();
 	
 	if(bRet)
-		window.location.href="../5/index.html";
+    {
+		var tSend={};
+		tSend['sequence_id']=Math.round(new Date() / 1000);
+		tSend['command']="user_guide_finish";
+		tSend['data']={};
+		tSend['data']['action']="finish";
+		
+		SendWXMessage( JSON.stringify(tSend) );			
+	}
 }
 
 

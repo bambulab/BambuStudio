@@ -144,7 +144,10 @@ wxString GuideFrame::SetStartPage(GuidePage startpage)
             TargetUrl = (boost::filesystem::path(resources_dir()) / "web\\guide\\22\\index.html").make_preferred().string();
         else     
             TargetUrl = (boost::filesystem::path(resources_dir()) / "web\\guide\\21\\index.html").make_preferred().string();
-    } else {
+    } else if (startpage == BBL_FILAMENT_ONLY) {
+        TargetUrl = (boost::filesystem::path(resources_dir()) / "web\\guide\\23\\index.html").make_preferred().string();
+    }
+    else {
         TargetUrl = (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string();
     }
 
@@ -332,6 +335,9 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
 
             //Close();
             this->EndModal(wxID_OK);
+        } 
+        else if (strCmd == "user_guide_cancel") {
+            this->EndModal(wxID_CANCEL);
         }
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);

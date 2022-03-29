@@ -44,6 +44,7 @@ public:
         BBL_WELCOME,
         BBL_MODELS,
         BBL_FILAMENTS,
+        BBL_FILAMENT_ONLY
     };
 
     //Web Function

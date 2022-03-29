@@ -52,86 +52,62 @@ body
 }
 
 
-.BlockBanner
-{
-	padding: 0px;
-	border-bottom:#00AE42 1px solid;
-	width: 100%;
-}
 
-
-.BannerBtns
+.ChooseBlock
 {
-	float: right;
-	display: flex;
-	width: 140px;
-	justify-content: space-around;
-	align-items: center;
-	height: 40px;
-	text-align: center;
-	margin-right: 10px;
-}
-
-.Banner-Btn
-{
-	background-color: #C0C0C0;
-	color: #000;
-	padding: 0px 6px;
-	min-width: 50px;
-	border-radius: 4px;
-	height: 32px;
+	display:flex;
 	line-height: 32px;
-	cursor: pointer;
 }
 
-.BlockBanner  a
+.CName
 {
-	display: inline-block;
-	background-color:#00AE42;
-	line-height: 40px;
-	height: 40px;
-	padding: 0px 24px;
-	color: #fff;
+	width:130px;
+	min-width: 80px;
+	font-weight: 700;
+	height: 100%;
+	text-align: right;
 }
 
-.PrinterArea
+.CValues
 {
-	padding: 10px;
-	display: flex;
+	display:flex;
+	justify-content: flex-start;
+	align-content: flex-start;
 	flex-wrap: wrap;
 }
 
-.PrinterBlock
+input
 {
-	width: 140px;
-	text-align: center;
-	padding: 10px;
-}
-
-.PrinterBlock img
-{
-	width:140px;
-	height: 200px;
-}
-
-.PName
-{
-	font-weight: 700;
-}
-
-.pNozzel
-{
-	color: #5A5A5A;	
-}
-
-.pNozzel input
-{
+	margin-left: 20px;
+	margin-right: 6px;
 	vertical-align: middle;
-	margin-right: 4px;
 }
 
 
-/*-----Notice-----*/
+#ItemBlockArea
+{
+	display:flex;
+	width: 100%;
+	overflow-x: auto;
+	flex-wrap: wrap;
+	flex-direction: column;
+	justify-content:flex-start;
+	align-items: flex-start;
+	align-content:stretch;
+	line-height: 32px;
+	height: 400px;
+	border-top: 1px solid #00AE42;
+	margin-top: 10px;
+	padding-top: 10px;
+}
+
+.MItem
+{
+	width: 220px;
+	height: 32px;
+}
+
+
 #NoticeMask
 {
 	background-color: #000;
@@ -147,14 +123,14 @@ body
 #NoticeBody
 {
 	display: none;
-	width: 400px;
+	width: 500px;
 	border: 1px solid #000;
 	border-radius: 4px;
 	background-color: #fff;	
 	position: absolute;
 	left: 50%;
 	top: 200px;
-	margin-left: -200px;
+	margin-left: -250px;
 }
 
 #NoticeBar

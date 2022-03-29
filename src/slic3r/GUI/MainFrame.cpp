@@ -1400,6 +1400,10 @@ static wxMenu* generate_help_menu()
     append_menu_item(helpMenu, wxID_ANY, _L("Show Daily Tips"),_L("Show Daily Tips"),[](wxCommandEvent &) { wxGetApp().ShowDailyTip(); });
     // Show UserLogin
     append_menu_item(helpMenu, wxID_ANY, _L("New User Login"), _L("New User Login"), [](wxCommandEvent &) { wxGetApp().ShowUserLogin(); });
+    // Show OnlyFilamentChoose
+    append_menu_item(helpMenu, wxID_ANY, _L("Choose Filaments"), _L("Choose Filaments"), [](wxCommandEvent &) { wxGetApp().ShowOnlyFilament(); });
+
+
 
     helpMenu->AppendSeparator();
     // Open Config Folder
