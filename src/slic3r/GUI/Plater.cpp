@@ -6781,6 +6781,8 @@ void Plater::remove_selected()
 
 void Plater::increase_instances(size_t num)
 {
+    // BBS
+#if 0
     if (! can_increase_instances()) { return; }
 
     Plater::TakeSnapshot snapshot(this, "Increase Instances");
@@ -6813,10 +6815,13 @@ void Plater::increase_instances(size_t num)
 
     p->selection_changed();
     this->p->schedule_background_process();
+#endif
 }
 
 void Plater::decrease_instances(size_t num)
 {
+    // BBS
+#if 0
     if (! can_decrease_instances()) { return; }
 
     Plater::TakeSnapshot snapshot(this, "Decrease Instances");
@@ -6840,6 +6845,7 @@ void Plater::decrease_instances(size_t num)
 
     p->selection_changed();
     this->p->schedule_background_process();
+#endif
 }
 
 static long GetNumberFromUser(  const wxString& msg,

@@ -859,7 +859,7 @@ void MenuFactory::create_bbl_object_menu()
     // Object Repair
     append_menu_item_fix_through_netfabb(&m_object_menu);
     // Object Simplify
-    //append_menu_item_simplify(&m_object_menu);
+    append_menu_item_simplify(&m_object_menu);
     // Object Split
     wxMenu* split_menu = new wxMenu();
     if (!split_menu)
@@ -1121,7 +1121,7 @@ wxMenu* MenuFactory::multi_selection_menu()
         if (obj_list()->can_merge_to_multipart_object())
             append_menu_item_merge_to_multipart_object(menu);
         append_menu_item_fix_through_netfabb(menu);
-        //BBS append_menu_item_simplify(menu);
+        append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
         menu->AppendSeparator();
         //BBS
@@ -1135,7 +1135,7 @@ wxMenu* MenuFactory::multi_selection_menu()
     }
     else {
         append_menu_item_fix_through_netfabb(menu);
-        // BBS append_menu_item_simplify(menu);
+        append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
         append_menu_items_convert_unit(menu, 3);
         wxMenu* split_menu = new wxMenu();
@@ -1168,7 +1168,7 @@ wxMenu* MenuFactory::assemble_multi_selection_menu()
 
     wxMenu* menu = new MenuWithSeparators();
     append_menu_item_fix_through_netfabb(menu);
-    // BBS append_menu_item_simplify(menu);
+    append_menu_item_simplify(menu);
     append_menu_item_delete(menu);
     menu->AppendSeparator();
     append_menu_item_change_extruder(menu);
@@ -1222,9 +1222,12 @@ void MenuFactory::append_menu_item_clone(wxMenu* menu)
 
 void MenuFactory::append_menu_item_simplify(wxMenu* menu)
 {
+    // BBS: remove simplify menu entry
+#if 0
     wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Reduce Triangles"), "",
         [](wxCommandEvent&) { obj_list()->simplify(); }, "", menu,
         []() {return plater()->can_simplify(); }, m_parent);
+#endif
 }
 
 void MenuFactory::append_menu_item_per_object_settings(wxMenu* menu)
