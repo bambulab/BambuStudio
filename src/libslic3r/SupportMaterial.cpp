@@ -1453,7 +1453,7 @@ static const double sharp_tail_max_support_height = 10.f;
 
 // Tuple: overhang_polygons, contact_polygons, enforcer_polygons, no_interface_offset
 // no_interface_offset: minimum of external perimeter widths
-static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
+static inline Polygons detect_overhangs(
     const Layer             &layer,
     const size_t             layer_id,
     Polygons                &lower_layer_polygons,
@@ -1469,10 +1469,6 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
 {
     // Snug overhang polygons.
     Polygons overhang_polygons;
-    // Expanded for stability, trimmed by gap_xy.
-    Polygons contact_polygons;
-    // Enforcers projected to overhangs, trimmed
-    Polygons enforcer_polygons;
 
     // BBS.
     const bool   auto_normal_support = object_config.support_type.value == stNormalAuto;
@@ -1483,21 +1479,11 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
     const double threshold_rad   = (object_config.support_threshold_angle.value > 0) ?
         M_PI * double(object_config.support_threshold_angle.value + 1) / 180. : // +1 makes the threshold inclusive
         0.;
-    float        no_interface_offset = 0.f;
 
     if (layer_id == 0) 
     {
-        // This is the first object layer, so the object is being printed on a raft and
-        // we're here just to get the object footprint for the raft.
-#if 0
-        // The following line was filling excessive holes in the raft, see GH #430
-        overhang_polygons = collect_slices_outer(layer);
-#else
         // Don't fill in the holes. The user may apply a higher raft_expansion if one wants a better 1st layer adhesion.
         overhang_polygons = to_polygons(layer.lslices);
-#endif
-        // Expand for better stability.
-        contact_polygons = object_config.raft_expansion.value > 0 ? expand(overhang_polygons, scaled<float>(object_config.raft_expansion.value)) : overhang_polygons;
     }
     else if (! layer.regions().empty())
     {
@@ -1507,29 +1493,6 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
         const ExPolygons& lower_layer_expolys = lower_layer.lslices;
         const ExPolygons& lower_layer_sharptails = lower_layer.sharp_tails;
         auto& lower_layer_sharptails_height = lower_layer.sharp_tails_height;
-
-        // Cache support trimming polygons derived from lower layer polygons, possible merged with "on build plate only" trimming polygons.
-        auto slices_margin_update = 
-            [&slices_margin, &layer, &lower_layer, &lower_layer_polygons, buildplate_only, has_enforcer, &annotations, layer_id]
-            (float slices_margin_offset, float no_interface_offset) {
-            if (slices_margin.offset != slices_margin_offset) {
-                slices_margin.offset = slices_margin_offset;
-                slices_margin.polygons = (slices_margin_offset == 0.f) ?
-                    lower_layer_polygons :
-                    // What is the purpose of no_interface_offset? Likely to not trim the contact layer by lower layer regions that are too thin to extrude?
-                    offset2(lower_layer.lslices, -no_interface_offset * 0.5f, slices_margin_offset + no_interface_offset * 0.5f, SUPPORT_SURFACES_OFFSET_PARAMETERS);
-                if (buildplate_only && !annotations.buildplate_covered[layer_id].empty()) {
-                    if (has_enforcer)
-                        // Make a backup of trimming polygons before enforcing "on build plate only".
-                        slices_margin.all_polygons = slices_margin.polygons;
-                    // Trim the inflated contact surfaces by the top surfaces as well.
-                    slices_margin.polygons = union_(slices_margin.polygons, annotations.buildplate_covered[layer_id]);
-                }
-            }
-        };
-
-        no_interface_offset = std::accumulate(layer.regions().begin(), layer.regions().end(), FLT_MAX, 
-            [](float acc, const LayerRegion *layerm) { return std::min(acc, float(layerm->flow(frExternalPerimeter).scaled_width())); });
 
         float lower_layer_offset  = 0;
         for (LayerRegion *layerm : layer.regions()) {
@@ -1655,17 +1618,6 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
                     expand(union_(annotations.blockers_layers[layer_id]), float(1000. * SCALED_EPSILON)));
             }
 
-            #ifdef SLIC3R_DEBUG
-            {
-                ::Slic3r::SVG svg(debug_out_path("support-top-contacts-raw-run%d-layer%d-region%d.svg", 
-                    iRun, layer_id, 
-                    std::find_if(layer.regions().begin(), layer.regions().end(), [layerm](const LayerRegion* other){return other == layerm;}) - layer.regions().begin()),
-                    get_extents(diff_polygons));
-                Slic3r::ExPolygons expolys = union_ex(diff_polygons);
-                svg.draw(expolys);
-            }
-            #endif /* SLIC3R_DEBUG */
-
             if (object_config.bridge_no_support)
                 //FIXME Expensive, potentially not precise enough. Misses gap fill extrusions, which bridge.
                 SupportMaterialInternal::remove_bridges_from_contacts(
@@ -1674,19 +1626,91 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
             if (diff_polygons.empty())
                 continue;
 
-            #ifdef SLIC3R_DEBUG
-            Slic3r::SVG::export_expolygons(
-                debug_out_path("support-top-contacts-filtered-run%d-layer%d-region%d-z%f.svg", 
-                    iRun, layer_id, 
-                    std::find_if(layer.regions().begin(), layer.regions().end(), [layerm](const LayerRegion* other){return other == layerm;}) - layer.regions().begin(),
-                    layer.print_z),
-                union_ex(diff_polygons));
-            #endif /* SLIC3R_DEBUG */
+            polygons_append(overhang_polygons, diff_polygons);
+        } // for each layer.region
+    }
 
-            //FIXME the overhang_polygons are used to construct the support towers as well.
-            //if (this->has_contact_loops())
-                // Store the exact contour of the overhang for the contact loops.
-                polygons_append(overhang_polygons, diff_polygons);
+    return overhang_polygons;
+}
+
+// Tuple: overhang_polygons, contact_polygons, enforcer_polygons, no_interface_offset
+// no_interface_offset: minimum of external perimeter widths
+static inline std::tuple<Polygons, Polygons, double> detect_contacts(
+    const Layer& layer,
+    const size_t             layer_id,
+    Polygons& overhang_polygons,
+    Polygons& lower_layer_polygons,
+    const PrintConfig& print_config,
+    const PrintObjectConfig& object_config,
+    SupportAnnotations& annotations,
+    SlicesMarginCache& slices_margin,
+    const double             gap_xy
+#ifdef SLIC3R_DEBUG
+    , size_t                 iRun
+#endif // SLIC3R_DEBUG
+)
+{
+    // Expanded for stability, trimmed by gap_xy.
+    Polygons contact_polygons;
+    // Enforcers projected to overhangs, trimmed
+    Polygons enforcer_polygons;
+
+    // BBS.
+    const bool   auto_normal_support = object_config.support_type.value == stNormalAuto;
+    const bool   support_sharp_tails = object_config.support_sharp_tails.value;
+    const bool   buildplate_only = !annotations.buildplate_covered.empty();
+    // If user specified a custom angle threshold, convert it to radians.
+    // Zero means automatic overhang detection.
+    const double threshold_rad = (object_config.support_threshold_angle.value > 0) ?
+        M_PI * double(object_config.support_threshold_angle.value + 1) / 180. : // +1 makes the threshold inclusive
+        0.;
+    float        no_interface_offset = 0.f;
+
+    if (layer_id == 0)
+    {
+        // Expand for better stability.
+        contact_polygons = object_config.raft_expansion.value > 0 ? expand(overhang_polygons, scaled<float>(object_config.raft_expansion.value)) : overhang_polygons;
+    }
+    else if (!layer.regions().empty())
+    {
+        // Generate overhang / contact_polygons for non-raft layers.
+        const Layer& lower_layer = *layer.lower_layer;
+        const bool   has_enforcer = !annotations.enforcers_layers.empty() && !annotations.enforcers_layers[layer_id].empty();
+        const ExPolygons& lower_layer_expolys = lower_layer.lslices;
+        const ExPolygons& lower_layer_sharptails = lower_layer.sharp_tails;
+        auto& lower_layer_sharptails_height = lower_layer.sharp_tails_height;
+
+        // Cache support trimming polygons derived from lower layer polygons, possible merged with "on build plate only" trimming polygons.
+        auto slices_margin_update =
+            [&slices_margin, &layer, &lower_layer, &lower_layer_polygons, buildplate_only, has_enforcer, &annotations, layer_id]
+        (float slices_margin_offset, float no_interface_offset) {
+            if (slices_margin.offset != slices_margin_offset) {
+                slices_margin.offset = slices_margin_offset;
+                slices_margin.polygons = (slices_margin_offset == 0.f) ?
+                    lower_layer_polygons :
+                    // What is the purpose of no_interface_offset? Likely to not trim the contact layer by lower layer regions that are too thin to extrude?
+                    offset2(lower_layer.lslices, -no_interface_offset * 0.5f, slices_margin_offset + no_interface_offset * 0.5f, SUPPORT_SURFACES_OFFSET_PARAMETERS);
+                if (buildplate_only && !annotations.buildplate_covered[layer_id].empty()) {
+                    if (has_enforcer)
+                        // Make a backup of trimming polygons before enforcing "on build plate only".
+                        slices_margin.all_polygons = slices_margin.polygons;
+                    // Trim the inflated contact surfaces by the top surfaces as well.
+                    slices_margin.polygons = union_(slices_margin.polygons, annotations.buildplate_covered[layer_id]);
+                }
+            }
+        };
+
+        no_interface_offset = std::accumulate(layer.regions().begin(), layer.regions().end(), FLT_MAX,
+            [](float acc, const LayerRegion* layerm) { return std::min(acc, float(layerm->flow(frExternalPerimeter).scaled_width())); });
+
+        float lower_layer_offset = 0;
+        for (LayerRegion* layerm : layer.regions()) {
+            Polygons layerm_polygons = to_polygons(layerm->slices.surfaces);
+
+            // Overhang polygons for this layer and region.
+            Polygons diff_polygons = intersection(overhang_polygons, layerm_polygons);
+            if (diff_polygons.empty())
+                continue;
 
             // Let's define the required contact area by using a max gap of half the upper 
             // extrusion width and extending the area according to the configured margin.
@@ -1710,30 +1734,30 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
         } // for each layer.region
 
         if (has_enforcer)
-            if (const Polygons &enforcer_polygons_src = annotations.enforcers_layers[layer_id]; ! enforcer_polygons_src.empty()) {
+            if (const Polygons& enforcer_polygons_src = annotations.enforcers_layers[layer_id]; !enforcer_polygons_src.empty()) {
                 // Enforce supports (as if with 90 degrees of slope) for the regions covered by the enforcer meshes.
-    #ifdef SLIC3R_DEBUG
+#ifdef SLIC3R_DEBUG
                 ExPolygons enforcers_united = union_ex(enforcer_polygons_src);
-    #endif // SLIC3R_DEBUG
+#endif // SLIC3R_DEBUG
                 enforcer_polygons = diff(intersection(layer.lslices, enforcer_polygons_src),
                     // Inflate just a tiny bit to avoid intersection of the overhang areas with the object.
                     expand(lower_layer_polygons, 0.05f * no_interface_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
-    #ifdef SLIC3R_DEBUG
+#ifdef SLIC3R_DEBUG
                 SVG::export_expolygons(debug_out_path("support-top-contacts-enforcers-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z),
                     { { layer.lslices,                                 { "layer.lslices",              "gray",   0.2f } },
                       { { union_ex(lower_layer_polygons) },            { "lower_layer_polygons",       "green",  0.5f } },
                       { enforcers_united,                              { "enforcers",                  "blue",   0.5f } },
                       { { union_safety_offset_ex(enforcer_polygons) }, { "new_contacts",               "red",    "black", "", scaled<coord_t>(0.1f), 0.5f } } });
-    #endif /* SLIC3R_DEBUG */
-                if (! enforcer_polygons.empty()) {
+#endif /* SLIC3R_DEBUG */
+                if (!enforcer_polygons.empty()) {
                     polygons_append(overhang_polygons, enforcer_polygons);
                     slices_margin_update(std::min(lower_layer_offset, float(scale_(gap_xy))), no_interface_offset);
                     polygons_append(contact_polygons, diff(enforcer_polygons, slices_margin.all_polygons.empty() ? slices_margin.polygons : slices_margin.all_polygons));
                 }
             }
-        }
+    }
 
-    return std::make_tuple(std::move(overhang_polygons), std::move(contact_polygons), std::move(enforcer_polygons), no_interface_offset);
+    return std::make_tuple(std::move(contact_polygons), std::move(enforcer_polygons), no_interface_offset);
 }
 
 // Allocate one, possibly two support contact layers.
@@ -2025,6 +2049,72 @@ static void merge_contact_layers(const SlicingParameters &slicing_params, double
         layers.erase(layers.begin() + k, layers.end());
 }
 
+
+struct OverhangCluster {
+    std::map<int, std::vector<Polygon*>> layer_overhangs;
+    Polygons merged_overhangs_dilated;
+    int min_layer = 1e7;
+    int max_layer = 0;
+    coordf_t offset_scaled = 0;
+
+    OverhangCluster(Polygon* overhang, int layer_nr, coordf_t offset_scaled) {
+        this->offset_scaled = offset_scaled;
+        insert(overhang, layer_nr);
+    }
+
+    void insert(Polygon* overhang_new, int layer_nr) {
+        if (layer_overhangs.find(layer_nr) != layer_overhangs.end()) {
+            layer_overhangs[layer_nr].push_back(overhang_new);
+        }
+        else {
+            layer_overhangs.emplace(layer_nr, std::vector<Polygon*>{ overhang_new });
+        }
+        Polygons overhang_dilated = offset_scaled > EPSILON ? expand(*overhang_new, offset_scaled) : Polygons{ *overhang_new };
+        if (!overhang_dilated.empty())
+            merged_overhangs_dilated = union_(merged_overhangs_dilated, overhang_dilated);
+        min_layer = std::min(min_layer, layer_nr);
+        max_layer = std::max(max_layer, layer_nr);
+    }
+
+    int height() {
+        return max_layer - min_layer + 1;
+    }
+
+    bool intersects(const Polygon& overhang_new, int layer_nr) {
+        if (layer_nr < 1)
+            return false;
+
+        auto it = layer_overhangs.find(layer_nr - 1);
+        if (it == layer_overhangs.end())
+            return false;
+
+        Polygons overhangs_lower;
+        for (Polygon* poly : it->second) {
+            overhangs_lower.push_back(*poly);
+        }
+        const Polygons overhang_dilated = expand(overhang_new, offset_scaled);
+        return !intersection(overhang_dilated, overhangs_lower).empty();
+    }
+};
+
+static void add_overhang(std::vector<OverhangCluster>& clusters, Polygon* overhang, int layer_nr, coordf_t offset_scaled) {
+    bool found = false;
+    for (int i = 0; i < clusters.size(); i++) {
+        auto& cluster = clusters[i];
+        if (cluster.intersects(*overhang, layer_nr)) {
+            cluster.insert(overhang, layer_nr);
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        clusters.emplace_back(overhang, layer_nr, offset_scaled);
+    }
+};
+
+static  bool is_contour_ccw_test = false;
+
+
 // Generate top contact layers supporting overhangs.
 // For a soluble interface material synchronize the layer heights with the object, otherwise leave the layer height undefined.
 // If supports over bed surface only are requested, don't generate contact layers over an object.
@@ -2048,6 +2138,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
 
     // Output layers, sorted by top Z.
     MyLayersPtr contact_out;
+    // BBS
+    const bool remove_small_overhangs = m_object_config->remove_small_overhangs.value;
 
     BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::top_contact_layers() in parallel - start";
     // Determine top contact areas.
@@ -2060,13 +2152,102 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     // and the other for the overhangs extruded with a normal flow.
     contact_out.assign(num_layers * 2, nullptr);
     tbb::spin_mutex layer_storage_mutex;
+
+    std::vector<Polygons> overhangs_per_layers(num_layers);
     for (size_t layer_id = this->has_raft() ? 0 : 1; layer_id < num_layers; layer_id++) {
         const Layer& layer = *object.layers()[layer_id];
         Polygons            lower_layer_polygons = (layer_id == 0) ? Polygons() : to_polygons(object.layers()[layer_id - 1]->lslices);
         SlicesMarginCache   slices_margin;
 
-        auto [overhang_polygons, contact_polygons, enforcer_polygons, no_interface_offset] =
-            detect_overhangs(layer, layer_id, lower_layer_polygons, *m_print_config, *m_object_config, annotations, slices_margin, m_support_params.gap_xy
+        Polygons overhang_polygons = detect_overhangs(layer, layer_id, lower_layer_polygons, *m_print_config, *m_object_config, annotations, slices_margin, m_support_params.gap_xy
+#ifdef SLIC3R_DEBUG
+            , iRun
+#endif // SLIC3R_DEBUG
+        );
+
+        overhangs_per_layers[layer_id] = std::move(overhang_polygons);
+    }
+
+    // BBS
+    if (remove_small_overhangs) {
+        std::vector<OverhangCluster> clusters;
+        double fw_scaled = scale_(m_object_config->line_width);
+        std::set<Polygon*> removed_overhang;
+
+        for (size_t layer_id = this->has_raft() ? 0 : 1; layer_id < num_layers; layer_id++) {
+            for (Polygon& overhang : overhangs_per_layers[layer_id]) {
+                if (overhang.is_counter_clockwise())
+                    add_overhang(clusters, &overhang, layer_id, fw_scaled);
+            }
+        }
+
+        for (OverhangCluster& cluster : clusters) {
+            // 1. check overhang span size is smaller than 3mm
+            //auto bbox_size = get_extents(cluster.merged_overhangs_dilated).size();
+            //const double dimension_limit = scale_(3.0) + 2 * fw_scaled;
+            //if (bbox_size.x() > dimension_limit || bbox_size.y() > dimension_limit)
+            //    continue;
+
+            double area = 0.f;
+            // 2. check overhang cluster size is smaller than 3.0 * fw_scaled
+            auto erode1 = offset(cluster.merged_overhangs_dilated, -2.5 * fw_scaled);
+            for (Polygon& poly : erode1)
+                area += poly.area() * (poly.is_counter_clockwise() ? 1.0 : -1.0);
+            if (std::abs(area) > SQ(scale_(0.1)))
+                continue;
+
+            // 3. check whether the small overhang is sharp tail
+            bool is_sharp_tail = false;
+            for (size_t layer_id = cluster.min_layer; layer_id < cluster.max_layer; layer_id++) {
+                const Layer& layer = *object.layers()[layer_id];
+                if (!intersection_ex(layer.sharp_tails, cluster.merged_overhangs_dilated).empty()) {
+                    is_sharp_tail = true;
+                    break;
+                }
+            }
+
+            if (is_sharp_tail)
+                continue;
+
+            // 4. remove small overhangs
+            for (auto overhangs : cluster.layer_overhangs) {
+                for (Polygon* poly : overhangs.second)
+                    removed_overhang.insert(poly);
+            }
+        }
+
+        for (size_t layer_id = this->has_raft() ? 0 : 1; layer_id < num_layers; layer_id++) {
+            Polygons& layer_overhangs = overhangs_per_layers[layer_id];
+            if (layer_overhangs.empty())
+                continue;
+
+            bool remove_hole = false;
+            for (int poly_idx = 0; poly_idx < layer_overhangs.size(); poly_idx++) {
+                Polygon* overhang = &layer_overhangs[poly_idx];
+                if (overhang->is_counter_clockwise()) {
+                    if (removed_overhang.find(overhang) != removed_overhang.end()) {
+                        remove_hole = true;
+                        overhang->clear();
+                    }
+                    else
+                        remove_hole = false;
+                }
+                else {
+                    if (remove_hole)
+                        overhang->clear();
+                }
+            }
+        }
+    }
+
+    for (size_t layer_id = this->has_raft() ? 0 : 1; layer_id < num_layers; layer_id++) {
+        const Layer& layer = *object.layers()[layer_id];
+        Polygons            overhang_polygons = overhangs_per_layers[layer_id];
+        Polygons            lower_layer_polygons = (layer_id == 0) ? Polygons() : to_polygons(object.layers()[layer_id - 1]->lslices);
+        SlicesMarginCache   slices_margin;
+
+        auto [contact_polygons, enforcer_polygons, no_interface_offset] =
+            detect_contacts(layer, layer_id, overhang_polygons, lower_layer_polygons, *m_print_config, *m_object_config, annotations, slices_margin, m_support_params.gap_xy
 #ifdef SLIC3R_DEBUG
                 , iRun
 #endif // SLIC3R_DEBUG
