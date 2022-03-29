@@ -2407,6 +2407,22 @@ bool GUI_App::load_language(wxString language, bool initial)
 	        }
 		}
         {
+            std::map<wxString, wxString> language_descptions = {
+                {"zh_CN", wxString::FromUTF8("\xE4\xB8\xAD\xE6\x96\x87\x28\xE7\xAE\x80\xE4\xBD\x93\x29")},
+                {"zh_TW", wxString::FromUTF8("\xE4\xB8\xAD\xE6\x96\x87\x28\xE7\xB9\x81\xE9\xAB\x94\x29")},
+                {"de", wxString::FromUTF8("Deutsch")},
+                {"en", wxString::FromUTF8("English")}, 
+                {"es", wxString::FromUTF8("\x45\x73\x70\x61\xC3\xB1\x6F\x6C")}, 
+                {"fr", wxString::FromUTF8("\x46\x72\x61\x6E\xC3\xA7\x61\x69\x73")}, 
+                {"it", wxString::FromUTF8("\x49\x74\x61\x6C\x69\x61\x6E\x6F")},
+                {"ru", wxString::FromUTF8("\xD1\x80\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB8\xD0\xB9")}, 
+                };
+            for (auto l : language_descptions) {
+                const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(l.first);
+                if (langinfo) const_cast<wxLanguageInfo *>(langinfo)->Description =l.second;
+            }
+        }
+        {
 	    	// Allocating a temporary locale will switch the default wxTranslations to its internal wxTranslations instance.
 	    	wxLocale temp_locale;
 	    	// Set the current translation's language to default, otherwise GetBestTranslation() may not work (see the wxWidgets source code).
@@ -2457,14 +2473,14 @@ bool GUI_App::load_language(wxString language, bool initial)
 	BOOST_LOG_TRIVIAL(trace) << boost::format("Switching wxLocales to %1%") % language_info->CanonicalName.ToUTF8().data();
 
     // Select language for locales. This language may be different from the language of the dictionary.
-    if (language_info == m_language_info_best || language_info == m_language_info_system) {
-        // The current language matches user's default profile exactly. That's great.
-    } else if (m_language_info_best != nullptr && language_info->CanonicalName.BeforeFirst('_') == m_language_info_best->CanonicalName.BeforeFirst('_')) {
-        // Use whatever the operating system recommends, if it the language code of the dictionary matches the recommended language.
-        // This allows a Swiss guy to use a German dictionary without forcing him to German locales.
-        language_info = m_language_info_best;
-    } else if (m_language_info_system != nullptr && language_info->CanonicalName.BeforeFirst('_') == m_language_info_system->CanonicalName.BeforeFirst('_'))
-        language_info = m_language_info_system;
+    //if (language_info == m_language_info_best || language_info == m_language_info_system) {
+    //    // The current language matches user's default profile exactly. That's great.
+    //} else if (m_language_info_best != nullptr && language_info->CanonicalName.BeforeFirst('_') == m_language_info_best->CanonicalName.BeforeFirst('_')) {
+    //    // Use whatever the operating system recommends, if it the language code of the dictionary matches the recommended language.
+    //    // This allows a Swiss guy to use a German dictionary without forcing him to German locales.
+    //    language_info = m_language_info_best;
+    //} else if (m_language_info_system != nullptr && language_info->CanonicalName.BeforeFirst('_') == m_language_info_system->CanonicalName.BeforeFirst('_'))
+    //    language_info = m_language_info_system;
 
     // Alternate language code.
     wxLanguage language_dict = wxLanguage(language_info->Language);
