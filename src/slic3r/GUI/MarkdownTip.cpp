@@ -195,6 +195,14 @@ std::string MarkdownTip::LoadTip(std::string const& tip)
     }
     */
     ph = resources_dir();
+    ph /= "tooltip/" + _language + "/" + tip + ".md";
+    file = encode_path(ph.string().c_str());
+    if (wxFile::Exists(file) && f.Open(file)) {
+        std::string content(f.Length(), 0);
+        f.Read(&content[0], content.size());
+        return content;
+    }
+    ph = resources_dir();
     ph /= "tooltip/" + tip + ".md";
     file = encode_path(ph.string().c_str());
     if (wxFile::Exists(file) && f.Open(file)) {
@@ -343,14 +351,22 @@ bool MarkdownTip::ShowTip(std::string const& tip, wxPoint pos)
 
 void MarkdownTip::ExitTip()
 {
-    if (auto tip = markdownTip(false))
-        tip->Destroy();
+    //if (auto tip = markdownTip(false))
+    //    tip->Destroy();
 }
 
 void MarkdownTip::Reload()
 {
     if (auto tip = markdownTip(false)) 
         tip->LoadStyle();
+}
+
+void MarkdownTip::Recreate(wxWindow *parent)
+{
+    if (auto tip = markdownTip(false)) {
+        tip->Reparent(parent);
+        tip->LoadStyle(); // switch language
+    }
 }
 
 wxWindow* MarkdownTip::AttachTo(wxWindow* parent)

@@ -17,6 +17,8 @@ public:
 
     static void Reload();
 
+    static void Recreate(wxWindow *parent);
+
     static wxWindow* AttachTo(wxWindow * parent);
 
     static wxWindow* DetachFrom(wxWindow * parent);
