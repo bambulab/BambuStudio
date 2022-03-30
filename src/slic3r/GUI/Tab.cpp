@@ -1747,8 +1747,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("initial_layer_speed");
         optgroup->append_single_option_line("initial_layer_infill_speed");
         optgroup = page->new_optgroup(L("Other layers speed"));
-        optgroup->append_single_option_line("outer_wall_speed");
         optgroup->append_single_option_line("inner_wall_speed");
+        optgroup->append_single_option_line("outer_wall_speed");
         //optgroup->append_single_option_line("small_perimeter_speed");
         optgroup->append_single_option_line("sparse_infill_speed");
         optgroup->append_single_option_line("internal_solid_infill_speed");

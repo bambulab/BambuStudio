@@ -96,10 +96,9 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
 
     // Print config values
     double layer_height                     = print_config.opt_float("layer_height");
-    assert(! print_config.option<ConfigOptionFloatOrPercent>("initial_layer_print_height")->percent);
     double initial_layer_print_height               = print_config.opt_float("initial_layer_print_height");
     double support_speed           = print_config.opt_float("support_speed");
-    double support_interface_speed = print_config.get_abs_value("support_interface_speed", support_speed);
+    double support_interface_speed = print_config.get_abs_value("support_interface_speed");
     double bridge_speed                     = print_config.opt_float("bridge_speed");
     double bridge_flow                = print_config.opt_float("bridge_flow");
     double inner_wall_speed                  = print_config.opt_float("inner_wall_speed");
@@ -107,8 +106,8 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
     // double gap_infill_speed                   = print_config.opt_bool("gap_fill_enabled") ? print_config.opt_float("gap_infill_speed") : 0.;
     double sparse_infill_speed                     = print_config.opt_float("sparse_infill_speed");
     double small_perimeter_speed            = print_config.get_abs_value("small_perimeter_speed", inner_wall_speed);
-    double internal_solid_infill_speed               = print_config.get_abs_value("internal_solid_infill_speed", sparse_infill_speed);
-    double top_surface_speed           = print_config.get_abs_value("top_surface_speed", internal_solid_infill_speed);
+    double internal_solid_infill_speed               = print_config.opt_float("internal_solid_infill_speed");
+    double top_surface_speed           = print_config.opt_float("top_surface_speed");
     // Maximum print speed when auto-speed is enabled by setting any of the above speed values to zero.
     double max_print_speed                  = print_config.opt_float("max_print_speed");
     // Maximum volumetric speed allowed for the print profile.

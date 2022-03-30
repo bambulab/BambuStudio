@@ -2134,7 +2134,7 @@ void Plater::setPrintSpeedTable(GlobalSpeedMap &printSpeedMap) {
             printSpeedMap.maxSpeed = printSpeedMap.perimeterSpeed;
     }
     if (config.has("outer_wall_speed")) {
-        printSpeedMap.externalPerimeterSpeed = config.get_abs_value("outer_wall_speed", printSpeedMap.perimeterSpeed);
+        printSpeedMap.externalPerimeterSpeed = 0.01 * config.option<ConfigOptionPercent>("outer_wall_speed")->value * printSpeedMap.perimeterSpeed;
         printSpeedMap.maxSpeed = std::max(printSpeedMap.maxSpeed, printSpeedMap.externalPerimeterSpeed);
     }
     if (config.has("sparse_infill_speed")) {
@@ -2143,12 +2143,12 @@ void Plater::setPrintSpeedTable(GlobalSpeedMap &printSpeedMap) {
             printSpeedMap.maxSpeed = printSpeedMap.infillSpeed;
     }
     if (config.has("internal_solid_infill_speed")) {
-        printSpeedMap.solidInfillSpeed = config.get_abs_value("internal_solid_infill_speed", printSpeedMap.infillSpeed);
+        printSpeedMap.solidInfillSpeed = config.opt_float("internal_solid_infill_speed");
         if (printSpeedMap.solidInfillSpeed > printSpeedMap.maxSpeed)
             printSpeedMap.maxSpeed = printSpeedMap.solidInfillSpeed;
     }
     if (config.has("top_surface_speed")) {
-        printSpeedMap.topSolidInfillSpeed = config.get_abs_value("top_surface_speed", printSpeedMap.infillSpeed);
+        printSpeedMap.topSolidInfillSpeed = config.opt_float("top_surface_speed");
         if (printSpeedMap.topSolidInfillSpeed > printSpeedMap.maxSpeed)
             printSpeedMap.maxSpeed = printSpeedMap.topSolidInfillSpeed;
     }

@@ -346,14 +346,6 @@ void Preset::normalize(DynamicPrintConfig &config)
         }
     }
 
-    if (auto *initial_layer_print_height = config.option<ConfigOptionFloatOrPercent>("initial_layer_print_height", false); initial_layer_print_height && initial_layer_print_height->percent)
-        if (const auto *layer_height = config.option<ConfigOptionFloat>("layer_height", false); layer_height) {
-            // Legacy conversion - initial_layer_print_height moved from PrintObject setting to a Print setting, thus we are getting rid of the dependency
-            // of initial_layer_print_height on PrintObject specific layer_height. Covert the first layer heigth to an absolute value.
-            initial_layer_print_height->value   = initial_layer_print_height->get_abs_value(layer_height->value);
-            initial_layer_print_height->percent = false;
-        }
-
     handle_legacy_sla(config);
 }
 

@@ -980,7 +980,7 @@ namespace DoExport {
                         // BBS: remove small small_perimeter_speed config, and will absolutely
                         // remove related code if no other issue in the coming release.
 	                    //region.config().get_abs_value("small_perimeter_speed") == 0 ||
-	                    region.config().get_abs_value("outer_wall_speed") == 0 ||
+	                    region.config().outer_wall_speed.value == 0 ||
 	                    region.config().get_abs_value("bridge_speed") == 0)
 	                    mm3_per_mm.push_back(layerm->perimeters.min_mm3_per_mm());
 	                if (region.config().get_abs_value("sparse_infill_speed") == 0 ||
@@ -1293,7 +1293,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // Write some terse information on the slicing parameters.
     const PrintObject *first_object         = print.objects().front();
     const double       layer_height         = first_object->config().layer_height.value;
-    assert(! print.config().initial_layer_print_height.percent);
     const double       initial_layer_print_height   = print.config().initial_layer_print_height.value;
     //BBS: remove useless information in gcode file
 #if 0
@@ -1529,7 +1528,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 // BBS. change tool before moving to origin point.
                 if (m_writer.need_toolchange(initial_extruder_id)) {
                     const PrintObjectConfig& object_config = object.config();
-                    coordf_t initial_layer_print_height = print.config().initial_layer_print_height.get_abs_value(object_config.layer_height.value);
+                    coordf_t initial_layer_print_height = print.config().initial_layer_print_height.value;
                     file.write(this->set_extruder(initial_extruder_id, initial_layer_print_height));
                     prime_extruder = true;
                 }
@@ -3205,7 +3204,7 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
     std::string gcode;
     if (! support_fills.entities.empty()) {
         const double  support_speed            = m_config.support_speed.value;
-        const double  support_interface_speed  = m_config.support_interface_speed.get_abs_value(support_speed);
+        const double  support_interface_speed  = m_config.get_abs_value("support_interface_speed");
         for (const ExtrusionEntity *ee : support_fills.entities) {
             ExtrusionRole role = ee->role();
             assert(role == erSupportMaterial || role == erSupportMaterialInterface || role == erSupportTransition);
@@ -3403,7 +3402,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 speed = new_speed == 0.0 ? speed : new_speed;
             }
         } else if (path.role() == erExternalPerimeter) {
-            speed = m_config.get_abs_value("outer_wall_speed");
+            speed = 0.01 * m_config.outer_wall_speed.value * m_config.get_abs_value("inner_wall_speed");
             if (overhang_degree > 0 && overhang_degree <= 4) {
                 double new_speed = m_config.get_abs_value(overhang_speed_key_map[overhang_degree].c_str());
                 speed = new_speed == 0.0 ? speed : new_speed;
@@ -3429,9 +3428,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                  path.role() == erSupportMaterialInterface ||
                  path.role() == erSupportTransition) {
             const double  support_speed = m_config.support_speed.value;
-            const double  support_interface_speed = m_config.support_interface_speed.get_abs_value(support_speed);
+            const double  support_interface_speed = m_config.get_abs_value("support_interface_speed");
             speed = (path.role() == erSupportMaterial) ? support_speed : support_interface_speed;
-            const double  support_transition_speed = m_config.support_transition_speed.get_abs_value(support_speed);
+            const double  support_transition_speed = m_config.get_abs_value("support_transition_speed");
             speed = (path.role() == erSupportMaterial) ? support_speed :
                 ((path.role() == erSupportMaterialInterface) ? support_interface_speed :
                     support_transition_speed);
@@ -3445,7 +3444,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         //BBS: for solid infill of initial layer, speed can be higher as long as
         //wall lines have be attached
         if (path.role() != erBottomSurface)
-            speed = m_config.get_abs_value("initial_layer_speed", speed);
+            speed = m_config.get_abs_value("initial_layer_speed");
     }
     //BBS: remove this config
     //else if (this->object_layer_over_raft())

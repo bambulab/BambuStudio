@@ -129,14 +129,14 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
-    if (config->option<ConfigOptionFloatOrPercent>("initial_layer_print_height")->value < EPSILON)
+    if (config->option<ConfigOptionFloat>("initial_layer_print_height")->value < EPSILON)
     {
         const wxString msg_text = _(L("Zero initial layer height is invalid.\n\nThe first layer height will be reset to 0.2."));
         MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
         dialog.ShowModal();
-        new_conf.set_key_value("initial_layer_print_height", new ConfigOptionFloatOrPercent(0.2, false));
+        new_conf.set_key_value("initial_layer_print_height", new ConfigOptionFloat(0.2));
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
@@ -357,8 +357,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     bool has_bottom_solid_infill = config->opt_int("bottom_shell_layers") > 0;
     bool has_solid_infill 		 = has_top_solid_infill || has_bottom_solid_infill;
     // solid_infill_extruder uses the same logic as in Print::extruders()
-    for (auto el : { "top_surface_pattern", "bottom_surface_pattern", "solid_infill_extruder",
-                    "internal_solid_infill_line_width", "internal_solid_infill_speed" })
+    for (auto el : { "top_surface_pattern", "bottom_surface_pattern", "solid_infill_extruder"})
         toggle_field(el, has_solid_infill);
 
     for (auto el : { "infill_direction", "sparse_infill_line_width",

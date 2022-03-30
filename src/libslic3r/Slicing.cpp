@@ -65,7 +65,6 @@ SlicingParameters SlicingParameters::create_from_config(
 	coordf_t				 object_height,
 	const std::vector<unsigned int> &object_extruders)
 {
-    assert(! print_config.initial_layer_print_height.percent);
     coordf_t initial_layer_print_height                      = (print_config.initial_layer_print_height.value <= 0) ? 
         object_config.layer_height.value : print_config.initial_layer_print_height.value;
     // If object_config.support_material_extruder == 0 resp. object_config.support_material_interface_extruder == 0,

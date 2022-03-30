@@ -314,16 +314,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("max_travel_detour_distance", coFloatOrPercent);
+    def = this->add("max_travel_detour_distance", coFloat);
     def->label = L("Max travel detour distance");
     def->category = L("Quality");
     def->tooltip = L("Maximum detour distance for avoiding crossing wall. "
                      "Don't detour if the detour distance is large than this value");
-    def->sidetext = L("mm or %");
+    def->sidetext = L("mm");
     def->min = 0;
     def->max_literal = 1000;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
+    def->set_default_value(new ConfigOptionFloat(0.));
 
     def = this->add("bed_temperature", coInts);
     def->label = L("Other layers");
@@ -677,16 +677,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
-    def = this->add("outer_wall_speed", coFloatOrPercent);
+    def = this->add("outer_wall_speed", coPercent);
     def->label = L("Outer wall");
     def->category = L("Speed");
     def->tooltip = L("Speed of outer wall which is outermost and visible. "
-                     "It's relative to inner wall speed if expressed as percentage");
-    def->sidetext = L("mm/s or %");
+                     "It's expressed as percentage relative to inner wall speed. "
+                     "It's used to be slower than inner wall speed to get better quality");
+    def->sidetext = L("%");
     def->ratio_over = "inner_wall_speed";
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(80, true));
+    def->set_default_value(new ConfigOptionPercent(80));
 
     def = this->add("wall_infill_order", coEnum);
     def->label = L("Order of inner wall/outer wall/infil");
@@ -1011,14 +1012,13 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloatOrPercent(0.42, false));
 
-    def = this->add("initial_layer_print_height", coFloatOrPercent);
+    def = this->add("initial_layer_print_height", coFloat);
     def->label = L("Initial layer height");
     def->category = L("Quality");
     def->tooltip = L("Height of initial layer. Making initial layer height to be thick slightly can improve build plate adhension");
-    def->sidetext = L("mm or %");
+    def->sidetext = L("mm");
     def->min = 0;
-    def->ratio_over = "layer_height";
-    def->set_default_value(new ConfigOptionFloatOrPercent(0.2, false));
+    def->set_default_value(new ConfigOptionFloat(0.2));
 
     def = this->add("adaptive_layer_height", coBool);
     def->label = L("Adaptive layer height");
@@ -1027,14 +1027,13 @@ void PrintConfigDef::init_fff_params()
                      "according to the slope of model surface");
     def->set_default_value(new ConfigOptionBool(0));
 
-    def = this->add("initial_layer_speed", coFloatOrPercent);
+    def = this->add("initial_layer_speed", coFloat);
     def->label = L("Initial layer");
     def->tooltip = L("Speed of initial layer except the solid infill part");
     def->sidetext = L("mm/s");
     def->min = 0;
-    def->max_literal = 20;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(30, false));
+    def->set_default_value(new ConfigOptionFloat(30));
 
     def = this->add("initial_layer_infill_speed", coFloat);
     def->label = L("Initial layer infill");
@@ -1896,16 +1895,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
-    def = this->add("internal_solid_infill_speed", coFloatOrPercent);
+    def = this->add("internal_solid_infill_speed", coFloat);
     def->label = L("Internal solid infill");
     def->category = L("Speed");
-    def->tooltip = L("Speed of internal solid infill, not the top and bottom surface. "
-                   "It's relative to sparse infill speed if it's percentage");
-    def->sidetext = L("mm/s or %");
-    def->ratio_over = "sparse_infill_speed";
+    def->tooltip = L("Speed of internal solid infill, not the top and bottom surface");
+    def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(100, false));
+    def->set_default_value(new ConfigOptionFloat(100));
 
     def = this->add("spiral_mode", coBool);
     def->label = L("Spiral mode");
@@ -2205,26 +2202,23 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(0.5));
 
-    def = this->add("support_interface_speed", coFloatOrPercent);
+    def = this->add("support_interface_speed", coFloat);
     def->label = L("Support interface");
     def->category = L("Speed");
-    def->tooltip = L("Speed of support interface. It's relative to support speed if expressed as percentage");
-    def->sidetext = L("mm/s or %");
-    def->ratio_over = "support_speed";
+    def->tooltip = L("Speed of support interface");
+    def->sidetext = L("mm/s");
     def->min = 1;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(80, true));
+    def->set_default_value(new ConfigOptionFloat(80));
 
-    def = this->add("support_transition_speed", coFloatOrPercent);
+    def = this->add("support_transition_speed", coFloat);
     def->label = L("Support transition");
     def->category = L("Support");
-    def->tooltip = L("Speed for printing support transition layers in which support infill direction is changed."
-        "If expressed as percentage (for example 50%) it will be calculated over support speed.");
-    def->sidetext = L("mm/s or %");
-    def->ratio_over = "support_speed";
-    def->min = 0;
+    def->tooltip = L("Speed for printing support transition layers in which support infill direction is changed");
+    def->sidetext = L("mm/s");
+    def->min = 1;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
+    def->set_default_value(new ConfigOptionFloat(80));
 
     def = this->add("support_base_pattern", coEnum);
     def->label = L("Base pattern");
@@ -2433,16 +2427,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
-    def = this->add("top_surface_speed", coFloatOrPercent);
+    def = this->add("top_surface_speed", coFloat);
     def->label = L("Top surface");
     def->category = L("Speed");
-    def->tooltip = L("Speed of top surface infill which is solid. "
-                     "It's relative to internal solid infill speed if it's percentage");
-    def->sidetext = L("mm/s or %");
-    def->ratio_over = "internal_solid_infill_speed";
+    def->tooltip = L("Speed of top surface infill which is solid");
+    def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(100, false));
+    def->set_default_value(new ConfigOptionFloat(100));
 
     def = this->add("top_shell_layers", coInt);
     def->label = L("Top shell layers");
@@ -3339,7 +3331,7 @@ void PrintConfigDef::init_sla_params()
 
 void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &value)
 {
-    // handle legacy options
+    //BBS: handle legacy options
     if (opt_key == "enable_wipe_tower") {
         opt_key = "enable_prime_tower";
     } else if (opt_key == "wipe_tower_width") {
@@ -3350,6 +3342,21 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "change_filament_gcode";
     }  else if (opt_key == "bridge_fan_speed") {
         opt_key = "overhang_fan_speed";
+    } else if ((opt_key == "initial_layer_print_height"   ||
+                opt_key == "initial_layer_speed"          ||
+                opt_key == "internal_solid_infill_speed"  ||
+                opt_key == "top_surface_speed"            ||
+                opt_key == "support_transition_speed"     ||
+                opt_key == "support_interface_speed")     && value.find("%") != std::string::npos) {
+        //BBS: this is old profile in which value is expressed as percentage.
+        //But now these key-value must be absolute value.
+        //Reset to default value by erasing these key to avoid parsing error.
+        opt_key = "";
+    } else if (opt_key == "outer_wall_speed" && value.find("%") == std::string::npos) {
+        //BBS: this is old profile in which value is expressed absolute value.
+        //But now these key-value must be percentage.
+        //Reset to default percentage value by erasing these key to avoid parsing error.
+        opt_key = "";
     }
 
     // Ignore the following obsolete configuration keys:

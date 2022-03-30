@@ -251,7 +251,7 @@ Flow support_material_1st_layer_flow(const PrintObject *object, float layer_heig
         // The width parameter accepted by new_from_config_width is of type ConfigOptionFloatOrPercent, the Flow class takes care of the percent to value substitution.
         (width.value > 0) ? width : object->config().line_width,
         float(print_config.nozzle_diameter.get_at(object->config().support_material_extruder-1)),
-        (layer_height > 0.f) ? layer_height : float(print_config.initial_layer_print_height.get_abs_value(object->config().layer_height.value)));
+        (layer_height > 0.f) ? layer_height : float(print_config.initial_layer_print_height.value));
 }
 
 Flow support_material_interface_flow(const PrintObject *object, float layer_height)

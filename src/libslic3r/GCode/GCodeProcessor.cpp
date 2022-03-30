@@ -991,7 +991,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_time_processor.machines[i].travel_acceleration = (max_travel_acceleration > 0.0f) ? max_travel_acceleration : DEFAULT_TRAVEL_ACCELERATION;
     }
 
-    const ConfigOptionFloatOrPercent* initial_layer_print_height = config.option<ConfigOptionFloatOrPercent>("initial_layer_print_height");
+    const ConfigOptionFloat* initial_layer_print_height = config.option<ConfigOptionFloat>("initial_layer_print_height");
     if (initial_layer_print_height != nullptr)
         m_first_layer_height = std::abs(initial_layer_print_height->value);
 
@@ -1206,7 +1206,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         }
     }
 
-    const ConfigOptionFloatOrPercent* initial_layer_print_height = config.option<ConfigOptionFloatOrPercent>("initial_layer_print_height");
+    const ConfigOptionFloat* initial_layer_print_height = config.option<ConfigOptionFloat>("initial_layer_print_height");
     if (initial_layer_print_height != nullptr)
         m_first_layer_height = std::abs(initial_layer_print_height->value);
 

@@ -552,7 +552,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                 support_interface_bottom_layers))
     // Spacing between interface lines (the hatching distance). Set zero to get a solid interface.
     ((ConfigOptionFloat,               support_interface_spacing))
-    ((ConfigOptionFloatOrPercent,      support_interface_speed))
+    ((ConfigOptionFloat,               support_interface_speed))
     ((ConfigOptionEnum<SupportMaterialPattern>, support_base_pattern))
     ((ConfigOptionEnum<SupportMaterialInterfacePattern>, support_interface_pattern))
     // Morphological closing of support areas. Only used for "sung" supports.
@@ -583,7 +583,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,               detect_narrow_internal_solid_infill))
     ((ConfigOptionBool,               adaptive_layer_height))
     ((ConfigOptionFloatOrPercent,     support_transition_line_width))
-    ((ConfigOptionFloatOrPercent,     support_transition_speed))
+    ((ConfigOptionFloat,              support_transition_speed))
     ((ConfigOptionFloat,              support_bottom_interface_spacing))
 )
 
@@ -598,7 +598,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<InfillPattern>,  top_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>,  bottom_surface_pattern))
     ((ConfigOptionFloatOrPercent,       outer_wall_line_width))
-    ((ConfigOptionFloatOrPercent,       outer_wall_speed))
+    ((ConfigOptionPercent,              outer_wall_speed))
     ((ConfigOptionFloat,                infill_direction))
     ((ConfigOptionPercent,              sparse_infill_density))
     ((ConfigOptionEnum<InfillPattern>,  sparse_infill_pattern))
@@ -628,13 +628,13 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                minimum_sparse_infill_area))
     ((ConfigOptionInt,                  solid_infill_extruder))
     ((ConfigOptionFloatOrPercent,       internal_solid_infill_line_width))
-    ((ConfigOptionFloatOrPercent,       internal_solid_infill_speed))
+    ((ConfigOptionFloat,                internal_solid_infill_speed))
     // Detect thin walls.
     ((ConfigOptionBool,                 detect_thin_wall))
     ((ConfigOptionFloatOrPercent,       top_surface_line_width))
     ((ConfigOptionInt,                  top_shell_layers))
     ((ConfigOptionFloat,                top_shell_thickness))
-    ((ConfigOptionFloatOrPercent,       top_surface_speed))
+    ((ConfigOptionFloat,                top_surface_speed))
     //BBS
     //((ConfigOptionBool,                 wipe_into_infill))
     //BBS
@@ -737,7 +737,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     //BBS
     ((ConfigOptionInts,               additional_cooling_fan_speed))
     ((ConfigOptionBool,               reduce_crossing_wall))
-    ((ConfigOptionFloatOrPercent,     max_travel_detour_distance))
+    ((ConfigOptionFloat,              max_travel_detour_distance))
     ((ConfigOptionPoints,             printable_area))
     //BBS: add bed_exclude_area
     ((ConfigOptionPoints,             bed_exclude_area))
@@ -763,8 +763,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     // BBS
     ((ConfigOptionInts,               bed_temperature_initial_layer))
     ((ConfigOptionFloatOrPercent,     initial_layer_line_width))
-    ((ConfigOptionFloatOrPercent,     initial_layer_print_height))
-    ((ConfigOptionFloatOrPercent,     initial_layer_speed))
+    ((ConfigOptionFloat,              initial_layer_print_height))
+    ((ConfigOptionFloat,              initial_layer_speed))
     //BBS
     ((ConfigOptionFloat,              initial_layer_infill_speed))
     ((ConfigOptionInts,               nozzle_temperature_initial_layer))

@@ -761,8 +761,6 @@ StringObjectException Print::validate(StringObjectException *warning) const
                 }
             }
 
-            // validate initial_layer_print_height
-            assert(! m_config.initial_layer_print_height.percent);
             double initial_layer_print_height = m_config.initial_layer_print_height.value;
             double first_layer_min_nozzle_diameter;
             if (object->has_raft()) {
@@ -864,7 +862,6 @@ BoundingBox Print::total_bounding_box() const
 
 double Print::skirt_first_layer_height() const
 {
-    assert(! m_config.initial_layer_print_height.percent);
     return m_config.initial_layer_print_height.value;
 }
 
