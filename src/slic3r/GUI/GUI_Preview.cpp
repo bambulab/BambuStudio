@@ -226,6 +226,9 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Model* model)
     }
     m_canvas->enable_assemble_view_toolbar(false);
 
+    // sizer, m_canvas_widget
+    m_canvas_widget->Bind(wxEVT_KEY_DOWN, &Preview::update_layers_slider_from_canvas, this);
+
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);
 
@@ -468,6 +471,25 @@ void Preview::update_layers_slider_mode()
 
     IMSlider *m_layers_slider = m_canvas->get_gcode_viewer().get_layers_slider();
     m_layers_slider->SetModeAndOnlyExtruder(one_extruder_printed_model, only_extruder);
+}
+
+void Preview::update_layers_slider_from_canvas(wxKeyEvent &event)
+{
+    if (event.HasModifiers()) {
+        event.Skip();
+        return;
+    }
+
+    const auto key = event.GetKeyCode();
+
+    IMSlider *m_layers_slider = m_canvas->get_gcode_viewer().get_layers_slider();
+    IMSlider *m_moves_slider  = m_canvas->get_gcode_viewer().get_moves_slider();
+    if (key == 'L')
+        m_layers_slider->ChangeOneLayerLock();
+    /*else if (key == WXK_SHIFT)
+        m_layers_slider->UseDefaultColors(false);*/
+    else
+        event.Skip();
 }
 
 void Preview::update_layers_slider(const std::vector<double>& layers_z, bool keep_z_range)

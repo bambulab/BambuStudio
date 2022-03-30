@@ -2621,8 +2621,18 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                         keyCode == WXK_RIGHT ||
                         keyCode == WXK_UP ||
                         keyCode == WXK_DOWN) {
-                        if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
-                            post_event(wxKeyEvent(EVT_GLCANVAS_MOVE_SLIDERS, evt));
+                        if (m_canvas_type == CanvasPreview) {
+                            IMSlider *m_layers_slider = get_gcode_viewer().get_layers_slider();
+                            IMSlider *m_moves_slider  = get_gcode_viewer().get_moves_slider();
+                            if (keyCode == WXK_UP || keyCode == WXK_DOWN) {
+                                const int new_pos = keyCode == WXK_UP ? m_layers_slider->GetHigherValue() + 1 : m_layers_slider->GetHigherValue() - 1;
+                                m_layers_slider->SetHigherValue(new_pos);
+                                if (m_layers_slider->is_one_layer()) m_layers_slider->SetLowerValue(m_layers_slider->GetHigherValue());
+                            } else if (keyCode == WXK_LEFT || keyCode == WXK_RIGHT) {
+                                const int new_pos = keyCode == WXK_RIGHT ? m_moves_slider->GetHigherValue() + 1 : m_moves_slider->GetHigherValue() - 1;
+                                m_moves_slider->SetHigherValue(new_pos);
+                            }
+                        }
                     }
                 }
             }

@@ -216,6 +216,7 @@ public:
     int    GetActiveValue() const;
     double GetLowerValueD() { return get_double_value(ssLower); }
     double GetHigherValueD() { return get_double_value(ssHigher); }
+    SelectedSlider GetSelection() { return m_selection; }
 
     // Set low and high slider position. If the span is non-empty, disable the "one layer" mode.
     void SetLowerValue(const int lower_val);
