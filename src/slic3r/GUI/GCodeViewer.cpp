@@ -859,6 +859,10 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
             m_time_estimate_mode = PrintEstimatedStatistics::ETimeMode::Normal;
     }
 
+    // set to color print by default if extruders > 1
+    if (gcode_result.extruders_count > 1)
+        set_view_type(EViewType::ColorPrint);
+
     //BBS: add mutex for protection of gcode result
     gcode_result.unlock();
     //BBS: add logs
