@@ -83,8 +83,13 @@ void PrintJob::process()
     project->project_3mf_file = job_data._3mf_path.string();
     project->project_path = fs::path(project->project_3mf_file);
 
+    /* select a profile, use default now */
+    BBLProfile *profile = new BBLProfile(project);
+    // set current print preset to profile_name
+    profile->profile_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
+
     BOOST_LOG_TRIVIAL(trace) << "print_job: request project id";
-    res = c->request_project_id(project, http_code, http_body);
+    res = c->request_project_profile_id(project, profile, http_code, http_body);
 
     if (res == 0 && !project->project_id.empty()) {
         BOOST_LOG_TRIVIAL(trace) << "print_job: get project id = " << project->project_id;
@@ -95,21 +100,7 @@ void PrintJob::process()
         return;
     }
 
-    if (was_canceled()) {
-        update_status(curr_percent, printjob_cancel_str);
-        return;
-    }
-
-    /* select a profile, use default now */
-    BBLProfile* profile = new BBLProfile(project);
-    // set current print preset to profile_name
-    profile->profile_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
-    
-    BOOST_LOG_TRIVIAL(trace) << "print_job: request profile id";
-    res = c->request_profile_id(profile, http_code, http_body);
-    if (res == 0 && !profile->profile_id.empty()
-        && !profile->upload_ticket.empty()
-        && !profile->upload_url.empty()) {
+    if (res == 0 && !profile->profile_id.empty() && !profile->upload_ticket.empty() && !profile->upload_url.empty()) {
         BOOST_LOG_TRIVIAL(trace) << "print_job: get profile id = " << profile->profile_id;
     } else {
         wxString error_msg = wxString::Format(_L("req_pro,err:code=%u,msg=%s"), http_code, http_body);

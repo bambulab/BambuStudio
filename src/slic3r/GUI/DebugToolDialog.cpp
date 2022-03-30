@@ -136,9 +136,12 @@ void GcodePrintJob::process()
         return;
     }
 
+    BBLProfile *profile   = new BBLProfile(project);
+    profile->profile_name = "gcode_profile";
+
     /* request project id */
     BOOST_LOG_TRIVIAL(trace) << "gcode_print_job: request project id";
-    res = acc->request_project_id(project, http_code, http_body);
+    res = acc->request_project_profile_id(project, profile, http_code, http_body);
     if (res == 0 && !project->project_id.empty()) {
         curr_percent = 10;
         update_status(curr_percent, "request project id ok!");
@@ -149,11 +152,6 @@ void GcodePrintJob::process()
         return;
     }
 
-    BBLProfile* profile = new BBLProfile(project);
-    profile->profile_name = "gcode_profile";
-
-    BOOST_LOG_TRIVIAL(trace) << "gcode_print_job: request profile id";
-    res = acc->request_profile_id(profile, http_code, http_body);
     if (res == 0 && !profile->profile_id.empty()
         && !profile->upload_ticket.empty()
         && !profile->upload_url.empty()) {

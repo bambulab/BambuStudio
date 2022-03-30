@@ -357,6 +357,9 @@ public:
     void set_default_profile(BBLProfile* profile) { default_profile = profile; }
 
     // POST /api/user/project
+    int request_project_profile_id(BBLProject *project, BBLProfile *profile, unsigned int &http_code, std::string &http_body);
+
+    // POST /api/user/project
     int request_project_id(BBLProject* project, unsigned int &http_code, std::string &http_body);
     
     // POST /api/user/project/{project_id}

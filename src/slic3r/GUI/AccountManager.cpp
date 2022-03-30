@@ -1524,6 +1524,58 @@ namespace Slic3r {
         return j.dump();
     }
 
+    // POST /api/user/project
+    int AccountManager::request_project_profile_id(BBLProject *project, BBLProfile *profile, unsigned int &http_code, std::string &http_body)
+    {
+        http_code = 0;
+        http_body = "";
+
+        int result = -1;
+        if (!project || !profile) return -1;
+
+        /* get a project id and model id */
+        std::string json_str = json_request_body_post_project(project);
+
+        Http http_post = Http::post(_get_project_url());
+        http_post.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .header("Content-Type", "application/json")
+            .set_post_body(json_str)
+            .on_complete([this, project, profile, &result, &http_code, &http_body](std::string body, unsigned int status) {
+                try {
+                    http_code = status;
+                    http_body = body;
+                    BOOST_LOG_TRIVIAL(trace) << "AccountManager::request_project_id, body=" << body;
+                    json j = json::parse(body);
+                    if (is_valid_property(j, "message")) {
+                        if (j["message"].get<std::string>() == MSG_SUCCESS) {
+                            if (is_valid_property(j, "project_id"))
+                                project->project_id = j["project_id"].get<std::string>();
+                            if (is_valid_property(j, "model_id"))
+                                project->project_model_id = j["model_id"].get<std::string>();
+                            if (is_valid_property(j, "name"))
+                                project->project_name = j["name"].get<std::string>();
+                            if (is_valid_property(j, "profile_id") && is_valid_property(j, "upload_url") && is_valid_property(j, "upload_ticket")) {
+                                profile->project_id    = project->project_id;
+                                profile->profile_id    = j["profile_id"].get<std::string>();
+                                profile->upload_url    = j["upload_url"].get<std::string>();
+                                profile->upload_ticket = j["upload_ticket"].get<std::string>();
+                                result                 = 0;
+                            }
+                        }
+                    }
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(trace) << "request_project_id: on_complete parsing failed, body=" << body;
+                }
+            })
+            .on_error([&http_code, &http_body](std::string body, std::string error, unsigned status) {
+                http_code = status;
+                http_body = body;
+            })
+            .perform_sync();
+        return result;
+    }
+
     int AccountManager::request_project_id(BBLProject* project, unsigned int &http_code, std::string &http_body)
     {
         http_code = 0;
