@@ -1223,11 +1223,11 @@ void TabPresetComboBox::update()
         }*/
 
         // add "Add/Remove printers" item
-        std::string icon_name = "edit_uni";
-        wxBitmap* bmp = get_bmp("edit_preset_list, tab,", icon_name, "");
-        assert(bmp);
+        //std::string icon_name = "edit_uni";
+        //wxBitmap* bmp = get_bmp("edit_preset_list, tab,", icon_name, "");
+        //assert(bmp);
 
-        set_label_marker(Append(separator(L("Add/Remove printers")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
+        //set_label_marker(Append(separator(L("Add/Remove printers")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
     }
 
     // BBS Add/Remove filaments select
