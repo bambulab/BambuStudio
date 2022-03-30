@@ -252,11 +252,17 @@ void TriangleSelector::select_patch(int facet_start, std::unique_ptr<Cursor> &&c
 
     // BBS
     std::vector<int> start_facets;
-    for (int facet_id = 0; facet_id < m_orig_size_indices; facet_id++) {
-        const Triangle& tr = m_triangles[facet_id];
-        if (m_cursor->is_edge_inside_cursor(tr, m_vertices)) {
-            start_facets.push_back(facet_id);
+    HeightRange* hr_cursor = dynamic_cast<HeightRange*>(m_cursor.get());
+    if (hr_cursor) {
+        for (int facet_id = 0; facet_id < m_orig_size_indices; facet_id++) {
+            const Triangle& tr = m_triangles[facet_id];
+            if (m_cursor->is_edge_inside_cursor(tr, m_vertices)) {
+                start_facets.push_back(facet_id);
+            }
         }
+    }
+    else {
+        start_facets.push_back(facet_start);
     }
 
     // Keep track of facets of the original mesh we already processed.

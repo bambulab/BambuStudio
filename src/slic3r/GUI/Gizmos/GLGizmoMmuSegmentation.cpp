@@ -190,6 +190,7 @@ void GLGizmoMmuSegmentation::render_triangles(const Selection &selection) const
     shader->start_using();
     shader->set_uniform("clipping_plane", clp_data.clp_dataf);
     shader->set_uniform("z_range", clp_data.z_range);
+    shader->set_uniform("slope.actived", m_parent.is_using_slope());
     ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
 
     const ModelObject *mo      = m_c->selection_info()->model_object();
