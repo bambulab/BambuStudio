@@ -1032,12 +1032,13 @@ void TreeSupport::detect_object_overhangs()
                     int layer_nr = it->first;
                     auto p_overhang = it->second;
                     auto dilate1 = offset_ex(*p_overhang, extrusion_width_scaled);
+                    auto erode1 = offset_ex(*p_overhang, -extrusion_width_scaled);
                     Layer* layer = m_object->get_layer(layer_nr);
                     auto inter_with_others = intersection_ex(dilate1, diff_ex(layer->lslices, *p_overhang));
                     // the following two cases are small overhangs:
-                    // 1) overhang is single line (dilate1.empty()==true)
+                    // 1) overhang is single line (erode1.empty()==true)
                     // 2) overhang is not island (intersects with others)
-                    if (dilate1.empty() || !inter_with_others.empty())
+                    if (erode1.empty() || !inter_with_others.empty())
                         blockers[layer_nr].push_back(p_overhang->contour);
                 }
             }
