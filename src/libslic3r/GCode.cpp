@@ -3826,6 +3826,9 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         toolchange_gcode_parsed = placeholder_parser_process("change_filament_gcode", change_filament_gcode, extruder_id, &dyn_config);
         gcode += toolchange_gcode_parsed;
         check_add_eol(gcode);
+        //BBS: gcode writer doesn't know where the extruder is after inserting tool change gcode
+        //Set this flag so that normal lift will be used the first time after tool change
+        m_writer.set_current_position_clear(false);
     }
 
     // BBS. Reset old extruder E-value.
