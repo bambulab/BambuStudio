@@ -22,6 +22,7 @@
 #include "Widgets/ProgressBar.hpp"
 #include "Widgets/ImageSwitchButton.hpp"
 
+class StepIndicator;
 
 namespace Slic3r {
 namespace GUI {
@@ -117,6 +118,8 @@ protected:
     wxBoxSizer *    m_printing_sizer;
     wxBoxSizer *    m_tasklist_sizer;
     wxBoxSizer *    m_tasklist_caption_sizer;
+
+    ::StepIndicator * m_filament_step;
 
     // Virtual event handlers, override them in your derived class
     virtual void on_subtask_report(wxCommandEvent &event) { event.Skip(); }

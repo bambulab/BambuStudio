@@ -791,6 +791,16 @@ wxBoxSizer *StatusBasePanel::create_ams_group()
 
     sizer->Add(bSizer_extruder_ctrl, 0, wxEXPAND | wxALL, 0);
 
+    m_filament_step = new ::StepIndicator(this, wxID_ANY);
+    m_filament_step->SetMinSize({120, 180});
+    m_filament_step->SetSize(120, 180);
+    m_filament_step->AppendItem(_L("Choose the position"));
+    m_filament_step->AppendItem(_L("Click the load below"));
+    m_filament_step->AppendItem(_L("Heat the extruder"));
+    m_filament_step->AppendItem(_L("Load"));
+    m_filament_step->AppendItem(_L("Complete"));
+    sizer->Add(m_filament_step, 1, wxEXPAND | wxALL, 0);
+
     return sizer;
 }
 
@@ -1337,7 +1347,7 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
     sizer->Add(step, 1, wxEXPAND, 0);
     popUp->SetSizer(sizer);
     auto em = em_unit(this);
-    popUp->SetSize(em * 32, em * 7);
+    popUp->SetSize(em * 36, em * 8);
     step->AppendItem(_L("Silent Mode"), "60%");
     step->AppendItem(_L("Standard"), "100%");
     step->AppendItem(_L("Sport"), "140%");
@@ -1405,7 +1415,7 @@ void StatusPanel::on_select_space_3(wxCommandEvent &event) {}
 
 void StatusPanel::on_select_space_4(wxCommandEvent &event) {}
 
-void StatusPanel::on_extruder_feed(wxCommandEvent &event) { ; }
+void StatusPanel::on_extruder_feed(wxCommandEvent &event) { m_filament_step->SelectNext(); }
 
 void StatusPanel::on_extruder_back(wxCommandEvent &event) { ; }
 
@@ -1547,6 +1557,8 @@ void StatusPanel::msw_rescale()
     m_switch_printing_fan->SetImages(m_bitmap_fan_on, m_bitmap_fan_off);
     m_switch_printing_fan->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_printing_fan->Rescale();
+
+    m_filament_step->Rescale();
 
     Layout();
     Refresh();

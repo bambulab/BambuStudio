@@ -137,7 +137,10 @@ void StaticBox::doRender(wxDC& dc)
     wxSize size = GetSize();
     int states = state_handler.states();
     if (background_color2.count() == 0) {
-        dc.SetPen(wxPen(border_color.colorForStates(states), border_width));
+        if (border_width)
+            dc.SetPen(wxPen(border_color.colorForStates(states), border_width));
+        else
+            dc.SetPen(wxPen(background_color.colorForStates(states)));
         dc.SetBrush(wxBrush(background_color.colorForStates(states)));
         if (GetWindowStyle() & wxBORDER_NONE)
             dc.SetPen(wxPen(background_color.colorForStates(states)));
