@@ -209,12 +209,8 @@ void AppConfig::set_defaults()
         set_bool("show_printable_box", true);
     }
 
-     if (get("currency").empty()) { 
-         set("currency", "imperial"); 
-     }
-
-     if (get("currency_supported").empty()) { 
-         set("currency_supported", "metric/imperial/more");
+     if (get("units").empty()) { 
+          set("units", "0"); 
      }
 
      if (get("user_sync_switch").empty()) { 

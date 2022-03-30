@@ -49,11 +49,15 @@ wxWindow *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pare
     for (iter = vlist.begin(); iter != vlist.end(); iter++) { combobox->Append(*iter); }
 
     combobox->SetPosition(wxPoint(item->GetSize().GetWidth() - combobox->GetSize().GetWidth() - 60, (item->GetSize().GetHeight() - combobox->GetSize().GetHeight()) / 2));
-    combobox->SetValue(app_config->get(param));
+   
+    auto index = app_config->get(param);
+    if (!index.empty()) { 
+        combobox->SetSelection(atoi(index.c_str()));
+    }
 
     // save config
     combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param](wxCommandEvent &e) {
-        app_config->set(param, std::string(e.GetString().mb_str()));
+        app_config->set(param, std::to_string(e.GetSelection()));
         app_config->save();
         e.Skip();
     });
@@ -468,9 +472,8 @@ void PreferencesDialog::create_general_page()
     std::sort(language_infos.begin(), language_infos.end(), [](const wxLanguageInfo *l, const wxLanguageInfo *r) { return l->Description < r->Description; });
     wxWindow *item_language = create_item_language_combobox(_L("Language"), m_panel_general, _L("Language"), 50, "language", language_infos);
 
-    std::vector<wxString> currency_supported;
-    Split(app_config->get("currency_supported"), "/", currency_supported);
-    wxWindow *item_currency = create_item_combobox(_L("Currency"), m_panel_general, _L("Currency"), 50, "currency", currency_supported);
+    std::vector<wxString> Units = {_L("Metric"), _L("Imperial")};
+    wxWindow * item_currency = create_item_combobox(_L("Units"), m_panel_general, _L("Units"), 50, "units", Units);
 
     wxWindow *title_associate_file = create_item_title(_L("Associate files to BambuStudio"), m_panel_general, _L("Associate files to BambuStudio"));
 
