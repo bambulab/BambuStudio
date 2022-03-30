@@ -4093,11 +4093,14 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     //BBS
     ImGuiWrapper::push_toolbar_style();
 
-    imgui->begin(_L("Arrange options"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+    imgui->begin(_L("Arrange options"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
     ArrangeSettings settings = get_arrange_settings();
     ArrangeSettings &settings_out = get_arrange_settings();
-
+    const float slider_icon_width = imgui->get_slider_icon_size().x;
+    const float cursor_slider_left = imgui->calc_text_size(_L("Spacing")).x + imgui->scaled(1.5f);
+    const float minimal_slider_width = imgui->scaled(4.f);
+    float window_width  = minimal_slider_width + 2 * slider_icon_width;
     auto &appcfg = wxGetApp().app_config;
     PrinterTechnology ptech = current_printer_technology();
 
@@ -4131,13 +4134,22 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     bed_shrink_x_key += postfix;
     bed_shrink_y_key += postfix;
 
-    if (imgui->slider_float(_L("Spacing"), &settings.distance, dist_min, 100.0f, "%5.2f") || dist_min > settings.distance) {
+    ImGui::AlignTextToFramePadding();
+    imgui->text(_L("Spacing"));
+    ImGui::SameLine(1.2 * cursor_slider_left);
+    ImGui::PushItemWidth(window_width - slider_icon_width);
+    bool b_Spacing = imgui->bbl_slider_float_style("##Spacing", &settings.distance, dist_min, 100.0f, "%5.2f") || dist_min > settings.distance;
+    ImGui::SameLine(window_width - slider_icon_width + 1.3 * cursor_slider_left);
+    ImGui::PushItemWidth(1.5 * slider_icon_width);
+    bool b_spacing_input = ImGui::BBLDragFloat("##spacing_input", &settings.distance, 0.05f, 0.0f, 0.0f, "%.2f");
+    if (b_Spacing || b_spacing_input)
+    {
         settings.distance = std::max(dist_min, settings.distance);
         settings_out.distance = settings.distance;
         appcfg->set("arrange", dist_key.c_str(), float_to_string_decimal_point(settings_out.distance));
         settings_changed = true;
     }
-
+    ImGui::Separator();
     if (imgui->bbl_checkbox(_L("Auto rotate for arrangement"), settings.enable_rotation)) {
         settings_out.enable_rotation = settings.enable_rotation;
         appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation? "1" : "0");
@@ -4165,7 +4177,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     */
 
     ImGui::Separator();
-
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(15.0f, 10.0f));
     if (imgui->button(_L("Arrange"))) {
         wxGetApp().plater()->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
         wxGetApp().plater()->arrange();
@@ -4182,7 +4194,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
         appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation? "1" : "0");
         settings_changed = true;
     }
-
+    ImGui::PopStyleVar(1);
     imgui->end();
 
     //BBS
