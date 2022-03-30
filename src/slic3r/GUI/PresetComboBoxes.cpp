@@ -225,7 +225,13 @@ static std::string suffix(Preset* preset)
     return (preset->is_dirty ? Preset::suffix_modified() : "");
 }
 
-wxString PresetComboBox::get_tooltip(const Preset& preset)
+wxColor PresetComboBox::different_color(wxColor const &clr)
+{
+    if (clr.GetLuminance() < 0.5) return *wxWHITE;
+    return *wxBLACK;
+}
+
+wxString PresetComboBox::get_tooltip(const Preset &preset)
 {
     wxString tooltip = from_u8(preset.name);
     // BBS: FIXME
@@ -820,8 +826,9 @@ void PlaterPresetComboBox::update()
         wxColor clr(filament_color);
         clr_picker->SetBackgroundColour(clr);
         auto style = clr_picker->GetWindowStyle() & ~(wxBORDER_NONE | wxBORDER_SIMPLE);
+        auto diff_clr = different_color(clr);
         clr_picker->SetWindowStyle(clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224 ? (style | wxBORDER_SIMPLE) : (style | wxBORDER_NONE));
-        clr_picker->SetForegroundColour(clr.Red() < 128 && clr.Blue() < 128 && clr.Green() < 128 ? *wxWHITE : *wxBLACK);
+        clr_picker->SetForegroundColour(diff_clr);
         selected_filament_preset = m_collection->find_preset(m_preset_bundle->filament_presets[m_extruder_idx]);
         if (!selected_filament_preset) {
             //can not find this filament, should be caused by project embedded presets, will be updated later

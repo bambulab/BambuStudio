@@ -67,6 +67,8 @@ public:
     //BBS
     wxString get_tooltip(const Preset& preset);
 
+    static wxColor different_color(wxColor const & color);
+
     virtual wxString get_preset_name(const Preset& preset); 
     Preset::Type     get_type() { return m_type; }
     void             show_all(bool show_all);
