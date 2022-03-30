@@ -250,28 +250,45 @@ void TriangleSelector::select_patch(int facet_start, std::unique_ptr<Cursor> &&c
     const float highlight_angle_limit = cos(Geometry::deg2rad(highlight_by_angle_deg));
     Vec3f       vec_down              = (trafo_no_translate.inverse() * -Vec3d::UnitZ()).normalized().cast<float>();
 
-    // Now start with the facet the pointer points to and check all adjacent facets.
-    std::vector<int> facets_to_check;
-    facets_to_check.reserve(16);
-    facets_to_check.emplace_back(facet_start);
+    // BBS
+    std::vector<int> start_facets;
+    for (int facet_id = 0; facet_id < m_orig_size_indices; facet_id++) {
+        const Triangle& tr = m_triangles[facet_id];
+        if (m_cursor->is_edge_inside_cursor(tr, m_vertices)) {
+            start_facets.push_back(facet_id);
+        }
+    }
+
     // Keep track of facets of the original mesh we already processed.
     std::vector<bool> visited(m_orig_size_indices, false);
-    // Breadth-first search around the hit point. facets_to_check may grow significantly large.
-    // Head of the bread-first facets_to_check FIFO.
-    int facet_idx = 0;
-    while (facet_idx < int(facets_to_check.size())) {
-        int          facet        = facets_to_check[facet_idx];
-        const Vec3f &facet_normal = m_face_normals[m_triangles[facet].source_triangle];
-        if (!visited[facet] && (highlight_by_angle_deg == 0.f || vec_down.dot(facet_normal) >= highlight_angle_limit)) {
-            if (select_triangle(facet, new_state, triangle_splitting)) {
-                // add neighboring facets to list to be processed later
-                for (int neighbor_idx : m_neighbors[facet])
-                    if (neighbor_idx >= 0 && m_cursor->is_facet_visible(neighbor_idx, m_face_normals))
-                        facets_to_check.push_back(neighbor_idx);
+
+    for (int i = 0; i < start_facets.size(); i++) {
+        int facet_id = start_facets[i];
+        if (visited[facet_id])
+            continue;
+
+        // Now start with the facet the pointer points to and check all adjacent facets.
+        std::vector<int> facets_to_check;
+        facets_to_check.reserve(16);
+        facets_to_check.emplace_back(facet_id);
+
+        // Breadth-first search around the hit point. facets_to_check may grow significantly large.
+        // Head of the bread-first facets_to_check FIFO.
+        int facet_idx = 0;
+        while (facet_idx < int(facets_to_check.size())) {
+            int          facet = facets_to_check[facet_idx];
+            const Vec3f& facet_normal = m_face_normals[m_triangles[facet].source_triangle];
+            if (!visited[facet] && (highlight_by_angle_deg == 0.f || vec_down.dot(facet_normal) >= highlight_angle_limit)) {
+                if (select_triangle(facet, new_state, triangle_splitting)) {
+                    // add neighboring facets to list to be processed later
+                    for (int neighbor_idx : m_neighbors[facet])
+                        if (neighbor_idx >= 0 && m_cursor->is_facet_visible(neighbor_idx, m_face_normals))
+                            facets_to_check.push_back(neighbor_idx);
+                }
             }
+            visited[facet] = true;
+            ++facet_idx;
         }
-        visited[facet] = true;
-        ++facet_idx;
     }
 }
 
