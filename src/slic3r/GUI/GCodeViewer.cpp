@@ -3891,7 +3891,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             }
 
             //BBS GUI:refactor
-            //if (!time.empty()) {
+            if (!time.empty()) {
                 ImGui::SameLine(offsets[0]);
                 imgui.text(time);
                 ImGui::SameLine(offsets[1]);
@@ -3922,17 +3922,24 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 ImGui::PopStyleColor(1);
 
                 ImGui::PopStyleVar(1);
-
-                /* TODO display checkbox */
-                /* BBS GUI refactor do not show Used filament
-                ImGui::SameLine(offsets[2]);
-                ::sprintf(buf, imperial_units ? "%.2f in" : "%.2f m", used_filament_m);
-                imgui.text(buf);
+            } else {
+                if (used_filament_m > 0.0) {
+                    char buf[64];
+                    ImGui::SameLine(offsets[0]);
+                    ::sprintf(buf, imperial_units ? "%.2f in" : "%.2f m", used_filament_m);
+                    imgui.text(buf);
+                    ImGui::SameLine(offsets[1]);
+                    ::sprintf(buf, "%.2fg", used_filament_g);
+                    imgui.text(buf);
+                }
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0));
                 ImGui::SameLine(offsets[3]);
-                ::sprintf(buf, "%.2f g", used_filament_g);
-                imgui.text(buf);
-                */
-            //}
+                ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+                ImGui::Checkbox("", &visible);
+                ImGui::PopStyleColor(1);
+
+                ImGui::PopStyleVar(1);
+            }
         }
         else {
             imgui.text(label);
@@ -3945,8 +3952,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 ImGui::SameLine(offsets[1]);
                 ::sprintf(buf, "%.2f g", used_filament_g);
                 imgui.text(buf);
-            }
-            */
+            }*/
         }
 
         /* BBS GUI refactor */
@@ -4204,8 +4210,29 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     }
     case EViewType::ColorPrint:
     {
-        offsets = calculate_offsets(labels, times, {"color_prints", _u8L("Display")}, icon_size);
-        append_headers({_u8L("Color Print"), "", "", "", _u8L("Display")}, offsets);
+        for (size_t extruder_id : m_extruder_ids) {
+            if (m_print_statistics.volumes_per_extruder.find(extruder_id) == m_print_statistics.volumes_per_extruder.end()) continue;
+            double volume                           = m_print_statistics.volumes_per_extruder.at(extruder_id);
+            auto [used_filament_m, used_filament_g] = get_used_filament_from_volume(volume, extruder_id);
+            used_filaments_m.push_back(used_filament_m);
+            used_filaments_g.push_back(used_filament_g);
+        }
+
+        std::string longest_used_filament_string;
+        for (double item : used_filaments_m) {
+            char buffer[64];
+            ::sprintf(buffer, imperial_units ? "%.2f in" : "%.2f m", item);
+            if (::strlen(buffer) > longest_used_filament_string.length()) longest_used_filament_string = buffer;
+        }
+
+        std::string longest_used_filament_g_string;
+        for (double item : used_filaments_g) {
+            char buffer[64];
+            ::sprintf(buffer, imperial_units ? "%.2fg" : "%.2fg", item);
+            if (::strlen(buffer) > longest_used_filament_g_string.length()) longest_used_filament_g_string = buffer;
+        }
+        offsets = calculate_offsets(labels, times, {_u8L("Filament N"), longest_used_filament_string, longest_used_filament_g_string, _u8L("Display")}, icon_size);
+        append_headers({_u8L("Color Print"), _u8L("Comsumption"), "", "", _u8L("Display")}, offsets);
         break;
     }
     default: { break; }
@@ -4298,8 +4325,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     {
         const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().is_editor() ? wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes : m_custom_gcode_per_print_z;
         size_t total_items = 1;
-        for (unsigned char i : m_extruder_ids) {
-            total_items += color_print_ranges(i, custom_gcode_per_print_z).size();
+        for (size_t extruder_id : m_extruder_ids) {
+            total_items += color_print_ranges(extruder_id, custom_gcode_per_print_z).size();
         }
 
         const bool need_scrollable = static_cast<float>(total_items) * (icon_size + ImGui::GetStyle().ItemSpacing.y) > child_height;
@@ -4311,7 +4338,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             const std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(0, custom_gcode_per_print_z);
             const int items_cnt = static_cast<int>(cp_values.size());
             if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
-                append_item(EItemType::Rect, m_tools.m_tool_colors.front(), _u8L("Default color"));
+                append_item(EItemType::Rect, m_tools.m_tool_colors.front(), _u8L("Filament 1"));
             }
             else {
                 for (int i = items_cnt; i >= 0; --i) {
@@ -4334,9 +4361,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 const std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(i, custom_gcode_per_print_z);
                 const int items_cnt = static_cast<int>(cp_values.size());
                 if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
-                    //TODO display consumption, salt.wei
                     const bool filament_visible = m_tools.m_tool_visibles[i];
-                    append_item(EItemType::Rect, m_tools.m_tool_colors[i], _u8L("Filament") + " " + std::to_string(i + 1), filament_visible, "", 0.0f, 0.0f, offsets, 0.0f, 0.0f, [this, i](){
+                    append_item(EItemType::Rect, m_tools.m_tool_colors[i], _u8L("Filament") + " " + std::to_string(i + 1), filament_visible, "", 0.0f, 0.0f, offsets,
+                            used_filaments_m[i], used_filaments_g[i], [this, i]() {
                             m_tools.m_tool_visibles[i] = !m_tools.m_tool_visibles[i];
                             // update buffers' render paths
                             refresh_render_paths(false, false);
