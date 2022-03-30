@@ -259,9 +259,11 @@ namespace Slic3r {
         if (!boost::filesystem::exists(log_folder)) {
             boost::filesystem::create_directory(log_folder);
         }
+#if !BBL_RELEASE_TO_PUBLIC
         auto http_log_path = ( log_folder / buf.str()).make_preferred();
         std::string log_filename = encode_path(http_log_path.string().c_str());
         Http::enable_log(log_filename.c_str());
+#endif
         Http::register_global_handler(
             [this](std::string body, std::string error, unsigned int status) {
                 handle_http_error(status, body);

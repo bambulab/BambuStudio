@@ -715,9 +715,10 @@ void MainFrame::init_tabpanel()
         //BBS add pages
         m_monitor = new MonitorPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         m_tabpanel->AddPage(m_monitor, _L("Monitor"), "notebook_monitor_active");
-
+#if !BBL_RELEASE_TO_PUBLIC
         m_debug_tool_dlg = new DebugToolDialog(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         m_tabpanel->AddPage(m_debug_tool_dlg, _L("Debug"), "debugtool");
+#endif
     }
 
     if (m_plater) {
