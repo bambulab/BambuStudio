@@ -576,6 +576,9 @@ Sidebar::Sidebar(Plater *parent)
         auto spliter_1 = new ::StaticLine(p->scrolled);
         spliter_1->SetBackgroundColour("#A6A9AA");
         scrolled_sizer->Add(spliter_1, 0, wxEXPAND);
+        spliter_1 = new ::StaticLine(p->scrolled); // double line
+        spliter_1->SetBackgroundColour("#A6A9AA");
+        scrolled_sizer->Add(spliter_1, 0, wxEXPAND);
         scrolled_sizer->Add(params_panel->get_top_panel(), 0, wxEXPAND);
         auto spliter_2 = new ::StaticLine(p->scrolled);
         spliter_2->SetBackgroundColour("#ACACAC");

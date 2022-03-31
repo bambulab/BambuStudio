@@ -1339,6 +1339,11 @@ void StatusPanel::on_nozzle_temp_set_focus(wxFocusEvent &event)
 
 void StatusPanel::on_switch_speed(wxCommandEvent &event)
 {
+    auto now = boost::posix_time::microsec_clock::universal_time();
+    if ((now - speed_dismiss_time).total_milliseconds() < 200) {
+        speed_dismiss_time = now - boost::posix_time::seconds(1);
+        return;
+    }
     wxPopupTransientWindow *popUp = new wxPopupTransientWindow(m_switch_speed);
     popUp->SetBackgroundStyle(wxBG_STYLE_PAINT);
     StepCtrl *step  = new StepCtrl(popUp, wxID_ANY);
@@ -1354,9 +1359,11 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
     step->AppendItem(_L("Ludicrous"), "180%");
     step->SelectItem(speed);
     step->Bind(EVT_STEP_CHANGED, [this](auto &e) { this->speed = e.GetInt(); });
-    popUp->Bind(wxEVT_SHOW, [](auto &e) {
-        if (!e.IsShown()) 
+    popUp->Bind(wxEVT_SHOW, [this](auto &e) {
+        if (!e.IsShown()) {
             wxGetApp().CallAfter([popUp = e.GetEventObject()] { delete popUp; });
+            speed_dismiss_time = boost::posix_time::microsec_clock::universal_time();
+        }
     });
     wxPoint pos = m_switch_speed->ClientToScreen(wxPoint(0, -6));
     popUp->Position(pos, {0, m_switch_speed->GetSize().y + 12});

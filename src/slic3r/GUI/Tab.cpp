@@ -4620,7 +4620,7 @@ void Page::activate(ConfigOptionMode mode, std::function<void()> throw_if_cancel
         m_vsizer->AddSpacer(20);
     }
 #else
-    m_vsizer->AddSpacer(20);
+    //m_vsizer->AddSpacer(10);
 #endif
 #if HIDE_FIRST_SPLIT_LINE
     // BBS: no line spliter for first group

@@ -276,7 +276,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 }
                 if (m_opt_id == "filament_flow_ratio") {
                     if (m_value.empty() || boost::any_cast<double>(m_value) != val) {
-                        wxString msg_text = format_wxstr(_L("Value is out of range, continue?"), str);
+                        wxString msg_text = format_wxstr(_L("Value %s is out of range, continue?"), str);
 //                        wxMessageDialog dialog(m_parent, msg_text, _L("Parameter validation") + ": " + m_opt_id, wxICON_WARNING | wxYES | wxNO);
                         WarningDialog dialog(m_parent, msg_text, _L("Parameter validation") + ": " + m_opt_id, wxYES | wxNO);
                         if (dialog.ShowModal() == wxID_NO) {

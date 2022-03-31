@@ -444,6 +444,7 @@ void OG_CustomCtrl::OnLeftDown(wxMouseEvent& event)
             }
     }
 
+    SetFocusIgnoringChildren();
 }
 
 void OG_CustomCtrl::OnLeaveWin(wxMouseEvent& event)
