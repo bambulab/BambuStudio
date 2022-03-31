@@ -76,10 +76,6 @@
             "sub_path": "process/0.28mm SUPERDRAFT @BBL-3DP.json"
         },
         {
-            "name": "0.20mm TreeSupport @BBL-3DP",
-            "sub_path": "process/0.20mm TreeSupport @BBL-3DP.json"
-        },
-        {
             "name": "0.20mm PolySupport @BBL-3DP",
             "sub_path": "process/0.20mm PolySupport @BBL-3DP.json"
         }
