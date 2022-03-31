@@ -2117,39 +2117,53 @@ void GUI_App::reload_user_presets()
 void GUI_App::sync_preset(Preset* preset)
 {
     int result = -1;
+    unsigned int http_code = 200;
+    std::string updated_info;
     // only sync user's preset
     if (!preset->is_user()) return;
 
     if (preset->setting_id.empty() && preset->sync_info.empty() && !preset->base_id.empty()) {
         Preset* preset_to_upload = this->preset_bundle->get_preset_differed_for_save(*preset);
         if (preset_to_upload) {
-            result = m_account_manager->request_setting_id(preset_to_upload);
+            result = m_account_manager->request_setting_id(preset_to_upload, http_code);
             if (!preset_to_upload->setting_id.empty()) {
                 preset->setting_id = preset_to_upload->setting_id;
             }
             else {
-                BOOST_LOG_TRIVIAL(trace) << "sync_preset: request_setting_id failed";
+                BOOST_LOG_TRIVIAL(trace) << "[sync_preset]init: request_setting_id failed, http code "<<http_code;
+                if (http_code == 409) {
+                    result = 0;
+                    updated_info = "hold";
+                }
+                else
+                    result = -1;
             }
             delete preset_to_upload;
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "sync_preset: can not generate differed preset";
+            BOOST_LOG_TRIVIAL(trace) << "[sync_preset]init: can not generate differed preset";
         }
     }
     else if ((preset->sync_info.compare("create") == 0) && !preset->base_id.empty()) {
         Preset* preset_to_upload = this->preset_bundle->get_preset_differed_for_save(*preset);
         if (preset_to_upload) {
-            result = m_account_manager->request_setting_id(preset_to_upload);
+            result = m_account_manager->request_setting_id(preset_to_upload, http_code);
             if (!preset_to_upload->setting_id.empty()) {
                 preset->setting_id = preset_to_upload->setting_id;
             }
             else {
-                BOOST_LOG_TRIVIAL(trace) << "sync_preset: request_setting_id failed";
+                BOOST_LOG_TRIVIAL(trace) << "[sync_preset]create: request_setting_id failed, http code "<<http_code;
+                if (http_code == 409) {
+                    result = 0;
+                    updated_info = "hold";
+                }
+                else
+                    result = -1;
             }
             delete preset_to_upload;
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "sync_preset: can not generate differed preset";
+            BOOST_LOG_TRIVIAL(trace) << "[sync_preset]create: can not generate differed preset";
         }
     }
     else if ((preset->sync_info.compare("update") == 0) && !preset->base_id.empty()) {
@@ -2163,12 +2177,12 @@ void GUI_App::sync_preset(Preset* preset)
                         result = 0;
                     }
                     else
-                        result = m_account_manager->put_setting(preset_to_upload);
+                        result = m_account_manager->put_setting(preset_to_upload, http_code);
                 }
                 delete preset_to_upload;
             }
             else {
-                BOOST_LOG_TRIVIAL(trace) << "sync_preset: can not generate differed preset";
+                BOOST_LOG_TRIVIAL(trace) << "[sync_preset]update: can not generate differed preset, http code "<<http_code;
             }
         }
         else {
@@ -2178,17 +2192,18 @@ void GUI_App::sync_preset(Preset* preset)
     }
 
     //update sync_info preset info in file
+
     if (result == 0) {
         //PresetBundle* preset_bundle = wxGetApp().preset_bundle;
         if (!this->preset_bundle) return;
 
         BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: " << preset->sync_info << " success! preset = " << preset->name;
         if (preset->type == Preset::Type::TYPE_FILAMENT) {
-            preset_bundle->filaments.set_sync_info_and_save(preset->name, preset->setting_id);
+            preset_bundle->filaments.set_sync_info_and_save(preset->name, preset->setting_id, updated_info);
         } else if (preset->type == Preset::Type::TYPE_PRINT) {
-            preset_bundle->prints.set_sync_info_and_save(preset->name, preset->setting_id);
+            preset_bundle->prints.set_sync_info_and_save(preset->name, preset->setting_id, updated_info);
         } else if (preset->type == Preset::Type::TYPE_PRINTER) {
-            preset_bundle->printers.set_sync_info_and_save(preset->name, preset->setting_id);
+            preset_bundle->printers.set_sync_info_and_save(preset->name, preset->setting_id, updated_info);
         }
     }
 }
@@ -2230,10 +2245,11 @@ void GUI_App::start_sync_service()
                     }
                 }
 
+                unsigned int http_code = 200;
                 for (auto it = m_account_manager->need_delete_presets.begin(); it != m_account_manager->need_delete_presets.end();) {
                     if ((*it).empty()) continue;
                     std::string del_setting_id = *it;
-                    int result = m_account_manager->del_setting(del_setting_id);
+                    int result = m_account_manager->del_setting(del_setting_id, http_code);
                     if (result == 0) {
                         it = m_account_manager->need_delete_presets.erase(it);
                         BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: delete success! setting id = " << del_setting_id;
@@ -2434,11 +2450,11 @@ bool GUI_App::load_language(wxString language, bool initial)
                 {"zh_CN", wxString::FromUTF8("\xE4\xB8\xAD\xE6\x96\x87\x28\xE7\xAE\x80\xE4\xBD\x93\x29")},
                 {"zh_TW", wxString::FromUTF8("\xE4\xB8\xAD\xE6\x96\x87\x28\xE7\xB9\x81\xE9\xAB\x94\x29")},
                 {"de", wxString::FromUTF8("Deutsch")},
-                {"en", wxString::FromUTF8("English")}, 
-                {"es", wxString::FromUTF8("\x45\x73\x70\x61\xC3\xB1\x6F\x6C")}, 
-                {"fr", wxString::FromUTF8("\x46\x72\x61\x6E\xC3\xA7\x61\x69\x73")}, 
+                {"en", wxString::FromUTF8("English")},
+                {"es", wxString::FromUTF8("\x45\x73\x70\x61\xC3\xB1\x6F\x6C")},
+                {"fr", wxString::FromUTF8("\x46\x72\x61\x6E\xC3\xA7\x61\x69\x73")},
                 {"it", wxString::FromUTF8("\x49\x74\x61\x6C\x69\x61\x6E\x6F")},
-                {"ru", wxString::FromUTF8("\xD1\x80\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB8\xD0\xB9")}, 
+                {"ru", wxString::FromUTF8("\xD1\x80\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB8\xD0\xB9")},
                 };
             for (auto l : language_descptions) {
                 const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(l.first);

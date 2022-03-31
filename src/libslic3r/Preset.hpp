@@ -191,7 +191,7 @@ public:
 
     // Name of the preset, usually derived form the file name.
     std::string         name;
-    // File name of the preset. This could be a Print / Filament / Printer preset, 
+    // File name of the preset. This could be a Print / Filament / Printer preset,
     // or a Configuration file bundling the Print + Filament + Printer presets (in that case is_external and possibly is_system will be true),
     // or it could be a G-code (again, is_external will be true).
     std::string         file;
@@ -248,7 +248,7 @@ public:
 
     // Returns the "compatible_prints_condition".
     static std::string& compatible_prints_condition(DynamicPrintConfig &cfg) { return cfg.option<ConfigOptionString>("compatible_prints_condition", true)->value; }
-    std::string&        compatible_prints_condition() { 
+    std::string&        compatible_prints_condition() {
 		assert(this->type == TYPE_FILAMENT || this->type == TYPE_SLA_MATERIAL);
         return Preset::compatible_prints_condition(this->config);
     }
@@ -265,7 +265,7 @@ public:
     // Return a printer technology, return ptFFF if the printer technology is not set.
     static PrinterTechnology printer_technology(const DynamicPrintConfig &cfg) {
         auto *opt = cfg.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology");
-        // The following assert may trigger when importing some legacy profile, 
+        // The following assert may trigger when importing some legacy profile,
         // but it is safer to keep it here to capture the cases where the "printer_technology" key is queried, where it should not.
 //        assert(opt != nullptr);
         return (opt == nullptr) ? ptFFF : opt->value;
@@ -400,7 +400,7 @@ public:
     void            load_user_presets(std::map<std::string, Preset*> my_presets, const std::string& type, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
     //BBS: get user presets
     int             get_user_presets(std::vector<Preset>& result_presets);
-    void             set_sync_info_and_save(std::string name, std::string setting_id);
+    void             set_sync_info_and_save(std::string name, std::string setting_id, std::string syncinfo);
 
     //BBS: add function to generate differed preset for save
     //the pointer should be freed by the caller
@@ -462,7 +462,7 @@ public:
     // Select a preset. If an invalid index is provided, the first visible preset is selected.
     Preset&         select_preset(size_t idx);
     // Return the selected preset, without the user modifications applied.
-    Preset&         get_selected_preset() { 
+    Preset&         get_selected_preset() {
         //BBS fix crash when m_idx_selected == -1, give a default value
         if (m_idx_selected == size_t(-1))
             return m_presets[0];
@@ -505,7 +505,7 @@ public:
 	const Preset&   default_preset(size_t idx = 0) const { assert(idx < m_num_default_presets); return m_presets[idx]; }
 	virtual const Preset& default_preset_for(const DynamicPrintConfig & /* config */) const { return this->default_preset(); }
     // Return a preset by an index. If the preset is active, a temporary copy is returned.
-    Preset&         preset(size_t idx, bool real = false) { 
+    Preset&         preset(size_t idx, bool real = false) {
         if (real) return m_presets[idx];
         return (idx == m_idx_selected) ? m_edited_preset : m_presets[idx];
     }
@@ -520,7 +520,7 @@ public:
     // If a preset is not found by its name, null is returned.
     // BBS return real pointer if set real = true
     Preset*         find_preset(const std::string &name, bool first_visible_if_not_found = false, bool real = false);
-    const Preset*   find_preset(const std::string &name, bool first_visible_if_not_found = false) const 
+    const Preset*   find_preset(const std::string &name, bool first_visible_if_not_found = false) const
         { return const_cast<PresetCollection*>(this)->find_preset(name, first_visible_if_not_found); }
 
     size_t          first_visible_idx() const;
@@ -534,7 +534,7 @@ public:
         size_t i_compatible = n;
         int    match_quality = -1;
         for (; i < n; ++ i)
-            // Since we use the filament selection from Wizard, it's needed to control the preset visibility too 
+            // Since we use the filament selection from Wizard, it's needed to control the preset visibility too
             if (m_presets[i].is_compatible && m_presets[i].is_visible) {
                 int this_match_quality = prefered_condition(m_presets[i]);
                 if (this_match_quality > match_quality) {
@@ -544,9 +544,9 @@ public:
                     // Store the first compatible profile with highest match quality into i_compatible.
                     i_compatible = i;
                     match_quality = this_match_quality;
-                } 
+                }
             }
-        return (i_compatible == n) ? 
+        return (i_compatible == n) ?
             // No compatible preset found, return the default preset.
             0 :
             // Compatible preset found.
@@ -574,7 +574,7 @@ public:
     {
         if (this->update_compatible_internal(active_printer, active_print, select_other_if_incompatible) == (size_t)-1)
             // Find some other compatible preset, or the "-- default --" preset.
-            this->select_preset(this->first_compatible_idx(prefered_condition));        
+            this->select_preset(this->first_compatible_idx(prefered_condition));
     }
     void            update_compatible(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, PresetSelectCompatibleType select_other_if_incompatible)
         { this->update_compatible(active_printer, active_print, select_other_if_incompatible, [](const Preset&) -> int { return 0; }); }
@@ -582,7 +582,7 @@ public:
     size_t          num_visible() const { return std::count_if(m_presets.begin(), m_presets.end(), [](const Preset &preset){return preset.is_visible;}); }
 
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return true if they differ.
-    bool                        current_is_dirty() const 
+    bool                        current_is_dirty() const
         { return is_dirty(&this->get_edited_preset(), &this->get_selected_preset()); }
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return the list of keys where they differ.
     std::vector<std::string>    current_dirty_options(const bool deep_compare = false) const
@@ -592,7 +592,7 @@ public:
         { return dirty_options(&this->get_edited_preset(), this->get_selected_preset_parent(), deep_compare); }
 
     // Compare the content of get_saved_preset() with get_edited_preset() configs, return true if they differ.
-    bool                        saved_is_dirty() const 
+    bool                        saved_is_dirty() const
         { return is_dirty(&this->get_edited_preset(), &m_saved_preset); }
     // Compare the content of get_saved_preset() with get_edited_preset() configs, return the list of keys where they differ.
 //    std::vector<std::string>    saved_dirty_options() const
@@ -608,7 +608,7 @@ public:
     // Update a dirty flag of the current preset
     // Return true if the dirty flag changed.
     bool            update_dirty();
-    
+
     // Select a profile by its name. Return true if the selection changed.
     // Without force, the selection is only updated if the index changes.
     // With force, the changes are reverted if the new index is the same as the old index.
@@ -682,7 +682,7 @@ private:
     // Type of this PresetCollection: TYPE_PRINT, TYPE_FILAMENT or TYPE_PRINTER.
     Preset::Type            m_type;
     // List of presets, starting with the "- default -" preset.
-    // Use deque to force the container to allocate an object per each entry, 
+    // Use deque to force the container to allocate an object per each entry,
     // so that the addresses of the presets don't change during resizing of the container.
     std::deque<Preset>      m_presets;
     // System profiles may have aliases. Map to the full profile name.
@@ -787,7 +787,7 @@ public:
     // Return a printer technology, return ptFFF if the printer technology is not set.
     static PrinterTechnology printer_technology(const DynamicPrintConfig& cfg) {
         auto* opt = cfg.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology");
-        // The following assert may trigger when importing some legacy profile, 
+        // The following assert may trigger when importing some legacy profile,
         // but it is safer to keep it here to capture the cases where the "printer_technology" key is queried, where it should not.
         return (opt == nullptr) ? ptFFF : opt->value;
     }
@@ -923,7 +923,7 @@ private:
     }
 
     // List of printers
-    // Use deque to force the container to allocate an object per each entry, 
+    // Use deque to force the container to allocate an object per each entry,
     // so that the addresses of the presets don't change during resizing of the container.
     std::deque<PhysicalPrinter> m_printers;
 

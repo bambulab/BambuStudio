@@ -63,7 +63,7 @@ private:
         for (int i = 0; i < tok.get_topics()->size(); i++) {
             BOOST_LOG_TRIVIAL(trace) << "subscribe topic:" << (*tok.get_topics())[i].c_str() << " success";
         }
-        
+
         BOOST_LOG_TRIVIAL(trace) << "subscribe return code: " << tok.get_return_code();
         BOOST_LOG_TRIVIAL(trace) << "subscribe reason code: " << tok.get_reason_code();
     }
@@ -361,7 +361,7 @@ public:
 
     // POST /api/user/project
     int request_project_id(BBLProject* project, unsigned int &http_code, std::string &http_body);
-    
+
     // POST /api/user/project/{project_id}
     int request_profile_id(BBLProfile* profile, unsigned int &http_code, std::string &http_body);
 
@@ -392,7 +392,7 @@ public:
 
     static void get_machine_last_report_url(std::string dev_id, std::string& last_url);
 
-    // create a project 
+    // create a project
     void get_project_info(BBLProject* project);
     void get_profile_info(BBLProject* &project, BBLProfile* &profile);
 
@@ -403,13 +403,13 @@ public:
     int get_tasks(std::string dev_id, unsigned limit, unsigned &http_code, std::string &http_body);
 
     bool can_publish();
-    
+
     /* preset settings api */
     int get_setting_list(Http::ErrorFn errFn = nullptr);
     void get_setting(Preset* &preset, bool sync = false);
-    int request_setting_id(Preset* &preset);
-    int put_setting(Preset* preset);
-    int del_setting(std::string setting_id);
+    int request_setting_id(Preset* &preset, unsigned int& http_code);
+    int put_setting(Preset* preset, unsigned int& http_code);
+    int del_setting(std::string setting_id, unsigned int& http_code);
 
     void parse_setting(PresetBundle* preset_bundle, pt::ptree node, std::string type, std::string attr);
     void _parse_preset_internal(PresetBundle* preset_bundle, std::map<std::string, Preset*>& presets, pt::ptree node, std::string type, std::string attr);

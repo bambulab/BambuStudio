@@ -2766,7 +2766,7 @@ namespace Slic3r {
             http.perform();
     }
 
-    int AccountManager::request_setting_id(Preset* &preset)
+    int AccountManager::request_setting_id(Preset* &preset, unsigned int& http_code)
     {
         if (!preset) return -1;
 
@@ -2781,8 +2781,9 @@ namespace Slic3r {
             .header("Content-Type", "application/json")
             .set_post_body(request_str)
             .on_complete(
-                [this, preset](std::string body, unsigned) {
+                [this, preset, &http_code](std::string body, unsigned int code) {
                     BOOST_LOG_TRIVIAL(trace) << "request setting id, body=" << body;
+                    http_code = code;
                     std::stringstream ss(body);
                     pt::ptree root;
                     pt::read_json(ss, root);
@@ -2797,12 +2798,16 @@ namespace Slic3r {
                             }
                         }
                     }
+                })
+            .on_error([this, &http_code](std::string body, std::string error, unsigned code) {
+                    http_code = code;
+                    BOOST_LOG_TRIVIAL(trace) << "error = " << error << ", body = " << body << ", code = " << code;
                 }
             ).perform_sync();
         return 0;
     }
 
-    int AccountManager::put_setting(Preset* preset)
+    int AccountManager::put_setting(Preset* preset, unsigned int& http_code)
     {
         int result = -1;
         int* result_ptr = &result;
@@ -2814,7 +2819,8 @@ namespace Slic3r {
             .header("Content-Type", "application/json")
             .set_post_body(request_body)
             .on_complete(
-                [this, result_ptr](std::string body, unsigned) {
+                [this, result_ptr, &http_code](std::string body, unsigned int code) {
+                    http_code = code;
                     std::stringstream ss(body);
                     pt::ptree root;
                     pt::read_json(ss, root);
@@ -2826,13 +2832,17 @@ namespace Slic3r {
                             *result_ptr = 0;
                         }
                     }
+                })
+            .on_error([this, &http_code](std::string body, std::string error, unsigned code) {
+                    http_code = code;
+                    BOOST_LOG_TRIVIAL(trace) << "error = " << error << ", body = " << body << ", code = " << code;
                 }
         ).perform_sync();
 
         return result;
     }
 
-    int AccountManager::del_setting(std::string setting_id)
+    int AccountManager::del_setting(std::string setting_id, unsigned int& http_code)
     {
         int result = -1;
         int* result_ptr = &result;
@@ -2841,7 +2851,8 @@ namespace Slic3r {
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
             .on_complete(
-                [this, result_ptr](std::string body, unsigned) {
+                [this, result_ptr, &http_code](std::string body, unsigned int code) {
+                    http_code = code;
                     std::stringstream ss(body);
                     pt::ptree root;
                     pt::read_json(ss, root);
@@ -2853,6 +2864,10 @@ namespace Slic3r {
                             *result_ptr = 0;
                         }
                     }
+                })
+            .on_error([this, &http_code](std::string body, std::string error, unsigned code) {
+                    http_code = code;
+                    BOOST_LOG_TRIVIAL(trace) << "error = " << error << ", body = " << body << ", code = " << code;
                 }
         ).perform_sync();
         return result;

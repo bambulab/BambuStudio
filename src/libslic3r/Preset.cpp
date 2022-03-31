@@ -466,7 +466,11 @@ void Preset::save_info(std::string file)
 
     boost::nowide::ofstream c;
     c.open(file, std::ios::out | std::ios::trunc);
-    c << "sync_info" << " = " << this->sync_info << std::endl;
+    std::string sync_info_to_save;
+    //BBS: hold is used for stop requesting to server this time
+    if (this->sync_info.compare("hold") != 0)
+        sync_info_to_save = this->sync_info;
+    c << "sync_info" << " = " << sync_info_to_save << std::endl;
     c << "user_id" << " = " << this->user_id << std::endl;
     c << "setting_id" << " = " << this->setting_id << std::endl;
     c << "base_id" << " = " << this->base_id << std::endl;
@@ -1137,13 +1141,16 @@ void PresetCollection::reset_project_embedded_presets()
     unlock();
 }
 
-void PresetCollection::set_sync_info_and_save(std::string name, std::string setting_id)
+void PresetCollection::set_sync_info_and_save(std::string name, std::string setting_id, std::string syncinfo)
 {
     lock();
     for (auto it = m_presets.begin(); it != m_presets.end(); it++) {
         Preset* preset = &m_presets[it - m_presets.begin()];
         if (preset->name == name) {
-            preset->sync_info.clear();
+            if (syncinfo.empty())
+                preset->sync_info.clear();
+            else
+                preset->sync_info = syncinfo;
             preset->setting_id = setting_id;
             preset->save_info();
             break;
@@ -1252,16 +1259,23 @@ void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_prese
         auto iter = this->find_preset_internal(name);
         bool need_update = false;
         if ((iter != m_presets.end()) && (iter->name == name)) {
-            BOOST_LOG_TRIVIAL(warning) << "Preset already present, not loading: " << name;
+            BOOST_LOG_TRIVIAL(info) << "Preset already present, not loading: " << name;
+            if (iter->setting_id.compare(preset->setting_id) != 0) {
+                BOOST_LOG_TRIVIAL(warning) << "local setting_id " << iter->setting_id<<", cloud setting_id "<<preset->setting_id;
+                iter->setting_id = preset->setting_id;
+            }
             //BBS: we should compare the time between cloud and local
             if ((preset->updated_time == 0) || (preset->updated_time <= iter->updated_time)) {
                 if (preset->updated_time < iter->updated_time)
                     iter->sync_info = "update";
+                else
+                    iter->sync_info.clear();
                 continue;
             }
             else {
                 //update the one from cloud which is newer
                 need_update = true;
+                iter->sync_info.clear();
             }
         }
         try {
@@ -1308,7 +1322,8 @@ void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_prese
             }
             count++;
             //presets_loaded.emplace_back(*it->second);
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", %1% got preset, name %2%, path %3%, is_system %4%, is_default %5% is_visible %6%")%Preset::get_type_string(m_type) %preset->name %preset->file %preset->is_system %preset->is_default %preset->is_visible;
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", %1% got user preset, name %2%, setting_id %3%, base_id %4%, sync_info %5% inherits %6%")
+                %Preset::get_type_string(m_type) %preset->name %preset->setting_id %preset->base_id %preset->sync_info %preset->inherits();
         } catch (const std::runtime_error &err) {
             errors_cummulative += err.what();
             errors_cummulative += "\n";

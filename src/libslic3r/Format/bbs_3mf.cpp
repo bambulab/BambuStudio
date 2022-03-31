@@ -1121,7 +1121,7 @@ namespace Slic3r {
                 //if (!dont_load_config && boost::algorithm::iequals(name, BBS_PRINT_CONFIG_FILE)) {
                     // extract slic3r print config file
                 //    _extract_print_config_from_archive(archive, stat, config, config_substitutions, filename);
-                //} else 
+                //} else
                 if (!dont_load_config && boost::algorithm::iequals(name, BBS_PROJECT_CONFIG_FILE)) {
                     // extract slic3r print config file
                     _extract_project_config_from_archive(archive, stat, config, config_substitutions, model);
@@ -2930,14 +2930,16 @@ namespace Slic3r {
                 m_curr_instance.object_id = -1;
                 IndexToPathMap::iterator index_iter = m_index_paths.find(obj_id);
                 if (index_iter == m_index_paths.end()) {
-                    add_error("can not find object for plate's item, id= " + std::to_string(obj_id));
-                    return false;
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ":" << __LINE__
+                        << boost::format(", can not find object for plate's item, id=%1%, skip this object")%obj_id;
+                    return true;
                 }
                 Id temp_id = std::make_pair(index_iter->second, index_iter->first);
                 IdToModelObjectMap::iterator object_item = m_objects.find(temp_id);
                 if (object_item == m_objects.end()) {
-                    add_error("can not find object for assemble item, id= " + std::to_string(obj_id));
-                    return false;
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ":" << __LINE__
+                        << boost::format(", can not find object for plate's item, ID <%1%, %2%>, skip this object")%index_iter->second %index_iter->first;
+                    return true;
                 }
                 m_curr_instance.object_id = object_item->second;
             }
@@ -3014,10 +3016,12 @@ namespace Slic3r {
             add_error("don't find plater created before");
             return false;
         }
-        if ((m_curr_instance.object_id == -1) || (m_curr_instance.object_id == -1))
+        if ((m_curr_instance.object_id == -1) || (m_curr_instance.instance_id == -1))
         {
-            add_error("invalid object id/instance id");
-            return false;
+            //add_error("invalid object id/instance id");
+            //skip this instance
+            m_curr_instance.object_id = m_curr_instance.instance_id = -1;
+            return true;
         }
 
         m_curr_plater->objects_and_instances.emplace_back(m_curr_instance.object_id, m_curr_instance.instance_id);
@@ -3328,6 +3332,8 @@ namespace Slic3r {
                     volume->source.is_converted_from_inches = metadata.value == "1";
                 else if (metadata.key == SOURCE_IN_METERS)
                     volume->source.is_converted_from_meters = metadata.value == "1";
+                else if (metadata.key == MATRIX_KEY)
+                    continue;
                 else
                     volume->config.set_deserialize(metadata.key, metadata.value, config_substitutions);
             }
