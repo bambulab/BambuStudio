@@ -285,7 +285,7 @@ void MonitorPanel::on_size(wxSizeEvent &event)
     if (!obj) return;
 
     /* Update Device Info */
-    wxString machine_name_text = wxString::Format("%s", obj->dev_name);
+    wxString machine_name_text = wxString::Format("%s", from_u8(obj->dev_name));
     m_staticText_printer_name->SetLabelText(machine_name_text);
 
     /*
