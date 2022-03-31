@@ -33,6 +33,37 @@ const std::string JSON_MC_REMAIN_TIME   = "mc_remaining_time";
 const std::string JSON_MC_PERCENT = "mc_percent";
 const std::string JSON_MC_PRINT_SUB_STAGE = "mc_print_sub_stage";
 
+const int PRINTING_STAGE_COUNT = 15;
+std::string PRINTING_STAGE_STR[PRINTING_STAGE_COUNT] = {
+    "printing",
+    "bed_leveling",
+    "heatbed_preheating",
+    "xy_mech_mode_sweep",
+    "change_material",
+    "m400_pause",
+    "filament_runout_pause",
+    "hotend_heating",
+    "extrude_compensation_scan",
+    "bed_scan",
+    "first_layer_scan",
+    "be_surface_typt_idetification",
+    "scanner_extrinsic_para_cali",
+    "toohead_homing",
+    "nozzle_tip_cleaning"
+    };
+
+inline wxString get_stage_string(std::string stage_str)
+{
+    //TODO
+    if (stage_str == "printing") {
+        return _L("start printing...");
+    } else if (stage_str == "bed_leveling") {
+        return _L("bed leveling...");
+    } else {
+        return wxString(stage_str);
+    }
+}
+
 static uint64_t lzo_out_len = 5 * 1024;
 const uint64_t LZO_OUT_MAX_LEN = 5 * 1024;
 static unsigned char lzo_out[LZO_OUT_MAX_LEN];
@@ -251,6 +282,18 @@ AmsTray *MachineObject::get_ams_tray(std::string ams_id, std::string tray_id)
         return iter->second;
     else
         return nullptr;
+}
+
+wxString MachineObject::get_curr_stage()
+{
+    if (stage_info.empty()) return "";
+
+    for (auto it = stage_info.begin(); it != stage_info.end(); it++) {
+        if (it->second == 1) {
+            return get_stage_string(it->first);
+        }
+    }
+    return "";
 }
 
 int MachineObject::command_get_version()
@@ -685,6 +728,21 @@ int MachineObject::parse_json(std::string topic, std::string payload)
             }
             if (jj.contains("heatbreak_fan_speed")) {
                 heatbreak_fan_speed = stoi(jj["heatbreak_fan_speed"].get<std::string>());
+            }
+
+            try {
+                if (jj.contains("stage")) {
+                    stage_info.clear();
+                    if (jj["stage"].is_array()) {
+                        for (auto it = jj["stage"].begin(); it != jj["stage"].end(); it++) {
+                            for (auto kv = (*it).begin(); kv != (*it).end(); kv++) {
+                                stage_info.emplace(std::make_pair(kv.key(), kv.value().get<int>()));
+                            }
+                        }
+                    }
+                }
+            } catch (...) {
+                ;
             }
         }
 

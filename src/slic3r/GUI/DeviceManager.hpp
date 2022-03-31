@@ -27,6 +27,25 @@ inline int correct_filament_temperature(int filament_temp)
 
 namespace Slic3r {
 
+enum PRINTING_STAGE {
+    PRINTING_STAGE_PRINTING = 0,
+    PRINTING_STAGE_BED_LEVELING,
+    PRINTING_STAGE_HEADBED,
+    PRINTING_STAGE_XY_MECH_MODE,
+    PRINTING_STAGE_CHANGE_MATERIAL,
+    PRINTING_STAGE_M400_PAUSE,
+    PRINTING_STAGE_FILAMENT_RUNOUT_PAUSE,
+    PRINTING_STAGE_HOTEND_HEATING,
+    PRINTING_STAGE_EXTRUDER_SCAN,
+    PRINTING_STAGE_BED_SCAN,
+    PRINTING_STAGE_FIRST_LAYER_SCAN,
+    PRINTING_STAGE_SURFACE_TYPE_IDENT,
+    PRINTING_STAGE_SCANNER_PARAM_CALI,
+    PRINTING_STAGE_TOOHEAD_HOMING,
+    PRINTING_STAGE_NOZZLE_TIP_CLEANING,
+    PRINTING_STAGE_COUNT
+};
+
 class AccountManager;
 
 class sub_action_listener : public virtual mqtt::iaction_listener
@@ -240,6 +259,10 @@ public:
     int     mc_print_line_number;
     int     mc_print_percent;       /* left print progess in percent */
     int     mc_left_time;           /* left time in seconds */
+
+    std::map<std::string, int>  stage_info; /* printing stage info */
+
+    wxString get_curr_stage();
 
     /* iot printing status */
     std::string iot_printing_taskname;

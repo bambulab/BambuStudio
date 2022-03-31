@@ -35,6 +35,7 @@ static const wxColour DISCONNECT_TEXT_COL = wxColour(172, 172, 172);
 static const wxColour NORMAL_TEXT_COL     = wxColour(0, 0, 0);
 static const wxColour NORMAL_FAN_TEXT_COL = wxColour(107, 107, 107);
 static const wxColour WARNING_INFO_BG_COL = wxColour(255, 111, 0);
+static const wxColour STAGE_TEXT_COL      = wxColour(0, 174, 66);
 
 static const wxColour GROUP_STATIC_LINE_COL    = wxColour(206,206,206);
 
@@ -269,10 +270,16 @@ wxBoxSizer *StatusBasePanel::create_project_task_page()
 
     m_staticText_subtask_value = new wxStaticText(this, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
     m_staticText_subtask_value->Wrap(-1);
-    m_staticText_subtask_value->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxT("HarmonyOS Sans SC")));
+    m_staticText_subtask_value->SetFont(wxFont(13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxT("HarmonyOS Sans SC")));
     m_staticText_subtask_value->SetForegroundColour(wxColour(44, 44, 46));
 
+    m_printing_stage_value = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
+    m_printing_stage_value->Wrap(-1);
+    m_printing_stage_value->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
+    m_printing_stage_value->SetForegroundColour(STAGE_TEXT_COL);
+
     bSizer_task_name->Add(m_staticText_subtask_value, 1, wxALL | wxEXPAND, 0);
+    bSizer_task_name->Add(m_printing_stage_value, 1, wxALL | wxEXPAND, 0);
     bSizer_subtask_info->Add(bSizer_task_name, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND, FromDIP(5));
 
     wxFlexGridSizer *fgSizer_task;
@@ -1160,6 +1167,9 @@ void StatusPanel::update_subtask(MachineObject *obj)
     m_staticText_progress_left->SetLabelText(left_time_text);
     m_gauge_progress->SetValue(obj->subtask_->task_progress);
 
+    // update printing stage
+    m_printing_stage_value->SetLabelText(obj->get_curr_stage());
+
     this->Layout();
 }
 
@@ -1180,6 +1190,7 @@ void StatusPanel::reset_printing_values()
 {
     m_gauge_progress->SetValue(0);
     m_staticText_subtask_value->SetLabelText("N/A");
+    m_printing_stage_value->SetLabelText("");
     m_staticText_progress_left->SetLabelText("N/A");
     m_bitmap_thumbnail->SetBitmap(m_thumbnail_placeholder);
     this->Layout();
