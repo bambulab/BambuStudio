@@ -4361,19 +4361,22 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         }
         else { // multi extruder use case
             // shows only extruders actually used
+            int extruder_idx = 0;
             for (unsigned char i : m_extruder_ids) {
                 const std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(i, custom_gcode_per_print_z);
                 const int items_cnt = static_cast<int>(cp_values.size());
                 if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
                     const bool filament_visible = m_tools.m_tool_visibles[i];
-                    append_item(EItemType::Rect, m_tools.m_tool_colors[i], _u8L("Filament") + " " + std::to_string(i + 1), filament_visible, "", 0.0f, 0.0f, offsets,
-                            used_filaments_m[i], used_filaments_g[i], [this, i]() {
-                            m_tools.m_tool_visibles[i] = !m_tools.m_tool_visibles[i];
-                            // update buffers' render paths
-                            refresh_render_paths(false, false);
-                            update_moves_slider();
-                            wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-                        });
+                    if (extruder_idx < used_filaments_m.size() && extruder_idx < used_filaments_g.size()) {
+                        append_item(EItemType::Rect, m_tools.m_tool_colors[i], _u8L("Filament") + " " + std::to_string(i + 1), filament_visible, "", 0.0f, 0.0f, offsets,
+                                    used_filaments_m[extruder_idx], used_filaments_g[extruder_idx], [this, i]() {
+                                        m_tools.m_tool_visibles[i] = !m_tools.m_tool_visibles[i];
+                                        // update buffers' render paths
+                                        refresh_render_paths(false, false);
+                                        update_moves_slider();
+                                        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+                                    });
+                    }
                 }
                 else {
                     for (int j = items_cnt; j >= 0; --j) {
@@ -4394,6 +4397,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                         append_item(EItemType::Rect, cp_values[j - 1].first, label);
                     }
                 }
+                extruder_idx++;
             }
         }
         if (need_scrollable)
