@@ -42,8 +42,8 @@ constexpr double miscalculation = scale_(scale_(1));   // equal to 1 mm2
 
 static const float RIGHT_MARGIN   = 13;
 static const float BOTTOM_MARGIN  = 13;
-static const ImVec2 HORIZONTAL_SLIDER_SIZE = ImVec2(464, 40);
-static const ImVec2 VERTICAL_SLIDER_SIZE = ImVec2(65, 470);
+static const ImVec2 HORIZONTAL_SLIDER_SIZE = ImVec2(470, 40);
+static const ImVec2 VERTICAL_SLIDER_SIZE = ImVec2(65, 485);
 static const ImVec2 MIN_RECT_SIZE  = ImVec2(81, 52);
 
 bool equivalent_areas(const double& bottom_area, const double& top_area)
@@ -432,10 +432,11 @@ bool IMSlider::init_texture()
         // BBS init image texture id
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/reset_normal.svg", 20, 20, m_reset_normal_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/reset_hover.svg", 20, 20, m_reset_hover_id);
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/lock_normal.svg", 18, 18, m_lock_normal_id);
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/lock_hover.svg", 18, 18, m_lock_hover_id);
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/unlock_normal.svg", 18, 18, m_unlock_normal_id);
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/unlock_hover.svg", 18, 18, m_unlock_hover_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/one_layer_on.svg", 24, 24, m_one_layer_on_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/one_layer_on_hover.svg", 28, 28, m_one_layer_on_hover_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/one_layer_off.svg", 28, 28, m_one_layer_off_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/one_layer_off_hover.svg", 28, 28, m_one_layer_off_hover_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/one_layer_arrow.svg", 28, 28, m_one_layer_arrow_id);
     }
     return result;
 }
@@ -613,6 +614,7 @@ void IMSlider::switch_one_layer_mode()
     }
     m_selection == ssLower ? correct_lower_value() : correct_higher_value();
     if (m_selection == ssUndef) m_selection = ssHigher;
+    set_as_dirty();
 }
 
 bool IMSlider::render(int canvas_width, int canvas_height)
@@ -630,6 +632,8 @@ bool IMSlider::render(int canvas_width, int canvas_height)
                        | ImGuiWindowFlags_NoResize
                        | ImGuiWindowFlags_NoScrollbar;
 
+    float scale = (float) wxGetApp().em_unit() / 10.0f;
+
     if (is_horizontal()) {
         float  pos_x = std::max(float(canvas_width - MIN_RECT_SIZE.x - HORIZONTAL_SLIDER_SIZE.x), 0.0f);
         float  pos_y = std::max(float(canvas_height - HORIZONTAL_SLIDER_SIZE.y - BOTTOM_MARGIN), 0.0f);
@@ -637,7 +641,7 @@ bool IMSlider::render(int canvas_width, int canvas_height)
         imgui.set_next_window_pos(pos_x, pos_y, ImGuiCond_Always);
         imgui.begin(std::string("moves_slider"), windows_flag);
         int value = GetHigherValue();
-        if (imgui.horizontal_slider("moves_slider", &value, GetMinValue(), GetMaxValue(), size, (int)m_selection)) {
+        if (imgui.horizontal_slider("moves_slider", &value, GetMinValue(), GetMaxValue(), size, (int)m_selection, scale)) {
             result = true;
             SetHigherValue(value);
         }
@@ -654,21 +658,19 @@ bool IMSlider::render(int canvas_width, int canvas_height)
         std::string lower_label  = get_label(m_lower_value);
         int temp_higher_value    = higher_value;
         int temp_lower_value     = lower_value;
-        if (imgui.vertical_slider("laysers_slider", &higher_value, &lower_value, higher_label, lower_label,
-            GetMinValue(), GetMaxValue(), size, (int)m_selection, is_one_layer())) {
+        if (imgui.vertical_slider("laysers_slider", &higher_value, &lower_value, higher_label, lower_label, GetMinValue(), GetMaxValue(), size, (int) m_selection, is_one_layer(),
+                                  m_one_layer_arrow_id, scale)) {
             if (temp_higher_value != higher_value)
                 SetHigherValue(higher_value);
             if (temp_lower_value != lower_value)
                 SetLowerValue(lower_value);
             result = true;
         }
-        ImGui::Dummy(ImVec2(0, 14));
-        ImGui::Dummy(ImVec2(8, 0));
-        ImGui::SameLine();
-        ImGui::SameLine(45);
-        ImTextureID normal_id = is_one_layer() ? m_lock_normal_id : m_unlock_normal_id;
-        ImTextureID hover_id  = is_one_layer() ? m_lock_hover_id : m_unlock_hover_id;
-        if (ImGui::ImageButton3(m_lock_normal_id, m_lock_hover_id, ImVec2(18, 18))) {
+        ImGui::Dummy(ImVec2(8,0));
+        ImGui::SameLine(44);
+        ImTextureID normal_id = is_one_layer() ? m_one_layer_on_id : m_one_layer_off_id;
+        ImTextureID hover_id  = is_one_layer() ? m_one_layer_on_hover_id : m_one_layer_off_hover_id;
+        if (ImGui::ImageButton3(normal_id, hover_id, ImVec2(28, 28))) {
             switch_one_layer_mode();
         }
         imgui.end();

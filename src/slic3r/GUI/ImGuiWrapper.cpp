@@ -654,11 +654,13 @@ bool static slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min,
 }
 
 
-bool ImGuiWrapper::horizontal_slider(const char *str_id, int *value, int v_min, int v_max, ImVec2 size, int selection)
+bool ImGuiWrapper::horizontal_slider(const char *str_id, int *value, int v_min, int v_max, ImVec2 size, int selection, float scale)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
         return false;
+
+    ImGui::SetWindowFontScale(1.0f / scale);
 
     ImGuiContext& context = *GImGui;
     const ImGuiID id = window->GetID(str_id);
@@ -718,12 +720,15 @@ bool ImGuiWrapper::horizontal_slider(const char *str_id, int *value, int v_min, 
     window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, bg_rect_col);
     ImGui::RenderText(text_start + text_padding, std::to_string(*value).c_str());
 
+    ImGui::SetWindowFontScale(1.0f);
     return value_changed;
 }
 
-bool ImGuiWrapper::vertical_slider(const char* str_id, int* higher_value, int* lower_value, std::string &higher_label, std::string &lower_label, int v_min, int v_max, ImVec2 size, int selection, bool one_layer_flag) 
+bool ImGuiWrapper::vertical_slider(const char* str_id, int* higher_value, int* lower_value, std::string &higher_label, std::string &lower_label,
+    int v_min, int v_max, ImVec2 size, int selection, bool one_layer_flag, ImTextureID arrow_id, float scale) 
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
+    ImGui::SetWindowFontScale(1.0f / scale);
     if (window->SkipItems)
         return false;
 
@@ -741,22 +746,26 @@ bool ImGuiWrapper::vertical_slider(const char* str_id, int* higher_value, int* l
 
     // Draw background rect
     float fixed_bar_width = 18.0f;
-    float text_dummy_height = 10.0f;
+    ImVec2 text_content_size = ImVec2(28.0f, 30.0f);
+    ImVec2 text_padding      = ImVec2(4.0f, 0.0f);
+    float  text_dummy_height = text_content_size.y / 2.0f;
+
+    // calc slider bar size
     ImVec2 slider_bar_start  = ImVec2(pos.x + size.x - fixed_bar_width - right_blank, pos.y + text_dummy_height);
     ImVec2 slider_bar_size   = ImVec2(fixed_bar_width, size.y - text_dummy_height);
 
+    // draw bg of slider
     const ImRect bg_rect(slider_bar_start, slider_bar_start + slider_bar_size);
     const ImU32 bg_rect_col = IM_COL32(255, 255, 255, 255);
     ImGui::RenderFrame(bg_rect.Min, bg_rect.Max, bg_rect_col, false, 0.5 * fixed_bar_width);
 
-    // Draw background of scroll
-    const ImRect scroll_bg(bg_rect.Min + padding, bg_rect.Max - padding);
+    // draw bg of scroll
+    const ImRect scroll_rect(bg_rect.Min + padding, bg_rect.Max - padding);
     const ImU32 scroll_bg_col = IM_COL32(238, 238, 238, 255);
-    ImGui::RenderFrame(scroll_bg.Min, scroll_bg.Max, scroll_bg_col, false, 0.5 * fixed_bar_width - padding.x);
+    ImGui::RenderFrame(scroll_rect.Min, scroll_rect.Max, scroll_bg_col, false, 0.5 * fixed_bar_width - padding.x);
 
-    // Draw handle dynamically according to mouse position
     // set draggable region
-    ImRect draggable_region = ImRect(ImVec2(bg_rect.Min.x, scroll_bg.Min.y), ImVec2(bg_rect.Max.x, scroll_bg.Max.y));
+    ImRect draggable_region = scroll_rect;
     const bool hovered = ImGui::ItemHoverable(draggable_region, id);
     // set active status when mouse press down.
     const bool pressed = (hovered && context.IO.MouseDown[0]);
@@ -775,27 +784,35 @@ bool ImGuiWrapper::vertical_slider(const char* str_id, int* higher_value, int* l
     ImS32 v_clamped        = (v_min < v_max) ? ImClamp(*lower_value, v_min, v_max) : ImClamp(*lower_value, v_max, v_min);
     float handle_pos_ratio = (v_max - v_min) != 0 ? ((float) (v_clamped - v_min) / (float) (v_max - v_min)) : 0.0f;
     handle_pos_ratio       = 1.0f - handle_pos_ratio;
-    float  handle_pos      = lower_draggble_region.Min[1] + (lower_draggble_region.Max[1] - lower_draggble_region.Min[1]) * handle_pos_ratio;
+    float  handle_pos      = lower_draggble_region.Min.y + (lower_draggble_region.Max.y - lower_draggble_region.Min.y) * handle_pos_ratio;
     ImRect lower_handle    = ImRect(lower_draggble_region.Min.x, handle_pos - offset_of_handle, lower_draggble_region.Max.x, handle_pos + offset_of_handle);
     v_clamped              = (v_min < v_max) ? ImClamp(*higher_value, v_min, v_max) : ImClamp(*higher_value, v_max, v_min);
     handle_pos_ratio       = (v_max - v_min) != 0 ? ((float) (v_clamped - v_min) / (float) (v_max - v_min)) : 0.0f;
     handle_pos_ratio       = 1.0f - handle_pos_ratio;
-    handle_pos             = higher_draggble_region.Min[1] + (higher_draggble_region.Max[1] - higher_draggble_region.Min[1]) * handle_pos_ratio;
+    handle_pos             = higher_draggble_region.Min.y + (higher_draggble_region.Max[1] - higher_draggble_region.Min.y) * handle_pos_ratio;
     ImRect higher_handle   = ImRect(higher_draggble_region.Min.x, handle_pos - offset_of_handle, higher_draggble_region.Max.x, handle_pos + offset_of_handle);
-
     ImVec2 tri_left_center = ImVec2(higher_handle.GetCenter().x - half_edge * 2, higher_handle.GetCenter().y);
     ImRect triangle_region = ImRect(tri_left_center + ImVec2(0.0f, -half_edge), tri_left_center + ImVec2(half_edge * 1.73, half_edge));
 
-    // set a select-region where can select a handle when clicked
-    const bool higher_handle_hovered = ImGui::ItemHoverable(higher_handle, id);
-    const bool lower_handle_hovered  = ImGui::ItemHoverable(lower_handle, id);
-    const bool higher_handle_clicked = (higher_handle_hovered && context.IO.MouseClicked[0]);
-    const bool lower_handle_clicked  = (lower_handle_hovered && context.IO.MouseClicked[0]);
+    bool higher_handle_hovered = false;
+    bool lower_handle_hovered = false;
+    bool higher_handle_clicked = false;
+    bool lower_handle_clicked = false;
+    if (!one_layer_flag) {
+        // set a select-region where can select a handle when clicked
+        higher_handle_hovered = ImGui::ItemHoverable(higher_handle, id);
+        lower_handle_hovered  = ImGui::ItemHoverable(lower_handle, id);
+        higher_handle_clicked = (higher_handle_hovered && context.IO.MouseClicked[0]);
+        lower_handle_clicked  = (lower_handle_hovered && context.IO.MouseClicked[0]);
+    } else {
+        higher_handle_hovered = ImGui::ItemHoverable(draggable_region, id);
+        higher_handle_clicked = (higher_handle_hovered && context.IO.MouseClicked[0]);
+    }
+
     // select higher handle by default
     static bool selected_h = true;
     if (higher_handle_clicked) { selected_h = true; }
     if (lower_handle_clicked) { selected_h = false; }
-    
 
     // update handle position and value & draw two handles
     bool value_changed;
@@ -825,27 +842,10 @@ bool ImGuiWrapper::vertical_slider(const char* str_id, int* higher_value, int* l
     if (!one_layer_flag) {
         window->DrawList->AddNgonFilled(higher_handle_center, offset_of_handle, handle_and_line_col, 4);
         window->DrawList->AddNgonFilled(lower_handle_center, offset_of_handle, handle_and_line_col, 4);
-    }
-    else {
-        lower_handle = higher_handle;
-        lower_handle_center.y = higher_handle_center.y;
-        *lower_value = *higher_value;
-        ImGui::RenderFrame(higher_handle_center - ImVec2(0.5 * fixed_bar_width, 1.0f), higher_handle_center + ImVec2( 0.5f * fixed_bar_width + right_blank, 1.0f),
-            handle_and_line_col, false, 1.0f);
-        ImVec2 left_center = ImVec2(higher_handle_center.x - half_edge * 1.73f, higher_handle_center.y - 0.5f);
-        ImVec2 pos_1       = left_center + ImVec2(0.0f, half_edge);
-        ImVec2 pos_2       = left_center - ImVec2(0.0f, half_edge);
-        ImVec2 pos_3       = left_center + ImVec2(half_edge * 1.73f, 0.0f);
-        ImVec2 pos_4       = left_center + ImVec2(half_edge / 1.73f, 0.0f);
-        window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, handle_and_line_col);
-        window->DrawList->AddLine(pos_4 + ImVec2(-line_offset, 0.0f), pos_4 + ImVec2(line_offset, 0.0f), IM_COL32(255, 255, 255, 255));
-        window->DrawList->AddLine(pos_4 + ImVec2(0.0, -line_offset), pos_4 + ImVec2(0.0, line_offset), IM_COL32(255, 255, 255, 255));
-    }
-    // Draw scroll line
-    const ImRect scroll_line(ImVec2(scroll_bg.Min.x, higher_handle_center.y), ImVec2(scroll_bg.Max.x, lower_handle_center.y));
-    ImGui::RenderFrame(scroll_line.Min, scroll_line.Max, handle_and_line_col, false, 3.0f);
+        // draw scroll bar
+        const ImRect scroll_line(ImVec2(scroll_rect.Min.x, higher_handle_center.y), ImVec2(scroll_rect.Max.x, lower_handle_center.y));
+        ImGui::RenderFrame(scroll_line.Min, scroll_line.Max, handle_and_line_col, false, 0.5 * line_offset);
 
-    if (!one_layer_flag) {
         if (selection == 2) {
             window->DrawList->AddLine(higher_handle_center + ImVec2(-line_offset, 0.0f), higher_handle_center + ImVec2(line_offset, 0.0f), IM_COL32(255, 255, 255, 255));
             window->DrawList->AddLine(higher_handle_center + ImVec2(0.0, -line_offset), higher_handle_center + ImVec2(0.0f, line_offset), IM_COL32(255, 255, 255, 255));
@@ -855,11 +855,33 @@ bool ImGuiWrapper::vertical_slider(const char* str_id, int* higher_value, int* l
             window->DrawList->AddLine(lower_handle_center + ImVec2(0.0, -line_offset), lower_handle_center + ImVec2(0.0f, line_offset), IM_COL32(255, 255, 255, 255));
         }
     }
+    else {
+        lower_handle = higher_handle;
+        ImRect middle_handle = ImRect((lower_handle.Min.x + higher_handle.Min.x),
+                                      (lower_handle.Min.y + higher_handle.Min.y),
+                                      (lower_handle.Max.x + higher_handle.Max.y),
+                                      (lower_handle.Max.x + higher_handle.Max.y));
+        
+        ImVec2 middle_center = lower_handle.GetCenter() + higher_handle.GetCenter();
+        middle_center = middle_center * 0.5;
+
+        *lower_value = *higher_value;
+        // draw grabber
+        ImGui::RenderFrame(middle_center - ImVec2(0.5 * fixed_bar_width, 1.0f), middle_center + ImVec2(0.5f * fixed_bar_width + right_blank, 1.0f),
+            handle_and_line_col, false, 1.0f);
+        ImVec2 left_center = ImVec2(middle_center.x - half_edge * 1.73f, middle_center.y - 0.5f);
+        ImVec2 pos_1       = left_center + ImVec2(0.0f, half_edge);
+        ImVec2 pos_2       = left_center - ImVec2(0.0f, half_edge);
+        ImVec2 pos_3       = left_center + ImVec2(half_edge * 1.73f, 0.0f);
+        ImVec2 pos_4       = left_center + ImVec2(half_edge / 1.73f, 0.0f);
+        // draw icons
+        window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, handle_and_line_col);
+        window->DrawList->AddLine(pos_4 + ImVec2(-line_offset, 0.0f), pos_4 + ImVec2(line_offset, 0.0f), IM_COL32(255, 255, 255, 255));
+        window->DrawList->AddLine(pos_4 + ImVec2(0.0, -line_offset), pos_4 + ImVec2(0.0, line_offset), IM_COL32(255, 255, 255, 255));
+    }
 
     // Draw higher-text and lower-text
     //ImVec2 text_content_size = calc_text_size(higher_label);
-    ImVec2 text_content_size = ImVec2(28.0f, 30.0f);
-    ImVec2 text_padding      = ImVec2(4.0f, 0.0f);
     ImVec2 text_size         = text_content_size + text_padding * 2;
     if (!one_layer_flag)
     {
@@ -891,7 +913,7 @@ bool ImGuiWrapper::vertical_slider(const char* str_id, int* higher_value, int* l
         ImGui::RenderText(text_start + text_padding, higher_label.c_str());
     }
 
-
+    ImGui::SetWindowFontScale(1.0f);
     return value_changed;
 }
 

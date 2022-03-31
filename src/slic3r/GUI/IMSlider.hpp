@@ -305,10 +305,11 @@ private:
     /* BBS slider images */
     void *m_reset_normal_id;
     void *m_reset_hover_id;
-    void *m_lock_normal_id;
-    void *m_lock_hover_id;
-    void *m_unlock_normal_id;
-    void *m_unlock_hover_id;
+    void *m_one_layer_on_id;
+    void *m_one_layer_on_hover_id;
+    void *m_one_layer_off_id;
+    void *m_one_layer_off_hover_id;
+    void *m_one_layer_arrow_id;
     
     DrawMode            m_draw_mode = dmRegular;
     Mode                m_mode          = SingleExtruder;
