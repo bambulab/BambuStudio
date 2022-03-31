@@ -3,6 +3,7 @@
 
 #include "../GCode/ThumbnailData.hpp"
 #include "libslic3r/ProjectTask.hpp"
+#include "libslic3r/GCode/GCodeProcessor.hpp"
 #include <functional>
 
 namespace Slic3r {
@@ -21,6 +22,15 @@ struct ThumbnailData;
 //BBS: define plate data list related structures
 struct PlateData
 {
+    struct FilamentInfo
+    {
+        int         id;     // filament id = extruder id, start with 0.
+        std::string type;
+        std::string color;
+        float       used_m;
+        float       used_g;
+    };
+
     PlateData(int plate_id, std::set<std::pair<int, int>> &obj_to_inst_list, bool lock_state) : plate_index(plate_id), locked(lock_state)
     {
         objects_and_instances.clear();
@@ -35,12 +45,16 @@ struct PlateData
     {
         objects_and_instances.clear();
     }
+
+    void parse_filament_info(GCodeProcessorResult *result);
+
     int plate_index;
     std::vector<std::pair<int, int>> objects_and_instances;
     std::string     gcode_file;
     std::string     thumbnail_file;
     std::string     gcode_prediction;
     std::string     gcode_weight;
+    std::vector<FilamentInfo> slice_flaments_info;
     bool            is_sliced_valid = false;
     bool            toolpath_outside {false};
 

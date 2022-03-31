@@ -338,7 +338,7 @@ int CLI::run(int argc, char **argv)
             }
             Model model;
             //BBS: add plate related logic
-            bool load_aux = false;
+            //bool load_aux = false;
             BOOST_LOG_TRIVIAL(info) << "read model file:" << file << "\n";
             try {
                 // When loading an AMF or 3MF, config is imported as well, including the printer technology.
@@ -347,11 +347,16 @@ int CLI::run(int argc, char **argv)
 
                 //FIXME should we check the version here? // | LoadStrategy::CheckVersion ?
                 is_bbl_3mf = false;
-                if (boost::algorithm::iends_with(file, ".3mf") && first_file)
-                    load_aux = true;
+                LoadStrategy strategy;
+                if (boost::algorithm::iends_with(file, ".3mf") && first_file) {
+                    strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig|LoadStrategy::AddDefaultInstances | LoadStrategy::LoadAuxiliary;
+                    //load_aux = true;
+                }
+                else
+                    strategy = LoadStrategy::LoadModel | LoadStrategy::AddDefaultInstances;
                 // BBS: adjust whebackup
-                LoadStrategy strategy = LoadStrategy::AddDefaultInstances;
-                if (load_aux) strategy = strategy | LoadStrategy::LoadAuxiliary;
+                //LoadStrategy strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig|LoadStrategy::AddDefaultInstances;
+                //if (load_aux) strategy = strategy | LoadStrategy::LoadAuxiliary;
                 model = Model::read_from_file(file, &config, &config_substitutions, strategy, &plate_data, &project_presets, &is_bbl_3mf, &file_version);
                 if (is_bbl_3mf)
                 {
@@ -1103,6 +1108,18 @@ int CLI::run(int argc, char **argv)
         std::vector<Preset*> project_presets;
         if (!outfile_dir.empty()) {
             export_3mf_file = outfile_dir + "/"+export_3mf_file;
+        }
+
+        // get type and color for platedata
+        auto* filament_types = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_type"));
+        auto* filament_color = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_colour"));
+
+        for (int i = 0; i < plate_data_list.size(); i++) {
+            PlateData *plate_data = plate_data_list[i];
+            for (auto it = plate_data->slice_flaments_info.begin(); it != plate_data->slice_flaments_info.end(); it++) {
+                it->type  = filament_types?filament_types->get_at(it->id):"PLA";
+                it->color = filament_color?filament_color->get_at(it->id):"#FFFFFF";
+            }
         }
 
         BOOST_LOG_TRIVIAL(info) << "will export 3mf to " << export_3mf_file << std::endl;

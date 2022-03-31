@@ -7519,6 +7519,19 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     store_params.id_bboxes = plate_bboxes;//BBS
     store_params.project = &p->project;
     store_params.strategy = strategy | SaveStrategy::Zip64;
+
+    // get type and color for platedata
+    auto* filament_types = dynamic_cast<const ConfigOptionStrings*>(cfg.option("filament_type"));
+    auto* filament_color = dynamic_cast<const ConfigOptionStrings*>(cfg.option("filament_colour"));
+
+    for (int i = 0; i < plate_data_list.size(); i++) {
+        PlateData *plate_data = plate_data_list[i];
+        for (auto it = plate_data->slice_flaments_info.begin(); it != plate_data->slice_flaments_info.end(); it++) {
+            it->type  = filament_types?filament_types->get_at(it->id):"PLA";
+            it->color = filament_color?filament_color->get_at(it->id):"#FFFFFF";
+        }
+    }
+
     if (Slic3r::store_bbs_3mf(store_params)) {
     //if (Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, project_presets, export_config ? &cfg : nullptr, full_pathnames, thumbnails, true /*zip64*/, backup, proFn, silence)) {
         if (!(store_params.strategy & SaveStrategy::Silence)) {

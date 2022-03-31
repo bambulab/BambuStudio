@@ -225,7 +225,7 @@ void PartPlate::render_background(bool force_default_color) const {
 
 	// draw background
 	glsafe(::glDepthMask(GL_FALSE));
-	
+
 	if (!force_default_color) {
 		if (m_selected) {
 			glsafe(::glColor4fv(PartPlate::SELECT_COLOR.data()));
@@ -321,7 +321,7 @@ void PartPlate::render_icons(bool bottom) const
 {
 	GLShaderProgram* shader = wxGetApp().get_shader("printbed");
 	if (shader != nullptr) {
-		shader->start_using();  
+		shader->start_using();
 		shader->set_uniform("transparent_background", bottom);
 		//shader->set_uniform("svg_source", boost::algorithm::iends_with(m_partplate_list->m_del_texture.get_source(), ".svg"));
 		shader->set_uniform("svg_source", 0);
@@ -1138,7 +1138,7 @@ bool PartPlate::has_printable_instances()
 {
 	bool result = false;
 
-	for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it) 
+	for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
 	{
 		int obj_id = it->first;
 		int instance_id = it->second;
@@ -2155,7 +2155,7 @@ int PartPlateList::lock_plate(int index, bool state)
 	PartPlate* plate = NULL;
 
 	plate = get_plate(index);
-	if (!plate) 
+	if (!plate)
 	{
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":can not get plate for index %1%, size %2%") % index % m_plate_list.size();
 		return -1;
@@ -2412,7 +2412,7 @@ int PartPlateList::reload_all_objects()
 	//try to find a new plate
 	for (i = 0; i < (unsigned int)m_model->objects.size(); ++i)
 	{
-		ModelObject* object = m_model->objects[i];		
+		ModelObject* object = m_model->objects[i];
 		for (j = 0; j < (unsigned int)object->instances.size(); ++j)
 		{
 			ModelInstance* instance = object->instances[j];
@@ -3175,13 +3175,15 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
                     } else {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("print is null!");
                     }
+					//parse filament info
+                    plate_data_item->parse_filament_info(m_plate_list[i]->get_slice_result());
                 } else {
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "slice result = " << m_plate_list[i]->get_slice_result()
                                             << ", result valid = " << m_plate_list[i]->is_slice_result_valid();
                 }
             }
 		}
-		
+
 		plate_data_list.push_back(plate_data_item);
 	}
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":stored %1% plates!") % m_plate_list.size();
@@ -3220,6 +3222,12 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		PrintStatistics& ps = (dynamic_cast<Print*>(fff_print))->print_statistics();
 		gcode_result->print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time = atoi(plate_data_list[i]->gcode_prediction.c_str());
 		ps.total_weight = atof(plate_data_list[i]->gcode_weight.c_str());
+		ps.total_used_filament = 0.f;
+		for (auto filament_item: plate_data_list[i]->slice_flaments_info)
+		{
+			ps.total_used_filament += filament_item.used_m;
+		}
+		ps.total_used_filament *= 1000; //koef
 		gcode_result->toolpath_outside = plate_data_list[i]->toolpath_outside;
 	}
 	print();

@@ -156,6 +156,13 @@ static constexpr const char* COMPONENT_TAG = "component";
 static constexpr const char* BUILD_TAG = "build";
 static constexpr const char* ITEM_TAG = "item";
 static constexpr const char* METADATA_TAG = "metadata";
+static constexpr const char* FILAMENT_TAG = "filament";
+static constexpr const char *FILAMENT_ID_TAG   = "id";
+static constexpr const char* FILAMENT_TYPE_TAG = "type";
+static constexpr const char *FILAMENT_COLOR_TAG = "color";
+static constexpr const char *FILAMENT_USED_M_TAG = "used_m";
+static constexpr const char *FILAMENT_USED_G_TAG = "used_g";
+
 
 static constexpr const char* CONFIG_TAG = "config";
 static constexpr const char* VOLUME_TAG = "volume";
@@ -405,6 +412,31 @@ bool bbs_is_valid_object_type(const std::string& type)
 }
 
 namespace Slic3r {
+
+void PlateData::parse_filament_info(GCodeProcessorResult *result)
+{
+    if (!result) return;
+
+    PrintEstimatedStatistics &ps                            = result->print_statistics;
+    std::vector<float>        m_filament_diameters          = result->filament_diameters;
+    std::vector<float>        m_filament_densities          = result->filament_densities;
+    auto get_used_filament_from_volume = [m_filament_diameters, m_filament_densities](double volume, int extruder_id) {
+        double                    koef = 0.001;
+        std::pair<double, double> ret = {koef * volume / (PI * sqr(0.5 * m_filament_diameters[extruder_id])), volume * m_filament_densities[extruder_id] * 0.001};
+        return ret;
+    };
+
+    for (auto it = ps.volumes_per_extruder.begin(); it != ps.volumes_per_extruder.end(); it++) {
+        double volume                           = it->second;
+        auto [used_filament_m, used_filament_g] = get_used_filament_from_volume(volume, it->first);
+        PlateData::FilamentInfo info;
+        info.id     = it->first;
+        info.used_m = used_filament_m;
+        info.used_g = used_filament_g;
+        slice_flaments_info.push_back(info);
+    }
+}
+
 
 //! macro used to mark string used at localization,
 //! return same string
@@ -768,6 +800,9 @@ namespace Slic3r {
 
         bool _handle_start_config_metadata(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_metadata();
+
+        bool _handle_start_config_filament(const char** attributes, unsigned int num_attributes);
+        bool _handle_end_config_filament();
 
         //BBS: add plater config parse functions
         bool _handle_start_config_plater(const char** attributes, unsigned int num_attributes);
@@ -1373,6 +1408,7 @@ namespace Slic3r {
             plate_data_list[it->first-1]->gcode_prediction = it->second->gcode_prediction;
             plate_data_list[it->first-1]->gcode_weight = it->second->gcode_weight;
             plate_data_list[it->first-1]->toolpath_outside = it->second->toolpath_outside;
+            plate_data_list[it->first-1]->slice_flaments_info = it->second->slice_flaments_info;
             it++;
         }
 
@@ -2218,6 +2254,8 @@ namespace Slic3r {
             res = _handle_start_config_plater(attributes, num_attributes);
         else if (::strcmp(INSTANCE_TAG, name) == 0)
             res = _handle_start_config_plater_instance(attributes, num_attributes);
+        else if (::strcmp(FILAMENT_TAG, name) == 0)
+            res = _handle_start_config_filament(attributes, num_attributes);
         else if (::strcmp(ASSEMBLE_TAG, name) == 0)
             res = _handle_start_assemble(attributes, num_attributes);
         else if (::strcmp(ASSEMBLE_ITEM_TAG, name) == 0)
@@ -2248,6 +2286,8 @@ namespace Slic3r {
             res = _handle_end_config_metadata();
         else if (::strcmp(PLATE_TAG, name) == 0)
             res = _handle_end_config_plater();
+        else if (::strcmp(FILAMENT_TAG, name) == 0)
+            res = _handle_end_config_filament();
         else if (::strcmp(INSTANCE_TAG, name) == 0)
             res = _handle_end_config_plater_instance();
         else if (::strcmp(ASSEMBLE_TAG, name) == 0)
@@ -2971,6 +3011,32 @@ namespace Slic3r {
     }
 
     bool _BBS_3MF_Importer::_handle_end_config_metadata()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_config_filament(const char** attributes, unsigned int num_attributes)
+    {
+        if (m_curr_plater) {
+            std::string id = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_ID_TAG);
+            std::string type = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_TYPE_TAG);
+            std::string color = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_COLOR_TAG);
+            std::string used_m = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_USED_M_TAG);
+            std::string used_g = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_USED_G_TAG);
+
+            PlateData::FilamentInfo filament_info;
+            filament_info.id = atoi(id.c_str());
+            filament_info.type = type;
+            filament_info.color = color;
+            filament_info.used_m = atof(used_m.c_str());
+            filament_info.used_g = atof(used_g.c_str());
+            m_curr_plater->slice_flaments_info.push_back(filament_info);
+        }
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_end_config_filament()
     {
         // do nothing
         return true;
@@ -5281,6 +5347,15 @@ namespace Slic3r {
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SLICE_PREDICTION_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->get_gcode_prediction_str() << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SLICE_WEIGHT_ATTR      << "\" " << VALUE_ATTR << "=\"" <<  plate_data->get_gcode_weight_str() << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OUTSIDE_ATTR      << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->toolpath_outside << "\"/>\n";
+
+                for (auto it = plate_data->slice_flaments_info.begin(); it != plate_data->slice_flaments_info.end(); it++)
+                {
+                    stream << "    <" << FILAMENT_TAG << " " << FILAMENT_ID_TAG << "=\"" << std::to_string(it->id + 1) << "\" "
+                           << FILAMENT_TYPE_TAG << "=\"" << it->type << "\" "
+                           << FILAMENT_COLOR_TAG << "=\"" << it->color << "\" "
+                           << FILAMENT_USED_M_TAG << "=\"" << it->used_m << "\" "
+                           << FILAMENT_USED_G_TAG << "=\"" << it->used_g << "\" />\n";
+                }
                 stream << "  </" << PLATE_TAG << ">\n";
             }
         }
