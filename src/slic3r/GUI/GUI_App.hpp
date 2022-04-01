@@ -23,6 +23,8 @@
 #include <mutex>
 #include <stack>
 
+#define BBL_HAS_FIRST_PAGE 1
+
 class wxMenuItem;
 class wxMenuBar;
 class wxTopLevelWindow;

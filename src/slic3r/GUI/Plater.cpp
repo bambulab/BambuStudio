@@ -4142,6 +4142,15 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
     }
 
     wxPanel* old_panel = current_panel;
+#if BBL_HAS_FIRST_PAGE
+    if (!old_panel) {
+        //BBS: only switch to the first panel when visible
+        panel->Show();
+        //dynamic_cast<View3D *>(panel)->get_canvas3d()->render();
+        if (!panel->IsShownOnScreen())
+            return;
+    }
+#endif
     current_panel = panel;
     //BBS: add the collapse logic
     if (current_panel == preview && q->only_gcode_mode()) {
@@ -5096,8 +5105,9 @@ GLCanvas3D* Plater::priv::get_current_canvas3D()
         return preview->get_canvas3d();
     else if (current_panel == assemble_view)
         return assemble_view->get_canvas3d();
-    else
-        return nullptr;
+    else //BBS default set to view3D
+        return view3D->get_canvas3d();
+
     //return (current_panel == view3D) ? view3D->get_canvas3d() : ((current_panel == preview) ? preview->get_canvas3d() : nullptr);
 }
 

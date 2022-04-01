@@ -2069,7 +2069,7 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
                 m_plater->get_current_canvas3D()->render();
         }
 #endif
-        if (tab == 0 && m_layout == ESettingsLayout::Old)
+        if (tab == MainFrame::tp3DEditor && m_layout == ESettingsLayout::Old)
             m_plater->canvas3D()->render();
         else if (was_hidden) {
             Tab* cur_tab = dynamic_cast<Tab*>(m_tabpanel->GetPage(new_selection));

@@ -911,6 +911,24 @@ void GUI_App::post_init()
     if (! this->initialized())
         throw Slic3r::RuntimeError("Calling post_init() while not yet initialized");
 
+#if BBL_HAS_FIRST_PAGE
+    mainframe->Freeze();
+    plater_->canvas3D()->enable_render(false);
+    mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    plater_->select_view_3D("3D");
+    //BBS init the opengl resource here
+    Size canvas_size = plater_->canvas3D()->get_canvas_size();
+    wxGetApp().imgui()->set_display_size(static_cast<float>(canvas_size.get_width()), static_cast<float>(canvas_size.get_height()));
+    wxGetApp().init_opengl();
+    plater_->canvas3D()->init();
+    wxGetApp().imgui()->new_frame();
+    plater_->canvas3D()->enable_render(true);
+    plater_->canvas3D()->render();
+    if (is_editor())
+        mainframe->select_tab(size_t(0));
+    mainframe->Thaw();
+#endif
+
     //BBS: remove GCodeViewer as seperate APP logic
     /*if (this->init_params->start_as_gcodeviewer) {
         if (! this->init_params->input_files.empty())
@@ -1424,8 +1442,9 @@ bool GUI_App::on_init_inner()
 
     mainframe = new MainFrame();
     // hide settings tabs after first Layout
-    if (is_editor())
+    if (is_editor()) {
         mainframe->select_tab(size_t(0));
+    }
 
     sidebar().obj_list()->init();
     sidebar().aux_list()->init_auxiliary();
@@ -1452,6 +1471,24 @@ bool GUI_App::on_init_inner()
     // BBS:
     mainframe->topbar()->SaveNormalRect();
     mainframe->Show(true);
+
+#if BBL_HAS_FIRST_PAGE
+    //BBS: set tp3DEditor firstly
+    /*plater_->canvas3D()->enable_render(false);
+    mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    scrn->SetText(_L("Loading Opengl resourses..."));
+    plater_->select_view_3D("3D");
+    //BBS init the opengl resource here
+    Size canvas_size = plater_->canvas3D()->get_canvas_size();
+    wxGetApp().imgui()->set_display_size(static_cast<float>(canvas_size.get_width()), static_cast<float>(canvas_size.get_height()));
+    wxGetApp().init_opengl();
+    plater_->canvas3D()->init();
+    wxGetApp().imgui()->new_frame();
+    plater_->canvas3D()->enable_render(true);
+    plater_->canvas3D()->render();
+    if (is_editor())
+        mainframe->select_tab(size_t(0));*/
+#endif
 
     obj_list()->set_min_height();
 
@@ -1494,6 +1531,9 @@ bool GUI_App::on_init_inner()
     m_initialized = true;
 
     flush_logs();
+
+    //BBS: delete splash screen
+    delete scrn;
     return true;
 }
 

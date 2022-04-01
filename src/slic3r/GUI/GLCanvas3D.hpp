@@ -426,6 +426,8 @@ private:
     // Screen is only refreshed from the OnIdle handler if it is dirty.
     bool m_dirty;
     bool m_initialized;
+    //BBS: add flag to controll rendering
+    bool m_enable_render { true };
     bool m_apply_zoom_to_volumes_filter;
     bool m_picking_enabled;
     bool m_moving_enabled;
@@ -681,6 +683,11 @@ public:
     bool is_dragging() const { return m_gizmos.is_dragging() || m_moving; }
 
     void render();
+    void enable_render(bool enabled)
+    {
+        m_enable_render = enabled;
+    }
+
     // printable_only == false -> render also non printable volumes as grayed
     // parts_only == false -> render also sla support and pad
     void render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type);
