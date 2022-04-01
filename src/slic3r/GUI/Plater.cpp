@@ -6337,7 +6337,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     SetFont(wxGetApp().normal_font());
 
     // icon
-    std::string icon_path = (boost::format("%1%/icons/BambuStudio.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
     SetIcon(wxIcon(icon_path, wxBITMAP_TYPE_ICO));
 
     const auto m_panel_info_def_width = 350;
@@ -8963,7 +8963,7 @@ void Plater::show_object_info()
 void Plater::init_environment_texture()
 {
     if (p->environment_texture.get_id() == 0)
-        p->environment_texture.load_from_file(resources_dir() + "/icons/Pmetal_001.png", false, GLTexture::SingleThreaded, false);
+        p->environment_texture.load_from_file(resources_dir() + "/images/Pmetal_001.png", false, GLTexture::SingleThreaded, false);
 }
 
 unsigned int Plater::get_environment_texture_id() const

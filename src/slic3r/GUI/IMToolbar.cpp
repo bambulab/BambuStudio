@@ -106,7 +106,7 @@ bool IMReturnToolbar::init()
     GLint last_texture;
     unsigned m_image_texture{ 0 };
 
-    std::string path = resources_dir() + "/icons/";
+    std::string path = resources_dir() + "/images/";
     std::string file_name;
 
     file_name = path + "assemble_return.svg";

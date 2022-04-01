@@ -430,13 +430,13 @@ bool IMSlider::init_texture()
     bool result = true;
     if (!is_horizontal()) {
         // BBS init image texture id
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/reset_normal.svg", 20, 20, m_reset_normal_id);
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/reset_hover.svg", 20, 20, m_reset_hover_id);
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/one_layer_on.svg", 24, 24, m_one_layer_on_id);
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/one_layer_on_hover.svg", 28, 28, m_one_layer_on_hover_id);
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/one_layer_off.svg", 28, 28, m_one_layer_off_id);
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/one_layer_off_hover.svg", 28, 28, m_one_layer_off_hover_id);
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/one_layer_arrow.svg", 28, 28, m_one_layer_arrow_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/reset_normal.svg", 20, 20, m_reset_normal_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/reset_hover.svg", 20, 20, m_reset_hover_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_on.svg", 24, 24, m_one_layer_on_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_on_hover.svg", 28, 28, m_one_layer_on_hover_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_off.svg", 28, 28, m_one_layer_off_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_off_hover.svg", 28, 28, m_one_layer_off_hover_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_arrow.svg", 28, 28, m_one_layer_arrow_id);
     }
     return result;
 }

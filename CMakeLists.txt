@@ -487,7 +487,7 @@ endif ()
 find_package(cereal REQUIRED)
 
 # l10n
-set(L10N_DIR "${SLIC3R_RESOURCES_DIR}/localization")
+set(L10N_DIR "${SLIC3R_RESOURCES_DIR}/i18n")
 set(BBL_L18N_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bbl/i18n")
 add_custom_target(gettext_make_pot
     COMMAND xgettext --keyword=L --keyword=_L --keyword=_u8L --keyword=L_CONTEXT:1,2c --keyword=_L_PLURAL:1,2 --add-comments=TRN --from-code=UTF-8 --debug --boost
@@ -680,10 +680,10 @@ elseif (SLIC3R_FHS)
     install(FILES src/platform/unix/BambuStudio.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
     #install(FILES src/platform/unix/BambuGcodeviewer.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
     foreach(SIZE 32 128 192)
-        install(FILES ${SLIC3R_RESOURCES_DIR}/icons/BambuStudio_${SIZE}px.png
+        install(FILES ${SLIC3R_RESOURCES_DIR}/images/BambuStudio_${SIZE}px.png
             DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/${SIZE}x${SIZE}/apps RENAME BambuStudio.png
         )
-        #install(FILES ${SLIC3R_RESOURCES_DIR}/icons/BambuStudio-gcodeviewer_${SIZE}px.png
+        #install(FILES ${SLIC3R_RESOURCES_DIR}/images/BambuStudio-gcodeviewer_${SIZE}px.png
         #    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/${SIZE}x${SIZE}/apps RENAME BambuStudio-gcodeviewer.png
         #)
     endforeach()

@@ -1557,7 +1557,7 @@ void PartPlateList::generate_icon_textures()
 {
 	// use higher resolution images if graphic card and opengl version allow
 	GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
-	std::string path = resources_dir() + "/icons/";
+	std::string path = resources_dir() + "/images/";
 	std::string file_name;
 
 	if (m_del_texture.get_id() == 0)

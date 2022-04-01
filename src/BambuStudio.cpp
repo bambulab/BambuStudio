@@ -1218,8 +1218,8 @@ bool CLI::setup(int argc, char **argv)
 #endif
 
     set_resources_dir(path_resources.string());
-    set_var_dir((path_resources / "icons").string());
-    set_local_dir((path_resources / "localization").string());
+    set_var_dir((path_resources / "images").string());
+    set_local_dir((path_resources / "i18n").string());
     set_sys_shapes_dir((path_resources / "shapes").string());
 
     // Parse all command line options into a DynamicConfig.

@@ -230,7 +230,7 @@ bool GLTexture::load_from_raw_data(std::vector<unsigned char> data, unsigned int
         }
     }
 
-    std::string out_filename = resources_dir() + "/icons/test_" + std::to_string(pass) + ".png";
+    std::string out_filename = resources_dir() + "/images/test_" + std::to_string(pass) + ".png";
     output.SaveFile(out_filename, wxBITMAP_TYPE_PNG);
 #endif // 0
     return true;
@@ -419,7 +419,7 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
         }
     }
 
-    std::string out_filename = resources_dir() + "/icons/test_" + std::to_string(pass) + ".png";
+    std::string out_filename = resources_dir() + "/images/test_" + std::to_string(pass) + ".png";
     output.SaveFile(out_filename, wxBITMAP_TYPE_PNG);
 #endif // 0
 

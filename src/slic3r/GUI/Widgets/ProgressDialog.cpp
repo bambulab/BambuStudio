@@ -266,7 +266,7 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
 
     const int borderFlags = wxALL;
 
-    std::string icon_path = (boost::format("%1%/icons/common_dialog_confirm.png") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/common_dialog_confirm.png") % resources_dir()).str();
     /*m_btnAbort            = new wxBitmapButton(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(52, 24), wxBU_AUTODRAW | wxBORDER_NONE);
     m_btnAbort->SetBitmap(wxBitmap(icon_path, wxBITMAP_TYPE_ANY));
     m_btnAbort->SetBitmapDisabled(wxBitmap(icon_path, wxBITMAP_TYPE_ANY));
@@ -278,7 +278,8 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
 
     // wxStaticBitmap *m_bitmatAbort = new wxStaticBitmap(m_btnAbort, wxID_ANY, wxBitmap(icon_path, wxBITMAP_TYPE_ANY), wxDefaultPosition, wxSize(52, 24), 0);
     // wxStaticText *textAbort = new wxStaticText(m_btnAbort, wxID_ANY, _T("Cancel"), wxPoint(5, 3), wxSize(42, 19));
-    // textAbort->SetBackgroundColour(wxColor(0, 174, 66));
+    // textAbort->SetBa
+    // ckgroundColour(wxColor(0, 174, 66));
     // textAbort->SetForegroundColour(DESIGN_RESOUTION_DEF_BK_COLOR);
 
     // textAbort->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {

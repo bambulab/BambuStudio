@@ -1,5 +1,5 @@
 
-![PrusaSlicer logo](/resources/icons/PrusaSlicer.png?raw=true)
+![PrusaSlicer logo](/resources/images/PrusaSlicer.png?raw=true)
 
 # PrusaSlicer
 

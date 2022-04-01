@@ -806,7 +806,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     SetFont(wxGetApp().normal_font());
 
     // icon
-    std::string icon_path = (boost::format("%1%/icons/BambuStudio.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
     SetIcon(wxIcon(icon_path, wxBITMAP_TYPE_ICO));
 
     int em        = em_unit();

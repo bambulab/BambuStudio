@@ -30,8 +30,8 @@ use FindBin;
 
 # Let the XS module know where the GUI resources reside.
 set_resources_dir(decode_path($FindBin::Bin) . (($^O eq 'darwin') ? '/../Resources' : '/resources'));
-set_var_dir(resources_dir() . "/icons");
-set_local_dir(resources_dir() . "/localization/");
+set_var_dir(resources_dir() . "/images");
+set_local_dir(resources_dir() . "/i18n/");
 
 use Moo 1.003001;
 

@@ -289,7 +289,7 @@ void PreferencesDialog::Init()
     Bind(wxEVT_PAINT, &PreferencesDialog::OnPaint, this);
 
     // set icon for dialog
-    std::string icon_path = (boost::format("%1%/icons/BambuStudio.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
     // std::string icon_path = resources_dir() + "", resources_dir();
     SetIcon(wxIcon(icon_path, wxBITMAP_TYPE_ICO));
 

@@ -132,7 +132,7 @@ bool GLGizmosManager::init()
 
     if (!m_background_texture.metadata.filename.empty())
     {
-        if (!m_background_texture.texture.load_from_file(resources_dir() + "/icons/" + m_background_texture.metadata.filename, false, GLTexture::SingleThreaded, false))
+        if (!m_background_texture.texture.load_from_file(resources_dir() + "/images/" + m_background_texture.metadata.filename, false, GLTexture::SingleThreaded, false))
             return false;
     }
 
@@ -173,22 +173,22 @@ bool GLGizmosManager::init_icon_textures()
     ImTextureID texture_id;
 
     icon_list.clear();
-    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/toolbar_reset.svg", 14, 14, texture_id))
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/toolbar_reset.svg", 14, 14, texture_id))
         icon_list.insert(std::make_pair((int)IC_TOOLBAR_RESET, texture_id));
     else
         return false;
 
-    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/toolbar_reset_hover.svg", 14, 14, texture_id))
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/toolbar_reset_hover.svg", 14, 14, texture_id))
         icon_list.insert(std::make_pair((int)IC_TOOLBAR_RESET_HOVER, texture_id));
     else
         return false;
 
-    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/toolbar_tooltip.svg", 30, 22, texture_id))
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/toolbar_tooltip.svg", 30, 22, texture_id))
         icon_list.insert(std::make_pair((int)IC_TOOLBAR_TOOLTIP, texture_id));
     else
         return false;
 
-    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/toolbar_tooltip_hover.svg", 30, 22, texture_id))
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/toolbar_tooltip_hover.svg", 30, 22, texture_id))
         icon_list.insert(std::make_pair((int)IC_TOOLBAR_TOOLTIP_HOVER, texture_id));
     else
         return false;
@@ -201,7 +201,7 @@ bool GLGizmosManager::init_arrow(const BackgroundTexture::Metadata& arrow_textur
     if (m_arrow_texture.texture.get_id() != 0)
         return true;
 
-    std::string path = resources_dir() + "/icons/";
+    std::string path = resources_dir() + "/images/";
     bool res = false;
 
     if (!arrow_texture.filename.empty())
@@ -1321,7 +1321,7 @@ GLGizmosManager::EType GLGizmosManager::get_gizmo_from_name(const std::string& g
 
 bool GLGizmosManager::generate_icons_texture() const
 {
-    std::string path = resources_dir() + "/icons/";
+    std::string path = resources_dir() + "/images/";
     std::vector<std::string> filenames;
     for (size_t idx=0; idx<m_gizmos.size(); ++idx)
     {
