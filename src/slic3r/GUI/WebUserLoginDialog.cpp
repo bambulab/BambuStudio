@@ -31,6 +31,12 @@ using namespace nlohmann;
 
 namespace Slic3r { namespace GUI {
 
+#define NETWORK_OFFLINE_TIMER_ID 10001
+
+BEGIN_EVENT_TABLE(ZUserLogin, wxDialog)
+EVT_TIMER(NETWORK_OFFLINE_TIMER_ID, ZUserLogin::OnTimer)
+END_EVENT_TABLE()
+
 string &replace_str(string &str, const string &to_replaced, const string &newchars)
 {
     for (string::size_type pos(0); pos != string::npos; pos += newchars.length()) {
@@ -46,9 +52,11 @@ string &replace_str(string &str, const string &to_replaced, const string &newcha
 ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_ANY, "BambuStudio")
 {
     // Url
-    wxString TargetUrl = wxGetApp().app_config->get_web_host_url() + "/sign-in";
+    TargetUrl = wxGetApp().app_config->get_web_host_url() + "/sign-in";
     // wxString TargetUrl = "https://portal-dev.bambu-lab.com/sign-in";
     // wxString TargetUrl = "https://ab3f-103-167-134-129.ngrok.io";
+
+    m_networkOk=false;
 
     std::string strlang = wxGetApp().app_config->get("language");
     if (strlang != "") { 
@@ -93,7 +101,6 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
     }
 
     bool bRet = m_browser->Create(this, wxID_ANY, TargetUrl, wxDefaultPosition, wxDefaultSize);
-    m_browser->EnableContextMenu(false);
     SetSizer(topsizer);
 
 #ifdef __WXMAC__
@@ -102,6 +109,7 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
     m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
 #endif
 
+    m_browser->EnableContextMenu(false);
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
     // Log backend information
@@ -128,16 +136,41 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
     // Bind(wxEVT_CLOSE_WINDOW, &ZUserLogin::OnClose, this);
 
     // UI
-    SetTitle(L"UserLogin");
+    SetTitle( _u8L("login"));
     CenterOnParent();
 
     //Param
     m_AutotestToken = "";
-
-    IsNetworkOK();
 }
 
-ZUserLogin::~ZUserLogin() {}
+ZUserLogin::~ZUserLogin() { 
+    if (m_timer != NULL) { 
+        m_timer->Stop();
+        delete m_timer;
+        m_timer = NULL;
+    }
+}
+
+void ZUserLogin::OnTimer(wxTimerEvent &event) { 
+    m_timer->Stop();    
+
+    if (m_networkOk == false) 
+    {
+        ShowErrorPage();
+    }
+}
+
+bool ZUserLogin::run() {
+    m_timer = new wxTimer(this, NETWORK_OFFLINE_TIMER_ID);
+    m_timer->Start(5000);
+
+    if (this->ShowModal() == wxID_OK) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 
 void ZUserLogin::load_url(wxString &url)
 {
@@ -201,9 +234,11 @@ void ZUserLogin::OnDocumentLoaded(wxWebViewEvent &evt)
     wxString tmpUrl = evt.GetURL();
     wxString NowUrl = m_browser->GetCurrentURL();
 
-    if (evt.GetURL() == m_browser->GetCurrentURL()) {
+    if (evt.GetURL() == m_browser->GetCurrentURL() && NowUrl==TargetUrl) {
+        m_networkOk = true;
         // wxLogMessage("%s", "Document loaded; url='" + evt.GetURL() + "'");
     }
+
     UpdateState();
 
     // wxCommandEvent *event = new
@@ -362,6 +397,14 @@ void ZUserLogin::OnError(wxWebViewEvent &evt)
         WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_OTHER);
     }
 
+    if( evt.GetInt()==wxWEBVIEW_NAV_ERR_CONNECTION )
+    {
+        if(m_timer!=NULL)
+            m_timer->Stop();
+
+        ShowErrorPage();
+    }
+
     // wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" +
     // category + " (" + evt.GetString() + ")'");
 
@@ -388,16 +431,24 @@ bool ZUserLogin::IsNetworkOK()
 {
     Http http = Http::get("https://www.baidu.com");
     http.header("accept", "application/json")
-        .timeout_connect(1)
-        .timeout_max(1)
-        .on_complete([this](std::string body, unsigned) { m_netwrokOk = true;
+        .timeout_connect(5)
+        .timeout_max(5)
+        .on_complete([this](std::string body, unsigned) { m_networkOk = true;
         })
         .on_error([&](std::string body, std::string error, unsigned status) { 
-            m_netwrokOk = false;
+            m_networkOk = false;
         })
         .perform_sync();
 
-    return m_netwrokOk;
+    return m_networkOk;
+}
+
+bool  ZUserLogin::ShowErrorPage()
+{
+    wxString ErrortUrl = (boost::filesystem::path(resources_dir()) / "web\\login\\error.html").make_preferred().string();
+    load_url(ErrortUrl);
+
+    return true;
 }
 
 

@@ -38,7 +38,8 @@ var LangText={
 		"t36":"ok",
 		"t37":"At least one printer must be selected.",
 		"t38":"cancel",
-		"t39":"confirm"
+		"t39":"confirm",
+		"t40":"Network disconnect, please check and try again later."
 	},
 	"zh_CN":{
 		"t1":"欢迎使用BambuStudio",
@@ -79,7 +80,8 @@ var LangText={
 		"t36":"确定",
 		"t37":"至少需要选择一款打印机。",
 		"t38":"取消",
-		"t39":"确定"
+		"t39":"确定",
+		"t40":"网络不通，请检查并稍后重试。"
 	}
 };
 

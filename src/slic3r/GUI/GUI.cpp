@@ -487,11 +487,7 @@ void login()
 	//dlg.ShowModal();
 
 	ZUserLogin dlg;
-    if ( dlg.IsNetworkOK() )
-	dlg.ShowModal();
-    else {
-        wxMessageBox(L"Network disconnected, please check!", "Error", wxOK | wxICON_ERROR);
-	}
+    dlg.run();
 }
 
 void desktop_open_datadir_folder()

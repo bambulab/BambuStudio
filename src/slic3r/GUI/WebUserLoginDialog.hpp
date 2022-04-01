@@ -57,10 +57,19 @@ public:
     void OnScriptResponseMessage(wxCommandEvent &evt);
     void RunScript(const wxString &javascript);
 
-    bool m_netwrokOk;
+    bool m_networkOk;
     bool IsNetworkOK();
+    bool ShowErrorPage();
+
+    bool run();
+
 
 private:
+    wxTimer *m_timer;
+    void     OnTimer(wxTimerEvent &event);
+
+private:
+    wxString   TargetUrl;
     wxWebView *m_browser;
 
     std::string m_AutotestToken;
@@ -75,6 +84,8 @@ private:
     wxString m_response_js;
 
     wxString m_bbl_user_agent;
+
+    DECLARE_EVENT_TABLE()
 };
 
 }} // namespace Slic3r::GUI

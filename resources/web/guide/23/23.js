@@ -403,6 +403,19 @@ function ChooseDefaultFilament()
 }
 
 
+function SelectAllFilament( nShow )
+{
+	if( nShow==0 )
+	{
+		$('#ItemBlockArea input').prop("checked",false);
+	}
+	else
+	{
+		$('#ItemBlockArea input').prop("checked",true);
+	}
+}
+
+
 function ShowNotice( nShow )
 {
 	if(nShow==0)

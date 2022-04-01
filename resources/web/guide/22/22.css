@@ -83,6 +83,19 @@ input
 	vertical-align: middle;
 }
 
+#ItemSelectArea
+{
+	height:40px;
+	border-top: 1px solid #00AE42;
+	display: flex;
+	align-items: center;
+}
+
+#ItemSelectArea .SmallBtn
+{
+	margin-left:5px;
+}
+
 
 #ItemBlockArea
 {
@@ -96,9 +109,6 @@ input
 	align-content:flex-start;
 	line-height: 32px;
 	height: 400px;
-	border-top: 1px solid #00AE42;
-	margin-top: 10px;
-	padding-top: 10px;
 }
 
 .MItem
