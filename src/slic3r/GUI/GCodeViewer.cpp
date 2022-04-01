@@ -3904,28 +3904,21 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 /* BBS GUI refactor do not draw percentage
                 draw_list->AddRectFilled({ pos.x, pos.y + 2.0f }, { pos.x + width, pos.y + icon_size - 2.0f },
                     ImGui::GetColorU32(ImGuiWrapper::COL_ORANGE_LIGHT));
-                */
-
-                ImGui::Dummy({ percent_bar_size, icon_size });
-                ImGui::SameLine(offsets[1]);
-
-                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0));
                 ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.20f, 0.64f, 1.00f, 1.00f));
                 ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.20f, 0.64f, 1.00f, 0.00f));
                 ImGui::BBLProgressBar(1.0 * percent, ImVec2(25.0f, 0.0f));
                 ImGui::PopStyleColor(2);
-
-                ImGui::SameLine();
+                ImGui::SameLine();*/
                 char buf[64];
                 ::sprintf(buf, "%.1f%%", 100.0f * percent);
                 ImGui::TextUnformatted((percent > 0.0f) ? buf : "");
 
-                ImGui::SameLine(offsets[3] + 4.0);
+                ImGui::SameLine(offsets[3]);
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0));
                 ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
                 ImGui::Checkbox("", &visible);
-                ImGui::PopStyleColor(1);
-
                 ImGui::PopStyleVar(1);
+                ImGui::PopStyleColor(1);
             } else {
                 if (used_filament_m > 0.0) {
                     char buf[64];
@@ -4136,24 +4129,10 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             if (::strlen(buffer) > longest_percentage_string.length())
                 longest_percentage_string = buffer;
         }
-
-        /* BBS do not show percentage drawing
-        longest_percentage_string += "            ";
-        */
         if (_u8L("Percent").length() > longest_percentage_string.length())
             longest_percentage_string = _u8L("Percent");
 
-        std::string longest_used_filament_string = "";
-        /* BBS do not show filament distance
-        for (double item : used_filaments_m) {
-            char buffer[64];
-            ::sprintf(buffer, imperial_units ? "%.2f in" : "%.2f m", item);
-            if (::strlen(buffer) > longest_used_filament_string.length())
-                longest_used_filament_string = buffer;
-        }
-         */
-
-        offsets = calculate_offsets(labels, times, { _u8L("Line type"), _u8L("Time"), longest_percentage_string, longest_used_filament_string }, icon_size);
+        offsets = calculate_offsets(labels, times, {_u8L("Line Type"), _u8L("Time"), longest_percentage_string, _u8L("Display")}, icon_size);
     }
 
     // get used filament (meters and grams) from used volume in respect to the active extruder
