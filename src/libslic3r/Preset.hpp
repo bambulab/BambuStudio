@@ -40,6 +40,7 @@
 #define BBL_JSON_KEY_MACHINE_LIST   "machine_list"
 #define BBL_JSON_KEY_TYPE           "type"
 #define BBL_JSON_KEY_FROM           "from"
+#define BBL_JSON_KEY_SETTING_ID     "setting_id"
 #define BBL_JSON_KEY_INHERITS       "inherits"
 #define BBL_JSON_KEY_INSTANTIATION  "instantiation"
 #define BBL_JSON_KEY_NOZZLE_DIAMETER            "nozzle_diameter"
