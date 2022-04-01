@@ -894,7 +894,7 @@ bool ImGuiWrapper::vertical_slider(const char* str_id, int* higher_value, int* l
         window->DrawList->AddLine(pos_4 + ImVec2(0.0, -line_offset), pos_4 + ImVec2(0.0, line_offset), IM_COL32(255, 255, 255, 255));
 
         // draw label
-        ImVec2 text_start = ImVec2(pos.x, higher_handle_center.y - 0.5 *text_size.y);
+        ImVec2 text_start = ImVec2(pos.x, middle_center.y - 0.5 *text_size.y);
         ImRect text_rect  = ImRect(text_start, text_start + text_size);
         ImGui::RenderFrame(text_rect.Min, text_rect.Max, bg_rect_col, false, 2.0f);
         ImGui::RenderText(text_start + text_padding, higher_label.c_str());
