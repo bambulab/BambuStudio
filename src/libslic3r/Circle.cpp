@@ -7,22 +7,21 @@
 namespace Slic3r {
 
 //BBS: threshold used to judge collineation
-static const double Parallel_radian_threshold = 0.0001;
+static const double Parallel_area_threshold = 0.0001;
 
 bool Circle::try_create_circle(const Point& p1, const Point& p2, const Point& p3, const double max_radius, Circle& new_circle)
 {
-    // BBS: return false directly if three points are almostly on one line
-    double dir1 = Line(p1, p3).direction();
-    double dir2 = Line(p1, p2).direction();
-    if (Slic3r::Geometry::directions_parallel(dir1, dir2, Parallel_radian_threshold))
-        return false;
-
     double x1 = p1.x();
     double y1 = p1.y();
     double x2 = p2.x();
     double y2 = p2.y();
     double x3 = p3.x();
     double y3 = p3.y();
+
+    //BBS: use area of triangle to judge whether three points are almostly on one line
+    //Because the point is scale_ once, so area should scale_ twice.
+    if (fabs((y1 - y2) * (x1 - x3) - (y1 - y3) * (x1 - x2)) <= scale_(scale_(Parallel_area_threshold)))
+        return false;
 
     double a = x1 * (y2 - y3) - y1 * (x2 - x3) + x2 * y3 - x3 * y2;
     //BBS: take out to figure out how we handle very small values
@@ -57,20 +56,28 @@ bool Circle::try_create_circle(const Points& points, const double max_radius, co
     size_t count = points.size();
     int middle_index = count / 2;
     // BBS: the middle point will almost always produce the best arcs with high possibility.
-    if (Circle::try_create_circle(points[0], points[middle_index], points[count - 1], max_radius, new_circle) && !new_circle.is_over_deviation(points, tolerance))
-        return true;
+    if (count == 3) {
+        return (Circle::try_create_circle(points[0], points[middle_index], points[count - 1], max_radius, new_circle)
+                && !new_circle.is_over_deviation(points, tolerance));
+    } else {
+        Point middle_point = (count % 2 == 0) ? (points[middle_index] + points[middle_index - 1]) / 2 :
+                                                (points[middle_index - 1] + points[middle_index + 1]) / 2;
+        if (Circle::try_create_circle(points[0], middle_point, points[count - 1], max_radius, new_circle)
+            && !new_circle.is_over_deviation(points, tolerance))
+            return true;
+    }
 
     // BBS: Find the circle with the least deviation, if one exists.
     Circle test_circle;
     double least_deviation;
     bool found_circle = false;
+    double current_deviation;
     for (int index = 1; index < count - 1; index++)
     {
         if (index == middle_index)
             // BBS: We already checked this one, and it failed. don't need to do again
             continue;
 
-        double current_deviation;
         if (Circle::try_create_circle(points[0], points[index], points[count - 1], max_radius, test_circle) && test_circle.get_deviation_sum_squared(points, tolerance, current_deviation))
         {
             if (!found_circle || current_deviation < least_deviation)

@@ -77,6 +77,7 @@
     "initial_layer_infill_speed": "60",
     "standby_temperature_delta": "-5",
     "enable_support": "0",
+    "resolution": "0.012",
     "support_type": "hybrid(auto)",
     "support_on_build_plate_only": "0",
     "support_top_z_distance": "0.2",

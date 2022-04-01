@@ -7,6 +7,22 @@ namespace Slic3r {
 
 void ArcFitter::do_arc_fitting(const Points& points, std::vector<PathFittingData>& result, double tolerance)
 {
+#ifdef DEBUG_ARC_FITTING
+    static int irun = 0;
+    BoundingBox bbox_svg;
+    bbox_svg.merge(get_extents(points));
+    Polyline temp = Polyline(points);
+    {
+        std::stringstream stri;
+        stri << "debug_arc_fitting_" << irun << ".svg";
+        SVG svg(stri.str(), bbox_svg);
+        svg.draw(points, "blue", 50000);
+        svg.draw(temp, "red", 1);
+        svg.Close();
+    }
+    ++ irun;
+#endif
+
     result.clear();
     if (points.size() < 3) {
         PathFittingData data;
