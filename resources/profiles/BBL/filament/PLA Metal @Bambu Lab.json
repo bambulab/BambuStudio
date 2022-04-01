@@ -1,22 +1,26 @@
 {
     "type": "filament",
-    "name": "PolyFlex TPU95HF @Polymaker",
+    "setting_id": "GFA02",
+    "name": "PLA Metal @Bambu Lab",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_tpu",
+    "inherits": "fdm_filament_pla",
     "filament_vendor": [
-        "Polymaker"
+        "Bambu Lab"
+    ],
+    "filament_cost": [
+        "25.4"
+    ],
+    "filament_density": [
+        "1.24"
     ],
     "nozzle_temperature": [
-        "240"
+        "215"
     ],
     "nozzle_temperature_initial_layer": [
         "220"
     ],
     "filament_max_volumetric_speed": [
-        "9.6"
-    ],
-    "filament_retraction_length": [
-        "0.4"
+        "25"
     ]
 }

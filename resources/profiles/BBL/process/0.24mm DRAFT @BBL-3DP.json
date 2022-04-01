@@ -1,5 +1,6 @@
 {
     "type": "process",
+    "setting_id": "GP007",
     "name": "0.24mm DRAFT @BBL-3DP",
     "from": "system",
     "instantiation": "true",

@@ -1,0 +1,11 @@
+{
+    "type": "machine_model",
+    "name": "BBL-3DP-X1",
+    "url": "http://www.bambulab.com/Parameters/printer_model/BBL-3DP-X1.json",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "BBL-3DP",
+    "bed_model": "bbl-3dp-X1.stl",
+    "bed_texture": "bbl-3dp-X1.svg",
+    "default_materials": "PLA Matte @Bambu Lab;PLA Basic @Bambu Lab;PLA Metal @Bambu Lab;PLA Impact @Bambu Lab;ABS @Bambu Lab;PC @Bambu Lab;BambuSupport White @Bambu Lab;TPU 95A @Bambu Lab;"
+}

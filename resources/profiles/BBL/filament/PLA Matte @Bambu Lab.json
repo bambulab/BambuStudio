@@ -1,11 +1,12 @@
 {
     "type": "filament",
-    "name": "K5 PLA~ @Kexcelled",
+    "setting_id": "GFA01",
+    "name": "PLA Matte @Bambu Lab",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
     "filament_vendor": [
-        "Kexcelled"
+        "Bambu Lab"
     ],
     "filament_cost": [
         "25.4"
@@ -14,18 +15,18 @@
         "1.24"
     ],
     "nozzle_temperature": [
-        "220"
+        "215"
     ],
     "bed_temperature": [
-        "45,0,60"
+        "35,0,60"
     ],
     "bed_temperature_initial_layer": [
-        "45,0,60"
+        "35,0,60"
     ],
     "nozzle_temperature_initial_layer": [
-        "220"
+        "210"
     ],
     "filament_max_volumetric_speed": [
-        "26.8"
+        "28.6"
     ]
 }

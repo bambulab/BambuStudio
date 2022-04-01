@@ -1,5 +1,6 @@
 {
     "type": "process",
+    "setting_id": "GP006",
     "name": "0.20mm PolySupport @BBL-3DP",
     "from": "system",
     "instantiation": "true",

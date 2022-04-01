@@ -1,11 +1,12 @@
 {
     "type": "filament",
-    "name": "PolyLite PLA~ @Polymaker",
+    "setting_id": "GFA03",
+    "name": "PLA Impact @Bambu Lab",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
     "filament_vendor": [
-        "Polymaker"
+        "Bambu Lab"
     ],
     "filament_cost": [
         "25.4"
@@ -13,13 +14,19 @@
     "filament_density": [
         "1.24"
     ],
+    "bed_temperature": [
+        "45,0,60"
+    ],
+    "bed_temperature_initial_layer": [
+        "45,0,60"
+    ],
     "nozzle_temperature": [
-        "220"
+        "215"
     ],
     "nozzle_temperature_initial_layer": [
         "220"
     ],
     "filament_max_volumetric_speed": [
-        "25"
+        "23.2"
     ]
 }

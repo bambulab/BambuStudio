@@ -1,11 +1,12 @@
 {
     "type": "filament",
-    "name": "PolyLite ABS @Polymaker",
+    "setting_id": "GFB00",
+    "name": "ABS @Bambu Lab",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_abs",
     "filament_vendor": [
-        "Polymaker"
+        "Bambu Lab"
     ],
     "compatible_printers_condition": "nozzle_diameter[0]!=0.8"
 }

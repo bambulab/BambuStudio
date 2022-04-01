@@ -1,5 +1,6 @@
 {
     "type": "process",
+    "setting_id": "GP001",
     "name": "0.08mm SUPERDETAIL @BBL-3DP",
     "from": "system",
     "instantiation": "true",

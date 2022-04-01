@@ -1,5 +1,6 @@
 {
     "type": "process",
+    "setting_id": "GP002",
     "name": "0.10mm HIGHDETAIL @BBL-3DP",
     "from": "system",
     "instantiation": "true",

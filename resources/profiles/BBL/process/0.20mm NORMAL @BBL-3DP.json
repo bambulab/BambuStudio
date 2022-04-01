@@ -1,5 +1,6 @@
 {
     "type": "process",
+    "setting_id": "GP005",
     "name": "0.20mm NORMAL @BBL-3DP",
     "from": "system",
     "instantiation": "true",

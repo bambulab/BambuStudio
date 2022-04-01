@@ -1,5 +1,6 @@
 {
     "type": "filament",
+    "setting_id": "GFR99",
     "name": "Generic TPU",
     "from": "system",
     "instantiation": "true",
@@ -14,6 +15,6 @@
         "3.2"
     ],
     "filament_start_gcode": [
-        "; Filament gcode\n{if (bed_temperature[current_extruder] > 60)||(bed_temperature_initial_layer[current_extruder]>60)}M106 P3 S255\n{endif};Prevent PETG from jamming"
+        "; filament start gcode\n{if (bed_temperature[current_extruder] > 60)||(bed_temperature_initial_layer[current_extruder]>60)}M106 P3 S255\n{endif};Prevent PETG from jamming"
     ]
 }

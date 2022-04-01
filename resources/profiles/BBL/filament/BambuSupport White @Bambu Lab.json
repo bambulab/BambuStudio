@@ -1,25 +1,26 @@
 {
     "type": "filament",
-    "name": "PolyMide PA12-CF @Polymaker",
+    "setting_id": "GFS00",
+    "name": "BambuSupport White @Bambu Lab",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pa6+cf",
+    "inherits": "fdm_filament_pla",
     "filament_vendor": [
-        "Polymaker"
+        "Bambu Lab"
     ],
     "filament_type": [
-        "PA6+CF"
+        "N/A"
     ],
     "nozzle_temperature_initial_layer": [
-        "280"
+        "220"
     ],
     "nozzle_temperature": [
-        "270"
+        "220"
     ],
     "bed_temperature": [
-        "0,100,100"
+        "40,60,0"
     ],
     "bed_temperature_initial_layer": [
-        "0,100,100"
+        "40,60,0"
     ]
 }

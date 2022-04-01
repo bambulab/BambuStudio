@@ -1,5 +1,6 @@
 {
     "type": "process",
+    "setting_id": "GP008",
     "name": "0.28mm SUPERDRAFT @BBL-3DP",
     "from": "system",
     "instantiation": "true",

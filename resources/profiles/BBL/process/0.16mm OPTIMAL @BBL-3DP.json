@@ -1,5 +1,6 @@
 {
     "type": "process",
+    "setting_id": "GP004",
     "name": "0.16mm OPTIMAL @BBL-3DP",
     "from": "system",
     "instantiation": "true",

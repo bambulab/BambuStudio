@@ -6,8 +6,8 @@
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
         {
-            "name": "BBL-3DP-V5NORMAL",
-            "sub_path": "machine/BBL-3DP-V5NORMAL.json"
+            "name": "BBL-3DP-X1",
+            "sub_path": "machine/BBL-3DP-X1.json"
         }
     ],
     "process_list": [
@@ -126,60 +126,44 @@
             "sub_path": "filament/Generic TPU.json"
         },
         {
-            "name": "PolyFlex TPU95HF @Polymaker",
-            "sub_path": "filament/PolyFlex TPU95HF @Polymaker.json"
+            "name": "TPU 95A @Bambu Lab",
+            "sub_path": "filament/TPU 95A @Bambu Lab.json"
         },
         {
-            "name": "PolyTerra PLA~ @Polymaker",
-            "sub_path": "filament/PolyTerra PLA~ @Polymaker.json"
+            "name": "PLA Matte @Bambu Lab",
+            "sub_path": "filament/PLA Matte @Bambu Lab.json"
         },
         {
-            "name": "PolyLite PLA~ @Polymaker",
-            "sub_path": "filament/PolyLite PLA~ @Polymaker.json"
+            "name": "PLA Basic @Bambu Lab",
+            "sub_path": "filament/PLA Basic @Bambu Lab.json"
         },
         {
-            "name": "K5 PLA~ @Kexcelled",
-            "sub_path": "filament/K5 PLA~ @Kexcelled.json"
+            "name": "PLA Impact @Bambu Lab",
+            "sub_path": "filament/PLA Impact @Bambu Lab.json"
         },
         {
-            "name": "K6 PLA~ @Kexcelled",
-            "sub_path": "filament/K6 PLA~ @Kexcelled.json"
+            "name": "PLA Metal @Bambu Lab",
+            "sub_path": "filament/PLA Metal @Bambu Lab.json"
         },
         {
-            "name": "K5P PLA~ @Kexcelled",
-            "sub_path": "filament/K5P PLA~ @Kexcelled.json"
+            "name": "ABS @Bambu Lab",
+            "sub_path": "filament/ABS @Bambu Lab.json"
         },
         {
-            "name": "PolyLite ABS @Polymaker",
-            "sub_path": "filament/PolyLite ABS @Polymaker.json"
+            "name": "BambuSupport White @Bambu Lab",
+            "sub_path": "filament/BambuSupport White @Bambu Lab.json"
         },
         {
-            "name": "K5 ABS @Kexcelled",
-            "sub_path": "filament/K5 ABS @Kexcelled.json"
+            "name": "PA12-CF @Bambu Lab",
+            "sub_path": "filament/PA12-CF @Bambu Lab.json"
         },
         {
-            "name": "PolySupport @Polymaker",
-            "sub_path": "filament/PolySupport @Polymaker.json"
+            "name": "PET-CF @Bambu Lab",
+            "sub_path": "filament/PET-CF @Bambu Lab.json"
         },
         {
-            "name": "PolyMide PA12-CF @Polymaker",
-            "sub_path": "filament/PolyMide PA12-CF @Polymaker.json"
-        },
-        {
-            "name": "K7CF PET @Kexcelled",
-            "sub_path": "filament/K7CF PET @Kexcelled.json"
-        },
-        {
-            "name": "K7CFLM PAHT @Kexcelled",
-            "sub_path": "filament/K7CFLM PAHT @Kexcelled.json"
-        },
-        {
-            "name": "K7 PC @Kexcelled ",
-            "sub_path": "filament/K7 PC @Kexcelled.json"
-        },
-        {
-            "name": "PolyLite PC @Polymaker",
-            "sub_path": "filament/PolyLite PC @Polymaker.json"
+            "name": "PC @Bambu Lab ",
+            "sub_path": "filament/PC @Bambu Lab.json"
         }
     ],
     "machine_list": [
@@ -192,8 +176,8 @@
             "sub_path": "machine/fdm_bbl_3dp_001_common.json"
         },
         {
-            "name": "Bambulab BBL-3DP-001-V5-normal",
-            "sub_path": "machine/Bambulab BBL-3DP-001-V5-normal.json"
+            "name": "Bambu Lab X1",
+            "sub_path": "machine/Bambu Lab X1.json"
         }
     ]
 }
