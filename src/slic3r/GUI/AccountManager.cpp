@@ -95,6 +95,7 @@ namespace Slic3r {
 
             /* params[1] is dev id, topic is : device/[dev_id]/report */
             std::map<std::string, MachineObject*>::iterator it = manager->myBindMachineList.find(params[1]);
+            if (it == manager->myBindMachineList.end()) return;
             std::string json_str;
             if (it == manager->myBindMachineList.end()) return;
 

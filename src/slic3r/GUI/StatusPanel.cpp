@@ -153,6 +153,8 @@ void StatusBasePanel::init_bitmaps()
     m_bitmap_speed    = create_scaled_bitmap("monitor_speed", nullptr, 24);
     m_thumbnail_placeholder = create_scaled_bitmap("monitor_placeholder", nullptr, 120);
     m_bitmap_extruder = *cache.load_png("monitor_extruder", FromDIP(48), FromDIP(96), false, false);
+    m_bitmap_ams_extruder_on  = create_scaled_bitmap("monitor_ams_extruder_on", nullptr, 60);
+    m_bitmap_ams_extruder_off = create_scaled_bitmap("monitor_ams_extruder_off", nullptr, 60);
 }
 
 wxBoxSizer *StatusBasePanel::create_monitoring_page()
@@ -388,11 +390,6 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page()
 
     auto temp_axis_ctrl_sizer = create_temp_axis_group();
     bSizer_control->Add(temp_axis_ctrl_sizer, 0, wxEXPAND, 0);
-
-    wxBoxSizer *bSizer_axis_ctrl;
-    bSizer_axis_ctrl = new wxBoxSizer(wxHORIZONTAL);
-
-    bSizer_control->Add(bSizer_axis_ctrl, 0, 0, 0);
 
     auto m_ams_ctrl_sizer = create_ams_group();
 
@@ -707,100 +704,19 @@ wxBoxSizer *StatusBasePanel::create_ams_group()
 
     sizer->Add(0, 35, 0, wxEXPAND, 0);
 
-    wxBoxSizer *bSizer_extruder_ctrl;
-    bSizer_extruder_ctrl = new wxBoxSizer(wxHORIZONTAL);
 
-    bSizer_extruder_ctrl->SetMinSize(wxSize(-1, 131));
-    wxBoxSizer *bSizer_material;
-    bSizer_material = new wxBoxSizer(wxHORIZONTAL);
+    m_ams_control = new AMSControl(this, wxID_ANY);
+    m_ams_control->SetMinSize(m_ams_control->GetSize());
+    sizer->Add(m_ams_control, 0, wxALIGN_CENTER_HORIZONTAL, 0);
 
-    StateColor extruder_material_bg(std::pair<wxColour, int>(wxColour(237, 250, 242), StateColor::Pressed), std::pair<wxColour, int>(wxColour(246, 246, 246), StateColor::Normal));
-    StateColor extruder_material_bd(std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Hovered), std::pair<wxColour, int>(wxColour(246, 246, 246), StateColor::Normal));
-    m_bpButton_extruder_1 = new Button(this, "", "extruder_material", 0, 26);
-    m_bpButton_extruder_1->SetBackgroundColor(extruder_material_bg);
-    m_bpButton_extruder_1->SetBorderColor(extruder_material_bd);
-
-    bSizer_material->Add(m_bpButton_extruder_1, 0, wxALL, 0);
-
-    m_staticline4 = new StaticLine(this);
-    m_staticline4->SetLineColour(GROUP_STATIC_LINE_COL);
-    bSizer_material->Add(m_staticline4, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND | wxALL, 0);
-
-    m_bpButton_extruder_2 = new Button(this, "", "extruder_material", 0, 26);
-    m_bpButton_extruder_2->SetBackgroundColor(extruder_material_bg);
-    m_bpButton_extruder_2->SetBorderColor(extruder_material_bd);
-
-    bSizer_material->Add(m_bpButton_extruder_2, 0, wxALL, 0);
-
-    m_staticline5 = new StaticLine(this);
-    m_staticline5->SetLineColour(GROUP_STATIC_LINE_COL);
-    bSizer_material->Add(m_staticline5, 0, wxEXPAND | wxALL, 0);
-
-    m_bpButton_extruder_3 = new Button(this, "", "extruder_material", 0, 26);
-    m_bpButton_extruder_3->SetBackgroundColor(extruder_material_bg);
-    m_bpButton_extruder_3->SetBorderColor(extruder_material_bd);
-
-    bSizer_material->Add(m_bpButton_extruder_3, 0, wxALL, 0);
-
-    m_staticline6 = new StaticLine(this);
-    m_staticline6->SetLineColour(GROUP_STATIC_LINE_COL);
-    bSizer_material->Add(m_staticline6, 0, wxEXPAND | wxALL, 0);
-
-    m_bpButton_extruder_4 = new Button(this, "", "extruder_material", 0, 26);
-    m_bpButton_extruder_4->SetBackgroundColor(extruder_material_bg);
-    m_bpButton_extruder_4->SetBorderColor(extruder_material_bd);
-
-    bSizer_material->Add(m_bpButton_extruder_4, 0, wxALL, 0);
-
-    bSizer_extruder_ctrl->Add(bSizer_material, 0, wxLEFT, 50);
-
-    bSizer_extruder_ctrl->Add(24, 0, 0, wxEXPAND, 0);
-
-    wxBoxSizer *bSizer_extruder;
-    bSizer_extruder = new wxBoxSizer(wxVERTICAL);
-
-    m_staticText_select_space = new wxStaticText(this, wxID_ANY, _L("Specify the corresponding space:"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_select_space->Wrap(-1);
-    bSizer_extruder->Add(m_staticText_select_space, 0, wxALL, 5);
-
-    wxBoxSizer *bSizer_feed_back;
-    bSizer_feed_back = new wxBoxSizer(wxHORIZONTAL);
-
-    StateColor extruder_bg(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                           std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)); // TODO SET COLOR
-
-    StateColor extruder_bd(std::pair<wxColour, int>(wxColour(107, 107, 107), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    m_button_extruder_feed = new Button(this, _L("Feed"));
-    m_button_extruder_feed->SetBackgroundColor(extruder_bg);
-    m_button_extruder_feed->SetBorderColor(extruder_bd);
-    m_button_extruder_feed->SetFont(Label::Body_10);
-
-    bSizer_feed_back->Add(m_button_extruder_feed, 0, wxALL, 5);
-
-    bSizer_feed_back->Add(13, 0, 0, 0, 0);
-
-    m_button_extruder_back = new Button(this, _L("Back"));
-    m_button_extruder_back->SetBackgroundColor(extruder_bg);
-    m_button_extruder_back->SetBorderColor(extruder_bd);
-    m_button_extruder_back->SetFont(Label::Body_10);
-
-    bSizer_feed_back->Add(m_button_extruder_back, 0, wxALL, 5);
-
-    bSizer_extruder->Add(bSizer_feed_back, 0, wxEXPAND, 0);
-
-    bSizer_extruder_ctrl->Add(bSizer_extruder, 0, 0, 0);
-
-    sizer->Add(bSizer_extruder_ctrl, 0, wxEXPAND | wxALL, 0);
-
-    m_filament_step = new ::StepIndicator(this, wxID_ANY);
-    m_filament_step->SetMinSize({120, 180});
-    m_filament_step->SetSize(120, 180);
-    m_filament_step->AppendItem(_L("Choose the position"));
-    m_filament_step->AppendItem(_L("Click the load below"));
-    m_filament_step->AppendItem(_L("Heat the extruder"));
-    m_filament_step->AppendItem(_L("Load"));
-    m_filament_step->AppendItem(_L("Complete"));
-    sizer->Add(m_filament_step, 1, wxEXPAND | wxALL, 0);
+    // display demo, to be removed
+    auto caninfo0_0 = Caninfo{"can0", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_1 = Caninfo{"can1", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_2 = Caninfo{"can2", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_3 = Caninfo{"can3", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    AMSinfo ams1 = AMSinfo{"ams0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    std::vector<AMSinfo> ams_info{ams1};
+    m_ams_control->UpdateAms(ams_info);
 
     return sizer;
 }
@@ -828,12 +744,8 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_buttons.push_back(m_bpButton_z_down_10);
     m_buttons.push_back(m_bpButton_e_10);
     m_buttons.push_back(m_bpButton_e_down_10);
-    m_buttons.push_back(m_bpButton_extruder_1);
-    m_buttons.push_back(m_bpButton_extruder_2);
-    m_buttons.push_back(m_bpButton_extruder_3);
-    m_buttons.push_back(m_bpButton_extruder_4);
-    m_buttons.push_back(m_button_extruder_feed);
-    m_buttons.push_back(m_button_extruder_back);
+    //m_buttons.push_back(m_button_extruder_feed);
+    //m_buttons.push_back(m_button_extruder_back);
 
     obj = nullptr;
 
@@ -878,12 +790,8 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_bpButton_z_down_10->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_z_down_10), NULL, this);
     m_bpButton_e_10->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_e_up_10), NULL, this);
     m_bpButton_e_down_10->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_e_down_10), NULL, this);
-    m_bpButton_extruder_1->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_select_space_1), NULL, this); // TODO
-    m_bpButton_extruder_2->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_select_space_2), NULL, this); // TODO
-    m_bpButton_extruder_3->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_select_space_3), NULL, this); // TODO
-    m_bpButton_extruder_4->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_select_space_4), NULL, this); // TODO
-    m_button_extruder_feed->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_extruder_feed), NULL, this); // TODO
-    m_button_extruder_back->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_extruder_back), NULL, this); // TODO
+    Bind(EVT_AMS_FEED, &StatusPanel::on_ams_feed, this);
+    Bind(EVT_AMS_RETURN, &StatusPanel::on_ams_return, this);
     m_switch_speed->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
 }
 
@@ -909,12 +817,6 @@ StatusPanel::~StatusPanel()
     m_bpButton_z_down_10->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_z_down_10), NULL, this);
     m_bpButton_e_10->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_e_up_10), NULL, this);
     m_bpButton_e_down_10->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_e_down_10), NULL, this);
-    m_bpButton_extruder_1->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_select_space_1), NULL, this);
-    m_bpButton_extruder_2->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_select_space_2), NULL, this);
-    m_bpButton_extruder_3->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_select_space_3), NULL, this);
-    m_bpButton_extruder_4->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_select_space_4), NULL, this);
-    m_button_extruder_feed->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_extruder_feed), NULL, this);
-    m_button_extruder_back->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_extruder_back), NULL, this);
 }
 
 void StatusPanel::init_scaled_buttons()
@@ -937,20 +839,10 @@ void StatusPanel::init_scaled_buttons()
     m_bpButton_e_10->SetCornerRadius(FromDIP(12));
     m_bpButton_e_down_10->SetMinSize(wxSize(FromDIP(45), FromDIP(45)));
     m_bpButton_e_down_10->SetCornerRadius(FromDIP(12));
-    m_bpButton_extruder_1->SetMinSize(wxSize(FromDIP(50), FromDIP(66)));
-    m_bpButton_extruder_1->SetCornerRadius(0);
-    m_bpButton_extruder_2->SetMinSize(wxSize(FromDIP(50), FromDIP(66)));
-    m_bpButton_extruder_2->SetCornerRadius(0);
-    m_bpButton_extruder_3->SetMinSize(wxSize(FromDIP(50), FromDIP(66)));
-    m_bpButton_extruder_3->SetCornerRadius(0);
-    m_bpButton_extruder_4->SetMinSize(wxSize(FromDIP(50), FromDIP(66)));
-    m_bpButton_extruder_4->SetCornerRadius(0);
-    m_button_extruder_feed->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
-    ;
-    m_button_extruder_feed->SetCornerRadius(FromDIP(12));
-    m_button_extruder_back->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
-    ;
-    m_button_extruder_back->SetCornerRadius(FromDIP(12));
+    //m_button_extruder_feed->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
+    //m_button_extruder_feed->SetCornerRadius(FromDIP(12));
+    //m_button_extruder_back->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
+    //m_button_extruder_back->SetCornerRadius(FromDIP(12));
 }
 
 void StatusPanel::clean_tasklist_info()
@@ -1087,7 +979,7 @@ void StatusPanel::update(MachineObject *obj)
 
     update_tasklist(obj);
 
-    //TODO update_ams(obj);
+    update_ams(obj);
 }
 
 void StatusPanel::update_temp_ctrl(MachineObject *obj)
@@ -1128,6 +1020,49 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     // speed and lamp
     m_switch_nozzle_fan->SetValue(obj->cooling_fan_speed > 0);
     m_switch_printing_fan->SetValue(obj->big_fan1_speed > 0);
+}
+
+void StatusPanel::update_ams(MachineObject *obj)
+{
+    if (!obj) return;
+
+    //TODO
+    return;
+#if 0
+    // test data
+    auto caninfo0_0 = Caninfo{"can0", "PLA", wxColour(234, 78, 56), AMSCanType::AMS_CAN_TYPE_BRAND};
+    auto caninfo0_1 = Caninfo{"can1", "PLA", wxColour(147, 112, 219), AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_2 = Caninfo{"can2", "PLA", wxColour(65, 105, 225), AMSCanType::AMS_CAN_TYPE_THIRDBRAND};
+    auto caninfo0_3 = Caninfo{"can3", "PLA", wxColour(255, 222, 173), AMSCanType::AMS_CAN_TYPE_BRAND};
+
+    //AmsCans
+    //GetCurentAms
+
+    AMSinfo ams1 = AMSinfo{"ams0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo ams2 = AMSinfo{"ams1", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo ams3 = AMSinfo{"ams2", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo ams4 = AMSinfo{"ams3", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    std::vector<AMSinfo> ams_info{ams1, ams2, ams3, ams4};
+#else
+    if (obj->amsList.empty()) {
+        ; // TODO hide ams widgets
+        return;
+    } else {
+        std::vector<AMSinfo> ams_info;
+        for (auto ams = obj->amsList.begin(); ams != obj->amsList.end(); ams++) {
+            AMSinfo info;
+            if (info.parse_ams_info(ams->second)) ams_info.push_back(info);
+        }
+        m_ams_control->UpdateAms(ams_info);
+    }
+#endif
+
+    //TODO update states
+    // m_ams_control->SetAmsStep("ams2", "can2", AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
+
+    /* update steps */
+    int state_step = FilamentStep::STEP_CHOOSE_POSITION;
+    m_ams_control->SetFilamentStep(state_step);
 }
 
 void StatusPanel::update_subtask(MachineObject *obj)
@@ -1197,9 +1132,6 @@ void StatusPanel::update_subtask(MachineObject *obj)
     std::string left_time;
     wxString    left_time_text = NA_STR;
 
-    // std::string duration  = NA_STR;
-    // wxString duration_text  = NA_STR;
-
     // valid gcode percent / left time
     if (obj->mc_left_time != 0 || obj->mc_print_percent != 0) {
         try {
@@ -1209,14 +1141,6 @@ void StatusPanel::update_subtask(MachineObject *obj)
         }
         if (!left_time.empty())
             left_time_text = wxString::Format("-%s", left_time);
-        // try {
-        //    if (!obj->subtask_->task_duration.empty()) {
-        //        duration = get_bbl_monitor_time_dhm(stoi(obj->subtask_->task_duration));
-        // }
-        //} catch (...) {
-        //    ;
-        //}
-        // duration_text = wxString::Format("%s", duration);
     }
 
     // update current subtask progress
@@ -1315,6 +1239,22 @@ void StatusPanel::on_set_nozzle_temp()
     }
     catch(...) {
         ;
+    }
+}
+
+void StatusPanel::on_ams_feed(SimpleEvent &event)
+{
+    if (obj) {
+        //TODO get selected tray index
+        int tray_idx = 0;
+        obj->command_ams_switch(tray_idx);
+    }
+}
+
+void StatusPanel::on_ams_return(SimpleEvent &event)
+{
+    if (obj) {
+        obj->command_ams_switch(255);
     }
 }
 
@@ -1418,18 +1358,6 @@ void StatusPanel::on_lamp_switch(wxCommandEvent &event)
         m_switch_lamp->SetValue(false);
     }
 }
-
-void StatusPanel::on_select_space_1(wxCommandEvent &event) {}
-
-void StatusPanel::on_select_space_2(wxCommandEvent &event) {}
-
-void StatusPanel::on_select_space_3(wxCommandEvent &event) {}
-
-void StatusPanel::on_select_space_4(wxCommandEvent &event) {}
-
-void StatusPanel::on_extruder_feed(wxCommandEvent &event) { m_filament_step->SelectNext(); }
-
-void StatusPanel::on_extruder_back(wxCommandEvent &event) { ; }
 
 void StatusPanel::on_thumbnail_enter(wxMouseEvent &event)
 {
@@ -1607,7 +1535,7 @@ void StatusPanel::msw_rescale()
     m_switch_printing_fan->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_printing_fan->Rescale();
 
-    m_filament_step->Rescale();
+    //m_filament_step->Rescale();
 
     Layout();
     Refresh();

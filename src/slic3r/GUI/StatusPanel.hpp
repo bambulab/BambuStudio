@@ -21,6 +21,7 @@
 #include "Widgets/StaticLine.hpp"
 #include "Widgets/ProgressBar.hpp"
 #include "Widgets/ImageSwitchButton.hpp"
+#include "Widgets/AMSControl.hpp"
 
 class StepIndicator;
 
@@ -50,6 +51,8 @@ protected:
     wxBitmap m_bitmap_fan_on;
     wxBitmap m_bitmap_fan_off;
     wxBitmap m_bitmap_extruder;
+    wxBitmap m_bitmap_ams_extruder_on;
+    wxBitmap m_bitmap_ams_extruder_off;
 
     /* title panel */
     wxPanel *       m_panel_monitoring_title;
@@ -100,26 +103,17 @@ protected:
     Button *        m_bpButton_e_10;
     Button *        m_bpButton_e_down_10;
     StaticLine *    m_temp_extruder_line;
+    wxBoxSizer*     m_ams_list;
+    AMSControl*     m_ams_control;
+    wxStaticBitmap *m_ams_extruder_img;
     wxStaticBitmap* m_bitmap_extruder_img;
     wxStaticText *  m_staticText_ams_ctrl_caption;
-    Button *        m_bpButton_extruder_1;
-    StaticLine *    m_staticline4;
-    Button *        m_bpButton_extruder_2;
-    StaticLine *    m_staticline5;
-    Button *        m_bpButton_extruder_3;
-    StaticLine *    m_staticline6;
-    Button *        m_bpButton_extruder_4;
-    wxStaticText *  m_staticText_select_space;
-    Button *        m_button_extruder_feed;
-    Button *        m_button_extruder_back;
     wxPanel *       m_panel_separator_right;
     wxPanel *       m_panel_separotor_bottom;
     wxGridBagSizer *m_tasklist_info_sizer{nullptr};
     wxBoxSizer *    m_printing_sizer;
     wxBoxSizer *    m_tasklist_sizer;
     wxBoxSizer *    m_tasklist_caption_sizer;
-
-    ::StepIndicator * m_filament_step;
 
     // Virtual event handlers, override them in your derived class
     virtual void on_subtask_report(wxCommandEvent &event) { event.Skip(); }
@@ -138,12 +132,6 @@ protected:
     virtual void on_axis_ctrl_z_down_10(wxCommandEvent &event) { event.Skip(); }
     virtual void on_axis_ctrl_e_up_10(wxCommandEvent &event) { event.Skip(); }
     virtual void on_axis_ctrl_e_down_10(wxCommandEvent &event) { event.Skip(); }
-    virtual void on_select_space_1(wxCommandEvent &event) { event.Skip(); }
-    virtual void on_select_space_2(wxCommandEvent &event) { event.Skip(); }
-    virtual void on_select_space_3(wxCommandEvent &event) { event.Skip(); }
-    virtual void on_select_space_4(wxCommandEvent &event) { event.Skip(); }
-    virtual void on_extruder_feed(wxCommandEvent &event) { event.Skip(); }
-    virtual void on_extruder_back(wxCommandEvent &event) { event.Skip(); }
 
 public:
     StatusBasePanel(wxWindow *      parent,
@@ -225,12 +213,8 @@ protected:
     void on_set_nozzle_temp();
 
     /* extruder apis */
-    void on_extruder_feed(wxCommandEvent &event);
-    void on_extruder_back(wxCommandEvent &event);
-    void on_select_space_1(wxCommandEvent &event);
-    void on_select_space_2(wxCommandEvent &event);
-    void on_select_space_3(wxCommandEvent &event);
-    void on_select_space_4(wxCommandEvent &event);
+    void on_ams_feed(SimpleEvent &event);
+    void on_ams_return(SimpleEvent &event);
 
     void on_switch_speed(wxCommandEvent &event);
     void on_lamp_switch(wxCommandEvent &event);
@@ -241,12 +225,14 @@ protected:
     void on_auto_leveling(wxCommandEvent &event);
     void on_xyz_abs(wxCommandEvent &event);
 
+
     /* update apis */
     void update(MachineObject* obj);
     void update_subtask(MachineObject *obj);
     void update_tasklist(MachineObject* obj);
     void update_temp_ctrl(MachineObject *obj);
     void update_misc_ctrl(MachineObject *obj);
+    void update_ams(MachineObject* obj);
 
     void reset_printing_values();
     void on_webrequest_state(wxWebRequestEvent &evt);

@@ -58,12 +58,33 @@ public:
     void add_topics(std::string topic) { sub_topics.push_back(topic); }
 };
 
+enum AmsRfidState {
+    AMS_RFID_INIT,
+    AMS_RFID_LOADING,
+    AMS_REID_DONE,
+};
+
+enum AmsStep {
+    AMS_STEP_INIT,
+    AMS_STEP_HEAT_EXTRUDER,
+    AMS_STEP_LOADING,
+    AMS_STEP_COMPLETED,
+};
+
+enum AmsRoadPosition {
+    AMS_ROAD_POSITION_TRAY,     // filament at tray
+    AMS_ROAD_POSITION_TUBE,     // filament at tube
+    AMS_ROAD_POSITION_HOTEND,   // filament at hotend
+};
 
 class AmsTray {
 public:
     AmsTray(std::string tray_id) {
-        is_bbl = false;
-        id = tray_id;
+        is_bbl          = false;
+        id              = tray_id;
+        road_position   = AMS_ROAD_POSITION_TRAY;
+        step_state      = AMS_STEP_INIT;
+        rfid_state      = AMS_RFID_INIT;
     }
 
     std::string     id;
@@ -85,6 +106,10 @@ public:
 
     wxColour        wx_color;
     bool            is_bbl;
+
+    AmsRoadPosition road_position;
+    AmsStep         step_state;
+    AmsRfidState    rfid_state;
 
     void update_color_from_str(std::string color);
 };
@@ -243,6 +268,9 @@ public:
     int command_task_resume();
     int command_set_bed(int temp);
     int command_set_nozzle(int temp);
+
+    int command_ams_switch(int tray_id, int old_temp = 220, int new_temp = 200);
+    int command_ams_refresh_rfid(int tray_id);
 
     inline std::string light_effect_str(LIGHT_EFFECT effect) {
         switch (effect)

@@ -5,6 +5,12 @@
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/Sftp.hpp"
 
+#include "GUI_App.hpp"
+#include "libslic3r/PlaceholderParser.hpp"
+#include "libslic3r/Print.hpp"
+#include "libslic3r/PrintConfig.hpp"
+#include "Plater.hpp"
+
 #include "nlohmann/json.hpp"
 #include "slic3r/Utils/minilzo_extension.hpp"
 #include <thread>
@@ -284,6 +290,69 @@ int MachineObject::command_set_nozzle(int temp)
 {
     std::string gcode_str = (boost::format("M104 S%1%\n") % temp).str();
     return this->publish_gcode(gcode_str);
+}
+
+int MachineObject::command_ams_switch(int tray_id, int old_temp, int new_temp)
+{
+    //TODO get print_config.change_filament_gcode from iot-service, get dyn_config from iot-service?
+    std::string gcode = "";
+    Slic3r::Print &   print = Slic3r::GUI::wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+    const PrintConfig &print_config = print.config();
+
+    PlaceholderParser m_placeholder_parser;
+    m_placeholder_parser = print.placeholder_parser();
+    PlaceholderParser::ContextData m_placeholder_parser_context;
+    DynamicConfig      dyn_config;
+
+    int                old_filament_temp = old_temp;
+    int                new_filament_temp = new_temp;
+    old_filament_temp = std::min(old_filament_temp, 300);
+    old_filament_temp = std::max(old_filament_temp, 120);
+    new_filament_temp = std::min(new_filament_temp, 300);
+    new_filament_temp = std::max(new_filament_temp, 120);
+    dyn_config.set_key_value("previous_extruder", new ConfigOptionInt(-1));
+    dyn_config.set_key_value("next_extruder", new ConfigOptionInt(tray_id));
+    dyn_config.set_key_value("layer_num", new ConfigOptionInt(0));
+    dyn_config.set_key_value("layer_z", new ConfigOptionFloat(0.3));
+    dyn_config.set_key_value("max_layer_z", new ConfigOptionFloat(10.));
+    dyn_config.set_key_value("relative_e_axis", new ConfigOptionBool(RELATIVE_E_AXIS));
+    dyn_config.set_key_value("toolchange_count", new ConfigOptionInt(1));
+    dyn_config.set_key_value("fan_speed", new ConfigOptionInt(0));
+    dyn_config.set_key_value("old_retract_length", new ConfigOptionFloat(2.));
+    dyn_config.set_key_value("new_retract_length", new ConfigOptionFloat(2.));
+    dyn_config.set_key_value("old_retract_length_toolchange", new ConfigOptionFloat(3.0));
+    dyn_config.set_key_value("new_retract_length_toolchange", new ConfigOptionFloat(3.0));
+    dyn_config.set_key_value("old_filament_temp", new ConfigOptionInt(old_filament_temp));
+    dyn_config.set_key_value("new_filament_temp", new ConfigOptionInt(new_filament_temp));
+    dyn_config.set_key_value("x_after_toolchange", new ConfigOptionFloat(50.));
+    dyn_config.set_key_value("y_after_toolchange", new ConfigOptionFloat(50.));
+    dyn_config.set_key_value("z_after_toolchange", new ConfigOptionFloat(10.));
+    dyn_config.set_key_value("first_flush_volume", new ConfigOptionFloat(5.f));
+    dyn_config.set_key_value("second_flush_volume", new ConfigOptionFloat(5.f));
+
+    try {
+        std::string parsed_command = m_placeholder_parser.process(print_config.change_filament_gcode.value, tray_id, &dyn_config, &m_placeholder_parser_context);
+        // config xyz coordinate mode
+        std::string auto_home_command = "G28 X\n";
+        parsed_command                = "G90\n" + auto_home_command + parsed_command;
+        std::regex  match_pattern(";.*\n");
+        std::string replace_pattern = "\n";
+        char        result[1024]    = {0};
+        std::regex_replace(result, parsed_command.begin(), parsed_command.end(), match_pattern, replace_pattern);
+        result[1023] = 0;
+        gcode = std::string(result);
+    } catch (Exception &e) {
+        BOOST_LOG_TRIVIAL(trace) << "exception, e=" << e.what();
+        return -1;
+    }
+
+    return this->publish_json(gcode);
+}
+
+int MachineObject::command_ams_refresh_rfid(int tray_id)
+{
+    ;//TODO
+    return 0;
 }
 
 int MachineObject::command_set_chamber_light(LIGHT_EFFECT effect, int on_time, int off_time, int loops, int interval)
