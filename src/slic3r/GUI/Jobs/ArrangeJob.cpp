@@ -104,46 +104,27 @@ ArrangePolygon ArrangeJob::prepare_arrange_polygon(void* model_instance)
     return get_instance_arrange_poly(instance, config);
 }
 
-void ArrangeJob::prepare_selected() {
+void ArrangeJob::prepare_all() {
     PartPlateList& plate_list = m_plater->get_partplate_list();
 
     clear_input();
 
     Model &model = m_plater->model();
     bool selected_is_locked = false;
-    //BBS: remove logic for unselected object
-    //double stride = bed_stride_x(m_plater);
-
-    std::vector<const Selection::InstanceIdxsList *>
-            obj_sel(model.objects.size(), nullptr);
-
-    for (auto &s : m_plater->get_selection().get_content())
-        if (s.first < int(obj_sel.size()))
-            obj_sel[size_t(s.first)] = &s.second;
 
     // Go through the objects and check if inside the selection
     for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) {
-        const Selection::InstanceIdxsList * instlist = obj_sel[oidx];
         ModelObject *mo = model.objects[oidx];
 
-        std::vector<bool> inst_sel(mo->instances.size(), false);
-
-        if (instlist)
-            for (auto inst_id : *instlist)
-                inst_sel[size_t(inst_id)] = true;
-
-        for (size_t i = 0; i < inst_sel.size(); ++i) {
+        for (size_t i = 0; i < mo->instances.size(); ++i) {
             ModelInstance * mi = mo->instances[i];
             ArrangePolygon&& ap = prepare_arrange_polygon(mo->instances[i]);
             //BBS: partplate_list preprocess
             //remove the locked plate's instances, neither in selected, nor in un-selected
-            bool locked = plate_list.preprocess_arrange_polygon(oidx, i, ap, inst_sel[i]);
+            bool locked = plate_list.preprocess_arrange_polygon(oidx, i, ap, true);
             if (!locked)
             {
-                ArrangePolygons& cont = mo->instances[i]->printable ?
-                    (inst_sel[i] ? m_selected :
-                        m_unselected) :
-                    m_unprintable;
+                ArrangePolygons& cont = mo->instances[i]->printable ? m_selected :m_unprintable;
 
                 ap.itemid = cont.size();
                 cont.emplace_back(std::move(ap));
@@ -153,8 +134,7 @@ void ArrangeJob::prepare_selected() {
                 //skip this object due to be locked in plate
                 ap.itemid = m_locked.size();
                 m_locked.emplace_back(std::move(ap));
-                if (inst_sel[i])
-                    selected_is_locked = true;
+                selected_is_locked = true;
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % i;
             }
         }
@@ -164,8 +144,10 @@ void ArrangeJob::prepare_selected() {
     // If the selection was empty arrange everything
     //if (m_selected.empty()) m_selected.swap(m_unselected);
     if (m_selected.empty()) {
-        if (!selected_is_locked)
-            m_selected.swap(m_unselected);
+        if (!selected_is_locked) {
+            m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
+                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("No arrangable objects are selected!")));
+        }
         else {
             m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
                 NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("All the selected objects are on the locked plate,\nWe can not do auto-arrange on these objects!")));
@@ -179,12 +161,6 @@ void ArrangeJob::prepare_selected() {
             ap.bed_idx = bedid;
             m_unselected.emplace_back(std::move(ap));
         }
-
-    // The strides have to be removed from the fixed items. For the
-    // arrangeable (selected) items bed_idx is ignored and the
-    // translation is irrelevant.
-    //BBS: remove logic for unselected object
-    //for (auto &p : m_unselected) p.translation(X) -= p.bed_idx * stride;
 }
 
 arrangement::ArrangePolygon ArrangeJob::get_arrange_poly_(ModelInstance *mi)
@@ -225,8 +201,6 @@ void ArrangeJob::prepare_partplate() {
     }
 
     Model& model = m_plater->model();
-    //BBS: remove logic for unselected object
-    //double stride = bed_stride_x(m_plater);
 
     // Go through the objects and check if inside the selection
     for (size_t oidx = 0; oidx < model.objects.size(); ++oidx)
@@ -274,10 +248,14 @@ void ArrangeJob::prepare()
     wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing,
         NotificationManager::NotificationLevel::RegularNotificationLevel, into_u8(_L("Arranging...")));
 
+    //BBS update extruder params and speed table before arranging
+    Plater::setExtruderParams(Model::extruderParamsMap);
+    Plater::setPrintSpeedTable(Model::printSpeedMap);
+
     int state = m_plater->get_prepare_state();
     if (state == Job::JobPrepareState::PREPARE_STATE_DEFAULT) {
         only_on_partplate = false;
-        prepare_selected();
+        prepare_all();
     }
     else if (state == Job::JobPrepareState::PREPARE_STATE_MENU) {
         only_on_partplate = true;   // only arrange items on current plate

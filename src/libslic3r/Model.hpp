@@ -1197,7 +1197,7 @@ public:
     // BBS static members store extruder parameters and speed map of all models
     static std::map<size_t, ExtruderParams> extruderParamsMap;
     static GlobalSpeedMap printSpeedMap;
-
+    
     // Extensions for color print
     CustomGCode::Info custom_gcode_per_print_z;
     
@@ -1224,7 +1224,8 @@ public:
         LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr,
         std::vector<Preset*>* project_presets = nullptr, bool* is_xxx = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr,
         ImportStepProgressFn stepFn = nullptr, StepIsUtf8Fn stepIsUtf8Fn = nullptr, BBLProject* project = nullptr);
-
+    // BBS 
+    static double findMaxSpeed(const ModelObject* object);
     // BBS: backup
     static Model read_from_archive(
         const std::string& input_file, 

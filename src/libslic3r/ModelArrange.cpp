@@ -90,10 +90,6 @@ void duplicate_objects(Model &model, size_t copies_num)
 template<class T>
 arrangement::ArrangePolygon get_arrange_poly(T obj)
 {
-    //BBS update extruder params and speed table before arranging
-    //Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
-    //Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
-
     ArrangePolygon ap = obj.get_arrange_polygon();
     //BBS: always set bed_idx to 0 to use original transforms with no bed_idx
     //if this object is not arranged, it can keep the original transforms

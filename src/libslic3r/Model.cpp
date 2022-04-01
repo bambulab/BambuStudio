@@ -36,9 +36,7 @@
 
 namespace Slic3r {
     // BBS initialization of static variables
-    ExtruderParams initExtruderParams{"",0,0};
-
-    std::map<size_t, ExtruderParams> Model::extruderParamsMap = { {0,initExtruderParams}};
+    std::map<size_t, ExtruderParams> Model::extruderParamsMap = { {0,{"",0,0}}};
     GlobalSpeedMap Model::printSpeedMap{};
 Model& Model::assign_copy(const Model &rhs)
 {
@@ -2657,35 +2655,26 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
 
 //BBS
 // update the maxSpeed of an object if it is different from the global configuration
-double findMaxSpeed(ModelObject* object) {
+double Model::findMaxSpeed(const ModelObject* object) {
     auto objectKeys = object->config.keys();
     double objMaxSpeed = Model::printSpeedMap.maxSpeed;
     if (objectKeys.empty())
         return objMaxSpeed;
     for (std::string objectKey : objectKeys) {
-        if (objectKey == "inner_wall_speed")
-            objMaxSpeed = std::max(object->config.opt_float("inner_wall_speed"), objMaxSpeed);
+        if (objectKey == "inner_wall_speed" || objectKey == "sparse_infill_speed" || objectKey == "internal_solid_infill_speed" || objectKey == "top_surface_speed" || objectKey == "support_speed")
+            objMaxSpeed = std::max(object->config.opt_float(objectKey), objMaxSpeed);
         if (objectKey == "outer_wall_speed") {
-            objMaxSpeed = std::max(0.01 * object->config.opt_float("outer_wall_speed") * object->config.opt_float("inner_wall_speed"), objMaxSpeed);
+            objMaxSpeed = std::max(0.01 * object->config.opt_float("outer_wall_speed") * Model::printSpeedMap.perimeterSpeed, objMaxSpeed);
         }     
-        if (objectKey == "sparse_infill_speed")
-            objMaxSpeed = std::max(object->config.opt_float("sparse_infill_speed"), objMaxSpeed);
-        if (objectKey == "internal_solid_infill_speed") {
-            objMaxSpeed = std::max(object->config.opt_float("internal_solid_infill_speed"), objMaxSpeed);
-        }
-        if (objectKey == "top_surface_speed") {
-            objMaxSpeed = std::max(object->config.opt_float("top_surface_speed"), objMaxSpeed);
-        }
-        if (objectKey == "support_speed")
-            objMaxSpeed = std::max(object->config.opt_float("support_speed"), objMaxSpeed);
     }
+    if (objMaxSpeed <= 0) objMaxSpeed = 250.;
     return objMaxSpeed;
 }
 // max printing speed, difference in bed temperature and envirument temperature and bed adhension coefficients are considered 
 double ModelInstance::get_auto_brim_width(double deltaT, double adhension) const
 {
     BoundingBoxf3 raw_bbox = object->raw_mesh_bounding_box();
-    double maxSpeed = findMaxSpeed(object);
+    double maxSpeed = Model::findMaxSpeed(object);
 
     auto bbox_size = transform_bounding_box(raw_bbox).size();
     double height_to_area = std::max(bbox_size(2) / (bbox_size(0) * bbox_size(0) * bbox_size(1)),

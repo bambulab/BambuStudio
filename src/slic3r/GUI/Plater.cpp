@@ -3274,9 +3274,6 @@ void Plater::find_new_position(const ModelInstancePtrs &instances)
     arrangement::ArrangePolygons movable, fixed;
     arrangement::ArrangeParams arr_params = get_arrange_params(this);
 
-    //BBS update extruder params and speed table before arranging
-    Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
-    Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
     for (const ModelObject *mo : p->model.objects)
         for (ModelInstance *inst : mo->instances) {
             auto it = std::find(instances.begin(), instances.end(), inst);
