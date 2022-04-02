@@ -11,6 +11,7 @@ class Model;
 struct ConfigSubstitutionContext;
 class DynamicPrintConfig;
 class Preset;
+struct FilamentInfo;
 struct ThumbnailData;
 
 #define GCODE_FILE_FORMAT               "Metadata/plate_%1%.gcode"
@@ -19,18 +20,10 @@ struct ThumbnailData;
 #define EMBEDDED_PRINTER_FILE_FORMAT      "Metadata/machine_settings_%1%.config"
 
 
+
 //BBS: define plate data list related structures
 struct PlateData
 {
-    struct FilamentInfo
-    {
-        int         id;     // filament id = extruder id, start with 0.
-        std::string type;
-        std::string color;
-        float       used_m;
-        float       used_g;
-    };
-
     PlateData(int plate_id, std::set<std::pair<int, int>> &obj_to_inst_list, bool lock_state) : plate_index(plate_id), locked(lock_state)
     {
         objects_and_instances.clear();

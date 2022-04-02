@@ -10,6 +10,160 @@ namespace GUI {
 #define ICON_SIZE       (wxSize(FromDIP(16), FromDIP(16)))
 #define PRINT_ICON_SIZE (wxSize(FromDIP(18), FromDIP(18)))
 
+wxIMPLEMENT_CLASS(SliceInfoPopup, wxPopupTransientWindow);
+
+wxBEGIN_EVENT_TABLE(SliceInfoPopup, wxPopupTransientWindow)
+    EVT_MOUSE_EVENTS( SliceInfoPopup::OnMouse )
+    EVT_SIZE(SliceInfoPopup::OnSize)
+    EVT_SET_FOCUS( SliceInfoPopup::OnSetFocus )
+    EVT_KILL_FOCUS( SliceInfoPopup::OnKillFocus )
+wxEND_EVENT_TABLE()
+
+static wxColour BUTTON_BORDER_COL = wxColour(255, 255, 255);
+
+inline int hex_digit_to_int(const char c)
+{
+    return
+        (c >= '0' && c <= '9') ? int(c - '0') :
+        (c >= 'A' && c <= 'F') ? int(c - 'A') + 10 :
+        (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
+}
+
+inline float calc_gray(wxColour color)
+{
+    return 0.299 * (float) color.Red() + 0.587 * (float) color.Green() + 0.114 * (float) color.Blue();
+}
+
+static wxColour decode_color(const std::string &color)
+{
+    std::array<int, 3> ret = {0, 0, 0};
+    const char *       c   = color.data() + 1;
+    if (color.size() == 7 && color.front() == '#') {
+        for (size_t j = 0; j < 2; ++j) {
+            int digit1 = hex_digit_to_int(*c++);
+            int digit2 = hex_digit_to_int(*c++);
+            if (digit1 == -1 || digit2 == -1) break;
+
+            ret[j] = float(digit1 * 16 + digit2);
+        }
+    }
+    return wxColour(ret[0], ret[1], ret[2]);
+}
+
+
+SliceInfoPopup::SliceInfoPopup(wxWindow *parent, wxBitmap bmp, BBLSliceInfo *info)
+   : wxPopupTransientWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
+{
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif
+    m_panel = new wxScrolledWindow(this, wxID_ANY);
+    m_panel->SetBackgroundColour(*wxWHITE);
+
+    m_panel->Bind(wxEVT_MOTION, &SliceInfoPopup::OnMouse, this);
+
+    wxBoxSizer * main_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer * topSizer   = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer * caption_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer * caption_left_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer * caption_right_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto prediction_bitmap = new wxStaticBitmap(m_panel, wxID_ANY, create_scaled_bitmap("monitor_item_prediction", nullptr, 16));
+    wxString predict_text = get_bbl_monitor_time_dhm(info->prediction);
+    auto prediction = new wxStaticText(m_panel, wxID_ANY, predict_text, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    caption_left_sizer->Add(prediction_bitmap, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    caption_left_sizer->Add(prediction, 1, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    prediction->Wrap(-1);
+    auto cost_bitmap = new wxStaticBitmap(m_panel, wxID_ANY, create_scaled_bitmap("monitor_item_cost", nullptr, 16));
+    wxString cost_text = wxString::Format("%sg", info->weight);
+    auto used_g_text = new wxStaticText(m_panel, wxID_ANY, cost_text, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    caption_right_sizer->Add(cost_bitmap, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    caption_right_sizer->Add(used_g_text, 1, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+    caption_sizer->Add(caption_left_sizer,  1, 0, 5);
+    caption_sizer->Add(caption_right_sizer, 1, 0, 5);
+
+    topSizer->Add(caption_sizer, 0, wxEXPAND | wxALL, 0);
+    auto static_line = new StaticLine(m_panel);
+    topSizer->Add(static_line, 0, wxEXPAND | wxALL, 0);
+    wxGridSizer *grid_sizer = new wxGridSizer(2, wxSize(10, 0));
+    if (info) {
+        for (auto f : info->filaments_info) {
+            auto f_sizer = new wxBoxSizer(wxHORIZONTAL);
+            auto f_type  = new Button(m_panel, f.type);
+            f_type->SetBorderColor(BUTTON_BORDER_COL);
+            wxColour color = decode_color(f.color);
+            f_type->SetBackgroundColor(color);
+            auto  textcolor = wxColour(0, 0, 0);
+            if (calc_gray(color))
+                textcolor = wxColour(255, 255, 255);
+            else
+                textcolor = wxColour(0, 0, 0);
+
+            f_type->SetTextColor(textcolor);
+            f_type->SetSize(wxSize(40, 20));
+            f_type->SetMinSize(wxSize(40, 20));
+            f_type->SetMaxSize(wxSize(40, 20));
+            f_type->SetCornerRadius(10);
+
+            wxString used_g_text = wxString::Format("%.1fg", f.used_g);
+            auto f_used_g = new wxStaticText(m_panel, wxID_ANY, used_g_text, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+            f_used_g->Wrap(-1);
+            f_used_g->SetSize(wxSize(60, -1));
+            f_sizer->Add(f_type, 0, wxEXPAND | wxALL, 5);
+            f_sizer->Add(f_used_g, 0, wxEXPAND | wxALL, 5);
+            grid_sizer->Add(f_sizer, 0, wxEXPAND, 0);
+        }
+    }
+    topSizer->Add(grid_sizer, 0, wxALL, 5);
+    main_sizer->Add(13, 0, 0, 0);
+    main_sizer->Add(topSizer, 0, wxEXPAND | wxALL, 0);
+    main_sizer->Add(13, 0, 0, 0);
+    main_sizer->SetMinSize(wxSize(200, -1));
+    m_panel->SetSizer(main_sizer);
+    m_panel->Layout();
+
+    main_sizer->Fit(m_panel);
+
+    SetClientSize(m_panel->GetSize());
+}
+
+void SliceInfoPopup::Popup(wxWindow *WXUNUSED(focus)) {
+    wxPopupTransientWindow::Popup();
+}
+
+void SliceInfoPopup::OnDismiss() {
+    wxPopupTransientWindow::OnDismiss();
+}
+
+bool SliceInfoPopup::ProcessLeftDown(wxMouseEvent &event)
+{
+    return wxPopupTransientWindow::ProcessLeftDown(event);
+}
+bool SliceInfoPopup::Show(bool show)
+{
+    return wxPopupTransientWindow::Show(show);
+}
+
+void SliceInfoPopup::OnSize(wxSizeEvent &event)
+{
+    event.Skip();
+}
+
+void SliceInfoPopup::OnSetFocus(wxFocusEvent &event)
+{
+    event.Skip();
+}
+
+void SliceInfoPopup::OnKillFocus(wxFocusEvent &event)
+{
+    event.Skip();
+}
+
+void SliceInfoPopup::OnMouse(wxMouseEvent &event)
+{
+    event.Skip();
+}
+
 SliceInfoPanel::SliceInfoPanel(wxWindow *parent, wxBitmap &prediction, wxBitmap &cost, wxBitmap &print,
     wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
     : wxPanel(parent, id, pos, size, style, name)
@@ -77,16 +231,16 @@ SliceInfoPanel::SliceInfoPanel(wxWindow *parent, wxBitmap &prediction, wxBitmap 
     Bind(wxEVT_WEBREQUEST_STATE, &SliceInfoPanel::on_webrequest_state, this);
 
     // Connect Events
-    //m_bmp_item_thumbnail->Connect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(SliceInfoPanel::on_thumbnail_enter), NULL, this);
-    //m_bmp_item_thumbnail->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(SliceInfoPanel::on_thumbnail_leave), NULL, this);
+    m_bmp_item_thumbnail->Connect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(SliceInfoPanel::on_thumbnail_enter), NULL, this);
+    m_bmp_item_thumbnail->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(SliceInfoPanel::on_thumbnail_leave), NULL, this);
     m_bmp_item_print->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(SliceInfoPanel::on_subtask_print), NULL, this);
 }
 
 SliceInfoPanel::~SliceInfoPanel()
 {
     // Disconnect Events
-    //m_bmp_item_thumbnail->Disconnect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(SliceInfoPanel::on_thumbnail_enter), NULL, this);
-    //m_bmp_item_thumbnail->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(SliceInfoPanel::on_thumbnail_leave), NULL, this);
+    m_bmp_item_thumbnail->Disconnect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(SliceInfoPanel::on_thumbnail_enter), NULL, this);
+    m_bmp_item_thumbnail->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(SliceInfoPanel::on_thumbnail_leave), NULL, this);
     m_bmp_item_print->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(SliceInfoPanel::on_subtask_print), NULL, this);
 }
 
@@ -97,19 +251,21 @@ void SliceInfoPanel::SetImages(wxBitmap &prediction, wxBitmap &cost, wxBitmap &p
     m_bmp_item_print->SetBitmap(printing);
 }
 
-void SliceInfoPanel::on_subtask_print(wxCommandEvent &evt) {
+void SliceInfoPanel::on_subtask_print(wxCommandEvent &evt)
+{
     ;
 }
 
 void SliceInfoPanel::on_thumbnail_enter(wxMouseEvent &event)
 {
-    if (!m_thumbnail_img.IsOk()) return;
-    m_thumbnail_popup = std::make_shared<ImageTransientPopup>(this, false, m_thumbnail_img);
+    /*
+    m_slice_info_popup = std::make_shared<SliceInfoPopup>(this);
     wxWindow *ctrl    = (wxWindow *) event.GetEventObject();
     wxPoint   pos     = ctrl->ClientToScreen(wxPoint(0, 0));
     wxSize    sz      = ctrl->GetSize();
-    m_thumbnail_popup->Position(pos, sz);
-    m_thumbnail_popup->Popup();
+    m_slice_info_popup->Position(pos, sz);
+    m_slice_info_popup->Popup();
+    */
 }
 
 void SliceInfoPanel::on_thumbnail_leave(wxMouseEvent &event)

@@ -13,12 +13,39 @@
 namespace Slic3r {
 namespace GUI {
 
+class SliceInfoPopup : public wxPopupTransientWindow
+{
+public:
+    SliceInfoPopup(wxWindow *parent, wxBitmap bmp= wxNullBitmap, BBLSliceInfo* info=nullptr);
+    virtual ~SliceInfoPopup() {}
+
+    // wxPopupTransientWindow virtual methods are all overridden to log them
+    virtual void Popup(wxWindow *focus = NULL) wxOVERRIDE;
+    virtual void OnDismiss() wxOVERRIDE;
+    virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
+    virtual bool Show(bool show = true) wxOVERRIDE;
+
+private:
+    wxScrolledWindow *m_panel;
+    BBLSliceInfo *m_info { nullptr };
+
+    void OnMouse(wxMouseEvent &event);
+    void OnSize(wxSizeEvent &event);
+    void OnSetFocus(wxFocusEvent &event);
+    void OnKillFocus(wxFocusEvent &event);
+
+private:
+    wxDECLARE_ABSTRACT_CLASS(SliceInfoPopup);
+    wxDECLARE_EVENT_TABLE();
+};
+
 class SliceInfoPanel : public wxPanel
 {
 private:
 protected:
     wxWebRequest web_request;
     std::shared_ptr<ImageTransientPopup> m_thumbnail_popup;
+    std::shared_ptr<SliceInfoPopup> m_slice_info_popup;
 
     wxImage m_thumbnail_img;
 

@@ -59,6 +59,7 @@ static const int PAGE_SPACING             = 10;
 #define AXIS_MIN_SIZE           (wxSize(FromDIP(280), FromDIP(280)))
 #define EXTRUDER_IMAGE_SIZE     (wxSize(FromDIP(48), FromDIP(96)))
 
+
 StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
     : wxPanel(parent, id, pos, size, style)
 {
@@ -857,6 +858,9 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     });
 
     // Connect Events
+    m_bitmap_thumbnail->Connect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_enter), NULL, this);
+    m_bitmap_thumbnail->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
+
     m_button_report->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_report), NULL, this);
     m_button_pause_resume->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
@@ -886,6 +890,8 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
 StatusPanel::~StatusPanel()
 {
     // Disconnect Events
+    m_bitmap_thumbnail->Disconnect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_enter), NULL, this);
+    m_bitmap_thumbnail->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
     m_button_report->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_report), NULL, this);
     m_button_pause_resume->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
@@ -1004,7 +1010,6 @@ void StatusPanel::update_tasklist_info()
         SliceInfoPanel *panel = new SliceInfoPanel(this, m_bitmap_item_prediction, m_bitmap_item_cost, m_bitmap_item_print,
                                     -1, wxDefaultPosition, wxDefaultSize, wxBORDER_SIMPLE);
         slice_info_list.push_back(panel);
-
         panel->update(it->second);
         panel->Layout();
         m_item_top_sizer->Add(panel, 0, wxEXPAND | wxALL, 0);
@@ -1425,6 +1430,43 @@ void StatusPanel::on_select_space_4(wxCommandEvent &event) {}
 void StatusPanel::on_extruder_feed(wxCommandEvent &event) { m_filament_step->SelectNext(); }
 
 void StatusPanel::on_extruder_back(wxCommandEvent &event) { ; }
+
+void StatusPanel::on_thumbnail_enter(wxMouseEvent &event)
+{
+    if (obj) {
+#if 0
+        // test data
+        BBLSliceInfo * info = new BBLSliceInfo();
+        info->prediction = 1393;
+        info->weight = "30.5";
+        for (int i = 0; i < 5; i++) {
+            FilamentInfo f;
+            f.id     = i+1;
+            f.type   = "PLA";
+            f.color  = "#EE2033";
+            f.used_g = 12.3 + i;
+            f.used_m = 45.6 + i;
+            info->filaments_info.push_back(f);
+        }
+#endif
+        if (!obj->profile_ || !obj->subtask_) return;
+        std::map<std::string, BBLSliceInfo *>::iterator iter = obj->profile_->slice_info.find(obj->subtask_->task_partplate_idx);
+        if (iter->second) {
+            m_slice_info_popup = std::make_shared<SliceInfoPopup>(this, m_bitmap_thumbnail->GetBitmap(), iter->second);
+            wxWindow *ctrl     = (wxWindow *) event.GetEventObject();
+            wxPoint   pos      = ctrl->ClientToScreen(wxPoint(0, 0));
+            wxSize    sz       = ctrl->GetSize();
+            m_slice_info_popup->Position(pos, wxSize(sz.x / 2, sz.y / 2));
+            m_slice_info_popup->Popup();
+        }
+    }
+}
+
+void StatusPanel::on_thumbnail_leave(wxMouseEvent &event)
+{
+    if (obj && m_slice_info_popup)
+        m_slice_info_popup->Dismiss();
+}
 
 void StatusPanel::on_auto_leveling(wxCommandEvent &event)
 {

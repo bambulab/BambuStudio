@@ -178,6 +178,8 @@ private:
     friend class MonitorPanel;
 
 protected:
+    std::shared_ptr<SliceInfoPopup> m_slice_info_popup;
+    std::shared_ptr<ImageTransientPopup> m_image_popup;
     std::vector<SliceInfoPanel *> slice_info_list;
     // wxObjectDataPtr<TrayListModel>      tray_model;
 
@@ -234,8 +236,10 @@ protected:
     void on_lamp_switch(wxCommandEvent &event);
     void on_printing_fan_switch(wxCommandEvent &event);
     void on_nozzle_fan_switch(wxCommandEvent &event);
-    void on_auto_leveling(wxCommandEvent &event); // unused?
-    void on_xyz_abs(wxCommandEvent &event);       // unused?
+    void on_thumbnail_enter(wxMouseEvent &event);
+    void on_thumbnail_leave(wxMouseEvent &event);
+    void on_auto_leveling(wxCommandEvent &event);
+    void on_xyz_abs(wxCommandEvent &event);
 
     /* update apis */
     void update(MachineObject* obj);

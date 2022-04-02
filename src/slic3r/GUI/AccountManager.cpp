@@ -2379,6 +2379,23 @@ namespace Slic3r {
                                                                 info->gcode_url = gcode_url.value();
                                                             }
                                                         }
+                                                        if (plate->second.get_child_optional("filaments") != boost::none) {
+                                                            pt::ptree filaments = plate->second.get_child("filaments");
+                                                            for (auto filament = filaments.begin(); filament != filaments.end(); ++filament) {
+                                                                FilamentInfo f;
+                                                                try {
+                                                                    boost::optional<std::string> id = filament->second.get_optional<std::string>("id");
+                                                                    if (id.has_value() && !id.value().empty() && id.value().compare("null") != 0) f.id = stoi(id.value()) - 1;
+                                                                    f.color  = filament->second.get<std::string>("color");
+                                                                    f.type   = filament->second.get<std::string>("type");
+                                                                    f.used_m = stof(filament->second.get<std::string>("used_m"));
+                                                                    f.used_g = stof(filament->second.get<std::string>("used_g"));
+                                                                } catch (...) {
+                                                                    continue;
+                                                                }
+                                                                info->filaments_info.push_back(f);
+                                                            }
+                                                        }
                                                         profile->slice_info.insert(std::make_pair(index.value(), info));
                                                     }
                                                 }

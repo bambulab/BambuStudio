@@ -18,6 +18,14 @@ class BBLProject;
 class BBLProfile;
 class BBLTask;
 
+struct FilamentInfo
+{
+    int         id; // filament id = extruder id, start with 0.
+    std::string type;
+    std::string color;
+    float       used_m;
+    float       used_g;
+};
 
 class BBLSliceInfo {
 public:
@@ -39,7 +47,10 @@ public:
         this->weight = obj.weight;
         this->prediction = obj.prediction;
         this->profile_ = obj.profile_;
+        this->filaments_info = obj.filaments_info;
     }
+
+    std::vector<FilamentInfo> filaments_info;
 
     std::string     index;              // plate index, start 1, 2, 3, etc.
     std::string     title;
