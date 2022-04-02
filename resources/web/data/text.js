@@ -5,15 +5,15 @@ var LangText={
 		"t3":"User Agreement",
 		"t4":"Reject clause",
 		"t5":"Agree",
-		"t6":"Help us to Improve BambuStudio",
+		"t6":"Help us to improve BambuStudio",
 		"t7":"Allow sending anonymous data",
-		"t8":"back",
+		"t8":"Back",
 		"t9":"Next",
         "t10":"Select the type of printer you have",
 		"t11":"all",
 		"t12":"none",
 		"t13":"mm nozzel",
-		"t14":"Filament Profiles Select",
+		"t14":"Filament profiles select",
 		"t15":"printer",
 		"t16":"filament type",
 		"t17":"vendor",
@@ -22,7 +22,7 @@ var LangText={
 		"t20":"Do you want to use default filament ?",
 		"t21":"yes",
 		"t22":"no",
-		"t23":"Release Note",
+		"t23":"Release note",
 		"t24":"Get Started",
 		"t25":"finish",
 		"t26":"login",
@@ -37,9 +37,15 @@ var LangText={
 		"t35":"recent open",
 		"t36":"ok",
 		"t37":"At least one printer must be selected.",
-		"t38":"cancel",
-		"t39":"confirm",
-		"t40":"Network disconnect, please check and try again later."
+		"t38":"Cancel",
+		"t39":"Confirm",
+		"t40":"Network disconnect, please check and try again later.",
+		"t41":"Bambu Studio collects anonymous data to improve print quality and user experience,include:",
+		"t42":"Machine type",
+		"t43":"Material usage",
+		"t44":"Number of slices",
+		"t45":"Print settings",
+		"t46":"Data collected by Bambu Studio will not contain any personal information."
 	},
 	"zh_CN":{
 		"t1":"欢迎使用BambuStudio",
@@ -81,7 +87,13 @@ var LangText={
 		"t37":"至少需要选择一款打印机。",
 		"t38":"取消",
 		"t39":"确定",
-		"t40":"网络不通，请检查并稍后重试。"
+		"t40":"网络不通，请检查并稍后重试。",
+		"t41":"Bambu Studio搜集匿名数据只用于提高打印质量和用户体验,包括：",
+		"t42":"机器型号",
+		"t43":"材料用量",
+		"t44":"切片次数",
+		"t45":"打印设置参数",
+		"t46":"Bambu Studio搜集的数据不会包含任何个人信息。"
 	}
 };
 
