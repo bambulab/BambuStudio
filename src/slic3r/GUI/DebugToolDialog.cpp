@@ -2132,8 +2132,19 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
                         }
                     }
                 }
-                /* refresh after bind */
-                this->refresh_device_list();
+
+                Slic3r::AccountManager *account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+                if (account_manager->is_user_login()) {
+                    /* refresh bind status */
+                    dev_manager_.query_bind_status(
+                        // CompleteFn
+                        [this](std::string body) { ; },
+                        // ErrorFn
+                        [this](int status, std::string error, std::string body) {
+                            std::string error_str = (boost::format("Query Status Error, status=%1%, error=%2%, body=%3%") % status % error % body).str();
+                            this->send_log_evt(error_str);
+                        });
+                }
             }
         }
         else if (root.get_child_optional("system") != boost::none) {
