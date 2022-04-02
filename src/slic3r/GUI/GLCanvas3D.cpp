@@ -2903,8 +2903,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         if (evt.Dragging() && current_printer_technology() == ptFFF && (fff_print()->config().print_sequence == PrintSequence::ByObject)) {
             switch (m_gizmos.get_current_type())
             {
+            case GLGizmosManager::EType::Move:
             case GLGizmosManager::EType::Scale:
-            case GLGizmosManager::EType::MoveRotate:
+            case GLGizmosManager::EType::Rotate:
             {
                 update_sequential_clearance();
                 break;
@@ -2915,8 +2916,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (evt.Dragging()) {
             switch (m_gizmos.get_current_type())
             {
+            case GLGizmosManager::EType::Move:
             case GLGizmosManager::EType::Scale:
-            case GLGizmosManager::EType::MoveRotate:
+            case GLGizmosManager::EType::Rotate:
             {
                 show_sinking_contours();
                 break;

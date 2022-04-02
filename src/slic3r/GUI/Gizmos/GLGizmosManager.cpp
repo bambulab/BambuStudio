@@ -10,8 +10,9 @@
 #include "slic3r/Utils/UndoRedo.hpp"
 #include "slic3r/GUI/NotificationManager.hpp"
 
+#include "slic3r/GUI/Gizmos/GLGizmoMove.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoScale.hpp"
-#include "slic3r/GUI/Gizmos/GLGizmoMoveRotate.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoRotate.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoFlatten.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSlaSupports.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoFdmSupports.hpp"
@@ -139,7 +140,8 @@ bool GLGizmosManager::init()
     // Order of gizmos in the vector must match order in EType!
     //BBS: GUI refactor: add obj manipulation
     unsigned int sprite_id = 0;
-    m_gizmos.emplace_back(new GLGizmoMoveRotate3D(m_parent, "toolbar_move.svg", sprite_id++, &m_object_manipulation));
+    m_gizmos.emplace_back(new GLGizmoMove3D(m_parent, "toolbar_move.svg", sprite_id++, &m_object_manipulation));
+    m_gizmos.emplace_back(new GLGizmoRotate3D(m_parent, "toolbar_rotate.svg", sprite_id++, &m_object_manipulation));
     m_gizmos.emplace_back(new GLGizmoScale3D(m_parent, "toolbar_scale.svg", sprite_id++, &m_object_manipulation));
     m_gizmos.emplace_back(new GLGizmoFlatten(m_parent, "toolbar_flatten.svg", sprite_id++));
     m_gizmos.emplace_back(new GLGizmoAdvancedCut(m_parent, "toolbar_cut.svg", sprite_id++));
@@ -150,6 +152,7 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, "mmu_segmentation.svg", sprite_id++));
     m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "reduce_triangles.svg", sprite_id++));
     //m_gizmos.emplace_back(new GLGizmoFaceDetector(m_parent, "face recognition.svg", sprite_id++));
+
 
     m_common_gizmos_data.reset(new CommonGizmosDataPool(&m_parent));
 
@@ -309,11 +312,10 @@ void GLGizmosManager::update_data()
 
     const Selection& selection = m_parent.get_selection();
 
-    /* disable wipe tower grabber*/
     bool is_wipe_tower = selection.is_wipe_tower();
-    enable_grabber(MoveRotate, 0, !is_wipe_tower);
-    enable_grabber(MoveRotate, 1, !is_wipe_tower);
-    enable_grabber(MoveRotate, 5, !is_wipe_tower);
+    enable_grabber(Move, 2, !is_wipe_tower);
+    enable_grabber(Rotate, 0, !is_wipe_tower);
+    enable_grabber(Rotate, 1, !is_wipe_tower);
 
     bool enable_scale_xyz = selection.is_single_full_instance() || selection.is_single_volume() || selection.is_single_modifier();
     for (unsigned int i = 0; i < 6; ++i)
@@ -430,7 +432,7 @@ Vec3d GLGizmosManager::get_displacement() const
     if (!m_enabled)
         return Vec3d::Zero();
 
-    return dynamic_cast<GLGizmoMoveRotate3D*>(m_gizmos[MoveRotate].get())->get_displacement();
+    return dynamic_cast<GLGizmoMove3D*>(m_gizmos[Move].get())->get_displacement();
 }
 
 Vec3d GLGizmosManager::get_scale() const
@@ -462,14 +464,14 @@ Vec3d GLGizmosManager::get_rotation() const
     if (!m_enabled || m_gizmos.empty())
         return Vec3d::Zero();
 
-    return dynamic_cast<GLGizmoMoveRotate3D*>(m_gizmos[MoveRotate].get())->get_rotation();
+    return dynamic_cast<GLGizmoRotate3D*>(m_gizmos[Rotate].get())->get_rotation();
 }
 
 void GLGizmosManager::set_rotation(const Vec3d& rotation)
 {
     if (!m_enabled || m_gizmos.empty())
         return;
-    dynamic_cast<GLGizmoMoveRotate3D*>(m_gizmos[MoveRotate].get())->set_rotation(rotation);
+    dynamic_cast<GLGizmoRotate3D*>(m_gizmos[Rotate].get())->set_rotation(rotation);
 }
 
 // BBS
@@ -645,8 +647,9 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         }
         else if (is_dragging()) {
             switch (m_current) {
-            case Scale:  { m_parent.do_scale(L("Tool-Scale")); break; }
-            case MoveRotate: { m_parent.do_rotate(L("Tool-MoveRotate")); break; }
+            case Move:   { m_parent.do_move(L("Gizmo-Move")); break; }
+            case Scale:  { m_parent.do_scale(L("Gizmo-Scale")); break; }
+            case Rotate: { m_parent.do_rotate(L("Gizmo-Rotate")); break; }
             default: break;
             }
 
@@ -702,6 +705,14 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 
         switch (m_current)
         {
+        case Move:
+        {
+            // Apply new temporary offset
+            selection.translate(get_displacement());
+            // BBS
+            //wxGetApp().obj_manipul()->set_dirty();
+            break;
+        }
         case Scale:
         {
             // Apply new temporary scale factors
@@ -715,19 +726,15 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             //wxGetApp().obj_manipul()->set_dirty();
             break;
         }
-        case MoveRotate:
+        case Rotate:
         {
-            //BBS
-            if (dynamic_cast<GLGizmoMoveRotate3D*>(m_gizmos[MoveRotate].get())->is_move_operation()) {
-                // Apply new temporary offset
-                selection.translate(get_displacement());
-            } else {
-                // Apply new temporary rotations
-                TransformationType transformation_type(TransformationType::World_Relative_Joint);
-                if (evt.AltDown())
-                    transformation_type.set_independent();
-                selection.rotate(get_rotation(), transformation_type);
-            }
+            // Apply new temporary rotations
+            TransformationType transformation_type(TransformationType::World_Relative_Joint);
+            if (evt.AltDown())
+                transformation_type.set_independent();
+            selection.rotate(get_rotation(), transformation_type);
+            // BBS
+            //wxGetApp().obj_manipul()->set_dirty();
             break;
         }
         default:
@@ -1361,7 +1368,7 @@ void GLGizmosManager::update_on_off_state(const Vec2d& mouse_pos)
     size_t idx = get_gizmo_idx_from_mouse(mouse_pos);
     if (idx != Undefined && m_gizmos[idx]->is_activable() && m_hover == idx) {
         activate_gizmo(m_current == idx ? Undefined : (EType)idx);
-        wxGetApp().obj_list()->select_object_item((EType)idx <= MoveRotate);
+        wxGetApp().obj_list()->select_object_item((EType)idx <= Rotate);
     }
 }
 

@@ -104,7 +104,6 @@ protected:
     std::string m_icon_filename;
     unsigned int m_sprite_id;
     int m_hover_id;
-    int m_gizmo_idx;
     bool m_dragging;
     std::array<float, 4> m_base_color;
     std::array<float, 4> m_drag_color;
@@ -133,10 +132,6 @@ public:
 
     int get_group_id() const { return m_group_id; }
     void set_group_id(int id) { m_group_id = id; }
-
-    //BBS
-    void set_gizmo_index(int idx) { m_gizmo_idx = idx; }
-    int get_gizmo_index() { return m_gizmo_idx; }
 
     EState get_state() const { return m_state; }
     void set_state(EState state) { m_state = state; on_set_state(); }
