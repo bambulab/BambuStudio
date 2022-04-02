@@ -1456,7 +1456,7 @@ void DebugToolDialog::on_update_mybind_list(SimpleEvent& evt)
     mybind_machine_list_items.clear();
     wxArrayString new_items;
     for (iter = list.begin(); iter != list.end(); iter++) {
-        wxString online_status = iter->second->is_online ? "Online" : "Offline";
+        wxString online_status = iter->second->is_online() ? _L("Online") : _L("Offline");
         wxString text = wxString::Format("%s(%s)[%s]", iter->second->dev_name, iter->second->dev_id, online_status);
         if (!last_my_bind_dev_id.empty() && iter->second->dev_id.compare(last_my_bind_dev_id) == 0) {
             select = new_items.size();

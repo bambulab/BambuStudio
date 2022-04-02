@@ -156,7 +156,7 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
     subtask_(nullptr),
     temptask_(nullptr),
     is_alive(false),
-    is_online(false),
+    m_is_online(false),
     successFn(nullptr),
     failedFn(nullptr),
     lostFn(nullptr),
@@ -529,6 +529,11 @@ bool MachineObject::is_connected()
         return false;
     }
     return true;
+}
+
+void MachineObject::set_online_state(bool on_off)
+{
+    m_is_online = on_off;
 }
 
 int MachineObject::publish_json(std::string json_str, ResultFn resFn, int qos)
@@ -921,10 +926,10 @@ int MachineObject::parse_json(std::string topic, std::string payload)
             boost::optional<std::string> event_str = event_node.get_optional<std::string>("event");
             if (event_str.has_value()) {
                 if (event_str.value().compare("client.disconnected") == 0) {
-                    //BBL handle disconnected event
+                    set_online_state(true);
                 }
                 else if (event_str.value().compare("client.connected") == 0) {
-                    //BBL handle connected event
+                    set_online_state(false);
                 }
                 else {
                     ;

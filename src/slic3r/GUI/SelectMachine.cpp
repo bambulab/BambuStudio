@@ -49,7 +49,7 @@ void MachineListModel::add_machine(MachineObject *obj, bool reset)
     m_values[Col_MachinePrintingStatus].Add(from_u8(obj->iot_task_status));
     m_values[Col_MachineTaskName].Add(from_u8(obj->iot_printing_taskname));
     m_values[Col_MachineIPAddress].Add(from_u8(obj->dev_ip));
-    m_values[Col_MachineConnection].Add(obj->is_online ? _L("Online") : _L("Offline"));
+    m_values[Col_MachineConnection].Add(obj->is_online() ? _L("Online") : _L("Offline"));
     if (reset) Reset(m_values[Col_MachineName].GetCount());
 }
 
@@ -905,7 +905,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     // same machine only appear once
     std::map<std::string, MachineObject *>::iterator it;
     for (it = c->myBindMachineList.begin(); it != c->myBindMachineList.end(); it++) {
-        if (it->second && it->second->is_online) {
+        if (it->second && it->second->is_online()) {
             // m_list.insert(std::make_pair(it->first, it->second));
             m_list.push_back(it->second);
             m_comboBox_printer->Append(it->second->dev_name);

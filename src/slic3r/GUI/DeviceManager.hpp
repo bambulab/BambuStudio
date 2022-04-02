@@ -176,7 +176,7 @@ public:
     std::string bind_user_id;
     bool is_alive;          /* local alive */
     time_t last_alive;
-    bool is_online;         /* wan online */
+    bool m_is_online;
     std::chrono::system_clock::time_point   last_update_time;   /* last received print data from machine */
 
     /* Ams Properties */
@@ -312,6 +312,9 @@ public:
     int disconnect();
     int reconnect();
     bool is_connected();
+    void set_online_state(bool on_off);
+    bool is_online() { return m_is_online; }
+
 
     void set_msg_send_fn(MsgFn fn) { msg_send_fn = std::move(fn); }
     void set_msg_recv_fn(MsgFn fn) { msg_recv_fn = std::move(fn); }

@@ -904,7 +904,7 @@ namespace Slic3r {
                         if (!elem["dev_name"].is_null())
                             obj->dev_name = elem["dev_name"];
                         if (!elem["dev_online"].is_null())
-                            obj->is_online = elem["dev_online"].get<bool>();
+                            obj->m_is_online = elem["dev_online"].get<bool>();
                         if (!elem["progress"].is_null())
                             obj->mc_print_percent = elem["progress"].get<int>();
                         if (!elem["task_name"].is_null())
@@ -1004,11 +1004,11 @@ namespace Slic3r {
                     MachineObject* obj = iter->second;
                     if (obj) {
                         obj->dev_name = dev_name;
-                        obj->is_online = online.compare("true") == 0 ? true : false;
+                        obj->set_online_state(online.compare("true") == 0 ? true : false);
                     }
                 } else {
                     MachineObject* obj = new MachineObject(*this, dev_name, dev_id, "");
-                    obj->is_online = online.compare("true") == 0 ? true : false;
+                    obj->set_online_state(online.compare("true") == 0 ? true : false);
                     obj->set_bind_status(this->get_user_name());
                     myBindMachineList.insert(std::make_pair(dev_id, obj));
                 }
