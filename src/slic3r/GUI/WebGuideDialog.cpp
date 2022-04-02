@@ -44,8 +44,6 @@ GuideFrame::GuideFrame(GUI_App *pGUI)
     m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION);
 
     // set the frame icon
-    SetTitle("BambuStudio");
-
     wxBoxSizer *topsizer = new wxBoxSizer(wxVERTICAL);
 
 #if wxUSE_WEBVIEW_EDGE
@@ -135,13 +133,13 @@ wxString GuideFrame::SetStartPage(GuidePage startpage)
     wxString TargetUrl = (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string();
 
     if (startpage == BBL_WELCOME){ 
-        SetTitle(_u8L("Guide"));
+        SetTitle(_L("Guide"));
         TargetUrl = (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string();
     } else if (startpage == BBL_MODELS) {
-        SetTitle(_u8L("Guide"));
+        SetTitle(_L("Guide"));
         TargetUrl = (boost::filesystem::path(resources_dir()) / "web\\guide\\21\\index.html").make_preferred().string();
     } else if (startpage == BBL_FILAMENTS) {
-        SetTitle(_u8L("Guide"));
+        SetTitle(_L("Guide"));
 
         int nSize = m_ProfileJson["model"].size();
 
@@ -150,11 +148,11 @@ wxString GuideFrame::SetStartPage(GuidePage startpage)
         else     
             TargetUrl = (boost::filesystem::path(resources_dir()) / "web\\guide\\21\\index.html").make_preferred().string();
     } else if (startpage == BBL_FILAMENT_ONLY) {
-        SetTitle(_u8L("Filaments Selection"));
+        SetTitle(_L("Filaments Selection"));
         TargetUrl = (boost::filesystem::path(resources_dir()) / "web\\guide\\23\\index.html").make_preferred().string();
     }
     else {
-        SetTitle(_u8L("Guide"));
+        SetTitle(_L("Guide"));
         TargetUrl = (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string();
     }
 

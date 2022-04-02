@@ -984,12 +984,19 @@ bool NotificationManager::SlicingProgressNotification::set_progress_state(Notifi
 	switch (state)
 	{
 	case Slic3r::GUI::NotificationManager::SlicingProgressNotification::SlicingProgressState::SP_NO_SLICING:
+        m_state = EState::Hidden;
+        set_percentage(-1);
+        m_has_print_info = false;
+        set_export_possible(false);
+        m_sp_state             = state;
+        return true;
 	case Slic3r::GUI::NotificationManager::SlicingProgressNotification::SlicingProgressState::SP_BEGAN:
 		m_state = EState::Hidden;
 		set_percentage(-1);
 		m_has_print_info = false;
 		set_export_possible(false);
 		m_sp_state = state;
+        m_current_fade_opacity = 1;
 		return true;
 	case Slic3r::GUI::NotificationManager::SlicingProgressNotification::SlicingProgressState::SP_PROGRESS:
 		if ((m_sp_state != SlicingProgressState::SP_BEGAN && m_sp_state != SlicingProgressState::SP_PROGRESS) || percent < m_percentage)
@@ -997,6 +1004,7 @@ bool NotificationManager::SlicingProgressNotification::set_progress_state(Notifi
 		set_percentage(percent);
 		m_has_cancel_button = true;
 		m_sp_state = state;
+        m_current_fade_opacity = 1;
 		return true;
 	case Slic3r::GUI::NotificationManager::SlicingProgressNotification::SlicingProgressState::SP_CANCELLED:
 		set_percentage(-1);
