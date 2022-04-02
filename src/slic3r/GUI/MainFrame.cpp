@@ -1389,24 +1389,18 @@ static wxMenu* generate_help_menu()
 {
     wxMenu* helpMenu = new wxMenu();
 
-    // BBS tips
-    append_menu_check_item(helpMenu, wxID_ANY, _L("Tips"), _L("Show daily tips"),
-        [](wxCommandEvent& evt) {
-            wxGetApp().app_config->set_bool("show_daily_tips", evt.GetInt() == 1);
-        }, nullptr, []() {return true; }, []() {return wxGetApp().app_config->get("show_daily_tips").compare("true") == 0; }, nullptr);
     // shortcut key
     //append_menu_item(helpMenu, wxID_ANY, _L("Keyboard Shortcuts") + sep + "&?", _L("Show the list of the keyboard shortcuts"),
     //    [](wxCommandEvent&) { wxGetApp().keyboard_shortcuts(); });
     // Show Beginner's Tutorial
     append_menu_item(helpMenu, wxID_ANY,_L("Beginner's Tutorial"),_L("Beginner's Tutorial"),[](wxCommandEvent &) {wxGetApp().ShowUserGuide();});
     // Show DailyTip
-    append_menu_item(helpMenu, wxID_ANY, _L("Show Daily Tips"),_L("Show Daily Tips"),[](wxCommandEvent &) { wxGetApp().ShowDailyTip(); });
-    // Show UserLogin
-    append_menu_item(helpMenu, wxID_ANY, _L("New User Login"), _L("New User Login"), [](wxCommandEvent &) { wxGetApp().ShowUserLogin(); });
+    append_menu_check_item(
+        helpMenu, wxID_ANY, _L("Show daily tips"), _L("Show daily tips"), [](wxCommandEvent &evt) {
+            wxGetApp().app_config->set_bool("show_daily_tips", evt.GetInt() == 1); }, nullptr,
+        []() { return true; }, []() { return wxGetApp().app_config->get("show_daily_tips").compare("true") == 0; }, nullptr);
     // Show OnlyFilamentChoose
     append_menu_item(helpMenu, wxID_ANY, _L("Choose Filaments"), _L("Choose Filaments"), [](wxCommandEvent &) { wxGetApp().ShowOnlyFilament(); });
-
-
 
     helpMenu->AppendSeparator();
     // Open Config Folder
