@@ -136,7 +136,7 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
     // Bind(wxEVT_CLOSE_WINDOW, &ZUserLogin::OnClose, this);
 
     // UI
-    SetTitle( _u8L("login"));
+    SetTitle( _L("Login"));
     CenterOnParent();
 
     //Param
