@@ -812,7 +812,7 @@ public:
     IMSlider *get_moves_slider() { return m_moves_slider; }
     IMSlider *get_layers_slider() { return m_layers_slider; }
     void enable_moves_slider(bool enable) const;
-    void update_moves_slider();
+    void update_moves_slider(bool set_to_max = false);
     void update_layers_slider_mode();
 
     bool is_contained_in_bed() const { return m_contained_in_bed; }

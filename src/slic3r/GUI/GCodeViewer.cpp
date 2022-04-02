@@ -538,7 +538,7 @@ void GCodeViewer::SequentialView::render(float legend_height, int canvas_width, 
         bottom -= wxGetApp().plater()->get_view_toolbar().get_height();
 #endif
     //gcode_window.render(legend_height, bottom, static_cast<uint64_t>(gcode_ids[current.last]));
-    gcode_window.render(legend_height, (float)canvas_height, (float)canvas_width, static_cast<uint64_t>(gcode_ids[current.last]));
+    gcode_window.render(legend_height, (float) canvas_height, (float) canvas_width, static_cast<uint64_t>(gcode_ids[current.last]));
 }
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
@@ -860,8 +860,19 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     }
 
     // set to color print by default if extruders > 1
-    if (gcode_result.extruders_count > 1)
+    if (gcode_result.extruders_count > 1) {
+        for (int i = 0; i < view_type_items.size(); i++) {
+            if (view_type_items[i] == EViewType::ColorPrint) {
+                m_view_type_sel = i;
+                break;
+            }
+        }
+        
         set_view_type(EViewType::ColorPrint);
+    }
+
+    m_layers_slider->set_as_dirty();
+    m_moves_slider->set_as_dirty();
 
     //BBS: add mutex for protection of gcode result
     gcode_result.unlock();
@@ -1041,7 +1052,9 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
         if (m_sequential_view.current.last != m_sequential_view.endpoints.last) {
             m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
             m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
-            m_sequential_view.render(legend_height, canvas_width, canvas_height);
+            //BBS fixed buttom margin. m_moves_slider.pos_y
+            int bottom_margin = 64;
+            m_sequential_view.render(legend_height, canvas_width - right_margin, canvas_height - bottom_margin);
         }
     }
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -1451,7 +1464,7 @@ void GCodeViewer::enable_moves_slider(bool enable) const
     }
 }
 
-void GCodeViewer::update_moves_slider()
+void GCodeViewer::update_moves_slider(bool set_to_max)
 {
     const GCodeViewer::SequentialView &view = get_sequential_view();
     // this should not be needed, but it is here to try to prevent rambling crashes on Mac Asan
@@ -1470,6 +1483,8 @@ void GCodeViewer::update_moves_slider()
     m_moves_slider->SetSliderAlternateValues(alternate_values);
     m_moves_slider->SetMaxValue(view.endpoints.last - view.endpoints.first);
     m_moves_slider->SetSelectionSpan(view.current.first - view.endpoints.first, view.current.last - view.endpoints.first);
+    if (set_to_max)
+        m_moves_slider->SetHigherValue(m_moves_slider->GetMaxValue());
 }
 
 void GCodeViewer::update_layers_slider_mode()
@@ -1574,7 +1589,7 @@ void GCodeViewer::set_layers_z_range(const std::array<unsigned int, 2>& layers_z
     bool keep_sequential_current_last = layers_z_range[1] <= m_layers_z_range[1];
     m_layers_z_range = layers_z_range;
     refresh_render_paths(keep_sequential_current_first, keep_sequential_current_last);
-    update_moves_slider();
+    update_moves_slider(true);
 }
 
 void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
