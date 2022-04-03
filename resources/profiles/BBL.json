@@ -28,6 +28,10 @@
             "sub_path": "process/fdm_process_bbl_0.10.json"
         },
         {
+            "name": "fdm_process_bbl_0.10_nozzle_0.2",
+            "sub_path": "process/fdm_process_bbl_0.10_nozzle_0.2.json"
+        },
+        {
             "name": "fdm_process_bbl_0.12",
             "sub_path": "process/fdm_process_bbl_0.12.json"
         },
@@ -78,6 +82,10 @@
         {
             "name": "0.20mm PolySupport @BBL-3DP",
             "sub_path": "process/0.20mm PolySupport @BBL-3DP.json"
+        },
+        {
+            "name": "0.10mm NORMAL @BBL-3DP 0.2 nozzle",
+            "sub_path": "process/0.10mm NORMAL @BBL-3DP 0.2 nozzle.json"
         }
     ],
     "filament_list": [
@@ -178,6 +186,10 @@
         {
             "name": "Bambu Lab X1",
             "sub_path": "machine/Bambu Lab X1.json"
+        },
+        {
+          "name": "Bambu Lab X1 0.2 nozzle",
+          "sub_path": "machine/Bambu Lab X1 0.2 nozzle.json"
         }
     ]
 }

@@ -20,7 +20,7 @@
         "0x256"
     ],
     "default_filament_profile": [
-        "Generic PLA"
+        "Bambu PLA Basic @Bambu Lab"
     ],
     "default_print_profile": "0.16mm OPTIMAL @BBL-3DP",
     "deretraction_speed": [

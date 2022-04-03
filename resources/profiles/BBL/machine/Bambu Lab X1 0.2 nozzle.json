@@ -1,0 +1,17 @@
+{
+  "type": "machine",
+  "setting_id": "GM002",
+  "name": "Bambu Lab X1 0.2 nozzle",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "Bambu Lab X1",
+  "nozzle_diameter": [
+      "0.2"
+  ],
+  "printer_variant": "0.2",
+  "printer_model": "BBL-3DP-X1",
+  "default_filament_profile": [
+      "Bambu PLA Basic @Bambu Lab"
+  ],
+  "default_print_profile": "0.10mm NORMAL @BBL-3DP 0.2 nozzle"
+}
