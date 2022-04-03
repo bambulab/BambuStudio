@@ -350,7 +350,7 @@ function SortFilament()
 				}
 			}
 			
-			if(HasModel)
+			if(HasModel || fModel=='')
 			    $(OneNode).show();
 			else
 				$(OneNode).hide();
