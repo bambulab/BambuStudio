@@ -126,44 +126,44 @@
             "sub_path": "filament/Generic TPU.json"
         },
         {
-            "name": "TPU 95A @Bambu Lab",
-            "sub_path": "filament/TPU 95A @Bambu Lab.json"
+            "name": "Bambu TPU 95A @Bambu Lab",
+            "sub_path": "filament/Bambu TPU 95A @Bambu Lab.json"
         },
         {
-            "name": "PLA Matte @Bambu Lab",
-            "sub_path": "filament/PLA Matte @Bambu Lab.json"
+            "name": "Bambu PLA Matte @Bambu Lab",
+            "sub_path": "filament/Bambu PLA Matte @Bambu Lab.json"
         },
         {
-            "name": "PLA Basic @Bambu Lab",
-            "sub_path": "filament/PLA Basic @Bambu Lab.json"
+            "name": "Bambu PLA Basic @Bambu Lab",
+            "sub_path": "filament/Bambu PLA Basic @Bambu Lab.json"
         },
         {
-            "name": "PLA Impact @Bambu Lab",
-            "sub_path": "filament/PLA Impact @Bambu Lab.json"
+            "name": "Bambu PLA Impact @Bambu Lab",
+            "sub_path": "filament/Bambu PLA Impact @Bambu Lab.json"
         },
         {
-            "name": "PLA Metal @Bambu Lab",
-            "sub_path": "filament/PLA Metal @Bambu Lab.json"
+            "name": "Bambu PLA Metal @Bambu Lab",
+            "sub_path": "filament/Bambu PLA Metal @Bambu Lab.json"
         },
         {
-            "name": "ABS @Bambu Lab",
-            "sub_path": "filament/ABS @Bambu Lab.json"
+            "name": "Bambu ABS @Bambu Lab",
+            "sub_path": "filament/Bambu ABS @Bambu Lab.json"
         },
         {
-            "name": "BambuSupport White @Bambu Lab",
-            "sub_path": "filament/BambuSupport White @Bambu Lab.json"
+            "name": "Bambu Support W @Bambu Lab",
+            "sub_path": "filament/Bambu Support W @Bambu Lab.json"
         },
         {
-            "name": "PA12-CF @Bambu Lab",
-            "sub_path": "filament/PA12-CF @Bambu Lab.json"
+            "name": "Bambu PA12-CF @Bambu Lab",
+            "sub_path": "filament/Bambu PA12-CF @Bambu Lab.json"
         },
         {
-            "name": "PET-CF @Bambu Lab",
-            "sub_path": "filament/PET-CF @Bambu Lab.json"
+            "name": "Bambu PET-CF @Bambu Lab",
+            "sub_path": "filament/Bambu PET-CF @Bambu Lab.json"
         },
         {
-            "name": "PC @Bambu Lab ",
-            "sub_path": "filament/PC @Bambu Lab.json"
+            "name": "Bambu PC @Bambu Lab ",
+            "sub_path": "filament/Bambu PC @Bambu Lab.json"
         }
     ],
     "machine_list": [

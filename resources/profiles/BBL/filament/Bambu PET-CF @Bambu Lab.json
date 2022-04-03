@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "setting_id": "GFT00",
-    "name": "PET-CF @Bambu Lab",
+    "name": "Bambu PET-CF @Bambu Lab",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",

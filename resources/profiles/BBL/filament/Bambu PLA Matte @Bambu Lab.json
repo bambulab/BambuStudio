@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "setting_id": "GFA01",
-    "name": "PLA Matte @Bambu Lab",
+    "name": "Bambu PLA Matte @Bambu Lab",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",

@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "setting_id": "GFS00",
-    "name": "BambuSupport White @Bambu Lab",
+    "name": "Bambu Support W @Bambu Lab",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",

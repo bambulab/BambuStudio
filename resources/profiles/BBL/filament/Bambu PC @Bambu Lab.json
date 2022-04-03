@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "setting_id": "GFC00",
-    "name": "PC @Bambu Lab",
+    "name": "Bambu PC @Bambu Lab",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pc",

@@ -7,5 +7,5 @@
     "family": "BBL-3DP",
     "bed_model": "bbl-3dp-X1.stl",
     "bed_texture": "bbl-3dp-X1.svg",
-    "default_materials": "PLA Matte @Bambu Lab;PLA Basic @Bambu Lab;PLA Metal @Bambu Lab;PLA Impact @Bambu Lab;ABS @Bambu Lab;PC @Bambu Lab;BambuSupport White @Bambu Lab;TPU 95A @Bambu Lab;"
+    "default_materials": "Bambu PLA Matte @Bambu Lab;Bambu PLA Basic @Bambu Lab;Bambu PLA Metal @Bambu Lab;Bambu ABS @Bambu Lab;Bambu PC @Bambu Lab;Bambu Support W @Bambu Lab;Bambu TPU 95A @Bambu Lab;"
 }

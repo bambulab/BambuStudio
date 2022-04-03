@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "setting_id": "GFA00",
-    "name": "PLA Basic @Bambu Lab",
+    "name": "Bambu PLA Basic @Bambu Lab",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
