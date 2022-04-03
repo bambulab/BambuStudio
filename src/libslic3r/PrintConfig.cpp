@@ -1805,7 +1805,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 10;
-    def->mode = comSimple;
+    def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(2));
 
     def = this->add("skirt_height", coInt);

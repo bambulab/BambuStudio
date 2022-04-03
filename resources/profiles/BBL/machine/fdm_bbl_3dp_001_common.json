@@ -64,8 +64,8 @@
         "200"
     ],
     "machine_max_speed_e": [
-        "100",
-        "100"
+        "25",
+        "25"
     ],
     "machine_max_speed_x": [
         "500",

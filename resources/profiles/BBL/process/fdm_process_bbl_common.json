@@ -10,7 +10,7 @@
     "bottom_surface_pattern": "monotonic",
     "bottom_shell_layers": "3",
     "bottom_shell_thickness": "0",
-    "bridge_flow": "1",
+    "bridge_flow": "0.95",
     "bridge_speed": "60",
     "brim_width": "5",
     "compatible_printers": [],
