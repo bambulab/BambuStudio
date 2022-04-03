@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-02 16:14+0800\n"
+"POT-Creation-Date: 2022-04-03 10:32+0800\n"
 "PO-Revision-Date: 2022-03-12 17:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com> , patched traditional "
 "chinese by Cheng-Hsien Ho <taksito@gmail.com>\n"
@@ -118,31 +118,30 @@ msgstr "G-code 0,0 座標相對於矩形框左前角落的距離。"
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:408
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:476
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:477
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:149
-#: src/libslic3r/PrintConfig.cpp:265 src/libslic3r/PrintConfig.cpp:274
-#: src/libslic3r/PrintConfig.cpp:281 src/libslic3r/PrintConfig.cpp:322
-#: src/libslic3r/PrintConfig.cpp:375 src/libslic3r/PrintConfig.cpp:472
-#: src/libslic3r/PrintConfig.cpp:502 src/libslic3r/PrintConfig.cpp:727
-#: src/libslic3r/PrintConfig.cpp:737 src/libslic3r/PrintConfig.cpp:745
-#: src/libslic3r/PrintConfig.cpp:764 src/libslic3r/PrintConfig.cpp:853
-#: src/libslic3r/PrintConfig.cpp:1019 src/libslic3r/PrintConfig.cpp:1085
-#: src/libslic3r/PrintConfig.cpp:1094 src/libslic3r/PrintConfig.cpp:1298
-#: src/libslic3r/PrintConfig.cpp:1464 src/libslic3r/PrintConfig.cpp:1534
-#: src/libslic3r/PrintConfig.cpp:1550 src/libslic3r/PrintConfig.cpp:1651
-#: src/libslic3r/PrintConfig.cpp:1660 src/libslic3r/PrintConfig.cpp:1679
-#: src/libslic3r/PrintConfig.cpp:1699 src/libslic3r/PrintConfig.cpp:1707
-#: src/libslic3r/PrintConfig.cpp:1729 src/libslic3r/PrintConfig.cpp:1740
-#: src/libslic3r/PrintConfig.cpp:1749 src/libslic3r/PrintConfig.cpp:1758
-#: src/libslic3r/PrintConfig.cpp:1767 src/libslic3r/PrintConfig.cpp:1804
-#: src/libslic3r/PrintConfig.cpp:1964 src/libslic3r/PrintConfig.cpp:2049
-#: src/libslic3r/PrintConfig.cpp:2069 src/libslic3r/PrintConfig.cpp:2181
-#: src/libslic3r/PrintConfig.cpp:2190 src/libslic3r/PrintConfig.cpp:2200
-#: src/libslic3r/PrintConfig.cpp:2257 src/libslic3r/PrintConfig.cpp:2326
-#: src/libslic3r/PrintConfig.cpp:2338 src/libslic3r/PrintConfig.cpp:2364
-#: src/libslic3r/PrintConfig.cpp:2454 src/libslic3r/PrintConfig.cpp:2486
-#: src/libslic3r/PrintConfig.cpp:2545 src/libslic3r/PrintConfig.cpp:2593
-#: src/libslic3r/PrintConfig.cpp:2603 src/libslic3r/PrintConfig.cpp:3173
-#: src/libslic3r/PrintConfig.cpp:3314
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:149 src/libslic3r/PrintConfig.cpp:265
+#: src/libslic3r/PrintConfig.cpp:274 src/libslic3r/PrintConfig.cpp:281
+#: src/libslic3r/PrintConfig.cpp:322 src/libslic3r/PrintConfig.cpp:375
+#: src/libslic3r/PrintConfig.cpp:472 src/libslic3r/PrintConfig.cpp:502
+#: src/libslic3r/PrintConfig.cpp:727 src/libslic3r/PrintConfig.cpp:737
+#: src/libslic3r/PrintConfig.cpp:745 src/libslic3r/PrintConfig.cpp:764
+#: src/libslic3r/PrintConfig.cpp:853 src/libslic3r/PrintConfig.cpp:1019
+#: src/libslic3r/PrintConfig.cpp:1085 src/libslic3r/PrintConfig.cpp:1094
+#: src/libslic3r/PrintConfig.cpp:1298 src/libslic3r/PrintConfig.cpp:1464
+#: src/libslic3r/PrintConfig.cpp:1534 src/libslic3r/PrintConfig.cpp:1550
+#: src/libslic3r/PrintConfig.cpp:1651 src/libslic3r/PrintConfig.cpp:1660
+#: src/libslic3r/PrintConfig.cpp:1679 src/libslic3r/PrintConfig.cpp:1699
+#: src/libslic3r/PrintConfig.cpp:1707 src/libslic3r/PrintConfig.cpp:1729
+#: src/libslic3r/PrintConfig.cpp:1740 src/libslic3r/PrintConfig.cpp:1749
+#: src/libslic3r/PrintConfig.cpp:1758 src/libslic3r/PrintConfig.cpp:1767
+#: src/libslic3r/PrintConfig.cpp:1804 src/libslic3r/PrintConfig.cpp:1964
+#: src/libslic3r/PrintConfig.cpp:2049 src/libslic3r/PrintConfig.cpp:2069
+#: src/libslic3r/PrintConfig.cpp:2181 src/libslic3r/PrintConfig.cpp:2190
+#: src/libslic3r/PrintConfig.cpp:2200 src/libslic3r/PrintConfig.cpp:2257
+#: src/libslic3r/PrintConfig.cpp:2326 src/libslic3r/PrintConfig.cpp:2338
+#: src/libslic3r/PrintConfig.cpp:2364 src/libslic3r/PrintConfig.cpp:2454
+#: src/libslic3r/PrintConfig.cpp:2486 src/libslic3r/PrintConfig.cpp:2545
+#: src/libslic3r/PrintConfig.cpp:2593 src/libslic3r/PrintConfig.cpp:2603
+#: src/libslic3r/PrintConfig.cpp:3173 src/libslic3r/PrintConfig.cpp:3314
 msgid "mm"
 msgstr "毫米"
 
@@ -335,7 +334,7 @@ msgid "parameter name"
 msgstr "參數名稱"
 
 #: src/slic3r/GUI/Field.cpp:218 src/slic3r/GUI/StatusPanel.cpp:16
-#: src/slic3r/GUI/StatusPanel.cpp:263 src/slic3r/GUI/StatusPanel.cpp:339
+#: src/slic3r/GUI/StatusPanel.cpp:264 src/slic3r/GUI/StatusPanel.cpp:340
 #: src/slic3r/GUI/OptionsGroup.cpp:900
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:1136
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:1148
@@ -520,7 +519,7 @@ msgstr ""
 msgid "travel"
 msgstr ""
 
-#: src/slic3r/GUI/GCodeViewer.cpp:4301 src/slic3r/GUI/StatusPanel.cpp:680
+#: src/slic3r/GUI/GCodeViewer.cpp:4301 src/slic3r/GUI/StatusPanel.cpp:681
 #: src/slic3r/GUI/wxExtensions.cpp:538 src/libslic3r/PrintConfig.cpp:710
 msgid "Extruder"
 msgstr "擠出頭"
@@ -538,7 +537,7 @@ msgid "Print"
 msgstr ""
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4517 src/slic3r/GUI/GCodeViewer.cpp:4550
-#: src/slic3r/GUI/StatusPanel.cpp:300 src/slic3r/GUI/StatusPanel.cpp:1144
+#: src/slic3r/GUI/StatusPanel.cpp:301 src/slic3r/GUI/StatusPanel.cpp:1149
 msgid "Pause"
 msgstr ""
 
@@ -1303,8 +1302,7 @@ msgid "Infill"
 msgstr "填充"
 
 #: src/slic3r/GUI/GUI_Factories.cpp:57 src/slic3r/GUI/GUI_Factories.cpp:78
-#: src/slic3r/GUI/GUI_Factories.cpp:247
-#: src/slic3r/GUI/GUI_ObjectTable.cpp:1559
+#: src/slic3r/GUI/GUI_Factories.cpp:247 src/slic3r/GUI/GUI_ObjectTable.cpp:1559
 #: src/slic3r/GUI/GUI_ObjectTable.cpp:1560
 #: src/slic3r/GUI/GUI_ObjectTable.cpp:1564
 #: src/slic3r/GUI/GUI_ObjectTable.cpp:1568
@@ -1341,8 +1339,7 @@ msgid "Support"
 msgstr ""
 
 #: src/slic3r/GUI/GUI_Factories.cpp:86 src/slic3r/GUI/GUI_Factories.cpp:99
-#: src/slic3r/GUI/GUI_Factories.cpp:248
-#: src/slic3r/GUI/GUI_ObjectTable.cpp:1579
+#: src/slic3r/GUI/GUI_Factories.cpp:248 src/slic3r/GUI/GUI_ObjectTable.cpp:1579
 #: src/slic3r/GUI/GUI_ObjectTable.cpp:1584
 #: src/slic3r/GUI/GUI_ObjectTable.cpp:1768
 #: src/slic3r/GUI/GUI_ObjectTable.cpp:1823 src/slic3r/GUI/Tab.cpp:1745
@@ -1455,7 +1452,7 @@ msgstr "刪除"
 msgid "Delete the selected object"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_Factories.cpp:432 src/slic3r/GUI/StatusPanel.cpp:800
+#: src/slic3r/GUI/GUI_Factories.cpp:432 src/slic3r/GUI/StatusPanel.cpp:801
 msgid "Load"
 msgstr "加載"
 
@@ -1483,8 +1480,7 @@ msgstr ""
 msgid "Set as individual objects"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_Factories.cpp:575
-#: src/slic3r/GUI/GUI_ObjectTable.cpp:1512
+#: src/slic3r/GUI/GUI_Factories.cpp:575 src/slic3r/GUI/GUI_ObjectTable.cpp:1512
 #: src/slic3r/GUI/GUI_ObjectTable.cpp:2498
 msgid "Printable"
 msgstr ""
@@ -1689,7 +1685,7 @@ msgstr ""
 msgid "Remove the selected plate"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_Factories.cpp:1204 src/slic3r/GUI/Plater.cpp:8524
+#: src/slic3r/GUI/GUI_Factories.cpp:1204 src/slic3r/GUI/Plater.cpp:8537
 msgid "Clone"
 msgstr ""
 
@@ -2448,7 +2444,7 @@ msgstr ""
 msgid "Export all objects as STL"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:1545 src/slic3r/GUI/Plater.cpp:8361
+#: src/slic3r/GUI/MainFrame.cpp:1545 src/slic3r/GUI/Plater.cpp:8374
 msgid "Export G-code"
 msgstr "導出 G-code"
 
@@ -2456,7 +2452,7 @@ msgstr "導出 G-code"
 msgid "Export current plate as G-code"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:1549 src/slic3r/GUI/Plater.cpp:8361
+#: src/slic3r/GUI/MainFrame.cpp:1549 src/slic3r/GUI/Plater.cpp:8374
 msgid "Export"
 msgstr ""
 
@@ -2677,119 +2673,119 @@ msgstr ""
 msgid "Close"
 msgstr "關閉"
 
-#: src/slic3r/GUI/StatusPanel.cpp:167
+#: src/slic3r/GUI/StatusPanel.cpp:168
 msgid "Monitoring"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:190
+#: src/slic3r/GUI/StatusPanel.cpp:191
 msgid "Timelapse"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:233
+#: src/slic3r/GUI/StatusPanel.cpp:234
 msgid "Printing Progress"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:287
+#: src/slic3r/GUI/StatusPanel.cpp:288
 msgid "Report"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:315
+#: src/slic3r/GUI/StatusPanel.cpp:316
 msgid "Abort"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:372
+#: src/slic3r/GUI/StatusPanel.cpp:373
 msgid "Machine Control"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:412
+#: src/slic3r/GUI/StatusPanel.cpp:413
 msgid "Temperature and Axis Control"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:524
+#: src/slic3r/GUI/StatusPanel.cpp:525
 msgid "100%"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:537
+#: src/slic3r/GUI/StatusPanel.cpp:538
 msgid "Lamp"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:551
+#: src/slic3r/GUI/StatusPanel.cpp:552
 msgid "Hotend Fan"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:565
+#: src/slic3r/GUI/StatusPanel.cpp:566
 msgid "Big Fan"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:588
+#: src/slic3r/GUI/StatusPanel.cpp:589
 msgid "X/Y Axis"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:644 src/slic3r/GUI/Tab.cpp:2381
+#: src/slic3r/GUI/StatusPanel.cpp:645 src/slic3r/GUI/Tab.cpp:2381
 msgid "Bed"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:694
+#: src/slic3r/GUI/StatusPanel.cpp:695
 msgid "AMS Control"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:761
+#: src/slic3r/GUI/StatusPanel.cpp:762
 msgid "Specify the corresponding space:"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:772
+#: src/slic3r/GUI/StatusPanel.cpp:773
 msgid "Feed"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:781 src/libslic3r/PrintConfig.cpp:1797
+#: src/slic3r/GUI/StatusPanel.cpp:782 src/libslic3r/PrintConfig.cpp:1797
 msgid "Back"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:797
+#: src/slic3r/GUI/StatusPanel.cpp:798
 msgid "Choose the position"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:798
+#: src/slic3r/GUI/StatusPanel.cpp:799
 msgid "Click the load below"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:799
+#: src/slic3r/GUI/StatusPanel.cpp:800
 msgid "Heat the extruder"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:801
+#: src/slic3r/GUI/StatusPanel.cpp:802
 msgid "Complete"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:963
+#: src/slic3r/GUI/StatusPanel.cpp:969
 msgid "Printing List"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:1142
+#: src/slic3r/GUI/StatusPanel.cpp:1147
 msgid "Resume"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:1356
+#: src/slic3r/GUI/StatusPanel.cpp:1361
 msgid "Silent Mode"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:1357
+#: src/slic3r/GUI/StatusPanel.cpp:1362
 msgid "Standard"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:1358
+#: src/slic3r/GUI/StatusPanel.cpp:1363
 msgid "Sport"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:1359
+#: src/slic3r/GUI/StatusPanel.cpp:1364
 msgid "Ludicrous"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:1457
+#: src/slic3r/GUI/StatusPanel.cpp:1499
 msgid "Unable to connect server"
 msgstr ""
 
-#: src/slic3r/GUI/StatusPanel.cpp:1459
+#: src/slic3r/GUI/StatusPanel.cpp:1501
 msgid "Unable to get printer status"
 msgstr ""
 
@@ -2976,8 +2972,7 @@ msgstr ""
 
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:273
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:515
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:731
-#: src/libslic3r/PrintConfig.cpp:715
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:731 src/libslic3r/PrintConfig.cpp:715
 msgid "default"
 msgstr ""
 
@@ -3237,7 +3232,7 @@ msgstr ""
 msgid "prepare 3mf file..."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:6060 src/slic3r/GUI/Plater.cpp:7628
+#: src/slic3r/GUI/Plater.cpp:6060 src/slic3r/GUI/Plater.cpp:7641
 #, c-format, boost-format
 msgid "get_des,err:code=%u,msg=%s"
 msgstr ""
@@ -3317,7 +3312,7 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:6982 src/slic3r/GUI/Plater.cpp:8525
+#: src/slic3r/GUI/Plater.cpp:6982 src/slic3r/GUI/Plater.cpp:8538
 msgid "Number of copies:"
 msgstr ""
 
@@ -3341,113 +3336,113 @@ msgstr ""
 msgid "Save project"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7573
+#: src/slic3r/GUI/Plater.cpp:7586
 msgid "Failed to publish your project. Please try agian!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7577
+#: src/slic3r/GUI/Plater.cpp:7590
 msgid "Upload and publish your project"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7581
+#: src/slic3r/GUI/Plater.cpp:7594
 msgid "preparing your project"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7601
+#: src/slic3r/GUI/Plater.cpp:7614
 msgid "preparing, export 3mf failed!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7620
+#: src/slic3r/GUI/Plater.cpp:7633
 msgid "Preparing to upload your project..."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7645
+#: src/slic3r/GUI/Plater.cpp:7658
 #, c-format, boost-format
 msgid "req_proj,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7657
+#: src/slic3r/GUI/Plater.cpp:7670
 #, c-format, boost-format
 msgid "req_prof,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7664
+#: src/slic3r/GUI/Plater.cpp:7677
 msgid "uploading..."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7676 src/slic3r/GUI/Plater.cpp:7713
+#: src/slic3r/GUI/Plater.cpp:7689 src/slic3r/GUI/Plater.cpp:7726
 msgid "Upload has been canceled."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7681
+#: src/slic3r/GUI/Plater.cpp:7694
 #, c-format, boost-format
 msgid "upload,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7691
+#: src/slic3r/GUI/Plater.cpp:7704
 #, c-format, boost-format
 msgid "put_no,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7692 src/slic3r/GUI/Plater.cpp:7719
+#: src/slic3r/GUI/Plater.cpp:7705 src/slic3r/GUI/Plater.cpp:7732
 msgid "Failed to publish. Please try again!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7707
+#: src/slic3r/GUI/Plater.cpp:7720
 msgid "Uploading is timed out. Please try again!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7718
+#: src/slic3r/GUI/Plater.cpp:7731
 #, c-format, boost-format
 msgid "get_no,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7745
+#: src/slic3r/GUI/Plater.cpp:7758
 msgid "Internal Error. design id is empty."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8362
+#: src/slic3r/GUI/Plater.cpp:8375
 msgid "Send G-code"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8362
+#: src/slic3r/GUI/Plater.cpp:8375
 msgid "Send to printer"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8393
+#: src/slic3r/GUI/Plater.cpp:8406
 msgid "Custom supports, seams and color painting were removed after repairing."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8529
+#: src/slic3r/GUI/Plater.cpp:8542
 msgid "Invalid number"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8981
+#: src/slic3r/GUI/Plater.cpp:8994
 #, boost-format
 msgid "Part name: %1%\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8992
+#: src/slic3r/GUI/Plater.cpp:9005
 #, boost-format
 msgid "Object name: %1%\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8999
+#: src/slic3r/GUI/Plater.cpp:9012
 #, boost-format
 msgid "Size: %1% x %2% x %3% in\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:9001
+#: src/slic3r/GUI/Plater.cpp:9014
 #, boost-format
 msgid "Size: %1% x %2% x %3% mm\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:9008
+#: src/slic3r/GUI/Plater.cpp:9021
 #, boost-format
 msgid "Volume: %1% mm³\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:9010
+#: src/slic3r/GUI/Plater.cpp:9023
 #, boost-format
 msgid "Triangles: %1%, "
 msgstr ""
@@ -4183,8 +4178,7 @@ msgstr ""
 msgid "the Configuration package is incompatible with current APP."
 msgstr ""
 
-#: src/slic3r/GUI/UpdateDialogs.cpp:319
-#: src/slic3r/Utils/PresetUpdater.cpp:1098
+#: src/slic3r/GUI/UpdateDialogs.cpp:319 src/slic3r/Utils/PresetUpdater.cpp:1098
 msgid "Configuration updates"
 msgstr ""
 
@@ -4225,7 +4219,7 @@ msgid "From"
 msgstr ""
 
 #: src/slic3r/GUI/WebUserLoginDialog.cpp:139
-msgid "login"
+msgid "Login"
 msgstr ""
 
 #: src/slic3r/GUI/WebGuideDialog.cpp:138 src/slic3r/GUI/WebGuideDialog.cpp:141
