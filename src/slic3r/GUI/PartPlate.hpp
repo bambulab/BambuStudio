@@ -53,7 +53,7 @@ class Model;
 class ModelObject;
 class ModelInstance;
 class Print;
-class SLAPrint; 
+class SLAPrint;
 
 namespace GUI {
 class Plater;
@@ -70,6 +70,15 @@ using GCodeResult = GCodeProcessorResult;
 
 class PartPlate : public ObjectBase
 {
+public:
+    enum HeightLimitMode{
+        HEIGHT_LIMIT_NONE,
+        HEIGHT_LIMIT_BOTTOM,
+        HEIGHT_LIMIT_TOP,
+        HEIGHT_LIMIT_BOTH
+    };
+
+private:
     PartPlateList* m_partplate_list;
     Plater* m_plater; //Plater reference, not own it
     Model* m_model; //Model reference, not own it
@@ -82,6 +91,8 @@ class PartPlate : public ObjectBase
     int m_width;
     int m_depth;
     int m_height;
+    float m_height_to_lid;
+    float m_height_to_rod;
     bool m_printable;
     bool m_locked;
     bool m_ready_for_slice;
@@ -111,6 +122,9 @@ class PartPlate : public ObjectBase
     GeometryBuffer m_triangles;
     GeometryBuffer m_exclude_triangles;
     GeometryBuffer m_gridlines;
+    GeometryBuffer m_height_limit_common;
+    GeometryBuffer m_height_limit_bottom;
+    GeometryBuffer m_height_limit_top;
     GeometryBuffer m_del_icon;
     mutable unsigned int m_del_vbo_id{ 0 };
     GeometryBuffer m_arrange_icon;
@@ -135,11 +149,13 @@ class PartPlate : public ObjectBase
     void calc_triangles(const ExPolygon& poly);
     void calc_exclude_triangles(const ExPolygon& poly);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox);
+    void calc_height_limit();
     void calc_vertex_for_icons(int index, GeometryBuffer &buffer);
     void render_background(bool force_default_color = false) const;
     void render_exclude_area(bool force_default_color) const;
     //void render_background_for_picking(const float* render_color) const;
     void render_grid(bool bottom) const;
+    void render_height_limit(PartPlate::HeightLimitMode mode = HEIGHT_LIMIT_BOTH) const;
     void render_label(GLCanvas3D& canvas) const;
     void render_grabber(const float* render_color, bool use_lighting) const;
     void render_face(float x_size, float y_size) const;
@@ -162,6 +178,8 @@ public:
     static std::array<float, 4> DEFAULT_COLOR;
     static std::array<float, 4> LINE_BOTTOM_COLOR;
     static std::array<float, 4> LINE_TOP_COLOR;
+    static std::array<float, 4> HEIGHT_LIMIT_BOTTOM_COLOR;
+    static std::array<float, 4> HEIGHT_LIMIT_TOP_COLOR;
 
     static void update_render_colors();
     static void load_render_colors();
@@ -254,14 +272,14 @@ public:
 
     /*rendering related functions*/
     const Pointfs& get_shape() const { return m_shape; }
-    bool set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Vec2d position);
+    bool set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Vec2d position, float height_to_lid, float height_to_rod);
     bool contains(const Point& point) const;
     bool contains(const GLVolume& v) const;
     bool contains(const BoundingBoxf3& bb) const;
     bool intersects(const BoundingBoxf3& bb) const;
-    
+
     Point point_projection(const Point& point) const;
-    void render(GLCanvas3D& canvas, bool bottom, bool with_label = true, bool only_body = false, bool force_background_color = false);
+    void render(GLCanvas3D& canvas, bool bottom, bool with_label = true, bool only_body = false, bool force_background_color = false, bool is_current = false, HeightLimitMode mode = HEIGHT_LIMIT_BOTH);
     void render_for_picking() const { on_render_for_picking(); }
     void set_selected();
     void set_unselected();
@@ -382,6 +400,10 @@ class PartPlateList : public ObjectBase
     int m_plate_depth;
     int m_plate_height;
 
+    float m_height_to_lid;
+    float m_height_to_rod;
+    PartPlate::HeightLimitMode m_height_limit_mode{PartPlate::HEIGHT_LIMIT_BOTH};
+
     PartPlate unprintable_plate;
     Pointfs m_shape;
     Pointfs m_exclude_areas;
@@ -446,6 +468,17 @@ public:
 
     //get a plate pointer by index
     PartPlate* get_plate(int index);
+
+    void get_height_limits(float& height_to_lid, float& height_to_rod)
+    {
+        height_to_lid = m_height_to_lid;
+        height_to_rod = m_height_to_rod;
+    }
+
+    void set_height_limits_mode(PartPlate::HeightLimitMode mode)
+    {
+        m_height_limit_mode = mode;
+    }
 
     int get_curr_plate_index() { return m_current_plate; }
     PartPlate* get_curr_plate() { return m_plate_list[m_current_plate]; }
@@ -530,7 +563,7 @@ public:
     int select_plate_by_obj(int obj_index, int instance_index);
     void calc_bounding_boxes();
     void select_plate_view();
-    bool set_shapes(const Pointfs& shape, const Pointfs& exclude_areas);
+    bool set_shapes(const Pointfs& shape, const Pointfs& exclude_areas, float height_to_lid, float height_to_rod);
     void set_hover_id(int id);
     void reset_hover_id();
     bool intersects(const BoundingBoxf3 &bb);
@@ -575,7 +608,7 @@ public:
     template<class Archive> void serialize(Archive& ar)
     {
         //ar(cereal::base_class<ObjectBase>(this));
-        ar(m_shape, m_plate_width, m_plate_depth, m_plate_height, m_plate_count, m_current_plate, m_plate_list, unprintable_plate);
+        ar(m_shape, m_plate_width, m_plate_depth, m_plate_height, m_height_to_lid, m_height_to_rod, m_height_limit_mode, m_plate_count, m_current_plate, m_plate_list, unprintable_plate);
         //ar(m_plate_width, m_plate_depth, m_plate_height, m_plate_count, m_current_plate);
     }
 };

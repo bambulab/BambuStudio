@@ -373,70 +373,104 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
     ImGui::PopStyleVar(2);
 }
 
-void GLCanvas3D::SequentialPrintClearance::set_polygons(const Polygons& polygons)
+//BBS: add height limit logic
+void GLCanvas3D::SequentialPrintClearance::set_polygons(const Polygons& polygons, const std::vector<std::pair<Polygon, float>>& height_polygons)
 {
+    //BBS: add height limit logic
+    m_height_limit.reset();
     m_perimeter.reset();
     m_fill.reset();
-    if (polygons.empty())
-        return;
+    if (!polygons.empty()) {
+        size_t triangles_count = 0;
+        for (const Polygon &poly : polygons) { triangles_count += poly.points.size() - 2; }
+        const size_t vertices_count = 3 * triangles_count;
 
-    size_t triangles_count = 0;
-    for (const Polygon& poly : polygons) {
-        triangles_count += poly.points.size() - 2;
+        if (m_render_fill) {
+            GLModel::InitializationData         fill_data;
+            GLModel::InitializationData::Entity entity;
+            entity.type  = GLModel::PrimitiveType::Triangles;
+            entity.color = {0.8f, 0.8f, 1.0f, 0.5f};
+            entity.positions.reserve(vertices_count);
+            entity.normals.reserve(vertices_count);
+            entity.indices.reserve(vertices_count);
+
+            const ExPolygons polygons_union = union_ex(polygons);
+            for (const ExPolygon &poly : polygons_union) {
+                const std::vector<Vec3d> triangulation = triangulate_expolygon_3d(poly);
+                for (const Vec3d &v : triangulation) {
+                    entity.positions.emplace_back(v.cast<float>() + Vec3f(0.0f, 0.0f, 0.0125f)); // add a small positive z to avoid z-fighting
+                    entity.normals.emplace_back(Vec3f::UnitZ());
+                    const size_t positions_count = entity.positions.size();
+                    if (positions_count % 3 == 0) {
+                        entity.indices.emplace_back(positions_count - 3);
+                        entity.indices.emplace_back(positions_count - 2);
+                        entity.indices.emplace_back(positions_count - 1);
+                    }
+                }
+            }
+
+            fill_data.entities.emplace_back(entity);
+            m_fill.init_from(fill_data);
+        }
+
+        GLModel::InitializationData perimeter_data;
+        for (const Polygon &poly : polygons) {
+            GLModel::InitializationData::Entity ent;
+            ent.type = GLModel::PrimitiveType::LineLoop;
+            ent.positions.reserve(poly.points.size());
+            ent.indices.reserve(poly.points.size());
+            unsigned int id_count = 0;
+            for (const Point &p : poly.points) {
+                ent.positions.emplace_back(unscale<float>(p.x()), unscale<float>(p.y()), 0.025f); // add a small positive z to avoid z-fighting
+                ent.normals.emplace_back(Vec3f::UnitZ());
+                ent.indices.emplace_back(id_count++);
+            }
+
+            perimeter_data.entities.emplace_back(ent);
+        }
+
+        m_perimeter.init_from(perimeter_data);
     }
-    const size_t vertices_count = 3 * triangles_count;
 
-    if (m_render_fill) {
-        GLModel::InitializationData fill_data;
-        GLModel::InitializationData::Entity entity;
-        entity.type = GLModel::PrimitiveType::Triangles;
-        entity.color = { 0.3333f, 0.0f, 0.0f, 0.5f };
-        entity.positions.reserve(vertices_count);
-        entity.normals.reserve(vertices_count);
-        entity.indices.reserve(vertices_count);
+    //BBS: add the height limit compute logic
+    if (!height_polygons.empty()) {
+        size_t height_triangles_count = 0;
+        for (const auto &poly : height_polygons) { height_triangles_count += poly.first.points.size() - 2; }
+        const size_t height_vertices_count = 3 * height_triangles_count;
 
-        const ExPolygons polygons_union = union_ex(polygons);
-        for (const ExPolygon& poly : polygons_union) {
-            const std::vector<Vec3d> triangulation = triangulate_expolygon_3d(poly);
-            for (const Vec3d& v : triangulation) {
-                entity.positions.emplace_back(v.cast<float>() + Vec3f(0.0f, 0.0f, 0.0125f)); // add a small positive z to avoid z-fighting
-                entity.normals.emplace_back(Vec3f::UnitZ());
-                const size_t positions_count = entity.positions.size();
-                if (positions_count % 3 == 0) {
-                    entity.indices.emplace_back(positions_count - 3);
-                    entity.indices.emplace_back(positions_count - 2);
-                    entity.indices.emplace_back(positions_count - 1);
+        GLModel::InitializationData         height_fill_data;
+        GLModel::InitializationData::Entity height_entity;
+        height_entity.type  = GLModel::PrimitiveType::Triangles;
+        height_entity.color = {0.8f, 0.8f, 1.0f, 0.5f};
+        height_entity.positions.reserve(height_vertices_count);
+        height_entity.normals.reserve(height_vertices_count);
+        height_entity.indices.reserve(height_vertices_count);
+
+        for (const auto &poly : height_polygons) {
+            ExPolygon                ex_poly(poly.first);
+            const std::vector<Vec3d> height_triangulation = triangulate_expolygon_3d(ex_poly);
+            for (const Vec3d &v : height_triangulation) {
+                Vec3d point{v.x(), v.y(), poly.second};
+                height_entity.positions.emplace_back(point.cast<float>());
+                height_entity.normals.emplace_back(Vec3f::UnitZ());
+                const size_t height_positions_count = height_entity.positions.size();
+                if (height_positions_count % 3 == 0) {
+                    height_entity.indices.emplace_back(height_positions_count - 3);
+                    height_entity.indices.emplace_back(height_positions_count - 2);
+                    height_entity.indices.emplace_back(height_positions_count - 1);
                 }
             }
         }
 
-        fill_data.entities.emplace_back(entity);
-        m_fill.init_from(fill_data);
+        height_fill_data.entities.emplace_back(height_entity);
+        m_height_limit.init_from(height_fill_data);
     }
-
-    GLModel::InitializationData perimeter_data;
-    for (const Polygon& poly : polygons) {
-        GLModel::InitializationData::Entity ent;
-        ent.type = GLModel::PrimitiveType::LineLoop;
-        ent.positions.reserve(poly.points.size());
-        ent.indices.reserve(poly.points.size());
-        unsigned int id_count = 0;
-        for (const Point& p : poly.points) {
-            ent.positions.emplace_back(unscale<float>(p.x()), unscale<float>(p.y()), 0.025f); // add a small positive z to avoid z-fighting
-            ent.normals.emplace_back(Vec3f::UnitZ());
-            ent.indices.emplace_back(id_count++);
-        }
-
-        perimeter_data.entities.emplace_back(ent);
-    }
-
-    m_perimeter.init_from(perimeter_data);
 }
 
 void GLCanvas3D::SequentialPrintClearance::render()
 {
-    std::array<float, 4> FILL_COLOR = { 1.0f, 0.0f, 0.0f, 0.5f };
-    std::array<float, 4> NO_FILL_COLOR = { 1.0f, 1.0f, 1.0f, 0.75f };
+    std::array<float, 4> FILL_COLOR = { 0.7f, 0.7f, 1.0f, 0.5f };
+    std::array<float, 4> NO_FILL_COLOR = { 0.75f, 0.75f, 0.75f, 0.75f };
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
@@ -452,6 +486,9 @@ void GLCanvas3D::SequentialPrintClearance::render()
     m_perimeter.set_color(-1, m_render_fill ? FILL_COLOR : NO_FILL_COLOR);
     m_perimeter.render();
     m_fill.render();
+    //BBS: add height limit
+    m_height_limit.set_color(-1, m_render_fill ? FILL_COLOR : NO_FILL_COLOR);
+    m_height_limit.render();
 
     glsafe(::glDisable(GL_BLEND));
     glsafe(::glEnable(GL_CULL_FACE));
@@ -3930,8 +3967,8 @@ void GLCanvas3D::update_sequential_clearance()
         }
     }
 
-    if (instances_count == 1)
-        return;
+    //if (instances_count == 1)
+    //    return;
 
     // second fill temporary cache with data from volumes
     for (const GLVolume* v : m_volumes.volumes) {
@@ -3971,11 +4008,23 @@ void GLCanvas3D::update_sequential_clearance()
     }
 
     // calculates instances 2d hulls (see also: Print::sequential_print_horizontal_clearance_valid())
+    //BBS: add the height logic
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
     Polygons polygons;
+    std::vector<std::pair<Polygon, float>> height_polygons;
     polygons.reserve(instances_count);
+    height_polygons.reserve(instances_count);
+    std::vector<struct height_info> convex_and_bounding_boxes;
+    struct height_info
+    {
+        double         instance_height;
+        BoundingBox    bounding_box;
+        Polygon        hull_polygon;
+    };
     for (size_t i = 0; i < instance_transforms.size(); ++i) {
         const auto& instances = instance_transforms[i];
         double rotation_z0 = instances.front()->get_rotation().z();
+        int index = 0;
         for (const auto& instance : instances) {
             Geometry::Transformation transformation;
             const Vec3d& offset = instance->get_offset();
@@ -3989,14 +4038,104 @@ void GLCanvas3D::update_sequential_clearance()
                 const Vec3d p = trafo * hull_2d[j];
                 inst_pts.emplace_back(scaled<double>(p.x()), scaled<double>(p.y()));
             }
-            polygons.emplace_back(Geometry::convex_hull(std::move(inst_pts)));
+            Polygon convex_hull(std::move(inst_pts));
+            BoundingBox bouding_box = convex_hull.bounding_box();
+            BoundingBox plate_bb = plate->get_bounding_box_crd();
+            double instance_height = m_model->objects[i]->get_instance_max_z(index++);
+            //skip the object for not current plate
+            if (!plate_bb.overlap(bouding_box))
+                continue;
+            convex_and_bounding_boxes.push_back({instance_height, bouding_box, convex_hull});
+            polygons.emplace_back(std::move(convex_hull));
         }
+    }
+
+    //sort the print instance
+    std::sort(convex_and_bounding_boxes.begin(), convex_and_bounding_boxes.end(),
+        [](auto &l, auto &r) {
+            auto ly1 = l.bounding_box.min.y();
+            auto ly2 = l.bounding_box.max.y();
+            auto ry1 = r.bounding_box.min.y();
+            auto ry2 = r.bounding_box.max.y();
+            auto inter_min = std::max(ly1, ry1);
+            auto inter_max = std::min(ly2, ry2);
+            auto lx = l.bounding_box.min.x();
+            auto rx = r.bounding_box.min.x();
+            if (inter_max - inter_min > 0)
+                return (lx < rx) || ((lx == rx)&&(ly1 < ry1));
+            else
+                return (ly1 < ry1);
+        });
+
+    /*bool has_interlaced_objects = false;
+    for (int k = 0; k < bounding_box_count; k++)
+    {
+        Polygon& convex = convex_and_bounding_boxes[k].hull_polygon;
+        BoundingBox& bbox = convex_and_bounding_boxes[k].bounding_box;
+        auto iy1 = bbox.min.y();
+        auto iy2 = bbox.max.y();
+
+        for (int i = k+1; i < bounding_box_count; i++)
+        {
+            Polygon&     next_convex = convex_and_bounding_boxes[i].hull_polygon;
+            BoundingBox& next_bbox   = convex_and_bounding_boxes[i].bounding_box;
+            auto py1 = next_bbox.min.y();
+            auto py2 = next_bbox.max.y();
+            auto inter_min = std::max(iy1, py1); // min y of intersection
+            auto inter_max = std::min(iy2, py2); // max y of intersection. length=max_y-min_y>0 means intersection exists
+            if (inter_max - inter_min > 0) {
+                has_interlaced_objects = true;
+                break;
+            }
+        }
+        if (has_interlaced_objects)
+            break;
+    }*/
+
+    int bounding_box_count = convex_and_bounding_boxes.size();
+    double printable_height = fff_print()->config().printable_height;
+    double hc1 = fff_print()->config().extruder_clearance_height_to_lid;
+    double hc2 = fff_print()->config().extruder_clearance_height_to_rod;
+    for (int k = 0; k < bounding_box_count; k++)
+    {
+        Polygon& convex = convex_and_bounding_boxes[k].hull_polygon;
+        BoundingBox& bbox = convex_and_bounding_boxes[k].bounding_box;
+        auto iy1 = bbox.min.y();
+        auto iy2 = bbox.max.y();
+        double height = (k == (bounding_box_count - 1))?printable_height:hc1;
+
+        /*if (has_interlaced_objects) {
+            if ((k < (bounding_box_count - 1)) && (convex_and_bounding_boxes[k].instance_height > hc2)) {
+                height_polygons.emplace_back(std::make_pair(convex, hc2));
+            }
+        }
+        else {
+            if ((k < (bounding_box_count - 1)) && (convex_and_bounding_boxes[k].instance_height > hc1)) {
+                height_polygons.emplace_back(std::make_pair(convex, hc1));
+            }
+        }*/
+
+        for (int i = k+1; i < bounding_box_count; i++)
+        {
+            Polygon&     next_convex = convex_and_bounding_boxes[i].hull_polygon;
+            BoundingBox& next_bbox   = convex_and_bounding_boxes[i].bounding_box;
+            auto py1 = next_bbox.min.y();
+            auto py2 = next_bbox.max.y();
+            auto inter_min = std::max(iy1, py1); // min y of intersection
+            auto inter_max = std::min(iy2, py2); // max y of intersection. length=max_y-min_y>0 means intersection exists
+            if (inter_max - inter_min > 0) {
+                height = hc2;
+                break;
+            }
+        }
+        if (height < convex_and_bounding_boxes[k].instance_height)
+            height_polygons.emplace_back(std::make_pair(convex, height));
     }
 
     // sends instances 2d hulls to be rendered
     set_sequential_print_clearance_visible(true);
     set_sequential_print_clearance_render_fill(false);
-    set_sequential_print_clearance_polygons(polygons);
+    set_sequential_print_clearance_polygons(polygons, height_polygons);
 }
 
 bool GLCanvas3D::is_object_sinking(int object_idx) const
@@ -4967,6 +5106,12 @@ BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_be
     if (!m_main_toolbar.is_enabled())
         bb.merge(m_gcode_viewer.get_max_bounding_box());
 
+    if ((m_canvas_type == CanvasView3D) && (fff_print()->config().print_sequence == PrintSequence::ByObject)) {
+        float height_to_lid, height_to_rod;
+        wxGetApp().plater()->get_partplate_list().get_height_limits(height_to_lid, height_to_rod);
+        bb.max.z() = std::max(bb.max.z(), (double)height_to_lid);
+    }
+
     return bb;
 }
 
@@ -5856,7 +6001,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar() const
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.42f, 0.42f, 0.42f, 1.0f));
 
         if (ImGui::ImageButton2(item->texture_id, size, uv0, uv1, frame_padding, bg_col, tint_col, margin)) {
-            if (m_process && m_process->idle()) {
+            if (m_process && !m_process->running()) {
                 // begin to slicing plate
                 wxCommandEvent* evt = new wxCommandEvent(EVT_GLTOOLBAR_SELECT_SLICED_PLATE);
                 evt->SetInt(i);

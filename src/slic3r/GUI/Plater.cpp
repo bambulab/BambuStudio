@@ -989,7 +989,7 @@ void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
         for (auto tray : ams.second->trayList) {
             DynamicPrintConfig ams;
             auto & filaments = wxGetApp().preset_bundle->filaments.get_presets();
-            auto iter = std::find_if(filaments.begin(), filaments.end(), 
+            auto iter = std::find_if(filaments.begin(), filaments.end(),
                 [&tray](auto &f) { return f.setting_id == tray.second->setting_id; });
             if (iter != filaments.end()) {
                 ams.set_key_value("filament_settings_id", new ConfigOptionStrings{iter->name});
@@ -1003,7 +1003,7 @@ void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
                         if ((*preset)->name.empty())
                             return;
                         PresetsConfigSubstitutions substitutions;
-                        wxGetApp().preset_bundle->filaments.load_user_presets({{(*preset)->name, *preset}}, 
+                        wxGetApp().preset_bundle->filaments.load_user_presets({{(*preset)->name, *preset}},
                                 PRESET_FILAMENT_NAME, substitutions, ForwardCompatibilitySubstitutionRule::Enable);
                         auto & ams_list = wxGetApp().preset_bundle->filament_ams_list;
                         for (auto& ams : ams_list) {
@@ -1745,7 +1745,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     , acc_(acc)
     //BBS: add bed_exclude_area
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
-        "printable_area", "bed_exclude_area", "print_sequence", "extruder_clearance_radius", "skirt_loops", "skirt_distance",
+        "printable_area", "bed_exclude_area", "print_sequence",
+        "extruder_clearance_radius", "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod", "skirt_loops", "skirt_distance",
         "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material",
         "enable_prime_tower", "wipe_tower_x", "wipe_tower_y", "prime_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width", "prime_volume",
         "extruder_colour", "filament_colour", "material_colour", "printable_height", "printer_model", "printer_technology",
@@ -3491,7 +3492,10 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 
         //BBS: add is_warning logic
         StringObjectException warning;
-        StringObjectException err = background_process.validate(&warning);
+        //BBS: refine seq-print logic
+        Polygons polygons;
+        std::vector<std::pair<Polygon, float>> height_polygons;
+        StringObjectException err = background_process.validate(&warning, &polygons, &height_polygons);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": validate err=%1%, warning=%2%")%err.string%warning.string;
 
         if (err.string.empty()) {
@@ -3516,12 +3520,12 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
             if (printer_technology == ptFFF) {
                 const Print* print = background_process.fff_print();
-                Polygons polygons;
-                if (print->config().print_sequence == PrintSequence::ByObject)
-                    Print::sequential_print_clearance_valid(*print, &polygons);
+                //Polygons polygons;
+                //if (print->config().print_sequence == PrintSequence::ByObject)
+                //    Print::sequential_print_clearance_valid(*print, &polygons);
                 view3D->get_canvas3d()->set_sequential_print_clearance_visible(true);
                 view3D->get_canvas3d()->set_sequential_print_clearance_render_fill(true);
-                view3D->get_canvas3d()->set_sequential_print_clearance_polygons(polygons);
+                view3D->get_canvas3d()->set_sequential_print_clearance_polygons(polygons, height_polygons);
             }
         }
     }
@@ -5335,6 +5339,12 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_ar
     //BBS: add shape position
     Vec2d shape_position = partplate_list.get_current_shape_position();
     bool new_shape = bed.set_shape(shape, printable_height, custom_texture, custom_model, force_as_custom, shape_position);
+
+    float prev_height_lid, prev_height_rod;
+    partplate_list.get_height_limits(prev_height_lid, prev_height_rod);
+    double height_to_lid = config->opt_float("extruder_clearance_height_to_lid");
+    double height_to_rod = config->opt_float("extruder_clearance_height_to_rod");
+    new_shape |= (height_to_lid != prev_height_lid) || (height_to_rod != prev_height_rod);
     if (new_shape) {
         if (view3D) view3D->bed_shape_changed();
         if (preview) preview->bed_shape_changed();
@@ -5344,10 +5354,10 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_ar
         Vec3d max = bed.extended_bounding_box().max;
         Vec3d min = bed.extended_bounding_box().min;
         double z = config->opt_float("printable_height");
+
         //Pointfs& exclude_areas = config->option<ConfigOptionPoints>("bed_exclude_area")->values;
         partplate_list.reset_size(max.x() - min.x(), max.y() - min.y(), z);
-
-        partplate_list.set_shapes(shape, exclude_areas);
+        partplate_list.set_shapes(shape, exclude_areas, height_to_lid, height_to_rod);
     }
 }
 
@@ -8136,7 +8146,9 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             p->partplate_list.invalid_all_slice_result();
         }
         //BBS: add bed_exclude_area
-        else if (opt_key == "printable_area" || opt_key == "bed_exclude_area") {
+        else if (opt_key == "printable_area" || opt_key == "bed_exclude_area"
+            || opt_key == "extruder_clearance_height_to_lid"
+            || opt_key == "extruder_clearance_height_to_rod") {
             bed_shape_changed = true;
             update_scheduled = true;
         }
@@ -8683,7 +8695,9 @@ int Plater::select_plate(int plate_index, bool need_slice)
                 if (need_slice) { //from preview's thumbnail
                     if ((invalidated & PrintBase::APPLY_STATUS_INVALIDATED) || (gcode_result->moves.empty())){
                         //part_plate->update_slice_result_valid_state(false);
+                        p->process_completed_with_error = false;
                         p->m_slice_all = false;
+                        reset_gcode_toolpaths();
                         reslice();
                     }
                     else {
@@ -8722,7 +8736,9 @@ int Plater::select_plate(int plate_index, bool need_slice)
             {
                 if (need_slice)
                 {
+                    p->process_completed_with_error = false;
                     p->m_slice_all = false;
+                    reset_gcode_toolpaths();
                     reslice();
                 }
             }
@@ -8730,9 +8746,61 @@ int Plater::select_plate(int plate_index, bool need_slice)
             {
                 //check inside status
                 bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
+                if (p->printer_technology == ptFFF) {
+                    StringObjectException warning;
+                    Polygons polygons;
+                    std::vector<std::pair<Polygon, float>> height_polygons;
+                    StringObjectException err = p->background_process.validate(&warning, &polygons, &height_polygons);
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": validate err=%1%, warning=%2%")%err.string%warning.string;
+
+                    if (err.string.empty()) {
+                        p->notification_manager->set_all_slicing_errors_gray(true);
+                        p->notification_manager->close_notification_of_type(NotificationType::ValidateError);
+
+                        // Pass a warning from validation and either show a notification,
+                        // or hide the old one.
+                        p->process_validation_warning(warning);
+                        p->view3D->get_canvas3d()->reset_sequential_print_clearance();
+                        p->view3D->get_canvas3d()->set_as_dirty();
+                        p->view3D->get_canvas3d()->request_extra_frame();
+                    }
+                    else {
+                        // The print is not valid.
+                        // Show error as notification.
+                        p->notification_manager->push_validate_error_notification(err);
+                        model_fits = false;
+                        p->view3D->get_canvas3d()->set_sequential_print_clearance_visible(true);
+                        p->view3D->get_canvas3d()->set_sequential_print_clearance_render_fill(true);
+                        p->view3D->get_canvas3d()->set_sequential_print_clearance_polygons(polygons, height_polygons);
+                    }
+                    /*if (fff_print->config().print_sequence == PrintSequence::ByObject)
+                    {
+                        Polygons polygons;
+                        std::vector<std::pair<Polygon, float>> height_polygons;
+                        auto ret = Print::sequential_print_clearance_valid(*fff_print, &polygons, &height_polygons);
+                        if (!ret.string.empty()) {
+                            model_fits = false;
+                            p->view3D->get_canvas3d()->set_sequential_print_clearance_visible(true);
+                            p->view3D->get_canvas3d()->set_sequential_print_clearance_render_fill(true);
+                            p->view3D->get_canvas3d()->set_sequential_print_clearance_polygons(polygons, height_polygons);
+                        }
+                        else {
+                            p->view3D->get_canvas3d()->reset_sequential_print_clearance();
+                            p->view3D->get_canvas3d()->set_as_dirty();
+                            p->view3D->get_canvas3d()->request_extra_frame();
+                        }
+                    }*/
+                }
                 //BBS: add partplate logic
                 PartPlate* part_plate = p->partplate_list.get_curr_plate();
                 part_plate->update_slice_ready_status(model_fits);
+
+                if (model_fits){
+                    p->process_completed_with_error = false;
+                }
+                else {
+                    p->process_completed_with_error = true;
+                }
 
                 // BBS: don't show action buttons
                 //p->show_action_buttons(true);
@@ -8830,9 +8898,61 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             {
                 //check inside status
                 bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
+                if (p->printer_technology == ptFFF) {
+                    StringObjectException warning;
+                    Polygons polygons;
+                    std::vector<std::pair<Polygon, float>> height_polygons;
+                    StringObjectException err = p->background_process.validate(&warning, &polygons, &height_polygons);
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": validate err=%1%, warning=%2%")%err.string%warning.string;
+
+                    if (err.string.empty()) {
+                        p->notification_manager->set_all_slicing_errors_gray(true);
+                        p->notification_manager->close_notification_of_type(NotificationType::ValidateError);
+
+                        // Pass a warning from validation and either show a notification,
+                        // or hide the old one.
+                        p->process_validation_warning(warning);
+                        p->view3D->get_canvas3d()->reset_sequential_print_clearance();
+                        p->view3D->get_canvas3d()->set_as_dirty();
+                        p->view3D->get_canvas3d()->request_extra_frame();
+                    }
+                    else {
+                        // The print is not valid.
+                        // Show error as notification.
+                        p->notification_manager->push_validate_error_notification(err);
+                        model_fits = false;
+                        p->view3D->get_canvas3d()->set_sequential_print_clearance_visible(true);
+                        p->view3D->get_canvas3d()->set_sequential_print_clearance_render_fill(true);
+                        p->view3D->get_canvas3d()->set_sequential_print_clearance_polygons(polygons, height_polygons);
+                    }
+                    /*if (fff_print->config().print_sequence == PrintSequence::ByObject)
+                    {
+                        Polygons polygons;
+                        std::vector<std::pair<Polygon, float>> height_polygons;
+                        auto ret = Print::sequential_print_clearance_valid(*fff_print, &polygons, &height_polygons);
+                        if (!ret.string.empty()) {
+                            model_fits = false;
+                            p->view3D->get_canvas3d()->set_sequential_print_clearance_visible(true);
+                            p->view3D->get_canvas3d()->set_sequential_print_clearance_render_fill(true);
+                            p->view3D->get_canvas3d()->set_sequential_print_clearance_polygons(polygons, height_polygons);
+                        }
+                        else {
+                            p->view3D->get_canvas3d()->reset_sequential_print_clearance();
+                            p->view3D->get_canvas3d()->set_as_dirty();
+                            p->view3D->get_canvas3d()->request_extra_frame();
+                        }
+                    }*/
+                }
                 //BBS: add partplate logic
                 PartPlate* part_plate = p->partplate_list.get_curr_plate();
                 part_plate->update_slice_ready_status(model_fits);
+
+                if (model_fits){
+                    p->process_completed_with_error = false;
+                }
+                else {
+                    p->process_completed_with_error = true;
+                }
 
                 // BBS: don't show action buttons
                 //p->show_action_buttons(true);

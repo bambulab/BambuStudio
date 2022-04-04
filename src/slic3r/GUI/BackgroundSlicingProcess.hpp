@@ -143,10 +143,10 @@ public:
 	bool 		empty() const;
 	// Validate the print. Returns an empty string if valid, returns an error message if invalid.
 	// Call validate before calling start().
-    StringObjectException validate(StringObjectException *warning = nullptr);
+    StringObjectException validate(StringObjectException *warning = nullptr, Polygons* collison_polygons = nullptr, std::vector<std::pair<Polygon, float>>* height_polygons = nullptr);
 
 	// Set the export path of the G-code.
-	// Once the path is set, the G-code 
+	// Once the path is set, the G-code
 	void schedule_export(const std::string &path, bool export_path_on_removable_media);
 	// Clear m_export_path.
 	void reset_export();
@@ -183,7 +183,7 @@ public:
     //BBS: add Plater to friend class
     //need to call stop_internal in ui thread
     friend class GUI::Plater;
-    
+
 private:
 	void 	thread_proc();
 	// Calls thread_proc(), catches all C++ exceptions and shows them using wxApp::OnUnhandledException().

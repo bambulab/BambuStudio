@@ -28,6 +28,8 @@ class GeometryBuffer
 public:
     bool set_from_triangles(const std::vector<Vec2f> &triangles, float z);
     bool set_from_lines(const Lines& lines, float z);
+    //BBS: add APi to set from 3d lines
+    bool set_from_3d_Lines(const Lines3& lines);
 
     const float* get_vertices_data() const;
     unsigned int get_vertices_data_size() const { return (unsigned int)m_vertices.size() * get_vertex_data_size(); }

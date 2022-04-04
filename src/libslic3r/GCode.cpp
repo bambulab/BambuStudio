@@ -436,7 +436,7 @@ bool GCode::gcode_label_objects = false;
     // Starting position has to be supplied explicitely (otherwise it would fail in case first G1 command only contained one coordinate)
     std::string WipeTowerIntegration::post_process_wipe_tower_moves(const WipeTower::ToolChangeResult& tcr, const Vec2f& translation, float angle) const
     {
-        Vec2f extruder_offset; 
+        Vec2f extruder_offset;
         if (m_single_extruder_multi_material)
             extruder_offset = m_extruder_offsets[0].cast<float>();
         else
@@ -934,7 +934,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
         // set the filename to the correct value
         result->filename = path;
     }
-    
+
     //BBS: add some log for error output
     BOOST_LOG_TRIVIAL(debug) << boost::format("Finished processing gcode to %1% ") % path_tmp;
 
@@ -1012,8 +1012,8 @@ namespace DoExport {
 	    double volumetric_speed = 0.;
 	    if (! mm3_per_mm.empty()) {
 	        // In order to honor max_print_speed we need to find a target volumetric
-	        // speed that we can use throughout the print. So we define this target 
-	        // volumetric speed as the volumetric speed produced by printing the 
+	        // speed that we can use throughout the print. So we define this target
+	        // volumetric speed as the volumetric speed produced by printing the
 	        // smallest cross-section at the maximum speed: any larger cross-section
 	        // will need slower feedrates.
 	        volumetric_speed = *std::min_element(mm3_per_mm.begin(), mm3_per_mm.end()) * print.config().max_print_speed.value;
@@ -1181,6 +1181,7 @@ static inline std::vector<const PrintInstance*> sort_object_instances_by_max_z(c
 #endif
 
 // Produce a vector of PrintObjects in the order of their respective ModelObjects in print.model().
+//BBS: add sort logic for seq-print
 std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Print& print)
 {
     // Build up map from ModelInstance* to PrintInstance*
@@ -1189,13 +1190,13 @@ std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Pri
     for (const PrintObject *print_object : print.objects())
         for (const PrintInstance &print_instance : print_object->instances())
             model_instance_to_print_instance.emplace_back(print_instance.model_instance, &print_instance);
-    std::sort(model_instance_to_print_instance.begin(), model_instance_to_print_instance.end(), [](auto &l, auto &r) { return l.first < r.first; });
+    std::sort(model_instance_to_print_instance.begin(), model_instance_to_print_instance.end(), [](auto &l, auto &r) { return l.first->arrange_order < r.first->arrange_order; });
 
     std::vector<const PrintInstance*> instances;
     instances.reserve(model_instance_to_print_instance.size());
     for (const ModelObject *model_object : print.model().objects)
         for (const ModelInstance *model_instance : model_object->instances) {
-            auto it = std::lower_bound(model_instance_to_print_instance.begin(), model_instance_to_print_instance.end(), std::make_pair(model_instance, nullptr), [](auto &l, auto &r) { return l.first < r.first; });
+            auto it = std::lower_bound(model_instance_to_print_instance.begin(), model_instance_to_print_instance.end(), std::make_pair(model_instance, nullptr), [](auto &l, auto &r) { return l.first->arrange_order < r.first->arrange_order; });
             if (it != model_instance_to_print_instance.end() && it->first == model_instance)
                 instances.emplace_back(it->second);
         }
@@ -1356,7 +1357,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             // No object to print was found, cancel the G-code export.
             throw Slic3r::SlicingError(_(L("No object can be printed. Maybe too small")));
         has_wipe_tower = print.has_wipe_tower() && tool_ordering.has_wipe_tower();
-        // BBS: priming logic is removed, so 1st layer tool_ordering also respect the object tool sequence 
+        // BBS: priming logic is removed, so 1st layer tool_ordering also respect the object tool sequence
 #if 0
         initial_extruder_id = (has_wipe_tower && !print.config().single_extruder_multi_material_priming) ?
             // The priming towers will be skipped.
@@ -1831,7 +1832,7 @@ static bool custom_gcode_sets_temperature(const std::string &gcode, const int mc
             // Parse the M or G code value.
             char *endptr = nullptr;
             int mgcode = int(strtol(ptr, &endptr, 10));
-            if (endptr != nullptr && endptr != ptr && 
+            if (endptr != nullptr && endptr != ptr &&
                 is_gcode ?
                     // G10 found
                     mgcode == 10 :
@@ -2125,7 +2126,7 @@ namespace ProcessLayer
                     // see GH issue #6362
                     gcodegen.writer().unretract();
                 }
-	        } 
+	        }
 	        else {
 	            if (gcode_type == CustomGCode::PausePrint) // Pause print
 	            {
@@ -2688,7 +2689,7 @@ GCode::LayerResult GCode::process_layer(
             for (InstanceToPrint &instance_to_print : instances_to_print) {
                 const LayerToPrint &layer_to_print = layers[instance_to_print.layer_id];
                 // To control print speed of the 1st object layer printed over raft interface.
-                bool object_layer_over_raft = layer_to_print.object_layer && layer_to_print.object_layer->id() > 0 && 
+                bool object_layer_over_raft = layer_to_print.object_layer && layer_to_print.object_layer->id() > 0 &&
                     instance_to_print.print_object.slicing_parameters().raft_layers() == layer_to_print.object_layer->id();
                 m_config.apply(instance_to_print.print_object.config(), true);
                 m_layer = layer_to_print.layer();
@@ -2972,7 +2973,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     }
     else {
         //BBS
-        bool is_outer_wall_first = 
+        bool is_outer_wall_first =
                 m_config.wall_infill_order == WallInfillOrder::OuterInnerInfill ||
                 m_config.wall_infill_order == WallInfillOrder::InfillOuterInner;
         m_seam_placer.place_seam(loop, this->last_pos(), is_outer_wall_first,
@@ -3262,12 +3263,12 @@ bool GCode::GCodeOutputStream::is_error() const
 }
 
 void GCode::GCodeOutputStream::flush()
-{ 
+{
     ::fflush(this->f);
 }
 
 void GCode::GCodeOutputStream::close()
-{ 
+{
     // BBS: encrypt gcode
     if (m_encrypt) {
         m_encrypt->finalize();

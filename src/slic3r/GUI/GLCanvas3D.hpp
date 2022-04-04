@@ -517,6 +517,8 @@ public:
 
     class SequentialPrintClearance
     {
+        //BBS: add the height logic
+        GLModel m_height_limit;
         GLModel m_fill;
         GLModel m_perimeter;
         bool m_render_fill{ true };
@@ -525,7 +527,8 @@ public:
         std::vector<Pointf3s> m_hull_2d_cache;
 
     public:
-        void set_polygons(const Polygons& polygons);
+        //BBS: add the height logic
+        void set_polygons(const Polygons& polygons, const std::vector<std::pair<Polygon, float>>& height_polygons);
         void set_render_fill(bool render_fill) { m_render_fill = render_fill; }
         void set_visible(bool visible) { m_visible = visible; }
         void render();
@@ -863,7 +866,8 @@ public:
     void reset_sequential_print_clearance() {
         m_sequential_print_clearance.set_visible(false);
         m_sequential_print_clearance.set_render_fill(false);
-        m_sequential_print_clearance.set_polygons(Polygons());
+        //BBS: add the height logic
+        m_sequential_print_clearance.set_polygons(Polygons(), std::vector<std::pair<Polygon, float>>());
     }
 
     void set_sequential_print_clearance_visible(bool visible) {
@@ -874,8 +878,9 @@ public:
         m_sequential_print_clearance.set_render_fill(render_fill);
     }
 
-    void set_sequential_print_clearance_polygons(const Polygons& polygons) {
-        m_sequential_print_clearance.set_polygons(polygons);
+    //BBS: add the height logic
+    void set_sequential_print_clearance_polygons(const Polygons& polygons, const std::vector<std::pair<Polygon, float>>& height_polygons) {
+        m_sequential_print_clearance.set_polygons(polygons, height_polygons);
     }
 
     void update_sequential_clearance();

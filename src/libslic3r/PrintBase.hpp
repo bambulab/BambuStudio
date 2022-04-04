@@ -109,7 +109,7 @@ public:
         return this->state_with_timestamp(step, mtx).state == DONE;
     }
 
-    StateWithTimeStamp state_with_timestamp_unguarded(StepType step) const { 
+    StateWithTimeStamp state_with_timestamp_unguarded(StepType step) const {
         return m_state[step];
     }
 
@@ -279,7 +279,7 @@ public:
         assert(state.state == STARTED);
         std::pair<StepType, bool> retval(static_cast<StepType>(m_step_active), true);
         // Does a warning of the same level and message or message_id exist already?
-		auto it = (message_id == 0) ? 
+		auto it = (message_id == 0) ?
             std::find_if(state.warnings.begin(), state.warnings.end(), [&message](const auto &w) { return w.message_id == 0 && w.message == message; }) :
             std::find_if(state.warnings.begin(), state.warnings.end(), [message_id](const auto& w) { return w.message_id == message_id; });
     	if (it == state.warnings.end())
@@ -371,7 +371,8 @@ public:
     virtual std::vector<ObjectID> print_object_ids() const = 0;
 
     // Validate the print, return empty string if valid, return error if process() cannot (or should not) be started.
-    virtual StringObjectException validate(StringObjectException *warning = nullptr) const { return {}; }
+    //BBS: add more paremeters to validate
+    virtual StringObjectException validate(StringObjectException *warning = nullptr, Polygons* collison_polygons = nullptr, std::vector<std::pair<Polygon, float>>* height_polygons = nullptr) const { return {}; }
 
     enum ApplyStatus {
         // No change after the Print::apply() call.
@@ -537,7 +538,7 @@ public:
 
 protected:
     bool            set_started(PrintStepEnum step) { return m_state.set_started(step, this->state_mutex(), [this](){ this->throw_if_canceled(); }); }
-	PrintStateBase::TimeStamp set_done(PrintStepEnum step) { 
+	PrintStateBase::TimeStamp set_done(PrintStepEnum step) {
 		std::pair<PrintStateBase::TimeStamp, bool> status = m_state.set_done(step, this->state_mutex(), [this](){ this->throw_if_canceled(); });
         if (status.second)
             this->status_update_warnings(static_cast<int>(step), PrintStateBase::WarningLevel::NON_CRITICAL, std::string());
@@ -546,11 +547,11 @@ protected:
     bool            invalidate_step(PrintStepEnum step)
 		{ return m_state.invalidate(step, this->cancel_callback()); }
     template<typename StepTypeIterator>
-    bool            invalidate_steps(StepTypeIterator step_begin, StepTypeIterator step_end) 
+    bool            invalidate_steps(StepTypeIterator step_begin, StepTypeIterator step_end)
         { return m_state.invalidate_multiple(step_begin, step_end, this->cancel_callback()); }
-    bool            invalidate_steps(std::initializer_list<PrintStepEnum> il) 
+    bool            invalidate_steps(std::initializer_list<PrintStepEnum> il)
         { return m_state.invalidate_multiple(il.begin(), il.end(), this->cancel_callback()); }
-    bool            invalidate_all_steps() 
+    bool            invalidate_all_steps()
         { return m_state.invalidate_all(this->cancel_callback()); }
 
 	bool            is_step_started_unguarded(PrintStepEnum step) const { return m_state.is_started_unguarded(step); }
@@ -584,9 +585,9 @@ public:
 protected:
 	PrintObjectBaseWithState(PrintType *print, ModelObject *model_object) : PrintObjectBase(model_object), m_print(print) {}
 
-    bool            set_started(PrintObjectStepEnum step) 
+    bool            set_started(PrintObjectStepEnum step)
         { return m_state.set_started(step, PrintObjectBase::state_mutex(m_print), [this](){ this->throw_if_canceled(); }); }
-	PrintStateBase::TimeStamp set_done(PrintObjectStepEnum step) { 
+	PrintStateBase::TimeStamp set_done(PrintObjectStepEnum step) {
 		std::pair<PrintStateBase::TimeStamp, bool> status = m_state.set_done(step, PrintObjectBase::state_mutex(m_print), [this](){ this->throw_if_canceled(); });
         if (status.second)
             this->status_update_warnings(m_print, static_cast<int>(step), PrintStateBase::WarningLevel::NON_CRITICAL, std::string());
@@ -596,11 +597,11 @@ protected:
     bool            invalidate_step(PrintObjectStepEnum step)
         { return m_state.invalidate(step, PrintObjectBase::cancel_callback(m_print)); }
     template<typename StepTypeIterator>
-    bool            invalidate_steps(StepTypeIterator step_begin, StepTypeIterator step_end) 
+    bool            invalidate_steps(StepTypeIterator step_begin, StepTypeIterator step_end)
         { return m_state.invalidate_multiple(step_begin, step_end, PrintObjectBase::cancel_callback(m_print)); }
-    bool            invalidate_steps(std::initializer_list<PrintObjectStepEnum> il) 
+    bool            invalidate_steps(std::initializer_list<PrintObjectStepEnum> il)
         { return m_state.invalidate_multiple(il.begin(), il.end(), PrintObjectBase::cancel_callback(m_print)); }
-    bool            invalidate_all_steps() 
+    bool            invalidate_all_steps()
         { return m_state.invalidate_all(PrintObjectBase::cancel_callback(m_print)); }
 
     bool            is_step_started_unguarded(PrintObjectStepEnum step) const { return m_state.is_started_unguarded(step); }

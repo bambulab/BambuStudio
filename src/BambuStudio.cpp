@@ -491,11 +491,13 @@ int CLI::run(int argc, char **argv)
     Pointfs excluse_areas = m_print_config.opt<ConfigOptionPoints>("bed_exclude_area")->values;
     //update part plate's size
     double z = m_print_config.opt_float("printable_height");
+    double height_to_lid = m_print_config.opt_float("extruder_clearance_height_to_lid");
+    double height_to_rod = m_print_config.opt_float("extruder_clearance_height_to_rod");
     double plate_stride;
     if (m_models.size() > 0)
     {
         partplate_list.reset_size(bedfs[2].x() - bedfs[0].x(), bedfs[2].y() - bedfs[0].y(), z);
-        partplate_list.set_shapes(bedfs, excluse_areas);
+        partplate_list.set_shapes(bedfs, excluse_areas, height_to_lid, height_to_rod);
         plate_stride = partplate_list.plate_stride_x();
         BOOST_LOG_TRIVIAL(info) << "bed size, x="<<bedfs[2].x() - bedfs[0].x()<<",y="<<bedfs[2].y() - bedfs[0].y()<<",z="<< z <<"\n";
     }

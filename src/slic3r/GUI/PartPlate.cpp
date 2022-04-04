@@ -58,6 +58,8 @@ std::array<float, 4> PartPlate::UNSELECT_COLOR		= { 0.765f, 0.765f, 0.765f, 1.0f
 std::array<float, 4> PartPlate::DEFAULT_COLOR		= { 0.5f, 0.5f, 0.5f, 1.0f };
 std::array<float, 4> PartPlate::LINE_TOP_COLOR		= { 0.6f, 0.6f, 0.6f, 0.6f };
 std::array<float, 4> PartPlate::LINE_BOTTOM_COLOR	= { 1.0f, 1.0f, 1.0f, 1.0f };
+std::array<float, 4> PartPlate::HEIGHT_LIMIT_TOP_COLOR		= { 0.6f, 0.6f, 1.0f, 1.0f };
+std::array<float, 4> PartPlate::HEIGHT_LIMIT_BOTTOM_COLOR	= { 0.4f, 0.4f, 1.0f, 1.0f };
 
 
 void PartPlate::update_render_colors()
@@ -205,6 +207,48 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
 }
 
+void PartPlate::calc_height_limit() {
+	Lines3 bottom_h_lines, top_lines, top_h_lines, common_lines;
+	int shape_count = m_shape.size();
+	float first_z = 0.02f;
+	for (int i = 0; i < shape_count; i++) {
+		auto &cur_p = m_shape[i];
+		Vec3crd p1(scale_(cur_p.x()), scale_(cur_p.y()), scale_(first_z));
+		Vec3crd p2(scale_(cur_p.x()), scale_(cur_p.y()), scale_(m_height_to_rod));
+		Vec3crd p3(scale_(cur_p.x()), scale_(cur_p.y()), scale_(m_height_to_lid));
+
+		common_lines.emplace_back(p1, p2);
+		top_lines.emplace_back(p2, p3);
+
+		Vec2d next_p;
+		if (i < (shape_count - 1)) {
+			next_p = m_shape[i+1];
+
+		}
+		else {
+			next_p = m_shape[0];
+		}
+		Vec3crd p4(scale_(cur_p.x()), scale_(cur_p.y()), scale_(m_height_to_rod));
+		Vec3crd p5(scale_(next_p.x()), scale_(next_p.y()), scale_(m_height_to_rod));
+		bottom_h_lines.emplace_back(p4, p5);
+
+		Vec3crd p6(scale_(cur_p.x()), scale_(cur_p.y()), scale_(m_height_to_lid));
+		Vec3crd p7(scale_(next_p.x()), scale_(next_p.y()), scale_(m_height_to_lid));
+		top_h_lines.emplace_back(p6, p7);
+	}
+	//std::copy(bottom_lines.begin(), bottom_lines.end(), std::back_inserter(bottom_h_lines));
+	std::copy(top_lines.begin(), top_lines.end(), std::back_inserter(top_h_lines));
+
+	if (!m_height_limit_common.set_from_3d_Lines(common_lines))
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create height limit bottom lines\n";
+
+	if (!m_height_limit_bottom.set_from_3d_Lines(bottom_h_lines))
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create height limit bottom lines\n";
+
+	if (!m_height_limit_top.set_from_3d_Lines(top_h_lines))
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create height limit top lines\n";
+}
+
 void PartPlate::calc_vertex_for_icons(int index, GeometryBuffer &buffer)
 {
 	ExPolygon poly;
@@ -293,6 +337,34 @@ void PartPlate::render_grid(bool bottom) const {
 	glsafe(::glVertexPointer(3, GL_FLOAT, m_gridlines.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
 	glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines.get_vertices_count()));
 }
+
+void PartPlate::render_height_limit(PartPlate::HeightLimitMode mode) const
+{
+	if (m_print && m_print->config().print_sequence == PrintSequence::ByObject && mode != HEIGHT_LIMIT_NONE)
+	{
+		// draw lower limit
+		glsafe(::glLineWidth(3.0f * m_scale_factor));
+		glsafe(::glColor4fv(HEIGHT_LIMIT_BOTTOM_COLOR.data()));
+		glsafe(::glVertexPointer(3, GL_FLOAT, m_height_limit_common.get_vertex_data_size(), (GLvoid*)m_height_limit_common.get_vertices_data()));
+		glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_height_limit_common.get_vertices_count()));
+
+		if ((mode == HEIGHT_LIMIT_BOTTOM) || (mode == HEIGHT_LIMIT_BOTH)) {
+			glsafe(::glLineWidth(3.0f * m_scale_factor));
+			glsafe(::glColor4fv(HEIGHT_LIMIT_BOTTOM_COLOR.data()));
+			glsafe(::glVertexPointer(3, GL_FLOAT, m_height_limit_bottom.get_vertex_data_size(), (GLvoid*)m_height_limit_bottom.get_vertices_data()));
+			glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_height_limit_bottom.get_vertices_count()));
+		}
+
+		// draw upper limit
+		if ((mode == HEIGHT_LIMIT_TOP) || (mode == HEIGHT_LIMIT_BOTH)){
+			glsafe(::glLineWidth(3.0f * m_scale_factor));
+			glsafe(::glColor4fv(HEIGHT_LIMIT_TOP_COLOR.data()));
+			glsafe(::glVertexPointer(3, GL_FLOAT, m_height_limit_top.get_vertex_data_size(), (GLvoid*)m_height_limit_top.get_vertices_data()));
+			glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_height_limit_top.get_vertices_count()));
+		}
+	}
+}
+
 
 void PartPlate::render_icon_texture(int position_id, int tex_coords_id, const GeometryBuffer &buffer, GLTexture &texture, unsigned int &vbo_id) const
 {
@@ -1176,46 +1248,54 @@ void PartPlate::move_instances_to(PartPlate& left_plate, PartPlate& right_plate,
 	return;
 }
 
-bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Vec2d position)
+bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Vec2d position, float height_to_lid, float height_to_rod)
 {
-	if ((m_shape == shape)&&(m_exclude_area == exclude_areas)) {
+	if ((m_shape == shape)&&(m_exclude_area == exclude_areas)
+		&&(m_height_to_lid == height_to_lid)&&(m_height_to_rod == height_to_rod)) {
 		BOOST_LOG_TRIVIAL(trace) << "PartPlate same shape";
 		return false;
 	}
+	m_height_to_lid =  height_to_lid;
+	m_height_to_rod =  height_to_rod;
 
-	m_shape.clear();
-	for (const Vec2d& p : shape) {
-		m_shape.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
+	if ((m_shape != shape) || (m_exclude_area != exclude_areas))
+	{
+		m_shape.clear();
+		for (const Vec2d& p : shape) {
+			m_shape.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
+		}
+
+		m_exclude_area.clear();
+		for (const Vec2d& p : exclude_areas) {
+			m_exclude_area.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
+		}
+
+		calc_bounding_boxes();
+
+		ExPolygon poly;
+		for (const Vec2d& p : m_shape) {
+			poly.contour.append({ scale_(p(0)), scale_(p(1)) });
+		}
+
+		calc_triangles(poly);
+
+		ExPolygon exclude_poly;
+		for (const Vec2d& p : m_exclude_area) {
+			exclude_poly.contour.append({ scale_(p(0)), scale_(p(1)) });
+		}
+		calc_exclude_triangles(exclude_poly);
+
+		const BoundingBox& pp_bbox = poly.contour.bounding_box();
+		calc_gridlines(poly, pp_bbox);
+
+		calc_vertex_for_icons(0, m_del_icon);
+		calc_vertex_for_icons(1, m_orient_icon);
+		calc_vertex_for_icons(2, m_arrange_icon);
+		calc_vertex_for_icons(3, m_lock_icon);
+		calc_vertex_for_icons(4, m_plate_idx_icon);
 	}
 
-    m_exclude_area.clear();
-	for (const Vec2d& p : exclude_areas) {
-		m_exclude_area.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
-	}
-
-	calc_bounding_boxes();
-
-	ExPolygon poly;
-	for (const Vec2d& p : m_shape) {
-		poly.contour.append({ scale_(p(0)), scale_(p(1)) });
-	}
-
-	calc_triangles(poly);
-
-	ExPolygon exclude_poly;
-	for (const Vec2d& p : m_exclude_area) {
-		exclude_poly.contour.append({ scale_(p(0)), scale_(p(1)) });
-	}
-	calc_exclude_triangles(exclude_poly);
-
-	const BoundingBox& pp_bbox = poly.contour.bounding_box();
-	calc_gridlines(poly, pp_bbox);
-
-	calc_vertex_for_icons(0, m_del_icon);
-	calc_vertex_for_icons(1, m_orient_icon);
-	calc_vertex_for_icons(2, m_arrange_icon);
-	calc_vertex_for_icons(3, m_lock_icon);
-	calc_vertex_for_icons(4, m_plate_idx_icon);
+	calc_height_limit();
 
 	release_opengl_resource();
 
@@ -1268,7 +1348,8 @@ Point PartPlate::point_projection(const Point& point) const
 	return m_polygon.point_projection(point);
 }
 
-void PartPlate::render(GLCanvas3D& canvas, bool bottom, bool with_label, bool only_body, bool force_background_color) {
+void PartPlate::render(GLCanvas3D& canvas, bool bottom, bool with_label, bool only_body, bool force_background_color, bool is_current, HeightLimitMode mode)
+{
 	glsafe(::glEnable(GL_DEPTH_TEST));
 	glsafe(::glEnable(GL_BLEND));
 	glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
@@ -1282,6 +1363,9 @@ void PartPlate::render(GLCanvas3D& canvas, bool bottom, bool with_label, bool on
 	}
 
 	render_grid(bottom);
+
+	if (is_current)
+		render_height_limit(mode);
 
 	if (!only_body) {
 		/*float render_color[4];
@@ -1703,7 +1787,7 @@ void PartPlateList::reinit()
 
 	//reset plate 0's position
 	Vec2d pos = compute_shape_position(0, m_plate_cols);
-	m_plate_list[0]->set_shape(m_shape, m_exclude_areas, pos);
+	m_plate_list[0]->set_shape(m_shape, m_exclude_areas, pos, m_height_to_lid, m_height_to_rod);
 	//reset unprintable plate's position
 	Vec3d origin2 = compute_origin_for_unprintable();
 	unprintable_plate.set_pos_and_size(origin2, m_plate_width, m_plate_depth, m_plate_height, false);
@@ -1743,7 +1827,7 @@ int PartPlateList::create_plate(bool adjust_position)
 	}
 
 	Vec2d pos = compute_shape_position(new_index, cols);
-	plate->set_shape(m_shape, m_exclude_areas, pos);
+	plate->set_shape(m_shape, m_exclude_areas, pos, m_height_to_lid, m_height_to_rod);
 	plate->set_index(new_index);
 	m_plate_list.emplace_back(plate);
 	update_plate_cols();
@@ -1752,7 +1836,7 @@ int PartPlateList::create_plate(bool adjust_position)
 		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":old_cols %1% -> new_cols %2%") % old_cols % cols;
 		//update the origin of each plate
 		update_all_plates_pos_and_size(adjust_position, false);
-		set_shapes(m_shape, m_exclude_areas);
+		set_shapes(m_shape, m_exclude_areas, m_height_to_lid, m_height_to_rod);
 
 		if (m_plater) {
 			Vec2d pos = compute_shape_position(m_current_plate, cols);
@@ -1898,7 +1982,7 @@ int PartPlateList::delete_plate(int index)
 
 		//update render shapes
 		Vec2d pos = compute_shape_position(i, m_plate_cols);
-		plate->set_shape(m_shape, m_exclude_areas, pos);
+        plate->set_shape(m_shape, m_exclude_areas, pos, m_height_to_lid, m_height_to_rod);
 	}
 
 	//update current_plate if delete current
@@ -1920,7 +2004,7 @@ int PartPlateList::delete_plate(int index)
 	{
 		//update the origin of each plate
 		update_all_plates_pos_and_size();
-		set_shapes(m_shape, m_exclude_areas);
+		set_shapes(m_shape, m_exclude_areas, m_height_to_lid, m_height_to_rod);
 	}
 	else
 	{
@@ -2801,7 +2885,10 @@ void PartPlateList::render(GLCanvas3D& canvas, bool bottom, float scale_factor, 
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
 		if (only_current && ((*it)->get_index() != m_current_plate))
 			continue;
-        (*it)->render(canvas, bottom, false, only_body);
+		if ((*it)->get_index() == m_current_plate)
+			(*it)->render(canvas, bottom, false, only_body, false, !only_current, m_height_limit_mode);
+		else
+			(*it)->render(canvas, bottom, false, only_body, false, false, m_height_limit_mode);
 	}
 }
 
@@ -2879,11 +2966,13 @@ void PartPlateList::select_plate_view()
 	m_plater->get_camera().select_view("topfront");
 }
 
-bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_areas)
+bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_areas, float height_to_lid, float height_to_rod)
 {
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	m_shape = shape;
-    m_exclude_areas = exclude_areas;
+	m_exclude_areas = exclude_areas;
+	m_height_to_lid = height_to_lid;
+	m_height_to_rod = height_to_rod;
 
 	double stride_x = plate_stride_x();
 	double stride_y = plate_stride_y();
@@ -2895,14 +2984,13 @@ bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_area
 		Vec2d pos;
 
 		pos = compute_shape_position(i, m_plate_cols);
-		plate->set_shape(shape, exclude_areas, pos);
+		plate->set_shape(shape, exclude_areas, pos, height_to_lid, height_to_rod);
 	}
 
 	calc_bounding_boxes();
 
 	return true;
 }
-
 
 /*slice related functions*/
 //update current slice context into backgroud slicing process
@@ -3014,7 +3102,7 @@ int PartPlateList::rebuild_plates_after_deserialize(std::vector<bool>& previous_
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plates count %1%") % m_plate_list.size();
 	update_plate_cols();
-	set_shapes(m_shape, m_exclude_areas);
+	set_shapes(m_shape, m_exclude_areas, m_height_to_lid, m_height_to_rod);
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
 		m_plate_list[i]->m_plater = this->m_plater;

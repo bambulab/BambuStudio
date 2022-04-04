@@ -91,6 +91,35 @@ bool GeometryBuffer::set_from_lines(const Lines& lines, float z)
     return true;
 }
 
+//BBS: set from 3d lines
+bool GeometryBuffer::set_from_3d_Lines(const Lines3& lines)
+{
+    m_vertices.clear();
+
+    unsigned int v_size = 2 * (unsigned int)lines.size();
+    if (v_size == 0)
+        return false;
+
+    m_vertices = std::vector<Vertex>(v_size, Vertex());
+
+    unsigned int v_count = 0;
+    for (const Line3& l : lines) {
+        Vertex& v1 = m_vertices[v_count];
+        v1.position[0] = unscale<float>(l.a(0));
+        v1.position[1] = unscale<float>(l.a(1));
+        v1.position[2] = unscale<float>(l.a(2));
+        ++v_count;
+
+        Vertex& v2 = m_vertices[v_count];
+        v2.position[0] = unscale<float>(l.b(0));
+        v2.position[1] = unscale<float>(l.b(1));
+        v2.position[2] = unscale<float>(l.b(2));
+        ++v_count;
+    }
+
+    return true;
+}
+
 const float* GeometryBuffer::get_vertices_data() const
 {
     return (m_vertices.size() > 0) ? (const float*)m_vertices.data() : nullptr;
@@ -448,7 +477,7 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
                 render_default(bottom, false);
                 return;
             }
-        } 
+        }
         else if (boost::algorithm::iends_with(m_texture_filename, ".png")) {
             // generate a temporary lower resolution texture to show while no main texture levels have been compressed
             if (temp_texture->get_id() == 0 || temp_texture->get_source() != m_texture_filename) {

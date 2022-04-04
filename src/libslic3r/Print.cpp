@@ -38,7 +38,7 @@ PrintRegion::PrintRegion(PrintRegionConfig &&config) : PrintRegion(std::move(con
 //BBS
 float Print::min_skirt_length = 0;
 
-void Print::clear() 
+void Print::clear()
 {
 	std::scoped_lock<std::mutex> lock(this->state_mutex());
     // The following call should stop background processing if it is running.
@@ -192,7 +192,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             //FIXME Killing supports on any change of "filament_soluble" is rough. We should check for each object whether that is necessary.
             osteps.emplace_back(posSupportMaterial);
         } else if (
-               opt_key == "initial_layer_line_width" 
+               opt_key == "initial_layer_line_width"
             || opt_key == "min_layer_height"
             || opt_key == "max_layer_height"
             || opt_key == "resolution"
@@ -300,7 +300,7 @@ std::vector<unsigned int> Print::support_material_extruders() const
     if (support_uses_current_extruder)
         // Add all object extruders to the support extruders as it is not know which one will be used to print supports.
         append(extruders, this->object_extruders());
-    
+
     sort_remove_duplicates(extruders);
     return extruders;
 }
@@ -330,9 +330,9 @@ double Print::max_allowed_layer_height() const
     return nozzle_diameter_max;
 }
 
-std::vector<ObjectID> Print::print_object_ids() const 
-{ 
-    std::vector<ObjectID> out; 
+std::vector<ObjectID> Print::print_object_ids() const
+{
+    std::vector<ObjectID> out;
     // Reserve one more for the caller to append the ID of the Print itself.
     out.reserve(m_objects.size() + 1);
     for (const PrintObject *print_object : m_objects)
@@ -356,12 +356,9 @@ bool Print::has_brim() const
 }
 
 //BBS
-StringObjectException Print::sequential_print_clearance_valid(const Print &print, Polygons *polygons)
+StringObjectException Print::sequential_print_clearance_valid(const Print &print, Polygons *polygons, std::vector<std::pair<Polygon, float>>* height_polygons)
 {
-    std::vector<const PrintInstance*> print_instances_ordered = sort_object_instances_by_model_order(print);
-    if (print_instances_ordered.size() < 2)
-        return {};
-
+    StringObjectException single_object_exception;
     auto print_config = print.config();
     Pointfs excluse_area_points = print_config.bed_exclude_area.values;
     Polygons exclude_polys;
@@ -376,61 +373,92 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
         }
     }
 
-    std::map<const PrintInstance*, Polygon> map_model_object_to_convex_hull;
+    std::map<ObjectID, Polygon> map_model_object_to_convex_hull;
+    struct print_instance_info
+    {
+        const PrintInstance *print_instance;
+        BoundingBox    bounding_box;
+        Polygon        hull_polygon;
+    };
+    std::vector<struct print_instance_info> print_instance_with_bounding_box;
     {
         // sequential_print_horizontal_clearance_valid
         Polygons convex_hulls_other;
         if (polygons != nullptr)
             polygons->clear();
         std::vector<size_t> intersecting_idxs;
-        std::string error_msg;
 
-        for (int k = 0; k < print_instances_ordered.size(); k++)
-        {
-            auto& inst = print_instances_ordered[k];
-            auto it_convex_hull = map_model_object_to_convex_hull.find(inst);
+        for (const PrintObject *print_object : print.objects()) {
+            assert(! print_object->model_object()->instances.empty());
+            assert(! print_object->instances().empty());
+            ObjectID model_object_id = print_object->model_object()->id();
+            auto it_convex_hull = map_model_object_to_convex_hull.find(model_object_id);
             // Get convex hull of all printable volumes assigned to this print object.
-            const ModelInstance* model_instance0 = inst->model_instance;
+            ModelInstance *model_instance0 = print_object->model_object()->instances.front();
             if (it_convex_hull == map_model_object_to_convex_hull.end()) {
-                // Calculate the convex hull of a printable object. 
-                auto convex_hull0 = inst->print_object->model_object()->convex_hull_2d(
-                    Geometry::assemble_transform(Vec3d::Zero(), model_instance0->get_rotation(), model_instance0->get_scaling_factor(), model_instance0->get_mirror()));
-
-                double z_diff = Geometry::rotation_diff_z(model_instance0->get_rotation(), inst->model_instance->get_rotation());
-                if (std::abs(z_diff) > EPSILON)
-                    convex_hull0.rotate(z_diff);
-
+                // Calculate the convex hull of a printable object.
+                // Grow convex hull with the clearance margin.
+                // FIXME: Arrangement has different parameters for offsetting (jtMiter, limit 2)
+                // which causes that the warning will be showed after arrangement with the
+                // appropriate object distance. Even if I set this to jtMiter the warning still shows up.
+                it_convex_hull = map_model_object_to_convex_hull.emplace_hint(it_convex_hull, model_object_id,
+                            print_object->model_object()->convex_hull_2d(Geometry::assemble_transform(
+                            { 0.0, 0.0, model_instance0->get_offset().z() }, model_instance0->get_rotation(), model_instance0->get_scaling_factor(), model_instance0->get_mirror())));
+            }
+            // Make a copy, so it may be rotated for instances.
+            Polygon convex_hull0 = it_convex_hull->second;
+            const double z_diff = Geometry::rotation_diff_z(model_instance0->get_rotation(), print_object->instances().front().model_instance->get_rotation());
+            if (std::abs(z_diff) > EPSILON)
+                convex_hull0.rotate(z_diff);
+            // Now we check that no instance of convex_hull intersects any of the previously checked object instances.
+            for (const PrintInstance &instance : print_object->instances()) {
+                Polygon convex_hull_no_offset = convex_hull0, convex_hull;
+                convex_hull = offset(convex_hull_no_offset,
+                        // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
+                        // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
+                        float(scale_(0.5 * print.config().extruder_clearance_radius.value - EPSILON)),
+                        jtRound, scale_(0.1)).front();
                 // instance.shift is a position of a centered object, while model object may not be centered.
-                // Conver the shift from the PrintObject's coordinates into ModelObject's coordinates by removing the centering offset.
-                convex_hull0.translate(inst->shift - inst->print_object->center_offset());
-
-                it_convex_hull = map_model_object_to_convex_hull.emplace_hint(it_convex_hull, inst, convex_hull0);
-            }
-            Polygon convex_hull = it_convex_hull->second;
-            Polygons convex_hulls_temp;
-            convex_hulls_temp.push_back(convex_hull);
-            if (!intersection(exclude_polys, convex_hulls_temp).empty()) {
-                return {"Object " + inst->model_instance->get_object()->name + " is too close to exclusion area; your extruder will collide with them.", inst->model_instance->get_object()};
-            }
-
-            // Grow convex hull with the clearance margin.
-            // FIXME: Arrangement has different parameters for offsetting (jtMiter, limit 2)
-            // which causes that the warning will be showed after arrangement with the
-            // appropriate object distance. Even if I set this to jtMiter the warning still shows up.
-            convex_hull = offset(convex_hull,
-                // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
-                // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
-                float(scale_(0.5 * print.config().extruder_clearance_radius.value - EPSILON)),
-                jtRound, float(scale_(0.1))).front();
-            if (!intersection(convex_hulls_other, Polygons{ convex_hull }).empty()) {
-                return {"Object " + inst->model_instance->get_object()->name + " is too close to others; your extruder will collide with them.", inst->model_instance->get_object()};
-                if (polygons)
-                {
-                    intersecting_idxs.emplace_back(k);
-                    intersecting_idxs.emplace_back(convex_hulls_other.size());
+                // Convert the shift from the PrintObject's coordinates into ModelObject's coordinates by removing the centering offset.
+                convex_hull.translate(instance.shift - print_object->center_offset());
+                convex_hull_no_offset.translate(instance.shift - print_object->center_offset());
+                //juedge the exclude area
+                if (!intersection(exclude_polys, convex_hull_no_offset).empty()) {
+                    if (single_object_exception.string.empty()) {
+                        single_object_exception.string = (boost::format(L("%1% is too close to exclusion area, there will be collisions when printing.")) %instance.model_instance->get_object()->name).str();
+                        single_object_exception.object = instance.model_instance->get_object();
+                    }
+                    else {
+                        single_object_exception.string += (boost::format(L("\n%1% is too close to exclusion area, there will be collisions when printing.")) %instance.model_instance->get_object()->name).str();
+                        single_object_exception.object = nullptr;
+                    }
+                    //if (polygons) {
+                    //    intersecting_idxs.emplace_back(convex_hulls_other.size());
+                    //}
                 }
+
+                // if output needed, collect indices (inside convex_hulls_other) of intersecting hulls
+                for (size_t i = 0; i < convex_hulls_other.size(); ++i) {
+                    if (! intersection(convex_hulls_other[i], convex_hull).empty()) {
+                        if (single_object_exception.string.empty()) {
+                            single_object_exception.string = (boost::format(L("%1% is too close to others, there will be collisions when printing.")) %instance.model_instance->get_object()->name).str();
+                            single_object_exception.object = instance.model_instance->get_object();
+                        }
+                        else {
+                            single_object_exception.string += (boost::format(L("\n%1% is too close to others, there will be collisions when printing.")) %instance.model_instance->get_object()->name).str();
+                            single_object_exception.object = nullptr;
+                        }
+
+                        if (polygons) {
+                            intersecting_idxs.emplace_back(i);
+                            intersecting_idxs.emplace_back(convex_hulls_other.size());
+                        }
+                    }
+                }
+                struct print_instance_info print_info {&instance, convex_hull.bounding_box(), convex_hull};
+                print_instance_with_bounding_box.push_back(std::move(print_info));
+                convex_hulls_other.emplace_back(std::move(convex_hull));
             }
-            convex_hulls_other.emplace_back(convex_hull);
         }
         if (!intersecting_idxs.empty()) {
             // use collected indices (inside convex_hulls_other) to update output
@@ -442,45 +470,113 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
         }
     }
 
+    //sort the print instance
+    std::sort(print_instance_with_bounding_box.begin(), print_instance_with_bounding_box.end(),
+        [](auto &l, auto &r) {
+            auto ly1       = l.bounding_box.min.y();
+            auto ly2       = l.bounding_box.max.y();
+            auto ry1       = r.bounding_box.min.y();
+            auto ry2       = r.bounding_box.max.y();
+            auto inter_min = std::max(ly1, ry1);
+            auto inter_max = std::min(ly2, ry2);
+            auto lx        = l.bounding_box.min.x();
+            auto rx        = r.bounding_box.min.x();
+            if (inter_max - inter_min > 0)
+                return (lx < rx) || ((lx == rx) && (ly1 < ry1));
+            else
+                return (ly1 < ry1);
+        });
+
     // sequential_print_vertical_clearance_valid
     {
         // Ignore the last instance printed.
-        print_instances_ordered.pop_back();
-
-        double hc1 = scale_(print.config().extruder_clearance_height_to_lid);
-        double hc2 = scale_(print.config().extruder_clearance_height_to_rod);
-        auto get_bbox = [&map_model_object_to_convex_hull](const PrintInstance* print_instace) {
-            auto it_convex_hull = map_model_object_to_convex_hull.find(print_instace);
-            Polygon convex_hull0 = it_convex_hull->second;
-            auto bbox = convex_hull0.bounding_box();
-            return bbox;
-        };
-
-        // if objects are not overlapped on y-axis, they will not collide even if they are taller than extruder_clearance_height_to_rod
-        for (int k = 1; k < print_instances_ordered.size(); k++)
+        //print_instance_with_bounding_box.pop_back();
+        /*bool has_interlaced_objects = false;
+        for (int k = 0; k < print_instance_count; k++)
         {
-            auto& inst = print_instances_ordered[k];
-            bool hasRowHeightConflict = false;
-            auto bbox = get_bbox(print_instances_ordered[k]);
+            auto inst = print_instance_with_bounding_box[k].print_instance;
+            auto bbox = print_instance_with_bounding_box[k].bounding_box;
             auto iy1 = bbox.min.y();
             auto iy2 = bbox.max.y();
+
             for (int i = 0; i < k; i++)
             {
-                auto& p = print_instances_ordered[i];
-                auto bbox2 = get_bbox(p);
+                auto& p = print_instance_with_bounding_box[i].print_instance;
+                auto bbox2 = print_instance_with_bounding_box[i].bounding_box;
                 auto py1 = bbox2.min.y();
                 auto py2 = bbox2.max.y();
                 auto inter_min = std::max(iy1, py1); // min y of intersection
                 auto inter_max = std::min(iy2, py2); // max y of intersection. length=max_y-min_y>0 means intersection exists
-                if (inter_max - inter_min > 0)
-                    hasRowHeightConflict |= (p->print_object->height() > hc2);
+                if (inter_max - inter_min > 0) {
+                    has_interlaced_objects = true;
+                    break;
+                }
             }
-            if (hasRowHeightConflict)
-                return {inst->model_instance->get_object()->name + " is too tall and cannot be printed without extruder collisions.", inst->model_instance->get_object()};
+            if (has_interlaced_objects)
+                break;
+        }*/
+
+        double hc1 = scale_(print.config().extruder_clearance_height_to_lid);
+        double hc2 = scale_(print.config().extruder_clearance_height_to_rod);
+        double printable_height = scale_(print.config().printable_height);
+
+        // if objects are not overlapped on y-axis, they will not collide even if they are taller than extruder_clearance_height_to_rod
+        int print_instance_count = print_instance_with_bounding_box.size();
+        std::map<const PrintInstance*, std::pair<Polygon, float>> too_tall_instances;
+        for (int k = 0; k < print_instance_count; k++)
+        {
+            auto inst = print_instance_with_bounding_box[k].print_instance;
+            auto bbox = print_instance_with_bounding_box[k].bounding_box;
+            auto iy1 = bbox.min.y();
+            auto iy2 = bbox.max.y();
+            (const_cast<ModelInstance*>(inst->model_instance))->arrange_order = k+1;
+            double height = (k == (print_instance_count - 1))?printable_height:hc1;
+            /*if (has_interlaced_objects) {
+                if ((k < (print_instance_count - 1)) && (inst->print_object->height() > hc2)) {
+                    too_tall_instances[inst] = std::make_pair(print_instance_with_bounding_box[k].hull_polygon, unscaled<double>(hc2));
+                }
+            }
+            else {
+                if ((k < (print_instance_count - 1)) && (inst->print_object->height() > hc1)) {
+                    too_tall_instances[inst] = std::make_pair(print_instance_with_bounding_box[k].hull_polygon, unscaled<double>(hc1));
+                }
+            }*/
+
+            for (int i = k+1; i < print_instance_count; i++)
+            {
+                auto& p = print_instance_with_bounding_box[i].print_instance;
+                auto bbox2 = print_instance_with_bounding_box[i].bounding_box;
+                auto py1 = bbox2.min.y();
+                auto py2 = bbox2.max.y();
+                auto inter_min = std::max(iy1, py1); // min y of intersection
+                auto inter_max = std::min(iy2, py2); // max y of intersection. length=max_y-min_y>0 means intersection exists
+                if (inter_max - inter_min > 0) {
+                    height = hc2;
+                    break;
+                }
+            }
+            if (height < inst->print_object->height())
+                too_tall_instances[inst] = std::make_pair(print_instance_with_bounding_box[k].hull_polygon, unscaled<double>(height));
         }
 
-        return {};
+        if (too_tall_instances.size() > 0) {
+            //return {, inst->model_instance->get_object()};
+            for (auto& iter: too_tall_instances) {
+                if (single_object_exception.string.empty()) {
+                    single_object_exception.string = (boost::format(L("%1% is too tall, there will be collisions when printing.")) %iter.first->model_instance->get_object()->name).str();
+                    single_object_exception.object = iter.first->model_instance->get_object();
+                }
+                else {
+                    single_object_exception.string += (boost::format(L("\n%1% is too tall, there will be collisions when printing.")) %iter.first->model_instance->get_object()->name).str();
+                    single_object_exception.object = nullptr;
+                }
+                if (height_polygons)
+                    height_polygons->emplace_back(std::move(iter.second));
+            }
+        }
     }
+
+    return single_object_exception;
 }
 
 //BBS
@@ -514,7 +610,7 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
         // Get convex hull of all printable volumes assigned to this print object.
         const ModelInstance* model_instance0 = inst->model_instance;
         if (it_convex_hull == map_model_object_to_convex_hull.end()) {
-            // Calculate the convex hull of a printable object. 
+            // Calculate the convex hull of a printable object.
             auto convex_hull0 = inst->print_object->model_object()->convex_hull_2d(
                 Geometry::assemble_transform(Vec3d::Zero(), model_instance0->get_rotation(), model_instance0->get_scaling_factor(), model_instance0->get_mirror()));
 
@@ -533,12 +629,12 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
         convex_hulls_temp.push_back(convex_hull);
         if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
             if (warning) {
-                warning->string = "Object " + inst->model_instance->get_object()->name + " is too close to others; your extruder will collide with them.\n";
+                warning->string = inst->model_instance->get_object()->name + L(" is too close to others, there will be collisions when printing.\n");
                 warning->object = inst->model_instance->get_object();
                 }
         }
         if (!intersection(exclude_polys, convex_hull).empty()) {
-            return {"Object " + inst->model_instance->get_object()->name + " is too close to exclusion area; your extruder will collide with them.\n", inst->model_instance->get_object()};
+            return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there will be collisions when printing.\n"), inst->model_instance->get_object()};
         }
         convex_hulls_other.emplace_back(convex_hull);
     }
@@ -568,7 +664,7 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     convex_hulls_temp.push_back(wipe_tower_convex_hull);
     if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
         if (warning) {
-            warning->string += "Prime Tower is too close to others; your extruder will collide with them.";
+            warning->string += L("Prime Tower is too close to others, there will be collisions when printing.");
         }
     }
 
@@ -576,7 +672,8 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
 }
 
 // Precondition: Print::validate() requires the Print::apply() to be called its invocation.
-StringObjectException Print::validate(StringObjectException *warning) const
+//BBS: refine seq-print validation logic
+StringObjectException Print::validate(StringObjectException *warning, Polygons* collison_polygons, std::vector<std::pair<Polygon, float>>* height_polygons) const
 {
     std::vector<unsigned int> extruders = this->extruders();
 
@@ -587,7 +684,8 @@ StringObjectException Print::validate(StringObjectException *warning) const
         return { L("No extrusions under current settings.") };
 
     if (m_config.print_sequence == PrintSequence::ByObject) {
-        auto ret = sequential_print_clearance_valid(*this);
+        //BBS: refine seq-print validation logic
+        auto ret = sequential_print_clearance_valid(*this, collison_polygons, height_polygons);
     	if (!ret.string.empty())
             return ret;
     }
@@ -705,7 +803,7 @@ StringObjectException Print::validate(StringObjectException *warning) const
 #endif
         }
     }
-    
+
 	{
 		// Find the smallest used nozzle diameter and the number of unique nozzle diameters.
 		double min_nozzle_diameter = std::numeric_limits<double>::max();
@@ -770,7 +868,7 @@ StringObjectException Print::validate(StringObjectException *warning) const
             // Notify the user in that case.
             if (! object->has_support() && warning) {
                 for (const ModelVolume* mv : object->model_object()->volumes) {
-                    bool has_enforcers = mv->is_support_enforcer() || 
+                    bool has_enforcers = mv->is_support_enforcer() ||
                         (mv->is_model_part() && mv->supported_facets.has_facets(*mv, EnforcerBlockerType::ENFORCER));
                     if (has_enforcers) {
                         warning->string = "_SUPPORTS_OFF";
@@ -787,8 +885,8 @@ StringObjectException Print::validate(StringObjectException *warning) const
                 size_t first_layer_extruder = object->config().raft_layers == 1
                     ? object->config().support_material_interface_extruder-1
                     : object->config().support_material_extruder-1;
-                first_layer_min_nozzle_diameter = (first_layer_extruder == size_t(-1)) ? 
-                    min_nozzle_diameter : 
+                first_layer_min_nozzle_diameter = (first_layer_extruder == size_t(-1)) ?
+                    min_nozzle_diameter :
                     m_config.nozzle_diameter.get_at(first_layer_extruder);
             } else {
                 // if we don't have raft layers, any nozzle diameter is potentially used in first layer
@@ -796,7 +894,7 @@ StringObjectException Print::validate(StringObjectException *warning) const
             }
             if (initial_layer_print_height > first_layer_min_nozzle_diameter)
                 return  {L("Layer height cannot exceed nozzle diameter"), object, "initial_layer_print_height"};
-            
+
             // validate layer_height
             double layer_height = object->config().layer_height.value;
             if (layer_height > min_nozzle_diameter)
@@ -844,16 +942,16 @@ BoundingBox Print::total_bounding_box() const
 {
     // get objects bounding box
     BoundingBox bb = this->bounding_box();
-    
+
     // we need to offset the objects bounding box by at least half the perimeters extrusion width
     Flow perimeter_flow = m_objects.front()->get_layer(0)->get_region(0)->flow(frPerimeter);
     double extra = perimeter_flow.width/2;
-    
+
     // consider support material
     if (this->has_support_material()) {
         extra = std::max(extra, SUPPORT_MATERIAL_MARGIN);
     }
-    
+
     // consider brim and skirt
     if (m_config.brim_width.value > 0) {
         Flow brim_flow = this->brim_flow();
@@ -871,10 +969,10 @@ BoundingBox Print::total_bounding_box() const
                 + skirt_flow.width/2
         );
     }
-    
+
     if (extra > 0)
         bb.offset(scale_(extra));
-    
+
     return bb;
 }
 #endif
@@ -887,11 +985,11 @@ double Print::skirt_first_layer_height() const
 Flow Print::brim_flow() const
 {
     ConfigOptionFloatOrPercent width = m_config.initial_layer_line_width;
-    if (width.value == 0) 
+    if (width.value == 0)
         width = m_print_regions.front()->config().inner_wall_line_width;
-    if (width.value == 0) 
+    if (width.value == 0)
         width = m_objects.front()->config().line_width;
-    
+
     /* We currently use a random region's perimeter extruder.
        While this works for most cases, we should probably consider all of the perimeter
        extruders and take the one with, say, the smallest index.
@@ -907,11 +1005,11 @@ Flow Print::brim_flow() const
 Flow Print::skirt_flow() const
 {
     ConfigOptionFloatOrPercent width = m_config.initial_layer_line_width;
-    if (width.value == 0) 
+    if (width.value == 0)
         width = m_print_regions.front()->config().inner_wall_line_width;
     if (width.value == 0)
         width = m_objects.front()->config().line_width;
-    
+
     /* We currently use a random object's support material extruder.
        While this works for most cases, we should probably consider all of the support material
        extruders and take the one with, say, the smallest index;
@@ -927,7 +1025,7 @@ Flow Print::skirt_flow() const
 bool Print::has_support_material() const
 {
     for (const PrintObject *object : m_objects)
-        if (object->has_support_material()) 
+        if (object->has_support_material())
             return true;
     return false;
 }
@@ -939,7 +1037,7 @@ void Print::auto_assign_extruders(ModelObject* model_object) const
     // only assign extruders if object has more than one volume
     if (model_object->volumes.size() < 2)
         return;
-    
+
 //    size_t extruders = m_config.nozzle_diameter.values.size();
     for (size_t volume_id = 0; volume_id < model_object->volumes.size(); ++ volume_id) {
         ModelVolume *volume = model_object->volumes[volume_id];
@@ -1157,11 +1255,11 @@ void Print::_make_skirt()
     coordf_t skirt_height_z = 0.;
     for (const PrintObject *object : m_objects) {
         size_t skirt_layers = this->has_infinite_skirt() ?
-            object->layer_count() : 
+            object->layer_count() :
             std::min(size_t(m_config.skirt_height.value), object->layer_count());
         skirt_height_z = std::max(skirt_height_z, object->m_layers[skirt_layers-1]->print_z);
     }
-    
+
     // Collect points from all layers contained in skirt height.
     Points points;
 
@@ -1212,10 +1310,10 @@ void Print::_make_skirt()
     if (points.size() < 3)
         // At least three points required for a convex hull.
         return;
-    
+
     this->throw_if_canceled();
     Polygon convex_hull = Slic3r::Geometry::convex_hull(points);
-    
+
     // Skirt may be printed on several layers, having distinct layer heights,
     // but loops must be aligned so can't vary width/spacing
     // TODO: use each extruder's own flow
@@ -1223,7 +1321,7 @@ void Print::_make_skirt()
     Flow   flow = this->skirt_flow();
     float  spacing = flow.spacing();
     double mm3_per_mm = flow.mm3_per_mm();
-    
+
     std::vector<size_t> extruders;
     std::vector<double> extruders_e_per_mm;
     {
@@ -1391,9 +1489,9 @@ void Print::finalize_first_layer_convex_hull()
 // Wipe tower support.
 bool Print::has_wipe_tower() const
 {
-    return 
+    return
         ! m_config.spiral_mode.value &&
-        m_config.enable_prime_tower.value && 
+        m_config.enable_prime_tower.value &&
         m_config.filament_diameter.values.size() > 1;
 }
 
@@ -1557,8 +1655,8 @@ void Print::_make_wipe_tower()
 // Generate a recommended G-code output file name based on the format template, default extension, and template parameters
 // (timestamps, object placeholders derived from the model, current placeholder prameters and print statistics.
 // Use the final print statistics if available, or just keep the print statistics placeholders if not available yet (before G-code is finalized).
-std::string Print::output_filename(const std::string &filename_base) const 
-{ 
+std::string Print::output_filename(const std::string &filename_base) const
+{
     // Set the placeholders for the data know first after the G-code export is finished.
     // These values will be just propagated into the output file name.
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
@@ -1617,9 +1715,9 @@ DynamicConfig PrintStatistics::config() const
 DynamicConfig PrintStatistics::placeholders()
 {
     DynamicConfig config;
-    for (const std::string &key : { 
-        "print_time", "normal_print_time", "silent_print_time", 
-        "used_filament", "extruded_volume", "total_cost", "total_weight", 
+    for (const std::string &key : {
+        "print_time", "normal_print_time", "silent_print_time",
+        "used_filament", "extruded_volume", "total_cost", "total_weight",
         "total_toolchanges", "total_wipe_tower_cost", "total_wipe_tower_filament"})
         config.set_key_value(key, new ConfigOptionString(std::string("{") + key + "}"));
     return config;
