@@ -280,7 +280,6 @@ void ZUserLogin::OnFullScreenChanged(wxWebViewEvent &evt)
 void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
 {
     wxString strInput = evt.GetString();
-
     //wxLogMessage(wxString("LoginCB: ") + strInput);
 
     try {
@@ -293,15 +292,16 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
             m_AutotestToken = j["data"]["token"];
         }
         if (strCmd == "user_login") {
-            wxString strToken = j["data"]["token"];
+            std::string strToken = j["data"]["token"];
 
-            int nUserID         = j["data"]["user"]["uid"];
-            wxString strAccount = j["data"]["user"]["account"];
-            wxString strAvatar  = j["data"]["user"]["avatar"];
-            wxString strName    = j["data"]["user"]["name"];
+            long long nUserID         = j["data"]["user"]["uid"];
+            std::string strAccount = j["data"]["user"]["account"];
+            std::string strAvatar         = j["data"]["user"]["avatar"];
+            std::string strName           = j["data"]["user"]["name"];
 
+            std::string strUserID = std::to_string(nUserID);
             //Save User Info
-            AccountInfo *pNewAcc = new Slic3r::AccountInfo(strAccount.ToStdString(), std::to_string(nUserID), strToken.ToStdString(), strName.ToStdString(),strAvatar.ToStdString(),AccountInfo::LoginStatus::STATUS_LOGIN,m_AutotestToken);
+            AccountInfo *pNewAcc = new Slic3r::AccountInfo(strAccount, strUserID, strToken, strName, strAvatar, AccountInfo::LoginStatus::STATUS_LOGIN, m_AutotestToken);
             wxGetApp().getAccountManager()->change_curr_user(pNewAcc);
 
             Close();
@@ -402,7 +402,8 @@ void ZUserLogin::OnError(wxWebViewEvent &evt)
         if(m_timer!=NULL)
             m_timer->Stop();
 
-        ShowErrorPage();
+        if (m_networkOk==false)
+            ShowErrorPage();
     }
 
     // wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" +
