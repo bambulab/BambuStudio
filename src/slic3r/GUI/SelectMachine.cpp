@@ -370,10 +370,15 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     Bind(wxEVT_CLOSE_WINDOW, &SelectMachineDialog::on_cancel, this);
 
     // bed type
-    m_bedtype_list.push_back(L("Auto"));
-    m_bedtype_list.push_back(L("Bmabu Cool Plate"));
-    m_bedtype_list.push_back(L("Bmabu Engineering Plate"));
-    m_bedtype_list.push_back(L("Bmabu High Temperature Plate"));
+    auto str_auto = _L("Auto");
+    auto str_cool_plate = _L("Bmabu Cool Plate");
+    auto str_engineering_plate= _L("Bmabu Engineering Plate");
+    auto str_high_temperature_plate= _L("Bmabu High Temperature Plate");
+
+    m_bedtype_list.push_back(str_auto.ToStdString());
+    m_bedtype_list.push_back(str_cool_plate.ToStdString());
+    m_bedtype_list.push_back(str_engineering_plate.ToStdString());
+    m_bedtype_list.push_back(str_high_temperature_plate.ToStdString());
 
     // font
     SetFont(wxGetApp().normal_font());

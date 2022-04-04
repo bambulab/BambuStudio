@@ -16,7 +16,6 @@ src/slic3r/GUI/Gizmos/GLGizmosManager.cpp
 src/slic3r/GUI/Gizmos/GLGizmoPainterBase.cpp
 src/slic3r/GUI/Gizmos/GizmoObjectManipulation.cpp
 src/slic3r/GUI/Gizmos/GLGizmoAdvancedCut.cpp
-src/slic3r/GUI/Gizmos/GLGizmoMoveRotate.cpp
 src/slic3r/GUI/GUI.cpp
 src/slic3r/GUI/GUI_App.cpp
 src/slic3r/GUI/GUI_Init.cpp
@@ -57,6 +56,7 @@ src/slic3r/GUI/ProgressStatusBar.cpp
 src/slic3r/GUI/SavePresetDialog.cpp
 src/slic3r/GUI/Search.cpp
 src/slic3r/GUI/Selection.cpp
+src/slic3r/GUI/SelectMachine.cpp
 src/slic3r/GUI/SendSystemInfoDialog.cpp
 src/slic3r/GUI/Tab.cpp
 src/slic3r/GUI/Tab.hpp
