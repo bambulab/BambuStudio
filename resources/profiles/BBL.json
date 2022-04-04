@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.00.00.06",
+    "version": "01.00.00.07",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -52,40 +52,40 @@
             "sub_path": "process/fdm_process_bbl_0.28.json"
         },
         {
-            "name": "0.08mm SUPERDETAIL @BBL-3DP",
-            "sub_path": "process/0.08mm SUPERDETAIL @BBL-3DP.json"
+            "name": "0.08mm SUPERDETAIL @Bambu Lab X1",
+            "sub_path": "process/0.08mm SUPERDETAIL @Bambu Lab X1.json"
         },
         {
-            "name": "0.10mm HIGHDETAIL @BBL-3DP",
-            "sub_path": "process/0.10mm HIGHDETAIL @BBL-3DP.json"
+            "name": "0.10mm HIGHDETAIL @Bambu Lab X1",
+            "sub_path": "process/0.10mm HIGHDETAIL @Bambu Lab X1.json"
         },
         {
-            "name": "0.12mm DETAIL @BBL-3DP",
-            "sub_path": "process/0.12mm DETAIL @BBL-3DP.json"
+            "name": "0.12mm DETAIL @Bambu Lab X1",
+            "sub_path": "process/0.12mm DETAIL @Bambu Lab X1.json"
         },
         {
-            "name": "0.16mm OPTIMAL @BBL-3DP",
-            "sub_path": "process/0.16mm OPTIMAL @BBL-3DP.json"
+            "name": "0.16mm OPTIMAL @Bambu Lab X1",
+            "sub_path": "process/0.16mm OPTIMAL @Bambu Lab X1.json"
         },
         {
-            "name": "0.20mm NORMAL @BBL-3DP",
-            "sub_path": "process/0.20mm NORMAL @BBL-3DP.json"
+            "name": "0.20mm NORMAL @Bambu Lab X1",
+            "sub_path": "process/0.20mm NORMAL @Bambu Lab X1.json"
         },
         {
-            "name": "0.24mm DRAFT @BBL-3DP",
-            "sub_path": "process/0.24mm DRAFT @BBL-3DP.json"
+            "name": "0.24mm DRAFT @Bambu Lab X1",
+            "sub_path": "process/0.24mm DRAFT @Bambu Lab X1.json"
         },
         {
-            "name": "0.28mm SUPERDRAFT @BBL-3DP",
-            "sub_path": "process/0.28mm SUPERDRAFT @BBL-3DP.json"
+            "name": "0.28mm SUPERDRAFT @Bambu Lab X1",
+            "sub_path": "process/0.28mm SUPERDRAFT @Bambu Lab X1.json"
         },
         {
-            "name": "0.20mm PolySupport @BBL-3DP",
-            "sub_path": "process/0.20mm PolySupport @BBL-3DP.json"
+            "name": "0.20mm Bambu Support W @Bambu Lab X1",
+            "sub_path": "process/0.20mm Bambu Support W @Bambu Lab X1.json"
         },
         {
-            "name": "0.10mm NORMAL @BBL-3DP 0.2 nozzle",
-            "sub_path": "process/0.10mm NORMAL @BBL-3DP 0.2 nozzle.json"
+            "name": "0.10mm NORMAL @Bambu Lab X1 0.2 nozzle",
+            "sub_path": "process/0.10mm NORMAL @Bambu Lab X1 0.2 nozzle.json"
         }
     ],
     "filament_list": [

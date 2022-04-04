@@ -13,5 +13,5 @@
   "default_filament_profile": [
       "Bambu PLA Basic @Bambu Lab"
   ],
-  "default_print_profile": "0.10mm NORMAL @BBL-3DP 0.2 nozzle"
+  "default_print_profile": "0.10mm NORMAL @Bambu Lab X1 0.2 nozzle"
 }

@@ -1,7 +1,7 @@
 {
     "type": "process",
     "setting_id": "GP009",
-    "name": "0.10mm NORMAL @BBL-3DP 0.2 nozzle",
+    "name": "0.10mm NORMAL @Bambu Lab X1 0.2 nozzle",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_process_bbl_0.10_nozzle_0.2",

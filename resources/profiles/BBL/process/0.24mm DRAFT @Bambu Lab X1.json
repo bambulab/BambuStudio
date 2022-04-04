@@ -1,9 +1,10 @@
 {
     "type": "process",
-    "setting_id": "GP008",
-    "name": "0.28mm SUPERDRAFT @BBL-3DP",
+    "setting_id": "GP007",
+    "name": "0.24mm DRAFT @Bambu Lab X1",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_process_bbl_0.28",
+    "inherits": "fdm_process_bbl_0.24",
+    "renamed_from": "0.24mm DRAFT @BBL001",
     "compatible_printers_condition": "printer_model=~/(BBL-3DP).*/ and nozzle_diameter[0]==0.4"
 }

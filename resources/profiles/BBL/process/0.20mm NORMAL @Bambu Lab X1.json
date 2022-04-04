@@ -1,7 +1,7 @@
 {
     "type": "process",
     "setting_id": "GP005",
-    "name": "0.20mm NORMAL @BBL-3DP",
+    "name": "0.20mm NORMAL @Bambu Lab X1",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_process_bbl_0.20",
