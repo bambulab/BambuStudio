@@ -218,6 +218,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
     for (PrintObjectStep ostep : osteps)
         for (PrintObject *object : m_objects)
             invalidated |= object->invalidate_step(ostep);
+
     return invalidated;
 }
 
@@ -248,9 +249,23 @@ std::vector<unsigned int> Print::object_extruders() const
 {
     std::vector<unsigned int> extruders;
     extruders.reserve(m_print_regions.size() * m_objects.size() * 3);
+    // BBS
+#if 0
     for (const PrintObject *object : m_objects)
 		for (const PrintRegion &region : object->all_regions())
         	region.collect_object_printing_extruders(*this, extruders);
+#else
+    for (const PrintObject* object : m_objects) {
+        const ModelObject* mo = object->model_object();
+        for (const ModelVolume* mv : mo->volumes) {
+            std::vector<int> volume_extruders = mv->get_extruders();
+            for (int extruder : volume_extruders) {
+                assert(extruder > 0);
+                extruders.push_back(extruder - 1);
+            }
+        }
+    }
+#endif
     sort_remove_duplicates(extruders);
     return extruders;
 }
@@ -610,17 +625,18 @@ StringObjectException Print::validate(StringObjectException *warning) const
                 return { ("Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled.") };
         }
 
+        if (m_config.ooze_prevention)
+            return { ("Ooze prevention is currently not supported with the prime tower enabled.") };
+
         // BBS: remove following logic and _L()
 #if 0
         if (m_config.gcode_flavor != gcfRepRapSprinter && m_config.gcode_flavor != gcfRepRapFirmware &&
             m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlinLegacy && m_config.gcode_flavor != gcfMarlinFirmware)
             return {("The prime tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors.")};
-        if (m_config.ooze_prevention)
-            return {("Ooze prevention is currently not supported with the prime tower enabled.")};
-#endif
+
         if ((m_config.print_sequence == PrintSequence::ByObject) && extruders.size() > 1)
             return { L("The prime tower is not supported in \"By object\" print."), nullptr, "enable_prime_tower" };
-        
+
         // BBS: When prime tower is on, object layer and support layer must be aligned. So support gap should be multiple of object layer height.
         for (size_t i = 0; i < m_objects.size(); i++) {
             const PrintObject* object = m_objects[i];
@@ -628,7 +644,7 @@ StringObjectException Print::validate(StringObjectException *warning) const
             if (object->config().adaptive_layer_height) {
                 return  { L("The prime tower is not supported when adaptive layer height is on. It requires that all objects have the same layer height."), object, "adaptive_layer_height" };
             }
-            
+
             if (!object->config().enable_support)
                 continue;
 
@@ -637,6 +653,7 @@ StringObjectException Print::validate(StringObjectException *warning) const
                 return  { L("The prime tower requires \"support gap\" to be multiple of layer height"), object };
             }
         }
+#endif
 
         if (m_objects.size() > 1) {
             bool                                has_custom_layering = false;
@@ -742,9 +759,11 @@ StringObjectException Print::validate(StringObjectException *warning) const
 #endif
 
                 // BBS
+#if 0
                 if (this->has_wipe_tower() && object->config().independent_support_layer_height) {
                     return {L("The prime tower requires that support has the same layer height with object."), object, "support_material_extruder"};
                 }
+#endif
             }
 
             // Do we have custom support data that would not be used?

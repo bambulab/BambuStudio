@@ -187,6 +187,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     // BBS
     int filament_cnt = wxGetApp().preset_bundle->filament_presets.size();
+#if 0
     bool has_wipe_tower = filament_cnt > 1 && config->opt_bool("enable_prime_tower");
     if (has_wipe_tower && (config->opt_bool("adaptive_layer_height") || config->opt_bool("independent_support_layer_height"))) {
         wxString msg_text;
@@ -244,6 +245,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             //wxMessageBox(_L("Support top/bottom Z distance is automatically changed to multiple of layer height."));
         }
     }
+#endif
 
     // Check "enable_support" and "overhangs" relations only on global settings level
     if (is_global_config && config->opt_bool("enable_support")) {
@@ -440,9 +442,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     bool have_ooze_prevention = config->opt_bool("ooze_prevention");
     toggle_field("standby_temperature_delta", have_ooze_prevention);
 
-    bool have_wipe_tower = config->opt_bool("enable_prime_tower");
+    bool have_prime_tower = config->opt_bool("enable_prime_tower");
     for (auto el : { "prime_tower_width", "prime_volume"})
-        toggle_field(el, have_wipe_tower);
+        toggle_field(el, have_prime_tower);
 
     bool have_avoid_crossing_perimeters = config->opt_bool("reduce_crossing_wall");
     toggle_field("max_travel_detour_distance", have_avoid_crossing_perimeters);

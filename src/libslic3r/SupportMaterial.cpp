@@ -1790,8 +1790,8 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
         bottom_z = (layer_id == 1) ? slicing_params.object_print_z_min : layer.lower_layer->lower_layer->print_z;
     } else {
         print_z  = layer.bottom_z() - slicing_params.gap_support_object;
-        bottom_z = print_z;
-        height   = 0.;
+        height   = object_config.independent_support_layer_height ? 0. : object_config.layer_height;
+        bottom_z = print_z - height;
         // Ignore this contact area if it's too low.
         // Don't want to print a layer below the first layer height as it may not stick well.
         //FIXME there may be a need for a single layer support, then one may decide to print it either as a bottom contact or a top contact
@@ -1817,10 +1817,13 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
         // it will support layers printed with a bridging flow.
         if (object_config.thick_bridges && SupportMaterialInternal::has_bridging_extrusions(layer)) {
             coordf_t bridging_height = 0.;
+            coordf_t bridging_height_aligned = 0.f;
             for (const LayerRegion* region : layer.regions())
                 bridging_height += region->region().bridging_height_avg(print_config);
             bridging_height /= coordf_t(layer.regions().size());
-            coordf_t bridging_print_z = layer.print_z - bridging_height - slicing_params.gap_support_object;
+            if (!object_config.independent_support_layer_height)
+                bridging_height_aligned = std::ceil(bridging_height / object_config.layer_height - EPSILON) * object_config.layer_height;
+            coordf_t bridging_print_z = layer.print_z - bridging_height_aligned - slicing_params.gap_support_object;
             if (bridging_print_z >= min_print_z) {
                 // Not below the first layer height means this layer is printable.
                 if (print_z < min_print_z + support_layer_height_min) {
@@ -1836,9 +1839,11 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
                         bridging_layer->bottom_z = 0;
                         bridging_layer->height = slicing_params.first_print_layer_height;
                     } else {
+                        // BBS: if independent_support_layer_height is not enabled, the support layer_height should be the same as layer height.
+                        // Note that for this case, adaptive layer height must be disabled.
+                        bridging_layer->height = object_config.independent_support_layer_height ? 0. : object_config.layer_height;
                         // Don't know the height yet.
-                        bridging_layer->bottom_z = bridging_print_z;
-                        bridging_layer->height = 0;
+                        bridging_layer->bottom_z = bridging_print_z - bridging_layer->height;
                     }
                 }
             }
@@ -2810,7 +2815,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
         if (std::abs(extr2z - m_slicing_params.first_print_layer_height) < EPSILON) {
             // This is a bottom of a synchronized (or soluble) top contact layer, its height has been decided in this->top_contact_layers().
             assert(extr2->layer_type == sltTopContact);
-            assert(extr2->bottom_z == m_slicing_params.first_print_layer_height);
+            assert(std::abs(extr2->bottom_z - m_slicing_params.first_print_layer_height) < EPSILON);
             assert(extr2->print_z >= m_slicing_params.first_print_layer_height + m_support_params.support_layer_height_min - EPSILON);
             if (intermediate_layers.empty() || intermediate_layers.back()->print_z < m_slicing_params.first_print_layer_height) {
                 MyLayer &layer_new = layer_allocate(layer_storage, sltIntermediate);

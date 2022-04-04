@@ -1959,12 +1959,12 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
                 // let supports touch objects when brim is on
                 auto avoid_region = m_ts_data->get_collision((layer_nr == 0 && has_brim) ? config.brim_object_gap : m_ts_data->m_xy_distance, layer_nr);
-                auto avoid_region_interface = m_ts_data->get_collision(config.support_top_z_distance, layer_nr);
+                auto avoid_region_interface = m_ts_data->get_collision(m_slicing_params.gap_support_object, layer_nr);
                 Polygons layer_contours = std::move(m_ts_data->get_contours_with_holes(layer_nr));
                 base_areas = std::move(diff_ex(base_areas, avoid_region));
                 roof_areas = std::move(diff_ex(roof_areas, avoid_region_interface));
                 roof_1st_layer = std::move(diff_ex(roof_1st_layer, avoid_region_interface));
-                double contact_dist_scaled = scale_(config.support_top_z_distance);
+                double contact_dist_scaled = scale_(m_slicing_params.gap_support_object);
                 roof_areas = std::move(offset2_ex(roof_areas, contact_dist_scaled, -contact_dist_scaled));
                 roof_1st_layer = std::move(offset2_ex(roof_1st_layer, contact_dist_scaled, -contact_dist_scaled));
                 // roof_1st_layer and roof_areas may intersect, so need to subtract roof_areas from roof_1st_layer
@@ -2456,7 +2456,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
     }
 
     const coordf_t layer_height = config.layer_height.value;
-    coordf_t z_distance_top = config.support_top_z_distance.value;
+    coordf_t z_distance_top = m_slicing_params.gap_support_object;
     // BBS: add extra distance if thick bridge is enabled
     // Note: normal support uses print_z, but tree support uses integer layers, so we need to subtract layer_height
     if (!m_slicing_params.soluble_interface && config.thick_bridges) {

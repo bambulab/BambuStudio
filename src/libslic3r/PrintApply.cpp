@@ -1019,7 +1019,9 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 	new_full_config.option("print_settings_id",            true);
 	new_full_config.option("filament_settings_id",         true);
 	new_full_config.option("printer_settings_id",          true);
-    new_full_config.normalize_fdm();
+    // BBS
+    int used_filaments = this->extruders().size();
+    new_full_config.normalize_fdm(used_filaments);
 
     // Find modified keys of the various configs. Resolve overrides extruder retract values by filament profiles.
     DynamicPrintConfig   filament_overrides;
@@ -1385,6 +1387,14 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             print_regions_reshuffled = true;
         }
         print_object_status_db.clear();
+
+        // BBS
+        for (PrintObject* object : m_objects) {
+            auto ept_iter = std::find(print_diff.begin(), print_diff.end(), "enable_prime_tower");
+            if (object->config().adaptive_layer_height && ept_iter != print_diff.end()) {
+                update_apply_status(object->invalidate_step(posSlice));
+            }
+        }
     }
 
     // All regions now have distinct settings.

@@ -270,7 +270,7 @@ public:
     // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
     const ConfigDef*    def() const override { return &print_config_def; }
 
-    void                normalize_fdm();
+    void                normalize_fdm(int used_filaments = 0);
 
     void                set_num_extruders(unsigned int num_extruders);
 
@@ -810,6 +810,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     //((ConfigOptionFloat,              z_offset))
     // BBS: project filaments
     ((ConfigOptionFloats,             filament_colour_new))
+    // BBS: not in any preset, calculated before slicing
+    ((ConfigOptionBool,               has_prime_tower))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Full.

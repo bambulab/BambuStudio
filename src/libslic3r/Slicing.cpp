@@ -85,7 +85,7 @@ SlicingParameters SlicingParameters::create_from_config(
     params.base_raft_layers = object_config.raft_layers.value;
     params.soluble_interface = soluble_interface;
     //BBS
-    params.adaptive_layer_height = object_config.adaptive_layer_height;
+    params.adaptive_layer_height = print_config.enable_prime_tower ? false : object_config.adaptive_layer_height;
 
     // Miniumum/maximum of the minimum layer height over all extruders.
     params.min_layer_height = MIN_LAYER_HEIGHT;
@@ -118,6 +118,12 @@ SlicingParameters SlicingParameters::create_from_config(
         params.gap_support_object = object_config.support_top_z_distance.value;
         if (params.gap_object_support <= 0)
             params.gap_object_support = params.gap_support_object;
+
+        if (!object_config.independent_support_layer_height) {
+            params.gap_raft_object = std::round(params.gap_raft_object / object_config.layer_height + EPSILON) * object_config.layer_height;
+            params.gap_object_support = std::round(params.gap_object_support / object_config.layer_height + EPSILON) * object_config.layer_height;
+            params.gap_support_object = std::round(params.gap_support_object / object_config.layer_height + EPSILON) * object_config.layer_height;
+        }
     }
 
     if (params.base_raft_layers > 0) {

@@ -1715,7 +1715,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("detect_overhang_wall");
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");
-        optgroup->append_single_option_line("thick_bridges");
+        // BBS
+        //optgroup->append_single_option_line("thick_bridges");
 
     page = add_options_page(L("Strength"), "wrench");
         optgroup = page->new_optgroup(L("Walls"));
@@ -1831,7 +1832,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("bridge_no_support");
         //optgroup->append_single_option_line("support_sharp_tails");
         //optgroup->append_single_option_line("remove_small_overhangs");
-        optgroup->append_single_option_line("independent_support_layer_height");
+        //optgroup->append_single_option_line("independent_support_layer_height");
 
     page = add_options_page(L("Others"), "advanced");
         optgroup = page->new_optgroup(L("Prime tower"));

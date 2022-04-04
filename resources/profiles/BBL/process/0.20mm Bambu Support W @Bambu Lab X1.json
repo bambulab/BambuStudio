@@ -7,7 +7,6 @@
     "inherits": "fdm_process_bbl_0.20",
     "compatible_printers_condition": "printer_model=~/(BBL-3DP).*/ and nozzle_diameter[0]==0.4",
     "enable_support": "1",
-    "thick_bridges": "0",
     "support_interface_top_layers": "3",
     "support_top_z_distance": "0.2",
     "support_interface_loop_pattern": "1",

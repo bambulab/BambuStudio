@@ -1023,8 +1023,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("adaptive_layer_height", coBool);
     def->label = L("Adaptive layer height");
     def->category = L("Quality");
-    def->tooltip = L("Enable this option and height of every layer except initial one will be automatically calculated when slicing "
-                     "according to the slope of model surface");
+    def->tooltip = L("Enabling this option means the height of every layer except the first will be automatically calculated"
+        "when slicing according to the slope of the model’s surface.\n"
+        "Note that this option only takes effect if no prime tower is generated in current print.");
     def->set_default_value(new ConfigOptionBool(0));
 
     def = this->add("initial_layer_speed", coFloat);
@@ -2288,7 +2289,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Support layer uses layer height independent with object layer. This is to support custom support gap,"
                    "but may cause extra filament switches if support is specified as different extruder with object");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("support_threshold_angle", coInt);
     def->label = L("Threshold angle");
@@ -2397,7 +2398,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("If enabled, bridges may look worse but can cover longer distance. "
                      "If disabled, bridges look better but just for shorter distance.");
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("detect_thin_wall", coBool);
     def->label = L("Detect thin wall");
@@ -3370,6 +3371,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
 #ifndef HAS_PRESSURE_EQUALIZER
         , "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative",
 #endif /* HAS_PRESSURE_EQUALIZER */
+        // BBS
+        "thick_bridge",
     };
 
     if (ignore.find(opt_key) != ignore.end()) {
@@ -3428,7 +3431,7 @@ double min_object_distance(const ConfigBase &cfg)
     return ret;
 }
 
-void DynamicPrintConfig::normalize_fdm()
+void DynamicPrintConfig::normalize_fdm(int used_filaments)
 {
     if (this->has("extruder")) {
         int extruder = this->option("extruder")->getInt();
@@ -3470,6 +3473,28 @@ void DynamicPrintConfig::normalize_fdm()
     if (auto *opt_gcode_resolution = this->opt<ConfigOptionFloat>("resolution", false); opt_gcode_resolution)
         // Resolution will be above 1um.
         opt_gcode_resolution->value = std::max(opt_gcode_resolution->value, 0.001);
+
+    // BBS
+    ConfigOptionBool* ept_opt = this->option<ConfigOptionBool>("enable_prime_tower");
+    if (used_filaments > 0 && ept_opt != nullptr) {
+        ConfigOptionBool* islh_opt = this->option<ConfigOptionBool>("independent_support_layer_height", true);
+        ConfigOptionBool* alh_opt = this->option<ConfigOptionBool>("adaptive_layer_height");
+        ConfigOptionEnum<PrintSequence>* ps_opt = this->option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+
+        if (used_filaments == 1 || ps_opt->value == PrintSequence::ByObject)
+            ept_opt->value = false;
+
+        if (ept_opt->value) {
+            if (islh_opt)
+                islh_opt->value = false;
+            if (alh_opt)
+                alh_opt->value = false;
+        }
+        else {
+            if (islh_opt)
+                islh_opt->value = true;
+        }
+    }
 }
 
 void  handle_legacy_sla(DynamicPrintConfig &config)
