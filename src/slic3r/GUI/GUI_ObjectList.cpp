@@ -2674,18 +2674,20 @@ void ObjectList::part_selection_changed()
                     switch (info_type)
                     {
                     case InfoItemType::CustomSupports:
-                    case InfoItemType::CustomSeam:
+                    // BBS: remove CustomSeam
+                    //case InfoItemType::CustomSeam:
                     case InfoItemType::MmuSegmentation:
                     {
                         GLGizmosManager::EType gizmo_type = info_type == InfoItemType::CustomSupports ? GLGizmosManager::EType::FdmSupports :
-                                                            info_type == InfoItemType::CustomSeam ? GLGizmosManager::EType::Seam :
+                                                            /*info_type == InfoItemType::CustomSeam ? GLGizmosManager::EType::Seam :*/
                                                             GLGizmosManager::EType::MmuSegmentation;
                         GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
                         if (gizmos_mgr.get_current_type() != gizmo_type)
                             gizmos_mgr.open_gizmo(gizmo_type);
                         break;
                     }
-                    case InfoItemType::Sinking: { break; }
+                    // BBS: remove Sinking
+                    //case InfoItemType::Sinking: { break; }
                     default: { break; }
                     }
                 } else {
@@ -2829,31 +2831,35 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
     assert(item_obj.IsOk());
 
     for (InfoItemType type : {InfoItemType::CustomSupports,
-                              InfoItemType::CustomSeam,
+                              //InfoItemType::CustomSeam,
                               InfoItemType::MmuSegmentation,
-                              InfoItemType::Sinking}) {
+                              //InfoItemType::Sinking
+                             }) {
         wxDataViewItem item = m_objects_model->GetInfoItemByType(item_obj, type);
         bool shows = item.IsOk();
         bool should_show = false;
 
         switch (type) {
         case InfoItemType::CustomSupports :
-        case InfoItemType::CustomSeam :
+        //case InfoItemType::CustomSeam :
         case InfoItemType::MmuSegmentation :
             should_show = printer_technology() == ptFFF
                        && std::any_of(model_object->volumes.begin(), model_object->volumes.end(),
                                       [type](const ModelVolume *mv) {
                                           return !(type == InfoItemType::CustomSupports ? mv->supported_facets.empty() :
-                                                   type == InfoItemType::CustomSeam     ? mv->seam_facets.empty() :
+                                                   //type == InfoItemType::CustomSeam     ? mv->seam_facets.empty() :
                                                                                           mv->mmu_segmentation_facets.empty());
                                       });
             break;
+        // BBS: remove Sinking
+#if 0
         case InfoItemType::Sinking:
         {
             should_show = printer_technology() == ptFFF &&
                 wxGetApp().plater()->canvas3D()->is_object_sinking(obj_idx);
             break;
         }
+#endif
         default: break;
         }
 

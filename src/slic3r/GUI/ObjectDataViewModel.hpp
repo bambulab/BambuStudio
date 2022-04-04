@@ -53,9 +53,9 @@ enum class InfoItemType
 {
     Undef,
     CustomSupports,
-    CustomSeam,
+    //CustomSeam,
     MmuSegmentation,
-    Sinking
+    //Sinking
 };
 
 class ObjectDataViewModelNode;
