@@ -1030,54 +1030,55 @@ private:
             if (!item.is_virt_object)
                 bb = sl::boundingBox(item.boundingBox(), bb);
 
-        Vertex ci, cb;
-
-        switch(config_.alignment) {
-        case Config::Alignment::CENTER: {
-            ci = bb.center();
-            cb = bbin.center();
-            break;
-        }
-        case Config::Alignment::BOTTOM_LEFT: {
-            ci = bb.minCorner();
-            cb = bbin.minCorner();
-            break;
-        }
-        case Config::Alignment::BOTTOM_RIGHT: {
-            ci = {getX(bb.maxCorner()), getY(bb.minCorner())};
-            cb = {getX(bbin.maxCorner()), getY(bbin.minCorner())};
-            break;
-        }
-        case Config::Alignment::TOP_LEFT: {
-            ci = {getX(bb.minCorner()), getY(bb.maxCorner())};
-            cb = {getX(bbin.minCorner()), getY(bbin.maxCorner())};
-            break;
-        }
-        case Config::Alignment::TOP_RIGHT: {
-            ci = bb.maxCorner();
-            cb = bbin.maxCorner();
-            break;
-        }
-        default: ; // DONT_ALIGN
-        }
-
-        auto d = cb - ci;
-
         // BBS TODO assume the nonprefered regions are at the bottom left corner
+        Box bin_reduced = bbin;
         for (const auto& region : config_.m_nonprefered_regions)
         {
             Box bb1 = region.boundingBox();
             if (bbin.height() - bb1.maxCorner().y() > bb.height()) {
                 // could use a tighter bound by moving bed center higher
-                d.y() += bb1.maxCorner().y() / 2;
+                bin_reduced.minCorner().y() = bb1.maxCorner().y();
                 continue;
             }
             if (bbin.width() - bb1.maxCorner().x() > bb.width()) {
                 // could use a tighter bound
-                d.x() += bb1.maxCorner().x() / 2;
+                bin_reduced.minCorner().x() = bb1.maxCorner().x();
                 continue;
             }
         }
+
+        Vertex ci, cb;
+
+        switch(config_.alignment) {
+        case Config::Alignment::CENTER: {
+            ci = bb.center();
+            cb = bin_reduced.center();
+            break;
+        }
+        case Config::Alignment::BOTTOM_LEFT: {
+            ci = bb.minCorner();
+            cb = bin_reduced.minCorner();
+            break;
+        }
+        case Config::Alignment::BOTTOM_RIGHT: {
+            ci = {getX(bb.maxCorner()), getY(bb.minCorner())};
+            cb = {getX(bin_reduced.maxCorner()), getY(bin_reduced.minCorner())};
+            break;
+        }
+        case Config::Alignment::TOP_LEFT: {
+            ci = {getX(bb.minCorner()), getY(bb.maxCorner())};
+            cb = {getX(bin_reduced.minCorner()), getY(bin_reduced.maxCorner())};
+            break;
+        }
+        case Config::Alignment::TOP_RIGHT: {
+            ci = bb.maxCorner();
+            cb = bin_reduced.maxCorner();
+            break;
+        }
+        default: ; // DONT_ALIGN
+        }
+
+        auto d = cb - ci;       
 
         // BBS TODO we assume the exclude region contains bottom left corner. If not, change the code below
         if (!config_.m_excluded_regions.empty()) {
