@@ -34,6 +34,7 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/ScrolledWindow.hpp"
+#include <wx/simplebook.h>
 
 namespace Slic3r { 
 namespace GUI {
@@ -224,6 +225,7 @@ protected:
     wxPanel *     m_panel_prepare;
     Button *      m_button_ensure;
     wxPanel *     m_panel_finish;
+    wxSimplebook * m_simplebook;
     wxStaticText *m_statictext_finish;
 
     wxBoxSizer *sizer_thumbnail;
@@ -274,7 +276,7 @@ protected:
 
     // Virtual event handlers, overide them in your derived class
     void on_cancel(wxCloseEvent &event);
-    void on_ok(wxMouseEvent &event);
+    void on_ok(wxCommandEvent &event);
     void on_timer(wxTimerEvent &event);
     void on_selection_changed(wxCommandEvent &event);
     void on_dpi_changed(const wxRect& suggested_rect) override;

@@ -23,7 +23,7 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
 
     m_status_text = new wxStaticText(m_self, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, 0);
     m_status_text->SetForegroundColour(wxColour(107, 107, 107));
-    m_status_text->SetFont(::Label::Body_14);
+    m_status_text->SetFont(::Label::Body_13);
     m_status_text->Wrap(-1);
     m_sizer_tline->Add(m_status_text, 0, wxEXPAND, 0);
 

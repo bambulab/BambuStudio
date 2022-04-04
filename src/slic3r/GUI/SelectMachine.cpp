@@ -370,10 +370,10 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     Bind(wxEVT_CLOSE_WINDOW, &SelectMachineDialog::on_cancel, this);
 
     // bed type
-    m_bedtype_list.push_back(L("auto"));
-    m_bedtype_list.push_back(L("pe"));
-    m_bedtype_list.push_back(L("pc"));
-    m_bedtype_list.push_back(L("pei"));
+    m_bedtype_list.push_back(L("Auto"));
+    m_bedtype_list.push_back(L("Bmabu Cool Plate"));
+    m_bedtype_list.push_back(L("Bmabu Engineering Plate"));
+    m_bedtype_list.push_back(L("Bmabu High Temperature Plate"));
 
     // font
     SetFont(wxGetApp().normal_font());
@@ -447,7 +447,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_main->Add(m_sizer_basic, 0, wxEXPAND, 0);
 
     m_sizer_material = new wxWrapSizer(wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS);
-    m_sizer_main->Add(m_sizer_material, 1, wxEXPAND | wxLEFT | wxRIGHT, 80);
+    m_sizer_main->Add(m_sizer_material, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT, 80 );
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 15);
 
     m__line_materia = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
@@ -472,9 +472,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_comboBox_printer = new ::ComboBox(this, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
     m_comboBox_printer->Bind(wxEVT_COMBOBOX, &SelectMachineDialog::on_selection_changed, this);
 
-    m_sizer_printer->Add(m_comboBox_printer, 1, wxEXPAND | wxRIGHT, 40);
-
-    m_sizer_main->Add(m_sizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT, 40);
+    m_sizer_printer->Add(m_comboBox_printer, 1, wxEXPAND | wxRIGHT, 30);
+    m_sizer_main->Add(m_sizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT, 30);
 
     m_panel_warn = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     wxBoxSizer *m_sizer_warn = new wxBoxSizer(wxHORIZONTAL);
@@ -525,9 +524,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     for (auto i = 0; i < m_bedtype_list.size(); i++) { m_comboBox_bed->Append(m_bedtype_list[i]); }
 
-    m_sizer_bed->Add(m_comboBox_bed, 1, wxEXPAND | wxRIGHT, 40);
-
-    m_sizer_main->Add(m_sizer_bed, 0, wxEXPAND | wxLEFT | wxRIGHT, 40);
+    m_sizer_bed->Add(m_comboBox_bed, 1, wxEXPAND | wxRIGHT, 30);
+    m_sizer_main->Add(m_sizer_bed, 0, wxEXPAND | wxLEFT | wxRIGHT, 30);
 
     wxGridSizer *m_sizer_select = new wxGridSizer(2, 2, 0, 0);
 
@@ -553,7 +551,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
                                      wxSize(wxGetApp().em_unit() * 3, wxGetApp().em_unit() * 3), 0);
     m_sizer_err->Add(errimg, 0, wxEXPAND, 0);
 
-    m_statictext_err = new wxStaticText(m_panel_err, wxID_ANY, wxT("11111111111"), wxDefaultPosition, wxDefaultSize, 0);
+    m_statictext_err = new wxStaticText(m_panel_err, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
     m_statictext_err->Wrap(-1);
     m_statictext_err->SetForegroundColour(wxColour(255, 111, 0));
 
@@ -577,8 +575,13 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_line_schedule->SetBackgroundColour(wxColour(238, 238, 238));
     m_sizer_bottom->Add(m_line_schedule, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
 
+
+    m_simplebook = new wxSimplebook(m_panel_bottom, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
+
     // perpare mode
-    m_panel_prepare             = new wxPanel(m_panel_bottom, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_sizer_bottom->Add(m_simplebook, 1, wxEXPAND | wxLEFT | wxRIGHT, 10);
+
+    m_panel_prepare             = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_panel_prepare->SetBackgroundColour(m_colour_def_color);
     wxBoxSizer *m_sizer_prepare = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *m_sizer_pcont   = new wxBoxSizer(wxHORIZONTAL);
@@ -595,21 +598,21 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_button_ensure->SetSize(wxSize(68, 24));
     m_button_ensure->SetMinSize(wxSize(72, 24));
     m_button_ensure->SetCornerRadius(12);
-    // m_button_ensure->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(SelectMachineDialog::on_ok), NULL, this);
-    m_button_ensure->Bind(wxEVT_LEFT_UP, &SelectMachineDialog::on_ok, this);
+
+    m_button_ensure->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_ok, this);
     m_sizer_pcont->Add(m_button_ensure, 0, wxEXPAND | wxRIGHT, 0);
     m_sizer_prepare->Add(m_sizer_pcont, 0, wxEXPAND, 0);
     m_panel_prepare->SetSizer(m_sizer_prepare);
     m_panel_prepare->Layout();
-    m_sizer_bottom->Add(m_panel_prepare, 0, wxEXPAND | wxLEFT | wxRIGHT, 10);
+    m_simplebook->AddPage(m_panel_prepare, wxEmptyString, true);
 
     // sending mode
-    m_status_bar    = std::make_shared<BBLStatusBarSend>(m_panel_bottom);
+    m_status_bar    = std::make_shared<BBLStatusBarSend>(m_simplebook);
     m_panel_sending = m_status_bar->get_panel();
-    m_sizer_bottom->Add(m_panel_sending, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 10);
+    m_simplebook->AddPage(m_panel_sending, wxEmptyString, false);
 
     // finish mode
-    m_panel_finish             = new wxPanel(m_panel_bottom, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_panel_finish             = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     wxBoxSizer *m_sizer_finish = new wxBoxSizer(wxHORIZONTAL);
 
     m_sizer_finish->Add(0, 0, 1, wxEXPAND, 5);
@@ -630,8 +633,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_panel_finish->SetSizer(m_sizer_finish);
     m_panel_finish->Layout();
     m_sizer_finish->Fit(m_panel_finish);
-    m_sizer_bottom->Add(m_panel_finish, 0, wxEXPAND | wxTOP, 25);
-    // m_sizer_bottom->Add(m_panel_sending, 0 ,wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 10);
+     m_simplebook->AddPage(m_panel_finish, wxEmptyString, false);
 
     m_panel_bottom->SetSizer(m_sizer_bottom);
     m_panel_bottom->Layout();
@@ -687,45 +689,24 @@ void SelectMachineDialog::prepare_mode()
 {
     m_panel_warn->Hide();
     m_panel_err->Hide();
-    m_panel_finish->Hide();
-    m_line_schedule->Hide();
-    m_panel_sending->Hide();
-    m_panel_prepare->Show();
-    m_sizer_bottom->Layout();
-    m_panel_bottom->Refresh();
-
+    m_simplebook->SetSelection(0);
     Fit();
-    Refresh();
 }
 
 void SelectMachineDialog::sending_mode()
 {
     m_panel_warn->Hide();
     m_panel_err->Hide();
-    m_panel_finish->Hide();
-    m_panel_prepare->Hide();
-    m_line_schedule->Show();
-    m_panel_sending->Show();
-    m_sizer_bottom->Layout();
-    m_panel_bottom->Refresh();
-
+    m_simplebook->SetSelection(1);
     Fit();
-    Refresh();
 }
 
 void SelectMachineDialog::finish_mode()
 {
     m_panel_warn->Hide();
     m_panel_err->Hide();
-    m_panel_sending->Hide();
-    m_panel_prepare->Hide();
-    m_line_schedule->Show();
-    m_panel_finish->Show();
-    m_sizer_bottom->Layout();
-    m_panel_bottom->Refresh();
-
+    m_simplebook->SetSelection(2);
     Fit();
-    Refresh();
 }
 
 void SelectMachineDialog::update_warn_msg(wxString msg)
@@ -806,7 +787,7 @@ void SelectMachineDialog::reset()
     m_button_ensure->Enable();
 }
 
-void SelectMachineDialog::on_ok(wxMouseEvent &event)
+void SelectMachineDialog::on_ok(wxCommandEvent &event)
 {
     m_status_bar->set_status_text("exporting 3mf was cancelled");
 
@@ -1013,11 +994,8 @@ bool SelectMachineDialog::Show(bool show)
         bk->SetBorderColor(m_colour_def_color);
 
         auto  textcolor = wxColour(0,0,0);
-        float gray = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
-        if (gray < 80)
-            textcolor = wxColour(255,255,255);
-        else 
-            textcolor = wxColour(0, 0, 0);
+        textcolor = colour_rgb.GetLuminance() < 0.5? *wxWHITE : *wxBLACK;
+
 
         bk->SetTextColor(textcolor);
 
