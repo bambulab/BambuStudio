@@ -216,6 +216,8 @@ public:
          , support_floor_layers_above(0)
          , to_buildplate(true)
          , parent(nullptr)
+         , print_z(0.0)
+         , height(0.0)
         {}
 
         Node(const Point position, const size_t distance_to_top, const bool skin_direction, const int support_roof_layers_below, const bool to_buildplate, Node* const parent)
@@ -226,6 +228,8 @@ public:
          , support_floor_layers_above(0)
          , to_buildplate(to_buildplate)
          , parent(parent)
+         , print_z(0.0)
+         , height(0.0)
         {}
 
 #ifdef DEBUG // Clear the delete node's data so if there's invalid access after, we may get a clue by inspecting that node.
@@ -297,6 +301,9 @@ public:
         */
         std::forward_list<Node*> merged_neighbours;
 
+        coordf_t print_z;
+        coordf_t height;
+
         bool operator==(const Node& other) const
         {
             return position == other.position;
@@ -347,6 +354,8 @@ private:
      * vector of layers.
      */
     void drop_nodes(std::vector<std::vector<Node*>>& contact_nodes);
+
+    void adjust_layer_heights(std::vector<std::vector<Node*>>& contact_nodes);
 
     /*!
      * \brief Creates points where support contacts the model.

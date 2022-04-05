@@ -1754,6 +1754,9 @@ void TreeSupport::generate_support_areas()
     drop_nodes(contact_nodes);
     profiler.stage_finish(STAGE_DROP_DOWN_NODES);
 
+    // Adjust support layer heights
+    adjust_layer_heights(contact_nodes);
+
     //Generate support areas.
     profiler.stage_start(STAGE_DRAW_CIRCLES);
     m_object->print()->set_status(92, "Support: draw_circles");
@@ -1836,17 +1839,24 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
         {
             for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++)
             {
+                const std::vector<Node*>& curr_layer_nodes = contact_nodes[layer_nr];
                 TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
                 assert(ts_layer != nullptr);
+
+                // skip if current layer has no points. This fixes potential crash in get_collision (see jira BBL001-355)
+                if (curr_layer_nodes.empty())
+                    continue;
+
+                Node* first_node = curr_layer_nodes.front();
+                ts_layer->print_z = first_node->print_z;
+                ts_layer->height = first_node->height;
+                if (ts_layer->height < EPSILON)
+                    continue;
 
                 ExPolygons& base_areas = ts_layer->base_areas;
                 ExPolygons& roof_areas = ts_layer->roof_areas;
                 ExPolygons& roof_1st_layer = ts_layer->roof_1st_layer;
                 ExPolygons& floor_areas = ts_layer->floor_areas;
-
-                // skip if current layer has no points. This fixes potential crash in get_collision (see jira BBL001-355)
-                if (contact_nodes[layer_nr].empty())
-                    continue;
 
                 //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
                 ts_layer->lslices.reserve(contact_nodes[layer_nr].size());
@@ -2010,6 +2020,14 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 #endif
             }
         });
+
+        TreeSupportLayerPtrs& ts_layers = m_object->tree_support_layers();
+        auto iter = std::remove_if(ts_layers.begin(), ts_layers.end(), [](TreeSupportLayer* ts_layer) { return ts_layer->height < EPSILON; });
+        ts_layers.erase(iter, ts_layers.end());
+        for (int layer_nr = 0; layer_nr < ts_layers.size(); layer_nr++) {
+            ts_layers[layer_nr]->upper_layer = layer_nr != ts_layers.size() - 1 ? ts_layers[layer_nr + 1] : nullptr;
+            ts_layers[layer_nr]->lower_layer = layer_nr > 0 ? ts_layers[layer_nr - 1] : nullptr;
+        }
 }
 
 void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
@@ -2036,14 +2054,14 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
     {// get outlines below and avoidance area using tbb
         m_object->print()->set_status(90, "Support: preparing avoidance regions ");
         // get all the possible radiis
-        std::vector<std::set<coordf_t> > all_layer_radiis(m_highest_overhang_layer+1);
+        std::vector<std::set<coordf_t> > all_layer_radius(m_highest_overhang_layer+1);
         std::vector<std::set<size_t> > all_layer_node_dist(m_highest_overhang_layer+1);
         for (size_t layer_nr = m_highest_overhang_layer; layer_nr > 0; layer_nr--)
         {
             auto& layer_contact_nodes = contact_nodes[layer_nr];
-            auto& layer_radiis = all_layer_radiis[layer_nr];
+            auto& layer_radius = all_layer_radius[layer_nr];
             auto& layer_node_dist = all_layer_node_dist[layer_nr];
-            if (layer_contact_nodes.empty() == false) {
+            if (!layer_contact_nodes.empty()) {
                 for (Node* p_node : layer_contact_nodes) {
                     layer_node_dist.emplace(p_node->distance_to_top);
                 }
@@ -2053,7 +2071,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     layer_node_dist.emplace(node_dist+1);
             }
             for (auto node_dist : layer_node_dist) {
-                layer_radiis.emplace(calc_branch_radius(branch_radius, node_dist, tip_layers, diameter_angle_scale_factor));
+                layer_radius.emplace(calc_branch_radius(branch_radius, node_dist, tip_layers, diameter_angle_scale_factor));
             }
         }
         // parallel pre-compute avoidance
@@ -2423,6 +2441,86 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
         delete node;
     }
     to_free_node_set.clear();
+}
+
+void TreeSupport::adjust_layer_heights(std::vector<std::vector<Node*>>& contact_nodes)
+{
+    if (contact_nodes.empty())
+        return;
+
+    const PrintObjectConfig& config = m_object->config();
+    if (!config.independent_support_layer_height) {
+        for (int layer_nr = 0; layer_nr < contact_nodes.size(); layer_nr++) {
+            std::vector<Node*>& curr_layer_nodes = contact_nodes[layer_nr];
+            for (Node* node : curr_layer_nodes) {
+                node->print_z = m_object->get_layer(layer_nr)->print_z;
+                node->height = m_object->get_layer(layer_nr)->height;
+            }
+        }
+        return;
+    }
+
+    assert(!config.adaptive_layer_height);
+
+    // extreme layer_id
+    std::vector<int> extremes;
+    const coordf_t layer_height = config.layer_height.value;
+    const coordf_t max_layer_height = m_slicing_params.max_layer_height;
+    const size_t bot_intf_layers = config.support_interface_bottom_layers.value;
+    const size_t top_intf_layers = config.support_interface_top_layers.value;
+
+    extremes.push_back(0);
+    for (int layer_nr = 1; layer_nr < contact_nodes.size(); layer_nr++) {
+        std::vector<Node*>& curr_layer_nodes = contact_nodes[layer_nr];
+        for (Node* node : curr_layer_nodes) {
+            if (node->support_roof_layers_below == top_intf_layers || node->support_floor_layers_above == bot_intf_layers) {
+                extremes.push_back(layer_nr);
+                break;
+            }
+        }
+
+        if (extremes.back() == layer_nr) {
+            // contact layer use the same print_z and layer height with object layer
+            for (Node* node : curr_layer_nodes) {
+                node->print_z = m_object->get_layer(layer_nr)->print_z;
+                node->height = m_object->get_layer(layer_nr)->height;
+            }
+        }
+    }
+
+    // schedule new layer heights and print_z
+    for (size_t idx_extreme = 0; idx_extreme < extremes.size(); idx_extreme++) {
+        int extr2_layer_nr = extremes[idx_extreme];
+        coordf_t extr2z = m_object->get_layer(extr2_layer_nr)->bottom_z();
+        int extr1_layer_nr = idx_extreme == 0 ? -1 : extremes[idx_extreme - 1];
+        coordf_t extr1z = idx_extreme == 0 ? 0.f : m_object->get_layer(extr1_layer_nr)->print_z;
+        coordf_t dist = extr2z - extr1z;
+
+        // Insert intermediate layers.
+        size_t n_layers_extra = size_t(ceil(dist / m_slicing_params.max_suport_layer_height));
+        if (n_layers_extra <= 1)
+            continue;
+
+        coordf_t step = dist / coordf_t(n_layers_extra);
+        coordf_t print_z = extr1z + step;
+        assert(step >= layer_height - EPSILON);
+        for (int layer_nr = extr1_layer_nr + 1; layer_nr < extr2_layer_nr; layer_nr++) {
+            std::vector<Node*>& curr_layer_nodes = contact_nodes[layer_nr];
+            if (std::abs(print_z - m_object->get_layer(layer_nr)->print_z) < layer_height / 2 + EPSILON) {
+                for (Node* node : curr_layer_nodes) {
+                    node->print_z = print_z;
+                    node->height = step;
+                }
+                print_z += step;
+            }
+            else {
+                for (Node* node : curr_layer_nodes) {
+                    node->print_z = 0.0;
+                    node->height = 0.0;
+                }
+            }
+        }
+    }
 }
 
 void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::Node*>>& contact_nodes)
