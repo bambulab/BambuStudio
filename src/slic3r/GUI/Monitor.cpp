@@ -387,9 +387,10 @@ void MonitorPanel::show_status(int status)
         set_default();
         m_staticText_printer_name->SetLabel(_L("No printer"));
         m_status_info_panel->show_status(status);
-        m_tabpanel->RemovePage(0);
-        m_tabpanel->InsertNewPage(0, m_status_info_panel, _L("Status"), "", true);
+        //m_tabpanel->RemovePage(0);
+        //m_tabpanel->InsertNewPage(0, m_status_info_panel, _L("Status"), "", true);
         //m_tabpanel->InsertNewPage(0, m_status_add_machine_panel, _L("Status"), "", true);
+        //m_tabpanel->SetSelection(0);
         m_tabpanel->Refresh();
         m_tabpanel->Layout();
     } else if (((status & (int)MonitorStatus::MONITOR_NORMAL) != 0) ||
@@ -401,8 +402,9 @@ void MonitorPanel::show_status(int status)
             m_bitmap_wifi_signal->SetBitmap(m_signal_no_img);
 
         m_status_info_panel->show_status(status);
-        m_tabpanel->RemovePage(0);
-        m_tabpanel->InsertNewPage(0, m_status_info_panel, _L("Status"), "", true);
+        //m_tabpanel->RemovePage(0);
+        //m_tabpanel->InsertNewPage(0, m_status_info_panel, _L("Status"), "", true);
+        //m_tabpanel->SetSelection(0);
         m_tabpanel->Refresh();
         m_tabpanel->Layout();
     }

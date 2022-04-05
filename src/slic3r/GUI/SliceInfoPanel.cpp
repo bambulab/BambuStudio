@@ -221,6 +221,7 @@ SliceInfoPanel::SliceInfoPanel(wxWindow *parent, wxBitmap &prediction, wxBitmap 
 
     m_text_plate_index = new wxStaticText(this, wxID_ANY, "");
     m_text_plate_index->Wrap(-1);
+    m_text_plate_index->SetForegroundColour(wxColour(107, 107, 107));
     m_item_right_sizer->Add(m_text_plate_index, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));
 
     m_item_top_sizer->Add(m_item_right_sizer, 0, wxEXPAND, 0);

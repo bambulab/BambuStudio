@@ -12,6 +12,7 @@ class TabButton : public StaticBox
     wxBitmap icon;
 
     StateColor   text_color;
+    StateColor   border_color;
     bool pressedDown = false;
 
 public:

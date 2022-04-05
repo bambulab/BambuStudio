@@ -38,8 +38,12 @@ static const wxColour WARNING_INFO_BG_COL = wxColour(255, 111, 0);
 
 static const wxColour GROUP_STATIC_LINE_COL    = wxColour(206,206,206);
 
+/* font and foreground colors */
 static const wxFont PAGE_TITLE_FONT  = wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, 0, false, wxT("HarmonyOS Sans SC"));
 static const wxFont GROUP_TITLE_FONT = wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, 0, false, wxT("HarmonyOS Sans SC"));
+
+static wxColour GROUP_TITLE_FONT_COL = wxColour(172, 172, 172);
+static wxColour TEXT_LIGHT_FONT_COL  = wxColour(107, 107, 107);
 
 /* size */
 static const int PAGE_TITLE_HEIGHT        = 36;
@@ -585,6 +589,7 @@ wxBoxSizer *StatusBasePanel::create_axis_control()
 
     m_staticText_xy = new wxStaticText(this, wxID_ANY, _L("X/Y Axis"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_xy->Wrap(-1);
+    m_staticText_xy->SetForegroundColour(TEXT_LIGHT_FONT_COL);
     sizer->Add(m_staticText_xy, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, 5);
     return sizer;
 }
@@ -641,6 +646,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control()
 
     m_staticText_z_tip = new wxStaticText(this, wxID_ANY, _L("Bed"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_z_tip->Wrap(-1);
+    m_staticText_z_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
     bSizer_z_ctrl->Add(m_staticText_z_tip, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, 5);
 
     return bSizer_z_ctrl;
@@ -677,6 +683,7 @@ wxBoxSizer *StatusBasePanel::create_extruder_control()
 
     m_staticText_e = new wxStaticText(this, wxID_ANY, _L("Extruder"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_e->Wrap(-1);
+    m_staticText_e->SetForegroundColour(TEXT_LIGHT_FONT_COL);
     bSizer_e_ctrl->Add(m_staticText_e, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, 5);
 
     return bSizer_e_ctrl;
@@ -861,6 +868,7 @@ void StatusPanel::create_tasklist_info()
     m_text_tasklist_caption              = new wxStaticText(this, wxID_ANY, _L("Printing List"), wxDefaultPosition, wxDefaultSize, 0);
     m_text_tasklist_caption->Wrap(-1);
     m_text_tasklist_caption->SetFont(GROUP_TITLE_FONT);
+    m_text_tasklist_caption->SetForegroundColour(GROUP_TITLE_FONT_COL);
 
     m_tasklist_caption_sizer->Add(m_text_tasklist_caption, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, GROUP_TITLE_LEFT_MARGIN);
 
@@ -1452,6 +1460,7 @@ void StatusPanel::show_status(int status) {
         m_staticText_z_tip->SetForegroundColour(DISCONNECT_TEXT_COL);
         m_staticText_e->SetForegroundColour(DISCONNECT_TEXT_COL);
         m_staticText_ams_ctrl_caption->SetForegroundColour(DISCONNECT_TEXT_COL);
+        m_ams_control->Enable(false);
         
     } else if ((status & (int)MonitorStatus::MONITOR_NORMAL) != 0) {
         m_connection_info->Hide();
@@ -1464,7 +1473,7 @@ void StatusPanel::show_status(int status) {
         m_switch_nozzle_fan->Enable();
         m_switch_printing_fan->Enable();
         m_bpButton_xy->Enable();
-        m_text_tasklist_caption->SetForegroundColour(NORMAL_TEXT_COL);
+        m_text_tasklist_caption->SetForegroundColour(GROUP_TITLE_FONT_COL);
         m_staticText_temp_caption->SetForegroundColour(NORMAL_TEXT_COL);
         m_bpButton_z_10->Enable();
         m_bpButton_z_1->Enable();
@@ -1472,10 +1481,11 @@ void StatusPanel::show_status(int status) {
         m_bpButton_z_down_10->Enable();
         m_bpButton_e_10->Enable();
         m_bpButton_e_down_10->Enable();
-        m_staticText_xy->SetForegroundColour(NORMAL_TEXT_COL);
-        m_staticText_z_tip->SetForegroundColour(NORMAL_TEXT_COL);
-        m_staticText_e->SetForegroundColour(NORMAL_TEXT_COL);
+        m_staticText_xy->SetForegroundColour(TEXT_LIGHT_FONT_COL);
+        m_staticText_z_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
+        m_staticText_e->SetForegroundColour(TEXT_LIGHT_FONT_COL);
         m_staticText_ams_ctrl_caption->SetForegroundColour(NORMAL_TEXT_COL);
+        m_ams_control->Enable();
     }
 }
 

@@ -17,6 +17,10 @@ wxDEFINE_EVENT(wxCUSTOMEVT_TABBOOK_SEL_CHANGED, wxCommandEvent);
 const static wxColour TAB_BUTTON_BG  = wxColour(255, 255, 255, 255);
 const static wxColour TAB_BUTTON_SEL = wxColour(219, 253, 213, 255);
 
+static const wxFont TAB_BUTTON_FONT     = Label::Body_14;
+static const wxFont TAB_BUTTON_FONT_SEL = Label::Head_14;
+
+
 static const int BUTTON_DEF_HEIGHT = 53;
 static const int BUTTON_DEF_WIDTH  = 260;
 
@@ -68,7 +72,7 @@ void TabButtonsListCtrl::OnPaint(wxPaintEvent &)
     for (int idx = 0; idx < int(m_pageButtons.size()); idx++) {
         TabButton *btn = m_pageButtons[idx];
         btn->SetBackgroundColor(idx == m_selection ? TAB_BUTTON_SEL : TAB_BUTTON_BG);
-
+        
         wxPoint pos = btn->GetPosition();
         wxSize size = btn->GetSize();
         const wxColour &clr  = idx == m_selection ? btn_marker_color : TAB_BUTTON_BG;
@@ -99,10 +103,13 @@ void TabButtonsListCtrl::SetSelection(int sel)
 {
     if (m_selection == sel)
         return;
-    if (m_selection >= 0)
+    if (m_selection >= 0) {
         m_pageButtons[m_selection]->SetBackgroundColor(TAB_BUTTON_BG);
+        m_pageButtons[m_selection]->SetFont(TAB_BUTTON_FONT);
+    }
     m_selection = sel;
     m_pageButtons[m_selection]->SetBackgroundColor(TAB_BUTTON_SEL);
+    m_pageButtons[m_selection]->SetFont(TAB_BUTTON_FONT_SEL);
     Refresh();
 }
 

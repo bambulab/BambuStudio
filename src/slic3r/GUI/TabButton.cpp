@@ -13,6 +13,8 @@ EVT_PAINT(TabButton::paintEvent)
 
 END_EVENT_TABLE()
 
+static wxColour BORDER_HOVER_COL = wxColour(0, 174, 66);
+
 TabButton::TabButton()
     : paddingSize(43, 16)
     , text_color(*wxBLACK)
@@ -20,6 +22,11 @@ TabButton::TabButton()
     background_color = StateColor(
         std::make_pair(*wxLIGHT_GREY, (int) StateColor::Checked),
         std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered),
+        std::make_pair(*wxWHITE, (int) StateColor::Normal));
+
+    border_color = StateColor(
+        std::make_pair(*wxWHITE, (int) StateColor::Checked),
+        std::make_pair(BORDER_HOVER_COL, (int) StateColor::Hovered),
         std::make_pair(*wxWHITE, (int) StateColor::Normal));
 }
 
