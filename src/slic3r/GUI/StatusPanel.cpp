@@ -65,7 +65,7 @@ static const int PAGE_SPACING             = 10;
 
 
 StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
-    : wxPanel(parent, id, pos, size, style)
+    : wxScrolledWindow(parent, id, pos, size, style)
 {
     init_bitmaps();
 

@@ -36,7 +36,7 @@ enum MonitorStatus {
     MONITOR_DISCONNECTED_SERVER = 1 << 4,
 };
 
-class StatusBasePanel : public wxPanel
+class StatusBasePanel : public wxScrolledWindow
 {
 protected:
     wxBitmap m_item_placeholder;
