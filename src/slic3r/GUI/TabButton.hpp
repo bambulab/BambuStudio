@@ -30,6 +30,10 @@ public:
     
     void SetTextColor(StateColor const &color);
 
+    void SetBorderColor(StateColor const &color);
+
+    void SetBGColor(StateColor const &color);
+
     void SetBitmap(wxBitmap &bitmap);
 
     bool Enable(bool enable = true);

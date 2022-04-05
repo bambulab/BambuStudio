@@ -15,13 +15,16 @@ END_EVENT_TABLE()
 
 static wxColour BORDER_HOVER_COL = wxColour(0, 174, 66);
 
+const static wxColour TAB_BUTTON_BG    = wxColour(255, 255, 255, 255);
+const static wxColour TAB_BUTTON_SEL   = wxColour(219, 253, 213, 255);
+
 TabButton::TabButton()
     : paddingSize(43, 16)
     , text_color(*wxBLACK)
 {
     background_color = StateColor(
-        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Checked),
-        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered),
+        std::make_pair(TAB_BUTTON_SEL, (int) StateColor::Checked),
+        std::make_pair(*wxWHITE, (int) StateColor::Hovered),
         std::make_pair(*wxWHITE, (int) StateColor::Normal));
 
     border_color = StateColor(
@@ -39,7 +42,7 @@ TabButton::TabButton(wxWindow *parent, wxString text, wxBitmap &bmp, long style,
 bool TabButton::Create(wxWindow *parent, wxString text, wxBitmap &bmp, long style, int iconSize)
 {
     StaticBox::Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
-    state_handler.attach({&text_color});
+    state_handler.attach({&text_color, &border_color});
     state_handler.update_binds();
     //BBS set default font
     SetFont(Label::Body_14);
@@ -71,6 +74,20 @@ void TabButton::SetPaddingSize(const wxSize &size)
 void TabButton::SetTextColor(StateColor const &color)
 {
     text_color = color;
+    state_handler.update_binds();
+    Refresh();
+}
+
+void TabButton::SetBorderColor(StateColor const &color)
+{
+    border_color = color;
+    state_handler.update_binds();
+    Refresh();
+}
+
+void TabButton::SetBGColor(StateColor const &color)
+{
+    background_color = color;
     state_handler.update_binds();
     Refresh();
 }
@@ -113,7 +130,11 @@ void TabButton::render(wxDC &dc)
     StaticBox::render(dc);
     int    states = state_handler.states();
     wxSize size   = GetSize();
+
+    dc.SetPen(wxPen(border_color.colorForStates(states)));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.DrawRectangle(0, 0, size.x, size.y);
+
     // calc content size
     wxSize szIcon;
     wxSize szContent = textSize;
