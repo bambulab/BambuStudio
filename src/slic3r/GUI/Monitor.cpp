@@ -186,20 +186,20 @@ void MonitorPanel::set_default()
 {
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    sizer->Add(17, 0, 0, wxALL, 0);
+    sizer->Add(FromDIP(17), 0, 0, wxALL, 0);
     m_bitmap_printer_type = new wxStaticBitmap(this, wxID_ANY, m_printer_img, wxDefaultPosition, wxDefaultSize, 0);
-    sizer->Add(m_bitmap_printer_type, 0, wxALIGN_CENTER_VERTICAL | wxALL, 6);
+    sizer->Add(m_bitmap_printer_type, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(6));
 
     m_bitmap_arrow = new wxStaticBitmap(this, wxID_ANY, m_arrow_img, wxDefaultPosition, wxDefaultSize, 0);
     sizer->Add(m_bitmap_arrow, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
 
     m_staticText_printer_name = new wxStaticText(this, wxID_ANY, _L("Selected a printer"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     m_staticText_printer_name->Wrap(-1);
-    m_staticText_printer_name->SetMaxSize(wxSize(120, -1));
-    sizer->Add(m_staticText_printer_name, 1, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    m_staticText_printer_name->SetMaxSize(wxSize(FromDIP(120), -1));
+    sizer->Add(m_staticText_printer_name, 1, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     m_bitmap_wifi_signal = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    sizer->Add(m_bitmap_wifi_signal, 0, wxALIGN_CENTER_VERTICAL | wxALL, 20);
+    sizer->Add(m_bitmap_wifi_signal, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(20));
 
     return sizer; 
 }

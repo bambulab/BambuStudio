@@ -75,8 +75,8 @@ enum FilamentStep {
 #define AMS_CANS_SIZE wxSize(FromDIP(284), FromDIP(186))
 #define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(172))
 #define AMS_STEP_SIZE wxSize(FromDIP(172), FromDIP(180))
-#define AMS_REFRESH_SIZE wxSize(FromDIP(26), FromDIP(22))
-#define AMS_EXTRUDER_SIZE wxSize(FromDIP(70), FromDIP(55))
+#define AMS_REFRESH_SIZE wxSize(26, 22)
+#define AMS_EXTRUDER_SIZE wxSize(70, 55)
 
 struct Caninfo
 {

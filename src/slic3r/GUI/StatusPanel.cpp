@@ -46,12 +46,14 @@ static wxColour GROUP_TITLE_FONT_COL = wxColour(172, 172, 172);
 static wxColour TEXT_LIGHT_FONT_COL  = wxColour(107, 107, 107);
 
 /* size */
-static const int PAGE_TITLE_HEIGHT        = 36;
-static const int PAGE_TITLE_LEFT_MARGIN   = 17;
-static const int GROUP_TITLE_LEFT_MARGIN  = 15;
-static const int GROUP_TITLE_LINE_MARGIN  = 11;
-static const int GROUP_TITLE_RIGHT_MARGIN = 15;
-static const int PAGE_SPACING             = 10;
+#define PAGE_TITLE_HEIGHT           FromDIP(36)
+#define PAGE_TITLE_LEFT_MARGIN      FromDIP(17)
+#define GROUP_TITLE_LEFT_MARGIN     FromDIP(15)
+#define GROUP_TITLE_LINE_MARGIN     FromDIP(11)
+#define GROUP_TITLE_RIGHT_MARGIN    FromDIP(15)
+
+#define NORMAL_SPACING          FromDIP(5)
+#define PAGE_SPACING            FromDIP(10)
 #define PAGE_MIN_WIDTH          FromDIP(574)
 #define PROGRESSBAR_HEIGHT      FromDIP(14)
 
@@ -125,7 +127,7 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
     m_panel_separator_right->SetBackgroundColour(STATUS_PANEL_BG);
     m_panel_separator_right->SetMinSize(wxSize(PAGE_SPACING, -1));
 
-    bSizer_status_below->Add(m_panel_separator_right, 0, wxEXPAND, 0);
+    bSizer_status_below->Add(m_panel_separator_right, 0, wxEXPAND | wxALL, 0);
 
     bSizer_status->Add(bSizer_status_below, 1, wxALL | wxEXPAND, 0);
 
@@ -133,7 +135,7 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
     m_panel_separotor_bottom->SetBackgroundColour(STATUS_PANEL_BG);
     m_panel_separotor_bottom->SetMinSize(wxSize(-1, PAGE_SPACING));
 
-    bSizer_status->Add(m_panel_separotor_bottom, 0, wxEXPAND, 5);
+    bSizer_status->Add(m_panel_separotor_bottom, 0, wxEXPAND, NORMAL_SPACING);
 
     this->SetSizerAndFit(bSizer_status);
     this->Layout();
@@ -189,7 +191,7 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_connection_info->SetPaddingSize(wxSize(FromDIP(11), 0));
     m_connection_info->Hide();
 
-    bSizer_monitoring_title->Add(13, 0, 0, 0);
+    bSizer_monitoring_title->Add(FromDIP(13), 0, 0, 0);
     bSizer_monitoring_title->Add(m_connection_info, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 0);
 
     bSizer_monitoring_title->AddStretchSpacer();
@@ -201,7 +203,7 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_bmToggleBtn_timelapse = new SwitchButton(m_panel_monitoring_title);
     m_bmToggleBtn_timelapse->SetMinSize(SWITCH_BUTTON_SIZE);
     bSizer_monitoring_title->Add(m_bmToggleBtn_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    bSizer_monitoring_title->Add(13, 0, 0);
+    bSizer_monitoring_title->Add(FromDIP(13), 0, 0);
 
     m_panel_monitoring_title->SetSizer(bSizer_monitoring_title);
     m_panel_monitoring_title->Layout();
@@ -248,16 +250,16 @@ wxBoxSizer *StatusBasePanel::create_project_task_page()
     bSizer_printing_title->Fit(m_panel_printing_title);
 
     sizer->Add(m_panel_printing_title, 0, wxEXPAND | wxALL, 0);
-    sizer->Add(0, 12, 0);
+    sizer->Add(0, FromDIP(12), 0);
 
     m_printing_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_printing_sizer->SetMinSize(wxSize(PAGE_MIN_WIDTH, -1));
     m_bitmap_thumbnail = new wxStaticBitmap(this, wxID_ANY, m_thumbnail_placeholder, wxDefaultPosition, TASK_THUMBNAIL_SIZE, 0);
 
-    m_printing_sizer->Add(m_bitmap_thumbnail, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, 12);
+    m_printing_sizer->Add(m_bitmap_thumbnail, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, FromDIP(12));
 
-    m_printing_sizer->Add(8, 0, 0, wxEXPAND, 0);
+    m_printing_sizer->Add(FromDIP(8), 0, 0, wxEXPAND, 0);
 
     wxBoxSizer *bSizer_subtask_info;
     bSizer_subtask_info = new wxBoxSizer(wxVERTICAL);
@@ -265,7 +267,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page()
     wxBoxSizer *bSizer_task_name;
     bSizer_task_name = new wxBoxSizer(wxVERTICAL);
 
-    bSizer_task_name->Add(0, 0, 1, wxEXPAND, 5);
+    bSizer_task_name->Add(0, 0, 1, wxEXPAND, FromDIP(5));
 
     m_staticText_subtask_value = new wxStaticText(this, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
     m_staticText_subtask_value->Wrap(-1);
@@ -273,7 +275,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page()
     m_staticText_subtask_value->SetForegroundColour(wxColour(44, 44, 46));
 
     bSizer_task_name->Add(m_staticText_subtask_value, 1, wxALL | wxEXPAND, 0);
-    bSizer_subtask_info->Add(bSizer_task_name, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND, 5);
+    bSizer_subtask_info->Add(bSizer_task_name, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND, FromDIP(5));
 
     wxFlexGridSizer *fgSizer_task;
     fgSizer_task = new wxFlexGridSizer(2, 2, 0, 0);
@@ -289,7 +291,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page()
     wxBoxSizer *bSizer_task_btn;
     bSizer_task_btn = new wxBoxSizer(wxHORIZONTAL);
 
-    bSizer_task_btn->Add(10, 0, 0);
+    bSizer_task_btn->Add(FromDIP(10), 0, 0);
 
     m_button_report = new Button(this, _L("Report"));
     StateColor report_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
@@ -302,7 +304,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page()
     StateColor report_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
     m_button_report->SetTextColor(report_text);
     m_button_report->SetFont(Label::Body_10);
-    bSizer_task_btn->Add(m_button_report, 0, wxALL, 5);
+    bSizer_task_btn->Add(m_button_report, 0, wxALL, FromDIP(5));
 
     m_button_pause_resume = new Button(this, _L("Pause"));
 
@@ -317,7 +319,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page()
     m_button_pause_resume->SetFont(Label::Body_10);
     m_button_pause_resume->SetMinSize(TASK_BUTTON_SIZE);
 
-    bSizer_task_btn->Add(m_button_pause_resume, 0, wxALIGN_RIGHT | wxALL, 5);
+    bSizer_task_btn->Add(m_button_pause_resume, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));
 
     m_button_abort = new Button(this, _L("Abort"));
 
@@ -336,7 +338,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page()
     m_button_abort->SetFont(Label::Body_10);
     m_button_abort->SetMinSize(TASK_BUTTON_SIZE);
 
-    bSizer_task_btn->Add(m_button_abort, 0, wxALIGN_RIGHT | wxALL, 5);
+    bSizer_task_btn->Add(m_button_abort, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));
 
     fgSizer_task->Add(bSizer_task_btn, 0, wxEXPAND, 0);
 
@@ -348,19 +350,19 @@ wxBoxSizer *StatusBasePanel::create_project_task_page()
     m_staticText_progress_left->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
     m_staticText_progress_left->SetForegroundColour(wxColour(146, 146, 146));
 
-    bSizer_buttons->Add(m_staticText_progress_left, 0, wxALIGN_RIGHT | wxALIGN_TOP, 5);
+    bSizer_buttons->Add(m_staticText_progress_left, 0, wxALIGN_RIGHT | wxALIGN_TOP, FromDIP(5));
 
     fgSizer_task->Add(bSizer_buttons, 0, wxEXPAND, 0);
 
-    fgSizer_task->Add(0, 0, 0, wxEXPAND, 5);
+    fgSizer_task->Add(0, 0, 0, wxEXPAND, FromDIP(5));
 
-    bSizer_subtask_info->Add(fgSizer_task, 0, wxEXPAND, 5);
+    bSizer_subtask_info->Add(fgSizer_task, 0, wxEXPAND, FromDIP(5));
 
     m_printing_sizer->Add(bSizer_subtask_info, 1, wxALL | wxEXPAND, 0);
 
     sizer->Add(m_printing_sizer, 0, wxEXPAND | wxALL, 0);
 
-    sizer->Add(0, 12, 0);
+    sizer->Add(0, FromDIP(12), 0);
 
     m_tasklist_sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(m_tasklist_sizer, 0, wxEXPAND | wxALL, 0);
@@ -387,7 +389,7 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page()
     bSizer_control_title->Fit(m_panel_control_title);
     bSizer_right->Add(m_panel_control_title, 0, wxALL | wxEXPAND, 0);
 
-    bSizer_right->Add(0, 20, 0, wxEXPAND, 0);
+    bSizer_right->Add(0, FromDIP(20), 0, wxEXPAND, 0);
 
     wxBoxSizer *bSizer_control;
     bSizer_control = new wxBoxSizer(wxVERTICAL);
@@ -400,7 +402,7 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page()
     bSizer_control->Add(m_ams_ctrl_sizer, 0, wxEXPAND, 0);
 
     bSizer_right->Add(bSizer_control, 1, wxEXPAND | wxALL, 0);    
-    bSizer_right->Add(0, 20, 0, wxEXPAND, 0);
+    bSizer_right->Add(0, FromDIP(20), 0, wxEXPAND, 0);
 
     return bSizer_right;
 }
@@ -429,22 +431,22 @@ wxBoxSizer *StatusBasePanel::create_temp_axis_group()
     wxBoxSizer *m_temp_ctrl = create_temp_control();
     content_sizer->Add(m_temp_ctrl, 0, wxEXPAND | wxALL, 0);
 
-    content_sizer->Add(10, 0, 0, wxEXPAND, 0);
+    content_sizer->Add(FromDIP(10), 0, 0, wxEXPAND, 0);
     m_temp_extruder_line = new StaticLine(this, true);
     m_temp_extruder_line->SetLineColour(STATIC_BOX_LINE_COL);
     content_sizer->Add(m_temp_extruder_line, 0, wxEXPAND, 0);
     content_sizer->Add(9, 0, 0, wxEXPAND, 0);
 
     auto m_axis_sizer = create_axis_control();
-    content_sizer->Add(m_axis_sizer, 0, wxEXPAND | wxALL, 9);
+    content_sizer->Add(m_axis_sizer, 0, wxEXPAND | wxALL, FromDIP(9));
 
     wxBoxSizer *bed_sizer = create_bed_control();
-    content_sizer->Add(bed_sizer, 0, wxEXPAND | wxALL, 9);
+    content_sizer->Add(bed_sizer, 0, wxEXPAND | wxALL, FromDIP(9));
 
     wxBoxSizer *extruder_sizer = create_extruder_control();
-    content_sizer->Add(extruder_sizer, 0, wxEXPAND | wxALL, 9);
+    content_sizer->Add(extruder_sizer, 0, wxEXPAND | wxALL, FromDIP(9));
 
-    sizer->Add(content_sizer, 0, wxEXPAND | wxALL, 15);
+    sizer->Add(content_sizer, 0, wxEXPAND | wxALL, FromDIP(15));
 
     return sizer;
 }
@@ -542,7 +544,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control()
                                     std::make_pair(NORMAL_TEXT_COL,(int) StateColor::Normal)));
     line_sizer->Add(m_switch_lamp, 1, wxALIGN_CENTER | wxALL, 0);
 
-    sizer->Add(line_sizer, 0, wxEXPAND, 5);
+    sizer->Add(line_sizer, 0, wxEXPAND, FromDIP(5));
     line = new StaticLine(this);
     line->SetLineColour(STATIC_BOX_LINE_COL);
     sizer->Add(line, 0, wxEXPAND | wxALL, 0);
@@ -570,7 +572,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control()
 
     line_sizer->Add(m_switch_printing_fan, 1, wxALIGN_CENTER | wxALL, 0);
 
-    sizer->Add(line_sizer, 0, wxEXPAND, 5);
+    sizer->Add(line_sizer, 0, wxEXPAND, FromDIP(5));
 
     return sizer;
 }
@@ -585,12 +587,13 @@ wxBoxSizer *StatusBasePanel::create_axis_control()
     m_bpButton_xy->SetSize(AXIS_MIN_SIZE);
     sizer->Add(m_bpButton_xy, 1, wxEXPAND | wxALL | wxALIGN_CENTER, 0);
 
-    sizer->Add(0, 6, 0, wxEXPAND, 0);
+    sizer->Add(0, FromDIP(6), 0, wxEXPAND, 0);
 
     m_staticText_xy = new wxStaticText(this, wxID_ANY, _L("X/Y Axis"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_xy->Wrap(-1);
+
     m_staticText_xy->SetForegroundColour(TEXT_LIGHT_FONT_COL);
-    sizer->Add(m_staticText_xy, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, 5);
+    sizer->Add(m_staticText_xy, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
     return sizer;
 }
 
@@ -624,7 +627,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control()
 
     bSizer_z_ctrl->Add(m_bpButton_z_1, 1, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
-    bSizer_z_ctrl->Add(0, 6, 0, wxEXPAND, 0);
+    bSizer_z_ctrl->Add(0, FromDIP(6), 0, wxEXPAND, 0);
 
     m_bpButton_z_down_1 = new Button(this, wxString("-1"));
     m_bpButton_z_down_1->SetBackgroundColor(z_1_ctrl_bg);
@@ -642,12 +645,12 @@ wxBoxSizer *StatusBasePanel::create_bed_control()
 
     bSizer_z_ctrl->Add(m_bpButton_z_down_10, 1, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
-    bSizer_z_ctrl->Add(0, 6, 0, wxEXPAND, 0);
+    bSizer_z_ctrl->Add(0, FromDIP(6), 0, wxEXPAND, 0);
 
     m_staticText_z_tip = new wxStaticText(this, wxID_ANY, _L("Bed"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_z_tip->Wrap(-1);
     m_staticText_z_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
-    bSizer_z_ctrl->Add(m_staticText_z_tip, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, 5);
+    bSizer_z_ctrl->Add(m_staticText_z_tip, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
 
     return bSizer_z_ctrl;
 }
@@ -660,7 +663,7 @@ wxBoxSizer *StatusBasePanel::create_extruder_control()
                          std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
     StateColor e_ctrl_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered),
                          std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
-    m_bpButton_e_10 = new Button(this, "", "monitor_extruder_up", 0, 24);
+    m_bpButton_e_10 = new Button(this, "", "monitor_extruder_up", 0, FromDIP(24));
     m_bpButton_e_10->SetBackgroundColor(e_ctrl_bg);
     m_bpButton_e_10->SetBorderColor(e_ctrl_bd);
 
@@ -673,18 +676,18 @@ wxBoxSizer *StatusBasePanel::create_extruder_control()
     bSizer_e_ctrl->Add(m_bitmap_extruder_img, 0, wxALIGN_CENTER_HORIZONTAL | wxRIGHT | wxLEFT, 0);
     bSizer_e_ctrl->AddStretchSpacer();
 
-    m_bpButton_e_down_10 = new Button(this, "", "monitor_extruder_down", 0, 24);
+    m_bpButton_e_down_10 = new Button(this, "", "monitor_extruder_down", 0, FromDIP(24));
     m_bpButton_e_down_10->SetBackgroundColor(e_ctrl_bg);
     m_bpButton_e_down_10->SetBorderColor(e_ctrl_bd);
 
     bSizer_e_ctrl->Add(m_bpButton_e_down_10, 0, wxALIGN_CENTER_HORIZONTAL | wxRIGHT | wxLEFT, 0);
 
-    bSizer_e_ctrl->Add(0, 6, 0, wxEXPAND, 0);
+    bSizer_e_ctrl->Add(0, FromDIP(24), 0, wxEXPAND, 0);
 
     m_staticText_e = new wxStaticText(this, wxID_ANY, _L("Extruder"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_e->Wrap(-1);
     m_staticText_e->SetForegroundColour(TEXT_LIGHT_FONT_COL);
-    bSizer_e_ctrl->Add(m_staticText_e, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, 5);
+    bSizer_e_ctrl->Add(m_staticText_e, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
 
     return bSizer_e_ctrl;
 }
@@ -709,7 +712,7 @@ wxBoxSizer *StatusBasePanel::create_ams_group()
 
     sizer->Add(bSizer_extruder_ctrl_caption, 0, wxEXPAND, 0);
 
-    sizer->Add(0, 35, 0, wxEXPAND, 0);
+    sizer->Add(0, FromDIP(35), 0, wxEXPAND, 0);
 
 
     m_ams_control = new AMSControl(this, wxID_ANY);
@@ -751,8 +754,6 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_buttons.push_back(m_bpButton_z_down_10);
     m_buttons.push_back(m_bpButton_e_10);
     m_buttons.push_back(m_bpButton_e_down_10);
-    //m_buttons.push_back(m_button_extruder_feed);
-    //m_buttons.push_back(m_button_extruder_back);
 
     obj = nullptr;
 
