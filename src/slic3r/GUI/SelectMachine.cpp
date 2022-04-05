@@ -361,6 +361,21 @@ void SelectMachinePopup::on_timer(wxTimerEvent &event)
     }
 }
 
+static wxString MACHINE_BED_TYPE_STRING[BED_TYPE_COUNT] = {
+    _L("Auto"),
+    _L("Bmabu Cool Plate"),
+    _L("Bmabu Engineering Plate"),
+    _L("Bmabu High Temperature Plate")
+};
+
+static std::string MachineBedTypeString[BED_TYPE_COUNT] = {
+    "auto",
+    "pe",
+    "pc",
+    "pei",
+};
+
+
 SelectMachineDialog::SelectMachineDialog(Plater *plater)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send Task to"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_plater(plater)
@@ -369,16 +384,9 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     //bind
     Bind(wxEVT_CLOSE_WINDOW, &SelectMachineDialog::on_cancel, this);
 
-    // bed type
-    auto str_auto = _L("Auto");
-    auto str_cool_plate = _L("Bmabu Cool Plate");
-    auto str_engineering_plate= _L("Bmabu Engineering Plate");
-    auto str_high_temperature_plate= _L("Bmabu High Temperature Plate");
-
-    m_bedtype_list.push_back(str_auto.ToStdString());
-    m_bedtype_list.push_back(str_cool_plate.ToStdString());
-    m_bedtype_list.push_back(str_engineering_plate.ToStdString());
-    m_bedtype_list.push_back(str_high_temperature_plate.ToStdString());
+    for (int i = 0; i < BED_TYPE_COUNT; i++) {
+        m_bedtype_list.push_back(MACHINE_BED_TYPE_STRING[i]);
+    }
 
     // font
     SetFont(wxGetApp().normal_font());
@@ -851,7 +859,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, dev_id);
 
     m_print_job->set_print_config(
-        m_bedtype_list[m_comboBox_bed->GetSelection()], 
+        MachineBedTypeString[m_comboBox_bed->GetSelection()], 
         m_checkbox_list["bed_leveling"]->GetValue(),
         m_checkbox_list["flow_cali"]->GetValue(),
         m_checkbox_list["vibration_cali"]->GetValue(),

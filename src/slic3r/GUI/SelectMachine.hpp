@@ -194,7 +194,7 @@ private:
     int             m_bed_last_select{0};
 
     Plater*         m_plater { nullptr };
-    std::vector<std::string> m_bedtype_list;
+    std::vector<wxString> m_bedtype_list;
     std::map<std::string, ::CheckBox*> m_checkbox_list;
 
 

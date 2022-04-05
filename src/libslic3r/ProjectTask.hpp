@@ -18,6 +18,15 @@ class BBLProject;
 class BBLProfile;
 class BBLTask;
 
+
+enum MachineBedType {
+    BED_TYPE_AUTO = 0,
+    BED_TYPE_PE,
+    BED_TYPE_PC,
+    BED_TYPE_PEI,
+    BED_TYPE_COUNT,
+};
+
 struct FilamentInfo
 {
     int         id; // filament id = extruder id, start with 0.
@@ -115,7 +124,7 @@ public:
     std::string     task_thumbnail_url; /* url of task thumbnail */
     /* user options */
     bool            task_timelapse;     /* timelapse settings */
-    std::string     task_bed_type;      /* bed_type of task */
+    std::string     task_bed_type;      /* bed_type of task, enum "auto" "pe", "pc", "pei" */  
     bool            task_bed_leveling;  /* bed leveling of task */
     bool            task_flow_cali;     /* flow calibration of task */
     bool            task_vabration_cali;/* vabration calibration of task */
