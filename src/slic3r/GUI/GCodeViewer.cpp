@@ -579,19 +579,21 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Travel_Colors {{
 }};
 
 #if 1
+
 // Normal ranges
+// blue to red
 const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors {{
-    { 0.043f, 0.173f, 0.478f, 1.0f }, // bluish
-    { 0.075f, 0.349f, 0.522f, 1.0f },
-    { 0.110f, 0.533f, 0.569f, 1.0f },
-    { 0.016f, 0.839f, 0.059f, 1.0f },
-    { 0.667f, 0.949f, 0.000f, 1.0f },
-    { 0.988f, 0.975f, 0.012f, 1.0f },
-    { 0.961f, 0.808f, 0.039f, 1.0f },
-    { 0.890f, 0.533f, 0.125f, 1.0f },
-    { 0.820f, 0.408f, 0.188f, 1.0f },
-    { 0.761f, 0.322f, 0.235f, 1.0f },
-    { 0.581f, 0.149f, 0.087f, 1.0f }  // reddish
+    {0.043f, 0.173f, 0.478f, 1.0f}, // bluish
+    {0.075f, 0.349f, 0.522f, 1.0f},
+    {0.110f, 0.533f, 0.569f, 1.0f},
+    {0.016f, 0.839f, 0.059f, 1.0f},
+    {0.667f, 0.949f, 0.000f, 1.0f},
+    {0.988f, 0.975f, 0.012f, 1.0f},
+    {0.961f, 0.808f, 0.039f, 1.0f},
+    //{0.890f, 0.533f, 0.125f, 1.0f},
+    {0.820f, 0.408f, 0.188f, 1.0f},
+    {0.761f, 0.322f, 0.235f, 1.0f},
+    {0.581f, 0.149f, 0.087f, 1.0f} // reddish
 }};
 #else
 // Detailed ranges
@@ -627,8 +629,6 @@ GCodeViewer::GCodeViewer()
 {
     m_moves_slider  = new IMSlider(0, 0, 0, 100, wxSL_HORIZONTAL);
     m_layers_slider = new IMSlider(0, 0, 0, 100, wxSL_VERTICAL);
-
-    //TODO hide or show slider
 
     m_extrusions.reset_role_visibility_flags();
 
@@ -4288,10 +4288,10 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         }
         break;
     }
-    case EViewType::Height:         { append_range(m_extrusions.ranges.height, 3); break; }
-    case EViewType::Width:          { append_range(m_extrusions.ranges.width, 3); break; }
+    case EViewType::Height:         { append_range(m_extrusions.ranges.height, 2); break; }
+    case EViewType::Width:          { append_range(m_extrusions.ranges.width, 2); break; }
     case EViewType::Feedrate:       {
-        append_range(m_extrusions.ranges.feedrate, 1);
+        append_range(m_extrusions.ranges.feedrate, 0);
         ImGui::Spacing();
         append_headers({_u8L("Options"), "", "", "", _u8L("Display")}, offsets);
         const bool travel_visible = m_buffers[buffer_id(EMoveType::Travel)].visible;
@@ -4307,7 +4307,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     }
     case EViewType::FanSpeed:       { append_range(m_extrusions.ranges.fan_speed, 0); break; }
     case EViewType::Temperature:    { append_range(m_extrusions.ranges.temperature, 0); break; }
-    case EViewType::VolumetricRate: { append_range(m_extrusions.ranges.volumetric_rate, 3); break; }
+    case EViewType::VolumetricRate: { append_range(m_extrusions.ranges.volumetric_rate, 2); break; }
     case EViewType::Tool:
     {
         // shows only extruders actually used
