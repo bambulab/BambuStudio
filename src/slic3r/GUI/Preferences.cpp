@@ -552,8 +552,8 @@ void PreferencesDialog::create_shortcuts_page()
                                                                mouse_supported);
     wxWindow *item_move_view   = create_item_multiple_combobox(_L("Move of view"), m_panel_shortcuts, _L("Move of view"), 10, "move_view", keyboard_supported, mouse_supported);
     wxWindow *item_zoom_view = create_item_multiple_combobox(_L("Zoom of view"), m_panel_shortcuts, _L("Zoom of view"), 10, "rotate_view", keyboard_supported, mouse_supported);
-    wxWindow *item_precise_control = create_item_multiple_combobox(_L("Precise of control"), m_panel_shortcuts, _L("Precise of control"), 10, "precise_control",
-                                                                   keyboard_supported, mouse_supported);
+    //wxWindow *item_precise_control = create_item_multiple_combobox(_L("Precise of control"), m_panel_shortcuts, _L("Precise of control"), 10, "precise_control",
+    //                                                               keyboard_supported, mouse_supported);
 
     wxWindow *title_other = create_item_title(_L("Other"), m_panel_shortcuts, _L("Other"));
     wxWindow *item_other  = create_item_checkbox(_L("Mouse wheel reverses when zooming"), m_panel_shortcuts, _L("Mouse wheel reverses when zooming"), 50, "mouse_wheel");
@@ -562,7 +562,7 @@ void PreferencesDialog::create_shortcuts_page()
     bSizer->Add(item_rotate_view, 0, wxTOP, 5);
     bSizer->Add(item_move_view, 0, wxTOP, 0);
     bSizer->Add(item_zoom_view, 0, wxTOP, 0);
-    bSizer->Add(item_precise_control, 0, wxTOP, 0);
+    //bSizer->Add(item_precise_control, 0, wxTOP, 0);
     bSizer->Add(title_other, 0, wxTOP, 20);
     bSizer->Add(item_other, 0, wxTOP, 5);
 
