@@ -867,6 +867,9 @@ void TreeSupport::detect_object_overhangs()
 
         for (size_t layer_nr = 0; layer_nr < m_object->layer_count(); layer_nr++)
         {
+            if (m_object->print()->canceled())
+                break;
+
             if (!is_auto && layer_nr > enforce_support_layers)
                 continue;
 
@@ -1152,6 +1155,9 @@ void TreeSupport::detect_object_overhangs()
     max_overhang_area = 0;
     total_overhang_layer_cnt = 0;
     for (int layer_nr = 0; layer_nr < m_object->layer_count(); layer_nr++) {
+        if (m_object->print()->canceled())
+            break;
+
         TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
 
         if (!all_bridges.empty()) {
@@ -1508,6 +1514,9 @@ void TreeSupport::generate_toolpaths()
         [&](const tbb::blocked_range<size_t>& range)
         {
             for (size_t layer_id = range.begin(); layer_id < range.end(); layer_id++) {
+                if (m_object->print()->canceled())
+                    break;
+
                 TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_id);
                 Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
                 Flow transition_flow(support_transition_line_width, ts_layer->height, nozzle_diameter);
@@ -1947,6 +1956,8 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
         {
             for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++)
             {
+                if (print->canceled())
+                    break;
                 const std::vector<Node*>& curr_layer_nodes = contact_nodes[layer_nr];
                 TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
                 assert(ts_layer != nullptr);
@@ -1971,6 +1982,9 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 #if 1
                 for (const Node* p_node : contact_nodes[layer_nr])
                 {
+                    if (print->canceled())
+                        break;
+
                     const Node& node = *p_node;
                     ExPolygon area;
                     if (node.type == ePolygon) {
@@ -2203,6 +2217,9 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
 
     for (size_t layer_nr = contact_nodes.size() - 1; layer_nr > 0; layer_nr--) //Skip layer 0, since we can't drop down the vertices there.
     {
+        if (m_object->print()->canceled())
+            break;
+
         auto& layer_contact_nodes = contact_nodes[layer_nr];
         std::deque<std::pair<size_t, Node*>> unsupported_branch_leaves; // All nodes that are leaves on this layer that would result in unsupported ('mid-air') branches.
         const Layer* ts_layer = m_object->get_tree_support_layer(layer_nr);
@@ -2696,6 +2713,9 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
 
     for (size_t layer_nr = 1; layer_nr < m_object->layers().size() - z_distance_top_layers; layer_nr++)
     {
+        if (m_object->print()->canceled())
+            break;
+
         const ExPolygons &overhang = m_object->get_tree_support_layer(layer_nr + m_raft_layers + z_distance_top_layers)->overhang_areas;
         if (overhang.empty())
             continue;
