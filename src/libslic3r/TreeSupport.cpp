@@ -2470,6 +2470,11 @@ void TreeSupport::adjust_layer_heights(std::vector<std::vector<Node*>>& contact_
     const size_t top_intf_layers = config.support_interface_top_layers.value;
 
     extremes.push_back(0);
+    for (Node* node : contact_nodes[0]) {
+        node->print_z = m_object->get_layer(0)->print_z;
+        node->height = m_object->get_layer(0)->height;
+    }
+
     for (int layer_nr = 1; layer_nr < contact_nodes.size(); layer_nr++) {
         std::vector<Node*>& curr_layer_nodes = contact_nodes[layer_nr];
         for (Node* node : curr_layer_nodes) {
