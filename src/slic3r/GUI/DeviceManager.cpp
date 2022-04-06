@@ -763,7 +763,7 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 /* ams */
                 try {
                     auto ams = print.get_child_optional("ams");
-                    if (ams != boost::none) {
+                    if (ams != boost::none && ams.value().get_child_optional("ams").has_value()) {
                         auto &print = ams.value();
                         // reconnect amsList.clear();
 
