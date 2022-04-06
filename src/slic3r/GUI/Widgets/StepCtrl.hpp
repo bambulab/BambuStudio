@@ -93,7 +93,6 @@ public:
     virtual void Rescale();
 
     void SelectNext();
-
 private:
     void doRender(wxDC &dc) override;
 };

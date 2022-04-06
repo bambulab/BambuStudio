@@ -197,7 +197,9 @@ StepIndicator::StepIndicator(wxWindow *parent, wxWindowID id, const wxPoint &pos
     SetFont(Label::Body_12);
     font_tip = Label::Body_10;
     clr_bar = 0xE1E1E1;
-    clr_step = 0x00AE42;
+    clr_step = StateColor(
+            std::make_pair(0xACACAC, (int) StateColor::Disabled), 
+            std::make_pair(0x00AE42, 0));
     clr_text = StateColor(
             std::make_pair(0xACACAC, (int) StateColor::Disabled), 
             std::make_pair(0x323A3D, (int) StateColor::Checked), 
@@ -219,6 +221,7 @@ void StepIndicator::Rescale()
 
 void StepIndicator::SelectNext() { SelectItem(step + 1); }
 
+
 void StepIndicator::doRender(wxDC &dc)
 {
     if (steps.empty()) return;
@@ -226,7 +229,11 @@ void StepIndicator::doRender(wxDC &dc)
     StaticBox::doRender(dc);
 
     wxSize size   = GetSize();
+
     int    states = state_handler.states();
+    if (!IsEnabled()) { 
+        states = clr_step.Disabled;
+    } 
 
     int    itemWidth = steps.size() == 1 ? size.y : (size.y - radius * 2) / (steps.size() - 1);
     wxRect rcBar     = {radius - bar_width / 2, radius, bar_width, size.y - radius * 2};

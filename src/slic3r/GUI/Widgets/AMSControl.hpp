@@ -8,6 +8,8 @@
 #include "../DeviceManager.hpp"
 #include <wx/simplebook.h>
 
+#define AMS_CONTROL_DISABLE_COLOUR wxColour(206, 206, 206)
+#define AMS_CONTROL_DISABLE_TEXT_COLOUR wxColour(144,144,144)
 #define AMS_CONTROL_WHITE_COLOUR wxColour(255, 255, 255)
 #define AMS_CONTROL_BLACK_COLOUR wxColour(0, 0, 0)
 #define AMS_CONTROL_ROAD_DEF_COLOUR wxColour(172, 172, 172)
@@ -75,7 +77,7 @@ enum FilamentStep {
 #define AMS_CANS_SIZE wxSize(FromDIP(284), FromDIP(186))
 #define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(172))
 #define AMS_STEP_SIZE wxSize(FromDIP(172), FromDIP(180))
-#define AMS_REFRESH_SIZE wxSize(26, 22)
+#define AMS_REFRESH_SIZE wxSize(26, 26)
 #define AMS_EXTRUDER_SIZE wxSize(70, 55)
 
 struct Caninfo
@@ -104,12 +106,15 @@ class AMSrefresh : public wxWindow
 {
 public:
     AMSrefresh();
-    AMSrefresh(wxWindow *parent, wxWindowID id, wxString number = wxEmptyString, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
-    AMSrefresh(wxWindow *parent, wxWindowID id, int number, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    AMSrefresh(wxWindow *parent, wxWindowID id, wxString number = wxEmptyString, std::string canid = "", const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    AMSrefresh(wxWindow *parent, wxWindowID id, int number, std::string canid, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     void create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
     void OnEnterWindow(wxMouseEvent &evt);
     void OnLeaveWindow(wxMouseEvent &evt);
-    void paintEvent(wxPaintEvent &evt);
+    void OnClick(wxMouseEvent &evt);
+    void post_event(wxCommandEvent &&event);
+    void paintEvent(wxPaintEvent &evt);  
+    std::string m_canid;
 
 protected:
     bool         m_selected = {false};
@@ -158,10 +163,12 @@ public:
     void SetLibColour(wxColour const &color);
     void OnSelected();
     void UnSelected();
+    virtual bool Enable(bool enable = true);
 
 protected:
     wxBitmap m_bitmap_editable;
     bool     m_unable_selected = {false};
+    bool     m_enable = {false};
     bool     m_selected        = {false};
     Caninfo  m_info;
     double   m_radius = {4};
@@ -220,6 +227,7 @@ public:
     void    SetCubeSize(wxSize size);
     void    OnSelected();
     void    UnSelected();
+    virtual bool Enable(bool enable = true);
     AMSinfo m_amsinfo;
 
 protected:
@@ -342,6 +350,7 @@ public:
     void SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP STEP);
     void SwitchAms(std::string ams_id);
     void SetFilamentStep(int item_idx);
+    virtual bool Enable(bool enable = true); 
 
     void on_extruder_feed(wxCommandEvent &event);
     void on_extruder_return(wxCommandEvent &event);
@@ -355,6 +364,7 @@ public:
 wxDECLARE_EVENT(EVT_AMS_FEED, SimpleEvent);
 wxDECLARE_EVENT(EVT_AMS_RETURN, SimpleEvent);
 wxDECLARE_EVENT(EVT_AMS_SETTINGS, SimpleEvent);
+wxDECLARE_EVENT(EVT_AMS_REFRESH, wxCommandEvent);
 
 }
 }
