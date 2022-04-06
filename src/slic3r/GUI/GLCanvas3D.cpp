@@ -2636,6 +2636,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                                 const int new_pos = keyCode == WXK_RIGHT ? m_moves_slider->GetHigherValue() + 1 : m_moves_slider->GetHigherValue() - 1;
                                 m_moves_slider->SetHigherValue(new_pos);
                             }
+                            m_dirty = true;
                         }
                     }
                 }
