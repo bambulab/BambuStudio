@@ -24,6 +24,7 @@ enum CUSTOM_ID
     ID_TITLE,
     ID_ACCOUNT,
     ID_MODEL_STORE,
+    ID_PUBLISH,
     ID_TOOL_BAR = 3200,
     ID_AMS_NOTEBOOK,
 };
@@ -232,9 +233,16 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     this->AddSpacer(10);
     this->AddStretchSpacer(1);
 
+
+    wxBitmap m_publish_bitmap = create_scaled_bitmap("topbar_publish", nullptr, TOPBAR_ICON_SIZE);
+    m_publish_item            = this->AddTool(ID_PUBLISH, "", m_publish_bitmap);
+    wxBitmap m_publish_disable_bitmap = create_scaled_bitmap("topbar_publish_disable", nullptr, TOPBAR_ICON_SIZE);
+    m_redo_item->SetDisabledBitmap(m_publish_disable_bitmap);
+    this->AddSpacer(12);
+
     wxBitmap model_store_bitmap = create_scaled_bitmap("topbar_store", nullptr, TOPBAR_ICON_SIZE);
     m_model_store_item = this->AddTool(ID_MODEL_STORE, "", model_store_bitmap);
-    this->AddSpacer(14);
+    this->AddSpacer(12);
 
     wxBitmap account_bitmap = create_scaled_bitmap("topbar_account", nullptr, TOPBAR_ICON_SIZE);
     m_account_item = this->AddTool(ID_ACCOUNT, "", account_bitmap);
@@ -289,6 +297,7 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnUndo, this, wxID_UNDO);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnAccountClicked, this, ID_ACCOUNT);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnModelStoreClicked, this, ID_MODEL_STORE);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnPublishClicked, this, ID_PUBLISH);
 }
 
 BBLTopbar::~BBLTopbar()
@@ -382,40 +391,16 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
             this);
 
     auto publish_model_and_profile = [this](wxCommandEvent&) {
-        /* upload project first and publish */
-        Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
-
-        // BBS confirm to upload and publish model
-        wxMessageDialog dialog(this, "Confirm to upload and publish your designs",
-            "Confirm Dialog",
-            wxCENTER | wxYES_DEFAULT | wxYES_NO
-        );
-        wxString content = _L("Press confrim  to upload the current project and slice configuration");
-        dialog.SetYesNoLabels("Confirm", "Cancel");
-        dialog.SetExtendedMessage(content);
-
-        switch (dialog.ShowModal())
-        {
-        case wxID_YES: {
-            MainFrame* main_frame = dynamic_cast<MainFrame*>(m_frame);
-            Plater* plater = main_frame->plater();
-            plater->publish_project();
-            break;
-        }
-        case wxID_NO:
-            break;
-        default:
-            break;
-        }
+        wxGetApp().plater()->show_publish_dialog();
     };
 
     auto cond_publish_model = [this]() {
         if (GUI::wxGetApp().plater()->model().objects.empty()) return false;
 
         //BBS check gcode validation
-        GUI::PartPlateList& part_plate_list = GUI::wxGetApp().plater()->get_partplate_list();
+        /*GUI::PartPlateList& part_plate_list = GUI::wxGetApp().plater()->get_partplate_list();
         bool publish_enable = part_plate_list.is_all_slice_results_ready_for_print();
-        if (!publish_enable) return false;
+        if (!publish_enable) return false;*/
 
         Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
         return account_manager->can_publish();
@@ -426,9 +411,9 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
         if (GUI::wxGetApp().plater()->model().objects.empty()) return false;
 
         //BBS check gcode validation
-        GUI::PartPlateList& part_plate_list = GUI::wxGetApp().plater()->get_partplate_list();
+        /*GUI::PartPlateList& part_plate_list = GUI::wxGetApp().plater()->get_partplate_list();
         bool publish_enable = part_plate_list.is_all_slice_results_ready_for_print();
-        if (!publish_enable) return false;
+        if (!publish_enable) return false;*/
 
         Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
         return account_manager->can_publish();
@@ -444,6 +429,16 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
 void BBLTopbar::OnModelStoreClicked(wxAuiToolBarEvent& event)
 {
     GUI::wxGetApp().load_url(wxString(wxGetApp().app_config->get_web_host_url() + MODEL_STORE_URL));
+}
+
+void BBLTopbar::OnPublishClicked(wxAuiToolBarEvent& event)
+{
+    if (GUI::wxGetApp().plater()->model().objects.empty()) return;
+
+    Slic3r::AccountManager *account_manager = GUI::wxGetApp().getAccountManager();
+    if (!account_manager->can_publish()) return;
+
+    wxGetApp().plater()->show_publish_dialog();
 }
 
 void BBLTopbar::SetFileMenu(wxMenu* file_menu)
@@ -518,6 +513,10 @@ void BBLTopbar::Rescale() {
     item = this->FindTool(ID_TITLE);
     //item = this->AddLabel(ID_TITLE, item->GetLabel(), 300 * em /10);
     m_title_item->SetMinSize(wxSize(300 * em / 10, -1));
+
+    item = this->FindTool(ID_PUBLISH);
+    item->SetBitmap(create_scaled_bitmap("topbar_publish", nullptr, TOPBAR_ICON_SIZE));
+    item->SetDisabledBitmap(create_scaled_bitmap("topbar_redo_disable", nullptr, TOPBAR_ICON_SIZE));
 
     item = this->FindTool(ID_MODEL_STORE);
     item->SetBitmap(create_scaled_bitmap("topbar_store", nullptr, TOPBAR_ICON_SIZE));

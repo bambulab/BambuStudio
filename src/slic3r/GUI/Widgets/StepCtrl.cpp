@@ -246,8 +246,8 @@ void StepIndicator::doRender(wxDC &dc)
     dc.SetPen(wxPen(clr_step.colorForStates(states)));
     dc.SetBrush(wxBrush(clr_step.colorForStates(states)));
     for (int i = 0; i < steps.size(); ++i) {
-        bool disabled = step >= i;
-        bool checked = step + 1 == i;
+        bool disabled = step > i;
+        bool checked = step == i;
         dc.DrawEllipse(circleX - radius, circleY - radius, radius * 2, radius * 2);
         dc.SetTextForeground(clr_text.colorForStates(states 
                 | (disabled ? StateColor::Disabled : checked ? StateColor::Checked : 0)));
@@ -260,7 +260,7 @@ void StepIndicator::doRender(wxDC &dc)
             dc.SetFont(font_tip);
             dc.SetTextForeground(clr_tip.colorForStates(states));
             auto tip = tips[i];
-            if (tip.IsEmpty()) tip.append(1, wchar_t(L'0' + i));
+            if (tip.IsEmpty()) tip.append(1, wchar_t(L'0' + i + 1));
             wxSize sz = dc.GetTextExtent(tip);
             dc.DrawText(tip, circleX - sz.x / 2 + 1, circleY - sz.y / 2 + 1);
         }

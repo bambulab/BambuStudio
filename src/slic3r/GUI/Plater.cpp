@@ -86,6 +86,7 @@
 #include "Jobs/NotificationProgressIndicator.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "SelectMachine.hpp"
+#include "PublishDialog.hpp"
 #include "ConfigWizard.hpp"
 #include "../Utils/ASCIIFolding.hpp"
 #include "../Utils/FixModelByWin10.hpp"
@@ -147,6 +148,7 @@ wxDEFINE_EVENT(EVT_EXPORT_BEGAN,                    wxCommandEvent);
 wxDEFINE_EVENT(EVT_EXPORT_FINISHED,                 wxCommandEvent);
 wxDEFINE_EVENT(EVT_IMPORT_MODEL_ID,                 wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOWNLOAD_PROJECT,                wxCommandEvent);
+wxDEFINE_EVENT(EVT_PUBLISH,                         wxCommandEvent);
 // BBS: backup & restore
 wxDEFINE_EVENT(EVT_RESTORE_PROJECT,                 wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_FINISHED,                  wxCommandEvent);
@@ -1258,6 +1260,7 @@ struct Plater::priv
     MenuFactory menus;
 
     SelectMachineDialog* m_select_machine_dlg = nullptr;
+    PublishDialog *m_publish_dlg = nullptr;
 
     // Data
     Slic3r::DynamicPrintConfig *config;        // FIXME: leak?
@@ -1280,6 +1283,7 @@ struct Plater::priv
     bool m_ignore_event{false};
     bool m_slice_all{false};
     bool m_is_slicing {false};
+    bool m_is_publishing {false};
     int m_cur_slice_plate;
     //BBS: add popup object table logic
     //ObjectTableDialog* m_popup_table{ nullptr };
@@ -1616,6 +1620,7 @@ struct Plater::priv
     void on_action_open_project(SimpleEvent&);
     void on_action_slice_plate(SimpleEvent&);
     void on_action_slice_all(SimpleEvent&);
+    void on_action_publish(wxCommandEvent &evt);
     void on_action_print_plate(SimpleEvent&);
     void on_action_print_all(SimpleEvent&);
     void on_action_export_gcode(SimpleEvent&);
@@ -1627,6 +1632,8 @@ struct Plater::priv
     void on_3dcanvas_mouse_dragging_finished(SimpleEvent&);
 
     //void show_action_buttons(const bool is_ready_to_slice) const;
+    bool show_publish_dlg(bool show = true);
+    void update_publish_dialog_status(wxString &msg, int percent = -1);
 
     // Set the bed shape to a single closed 2D polygon(array of two element arrays),
     // triangulate the bed and store the triangles into m_bed.m_triangles,
@@ -1794,6 +1801,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     background_process.set_export_began_event(EVT_EXPORT_BEGAN);
     background_process.set_export_finished_event(EVT_EXPORT_FINISHED);
     this->q->Bind(EVT_SLICING_UPDATE, &priv::on_slicing_update, this);
+    this->q->Bind(EVT_PUBLISH, &priv::on_action_publish, this);
 
     view3D = new View3D(q, bed, &model, config, &background_process);
     //BBS: use partplater's gcode
@@ -4670,6 +4678,11 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         show_action_buttons(true);*/
         ready_to_slice = true;
         //this->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, true, true);
+
+        //BBS
+        if (m_is_publishing) {
+            m_publish_dlg->cancel();
+        }
     } else {
         if((ready_to_slice) || (wxGetApp().get_mode() == comSimple)) {
             //this means the current plate is not the slicing plate
@@ -4694,11 +4707,28 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 
     exporting_status = ExportingStatus::NOT_EXPORTING;
 
+
+    // BBS stop publishing if error occur
+    //if (m_is_publishing) {
+    //    GCodeProcessorResult *gcode_result = background_process.get_current_gcode_result();
+    //    m_publish_dlg->UpdateStatus(_L("Error occurred during slicing"), -1, false);
+    //    // if toolpath is outside
+    //    if (!gcode_result || gcode_result->toolpath_outside) {
+    //        m_is_publishing = false;
+    //    }
+    //}          
+
     if (is_finished)
     {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":finished, reload print soon");
         m_is_slicing = false;
         this->preview->reload_print(false);
+        /* BBS if in publishing progress */
+        if (m_is_publishing) {
+            if (m_publish_dlg && !m_publish_dlg->was_cancelled()) {
+                q->publish_project();
+            }
+        }
     }
     else
     {
@@ -4712,6 +4742,13 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         //not the last plate
         update_fff_scene_only_shells();
         q->Thaw();
+        if (m_is_publishing) {
+            if (m_publish_dlg && !m_publish_dlg->was_cancelled()) {
+                wxString msg = wxString::Format(_L("Slicing Plate %d"), m_cur_slice_plate + 1);
+                int percent  = 70 * m_cur_slice_plate / partplate_list.get_plate_count();
+                m_publish_dlg->UpdateStatus(msg, percent, false);
+            }
+        }
     }
 }
 
@@ -4782,6 +4819,21 @@ void Plater::priv::on_action_slice_all(SimpleEvent&)
         q->select_plate(m_cur_slice_plate);
         q->reslice();
         q->select_view_3D("Preview");
+    }
+}
+
+void Plater::priv::on_action_publish(wxCommandEvent &event)
+{
+    if (q != nullptr) {
+        if (event.GetInt() == EVT_PUBLISHING_START) {
+            m_is_publishing = true;
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice project in background event\n";
+            SimpleEvent evt = SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL);
+            this->on_action_slice_all(evt);
+        } else {
+            m_is_publishing = false;
+            show_publish_dlg(false);
+        }
     }
 }
 
@@ -5331,6 +5383,27 @@ bool Plater::priv::can_reload_from_disk() const
     paths.erase(std::unique(paths.begin(), paths.end()), paths.end());
 
     return !paths.empty();
+}
+
+void Plater::priv::update_publish_dialog_status(wxString &msg, int percent)
+{
+    if (m_publish_dlg)
+        m_publish_dlg->UpdateStatus(msg, percent);
+}
+
+bool Plater::priv::show_publish_dlg(bool show)
+{
+    if (q != nullptr) { BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":recevied publish event\n"; }
+
+    if (!m_publish_dlg) m_publish_dlg = new PublishDialog(q);
+    if (show) {
+        m_publish_dlg->reset();
+        m_publish_dlg->start_slicing();
+        m_publish_dlg->Show();
+    }
+    else
+        m_publish_dlg->Hide();
+    return true;
 }
 
 //BBS: add bed exclude area
@@ -7589,56 +7662,59 @@ void Plater::publish_project()
     bool upload_finish = false;
     bool publish_project = true;
     std::string design_id;
-
+    
     wxString failed_to_publish_str = _L("Failed to publish your project. Please try agian!");
-
+    
     // upload project first and publish
     wxString msg;
-    wxString title = _L("Upload and publish your project");
-    ProgressDialog dlg(title, "", 100, this, wxPD_CAN_ABORT | wxPD_AUTO_HIDE | wxPD_APP_MODAL);
+    
+    if (!p->m_is_publishing || p->m_publish_dlg->was_cancelled()) return;
 
     // export 3mf to temp folder
-    msg = _L("preparing your project");
-    cont = dlg.Update(percent, msg);
-
+    p->m_publish_dlg->SetPublishStep(PublishStep::STEP_PACKING, true);
 
     boost::filesystem::path temp_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
     boost::uuids::uuid uuid = boost::uuids::random_generator()();
     std::string unique = to_string(uuid).substr(0, 6);
     temp_path /= (boost::format("%1%_%2%.3mf") % std::string(p->get_project_name().mb_str(wxConvUTF8)) % unique).str();
     BOOST_LOG_TRIVIAL(debug) << "publish_project: export to temp 3mf: " << temp_path.string();
-
+    
     int result = export_3mf(temp_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode, -1,
-        [this, &dlg](int export_stage, int current, int total, bool& cancel) {
-            wxString msg = wxString::Format("preparing... exporting stage %d %d/%d", export_stage, current, total);
+        [this](int export_stage, int current, int total, bool& cancel) {
             bool skip = false;
-            dlg.Pulse(msg, &skip);
+            wxString msg = "";
+            p->m_publish_dlg->Pulse(msg, skip);
             cancel = skip;
         });
-
+    
     if (result < 0) {
         BOOST_LOG_TRIVIAL(debug) << "publish_project: result = " << result;
         msg = _L("preparing, export 3mf failed!");
-        dlg.Update(percent, msg);
+        //dlg.Update(percent, msg);
+        p->m_publish_dlg->UpdateStatus(msg);
         return;
     }
 
-    /* create project */
+    if (!p->m_is_publishing || p->m_publish_dlg->was_cancelled()) return;
+
+    /* create project and uploading */
+    p->m_publish_dlg->SetPublishStep(PublishStep::STEP_UPLOADING, true);
     Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
     BBLProject* project = &p->project;
     project->project_name = std::string(p->get_project_name().mb_str(wxConvUTF8));
     project->project_3mf_file = temp_path.string();
     project->project_path = fs::path(project->project_3mf_file);
-
+    
     BBLProfile* profile = new BBLProfile(project);
     profile->profile_name = wxGetApp().preset_bundle->prints.get_edited_preset().name;
 
-    boost::thread upload_thread = Slic3r::create_thread([c, failed_to_publish_str, &msg, &cont, &project, &profile, &percent, &upload_finish, temp_path, &design_id, &publish_project] {
+    boost::thread upload_thread = Slic3r::create_thread([c, failed_to_publish_str, &msg, &cont, &project, &profile, &percent, &upload_finish, temp_path, &design_id,
+    &publish_project] {
         int res = 0;
         unsigned int http_code;
         std::string http_body;
         msg = _L("Preparing to upload your project...");
-
+    
         // query design id
         if (!project->project_model_id.empty()) {
             unsigned int http_code;
@@ -7659,7 +7735,7 @@ void Plater::publish_project()
                 }
             }
         }
-
+    
         res = c->request_project_id(project, http_code, http_body);
         if (res < 0 || project->project_id.empty()) {
             wxString error_msg = wxString::Format(_L("req_proj,err:code=%u,msg=%s"), http_code, http_body);
@@ -7668,7 +7744,7 @@ void Plater::publish_project()
             cont = false;
             return;
         }
-
+    
         profile->project_   = project;
         profile->project_id = project->project_id;
         res = c->request_profile_id(profile, http_code, http_body);
@@ -7680,23 +7756,23 @@ void Plater::publish_project()
             cont = false;
             return;
         }
-
-        msg = _L("uploading...");
-
+    
+        msg = _L("Uploading...");
+    
         res = c->upload_3mf_to_oss(profile, http_code, http_body,
             [&percent, &cont, &msg](Http::Progress progress, bool& cancel) {
                 if (!cont) cancel = true;
                 if (progress.ultotal != 0) {
                     percent = progress.ulnow * 100 / progress.ultotal;
                 }
-                msg = wxString::Format("%d%% uploaded...", percent);
+                msg = wxString::Format(_L("%d%% uploaded..."), percent);
             });
-
+    
         if (!cont) {
             msg = _L("Upload has been canceled.");
             return;
         }
-
+    
         if (res < 0) {
             wxString error_msg = wxString::Format(_L("upload,err:code=%u,msg=%s"), http_code, http_body);
             msg = failed_to_publish_str + error_msg;
@@ -7704,7 +7780,7 @@ void Plater::publish_project()
             cont = false;
             return;
         }
-
+    
         std::string upload_filename = (boost::format("%1%.3mf") % project->project_name).str();
         res = c->put_notification(profile, upload_filename, http_code, http_body);
         if (res < 0) {
@@ -7714,7 +7790,7 @@ void Plater::publish_project()
             cont = false;
             return;
         }
-
+    
         /* get notifications */
         bool cancel = false;
         res = c->get_notification(profile, http_code, http_body,
@@ -7722,7 +7798,7 @@ void Plater::publish_project()
                 return !cont;
             }
         );
-
+    
         if (res == RET_POLLING_TIMEOUT) {
             msg = _L("Uploading is timed out. Please try again!");
             BOOST_LOG_TRIVIAL(trace) << msg;
@@ -7740,26 +7816,29 @@ void Plater::publish_project()
             BOOST_LOG_TRIVIAL(trace) << msg;
             return;
         }
-
+    
         upload_finish = true;
         cont = false;
     });
+    
 
     while (cont && cont_dlg) {
-        wxMilliSleep(100);
-        cont_dlg = dlg.Update(percent, msg);
+        wxMilliSleep(50);
+        cont_dlg = p->m_publish_dlg->UpdateStatus(msg);
         if (!cont_dlg)
             cont = cont_dlg;
     }
-
+    
     if (upload_thread.joinable())
         upload_thread.join();
 
+    if (!p->m_is_publishing || p->m_publish_dlg->was_cancelled()) return;
+    
     cont_dlg = true;
-
+    
     /* set project to curr plater project, save project model id */
     p->project.project_model_id = project->project_model_id;
-
+    
     bool load_url = true;
     if (design_id.empty() && !publish_project) {
         msg = _L("Internal Error. design id is empty.");
@@ -7768,7 +7847,9 @@ void Plater::publish_project()
     }
 
     if (upload_finish && load_url) {
-        dlg.Close();
+        p->m_publish_dlg->SetPublishStep(PublishStep::STEP_FILL_INFO, true);
+        wxMilliSleep(1000);
+        p->m_publish_dlg->Hide();
         std::string url;
         if (publish_project) {
             url = (boost::format(MY_MODEL_PUBLISH_URL_FORMAT)
@@ -7781,17 +7862,13 @@ void Plater::publish_project()
                                 % project->project_id
                                 % design_id).str();
         }
-
+    
         url = wxGetApp().app_config->get_web_host_url() + url;
         GUI::wxGetApp().load_url(wxString(url));
     } else {
         BOOST_LOG_TRIVIAL(trace) << "publish failed: error = " << msg;
-        while(cont_dlg) {
-            wxMilliSleep(100);
-            cont_dlg = dlg.Update(percent, msg);
-        }
     }
-
+    
     if (profile)
         delete profile;
 }
@@ -9144,6 +9221,11 @@ void Plater::show_object_info()
     info_text += into_u8(info_manifold);
 
     notify_manager->bbl_show_objectsinfo_notification(info_text);
+}
+
+bool Plater::show_publish_dialog(bool show)
+{
+    return p->show_publish_dlg(show);
 }
 
 #if ENABLE_ENVIRONMENT_MAP

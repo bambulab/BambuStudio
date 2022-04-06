@@ -75,8 +75,12 @@ using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 class Plater;
 enum class ActionButtonType : int;
 
+#define EVT_PUBLISHING_START        1
+#define EVT_PUBLISHING_STOP         2
+
 //BBS: add EVT_SLICING_UPDATE declare here
 wxDECLARE_EVENT(EVT_SLICING_UPDATE, Slic3r::SlicingStatusEvent);
+wxDECLARE_EVENT(EVT_PUBLISH,        wxCommandEvent);
 
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
@@ -465,6 +469,8 @@ public:
     void update_slicing_context_to_current_partplate();
     //BBS: show object info
     void show_object_info();
+    //BBS
+    bool show_publish_dialog(bool show = true);
 
 #if ENABLE_ENVIRONMENT_MAP
     void init_environment_texture();

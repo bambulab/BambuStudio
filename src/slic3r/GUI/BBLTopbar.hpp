@@ -32,8 +32,8 @@ public:
     void OnUndo(wxAuiToolBarEvent& event);
     void OnRedo(wxAuiToolBarEvent& event);
     void OnAccountClicked(wxAuiToolBarEvent& event);
-    void OnPrinterClicked(wxAuiToolBarEvent& event);
     void OnModelStoreClicked(wxAuiToolBarEvent& event);
+    void OnPublishClicked(wxAuiToolBarEvent &event);
 
     wxAuiToolBarItem* FindToolByCurrentPosition();
 
@@ -61,6 +61,7 @@ private:
     wxAuiToolBarItem* m_title_item;
     wxAuiToolBarItem* m_account_item;
     wxAuiToolBarItem* m_model_store_item;
+    wxAuiToolBarItem *m_publish_item;
     wxAuiToolBarItem* m_undo_item;
     wxAuiToolBarItem* m_redo_item;
     wxAuiToolBarItem* maximize_btn;
