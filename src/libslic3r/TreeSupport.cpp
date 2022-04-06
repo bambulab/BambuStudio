@@ -1969,18 +1969,22 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
                 m_object->print()->set_status(95, "Support: draw_circles at layer " + std::to_string(layer_nr));
 
-                // let supports touch objects when brim is on
-                auto avoid_region = m_ts_data->get_collision((layer_nr == 0 && has_brim) ? config.brim_object_gap : m_ts_data->m_xy_distance, layer_nr);
-                auto avoid_region_interface = m_ts_data->get_collision(m_slicing_params.gap_support_object, layer_nr);
-                Polygons layer_contours = std::move(m_ts_data->get_contours_with_holes(layer_nr));
-                base_areas = std::move(diff_ex(base_areas, avoid_region));
-                roof_areas = std::move(diff_ex(roof_areas, avoid_region_interface));
-                roof_1st_layer = std::move(diff_ex(roof_1st_layer, avoid_region_interface));
+                // join roof segments
                 double contact_dist_scaled = scale_(m_slicing_params.gap_support_object);
                 roof_areas = std::move(offset2_ex(roof_areas, contact_dist_scaled, -contact_dist_scaled));
                 roof_1st_layer = std::move(offset2_ex(roof_1st_layer, contact_dist_scaled, -contact_dist_scaled));
+
+                // avoid object
+                auto avoid_region_interface = m_ts_data->get_collision(m_ts_data->m_xy_distance, layer_nr);
+                roof_areas = std::move(diff_ex(roof_areas, avoid_region_interface));
+                roof_1st_layer = std::move(diff_ex(roof_1st_layer, avoid_region_interface));
+
                 // roof_1st_layer and roof_areas may intersect, so need to subtract roof_areas from roof_1st_layer
                 roof_1st_layer = std::move(diff_ex(roof_1st_layer, roof_areas));
+
+                // let supports touch objects when brim is on
+                auto avoid_region = m_ts_data->get_collision((layer_nr == 0 && has_brim) ? config.brim_object_gap : m_ts_data->m_xy_distance, layer_nr);
+                base_areas = std::move(diff_ex(base_areas, avoid_region));
                 base_areas = std::move(diff_ex(base_areas, roof_areas));
                 base_areas = std::move(diff_ex(base_areas, roof_1st_layer));
 
