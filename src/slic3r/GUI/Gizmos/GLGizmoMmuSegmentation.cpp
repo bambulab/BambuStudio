@@ -489,12 +489,12 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     if (slider_clp_dist || b_clp_dist_input) { m_c->object_clipper()->set_position(clp_dist, true); }
 
     ImGui::Separator();
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);
 
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 20.0f));
     ImGui::SameLine();
-    if (m_imgui->button(m_desc.at("filter_tiny"))) {
+    if (m_imgui->button(m_desc.at("filter_tiny"),0.0,24.0)) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection", UndoRedo::SnapshotType::GizmoAction);
 
         for (int i = 0; i < m_triangle_selectors.size(); i++) {
@@ -508,7 +508,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     ImGui::SameLine();
 
-    if (m_imgui->button(m_desc.at("remove_all"))) {
+    if (m_imgui->button(m_desc.at("remove_all"),0.0, 24.0)) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection", UndoRedo::SnapshotType::GizmoAction);
         ModelObject *        mo  = m_c->selection_info()->model_object();
         int                  idx = -1;
