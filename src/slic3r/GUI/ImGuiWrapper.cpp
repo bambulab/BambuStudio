@@ -44,7 +44,8 @@ namespace GUI {
 static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::PrintIconMarker       , "cog"                           },
     {ImGui::PrinterIconMarker     , "printer"                       },
-    {ImGui::PrinterSlaIconMarker  , "sla_printer"                   },
+    // remove sla_printer
+    //{ImGui::PrinterSlaIconMarker  , "sla_printer"                   },
     {ImGui::FilamentIconMarker    , "spool"                         },
     {ImGui::MaterialIconMarker    , "resin"                         },
     {ImGui::MinimalizeButton      , "notification_minimalize"       },
@@ -64,8 +65,9 @@ static const std::map<const wchar_t, std::string> font_icons = {
 static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifButton        , "notification_close"              },
     {ImGui::CloseNotifHoverButton   , "notification_close_hover"        },
-    {ImGui::EjectButton             , "notification_eject_sd"           },
-    {ImGui::EjectHoverButton        , "notification_eject_sd_hover"     },
+    //BBS removed
+    //{ImGui::EjectButton             , "notification_eject_sd"           },
+    //{ImGui::EjectHoverButton        , "notification_eject_sd_hover"     },
     {ImGui::WarningMarker           , "notification_warning"            },
     {ImGui::ErrorMarker             , "notification_error"              },
     {ImGui::CancelButton            , "notification_cancel"             },
@@ -82,8 +84,8 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
 };
 
 static const std::map<const wchar_t, std::string> font_icons_extra_large = {
-    {ImGui::ClippyMarker            , "notification_clippy"             },
-
+    //BBS do not use notification_clippy
+    //{ImGui::ClippyMarker            , "notification_clippy"             },
 };
 
 const ImVec4 ImGuiWrapper::COL_GREY_DARK         = { 0.333f, 0.333f, 0.333f, 1.0f };

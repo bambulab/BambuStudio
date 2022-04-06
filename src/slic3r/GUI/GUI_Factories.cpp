@@ -782,11 +782,11 @@ void MenuFactory::append_menu_items_mirror(wxMenu* menu)
         return;
 
     append_menu_item(mirror_menu, wxID_ANY, _L("Along X axis"), _L("Mirror along the X axis"),
-        [](wxCommandEvent&) { plater()->mirror(X); }, "mark_X", menu);
+        [](wxCommandEvent&) { plater()->mirror(X); }, "", menu);
     append_menu_item(mirror_menu, wxID_ANY, _L("Along Y axis"), _L("Mirror along the Y axis"),
-        [](wxCommandEvent&) { plater()->mirror(Y); }, "mark_Y", menu);
+        [](wxCommandEvent&) { plater()->mirror(Y); }, "", menu);
     append_menu_item(mirror_menu, wxID_ANY, _L("Along Z axis"), _L("Mirror along the Z axis"),
-        [](wxCommandEvent&) { plater()->mirror(Z); }, "mark_Z", menu);
+        [](wxCommandEvent&) { plater()->mirror(Z); }, "", menu);
 
     append_submenu(menu, mirror_menu, wxID_ANY, _L("Mirror"), _L("Mirror object"), "",
         []() { return plater()->can_mirror(); }, m_parent);

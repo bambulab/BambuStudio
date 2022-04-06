@@ -829,7 +829,7 @@ void SearchDialog::msw_rescale()
 SearchListModel::SearchListModel(wxWindow *parent) : wxDataViewVirtualListModel(0)
 {
     int icon_id = 0;
-    for (const std::string &icon : {"cog", "printer", "sla_printer", "spool", "resin"}) m_icon[icon_id++] = ScalableBitmap(parent, icon);
+    for (const std::string &icon : {"cog", "printer", "printer", "spool", "resin"}) m_icon[icon_id++] = ScalableBitmap(parent, icon);
 }
 
 void SearchListModel::Clear()

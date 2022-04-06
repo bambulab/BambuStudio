@@ -59,7 +59,7 @@ OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
     m_v_gap     = lround(1.0 * m_em_unit);
     m_h_gap     = lround(0.2 * m_em_unit);
 
-    m_bmp_mode_sz       = get_bitmap_size(create_scaled_bitmap("mode_simple", this, wxOSX ? 10 : 12));
+    //m_bmp_mode_sz       = get_bitmap_size(create_scaled_bitmap("mode_simple", this, wxOSX ? 10 : 12));
     m_bmp_blinking_sz   = get_bitmap_size(create_scaled_bitmap("search_blink", this));
 
     init_ctrl_lines();// from og.lines()
@@ -571,7 +571,7 @@ void OG_CustomCtrl::msw_rescale()
     m_v_gap     = lround(1.5 * m_em_unit);
     m_h_gap     = lround(0.2 * m_em_unit);
 
-    m_bmp_mode_sz = create_scaled_bitmap("mode_simple", this, wxOSX ? 10 : 12).GetSize();
+    //m_bmp_mode_sz = create_scaled_bitmap("mode_simple", this, wxOSX ? 10 : 12).GetSize();
     m_bmp_blinking_sz = create_scaled_bitmap("search_blink", this).GetSize();
 
     m_max_win_width = 0;
@@ -749,9 +749,6 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
         return;
     }
 
-    // BBS: new layout
-    // h_pos = draw_mode_bmp(dc, v_pos);
-
     if (og_line.near_label_widget_win)
         h_pos += og_line.near_label_widget_win->GetSize().x + ctrl->m_h_gap;
 
@@ -886,23 +883,6 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
         h_pos = h_pos2;
 #endif
     }
-}
-
-wxCoord OG_CustomCtrl::CtrlLine::draw_mode_bmp(wxDC& dc, wxCoord v_pos)
-{
-    if (!draw_mode_bitmap)
-        return ctrl->m_h_gap;
-
-    ConfigOptionMode mode = og_line.get_options()[0].opt.mode;
-    const std::string& bmp_name = mode == ConfigOptionMode::comSimple   ? "mode_simple" :
-                                  mode == ConfigOptionMode::comAdvanced ? "mode_advanced" : "mode_simple";
-    wxBitmap bmp = create_scaled_bitmap(bmp_name, ctrl, wxOSX ? 10 : 12);
-    wxCoord y_draw = v_pos + lround((height - get_bitmap_size(bmp).GetHeight()) / 2);
-
-    if (og_line.get_options().front().opt.gui_type != ConfigOptionDef::GUIType::legend)
-        dc.DrawBitmap(bmp, 0, y_draw);
-
-    return get_bitmap_size(bmp).GetWidth() + ctrl->m_h_gap;
 }
 
 wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxString& text, const wxColour* color, int width, bool is_url/* = false*/)

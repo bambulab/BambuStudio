@@ -61,7 +61,6 @@ class OG_CustomCtrl :public wxPanel
         void render_separator(wxDC& dc, wxCoord v_pos);
 
         void    render(wxDC& dc, wxCoord h_pos, wxCoord v_pos);
-        wxCoord draw_mode_bmp(wxDC& dc, wxCoord v_pos);
         wxCoord draw_text      (wxDC& dc, wxPoint pos, const wxString& text, const wxColour* color, int width, bool is_url = false);
         wxPoint draw_blinking_bmp(wxDC& dc, wxPoint pos, bool is_blinking);
         wxCoord draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo, bool is_blinking, size_t rect_id = 0);

@@ -71,11 +71,11 @@ public:
         Flatten,
         Cut,
         Hollow,
-        SlaSupports,
         FdmSupports,
         MmuSegmentation,
         Simplify,
         Seam,
+        SlaSupports,
         // BBS
         //FaceRecognition,
         Undefined,

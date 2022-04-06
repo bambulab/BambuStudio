@@ -307,7 +307,7 @@ void PresetComboBox::update(std::string select_preset_name)
             if (preset.printer_technology() == ptSLA)
                 bitmap_key += "_sla";
         }
-        std::string main_icon_name = m_type == Preset::TYPE_PRINTER && preset.printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name;
+        std::string main_icon_name = m_type == Preset::TYPE_PRINTER && preset.printer_technology() == ptSLA ? "printer" : m_main_bitmap_name;
 
         wxBitmap* bmp = get_bmp(bitmap_key, main_icon_name, "lock_closed", is_enabled, preset.is_compatible, preset.is_system || preset.is_default);
         assert(bmp);
