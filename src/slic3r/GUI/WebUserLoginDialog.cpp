@@ -294,12 +294,11 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
         if (strCmd == "user_login") {
             std::string strToken = j["data"]["token"];
 
-            long long nUserID         = j["data"]["user"]["uid"];
+            std::string strUserID         = j["data"]["user"]["uid"];
             std::string strAccount = j["data"]["user"]["account"];
             std::string strAvatar         = j["data"]["user"]["avatar"];
             std::string strName           = j["data"]["user"]["name"];
 
-            std::string strUserID = std::to_string(nUserID);
             //Save User Info
             AccountInfo *pNewAcc = new Slic3r::AccountInfo(strAccount, strUserID, strToken, strName, strAvatar, AccountInfo::LoginStatus::STATUS_LOGIN, m_AutotestToken);
             wxGetApp().getAccountManager()->change_curr_user(pNewAcc);
