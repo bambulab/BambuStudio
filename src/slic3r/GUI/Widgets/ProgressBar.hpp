@@ -25,7 +25,8 @@ public:
     int      m_step                       = {0};
     int      m_miniHeight                 = {0};
     const int      miniHeight             = {14};
-    double   m_radius                     = {6};
+    double   m_radius                     = {7};
+    double   m_proportion                 = {0};
     wxColour m_progress_background_colour = {233, 233, 233};
     wxColour m_progress_colour            = {0, 174, 66};
     wxColour m_progress_colour_disable    = {255, 111, 0};

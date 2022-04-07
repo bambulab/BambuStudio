@@ -159,13 +159,15 @@ void ProgressBar::doRender(wxDC &dc)
 
     //draw progress 
     if (m_disable) {
-        auto proportion = float(size.x * float(this->m_step) / float(this->m_max));
+        m_proportion = float(size.x * float(this->m_step) / float(this->m_max));
+        if (m_proportion < m_radius * 2) { m_proportion = m_radius * 2; }
+
         dc.SetPen(wxPen(m_progress_colour_disable, 1));
         dc.SetBrush(wxBrush(m_progress_colour_disable));
         if (m_radius == 0) {
-            dc.DrawRectangle(0, 0, proportion, size.y);
+            dc.DrawRectangle(0, 0, m_proportion, size.y);
         } else {
-            dc.DrawRoundedRectangle(0, 0, proportion, size.y, m_radius);
+            dc.DrawRoundedRectangle(0, 0, m_proportion, size.y, m_radius);
         }
 
         dc.SetFont(::Label::Head_12);
@@ -177,13 +179,15 @@ void ProgressBar::doRender(wxDC &dc)
         dc.DrawText(m_disable_text, pt);
 
     } else {
-        auto proportion = float(size.x * float(this->m_step) / float(this->m_max));
+        m_proportion = float(size.x * float(this->m_step) / float(this->m_max));
+        if (m_proportion < m_radius * 2) { m_proportion = m_radius * 2; }
+
         dc.SetPen(wxPen(m_progress_colour, 1));
         dc.SetBrush(wxBrush(m_progress_colour));
         if (m_radius == 0) {
-            dc.DrawRectangle(0, 0, proportion, size.y);
+            dc.DrawRectangle(0, 0, m_proportion, size.y);
         } else {
-            dc.DrawRoundedRectangle(0, 0, proportion, size.y, m_radius);
+            dc.DrawRoundedRectangle(0, 0, m_proportion, size.y, m_radius);
         }
 
         dc.SetFont(::Label::Head_12);
