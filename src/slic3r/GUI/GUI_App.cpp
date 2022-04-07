@@ -927,6 +927,7 @@ void GUI_App::post_init()
     if (is_editor())
         mainframe->select_tab(size_t(0));
     mainframe->Thaw();
+    plater_->trigger_restore_project(1);
 #endif
 
     //BBS: remove GCodeViewer as seperate APP logic
@@ -1488,13 +1489,13 @@ bool GUI_App::on_init_inner()
     plater_->canvas3D()->render();
     if (is_editor())
         mainframe->select_tab(size_t(0));*/
+#else
+    plater_->trigger_restore_project(1);
 #endif
 
     obj_list()->set_min_height();
 
     update_mode(); // update view mode after fix of the object_list size
-
-    plater_->trigger_restore_project();
 
 #ifdef __APPLE__
     other_instance_message_handler()->bring_instance_forward();
