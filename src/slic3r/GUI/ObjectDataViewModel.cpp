@@ -58,9 +58,9 @@ struct InfoItemAtributes {
 
 const std::map<InfoItemType, InfoItemAtributes> INFO_ITEMS{
 //           info_item Type                         info_item Name              info_item BitmapName
-            { InfoItemType::CustomSupports,      {L("Support painting"),       "fdm_supports_" },     },
+            { InfoItemType::CustomSupports,      {L("Support painting"),       "toolbar_support" },     },
             //{ InfoItemType::CustomSeam,          {L("Paint-on seam"),           "seam_" },             },
-            { InfoItemType::MmuSegmentation,     {L("Color painting"),          "mmu_segmentation_"},  },
+            { InfoItemType::MmuSegmentation,     {L("Color painting"),          "mmu_segmentation"},  },
             //{ InfoItemType::Sinking,             {L("Sinking"),                 "sinking"},            },
 };
 

@@ -74,7 +74,7 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CancelHoverButton       , "notification_cancel_hover"       },
 
 //    {ImGui::SinkingObjectMarker     , "move"                            },
-//    {ImGui::CustomSupportsMarker    , "fdm_supports"                    },
+//    {ImGui::CustomSupportsMarker    , "toolbar_support"                    },
 //    {ImGui::CustomSeamMarker        , "seam"                            },
 //    {ImGui::MmuSegmentationMarker   , "mmu_segmentation"                },
 //    {ImGui::VarLayerHeightMarker    , "layers"                          },

@@ -475,7 +475,7 @@ bool GLGizmoRotate3D::on_init()
         m_gizmos[i].set_highlight_color(AXES_COLOR[i]);
     }
 
-    m_shortcut_key = WXK_CONTROL_R;
+    m_shortcut_key = WXK_NONE;
 
     return true;
 }
