@@ -2657,16 +2657,33 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
 // update the maxSpeed of an object if it is different from the global configuration
 double Model::findMaxSpeed(const ModelObject* object) {
     auto objectKeys = object->config.keys();
-    double objMaxSpeed = Model::printSpeedMap.maxSpeed;
+    double objMaxSpeed = -1.;
     if (objectKeys.empty())
-        return objMaxSpeed;
+        return Model::printSpeedMap.maxSpeed;
+    double perimeterSpeedObj = Model::printSpeedMap.perimeterSpeed;
+    double externalPerimeterSpeedObj = Model::printSpeedMap.externalPerimeterSpeed;
+    double infillSpeedObj = Model::printSpeedMap.infillSpeed;
+    double solidInfillSpeedObj = Model::printSpeedMap.solidInfillSpeed;
+    double topSolidInfillSpeedObj = Model::printSpeedMap.topSolidInfillSpeed;
+    double supportSpeedObj = Model::printSpeedMap.supportSpeed;
     for (std::string objectKey : objectKeys) {
-        if (objectKey == "inner_wall_speed" || objectKey == "sparse_infill_speed" || objectKey == "internal_solid_infill_speed" || objectKey == "top_surface_speed" || objectKey == "support_speed")
-            objMaxSpeed = std::max(object->config.opt_float(objectKey), objMaxSpeed);
+        if (objectKey == "inner_wall_speed"){
+            perimeterSpeedObj = object->config.opt_float(objectKey);
+            externalPerimeterSpeedObj = Model::printSpeedMap.externalPerimeterSpeed / Model::printSpeedMap.perimeterSpeed * perimeterSpeedObj;
+        }
+        if (objectKey == "sparse_infill_speed")
+            infillSpeedObj = object->config.opt_float(objectKey);
+        if (objectKey == "internal_solid_infill_speed")
+            solidInfillSpeedObj = object->config.opt_float(objectKey);
+        if (objectKey == "top_surface_speed")
+            topSolidInfillSpeedObj = object->config.opt_float(objectKey);
+        if (objectKey == "support_speed")
+            supportSpeedObj = object->config.opt_float(objectKey);
         if (objectKey == "outer_wall_speed") {
-            objMaxSpeed = std::max(0.01 * object->config.opt_float("outer_wall_speed") * Model::printSpeedMap.perimeterSpeed, objMaxSpeed);
+            externalPerimeterSpeedObj = 0.01 * object->config.opt_float("outer_wall_speed") * perimeterSpeedObj;
         }     
     }
+    objMaxSpeed = std::max(perimeterSpeedObj, std::max(externalPerimeterSpeedObj, std::max(infillSpeedObj, std::max(solidInfillSpeedObj, std::max(topSolidInfillSpeedObj, std::max(supportSpeedObj, objMaxSpeed))))));
     if (objMaxSpeed <= 0) objMaxSpeed = 250.;
     return objMaxSpeed;
 }

@@ -875,7 +875,7 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
                     for (const ExPolygon& ex_poly : volumeSlices.slices.front()) {
                         // BBS: additional brim width will be added if part's adhension area is too small and brim is not generated
                         float brim_width_mod;
-                        if (brim_width < scale_(5.)) {
+                        if (brim_width < scale_(5.) && has_brim_auto) {
                             brim_width_mod = ex_poly.area() / ex_poly.contour.length() < scaled_half_min_adh_length
                                 && brim_width < scaled_flow_width ? brim_width + scaled_additional_brim_width : brim_width;
                         }
@@ -883,8 +883,10 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
                             brim_width_mod = brim_width;
                         }
                         //BBS: brim width should be limited to the 1.5*boundingboxSize of a single polygon.
-                        BoundingBox bbox2 = ex_poly.contour.bounding_box();
-                        brim_width_mod = std::min(brim_width_mod, float(std::max(bbox2.size()(0), bbox2.size()(1))));
+                        if (has_brim_auto) {
+                            BoundingBox bbox2 = ex_poly.contour.bounding_box();
+                            brim_width_mod = std::min(brim_width_mod, float(std::max(bbox2.size()(0), bbox2.size()(1))));
+                        }
                         brim_width_mod = floor(brim_width_mod / scaled_flow_width / 2) * scaled_flow_width * 2;
                         // After prusa 2.4 offset and shrink don't work with CW polygons (holes), so let's make it CCW.
                         Polygons ex_poly_holes_reversed = ex_poly.holes;
