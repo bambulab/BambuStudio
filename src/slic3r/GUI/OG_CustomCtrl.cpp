@@ -367,8 +367,8 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
             tooltip += line.og_line.label_tooltip;
             // BBS: markdown tip
             focusedLine = &line;
-            markdowntip = line.og_line.label_path.empty() 
-                ? line.og_line.get_options().front().opt_id : line.og_line.label_path;
+            markdowntip = line.og_line.label.empty() 
+                ? line.og_line.get_options().front().opt_id : into_u8(line.og_line.label);
             markdowntip.erase(0, markdowntip.find_last_of('#') + 1);
             // BBS
             break;
@@ -399,14 +399,14 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
     if (!markdowntip.empty()) {
         wxWindow* window = GetGrandParent();
         assert(focusedLine);
-        wxPoint pos2 = { 350, focusedLine->rect_label.y };
+        wxPoint pos2 = { 250, focusedLine->rect_label.y };
         pos2 = ClientToScreen(pos2);
-        if (MarkdownTip::ShowTip(markdowntip, pos2)) {
+        if (MarkdownTip::ShowTip(markdowntip, into_u8(tooltip), pos2)) {
             tooltip.clear();
         }
     }
     else {
-        MarkdownTip::ShowTip(markdowntip, { tooltip.empty() ? 0 : 1, 0 });
+        MarkdownTip::ShowTip(markdowntip, "", {tooltip.empty() ? 0 : 1, 0});
     }
     if (GetToolTipText() != tooltip)
         this->SetToolTip(tooltip);
@@ -453,7 +453,7 @@ void OG_CustomCtrl::OnLeaveWin(wxMouseEvent& event)
         line.is_focused = false;
 
     // BBS: markdown tip
-    MarkdownTip::ShowTip("", {});
+    MarkdownTip::ShowTip("", "", {});
 
     Refresh();
     Update();

@@ -4,6 +4,7 @@
 #include "MainFrame.hpp"
 
 #include "libslic3r/Utils.hpp"
+#include "I18N.hpp"
 
 #include "wx/private/jsscriptwrapper.h"
 
@@ -106,7 +107,7 @@ void MarkdownTip::LoadStyle()
     _lastTip.clear();
 }
 
-bool MarkdownTip::ShowTip(wxPoint pos, std::string const& tip)
+bool MarkdownTip::ShowTip(wxPoint pos, std::string const &tip, std::string const &tooltip)
 {
     if (tip.empty()) {
         if (_tipView->GetParent() != this)
@@ -122,7 +123,7 @@ bool MarkdownTip::ShowTip(wxPoint pos, std::string const& tip)
         return false;
     }
     if (_lastTip != tip) {
-        auto content = LoadTip(tip);
+        auto content = LoadTip(tip, tooltip);
         if (content.empty()) {
             _hide = true;
             this->Hide();
@@ -151,7 +152,7 @@ bool MarkdownTip::ShowTip(wxPoint pos, std::string const& tip)
     return true;
 }
 
-std::string MarkdownTip::LoadTip(std::string const& tip)
+std::string MarkdownTip::LoadTip(std::string const &tip, std::string const &tooltip)
 {
     fs::path ph;
     wxString file;
@@ -210,7 +211,8 @@ std::string MarkdownTip::LoadTip(std::string const& tip)
         f.Read(&content[0], content.size());
         return content;
     }
-    return (_tipView->GetParent() == this && tip.empty()) ? "" : LoadTip("");
+    if (!tooltip.empty()) return "#### " + _utf8(tip) + "\n" + tooltip;
+    return (_tipView->GetParent() == this && tip.empty()) ? "" : LoadTip("", "");
 }
 
 void MarkdownTip::RunScript(std::string const& script)
@@ -344,9 +346,9 @@ MarkdownTip* MarkdownTip::markdownTip(bool create)
     return markdownTip;
 }
 
-bool MarkdownTip::ShowTip(std::string const& tip, wxPoint pos)
+bool MarkdownTip::ShowTip(std::string const& tip, std::string const & tooltip, wxPoint pos)
 {
-    return markdownTip()->ShowTip(pos, tip);
+    return markdownTip()->ShowTip(pos, tip, tooltip);
 }
 
 void MarkdownTip::ExitTip()

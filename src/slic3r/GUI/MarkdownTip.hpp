@@ -11,7 +11,7 @@ namespace Slic3r { namespace GUI {
 class MarkdownTip : public wxPopupTransientWindow
 {
 public:
-    static bool ShowTip(std::string const & tip, wxPoint pos);
+    static bool ShowTip(std::string const &tip, std::string const &tooltip, wxPoint pos);
 
     static void ExitTip();
 
@@ -30,9 +30,9 @@ private:
 
     void LoadStyle();
 
-    bool ShowTip(wxPoint pos, std::string const &tip);
+    bool ShowTip(wxPoint pos, std::string const &tip, std::string const & tooltip);
 
-    std::string LoadTip(std::string const& tip);
+    std::string LoadTip(std::string const &tip, std::string const &tooltip);
 
     void RunScript(std::string const& script);
 
