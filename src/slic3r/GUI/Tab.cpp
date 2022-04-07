@@ -2138,7 +2138,8 @@ void TabPrintModel::on_value_change(const std::string& opt_key, const boost::any
     if (!m_object_configs.empty())
         wxGetApp().plater()->take_snapshot((boost::format("Change Option %s") % k).str());
     auto inull = std::find(m_null_keys.begin(), m_null_keys.end(), k);
-    bool set   = *m_config->option(k) != *m_prints.get_selected_preset().config.option(k) || inull != m_null_keys.end();
+    // always add object config
+    bool set   = true; // *m_config->option(k) != *m_prints.get_selected_preset().config.option(k) || inull != m_null_keys.end();
     if (m_back_to_sys) {
         for (auto config : m_object_configs)
             config.second->erase(k);
