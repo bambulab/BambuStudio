@@ -184,7 +184,7 @@ void ImGuiWrapper::set_language(const std::string &language)
             ImGui::GetIO().Fonts->GetGlyphRangesChineseFull() :
             // Simplified Chinese
             // Default + Half-Width + Japanese Hiragana/Katakana + set of 2500 CJK Unified Ideographs for common simplified Chinese
-            ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon();
+            ImGui::GetIO().Fonts->GetGlyphRangesChineseFull();
         m_font_cjk = true;
     } else if (lang == "th") {
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesThai(); // Default + Thai characters
@@ -1548,7 +1548,7 @@ void ImGuiWrapper::init_font(bool compress)
 
     //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, ranges.Data);
     //https://github.com/ocornut/imgui/issues/220
-    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + (m_font_cjk ? "NotoSansCJK-Regular.ttc" : "NotoSans-Regular.ttf")).c_str(), m_font_size, nullptr, ranges.Data);
+    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Regular.ttf").c_str(), m_font_size, nullptr, ranges.Data);
     if (font == nullptr) {
         font = io.Fonts->AddFontDefault();
         if (font == nullptr) {
