@@ -365,6 +365,12 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
     float slider_width_times = 1.5;
+    ImDrawList * draw_list = ImGui::GetWindowDrawList();
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    static float color_button_high  = 25.0;
+    draw_list->AddRectFilled({pos.x - 10.0f, pos.y - 7.0f}, {pos.x + window_width, pos.y + color_button_high}, ImGui::GetColorU32(ImGuiCol_FrameBgActive, 1.0f), 5.0f);
+
+    float color_button = ImGui::GetCursorPos().y;
 
     for (int extruder_idx = 0; extruder_idx < m_extruders_colors.size(); extruder_idx++) {
         const std::array<float, 4> &extruder_color = m_extruders_colors[extruder_idx];
@@ -378,12 +384,12 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoTooltip;
         if (m_selected_extruder_idx != extruder_idx) flags |= ImGuiColorEditFlags_NoBorder;
         bool color_picked = ImGui::ColorButton(color_label.c_str(), color_vec, flags);
+        color_button_high = ImGui::GetCursorPos().y - color_button - 2.0;
         if (color_picked) { m_selected_extruder_idx = extruder_idx; }
 
         if (extruder_idx < 9 && ImGui::IsItemHovered()) m_imgui->tooltip(_L("Shortcut Key ") + std::to_string(extruder_idx + 1), max_tooltip_width);
     }
 
-    ImGui::Separator();
     m_imgui->text(m_desc.at("tool_type"));
 
     std::array<wchar_t, 4> paint_icons = {ImGui::CircleButtonIcon, ImGui::TriangleButtonIcon, ImGui::HeightRangeIcon, ImGui::FillButtonIcon};
