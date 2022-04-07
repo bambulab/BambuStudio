@@ -237,7 +237,7 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     wxBitmap m_publish_bitmap = create_scaled_bitmap("topbar_publish", nullptr, TOPBAR_ICON_SIZE);
     m_publish_item            = this->AddTool(ID_PUBLISH, "", m_publish_bitmap);
     wxBitmap m_publish_disable_bitmap = create_scaled_bitmap("topbar_publish_disable", nullptr, TOPBAR_ICON_SIZE);
-    m_redo_item->SetDisabledBitmap(m_publish_disable_bitmap);
+    m_publish_item->SetDisabledBitmap(m_publish_disable_bitmap);
     this->AddSpacer(12);
 
     wxBitmap model_store_bitmap = create_scaled_bitmap("topbar_store", nullptr, TOPBAR_ICON_SIZE);
@@ -511,12 +511,11 @@ void BBLTopbar::Rescale() {
     item->SetDisabledBitmap(create_scaled_bitmap("topbar_redo_inactive", nullptr, TOPBAR_ICON_SIZE));
 
     item = this->FindTool(ID_TITLE);
-    //item = this->AddLabel(ID_TITLE, item->GetLabel(), 300 * em /10);
     m_title_item->SetMinSize(wxSize(300 * em / 10, -1));
 
     item = this->FindTool(ID_PUBLISH);
     item->SetBitmap(create_scaled_bitmap("topbar_publish", nullptr, TOPBAR_ICON_SIZE));
-    item->SetDisabledBitmap(create_scaled_bitmap("topbar_redo_disable", nullptr, TOPBAR_ICON_SIZE));
+    item->SetDisabledBitmap(create_scaled_bitmap("topbar_publish_disable", nullptr, TOPBAR_ICON_SIZE));
 
     item = this->FindTool(ID_MODEL_STORE);
     item->SetBitmap(create_scaled_bitmap("topbar_store", nullptr, TOPBAR_ICON_SIZE));
