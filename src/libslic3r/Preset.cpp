@@ -646,7 +646,7 @@ static std::vector<std::string> s_Preset_print_options {
     "support_material_angle", "support_interface_top_layers", "support_interface_bottom_layers",
     "support_interface_pattern", "support_interface_spacing", "support_interface_loop_pattern",
     "support_top_z_distance", "support_bottom_z_distance",
-    "support_on_build_plate_only", "bridge_no_support", "print_sequence", "extruder_clearance_radius",
+    "support_on_build_plate_only", "bridge_no_support", "print_sequence",
     "filename_format", "wall_filament",
     "sparse_infill_filament", "solid_infill_filament", "support_filament", "support_interface_filament",
     "ooze_prevention", "standby_temperature_delta", "interface_shells", "line_width", "initial_layer_line_width",
@@ -659,7 +659,7 @@ static std::vector<std::string> s_Preset_print_options {
     "tree_support_branch_angle", "tree_support_with_infill", "tree_support_wall_count",
      "detect_narrow_internal_solid_infill",
      "gcode_add_line_number", "bbl_bed_temperature_gcode", "enable_arc_fitting", "infill_combination", "adaptive_layer_height",
-     "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod", "support_transition_speed","support_transition_line_width",
+     "support_transition_speed","support_transition_line_width",
      "support_bottom_interface_spacing", "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed",
      "initial_layer_infill_speed", "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration"
 };
@@ -695,7 +695,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "printer_technology",
     "printable_area", "bed_exclude_area", "gcode_flavor",
     "single_extruder_multi_material", "machine_start_gcode", "machine_end_gcode", "before_layer_change_gcode", "layer_change_gcode", "change_filament_gcode",
-    "printer_model", "printer_variant", "printable_height",
+    "printer_model", "printer_variant", "printable_height", "extruder_clearance_radius", "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod",
     "default_print_profile", "inherits",
     "silent_mode",
     // BBS

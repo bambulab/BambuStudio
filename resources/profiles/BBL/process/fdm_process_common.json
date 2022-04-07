@@ -15,7 +15,6 @@
     "elefant_foot_compensation": "0.1",
     "outer_wall_line_width": "0.4",
     "outer_wall_speed": "80%",
-    "extruder_clearance_radius": "47",
     "line_width": "0.45",
     "infill_direction": "45",
     "sparse_infill_density": "15%",

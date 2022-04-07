@@ -284,9 +284,9 @@ void PrintConfigDef::init_common_params()
     def->readonly = true;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(100.0));
-    
+
     // Options used by physical printers
-    
+
     def = this->add("preset_names", coStrings);
     def->label = L("Printer preset names");
     //def->tooltip = L("Names of presets related to the physical printer");
@@ -713,7 +713,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(20));
+    def->set_default_value(new ConfigOptionFloat(40));
 
     // BBS
     def = this->add("extruder_clearance_height_to_lid", coFloat);
@@ -731,7 +731,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(36));
+    def->set_default_value(new ConfigOptionFloat(40));
 
     def = this->add("extruder_colour", coStrings);
     def->label = L("Extruder Color");
@@ -2720,7 +2720,7 @@ void PrintConfigDef::init_sla_params()
     def->tooltip  = L(" ");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.0));
-    
+
     def = this->add("elefant_foot_min_width", coFloat);
     def->label = L(" ");
     def->category = L(" ");
@@ -2955,7 +2955,7 @@ void PrintConfigDef::init_sla_params()
     def->max = 100;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(50));
-    
+
     def = this->add("support_max_bridges_on_pillar", coInt);
     def->label = L(" ");
     def->tooltip = L(" ");
@@ -3102,7 +3102,7 @@ void PrintConfigDef::init_sla_params()
     def->max = 30;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
-    
+
     def = this->add("pad_brim_size", coFloat);
     def->label = L(" ");
     def->tooltip = L(" ");
@@ -3138,7 +3138,7 @@ void PrintConfigDef::init_sla_params()
     def->tooltip = L(" ");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
-    
+
     def = this->add("pad_around_object_everywhere", coBool);
     def->label = L(" ");
     def->category = L(" ");
@@ -3182,14 +3182,14 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.3));
-    
+
     def = this->add("hollowing_enable", coBool);
     def->label = L(" ");
     def->category = L(" ");
     def->tooltip = L(" ");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
-    
+
     def = this->add("hollowing_min_thickness", coFloat);
     def->label = L(" ");
     def->category = L(" ");
@@ -3199,7 +3199,7 @@ void PrintConfigDef::init_sla_params()
     def->max = 10;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(3.));
-    
+
     def = this->add("hollowing_quality", coFloat);
     def->label = L(" ");
     def->category = L(" ");
@@ -3208,7 +3208,7 @@ void PrintConfigDef::init_sla_params()
     def->max = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.5));
-    
+
     def = this->add("hollowing_closing_distance", coFloat);
     def->label = L(" ");
     def->category = L(" ");
@@ -3316,7 +3316,7 @@ DynamicPrintConfig* DynamicPrintConfig::new_from_defaults_keys(const std::vector
 }
 
 double min_object_distance(const ConfigBase &cfg)
-{   
+{
     const ConfigOptionEnum<PrinterTechnology> *opt_printer_technology = cfg.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology");
     auto printer_technology = opt_printer_technology ? opt_printer_technology->value : ptUnknown;
 
@@ -3330,7 +3330,7 @@ double min_object_distance(const ConfigBase &cfg)
         auto ecr_opt = cfg.option<ConfigOptionFloat>("extruder_clearance_radius");
         auto co_opt  = cfg.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
 
-        if (!ecr_opt || !co_opt) 
+        if (!ecr_opt || !co_opt)
             ret = 0.;
         else {
             // min object distance is max(duplicate_distance, clearance_radius)
@@ -3589,7 +3589,7 @@ std::string validate(const FullPrintConfig &cfg)
         double max_nozzle_diameter = 0.;
         for (double dmr : cfg.nozzle_diameter.values)
             max_nozzle_diameter = std::max(max_nozzle_diameter, dmr);
-        const char *widths[] = { 
+        const char *widths[] = {
             "outer_wall_line_width",
             "inner_wall_line_width",
             "sparse_infill_line_width",
@@ -3664,7 +3664,7 @@ std::string validate(const FullPrintConfig &cfg)
         return 1; \
     }
 PRINT_CONFIG_CACHE_INITIALIZE((
-    PrintObjectConfig, PrintRegionConfig, MachineEnvelopeConfig, GCodeConfig, PrintConfig, FullPrintConfig, 
+    PrintObjectConfig, PrintRegionConfig, MachineEnvelopeConfig, GCodeConfig, PrintConfig, FullPrintConfig,
     SLAMaterialConfig, SLAPrintConfig, SLAPrintObjectConfig, SLAPrinterConfig, SLAFullPrintConfig))
 static int print_config_static_initialized = print_config_static_initializer();
 
@@ -3960,19 +3960,19 @@ static Points to_points(const std::vector<Vec2d> &dpts)
     Points pts; pts.reserve(dpts.size());
     for (auto &v : dpts)
         pts.emplace_back( coord_t(scale_(v.x())), coord_t(scale_(v.y())) );
-    return pts;    
+    return pts;
 }
 
 Points get_bed_shape(const DynamicPrintConfig &config)
 {
     const auto *bed_shape_opt = config.opt<ConfigOptionPoints>("printable_area");
     if (!bed_shape_opt) {
-        
+
         // Here, it is certain that the bed shape is missing, so an infinite one
         // has to be used, but still, the center of bed can be queried
         if (auto center_opt = config.opt<ConfigOptionPoint>("center"))
             return { scaled(center_opt->value) };
-        
+
         return {};
     }
 
