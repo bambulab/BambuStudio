@@ -277,7 +277,8 @@ protected:
     // Virtual event handlers, overide them in your derived class
     void on_cancel(wxCloseEvent &event);
     void on_ok(wxCommandEvent &event);
-    void on_timer(wxTimerEvent &event);
+    std::vector<std::string> sort_string(std::vector<std::string> strArray);
+    void                         on_timer(wxTimerEvent &event);
     void on_selection_changed(wxCommandEvent &event);
     void on_dpi_changed(const wxRect& suggested_rect) override;
     wxImage *LoadImageFromBlob(const unsigned char *data, int size);

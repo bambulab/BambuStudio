@@ -879,6 +879,18 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     m_print_job->start();
 }
 
+std::vector<std::string> SelectMachineDialog::sort_string(std::vector<std::string> strArray)
+{
+    std::vector<std::string> outputArray;
+    std::sort(strArray.begin(), strArray.end());
+    std::vector<std::string>::iterator st;
+    for (st = strArray.begin(); st != strArray.end(); st++) {
+        outputArray.push_back(*st);
+    }
+
+    return outputArray;
+}
+
 void SelectMachineDialog::on_timer(wxTimerEvent &event)
 {
     if (m_print_job && m_need_disable_btn_ensure && m_print_job->is_finalized() && !m_print_job->is_finished()) {
@@ -902,15 +914,30 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     m_list.clear();
     m_comboBox_printer->Clear();
 
+    std::vector<std::string> machine_list;
+
     // same machine only appear once
     std::map<std::string, MachineObject *>::iterator it;
     for (it = c->myBindMachineList.begin(); it != c->myBindMachineList.end(); it++) {
         if (it->second && it->second->is_online()) {
-            // m_list.insert(std::make_pair(it->first, it->second));
-            m_list.push_back(it->second);
-            m_comboBox_printer->Append(it->second->dev_name);
+            machine_list.push_back(it->second->dev_name);
         }
     }
+
+    machine_list = sort_string(machine_list);
+    std::vector<std::string>::iterator tt;
+    for (tt = machine_list.begin(); tt != machine_list.end(); tt++) {
+
+        for (it = c->myBindMachineList.begin(); it != c->myBindMachineList.end(); it++) {
+
+            if (it->second->dev_name == *tt) {
+                m_list.push_back(it->second);
+                m_comboBox_printer->Append(it->second->dev_name);
+                break;
+            }
+        }
+    }
+
 
     if (m_list.size() > 0) {
         if (m_printer_last_select <= -1) { m_printer_last_select = 0; }
