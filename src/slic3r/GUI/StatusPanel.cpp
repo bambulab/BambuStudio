@@ -67,20 +67,20 @@ static wxColour TEXT_LIGHT_FONT_COL  = wxColour(107, 107, 107);
 
 
 StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
-    : wxScrolledWindow(parent, id, pos, size, style)
+    : wxScrolledWindow(parent, id, pos, size, wxVSCROLL)
 {
+    this->SetScrollRate(0, 5);
+
     init_bitmaps();
 
     this->SetBackgroundColour(wxColour(255, 255, 255));
 
-    wxBoxSizer *bSizer_status;
-    bSizer_status = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *bSizer_status = new wxBoxSizer(wxVERTICAL);
 
-    auto m_panel_separotor_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    auto m_panel_separotor_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, PAGE_SPACING), wxTAB_TRAVERSAL);
     m_panel_separotor_top->SetBackgroundColour(STATUS_PANEL_BG);
-    m_panel_separotor_top->SetMinSize(wxSize(-1, PAGE_SPACING));
 
-    bSizer_status->Add(m_panel_separotor_top, 0, wxEXPAND, 0);
+    bSizer_status->Add(m_panel_separotor_top, 0, wxEXPAND | wxALL, 0);
 
     wxBoxSizer *bSizer_status_below;
     bSizer_status_below = new wxBoxSizer(wxHORIZONTAL);
@@ -89,7 +89,7 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
     m_panel_separotor_left->SetBackgroundColour(STATUS_PANEL_BG);
     m_panel_separotor_left->SetMinSize(wxSize(PAGE_SPACING, -1));
 
-    bSizer_status_below->Add(m_panel_separotor_left, 0, wxEXPAND, 0);
+    bSizer_status_below->Add(m_panel_separotor_left, 0, wxEXPAND | wxALL, 0);
 
     wxBoxSizer *bSizer_left;
     bSizer_left = new wxBoxSizer(wxVERTICAL);
@@ -123,19 +123,17 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
 
     bSizer_status_below->Add(m_machine_control, 0, wxALL | wxEXPAND, 0);
 
-    m_panel_separator_right = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxTAB_TRAVERSAL);
+    m_panel_separator_right = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(PAGE_SPACING, -1), wxTAB_TRAVERSAL);
     m_panel_separator_right->SetBackgroundColour(STATUS_PANEL_BG);
-    m_panel_separator_right->SetMinSize(wxSize(PAGE_SPACING, -1));
 
     bSizer_status_below->Add(m_panel_separator_right, 0, wxEXPAND | wxALL, 0);
 
     bSizer_status->Add(bSizer_status_below, 1, wxALL | wxEXPAND, 0);
 
-    m_panel_separotor_bottom = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_panel_separotor_bottom = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, PAGE_SPACING), wxTAB_TRAVERSAL);
     m_panel_separotor_bottom->SetBackgroundColour(STATUS_PANEL_BG);
-    m_panel_separotor_bottom->SetMinSize(wxSize(-1, PAGE_SPACING));
 
-    bSizer_status->Add(m_panel_separotor_bottom, 0, wxEXPAND, NORMAL_SPACING);
+    bSizer_status->Add(m_panel_separotor_bottom, 0, wxEXPAND | wxALL, 0);
 
     this->SetSizerAndFit(bSizer_status);
     this->Layout();
