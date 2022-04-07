@@ -138,7 +138,7 @@ std::vector<SimpleSettingData> SettingsFactory::get_visible_options(const std::s
         //Quality
         "layer_height", "initial_layer_print_height", "adaptive_layer_height", "seam_position", "xy_hole_compensation", "xy_contour_compensation", "elefant_foot_compensation", "support_line_width",
         //Support
-        "enable_support", "support_type", "support_threshold_angle", "support_on_build_plate_only", "support_material_enforce_layers",
+        "enable_support", "support_type", "support_threshold_angle", "support_on_build_plate_only", "enforce_support_layers",
         //tree support
         "tree_support_wall_count", "tree_support_with_infill",
         //support

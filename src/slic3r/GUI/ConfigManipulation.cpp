@@ -109,7 +109,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
            config->opt_int("top_shell_layers") == 0 &&
            sparse_infill_density == 0 &&
            ! config->opt_bool("enable_support") &&
-           config->opt_int("support_material_enforce_layers") == 0 &&
+           config->opt_int("enforce_support_layers") == 0 &&
            ! config->opt_bool("detect_thin_wall")))
     {
         wxString msg_text = _(L("Spiral mode only works when wall loops is 1, \n"
@@ -129,7 +129,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("top_shell_layers", new ConfigOptionInt(0));
             new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
             new_conf.set_key_value("enable_support", new ConfigOptionBool(false));
-            new_conf.set_key_value("support_material_enforce_layers", new ConfigOptionInt(0));
+            new_conf.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
             new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));            
             sparse_infill_density = 0;
             support = false;
@@ -284,7 +284,7 @@ void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::
             config->set_key_value(k, new ConfigOptionBool(true));
         else if (k == "wall_loops")
             config->set_key_value(k, new ConfigOptionInt(0));
-        else if (k == "top_shell_layers" || k == "support_material_enforce_layers")
+        else if (k == "top_shell_layers" || k == "enforce_support_layers")
             config->set_key_value(k, new ConfigOptionInt(1));
         else if (k == "sparse_infill_density") {
             double v = config->option<ConfigOptionPercent>(k)->value;
@@ -361,7 +361,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     bool have_support_soluble = have_support_material && config->opt_float("support_top_z_distance") == 0;
     auto support_style = config->opt_enum<SupportMaterialStyle>("support_style");
     for (auto el : { "support_style", "support_base_pattern",
-                    "support_base_pattern_spacing", "support_material_angle", 
+                    "support_base_pattern_spacing", "support_angle", 
                     "support_interface_pattern", "support_interface_top_layers", "support_interface_bottom_layers",
                     "bridge_no_support", "support_line_width", "support_top_z_distance",
                      //BBS: add more support params to dependent of enable_support
@@ -369,8 +369,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
                     "support_object_xy_distance", "support_transition_line_width", "independent_support_layer_height"})
         toggle_field(el, have_support_material);
     toggle_field("support_threshold_angle", have_support_material && (support_type == stNormalAuto || support_type == stTreeAuto || support_type==stHybridAuto));
-    toggle_field("support_bottom_z_distance", have_support_material && ! have_support_soluble);
-    toggle_field("support_closing_radius", have_support_material && support_style == smsSnug);
+    //toggle_field("support_closing_radius", have_support_material && support_style == smsSnug);
 
     for (auto el : { "tree_support_branch_angle", "tree_support_wall_count", "tree_support_with_infill" })
         toggle_field(el, config->opt_bool("enable_support") && (support_type == stTreeAuto || support_type == stTree || support_type == stHybridAuto));

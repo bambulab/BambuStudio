@@ -377,8 +377,8 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     }
 
 
-    m_support_params.base_angle         = Geometry::deg2rad(float(m_object_config->support_material_angle.value));
-    m_support_params.interface_angle    = Geometry::deg2rad(float(m_object_config->support_material_angle.value + 90.));
+    m_support_params.base_angle         = Geometry::deg2rad(float(m_object_config->support_angle.value));
+    m_support_params.interface_angle    = Geometry::deg2rad(float(m_object_config->support_angle.value + 90.));
     m_support_params.interface_spacing  = m_object_config->support_interface_spacing.value + m_support_params.support_material_interface_flow.spacing();
     m_support_params.interface_density  = std::min(1., m_support_params.support_material_interface_flow.spacing() / m_support_params.interface_spacing);
     m_support_params.support_spacing    = m_object_config->support_base_pattern_spacing.value + m_support_params.support_material_flow.spacing();
@@ -733,9 +733,10 @@ struct SupportGridParams {
     SupportGridParams(const PrintObjectConfig &object_config, const Flow &support_material_flow) :
         style(object_config.support_style.value),
         grid_resolution(object_config.support_base_pattern_spacing.value + support_material_flow.spacing()),
-        support_angle(Geometry::deg2rad(object_config.support_material_angle.value)),
+        support_angle(Geometry::deg2rad(object_config.support_angle.value)),
         extrusion_width(support_material_flow.spacing()),
-        support_closing_radius(object_config.support_closing_radius.value),
+        //support_closing_radius(object_config.support_closing_radius.value),
+        support_closing_radius(2.0),
         expansion_to_slice(coord_t(support_material_flow.scaled_spacing() / 2 + 5)),
         expansion_to_propagate(-3) {}
 
@@ -1501,7 +1502,7 @@ static inline Polygons detect_overhangs(
             // It is the maximum widh of the extrudate.
             float fw = float(layerm->flow(frExternalPerimeter).scaled_width());
             lower_layer_offset  = 
-                (layer_id < (size_t)object_config.support_material_enforce_layers.value) ? 
+                (layer_id < (size_t)object_config.enforce_support_layers.value) ? 
                     // Enforce a full possible support, ignore the overhang angle.
                     0.f :
                 (threshold_rad > 0. ? 
@@ -4468,7 +4469,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 if (base_layer.layer->bottom_z < EPSILON) {
                     // Base flange (the 1st layer).
                     filler = filler_first_layer;
-                    filler->angle = Geometry::deg2rad(float(m_object_config->support_material_angle.value + 90.));
+                    filler->angle = Geometry::deg2rad(float(m_object_config->support_angle.value + 90.));
                     density = float(m_object_config->raft_first_layer_density.value * 0.01);
                     flow = m_support_params.first_layer_flow;
                     // use the proper spacing for first layer as we don't need to align

@@ -1453,16 +1453,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats { 0. });
 
-    def = this->add("max_print_speed", coFloat);
-    def->label = L("Max print speed");
-    //def->tooltip = L("When setting other speed settings to 0 Slic3r will autocalculate the optimal speed "
-    //               "in order to keep constant extruder pressure. This experimental setting is used "
-    //               "to set the highest print speed you want to allow.");
-    def->sidetext = L("mm/s");
-    def->min = 1;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(80));
-
 #ifdef HAS_PRESSURE_EQUALIZER
     //def = this->add("max_volumetric_extrusion_rate_slope_positive", coFloat);
     //def->label = L("Max volumetric slope positive");
@@ -1988,7 +1978,7 @@ void PrintConfigDef::init_fff_params()
     // Default is 1mm. Support with too small spacing may touch the object and difficult to remove.
     def->set_default_value(new ConfigOptionFloatOrPercent(1, false));
 
-    def = this->add("support_material_angle", coFloat);
+    def = this->add("support_angle", coFloat);
     def->label = L("Pattern angle");
     def->category = L("Support");
     def->tooltip = L("Use this setting to rotate the support pattern on the horizontal plane.");
@@ -2025,28 +2015,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.2));
 
-    // BBS: change type to common float.
-    // It may be rounded to mulitple layer height when independent_support_layer_height is false.
-    def = this->add("support_bottom_z_distance", coFloat);
-    //def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
-    def->label = L("Bottom Z distance");
-    def->category = L("Support");
-    def->tooltip = L("The z gap between the bottom support interface and object");
-    def->sidetext = L("mm");
-//    def->min = 0;
-#if 0
-    //def->enum_values.push_back("0");
-    //def->enum_values.push_back("0.1");
-    //def->enum_values.push_back("0.2");
-    //TRN To be shown in Print Settings "Bottom contact Z distance". Have to be as short as possible
-    //def->enum_labels.push_back(L("Same as top"));
-    //def->enum_labels.push_back("0.1");
-    //def->enum_labels.push_back("0.2");
-#endif
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
-
-    def = this->add("support_material_enforce_layers", coInt);
+    def = this->add("enforce_support_layers", coInt);
     //def->label = L("Enforce support for the first");
     def->category = L("Support");
     //def->tooltip = L("Generate support material for the specified number of layers counting from bottom, "
@@ -2138,16 +2107,6 @@ void PrintConfigDef::init_fff_params()
     append(def->enum_labels, support_interface_top_layers->enum_labels);
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(0));
-
-    def = this->add("support_closing_radius", coFloat);
-    //def->label = L("Closing radius");
-    def->category = L("Support");
-    //def->tooltip = L("For snug supports, the support regions will be merged using morphological closing operation."
-    //                 " Gaps smaller than the closing radius will be filled in.");
-    def->sidetext = L("mm");
-    def->min = 0;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(2));
 
     def = this->add("support_interface_spacing", coFloat);
     def->label = L("Top interface spacing");
@@ -3254,6 +3213,10 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "support_filament";
     } else if (opt_key == "support_material_interface_extruder") {
         opt_key = "support_interface_filament";
+    } else if (opt_key == "support_material_angle") {
+        opt_key = "support_angle";
+    } else if (opt_key == "support_material_enforce_layers") {
+        opt_key = "enforce_support_layers";
     } else if ((opt_key == "initial_layer_print_height"   ||
                 opt_key == "initial_layer_speed"          ||
                 opt_key == "internal_solid_infill_speed"  ||
@@ -3283,7 +3246,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         , "thick_bridges","support_sharp_tails","remove_small_overhangs", "support_with_sheath",
         "tree_support_branch_distance", "tree_support_branch_diameter",
         "tree_support_branch_diameter_angle", "tree_support_collision_resolution",
-        "small_perimeter_speed", "max_volumetric_speed"
+        "small_perimeter_speed", "max_volumetric_speed", "max_print_speed",
+        "support_bottom_z_distance", "support_closing_radius"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {
@@ -3580,7 +3544,7 @@ std::string validate(const FullPrintConfig &cfg)
             return "Spiral vase mode can only print hollow objects, so you need to set Fill density to 0";
         if (cfg.top_shell_layers > 0)
             return "Spiral vase mode is not compatible with top solid layers";
-        if (cfg.enable_support || cfg.support_material_enforce_layers > 0)
+        if (cfg.enable_support || cfg.enforce_support_layers > 0)
             return "Spiral vase mode is not compatible with support";
     }
 

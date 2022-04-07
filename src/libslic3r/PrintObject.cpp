@@ -614,13 +614,12 @@ bool PrintObject::invalidate_state_by_config_options(
 	        }
         } else if (
         	   opt_key == "support_type"
-            || opt_key == "support_material_angle"
+            || opt_key == "support_angle"
             || opt_key == "support_on_build_plate_only"
-            || opt_key == "support_material_enforce_layers"
+            || opt_key == "enforce_support_layers"
             || opt_key == "support_filament"
             || opt_key == "support_line_width"
             || opt_key == "support_transition_line_width"
-            || opt_key == "support_bottom_z_distance"
             || opt_key == "support_interface_top_layers"
             || opt_key == "support_interface_bottom_layers"
             || opt_key == "support_interface_pattern"
@@ -632,7 +631,6 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_style"
             || opt_key == "support_object_xy_distance"
             || opt_key == "support_base_pattern_spacing"
-            || opt_key == "support_closing_radius"
             || opt_key == "independent_support_layer_height" // BBS
             || opt_key == "support_threshold_angle"
             || opt_key == "raft_expansion"

@@ -536,11 +536,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Automatic supports (generated based on support_threshold_angle).
     ((ConfigOptionEnum<SupportType>,   support_type))
     // Direction of the support pattern (in XY plane).`
-    ((ConfigOptionFloat,               support_material_angle))
+    ((ConfigOptionFloat,               support_angle))
     ((ConfigOptionBool,                support_on_build_plate_only))
     ((ConfigOptionFloat,               support_top_z_distance))
-    ((ConfigOptionFloat,               support_bottom_z_distance))
-    ((ConfigOptionInt,                 support_material_enforce_layers))
+    ((ConfigOptionInt,                 enforce_support_layers))
     ((ConfigOptionInt,                 support_filament))
     ((ConfigOptionFloatOrPercent,      support_line_width))
     ((ConfigOptionBool,                support_interface_loop_pattern))
@@ -552,8 +551,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               support_interface_speed))
     ((ConfigOptionEnum<SupportMaterialPattern>, support_base_pattern))
     ((ConfigOptionEnum<SupportMaterialInterfacePattern>, support_interface_pattern))
-    // Morphological closing of support areas. Only used for "sung" supports.
-    ((ConfigOptionFloat,               support_closing_radius))
     // Spacing between support material lines (the hatching distance).
     ((ConfigOptionFloat,               support_base_pattern_spacing))
     ((ConfigOptionFloat,               support_speed))
@@ -696,7 +693,6 @@ PRINT_CONFIG_CLASS_DEFINE(
 
     ((ConfigOptionEnum<GCodeFlavor>,   gcode_flavor))
     ((ConfigOptionString,              layer_change_gcode))
-    ((ConfigOptionFloat,               max_print_speed))
 //#ifdef HAS_PRESSURE_EQUALIZER
 //    ((ConfigOptionFloat,               max_volumetric_extrusion_rate_slope_positive))
 //    ((ConfigOptionFloat,               max_volumetric_extrusion_rate_slope_negative))

@@ -1,9 +1,10 @@
 {
     "type": "process",
-    "setting_id": "GP001",
-    "name": "0.08mm SUPERDETAIL @Bambu Lab X1",
+    "setting_id": "GP004",
+    "name": "0.16mm Optimal @Bambu Lab X1",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_process_bbl_0.08",
+    "inherits": "fdm_process_bbl_0.16",
+    "renamed_from": "0.16mm OPTIMAL @BBL001",
     "compatible_printers_condition": "printer_model=~/(BBL-3DP).*/ and nozzle_diameter[0]==0.4"
 }

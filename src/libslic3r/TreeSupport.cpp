@@ -756,7 +756,7 @@ void TreeSupport::detect_object_overhangs()
     const coordf_t extrusion_width = config.line_width.value;
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     const bool bridge_no_support = config.bridge_no_support.value;
-    const int support_material_enforce_layers = config.support_material_enforce_layers.value;
+    const int enforce_support_layers = config.enforce_support_layers.value;
     const double area_thresh_well_supported = SQ(scale_(4));  // min: 4x4=16mm^2
     const double length_thresh_well_supported = scale_(4);  // min: 4x4=16mm^2
     // a region is considered well supported if the number of layers below it exceeds this threshold
@@ -866,7 +866,7 @@ void TreeSupport::detect_object_overhangs()
 
         for (size_t layer_nr = 0; layer_nr < m_object->layer_count(); layer_nr++)
         {
-            if (!is_auto && layer_nr > support_material_enforce_layers)
+            if (!is_auto && layer_nr > enforce_support_layers)
                 continue;
 
             Layer* layer = m_object->get_layer(layer_nr);
@@ -884,7 +884,7 @@ void TreeSupport::detect_object_overhangs()
             }
 
             Layer* lower_layer = layer->lower_layer;
-            coordf_t lower_layer_offset = layer_nr < support_material_enforce_layers ? -0.15 * extrusion_width : (float)lower_layer->height / tan(threshold_rad);
+            coordf_t lower_layer_offset = layer_nr < enforce_support_layers ? -0.15 * extrusion_width : (float)lower_layer->height / tan(threshold_rad);
             coordf_t support_offset_scaled = scale_(lower_layer_offset);
             // Filter out areas whose diameter that is smaller than extrusion_width. Do not use offset2() for this purpose!
             ExPolygons lower_polys;// = offset2_ex(lower_layer->lslices, -extrusion_width_scaled / 2, extrusion_width_scaled / 2);
@@ -1406,7 +1406,7 @@ void TreeSupport::generate_toolpaths()
                 Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
                 Flow transition_flow(support_transition_line_width, ts_layer->height, nozzle_diameter);
                 Fill* filler_interface = Fill::new_from_type(ipRectilinear);
-                filler_interface->angle = Geometry::deg2rad(object_config.support_material_angle.value + 90.);//(1 - obj_is_vertical) * M_PI_2;//((1-obj_is_vertical) + int(layer_id / num_layers_to_change_infill_direction)) * M_PI_2;;//layer_id % 2 ? 0 : M_PI_2;
+                filler_interface->angle = Geometry::deg2rad(object_config.support_angle.value + 90.);//(1 - obj_is_vertical) * M_PI_2;//((1-obj_is_vertical) + int(layer_id / num_layers_to_change_infill_direction)) * M_PI_2;;//layer_id % 2 ? 0 : M_PI_2;
 
                 // int is type of area: 0: base; 1:interface (roof and floor); 2: the layer just below roof
                 std::vector<std::pair<ExPolygon*, int>> area_groups;
@@ -1487,11 +1487,11 @@ void TreeSupport::generate_toolpaths()
                         if (with_infill && layer_id > 0) {
                             if (filler_type == ipRectilinear) {
                                 role = erSupportMaterial;// layer_id% num_layers_to_change_infill_direction == 0 ? erSupportTransition : erSupportMaterial;
-                                filler_support->angle = Geometry::deg2rad(object_config.support_material_angle.value);// obj_is_vertical* M_PI_2;// (obj_is_vertical + int(layer_id / num_layers_to_change_infill_direction))* M_PI_2;
+                                filler_support->angle = Geometry::deg2rad(object_config.support_angle.value);// obj_is_vertical* M_PI_2;// (obj_is_vertical + int(layer_id / num_layers_to_change_infill_direction))* M_PI_2;
                             }
                             else {
                                 role = erSupportMaterial;
-                                filler_support->angle = Geometry::deg2rad(object_config.support_material_angle.value);// obj_is_vertical * M_PI_2 + (float)layer_id / num_layers_to_change_infill_direction * M_PI_4;
+                                filler_support->angle = Geometry::deg2rad(object_config.support_angle.value);// obj_is_vertical * M_PI_2 + (float)layer_id / num_layers_to_change_infill_direction * M_PI_4;
                             }
                             // only wall at the top of tree branch
                             if (offset(poly, -branch_radius_scaled*1.5).empty())

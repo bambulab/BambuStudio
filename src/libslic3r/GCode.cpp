@@ -656,7 +656,8 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
             || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)
             || (layer_to_print.tree_support_layer)) {
             double top_cd = object.config().support_top_z_distance;
-            double bottom_cd = object.config().support_bottom_z_distance == 0. ? top_cd : object.config().support_bottom_z_distance;
+            //double bottom_cd = object.config().support_bottom_z_distance == 0. ? top_cd : object.config().support_bottom_z_distance;
+            double bottom_cd = top_cd;
 
             double extra_gap = ((layer_to_print.support_layer || layer_to_print.tree_support_layer) ? bottom_cd : top_cd);
 
@@ -967,6 +968,7 @@ namespace DoExport {
         processor.enable_stealth_time_estimator(silent_time_estimator_enabled);
     }
 
+#if 0
 	static double autospeed_volumetric_limit(const Print &print)
 	{
 	    // get the minimum cross-section used in the print
@@ -1024,7 +1026,7 @@ namespace DoExport {
 	    }
 	    return volumetric_speed;
 	}
-
+#endif
 
     static void init_ooze_prevention(const Print &print, OozePrevention &ooze_prevention)
 	{
@@ -1253,7 +1255,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_enable_cooling_markers = true;
     this->apply_print_config(print.config());
 
-    m_volumetric_speed = DoExport::autospeed_volumetric_limit(print);
+    //m_volumetric_speed = DoExport::autospeed_volumetric_limit(print);
     print.throw_if_canceled();
 
     if (print.config().spiral_mode.value)
@@ -3440,8 +3442,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             throw Slic3r::InvalidArgument("Invalid speed");
         }
     }
-    if (m_volumetric_speed != 0. && speed == 0)
-        speed = m_volumetric_speed / path.mm3_per_mm;
+    //if (m_volumetric_speed != 0. && speed == 0)
+    //    speed = m_volumetric_speed / path.mm3_per_mm;
     if (this->on_first_layer()) {
         //BBS: for solid infill of initial layer, speed can be higher as long as
         //wall lines have be attached

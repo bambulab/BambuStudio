@@ -141,7 +141,7 @@ public:
         m_layer_index(-1), 
         m_layer(nullptr),
         m_object_layer_over_raft(false),
-        m_volumetric_speed(0),
+        //m_volumetric_speed(0),
         m_last_pos_defined(false),
         m_last_extrusion_role(erNone),
         m_last_width(0.0f),
@@ -439,7 +439,7 @@ private:
     const Layer*                        m_layer;
     // m_layer is an object layer and it is being printed over raft surface.
     bool                                m_object_layer_over_raft;
-    double                              m_volumetric_speed;
+    //double                              m_volumetric_speed;
     // Support for the extrusion role markers. Which marker is active?
     ExtrusionRole                       m_last_extrusion_role;
     // Support for G-Code Processor

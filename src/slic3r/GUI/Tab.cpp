@@ -1781,7 +1781,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_type");
         optgroup->append_single_option_line("support_threshold_angle");
         optgroup->append_single_option_line("support_on_build_plate_only");
-        //optgroup->append_single_option_line("support_material_enforce_layers");
+        //optgroup->append_single_option_line("enforce_support_layers");
 
         optgroup = page->new_optgroup(L("Material for support"));
         optgroup->append_single_option_line("support_filament");
@@ -1796,11 +1796,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("tree_support_wall_count");
         optgroup->append_single_option_line("tree_support_with_infill");
         optgroup->append_single_option_line("support_top_z_distance");
-        //optgroup->append_single_option_line("support_bottom_z_distance");
         optgroup->append_single_option_line("support_base_pattern");
         optgroup->append_single_option_line("support_base_pattern_spacing");
-        //optgroup->append_single_option_line("support_material_angle");
-        //optgroup->append_single_option_line("support_closing_radius");
+        //optgroup->append_single_option_line("support_angle");
         optgroup->append_single_option_line("support_interface_top_layers");
         optgroup->append_single_option_line("support_interface_bottom_layers");
         //optgroup->append_single_option_line("support_interface_pattern");
