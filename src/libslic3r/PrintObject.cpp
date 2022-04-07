@@ -500,7 +500,7 @@ TreeSupportData* PrintObject::alloc_tree_support_preview_cache()
         const double angle = m_config.tree_support_branch_angle.value * M_PI / 180.;
         const coordf_t max_move_distance
             = (angle < M_PI / 2) ? (coordf_t)(tan(angle) * layer_height) : std::numeric_limits<coordf_t>::max();
-        const coordf_t radius_sample_resolution = m_config.tree_support_collision_resolution.value;
+        const coordf_t radius_sample_resolution = g_config_tree_support_collision_resolution;
 
         m_tree_support_preview_cache = new TreeSupportData(*this, xy_distance, max_move_distance, radius_sample_resolution);
     }
@@ -617,7 +617,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_material_angle"
             || opt_key == "support_on_build_plate_only"
             || opt_key == "support_material_enforce_layers"
-            || opt_key == "support_material_extruder"
+            || opt_key == "support_filament"
             || opt_key == "support_line_width"
             || opt_key == "support_transition_line_width"
             || opt_key == "support_bottom_z_distance"
@@ -625,7 +625,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_interface_bottom_layers"
             || opt_key == "support_interface_pattern"
             || opt_key == "support_interface_loop_pattern"
-            || opt_key == "support_material_interface_extruder"
+            || opt_key == "support_interface_filament"
             || opt_key == "support_interface_spacing"
             || opt_key == "support_bottom_interface_spacing" //BBS
             || opt_key == "support_base_pattern"
@@ -635,20 +635,13 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_closing_radius"
             || opt_key == "independent_support_layer_height" // BBS
             || opt_key == "support_threshold_angle"
-            || opt_key == "support_with_sheath"
             || opt_key == "raft_expansion"
             || opt_key == "raft_first_layer_density"
             || opt_key == "raft_first_layer_expansion"
             || opt_key == "bridge_no_support"
             || opt_key == "initial_layer_line_width"
             || opt_key == "tree_support_branch_angle"
-            || opt_key == "tree_support_branch_distance"
-            || opt_key == "tree_support_branch_diameter"
-            || opt_key == "tree_support_branch_diameter_angle"
-            || opt_key == "tree_support_collision_resolution"
             || opt_key == "tree_support_with_infill"
-            || opt_key == "support_sharp_tails"
-            || opt_key == "remove_small_overhangs"
             || opt_key == "tree_support_wall_count") {
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bottom_shell_layers") {
@@ -665,8 +658,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "top_shell_layers"
             || opt_key == "top_shell_thickness"
             || opt_key == "minimum_sparse_infill_area"
-            || opt_key == "infill_extruder"
-            || opt_key == "solid_infill_extruder"
+            || opt_key == "sparse_infill_filament"
+            || opt_key == "solid_infill_filament"
             || opt_key == "sparse_infill_line_width") {
             steps.emplace_back(posPrepareInfill);
         } else if (
@@ -695,13 +688,12 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posPrepareInfill);
         } else if (
                opt_key == "outer_wall_line_width"
-            || opt_key == "perimeter_extruder"
+            || opt_key == "wall_filament"
             || opt_key == "fuzzy_skin"
             || opt_key == "fuzzy_skin_thickness"
             || opt_key == "fuzzy_skin_point_distance"
             || opt_key == "detect_overhang_wall"
-            || opt_key == "detect_thin_wall"
-            || opt_key == "thick_bridges") {
+            || opt_key == "detect_thin_wall") {
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bridge_flow") {
@@ -726,7 +718,6 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "outer_wall_speed"
             || opt_key == "sparse_infill_speed"
             || opt_key == "inner_wall_speed"
-            || opt_key == "small_perimeter_speed"
             || opt_key == "internal_solid_infill_speed"
             || opt_key == "top_surface_speed") {
             invalidated |= m_print->invalidate_step(psGCodeExport);
@@ -1628,24 +1619,24 @@ PrintObjectConfig PrintObject::object_config_from_model_object(const PrintObject
         config.apply(src_normalized, true);
     }
     // Clamp invalid extruders to the default extruder (with index 1).
-    clamp_exturder_to_default(config.support_material_extruder,           num_extruders);
-    clamp_exturder_to_default(config.support_material_interface_extruder, num_extruders);
+    clamp_exturder_to_default(config.support_filament,           num_extruders);
+    clamp_exturder_to_default(config.support_interface_filament, num_extruders);
     return config;
 }
 
 const std::string                                                    key_extruder { "extruder" };
-static constexpr const std::initializer_list<const std::string_view> keys_extruders { "infill_extruder"sv, "solid_infill_extruder"sv, "perimeter_extruder"sv };
+static constexpr const std::initializer_list<const std::string_view> keys_extruders { "sparse_infill_filament"sv, "solid_infill_filament"sv, "wall_filament"sv };
 
 static void apply_to_print_region_config(PrintRegionConfig &out, const DynamicPrintConfig &in)
 {
-    // 1) Copy the "extruder key to infill_extruder and perimeter_extruder.
+    // 1) Copy the "extruder key to sparse_infill_filament and wall_filament.
     auto *opt_extruder = in.opt<ConfigOptionInt>(key_extruder);
     if (opt_extruder)
         if (int extruder = opt_extruder->value; extruder != 0) {
             // Not a default extruder.
-            out.infill_extruder      .value = extruder;
-            out.solid_infill_extruder.value = extruder;
-            out.perimeter_extruder   .value = extruder;
+            out.sparse_infill_filament      .value = extruder;
+            out.solid_infill_filament.value = extruder;
+            out.wall_filament   .value = extruder;
         }
     // 2) Copy the rest of the values.
     for (auto it = in.cbegin(); it != in.cend(); ++ it)
@@ -1680,9 +1671,9 @@ PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &defau
     if (! volume.material_id().empty())
         apply_to_print_region_config(config, volume.material()->config.get());
     // Clamp invalid extruders to the default extruder (with index 1).
-    clamp_exturder_to_default(config.infill_extruder,       num_extruders);
-    clamp_exturder_to_default(config.perimeter_extruder,    num_extruders);
-    clamp_exturder_to_default(config.solid_infill_extruder, num_extruders);
+    clamp_exturder_to_default(config.sparse_infill_filament,       num_extruders);
+    clamp_exturder_to_default(config.wall_filament,    num_extruders);
+    clamp_exturder_to_default(config.solid_infill_filament, num_extruders);
     if (config.sparse_infill_density.value < 0.00011f)
         // Switch of infill for very low infill rates, also avoid division by zero in infill generator for these very low rates.
         // See GH issue #5910.
@@ -1742,9 +1733,9 @@ SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full
                 object_config.brim_type != btNoBrim && object_config.brim_width > 0.,
 				object_extruders);
 			for (const std::pair<const t_layer_height_range, ModelConfig> &range_and_config : model_object.layer_config_ranges)
-				if (range_and_config.second.has("perimeter_extruder") ||
-					range_and_config.second.has("infill_extruder") ||
-					range_and_config.second.has("solid_infill_extruder"))
+				if (range_and_config.second.has("wall_filament") ||
+					range_and_config.second.has("sparse_infill_filament") ||
+					range_and_config.second.has("solid_infill_filament"))
 					PrintRegion::collect_object_printing_extruders(
 						print_config,
 						region_config_from_model_volume(default_region_config, &range_and_config.second.get(), *model_volume, filament_extruders),
@@ -2128,8 +2119,8 @@ void PrintObject::combine_infill()
         // Limit the number of combined layers to the maximum height allowed by this regions' nozzle.
         //FIXME limit the layer height to max_layer_height
         double nozzle_diameter = std::min(
-            this->print()->config().nozzle_diameter.get_at(region.config().infill_extruder.value - 1),
-            this->print()->config().nozzle_diameter.get_at(region.config().solid_infill_extruder.value - 1));
+            this->print()->config().nozzle_diameter.get_at(region.config().sparse_infill_filament.value - 1),
+            this->print()->config().nozzle_diameter.get_at(region.config().solid_infill_filament.value - 1));
         // define the combinations
         std::vector<size_t> combine(m_layers.size(), 0);
         {

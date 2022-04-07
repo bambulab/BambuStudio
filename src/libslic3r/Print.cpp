@@ -99,8 +99,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "fan_max_speed",
         "printable_height",
         "slow_down_min_speed",
-        "max_print_speed",
-        "max_volumetric_speed",
 #ifdef HAS_PRESSURE_EQUALIZER
         "max_volumetric_extrusion_rate_slope_positive",
         "max_volumetric_extrusion_rate_slope_negative",
@@ -280,18 +278,18 @@ std::vector<unsigned int> Print::support_material_extruders() const
 
     for (PrintObject *object : m_objects) {
         if (object->has_support_material()) {
-        	assert(object->config().support_material_extruder >= 0);
-            if (object->config().support_material_extruder == 0)
+        	assert(object->config().support_filament >= 0);
+            if (object->config().support_filament == 0)
                 support_uses_current_extruder = true;
             else {
-            	unsigned int i = (unsigned int)object->config().support_material_extruder - 1;
+            	unsigned int i = (unsigned int)object->config().support_filament - 1;
                 extruders.emplace_back((i >= num_extruders) ? 0 : i);
             }
-        	assert(object->config().support_material_interface_extruder >= 0);
-            if (object->config().support_material_interface_extruder == 0)
+        	assert(object->config().support_interface_filament >= 0);
+            if (object->config().support_interface_filament == 0)
                 support_uses_current_extruder = true;
             else {
-            	unsigned int i = (unsigned int)object->config().support_material_interface_extruder - 1;
+            	unsigned int i = (unsigned int)object->config().support_interface_filament - 1;
                 extruders.emplace_back((i >= num_extruders) ? 0 : i);
             }
         }
@@ -846,20 +844,20 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             if (object->has_support_material()) {
                 // BBS: remove useless logics and L()
 #if 0
-				if ((object->config().support_material_extruder == 0 || object->config().support_material_interface_extruder == 0) && max_nozzle_diameter - min_nozzle_diameter > EPSILON) {
-                    // The object has some form of support and either support_material_extruder or support_material_interface_extruder
+				if ((object->config().support_filament == 0 || object->config().support_interface_filament == 0) && max_nozzle_diameter - min_nozzle_diameter > EPSILON) {
+                    // The object has some form of support and either support_filament or support_interface_filament
                     // will be printed with the current tool without a forced tool change. Play safe, assert that all object nozzles
                     // are of the same diameter.
                     return {("Printing with multiple extruders of differing nozzle diameters. "
-                           "If support is to be printed with the current extruder (support_material_extruder == 0 or support_material_interface_extruder == 0), "
-                           "all nozzles have to be of the same diameter."), object, "support_material_extruder"};
+                           "If support is to be printed with the current filament (support_filament == 0 or support_interface_filament == 0), "
+                           "all nozzles have to be of the same diameter."), object, "support_filament"};
                 }
 #endif
 
                 // BBS
 #if 0
                 if (this->has_wipe_tower() && object->config().independent_support_layer_height) {
-                    return {L("The prime tower requires that support has the same layer height with object."), object, "support_material_extruder"};
+                    return {L("The prime tower requires that support has the same layer height with object."), object, "support_filament"};
                 }
 #endif
             }
@@ -883,8 +881,8 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             if (object->has_raft()) {
                 // if we have raft layers, only support material extruder is used on first layer
                 size_t first_layer_extruder = object->config().raft_layers == 1
-                    ? object->config().support_material_interface_extruder-1
-                    : object->config().support_material_extruder-1;
+                    ? object->config().support_interface_filament-1
+                    : object->config().support_filament-1;
                 first_layer_min_nozzle_diameter = (first_layer_extruder == size_t(-1)) ?
                     min_nozzle_diameter :
                     m_config.nozzle_diameter.get_at(first_layer_extruder);
@@ -998,7 +996,7 @@ Flow Print::brim_flow() const
     return Flow::new_from_config_width(
         frPerimeter,
 		width,
-        (float)m_config.nozzle_diameter.get_at(m_print_regions.front()->config().perimeter_extruder-1),
+        (float)m_config.nozzle_diameter.get_at(m_print_regions.front()->config().wall_filament-1),
 		(float)this->skirt_first_layer_height());
 }
 
@@ -1018,7 +1016,7 @@ Flow Print::skirt_flow() const
     return Flow::new_from_config_width(
         frPerimeter,
 		width,
-		(float)m_config.nozzle_diameter.get_at(m_objects.front()->config().support_material_extruder-1),
+		(float)m_config.nozzle_diameter.get_at(m_objects.front()->config().support_filament-1),
 		(float)this->skirt_first_layer_height());
 }
 

@@ -604,20 +604,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
-    def = this->add("support_sharp_tails", coBool);
-    def->label = L("Add support for sharp tails");
-    def->category = L("Support");
-    def->tooltip = L("Experimental option for adding support for sharp tails");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(true));
-
-    def = this->add("remove_small_overhangs", coBool);
-    def->label = L("Remove support for small overhangs");
-    def->category = L("Support");
-    def->tooltip = L("Experimental option for removing support for small overhangs");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(true));
-
     def = this->add("machine_end_gcode", coString);
     def->label = L("End G-code");
     def->tooltip = L("End G-code when finish the whole printing");
@@ -1201,7 +1187,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("infill_extruder", coInt);
+    def = this->add("sparse_infill_filament", coInt);
     def->label = L("Infill");
     def->category = L("Extruders");
     def->tooltip = L("Filament to print internal sparse infill.");
@@ -1477,15 +1463,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(80));
 
-    def = this->add("max_volumetric_speed", coFloat);
-    def->label = L("Max volumetric speed");
-    //def->tooltip = L("This experimental setting is used to set the maximum volumetric speed your "
-    //               "extruder supports.");
-    def->sidetext = L("mm³/s");
-    def->min = 0;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(0));
-
 #ifdef HAS_PRESSURE_EQUALIZER
     //def = this->add("max_volumetric_extrusion_rate_slope_positive", coFloat);
     //def->label = L("Max volumetric slope positive");
@@ -1581,7 +1558,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(true));
 
-    def = this->add("perimeter_extruder", coInt);
+    def = this->add("wall_filament", coInt);
     //def->label = L("Walls");
     //def->category = L("Extruders");
     //def->tooltip = L("Filament to print walls");
@@ -1853,18 +1830,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInts { 5 });
 
-    def = this->add("small_perimeter_speed", coFloatOrPercent);
-    def->label = L("Small walls");
-    def->category = L("Speed");
-    //def->tooltip = L("This separate setting will affect the speed of perimeters having radius <= 6.5mm "
-    //               "(usually holes). If expressed as percentage (for example: 80%) it will be calculated "
-    //               "on the perimeters speed setting above. Set to zero for auto.");
-    def->sidetext = L("mm/s or %");
-    def->ratio_over = "inner_wall_speed";
-    def->min = 0;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloatOrPercent(15, false));
-
     def = this->add("minimum_sparse_infill_area", coFloat);
     def->label = L("Minimum sparse infill threshold");
     def->category = L("Strength");
@@ -1874,7 +1839,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5));
 
-    def = this->add("solid_infill_extruder", coInt);
+    def = this->add("solid_infill_filament", coInt);
     //def->label = L("Solid infill");
     //def->category = L("Extruders");
     //def->tooltip = L("Filament to print solid infill");
@@ -2095,7 +2060,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(0));
 
-    def = this->add("support_material_extruder", coInt);
+    def = this->add("support_filament", coInt);
     def->label = L("Support");
     def->category = L("Support");
     def->tooltip = L("Filament to print support, raft and skirt");
@@ -2131,7 +2096,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("support_material_interface_extruder", coInt);
+    def = this->add("support_interface_filament", coInt);
     def->label = L("Support interface");
     def->category = L("Support");
     def->tooltip = L("Filament to print support interface");
@@ -2301,14 +2266,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(30));
 
-    def = this->add("support_with_sheath", coBool);
-    def->label = L("Wall around the support");
-    def->category = L("Support");
-    //def->tooltip = L("Add a sheath (a single perimeter line) around the base support. This makes "
-    //               "the support more reliable, but also more difficult to remove");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(false));
-
     def = this->add("tree_support_branch_angle", coFloat);
     def->label = L("Tree support branch angle");
     def->category = L("Support");
@@ -2319,54 +2276,6 @@ void PrintConfigDef::init_fff_params()
     def->max = 60;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(40.));
-
-    def = this->add("tree_support_branch_distance", coFloat);
-    def->label = L("Tree support branch distance");
-    def->category = L("Support");
-    //def->tooltip = L("This setting determines the distance between two adjacent branches where the branches touch the build plate.\n");
-    def->sidetext = L("mm");
-    def->min = 0;
-    def->max = 10;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(1.));
-
-    def = this->add("tree_support_branch_diameter", coFloat);
-    def->label = L("Tree support branch diameter");
-    def->category = L("Support");
-    //def->tooltip = L("This setting allows you to adjust the width of tree support's branches. The width specified here will be"
-    //                 "the width at the top of the tree's branches. The very tip of branch will be thinner and towards the bottom"
-    //                 "it gradually becomes wider as per the Tree Support Branch Diameter Angle Setting.");
-    def->sidetext = L("mm");
-    def->min = 0;
-    def->max = 10;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(5.));
-
-    def = this->add("tree_support_branch_diameter_angle", coFloat);
-    def->label = L("Tree support branch diameter angle");
-    def->category = L("Support");
-    //def->tooltip = L("The branches of tree support are wider towards the bottom than they are at the top. This ensures that"
-    //                 "the branches remain stable no matter how tall the support gets. With this setting, you can control the"
-    //                 "rate at which the support gets wider.");
-    def->sidetext = L("°");
-    def->min = 1;
-    def->max = 45;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(5.));
-
-    def = this->add("tree_support_collision_resolution", coFloat);
-    def->label = L("Tree support collision resolution");
-    def->category = L("Support");
-    //def->tooltip = L("A major disadvantage of tree support is that it takes a long time to slice when it is activated. Most of the"
-    //                 "calculations necessary for tree support are for the branches of the tree to avoid colliding with mesh."
-    //                 "This setting determines the accuracy of these collision avoidance calculations. Increasing this resolution"
-    //                 "(lower accuracy) will save a lot of time calculating, but will also make the support appear jagged when it's"
-    //                 "near the mesh");
-    def->sidetext = L("mm");
-    def->min = 0;
-    def->max = 10;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(0.2));
 
     def = this->add("tree_support_wall_count", coInt);
     def->label = L("Tree support wall loops");
@@ -2391,14 +2300,6 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 200 });
-
-    def = this->add("thick_bridges", coBool);
-    def->label = L("Thick bridges");
-    def->category = L("Quality");
-    def->tooltip = L("If enabled, bridges may look worse but can cover longer distance. "
-                     "If disabled, bridges look better but just for shorter distance.");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("detect_thin_wall", coBool);
     def->label = L("Detect thin wall");
@@ -3341,8 +3242,18 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "prime_volume";
     } else if (opt_key == "tool_change_gcode") {
         opt_key = "change_filament_gcode";
-    }  else if (opt_key == "bridge_fan_speed") {
+    } else if (opt_key == "bridge_fan_speed") {
         opt_key = "overhang_fan_speed";
+    } else if (opt_key == "infill_extruder") {
+        opt_key = "sparse_infill_filament";
+    }else if (opt_key == "solid_infill_extruder") {
+        opt_key = "solid_infill_filament";
+    }else if (opt_key == "perimeter_extruder") {
+        opt_key = "wall_filament";
+    } else if (opt_key == "support_material_extruder") {
+        opt_key = "support_filament";
+    } else if (opt_key == "support_material_interface_extruder") {
+        opt_key = "support_interface_filament";
     } else if ((opt_key == "initial_layer_print_height"   ||
                 opt_key == "initial_layer_speed"          ||
                 opt_key == "internal_solid_infill_speed"  ||
@@ -3362,17 +3273,17 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
 
     // Ignore the following obsolete configuration keys:
     static std::set<std::string> ignore = {
-        "duplicate_x", "duplicate_y", "gcode_arcs", "multiply_x", "multiply_y",
-        "support_material_tool", "acceleration", "adjust_overhang_flow",
-        "standby_temperature", "scale", "rotate", "duplicate", "duplicate_grid",
-        "start_perimeters_at_concave_points", "start_perimeters_at_non_overhang", "randomize_start",
-        "seal_position", "vibration_limit", "bed_size",
+        "acceleration", "scale", "rotate", "duplicate", "duplicate_grid",
+        "bed_size",
         "print_center", "g0", "pressure_advance", "wipe_tower_per_color_wipe"
 #ifndef HAS_PRESSURE_EQUALIZER
-        , "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative",
+        , "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative"
 #endif /* HAS_PRESSURE_EQUALIZER */
         // BBS
-        "thick_bridge",
+        , "thick_bridges","support_sharp_tails","remove_small_overhangs", "support_with_sheath",
+        "tree_support_branch_distance", "tree_support_branch_diameter",
+        "tree_support_branch_diameter_angle", "tree_support_collision_resolution",
+        "small_perimeter_speed", "max_volumetric_speed"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {
@@ -3437,22 +3348,22 @@ void DynamicPrintConfig::normalize_fdm(int used_filaments)
         int extruder = this->option("extruder")->getInt();
         this->erase("extruder");
         if (extruder != 0) {
-            if (!this->has("infill_extruder"))
-                this->option("infill_extruder", true)->setInt(extruder);
-            if (!this->has("perimeter_extruder"))
-                this->option("perimeter_extruder", true)->setInt(extruder);
+            if (!this->has("sparse_infill_filament"))
+                this->option("sparse_infill_filament", true)->setInt(extruder);
+            if (!this->has("wall_filament"))
+                this->option("wall_filament", true)->setInt(extruder);
             // Don't propagate the current extruder to support.
             // For non-soluble supports, the default "0" extruder means to use the active extruder,
             // for soluble supports one certainly does not want to set the extruder to non-soluble.
-            // if (!this->has("support_material_extruder"))
-            //     this->option("support_material_extruder", true)->setInt(extruder);
-            // if (!this->has("support_material_interface_extruder"))
-            //     this->option("support_material_interface_extruder", true)->setInt(extruder);
+            // if (!this->has("support_filament"))
+            //     this->option("support_filament", true)->setInt(extruder);
+            // if (!this->has("support_interface_filament"))
+            //     this->option("support_interface_filament", true)->setInt(extruder);
         }
     }
 
-    if (!this->has("solid_infill_extruder") && this->has("infill_extruder"))
-        this->option("solid_infill_extruder", true)->setInt(this->option("infill_extruder")->getInt());
+    if (!this->has("solid_infill_filament") && this->has("sparse_infill_filament"))
+        this->option("solid_infill_filament", true)->setInt(this->option("sparse_infill_filament")->getInt());
 
     if (this->has("spiral_mode") && this->opt<ConfigOptionBool>("spiral_mode", true)->value) {
         {

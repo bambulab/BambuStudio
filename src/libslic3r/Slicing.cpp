@@ -67,13 +67,13 @@ SlicingParameters SlicingParameters::create_from_config(
 {
     coordf_t initial_layer_print_height                      = (print_config.initial_layer_print_height.value <= 0) ? 
         object_config.layer_height.value : print_config.initial_layer_print_height.value;
-    // If object_config.support_material_extruder == 0 resp. object_config.support_material_interface_extruder == 0,
+    // If object_config.support_filament == 0 resp. object_config.support_interface_filament == 0,
     // print_config.nozzle_diameter.get_at(size_t(-1)) returns the 0th nozzle diameter,
-    // which is consistent with the requirement that if support_material_extruder == 0 resp. support_material_interface_extruder == 0,
+    // which is consistent with the requirement that if support_filament == 0 resp. support_interface_filament == 0,
     // support will not trigger tool change, but it will use the current nozzle instead.
     // In that case all the nozzles have to be of the same diameter.
-    coordf_t support_material_extruder_dmr           = print_config.nozzle_diameter.get_at(object_config.support_material_extruder.value - 1);
-    coordf_t support_material_interface_extruder_dmr = print_config.nozzle_diameter.get_at(object_config.support_material_interface_extruder.value - 1);
+    coordf_t support_material_extruder_dmr           = print_config.nozzle_diameter.get_at(object_config.support_filament.value - 1);
+    coordf_t support_material_interface_extruder_dmr = print_config.nozzle_diameter.get_at(object_config.support_interface_filament.value - 1);
     bool     soluble_interface                       = object_config.support_top_z_distance.value == 0.;
 
     SlicingParameters params;
@@ -93,11 +93,11 @@ SlicingParameters SlicingParameters::create_from_config(
     if (object_config.enable_support.value || params.base_raft_layers > 0 || object_config.support_material_enforce_layers > 0) {
         // Has some form of support. Add the support layers to the minimum / maximum layer height limits.
         params.min_layer_height = std::max(
-            min_layer_height_from_nozzle(print_config, object_config.support_material_extruder), 
-            min_layer_height_from_nozzle(print_config, object_config.support_material_interface_extruder));
+            min_layer_height_from_nozzle(print_config, object_config.support_filament), 
+            min_layer_height_from_nozzle(print_config, object_config.support_interface_filament));
         params.max_layer_height = std::min(
-            max_layer_height_from_nozzle(print_config, object_config.support_material_extruder), 
-            max_layer_height_from_nozzle(print_config, object_config.support_material_interface_extruder));
+            max_layer_height_from_nozzle(print_config, object_config.support_filament), 
+            max_layer_height_from_nozzle(print_config, object_config.support_interface_filament));
         params.max_suport_layer_height = params.max_layer_height;
     }
     if (object_extruders.empty()) {

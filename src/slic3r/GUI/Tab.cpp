@@ -1715,8 +1715,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("detect_overhang_wall");
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");
-        // BBS
-        //optgroup->append_single_option_line("thick_bridges");
 
     page = add_options_page(L("Strength"), "wrench");
         optgroup = page->new_optgroup(L("Walls"));
@@ -1750,7 +1748,6 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Other layers speed"));
         optgroup->append_single_option_line("inner_wall_speed");
         optgroup->append_single_option_line("outer_wall_speed");
-        //optgroup->append_single_option_line("small_perimeter_speed");
         optgroup->append_single_option_line("sparse_infill_speed");
         optgroup->append_single_option_line("internal_solid_infill_speed");
         optgroup->append_single_option_line("top_surface_speed");
@@ -1779,17 +1776,6 @@ void TabPrint::build()
 #endif /* HAS_PRESSURE_EQUALIZER */
 
     page = add_options_page(L("Support"), "support");
-        optgroup = page->new_optgroup(L("Bed adhension"));
-        optgroup->append_single_option_line("skirt_loops");
-        optgroup->append_single_option_line("skirt_distance");
-        //optgroup->append_single_option_line("draft_shield");
-        optgroup->append_single_option_line("brim_type");
-        optgroup->append_single_option_line("brim_width");
-        optgroup->append_single_option_line("brim_object_gap");
-        optgroup->append_single_option_line("raft_layers");
-        //optgroup->append_single_option_line("raft_first_layer_density");
-        //optgroup->append_single_option_line("raft_first_layer_expansion");
-
         optgroup = page->new_optgroup(L("Support"));
         optgroup->append_single_option_line("enable_support");
         optgroup->append_single_option_line("support_type");
@@ -1798,14 +1784,9 @@ void TabPrint::build()
         //optgroup->append_single_option_line("support_material_enforce_layers");
 
         optgroup = page->new_optgroup(L("Material for support"));
-        optgroup->append_single_option_line("support_material_extruder");
-        optgroup->append_single_option_line("support_material_interface_extruder");
+        optgroup->append_single_option_line("support_filament");
+        optgroup->append_single_option_line("support_interface_filament");
 
-        //optgroup = page->new_optgroup(L("Tree Support"));
-        //optgroup->append_single_option_line("tree_support_branch_distance");
-        //optgroup->append_single_option_line("tree_support_branch_diameter");
-        //optgroup->append_single_option_line("tree_support_branch_diameter_angle");
-        //optgroup->append_single_option_line("tree_support_collision_resolution");
         //optgroup = page->new_optgroup(L("Options for support material and raft"));
         //optgroup->append_single_option_line("support_style");
 
@@ -1817,7 +1798,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_top_z_distance");
         //optgroup->append_single_option_line("support_bottom_z_distance");
         optgroup->append_single_option_line("support_base_pattern");
-        //optgroup->append_single_option_line("support_with_sheath");
         optgroup->append_single_option_line("support_base_pattern_spacing");
         //optgroup->append_single_option_line("support_material_angle");
         //optgroup->append_single_option_line("support_closing_radius");
@@ -1830,11 +1810,20 @@ void TabPrint::build()
         
         optgroup->append_single_option_line("support_object_xy_distance");
         optgroup->append_single_option_line("bridge_no_support");
-        //optgroup->append_single_option_line("support_sharp_tails");
-        //optgroup->append_single_option_line("remove_small_overhangs");
         //optgroup->append_single_option_line("independent_support_layer_height");
 
     page = add_options_page(L("Others"), "advanced");
+        optgroup = page->new_optgroup(L("Bed adhension"));
+        optgroup->append_single_option_line("skirt_loops");
+        optgroup->append_single_option_line("skirt_distance");
+        //optgroup->append_single_option_line("draft_shield");
+        optgroup->append_single_option_line("brim_type");
+        optgroup->append_single_option_line("brim_width");
+        optgroup->append_single_option_line("brim_object_gap");
+        optgroup->append_single_option_line("raft_layers");
+        //optgroup->append_single_option_line("raft_first_layer_density");
+        //optgroup->append_single_option_line("raft_first_layer_expansion");
+
         optgroup = page->new_optgroup(L("Prime tower"));
         optgroup->append_single_option_line("enable_prime_tower");
         optgroup->append_single_option_line("prime_tower_width");

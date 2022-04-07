@@ -90,45 +90,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
-    //BBS: tree_support_branch_distance shouldn't be equal to zero
-    if (config->opt_float("tree_support_branch_distance") < EPSILON)
-    {
-        const wxString msg_text = _(L("Zero tree support branch distance is invalid.\nReset to 1"));
-        wxMessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
-        DynamicPrintConfig new_conf = *config;
-        is_msg_dlg_already_exist = true;
-        dialog.ShowModal();
-        new_conf.set_key_value("tree_support_branch_distance", new ConfigOptionFloat(1));
-        apply(config, &new_conf);
-        is_msg_dlg_already_exist = false;
-    }
-
-    //BBS: tree_support_branch_diameter shouldn't be equal to zero
-    if (config->opt_float("tree_support_branch_diameter") < EPSILON)
-    {
-        const wxString msg_text = _(L("Zero tree support branch diameter is invalid.\nReset to 5"));
-        wxMessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
-        DynamicPrintConfig new_conf = *config;
-        is_msg_dlg_already_exist = true;
-        dialog.ShowModal();
-        new_conf.set_key_value("tree_support_branch_diameter", new ConfigOptionFloat(5));
-        apply(config, &new_conf);
-        is_msg_dlg_already_exist = false;
-    }
-
-    //BBS: tree_support_collision_resolution shouldn't be equal to zero
-    if (config->opt_float("tree_support_collision_resolution") < EPSILON)
-    {
-        const wxString msg_text = _(L("Zero tree support collision resolution is invalid.\nReset to 0.2"));
-        wxMessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
-        DynamicPrintConfig new_conf = *config;
-        is_msg_dlg_already_exist = true;
-        dialog.ShowModal();
-        new_conf.set_key_value("tree_support_collision_resolution", new ConfigOptionFloat(0.2));
-        apply(config, &new_conf);
-        is_msg_dlg_already_exist = false;
-    }
-
     if (config->option<ConfigOptionFloat>("initial_layer_print_height")->value < EPSILON)
     {
         const wxString msg_text = _(L("Zero initial layer height is invalid.\n\nThe first layer height will be reset to 0.2."));
@@ -302,7 +263,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     // BBS
-    static const char* keys[] = { "support_material_extruder", "support_material_interface_extruder"};
+    static const char* keys[] = { "support_filament", "support_interface_filament"};
     for (int i = 0; i < sizeof(keys) / sizeof(keys[0]); i++) {
         std::string key = std::string(keys[i]);
         auto* opt = dynamic_cast<ConfigOptionInt*>(config->option(key, false));
@@ -345,21 +306,21 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     bool have_perimeters = config->opt_int("wall_loops") > 0;
     for (auto el : { "detect_thin_wall", "detect_overhang_wall",
                     "seam_position", "wall_infill_order", "outer_wall_line_width",
-                    "inner_wall_speed", "small_perimeter_speed", "outer_wall_speed" })
+                    "inner_wall_speed", "outer_wall_speed" })
         toggle_field(el, have_perimeters);
 
     bool have_infill = config->option<ConfigOptionPercent>("sparse_infill_density")->value > 0;
-    // infill_extruder uses the same logic as in Print::extruders()
+    // sparse_infill_filament uses the same logic as in Print::extruders()
     for (auto el : { "sparse_infill_pattern", "infill_combination",
-                    "minimum_sparse_infill_area", "infill_extruder"})
+                    "minimum_sparse_infill_area", "sparse_infill_filament"})
         toggle_field(el, have_infill);
 
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
     bool has_top_solid_infill 	 = config->opt_int("top_shell_layers") > 0;
     bool has_bottom_solid_infill = config->opt_int("bottom_shell_layers") > 0;
     bool has_solid_infill 		 = has_top_solid_infill || has_bottom_solid_infill;
-    // solid_infill_extruder uses the same logic as in Print::extruders()
-    for (auto el : { "top_surface_pattern", "bottom_surface_pattern", "solid_infill_extruder"})
+    // solid_infill_filament uses the same logic as in Print::extruders()
+    for (auto el : { "top_surface_pattern", "bottom_surface_pattern", "solid_infill_filament"})
         toggle_field(el, has_solid_infill);
 
     for (auto el : { "infill_direction", "sparse_infill_line_width",
@@ -389,8 +350,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     toggle_field("brim_object_gap", have_brim);
     bool have_brim_width = (config->opt_enum<BrimType>("brim_type") != btNoBrim) && config->opt_enum<BrimType>("brim_type") != btAutoBrim;
     toggle_field("brim_width", have_brim_width);
-    // perimeter_extruder uses the same logic as in Print::extruders()
-    toggle_field("perimeter_extruder", have_perimeters || have_brim);
+    // wall_filament uses the same logic as in Print::extruders()
+    toggle_field("wall_filament", have_perimeters || have_brim);
 
     bool have_raft = config->opt_int("raft_layers") > 0;
     bool have_support_material = config->opt_bool("enable_support") || have_raft;
@@ -399,23 +360,22 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     bool have_support_interface = config->opt_int("support_interface_top_layers") > 0 || config->opt_int("support_interface_bottom_layers") > 0;
     bool have_support_soluble = have_support_material && config->opt_float("support_top_z_distance") == 0;
     auto support_style = config->opt_enum<SupportMaterialStyle>("support_style");
-    for (auto el : { "support_style", "support_base_pattern", "support_with_sheath",
+    for (auto el : { "support_style", "support_base_pattern",
                     "support_base_pattern_spacing", "support_material_angle", 
                     "support_interface_pattern", "support_interface_top_layers", "support_interface_bottom_layers",
                     "bridge_no_support", "support_line_width", "support_top_z_distance",
                      //BBS: add more support params to dependent of enable_support
-                    "support_sharp_tails","remove_small_overhangs","support_type","support_on_build_plate_only",
+                    "support_type","support_on_build_plate_only",
                     "support_object_xy_distance", "support_transition_line_width", "independent_support_layer_height"})
         toggle_field(el, have_support_material);
     toggle_field("support_threshold_angle", have_support_material && (support_type == stNormalAuto || support_type == stTreeAuto || support_type==stHybridAuto));
     toggle_field("support_bottom_z_distance", have_support_material && ! have_support_soluble);
     toggle_field("support_closing_radius", have_support_material && support_style == smsSnug);
 
-    for (auto el : { "tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter",
-                    "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_wall_count", "tree_support_with_infill" })
+    for (auto el : { "tree_support_branch_angle", "tree_support_wall_count", "tree_support_with_infill" })
         toggle_field(el, config->opt_bool("enable_support") && (support_type == stTreeAuto || support_type == stTree || support_type == stHybridAuto));
 
-    for (auto el : { "support_interface_spacing", "support_material_interface_extruder",
+    for (auto el : { "support_interface_spacing", "support_interface_filament",
                     "support_interface_speed", "support_interface_loop_pattern",
                     "support_transition_speed","support_bottom_interface_spacing" })
         toggle_field(el, have_support_material && have_support_interface);
@@ -424,7 +384,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     //toggle_field("support_material_synchronize_layers", have_support_soluble);
 
     toggle_field("inner_wall_line_width", have_perimeters || have_skirt || have_brim);
-    toggle_field("support_material_extruder", have_support_material || have_skirt);
+    toggle_field("support_filament", have_support_material || have_skirt);
     toggle_field("support_speed", have_support_material || have_brim || have_skirt);
 
     toggle_field("raft_contact_distance", have_raft && !have_support_soluble);

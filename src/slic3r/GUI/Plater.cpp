@@ -1752,8 +1752,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
         "extruder_colour", "filament_colour", "material_colour", "printable_height", "printer_model", "printer_technology",
         // These values are necessary to construct SlicingParameters by the Canvas3D variable layer height editor.
         "layer_height", "initial_layer_print_height", "min_layer_height", "max_layer_height",
-        "brim_width", "wall_loops", "perimeter_extruder", "sparse_infill_density", "infill_extruder", "top_shell_layers",
-        "enable_support", "support_material_extruder", "support_material_interface_extruder",
+        "brim_width", "wall_loops", "wall_filament", "sparse_infill_density", "sparse_infill_filament", "top_shell_layers",
+        "enable_support", "support_filament", "support_interface_filament",
         "support_top_z_distance", "support_bottom_z_distance", "raft_layers"
         }))
     , sidebar(new Sidebar(q))
@@ -2207,7 +2207,7 @@ void Plater::setPrintSpeedTable(GlobalSpeedMap &printSpeedMap) {
             printSpeedMap.maxSpeed = printSpeedMap.supportSpeed;
     }
 
-    /*        "inner_wall_speed", "small_perimeter_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
+    /*        "inner_wall_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
         "top_surface_speed", "support_speed", "support_object_xy_distance", "support_interface_speed",
         "bridge_speed", "gap_infill_speed", "travel_speed", "initial_layer_speed"*/
 }

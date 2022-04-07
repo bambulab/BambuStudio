@@ -65,6 +65,8 @@ namespace Slic3r {
 //#define SUPPORT_SURFACES_OFFSET_PARAMETERS ClipperLib::jtMiter, 1.5
 #define SUPPORT_SURFACES_OFFSET_PARAMETERS ClipperLib::jtSquare, 0.
 
+static constexpr bool support_with_sheath = false;
+
 #ifdef SLIC3R_DEBUG
 const char* support_surface_type_to_color_name(const PrintObjectSupportMaterial::SupporLayerType surface_type)
 {
@@ -360,16 +362,16 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     m_support_params.gap_xy = m_object_config->support_object_xy_distance.get_abs_value(external_perimeter_width);
     bridge_flow /= object->num_printing_regions();
 
-    m_support_params.support_material_bottom_interface_flow = m_slicing_params.soluble_interface || ! m_object_config->thick_bridges ?
+    m_support_params.support_material_bottom_interface_flow = m_slicing_params.soluble_interface || ! g_config_thick_bridges ?
         m_support_params.support_material_interface_flow.with_flow_ratio(bridge_flow) :
         Flow::bridging_flow(bridge_flow * m_support_params.support_material_interface_flow.nozzle_diameter(), m_support_params.support_material_interface_flow.nozzle_diameter());
 
-    m_support_params.can_merge_support_regions = m_object_config->support_material_extruder.value == m_object_config->support_material_interface_extruder.value;
-    if (!m_support_params.can_merge_support_regions && (m_object_config->support_material_extruder.value == 0 || m_object_config->support_material_interface_extruder.value == 0)) {
+    m_support_params.can_merge_support_regions = m_object_config->support_filament.value == m_object_config->support_interface_filament.value;
+    if (!m_support_params.can_merge_support_regions && (m_object_config->support_filament.value == 0 || m_object_config->support_interface_filament.value == 0)) {
         // One of the support extruders is of "don't care" type.
         auto object_extruders = m_object->object_extruders();
         if (object_extruders.size() == 1 &&
-            *object_extruders.begin() == std::max<unsigned int>(m_object_config->support_material_extruder.value, m_object_config->support_material_interface_extruder.value))
+            *object_extruders.begin() == std::max<unsigned int>(m_object_config->support_filament.value, m_object_config->support_interface_filament.value))
             // Object is printed with the same extruder as the support.
             m_support_params.can_merge_support_regions = true;
     }
@@ -388,7 +390,7 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     }
 
     SupportMaterialPattern  support_pattern = m_object_config->support_base_pattern;
-    m_support_params.with_sheath            = m_object_config->support_with_sheath;
+    m_support_params.with_sheath = support_with_sheath;
     m_support_params.base_fill_pattern      = 
         support_pattern == smpHoneycomb ? ipHoneycomb :
         m_support_params.support_density > 0.95 || m_support_params.with_sheath ? ipRectilinear : ipSupportBase;
@@ -1324,7 +1326,7 @@ namespace SupportMaterialInternal {
             // Surface supporting this layer, expanded by 0.5 * nozzle_diameter, as we consider this kind of overhang to be sufficiently supported.
             Polygons lower_grown_slices = expand(lower_layer_polygons,
                 //FIXME to mimic the decision in the perimeter generator, we should use half the external perimeter width.
-                0.5f * float(scale_(print_config.nozzle_diameter.get_at(layerm.region().config().perimeter_extruder-1))),
+                0.5f * float(scale_(print_config.nozzle_diameter.get_at(layerm.region().config().wall_filament-1))),
                 SUPPORT_SURFACES_OFFSET_PARAMETERS);
             // Collect perimeters of this layer.
             //FIXME split_at_first_point() could split a bridge mid-way
@@ -1472,7 +1474,6 @@ static inline Polygons detect_overhangs(
 
     // BBS.
     const bool   auto_normal_support = object_config.support_type.value == stNormalAuto;
-    const bool   support_sharp_tails = object_config.support_sharp_tails.value;
     const bool   buildplate_only = ! annotations.buildplate_covered.empty();
     // If user specified a custom angle threshold, convert it to radians.
     // Zero means automatic overhang detection.
@@ -1546,7 +1547,7 @@ static inline Polygons detect_overhangs(
                 bool is_sharp_tail = false;
                 float accum_height = layer.height;
                 do {
-                    if (!support_sharp_tails) {
+                    if (!g_config_support_sharp_tails) {
                         is_sharp_tail = false;
                         break;
                     }
@@ -1657,7 +1658,6 @@ static inline std::tuple<Polygons, Polygons, double> detect_contacts(
 
     // BBS.
     const bool   auto_normal_support = object_config.support_type.value == stNormalAuto;
-    const bool   support_sharp_tails = object_config.support_sharp_tails.value;
     const bool   buildplate_only = !annotations.buildplate_covered.empty();
     // If user specified a custom angle threshold, convert it to radians.
     // Zero means automatic overhang detection.
@@ -1815,7 +1815,7 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
 
         // Contact layer will be printed with a normal flow, but
         // it will support layers printed with a bridging flow.
-        if (object_config.thick_bridges && SupportMaterialInternal::has_bridging_extrusions(layer)) {
+        if (g_config_thick_bridges && SupportMaterialInternal::has_bridging_extrusions(layer)) {
             coordf_t bridging_height = 0.;
             coordf_t bridging_height_aligned = 0.f;
             for (const LayerRegion* region : layer.regions())
@@ -2143,8 +2143,6 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
 
     // Output layers, sorted by top Z.
     MyLayersPtr contact_out;
-    // BBS
-    const bool remove_small_overhangs = m_object_config->remove_small_overhangs.value;
 
     BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::top_contact_layers() in parallel - start";
     // Determine top contact areas.
@@ -2174,7 +2172,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     }
 
     // BBS
-    if (remove_small_overhangs) {
+    if (g_config_remove_small_overhangs) {
         std::vector<OverhangCluster> clusters;
         double fw_scaled = scale_(m_object_config->line_width);
         std::set<Polygon*> removed_overhang;
@@ -2360,7 +2358,7 @@ static inline PrintObjectSupportMaterial::MyLayer* detect_bottom_contacts(
         layer.print_z + layer_new.height + slicing_params.gap_object_support;
     layer_new.bottom_z = layer.print_z;
     layer_new.idx_object_layer_below = layer_id;
-    layer_new.bridging = !slicing_params.soluble_interface && object.config().thick_bridges;
+    layer_new.bridging = !slicing_params.soluble_interface && g_config_thick_bridges;
     //FIXME how much to inflate the bottom surface, as it is being extruded with a bridging flow? The following line uses a normal flow.
     layer_new.polygons = expand(touching, float(support_params.support_material_flow.scaled_width()), SUPPORT_SURFACES_OFFSET_PARAMETERS);
 
@@ -3143,7 +3141,7 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                             polygons_append(polygons_trimming, offset({ expoly }, gap_xy_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS));
                     }
                 }
-                if (! m_slicing_params.soluble_interface && m_object_config->thick_bridges) {
+                if (! m_slicing_params.soluble_interface && g_config_thick_bridges) {
                     // Collect all bottom surfaces, which will be extruded with a bridging flow.
                     for (; i < object.layers().size(); ++ i) {
                         const Layer &object_layer = *object.layers()[i];
@@ -3339,9 +3337,9 @@ std::pair<PrintObjectSupportMaterial::MyLayersPtr, PrintObjectSupportMaterial::M
         // Zero z-gap between the overhangs and the support interface.
         m_slicing_params.soluble_interface && 
         // Interface extruder soluble.
-        m_object_config->support_material_interface_extruder.value > 0 && m_print_config->filament_soluble.get_at(m_object_config->support_material_interface_extruder.value - 1) && 
+        m_object_config->support_interface_filament.value > 0 && m_print_config->filament_soluble.get_at(m_object_config->support_interface_filament.value - 1) && 
         // Base extruder: Either "print with active extruder" not soluble.
-        (m_object_config->support_material_extruder.value == 0 || ! m_print_config->filament_soluble.get_at(m_object_config->support_material_extruder.value - 1));
+        (m_object_config->support_filament.value == 0 || ! m_print_config->filament_soluble.get_at(m_object_config->support_filament.value - 1));
     bool   snug_supports                 = m_object_config->support_style.value == smsSnug;
     int num_interface_layers_top         = m_object_config->support_interface_top_layers;
     int num_interface_layers_bottom      = m_object_config->support_interface_bottom_layers;

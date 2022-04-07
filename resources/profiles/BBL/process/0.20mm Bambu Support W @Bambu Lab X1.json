@@ -12,7 +12,7 @@
     "support_interface_loop_pattern": "1",
     "support_interface_spacing": "0",
     "support_interface_speed": "80",
-    "support_material_extruder": "0",
-    "support_material_interface_extruder": "0",
+    "support_filament": "0",
+    "support_interface_filament": "0",
     "enable_prime_tower": "1"
 }

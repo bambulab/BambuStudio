@@ -35,6 +35,10 @@ namespace Slic3r
 #define unscale_(val) ((val) * SCALING_FACTOR)
 #define FIRST_LAYER_EXPANSION 1.2
 
+static constexpr float tree_support_branch_distance = 1.0;
+static constexpr float tree_support_branch_diameter = 5.0;
+static constexpr float tree_support_branch_diameter_angle = 5.0;
+
 inline unsigned int round_divide(unsigned int dividend, unsigned int divisor) //!< Return dividend divided by divisor rounded to the nearest integer
 {
     return (dividend + divisor / 2) / divisor;
@@ -752,8 +756,6 @@ void TreeSupport::detect_object_overhangs()
     const coordf_t extrusion_width = config.line_width.value;
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     const bool bridge_no_support = config.bridge_no_support.value;
-    const bool support_sharp_tails = config.support_sharp_tails.value;
-    const bool remove_small_overhangs = config.remove_small_overhangs.value;
     const int support_material_enforce_layers = config.support_material_enforce_layers.value;
     const double area_thresh_well_supported = SQ(scale_(4));  // min: 4x4=16mm^2
     const double length_thresh_well_supported = scale_(4);  // min: 4x4=16mm^2
@@ -905,7 +907,7 @@ void TreeSupport::detect_object_overhangs()
             overhang_areas.erase(std::remove_if(overhang_areas.begin(), overhang_areas.end(), [extrusion_width_scaled](ExPolygon& area) {return offset_ex(area, -0.1 * extrusion_width_scaled).empty(); }), overhang_areas.end());
 
             ExPolygons overhangs_sharp_tail;
-            if (is_auto && support_sharp_tails)
+            if (is_auto && g_config_support_sharp_tails)
             {
                 // detect sharp tail and add more supports around
                 for (auto& lower_region : lower_layer_offseted) {
@@ -930,7 +932,7 @@ void TreeSupport::detect_object_overhangs()
                     has_sharp_tail = true;
             }
 
-            if (support_sharp_tails)
+            if (g_config_support_sharp_tails)
                 overhang_areas = union_ex(overhang_areas, overhangs_sharp_tail);
 
 
@@ -955,13 +957,13 @@ void TreeSupport::detect_object_overhangs()
 #endif
             }
 
-            if (is_auto && remove_small_overhangs) {
+            if (is_auto && g_config_remove_small_overhangs) {
                 for (auto& overhang : ts_layer->overhang_areas) {
                     find_and_insert_cluster(overhangClusters, overhang2clusterInd, overhang, layer_nr, extrusion_width_scaled);
                 }
             }
 
-            if (is_auto && support_sharp_tails)
+            if (is_auto && g_config_support_sharp_tails)
             {  // update well supported regions
                 ExPolygons regions_well_supported2;
                 // regions intersects with lower regions_well_supported or large support are also well supported
@@ -1005,7 +1007,7 @@ void TreeSupport::detect_object_overhangs()
     m_object->project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers);
     m_object->project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
 
-    if (is_auto && remove_small_overhangs) {
+    if (is_auto && g_config_remove_small_overhangs) {
         if (blockers.size() < m_object->layer_count())
             blockers.resize(m_object->layer_count());
         for (auto& cluster : overhangClusters) {
@@ -1293,7 +1295,7 @@ void TreeSupport::generate_toolpaths()
     const PrintObjectConfig &object_config = m_object->config();
     coordf_t support_extrusion_width = object_config.support_line_width.value > 0 ? object_config.support_line_width : object_config.line_width;
     coordf_t support_transition_line_width = object_config.support_transition_line_width.value > 0 ? object_config.support_transition_line_width : object_config.line_width;
-    coordf_t nozzle_diameter = print_config.nozzle_diameter.get_at(object_config.support_material_extruder - 1);
+    coordf_t nozzle_diameter = print_config.nozzle_diameter.get_at(object_config.support_filament - 1);
 
     const size_t wall_count = object_config.tree_support_wall_count.value;
     const bool with_infill = object_config.tree_support_with_infill.value;
@@ -1309,7 +1311,7 @@ void TreeSupport::generate_toolpaths()
     coordf_t support_spacing = object_config.support_base_pattern_spacing.value + m_support_material_flow.spacing();
     coordf_t support_density = std::min(1., m_support_material_flow.spacing() / support_spacing);
 
-    const coordf_t branch_radius = object_config.tree_support_branch_diameter.value / 2;
+    const coordf_t branch_radius = tree_support_branch_diameter / 2;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
 
     if (m_object->tree_support_layers().empty())
@@ -1801,7 +1803,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     const PrintObjectConfig &config = m_object->config();
     bool has_brim = m_object->print()->has_brim();
     int bottom_gap_layers = round(m_slicing_params.gap_object_support / m_slicing_params.layer_height);
-    const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
+    const coordf_t branch_radius = tree_support_branch_diameter / 2;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
     Polygon branch_circle; //Pre-generate a circle with correct diameter so that we don't have to recompute those (co)sines every time.
     for (unsigned int i = 0; i < CIRCLE_RESOLUTION; i++)
@@ -1829,7 +1831,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     const coordf_t layer_height = config.layer_height.value;
     const size_t bottom_interface_layers = config.support_interface_bottom_layers.value;
     const size_t tip_layers = branch_radius / layer_height; //The number of layers to be shrinking the circle to create a tip. This produces a 45 degree angle.
-    const double diameter_angle_scale_factor = sin(config.tree_support_branch_diameter_angle.value * M_PI / 180.) * layer_height / branch_radius; //Scale factor per layer to produce the desired angle.
+    const double diameter_angle_scale_factor = sin(tree_support_branch_diameter_angle * M_PI / 180.) * layer_height / branch_radius; //Scale factor per layer to produce the desired angle.
     const coordf_t line_width = config.support_line_width.get_abs_value(layer_height);
 
     // coconut: previously std::unordered_map in m_collision_cache is not multi-thread safe which may cause programs stuck, here we change to tbb::concurrent_unordered_map
@@ -1936,7 +1938,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                             line_expanded.emplace_back(circle);
                         }
                         else {
-                            line_expanded = offset(line, scale_(radius), jtRound, scale_(config.tree_support_collision_resolution));
+                            line_expanded = offset(line, scale_(radius), jtRound, scale_(g_config_tree_support_collision_resolution));
                         }
                         if (line_expanded.empty())
                             continue;
@@ -2039,9 +2041,9 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
     const double tan_angle = tan(angle);
     const coordf_t max_move_distance = (angle < M_PI / 2) ? (coordf_t)(tan_angle * layer_height) : std::numeric_limits<coordf_t>::max();
     const double max_move_distance2 = max_move_distance * max_move_distance;
-    const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
+    const coordf_t branch_radius = tree_support_branch_diameter / 2;
     const size_t tip_layers = branch_radius / layer_height; //The number of layers to be shrinking the circle to create a tip. This produces a 45 degree angle.
-    const double diameter_angle_scale_factor = sin(config.tree_support_branch_diameter_angle.value * M_PI / 180.) * layer_height / branch_radius; //Scale factor per layer to produce the desired angle.
+    const double diameter_angle_scale_factor = sin(tree_support_branch_diameter_angle * M_PI / 180.) * layer_height / branch_radius; //Scale factor per layer to produce the desired angle.
     const coordf_t radius_sample_resolution = m_ts_data->m_radius_sample_resolution;
     const bool support_on_buildplate_only = config.support_on_build_plate_only.value;
     const size_t bottom_interface_layers = config.support_interface_bottom_layers.value;
@@ -2531,7 +2533,7 @@ void TreeSupport::adjust_layer_heights(std::vector<std::vector<Node*>>& contact_
 void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::Node*>>& contact_nodes)
 {
     const PrintObjectConfig &config = m_object->config();
-    const coordf_t point_spread = scale_(config.tree_support_branch_distance.value);
+    const coordf_t point_spread = scale_(tree_support_branch_distance);
 
     //First generate grid points to cover the entire area of the print.
     BoundingBox bounding_box = m_object->bounding_box();
@@ -2562,7 +2564,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
     coordf_t z_distance_top = m_slicing_params.gap_support_object;
     // BBS: add extra distance if thick bridge is enabled
     // Note: normal support uses print_z, but tree support uses integer layers, so we need to subtract layer_height
-    if (!m_slicing_params.soluble_interface && config.thick_bridges) {
+    if (!m_slicing_params.soluble_interface && g_config_thick_bridges) {
         z_distance_top += m_object->layers()[0]->regions()[0]->region().bridging_height_avg(m_object->print()->config()) - layer_height;
     }
     const size_t z_distance_top_layers = round_up_divide(scale_(z_distance_top), scale_(layer_height)) + 1; //Support must always be 1 layer below overhang.

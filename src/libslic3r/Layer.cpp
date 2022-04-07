@@ -166,7 +166,7 @@ void Layer::make_perimeters()
 	            if (! (*it)->slices.empty()) {
 		            LayerRegion* other_layerm = *it;
 		            const PrintRegionConfig &other_config = other_layerm->region().config();
-		            if (config.perimeter_extruder             == other_config.perimeter_extruder
+		            if (config.wall_filament             == other_config.wall_filament
 		                && config.wall_loops                  == other_config.wall_loops
 		                && config.inner_wall_speed             == other_config.inner_wall_speed
 		                && config.outer_wall_speed    == other_config.outer_wall_speed

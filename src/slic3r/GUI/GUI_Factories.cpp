@@ -77,7 +77,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
                     }},
     { L("Support"), {{"brim_type", "",1},{"brim_width", "",2},{"brim_object_gap", "",3},
                     {"enable_support", "",4},{"support_type", "",5},{"support_threshold_angle", "",6},{"support_on_build_plate_only", "",7},
-                    {"support_material_extruder", "",8},{"support_material_interface_extruder", "",9},
+                    {"support_filament", "",8},{"support_interface_filament", "",9},
                      {"tree_support_branch_angle", "",10}, {"tree_support_wall_count", "",11},{"tree_support_with_infill", "",12},//tree support
                             {"support_top_z_distance", "",13},{"support_base_pattern", "",14},{"support_base_pattern_spacing", "",15},
                             {"support_interface_top_layers", "",16},{"support_interface_bottom_layers", "",17},{"support_interface_spacing", "",18},{"support_bottom_interface_spacing", "",19},

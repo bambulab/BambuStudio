@@ -37,35 +37,35 @@ bool LayerTools::is_extruder_order(unsigned int a, unsigned int b) const
 }
 
 // Return a zero based extruder from the region, or extruder_override if overriden.
-unsigned int LayerTools::perimeter_extruder(const PrintRegion &region) const
+unsigned int LayerTools::wall_filament(const PrintRegion &region) const
 {
-	assert(region.config().perimeter_extruder.value > 0);
-	return ((this->extruder_override == 0) ? region.config().perimeter_extruder.value : this->extruder_override) - 1;
+	assert(region.config().wall_filament.value > 0);
+	return ((this->extruder_override == 0) ? region.config().wall_filament.value : this->extruder_override) - 1;
 }
 
-unsigned int LayerTools::infill_extruder(const PrintRegion &region) const
+unsigned int LayerTools::sparse_infill_filament(const PrintRegion &region) const
 {
-	assert(region.config().infill_extruder.value > 0);
-	return ((this->extruder_override == 0) ? region.config().infill_extruder.value : this->extruder_override) - 1;
+	assert(region.config().sparse_infill_filament.value > 0);
+	return ((this->extruder_override == 0) ? region.config().sparse_infill_filament.value : this->extruder_override) - 1;
 }
 
-unsigned int LayerTools::solid_infill_extruder(const PrintRegion &region) const
+unsigned int LayerTools::solid_infill_filament(const PrintRegion &region) const
 {
-	assert(region.config().solid_infill_extruder.value > 0);
-	return ((this->extruder_override == 0) ? region.config().solid_infill_extruder.value : this->extruder_override) - 1;
+	assert(region.config().solid_infill_filament.value > 0);
+	return ((this->extruder_override == 0) ? region.config().solid_infill_filament.value : this->extruder_override) - 1;
 }
 
 // Returns a zero based extruder this eec should be printed with, according to PrintRegion config or extruder_override if overriden.
 unsigned int LayerTools::extruder(const ExtrusionEntityCollection &extrusions, const PrintRegion &region) const
 {
-	assert(region.config().perimeter_extruder.value > 0);
-	assert(region.config().infill_extruder.value > 0);
-	assert(region.config().solid_infill_extruder.value > 0);
+	assert(region.config().wall_filament.value > 0);
+	assert(region.config().sparse_infill_filament.value > 0);
+	assert(region.config().solid_infill_filament.value > 0);
 	// 1 based extruder ID.
 	unsigned int extruder = ((this->extruder_override == 0) ?
 	    (is_infill(extrusions.role()) ?
-	    	(is_solid_infill(extrusions.entities.front()->role()) ? region.config().solid_infill_extruder : region.config().infill_extruder) :
-			region.config().perimeter_extruder.value) :
+	    	(is_solid_infill(extrusions.entities.front()->role()) ? region.config().solid_infill_filament : region.config().sparse_infill_filament) :
+			region.config().wall_filament.value) :
 		this->extruder_override);
 	return (extruder == 0) ? 0 : extruder - 1;
 }
@@ -198,7 +198,7 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
     for (auto object : print.objects()) {
         auto first_layer = object->get_layer(0);
         for (auto layerm : first_layer->regions()) {
-            int extruder_id = layerm->region().config().option("perimeter_extruder")->getInt();
+            int extruder_id = layerm->region().config().option("wall_filament")->getInt();
             for (auto expoly : to_expolygons(layerm->slices.surfaces)) {
                 double contour_area = expoly.contour.area();
                 auto iter = min_areas_per_extruder.find(extruder_id);
@@ -235,7 +235,7 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
     std::map<int, double> min_areas_per_extruder;
     auto first_layer = object.get_layer(0);
     for (auto layerm : first_layer->regions()) {
-        int extruder_id = layerm->region().config().option("perimeter_extruder")->getInt();
+        int extruder_id = layerm->region().config().option("wall_filament")->getInt();
         for (auto expoly : to_expolygons(layerm->slices.surfaces)) {
             double contour_area = expoly.contour.area();
             auto iter = min_areas_per_extruder.find(extruder_id);
@@ -288,8 +288,8 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
         ExtrusionRole role = support_layer->support_fills.role();
         bool         has_support        = role == erMixed || role == erSupportMaterial || role == erSupportTransition;
         bool         has_interface      = role == erMixed || role == erSupportMaterialInterface;
-        unsigned int extruder_support   = object.config().support_material_extruder.value;
-        unsigned int extruder_interface = object.config().support_material_interface_extruder.value;
+        unsigned int extruder_support   = object.config().support_filament.value;
+        unsigned int extruder_interface = object.config().support_interface_filament.value;
         if (has_support)
             layer_tools.extruders.push_back(extruder_support);
         if (has_interface)
@@ -304,8 +304,8 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
         ExtrusionRole role = tree_support_layer->support_fills.role();
         bool         has_support        = role == erMixed || role == erSupportMaterial || role == erSupportTransition;;
         bool         has_interface      = role == erMixed || role == erSupportMaterialInterface;
-        unsigned int extruder_support   = object.config().support_material_extruder.value;
-        unsigned int extruder_interface = object.config().support_material_interface_extruder.value;
+        unsigned int extruder_support   = object.config().support_filament.value;
+        unsigned int extruder_interface = object.config().support_interface_filament.value;
         if (has_support)
             layer_tools.extruders.push_back(extruder_support);
         if (has_interface)
@@ -345,7 +345,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                 }
 
                 if (something_nonoverriddable)
-               		layer_tools.extruders.emplace_back((extruder_override == 0) ? region.config().perimeter_extruder.value : extruder_override);
+               		layer_tools.extruders.emplace_back((extruder_override == 0) ? region.config().wall_filament.value : extruder_override);
 
                 layer_tools.has_object = true;
             }
@@ -371,9 +371,9 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
             if (something_nonoverriddable || !m_print_config_ptr) {
             	if (extruder_override == 0) {
 	                if (has_solid_infill)
-	                    layer_tools.extruders.emplace_back(region.config().solid_infill_extruder);
+	                    layer_tools.extruders.emplace_back(region.config().solid_infill_filament);
 	                if (has_infill)
-	                    layer_tools.extruders.emplace_back(region.config().infill_extruder);
+	                    layer_tools.extruders.emplace_back(region.config().sparse_infill_filament);
             	} else if (has_solid_infill || has_infill)
             		layer_tools.extruders.emplace_back(extruder_override);
             }
@@ -890,7 +890,7 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
                         if (wipe_into_infill_only && ! is_infill_first)
                             // In this case we must check that the original extruder is used on this layer before the one we are overridding
                             // (and the perimeters will be finished before the infill is printed):
-                            if (!lt.is_extruder_order(lt.perimeter_extruder(region), new_extruder))
+                            if (!lt.is_extruder_order(lt.wall_filament(region), new_extruder))
                                 continue;
 
                         if ((!is_entity_overridden(fill, copy) && fill->total_volume() > min_infill_volume)) {     // this infill will be used to wipe this extruder
@@ -972,8 +972,8 @@ void WipingExtrusions::ensure_perimeters_infills_order(const Print& print)
                     if (is_infill_first
                     //BBS
                     //|| object->config().wipe_into_objects  // in this case the perimeter is overridden, so we can override by the last one safely
-                    || lt.is_extruder_order(lt.perimeter_extruder(region), last_nonsoluble_extruder    // !infill_first, but perimeter is already printed when last extruder prints
-                    || ! lt.has_extruder(lt.infill_extruder(region)))) // we have to force override - this could violate infill_first (FIXME)
+                    || lt.is_extruder_order(lt.wall_filament(region), last_nonsoluble_extruder    // !infill_first, but perimeter is already printed when last extruder prints
+                    || ! lt.has_extruder(lt.sparse_infill_filament(region)))) // we have to force override - this could violate infill_first (FIXME)
                         set_extruder_override(fill, copy, (is_infill_first ? first_nonsoluble_extruder : last_nonsoluble_extruder), num_of_copies);
                     else {
                         // In this case we can (and should) leave it to be printed normally.

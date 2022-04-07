@@ -283,9 +283,9 @@ static ExPolygons top_level_outer_brim_area(const Print& print, const ConstPrint
 
     unsigned int support_material_extruder = 1;
     if (print.has_support_material()) {
-        assert(top_level_objects_with_brim.front()->config().support_material_extruder >= 0);
-        if (top_level_objects_with_brim.front()->config().support_material_extruder > 0)
-            support_material_extruder = top_level_objects_with_brim.front()->config().support_material_extruder;
+        assert(top_level_objects_with_brim.front()->config().support_filament >= 0);
+        if (top_level_objects_with_brim.front()->config().support_filament > 0)
+            support_material_extruder = top_level_objects_with_brim.front()->config().support_filament;
     }
 
     ExPolygons brim_area;
@@ -466,9 +466,9 @@ static ExPolygons inner_brim_area(const Print& print, const ConstPrintObjectPtrs
 
     unsigned int support_material_extruder = 1;
     if (print.has_support_material()) {
-        assert(top_level_objects_with_brim.front()->config().support_material_extruder >= 0);
-        if (top_level_objects_with_brim.front()->config().support_material_extruder > 0)
-            support_material_extruder = top_level_objects_with_brim.front()->config().support_material_extruder;
+        assert(top_level_objects_with_brim.front()->config().support_filament >= 0);
+        if (top_level_objects_with_brim.front()->config().support_filament > 0)
+            support_material_extruder = top_level_objects_with_brim.front()->config().support_filament;
     }
 
     ExPolygons brim_area;
@@ -815,9 +815,9 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
     unsigned int support_material_extruder = printExtruders.front() + 1;
     auto allExtruders = print.extruders();
     if (print.has_support_material()) {
-        assert(top_level_objects_with_brim.front()->config().support_material_extruder >= 0);
-        if (top_level_objects_with_brim.front()->config().support_material_extruder > 0)
-            support_material_extruder = top_level_objects_with_brim.front()->config().support_material_extruder;
+        assert(top_level_objects_with_brim.front()->config().support_filament >= 0);
+        if (top_level_objects_with_brim.front()->config().support_filament > 0)
+            support_material_extruder = top_level_objects_with_brim.front()->config().support_filament;
         allExtruders.push_back(support_material_extruder - 1);
         sort_remove_duplicates(allExtruders);
     }
@@ -918,7 +918,7 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
                 if (brimAreaMap.find(object->id()) != brimAreaMap.end())
                     expolygons_append(brim_area, brimAreaMap[object->id()]);
             }
-            if ((print.config().print_sequence == PrintSequence::ByObject) && top_level_objects_with_brim.front()->config().support_material_extruder == 0)
+            if ((print.config().print_sequence == PrintSequence::ByObject) && top_level_objects_with_brim.front()->config().support_filament == 0)
                 support_material_extruder = objectWithExtruder.second;
             if (support_material_extruder == extruderNo && brimToWrite.at(object->id()).sup) {
                 if (!object->support_layers().empty()) {
@@ -1221,9 +1221,9 @@ static void make_inner_island_brim(const Print& print, const ConstPrintObjectPtr
 
     unsigned int support_material_extruder = 1;
     if (print.has_support_material()) {
-        assert(top_level_objects_with_brim.front()->config().support_material_extruder >= 0);
-        if (top_level_objects_with_brim.front()->config().support_material_extruder > 0)
-            support_material_extruder = top_level_objects_with_brim.front()->config().support_material_extruder;
+        assert(top_level_objects_with_brim.front()->config().support_filament >= 0);
+        if (top_level_objects_with_brim.front()->config().support_filament > 0)
+            support_material_extruder = top_level_objects_with_brim.front()->config().support_filament;
     }
 
     std::unordered_set<size_t> top_level_objects_idx;

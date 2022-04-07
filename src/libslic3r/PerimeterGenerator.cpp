@@ -709,7 +709,7 @@ bool PerimeterGeneratorLoop::is_internal_contour() const
 
 std::map<int, Polygons> PerimeterGenerator::generate_lower_polygons_series(float width)
 {
-    float nozzle_diameter = print_config->nozzle_diameter.get_at(config->perimeter_extruder - 1);
+    float nozzle_diameter = print_config->nozzle_diameter.get_at(config->wall_filament - 1);
     float start_offset = -0.5 * width;
     float end_offset = 0.5 * nozzle_diameter;
 

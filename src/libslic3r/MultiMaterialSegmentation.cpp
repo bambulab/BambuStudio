@@ -1443,7 +1443,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
             if (const PrintRegionConfig &config = region->region().config();
                 // color_idx == 0 means "don't know" extruder aka the underlying extruder.
                 // As this region may split existing regions, we collect statistics over all regions for color_idx == 0.
-                color_idx == 0 || config.perimeter_extruder == int(color_idx)) {
+                color_idx == 0 || config.wall_filament == int(color_idx)) {
                 out.extrusion_width     = std::max<float>(out.extrusion_width, float(config.inner_wall_line_width));
                 out.top_shell_layers    = std::max<int>(out.top_shell_layers, config.top_shell_layers);
                 out.bottom_shell_layers = std::max<int>(out.bottom_shell_layers, config.bottom_shell_layers);

@@ -534,9 +534,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<SlicingMode>,   slicing_mode))
     ((ConfigOptionBool,                enable_support))
     // Automatic supports (generated based on support_threshold_angle).
-    // BBS
-    ((ConfigOptionBool,                support_sharp_tails))
-    ((ConfigOptionBool,                remove_small_overhangs))
     ((ConfigOptionEnum<SupportType>,   support_type))
     // Direction of the support pattern (in XY plane).`
     ((ConfigOptionFloat,               support_material_angle))
@@ -544,10 +541,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               support_top_z_distance))
     ((ConfigOptionFloat,               support_bottom_z_distance))
     ((ConfigOptionInt,                 support_material_enforce_layers))
-    ((ConfigOptionInt,                 support_material_extruder))
+    ((ConfigOptionInt,                 support_filament))
     ((ConfigOptionFloatOrPercent,      support_line_width))
     ((ConfigOptionBool,                support_interface_loop_pattern))
-    ((ConfigOptionInt,                 support_material_interface_extruder))
+    ((ConfigOptionInt,                 support_interface_filament))
     ((ConfigOptionInt,                 support_interface_top_layers))
     ((ConfigOptionInt,                 support_interface_bottom_layers))
     // Spacing between interface lines (the hatching distance). Set zero to get a solid interface.
@@ -565,19 +562,13 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                independent_support_layer_height))
     // Overhang angle threshold.
     ((ConfigOptionInt,                 support_threshold_angle))
-    ((ConfigOptionBool,                support_with_sheath))
     ((ConfigOptionFloatOrPercent,      support_object_xy_distance))
-    ((ConfigOptionBool,                thick_bridges))
     ((ConfigOptionFloat,               xy_hole_compensation))
     ((ConfigOptionFloat,               xy_contour_compensation))
     //BBS
     //((ConfigOptionBool,                wipe_into_objects))
     // BBS
     ((ConfigOptionFloat,              tree_support_branch_angle))
-    ((ConfigOptionFloat,              tree_support_branch_distance))
-    ((ConfigOptionFloat,              tree_support_branch_diameter))
-    ((ConfigOptionFloat,              tree_support_branch_diameter_angle))
-    ((ConfigOptionFloat,              tree_support_collision_resolution))
     ((ConfigOptionInt,                tree_support_wall_count))
     ((ConfigOptionBool,               tree_support_with_infill))
     ((ConfigOptionBool,               detect_narrow_internal_solid_infill))
@@ -606,7 +597,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))
     ((ConfigOptionFloat,                gap_infill_speed))
-    ((ConfigOptionInt,                  infill_extruder))
+    ((ConfigOptionInt,                  sparse_infill_filament))
     ((ConfigOptionFloatOrPercent,       sparse_infill_line_width))
     ((ConfigOptionPercent,              infill_wall_overlap))
     ((ConfigOptionFloat,                sparse_infill_speed))
@@ -619,14 +610,13 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                ironing_speed))
     // Detect bridging perimeters
     ((ConfigOptionBool,                 detect_overhang_wall))
-    ((ConfigOptionInt,                  perimeter_extruder))
+    ((ConfigOptionInt,                  wall_filament))
     ((ConfigOptionFloatOrPercent,       inner_wall_line_width))
     ((ConfigOptionFloat,                inner_wall_speed))
     // Total number of perimeters.
     ((ConfigOptionInt,                  wall_loops))
-    ((ConfigOptionFloatOrPercent,       small_perimeter_speed))
     ((ConfigOptionFloat,                minimum_sparse_infill_area))
-    ((ConfigOptionInt,                  solid_infill_extruder))
+    ((ConfigOptionInt,                  solid_infill_filament))
     ((ConfigOptionFloatOrPercent,       internal_solid_infill_line_width))
     ((ConfigOptionFloat,                internal_solid_infill_speed))
     // Detect thin walls.
@@ -707,7 +697,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<GCodeFlavor>,   gcode_flavor))
     ((ConfigOptionString,              layer_change_gcode))
     ((ConfigOptionFloat,               max_print_speed))
-    ((ConfigOptionFloat,               max_volumetric_speed))
 //#ifdef HAS_PRESSURE_EQUALIZER
 //    ((ConfigOptionFloat,               max_volumetric_extrusion_rate_slope_positive))
 //    ((ConfigOptionFloat,               max_volumetric_extrusion_rate_slope_negative))

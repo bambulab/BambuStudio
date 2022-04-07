@@ -1018,8 +1018,9 @@ namespace DoExport {
 	        // will need slower feedrates.
 	        volumetric_speed = *std::min_element(mm3_per_mm.begin(), mm3_per_mm.end()) * print.config().max_print_speed.value;
 	        // limit such volumetric speed with max_volumetric_speed if set
-	        if (print.config().max_volumetric_speed.value > 0)
-	            volumetric_speed = std::min(volumetric_speed, print.config().max_volumetric_speed.value);
+            //BBS
+	        //if (print.config().max_volumetric_speed.value > 0)
+	        //    volumetric_speed = std::min(volumetric_speed, print.config().max_volumetric_speed.value);
 	    }
 	    return volumetric_speed;
 	}
@@ -2425,13 +2426,13 @@ GCode::LayerResult GCode::process_layer(
                 bool            has_support        = role == erMixed || role == erSupportMaterial || role == erSupportTransition;
                 bool            has_interface      = role == erMixed || role == erSupportMaterialInterface;
                 // Extruder ID of the support base. -1 if "don't care".
-                unsigned int    support_extruder   = object.config().support_material_extruder.value - 1;
+                unsigned int    support_extruder   = object.config().support_filament.value - 1;
                 // Shall the support be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
-                bool            support_dontcare   = object.config().support_material_extruder.value == 0;
+                bool            support_dontcare   = object.config().support_filament.value == 0;
                 // Extruder ID of the support interface. -1 if "don't care".
-                unsigned int    interface_extruder = object.config().support_material_interface_extruder.value - 1;
+                unsigned int    interface_extruder = object.config().support_interface_filament.value - 1;
                 // Shall the support interface be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
-                bool            interface_dontcare = object.config().support_material_interface_extruder.value == 0;
+                bool            interface_dontcare = object.config().support_interface_filament.value == 0;
                 if (support_dontcare || interface_dontcare) {
                     // Some support will be printed with "don't care" material, preferably non-soluble.
                     // Is the current extruder assigned a soluble filament?
@@ -2474,13 +2475,13 @@ GCode::LayerResult GCode::process_layer(
                 bool            has_support = role == erMixed || role == erSupportMaterial || role == erSupportTransition;
                 bool            has_interface = role == erMixed || role == erSupportMaterialInterface;
                 // Extruder ID of the support base. -1 if "don't care".
-                unsigned int    support_extruder = object.config().support_material_extruder.value - 1;
+                unsigned int    support_extruder = object.config().support_filament.value - 1;
                 // Shall the support be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
-                bool            support_dontcare = object.config().support_material_extruder.value == 0;
+                bool            support_dontcare = object.config().support_filament.value == 0;
                 // Extruder ID of the support interface. -1 if "don't care".
-                unsigned int    interface_extruder = object.config().support_material_interface_extruder.value - 1;
+                unsigned int    interface_extruder = object.config().support_interface_filament.value - 1;
                 // Shall the support interface be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
-                bool            interface_dontcare = object.config().support_material_interface_extruder.value == 0;
+                bool            interface_dontcare = object.config().support_interface_filament.value == 0;
                 if (support_dontcare || interface_dontcare) {
                     // Some support will be printed with "don't care" material, preferably non-soluble.
                     // Is the current extruder assigned a soluble filament?
@@ -3450,13 +3451,13 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     //BBS: remove this config
     //else if (this->object_layer_over_raft())
     //    speed = m_config.get_abs_value("first_layer_speed_over_raft", speed);
-    if (m_config.max_volumetric_speed.value > 0) {
-        // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
-        speed = std::min(
-            speed,
-            m_config.max_volumetric_speed.value / path.mm3_per_mm
-        );
-    }
+    //if (m_config.max_volumetric_speed.value > 0) {
+    //    // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
+    //    speed = std::min(
+    //        speed,
+    //        m_config.max_volumetric_speed.value / path.mm3_per_mm
+    //    );
+    //}
     if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
         // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
         speed = std::min(
