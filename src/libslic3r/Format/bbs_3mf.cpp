@@ -1117,13 +1117,16 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (file_version.maj() != app_version.maj())
                 dont_load_config = true;
         }
+        else {
+            m_bambuslicer_generator_version = Semver::parse("0.0.0.0");
+            dont_load_config = true;
+        }
 
         // we then loop again the entries to read other files stored in the archive
         for (mz_uint i = 0; i < num_entries; ++i) {
             if (mz_zip_reader_file_stat(&archive, i, &stat)) {
 
                 //BBS progress point
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_EXTRACT\n");
                 if (proFn) {
                     proFn(IMPORT_STAGE_EXTRACT, i, num_entries, cb_cancel);
                     if (cb_cancel)
@@ -1132,6 +1135,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 std::string name(stat.m_filename);
                 std::replace(name.begin(), name.end(), '\\', '/');
+
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("extract file %1%\n")%name;
 
                 //BBS: disable adaptive layer height related file in 3MF
                 /* if (boost::algorithm::iequals(name, LAYER_HEIGHTS_PROFILE_FILE)) {
@@ -1378,7 +1383,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 //        model.adjust_min_z();
 
         //BBS progress point
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_LOADING_PLATES\n");
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_LOADING_PLATES, m_plater_data size %1%\n")%m_plater_data.size();
         if (proFn) {
             proFn(IMPORT_STAGE_LOADING_PLATES, 0, 1, cb_cancel);
             if (cb_cancel)
@@ -5350,7 +5355,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 for (auto it = plate_data->slice_flaments_info.begin(); it != plate_data->slice_flaments_info.end(); it++)
                 {
-                    stream << "    <" << FILAMENT_TAG << " " << FILAMENT_ID_TAG << "=\"" << std::to_string(it->id + 1) << "\" " 
+                    stream << "    <" << FILAMENT_TAG << " " << FILAMENT_ID_TAG << "=\"" << std::to_string(it->id + 1) << "\" "
                            << FILAMENT_TYPE_TAG << "=\"" << it->type << "\" "
                            << FILAMENT_COLOR_TAG << "=\"" << it->color << "\" "
                            << FILAMENT_USED_M_TAG << "=\"" << it->used_m << "\" "

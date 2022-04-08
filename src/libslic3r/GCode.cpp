@@ -859,6 +859,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     if (print->is_step_done(psGCodeExport) && boost::filesystem::exists(boost::filesystem::path(path)))
         return;
 
+    BOOST_LOG_TRIVIAL(info) << boost::format("Will export G-code to %1% soon")%path;
     print->set_started(psGCodeExport);
 
     // check if any custom gcode contains keywords used by the gcode processor to

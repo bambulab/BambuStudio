@@ -3246,6 +3246,9 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 				plate_data_item->objects_and_instances.emplace_back(it->first, it->second);
 		}
 
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<boost::format(": plate %1%, gcode_filename=%2%, with_gcode=%3%, slice_valid %4%")
+			%i %m_plate_list[i]->m_gcode_result->filename %with_gcode %m_plate_list[i]->is_slice_result_valid();
+
 		if (with_gcode) {
             if (m_plate_list[i]->get_slice_result() && m_plate_list[i]->is_slice_result_valid()) {
                 // BBS only include current palte_idx
@@ -3297,6 +3300,8 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		{
 			BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":plate index %1% seems invalid, skip it")% plate_data_list[i]->plate_index;
 		}
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, gcode_file %2%, is_sliced_valid %3%, toolpath_outside %4%")
+			%i %plate_data_list[i]->gcode_file %plate_data_list[i]->is_sliced_valid %plate_data_list[i]->toolpath_outside;
 		//load object and instance from 3mf
 		//just test for file correct or not, we will rebuild later
 		/*for (std::vector<std::pair<int, int>>::iterator it = plate_data_list[i]->objects_and_instances.begin(); it != plate_data_list[i]->objects_and_instances.end(); ++it)

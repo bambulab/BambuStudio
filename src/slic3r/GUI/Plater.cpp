@@ -2433,6 +2433,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                                                  cancel        = !cont;
                                                              });
 
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate_data.size %1%, project_preset.size %2%, is_bbs_3mf %3%, file_version %4% \n")
+                        %plate_data.size() % project_presets.size() %is_bbs_3mf %file_version.to_string();
+
                     // BBS: version check
                     Semver app_version = *(Semver::parse(SLIC3R_VERSION));
                     if (load_config && (file_version.maj() != app_version.maj())) {
@@ -3236,8 +3239,8 @@ void Plater::priv::reset()
 
     reset_gcode_toolpaths();
     //BBS: update gcode to current partplate's
-    GCodeProcessorResult* current_result = this->background_process.get_current_plate()->get_slice_result();
-    current_result->reset();
+    //GCodeProcessorResult* current_result = this->background_process.get_current_plate()->get_slice_result();
+    //current_result->reset();
     //gcode_result.reset();
 
     view3D->get_canvas3d()->reset_sequential_print_clearance();
@@ -3245,7 +3248,9 @@ void Plater::priv::reset()
     m_ui_jobs.cancel_all();
 
     //BBS: clear the partplate list's object before object cleared
-    partplate_list.clear();
+    partplate_list.reinit();
+    partplate_list.update_slice_context_to_current_plate(background_process);
+    preview->update_gcode_result(partplate_list.get_current_slice_result());
 
     // Stop and reset the Print content.
     this->background_process.reset();
@@ -4716,7 +4721,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     //    if (!gcode_result || gcode_result->toolpath_outside) {
     //        m_is_publishing = false;
     //    }
-    //}          
+    //}
 
     if (is_finished)
     {
@@ -5947,9 +5952,9 @@ void Plater::new_project(bool skip_confirm, bool silent)
 
     Plater::TakeSnapshot snapshot(this, "New Project", UndoRedo::SnapshotType::ProjectSeparator);
 
-    get_partplate_list().reinit();
-    get_partplate_list().update_slice_context_to_current_plate(p->background_process);
-    p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
+    //get_partplate_list().reinit();
+    //get_partplate_list().update_slice_context_to_current_plate(p->background_process);
+    //p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
     reset();
     reset_project_dirty_initial_presets();
     wxGetApp().update_saved_preset_from_current_preset();
@@ -7554,6 +7559,9 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     const std::string path_u8 = into_u8(path);
     wxBusyCursor wait;
 
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": path=%1%, backup=%2%, export_plate_idx=%3%")
+        %output_path.string()%(strategy & SaveStrategy::Backup)%export_plate_idx;
+
     //BBS: add plate logic for thumbnail generate
     std::vector<ThumbnailData*> thumbnails;
     std::vector<ThumbnailData*> calibration_thumbnails;
@@ -7663,12 +7671,12 @@ void Plater::publish_project()
     bool upload_finish = false;
     bool publish_project = true;
     std::string design_id;
-    
+
     wxString failed_to_publish_str = _L("Failed to publish your project. Please try agian!");
-    
+
     // upload project first and publish
     wxString msg;
-    
+
     if (!p->m_is_publishing || p->m_publish_dlg->was_cancelled()) return;
 
     // export 3mf to temp folder
@@ -7679,7 +7687,7 @@ void Plater::publish_project()
     std::string unique = to_string(uuid).substr(0, 6);
     temp_path /= (boost::format("%1%_%2%.3mf") % std::string(p->get_project_name().mb_str(wxConvUTF8)) % unique).str();
     BOOST_LOG_TRIVIAL(debug) << "publish_project: export to temp 3mf: " << temp_path.string();
-    
+
     int result = export_3mf(temp_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode, -1,
         [this](int export_stage, int current, int total, bool& cancel) {
             bool skip = false;
@@ -7687,7 +7695,7 @@ void Plater::publish_project()
             p->m_publish_dlg->Pulse(msg, skip);
             cancel = skip;
         });
-    
+
     if (result < 0) {
         BOOST_LOG_TRIVIAL(debug) << "publish_project: result = " << result;
         msg = _L("preparing, export 3mf failed!");
@@ -7705,7 +7713,7 @@ void Plater::publish_project()
     project->project_name = std::string(p->get_project_name().mb_str(wxConvUTF8));
     project->project_3mf_file = temp_path.string();
     project->project_path = fs::path(project->project_3mf_file);
-    
+
     BBLProfile* profile = new BBLProfile(project);
     profile->profile_name = wxGetApp().preset_bundle->prints.get_edited_preset().name;
 
@@ -7715,7 +7723,7 @@ void Plater::publish_project()
         unsigned int http_code;
         std::string http_body;
         msg = _L("Preparing to upload your project...");
-    
+
         // query design id
         if (!project->project_model_id.empty()) {
             unsigned int http_code;
@@ -7736,7 +7744,7 @@ void Plater::publish_project()
                 }
             }
         }
-    
+
         res = c->request_project_id(project, http_code, http_body);
         if (res < 0 || project->project_id.empty()) {
             wxString error_msg = wxString::Format(_L("req_proj,err:code=%u,msg=%s"), http_code, http_body);
@@ -7745,7 +7753,7 @@ void Plater::publish_project()
             cont = false;
             return;
         }
-    
+
         profile->project_   = project;
         profile->project_id = project->project_id;
         res = c->request_profile_id(profile, http_code, http_body);
@@ -7757,9 +7765,9 @@ void Plater::publish_project()
             cont = false;
             return;
         }
-    
+
         msg = _L("Uploading...");
-    
+
         res = c->upload_3mf_to_oss(profile, http_code, http_body,
             [&percent, &cont, &msg](Http::Progress progress, bool& cancel) {
                 if (!cont) cancel = true;
@@ -7768,12 +7776,12 @@ void Plater::publish_project()
                 }
                 msg = wxString::Format(_L("%d%% uploaded..."), percent);
             });
-    
+
         if (!cont) {
             msg = _L("Upload has been canceled.");
             return;
         }
-    
+
         if (res < 0) {
             wxString error_msg = wxString::Format(_L("upload,err:code=%u,msg=%s"), http_code, http_body);
             msg = failed_to_publish_str + error_msg;
@@ -7781,7 +7789,7 @@ void Plater::publish_project()
             cont = false;
             return;
         }
-    
+
         std::string upload_filename = (boost::format("%1%.3mf") % project->project_name).str();
         res = c->put_notification(profile, upload_filename, http_code, http_body);
         if (res < 0) {
@@ -7791,7 +7799,7 @@ void Plater::publish_project()
             cont = false;
             return;
         }
-    
+
         /* get notifications */
         bool cancel = false;
         res = c->get_notification(profile, http_code, http_body,
@@ -7799,7 +7807,7 @@ void Plater::publish_project()
                 return !cont;
             }
         );
-    
+
         if (res == RET_POLLING_TIMEOUT) {
             msg = _L("Uploading is timed out. Please try again!");
             BOOST_LOG_TRIVIAL(trace) << msg;
@@ -7817,11 +7825,11 @@ void Plater::publish_project()
             BOOST_LOG_TRIVIAL(trace) << msg;
             return;
         }
-    
+
         upload_finish = true;
         cont = false;
     });
-    
+
 
     while (cont && cont_dlg) {
         wxMilliSleep(50);
@@ -7829,17 +7837,17 @@ void Plater::publish_project()
         if (!cont_dlg)
             cont = cont_dlg;
     }
-    
+
     if (upload_thread.joinable())
         upload_thread.join();
 
     if (!p->m_is_publishing || p->m_publish_dlg->was_cancelled()) return;
-    
+
     cont_dlg = true;
-    
+
     /* set project to curr plater project, save project model id */
     p->project.project_model_id = project->project_model_id;
-    
+
     bool load_url = true;
     if (design_id.empty() && !publish_project) {
         msg = _L("Internal Error. design id is empty.");
@@ -7863,13 +7871,13 @@ void Plater::publish_project()
                                 % project->project_id
                                 % design_id).str();
         }
-    
+
         url = wxGetApp().app_config->get_web_host_url() + url;
         GUI::wxGetApp().load_url(wxString(url));
     } else {
         BOOST_LOG_TRIVIAL(trace) << "publish failed: error = " << msg;
     }
-    
+
     if (profile)
         delete profile;
 }
