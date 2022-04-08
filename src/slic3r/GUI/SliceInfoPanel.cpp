@@ -39,7 +39,7 @@ static wxColour decode_color(const std::string &color)
     std::array<int, 3> ret = {0, 0, 0};
     const char *       c   = color.data() + 1;
     if (color.size() == 7 && color.front() == '#') {
-        for (size_t j = 0; j < 2; ++j) {
+        for (size_t j = 0; j < 3; ++j) {
             int digit1 = hex_digit_to_int(*c++);
             int digit2 = hex_digit_to_int(*c++);
             if (digit1 == -1 || digit2 == -1) break;

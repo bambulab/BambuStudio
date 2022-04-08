@@ -3,6 +3,7 @@
 #include "../BitmapCache.hpp"
 #include "../I18N.hpp"
 
+
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
 
@@ -15,11 +16,29 @@ wxDEFINE_EVENT(EVT_AMS_RETURN, SimpleEvent);
 wxDEFINE_EVENT(EVT_AMS_SETTINGS, SimpleEvent);
 wxDEFINE_EVENT(EVT_AMS_REFRESH, wxCommandEvent);
 
-static wxColour decode_color(std::string &color)
+inline int hex_digit_to_int(const char c)
 {
-    // TODO
-    return wxColour(rand() % 255, rand() % 255, rand() % 255);
+    return
+        (c >= '0' && c <= '9') ? int(c - '0') :
+        (c >= 'A' && c <= 'F') ? int(c - 'A') + 10 :
+        (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
 }
+
+static wxColour decode_color(const std::string &color)
+{
+    std::array<int, 3> ret = {0, 0, 0};
+    const char *       c   = color.data() + 1;
+    if (color.size() == 8) {
+        for (size_t j = 0; j < 3; ++j) {
+            int digit1 = hex_digit_to_int(*c++);
+            int digit2 = hex_digit_to_int(*c++);
+            if (digit1 == -1 || digit2 == -1) break;
+            ret[j] = float(digit1 * 16 + digit2);
+        }
+    }
+    return wxColour(ret[0], ret[1], ret[2]);
+}
+
 
 bool AMSinfo::parse_ams_info(Ams *ams)
 {
@@ -33,6 +52,10 @@ bool AMSinfo::parse_ams_info(Ams *ams)
             info.can_id          = it->second->id;
             info.material_name   = it->second->type;
             info.material_colour = decode_color(it->second->color);
+            if (it->second->tag_uid.empty())
+                info.material_state = AMSCanType::AMS_CAN_TYPE_THIRDBRAND;
+            else
+                info.material_state  = AMSCanType::AMS_CAN_TYPE_BRAND;
         } else {
             info.can_id         = i;
             info.material_state = AMSCanType::AMS_CAN_TYPE_NONE;
@@ -722,6 +745,29 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan)
     m_can_road_list[canlib->canID] = canroad;
 }
 
+void AmsCans::SelectCan(std::string can_id)
+{
+    auto it = m_can_lib_list.find(can_id);
+    if (it != m_can_lib_list.end()) {
+        if (it->second && it->second->canLib)
+            m_canlib_selection = it->second->canLib->m_can_index;
+    }
+
+    m_canlib_id        = can_id;
+
+    CanLibsHash::iterator ci = m_can_lib_list.begin();
+    while (ci != m_can_lib_list.end()) {
+        CanLibs *cust = ci->second;
+        if (cust->canLib->m_can_id == m_canlib_id) {
+            cust->canLib->OnSelected();
+        } else {
+            cust->canLib->UnSelected();
+        }
+
+        ci++;
+    }
+}
+
 void AmsCans::SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step)
 {
     auto                    tag_can_index = -1;
@@ -932,8 +978,11 @@ void AMSControl::UpdateStepCtrl()
     for (int i = 0; i < (int) FilamentStep::STEP_COUNT; i++) { m_filament_step->AppendItem(FILAMENT_STEP_STRING[i]); }
 }
 
-void AMSControl::UpdateAms(std::vector<AMSinfo> info)
+void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection)
 {
+    std::string curr_ams_id = GetCurentAms();
+    std::string curr_can_id = GetCurrentCan(curr_ams_id);
+
     m_ams_info = info;
     std::vector<AMSinfo>::iterator it;
     Freeze();
@@ -941,7 +990,21 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info)
     m_sizer_top->Layout();
     Thaw();
 
-    if (m_current_senect.empty() && info.size() > 0) { SwitchAms(info[0].ams_id); }
+    if (m_current_senect.empty() && info.size() > 0) {
+        if (keep_selection) {
+            SwitchAms(curr_ams_id);
+            auto iter = m_ams_cans_list.find(curr_can_id);
+            if (iter != m_ams_cans_list.end()) {
+                if (iter->second && iter->second->amsCans)
+                    iter->second->amsCans->SelectCan(curr_can_id);
+            }
+            
+            
+        } else {
+            SwitchAms(info[0].ams_id);
+        }
+    }
+    
 }
 
 void AMSControl::AddAms(AMSinfo info, bool refresh)

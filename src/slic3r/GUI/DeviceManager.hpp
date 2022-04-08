@@ -14,6 +14,17 @@
 
 #define DISCONNECT_TIMEOUT      10000.f     // milliseconds
 
+#define FILAMENT_MAX_TEMP       300
+#define FILAMENT_DEF_TEMP       220
+#define FILAMENT_MIN_TEMP       120
+
+inline int correct_filament_temperature(int filament_temp)
+{
+    int temp = std::min(filament_temp, FILAMENT_MAX_TEMP);
+    temp     = std::max(temp, FILAMENT_MIN_TEMP);
+    return temp;
+}
+
 namespace Slic3r {
 
 class AccountManager;
@@ -180,11 +191,18 @@ public:
     std::chrono::system_clock::time_point   last_update_time;   /* last received print data from machine */
 
     /* Ams Properties */
-    std::map<std::string, Ams*> amsList;
+    std::map<std::string, Ams*> amsList;    // key: ams[id], start with 0
     int     ams_exist_bits;
     int     tray_exist_bits;
     int     tray_is_bbl_bits;
+    std::string m_ams_now;
+    std::string m_tray_now;
     bool    is_ams_need_update;
+
+    Ams*     get_curr_Ams();
+    AmsTray* get_curr_tray();
+    AmsTray *get_ams_tray(std::string ams_id, std::string tray_id);
+    
 
     /* temperature */
     float  nozzle_temp;
@@ -269,8 +287,8 @@ public:
     int command_set_bed(int temp);
     int command_set_nozzle(int temp);
 
-    int command_ams_switch(int tray_id, int old_temp = 220, int new_temp = 200);
-    int command_ams_refresh_rfid(int tray_id);
+    int command_ams_switch(std::string tray_id, int old_temp = 210, int new_temp = 210);
+    int command_ams_refresh_rfid(std::string tray_id);
 
     inline std::string light_effect_str(LIGHT_EFFECT effect) {
         switch (effect)

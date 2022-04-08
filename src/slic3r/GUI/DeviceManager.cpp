@@ -221,6 +221,38 @@ bool MachineObject::check_valid_ip()
     return true;
 }
 
+Ams *MachineObject::get_curr_Ams()
+{
+    auto it = amsList.find(m_ams_now);
+    if (it != amsList.end())
+        return it->second;
+    return nullptr;
+}
+
+AmsTray *MachineObject::get_curr_tray()
+{
+    Ams* curr_ams = get_curr_Ams();
+    if (!curr_ams) return nullptr;
+    
+    auto it = curr_ams->trayList.find(m_tray_now);
+    if (it != curr_ams->trayList.end())
+        return it->second;
+    return nullptr;
+}
+
+AmsTray *MachineObject::get_ams_tray(std::string ams_id, std::string tray_id)
+{
+    auto it = amsList.find(ams_id);
+    if (it == amsList.end()) return nullptr;
+    if (!it->second) return nullptr;
+
+    auto iter = it->second->trayList.find(tray_id);
+    if (iter != it->second->trayList.end())
+        return iter->second;
+    else
+        return nullptr;
+}
+
 int MachineObject::command_get_version()
 {
     json j;
@@ -292,8 +324,17 @@ int MachineObject::command_set_nozzle(int temp)
     return this->publish_gcode(gcode_str);
 }
 
-int MachineObject::command_ams_switch(int tray_id, int old_temp, int new_temp)
+int MachineObject::command_ams_switch(std::string tray_id, int old_temp, int new_temp)
 {
+    BOOST_LOG_TRIVIAL(trace) << "ams_switch to " << tray_id << " with temp: " << old_temp << ", " << new_temp;
+    if (old_temp < 0) old_temp = FILAMENT_DEF_TEMP;
+    if (new_temp < 0) new_temp = FILAMENT_DEF_TEMP;
+    int tray_id_int = 0;
+    try {
+        tray_id_int = atoi(tray_id.c_str());
+    }catch(...){
+        return -1;
+    }
     //TODO get print_config.change_filament_gcode from iot-service, get dyn_config from iot-service?
     std::string gcode = "";
     Slic3r::Print &   print = Slic3r::GUI::wxGetApp().plater()->get_partplate_list().get_current_fff_print();
@@ -306,12 +347,10 @@ int MachineObject::command_ams_switch(int tray_id, int old_temp, int new_temp)
 
     int                old_filament_temp = old_temp;
     int                new_filament_temp = new_temp;
-    old_filament_temp = std::min(old_filament_temp, 300);
-    old_filament_temp = std::max(old_filament_temp, 120);
-    new_filament_temp = std::min(new_filament_temp, 300);
-    new_filament_temp = std::max(new_filament_temp, 120);
+    old_filament_temp = correct_filament_temperature(old_filament_temp);
+    new_filament_temp = correct_filament_temperature(new_filament_temp);
     dyn_config.set_key_value("previous_extruder", new ConfigOptionInt(-1));
-    dyn_config.set_key_value("next_extruder", new ConfigOptionInt(tray_id));
+    dyn_config.set_key_value("next_extruder", new ConfigOptionInt(tray_id_int));
     dyn_config.set_key_value("layer_num", new ConfigOptionInt(0));
     dyn_config.set_key_value("layer_z", new ConfigOptionFloat(0.3));
     dyn_config.set_key_value("max_layer_z", new ConfigOptionFloat(10.));
@@ -331,7 +370,7 @@ int MachineObject::command_ams_switch(int tray_id, int old_temp, int new_temp)
     dyn_config.set_key_value("second_flush_volume", new ConfigOptionFloat(5.f));
 
     try {
-        std::string parsed_command = m_placeholder_parser.process(print_config.change_filament_gcode.value, tray_id, &dyn_config, &m_placeholder_parser_context);
+        std::string parsed_command = m_placeholder_parser.process(print_config.change_filament_gcode.value, tray_id_int, &dyn_config, &m_placeholder_parser_context);
         // config xyz coordinate mode
         std::string auto_home_command = "G28 X\n";
         parsed_command                = "G90\n" + auto_home_command + parsed_command;
@@ -349,7 +388,7 @@ int MachineObject::command_ams_switch(int tray_id, int old_temp, int new_temp)
     return this->publish_json(gcode);
 }
 
-int MachineObject::command_ams_refresh_rfid(int tray_id)
+int MachineObject::command_ams_refresh_rfid(std::string tray_id)
 {
     ;//TODO
     return 0;
@@ -776,6 +815,8 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                         boost::optional<std::string> ams_exist_bits_str     = print.get_optional<std::string>("ams_exist_bits");
                         boost::optional<std::string> tray_exist_bits_str    = print.get_optional<std::string>("tray_exist_bits");
                         boost::optional<std::string> tray_is_bbl_bits_str   = print.get_optional<std::string>("tray_is_bbl_bits");
+                        boost::optional<std::string> ams_now_str            = print.get_optional<std::string>("ams_now");
+                        boost::optional<std::string> tray_now_str           = print.get_optional<std::string>("tray_now");
 
                         int last_ams_exist_bits = ams_exist_bits;
                         int last_tray_exist_bits = tray_exist_bits;
@@ -785,6 +826,11 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                             tray_exist_bits = stoi(tray_exist_bits_str.value(), nullptr, 16);
                         if (tray_is_bbl_bits_str.has_value())
                             tray_is_bbl_bits = stoi(tray_is_bbl_bits_str.value(), nullptr, 16);
+                        if (ams_now_str.has_value())
+                            m_ams_now = ams_now_str.value();
+                        if (tray_now_str.has_value())
+                            m_tray_now = tray_now_str.value();
+
 
                         if (ams_exist_bits != last_ams_exist_bits
                             || last_tray_exist_bits != last_tray_exist_bits) {

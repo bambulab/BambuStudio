@@ -274,6 +274,7 @@ public:
     void create(wxWindow *parent, wxWindowID id, AMSinfo info, const wxPoint &pos, const wxSize &size);
     void UpdateCan(AMSinfo info);
     void AddCan(Caninfo caninfo, int canindex, int maxcan);
+    void SelectCan(std::string can_id);
     void SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step);
     std::string GetCurrentCan() { return m_canlib_id; };
 
@@ -343,7 +344,7 @@ public:
     std::string GetCurrentCan(std::string amsid);
     void msw_rescale();
     void UpdateStepCtrl();
-    void UpdateAms(std::vector<AMSinfo> info);
+    void UpdateAms(std::vector<AMSinfo> info, bool keep_selection = true);
     void AddAms(AMSinfo info, bool refresh = true);
     void RemoveAms(std::string ams_id);
     void RemoveAll();

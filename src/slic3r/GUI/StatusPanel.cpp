@@ -718,11 +718,11 @@ wxBoxSizer *StatusBasePanel::create_ams_group()
     sizer->Add(m_ams_control, 0, wxALIGN_CENTER_HORIZONTAL, 0);
 
     // display demo, to be removed
-    auto caninfo0_0 = Caninfo{"can0", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_1 = Caninfo{"can1", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_2 = Caninfo{"can2", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_3 = Caninfo{"can3", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    AMSinfo ams1 = AMSinfo{"ams0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    auto caninfo0_0 = Caninfo{"0", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_1 = Caninfo{"1", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_2 = Caninfo{"2", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_3 = Caninfo{"3", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    AMSinfo ams1 = AMSinfo{"0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
     std::vector<AMSinfo> ams_info{ams1};
     m_ams_control->UpdateAms(ams_info);
 
@@ -1031,10 +1031,11 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
 
 void StatusPanel::update_ams(MachineObject *obj)
 {
-    if (!obj) return;
+    if (!obj) {
+        last_tray_exist_bits = -1;
+        return;
+    }
 
-    //TODO
-    return;
 #if 0
     // test data
     auto caninfo0_0 = Caninfo{"can0", "PLA", wxColour(234, 78, 56), AMSCanType::AMS_CAN_TYPE_BRAND};
@@ -1058,9 +1059,14 @@ void StatusPanel::update_ams(MachineObject *obj)
         std::vector<AMSinfo> ams_info;
         for (auto ams = obj->amsList.begin(); ams != obj->amsList.end(); ams++) {
             AMSinfo info;
+            info.ams_id = ams->first;
             if (info.parse_ams_info(ams->second)) ams_info.push_back(info);
         }
-        m_ams_control->UpdateAms(ams_info);
+        if (obj->tray_exist_bits != last_tray_exist_bits) {
+            m_ams_control->RemoveAll();
+            m_ams_control->UpdateAms(ams_info, true);
+            last_tray_exist_bits = obj->tray_exist_bits;
+        }
     }
 #endif
 
@@ -1252,16 +1258,39 @@ void StatusPanel::on_set_nozzle_temp()
 void StatusPanel::on_ams_feed(SimpleEvent &event)
 {
     if (obj) {
-        //TODO get selected tray index
-        int tray_idx = 0;
-        obj->command_ams_switch(tray_idx);
+        std::string curr_ams_id = m_ams_control->GetCurentAms();
+        std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
+        std::map<std::string, Ams *>::iterator it = obj->amsList.find(curr_ams_id);
+        if (it == obj->amsList.end()) {
+            BOOST_LOG_TRIVIAL(trace) << "ams: find " << curr_ams_id << " failed";
+            return;
+        }
+        auto tray_it = it->second->trayList.find(curr_can_id);
+        if (tray_it == it->second->trayList.end()) {
+            BOOST_LOG_TRIVIAL(trace) << "ams: find " << curr_can_id << " failed";
+            return;
+        }
+
+        AmsTray* curr_tray = obj->get_curr_tray();
+        AmsTray *targ_tray = obj->get_ams_tray(curr_ams_id, curr_can_id);
+        if (curr_tray && targ_tray) {
+            int old_temp = -1;
+            int new_temp = -1;
+            try {
+                if (!curr_tray->hot_end_temp_limit.empty()) old_temp = atoi(curr_tray->hot_end_temp_limit.c_str());
+                if (!targ_tray->hot_end_temp_limit.empty()) new_temp = atoi(targ_tray->hot_end_temp_limit.c_str());
+            } catch (...) {}
+            obj->command_ams_switch(tray_it->second->id, old_temp, new_temp);
+        }
+        else
+            obj->command_ams_switch(tray_it->second->id, -1, -1);
     }
 }
 
 void StatusPanel::on_ams_return(SimpleEvent &event)
 {
     if (obj) {
-        obj->command_ams_switch(255);
+        obj->command_ams_switch("255");
     }
 }
 
@@ -1417,6 +1446,7 @@ void StatusPanel::set_default()
 {
     obj          = nullptr;
     last_subtask = nullptr;
+    last_tray_exist_bits = -1;
     reset_printing_values();
     m_button_pause_resume->Enable(false);
     m_button_abort->Enable(false);

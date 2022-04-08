@@ -1276,31 +1276,36 @@ namespace Slic3r {
             .on_complete([this, show_tips](std::string body, unsigned) {
                 std::stringstream ss(body);
                 pt::ptree root;
-                pt::read_json(ss, root);
-                if (root.empty()) return;
-                boost::optional<std::string> message = root.get_optional<std::string>("message");
-                boost::optional<std::string> err_code = root.get_optional<std::string>("code");
-                if (message.has_value()) {
-                    if (message.value().compare(MSG_SUCCESS) == 0) {
-                        if (root.get_child_optional("software") != boost::none) {
-                            pt::ptree software_node = root.get_child("software");
+                try {
+                    pt::read_json(ss, root);
+                    if (root.empty()) return;
+                    boost::optional<std::string> message  = root.get_optional<std::string>("message");
+                    boost::optional<std::string> err_code = root.get_optional<std::string>("code");
+                    if (message.has_value()) {
+                        if (message.value().compare(MSG_SUCCESS) == 0) {
+                            if (root.get_child_optional("software") != boost::none) {
+                                pt::ptree software_node = root.get_child("software");
 
-                            // newest version
-                            if (software_node.empty() && err_code.value().compare("null") == 0 && show_tips) {
-                                GUI::wxGetApp().no_new_version();
-                            } else {
-                                boost::optional<std::string> url = software_node.get_optional<std::string>("url");
-                                boost::optional<std::string> version = software_node.get_optional<std::string>("version");
-                                boost::optional<std::string> description = software_node.get_optional<std::string>("description");
-                                if (version.has_value() && url.has_value() &&description.has_value()) {
-                                    version_info.url = url.value();
-                                    version_info.parse_version_str(version.value());
-                                    version_info.description = description.value();
-                                    check_update(show_tips);
+                                // newest version
+                                if (software_node.empty() && err_code.value().compare("null") == 0 && show_tips) {
+                                    GUI::wxGetApp().no_new_version();
+                                } else {
+                                    boost::optional<std::string> url         = software_node.get_optional<std::string>("url");
+                                    boost::optional<std::string> version     = software_node.get_optional<std::string>("version");
+                                    boost::optional<std::string> description = software_node.get_optional<std::string>("description");
+                                    if (version.has_value() && url.has_value() && description.has_value()) {
+                                        version_info.url = url.value();
+                                        version_info.parse_version_str(version.value());
+                                        version_info.description = description.value();
+                                        check_update(show_tips);
+                                    }
                                 }
                             }
                         }
                     }
+                }
+                catch(...) {
+                    ;
                 }
             }).perform();
     }
