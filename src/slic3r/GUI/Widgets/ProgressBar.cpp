@@ -96,6 +96,12 @@ void ProgressBar::SetValue(int step)
     SetProgress(step);
 }
 
+void ProgressBar::Reset() 
+{ 
+    m_step = 0; 
+    SetValue(0);
+}
+
 void ProgressBar::SetProgress(int step)
 { 
     m_disable = false;
@@ -147,8 +153,8 @@ void ProgressBar::render(wxDC &dc)
 
 void ProgressBar::doRender(wxDC &dc)
 {
+    if (m_step >= m_max) m_step = m_max;
     wxSize size   = GetSize();
-
     dc.SetPen(wxPen(m_progress_background_colour, 1));
     dc.SetBrush(wxBrush(m_progress_background_colour));
     if (m_radius == 0) {
@@ -160,7 +166,7 @@ void ProgressBar::doRender(wxDC &dc)
     //draw progress 
     if (m_disable) {
         m_proportion = float(size.x * float(this->m_step) / float(this->m_max));
-        if (m_proportion < m_radius * 2) { m_proportion = m_radius * 2; }
+        if (m_proportion < m_radius * 2 && m_proportion != 0) { m_proportion = m_radius * 2; }
 
         dc.SetPen(wxPen(m_progress_colour_disable, 1));
         dc.SetBrush(wxBrush(m_progress_colour_disable));
@@ -180,7 +186,7 @@ void ProgressBar::doRender(wxDC &dc)
 
     } else {
         m_proportion = float(size.x * float(this->m_step) / float(this->m_max));
-        if (m_proportion < m_radius * 2) { m_proportion = m_radius * 2; }
+        if (m_proportion < m_radius * 2  && m_proportion != 0) { m_proportion = m_radius * 2; }
 
         dc.SetPen(wxPen(m_progress_colour, 1));
         dc.SetBrush(wxBrush(m_progress_colour));

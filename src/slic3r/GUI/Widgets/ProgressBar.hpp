@@ -36,7 +36,8 @@ public:
 public:
     void         Disable(wxString text);
     void         SetValue(int  step);
-    void         SetProgress(int  step);
+    void         Reset();
+    void         SetProgress(int step);
     void         SetRadius(double radius);
     void         SetProgressForedColour(wxColour colour);
     void         SetProgressBackgroundColour(wxColour colour);

@@ -1,8 +1,9 @@
 #include "TempInput.hpp"
 #include "Label.hpp"
 #include "../I18N.hpp"
-
 #include <wx/dcgraph.h>
+#include "../GUI.hpp"
+#include "../GUI_App.hpp"
 
 wxDEFINE_EVENT(wxCUSTOMEVT_SET_TEMP_FINISH, wxCommandEvent);
 
@@ -55,6 +56,13 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
     text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
         e.SetId(GetId());
         ProcessEventLocally(e);
+
+        //enter input mode
+        auto temp = text_ctrl->GetValue();
+        if (temp.length() > 0 && temp[0] == (0x5f)) { 
+            text_ctrl->SetValue(wxEmptyString);
+        }
+
         if (wdialog != nullptr) { wdialog->Dismiss(); }
     });
     text_ctrl->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
@@ -71,12 +79,16 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
         ProcessEventLocally(e);
 
         auto temp = text_ctrl->GetValue();
+        if (temp.ToStdString().empty()) {
+            text_ctrl->SetValue(wxString("_"));
+            return;
+        }
+
         if (!AllisNum(temp.ToStdString())) return;
-        if (temp.ToStdString().empty()) return;
         if (max_temp <= 0) return;
 
         auto tempint = std::stoi(temp.ToStdString());
-        if (tempint > max_temp && tempint < min_temp && !warning_mode) {
+        if ((tempint > max_temp || tempint < min_temp) && !warning_mode) {
             if (tempint > max_temp)
                 Warning(true, WARNING_TOO_HIGH);
             else if (tempint < min_temp)
@@ -99,12 +111,13 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
 
         auto tempint = std::stoi(temp.ToStdString());
         if (tempint > max_temp) {
-            Warning(true);
+            Warning(true, WARNING_TOO_HIGH);
             return;
         } else {
-            Warning(false);
+            Warning(false, WARNING_TOO_LOW);
         }
         SetFinish();
+        Slic3r::GUI::wxGetApp().GetMainTopWindow()->SetFocus();
     });
     text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
     text_ctrl->SetFont(Label::Body_14);
@@ -178,7 +191,7 @@ void TempInput::SetCurrTemp(wxString temp)
 void TempInput::Warning(bool warn, WarningType type)
 {
     warning_mode = warn;
-    Refresh();
+    //Refresh();
 
     if (warning_mode) {
         if (wdialog == nullptr) {
@@ -192,17 +205,14 @@ void TempInput::Warning(bool warn, WarningType type)
             auto body = new wxPanel(wdialog, wxID_ANY, wxDefaultPosition, {this->GetSize().x - 4, -1}, wxTAB_TRAVERSAL);
             body->SetBackgroundColour(wxColour(0xFFFFFF));
 
+
             wxBoxSizer *sizer_text;
             sizer_text = new wxBoxSizer(wxHORIZONTAL);
 
-            wxString warning_string;
-            if (type == WarningType::WARNING_TOO_HIGH)
-                wxString warning_string = _L("The maximum temperature cannot exceed" + wxString::Format("%d", max_temp));
-            else if (type == WarningType::WARNING_TOO_LOW)
-                wxString warning_string = _L("The minmum temperature should not be less than " + wxString::Format("%d", max_temp));
+           
 
             warning_text = new wxStaticText(body, wxID_ANY, 
-                                            warning_string, 
+                                            wxEmptyString, 
                                             wxDefaultPosition, wxDefaultSize,
                                             wxALIGN_CENTER_HORIZONTAL);
             warning_text->SetFont(::Label::Body_13);
@@ -222,6 +232,14 @@ void TempInput::Warning(bool warn, WarningType type)
         wxPoint pos = this->ClientToScreen(wxPoint(2, 0));
         pos.y += this->GetRect().height - (this->GetSize().y - this->text_ctrl->GetSize().y) / 2;
         wdialog->SetPosition(pos);
+
+        wxString warning_string;
+        if (type == WarningType::WARNING_TOO_HIGH)
+             warning_string = _L("The maximum temperature cannot exceed" + wxString::Format("%d", max_temp));
+        else if (type == WarningType::WARNING_TOO_LOW)
+             warning_string = _L("The minmum temperature should not be less than " + wxString::Format("%d", max_temp));
+
+        warning_text->SetLabel(warning_string);
         wdialog->Popup();
     } else {
         if (wdialog)
