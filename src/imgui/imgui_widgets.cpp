@@ -1243,7 +1243,7 @@ bool ImGui::BBLCheckbox(const char *label, bool *v)
     const ImGuiID     id         = window->GetID(label);
     const ImVec2      label_size = CalcTextSize(label, NULL, true);
 
-    const float  square_sz = 16.0;
+    const float square_sz = GetFrameHeight() * 0.78;
     const ImVec2 pos       = window->DC.CursorPos;
     const ImRect total_bb(pos, pos + ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f));
     ItemSize(total_bb, style.FramePadding.y);

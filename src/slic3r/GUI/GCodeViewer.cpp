@@ -4825,9 +4825,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         if (time_mode.layers_times.empty())
             max_len += ImGui::CalcTextSize(total_str.c_str()).x;
         else {
-            max_len += std::max(std::max(ImGui::CalcTextSize(first_str.c_str()).x,
-                                        ImGui::CalcTextSize(total_str.c_str()).x),
-                                ImGui::CalcTextSize(filament_str.c_str()).x);
+            max_len += std::max(std::max(ImGui::CalcTextSize(first_str.c_str()).x, ImGui::CalcTextSize(total_str.c_str()).x), ImGui::CalcTextSize(filament_str.c_str()).x);
         }
 
         //BBS display filament cost

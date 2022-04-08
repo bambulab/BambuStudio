@@ -310,13 +310,24 @@ void GLGizmoAdvancedCut::on_render_for_picking()
 
 void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_limit)
 {
-    float unit_size = m_imgui->get_style_scaling() * 48.0f;
+    //float unit_size = m_imgui->get_style_scaling() * 48.0f;
     float space_size = m_imgui->get_style_scaling() * 8;
     float movement_cap = m_imgui->calc_text_size(_L("Movement:")).x;
     float rotate_cap   = m_imgui->calc_text_size(_L("Rotate")).x;
     float caption_size =  std::max(movement_cap, rotate_cap) + 2 * space_size;
     bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
     unsigned int current_active_id = ImGui::GetActiveID();
+
+    Vec3d rotation = {Geometry::rad2deg(m_rotation(0)), Geometry::rad2deg(m_rotation(1)), Geometry::rad2deg(m_rotation(2))};
+    char  buf[3][64];
+    float buf_size[3];
+    float vec_max = 0, unit_size = 0;
+    for (int i = 0; i < 3; i++) {
+        ImGui::DataTypeFormatString(buf[i], IM_ARRAYSIZE(buf[i]), ImGuiDataType_Double, (void *) &rotation[i], "%.2f");
+        buf_size[i] = ImGui::CalcTextSize(buf[i]).x;
+        vec_max = std::max(buf_size[i], vec_max);
+    }
+    unit_size = vec_max + 10.0;
 
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
     ImGuiWrapper::push_toolbar_style();
@@ -335,8 +346,8 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
     ImGui::TextAlignCenter("Z");
 
     ImGui::AlignTextToFramePadding();
+
     // Rotation input box
-    Vec3d rotation = { Geometry::rad2deg(m_rotation(0)), Geometry::rad2deg(m_rotation(1)), Geometry::rad2deg(m_rotation(2)) };
     ImGui::PushItemWidth(caption_size);
     m_imgui->text(_L("Rotation:"));
     ImGui::SameLine(caption_size + 1 * space_size);
