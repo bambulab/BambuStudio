@@ -61,11 +61,6 @@ class GLCanvas3D;
 struct Camera;
 class PartPlateList;
 
-static const constexpr double LOGICAL_PART_PLATE_GAP = 1. / 5.;
-static const constexpr int PARTPLATE_ICON_SIZE = 24;
-static const constexpr int PARTPLATE_ICON_GAP = 4;
-
-
 using GCodeResult = GCodeProcessorResult;
 
 class PartPlate : public ObjectBase
@@ -126,6 +121,7 @@ private:
     GeometryBuffer m_height_limit_bottom;
     GeometryBuffer m_height_limit_top;
     GeometryBuffer m_del_icon;
+    //GeometryBuffer m_del_and_background_icon;
     mutable unsigned int m_del_vbo_id{ 0 };
     GeometryBuffer m_arrange_icon;
     mutable unsigned int m_arrange_vbo_id{ 0 };
@@ -150,7 +146,9 @@ private:
     void calc_exclude_triangles(const ExPolygon& poly);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox);
     void calc_height_limit();
+    void calc_vertex_for_number(int index, bool one_number, GeometryBuffer &buffer);
     void calc_vertex_for_icons(int index, GeometryBuffer &buffer);
+    void calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer);
     void render_background(bool force_default_color = false) const;
     void render_exclude_area(bool force_default_color) const;
     //void render_background_for_picking(const float* render_color) const;
@@ -163,7 +161,7 @@ private:
     void render_left_arrow(const float* render_color, bool use_lighting) const;
     void render_right_arrow(const float* render_color, bool use_lighting) const;
     void render_icon_texture(int position_id, int tex_coords_id, const GeometryBuffer &buffer, GLTexture &texture, unsigned int &vbo_id) const;
-    void render_icons(bool bottom) const;
+    void render_icons(bool bottom, int hover_id = -1) const;
     void render_rectangle_for_picking(const GeometryBuffer &buffer, const float* render_color) const;
     void on_render_for_picking() const;
     std::array<float, 4> picking_color_component(int idx) const;
@@ -279,7 +277,7 @@ public:
     bool intersects(const BoundingBoxf3& bb) const;
 
     Point point_projection(const Point& point) const;
-    void render(GLCanvas3D& canvas, bool bottom, bool with_label = true, bool only_body = false, bool force_background_color = false, bool is_current = false, HeightLimitMode mode = HEIGHT_LIMIT_BOTH);
+    void render(GLCanvas3D& canvas, bool bottom, bool with_label = true, bool only_body = false, bool force_background_color = false, bool is_current = false, HeightLimitMode mode = HEIGHT_LIMIT_BOTH, int hover_id = -1);
     void render_for_picking() const { on_render_for_picking(); }
     void set_selected();
     void set_unselected();
@@ -410,10 +408,15 @@ class PartPlateList : public ObjectBase
     BoundingBoxf3 m_bounding_box;
     bool m_intialized;
     GLTexture m_del_texture;
+    GLTexture m_del_hovered_texture;
     GLTexture m_arrange_texture;
+    GLTexture m_arrange_hovered_texture;
     GLTexture m_orient_texture;
+    GLTexture m_orient_hovered_texture;
     GLTexture m_locked_texture;
+    GLTexture m_locked_hovered_texture;
     GLTexture m_lockopen_texture;
+    GLTexture m_lockopen_hovered_texture;
     GLTexture m_idx_textures[MAX_PLATE_COUNT];
 
     void init();
@@ -556,7 +559,7 @@ public:
     void postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool selected);
 
     /*rendering related functions*/
-    void render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool only_current = false, bool only_body = false);
+    void render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool only_current = false, bool only_body = false, int hover_id = -1);
     void render_for_picking_pass();
     BoundingBoxf3& get_bounding_box() { return m_bounding_box; }
     //int select_plate_by_hover_id(int hover_id);

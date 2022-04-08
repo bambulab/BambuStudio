@@ -1201,6 +1201,7 @@ void GLCanvas3D::render()
         no_partplate = true;
 
     /* view3D render*/
+    int hover_id = (m_hover_plate_idxs.size() > 0)?m_hover_plate_idxs.front():-1;
     if (m_canvas_type == ECanvasType::CanvasView3D) {
         //BBS: add outline logic
         _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
@@ -1211,7 +1212,7 @@ void GLCanvas3D::render()
         //BBS: add outline logic
         _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
         if (!no_partplate)
-            _render_platelist(!camera.is_looking_downward(), only_current, only_body);
+            _render_platelist(!camera.is_looking_downward(), only_current, only_body, hover_id);
     }
     /* preview render */
     else if (m_canvas_type == ECanvasType::CanvasPreview) {
@@ -1222,7 +1223,7 @@ void GLCanvas3D::render()
         _render_sla_slices();
         _render_selection();
         _render_bed(!camera.is_looking_downward(), show_axes);
-        _render_platelist(!camera.is_looking_downward(), only_current, only_body);
+        _render_platelist(!camera.is_looking_downward(), only_current, only_body, hover_id);
     }
     /* assemble render*/
     else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
@@ -5401,14 +5402,14 @@ void GLCanvas3D::_render_bed_for_picking(bool bottom)
     m_bed.render_for_picking(*this, bottom, scale_factor);
 }
 
-void GLCanvas3D::_render_platelist(bool bottom, bool only_current, bool only_body) const
+void GLCanvas3D::_render_platelist(bool bottom, bool only_current, bool only_body, int hover_id) const
 {
     float scale_factor = 1.0;
 #if ENABLE_RETINA_GL
     scale_factor = m_retina_helper->get_scale_factor();
 #endif // ENABLE_RETINA_GL
 
-    wxGetApp().plater()->get_partplate_list().render(const_cast<GLCanvas3D&>(*this), bottom, scale_factor, only_current, only_body);
+    wxGetApp().plater()->get_partplate_list().render(const_cast<GLCanvas3D&>(*this), bottom, scale_factor, only_current, only_body, hover_id);
 }
 
 void GLCanvas3D::_render_plates_for_picking() const

@@ -31,6 +31,7 @@
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"
+#include "Widgets/Label.hpp"
 #include "3DBed.hpp"
 #include "PartPlate.hpp"
 #include "Camera.hpp"
@@ -47,6 +48,16 @@ static const float GRABBER_X_FACTOR = 0.20f;
 static const float GRABBER_Y_FACTOR = 0.03f;
 static const float GRABBER_Z_VALUE = 0.5f;
 static unsigned int GLOBAL_PLATE_INDEX = 0;
+
+static const double LOGICAL_PART_PLATE_GAP = 1. / 5.;
+static const int PARTPLATE_ICON_SIZE = 10;
+static const int PARTPLATE_ICON_GAP_TOP = 3;
+static const int PARTPLATE_ICON_GAP_LEFT = 3;
+static const int PARTPLATE_ICON_GAP_Y = 5;
+static const int PARTPLATE_TEXT_OFFSET_X1 = 3;
+static const int PARTPLATE_TEXT_OFFSET_X2 = 1;
+static const int PARTPLATE_TEXT_OFFSET_Y = 1;
+
 
 namespace Slic3r {
 namespace GUI {
@@ -249,15 +260,55 @@ void PartPlate::calc_height_limit() {
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create height limit top lines\n";
 }
 
+void PartPlate::calc_vertex_for_number(int index, bool one_number, GeometryBuffer &buffer)
+{
+	ExPolygon poly;
+#if 0 //in the up area
+	Vec2d& p = m_shape[2];
+	float offset_x = one_number?PARTPLATE_TEXT_OFFSET_X1: PARTPLATE_TEXT_OFFSET_X2;
+
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP + offset_x), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP) - PARTPLATE_ICON_GAP - PARTPLATE_ICON_SIZE + PARTPLATE_TEXT_OFFSET_Y) });
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP + PARTPLATE_ICON_SIZE - offset_x), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP)- PARTPLATE_ICON_GAP - PARTPLATE_ICON_SIZE + PARTPLATE_TEXT_OFFSET_Y) });
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP + PARTPLATE_ICON_SIZE - offset_x), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP)- PARTPLATE_ICON_GAP - PARTPLATE_TEXT_OFFSET_Y)});
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP + offset_x), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP)- PARTPLATE_ICON_GAP - PARTPLATE_TEXT_OFFSET_Y) });
+#else //in the bottom
+	Vec2d& p = m_shape[1];
+	float offset_x = one_number?PARTPLATE_TEXT_OFFSET_X1: PARTPLATE_TEXT_OFFSET_X2;
+
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) + PARTPLATE_TEXT_OFFSET_Y) });
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE - offset_x), scale_(p(1) + PARTPLATE_TEXT_OFFSET_Y) });
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE - offset_x), scale_(p(1) + PARTPLATE_ICON_SIZE - PARTPLATE_TEXT_OFFSET_Y)});
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) + PARTPLATE_ICON_SIZE - PARTPLATE_TEXT_OFFSET_Y) });
+#endif
+	auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
+	if (!buffer.set_from_triangles(triangles, GROUND_Z))
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
+}
+
 void PartPlate::calc_vertex_for_icons(int index, GeometryBuffer &buffer)
 {
 	ExPolygon poly;
 	Vec2d& p = m_shape[2];
 
-	poly.contour.append({ scale_(p(0)), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP) - PARTPLATE_ICON_SIZE) });
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_SIZE), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP) - PARTPLATE_ICON_SIZE) });
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_SIZE), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP))});
-	poly.contour.append({ scale_(p(0)), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP)) });
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP - PARTPLATE_ICON_SIZE) });
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y)- PARTPLATE_ICON_GAP_TOP - PARTPLATE_ICON_SIZE) });
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y)- PARTPLATE_ICON_GAP_TOP)});
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y)- PARTPLATE_ICON_GAP_TOP) });
+
+	auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
+	if (!buffer.set_from_triangles(triangles, GROUND_Z))
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
+}
+
+void PartPlate::calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer)
+{
+	ExPolygon poly;
+	Vec2d& p = m_shape[2];
+
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - icon_count * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP) });
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE), scale_(p(1) - icon_count * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y)- PARTPLATE_ICON_GAP_TOP) });
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE), scale_(p(1) - PARTPLATE_ICON_GAP_TOP)});
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - PARTPLATE_ICON_GAP_TOP) });
 
 	auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
 	if (!buffer.set_from_triangles(triangles, GROUND_Z))
@@ -389,7 +440,7 @@ void PartPlate::render_icon_texture(int position_id, int tex_coords_id, const Ge
 	glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 }
 
-void PartPlate::render_icons(bool bottom) const
+void PartPlate::render_icons(bool bottom, int hover_id) const
 {
 	GLShaderProgram* shader = wxGetApp().get_shader("printbed");
 	if (shader != nullptr) {
@@ -411,13 +462,33 @@ void PartPlate::render_icons(bool bottom) const
             glsafe(::glEnableVertexAttribArray(tex_coords_id));
         }
 
-        render_icon_texture(position_id, tex_coords_id, m_del_icon, m_partplate_list->m_del_texture, m_del_vbo_id);
-        render_icon_texture(position_id, tex_coords_id, m_orient_icon, m_partplate_list->m_orient_texture, m_orient_vbo_id);
-        render_icon_texture(position_id, tex_coords_id, m_arrange_icon, m_partplate_list->m_arrange_texture, m_arrange_vbo_id);
-        if (this->is_locked())
-            render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_locked_texture, m_lock_vbo_id);
+        if (hover_id == 1)
+            render_icon_texture(position_id, tex_coords_id, m_del_icon, m_partplate_list->m_del_hovered_texture, m_del_vbo_id);
         else
-            render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_lockopen_texture, m_lock_vbo_id);
+            render_icon_texture(position_id, tex_coords_id, m_del_icon, m_partplate_list->m_del_texture, m_del_vbo_id);
+
+        if (hover_id == 2)
+            render_icon_texture(position_id, tex_coords_id, m_orient_icon, m_partplate_list->m_orient_hovered_texture, m_orient_vbo_id);
+        else
+            render_icon_texture(position_id, tex_coords_id, m_orient_icon, m_partplate_list->m_orient_texture, m_orient_vbo_id);
+
+        if (hover_id == 3)
+            render_icon_texture(position_id, tex_coords_id, m_arrange_icon, m_partplate_list->m_arrange_hovered_texture, m_arrange_vbo_id);
+        else
+            render_icon_texture(position_id, tex_coords_id, m_arrange_icon, m_partplate_list->m_arrange_texture, m_arrange_vbo_id);
+
+        if (hover_id == 4) {
+            if (this->is_locked())
+                render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_locked_hovered_texture, m_lock_vbo_id);
+            else
+                render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_lockopen_hovered_texture, m_lock_vbo_id);
+        }
+        else {
+            if (this->is_locked())
+                render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_locked_texture, m_lock_vbo_id);
+            else
+                render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_lockopen_texture, m_lock_vbo_id);
+        }
 
         if (m_plate_index >=0 && m_plate_index < MAX_PLATE_COUNT) {
             render_icon_texture(position_id, tex_coords_id, m_plate_idx_icon, m_partplate_list->m_idx_textures[m_plate_index], m_plate_idx_vbo_id);
@@ -1288,11 +1359,14 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		const BoundingBox& pp_bbox = poly.contour.bounding_box();
 		calc_gridlines(poly, pp_bbox);
 
+		//calc_vertex_for_icons_background(5, m_del_and_background_icon);
+		//calc_vertex_for_icons(4, m_del_icon);
 		calc_vertex_for_icons(0, m_del_icon);
 		calc_vertex_for_icons(1, m_orient_icon);
 		calc_vertex_for_icons(2, m_arrange_icon);
 		calc_vertex_for_icons(3, m_lock_icon);
-		calc_vertex_for_icons(4, m_plate_idx_icon);
+		//calc_vertex_for_number(0, (m_plate_index < 9), m_plate_idx_icon);
+		calc_vertex_for_number(0, false, m_plate_idx_icon);
 	}
 
 	calc_height_limit();
@@ -1348,7 +1422,7 @@ Point PartPlate::point_projection(const Point& point) const
 	return m_polygon.point_projection(point);
 }
 
-void PartPlate::render(GLCanvas3D& canvas, bool bottom, bool with_label, bool only_body, bool force_background_color, bool is_current, HeightLimitMode mode)
+void PartPlate::render(GLCanvas3D& canvas, bool bottom, bool with_label, bool only_body, bool force_background_color, bool is_current, HeightLimitMode mode, int hover_id)
 {
 	glsafe(::glEnable(GL_DEPTH_TEST));
 	glsafe(::glEnable(GL_BLEND));
@@ -1393,7 +1467,7 @@ void PartPlate::render(GLCanvas3D& canvas, bool bottom, bool with_label, bool on
 			else
 				render_right_arrow(render_color, true);
 		}*/
-		render_icons(bottom);
+		render_icons(bottom, hover_id);
 	}
 	glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
 	glsafe(::glDisable(GL_BLEND));
@@ -1646,48 +1720,94 @@ void PartPlateList::generate_icon_textures()
 
 	if (m_del_texture.get_id() == 0)
 	{
-		file_name = path + "partplate_del.svg";
+		file_name = path + "plate_close.svg";
 		if (!m_del_texture.load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+		}
+	}
+
+	if (m_del_hovered_texture.get_id() == 0)
+	{
+		file_name = path + "plate_close_hover.svg";
+		if (!m_del_hovered_texture.load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 		}
 	}
 
 	if (m_arrange_texture.get_id() == 0)
 	{
-		file_name = path + "partplate_arrange.svg";
+		file_name = path + "plate_arrange.svg";
 		if (!m_arrange_texture.load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+		}
+	}
+
+	if (m_arrange_hovered_texture.get_id() == 0)
+	{
+		file_name = path + "plate_arrange_hover.svg";
+		if (!m_arrange_hovered_texture.load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 		}
 	}
 
 	if (m_orient_texture.get_id() == 0)
 	{
-		file_name = path + "partplate_orient.svg";
+		file_name = path + "plate_orient.svg";
 		if (!m_orient_texture.load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+		}
+	}
+
+	if (m_orient_hovered_texture.get_id() == 0)
+	{
+		file_name = path + "plate_orient_hover.svg";
+		if (!m_orient_hovered_texture.load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 		}
 	}
 
 	if (m_locked_texture.get_id() == 0)
 	{
-		file_name = path + "lock.svg";
+		file_name = path + "plate_locked.svg";
 		if (!m_locked_texture.load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+		}
+	}
+
+	if (m_locked_hovered_texture.get_id() == 0)
+	{
+		file_name = path + "plate_locked_hover.svg";
+		if (!m_locked_hovered_texture.load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 		}
 	}
 
 	if (m_lockopen_texture.get_id() == 0)
 	{
-		file_name = path + "lock_open.svg";
+		file_name = path + "plate_unlocked.svg";
 		if (!m_lockopen_texture.load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+		}
+	}
+
+	if (m_lockopen_hovered_texture.get_id() == 0)
+	{
+		file_name = path + "plate_unlocked_hover.svg";
+		if (!m_lockopen_hovered_texture.load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 		}
 	}
 
 	for (int i = 0; i < MAX_PLATE_COUNT; i++) {
 		if (m_idx_textures[i].get_id() == 0) {
-			file_name = path + (boost::format("plate_%1%.svg") % (i + 1)).str();
-			if (!m_idx_textures[i].load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
+			//file_name = path + (boost::format("plate_%1%.svg") % (i + 1)).str();
+			if ( i < 9 )
+				file_name = std::string("0") + std::to_string(i+1);
+			else
+				file_name = std::to_string(i+1);
+
+			wxColour foreground(0x0, 0xae, 0x42, 0xff);
+			if (!m_idx_textures[i].generate_from_text_string(file_name, Label::Head_20, *wxBLACK, foreground)) {
 				BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 			}
 		}
@@ -1697,10 +1817,15 @@ void PartPlateList::generate_icon_textures()
 void PartPlateList::release_icon_textures()
 {
 	m_del_texture.reset();
+	m_del_hovered_texture.reset();
 	m_arrange_texture.reset();
+	m_arrange_hovered_texture.reset();
 	m_orient_texture.reset();
+	m_orient_hovered_texture.reset();
 	m_locked_texture.reset();
+	m_locked_hovered_texture.reset();
 	m_lockopen_texture.reset();
+	m_lockopen_hovered_texture.reset();
 	for (int i = 0;i < MAX_PLATE_COUNT; i++) {
 		m_idx_textures[i].reset();
 	}
@@ -1826,9 +1951,9 @@ int PartPlateList::create_plate(bool adjust_position)
 		m_print_index++;
 	}
 
+	plate->set_index(new_index);
 	Vec2d pos = compute_shape_position(new_index, cols);
 	plate->set_shape(m_shape, m_exclude_areas, pos, m_height_to_lid, m_height_to_rod);
-	plate->set_index(new_index);
 	m_plate_list.emplace_back(plate);
 	update_plate_cols();
 	if (old_cols != cols)
@@ -1976,13 +2101,13 @@ int PartPlateList::delete_plate(int index)
 		PartPlate* plate = m_plate_list[i];
 		assert(plate != NULL);
 
+		plate->set_index(i);
 		Vec3d origin = compute_origin(i, m_plate_cols);
 		plate->set_pos_and_size(origin, m_plate_width, m_plate_depth, m_plate_height, true);
-		plate->set_index(i);
 
 		//update render shapes
 		Vec2d pos = compute_shape_position(i, m_plate_cols);
-        plate->set_shape(m_shape, m_exclude_areas, pos, m_height_to_lid, m_height_to_rod);
+		plate->set_shape(m_shape, m_exclude_areas, pos, m_height_to_lid, m_height_to_rod);
 	}
 
 	//update current_plate if delete current
@@ -2875,20 +3000,36 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 
 /*rendering related functions*/
 //render
-void PartPlateList::render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool only_current, bool only_body)
+void PartPlateList::render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool only_current, bool only_body, int hover_id)
 {
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
 
+	int plate_hover_index = -1;
+	int plate_hover_action = -1;
+	if (hover_id != -1) {
+		plate_hover_index = hover_id / PartPlate::GRABBER_COUNT;
+		plate_hover_action = hover_id % PartPlate::GRABBER_COUNT;
+	}
+
 	if (m_del_texture.get_id() == 0)
 		generate_icon_textures();
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
-		if (only_current && ((*it)->get_index() != m_current_plate))
+		int current_index = (*it)->get_index();
+		if (only_current && (current_index != m_current_plate))
 			continue;
-		if ((*it)->get_index() == m_current_plate)
-			(*it)->render(canvas, bottom, false, only_body, false, !only_current, m_height_limit_mode);
-		else
-			(*it)->render(canvas, bottom, false, only_body, false, false, m_height_limit_mode);
+		if (current_index == m_current_plate) {
+			if (plate_hover_index == current_index)
+				(*it)->render(canvas, bottom, false, only_body, false, !only_current, m_height_limit_mode, plate_hover_action);
+			else
+				(*it)->render(canvas, bottom, false, only_body, false, !only_current, m_height_limit_mode, -1);
+		}
+		else {
+			if (plate_hover_index == current_index)
+				(*it)->render(canvas, bottom, false, only_body, false, false, m_height_limit_mode, plate_hover_action);
+			else
+				(*it)->render(canvas, bottom, false, only_body, false, false, m_height_limit_mode, -1);
+		}
 	}
 }
 

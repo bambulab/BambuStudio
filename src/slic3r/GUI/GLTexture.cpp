@@ -401,7 +401,7 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
     m_source = filenames.front();
-    
+
 #if 0
     // debug output
     static int pass = 0;
@@ -441,7 +441,7 @@ void GLTexture::reset()
     m_original_width = m_original_height = 0;
 }
 
-bool GLTexture::generate_from_text_string(const std::string &text_str, wxFont &font)
+bool GLTexture::generate_from_text_string(const std::string &text_str, wxFont &font, wxColor background, wxColor foreground)
 {
     if (text_str.empty())
     {
@@ -467,7 +467,7 @@ bool GLTexture::generate_from_text_string(const std::string &text_str, wxFont &f
     wxBitmap bitmap(m_width, m_height);
 
     memDC.SelectObject(bitmap);
-    memDC.SetBackground(wxBrush(*wxBLACK));
+    memDC.SetBackground(wxBrush(background));
     memDC.Clear();
 
     // draw message
@@ -490,9 +490,9 @@ bool GLTexture::generate_from_text_string(const std::string &text_str, wxFont &f
     for (int h = 0; h < m_height; ++h) {
         unsigned char* dst = data.data() + 4 * h * m_width;
         for (int w = 0; w < m_width; ++w) {
-            *dst++ = 255;
-            *dst++ = 255;
-            *dst++ = 255;
+            *dst++ = foreground.Red();
+            *dst++ = foreground.Green();
+            *dst++ = foreground.Blue();
 			*dst++ = (unsigned char)std::min<int>(255, *src);
             src += 3;
         }
@@ -618,7 +618,7 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, ECo
         if (compression_type == SingleThreaded)
             glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
         else {
-            // initializes the texture on GPU 
+            // initializes the texture on GPU
             glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
             // and send the uncompressed data to the compressor
             m_compressor.add_level((unsigned int)m_width, (unsigned int)m_height, data);
@@ -659,7 +659,7 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, ECo
                 if (compression_type == SingleThreaded)
                     glsafe(::glTexImage2D(GL_TEXTURE_2D, level, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
                 else {
-                    // initializes the texture on GPU 
+                    // initializes the texture on GPU
                     glsafe(::glTexImage2D(GL_TEXTURE_2D, level, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)lod_w, (GLsizei)lod_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
                     // and send the uncompressed data to the compressor
                     m_compressor.add_level((unsigned int)lod_w, (unsigned int)lod_h, data);
@@ -750,7 +750,7 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, boo
     }
 
     if (compression_enabled) {
-        // initializes the texture on GPU 
+        // initializes the texture on GPU
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
         // and send the uncompressed data to the compressor
         m_compressor.add_level((unsigned int)m_width, (unsigned int)m_height, data);
@@ -774,7 +774,7 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, boo
 
             nsvgRasterize(rast, image, 0, 0, scale, data.data(), lod_w, lod_h, lod_w * 4);
             if (compression_enabled) {
-                // initializes the texture on GPU 
+                // initializes the texture on GPU
                 glsafe(::glTexImage2D(GL_TEXTURE_2D, level, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)lod_w, (GLsizei)lod_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
                 // and send the uncompressed data to the compressor
                 m_compressor.add_level((unsigned int)lod_w, (unsigned int)lod_h, data);
