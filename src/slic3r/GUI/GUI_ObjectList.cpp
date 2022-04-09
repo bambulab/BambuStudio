@@ -2319,20 +2319,24 @@ void ObjectList::merge(bool to_multipart_object)
             ModelObject* object = (*m_objects)[obj_idx];
 
             const Geometry::Transformation& transformation = object->instances[0]->get_transformation();
-            const Vec3d scale     = transformation.get_scaling_factor();
-            const Vec3d mirror    = transformation.get_mirror();
-            const Vec3d rotation  = transformation.get_rotation();
+            //const Vec3d scale     = transformation.get_scaling_factor();
+            //const Vec3d mirror    = transformation.get_mirror();
+            //const Vec3d rotation  = transformation.get_rotation();
 
             if (object->id() == (*m_objects)[obj_idxs.front()]->id())
                 new_object->add_instance();
-            const Transform3d& volume_offset_correction = transformation.get_matrix();
+            const Transform3d& transformation_matrix = transformation.get_matrix();
 
             // merge volumes
             for (const ModelVolume* volume : object->volumes) {
                 ModelVolume* new_volume = new_object->add_volume(*volume);
 
+                //BBS: keep volume's transform
+                const Transform3d& volume_matrix = new_volume->get_matrix();
+                Transform3d new_matrix = transformation_matrix * volume_matrix;
+                new_volume->set_transformation(new_matrix);
                 //set rotation
-                const Vec3d vol_rot = new_volume->get_rotation() + rotation;
+                /*const Vec3d vol_rot = new_volume->get_rotation() + rotation;
                 new_volume->set_rotation(vol_rot);
 
                 // set scale
@@ -2345,7 +2349,7 @@ void ObjectList::merge(bool to_multipart_object)
 
                 // set offset
                 const Vec3d vol_offset = volume_offset_correction* new_volume->get_offset();
-                new_volume->set_offset(vol_offset);
+                new_volume->set_offset(vol_offset);*/
 
                 //BBS: add config from old objects
                 //for object config, it has settings of PrintObjectConfig and PrintRegionConfig
@@ -2388,9 +2392,13 @@ void ObjectList::merge(bool to_multipart_object)
                 new_object->layer_config_ranges.emplace(range);
         }
 
+        //BBS: ensure on bed, and no need to center around origin
+        new_object->ensure_on_bed();
         new_object->center_around_origin();
         new_object->translate_instances(-new_object->origin_translation);
         new_object->origin_translation = Vec3d::Zero();
+        //BBS: notify it before remove
+        notify_instance_updated(m_objects->size() - 1);
 
         // remove selected objects
         remove();
