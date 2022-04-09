@@ -3657,6 +3657,8 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
     }
     //BBS: nofity object list to update
     wxGetApp().plater()->sidebar().obj_list()->update_plate_values_for_items();
+    //BBS: notify object info update
+    wxGetApp().plater()->show_object_info();
 
     if (!done.empty())
         post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_SCALED));
