@@ -361,7 +361,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Bottom shell layers");
     def->category = L("Strength");
     def->tooltip =  L("The number of solid layers of bottom shell, including bottom surface layer. When the thickness calculated by this value "
-                     "is thinner than bottom_shell_thickness, the top shell layers number will be increased when slicing");
+                     "is thinner than bottom shell thickness, the bottom shell layers number will be increased when slicing.");
     def->full_label = L("Bottom shell layers");
     def->min = 0;
     def->set_default_value(new ConfigOptionInt(2));
@@ -1009,9 +1009,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("adaptive_layer_height", coBool);
     def->label = L("Adaptive layer height");
     def->category = L("Quality");
-    def->tooltip = L("Enabling this option means the height of every layer except the first will be automatically calculated"
-        "when slicing according to the slope of the model’s surface.\n"
-        "Note that this option only takes effect if no prime tower is generated in current print.");
+    def->tooltip = L("Enabling this option means the height of every layer except the first will be automatically calculated "
+        "during slicing according to the slope of the model’s surface.\n"
+        "Note that this option only takes effect if no prime tower is generated in current plate.");
     def->set_default_value(new ConfigOptionBool(0));
 
     def = this->add("initial_layer_speed", coFloat);
@@ -2032,7 +2032,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_filament", coInt);
     def->label = L("Support");
     def->category = L("Support");
-    def->tooltip = L("Filament to print support, raft and skirt");
+    def->tooltip = L("Filament to print support and skirt.");
     def->min = 0;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(1));
