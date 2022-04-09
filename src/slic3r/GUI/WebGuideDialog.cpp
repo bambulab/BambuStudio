@@ -294,7 +294,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             m_Res["sequence_id"] = "10001";
             m_Res["response"]        = m_ProfileJson;
 
-            wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump());
+            wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
 
             wxGetApp().CallAfter([this,strJS] { RunScript(strJS); });
         } 
@@ -365,7 +365,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
     // else {
     //    m_response_js.clear();
     //}
-    wxString strAll = m_ProfileJson.dump();
+    wxString strAll = m_ProfileJson.dump(-1,' ',false, json::error_handler_t::ignore);
 }
 
 void GuideFrame::RunScript(const wxString &javascript)
@@ -766,7 +766,8 @@ int GuideFrame::LoadProfile()
         m_ProfileJson["machine"]  = json::array();
         m_ProfileJson["filament"] = json::object();
         m_ProfileJson["process"]  = json::array();
-        LoadProfileFamily(PresetBundle::BBL_BUNDLE, bbl_bundle_path.string());
+        LoadProfileFamily(PresetBundle::BBL_BUNDLE, encode_path(bbl_bundle_path.string().c_str()));
+        //LoadProfileFamily(PresetBundle::BBL_BUNDLE, encode_path("D:\\Download\\红提.DESKTOP-2JJN86E\\resources\\profiles\\BBL.json"));
 
         const auto enabled_filaments = wxGetApp().app_config->has_section(AppConfig::SECTION_FILAMENTS) ? wxGetApp().app_config->get_section(AppConfig::SECTION_FILAMENTS) : std::map<std::string, std::string>();
         m_appconfig_new.set_vendors(*wxGetApp().app_config);
@@ -866,21 +867,30 @@ int GuideFrame::LoadProfile()
         }*/
         }
     catch (std::exception &e) {
+        //wxLogMessage("GUIDE: load_profile_error  %s ", e.what());
         // wxMessageBox(e.what(), "", MB_OK);
     }
 
-    wxString strAll = m_ProfileJson.dump();
+    std::string strAll = m_ProfileJson.dump(-1, ' ', false, json::error_handler_t::ignore);
+    //wxLogMessage("GUIDE: profile_json_s2  %s ", m_ProfileJson.dump());
 
     return 0;
 }
 
+
 int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
 {
-    wxString strFolder   = strFilePath.BeforeLast('\\');
+    wxString strFolder = strFilePath.BeforeLast(boost::filesystem::path::preferred_separator);
 
     try {
-        json jLocal;
-        std::ifstream(w2s(strFilePath)) >> jLocal;
+
+        //wxLogMessage("GUIDE: json_path1  %s", w2s(strFilePath));
+
+        std::string contents;
+        LoadFile(w2s(strFilePath), contents);
+
+        json jLocal=json::parse(contents);
+        //wxLogMessage("GUIDE: json_path1 Loaded");
 
         // BBS:models
         json pmodels = jLocal["machine_model_list"];
@@ -895,9 +905,13 @@ int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
             wxString s1 = OneModel["model"];
             wxString s2 = OneModel["sub_path"];
 
-            wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
-            json     pm;
-            std::ifstream(w2s(ModelFilePath)) >> pm;
+            wxString ModelFilePath = wxString::Format("%s%c%s%c%s", strFolder, boost::filesystem::path::preferred_separator, strVendor, boost::filesystem::path::preferred_separator,s2);
+            //std::string mpath=encode_path(ModelFilePath.mb_str());
+
+            //wxLogMessage("GUIDE: json_path2  %s", w2s(ModelFilePath));
+
+            LoadFile(w2s(ModelFilePath), contents);
+            json     pm=json::parse(contents);
 
             OneModel["vendor"]          = strVendor.mbc_str();
             OneModel["nozzle_diameter"] = pm["nozzle_diameter"];
@@ -922,8 +936,8 @@ int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
             wxString s2 = OneMachine["sub_path"];
 
             wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
-            json     pm;
-            std::ifstream(w2s(ModelFilePath)) >> pm;
+            LoadFile(w2s(ModelFilePath), contents);
+            json pm = json::parse(contents);
 
             wxString strInstant = pm["instantiation"];
             if (strInstant.compare("true") == 0) {
@@ -950,8 +964,8 @@ int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
             if (!m_ProfileJson["filament"].contains(s1))
             {
                 wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
-                json     pm;
-                std::ifstream(w2s(ModelFilePath)) >> pm;
+                LoadFile(w2s(ModelFilePath), contents);
+                json pm = json::parse(contents);
 
                 wxString strInstant = pm["instantiation"];
                 if (strInstant.compare("true") == 0) {
@@ -962,8 +976,8 @@ int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
 
                     wxString strInherits = pm["inherits"];
                     wxString strTypeFile = wxString::Format("%s\\%s\\filament\\%s.json", strFolder, strVendor, strInherits.mb_str());
-                    json     tm;
-                    std::ifstream(w2s(strTypeFile)) >> tm;
+                    LoadFile(w2s(strTypeFile), contents);
+                    json tm = json::parse(contents);
 
                     wxString sN = tm["name"];
                     wxString sT = tm["filament_type"].at(0);
@@ -1010,8 +1024,8 @@ int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
 
             wxString s2            = OneProcess["sub_path"];
             wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
-            json     pm;
-            std::ifstream(w2s(ModelFilePath)) >> pm;
+            LoadFile(w2s(ModelFilePath), contents);
+            json pm = json::parse(contents);
 
             std::string bInstall = pm["instantiation"];
             if (bInstall == "true")
@@ -1022,6 +1036,7 @@ int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
 
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "", MB_OK);
+        //wxLogMessage("GUIDE: LoadFamily Error: %s", e.what());
     }
 
     return 0;
@@ -1031,6 +1046,23 @@ std::string GuideFrame::w2s(wxString sSrc)
 { 
     return std::string(sSrc.mb_str()); 
 }
+
+bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)
+{
+    try {
+        std::ifstream     t(jPath);
+        std::stringstream buffer;
+        buffer << t.rdbuf();
+        sContent=buffer.str();
+    }
+    catch (std::exception &e)
+    {
+        return false;
+    }
+
+    return true;
+}
+
 
 
 }} // namespace Slic3r::GUI

@@ -79,6 +79,7 @@ public:
     bool run();
 
     std::string w2s(wxString sSrc);
+    bool LoadFile(std::string jPath, std::string & sContent);
 
 private:
     GUI_App *m_MainPtr;
