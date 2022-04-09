@@ -18,6 +18,7 @@ public:
 	static wxFont Head_18;
 	static wxFont Head_16;
 	static wxFont Head_14;
+	static wxFont Head_13;
 	static wxFont Head_12;
 
 	static wxFont Body_16;

@@ -4,6 +4,7 @@
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
 
+#include <wx/simplebook.h>
 #include <wx/dialog.h>
 #include <wx/timer.h>
 #include <vector>
@@ -18,10 +19,9 @@ namespace Slic3r { namespace GUI {
 class Selector
 {
 public:
-    int           m_index;
-    wxWindow *    m_selpanel;
-    wxPanel *     m_conpanel;
-    wxStaticText *m_seltext;
+    int       m_index;
+    wxWindow *m_tab_button;
+    wxWindow *m_tab_text;
 };
 WX_DECLARE_HASH_MAP(int, Selector *, wxIntegerHash, wxIntegerEqual, SelectorHash);
 
@@ -39,7 +39,12 @@ WX_DECLARE_LIST(RadioSelector, RadioSelectorList);
 #define DESIGN_RESOUTION_PREFERENCES wxSize(618, 520)
 #define DESIGN_SELECTOR_NOMORE_COLOR wxColour(248, 248, 248)
 #define DESIGN_SELECTOR_SELECTED_COLOR wxColour(255, 255, 255)
-
+#define DESIGN_GRAY900_COLOR wxColour(38, 46, 48)
+#define DESIGN_GRAY800_COLOR wxColour(50, 58, 61)
+#define DESIGN_GRAY400_COLOR wxColour(166, 169, 170)
+#define DESIGN_TAB_PAGE_SIZE wxSize(FromDIP(460), FromDIP(470))
+#define DESIGN_TITLE_SIZE wxSize(FromDIP(100), -1)
+#define DESIGN_COMBOBOX_SIZE wxSize(FromDIP(140), -1)
 
 class CheckBox;
 class TextInput;
@@ -50,30 +55,23 @@ private:
     AppConfig *app_config;
 
 protected:
+    wxBoxSizer *  m_sizer_top;
+    wxBoxSizer *  m_sizer_body;
+    wxBoxSizer *  m_sizer_left;
+    wxBoxSizer *  m_sizer_right;
+    wxSimplebook *m_simplebook;
+
     wxPanel *     m_panel_selects;
-    wxPanel *     m_panel_content;
-    wxStaticLine *m_main_line;
 
-    wxBoxSizer *     m_fgSizer_main;
-    wxFlexGridSizer *m_fgSizer_body;
-    wxBoxSizer *     m_bSizer_selects;
 
-    wxPanel *m_panel_general;
-    wxPanel *m_panel_gui;
-    wxPanel *m_panel_sync;
-    wxPanel *m_panel_shortcuts;
-    wxPanel *m_panel_debug;
-
-	//bool								m_settings_layout_changed {false};
-	bool								m_seq_top_layer_only_changed{ false };
-	bool								m_recreate_GUI{false};
+    // bool								m_settings_layout_changed {false};
+    bool m_seq_top_layer_only_changed{false};
+    bool m_recreate_GUI{false};
 
 public:
     bool seq_top_layer_only_changed() const { return m_seq_top_layer_only_changed; }
     bool recreate_GUI() const { return m_recreate_GUI; }
-    void build(size_t selected_tab = 0);
     void on_dpi_changed(const wxRect &suggested_rect) override;
-    void OnPaint(wxPaintEvent &e);
 
 public:
     PreferencesDialog(wxWindow *      parent,
@@ -83,35 +81,35 @@ public:
                       const wxSize &  size  = DESIGN_RESOUTION_PREFERENCES,
                       long            style = wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX);
 
-     ~PreferencesDialog();
-    void Init();
-    wxString          m_backup_interval_time;
+    ~PreferencesDialog();
 
-    //debug mode
-    ::CheckBox*       m_developer_mode_ckeckbox;
-    ::CheckBox*       m_dump_video_ckeckbox;
-    ::TextInput*      m_backup_interval_textinput;
+    wxString m_backup_interval_time;
 
-    wxString          m_developer_mode_def;
-    wxString          m_dump_video_def;
-    wxString          m_backup_interval_def;
-    wxString          m_iot_environment_def;
+    void      create();
+    wxWindow *create_tab_button(int id, wxString text);
 
+    // debug mode
+    ::CheckBox * m_developer_mode_ckeckbox;
+    ::CheckBox * m_dump_video_ckeckbox;
+    ::TextInput *m_backup_interval_textinput;
+
+    wxString m_developer_mode_def;
+    wxString m_dump_video_def;
+    wxString m_backup_interval_def;
+    wxString m_iot_environment_def;
 
     SelectorHash      m_hash_selector;
     RadioSelectorList m_radio_group;
     // ComboBoxSelectorList    m_comxbo_group;
 
-    wxWindow *create_item_title(wxString title, wxWindow *parent, wxString tooltip);
-    wxWindow *create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, std::vector<wxString> vlist);
-    wxWindow *create_item_language_combobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, std::vector<const wxLanguageInfo *> vlist);
-    wxWindow *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
-    wxWindow *create_item_input(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
-    wxWindow *create_item_multiple_combobox(
+    wxBoxSizer *create_item_title(wxString title, wxWindow *parent, wxString tooltip);
+    wxBoxSizer *create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlist);
+    wxBoxSizer *create_item_language_combobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, std::vector<const wxLanguageInfo *> vlist);
+    wxBoxSizer *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
+    wxWindow *  create_item_input(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
+    wxBoxSizer *create_item_multiple_combobox(
         wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string parama, std::vector<wxString> vlista, std::vector<wxString> vlistb);
     wxWindow *create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, int groupid, std::string param);
-
-    void create_select_tabel(const wxString &title, int id, int topleft, wxPanel *panel);
 
     void create_general_page();
     void create_gui_page();
@@ -119,18 +117,19 @@ public:
     void create_shortcuts_page();
     void create_debug_page();
 
-    void on_select(int index);
-    void on_select_radio(std::string param);
-	wxString get_select_radio(int groupid);
+    void     on_select_radio(std::string param);
+    wxString get_select_radio(int groupid);
     // BBS
-	void create_select_domain_widget();
+    void create_select_domain_widget();
 
     void Split(const std::string &src, const std::string &separator, std::vector<wxString> &dest);
 
 protected:
-    void OnSelectTabel(wxMouseEvent &event);
+    void OnSelectTabel(wxCommandEvent &event);
     void OnSelectRadio(wxMouseEvent &event);
 };
+
+wxDECLARE_EVENT(EVT_PREFERENCES_SELECT_TAB, wxCommandEvent);
 
 }} // namespace Slic3r::GUI
 
