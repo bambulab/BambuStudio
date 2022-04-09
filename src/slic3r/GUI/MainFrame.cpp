@@ -306,6 +306,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
     // declare events
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "received close_widow event";
         if (event.CanVeto() && m_plater->get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(true)) {
             // prevents to open the save dirty project dialog
             event.Veto();
@@ -352,6 +353,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         this->shutdown();
         // propagate event
         event.Skip();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "finished process close_widow event";
     });
 
     //FIXME it seems this method is not called on application start-up, at least not on Windows. Why?

@@ -22,7 +22,7 @@ namespace GUI {
 
     wxDEFINE_EVENT(EVT_RESPONSE_MESSAGE, wxCommandEvent);
 
-    
+
 
 WebViewPanel::WebViewPanel(wxWindow *parent)
         : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
@@ -30,7 +30,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     //wxString url = wxString(wxGetApp().app_config->get_web_host_url()) + MODEL_STORE_URL;
     wxString url = resources_dir() + "/web/homepage/index.html";
     m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION);
-    
+
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
 
     // Create the button
@@ -45,7 +45,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     bSizer_toolbar->Add(m_button_forward, 0, wxALL, 5);
 
     m_button_stop = new wxButton(this, wxID_ANY, wxT("Stop"), wxDefaultPosition, wxDefaultSize, 0);
-    
+
     bSizer_toolbar->Add(m_button_stop, 0, wxALL, 5);
 
     m_button_reload = new wxButton(this, wxID_ANY, wxT("Reload"), wxDefaultPosition, wxDefaultSize, 0);
@@ -118,7 +118,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     }
 
     SetSizer(topsizer);
-    
+
     m_browser->EnableContextMenu(false);
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
@@ -255,7 +255,7 @@ void WebViewPanel::load_url(wxString& url)
     this->Show();
     this->Raise();
     m_url->SetLabelText(url);
-    
+
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage(m_url->GetValue());
     m_browser->LoadURL(url);
@@ -440,6 +440,14 @@ void WebViewPanel::SendRecentList()
     */
 void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
 {
+    const wxString &url = evt.GetURL();
+    if (url.StartsWith("File://") || url.StartsWith("file://")) {
+        if (!url.EndsWith("/web/homepage/index.html")) {
+            evt.Veto();
+            return;
+        }
+    }
+
     if (m_info->IsShown())
     {
         m_info->Dismiss();
@@ -532,7 +540,7 @@ void WebViewPanel::OnScriptMessage(wxWebViewEvent& evt)
     else {
         m_response_js.clear();
     }
-}   
+}
 
 void WebViewPanel::OnScriptResponseMessage(wxCommandEvent& WXUNUSED(evt))
 {

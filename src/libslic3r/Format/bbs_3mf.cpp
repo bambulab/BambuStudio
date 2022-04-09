@@ -5795,6 +5795,7 @@ private:
                     try {
                         boost::filesystem::remove(t.path + "/lock.txt");
                         boost::filesystem::remove_all(t.path);
+                        BOOST_LOG_TRIVIAL(info) << "process_ui_task: remove all of backup path " << t.path;
                     } catch (...) {}
                 }
                 break;

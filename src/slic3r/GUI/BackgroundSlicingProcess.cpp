@@ -195,11 +195,11 @@ void BackgroundSlicingProcess::process_fff()
 
 		m_temp_output_path = this->get_current_plate()->get_tmp_gcode_path();
 		if (! m_export_path.empty()) {
-			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: export gcode directly to %2%")%__LINE__%m_export_path;
+			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: export gcode from %2% directly to %3%")%__LINE__%m_temp_output_path %m_export_path;
 		}
 		else {
 			m_fff_print->export_gcode_from_previous_file(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
-			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: export_gcode_from_previous_file finished")%__LINE__;
+			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: export_gcode_from_previous_file from %2% finished")%__LINE__ % m_temp_output_path;
 		}
 	}
 	else {
@@ -772,9 +772,9 @@ void BackgroundSlicingProcess::finalize_gcode()
 		//throw Slic3r::ExportError((boost::format(_utf8(L("Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."))) % export_path).str());
 		//break;
 	default:
-		throw Slic3r::ExportError((boost::format(_utf8(L("Failed to save gcode file\nError message: %1%"))) % error_message).str());
+		BOOST_LOG_TRIVIAL(error) << "Fail code(" << (int)copy_ret_val << ") when copy "<<output_path<<" to " << export_path << ".";
+		throw Slic3r::ExportError((boost::format(_utf8(L("Failed to save gcode file.\nError message: %1%.\nSource file %2%."))) % error_message % output_path).str());
 		//throw Slic3r::ExportError(_utf8(L("Unknown error when export G-code.")));
-		BOOST_LOG_TRIVIAL(error) << "Fail code(" << (int)copy_ret_val << ") when copy file to " << export_path << ".";
 		break;
 	}
 

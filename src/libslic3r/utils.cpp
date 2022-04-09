@@ -77,7 +77,7 @@
 #include <strings.h>
 #endif /* __linux__ */
 
-#ifdef _MSC_VER 
+#ifdef _MSC_VER
     #define strcasecmp _stricmp
 #endif
 
@@ -132,7 +132,7 @@ boost::shared_ptr<boost::log::sinks::synchronous_sink<boost::log::sinks::text_fi
 // This is currently only needed if libslic3r is loaded as a shared library into Perl interpreter
 // to perform unit and integration tests.
 static struct RunOnInit {
-    RunOnInit() { 
+    RunOnInit() {
         set_logging_level(1);
 
     }
@@ -558,7 +558,7 @@ std::error_code rename_file(const std::string &from, const std::string &to)
 }
 
 #ifdef __linux__
-// Copied from boost::filesystem. 
+// Copied from boost::filesystem.
 // Called by copy_file_linux() in case linux sendfile() API is not supported.
 int copy_file_linux_read_write(int infile, int outfile, uintmax_t file_size)
 {
@@ -729,7 +729,7 @@ bool copy_file_linux(const boost::filesystem::path &from, const boost::filesyste
 	if (to_mode != from_mode && ::fchmod(outfile.fd, from_mode) != 0) {
 		if (platform_flavor() == PlatformFlavor::LinuxOnChromium) {
 			// Ignore that. 9p filesystem does not allow fmod().
-			BOOST_LOG_TRIVIAL(info) << "copy_file_linux() failed to fchmod() the output file \"" << to.string() << "\" to " << from_mode << ": " << ec.message() << 
+			BOOST_LOG_TRIVIAL(info) << "copy_file_linux() failed to fchmod() the output file \"" << to.string() << "\" to " << from_mode << ": " << ec.message() <<
 				" This may be expected when writing to a 9p filesystem.";
 		} else {
 			// Generic linux. Write out an error to console. At least we may get some feedback.
@@ -777,6 +777,8 @@ CopyFileResult copy_file_inner(const std::string& from, const std::string& to, s
 #endif // __linux__
 	if (ec) {
 		error_message = ec.message();
+        BOOST_LOG_TRIVIAL(error) << boost::format("###copy_file from %1% to %2% failed, error: %3% ")
+            %source.string() %target.string() << error_message;
 		return FAIL_COPY_FILE;
 	}
 	ec.clear();
@@ -906,7 +908,7 @@ namespace Slic3r {
 
 // Encode an UTF-8 string to the local code page.
 std::string encode_path(const char *src)
-{    
+{
 #ifdef WIN32
     // Convert the source utf8 encoded string to a wide string.
     std::wstring wstr_src = boost::nowide::widen(src);
@@ -925,7 +927,7 @@ std::string encode_path(const char *src)
 // Encode an 8-bit string from a local code page to UTF-8.
 // Multibyte to utf8
 std::string decode_path(const char *src)
-{  
+{
 #ifdef WIN32
     int len = int(strlen(src));
     if (len == 0)
@@ -965,19 +967,19 @@ std::string string_printf(const char *format, ...)
     va_start(args1, format);
     va_list args2;
     va_copy(args2, args1);
-    
+
     static const size_t INITIAL_LEN = 200;
     std::string buffer(INITIAL_LEN, '\0');
-    
+
     int bufflen = ::vsnprintf(buffer.data(), INITIAL_LEN - 1, format, args1);
-    
+
     if (bufflen >= int(INITIAL_LEN)) {
         buffer.resize(size_t(bufflen) + 1);
         ::vsnprintf(buffer.data(), buffer.size(), format, args2);
     }
-    
+
     buffer.resize(bufflen);
-    
+
     return buffer;
 }
 
@@ -1059,7 +1061,7 @@ std::string xml_escape(std::string text, bool is_marked/* = false*/)
     return text;
 }
 
-std::string format_memsize_MB(size_t n) 
+std::string format_memsize_MB(size_t n)
 {
     std::string out;
     size_t n2 = 0;
@@ -1229,7 +1231,7 @@ size_t total_physical_memory()
 
 bool makedir(const std::string path) {
 	// if dir doesn't exist, make it
-#ifdef WIN32		
+#ifdef WIN32
 	if (_access(path.c_str(), 0) != 0)
 		return _mkdir(path.c_str()) == 0;
 #elif __linux__
