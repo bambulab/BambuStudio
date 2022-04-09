@@ -3407,7 +3407,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 speed = new_speed == 0.0 ? speed : new_speed;
             }
         } else if (path.role() == erExternalPerimeter) {
-            speed = 0.01 * m_config.outer_wall_speed.value * m_config.get_abs_value("inner_wall_speed");
+            speed = m_config.get_abs_value("outer_wall_speed");
             if (overhang_degree > 0 && overhang_degree <= 4) {
                 double new_speed = m_config.get_abs_value(overhang_speed_key_map[overhang_degree].c_str());
                 speed = new_speed == 0.0 ? speed : new_speed;

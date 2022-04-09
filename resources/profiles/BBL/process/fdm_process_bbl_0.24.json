@@ -9,6 +9,6 @@
     "bottom_shell_layers": "3",
     "top_shell_layers": "4",
     "bridge_flow": "0.8",
-    "outer_wall_speed": "80%",
+    "outer_wall_speed": "120",
     "sparse_infill_speed": "220"
 }

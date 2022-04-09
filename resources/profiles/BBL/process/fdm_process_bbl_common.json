@@ -22,7 +22,7 @@
     "elefant_foot_compensation": "0",
     "enable_arc_fitting": "1",
     "outer_wall_line_width": "0.4",
-    "outer_wall_speed": "75%",
+    "outer_wall_speed": "120",
     "wall_infill_order": "inner wall/outer wall/infill",
     "line_width": "0.45",
     "infill_direction": "45",

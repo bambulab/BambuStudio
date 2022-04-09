@@ -9,5 +9,5 @@
     "bottom_shell_layers": "4",
     "top_shell_layers": "5",
     "bridge_flow": "0.7",
-    "outer_wall_speed": "90%"
+    "outer_wall_speed": "140"
 }

@@ -663,17 +663,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
-    def = this->add("outer_wall_speed", coPercent);
+    def = this->add("outer_wall_speed", coFloat);
     def->label = L("Outer wall");
     def->category = L("Speed");
     def->tooltip = L("Speed of outer wall which is outermost and visible. "
-                     "It's expressed as percentage relative to inner wall speed. "
                      "It's used to be slower than inner wall speed to get better quality");
-    def->sidetext = L("%");
-    def->ratio_over = "inner_wall_speed";
+    def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionPercent(80));
+    def->set_default_value(new ConfigOptionFloat(120));
 
     def = this->add("wall_infill_order", coEnum);
     def->label = L("Order of inner wall/outer wall/infil");
@@ -3222,15 +3220,11 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
                 opt_key == "internal_solid_infill_speed"  ||
                 opt_key == "top_surface_speed"            ||
                 opt_key == "support_transition_speed"     ||
-                opt_key == "support_interface_speed")     && value.find("%") != std::string::npos) {
+                opt_key == "support_interface_speed"      ||
+                opt_key == "outer_wall_speed")     && value.find("%") != std::string::npos) {
         //BBS: this is old profile in which value is expressed as percentage.
         //But now these key-value must be absolute value.
         //Reset to default value by erasing these key to avoid parsing error.
-        opt_key = "";
-    } else if (opt_key == "outer_wall_speed" && value.find("%") == std::string::npos) {
-        //BBS: this is old profile in which value is expressed absolute value.
-        //But now these key-value must be percentage.
-        //Reset to default percentage value by erasing these key to avoid parsing error.
         opt_key = "";
     }
 

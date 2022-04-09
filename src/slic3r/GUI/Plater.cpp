@@ -2190,7 +2190,7 @@ void Plater::setPrintSpeedTable(GlobalSpeedMap &printSpeedMap) {
             printSpeedMap.maxSpeed = printSpeedMap.perimeterSpeed;
     }
     if (config.has("outer_wall_speed")) {
-        printSpeedMap.externalPerimeterSpeed = 0.01 * config.option<ConfigOptionPercent>("outer_wall_speed")->value * printSpeedMap.perimeterSpeed;
+        printSpeedMap.externalPerimeterSpeed = config.opt_float("outer_wall_speed");
         printSpeedMap.maxSpeed = std::max(printSpeedMap.maxSpeed, printSpeedMap.externalPerimeterSpeed);
     }
     if (config.has("sparse_infill_speed")) {

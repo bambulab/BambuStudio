@@ -2679,9 +2679,8 @@ double Model::findMaxSpeed(const ModelObject* object) {
             topSolidInfillSpeedObj = object->config.opt_float(objectKey);
         if (objectKey == "support_speed")
             supportSpeedObj = object->config.opt_float(objectKey);
-        if (objectKey == "outer_wall_speed") {
-            externalPerimeterSpeedObj = 0.01 * object->config.opt_float("outer_wall_speed") * perimeterSpeedObj;
-        }     
+        if (objectKey == "outer_wall_speed")
+            externalPerimeterSpeedObj = object->config.opt_float("objectKey");
     }
     objMaxSpeed = std::max(perimeterSpeedObj, std::max(externalPerimeterSpeedObj, std::max(infillSpeedObj, std::max(solidInfillSpeedObj, std::max(topSolidInfillSpeedObj, std::max(supportSpeedObj, objMaxSpeed))))));
     if (objMaxSpeed <= 0) objMaxSpeed = 250.;
