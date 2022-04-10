@@ -3011,7 +3011,10 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         if (m_config.enable_arc_fitting &&
             path->polyline.fitting_result.empty() &&
             !m_config.spiral_mode) {
-            path->simplify_by_fitting_arc(m_scaled_resolution);
+            if (path->role() == erInternalInfill)
+                path->simplify_by_fitting_arc(SCALED_SPARSE_INFILL_RESOLUTION);
+            else
+                path->simplify_by_fitting_arc(m_scaled_resolution);
         } else {
             path->simplify(m_scaled_resolution);
         }
@@ -3084,7 +3087,10 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
         if (m_config.enable_arc_fitting &&
             path.polyline.fitting_result.empty() &&
             !m_config.spiral_mode) {
-            path.simplify_by_fitting_arc(m_scaled_resolution);
+            if (path.role() == erInternalInfill)
+                path.simplify_by_fitting_arc(SCALED_SPARSE_INFILL_RESOLUTION);
+            else
+                path.simplify_by_fitting_arc(m_scaled_resolution);
         } else {
             path.simplify(m_scaled_resolution);
         }
@@ -3132,7 +3138,10 @@ std::string GCode::extrude_path(ExtrusionPath path, std::string description, dou
     if (m_config.enable_arc_fitting &&
         path.polyline.fitting_result.empty() &&
         !m_config.spiral_mode) {
-        path.simplify_by_fitting_arc(m_scaled_resolution);
+        if (path.role() == erInternalInfill)
+            path.simplify_by_fitting_arc(SCALED_SPARSE_INFILL_RESOLUTION);
+        else
+            path.simplify_by_fitting_arc(m_scaled_resolution);
     } else {
         path.simplify(m_scaled_resolution);
     }

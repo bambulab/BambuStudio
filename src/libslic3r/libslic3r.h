@@ -52,6 +52,8 @@ static constexpr double PI = 3.141592653589793238;
 static constexpr double LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER = 0.15;
 static constexpr double RESOLUTION = 0.0125;
 #define                 SCALED_RESOLUTION (RESOLUTION / SCALING_FACTOR)
+static constexpr double SPARSE_INFILL_RESOLUTION = 0.04;
+#define                 SCALED_SPARSE_INFILL_RESOLUTION (SPARSE_INFILL_RESOLUTION / SCALING_FACTOR)
 // Maximum perimeter length for the loop to apply the small perimeter speed. 
 #define                 SMALL_PERIMETER_LENGTH  ((6.5 / SCALING_FACTOR) * 2 * PI)
 static constexpr double INSET_OVERLAP_TOLERANCE = 0.4;
