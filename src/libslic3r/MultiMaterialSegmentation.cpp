@@ -605,7 +605,7 @@ struct MMU_Graph
             if (arcs[arc_idx].to_idx == to_idx)
                 return;
         for (const size_t &arc_idx : this->nodes[to_idx].arc_idxs)
-            if (arcs[arc_idx].to_idx == to_idx)
+            if (arcs[arc_idx].to_idx == from_idx)
                 return;
 
         this->nodes[from_idx].arc_idxs.push_back(this->arcs.size());
