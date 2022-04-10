@@ -391,7 +391,9 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
             this);
 
     auto publish_model_and_profile = [this](wxCommandEvent&) {
-        wxGetApp().plater()->show_publish_dialog();
+        if (wxGetApp().check_login()) {
+            wxGetApp().plater()->show_publish_dialog();
+        }
     };
 
     auto cond_publish_model = [this]() {

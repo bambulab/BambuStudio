@@ -2092,8 +2092,19 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
 //BBS
 void GUI_App::request_login()
 {
-    //BBS
-    wxMessageBox(_L("Please login first!"));
+    ShowUserLogin();
+}
+
+bool GUI_App::check_login()
+{
+    bool result = false;
+    if (m_account_manager) {
+        result = m_account_manager->is_user_login();
+    }
+    if (!result) {
+        ShowUserLogin();
+    }
+    return result;
 }
 
 void GUI_App::request_model_download(std::string import_json)

@@ -65,7 +65,7 @@ public:
 
 
 private:
-    wxTimer *m_timer;
+    wxTimer *m_timer { nullptr };
     void     OnTimer(wxTimerEvent &event);
 
 private:

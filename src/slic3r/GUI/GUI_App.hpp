@@ -273,6 +273,7 @@ public:
     void            ShowOnlyFilament();
     //BBS
     void            request_login();
+    bool            check_login();
     void            request_model_download(std::string import_json);
     void            download_project(std::string project_id);
     void            handle_http_error(unsigned int status, std::string body);

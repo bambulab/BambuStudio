@@ -4857,6 +4857,9 @@ void Plater::priv::on_action_print_plate(SimpleEvent&)
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print plate event\n" ;
     }
 
+    //BBS check login status
+    if (!wxGetApp().check_login()) return;
+
     //BBS
     if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);
     m_select_machine_dlg->prepare(partplate_list.get_curr_plate_index());
@@ -4876,6 +4879,9 @@ void Plater::priv::on_action_print_all(SimpleEvent&)
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print all event\n" ;
     }
+
+    if (!wxGetApp().check_login()) return;
+
     //BBS
     if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);
     m_select_machine_dlg->prepare(PLATE_ALL_IDX);
