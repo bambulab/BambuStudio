@@ -4833,9 +4833,14 @@ void Plater::priv::on_action_publish(wxCommandEvent &event)
     if (q != nullptr) {
         if (event.GetInt() == EVT_PUBLISHING_START) {
             m_is_publishing = true;
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice project in background event\n";
-            SimpleEvent evt = SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL);
-            this->on_action_slice_all(evt);
+            // if slicing is ready publish project, else slicing first
+            if (partplate_list.is_all_slice_results_valid()) {
+                q->publish_project();
+            } else {
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice project in background event\n";
+                SimpleEvent evt = SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL);
+                this->on_action_slice_all(evt);
+            }
         } else {
             m_is_publishing = false;
             show_publish_dlg(false);
