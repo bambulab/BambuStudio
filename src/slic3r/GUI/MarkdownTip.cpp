@@ -90,6 +90,7 @@ MarkdownTip::MarkdownTip()
 
 void MarkdownTip::LoadStyle()
 {
+    _language = GUI::into_u8(GUI::wxGetApp().current_language_code());
     fs::path ph(data_dir());
     ph /= "resources/tooltip/common/styled.html";
     _data_dir = true;
@@ -97,8 +98,6 @@ void MarkdownTip::LoadStyle()
         ph = resources_dir();
         ph /= "tooltip/styled.html";
         _data_dir = false;
-    } else {
-        _language = GUI::into_u8(GUI::wxGetApp().current_language_code());
     }
     auto url = encode_path(ph.string().c_str());
     std::replace(url.begin(), url.end(), '\\', '/');
