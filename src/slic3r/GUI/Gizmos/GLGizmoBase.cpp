@@ -21,10 +21,9 @@ const float GLGizmoBase::Grabber::FixedRadiusSize = 55.0f;
 std::array<float, 4> GLGizmoBase::DEFAULT_BASE_COLOR = { 0.625f, 0.625f, 0.625f, 1.0f };
 std::array<float, 4> GLGizmoBase::DEFAULT_DRAG_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
 std::array<float, 4> GLGizmoBase::DEFAULT_HIGHLIGHT_COLOR = { 1.0f, 0.38f, 0.0f, 1.0f };
-std::array<std::array<float, 4>, 3> GLGizmoBase::AXES_COLOR = { {
-                                                                { 0.75f, 0.0f, 0.0f, 1.0f },
-                                                                { 0.0f, 0.75f, 0.0f, 1.0f },
-                                                                { 0.0f, 0.0f, 0.75f, 1.0f }
+std::array<std::array<float, 4>, 3> GLGizmoBase::AXES_COLOR = { {decode_color_to_float_array("#F5333F"),
+                                                                decode_color_to_float_array("#38D430"),
+                                                                decode_color_to_float_array("#0097CE")
                                                                 }};
 
 std::array<float, 4> GLGizmoBase::CONSTRAINED_COLOR = { 0.5f, 0.5f, 0.5f, 1.0f };
