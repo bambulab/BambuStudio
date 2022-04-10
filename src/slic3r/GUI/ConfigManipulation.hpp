@@ -68,6 +68,10 @@ public:
     void    toggle_print_fff_options(DynamicPrintConfig* config);
     void    apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase*, ModelConfig*> const & configs);
 
+    //BBS: FFF filament nozzle temperature range
+    void    check_nozzle_temperature_range(DynamicPrintConfig* config);
+    void    check_nozzle_temperature_initial_layer_range(DynamicPrintConfig* config);
+
     // SLA print
     void    update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config = false);
     void    toggle_print_sla_options(DynamicPrintConfig* config);

@@ -2258,6 +2258,22 @@ void PrintConfigDef::init_fff_params()
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 200 });
 
+    def = this->add("nozzle_temperature_range_high", coInts);
+    def->label = L("Highest");
+    def->tooltip = L("The lowest recommanded nozzle temperature when print with this filament");
+    def->sidetext = L("°C");
+    def->min = 0;
+    def->max = 300;
+    def->set_default_value(new ConfigOptionInts { 300 });
+
+    def = this->add("nozzle_temperature_range_low", coInts);
+    def->label = L("Lowest");
+    def->tooltip = L("The highest recommanded nozzle temperature when print with this filament");
+    def->sidetext = L("°C");
+    def->min = 0;
+    def->max = 300;
+    def->set_default_value(new ConfigOptionInts { 0 });
+
     def = this->add("detect_thin_wall", coBool);
     def->label = L("Detect thin wall");
     def->category = L("Strength");

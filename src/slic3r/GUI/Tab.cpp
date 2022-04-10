@@ -2361,8 +2361,14 @@ void TabFilament::build()
         //BBS
         optgroup->append_single_option_line("temperature_vitrification");
 
+        optgroup = page->new_optgroup(L("Recommanded temperature range"));
+        Line line = { L("Nozzle temperature range"), "" };
+        line.append_option(optgroup->get_option("nozzle_temperature_range_low"));
+        line.append_option(optgroup->get_option("nozzle_temperature_range_high"));
+        optgroup->append_line(line);
+
         optgroup = page->new_optgroup(L("Temperature"));
-        Line line = { L("Nozzle"), "" };
+        line = { L("Nozzle"), "" };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
         line.append_option(optgroup->get_option("nozzle_temperature"));
         optgroup->append_line(line);
@@ -2396,6 +2402,16 @@ void TabFilament::build()
                 bed_temps_opt->set_at(&temp_opt, bed_type, 0);
                 // update dirty after value change
                 update_dirty();
+                on_value_change(opt_key, value);
+            }
+            else if (opt_key == "nozzle_temperature") {
+                DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+                m_config_manipulation.check_nozzle_temperature_range(&filament_config);
+                on_value_change(opt_key, value);
+            }
+            else if (opt_key == "nozzle_temperature_initial_layer") {
+                DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+                m_config_manipulation.check_nozzle_temperature_initial_layer_range(&filament_config);
                 on_value_change(opt_key, value);
             }
             else

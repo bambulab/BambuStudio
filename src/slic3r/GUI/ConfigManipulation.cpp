@@ -41,6 +41,50 @@ void ConfigManipulation::toggle_field(const std::string& opt_key, const bool tog
     cb_toggle_field(opt_key, toggle, opt_index);
 }
 
+void ConfigManipulation::check_nozzle_temperature_range(DynamicPrintConfig* config)
+{
+    if (is_msg_dlg_already_exist)
+        return;
+
+    if (config->has("nozzle_temperature")
+        && config->has("nozzle_temperature_range_low")
+        && config->has("nozzle_temperature_range_high")) {
+        if (config->opt_int("nozzle_temperature", 0) < config->opt_int("nozzle_temperature_range_low", 0) ||
+            config->opt_int("nozzle_temperature", 0) > config->opt_int("nozzle_temperature_range_high", 0))
+        {
+            const wxString msg_text = _(L("Nozzle may be blocked when the temperature is out of recommanded range.\n"
+                "Please make sure whether to use the temperature to print"));
+            MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
+            DynamicPrintConfig new_conf = *config;
+            is_msg_dlg_already_exist = true;
+            dialog.ShowModal();
+            is_msg_dlg_already_exist = false;
+        }
+    }
+}
+
+void ConfigManipulation::check_nozzle_temperature_initial_layer_range(DynamicPrintConfig* config)
+{
+    if (is_msg_dlg_already_exist)
+        return;
+
+    if (config->has("nozzle_temperature_initial_layer")
+        && config->has("nozzle_temperature_range_low")
+        && config->has("nozzle_temperature_range_high")) {
+        if (config->opt_int("nozzle_temperature_initial_layer", 0) < config->opt_int("nozzle_temperature_range_low", 0) ||
+            config->opt_int("nozzle_temperature_initial_layer", 0) > config->opt_int("nozzle_temperature_range_high", 0))
+        {
+            const wxString msg_text = _(L("Nozzle may be blocked when the temperature is out of recommanded range.\n"
+                "Please make sure whether to use the temperature to print"));
+            MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
+            DynamicPrintConfig new_conf = *config;
+            is_msg_dlg_already_exist = true;
+            dialog.ShowModal();
+            is_msg_dlg_already_exist = false;
+        }
+    }
+}
+
 void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config)
 {
     // #ys_FIXME_to_delete

@@ -20,7 +20,7 @@
         "4"
     ],
     "filament_max_volumetric_speed": [
-        "11"
+        "23.2"
     ],
     "filament_type": [
         "PC"
@@ -46,12 +46,21 @@
     "fan_min_speed": [
         "20"
     ],
+    "overhang_fan_threshold": [
+        "25%"
+    ],
     "overhang_fan_speed": [
-        "30"
+        "50"
     ],
     "top_fan_speed": "0",
     "nozzle_temperature": [
         "270"
+    ],
+    "nozzle_temperature_range_low": [
+        "260"
+    ],
+    "nozzle_temperature_range_high": [
+        "280"
     ],
     "temperature_vitrification": [
         "140"
