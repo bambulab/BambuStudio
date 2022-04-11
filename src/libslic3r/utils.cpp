@@ -6,8 +6,6 @@
 #include <ctime>
 #include <cstdarg>
 #include <stdio.h>
-#include <filesystem>
-
 
 #include "Platform.hpp"
 #include "Time.hpp"
@@ -611,7 +609,7 @@ int copy_file_linux_read_write(int infile, int outfile, uintmax_t file_size)
 // for example ChromeOS Linux integration or FlashAIR WebDAV.
 // Copied and simplified from boost::filesystem::detail::copy_file() with option = overwrite_if_exists and with just the Linux path kept,
 // and only features supported by Linux 3.10 (on our build server with CentOS 7) are kept, namely sendfile with ranges and statx() are not supported.
-bool copy_file_linux(const std::filesystem::path &from, const std::filesystem::path &to, std::error_code &ec)
+bool copy_file_linux(const boost::filesystem::path &from, const boost::filesystem::path &to, boost::system::error_code &ec)
 {
 	using namespace boost::filesystem;
 
@@ -755,10 +753,9 @@ bool copy_file_linux(const std::filesystem::path &from, const std::filesystem::p
 
 CopyFileResult copy_file_inner(const std::string& from, const std::string& to, std::string& error_message)
 {
-	const std::filesystem::path source(from);
-	const std::filesystem::path target(to);
-    static const auto perms = std::filesystem::perms::owner_read | std::filesystem::perms::owner_write
-		| std::filesystem::perms::group_read | std::filesystem::perms::others_read; // aka 644
+	const boost::filesystem::path source(from);
+	const boost::filesystem::path target(to);
+	static const auto perms = boost::filesystem::owner_read | boost::filesystem::owner_write | boost::filesystem::group_read | boost::filesystem::others_read;   // aka 644
 
 	// Make sure the file has correct permission both before and after we copy over it.
 	// NOTE: error_code variants are used here to supress expception throwing.
@@ -766,17 +763,17 @@ CopyFileResult copy_file_inner(const std::string& from, const std::string& to, s
 	// the copy_file() function will fail appropriately and we don't want the permission()
 	// calls to cause needless failures on permissionless filesystems (ie. FATs on SD cards etc.)
 	// or when the target file doesn't exist.
-	std::error_code ec;
-	std::filesystem::permissions(target, perms, ec);
+	boost::system::error_code ec;
+	boost::filesystem::permissions(target, perms, ec);
 	if (ec)
-		BOOST_LOG_TRIVIAL(debug) << "std::filesystem::permisions before copy error message (this could be irrelevant message based on file system): " << ec.message();
+		BOOST_LOG_TRIVIAL(debug) << "boost::filesystem::permisions before copy error message (this could be irrelevant message based on file system): " << ec.message();
 	ec.clear();
 #ifdef __linux__
 	// We want to allow copying files on Linux to succeed even if changing the file attributes fails.
 	// That may happen when copying on some exotic file system, for example Linux on Chrome.
 	copy_file_linux(source, target, ec);
 #else // __linux__
-	std::filesystem::copy_file(source, target, std::filesystem::copy_options::overwrite_existing , ec);
+	boost::filesystem::copy_file(source, target, boost::filesystem::copy_option::overwrite_if_exists, ec);
 #endif // __linux__
 	if (ec) {
 		error_message = ec.message();
@@ -785,9 +782,9 @@ CopyFileResult copy_file_inner(const std::string& from, const std::string& to, s
 		return FAIL_COPY_FILE;
 	}
 	ec.clear();
-	std::filesystem::permissions(target, perms, ec);
+	boost::filesystem::permissions(target, perms, ec);
 	if (ec)
-		BOOST_LOG_TRIVIAL(debug) << "std::filesystem::permisions after copy error message (this could be irrelevant message based on file system): " << ec.message();
+		BOOST_LOG_TRIVIAL(debug) << "boost::filesystem::permisions after copy error message (this could be irrelevant message based on file system): " << ec.message();
 	return SUCCESS;
 }
 
