@@ -1,11 +1,11 @@
 {
   "type": "machine",
   "setting_id": "GM001",
-  "name": "Bambu Lab X1",
+  "name": "Bambu Lab X1 Carbon",
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_bbl_3dp_001_common",
-  "printer_model": "BBL-3DP-X1",
+  "printer_model": "BBL_3DP_X1",
   "bed_exclude_area": [
     "0x0",
     "28x0",

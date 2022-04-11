@@ -1,11 +1,11 @@
 {
     "type": "process",
     "setting_id": "GP006",
-    "name": "0.20mm Bambu Support W @Bambu Lab X1",
+    "name": "0.20mm Bambu Support W @Bambu Lab X1 Carbon",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_process_bbl_0.20",
-    "compatible_printers_condition": "printer_model=~/(BBL-3DP).*/ and nozzle_diameter[0]==0.4",
+    "compatible_printers_condition": "printer_model=~/(BBL_3DP).*/ and nozzle_diameter[0]==0.4",
     "enable_support": "1",
     "support_interface_top_layers": "3",
     "support_top_z_distance": "0.2",

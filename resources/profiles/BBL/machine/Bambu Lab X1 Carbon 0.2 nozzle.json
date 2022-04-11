@@ -1,17 +1,17 @@
 {
   "type": "machine",
   "setting_id": "GM002",
-  "name": "Bambu Lab X1 0.2 nozzle",
+  "name": "Bambu Lab X1 Carbon 0.2 nozzle",
   "from": "system",
   "instantiation": "true",
-  "inherits": "Bambu Lab X1",
+  "inherits": "Bambu Lab X1 Carbon",
   "nozzle_diameter": [
       "0.2"
   ],
   "printer_variant": "0.2",
-  "printer_model": "BBL-3DP-X1",
+  "printer_model": "BBL_3DP_X1",
   "default_filament_profile": [
       "Bambu PLA Basic @Bambu Lab"
   ],
-  "default_print_profile": "0.10mm Standard @Bambu Lab X1 0.2 nozzle"
+  "default_print_profile": "0.10mm Standard @Bambu Lab X1 Carbon 0.2 nozzle"
 }

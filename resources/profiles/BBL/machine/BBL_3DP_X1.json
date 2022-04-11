@@ -1,7 +1,7 @@
 {
     "type": "machine_model",
-    "name": "BBL-3DP-X1",
-    "url": "http://www.bambulab.com/Parameters/printer_model/BBL-3DP-X1.json",
+    "name": "BBL_3DP_X1",
+    "url": "http://www.bambulab.com/Parameters/printer_model/BBL_3DP_X1.json",
     "nozzle_diameter": "0.4; 0.2",
     "machine_tech": "FFF",
     "family": "BBL-3DP",
