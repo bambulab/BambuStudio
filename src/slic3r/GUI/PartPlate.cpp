@@ -50,7 +50,7 @@ static const float GRABBER_Z_VALUE = 0.5f;
 static unsigned int GLOBAL_PLATE_INDEX = 0;
 
 static const double LOGICAL_PART_PLATE_GAP = 1. / 5.;
-static const int PARTPLATE_ICON_SIZE = 10;
+static const int PARTPLATE_ICON_SIZE = 16;
 static const int PARTPLATE_ICON_GAP_TOP = 3;
 static const int PARTPLATE_ICON_GAP_LEFT = 3;
 static const int PARTPLATE_ICON_GAP_Y = 5;
@@ -317,6 +317,9 @@ void PartPlate::calc_vertex_for_icons_background(int icon_count, GeometryBuffer 
 
 void PartPlate::render_background(bool force_default_color) const {
 	unsigned int triangles_vcount = m_triangles.get_vertices_count();
+
+	//return directly for current plate
+	if (m_selected) return;
 
 	// draw background
 	glsafe(::glDepthMask(GL_FALSE));
