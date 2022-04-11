@@ -65,11 +65,11 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         //m_search_btn = new ScalableButton(m_top_panel, wxID_ANY, "search", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
         //m_search_btn->SetToolTip(format_wxstr(_L("Search in settings [%1%]"), "Ctrl+F"));
         //m_search_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->search(false); });
-
+#if !BBL_RELEASE_TO_PUBLIC
         m_compare_btn = new ScalableButton(m_top_panel, wxID_ANY, "compare", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
         m_compare_btn->SetToolTip(_L("Compare presets"));
         m_compare_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { wxGetApp().mainframe->diff_dialog.show(); }));
-
+#endif
         m_setting_btn = new ScalableButton(m_top_panel, wxID_ANY, "table", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
         m_setting_btn->SetToolTip(_L("View all object's settings"));
         m_setting_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->PopupObjectTable(-1, -1, {0, 0}); });
@@ -155,8 +155,10 @@ void ParamsPanel::create_layout()
         m_mode_sizer->AddSpacer(16);
         m_mode_sizer->Add( m_setting_btn, 0, wxALIGN_CENTER );
         m_mode_sizer->AddSpacer(16);
+#if !BBL_RELEASE_TO_PUBLIC
         m_mode_sizer->Add( m_compare_btn, 0, wxALIGN_CENTER );
         m_mode_sizer->AddSpacer(16);
+#endif
         //m_mode_sizer->Add( m_search_btn, 0, wxALIGN_CENTER );
         //m_mode_sizer->AddSpacer(16);
         m_mode_sizer->SetMinSize(-1, 4 * em_unit(this));
@@ -353,10 +355,10 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
 
     // BBS: open/close tab
     for (auto t : std::vector<std::pair<wxPanel*, wxStaticLine*>>({
-            {m_tab_print, m_staticline_print}, 
-            {m_tab_print_object, m_staticline_print_object}, 
-            {m_tab_print_part, m_staticline_print_part}, 
-            {m_tab_filament, m_staticline_filament}, 
+            {m_tab_print, m_staticline_print},
+            {m_tab_print_object, m_staticline_print_object},
+            {m_tab_print_part, m_staticline_print_part},
+            {m_tab_filament, m_staticline_filament},
             {m_tab_printer, m_staticline_printer}})) {
         if (!t.first) continue;
         t.first->Show(tab == t.first);
