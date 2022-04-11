@@ -60,7 +60,7 @@ OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
     m_h_gap     = lround(0.2 * m_em_unit);
 
     //m_bmp_mode_sz       = get_bitmap_size(create_scaled_bitmap("mode_simple", this, wxOSX ? 10 : 12));
-    m_bmp_blinking_sz   = get_bitmap_size(create_scaled_bitmap("search_blink", this));
+    m_bmp_blinking_sz   = get_bitmap_size(create_scaled_bitmap("blank_16", this));
 
     init_ctrl_lines();// from og.lines()
 

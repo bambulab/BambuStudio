@@ -61,7 +61,6 @@
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
-#include "GUI_ObjectLayers.hpp"
 #include "GUI_Utils.hpp"
 #include "GUI_Factories.hpp"
 #include "wxExtensions.hpp"
@@ -283,7 +282,6 @@ struct Sidebar::priv
     wxPanel             *m_object_panel;
     AuxiliaryDialog     *m_auxiliary_dialog{ nullptr };
     ObjectSettings      *object_settings{ nullptr };
-    ObjectLayers        *object_layers{ nullptr };
 
     wxButton *btn_export_gcode;
     wxButton *btn_reslice;
@@ -315,7 +313,6 @@ Sidebar::priv::~priv()
 #if 0
     delete frequently_changed_parameters;
 #endif
-    delete object_layers;
 
     // BBS
     if (m_object_panel != nullptr)
@@ -612,10 +609,6 @@ Sidebar::Sidebar(Plater *parent)
     }
 #endif
 
-    // Object Layers
-    p->object_layers = new ObjectLayers(p->scrolled);
-    p->object_layers->Hide();
-
     auto *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(p->scrolled, 1, wxEXPAND);
     SetSizer(sizer);
@@ -843,7 +836,6 @@ void Sidebar::msw_rescale()
     // BBS
     //p->object_manipulation->msw_rescale();
     p->object_settings->msw_rescale();
-    p->object_layers->msw_rescale();
 
     // BBS
 #if 0
@@ -905,7 +897,6 @@ void Sidebar::sys_color_changed()
     //obj_list()->sys_color_changed();
     // BBS
     //p->object_manipulation->sys_color_changed();
-    p->object_layers->sys_color_changed();
 
     // btn...->msw_rescale() updates icon on button, so use it
     //p->btn_send_gcode->msw_rescale();
@@ -1050,11 +1041,6 @@ AuxiliaryList* Sidebar::aux_list()
 ObjectSettings* Sidebar::obj_settings()
 {
     return p->object_settings;
-}
-
-ObjectLayers* Sidebar::obj_layers()
-{
-    return p->object_layers;
 }
 
 wxScrolledWindow* Sidebar::scrolled_panel()

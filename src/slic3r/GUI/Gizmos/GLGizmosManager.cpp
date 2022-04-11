@@ -145,13 +145,13 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoScale3D(m_parent, "toolbar_scale.svg", sprite_id++, &m_object_manipulation));
     m_gizmos.emplace_back(new GLGizmoFlatten(m_parent, "toolbar_flatten.svg", sprite_id++));
     m_gizmos.emplace_back(new GLGizmoAdvancedCut(m_parent, "toolbar_cut.svg", sprite_id++));
-    m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", sprite_id++));
     m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, "toolbar_support.svg", sprite_id++));
     //m_gizmos.emplace_back(new GLGizmoSeam(m_parent, "toolbar_seam.svg", sprite_id++));
     m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, "mmu_segmentation.svg", sprite_id++));
     m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "reduce_triangles.svg", sprite_id++));
     //m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", sprite_id++));
     //m_gizmos.emplace_back(new GLGizmoFaceDetector(m_parent, "face recognition.svg", sprite_id++));
+    //m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", sprite_id++));
 
     m_common_gizmos_data.reset(new CommonGizmosDataPool(&m_parent));
 

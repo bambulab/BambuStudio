@@ -48,7 +48,7 @@ static const std::map<Preset::Type, std::string> type_icon_names = {
     {Preset::TYPE_PRINT,        "cog"           },
     {Preset::TYPE_SLA_PRINT,    "cog"           },
     {Preset::TYPE_FILAMENT,     "spool"         },
-    {Preset::TYPE_SLA_MATERIAL, "resin"         },
+    {Preset::TYPE_SLA_MATERIAL, "blank_16"      },
     {Preset::TYPE_PRINTER,      "printer"       },
 };
 

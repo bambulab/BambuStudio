@@ -54,7 +54,6 @@ class Sidebar;
 class ObjectManipulation;
 class ObjectSettings;
 class ObjectList;
-class ObjectLayers;
 class Plater;
 class ParamsPanel;
 class NotificationManager;
@@ -334,7 +333,6 @@ public:
     //ObjectManipulation*  obj_manipul();
     ObjectSettings*      obj_settings();
     ObjectList*          obj_list();
-    ObjectLayers*        obj_layers();
     Plater*              plater();
     const Plater*        plater() const;
     ParamsPanel*         params_panel();

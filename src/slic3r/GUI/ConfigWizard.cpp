@@ -1477,220 +1477,6 @@ void PageTemperatures::apply_custom_config(DynamicPrintConfig &config)
 #endif
 }
 
-
-// Index
-
-ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent)
-    : wxPanel(parent)
-    , bg(ScalableBitmap(parent, "BambuStudio_192px_transparent.png", 192))
-    , bullet_black(ScalableBitmap(parent, "bullet_black.png"))
-    , bullet_blue(ScalableBitmap(parent, "bullet_blue.png"))
-    , bullet_white(ScalableBitmap(parent, "bullet_white.png"))
-    , item_active(NO_ITEM)
-    , item_hover(NO_ITEM)
-    , last_page((size_t)-1)
-{
-#ifndef __WXOSX__ 
-    SetDoubleBuffered(true);// SetDoubleBuffered exists on Win and Linux/GTK, but is missing on OSX
-#endif //__WXOSX__
-    SetMinSize(bg.bmp().GetSize());
-
-    const wxSize size = GetTextExtent("m");
-    em_w = size.x;
-    em_h = size.y;
-
-    Bind(wxEVT_PAINT, &ConfigWizardIndex::on_paint, this);
-    Bind(wxEVT_SIZE, [this](wxEvent& e) { e.Skip(); Refresh(); });
-    Bind(wxEVT_MOTION, &ConfigWizardIndex::on_mouse_move, this);
-
-    Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &evt) {
-        if (item_hover != -1) {
-            item_hover = -1;
-            Refresh();
-        }
-        evt.Skip();
-    });
-
-    Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &evt) {
-        if (item_hover >= 0) { go_to(item_hover); }
-    });
-}
-
-wxDECLARE_EVENT(EVT_INDEX_PAGE, wxCommandEvent);
-
-void ConfigWizardIndex::add_page(ConfigWizardPage *page)
-{
-    last_page = items.size();
-    items.emplace_back(Item { page->shortname, page->indent, page });
-    Refresh();
-}
-
-void ConfigWizardIndex::add_label(wxString label, unsigned indent)
-{
-    items.emplace_back(Item { std::move(label), indent, nullptr });
-    Refresh();
-}
-
-ConfigWizardPage* ConfigWizardIndex::active_page() const
-{
-    if (item_active >= items.size()) { return nullptr; }
-
-    return items[item_active].page;
-}
-
-void ConfigWizardIndex::go_prev()
-{
-    // Search for a preceiding item that is a page (not a label, ie. page != nullptr)
-
-    if (item_active == NO_ITEM) { return; }
-
-    for (size_t i = item_active; i > 0; i--) {
-        if (items[i - 1].page != nullptr) {
-            go_to(i - 1);
-            return;
-        }
-    }
-}
-
-void ConfigWizardIndex::go_next()
-{
-    // Search for a next item that is a page (not a label, ie. page != nullptr)
-
-    if (item_active == NO_ITEM) { return; }
-
-    for (size_t i = item_active + 1; i < items.size(); i++) {
-        if (items[i].page != nullptr) {
-            go_to(i);
-            return;
-        }
-    }
-}
-
-// This one actually performs the go-to op
-void ConfigWizardIndex::go_to(size_t i)
-{
-    if (i != item_active
-        && i < items.size()
-        && items[i].page != nullptr) {
-        auto *new_active = items[i].page;
-        auto *former_active = active_page();
-        if (former_active != nullptr) {
-            former_active->Hide();
-        }
-
-        item_active = i;
-        new_active->Show();
-
-        wxCommandEvent evt(EVT_INDEX_PAGE, GetId());
-        AddPendingEvent(evt);
-
-        Refresh();
-
-        new_active->on_activate();
-    }
-}
-
-void ConfigWizardIndex::go_to(const ConfigWizardPage *page)
-{
-    if (page == nullptr) { return; }
-
-    for (size_t i = 0; i < items.size(); i++) {
-        if (items[i].page == page) {
-            go_to(i);
-            return;
-        }
-    }
-}
-
-void ConfigWizardIndex::clear()
-{
-    auto *former_active = active_page();
-    if (former_active != nullptr) { former_active->Hide(); }
-
-    items.clear();
-    item_active = NO_ITEM;
-}
-
-void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
-{
-    const auto size = GetClientSize();
-    if (size.GetHeight() == 0 || size.GetWidth() == 0) { return; }
-   
-    wxPaintDC dc(this);
-    
-    const auto bullet_w = bullet_black.bmp().GetSize().GetWidth();
-    const auto bullet_h = bullet_black.bmp().GetSize().GetHeight();
-    const int yoff_icon = bullet_h < em_h ? (em_h - bullet_h) / 2 : 0;
-    const int yoff_text = bullet_h > em_h ? (bullet_h - em_h) / 2 : 0;
-    const int yinc = item_height();
-   
-    int index_width = 0;
-
-    unsigned y = 0;
-    for (size_t i = 0; i < items.size(); i++) {
-        const Item& item = items[i];
-        unsigned x = em_w/2 + item.indent * em_w;
-
-        if (i == item_active || (item_hover >= 0 && i == (size_t)item_hover)) {
-            dc.DrawBitmap(bullet_blue.bmp(), x, y + yoff_icon, false);
-        }
-        else if (i < item_active)  { dc.DrawBitmap(bullet_black.bmp(), x, y + yoff_icon, false); }
-        else if (i > item_active)  { dc.DrawBitmap(bullet_white.bmp(), x, y + yoff_icon, false); }
-
-        x += + bullet_w + em_w/2;
-        const auto text_size = dc.GetTextExtent(item.label);
-        dc.SetTextForeground(wxGetApp().get_label_clr_default());
-        dc.DrawText(item.label, x, y + yoff_text);
-
-        y += yinc;
-        index_width = std::max(index_width, (int)x + text_size.x);
-    }
-    
-    //draw logo
-    if (int y = size.y - bg.GetBmpHeight(); y>=0) {
-        dc.DrawBitmap(bg.bmp(), 0, y, false);
-        index_width = std::max(index_width, bg.GetBmpWidth() + em_w / 2);
-    }
-
-    if (GetMinSize().x < index_width) {
-        CallAfter([this, index_width]() {
-            SetMinSize(wxSize(index_width, GetMinSize().y));
-            Refresh();
-        });
-    }
-}
-
-void ConfigWizardIndex::on_mouse_move(wxMouseEvent &evt)
-{
-    const wxClientDC dc(this);
-    const wxPoint pos = evt.GetLogicalPosition(dc);
-
-    const ssize_t item_hover_new = pos.y / item_height();
-
-    if (item_hover_new < ssize_t(items.size()) && item_hover_new != item_hover) {
-        item_hover = item_hover_new;
-        Refresh();
-    }
-
-    evt.Skip();
-}
-
-void ConfigWizardIndex::msw_rescale()
-{
-    const wxSize size = GetTextExtent("m");
-    em_w = size.x;
-    em_h = size.y;
-
-    bg.msw_rescale();
-    SetMinSize(bg.bmp().GetSize());
-
-    bullet_black.msw_rescale();
-    bullet_blue.msw_rescale();
-    bullet_white.msw_rescale();
-    Refresh();
-}
-
-
 // Materials
 
 const std::string Materials::UNKNOWN = "(Unknown)";
@@ -1778,33 +1564,8 @@ void ConfigWizard::priv::load_pages()
     wxWindowUpdateLocker freeze_guard(q);
     (void)freeze_guard;
 
-    const ConfigWizardPage *former_active = index->active_page();
-
-    index->clear();
-
-    // Printers
-    if (!only_sla_mode)
-        index->add_page(page_fff);
-    if (!only_sla_mode) {
-        index->add_page(page_vendors);
-        for (const auto &pages : pages_3rdparty) {
-            for ( PagePrinters* page : { pages.second.first, pages.second.second })
-                if (page && page->install)
-                    index->add_page(page);
-        }
-   
-    // Filaments & Materials
-        if (any_fff_selected) { index->add_page(page_filaments); }
-    }
-
     // there should to be selected at least one printer
     btn_finish->Enable();
-
-#ifdef _WIN32
-    index->add_page(page_files_association);
-#endif // _WIN32
-
-    index->go_to(former_active);   // Will restore the active item/page if possible
 
     q->Layout();
 // This Refresh() is needed to avoid ugly artifacts after printer selection, when no one vendor was selected from the very beginnig
@@ -1824,12 +1585,6 @@ void ConfigWizard::priv::init_dialog_size()
         disp_rect.y + disp_rect.height / 20,
         9*disp_rect.width / 10,
         9*disp_rect.height / 10);
-
-    const int width_hint = index->GetSize().GetWidth() + std::max(90 * em(), (page_fff->get_width()) + 30 * em());    // XXX: magic constant, I found no better solution
-    if (width_hint < window_rect.width) {
-        window_rect.x += (window_rect.width - width_hint) / 2;
-        window_rect.width = width_hint;
-    }
 
     q->SetSize(window_rect);
 }
@@ -1916,19 +1671,15 @@ void ConfigWizard::priv::set_start_page(ConfigWizard::StartPage start_page)
 {
     switch (start_page) {
         case ConfigWizard::SP_PRINTERS: 
-            index->go_to(page_fff); 
             btn_next->SetFocus();
             break;
         case ConfigWizard::SP_FILAMENTS:
-            index->go_to(page_filaments);
             btn_finish->SetFocus();
             break;
         case ConfigWizard::SP_MATERIALS:
-            index->go_to(page_sla_materials);
             btn_finish->SetFocus();
             break;
         default:
-            index->go_to(page_fff);
             btn_next->SetFocus();
             break;
     }
@@ -2649,8 +2400,6 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
         "gcode_flavor", "printable_area", "bed_exclude_area", "nozzle_diameter", "filament_diameter", "nozzle_temperature", "bed_temperature",
     }));
 
-    p->index = new ConfigWizardIndex(this);
-
     auto *vsizer = new wxBoxSizer(wxVERTICAL);
     auto *topsizer = new wxBoxSizer(wxHORIZONTAL);
     auto* hline = new StaticLine(this);
@@ -2662,7 +2411,6 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->hscroll_sizer = new wxBoxSizer(wxHORIZONTAL);
     p->hscroll->SetSizer(p->hscroll_sizer);
 
-    topsizer->Add(p->index, 0, wxEXPAND);
     topsizer->AddSpacer(INDEX_MARGIN);
     topsizer->Add(p->hscroll, 1, wxEXPAND);
 
@@ -2722,7 +2470,6 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->add_page(p->page_temps    = new PageTemperatures(this));
 
     p->load_pages();
-    p->index->go_to(size_t{0});
 
     vsizer->Add(topsizer, 1, wxEXPAND | wxALL, DIALOG_MARGIN);
     vsizer->Add(hline, 0, wxEXPAND | wxLEFT | wxRIGHT, VERTICAL_SPACING);
@@ -2738,19 +2485,9 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
         p->init_dialog_size();
     });
 
-    p->btn_prev->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) { this->p->index->go_prev(); });
-
     p->btn_next->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &)
     {
-        // check, that there is selected at least one filament/material
-        ConfigWizardPage* active_page = this->p->index->active_page();
-        if (// Leaving the filaments or SLA materials page and 
-        	(active_page == p->page_filaments || active_page == p->page_sla_materials) && 
-        	// some Printer models had no filament or SLA material selected.
-        	! p->check_and_install_missing_materials(dynamic_cast<PageMaterials*>(active_page)->materials->technology))
-        	// In that case don't leave the page and the function above queried the user whether to install default materials.
-            return;
-        this->p->index->go_next();
+        ;
     });
 
     p->btn_finish->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &)
@@ -2765,27 +2502,9 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
         p->page_fff->select_all(true, false);
     });
 
-    p->index->Bind(EVT_INDEX_PAGE, [this](const wxCommandEvent &) {
-        const bool is_last = p->index->active_is_last();
-        p->btn_next->Show(! is_last);
-        if (is_last)
-            p->btn_finish->SetFocus();
-
-        Layout();
-    });
-
     if (wxLinux_gtk3)
         this->Bind(wxEVT_SHOW, [this, vsizer](const wxShowEvent& e) {
-            ConfigWizardPage* active_page = p->index->active_page();
-            if (!active_page)
-                return;
-            for (auto page : p->all_pages)
-                if (page != active_page)
-                    page->Hide();
-            // update best size for the dialog after hiding of the non-active pages
-            vsizer->SetSizeHints(this);
-            // set initial dialog size
-            p->init_dialog_size();
+            ;
         });
 }
 
@@ -2838,8 +2557,6 @@ const wxString& ConfigWizard::name(const bool from_menu/* = false*/)
 
 void ConfigWizard::on_dpi_changed(const wxRect &suggested_rect)
 {
-    p->index->msw_rescale();
-
     const int em = em_unit();
 
     msw_buttons_rescale(this, em, { wxID_APPLY, 

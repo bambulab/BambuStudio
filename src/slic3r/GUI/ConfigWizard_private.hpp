@@ -454,62 +454,6 @@ typedef std::map<std::string /* = vendor ID */,
                  std::pair<PagePrinters* /* = FFF page */, 
                            PagePrinters* /* = SLA page */>> Pages3rdparty;
 
-
-class ConfigWizardIndex: public wxPanel
-{
-public:
-    ConfigWizardIndex(wxWindow *parent);
-
-    void add_page(ConfigWizardPage *page);
-    void add_label(wxString label, unsigned indent = 0);
-
-    size_t active_item() const { return item_active; }
-    ConfigWizardPage* active_page() const;
-    bool active_is_last() const { return item_active < items.size() && item_active == last_page; }
-
-    void go_prev();
-    void go_next();
-    void go_to(size_t i);
-    void go_to(const ConfigWizardPage *page);
-
-    void clear();
-    void msw_rescale();
-
-    int em() const { return em_w; }
-
-    static const size_t NO_ITEM = size_t(-1);
-private:
-    struct Item
-    {
-        wxString label;
-        unsigned indent;
-        ConfigWizardPage *page;     // nullptr page => label-only item
-
-        bool operator==(ConfigWizardPage *page) const { return this->page == page; }
-    };
-
-    int em_w;
-    int em_h;
-    ScalableBitmap bg;
-    ScalableBitmap bullet_black;
-    ScalableBitmap bullet_blue;
-    ScalableBitmap bullet_white;
-
-    std::vector<Item> items;
-    size_t item_active;
-    ssize_t item_hover;
-    size_t last_page;
-
-    int item_height() const { return std::max(bullet_black.bmp().GetSize().GetHeight(), em_w) + em_w; }
-
-    void on_paint(wxPaintEvent &evt);
-    void on_mouse_move(wxMouseEvent &evt);
-};
-
-wxDEFINE_EVENT(EVT_INDEX_PAGE, wxCommandEvent);
-
-
-
 // ConfigWizard private data
 
 typedef std::map<std::string, std::set<std::string>> PresetAliases;
@@ -538,7 +482,6 @@ struct ConfigWizard::priv
     wxBoxSizer *hscroll_sizer = nullptr;
     wxBoxSizer *btnsizer = nullptr;
     ConfigWizardPage *page_current = nullptr;
-    ConfigWizardIndex *index = nullptr;
     wxButton *btn_sel_all = nullptr;
     wxButton *btn_prev = nullptr;
     wxButton *btn_next = nullptr;
@@ -600,7 +543,7 @@ struct ConfigWizard::priv
     bool check_fff_selected();        // Used to decide whether to display Filaments page
     bool check_sla_selected();        // Used to decide whether to display SLA Materials page
 
-    int em() const { return index->em(); }
+    int em() const { return 10; }
 };
 
 }

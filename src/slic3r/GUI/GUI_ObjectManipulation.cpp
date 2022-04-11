@@ -319,7 +319,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     add_unit_text(m_imperial_units ? L("in") : L("mm"), &m_position_unit);
 
     // Add drop to bed button
-    m_drop_to_bed_button = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "drop_to_bed"));
+    m_drop_to_bed_button = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "blank_16"));
     m_drop_to_bed_button->SetToolTip(_L("Drop to bed"));
     m_drop_to_bed_button->Bind(wxEVT_BUTTON, [=](wxCommandEvent& e) {
         // ???

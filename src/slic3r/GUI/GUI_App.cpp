@@ -3186,11 +3186,6 @@ ObjectList* GUI_App::obj_list()
     return sidebar().obj_list();
 }
 
-ObjectLayers* GUI_App::obj_layers()
-{
-    return sidebar().obj_layers();
-}
-
 Plater* GUI_App::plater()
 {
     return plater_;

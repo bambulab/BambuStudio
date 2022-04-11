@@ -3,7 +3,7 @@
 #include "GUI_ObjectList.hpp"
 #include "GUI_Factories.hpp"
 #include "GUI_ObjectManipulation.hpp"
-#include "GUI_ObjectLayers.hpp"
+//#include "GUI_ObjectLayers.hpp"
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "Plater.hpp"
@@ -835,13 +835,15 @@ void ObjectList::selection_changed()
         const ItemType type = m_objects_model->GetItemType(item);
         // to correct visual hints for layers editing on the Scene
         if (type & (itLayer|itLayerRoot)) {
-            wxGetApp().obj_layers()->reset_selection();
+            //BBS remove obj_layers
+            // wxGetApp().obj_layers()->reset_selection();
 
             if (type & itLayerRoot)
                 wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
             else {
-                wxGetApp().obj_layers()->set_selectable_range(m_objects_model->GetLayerRangeByItem(item));
-                wxGetApp().obj_layers()->update_scene_from_editor_selection();
+                //BBS remove obj_layers
+                //wxGetApp().obj_layers()->set_selectable_range(m_objects_model->GetLayerRangeByItem(item));
+                //wxGetApp().obj_layers()->update_scene_from_editor_selection();
             }
         }
     }
@@ -2496,7 +2498,8 @@ void ObjectList::layers_editing()
         return;
 
     // to correct visual hints for layers editing on the Scene, reset previous selection
-    wxGetApp().obj_layers()->reset_selection();
+    //BBS remove obj_layers
+    //wxGetApp().obj_layers()->reset_selection();
     wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
 
     // select LayerRoor item and expand
@@ -2757,8 +2760,10 @@ void ObjectList::part_selection_changed()
 
     if (printer_technology() == ptSLA)
         update_and_show_layers = false;
-    else if (update_and_show_layers)
-        wxGetApp().obj_layers()->get_og()->set_name(" ");
+    else if (update_and_show_layers) {
+        //BBS remove obj layers
+        //wxGetApp().obj_layers()->get_og()->set_name(" ");
+    }
 
     update_min_height();
 
@@ -2769,7 +2774,8 @@ void ObjectList::part_selection_changed()
     // BBS
     //wxGetApp().obj_manipul() ->UpdateAndShow(update_and_show_manipulations);
     wxGetApp().obj_settings()->UpdateAndShow(update_and_show_settings);
-    wxGetApp().obj_layers()  ->UpdateAndShow(update_and_show_layers);
+    //BBS
+    //wxGetApp().obj_layers()  ->UpdateAndShow(update_and_show_layers);
     wxGetApp().plater()->show_object_info();
 
     panel.Layout();

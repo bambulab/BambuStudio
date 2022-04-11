@@ -95,7 +95,7 @@ PresetComboBox::PresetComboBox(wxWindow* parent, Preset::Type preset_type, const
     }
     case Preset::TYPE_SLA_MATERIAL: {
         m_collection = &m_preset_bundle->sla_materials;
-        m_main_bitmap_name = "resin";
+        m_main_bitmap_name = "blank_16";
         break;
     }
     case Preset::TYPE_PRINTER: {
@@ -811,7 +811,7 @@ void PlaterPresetComboBox::show_add_menu()
     append_menu_item(menu, wxID_ANY, _L("Add/Remove presets"), "",
         [](wxCommandEvent&) {
             wxTheApp->CallAfter([]() { run_wizard(ConfigWizard::SP_PRINTERS); });
-        }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
+        }, "menu_edit_preset", menu, []() { return true; }, wxGetApp().plater());
 
     wxGetApp().plater()->PopupMenu(menu);
 }
@@ -827,7 +827,7 @@ void PlaterPresetComboBox::show_edit_menu()
     // To edit extruder color from the sidebar
     if (m_type == Preset::TYPE_FILAMENT) {
         append_menu_item(menu, wxID_ANY, _devL("Change extruder color"), "",
-            [this](wxCommandEvent&) { this->change_extruder_color(); }, "funnel", menu, []() { return true; }, wxGetApp().plater());
+            [this](wxCommandEvent&) { this->change_extruder_color(); }, "blank_14", menu, []() { return true; }, wxGetApp().plater());
         wxGetApp().plater()->PopupMenu(menu);
         return;
     }
@@ -836,7 +836,7 @@ void PlaterPresetComboBox::show_edit_menu()
     append_menu_item(menu, wxID_ANY, _L("Add/Remove presets"), "",
         [](wxCommandEvent&) {
             wxTheApp->CallAfter([]() { run_wizard(ConfigWizard::SP_PRINTERS); });
-        }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
+        }, "menu_edit_preset", menu, []() { return true; }, wxGetApp().plater());
 
     wxGetApp().plater()->PopupMenu(menu);
 }

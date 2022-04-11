@@ -1675,7 +1675,7 @@ void TabPrint::build()
         m_presets = &m_preset_bundle->prints;
     load_initial_data();
 
-    auto page = add_options_page(L("Quality"), "layers");
+    auto page = add_options_page(L("Quality"), "");
         auto optgroup = page->new_optgroup(L("Layer height"));
         optgroup->append_single_option_line("layer_height");
         optgroup->append_single_option_line("initial_layer_print_height");
@@ -1716,7 +1716,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");
 
-    page = add_options_page(L("Strength"), "wrench");
+    page = add_options_page(L("Strength"), "");
         optgroup = page->new_optgroup(L("Walls"));
         optgroup->append_single_option_line("wall_loops");
         optgroup->append_single_option_line("detect_thin_wall");
@@ -1741,7 +1741,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
         optgroup->append_single_option_line("reduce_infill_retraction");
 
-    page = add_options_page(L("Speed"), "time");
+    page = add_options_page(L("Speed"), "");
         optgroup = page->new_optgroup(L("Initial layer speed"));
         optgroup->append_single_option_line("initial_layer_speed");
         optgroup->append_single_option_line("initial_layer_infill_speed");
@@ -1993,7 +1993,7 @@ void TabPrintModel::build()
     m_presets = &m_prints;
     TabPrint::build();
 
-    auto page = add_options_page(L("Frequent"), "layers");
+    auto page = add_options_page(L("Frequent"), "");
         auto optgroup = page->new_optgroup(L("Quality"));
             optgroup->append_single_option_line("layer_height");
         optgroup = page->new_optgroup(L("Strength"));
@@ -2238,7 +2238,7 @@ static void validate_custom_gcode_cb(Tab* tab, ConfigOptionsGroupShp opt_group, 
 void TabFilament::add_filament_overrides_page()
 {
     //BBS
-    PageShp page = add_options_page(L("Filament Retraction"), "retraction");
+    PageShp page = add_options_page(L("Filament Retraction"), "");
     ConfigOptionsGroupShp optgroup = page->new_optgroup(L("Retraction"));
 
     auto append_single_option_line = [optgroup, this](const std::string& opt_key, int opt_index)
@@ -2413,7 +2413,7 @@ void TabFilament::build()
         //};
         //optgroup->append_line(line);
 
-    page = add_options_page(L("Cooling"), "cooling");
+    page = add_options_page(L("Cooling"), "");
         std::string category_path = "cooling_127569#";
         optgroup = page->new_optgroup(L("Enable"));
         optgroup->append_single_option_line("reduce_fan_stop_start_freq");
@@ -3058,7 +3058,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
     {
         //# build page
         //const wxString& page_name = wxString::Format("Extruder %d", int(extruder_idx + 1));
-        auto page = add_options_page(page_name, "funnel", true);
+        auto page = add_options_page(page_name, "", true);
         m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 
             auto optgroup = page->new_optgroup(L("Size"), -1, true);
@@ -3441,7 +3441,7 @@ void Tab::load_current_preset()
 #ifdef _MSW_DARK_MODE
                         if (!wxGetApp().tabs_as_menu()) {
                             std::string bmp_name = tab->type() == Slic3r::Preset::TYPE_FILAMENT      ? "spool" :
-                                                   tab->type() == Slic3r::Preset::TYPE_SLA_MATERIAL  ? "resin" : "cog";
+                                                   tab->type() == Slic3r::Preset::TYPE_SLA_MATERIAL  ? "" : "cog";
                             tab->Hide(); // #ys_WORKAROUND : Hide tab before inserting to avoid unwanted rendering of the tab
                             dynamic_cast<Notebook*>(wxGetApp().tab_panel())->InsertPage(wxGetApp().tab_panel()->FindPage(this), tab, tab->title(), bmp_name);
                         }
@@ -4753,7 +4753,7 @@ void TabSLAMaterial::build()
     //m_presets = &m_preset_bundle->sla_materials;
     //load_initial_data();
 
-    //auto page = add_options_page(L("Material"), "resin");
+    //auto page = add_options_page(L("Material"), "");
 
     //auto optgroup = page->new_optgroup(L("Material"));
     //optgroup->append_single_option_line("material_colour");
@@ -4922,7 +4922,7 @@ void TabSLAPrint::build()
 //    optgroup->append_single_option_line("support_points_density_relative");
 //    optgroup->append_single_option_line("support_points_minimal_distance");
 //
-//    page = add_options_page(L("Pad"), "pad");
+//    page = add_options_page(L("Pad"), "");
 //    optgroup = page->new_optgroup(L("Pad"));
 //    optgroup->append_single_option_line("pad_enable");
 //    optgroup->append_single_option_line("pad_wall_thickness");

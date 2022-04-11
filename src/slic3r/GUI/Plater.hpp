@@ -60,7 +60,6 @@ class MainFrame;
 class ConfigOptionsGroup;
 class ObjectManipulation;
 class ObjectSettings;
-class ObjectLayers;
 class ObjectList;
 class GLCanvas3D;
 class Mouse3DController;
@@ -117,7 +116,6 @@ public:
     //ObjectManipulation*     obj_manipul();
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
-    ObjectLayers*           obj_layers();
     wxScrolledWindow*       scrolled_panel();
     wxPanel* print_panel();
     wxPanel* filament_panel();

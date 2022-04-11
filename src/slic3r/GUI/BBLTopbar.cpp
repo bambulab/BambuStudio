@@ -359,7 +359,7 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
     auto accountMenu = new wxMenu();
 
     append_menu_item(accountMenu, wxID_ANY, _L("Login"), _L("Login with your Account"),
-        [](wxCommandEvent&) { Slic3r::GUI::login(); }, "upload_queue", nullptr, [this]() {
+        [](wxCommandEvent&) { Slic3r::GUI::login(); }, "", nullptr, [this]() {
             Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
             return !account_manager->is_user_login();
         }, this);
@@ -367,14 +367,14 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
         [](wxCommandEvent&) {
             Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
             account_manager->user_logout();
-        }, "upload_queue", nullptr, [this]() {
+        }, "", nullptr, [this]() {
             Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
             return account_manager->is_user_login();
         }, this);
     append_menu_item(accountMenu, wxID_ANY, _L("My Project List"), _L(""),
         [this](wxCommandEvent&) {
             GUI::wxGetApp().load_url(wxString(wxGetApp().app_config->get_web_host_url() + MY_PROJECT_LIST_URL));
-        }, "upload_queue", nullptr,
+        }, "", nullptr,
         [this]() {
             Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
             return account_manager->is_user_login();
@@ -383,7 +383,7 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
     append_menu_item(accountMenu, wxID_ANY, _L("My Collections"), _L(""),
         [this](wxCommandEvent&) {
             GUI::wxGetApp().load_url(wxString(wxGetApp().app_config->get_web_host_url() + MY_COLLECTIONS_URL));
-        }, "upload_queue", nullptr,
+        }, "", nullptr,
         [this]() {
             Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
             return account_manager->is_user_login();
@@ -422,7 +422,7 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
     };
 
     append_menu_item(accountMenu, wxID_ANY, _L("Publish Model/Profile"), _L("Please slice all plates before upload"),
-        publish_model_and_profile, "upload_queue", nullptr, cond_publish_model, this);
+        publish_model_and_profile, "", nullptr, cond_publish_model, this);
 
     wxRect rect = this->GetToolRect(m_account_item->GetId());
     this->PopupMenu(accountMenu, rect.x, rect.y + this->GetSize().GetHeight() - 5);

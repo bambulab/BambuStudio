@@ -239,19 +239,19 @@ std::map<std::string, std::string> SettingsFactory::CATEGORY_ICON =
 {
 //    settings category name      related bitmap name
     // ptFFF
-    { L("Quality")              , "layers"      },
-    { L("Shell")                , "wrench"      },
-    { L("Infill")               , "infill"      },
-    { L("Ironing")              , "ironing"     },
-    { L("Fuzzy Skin")           , "fuzzy_skin"  },
+    { L("Quality")              , "blank2"      },
+    { L("Shell")                , "blank_14"    },
+    { L("Infill")               , "blank_14"    },
+    { L("Ironing")              , "blank_14"    },
+    { L("Fuzzy Skin")           , "menu_fuzzy_skin"  },
     { L("Support")              , "support"     },
-    { L("Speed")                , "time"        },
-    { L("Extruders")            , "funnel"      },
-    { L("Extrusion Width")      , "funnel"      },
-    { L("Wipe options")         , "funnel"      },
-    { L("Bed adhension")        , "skirt+brim"  },
+    { L("Speed")                , "blank_14"    },
+    { L("Extruders")            , "blank_14"    },
+    { L("Extrusion Width")      , "blank_14"    },
+    { L("Wipe options")         , "blank_14"    },
+    { L("Bed adhension")        , "blank_14"    },
 //  { L("Speed > Acceleration") , "time"        },
-    { L("Advanced")             , "wrench"      },
+    { L("Advanced")             , "blank_14"    },
     // BBS: remove SLA categories
 };
 
@@ -270,11 +270,11 @@ wxBitmap SettingsFactory::get_category_bitmap(const std::string& category_name, 
 // Note: id accords to type of the sub-object (adding volume), so sequence of the menu items is important
 const std::vector<std::pair<std::string, std::string>> MenuFactory::ADD_VOLUME_MENU_ITEMS = {
 //       menu_item Name              menu_item bitmap name
-        {L("Add part"),              "add_part" },           // ~ModelVolumeType::MODEL_PART
-        {L("Add negative part"),     "add_negative" },       // ~ModelVolumeType::NEGATIVE_VOLUME
-        {L("Add modifier"),          "add_modifier"},        // ~ModelVolumeType::PARAMETER_MODIFIER
-        {L("Add support blocker"),   "support_blocker"},     // ~ModelVolumeType::SUPPORT_BLOCKER
-        {L("Add support enforcer"),  "support_enforcer"}     // ~ModelVolumeType::SUPPORT_ENFORCER
+        {L("Add part"),              "menu_add_part" },           // ~ModelVolumeType::MODEL_PART
+        {L("Add negative part"),     "menu_add_negative" },       // ~ModelVolumeType::NEGATIVE_VOLUME
+        {L("Add modifier"),          "menu_add_modifier"},        // ~ModelVolumeType::PARAMETER_MODIFIER
+        {L("Add support blocker"),   "menu_support_blocker"},     // ~ModelVolumeType::SUPPORT_BLOCKER
+        {L("Add support enforcer"),  "menu_support_enforcer"}     // ~ModelVolumeType::SUPPORT_ENFORCER
 };
 
 static Plater* plater()
@@ -421,7 +421,7 @@ std::vector<wxBitmap> MenuFactory::get_volume_bitmaps()
 void MenuFactory::append_menu_item_delete(wxMenu* menu)
 {
     append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Delete the selected object"),
-        [](wxCommandEvent&) { plater()->remove_selected(); }, "delete", nullptr,
+        [](wxCommandEvent&) { plater()->remove_selected(); }, "menu_delete", nullptr,
         []() { return plater()->can_delete(); }, m_parent);
 }
 
@@ -804,7 +804,7 @@ MenuFactory::MenuFactory()
 void MenuFactory::create_default_menu()
 {
     wxMenu* sub_menu = append_submenu_add_generic(&m_default_menu, ModelVolumeType::INVALID);
-    append_submenu(&m_default_menu, sub_menu, wxID_ANY, _L("Add Primitive"), "", "add_part",
+    append_submenu(&m_default_menu, sub_menu, wxID_ANY, _L("Add Primitive"), "", "menu_add_part",
         []() {return true; }, m_parent);
 }
 
@@ -1020,13 +1020,13 @@ void MenuFactory::create_plate_menu()
 
     // delete current plate
     append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Remove the selected plate"),
-        [](wxCommandEvent&) { plater()->delete_plate(); }, "delete", nullptr,
+        [](wxCommandEvent&) { plater()->delete_plate(); }, "menu_delete", nullptr,
         []() { return plater()->can_delete_plate(); }, m_parent);
 
     // add shapes
     menu->AppendSeparator();
     wxMenu* sub_menu = append_submenu_add_generic(menu, ModelVolumeType::INVALID);
-    append_submenu(menu, sub_menu, wxID_ANY, _L("Add Primitive"), "", "add_part",
+    append_submenu(menu, sub_menu, wxID_ANY, _L("Add Primitive"), "", "menu_add_part",
         []() {return true; }, m_parent);
 
     return;

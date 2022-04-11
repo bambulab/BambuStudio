@@ -47,7 +47,7 @@ static const std::map<const wchar_t, std::string> font_icons = {
     // remove sla_printer
     //{ImGui::PrinterSlaIconMarker  , "sla_printer"                   },
     {ImGui::FilamentIconMarker    , "spool"                         },
-    {ImGui::MaterialIconMarker    , "resin"                         },
+    {ImGui::MaterialIconMarker    , "blank_16"                      },
     {ImGui::MinimalizeButton      , "notification_minimalize"       },
     {ImGui::MinimalizeHoverButton , "notification_minimalize_hover" },
     {ImGui::RightArrowButton      , "notification_right"            },
@@ -68,8 +68,8 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
     //BBS removed
     //{ImGui::EjectButton             , "notification_eject_sd"           },
     //{ImGui::EjectHoverButton        , "notification_eject_sd_hover"     },
-    {ImGui::WarningMarker           , "notification_warning"            },
-    {ImGui::ErrorMarker             , "notification_error"              },
+    //{ImGui::WarningMarker           , "notification_warning"            },
+    //{ImGui::ErrorMarker             , "notification_error"              },
     {ImGui::CancelButton            , "notification_cancel"             },
     {ImGui::CancelHoverButton       , "notification_cancel_hover"       },
 
@@ -80,7 +80,7 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
 //    {ImGui::VarLayerHeightMarker    , "layers"                          },
     {ImGui::DocumentationButton     , "notification_documentation"      },
     {ImGui::DocumentationHoverButton, "notification_documentation_hover"},
-    {ImGui::InfoMarker              , "notification_info"               },
+    //{ImGui::InfoMarker              , "notification_info"               },
 };
 
 static const std::map<const wchar_t, std::string> font_icons_extra_large = {

@@ -33,8 +33,8 @@ void ObjectDataViewModelNode::init_container()
 #endif  //__WXGTK__
 }
 
-static constexpr char LayerRootIcon[]   = "edit_layers_all";
-static constexpr char LayerIcon[]       = "edit_layers_some";
+static constexpr char LayerRootIcon[]   = "blank";
+static constexpr char LayerIcon[]       = "blank";
 static constexpr char WarningIcon[]     = "exclamation";
 static constexpr char WarningManifoldIcon[] = "exclamation_manifold";
 
@@ -61,7 +61,7 @@ const std::map<InfoItemType, InfoItemAtributes> INFO_ITEMS{
             { InfoItemType::CustomSupports,      {L("Support painting"),       "toolbar_support" },     },
             //{ InfoItemType::CustomSeam,          {L("Paint-on seam"),           "seam_" },             },
             { InfoItemType::MmuSegmentation,     {L("Color painting"),          "mmu_segmentation"},  },
-            //{ InfoItemType::Sinking,             {L("Sinking"),                 "sinking"},            },
+            //{ InfoItemType::Sinking,             {L("Sinking"),                 "objlist_sinking"}, },
 };
 
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode*   parent,
@@ -116,6 +116,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     }
     else if (type == itLayerRoot)
     {
+        //BBS do not support layer range edit
         m_bmp = create_scaled_bitmap(LayerRootIcon);    // FIXME: pass window ptr
         m_name = _(L("Layers"));
     }
@@ -183,7 +184,7 @@ void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
 {
     m_printable = printable;
     m_printable_icon = m_printable == piUndef ? m_empty_bmp :
-                       create_scaled_bitmap(m_printable == piPrintable ? "eye_open.png" : "eye_closed.png");
+                       create_scaled_bitmap(m_printable == piPrintable ? "obj_printable.png" : "obj_unprintable.png");
 }
 
 void ObjectDataViewModelNode::set_action_icon(bool enable)
@@ -245,7 +246,7 @@ void ObjectDataViewModelNode::msw_rescale()
         m_action_icon = create_scaled_bitmap(m_action_icon_name);
 
     if (m_printable != piUndef)
-        m_printable_icon = create_scaled_bitmap(m_printable == piPrintable ? "eye_open.png" : "eye_closed.png");
+        m_printable_icon = create_scaled_bitmap(m_printable == piPrintable ? "obj_printable.png" : "obj_unprintable.png");
 
     if (!m_opt_categories.empty())
         update_settings_digest_bitmaps();

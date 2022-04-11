@@ -70,7 +70,6 @@ public:
         Scale,
         Flatten,
         Cut,
-        Hollow,
         FdmSupports,
         MmuSegmentation,
         Simplify,
@@ -78,6 +77,7 @@ public:
         SlaSupports,
         // BBS
         //FaceRecognition,
+        Hollow,
         Undefined,
     };
 
