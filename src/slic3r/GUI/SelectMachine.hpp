@@ -35,9 +35,20 @@
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/ScrolledWindow.hpp"
 #include <wx/simplebook.h>
+#include <wx/hashmap.h> 
+
 
 namespace Slic3r { 
 namespace GUI {
+
+class Material
+{
+public:
+    int       id;
+    wxWindow *item;
+};
+
+WX_DECLARE_HASH_MAP(int, Material *, wxIntegerHash, wxIntegerEqual, MaterialHash);
 
 // move to seperate file
 class MachineListModel : public wxDataViewVirtualListModel
@@ -181,7 +192,6 @@ private:
     wxDECLARE_EVENT_TABLE();
 };
 
-
 class SelectMachineDialog : public DPIDialog
 {
 private:
@@ -202,6 +212,7 @@ private:
     wxColour m_colour_bold_color{wxColour(38, 46, 48)};
 
 protected:
+    MaterialHash  m_materialList;
     wxPanel *     m_line_top;
     wxPanel *     m_image;
     wxStaticText *m_stext_time;

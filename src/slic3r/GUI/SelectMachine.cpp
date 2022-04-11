@@ -10,6 +10,7 @@
 #include "format.hpp"
 #include "Widgets/ProgressDialog.hpp"
 #include "Widgets/RoundedRectangle.hpp"
+#include "Widgets/StaticBox.hpp"
 
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
@@ -824,7 +825,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     }
 
 #ifdef BBL_CHECK_USER_REPORT
-    /* int  task_id   = 0;
+    int  task_id   = 0;
      bool printable = true;
      c->user_check_report(&task_id, &printable);
      if (task_id != 0 && !printable) {
@@ -832,7 +833,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         std::string report_url = (boost::format("https://autotest.bambu-lab.com/slicerAddReport?task_id=%1%&token=%2%") % task_id % c->get_curr_user()->m_autotest_token).str();
         wxLaunchDefaultBrowser(report_url);
         return;
-    }*/
+    }
 #endif
 
     m_need_disable_btn_ensure = true;
@@ -1017,7 +1018,20 @@ bool SelectMachineDialog::Show(bool show)
     //auto materials      = wxGetApp().preset_bundle->filament_presets;
     BitmapCache bmcache;
 
+    
+
+    MaterialHash::iterator iter = m_materialList.begin();
+    while (iter != m_materialList.end()) {
+        int       id = iter->first;
+        Material *item   = iter->second;
+        item->item->Destroy();
+        delete item;
+        iter++;
+    }
+
     m_sizer_material->Clear();
+    m_materialList.clear();
+
     for (auto i = 0; i < extruders.size(); i++) {
         auto extruder = extruders[i]-1;
         auto colour   = wxGetApp().preset_bundle->project_config.opt_string("filament_colour", (unsigned int) extruder);
@@ -1025,33 +1039,55 @@ bool SelectMachineDialog::Show(bool show)
         bmcache.parse_color(colour, rgb);
 
         auto colour_rgb = wxColour((int)rgb[0], (int)rgb[1], (int)rgb[2]);
-        auto       bk = new Button(this, _L(materials[extruder]));
-        /* StateColor btn_bg(std::pair<wxColour, int>(colour_rgb, StateColor::Pressed),
-                                 std::pair<wxColour, int>(colour_rgb, StateColor::Hovered),
-                                 std::pair<wxColour, int>(colour_rgb, StateColor::Normal));*/
-        bk->SetBackgroundColor(colour_rgb);
-        bk->SetBorderColor(m_colour_def_color);
-
-        auto  textcolor = wxColour(0,0,0);
-        textcolor = colour_rgb.GetLuminance() < 0.5? *wxWHITE : *wxBLACK;
+        //auto       bk = new Button(this, _L(materials[extruder]));
 
 
-        bk->SetTextColor(textcolor);
+        auto item = new StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
 
-        bk->SetSize(wxSize(-1, 24));
-        bk->SetMinSize(wxSize(-1, 24));
-        bk->SetMaxSize(wxSize(-1, 24));
-        bk->SetCornerRadius(12);
+        wxBoxSizer *item_sizer_h = new wxBoxSizer(wxHORIZONTAL);
+        wxBoxSizer *item_sizer_v = new wxBoxSizer(wxVERTICAL);
 
-        bk->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {});
-        bk->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &e) {});
-        bk->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {});
+        auto item_name = new wxStaticText(item, wxID_ANY, _L(materials[extruder]), wxDefaultPosition, wxDefaultSize, 0);
+        item_name->SetBackgroundColour(colour_rgb);
+        item_name->SetFont(::Label::Body_13);
+        item_sizer_v->Add(item_name, 0, wxALIGN_CENTER | wxBOTTOM | wxTOP, 3);
+        item_sizer_h->Add(item_sizer_v, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 8);
 
-        bk->Layout();
-        m_sizer_material->Add(bk, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
+        item->SetBackgroundColor(colour_rgb);
+        if (colour_rgb.GetLuminance() < 0.5) {
+            item->SetBorderColor(colour_rgb);
+        } else {
+            item->SetBorderColor(*wxBLACK);
+        }
+
+        auto  textcolor = colour_rgb.GetLuminance() < 0.5? *wxWHITE : *wxBLACK;
+
+
+        item_name->SetForegroundColour(textcolor);
+
+        //item->SetSize(wxSize(-1, 23));
+        //item->SetMinSize(wxSize(-1, 23));
+        //item->SetMaxSize(wxSize(-1, 23));
+        item->SetCornerRadius(11);
+        item->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {});
+        item->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &e) {});
+        item->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {});
+
+        //item->Layout();
+
+        item->SetSizer(item_sizer_h);
+        item->Layout();
+        item_sizer_h->Fit(item);
+        item->Refresh();
+
+        Material* material_item = new Material();
+        material_item->id   = 0;
+        material_item->item = item;
+        m_materialList[i] = material_item;
+        m_sizer_material->Add(item, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
     }
-    m_sizer_material->Layout();
 
+    m_sizer_material->Layout();
 
     // basic info
     auto aprint_stats = m_plater->get_partplate_list().get_current_fff_print().print_statistics();
