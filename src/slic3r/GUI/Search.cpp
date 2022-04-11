@@ -225,12 +225,13 @@ bool OptionsSearcher::search(const std::string &search, bool force /* = false*/,
         int          score2;
         matches.clear();
         fuzzy_match(wsearch, label, score, matches);
-        if (fuzzy_match(wsearch, opt.key, score2, matches2) && score2 > score) {
-            for (fts::pos_type &pos : matches2) pos += label.size() + 1;
-            label += L"(" + opt.key + L")";
-            append(matches, matches2);
-            score = score2;
-        }
+        // bbs hide the contents in parentheses
+        /* if (fuzzy_match(wsearch, opt.key, score2, matches2) && score2 > score) {
+             for (fts::pos_type &pos : matches2) pos += label.size() + 1;
+             label += L"(" + opt.key + L")";
+             append(matches, matches2);
+             score = score2;
+         }*/
         if (view_params.english && fuzzy_match(wsearch, label_english, score2, matches2) && score2 > score) {
             label   = std::move(label_english);
             matches = std::move(matches2);
