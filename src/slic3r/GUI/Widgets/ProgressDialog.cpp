@@ -20,6 +20,7 @@
 #include "../I18N.hpp"
 #include "ProgressDialog.hpp"
 #include "wx/evtloop.h"
+#include "Label.hpp"
 
 // ----------------------------------------------------------------------------
 // constants
@@ -77,13 +78,7 @@ ProgressDialog::ProgressDialog(const wxString &title, const wxString &message, i
     Bind(wxEVT_CLOSE_WINDOW, &ProgressDialog::OnClose, this);
 }
 
-void ProgressDialog::OnPaint(wxPaintEvent &evt)
-{
-    /*wxPaintDC dc(this);
-    dc.SetPen(wxPen(wxColor(166, 169, 170), 1.5, wxSOLID));
-    dc.SetBrush(wxBrush(wxColor(166, 169, 170), wxSOLID));
-    dc.DrawLine(0, 0, GetSize().GetWidth(), 0);*/
-}
+void ProgressDialog::OnPaint(wxPaintEvent &evt) {}
 
 void ProgressDialog::SetTopParent(wxWindow *parent)
 {
@@ -93,55 +88,24 @@ void ProgressDialog::SetTopParent(wxWindow *parent)
 
 wxString ProgressDialog::FormatString(wxString title)
 {
-    auto limit_width   = m_msg->GetSize().GetWidth();
     auto current_width = 0;
 
     m_mode = 0;
-    for (int x = 0; x < title.length(); x++) {
-        current_width += GetTextExtent(title[x]).GetWidth();
-        if (current_width >= limit_width && (title.length() - x) > 10) {
+    for (int i = 0; i < title.length(); i++) {
+        current_width = m_msg->GetTextExtent(title.SubString(0, i)).x;
+        if (current_width > PROGRESSDIALOG_GAUGE_SIZE.x) {
             m_mode = 1;
-
-           /* auto flag_set = x;
-            for (int i = 20; i >= 0; i--) {
-                if (title[flag_set] == (0x20)) {
-                    title.insert(x - (20 - i), "\n");
-                    break;
-                }
-                if (title[i] == (0x2c)) {
-                    title.insert(x - (20 - i), "\n");
-                    break;
-                }
-                if (title[i] == (0x2e)) {
-                    title.insert(x - (20 - i), "\n");
-                    break;
-                }
-                if (title[i] == (0xefbc8c)) {
-                    title.insert(x - (20 - i), "\n");
-                    break;
-                }
-                if (title[i] == (0xe38082)) {
-                    title.insert(x - (20 - i), "\n");
-                    break;
-                }
-
-                title.insert(x, "\n");
-                flag_set--;
-            }*/
-            title.insert(x, "\n");
-
+            title.insert(i-1, "\n");
             break;
         }
     }
 
     // set mode
     if (m_mode == 0) {
-        m_msg->Show();
-        m_msg_2line->Hide();
+        m_simplebook->SetSelection(0);
         m_msg->SetLabel(title);
     } else {
-        m_msg->Hide();
-        m_msg_2line->Show();
+        m_simplebook->SetSelection(1);
         m_msg_2line->SetLabel(title);
     }
 
@@ -156,12 +120,12 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
 
     m_pdStyle = style;
 
-    if (!wxDialog::Create(m_parentTop, wxID_ANY, title, wxDefaultPosition, DESIGN_RESOUTION_PROGRESS_SIZE, GetWindowStyle())) return false;
-    SetBackgroundColour(DESIGN_RESOUTION_DEF_BK_COLOR);
+    if (!wxDialog::Create(m_parentTop, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, GetWindowStyle())) return false;
+    SetBackgroundColour(PROGRESSDIALOG_DEF_BK);
 
-    SetSize(DESIGN_RESOUTION_PROGRESS_SIZE);
+   /* SetSize(DESIGN_RESOUTION_PROGRESS_SIZE);
     SetMinSize(DESIGN_RESOUTION_PROGRESS_SIZE);
-    SetMaxSize(DESIGN_RESOUTION_PROGRESS_SIZE);
+    SetMaxSize(DESIGN_RESOUTION_PROGRESS_SIZE);*/
 
     SetMaximum(maximum);
     EnsureActiveEventLoopExists();
@@ -172,49 +136,51 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
 
     m_state = HasPDFlag(wxPD_CAN_ABORT) ? Continue : Uncancelable;
 
-    // top-level sizerTop
-    sizerTop = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
 
-    // def width
-    auto def_size_width = wxMin(wxGetClientDisplayRect().width / 3, 305);
+    m_top_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_top_line->SetBackgroundColour(wxColour(166, 169, 170));
 
-    // top line
-    wxStaticLine *m_staticline2 = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(def_size_width, 1), wxLI_HORIZONTAL);
-    sizerTop->Add(m_staticline2, 0, wxEXPAND, 0);
-    auto m_block_top = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(def_size_width, 20));
-    m_block_top->SetBackgroundColour(wxColor(DESIGN_RESOUTION_DEF_BK_COLOR));
-    sizerTop->Add(m_block_top, 0, wxEXPAND);
+    m_sizer_main->Add(m_top_line, 0, wxEXPAND, 0);
 
-    m_message_area = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(def_size_width, 38));
-    m_message_area->SetBackgroundColour(DESIGN_RESOUTION_DEF_BK_COLOR);
-    sizerTop->Add(m_message_area, 0, wxLEFT | wxRIGHT | wxBottom | wxEXPAND, 2 * LAYOUT_MARGIN);
+    m_sizer_main->Add(0, 0, 0, wxTOP, 24);
 
-    // 1 line mode
-    m_msg = new wxStaticText(m_message_area, wxID_ANY, wxString(""), wxPoint(0, 10), wxSize(def_size_width, 20), wxST_ELLIPSIZE_END);
-    m_msg->SetForegroundColour(wxColour(107, 107, 107));
-    m_msg->SetBackgroundColour(DESIGN_RESOUTION_DEF_BK_COLOR);
-    m_msg->SetMinSize(wxSize(def_size_width, 20));
-    m_msg->SetMaxSize(wxSize(def_size_width, 20));
-    // sizerTop->Add(m_msg, 0, wxLEFT | wxRIGHT, 2 * LAYOUT_MARGIN);
+    m_simplebook  = new wxSimplebook(this, wxID_ANY, wxDefaultPosition,PROGRESSDIALOG_SIMPLEBOOK_SIZE, 0);
+    m_panel_2line = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, PROGRESSDIALOG_SIMPLEBOOK_SIZE, wxTAB_TRAVERSAL);
+    m_panel_2line->SetBackgroundColour(PROGRESSDIALOG_DEF_BK);
+    m_panel_2line->Hide();
 
-    /* m_block_text_bottom = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(def_size_width, 10));
-      sizerTop->Add(m_block_text_bottom, 0, wxEXPAND);
-      m_block_text_bottom->SetBackgroundColour(wxColor(DESIGN_RESOUTION_DEF_BK_COLOR));*/
+    m_panel_1line = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_panel_1line->SetBackgroundColour(PROGRESSDIALOG_DEF_BK);
 
-    // 2 line mode
-    m_msg_2line = new wxStaticText(m_message_area, wxID_ANY, wxString(""), wxPoint(0, 0), wxSize(def_size_width, 40), wxST_ELLIPSIZE_END);
-    m_msg_2line->SetForegroundColour(wxColour(107, 107, 107));
-    m_msg_2line->SetBackgroundColour(DESIGN_RESOUTION_DEF_BK_COLOR);
-    m_msg_2line->SetMinSize(wxSize(def_size_width, 40));
-    m_msg_2line->SetMaxSize(wxSize(def_size_width, 40));
-    // sizerTop->Add(m_msg_2line, 0, wxLEFT | wxRIGHT, 2 * LAYOUT_MARGIN);
+    wxBoxSizer *sizer_1line = new wxBoxSizer(wxHORIZONTAL);
+    m_msg                   = new wxStaticText(m_panel_1line, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x, -1), 0);
+    m_msg->Wrap(-1);
+    m_msg->SetFont(::Label::Body_13);
+    m_msg->SetForegroundColour(PROGRESSDIALOG_GREY_700);
+    sizer_1line->Add(m_msg, 0, wxALIGN_CENTER, 0);
 
-    // m_msg->SetSize(wxSize(305, 19));
-    // m_msg_2line->SetSize(wxSize(305, 38));
-    // m_msg->SetMinSize(wxSize(305, 19));
-    // m_msg_2line->SetMinSize(wxSize(305, 38));
+    m_panel_1line->SetSizer(sizer_1line);
+    m_panel_1line->Layout();
+    sizer_1line->Fit(m_panel_1line);
+    m_simplebook->AddPage(m_panel_1line, wxEmptyString, false);
 
-    // gauge
+    wxBoxSizer *sizer_2line = new wxBoxSizer(wxVERTICAL);
+    m_msg_2line = new wxStaticText(m_panel_2line, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x, -1), 0);
+    m_msg_2line->Wrap(-1);
+    m_msg_2line->SetFont(::Label::Body_13);
+    m_msg_2line->SetForegroundColour(PROGRESSDIALOG_GREY_700);
+    sizer_2line->Add(m_msg_2line, 1, wxALL, 0);
+    m_panel_2line->SetSizer(sizer_2line);
+    m_panel_2line->Layout();
+    sizer_2line->Fit(m_panel_2line);
+    m_simplebook->AddPage(m_panel_2line, wxEmptyString, false);
+  
+
+    m_sizer_main->Add(m_simplebook, 1, wxEXPAND | wxLEFT | wxRIGHT, 28);
+
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 4);
+
     int gauge_style = wxGA_HORIZONTAL;
     if (style & wxPD_SMOOTH) gauge_style |= wxGA_SMOOTH;
     gauge_style |= wxGA_PROGRESS;
@@ -223,127 +189,48 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
     maximum /= m_factor;
 #endif
 
-    auto m_block_gauge = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(0, 0));
-    sizerTop->Add(m_block_gauge, 0, wxEXPAND | wxTOP, 2);
-
-
-    m_gauge = new wxGauge(this, wxID_ANY, maximum, wxDefaultPosition, wxSize(def_size_width, 6), gauge_style);
-    
-    auto block_left = new wxWindow(m_gauge, -1, wxPoint(0, 0), wxSize(2, m_gauge->GetSize().GetHeight()));
-    block_left->SetBackgroundColour(wxColor(255, 255, 255));
-
-    auto block_right = new wxWindow(m_gauge, -1, wxPoint(m_gauge->GetSize().GetWidth() - 2, 0), wxSize(2, m_gauge->GetSize().GetHeight()));
-    block_right->SetBackgroundColour(wxColor(255, 255, 255));
-
-    sizerTop->Add(m_gauge, 0, wxLEFT | wxRIGHT | wxBottom, 2 * LAYOUT_MARGIN);
+    m_gauge = new wxGauge(this, wxID_ANY, maximum, wxDefaultPosition, PROGRESSDIALOG_GAUGE_SIZE, gauge_style);
     m_gauge->SetValue(0);
+    m_sizer_main->Add(m_gauge, 0, wxEXPAND | wxLEFT | wxRIGHT, 28);
 
-    m_elapsed = m_estimated = m_remaining = NULL;
-    size_t nTimeLabels                    = 0;
+    m_block_left = new wxWindow(m_gauge, wxID_ANY, wxPoint(0, 0), wxSize(FromDIP(2), PROGRESSDIALOG_GAUGE_SIZE.y * 2));
+    m_block_left->SetBackgroundColour(PROGRESSDIALOG_DEF_BK);
+    m_block_right = new wxWindow(m_gauge, wxID_ANY, wxPoint(PROGRESSDIALOG_GAUGE_SIZE.x - 2, 0), wxSize(FromDIP(2), PROGRESSDIALOG_GAUGE_SIZE.y * 2));
+    m_block_right->SetBackgroundColour(PROGRESSDIALOG_DEF_BK);
 
-    wxSizer *const sizerLabels = new wxFlexGridSizer(2);
+    wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
 
-    if (style & wxPD_ELAPSED_TIME) {
-        nTimeLabels++;
-
-        m_elapsed = CreateLabel(GetElapsedLabel(), sizerLabels);
-    }
-
-    if (style & wxPD_ESTIMATED_TIME) {
-        nTimeLabels++;
-
-        m_estimated = CreateLabel(GetEstimatedLabel(), sizerLabels);
-    }
-
-    if (style & wxPD_REMAINING_TIME) {
-        nTimeLabels++;
-
-        m_remaining = CreateLabel(GetRemainingLabel(), sizerLabels);
-    }
-    sizerTop->Add(sizerLabels, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP | wxBottom, LAYOUT_MARGIN);
-
-    wxStdDialogButtonSizer *buttonSizer = wxDialog::CreateStdDialogButtonSizer(0);
-
-    const int borderFlags = wxALL;
-
-    std::string icon_path = (boost::format("%1%/images/common_dialog_confirm.png") % resources_dir()).str();
-    /*m_btnAbort            = new wxBitmapButton(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(52, 24), wxBU_AUTODRAW | wxBORDER_NONE);
-    m_btnAbort->SetBitmap(wxBitmap(icon_path, wxBITMAP_TYPE_ANY));
-    m_btnAbort->SetBitmapDisabled(wxBitmap(icon_path, wxBITMAP_TYPE_ANY));
-    m_btnAbort->SetBitmapPressed(wxBitmap(icon_path, wxBITMAP_TYPE_ANY));
-    m_btnAbort->SetBitmapFocus(wxBitmap(icon_path, wxBITMAP_TYPE_ANY));
-    m_btnAbort->SetBitmapCurrent(wxBitmap(icon_path, wxBITMAP_TYPE_ANY));*/
-
-    // m_btnAbort = new wxButton(this, wxID_CANCEL, wxString(""), wxDefaultPosition, wxSize(52,24));
-
-    // wxStaticBitmap *m_bitmatAbort = new wxStaticBitmap(m_btnAbort, wxID_ANY, wxBitmap(icon_path, wxBITMAP_TYPE_ANY), wxDefaultPosition, wxSize(52, 24), 0);
-    // wxStaticText *textAbort = new wxStaticText(m_btnAbort, wxID_ANY, _T("Cancel"), wxPoint(5, 3), wxSize(42, 19));
-    // textAbort->SetBa
-    // ckgroundColour(wxColor(0, 174, 66));
-    // textAbort->SetForegroundColour(DESIGN_RESOUTION_DEF_BK_COLOR);
-
-    // textAbort->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
-    //    if (m_state == Finished) {
-    //        event.Skip();
-    //    } else {
-    //        m_state = Canceled;
-    //        //DisableAbort();
-    //        DisableSkip();
-    //        m_timeStop = wxGetCurrentTime();
-    //    }
-    //});
-
-    // wxSizerFlags sizerFlags = wxSizerFlags().Border(borderFlags, LAYOUT_MARGIN);
-    wxWindow *m_button_sizer = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(def_size_width, 26));
-    m_button_sizer->SetBackgroundColour(DESIGN_RESOUTION_DEF_BK_COLOR);
-    // sizerTop->Add(m_block_text_top, 0, wxEXPAND);
-
-    if (HasPDFlag(wxPD_CAN_SKIP)) {
-        m_btnSkip = new wxButton(this, wxID_SKIP, wxGetTranslation("&Skip"));
-        m_btnSkip->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ProgressDialog::OnSkip, this);
-        buttonSizer->SetNegativeButton(m_btnSkip);
-    }
+    m_sizer_bottom->Add(0, 0, 1, wxEXPAND, 5);
 
     if (HasPDFlag(wxPD_CAN_ABORT)) {
-        /*m_btnAbort = new wxButton(this, wxID_CANCEL);
-        buttonSizer->SetCancelButton(m_btnAbort);
-        m_btnAbort->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ProgressDialog::OnCancel, this);*/
-
-        m_button_calcel = new Button(m_button_sizer, _T("Cancel"));
-        m_button_calcel->SetTextColor(wxColour(107, 107, 107));
-        m_button_calcel->SetSize(60, 24);
-        m_button_calcel->SetPosition(wxPoint(m_button_sizer->GetSize().GetWidth() - m_button_calcel->GetSize().GetWidth(), 0));
-
-        m_button_calcel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
+        m_button_cancel = new Button(this, _T("Cancel"));
+        m_button_cancel->SetTextColor(PROGRESSDIALOG_GREY_700);
+        m_button_cancel->SetMinSize(PROGRESSDIALOG_CANCEL_BUTTON_SIZE);
+        m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
             if (m_state == Finished) {
                 event.Skip();
             } else {
                 m_state = Canceled;
-                // DisableAbort();
-                m_button_calcel->Enable(false);
+                DisableAbort();
+                m_button_cancel->Enable(false);
                 DisableSkip();
                 m_timeStop = wxGetCurrentTime();
             }
         });
+        m_sizer_bottom->Add(m_button_cancel, 0, wxALL, 0);
     }
 
-    if (!HasPDFlag(wxPD_CAN_SKIP | wxPD_CAN_ABORT)) buttonSizer->AddSpacer(LAYOUT_MARGIN);
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 16);
+    m_sizer_main->Add(m_sizer_bottom, 1, wxEXPAND | wxLEFT | wxRIGHT, 28);
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 10);
 
-    // buttonSizer->Realize();
-    // sizerTop->Add(buttonSizer, 1, wxEXPAND | wxRIGHT, 35);
 
-    sizerTop->Add(m_button_sizer, 1, wxEXPAND, 0);
-
-    auto m_block_bottom = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(def_size_width, 15));
-    m_block_bottom->SetBackgroundColour(DESIGN_RESOUTION_DEF_BK_COLOR);
-    sizerTop->Add(m_block_bottom, 0, wxEXPAND);
-
-    SetSizerAndFit(sizerTop);
-    FormatString(message);
-
+    SetSizer(m_sizer_main);
+    Layout();
+    Fit();
     Centre(wxCENTER_FRAME | wxBOTH);
-
     DisableOtherWindows();
+    FormatString(message);
 
     Show();
     Enable();
@@ -351,6 +238,151 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
 
     Update();
     return true;
+
+    //
+    //    sizerTop = new wxBoxSizer(wxVERTICAL);
+    //    auto def_size_width = wxMin(wxGetClientDisplayRect().width / 3, 305);
+    //
+    //    wxStaticLine *m_staticline2 = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(def_size_width, 1), wxLI_HORIZONTAL);
+    //    sizerTop->Add(m_staticline2, 0, wxEXPAND, 0);
+    //    auto m_block_top = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(def_size_width, 20));
+    //    m_block_top->SetBackgroundColour(wxColor(DESIGN_RESOUTION_DEF_BK_COLOR));
+    //    sizerTop->Add(m_block_top, 0, wxEXPAND);
+    //
+    //    m_message_area = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(def_size_width, 38));
+    //    m_message_area->SetBackgroundColour(DESIGN_RESOUTION_DEF_BK_COLOR);
+    //    sizerTop->Add(m_message_area, 0, wxLEFT | wxRIGHT | wxBottom | wxEXPAND, 2 * LAYOUT_MARGIN);
+    //
+    //    m_msg = new wxStaticText(m_message_area, wxID_ANY, wxString(""), wxPoint(0, 10), wxSize(def_size_width, 20), wxST_ELLIPSIZE_END);
+    //    m_msg->SetForegroundColour(wxColour(107, 107, 107));
+    //    m_msg->SetBackgroundColour(DESIGN_RESOUTION_DEF_BK_COLOR);
+    //    m_msg->SetMinSize(wxSize(def_size_width, 20));
+    //    m_msg->SetMaxSize(wxSize(def_size_width, 20));
+    //
+    //    m_msg_2line = new wxStaticText(m_message_area, wxID_ANY, wxString(""), wxPoint(0, 0), wxSize(def_size_width, 40), wxST_ELLIPSIZE_END);
+    //    m_msg_2line->SetForegroundColour(wxColour(107, 107, 107));
+    //    m_msg_2line->SetBackgroundColour(DESIGN_RESOUTION_DEF_BK_COLOR);
+    //    m_msg_2line->SetMinSize(wxSize(def_size_width, 40));
+    //    m_msg_2line->SetMaxSize(wxSize(def_size_width, 40));
+    //
+    //    auto block_left = new wxWindow(m_gauge, -1, wxPoint(0, 0), wxSize(2, m_gauge->GetSize().GetHeight()));
+    //    block_left->SetBackgroundColour(wxColor(255, 255, 255));
+    //
+    //    auto block_right = new wxWindow(m_gauge, -1, wxPoint(m_gauge->GetSize().GetWidth() - 2, 0), wxSize(2, m_gauge->GetSize().GetHeight()));
+    //    block_right->SetBackgroundColour(wxColor(255, 255, 255));
+    //
+    //    sizerTop->Add(m_gauge, 0, wxLEFT | wxRIGHT | wxBottom, 2 * LAYOUT_MARGIN);
+    //    m_gauge->SetValue(0);
+    //
+    //    m_elapsed = m_estimated = m_remaining = NULL;
+    //    size_t nTimeLabels                    = 0;
+    //
+    //    wxSizer *const sizerLabels = new wxFlexGridSizer(2);
+    //
+    //    if (style & wxPD_ELAPSED_TIME) {
+    //        nTimeLabels++;
+    //
+    //        m_elapsed = CreateLabel(GetElapsedLabel(), sizerLabels);
+    //    }
+    //
+    //    if (style & wxPD_ESTIMATED_TIME) {
+    //        nTimeLabels++;
+    //
+    //        m_estimated = CreateLabel(GetEstimatedLabel(), sizerLabels);
+    //    }
+    //
+    //    if (style & wxPD_REMAINING_TIME) {
+    //        nTimeLabels++;
+    //
+    //        m_remaining = CreateLabel(GetRemainingLabel(), sizerLabels);
+    //    }
+    //    sizerTop->Add(sizerLabels, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP | wxBottom, LAYOUT_MARGIN);
+    //
+    //    wxStdDialogButtonSizer *buttonSizer = wxDialog::CreateStdDialogButtonSizer(0);
+    //
+    //    const int borderFlags = wxALL;
+    //
+    //    std::string icon_path = (boost::format("%1%/images/common_dialog_confirm.png") % resources_dir()).str();
+    //    /*m_btnAbort            = new wxBitmapButton(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(52, 24), wxBU_AUTODRAW | wxBORDER_NONE);
+    //    m_btnAbort->SetBitmap(wxBitmap(icon_path, wxBITMAP_TYPE_ANY));
+    //    m_btnAbort->SetBitmapDisabled(wxBitmap(icon_path, wxBITMAP_TYPE_ANY));
+    //    m_btnAbort->SetBitmapPressed(wxBitmap(icon_path, wxBITMAP_TYPE_ANY));
+    //    m_btnAbort->SetBitmapFocus(wxBitmap(icon_path, wxBITMAP_TYPE_ANY));
+    //    m_btnAbort->SetBitmapCurrent(wxBitmap(icon_path, wxBITMAP_TYPE_ANY));*/
+    //
+    //     m_btnAbort = new wxButton(this, wxID_CANCEL, wxString(""), wxDefaultPosition, wxSize(52,24));
+    //
+    //     wxStaticBitmap *m_bitmatAbort = new wxStaticBitmap(m_btnAbort, wxID_ANY, wxBitmap(icon_path, wxBITMAP_TYPE_ANY), wxDefaultPosition, wxSize(52, 24), 0);
+    //     wxStaticText *textAbort = new wxStaticText(m_btnAbort, wxID_ANY, _T("Cancel"), wxPoint(5, 3), wxSize(42, 19));
+    //     textAbort->SetBa
+    //     ckgroundColour(wxColor(0, 174, 66));
+    //     textAbort->SetForegroundColour(DESIGN_RESOUTION_DEF_BK_COLOR);
+    //
+    //     textAbort->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
+    //        if (m_state == Finished) {
+    //            event.Skip();
+    //        } else {
+    //            m_state = Canceled;
+    //            //DisableAbort();
+    //            DisableSkip();
+    //            m_timeStop = wxGetCurrentTime();
+    //        }
+    //    });
+    //
+    //     wxSizerFlags sizerFlags = wxSizerFlags().Border(borderFlags, LAYOUT_MARGIN);
+    //    wxWindow *m_button_sizer = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(def_size_width, 26));
+    //    m_button_sizer->SetBackgroundColour(DESIGN_RESOUTION_DEF_BK_COLOR);
+    //
+    //    if (HasPDFlag(wxPD_CAN_SKIP)) {
+    //        m_btnSkip = new wxButton(this, wxID_SKIP, wxGetTranslation("&Skip"));
+    //        m_btnSkip->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ProgressDialog::OnSkip, this);
+    //        buttonSizer->SetNegativeButton(m_btnSkip);
+    //    }
+    //
+    //    if (HasPDFlag(wxPD_CAN_ABORT)) {
+    //        /*m_btnAbort = new wxButton(this, wxID_CANCEL);
+    //        buttonSizer->SetCancelButton(m_btnAbort);
+    //        m_btnAbort->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ProgressDialog::OnCancel, this);*/
+    //
+    //        m_button_calcel = new Button(m_button_sizer, _T("Cancel"));
+    //        m_button_calcel->SetTextColor(wxColour(107, 107, 107));
+    //        m_button_calcel->SetSize(60, 24);
+    //        m_button_calcel->SetPosition(wxPoint(m_button_sizer->GetSize().GetWidth() - m_button_calcel->GetSize().GetWidth(), 0));
+    //
+    //        m_button_calcel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
+    //            if (m_state == Finished) {
+    //                event.Skip();
+    //            } else {
+    //                m_state = Canceled;
+    //                 DisableAbort();
+    //                m_button_calcel->Enable(false);
+    //                DisableSkip();
+    //                m_timeStop = wxGetCurrentTime();
+    //            }
+    //        });
+    //    }
+    //
+    //    if (!HasPDFlag(wxPD_CAN_SKIP | wxPD_CAN_ABORT)) buttonSizer->AddSpacer(LAYOUT_MARGIN);
+    //
+    //    sizerTop->Add(m_button_sizer, 1, wxEXPAND, 0);
+    //
+    //    auto m_block_bottom = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(def_size_width, 15));
+    //    m_block_bottom->SetBackgroundColour(DESIGN_RESOUTION_DEF_BK_COLOR);
+    //    sizerTop->Add(m_block_bottom, 0, wxEXPAND);
+    //
+    //    SetSizerAndFit(sizerTop);
+    //    FormatString(message);
+    //
+    //    Centre(wxCENTER_FRAME | wxBOTH);
+    //
+    //    DisableOtherWindows();
+    //
+    //    Show();
+    //    Enable();
+    //    if (m_elapsed) { SetTimeLabel(0, m_elapsed); }
+    //
+    //    Update();
+    //    return true;
 }
 
 void ProgressDialog::UpdateTimeEstimates(int value, unsigned long &elapsedTime, unsigned long &estimatedTime, unsigned long &remainingTime)
@@ -573,7 +605,7 @@ void ProgressDialog::Resume()
     m_break += wxGetCurrentTime() - m_timeStop;
 
     EnableAbort();
-    m_button_calcel->Enable(true);
+    m_button_cancel->Enable(true);
     EnableSkip();
     m_skip = false;
 }
@@ -584,7 +616,6 @@ bool ProgressDialog::Show(bool show)
     // Windows wouldn't give the focus back to the window which had
     // been previously focused because it would still be disabled
     if (!show) ReenableOtherWindows();
-
     return wxDialog::Show(show);
 }
 
@@ -715,6 +746,19 @@ ProgressDialog::~ProgressDialog()
         wxEventLoopBase::SetActive(NULL);
         delete m_tempEventLoop;
     }
+}
+
+void ProgressDialog::DoSetSize(int x, int y, int width, int height, int sizeFlags /*= wxSIZE_AUTO*/)
+{ 
+    
+    if (m_button_cancel != nullptr) {
+        m_button_cancel->SetMinSize(PROGRESSDIALOG_CANCEL_BUTTON_SIZE);
+    }
+    if (m_block_left != nullptr && m_block_right != nullptr) {
+        m_block_left->SetPosition(wxPoint(0, 0));
+        m_block_right->SetPosition(wxPoint(PROGRESSDIALOG_GAUGE_SIZE.x - 2, 0));
+    }
+    wxWindow::DoSetSize(x,y,width,height,sizeFlags);
 }
 
 void ProgressDialog::DisableOtherWindows()

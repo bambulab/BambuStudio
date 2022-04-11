@@ -3,6 +3,7 @@
 
 #include "wx/dialog.h"
 #include "wx/weakref.h"
+#include "wx/simplebook.h"
 #include "Button.hpp"
 #include "../wxExtensions.hpp"
 
@@ -12,9 +13,11 @@ class WXDLLIMPEXP_FWD_CORE wxGauge;
 class WXDLLIMPEXP_FWD_CORE wxStaticText;
 class WXDLLIMPEXP_FWD_CORE wxWindowDisabler;
 
-#define DESIGN_RESOUTION_PROGRESS_SIZE wxSize(380, 160)
-#define DESIGN_RESOUTION_PROGRESS_BK_COLOR wxColor(206, 206, 206)
-#define DESIGN_RESOUTION_DEF_BK_COLOR wxColor(255,255,255)
+#define PROGRESSDIALOG_SIMPLEBOOK_SIZE wxSize(FromDIP(320), FromDIP(34))
+#define PROGRESSDIALOG_GAUGE_SIZE wxSize(FromDIP(320), FromDIP(6))
+#define PROGRESSDIALOG_CANCEL_BUTTON_SIZE wxSize(FromDIP(60), FromDIP(24))
+#define PROGRESSDIALOG_DEF_BK wxColour(255,255,255)
+#define PROGRESSDIALOG_GREY_700 wxColour(107,107,107)
 
 
 namespace Slic3r { namespace GUI {
@@ -28,6 +31,7 @@ public:
 	void OnPaint(wxPaintEvent &evt);
     virtual ~ProgressDialog();
 
+    virtual void DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
     bool Create(const wxString &title, const wxString &message, int maximum = 100, wxWindow *parent = NULL, int style = wxPD_APP_MODAL | wxPD_AUTO_HIDE);
 
     virtual bool Update(int value, const wxString &newmsg = wxEmptyString, bool *skip = NULL);
@@ -62,10 +66,15 @@ public:
     };
 
     int m_mode = 0;          // 0 is 1line mode 1 is 2line mode
-    wxWindow *      m_message_area;
-    wxWindow*       m_block_text_bottom;
-    wxSizer *       sizerTop;
-    wxPoint         m_msg_pos;
+
+    wxSizer *       m_sizer_main;
+    wxPanel *       m_top_line;
+    wxSimplebook *  m_simplebook;
+    wxPanel *       m_panel_2line;
+    wxPanel *       m_panel_1line;
+    Button*         m_button_cancel = {nullptr};
+    wxWindow *      m_block_left = {nullptr};
+    wxWindow *      m_block_right = {nullptr};
 
 protected:
     // Update just the m_maximum field, this is used by public SetRange() but,
@@ -192,7 +201,6 @@ private:
     // the abort and skip buttons (or NULL if none)
     wxButton *m_btnAbort;
     wxButton *m_btnSkip;
-    Button*  m_button_calcel;
 
     // saves the time when elapsed time was updated so there is only one
     // update per second
