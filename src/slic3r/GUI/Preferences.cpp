@@ -97,11 +97,13 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
     std::vector<wxString>::iterator iter;
     for (size_t i = 0; i < vlist.size(); ++i) {
         combobox->Append(vlist[i]->Description);
-        if (current_language == vlist[i]->CanonicalName) { combobox->SetValue(vlist[i]->Description); }
+        if (current_language == vlist[i]->CanonicalName) { 
+            combobox->SetValue(vlist[i]->Description); 
+        }
     }
 
-    auto index = app_config->get(param);
-    if (!index.empty()) { combobox->SetSelection(atoi(index.c_str())); }
+    //auto index = app_config->get(param);
+    //if (!index.empty()) { combobox->SetSelection(atoi(index.c_str())); }
 
     m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
 
