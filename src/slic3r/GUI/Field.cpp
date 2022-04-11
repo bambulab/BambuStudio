@@ -917,7 +917,9 @@ void SpinCtrl::propagate_value()
             // spin->GetText()->SetInsertionPointEnd(); // BBS
         }
 #endif
-        on_change_field();
+        int value = static_cast<SpinInput *>(window)->GetValue();
+        if (value != boost::any_cast<int>(m_value))
+            on_change_field();
     }
     suppress_propagation = false;
 }
