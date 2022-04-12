@@ -105,7 +105,7 @@ ModelNode::ModelNode(ModelNode* parent, const wxString& text) :
     m_parent_win(parent->m_parent_win),
     m_parent(parent),
     m_text(text),
-    m_icon_name("dot_small")
+    m_icon_name("node_dot")
 {
     UpdateIcons();
 }

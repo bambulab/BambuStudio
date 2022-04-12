@@ -51,7 +51,6 @@ class RemovableDriveManager;
 class OtherInstanceMessageHandler;
 class MainFrame;
 class Sidebar;
-class ObjectManipulation;
 class ObjectSettings;
 class ObjectList;
 class Plater;
@@ -329,8 +328,6 @@ public:
 #endif /* __APPLE */
 
     Sidebar&             sidebar();
-    // BBS
-    //ObjectManipulation*  obj_manipul();
     ObjectSettings*      obj_settings();
     ObjectList*          obj_list();
     Plater*              plater();

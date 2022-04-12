@@ -136,7 +136,7 @@ void MsgDialog::apply_style(long style)
     if (style & wxNO)       add_button(wxID_NO, false,wxT("No"));
     if (style & wxCANCEL)   add_button(wxID_CANCEL, false, wxT("Cancel"));
 
-    logo->SetBitmap( create_scaled_bitmap(style & wxICON_WARNING        ? "exclamation" :
+    logo->SetBitmap( create_scaled_bitmap(style & wxICON_WARNING        ? "obj_warning" :
                                           style & wxICON_INFORMATION    ? "info"        :
                                           style & wxICON_QUESTION       ? "question"    : "BambuStudio", this, 64, style & wxICON_ERROR));
 }

@@ -572,7 +572,7 @@ void OG_CustomCtrl::msw_rescale()
     m_h_gap     = lround(0.2 * m_em_unit);
 
     //m_bmp_mode_sz = create_scaled_bitmap("mode_simple", this, wxOSX ? 10 : 12).GetSize();
-    m_bmp_blinking_sz = create_scaled_bitmap("search_blink", this).GetSize();
+    m_bmp_blinking_sz = create_scaled_bitmap("blank_16", this).GetSize();
 
     m_max_win_width = 0;
 
@@ -955,7 +955,7 @@ wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxStr
 
 wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool is_blinking)
 {
-    wxBitmap bmp_blinking = create_scaled_bitmap(is_blinking ? "search_blink" : "empty", ctrl);
+    wxBitmap bmp_blinking = create_scaled_bitmap(is_blinking ? "blank_16" : "empty", ctrl);
     wxCoord h_pos = pos.x;
     wxCoord v_pos = pos.y + lround((height - get_bitmap_size(bmp_blinking).GetHeight()) / 2);
 

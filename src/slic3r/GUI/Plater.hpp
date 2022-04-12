@@ -58,7 +58,6 @@ namespace GUI {
 
 class MainFrame;
 class ConfigOptionsGroup;
-class ObjectManipulation;
 class ObjectSettings;
 class ObjectList;
 class GLCanvas3D;
@@ -112,8 +111,6 @@ public:
     void on_filaments_change(size_t num_filaments);
     void load_ams_list(std::map<std::string, Ams *> const & list);
 
-    // BBS
-    //ObjectManipulation*     obj_manipul();
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
     wxScrolledWindow*       scrolled_panel();

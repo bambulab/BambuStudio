@@ -369,7 +369,7 @@ class BlinkingBitmap : public wxStaticBitmap
 {
 public:
     BlinkingBitmap() {};
-    BlinkingBitmap(wxWindow* parent, const std::string& icon_name = "search_blink");
+    BlinkingBitmap(wxWindow* parent, const std::string& icon_name = "blank_16");
 
     ~BlinkingBitmap() {}
 

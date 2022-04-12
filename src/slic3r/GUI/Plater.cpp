@@ -60,7 +60,6 @@
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
-#include "GUI_ObjectManipulation.hpp"
 #include "GUI_Utils.hpp"
 #include "GUI_Factories.hpp"
 #include "wxExtensions.hpp"
@@ -1017,14 +1016,6 @@ void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
     for (auto c : p->combos_filament)
         c->update();
 }
-
-// BBS
-#if 0
-ObjectManipulation* Sidebar::obj_manipul()
-{
-    return p->object_manipulation;
-}
-#endif
 
 ObjectList* Sidebar::obj_list()
 {
@@ -9179,7 +9170,7 @@ void Plater::show_object_info()
         return;
     }
     bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
-    double koef = imperial_units ? ObjectManipulation::mm_to_in : 1.0f;
+    double koef = imperial_units ? GizmoObjectManipulation::mm_to_in : 1.0f;
 
     ModelVolume* vol = nullptr;
     Transform3d t;

@@ -2,7 +2,6 @@
 #include "GUI_App.hpp"
 #include "GUI_Init.hpp"
 #include "GUI_ObjectList.hpp"
-#include "GUI_ObjectManipulation.hpp"
 #include "GUI_Factories.hpp"
 #include "format.hpp"
 #include "I18N.hpp"
@@ -3167,14 +3166,6 @@ Sidebar& GUI_App::sidebar()
 {
     return plater_->sidebar();
 }
-
-#if 0
-ObjectManipulation* GUI_App::obj_manipul()
-{
-    // If this method is called before plater_ has been initialized, return nullptr (to avoid a crash)
-    return (plater_ != nullptr) ? sidebar().obj_manipul() : nullptr;
-}
-#endif
 
 ObjectSettings* GUI_App::obj_settings()
 {

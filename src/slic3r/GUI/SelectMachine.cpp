@@ -15,7 +15,6 @@
 #include <wx/clipbrd.h>
 #include <miniz.h>
 #include <algorithm>
-#include "GUI_ObjectManipulation.hpp"
 #include "Plater.hpp"
 #include "BitmapCache.hpp"
 
@@ -493,7 +492,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_warn->Add(0, 0, 1, wxEXPAND, 5);
 
-    auto warimg = new wxStaticBitmap(m_panel_warn, wxID_ANY, create_scaled_bitmap("exclamation", m_panel_warn, wxGetApp().em_unit() * 3), wxDefaultPosition,
+    auto warimg = new wxStaticBitmap(m_panel_warn, wxID_ANY, create_scaled_bitmap("obj_warning", m_panel_warn, wxGetApp().em_unit() * 3), wxDefaultPosition,
                                      wxSize(wxGetApp().em_unit() * 3, wxGetApp().em_unit() * 3), 0);
     m_sizer_warn->Add(warimg, 0, wxEXPAND, 0);
 
@@ -560,7 +559,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     wxBoxSizer *m_sizer_err = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_err->Add(0, 0, 0, wxEXPAND, 5);
 
-    auto errimg = new wxStaticBitmap(m_panel_err, wxID_ANY, create_scaled_bitmap("exclamation", m_panel_warn, wxGetApp().em_unit() * 3), wxDefaultPosition,
+    auto errimg = new wxStaticBitmap(m_panel_err, wxID_ANY, create_scaled_bitmap("obj_warning", m_panel_warn, wxGetApp().em_unit() * 3), wxDefaultPosition,
                                      wxSize(wxGetApp().em_unit() * 3, wxGetApp().em_unit() * 3), 0);
     m_sizer_err->Add(errimg, 0, wxEXPAND, 0);
 

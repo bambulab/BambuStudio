@@ -237,7 +237,7 @@ void SavePresetDialog::Item::update()
 
 void SavePresetDialog::Item::update_valid_bmp()
 {
-    std::string bmp_name = m_valid_type == Warning ? "exclamation" : m_valid_type == NoValid ? "cross" : "tick_mark";
+    std::string bmp_name = m_valid_type == Warning ? "obj_warning" : m_valid_type == NoValid ? "cross" : "tick_mark";
     m_valid_bmp->SetBitmap(create_scaled_bitmap(bmp_name, m_parent));
 }
 

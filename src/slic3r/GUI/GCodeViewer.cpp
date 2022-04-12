@@ -23,7 +23,6 @@
 #include "GUI_Preview.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Layer.hpp"
-#include "GUI_ObjectManipulation.hpp"
 #include "Widgets/ProgressDialog.hpp"
 
 #include <imgui/imgui_internal.h>
@@ -4066,7 +4065,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         if (it == m_print_statistics.used_filaments_per_role.end())
             return std::make_pair(0.0, 0.0);
 
-        double koef = imperial_units ? 1000.0 / ObjectManipulation::in_to_mm : 1.0;
+        double koef = imperial_units ? 1000.0 / GizmoObjectManipulation::in_to_mm : 1.0;
         return std::make_pair(it->second.first * koef, it->second.second);
     };
 
@@ -4138,7 +4137,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
     // get used filament (meters and grams) from used volume in respect to the active extruder
     auto get_used_filament_from_volume = [this, imperial_units](double volume, int extruder_id) {
-        double koef = imperial_units ? 1.0 / ObjectManipulation::in_to_mm : 0.001;
+        double koef = imperial_units ? 1.0 / GizmoObjectManipulation::in_to_mm : 0.001;
         std::pair<double, double> ret = { koef * volume / (PI * sqr(0.5 * m_filament_diameters[extruder_id])),
                                           volume * m_filament_densities[extruder_id] * 0.001 };
         return ret;
@@ -4757,7 +4756,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         const PrintStatistics& ps = wxGetApp().plater()->get_partplate_list().get_current_fff_print().print_statistics();
         bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
         char buf[64];
-        double koef = imperial_units ? ObjectManipulation::in_to_mm : 1000.0;
+        double koef = imperial_units ? GizmoObjectManipulation::in_to_mm : 1000.0;
         ::sprintf(buf, imperial_units ? "%.2f in" : "%.2f m", ps.total_used_filament / /*1000*/koef);
         imgui.text(buf);
         ImGui::SameLine();

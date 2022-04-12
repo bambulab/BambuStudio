@@ -2,7 +2,6 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_Factories.hpp"
-#include "GUI_ObjectManipulation.hpp"
 //#include "GUI_ObjectLayers.hpp"
 #include "GUI_App.hpp"
 #include "I18N.hpp"
@@ -416,7 +415,7 @@ int ObjectList::get_repaired_errors_count(const int obj_idx, const int vol_idx /
 
 static std::string get_warning_icon_name(const TriangleMeshStats& stats)
 {
-    return stats.manifold() ? (stats.repaired() ? "exclamation_manifold" : "") : "exclamation";
+    return stats.manifold() ? (stats.repaired() ? "obj_warnings" : "") : "obj_warning";
 }
 
 MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol_idx /*= -1*/, wxString* sidebar_info /*= nullptr*/) const

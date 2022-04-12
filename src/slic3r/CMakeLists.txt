@@ -170,8 +170,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/GUI_ObjectList.hpp
     GUI/GUI_AuxiliaryList.cpp
     GUI/GUI_AuxiliaryList.hpp
-    GUI/GUI_ObjectManipulation.cpp
-    GUI/GUI_ObjectManipulation.hpp
     GUI/GUI_ObjectSettings.cpp
     GUI/GUI_ObjectSettings.hpp
     GUI/GUI_ObjectTable.cpp
