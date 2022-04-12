@@ -327,6 +327,35 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                         return ! this_empty && (rhs_empty || (this->region_id < rhs.region_id || (this->region_id == rhs.region_id && volume_id < volume_id)));
                     }
                 };
+
+                // BBS
+                auto trim_overlap = [](ExPolygons& expolys_a, ExPolygons& expolys_b) {
+                    ExPolygons trimming_a;
+                    ExPolygons trimming_b;
+
+                    for (ExPolygon& expoly_a : expolys_a) {
+                        BoundingBox bbox_a = get_extents(expoly_a);
+                        ExPolygons expolys_new;
+                        for (ExPolygon& expoly_b : expolys_b) {
+                            BoundingBox bbox_b = get_extents(expoly_b);
+                            if (!bbox_a.overlap(bbox_b))
+                                continue;
+
+                            if (intersection_ex(expoly_a, expoly_b).empty())
+                                continue;
+
+                            ExPolygons temp = intersection_ex(expoly_b, expoly_a);
+                            if (expoly_a.area() > expoly_b.area())
+                                trimming_a.insert(trimming_a.end(), temp.begin(), temp.end());
+                            else
+                                trimming_b.insert(trimming_b.end(), temp.begin(), temp.end());
+                        }
+                    }
+
+                    expolys_a = diff_ex(expolys_a, trimming_a);
+                    expolys_b = diff_ex(expolys_b, trimming_b);
+                };
+
                 std::vector<RegionSlice> temp_slices;
                 for (size_t zs_complex_idx = range.begin(); zs_complex_idx < range.end(); ++ zs_complex_idx) {
                     auto [z_idx, z] = zs_complex[zs_complex_idx];
@@ -364,9 +393,9 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                                 // Clip every non-zero region preceding it.
                                 for (int idx_region2 = 0; idx_region2 < idx_region; ++ idx_region2)
                                     if (! temp_slices[idx_region2].expolygons.empty()) {
-                                        if (const PrintObjectRegions::VolumeRegion &region2 = layer_range.volume_regions[idx_region2];
-                                            ! region2.model_volume->is_negative_volume() && overlap_in_xy(*region.bbox, *region2.bbox))
-                                            temp_slices[idx_region2].expolygons = diff_ex(temp_slices[idx_region2].expolygons, temp_slices[idx_region].expolygons);
+                                        const PrintObjectRegions::VolumeRegion& region2 = layer_range.volume_regions[idx_region2];
+                                        if (!region2.model_volume->is_negative_volume() && overlap_in_xy(*region.bbox, *region2.bbox))
+                                            trim_overlap(temp_slices[idx_region2].expolygons, temp_slices[idx_region].expolygons);
                                     }
                             }
                         }
