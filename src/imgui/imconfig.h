@@ -150,17 +150,18 @@ namespace ImGui
 //    const wchar_t CustomSeamMarker         = 0x1E;
 //    const wchar_t MmuSegmentationMarker    = 0x1F;
     // Do not forget use following letters only in wstring
-    const wchar_t DocumentationButton      = 0x2600;
-    const wchar_t DocumentationHoverButton = 0x2601;
-    const wchar_t ClippyMarker             = 0x2602;
-    const wchar_t InfoMarker               = 0x2603;
-    const wchar_t SliderFloatEditBtnIcon   = 0x2604;
+    //BBS use 08xx to avoid unicode character which may be used
+    const wchar_t DocumentationButton      = 0x0800;
+    const wchar_t DocumentationHoverButton = 0x0801;
+    const wchar_t ClippyMarker             = 0x0802;
+    const wchar_t InfoMarker               = 0x0803;
+    const wchar_t SliderFloatEditBtnIcon   = 0x0804;
 
     // BBS
-    const wchar_t CircleButtonIcon         = 0x3000;
-    const wchar_t TriangleButtonIcon       = 0x3001;
-    const wchar_t FillButtonIcon           = 0x3002;
-    const wchar_t HeightRangeIcon          = 0x3003;
+    const wchar_t CircleButtonIcon         = 0x0810;
+    const wchar_t TriangleButtonIcon       = 0x0811;
+    const wchar_t FillButtonIcon           = 0x0812;
+    const wchar_t HeightRangeIcon          = 0x0813;
 
 //    void MyFunction(const char* name, const MyMatrix44& v);
 }
