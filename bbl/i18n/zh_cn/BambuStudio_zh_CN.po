@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-04-09 15:00+0800\n"
-"PO-Revision-Date: 2022-04-09 15:18+0800\n"
+"PO-Revision-Date: 2022-04-12 16:58+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -6155,7 +6155,7 @@ msgstr "开始使用这个耗材丝打印的起始G-code"
 
 #: src/libslic3r/PrintConfig.cpp:1945
 msgid "Enable support"
-msgstr "开启支撑。"
+msgstr "开启支撑"
 
 #: src/libslic3r/PrintConfig.cpp:1947
 msgid "Enable support generation."
