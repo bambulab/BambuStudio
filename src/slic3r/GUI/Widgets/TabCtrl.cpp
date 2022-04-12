@@ -92,10 +92,9 @@ int TabCtrl::AppendItem(const wxString &item,
     Button * btn = new Button();
     btn->Create(this, item, "", wxBORDER_NONE);
     btn->SetFont(GetFont());
-    //btn->SetTextColor(StateColor(
-    //    std::make_pair(*wxBLACK, (int) StateColor::Checked),
-    //    std::make_pair(*wxBLACK, (int) StateColor::Hovered),
-    //    std::make_pair(*wxLIGHT_GREY, (int) StateColor::Normal)));
+    btn->SetTextColor(StateColor(
+        std::make_pair(0x6B6B6B, (int) StateColor::NotChecked),
+        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Normal)));
     btn->SetBackgroundColor(GetBackgroundColour());
     btn->SetCornerRadius(0);
     btn->SetPaddingSize({TAB_BUTTON_PADDING});
@@ -172,7 +171,7 @@ void TabCtrl::AssignImageList(wxImageList* imageList)
 void TabCtrl::SetItemTextColour(unsigned int item, const wxColour& col)
 {
     if (item >= btns.size()) return;
-    btns[item]->SetTextColor(col);
+    btns[item]->SetTextColorNormal(col);
 }
 
 int TabCtrl::GetFirstVisibleItem() const

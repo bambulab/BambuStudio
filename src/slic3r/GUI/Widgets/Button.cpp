@@ -90,6 +90,12 @@ void Button::SetTextColor(StateColor const& color)
     Refresh();
 }
 
+void Button::SetTextColorNormal(wxColor const &color)
+{
+    text_color.setColorForStates(color, 0);
+    Refresh();
+}
+
 bool Button::Enable(bool enable)
 {
     bool result = wxWindow::Enable(enable);

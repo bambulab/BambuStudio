@@ -446,15 +446,43 @@ Sidebar::Sidebar(Plater *parent)
     spliter_2->SetBackgroundColour("#ACACAC");
     scrolled_sizer->Add(spliter_2, 0, wxEXPAND);
 
-    ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
-    set_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
-        //p->editing_filament = -1;
-        //wxGetApp().params_dialog()->Popup();
-        //wxGetApp().get_tab(Preset::TYPE_FILAMENT)->restore_last_select_item();
+    ScalableButton *set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
+    set_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+        // p->editing_filament = -1;
+        // wxGetApp().params_dialog()->Popup();
+        // wxGetApp().get_tab(Preset::TYPE_FILAMENT)->restore_last_select_item();
         wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
     });
 
-    bSizer39->Add(set_btn, 0, wxALIGN_CENTER|wxALL, 5 * em / 10 );
+    bSizer39->Add(set_btn, 0, wxALIGN_CENTER | wxALL, 5 * em / 10);
+
+    // BBS
+    // add wiping dialog
+    m_flushing_volume_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "", _L("Flushing volumes"));
+    //wiping_dialog_button->SetFont(wxGetApp().normal_font());
+
+    m_flushing_volume_btn->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)
+        {
+            auto& project_config = wxGetApp().preset_bundle->project_config;
+            const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
+            const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
+
+            const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+
+            WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders), extruder_colours);
+
+            if (dlg.ShowModal() == wxID_OK) {
+                std::vector<float> matrix = dlg.get_matrix();
+                std::vector<float> extruders = dlg.get_extruders();
+                (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
+                (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values = std::vector<double>(extruders.begin(), extruders.end());
+                wxGetApp().plater()->update_project_dirty_from_presets();
+                wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
+            }
+        }));
+    bSizer39->Add(m_flushing_volume_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, em);
+    bSizer39->Hide(m_flushing_volume_btn);
+
     bSizer39->AddStretchSpacer(1);
 
     ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
@@ -509,7 +537,7 @@ Sidebar::Sidebar(Plater *parent)
         p->combos_filament[0]->clr_picker->SetLabel("1");
         combo_and_btn_sizer->Add(p->combos_filament[0]->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 3 * em / 10);
     }
-    combo_and_btn_sizer->Add(p->combos_filament[0], 1, wxALL | wxEXPAND, 2 * em / 10);
+    combo_and_btn_sizer->Add(p->combos_filament[0], 1, wxALL | wxEXPAND, 2 * em / 10)->SetMinSize({-1, 3 * em});
 
     ScalableButton* edit_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "edit");
     edit_btn->SetBackgroundColour(wxColour(255, 255, 255));
@@ -534,33 +562,7 @@ Sidebar::Sidebar(Plater *parent)
     p->m_panel_filament_content->Layout();
 
     scrolled_sizer->Add(p->m_panel_filament_content, 0, wxTOP | wxBOTTOM | wxEXPAND, 10);
-
-    // BBS
-    // add wiping dialog
-    m_flushing_volume_btn = new ScalableButton(p->scrolled, wxID_ANY, "", _L("Flushing volumes"));
-    //wiping_dialog_button->SetFont(wxGetApp().normal_font());
-
-    m_flushing_volume_btn->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)
-        {
-            auto& project_config = wxGetApp().preset_bundle->project_config;
-            const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
-            const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
-
-            const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
-
-            WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders), extruder_colours);
-
-            if (dlg.ShowModal() == wxID_OK) {
-                std::vector<float> matrix = dlg.get_matrix();
-                std::vector<float> extruders = dlg.get_extruders();
-                (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
-                (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values = std::vector<double>(extruders.begin(), extruders.end());
-                wxGetApp().plater()->update_project_dirty_from_presets();
-                wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
-            }
-        }));
-    scrolled_sizer->Add(m_flushing_volume_btn, 0, wxTOP | wxBOTTOM | wxEXPAND, 0);
-    scrolled_sizer->Hide(m_flushing_volume_btn);
+    scrolled_sizer->AddSpacer(15);
 
     //p->m_staticline2 = new wxStaticLine( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
     //p->m_staticline2->SetBackgroundColour( static_line_col );
@@ -626,7 +628,7 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     combo_and_btn_sizer->Add( 8 * em / 10, 0, 0, 0, 0 );
     (*combo)->clr_picker->SetLabel(wxString::Format("%d", filament_idx + 1));
     combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 3 * em / 10);
-    combo_and_btn_sizer->Add(*combo, 1, wxALL | wxEXPAND, 2 * em / 10);
+    combo_and_btn_sizer->Add(*combo, 1, wxALL | wxEXPAND, 2 * em / 10)->SetMinSize({-1, 3 * em});
 
     /* BBS hide del_btn
     ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "delete_filament");
@@ -963,15 +965,16 @@ void Sidebar::on_filaments_change(size_t num_filaments)
     // remove unused choices if any
     remove_unused_filament_combos(num_filaments);
 
-    if (m_flushing_volume_btn != nullptr && m_scrolled_sizer != nullptr) {
+    auto sizer = p->m_panel_filament_title->GetSizer();
+    if (m_flushing_volume_btn != nullptr && sizer != nullptr) {
         if (num_filaments > 1)
-            m_scrolled_sizer->Show(m_flushing_volume_btn);
+            sizer->Show(m_flushing_volume_btn);
         else
-            m_scrolled_sizer->Hide(m_flushing_volume_btn);
+            sizer->Hide(m_flushing_volume_btn);
     }
 
-    scrolled_panel()->Layout();
-    scrolled_panel()->Refresh();
+    p->m_panel_filament_title->Layout();
+    p->m_panel_filament_title->Refresh();
 }
 
 void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
@@ -1810,6 +1813,13 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
 
     // BBS: move sidebar to left side
     hsizer->Add(sidebar, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
+    auto spliter_1 = new ::StaticLine(q, true);
+    spliter_1->SetBackgroundColour("#A6A9AA");
+    hsizer->Add(spliter_1, 0, wxEXPAND);
+    auto spliter_2 = new ::StaticLine(q, true);
+    spliter_2->SetBackgroundColour("#A6A9AA");
+    hsizer->Add(spliter_2, 0, wxEXPAND);
+
     panel_sizer = new wxBoxSizer(wxHORIZONTAL);
     panel_sizer->Add(view3D, 1, wxEXPAND | wxALL, 0);
     panel_sizer->Add(preview, 1, wxEXPAND | wxALL, 0);

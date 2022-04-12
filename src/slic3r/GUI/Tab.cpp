@@ -328,14 +328,14 @@ void Tab::create_preset_tab()
     // Colors for ui "decoration"
     m_sys_label_clr			= wxGetApp().get_label_clr_sys();
     m_modified_label_clr	= wxGetApp().get_label_clr_modified();
-    m_default_text_clr		= wxGetApp().get_label_clr_default();
+    m_default_text_clr      = wxGetApp().get_label_clr_default();
 
     m_main_sizer = new wxBoxSizer( wxVERTICAL );
     m_top_sizer = new wxBoxSizer( wxHORIZONTAL );
     // BBS: model config
     if (m_presets_choice) {
         m_presets_choice->Reparent(m_top_panel);
-        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, 10);
+        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxRIGHT | wxEXPAND | wxALIGN_CENTER_VERTICAL, 10);
     } else {
         m_top_sizer->AddSpacer(10);
         m_top_sizer->AddStretchSpacer(1);
@@ -370,7 +370,7 @@ void Tab::create_preset_tab()
     m_top_sizer->SetMinSize(-1, 3 * m_em_unit);
     m_top_panel->SetSizer(m_top_sizer);
     if (m_presets_choice)
-        m_main_sizer->Add(m_top_panel, 0, wxEXPAND | wxUP | wxDOWN, m_em_unit); 
+        m_main_sizer->Add(m_top_panel, 0, wxEXPAND | wxUP | wxDOWN, m_em_unit * 3 / 2); 
     else
         m_top_panel->Hide();
 
@@ -961,7 +961,7 @@ void Tab::update_changed_tree_ui()
 
             const wxColor *clr = sys_page      ? (m_is_default_preset ? &m_default_text_clr : &m_sys_label_clr) :
                                  modified_page	?	&m_modified_label_clr :
-                                                 (m_type < Preset::TYPE_COUNT ? &m_default_text_clr : &m_modified_label_clr);
+                                                 (cur_item < Preset::TYPE_COUNT ? &m_default_text_clr : &m_modified_label_clr);
 
             if (page->set_item_colour(clr))
                 m_tabctrl->SetItemTextColour(cur_item, *clr);

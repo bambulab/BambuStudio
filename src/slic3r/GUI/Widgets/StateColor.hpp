@@ -54,6 +54,8 @@ public:
 
     wxColour colorForStates(int states);
 
+    bool setColorForStates(wxColour const & color, int states);
+
 private:
     template<typename Color, typename ...Colors>
     void fill(std::pair<Color, int> color, std::pair<Colors, int>... colors) {

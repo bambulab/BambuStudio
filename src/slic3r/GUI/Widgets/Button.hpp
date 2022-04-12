@@ -35,6 +35,8 @@ public:
     
     void SetTextColor(StateColor const &color);
 
+    void SetTextColorNormal(wxColor const &color);
+
     bool Enable(bool enable = true);
 
     void Rescale();
