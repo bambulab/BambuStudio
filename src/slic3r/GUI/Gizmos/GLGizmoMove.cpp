@@ -109,16 +109,17 @@ void GLGizmoMove3D::on_render()
     const Vec3d& center = box.center();
 
 #if ENABLE_FIXED_GRABBER
-    m_grabbers[0].center = { center.x() + Offset, center.y(), center.z() };
-    m_grabbers[0].color = AXES_COLOR[0];
-
+    // x axis
+    m_grabbers[0].center = { box.max.x(), center.y(), center.z() };
     // y axis
-    m_grabbers[1].center = { center.x(), center.y() + Offset, center.z() };
-    m_grabbers[1].color = AXES_COLOR[1];
-
+    m_grabbers[1].center = { center.x(), box.max.y(), center.z() };
     // z axis
-    m_grabbers[2].center = { center.x(), center.y(), center.z() + Offset };
-    m_grabbers[2].color = AXES_COLOR[2];
+    m_grabbers[2].center = { center.x(), center.y(), box.max.z() };
+
+    for (int i = 0; i < 3; ++i) {
+        m_grabbers[i].color       = GRABBER_NORMAL_COL;
+        m_grabbers[i].hover_color = GRABBER_HOVER_COL;
+    }
 #else
     // x axis
     m_grabbers[0].center = { box.max.x() + Offset, center.y(), center.z() };
@@ -135,47 +136,25 @@ void GLGizmoMove3D::on_render()
 
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
 
-    if (m_hover_id == -1) {
-        // draw axes
-        for (unsigned int i = 0; i < 3; ++i) {
-            if (m_grabbers[i].enabled) {
-                glsafe(::glColor4fv(AXES_COLOR[i].data()));
-                ::glBegin(GL_LINES);
-                ::glVertex3dv(center.data());
-                ::glVertex3dv(m_grabbers[i].center.data());
-                glsafe(::glEnd());
-            }
-        }
-
-        // draw grabbers
-        render_grabbers(box);
-        for (unsigned int i = 0; i < 3; ++i) {
-            if (m_grabbers[i].enabled)
-                render_grabber_extension((Axis)i, box, false);
-        }
+    // draw grabbers
+    for (unsigned int i = 0; i < 3; ++i) {
+        if (m_grabbers[i].enabled) render_grabber_extension((Axis) i, box, false);
     }
-    else {
-        // draw axis
-        glsafe(::glColor4fv(AXES_COLOR[m_hover_id].data()));
-        ::glBegin(GL_LINES);
-        ::glVertex3dv(center.data());
-        ::glVertex3dv(m_grabbers[m_hover_id].center.data());
-        glsafe(::glEnd());
 
-        GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
-        if (shader != nullptr) {
-            shader->start_using();
-            shader->set_uniform("emission_factor", 0.1f);
-            // draw grabber
-#if ENABLE_FIXED_GRABBER
-            float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
-#else
-            float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
-#endif
-            m_grabbers[m_hover_id].render(true, mean_size);
-            shader->stop_using();
+    // draw axes line
+    // draw axes
+    for (unsigned int i = 0; i < 3; ++i) {
+        if (m_grabbers[i].enabled) {
+            glsafe(::glColor4fv(GRABBER_NORMAL_COL.data()));
+            glLineStipple(1, 0x0FFF);
+            glEnable(GL_LINE_STIPPLE);
+            ::glBegin(GL_LINES);
+            ::glVertex3dv(center.data());
+            // use extension center
+            ::glVertex3dv(m_grabbers[i].center.data());
+            glsafe(::glEnd());
+            glDisable(GL_LINE_STIPPLE);
         }
-        render_grabber_extension((Axis)m_hover_id, box, false);
     }
 }
 
@@ -184,7 +163,17 @@ void GLGizmoMove3D::on_render_for_picking()
     glsafe(::glDisable(GL_DEPTH_TEST));
 
     const BoundingBoxf3& box = m_parent.get_selection().get_bounding_box();
-    render_grabbers_for_picking(box);
+    //BBS donot render base grabber for picking
+    //render_grabbers_for_picking(box);
+
+    //get picking colors only
+    for (unsigned int i = 0; i < (unsigned int) m_grabbers.size(); ++i) {
+        if (m_grabbers[i].enabled) {
+            std::array<float, 4> color = picking_color_component(i);
+            m_grabbers[i].color        = color;
+        }
+    }
+
     render_grabber_extension(X, box, true);
     render_grabber_extension(Y, box, true);
     render_grabber_extension(Z, box, true);
@@ -232,14 +221,13 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
     float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
 #endif
 
-    double size = m_dragging ? (double)m_grabbers[axis].get_dragging_half_size(mean_size) : (double)m_grabbers[axis].get_half_size(mean_size);
+    double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
 
     std::array<float, 4> color = m_grabbers[axis].color;
     if (!picking && m_hover_id != -1) {
-        color[0] = 1.0f - color[0];
-        color[1] = 1.0f - color[1];
-        color[2] = 1.0f - color[2];
-        color[3] = color[3];
+        if (m_hover_id == axis) {
+            color = m_grabbers[axis].hover_color;
+        }
     }
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
@@ -260,7 +248,7 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
         glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
 
     glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
-    glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
+    glsafe(::glScaled(0.75 * size, 0.75 * size, 2.0 * size));
     m_vbo_cone.render();
     glsafe(::glPopMatrix());
 

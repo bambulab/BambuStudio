@@ -11,11 +11,14 @@
 namespace Slic3r {
 namespace GUI {
 
+float GLGizmoBase::INV_ZOOM = 1.0f;
+
+
 const float GLGizmoBase::Grabber::SizeFactor = 0.05f;
 const float GLGizmoBase::Grabber::MinHalfSize = 4.0f;
 const float GLGizmoBase::Grabber::DraggingScaleFactor = 1.25f;
-const float GLGizmoBase::Grabber::FixedGrabberSize = 35.0f;
-const float GLGizmoBase::Grabber::FixedRadiusSize = 55.0f;
+const float GLGizmoBase::Grabber::FixedGrabberSize = 16.0f;
+const float GLGizmoBase::Grabber::FixedRadiusSize = 80.0f;
 
 
 std::array<float, 4> GLGizmoBase::DEFAULT_BASE_COLOR = { 0.625f, 0.625f, 0.625f, 1.0f };
@@ -29,6 +32,12 @@ std::array<std::array<float, 4>, 3> GLGizmoBase::AXES_COLOR = { {decode_color_to
 std::array<float, 4> GLGizmoBase::CONSTRAINED_COLOR = { 0.5f, 0.5f, 0.5f, 1.0f };
 std::array<float, 4> GLGizmoBase::FLATTEN_COLOR = { 0.9f, 0.9f, 0.9f, 0.5f };
 std::array<float, 4> GLGizmoBase::FLATTEN_HOVER_COLOR = { 0.9f, 0.9f, 0.9f, 0.75f };
+
+// new style color
+std::array<float, 4> GLGizmoBase::GRABBER_NORMAL_COL = {0.2f, 0.2f, 0.2f, 1.0f};
+std::array<float, 4> GLGizmoBase::GRABBER_HOVER_COL  = {0.863f, 0.125f, 0.063f, 1.0f};
+std::array<float, 4> GLGizmoBase::GRABBER_UNIFORM_COL = {0.863f, 0.863f, 0.863f, 1.0f};
+
 
 void GLGizmoBase::update_render_colors()
 {
@@ -57,17 +66,15 @@ GLGizmoBase::Grabber::Grabber()
     , dragging(false)
     , enabled(true)
 {
-    color = { 1.0f, 1.0f, 1.0f, 1.0f };
+    color = GRABBER_NORMAL_COL;
+    hover_color = GRABBER_HOVER_COL;
 }
 
 void GLGizmoBase::Grabber::render(bool hover, float size) const
 {
     std::array<float, 4> render_color;
     if (hover) {
-        render_color[0] = (1.0f - color[0]);
-        render_color[1] = (1.0f - color[1]);
-        render_color[2] = (1.0f - color[2]);
-        render_color[3] = color[3];
+        render_color = hover_color;
     }
     else
         render_color = color;
@@ -96,7 +103,13 @@ void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render
         const_cast<bool&>(cube_initialized) = true;
     }
 
-    float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
+    //BBS set to fixed size grabber
+    //float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
+    float fullsize = 8.0f;
+    if (GLGizmoBase::INV_ZOOM > 0) {
+        fullsize = FixedGrabberSize * GLGizmoBase::INV_ZOOM;
+    }
+
 
     const_cast<GLModel*>(&cube)->set_color(-1, render_color);
 

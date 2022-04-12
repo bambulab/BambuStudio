@@ -71,7 +71,7 @@ std::string GLGizmoRotate::get_tooltip() const
     case Y: { axis = "Y"; break; }
     case Z: { axis = "Z"; break; }
     }
-    return (m_hover_id == 0 || m_grabbers[0].dragging) ? axis + ": " + format((float)Geometry::rad2deg(m_angle), 4) : "";
+    return (m_hover_id == 0 || m_grabbers[0].dragging) ? axis + ": " + format((float)Geometry::rad2deg(m_angle), 2) : "";
 }
 
 bool GLGizmoRotate::on_init()
@@ -83,6 +83,16 @@ bool GLGizmoRotate::on_init()
 void GLGizmoRotate::on_start_dragging()
 {
     const BoundingBoxf3& box = m_parent.get_selection().get_bounding_box();
+    /*Vec3d center_offset;
+    if (m_axis == Axis::X)
+        center_offset = Vec3d(box.min.x() - box.center().x(), 0, 0);
+    else if (m_axis == Axis::Y)
+        center_offset = Vec3d(0, box.max.y() - box.center().y(), 0);
+    else if (m_axis == Axis::Z)
+        center_offset = Vec3d(0, 0, box.min.z() - box.center().z());
+
+    m_center = box.center() + center_offset;*/
+
     m_center = box.center();
     
 #if ENABLE_FIXED_GRABBER
@@ -140,9 +150,18 @@ void GLGizmoRotate::on_render()
     const BoundingBoxf3& box = selection.get_bounding_box();
 
     if (m_hover_id != 0 && !m_grabbers[0].dragging) {
+        /*Vec3d center_offset;
+        if (m_axis == Axis::X)
+            center_offset = Vec3d(box.min.x() - box.center().x(), 0, 0);
+        else if (m_axis == Axis::Y)
+            center_offset = Vec3d(0, box.max.y() - box.center().y(), 0);
+        else if (m_axis == Axis::Z)
+            center_offset = Vec3d(0, 0, box.min.z() - box.center().z());
+
+        m_center = box.center() + center_offset;*/
         m_center = box.center();
 #if ENABLE_FIXED_GRABBER
-        m_radius = GLGizmoBase::Grabber::FixedRadiusSize;
+        double grabber_radius = GLGizmoBase::Grabber::FixedRadiusSize * GLGizmoBase::INV_ZOOM;
 #else
         m_radius = Offset + box.radius();
 #endif
@@ -160,7 +179,8 @@ void GLGizmoRotate::on_render()
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
     glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color.data() : m_highlight_color.data()));
 
-    render_circle();
+    //BBS do not render circle
+    //render_circle();
 
     if (m_hover_id != -1) {
         render_scale();
@@ -182,6 +202,7 @@ void GLGizmoRotate::on_render()
 void GLGizmoRotate::on_render_for_picking()
 {
     const Selection& selection = m_parent.get_selection();
+    const BoundingBoxf3 &box   = selection.get_bounding_box();
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
@@ -189,8 +210,14 @@ void GLGizmoRotate::on_render_for_picking()
 
     transform_to_local(selection);
 
-    const BoundingBoxf3& box = selection.get_bounding_box();
-    render_grabbers_for_picking(box);
+    // BBS get color for pick only
+    //render_grabbers_for_picking(box);
+    for (unsigned int i = 0; i < (unsigned int) m_grabbers.size(); ++i) {
+        if (m_grabbers[i].enabled) {
+            std::array<float, 4> color = picking_color_component(i);
+            m_grabbers[i].color        = color;
+        }
+    }
     render_grabber_extension(box, true);
 
     glsafe(::glPopMatrix());
@@ -317,29 +344,28 @@ void GLGizmoRotate::render_angle() const
 
 void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 {
-    double grabber_radius = (double)m_radius * (1.0 + (double)GrabberOffset);    
+    double grabber_radius = GLGizmoBase::Grabber::FixedRadiusSize * GLGizmoBase::INV_ZOOM;
+
     m_grabbers[0].center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
     m_grabbers[0].angles(2) = m_angle;
 
-    glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color.data() : m_highlight_color.data()));
+    m_grabbers[0].color       = GRABBER_NORMAL_COL;
+    m_grabbers[0].hover_color = GRABBER_HOVER_COL;
 
+    /* BBS do not render line
+    glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color.data() : m_highlight_color.data()));
     ::glBegin(GL_LINES);
     ::glVertex3f(0.0f, 0.0f, 0.0f);
     ::glVertex3dv(m_grabbers[0].center.data());
     glsafe(::glEnd());
-
-    m_grabbers[0].color = m_highlight_color;
-    render_grabbers(box);
+    */
+    //BBS do not render base grabber
+    //render_grabbers(box);
 }
 
 void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking) const
 {
-#if ENABLE_FIXED_GRABBER
-    float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
-#else
-    float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
-#endif
-    double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size(mean_size) : (double)m_grabbers[0].get_half_size(mean_size);
+    double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
 
     std::array<float, 4> color = m_grabbers[0].color;
     if (!picking && m_hover_id != -1) {
@@ -362,16 +388,16 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     glsafe(::glTranslated(m_grabbers[0].center.x(), m_grabbers[0].center.y(), m_grabbers[0].center.z()));
     glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
     glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
-    glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
-    glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
+    glsafe(::glTranslated(0.0, 0.0, 0.0));
+    glsafe(::glScaled(0.75 * size, 0.75 * size, 2.0 * size));
     m_cone.render();
     glsafe(::glPopMatrix());
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(m_grabbers[0].center.x(), m_grabbers[0].center.y(), m_grabbers[0].center.z()));
     glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
     glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
-    glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
-    glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
+    glsafe(::glTranslated(0.0, 0.0, 0.0));
+    glsafe(::glScaled(0.75 * size, 0.75 * size, 2.0 * size));
     m_cone.render();
     glsafe(::glPopMatrix());
 

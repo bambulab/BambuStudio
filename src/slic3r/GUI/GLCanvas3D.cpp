@@ -5844,6 +5844,8 @@ void GLCanvas3D::_render_volumes_for_picking() const
 
 void GLCanvas3D::_render_current_gizmo() const
 {
+    //BBS update inv_zoom
+    GLGizmoBase::INV_ZOOM = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
     m_gizmos.render_current_gizmo();
 }
 

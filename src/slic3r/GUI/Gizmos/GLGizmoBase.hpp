@@ -35,6 +35,8 @@ public:
     // (254 is choosen to leave some space for forward compatibility)
     static const unsigned int BASE_ID = 255 * 255 * 254;
 
+    static float INV_ZOOM;
+
     //BBS colors
     static std::array<float, 4> DEFAULT_BASE_COLOR;
     static std::array<float, 4> DEFAULT_DRAG_COLOR;
@@ -43,6 +45,9 @@ public:
     static std::array<float, 4> CONSTRAINED_COLOR;
     static std::array<float, 4> FLATTEN_COLOR;
     static std::array<float, 4> FLATTEN_HOVER_COLOR;
+    static std::array<float, 4> GRABBER_NORMAL_COL;
+    static std::array<float, 4> GRABBER_HOVER_COL;
+    static std::array<float, 4> GRABBER_UNIFORM_COL;
 
     static void update_render_colors();
     static void load_render_colors();
@@ -59,6 +64,7 @@ protected:
         Vec3d center;
         Vec3d angles;
         std::array<float, 4> color;
+        std::array<float, 4> hover_color;
         bool enabled;
         bool dragging;
 
