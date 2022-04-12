@@ -326,7 +326,7 @@ public:
             return "unknown";
         }
     }
-    inline LIGHT_EFFECT light_effect_parse(std::string& effect_str) {
+    inline LIGHT_EFFECT light_effect_parse(std::string effect_str) {
         if (effect_str.compare("on") == 0)
             return LIGHT_EFFECT_ON;
         else if (effect_str.compare("off") == 0)
