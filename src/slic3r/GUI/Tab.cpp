@@ -244,8 +244,8 @@ void Tab::create_preset_tab()
     m_search_btn->SetToolTip(format_wxstr(_L("Search in settings [%1%]"), "Ctrl+F"));*/
 
     // Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
-    add_scaled_bitmap(this, m_bmp_value_lock  , "lock_closed");
-    add_scaled_bitmap(this, m_bmp_value_unlock, "lock_open");
+    add_scaled_bitmap(this, m_bmp_value_lock  , "unlock_normal");
+    add_scaled_bitmap(this, m_bmp_value_unlock, "lock_normal");
     m_bmp_non_system = &m_bmp_white_bullet;
     // Bitmaps to be shown on the "Undo user changes" button next to each input field.
     add_scaled_bitmap(this, m_bmp_value_revert, "undo");
@@ -1523,7 +1523,7 @@ void Tab::build_preset_description_line(ConfigOptionsGroup* optgroup)
     };
 
     auto detach_preset_btn = [this](wxWindow* parent) {
-        m_detach_preset_btn = new ScalableButton(parent, wxID_ANY, "lock_open_sys", _L(""), 
+        m_detach_preset_btn = new ScalableButton(parent, wxID_ANY, "lock_normal_sys", _L(""), 
                                                  wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
         ScalableButton* btn = m_detach_preset_btn;
         btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());

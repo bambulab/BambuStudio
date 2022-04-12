@@ -415,7 +415,7 @@ int ObjectList::get_repaired_errors_count(const int obj_idx, const int vol_idx /
 
 static std::string get_warning_icon_name(const TriangleMeshStats& stats)
 {
-    return stats.manifold() ? (stats.repaired() ? "obj_warnings" : "") : "obj_warning";
+    return stats.manifold() ? (stats.repaired() ? "obj_warning" : "") : "obj_warning";
 }
 
 MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol_idx /*= -1*/, wxString* sidebar_info /*= nullptr*/) const

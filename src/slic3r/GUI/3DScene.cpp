@@ -351,13 +351,23 @@ std::array<float, 4> GLVolume::SLA_PAD_COLOR     = { 0.0f, 0.2f, 0.0f, 1.0f };
 std::array<float, 4> GLVolume::NEUTRAL_COLOR     = { 0.9f, 0.9f, 0.9f, 1.0f };
 std::array<float, 4> GLVolume::UNPRINTABLE_COLOR = { 0.0f, 0.0f, 0.0f, 0.5f };
 
+//std::array<std::array<float, 4>, 5> GLVolume::MODEL_COLOR = { {
+//    { 1.0f, 1.0f, 0.0f, 1.f },
+//    { 1.0f, 0.5f, 0.5f, 1.f },
+//    { 0.5f, 1.0f, 0.5f, 1.f },
+//    { 0.5f, 0.5f, 1.0f, 1.f },
+//    { 1.0f, 1.0f, 0.0f, 1.f }
+//} };
+
 std::array<std::array<float, 4>, 5> GLVolume::MODEL_COLOR = { {
-    { 1.0f, 1.0f, 0.0f, 1.f },
-    { 1.0f, 0.5f, 0.5f, 1.f },
-    { 0.5f, 1.0f, 0.5f, 1.f },
-    { 0.5f, 0.5f, 1.0f, 1.f },
-    { 1.0f, 1.0f, 0.0f, 1.f }
+        { 0.000f, 0.604f, 0.870f, 1.f },    // #009ADE
+        { 0.118f, 0.667f, 0.224f, 1.f },    // #1EAA39
+        { 0.929f, 0.251f, 0.663f, 1.f },    // #ED40A9
+        { 0.898f, 0.263f, 0.376f, 1.f },    // #E54360
+        { 1.0f, 1.0f, 0.0f, 1.f }
 } };
+
+
 
 void GLVolume::update_render_colors()
 {

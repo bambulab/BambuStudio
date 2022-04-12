@@ -309,7 +309,7 @@ void PresetComboBox::update(std::string select_preset_name)
         }
         std::string main_icon_name = m_type == Preset::TYPE_PRINTER && preset.printer_technology() == ptSLA ? "printer" : m_main_bitmap_name;
 
-        wxBitmap* bmp = get_bmp(bitmap_key, main_icon_name, "lock_closed", is_enabled, preset.is_compatible, preset.is_system || preset.is_default);
+        wxBitmap* bmp = get_bmp(bitmap_key, main_icon_name, "unlock_normal", is_enabled, preset.is_compatible, preset.is_system || preset.is_default);
         assert(bmp);
 
         if (!is_enabled)
@@ -502,7 +502,7 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
             // Paint a lock at the system presets.
             bmps.emplace_back(bitmap_cache().mkclear(wide_space_icon_width, icon_height));
         }
-        bmps.emplace_back(is_system ? create_scaled_bitmap("lock_closed") : bitmap_cache().mkclear(norm_icon_width, icon_height));
+        bmps.emplace_back(is_system ? create_scaled_bitmap("unlock_normal") : bitmap_cache().mkclear(norm_icon_width, icon_height));
         bmp = bitmap_cache().insert(bitmap_key, bmps);
     }
 
@@ -1184,7 +1184,7 @@ void TabPresetComboBox::update()
         }
         std::string main_icon_name = m_type == Preset::TYPE_PRINTER && preset.printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name;
 
-        wxBitmap* bmp = get_bmp(bitmap_key, main_icon_name, "lock_closed", is_enabled, preset.is_compatible, preset.is_system || preset.is_default);
+        wxBitmap* bmp = get_bmp(bitmap_key, main_icon_name, "unlock_normal", is_enabled, preset.is_compatible, preset.is_system || preset.is_default);
         assert(bmp);
 
         if (preset.is_default || preset.is_system) {

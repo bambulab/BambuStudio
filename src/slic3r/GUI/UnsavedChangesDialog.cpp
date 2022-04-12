@@ -924,7 +924,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
         add_btn(&m_transfer_btn, m_move_btn_id, "menu_paste", Action::Transfer, _L("Keep"), true);
 
     { // "Don't save" / "Discard" button
-        std::string btn_icon    = (ActionButtons::DONT_SAVE & m_buttons) ? "" : (dependent_presets || (ActionButtons::KEEP & m_buttons)) ? "switch_presets" : "exit";
+        std::string btn_icon    = (ActionButtons::DONT_SAVE & m_buttons) ? "" : (dependent_presets || (ActionButtons::KEEP & m_buttons)) ? "blank_16" : "exit";
         wxString    btn_label   = (ActionButtons::DONT_SAVE & m_buttons) ? _L("Don't save") : _L("Discard");
         add_btn(&m_discard_btn, m_continue_btn_id, btn_icon, Action::Discard, btn_label, false);
     }

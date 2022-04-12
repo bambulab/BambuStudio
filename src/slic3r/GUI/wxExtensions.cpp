@@ -562,10 +562,10 @@ LockButton::LockButton( wxWindow *parent,
                         const wxSize& size /*= wxDefaultSize*/):
                         wxButton(parent, id, wxEmptyString, pos, size, wxBU_EXACTFIT | wxNO_BORDER)
 {
-    m_bmp_lock_closed   = ScalableBitmap(this, "lock_closed");
-    m_bmp_lock_closed_f = ScalableBitmap(this, "lock_closed_f");
-    m_bmp_lock_open     = ScalableBitmap(this, "lock_open");
-    m_bmp_lock_open_f   = ScalableBitmap(this, "lock_open_f");
+    m_bmp_lock_closed   = ScalableBitmap(this, "lock_normal");
+    m_bmp_lock_closed_f = ScalableBitmap(this, "lock_hover");
+    m_bmp_lock_open     = ScalableBitmap(this, "unlock_normal");
+    m_bmp_lock_open_f   = ScalableBitmap(this, "unlock_hover");
 
     Slic3r::GUI::wxGetApp().UpdateDarkUI(this);
     SetBitmap(m_bmp_lock_open.bmp());

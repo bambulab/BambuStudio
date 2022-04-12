@@ -36,7 +36,7 @@ void ObjectDataViewModelNode::init_container()
 static constexpr char LayerRootIcon[]   = "blank";
 static constexpr char LayerIcon[]       = "blank";
 static constexpr char WarningIcon[]     = "obj_warning";
-static constexpr char WarningManifoldIcon[] = "obj_warnings";
+static constexpr char WarningManifoldIcon[] = "obj_warning";
 
 ObjectDataViewModelNode::ObjectDataViewModelNode(PartPlate* part_plate, wxString name) :
     m_parent(nullptr),
