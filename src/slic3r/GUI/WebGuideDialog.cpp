@@ -130,30 +130,32 @@ void GuideFrame::load_url(wxString &url)
 
 wxString GuideFrame::SetStartPage(GuidePage startpage)
 { 
-    wxString TargetUrl = (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string();
+    //wxLogMessage("GUIDE: webpage_1  %s", (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string().c_str() );
+    wxString TargetUrl = encode_path( (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string().c_str() );
+    //wxLogMessage("GUIDE: webpage_2  %s", TargetUrl.mb_str());
 
     if (startpage == BBL_WELCOME){ 
         SetTitle(_L("Guide"));
-        TargetUrl = (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string();
+        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string().c_str());
     } else if (startpage == BBL_MODELS) {
         SetTitle(_L("Guide"));
-        TargetUrl = (boost::filesystem::path(resources_dir()) / "web\\guide\\21\\index.html").make_preferred().string();
+        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\21\\index.html").make_preferred().string().c_str());
     } else if (startpage == BBL_FILAMENTS) {
         SetTitle(_L("Guide"));
 
         int nSize = m_ProfileJson["model"].size();
 
         if (nSize>0)
-            TargetUrl = (boost::filesystem::path(resources_dir()) / "web\\guide\\22\\index.html").make_preferred().string();
+            TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\22\\index.html").make_preferred().string().c_str());
         else     
-            TargetUrl = (boost::filesystem::path(resources_dir()) / "web\\guide\\21\\index.html").make_preferred().string();
+            TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\21\\index.html").make_preferred().string().c_str());
     } else if (startpage == BBL_FILAMENT_ONLY) {
         SetTitle(_L("Filaments Selection"));
-        TargetUrl = (boost::filesystem::path(resources_dir()) / "web\\guide\\23\\index.html").make_preferred().string();
+        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\23\\index.html").make_preferred().string().c_str());
     }
     else {
         SetTitle(_L("Guide"));
-        TargetUrl = (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string();
+        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\21\\index.html").make_preferred().string().c_str());
     }
 
     std::string strlang = wxGetApp().app_config->get("language");
@@ -872,7 +874,7 @@ int GuideFrame::LoadProfile()
     }
 
     std::string strAll = m_ProfileJson.dump(-1, ' ', false, json::error_handler_t::ignore);
-    //wxLogMessage("GUIDE: profile_json_s2  %s ", m_ProfileJson.dump());
+    //wxLogMessage("GUIDE: profile_json_s2  %s ", m_ProfileJson.dump(-1, ' ', false, json::error_handler_t::ignore));
 
     return 0;
 }
@@ -888,7 +890,7 @@ int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
 
         std::string contents;
         LoadFile(w2s(strFilePath), contents);
-
+        //wxLogMessage("GUIDE: json_path1 content: %s", contents);
         json jLocal=json::parse(contents);
         //wxLogMessage("GUIDE: json_path1 Loaded");
 
@@ -909,9 +911,10 @@ int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
             //std::string mpath=encode_path(ModelFilePath.mb_str());
 
             //wxLogMessage("GUIDE: json_path2  %s", w2s(ModelFilePath));
-
             LoadFile(w2s(ModelFilePath), contents);
+            //wxLogMessage("GUIDE: json_path2 content: %s", contents);
             json     pm=json::parse(contents);
+            //wxLogMessage("GUIDE: json_path2  loaded");
 
             OneModel["vendor"]          = strVendor.mbc_str();
             OneModel["nozzle_diameter"] = pm["nozzle_diameter"];
