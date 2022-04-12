@@ -2274,6 +2274,16 @@ void PrintConfigDef::init_fff_params()
     def->max = 300;
     def->set_default_value(new ConfigOptionInts { 0 });
 
+    def = this->add("bed_temperature_difference", coInts);
+    def->label = L("Bed temperature difference");
+    def->tooltip = L("Do not recommand bed temperature of other layer to be lower than initial layer for more than this threshold. "
+                     "Too low bed temperature of other layer may cause the model broken free from build plate");
+    def->sidetext = L("°C");
+    def->min = 0;
+    def->max = 30;
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionInts { 10 });
+
     def = this->add("detect_thin_wall", coBool);
     def->label = L("Detect thin wall");
     def->category = L("Strength");

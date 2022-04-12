@@ -54,8 +54,7 @@ void ConfigManipulation::check_nozzle_temperature_range(DynamicPrintConfig* conf
         {
             const wxString msg_text = _(L("Nozzle may be blocked when the temperature is out of recommanded range.\n"
                 "Please make sure whether to use the temperature to print"));
-            MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
-            DynamicPrintConfig new_conf = *config;
+            MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxCLOSE);
             is_msg_dlg_already_exist = true;
             dialog.ShowModal();
             is_msg_dlg_already_exist = false;
@@ -76,8 +75,32 @@ void ConfigManipulation::check_nozzle_temperature_initial_layer_range(DynamicPri
         {
             const wxString msg_text = _(L("Nozzle may be blocked when the temperature is out of recommanded range.\n"
                 "Please make sure whether to use the temperature to print"));
-            MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
-            DynamicPrintConfig new_conf = *config;
+            MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxCLOSE);
+            is_msg_dlg_already_exist = true;
+            dialog.ShowModal();
+            is_msg_dlg_already_exist = false;
+        }
+    }
+}
+
+void ConfigManipulation::check_bed_temperature_difference(DynamicPrintConfig* config)
+{
+    if (is_msg_dlg_already_exist)
+        return;
+
+    if (config->has("bed_temperature_difference")
+        && config->has("bed_temperature")
+        && config->has("bed_temperature_initial_layer")
+        && config->has("bed_type")) {
+        int bed_type = config->opt_enum("bed_type", 0);
+        int first_layer_bed_temp = config->opt_int("bed_temperature_initial_layer", bed_type);
+        int bed_temp = config->opt_int("bed_temperature", bed_type);
+        int bed_temp_difference = config->opt_int("bed_temperature_difference", 0);
+        if (first_layer_bed_temp - bed_temp > bed_temp_difference) {
+            const wxString msg_text = _(L("Bed temperature of other layer is lower too much than bed temperature of initial layer. \n"
+                "This may cause model broken free from build plate during printing. \n"
+                "Please check the bed temperature and make sure whether to use the value"));
+            MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxCLOSE);
             is_msg_dlg_already_exist = true;
             dialog.ShowModal();
             is_msg_dlg_already_exist = false;

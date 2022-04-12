@@ -780,6 +780,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     // BBS
     ((ConfigOptionInts,               nozzle_temperature_range_high))
     ((ConfigOptionInts,               nozzle_temperature_range_low))
+    ((ConfigOptionInts,               bed_temperature_difference))
     ((ConfigOptionFloats,             wipe_distance))
     ((ConfigOptionBool,               enable_prime_tower))
     // BBS: change wipe_tower_x and wipe_tower_y data type to floats to add partplate logic
