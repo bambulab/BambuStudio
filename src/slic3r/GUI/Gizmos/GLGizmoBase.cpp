@@ -222,7 +222,7 @@ std::array<float, 4> GLGizmoBase::picking_color_component(unsigned int id) const
         id -= m_group_id;
 
     // color components are encoded to match the calculation of volume_id made into GLCanvas3D::_picking_pass()
-    return std::array<float, 4> { 
+    return std::array<float, 4> {
 		float((id >> 0) & 0xff) * INV_255, // red
 		float((id >> 8) & 0xff) * INV_255, // green
 		float((id >> 16) & 0xff) * INV_255, // blue

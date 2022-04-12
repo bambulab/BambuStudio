@@ -34,6 +34,7 @@ bool GeometryBuffer::set_from_triangles(const std::vector<Vec2f> &triangles, flo
         return false;
     }
 
+    m_vertices.clear();
     assert(triangles.size() % 3 == 0);
     m_vertices = std::vector<Vertex>(triangles.size(), Vertex());
 
