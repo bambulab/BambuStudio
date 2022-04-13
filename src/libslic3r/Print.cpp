@@ -676,7 +676,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     std::vector<unsigned int> extruders = this->extruders();
 
     if (m_objects.empty())
-        return { L("The selected plate is empty.") };
+        return {std::string()};
 
     if (extruders.empty())
         return { L("No extrusions under current settings.") };
