@@ -704,19 +704,6 @@ public:
         Count
     };
 
-    //BBS translation of EViewType
-    const std::string EViewType_Map[(int)EViewType::Count] = {
-        _u8L("Line Type"),
-        _u8L("Layer Height"),
-        _u8L("Line Width"),
-        _u8L("Speed"),
-        _u8L("Fan Speed"),
-        _u8L("Temperature"),
-        _u8L("Flow"),
-        _u8L("Tool"),
-        _u8L("Filament")
-    };
-
 private:
     bool m_gl_data_initialized{ false };
     unsigned int m_last_result_id{ 0 };

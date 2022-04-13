@@ -21,6 +21,7 @@
 #include <chrono>
 
 #include "Event.hpp"
+#include "../libslic3r/libslic3r_version.h"
 
 class wxCheckBox;
 class wxTopLevelWindow;
@@ -31,7 +32,6 @@ class wxRect;
 namespace Slic3r {
 namespace GUI {
 
-
 inline int hex_to_int(const char c)
 {
     return (c >= '0' && c <= '9') ? int(c - '0') : (c >= 'A' && c <= 'F') ? int(c - 'A') + 10 : (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
@@ -39,9 +39,9 @@ inline int hex_to_int(const char c)
 
 static std::array<float, 4> decode_color_to_float_array(const std::string color)
 {
-    //set alpha to 1.0f by default
+    // set alpha to 1.0f by default
     std::array<float, 4> ret = {0, 0, 0, 1.0f};
-    const char *       c   = color.data() + 1;
+    const char *         c   = color.data() + 1;
     if (color.size() == 7 && color.front() == '#') {
         for (size_t j = 0; j < 3; ++j) {
             int digit1 = hex_to_int(*c++);
@@ -52,7 +52,6 @@ static std::array<float, 4> decode_color_to_float_array(const std::string color)
     }
     return ret;
 }
-
 
 #ifdef _WIN32
 // USB HID attach / detach events from Windows OS.

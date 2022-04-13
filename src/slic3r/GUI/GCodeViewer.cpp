@@ -42,6 +42,19 @@
 namespace Slic3r {
 namespace GUI {
 
+//BBS translation of EViewType
+//const std::string EViewType_Map[(int) GCodeViewer::EViewType::Count] = {
+//        _u8L("Line Type"),
+//        _u8L("Layer Height"),
+//        _u8L("Line Width"),
+//        _u8L("Speed"),
+//        _u8L("Fan Speed"),
+//        _u8L("Temperature"),
+//        _u8L("Flow"),
+//        _u8L("Tool"),
+//        _u8L("Filament")
+//    };
+
 static unsigned char buffer_id(EMoveType type) {
     return static_cast<unsigned char>(type) - static_cast<unsigned char>(EMoveType::Retract);
 }
@@ -710,9 +723,15 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
         view_type_items.push_back(EViewType::Temperature);
         view_type_items.push_back(EViewType::Tool);
     }
-    for (int i = 0; i < view_type_items.size(); i++) {
-        view_type_items_str.push_back(EViewType_Map[(int)view_type_items[i]]);
-    }
+
+    view_type_items_str.push_back(_u8L("Line Type"));
+    view_type_items_str.push_back(_u8L("Layer Height"));
+    view_type_items_str.push_back(_u8L("Line Width"));
+    view_type_items_str.push_back(_u8L("Speed"));
+    view_type_items_str.push_back(_u8L("Fan Speed"));
+    view_type_items_str.push_back(_u8L("Temperature"));
+    view_type_items_str.push_back(_u8L("Flow"));
+
 
     options_items.push_back(EMoveType::Travel);
     options_items.push_back(EMoveType::Seam);

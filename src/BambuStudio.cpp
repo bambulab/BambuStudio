@@ -95,9 +95,9 @@ int CLI::run(int argc, char **argv)
     try {
         boost::nowide::nowide_filesystem();
     } catch (const std::runtime_error& ex) {
-        std::string caption = std::string(SLIC3R_APP_NAME) + " Error";
+        std::string caption = std::string(SLIC3R_APP_FULL_NAME) + " Error";
         std::string text = std::string("boost::nowide::nowide_filesystem Failed!\n") + (
-        	SLIC3R_APP_NAME " will now terminate.\n\n") + ex.what();
+        	SLIC3R_APP_FULL_NAME " will now terminate.\n\n") + ex.what();
     #if defined(_WIN32) && defined(SLIC3R_GUI)
         if (m_actions.empty())
         	// Empty actions means Slicer is executed in the GUI mode. Show a GUI message.

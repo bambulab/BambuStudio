@@ -1392,7 +1392,7 @@ struct Plater::priv
                     suggested_project_name = output_file.empty() ? _L("Untitled") : from_u8(output_file.stem().string());
                 }
                 res = MessageDialog(mainframe, reason + "\n" + format_wxstr(_L("Do you want to save changes to \"%1%\"?"), suggested_project_name),
-                                    wxString(SLIC3R_APP_NAME), wxYES_NO | wxCANCEL).ShowModal();
+                                    wxString(SLIC3R_APP_FULL_NAME), wxYES_NO | wxCANCEL).ShowModal();
                 if (res == wxID_YES)
                     if (!mainframe->save_project_as(project_name))
                         res = wxID_CANCEL;
@@ -2072,7 +2072,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
             std::string last_backup = last;
             std::string originfile;
             if (Slic3r::has_restore_data(last_backup, originfile)) {
-                auto result = wxMessageDialog(this->q, _L("Previous unsaved project detected, do you want to restore it?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Restore"), wxYES_NO | wxYES_DEFAULT | wxCENTRE).ShowModal();
+                auto result = wxMessageDialog(this->q, _L("Previous unsaved project detected, do you want to restore it?"), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Restore"), wxYES_NO | wxYES_DEFAULT | wxCENTRE).ShowModal();
                 if (result == wxID_YES) {
                     this->q->load_project(from_path(last_backup), from_path(originfile));
                     Slic3r::backup_soon();
@@ -2450,7 +2450,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     }
                     else if (load_config && (file_version > app_version)) {
                         if (config_substitutions.unrecogized_keys.size() > 0) {
-                            wxString text= wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:\n"), file_version.to_string(), std::string(SLIC3R_APP_NAME), app_version.to_string());
+                            wxString text= wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:\n"), file_version.to_string(),
+                                std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
                             bool first = true;
                             std::string context = into_u8(text);
                             for (auto& key: config_substitutions.unrecogized_keys) {
@@ -6915,8 +6916,9 @@ void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
 void Plater::reset() { p->reset(); }
 void Plater::reset_with_confirm()
 {
-    if (p->model.objects.empty() ||
-        MessageDialog(static_cast<wxWindow*>(this), _L("All objects will be removed, continue?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Delete all"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES) {
+    if (p->model.objects.empty() || MessageDialog(static_cast<wxWindow *>(this), _L("All objects will be removed, continue?"),
+                                                  wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Delete all"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE)
+                                            .ShowModal() == wxID_YES) {
         reset();
         // BBS: jump to plater panel
         wxGetApp().mainframe->select_tab(size_t(0));
@@ -6933,7 +6935,7 @@ int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
     }
 
     auto result = wxMessageDialog(static_cast<wxWindow*>(this), _L("The current project has unsaved changes, save it before continue?"),
-        wxString(SLIC3R_APP_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal();
+        wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal();
     if (result == wxID_CANCEL)
         return result;
     else if (result == wxID_YES) {

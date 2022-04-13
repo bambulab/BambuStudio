@@ -34,7 +34,7 @@ static const std::string CONFIG_UPDATE_WIKI_URL("");
 // MsgUpdateSlic3r
 
 MsgUpdateSlic3r::MsgUpdateSlic3r(const Semver &ver_current, const Semver &ver_online)
-	: MsgDialog(nullptr, wxString::Format(_(L("%s Update")), SLIC3R_APP_NAME), _(L("A new version is available")))
+    : MsgDialog(nullptr, wxString::Format(_(L("%s Update")), SLIC3R_APP_FULL_NAME), _(L("A new version is available")))
 {
     //TODO: for new dialog with updater
 	//const bool dev_version = ver_online.prerelease() != nullptr;
@@ -170,7 +170,7 @@ MsgUpdateForced::MsgUpdateForced(const std::vector<Update>& updates) :
 	auto* text = new wxStaticText(this, wxID_ANY, wxString::Format(_(L(
 		"The configuration package is incompatible with current application.\n"
 		"%s will update the configuration package, Otherwise it won't be able to start"
-	)), SLIC3R_APP_NAME));
+	)), SLIC3R_APP_FULL_NAME));
 	
 
 	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
@@ -218,7 +218,7 @@ MsgUpdateForced::MsgUpdateForced(const std::vector<Update>& updates) :
 	if (changelog_textctrl)
 		content_sizer->Add(changelog_textctrl);
 
-	add_button(wxID_EXIT, false, wxString::Format(_L("Exit %s"), SLIC3R_APP_NAME));
+	add_button(wxID_EXIT, false, wxString::Format(_L("Exit %s"), SLIC3R_APP_FULL_NAME));
 	for (auto ID : { wxID_EXIT, wxID_OK })
 		get_button(ID)->Bind(wxEVT_BUTTON, [this](const wxCommandEvent& evt) { this->EndModal(evt.GetId()); });
 
