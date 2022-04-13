@@ -8,7 +8,7 @@
     "wall_loops": "3",
     "bottom_shell_layers": "7",
     "top_shell_layers": "9",
-    "bridge_flow": "0.7",
+    "bridge_flow": "1",
     "outer_wall_speed": "140",
     "ironing_flow": "8%"
 }
