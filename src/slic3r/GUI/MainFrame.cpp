@@ -58,6 +58,7 @@
 #include <shlobj.h>
 #endif // _WIN32
 
+
 namespace Slic3r {
 namespace GUI {
 
@@ -1088,22 +1089,22 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_print_option_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
             SidePopup* p = new SidePopup(this);
+#if ENABEL_PRINT_ALL
             SideButton* print_all_btn = new SideButton(p, _L("Print all"), "");
             print_all_btn->SetCornerRadius(0);
+            print_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent &) {
+                m_print_btn->SetLabel(_L("Print all"));
+                m_print_select = ePrintAll;
+                if (m_print_enable) m_print_enable = get_enable_print_status();
+                m_print_btn->Enable(m_print_enable);
+                this->Layout();
+                p->Dismiss();
+            });
+#endif
             SideButton* print_plate_btn = new SideButton(p, _L("Print plate"), "");
             print_plate_btn->SetCornerRadius(0);
             SideButton* export_sliced_file_btn = new SideButton(p, _L("Export sliced file"), "");
             export_sliced_file_btn->SetCornerRadius(0);
-
-            print_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-                    m_print_btn->SetLabel(_L("Print all"));
-                    m_print_select = ePrintAll;
-                    if (m_print_enable)
-                        m_print_enable = get_enable_print_status();
-                    m_print_btn->Enable(m_print_enable);
-                    this->Layout();
-                    p->Dismiss();
-                });
 
             print_plate_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Print plate"));
@@ -1123,7 +1124,9 @@ wxBoxSizer* MainFrame::create_side_tools()
                     this->Layout();
                     p->Dismiss();
                 });
+#if ENABEL_PRINT_ALL
             p->append_button(print_all_btn);
+#endif
             p->append_button(print_plate_btn);
             p->append_button(export_sliced_file_btn);
             wxPoint popup_pos = m_print_btn->ClientToScreen(wxPoint(0, 0));

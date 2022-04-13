@@ -27,6 +27,9 @@
 // BBS
 #include "BBLTopbar.hpp"
 
+
+#define ENABEL_PRINT_ALL 0
+
 class Notebook;
 class wxBookCtrlBase;
 class wxProgressDialog;
