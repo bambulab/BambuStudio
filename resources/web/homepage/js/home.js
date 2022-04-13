@@ -5,7 +5,7 @@ function OnInit()
 {	
     TranslatePage();
 	
-	$("#HotspotWEB").prop("src","https://www.bambulab.com");
+	SendMsg_GetRecentFile();
 }
 
 
@@ -14,9 +14,9 @@ function HandleStudio( pVal )
 	let strCmd = pVal['command'];
 	//alert(strCmd);
 	
-	if(strCmd=='studio_send_recentfile')
+	if(strCmd=='get_recent_projects')
 	{
-		ShowRecentFileList(pVal['data']);
+		ShowRecentFileList(pVal['response']);
 	}
 	else if(strCmd=='studio_userlogin')
 	{
@@ -95,14 +95,15 @@ function ShowRecentFileList( pList )
 		let sImg=OneFile["image"];
 		let sPath=OneFile['path'];
 		let sTime=OneFile['time'];
+		let sName=OneFile['project_name'];
 		
-		let index=sPath.lastIndexOf('\\')>0?sPath.lastIndexOf('\\'):sPath.lastIndexOf('\/');
-		let sShortName=sPath.substring(index+1,sPath.length);
+		//let index=sPath.lastIndexOf('\\')>0?sPath.lastIndexOf('\\'):sPath.lastIndexOf('\/');
+		//let sShortName=sPath.substring(index+1,sPath.length);
 		
 		let TmpHtml='<div class="FileItem"  onClick="OnOpenRecentFile(\''+ encodeURI(sPath)+'\')"  >'+
 				'<a class="FileTip" title="'+sPath+'"></a>'+
 				'<div class="FileImg" ><img src="'+sImg+'" onerror="this.onerror=null;this.src=\'img/d.png\';"  alt="No Image"  /></div>'+
-				'<a>'+sShortName+'</a>'+
+				'<a>'+sName+'</a>'+
 				'<div class="FileDate">'+sTime+'</div>'+
 			    '</div>';
 		
@@ -114,6 +115,15 @@ function ShowRecentFileList( pList )
 
 
 /*-------MX Message------*/
+function SendMsg_GetRecentFile()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="get_recent_projects";
+	
+	SendWXMessage( JSON.stringify(tSend) );
+}
+
 
 function OnLoginOrRegister()
 {
