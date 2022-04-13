@@ -141,6 +141,7 @@ public:
 
             void refresh_device_list();
             void refresh_firmware_list(bool show_error=false);
+            std::string get_curr_module_name();
             void on_update_list(SimpleEvent& evt);
             void on_update_mybind_list(SimpleEvent& evt);
             void on_select_device(wxCommandEvent& evt);

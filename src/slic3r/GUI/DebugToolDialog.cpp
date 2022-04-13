@@ -686,18 +686,18 @@ void DebugToolDialog::init()
             send_log_evt("Please select a mode!");
             return;
         }
-        UPGRADE_MODULE upgrade_module = (UPGRADE_MODULE)cb_upgrade_module->GetCurrentSelection();
-        UPGRADE_MODE upgrade_mode = (UPGRADE_MODE)cb_upgrade_mode->GetCurrentSelection();
+
         int idx = cb_upgrade_firmware->GetSelection();
         std::string version = upgrade_img_list[idx].version;
         std::string dst_url = upgrade_img_list[idx].url;
+        std::string module_name = get_curr_module_name();
 
         // send upgrade
         pt::ptree root, upgrade;
         upgrade.put<int>("sequence_id", this->m_sequence_id++);
         upgrade.put("command", "start");
         upgrade.put("url", dst_url);
-        upgrade.put("module", upgrade_module_name[upgrade_module]);
+        upgrade.put("module", module_name);
         upgrade.put("version", version);
         root.put_child("upgrade", upgrade);
 
@@ -712,12 +712,23 @@ void DebugToolDialog::init()
 
     m_radioBox_server->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent &evt) {
         if (m_radioBox_server->GetSelection() == 0) {
-            cb_upgrade_module->Enable();
+            wxArrayString array_item;
+            array_item.push_back(wxString("RK1126(AP)"));
+            array_item.push_back(wxString("MC"));
+            array_item.push_back(wxString("TH"));
+            array_item.push_back(wxString("AMS"));
+            array_item.push_back(wxString("OTA"));
+
+            cb_upgrade_module->Set(array_item);
+            cb_upgrade_module->SetSelection(0);
             cb_upgrade_mode->Enable();
             cb_upgrade_version->Enable();
         } else {
-            cb_upgrade_module->SetSelection((int) MODULE_OTA);
-            cb_upgrade_module->Disable();
+            wxArrayString array_item;
+            array_item.push_back(wxString("OTA"));
+            array_item.push_back(wxString("AMS"));
+            cb_upgrade_module->Set(array_item);
+            cb_upgrade_module->SetSelection(0);
             cb_upgrade_mode->Disable();
             cb_upgrade_version->Disable();
         }
@@ -1152,35 +1163,6 @@ void DebugToolDialog::init()
             else if (evt.GetInt() == 2)
                 obj->command_set_work_light(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_FLASHING);
         });
-
-
-    //// Init custom_gcode
-    //pt::ptree custom_gocde_root;
-    //try {
-    //    std::string name = "CustomGcode.json";
-    //    std::ifstream f(name.c_str());
-    //    if (f.good())
-    //    {
-    //        pt::read_json(name, custom_gocde_root);
-    //        std::string gcode1 = custom_gocde_root.get<std::string>("custom_gcode_1");
-    //        txt_custom_gcode1->SetValue(wxString(gcode1));
-    //        std::string gcode2 = custom_gocde_root.get<std::string>("custom_gcode_2");
-    //        txt_custom_gcode2->SetValue(wxString(gcode2));
-    //        std::string gcode3 = custom_gocde_root.get<std::string>("custom_gcode_3");
-    //        txt_custom_gcode3->SetValue(wxString(gcode3));
-    //        std::string gcode4 = custom_gocde_root.get<std::string>("custom_gcode_4");
-    //        txt_custom_gcode4->SetValue(wxString(gcode4));
-    //        std::string gcode5 = custom_gocde_root.get<std::string>("custom_gcode_5");
-    //        txt_custom_gcode5->SetValue(wxString(gcode5));
-    //        std::string gcode6 = custom_gocde_root.get<std::string>("custom_gcode_6");
-    //        txt_custom_gcode6->SetValue(wxString(gcode6));
-    //        std::string gcode7 = custom_gocde_root.get<std::string>("custom_gcode_7");
-    //        txt_custom_gcode7->SetValue(wxString(gcode7));
-    //    }
-    //}
-    //catch (...) {
-    //    ;
-    //}
 }
 
 void DebugToolDialog::init_model()
@@ -1391,6 +1373,21 @@ void DebugToolDialog::init_bind_handler()
     Bind(EVT_MESSAGE_ARRIVED, &DebugToolDialog::on_message_arrived, this);
     Bind(EVT_MESSAGE_SENT, &DebugToolDialog::on_message_sent, this);
     Bind(EVT_LOG_INFO, &DebugToolDialog::on_log_info, this);
+}
+
+std::string DebugToolDialog::get_curr_module_name()
+{
+    if (m_radioBox_server->GetSelection() == 0) {
+        UPGRADE_MODULE upgrade_module = (UPGRADE_MODULE) cb_upgrade_module->GetCurrentSelection();
+        return upgrade_module_name[upgrade_module];
+    }
+    if (m_radioBox_server->GetSelection() == 1) {
+        if (cb_upgrade_module->GetCurrentSelection() == 0) 
+            return "ota";
+        if (cb_upgrade_module->GetCurrentSelection() == 1)
+            return "ams";
+    }
+    return "";
 }
 
 void DebugToolDialog::on_update_list(SimpleEvent& evt)
@@ -2232,19 +2229,49 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
             if (j.contains("devices") && !j["devices"].is_null()) {
                 for (json::iterator it = j["devices"].begin(); it != j["devices"].end(); it++) {
                     if ((*it)["dev_id"].get<std::string>() == obj->dev_id) {
-                        json firmware = (*it)["firmware"];
-                        for (json::iterator firmware_it = firmware.begin(); firmware_it != firmware.end(); firmware_it++) {
-                            UpgradeItem item;
-                            item.version = (*firmware_it)["version"].get<std::string>();
-                            item.url     = (*firmware_it)["url"].get<std::string>();
-                            int name_start = item.url.find_last_of('/') + 1;
-                            if (name_start > 0) {
-                                item.name = item.url.substr(name_start, item.url.length() - name_start);
-                                upgrade_img_list.push_back(item);
-                                upgrade_file_list.push_back(item.name);
-                            } else {
-                                BOOST_LOG_TRIVIAL(trace) << "skip";
+                        //select ota
+                        if (cb_upgrade_module->GetSelection() == 0) {
+                            json firmware = (*it)["firmware"];
+                            for (json::iterator firmware_it = firmware.begin(); firmware_it != firmware.end(); firmware_it++) {
+                                UpgradeItem item;
+                                item.version   = (*firmware_it)["version"].get<std::string>();
+                                item.url       = (*firmware_it)["url"].get<std::string>();
+                                int name_start = item.url.find_last_of('/') + 1;
+                                if (name_start > 0) {
+                                    item.name = item.url.substr(name_start, item.url.length() - name_start);
+                                    upgrade_img_list.push_back(item);
+                                    upgrade_file_list.push_back(item.name);
+                                } else {
+                                    BOOST_LOG_TRIVIAL(trace) << "skip";
+                                }
                             }
+                        }
+                        try {
+                            //select ams
+                            if (cb_upgrade_module->GetSelection() == 1) {
+                                if ((*it).contains("ams")) {
+                                    json ams_list = (*it)["ams"];
+                                    if (ams_list.size() > 0) {
+                                        auto ams_front = ams_list.front();
+                                        json firmware_ams = (ams_front)["firmware"];
+                                        for (json::iterator ams_it = firmware_ams.begin(); ams_it != firmware_ams.end(); ams_it++) {
+                                            UpgradeItem item;
+                                            item.version   = (*ams_it)["version"].get<std::string>();
+                                            item.url       = (*ams_it)["url"].get<std::string>();
+                                            int name_start = item.url.find_last_of('/') + 1;
+                                            if (name_start > 0) {
+                                                item.name = item.url.substr(name_start, item.url.length() - name_start);
+                                                upgrade_img_list.push_back(item);
+                                                upgrade_file_list.push_back(item.name);
+                                            } else {
+                                                BOOST_LOG_TRIVIAL(trace) << "skip";
+                                            }
+                                        }    
+                                    }
+                                }
+                            }
+                        } catch(...) {
+                            ;
                         }
                     }
                 }
