@@ -253,6 +253,10 @@ void AppConfig::set_defaults()
            set("mouse_wheel", "0"); 
        }
 
+       if (get("backup_switch").empty()) { 
+            set_bool("backup_switch", false); 
+       }
+
        if (get("backup_interval").empty()) {
            set("backup_interval", "10"); 
        }

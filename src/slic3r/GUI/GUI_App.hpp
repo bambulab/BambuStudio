@@ -391,12 +391,17 @@ public:
 #ifdef __WXMSW__
     void            associate_3mf_files();
     void            associate_stl_files();
+    void            associate_step_files();
+    void            disassociate_3mf_files();
+    void            disassociate_stl_files();
+    void            disassociate_step_files();
+
     void            associate_gcode_files();
 #endif // __WXMSW__
 
 private:
     bool            on_init_inner();
-	void            init_app_config();
+    void            init_app_config();
     //BBS set extra header for http request
     void            init_http_extra_header();
     bool            check_older_app_config(Semver current_version, bool backup);

@@ -206,6 +206,90 @@ wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
     return m_sizer_tcombox;
 }
 
+wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow *parent, wxString tooltip, std::string param)
+{
+    wxBoxSizer *m_sizer_input = new wxBoxSizer(wxHORIZONTAL);
+    auto input_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
+    input_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    input_title->SetFont(::Label::Body_13);
+    input_title->SetToolTip(tooltip);
+    input_title->Wrap(-1);
+
+    auto input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    input->GetTextCtrl()->SetValue(app_config->get(param));
+
+    auto second_title = new wxStaticText(parent, wxID_ANY, _L("Second"), wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
+    second_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    second_title->SetFont(::Label::Body_13);
+    second_title->SetToolTip(tooltip);
+    second_title->Wrap(-1);
+
+    m_sizer_input->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
+    m_sizer_input->Add(input_title, 0, wxALIGN_CENTER | wxALL, 3);
+    m_sizer_input->Add(input, 0, wxALIGN_CENTER, 0);
+    m_sizer_input->Add(0, 0, 0, wxEXPAND | wxLEFT, 3);
+    m_sizer_input->Add(second_title, 0, wxALIGN_CENTER| wxALL, 3);
+
+
+    input->GetTextCtrl()->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this, param, input](wxCommandEvent &e) {
+        m_backup_interval_time = input->GetTextCtrl()->GetValue();
+        e.Skip();
+    });
+
+    input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, param, input](wxCommandEvent &e) {
+        m_backup_interval_time = input->GetTextCtrl()->GetValue();
+        app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
+        app_config->save();
+        m_simplebook->SetFocus();
+        e.Skip();
+    });
+
+     input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, param, input](wxFocusEvent &e) {
+        m_backup_interval_time = input->GetTextCtrl()->GetValue();
+        app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
+        app_config->save();
+        e.Skip();
+    });
+
+    if (app_config->get("backup_switch") == "true") { 
+        input->Enable(true);
+    } else {
+        input->Enable(false);
+    }
+
+    if (param == "backup_interval") { m_backup_interval_textinput = input; }
+    return m_sizer_input;
+}
+
+
+wxBoxSizer *PreferencesDialog::create_item_switch(wxString title, wxWindow *parent, wxString tooltip ,std::string param)
+{
+    wxBoxSizer *m_sizer_switch = new wxBoxSizer(wxHORIZONTAL);
+    auto switch_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
+    switch_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    switch_title->SetFont(::Label::Body_13);
+    switch_title->SetToolTip(tooltip);
+    switch_title->Wrap(-1);
+    auto switchbox = new ::SwitchButton(parent, wxID_ANY);
+
+    /*auto index = app_config->get(param);
+    if (!index.empty()) { combobox->SetSelection(atoi(index.c_str())); }*/
+
+    m_sizer_switch->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
+    m_sizer_switch->Add(switch_title, 0, wxALIGN_CENTER | wxALL, 3);
+    m_sizer_switch->Add( 0, 0, 1, wxEXPAND, 0 );
+    m_sizer_switch->Add(switchbox, 0, wxALIGN_CENTER, 0);
+    m_sizer_switch->Add( 0, 0, 0, wxEXPAND|wxLEFT, 40 );
+
+    //// save config
+    switchbox->Bind(wxEVT_TOGGLEBUTTON, [this, param](wxCommandEvent &e) {
+        /* app_config->set(param, std::to_string(e.GetSelection()));
+         app_config->save();*/
+         e.Skip();
+    });
+    return m_sizer_switch;
+}
+
 wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param)
 {
     wxBoxSizer *m_sizer_checkbox  = new wxBoxSizer(wxHORIZONTAL);
@@ -229,6 +313,42 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent &e) {
         app_config->set_bool(param, checkbox->GetValue());
         app_config->save();
+        
+         // backup
+        if (param == "backup_switch") {
+            bool pbool = app_config->get("backup_switch") == "true" ? true : false;
+            if (m_backup_interval_textinput != nullptr) { m_backup_interval_textinput->Enable(pbool); }
+        }
+
+        #ifdef __WXMSW__
+        if (param == "associate_3mf") {
+             bool pbool = app_config->get("associate_3mf") == "true" ? true : false;
+             if (pbool) {
+                 wxGetApp().associate_3mf_files();
+             } else {
+                 wxGetApp().disassociate_3mf_files();
+             }
+        }
+
+        if (param == "associate_stl") {
+            bool pbool = app_config->get("associate_stl") == "true" ? true : false;
+            if (pbool) {
+                wxGetApp().associate_stl_files();
+            } else {
+                wxGetApp().disassociate_stl_files();
+            }
+        }
+
+        if (param == "associate_step") {
+            bool pbool = app_config->get("associate_step") == "true" ? true : false;
+            if (pbool) {
+                wxGetApp().associate_step_files();
+            } else {
+                wxGetApp().disassociate_step_files();
+            }
+        }
+        #endif // __WXMSW__
+
         e.Skip();
     });
 
@@ -238,33 +358,6 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
 
     checkbox->SetToolTip(tooltip);
     return m_sizer_checkbox;
-}
-
-wxWindow *PreferencesDialog::create_item_input(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param)
-{
-    wxWindow *item = new wxWindow(parent, wxID_ANY, wxDefaultPosition, wxSize(m_simplebook->GetSize().GetWidth() - 126, 30));
-    item->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-    wxStaticText *text = new wxStaticText(item, wxID_ANY, title, wxDefaultPosition, wxDefaultSize);
-    text->SetPosition(wxPoint(padding_left, (item->GetSize().GetHeight() - text->GetSize().GetHeight()) / 2));
-
-    wxStaticText *s = new wxStaticText(item, wxID_ANY, wxString("S"), wxDefaultPosition, wxDefaultSize);
-    s->SetPosition(wxPoint(item->GetSize().GetWidth() - s->GetSize().GetWidth() - 5, (item->GetSize().GetHeight() - text->GetSize().GetHeight()) / 2));
-
-    auto input = new ::TextInput(item, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(80, 28));
-    input->GetTextCtrl()->SetValue(app_config->get(param));
-    input->SetPosition(wxPoint(item->GetSize().GetWidth() - input->GetSize().GetWidth() - 20, (item->GetSize().GetHeight() - input->GetSize().GetHeight()) / 2));
-
-    // save config
-    input->GetTextCtrl()->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this, param, input](wxCommandEvent &e) {
-        m_backup_interval_time = input->GetTextCtrl()->GetValue();
-        e.Skip();
-    });
-
-    // for debug mode
-    if (param == "backup_interval") { m_backup_interval_textinput = input; }
-
-    text->SetToolTip(tooltip);
-    return item;
 }
 
 wxWindow *PreferencesDialog ::create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, int groupid, std::string param)
@@ -445,12 +538,24 @@ void PreferencesDialog::create_general_page()
 
     auto title_general_settings = create_item_title(_L("General settings"), page, _L("General settings"));
 
+    // bbs supported languages
+    wxLanguage supported_languages[]{wxLANGUAGE_ENGLISH, wxLANGUAGE_CHINESE_SIMPLIFIED};
+
+
     auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
     std::vector<const wxLanguageInfo *> language_infos;
     language_infos.emplace_back(wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH));
     for (size_t i = 0; i < translations.GetCount(); ++i) {
         const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(translations[i]);
-        if (langinfo != nullptr) language_infos.emplace_back(langinfo);
+
+        if (langinfo == nullptr) continue;
+
+        for (auto si = 0; si < sizeof(supported_languages); si++) {
+            if (langinfo == wxLocale::GetLanguageInfo(supported_languages[si])) { 
+                language_infos.emplace_back(langinfo);
+            }
+        }
+        //if (langinfo != nullptr) language_infos.emplace_back(langinfo);
     }
     sort_remove_duplicates(language_infos);
     std::sort(language_infos.begin(), language_infos.end(), [](const wxLanguageInfo *l, const wxLanguageInfo *r) { return l->Description < r->Description; });
@@ -470,6 +575,11 @@ void PreferencesDialog::create_general_page()
                                                          _L("If enabled, sets BambuStudio as default application to open .step files"), 50, "associate_step");
 
 
+    auto title_backup = create_item_title(_L("Backup"), page, _L("Backup"));
+    //auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
+    auto item_backup  = create_item_checkbox(_L("Backup switch"), page,_L("Backup switch"), 50, "backup_switch");
+    auto item_backup_interval = create_item_backup_input(_L("Backup interval"), page, _L("Backup interval"), "backup_interval");
+
     sizer_page->Add(title_general_settings, 0, wxTOP, 26);
     sizer_page->Add(item_language, 0, wxTOP, 8);
     sizer_page->Add(item_currency, 0, wxTOP, 8);
@@ -477,6 +587,9 @@ void PreferencesDialog::create_general_page()
     sizer_page->Add(item_associate_3mf, 0, wxTOP, 6);
     sizer_page->Add(item_associate_stl, 0, wxTOP, 6);
     sizer_page->Add(item_associate_step, 0, wxTOP, 6);
+    sizer_page->Add(title_backup, 0, wxTOP, 20);
+    sizer_page->Add(item_backup, 0, wxTOP,8);
+    sizer_page->Add(item_backup_interval, 0, wxTOP,8);
 
 
     page->SetSizer(sizer_page);
@@ -493,11 +606,11 @@ void PreferencesDialog::create_gui_page()
 
     auto title_index_and_tip = create_item_title(_L("Home page and daily tips"), page, _L("Home page and daily tips"));
     auto item_home_page      = create_item_checkbox(_L("Show home page on startup"), page, _L("Show home page on startup"), 50, "show_home_page");
-    auto item_daily_tip      = create_item_checkbox(_L("Show daily tip on startup"), page, _L("Show daily tip on startup"), 50, "show_daily_tips");
+    //auto item_daily_tip      = create_item_checkbox(_L("Show daily tip on startup"), page, _L("Show daily tip on startup"), 50, "show_daily_tips");
 
     sizer_page->Add(title_index_and_tip, 0, wxTOP, 26);
     sizer_page->Add(item_home_page, 0, wxTOP, 6);
-    sizer_page->Add(item_daily_tip, 0, wxTOP, 6);
+    //sizer_page->Add(item_daily_tip, 0, wxTOP, 6);
 
     page->SetSizer(sizer_page);
     page->Layout();
@@ -579,7 +692,7 @@ void PreferencesDialog::create_debug_page()
     auto title_develop_mode   = create_item_title(_L("Develop mode"), page, _L("Develop mode"));
     auto item_develop_mode    = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
     auto item_dump_video      = create_item_checkbox(_L("Dump video"), page, _L("Dump video"), 50, "dump_video");
-    auto item_backup_interval = create_item_input(_L("Backup interval"), page, _L("Backup interval"), 50, "backup_interval");
+
 
     auto radio1 = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), page, wxEmptyString, 50, 1, "dev_host");
     auto radio2 = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), page, wxEmptyString, 50, 1, "qa_host");
@@ -647,7 +760,7 @@ void PreferencesDialog::create_debug_page()
             }
 
             // bbs  backup
-            app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
+            //app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
             app_config->save();
             Slic3r::set_backup_interval(boost::lexical_cast<long>(app_config->get("backup_interval")));
 
@@ -669,7 +782,7 @@ void PreferencesDialog::create_debug_page()
     bSizer->Add(title_develop_mode, 0, wxTOP, 20);
     bSizer->Add(item_develop_mode, 0, wxTOP, 20);
     bSizer->Add(item_dump_video, 0, wxTOP, 20);
-    bSizer->Add(item_backup_interval, 0, wxTOP, 20);
+    //bSizer->Add(item_backup_interval, 0, wxTOP, 20);
     bSizer->Add(radio1, 0, wxTOP, 20);
     bSizer->Add(radio2, 0, wxTOP, 5);
     bSizer->Add(radio3, 0, wxTOP, 5);

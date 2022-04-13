@@ -36,6 +36,7 @@ public:
 };
 WX_DECLARE_LIST(RadioSelector, RadioSelectorList);
 
+
 #define DESIGN_RESOUTION_PREFERENCES wxSize(618, 520)
 #define DESIGN_SELECTOR_NOMORE_COLOR wxColour(248, 248, 248)
 #define DESIGN_SELECTOR_SELECTED_COLOR wxColour(255, 255, 255)
@@ -45,6 +46,7 @@ WX_DECLARE_LIST(RadioSelector, RadioSelectorList);
 #define DESIGN_TAB_PAGE_SIZE wxSize(FromDIP(460), FromDIP(470))
 #define DESIGN_TITLE_SIZE wxSize(FromDIP(100), -1)
 #define DESIGN_COMBOBOX_SIZE wxSize(FromDIP(140), -1)
+#define DESIGN_INPUT_SIZE wxSize(FromDIP(100), -1)
 
 class CheckBox;
 class TextInput;
@@ -89,9 +91,9 @@ public:
     wxWindow *create_tab_button(int id, wxString text);
 
     // debug mode
-    ::CheckBox * m_developer_mode_ckeckbox;
-    ::CheckBox * m_dump_video_ckeckbox;
-    ::TextInput *m_backup_interval_textinput;
+    ::CheckBox * m_developer_mode_ckeckbox = {nullptr};
+    ::CheckBox * m_dump_video_ckeckbox = {nullptr};
+    ::TextInput *m_backup_interval_textinput = {nullptr};
 
     wxString m_developer_mode_def;
     wxString m_dump_video_def;
@@ -106,10 +108,12 @@ public:
     wxBoxSizer *create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlist);
     wxBoxSizer *create_item_language_combobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, std::vector<const wxLanguageInfo *> vlist);
     wxBoxSizer *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
-    wxWindow *  create_item_input(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
+    wxBoxSizer *create_item_backup_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
+    wxBoxSizer *create_item_backup_input(wxString title, wxWindow *parent, wxString tooltip, std::string param);
     wxBoxSizer *create_item_multiple_combobox(
         wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string parama, std::vector<wxString> vlista, std::vector<wxString> vlistb);
-    wxWindow *create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, int groupid, std::string param);
+    wxBoxSizer *create_item_switch(wxString title, wxWindow *parent, wxString tooltip, std::string param);
+    wxWindow *  create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, int groupid, std::string param);
 
     void create_general_page();
     void create_gui_page();
