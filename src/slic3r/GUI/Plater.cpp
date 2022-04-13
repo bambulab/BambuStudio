@@ -2794,11 +2794,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     }
 
     if (new_model != nullptr && new_model->objects.size() > 1) {
-        MessageDialog msg_dlg(q, _L("Load these files as a single object with multiple parts?\n"),
-                _L("Object with multiple parts was detected"), wxICON_WARNING | wxYES | wxNO);
-        if (msg_dlg.ShowModal() == wxID_YES) {
-            new_model->convert_multipart_object(filaments_cnt);
-        }
+        //BBS do not popup this dialog
+        //MessageDialog msg_dlg(q, _L("Load these files as a single object with multiple parts?\n"),
+        //        _L("Object with multiple parts was detected"), wxICON_WARNING | wxYES | wxNO);
+        //if (msg_dlg.ShowModal() == wxID_YES) {
+        //    new_model->convert_multipart_object(filaments_cnt);
+        //}
 
         auto loaded_idxs = load_model_objects(new_model->objects);
         obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
