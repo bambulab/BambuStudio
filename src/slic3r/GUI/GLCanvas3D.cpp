@@ -5662,8 +5662,12 @@ void GLCanvas3D::_render_overlays()
     wxGetApp().plater()->get_collapse_toolbar().set_scale(scale);
     m_gizmos.set_overlay_scale(scale);
 #else
-    const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(/*true*/));
-    const float gizmo_size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
+    //const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(/*true*/));
+    //const float gizmo_size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
+    // BBS do not scale
+    const float size = int(GLToolbar::Default_Icons_Size);
+    const float gizmo_size = int(GLGizmosManager::Default_Icons_Size);
+
     //BBS: GUI refactor: GLToolbar
     m_main_toolbar.set_icons_size(gizmo_size);
     m_assemble_view_toolbar.set_icons_size(gizmo_size);
@@ -5874,7 +5878,7 @@ void GLCanvas3D::_render_main_toolbar()
     float gizmo_width = m_gizmos.get_scaled_total_width();
     float assemble_width = m_assemble_view_toolbar.get_width();
     float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-    float left = -0.5f * (m_main_toolbar.get_width() + gizmo_width + assemble_width - collapse_toolbar_width) * inv_zoom;
+    float left = std::max(-0.5f * cnv_size.get_width(), -0.5f * (m_main_toolbar.get_width() + gizmo_width + assemble_width - collapse_toolbar_width)) * inv_zoom;
 #else
     float gizmo_height = m_gizmos.get_scaled_total_height();
     float space_height = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
@@ -6056,8 +6060,11 @@ void GLCanvas3D::_render_assemble_view_toolbar() const
     GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
     float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
     float gizmo_width = m_gizmos.get_scaled_total_width();
+    float assemble_width = m_assemble_view_toolbar.get_width();
     float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-    float left = 0.5f * (m_main_toolbar.get_width() + gizmo_width - m_assemble_view_toolbar.get_width() + collapse_toolbar_width) * inv_zoom;
+    float main_toolbar_left = std::max(-0.5f * cnv_size.get_width(), -0.5f * (m_main_toolbar.get_width() + gizmo_width + assemble_width - collapse_toolbar_width)) * inv_zoom;
+    float left = main_toolbar_left + (m_main_toolbar.get_width() + gizmo_width) * inv_zoom;
+    //float left = 0.5f * (m_main_toolbar.get_width() + gizmo_width - m_assemble_view_toolbar.get_width() + collapse_toolbar_width) * inv_zoom;
 #else
     float gizmo_height = m_gizmos.get_scaled_total_height();
     //float space_height = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
