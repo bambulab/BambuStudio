@@ -724,6 +724,7 @@ private:
     //BBS save m_tools_color and m_tools_visible
     ETools m_tools;
     ConfigOptionMode m_user_mode;
+    bool m_fold = {false};
 
     Layers m_layers;
     std::array<unsigned int, 2> m_layers_z_range;

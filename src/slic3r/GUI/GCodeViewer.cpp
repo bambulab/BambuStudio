@@ -55,6 +55,29 @@ namespace GUI {
 //        _u8L("Filament")
 //    };
 
+static std::string get_view_type_string(GCodeViewer::EViewType view_type)
+{
+    if (view_type == GCodeViewer::EViewType::FeatureType)
+        return _u8L("Line Type");
+    else if (view_type == GCodeViewer::EViewType::Height)
+        return _u8L("Layer Height");
+    else if (view_type == GCodeViewer::EViewType::Width)
+        return _u8L("Line Width");
+    else if (view_type == GCodeViewer::EViewType::Feedrate)
+        return _u8L("Speed");
+    else if (view_type == GCodeViewer::EViewType::FanSpeed)
+        return _u8L("Fan Speed");
+    else if (view_type == GCodeViewer::EViewType::Temperature)
+        return _u8L("Temperature");
+    else if (view_type == GCodeViewer::EViewType::VolumetricRate)
+        return _u8L("Flow");
+    else if (view_type == GCodeViewer::EViewType::Tool)
+        return _u8L("Tool");
+    else if (view_type == GCodeViewer::EViewType::ColorPrint)
+        return _u8L("Filament");
+    return "";
+}
+
 static unsigned char buffer_id(EMoveType type) {
     return static_cast<unsigned char>(type) - static_cast<unsigned char>(EMoveType::Retract);
 }
@@ -724,14 +747,9 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
         view_type_items.push_back(EViewType::Tool);
     }
 
-    view_type_items_str.push_back(_u8L("Line Type"));
-    view_type_items_str.push_back(_u8L("Layer Height"));
-    view_type_items_str.push_back(_u8L("Line Width"));
-    view_type_items_str.push_back(_u8L("Speed"));
-    view_type_items_str.push_back(_u8L("Fan Speed"));
-    view_type_items_str.push_back(_u8L("Temperature"));
-    view_type_items_str.push_back(_u8L("Flow"));
-
+    for (int i = 0; i < view_type_items.size(); i++) {
+        view_type_items_str.push_back(get_view_type_string(view_type_items[i]));
+    }
 
     options_items.push_back(EMoveType::Travel);
     options_items.push_back(EMoveType::Seam);
@@ -875,6 +893,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
         set_view_type(EViewType::ColorPrint);
     }
 
+    m_fold = false;
     m_layers_slider->set_as_dirty();
     m_moves_slider->set_as_dirty();
 
@@ -4091,6 +4110,22 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     };
 
     //BBS display Color Scheme
+    std::wstring btn_name;
+    if (m_fold)
+        btn_name = ImGui::UnfoldButtonIcon + boost::nowide::widen(std::string(""));
+    else
+        btn_name = ImGui::FoldButtonIcon + boost::nowide::widen(std::string(""));
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.68f, 0.26f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.68f, 0.26f, 0.78f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+    //ImGui::PushItemWidth(
+    if (ImGui::Button(into_u8(btn_name).c_str(), ImVec2(16, 0))) {
+        m_fold = !m_fold;
+    }
+    ImGui::PopStyleColor(3);
+    ImGui::PopStyleVar(1);
+    ImGui::SameLine();
     ImGui::Text(_u8L("Color Scheme").c_str());
     push_combo_style();
     ImGui::PushItemWidth(176.0);
@@ -4102,6 +4137,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         for (int i = 0; i < view_type_items_str.size(); i++) {
             const bool is_selected = (m_view_type_sel == i);
             if (ImGui::BBLSelectable(view_type_items_str[i].c_str(), is_selected)) {
+                m_fold = false;
                 m_view_type_sel = i;
                 set_view_type(view_type_items[m_view_type_sel]);
                 reset_visible(view_type_items[m_view_type_sel]);
@@ -4118,6 +4154,14 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::EndCombo();
     }
     pop_combo_style();
+
+    if (m_fold) {
+        imgui.end();
+        ImGui::PopStyleColor(3);
+        ImGui::PopStyleVar();
+        return;
+    }
+
     // data used to properly align items in columns when showing time
     std::array<float, 4> offsets = { 0.0f, 0.0f, 0.0f, 0.0f };
     std::vector<std::string> labels;

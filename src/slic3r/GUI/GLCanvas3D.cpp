@@ -4346,20 +4346,6 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
         settings_changed = true;
     }
 
-    /*
-    if (imgui->slider_float(_L("bed_shrink_x"), &settings.bed_shrink_x, 0, 100.0f, "%.0f")) {
-        settings_out.bed_shrink_x = settings.bed_shrink_x;
-        appcfg->set("arrange", bed_shrink_x_key.c_str(), std::to_string(settings_out.bed_shrink_x));
-        settings_changed = true;
-    }
-
-    if (imgui->slider_float(_L("bed_shrink_y"), &settings.bed_shrink_y, 0, 100.0f, "%.0f")) {
-        settings_out.bed_shrink_y = settings.bed_shrink_y;
-        appcfg->set("arrange", bed_shrink_y_key.c_str(), std::to_string(settings_out.bed_shrink_y));
-        settings_changed = true;
-    }
-    */
-
     ImGui::Separator();
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(15.0f, 10.0f));
     if (imgui->button(_L("Arrange"))) {
@@ -6235,15 +6221,36 @@ void GLCanvas3D::_render_explosion_control() const
 
     ImGuiWrapper* imgui = wxGetApp().imgui();
 
+    ImGuiWrapper::push_toolbar_style();
+
     auto canvas_w = float(get_canvas_size().get_width());
     auto canvas_h = float(get_canvas_size().get_height());
 
-    imgui->set_next_window_pos(canvas_w * 0.5 + 170, canvas_h - 120, ImGuiCond_Always, 1.0f, 0.0f);
-    imgui->begin(_L("Explosion"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+    const float text_padding = 7.0f;
+    ImVec2 text_size = imgui->calc_text_size(_L("Explosion Ratio"));
+    const float slider_width = 130.0f;
+    const float value_size = imgui->calc_text_size("3.00").x + text_padding * 2;
+    const float item_spacing = imgui->get_item_spacing().x;
+    ImVec2 window_padding = ImGui::GetStyle().WindowPadding;
+    ImVec2      window_size    = ImVec2(text_size.x + slider_width + value_size + item_spacing * 2 + window_padding.x * 2, window_padding.y * 2 + text_size.y);
 
-    imgui->slider_float(_L("Ratio"), &m_explosion_ratio, 1.0, 3.0, "%5.2f");
+    // 13.0f is bottom margin
+    imgui->set_next_window_pos(canvas_w * 0.5 - window_size.x * 0.5, canvas_h - window_size.y - 13.0f, ImGuiCond_Always, 0.0f, 0.0f);
+    imgui->begin(_L("Explosion Ratio"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+
+    ImGui::AlignTextToFramePadding();
+    imgui->text(_L("Explosion Ratio"));
+    ImGui::SameLine(window_padding.x + text_size.x + item_spacing);
+    ImGui::PushItemWidth(slider_width);
+    bool slider_changed = imgui->bbl_slider_float_style("##ratio_slider", &m_explosion_ratio, 1.0f, 3.0f, "%1.2f");
+
+    ImGui::SameLine(window_padding.x + text_size.x + slider_width + item_spacing * 2);
+    ImGui::PushItemWidth(value_size);
+    bool input_changed   = ImGui::BBLDragFloat("##ratio_input", &m_explosion_ratio, 0.1f, 1.0f, 3.0f, "%1.2f");
 
     imgui->end();
+
+    ImGuiWrapper::pop_toolbar_style();
 
     //BBS check ratio changed
     if (m_explosion_ratio != GLVolume::explosion_ratio) {

@@ -162,6 +162,8 @@ namespace ImGui
     const wchar_t TriangleButtonIcon       = 0x0811;
     const wchar_t FillButtonIcon           = 0x0812;
     const wchar_t HeightRangeIcon          = 0x0813;
+    const wchar_t FoldButtonIcon           = 0x0814;
+    const wchar_t UnfoldButtonIcon         = 0x0815;
 
 //    void MyFunction(const char* name, const MyMatrix44& v);
 }
