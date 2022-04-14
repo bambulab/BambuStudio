@@ -1806,6 +1806,33 @@ void PartPlateList::generate_icon_textures()
 		}
 	}
 
+	auto is_font_suitable = [](std::string text_str, wxFont& font, int max_size) {
+		wxMemoryDC memDC;
+		wxCoord w, h;
+		wxString msg(text_str);
+		memDC.SetFont(font);
+		memDC.GetMultiLineTextExtent(msg, &w, &h);
+		if (w <= max_size)
+			return true;
+		else
+			return false;;
+	};
+	wxFont* font = nullptr;
+	std::string text_str = "01";
+	int max_size = 32;
+	if (is_font_suitable(text_str, Label::Head_24, max_size))
+		font = &Label::Head_24;
+	else if (is_font_suitable(text_str, Label::Head_20, max_size))
+		font = &Label::Head_20;
+	else if (is_font_suitable(text_str, Label::Head_18, max_size))
+		font = &Label::Head_18;
+	else if (is_font_suitable(text_str, Label::Head_16, max_size))
+		font = &Label::Head_16;
+	else if (is_font_suitable(text_str, Label::Head_14, max_size))
+		font = &Label::Head_14;
+	else
+		font = &Label::Head_12;
+
 	for (int i = 0; i < MAX_PLATE_COUNT; i++) {
 		if (m_idx_textures[i].get_id() == 0) {
 			//file_name = path + (boost::format("plate_%1%.svg") % (i + 1)).str();
@@ -1815,7 +1842,7 @@ void PartPlateList::generate_icon_textures()
 				file_name = std::to_string(i+1);
 
 			wxColour foreground(0x0, 0xae, 0x42, 0xff);
-			if (!m_idx_textures[i].generate_from_text_string(file_name, Label::Head_20, *wxBLACK, foreground)) {
+			if (!m_idx_textures[i].generate_from_text_string(file_name, *font, *wxBLACK, foreground)) {
 				BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 			}
 		}
