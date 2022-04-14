@@ -86,28 +86,34 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
     // Create the webview
     m_browser = wxWebView::New();
     if (m_browser) {
+#ifdef __WIN32__
         m_browser->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
-
-#ifndef __WXMAC__
-        // We register the wxfs:// protocol for testing purposes
+        m_browser->Create(this, wxID_ANY, TargetUrl, wxDefaultPosition, wxDefaultSize);
+        //We register the wxfs:// protocol for testing purposes
         m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("bbl")));
+        //And the memory: file system
+        m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
+#else
+        // With WKWebView handlers need to be registered before creation
+        m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("wxfs")));
         // And the memory: file system
         m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
+        m_browser->Create(this, wxID_ANY, TargetUrl, wxDefaultPosition, wxDefaultSize);
+        m_browser->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
 #endif
-
-        if (!m_browser->AddScriptMessageHandler("wx")) wxLogError("Could not add script message handler");
-    } else {
-        wxLogError("Could not init m_browser");
-    }
-
-    bool bRet = m_browser->Create(this, wxID_ANY, TargetUrl, wxDefaultPosition, wxDefaultSize);
-    SetSizer(topsizer);
-
 #ifdef __WXMAC__
-    // With WKWebView handlers need to be registered before creation
-    m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("wxfs")));
-    m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
+        wxGetApp().CallAfter([this] {
 #endif
+        if (!m_browser->AddScriptMessageHandler("wx"))
+            wxLogError("Could not add script message handler");
+#ifdef __WXMAC__
+                             });
+#endif
+    }
+    else {
+        wxLogError("Could not init m_browser");
+        return;
+    }
 
     m_browser->EnableContextMenu(false);
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
