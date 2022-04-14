@@ -169,7 +169,8 @@ void SavePresetDialog::Item::update()
         m_valid_type = NoValid;
     }
 
-    if (m_valid_type == Valid && m_preset_name == "- default -") {
+    if (m_valid_type == Valid &&
+        (m_preset_name == "Default Setting" || m_preset_name == "Default Filament" || m_preset_name == "Default Printer")) {
         info_line    = _L("Name is unavailable.");
         m_valid_type = NoValid;
     }
@@ -308,7 +309,7 @@ void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix
     btns->Add(0, 0, 1, wxEXPAND, 5);
 
     auto       confirm = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), 
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
                             std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     confirm->SetBackgroundColor(btn_bg_green);
@@ -348,9 +349,9 @@ void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix
     this->Centre(wxBOTH);
 }
 
-void SavePresetDialog::on_select_cancel(wxMouseEvent &event) 
-{ 
-    EndModal(wxID_CANCEL); 
+void SavePresetDialog::on_select_cancel(wxMouseEvent &event)
+{
+    EndModal(wxID_CANCEL);
 }
 
 void SavePresetDialog::AddItem(Preset::Type type, const std::string &suffix) { m_items.emplace_back(new Item{type, suffix, m_presets_sizer, this}); }

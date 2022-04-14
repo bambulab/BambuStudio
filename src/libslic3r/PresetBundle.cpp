@@ -47,10 +47,10 @@ const char *PresetBundle::BBL_DEFAULT_FILAMENT = "Generic PLA";
 
 PresetBundle::PresetBundle()
     : prints(Preset::TYPE_PRINT, Preset::print_options(), static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()))
-    , filaments(Preset::TYPE_FILAMENT, Preset::filament_options(), static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()))
+    , filaments(Preset::TYPE_FILAMENT, Preset::filament_options(), static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()), "Default Filament")
     , sla_materials(Preset::TYPE_SLA_MATERIAL, Preset::sla_material_options(), static_cast<const SLAMaterialConfig &>(SLAFullPrintConfig::defaults()))
     , sla_prints(Preset::TYPE_SLA_PRINT, Preset::sla_print_options(), static_cast<const SLAPrintObjectConfig &>(SLAFullPrintConfig::defaults()))
-    , printers(Preset::TYPE_PRINTER, Preset::printer_options(), static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()), "- default FFF -")
+    , printers(Preset::TYPE_PRINTER, Preset::printer_options(), static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()), "Default Printer")
     , physical_printers(PhysicalPrinter::printer_options())
 {
     // The following keys are handled by the UI, they do not have a counterpart in any StaticPrintConfig derived classes,
@@ -81,19 +81,19 @@ PresetBundle::PresetBundle()
     this->sla_prints.default_preset().compatible_printers_condition();
     this->sla_prints.default_preset().inherits();
 
-    this->printers.add_default_preset(Preset::sla_printer_options(), static_cast<const SLAMaterialConfig &>(SLAFullPrintConfig::defaults()), "- default SLA -");
-    this->printers.preset(1).printer_technology_ref() = ptSLA;
-    for (size_t i = 0; i < 2; ++i) {
+    //this->printers.add_default_preset(Preset::sla_printer_options(), static_cast<const SLAMaterialConfig &>(SLAFullPrintConfig::defaults()), "- default SLA -");
+    //this->printers.preset(1).printer_technology_ref() = ptSLA;
+    for (size_t i = 0; i < 1; ++i) {
         // The following ugly switch is to avoid printers.preset(0) to return the edited instance, as the 0th default is the current one.
         Preset &preset = this->printers.default_preset(i);
         for (const char *key : {"printer_settings_id", "printer_model", "printer_variant"}) preset.config.optptr(key, true);
-        if (i == 0) {
+        //if (i == 0) {
             preset.config.optptr("default_print_profile", true);
             preset.config.option<ConfigOptionStrings>("default_filament_profile", true);
-        } else {
-            preset.config.optptr("default_sla_print_profile", true);
-            preset.config.optptr("default_sla_material_profile", true);
-        }
+        //} else {
+        //    preset.config.optptr("default_sla_print_profile", true);
+        //    preset.config.optptr("default_sla_material_profile", true);
+        //}
         // default_sla_material_profile
         preset.inherits();
     }
@@ -719,19 +719,26 @@ void PresetBundle::save_changes_for_preset(const std::string& new_name, Preset::
 
 void PresetBundle::load_installed_filaments(AppConfig &config)
 {
-    if (! config.has_section(AppConfig::SECTION_FILAMENTS)) {
-		// Compatibility with the PrusaSlicer 2.1.1 and older, where the filament profiles were not installable yet.
-		// Find all filament profiles, which are compatible with installed printers, and act as if these filament profiles
-		// were installed.
+    if (! config.has_section(AppConfig::SECTION_FILAMENTS)
+        || config.get_section(AppConfig::SECTION_FILAMENTS).empty()) {
+        // Compatibility with the PrusaSlicer 2.1.1 and older, where the filament profiles were not installable yet.
+        // Find all filament profiles, which are compatible with installed printers, and act as if these filament profiles
+        // were installed.
         std::unordered_set<const Preset*> compatible_filaments;
         for (const Preset &printer : printers)
-            if (printer.is_visible && printer.printer_technology() == ptFFF) {
-				const PresetWithVendorProfile printer_with_vendor_profile = printers.get_preset_with_vendor_profile(printer);
-				for (const Preset &filament : filaments)
-					if (filament.is_system && is_compatible_with_printer(filaments.get_preset_with_vendor_profile(filament), printer_with_vendor_profile))
-						compatible_filaments.insert(&filament);
-			}
-		// and mark these filaments as installed, therefore this code will not be executed at the next start of the application.
+            if (printer.is_visible && printer.printer_technology() == ptFFF && printer.vendor && (!printer.vendor->models.empty())) {
+                for (auto default_filament: printer.vendor->models[0].default_materials)
+                {
+                    Preset* filament = filaments.find_preset(default_filament, false, true);
+                    if (filament && filament->is_system)
+                        compatible_filaments.insert(filament);
+                }
+                //const PresetWithVendorProfile printer_with_vendor_profile = printers.get_preset_with_vendor_profile(printer);
+                //for (const Preset &filament : filaments)
+                //  if (filament.is_system && is_compatible_with_printer(filaments.get_preset_with_vendor_profile(filament), printer_with_vendor_profile))
+                //      compatible_filaments.insert(&filament);
+            }
+        // and mark these filaments as installed, therefore this code will not be executed at the next start of the application.
         for (const auto &filament: compatible_filaments)
             config.set(AppConfig::SECTION_FILAMENTS, filament->name, "true");
     }
@@ -797,11 +804,11 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     if (preferred_printer)
     {
         const std::string& prefered_print_profile = preferred_printer->config.opt_string("default_print_profile");
-        if ((!initial_print_profile_name.compare("- default -")) && (prefered_print_profile.size() > 0))
+        if ((!initial_print_profile_name.compare("Default Setting")) && (prefered_print_profile.size() > 0))
             initial_print_profile_name = prefered_print_profile;
 
         const std::vector<std::string>& prefered_filament_profiles = preferred_printer->config.option<ConfigOptionStrings>("default_filament_profile")->values;
-        if ((!initial_filament_profile_name.compare("- default -")) && (prefered_filament_profiles.size() > 0))
+        if ((!initial_filament_profile_name.compare("Default Filament")) && (prefered_filament_profiles.size() > 0))
             initial_filament_profile_name = prefered_filament_profiles[0];
     }
 

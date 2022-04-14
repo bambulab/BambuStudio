@@ -73,6 +73,7 @@ GuideFrame::GuideFrame(GUI_App *pGUI)
         if (!m_browser->AddScriptMessageHandler("wx")) wxLogError("Could not add script message handler");
     } else {
         wxLogError("Could not init m_browser");
+        return;
     }
 
     wxString TargetUrl = SetStartPage(BBL_WELCOME);
@@ -118,7 +119,13 @@ GuideFrame::GuideFrame(GUI_App *pGUI)
     CenterOnParent();
 }
 
-GuideFrame::~GuideFrame() {}
+GuideFrame::~GuideFrame()
+{
+    if (m_browser) {
+        delete m_browser;
+        m_browser = nullptr;
+    }
+}
 
 void GuideFrame::load_url(wxString &url)
 {
@@ -129,12 +136,12 @@ void GuideFrame::load_url(wxString &url)
 }
 
 wxString GuideFrame::SetStartPage(GuidePage startpage)
-{ 
+{
     //wxLogMessage("GUIDE: webpage_1  %s", (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string().c_str() );
     wxString TargetUrl = encode_path( (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string().c_str() );
     //wxLogMessage("GUIDE: webpage_2  %s", TargetUrl.mb_str());
 
-    if (startpage == BBL_WELCOME){ 
+    if (startpage == BBL_WELCOME){
         SetTitle(_L("Guide"));
         TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string().c_str());
     } else if (startpage == BBL_MODELS) {
@@ -147,7 +154,7 @@ wxString GuideFrame::SetStartPage(GuidePage startpage)
 
         if (nSize>0)
             TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\22\\index.html").make_preferred().string().c_str());
-        else     
+        else
             TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\21\\index.html").make_preferred().string().c_str());
     } else if (startpage == BBL_FILAMENT_ONLY) {
         SetTitle(_L("Filaments Selection"));
@@ -159,7 +166,7 @@ wxString GuideFrame::SetStartPage(GuidePage startpage)
     }
 
     std::string strlang = wxGetApp().app_config->get("language");
-    if (strlang != "") 
+    if (strlang != "")
         TargetUrl = wxString::Format("%s?lang=%s", w2s(TargetUrl), strlang);
 
     load_url(TargetUrl);
@@ -278,7 +285,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             if (strAction == "refuse") {
                 // CloseTheApp
                 this->EndModal(wxID_OK);
-                
+
                 m_MainPtr->mainframe->Close(); // Refuse Clause, App quit immediately
             }
         } else if (strCmd == "user_private_choice") {
@@ -289,7 +296,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             } else {
                 PrivacyUse = false;
             }
-        } 
+        }
         else if (strCmd == "request_userguide_profile") {
             json m_Res = json::object();
             m_Res["command"] = "response_userguide_profile";
@@ -299,8 +306,8 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
 
             wxGetApp().CallAfter([this,strJS] { RunScript(strJS); });
-        } 
-        else if (strCmd == "save_userguide_models") 
+        }
+        else if (strCmd == "save_userguide_models")
         {
             json MSelected = j["data"];
 
@@ -320,18 +327,18 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
                     }
                 }
             }
-        } 
+        }
         else if (strCmd == "save_userguide_filaments") {
             //reset
-            for (auto it = m_ProfileJson["filament"].begin(); it != m_ProfileJson["filament"].end(); ++it) 
+            for (auto it = m_ProfileJson["filament"].begin(); it != m_ProfileJson["filament"].end(); ++it)
             {
                 m_ProfileJson["filament"][it.key()]["selected"] = 0;
             }
 
             json fSelected = j["data"]["filament"];
             int nF = fSelected.size();
-            for (int m = 0; m < nF; m++) 
-            { 
+            for (int m = 0; m < nF; m++)
+            {
                 std::string fName = fSelected[m];
 
                 m_ProfileJson["filament"][fName]["selected"] = 1;
@@ -342,7 +349,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
 
             //Close();
             this->EndModal(wxID_OK);
-        } 
+        }
         else if (strCmd == "user_guide_cancel") {
             this->EndModal(wxID_CANCEL);
         }
@@ -463,10 +470,10 @@ bool GuideFrame::IsFirstUse()
 {
     wxString    strUse;
     std::string strVal = wxGetApp().app_config->get(std::string(m_SectionName.mb_str()), "finish");
-    if (strVal == "1") 
+    if (strVal == "1")
         return false;
 
-    if (bbl_bundle_rsrc == true) 
+    if (bbl_bundle_rsrc == true)
         return true;
 
     return true;
@@ -490,16 +497,16 @@ bool GuideFrame::IsFirstUse()
     return 0;
 }*/
 
-int GuideFrame::SaveProfile() 
+int GuideFrame::SaveProfile()
 {
     //privacy
     if (PrivacyUse == true) {
-        wxGetApp().app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "1");
+        m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "1");
     } else
-        wxGetApp().app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "0");
+        m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "0");
 
     //finish
-    wxGetApp().app_config->set(std::string(m_SectionName.mb_str()), "finish", "1");
+    m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "finish", "1");
 
     m_MainPtr->app_config->save();
 
@@ -512,8 +519,8 @@ int GuideFrame::SaveProfile()
     jCfg["models"] = json::array();
     int nM         = m_ProfileJson["model"].size();
     int nModelChoose    = 0;
-    for (int m = 0; m < nM; m++) 
-    { 
+    for (int m = 0; m < nM; m++)
+    {
         json amodel = m_ProfileJson["model"][m];
 
         amodel["nozzle_diameter"] = amodel["nozzle_selected"];
@@ -524,12 +531,12 @@ int GuideFrame::SaveProfile()
         amodel.erase("materials");
 
         std::string ss = amodel["nozzle_diameter"];
-        if (ss.compare("") != 0) { 
+        if (ss.compare("") != 0) {
             nModelChoose++;
-            jCfg["models"].push_back(amodel); 
+            jCfg["models"].push_back(amodel);
         }
     }
-    if (nModelChoose == 0) 
+    if (nModelChoose == 0)
         jCfg.erase("models");
 
     if (nModelChoose > 0) {
@@ -555,11 +562,11 @@ int GuideFrame::SaveProfile()
 
     } else {
         jCfg["presets"]["filaments"] = json::array();
-        jCfg["presets"]["filaments"].push_back("- default -");
-    
-        jCfg["presets"]["machine"] = "- default FFF -";
+        jCfg["presets"]["filaments"].push_back("Default Filament");
 
-        jCfg["presets"]["process"] = "- default -";
+        jCfg["presets"]["machine"] = "Default Printer";
+
+        jCfg["presets"]["process"] = "Default Setting";
     }
 
     std::string sOut = jCfg.dump(4, ' ', false);
@@ -569,8 +576,8 @@ int GuideFrame::SaveProfile()
     output_file.close();
 
     //Copy Profiles
-    if (bbl_bundle_rsrc) 
-    { 
+    if (bbl_bundle_rsrc)
+    {
         CopyDir(rsrc_vendor_dir,vendor_dir);
     }*/
 
@@ -588,7 +595,7 @@ int GuideFrame::SaveProfile()
     //set vendors to app_config
     Slic3r::AppConfig::VendorMap empty_vendor_map;
     m_appconfig_new.set_vendors(empty_vendor_map);
-    for (auto it = m_ProfileJson["model"].begin(); it != m_ProfileJson["model"].end(); ++it) 
+    for (auto it = m_ProfileJson["model"].begin(); it != m_ProfileJson["model"].end(); ++it)
     {
         if (it.value().is_object()) {
             json temp_model = it.value();
@@ -722,7 +729,21 @@ bool GuideFrame::run()
         return true;
     } else {
         BOOST_LOG_TRIVIAL(info) << "GuideFrame cancelled";
-        return false;
+        if (app.preset_bundle->printers.only_default_printers()) {
+            //we install the default here
+            bool apply_keeped_changes = false;
+            //clear filament section and use default materials
+            app.app_config->set_variant(PresetBundle::BBL_BUNDLE,
+                PresetBundle::BBL_DEFAULT_PRINTER_MODEL, PresetBundle::BBL_DEFAULT_PRINTER_VARIANT, "true");
+            app.app_config->clear_section(AppConfig::SECTION_FILAMENTS);
+            app.preset_bundle->load_selections(*app.app_config, {PresetBundle::BBL_DEFAULT_PRINTER_MODEL, PresetBundle::BBL_DEFAULT_PRINTER_VARIANT, PresetBundle::BBL_DEFAULT_FILAMENT, std::string()});
+
+            app.app_config->set_legacy_datadir(false);
+            app.update_mode();
+            return true;
+        }
+        else
+            return false;
     }
 }
 
@@ -775,7 +796,7 @@ int GuideFrame::LoadProfile()
         m_appconfig_new.set_vendors(*wxGetApp().app_config);
         m_appconfig_new.set_section(AppConfig::SECTION_FILAMENTS, enabled_filaments);
 
-        for (auto it = m_ProfileJson["model"].begin(); it != m_ProfileJson["model"].end(); ++it) 
+        for (auto it = m_ProfileJson["model"].begin(); it != m_ProfileJson["model"].end(); ++it)
         {
             if (it.value().is_object()) {
                 json& temp_model = it.value();
@@ -815,7 +836,7 @@ int GuideFrame::LoadProfile()
             }
         }
 
-        if (m_ProfileJson["model"].size() == 1) { 
+        if (m_ProfileJson["model"].size() == 1) {
             std::string strNozzle = m_ProfileJson["model"][0]["nozzle_diameter"];
             m_ProfileJson["model"][0]["nozzle_selected"]=strNozzle;
         }
@@ -841,14 +862,14 @@ int GuideFrame::LoadProfile()
         int  nLocal     = ModelLocal.size();
         int  nModel     = ModelList.size();
 
-        for (int a=0;a<nLocal;a++) { 
+        for (int a=0;a<nLocal;a++) {
             wxString LocalName = ModelLocal[a]["model"];
 
-            for (int b = 0; b < nModel; b++) 
-            { 
+            for (int b = 0; b < nModel; b++)
+            {
                 wxString NameCfg = ModelList[b]["model"];
 
-                if (NameCfg.compare(LocalName)==0) 
+                if (NameCfg.compare(LocalName)==0)
                 {
                     m_ProfileJson["model"][a]["nozzle_selected"] = ModelList[b]["nozzle_diameter"];
                 }
@@ -858,12 +879,12 @@ int GuideFrame::LoadProfile()
         json FilamentList = jCfg["filaments"];
         int  nFilament    = FilamentList.size();
 
-        for (int m = 0; m < nFilament; m++) 
-        { 
+        for (int m = 0; m < nFilament; m++)
+        {
             wxString sKey = FilamentList[m];
 
-            if (m_ProfileJson["filament"].contains(sKey)) 
-            { 
+            if (m_ProfileJson["filament"].contains(sKey))
+            {
                 m_ProfileJson["filament"][w2s(sKey)]["selected"] = 1;
             }
         }*/
@@ -919,7 +940,7 @@ int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
             OneModel["vendor"]          = strVendor.mbc_str();
             OneModel["nozzle_diameter"] = pm["nozzle_diameter"];
             OneModel["materials"]       = pm["default_materials"];
-            
+
             wxString strCoverPath = wxString::Format("%s\\%s\\%s_cover.png", strFolder, strVendor, std::string(s1.mb_str()));
             OneModel["cover"]   = strCoverPath.mb_str();
 
@@ -989,10 +1010,10 @@ int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
 
                     OneFF["models"] = "";
                     OneFF["selected"] = 0;
-                } 
+                }
                 else
                     continue;
-            
+
             } else {
                 OneFF = m_ProfileJson["filament"][w2s(s1)];
             }
@@ -1011,7 +1032,7 @@ int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
                     bFind           = 1;
                 }
             }
-            
+
 
             OneFF["models"]                    = w2s(vModel);
 
@@ -1032,7 +1053,7 @@ int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
 
             std::string bInstall = pm["instantiation"];
             if (bInstall == "true")
-            { 
+            {
                 m_ProfileJson["process"].push_back(OneProcess);
             }
         }
@@ -1045,9 +1066,9 @@ int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
     return 0;
 }
 
-std::string GuideFrame::w2s(wxString sSrc) 
-{ 
-    return std::string(sSrc.mb_str()); 
+std::string GuideFrame::w2s(wxString sSrc)
+{
+    return std::string(sSrc.mb_str());
 }
 
 bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)

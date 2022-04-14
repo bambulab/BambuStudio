@@ -39,6 +39,11 @@ public:
     PresetsConfigSubstitutions load_presets(AppConfig &config, ForwardCompatibilitySubstitutionRule rule,
                                             const PresetPreferences& preferred_selection = PresetPreferences());
 
+    // Load selections (current print, current filaments, current printer) from config.ini
+    // This is done just once on application start up.
+    //BBS: change it to public
+    void     load_selections(AppConfig &config, const PresetPreferences& preferred_selection = PresetPreferences());
+
     // BBS Load user presets
     PresetsConfigSubstitutions load_user_presets(AppConfig &config, std::map<std::string, Preset*> my_presets, ForwardCompatibilitySubstitutionRule rule);
     void save_user_presets(AppConfig& config, std::vector<std::string>& need_to_delete_list);
@@ -80,11 +85,11 @@ public:
     std::vector<DynamicPrintConfig> filament_ams_list;
 
     // The project configuration values are kept separated from the print/filament/printer preset,
-    // they are being serialized / deserialized from / to the .amf, .3mf, .config, .gcode, 
+    // they are being serialized / deserialized from / to the .amf, .3mf, .config, .gcode,
     // and they are being used by slicing core.
     DynamicPrintConfig          project_config;
 
-    // There will be an entry for each system profile loaded, 
+    // There will be an entry for each system profile loaded,
     // and the system profiles will point to the VendorProfile instances owned by PresetBundle::vendors.
     VendorMap                   vendors;
 
@@ -97,7 +102,7 @@ public:
     };
     ObsoletePresets             obsolete_presets;
 
-    bool                        has_defauls_only() const 
+    bool                        has_defauls_only() const
         { return prints.has_defaults_only() && filaments.has_defaults_only() && printers.has_defaults_only(); }
 
     DynamicPrintConfig          full_config() const;
@@ -125,7 +130,7 @@ public:
     // Load settings into the provided settings instance.
     // Activate the presets stored in the config bundle.
     // Returns the number of presets loaded successfully.
-    enum LoadConfigBundleAttribute { 
+    enum LoadConfigBundleAttribute {
         // Save the profiles, which have been loaded.
         SaveImported,
         // Delete all old config profiles before loading.
@@ -153,7 +158,7 @@ public:
     // Enable / disable the "- default -" preset.
     void                        set_default_suppressed(bool default_suppressed);
 
-    // Set the filament preset name. As the name could come from the UI selection box, 
+    // Set the filament preset name. As the name could come from the UI selection box,
     // an optional "(modified)" suffix will be removed from the filament name.
     void                        set_filament_preset(size_t idx, const std::string &name);
 
@@ -199,10 +204,6 @@ private:
     // apply defaults based on enabled printers when no filaments/materials are installed.
     void                        load_installed_filaments(AppConfig &config);
     void                        load_installed_sla_materials(AppConfig &config);
-
-    // Load selections (current print, current filaments, current printer) from config.ini
-    // This is done just once on application start up.
-    void                        load_selections(AppConfig &config, const PresetPreferences& preferred_selection = PresetPreferences());
 
     // Load print, filament & printer presets from a config. If it is an external config, then the name is extracted from the external path.
     // and the external config is just referenced, not stored into user profile directory.

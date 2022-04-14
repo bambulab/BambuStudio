@@ -2309,7 +2309,7 @@ const Preset* PrinterPresetCollection::find_system_preset_by_model_and_variant(c
 bool  PrinterPresetCollection::only_default_printers() const
 {
     for (const auto& printer : get_presets()) {
-        if (!boost::starts_with(printer.name,"- default"))
+        if (!boost::starts_with(printer.name,"Default") && printer.is_visible)
             return false;
     }
     return true;
