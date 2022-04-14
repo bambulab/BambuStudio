@@ -4724,7 +4724,11 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         /* BBS if in publishing progress */
         if (m_is_publishing) {
             if (m_publish_dlg && !m_publish_dlg->was_cancelled()) {
-                q->publish_project();
+                if (m_publish_dlg->IsShown()) {
+                    q->publish_project();
+                } else {
+                    m_is_publishing = false;
+                }
             }
         }
     }
@@ -5410,9 +5414,9 @@ bool Plater::priv::show_publish_dlg(bool show)
         m_publish_dlg->reset();
         m_publish_dlg->start_slicing();
         m_publish_dlg->Show();
-    }
-    else
+    } else {
         m_publish_dlg->Hide();
+    }
     return true;
 }
 
