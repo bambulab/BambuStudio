@@ -178,7 +178,8 @@ ObjectList::ObjectList(wxWindow* parent) :
 //    Bind(wxEVT_KEY_DOWN, &ObjectList::OnChar, this);
     {
         // Accelerators
-        wxAcceleratorEntry entries[25];
+        // 	wxAcceleratorEntry entries[25];
+        wxAcceleratorEntry entries[26];
         int index = 0;
         entries[index++].Set(wxACCEL_CTRL, (int)'C', wxID_COPY);
         entries[index++].Set(wxACCEL_CTRL, (int)'X', wxID_CUT);
@@ -200,7 +201,7 @@ ObjectList::ObjectList(wxWindow* parent) :
             entries[index + numbers_cnt].Set(wxACCEL_NORMAL, int(char_number), wxID_LAST + numbers_cnt+1);
             entries[index + 9 + numbers_cnt].Set(wxACCEL_NORMAL, WXK_NUMPAD0 + numbers_cnt - 1, wxID_LAST + numbers_cnt+1);
             numbers_cnt++;
-            index++;
+            // index++;
         }
         wxAcceleratorTable accel(26, entries);
         SetAcceleratorTable(accel);
@@ -254,15 +255,15 @@ ObjectList::ObjectList(wxWindow* parent) :
 
     Bind(wxEVT_SIZE, ([this](wxSizeEvent &e) {
 #ifdef __WXGTK__
-	// On GTK, the EnsureVisible call is postponed to Idle processing (see wxDataViewCtrl::m_ensureVisibleDefered).
-	// So the postponed EnsureVisible() call is planned for an item, which may not exist at the Idle processing time, if this wxEVT_SIZE
-	// event is succeeded by a delete of the currently active item. We are trying our luck by postponing the wxEVT_SIZE triggered EnsureVisible(),
-	// which seems to be working as of now.
-    this->CallAfter([this](){ ensure_current_item_visible(); });
+        // On GTK, the EnsureVisible call is postponed to Idle processing (see wxDataViewCtrl::m_ensureVisibleDefered).
+        // So the postponed EnsureVisible() call is planned for an item, which may not exist at the Idle processing time, if this wxEVT_SIZE
+        // event is succeeded by a delete of the currently active item. We are trying our luck by postponing the wxEVT_SIZE triggered EnsureVisible(),
+        // which seems to be working as of now.
+        this->CallAfter([this](){ ensure_current_item_visible(); });
 #else
-    ensure_current_item_visible();
+        ensure_current_item_visible();
 #endif
-	e.Skip();
+        e.Skip();
 	}));
 }
 

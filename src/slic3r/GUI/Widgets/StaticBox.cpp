@@ -117,6 +117,7 @@ void StaticBox::paintEvent(wxPaintEvent& evt)
  */
 void StaticBox::render(wxDC& dc)
 {
+#ifdef __WXMSW__
 	wxSize size = GetSize();
     wxMemoryDC memdc;
     wxBitmap bmp(size.x, size.y);
@@ -130,6 +131,9 @@ void StaticBox::render(wxDC& dc)
 
     memdc.SelectObject(wxNullBitmap);
 	dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
 }
 
 void StaticBox::doRender(wxDC& dc)
