@@ -1368,14 +1368,7 @@ void GCodeViewer::_render_calibration_thumbnail_framebuffer(ThumbnailData& thumb
 
 
     if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
-        // set m_layers_z_range to 0, 0
-        std::array<unsigned int, 2> tmp_layers_z_range = m_layers_z_range;
-        m_layers_z_range = {0 , 0};
-        refresh_render_paths(false, false);
         _render_calibration_thumbnail_internal(thumbnail_data, thumbnail_params);
-        // reset m_layers_z_range
-        m_layers_z_range = tmp_layers_z_range;
-        refresh_render_paths(false, false);
 
         if (multisample) {
             GLuint resolve_fbo;
@@ -1426,7 +1419,31 @@ void GCodeViewer::_render_calibration_thumbnail_framebuffer(ThumbnailData& thumb
 //BBS
 void GCodeViewer::render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params)
 {
+    // reset values and refresh render
+    int       last_view_type_sel = m_view_type_sel;
+    EViewType last_view_type     = m_view_type;
+    // set color scheme to Line Type
+    for (int i = 0; i < view_type_items.size(); i++) {
+        if (view_type_items[i] == EViewType::FeatureType) {
+            m_view_type_sel = i;
+            break;
+        }
+    }
+    set_view_type(EViewType::FeatureType);
+    // set m_layers_z_range to 0, 0
+    std::array<unsigned int, 2> tmp_layers_z_range = m_layers_z_range;
+    m_layers_z_range = {0, 0};
+    refresh_render_paths(false, false);
+
     _render_calibration_thumbnail_framebuffer(thumbnail_data, w, h, thumbnail_params);
+
+    // restore values and refresh render
+    // reset m_layers_z_range and view type
+    m_view_type_sel = last_view_type_sel;
+    set_view_type(last_view_type);
+    m_layers_z_range = tmp_layers_z_range;
+
+    refresh_render_paths(false, false);
 }
 
 bool GCodeViewer::can_export_toolpaths() const
