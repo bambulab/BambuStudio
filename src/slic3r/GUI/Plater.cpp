@@ -6549,7 +6549,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
 
     wxBoxSizer *m_sizer_select_v = new wxBoxSizer(wxVERTICAL);
 
-   
+
     auto select_f = create_item_radiobox(_L("Open as project"), m_panel_select, 1, 0);
     auto select_s = create_item_radiobox(_L("Import geometry only"), m_panel_select, 2, 0);
     auto select_t = create_item_radiobox(_L("Import presets only"), m_panel_select,3, 0);
@@ -8286,6 +8286,17 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 
     if (bed_shape_changed)
         set_bed_shape();
+
+    auto seq_print  = config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+    if ( seq_print ) {
+        NotificationManager *notify_manager = get_notification_manager();
+        if (seq_print->value == PrintSequence::ByObject) {
+            std::string info_text = L("Print By Object: \nSuggest to use auto-arrange to avoid collisions when printing.");
+            notify_manager->bbl_show_seqprintinfo_notification(info_text);
+        }
+        else
+            notify_manager->bbl_close_seqprintinfo_notification();
+    }
 
     if (update_scheduled)
         update();

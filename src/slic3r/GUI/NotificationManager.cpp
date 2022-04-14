@@ -1959,6 +1959,8 @@ void NotificationManager::set_in_preview(bool preview)
             notification->hide(!preview);
         if (notification->get_type() == NotificationType::BBLObjectInfo)
             notification->hide(preview);
+        if (notification->get_type() == NotificationType::BBLSeqPrintInfo)
+            notification->hide(preview);
 		if (m_in_preview && notification->get_type() == NotificationType::DidYouKnowHint)
 			notification->close();
     }
@@ -2054,6 +2056,28 @@ void NotificationManager::bbl_close_objectsinfo_notification()
         if (notification->get_type() == NotificationType::BBLObjectInfo) { notification->close(); }
 }
 
+void NotificationManager::bbl_show_seqprintinfo_notification(const std::string &text)
+{
+    NotificationData data{NotificationType::BBLSeqPrintInfo, NotificationLevel::PrintInfoNotificationLevel, 86400 * 10, text};
+
+    for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
+        if (notification->get_type() == NotificationType::BBLSeqPrintInfo) {
+            notification->reinit();
+            notification->update(data);
+            return;
+        }
+    }
+
+    auto notification = std::make_unique<NotificationManager::PopNotification>(data, m_id_provider, m_evt_handler);
+    notification->set_Multiline(true);
+    push_notification_data(std::move(notification), 0);
+}
+
+void NotificationManager::bbl_close_seqprintinfo_notification()
+{
+    for (std::unique_ptr<PopNotification> &notification : m_pop_notifications)
+        if (notification->get_type() == NotificationType::BBLSeqPrintInfo) { notification->close(); }
+}
 
 void NotificationManager::bbl_show_slice_emptylayer_notification(const std::string &text, bool bOverride)
 {

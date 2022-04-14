@@ -246,6 +246,7 @@ void ArrangeJob::prepare()
 {
     wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing,
         NotificationManager::NotificationLevel::RegularNotificationLevel, into_u8(_L("Arranging...")));
+    m_plater->get_notification_manager()->bbl_close_plateinfo_notification();
 
     //BBS update extruder params and speed table before arranging
     Plater::setExtruderParams(Model::extruderParamsMap);

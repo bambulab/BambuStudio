@@ -138,6 +138,7 @@ void OrientJob::prepare_partplate() {
 void OrientJob::prepare()
 {
     int state = m_plater->get_prepare_state();
+    m_plater->get_notification_manager()->bbl_close_plateinfo_notification();
     if (state == Job::JobPrepareState::PREPARE_STATE_DEFAULT) {
         only_on_partplate = false;
         prepare_selected();
