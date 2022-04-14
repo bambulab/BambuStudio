@@ -20,6 +20,8 @@
 #include "Plater.hpp"
 #include "Widgets/StepCtrl.hpp"
 #include "Widgets/ProgressDialog.hpp"
+#include "Widgets/Button.hpp"
+#include "Widgets/ProgressBar.hpp"
 
 
 namespace Slic3r {
@@ -47,11 +49,12 @@ public:
     void cancel();
 
 protected:
+    wxPanel*     m_step_panel;
     ::StepIndicator *m_publish_steps;
     wxStaticText *m_text_note;
     wxStaticText *m_text_progress;
-    wxGauge *     m_progress;
-    wxButton *    m_btn_cancel;
+    ProgressBar  *m_progress;
+    Button*       m_btn_cancel;
     wxStaticText *m_text_errors;
     Plater *      m_plater{nullptr};
     bool          m_was_cancelled { false };

@@ -26,6 +26,7 @@ wxFont Label::Head_16 = sysFont(16, true);
 wxFont Label::Head_14 = sysFont(14, true);
 wxFont Label::Head_13 = sysFont(13, true);
 wxFont Label::Head_12 = sysFont(12, true);
+wxFont Label::Head_10 = sysFont(10, true);
 
 wxFont Label::Body_16 = sysFont(16, false);
 wxFont Label::Body_14 = sysFont(14, false);

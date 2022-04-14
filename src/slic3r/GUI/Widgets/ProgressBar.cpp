@@ -23,6 +23,8 @@ ProgressBar::ProgressBar(wxWindow *parent, wxWindowID id, int max, const wxPoint
     m_max = max;
     m_radius = m_miniHeight / 2;
     wxSize temp_size(size.x, m_miniHeight);
+
+    SetFont(Label::Head_12);
     create(parent, id, pos, temp_size);
 }
 
@@ -196,7 +198,7 @@ void ProgressBar::doRender(wxDC &dc)
             dc.DrawRoundedRectangle(0, 0, m_proportion, size.y, m_radius);
         }
 
-        dc.SetFont(::Label::Head_12);
+        dc.SetFont(GetFont());
         auto textSize = dc.GetMultiLineTextExtent(wxString("000%"));
         dc.SetTextForeground(wxColour(144, 144, 144));
         auto pt = wxPoint();

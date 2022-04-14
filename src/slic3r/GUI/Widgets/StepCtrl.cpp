@@ -234,8 +234,12 @@ void StepIndicator::doRender(wxDC &dc)
     if (!IsEnabled()) { 
         states = clr_step.Disabled;
     } 
+    
+    int font_height = radius * 2;
+    if (steps.size() > 0)
+        font_height = dc.GetTextExtent(steps[0]).y;
 
-    int    itemWidth = steps.size() == 1 ? size.y : (size.y - radius * 2) / (steps.size() - 1);
+    int    itemWidth = steps.size() == 1 ? size.y : (size.y - font_height) / (steps.size() - 1);
     wxRect rcBar     = {radius - bar_width / 2, radius, bar_width, size.y - radius * 2};
 
     dc.SetPen(wxPen(clr_bar.colorForStates(states)));
@@ -252,7 +256,8 @@ void StepIndicator::doRender(wxDC &dc)
         dc.SetTextForeground(clr_text.colorForStates(states 
                 | (disabled ? StateColor::Disabled : checked ? StateColor::Checked : 0)));
         dc.SetFont(checked ? GetFont().Bold() : GetFont());
-        dc.DrawText(steps[i], circleX + radius * 3, circleY - radius);
+        wxSize textSize = dc.GetTextExtent(steps[i]);
+        dc.DrawText(steps[i], circleX + radius * 3, circleY - (textSize.y/2));
         if (disabled) {
             wxSize sz = bmp_ok.GetBmpSize();
             dc.DrawBitmap(bmp_ok.bmp(), circleX - radius, circleY - radius);
