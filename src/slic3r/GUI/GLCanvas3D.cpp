@@ -533,6 +533,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_RENDER_TIMER, wxTimerEvent/*RenderTimerEvent*/);
 wxDEFINE_EVENT(EVT_GLCANVAS_TOOLBAR_HIGHLIGHTER_TIMER, wxTimerEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_GIZMO_HIGHLIGHTER_TIMER, wxTimerEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE, SimpleEvent);
+wxDEFINE_EVENT(EVT_CUSTOMEVT_TICKSCHANGED, SimpleEvent);
 
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
 const double GLCanvas3D::DefaultCameraZoomToBedMarginFactor = 2.00;
@@ -5521,6 +5522,11 @@ void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
 {
     m_gcode_viewer.render(canvas_width, canvas_height, SLIDER_RIGHT_MARGIN);
     IMSlider *layers_slider = m_gcode_viewer.get_layers_slider();
+
+    if (layers_slider->is_need_post_tick_event()) {
+        layers_slider->reset_post_tick_event();
+        post_event(SimpleEvent(EVT_CUSTOMEVT_TICKSCHANGED));
+    }
 
     if (layers_slider->is_dirty()) {
         set_volumes_z_range({layers_slider->GetLowerValueD(), layers_slider->GetHigherValueD()});

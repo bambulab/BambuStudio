@@ -1531,6 +1531,24 @@ void ImGuiWrapper::pop_toolbar_style()
     ImGui::PopStyleVar(5);
 }
 
+void ImGuiWrapper::push_menu_style()
+{
+    ImGuiWrapper::push_toolbar_style();
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 10.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 4.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.0f);
+    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG);
+    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+}
+void ImGuiWrapper::pop_menu_style()
+{
+    ImGui::PopStyleColor(4);
+    ImGui::PopStyleVar(3);
+    ImGuiWrapper::pop_toolbar_style();
+}
+
 void ImGuiWrapper::init_font(bool compress)
 {
     destroy_font();

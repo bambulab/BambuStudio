@@ -207,20 +207,20 @@ std::string TickCodeInfo::get_color_for_tick(TickCode tick, Type type, const int
     return color;
 }
 
+
 bool TickCodeInfo::add_tick(const int tick, Type type, const int extruder, double print_z)
 {
-    //TODO
-    /* BBS
     std::string color;
     std::string extra;
     if (type == Custom) // custom Gcode
     {
-        extra = get_custom_code(custom_gcode, print_z);
+        /*extra = get_custom_code(custom_gcode, print_z);
         if (extra.empty()) return false;
-        custom_gcode = extra;
+        custom_gcode = extra;*/
     } else if (type == PausePrint) {
-        extra = get_pause_print_msg(pause_print_msg, print_z);
-        if (extra.empty()) return false;
+        //BBS do not set pause extra message
+        //extra = get_pause_print_msg(pause_print_msg, print_z);
+        //if (extra.empty()) return false;
         pause_print_msg = extra;
     } else {
         color = get_color_for_tick(TickCode{tick}, type, extruder);
@@ -230,7 +230,7 @@ bool TickCodeInfo::add_tick(const int tick, Type type, const int extruder, doubl
     if (mode == SingleExtruder) m_use_default_colors = true;
 
     ticks.emplace(TickCode{tick, type, extruder, color, extra});
-    */
+
     return true;
 }
 
@@ -424,6 +424,8 @@ IMSlider::IMSlider(int lowerValue, int higherValue, int minValue, int maxValue, 
     // BBS set to none style by default
     m_extra_style = style == wxSL_VERTICAL ? 0 : 0;
     m_selection   = ssUndef;
+
+    m_ticks.set_extruder_colors(&m_extruder_colors);
 }
 
 bool IMSlider::init_texture()
@@ -439,6 +441,7 @@ bool IMSlider::init_texture()
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_off_hover.svg", 28, 28, m_one_layer_off_hover_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_arrow.svg", 28, 28, m_one_layer_arrow_id);
     }
+
     return result;
 }
 
@@ -530,7 +533,7 @@ void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
 
     if (!was_empty && m_ticks.empty())
         // Switch to the "Feature type"/"Tool" from the very beginning of a new object slicing after deleting of the old one
-        //TODO post_ticks_changed_event();
+        post_ticks_changed_event();
 
     // init extruder sequence in respect to the extruders count
     if (m_ticks.empty()) m_extruders_sequence.init(m_extruder_colors.size());
@@ -605,6 +608,88 @@ bool IMSlider::IsNewPrint()
     return true;
 }
 
+void IMSlider::post_ticks_changed_event(Type type /*= Custom*/)
+{
+    m_is_need_post_tick_changed_event = true;
+}
+
+void IMSlider::add_code_as_tick(Type type, int selected_extruder)
+{
+    if (m_selection == ssUndef) return;
+    const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
+
+    if (!check_ticks_changed_event(type)) {
+        BOOST_LOG_TRIVIAL(trace) << "check ticks change event false";
+        return;
+    }
+
+    if (type == ColorChange && gcode(ColorChange).empty()) GUI::wxGetApp().plater()->get_notification_manager()->push_notification(GUI::NotificationType::EmptyColorChangeCode);
+
+    const int  extruder = selected_extruder > 0 ? selected_extruder : std::max<int>(1, m_only_extruder);
+    const auto it       = m_ticks.ticks.find(TickCode{tick});
+
+    if (it == m_ticks.ticks.end()) {
+        // try to add tick
+        if (!m_ticks.add_tick(tick, type, extruder, m_values[tick])) return;
+    } else if (type == ToolChange || type == ColorChange) {
+        // try to switch tick code to ToolChange or ColorChange accordingly
+        if (!m_ticks.switch_code_for_tick(it, type, extruder)) return;
+    } else
+        return;
+
+    post_ticks_changed_event(type);
+}
+
+bool IMSlider::check_ticks_changed_event(Type type)
+{
+    if (m_ticks.mode == m_mode || (type != ColorChange && type != ToolChange) ||
+        (m_ticks.mode == SingleExtruder && m_mode == MultiAsSingle) || // All ColorChanges will be applied for 1st extruder
+        (m_ticks.mode == MultiExtruder && m_mode == MultiAsSingle))    // Just mark ColorChanges for all unused extruders
+        return true;
+
+    if ((m_ticks.mode == SingleExtruder && m_mode == MultiExtruder) || (m_ticks.mode == MultiExtruder && m_mode == SingleExtruder)) {
+        if (!m_ticks.has_tick_with_code(ColorChange)) return true;
+        /*
+        wxString message = (m_ticks.mode == SingleExtruder ? _L("The last color change data was saved for a single extruder printing.") :
+                                                             _L("The last color change data was saved for a multi extruder printing.")) +
+                           "\n" + _L("Your current changes will delete all saved color changes.") + "\n\n\t" + _L("Are you sure you want to continue?");
+
+        
+        GUI::MessageDialog msg(this, message, _L("Notice"), wxYES_NO);
+        if (msg.ShowModal() == wxID_YES) {
+            m_ticks.erase_all_ticks_with_code(ColorChange);
+            post_ticks_changed_event(ColorChange);
+        }
+        */
+        return false;
+    }
+    //          m_ticks_mode == MultiAsSingle
+    if (m_ticks.has_tick_with_code(ToolChange)) {
+        //wxString message = m_mode == SingleExtruder ?
+        //                       (_L("The last color change data was saved for a multi extruder printing.") + "\n\n" +
+        //                        _L("Select YES if you want to delete all saved tool changes, \n"
+        //                           "NO if you want all tool changes switch to color changes, \n"
+        //                           "or CANCEL to leave it unchanged.") +
+        //                        "\n\n\t" + _L("Do you want to delete all saved tool changes?")) :
+        //                       ( // MultiExtruder
+        //                           _L("The last color change data was saved for a multi extruder printing with tool changes for whole print.") + "\n\n" +
+        //                           _L("Your current changes will delete all saved extruder (tool) changes.") + "\n\n\t" + _L("Are you sure you want to continue?"));
+        //BBS GUI::MessageDialog msg(this, message, _L("Notice"), wxYES_NO | (m_mode == SingleExtruder ? wxCANCEL : 0));
+        //const int          answer = msg.ShowModal();
+        //if (answer == wxID_YES) {
+        //    m_ticks.erase_all_ticks_with_code(ToolChange);
+        //    post_ticks_changed_event(ToolChange);
+        //} else if (m_mode == SingleExtruder && answer == wxID_NO) {
+        //    m_ticks.switch_code(ToolChange, ColorChange);
+        //    post_ticks_changed_event(ColorChange);
+        //}
+        return false;
+    }
+
+    return true;
+}
+
+
 // switch on/off one layer mode
 void IMSlider::switch_one_layer_mode()
 {
@@ -660,20 +745,26 @@ bool IMSlider::render(int canvas_width, int canvas_height)
         ImVec2 size  = ImVec2(VERTICAL_SLIDER_SIZE.x, std::max(0.0f,canvas_height - MIN_RECT_SIZE.y - TOP_MARGIN));
         imgui.set_next_window_pos(pos_x, pos_y, ImGuiCond_Always);
         imgui.begin(std::string("laysers_slider"), windows_flag);
+
+        //BBS render_menu for testing
+        if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop)
+            render_menu();
+
         int higher_value = GetHigherValue();
         int lower_value = GetLowerValue();
         std::string higher_label = get_label(m_higher_value);
         std::string lower_label  = get_label(m_lower_value);
         int temp_higher_value    = higher_value;
         int temp_lower_value     = lower_value;
-        if (imgui.vertical_slider("laysers_slider", &higher_value, &lower_value, higher_label, lower_label, GetMinValue(), GetMaxValue(), size, (int) m_selection, is_one_layer(),
-                                  m_one_layer_arrow_id, scale)) {
+        if (imgui.vertical_slider("laysers_slider", &higher_value, &lower_value, higher_label, lower_label, GetMinValue(), GetMaxValue(),
+                  size, (int) m_selection, is_one_layer(), m_one_layer_arrow_id, scale)) {
             if (temp_higher_value != higher_value)
                 SetHigherValue(higher_value);
             if (temp_lower_value != lower_value)
                 SetLowerValue(lower_value);
             result = true;
         }
+
         ImGui::Dummy(ImVec2(8,0));
         ImGui::SameLine(44);
         ImTextureID normal_id = is_one_layer() ? m_one_layer_on_id : m_one_layer_off_id;
@@ -687,6 +778,36 @@ bool IMSlider::render(int canvas_width, int canvas_height)
     ImGui::PopStyleVar(1);
     ImGui::PopStyleColor(2);
     return result;
+}
+
+void IMSlider::render_menu()
+{
+    ImGuiWrapper::push_menu_style();
+    std::vector<std::string> colors = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    int extruder_num = colors.size();
+
+    if (ImGui::Button("menu")) {
+        ImGui::OpenPopup("slider_menu_popup");
+    }
+
+    if (ImGui::BeginPopup("slider_menu_popup")) {
+        bool selected = false;
+        ImGui::MenuItem(_u8L("Add Pause").c_str(), "", &selected);
+        if (selected) { add_code_as_tick(PausePrint); }
+
+        if (ImGui::BeginMenu(_u8L("Change Filament").c_str())) {
+            for (int i = 0; i < extruder_num; i++) {
+                bool filament_selected = false;
+                ImGui::MenuItem((_u8L("Filament ") + std::to_string(i)).c_str(), "", &filament_selected);
+                if (filament_selected) {
+                    add_code_as_tick(ToolChange, i);
+                }
+            }
+            ImGui::EndMenu();
+        }
+        ImGui::EndPopup();
+    }
+    ImGuiWrapper::pop_menu_style();
 }
 
 void IMSlider::correct_lower_value()

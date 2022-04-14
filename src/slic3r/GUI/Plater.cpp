@@ -1946,6 +1946,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     if (wxGetApp().is_editor()) {
         preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
         preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_COLLAPSE_SIDEBAR, [this](SimpleEvent&) { this->q->collapse_sidebar(!this->q->is_sidebar_collapsed());  });
+        preview->get_wxglcanvas()->Bind(EVT_CUSTOMEVT_TICKSCHANGED, [this](SimpleEvent&) {
+            Model &model                   = wxGetApp().plater()->model();
+            model.custom_gcode_per_print_z = preview->get_canvas3d()->get_gcode_viewer().get_layers_slider()->GetTicksValues();
+            preview->on_tick_changed();
+        });
     }
     if (wxGetApp().is_gcode_viewer())
         preview->Bind(EVT_GLCANVAS_RELOAD_FROM_DISK, [this](SimpleEvent&) { this->q->reload_gcode_from_disk(); });

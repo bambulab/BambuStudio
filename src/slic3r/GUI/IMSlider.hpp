@@ -255,13 +255,20 @@ public:
 
     void UseDefaultColors(bool def_colors_on) { m_ticks.set_default_colors(def_colors_on); }
 
+    void add_code_as_tick(Type type, int selected_extruder = -1);
+    void post_ticks_changed_event(Type type = Custom);
+    bool check_ticks_changed_event(Type type);
     void switch_one_layer_mode();
 
     bool render(int canvas_width, int canvas_height);
 
+    void render_menu();
+
     //BBS update scroll value changed
     bool is_dirty() { return m_dirty; }
     void set_as_dirty(bool dirty = true) { m_dirty = dirty; }
+    bool is_need_post_tick_event() { return m_is_need_post_tick_changed_event; }
+    void reset_post_tick_event(bool val = false) { m_is_need_post_tick_changed_event = val; }
 
     ExtrudersSequence m_extruders_sequence;
 protected:
@@ -325,6 +332,7 @@ private:
     std::vector<double>      m_layers_values;
     std::vector<std::string> m_extruder_colors;
     std::string              m_print_obj_idxs;
+    bool                     m_is_need_post_tick_changed_event;
 
     std::vector<double> m_alternate_values;
 };

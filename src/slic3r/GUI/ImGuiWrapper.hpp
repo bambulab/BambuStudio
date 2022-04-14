@@ -168,6 +168,8 @@ public:
     //BBS
     static void push_toolbar_style();
     static void pop_toolbar_style();
+    static void push_menu_style();
+    static void pop_menu_style();
 
 private:
     void init_font(bool compress);

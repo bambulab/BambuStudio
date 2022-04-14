@@ -359,6 +359,13 @@ void Preview::sys_color_changed()
     // m_layers_slider->sys_color_changed();
 }
 
+void Preview::on_tick_changed()
+{
+    m_schedule_background_process();
+    m_keep_current_preview_type = false;
+    reload_print(false);
+}
+
 void Preview::bind_event_handlers()
 {
     this->Bind(wxEVT_SIZE, &Preview::on_size, this);
