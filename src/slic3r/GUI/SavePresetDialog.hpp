@@ -7,13 +7,18 @@
 #include "wxExtensions.hpp"
 #include "GUI_Utils.hpp"
 #include "Widgets/RadioBox.hpp"
+#include "Widgets/Button.hpp"
+#include "Widgets/RoundedRectangle.hpp"
+#include "Widgets/Label.hpp"
 
 class wxString;
 class wxStaticText;
 class wxComboBox;
 class wxStaticBitmap;
 
-#define DEF_BK_COLOR wxColour(255, 255, 255)
+#define SAVE_PRESET_DIALOG_DEF_COLOUR wxColour(255, 255, 255)
+#define SAVE_PRESET_DIALOG_INPUT_SIZE wxSize(FromDIP(360), FromDIP(32))
+#define SAVE_PRESET_DIALOG_BUTTON_SIZE wxSize(FromDIP(60), FromDIP(24))
 
 namespace Slic3r {
 namespace GUI {
@@ -28,8 +33,9 @@ class SavePresetDialog : public DPIDialog
         UndefAction
     };
 
-    struct Item
+    class Item : public wxWindow
     {
+    public:
         enum ValidationType
         {
             Valid,
@@ -41,6 +47,7 @@ class SavePresetDialog : public DPIDialog
 
         void            update_valid_bmp();
         void accept();
+        virtual void DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
 
         bool            is_valid()      const { return m_valid_type != NoValid; }
         Preset::Type    type()          const { return m_type; }
@@ -48,7 +55,7 @@ class SavePresetDialog : public DPIDialog
         //BBS: add project embedded preset relate logic
         bool save_to_project() const { return m_save_to_project; }
 
-    private:
+        RoundedRectangle* m_input_area      {nullptr};
         Preset::Type    m_type;
         ValidationType  m_valid_type;
         std::string		m_preset_name;
@@ -71,6 +78,8 @@ class SavePresetDialog : public DPIDialog
 
     std::vector<Item*>   m_items;
 
+    Button*             m_confirm           {nullptr};
+    Button*             m_cancel            {nullptr};
     wxBoxSizer*         m_presets_sizer     {nullptr};
     wxStaticText*       m_label             {nullptr};
     wxBoxSizer*         m_radio_sizer       {nullptr};  
