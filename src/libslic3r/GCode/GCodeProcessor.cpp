@@ -49,7 +49,7 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     " LINE_WIDTH: ",
     " CHANGE_LAYER",
     " COLOR_CHANGE",
-    " PAUSE_PRINT",
+    " PAUSE_PRINTING",
     " CUSTOM_GCODE",
     "_GP_FIRST_LINE_M73_PLACEHOLDER",
     "_GP_LAST_LINE_M73_PLACEHOLDER",

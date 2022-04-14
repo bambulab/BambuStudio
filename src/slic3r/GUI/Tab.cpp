@@ -2820,6 +2820,15 @@ void TabPrinter::build_fff()
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
+        optgroup = page->new_optgroup(L("Pause G-code"), 0);
+        optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
+            validate_custom_gcode_cb(this, optgroup, opt_key, value);
+        };
+        option = optgroup->get_option("pause_print_gcode");
+        option.opt.is_code = true;
+        option.opt.height = gcode_field_height;//150;
+        optgroup->append_single_option_line(option);
+
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced");
     //    optgroup = page->new_optgroup(L("Profile dependencies"));

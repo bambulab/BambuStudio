@@ -712,6 +712,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               travel_speed))
     ((ConfigOptionFloat,               travel_speed_z))
     ((ConfigOptionBool,                silent_mode))
+    ((ConfigOptionString,              pause_print_gcode))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.

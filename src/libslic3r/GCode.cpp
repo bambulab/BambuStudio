@@ -819,7 +819,7 @@ namespace DoExport {
         //BBS
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Printing by object G-code")), config.printing_by_object_gcode.value);
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Color Change G-code")), config.color_change_gcode.value);
-        //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Pause Print G-code")), config.pause_print_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Pause G-code")), config.pause_print_gcode.value);
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Template Custom G-code")), config.template_custom_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) {
             for (const std::string& value : config.filament_start_gcode.values) {
@@ -2102,7 +2102,7 @@ namespace ProcessLayer
                 m600_extruder_before_layer = custom_gcode->extruder - 1;
             else if (gcode_type == CustomGCode::PausePrint)
                 pause_print_msg = custom_gcode->extra;
-            //BBS: inserting color gcode, pause gcode and template_custom_gcode is removed
+            //BBS: inserting color gcode and template_custom_gcode is removed
 #if 0
             // we should add or not colorprint_change in respect to nozzle_diameter count instead of really used extruders count
             if (color_change || tool_change)
@@ -2132,15 +2132,17 @@ namespace ProcessLayer
                 }
 	        }
 	        else {
+#endif
 	            if (gcode_type == CustomGCode::PausePrint) // Pause print
 	            {
                     // add tag for processor
                     gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Pause_Print) + "\n";
                     //! FIXME_in_fw show message during print pause
-	                if (!pause_print_msg.empty())
-	                    gcode += "M117 " + pause_print_msg + "\n";
+	                //if (!pause_print_msg.empty())
+	                //    gcode += "M117 " + pause_print_msg + "\n";
                     gcode += gcodegen.placeholder_parser_process("pause_print_gcode", config.pause_print_gcode, current_extruder_id);
                 }
+#if 0
 	            else {
                     // add tag for processor
                     gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Custom_Code) + "\n";
@@ -2153,6 +2155,7 @@ namespace ProcessLayer
                 gcode += "\n";
             }
 #endif
+
         }
 
         return gcode;

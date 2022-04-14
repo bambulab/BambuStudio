@@ -699,7 +699,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "default_print_profile", "inherits",
     "silent_mode",
     // BBS
-    "scan_first_layer", "spaghetti_detector", "machine_load_filament_time", "machine_unload_filament_time",
+    "scan_first_layer", "spaghetti_detector", "machine_load_filament_time", "machine_unload_filament_time", "pause_print_gcode"
 };
 
 static std::vector<std::string> s_Preset_sla_print_options {

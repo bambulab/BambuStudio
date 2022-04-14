@@ -84,8 +84,7 @@ static std::string gcode(Type type)
     switch (type) {
     //BBS
     //case ColorChange: return config.color_change_gcode;
-    //TODO add PausePrint back
-    //case PausePrint:  return config.pause_print_gcode;
+    case PausePrint:  return config.pause_print_gcode;
     //case Template:    return config.template_custom_gcode;
     default:          return "";
     }

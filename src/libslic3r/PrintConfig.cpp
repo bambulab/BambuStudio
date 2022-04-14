@@ -1310,6 +1310,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("pause_print_gcode", coString);
+    def->label = L("Pause G-code");
+    //def->tooltip = L("This G-code will be used as a code for the pause print");
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 12;
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionString(""));
+
     {
         struct AxisDefault {
             std::string         name;
