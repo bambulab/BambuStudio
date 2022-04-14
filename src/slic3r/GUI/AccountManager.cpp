@@ -300,6 +300,7 @@ namespace Slic3r {
         kek.resize(32, '0');
         KeyStore::global_consumers.push_back({ m_curr_user->get_user_id(), "",  kek});
 
+        GUI::wxGetApp().preset_bundle->update_user_presets_directory(m_curr_user->get_user_id());
         if (online_login)
             GUI::wxGetApp().reload_user_presets();
     }
@@ -2996,7 +2997,7 @@ namespace Slic3r {
 
         if (is_user_login())
         {
-            on_user_login();
+            on_user_login(true);
         }
     }
 

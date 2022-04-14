@@ -1178,6 +1178,16 @@ int PresetCollection::get_user_presets(std::vector<Preset>& result_presets)
     return count;
 }
 
+//BBS: update user presets directory
+void PresetCollection::update_user_presets_directory(const std::string& dir_path, const std::string& type)
+{
+    boost::filesystem::path dir = boost::filesystem::absolute(boost::filesystem::path(dir_path) / type).make_preferred();
+
+    if (!fs::exists(dir))
+        fs::create_directory(dir);
+
+    m_dir_path = dir.string();
+}
 
 //BBS: save user presets to local
 void PresetCollection::save_user_presets(const std::string& dir_path, const std::string& type, std::vector<std::string>& need_to_delete_list)

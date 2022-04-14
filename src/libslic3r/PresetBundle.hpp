@@ -48,6 +48,7 @@ public:
     PresetsConfigSubstitutions load_user_presets(AppConfig &config, std::map<std::string, Preset*> my_presets, ForwardCompatibilitySubstitutionRule rule);
     void save_user_presets(AppConfig& config, std::vector<std::string>& need_to_delete_list);
     void remove_users_preset(AppConfig &config);
+    void  update_user_presets_directory(const std::string preset_folder);
 
     //BBS: add API to get previous machine
     bool validate_printers(const std::string &name, DynamicPrintConfig& config);

@@ -438,6 +438,23 @@ void PresetBundle::save_user_presets(AppConfig& config, std::vector<std::string>
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished");
 }
 
+//BBS: save user preset to user_id preset folder
+void PresetBundle::update_user_presets_directory(const std::string preset_folder)
+{
+    //BBS: change directory by design
+    const std::string dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/"+ preset_folder;
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, update directory to %1%")%dir_user_presets;
+    fs::path folder(dir_user_presets);
+    if (!fs::exists(folder))
+        fs::create_directory(folder);
+
+    this->prints.update_user_presets_directory(dir_user_presets, PRESET_PRINT_NAME);
+    this->filaments.update_user_presets_directory(dir_user_presets, PRESET_FILAMENT_NAME);
+    this->printers.update_user_presets_directory(dir_user_presets, PRESET_PRINTER_NAME);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished");
+}
+
 //BBS: validate printers from previous project
 bool PresetBundle::validate_printers(const std::string &name, DynamicPrintConfig& config)
 {

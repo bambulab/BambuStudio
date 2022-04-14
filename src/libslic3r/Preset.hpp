@@ -396,7 +396,8 @@ public:
     // Load ini files of the particular type from the provided directory path.
     void            load_presets(const std::string &dir_path, const std::string &subdir, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
 
-    //BBS Load user presets
+    //BBS: update user presets directory
+    void            update_user_presets_directory(const std::string& dir_path, const std::string& type);
     void            save_user_presets(const std::string& dir_path, const std::string& type, std::vector<std::string>& need_to_delete_list);
     void            load_user_presets(std::map<std::string, Preset*> my_presets, const std::string& type, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
     //BBS: get user presets
