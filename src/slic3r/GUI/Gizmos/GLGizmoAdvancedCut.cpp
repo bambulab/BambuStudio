@@ -53,7 +53,8 @@ static void rotate_z_3d(std::array<Vec3d, 4>& verts, float radian_angle)
 
 const double GLGizmoAdvancedCut::Offset = 10.0;
 const double GLGizmoAdvancedCut::Margin = 20.0;
-const std::array<float, 4> GLGizmoAdvancedCut::GrabberColor = { 1.0, 0.5, 0.0, 1.0 };
+const std::array<float, 4> GLGizmoAdvancedCut::GrabberColor      = { 1.0, 1.0, 0.0, 1.0 };
+const std::array<float, 4> GLGizmoAdvancedCut::GrabberHoverColor = { 0.7, 0.7, 0.0, 1.0};
 
 GLGizmoAdvancedCut::GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoRotate3D(parent, icon_filename, sprite_id, nullptr)
@@ -274,13 +275,17 @@ void GLGizmoAdvancedCut::on_render()
     glsafe(::glDisable(GL_DEPTH_TEST));
     glsafe(::glLineWidth(m_hover_id != -1 ? 2.0f : 1.5f));
     glsafe(::glColor3f(1.0, 1.0, 0.0));
+    glLineStipple(1, 0x0FFF);
+    glEnable(GL_LINE_STIPPLE);
     ::glBegin(GL_LINES);
     ::glVertex3dv(plane_center_rot.data());
     ::glVertex3dv(m_move_grabber.center.data());
     glsafe(::glEnd());
+    glDisable(GL_LINE_STIPPLE);
 
     //std::copy(std::begin(GrabberColor), std::end(GrabberColor), m_move_grabber.color);
     m_move_grabber.color = GrabberColor;
+    m_move_grabber.hover_color = GrabberHoverColor;
     m_move_grabber.render(m_hover_id == get_group_id(), (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0));
 
     // Should be placed at last, because GLGizmoRotate3D clears depth buffer

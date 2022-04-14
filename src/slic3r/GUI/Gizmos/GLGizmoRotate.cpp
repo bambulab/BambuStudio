@@ -708,7 +708,8 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
         glsafe(::glEnd());
     }
 
-    m_grabbers[0].color = m_highlight_color;
+    m_grabbers[0].color = AXES_COLOR[m_axis];
+    m_grabbers[0].hover_color = AXES_HOVER_COLOR[m_axis];
     //render_grabbers(box);
 
     //render arrow
@@ -797,9 +798,7 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
 
     std::array<float, 4> color = m_grabbers[0].color;
     if (!picking && m_hover_id != -1) {
-        color[0] = 1.0f - color[0];
-        color[1] = 1.0f - color[1];
-        color[2] = 1.0f - color[2];
+        color = m_grabbers[0].hover_color;
     }
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");

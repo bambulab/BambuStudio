@@ -351,23 +351,18 @@ std::array<float, 4> GLVolume::SLA_PAD_COLOR     = { 0.0f, 0.2f, 0.0f, 1.0f };
 std::array<float, 4> GLVolume::NEUTRAL_COLOR     = { 0.9f, 0.9f, 0.9f, 1.0f };
 std::array<float, 4> GLVolume::UNPRINTABLE_COLOR = { 0.0f, 0.0f, 0.0f, 0.5f };
 
-//std::array<std::array<float, 4>, 5> GLVolume::MODEL_COLOR = { {
-//    { 1.0f, 1.0f, 0.0f, 1.f },
-//    { 1.0f, 0.5f, 0.5f, 1.f },
-//    { 0.5f, 1.0f, 0.5f, 1.f },
-//    { 0.5f, 0.5f, 1.0f, 1.f },
-//    { 1.0f, 1.0f, 0.0f, 1.f }
-//} };
+std::array<float, 4> GLVolume::MODEL_MIDIFIER_COL   = {1.0f, 1.0f, 0.0f, 0.6f};
+std::array<float, 4> GLVolume::MODEL_NEGTIVE_COL    = {0.3f, 0.3f, 0.3f, 0.4f};
+std::array<float, 4> GLVolume::SUPPORT_ENFORCER_COL = {0.3f, 0.3f, 1.0f, 0.4f};
+std::array<float, 4> GLVolume::SUPPORT_BLOCKER_COL  = {1.0f, 0.3f, 0.3f, 0.4f};
 
 std::array<std::array<float, 4>, 5> GLVolume::MODEL_COLOR = { {
-        { 0.000f, 0.604f, 0.870f, 1.f },    // #009ADE
-        { 0.118f, 0.667f, 0.224f, 1.f },    // #1EAA39
-        { 0.929f, 0.251f, 0.663f, 1.f },    // #ED40A9
-        { 0.898f, 0.263f, 0.376f, 1.f },    // #E54360
-        { 1.0f, 1.0f, 0.0f, 1.f }
+    { 1.0f, 1.0f, 0.0f, 1.f },
+    { 1.0f, 0.5f, 0.5f, 1.f },
+    { 0.5f, 1.0f, 0.5f, 1.f },
+    { 0.5f, 0.5f, 1.0f, 1.f },
+    { 1.0f, 1.0f, 0.0f, 1.f }
 } };
-
-
 
 void GLVolume::update_render_colors()
 {
@@ -491,17 +486,13 @@ void GLVolume::set_render_color()
 
 std::array<float, 4> color_from_model_volume(const ModelVolume& model_volume)
 {
-    std::array<float, 4> color;
+    std::array<float, 4> color = {0.0f, 0.0f, 0.0f, 1.0f};
     if (model_volume.is_negative_volume()) {
-        color[0] = 0.2f;
-        color[1] = 0.2f;
-        color[2] = 0.2f;
+        return GLVolume::MODEL_NEGTIVE_COL;
     }
     else if (model_volume.is_modifier()) {
 #if ENABLE_MODIFIERS_ALWAYS_TRANSPARENT
-        color[0] = 1.0f;
-        color[1] = 1.0f;
-        color[2] = 0.2f;
+        return GLVolume::MODEL_MIDIFIER_COL;
 #else
         color[0] = 0.2f;
         color[1] = 1.0f;
@@ -509,16 +500,11 @@ std::array<float, 4> color_from_model_volume(const ModelVolume& model_volume)
 #endif // ENABLE_MODIFIERS_ALWAYS_TRANSPARENT
     }
     else if (model_volume.is_support_blocker()) {
-        color[0] = 1.0f;
-        color[1] = 0.2f;
-        color[2] = 0.2f;
+        return GLVolume::SUPPORT_BLOCKER_COL;
     }
     else if (model_volume.is_support_enforcer()) {
-        color[0] = 0.2f;
-        color[1] = 0.2f;
-        color[2] = 1.0f;
+        return GLVolume::SUPPORT_ENFORCER_COL;
     }
-    color[3] = model_volume.is_model_part() ? 1.f : 0.5f;
     return color;
 }
 
@@ -936,7 +922,7 @@ int GLVolumeCollection::load_object_volume(
     const ModelInstance *instance 	  = model_object->instances[instance_idx];
     const TriangleMesh  &mesh 		  = model_volume->mesh();
     std::array<float, 4> color = GLVolume::MODEL_COLOR[((color_by == "volume") ? volume_idx : obj_idx) % 4];
-    color[3] = model_volume->is_model_part() ? 1.f : 0.5f;
+    color[3] = model_volume->is_model_part() ? 0.7f : 0.4f;
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume& v = *this->volumes.back();
     v.set_color(color_from_model_volume(*model_volume));

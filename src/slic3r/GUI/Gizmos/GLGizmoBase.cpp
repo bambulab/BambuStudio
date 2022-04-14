@@ -24,19 +24,27 @@ const float GLGizmoBase::Grabber::FixedRadiusSize = 80.0f;
 std::array<float, 4> GLGizmoBase::DEFAULT_BASE_COLOR = { 0.625f, 0.625f, 0.625f, 1.0f };
 std::array<float, 4> GLGizmoBase::DEFAULT_DRAG_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
 std::array<float, 4> GLGizmoBase::DEFAULT_HIGHLIGHT_COLOR = { 1.0f, 0.38f, 0.0f, 1.0f };
-std::array<std::array<float, 4>, 3> GLGizmoBase::AXES_COLOR = { {decode_color_to_float_array("#F5333F"),
-                                                                decode_color_to_float_array("#38D430"),
-                                                                decode_color_to_float_array("#0097CE")
+std::array<std::array<float, 4>, 3> GLGizmoBase::AXES_HOVER_COLOR = {{
+                                                                { 0.7f, 0.0f, 0.0f, 1.0f },
+                                                                { 0.0f, 0.7f, 0.0f, 1.0f },
+                                                                { 0.0f, 0.0f, 0.7f, 1.0f }
+                                                                }};
+
+std::array<std::array<float, 4>, 3> GLGizmoBase::AXES_COLOR = { {
+                                                                { 1.0, 0.0f, 0.0f, 1.0f },
+                                                                { 0.0f, 1.0f, 0.0f, 1.0f },
+                                                                { 0.0f, 0.0f, 1.0f, 1.0f }
                                                                 }};
 
 std::array<float, 4> GLGizmoBase::CONSTRAINED_COLOR = { 0.5f, 0.5f, 0.5f, 1.0f };
-std::array<float, 4> GLGizmoBase::FLATTEN_COLOR = { 0.9f, 0.9f, 0.9f, 0.5f };
-std::array<float, 4> GLGizmoBase::FLATTEN_HOVER_COLOR = { 0.9f, 0.9f, 0.9f, 0.75f };
+std::array<float, 4> GLGizmoBase::FLATTEN_COLOR = { 0.96f, 0.93f, 0.93f, 0.5f };
+std::array<float, 4> GLGizmoBase::FLATTEN_HOVER_COLOR = { 1.0f, 1.0f, 1.0f, 0.75f };
 
 // new style color
-std::array<float, 4> GLGizmoBase::GRABBER_NORMAL_COL = {0.2f, 0.2f, 0.2f, 1.0f};
+std::array<float, 4> GLGizmoBase::GRABBER_NORMAL_COL = {1.0f, 1.0f, 1.0f, 1.0f};
 std::array<float, 4> GLGizmoBase::GRABBER_HOVER_COL  = {0.863f, 0.125f, 0.063f, 1.0f};
-std::array<float, 4> GLGizmoBase::GRABBER_UNIFORM_COL = {0.863f, 0.863f, 0.863f, 1.0f};
+std::array<float, 4> GLGizmoBase::GRABBER_UNIFORM_COL = {0, 1.0, 1.0, 1.0f};
+std::array<float, 4> GLGizmoBase::GRABBER_UNIFORM_HOVER_COL = {0, 0.7, 0.7, 1.0f};
 
 
 void GLGizmoBase::update_render_colors()

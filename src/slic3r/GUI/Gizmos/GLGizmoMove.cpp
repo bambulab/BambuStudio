@@ -117,8 +117,8 @@ void GLGizmoMove3D::on_render()
     m_grabbers[2].center = { center.x(), center.y(), box.max.z() };
 
     for (int i = 0; i < 3; ++i) {
-        m_grabbers[i].color       = GRABBER_NORMAL_COL;
-        m_grabbers[i].hover_color = GRABBER_HOVER_COL;
+        m_grabbers[i].color       = AXES_COLOR[i];
+        m_grabbers[i].hover_color = AXES_HOVER_COLOR[i];
     }
 #else
     // x axis
@@ -145,7 +145,7 @@ void GLGizmoMove3D::on_render()
     // draw axes
     for (unsigned int i = 0; i < 3; ++i) {
         if (m_grabbers[i].enabled) {
-            glsafe(::glColor4fv(GRABBER_NORMAL_COL.data()));
+            glsafe(::glColor4fv(AXES_COLOR[i].data()));
             glLineStipple(1, 0x0FFF);
             glEnable(GL_LINE_STIPPLE);
             ::glBegin(GL_LINES);

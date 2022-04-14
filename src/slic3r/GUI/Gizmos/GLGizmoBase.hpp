@@ -42,12 +42,14 @@ public:
     static std::array<float, 4> DEFAULT_DRAG_COLOR;
     static std::array<float, 4> DEFAULT_HIGHLIGHT_COLOR;
     static std::array<std::array<float, 4>, 3> AXES_COLOR;
+    static std::array<std::array<float, 4>, 3> AXES_HOVER_COLOR;
     static std::array<float, 4> CONSTRAINED_COLOR;
     static std::array<float, 4> FLATTEN_COLOR;
     static std::array<float, 4> FLATTEN_HOVER_COLOR;
     static std::array<float, 4> GRABBER_NORMAL_COL;
     static std::array<float, 4> GRABBER_HOVER_COL;
     static std::array<float, 4> GRABBER_UNIFORM_COL;
+    static std::array<float, 4> GRABBER_UNIFORM_HOVER_COL;
 
     static void update_render_colors();
     static void load_render_colors();

@@ -194,12 +194,13 @@ void GLGizmoScale3D::on_render()
     m_grabbers[9].center = m_transform * Vec3d(m_box.min(0), m_box.max(1), m_box.min(2));
 
     for (int i = 0; i < 6; ++i) {
-        m_grabbers[i].color       = GRABBER_NORMAL_COL;
-        m_grabbers[i].hover_color = GRABBER_HOVER_COL;
+        m_grabbers[i].color       = AXES_COLOR[i/2];
+        m_grabbers[i].hover_color = AXES_HOVER_COLOR[i/2];
     }
+
     for (int i = 6; i < 10; ++i) {
         m_grabbers[i].color       = GRABBER_UNIFORM_COL;
-        m_grabbers[i].hover_color = GRABBER_HOVER_COL;
+        m_grabbers[i].hover_color = GRABBER_UNIFORM_HOVER_COL;
     }
 
     // sets grabbers orientation
@@ -214,14 +215,18 @@ void GLGizmoScale3D::on_render()
     float grabber_mean_size = (float)((selection_box.size()(0) + selection_box.size()(1) + selection_box.size()(2)) / 3.0);
 
      //draw connections
-    glsafe(::glColor4fv(GRABBER_NORMAL_COL.data()));
 
-    if (single_instance || single_volume)
+    if (single_instance || single_volume) {
+        glsafe(::glColor4fv(m_grabbers[4].color.data()));
         render_grabbers_connection(4, 5);
+    }
 
+    glsafe(::glColor4fv(m_grabbers[2].color.data()));
     render_grabbers_connection(6, 7);
-    render_grabbers_connection(7, 8);
     render_grabbers_connection(8, 9);
+
+    glsafe(::glColor4fv(m_grabbers[0].color.data()));
+    render_grabbers_connection(7, 8);
     render_grabbers_connection(9, 6);
 
     // draw grabbers

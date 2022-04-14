@@ -176,6 +176,7 @@ public:
     static std::array<float, 4> DEFAULT_COLOR;
     static std::array<float, 4> LINE_BOTTOM_COLOR;
     static std::array<float, 4> LINE_TOP_COLOR;
+    static std::array<float, 4> LINE_TOP_SEL_COLOR;
     static std::array<float, 4> HEIGHT_LIMIT_BOTTOM_COLOR;
     static std::array<float, 4> HEIGHT_LIMIT_TOP_COLOR;
 

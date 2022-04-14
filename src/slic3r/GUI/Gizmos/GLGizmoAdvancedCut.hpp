@@ -13,6 +13,7 @@ private:
     static const double Offset;
     static const double Margin;
     static const std::array<float, 4> GrabberColor;
+    static const std::array<float, 4> GrabberHoverColor;
 
     mutable double m_movement;
     double m_start_movement;

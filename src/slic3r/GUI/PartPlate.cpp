@@ -65,9 +65,10 @@ namespace GUI {
 class Bed3D;
 
 std::array<float, 4> PartPlate::SELECT_COLOR		= { 0.367f, 0.367f, 0.367f, 1.0f };
-std::array<float, 4> PartPlate::UNSELECT_COLOR		= { 0.765f, 0.765f, 0.765f, 1.0f };
+std::array<float, 4> PartPlate::UNSELECT_COLOR		= { 0.82f, 0.82f, 0.82f, 1.0f };
 std::array<float, 4> PartPlate::DEFAULT_COLOR		= { 0.5f, 0.5f, 0.5f, 1.0f };
-std::array<float, 4> PartPlate::LINE_TOP_COLOR		= { 0.6f, 0.6f, 0.6f, 0.6f };
+std::array<float, 4> PartPlate::LINE_TOP_COLOR		= { 0.89f, 0.89f, 0.89f, 0.6f };
+std::array<float, 4> PartPlate::LINE_TOP_SEL_COLOR  = { 0.28f, 0.28f, 0.28f, 0.6f};
 std::array<float, 4> PartPlate::LINE_BOTTOM_COLOR	= { 0.8f, 0.8f, 0.8f, 0.4f };
 std::array<float, 4> PartPlate::HEIGHT_LIMIT_TOP_COLOR		= { 0.6f, 0.6f, 1.0f, 1.0f };
 std::array<float, 4> PartPlate::HEIGHT_LIMIT_BOTTOM_COLOR	= { 0.4f, 0.4f, 1.0f, 1.0f };
@@ -386,8 +387,12 @@ void PartPlate::render_grid(bool bottom) const {
 	glsafe(::glLineWidth(1.5f * m_scale_factor));
 	if (bottom)
 		glsafe(::glColor4fv(LINE_BOTTOM_COLOR.data()));
-	else
-		glsafe(::glColor4fv(LINE_TOP_COLOR.data()));
+    else {
+        if (m_selected)
+            glsafe(::glColor4fv(LINE_TOP_SEL_COLOR.data()));
+        else
+			glsafe(::glColor4fv(LINE_TOP_COLOR.data()));
+    }
 	glsafe(::glVertexPointer(3, GL_FLOAT, m_gridlines.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
 	glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines.get_vertices_count()));
 }
