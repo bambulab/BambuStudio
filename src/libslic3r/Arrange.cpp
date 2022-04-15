@@ -190,7 +190,7 @@ protected:
         if (dist_corner_y < 0 || dist_corner_x<0)
             return LARGE_COST_TO_REJECT;
         double bindist = norm(dist_corner_y + 0.1 * dist_corner_x
-            + 0.1 * double(ibb.maxCorner().y() - ibb.minCorner().y()));  // occupy as few rows as possible
+            + 1 * double(ibb.maxCorner().y() - ibb.minCorner().y()));  // occupy as few rows as possible
         return bindist;
     }
 
@@ -273,63 +273,68 @@ protected:
             double dist = norm(*(std::min_element(dists.begin(), dists.end())));
             if (m_pconf.starting_point == PConfig::Alignment::BOTTOM_LEFT) {
                 double bindist = dist_for_BOTTOM_LEFT(ibb, origin_pack);
-                dist = 0.2 * dist + 0.8 * bindist;
+                score = 0.2 * dist + 0.8 * bindist;
             }
             else {
                 double bindist = norm(pl::distance(ibb.center(), origin_pack));
                 dist = 0.8 * dist + 0.2 * bindist;
+
+
+                // Prepare a variable for the alignment score.
+                // This will indicate: how well is the candidate item
+                // aligned with its neighbors. We will check the alignment
+                // with all neighbors and return the score for the best
+                // alignment. So it is enough for the candidate to be
+                // aligned with only one item.
+                auto alignment_score = 1.0;
+
+                auto query = bgi::intersects(ibb);
+                auto& index = isBig(item.area()) ? spatindex : smalls_spatindex;
+
+                // Query the spatial index for the neighbors
+                std::vector<SpatElement> result;
+                result.reserve(index.size());
+
+                index.query(query, std::back_inserter(result));
+
+                // now get the score for the best alignment
+                for (auto& e : result) {
+                    auto idx = e.second;
+                    Item& p = m_items[idx];
+                    auto parea = p.area();
+                    if (std::abs(1.0 - parea / item.area()) < 1e-6) {
+                        auto bb = sl::boundingBox(p.boundingBox(), ibb);
+                        auto bbarea = bb.area();
+                        auto ascore = 1.0 - (item.area() + parea) / bbarea;
+
+                        if (ascore < alignment_score) alignment_score = ascore;
+                        }
+                    }
+
+                density = std::sqrt(norm(fullbb.width()) * norm(fullbb.height()));
+                double R = double(m_remaining.size()) / m_item_count;
+
+                // The final mix of the score is the balance between the
+                // distance from the full pile center, the pack density and
+                // the alignment with the neighbors
+                if (result.empty())
+                    score = 0.50 * dist + 0.50 * density;
+                else
+                    // Let the density matter more when fewer objects remain
+                    score = 0.50 * dist + (1.0 - R) * 0.20 * density +
+                    0.30 * alignment_score;
             }
-
-            // Prepare a variable for the alignment score.
-            // This will indicate: how well is the candidate item
-            // aligned with its neighbors. We will check the alignment
-            // with all neighbors and return the score for the best
-            // alignment. So it is enough for the candidate to be
-            // aligned with only one item.
-            auto alignment_score = 1.0;
-
-            auto query = bgi::intersects(ibb);
-            auto& index = isBig(item.area()) ? spatindex : smalls_spatindex;
-
-            // Query the spatial index for the neighbors
-            std::vector<SpatElement> result;
-            result.reserve(index.size());
-
-            index.query(query, std::back_inserter(result));
-
-            // now get the score for the best alignment
-            for(auto& e : result) { 
-                auto idx = e.second;
-                Item& p = m_items[idx];
-                auto parea = p.area();
-                if(std::abs(1.0 - parea/item.area()) < 1e-6) {
-                    auto bb = sl::boundingBox(p.boundingBox(), ibb);
-                    auto bbarea = bb.area();
-                    auto ascore = 1.0 - (item.area() + parea)/bbarea;
-
-                    if(ascore < alignment_score) alignment_score = ascore;
-                }
-            }
-            
-            density = std::sqrt(norm(fullbb.width()) * norm(fullbb.height()));
-            double R = double(m_remaining.size()) / m_item_count;
-            
-            // The final mix of the score is the balance between the
-            // distance from the full pile center, the pack density and
-            // the alignment with the neighbors
-            if (result.empty())
-                score = 0.50 * dist + 0.50 * density;
-            else
-                // Let the density matter more when fewer objects remain
-                score = 0.50 * dist + (1.0 - R) * 0.20 * density +
-                        0.30 * alignment_score;
-
             break;
         }
         case LAST_BIG_ITEM: {
-            score = 0.5 * norm(pl::distance(ibb.center(), origin_pack));
-            if (m_pilebb.defined)
-                score += 0.5 * norm(pl::distance(ibb.center(), m_pilebb.center()));
+            if (m_pconf.starting_point == PConfig::Alignment::BOTTOM_LEFT) {
+                score = dist_for_BOTTOM_LEFT(ibb, origin_pack);
+            }
+            else {
+                score = 0.5 * norm(pl::distance(ibb.center(), origin_pack));
+                if (m_pilebb.defined)
+                    score += 0.5 * norm(pl::distance(ibb.center(), m_pilebb.center()));
+            }
             break;
         }
         case SMALL_ITEM: {
@@ -358,15 +363,21 @@ protected:
         bool hasLidHeightConflict = false;
         auto iy1 = item.boundingBox().minCorner().y();
         auto iy2 = item.boundingBox().maxCorner().y();
+        auto ix1 = item.boundingBox().minCorner().x();
+
         for (int i = 0; i < m_items.size(); i++) {
             Item& p = m_items[i];
             if (p.is_virt_object) continue;
+            auto px1 = p.boundingBox().minCorner().x();
             auto py1 = p.boundingBox().minCorner().y();
             auto py2 = p.boundingBox().maxCorner().y();
             auto inter_min = std::max(iy1, py1); // min y of intersection
             auto inter_max = std::min(iy2, py2); // max y of intersection. length=max_y-min_y>0 means intersection exists
-            if (inter_max - inter_min > 0)
-                hasRowHeightConflict |= (p.height > clearance_height_to_rod);
+            if (inter_max - inter_min > 0) {
+                // if they inter, the one on the left will be printed first
+                double h = ix1 < px1 ? item.height : p.height;
+                hasRowHeightConflict |= (h > clearance_height_to_rod);
+            }
             // only last item can be heigher than clearance_height_to_lid, so if the existing items are higher than clearance_height_to_lid, there is height conflict
             hasLidHeightConflict |= (p.height > clearance_height_to_lid);
         }

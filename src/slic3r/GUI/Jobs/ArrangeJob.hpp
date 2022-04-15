@@ -30,13 +30,15 @@ class ArrangeJob : public PlaterJob
 
     // Prepare the selected and unselected items separately. If nothing is
     // selected, behaves as if everything would be selected.
-    void prepare_all();
+    void prepare_selected();
 
-    ArrangePolygon get_arrange_poly_(ModelInstance *mi);
+    void prepare_all();
 
     //BBS:prepare the items from current selected partplate
     void prepare_partplate();
 
+    ArrangePolygon get_arrange_poly_(ModelInstance* mi);
+    
     ArrangePolygon prepare_arrange_polygon(void* instance);
 
 protected:
