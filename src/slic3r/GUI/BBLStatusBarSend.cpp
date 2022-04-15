@@ -5,6 +5,7 @@
 #include <wx/button.h>
 #include <wx/statusbr.h>
 #include <wx/frame.h>
+#include "wx/evtloop.h"
 
 #include "GUI_App.hpp"
 
@@ -56,6 +57,7 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     m_sizer_eline->Add(m_cancelbutton, 0, wxEXPAND, 0);
 
     m_cancelbutton->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) {
+        m_was_cancelled = true;
         if (m_cancel_cb_fina) 
             m_cancel_cb_fina();
     });
@@ -191,6 +193,27 @@ wxString BBLStatusBarSend::get_status_text() const
 {
     return m_status_text->GetLabelText();
 }
+
+bool BBLStatusBarSend::update_status(wxString &msg, bool &was_cancel, int percent, bool yield)
+{
+    set_status_text(msg);
+
+    if (percent >= 0)
+        this->set_progress(percent);
+
+    if (yield)
+        wxEventLoopBase::GetActive()->YieldFor(wxEVT_CATEGORY_UI | wxEVT_CATEGORY_USER_INPUT);
+    was_cancel = m_was_cancelled;
+    return true;
+}
+
+void BBLStatusBarSend::reset()
+{
+    set_status_text("");
+    m_was_cancelled = false;
+    set_progress(0);
+}
+
 
 void BBLStatusBarSend::set_font(const wxFont &font)
 {

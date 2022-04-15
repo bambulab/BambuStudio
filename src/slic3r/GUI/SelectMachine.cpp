@@ -839,22 +839,21 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     m_need_disable_btn_ensure = true;
     m_button_ensure->Disable();
 
-    ProgressDialog *progress_dlg = new ProgressDialog("Creating 3mf file", "", 100, this, wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_APP_MODAL);
-    m_plater->send_gcode(m_print_plate_idx, [this, progress_dlg](int export_stage, int current, int total, bool &cancel) {
-        bool     cont             = true;
-        wxString msg              = wxString::Format("exporting 3mf stage %d, %d/%d", export_stage, current, total);
-        cont                      = progress_dlg->Pulse(msg);
-        m_export_3mf_cancel = cancel = !cont;
+    sending_mode();
+    m_status_bar->reset();
+    m_status_bar->set_prog_block();
+
+    m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool &cancel) {
+        bool cancelled = false;
+        wxString msg = _L("Exporting 3mf...");
+        m_status_bar->update_status(msg, cancelled, 15, true);
+        m_export_3mf_cancel = cancel = cancelled;
     });
-    delete progress_dlg;
 
     if (m_export_3mf_cancel) {
         m_status_bar->set_status_text("exporting 3mf was cancelled");
         return;
     }
-
-    sending_mode();
-    m_status_bar->set_prog_block();
     
     m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, dev_id);
 

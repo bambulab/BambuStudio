@@ -63,6 +63,8 @@ public:
     void        set_slice_info(const wxString &txt);
     void        show_slice_info(bool show);
     bool        is_slice_info_shown();
+    bool        update_status(wxString &msg, bool &was_cancel, int percent = -1, bool yield = true);
+    void        reset();
 
     // Temporary methods to satisfy Perl side
     void show_cancel_button();
@@ -70,6 +72,7 @@ public:
 
 private:
     bool     m_busy = false;
+    bool     m_was_cancelled = false;
     CancelFn m_cancel_cb;
     CancelFn m_cancel_cb_fina;
 };
