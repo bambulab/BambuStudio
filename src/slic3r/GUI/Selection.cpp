@@ -152,8 +152,11 @@ void Selection::add(unsigned int volume_idx, bool as_single_selection, bool chec
         return;
 
     const GLVolume* volume = (*m_volumes)[volume_idx];
+    //BBS: multiple wipe tower case should be considered
     // wipe tower is already selected
-    if (is_wipe_tower() && volume->is_wipe_tower)
+    //if (is_wipe_tower() && volume->is_wipe_tower)
+    //    return;
+    if (!m_list.empty() && !is_wipe_tower() && volume->is_wipe_tower)
         return;
 
     bool keep_instance_mode = (m_mode == Instance) && !as_single_selection;
@@ -165,6 +168,16 @@ void Selection::add(unsigned int volume_idx, bool as_single_selection, bool chec
     needs_reset |= is_wipe_tower() && !volume->is_wipe_tower;
     needs_reset |= as_single_selection && !is_any_modifier() && volume->is_modifier;
     needs_reset |= is_any_modifier() && !volume->is_modifier;
+    if (!needs_reset && (is_any_modifier() || is_any_volume())) {
+        int obj_index = volume->object_idx();
+        int inst_index = volume->instance_idx();
+        int first = *(m_list.begin());
+        if (first < m_volumes->size()) {
+            const GLVolume* volume = (*m_volumes)[first];
+            if ((volume->object_idx() != obj_index) || (volume->instance_idx() != inst_index))
+                needs_reset = true;
+        }
+    }
 
     if (!already_contained || needs_reset) {
         wxGetApp().plater()->take_snapshot(std::string("Selection-Add!"), UndoRedo::SnapshotType::Selection);
@@ -1928,12 +1941,13 @@ void Selection::update_type()
         }
     }
 
-    int object_idx = get_object_idx();
+    //BBS: remove the disable logic here
+    /*int object_idx = get_object_idx();
     int instance_idx = get_instance_idx();
     for (GLVolume* v : *m_volumes)
     {
         v->disabled = requires_disable ? (v->object_idx() != object_idx) || (v->instance_idx() != instance_idx) : false;
-    }
+    }*/
 
 #if ENABLE_SELECTION_DEBUG_OUTPUT
     std::cout << "Selection: ";
