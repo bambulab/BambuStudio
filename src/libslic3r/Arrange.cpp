@@ -468,18 +468,13 @@ public:
             return bin_poly;
         };
 
-        m_pconf.on_preload = [this, bbox2expoly](const ItemGroup &items, PConfig &cfg) {
+        m_pconf.on_preload = [this](const ItemGroup &items, PConfig &cfg) {
             if (items.empty()) return;
 
             auto bb = sl::boundingBox(m_bin);
             // BBS: virtual objects docked on bed boundary (e.g. excluded region) should not affect final alignment
             // So, if not all of fixed items are docked on boundary, the final alignment should be disabled
-            if (!std::all_of(items.begin(), items.end(), [this, bb, bbox2expoly](Item& itm) {
-                itm.inflate(1);
-                auto diff = diff_ex(itm, bbox2expoly(bb));
-                itm.inflate(-1);
-                return diff.empty();
-                }))
+            if (!std::all_of(items.begin(), items.end(), [this, bb](Item& itm) {return itm.is_virt_object;}))
                 cfg.alignment = PConfig::Alignment::DONT_ALIGN;
 
             auto starting_point = cfg.starting_point == PConfig::Alignment::BOTTOM_LEFT ? bb.minCorner() : bb.center();
