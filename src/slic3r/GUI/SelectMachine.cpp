@@ -406,7 +406,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
 
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 30);
+    m_sizer_main->Add(0, 0, 0, wxTOP, 22);
 
     m_image = new wxPanel(this, wxID_ANY, wxDefaultPosition,wxDefaultSize, wxTAB_TRAVERSAL);
     m_image->SetBackgroundColour(m_colour_def_color);
@@ -416,52 +416,33 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_image->SetSizer(sizer_thumbnail);
     m_image->Layout();
 
-    m_sizer_main->Add(m_image, 0, wxEXPAND | wxLEFT | wxRIGHT, 100);
+    m_sizer_main->Add(m_image, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT);
 
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 15);
+    m_sizer_main->Add(0, 0, 0,  wxTOP, 10);
 
-    wxBoxSizer *m_sizer_basic = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *m_sizer_basic= new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *m_sizer_basic_weight= new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *m_sizer_basic_time = new wxBoxSizer(wxHORIZONTAL);
 
-    m_sizer_basic_time->Add(0, 0, 1, wxEXPAND, 5);
+    auto timeimg = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("print-time", this, 18), wxDefaultPosition, wxSize(18, 18), 0);
+    m_sizer_basic_weight->Add(timeimg, 1, wxEXPAND | wxALL, 5);
+    m_stext_time = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+    m_sizer_basic_weight->Add(m_stext_time, 0, wxALL, 5);
+    m_sizer_basic->Add(m_sizer_basic_weight, 0, wxALIGN_CENTER, 0);
+    m_sizer_basic->Add(0, 0, 0, wxEXPAND | wxLEFT | wxRIGHT, 30);
 
-     auto timeimg = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("print-time", this, 18), wxDefaultPosition, wxSize(18, 18), 0);
 
-    m_sizer_basic_time->Add(timeimg, 0, wxALL | wxEXPAND, 5);
+    auto weightimg = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("print-weight", this, 18), wxDefaultPosition,wxSize(18, 18), 0);
+    m_sizer_basic_time->Add(weightimg, 1, wxEXPAND | wxALL, 5);
+    m_stext_weight = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    m_sizer_basic_time->Add(m_stext_weight, 0, wxALL, 5);
+    m_sizer_basic->Add(m_sizer_basic_time, 0, wxALIGN_CENTER, 0);
+    m_sizer_main->Add(m_sizer_basic, 0, wxALIGN_CENTER, 0);
 
-    m_stext_time = new wxStaticText(this, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
-    m_stext_time->Wrap(-1);
-    m_stext_time->SetForegroundColour(wxColour(50, 58, 61));
-    m_stext_time->SetBackgroundColour(wxColour(255, 255, 255));
-
-    m_sizer_basic_time->Add(m_stext_time, 0, wxALL, 5);
-
-    m_sizer_basic->Add(m_sizer_basic_time, 1, wxEXPAND, 5);
-
-    m_sizer_basic->Add(0, 0, 0, wxEXPAND | wxLEFT | wxRIGHT, 20);
-
-    wxBoxSizer *m_sizer_basic_weight;
-    m_sizer_basic_weight = new wxBoxSizer(wxHORIZONTAL);
-
-    auto weightimg = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("print-weight", this, 18), wxDefaultPosition,
-                                     wxSize(18, 18), 0);
-
-    m_sizer_basic_weight->Add(weightimg, 0, wxALL | wxEXPAND | wxLEFT, 5);
-
-    m_stext_weight = new wxStaticText(this, wxID_ANY, wxT("330g"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
-    m_stext_weight->Wrap(-1);
-    m_stext_weight->SetForegroundColour(wxColour(50, 58, 61));
-    m_stext_weight->SetBackgroundColour(m_colour_def_color);
-
-    m_sizer_basic_weight->Add(m_stext_weight, 1, wxALL, 5);
-
-    m_sizer_basic->Add(m_sizer_basic_weight, 1, wxEXPAND, 5);
-
-    m_sizer_main->Add(m_sizer_basic, 0, wxEXPAND, 0);
 
     m_sizer_material = new wxWrapSizer(wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS);
-    m_sizer_main->Add(m_sizer_material, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT, 80 );
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 15);
+    m_sizer_main->Add(m_sizer_material, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 80 );
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 18);
 
     m__line_materia = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m__line_materia->SetForegroundColour(wxColour(238, 238, 238));
@@ -542,7 +523,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     wxGridSizer *m_sizer_select = new wxGridSizer(2, 2, 0, 0);
 
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 20);
+    m_sizer_main->Add(0, 0, 0, wxTOP, 16);
     auto select_bed       = create_item_checkbox(L("Bed Leveling"), this, L("Bed Leveling"), "bed_leveling");
     auto select_vibration = create_item_checkbox(L("Vibration Calibration"), this, L("Vibration Calibration"), "vibration_cali");
     auto select_flow      = create_item_checkbox(L("Flow Calibration"), this, L("Flow Calibration"), "flow_cali");
@@ -577,29 +558,29 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_main->Add(m_panel_err, 0, wxEXPAND | wxLEFT, 40);
 
     // bottom  area
-    m_panel_bottom = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, wxGetApp().em_unit() * 6), wxTAB_TRAVERSAL);
-    m_panel_bottom->SetMinSize(wxSize(-1, wxGetApp().em_unit() * 6));
-    m_panel_bottom->SetMaxSize(wxSize(-1, wxGetApp().em_unit() * 6));
-    m_panel_bottom->SetBackgroundColour(m_colour_def_color);
+    /*  m_panel_bottom = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, wxGetApp().em_unit() * 7), wxTAB_TRAVERSAL);
+      m_panel_bottom->SetMinSize(wxSize(-1, wxGetApp().em_unit() * 7));
+      m_panel_bottom->SetMaxSize(wxSize(-1, wxGetApp().em_unit() * 7));
+      m_panel_bottom->SetBackgroundColour(m_colour_def_color);*/
     m_sizer_bottom = new wxBoxSizer(wxVERTICAL);
 
     // line schedule
-    m_line_schedule = new wxPanel(m_panel_bottom, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_line_schedule = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_line_schedule->SetBackgroundColour(wxColour(238, 238, 238));
     m_sizer_bottom->Add(m_line_schedule, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
 
 
-    m_simplebook = new wxSimplebook(m_panel_bottom, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
-
-    // perpare mode
+    m_simplebook = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, SELECT_MACHINE_DIALOG_SIMBOOK_SIZE, 0);
     m_sizer_bottom->Add(m_simplebook, 1, wxEXPAND | wxLEFT | wxRIGHT, 10);
-
+  
+    // perpare mode
     m_panel_prepare             = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_panel_prepare->SetBackgroundColour(m_colour_def_color);
+    //m_panel_prepare->SetBackgroundColour(wxColour(135,206,250));
     wxBoxSizer *m_sizer_prepare = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *m_sizer_pcont   = new wxBoxSizer(wxHORIZONTAL);
 
-    m_sizer_prepare->Add(0, 0, 1, wxEXPAND | wxTOP, 30);
+    m_sizer_prepare->Add(0, 0, 1,wxTOP, 22);
     m_sizer_pcont->Add(0, 0, 1, wxEXPAND, 0);
     m_button_ensure = new Button(m_panel_prepare, _L("Send"));
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), 
@@ -608,8 +589,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_button_ensure->SetBackgroundColor(btn_bg_green);
     m_button_ensure->SetBorderColor(wxColour(0, 174, 66));
     m_button_ensure->SetTextColor(wxColour(255, 255, 255));
-    m_button_ensure->SetSize(wxSize(68, 24));
-    m_button_ensure->SetMinSize(wxSize(72, 24));
+    m_button_ensure->SetSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
+    m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_ensure->SetCornerRadius(12);
 
     m_button_ensure->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_ok, this);
@@ -626,33 +607,33 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     // finish mode
     m_panel_finish             = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_panel_finish->SetBackgroundColour(wxColour(135,206,250));
     wxBoxSizer *m_sizer_finish = new wxBoxSizer(wxHORIZONTAL);
-
-    m_sizer_finish->Add(0, 0, 1, wxEXPAND, 5);
+    wxBoxSizer *m_sizer_finish_v= new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *m_sizer_finish_h= new wxBoxSizer(wxHORIZONTAL);
 
     auto imgsize      = wxGetApp().em_unit() * 2 + wxGetApp().em_unit() / 2;
     auto completedimg = new wxStaticBitmap(m_panel_finish, wxID_ANY, create_scaled_bitmap("completed", m_panel_warn, imgsize), wxDefaultPosition, wxSize(imgsize, imgsize), 0);
-
-    m_sizer_finish->Add(completedimg, 0, wxEXPAND | wxRIGHT, 12);
+    m_sizer_finish_h->Add(completedimg, 0, wxALIGN_CENTER | wxALL, 5);
 
     m_statictext_finish = new wxStaticText(m_panel_finish, wxID_ANY, L("send completed"), wxDefaultPosition, wxDefaultSize, 0);
     m_statictext_finish->Wrap(-1);
     m_statictext_finish->SetForegroundColour(wxColour(0, 174, 66));
+    m_sizer_finish_h->Add(m_statictext_finish, 0, wxALIGN_CENTER | wxALL, 5);
 
-    m_sizer_finish->Add(m_statictext_finish, 0, wxALL | wxEXPAND, 3);
+    m_sizer_finish_v->Add(m_sizer_finish_h, 1, wxALIGN_CENTER, 0);
 
-    m_sizer_finish->Add(0, 0, 1, wxEXPAND, 5);
+    m_sizer_finish->Add(m_sizer_finish_v, 1, wxALIGN_CENTER, 0);
+
 
     m_panel_finish->SetSizer(m_sizer_finish);
     m_panel_finish->Layout();
     m_sizer_finish->Fit(m_panel_finish);
-     m_simplebook->AddPage(m_panel_finish, wxEmptyString, false);
+    m_simplebook->AddPage(m_panel_finish, wxEmptyString, false);
 
-    m_panel_bottom->SetSizer(m_sizer_bottom);
-    m_panel_bottom->Layout();
-    m_sizer_main->Add(m_panel_bottom, 0, wxEXPAND | wxLEFT | wxRIGHT, 30);
+    m_sizer_main->Add(m_sizer_bottom, 0,  wxLEFT | wxRIGHT, 30);
 
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 30);
+    m_sizer_main->Add(0, 0, 0,  wxTOP, 12);
 
     // sending_mode();
     SetSizer(m_sizer_main);
@@ -683,6 +664,7 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
 
     auto text = new wxStaticText(checkbox, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
     text->SetFont(::Label::Body_13);
+    text->SetForegroundColour(wxColour(107,107,107));
     text->Wrap(-1);
     sizer_checkbox->Add(text, 0, wxBOTTOM | wxEXPAND | wxTOP, 5);
 
@@ -825,7 +807,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     }
 
 #ifdef BBL_CHECK_USER_REPORT
-    int  task_id   = 0;
+  /*  int  task_id   = 0;
      bool printable = true;
      c->user_check_report(&task_id, &printable);
      if (task_id != 0 && !printable) {
@@ -833,7 +815,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         std::string report_url = (boost::format("https://autotest.bambu-lab.com/slicerAddReport?task_id=%1%&token=%2%") % task_id % c->get_curr_user()->m_autotest_token).str();
         wxLaunchDefaultBrowser(report_url);
         return;
-    }
+    }*/
 #endif
 
     m_need_disable_btn_ensure = true;
@@ -913,6 +895,15 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     m_list.clear();
     m_comboBox_printer->Clear();
 
+
+    if (m_fitst_time_enter) {
+        int         err_code;
+        std::string err_msg;
+        c->update_my_machine_list_info(err_code, err_msg, true);
+        m_fitst_time_enter = false;
+    }
+
+
     std::vector<std::string> machine_list;
 
     // same machine only appear once
@@ -957,6 +948,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 
 void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
+    m_status_bar->msw_rescale();
     Fit();
     Refresh();
 }
@@ -976,10 +968,12 @@ wxImage *SelectMachineDialog::LoadImageFromBlob(const unsigned char *data, int s
 
 bool SelectMachineDialog::Show(bool show)
 {
+    m_fitst_time_enter = true;
+
     //thumbmail
     sizer_thumbnail->Clear();
     ThumbnailData *data = wxGetApp().plater()->get_thumbnail()[m_plater->get_partplate_list().get_curr_plate_index()];
-    wxImage image(data->width, data->height);
+    wxImage        image(data->width, data->height);
     image.InitAlpha();
 
     for (unsigned int r = 0; r < data->height; ++r) {
@@ -990,14 +984,14 @@ bool SelectMachineDialog::Show(bool show)
             image.SetAlpha((int) c, (int) r, px[3]);
         }
     }
-    
+
     auto bitmap       = new wxBitmap(image);
     auto staticbitmap = new wxStaticBitmap(m_image, wxID_ANY, *bitmap, wxDefaultPosition, wxDefaultSize);
     sizer_thumbnail->Add(staticbitmap, 0, wxEXPAND, 0);
     sizer_thumbnail->Layout();
 
 
-     std::vector<std::string> materials;
+    std::vector<std::string> materials;
     {
          auto preset_bundle = wxGetApp().preset_bundle;
          for (auto filament_name : preset_bundle->filament_presets) {
@@ -1016,8 +1010,6 @@ bool SelectMachineDialog::Show(bool show)
     auto extruders      = m_plater->get_partplate_list().get_curr_plate()->get_extruders();
     //auto materials      = wxGetApp().preset_bundle->filament_presets;
     BitmapCache bmcache;
-
-    
 
     MaterialHash::iterator iter = m_materialList.begin();
     while (iter != m_materialList.end()) {
@@ -1049,7 +1041,7 @@ bool SelectMachineDialog::Show(bool show)
         auto item_name = new wxStaticText(item, wxID_ANY, _L(materials[extruder]), wxDefaultPosition, wxDefaultSize, 0);
         item_name->SetBackgroundColour(colour_rgb);
         item_name->SetFont(::Label::Body_13);
-        item_sizer_v->Add(item_name, 0, wxALIGN_CENTER | wxBOTTOM | wxTOP, 3);
+        item_sizer_v->Add(item_name, 0, wxALIGN_CENTER | wxBOTTOM | wxTOP, 1);
         item_sizer_h->Add(item_sizer_v, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 8);
 
         item->SetBackgroundColor(colour_rgb);
@@ -1067,7 +1059,7 @@ bool SelectMachineDialog::Show(bool show)
         //item->SetSize(wxSize(-1, 23));
         //item->SetMinSize(wxSize(-1, 23));
         //item->SetMaxSize(wxSize(-1, 23));
-        item->SetCornerRadius(11);
+        item->SetCornerRadius(10);
         item->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {});
         item->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &e) {});
         item->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {});
@@ -1083,7 +1075,7 @@ bool SelectMachineDialog::Show(bool show)
         material_item->id   = 0;
         material_item->item = item;
         m_materialList[i] = material_item;
-        m_sizer_material->Add(item, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
+        m_sizer_material->Add(item, 0, wxLEFT | wxRIGHT, 5);
     }
 
     m_sizer_material->Layout();
@@ -1108,6 +1100,7 @@ bool SelectMachineDialog::Show(bool show)
     m_checkbox_list["time_lapse"]->SetValue(false);
 
     prepare_mode();
+    //sending_mode();
 
     if (show) {
         m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
@@ -1115,6 +1108,7 @@ bool SelectMachineDialog::Show(bool show)
     } else {
         m_refresh_timer->Stop();
     }
+
     return DPIDialog::Show(show);
 }
 

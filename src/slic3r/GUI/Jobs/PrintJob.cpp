@@ -94,7 +94,7 @@ void PrintJob::process()
     if (res == 0 && !project->project_id.empty()) {
         BOOST_LOG_TRIVIAL(trace) << "print_job: get project id = " << project->project_id;
     } else {
-        wxString error_msg = wxString::Format(_L("req_pro,err:code=%u,msg=%s"), http_code, http_body);
+        wxString error_msg = wxString::Format(_L("\nreq_pro,err:code=%u,msg=%s"), http_code, http_body);
         update_status(curr_percent, failed_to_create_str + error_msg);
         BOOST_LOG_TRIVIAL(trace) << "print_job: request project id failed! error_msg=" << error_msg.ToStdString();
         return;
@@ -103,7 +103,7 @@ void PrintJob::process()
     if (res == 0 && !profile->profile_id.empty() && !profile->upload_ticket.empty() && !profile->upload_url.empty()) {
         BOOST_LOG_TRIVIAL(trace) << "print_job: get profile id = " << profile->profile_id;
     } else {
-        wxString error_msg = wxString::Format(_L("req_pro,err:code=%u,msg=%s"), http_code, http_body);
+        wxString error_msg = wxString::Format(_L("\nreq_pro,err:code=%u,msg=%s"), http_code, http_body);
         update_status(curr_percent, failed_to_create_str + error_msg);
         BOOST_LOG_TRIVIAL(trace) << "print_job: request project id failed! error_msg=" << error_msg.ToStdString();
         return;
@@ -145,7 +145,7 @@ void PrintJob::process()
     }
 
     if (res < 0) {
-        wxString error_msg = wxString::Format(_L("upload,err:code=%u,msg=%s"), http_code, http_body);
+        wxString error_msg = wxString::Format(_L("\nupload,err:code=%u,msg=%s"), http_code, http_body);
         update_status(curr_percent, failed_to_upload_str + error_msg);
         BOOST_LOG_TRIVIAL(trace) << "print_job: uploading is failed!";
         return;
@@ -154,7 +154,7 @@ void PrintJob::process()
     /* put notifications */
     res = c->put_notification(profile, project->project_path.filename().string(), http_code, http_body);
     if (res < 0) {
-        wxString error_msg = wxString::Format(_L("put_no,err:code=%u,msg=%s"), http_code, http_body);
+        wxString error_msg = wxString::Format(_L("\nput_no,err:code=%u,msg=%s"), http_code, http_body);
         update_status(curr_percent, failed_to_upload_str + error_msg);
         return;
     }
@@ -175,7 +175,7 @@ void PrintJob::process()
         BOOST_LOG_TRIVIAL(trace) << "print_job: subtask is canceled when uploading...";
         return;
     } else if (res < 0) {
-        wxString error_msg = wxString::Format(_L("get_no,err:code=%u,msg=%s"), http_code, http_body);
+        wxString error_msg = wxString::Format(_L("\nget_no,err:code=%u,msg=%s"), http_code, http_body);
         update_status(curr_percent, failed_to_upload_str + error_msg);
         return;
     }
@@ -215,7 +215,7 @@ void PrintJob::process()
 
     res = c->post_task(project, profile, subTask, http_code, http_body);
     if (res < 0) {
-        wxString error_msg = wxString::Format(_L("pos_task,err:code=%u,msg=%s"), http_code, http_body);
+        wxString error_msg = wxString::Format(_L("\npos_task,err:code=%u,msg=%s"), http_code, http_body);
         update_status(curr_percent, failed_to_sending_str + error_msg);
         return;
     } else {

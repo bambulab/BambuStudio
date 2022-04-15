@@ -34,6 +34,8 @@ class BBLStatusBarSend : public ProgressIndicator
     wxStaticText *m_stext_percent;
     wxBoxSizer *  m_sizer;
     wxBoxSizer *  m_sizer_eline;
+    wxWindow *    block_left;
+    wxWindow *    block_right;
 
 public:
     BBLStatusBarSend(wxWindow *parent = nullptr, int id = -1);
@@ -55,6 +57,8 @@ public:
     inline void reset_cancel_callback() { set_cancel_callback(); }
     wxPanel *   get_panel();
     void        set_status_text(const wxString &txt);
+    void        set_percent_text(const wxString &txt);
+    void        msw_rescale();
     void        set_status_text(const std::string &txt);
     void        set_status_text(const char *txt) override;
     wxString    get_status_text() const;

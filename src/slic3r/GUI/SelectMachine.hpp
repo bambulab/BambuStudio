@@ -192,6 +192,9 @@ private:
     wxDECLARE_EVENT_TABLE();
 };
 
+#define SELECT_MACHINE_DIALOG_BUTTON_SIZE wxSize(FromDIP(68), FromDIP(24))
+#define SELECT_MACHINE_DIALOG_SIMBOOK_SIZE wxSize(FromDIP(350), FromDIP(70))
+
 class SelectMachineDialog : public DPIDialog
 {
 private:
@@ -199,6 +202,7 @@ private:
     void init_bind();
     void init_timer();
 
+    bool            m_fitst_time_enter{true};
     int             m_print_plate_idx;
     int             m_printer_last_select{-1};
     int             m_bed_last_select{0};
@@ -243,7 +247,6 @@ protected:
     wxWrapSizer *m_sizer_material;
     wxBoxSizer *m_sizer_main;
     wxBoxSizer *m_sizer_bottom;
-    wxPanel *   m_panel_bottom;
 
 
 public:
