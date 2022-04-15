@@ -4,7 +4,7 @@
 #include "libslic3r/CustomGCode.hpp"
 #include "wxExtensions.hpp"
 #include "IMSlider_Utils.hpp"
-
+#include <imgui/imgui.h>
 #include <wx/window.h>
 #include <wx/control.h>
 #include <wx/dc.h>
@@ -274,13 +274,19 @@ public:
 protected:
     void correct_lower_value();
     void correct_higher_value();
-    
+    bool horizontal_slider(const char* str_id, int* v, int v_min, int v_max, ImVec2 size, int selection = 0, float scale = 1.0);
+    bool vertical_slider(const char* str_id, int* higher_value, int* lower_value,
+        std::string& higher_label, std::string& lower_label,
+        int v_min, int v_max, ImVec2 size,
+        int selection = 0, bool one_layer_flag = false, float scale = 1.0f);
     bool is_wipe_tower_layer(int tick) const;
 
 private:
     std::string get_label(int tick, LabelType label_type = ltHeightWithLayer);
     double get_double_value(const SelectedSlider& selection);
     int    get_tick_from_value(double value, bool force_lower_bound = false);
+
+    std::string get_color_for_tool_change_tick(std::set<TickCode>::const_iterator it) const;
     // Get active extruders for tick.
     // Means one current extruder for not existing tick OR
     // 2 extruders - for existing tick (extruder before ToolChangeCode and extruder of current existing tick)
@@ -302,6 +308,8 @@ private:
     bool m_is_right_down      = false;
     bool m_is_one_layer       = false;
     bool m_is_focused         = false;
+    bool m_show_menu         = false;
+    bool m_selected_tick      = false;
     bool m_force_mode_apply   = true;
     bool m_enable_action_icon = true;
     bool m_enable_cog_icon    = false;
@@ -314,10 +322,10 @@ private:
     void *m_reset_hover_id;
     void *m_one_layer_on_id;
     void *m_one_layer_on_hover_id;
+    void *m_one_layer_arrow_id;
     void *m_one_layer_off_id;
     void *m_one_layer_off_hover_id;
-    void *m_one_layer_arrow_id;
-    
+
     DrawMode            m_draw_mode = dmRegular;
     Mode                m_mode          = SingleExtruder;
     int                 m_only_extruder = -1;
