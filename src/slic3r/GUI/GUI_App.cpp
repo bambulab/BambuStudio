@@ -181,12 +181,11 @@ public:
         // use a memory DC to draw directly onto the bitmap
         wxMemoryDC memDc(bmp);
 
-        int top_margin = 75 * m_scale;
+        int top_margin = FromDIP(75 * m_scale);
         int width = bmp.GetWidth();
 
         // draw title and version
-
-        int text_padding = 3 * m_scale;
+        int text_padding = FromDIP(3 * m_scale);
         memDc.SetFont(m_constant_text.title_font);
         int title_height = memDc.GetTextExtent(m_constant_text.title).GetHeight();
         int title_width = memDc.GetTextExtent(m_constant_text.title).GetWidth();
@@ -206,21 +205,21 @@ public:
 
         // load bitmap for logo
         BitmapCache bmp_cache;
-        int logo_margin = 100 * m_scale;
-        int logo_size = 128 * m_scale;
+        int logo_margin = FromDIP(100 * m_scale);
+        int logo_size = FromDIP(128 * m_scale);
         wxBitmap logo_bmp = *bmp_cache.load_svg("splash_logo", logo_size, logo_size);
         int logo_y = top_margin + title_height + logo_margin;
         memDc.DrawBitmap(logo_bmp, (width - logo_size) / 2, logo_y, true);
 
         // calculate position for the dynamic text
-        int text_margin = 80 * m_scale;
+        int text_margin = FromDIP(80 * m_scale);
         m_action_line_y_position = logo_y + logo_size + text_margin;
     }
 
     static wxBitmap MakeBitmap()
     {
-        int width = 480;
-        int height = 480;
+        int width = FromDIP(480,nullptr);
+        int height = FromDIP(480, nullptr);
 
         wxImage image(width, height);
         wxBitmap new_bmp(image);
