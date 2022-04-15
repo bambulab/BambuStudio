@@ -903,6 +903,8 @@ void StatusPanel::update_tasklist_info()
 {
     clean_tasklist_info();
 
+    //BBS do not show tasklist
+    return;
     if (last_profile == nullptr) {
         return;
     }
@@ -991,7 +993,8 @@ void StatusPanel::update(MachineObject *obj)
 
     update_misc_ctrl(obj);
 
-    update_tasklist(obj);
+    //BBS hide tasklist info
+    //update_tasklist(obj);
 
     update_ams(obj);
 }
