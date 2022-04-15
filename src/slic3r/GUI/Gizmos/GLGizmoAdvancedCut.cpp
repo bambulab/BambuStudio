@@ -332,7 +332,13 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
         buf_size[i] = ImGui::CalcTextSize(buf[i]).x;
         vec_max = std::max(buf_size[i], vec_max);
     }
-    unit_size = vec_max + 10.0;
+
+    float buf_size_max = ImGui::CalcTextSize("-100.00").x ;
+    if (vec_max < buf_size_max){
+        unit_size = buf_size_max + ImGui::GetStyle().FramePadding.x * 2.0f;
+    } else {
+        unit_size = vec_max + ImGui::GetStyle().FramePadding.x * 2.0f;
+    }
 
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
     ImGuiWrapper::push_toolbar_style();
