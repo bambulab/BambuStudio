@@ -494,9 +494,7 @@ TreeSupportData* PrintObject::alloc_tree_support_preview_cache()
 {
     if (m_tree_support_preview_cache == nullptr) {
         const coordf_t layer_height = m_config.layer_height.value;
-        const coordf_t line_width = m_config.support_line_width.get_abs_value(layer_height);
-        // FIXME: currently use support_line_width to replace support_material_external_perimeter_width
-        const coordf_t xy_distance = m_config.support_object_xy_distance.get_abs_value(line_width);
+        const coordf_t xy_distance = m_config.support_object_xy_distance.value;
         const double angle = m_config.tree_support_branch_angle.value * M_PI / 180.;
         const coordf_t max_move_distance
             = (angle < M_PI / 2) ? (coordf_t)(tan(angle) * layer_height) : std::numeric_limits<coordf_t>::max();
@@ -593,9 +591,7 @@ bool PrintObject::invalidate_state_by_config_options(
             //BBS
             || opt_key == "adaptive_layer_height"
             || opt_key == "raft_layers"
-            || opt_key == "raft_contact_distance"
-            || opt_key == "slice_closing_radius"
-            || opt_key == "slicing_mode") {
+            || opt_key == "raft_contact_distance") {
             steps.emplace_back(posSlice);
 		} else if (
                opt_key == "elefant_foot_compensation"

@@ -1310,7 +1310,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("pause_print_gcode", coString);
+    def = this->add("machine_pause_gcode", coString);
     def->label = L("Pause G-code");
     //def->tooltip = L("This G-code will be used as a code for the pause print");
     def->multiline = true;
@@ -1918,35 +1918,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("slice_closing_radius", coFloat);
-    //def->label = L("Slice gap closing radius");
-    def->label = "Slice gap closing radius";
-    def->category = L("Advanced");
-    //def->tooltip = L("Cracks smaller than 2x gap closing radius are being filled during the triangle mesh slicing. "
-    //                 "The gap closing operation may reduce the final print resolution, therefore it is advisable to keep the value reasonably low.");
-    def->sidetext = L("mm");
-    def->min = 0;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(0.04));
-
-    def = this->add("slicing_mode", coEnum);
-    //def->label = L("Slicing Mode");
-    def->label = "Slicing Mode";
-    def->category = L("Advanced");
-    //def->tooltip = L("Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model.");
-    def->enum_keys_map = &ConfigOptionEnum<SlicingMode>::get_enum_values();
-    def->enum_values.push_back("regular");
-    def->enum_values.push_back("even_odd");
-    def->enum_values.push_back("close_holes");
-    //def->enum_labels.push_back(L("Regular"));
-    //def->enum_labels.push_back(L("Even-odd"));
-    //def->enum_labels.push_back(L("Close holes"));
-    def->enum_labels.push_back("Regular");
-    def->enum_labels.push_back("Even-odd");
-    def->enum_labels.push_back("Close holes");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionEnum<SlicingMode>(SlicingMode::Regular));
-
     def = this->add("enable_support", coBool);
     //BBS: remove material behind support
     def->label = L("Enable support");
@@ -1973,17 +1944,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<SupportType>(stTreeAuto));
 
-    def = this->add("support_object_xy_distance", coFloatOrPercent);
-    def->label = L("XY separation between an object and its support");
+    def = this->add("support_object_xy_distance", coFloat);
+    def->label = L("Support/object xy distance");
     def->category = L("Support");
-    def->tooltip = L("XY separation between an object and its support. It's relative to outer wall line width if expressed as percentage");
-    def->sidetext = L("mm or %");
-    def->ratio_over = "outer_wall_line_width";
+    def->tooltip = L("XY separation between an object and its support");
+    def->sidetext = L("mm");
     def->min = 0;
-    def->max_literal = 10;
+    def->max = 10;
     def->mode = comAdvanced;
-    // Default is 1mm. Support with too small spacing may touch the object and difficult to remove.
-    def->set_default_value(new ConfigOptionFloatOrPercent(1, false));
+    //Support with too small spacing may touch the object and difficult to remove.
+    def->set_default_value(new ConfigOptionFloat(0.35));
 
     def = this->add("support_angle", coFloat);
     def->label = L("Pattern angle");
@@ -3256,7 +3226,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
                 opt_key == "top_surface_speed"            ||
                 opt_key == "support_transition_speed"     ||
                 opt_key == "support_interface_speed"      ||
-                opt_key == "outer_wall_speed")     && value.find("%") != std::string::npos) {
+                opt_key == "outer_wall_speed"             ||
+                opt_key == "support_object_xy_distance")     && value.find("%") != std::string::npos) {
         //BBS: this is old profile in which value is expressed as percentage.
         //But now these key-value must be absolute value.
         //Reset to default value by erasing these key to avoid parsing error.
@@ -3276,7 +3247,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "tree_support_branch_distance", "tree_support_branch_diameter",
         "tree_support_branch_diameter_angle", "tree_support_collision_resolution",
         "small_perimeter_speed", "max_volumetric_speed", "max_print_speed",
-        "support_bottom_z_distance", "support_closing_radius"
+        "support_bottom_z_distance", "support_closing_radius", "slicing_mode", "slice_closing_radius"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {

@@ -518,12 +518,14 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
 
     po.m_model_slices.clear();
     MeshSlicingParamsEx params;
-    params.closing_radius = float(po.config().slice_closing_radius.value);
-    switch (po.config().slicing_mode.value) {
-    case SlicingMode::Regular:    params.mode = MeshSlicingParams::SlicingMode::Regular; break;
-    case SlicingMode::EvenOdd:    params.mode = MeshSlicingParams::SlicingMode::EvenOdd; break;
-    case SlicingMode::CloseHoles: params.mode = MeshSlicingParams::SlicingMode::Positive; break;
-    }
+    params.closing_radius = float(g_config_slice_closing_radius);
+    //BBS: always regular mode
+    //switch (po.config().slicing_mode.value) {
+    //case SlicingMode::Regular:    params.mode = MeshSlicingParams::SlicingMode::Regular; break;
+    //case SlicingMode::EvenOdd:    params.mode = MeshSlicingParams::SlicingMode::EvenOdd; break;
+    //case SlicingMode::CloseHoles: params.mode = MeshSlicingParams::SlicingMode::Positive; break;
+    //}
+    params.mode = MeshSlicingParams::SlicingMode::Regular;
     auto  thr        = [this]() { m_print->throw_if_canceled(); };
     auto &slice_grid = po.m_model_height_levels;
     po.m_model_slices = slice_mesh_ex(mesh.its, slice_grid, params, thr);
@@ -747,7 +749,7 @@ void SLAPrint::Steps::slice_supports(SLAPrintObject &po) {
         for(auto& rec : po.m_slice_index) heights.emplace_back(rec.slice_level());
 
         sd->support_slices = sd->support_tree_ptr->slice(
-            heights, float(po.config().slice_closing_radius.value));
+            heights, float(g_config_slice_closing_radius));
     }
 
     for (size_t i = 0; i < sd->support_slices.size() && i < po.m_slice_index.size(); ++i)

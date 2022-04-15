@@ -61,7 +61,6 @@
     "skirt_distance": "2",
     "skirt_height": "1",
     "skirt_loops": "0",
-    "slice_closing_radius": "0.049",
     "minimum_sparse_infill_area": "8",
     "internal_solid_infill_line_width": "0.45",
     "internal_solid_infill_speed": "150",

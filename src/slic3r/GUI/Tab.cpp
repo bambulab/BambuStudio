@@ -1696,7 +1696,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("seam_position");
 
         optgroup = page->new_optgroup(L("Precision"));
-        optgroup->append_single_option_line("slice_closing_radius");
         optgroup->append_single_option_line("resolution");
         optgroup->append_single_option_line("enable_arc_fitting");
         optgroup->append_single_option_line("xy_hole_compensation");
@@ -2368,7 +2367,7 @@ void TabFilament::build()
         optgroup->append_line(line);
         optgroup->append_single_option_line("bed_temperature_difference");
 
-        optgroup = page->new_optgroup(L("Temperature"));
+        optgroup = page->new_optgroup(L("Print temperature"));
         line = { L("Nozzle"), L("Nozzle temperature when printing") };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
         line.append_option(optgroup->get_option("nozzle_temperature"));
@@ -2824,7 +2823,7 @@ void TabPrinter::build_fff()
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-        option = optgroup->get_option("pause_print_gcode");
+        option = optgroup->get_option("machine_pause_gcode");
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);

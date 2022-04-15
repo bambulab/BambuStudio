@@ -530,8 +530,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               raft_first_layer_expansion))
     ((ConfigOptionInt,                 raft_layers))
     ((ConfigOptionEnum<SeamPosition>,  seam_position))
-    ((ConfigOptionFloat,               slice_closing_radius))
-    ((ConfigOptionEnum<SlicingMode>,   slicing_mode))
     ((ConfigOptionBool,                enable_support))
     // Automatic supports (generated based on support_threshold_angle).
     ((ConfigOptionEnum<SupportType>,   support_type))
@@ -559,7 +557,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                independent_support_layer_height))
     // Overhang angle threshold.
     ((ConfigOptionInt,                 support_threshold_angle))
-    ((ConfigOptionFloatOrPercent,      support_object_xy_distance))
+    ((ConfigOptionFloat,               support_object_xy_distance))
     ((ConfigOptionFloat,               xy_hole_compensation))
     ((ConfigOptionFloat,               xy_contour_compensation))
     //BBS
@@ -712,7 +710,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               travel_speed))
     ((ConfigOptionFloat,               travel_speed_z))
     ((ConfigOptionBool,                silent_mode))
-    ((ConfigOptionString,              pause_print_gcode))
+    ((ConfigOptionString,              machine_pause_gcode))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.
@@ -824,9 +822,6 @@ PRINT_CONFIG_CLASS_DEFINE(
 
     //Number of the layers needed for the exposure time fade [3;20]
     ((ConfigOptionInt,  faded_layers))/*= 10*/
-
-    ((ConfigOptionFloat, slice_closing_radius))
-    ((ConfigOptionEnum<SlicingMode>, slicing_mode))
 
     // Enabling or disabling support creation
     ((ConfigOptionBool,  supports_enable))

@@ -136,17 +136,18 @@ static std::vector<VolumeSlices> slice_volumes_inner(
         slicing_ranges.reserve(layer_ranges.size());
 
     MeshSlicingParamsEx params_base;
-    params_base.closing_radius = print_object_config.slice_closing_radius.value;
+    params_base.closing_radius = g_config_slice_closing_radius;
     params_base.extra_offset   = 0;
     params_base.trafo          = object_trafo;
     //BBS: should not simplify when slicing mesh
     params_base.resolution     = 0.0;
-
-    switch (print_object_config.slicing_mode.value) {
-    case SlicingMode::Regular:    params_base.mode = MeshSlicingParams::SlicingMode::Regular; break;
-    case SlicingMode::EvenOdd:    params_base.mode = MeshSlicingParams::SlicingMode::EvenOdd; break;
-    case SlicingMode::CloseHoles: params_base.mode = MeshSlicingParams::SlicingMode::Positive; break;
-    }
+    //BBS: remove slice mode, always regular
+    //switch (print_object_config.slicing_mode.value) {
+    //case SlicingMode::Regular:    params_base.mode = MeshSlicingParams::SlicingMode::Regular; break;
+    //case SlicingMode::EvenOdd:    params_base.mode = MeshSlicingParams::SlicingMode::EvenOdd; break;
+    //case SlicingMode::CloseHoles: params_base.mode = MeshSlicingParams::SlicingMode::Positive; break;
+    //}
+    params_base.mode = MeshSlicingParams::SlicingMode::Regular;
 
     params_base.mode_below     = params_base.mode;
 
@@ -856,7 +857,7 @@ void PrintObject::slice_volumes()
 	                    if (xy_contour_scaled < 0.f || elfoot > 0.f) {
 	                        // Apply the negative XY compensation.
 	                        Polygons trimming;
-	                        static const float eps = float(scale_(m_config.slice_closing_radius.value) * 1.5);
+	                        static const float eps = float(scale_(g_config_slice_closing_radius) * 1.5);
 	                        if (elfoot > 0.f) {
 	                        	lslices_1st_layer = offset_ex(layer->merged(eps), std::min(xy_contour_scaled, 0.f) - eps);
 								trimming = to_polygons(Slic3r::elephant_foot_compensation(lslices_1st_layer,

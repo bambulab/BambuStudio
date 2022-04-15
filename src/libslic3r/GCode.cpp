@@ -819,7 +819,7 @@ namespace DoExport {
         //BBS
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Printing by object G-code")), config.printing_by_object_gcode.value);
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Color Change G-code")), config.color_change_gcode.value);
-        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Pause G-code")), config.pause_print_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Pause G-code")), config.machine_pause_gcode.value);
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Template Custom G-code")), config.template_custom_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) {
             for (const std::string& value : config.filament_start_gcode.values) {
@@ -2118,7 +2118,7 @@ namespace ProcessLayer
                     //! FIXME_in_fw show message during print pause
                     DynamicConfig cfg;
                     cfg.set_key_value("color_change_extruder", new ConfigOptionInt(m600_extruder_before_layer));
-                    gcode += gcodegen.placeholder_parser_process("pause_print_gcode", config.pause_print_gcode, current_extruder_id, &cfg);
+                    gcode += gcodegen.placeholder_parser_process("machine_pause_gcode", config.machine_pause_gcode, current_extruder_id, &cfg);
                     gcode += "\n";
                     gcode += "M117 Change filament for Extruder " + std::to_string(m600_extruder_before_layer) + "\n";
                 }
@@ -2140,7 +2140,7 @@ namespace ProcessLayer
                     //! FIXME_in_fw show message during print pause
 	                //if (!pause_print_msg.empty())
 	                //    gcode += "M117 " + pause_print_msg + "\n";
-                    gcode += gcodegen.placeholder_parser_process("pause_print_gcode", config.pause_print_gcode, current_extruder_id);
+                    gcode += gcodegen.placeholder_parser_process("machine_pause_gcode", config.machine_pause_gcode, current_extruder_id);
                 }
 #if 0
 	            else {

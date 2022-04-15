@@ -359,7 +359,7 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
         external_perimeter_width = std::max(external_perimeter_width, coordf_t(region.flow(*object, frExternalPerimeter, slicing_params.layer_height).width()));
         bridge_flow += region.config().bridge_flow;
     }
-    m_support_params.gap_xy = m_object_config->support_object_xy_distance.get_abs_value(external_perimeter_width);
+    m_support_params.gap_xy = m_object_config->support_object_xy_distance.value;
     bridge_flow /= object->num_printing_regions();
 
     m_support_params.support_material_bottom_interface_flow = m_slicing_params.soluble_interface || ! g_config_thick_bridges ?

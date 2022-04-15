@@ -622,7 +622,7 @@ void Preset::set_visible_from_appconfig(const AppConfig &app_config)
 }
 
 static std::vector<std::string> s_Preset_print_options {
-    "layer_height", "initial_layer_print_height", "wall_loops", "spiral_mode", "slice_closing_radius", "slicing_mode",
+    "layer_height", "initial_layer_print_height", "wall_loops", "spiral_mode",
     "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness",
     "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall",
     "seam_position", "wall_infill_order", "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern",
@@ -699,7 +699,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "default_print_profile", "inherits",
     "silent_mode",
     // BBS
-    "scan_first_layer", "spaghetti_detector", "machine_load_filament_time", "machine_unload_filament_time", "pause_print_gcode"
+    "scan_first_layer", "spaghetti_detector", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode"
 };
 
 static std::vector<std::string> s_Preset_sla_print_options {
@@ -724,8 +724,6 @@ static std::vector<std::string> s_Preset_sla_print_options {
     "support_object_elevation",
     "support_points_density_relative",
     "support_points_minimal_distance",
-    "slice_closing_radius",
-    "slicing_mode",
     "pad_enable",
     "pad_wall_thickness",
     "pad_wall_height",
