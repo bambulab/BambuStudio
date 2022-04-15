@@ -1545,6 +1545,7 @@ static inline Polygons detect_overhangs(
             }
 
             // BBS
+            ExPolygons lower_layer_offseted = offset_ex(lower_layer_expolys, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS);
             for (ExPolygon& expoly : layerm->raw_slices) {
                 bool is_sharp_tail = false;
                 float accum_height = layer.height;
@@ -1556,7 +1557,7 @@ static inline Polygons detect_overhangs(
 
                     // 1. nothing below
                     // check whether this is a sharp tail region
-                    if (intersection_ex({ expoly }, lower_layer_expolys).empty()) {
+                    if (intersection_ex({ expoly }, lower_layer_offseted).empty()) {
                         is_sharp_tail = expoly.area() < area_thresh_well_supported;
                         break;
                     }
@@ -1680,7 +1681,6 @@ static inline std::tuple<Polygons, Polygons, double> detect_contacts(
         const bool   has_enforcer = !annotations.enforcers_layers.empty() && !annotations.enforcers_layers[layer_id].empty();
         const ExPolygons& lower_layer_expolys = lower_layer.lslices;
         const ExPolygons& lower_layer_sharptails = lower_layer.sharp_tails;
-        auto& lower_layer_sharptails_height = lower_layer.sharp_tails_height;
 
         // Cache support trimming polygons derived from lower layer polygons, possible merged with "on build plate only" trimming polygons.
         auto slices_margin_update =
@@ -2210,8 +2210,28 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                     break;
                 }
             }
-
             if (is_sharp_tail)
+                continue;
+
+
+            // 4. check whether the overhang cluster is cantilever (far awary from main body)
+            const Layer* layer = object.get_layer(cluster.min_layer);
+            if (layer->lower_layer == NULL) continue;
+            Layer* lower_layer = layer->lower_layer;
+            auto cluster_boundary = intersection(cluster.merged_overhangs_dilated, offset(lower_layer->lslices, scale_(0.5)));
+            double dist_max = 0;
+            Points cluster_pts;
+            for (auto& poly : cluster.merged_overhangs_dilated)
+                append(cluster_pts, poly.points);
+            for (auto& pt : cluster_pts) {
+                double dist_pt = std::numeric_limits<double>::max();
+                for (auto& poly : cluster_boundary) {
+                    double d = poly.distance_to(pt);
+                    dist_pt = std::min(dist_pt, d);
+                }
+                dist_max = std::max(dist_max, dist_pt);
+            }
+            if (dist_max > scale_(5))
                 continue;
 
             // 4. remove small overhangs

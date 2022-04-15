@@ -61,6 +61,12 @@ public:
         return idx;
     }
     const Point* closest_point(const Point &point) const { return this->points.empty() ? nullptr : &this->points[this->closest_point_index(point)]; }
+    // The distance of polygon to point is defined as:
+    //  the minimum distance of all points to that point
+    double distance_to(const Point& point) const {
+        const Point* cl = closest_point(point);
+        return (*cl - point).cast<double>().norm();
+    }
     BoundingBox bounding_box() const;
     // Return true if there are exact duplicates.
     bool has_duplicate_points() const;
