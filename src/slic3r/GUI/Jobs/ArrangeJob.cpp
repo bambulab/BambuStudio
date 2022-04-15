@@ -461,6 +461,19 @@ void ArrangeJob::process()
     params.brim_skirt_distance = skirt_distance + brim_max;
     params.bed_shrink_x = settings.bed_shrink_x + params.brim_skirt_distance;
     params.bed_shrink_y = settings.bed_shrink_y + params.brim_skirt_distance;
+    // for sequential print, we need to inflate the bed because cleareance_radius is so large
+    if (params.is_seq_print) {
+        params.bed_shrink_x -= params.cleareance_radius/2;
+        params.bed_shrink_y -= params.cleareance_radius/2;
+        // dont forget to move the excluded region
+        for (auto& region : m_unselected) {
+            if (region.is_virt_object)
+                region.poly.translate(-scaled(params.cleareance_radius/2), -scaled(params.cleareance_radius/2));
+        }
+        for (auto& region : params.nonprefered_regions) {
+            region.poly.translate(-scaled(params.cleareance_radius / 2), -scaled(params.cleareance_radius / 2));
+        }
+    }
 
     // do not inflate brim_width. Objects are allowed to have overlapped brim.
     std::for_each(m_selected.begin(), m_selected.end(), [&](auto& ap) {ap.inflation = params.min_obj_distance / 2; });
