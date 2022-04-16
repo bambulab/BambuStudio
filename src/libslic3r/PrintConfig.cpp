@@ -78,6 +78,7 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "honeycomb",          ipHoneycomb },
     { "adaptivecubic",      ipAdaptiveCubic },
     { "monotonic",          ipMonotonic },
+    { "monotonicline",      ipMonotonicLine },
     { "alignedrectilinear", ipAlignedRectilinear },
     { "3dhoneycomb",        ip3DHoneycomb },
     { "hilbertcurve",       ipHilbertCurve },
@@ -629,8 +630,8 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("zig-zag");
-    //BBS: fix the bug of monotonic, and change it names to be lines like cura
-    def->enum_values.push_back("monotonic");
+    //BBS: use monotonicline pattern to replace monotonic for top and bottom surface
+    def->enum_values.push_back("monotonicline");
     //def->enum_values.push_back("alignedrectilinear");
     //def->enum_values.push_back("hilbertcurve");
     //def->enum_values.push_back("archimedeanchords");
@@ -3232,6 +3233,10 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         //But now these key-value must be absolute value.
         //Reset to default value by erasing these key to avoid parsing error.
         opt_key = "";
+    } else if (opt_key == "top_surface_pattern" || opt_key == "bottom_surface_pattern") {
+        //BBS: replace monotonic pattern to be monotonicline for top and bottom surface
+        if (value == "monotonic")
+            value = "monotonicline";
     }
 
     // Ignore the following obsolete configuration keys:
