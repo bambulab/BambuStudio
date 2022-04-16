@@ -831,6 +831,10 @@ void PartPlate::release_opengl_resource()
 std::vector<int> PartPlate::get_extruders() const
 {
 	std::vector<int> plate_extruders;
+	const DynamicPrintConfig& glb_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+	int glb_support_intf_extr = glb_config.opt_int("support_interface_filament");
+	int glb_support_extr = glb_config.opt_int("support_filament");
+	bool glb_support = glb_config.opt_bool("enable_support");
 
 	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
 		if (!contain_instance_totally(obj_idx, 0))
@@ -841,6 +845,34 @@ std::vector<int> PartPlate::get_extruders() const
 			std::vector<int> volume_extruders = mv->get_extruders();
 			plate_extruders.insert(plate_extruders.end(), volume_extruders.begin(), volume_extruders.end());
 		}
+
+		bool obj_support = false;
+		const ConfigOption* obj_support_opt = mo->config.option("enable_support");
+		if (obj_support_opt != nullptr)
+			obj_support = obj_support_opt->getBool();
+		else
+			obj_support = glb_support;
+
+		if (!obj_support)
+			continue;
+
+		int obj_support_intf_extr = 0;
+		const ConfigOption* support_intf_extr_opt = mo->config.option("support_interface_filament");
+		if (support_intf_extr_opt != nullptr)
+			obj_support_intf_extr = support_intf_extr_opt->getInt();
+		if (obj_support_intf_extr != 0)
+			plate_extruders.push_back(obj_support_intf_extr);
+		else if (glb_support_intf_extr != 0)
+			plate_extruders.push_back(glb_support_intf_extr);
+
+		int obj_support_extr = 0;
+		const ConfigOption* support_extr_opt = mo->config.option("support_filament");
+		if (support_intf_extr_opt != nullptr)
+			obj_support_extr = support_extr_opt->getInt();
+		if (obj_support_extr != 0)
+			plate_extruders.push_back(obj_support_extr);
+		else if (glb_support_extr != 0)
+			plate_extruders.push_back(glb_support_extr);
 	}
 
 	std::sort(plate_extruders.begin(), plate_extruders.end());

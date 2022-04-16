@@ -8287,6 +8287,11 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             bed_shape_changed = true;
             update_scheduled = true;
         }
+        // BBS
+        else if (opt_key == "support_interface_filament" ||
+            opt_key == "support_filament") {
+            update_scheduled = true;
+        }
     }
 
     if (bed_shape_changed)
