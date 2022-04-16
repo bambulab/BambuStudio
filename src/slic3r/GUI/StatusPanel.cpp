@@ -557,7 +557,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control()
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_switch_nozzle_fan = new ImageSwitchButton(this, m_bitmap_fan_on, m_bitmap_fan_off, wxBORDER_NONE);
     m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_SIZE);
-    m_switch_nozzle_fan->SetLabels(_L("Hotend Fan"), _L("Hotend Fan"));
+    m_switch_nozzle_fan->SetLabels(_L("Part Cooling"), _L("Part Cooling"));
     m_switch_nozzle_fan->SetFont(SWITCH_FONT);
     m_switch_nozzle_fan->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
                                     std::make_pair(NORMAL_FAN_TEXT_COL,(int) StateColor::Normal)));
@@ -571,7 +571,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control()
     m_switch_printing_fan->SetValue(true);
     m_switch_printing_fan->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_printing_fan->SetFont(SWITCH_FONT);
-    m_switch_printing_fan->SetLabels(_L("Big Fan"), _L("Big Fan"));
+    m_switch_printing_fan->SetLabels(_L("Aux Cooling"), _L("Aux Cooling"));
     m_switch_printing_fan->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
                                     std::make_pair(NORMAL_FAN_TEXT_COL,(int) StateColor::Normal)));
 
