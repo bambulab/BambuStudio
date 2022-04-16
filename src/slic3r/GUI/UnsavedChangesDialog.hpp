@@ -263,6 +263,7 @@ protected:
     Button*                 m_save_btn      { nullptr };
     Button*                 m_transfer_btn  { nullptr };
     Button*                 m_discard_btn   { nullptr };
+    Button*                 m_cancel_btn    { nullptr };
     wxStaticText*           m_action_line   { nullptr };
     wxStaticText*           m_info_line     { nullptr };
     wxScrolledWindow*       m_scrolledWindow{ nullptr };

@@ -767,6 +767,7 @@ std::vector<std::string> DiffViewCtrl::selected_options()
 
 static std::string none{"none"};
 #define UNSAVE_CHANGE_DIALOG_SCROLL_WINDOW_SIZE wxSize(FromDIP(470), FromDIP(374))
+#define UNSAVE_CHANGE_DIALOG_ACTION_LINE_SIZE wxSize(FromDIP(470), FromDIP(40))
 #define UNSAVE_CHANGE_DIALOG_FIRST_VALUE_WIDTH FromDIP(190)
 #define UNSAVE_CHANGE_DIALOG_VALUE_WIDTH FromDIP(145)
 #define UNSAVE_CHANGE_DIALOG_ITEM_HEIGHT FromDIP(24)
@@ -797,7 +798,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(const wxString &caption, const wxStri
 UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *dependent_presets, const std::string &new_selected_preset)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),
                 wxID_ANY,
-                _L("Switching Presets: Unsaved Changes"),
+                _L("Discard or Keep changes"),
                 wxDefaultPosition, 
                 wxDefaultSize, 
                 wxCAPTION | wxCLOSE_BOX)
@@ -811,9 +812,6 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *
 
 void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_presets, const std::string &new_selected_preset, const wxString &header)
 {
-    // def setting
-    SetBackgroundColour(DEF_BK_COLOR);
-
     // icon
     std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
     SetIcon(wxIcon(icon_path, wxBITMAP_TYPE_ICO));
@@ -829,10 +827,10 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
 
     m_sizer_main->Add(0, 0, 0, wxTOP, 20);
 
-    m_action_line = new wxStaticText(this, wxID_ANY, wxEmptyString,wxDefaultPosition , wxSize(UNSAVE_CHANGE_DIALOG_SCROLL_WINDOW_SIZE.x, -1), 0);
+    m_action_line = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, UNSAVE_CHANGE_DIALOG_ACTION_LINE_SIZE, 0);
     m_action_line->SetFont(::Label::Body_13);
     m_action_line->SetForegroundColour(GREY900);
-    //m_action_line->Wrap(-1);
+    m_action_line->Wrap(-1);
     m_sizer_main->Add(m_action_line, 0, wxLEFT | wxRIGHT, 20);
 
     m_sizer_main->Add(0, 0, 0, wxTOP, 12);
@@ -851,7 +849,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     wxBoxSizer *top_title_temp_v = new wxBoxSizer(wxVERTICAL);
     top_title_temp_v->SetMinSize(wxSize(UNSAVE_CHANGE_DIALOG_VALUE_WIDTH, -1));
     wxBoxSizer *top_title_temp_h = new wxBoxSizer(wxHORIZONTAL);
-    static_temp_title            = new wxStaticText(m_panel_temp, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize, 0);
+    static_temp_title            = new wxStaticText(m_panel_temp, wxID_ANY, _L("Settings"), wxDefaultPosition, wxDefaultSize, 0);
     static_temp_title->SetFont(::Label::Body_13);
     static_temp_title->Wrap(-1);
     static_temp_title->SetForegroundColour(*wxWHITE);
@@ -993,12 +991,12 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     /* ScalableButton *cancel_btn = new ScalableButton(this, wxID_CANCEL, "cross", _L("Cancel"), wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true, 24);
       buttons->Add(cancel_btn, 1, wxLEFT | wxRIGHT, 5);
       cancel_btn->SetFont(btn_font);*/
-    auto cancel_btn = new Button(this, _L("Cancel"));
-    cancel_btn->SetTextColor(wxColour(107, 107, 107));
-    cancel_btn->Bind(wxEVT_LEFT_DOWN, [this](wxEvent &) { this->EndModal(wxID_CANCEL); });
-    cancel_btn->SetMinSize(wxSize(70, 24));
-    cancel_btn->SetCornerRadius(12);
-    m_sizer_button->Add(cancel_btn, 0, wxLEFT | wxRIGHT, 5);
+    m_cancel_btn = new Button(this, _L("Cancel"));
+    m_cancel_btn->SetTextColor(wxColour(107, 107, 107));
+    m_cancel_btn->Bind(wxEVT_LEFT_DOWN, [this](wxEvent &) { this->EndModal(wxID_CANCEL); });
+    m_cancel_btn->SetMinSize(wxSize(70, 24));
+    m_cancel_btn->SetCornerRadius(12);
+    m_sizer_button->Add(m_cancel_btn, 0, wxLEFT | wxRIGHT, 5);
 
 
     if (!m_app_config_key.empty()) {}
@@ -1330,9 +1328,9 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
         for (Tab* tab : wxGetApp().tabs_list)
             if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty())
                 presets_cnt++;
-        m_action_line->SetLabel((header.IsEmpty() ? "" : header + "\n\n") + 
+        /*m_action_line->SetLabel((header.IsEmpty() ? "" : header + "\n\n") +
                                 _L_PLURAL("The following preset was modified",
-                                          "The following presets were modified", presets_cnt));
+                                          "The following presets were modified", presets_cnt));*/
     }
     else {
         wxString action_msg;
@@ -1345,9 +1343,13 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
                 _L("Preset \"%1%\" is not compatible with the new process profile and it contains the following unsaved changes:"),
                 presets->get_edited_preset().name);
         }
-        m_action_line->SetLabel(action_msg);
+        //m_action_line->SetLabel(action_msg);
     }
 
+    wxString action_msg;
+    action_msg = format_wxstr(_L("You have changed some preset settings. \nWould you like to keep these changed settings after switching preset?"));
+    m_action_line->SetLabel(action_msg);
+   
     update_tree(type, presets);
     update_list();
 }
@@ -1583,9 +1585,10 @@ void UnsavedChangesDialog::on_dpi_changed(const wxRect& suggested_rect)
     int em = em_unit();
 
     msw_buttons_rescale(this, em, { wxID_CANCEL, m_save_btn_id, m_move_btn_id, m_continue_btn_id });
-    for (auto btn : {m_save_btn, m_transfer_btn, m_discard_btn})
+    for (auto btn : {m_save_btn, m_transfer_btn, m_discard_btn, m_discard_btn})
         if (btn) btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
 
+    m_cancel_btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
     const wxSize& size = wxSize(70 * em, 30 * em);
     SetMinSize(size);
     //m_tree->Rescale(em);
