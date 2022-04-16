@@ -159,6 +159,9 @@ wxString GuideFrame::SetStartPage(GuidePage startpage)
     } else if (startpage == BBL_FILAMENT_ONLY) {
         SetTitle(_L("Filaments Selection"));
         TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\23\\index.html").make_preferred().string().c_str());
+    } else if (startpage == BBL_MODELS_ONLY) {
+        SetTitle(_L("Printer Selection"));
+        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\24\\index.html").make_preferred().string().c_str());
     }
     else {
         SetTitle(_L("Guide"));

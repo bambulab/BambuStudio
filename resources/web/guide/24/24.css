@@ -1,0 +1,180 @@
+
+body
+{
+	display:flex;
+	flex-direction: column;
+}
+
+
+#Title
+{
+	height: 10%;
+	display: flex;
+	text-align: center;
+	flex-direction:column;
+	justify-content: center;
+}
+
+#Title div
+{
+	font-size:28px;
+	line-height: 28px;
+	height: 28px;
+	color: #00AE42;
+}
+
+
+#Content
+{
+	height: 80%;
+	padding: 10mm 10mm;	
+	overflow-y:hidden;
+	text-align: left;
+	font-size: 14px;
+	line-height: 22px;
+	color: #464646;
+}
+
+#Content div
+{
+
+}
+
+
+#AcceptArea
+{
+	height:10%;
+	padding: 0mm 10mm;
+	text-align: left;
+	display: flex;
+	justify-content:flex-end;
+	align-items: center;	
+}
+
+
+.BlockBanner
+{
+	padding: 0px;
+	border-bottom:#00AE42 1px solid;
+	width: 100%;
+}
+
+
+.BannerBtns
+{
+	float: right;
+	display: flex;
+	width: 140px;
+	justify-content: space-around;
+	align-items: center;
+	height: 40px;
+	text-align: center;
+	margin-right: 10px;
+}
+
+.Banner-Btn
+{
+	background-color: #C0C0C0;
+	color: #000;
+	padding: 0px 6px;
+	min-width: 50px;
+	border-radius: 4px;
+	height: 32px;
+	line-height: 32px;
+	cursor: pointer;
+}
+
+.BlockBanner  a
+{
+	display: inline-block;
+	background-color:#00AE42;
+	line-height: 40px;
+	height: 40px;
+	padding: 0px 24px;
+	color: #fff;
+}
+
+.PrinterArea
+{
+	padding: 10px;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.PrinterBlock
+{
+	width: 140px;
+	text-align: center;
+	padding: 10px;
+}
+
+.PrinterBlock img
+{
+	width:140px;
+	height: 200px;
+}
+
+.PName
+{
+	font-weight: 700;
+}
+
+.pNozzel
+{
+	color: #5A5A5A;	
+}
+
+.pNozzel input
+{
+	vertical-align: middle;
+	margin-right: 4px;
+}
+
+
+/*-----Notice-----*/
+#NoticeMask
+{
+	background-color: #000;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	opacity: 0.05;
+	display: none;
+}
+
+#NoticeBody
+{
+	display: none;
+	width: 400px;
+	border: 1px solid #000;
+	border-radius: 4px;
+	background-color: #fff;	
+	position: absolute;
+	left: 50%;
+	top: 200px;
+	margin-left: -200px;
+}
+
+#NoticeBar
+{
+	background-color:#00B35C;
+	height: 40px;
+	line-height: 40px;
+	color: #fff;
+	text-align: center;
+}
+
+#NoticeContent
+{
+	padding: 4mm 10mm;	
+}
+
+
+#NoticeBtns
+{
+	margin-top: 4mm;
+	display: flex;
+	justify-content:space-around;
+}
