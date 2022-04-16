@@ -2140,7 +2140,7 @@ namespace ProcessLayer
                     //! FIXME_in_fw show message during print pause
 	                //if (!pause_print_msg.empty())
 	                //    gcode += "M117 " + pause_print_msg + "\n";
-                    gcode += gcodegen.placeholder_parser_process("machine_pause_gcode", config.machine_pause_gcode, current_extruder_id);
+                    gcode += gcodegen.placeholder_parser_process("machine_pause_gcode", config.machine_pause_gcode, current_extruder_id) + "\n";
                 }
 #if 0
 	            else {
