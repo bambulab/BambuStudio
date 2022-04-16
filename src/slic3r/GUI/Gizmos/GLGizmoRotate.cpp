@@ -18,29 +18,33 @@ namespace Slic3r {
 namespace GUI {
 
 
-const float GLGizmoRotate::Offset = 5.0f;
-const unsigned int GLGizmoRotate::CircleResolution = 64;
-const unsigned int GLGizmoRotate::AngleResolution = 64;
 const unsigned int GLGizmoRotate::ScaleStepsCount = 72;
 const float GLGizmoRotate::ScaleStepRad = 2.0f * (float)PI / GLGizmoRotate::ScaleStepsCount;
 const unsigned int GLGizmoRotate::ScaleLongEvery = 9;
 //const float GLGizmoRotate::ScaleLongTooth = 0.1f; // in percent of radius
 const unsigned int GLGizmoRotate::SnapRegionsCount = 16;
 const float GLGizmoRotate::GrabberOffset = 20;
-const float GLGizmoRotate::MaxGrabberRadius = 128.0f;
-const float GLGizmoRotate::ArrowRange = 8.0f;
-const float GLGizmoRotate::ArrowLen = 1.0f;
-const float GLGizmoRotate::ArrowDegree = 20;
-std::array<float, 4> GLGizmoRotate::FILL_COLOR = { 1.0f, 0.5f, 0.5f, 0.75f };
-std::array<float, 4> GLGizmoRotate::BACK_COLOR = { 0.8f, 0.8f, 0.8f, 0.2f };
+const float GLGizmoRotate::CircleOffset = 20;
 
+const float GLGizmoRotate::MaxGrabberRadius = 128.0f;
+const float GLGizmoRotate::GrabberRange = 20.0f;
+const float GLGizmoRotate::GrabberDepth = 2.5f;
+const float GLGizmoRotate::ArrowDepth = 6.0f;
+const float GLGizmoRotate::ArrowRange = 5.0f;
+//const float GLGizmoRotate::ArrowLen = 5.0f;
+const float GLGizmoRotate::ArrowDegree = PI / 6;
+std::array<float, 4> GLGizmoRotate::CIRCLE_FILL_COLOR = { 1.0f, 0.4f, 0.4f, 0.75f };
+std::array<float, 4> GLGizmoRotate::CIRCLE_BACK_COLOR = { 1.0f, 0.7f, 0.7f, 0.5f };
+std::array<float, 4> GLGizmoRotate::LINE_COLOR = { 0.7f, 0.7f, 1.0f, 0.3f };
+std::array<float, 4> GLGizmoRotate::LINE_HIGHLIGHTT_COLOR = { 0.4f, 0.4f, 1.0f, 0.5f };
 
 GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
     : GLGizmoBase(parent, "", -1)
     , m_axis(axis)
     , m_angle(0.0)
     , m_center(0.0, 0.0, 0.0)
-    , m_radius(0.0f)
+    , m_circle_radius(0.0f)
+    , m_grabber_radius(0.0f)
     , m_snap_coarse_in_radius(0.0f)
     , m_snap_coarse_out_radius(0.0f)
     , m_snap_fine_in_radius(0.0f)
@@ -54,7 +58,8 @@ GLGizmoRotate::GLGizmoRotate(const GLGizmoRotate& other)
     , m_axis(other.m_axis)
     , m_angle(other.m_angle)
     , m_center(other.m_center)
-    , m_radius(other.m_radius)
+    , m_circle_radius(other.m_circle_radius)
+    , m_grabber_radius(other.m_grabber_radius)
     , m_snap_coarse_in_radius(other.m_snap_coarse_in_radius)
     , m_snap_coarse_out_radius(other.m_snap_coarse_out_radius)
     , m_snap_fine_in_radius(other.m_snap_fine_in_radius)
@@ -175,24 +180,35 @@ void GLGizmoRotate::update_positions(const BoundingBoxf3& box)
         m_normal_up = (direction.z() >= 0)?true:false;
     }
 
-    float max_z = box.max.z();
-
+    float max_z = box.max.z() - box.min.z();
+    float max_y = box.max.y() - box.min.y();
+    float max_x = box.max.x() - box.min.x();
+    float max_width;
     if ((m_axis == X) || (m_axis == Y)) {
-        m_radius = max_z/2 +  GrabberOffset;
+        m_grabber_radius = max_z/2 +  GrabberOffset * INV_ZOOM;
         m_rotate_angle = 0.f;
+        if (m_axis == X) {
+            max_width = (max_y > max_z)?max_y:max_z;
+        }
+        else {
+            max_width = (max_x > max_z)?max_x:max_z;
+        }
+        m_circle_radius = max_width/2 +  CircleOffset * INV_ZOOM;
     }
     else {
         m_rotate_angle = rotate_z;
-        m_radius = size_z + GrabberOffset;
+        max_width = sqrt(max_x*max_x + max_y*max_y);
+        m_circle_radius = max_width/2 + CircleOffset * INV_ZOOM;
+        m_grabber_radius = size_z +  GrabberOffset * INV_ZOOM;
         m_center(2) = 0.1f;
     }
 
     //m_radius = GLGizmoBase::Grabber::FixedRadiusSize;
-    m_snap_coarse_in_radius = m_radius*0.6;
-    m_snap_coarse_out_radius = m_radius - 2.0f;
-    m_snap_fine_in_radius = m_radius;
-    m_snap_fine_out_short_radius = m_radius*1.2;
-    m_snap_fine_out_long_radius = m_radius*1.4;
+    m_snap_coarse_in_radius = m_circle_radius*0.6;
+    m_snap_coarse_out_radius = m_circle_radius - 2.0f;
+    m_snap_fine_in_radius = m_circle_radius;
+    m_snap_fine_out_short_radius = m_circle_radius*1.2;
+    m_snap_fine_out_long_radius = m_circle_radius*1.4;
 }
 
 void GLGizmoRotate::on_start_dragging()
@@ -268,7 +284,6 @@ void GLGizmoRotate::on_update(const UpdateData& data)
             theta -= 2*PI;
     }
     m_mouse_radius = len;
-    m_view_pos = data.mouse_ray.a;
     //BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ <<
     //    boost::format(": mouse_ray a {%1%,%2%,%3%} to b {%4%,%5%,%6%}, mouse_pos {%7%,%8%}, len %9%, theta %10%")
     //    %data.mouse_ray.a.x() %data.mouse_ray.a.y() %data.mouse_ray.a.z()
@@ -313,7 +328,7 @@ void GLGizmoRotate::on_render()
     transform_to_local(selection);
 
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
-    glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color.data() : m_highlight_color.data()));
+    //glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color.data() : m_highlight_color.data()));
 
 
     //BBS do not render circle
@@ -325,7 +340,7 @@ void GLGizmoRotate::on_render()
         //render_reference_radius();
     }
 
-    glsafe(::glColor4fv(m_highlight_color.data()));
+    //glsafe(::glColor4fv(m_highlight_color.data()));
 
     if (m_hover_id != -1)
         render_angle();
@@ -348,17 +363,40 @@ void GLGizmoRotate::on_render_for_picking()
     transform_to_local(selection);
 
     // BBS get color for pick only
-    render_grabbers_for_picking(box);
-    /*for (unsigned int i = 0; i < (unsigned int) m_grabbers.size(); ++i) {
+    //render_grabbers_for_picking(box);
+    std::array<float, 4> color;
+    for (unsigned int i = 0; i < (unsigned int) m_grabbers.size(); ++i) {
         if (m_grabbers[i].enabled) {
-            std::array<float, 4> color = picking_color_component(i);
-            m_grabbers[i].color        = color;
+            color = picking_color_component(i);
         }
-    }*/
+    }
 
-    //render_grabber_extension(box, true);
+    glsafe(::glColor4fv(color.data()));
+    render_arrow();
+    //render arrow
+    /*double left_angle = m_angle - (PI * GrabberRange)/180;
+    double right_angle = m_angle + (PI * GrabberRange)/180;
+    //use rectangle to simulate the arc, so minus 2 for accuracy
+    double arrow_in_radius = m_grabber_radius - (ArrowDepth - 2) * GLGizmoBase::INV_ZOOM, arrow_out_radius = m_grabber_radius + (ArrowDepth + 2) * GLGizmoBase::INV_ZOOM;
+    Vec3d in_p1, in_p2, out_p1, out_p2;
+    in_p1 = {::cos(left_angle) * arrow_in_radius, ::sin(left_angle) * arrow_in_radius, 0.0};
+    in_p2 = {::cos(right_angle) * arrow_in_radius, ::sin(right_angle) * arrow_in_radius, 0.0};
+    out_p1 = {::cos(left_angle) * arrow_out_radius, ::sin(left_angle) * arrow_out_radius, 0.0};
+    out_p2 = {::cos(right_angle) * arrow_out_radius, ::sin(right_angle) * arrow_out_radius, 0.0};
+    glsafe(::glColor4fv(color.data() ));
+    ::glPolygonMode(GL_FRONT, GL_FILL);
+    ::glPolygonMode(GL_BACK, GL_FILL);
+    if (!m_normal_up)
+        ::glFrontFace(GL_CW);
+    ::glBegin(GL_POLYGON);
+    ::glVertex3d(out_p1.x(), out_p1.y(), 0.0f);
+    ::glVertex3d(out_p2.x(), out_p2.y(), 0.0f);
+    ::glVertex3d(in_p2.x(), in_p2.y(), 0.0f);
+    ::glVertex3d(in_p1.x(), in_p1.y(), 0.0f);
+    glsafe(::glEnd());
+    ::glFrontFace(GL_CCW);
 
-
+    //render_grabber_extension(box, true);*/
     glsafe(::glPopMatrix());
 }
 
@@ -396,7 +434,7 @@ void GLGizmoRotate3D::load_rotoptimize_state()
 
 void GLGizmoRotate::render_circle() const
 {
-    ::glBegin(GL_LINE_LOOP);
+    /*::glBegin(GL_LINE_LOOP);
     for (unsigned int i = 0; i < ScaleStepsCount; ++i)
     {
         float angle = (float)i * ScaleStepRad;
@@ -405,7 +443,7 @@ void GLGizmoRotate::render_circle() const
         float z = 0.0f;
         ::glVertex3f((GLfloat)x, (GLfloat)y, (GLfloat)z);
     }
-    glsafe(::glEnd());
+    glsafe(::glEnd());*/
 }
 
 void GLGizmoRotate::render_scale() const
@@ -413,7 +451,7 @@ void GLGizmoRotate::render_scale() const
     //float out_radius_long = m_snap_fine_out_long_radius;
     //float out_radius_short = m_snap_fine_out_short_radius;
     //float out_radius_short = m_radius * (1.0f + 0.5f * ScaleLongTooth);
-
+    glsafe(::glColor4fv(LINE_COLOR.data()));
     ::glBegin(GL_LINES);
     for (unsigned int i = 0; i < ScaleStepsCount; ++i)
     {
@@ -461,10 +499,10 @@ void GLGizmoRotate::render_snap_radii() const
 
 void GLGizmoRotate::render_reference_radius() const
 {
-    ::glBegin(GL_LINES);
+    /*::glBegin(GL_LINES);
     ::glVertex3f(0.0f, 0.0f, 0.0f);
     ::glVertex3f((GLfloat)(m_radius * (1.0f + GrabberOffset)), 0.0f, 0.0f);
-    glsafe(::glEnd());
+    glsafe(::glEnd());*/
 }
 
 void GLGizmoRotate::render_angle() const
@@ -606,7 +644,7 @@ void GLGizmoRotate::render_angle() const
         glsafe(::glEnable(GL_BLEND));
         glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
         glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-        glsafe(::glColor4fv(GLGizmoRotate::BACK_COLOR.data()));
+        glsafe(::glColor4fv(GLGizmoRotate::CIRCLE_BACK_COLOR.data()));
         //glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
 
         glsafe(::glVertexPointer(3, GL_FLOAT, m_background_circle_buffer_1.get_vertex_data_size(), (GLvoid*)m_background_circle_buffer_1.get_vertices_data()));
@@ -646,8 +684,8 @@ void GLGizmoRotate::render_angle() const
             glsafe(::glDepthMask(GL_FALSE));
             glsafe(::glEnable(GL_BLEND));
 
-            //shader->set_uniform("uniform_color", GLGizmoRotate::FILL_COLOR);
-            glsafe(::glColor4fv(GLGizmoRotate::FILL_COLOR.data()));
+            //shader->set_uniform("uniform_color", GLGizmoRotate::CIRCLE_FILL_COLOR);
+            glsafe(::glColor4fv(GLGizmoRotate::CIRCLE_FILL_COLOR.data()));
             glsafe(::glNormal3d(0.0f, 0.0f, -1.0f));
             glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
             glsafe(::glVertexPointer(3, GL_FLOAT, m_filled_circle_buffer.get_vertex_data_size(), (GLvoid*)m_filled_circle_buffer.get_vertices_data()));
@@ -661,6 +699,50 @@ void GLGizmoRotate::render_angle() const
     }
     return;
 #endif
+}
+
+void GLGizmoRotate::render_arrow() const
+{
+    if (m_arrow_point_1.empty())
+        return;
+
+    ::glPolygonMode(GL_FRONT, GL_FILL);
+    ::glPolygonMode(GL_BACK, GL_FILL);
+    if (!m_normal_up)
+        ::glFrontFace(GL_CW);
+    //draw the left arrow
+    ::glBegin(GL_POLYGON);
+    for (auto it = m_arrow_point_1.begin() ; it != m_arrow_point_1.end(); ++it)
+    {
+        Vec2d& p = *it;
+        ::glVertex3d(p.x(), p.y(), 0.0f);
+    }
+    glsafe(::glEnd());
+
+    //draw the right arrow
+    ::glBegin(GL_POLYGON);
+    for (auto it = m_arrow_point_2.begin() ; it != m_arrow_point_2.end(); ++it)
+    {
+        Vec2d& p = *it;
+        ::glVertex3d(p.x(), p.y(), 0.0f);
+    }
+    glsafe(::glEnd());
+
+    //draw the circles
+    int size = m_grabber_out_points.size();
+    for (unsigned index = 0; index < size - 1; index ++ )
+    {
+        Vec2d& in_p1 = m_grabber_in_points[index], in_p2 = m_grabber_in_points[index + 1];
+        Vec2d& out_p1 = m_grabber_out_points[index], out_p2 = m_grabber_out_points[index + 1];
+
+        ::glBegin(GL_POLYGON);
+        ::glVertex3d(out_p1.x(), out_p1.y(), 0.0f);
+        ::glVertex3d(out_p2.x(), out_p2.y(), 0.0f);
+        ::glVertex3d(in_p2.x(), in_p2.y(), 0.0f);
+        ::glVertex3d(in_p1.x(), in_p1.y(), 0.0f);
+        glsafe(::glEnd());
+    }
+    ::glFrontFace(GL_CCW);
 }
 
 void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
@@ -684,80 +766,123 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
     m_grabbers[0].color = m_highlight_color;
     render_grabbers(box);
 #else
-    double grabber_radius = (double)m_radius;
-    m_grabbers[0].center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
-    m_grabbers[0].angles(2) = m_angle;
+    //m_grabbers[0].center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
+    //m_grabbers[0].angles(2) = m_angle;
 
-    glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color.data() : m_highlight_color.data()));
+    //glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color.data() : m_highlight_color.data()));
 
     if (m_hover_id != -1) {
-        float mouse_radius = grabber_radius;
+        float mouse_radius = m_circle_radius;
         if (m_grabbers[0].dragging) {
             mouse_radius = m_mouse_radius;
             if ((mouse_radius < m_snap_coarse_in_radius) && !m_fine_tuning)
                 mouse_radius = m_snap_coarse_in_radius;
-            else if ((mouse_radius < grabber_radius) && m_fine_tuning)
-                mouse_radius = grabber_radius;
+            else if ((mouse_radius < m_circle_radius) && m_fine_tuning)
+                mouse_radius = m_circle_radius;
             else if ((mouse_radius > MaxGrabberRadius) && m_fine_tuning)
                 mouse_radius = MaxGrabberRadius;
         }
 
+        glsafe(::glColor4fv(LINE_HIGHLIGHTT_COLOR.data()));
         ::glBegin(GL_LINES);
         ::glVertex3f(0.0f, 0.0f, 0.0f);
         ::glVertex3f(::cos(m_angle) * mouse_radius, ::sin(m_angle) * mouse_radius, 0.0);
         glsafe(::glEnd());
     }
 
-    m_grabbers[0].color = AXES_COLOR[m_axis];
-    m_grabbers[0].hover_color = AXES_HOVER_COLOR[m_axis];
-    //render_grabbers(box);
+    //when dragging, don't draw the grabber arrows
+    if (m_dragging)
+        return;
 
+    double arc_range = GrabberRange * GLGizmoBase::INV_ZOOM;
+    double angle_range = arc_range/m_grabber_radius;
+    double arrow_angle = ArrowRange * GLGizmoBase::INV_ZOOM / m_grabber_radius;
+
+    double new_origin_x, new_origin_y, new_radius, new_angle_range, new_arrow_angle;
+    if (angle_range >= ArrowDegree) {
+        new_origin_x = 0.f;
+        new_origin_y = 0.f;
+        new_radius = m_grabber_radius;
+        new_angle_range = angle_range;
+        new_arrow_angle = arrow_angle;
+    }
+    else {
+        new_radius = m_grabber_radius * angle_range / ArrowDegree;
+
+        double  temp_radius = m_grabber_radius - new_radius;
+        new_origin_x = ::cos(m_angle) * temp_radius;
+        new_origin_y = ::sin(m_angle) * temp_radius;
+        new_angle_range = ArrowDegree;
+        new_arrow_angle = arrow_angle * m_grabber_radius/new_radius;
+    }
     //render arrow
-    double left_angle = m_angle - (PI * ArrowRange)/180;
-    double right_angle = m_angle + (PI * ArrowRange)/180;
-    int steps = 8;
+    double left_angle = m_angle - new_angle_range/2;
+    double right_angle = m_angle + new_angle_range/2;
+    int steps = 12;
     double step = (right_angle - left_angle)/steps;
-    ::glBegin(GL_LINES);
-    Vec3d p1, p2;
-    for (unsigned int index = 0; index < steps; index ++)
+
+    Vec3d in_p, out_p, p1, p2;
+    double grabber_in_radius = new_radius - GrabberDepth * GLGizmoBase::INV_ZOOM, grabber_out_radius = new_radius + GrabberDepth * GLGizmoBase::INV_ZOOM;
+    double arrow_in_radius = new_radius - ArrowDepth * GLGizmoBase::INV_ZOOM, arrow_out_radius = new_radius + ArrowDepth * GLGizmoBase::INV_ZOOM;
+
+    m_grabber_in_points.clear();
+    m_grabber_out_points.clear();
+    m_arrow_point_1.clear();
+    m_arrow_point_2.clear();
+    p1 = {new_origin_x + ::cos(left_angle - new_arrow_angle) * new_radius, new_origin_y + ::sin(left_angle - new_arrow_angle) * new_radius, 0.0};
+    m_arrow_point_1.emplace_back(p1.x(), p1.y());
+    for (unsigned int index = 0; index <= steps; index ++)
     {
         double cur_angle = left_angle + step * index;
-        if (index == 0)
-            p2 = {::cos(cur_angle) * grabber_radius, ::sin(cur_angle) * grabber_radius, 0.0};
-        else {
-            ::glVertex3dv(p2.data());
-            p1 = {::cos(cur_angle) * grabber_radius, ::sin(cur_angle) * grabber_radius, 0.0};
-            ::glVertex3dv(p1.data());
 
-            if (index == 1) {
-                Vec3d arrow_p1, arrow_p2;
-                calc_left_arrow_points(p2, p1, arrow_p1, arrow_p2);
-                ::glVertex3dv(p2.data());
-                ::glVertex3dv(arrow_p1.data());
-                ::glVertex3dv(p2.data());
-                ::glVertex3dv(arrow_p2.data());
-            }
-            else if (index == (steps - 1)) {
-                Vec3d arrow_p1, arrow_p2;
-                calc_left_arrow_points(p1, p2, arrow_p1, arrow_p2);
-                //calc_right_arrow_points(p1, p2, arrow_p1, arrow_p2);
-                ::glVertex3dv(p1.data());
-                ::glVertex3dv(arrow_p1.data());
-                ::glVertex3dv(p1.data());
-                ::glVertex3dv(arrow_p2.data());
-            }
-            p2 = p1;
+        if (index == 0) {
+            in_p = {new_origin_x + ::cos(cur_angle) * grabber_in_radius, new_origin_y + ::sin(cur_angle) * grabber_in_radius, 0.0};
+            out_p = {new_origin_x + ::cos(cur_angle) * grabber_out_radius, new_origin_y + ::sin(cur_angle) * grabber_out_radius, 0.0};
+
+            p1 = {new_origin_x + ::cos(cur_angle) * arrow_in_radius, new_origin_y + ::sin(cur_angle) * arrow_in_radius, 0.0};
+            p2 = {new_origin_x + ::cos(cur_angle) * arrow_out_radius, new_origin_y + ::sin(cur_angle) * arrow_out_radius, 0.0};
+
+            m_grabber_in_points.emplace_back(in_p.x(), in_p.y());
+            m_grabber_out_points.emplace_back(out_p.x(), out_p.y());
+            m_arrow_point_1.emplace_back(p2.x(), p2.y());
+            m_arrow_point_1.emplace_back(out_p.x(), out_p.y());
+            m_arrow_point_1.emplace_back(in_p.x(), in_p.y());
+            m_arrow_point_1.emplace_back(p1.x(), p1.y());
+        }
+        else if (index == steps) {
+            in_p = {new_origin_x + ::cos(cur_angle) * grabber_in_radius, new_origin_y + ::sin(cur_angle) * grabber_in_radius, 0.0};
+            out_p = {new_origin_x + ::cos(cur_angle) * grabber_out_radius, new_origin_y + ::sin(cur_angle) * grabber_out_radius, 0.0};
+
+            p1 = {new_origin_x + ::cos(cur_angle) * arrow_in_radius, new_origin_y + ::sin(cur_angle) * arrow_in_radius, 0.0};
+            p2 = {new_origin_x + ::cos(cur_angle) * arrow_out_radius, new_origin_y + ::sin(cur_angle) * arrow_out_radius, 0.0};
+
+            m_grabber_in_points.emplace_back(in_p.x(), in_p.y());
+            m_grabber_out_points.emplace_back(out_p.x(), out_p.y());
+            m_arrow_point_2.emplace_back(p1.x(), p1.y());
+            m_arrow_point_2.emplace_back(in_p.x(), in_p.y());
+            m_arrow_point_2.emplace_back(out_p.x(), out_p.y());
+            m_arrow_point_2.emplace_back(p2.x(), p2.y());
+        }
+        else if ((index >= 1) && (index <= (steps - 1))){
+            in_p = {new_origin_x + ::cos(cur_angle) * grabber_in_radius, new_origin_y + ::sin(cur_angle) * grabber_in_radius, 0.0};
+            out_p = {new_origin_x + ::cos(cur_angle) * grabber_out_radius, new_origin_y + ::sin(cur_angle) * grabber_out_radius, 0.0};
+            m_grabber_in_points.emplace_back(in_p.x(), in_p.y());
+            m_grabber_out_points.emplace_back(out_p.x(), out_p.y());
         }
     }
-    glsafe(::glEnd());
+    p1 = {new_origin_x + ::cos(right_angle + new_arrow_angle) * new_radius, new_origin_y + ::sin(right_angle + new_arrow_angle) * new_radius, 0.0};
+    m_arrow_point_2.emplace_back(p1.x(), p1.y());
 
-    //draw left arrow
-    ::glBegin(GL_LINES);
-    glsafe(::glEnd());
+    if (m_hover_id != -1)
+        glsafe(::glColor4fv(AXES_HOVER_COLOR[m_axis].data()));
+    else
+        glsafe(::glColor4fv(AXES_COLOR[m_axis].data()));
+
+    render_arrow();
 #endif
 }
 
-void GLGizmoRotate::calc_left_arrow_points(const Vec3d& line_p1, const Vec3d& line_p2, Vec3d &arrow_p1, Vec3d &arrow_p2) const
+/*void GLGizmoRotate::calc_left_arrow_points(const Vec3d& line_p1, const Vec3d& line_p2, Vec3d &arrow_p1, Vec3d &arrow_p2) const
 {
     Vec3d direction = (line_p2 - line_p1).normalized();
     double angle_x = ::acos(direction.dot(Vec3d::UnitX()));
@@ -772,7 +897,7 @@ void GLGizmoRotate::calc_left_arrow_points(const Vec3d& line_p1, const Vec3d& li
     delta_y2 = ArrowLen * sin(angle_2);
     arrow_p1 = { line_p1.x() + delta_x1, line_p1.y() + delta_y1, 0.f };
     arrow_p2 = { line_p1.x() + delta_x2, line_p1.y() + delta_y2, 0.f };
-}
+}*/
 
 /*void GLGizmoRotate::calc_right_arrow_points(const Vec3d& line_p1, const Vec3d& line_p2, Vec3d &arrow_p1, Vec3d &arrow_p2) const
 {

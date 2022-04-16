@@ -13,9 +13,6 @@ namespace GUI {
 
 class GLGizmoRotate : public GLGizmoBase
 {
-    static const float Offset;
-    static const unsigned int CircleResolution;
-    static const unsigned int AngleResolution;
     static const unsigned int ScaleStepsCount;
     static const float ScaleStepRad;
     static const unsigned int ScaleLongEvery;
@@ -23,9 +20,13 @@ class GLGizmoRotate : public GLGizmoBase
     static const float MaxGrabberRadius;
     static const unsigned int SnapRegionsCount;
     static const float GrabberOffset;
+    static const float CircleOffset;
+    static const float GrabberRange;
+    static const float GrabberDepth;
+    static const float ArrowDepth;
     static const float ArrowRange;
-    static const float ArrowLen;
-    static const float ArrowDegree;
+    static const float ArrowDegree; //the minimum degree the arrow should has
+
 
 public:
     enum Axis : unsigned char
@@ -40,7 +41,8 @@ private:
     double m_angle;
 
     mutable Vec3d m_center;
-    mutable float m_radius;
+    mutable float m_circle_radius;
+    mutable float m_grabber_radius;
     //mutable float m_reference_radius;
     mutable GeometryBuffer m_filled_circle_buffer;
     mutable GeometryBuffer m_background_circle_buffer_1;
@@ -48,8 +50,11 @@ private:
     mutable bool m_fine_tuning;
     mutable bool m_normal_up;
     mutable float m_mouse_radius;
-    mutable Vec3d m_view_pos;
     mutable float m_rotate_angle;
+    mutable Pointfs m_grabber_in_points;
+    mutable Pointfs m_grabber_out_points;
+    mutable Pointfs m_arrow_point_1;
+    mutable Pointfs m_arrow_point_2;
 
     mutable float m_snap_coarse_in_radius;
     mutable float m_snap_coarse_out_radius;
@@ -67,8 +72,10 @@ public:
 
     std::string get_tooltip() const override;
 
-    static std::array<float, 4> FILL_COLOR;
-    static std::array<float, 4> BACK_COLOR;
+    static std::array<float, 4> CIRCLE_FILL_COLOR;
+    static std::array<float, 4> CIRCLE_BACK_COLOR;
+    static std::array<float, 4> LINE_COLOR;
+    static std::array<float, 4> LINE_HIGHLIGHTT_COLOR;
 
 protected:
     bool on_init() override;
@@ -86,6 +93,7 @@ private:
     void render_angle() const;
     void render_grabber(const BoundingBoxf3& box) const;
     void render_grabber_extension(const BoundingBoxf3& box, bool picking) const;
+    void render_arrow() const;
 
     void transform_to_local(const Selection& selection) const;
     // returns the intersection of the mouse ray with the plane perpendicular to the gizmo axis, in local coordinate
