@@ -766,8 +766,18 @@ std::vector<std::string> DiffViewCtrl::selected_options()
 //------------------------------------------
 
 static std::string none{"none"};
+#define UNSAVE_CHANGE_DIALOG_SCROLL_WINDOW_SIZE wxSize(FromDIP(470), FromDIP(374))
+#define UNSAVE_CHANGE_DIALOG_FIRST_VALUE_WIDTH FromDIP(190)
+#define UNSAVE_CHANGE_DIALOG_VALUE_WIDTH FromDIP(145)
+#define UNSAVE_CHANGE_DIALOG_ITEM_HEIGHT FromDIP(24)
+#define UNSAVE_CHANGE_DIALOG_BUTTON_SIZE wxSize(FromDIP(70), FromDIP(24))
+
 #define THUMB_COLOR wxColor(196, 196, 196)
 #define GREY900 wxColour(38, 46, 48)
+#define GREY700 wxColour(107,107,107)
+#define GREY400 wxColour(206,206,206)
+#define GREY300 wxColour(238,238,238)
+#define GREY200 wxColour(248,248,248)
 
 
 UnsavedChangesDialog::UnsavedChangesDialog(const wxString &caption, const wxString &header, const std::string &app_config_key, int act_buttons)
@@ -803,87 +813,135 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
 {
     // def setting
     SetBackgroundColour(DEF_BK_COLOR);
-    SetFont(wxGetApp().normal_font());
 
     // icon
     std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
     SetIcon(wxIcon(icon_path, wxBITMAP_TYPE_ICO));
 
-    int em        = em_unit();
-    m_action_line = new wxStaticText(this, wxID_ANY, "");
-    m_action_line->SetForegroundColour(wxColour(38, 46, 48));
+  
 
-    // list
-    auto list_area_width = 600;
-    auto list_area_height = 380;
-    auto list_area_board  = 12;
-    auto list_area_color  = wxColour(248, 248, 248);
+    wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
 
-    auto list_area = new RoundedRectangle(this, list_area_color, wxDefaultPosition, wxDefaultSize, 10);
+    m_top_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_top_line->SetBackgroundColour(wxColour(166, 169, 170));
 
-    wxBoxSizer *sizer_list;
-    sizer_list = new wxBoxSizer(wxVERTICAL);
+    m_sizer_main->Add(m_top_line, 0, wxEXPAND, 0);
 
-    //list_title
-    auto list_area_top_title = new wxWindow(list_area, wxID_ANY, wxDefaultPosition, wxSize(list_area_width - list_area_board * 2, 25));
-    list_area_top_title->SetBackgroundColour(wxColour(206, 206, 206));
+    m_sizer_main->Add(0, 0, 0, wxTOP, 20);
 
-    wxBoxSizer* sizer_title = new wxBoxSizer(wxHORIZONTAL);
-    sizer_title->Add(0, 0, 1, wxEXPAND, 5);
+    m_action_line = new wxStaticText(this, wxID_ANY, wxEmptyString,wxDefaultPosition , wxSize(UNSAVE_CHANGE_DIALOG_SCROLL_WINDOW_SIZE.x, -1), 0);
+    m_action_line->SetFont(::Label::Body_13);
+    m_action_line->SetForegroundColour(GREY900);
+    //m_action_line->Wrap(-1);
+    m_sizer_main->Add(m_action_line, 0, wxLEFT | wxRIGHT, 20);
 
-    auto static_oldV_title = new wxStaticText(list_area_top_title, wxID_ANY, _L("Old Value"), wxDefaultPosition, wxSize(100, -1), wxALIGN_CENTER_HORIZONTAL);
-    auto static_newV_title = new wxStaticText(list_area_top_title, wxID_ANY, _L("New Value"), wxDefaultPosition, wxSize(100, -1), wxALIGN_CENTER_HORIZONTAL);
-    auto block_right       = new wxWindow(list_area_top_title, wxID_ANY, wxDefaultPosition, wxSize(0,0));
-    auto block_left        = new wxWindow(list_area_top_title, wxID_ANY, wxDefaultPosition, wxSize(0, 0));
+    m_sizer_main->Add(0, 0, 0, wxTOP, 12);
 
+    m_panel_tab = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(UNSAVE_CHANGE_DIALOG_SCROLL_WINDOW_SIZE.x, -1), wxTAB_TRAVERSAL);
+    m_panel_tab->SetBackgroundColour(GREY200);
+    wxBoxSizer *m_sizer_tab = new wxBoxSizer(wxVERTICAL);
 
-    sizer_title->Add(static_oldV_title, 0, wxEXPAND | wxTOP, (25 - static_oldV_title->GetSize().GetHeight()) / 2);
-    sizer_title->Add(block_left, 0, wxEXPAND | wxRIGHT, 0);
-    sizer_title->Add(static_newV_title, 0, wxEXPAND | wxTOP, (25 - static_oldV_title->GetSize().GetHeight()) / 2);
-    sizer_title->Add(block_right, 0, wxEXPAND | wxRIGHT, 0);
+    m_table_top = new wxPanel(m_panel_tab, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_table_top->SetBackgroundColour(wxColour(107, 107, 107));
 
-    list_area_top_title->SetSizer(sizer_title);
-    list_area_top_title->Layout();
+    wxBoxSizer *m_sizer_top = new wxBoxSizer(wxHORIZONTAL);
 
-
-    //list body
-    m_scrolledWindow = new ScrolledWindow(list_area, wxID_ANY, wxDefaultPosition, wxSize(list_area_width - list_area_board, list_area_height - list_area_board * 2),
-                                          wxVSCROLL,
-                                             6, 6);
-    m_scrolledWindow->SetMarginColor(list_area_color);
-    m_scrolledWindow->SetScrollbarColor(THUMB_COLOR);
-    m_scrolledWindow->SetBackgroundColour(list_area_color);
+    //m_sizer_top->Add(0, 0, 0, wxLEFT, UNSAVE_CHANGE_DIALOG_FIRST_VALUE_WIDTH);
+    auto        m_panel_temp   = new wxPanel(m_table_top, wxID_ANY, wxDefaultPosition, wxSize(UNSAVE_CHANGE_DIALOG_FIRST_VALUE_WIDTH, -1), wxTAB_TRAVERSAL);
+    wxBoxSizer *top_title_temp_v = new wxBoxSizer(wxVERTICAL);
+    top_title_temp_v->SetMinSize(wxSize(UNSAVE_CHANGE_DIALOG_VALUE_WIDTH, -1));
+    wxBoxSizer *top_title_temp_h = new wxBoxSizer(wxHORIZONTAL);
+    static_temp_title            = new wxStaticText(m_panel_temp, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize, 0);
+    static_temp_title->SetFont(::Label::Body_13);
+    static_temp_title->Wrap(-1);
+    static_temp_title->SetForegroundColour(*wxWHITE);
+    top_title_temp_h->Add(static_temp_title, 0, wxALIGN_CENTER | wxBOTTOM | wxTOP, 5);
+    top_title_temp_v->Add(top_title_temp_h, 1, wxALIGN_CENTER, 0);
+    m_panel_temp->SetSizer(top_title_temp_v);
+    m_panel_temp->Layout();
+    m_sizer_top->Add(m_panel_temp, 1, wxALIGN_CENTER, 0);
 
 
-    sizer_list->Add(list_area_top_title, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, list_area_board);
-    sizer_list->Add(m_scrolledWindow, 1, wxEXPAND | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, list_area_board / 2);
-    list_area->SetSizer(sizer_list);
+    title_block_middle = new wxPanel(m_table_top, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    title_block_middle->SetBackgroundColour(wxColour(172, 172, 172));
 
-    // Add Buttons
+    m_sizer_top->Add(title_block_middle, 0, wxBOTTOM | wxEXPAND | wxTOP, 2);
+    auto m_panel_oldv = new wxPanel( m_table_top, wxID_ANY, wxDefaultPosition, wxSize( UNSAVE_CHANGE_DIALOG_VALUE_WIDTH,-1 ), wxTAB_TRAVERSAL );
+    wxBoxSizer *top_title_oldv = new wxBoxSizer(wxVERTICAL);
+    top_title_oldv->SetMinSize(wxSize(UNSAVE_CHANGE_DIALOG_VALUE_WIDTH, -1));
+    wxBoxSizer *top_title_oldv_h = new wxBoxSizer(wxHORIZONTAL);
+    static_oldv_title = new wxStaticText(m_panel_oldv, wxID_ANY, _L("Old Value"), wxDefaultPosition, wxDefaultSize, 0);
+    static_oldv_title->SetFont(::Label::Body_13);
+    static_oldv_title->Wrap(-1);
+    static_oldv_title->SetForegroundColour(*wxWHITE);
+    top_title_oldv_h->Add(static_oldv_title, 0, wxALIGN_CENTER | wxBOTTOM | wxTOP, 5);
+    top_title_oldv->Add(top_title_oldv_h, 1, wxALIGN_CENTER, 0);
+    m_panel_oldv->SetSizer(top_title_oldv);
+    m_panel_oldv->Layout();
+    m_sizer_top->Add(m_panel_oldv, 0, wxALIGN_CENTER, 0);
+
+    title_block_right = new wxPanel(m_table_top, wxID_ANY, wxDefaultPosition, wxSize(1, -1), wxTAB_TRAVERSAL);
+    title_block_right->SetBackgroundColour(wxColour(172, 172, 172));
+
+    m_sizer_top->Add(title_block_right, 0, wxBOTTOM | wxEXPAND | wxTOP, 2);
+
+    auto m_panel_newv = new wxPanel( m_table_top, wxID_ANY, wxDefaultPosition, wxSize( UNSAVE_CHANGE_DIALOG_VALUE_WIDTH,-1 ), wxTAB_TRAVERSAL );
+    wxBoxSizer *top_title_newv = new wxBoxSizer(wxVERTICAL);
+
+    top_title_newv->SetMinSize(wxSize(UNSAVE_CHANGE_DIALOG_VALUE_WIDTH, -1));
+    wxBoxSizer *top_title_newv_h = new wxBoxSizer(wxHORIZONTAL);
+
+    static_newv_title = new wxStaticText(m_panel_newv, wxID_ANY, _L("New Value"), wxDefaultPosition, wxSize(-1, -1), 0);
+    static_newv_title->SetFont(::Label::Body_13);
+    static_newv_title->Wrap(-1);
+    static_newv_title->SetForegroundColour(*wxWHITE);
+
+    top_title_newv_h->Add(static_newv_title, 0, wxALIGN_CENTER | wxBOTTOM | wxTOP, 5);
+
+    top_title_newv->Add(top_title_newv_h, 1, wxALIGN_CENTER, 0);
+
+    m_panel_newv->SetSizer(top_title_newv);
+    m_panel_newv->Layout();
+    m_sizer_top->Add(m_panel_newv, 0, wxALIGN_CENTER, 0);
+    //m_sizer_top->Add(top_title_newv, 1, wxALIGN_CENTER, 0);
+
+    m_table_top->SetSizer(m_sizer_top);
+    m_table_top->Layout();
+    m_sizer_top->Fit(m_table_top);
+    m_sizer_tab->Add(m_table_top, 1, 0, 0);
+
+    m_scrolledWindow = new wxScrolledWindow(m_panel_tab, wxID_ANY, wxDefaultPosition, UNSAVE_CHANGE_DIALOG_SCROLL_WINDOW_SIZE,  wxNO_BORDER|wxVERTICAL);
+    m_scrolledWindow->SetScrollRate(5, 5);
+    m_scrolledWindow->SetBackgroundColour(GREY200);
+    m_sizer_bottom = new wxBoxSizer(wxVERTICAL);
+    m_sizer_bottom->Add(m_scrolledWindow, 1, wxEXPAND, 0);
+    m_sizer_tab->Add(m_sizer_bottom, 0, wxEXPAND, 0);
+
+    m_panel_tab->SetSizer(m_sizer_tab);
+    m_panel_tab->Layout();
+    m_sizer_tab->Fit(m_panel_tab);
+    m_sizer_main->Add(m_panel_tab, 0, wxEXPAND | wxLEFT | wxRIGHT, 20);
+
+    m_sizer_main->Add(0, 0, 0, wxTOP, 9);
+
+    m_info_line = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(-1, 44), 0);
+    m_info_line->SetFont(::Label::Body_13);
+    m_info_line->Wrap(-1);
+    m_info_line->SetForegroundColour(wxColour(255, 111, 0));
+
+    m_sizer_main->Add(m_info_line, 0, wxLEFT | wxRIGHT, 20);
+
+    wxBoxSizer *m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
+
+    m_sizer_button->Add(0, 0, 1, 0, 0);
+
+     // Add Buttons
     wxFont      btn_font = this->GetFont().Scaled(1.4f);
-    wxBoxSizer *buttons  = new wxBoxSizer(wxHORIZONTAL);
-    buttons->Add(0, 0, 1, wxEXPAND, 5);
-
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
-    auto add_btn = [this, buttons, btn_font, dependent_presets, btn_bg_green](Button **btn, int &btn_id, const std::string &icon_name, Action close_act, const wxString &label,
+    auto add_btn = [this, m_sizer_button, btn_font, dependent_presets, btn_bg_green](Button **btn, int &btn_id, const std::string &icon_name, Action close_act, const wxString &label,
                                                                               bool focus, bool process_enable = true) {
-        /* *btn = new ScalableButton(this, btn_id = NewControlId(), icon_name, label, wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true, 24);
-
-        buttons->Add(*btn, 1, wxLEFT, 5);
-        (*btn)->SetFont(btn_font);
-
-         (*btn)->Bind(wxEVT_BUTTON, [this, close_act, dependent_presets](wxEvent&) {
-             bool save_names_and_types = close_act == Action::Save || (close_act == Action::Transfer && ActionButtons::KEEP & m_buttons);
-             if (save_names_and_types && !save(dependent_presets, close_act == Action::Save))
-                 return;
-             close(close_act);
-         });
-         if (process_enable)
-             (*btn)->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_tree->has_selection()); });
-         (*btn)->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) { show_info_line(Action::Undef); e.Skip(); });*/
-
         *btn = new Button(this, _L(label));
 
         if (focus) {
@@ -894,7 +952,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
             (*btn)->SetTextColor(wxColour(107, 107, 107));
         }
 
-        (*btn)->SetMinSize(wxSize(70, 24));
+        (*btn)->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
         (*btn)->SetCornerRadius(12);
 
         (*btn)->Bind(wxEVT_LEFT_DOWN, [this, close_act, dependent_presets](wxEvent &) {
@@ -909,7 +967,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
             e.Skip();
         });
 
-        buttons->Add(*btn, 0, wxLEFT, 5);
+        m_sizer_button->Add(*btn, 0, wxLEFT, 5);
     };
 
     // "Transfer" / "Keep" button
@@ -940,43 +998,25 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     cancel_btn->Bind(wxEVT_LEFT_DOWN, [this](wxEvent &) { this->EndModal(wxID_CANCEL); });
     cancel_btn->SetMinSize(wxSize(70, 24));
     cancel_btn->SetCornerRadius(12);
-    buttons->Add(cancel_btn, 0, wxLEFT | wxRIGHT, 5);
+    m_sizer_button->Add(cancel_btn, 0, wxLEFT | wxRIGHT, 5);
 
-    m_info_line = new wxStaticText(this, wxID_ANY, "");
-    m_info_line->SetForegroundColour(wxColour(255, 111, 0));
-    // m_info_line->Hide();
 
     if (!m_app_config_key.empty()) {}
 
-    wxBoxSizer *topSizer = new wxBoxSizer(wxVERTICAL);
+   
+    m_sizer_main->Add(m_sizer_button, 0, wxEXPAND | wxTOP, 6);
+    m_sizer_main->Add(0, 0, 1, wxTOP, 18);
 
-    auto m_top_line = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
-    m_top_line->SetForegroundColour(wxColour(166, 169, 170));
-    m_top_line->SetBackgroundColour(wxColour(166, 169, 170));
+    SetSizer(m_sizer_main);
+    Layout();
+    Fit();
+    Centre(wxBOTH);
 
-    topSizer->Add(m_top_line, 0, wxEXPAND | wxBOTTOM, BOTH_SIDES_BORDER / 2);
-    topSizer->Add(m_action_line, 0, wxEXPAND | wxLEFT | wxRIGHT, BOTH_SIDES_BORDER);
-    //topSizer->Add(m_tree, 1, wxEXPAND | wxLEFT | wxRIGHT, BOTH_SIDES_BORDER);
-
-    auto block_list_top = new wxWindow(this, -1);
-    block_list_top->SetBackgroundColour(wxColour(255, 255, 255));
-    topSizer->Add(block_list_top, 0, wxEXPAND | wxTOP | wxRIGHT, BOTH_SIDES_BORDER / 2);
-    topSizer->Add(list_area, 1, wxEXPAND | wxLEFT | wxRIGHT, BOTH_SIDES_BORDER);
-
-    auto block_info_top = new wxWindow(this, -1);
-    block_info_top->SetBackgroundColour(wxColour(255, 255, 255));
-    auto block_info_bottom = new wxWindow(this, -1);
-    block_info_bottom->SetBackgroundColour(wxColour(255, 255, 255));
-
-    topSizer->Add(block_info_top, 0, wxEXPAND | wxTOP | wxRIGHT, BOTH_SIDES_BORDER / 4);
-    topSizer->Add(m_info_line, 0, wxEXPAND | wxLEFT | wxRIGHT, BOTH_SIDES_BORDER);
-    topSizer->Add(block_info_bottom, 0, wxEXPAND | wxTOP | wxRIGHT, BOTH_SIDES_BORDER / 4);
-    topSizer->Add(buttons, 0, wxEXPAND | wxLEFT | wxBOTTOM | wxRIGHT, BOTH_SIDES_BORDER);
 
     update(type, dependent_presets, new_selected_preset, header);
 
-    SetSizer(topSizer);
-    topSizer->SetSizeHints(this);
+    //SetSizer(topSizer);
+    //topSizer->SetSizeHints(this);
 
     show_info_line(Action::Undef);
 }
@@ -999,8 +1039,8 @@ void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name
             else
                 text = format_wxstr(
                     action == Action::Save ?
-                        _L("Save the selected options to preset \"%1%\".") :
-                        _L("Transfer the selected options to the newly selected preset \"%1%\"."),
+                        _L("Save the selected options to preset \n\"%1%\".") :
+                        _L("Transfer the selected options to the newly selected preset \n\"%1%\"."),
                     preset_name);
             //text += "\n" + _L("Unselected options will be reverted.");
         }
@@ -1314,27 +1354,6 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
 
 void UnsavedChangesDialog::update_list() 
 {
-    
-    //auto a = m_presetitems.size();
-    auto list_item_height = 25;
-
-    wxBoxSizer *sizer_list = new wxBoxSizer(wxVERTICAL);
-    auto        list       = new wxWindow(m_scrolledWindow->GetPanel(), -1);
-
-    /* auto text_cont = new wxWindow(list, -1, wxDefaultPosition, wxSize(300, 400));
-      text_cont->SetBackgroundColour(wxColour(240, 230, 140));
-      auto text_cont1 = new wxWindow(list, -1, wxDefaultPosition, wxSize(300, 400));
-      text_cont1->SetBackgroundColour(wxColour(255, 140, 0));
-      auto text_cont2 = new wxWindow(list, -1, wxDefaultPosition, wxSize(300, 390));
-      text_cont2->SetBackgroundColour(wxColour(173, 255, 47));
-      auto text_cont3 = new wxWindow(list, -1, wxDefaultPosition, wxSize(300, 10));
-      text_cont3->SetBackgroundColour(wxColour(240, 230, 140));
-
-      sizer_list->Add(text_cont, 0, wxALL, 0);
-      sizer_list->Add(text_cont1, 0, wxALL, 0);
-      sizer_list->Add(text_cont2, 0, wxALL, 0);
-      sizer_list->Add(text_cont3, 0, wxALL, 0);*/
-
     std::map<wxString, std::vector<PresetItem>> class_g_list;
     std::map<wxString, std::vector<wxString>>   class_c_list;
 
@@ -1368,93 +1387,121 @@ void UnsavedChangesDialog::update_list()
         }
     }
 
+    
 
+    auto m_listsizer = new wxBoxSizer(wxVERTICAL);
     for (auto iter = class_c_list.begin(); iter != class_c_list.end(); iter++) {
 
         //category
-        auto citem = new wxWindow(list, -1, wxDefaultPosition, wxSize(m_scrolledWindow->GetPanel()->GetSize().GetWidth(), list_item_height));
-        auto citem_title = new wxStaticText(citem, wxID_ANY, iter->first, wxDefaultPosition, wxDefaultSize, 0);
-        citem_title->SetFont(wxGetApp().bold_font());
-        citem_title->SetForegroundColour(GREY900);
-        auto bitmap = new wxStaticBitmap(citem, wxID_ANY, create_scaled_bitmap("spin_dec", citem, 14), wxDefaultPosition, wxSize(14,14), 0);
-        auto block_title = new wxWindow(citem, wxID_ANY, wxDefaultPosition, wxSize(0,0));
+        auto panel_category = new wxPanel(m_scrolledWindow, wxID_ANY, wxDefaultPosition, wxSize(-1, UNSAVE_CHANGE_DIALOG_ITEM_HEIGHT), wxTAB_TRAVERSAL);
+        panel_category->SetBackgroundColour(GREY300);
 
+        wxBoxSizer *sizer_category   = new wxBoxSizer(wxHORIZONTAL);
+        wxBoxSizer *sizer_category_v = new wxBoxSizer(wxHORIZONTAL);
 
-        wxBoxSizer *sizer_citem = new wxBoxSizer(wxHORIZONTAL);
-        sizer_citem->Add(block_title, 0, wxEXPAND | wxLEFT, 10);
-        sizer_citem->Add(bitmap, 0, wxEXPAND | wxRIGHT, 3);
-        sizer_citem->Add(citem_title, 0, wxALL, (list_item_height - citem_title->GetSize().GetHeight()) / 2);
-        citem->SetSizer(sizer_citem);
+        auto text_category = new wxStaticText(panel_category, wxID_ANY, iter->first, wxDefaultPosition, wxSize(-1, -1), 0);
+        text_category->SetFont(::Label::Head_13);
+        text_category->SetForegroundColour(GREY900);
+        text_category->Wrap(-1);
 
-        citem->SetBackgroundColour(wxColour(255, 20, 147));
-        citem->SetBackgroundColour(wxColour(248, 248, 248));
+        sizer_category_v->Add(text_category, 0, wxALIGN_CENTER | wxLEFT, 23);
 
-       
-        sizer_list->Add(citem, 0, wxALL, 0);
-        auto item_line = new wxStaticLine(list, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+        sizer_category->Add(sizer_category_v, 1, wxEXPAND, 0);
+
+        panel_category->SetSizer(sizer_category);
+        panel_category->Layout();
+        m_listsizer->Add(panel_category, 0, wxEXPAND, 0);
+
+        /*auto item_line = new wxStaticLine(list, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
         item_line->SetForegroundColour(wxColour(206, 206, 206));
         item_line->SetBackgroundColour(wxColour(206, 206, 206));
-        sizer_list->Add(item_line, 0, wxALL, 0); 
+        sizer_list->Add(item_line, 0, wxALL, 0); */
 
-        //isset group
+        // isset group
         for (auto i = 0; i < iter->second.size(); i++) {
             auto gname = iter->second[i];
             for (auto g = 0; g < class_g_list[gname].size(); g++) {
-                auto citem       = new wxWindow(list, -1, wxDefaultPosition, wxSize(m_scrolledWindow->GetPanel()->GetSize().GetWidth(), list_item_height));
-                wxBoxSizer *sizer_citem = new wxBoxSizer(wxHORIZONTAL);
 
-                // first group
-                if (g == 0) {
-                    auto citem_title = new wxStaticText(citem, wxID_ANY, gname, wxDefaultPosition, wxDefaultSize, 0);
-                    citem_title->SetForegroundColour(GREY900);
-                    auto bitmap      = new wxStaticBitmap(citem, wxID_ANY, create_scaled_bitmap("spin_dec", citem, 14), wxDefaultPosition, wxSize(14, 14), 0);
-                    auto block_title = new wxWindow(citem, wxID_ANY, wxDefaultPosition, wxSize(0, 0));
+                 //first group
+                // if (g == 0) {
+                //    auto citem_title = new wxStaticText(citem, wxID_ANY, gname, wxDefaultPosition, wxDefaultSize, 0);
+                //    //citem_title->SetForegroundColour(GREY900);
+                //    auto block_title = new wxWindow(citem, wxID_ANY, wxDefaultPosition, wxSize(0, 0));
 
-                   
-                    sizer_citem->Add(block_title, 0, wxEXPAND | wxLEFT, 20);
-                    sizer_citem->Add(bitmap, 0, wxEXPAND | wxRIGHT, 3);
-                    sizer_citem->Add(citem_title, 0, wxALL, (list_item_height - citem_title->GetSize().GetHeight()) / 2);
-                }
-
-
-                sizer_citem->Add(0, 0, 1, wxEXPAND, 5);
-
+                //
+                //    sizer_citem->Add(block_title, 0, wxEXPAND | wxLEFT, 20);
+                //    sizer_citem->Add(citem_title, 0, wxALL, (list_item_height - citem_title->GetSize().GetHeight()) / 2);
+                //}
 
                 auto data = class_g_list[gname][g];
-                auto static_V_title = new wxStaticText(citem, wxID_ANY, data.option_name, wxDefaultPosition, wxSize(200, -1), wxALIGN_CENTER_HORIZONTAL);
-                auto static_oldV_title = new wxStaticText(citem, wxID_ANY, data.old_value, wxDefaultPosition, wxSize(100, -1), wxALIGN_CENTER_HORIZONTAL);
-                auto static_newV_title = new wxStaticText(citem, wxID_ANY, data.new_value, wxDefaultPosition, wxSize(100, -1), wxALIGN_CENTER_HORIZONTAL);
-                auto block_right       = new wxWindow(citem, wxID_ANY, wxDefaultPosition, wxSize(0, 0));
-                auto block_left        = new wxWindow(citem, wxID_ANY, wxDefaultPosition, wxSize(0, 0));
-                static_newV_title->SetForegroundColour(wxColour(255, 111, 0));
 
-                sizer_citem->Add(static_V_title, 0, wxEXPAND | wxTOP, (25 - static_V_title->GetSize().GetHeight()) / 2);
-                sizer_citem->Add(static_oldV_title, 0, wxEXPAND | wxTOP, (25 - static_oldV_title->GetSize().GetHeight()) / 2);
-                sizer_citem->Add(block_left, 0, wxEXPAND | wxRIGHT, 0);
-                sizer_citem->Add(static_newV_title, 0, wxEXPAND | wxTOP, (25 - static_oldV_title->GetSize().GetHeight()) / 2);
-                sizer_citem->Add(block_right, 0, wxEXPAND | wxRIGHT, 0);
+                auto panel_item = new wxWindow(m_scrolledWindow, -1, wxDefaultPosition, wxSize(-1, UNSAVE_CHANGE_DIALOG_ITEM_HEIGHT));
+                panel_item->SetBackgroundColour(GREY200);
+
+                wxBoxSizer *sizer_item = new wxBoxSizer(wxHORIZONTAL);
+
+                auto panel_left = new wxPanel(panel_item, wxID_ANY, wxDefaultPosition, wxSize(UNSAVE_CHANGE_DIALOG_FIRST_VALUE_WIDTH , -1), wxTAB_TRAVERSAL);
+                panel_left->SetBackgroundColour(GREY200);
+         
+                wxBoxSizer *sizer_left_v = new wxBoxSizer(wxVERTICAL);
+
+                auto text_left = new wxStaticText(panel_left, wxID_ANY, data.option_name, wxDefaultPosition, wxSize(-1, -1), 0);
+                text_left->SetFont(::Label::Body_13);
+                text_left->Wrap(-1);
+                text_left->SetForegroundColour(GREY700);
+                text_left->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOTEXT));
+
+                sizer_left_v->Add(text_left, 0, wxLEFT, 37 );
+
+                panel_left->SetSizer(sizer_left_v);
+                panel_left->Layout();
+                sizer_item->Add(panel_left, 0, wxALIGN_CENTER, 0);
+
+                auto        panel_oldv  = new wxPanel(panel_item, wxID_ANY, wxDefaultPosition, wxSize(UNSAVE_CHANGE_DIALOG_VALUE_WIDTH - 15, -1), wxTAB_TRAVERSAL);
+                wxBoxSizer *sizer_old_v = new wxBoxSizer(wxVERTICAL);
+
+                auto text_oldv = new wxStaticText(panel_oldv, wxID_ANY, data.old_value, wxDefaultPosition, wxDefaultSize, 0);
+                text_oldv->SetFont(::Label::Body_13);
+                text_oldv->Wrap(-1);
+                text_oldv->SetForegroundColour(GREY700);
+                sizer_old_v->Add(text_oldv, 0, wxALIGN_CENTER, 0);
+
+                panel_oldv->SetSizer(sizer_old_v);
+                panel_oldv->Layout();
+                sizer_item->Add(panel_oldv, 0, wxALIGN_CENTER, 0);
+
+                auto        panel_newv  = new wxPanel(panel_item, wxID_ANY, wxDefaultPosition, wxSize(UNSAVE_CHANGE_DIALOG_VALUE_WIDTH - 15, -1), wxTAB_TRAVERSAL);
+                wxBoxSizer *sizer_new_v = new wxBoxSizer(wxVERTICAL);
+
+                auto text_newv = new wxStaticText(panel_newv, wxID_ANY, data.new_value, wxDefaultPosition, wxSize(-1, -1), 0);
+                text_newv->SetFont(::Label::Body_13);
+                text_newv->Wrap(-1);
+                text_newv->SetForegroundColour(GREY700);
+
+                sizer_new_v->Add(text_newv, 0, wxALIGN_CENTER, 0);
+
+                panel_newv->SetSizer(sizer_new_v);
+                panel_newv->Layout();
+                sizer_item->Add(panel_newv, 0, wxALIGN_CENTER, 0);
+
+                panel_item->SetSizer(sizer_item);
+                panel_item->Layout();
+                m_listsizer->Add(panel_item, 0, wxEXPAND, 0);
 
 
 
-                citem->SetSizer(sizer_citem);
-                citem->SetBackgroundColour(wxColour(248, 248, 248));
-                sizer_list->Add(citem, 0, wxALL, 0);
-
-                //if (g == class_g_list[gname].size() - 1) { 
-                    auto item_line = new wxStaticLine(list, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
-                    item_line->SetForegroundColour(wxColour(206, 206, 206));
-                    item_line->SetBackgroundColour(wxColour(206, 206, 206));
-                    sizer_list->Add(item_line, 0, wxALL, 0); 
-                //}
+                ////if (g == class_g_list[gname].size() - 1) {
+                //    auto item_line = new wxStaticLine(list, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+                //    item_line->SetForegroundColour(wxColour(206, 206, 206));
+                //    item_line->SetBackgroundColour(wxColour(206, 206, 206));
+                //    sizer_list->Add(item_line, 0, wxALL, 0);
+                ////}
             }
         }
     }
 
-
-
-    list->SetSizer(sizer_list);
-    list->Fit();
-    m_scrolledWindow->SetScrollbars(1, 1, 0, list->GetSize().GetHeight());
+       m_scrolledWindow->SetSizer(m_listsizer);
+    // m_scrolledWindow->Layout();
 }
 
 void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* presets_)
@@ -1536,12 +1583,11 @@ void UnsavedChangesDialog::on_dpi_changed(const wxRect& suggested_rect)
     int em = em_unit();
 
     msw_buttons_rescale(this, em, { wxID_CANCEL, m_save_btn_id, m_move_btn_id, m_continue_btn_id });
-    //for (auto btn : { m_save_btn, m_transfer_btn, m_discard_btn } )
-        //if (btn) btn->msw_rescale();
+    for (auto btn : {m_save_btn, m_transfer_btn, m_discard_btn})
+        if (btn) btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
 
     const wxSize& size = wxSize(70 * em, 30 * em);
     SetMinSize(size);
-
     //m_tree->Rescale(em);
 
     Fit();

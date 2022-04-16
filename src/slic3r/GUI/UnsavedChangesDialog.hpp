@@ -148,7 +148,7 @@ public:
     };
 
     DiffModel(wxWindow* parent);
-    ~DiffModel() {}
+    ~DiffModel(){};
 
     void            SetAssociatedControl(wxDataViewCtrl* ctrl) { m_ctrl = ctrl; }
 
@@ -206,7 +206,7 @@ class DiffViewCtrl : public wxDataViewCtrl
 
 public:
     DiffViewCtrl(wxWindow* parent, wxSize size);
-    ~DiffViewCtrl() {}
+    ~DiffViewCtrl(){};
 
     DiffModel* model{ nullptr };
 
@@ -248,13 +248,24 @@ struct PresetItem
 
 class UnsavedChangesDialog : public DPIDialog
 {
+protected:
+    wxPanel *     m_top_line;
+    wxPanel *     m_panel_tab;
+    wxPanel *     m_table_top;
+    wxPanel *     title_block_middle;
+    wxPanel *     title_block_right;
+    wxStaticText *static_temp_title;
+    wxStaticText *static_oldv_title;
+    wxStaticText *static_newv_title;
+    wxBoxSizer *  m_sizer_bottom;
+
     //DiffViewCtrl*           m_tree          { nullptr };
     Button*                 m_save_btn      { nullptr };
     Button*                 m_transfer_btn  { nullptr };
     Button*                 m_discard_btn   { nullptr };
     wxStaticText*           m_action_line   { nullptr };
     wxStaticText*           m_info_line     { nullptr };
-    ScrolledWindow*         m_scrolledWindow{ nullptr };
+    wxScrolledWindow*       m_scrolledWindow{ nullptr };
 
     bool                    m_has_long_strings  { false };
     int                     m_save_btn_id       { wxID_ANY };
@@ -312,7 +323,7 @@ public:
     UnsavedChangesDialog(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset);
     // show unsaved changes for all another cases
     UnsavedChangesDialog(const wxString& caption, const wxString& header, const std::string& app_config_key, int act_buttons);
-    ~UnsavedChangesDialog() {}
+    ~UnsavedChangesDialog(){};
 
     void build(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, const wxString& header = "");
     void update(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, const wxString& header);
@@ -375,7 +386,7 @@ class FullCompareDialog : public wxDialog
 public:
     FullCompareDialog(const wxString& option_name, const wxString& old_value, const wxString& new_value,
                       const wxString& old_value_header, const wxString& new_value_header);
-    ~FullCompareDialog() {}
+    ~FullCompareDialog(){};
 };
 
 
@@ -410,7 +421,7 @@ class DiffPresetDialog : public DPIDialog
 
 public:
     DiffPresetDialog(MainFrame* mainframe);
-    ~DiffPresetDialog() {}
+    ~DiffPresetDialog(){};
 
     void                    show(Preset::Type type = Preset::TYPE_INVALID);
     void                    update_presets(Preset::Type type = Preset::TYPE_INVALID);
