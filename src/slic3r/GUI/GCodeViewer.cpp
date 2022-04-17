@@ -287,8 +287,8 @@ void GCodeViewer::SequentialRangeCap::reset() {
 
 void GCodeViewer::SequentialView::Marker::init()
 {
-    m_model.init_from(stilized_arrow(16, 2.0f, 4.0f, 1.0f, 8.0f));
-    m_model.set_color(-1, { 1.0f, 1.0f, 1.0f, 0.5f });
+    m_model.init_from(stilized_arrow(16, 1.5f, 3.0f, 0.8f, 3.0f));
+    m_model.set_color(-1, { 1.0f, 1.0f, 1.0f, 0.7f });
 }
 
 void GCodeViewer::SequentialView::Marker::set_world_position(const Vec3f& position)
@@ -307,8 +307,8 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     if (shader == nullptr)
         return;
 
-    glsafe(::glEnable(GL_BLEND));
-    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    //glsafe(::glEnable(GL_BLEND));
+    //glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     shader->start_using();
     shader->set_uniform("emission_factor", 0.0f);
@@ -322,7 +322,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
 
     shader->stop_using();
 
-    glsafe(::glDisable(GL_BLEND));
+    //glsafe(::glDisable(GL_BLEND));
 
     static float last_window_width = 0.0f;
     static size_t last_text_length = 0;
@@ -573,7 +573,9 @@ void GCodeViewer::SequentialView::render(float legend_height, int canvas_width, 
         bottom -= wxGetApp().plater()->get_view_toolbar().get_height();
 #endif
     //gcode_window.render(legend_height, bottom, static_cast<uint64_t>(gcode_ids[current.last]));
-    gcode_window.render(legend_height, (float) canvas_height, (float) canvas_width, static_cast<uint64_t>(gcode_ids[current.last]));
+    if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop) {
+        gcode_window.render(legend_height, (float) canvas_height, (float) canvas_width, static_cast<uint64_t>(gcode_ids[current.last]));
+    }
 }
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
@@ -1070,15 +1072,15 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
         update_by_mode(wxGetApp().get_mode());
         m_user_mode = wxGetApp().get_mode();
     }
+
+    //BBS fixed bottom_margin for space to render horiz slider
+    int bottom_margin = 64;
     //BBS move to developer mode
-    if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop) {
-        if (m_sequential_view.current.last != m_sequential_view.endpoints.last) {
-            m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
-            m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
-            //BBS fixed buttom margin. m_moves_slider.pos_y
-            int bottom_margin = 64;
-            m_sequential_view.render(legend_height, canvas_width - right_margin, canvas_height - bottom_margin);
-        }
+    if (m_sequential_view.current.last != m_sequential_view.endpoints.last) {
+        m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
+        m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
+        //BBS fixed buttom margin. m_moves_slider.pos_y
+        m_sequential_view.render(legend_height, canvas_width - right_margin, canvas_height - bottom_margin);
     }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
