@@ -278,13 +278,20 @@ public:
     bool intersects(const BoundingBoxf3& bb) const;
 
     Point point_projection(const Point& point) const;
-    void render(GLCanvas3D& canvas, bool bottom, bool with_label = true, bool only_body = false, bool force_background_color = false, bool is_current = false, HeightLimitMode mode = HEIGHT_LIMIT_BOTH, int hover_id = -1);
+    void render(bool bottom, bool only_body = false, bool force_background_color = false, bool is_current = false, HeightLimitMode mode = HEIGHT_LIMIT_BOTH, int hover_id = -1);
     void render_for_picking() const { on_render_for_picking(); }
     void set_selected();
     void set_unselected();
     void set_hover_id(int id) { m_hover_id = id; }
     const BoundingBoxf3& get_bounding_box(bool extended = false) { return extended ? m_extended_bounding_box : m_bounding_box; }
     const BoundingBox get_bounding_box_crd();
+    BoundingBoxf3 get_build_volume()
+    {
+        Vec3d up_point(m_origin.x() + m_width, m_origin.y() + m_depth, m_origin.z() + m_height);
+        Vec3d low_point(m_origin.x(), m_origin.y(), m_origin.z());
+        BoundingBoxf3 plate_box(low_point, up_point);
+        return plate_box;
+    }
 
     const std::vector<BoundingBoxf3>& get_exclude_areas() { return m_exclude_bounding_box; }
 
@@ -560,7 +567,7 @@ public:
     void postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool selected);
 
     /*rendering related functions*/
-    void render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool only_current = false, bool only_body = false, int hover_id = -1);
+    void render(bool bottom, float scale_factor, bool only_current = false, bool only_body = false, int hover_id = -1);
     void render_for_picking_pass();
     BoundingBoxf3& get_bounding_box() { return m_bounding_box; }
     //int select_plate_by_hover_id(int hover_id);

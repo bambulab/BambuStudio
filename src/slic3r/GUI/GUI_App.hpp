@@ -381,6 +381,7 @@ public:
     void            gcode_thumbnails_debug();
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG
 
+    OpenGLManager& get_opengl_manager() { return m_opengl_mgr; }
     GLShaderProgram* get_shader(const std::string& shader_name) { return m_opengl_mgr.get_shader(shader_name); }
     GLShaderProgram* get_current_shader() { return m_opengl_mgr.get_current_shader(); }
 

@@ -296,7 +296,7 @@ void GCodeViewer::SequentialView::Marker::init(std::string filename)
 }
 
 void GCodeViewer::SequentialView::Marker::set_world_position(const Vec3f& position)
-{    
+{
     m_world_position = position;
     m_world_transform = (Geometry::assemble_transform((position + m_z_offset * Vec3f::UnitZ()).cast<double>()) * Geometry::assemble_transform(m_model.get_bounding_box().size().z() * Vec3d::UnitZ(), { M_PI, 0.0, 0.0 })).cast<float>();
 }
@@ -492,7 +492,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.6f);
     imgui.begin(std::string("G-code"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-   
+
     // center the text in the window by pushing down the first line
     const float f_lines_count = static_cast<float>(lines_count);
     ImGui::SetCursorPosY(0.5f * (wnd_height - f_lines_count * text_height - (f_lines_count - 1.0f) * style.ItemSpacing.y));
@@ -662,7 +662,7 @@ GCodeViewer::GCodeViewer()
 //    m_sequential_view.skip_invisible_moves = true;
 }
 
-void GCodeViewer::init()
+void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
 {
     if (m_gl_data_initialized)
         return;
@@ -719,12 +719,11 @@ void GCodeViewer::init()
 
     // initializes tool marker
     std::string filename;
-    auto bundle = wxGetApp().preset_bundle;
-    if (bundle != nullptr) {
-        const Preset* curr = &bundle->printers.get_selected_preset();
+    if (preset_bundle != nullptr) {
+        const Preset* curr = &preset_bundle->printers.get_selected_preset();
         filename = PresetUtils::system_printer_hotend_model(*curr);
     }
-    
+
     m_sequential_view.marker.init(filename);
 
     // initializes point sizes
@@ -733,7 +732,7 @@ void GCodeViewer::init()
     m_detected_point_sizes = { static_cast<float>(point_sizes[0]), static_cast<float>(point_sizes[1]) };
 
     // BBS initialzed view_type items
-    m_user_mode = wxGetApp().get_mode();
+    m_user_mode = mode;
     update_by_mode(m_user_mode);
 
     m_layers_slider->init_texture();
@@ -754,7 +753,7 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
     view_type_items.push_back(EViewType::Height);
     view_type_items.push_back(EViewType::Width);
     view_type_items.push_back(EViewType::VolumetricRate);
-    if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop) {
+    if (mode == ConfigOptionMode::comDevelop) {
         view_type_items.push_back(EViewType::FanSpeed);
         view_type_items.push_back(EViewType::Temperature);
         view_type_items.push_back(EViewType::Tool);
@@ -766,7 +765,7 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
 
     options_items.push_back(EMoveType::Travel);
     options_items.push_back(EMoveType::Seam);
-    if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop) {
+    if (mode == ConfigOptionMode::comDevelop) {
         options_items.push_back(EMoveType::Retract);
         options_items.push_back(EMoveType::Unretract);
         options_items.push_back(EMoveType::Tool_change);
@@ -775,7 +774,8 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
 }
 
 //BBS: always load shell at preview
-void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& print, bool initialized, bool only_gcode)
+void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& print, const BuildVolume& build_volume,
+                const std::vector<BoundingBoxf3>& exclude_bounding_box, bool initialized, ConfigOptionMode mode, bool only_gcode)
 {
     // avoid processing if called with the same gcode_result
     if (m_last_result_id == gcode_result.id) {
@@ -805,7 +805,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     m_gcode_result = &gcode_result;
     m_only_gcode_in_preview = only_gcode;
 
-    if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop) {
+    if (mode == ConfigOptionMode::comDevelop) {
         m_sequential_view.gcode_window.load_gcode(gcode_result.filename,
             // Stealing out lines_ends should be safe because this gcode_result is processed only once (see the 1st if in this function).
             std::move(const_cast<std::vector<size_t>&>(gcode_result.lines_ends)));
@@ -818,7 +818,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
 
     m_max_print_height = gcode_result.printable_height;
 
-    load_toolpaths(gcode_result);
+    load_toolpaths(gcode_result, build_volume, exclude_bounding_box);
 
     //BBS: add mutex for protection of gcode result
     if (m_layers.empty()) {
@@ -902,7 +902,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
                 break;
             }
         }
-        
+
         set_view_type(EViewType::ColorPrint);
     }
 
@@ -1129,10 +1129,10 @@ static void debug_calibration_output_thumbnail(const ThumbnailData& thumbnail_da
 }
 #endif
 
-void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params)
+void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, OpenGLManager& opengl_manager)
 {
     int plate_idx = thumbnail_params.plate_id;
-    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+    PartPlate* plate = partplate_list.get_plate(plate_idx);
     BoundingBoxf3 plate_box = plate->get_bounding_box(false);
     plate_box.min.z() = 0.0;
     plate_box.max.z() = 0.0;
@@ -1259,12 +1259,13 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
     unsigned char begin_id = buffer_id(EMoveType::Retract);
     unsigned char end_id = buffer_id(EMoveType::Count);
 
+    BOOST_LOG_TRIVIAL(info) << boost::format("render_calibration_thumbnail: begin_id %1%, end_id %2%")%begin_id %end_id; 
     for (unsigned char i = begin_id; i < end_id; ++i) {
         TBuffer& buffer = m_buffers[i];
         if (!buffer.visible || !buffer.has_data())
             continue;
 
-        GLShaderProgram* shader = wxGetApp().get_shader(buffer.shader.c_str());
+        GLShaderProgram* shader = opengl_manager.get_shader(buffer.shader.c_str());
         if (shader != nullptr) {
             shader->start_using();
 
@@ -1325,20 +1326,25 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
 
             shader->stop_using();
         }
+        else {
+            BOOST_LOG_TRIVIAL(info) << boost::format("render_calibration_thumbnail: can not find shader");
+        }
     }
 #endif
+    BOOST_LOG_TRIVIAL(info) << boost::format("render_calibration_thumbnail: exit");
 }
 
-void GCodeViewer::_render_calibration_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params)
+void GCodeViewer::_render_calibration_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, OpenGLManager& opengl_manager)
 {
+    BOOST_LOG_TRIVIAL(info) << boost::format("render_calibration_thumbnail prepare: width %1%, height %2%")%w %h;
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
         return;
 
     //TODO bool multisample = m_multisample_allowed;
-    bool multisample = true;
-    if (!multisample)
-        glsafe(::glEnable(GL_MULTISAMPLE));
+    bool multisample = OpenGLManager::can_multisample();
+    //if (!multisample)
+    //    glsafe(::glEnable(GL_MULTISAMPLE));
 
     GLint max_samples;
     glsafe(::glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
@@ -1347,6 +1353,7 @@ void GCodeViewer::_render_calibration_thumbnail_framebuffer(ThumbnailData& thumb
     GLuint render_fbo;
     glsafe(::glGenFramebuffers(1, &render_fbo));
     glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, render_fbo));
+    BOOST_LOG_TRIVIAL(info) << boost::format("render_calibration_thumbnail prepare: max_samples %1%, multisample %2%, render_fbo %3%")%max_samples %multisample %render_fbo;
 
     GLuint render_tex = 0;
     GLuint render_tex_buffer = 0;
@@ -1381,7 +1388,7 @@ void GCodeViewer::_render_calibration_thumbnail_framebuffer(ThumbnailData& thumb
 
 
     if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
-        _render_calibration_thumbnail_internal(thumbnail_data, thumbnail_params);
+        _render_calibration_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, opengl_manager);
 
         if (multisample) {
             GLuint resolve_fbo;
@@ -1425,12 +1432,13 @@ void GCodeViewer::_render_calibration_thumbnail_framebuffer(ThumbnailData& thumb
          glsafe(::glDeleteTextures(1, &render_tex));
      glsafe(::glDeleteFramebuffers(1, &render_fbo));
 
-    if (!multisample)
-        glsafe(::glDisable(GL_MULTISAMPLE));
+    //if (!multisample)
+    //    glsafe(::glDisable(GL_MULTISAMPLE));
+    BOOST_LOG_TRIVIAL(info) << boost::format("render_calibration_thumbnail prepare: exit");
 }
 
 //BBS
-void GCodeViewer::render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params)
+void GCodeViewer::render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, OpenGLManager& opengl_manager)
 {
     // reset values and refresh render
     int       last_view_type_sel = m_view_type_sel;
@@ -1448,7 +1456,7 @@ void GCodeViewer::render_calibration_thumbnail(ThumbnailData& thumbnail_data, un
     m_layers_z_range = {0, 0};
     refresh_render_paths(false, false);
 
-    _render_calibration_thumbnail_framebuffer(thumbnail_data, w, h, thumbnail_params);
+    _render_calibration_thumbnail_framebuffer(thumbnail_data, w, h, thumbnail_params, partplate_list, opengl_manager);
 
     // restore values and refresh render
     // reset m_layers_z_range and view type
@@ -1797,7 +1805,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     fclose(fp);
 }
 
-void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
+void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const BuildVolume& build_volume, const std::vector<BoundingBoxf3>& exclude_bounding_box)
 {
     // max index buffer size, in bytes
     static const size_t IBUFFER_THRESHOLD_BYTES = 64 * 1024 * 1024;
@@ -2196,13 +2204,14 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
     m_max_bounding_box = m_paths_bounding_box;
     m_max_bounding_box.merge(m_paths_bounding_box.max + m_sequential_view.marker.get_bounding_box().size().z() * Vec3d::UnitZ());
 
-    if (wxGetApp().is_editor()) {
+    //if (wxGetApp().is_editor())
+    {
         //BBS: use convex_hull for toolpath outside check
-        m_contained_in_bed = wxGetApp().plater()->build_volume().all_paths_inside(gcode_result, m_paths_bounding_box);
+        m_contained_in_bed = build_volume.all_paths_inside(gcode_result, m_paths_bounding_box);
         if (m_contained_in_bed) {
-            PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
-            PartPlate* plate = partplate_list.get_curr_plate();
-            const std::vector<BoundingBoxf3>& exclude_bounding_box = plate->get_exclude_areas();
+            //PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
+            //PartPlate* plate = partplate_list.get_curr_plate();
+            //const std::vector<BoundingBoxf3>& exclude_bounding_box = plate->get_exclude_areas();
             if (exclude_bounding_box.size() > 0)
             {
                 int index;
@@ -2361,7 +2370,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
                     temp_offset += (gcode_result.moves[move_id].interpolation_points.size() - interpolation_point_id);
                 }
                 const size_t next_1st_offset = temp_offset * 6 * vertex_size_floats;
-                // offset into the vertex buffer of the right vertex of the previous segment 
+                // offset into the vertex buffer of the right vertex of the previous segment
                 const size_t prev_right_offset = prev_sub_path.last.i_id - next_1st_offset - 3 * vertex_size_floats;
                 // new position of the right vertices
                 const Vec3f shared_vertex = extract_position_at(vbuffer, prev_right_offset) + displacement_vec;
@@ -2375,7 +2384,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
             else { // previous and next segment are contained into different vertex buffers
                 VertexBuffer& prev_vbuffer = v_multibuffer[prev_sub_path.first.b_id];
                 VertexBuffer& next_vbuffer = v_multibuffer[next_sub_path.first.b_id];
-                // offset into the previous vertex buffer of the right vertex of the previous segment 
+                // offset into the previous vertex buffer of the right vertex of the previous segment
                 const size_t prev_right_offset = prev_sub_path.last.i_id - 3 * vertex_size_floats;
                 // new position of the right vertices
                 const Vec3f shared_vertex = extract_position_at(prev_vbuffer, prev_right_offset) + displacement_vec;
@@ -2403,7 +2412,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
                     temp_offset += (gcode_result.moves[move_id].interpolation_points.size() - interpolation_point_id);
                 }
                 const size_t next_1st_offset = temp_offset * 6 * vertex_size_floats;
-                // offset into the vertex buffer of the left vertex of the previous segment 
+                // offset into the vertex buffer of the left vertex of the previous segment
                 const size_t prev_left_offset = prev_sub_path.last.i_id - next_1st_offset - 1 * vertex_size_floats;
                 // new position of the left vertices
                 const Vec3f shared_vertex = extract_position_at(vbuffer, prev_left_offset) + displacement_vec;
@@ -2417,7 +2426,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
             else { // previous and next segment are contained into different vertex buffers
                 VertexBuffer& prev_vbuffer = v_multibuffer[prev_sub_path.first.b_id];
                 VertexBuffer& next_vbuffer = v_multibuffer[next_sub_path.first.b_id];
-                // offset into the previous vertex buffer of the left vertex of the previous segment 
+                // offset into the previous vertex buffer of the left vertex of the previous segment
                 const size_t prev_left_offset = prev_sub_path.last.i_id - 1 * vertex_size_floats;
                 // new position of the left vertices
                 const Vec3f shared_vertex = extract_position_at(prev_vbuffer, prev_left_offset) + displacement_vec;
@@ -2462,10 +2471,10 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
 
                 // BBS: smooth triangle toolpaths corners including arc move which has internal interpolation point
                 for (int k = 0; k <= loop_num; k++) {
-                    const Vec3f& prev = k==0? 
-                                        gcode_result.moves[move_id - 1].position : 
+                    const Vec3f& prev = k==0?
+                                        gcode_result.moves[move_id - 1].position :
                                         gcode_result.moves[move_id].interpolation_points[k-1];
-                    const Vec3f& curr = k==interpolation_points_num? 
+                    const Vec3f& curr = k==interpolation_points_num?
                                         gcode_result.moves[move_id].position :
                                         gcode_result.moves[move_id].interpolation_points[k];
                     const Vec3f& next = k < interpolation_points_num - 1?
@@ -2873,7 +2882,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
         // no shells, return
         return;
     }
-    // adds objects' volumes 
+    // adds objects' volumes
     // BBS: fix the issue that object_idx is not assigned as index of Model.objects array
     int object_count = 0;
     const ModelObjectPtrs& model_objs = wxGetApp().model().objects;
@@ -2958,7 +2967,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
         }
         else
             break;
-    } 
+    }
 
     for (GLVolume* volume : m_shells.volumes.volumes) {
         volume->zoom_to_volumes = false;
@@ -3187,7 +3196,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
                                 }
                                 offset = indices_count * (offset - 1) + (indices_count - 2);
                                 if (sub_path_id == 0)
-                                    offset += 6; // add 2 triangles for starting cap 
+                                    offset += 6; // add 2 triangles for starting cap
                             }
                         }
                         offset += static_cast<unsigned int>(sub_path.first.i_id);
@@ -3298,11 +3307,11 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
         if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
             if (sub_path_id == 0 && delta_1st == 0)
-                size_in_indices += 6; // add 2 triangles for starting cap 
+                size_in_indices += 6; // add 2 triangles for starting cap
             if (sub_path_id == path.sub_paths.size() - 1 && path.sub_paths.back().last.s_id <= m_sequential_view.current.last)
-                size_in_indices += 6; // add 2 triangles for ending cap 
+                size_in_indices += 6; // add 2 triangles for ending cap
             if (delta_1st > 0)
-                size_in_indices -= 6; // remove 2 triangles for corner cap  
+                size_in_indices -= 6; // remove 2 triangles for corner cap
         }
 
         render_path->sizes.push_back(size_in_indices);
@@ -3310,9 +3319,9 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
             delta_1st *= buffer.indices_per_segment();
             if (delta_1st > 0) {
-                delta_1st += 6; // skip 2 triangles for corner cap 
+                delta_1st += 6; // skip 2 triangles for corner cap
                 if (sub_path_id == 0)
-                    delta_1st += 6; // skip 2 triangles for starting cap 
+                    delta_1st += 6; // skip 2 triangles for starting cap
             }
         }
 
@@ -3326,13 +3335,13 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
         if (render_path->offsets.back() + render_path->sizes.back() * sizeof(IBufferType) > buffer_size)
             BOOST_LOG_TRIVIAL(error) << "GCodeViewer::refresh_render_paths: Invalid render path data";
-#endif 
+#endif
     }
 
     // Removes empty render paths and sort.
     for (size_t b = 0; b < m_buffers.size(); ++b) {
         TBuffer* buffer = const_cast<TBuffer*>(&m_buffers[b]);
-        buffer->render_paths.erase(std::remove_if(buffer->render_paths.begin(), buffer->render_paths.end(), 
+        buffer->render_paths.erase(std::remove_if(buffer->render_paths.begin(), buffer->render_paths.end(),
             [](const auto &path){ return path.sizes.empty() || path.offsets.empty(); }),
             buffer->render_paths.end());
     }
@@ -4271,7 +4280,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     }
     case EViewType::Height:         { imgui.title(_u8L("Layer Height (mm)")); break; }
     case EViewType::Width:          { imgui.title(_u8L("Line Width (mm)")); break; }
-    case EViewType::Feedrate: 
+    case EViewType::Feedrate:
     {
         imgui.title(_u8L("Speed (mm/s)"));
         offsets = calculate_offsets(labels, times, {_u8L("Speed (mm/s)")}, icon_size);
@@ -4740,7 +4749,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     //    add_option(EMoveType::Pause_Print, EOptionsColors::PausePrints, _u8L("Print pauses"));
     //    add_option(EMoveType::Custom_GCode, EOptionsColors::CustomGCodes, _u8L("Custom G-codes"));
     //}
-    
+
 
     // settings section
     bool has_settings = false;
@@ -4938,7 +4947,7 @@ void GCodeViewer::render_statistics()
     };
 
     auto add_memory = [this, &imgui](const std::string& label, int64_t memory) {
-        auto format_string = [memory](const std::string& units, float value) {            
+        auto format_string = [memory](const std::string& units, float value) {
             return std::to_string(memory) + " bytes (" +
                    Slic3r::float_to_string_decimal_point(float(memory) * value, 3)
                     + " " + units + ")";

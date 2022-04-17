@@ -320,7 +320,7 @@ void PartPlate::render_background(bool force_default_color) const {
 	unsigned int triangles_vcount = m_triangles.get_vertices_count();
 
 	//return directly for current plate
-	if (m_selected) return;
+	if (m_selected && !force_default_color) return;
 
 	// draw background
 	glsafe(::glDepthMask(GL_FALSE));
@@ -343,6 +343,9 @@ void PartPlate::render_background(bool force_default_color) const {
 }
 
 void PartPlate::render_exclude_area(bool force_default_color) const {
+	if (force_default_color) //for thumbnail case
+		return;
+
 	unsigned int triangles_vcount = m_exclude_triangles.get_vertices_count();
 	std::array<float, 4> select_color{ 0.45f, 0.45f, 0.45f, 1.0f };
 	std::array<float, 4> unselect_color{ 0.9f, 0.9f, 0.9f, 1.0f };
@@ -351,16 +354,11 @@ void PartPlate::render_exclude_area(bool force_default_color) const {
 	// draw exclude area
 	glsafe(::glDepthMask(GL_FALSE));
 
-	if (!force_default_color) {
-		if (m_selected) {
-			glsafe(::glColor4fv(select_color.data()));
-		}
-		else {
-			glsafe(::glColor4fv(unselect_color.data()));
-		}
+	if (m_selected) {
+		glsafe(::glColor4fv(select_color.data()));
 	}
 	else {
-		glsafe(::glColor4fv(default_color.data()));
+		glsafe(::glColor4fv(unselect_color.data()));
 	}
 
 	glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
@@ -1462,7 +1460,7 @@ Point PartPlate::point_projection(const Point& point) const
 	return m_polygon.point_projection(point);
 }
 
-void PartPlate::render(GLCanvas3D& canvas, bool bottom, bool with_label, bool only_body, bool force_background_color, bool is_current, HeightLimitMode mode, int hover_id)
+void PartPlate::render(bool bottom, bool only_body, bool force_background_color, bool is_current, HeightLimitMode mode, int hover_id)
 {
 	glsafe(::glEnable(GL_DEPTH_TEST));
 	glsafe(::glEnable(GL_BLEND));
@@ -1512,9 +1510,9 @@ void PartPlate::render(GLCanvas3D& canvas, bool bottom, bool with_label, bool on
 	glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
 	glsafe(::glDisable(GL_BLEND));
 
-	if (with_label) {
-		render_label(canvas);
-	}
+	//if (with_label) {
+	//	render_label(canvas);
+	//}
 	glsafe(::glDisable(GL_DEPTH_TEST));
 }
 
@@ -3067,7 +3065,7 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 
 /*rendering related functions*/
 //render
-void PartPlateList::render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool only_current, bool only_body, int hover_id)
+void PartPlateList::render(bool bottom, float scale_factor, bool only_current, bool only_body, int hover_id)
 {
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
@@ -3087,15 +3085,15 @@ void PartPlateList::render(GLCanvas3D& canvas, bool bottom, float scale_factor, 
 			continue;
 		if (current_index == m_current_plate) {
 			if (plate_hover_index == current_index)
-				(*it)->render(canvas, bottom, false, only_body, false, !only_current, m_height_limit_mode, plate_hover_action);
+				(*it)->render(bottom, only_body, false, !only_current, m_height_limit_mode, plate_hover_action);
 			else
-				(*it)->render(canvas, bottom, false, only_body, false, !only_current, m_height_limit_mode, -1);
+				(*it)->render(bottom, only_body, false, !only_current, m_height_limit_mode, -1);
 		}
 		else {
 			if (plate_hover_index == current_index)
-				(*it)->render(canvas, bottom, false, only_body, false, false, m_height_limit_mode, plate_hover_action);
+				(*it)->render(bottom, only_body, false, false, m_height_limit_mode, plate_hover_action);
 			else
-				(*it)->render(canvas, bottom, false, only_body, false, false, m_height_limit_mode, -1);
+				(*it)->render(bottom, only_body, false, false, m_height_limit_mode, -1);
 		}
 	}
 }

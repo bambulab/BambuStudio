@@ -483,6 +483,8 @@ if (NOT TARGET GLEW::GLEW)
     add_library(GLEW::GLEW ALIAS glew)
 endif ()
 
+find_package(glfw3 REQUIRED)
+
 # Find the Cereal serialization library
 find_package(cereal REQUIRED)
 

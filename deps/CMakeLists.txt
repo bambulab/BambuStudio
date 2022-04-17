@@ -62,7 +62,7 @@ if (NOT _is_multi AND NOT CMAKE_BUILD_TYPE)
     message(STATUS "Forcing CMAKE_BUILD_TYPE to Release as it was not specified.")
 endif ()
 
-function(bambuslicer_add_cmake_project projectname)
+function(bambustudio_add_cmake_project projectname)
     cmake_parse_arguments(P_ARGS "" "INSTALL_DIR;BUILD_COMMAND;INSTALL_COMMAND" "CMAKE_ARGS" ${ARGN})
 
     set(_configs_line -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE})
@@ -100,7 +100,7 @@ function(bambuslicer_add_cmake_project projectname)
        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release
     )
 
-endfunction(prusaslicer_add_cmake_project)
+endfunction(bambustudio_add_cmake_project)
 
 
 if (MSVC)

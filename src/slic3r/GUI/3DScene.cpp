@@ -56,7 +56,7 @@ void glAssertRecentCallImpl(const char* file_name, unsigned int line, const char
     switch (err) {
     case GL_INVALID_ENUM:       sErr = "Invalid Enum";      break;
     case GL_INVALID_VALUE:      sErr = "Invalid Value";     break;
-    // be aware that GL_INVALID_OPERATION is generated if glGetError is executed between the execution of glBegin and the corresponding execution of glEnd 
+    // be aware that GL_INVALID_OPERATION is generated if glGetError is executed between the execution of glBegin and the corresponding execution of glEnd
     case GL_INVALID_OPERATION:  sErr = "Invalid Operation"; break;
     case GL_STACK_OVERFLOW:     sErr = "Stack Overflow";    break;
     case GL_STACK_UNDERFLOW:    sErr = "Stack Underflow";   break;
@@ -285,7 +285,7 @@ void GLIndexedVertexArray::render(
 
     glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
     glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
-    
+
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
@@ -798,7 +798,7 @@ void GLVolume::render(bool with_outline) const
             }
 #endif
             // 2nd. render pass: now draw slightly scaled versions of the objects, this time disabling stencil writing.
-            // Because the stencil buffer is now filled with several 1s. The parts of the buffer that are 1 are not drawn, thus only drawing 
+            // Because the stencil buffer is now filled with several 1s. The parts of the buffer that are 1 are not drawn, thus only drawing
             // the objects' size differences, making it look like borders.
             // -----------------------------------------------------------------------------------------------------------------------------
             /*GLShaderProgram* outline_shader = GUI::wxGetApp().get_shader("outline");
@@ -838,6 +838,21 @@ void GLVolume::render(bool with_outline) const
     else {
         render_body();
     }
+    glsafe(::glPopMatrix());
+    if (this->is_left_handed())
+        glFrontFace(GL_CCW);
+}
+
+//BBS add render for simple case
+void GLVolume::simple_render() const
+{
+    if (this->is_left_handed())
+        glFrontFace(GL_CW);
+    glsafe(::glCullFace(GL_BACK));
+    glsafe(::glPushMatrix());
+
+    glsafe(::glMultMatrixd(world_matrix().data()));
+    this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
     glsafe(::glPopMatrix());
     if (this->is_left_handed())
         glFrontFace(GL_CCW);
@@ -1220,7 +1235,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     auto                volume_sinking     = [](GLVolume& volume) -> bool
         { return volume.object_idx() != -1 && volume.volume_idx() != -1 && volume.is_sinking(); };
     // Cached bounding box of a volume above the print bed.
-    auto                volume_bbox        = [volume_sinking](GLVolume& volume) -> BoundingBoxf3 
+    auto                volume_bbox        = [volume_sinking](GLVolume& volume) -> BoundingBoxf3
         { return volume_sinking(volume) ? volume.transformed_non_sinking_bounding_box() : volume.transformed_convex_hull_bounding_box(); };
     // Cached 3D convex hull of a volume above the print bed.
     auto                volume_convex_mesh = [volume_sinking, &model](GLVolume& volume) -> const TriangleMesh&
@@ -1354,10 +1369,10 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
     unsigned char rgb[3];
     std::vector<Color> colors;
 
-    if (static_cast<PrinterTechnology>(config->opt_int("printer_technology")) == ptSLA) 
+    if (static_cast<PrinterTechnology>(config->opt_int("printer_technology")) == ptSLA)
     {
-        const std::string& txt_color = config->opt_string("material_colour").empty() ? 
-                                       print_config_def.get("material_colour")->get_default_value<ConfigOptionString>()->value : 
+        const std::string& txt_color = config->opt_string("material_colour").empty() ?
+                                       print_config_def.get("material_colour")->get_default_value<ConfigOptionString>()->value :
                                        config->opt_string("material_colour");
         if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb)) {
             colors.resize(1);
@@ -1426,7 +1441,7 @@ std::vector<double> GLVolumeCollection::get_current_print_zs(bool active_only) c
     return print_zs;
 }
 
-size_t GLVolumeCollection::cpu_memory_used() const 
+size_t GLVolumeCollection::cpu_memory_used() const
 {
 	size_t memsize = sizeof(*this) + this->volumes.capacity() * sizeof(GLVolume);
 	for (const GLVolume *volume : this->volumes)
@@ -1434,7 +1449,7 @@ size_t GLVolumeCollection::cpu_memory_used() const
 	return memsize;
 }
 
-size_t GLVolumeCollection::gpu_memory_used() const 
+size_t GLVolumeCollection::gpu_memory_used() const
 {
 	size_t memsize = 0;
 	for (const GLVolume *volume : this->volumes)
@@ -1442,16 +1457,16 @@ size_t GLVolumeCollection::gpu_memory_used() const
 	return memsize;
 }
 
-std::string GLVolumeCollection::log_memory_info() const 
-{ 
+std::string GLVolumeCollection::log_memory_info() const
+{
 	return " (GLVolumeCollection RAM: " + format_memsize_MB(this->cpu_memory_used()) + " GPU: " + format_memsize_MB(this->gpu_memory_used()) + " Both: " + format_memsize_MB(this->gpu_memory_used()) + ")";
 }
 
 // caller is responsible for supplying NO lines with zero length
 static void thick_lines_to_indexed_vertex_array(
-    const Lines                 &lines, 
+    const Lines                 &lines,
     const std::vector<double>   &widths,
-    const std::vector<double>   &heights, 
+    const std::vector<double>   &heights,
     bool                         closed,
     double                       top_z,
     GLIndexedVertexArray        &volume)
@@ -1526,7 +1541,7 @@ static void thick_lines_to_indexed_vertex_array(
         // Share top / bottom vertices if possible.
         if (is_first) {
             idx_a[TOP] = idx_last++;
-            volume.push_geometry(a(0), a(1), top_z   , 0., 0.,  1.); 
+            volume.push_geometry(a(0), a(1), top_z   , 0., 0.,  1.);
         } else {
             idx_a[TOP] = idx_prev[TOP];
         }
@@ -1554,7 +1569,7 @@ static void thick_lines_to_indexed_vertex_array(
             // Share left / right vertices if possible.
 			double v_dot    = v_prev.dot(v);
             // To reduce gpu memory usage, we try to reuse vertices
-            // To reduce the visual artifacts, due to averaged normals, we allow to reuse vertices only when any of two adjacent edges 
+            // To reduce the visual artifacts, due to averaged normals, we allow to reuse vertices only when any of two adjacent edges
             // is longer than a fixed threshold.
             // The following value is arbitrary, it comes from tests made on a bunch of models showing the visual artifacts
             double len_threshold = 2.5;
@@ -1598,7 +1613,7 @@ static void thick_lines_to_indexed_vertex_array(
                         memcpy(volume.vertices_and_normals_interleaved.data() + idx_initial[LEFT ] * 6, volume.vertices_and_normals_interleaved.data() + idx_prev[LEFT ] * 6, sizeof(float) * 6);
                         memcpy(volume.vertices_and_normals_interleaved.data() + idx_initial[RIGHT] * 6, volume.vertices_and_normals_interleaved.data() + idx_prev[RIGHT] * 6, sizeof(float) * 6);
                         volume.vertices_and_normals_interleaved.erase(volume.vertices_and_normals_interleaved.end() - 12, volume.vertices_and_normals_interleaved.end());
-                        // Replace the left / right vertex indices to point to the start of the loop. 
+                        // Replace the left / right vertex indices to point to the start of the loop.
                         for (size_t u = volume.quad_indices.size() - 16; u < volume.quad_indices.size(); ++ u) {
                             if (volume.quad_indices[u] == idx_prev[LEFT])
                                 volume.quad_indices[u] = idx_initial[LEFT];
@@ -1716,7 +1731,7 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
 
         Vec3d n_top = Vec3d::Zero();
         Vec3d n_right = Vec3d::Zero();
-        
+
         if ((line.a(0) == line.b(0)) && (line.a(1) == line.b(1)))
         {
             // vertical segment
@@ -1792,7 +1807,7 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
             bool is_right_turn = n_top_prev.dot(unit_v_prev.cross(unit_v)) > 0.0;
 
             // To reduce gpu memory usage, we try to reuse vertices
-            // To reduce the visual artifacts, due to averaged normals, we allow to reuse vertices only when any of two adjacent edges 
+            // To reduce the visual artifacts, due to averaged normals, we allow to reuse vertices only when any of two adjacent edges
             // is longer than a fixed threshold.
             // The following value is arbitrary, it comes from tests made on a bunch of models showing the visual artifacts
             double len_threshold = 2.5;
@@ -1835,7 +1850,7 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
                     ::memcpy(volume.vertices_and_normals_interleaved.data() + idx_initial[LEFT] * 6, volume.vertices_and_normals_interleaved.data() + idx_prev[LEFT] * 6, sizeof(float) * 6);
                     ::memcpy(volume.vertices_and_normals_interleaved.data() + idx_initial[RIGHT] * 6, volume.vertices_and_normals_interleaved.data() + idx_prev[RIGHT] * 6, sizeof(float) * 6);
                     volume.vertices_and_normals_interleaved.erase(volume.vertices_and_normals_interleaved.end() - 12, volume.vertices_and_normals_interleaved.end());
-                    // Replace the left / right vertex indices to point to the start of the loop. 
+                    // Replace the left / right vertex indices to point to the start of the loop.
                     for (size_t u = volume.quad_indices.size() - 16; u < volume.quad_indices.size(); ++u)
                     {
                         if (volume.quad_indices[u] == idx_prev[LEFT])
@@ -1960,7 +1975,7 @@ static void point_to_indexed_vertex_array(const Vec3crd& point,
 void _3DScene::thick_lines_to_verts(
     const Lines                 &lines,
     const std::vector<double>   &widths,
-    const std::vector<double>   &heights, 
+    const std::vector<double>   &heights,
     bool                         closed,
     double                       top_z,
     GLVolume                    &volume)

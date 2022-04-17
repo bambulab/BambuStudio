@@ -60,6 +60,13 @@
 #include "BaseException.h"
 #endif
 #include "slic3r/GUI/PartPlate.hpp"
+#include "slic3r/GUI/BitmapCache.hpp"
+#include "slic3r/GUI/OpenGLManager.hpp"
+#include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/Camera.hpp"
+#include <GLFW/glfw3.h>
+
+
 
 #ifdef SLIC3R_GUI
     #include "slic3r/GUI/GUI_Init.hpp"
@@ -78,6 +85,11 @@ static PrinterTechnology get_printer_technology(const DynamicConfig &config)
     boost::nowide::cout.flush();\
     boost::nowide::cerr.flush();\
     exit(ret);}
+
+static void glfw_callback(int error_code, const char* description)
+{
+    BOOST_LOG_TRIVIAL(error) << "error_code " <<error_code <<", description: " <<description<< std::endl;
+}
 
 int CLI::run(int argc, char **argv)
 {
@@ -112,20 +124,20 @@ int CLI::run(int argc, char **argv)
         BOOST_LOG_TRIVIAL(info) << "index="<< index <<", arg is "<< argv[index] <<std::endl;
     int debug_argc = 8;
     char *debug_argv[] = {
-        "D:\work\projects\bambu_debug\bamboo_slicer\build\src\Debug\bambu-studio.exe",
+        "E:\work\projects\bambu_studio\bamboo_slicer\build\src\Debug\bambu-studio.exe",
         "--slice",
         "--export-3mf=output.3mf",
-        "bbl_mmu_1.3mf",
+        "test_thumbnail.3mf",
         "--load-settings",
         "machine.json;process.json",
         "--load-filaments",
-        "filament1.json;filament2.json;filament3.json;filament4.json"
+        "filament.json;filament.json;filament.json;filament.json"
         };
-	if (! this->setup(debug_argc, debug_argv))*/
+    if (! this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
     {
         boost::nowide::cerr << "setup params error" << std::endl;
-		return 1;
+        return 1;
     }
     BOOST_LOG_TRIVIAL(info) << "finished setup params, argc="<< argc << std::endl;
     std::string temp_path = wxStandardPaths::Get().GetTempDir().utf8_str().data();
@@ -490,16 +502,16 @@ int CLI::run(int argc, char **argv)
     Pointfs bedfs = m_print_config.opt<ConfigOptionPoints>("printable_area")->values;
     Pointfs excluse_areas = m_print_config.opt<ConfigOptionPoints>("bed_exclude_area")->values;
     //update part plate's size
-    double z = m_print_config.opt_float("printable_height");
+    double print_height = m_print_config.opt_float("printable_height");
     double height_to_lid = m_print_config.opt_float("extruder_clearance_height_to_lid");
     double height_to_rod = m_print_config.opt_float("extruder_clearance_height_to_rod");
     double plate_stride;
     if (m_models.size() > 0)
     {
-        partplate_list.reset_size(bedfs[2].x() - bedfs[0].x(), bedfs[2].y() - bedfs[0].y(), z);
+        partplate_list.reset_size(bedfs[2].x() - bedfs[0].x(), bedfs[2].y() - bedfs[0].y(), print_height);
         partplate_list.set_shapes(bedfs, excluse_areas, height_to_lid, height_to_rod);
         plate_stride = partplate_list.plate_stride_x();
-        BOOST_LOG_TRIVIAL(info) << "bed size, x="<<bedfs[2].x() - bedfs[0].x()<<",y="<<bedfs[2].y() - bedfs[0].y()<<",z="<< z <<"\n";
+        BOOST_LOG_TRIVIAL(info) << "bed size, x="<<bedfs[2].x() - bedfs[0].x()<<",y="<<bedfs[2].y() - bedfs[0].y()<<",z="<< print_height <<"\n";
     }
     if (plate_data.size() > 0)
     {
@@ -888,6 +900,7 @@ int CLI::run(int argc, char **argv)
     bool export_to_3mf = false;
     std::string export_3mf_file;
     std::string outfile_dir = m_config.opt_string("outputdir");
+    std::vector<ThumbnailData*> calibration_thumbnails;
     for (auto const &opt_key : m_actions) {
         if (opt_key == "help") {
             this->print_help();
@@ -983,7 +996,7 @@ int CLI::run(int argc, char **argv)
                     BOOST_LOG_TRIVIAL(info) << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}") % print_volume.min(0) % print_volume.min(1)
                         % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2) << std::endl;
 #else
-                    BuildVolume build_volume(part_plate->get_shape(), z);
+                    BuildVolume build_volume(part_plate->get_shape(), print_height);
                     model.update_print_volume_state(build_volume);
                     unsigned int count = model.update_print_volume_state(build_volume);
                     // BBS: TODO
@@ -1105,6 +1118,9 @@ int CLI::run(int argc, char **argv)
 
     if (export_to_3mf) {
         //BBS: export as bbl 3mf
+        Slic3r::GUI::OpenGLManager opengl_mgr;
+        std::vector<ThumbnailData *> thumbnails;
+        std::vector<PlateBBoxData*> plate_bboxes;
         PlateDataPtrs plate_data_list;
         partplate_list.store_to_3mf_structure(plate_data_list);
         std::vector<Preset*> project_presets;
@@ -1114,7 +1130,7 @@ int CLI::run(int argc, char **argv)
 
         // get type and color for platedata
         auto* filament_types = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_type"));
-        auto* filament_color = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_colour"));
+        const ConfigOptionStrings* filament_color = dynamic_cast<const ConfigOptionStrings *>(m_print_config.option("filament_colour"));
 
         for (int i = 0; i < plate_data_list.size(); i++) {
             PlateData *plate_data = plate_data_list[i];
@@ -1124,13 +1140,179 @@ int CLI::run(int argc, char **argv)
             }
         }
 
+        int gl_major, gl_minor, gl_verbos;
+        glfwGetVersion(&gl_major, &gl_minor, &gl_verbos);
+	BOOST_LOG_TRIVIAL(info) << boost::format("opengl version %1%.%2%.%3%")%gl_major %gl_minor %gl_verbos;
+
+        glfwSetErrorCallback(glfw_callback);
+        int ret = glfwInit();
+	if (ret == GLFW_FALSE) {
+            int code = glfwGetError(NULL);
+	    BOOST_LOG_TRIVIAL(error) << "glfwInit return error, code " <<code<< std::endl;
+	}
+	else {
+	    BOOST_LOG_TRIVIAL(info) << "glfwInit Success."<< std::endl;
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, gl_major);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, gl_minor);
+            glfwWindowHint(GLFW_RED_BITS, 8);
+            glfwWindowHint(GLFW_GREEN_BITS, 8);
+            glfwWindowHint(GLFW_BLUE_BITS, 8);
+            glfwWindowHint(GLFW_ALPHA_BITS, 8);
+            glfwWindowHint(GLFW_VISIBLE, false);
+            //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+            glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_OSMESA_CONTEXT_API);
+            //glfwDisable(GLFW_AUTO_POLL_EVENTS);
+//#ifdef __WXMAC__
+//            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+//#endif
+            GLFWwindow* window = glfwCreateWindow(640, 480, "base_window", NULL, NULL);
+            if (window == NULL)
+            {
+                BOOST_LOG_TRIVIAL(error) << "Failed to create GLFW window" << std::endl;
+            }
+            else
+                glfwMakeContextCurrent(window);
+	}
+        bool opengl_valid = opengl_mgr.init_gl();
+        if (!opengl_valid) {
+            BOOST_LOG_TRIVIAL(error) << "init opengl failed! skip thumbnail generating" << std::endl;
+        }
+        else {
+            BOOST_LOG_TRIVIAL(info) << "glewInit Sucess." << std::endl;
+            GLVolumeCollection glvolume_collection;
+            Model &model = m_models[0];
+            int extruder_id = 1;
+            for (unsigned int obj_idx = 0; obj_idx < (unsigned int)model.objects.size(); ++ obj_idx) {
+                const ModelObject &model_object = *model.objects[obj_idx];
+                const ConfigOption* option = model_object.config.option("extruder");
+                if (option)
+                    extruder_id = (dynamic_cast<const ConfigOptionInt *>(option))->getInt();
+                for (int volume_idx = 0; volume_idx < (int)model_object.volumes.size(); ++ volume_idx) {
+                    const ModelVolume &model_volume = *model_object.volumes[volume_idx];
+                    option = model_volume.config.option("extruder");
+                    if (option) extruder_id = (dynamic_cast<const ConfigOptionInt *>(option))->getInt();
+                    //if (!model_volume.is_model_part())
+                    //    continue;
+                    for (int instance_idx = 0; instance_idx < (int)model_object.instances.size(); ++ instance_idx) {
+                        const ModelInstance &model_instance = *model_object.instances[instance_idx];
+                        glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, "volume", true);
+                        //glvolume_collection.volumes.back()->geometry_id = key.geometry_id;
+                        std::string color = filament_color?filament_color->get_at(extruder_id - 1):"#00FF00";
+
+                        unsigned char  rgb_color[3] = {};
+                        Slic3r::GUI::BitmapCache::parse_color(color, rgb_color);
+                        glvolume_collection.volumes.back()->set_render_color( float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, 1.f);
+                    }
+                }
+            }
+
+            ThumbnailsParams thumbnail_params;
+            GLShaderProgram* shader = opengl_mgr.get_shader("gouraud_light");
+
+            for (int i = 0; i < partplate_list.get_plate_count(); i++) {
+                Slic3r::GUI::PartPlate *part_plate      = partplate_list.get_plate(i);
+                ThumbnailData *        thumbnail_data   = new ThumbnailData();
+                unsigned int thumbnail_width = 256, thumbnail_height = 256;
+                const ThumbnailsParams thumbnail_params = {{}, false, true, true, true, i};
+
+                switch (Slic3r::GUI::OpenGLManager::get_framebuffers_type())
+                {
+                case Slic3r::GUI::OpenGLManager::EFramebufferType::Arb:
+                        {
+                            BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: ARB");
+                            Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*thumbnail_data,
+                               thumbnail_width, thumbnail_height, thumbnail_params,
+                               partplate_list, glvolume_collection, shader, Slic3r::GUI::Camera::EType::Ortho);
+                            break;
+                        }
+                case Slic3r::GUI::OpenGLManager::EFramebufferType::Ext:
+                        {
+                            BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: EXT");
+                            Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*thumbnail_data,
+                               thumbnail_width, thumbnail_height, thumbnail_params,
+                               partplate_list, glvolume_collection, shader, Slic3r::GUI::Camera::EType::Ortho);
+                            break;
+                        }
+                default:
+                        BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: unknown");
+                        break;
+                }
+                thumbnails.push_back(thumbnail_data);
+
+                //render calibration thumbnail
+                PrintBase  *print_base=NULL;
+                Slic3r::GUI::GCodeResult *gcode_result = NULL;
+                int print_index;
+                part_plate->get_print(&print_base, &gcode_result, &print_index);
+
+                BuildVolume build_volume(part_plate->get_shape(), print_height);
+                const std::vector<BoundingBoxf3>& exclude_bounding_box = part_plate->get_exclude_areas();
+                Print *print = dynamic_cast<Print *>(print_base);
+                Slic3r::GUI::GCodeViewer gcode_viewer;
+                gcode_viewer.init(ConfigOptionMode::comAdvanced, nullptr);
+                gcode_viewer.load(*gcode_result, *print, build_volume, exclude_bounding_box, false, ConfigOptionMode::comAdvanced, false);
+
+                std::vector<std::string> colors;
+                if (filament_color)
+                    colors = filament_color->values;
+                gcode_viewer.refresh(*gcode_result, colors);
+
+                ThumbnailData* calibration_data = new ThumbnailData();
+                const ThumbnailsParams calibration_params = { {}, false, true, true, true, i };
+                //BBS fixed size
+                const int cali_thumbnail_width = 2560;
+                const int cali_thumbnail_height = 2560;
+                gcode_viewer.render_calibration_thumbnail(*calibration_data, cali_thumbnail_width, cali_thumbnail_height,
+                    calibration_params, partplate_list, opengl_mgr);
+                //generate_calibration_thumbnail(*calibration_data, thumbnail_width, thumbnail_height, calibration_params);
+                //*plate_bboxes[index] = p->generate_first_layer_bbox();
+                calibration_thumbnails.push_back(calibration_data);
+
+                PlateBBoxData* plate_bbox = new PlateBBoxData();
+                std::vector<BBoxData>& id_bboxes = plate_bbox->bbox_objs;
+                BoundingBoxf bbox_all;
+                auto seq_print  = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+                if ( seq_print && (seq_print->value == PrintSequence::ByObject))
+                    plate_bbox->is_seq_print = true;
+
+                auto objects = print->objects();
+                auto orig = part_plate->get_origin();
+                Vec2d orig2d = { orig[0], orig[1] };
+
+                for (auto obj : objects)
+                {
+                    BBoxData data;
+                    auto bb_scaled = obj->get_first_layer_bbox(data.area, data.layer_height, data.name);
+                    auto bb = unscaled(bb_scaled);
+                    bb.min -= orig2d;
+                    bb.max -= orig2d;
+                    bbox_all.merge(bb);
+                    data.area *= (SCALING_FACTOR * SCALING_FACTOR); // unscale area
+                    data.id = obj->id().id;
+                    data.bbox = { bb.min.x(),bb.min.y(),bb.max.x(),bb.max.y() };
+                    id_bboxes.emplace_back(std::move(data));
+                }
+                plate_bbox->bbox_all = { bbox_all.min.x(),bbox_all.min.y(),bbox_all.max.x(),bbox_all.max.y() };
+                plate_bboxes.push_back(plate_bbox);
+            }
+        }
+
         BOOST_LOG_TRIVIAL(info) << "will export 3mf to " << export_3mf_file << std::endl;
-        if (! this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, &m_print_config))
+        if (! this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, thumbnails, calibration_thumbnails, plate_bboxes, &m_print_config))
         {
             release_PlateData_list(plate_data_list);
             flush_and_exit(1);
         }
         release_PlateData_list(plate_data_list);
+        for (unsigned int i = 0; i < thumbnails.size(); i++)
+            delete thumbnails[i];
+
+        for (unsigned int i = 0; i < calibration_thumbnails.size(); i++)
+            delete calibration_thumbnails[i];
+
+        for (int i = 0; i < plate_bboxes.size(); i++)
+            delete plate_bboxes[i];
     }
 
     if (start_gui) {
@@ -1163,6 +1345,11 @@ int CLI::run(int argc, char **argv)
         // If started without a parameter, consider it to be OK, otherwise report an error code (no action etc).
         return (argc == 0) ? 0 : 1;
 #endif // SLIC3R_GUI
+    }
+
+    //BBS: release glfw
+    if (export_to_3mf) {
+        glfwTerminate();
     }
 
     //BBS: flush logs
@@ -1339,11 +1526,11 @@ bool CLI::export_models(IO::ExportFormat format)
 }
 
 //BBS: add export_project function
-bool CLI::export_project(Model *model, std::string& path, PlateDataPtrs &partplate_data, std::vector<Preset*>& project_presets, const DynamicPrintConfig* config)
+bool CLI::export_project(Model *model, std::string& path, PlateDataPtrs &partplate_data,
+    std::vector<Preset*>& project_presets, std::vector<ThumbnailData*>& thumbnails, std::vector<ThumbnailData*>& calibration_thumbnails, std::vector<PlateBBoxData*>& plate_bboxes, const DynamicPrintConfig* config)
 {
     //const std::string path = this->output_filepath(*model, IO::TMF);
     bool success = false;
-    std::vector<ThumbnailData*> thumbnails;
 
     StoreParams store_params;
     store_params.path = path.c_str();
@@ -1352,6 +1539,8 @@ bool CLI::export_project(Model *model, std::string& path, PlateDataPtrs &partpla
     store_params.project_presets = project_presets;
     store_params.config = (DynamicPrintConfig*)config;
     store_params.thumbnail_data = thumbnails;
+    store_params.calibration_thumbnail_data = calibration_thumbnails;
+    store_params.id_bboxes = plate_bboxes;
     store_params.strategy = store_params.strategy|SaveStrategy::WithGcode;
 
     success = Slic3r::store_bbs_3mf(store_params);

@@ -19,8 +19,12 @@ namespace Slic3r {
 
 class Print;
 class TriangleMesh;
+class PresetBundle;
 
 namespace GUI {
+
+class PartPlateList;
+class OpenGLManager;
 
 class GCodeViewer
 {
@@ -763,12 +767,13 @@ public:
     GCodeViewer();
     ~GCodeViewer() { reset(); }
 
-    void init();
+    void init(ConfigOptionMode mode, Slic3r::PresetBundle* preset_bundle);
     void update_by_mode(ConfigOptionMode mode);
 
     // extract rendering data from the given parameters
     //BBS: add only gcode mode
-    void load(const GCodeProcessorResult& gcode_result, const Print& print, bool initialized, bool only_gcode = false);
+    void load(const GCodeProcessorResult& gcode_result, const Print& print, const BuildVolume& build_volume,
+            const std::vector<BoundingBoxf3>& exclude_bounding_box, bool initialized, ConfigOptionMode mode, bool only_gcode = false);
     // recalculate ranges in dependence of what is visible and sets tool/print colors
     void refresh(const GCodeProcessorResult& gcode_result, const std::vector<std::string>& str_tool_colors);
     void refresh_render_paths();
@@ -781,10 +786,10 @@ public:
     void set_shells_on_preview(bool is_previewing) { m_shells.previewing = is_previewing; }
     //BBS: GUI refactor: add canvas width and height
     void render(int canvas_width, int canvas_height, int right_margin);
-    //BBS 
-    void _render_calibration_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params);
-    void _render_calibration_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params);
-    void render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params);
+    //BBS
+    void _render_calibration_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, OpenGLManager& opengl_manager);
+    void _render_calibration_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, OpenGLManager& opengl_manager);
+    void render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, OpenGLManager& opengl_manager);
 
     bool has_data() const { return !m_roles.empty(); }
     bool can_export_toolpaths() const;
@@ -845,13 +850,13 @@ public:
     void pop_combo_style();
 
 private:
-    void load_toolpaths(const GCodeProcessorResult& gcode_result);
+    void load_toolpaths(const GCodeProcessorResult& gcode_result, const BuildVolume& build_volume, const std::vector<BoundingBoxf3>& exclude_bounding_box);
     //BBS: always load shell at preview
     //void load_shells(const Print& print, bool initialized);
     void refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const;
     void render_toolpaths();
     void render_shells();
-    
+
     //BBS: GUI refactor: add canvas size
     void render_legend(float &legend_height, int canvas_width, int canvas_height, int right_margin);
     void render_slider(int canvas_width, int canvas_height);

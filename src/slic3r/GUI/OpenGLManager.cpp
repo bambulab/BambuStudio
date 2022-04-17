@@ -95,6 +95,8 @@ void OpenGLManager::GLInfo::detect() const
     *const_cast<std::string*>(&m_vendor) = gl_get_string_safe(GL_VENDOR, "N/A");
     *const_cast<std::string*>(&m_renderer) = gl_get_string_safe(GL_RENDERER, "N/A");
 
+    BOOST_LOG_TRIVIAL(info) << boost::format("got opengl version %1%, glsl version %2%, vendor %3%")%m_version %m_glsl_version %m_vendor<< std::endl;
+
     int* max_tex_size = const_cast<int*>(&m_max_tex_size);
     glsafe(::glGetIntegerv(GL_MAX_TEXTURE_SIZE, max_tex_size));
 
@@ -233,18 +235,22 @@ OpenGLManager::~OpenGLManager()
 bool OpenGLManager::init_gl()
 {
     if (!m_gl_initialized) {
-        if (glewInit() != GLEW_OK) {
+        GLenum result = glewInit();
+        if (result != GLEW_OK) {
             BOOST_LOG_TRIVIAL(error) << "Unable to init glew library";
             return false;
         }
+	//BOOST_LOG_TRIVIAL(info) << "glewInit Success."<< std::endl;
         m_gl_initialized = true;
         if (GLEW_EXT_texture_compression_s3tc)
             s_compressed_textures_supported = true;
         else
             s_compressed_textures_supported = false;
 
-        if (GLEW_ARB_framebuffer_object)
+        if (GLEW_ARB_framebuffer_object) {
             s_framebuffers_type = EFramebufferType::Arb;
+            BOOST_LOG_TRIVIAL(info) << "Found Framebuffer Type ARB."<< std::endl;
+	}
         else if (GLEW_EXT_framebuffer_object)
             s_framebuffers_type = EFramebufferType::Ext;
         else
@@ -260,7 +266,8 @@ bool OpenGLManager::init_gl()
         	wxMessageBox(message, _L("Unsupported OpenGL version"), wxOK | wxICON_ERROR);
         }
 
-        if (valid_version) {
+        if (valid_version)
+	{
             // load shaders
             auto [result, error] = m_shaders_manager.init();
             if (!result) {

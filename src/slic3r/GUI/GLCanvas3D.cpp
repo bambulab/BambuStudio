@@ -1123,7 +1123,7 @@ void GLCanvas3D::render()
         return;
 
     if (!m_main_toolbar.is_enabled())
-        m_gcode_viewer.init();
+        m_gcode_viewer.init(wxGetApp().get_mode(), wxGetApp().preset_bundle);
 
     if (! m_bed.build_volume().valid()) {
         // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
@@ -1352,18 +1352,26 @@ void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w,
 
 void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type)
 {
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     switch (OpenGLManager::get_framebuffers_type())
     {
-    case OpenGLManager::EFramebufferType::Arb: { _render_thumbnail_framebuffer(thumbnail_data, w, h, thumbnail_params, volumes, camera_type); break; }
-    case OpenGLManager::EFramebufferType::Ext: { _render_thumbnail_framebuffer_ext(thumbnail_data, w, h, thumbnail_params, volumes, camera_type); break; }
-    default: { _render_thumbnail_legacy(thumbnail_data, w, h, thumbnail_params, volumes, camera_type); break; }
+    case OpenGLManager::EFramebufferType::Arb:
+        { render_thumbnail_framebuffer(thumbnail_data, w, h, thumbnail_params,
+            wxGetApp().plater()->get_partplate_list(), volumes, shader, camera_type); break; }
+    case OpenGLManager::EFramebufferType::Ext:
+        { render_thumbnail_framebuffer_ext(thumbnail_data, w, h, thumbnail_params,
+            wxGetApp().plater()->get_partplate_list(), volumes, shader, camera_type); break; }
+    default:
+        { render_thumbnail_legacy(thumbnail_data, w, h, thumbnail_params,
+            wxGetApp().plater()->get_partplate_list(), volumes, shader, camera_type); break; }
     }
 }
 
 void GLCanvas3D::render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params)
 {
     //load current plate gcode
-    m_gcode_viewer.render_calibration_thumbnail(thumbnail_data, w, h, thumbnail_params);
+    m_gcode_viewer.render_calibration_thumbnail(thumbnail_data, w, h, thumbnail_params,
+        wxGetApp().plater()->get_partplate_list(), wxGetApp().get_opengl_manager());
 }
 
 //BBS
@@ -1987,7 +1995,11 @@ void GLCanvas3D::load_shells(const Print& print, bool force_previewing)
 //BBS: add only gcode mode
 void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, const std::vector<std::string>& str_tool_colors, bool only_gcode)
 {
-    m_gcode_viewer.load(gcode_result, *this->fff_print(), m_initialized, only_gcode);
+    PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
+    PartPlate* plate = partplate_list.get_curr_plate();
+    const std::vector<BoundingBoxf3>& exclude_bounding_box = plate->get_exclude_areas();
+    m_gcode_viewer.load(gcode_result, *this->fff_print(), wxGetApp().plater()->build_volume(), exclude_bounding_box,
+        m_initialized, wxGetApp().get_mode(), only_gcode);
 
     if (wxGetApp().is_editor()) {
         //BBS: always load shell at preview, do this in load_shells
@@ -4399,22 +4411,22 @@ static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 
-void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type)
+void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, const GLVolumeCollection& volumes, GLShaderProgram* shader, Camera::EType camera_type)
 {
     //BBS modify visible calc function
     int plate_idx = thumbnail_params.plate_id;
-    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
-    BoundingBoxf3 bb = plate->get_bounding_box(false);
-    if (m_config != nullptr) {
+    PartPlate* plate = partplate_list.get_plate(plate_idx);
+    BoundingBoxf3 plate_build_volume = plate->get_build_volume();
+    /*if (m_config != nullptr) {
         double h = m_config->opt_float("printable_height");
-        bb.min(2) = std::min(bb.min(2), -h);
-        bb.max(2) = std::max(bb.max(2), h);
-    }
+        plate_build_volume.min(2) = std::min(plate_build_volume.min(2), -h);
+        plate_build_volume.max(2) = std::max(plate_build_volume.max(2), h);
+    }*/
 
-    auto is_visible = [plate_idx, bb](const GLVolume& v) {
+    auto is_visible = [plate_idx, plate_build_volume](const GLVolume& v) {
         bool ret = v.printable;
         if (plate_idx >= 0) {
-            ret &= bb.intersects(v.transformed_bounding_box());
+            ret &= plate_build_volume.intersects(v.transformed_bounding_box());
         }
         else {
             ret &= (!v.shader_outside_printer_detection_enabled || !v.is_outside);
@@ -4430,60 +4442,50 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
 
     for (GLVolume* vol : volumes.volumes) {
         if (!vol->is_modifier && !vol->is_wipe_tower && (!thumbnail_params.parts_only || vol->composite_id.volume_id >= 0)) {
-            if (!thumbnail_params.printable_only && plate_idx < 0) {
+            if (is_visible(*vol)) {
                 visible_volumes.emplace_back(vol);
-            }
-            else {
-                if (is_visible(*vol)) {
-                    visible_volumes.emplace_back(vol);
-                }
             }
         }
     }
 
-    BoundingBoxf3 volumes_box;
+    BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: plate_idx %1% volumes size %2%, shader %3%") % plate_idx % visible_volumes.size() %shader;
+    /*BoundingBoxf3 volumes_box;
     if (!visible_volumes.empty()) {
         for (const GLVolume* vol : visible_volumes) {
             volumes_box.merge(vol->transformed_bounding_box());
         }
     }
-    else
+    else {
         // This happens for empty projects
-        volumes_box = m_bed.extended_bounding_box();
-
+        //volumes_box = m_bed.extended_bounding_box();
+        volumes_box = plate_build_volume;
+    }*/
     Camera camera;
     camera.set_type(camera_type);
     //BBS modify scene box to plate scene bounding box
-    camera.set_scene_box(plate_scene_bounding_box(plate_idx));
+    //plate_build_volume.min(2) = - plate_build_volume.max(2);
+    camera.set_scene_box(plate_build_volume);
     camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
 
-    BoundingBoxf3 plate_box = plate->get_bounding_box(false);
-    plate_box.min.z() = 0.0;
-    plate_box.max.z() = 0.0;
-    camera.zoom_to_box(plate_box);
+    //BoundingBoxf3 plate_box = plate->get_bounding_box(false);
+    //plate_box.min.z() = 0.0;
+    //plate_box.max.z() = 0.0;
+    camera.zoom_to_box(plate_build_volume);
     //camera.zoom_to_box(volumes_box);
-    camera.select_view("top");
+    camera.select_view("topfront");
     camera.apply_view_matrix();
 
-    double near_z = -1.0;
-    double far_z = -1.0;
+    camera.apply_projection(plate_build_volume);
 
-    if (plate_idx < 0) {
-        if (thumbnail_params.show_bed) {
-            // extends the near and far z of the frustrum to avoid the bed being clipped
+    //double near_z = -1.0;
+    //double far_z = -1.0;
+    //camera.apply_projection(volumes_box, near_z, far_z);
 
-            // box in eye space
-            BoundingBoxf3 t_bed_box = m_bed.extended_bounding_box().transformed(camera.get_view_matrix());
-            near_z = -t_bed_box.max.z();
-            far_z = -t_bed_box.min.z();
-        }
-    }
-
-    camera.apply_projection(volumes_box, near_z, far_z);
-
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
-    if (shader == nullptr)
+    //GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    if (shader == nullptr) {
+        BOOST_LOG_TRIVIAL(info) <<  boost::format("render_thumbnail: shader is null, return directly"); 
         return;
+    }
 
     if (thumbnail_params.transparent_background)
         glsafe(::glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
@@ -4513,7 +4515,7 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
         // the volume may have been deactivated by an active gizmo
         bool is_active = vol->is_active;
         vol->is_active = true;
-        vol->render();
+        vol->simple_render();
         vol->is_active = is_active;
     }
 
@@ -4521,28 +4523,23 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    if (plate_idx < 0) {
-        if (thumbnail_params.show_bed)
-            _render_bed(!camera.is_looking_downward(), false);
-    }
-    else {
-        plate->render(const_cast<GLCanvas3D&>(*this), false, false, true, true);
-    }
+    plate->render( false, true, true);
 
     // restore background color
     if (thumbnail_params.transparent_background)
         glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
+    BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: finished");
 }
 
-void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type)
+void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, const GLVolumeCollection& volumes, GLShaderProgram* shader, Camera::EType camera_type)
 {
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
         return;
 
-    bool multisample = m_multisample_allowed;
-    if (!multisample)
-        glsafe(::glEnable(GL_MULTISAMPLE));
+    bool multisample = OpenGLManager::can_multisample();
+    //if (!multisample)
+    //    glsafe(::glEnable(GL_MULTISAMPLE));
 
     GLint max_samples;
     glsafe(::glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
@@ -4551,7 +4548,8 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
     GLuint render_fbo;
     glsafe(::glGenFramebuffers(1, &render_fbo));
     glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, render_fbo));
-
+    
+    BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail prepare: w %1%, h %2%, max_samples  %3%, render_fbo %4%") %w %h %max_samples % render_fbo;
     GLuint render_tex = 0;
     GLuint render_tex_buffer = 0;
     if (multisample) {
@@ -4584,7 +4582,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
     glsafe(::glDrawBuffers(1, drawBufs));
 
     if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
-        _render_thumbnail_internal(thumbnail_data, thumbnail_params, volumes, camera_type);
+        render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, volumes, shader, camera_type);
 
         if (multisample) {
             GLuint resolve_fbo;
@@ -4620,6 +4618,9 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
         debug_output_thumbnail(thumbnail_data);
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
     }
+    else {
+        BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail prepare: GL_FRAMEBUFFER not complete");
+    }
 
     glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, 0));
     glsafe(::glDeleteRenderbuffers(1, &render_depth));
@@ -4629,19 +4630,20 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
         glsafe(::glDeleteTextures(1, &render_tex));
     glsafe(::glDeleteFramebuffers(1, &render_fbo));
 
-    if (!multisample)
-        glsafe(::glDisable(GL_MULTISAMPLE));
+    //if (!multisample)
+    //    glsafe(::glDisable(GL_MULTISAMPLE));
+    BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail prepare: finished");
 }
 
-void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type)
+void GLCanvas3D::render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, const GLVolumeCollection& volumes, GLShaderProgram* shader, Camera::EType camera_type)
 {
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
         return;
 
-    bool multisample = m_multisample_allowed;
-    if (!multisample)
-        glsafe(::glEnable(GL_MULTISAMPLE));
+    bool multisample = OpenGLManager::can_multisample();
+    //if (!multisample)
+    //    glsafe(::glEnable(GL_MULTISAMPLE));
 
     GLint max_samples;
     glsafe(::glGetIntegerv(GL_MAX_SAMPLES_EXT, &max_samples));
@@ -4683,7 +4685,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data
     glsafe(::glDrawBuffers(1, drawBufs));
 
     if (::glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT) {
-        _render_thumbnail_internal(thumbnail_data, thumbnail_params, volumes, camera_type);
+        render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, volumes, shader, camera_type);
 
         if (multisample) {
             GLuint resolve_fbo;
@@ -4728,11 +4730,11 @@ void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data
         glsafe(::glDeleteTextures(1, &render_tex));
     glsafe(::glDeleteFramebuffersEXT(1, &render_fbo));
 
-    if (!multisample)
-        glsafe(::glDisable(GL_MULTISAMPLE));
+    //if (!multisample)
+    //    glsafe(::glDisable(GL_MULTISAMPLE));
 }
 
-void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type)
+void GLCanvas3D::render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList &partplate_list, const GLVolumeCollection& volumes, GLShaderProgram* shader, Camera::EType camera_type)
 {
     // check that thumbnail size does not exceed the default framebuffer size
     const Size& cnv_size = get_canvas_size();
@@ -4748,7 +4750,7 @@ void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigne
     if (!thumbnail_data.is_valid())
         return;
 
-    _render_thumbnail_internal(thumbnail_data, thumbnail_params, volumes, camera_type);
+    render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, volumes, shader, camera_type);
 
     glsafe(::glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
@@ -4756,7 +4758,7 @@ void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigne
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 
     // restore the default framebuffer size to avoid flickering on the 3D scene
-    wxGetApp().plater()->get_camera().apply_viewport(0, 0, cnv_size.get_width(), cnv_size.get_height());
+    //wxGetApp().plater()->get_camera().apply_viewport(0, 0, cnv_size.get_width(), cnv_size.get_height());
 }
 
 //BBS: GUI refractor
@@ -5397,7 +5399,7 @@ void GLCanvas3D::_render_platelist(bool bottom, bool only_current, bool only_bod
     scale_factor = m_retina_helper->get_scale_factor();
 #endif // ENABLE_RETINA_GL
 
-    wxGetApp().plater()->get_partplate_list().render(const_cast<GLCanvas3D&>(*this), bottom, scale_factor, only_current, only_body, hover_id);
+    wxGetApp().plater()->get_partplate_list().render(bottom, scale_factor, only_current, only_body, hover_id);
 }
 
 void GLCanvas3D::_render_plates_for_picking() const
