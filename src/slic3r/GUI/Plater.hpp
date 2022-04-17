@@ -198,6 +198,8 @@ public:
     // BBS: check snapshot
     bool up_to_date(bool saved, bool backup);
 
+    bool open_3mf_file(const fs::path &file_path);
+    void add_file();
     void add_model(bool imperial_units = false);
     void import_sl1_archive();
     void extract_config_from_project();

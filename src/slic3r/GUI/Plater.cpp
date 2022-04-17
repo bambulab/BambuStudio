@@ -4762,7 +4762,9 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 void Plater::priv::on_action_add(SimpleEvent&)
 {
     if (q != nullptr) {
-        q->add_model();
+        //q->add_model();
+        //BBS open file in toolbar add
+        q->add_file();
     }
 }
 
@@ -6820,56 +6822,9 @@ bool Plater::load_files(const wxArrayString& filenames)
     // searches for project files
     for (std::vector<fs::path>::const_reverse_iterator it = normal_paths.rbegin(); it != normal_paths.rend(); ++it) {
         std::string filename = (*it).filename().string();
-        //BBS: only 3mf will be treated as project file
-        if (boost::algorithm::iends_with(filename, ".3mf")) {
-        //if (boost::algorithm::iends_with(filename, ".3mf") || boost::algorithm::iends_with(filename, ".amf")) {
-            LoadType load_type = LoadType::Unknown;
-            if (!model().objects.empty()) {
-                bool show_drop_project_dialog = true;
-                if (show_drop_project_dialog) {
-                    ProjectDropDialog dlg(filename);
-                    if (dlg.ShowModal() == wxID_OK) {
-                        int choice = dlg.get_action();
-                        load_type = static_cast<LoadType>(choice);
-                        wxGetApp().app_config->set("import_project_action", std::to_string(choice));
-
-                        // BBS: jump to plater panel
-                        wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
-                    }
-                }
-                else
-                    load_type = static_cast<LoadType>(std::clamp(std::stoi(wxGetApp().app_config->get("import_project_action")),
-                        static_cast<int>(LoadType::OpenProject), static_cast<int>(LoadType::LoadConfig)));
-            }
-            else
-                load_type = LoadType::OpenProject;
-
-            if (load_type == LoadType::Unknown)
-                return false;
-
-            switch (load_type) {
-                case LoadType::OpenProject: {
-                    if (wxGetApp().can_load_project())
-                        load_project(from_path(*it));
-                    break;
-                }
-                case LoadType::LoadGeometry: {
-                    Plater::TakeSnapshot snapshot(this, "Import Object");
-                    load_files({ *it }, LoadStrategy::LoadModel);
-                    break;
-                }
-                case LoadType::LoadConfig: {
-                    load_files({ *it }, LoadStrategy::LoadConfig);
-                    break;
-                }
-                case LoadType::Unknown : {
-                    assert(false);
-                    break;
-                }
-            }
-
+        ////BBS: only 3mf will be treated as project file
+        if (open_3mf_file((*it)))
             return true;
-        }
     }
 
     // other files
@@ -6893,6 +6848,87 @@ bool Plater::load_files(const wxArrayString& filenames)
     load_files(normal_paths, LoadStrategy::LoadModel);
 
     return true;
+}
+
+
+bool Plater::open_3mf_file(const fs::path &file_path)
+{
+    std::string filename = file_path.filename().string();
+    if (!boost::algorithm::iends_with(filename, ".3mf")) {
+        return false;
+    }
+
+    LoadType load_type = LoadType::Unknown;
+    if (!model().objects.empty()) {
+        bool show_drop_project_dialog = true;
+        if (show_drop_project_dialog) {
+            ProjectDropDialog dlg(filename);
+            if (dlg.ShowModal() == wxID_OK) {
+                int choice = dlg.get_action();
+                load_type  = static_cast<LoadType>(choice);
+                wxGetApp().app_config->set("import_project_action", std::to_string(choice));
+
+                // BBS: jump to plater panel
+                wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+            }
+        } else
+            load_type = static_cast<LoadType>(
+                std::clamp(std::stoi(wxGetApp().app_config->get("import_project_action")), static_cast<int>(LoadType::OpenProject), static_cast<int>(LoadType::LoadConfig)));
+    } else
+        load_type = LoadType::OpenProject;
+
+    if (load_type == LoadType::Unknown) return false;
+
+    switch (load_type) {
+        case LoadType::OpenProject: {
+            if (wxGetApp().can_load_project())
+                load_project(from_path(file_path));
+            break;
+        }
+        case LoadType::LoadGeometry: {
+            Plater::TakeSnapshot snapshot(this, "Import Object");
+            load_files({file_path}, LoadStrategy::LoadModel);
+            break;
+        }
+        case LoadType::LoadConfig: {
+            load_files({file_path}, LoadStrategy::LoadConfig);
+            break;
+        }
+        case LoadType::Unknown: {
+            assert(false);
+            break;
+        }
+    }
+    return true;
+}
+
+void Plater::add_file()
+{
+    wxArrayString input_files;
+    wxGetApp().import_model(this, input_files);
+    if (input_files.empty()) return;
+
+    std::vector<fs::path> paths;
+    for (const auto &file : input_files) paths.emplace_back(into_path(file));
+
+    std::string snapshot_label;
+    assert(!paths.empty());
+    if (paths.size() == 1) {
+        if (open_3mf_file(paths[0]))
+            return;
+    } else {
+        snapshot_label = "Import Objects";
+        snapshot_label += ": ";
+        snapshot_label += paths.front().filename().string().c_str();
+        for (size_t i = 1; i < paths.size(); ++i) {
+            snapshot_label += ", ";
+            snapshot_label += paths[i].filename().string().c_str();
+        }
+    }
+
+    Plater::TakeSnapshot snapshot(this, snapshot_label);
+    auto                 strategy = LoadStrategy::LoadModel;
+    if (!load_files(paths, strategy).empty()) { wxGetApp().mainframe->update_title(); }
 }
 
 void Plater::update() { p->update(); }
