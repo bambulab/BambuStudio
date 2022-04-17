@@ -21,7 +21,7 @@
 namespace Slic3r::GUI {
 
 GLGizmoFdmSupports::GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-    : GLGizmoPainterBase(parent, icon_filename, sprite_id)
+    : GLGizmoPainterBase(parent, icon_filename, sprite_id), m_current_tool(ImGui::CircleButtonIcon)
 {
     m_tool_type = ToolType::BRUSH;
     m_cursor_type = TriangleSelector::CursorType::CIRCLE;
@@ -92,6 +92,8 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["filter_tiny"]           = _L("Filter tiny patch");
     m_desc["brush_size"]            = _L("Set pen size");
     m_desc["brush_size_caption"]    = _L("Ctrl + Mouse wheel") + ": ";
+    m_desc["tool_type"]             = _L("Tool type");
+    m_desc["smart_fill_angle"]      = _L("Smart fill angle");
 
     memset(&m_print_instance, sizeof(m_print_instance), 0);
     return true;
@@ -174,6 +176,12 @@ void GLGizmoFdmSupports::on_set_state()
     }
 }
 
+static std::string into_u8(const wxString& str)
+{
+    auto buffer_utf8 = str.utf8_str();
+    return std::string(buffer_utf8.data());
+}
+
 void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_limit)
 {
     init_print_instance();
@@ -196,7 +204,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     //BBS
     ImGuiWrapper::push_toolbar_style();
 
-        m_imgui->begin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+    m_imgui->begin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
     const float clipping_slider_left    = m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f);
@@ -206,9 +214,11 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     const float remove_btn_width        = m_imgui->calc_text_size(m_desc.at("remove_all")).x + m_imgui->scaled(1.5f);
     const float filter_btn_width        = m_imgui->calc_text_size(m_desc.at("filter_tiny")).x + m_imgui->scaled(1.5f);
     const float buttons_width           = remove_btn_width + filter_btn_width + m_imgui->scaled(1.5f);
+    const float empty_button_width      = m_imgui->calc_button_size("").x;
 
     const float tips_width           = m_imgui->calc_text_size(_L("Auto support threshold angle: ") + " 90 ").x + m_imgui->scaled(1.5f);
     const float minimal_slider_width = m_imgui->scaled(4.f);
+    float slider_width_times = 1.5;
 
     float caption_max    = 0.f;
     float total_text_max = 0.f;
@@ -230,13 +240,62 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     float drag_pos_times     = 0.7;
 
     ImGui::AlignTextToFramePadding();
-    m_imgui->text(m_desc.at("cursor_size"));
-    ImGui::SameLine(sliders_left_width);
-    ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
-    m_imgui->bbl_slider_float_style("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true);
-    ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
-    ImGui::PushItemWidth(1.5 * slider_icon_width);
-    ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
+    m_imgui->text(m_desc.at("tool_type"));
+    std::array<wchar_t, 2> paint_icons = { ImGui::CircleButtonIcon, ImGui::FillButtonIcon };
+    for (int i = 0; i < paint_icons.size(); i++) {
+        std::string  str_label = std::string("##");
+        std::wstring btn_name = paint_icons[i] + boost::nowide::widen(str_label);
+
+        if (i != 0) ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(1.3f));
+
+        if (m_current_tool == paint_icons[i]) {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.80f, 0.80f, 1.00f, 1.00f)); // r, g, b, a
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.80f, 0.80f, 1.00f, 1.00f));
+        }
+
+        bool btn_clicked = ImGui::Button(into_u8(btn_name).c_str());
+        if (m_current_tool == paint_icons[i]) ImGui::PopStyleColor(2);
+
+        if (btn_clicked && m_current_tool != paint_icons[i]) {
+            m_current_tool = paint_icons[i];
+            for (auto& triangle_selector : m_triangle_selectors) {
+                triangle_selector->seed_fill_unselect_all_triangles();
+                triangle_selector->request_update_render_data();
+            }
+        }
+    }
+
+    if (m_current_tool == ImGui::CircleButtonIcon) {
+        m_cursor_type = TriangleSelector::CursorType::CIRCLE;
+        m_tool_type = ToolType::BRUSH;
+
+        ImGui::AlignTextToFramePadding();
+        m_imgui->text(m_desc.at("cursor_size"));
+        ImGui::SameLine(sliders_left_width);
+        ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
+        m_imgui->bbl_slider_float_style("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true);
+        ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
+        ImGui::PushItemWidth(1.5 * slider_icon_width);
+        ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
+    }
+    else if (m_current_tool == ImGui::FillButtonIcon) {
+        m_cursor_type = TriangleSelector::CursorType::POINTER;
+        m_tool_type = ToolType::SMART_FILL;
+
+        ImGui::AlignTextToFramePadding();
+        m_imgui->text(m_desc.at("smart_fill_angle"));
+        std::string format_str = std::string("%.f") + I18N::translate_utf8("", "Face angle threshold, placed after the number with no whitespace in between.");
+        ImGui::SameLine(sliders_left_width);
+        ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
+        if (m_imgui->bbl_slider_float_style("##smart_fill_angle", &m_smart_fill_angle, SmartFillAngleMin, SmartFillAngleMax, format_str.data(), 1.0f, true))
+            for (auto& triangle_selector : m_triangle_selectors) {
+                triangle_selector->seed_fill_unselect_all_triangles();
+                triangle_selector->request_update_render_data();
+            }
+        ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
+        ImGui::PushItemWidth(1.5 * slider_icon_width);
+        ImGui::BBLDragFloat("##smart_fill_angle_input", &m_smart_fill_angle, 0.05f, 0.0f, 0.0f, "%.2f");
+    }
 
     float position_before_text_y = ImGui::GetCursorPos().y;
     ImGui::AlignTextToFramePadding();

@@ -38,6 +38,9 @@ protected:
     std::string get_gizmo_leaving_text() const override { return _u8L("Leaving Paint-on supports"); }
     std::string get_action_snapshot_name() override { return _u8L("Paint-on supports editing"); }
 
+    // BBS
+    wchar_t                           m_current_tool = 0;
+
 private:
     bool on_init() override;
 
