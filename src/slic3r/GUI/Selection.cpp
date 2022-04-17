@@ -156,7 +156,7 @@ void Selection::add(unsigned int volume_idx, bool as_single_selection, bool chec
     // wipe tower is already selected
     //if (is_wipe_tower() && volume->is_wipe_tower)
     //    return;
-    if (!m_list.empty() && !is_wipe_tower() && volume->is_wipe_tower)
+    if (!m_list.empty() && !is_wipe_tower() && volume->is_wipe_tower && !as_single_selection)
         return;
 
     bool keep_instance_mode = (m_mode == Instance) && !as_single_selection;
