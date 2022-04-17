@@ -168,7 +168,7 @@ void ZUserLogin::OnTimer(wxTimerEvent &event) {
 
 bool ZUserLogin::run() {
     m_timer = new wxTimer(this, NETWORK_OFFLINE_TIMER_ID);
-    m_timer->Start(5000);
+    m_timer->Start(8000);
 
     if (this->ShowModal() == wxID_OK) {
         return true;
@@ -451,7 +451,7 @@ bool ZUserLogin::IsNetworkOK()
 
 bool  ZUserLogin::ShowErrorPage()
 {
-    wxString ErrortUrl = (boost::filesystem::path(resources_dir()) / "web\\login\\error.html").make_preferred().string();
+    wxString ErrortUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\login\\error.html").make_preferred().string().c_str());
     load_url(ErrortUrl);
 
     return true;
