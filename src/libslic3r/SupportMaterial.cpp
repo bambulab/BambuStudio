@@ -52,7 +52,8 @@ namespace Slic3r {
 
 // how much we extend support around the actual contact area
 //FIXME this should be dependent on the nozzle diameter!
-#define SUPPORT_MATERIAL_MARGIN 1.5 
+// BBS: change from 1.5 to 1.2
+#define SUPPORT_MATERIAL_MARGIN 1.2
 
 // Increment used to reach MARGIN in steps to avoid trespassing thin objects
 #define NUM_MARGIN_STEPS 3
@@ -4469,7 +4470,9 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 if (base_layer.layer->bottom_z < EPSILON) {
                     // Base flange (the 1st layer).
                     filler = filler_first_layer;
-                    filler->angle = Geometry::deg2rad(float(m_object_config->support_angle.value + 90.));
+                    // BBS: the 1st layer use the same fill direction as other layers(in rectilinear) to avoid
+                    // that 2nd layer detaches from the 1st layer.
+                    //filler->angle = Geometry::deg2rad(float(m_object_config->support_angle.value + 90.));
                     density = float(m_object_config->raft_first_layer_density.value * 0.01);
                     flow = m_support_params.first_layer_flow;
                     // use the proper spacing for first layer as we don't need to align

@@ -1655,7 +1655,8 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(3.));
+    //BBS: change from 3.0 to 2.0
+    def->set_default_value(new ConfigOptionFloat(2.0));
 
     def = this->add("raft_layers", coInt);
     def->label = L("Raft layers");
