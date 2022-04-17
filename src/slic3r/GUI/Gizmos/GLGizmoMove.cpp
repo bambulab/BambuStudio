@@ -9,7 +9,7 @@
 
 #include <GL/glew.h>
 
-#include <wx/utils.h> 
+#include <wx/utils.h>
 
 namespace Slic3r {
 namespace GUI {
@@ -107,14 +107,15 @@ void GLGizmoMove3D::on_render()
 
     const BoundingBoxf3& box = selection.get_bounding_box();
     const Vec3d& center = box.center();
+    float space_size = 20.f *INV_ZOOM;
 
 #if ENABLE_FIXED_GRABBER
     // x axis
-    m_grabbers[0].center = { box.max.x(), center.y(), center.z() };
+    m_grabbers[0].center = { box.max.x() + space_size, center.y(), center.z() };
     // y axis
-    m_grabbers[1].center = { center.x(), box.max.y(), center.z() };
+    m_grabbers[1].center = { center.x(), box.max.y() + space_size, center.z() };
     // z axis
-    m_grabbers[2].center = { center.x(), center.y(), box.max.z() };
+    m_grabbers[2].center = { center.x(), center.y(), box.max.z() + space_size };
 
     for (int i = 0; i < 3; ++i) {
         m_grabbers[i].color       = AXES_COLOR[i];
@@ -247,7 +248,7 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
     else if (axis == Y)
         glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
 
-    glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
+    //glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
     glsafe(::glScaled(0.75 * size, 0.75 * size, 2.0 * size));
     m_vbo_cone.render();
     glsafe(::glPopMatrix());
