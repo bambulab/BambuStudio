@@ -5336,6 +5336,15 @@ bool Plater::priv::has_assemble_view() const
         for (auto instance : object->instances)
             if (instance->is_assemble_initialized())
                 return true;
+
+        int part_cnt = 0;
+        for (auto volume : object->volumes) {
+            if (volume->is_model_part())
+                part_cnt++;
+        }
+
+        if (part_cnt > 1)
+            return true;
     }
     return false;
 }

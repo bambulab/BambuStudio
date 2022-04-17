@@ -1230,6 +1230,8 @@ void GLCanvas3D::render()
         //BBS: add outline logic
         _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
         //_render_bed(!camera.is_looking_downward(), show_axes);
+        //BBS: add outline logic
+        _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
         _render_plane();
         //BBS: add outline logic insteadof selection under assemble view
         //_render_selection();
