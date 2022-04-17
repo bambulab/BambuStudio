@@ -272,9 +272,10 @@ const std::vector<std::pair<std::string, std::string>> MenuFactory::ADD_VOLUME_M
 //       menu_item Name              menu_item bitmap name
         {L("Add part"),              "menu_add_part" },           // ~ModelVolumeType::MODEL_PART
         {L("Add negative part"),     "menu_add_negative" },       // ~ModelVolumeType::NEGATIVE_VOLUME
-        {L("Add modifier"),          "menu_add_modifier"},        // ~ModelVolumeType::PARAMETER_MODIFIER
-        {L("Add support blocker"),   "menu_support_blocker"},     // ~ModelVolumeType::SUPPORT_BLOCKER
-        {L("Add support enforcer"),  "menu_support_enforcer"}     // ~ModelVolumeType::SUPPORT_ENFORCER
+        {L("Add modifier"),          "menu_add_modifier"}         // ~ModelVolumeType::PARAMETER_MODIFIER
+        //BBS remove to add support blocker
+        //{L("Add support blocker"),   "menu_support_blocker"},     // ~ModelVolumeType::SUPPORT_BLOCKER
+        //{L("Add support enforcer"),  "menu_support_enforcer"}     // ~ModelVolumeType::SUPPORT_ENFORCER
 };
 
 static Plater* plater()
@@ -1118,18 +1119,21 @@ wxMenu* MenuFactory::multi_selection_menu()
 
     wxMenu* menu = new MenuWithSeparators();
     if (!multi_volume) {
-        if (obj_list()->can_merge_to_multipart_object())
+        int index = 0;
+        if (obj_list()->can_merge_to_multipart_object()) {
             append_menu_item_merge_to_multipart_object(menu);
+            index++;
+        }
         append_menu_item_fix_through_netfabb(menu);
         append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
         menu->AppendSeparator();
         //BBS
-        append_menu_item_change_filament(menu, 4);
+        append_menu_item_change_filament(menu, index+4);
 
         append_menu_item_set_printable(menu);
         menu->AppendSeparator();
-        append_menu_items_convert_unit(menu, 7);
+        append_menu_items_convert_unit(menu, index+5);
         menu->AppendSeparator();
         append_menu_item_export_stl(menu, true);
     }
