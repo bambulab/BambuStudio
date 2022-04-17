@@ -2458,7 +2458,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             wxString text= wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:\n"), file_version.to_string(),
                                 std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
                             bool first = true;
-                            std::string context = into_u8(text);
+                            //std::string context = into_u8(text);
+                            wxString context = text;
                             for (auto& key: config_substitutions.unrecogized_keys) {
                                 context += "  -";
                                 context += key;
@@ -2467,7 +2468,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             }
                             wxString append = _L("You'd better upgrade your software.\n");
                             context += "\n\n";
-                            context += into_u8(append);
+                            //context += into_u8(append);
+                            context += append;
                             show_info(q, context, _L("Newer 3mf version"));
                         }
                     }
