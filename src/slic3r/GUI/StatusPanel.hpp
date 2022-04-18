@@ -75,6 +75,7 @@ protected:
     wxStaticText *  m_staticText_subtask_value;
     wxStaticText *  m_printing_stage_value;
     ProgressBar*    m_gauge_progress;
+    wxStaticText *  m_staticText_progress_percent;
     wxStaticText *  m_staticText_progress_left;
     Button *        m_button_report;
     Button *        m_button_pause_resume;

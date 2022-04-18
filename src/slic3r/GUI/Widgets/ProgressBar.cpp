@@ -10,8 +10,9 @@ BEGIN_EVENT_TABLE(ProgressBar, wxPanel)
 EVT_PAINT(ProgressBar::paintEvent)
 END_EVENT_TABLE()
 
-ProgressBar::ProgressBar(wxWindow *parent, wxWindowID id, int max, const wxPoint &pos, const wxSize &size)
+ProgressBar::ProgressBar(wxWindow *parent, wxWindowID id, int max, const wxPoint &pos, const wxSize &size, bool shown)
 {
+    m_shownumber = shown;
     SetBackgroundColour(wxColour(255,255,255));
     
     if (size.y >= miniHeight) {
@@ -82,6 +83,12 @@ void ProgressBar::SetProgressBackgroundColour(wxColour colour)
 void ProgressBar::Rescale()
 {
     ;
+}
+
+void ProgressBar::ShowNumber(bool shown) 
+{
+    m_shownumber = shown;
+    Refresh();
 }
 
 void ProgressBar::Disable(wxString text) 
@@ -212,7 +219,9 @@ void ProgressBar::doRender(wxDC &dc)
             text = wxString::Format("%d", m_step);
         }
 
-        dc.DrawText(text + wxString("%"), pt);
+        if (m_shownumber) {
+            dc.DrawText(text + wxString("%"), pt);
+        }
     }
     
 }

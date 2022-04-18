@@ -349,17 +349,27 @@ wxBoxSizer *StatusBasePanel::create_project_task_page()
 
     fgSizer_task->Add(bSizer_task_btn, 0, wxEXPAND, 0);
 
-    wxBoxSizer *bSizer_buttons;
-    bSizer_buttons = new wxBoxSizer(wxVERTICAL);
+
+    wxBoxSizer *bSizer_buttons = new wxBoxSizer(wxHORIZONTAL);
+
+    m_staticText_progress_percent = new wxStaticText(this, wxID_ANY, _L("0%"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_progress_percent->Wrap(-1);
+    m_staticText_progress_percent->SetFont(::Label::Head_13);
+    m_staticText_progress_percent->SetForegroundColour(wxColour(0,174,66));
+    bSizer_buttons->Add(m_staticText_progress_percent, 0, wxALIGN_CENTER | wxALL, 0);
+
+    bSizer_buttons->Add(0, 0, 1, wxEXPAND, 0);
 
     m_staticText_progress_left = new wxStaticText(this, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_progress_left->Wrap(-1);
     m_staticText_progress_left->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
     m_staticText_progress_left->SetForegroundColour(wxColour(146, 146, 146));
+    bSizer_buttons->Add(m_staticText_progress_left, 0, wxALIGN_CENTER | wxALL, 0);
 
-    bSizer_buttons->Add(m_staticText_progress_left, 0, wxALIGN_RIGHT | wxALIGN_TOP, FromDIP(5));
+
 
     fgSizer_task->Add(bSizer_buttons, 0, wxEXPAND, 0);
+
 
     fgSizer_task->Add(0, 0, 0, wxEXPAND, FromDIP(5));
 
@@ -1214,6 +1224,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
     // update current subtask progress
     m_staticText_progress_left->SetLabelText(left_time_text);
     m_gauge_progress->SetValue(obj->subtask_->task_progress);
+    m_staticText_progress_percent->SetLabelText(wxString::Format("%d%%", obj->subtask_->task_progress));
 
     // update printing stage
     m_printing_stage_value->SetLabelText(obj->get_curr_stage());
@@ -1240,6 +1251,7 @@ void StatusPanel::reset_printing_values()
     m_staticText_subtask_value->SetLabelText("N/A");
     m_printing_stage_value->SetLabelText("");
     m_staticText_progress_left->SetLabelText("N/A");
+    m_staticText_progress_percent->SetLabelText("0%");
     m_bitmap_thumbnail->SetBitmap(m_thumbnail_placeholder);
     this->Layout();
 }

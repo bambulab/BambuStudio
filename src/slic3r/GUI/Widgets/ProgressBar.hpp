@@ -12,7 +12,8 @@ public:
                 wxWindowID         id        = wxID_ANY,
                 int                max       = 100,
                 const wxPoint &    pos       = wxDefaultPosition, 
-                const wxSize &     size      = wxDefaultSize);
+                const wxSize &     size      = wxDefaultSize,
+                bool               shown     = false);
 
 
     void create(wxWindow *parent, wxWindowID id,  const wxPoint &pos, wxSize &size);
@@ -20,6 +21,7 @@ public:
     ~ProgressBar();
 
 public:
+    bool     m_shownumber                 = {false};
     int      m_disable                    = {false};
     int      m_max                        = {100};
     int      m_step                       = {0};
@@ -34,6 +36,7 @@ public:
     
 
 public:
+    void         ShowNumber(bool shown);
     void         Disable(wxString text);
     void         SetValue(int  step);
     void         Reset();
