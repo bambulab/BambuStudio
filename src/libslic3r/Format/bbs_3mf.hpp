@@ -65,17 +65,17 @@ struct PlateData
 enum class SaveStrategy
 {
     Default = 0,
-    FullPathSources = 1,
-    Zip64 = 2,
-    ProductionExt = 4,
-    SecureContentExt = 8,
-    WithGcode = 16,
-    Silence = 32,
-    SkipStatic = 64,
+    FullPathSources     = 1,
+    Zip64               = 1 << 1,
+    ProductionExt       = 1 << 2,
+    SecureContentExt    = 1 << 3,
+    WithGcode           = 1 << 4,
+    Silence             = 1 << 5,
+    SkipStatic          = 1 << 6,
+    SkipModel           = 1 << 7,
 
     SplitModel = 0x1000 | ProductionExt,
-    Encrypted = SecureContentExt | SplitModel,
-
+    Encrypted  = SecureContentExt | SplitModel,
     Backup = 0x10000 | WithGcode | Silence | SkipStatic | SplitModel,
 };
 

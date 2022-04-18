@@ -3659,11 +3659,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         bool m_fullpath_sources{ true };
         bool m_zip64 { true };
-        bool m_production_ext { false }; // save with Production Extention
-        bool m_skip_static{ false }; // not save mesh and other big static contents
-        bool m_from_backup_save{ false }; //the object save is from backup store
-        bool m_split_model { false }; // save object per file with Production Extention
-        bool m_save_gcode { false }; //whether to save gcode for normal save
+        bool m_production_ext { false };    // save with Production Extention
+        bool m_skip_static{ false };        // not save mesh and other big static contents
+        bool m_from_backup_save{ false };   // the object save is from backup store
+        bool m_split_model { false };       // save object per file with Production Extention
+        bool m_save_gcode { false };        // whether to save gcode for normal save
+        bool m_skip_model { false };        // skip model when exporting .gcode.3mf
         std::shared_ptr<KeyStore> m_key_store; // save object encrypted with Secure Content Extention
         std::vector<std::string> m_encrypted_paths;
 
@@ -3748,6 +3749,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         m_skip_static = store_params.strategy & SaveStrategy::SkipStatic;
         m_split_model = store_params.strategy & SaveStrategy::SplitModel;
         m_save_gcode = store_params.strategy & SaveStrategy::WithGcode;
+        m_skip_model  = store_params.strategy & SaveStrategy::SkipModel;
         if (store_params.strategy & SaveStrategy::SecureContentExt) {
             if (!m_key_store)
                 m_key_store.reset(KeyStore::create(""));
@@ -3930,103 +3932,95 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // Adds model file ("3D/3dmodel.model").
         // This is the one and only file that contains all the geometry (vertices and triangles) of all ModelVolumes.
         IdToObjectDataMap objects_data;
-        if (!_add_model_file_to_archive(filename, archive, model, objects_data, proFn, project)) {
-            return false;
-        }
+        if (!m_skip_model) {
+            if (!_add_model_file_to_archive(filename, archive, model, objects_data, proFn, project)) { return false; }
 
-        // Adds layer height profile file ("Metadata/Slic3r_PE_layer_heights_profile.txt").
-        // All layer height profiles of all ModelObjects are stored here, indexed by 1 based index of the ModelObject in Model.
-        // The index differes from the index of an object ID of an object instance of a 3MF file!
-        // BBS: don't need to save layer_height_profile because we calculate when slicing every time.
-        /*
-        if (!_add_layer_height_profile_file_to_archive(archive, model)) {
-            return false;
-        }*/
-
-        //BBS progress point
-        /*BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_LAYER_RANGE\n");
-        if (proFn) {
-            proFn(EXPORT_STAGE_ADD_LAYER_RANGE, 0, 1, cb_cancel);
-            if (cb_cancel)
+            // Adds layer height profile file ("Metadata/Slic3r_PE_layer_heights_profile.txt").
+            // All layer height profiles of all ModelObjects are stored here, indexed by 1 based index of the ModelObject in Model.
+            // The index differes from the index of an object ID of an object instance of a 3MF file!
+            // BBS: don't need to save layer_height_profile because we calculate when slicing every time.
+            /*
+            if (!_add_layer_height_profile_file_to_archive(archive, model)) {
                 return false;
-        }
+            }*/
 
-        // Adds layer config ranges file ("Metadata/Slic3r_PE_layer_config_ranges.txt").
-        // All layer height profiles of all ModelObjects are stored here, indexed by 1 based index of the ModelObject in Model.
-        // The index differes from the index of an object ID of an object instance of a 3MF file!
-        if (!_add_layer_config_ranges_file_to_archive(archive, model)) {
-            return false;
-        }*/
-
-        //BBS progress point
-        /*BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_SUPPORT\n");
-        if (proFn) {
-            proFn(EXPORT_STAGE_ADD_SUPPORT, 0, 1, cb_cancel);
-            if (cb_cancel)
-                return false;
-        }
-
-        // Adds sla support points file ("Metadata/Slic3r_PE_sla_support_points.txt").
-        // All  sla support points of all ModelObjects are stored here, indexed by 1 based index of the ModelObject in Model.
-        // The index differes from the index of an object ID of an object instance of a 3MF file!
-        if (!_add_sla_support_points_file_to_archive(archive, model)) {
-            return false;
-        }
-
-        if (!_add_sla_drain_holes_file_to_archive(archive, model)) {
-            return false;
-        }*/
-
-        //BBS progress point
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_CUSTOM_GCODE\n");
-        if (proFn) {
-            proFn(EXPORT_STAGE_ADD_CUSTOM_GCODE, 0, 1, cb_cancel);
-            if (cb_cancel)
-                return false;
-        }
-
-        // Adds custom gcode per height file ("Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml").
-        // All custom gcode per height of whole Model are stored here
-        if (!_add_custom_gcode_per_print_z_file_to_archive(archive, model, config)) {
-            return false;
-        }
-
-        //BBS progress point
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_PRINT_CONFIG\n");
-        if (proFn) {
-            proFn(EXPORT_STAGE_ADD_PRINT_CONFIG, 0, 1, cb_cancel);
-            if (cb_cancel)
-                return false;
-        }
-
-        // Adds slic3r print config file ("Metadata/Slic3r_PE.config").
-        // This file contains the content of FullPrintConfing / SLAFullPrintConfig.
-        if (config != nullptr) {
-            //BBS: change to json format
-            //if (!_add_print_config_file_to_archive(archive, *config)) {
-            if (!_add_project_config_file_to_archive(archive, *config, model)) {
-                return false;
-            }
-        }
-
-        //BBS progress point
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_CONFIG_FILE\n");
-        if (proFn) {
-            proFn(EXPORT_STAGE_ADD_CONFIG_FILE, 0, 1, cb_cancel);
-            if (cb_cancel)
-                return false;
-        }
-
-        //BBS: add project config
-        if (project_presets.size() > 0) {
-            //BBS: add project embedded preset files
-            _add_project_embedded_presets_to_archive(archive, model, project_presets);
-
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_PROJECT_CONFIG\n");
+            // BBS progress point
+            /*BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_LAYER_RANGE\n");
             if (proFn) {
-                proFn(EXPORT_STAGE_ADD_PROJECT_CONFIG, 0, 1, cb_cancel);
+                proFn(EXPORT_STAGE_ADD_LAYER_RANGE, 0, 1, cb_cancel);
                 if (cb_cancel)
                     return false;
+            }
+
+            // Adds layer config ranges file ("Metadata/Slic3r_PE_layer_config_ranges.txt").
+            // All layer height profiles of all ModelObjects are stored here, indexed by 1 based index of the ModelObject in Model.
+            // The index differes from the index of an object ID of an object instance of a 3MF file!
+            if (!_add_layer_config_ranges_file_to_archive(archive, model)) {
+                return false;
+            }*/
+
+            // BBS progress point
+            /*BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_SUPPORT\n");
+            if (proFn) {
+                proFn(EXPORT_STAGE_ADD_SUPPORT, 0, 1, cb_cancel);
+                if (cb_cancel)
+                    return false;
+            }
+
+            // Adds sla support points file ("Metadata/Slic3r_PE_sla_support_points.txt").
+            // All  sla support points of all ModelObjects are stored here, indexed by 1 based index of the ModelObject in Model.
+            // The index differes from the index of an object ID of an object instance of a 3MF file!
+            if (!_add_sla_support_points_file_to_archive(archive, model)) {
+                return false;
+            }
+
+            if (!_add_sla_drain_holes_file_to_archive(archive, model)) {
+                return false;
+            }*/
+
+            // BBS progress point
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_CUSTOM_GCODE\n");
+            if (proFn) {
+                proFn(EXPORT_STAGE_ADD_CUSTOM_GCODE, 0, 1, cb_cancel);
+                if (cb_cancel) return false;
+            }
+
+            // Adds custom gcode per height file ("Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml").
+            // All custom gcode per height of whole Model are stored here
+            if (!_add_custom_gcode_per_print_z_file_to_archive(archive, model, config)) { return false; }
+
+            // BBS progress point
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_PRINT_CONFIG\n");
+            if (proFn) {
+                proFn(EXPORT_STAGE_ADD_PRINT_CONFIG, 0, 1, cb_cancel);
+                if (cb_cancel) return false;
+            }
+
+            // Adds slic3r print config file ("Metadata/Slic3r_PE.config").
+            // This file contains the content of FullPrintConfing / SLAFullPrintConfig.
+            if (config != nullptr) {
+                // BBS: change to json format
+                // if (!_add_print_config_file_to_archive(archive, *config)) {
+                if (!_add_project_config_file_to_archive(archive, *config, model)) { return false; }
+            }
+
+            // BBS progress point
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_CONFIG_FILE\n");
+            if (proFn) {
+                proFn(EXPORT_STAGE_ADD_CONFIG_FILE, 0, 1, cb_cancel);
+                if (cb_cancel) return false;
+            }
+
+            // BBS: add project config
+            if (project_presets.size() > 0) {
+                // BBS: add project embedded preset files
+                _add_project_embedded_presets_to_archive(archive, model, project_presets);
+
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_PROJECT_CONFIG\n");
+                if (proFn) {
+                    proFn(EXPORT_STAGE_ADD_PROJECT_CONFIG, 0, 1, cb_cancel);
+                    if (cb_cancel) return false;
+                }
             }
         }
 
@@ -4070,7 +4064,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 return false;
         }
 
-        // Adds gcode files ("Metadata/plate_1.gcode, plate_2.gcode, ...)
         if (!m_skip_static && !_add_auxiliary_dir_to_archive(archive, model.get_auxiliary_file_temp_path())) {
             return false;
         }
@@ -5315,7 +5308,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         stream << "</" << CONFIG_TAG << ">\n";
 
         std::string out = stream.str();
-
         if (!mz_zip_writer_add_mem(&archive, BBS_MODEL_CONFIG_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format("Unable to add model config file to archive\n");
             add_error("Unable to add model config file to archive");

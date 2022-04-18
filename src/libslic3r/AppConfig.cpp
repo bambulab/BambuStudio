@@ -897,7 +897,7 @@ void AppConfig::update_last_output_dir(const std::string &dir)
 */
 std::string AppConfig::get_last_output_dir(const std::string& alt, const bool removable) const
 {
-	std::string s1 = (removable ? "last_export_path_removable" : "last_export_path");
+	std::string s1 = ("last_export_path");
 	const auto it = m_storage.find("app");
 	if (it != m_storage.end()) {
 		const auto it2 = it->second.find(s1);
@@ -909,7 +909,7 @@ std::string AppConfig::get_last_output_dir(const std::string& alt, const bool re
 
 void AppConfig::update_last_output_dir(const std::string& dir, const bool removable)
 {
-	this->set("app", (removable ? "last_export_path_removable" : "last_export_path"), dir);
+	this->set("app", ("last_export_path"), dir);
 }
 
 // BBS: backup

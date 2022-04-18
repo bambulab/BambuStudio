@@ -1005,7 +1005,7 @@ wxBoxSizer* MainFrame::create_side_tools()
 
     m_slice_btn = new SideButton(this, _L("Slice plate"), "");
     m_slice_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, 14 * em / 10);
-    m_print_btn = new SideButton(this, _L("Print plate"), "");
+    m_print_btn = new SideButton(this, _L("Print"), "");
     m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, 14 * em / 10);
 
     update_side_button_style();
@@ -1101,13 +1101,13 @@ wxBoxSizer* MainFrame::create_side_tools()
                 p->Dismiss();
             });
 #endif
-            SideButton* print_plate_btn = new SideButton(p, _L("Print plate"), "");
+            SideButton* print_plate_btn = new SideButton(p, _L("Print"), "");
             print_plate_btn->SetCornerRadius(0);
             SideButton* export_sliced_file_btn = new SideButton(p, _L("Export sliced file"), "");
             export_sliced_file_btn->SetCornerRadius(0);
 
             print_plate_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-                    m_print_btn->SetLabel(_L("Print plate"));
+                    m_print_btn->SetLabel(_L("Print"));
                     m_print_select = ePrintPlate;
                     m_print_enable = get_enable_print_status();
                     m_print_btn->Enable(m_print_enable);
@@ -1214,7 +1214,7 @@ bool MainFrame::get_enable_print_status()
     }
     else if (m_print_select == eExportSlicedFile)
     {
-        if (!part_plate_list.is_all_slice_results_valid())
+        if (!current_plate->is_slice_result_ready_for_print())
         {
             enable = false;
         }

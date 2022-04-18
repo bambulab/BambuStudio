@@ -7379,7 +7379,7 @@ void Plater::export_gcode_3mf()
     default_output_file = default_output_file.replace_extension(".gcode.3mf");
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
     AppConfig &appconfig = *wxGetApp().app_config;
-    // Get a last save path, either to removable media or to an internal media.
+    //Get a last save path
     std::string start_dir = appconfig.get_last_output_dir(default_output_file.parent_path().string(), false);
     fs::path output_path;
     {
@@ -7402,7 +7402,8 @@ void Plater::export_gcode_3mf()
         //BBS do not save last output path
         //p->last_output_path = output_path.string();
         p->last_output_dir_path = output_path.parent_path().string();
-        export_3mf(output_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode); // BBS: silence
+        int curr_plate_idx = get_partplate_list().get_curr_plate_index();
+        export_3mf(output_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode | SaveStrategy::SkipModel, curr_plate_idx); // BBS: silence
         // update lost output dir
         appconfig.update_last_output_dir(output_path.parent_path().string(), false);
     }
@@ -7690,8 +7691,8 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     for (int i = 0; i < plate_data_list.size(); i++) {
         PlateData *plate_data = plate_data_list[i];
         for (auto it = plate_data->slice_flaments_info.begin(); it != plate_data->slice_flaments_info.end(); it++) {
-            it->type  = filament_types?filament_types->get_at(it->id):"PLA";
-            it->color = filament_color?filament_color->get_at(it->id):"#FFFFFF";
+            it->type  = filament_types ? filament_types->get_at(it->id) : "PLA";
+            it->color = filament_color ? filament_color->get_at(it->id) : "#FFFFFF";
         }
     }
 
