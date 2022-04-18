@@ -986,8 +986,9 @@ void TreeSupport::detect_object_overhangs()
                         } while (0);
 
                         if (is_sharp_tail) {
-                            ExPolygons overhang = diff_ex({ expoly }, lower_layer->lslices);
-                        layer->sharp_tails.push_back(expoly);
+                            has_sharp_tail      = true;
+                            ExPolygons overhang = diff_ex({expoly}, lower_layer->lslices);
+                            layer->sharp_tails.push_back(expoly);
                             layer->sharp_tails_height.insert({ &expoly, accum_height });
                             //append(overhang_areas, overhang);
                             overhang_areas = union_ex(overhang_areas, overhang);
