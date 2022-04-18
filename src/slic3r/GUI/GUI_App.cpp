@@ -1365,28 +1365,26 @@ bool GUI_App::on_init_inner()
             if (this->plater_ != nullptr) {
                 // this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
                 //BBS show msg box to download new version
-                wxString tips = wxString::Format("click download new version in default browser: %s", m_account_manager->version_info.version_str);
-                wxMessageDialog dialog(this->mainframe,
+                wxString tips = wxString::Format(_L("click download new version in default browser: %s"), m_account_manager->version_info.version_str);
+                DownloadDialog dialog(this->mainframe,
                     tips,
-                    "New Version of BambuStudio",
-                    wxCENTER | wxYES_DEFAULT | wxYES_NO | wxICON_INFORMATION);
-                wxString extmsg;
-                if (dialog.SetYesNoLabels("Download", "Skip"))
-                {
-                    extmsg = wxString::FromUTF8(m_account_manager->version_info.description);
-                }
+                    _L("New Version of BambuStudio"),
+                    false,
+                    wxCENTER | wxICON_INFORMATION);
+
+                wxString extmsg = wxString::FromUTF8(m_account_manager->version_info.description);
                 dialog.SetExtendedMessage(extmsg);
 
-                switch (dialog.ShowModal())
-                {
-                case wxID_YES:
-                    wxLaunchDefaultBrowser(m_account_manager->version_info.url);
-                    break;
-                case wxID_NO:
-                    break;
-                default:
-                    ;
-                }
+                 switch (dialog.ShowModal())
+                 {
+                 case wxID_YES:
+                     wxLaunchDefaultBrowser(m_account_manager->version_info.url);
+                     break;
+                 case wxID_NO:
+                     break;
+                 default:
+                     ;
+                 }
             }
             });
     }

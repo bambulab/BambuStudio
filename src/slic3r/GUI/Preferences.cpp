@@ -113,10 +113,9 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
                 // the dialog needs to be destroyed before the call to switch_language()
                 // or sometimes the application crashes into wxDialogBase() destructor
                 // so we put it into an inner scope
-                wxString        title = _L("Language selection");
-                wxMessageDialog dialog(nullptr, _L("Switching the language requires application restart.\n") + "\n\n" + _L("Do you want to continue?"), title,
-                                       wxICON_QUESTION | wxOK | wxCANCEL);
-                if (dialog.ShowModal() == wxID_CANCEL) return;
+                MessageDialog msg_wingow(nullptr, _L("Switching the language requires application restart.\n") + "\n" + _L("Do you want to continue?"),
+                                         L("Language selection"), wxICON_QUESTION | wxOK | wxCANCEL);
+                 if (msg_wingow.ShowModal() == wxID_CANCEL) return;
             }
             auto check = [this](bool yes_or_no) {
                 // if (yes_or_no)
@@ -709,7 +708,7 @@ void PreferencesDialog::create_debug_page()
     wxButton *debug_button = new wxButton(page, wxID_ANY, _L("debug save button"), wxDefaultPosition, wxDefaultSize, 0);
     debug_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         // success message box
-        wxMessageDialog dialog(this, _L("save debug settings"), _L("DEBUG settings have saved successfully!"), wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
+        MessageDialog dialog(this, _L("save debug settings"), _L("DEBUG settings have saved successfully!"), wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
         switch (dialog.ShowModal()) {
         case wxID_NO: {
             if (m_developer_mode_def != app_config->get("developer_mode")) {

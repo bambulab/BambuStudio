@@ -21,20 +21,22 @@
 #include "slic3r/GUI/MainFrame.hpp"
 #include "GUI_App.hpp"
 
+#define DESIGN_INPUT_SIZE wxSize(FromDIP(100), -1)
+
 namespace Slic3r {
 namespace GUI {
 
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, long style, wxBitmap bitmap)
-	: wxDialog(parent ? parent : dynamic_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxSize(360, -1),wxDEFAULT_DIALOG_STYLE)
+	: DPIDialog(parent ? parent : dynamic_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxSize(360, -1),wxDEFAULT_DIALOG_STYLE)
 	, boldfont(wxGetApp().normal_font())
 	, content_sizer(new wxBoxSizer(wxVERTICAL))
 	, btn_sizer(new wxBoxSizer(wxHORIZONTAL))
 {
 	boldfont.SetWeight(wxFONTWEIGHT_BOLD);
-    this->SetBackgroundColour(0xFFFFFF);
-    this->SetFont(wxGetApp().normal_font());
-    this->CenterOnParent();
+    SetBackgroundColour(0xFFFFFF);
+    SetFont(wxGetApp().normal_font());
+    CenterOnParent();
 
     auto *main_sizer = new wxBoxSizer(wxVERTICAL);
 	auto *topsizer = new wxBoxSizer(wxHORIZONTAL);
@@ -64,6 +66,29 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 	SetSizerAndFit(main_sizer);
 }
 
+ void MsgDialog::on_dpi_changed(const wxRect &suggested_rect) 
+ {
+     if (m_buttons.size() > 0) {
+         MsgButtonsHash::iterator i = m_buttons.begin();
+
+         while (i != m_buttons.end()) {
+             MsgButton *bd   = i->second;
+             wxSize     bsize;
+
+
+             switch (bd->buttondata->type) {
+                case ButtonSizeNormal:bsize = MSG_DIALOG_BUTTON_SIZE;break;
+                case ButtonSizeMiddle: bsize = MSG_DIALOG_MIDDLE_BUTTON_SIZE; break;
+                case ButtonSizeLong: bsize = MSG_DIALOG_LONG_BUTTON_SIZE; break;
+                default: break;
+             }
+
+             bd->buttondata->button->SetMinSize(bsize);
+             i++;
+         }
+     }
+ }
+
 void MsgDialog::SetButtonLabel(wxWindowID btn_id, const wxString& label, bool set_focus/* = false*/) 
 {
     if (Button* btn = get_button(btn_id)) {
@@ -76,7 +101,19 @@ void MsgDialog::SetButtonLabel(wxWindowID btn_id, const wxString& label, bool se
 Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, const wxString& label/* = wxString()*/)
 {
     Button* btn = new Button(this, label);
-    btn->SetMinSize(wxSize(48, 24));
+    ButtonSizeType type;
+
+    if (label.length() < 5) {
+        type = ButtonSizeNormal;
+        btn->SetMinSize(MSG_DIALOG_BUTTON_SIZE); }
+    else if (label.length() >= 5 && label.length() < 8) {
+        type = ButtonSizeMiddle;
+        btn->SetMinSize(MSG_DIALOG_MIDDLE_BUTTON_SIZE);
+    } else {
+        type = ButtonSizeLong;
+        btn->SetMinSize(MSG_DIALOG_LONG_BUTTON_SIZE);
+    }
+    
     btn->SetCornerRadius(12);
     StateColor btn_bg_green(
         std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
@@ -121,7 +158,17 @@ Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, con
     if (set_focus)
         btn->SetFocus();
     btn_sizer->Add(btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_SPACING);
-    btn->Bind(wxEVT_BUTTON, [this, btn_id](wxCommandEvent&) { this->EndModal(btn_id); });
+    btn->Bind(wxEVT_BUTTON, [this, btn_id](wxCommandEvent&) { EndModal(btn_id); });
+
+    MsgButton *mb = new MsgButton;
+    ButtonData *bd = new ButtonData;
+
+    bd->button = btn;
+    bd->type   = type;
+
+    mb->id        = wxString::Format("%d", m_buttons.size());
+    mb->buttondata = bd;
+    m_buttons[ wxString::Format("%d", m_buttons.size())] = mb;
     return btn;
 };
 
@@ -145,7 +192,7 @@ void MsgDialog::finalize()
 {
     wxGetApp().UpdateDlgDarkUI(this);
     Fit();
-    this->CenterOnParent();
+    CenterOnParent();
 }
 
 
@@ -311,7 +358,6 @@ int RichMessageDialog::ShowModal()
 #endif
 
 // InfoDialog
-
 InfoDialog::InfoDialog(wxWindow* parent, const wxString &title, const wxString& msg, bool is_marked_msg/* = false*/, long style/* = wxOK | wxICON_INFORMATION*/)
     : MsgDialog(parent, wxString::Format(_L("%s information"), SLIC3R_APP_FULL_NAME), title, style)
 	, msg(msg)
@@ -320,6 +366,23 @@ InfoDialog::InfoDialog(wxWindow* parent, const wxString &title, const wxString& 
     finalize();
 }
 
+// InfoDialog
+DownloadDialog::DownloadDialog(wxWindow *parent, const wxString &msg, const wxString &title, bool is_marked_msg /* = false*/, long style /* = wxOK | wxICON_INFORMATION*/)
+    : MsgDialog(parent, title, msg, style), msg(msg)
+{
+    add_button(wxID_YES, true, L("Download"));
+    add_button(wxID_CANCEL, true, L("Skip"));
+    
+    finalize();
+}
+
+
+void DownloadDialog::SetExtendedMessage(const wxString &extendedMessage) 
+{
+    add_msg_content(this, content_sizer, msg + "\n" + extendedMessage, false, false);
+    Layout();
+    Fit();
+}
 
 }
 }

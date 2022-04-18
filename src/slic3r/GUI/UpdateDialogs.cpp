@@ -153,7 +153,7 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_
 	add_button(wxID_OK, true, force_before_wizard ? _L("YES") : "YES");
 	if (force_before_wizard) {
 		auto* btn = add_button(wxID_CLOSE, false, _L("NO"));
-		btn->Bind(wxEVT_BUTTON, [this](const wxCommandEvent&) { this->EndModal(wxID_CLOSE); });
+		btn->Bind(wxEVT_BUTTON, [this](const wxCommandEvent&) { EndModal(wxID_CLOSE); });
 	}
 	add_button(wxID_CANCEL);
 
@@ -220,7 +220,7 @@ MsgUpdateForced::MsgUpdateForced(const std::vector<Update>& updates) :
 
 	add_button(wxID_EXIT, false, wxString::Format(_L("Exit %s"), SLIC3R_APP_FULL_NAME));
 	for (auto ID : { wxID_EXIT, wxID_OK })
-		get_button(ID)->Bind(wxEVT_BUTTON, [this](const wxCommandEvent& evt) { this->EndModal(evt.GetId()); });
+		get_button(ID)->Bind(wxEVT_BUTTON, [this](const wxCommandEvent& evt) { EndModal(evt.GetId()); });
 
 	finalize();
 }

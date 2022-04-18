@@ -135,7 +135,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     if (config->opt_float("layer_height") > 0.3 + EPSILON)
     {
         const wxString msg_text = _(L("Too large layer height.\nReset to 0.2"));
-        wxMessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
+        MessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
         dialog.ShowModal();
@@ -148,7 +148,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     if (config->opt_float("ironing_spacing") < 0.05)
     {
         const wxString msg_text = _(L("Too small ironing spacing.\nReset to 0.1"));
-        wxMessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
+        MessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
         dialog.ShowModal();
