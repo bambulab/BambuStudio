@@ -1365,10 +1365,10 @@ bool GUI_App::on_init_inner()
             if (this->plater_ != nullptr) {
                 // this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
                 //BBS show msg box to download new version
-                wxString tips = wxString::Format(_L("click download new version in default browser: %s"), m_account_manager->version_info.version_str);
+                wxString tips = wxString::Format(_L("Click to download new version in default browser: %s"), m_account_manager->version_info.version_str);
                 DownloadDialog dialog(this->mainframe,
                     tips,
-                    _L("New Version of BambuStudio"),
+                    _L("New version of Bambu Studio"),
                     false,
                     wxCENTER | wxICON_INFORMATION);
 

@@ -4,7 +4,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-18 10:43+0800\n"
+"POT-Creation-Date: 2022-04-18 19:56+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -558,6 +558,8 @@ msgid "Color change"
 msgstr "Farbwechsel"
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4565 src/slic3r/GUI/GCodeViewer.cpp:4600
+#: src/slic3r/GUI/MainFrame.cpp:1008 src/slic3r/GUI/MainFrame.cpp:1104
+#: src/slic3r/GUI/MainFrame.cpp:1110
 msgid "Print"
 msgstr "Druck"
 
@@ -1202,70 +1204,79 @@ msgstr "Auswahl merken"
 msgid "Loading configuration"
 msgstr "Lade Konfiguration"
 
-#: src/slic3r/GUI/GUI_App.cpp:1420
+#: src/slic3r/GUI/GUI_App.cpp:1369
+#, c-format, boost-format
+msgid "Click to download new version in default browser: %s"
+msgstr ""
+
+#: src/slic3r/GUI/GUI_App.cpp:1372
+msgid "New version of Bambu Studio"
+msgstr ""
+
+#: src/slic3r/GUI/GUI_App.cpp:1418
 msgid "Loading user presets..."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:1847 src/slic3r/GUI/GUI_App.cpp:1859
+#: src/slic3r/GUI/GUI_App.cpp:1845 src/slic3r/GUI/GUI_App.cpp:1857
 msgid "Rebuild"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:1862
+#: src/slic3r/GUI/GUI_App.cpp:1860
 msgid "Loading current presets"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:1866
+#: src/slic3r/GUI/GUI_App.cpp:1864
 msgid "Loading a mode view"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:2059
+#: src/slic3r/GUI/GUI_App.cpp:2057
 msgid "Choose one file (3mf):"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:2071
+#: src/slic3r/GUI/GUI_App.cpp:2069
 msgid "Choose one or more files (3mf/step/stl/obj/amf):"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:2083
+#: src/slic3r/GUI/GUI_App.cpp:2081
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:2317 src/slic3r/GUI/Preferences.cpp:125
+#: src/slic3r/GUI/GUI_App.cpp:2315 src/slic3r/GUI/Preferences.cpp:124
 msgid "Switching application language"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:2456
+#: src/slic3r/GUI/GUI_App.cpp:2454
 msgid "Select the language"
 msgstr "Wählen Sie die Sprache aus"
 
-#: src/slic3r/GUI/GUI_App.cpp:2456 src/slic3r/GUI/Preferences.cpp:562
+#: src/slic3r/GUI/GUI_App.cpp:2454 src/slic3r/GUI/Preferences.cpp:561
 msgid "Language"
 msgstr "Spache"
 
-#: src/slic3r/GUI/GUI_App.cpp:2621
+#: src/slic3r/GUI/GUI_App.cpp:2619
 msgid "*"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:2947 src/slic3r/GUI/GUI_App.cpp:3007
+#: src/slic3r/GUI/GUI_App.cpp:2945 src/slic3r/GUI/GUI_App.cpp:3005
 msgid "Modifications to the preset have been saved"
 msgid_plural "Modifications to the presets have been saved"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/slic3r/GUI/GUI_App.cpp:3010
+#: src/slic3r/GUI/GUI_App.cpp:3008
 msgid "All modifications will be discarded for new project."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:3151 src/slic3r/GUI/Plater.cpp:6818
+#: src/slic3r/GUI/GUI_App.cpp:3149 src/slic3r/GUI/Plater.cpp:6818
 msgid "G-code files can not be loaded with models together!"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:3151 src/slic3r/GUI/Plater.cpp:6810
+#: src/slic3r/GUI/GUI_App.cpp:3149 src/slic3r/GUI/Plater.cpp:6810
 #: src/slic3r/GUI/Plater.cpp:6818
 msgid "G-code loading"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:3332
+#: src/slic3r/GUI/GUI_App.cpp:3330
 msgid "Select a G-code file:"
 msgstr ""
 
@@ -1656,7 +1667,7 @@ msgstr ""
 msgid "Remove the selected plate"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_Factories.cpp:1208 src/slic3r/GUI/Plater.cpp:8719
+#: src/slic3r/GUI/GUI_Factories.cpp:1208 src/slic3r/GUI/Plater.cpp:8720
 msgid "Clone"
 msgstr ""
 
@@ -2200,18 +2211,13 @@ msgstr "Vorschau"
 msgid "Monitor"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:723 src/slic3r/GUI/Preferences.cpp:425
+#: src/slic3r/GUI/MainFrame.cpp:723 src/slic3r/GUI/Preferences.cpp:424
 msgid "Debug"
 msgstr ""
 
 #: src/slic3r/GUI/MainFrame.cpp:1006 src/slic3r/GUI/MainFrame.cpp:1061
 #: src/slic3r/GUI/MainFrame.cpp:1074
 msgid "Slice plate"
-msgstr ""
-
-#: src/slic3r/GUI/MainFrame.cpp:1008 src/slic3r/GUI/MainFrame.cpp:1104
-#: src/slic3r/GUI/MainFrame.cpp:1110
-msgid "Print plate"
 msgstr ""
 
 #: src/slic3r/GUI/MainFrame.cpp:1059 src/slic3r/GUI/MainFrame.cpp:1065
@@ -2364,7 +2370,7 @@ msgstr "Lade ein Modell"
 msgid "Export all objects as STL"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:1544 src/slic3r/GUI/Plater.cpp:8556
+#: src/slic3r/GUI/MainFrame.cpp:1544 src/slic3r/GUI/Plater.cpp:8557
 msgid "Export G-code"
 msgstr "Export G-Code"
 
@@ -2372,7 +2378,7 @@ msgstr "Export G-Code"
 msgid "Export current plate as G-code"
 msgstr "Exportiere die aktuelle Plattenbelegung als G-Code"
 
-#: src/slic3r/GUI/MainFrame.cpp:1548 src/slic3r/GUI/Plater.cpp:8556
+#: src/slic3r/GUI/MainFrame.cpp:1548 src/slic3r/GUI/Plater.cpp:8557
 msgid "Export"
 msgstr "Export"
 
@@ -2488,7 +2494,7 @@ msgstr ""
 msgid "Show Edges"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:1671 src/slic3r/GUI/Preferences.cpp:388
+#: src/slic3r/GUI/MainFrame.cpp:1671 src/slic3r/GUI/Preferences.cpp:387
 msgid "Preferences"
 msgstr "Einstellungen"
 
@@ -2706,35 +2712,43 @@ msgstr ""
 msgid "No printer"
 msgstr ""
 
-#: src/slic3r/GUI/MsgDialog.cpp:241
+#: src/slic3r/GUI/MsgDialog.cpp:288
 #, c-format, boost-format
 msgid "%s error"
 msgstr "%s Fehler"
 
-#: src/slic3r/GUI/MsgDialog.cpp:242
+#: src/slic3r/GUI/MsgDialog.cpp:289
 #, c-format, boost-format
 msgid "%s has encountered an error"
 msgstr "%s ist auf einen Fehler gestoßen"
 
-#: src/slic3r/GUI/MsgDialog.cpp:261
+#: src/slic3r/GUI/MsgDialog.cpp:308
 #, c-format, boost-format
 msgid "%s warning"
 msgstr "%s Warnung"
 
-#: src/slic3r/GUI/MsgDialog.cpp:262
+#: src/slic3r/GUI/MsgDialog.cpp:309
 #, c-format, boost-format
 msgid "%s has a warning"
 msgstr "%s hat eine Warnmeldung"
 
-#: src/slic3r/GUI/MsgDialog.cpp:275 src/slic3r/GUI/MsgDialog.cpp:288
+#: src/slic3r/GUI/MsgDialog.cpp:322 src/slic3r/GUI/MsgDialog.cpp:335
 #, c-format, boost-format
 msgid "%s info"
 msgstr "%s Info"
 
-#: src/slic3r/GUI/MsgDialog.cpp:316
+#: src/slic3r/GUI/MsgDialog.cpp:362
 #, c-format, boost-format
 msgid "%s information"
 msgstr "%s Information"
+
+#: src/slic3r/GUI/MsgDialog.cpp:373
+msgid "Download"
+msgstr ""
+
+#: src/slic3r/GUI/MsgDialog.cpp:374
+msgid "Skip"
+msgstr ""
 
 #: src/slic3r/GUI/NotificationManager.hpp:784
 msgid "3D Mouse disconnected."
@@ -3131,7 +3145,7 @@ msgstr ""
 msgid "prepare 3mf file..."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:6170 src/slic3r/GUI/Plater.cpp:7804
+#: src/slic3r/GUI/Plater.cpp:6170 src/slic3r/GUI/Plater.cpp:7805
 #, c-format, boost-format
 msgid "get_des,err:code=%u,msg=%s"
 msgstr ""
@@ -3211,7 +3225,7 @@ msgstr ""
 msgid "Save"
 msgstr "Speichern"
 
-#: src/slic3r/GUI/Plater.cpp:7139 src/slic3r/GUI/Plater.cpp:8720
+#: src/slic3r/GUI/Plater.cpp:7139 src/slic3r/GUI/Plater.cpp:8721
 msgid "Number of copies:"
 msgstr ""
 
@@ -3227,306 +3241,306 @@ msgstr "Speichere G-Code Datei als:"
 msgid "Save Sliced file as:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7615
+#: src/slic3r/GUI/Plater.cpp:7616
 msgid "No objects to export."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7615
+#: src/slic3r/GUI/Plater.cpp:7616
 msgid "Save project"
 msgstr "Projekt speichern"
 
-#: src/slic3r/GUI/Plater.cpp:7746
+#: src/slic3r/GUI/Plater.cpp:7747
 msgid "Failed to publish your project. Please try agian!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7772
+#: src/slic3r/GUI/Plater.cpp:7773
 msgid "preparing, export 3mf failed!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7796
+#: src/slic3r/GUI/Plater.cpp:7797
 msgid "Preparing to upload your project..."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7821
+#: src/slic3r/GUI/Plater.cpp:7822
 #, c-format, boost-format
 msgid "req_proj,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7833
+#: src/slic3r/GUI/Plater.cpp:7834
 #, c-format, boost-format
 msgid "req_prof,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7840
+#: src/slic3r/GUI/Plater.cpp:7841
 msgid "Uploading..."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7848
+#: src/slic3r/GUI/Plater.cpp:7849
 #, c-format, boost-format
 msgid "%d%% uploaded..."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7852 src/slic3r/GUI/Plater.cpp:7889
+#: src/slic3r/GUI/Plater.cpp:7853 src/slic3r/GUI/Plater.cpp:7890
 msgid "Upload has been canceled."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7857
+#: src/slic3r/GUI/Plater.cpp:7858
 #, c-format, boost-format
 msgid "upload,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7867
+#: src/slic3r/GUI/Plater.cpp:7868
 #, c-format, boost-format
 msgid "put_no,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7868 src/slic3r/GUI/Plater.cpp:7895
+#: src/slic3r/GUI/Plater.cpp:7869 src/slic3r/GUI/Plater.cpp:7896
 msgid "Failed to publish. Please try again!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7883
+#: src/slic3r/GUI/Plater.cpp:7884
 msgid "Uploading is timed out. Please try again!"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7894
+#: src/slic3r/GUI/Plater.cpp:7895
 #, c-format, boost-format
 msgid "get_no,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7924
+#: src/slic3r/GUI/Plater.cpp:7925
 msgid "Internal Error. design id is empty."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8349
+#: src/slic3r/GUI/Plater.cpp:8350
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8557
+#: src/slic3r/GUI/Plater.cpp:8558
 msgid "Send G-code"
 msgstr "Sende G-code"
 
-#: src/slic3r/GUI/Plater.cpp:8557
+#: src/slic3r/GUI/Plater.cpp:8558
 msgid "Send to printer"
 msgstr "Zum Drucker senden"
 
-#: src/slic3r/GUI/Plater.cpp:8588
+#: src/slic3r/GUI/Plater.cpp:8589
 msgid "Custom supports, seams and color painting were removed after repairing."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:8724
+#: src/slic3r/GUI/Plater.cpp:8725
 msgid "Invalid number"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:9284
+#: src/slic3r/GUI/Plater.cpp:9285
 #, boost-format
 msgid "Part name: %1%\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:9295
+#: src/slic3r/GUI/Plater.cpp:9296
 #, boost-format
 msgid "Object name: %1%\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:9302
+#: src/slic3r/GUI/Plater.cpp:9303
 #, boost-format
 msgid "Size: %1% x %2% x %3% in\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:9304
+#: src/slic3r/GUI/Plater.cpp:9305
 #, boost-format
 msgid "Size: %1% x %2% x %3% mm\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:9311
+#: src/slic3r/GUI/Plater.cpp:9312
 #, boost-format
 msgid "Volume: %1% mm³\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:9313
+#: src/slic3r/GUI/Plater.cpp:9314
 #, boost-format
 msgid "Triangles: %1%, "
 msgstr ""
 
 #: src/slic3r/GUI/Preferences.cpp:116
-msgid "Language selection"
-msgstr "Sprachauswahl"
-
-#: src/slic3r/GUI/Preferences.cpp:117
 msgid "Switching the language requires application restart.\n"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:117
+#: src/slic3r/GUI/Preferences.cpp:116
 msgid "Do you want to continue?"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:126
+#: src/slic3r/GUI/Preferences.cpp:117
+msgid "Language selection"
+msgstr "Sprachauswahl"
+
+#: src/slic3r/GUI/Preferences.cpp:125
 msgid "Switching application language while some presets are modified."
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:145
+#: src/slic3r/GUI/Preferences.cpp:144
 msgid "Changing application language"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:221
+#: src/slic3r/GUI/Preferences.cpp:220
 msgid "Second"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:421
+#: src/slic3r/GUI/Preferences.cpp:420
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:1554
 msgid "General"
 msgstr "Allgemein"
 
-#: src/slic3r/GUI/Preferences.cpp:422
+#: src/slic3r/GUI/Preferences.cpp:421
 msgid "GUI"
 msgstr "GUI"
 
-#: src/slic3r/GUI/Preferences.cpp:423
+#: src/slic3r/GUI/Preferences.cpp:422
 msgid "Sync"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:424
+#: src/slic3r/GUI/Preferences.cpp:423
 msgid "Shortcuts"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:539
+#: src/slic3r/GUI/Preferences.cpp:538
 msgid "General settings"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:564
+#: src/slic3r/GUI/Preferences.cpp:563
 msgid "Metric"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:564
+#: src/slic3r/GUI/Preferences.cpp:563
 msgid "Imperial"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:565
+#: src/slic3r/GUI/Preferences.cpp:564
 msgid "Units"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:567
+#: src/slic3r/GUI/Preferences.cpp:566
 msgid "Associate files to BambuStudio"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:570
+#: src/slic3r/GUI/Preferences.cpp:569
 msgid "Associate .3mf files to BambuStudio"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:571
+#: src/slic3r/GUI/Preferences.cpp:570
 msgid "If enabled, sets BambuStudio as default application to open .3mf files"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:572
+#: src/slic3r/GUI/Preferences.cpp:571
 msgid "Associate .stl files to BambuStudio"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:573
+#: src/slic3r/GUI/Preferences.cpp:572
 msgid "If enabled, sets BambuStudio as default application to open .stl files"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:574
+#: src/slic3r/GUI/Preferences.cpp:573
 msgid "Associate .step files to BambuStudio"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:575
+#: src/slic3r/GUI/Preferences.cpp:574
 msgid "If enabled, sets BambuStudio as default application to open .step files"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:578
+#: src/slic3r/GUI/Preferences.cpp:577
 msgid "Backup"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:580
+#: src/slic3r/GUI/Preferences.cpp:579
 msgid "Backup switch"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:581
+#: src/slic3r/GUI/Preferences.cpp:580
 msgid "Backup interval"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:607
+#: src/slic3r/GUI/Preferences.cpp:606
 msgid "Home page and daily tips"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:608
+#: src/slic3r/GUI/Preferences.cpp:607
 msgid "Show home page on startup"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:627
+#: src/slic3r/GUI/Preferences.cpp:626
 msgid "Sync settings"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:628
+#: src/slic3r/GUI/Preferences.cpp:627
 msgid "User sync"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:629
+#: src/slic3r/GUI/Preferences.cpp:628
 msgid "Preset sync"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:630
+#: src/slic3r/GUI/Preferences.cpp:629
 msgid "Preferences sync"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:649
+#: src/slic3r/GUI/Preferences.cpp:648
 msgid "View control settings"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:656
+#: src/slic3r/GUI/Preferences.cpp:655
 msgid "Rotate of view"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:658
+#: src/slic3r/GUI/Preferences.cpp:657
 msgid "Move of view"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:659
+#: src/slic3r/GUI/Preferences.cpp:658
 msgid "Zoom of view"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:661
+#: src/slic3r/GUI/Preferences.cpp:660
 msgid "Other"
 msgstr "Sonstige"
 
-#: src/slic3r/GUI/Preferences.cpp:662
+#: src/slic3r/GUI/Preferences.cpp:661
 msgid "Mouse wheel reverses when zooming"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:692 src/slic3r/GUI/Preferences.cpp:693
+#: src/slic3r/GUI/Preferences.cpp:691 src/slic3r/GUI/Preferences.cpp:692
 msgid "Develop mode"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:694
+#: src/slic3r/GUI/Preferences.cpp:693
 msgid "Dump video"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:697
+#: src/slic3r/GUI/Preferences.cpp:696
 msgid "DEV host: api-dev.bambu-lab.com/v1"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:698
+#: src/slic3r/GUI/Preferences.cpp:697
 msgid "QA  host: api-qa.bambu-lab.com/v1"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:699
+#: src/slic3r/GUI/Preferences.cpp:698
 msgid "PRE host: api-pre.bambu-lab.com/v1"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:709
+#: src/slic3r/GUI/Preferences.cpp:708
 msgid "debug save button"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:712
+#: src/slic3r/GUI/Preferences.cpp:711
 msgid "save debug settings"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:712
+#: src/slic3r/GUI/Preferences.cpp:711
 msgid "DEBUG settings have saved successfully!"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:759
+#: src/slic3r/GUI/Preferences.cpp:758
 msgid "Swith cloud environment, Please login again!"
 msgstr ""
 

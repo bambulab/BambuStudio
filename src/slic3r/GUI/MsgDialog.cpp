@@ -370,8 +370,8 @@ InfoDialog::InfoDialog(wxWindow* parent, const wxString &title, const wxString& 
 DownloadDialog::DownloadDialog(wxWindow *parent, const wxString &msg, const wxString &title, bool is_marked_msg /* = false*/, long style /* = wxOK | wxICON_INFORMATION*/)
     : MsgDialog(parent, title, msg, style), msg(msg)
 {
-    add_button(wxID_YES, true, L("Download"));
-    add_button(wxID_CANCEL, true, L("Skip"));
+    add_button(wxID_YES, true, _L("Download"));
+    add_button(wxID_CANCEL, true, _L("Skip"));
     
     finalize();
 }

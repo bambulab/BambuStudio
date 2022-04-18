@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-18 10:43+0800\n"
+"POT-Creation-Date: 2022-04-18 19:56+0800\n"
 "PO-Revision-Date: 2022-04-13 18:57+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -584,6 +584,8 @@ msgid "Color change"
 msgstr "颜色更换"
 
 #: src/slic3r/GUI/GCodeViewer.cpp:4565 src/slic3r/GUI/GCodeViewer.cpp:4600
+#: src/slic3r/GUI/MainFrame.cpp:1008 src/slic3r/GUI/MainFrame.cpp:1104
+#: src/slic3r/GUI/MainFrame.cpp:1110
 msgid "Print"
 msgstr "打印"
 
@@ -1235,69 +1237,78 @@ msgstr "记住我的选择"
 msgid "Loading configuration"
 msgstr "正在加载配置"
 
-#: src/slic3r/GUI/GUI_App.cpp:1420
+#: src/slic3r/GUI/GUI_App.cpp:1369
+#, c-format, boost-format
+msgid "Click to download new version in default browser: %s"
+msgstr "在默认浏览器中点击下载最新版本: %s"
+
+#: src/slic3r/GUI/GUI_App.cpp:1372
+msgid "New version of Bambu Studio"
+msgstr "新版本的Bambu Studio"
+
+#: src/slic3r/GUI/GUI_App.cpp:1418
 msgid "Loading user presets..."
 msgstr "正在加载用户预设..."
 
-#: src/slic3r/GUI/GUI_App.cpp:1847 src/slic3r/GUI/GUI_App.cpp:1859
+#: src/slic3r/GUI/GUI_App.cpp:1845 src/slic3r/GUI/GUI_App.cpp:1857
 msgid "Rebuild"
 msgstr "重新构建"
 
-#: src/slic3r/GUI/GUI_App.cpp:1862
+#: src/slic3r/GUI/GUI_App.cpp:1860
 msgid "Loading current presets"
 msgstr "加载当前预设"
 
-#: src/slic3r/GUI/GUI_App.cpp:1866
+#: src/slic3r/GUI/GUI_App.cpp:1864
 msgid "Loading a mode view"
 msgstr "加载模式视图"
 
-#: src/slic3r/GUI/GUI_App.cpp:2059
+#: src/slic3r/GUI/GUI_App.cpp:2057
 msgid "Choose one file (3mf):"
 msgstr "选择一个文件（3mf）："
 
-#: src/slic3r/GUI/GUI_App.cpp:2071
+#: src/slic3r/GUI/GUI_App.cpp:2069
 msgid "Choose one or more files (3mf/step/stl/obj/amf):"
 msgstr "选择一个或多个文件（3mf/step/stl/obj/amf）："
 
-#: src/slic3r/GUI/GUI_App.cpp:2083
+#: src/slic3r/GUI/GUI_App.cpp:2081
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "选择一个文件（gcode/.gco/.g/.ngc/ngc）："
 
-#: src/slic3r/GUI/GUI_App.cpp:2317 src/slic3r/GUI/Preferences.cpp:125
+#: src/slic3r/GUI/GUI_App.cpp:2315 src/slic3r/GUI/Preferences.cpp:124
 msgid "Switching application language"
 msgstr "切换应用程序语言"
 
-#: src/slic3r/GUI/GUI_App.cpp:2456
+#: src/slic3r/GUI/GUI_App.cpp:2454
 msgid "Select the language"
 msgstr "选择语言"
 
-#: src/slic3r/GUI/GUI_App.cpp:2456 src/slic3r/GUI/Preferences.cpp:562
+#: src/slic3r/GUI/GUI_App.cpp:2454 src/slic3r/GUI/Preferences.cpp:561
 msgid "Language"
 msgstr "语言"
 
-#: src/slic3r/GUI/GUI_App.cpp:2621
+#: src/slic3r/GUI/GUI_App.cpp:2619
 msgid "*"
 msgstr "*"
 
-#: src/slic3r/GUI/GUI_App.cpp:2947 src/slic3r/GUI/GUI_App.cpp:3007
+#: src/slic3r/GUI/GUI_App.cpp:2945 src/slic3r/GUI/GUI_App.cpp:3005
 msgid "Modifications to the preset have been saved"
 msgid_plural "Modifications to the presets have been saved"
 msgstr[0] "对预设的修改已被保存"
 
-#: src/slic3r/GUI/GUI_App.cpp:3010
+#: src/slic3r/GUI/GUI_App.cpp:3008
 msgid "All modifications will be discarded for new project."
 msgstr "在新项目中所有修改都会被丢弃。"
 
-#: src/slic3r/GUI/GUI_App.cpp:3151 src/slic3r/GUI/Plater.cpp:6818
+#: src/slic3r/GUI/GUI_App.cpp:3149 src/slic3r/GUI/Plater.cpp:6818
 msgid "G-code files can not be loaded with models together!"
 msgstr "G-code文件不能和模型一起加载"
 
-#: src/slic3r/GUI/GUI_App.cpp:3151 src/slic3r/GUI/Plater.cpp:6810
+#: src/slic3r/GUI/GUI_App.cpp:3149 src/slic3r/GUI/Plater.cpp:6810
 #: src/slic3r/GUI/Plater.cpp:6818
 msgid "G-code loading"
 msgstr "正在加载G-code文件"
 
-#: src/slic3r/GUI/GUI_App.cpp:3332
+#: src/slic3r/GUI/GUI_App.cpp:3330
 msgid "Select a G-code file:"
 msgstr "选择一个G-code文件："
 
@@ -1688,7 +1699,7 @@ msgstr "在当前盘执行自动朝向"
 msgid "Remove the selected plate"
 msgstr "删除所选盘"
 
-#: src/slic3r/GUI/GUI_Factories.cpp:1208 src/slic3r/GUI/Plater.cpp:8719
+#: src/slic3r/GUI/GUI_Factories.cpp:1208 src/slic3r/GUI/Plater.cpp:8720
 msgid "Clone"
 msgstr "克隆"
 
@@ -2235,7 +2246,7 @@ msgstr "预览"
 msgid "Monitor"
 msgstr "打印机"
 
-#: src/slic3r/GUI/MainFrame.cpp:723 src/slic3r/GUI/Preferences.cpp:425
+#: src/slic3r/GUI/MainFrame.cpp:723 src/slic3r/GUI/Preferences.cpp:424
 msgid "Debug"
 msgstr "调试"
 
@@ -2243,11 +2254,6 @@ msgstr "调试"
 #: src/slic3r/GUI/MainFrame.cpp:1074
 msgid "Slice plate"
 msgstr "切片单盘"
-
-#: src/slic3r/GUI/MainFrame.cpp:1008 src/slic3r/GUI/MainFrame.cpp:1104
-#: src/slic3r/GUI/MainFrame.cpp:1110
-msgid "Print plate"
-msgstr "打印单盘"
 
 #: src/slic3r/GUI/MainFrame.cpp:1059 src/slic3r/GUI/MainFrame.cpp:1065
 msgid "Slice all"
@@ -2399,7 +2405,7 @@ msgstr "加载模型"
 msgid "Export all objects as STL"
 msgstr "导出所有对象为STL"
 
-#: src/slic3r/GUI/MainFrame.cpp:1544 src/slic3r/GUI/Plater.cpp:8556
+#: src/slic3r/GUI/MainFrame.cpp:1544 src/slic3r/GUI/Plater.cpp:8557
 msgid "Export G-code"
 msgstr "导出 G-code"
 
@@ -2407,7 +2413,7 @@ msgstr "导出 G-code"
 msgid "Export current plate as G-code"
 msgstr "导出当前盘的G-code"
 
-#: src/slic3r/GUI/MainFrame.cpp:1548 src/slic3r/GUI/Plater.cpp:8556
+#: src/slic3r/GUI/MainFrame.cpp:1548 src/slic3r/GUI/Plater.cpp:8557
 msgid "Export"
 msgstr "导出"
 
@@ -2523,7 +2529,7 @@ msgstr "显示模型边缘"
 msgid "Show Edges"
 msgstr "显示模型边缘"
 
-#: src/slic3r/GUI/MainFrame.cpp:1671 src/slic3r/GUI/Preferences.cpp:388
+#: src/slic3r/GUI/MainFrame.cpp:1671 src/slic3r/GUI/Preferences.cpp:387
 msgid "Preferences"
 msgstr "偏好设置"
 
@@ -2741,35 +2747,43 @@ msgstr "选择打印机"
 msgid "No printer"
 msgstr "无打印机"
 
-#: src/slic3r/GUI/MsgDialog.cpp:241
+#: src/slic3r/GUI/MsgDialog.cpp:288
 #, c-format, boost-format
 msgid "%s error"
 msgstr "%s 错误"
 
-#: src/slic3r/GUI/MsgDialog.cpp:242
+#: src/slic3r/GUI/MsgDialog.cpp:289
 #, c-format, boost-format
 msgid "%s has encountered an error"
 msgstr "%s 遇到一个错误"
 
-#: src/slic3r/GUI/MsgDialog.cpp:261
+#: src/slic3r/GUI/MsgDialog.cpp:308
 #, c-format, boost-format
 msgid "%s warning"
 msgstr "%s 警告"
 
-#: src/slic3r/GUI/MsgDialog.cpp:262
+#: src/slic3r/GUI/MsgDialog.cpp:309
 #, c-format, boost-format
 msgid "%s has a warning"
 msgstr "%s 有一个警告"
 
-#: src/slic3r/GUI/MsgDialog.cpp:275 src/slic3r/GUI/MsgDialog.cpp:288
+#: src/slic3r/GUI/MsgDialog.cpp:322 src/slic3r/GUI/MsgDialog.cpp:335
 #, c-format, boost-format
 msgid "%s info"
 msgstr "%s 信息"
 
-#: src/slic3r/GUI/MsgDialog.cpp:316
+#: src/slic3r/GUI/MsgDialog.cpp:362
 #, c-format, boost-format
 msgid "%s information"
 msgstr "%s 信息"
+
+#: src/slic3r/GUI/MsgDialog.cpp:373
+msgid "Download"
+msgstr "下载"
+
+#: src/slic3r/GUI/MsgDialog.cpp:374
+msgid "Skip"
+msgstr "跳过"
 
 #: src/slic3r/GUI/NotificationManager.hpp:784
 msgid "3D Mouse disconnected."
@@ -3164,7 +3178,7 @@ msgstr "正在导入模型"
 msgid "prepare 3mf file..."
 msgstr "正在准备3mf文件..."
 
-#: src/slic3r/GUI/Plater.cpp:6170 src/slic3r/GUI/Plater.cpp:7804
+#: src/slic3r/GUI/Plater.cpp:6170 src/slic3r/GUI/Plater.cpp:7805
 #, c-format, boost-format
 msgid "get_des,err:code=%u,msg=%s"
 msgstr ""
@@ -3244,7 +3258,7 @@ msgstr "当前项目包含未保存的修改，是否先保存？"
 msgid "Save"
 msgstr "保存"
 
-#: src/slic3r/GUI/Plater.cpp:7139 src/slic3r/GUI/Plater.cpp:8720
+#: src/slic3r/GUI/Plater.cpp:7139 src/slic3r/GUI/Plater.cpp:8721
 msgid "Number of copies:"
 msgstr "克隆数量："
 
@@ -3260,77 +3274,77 @@ msgstr "G-code文件另存为："
 msgid "Save Sliced file as:"
 msgstr "切片文件另存为："
 
-#: src/slic3r/GUI/Plater.cpp:7615
+#: src/slic3r/GUI/Plater.cpp:7616
 msgid "No objects to export."
 msgstr "没有可导出的对象。"
 
-#: src/slic3r/GUI/Plater.cpp:7615
+#: src/slic3r/GUI/Plater.cpp:7616
 msgid "Save project"
 msgstr "保存项目"
 
-#: src/slic3r/GUI/Plater.cpp:7746
+#: src/slic3r/GUI/Plater.cpp:7747
 msgid "Failed to publish your project. Please try agian!"
 msgstr "项目发布失败。请重试！"
 
-#: src/slic3r/GUI/Plater.cpp:7772
+#: src/slic3r/GUI/Plater.cpp:7773
 msgid "preparing, export 3mf failed!"
 msgstr "正在准备中，导出 3mf 失败！"
 
-#: src/slic3r/GUI/Plater.cpp:7796
+#: src/slic3r/GUI/Plater.cpp:7797
 msgid "Preparing to upload your project..."
 msgstr "正在准备上传项目..."
 
-#: src/slic3r/GUI/Plater.cpp:7821
+#: src/slic3r/GUI/Plater.cpp:7822
 #, c-format, boost-format
 msgid "req_proj,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7833
+#: src/slic3r/GUI/Plater.cpp:7834
 #, c-format, boost-format
 msgid "req_prof,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7840
+#: src/slic3r/GUI/Plater.cpp:7841
 msgid "Uploading..."
 msgstr "上传中"
 
-#: src/slic3r/GUI/Plater.cpp:7848
+#: src/slic3r/GUI/Plater.cpp:7849
 #, c-format, boost-format
 msgid "%d%% uploaded..."
 msgstr "已上传 %d%%"
 
-#: src/slic3r/GUI/Plater.cpp:7852 src/slic3r/GUI/Plater.cpp:7889
+#: src/slic3r/GUI/Plater.cpp:7853 src/slic3r/GUI/Plater.cpp:7890
 msgid "Upload has been canceled."
 msgstr "上传已被取消。"
 
-#: src/slic3r/GUI/Plater.cpp:7857
+#: src/slic3r/GUI/Plater.cpp:7858
 #, c-format, boost-format
 msgid "upload,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7867
+#: src/slic3r/GUI/Plater.cpp:7868
 #, c-format, boost-format
 msgid "put_no,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7868 src/slic3r/GUI/Plater.cpp:7895
+#: src/slic3r/GUI/Plater.cpp:7869 src/slic3r/GUI/Plater.cpp:7896
 msgid "Failed to publish. Please try again!"
 msgstr "发布失败，请重试！"
 
-#: src/slic3r/GUI/Plater.cpp:7883
+#: src/slic3r/GUI/Plater.cpp:7884
 msgid "Uploading is timed out. Please try again!"
 msgstr "上传已超时，请重试！"
 
-#: src/slic3r/GUI/Plater.cpp:7894
+#: src/slic3r/GUI/Plater.cpp:7895
 #, c-format, boost-format
 msgid "get_no,err:code=%u,msg=%s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:7924
+#: src/slic3r/GUI/Plater.cpp:7925
 msgid "Internal Error. design id is empty."
 msgstr "内部错误。获取design id失败。"
 
-#: src/slic3r/GUI/Plater.cpp:8349
+#: src/slic3r/GUI/Plater.cpp:8350
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
@@ -3338,230 +3352,230 @@ msgstr ""
 "逐件打印：\n"
 "建议使用自动摆盘避免打印时发生碰撞。"
 
-#: src/slic3r/GUI/Plater.cpp:8557
+#: src/slic3r/GUI/Plater.cpp:8558
 msgid "Send G-code"
 msgstr "发送 G 代码"
 
-#: src/slic3r/GUI/Plater.cpp:8557
+#: src/slic3r/GUI/Plater.cpp:8558
 msgid "Send to printer"
 msgstr "发送到打印机"
 
-#: src/slic3r/GUI/Plater.cpp:8588
+#: src/slic3r/GUI/Plater.cpp:8589
 msgid "Custom supports, seams and color painting were removed after repairing."
 msgstr "修复后自定义支撑、接缝、上色配置会被删除。"
 
-#: src/slic3r/GUI/Plater.cpp:8724
+#: src/slic3r/GUI/Plater.cpp:8725
 msgid "Invalid number"
 msgstr "无效数字"
 
-#: src/slic3r/GUI/Plater.cpp:9284
+#: src/slic3r/GUI/Plater.cpp:9285
 #, boost-format
 msgid "Part name: %1%\n"
 msgstr "零件名字：%1%\n"
 
-#: src/slic3r/GUI/Plater.cpp:9295
+#: src/slic3r/GUI/Plater.cpp:9296
 #, boost-format
 msgid "Object name: %1%\n"
 msgstr "对象名字：%1%\n"
 
-#: src/slic3r/GUI/Plater.cpp:9302
+#: src/slic3r/GUI/Plater.cpp:9303
 #, boost-format
 msgid "Size: %1% x %2% x %3% in\n"
 msgstr "大小：%1% x %2% x %3% 英寸\n"
 
-#: src/slic3r/GUI/Plater.cpp:9304
+#: src/slic3r/GUI/Plater.cpp:9305
 #, boost-format
 msgid "Size: %1% x %2% x %3% mm\n"
 msgstr "大小： %1% x %2% x %3% 毫米\n"
 
-#: src/slic3r/GUI/Plater.cpp:9311
+#: src/slic3r/GUI/Plater.cpp:9312
 #, boost-format
 msgid "Volume: %1% mm³\n"
 msgstr "体积： %1% 毫米³\n"
 
-#: src/slic3r/GUI/Plater.cpp:9313
+#: src/slic3r/GUI/Plater.cpp:9314
 #, boost-format
 msgid "Triangles: %1%, "
 msgstr "三角形数： %1%, "
 
 #: src/slic3r/GUI/Preferences.cpp:116
-msgid "Language selection"
-msgstr "语言选择"
-
-#: src/slic3r/GUI/Preferences.cpp:117
 msgid "Switching the language requires application restart.\n"
 msgstr "切换语言要求重启应用程序。\n"
 
-#: src/slic3r/GUI/Preferences.cpp:117
+#: src/slic3r/GUI/Preferences.cpp:116
 msgid "Do you want to continue?"
 msgstr "是否继续？"
 
-#: src/slic3r/GUI/Preferences.cpp:126
+#: src/slic3r/GUI/Preferences.cpp:117
+msgid "Language selection"
+msgstr "语言选择"
+
+#: src/slic3r/GUI/Preferences.cpp:125
 msgid "Switching application language while some presets are modified."
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:145
+#: src/slic3r/GUI/Preferences.cpp:144
 msgid "Changing application language"
 msgstr "正在为应用程序切换语言"
 
-#: src/slic3r/GUI/Preferences.cpp:221
+#: src/slic3r/GUI/Preferences.cpp:220
 msgid "Second"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:421
+#: src/slic3r/GUI/Preferences.cpp:420
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:1554
 msgid "General"
 msgstr "常规"
 
-#: src/slic3r/GUI/Preferences.cpp:422
+#: src/slic3r/GUI/Preferences.cpp:421
 msgid "GUI"
 msgstr "界面"
 
-#: src/slic3r/GUI/Preferences.cpp:423
+#: src/slic3r/GUI/Preferences.cpp:422
 msgid "Sync"
 msgstr "同步"
 
-#: src/slic3r/GUI/Preferences.cpp:424
+#: src/slic3r/GUI/Preferences.cpp:423
 msgid "Shortcuts"
 msgstr "快捷键"
 
-#: src/slic3r/GUI/Preferences.cpp:539
+#: src/slic3r/GUI/Preferences.cpp:538
 msgid "General settings"
 msgstr "常规设置"
 
-#: src/slic3r/GUI/Preferences.cpp:564
+#: src/slic3r/GUI/Preferences.cpp:563
 msgid "Metric"
 msgstr "公制"
 
-#: src/slic3r/GUI/Preferences.cpp:564
+#: src/slic3r/GUI/Preferences.cpp:563
 msgid "Imperial"
 msgstr "英制"
 
-#: src/slic3r/GUI/Preferences.cpp:565
+#: src/slic3r/GUI/Preferences.cpp:564
 msgid "Units"
 msgstr "单位"
 
-#: src/slic3r/GUI/Preferences.cpp:567
+#: src/slic3r/GUI/Preferences.cpp:566
 msgid "Associate files to BambuStudio"
 msgstr "Bambu Studio文件关联"
 
-#: src/slic3r/GUI/Preferences.cpp:570
+#: src/slic3r/GUI/Preferences.cpp:569
 msgid "Associate .3mf files to BambuStudio"
 msgstr "使用Bambu Studio打开.3mf文件"
 
-#: src/slic3r/GUI/Preferences.cpp:571
+#: src/slic3r/GUI/Preferences.cpp:570
 msgid "If enabled, sets BambuStudio as default application to open .3mf files"
 msgstr "开启后，将缺省使用Bambu Studio打开.3mf文件"
 
-#: src/slic3r/GUI/Preferences.cpp:572
+#: src/slic3r/GUI/Preferences.cpp:571
 msgid "Associate .stl files to BambuStudio"
 msgstr "使用Bambu Studio打开.stl文件"
 
-#: src/slic3r/GUI/Preferences.cpp:573
+#: src/slic3r/GUI/Preferences.cpp:572
 msgid "If enabled, sets BambuStudio as default application to open .stl files"
 msgstr "开启后，将缺省使用Bambu Studio打开.stl文件"
 
-#: src/slic3r/GUI/Preferences.cpp:574
+#: src/slic3r/GUI/Preferences.cpp:573
 msgid "Associate .step files to BambuStudio"
 msgstr "使用Bambu Studio打开.step文件"
 
-#: src/slic3r/GUI/Preferences.cpp:575
+#: src/slic3r/GUI/Preferences.cpp:574
 msgid "If enabled, sets BambuStudio as default application to open .step files"
 msgstr "开启后，将缺省使用Bambu Studio打开.step文件"
 
-#: src/slic3r/GUI/Preferences.cpp:578
+#: src/slic3r/GUI/Preferences.cpp:577
 msgid "Backup"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:580
+#: src/slic3r/GUI/Preferences.cpp:579
 msgid "Backup switch"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:581
+#: src/slic3r/GUI/Preferences.cpp:580
 msgid "Backup interval"
 msgstr "备份间隔时长"
 
-#: src/slic3r/GUI/Preferences.cpp:607
+#: src/slic3r/GUI/Preferences.cpp:606
 msgid "Home page and daily tips"
 msgstr "首页和每日小贴士"
 
-#: src/slic3r/GUI/Preferences.cpp:608
+#: src/slic3r/GUI/Preferences.cpp:607
 msgid "Show home page on startup"
 msgstr "启动时显示主页"
 
-#: src/slic3r/GUI/Preferences.cpp:627
+#: src/slic3r/GUI/Preferences.cpp:626
 msgid "Sync settings"
 msgstr "同步设置"
 
-#: src/slic3r/GUI/Preferences.cpp:628
+#: src/slic3r/GUI/Preferences.cpp:627
 msgid "User sync"
 msgstr "用户同步"
 
-#: src/slic3r/GUI/Preferences.cpp:629
+#: src/slic3r/GUI/Preferences.cpp:628
 msgid "Preset sync"
 msgstr "配置同步"
 
-#: src/slic3r/GUI/Preferences.cpp:630
+#: src/slic3r/GUI/Preferences.cpp:629
 msgid "Preferences sync"
 msgstr "首选项同步"
 
-#: src/slic3r/GUI/Preferences.cpp:649
+#: src/slic3r/GUI/Preferences.cpp:648
 msgid "View control settings"
 msgstr "视图控制设置"
 
-#: src/slic3r/GUI/Preferences.cpp:656
+#: src/slic3r/GUI/Preferences.cpp:655
 msgid "Rotate of view"
 msgstr "旋转视图"
 
-#: src/slic3r/GUI/Preferences.cpp:658
+#: src/slic3r/GUI/Preferences.cpp:657
 msgid "Move of view"
 msgstr "移动视图"
 
-#: src/slic3r/GUI/Preferences.cpp:659
+#: src/slic3r/GUI/Preferences.cpp:658
 msgid "Zoom of view"
 msgstr "缩放视图"
 
-#: src/slic3r/GUI/Preferences.cpp:661
+#: src/slic3r/GUI/Preferences.cpp:660
 msgid "Other"
 msgstr "其他"
 
-#: src/slic3r/GUI/Preferences.cpp:662
+#: src/slic3r/GUI/Preferences.cpp:661
 msgid "Mouse wheel reverses when zooming"
 msgstr "缩放时鼠标滚轮反转"
 
-#: src/slic3r/GUI/Preferences.cpp:692 src/slic3r/GUI/Preferences.cpp:693
+#: src/slic3r/GUI/Preferences.cpp:691 src/slic3r/GUI/Preferences.cpp:692
 msgid "Develop mode"
 msgstr "开发者模式"
 
-#: src/slic3r/GUI/Preferences.cpp:694
+#: src/slic3r/GUI/Preferences.cpp:693
 msgid "Dump video"
 msgstr "下载视频"
 
-#: src/slic3r/GUI/Preferences.cpp:697
+#: src/slic3r/GUI/Preferences.cpp:696
 msgid "DEV host: api-dev.bambu-lab.com/v1"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:698
+#: src/slic3r/GUI/Preferences.cpp:697
 msgid "QA  host: api-qa.bambu-lab.com/v1"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:699
+#: src/slic3r/GUI/Preferences.cpp:698
 msgid "PRE host: api-pre.bambu-lab.com/v1"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:709
+#: src/slic3r/GUI/Preferences.cpp:708
 msgid "debug save button"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:712
+#: src/slic3r/GUI/Preferences.cpp:711
 msgid "save debug settings"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:712
+#: src/slic3r/GUI/Preferences.cpp:711
 msgid "DEBUG settings have saved successfully!"
 msgstr "DEBUG模式生效!"
 
-#: src/slic3r/GUI/Preferences.cpp:759
+#: src/slic3r/GUI/Preferences.cpp:758
 msgid "Swith cloud environment, Please login again!"
 msgstr "切换云环境，请重新登录!"
 
@@ -6701,6 +6715,20 @@ msgstr "生成支撑"
 #: src/libslic3r/PrintObjectSlice.cpp:566
 msgid "Slicing mesh"
 msgstr "切片网格"
+
+#, c-format, boost-format
+#~ msgid "To click download new version in default browser: %s"
+#~ msgstr "在浏览器中下载最新版本: %s"
+
+#, c-format, boost-format
+#~ msgid "click download new version in default browser: %s"
+#~ msgstr "在浏览器中下载最新版本: %s"
+
+#~ msgid "New Version of BambuStudio"
+#~ msgstr "新版本的BambuStudio"
+
+#~ msgid "Print plate"
+#~ msgstr "打印单盘"
 
 #~ msgid "Add support blocker"
 #~ msgstr "添加支撑屏蔽"
