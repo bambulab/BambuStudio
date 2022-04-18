@@ -17,10 +17,21 @@ struct OptionViewParameters;
 class wxString;
 class wxMouseEvent;
 class wxKeyEvent;
+struct IMGUI_API ImRect;
 
 
 namespace Slic3r {
 namespace GUI {
+
+bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const ImS32 v_max, ImS32* out_value, ImRect* out_handle, ImGuiSliderFlags flags = 0);
+bool button_with_pos(const char* label, const ImVec2& size, const ImVec2& pos, ImGuiButtonFlags flags = 0);
+enum ClickedWhere{
+    ClickedOut,
+    ClickedIn,
+    NotClicked
+};
+ClickedWhere is_clicked_in_rect(const ImRect& rect, ImGuiMouseButton mouse_btn = 0 /*(0=left, 1=right, 2=middle)*/);
+bool menu_item_with_icon(const char* label, const char* shortcut, ImU32 icon_color, bool selected, bool enabled = true);
 
 class ImGuiWrapper
 {

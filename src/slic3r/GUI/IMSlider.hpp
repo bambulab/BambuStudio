@@ -14,6 +14,7 @@
 #include <set>
 
 class wxMenu;
+struct IMGUI_API ImRect;
 
 namespace Slic3r {
 
@@ -225,7 +226,6 @@ public:
     void SetMaxValue(const int max_value);
     void SetKoefForLabels(const double koef) { m_label_koef = koef; }
     void SetSliderValues(const std::vector<double> &values);
-    void ChangeOneLayerLock();
     void SetSliderAlternateValues(const std::vector<double> &values) { m_alternate_values = values; }
 
     Info GetTicksValues() const;
@@ -274,11 +274,12 @@ public:
 protected:
     void correct_lower_value();
     void correct_higher_value();
-    bool horizontal_slider(const char* str_id, int* v, int v_min, int v_max, ImVec2 size, int selection = 0, float scale = 1.0);
+    bool horizontal_slider(const char* str_id, int* v, int v_min, int v_max, ImVec2 size, float scale = 1.0);
+    void render_colored_band(const ImVec2& pos, ImRect main_band);
     bool vertical_slider(const char* str_id, int* higher_value, int* lower_value,
         std::string& higher_label, std::string& lower_label,
         int v_min, int v_max, ImVec2 size,
-        int selection = 0, bool one_layer_flag = false, float scale = 1.0f);
+        SelectedSlider& selection, bool one_layer_flag = false, float scale = 1.0f);
     bool is_wipe_tower_layer(int tick) const;
 
 private:

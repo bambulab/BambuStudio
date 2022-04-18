@@ -115,6 +115,168 @@ const ImVec4 ImGuiWrapper::COL_WINDOW_BG         = { 1.000f, 1.000f, 1.000f, 0.9
 
 
 
+
+bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const ImS32 v_max, ImS32* out_value, ImRect* out_handle, ImGuiSliderFlags flags/* = 0*/)
+{
+    ImGuiContext& context = *GImGui;
+
+    const ImGuiAxis axis = (flags & ImGuiSliderFlags_Vertical) ? ImGuiAxis_Y : ImGuiAxis_X;
+
+    const float handle_sz = 10.0f * sqrt(2);
+    ImS32 v_range = (v_min < v_max ? v_max - v_min : v_min - v_max);
+    const float region_usable_sz = (region.Max[axis] - region.Min[axis]);
+    const float region_usable_pos_min = region.Min[axis];
+    const float region_usable_pos_max = region.Max[axis];
+
+    // Process interacting with the slider
+    ImS32 v_new = *out_value;
+    bool value_changed = false;
+    if (ImGui::ItemHoverable(region, id)) {
+        v_new = ImClamp(*out_value + (ImS32)(context.IO.MouseWheel), v_min, v_max);
+    }
+    if (context.ActiveId == id)
+    {
+        float mouse_pos_ratio = 0.0f;
+        if (context.ActiveIdSource == ImGuiInputSource_Mouse)
+        {
+            if (!context.IO.MouseDown[0])
+            {
+                ImGui::ClearActiveID();
+            }
+            else {
+                if (context.IO.MouseDown[0])
+                {
+                    const float mouse_abs_pos = context.IO.MousePos[axis];
+                    mouse_pos_ratio = (region_usable_sz > 0.0f) ? ImClamp((mouse_abs_pos - region_usable_pos_min) / region_usable_sz, 0.0f, 1.0f) : 0.0f;
+                    if (axis == ImGuiAxis_Y)
+                        mouse_pos_ratio = 1.0f - mouse_pos_ratio;
+                    v_new = v_min + (ImS32)(v_range * mouse_pos_ratio + 0.5f);
+                }
+
+            }
+        }
+    }
+
+	// apply result, output value
+	if (*out_value != v_new)
+	{
+		*out_value = v_new;
+		value_changed = true;
+	}
+
+    // Output handle position so it can be displayed by the caller
+    const ImS32 v_clamped = (v_min < v_max) ? ImClamp(*out_value, v_min, v_max) : ImClamp(*out_value, v_max, v_min);
+    float handle_pos_ratio = v_range != 0 ? ((float)(v_clamped - v_min) / (float)v_range) : 0.0f;
+    handle_pos_ratio = axis == ImGuiAxis_Y ? 1.0f - handle_pos_ratio : handle_pos_ratio;
+    const float handle_pos = region_usable_pos_min + (region_usable_pos_max - region_usable_pos_min) * handle_pos_ratio;
+
+    if (axis == ImGuiAxis_X)
+        *out_handle = ImRect(handle_pos - handle_sz * 0.5f, region.Min.y, handle_pos + handle_sz * 0.5f, region.Max.y);
+    else
+        *out_handle = ImRect(region.Min.x, handle_pos - handle_sz * 0.5f, region.Max.x, handle_pos + handle_sz * 0.5f);
+
+    return value_changed;
+}
+
+bool button_with_pos(const char* label, const ImVec2& size, const ImVec2& pos, ImGuiButtonFlags flags/* = 0*/) {
+
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
+    const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
+
+    const ImRect bb(pos, pos + size);
+
+    bool hovered, held;
+    bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, flags);
+
+    // Render
+    const ImU32 col = ImGui::GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+    ImGui::RenderNavHighlight(bb, id);
+    ImGui::RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
+
+    if (g.LogEnabled)
+        ImGui::LogSetNextTextDecoration("[", "]");
+    ImGui::RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb);
+
+    return pressed;
+}
+
+ClickedWhere is_clicked_in_rect(const ImRect& rect, ImGuiMouseButton mouse_btn/* = 0*/) {
+    
+    ImGuiContext& g = *GImGui;
+
+    if (g.IO.MouseClicked[mouse_btn])  /* mouse_btn:(0 = left, 1 = right, 2 = middle)*/
+    {
+        if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max))
+            return ClickedIn;
+        else
+            return ClickedOut;
+    }
+
+    //clicked other mouse button
+    if (g.IO.MouseClicked[0] || g.IO.MouseClicked[1] || g.IO.MouseClicked[2])
+    {
+        return ClickedOut;
+    }
+
+    return NotClicked;
+}
+
+bool menu_item_with_icon(const char* label, const char* shortcut, ImU32 icon_color, bool selected, bool enabled/* = true*/) {
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    ImGuiContext& g = *GImGui;
+    ImGuiStyle& style = g.Style;
+    ImVec2 pos = window->DC.CursorPos;
+    ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
+
+    // We've been using the equivalent of ImGuiSelectableFlags_SetNavIdOnHover on all Selectable() since early Nav system days (commit 43ee5d73),
+    // but I am unsure whether this should be kept at all. For now moved it to be an opt-in feature used by menus only.
+    ImGuiSelectableFlags flags = ImGuiSelectableFlags_SelectOnRelease | ImGuiSelectableFlags_SetNavIdOnHover | (enabled ? 0 : ImGuiSelectableFlags_Disabled);
+    bool pressed;
+    if (window->DC.LayoutType == ImGuiLayoutType_Horizontal)
+    {
+        // Mimic the exact layout spacing of BeginMenu() to allow MenuItem() inside a menu bar, which is a little misleading but may be useful
+        // Note that in this situation: we don't render the shortcut, we render a highlight instead of the selected tick mark.
+        float w = label_size.x;
+        window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * 0.5f);
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(style.ItemSpacing.x * 2.0f, style.ItemSpacing.y));
+        pressed = ImGui::Selectable(label, selected, flags, ImVec2(w, 0.0f));
+        ImGui::PopStyleVar();
+        window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * (-1.0f + 0.5f)); // -1 spacing to compensate the spacing added when Selectable() did a SameLine(). It would also work to call SameLine() ourselves after the PopStyleVar().
+    }
+    else
+    {
+        // Menu item inside a vertical menu
+        // (In a typical menu window where all items are BeginMenu() or MenuItem() calls, extra_w will always be 0.0f.
+        //  Only when they are other items sticking out we're going to add spacing, yet only register minimum width into the layout system.
+        float shortcut_w = shortcut ? ImGui::CalcTextSize(shortcut, NULL).x : 0.0f;
+        float min_w = window->DC.MenuColumns.DeclColumns(label_size.x, shortcut_w, IM_FLOOR(g.FontSize * 1.20f)); // Feedback for next frame
+        float extra_w = std::max(0.0f, ImGui::GetContentRegionAvail().x - min_w);
+        pressed = ImGui::Selectable(label, false, flags | ImGuiSelectableFlags_SpanAvailWidth, ImVec2(min_w, 0.0f));
+        ImVec2 pos_min = pos + ImVec2(window->DC.MenuColumns.Pos[2] + extra_w + g.FontSize * 0.40f, g.FontSize * 0.134f * 0.5f);
+        ImGui::RenderFrame(pos_min, pos_min + ImVec2(14, 14), icon_color);
+        if (shortcut_w > 0.0f)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, g.Style.Colors[ImGuiCol_TextDisabled]);
+            ImGui::RenderText(pos + ImVec2(window->DC.MenuColumns.Pos[1] + extra_w, 0.0f), shortcut, NULL, false);
+            ImGui::PopStyleColor();
+        }
+        if (selected)
+            ImGui::RenderCheckMark(window->DrawList, pos + ImVec2(window->DC.MenuColumns.Pos[2] + extra_w + g.FontSize * 0.40f, g.FontSize * 0.134f * 0.5f), ImGui::GetColorU32(enabled ? ImGuiCol_Text : ImGuiCol_TextDisabled), g.FontSize * 0.866f);
+    }
+
+    IMGUI_TEST_ENGINE_ITEM_INFO(window->DC.LastItemId, label, window->DC.LastItemStatusFlags | ImGuiItemStatusFlags_Checkable | (selected ? ImGuiItemStatusFlags_Checked : 0));
+    return pressed;
+}
+
 ImGuiWrapper::ImGuiWrapper()
 {
     ImGui::CreateContext();

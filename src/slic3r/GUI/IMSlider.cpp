@@ -33,7 +33,6 @@
 #endif
 #include <imgui/imgui_internal.h>
 
-
 namespace Slic3r {
 
 using GUI::from_u8;
@@ -495,15 +494,6 @@ void IMSlider::SetSliderValues(const std::vector<double> &values)
     m_values = values;
 }
 
-void IMSlider::ChangeOneLayerLock()
-{
-    m_is_one_layer = !m_is_one_layer;
-    m_selection == ssLower ? correct_lower_value() : correct_higher_value();
-    if (!m_selection) m_selection = ssHigher;
-
-    set_as_dirty();
-}
-
 Info IMSlider::GetTicksValues() const
 {
     Info                            custom_gcode_per_print_z;
@@ -709,148 +699,7 @@ void IMSlider::switch_one_layer_mode()
     set_as_dirty();
 }
 
-bool static slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const ImS32 v_max, ImS32* out_value, ImRect* out_handle, ImGuiSliderFlags flags = 0)
-{
-    ImGuiContext& context = *GImGui;
-
-    const ImGuiAxis axis = (flags & ImGuiSliderFlags_Vertical) ? ImGuiAxis_Y : ImGuiAxis_X;
-
-    const float handle_sz = 10.0f * sqrt(2);
-    ImS32 v_range = (v_min < v_max ? v_max - v_min : v_min - v_max);
-    const float region_usable_sz = (region.Max[axis] - region.Min[axis]);
-    const float region_usable_pos_min = region.Min[axis];
-    const float region_usable_pos_max = region.Max[axis];
-
-    // Process interacting with the slider
-    bool value_changed = false;
-    if (context.ActiveId == id)
-    {
-        float mouse_pos_ratio = 0.0f;
-        ImS32 v_new = *out_value;
-        if (context.ActiveIdSource == ImGuiInputSource_Mouse)
-        {
-            if (!ImGui::ItemHoverable(region, id) && !context.IO.MouseDown[0])
-            {
-                ImGui::ClearActiveID();
-            }
-            else {
-                if (context.IO.MouseDown[0])
-                {
-                    const float mouse_abs_pos = context.IO.MousePos[axis];
-                    mouse_pos_ratio = (region_usable_sz > 0.0f) ? ImClamp((mouse_abs_pos - region_usable_pos_min) / region_usable_sz, 0.0f, 1.0f) : 0.0f;
-                    if (axis == ImGuiAxis_Y)
-                        mouse_pos_ratio = 1.0f - mouse_pos_ratio;
-                    v_new = v_min + (ImS32)(v_range * mouse_pos_ratio + 0.5f);
-                }
-                else
-                {
-                    v_new = ImClamp(*out_value + (ImS32)(context.IO.MouseWheel), v_min, v_max);
-                }
-            }
-        }
-
-        // apply result, output value
-        if (*out_value != v_new)
-        {
-            *out_value = v_new;
-            value_changed = true;
-        }
-    }
-
-    // Output handle position so it can be displayed by the caller
-    const ImS32 v_clamped = (v_min < v_max) ? ImClamp(*out_value, v_min, v_max) : ImClamp(*out_value, v_max, v_min);
-    float handle_pos_ratio = v_range != 0 ? ((float)(v_clamped - v_min) / (float)v_range) : 0.0f;
-    handle_pos_ratio = axis == ImGuiAxis_Y ? 1.0f - handle_pos_ratio : handle_pos_ratio;
-    const float handle_pos = region_usable_pos_min + (region_usable_pos_max - region_usable_pos_min) * handle_pos_ratio;
-
-    if (axis == ImGuiAxis_X)
-        *out_handle = ImRect(handle_pos - handle_sz * 0.5f, region.Min.y, handle_pos + handle_sz * 0.5f, region.Max.y);
-    else
-        *out_handle = ImRect(region.Min.x, handle_pos - handle_sz * 0.5f, region.Max.x, handle_pos + handle_sz * 0.5f);
-
-    return value_changed;
-}
-bool static button_with_pos(const char* label, const ImVec2& size, const ImVec2& pos, ImGuiButtonFlags flags = 0){
-
-    ImGuiWindow* window = ImGui::GetCurrentWindow();
-    if (window->SkipItems)
-        return false;
-
-    ImGuiContext& g = *GImGui;
-    const ImGuiStyle& style = g.Style;
-    const ImGuiID id = window->GetID(label);
-    const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
-
-    const ImRect bb(pos, pos + size);
-
-    bool hovered, held;
-    bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, flags);
-
-    // Render
-    const ImU32 col = ImGui::GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
-    ImGui::RenderNavHighlight(bb, id);
-    ImGui::RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
-
-    if (g.LogEnabled)
-        ImGui::LogSetNextTextDecoration("[", "]");
-    ImGui::RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb);
-
-    return pressed;
-}
-
-bool static is_clicked_in_rect(ImGuiID id, const ImRect& rect, bool check_left = true, ImGuiButtonFlags flags = 0) {
-    ImGuiContext& g = *GImGui;
-    ImGuiWindow* window = ImGui::GetCurrentWindow();
-
-    // Default only reacts to left mouse button
-    if ((flags & ImGuiButtonFlags_MouseButtonMask_) == 0)
-        flags |= ImGuiButtonFlags_MouseButtonDefault_;
-
-    // Default behavior requires click + release inside bounding box
-    if ((flags & ImGuiButtonFlags_PressedOnMask_) == 0)
-        flags |= ImGuiButtonFlags_PressedOnDefault_;
-
-    bool hovered = ImGui::ItemHoverable(rect, id);
-
-    bool click_in = false;
-    if (g.ActiveId == id)
-    {
-        if (g.ActiveIdSource == ImGuiInputSource_Mouse)
-        {
-            if (g.ActiveIdIsJustActivated)
-                g.ActiveIdClickOffset = g.IO.MousePos - rect.Min;
-            if (check_left) {
-                if (g.IO.MouseClicked[0])
-                {
-                    if ((hovered))
-                    {
-                        click_in = true;
-                    }
-                    else
-                    {
-                        click_in = false;
-                    }
-                }
-            }
-            else {
-                if (g.IO.MouseClicked[1])
-                {
-                    if ((hovered))
-                    {
-                        click_in = true;
-                    }
-                    else
-                    {
-                        click_in = false;
-                    }
-                }
-            }
-        }
-    }
-    return click_in;
-}
-
-bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int v_max, ImVec2 size, int selection, float scale)
+bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int v_max, ImVec2 size, float scale)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
@@ -885,7 +734,7 @@ bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int 
     const ImRect slideable_region(ImVec2(scroll_rect.Min.x, bg_rect.Min.y), ImVec2(scroll_rect.Max.x, bg_rect.Max.y));
     // set active(slideable) region.
     const bool hovered = ImGui::ItemHoverable(slideable_region, id);
-    if (hovered)
+    if (hovered && context.IO.MouseDown[0])
     {
         ImGui::SetActiveID(id, window);
         ImGui::SetFocusID(id, window);
@@ -925,8 +774,109 @@ bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int 
     return value_changed;
 }
 
+void IMSlider::render_colored_band(const ImVec2& pos, ImRect main_band) {
+    if (is_horizontal())
+        return;
+    if (m_draw_mode != dmRegular)
+        return;
+    if (m_ticks.empty() || m_mode == MultiExtruder)
+        return;
+
+    auto draw_band = [](const ImU32& clr, const ImRect& band_rc)
+    {
+        ImGui::RenderFrame(band_rc.Min, band_rc.Max, clr, false);
+    };
+
+    auto get_tick_pos = [this, main_band](int tick)
+    {
+        int v_min = GetMinValue();
+        int v_max = GetMaxValue();
+        float tick_pos_ratio = (v_max - v_min) != 0 ? ((float)(tick - v_min) / (float)(v_max - v_min)) : 0.0f;
+        tick_pos_ratio = 1.0f - tick_pos_ratio;
+        float  tick_pos = main_band.Min.y + (main_band.Max.y - main_band.Min.y) * tick_pos_ratio;
+        return tick_pos;
+    };
+
+    float btn_offset = 35.0f;
+    float tick_offset = 12.0f;
+    ImVec2 btn_size = ImVec2(16.0f, 16.0f);
+    ImVec2 tick_size = ImVec2(20.0f, 4.0f);
+
+    ImRect band_rect(main_band);
+    const int default_color_idx = m_mode == MultiAsSingle ? std::max<int>(m_only_extruder - 1, 0) : 0;
+    std::array<float, 4>rgba = decode_color_to_float_array(m_extruder_colors[default_color_idx]);
+    ImU32 band_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
+    draw_band(band_clr, band_rect);
+
+    static float selected_tick_pos;
+    static int selected_tick;
+    std::set<TickCode>::const_iterator tick_it = m_ticks.ticks.begin();
+    while (tick_it != m_ticks.ticks.end())
+    {
+        //get position from tick
+        float  tick_pos = get_tick_pos(tick_it->tick);
+
+        //draw colored band
+        if (tick_it->type == ToolChange) {
+            if ((m_mode == SingleExtruder) || (m_mode == MultiAsSingle))
+            {
+                //TODO:band_rect width need to be ajusted
+                band_rect = ImRect(main_band.Min, ImVec2(main_band.Max.x, tick_pos));
+
+                const std::string clr_str = m_mode == SingleExtruder ? tick_it->color : get_color_for_tool_change_tick(tick_it);
+
+                if (!clr_str.empty()) {
+                    std::array<float, 4>rgba = decode_color_to_float_array(clr_str);
+                    ImU32 band_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
+                    draw_band(band_clr, band_rect);
+                }
+            }
+        }
+
+        //draw tick
+        ImGui::PushID(tick_it->tick);
+        std::wstring tick_btn_name = ImGui::TickIcon + boost::nowide::widen(std::string(""));
+        ImVec2 tick_start_pos(main_band.GetCenter().x - tick_offset - tick_size.x / 2, tick_pos - tick_size.y / 2);
+        if (button_with_pos(into_u8(tick_btn_name).c_str(), tick_size, tick_start_pos)) {
+            //record clicked tick
+            selected_tick_pos = tick_pos;
+            selected_tick = tick_it->tick;
+            m_selected_tick = true;
+        }
+
+        //draw pause icon
+        if (tick_it->type == PausePrint && selected_tick != tick_it->tick) {
+            std::wstring pause_btn_name = ImGui::GcodePauseIcon + boost::nowide::widen(std::string(""));
+            if (button_with_pos(into_u8(pause_btn_name).c_str(), btn_size, ImVec2(main_band.GetCenter().x - btn_offset - btn_size.x / 2, tick_pos - btn_size.y / 2)))
+            {
+                int i = 0;
+                //TODO:pause button reaction
+            }
+        }
+        ImGui::PopID();
+        ++tick_it;
+    }
+
+    //draw delete_tick icon
+    if (m_selected_tick) {
+        std::wstring tick_close_btn_name = ImGui::TickCloseIcon + boost::nowide::widen(std::string(""));
+        if (button_with_pos(into_u8(tick_close_btn_name).c_str(), btn_size, ImVec2(main_band.GetCenter().x - btn_offset - btn_size.x / 2, selected_tick_pos - btn_size.y / 2)))
+        {
+            //delete tick
+            auto it = m_ticks.ticks.find(TickCode{ selected_tick });
+            if (it != m_ticks.ticks.end() && check_ticks_changed_event(it->type)) {
+                Type type = it->type;
+                m_ticks.ticks.erase(it);
+                post_ticks_changed_event(type);
+            }
+
+            m_selected_tick = false;
+        }
+    }
+}
+
 bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower_value, std::string& higher_label, std::string& lower_label,
-    int v_min, int v_max, ImVec2 size, int selection, bool one_layer_flag, float scale)
+    int v_min, int v_max, ImVec2 size, SelectedSlider& selection, bool one_layer_flag, float scale)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     ImGui::SetWindowFontScale(1.0f / scale);
@@ -941,10 +891,6 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
     float line_offset = 4.0f;
     float right_blank = 3.0f;
     float half_edge = 8.0f;     // triangle half edge
-    float btn_offset = 35.0f;
-    float tick_offset = 12.0f;
-    ImVec2 btn_size = ImVec2(16.0f, 16.0f);
-    ImVec2 tick_size = ImVec2(20.0f, 4.0f);
     ImVec2 pos = window->DC.CursorPos;
     const ImRect draw_region(pos, pos + size);
     ImGui::ItemSize(draw_region);
@@ -977,7 +923,7 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
 
     // set active(draggable) region.
     const bool hovered = ImGui::ItemHoverable(slideable_region, id);
-    if (hovered) {
+    if (hovered && context.IO.MouseDown[0]) {
         ImGui::SetActiveID(id, window);
         ImGui::SetFocusID(id, window);
         ImGui::FocusWindow(window);
@@ -1001,92 +947,10 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
 
     ImRect triangle_handle = ImRect(ImVec2(middle_center.x - half_edge * 1.73f, middle_center.y - half_edge), ImVec2(middle_center.x, middle_center.y + half_edge));
 
-
     // draw colored band
-    if (m_draw_mode == dmRegular) {
-        auto draw_band = [](const ImU32& clr, const ImRect& band_rc)
-        {
-            ImGui::RenderFrame(band_rc.Min, band_rc.Max, clr, false);
-        };
-
-        // don't color a band for MultiExtruder mode
-        if (!m_ticks.empty() && m_mode != MultiExtruder) {
-
-            ImRect band_rect(ImVec2(bg_rect.Min.x, scroll_rect.Min.y), ImVec2(bg_rect.Max.x, scroll_rect.Max.y));
-
-            const int default_color_idx = m_mode == MultiAsSingle ? std::max<int>(m_only_extruder - 1, 0) : 0;
-            std::array<float, 4>rgba = decode_color_to_float_array(m_extruder_colors[default_color_idx]);
-            ImU32 band_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
-            draw_band(band_clr, band_rect);
-
-            static float selected_tick_pos;
-            static int selected_tick;
-            std::set<TickCode>::const_iterator tick_it = m_ticks.ticks.begin();
-            while (tick_it != m_ticks.ticks.end())
-            {
-                //get position from tick
-                float tick_pos_ratio = (v_max - v_min) != 0 ? ((float)(tick_it->tick - v_min) / (float)(v_max - v_min)) : 0.0f;
-                tick_pos_ratio = 1.0f - tick_pos_ratio;
-                float  tick_pos = slideable_region.Min.y + (slideable_region.Max.y - slideable_region.Min.y) * tick_pos_ratio;
-
-                //draw colored band
-                if (tick_it->type == ToolChange) {
-                    if ((m_mode == SingleExtruder) || (m_mode == MultiAsSingle))
-                    {
-                        //TODO:band_rect width need to be ajusted
-                        band_rect = ImRect(ImVec2(bg_rect.Min.x, scroll_rect.Min.y), ImVec2(bg_rect.Max.x, tick_pos));
-
-                        const std::string clr_str = m_mode == SingleExtruder ? tick_it->color : get_color_for_tool_change_tick(tick_it);
-
-                        if (!clr_str.empty()) {
-                            std::array<float, 4>rgba = decode_color_to_float_array(clr_str);
-                            ImU32 band_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
-                            draw_band(band_clr, band_rect);
-                        }
-                    }
-                }
-
-                //draw tick
-                std::wstring tick_btn_name = ImGui::TickIcon + boost::nowide::widen(std::string(""));
-                ImVec2 tick_start_pos(bg_rect.GetCenter().x - tick_offset - tick_size.x / 2, tick_pos - tick_size.y / 2);
-                if (button_with_pos(into_u8(tick_btn_name).c_str(), tick_size, tick_start_pos, ImGuiButtonFlags_PressedOnRelease)) {
-                    //record clicked tick
-                    selected_tick_pos = tick_pos;
-                    selected_tick = tick_it->tick;
-                    m_selected_tick = true;
-                }
-
-                //draw pause icon
-                if (tick_it->type == PausePrint && selected_tick != tick_it->tick) {
-                    std::wstring pause_btn_name = ImGui::GcodePauseIcon + boost::nowide::widen(std::string(""));
-                    if (button_with_pos(into_u8(pause_btn_name).c_str(), btn_size, ImVec2(bg_rect.GetCenter().x - btn_offset - btn_size.x / 2, tick_pos - btn_size.y / 2)))
-                    {
-                        int i = 0;
-                        //TODO:pause button reaction
-                    }
-                }
-                ++tick_it;
-            }
-
-            //draw delete_tick icon
-            if (m_selected_tick) {
-                std::wstring tick_close_btn_name = ImGui::TickCloseIcon + boost::nowide::widen(std::string(""));
-                if (button_with_pos(into_u8(tick_close_btn_name).c_str(), btn_size, ImVec2(bg_rect.GetCenter().x - btn_offset - btn_size.x / 2, selected_tick_pos - btn_size.y / 2)))
-                {
-                    //delete tick
-                    auto it = m_ticks.ticks.find(TickCode{ selected_tick });
-                    if (it != m_ticks.ticks.end() && check_ticks_changed_event(it->type)) {
-                        Type type = it->type;
-                        m_ticks.ticks.erase(it);
-                        post_ticks_changed_event(type);
-                    }
-
-                    m_selected_tick = false;
-                }
-            }
-        }
-    }
-
+    ImRect main_band(ImVec2(bg_rect.Min.x, scroll_rect.Min.y), ImVec2(bg_rect.Max.x, scroll_rect.Max.y));
+    render_colored_band(pos, main_band);
+   
 
     bool value_changed = false;
     const ImU32 handle_and_line_col = IM_COL32(0, 174, 66, 255);
@@ -1099,24 +963,28 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         lower_handle_clicked = (ImGui::ItemHoverable(lower_handle, id) && context.IO.MouseClicked[0]);
 
         // select higher handle by default
-        static bool selected_h = true;
-        if (higher_handle_clicked) { selected_h = true; }
-        if (lower_handle_clicked) { selected_h = false; }
+        if (selection == ssUndef) { selection = ssHigher; }
+        if (higher_handle_clicked) { selection = ssHigher; }
+        if (lower_handle_clicked) { selection = ssLower; }
 
         // update handle position and value
-        value_changed = slider_behavior(id, selected_h ? higher_slideable_region : lower_slideable_region, v_min, v_max,
-            selected_h ? higher_value : lower_value, selected_h ? &higher_handle : &lower_handle, ImGuiSliderFlags_Vertical);
+        if (selection == ssHigher)
+            value_changed = slider_behavior(id, higher_slideable_region, v_min, v_max,
+                higher_value, &higher_handle, ImGuiSliderFlags_Vertical);
+        if (selection == ssLower)
+            value_changed = slider_behavior(id, lower_slideable_region, v_min, v_max,
+                lower_value, &lower_handle, ImGuiSliderFlags_Vertical);
 
         higher_handle_center = higher_handle.GetCenter();
         lower_handle_center = lower_handle.GetCenter();
-        if (higher_handle_center.y + offset_of_handle > lower_handle_center.y && selected_h)
+        if (higher_handle_center.y + offset_of_handle > lower_handle_center.y && selection == ssHigher)
         {
             lower_handle = higher_handle;
             lower_handle.TranslateY(offset_of_handle);
             lower_handle_center.y = higher_handle_center.y + offset_of_handle;
             *lower_value = *higher_value;
         }
-        if (higher_handle_center.y + offset_of_handle > lower_handle_center.y && !selected_h)
+        if (higher_handle_center.y + offset_of_handle > lower_handle_center.y && selection == ssLower)
         {
             higher_handle = lower_handle;
             higher_handle.TranslateY(-offset_of_handle);
@@ -1125,12 +993,10 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         }
 
         // judge whether to open menu
-        if (context.IO.MouseClicked[1] || context.IO.MouseClicked[0]) {
-            if (is_clicked_in_rect(id, selected_h ? higher_handle : lower_handle, false))
-                m_show_menu = true;
-            else
-                m_show_menu = false;
-        }
+        if (is_clicked_in_rect(selection == ssHigher ? higher_handle : lower_handle, 1) == ClickedIn)
+            m_show_menu = true;
+        if (is_clicked_in_rect(selection == ssHigher ? higher_handle : lower_handle, 1) == ClickedOut)
+            m_show_menu = false;
 
         // draw slider border
         const ImRect scroll_line(ImVec2(scroll_rect.Min.x, higher_handle_center.y), ImVec2(scroll_rect.Max.x, lower_handle_center.y));
@@ -1143,11 +1009,11 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         window->DrawList->AddNgonFilled(lower_handle_center, offset_of_handle, handle_and_line_col, 4);
 
         //draw cross lines
-        if (selected_h) {
+        if (selection == ssHigher) {
             window->DrawList->AddLine(higher_handle_center + ImVec2(-line_offset, 0.0f), higher_handle_center + ImVec2(line_offset, 0.0f), IM_COL32(255, 255, 255, 255));
             window->DrawList->AddLine(higher_handle_center + ImVec2(0.0f, -line_offset), higher_handle_center + ImVec2(0.0f, line_offset), IM_COL32(255, 255, 255, 255));
         }
-        if (!selected_h) {
+        if (selection == ssLower) {
             window->DrawList->AddLine(lower_handle_center + ImVec2(-line_offset, 0.0f), lower_handle_center + ImVec2(line_offset, 0.0f), IM_COL32(255, 255, 255, 255));
             window->DrawList->AddLine(lower_handle_center + ImVec2(0.0f, -line_offset), lower_handle_center + ImVec2(0.0f, line_offset), IM_COL32(255, 255, 255, 255));
         }
@@ -1179,12 +1045,11 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         middle_center.y = triangle_center.y;
 
         // judge whether to open menu
-        if (context.IO.MouseClicked[1] || context.IO.MouseClicked[0]) {
-            if (is_clicked_in_rect(id, triangle_handle, false))
-                m_show_menu = true;
-            else
-                m_show_menu = false;
-        }
+        if (is_clicked_in_rect(triangle_handle, 1) == ClickedIn)
+            m_show_menu = true;
+        if (is_clicked_in_rect(triangle_handle, 1) == ClickedOut)
+            m_show_menu = false;
+        
         // draw handle
         ImVec2 pos_1 = triangle_center - ImVec2(0.5f * half_edge * 1.73f, half_edge);
         ImVec2 pos_2 = triangle_center - ImVec2(0.5f * half_edge * 1.73f, -half_edge);
@@ -1239,7 +1104,7 @@ bool IMSlider::render(int canvas_width, int canvas_height)
         imgui.set_next_window_pos(pos_x, pos_y, ImGuiCond_Always);
         imgui.begin(std::string("moves_slider"), windows_flag);
         int value = GetHigherValue();
-        if (horizontal_slider("moves_slider", &value, GetMinValue(), GetMaxValue(), size, (int)m_selection, scale)) {
+        if (horizontal_slider("moves_slider", &value, GetMinValue(), GetMaxValue(), size, scale)) {
             result = true;
             SetHigherValue(value);
         }
@@ -1267,7 +1132,7 @@ bool IMSlider::render(int canvas_width, int canvas_height)
         int temp_higher_value    = higher_value;
         int temp_lower_value     = lower_value;
         if (vertical_slider("laysers_slider", &higher_value, &lower_value, higher_label, lower_label, GetMinValue(), GetMaxValue(),
-                  size, (int) m_selection, is_one_layer(), scale)) {
+                  size, m_selection, is_one_layer(), scale)) {
             if (temp_higher_value != higher_value)
                 SetHigherValue(higher_value);
             if (temp_lower_value != lower_value)
@@ -1309,11 +1174,10 @@ void IMSlider::render_menu()
 
         if (ImGui::BeginMenu(_u8L("Change Filament").c_str())) {
             for (int i = 0; i < extruder_num; i++) {
-                bool filament_selected = false;
-                ImGui::MenuItem((_u8L("Filament ") + std::to_string(i+1)).c_str(), "", &filament_selected);
-                if (filament_selected) {
-                    add_code_as_tick(ToolChange, i+1);
-                }
+                std::array<float, 4>rgba = decode_color_to_float_array(colors[i]);
+                ImU32 icon_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
+                if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", icon_clr, false, true))
+                    add_code_as_tick(ToolChange, i + 1);
             }
             ImGui::EndMenu();
         }
