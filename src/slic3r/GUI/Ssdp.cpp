@@ -561,6 +561,21 @@ int parse_field_line(const char* data, size_t start, size_t end, lssdp_packet* p
 		return 0;
 	}
 
+    if (field_len == strlen("DevModel.bambu.com") && strncmp(field, "DevModel.bambu.com", field_len) == 0) {
+        memcpy(packet->printer_type, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
+		return 0;
+    }
+
+    if (field_len == strlen("DevName.bambu.com") && strncmp(field, "DevName.bambu.com", field_len) == 0) {
+        memcpy(packet->printer_name, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
+		return 0;
+    }
+
+    if (field_len == strlen("DevSignal.bambu.com") && strncmp(field, "DevSignal.bambu.com", field_len) == 0) {
+        memcpy(packet->printer_signal, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
+		return 0;
+    }
+
 	if (field_len == strlen("sm_id") && strncmp(field, "sm_id", field_len) == 0) {
 		memcpy(packet->sm_id, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
 		return 0;

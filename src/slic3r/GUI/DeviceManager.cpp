@@ -688,6 +688,141 @@ int MachineObject::command_bind()
     return this->publish_json(json_str);
 }
 
+int MachineObject::_parse_login_report(std::string json_str, std::string fail_reason)
+{
+    try {
+        json j = json::parse(json_str);
+        if (j["login"]["command"].get<std::string>() == "login_report") {
+            std::string status      = j["login"]["status"].get<std::string>();
+            if (status == "SUCCESS") {
+                return 0;
+            } else if (status == "wait_auth") {
+                // continue to wait
+                return 1;
+            } else {
+                fail_reason = j["login"]["reason"].get<std::string>();
+                return -1;
+            }
+        }
+    }
+    catch(...) {
+    }
+    return -1;
+}
+
+
+
+int MachineObject::command_new_bind()
+{
+    int result = 0;
+
+    login_ticket = "";
+    result = local_connect();
+    if (result < 0) {
+        BOOST_LOG_TRIVIAL(trace) << "login_bind: local connect failed!";
+        return result;
+    }
+
+    std::string login_request = build_login_request();
+    result = local_client->publish(login_request);
+    if (result < 0) {
+        BOOST_LOG_TRIVIAL(trace) << "login_bind: send login request failed, str = " << login_request;
+        local_disconnect();
+        return result;
+    }
+
+    std::string json_str;
+    bool timeout = false;
+    int recv_count = 0;
+    while (!timeout) {
+        result = local_client->recv(json_str);
+        if (!json_str.empty() && result >= 0) {
+            try {
+                BOOST_LOG_TRIVIAL(trace) << "login_bind: json_str = " << json_str;
+                json j = json::parse(json_str);
+                if (j.contains("login") && !j["login"].is_null()) {
+                    if (j["login"]["command"].get<std::string>() == "login_report") {
+                        login_ticket       = j["login"]["ticket"].get<std::string>();
+                        std::string status = j["login"]["status"].get<std::string>();
+                        if (status.compare("wait_auth") == 0 && !login_ticket.empty()) {
+                            break;
+                        }
+                    }
+                }
+            } catch (...) {
+                ;
+            }
+        }
+        recv_count++;
+        if (recv_count > 10) {
+            timeout = true;
+        }
+    }
+
+    if (timeout || login_ticket.empty()) {
+        local_disconnect();
+        return -1;
+    }
+
+    unsigned int http_code = 0;
+    std::string http_body;
+
+    result = acc_.get_ticket(login_ticket, http_code, http_body);
+    if (result < 0) {
+        BOOST_LOG_TRIVIAL(trace) << "login_bind: http_code = " << http_code << ", http_body = " << http_body;
+        local_disconnect();
+        return -1;
+    }
+
+    result = acc_.post_ticket(login_ticket, http_code, http_body);
+    if (result < 0) {
+        BOOST_LOG_TRIVIAL(trace) << "login_bind: http_code = " << http_code << ", http_body = " << http_body;
+        local_disconnect();
+        return -1;
+    }
+
+    timeout = false;
+    recv_count = 0;
+    while (!timeout) {
+        boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
+        result = local_client->recv(json_str);
+        if (result >= 0) {
+            BOOST_LOG_TRIVIAL(trace) << "login_bind: json_str = " << json_str;
+            std::string fail_reason;
+            result = _parse_login_report(json_str, fail_reason);
+            if (result < 0) {
+                break;
+            } else if (result == 0) {
+                break;
+            } else if (result == 1) {
+                ;// continue
+            }
+        }
+        recv_count++;
+        if (recv_count > 20) { timeout = true; }
+    }
+    if (timeout) {
+        local_disconnect();
+        return -1;
+    }
+
+    local_disconnect();
+    return 0;
+}
+
+std::string MachineObject::build_login_request()
+{
+    json j;
+    j["login"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["login"]["command"]     = "login";
+    j["login"]["wifi"]        = "CN";
+    j["login"]["tutk"]        = "ASIA";
+    j["login"]["iot"]         = "https://api-qa.bambu-lab.com/v1";
+    j["login"]["emqx"]        = "ssl://47.100.225.51:8883";
+    return j.dump();
+}
+
+
 int MachineObject::command_unbind()
 {
     std::string user_id = acc_.get_user_id();
@@ -713,6 +848,31 @@ void MachineObject::set_callbacks(SuccessFn sFn, FailedFn fFn, LostFn lFn)
     successFn = sFn;
     failedFn = fFn;
     lostFn = lFn;
+}
+
+int MachineObject::local_connect()
+{
+    int result = 0;
+    if (!check_valid_ip()) {
+        if (failedFn) { failedFn("Invalid IP!"); }
+        return -1;
+    }
+
+    local_client = new LocalClient();
+    if (!local_client)
+        return -1;
+
+    result = local_client->connect(dev_ip, LOCAL_COMMU_PORT);
+
+    return result;
+}
+
+int MachineObject::local_disconnect()
+{
+    int result = 0;
+    if (local_client)
+        result = local_client->disconnect();
+    return result;
 }
 
 int MachineObject::connect()
@@ -1827,12 +1987,11 @@ DeviceManager::DeviceManager(AccountManager& acc, CommuBackend& backend)
 DeviceManager::~DeviceManager()
 {
     if (m_check_alive_quit) return;
-
     m_check_alive_quit = true;
     m_device_check_alive.try_join_for(boost::chrono::milliseconds(200));
 }
 
-void DeviceManager::on_machine_alive(std::string dev_name, std::string dev_id, std::string dev_ip)
+void DeviceManager::on_machine_alive(std::string dev_name, std::string dev_id, std::string dev_ip, std::string printer_type_str, std::string printer_signal)
 {
     std::lock_guard<std::mutex> lock(listMutex);
     MachineObject* obj;
@@ -1849,15 +2008,19 @@ void DeviceManager::on_machine_alive(std::string dev_name, std::string dev_id, s
                 obj->reconnect();
             }
         }
+        //obj->wifi_signal = printer_signal;
+        BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery:: Update Machine Info, printer_sn = " << dev_id << ", signal = " << printer_signal;
         obj->last_alive = Slic3r::Utils::get_current_time_utc();
         obj->is_alive = true;
     }
     else {
-        // add new machine
+        /* insert a new machine */
         obj = new MachineObject(acc_, dev_name, dev_id, dev_ip);
+        obj->printer_type = MachineObject::parse_printer_type(printer_type_str);
+        //obj->wifi_signal = printer_signal;
         localMachineList.insert(std::make_pair(dev_id, obj));
 
-        /* insert a new machine */
+        BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery::New Machine, ip = " << dev_ip << ", printer_name= " << dev_name << ", printer_type = " << printer_type_str << ", signal = " << printer_signal;
     }
 }
 

@@ -56,6 +56,9 @@ struct lssdp_packet {
     /* Additional SSDP Header Fields */
     char            sm_id[LSSDP_FIELD_LEN];
     char            device_type[LSSDP_FIELD_LEN];
+    char            printer_type[LSSDP_FIELD_LEN];
+    char            printer_name[LSSDP_FIELD_LEN];
+    char            printer_signal[LSSDP_FIELD_LEN];
     long long       update_time;
 };
 

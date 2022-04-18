@@ -62,6 +62,39 @@ namespace Slic3r {
         }
     }
 
+    void SsdpDiscovery::parse_sdp_message(const char *rece_buff, unsigned int recv_size)
+    {
+#if defined(__WINDOWS__)
+        lssdp_packet packet;
+        memset(&packet, 0, sizeof(packet));
+        int result = lssdp_packet_parser(rece_buff, recv_size, &packet);
+        if (result >= 0) {
+            if (strncmp(packet.st, SDP_BBL_DEVICE, strlen(SDP_BBL_DEVICE)) == 0) {
+                try {
+                    // set printer name to local ip by default
+                    std::string printer_name = packet.printer_name;
+                    std::string printer_type = packet.printer_type;
+                    std::string printer_signal = packet.printer_signal;
+                    std::string printer_ip   = std::string(packet.location);
+                    std::string printer_dev_id = std::string(packet.usn);
+                    Slic3r::DeviceManager *device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+                    if (device_manager) {
+                        device_manager->on_machine_alive(printer_name, printer_dev_id, printer_ip, printer_type, printer_signal);
+                    }
+                } catch (std::exception &e) {
+                    BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::parse_sdp_message, exception=" << e.what();
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::parse_sdp_message, exception!";
+                }
+            } else {
+                BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery: mismatch packet.st = " << packet.st;
+            }
+        } else {
+            BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery: lssdp_packet_parser error = " << result;
+        }
+#endif
+    }
+
 #if defined(__WINDOWS__)
     int SsdpDiscovery::send_msg(int card_no)
     {
@@ -77,48 +110,26 @@ namespace Slic3r {
 
     void SsdpDiscovery::recv_sdp_msg(int card_no)
     {
-        char rece_buff[BUFSIZE];
-        int recv_size;
-        lssdp_packet packet;
+        char buff[BUFSIZE];
+        int size;
         while (!sdp_quit) {
-            memset(&packet, 0, sizeof(packet));
-            memset(rece_buff, 0, BUFSIZE);
-            bbl_read_from_ssdp(ssdp_sock_list[card_no], rece_buff, &recv_size, BUFSIZE);
-            if (sdp_quit) return;
-            int result = lssdp_packet_parser(rece_buff, recv_size, &packet);
-            if (result >= 0) {
-                BOOST_LOG_TRIVIAL(trace) << "Location=" << packet.location << ", USN=" << packet.usn << ", ST=" << packet.st;
-                if (strncmp(packet.st, SDP_BBL_DEVICE, strlen(SDP_BBL_DEVICE)) == 0) {
-                    if (strlen(packet.usn) < strlen(SDP_BBL_DEVICE)) {
-                        this->on_sdp_alive(std::string(packet.usn), std::string(packet.location));
-                    }
-                    else {
-                        BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::recv_sdp_msg, invalid device_id!";
-                    }
-                }
-            }
+            memset(buff, 0, BUFSIZE);
+            bbl_read_from_ssdp(ssdp_sock_list[card_no], buff, &size, BUFSIZE);
+            parse_sdp_message(buff, size);
             boost::this_thread::sleep_for(boost::chrono::milliseconds(200));
         }
     }
 
     void SsdpDiscovery::recv_broadcast_msg(int card_no)
     {
-        char rece_buff[BUFSIZE];
-        int recv_size;
+        char buff[BUFSIZE];
+        int size;
         lssdp_packet packet;
         while (!sdp_quit) {
             memset(&packet, 0, sizeof(packet));
-            memset(rece_buff, 0, BUFSIZE);
-            bbl_read_from_broadcast(broadcast_sock_list[card_no], rece_buff, &recv_size, BUFSIZE);
-            if (sdp_quit) return;
-            int result = lssdp_packet_parser(rece_buff, recv_size, &packet);
-            if (result >= 0) {
-                if (strncmp(packet.st, SDP_BBL_DEVICE, strlen(SDP_BBL_DEVICE)) == 0) {
-                    if (strlen(packet.usn) < strlen(SDP_BBL_DEVICE)) {
-                        this->on_sdp_alive(std::string(packet.usn), std::string(packet.location));
-                    }
-                }
-            }
+            memset(buff, 0, BUFSIZE);
+            bbl_read_from_broadcast(broadcast_sock_list[card_no], buff, &size, BUFSIZE);
+            parse_sdp_message(buff, size);
             boost::this_thread::sleep_for(boost::chrono::milliseconds(200));
         }
     }
@@ -266,6 +277,143 @@ namespace Slic3r {
 #endif
         return;
     }
+
+#if defined(__WINDOWS__)
+    int LocalClient::PRO_EXTRA_SIZE = LocalClient::PRO_HEADER_SIZE + LocalClient::PRO_LENGTH_SIZE + LocalClient::PRO_TAIL_SIZE;
+    LocalClient::LocalClient()
+    {
+    }
+
+    int LocalClient::publish(std::string json_str)
+    {
+        // do not publish a msg larger than 1k
+        char buf[MAX_PROTOCAL_MSG_LENGTH];
+        buf[0] = 0xA5;
+        buf[1] = 0xA5;
+        short msg_len = LocalClient::PRO_EXTRA_SIZE + json_str.length();
+        memcpy(&buf[LocalClient::PRO_HEADER_SIZE], &msg_len, LocalClient::PRO_HEADER_SIZE);
+        memcpy(&buf[LocalClient::PRO_HEADER_SIZE + LocalClient::PRO_LENGTH_SIZE], json_str.c_str(), json_str.length());
+        buf[json_str.length() + LocalClient::PRO_HEADER_SIZE + LocalClient::PRO_LENGTH_SIZE + 0] = 0xA7;
+        buf[json_str.length() + LocalClient::PRO_HEADER_SIZE + LocalClient::PRO_LENGTH_SIZE + 1] = 0xA7;
+
+        return send(buf, msg_len);
+    }
+
+    int LocalClient::connect(std::string server_ip, int port)
+    {
+        // init win socket
+        WORD sockVersion = MAKEWORD(2, 2);
+        WSADATA wsaData;
+        if (WSAStartup(sockVersion, &wsaData) != 0)
+            return -1;
+
+        struct addrinfo *result = NULL, *ptr = NULL, hints;
+
+        ZeroMemory(&hints, sizeof(hints));
+        hints.ai_family = AF_UNSPEC;
+        hints.ai_socktype = SOCK_STREAM;
+        hints.ai_protocol = IPPROTO_TCP;
+
+        int iResult = getaddrinfo(server_ip.c_str(), std::to_string(port).c_str(), &hints, &result);
+        if (iResult != 0) {
+            BOOST_LOG_TRIVIAL(trace) << "login_bind: getaddrinfo failed!";
+            WSACleanup();
+            return -1;
+        }
+
+        ptr = result;
+        ConnectSocket = INVALID_SOCKET;
+        ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
+        if (ConnectSocket == INVALID_SOCKET) {
+            BOOST_LOG_TRIVIAL(trace) << "login_bind: socket failed!";
+            WSACleanup();
+            return -2;
+        }
+
+        int recvTimeout = 2 * 1000;
+        setsockopt(ConnectSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&recvTimeout, sizeof(int));
+        
+        iResult = ::connect(ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
+        if (iResult == SOCKET_ERROR) {
+            BOOST_LOG_TRIVIAL(trace) << "login_bind: connect failed!";
+            closesocket(ConnectSocket);
+            ConnectSocket = INVALID_SOCKET;
+        }
+
+        freeaddrinfo(result);
+
+        if (ConnectSocket == INVALID_SOCKET) {
+            WSACleanup();
+            return -1;
+        }
+
+        return 0;
+    }
+
+    int LocalClient::disconnect()
+    {
+        int iResult = shutdown(ConnectSocket, SD_SEND);
+        if (iResult == SOCKET_ERROR) {
+            closesocket(ConnectSocket);
+            WSACleanup();
+            return -1;
+        }
+        return 0;
+    }
+
+    int LocalClient::send(const char *buf, unsigned int size)
+    {
+        int iResult = ::send(ConnectSocket, buf, size, 0);
+        if (iResult == SOCKET_ERROR) {
+            printf("send failed: %d\n", WSAGetLastError());
+            closesocket(ConnectSocket);
+            WSACleanup();
+            return 1;
+        }
+
+        return 0;
+    }
+
+    int LocalClient::recv(std::string &json_str)
+    {
+        int iResult = 0;
+        char buf[1024];
+        int    size = 1024;
+        iResult = ::recv(ConnectSocket, buf, size, 0);
+        if (iResult > 0) {
+            BOOST_LOG_TRIVIAL(trace) << "login_bind: recv bytes = " << iResult;
+            unsigned int idx = 0;
+            while (iResult - idx > LocalClient::PRO_EXTRA_SIZE) {
+                if ((unsigned char)buf[idx] == 0xA5 && (unsigned char)buf[idx + 1] == 0xA5) {
+                    short msg_len = 0;
+                    memcpy(&msg_len, &buf[idx + LocalClient::PRO_HEADER_SIZE], LocalClient::PRO_LENGTH_SIZE);
+                    BOOST_LOG_TRIVIAL(trace) << "login_bind: parse msg_len = " << msg_len;
+                    if (msg_len >= LocalClient::PRO_EXTRA_SIZE && msg_len <= iResult - idx) {
+                        if ((unsigned char)buf[idx + msg_len - 1] == 0xA7 && (unsigned char)buf[idx + msg_len - 2] == 0xA7) {
+                            json_str = std::string((char *) &buf[idx + LocalClient::PRO_HEADER_SIZE + LocalClient::PRO_LENGTH_SIZE], msg_len - LocalClient::PRO_EXTRA_SIZE);
+                            return 0;
+                        } else {
+                            BOOST_LOG_TRIVIAL(trace) << "login_bind: invalid proto format";
+                        }
+                    } else {
+                        BOOST_LOG_TRIVIAL(trace) << "login_bind: invalid msg_len = " << msg_len;
+                    }
+                } else {
+                    BOOST_LOG_TRIVIAL(trace) << "login_bind: header is not match, buf 0/1 = " << (int)buf[idx] <<" "<< (int)buf[idx+1];
+                }
+
+                idx += 2;
+            }
+            return -1;
+        } else if (iResult == 0) {
+            return 0;
+        } else {
+            BOOST_LOG_TRIVIAL(trace) << "login_bind: recv last error = " << WSAGetLastError();
+            return -1;
+        }
+        return 1;
+    }
+#endif
 
     CommuBackend::CommuBackend()
     {

@@ -2626,7 +2626,6 @@ namespace Slic3r {
 
         std::string url = (boost::format("%1%/user-service/my/task") % host).str();
 
-        std::vector<std::string> params;
         std::string post_body_str = json_request_body_post_subtask(project, profile, task);
         if (post_body_str.empty()) return -1;
 
@@ -2650,6 +2649,75 @@ namespace Slic3r {
                     http_body = body;
                 }
             )
+            .perform_sync();
+        return result;
+    }
+
+    int AccountManager::get_ticket(std::string ticket, unsigned int &http_code, std::string &http_body)
+    {
+        if (ticket.empty()) return -1;
+
+        int         result = -1;
+        std::string url = (boost::format("%1%/user-service/my/ticket/%2%") % host % ticket).str();
+        Http        http = Http::get(url);
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .header("Content-Type", "application/json")
+            .on_complete([this, &result, &http_code, &http_body](std::string body, unsigned status) {
+                http_code = status;
+                http_body = body;
+                if (http_code == 200) {
+                    try {
+                        json j = json::parse(body);
+                        if (j.contains("isValid")) {
+                            if (j["isValid"].get<bool>() == true) {
+                                result = 0;
+                            }
+                        }
+                    }
+                    catch(...) {
+                        ;
+                    }
+                }
+            })
+            .on_error([this, &result, &http_code, &http_body](std::string body, std::string error, unsigned status) {
+                result    = -1;
+                http_code = status;
+                http_body = body;
+            })
+            .perform_sync();
+        return result;
+    }
+
+    int AccountManager::post_ticket(std::string ticket, unsigned int &http_code, std::string &http_body)
+    {
+        if (ticket.empty()) return -1;
+
+        int result = -1;
+
+        json j;
+        j["ticket"]          = ticket;
+        std::string json_str = j.dump();
+        std::string url = (boost::format("%1%/user-service/my/ticket/%2%") % host % ticket).str();
+
+        std::string              post_body_str = j.dump();
+        if (post_body_str.empty()) return -1;
+
+        Http http = Http::post(url);
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .header("Content-Type", "application/json")
+            .set_post_body(post_body_str)
+            .on_complete([this, &result, &http_code, &http_body](std::string body, unsigned status) {
+                http_code = status;
+                http_body = body;
+                if (http_code == 200) result = 0;
+            })
+            .on_error([this, &result, &http_code, &http_body](std::string body, std::string error, unsigned status) {
+                result    = -1;
+                http_code = status;
+                http_body = body;
+            })
             .perform_sync();
         return result;
     }

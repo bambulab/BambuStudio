@@ -12,7 +12,12 @@
 #include "AccountManager.hpp"
 #include "libslic3r/ProjectTask.hpp"
 
+#define USE_LOCAL_SOCKET_BIND 0
+
 #define DISCONNECT_TIMEOUT      10000.f     // milliseconds
+
+#define LOCAL_COMMU_PORT        3000
+#define DEBUG_COMMU_PORT        5000
 
 #define FILAMENT_MAX_TEMP       300
 #define FILAMENT_DEF_TEMP       220
@@ -26,7 +31,6 @@ inline int correct_filament_temperature(int filament_temp)
 }
 
 namespace Slic3r {
-
 
 enum PRINTER_TYPE {
     PRINTER_3DPrinter_UKNOWN,
@@ -378,6 +382,12 @@ public:
     FailedFn failedFn;
     LostFn lostFn;
 
+    /* local communicate */
+    std::string login_ticket;
+    LocalClient *local_client { nullptr };  // client for bind progress
+    LocalClient *debug_client { nullptr };  // client for debug connections
+
+
     /* Msg for display MsgFn */
     MsgFn msg_send_fn;
     MsgFn msg_recv_fn;
@@ -447,11 +457,21 @@ public:
     int command_bind();
     int command_unbind();
 
+    // new bind progress
+    int command_new_bind();
+    std::string build_login_request();
+    int _parse_login_report(std::string json_str, std::string fail_reason);
+
+    /* machine local client apis */
+    int local_connect();
+    int local_disconnect();
+
     /* machine mqtt apis */
     void set_callbacks(SuccessFn sFn, FailedFn fFn, LostFn lFn);
     int connect();
     int disconnect();
     int reconnect();
+
     bool is_connected();
     void set_online_state(bool on_off);
     bool is_online() { return m_is_online; }
@@ -518,7 +538,7 @@ public:
     std::string default_machine;    /* dev_id */
 
     /* create machine or update machine properties */
-    void on_machine_alive(std::string dev_name, std::string dev_id, std::string dev_ip);
+    void on_machine_alive(std::string dev_name, std::string dev_id, std::string dev_ip, std::string printer_type_str = "", std::string printer_signal = "");
     /* disconnect all machine connections */
     void disconnect_all();
     void query_bind_status(AccountManager::CompletedFn cFn, AccountManager::ErrorFn errFn);

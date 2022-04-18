@@ -274,6 +274,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/ProgressIndicator.hpp
     GUI/Jobs/PrintJob.hpp
     GUI/Jobs/PrintJob.cpp
+    GUI/Jobs/BindJob.hpp
+    GUI/Jobs/BindJob.cpp
     GUI/Jobs/NotificationProgressIndicator.hpp
     GUI/Jobs/NotificationProgressIndicator.cpp
     GUI/ProgressStatusBar.hpp
@@ -321,6 +323,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/DebugToolDialog.hpp
     GUI/PublishDialog.cpp
     GUI/PublishDialog.hpp
+    GUI/BindDialog.cpp
+    GUI/BindDialog.hpp
     GUI/AccountManager.hpp
     GUI/AccountManager.cpp
     GUI/LoginDialog.hpp

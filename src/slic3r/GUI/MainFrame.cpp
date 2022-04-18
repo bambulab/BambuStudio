@@ -40,6 +40,7 @@
 #include "PartPlate.hpp"
 #include "Preferences.hpp"
 #include "Widgets/ProgressDialog.hpp"
+#include "BindDialog.hpp"
 
 #include <fstream>
 #include <string_view>
@@ -1433,6 +1434,15 @@ static wxMenu* generate_help_menu()
     // Open Config Folder
     append_menu_item(helpMenu, wxID_ANY, _L("Show Configuration Folder"), _L("Show Configuration Folder"),
         [](wxCommandEvent&) { Slic3r::GUI::desktop_open_datadir_folder(); });
+
+#if !BBL_RELEASE_TO_PUBLIC
+    append_menu_item(helpMenu, wxID_ANY, _L("Bind Dialog"), _L("Bind Dialog"),
+        [](wxCommandEvent&) {
+            BindDialog dialog(wxGetApp().plater());
+            dialog.ShowModal();
+        });
+#endif
+
     // Report a bug
     //append_menu_item(helpMenu, wxID_ANY, _L("Report Bug(TODO)"), _L("Report a bug of BambuStudio"),
     //    [](wxCommandEvent&) {

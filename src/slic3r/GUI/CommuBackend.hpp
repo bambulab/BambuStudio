@@ -48,8 +48,58 @@ public:
     void start_discover();
     void stop_discover();
     void on_sdp_alive(std::string dev_id, std::string dev_ip);
+    void parse_sdp_message(const char *rece_buff, unsigned int recv_size);
     void set_keep_sending(bool sending) { keep_sending = sending; }
 };
+
+
+// LocalClient for communicate with printer
+
+#define MAX_PROTOCAL_MSG_LENGTH     1024
+
+#if defined(__WINDOWS__)
+class LocalClient
+{
+private:
+    SOCKET ConnectSocket;
+
+public:
+    LocalClient();
+
+    static const int PRO_HEADER_SIZE = 2;
+    static const int PRO_LENGTH_SIZE = 2;
+    static const int PRO_TAIL_SIZE   = 2;
+    static int PRO_EXTRA_SIZE;
+
+    int publish(std::string json_str);
+    int connect(std::string server_ip, int port);
+    int disconnect();
+    int send(const char *buf, unsigned int size);
+    int recv(std::string &json_str);
+};
+#else
+//Dummy LocalClient
+
+class LocalClient
+{
+private:
+    ;
+
+public:
+    LocalClient() {}
+
+    static const int PRO_HEADER_SIZE = 2;
+    static const int PRO_LENGTH_SIZE = 2;
+    static const int PRO_TAIL_SIZE = 2;
+    static int PRO_EXTRA_SIZE;
+
+    int publish(std::string json_str) { return 0; }
+    int connect(std::string server_ip, int port) { return 0; }
+    int disconnect() { return 0; }
+    int send(const char *buf, unsigned int size) { return 0; }
+    int recv(std::string &json_str) { return 0; }
+};
+#endif
 
 class CommuBackend
 {

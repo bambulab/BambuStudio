@@ -164,7 +164,6 @@ private:
     const wxLanguageInfo		 *m_language_info_best   = nullptr;
 
     OpenGLManager m_opengl_mgr;
-
     std::unique_ptr<RemovableDriveManager> m_removable_drive_manager;
 
     std::unique_ptr<ImGuiWrapper> m_imgui;

@@ -401,6 +401,12 @@ public:
     // POST /my/task
     int post_task(BBLProject* project, BBLProfile* profile, BBLSubTask *task, unsigned &http_code, std::string &http_body);
 
+    // Get /my/ticket
+    int get_ticket(std::string ticket, unsigned int &http_code, std::string &http_body);
+
+    // POST /my/ticket
+    int post_ticket(std::string ticket, unsigned int &http_code, std::string &http_body);
+
     // GET /my/tasks
     int get_tasks(std::string dev_id, unsigned limit, unsigned &http_code, std::string &http_body);
 
