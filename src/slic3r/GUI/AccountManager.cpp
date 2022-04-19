@@ -1464,8 +1464,9 @@ namespace Slic3r {
         j["filamentSettingIds"] = json::array();
         j["profileId"] = stoi(profile->profile_id);
         j["plateIndex"] = stoi(task->task_partplate_idx);
-        j["timelapse"] = task->task_timelapse;
+        j["timelapse"] = task->task_record_timelapse;
         j["bedType"] = task->task_bed_type;
+        j["bedLeveling"] = task->task_bed_leveling;
         j["flowCali"] = task->task_flow_cali;
         j["vabrationCali"] = task->task_vabration_cali;
         return j.dump();

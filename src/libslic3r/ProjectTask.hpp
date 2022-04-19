@@ -21,9 +21,9 @@ class BBLTask;
 
 enum MachineBedType {
     BED_TYPE_AUTO = 0,
-    BED_TYPE_PE,
     BED_TYPE_PC,
     BED_TYPE_PEI,
+    BED_TYPE_PE,
     BED_TYPE_COUNT,
 };
 
@@ -102,7 +102,7 @@ public:
         task_url            = obj.task_url;
         task_url_md5        = obj.task_url_md5;
         task_gcode_in_3mf   = obj.task_gcode_in_3mf;
-        task_timelapse      = obj.task_timelapse;
+        task_record_timelapse = obj.task_record_timelapse;
         task_bed_type       = obj.task_bed_type;
         task_bed_leveling   = obj.task_bed_leveling;
         task_flow_cali      = obj.task_flow_cali;
@@ -123,7 +123,6 @@ public:
     std::string     task_duration;      /* duration created by machine, unit seconds */
     std::string     task_thumbnail_url; /* url of task thumbnail */
     /* user options */
-    bool            task_timelapse;     /* timelapse settings */
     std::string     task_bed_type;      /* bed_type of task, enum "auto" "pe", "pc", "pei" */  
     bool            task_bed_leveling;  /* bed leveling of task */
     bool            task_flow_cali;     /* flow calibration of task */

@@ -61,7 +61,7 @@ namespace Slic3r {
             task_profile_id = task->task_profile_id;
         }
         task_progress  = 0;
-        task_timelapse = false;
+        task_record_timelapse = false;
         task_bed_type  = "auto";
     }
 
