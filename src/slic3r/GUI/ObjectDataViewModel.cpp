@@ -48,6 +48,9 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(PartPlate* part_plate, wxString
 {
     m_plate_idx = part_plate ? part_plate->get_index() : -1;
     set_action_icon(false);
+    // BBS
+    set_color_icon(false);
+    set_support_icon(false);
     init_container();
 }
 
@@ -80,7 +83,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode*   pare
     m_warning_icon_name(warning_icon_name)
 {
     m_bmp = bmp;
-    set_action_and_extruder_icons();
+    set_icons();
     init_container();
 }
 
@@ -112,7 +115,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
         m_idx = parent->GetChildCount();
         m_name = wxString::Format(_(_devL("Instance %d")), m_idx + 1);
         m_extruder = parent->GetParent()->m_extruder;
-        set_action_and_extruder_icons();
+        set_icons();
     }
     else if (type == itLayerRoot)
     {
@@ -150,7 +153,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     m_name = _(L("Range")) + label_range + "(" + _(L("mm")) + ")";
     m_bmp = create_scaled_bitmap(LayerIcon);    // FIXME: pass window ptr
 
-    set_action_and_extruder_icons();
+    set_icons();
     init_container();
 }
 
@@ -163,9 +166,12 @@ bool ObjectDataViewModelNode::valid()
 }
 #endif /* NDEBUG */
 
-void ObjectDataViewModelNode::set_action_and_extruder_icons()
+void ObjectDataViewModelNode::set_icons()
 {
     set_action_icon(false);
+    // BBS
+    set_color_icon(false);
+    set_support_icon(false);
 
     // set extruder bitmap
     set_extruder_icon();
@@ -184,7 +190,7 @@ void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
 {
     m_printable = printable;
     m_printable_icon = m_printable == piUndef ? m_empty_bmp :
-                       create_scaled_bitmap(m_printable == piPrintable ? "obj_printable.png" : "obj_unprintable.png");
+                       create_scaled_bitmap(m_printable == piPrintable ? "obj_printable" : "obj_unprintable");
 }
 
 void ObjectDataViewModelNode::set_action_icon(bool enable)
@@ -195,6 +201,25 @@ void ObjectDataViewModelNode::set_action_icon(bool enable)
                          m_type & itObject ? undo :
                          m_type & (itVolume | itLayer) ? undo : /*m_type & itInstance*/ "set_separate_obj";
     m_action_icon = create_scaled_bitmap(m_action_icon_name);    // FIXME: pass window ptr
+}
+
+// BBS
+void ObjectDataViewModelNode::set_color_icon(bool enable)
+{
+    m_color_enable = enable;
+    if ((m_type & itObject) && enable)
+        m_color_icon = create_scaled_bitmap("mmu_segmentation");
+    else
+        m_color_icon = create_scaled_bitmap("dot");
+}
+
+void ObjectDataViewModelNode::set_support_icon(bool enable)
+{
+    m_support_enable = enable;
+    if ((m_type & itObject) && enable)
+        m_support_icon = create_scaled_bitmap("toolbar_support");
+    else
+        m_support_icon = create_scaled_bitmap("dot");
 }
 
 void ObjectDataViewModelNode::set_warning_icon(const std::string& warning_icon_name)
@@ -246,7 +271,7 @@ void ObjectDataViewModelNode::msw_rescale()
         m_action_icon = create_scaled_bitmap(m_action_icon_name);
 
     if (m_printable != piUndef)
-        m_printable_icon = create_scaled_bitmap(m_printable == piPrintable ? "obj_printable.png" : "obj_unprintable.png");
+        m_printable_icon = create_scaled_bitmap(m_printable == piPrintable ? "obj_printable" : "obj_unprintable");
 
     if (!m_opt_categories.empty())
         update_settings_digest_bitmaps();
@@ -273,6 +298,13 @@ bool ObjectDataViewModelNode::SetValue(const wxVariant& variant, unsigned col)
         m_extruder_bmp = data.GetBitmap();
         m_extruder = data.GetText() == "0" ? _(L("default")) : data.GetText();
         return true; }
+    // BBS
+    case colSupportPaint:
+        m_support_icon << variant;
+        break;
+    case colColorPaint:
+        m_color_icon << variant;
+        break;
     case colEditing:
         m_action_icon << variant;
         return true;
@@ -1505,6 +1537,13 @@ void ObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem &ite
 	case colFilament:
 		variant << DataViewBitmapText(node->m_extruder, node->m_extruder_bmp);
 		break;
+    // BBS
+    case colSupportPaint:
+        variant << node->m_support_icon;
+        break;
+    case colColorPaint:
+        variant << node->m_color_icon;
+        break;
 	case colEditing:
 		variant << node->m_action_icon;
 		break;

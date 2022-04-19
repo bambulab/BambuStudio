@@ -39,7 +39,11 @@ enum ColumnNumber
     colName         = 0,    // item name
     colPrint           ,    // printable property
     colFilament        ,    // extruder selection
+    // BBS
+    colSupportPaint    ,
+    colColorPaint      ,
     colEditing         ,    // item editing
+    colCount           ,
 };
 
 enum PrintIndicator
@@ -80,6 +84,9 @@ class ObjectDataViewModelNode
     wxString				        m_extruder = wxEmptyString;
     wxBitmap                        m_extruder_bmp;
     wxBitmap				        m_action_icon;
+    // BBS
+    wxBitmap                        m_support_icon;
+    wxBitmap                        m_color_icon;
     PrintIndicator                  m_printable {piUndef};
     wxBitmap				        m_printable_icon;
     std::string                     m_warning_icon_name{ "" };
@@ -88,6 +95,9 @@ class ObjectDataViewModelNode
     ModelVolumeType                 m_volume_type;
     InfoItemType                    m_info_item_type {InfoItemType::Undef};
     bool                            m_action_enable = false; // can undo all settings
+    // BBS
+    bool                            m_support_enable = false;
+    bool                            m_color_enable = false;
 
 public:
     PartPlate*                      m_part_plate;
@@ -105,7 +115,7 @@ public:
         m_plate_idx(plate_idx),
         m_model_object(model_object)
     {
-        set_action_and_extruder_icons();
+        set_icons();
         init_container();
 	}
 
@@ -212,6 +222,10 @@ public:
 	t_layer_height_range    GetLayerRange() const   { return m_layer_range; }
     wxString        GetExtruder()                   { return m_extruder; }
     PrintIndicator  IsPrintable() const             { return m_printable; }
+    // BBS
+    bool            HasColorPainting() const        { return m_color_enable; }
+    bool            HasSupportPainting() const      { return m_support_enable; }
+    bool            IsActionEnabled() const         { return m_action_enable; }
     void            UpdateExtruderAndColorIcon(wxString extruder = "");
 
     // use this function only for childrens
@@ -243,12 +257,16 @@ public:
     }
 
     // Set action and extruder(if any exist) icons for node
-    void        set_action_and_extruder_icons();
+    void        set_icons();
     // set extruder icon for node
     void        set_extruder_icon();
 	// Set printable icon for node
     void        set_printable_icon(PrintIndicator printable);
     void        set_action_icon(bool enable);
+    // BBS
+    void        set_color_icon(bool enable);
+    void        set_support_icon(bool enable);
+
     // Set warning icon for node
     void        set_warning_icon(const std::string& warning_icon);
 

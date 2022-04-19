@@ -2,15 +2,12 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
 #
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2148 src/slic3r/GUI/SelectMachine.cpp:466
-#: src/slic3r/GUI/SelectMachine.cpp:481 src/slic3r/GUI/SelectMachine.cpp:517
-#: src/slic3r/GUI/Tab.cpp:1526 src/libslic3r/PrintConfig.cpp:393
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-19 20:21+0800\n"
-"PO-Revision-Date: 2022-04-13 18:57+0800\n"
+"POT-Creation-Date: 2022-04-20 14:12+0800\n"
+"PO-Revision-Date: 2022-04-20 14:14+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -111,7 +108,7 @@ msgstr "G-code 0,0 坐标相对于矩形框左前角的距离。"
 #: src/slic3r/GUI/GCodeViewer.cpp:4117 src/slic3r/GUI/GCodeViewer.cpp:4125
 #: src/slic3r/GUI/Gizmos/GizmoObjectManipulation.cpp:51
 #: src/slic3r/GUI/Gizmos/GizmoObjectManipulation.cpp:67
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:150 src/libslic3r/PrintConfig.cpp:266
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:153 src/libslic3r/PrintConfig.cpp:266
 #: src/libslic3r/PrintConfig.cpp:275 src/libslic3r/PrintConfig.cpp:282
 #: src/libslic3r/PrintConfig.cpp:323 src/libslic3r/PrintConfig.cpp:376
 #: src/libslic3r/PrintConfig.cpp:473 src/libslic3r/PrintConfig.cpp:503
@@ -156,7 +153,6 @@ msgid "Custom"
 msgstr "自定义"
 
 #: src/slic3r/GUI/BedShapeDialog.cpp:104 src/slic3r/GUI/BedShapeDialog.cpp:179
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1903
 msgid "Shape"
 msgstr "形状"
 
@@ -467,8 +463,8 @@ msgstr "工具"
 #: src/slic3r/GUI/GCodeViewer.cpp:4445 src/slic3r/GUI/GCodeViewer.cpp:4458
 #: src/slic3r/GUI/GCodeViewer.cpp:4768 src/slic3r/GUI/GCodeViewer.cpp:4794
 #: src/slic3r/GUI/GCodeViewer.cpp:4833 src/slic3r/GUI/GUI.cpp:346
-#: src/slic3r/GUI/GUI_ObjectList.cpp:345 src/slic3r/GUI/Plater.cpp:432
-#: src/slic3r/GUI/Tab.cpp:2346 src/slic3r/GUI/Tab.hpp:515
+#: src/slic3r/GUI/Plater.cpp:432 src/slic3r/GUI/Tab.cpp:2346
+#: src/slic3r/GUI/Tab.hpp:515
 msgid "Filament"
 msgstr "打印丝"
 
@@ -1280,65 +1276,65 @@ msgstr "新版本的Bambu Studio"
 msgid "Loading user presets..."
 msgstr "正在加载用户预设..."
 
-#: src/slic3r/GUI/GUI_App.cpp:1844 src/slic3r/GUI/GUI_App.cpp:1856
+#: src/slic3r/GUI/GUI_App.cpp:1846 src/slic3r/GUI/GUI_App.cpp:1858
 msgid "Rebuild"
 msgstr "重新构建"
 
-#: src/slic3r/GUI/GUI_App.cpp:1859
+#: src/slic3r/GUI/GUI_App.cpp:1861
 msgid "Loading current presets"
 msgstr "加载当前预设"
 
-#: src/slic3r/GUI/GUI_App.cpp:1863
+#: src/slic3r/GUI/GUI_App.cpp:1865
 msgid "Loading a mode view"
 msgstr "加载模式视图"
 
-#: src/slic3r/GUI/GUI_App.cpp:2056
+#: src/slic3r/GUI/GUI_App.cpp:2058
 msgid "Choose one file (3mf):"
 msgstr "选择一个文件（3mf）："
 
-#: src/slic3r/GUI/GUI_App.cpp:2068
+#: src/slic3r/GUI/GUI_App.cpp:2070
 msgid "Choose one or more files (3mf/step/stl/obj/amf):"
 msgstr "选择一个或多个文件（3mf/step/stl/obj/amf）："
 
-#: src/slic3r/GUI/GUI_App.cpp:2080
+#: src/slic3r/GUI/GUI_App.cpp:2082
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "选择一个文件（gcode/.gco/.g/.ngc/ngc）："
 
-#: src/slic3r/GUI/GUI_App.cpp:2314 src/slic3r/GUI/Preferences.cpp:124
+#: src/slic3r/GUI/GUI_App.cpp:2316 src/slic3r/GUI/Preferences.cpp:124
 msgid "Switching application language"
 msgstr "切换应用程序语言"
 
-#: src/slic3r/GUI/GUI_App.cpp:2453
+#: src/slic3r/GUI/GUI_App.cpp:2455
 msgid "Select the language"
 msgstr "选择语言"
 
-#: src/slic3r/GUI/GUI_App.cpp:2453 src/slic3r/GUI/Preferences.cpp:561
+#: src/slic3r/GUI/GUI_App.cpp:2455 src/slic3r/GUI/Preferences.cpp:565
 msgid "Language"
 msgstr "语言"
 
-#: src/slic3r/GUI/GUI_App.cpp:2618
+#: src/slic3r/GUI/GUI_App.cpp:2620
 msgid "*"
 msgstr "*"
 
-#: src/slic3r/GUI/GUI_App.cpp:2944 src/slic3r/GUI/GUI_App.cpp:3004
+#: src/slic3r/GUI/GUI_App.cpp:2946 src/slic3r/GUI/GUI_App.cpp:3006
 msgid "Modifications to the preset have been saved"
 msgid_plural "Modifications to the presets have been saved"
 msgstr[0] "对预设的修改已被保存"
 
-#: src/slic3r/GUI/GUI_App.cpp:3007
+#: src/slic3r/GUI/GUI_App.cpp:3009
 msgid "All modifications will be discarded for new project."
 msgstr "在新项目中所有修改都会被丢弃。"
 
-#: src/slic3r/GUI/GUI_App.cpp:3148 src/slic3r/GUI/Plater.cpp:6820
+#: src/slic3r/GUI/GUI_App.cpp:3150 src/slic3r/GUI/Plater.cpp:6820
 msgid "G-code files can not be loaded with models together!"
 msgstr "G-code文件不能和模型一起加载"
 
-#: src/slic3r/GUI/GUI_App.cpp:3148 src/slic3r/GUI/Plater.cpp:6812
+#: src/slic3r/GUI/GUI_App.cpp:3150 src/slic3r/GUI/Plater.cpp:6812
 #: src/slic3r/GUI/Plater.cpp:6820
 msgid "G-code loading"
 msgstr "正在加载G-code文件"
 
-#: src/slic3r/GUI/GUI_App.cpp:3329
+#: src/slic3r/GUI/GUI_App.cpp:3331
 msgid "Select a G-code file:"
 msgstr "选择一个G-code文件："
 
@@ -1501,8 +1497,8 @@ msgid "Load"
 msgstr "加载"
 
 #: src/slic3r/GUI/GUI_Factories.cpp:438
-msgid "Box"
-msgstr "盒子"
+msgid "Cube"
+msgstr "立方体"
 
 #: src/slic3r/GUI/GUI_Factories.cpp:438
 msgid "Cylinder"
@@ -1769,173 +1765,177 @@ msgstr "解锁"
 msgid "Lock"
 msgstr "锁定"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:328
+#: src/slic3r/GUI/GUI_ObjectList.cpp:338
 #: src/slic3r/GUI/GUI_ObjectTable.cpp:2497
 msgid "Name"
 msgstr "名称"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:433
+#: src/slic3r/GUI/GUI_ObjectList.cpp:451
 msgid "No errors"
 msgstr "无错误"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:442
+#: src/slic3r/GUI/GUI_ObjectList.cpp:460
 #, c-format, boost-format
 msgid "%1$d error repaired"
 msgid_plural "%1$d errors repaired"
 msgstr[0] "%1$d个错误被修复"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:446 src/slic3r/GUI/GUI_ObjectList.cpp:449
+#: src/slic3r/GUI/GUI_ObjectList.cpp:464 src/slic3r/GUI/GUI_ObjectList.cpp:467
 #, c-format, boost-format
 msgid "%1$d open edge"
 msgid_plural "%1$d open edges"
 msgstr[0] "%1$d条非闭合边"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:448
+#: src/slic3r/GUI/GUI_ObjectList.cpp:466
 msgid "Remaining errors"
 msgstr "剩余错误"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:456
+#: src/slic3r/GUI/GUI_ObjectList.cpp:474
 msgid "Right click the icon to fix model object"
 msgstr "右键点击此图标可修复模型对象"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:500
-msgid "  "
-msgstr ""
-
-#: src/slic3r/GUI/GUI_ObjectList.cpp:502
+#: src/slic3r/GUI/GUI_ObjectList.cpp:522
 msgid "Right button click the icon to drop the object settings"
 msgstr "右键点击此图标以舍弃对象的设置"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:504
+#: src/slic3r/GUI/GUI_ObjectList.cpp:524
 msgid "Click the icon to reset all settings of the object"
 msgstr "点击此图标可重置对象的所有设置"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:508
+#: src/slic3r/GUI/GUI_ObjectList.cpp:529
 msgid "Right button click the icon to drop the object printable property"
 msgstr "右键点击此图标以舍弃对象的可打印属性"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:510
-msgid "Click the icon to reset printable property of the object"
-msgstr "点击此图标可重置对象的可打印属性"
+#: src/slic3r/GUI/GUI_ObjectList.cpp:531
+msgid "Click the icon to toggle printable property of the object"
+msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1699 src/slic3r/GUI/Plater.cpp:2367
+#: src/slic3r/GUI/GUI_ObjectList.cpp:536
+msgid "Click the icon to edit support painting of the object"
+msgstr ""
+
+#: src/slic3r/GUI/GUI_ObjectList.cpp:541
+msgid "Click the icon to edit color painting of the object"
+msgstr ""
+
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1774 src/slic3r/GUI/Plater.cpp:2367
 msgid "Loading"
 msgstr "载入中"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1731 src/slic3r/GUI/Plater.cpp:2387
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1806 src/slic3r/GUI/Plater.cpp:2387
 msgid "Loading file"
 msgstr "载入文件中"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1739
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1814
 msgid "Error!"
 msgstr "错误！"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1861
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1936
 msgid "Generic"
 msgstr "通用"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2114
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2190
 msgid "Deleting the last solid part is not allowed."
 msgstr "不允许删除对象的最后一个实体零件。"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2134
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2210
 msgid "1"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2178
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2254
 msgid "The target object contains only one part and can not be splited."
 msgstr "目标对象仅包含一个零件，无法被拆分。"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2317
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2393
 msgid "Merged"
 msgstr "已合并"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3965 src/libslic3r/GCode.cpp:650
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4059 src/libslic3r/GCode.cpp:650
 msgid "Object"
 msgstr "对象"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3966
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4107
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4060
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4201
 msgid "Part"
 msgstr "零件"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3966
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4060
 msgid "Layer"
 msgstr "层"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3969
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3973
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4063
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4067
 msgid "Selection conflicts"
 msgstr "选择冲突"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3970
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4064
 msgid ""
 "If first selected item is an object, the second one should also be object."
 msgstr "如果第一个选择的是对象，那么第二个选择的也必须是对象。"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3974
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4068
 msgid ""
 "If first selected item is a part, the second one should be part in the same "
 "object."
 msgstr "如果第一个选择的是零件，那么第二个选择的也必须是同一个对象中的零件。"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3980
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4055
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4074
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4149
 msgid "Info"
 msgstr "信息"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4102
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4196
 msgid "The type of the last solid object part is not to be changed."
 msgstr "不允许修改对象中最后一个实体零件的类型。"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4107
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4201
 msgid "Negative Part"
 msgstr "负零件"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4107
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4201
 msgid "Modifier"
 msgstr "修改器  Modifier"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4107
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4201
 msgid "Support Blocker"
 msgstr "支撑去除器"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4107
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4201
 msgid "Support Enforcer"
 msgstr "支撑添加器"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4108
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4202
 msgid "Type:"
 msgstr "类型："
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4108
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4202
 msgid "Choose part type"
 msgstr "选择零件类型"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4350
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4444
 msgid "Enter new name"
 msgstr "输入新名称"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4350
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4444
 msgid "Renaming"
 msgstr "重命名"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4413
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4445
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4507
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4539
 msgid "Repairing model object"
 msgstr "修复模型对象"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4475
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4569
 msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
 msgstr[0] "以下模型对象已被修复"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4481
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4575
 msgid "Failed to repair folowing model object"
 msgid_plural "Failed to repair folowing model objects"
 msgstr[0] "以下模型对象修复失败"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4486
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4580
 msgid "Repairing was canceled"
 msgstr "修复被取消"
 
@@ -1956,7 +1956,7 @@ msgid "multiple cells copy is not supported"
 msgstr "不支持多个单元格的复制"
 
 #: src/slic3r/GUI/GUI_ObjectTable.cpp:861
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:438
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:470
 msgid "Outside"
 msgstr "盘外"
 
@@ -2135,7 +2135,7 @@ msgid "Reset All"
 msgstr "重置所有"
 
 #: src/slic3r/GUI/GUI_ObjectTable.cpp:2495
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:401
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:433
 msgid "Plate"
 msgstr "盘"
 
@@ -2167,8 +2167,8 @@ msgstr "多色打印"
 msgid "Edit"
 msgstr "编辑"
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:170
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:235
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:172
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:237
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-arrange on these objects!"
@@ -2176,11 +2176,11 @@ msgstr ""
 "所有选中的对象都处于被锁定的盘上，\n"
 "无法对这些对象做自动摆盘。"
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:231
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:233
 msgid "No arrangable objects are selected!"
 msgstr ""
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:281
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:283
 msgid ""
 "This plate is locked,\n"
 "We can not do auto-arrange on this plate!"
@@ -2188,33 +2188,33 @@ msgstr ""
 "该盘处于锁定状态，\n"
 "无法对其进行自动摆盘"
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:331
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:333
 msgid "Arranging..."
 msgstr "自动摆放中..."
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:409
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:410
 #, c-format, boost-format
 msgid "Object %s has zero size and can't be arranged!"
 msgstr "对象%s的尺寸为0，无法被自动摆放。"
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:425
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:426
 msgid "Arrange failed! Found some exceptions when processing object Geometries"
 msgstr "自动摆放失败，处理对象几何数据时遇到异常。"
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:560
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:562
 msgid "Arranging canceled."
 msgstr "已取消自动摆放。"
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:561
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:563
 msgid ""
 "Arranging is done but there are unpacked items! Reduce spacing and try again!"
 msgstr "已完成自动摆放，但是有未被摆到盘内的项，可在减小间距后重试。"
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:561
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:563
 msgid "Arranging done."
 msgstr "已完成自动摆放。"
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:662
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:664
 #, c-format, boost-format
 msgid ""
 "Arrangement ignored the following objects which can't fit into a single "
@@ -2276,7 +2276,7 @@ msgstr "预览"
 msgid "Monitor"
 msgstr "打印机"
 
-#: src/slic3r/GUI/MainFrame.cpp:723 src/slic3r/GUI/Preferences.cpp:424
+#: src/slic3r/GUI/MainFrame.cpp:723 src/slic3r/GUI/Preferences.cpp:425
 msgid "Debug"
 msgstr "调试"
 
@@ -2929,25 +2929,25 @@ msgstr "你的模型需要支撑才能打印。请开启材料支撑选项。"
 msgid "Gcode path overlap"
 msgstr "Gcode路径有重叠"
 
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:61
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:64
 msgid "Support painting"
 msgstr "支撑绘制"
 
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:63
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:66
 msgid "Color painting"
 msgstr "颜色绘制"
 
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:121
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:124
 msgid "Layers"
 msgstr "层"
 
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:150
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:153
 msgid "Range"
 msgstr "范围"
 
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:274
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:516
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:732 src/libslic3r/PrintConfig.cpp:700
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:299
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:548
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:764 src/libslic3r/PrintConfig.cpp:700
 msgid "default"
 msgstr "缺省"
 
@@ -3469,143 +3469,143 @@ msgstr "同步"
 msgid "Shortcuts"
 msgstr "快捷键"
 
-#: src/slic3r/GUI/Preferences.cpp:538
+#: src/slic3r/GUI/Preferences.cpp:542
 msgid "General settings"
 msgstr "常规设置"
 
-#: src/slic3r/GUI/Preferences.cpp:563
+#: src/slic3r/GUI/Preferences.cpp:567
 msgid "Metric"
 msgstr "公制"
 
-#: src/slic3r/GUI/Preferences.cpp:563
+#: src/slic3r/GUI/Preferences.cpp:567
 msgid "Imperial"
 msgstr "英制"
 
-#: src/slic3r/GUI/Preferences.cpp:564
+#: src/slic3r/GUI/Preferences.cpp:568
 msgid "Units"
 msgstr "单位"
 
-#: src/slic3r/GUI/Preferences.cpp:566
+#: src/slic3r/GUI/Preferences.cpp:570
 msgid "Associate files to BambuStudio"
 msgstr "Bambu Studio文件关联"
 
-#: src/slic3r/GUI/Preferences.cpp:569
+#: src/slic3r/GUI/Preferences.cpp:573
 msgid "Associate .3mf files to BambuStudio"
 msgstr "使用Bambu Studio打开.3mf文件"
 
-#: src/slic3r/GUI/Preferences.cpp:570
+#: src/slic3r/GUI/Preferences.cpp:574
 msgid "If enabled, sets BambuStudio as default application to open .3mf files"
 msgstr "开启后，将缺省使用Bambu Studio打开.3mf文件"
 
-#: src/slic3r/GUI/Preferences.cpp:571
+#: src/slic3r/GUI/Preferences.cpp:575
 msgid "Associate .stl files to BambuStudio"
 msgstr "使用Bambu Studio打开.stl文件"
 
-#: src/slic3r/GUI/Preferences.cpp:572
+#: src/slic3r/GUI/Preferences.cpp:576
 msgid "If enabled, sets BambuStudio as default application to open .stl files"
 msgstr "开启后，将缺省使用Bambu Studio打开.stl文件"
 
-#: src/slic3r/GUI/Preferences.cpp:573
+#: src/slic3r/GUI/Preferences.cpp:577
 msgid "Associate .step files to BambuStudio"
 msgstr "使用Bambu Studio打开.step文件"
 
-#: src/slic3r/GUI/Preferences.cpp:574
+#: src/slic3r/GUI/Preferences.cpp:578
 msgid "If enabled, sets BambuStudio as default application to open .step files"
 msgstr "开启后，将缺省使用Bambu Studio打开.step文件"
 
-#: src/slic3r/GUI/Preferences.cpp:577
+#: src/slic3r/GUI/Preferences.cpp:581
 msgid "Backup"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:579
+#: src/slic3r/GUI/Preferences.cpp:583
 msgid "Backup switch"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:580
+#: src/slic3r/GUI/Preferences.cpp:584
 msgid "Backup interval"
 msgstr "备份间隔时长"
 
-#: src/slic3r/GUI/Preferences.cpp:606
+#: src/slic3r/GUI/Preferences.cpp:610
 msgid "Home page and daily tips"
 msgstr "首页和每日小贴士"
 
-#: src/slic3r/GUI/Preferences.cpp:607
+#: src/slic3r/GUI/Preferences.cpp:611
 msgid "Show home page on startup"
 msgstr "启动时显示主页"
 
-#: src/slic3r/GUI/Preferences.cpp:626
+#: src/slic3r/GUI/Preferences.cpp:630
 msgid "Sync settings"
 msgstr "同步设置"
 
-#: src/slic3r/GUI/Preferences.cpp:627
+#: src/slic3r/GUI/Preferences.cpp:631
 msgid "User sync"
 msgstr "用户同步"
 
-#: src/slic3r/GUI/Preferences.cpp:628
+#: src/slic3r/GUI/Preferences.cpp:632
 msgid "Preset sync"
 msgstr "配置同步"
 
-#: src/slic3r/GUI/Preferences.cpp:629
+#: src/slic3r/GUI/Preferences.cpp:633
 msgid "Preferences sync"
 msgstr "首选项同步"
 
-#: src/slic3r/GUI/Preferences.cpp:648
+#: src/slic3r/GUI/Preferences.cpp:652
 msgid "View control settings"
 msgstr "视图控制设置"
 
-#: src/slic3r/GUI/Preferences.cpp:655
+#: src/slic3r/GUI/Preferences.cpp:659
 msgid "Rotate of view"
 msgstr "旋转视图"
 
-#: src/slic3r/GUI/Preferences.cpp:657
+#: src/slic3r/GUI/Preferences.cpp:661
 msgid "Move of view"
 msgstr "移动视图"
 
-#: src/slic3r/GUI/Preferences.cpp:658
+#: src/slic3r/GUI/Preferences.cpp:662
 msgid "Zoom of view"
 msgstr "缩放视图"
 
-#: src/slic3r/GUI/Preferences.cpp:660
+#: src/slic3r/GUI/Preferences.cpp:664
 msgid "Other"
 msgstr "其他"
 
-#: src/slic3r/GUI/Preferences.cpp:661
+#: src/slic3r/GUI/Preferences.cpp:665
 msgid "Mouse wheel reverses when zooming"
 msgstr "缩放时鼠标滚轮反转"
 
-#: src/slic3r/GUI/Preferences.cpp:691 src/slic3r/GUI/Preferences.cpp:692
+#: src/slic3r/GUI/Preferences.cpp:695 src/slic3r/GUI/Preferences.cpp:696
 msgid "Develop mode"
 msgstr "开发者模式"
 
-#: src/slic3r/GUI/Preferences.cpp:693
+#: src/slic3r/GUI/Preferences.cpp:697
 msgid "Dump video"
 msgstr "下载视频"
 
-#: src/slic3r/GUI/Preferences.cpp:696
+#: src/slic3r/GUI/Preferences.cpp:700
 msgid "DEV host: api-dev.bambu-lab.com/v1"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:697
+#: src/slic3r/GUI/Preferences.cpp:701
 msgid "QA  host: api-qa.bambu-lab.com/v1"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:698
+#: src/slic3r/GUI/Preferences.cpp:702
 msgid "PRE host: api-pre.bambu-lab.com/v1"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:708
+#: src/slic3r/GUI/Preferences.cpp:712
 msgid "debug save button"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:711
+#: src/slic3r/GUI/Preferences.cpp:715
 msgid "save debug settings"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:711
+#: src/slic3r/GUI/Preferences.cpp:715
 msgid "DEBUG settings have saved successfully!"
 msgstr "DEBUG模式生效!"
 
-#: src/slic3r/GUI/Preferences.cpp:758
+#: src/slic3r/GUI/Preferences.cpp:762
 msgid "Swith cloud environment, Please login again!"
 msgstr "切换云环境，请重新登录!"
 
@@ -6599,8 +6599,9 @@ msgid ""
 "Holes of object will be grown or shrunk in XY plane by the configured value. "
 "Positive value makes holes bigger. Negative value makes holes smaller. This "
 "function is used to adjust size slightly when the object has assembling issue"
-msgstr "垂直的孔洞的尺寸将在X-Y方向收缩或拓展特定值。正值代表扩大孔洞。"
-"负值代表缩小孔洞。这个功能通常在模型有装配问题时微调尺寸"
+msgstr ""
+"垂直的孔洞的尺寸将在X-Y方向收缩或拓展特定值。正值代表扩大孔洞。负值代表缩小孔"
+"洞。这个功能通常在模型有装配问题时微调尺寸"
 
 #: src/libslic3r/PrintConfig.cpp:2464
 msgid "X-Y contour compensation"
@@ -6612,8 +6613,9 @@ msgid ""
 "value. Positive value makes contour bigger. Negative value makes contour "
 "smaller. This function is used to adjust size slightly when the object has "
 "assembling issue"
-msgstr "模型外轮廓的尺寸将在X-Y方向收缩或拓展特定值。正值代表扩大。"
-"负值代表缩小。这个功能通常在模型有装配问题时微调尺寸"
+msgstr ""
+"模型外轮廓的尺寸将在X-Y方向收缩或拓展特定值。正值代表扩大。负值代表缩小。这个"
+"功能通常在模型有装配问题时微调尺寸"
 
 #: src/libslic3r/PrintConfig.cpp:2507
 msgid "Detect narrow internal solid infill"
@@ -6743,6 +6745,12 @@ msgstr "生成支撑"
 #: src/libslic3r/PrintObjectSlice.cpp:569
 msgid "Slicing mesh"
 msgstr "切片网格"
+
+#~ msgid "Box"
+#~ msgstr "盒子"
+
+#~ msgid "Click the icon to reset printable property of the object"
+#~ msgstr "点击此图标可重置对象的可打印属性"
 
 #~ msgid ""
 #~ "Holes of object will be grown or shrunk in XY plane by the configured "

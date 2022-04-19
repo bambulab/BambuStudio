@@ -1,10 +1,11 @@
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2148 src/slic3r/GUI/SelectMachine.cpp:466
-#: src/slic3r/GUI/SelectMachine.cpp:481 src/slic3r/GUI/SelectMachine.cpp:517
-#: src/slic3r/GUI/Tab.cpp:1526 src/libslic3r/PrintConfig.cpp:393
+#: src/slic3r/GUI/GUI_ObjectList.cpp:355 src/slic3r/GUI/GUI_ObjectList.cpp:2224
+#: src/slic3r/GUI/SelectMachine.cpp:466 src/slic3r/GUI/SelectMachine.cpp:481
+#: src/slic3r/GUI/SelectMachine.cpp:517 src/slic3r/GUI/Tab.cpp:1526
+#: src/libslic3r/PrintConfig.cpp:393
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-19 20:21+0800\n"
+"POT-Creation-Date: 2022-04-20 14:12+0800\n"
 "Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -105,7 +106,7 @@ msgstr ""
 #: src/slic3r/GUI/GCodeViewer.cpp:4117 src/slic3r/GUI/GCodeViewer.cpp:4125
 #: src/slic3r/GUI/Gizmos/GizmoObjectManipulation.cpp:51
 #: src/slic3r/GUI/Gizmos/GizmoObjectManipulation.cpp:67
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:150 src/libslic3r/PrintConfig.cpp:266
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:153 src/libslic3r/PrintConfig.cpp:266
 #: src/libslic3r/PrintConfig.cpp:275 src/libslic3r/PrintConfig.cpp:282
 #: src/libslic3r/PrintConfig.cpp:323 src/libslic3r/PrintConfig.cpp:376
 #: src/libslic3r/PrintConfig.cpp:473 src/libslic3r/PrintConfig.cpp:503
@@ -152,7 +153,6 @@ msgid "Custom"
 msgstr "Personnalisé"
 
 #: src/slic3r/GUI/BedShapeDialog.cpp:104 src/slic3r/GUI/BedShapeDialog.cpp:179
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1903
 msgid "Shape"
 msgstr "Forme"
 
@@ -428,8 +428,8 @@ msgstr "Outil"
 #: src/slic3r/GUI/GCodeViewer.cpp:4445 src/slic3r/GUI/GCodeViewer.cpp:4458
 #: src/slic3r/GUI/GCodeViewer.cpp:4768 src/slic3r/GUI/GCodeViewer.cpp:4794
 #: src/slic3r/GUI/GCodeViewer.cpp:4833 src/slic3r/GUI/GUI.cpp:346
-#: src/slic3r/GUI/GUI_ObjectList.cpp:345 src/slic3r/GUI/Plater.cpp:432
-#: src/slic3r/GUI/Tab.cpp:2346 src/slic3r/GUI/Tab.hpp:515
+#: src/slic3r/GUI/Plater.cpp:432 src/slic3r/GUI/Tab.cpp:2346
+#: src/slic3r/GUI/Tab.hpp:515
 msgid "Filament"
 msgstr "Filament"
 
@@ -1234,66 +1234,66 @@ msgstr ""
 msgid "Loading user presets..."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:1844 src/slic3r/GUI/GUI_App.cpp:1856
+#: src/slic3r/GUI/GUI_App.cpp:1846 src/slic3r/GUI/GUI_App.cpp:1858
 msgid "Rebuild"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:1859
+#: src/slic3r/GUI/GUI_App.cpp:1861
 msgid "Loading current presets"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:1863
+#: src/slic3r/GUI/GUI_App.cpp:1865
 msgid "Loading a mode view"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:2056
+#: src/slic3r/GUI/GUI_App.cpp:2058
 msgid "Choose one file (3mf):"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:2068
+#: src/slic3r/GUI/GUI_App.cpp:2070
 msgid "Choose one or more files (3mf/step/stl/obj/amf):"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:2080
+#: src/slic3r/GUI/GUI_App.cpp:2082
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:2314 src/slic3r/GUI/Preferences.cpp:124
+#: src/slic3r/GUI/GUI_App.cpp:2316 src/slic3r/GUI/Preferences.cpp:124
 msgid "Switching application language"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:2453
+#: src/slic3r/GUI/GUI_App.cpp:2455
 msgid "Select the language"
 msgstr "Sélectionner la langue"
 
-#: src/slic3r/GUI/GUI_App.cpp:2453 src/slic3r/GUI/Preferences.cpp:561
+#: src/slic3r/GUI/GUI_App.cpp:2455 src/slic3r/GUI/Preferences.cpp:565
 msgid "Language"
 msgstr "Langue"
 
-#: src/slic3r/GUI/GUI_App.cpp:2618
+#: src/slic3r/GUI/GUI_App.cpp:2620
 msgid "*"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:2944 src/slic3r/GUI/GUI_App.cpp:3004
+#: src/slic3r/GUI/GUI_App.cpp:2946 src/slic3r/GUI/GUI_App.cpp:3006
 msgid "Modifications to the preset have been saved"
 msgid_plural "Modifications to the presets have been saved"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/slic3r/GUI/GUI_App.cpp:3007
+#: src/slic3r/GUI/GUI_App.cpp:3009
 msgid "All modifications will be discarded for new project."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:3148 src/slic3r/GUI/Plater.cpp:6820
+#: src/slic3r/GUI/GUI_App.cpp:3150 src/slic3r/GUI/Plater.cpp:6820
 msgid "G-code files can not be loaded with models together!"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:3148 src/slic3r/GUI/Plater.cpp:6812
+#: src/slic3r/GUI/GUI_App.cpp:3150 src/slic3r/GUI/Plater.cpp:6812
 #: src/slic3r/GUI/Plater.cpp:6820
 msgid "G-code loading"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:3329
+#: src/slic3r/GUI/GUI_App.cpp:3331
 msgid "Select a G-code file:"
 msgstr ""
 
@@ -1456,8 +1456,8 @@ msgid "Load"
 msgstr "Charger"
 
 #: src/slic3r/GUI/GUI_Factories.cpp:438
-msgid "Box"
-msgstr "Boîte"
+msgid "Cube"
+msgstr ""
 
 #: src/slic3r/GUI/GUI_Factories.cpp:438
 msgid "Cylinder"
@@ -1724,177 +1724,181 @@ msgstr ""
 msgid "Lock"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:328
+#: src/slic3r/GUI/GUI_ObjectList.cpp:338
 #: src/slic3r/GUI/GUI_ObjectTable.cpp:2497
 msgid "Name"
 msgstr "Nom"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:433
+#: src/slic3r/GUI/GUI_ObjectList.cpp:451
 msgid "No errors"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:442
+#: src/slic3r/GUI/GUI_ObjectList.cpp:460
 #, c-format, boost-format
 msgid "%1$d error repaired"
 msgid_plural "%1$d errors repaired"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:446 src/slic3r/GUI/GUI_ObjectList.cpp:449
+#: src/slic3r/GUI/GUI_ObjectList.cpp:464 src/slic3r/GUI/GUI_ObjectList.cpp:467
 #, c-format, boost-format
 msgid "%1$d open edge"
 msgid_plural "%1$d open edges"
 msgstr[0] "%1$d arrête ouverte"
 msgstr[1] "%1$d arrêtes ouvertes"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:448
+#: src/slic3r/GUI/GUI_ObjectList.cpp:466
 msgid "Remaining errors"
 msgstr "Erreurs restantes"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:456
+#: src/slic3r/GUI/GUI_ObjectList.cpp:474
 msgid "Right click the icon to fix model object"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:500
-msgid "  "
-msgstr ""
-
-#: src/slic3r/GUI/GUI_ObjectList.cpp:502
+#: src/slic3r/GUI/GUI_ObjectList.cpp:522
 msgid "Right button click the icon to drop the object settings"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:504
+#: src/slic3r/GUI/GUI_ObjectList.cpp:524
 msgid "Click the icon to reset all settings of the object"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:508
+#: src/slic3r/GUI/GUI_ObjectList.cpp:529
 msgid "Right button click the icon to drop the object printable property"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:510
-msgid "Click the icon to reset printable property of the object"
+#: src/slic3r/GUI/GUI_ObjectList.cpp:531
+msgid "Click the icon to toggle printable property of the object"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1699 src/slic3r/GUI/Plater.cpp:2367
+#: src/slic3r/GUI/GUI_ObjectList.cpp:536
+msgid "Click the icon to edit support painting of the object"
+msgstr ""
+
+#: src/slic3r/GUI/GUI_ObjectList.cpp:541
+msgid "Click the icon to edit color painting of the object"
+msgstr ""
+
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1774 src/slic3r/GUI/Plater.cpp:2367
 msgid "Loading"
 msgstr "Chargement"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1731 src/slic3r/GUI/Plater.cpp:2387
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1806 src/slic3r/GUI/Plater.cpp:2387
 msgid "Loading file"
 msgstr "Chargement du fichier"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1739
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1814
 msgid "Error!"
 msgstr "Erreur!"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1861
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1936
 msgid "Generic"
 msgstr "Générique"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2114
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2190
 msgid "Deleting the last solid part is not allowed."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2134
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2210
 msgid "1"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2178
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2254
 msgid "The target object contains only one part and can not be splited."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:2317
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2393
 msgid "Merged"
 msgstr "Fusionné"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3965 src/libslic3r/GCode.cpp:650
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4059 src/libslic3r/GCode.cpp:650
 msgid "Object"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3966
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4107
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4060
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4201
 msgid "Part"
 msgstr "Pièce"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3966
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4060
 msgid "Layer"
 msgstr "Couche"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3969
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3973
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4063
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4067
 msgid "Selection conflicts"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3970
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4064
 msgid ""
 "If first selected item is an object, the second one should also be object."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3974
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4068
 msgid ""
 "If first selected item is a part, the second one should be part in the same "
 "object."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3980
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4055
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4074
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4149
 msgid "Info"
 msgstr "Info"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4102
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4196
 msgid "The type of the last solid object part is not to be changed."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4107
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4201
 msgid "Negative Part"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4107
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4201
 msgid "Modifier"
 msgstr "Modificateur"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4107
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4201
 msgid "Support Blocker"
 msgstr "Bloqueur de Support"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4107
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4201
 msgid "Support Enforcer"
 msgstr "Générateur de Support"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4108
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4202
 msgid "Type:"
 msgstr "Type :"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4108
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4202
 msgid "Choose part type"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4350
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4444
 msgid "Enter new name"
 msgstr "Entrer de nouveaux noms"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4350
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4444
 msgid "Renaming"
 msgstr "Renommage"
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4413
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4445
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4507
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4539
 msgid "Repairing model object"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4475
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4569
 msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4481
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4575
 msgid "Failed to repair folowing model object"
 msgid_plural "Failed to repair folowing model objects"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:4486
+#: src/slic3r/GUI/GUI_ObjectList.cpp:4580
 msgid "Repairing was canceled"
 msgstr "La réparation a été annulée"
 
@@ -1915,7 +1919,7 @@ msgid "multiple cells copy is not supported"
 msgstr ""
 
 #: src/slic3r/GUI/GUI_ObjectTable.cpp:861
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:438
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:470
 msgid "Outside"
 msgstr ""
 
@@ -2094,7 +2098,7 @@ msgid "Reset All"
 msgstr ""
 
 #: src/slic3r/GUI/GUI_ObjectTable.cpp:2495
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:401
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:433
 msgid "Plate"
 msgstr ""
 
@@ -2126,50 +2130,50 @@ msgstr ""
 msgid "Edit"
 msgstr "Éditer"
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:170
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:235
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:172
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:237
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-arrange on these objects!"
 msgstr ""
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:231
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:233
 msgid "No arrangable objects are selected!"
 msgstr ""
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:281
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:283
 msgid ""
 "This plate is locked,\n"
 "We can not do auto-arrange on this plate!"
 msgstr ""
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:331
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:333
 msgid "Arranging..."
 msgstr ""
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:409
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:410
 #, c-format, boost-format
 msgid "Object %s has zero size and can't be arranged!"
 msgstr ""
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:425
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:426
 msgid "Arrange failed! Found some exceptions when processing object Geometries"
 msgstr ""
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:560
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:562
 msgid "Arranging canceled."
 msgstr "Agencement annulé."
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:561
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:563
 msgid ""
 "Arranging is done but there are unpacked items! Reduce spacing and try again!"
 msgstr ""
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:561
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:563
 msgid "Arranging done."
 msgstr "Agencement terminé."
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:662
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:664
 #, c-format, boost-format
 msgid ""
 "Arrangement ignored the following objects which can't fit into a single "
@@ -2228,7 +2232,7 @@ msgstr "Aperçu"
 msgid "Monitor"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:723 src/slic3r/GUI/Preferences.cpp:424
+#: src/slic3r/GUI/MainFrame.cpp:723 src/slic3r/GUI/Preferences.cpp:425
 msgid "Debug"
 msgstr ""
 
@@ -2883,25 +2887,25 @@ msgstr ""
 msgid "Gcode path overlap"
 msgstr ""
 
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:61
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:64
 msgid "Support painting"
 msgstr ""
 
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:63
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:66
 msgid "Color painting"
 msgstr ""
 
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:121
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:124
 msgid "Layers"
 msgstr "Couches"
 
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:150
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:153
 msgid "Range"
 msgstr "Zone"
 
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:274
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:516
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:732 src/libslic3r/PrintConfig.cpp:700
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:299
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:548
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:764 src/libslic3r/PrintConfig.cpp:700
 msgid "default"
 msgstr "défaut"
 
@@ -3421,143 +3425,143 @@ msgstr ""
 msgid "Shortcuts"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:538
+#: src/slic3r/GUI/Preferences.cpp:542
 msgid "General settings"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:563
+#: src/slic3r/GUI/Preferences.cpp:567
 msgid "Metric"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:563
+#: src/slic3r/GUI/Preferences.cpp:567
 msgid "Imperial"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:564
+#: src/slic3r/GUI/Preferences.cpp:568
 msgid "Units"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:566
+#: src/slic3r/GUI/Preferences.cpp:570
 msgid "Associate files to BambuStudio"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:569
+#: src/slic3r/GUI/Preferences.cpp:573
 msgid "Associate .3mf files to BambuStudio"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:570
+#: src/slic3r/GUI/Preferences.cpp:574
 msgid "If enabled, sets BambuStudio as default application to open .3mf files"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:571
+#: src/slic3r/GUI/Preferences.cpp:575
 msgid "Associate .stl files to BambuStudio"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:572
+#: src/slic3r/GUI/Preferences.cpp:576
 msgid "If enabled, sets BambuStudio as default application to open .stl files"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:573
+#: src/slic3r/GUI/Preferences.cpp:577
 msgid "Associate .step files to BambuStudio"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:574
+#: src/slic3r/GUI/Preferences.cpp:578
 msgid "If enabled, sets BambuStudio as default application to open .step files"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:577
+#: src/slic3r/GUI/Preferences.cpp:581
 msgid "Backup"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:579
+#: src/slic3r/GUI/Preferences.cpp:583
 msgid "Backup switch"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:580
+#: src/slic3r/GUI/Preferences.cpp:584
 msgid "Backup interval"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:606
+#: src/slic3r/GUI/Preferences.cpp:610
 msgid "Home page and daily tips"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:607
+#: src/slic3r/GUI/Preferences.cpp:611
 msgid "Show home page on startup"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:626
+#: src/slic3r/GUI/Preferences.cpp:630
 msgid "Sync settings"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:627
+#: src/slic3r/GUI/Preferences.cpp:631
 msgid "User sync"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:628
+#: src/slic3r/GUI/Preferences.cpp:632
 msgid "Preset sync"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:629
+#: src/slic3r/GUI/Preferences.cpp:633
 msgid "Preferences sync"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:648
+#: src/slic3r/GUI/Preferences.cpp:652
 msgid "View control settings"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:655
+#: src/slic3r/GUI/Preferences.cpp:659
 msgid "Rotate of view"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:657
+#: src/slic3r/GUI/Preferences.cpp:661
 msgid "Move of view"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:658
+#: src/slic3r/GUI/Preferences.cpp:662
 msgid "Zoom of view"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:660
+#: src/slic3r/GUI/Preferences.cpp:664
 msgid "Other"
 msgstr "Autre"
 
-#: src/slic3r/GUI/Preferences.cpp:661
+#: src/slic3r/GUI/Preferences.cpp:665
 msgid "Mouse wheel reverses when zooming"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:691 src/slic3r/GUI/Preferences.cpp:692
+#: src/slic3r/GUI/Preferences.cpp:695 src/slic3r/GUI/Preferences.cpp:696
 msgid "Develop mode"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:693
+#: src/slic3r/GUI/Preferences.cpp:697
 msgid "Dump video"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:696
+#: src/slic3r/GUI/Preferences.cpp:700
 msgid "DEV host: api-dev.bambu-lab.com/v1"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:697
+#: src/slic3r/GUI/Preferences.cpp:701
 msgid "QA  host: api-qa.bambu-lab.com/v1"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:698
+#: src/slic3r/GUI/Preferences.cpp:702
 msgid "PRE host: api-pre.bambu-lab.com/v1"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:708
+#: src/slic3r/GUI/Preferences.cpp:712
 msgid "debug save button"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:711
+#: src/slic3r/GUI/Preferences.cpp:715
 msgid "save debug settings"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:711
+#: src/slic3r/GUI/Preferences.cpp:715
 msgid "DEBUG settings have saved successfully!"
 msgstr ""
 
-#: src/slic3r/GUI/Preferences.cpp:758
+#: src/slic3r/GUI/Preferences.cpp:762
 msgid "Swith cloud environment, Please login again!"
 msgstr ""
 
@@ -6630,6 +6634,9 @@ msgstr ""
 #: src/libslic3r/PrintObjectSlice.cpp:569
 msgid "Slicing mesh"
 msgstr ""
+
+#~ msgid "Box"
+#~ msgstr "Boîte"
 
 #~ msgid "Add support blocker"
 #~ msgstr "Ajouter un bloqueur de support"

@@ -239,9 +239,10 @@ ObjectList::ObjectList(wxWindow* parent) :
 
     Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU,  &ObjectList::OnContextMenu,     this);
 
-    Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG,    &ObjectList::OnBeginDrag,       this);
-    Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, &ObjectList::OnDropPossible,    this);
-    Bind(wxEVT_DATAVIEW_ITEM_DROP,          &ObjectList::OnDrop,            this);
+    // BBS
+    //Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG,    &ObjectList::OnBeginDrag,       this);
+    //Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, &ObjectList::OnDropPossible,    this);
+    //Bind(wxEVT_DATAVIEW_ITEM_DROP,          &ObjectList::OnDrop,            this);
 
 #ifdef __WXMSW__
     Bind(wxEVT_DATAVIEW_ITEM_EDITING_STARTED, &ObjectList::OnEditingStarted,  this);
@@ -318,6 +319,14 @@ void ObjectList::create_objects_ctrl()
 
     const int em = wxGetApp().em_unit();
 
+    m_columns_width.resize(colCount);
+    m_columns_width[colName] = 25;
+    m_columns_width[colPrint] = 3;
+    m_columns_width[colFilament] = 5;
+    m_columns_width[colSupportPaint] = 3;
+    m_columns_width[colColorPaint] = 3;
+    m_columns_width[colEditing] = 3;
+
     // column ItemName(Icon+Text) of the view control:
     // And Icon can be consisting of several bitmaps
     BitmapTextRenderer* bmp_text_renderer = new BitmapTextRenderer();
@@ -325,8 +334,9 @@ void ObjectList::create_objects_ctrl()
         return m_objects_model->GetItemType(GetSelection()) & (itVolume | itObject);
     });
 
+    // BBS
     wxDataViewColumn* name_col = new wxDataViewColumn(_L("Name"), bmp_text_renderer,
-        colName, 26 * em, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
+        colName, m_columns_width[colName] * em, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
     //name_col->SetBitmap(create_scaled_bitmap("organize", nullptr, FromDIP(18)));
     AppendColumn(name_col);
 
@@ -342,21 +352,29 @@ void ObjectList::create_objects_ctrl()
     bmp_choice_renderer->set_default_extruder_idx([this]() {
         return m_objects_model->GetDefaultExtruderIdx(GetSelection());
     });
-    AppendColumn(new wxDataViewColumn(_L("Filament"), bmp_choice_renderer,
-        colFilament, 8 * em, wxALIGN_CENTER_HORIZONTAL, 0));
+    AppendColumn(new wxDataViewColumn(_L(""), bmp_choice_renderer,
+        colFilament, m_columns_width[colFilament] * em, wxALIGN_CENTER_HORIZONTAL, 0));
+
+    // BBS
+    AppendBitmapColumn("  ", colSupportPaint, wxDATAVIEW_CELL_INERT, m_columns_width[colSupportPaint] * em,
+        wxALIGN_CENTER_HORIZONTAL, 0);
+    AppendBitmapColumn("  ", colColorPaint, wxDATAVIEW_CELL_INERT, m_columns_width[colColorPaint] * em,
+        wxALIGN_CENTER_HORIZONTAL, 0);
 
     // column ItemEditing of the view control:
-    AppendBitmapColumn("  ", colEditing, wxDATAVIEW_CELL_INERT, 3*em,
+    AppendBitmapColumn("  ", colEditing, wxDATAVIEW_CELL_INERT, m_columns_width[colEditing] * em,
         wxALIGN_CENTER_HORIZONTAL, 0);
+
+    //for (int cn = colName; cn < colCount; cn++) {
+    //    GetColumn(cn)->SetResizeable(cn == colName);
+    //}
 
     // For some reason under OSX on 4K(5K) monitors in wxDataViewColumn constructor doesn't set width of column.
     // Therefore, force set column width.
     if (wxOSX)
     {
-        GetColumn(colName)->SetWidth(26*em);
-        GetColumn(colPrint)->SetWidth(3*em);
-        GetColumn(colFilament)->SetWidth(8*em);
-        GetColumn(colEditing) ->SetWidth(3*em);
+        for (int cn = colName; cn < colCount; cn++)
+            GetColumn(cn)->SetWidth(m_columns_width[cn] * em);
     }
 }
 
@@ -496,20 +514,33 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
     }
 
     wxString tooltip = "";
+    ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
 
-    if (col->GetTitle() == _(L("  ")))
+    if (col->GetModelColumn() == (unsigned int)colEditing) {
+        if (node->IsActionEnabled())
 #ifdef __WXOSX__
-        tooltip = _(L("Right button click the icon to drop the object settings"));
+            tooltip = _(L("Right button click the icon to drop the object settings"));
 #else
-        tooltip = _(L("Click the icon to reset all settings of the object"));
+            tooltip = _(L("Click the icon to reset all settings of the object"));
 #endif //__WXMSW__
-    else if (col->GetTitle() == " ")
+    }
+    else if (col->GetModelColumn() == (unsigned int)colPrint)
 #ifdef __WXOSX__
         tooltip = _(L("Right button click the icon to drop the object printable property"));
 #else
-        tooltip = _(L("Click the icon to reset printable property of the object"));
+        tooltip = _(L("Click the icon to toggle printable property of the object"));
 #endif //__WXMSW__
-    else if (col->GetTitle() == _("Name") && (pt.x >= 2 * wxGetApp().em_unit() && pt.x <= 4 * wxGetApp().em_unit()))
+    // BBS
+    else if (col->GetModelColumn() == (unsigned int)colSupportPaint) {
+        if (node->HasSupportPainting())
+            tooltip = _(L("Click the icon to edit support painting of the object"));
+
+    }
+    else if (col->GetModelColumn() == (unsigned int)colColorPaint) {
+        if (node->HasColorPainting())
+            tooltip = _(L("Click the icon to edit color painting of the object"));
+    }
+    else if (col->GetModelColumn() == (unsigned int)colName && (pt.x >= 2 * wxGetApp().em_unit() && pt.x <= 4 * wxGetApp().em_unit()))
     {
         if (const ItemType type = m_objects_model->GetItemType(item);
             type & (itObject | itVolume)) {
@@ -727,11 +758,38 @@ void ObjectList::update_filament_colors()
     m_objects_model->UpdateColumValues(colFilament);
 }
 
+void ObjectList::update_name_column_width() const
+{
+    auto em = em_unit(const_cast<ObjectList*>(this));
+    int extra_width = 0;
+
+    for (int cn = colName; cn < colCount; cn++) {
+        if (cn != colName) {
+            if (GetColumn(cn)->IsHidden())
+                extra_width += m_columns_width[cn];
+        }
+    }
+
+    GetColumn(colName)->SetWidth((m_columns_width[colName] + extra_width) * em);
+}
+
 void ObjectList::set_filament_column_hidden(const bool hide) const
 {
     GetColumn(colFilament)->SetHidden(hide);
-    auto em = em_unit(const_cast<ObjectList*>(this));
-    GetColumn(colName)->SetWidth(hide ? 34 * em : 26 * em);
+    update_name_column_width();
+}
+
+// BBS
+void ObjectList::set_color_paint_hidden(const bool hide) const
+{
+    GetColumn(colColorPaint)->SetHidden(hide);
+    update_name_column_width();
+}
+
+void ObjectList::set_support_paint_hidden(const bool hide) const
+{
+    GetColumn(colSupportPaint)->SetHidden(hide);
+    update_name_column_width();
 }
 
 void ObjectList::update_filament_in_config(const wxDataViewItem& item)
@@ -1070,9 +1128,26 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
     if (col != nullptr)
     {
 	    const wxString title = col->GetTitle();
-	    if (title == " ")
+        ColumnNumber col_num = (ColumnNumber)col->GetModelColumn();
+	    if (col_num == colPrint)
 	        toggle_printable_state();
-        else if (title == _("  ")) {
+        else if (col_num == colSupportPaint) {
+            ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+            if (node->HasSupportPainting()) {
+                GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
+                if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::FdmSupports)
+                    gizmos_mgr.open_gizmo(GLGizmosManager::EType::FdmSupports);
+            }
+        }
+        else if (col_num == colColorPaint) {
+            ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+            if (node->HasColorPainting()) {
+                GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
+                if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::MmuSegmentation)
+                    gizmos_mgr.open_gizmo(GLGizmosManager::EType::MmuSegmentation);
+            }
+        }
+        else if (col_num == colEditing) {
             //show_context_menu(evt_context_menu);
             int obj_idx, vol_idx;
 
@@ -1080,7 +1155,7 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
             //wxGetApp().plater()->PopupObjectTable(obj_idx, vol_idx, mouse_pos);
             dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab(vol_idx >= 0))->reset_model_config();
         }
-        else if (title == _("Name"))
+        else if (col_num == colName)
         {
             if (is_windows10() && m_objects_model->HasWarningIcon(item) &&
                 mouse_pos.x > 2 * wxGetApp().em_unit() && mouse_pos.x < 4 * wxGetApp().em_unit())
@@ -1089,7 +1164,7 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
                 show_context_menu(evt_context_menu); // show context menu for "Name" column too
         }
 	    // workaround for extruder editing under OSX
-	    else if (wxOSX && evt_context_menu && title == _("Extruder"))
+	    else if (wxOSX && evt_context_menu && col_num == colFilament)
 	        extruder_editing();
 	}
 
@@ -1788,7 +1863,7 @@ static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf
     const double side = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.1);
 
     indexed_triangle_set mesh;
-    if (type_name == "Box")
+    if (type_name == "Cube")
         // Sitting on the print bed, left front front corner at (0, 0).
         mesh = its_make_cube(side, side, side);
     else if (type_name == "Cylinder")
@@ -1900,7 +1975,8 @@ void ObjectList::load_shape_object(const std::string& type_name)
     // Create mesh
     BoundingBoxf3 bb;
     TriangleMesh mesh = create_mesh(type_name, bb);
-    load_mesh_object(mesh, _L("Shape") + "-" + _(type_name));
+    // BBS: remove "Shape" prefix
+    load_mesh_object(mesh, _(type_name));
     wxGetApp().mainframe->update_title();
 }
 
@@ -2837,6 +2913,7 @@ wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const D
 
 void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selections/* = nullptr*/, bool added_object/* = false*/)
 {
+    // BBS
     if (obj_idx >= m_objects->size())
         return;
 
@@ -2844,61 +2921,78 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
     wxDataViewItem item_obj = m_objects_model->GetItemById(obj_idx);
     assert(item_obj.IsOk());
 
-    for (InfoItemType type : {InfoItemType::CustomSupports,
-                              //InfoItemType::CustomSeam,
-                              InfoItemType::MmuSegmentation,
-                              //InfoItemType::Sinking
-                             }) {
-        wxDataViewItem item = m_objects_model->GetInfoItemByType(item_obj, type);
-        bool shows = item.IsOk();
+    ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item_obj.GetID();
+    {
+        bool shows = node->HasSupportPainting();
+        bool should_show = printer_technology() == ptFFF
+            && std::any_of(model_object->volumes.begin(), model_object->volumes.end(),
+                [](const ModelVolume* mv) {
+                    return !mv->supported_facets.empty();
+                });
+        if (shows && !should_show) {
+            node->set_support_icon(false);
+        }
+        else if (!shows && should_show) {
+            node->set_support_icon(true);
+        }
+    }
+
+    {
+        bool shows = node->HasColorPainting();
+        bool should_show = printer_technology() == ptFFF
+            && std::any_of(model_object->volumes.begin(), model_object->volumes.end(),
+                [](const ModelVolume* mv) {
+                    return !mv->mmu_segmentation_facets.empty();
+                });
+        if (shows && !should_show) {
+            node->set_color_icon(false);
+        }
+        else if (!shows && should_show) {
+            node->set_color_icon(true);
+        }
+    }
+
+    {
+        bool shows = this->GetColumn(colSupportPaint)->IsShown();
         bool should_show = false;
-
-        switch (type) {
-        case InfoItemType::CustomSupports :
-        //case InfoItemType::CustomSeam :
-        case InfoItemType::MmuSegmentation :
-            should_show = printer_technology() == ptFFF
-                       && std::any_of(model_object->volumes.begin(), model_object->volumes.end(),
-                                      [type](const ModelVolume *mv) {
-                                          return !(type == InfoItemType::CustomSupports ? mv->supported_facets.empty() :
-                                                   //type == InfoItemType::CustomSeam     ? mv->seam_facets.empty() :
-                                                                                          mv->mmu_segmentation_facets.empty());
-                                      });
-            break;
-        // BBS: remove Sinking
-#if 0
-        case InfoItemType::Sinking:
-        {
-            should_show = printer_technology() == ptFFF &&
-                wxGetApp().plater()->canvas3D()->is_object_sinking(obj_idx);
-            break;
-        }
-#endif
-        default: break;
-        }
-
-        if (! shows && should_show) {
-            m_objects_model->AddInfoChild(item_obj, type);
-            Expand(item_obj);
-            if (added_object)
-                wxGetApp().notification_manager()->push_updated_item_info_notification(type);
-        }
-        else if (shows && ! should_show) {
-            if (!selections)
-                Unselect(item);
-            m_objects_model->Delete(item);
-            if (selections) {
-                if (selections->Index(item) != wxNOT_FOUND) {
-                    // If info item was deleted from the list,
-                    // it's need to be deleted from selection array, if it was there
-                    selections->Remove(item);
-                    // Select item_obj, if info_item doesn't exist for item anymore, but was selected
-                    if (selections->Index(item_obj) == wxNOT_FOUND)
-                        selections->Add(item_obj);
+        for (ModelObject* mo : *m_objects) {
+            for (ModelVolume* mv : mo->volumes) {
+                if (!mv->supported_facets.empty()) {
+                    should_show = true;
+                    break;
                 }
             }
-            else
-                Select(item_obj);
+            if (should_show)
+                break;
+        }
+
+        if (shows && !should_show) {
+            this->set_support_paint_hidden(true);
+        }
+        else if (!shows && should_show) {
+            this->set_support_paint_hidden(false);
+        }
+    }
+
+    {
+        bool shows = this->GetColumn(colColorPaint)->IsShown();
+        bool should_show = false;
+        for (ModelObject* mo : *m_objects) {
+            for (ModelVolume* mv : mo->volumes) {
+                if (!mv->mmu_segmentation_facets.empty()) {
+                    should_show = true;
+                    break;
+                }
+            }
+            if (should_show)
+                break;
+        }
+
+        if (shows && !should_show) {
+            this->set_color_paint_hidden(true);
+        }
+        else if (!shows && should_show) {
+            this->set_color_paint_hidden(false);
         }
     }
 }
@@ -4529,7 +4623,10 @@ void ObjectList::msw_rescale()
 
     GetColumn(colName    )->SetWidth(20 * em);
     GetColumn(colPrint   )->SetWidth( 3 * em);
-    GetColumn(colFilament)->SetWidth( 8 * em);
+    GetColumn(colFilament)->SetWidth( 5 * em);
+    // BBS
+    GetColumn(colSupportPaint)->SetWidth(3 * em);
+    GetColumn(colColorPaint)->SetWidth(3 * em);
     GetColumn(colEditing )->SetWidth( 3 * em);
 
     // rescale/update existing items with bitmaps

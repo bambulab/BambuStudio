@@ -223,6 +223,10 @@ public:
     void                update_filament_colors();
     // show/hide "Extruder" column for Objects List
     void                set_filament_column_hidden(const bool hide) const;
+    // BBS
+    void                set_color_paint_hidden(const bool hide) const;
+    void                set_support_paint_hidden(const bool hide) const;
+
     // update extruder in current config
     void                update_filament_in_config(const wxDataViewItem& item);
     // update changed name in the object model
@@ -435,6 +439,9 @@ private:
     void OnContextMenu(wxDataViewEvent &event);
     void list_manipulation(const wxPoint& mouse_pos, bool evt_context_menu = false);
 
+    // BBS
+    void update_name_column_width() const;
+
     void OnBeginDrag(wxDataViewEvent &event);
     void OnDropPossible(wxDataViewEvent &event);
     void OnDrop(wxDataViewEvent &event);
@@ -451,6 +458,8 @@ private:
     void OnColumnHeadClicked(wxDataViewEvent& event);
     void OnOrganizeObjects(OBJECT_ORGANIZE_TYPE type);
     wxMenu m_object_org_menu;
+
+    std::vector<int> m_columns_width;
 };
 
 
