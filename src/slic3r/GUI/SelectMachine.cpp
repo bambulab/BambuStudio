@@ -786,12 +786,18 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
 {
     m_status_bar->set_status_text("exporting 3mf was cancelled");
 
-    if (m_printer_last_select <= -1) {
+    if (m_printer_last_select.empty()) {
         update_err_msg(_L("Please select a printer first!"));
         return;
     }
 
-    std::string             dev_id = m_list[m_printer_last_select]->dev_id;
+    std::string dev_id;
+    for (int i = 0; i < m_list.size(); i++) {
+        if (m_list[i]->dev_name == m_printer_last_select) { 
+            dev_id  = m_list[i]->dev_id; 
+        }
+    }
+    
     Slic3r::AccountManager *c      = Slic3r::GUI::wxGetApp().getAccountManager();
 
     std::map<std::string, MachineObject *>::iterator it = c->myBindMachineList.find(dev_id);
@@ -930,8 +936,13 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
 
 
     if (m_list.size() > 0) {
-        if (m_printer_last_select <= -1) { m_printer_last_select = 0; }
-        m_comboBox_printer->SetSelection(m_printer_last_select);
+        if (m_printer_last_select.empty()) { m_list[0]->dev_id; }
+
+        for (auto i = 0; i < m_list.size(); i++) {
+            if (m_list[i]->dev_name == m_printer_last_select) {
+                 m_comboBox_printer->SetSelection(i);
+            }
+        }
     } else {
         m_printer_last_select = -1;
     }
@@ -941,9 +952,13 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 {
     Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
     if (event.GetString().empty()) { return; }
-    if (m_printer_last_select == -1) { return; }
-    m_printer_last_select = event.GetSelection();
-    c->default_machine    = m_list[m_printer_last_select]->dev_id;
+    m_printer_last_select = event.GetString().ToStdString(); 
+
+    for (int i = 0; i < m_list.size(); i++) {
+        if (m_list[i]->dev_name == m_printer_last_select) {
+            c->default_machine    = m_list[i]->dev_id;
+        }
+    }
 }
 
 void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)

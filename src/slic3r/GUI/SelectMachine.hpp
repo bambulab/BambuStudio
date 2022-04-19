@@ -204,7 +204,7 @@ private:
 
     bool            m_fitst_time_enter{true};
     int             m_print_plate_idx;
-    int             m_printer_last_select{-1};
+    std::string     m_printer_last_select;
     int             m_bed_last_select{0};
 
     Plater*         m_plater { nullptr };
