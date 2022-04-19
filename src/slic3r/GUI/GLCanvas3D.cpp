@@ -5670,11 +5670,11 @@ void GLCanvas3D::_render_overlays()
     wxGetApp().plater()->get_collapse_toolbar().set_scale(scale);
     m_gizmos.set_overlay_scale(scale);
 #else
-    //const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(/*true*/));
-    //const float gizmo_size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
-    // BBS do not scale
-    const float size = int(GLToolbar::Default_Icons_Size);
-    const float gizmo_size = int(GLGizmosManager::Default_Icons_Size);
+    // BBS adjust display scale
+    const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(/*true*/));
+    const float gizmo_size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
+    //const float size = int(GLToolbar::Default_Icons_Size);
+    //const float gizmo_size = int(GLGizmosManager::Default_Icons_Size);
 
     //BBS: GUI refactor: GLToolbar
     m_main_toolbar.set_icons_size(gizmo_size);
@@ -6158,9 +6158,9 @@ void GLCanvas3D::_render_paint_toolbar() const
     std::vector<std::string> colors = wxGetApp().plater()->get_extruder_colors_from_plater_config();
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     auto canvas_w = float(get_canvas_size().get_width());
-    int button_size = 48;
+    int button_size = GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
     int extruder_num = colors.size();
-    int item_spacing = 8;
+    int item_spacing = 8 * wxGetApp().toolbar_icon_scale();
     imgui.set_next_window_pos(0.5f * (canvas_w + (button_size + item_spacing) * extruder_num), button_size + item_spacing * 2, ImGuiCond_Always, 1.0f, 1.0f);
     imgui.begin(_L("Paint Toolbar"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar);
     bool disabled = !wxGetApp().plater()->can_fillcolor();

@@ -1787,22 +1787,24 @@ float GUI_App::toolbar_icon_scale(const bool is_limited/* = false*/) const
 #ifdef __APPLE__
     const float icon_sc = 1.0f; // for Retina display will be used its own scale
 #else
-    const float icon_sc = m_em_unit*0.1f;
+    const float icon_sc = m_em_unit * 0.1f;
 #endif // __APPLE__
 
-    const std::string& auto_val = app_config->get("toolkit_size");
+    return icon_sc;
 
-    if (auto_val.empty())
-        return icon_sc;
+    //const std::string& auto_val = app_config->get("toolkit_size");
 
-    int int_val =  100;
-    // correct value in respect to toolkit_size
-    int_val = std::min(atoi(auto_val.c_str()), int_val);
+    //if (auto_val.empty())
+    //    return icon_sc;
 
-    if (is_limited && int_val < 50)
-        int_val = 50;
+    //int int_val =  100;
+    //// correct value in respect to toolkit_size
+    //int_val = std::min(atoi(auto_val.c_str()), int_val);
 
-    return 0.01f * int_val * icon_sc;
+    //if (is_limited && int_val < 50)
+    //    int_val = 50;
+
+    //return 0.01f * int_val * icon_sc;
 }
 
 void GUI_App::set_auto_toolbar_icon_scale(float scale) const
