@@ -285,10 +285,14 @@ void GCodeViewer::SequentialRangeCap::reset() {
     color = { 0.0f, 0.0f, 0.0f, 1.0f };
 }
 
-void GCodeViewer::SequentialView::Marker::init()
+void GCodeViewer::SequentialView::Marker::init(std::string filename)
 {
-    m_model.init_from(stilized_arrow(16, 1.5f, 3.0f, 0.8f, 3.0f));
-    m_model.set_color(-1, { 1.0f, 1.0f, 1.0f, 0.7f });
+    if (filename.empty()) {
+        m_model.init_from(stilized_arrow(16, 1.5f, 3.0f, 0.8f, 3.0f));
+    } else {
+        m_model.init_from_file(filename);
+    }
+    m_model.set_color(-1, {1.0f, 1.0f, 1.0f, 0.5f});
 }
 
 void GCodeViewer::SequentialView::Marker::set_world_position(const Vec3f& position)
@@ -307,8 +311,8 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     if (shader == nullptr)
         return;
 
-    //glsafe(::glEnable(GL_BLEND));
-    //glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    glsafe(::glEnable(GL_BLEND));
+    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     shader->start_using();
     shader->set_uniform("emission_factor", 0.0f);
@@ -322,7 +326,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
 
     shader->stop_using();
 
-    //glsafe(::glDisable(GL_BLEND));
+    glsafe(::glDisable(GL_BLEND));
 
     static float last_window_width = 0.0f;
     static size_t last_text_length = 0;
@@ -714,7 +718,14 @@ void GCodeViewer::init()
     }
 
     // initializes tool marker
-    m_sequential_view.marker.init();
+    std::string filename;
+    auto bundle = wxGetApp().preset_bundle;
+    if (bundle != nullptr) {
+        const Preset* curr = &bundle->printers.get_selected_preset();
+        filename = PresetUtils::system_printer_hotend_model(*curr);
+    }
+    
+    m_sequential_view.marker.init(filename);
 
     // initializes point sizes
     std::array<int, 2> point_sizes;

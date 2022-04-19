@@ -48,6 +48,7 @@
 #define BBL_JSON_KEY_FAMILY                     "family"
 #define BBL_JSON_KEY_BED_MODEL                  "bed_model"
 #define BBL_JSON_KEY_BED_TEXTURE                "bed_texture"
+#define BBL_JSON_KEY_HOTEND_MODEL               "hotend_model"
 #define BBL_JSON_KEY_DEFAULT_MATERIALS          "default_materials"
 
 
@@ -97,6 +98,7 @@ public:
         // Vendor & Printer Model specific print bed model & texture.
         std::string 			 	bed_model;
         std::string 				bed_texture;
+        std::string                 hotend_model;
 
         PrinterVariant*       variant(const std::string &name) {
             for (auto &v : this->variants)
@@ -738,6 +740,7 @@ namespace PresetUtils {
 	const VendorProfile::PrinterModel* system_printer_model(const Preset &preset);
     std::string system_printer_bed_model(const Preset& preset);
     std::string system_printer_bed_texture(const Preset& preset);
+    std::string system_printer_hotend_model(const Preset& preset);
 } // namespace PresetUtils
 
 

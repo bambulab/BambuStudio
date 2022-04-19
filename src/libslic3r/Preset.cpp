@@ -2866,6 +2866,18 @@ namespace PresetUtils {
         }
         return out;
     }
+
+    std::string system_printer_hotend_model(const Preset& preset)
+    {
+        std::string out;
+        const VendorProfile::PrinterModel* pm = PresetUtils::system_printer_model(preset);
+        if (pm != nullptr && !pm->hotend_model.empty()) {
+            out = Slic3r::data_dir() + "/vendor/" + preset.vendor->id + "/" + pm->hotend_model;
+            if (!boost::filesystem::exists(boost::filesystem::path(out)))
+                out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->hotend_model;
+        }
+        return out;
+    }
 } // namespace PresetUtils
 
 } // namespace Slic3r

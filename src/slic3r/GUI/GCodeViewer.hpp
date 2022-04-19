@@ -611,7 +611,7 @@ public:
             bool m_visible{ true };
 
         public:
-            void init();
+            void init(std::string filename);
 
             const BoundingBoxf3& get_bounding_box() const { return m_model.get_bounding_box(); }
 
