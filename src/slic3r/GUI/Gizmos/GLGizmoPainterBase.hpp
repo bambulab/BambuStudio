@@ -81,8 +81,9 @@ public:
         m_paint_changed = paint_changed;
     };
 
-    static constexpr std::array<float, 4> enforcers_color{ 0.47f, 0.47f, 1.f, 1.f };
-    static constexpr std::array<float, 4> blockers_color{ 1.f, 0.44f, 0.44f, 1.f };
+    // BBS
+    static constexpr std::array<float, 4> enforcers_color{ 0.5f, 1.f, 0.5f, 1.f };
+    static constexpr std::array<float, 4> blockers_color{ 1.f, 0.5f, 0.5f, 1.f };
 
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     void render_debug(ImGuiWrapper* imgui);

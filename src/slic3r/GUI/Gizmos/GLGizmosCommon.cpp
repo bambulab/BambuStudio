@@ -417,7 +417,8 @@ void ObjectClipper::render_cut() const
         clipper->set_transformation(trafo);
         clipper->set_limiting_plane(ClippingPlane(Vec3d::UnitZ(), -SINKING_Z_THRESHOLD));
         glsafe(::glPushMatrix());
-        glsafe(::glColor3f(1.0f, 0.37f, 0.0f));
+        // BBS
+        glsafe(::glColor3f(0.25f, 0.25f, 0.25f));
         clipper->render_cut();
         glsafe(::glPopMatrix());
 
