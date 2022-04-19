@@ -418,6 +418,8 @@ private:
     void generate_support_material();
 
     void slice_volumes();
+    //BBS
+    ExPolygons _shrink_contour_holes(double contour_delta, double hole_delta, const ExPolygons& polys) const;
     // Has any support (not counting the raft).
     void detect_surfaces_type();
     void process_external_surfaces();

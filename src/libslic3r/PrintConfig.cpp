@@ -2454,8 +2454,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("X-Y hole compensation");
     def->category = L("Quality");
     def->tooltip = L("Holes of object will be grown or shrunk in XY plane by the configured value. "
-                     "Negative value makes holes bigger. Positive value makes holes smaller. "
-                     "This function is used to adjust size when the object has assembling issue");
+                     "Positive value makes holes bigger. Negative value makes holes smaller. "
+                     "This function is used to adjust size slightly when the object has assembling issue");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
@@ -2465,7 +2465,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("Contour of object will be grown or shrunk in XY plane by the configured value. "
                      "Positive value makes contour bigger. Negative value makes contour smaller. "
-                     "This function is used to adjust size when the object has assembling issue");
+                     "This function is used to adjust size slightly when the object has assembling issue");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));

@@ -154,7 +154,10 @@ static std::vector<VolumeSlices> slice_volumes_inner(
     // BBS
     const size_t num_extruders = print_config.filament_diameter.size();
     const bool   is_mm_painted = num_extruders > 1 && std::any_of(model_volumes.cbegin(), model_volumes.cend(), [](const ModelVolume *mv) { return mv->is_mm_painted(); });
-    const auto   extra_offset  = is_mm_painted ? 0.f : std::max(0.f, float(print_object_config.xy_contour_compensation.value));
+    // BBS: don't do size compensation when slice volume.
+    // Will handle contour and hole size compensation seperately later.
+    //const auto   extra_offset  = is_mm_painted ? 0.f : std::max(0.f, float(print_object_config.xy_contour_compensation.value));
+    const auto   extra_offset = 0.f;
 
     for (const ModelVolume *model_volume : model_volumes)
         if (model_volume_needs_slicing(*model_volume)) {
@@ -810,14 +813,15 @@ void PrintObject::slice_volumes()
     {
         // Compensation value, scaled. Only applying the negative scaling here, as the positive scaling has already been applied during slicing.
         const size_t num_extruders = print->config().filament_diameter.size();
-        const auto   xy_hole_scaled            = (num_extruders > 1 && this->is_mm_painted()) ? scaled<float>(0.f) : scaled<float>(std::min(m_config.xy_hole_compensation.value, 0.));
-        const auto   xy_contour_scaled            = (num_extruders > 1 && this->is_mm_painted()) ? scaled<float>(0.f) : scaled<float>(std::min(m_config.xy_contour_compensation.value, 0.));
+        const auto   xy_hole_scaled = (num_extruders > 1 && this->is_mm_painted()) ? scaled<float>(0.f) : scaled<float>(m_config.xy_hole_compensation.value);
+        const auto   xy_contour_scaled            = (num_extruders > 1 && this->is_mm_painted()) ? scaled<float>(0.f) : scaled<float>(m_config.xy_contour_compensation.value);
         const float  elephant_foot_compensation_scaled = (m_config.raft_layers == 0) ?
         	// Only enable Elephant foot compensation if printing directly on the print bed.
             float(scale_(m_config.elefant_foot_compensation.value)) :
         	0.f;
         // Uncompensated slices for the first layer in case the Elephant foot compensation is applied.
 	    ExPolygons  lslices_1st_layer;
+        //BBS: this part has been changed a lot to support seperated contour and hole size compensation
 	    tbb::parallel_for(
 	        tbb::blocked_range<size_t>(0, m_layers.size()),
 			[this, xy_hole_scaled, xy_contour_scaled, elephant_foot_compensation_scaled, &lslices_1st_layer](const tbb::blocked_range<size_t>& range) {
@@ -830,43 +834,89 @@ void PrintObject::slice_volumes()
 	                    // Optimized version for a single region layer.
 	                    // Single region, growing or shrinking.
 	                    LayerRegion *layerm = layer->m_regions.front();
-	                    if (elfoot > 0) {
+                        if (elfoot > 0) {
 		                    // Apply the elephant foot compensation and store the 1st layer slices without the Elephant foot compensation applied.
 		                    lslices_1st_layer = to_expolygons(std::move(layerm->slices.surfaces));
-		                    float delta = xy_contour_scaled;
-	                        if (delta > elfoot) {
-	                            delta -= elfoot;
-	                            elfoot = 0.f;
-	                        } else if (delta > 0)
-	                            elfoot -= delta;
+                            if (xy_contour_scaled > 0 || xy_hole_scaled > 0) {
+                                lslices_1st_layer = _shrink_contour_holes(std::max(0.f, xy_contour_scaled), 
+                                                                   std::max(0.f, xy_hole_scaled),
+                                                                   lslices_1st_layer);
+                            }
+                            if (xy_contour_scaled < 0 || xy_hole_scaled < 0) {
+                                lslices_1st_layer = _shrink_contour_holes(std::min(0.f, xy_contour_scaled), 
+                                                                   std::min(0.f, xy_hole_scaled),
+                                                                   lslices_1st_layer);
+                            }
 							layerm->slices.set(
 								union_ex(
-									Slic3r::elephant_foot_compensation(
-										(delta == 0.f) ? lslices_1st_layer : offset_ex(lslices_1st_layer, delta), 
+									Slic3r::elephant_foot_compensation(lslices_1st_layer, 
 	                            		layerm->flow(frExternalPerimeter), unscale<double>(elfoot))),
 								stInternal);
-							if (xy_contour_scaled < 0.f)
-								lslices_1st_layer = offset_ex(std::move(lslices_1st_layer), xy_contour_scaled);
-	                    } else if (xy_contour_scaled < 0.f) {
-	                        // Apply the XY compensation.
-	                        layerm->slices.set(
-                                offset_ex(to_expolygons(std::move(layerm->slices.surfaces)), xy_contour_scaled),
-	                            stInternal);
+	                    } else {
+	                        // Apply the XY contour and hole size compensation.
+                            if (xy_contour_scaled != 0.0f || xy_hole_scaled != 0.0f) {
+                                ExPolygons expolygons = to_expolygons(std::move(layerm->slices.surfaces));
+                                if (xy_contour_scaled > 0 || xy_hole_scaled > 0) {
+                                    expolygons = _shrink_contour_holes(std::max(0.f, xy_contour_scaled),
+                                                                       std::max(0.f, xy_hole_scaled),
+                                                                       expolygons);
+                                }
+                                if (xy_contour_scaled < 0 || xy_hole_scaled < 0) {
+                                    expolygons = _shrink_contour_holes(std::min(0.f, xy_contour_scaled),
+                                                                       std::min(0.f, xy_hole_scaled),
+                                                                       expolygons);
+                                }
+                                layerm->slices.set(std::move(expolygons), stInternal);
+                            }
 	                    }
 	                } else {
-	                    if (xy_contour_scaled < 0.f || elfoot > 0.f) {
-	                        // Apply the negative XY compensation.
-	                        Polygons trimming;
-	                        static const float eps = float(scale_(g_config_slice_closing_radius) * 1.5);
-	                        if (elfoot > 0.f) {
-	                        	lslices_1st_layer = offset_ex(layer->merged(eps), std::min(xy_contour_scaled, 0.f) - eps);
-								trimming = to_polygons(Slic3r::elephant_foot_compensation(lslices_1st_layer,
-									layer->m_regions.front()->flow(frExternalPerimeter), unscale<double>(elfoot)));
-	                        } else
-		                        trimming = offset(layer->merged(float(SCALED_EPSILON)), xy_contour_scaled - float(SCALED_EPSILON));
-	                        for (size_t region_id = 0; region_id < layer->m_regions.size(); ++ region_id)
-	                            layer->m_regions[region_id]->trim_surfaces(trimming);
-	                    }
+                        float max_growth = std::max(xy_hole_scaled, xy_contour_scaled);
+                        float min_growth = std::min(xy_hole_scaled, xy_contour_scaled);
+                        ExPolygons merged_poly_for_holes_growing;
+                        if (max_growth > 0) {
+                            //BBS: merge polygons because region can cut "holes".
+                            //Then, cut them to give them again later to their region
+                            merged_poly_for_holes_growing = layer->merged(float(SCALED_EPSILON));
+                            merged_poly_for_holes_growing = _shrink_contour_holes(std::max(0.f, xy_contour_scaled),
+                                                                                  std::max(0.f, xy_hole_scaled),
+                                                                                  union_ex(merged_poly_for_holes_growing));
+
+                            // BBS: clipping regions, priority is given to the first regions.
+                            Polygons processed;
+                            for (size_t region_id = 0; region_id < layer->regions().size(); ++region_id) {
+                                ExPolygons slices = to_expolygons(std::move(layer->m_regions[region_id]->slices.surfaces));
+                                if (max_growth > 0.f) {
+                                    slices = intersection_ex(offset_ex(slices, max_growth), merged_poly_for_holes_growing);
+                                }
+                                
+                                //BBS: Trim by the slices of already processed regions.
+                                if (region_id > 0)
+                                    slices = diff_ex(to_polygons(std::move(slices)), processed);
+                                if (region_id + 1 < layer->regions().size())
+                                    // Collect the already processed regions to trim the to be processed regions.
+                                    polygons_append(processed, slices);
+                                layer->m_regions[region_id]->slices.set(std::move(slices), stInternal);
+                            }
+                        }
+                        if (min_growth < 0.f || elfoot > 0.f) {
+                            // Apply the negative XY compensation. (the ones that is <0)
+                            ExPolygons trimming;
+                            static const float eps = float(scale_(g_config_slice_closing_radius) * 1.5);
+                            if (elfoot > 0.f) {
+                                lslices_1st_layer = offset_ex(layer->merged(eps), -eps);
+                                trimming = Slic3r::elephant_foot_compensation(lslices_1st_layer,
+                                    layer->m_regions.front()->flow(frExternalPerimeter), unscale<double>(elfoot));
+                            } else {
+                                trimming = layer->merged(float(SCALED_EPSILON));
+                            }
+                            if (min_growth < 0.0f)
+                                trimming = _shrink_contour_holes(std::min(0.f, xy_contour_scaled),
+                                                                 std::min(0.f, xy_hole_scaled),
+                                                                 trimming);
+                            //BBS: trim surfaces
+                            for (size_t region_id = 0; region_id < layer->regions().size(); ++region_id)
+                                layer->regions()[region_id]->trim_surfaces(to_polygons(trimming));
+                        }
 	                }
 	                // Merge all regions' slices to get islands, chain them by a shortest path.
 	                layer->make_slices();
@@ -894,6 +944,40 @@ void PrintObject::slice_volumes()
 
     m_print->throw_if_canceled();
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - end";
+}
+
+//BBS: this function is used to offset contour and holes of expolygons seperately by different value
+ExPolygons PrintObject::_shrink_contour_holes(double contour_delta, double hole_delta, const ExPolygons& polys) const
+{
+    ExPolygons new_ex_polys;
+    for (const ExPolygon& ex_poly : polys) {
+        Polygons contours;
+        Polygons holes;
+        //BBS: modify hole
+        for (const Polygon& hole : ex_poly.holes) {
+            if (hole_delta != 0) {
+                for (Polygon& newHole : offset(hole, -hole_delta)) {
+                    newHole.make_counter_clockwise();
+                    holes.emplace_back(std::move(newHole));
+                }
+            } else {
+                holes.push_back(hole);
+                holes.back().make_counter_clockwise();
+            }
+        }
+        //BBS: modify contour
+        if (contour_delta != 0) {
+            Polygons new_contours = offset(ex_poly.contour, contour_delta);
+            if (new_contours.size() == 0)
+                continue;
+            contours.insert(contours.end(), std::make_move_iterator(new_contours.begin()), std::make_move_iterator(new_contours.end()));
+        } else {
+            contours.push_back(ex_poly.contour);
+        }
+        ExPolygons temp = diff_ex(union_(contours), union_(holes));
+        new_ex_polys.insert(new_ex_polys.end(), std::make_move_iterator(temp.begin()), std::make_move_iterator(temp.end()));
+    }
+    return union_ex(new_ex_polys);
 }
 
 std::vector<Polygons> PrintObject::slice_support_volumes(const ModelVolumeType model_volume_type) const
