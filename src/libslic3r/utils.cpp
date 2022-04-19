@@ -113,6 +113,32 @@ void set_logging_level(unsigned int level)
     );
 }
 
+unsigned int level_string_to_boost(std::string level)
+{
+    std::map<std::string, int> Control_Param;
+    Control_Param["fatal"] = 0;
+    Control_Param["error"] = 1;
+    Control_Param["warning"] = 2;
+    Control_Param["info"] = 3;
+    Control_Param["debug"] = 4;
+    Control_Param["trace"] = 5;
+
+    return Control_Param[level];
+}
+
+std::string get_string_logging_level(unsigned level)
+{
+    switch (level) {
+    case 0: return "fatal";
+    case 1: return "error";
+    case 2: return "warning";
+    case 3: return "info";
+    case 4: return "debug";
+    case 5: return "trace";
+    default: return "error";
+    }
+}
+
 unsigned get_logging_level()
 {
     switch (logSeverity) {

@@ -153,6 +153,40 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
     return m_sizer_combox;
 }
 
+wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist)
+{
+    wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
+    m_sizer_combox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
+
+    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
+    combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    combo_title->SetFont(::Label::Body_13);
+    combo_title->SetToolTip(tooltip);
+    combo_title->Wrap(-1);
+    m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER | wxALL, 3);
+
+    auto                            combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    std::vector<wxString>::iterator iter;
+    for (iter = vlist.begin(); iter != vlist.end(); iter++) { combobox->Append(*iter); }
+    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
+
+    auto severity_level = app_config->get("severity_level");
+    if (!severity_level.empty()) { combobox->SetValue(severity_level); }
+
+    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
+
+    //// save config
+    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
+        auto level = Slic3r::get_string_logging_level(e.GetSelection());
+        Slic3r::set_logging_level(Slic3r::level_string_to_boost(level));
+        app_config->set("severity_level",level);
+        app_config->save();
+        e.Skip();
+     });
+    return m_sizer_combox;
+}
+
+
 wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
     wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, std::vector<wxString> vlista, std::vector<wxString> vlistb)
 {
@@ -689,13 +723,14 @@ void PreferencesDialog::create_debug_page()
     m_backup_interval_def = app_config->get("backup_interval");
     m_iot_environment_def = app_config->get("iot_environment");
 
-    wxBoxSizer *bSizer;
-    bSizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *bSizer = new wxBoxSizer(wxVERTICAL);
 
     auto title_develop_mode   = create_item_title(_L("Develop mode"), page, _L("Develop mode"));
     auto item_develop_mode    = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
     auto item_dump_video      = create_item_checkbox(_L("Dump video"), page, _L("Dump video"), 50, "dump_video");
 
+    auto log_level_list  = std::vector<wxString>{_L("fatal"), _L("error"), _L("warning"), _L("info"), _L("debug"), _L("trace")};
+    auto loglevel_combox = create_item_loglevel_combobox(_L("Log Level"), page, _L("Log Level"), log_level_list);
 
     auto radio1 = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), page, wxEmptyString, 50, 1, "dev_host");
     auto radio2 = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), page, wxEmptyString, 50, 1, "qa_host");
@@ -782,10 +817,11 @@ void PreferencesDialog::create_debug_page()
         }
     });
 
+
     bSizer->Add(title_develop_mode, 0, wxTOP, 20);
     bSizer->Add(item_develop_mode, 0, wxTOP, 20);
     bSizer->Add(item_dump_video, 0, wxTOP, 20);
-    //bSizer->Add(item_backup_interval, 0, wxTOP, 20);
+    bSizer->Add(loglevel_combox, 0, wxTOP, 20);
     bSizer->Add(radio1, 0, wxTOP, 20);
     bSizer->Add(radio2, 0, wxTOP, 5);
     bSizer->Add(radio3, 0, wxTOP, 5);

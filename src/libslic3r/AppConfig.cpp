@@ -171,6 +171,9 @@ void AppConfig::set_defaults()
     if (get("developer_mode").empty())
         set_bool("developer_mode", false);
 
+    if (get("severity_level").empty()) 
+        set("severity_level", "trace");
+
     if (get("dump_video").empty())
         set_bool("dump_video", false);
 

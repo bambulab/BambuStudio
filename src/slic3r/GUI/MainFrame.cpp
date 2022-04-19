@@ -154,6 +154,11 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
      }
     wxGetApp().app_config->set_bool("dump_video", false);
 
+
+    //reset log level
+    auto loglevel = wxGetApp().app_config->get("severity_level");
+    Slic3r::set_logging_level(Slic3r::level_string_to_boost(loglevel));
+
     // BBS
     m_recent_projects.SetMenuPathStyle(wxFH_PATH_SHOW_ALWAYS);
     MarkdownTip::Recreate(this);
