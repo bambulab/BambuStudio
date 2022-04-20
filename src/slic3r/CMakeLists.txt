@@ -134,6 +134,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/GCodeViewer.cpp    
     GUI/Preferences.cpp
     GUI/Preferences.hpp
+    GUI/AMSSetting.cpp
+    GUI/AMSSetting.hpp
+    GUI/AMSMaterialsSetting.cpp
+    GUI/AMSMaterialsSetting.hpp
     GUI/PresetHints.cpp
     GUI/PresetHints.hpp
     GUI/GUI.cpp
