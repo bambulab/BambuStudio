@@ -6284,10 +6284,17 @@ void GLCanvas3D::_render_assemble_info() const
     ImGuiWrapper* imgui = wxGetApp().imgui();
     auto canvas_w = float(get_canvas_size().get_width());
     auto canvas_h = float(get_canvas_size().get_height());
-    float window_width = 300.0f;
     float window_height = 130.0f;
     float space_size = imgui->get_style_scaling() * 8.0f;
-    float caption_max = imgui->calc_text_size(_L("Total Volume:")).x + 2 * space_size;
+    float caption_max = imgui->calc_text_size(_L("Total Volume:")).x + 3 * space_size;
+    char buf[3][64];
+    float merged_max = 0.0;
+    for (int i = 0; i < 3; i++) {
+        ImGui::DataTypeFormatString(buf[i], IM_ARRAYSIZE(buf[i]), ImGuiDataType_Double, (void *) &volumes_bounding_box().size()(i), "%.2f");
+        merged_max += ImGui::CalcTextSize(buf[i]).x;
+        if (i < 2) merged_max += ImGui::CalcTextSize(" x ").x;
+    }
+    float window_width = merged_max + caption_max + ImGui::GetFrameHeight();
     ImGuiIO& io = ImGui::GetIO();
     ImFont* font = io.Fonts->Fonts[0];
     float origScale = font->Scale;
