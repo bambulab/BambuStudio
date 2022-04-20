@@ -336,8 +336,10 @@ void MonitorPanel::update_all()
 
     obj = account_manager->get_default_machine();
     m_status_info_panel->obj = obj;
+    m_upgrade_panel->update(obj);
     m_status_info_panel->m_media_play_ctrl->SetMachineObject(IsShown() ? obj : nullptr);
     m_media_file_panel->SetMachineObject(obj);
+
 
     if (!obj) {
         show_status((int)MONITOR_NO_PRINTER);
@@ -354,7 +356,13 @@ void MonitorPanel::update_all()
 
     update_status(obj);
 
-    m_status_info_panel->update(obj);
+    if (m_status_info_panel->IsShown()) {
+        m_status_info_panel->update(obj);
+    }
+
+    if (m_upgrade_panel->IsShown()) {
+        m_upgrade_panel->update(obj);
+    }
 }
 
 bool MonitorPanel::Show(bool show)
