@@ -1173,7 +1173,7 @@ void PrintConfigDef::init_fff_params()
     //def->enum_labels.push_back("Machinekit");
     //def->enum_labels.push_back("Smoothie");
     //def->enum_labels.push_back(L("No extrusion"));
-    def->mode = comAdvanced;
+    def->mode = comDevelop;
     def->readonly = true;
     def->set_default_value(new ConfigOptionEnum<GCodeFlavor>(gcfMarlinLegacy));
 
@@ -3253,7 +3253,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "tree_support_branch_distance", "tree_support_branch_diameter",
         "tree_support_branch_diameter_angle", "tree_support_collision_resolution",
         "small_perimeter_speed", "max_volumetric_speed", "max_print_speed",
-        "support_bottom_z_distance", "support_closing_radius", "slicing_mode", "slice_closing_radius"
+        "support_bottom_z_distance", "support_closing_radius", "slicing_mode", "slice_closing_radius",
+        "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {

@@ -1853,9 +1853,6 @@ void TabPrint::build()
         Option option = optgroup->get_option("filename_format");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
-        optgroup->append_single_option_line("remove_freq_sweep");
-        optgroup->append_single_option_line("remove_bed_leveling");
-        optgroup->append_single_option_line("remove_extrusion_calibration");
 
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced.png");

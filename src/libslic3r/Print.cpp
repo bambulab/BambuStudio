@@ -121,10 +121,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "change_filament_gcode",
         "wipe",
         // BBS
-        "wipe_distance",
-        "remove_freq_sweep",
-        "remove_bed_leveling",
-        "remove_extrusion_calibration"
+        "wipe_distance"
     };
 
     static std::unordered_set<std::string> steps_ignore;
