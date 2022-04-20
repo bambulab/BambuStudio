@@ -8,7 +8,7 @@
         "Engineering Plate"
     ],
     "bed_temperature": [
-        "0,95,95"
+        "0,100,100"
     ],
     "cooling": [
         "1"
@@ -32,7 +32,7 @@
         "20"
     ],
     "bed_temperature_initial_layer": [
-        "0,95,95"
+        "0,100,100"
     ],
     "nozzle_temperature_initial_layer": [
         "290"

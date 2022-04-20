@@ -41,7 +41,7 @@
         "100"
     ],
     "fan_min_speed": [
-        "70"
+        "100"
     ],
     "overhang_fan_speed": [
         "100"
@@ -53,7 +53,7 @@
         "1"
     ],
     "nozzle_temperature": [
-        "220"
+        "230"
     ],
     "nozzle_temperature_range_low": [
         "190"

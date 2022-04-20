@@ -8,7 +8,7 @@
         "Cool Plate"
     ],
     "bed_temperature": [
-        "25,25,35"
+        "30,30,35"
     ],
     "fan_cooling_layer_time": [
         "100"
@@ -26,10 +26,10 @@
         "20"
     ],
     "bed_temperature_initial_layer": [
-        "25,25,25"
+        "30,30,35"
     ],
     "nozzle_temperature_initial_layer": [
-        "220"
+        "240"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
