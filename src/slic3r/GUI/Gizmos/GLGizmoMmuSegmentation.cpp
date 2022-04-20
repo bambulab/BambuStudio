@@ -324,7 +324,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     // BBS
     ImGuiWrapper::push_toolbar_style();
-
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 16.0f));
     m_imgui->begin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
@@ -377,7 +377,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         ImVec4 color_vec(extruder_color[0], extruder_color[1], extruder_color[2], extruder_color[3]);
         std::string color_label = std::string("##extruder color ") + std::to_string(extruder_idx);
         if (extruder_idx % max_filament_items_per_line != 0) {
-            float button_offset = filament_item_width * (extruder_idx % max_filament_items_per_line) + m_imgui->scaled(1.3f);
+            float button_offset = filament_item_width * (extruder_idx % max_filament_items_per_line) + m_imgui->scaled(0.5f);
             ImGui::SameLine(button_offset);
         }
 
@@ -397,7 +397,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         std::string  str_label = std::string("##");
         std::wstring btn_name  = paint_icons[i] + boost::nowide::widen(str_label);
 
-        if (i != 0) ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(1.3f));
+        if (i != 0) ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(0.5f));
 
         if (m_current_tool == paint_icons[i]) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.80f, 0.80f, 1.00f, 1.00f)); // r, g, b, a
@@ -496,11 +496,13 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     ImGui::Separator();
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 5.0f));
+
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);
-
     ImGui::SameLine();
-    if (m_imgui->button(m_desc.at("filter_tiny"),0.0,24.0)) {
+
+    if (m_imgui->button(m_desc.at("filter_tiny"))) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection", UndoRedo::SnapshotType::GizmoAction);
 
         for (int i = 0; i < m_triangle_selectors.size(); i++) {
@@ -514,7 +516,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     ImGui::SameLine();
 
-    if (m_imgui->button(m_desc.at("remove_all"),0.0, 24.0)) {
+    if (m_imgui->button(m_desc.at("remove_all"))) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection", UndoRedo::SnapshotType::GizmoAction);
         ModelObject *        mo  = m_c->selection_info()->model_object();
         int                  idx = -1;
@@ -528,10 +530,11 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         update_model_object();
         m_parent.set_as_dirty();
     }
-    ImGui::PopStyleVar(1);
+    ImGui::PopStyleVar(2);
     m_imgui->end();
 
     // BBS
+    ImGui::PopStyleVar(1);
     ImGuiWrapper::pop_toolbar_style();
 }
 
