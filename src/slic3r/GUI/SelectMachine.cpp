@@ -362,14 +362,14 @@ void SelectMachinePopup::on_timer(wxTimerEvent &event)
 }
 
 static wxString MACHINE_BED_TYPE_STRING[BED_TYPE_COUNT] = {
-    _L("Auto"),
+    //_L("Auto"),
     _L("Bmabu Cool Plate"),
     _L("Bmabu Engineering Plate"),
     _L("Bmabu High Temperature Plate")
 };
 
 static std::string MachineBedTypeString[BED_TYPE_COUNT] = {
-    "auto",
+    //"auto",
     "pc",
     "pei",
     "pe",

@@ -20,8 +20,8 @@ class BBLTask;
 
 
 enum MachineBedType {
-    BED_TYPE_AUTO = 0,
-    BED_TYPE_PC,
+    //BED_TYPE_AUTO = 0,
+    BED_TYPE_PC = 0,
     BED_TYPE_PEI,
     BED_TYPE_PE,
     BED_TYPE_COUNT,

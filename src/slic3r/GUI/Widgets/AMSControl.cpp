@@ -913,7 +913,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     m_sizer_right_bottom->Add(0, 0, 1, wxEXPAND, 5);
 
-    m_button_ams_setting = new Button(this, _L("Ams set"));
+    m_button_ams_setting = new Button(this, _L("AMS Settings"));
     m_button_ams_setting->SetBackgroundColor(extruder_bg);
     m_button_ams_setting->SetBorderColor(extruder_bd);
     m_button_ams_setting->SetFont(Label::Body_10);

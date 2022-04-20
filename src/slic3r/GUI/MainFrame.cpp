@@ -2216,8 +2216,12 @@ void MainFrame::update_presets_ui()
 void MainFrame::on_select_default_preset(SimpleEvent& evt)
 {
     wxMessageDialog dialog(this,
-                           _L("Whether to synchronize cloud user data?\n"),
-                           _L("Ensure"),
+                           _L("Do you want to synchronize your personal data from Bambu Cloud? \n"
+                              "Contains the following information:\n"
+                              "1. The Process presets;\n"
+                              "2. The Filament presets;\n"
+                              "3. The Machine presets;\n"),
+                           _L("Synchronization"),
                            wxCENTER |
                            wxYES_DEFAULT | wxYES_NO |
                            wxICON_INFORMATION);

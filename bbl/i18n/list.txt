@@ -1,3 +1,6 @@
+src/slic3r/GUI/Widgets/AMSControl.cpp
+src/slic3r/GUI/BBLTopbar.cpp
+src/slic3r/GUI/PublishDialog.cpp
 src/slic3r/GUI/BackgroundSlicingProcess.cpp
 src/slic3r/GUI/BedShapeDialog.cpp
 src/slic3r/GUI/BedShapeDialog.hpp

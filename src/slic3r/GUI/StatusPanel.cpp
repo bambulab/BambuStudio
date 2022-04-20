@@ -197,10 +197,12 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
 
     m_staticText_timelapse = new wxStaticText(m_panel_monitoring_title, wxID_ANY, _L("Timelapse"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_timelapse->Wrap(-1);
+    m_staticText_timelapse->Hide();
     bSizer_monitoring_title->Add(m_staticText_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     m_bmToggleBtn_timelapse = new SwitchButton(m_panel_monitoring_title);
     m_bmToggleBtn_timelapse->SetMinSize(SWITCH_BUTTON_SIZE);
+    m_bmToggleBtn_timelapse->Hide();
     bSizer_monitoring_title->Add(m_bmToggleBtn_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     bSizer_monitoring_title->Add(FromDIP(13), 0, 0);
 
@@ -534,6 +536,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control()
     m_switch_speed->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_speed->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
                                     std::make_pair(NORMAL_TEXT_COL,(int) StateColor::Normal)));
+    m_switch_speed->Hide();
 
     line_sizer->Add(m_switch_speed, 1, wxALIGN_CENTER | wxALL, 0);
 
