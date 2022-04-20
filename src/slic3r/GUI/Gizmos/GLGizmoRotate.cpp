@@ -27,10 +27,10 @@ const float GLGizmoRotate::GrabberOffset = 20;
 const float GLGizmoRotate::CircleOffset = 20;
 
 const float GLGizmoRotate::MaxGrabberRadius = 128.0f;
-const float GLGizmoRotate::GrabberRange = 20.0f;
+const float GLGizmoRotate::GrabberRange = 30.0f;
 const float GLGizmoRotate::GrabberDepth = 2.5f;
 const float GLGizmoRotate::ArrowDepth = 6.0f;
-const float GLGizmoRotate::ArrowRange = 5.0f;
+const float GLGizmoRotate::ArrowRange = 7.0f;
 //const float GLGizmoRotate::ArrowLen = 5.0f;
 const float GLGizmoRotate::ArrowDegree = PI / 6;
 std::array<float, 4> GLGizmoRotate::CIRCLE_FILL_COLOR = { 1.0f, 0.4f, 0.4f, 0.75f };
@@ -86,7 +86,8 @@ std::string GLGizmoRotate::get_tooltip() const
     case Y: { axis = "Y"; break; }
     case Z: { axis = "Z"; break; }
     }
-    return (m_hover_id == 0 || m_grabbers[0].dragging) ? axis + ": " + format((float)Geometry::rad2deg(m_angle), 2) : "";
+    return (m_hover_id == 0) ? axis + ": " + format((float)Geometry::rad2deg(m_angle), 2) : "";
+    //return (m_hover_id == 0 || m_grabbers[0].dragging) ? axis + ": " + format((float)Geometry::rad2deg(m_angle), 2) : "";
 }
 
 bool GLGizmoRotate::on_init()
@@ -185,7 +186,7 @@ void GLGizmoRotate::update_positions(const BoundingBoxf3& box)
     float max_x = box.max.x() - box.min.x();
     float max_width;
     if ((m_axis == X) || (m_axis == Y)) {
-        m_grabber_radius = max_z/2 +  GrabberOffset * INV_ZOOM;
+        m_grabber_radius = max_z/2 +  GrabberOffset * sqrt(INV_ZOOM);
         m_rotate_angle = 0.f;
         if (m_axis == X) {
             max_width = (max_y > max_z)?max_y:max_z;
@@ -193,13 +194,13 @@ void GLGizmoRotate::update_positions(const BoundingBoxf3& box)
         else {
             max_width = (max_x > max_z)?max_x:max_z;
         }
-        m_circle_radius = max_width/2 +  CircleOffset * INV_ZOOM;
+        m_circle_radius = max_width/2 +  CircleOffset * sqrt(INV_ZOOM);
     }
     else {
         m_rotate_angle = rotate_z;
         max_width = sqrt(max_x*max_x + max_y*max_y);
-        m_circle_radius = max_width/2 + CircleOffset * INV_ZOOM;
-        m_grabber_radius = size_z +  GrabberOffset * INV_ZOOM;
+        m_circle_radius = max_width/2 + CircleOffset * sqrt(INV_ZOOM);
+        m_grabber_radius = size_z +  GrabberOffset * sqrt(INV_ZOOM);
         m_center(2) = 0.1f;
     }
 
@@ -770,6 +771,7 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
     //m_grabbers[0].angles(2) = m_angle;
 
     //glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color.data() : m_highlight_color.data()));
+    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("this %1%, m_hover_id=%2%, m_dragging=%3%\n")%this %m_hover_id %m_dragging;
 
     if (m_hover_id != -1) {
         float mouse_radius = m_circle_radius;
@@ -791,12 +793,12 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
     }
 
     //when dragging, don't draw the grabber arrows
-    if (m_dragging)
+    if (m_dragging && (m_hover_id == 0))
         return;
 
-    double arc_range = GrabberRange * GLGizmoBase::INV_ZOOM;
+    double arc_range = GrabberRange * sqrt(GLGizmoBase::INV_ZOOM);
     double angle_range = arc_range/m_grabber_radius;
-    double arrow_angle = ArrowRange * GLGizmoBase::INV_ZOOM / m_grabber_radius;
+    double arrow_angle = ArrowRange * sqrt(GLGizmoBase::INV_ZOOM) / m_grabber_radius;
 
     double new_origin_x, new_origin_y, new_radius, new_angle_range, new_arrow_angle;
     if (angle_range >= ArrowDegree) {
@@ -822,8 +824,8 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
     double step = (right_angle - left_angle)/steps;
 
     Vec3d in_p, out_p, p1, p2;
-    double grabber_in_radius = new_radius - GrabberDepth * GLGizmoBase::INV_ZOOM, grabber_out_radius = new_radius + GrabberDepth * GLGizmoBase::INV_ZOOM;
-    double arrow_in_radius = new_radius - ArrowDepth * GLGizmoBase::INV_ZOOM, arrow_out_radius = new_radius + ArrowDepth * GLGizmoBase::INV_ZOOM;
+    double grabber_in_radius = new_radius - GrabberDepth * sqrt(GLGizmoBase::INV_ZOOM), grabber_out_radius = new_radius + GrabberDepth * sqrt(GLGizmoBase::INV_ZOOM);
+    double arrow_in_radius = new_radius - ArrowDepth * sqrt(GLGizmoBase::INV_ZOOM), arrow_out_radius = new_radius + ArrowDepth * sqrt(GLGizmoBase::INV_ZOOM);
 
     m_grabber_in_points.clear();
     m_grabber_out_points.clear();
@@ -919,7 +921,7 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 
 void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking) const
 {
-    double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
+    /*double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
 
     std::array<float, 4> color = m_grabbers[0].color;
     if (!picking && m_hover_id != -1) {
@@ -954,7 +956,7 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     glsafe(::glPopMatrix());
 
     if (! picking)
-        shader->stop_using();
+        shader->stop_using();*/
 }
 
 void GLGizmoRotate::transform_to_local(const Selection& selection) const
@@ -1077,12 +1079,14 @@ bool GLGizmoRotate3D::on_is_activable() const
 
 void GLGizmoRotate3D::on_start_dragging()
 {
+    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("this %1%, m_hover_id=%2%\n")%this %m_hover_id;
     if ((0 <= m_hover_id) && (m_hover_id < 3))
         m_gizmos[m_hover_id].start_dragging();
 }
 
 void GLGizmoRotate3D::on_stop_dragging()
 {
+    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("this %1%, m_hover_id=%2%\n")%this %m_hover_id;
     if ((0 <= m_hover_id) && (m_hover_id < 3))
         m_gizmos[m_hover_id].stop_dragging();
 }

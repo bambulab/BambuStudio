@@ -193,6 +193,7 @@ void GLGizmoBase::start_dragging()
     }
 
     on_start_dragging();
+    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("this %1%, m_hover_id=%2%\n")%this %m_hover_id;
 }
 
 void GLGizmoBase::stop_dragging()
@@ -205,6 +206,7 @@ void GLGizmoBase::stop_dragging()
     }
 
     on_stop_dragging();
+    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("this %1%, m_hover_id=%2%\n")%this %m_hover_id;
 }
 
 void GLGizmoBase::update(const UpdateData& data)
