@@ -483,9 +483,9 @@ public:
             if (items.empty()) return;
 
             auto bb = sl::boundingBox(m_bin);
-            // BBS: virtual objects docked on bed boundary (e.g. excluded region) should not affect final alignment
-            // So, if not all of fixed items are docked on boundary, the final alignment should be disabled
-            if (!std::all_of(items.begin(), items.end(), [this, bb](Item& itm) {return itm.is_virt_object;}))
+            // BBS: excluded region (virtual object but not wipe tower) should not affect final alignment
+            bool all_is_excluded_region = std::all_of(items.begin(), items.end(), [](Item &itm) { return itm.is_virt_object && !itm.is_wipe_tower; });
+            if (!all_is_excluded_region)
                 cfg.alignment = PConfig::Alignment::DONT_ALIGN;
 
             auto starting_point = cfg.starting_point == PConfig::Alignment::BOTTOM_LEFT ? bb.minCorner() : bb.center();

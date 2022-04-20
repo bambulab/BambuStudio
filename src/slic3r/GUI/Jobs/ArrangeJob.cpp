@@ -57,6 +57,8 @@ public:
         ret.is_wipe_tower = true;
         ++ret.priority;
 
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " arrange: wipe tower info:" << m_bb << ", m_pos: " << m_pos.transpose();
+
         return ret;
     }
 };
@@ -347,7 +349,6 @@ void ArrangeJob::prepare()
 
     //add the virtual object into unselect list if has
     m_plater->get_partplate_list().preprocess_exclude_areas(m_unselected, MAX_NUM_PLATES);
-    m_plater->get_partplate_list().preprocess_nonprefered_areas(params.nonprefered_regions, 1);
 
 #if SAVE_ARRANGE_POLY
     if (1)
@@ -442,7 +443,13 @@ void ArrangeJob::process()
     params.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
     params.is_seq_print = settings.is_seq_print;
     params.min_obj_distance = scaled(settings.distance);
-    if (params.is_seq_print) params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius));
+
+    if (params.is_seq_print)
+        params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius));
+    else {
+        // BBS: nonprefered regions are not working for sequential printing now
+        m_plater->get_partplate_list().preprocess_nonprefered_areas(params.nonprefered_regions, 1);
+    }
 
     double skirt_distance = print.has_skirt() ? print.config().skirt_distance.value : 0;
     bool is_auto_brim = print.has_auto_brim();
@@ -470,10 +477,7 @@ void ArrangeJob::process()
             if (region.is_virt_object)
                 region.poly.translate(-scaled(params.cleareance_radius/2), -scaled(params.cleareance_radius/2));
         }
-        for (auto& region : params.nonprefered_regions) {
-            region.poly.translate(-scaled(params.cleareance_radius / 2), -scaled(params.cleareance_radius / 2));
-        }
-    }
+    } 
 
     // do not inflate brim_width. Objects are allowed to have overlapped brim.
     std::for_each(m_selected.begin(), m_selected.end(), [&](auto& ap) {ap.inflation = params.min_obj_distance / 2; });
@@ -518,9 +522,7 @@ void ArrangeJob::process()
             << ", bed_temp: " << selected.first_bed_temp << ", print_temp: " << selected.print_temp;
         BOOST_LOG_TRIVIAL(debug) << "items unselected before arrange: ";
         for (auto item : m_unselected)
-            if (!item.is_virt_object)
-                BOOST_LOG_TRIVIAL(debug) << item.name << ", extruder: " << item.extrude_id << ", bed: " << item.bed_idx
-                << ", trans: " << item.translation.transpose();
+            BOOST_LOG_TRIVIAL(debug) << item.name << ", extruder: " << item.extrude_id << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
     }
     params.parallel = false;
     arrangement::arrange(m_selected, m_unselected, bedpts, params);

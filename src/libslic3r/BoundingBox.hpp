@@ -5,6 +5,7 @@
 #include "Exception.hpp"
 #include "Point.hpp"
 #include "Polygon.hpp"
+#include <ostream>
 
 namespace Slic3r {
 
@@ -71,6 +72,11 @@ public:
     }
     bool operator==(const BoundingBoxBase<PointClass> &rhs) { return this->min == rhs.min && this->max == rhs.max; }
     bool operator!=(const BoundingBoxBase<PointClass> &rhs) { return ! (*this == rhs); }
+    friend std::ostream &operator<<(std::ostream &os, const BoundingBoxBase &bbox)
+    {
+        os << "[" << bbox.max(0) - bbox.min(0) << " x " << bbox.max(1) - bbox.min(1) << "] from (" << bbox.min(0) << ", " << bbox.min(1) << ")";
+        return os;
+    }
 };
 
 template <class PointClass>

@@ -1182,11 +1182,6 @@ void TreeSupport::detect_object_overhangs()
             }
         }
 
-        //if (g_config_support_sharp_tails) {
-        //    Layer* layer = m_object->get_layer(layer_nr);
-        //    append(ts_layer->overhang_areas, layer->sharp_tails);
-        //}
-
         if (!ts_layer->overhang_areas.empty()) {
             float a = area(ts_layer->overhang_areas);
             total_overhang_area += a;
