@@ -3,6 +3,7 @@
 #include "GUI.hpp"
 #include "BitmapComboBox.hpp"
 #include "Plater.hpp"
+#include "Widgets/ComboBox.hpp"
 
 #include <wx/dc.h>
 #ifdef wxHAS_GENERIC_DATAVIEWCTRL
@@ -304,18 +305,18 @@ wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelR
     data << value;
 
 #ifdef _WIN32
-    Slic3r::GUI::BitmapComboBox* c_editor = new Slic3r::GUI::BitmapComboBox(parent, wxID_ANY, wxEmptyString,
+    ::ComboBox *c_editor = new ::ComboBox(parent, wxID_ANY, wxEmptyString,
 #else
     auto c_editor = new wxBitmapComboBox(parent, wxID_ANY, wxEmptyString,
 #endif
         labelRect.GetTopLeft(), wxSize(labelRect.GetWidth(), -1), 
-        0, nullptr , wxCB_READONLY);
+        0, nullptr, wxCB_READONLY | CB_NO_DROP_ICON | CB_NO_TEXT);
 
     // BBS
     for (size_t i = 0; i < icons.size(); i++)
         c_editor->Append(wxString::Format("%d", i+1), *icons[i]);
 
-    c_editor->SetSelection(atoi(data.GetText().c_str() - 1));
+    c_editor->SetSelection(atoi(data.GetText().c_str()) - 1);
 
     
 #ifdef __linux__
@@ -336,7 +337,7 @@ wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelR
 
 bool BitmapChoiceRenderer::GetValueFromEditorCtrl(wxWindow* ctrl, wxVariant& value)
 {
-    wxBitmapComboBox* c = static_cast<wxBitmapComboBox*>(ctrl);
+    ::ComboBox*c         = static_cast<::ComboBox *>(ctrl);
     int selection = c->GetSelection();
     if (selection < 0)
         return false;

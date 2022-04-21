@@ -25,11 +25,12 @@ ComboBox::ComboBox(wxWindow *      parent,
                    int             n,
                    const wxString  choices[],
                    long            style)
-    : drop(this, texts, icons)
+    : drop(this, texts, icons, style & DD_STYLE_MASK)
 {
     if (style & wxCB_READONLY)
         style |= wxRIGHT;
-    TextInput::Create(parent, "", value, "drop_down", pos, size,
+    text_off = style & CB_NO_TEXT;
+    TextInput::Create(parent, "", value, (style & CB_NO_DROP_ICON) ? "" : "drop_down", pos, size,
                       style | wxTE_PROCESS_ENTER);
 
     if (style & wxCB_READONLY)
@@ -45,7 +46,7 @@ ComboBox::ComboBox(wxWindow *      parent,
             std::make_pair(*wxWHITE, (int) StateColor::Normal)));
     }
     drop.Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
-        SetLabel(drop.GetValue());
+        SetSelection(e.GetInt());
         e.SetEventObject(this);
         e.SetId(GetId());
         wxMouseEvent e1;
@@ -68,6 +69,7 @@ void ComboBox::SetSelection(int n)
 {
     drop.SetSelection(n);
     SetLabel(drop.GetValue());
+    SetIcon(icons[n]);
 }
 
 void ComboBox::Rescale()
@@ -89,7 +91,7 @@ void ComboBox::SetValue(const wxString &value)
 
 void ComboBox::SetLabel(const wxString &value)
 {
-    if (GetTextCtrl()->IsShown())
+    if (GetTextCtrl()->IsShown() || text_off)
         GetTextCtrl()->SetValue(value);
     else
         TextInput::SetLabel(value);
@@ -97,7 +99,7 @@ void ComboBox::SetLabel(const wxString &value)
 
 wxString ComboBox::GetLabel() const
 {
-    if (GetTextCtrl()->IsShown())
+    if (GetTextCtrl()->IsShown() || text_off)
         return GetTextCtrl()->GetValue();
     else
         return TextInput::GetLabel();
@@ -171,6 +173,8 @@ void ComboBox::SetString(unsigned int n, wxString const &value)
     drop.Invalidate();
     if (n == drop.GetSelection()) SetLabel(value);
 }
+
+wxBitmap ComboBox::GetItemBitmap(unsigned int n) { return icons[n]; }
 
 int ComboBox::DoInsertItems(const wxArrayStringsAdapter &items,
                             unsigned int                 pos,

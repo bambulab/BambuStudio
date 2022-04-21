@@ -231,7 +231,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 #ifdef __WXMSW__
     GetMainWindow()->Bind(wxEVT_MOTION, [this](wxMouseEvent& event) {
         // BBS
-        this->SetFocus();
+        // this->SetFocus();
         set_tooltip_for_item(this->get_mouse_position_in_control());
         event.Skip();
     });
@@ -756,6 +756,8 @@ void ObjectList::update_objects_list_filament_column(size_t filaments_count)
 void ObjectList::update_filament_colors()
 {
     m_objects_model->UpdateColumValues(colFilament);
+    // BBS: fix color not refresh
+    Refresh();
 }
 
 void ObjectList::update_name_column_width() const

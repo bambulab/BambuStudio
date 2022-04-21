@@ -5,6 +5,10 @@
 #include "../wxExtensions.hpp"
 #include "StateHandler.hpp"
 
+#define DD_NO_CHECK_ICON    0x1000000
+#define DD_NO_TEXT          0x2000000
+#define DD_STYLE_MASK       0x3000000
+
 class DropDown : public wxPopupTransientWindow
 {
     std::vector<wxString> &       texts;
@@ -15,7 +19,8 @@ class DropDown : public wxPopupTransientWindow
 
     double radius = 0;
     bool   use_content_width = false;
-    bool   align_icon = false;
+    bool   align_icon        = false;
+    bool   text_off          = false;
 
     wxSize textSize;
     wxSize iconSize;

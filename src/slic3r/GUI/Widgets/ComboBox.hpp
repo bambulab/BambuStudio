@@ -4,6 +4,9 @@
 #include "TextInput.hpp"
 #include "DropDown.hpp"
 
+#define CB_NO_DROP_ICON 0x1000000
+#define CB_NO_TEXT      0x2000000
+
 class ComboBox : public wxWindowWithItems<TextInput, wxItemContainer>
 {
     std::vector<wxString>         texts;
@@ -13,6 +16,7 @@ class ComboBox : public wxWindowWithItems<TextInput, wxItemContainer>
 
     DropDown               drop;
     bool     drop_down = false;
+    bool     text_off = false;
 
 public:
     ComboBox(wxWindow *      parent,
@@ -52,6 +56,8 @@ public:
 
     wxString GetString(unsigned int n) const override;
     void     SetString(unsigned int n, wxString const &value) override;
+
+    wxBitmap GetItemBitmap(unsigned int n);
 
 protected:
     virtual int  DoInsertItems(const wxArrayStringsAdapter &items,

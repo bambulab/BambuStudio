@@ -17,6 +17,7 @@
 #include "../Utils/MacDarkMode.hpp"
 #include "BitmapComboBox.hpp"
 #include "Widgets/StaticBox.hpp"
+#include "Widgets/Label.hpp"
 
 #ifndef __linux__
 // msw_menuitem_bitmaps is used for MSW and OSX
@@ -480,21 +481,33 @@ std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
      * and scale them in respect to em_unit value
      */
     const double em = Slic3r::GUI::wxGetApp().em_unit();
-    const int icon_width = lround((thin_icon ? 1.6 : 3.2) * em);
-    const int icon_height = lround(1.6 * em);
+    const int icon_width = lround((thin_icon ? 2 : 4) * em);
+    const int icon_height = lround(2 * em);
 
     bool dark_mode = Slic3r::GUI::wxGetApp().dark_mode();
 
-    for (const std::string& color : colors)
+    int index = 0;
+    wxClientDC cdc((wxWindow*)Slic3r::GUI::wxGetApp().mainframe);
+    wxMemoryDC dc(&cdc);
+    dc.SetFont(::Label::Body_12);
+    for (const std::string &color : colors)
     {
-        std::string bitmap_key = color + "-h" + std::to_string(icon_height) + "-w" + std::to_string(icon_width);
+        auto label = std::to_string(++index);
+        std::string bitmap_key = color + "-h" + std::to_string(icon_height) + "-w" + std::to_string(icon_width) 
+                + "-i" + label;
 
         wxBitmap* bitmap = bmp_cache.find(bitmap_key);
         if (bitmap == nullptr) {
             // Paint the color icon.
-            Slic3r::GUI::BitmapCache::parse_color(color, rgb);
+            //Slic3r::GUI::BitmapCache::parse_color(color, rgb);
             // there is no neede to scale created solid bitmap
-            bitmap = bmp_cache.insert(bitmap_key, bmp_cache.mksolid(icon_width, icon_height, rgb, true, 1, dark_mode));
+            bitmap = bmp_cache.insert(bitmap_key, wxBitmap(icon_width, icon_height));
+            dc.SelectObject(*bitmap);
+            dc.SetBackground(wxBrush(wxColor(color)));
+            dc.Clear();
+            auto size = dc.GetTextExtent(wxString(label));
+            dc.DrawText(label, (icon_width - size.x) / 2, (icon_height - size.y) / 2);
+            dc.SelectObject(wxNullBitmap);
         }
         bmps.emplace_back(bitmap);
     }

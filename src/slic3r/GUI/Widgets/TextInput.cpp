@@ -110,6 +110,12 @@ void TextInput::SetLabel(const wxString& label)
     Refresh();
 }
 
+void TextInput::SetIcon(const wxBitmap &icon)
+{
+    this->icon.bmp() = icon;
+    Rescale();
+}
+
 void TextInput::SetBorderColor(StateColor const& color)
 {
     border_color = color;
@@ -130,9 +136,10 @@ void TextInput::SetBackgroundColor(StateColor const& color)
 
 void TextInput::Rescale()
 {
-    if (this->icon.bmp().IsOk())
+    if (!this->icon.name().empty())
         this->icon.msw_rescale();
     messureSize();
+    Refresh();
 }
 
 bool TextInput::Enable(bool enable)

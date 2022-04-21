@@ -45,6 +45,8 @@ public:
 
     void SetLabel(const wxString& label);
 
+    void SetIcon(const wxBitmap & icon);
+
     void SetBorderColor(StateColor const & color);
 
     void SetTextColor(StateColor const &color);
