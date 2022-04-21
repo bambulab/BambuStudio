@@ -107,6 +107,17 @@ enum AmsRoadPosition {
     AMS_ROAD_POSITION_HOTEND,   // filament at hotend
 };
 
+enum AmsStatusMain {
+    AMS_STATUS_MAIN_IDLE                = 0x00,
+    AMS_STATUS_MAIN_FILAMENT_CHANGE     = 0x01,
+    AMS_STATUS_MAIN_RFID_IDENTIFYING    = 0x02,
+    AMS_STATUS_MAIN_ASSIST              = 0x03,
+    AMS_STATUS_MAIN_CALIBRATION         = 0x04,
+    AMS_STATUS_MAIN_SELF_CHECK          = 0x10,
+    AMS_STATUS_MAIN_DEBUG               = 0x20,
+    AMS_STATUS_MAIN_UNKNOWN             = 0xFF,
+};
+
 class AmsTray {
 public:
     AmsTray(std::string tray_id) {
@@ -115,6 +126,26 @@ public:
         road_position   = AMS_ROAD_POSITION_TRAY;
         step_state      = AMS_STEP_INIT;
         rfid_state      = AMS_RFID_INIT;
+    }
+
+    static int hex_digit_to_int(const char c)
+    {
+        return (c >= '0' && c <= '9') ? int(c - '0') : (c >= 'A' && c <= 'F') ? int(c - 'A') + 10 : (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
+    }
+
+    static wxColour decode_color(const std::string &color)
+    {
+        std::array<int, 3> ret = {0, 0, 0};
+        const char *       c   = color.data() + 1;
+        if (color.size() == 8) {
+            for (size_t j = 0; j < 3; ++j) {
+                int digit1 = hex_digit_to_int(*c++);
+                int digit2 = hex_digit_to_int(*c++);
+                if (digit1 == -1 || digit2 == -1) break;
+                ret[j] = float(digit1 * 16 + digit2);
+            }
+        }
+        return wxColour(ret[0], ret[1], ret[2]);
     }
 
     std::string     id;
@@ -136,6 +167,7 @@ public:
 
     wxColour        wx_color;
     bool            is_bbl;
+    bool            is_exists = false;
 
     AmsRoadPosition road_position;
     AmsStep         step_state;
@@ -150,11 +182,14 @@ public:
     Ams(std::string ams_id) {
         id = ams_id;
     }
-    std::string                     id;
+    std::string   id;
+    bool          startup_read_opt{true};
+    bool          tray_read_opt{false};
+    bool          is_exists{false};
     std::map<std::string, AmsTray*> trayList;
 };
 
-   
+
 class MachineObject
 {
 private:
@@ -214,6 +249,9 @@ public:
     int     ams_exist_bits;
     int     tray_exist_bits;
     int     tray_is_bbl_bits;
+    AmsStatusMain ams_status_main;
+    int     ams_status_sub;
+
     std::string m_ams_now;
     std::string m_tray_now;
     bool    is_ams_need_update;
@@ -221,6 +259,9 @@ public:
     Ams*     get_curr_Ams();
     AmsTray* get_curr_tray();
     AmsTray *get_ams_tray(std::string ams_id, std::string tray_id);
+    // parse amsStatusMain and ams_status_sub
+    void _parse_ams_status(int ams_status);
+    static bool is_bbl_filament(std::string tag_uid);
     
 
     /* temperature */
@@ -311,6 +352,10 @@ public:
     int command_set_nozzle(int temp);
 
     int command_ams_switch(std::string tray_id, int old_temp = 210, int new_temp = 210);
+    int command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt);
+    int command_ams_calibrate(int ams_id);
+    int command_ams_filament_settings(int ams_id, int tray_id, std::string setting_id, std::string tray_color, int bed_temp);
+    int command_ams_select_tray(std::string tray_id);
     int command_ams_refresh_rfid(std::string tray_id);
 
     inline std::string light_effect_str(LIGHT_EFFECT effect) {

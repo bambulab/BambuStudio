@@ -33,6 +33,7 @@ private:
     void mouseReleased(wxMouseEvent &event);
     void mouseEnterWindow(wxMouseEvent &event);
     void mouseLeaveWindow(wxMouseEvent &event);
+    void sendButtonEvent();
 
 	DECLARE_EVENT_TABLE()
 

@@ -14,6 +14,8 @@
 #include <wx/webrequest.h>
 #include "wxMediaCtrl2.h"
 #include "MediaPlayCtrl.h"
+#include "AMSSetting.hpp"
+#include "AMSMaterialsSetting.hpp"
 #include "Widgets/SwitchButton.hpp"
 #include "Widgets/AxisCtrlButton.hpp"
 #include "Widgets/TextInput.hpp"
@@ -22,6 +24,7 @@
 #include "Widgets/ProgressBar.hpp"
 #include "Widgets/ImageSwitchButton.hpp"
 #include "Widgets/AMSControl.hpp"
+
 
 class StepIndicator;
 
@@ -104,6 +107,7 @@ protected:
     Button *        m_bpButton_e_10;
     Button *        m_bpButton_e_down_10;
     StaticLine *    m_temp_extruder_line;
+    StaticLine *    m_ams_staticline;
     wxBoxSizer*     m_ams_list;
     AMSControl*     m_ams_control;
     wxStaticBitmap *m_ams_extruder_img;
@@ -158,6 +162,8 @@ public:
 
     wxBoxSizer *create_ams_group();
     wxBoxSizer *create_cali_group();
+
+    void show_ams_group(bool show = true);
 };
 
 
@@ -170,7 +176,8 @@ protected:
     std::shared_ptr<SliceInfoPopup> m_slice_info_popup;
     std::shared_ptr<ImageTransientPopup> m_image_popup;
     std::vector<SliceInfoPanel *> slice_info_list;
-    // wxObjectDataPtr<TrayListModel>      tray_model;
+    AMSSetting *m_ams_setting_dlg{nullptr};
+    AMSMaterialsSetting *m_filament_setting_dlg{nullptr};
 
     wxString     m_request_url;
     bool         m_start_loading_thumbnail = false;
@@ -214,8 +221,12 @@ protected:
     void on_set_nozzle_temp();
 
     /* extruder apis */
-    void on_ams_feed(SimpleEvent &event);
-    void on_ams_return(SimpleEvent &event);
+    void on_ams_load(SimpleEvent &event);
+    void on_ams_unload(SimpleEvent &event);
+    void on_ams_setting_click(SimpleEvent &event);
+    void on_filament_edit(wxCommandEvent &event);
+    void on_ams_refresh_rfid(wxCommandEvent &event);
+    void on_ams_selected(wxCommandEvent &event);
 
     void on_switch_speed(wxCommandEvent &event);
     void on_lamp_switch(wxCommandEvent &event);

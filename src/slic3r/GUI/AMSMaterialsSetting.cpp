@@ -1,9 +1,15 @@
 #include "AMSMaterialsSetting.hpp"
+#include "GUI_App.hpp"
+#include "libslic3r/Preset.hpp"
 #include "I18N.hpp"
 
 namespace Slic3r { namespace GUI {
 
-AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style) : DPIDialog(parent, id, wxEmptyString, pos, size, style) { create(); }
+AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
+    : DPIDialog(parent, id, wxEmptyString, pos, size, style)
+{
+    create();
+}
 AMSMaterialsSetting::~AMSMaterialsSetting() {}
 
 void AMSMaterialsSetting::create()
@@ -25,8 +31,6 @@ void AMSMaterialsSetting::create()
     m_comboBox_filament = new ::ComboBox(m_panel_body, wxID_ANY, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
     m_sizer_filament->Add(m_comboBox_filament, 0, wxALIGN_CENTER, 0);
 
-   
-
     wxBoxSizer *m_sizer_colour = new wxBoxSizer(wxHORIZONTAL);
 
     m_title_colour = new wxStaticText(m_panel_body, wxID_ANY, _L("Colour"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
@@ -40,32 +44,14 @@ void AMSMaterialsSetting::create()
     m_colourPicker1 = new wxColourPickerCtrl(m_panel_body, wxID_ANY, *wxBLACK, wxDefaultPosition, wxDefaultSize, wxCLRP_DEFAULT_STYLE);
     m_sizer_colour->Add(m_colourPicker1, 0, 0, 0);
 
-   
-
     wxBoxSizer *m_sizer_temperature = new wxBoxSizer(wxHORIZONTAL);
-    m_title_temperature = new wxStaticText(m_panel_body, wxID_ANY, _L("Extruder\nTemperature"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
+    m_title_temperature = new wxStaticText(m_panel_body, wxID_ANY, _L("Nozzle\nTemperature"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
     m_title_temperature->SetFont(::Label::Body_13);
     m_title_temperature->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
     m_title_temperature->Wrap(-1);
     m_sizer_temperature->Add(m_title_temperature, 0, wxALIGN_CENTER, 0);
 
     m_sizer_temperature->Add(0, 0, 0, wxEXPAND, 0);
-
-    wxBoxSizer *sizer_firstlayer = new wxBoxSizer(wxVERTICAL);
-    m_label_firstlayer = new wxStaticText(m_panel_body, wxID_ANY, _L("First layer"), wxDefaultPosition, wxDefaultSize, 0);
-    m_label_firstlayer->SetFont(::Label::Body_13);
-    m_label_firstlayer->SetForegroundColour(AMS_MATERIALS_SETTING_GREY300);
-    m_label_firstlayer->Wrap(-1);
-    sizer_firstlayer->Add(m_label_firstlayer, 0, wxALIGN_CENTER, 0);
-
-    wxBoxSizer * sizer_tempinput_first_layer = new wxBoxSizer(wxHORIZONTAL);;
-    m_input_firstlayer = new TextInput(m_panel_body, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE, wxTE_CENTER|wxTE_PROCESS_ENTER);
-    m_input_firstlayer->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-    auto bitmapfl        = new wxStaticBitmap(m_panel_body, -1, create_scaled_bitmap("degree", nullptr, 16), wxDefaultPosition, wxDefaultSize);
-    sizer_tempinput_first_layer->Add(m_input_firstlayer, 0, wxALIGN_CENTER, 0);
-    sizer_tempinput_first_layer->Add(bitmapfl, 0, wxALIGN_CENTER, 0);
-    sizer_firstlayer->Add(sizer_tempinput_first_layer, 0, wxALIGN_CENTER, 0);
-
 
     wxBoxSizer *sizer_other = new wxBoxSizer(wxVERTICAL);
     m_label_other = new wxStaticText(m_panel_body, wxID_ANY, _L("Others"), wxDefaultPosition, wxDefaultSize, 0);
@@ -82,10 +68,8 @@ void AMSMaterialsSetting::create()
     sizer_tempinput_other->Add(bitmapother, 0, wxALIGN_CENTER, 0);
     sizer_other->Add(sizer_tempinput_other, 0, wxALIGN_CENTER, 0);
 
-
-    m_sizer_temperature->Add(sizer_firstlayer, 0, wxALIGN_CENTER, 0);
-    m_sizer_temperature->Add(0,0,0,wxLEFT,30);
-    m_sizer_temperature->Add(sizer_other, 0, wxALIGN_CENTER, 0);
+    m_sizer_temperature->Add(sizer_other, 0, wxALL | wxEXPAND, 0);
+    m_sizer_temperature->AddStretchSpacer();
 
    
     wxBoxSizer *m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
@@ -120,25 +104,79 @@ void AMSMaterialsSetting::create()
     m_sizer_main->Fit(this);
 
     this->Centre(wxBOTH);
+
+    m_comboBox_filament->Bind(wxEVT_COMBOBOX, &AMSMaterialsSetting::on_select_filament, this);
 }
 
 void AMSMaterialsSetting::on_select_ok(wxMouseEvent &event)
 {
-    // TO DO
-    event.Skip();
-
-
-    auto first_layer_temp = m_input_firstlayer->GetTextCtrl()->GetValue();
-    auto other_temp = m_input_other->GetTextCtrl()->GetValue();
+    wxString bed_temp     = m_input_other->GetTextCtrl()->GetValue();
     auto filament         = m_comboBox_filament->GetValue();
 
+    long bed_temp_int;
+    bed_temp.ToLong(&bed_temp_int);
+
+    wxColour color = m_colourPicker1->GetColour();
+    char col_buf[10];
+    sprintf(col_buf, "%02X%02X%02XFF", (int) color.Red(), (int) color.Green(), (int) color.Blue());
+
+    std::string setting_id;
+
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle) {
+        for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
+            if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
+                setting_id = it->setting_id;
+            }
+        }
+    }
+    if (setting_id.empty()) {
+        //TODO warning
+        BOOST_LOG_TRIVIAL(trace) << "Invalid Setting id";
+    } else {
+        if (obj) {
+            obj->command_ams_filament_settings(ams_id, tray_id, setting_id, std::string(col_buf), bed_temp_int);
+        }
+    }
 
     EndModal(true);
+}
+
+void AMSMaterialsSetting::set_color(wxColour color)
+{
+    m_colourPicker1->SetColour(color);
+}
+
+bool AMSMaterialsSetting::Show(bool show)
+{
+    wxArrayString filament_items;
+    if (show) {
+        PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+        if (preset_bundle) {
+            for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
+                filament_items.push_back(it->alias);
+            }
+            m_comboBox_filament->Set(filament_items);
+        }
+    }
+    return DPIDialog::Show(show);
 }
 
 void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect) 
 {
     m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
+}
+
+void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
+{
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle) {
+        for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
+            if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {                
+                ;
+            }
+        }
+    }
 }
 
 }} // namespace Slic3r::GUI

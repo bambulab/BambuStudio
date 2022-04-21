@@ -159,6 +159,7 @@ void ImageSwitchButton::mouseReleased(wxMouseEvent &event)
         ReleaseMouse();
         m_on_off = !m_on_off;
         Refresh();
+        sendButtonEvent();
     }
 }
 
@@ -176,4 +177,11 @@ void ImageSwitchButton::mouseLeaveWindow(wxMouseEvent &event)
         hover = false;
         Refresh();
     }
+}
+
+void ImageSwitchButton::sendButtonEvent()
+{
+    wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, GetId());
+    event.SetEventObject(this);
+    GetEventHandler()->ProcessEvent(event);
 }

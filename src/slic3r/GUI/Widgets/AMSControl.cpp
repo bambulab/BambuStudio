@@ -7,37 +7,25 @@
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
 
-namespace Slic3r { namespace GUI {
+namespace Slic3r {
+namespace GUI {
 
-static wxString FILAMENT_STEP_STRING[STEP_COUNT] = {_L("Choose the position"), _L("Click the load below"), _L("Heat the extruder"), _L("Load"), _L("Complete")};
+static const int LOAD_STEP_COUNT = 4;
+static const int UNLOAD_STEP_COUNT = 3;
 
-wxDEFINE_EVENT(EVT_AMS_FEED, SimpleEvent);
-wxDEFINE_EVENT(EVT_AMS_RETURN, SimpleEvent);
+static wxString FILAMENT_STEP_STRING[LOAD_STEP_COUNT] = {
+    _L("Heat the nozzle to target temperature"),
+    _L("Cut filament"),
+    _L("Pull back current filament"),
+    _L("Push new filament into extruder")
+};
+
+wxDEFINE_EVENT(EVT_AMS_LOAD, SimpleEvent);
+wxDEFINE_EVENT(EVT_AMS_UNLOAD, SimpleEvent);
 wxDEFINE_EVENT(EVT_AMS_SETTINGS, SimpleEvent);
-wxDEFINE_EVENT(EVT_AMS_REFRESH, wxCommandEvent);
-
-inline int hex_digit_to_int(const char c)
-{
-    return
-        (c >= '0' && c <= '9') ? int(c - '0') :
-        (c >= 'A' && c <= 'F') ? int(c - 'A') + 10 :
-        (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
-}
-
-static wxColour decode_color(const std::string &color)
-{
-    std::array<int, 3> ret = {0, 0, 0};
-    const char *       c   = color.data() + 1;
-    if (color.size() == 8) {
-        for (size_t j = 0; j < 3; ++j) {
-            int digit1 = hex_digit_to_int(*c++);
-            int digit2 = hex_digit_to_int(*c++);
-            if (digit1 == -1 || digit2 == -1) break;
-            ret[j] = float(digit1 * 16 + digit2);
-        }
-    }
-    return wxColour(ret[0], ret[1], ret[2]);
-}
+wxDEFINE_EVENT(EVT_AMS_REFRESH_RFID, wxCommandEvent);
+wxDEFINE_EVENT(EVT_AMS_ON_SELECTED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_AMS_ON_FILAMENT_EDIT, wxCommandEvent);
 
 
 bool AMSinfo::parse_ams_info(Ams *ams)
@@ -48,14 +36,16 @@ bool AMSinfo::parse_ams_info(Ams *ams)
     for (int i = 0; i < 4; i++) {
         auto    it = ams->trayList.find(std::to_string(i));
         Caninfo info;
-        if (it != ams->trayList.end()) {
+        // tray is exists
+        if (it != ams->trayList.end() && it->second->is_exists) {
             info.can_id          = it->second->id;
             info.material_name   = it->second->type;
-            info.material_colour = decode_color(it->second->color);
-            if (it->second->tag_uid.empty())
-                info.material_state = AMSCanType::AMS_CAN_TYPE_THIRDBRAND;
-            else
+            info.material_colour = AmsTray::decode_color(it->second->color);
+            if (MachineObject::is_bbl_filament(it->second->tag_uid)) {
                 info.material_state  = AMSCanType::AMS_CAN_TYPE_BRAND;
+            } else {
+                info.material_state = AMSCanType::AMS_CAN_TYPE_THIRDBRAND;
+            }
         } else {
             info.can_id         = i;
             info.material_state = AMSCanType::AMS_CAN_TYPE_NONE;
@@ -116,7 +106,7 @@ void AMSrefresh::OnLeaveWindow(wxMouseEvent &evt)
 
 void AMSrefresh::OnClick(wxMouseEvent &evt)
 {
-    post_event(wxCommandEvent(EVT_AMS_REFRESH));
+    post_event(wxCommandEvent(EVT_AMS_REFRESH_RFID));
 }
 
 void AMSrefresh::post_event(wxCommandEvent &&event)
@@ -272,13 +262,24 @@ void AMSLib::OnSelected()
     if (!wxWindow::IsEnabled()) return ;
     if (m_unable_selected) return;
 
-    /* auto event = SimpleEvent(EVT_AMS_SETLIB);
-      event.SetId(m_can_index);
-      event.SetEventObject(m_parent);
-      wxPostEvent(m_parent, event);*/
+    if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_NONE) return;
+
+    if (m_selected && m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND) {
+        post_event(wxCommandEvent(EVT_AMS_ON_FILAMENT_EDIT));
+    } else {
+        post_event(wxCommandEvent(EVT_AMS_ON_SELECTED));
+    }
 
     m_selected = true;
     Refresh();
+}
+
+void AMSLib::post_event(wxCommandEvent &&event)
+{
+    event.SetString(m_can_id);
+    event.SetEventObject(m_parent);
+    wxPostEvent(m_parent, event);
+    event.Skip();
 }
 
 void AMSLib::UnSelected()
@@ -882,7 +883,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     StateColor extruder_bd(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
 
-    m_button_extruder_feed = new Button(this, _L("Feed"));
+    m_button_extruder_feed = new Button(this, _L("Load"));
     m_button_extruder_feed->SetBackgroundColor(extruder_bg);
     m_button_extruder_feed->SetBorderColor(extruder_bd);
     m_button_extruder_feed->SetFont(Label::Body_10);
@@ -890,7 +891,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     m_sizer_left_bottom->Add(0, 0, 0, wxALL | wxLEFT, 10);
 
-    m_button_extruder_back = new Button(this, _L("Back"));
+    m_button_extruder_back = new Button(this, _L("Unload"));
     m_button_extruder_back->SetBackgroundColor(extruder_bg);
     m_button_extruder_back->SetBorderColor(extruder_bd);
     m_button_extruder_back->SetFont(Label::Body_10);
@@ -934,8 +935,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     UpdateStepCtrl();
 
-    m_button_extruder_feed->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_extruder_feed), NULL, this);   // TODO
-    m_button_extruder_back->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_extruder_return), NULL, this); // TODO
+    m_button_extruder_feed->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_filament_load), NULL, this);
+    m_button_extruder_back->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_filament_unload), NULL, this);
+    m_button_ams_setting->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_ams_setting_click), NULL, this);
 }
 
 void AMSControl::init_scaled_buttons()
@@ -973,9 +975,17 @@ void AMSControl::msw_rescale()
     Layout();
 }
 
-void AMSControl::UpdateStepCtrl()
+void AMSControl::UpdateStepCtrl(bool load)
 {
-    for (int i = 0; i < (int) FilamentStep::STEP_COUNT; i++) { m_filament_step->AppendItem(FILAMENT_STEP_STRING[i]); }
+    if (load) {
+        for (int i = 0; i < LOAD_STEP_COUNT; i++) {
+            m_filament_step->AppendItem(FILAMENT_STEP_STRING[i]);
+        }
+    } else {
+        for (int i = 0; i < UNLOAD_STEP_COUNT; i++) {
+            m_filament_step->AppendItem(FILAMENT_STEP_STRING[i]);
+        }
+    }
 }
 
 void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection)
@@ -1158,9 +1168,19 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     // cust->amsCans->SetAmsStep(canid, type, STEP);
 }
 
-void AMSControl::on_extruder_feed(wxCommandEvent &event) {post_event(SimpleEvent(EVT_AMS_FEED));}
+void AMSControl::on_filament_load(wxCommandEvent &event)
+{
+    post_event(SimpleEvent(EVT_AMS_LOAD));
+}
 
-void AMSControl::on_extruder_return(wxCommandEvent &event) { post_event(SimpleEvent(EVT_AMS_RETURN)); }
+void AMSControl::on_filament_unload(wxCommandEvent &event)
+{
+    post_event(SimpleEvent(EVT_AMS_UNLOAD));
+}
+
+void AMSControl::on_ams_setting_click(wxCommandEvent &event) {
+    post_event(SimpleEvent(EVT_AMS_SETTINGS));
+}
 
 void AMSControl::post_event(wxEvent &&event)
 {

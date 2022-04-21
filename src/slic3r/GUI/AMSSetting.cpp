@@ -3,7 +3,11 @@
 
 namespace Slic3r { namespace GUI {
 
-AMSSetting::AMSSetting(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style) : DPIDialog(parent, id, wxEmptyString, pos, size, style) { create(); }
+AMSSetting::AMSSetting(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
+    : DPIDialog(parent, id, wxEmptyString, pos, size, style)
+{
+    create();
+}
 AMSSetting::~AMSSetting() {}
 
 void AMSSetting::create()
@@ -181,7 +185,7 @@ void AMSSetting::create()
 
     // set mode
     update_insert_material_read_mode(true);
-    update_starting_read_mode(true);
+    update_starting_read_mode(false);
 }
 
 void AMSSetting::update_insert_material_read_mode(bool selected)
@@ -218,24 +222,32 @@ void AMSSetting::update_starting_read_mode(bool selected)
 
 void AMSSetting::on_select_ok(wxMouseEvent &event)
 {
-    // TO DO
-    event.Skip();
+    if (obj) {
+        obj->command_ams_calibrate(ams_id);
+    }
 }
 
 void AMSSetting::on_insert_material_read(wxCommandEvent &event)
 {
-    // TO DO
-    event.Skip();
-
-    if (m_checkbox_Insert_material_auto_read->GetValue()) { // selected
+    // send command
+    if (m_checkbox_Insert_material_auto_read->GetValue()) {
+        // checked
         m_tip_Insert_material_line1->Show();
         m_tip_Insert_material_line2->Show();
         m_tip_Insert_material_line3->Hide();
-    } else { // unselected
+    } else {
+        // unchecked
         m_tip_Insert_material_line1->Hide();
         m_tip_Insert_material_line2->Hide();
         m_tip_Insert_material_line3->Show();
     }
+    m_checkbox_Insert_material_auto_read->SetValue(event.GetInt());
+
+    bool start_read_opt = m_checkbox_starting_auto_read->GetValue();
+    bool tray_read_opt = m_checkbox_Insert_material_auto_read->GetValue();
+
+    obj->command_ams_user_settings(ams_id, start_read_opt, tray_read_opt);
+
     m_sizer_Insert_material_tip_inline->Layout();
     Layout();
     Fit();
@@ -243,16 +255,22 @@ void AMSSetting::on_insert_material_read(wxCommandEvent &event)
 
 void AMSSetting::on_starting_read(wxCommandEvent &event)
 {
-    // TO DO
-    event.Skip();
-
-    if (m_checkbox_starting_auto_read->GetValue()) { // selected
+    if (m_checkbox_starting_auto_read->GetValue()) {
+        // checked
         m_tip_starting_line1->Show();
         m_tip_starting_line2->Hide();
-    } else { // unselected
+    } else {
+        // unchecked
         m_tip_starting_line1->Hide();
         m_tip_starting_line2->Show();
     }
+    m_checkbox_starting_auto_read->SetValue(event.GetInt());
+
+    bool start_read_opt = m_checkbox_starting_auto_read->GetValue();
+    bool tray_read_opt  = m_checkbox_Insert_material_auto_read->GetValue();
+
+    obj->command_ams_user_settings(ams_id, start_read_opt, tray_read_opt);
+
     m_sizer_starting_tip_inline->Layout();
     Layout();
     Fit();

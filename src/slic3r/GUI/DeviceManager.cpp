@@ -284,6 +284,42 @@ AmsTray *MachineObject::get_ams_tray(std::string ams_id, std::string tray_id)
         return nullptr;
 }
 
+void MachineObject::_parse_ams_status(int ams_status)
+{
+    ams_status_sub = ams_status & 0xFF;
+    int ams_status_main_int = (ams_status & 0xFF00) >> 8;
+    if (ams_status_main_int == (int)AmsStatusMain::AMS_STATUS_MAIN_IDLE) {
+        ams_status_main = AmsStatusMain::AMS_STATUS_MAIN_IDLE;
+    } else if (ams_status_main_int == (int) AmsStatusMain::AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+        ams_status_main = AmsStatusMain::AMS_STATUS_MAIN_FILAMENT_CHANGE;
+    } else if (ams_status_main_int == (int) AmsStatusMain::AMS_STATUS_MAIN_RFID_IDENTIFYING) {
+        ams_status_main = AmsStatusMain::AMS_STATUS_MAIN_RFID_IDENTIFYING;
+    } else if (ams_status_main_int == (int) AmsStatusMain::AMS_STATUS_MAIN_ASSIST) {
+        ams_status_main = AmsStatusMain::AMS_STATUS_MAIN_ASSIST;
+    } else if (ams_status_main_int == (int) AmsStatusMain::AMS_STATUS_MAIN_CALIBRATION) {
+        ams_status_main = AmsStatusMain::AMS_STATUS_MAIN_CALIBRATION;
+    } else if (ams_status_main_int == (int) AmsStatusMain::AMS_STATUS_MAIN_SELF_CHECK) {
+        ams_status_main = AmsStatusMain::AMS_STATUS_MAIN_SELF_CHECK;
+    } else if (ams_status_main_int == (int) AmsStatusMain::AMS_STATUS_MAIN_DEBUG) {
+        ams_status_main = AmsStatusMain::AMS_STATUS_MAIN_DEBUG;
+    } else {
+        ams_status_main = AmsStatusMain::AMS_STATUS_MAIN_UNKNOWN;
+    }
+}
+
+bool MachineObject::is_bbl_filament(std::string tag_uid)
+{
+    if (tag_uid.empty())
+        return false;
+
+    for (int i = 0; i < tag_uid.length(); i++) {
+        if (tag_uid[i] != '0')
+            return true;
+    }
+
+    return false;
+}
+
 wxString MachineObject::get_curr_stage()
 {
     if (stage_info.empty()) return "";
@@ -428,14 +464,59 @@ int MachineObject::command_ams_switch(std::string tray_id, int old_temp, int new
         return -1;
     }
 
-    return this->publish_json(gcode);
+    return this->publish_gcode(gcode);
+}
+
+int MachineObject::command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt)
+{
+    json j;
+    j["print"]["command"] = "ams_user_setting";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["ams_id"] = ams_id;
+    j["print"]["startup_read_option"] = start_read_opt;
+    j["print"]["tray_read_option"]    = tray_read_opt;
+
+    return this->publish_json(j.dump());
+}
+
+int MachineObject::command_ams_calibrate(int ams_id)
+{
+    std::string gcode_cmd = (boost::format("M620 C%1% \n") % ams_id).str();
+    BOOST_LOG_TRIVIAL(trace) << "ams_debug: gcode_cmd" << gcode_cmd;
+    return this->publish_gcode(gcode_cmd);
+}
+
+int MachineObject::command_ams_filament_settings(int ams_id, int tray_id, std::string setting_id, std::string tray_color, int bed_temp)
+{
+    json j;
+    j["print"]["command"] = "ams_filament_setting";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["ams_id"]      = ams_id;
+    j["print"]["tray_id"]     = tray_id;
+    j["print"]["tray_info_idx"] = setting_id;
+    // format "FFFFFFFF"   RGBA
+    j["print"]["tray_color"]    = tray_color;
+    // fixed bed_temp_type
+    j["print"]["bed_temp_type"] = 0;
+    j["print"]["bed_temp"]      = bed_temp;
+
+    return this->publish_json(j.dump());
 }
 
 int MachineObject::command_ams_refresh_rfid(std::string tray_id)
 {
-    ;//TODO
-    return 0;
+    std::string gcode_cmd = (boost::format("M620 R%1% \n") % tray_id).str();
+    BOOST_LOG_TRIVIAL(trace) << "ams_debug: gcode_cmd" << gcode_cmd;
+    return this->publish_gcode(gcode_cmd);
 }
+
+int MachineObject::command_ams_select_tray(std::string tray_id)
+{
+    std::string gcode_cmd = (boost::format("M620 P%1% \n") % tray_id).str();
+    BOOST_LOG_TRIVIAL(trace) << "ams_debug: gcode_cmd" << gcode_cmd;
+    return this->publish_gcode(gcode_cmd);
+}
+
 
 int MachineObject::command_set_chamber_light(LIGHT_EFFECT effect, int on_time, int off_time, int loops, int interval)
 {
@@ -730,6 +811,17 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 heatbreak_fan_speed = stoi(jj["heatbreak_fan_speed"].get<std::string>());
             }
 
+            /* ams status */
+            try {
+                if (jj.contains("ams_status")) {
+                    int ams_status = jj["ams_status"].get<int>();
+                    this->_parse_ams_status(ams_status);
+                }
+            }
+            catch(...) {
+                ;
+            }
+
             try {
                 if (jj.contains("stage")) {
                     stage_info.clear();
@@ -924,6 +1016,14 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                             if (it == amsList.end()) {
                                 // check valid id
                                 Ams* new_ams = new Ams(ams_id);
+                                try {
+                                    if (!ams_id.empty()) {
+                                        int ams_id_int       = atoi(ams_id.c_str());
+                                        new_ams->is_exists   = (ams_exist_bits & (1 << ams_id_int)) != 0 ? true : false;
+                                    }
+                                } catch (...) {
+                                    ;
+                                }
                                 amsList.insert(std::make_pair(ams_id, new_ams));
                                 // new ams added event
                                 curr_ams = new_ams;
@@ -936,8 +1036,6 @@ int MachineObject::parse_json(std::string topic, std::string payload)
 
                             for (auto tray = tray_list.begin(); tray != tray_list.end(); ++tray) {
                                 std::string tray_id     = tray->second.get_optional<std::string>("id").value();
-                                //bool is_bbl             = tray->second.get_optional<std::string>("is_bbl").value().compare("true") ? true : false;
-
                                 boost::optional<std::string> id                 = tray->second.get_optional<std::string>("id");
                                 boost::optional<std::string> tag_uid            = tray->second.get_optional<std::string>("tag_uid");
                                 boost::optional<std::string> tray_info_idx      = tray->second.get_optional<std::string>("tray_info_idx");
@@ -972,7 +1070,6 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                                 // update properties
                                 if (curr_tray) {
                                     curr_tray->id           = id.has_value() ? id.value() : "";
-                                    //curr_tray->is_bbl       = is_bbl;
                                     curr_tray->tag_uid      = tag_uid.has_value() ? tag_uid.value() : "";
                                     curr_tray->setting_id   = tray_info_idx.has_value() ? tray_info_idx.value() : "";
                                     curr_tray->type         = tray_type.has_value() ? tray_type.value() : "";
@@ -989,6 +1086,14 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                                     curr_tray->uuid               = tray_uuid.has_value() ? tray_uuid.value() : "";
                                     auto color = tray_color.has_value() ? tray_color.value() : "";
                                     curr_tray->update_color_from_str(color);
+                                    try {
+                                        if (!ams_id.empty() && !curr_tray->id.empty()) {
+                                            int ams_id_int = atoi(ams_id.c_str());
+                                            int tray_id_int = atoi(curr_tray->id.c_str());
+                                            curr_tray->is_exists = (tray_exist_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0 ? true : false;
+                                        }
+                                    } catch(...) {
+                                    }
                                 }
                             }
                         }

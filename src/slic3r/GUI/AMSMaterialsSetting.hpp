@@ -4,6 +4,7 @@
 #include "libslic3r/Preset.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_Utils.hpp"
+#include "DeviceManager.hpp"
 #include "wx/clrpicker.h"
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/Button.hpp"
@@ -29,15 +30,22 @@ namespace Slic3r { namespace GUI {
 class AMSMaterialsSetting : public DPIDialog
 {
 public:
-    AMSMaterialsSetting(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style = 0 );
+    AMSMaterialsSetting(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = 0);
     ~AMSMaterialsSetting();
     void create();
 
-
+    bool Show(bool show) override;
 	void on_select_ok(wxMouseEvent &event);
+    void set_color(wxColour color);
+
+    MachineObject *obj{nullptr};
+    int            ams_id { 0 };
+    int            tray_id { 0 };
+    std::string    setting_id;
 
 protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
+    void on_select_filament(wxCommandEvent& evt);
 
 protected:
     wxPanel *           m_panel_body;
@@ -46,9 +54,7 @@ protected:
     wxStaticText *      m_title_colour;
     wxColourPickerCtrl *m_colourPicker1;
     wxStaticText *      m_title_temperature;
-    wxStaticText *      m_label_firstlayer;
     wxStaticText *      m_label_other;
-    TextInput *         m_input_firstlayer;
     TextInput *         m_input_other;
     Button *            m_button_confirm;
 

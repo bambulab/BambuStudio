@@ -4,6 +4,7 @@
 #include "libslic3r/Preset.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_Utils.hpp"
+#include "DeviceManager.hpp"
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/RoundedRectangle.hpp"
@@ -22,7 +23,7 @@ namespace Slic3r { namespace GUI {
 class AMSSetting : public DPIDialog
 {
 public:
-    AMSSetting(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style = wxDEFAULT_DIALOG_STYLE);
+    AMSSetting(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE);
     ~AMSSetting();
     void create();
 
@@ -33,6 +34,8 @@ public:
     void          on_starting_read(wxCommandEvent &event);
     wxString      append_title(wxString text);
     wxStaticText *append_text(wxString text);
+    MachineObject *obj{nullptr};
+    int            ams_id { 0 };
 
 protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;

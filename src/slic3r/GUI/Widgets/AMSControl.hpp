@@ -61,11 +61,11 @@ enum class AMSCanType : int {
 };
 
 enum FilamentStep {
-    STEP_CHOOSE_POSITION = 0,
-    STEP_CLICK_LOAD,
-    STEP_HEAT_EXTRUDER,
-    STEP_LOAD,
-    STEP_COMPLETE,
+    STEP_IDLE,
+    STEP_HEAT_NOZZLE,
+    STEP_CUT_FILAMENT,
+    STEP_PULL_CURR_FILAMENT,
+    STEP_PUSH_NEW_FILAMENT,
     STEP_COUNT,
 };
 
@@ -164,6 +164,7 @@ public:
     void OnSelected();
     void UnSelected();
     virtual bool Enable(bool enable = true);
+    void post_event(wxCommandEvent &&event);
 
 protected:
     wxBitmap m_bitmap_editable;
@@ -343,7 +344,7 @@ public:
     std::string GetCurentAms();
     std::string GetCurrentCan(std::string amsid);
     void msw_rescale();
-    void UpdateStepCtrl();
+    void UpdateStepCtrl(bool load = true);
     void UpdateAms(std::vector<AMSinfo> info, bool keep_selection = true);
     void AddAms(AMSinfo info, bool refresh = true);
     void RemoveAms(std::string ams_id);
@@ -353,8 +354,9 @@ public:
     void SetFilamentStep(int item_idx);
     virtual bool Enable(bool enable = true); 
 
-    void on_extruder_feed(wxCommandEvent &event);
-    void on_extruder_return(wxCommandEvent &event);
+    void on_filament_load(wxCommandEvent &event);
+    void on_filament_unload(wxCommandEvent &event);
+    void on_ams_setting_click(wxCommandEvent &event);
 
     void post_event(wxEvent &&event);
 
@@ -362,10 +364,12 @@ public:
     std::string m_current_senect;
 };
 
-wxDECLARE_EVENT(EVT_AMS_FEED, SimpleEvent);
-wxDECLARE_EVENT(EVT_AMS_RETURN, SimpleEvent);
+wxDECLARE_EVENT(EVT_AMS_LOAD, SimpleEvent);
+wxDECLARE_EVENT(EVT_AMS_UNLOAD, SimpleEvent);
 wxDECLARE_EVENT(EVT_AMS_SETTINGS, SimpleEvent);
-wxDECLARE_EVENT(EVT_AMS_REFRESH, wxCommandEvent);
+wxDECLARE_EVENT(EVT_AMS_REFRESH_RFID, wxCommandEvent);
+wxDECLARE_EVENT(EVT_AMS_ON_SELECTED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_AMS_ON_FILAMENT_EDIT, wxCommandEvent);
 
 }
 }
