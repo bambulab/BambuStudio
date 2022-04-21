@@ -68,9 +68,9 @@ static wxColour TEXT_LIGHT_FONT_COL  = wxColour(107, 107, 107);
 
 
 StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
-    : wxScrolledWindow(parent, id, pos, size, wxVSCROLL)
+    : wxScrolledWindow(parent, id, pos, size, wxHSCROLL|wxVSCROLL)
 {
-    this->SetScrollRate(0, 5);
+    this->SetScrollRate( 5, 5 );
 
     init_bitmaps();
 
