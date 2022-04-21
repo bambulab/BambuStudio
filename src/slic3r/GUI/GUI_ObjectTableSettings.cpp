@@ -262,7 +262,7 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
             if (field)
                 field->toggle(toggle);
         };
-        ConfigManipulation config_manipulation(nullptr, toggle_field, nullptr, &m_current_config);
+        ConfigManipulation config_manipulation(nullptr, toggle_field, nullptr, nullptr, &m_current_config);
 
         printer_technology == ptFFF  ?  config_manipulation.toggle_print_fff_options(&m_current_config) :
                                         config_manipulation.toggle_print_sla_options(&m_current_config) ;
@@ -344,7 +344,7 @@ void ObjectTableSettings::update_config_values(bool is_object, ModelObject* obje
             field->toggle(toggle);
     };
 
-    ConfigManipulation config_manipulation(nullptr, toggle_field, nullptr, &m_current_config);
+    ConfigManipulation config_manipulation(nullptr, toggle_field, nullptr, nullptr, &m_current_config);
 
     printer_technology == ptFFF  ?  config_manipulation.update_print_fff_config(&main_config) :
                                     config_manipulation.update_print_sla_config(&main_config) ;

@@ -330,7 +330,7 @@ void ObjectSettings::update_config_values(ModelConfig* config)
 #endif
 
     //BBS: change local config to DynamicPrintConfig
-    ConfigManipulation config_manipulation(load_config, toggle_field, nullptr, &(config->get()));
+    ConfigManipulation config_manipulation(load_config, toggle_field, nullptr, nullptr, &(config->get()));
 
     if (!is_object_settings)
     {

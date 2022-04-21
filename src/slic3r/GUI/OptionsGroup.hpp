@@ -55,6 +55,7 @@ public:
     wxString	label_tooltip;
 	std::string	label_path;
     bool        undo_to_sys{false}; // BBS: object config
+    bool        toggle_visible{true}; // BBS: hide some line
 
     size_t		full_width {0}; 
 	wxColour*	full_Label_color {nullptr};

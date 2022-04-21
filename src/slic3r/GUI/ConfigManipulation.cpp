@@ -32,16 +32,25 @@ t_config_option_keys const &ConfigManipulation::applying_keys() const
     return m_applying_keys;
 }
 
-void ConfigManipulation::toggle_field(const std::string& opt_key, const bool toggle, int opt_index/* = -1*/)
+void ConfigManipulation::toggle_field(const std::string &opt_key, const bool toggle, int opt_index /* = -1*/)
+{
+    if (local_config) {
+        if (local_config->option(opt_key) == nullptr) return;
+    }
+    cb_toggle_field(opt_key, toggle, opt_index);
+}
+
+void ConfigManipulation::toggle_line(const std::string& opt_key, const bool toggle)
 {
     if (local_config) {
         if (local_config->option(opt_key) == nullptr)
             return;
     }
-    cb_toggle_field(opt_key, toggle, opt_index);
+    if (cb_toggle_line)
+        cb_toggle_line(opt_key, toggle);
 }
 
-void ConfigManipulation::check_nozzle_temperature_range(DynamicPrintConfig* config)
+void ConfigManipulation::check_nozzle_temperature_range(DynamicPrintConfig *config)
 {
     if (is_msg_dlg_already_exist)
         return;
@@ -425,7 +434,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     // sparse_infill_filament uses the same logic as in Print::extruders()
     for (auto el : { "sparse_infill_pattern", "infill_combination",
                     "minimum_sparse_infill_area", "sparse_infill_filament"})
-        toggle_field(el, have_infill);
+        toggle_line(el, have_infill);
 
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
     bool has_top_solid_infill 	 = config->opt_int("top_shell_layers") > 0;

@@ -1271,6 +1271,13 @@ void Tab::toggle_option(const std::string& opt_key, bool toggle, int opt_index/*
     Field* field = m_active_page->get_field(opt_key, opt_index);
     if (field)
         field->toggle(toggle);
+}
+
+void Tab::toggle_line(const std::string &opt_key, bool toggle)
+{
+    if (!m_active_page) return;
+    Line *line = m_active_page->get_line(opt_key);
+    if (line) line->toggle_visible = toggle;
 };
 
 // To be called by custom widgets, load a value into a config,
@@ -4689,18 +4696,28 @@ void Page::refresh()
         group->refresh();
 }
 
-Field* Page::get_field(const t_config_option_key& opt_key, int opt_index /*= -1*/) const
+Field *Page::get_field(const t_config_option_key &opt_key, int opt_index /*= -1*/) const
 {
-    Field* field = nullptr;
+    Field *field = nullptr;
     for (auto opt : m_optgroups) {
         field = opt->get_fieldc(opt_key, opt_index);
-        if (field != nullptr)
-            return field;
+        if (field != nullptr) return field;
     }
     return field;
 }
 
-bool Page::set_value(const t_config_option_key& opt_key, const boost::any& value) {
+Line *Page::get_line(const t_config_option_key &opt_key)
+{
+    Line *line = nullptr;
+    for (auto opt : m_optgroups) {
+        line = opt->get_line(opt_key);
+        if (line != nullptr) return line;
+    }
+    return line;
+}
+
+bool Page::set_value(const t_config_option_key &opt_key, const boost::any &value)
+{
     bool changed = false;
     for(auto optgroup: m_optgroups) {
         if (optgroup->set_value(opt_key, value))
@@ -4733,6 +4750,7 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
 //!        wxTheApp->CallAfter([this, opt_key, value]() {
             static_cast<Tab*>(tab)->update_dirty();
             static_cast<Tab*>(tab)->on_value_change(opt_key, value);
+            static_cast<Tab*>(tab)->update_visibility();
 //!        });
     };
 
@@ -5081,11 +5099,15 @@ ConfigManipulation Tab::get_config_manipulation()
         return toggle_option(opt_key, toggle, opt_index);
     };
 
+    auto cb_toggle_line = [this](const t_config_option_key& opt_key, bool toggle) {
+        return toggle_line(opt_key, toggle);
+    };
+
     auto cb_value_change = [this](const std::string& opt_key, const boost::any& value) {
         return on_value_change(opt_key, value);
     };
 
-    return ConfigManipulation(load_config, cb_toggle_field, cb_value_change, nullptr, this);
+    return ConfigManipulation(load_config, cb_toggle_field, cb_toggle_line, cb_value_change, nullptr, this);
 }
 
 
