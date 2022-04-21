@@ -5836,6 +5836,9 @@ public:
                 if (m_interval > 0 && boost::get_system_time() > m_next_backup) {
                     m_tasks.push_back({ Backup, 0, std::string(), nullptr, ++m_task_seq });
                     m_next_backup += boost::posix_time::seconds(m_interval);
+                    // Maybe wakeup from power sleep
+                    if (m_next_backup < boost::get_system_time())
+                        m_next_backup = boost::get_system_time() + boost::posix_time::seconds(m_interval);
                 }
             }
             Task t = m_tasks.front();
@@ -5864,6 +5867,7 @@ public:
         auto wait = now + boost::posix_time::seconds(3);
         while (true) {
             m_cond.timed_wait(lock, wait);
+            // Only delay when it's the only-one task
             if (m_tasks.size() != 1 || m_tasks.front().delay == t.delay)
                 break;
             t.delay = m_tasks.front().delay;
