@@ -1,12 +1,13 @@
 {
     "type": "filament",
-    "setting_id": "GFA01",
-    "name": "Bambu PLA Matte @Bambu Lab",
+    "filament_id": "GFL18",
+    "setting_id": "GFL18",
+    "name": "PolyTerra PLA @BBL X1C",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
     "filament_vendor": [
-        "Bambu Lab"
+        "Polymaker"
     ],
     "filament_cost": [
         "25.4"
@@ -28,5 +29,6 @@
     ],
     "filament_max_volumetric_speed": [
         "28.6"
-    ]
+    ],
+    "compatible_printers_condition": "printer_model=~/(BBL_3DP_X1).*/ and auxiliary_fan and nozzle_diameter[0]==0.4"
 }

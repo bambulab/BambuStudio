@@ -20,9 +20,9 @@
         "0x256"
     ],
     "default_filament_profile": [
-        "Bambu PLA Basic @Bambu Lab"
+        "Bambu PLA Basic @BBL X1C"
     ],
-    "default_print_profile": "0.16mm Optimal @Bambu Lab X1 Carbon",
+    "default_print_profile": "0.16mm Optimal @BBL X1C",
     "deretraction_speed": [
         "0"
     ],

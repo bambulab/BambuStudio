@@ -1,7 +1,8 @@
 {
     "type": "filament",
+    "filament_id": "GFN00",
     "setting_id": "GFN00",
-    "name": "Bambu PA12-CF @Bambu Lab",
+    "name": "Bambu PA12-CF @BBL X1C",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pa6+cf",
@@ -22,5 +23,6 @@
     ],
     "bed_temperature_initial_layer": [
         "0,100,100"
-    ]
+    ],
+    "compatible_printers_condition": "printer_model=~/(BBL_3DP_X1).*/ and nozzle_type=~/(hardened_steel)/ and nozzle_diameter[0]==0.4"
 }

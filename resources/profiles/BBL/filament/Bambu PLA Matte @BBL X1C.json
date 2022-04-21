@@ -1,7 +1,8 @@
 {
     "type": "filament",
-    "setting_id": "GFA00",
-    "name": "Bambu PLA Basic @Bambu Lab",
+    "filament_id": "GFA01",
+    "setting_id": "GFA01",
+    "name": "Bambu PLA Matte @BBL X1C",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
@@ -18,15 +19,16 @@
         "230"
     ],
     "bed_temperature": [
-        "35,0,60"
+        "30,0,60"
     ],
     "bed_temperature_initial_layer": [
-        "35,0,60"
+        "30,0,60"
     ],
     "nozzle_temperature_initial_layer": [
-        "220"
+        "210"
     ],
     "filament_max_volumetric_speed": [
-        "26.8"
-    ]
+        "28.6"
+    ],
+    "compatible_printers_condition": "printer_model=~/(BBL_3DP_X1).*/ and auxiliary_fan and nozzle_diameter[0]==0.4"
 }

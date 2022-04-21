@@ -2770,6 +2770,10 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("machine_load_filament_time");
         optgroup->append_single_option_line("machine_unload_filament_time");
 
+        optgroup = page->new_optgroup(L("Accessory"));
+        optgroup->append_single_option_line("nozzle_type");
+        optgroup->append_single_option_line("auxiliary_fan");
+
     const int gcode_field_height = 15; // 150
     page = add_options_page(L("Machine gcode"), "cog");
         optgroup = page->new_optgroup(L("Machine start G-code"), 0);

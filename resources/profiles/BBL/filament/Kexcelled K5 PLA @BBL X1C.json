@@ -1,12 +1,13 @@
 {
     "type": "filament",
-    "setting_id": "GFL18",
-    "name": "PolyTerra PLA @Bambu Lab",
+    "filament_id": "GFL20",
+    "setting_id": "GFL20",
+    "name": "Kexcelled K5 PLA @BBL X1C",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
     "filament_vendor": [
-        "Polymaker"
+        "Kexcelled"
     ],
     "filament_cost": [
         "25.4"
@@ -18,15 +19,16 @@
         "230"
     ],
     "bed_temperature": [
-        "30,0,60"
+        "35,0,60"
     ],
     "bed_temperature_initial_layer": [
-        "30,0,60"
+        "35,0,60"
     ],
     "nozzle_temperature_initial_layer": [
-        "210"
+        "220"
     ],
     "filament_max_volumetric_speed": [
-        "28.6"
-    ]
+        "26.8"
+    ],
+    "compatible_printers_condition": "printer_model=~/(BBL_3DP_X1).*/ and auxiliary_fan and nozzle_diameter[0]==0.4"
 }

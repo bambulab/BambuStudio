@@ -1,10 +1,10 @@
 {
     "type": "process",
     "setting_id": "GP005",
-    "name": "0.20mm Standard @Bambu Lab X1 Carbon",
+    "name": "0.20mm Standard @BBL X1C",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_process_bbl_0.20",
     "renamed_from": "0.20mm NORMAL @BBL001",
-    "compatible_printers_condition": "printer_model=~/(BBL_3DP).*/ and nozzle_diameter[0]==0.4"
+    "compatible_printers_condition": "printer_model=~/(BBL_3DP_X1).*/ and nozzle_diameter[0]==0.4 and auxiliary_fan"
 }

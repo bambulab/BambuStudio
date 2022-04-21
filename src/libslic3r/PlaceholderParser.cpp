@@ -841,6 +841,8 @@ namespace client
 	            }
 		        break;
 		    }
+            //BBS: Add enum. Otherwise enum can not be judged in placeholder
+            case coEnum:    output.set_s(opt.opt->serialize());  break;
             default:
                 ctx->throw_exception("Unknown scalar variable type", opt.it_range);
             }

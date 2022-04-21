@@ -216,6 +216,13 @@ static const t_config_enum_values s_keys_map_BedType = {
     { "High Temp Plate",    btPEI  }
 };
 
+static t_config_enum_values s_keys_map_NozzleType {
+    { "hardened_steel", int(NozzleType::ntHardenedSteel) },
+    { "stainless_steel",int(NozzleType::ntStainlessSteel) },
+    { "brass",          int(NozzleType::ntBrass) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NozzleType)
+
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
     for (std::pair<const t_config_option_key, ConfigOptionDef> &kvp : options)
@@ -1144,6 +1151,40 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Enable the camera on printer to check spaghetti");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("can_switch_nozzle_type", coBool);
+    //def->label = L("Can switch nozzle type");
+    //def->tooltip = L("Whether user can switch nozzle type for this machine. "
+    //                 "This option decides whether show nozzle_type option on UI");
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("can_add_auxiliary_fan", coBool);
+    //def->label = L("Can add auxiliary fan");
+    //def->tooltip = L("Whether user can add auxiliary fan for this machine. "
+    //                 "This option decides whether show auxiliary_fan option on UI");
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("nozzle_type", coEnum);
+    def->label = L("Nozzle type");
+    def->tooltip = L("The metallic material of nozzle. This determines the abrasive resistance of nozzle, and "
+                     "what kind of filament can be printed");
+    def->enum_keys_map = &ConfigOptionEnum<NozzleType>::get_enum_values();
+    def->enum_values.push_back("hardened_steel");
+    def->enum_values.push_back("stainless_steel");
+    def->enum_values.push_back("brass");
+    def->enum_labels.push_back(L("Hardened steel"));
+    def->enum_labels.push_back(L("Stainless steel"));
+    def->enum_labels.push_back(L("Brass"));
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionEnum<NozzleType>(ntHardenedSteel));
+
+    def = this->add("auxiliary_fan", coBool);
+    def->label = L("Auxiliary fan");
+    def->tooltip = L("Enable this option if machine has auxiliary fan");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("gcode_flavor", coEnum);
     def->label = L("G-code flavor");

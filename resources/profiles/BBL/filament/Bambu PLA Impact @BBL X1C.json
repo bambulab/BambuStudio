@@ -1,7 +1,8 @@
 {
     "type": "filament",
+    "filament_id": "GFA03",
     "setting_id": "GFA03",
-    "name": "Bambu PLA Impact @Bambu Lab",
+    "name": "Bambu PLA Impact @BBL X1C",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
@@ -28,5 +29,6 @@
     ],
     "filament_max_volumetric_speed": [
         "23.2"
-    ]
+    ],
+    "compatible_printers_condition": "printer_model=~/(BBL_3DP_X1).*/ and auxiliary_fan and nozzle_diameter[0]==0.4"
 }

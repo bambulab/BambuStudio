@@ -1,12 +1,13 @@
 {
     "type": "filament",
-    "setting_id": "GFL20",
-    "name": "Kexcelled K5 PLA @Bambu Lab",
+    "filament_id": "GFA00",
+    "setting_id": "GFA00",
+    "name": "Bambu PLA Basic @BBL X1C",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
     "filament_vendor": [
-        "Kexcelled"
+        "Bambu Lab"
     ],
     "filament_cost": [
         "25.4"
@@ -28,5 +29,6 @@
     ],
     "filament_max_volumetric_speed": [
         "26.8"
-    ]
+    ],
+    "compatible_printers_condition": "printer_model=~/(BBL_3DP_X1).*/ and auxiliary_fan and nozzle_diameter[0]==0.4"
 }

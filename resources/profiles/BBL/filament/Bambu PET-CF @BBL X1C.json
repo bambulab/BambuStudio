@@ -1,7 +1,8 @@
 {
     "type": "filament",
+    "filament_id": "GFT00",
     "setting_id": "GFT00",
-    "name": "Bambu PET-CF @Bambu Lab",
+    "name": "Bambu PET-CF @BBL X1C",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",
@@ -37,5 +38,6 @@
     ],
     "slow_down_layer_time": [
         "2"
-    ]
+    ],
+    "compatible_printers_condition": "printer_model=~/(BBL_3DP_X1).*/ and nozzle_type=~/(hardened_steel)/ and nozzle_diameter[0]==0.4"
 }

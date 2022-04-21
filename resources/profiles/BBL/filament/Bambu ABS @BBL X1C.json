@@ -1,12 +1,13 @@
 {
     "type": "filament",
+    "filament_id": "GFB00",
     "setting_id": "GFB00",
-    "name": "Bambu ABS @Bambu Lab",
+    "name": "Bambu ABS @BBL X1C",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_abs",
     "filament_vendor": [
         "Bambu Lab"
     ],
-    "compatible_printers_condition": "nozzle_diameter[0]!=0.8"
+    "compatible_printers_condition": "printer_model=~/(BBL_3DP_X1_Carbon)/ and nozzle_diameter[0]==0.4"
 }

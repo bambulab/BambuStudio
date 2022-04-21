@@ -155,6 +155,14 @@ enum BedType {
     btCount
 };
 
+// BBS
+enum NozzleType {
+    ntHardenedSteel = 0,
+    ntStainlessSteel,
+    ntBrass,
+    ntCount
+};
+
 static std::string bed_type_to_gcode_string(const BedType type)
 {
     std::string type_str;
@@ -713,6 +721,11 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               travel_speed_z))
     ((ConfigOptionBool,                silent_mode))
     ((ConfigOptionString,              machine_pause_gcode))
+    //BBS
+    ((ConfigOptionEnum<NozzleType>,    nozzle_type))
+    ((ConfigOptionBool,                can_switch_nozzle_type))
+    ((ConfigOptionBool,                auxiliary_fan))
+    ((ConfigOptionBool,                can_add_auxiliary_fan))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.

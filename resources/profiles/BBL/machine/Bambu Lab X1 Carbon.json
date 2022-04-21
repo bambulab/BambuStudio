@@ -5,7 +5,11 @@
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_bbl_3dp_001_common",
-  "printer_model": "BBL_3DP_X1",
+  "printer_model": "BBL_3DP_X1_Carbon",
+  "default_print_profile": "0.16mm Optimal @BBL X1C",
+  "nozzle_diameter": [
+      "0.4"
+  ],
   "bed_exclude_area": [
     "0x0",
     "28x0",
@@ -19,5 +23,9 @@
   "scan_first_layer": "1",
   "spaghetti_detector": "1",
   "machine_load_filament_time": "7",
-  "machine_unload_filament_time": "7"
+  "machine_unload_filament_time": "7",
+  "can_switch_nozzle_type": "0",
+  "nozzle_type": "hardened_steel",
+  "can_add_auxiliary_fan": "0",
+  "auxiliary_fan": "1"
 }

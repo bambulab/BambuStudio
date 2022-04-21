@@ -1,5 +1,6 @@
 {
     "type": "filament",
+    "filament_id": "GFG99",
     "setting_id": "GFG99",
     "name": "Generic PETG",
     "from": "system",

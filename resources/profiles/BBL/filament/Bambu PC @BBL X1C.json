@@ -1,7 +1,8 @@
 {
     "type": "filament",
+    "filament_id": "GFC00",
     "setting_id": "GFC00",
-    "name": "Bambu PC @Bambu Lab",
+    "name": "Bambu PC @BBL X1C",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pc",
@@ -13,5 +14,6 @@
     ],
     "nozzle_temperature_initial_layer": [
         "270"
-    ]
+    ],
+    "compatible_printers_condition": "printer_model=~/(BBL_3DP_X1).*/ and nozzle_diameter[0]==0.4 and (nozzle_type=~/(hardened_steel)/ or nozzle_type=~/(stainless_steel)/)"
 }

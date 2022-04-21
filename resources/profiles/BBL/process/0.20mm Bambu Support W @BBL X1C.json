@@ -1,7 +1,7 @@
 {
     "type": "process",
     "setting_id": "GP006",
-    "name": "0.20mm Bambu Support W @Bambu Lab X1 Carbon",
+    "name": "0.20mm Bambu Support W @BBL X1C",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_process_bbl_0.20",
@@ -14,5 +14,6 @@
     "support_interface_speed": "80",
     "support_filament": "0",
     "support_interface_filament": "0",
-    "enable_prime_tower": "1"
+    "enable_prime_tower": "1",
+    "compatible_printers_condition": "printer_model=~/(BBL_3DP_X1).*/ and nozzle_diameter[0]==0.4 and auxiliary_fan"
 }

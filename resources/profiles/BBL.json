@@ -6,8 +6,8 @@
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
         {
-            "name": "BBL_3DP_X1",
-            "sub_path": "machine/BBL_3DP_X1.json"
+            "name": "BBL_3DP_X1_Carbon",
+            "sub_path": "machine/BBL_3DP_X1_Carbon.json"
         }
     ],
     "process_list": [
@@ -48,36 +48,32 @@
             "sub_path": "process/fdm_process_bbl_0.28.json"
         },
         {
-            "name": "0.08mm Extra Fine @Bambu Lab X1 Carbon",
-            "sub_path": "process/0.08mm Extra Fine @Bambu Lab X1 Carbon.json"
+            "name": "0.08mm Extra Fine @BBL X1C",
+            "sub_path": "process/0.08mm Extra Fine @BBL X1C.json"
         },
         {
-            "name": "0.12mm Fine @Bambu Lab X1 Carbon",
-            "sub_path": "process/0.12mm Fine @Bambu Lab X1 Carbon.json"
+            "name": "0.12mm Fine @BBL X1C",
+            "sub_path": "process/0.12mm Fine @BBL X1C.json"
         },
         {
-            "name": "0.16mm Optimal @Bambu Lab X1 Carbon",
-            "sub_path": "process/0.16mm Optimal @Bambu Lab X1 Carbon.json"
+            "name": "0.16mm Optimal @BBL X1C",
+            "sub_path": "process/0.16mm Optimal @BBL X1C.json"
         },
         {
-            "name": "0.20mm Standard @Bambu Lab X1 Carbon",
-            "sub_path": "process/0.20mm Standard @Bambu Lab X1 Carbon.json"
+            "name": "0.20mm Standard @BBL X1C",
+            "sub_path": "process/0.20mm Standard @BBL X1C.json"
         },
         {
-            "name": "0.24mm Draft @Bambu Lab X1 Carbon",
-            "sub_path": "process/0.24mm Draft @Bambu Lab X1 Carbon.json"
+            "name": "0.24mm Draft @BBL X1C",
+            "sub_path": "process/0.24mm Draft @BBL X1C.json"
         },
         {
-            "name": "0.28mm Extra Draft @Bambu Lab X1 Carbon",
-            "sub_path": "process/0.28mm Extra Draft @Bambu Lab X1 Carbon.json"
+            "name": "0.28mm Extra Draft @BBL X1C",
+            "sub_path": "process/0.28mm Extra Draft @BBL X1C.json"
         },
         {
-            "name": "0.20mm Bambu Support W @Bambu Lab X1 Carbon",
-            "sub_path": "process/0.20mm Bambu Support W @Bambu Lab X1 Carbon.json"
-        },
-        {
-            "name": "0.10mm Standard @Bambu Lab X1 Carbon 0.2 nozzle",
-            "sub_path": "process/0.10mm Standard @Bambu Lab X1 Carbon 0.2 nozzle.json"
+            "name": "0.20mm Bambu Support W @BBL X1C",
+            "sub_path": "process/0.20mm Bambu Support W @BBL X1C.json"
         }
     ],
     "filament_list": [
@@ -126,60 +122,60 @@
             "sub_path": "filament/Generic TPU.json"
         },
         {
-            "name": "Bambu TPU 95A @Bambu Lab",
-            "sub_path": "filament/Bambu TPU 95A @Bambu Lab.json"
+            "name": "Bambu TPU 95A @BBL X1C",
+            "sub_path": "filament/Bambu TPU 95A @BBL X1C.json"
         },
         {
-            "name": "Bambu PLA Matte @Bambu Lab",
-            "sub_path": "filament/Bambu PLA Matte @Bambu Lab.json"
+            "name": "Bambu PLA Matte @BBL X1C",
+            "sub_path": "filament/Bambu PLA Matte @BBL X1C.json"
         },
         {
-            "name": "Bambu PLA Basic @Bambu Lab",
-            "sub_path": "filament/Bambu PLA Basic @Bambu Lab.json"
+            "name": "Bambu PLA Basic @BBL X1C",
+            "sub_path": "filament/Bambu PLA Basic @BBL X1C.json"
         },
         {
-            "name": "Bambu PLA Impact @Bambu Lab",
-            "sub_path": "filament/Bambu PLA Impact @Bambu Lab.json"
+            "name": "Bambu PLA Impact @BBL X1C",
+            "sub_path": "filament/Bambu PLA Impact @BBL X1C.json"
         },
         {
-            "name": "Bambu PLA Metal @Bambu Lab",
-            "sub_path": "filament/Bambu PLA Metal @Bambu Lab.json"
+            "name": "Bambu PLA Metal @BBL X1C",
+            "sub_path": "filament/Bambu PLA Metal @BBL X1C.json"
         },
         {
-            "name": "Bambu ABS @Bambu Lab",
-            "sub_path": "filament/Bambu ABS @Bambu Lab.json"
+            "name": "Bambu ABS @BBL X1C",
+            "sub_path": "filament/Bambu ABS @BBL X1C.json"
         },
         {
-            "name": "Bambu Support W @Bambu Lab",
-            "sub_path": "filament/Bambu Support W @Bambu Lab.json"
+            "name": "Bambu Support W @BBL X1C",
+            "sub_path": "filament/Bambu Support W @BBL X1C.json"
         },
         {
-            "name": "Bambu PA12-CF @Bambu Lab",
-            "sub_path": "filament/Bambu PA12-CF @Bambu Lab.json"
+            "name": "Bambu PA12-CF @BBL X1C",
+            "sub_path": "filament/Bambu PA12-CF @BBL X1C.json"
         },
         {
-            "name": "Bambu PET-CF @Bambu Lab",
-            "sub_path": "filament/Bambu PET-CF @Bambu Lab.json"
+            "name": "Bambu PET-CF @BBL X1C",
+            "sub_path": "filament/Bambu PET-CF @BBL X1C.json"
         },
         {
-            "name": "Bambu PC @Bambu Lab",
-            "sub_path": "filament/Bambu PC @Bambu Lab.json"
+            "name": "Bambu PC @BBL X1C",
+            "sub_path": "filament/Bambu PC @BBL X1C.json"
         },
         {
-            "name": "Kexcelled K5 PLA @Bambu Lab",
-            "sub_path": "filament/Kexcelled K5 PLA @Bambu Lab.json"
+            "name": "Kexcelled K5 PLA @BBL X1C",
+            "sub_path": "filament/Kexcelled K5 PLA @BBL X1C.json"
         },
         {
-            "name": "Kexcelled K6 PLA @Bambu Lab",
-            "sub_path": "filament/Kexcelled K6 PLA @Bambu Lab.json"
+            "name": "Kexcelled K6 PLA @BBL X1C",
+            "sub_path": "filament/Kexcelled K6 PLA @BBL X1C.json"
         },
         {
-            "name": "PolyLite PLA @Bambu Lab",
-            "sub_path": "filament/PolyLite PLA @Bambu Lab.json"
+            "name": "PolyLite PLA @BBL X1C",
+            "sub_path": "filament/PolyLite PLA @BBL X1C.json"
         },
         {
-            "name": "PolyTerra PLA @Bambu Lab",
-            "sub_path": "filament/PolyTerra PLA @Bambu Lab.json"
+            "name": "PolyTerra PLA @BBL X1C",
+            "sub_path": "filament/PolyTerra PLA @BBL X1C.json"
         }
     ],
     "machine_list": [
@@ -194,10 +190,6 @@
         {
             "name": "Bambu Lab X1 Carbon",
             "sub_path": "machine/Bambu Lab X1 Carbon.json"
-        },
-        {
-          "name": "Bambu Lab X1 Carbon 0.2 nozzle",
-          "sub_path": "machine/Bambu Lab X1 Carbon 0.2 nozzle.json"
         }
     ]
 }
