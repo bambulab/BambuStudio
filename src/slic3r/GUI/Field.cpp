@@ -917,8 +917,10 @@ void SpinCtrl::propagate_value()
             // spin->GetText()->SetInsertionPointEnd(); // BBS
         }
 #endif
-        int value = static_cast<SpinInput *>(window)->GetValue();
-        if (value != boost::any_cast<int>(m_value))
+        auto ctrl = dynamic_cast<SpinInput *>(window);
+        if (m_value.empty() 
+            ? !ctrl->GetTextCtrl()->GetLabel().IsEmpty()
+            : ctrl->GetValue() != boost::any_cast<int>(m_value))
             on_change_field();
     }
     suppress_propagation = false;
