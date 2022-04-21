@@ -1682,7 +1682,7 @@ void TabPrint::build()
         m_presets = &m_preset_bundle->prints;
     load_initial_data();
 
-    auto page = add_options_page(L("Quality"), "");
+    auto page = add_options_page(L("Quality"), "empty");
         auto optgroup = page->new_optgroup(L("Layer height"));
         optgroup->append_single_option_line("layer_height");
         optgroup->append_single_option_line("initial_layer_print_height");
@@ -1722,7 +1722,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");
 
-    page = add_options_page(L("Strength"), "");
+    page = add_options_page(L("Strength"), "empty");
         optgroup = page->new_optgroup(L("Walls"));
         optgroup->append_single_option_line("wall_loops");
         optgroup->append_single_option_line("detect_thin_wall");
@@ -1747,7 +1747,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
         optgroup->append_single_option_line("reduce_infill_retraction");
 
-    page = add_options_page(L("Speed"), "");
+    page = add_options_page(L("Speed"), "empty");
         optgroup = page->new_optgroup(L("Initial layer speed"));
         optgroup->append_single_option_line("initial_layer_speed");
         optgroup->append_single_option_line("initial_layer_infill_speed");
@@ -1996,7 +1996,7 @@ void TabPrintModel::build()
     m_presets = &m_prints;
     TabPrint::build();
 
-    auto page = add_options_page(L("Frequent"), "");
+    auto page = add_options_page(L("Frequent"), "empty");
         auto optgroup = page->new_optgroup(L("Quality"));
             optgroup->append_single_option_line("layer_height");
         optgroup = page->new_optgroup(L("Strength"));
@@ -2241,7 +2241,7 @@ static void validate_custom_gcode_cb(Tab* tab, ConfigOptionsGroupShp opt_group, 
 void TabFilament::add_filament_overrides_page()
 {
     //BBS
-    PageShp page = add_options_page(L("Filament Retraction"), "");
+    PageShp page = add_options_page(L("Filament Retraction"), "empty");
     ConfigOptionsGroupShp optgroup = page->new_optgroup(L("Retraction"));
 
     auto append_single_option_line = [optgroup, this](const std::string& opt_key, int opt_index)
@@ -2435,7 +2435,7 @@ void TabFilament::build()
         //};
         //optgroup->append_line(line);
 
-    page = add_options_page(L("Cooling"), "");
+    page = add_options_page(L("Cooling"), "empty");
         std::string category_path = "cooling_127569#";
         optgroup = page->new_optgroup(L("Enable"));
         optgroup->append_single_option_line("reduce_fan_stop_start_freq");
@@ -3090,7 +3090,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
     {
         //# build page
         //const wxString& page_name = wxString::Format("Extruder %d", int(extruder_idx + 1));
-        auto page = add_options_page(page_name, "", true);
+        auto page = add_options_page(page_name, "empty", true);
         m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 
             auto optgroup = page->new_optgroup(L("Size"), -1, true);
