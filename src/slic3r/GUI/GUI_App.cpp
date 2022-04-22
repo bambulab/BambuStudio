@@ -2485,55 +2485,59 @@ bool GUI_App::load_language(wxString language, bool initial)
         language = app_config->get("language");
         if (! language.empty())
         	BOOST_LOG_TRIVIAL(trace) << boost::format("language provided by BambuStudio.ini: %1%") % language;
-
-        // Get the system language.
-        {
-	        const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
-	        if (lang_system != wxLANGUAGE_UNKNOWN) {
-				m_language_info_system = wxLocale::GetLanguageInfo(lang_system);
-	        	BOOST_LOG_TRIVIAL(trace) << boost::format("System language detected (user locales and such): %1%") % m_language_info_system->CanonicalName.ToUTF8().data();
-	        }
-		}
-        {
-            std::map<wxString, wxString> language_descptions = {
-                {"zh_CN", wxString::FromUTF8("\xE4\xB8\xAD\xE6\x96\x87\x28\xE7\xAE\x80\xE4\xBD\x93\x29")},
-                {"zh_TW", wxString::FromUTF8("\xE4\xB8\xAD\xE6\x96\x87\x28\xE7\xB9\x81\xE9\xAB\x94\x29")},
-                {"de", wxString::FromUTF8("Deutsch")},
-                {"en", wxString::FromUTF8("English")},
-                {"es", wxString::FromUTF8("\x45\x73\x70\x61\xC3\xB1\x6F\x6C")},
-                {"fr", wxString::FromUTF8("\x46\x72\x61\x6E\xC3\xA7\x61\x69\x73")},
-                {"it", wxString::FromUTF8("\x49\x74\x61\x6C\x69\x61\x6E\x6F")},
-                {"ru", wxString::FromUTF8("\xD1\x80\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB8\xD0\xB9")},
-                };
-            for (auto l : language_descptions) {
-                const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(l.first);
-                if (langinfo) const_cast<wxLanguageInfo *>(langinfo)->Description =l.second;
+        else {
+            // Get the system language.
+            const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
+            if (lang_system != wxLANGUAGE_UNKNOWN) {
+                m_language_info_system = wxLocale::GetLanguageInfo(lang_system);
+                BOOST_LOG_TRIVIAL(trace) << boost::format("System language detected (user locales and such): %1%") % m_language_info_system->CanonicalName.ToUTF8().data();
+                // BBS set language to app config
+                app_config->set("language", m_language_info_system->CanonicalName.ToUTF8().data());
+            } else {
+                {
+                    std::map<wxString, wxString> language_descptions = {
+                        {"zh_CN", wxString::FromUTF8("\xE4\xB8\xAD\xE6\x96\x87\x28\xE7\xAE\x80\xE4\xBD\x93\x29")},
+                        {"zh_TW", wxString::FromUTF8("\xE4\xB8\xAD\xE6\x96\x87\x28\xE7\xB9\x81\xE9\xAB\x94\x29")},
+                        {"de", wxString::FromUTF8("Deutsch")},
+                        {"en", wxString::FromUTF8("English")},
+                        {"es", wxString::FromUTF8("\x45\x73\x70\x61\xC3\xB1\x6F\x6C")},
+                        {"fr", wxString::FromUTF8("\x46\x72\x61\x6E\xC3\xA7\x61\x69\x73")},
+                        {"it", wxString::FromUTF8("\x49\x74\x61\x6C\x69\x61\x6E\x6F")},
+                        {"ru", wxString::FromUTF8("\xD1\x80\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB8\xD0\xB9")},
+                    };
+                    for (auto l : language_descptions) {
+                        const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(l.first);
+                        if (langinfo) const_cast<wxLanguageInfo *>(langinfo)->Description = l.second;
+                    }
+                }
+                {
+                    // Allocating a temporary locale will switch the default wxTranslations to its internal wxTranslations instance.
+                    wxLocale temp_locale;
+                    // Set the current translation's language to default, otherwise GetBestTranslation() may not work (see the wxWidgets source code).
+                    wxTranslations::Get()->SetLanguage(wxLANGUAGE_DEFAULT);
+                    // Let the wxFileTranslationsLoader enumerate all translation dictionaries for BambuStudio
+                    // and try to match them with the system specific "preferred languages".
+                    // There seems to be a support for that on Windows and OSX, while on Linuxes the code just returns wxLocale::GetSystemLanguage().
+                    // The last parameter gets added to the list of detected dictionaries. This is a workaround
+                    // for not having the English dictionary. Let's hope wxWidgets of various versions process this call the same way.
+                    wxString best_language = wxTranslations::Get()->GetBestTranslation(SLIC3R_APP_KEY, wxLANGUAGE_ENGLISH);
+                    if (!best_language.IsEmpty()) {
+                        m_language_info_best = wxLocale::FindLanguageInfo(best_language);
+                        BOOST_LOG_TRIVIAL(trace) << boost::format("Best translation language detected (may be different from user locales): %1%") %
+                                                        m_language_info_best->CanonicalName.ToUTF8().data();
+                        app_config->set("language", m_language_info_best->CanonicalName.ToUTF8().data());
+                    }
+#ifdef __linux__
+                    wxString lc_all;
+                    if (wxGetEnv("LC_ALL", &lc_all) && !lc_all.IsEmpty()) {
+                        // Best language returned by wxWidgets on Linux apparently does not respect LC_ALL.
+                        // Disregard the "best" suggestion in case LC_ALL is provided.
+                        m_language_info_best = nullptr;
+                    }
+#endif
+                }
             }
         }
-        {
-	    	// Allocating a temporary locale will switch the default wxTranslations to its internal wxTranslations instance.
-	    	wxLocale temp_locale;
-	    	// Set the current translation's language to default, otherwise GetBestTranslation() may not work (see the wxWidgets source code).
-	    	wxTranslations::Get()->SetLanguage(wxLANGUAGE_DEFAULT);
-	    	// Let the wxFileTranslationsLoader enumerate all translation dictionaries for BambuStudio
-	    	// and try to match them with the system specific "preferred languages".
-	    	// There seems to be a support for that on Windows and OSX, while on Linuxes the code just returns wxLocale::GetSystemLanguage().
-	    	// The last parameter gets added to the list of detected dictionaries. This is a workaround
-	    	// for not having the English dictionary. Let's hope wxWidgets of various versions process this call the same way.
-			wxString best_language = wxTranslations::Get()->GetBestTranslation(SLIC3R_APP_KEY, wxLANGUAGE_ENGLISH);
-			if (! best_language.IsEmpty()) {
-				m_language_info_best = wxLocale::FindLanguageInfo(best_language);
-	        	BOOST_LOG_TRIVIAL(trace) << boost::format("Best translation language detected (may be different from user locales): %1%") % m_language_info_best->CanonicalName.ToUTF8().data();
-			}
-            #ifdef __linux__
-            wxString lc_all;
-            if (wxGetEnv("LC_ALL", &lc_all) && ! lc_all.IsEmpty()) {
-                // Best language returned by wxWidgets on Linux apparently does not respect LC_ALL.
-                // Disregard the "best" suggestion in case LC_ALL is provided.
-                m_language_info_best = nullptr;
-            }
-            #endif
-		}
     }
 
 	const wxLanguageInfo *language_info = language.empty() ? nullptr : wxLocale::FindLanguageInfo(language);
@@ -2615,6 +2619,7 @@ bool GUI_App::load_language(wxString language, bool initial)
     wxTranslations::Get()->SetLanguage(language_dict);
     m_wxLocale->AddCatalog(SLIC3R_APP_KEY);
     m_imgui->set_language(into_u8(language_info->CanonicalName));
+
     //FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
     //wxSetlocale(LC_NUMERIC, "C");
     Preset::update_suffix_modified((" (" + _L("*") + ")").ToUTF8().data());
