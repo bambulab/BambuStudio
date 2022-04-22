@@ -87,6 +87,7 @@ public:
 
 private:
     void SendRecentList();
+    void SendLoginInfo();
 
 private:
 

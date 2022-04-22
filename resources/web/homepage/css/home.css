@@ -75,6 +75,23 @@ body
 	height: 64px;
 }
 
+#LogoutBtn
+{
+	font-size: 14px;
+	color: #00B731;
+	border: 1px solid  #00AE42;
+	border-radius: 4px;
+	cursor: pointer;
+	margin-top: 5px;
+}
+
+#LogoutBtn:hover
+{
+	background: #00B731;
+	color: #fff;
+}
+
+
 /*------------------*/
 #BtnArea
 {

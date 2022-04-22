@@ -1,5 +1,5 @@
 var LangText={
-	"en_GB":{
+	"en":{
 		"t1":"Welcome to BambuStudio",
 		"t2":"We will guide you to quickly learn to use this software. Let's start!",
 		"t3":"User Agreement",
@@ -45,7 +45,11 @@ var LangText={
 		"t43":"Material usage",
 		"t44":"Number of slices",
 		"t45":"Print settings",
-		"t46":"Data collected by Bambu Studio will not contain any personal information."
+		"t46":"Data collected by Bambu Studio will not contain any personal information.",
+		"t47":"Please select the region which you will login",
+		"t48":"United States",
+		"t49":"China",
+		"t50":"log out"
 	},
 	"zh_CN":{
 		"t1":"欢迎使用BambuStudio",
@@ -93,7 +97,11 @@ var LangText={
 		"t43":"材料用量",
 		"t44":"切片次数",
 		"t45":"打印设置参数",
-		"t46":"Bambu Studio搜集的数据不会包含任何个人信息。"
+		"t46":"Bambu Studio搜集的数据不会包含任何个人信息。",
+		"t47":"请选择你希望登录和使用的国家区域",
+		"t48":"美国",
+		"t49":"中国",
+		"t50":"退出登录"
 	}
 };
 
@@ -118,7 +126,7 @@ function TranslatePage()
 	//alert(strLang);
 	
 	if( !LangText.hasOwnProperty(strLang) )
-		strLang="en_GB";
+		strLang="en";
 	
     let AllNode=$(".trans");
 	let nTotal=AllNode.length;

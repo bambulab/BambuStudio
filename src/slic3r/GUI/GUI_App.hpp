@@ -338,6 +338,7 @@ public:
     NotificationManager * notification_manager();
     //BBS
     void            load_url(wxString url);
+    void run_script(wxString js);
 
     // Parameters extracted from the command line to be passed to GUI after initialization.
     GUI_InitParams* init_params { nullptr };

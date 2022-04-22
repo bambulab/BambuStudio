@@ -242,7 +242,8 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     //Connect the idle events
     Bind(wxEVT_IDLE, &WebViewPanel::OnIdle, this);
     Bind(wxEVT_CLOSE_WINDOW, &WebViewPanel::OnClose, this);
-}
+   
+ }
 
 WebViewPanel::~WebViewPanel()
 {
@@ -433,6 +434,20 @@ void WebViewPanel::SendRecentList()
     pt::write_json(oss, req, false);
     RunScript(wxString::Format("HandleStudio(%s)", oss.str()));
 }
+
+void WebViewPanel::SendLoginInfo() 
+{
+    json m_Res              = json::object();
+    m_Res["command"]        = "studio_userlogin";
+    m_Res["sequence_id"]    = "10001";
+    m_Res["data"]           = json::object();
+    m_Res["data"]["avatar"] = wxGetApp().getAccountManager()->get_curr_user()->m_avatar;
+    m_Res["data"]["name"]   = wxGetApp().getAccountManager()->get_curr_user()->m_name;
+
+    wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
+    RunScript(strJS);
+}
+
 
 /**
     * Callback invoked when there is a request to load a new page (for instance

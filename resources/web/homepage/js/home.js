@@ -4,7 +4,8 @@
 function OnInit()
 {	
     TranslatePage();
-	
+
+	SendMsg_GetLoginInfo();
 	SendMsg_GetRecentFile();
 }
 
@@ -63,7 +64,7 @@ function SetLoginInfo( strAvatar, strName )
 {
 	$("#Login1").hide();
 	
-	$("#UserAvatarIcon").prop("src","../../image/cache/"+strAvatar);
+	$("#UserAvatarIcon").prop("src",strAvatar);
 	$("#UserName").text(strName);
 	$("#Login2").show();
 }
@@ -75,6 +76,7 @@ function SetUserOffline()
 	$("#Login2").hide();	
 	
 	$("#Login1").show();
+	$("#Login1").css("display","flex");
 }
 
 function SetMallUrl( strUrl )
@@ -115,6 +117,16 @@ function ShowRecentFileList( pList )
 
 
 /*-------MX Message------*/
+function SendMsg_GetLoginInfo()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="get_login_info";
+	
+	SendWXMessage( JSON.stringify(tSend) );	
+}
+
+
 function SendMsg_GetRecentFile()
 {
 	var tSend={};
@@ -160,6 +172,15 @@ function OnOpenRecentFile( strPath )
 	tSend['command']="homepage_open_recentfile";
 	tSend['data']={};
 	tSend['data']['path']=decodeURI(strPath);
+	
+	SendWXMessage( JSON.stringify(tSend) );	
+}
+
+function OnLogOut()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_logout";
 	
 	SendWXMessage( JSON.stringify(tSend) );	
 }

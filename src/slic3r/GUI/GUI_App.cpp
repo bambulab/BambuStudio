@@ -3208,6 +3208,11 @@ void GUI_App::load_url(wxString url)
     return mainframe->load_url(url);
 }
 
+void GUI_App::run_script(wxString js) 
+{ 
+    return mainframe->RunScript(js); 
+}
+
 Notebook* GUI_App::tab_panel() const
 {
     return mainframe->m_tabpanel;

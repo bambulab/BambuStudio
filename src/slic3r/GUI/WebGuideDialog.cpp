@@ -32,7 +32,7 @@ namespace Slic3r { namespace GUI {
 json m_ProfileJson;
 
 GuideFrame::GuideFrame(GUI_App *pGUI)
-	: wxDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "BambuStudio"),
+    : wxDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "BambuStudio", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxTAB_TRAVERSAL),
 	m_appconfig_new()
 {
     // INI
@@ -355,6 +355,8 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
         }
         else if (strCmd == "user_guide_cancel") {
             this->EndModal(wxID_CANCEL);
+        } else if (strCmd == "save_region") {
+            m_Region = j["region"];
         }
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);
@@ -507,6 +509,8 @@ int GuideFrame::SaveProfile()
         m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "1");
     } else
         m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "0");
+
+    m_MainPtr->app_config->set("region", m_Region);
 
     //finish
     m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "finish", "1");
@@ -852,45 +856,10 @@ int GuideFrame::LoadProfile()
                 m_ProfileJson["filament"][filament_name]["selected"] = 1;
         }
 
-        /*wxString zz = m_ProfileJson.dump();
-        // BBS: Compare with BambuConf
-        wxString strConfPath = wxGetApp().app_config->config_path();
+        //----region
+        m_Region = wxGetApp().app_config->get("region");
+        m_ProfileJson["region"] = m_Region;
 
-        json jCfg;
-        std::ifstream(w2s(strConfPath)) >> jCfg;
-
-        json ModelList = jCfg["models"];
-
-        json ModelLocal = m_ProfileJson["model"];
-        int  nLocal     = ModelLocal.size();
-        int  nModel     = ModelList.size();
-
-        for (int a=0;a<nLocal;a++) {
-            wxString LocalName = ModelLocal[a]["model"];
-
-            for (int b = 0; b < nModel; b++)
-            {
-                wxString NameCfg = ModelList[b]["model"];
-
-                if (NameCfg.compare(LocalName)==0)
-                {
-                    m_ProfileJson["model"][a]["nozzle_selected"] = ModelList[b]["nozzle_diameter"];
-                }
-            }
-        }
-
-        json FilamentList = jCfg["filaments"];
-        int  nFilament    = FilamentList.size();
-
-        for (int m = 0; m < nFilament; m++)
-        {
-            wxString sKey = FilamentList[m];
-
-            if (m_ProfileJson["filament"].contains(sKey))
-            {
-                m_ProfileJson["filament"][w2s(sKey)]["selected"] = 1;
-            }
-        }*/
         }
     catch (std::exception &e) {
         //wxLogMessage("GUIDE: load_profile_error  %s ", e.what());

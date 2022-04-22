@@ -97,6 +97,7 @@ private:
 
     // User Config
     bool PrivacyUse;
+    std::string m_Region;
 
 #if wxUSE_WEBVIEW_IE
     wxMenuItem *m_script_object_el;

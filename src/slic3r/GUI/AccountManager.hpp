@@ -14,6 +14,7 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/Utils/Http.hpp"
 
+
 #define BBL_INTERNAL_TEST
 #define BBL_CHECK_USER_REPORT
 
@@ -208,6 +209,7 @@ public:
 };
 
 class MachineObject;
+class WebViewPanel;
 
 class AccountManager
 {
@@ -456,6 +458,9 @@ public:
     void request_project_download(std::string project_id);
     void request_open_project(std::string project_id);
     void request_login_or_register();
+    void show_login_info();
+    void request_logout();
+
 };
 
 } // namespace Slic3r

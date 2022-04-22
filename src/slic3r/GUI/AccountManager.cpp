@@ -25,6 +25,8 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include "slic3r/GUI/WebUserLoginDialog.hpp"
+
 using namespace nlohmann;
 
 inline bool is_valid_property(json &j, std::string prop)
@@ -197,6 +199,8 @@ namespace Slic3r {
         config->set("user", "user_id", m_user_id);
         config->set("user", "login_status", std::to_string((int)m_login_status));
         config->set("user", "autotest_token", m_autotest_token);
+        config->set("user", "name", m_name);
+        config->set("user", "avatar", m_avatar);
         config->set_dirty();
         return 0;
     }
@@ -210,10 +214,12 @@ namespace Slic3r {
                 std::string token = config->get("user", "token");
                 std::string user_id = config->get("user", "user_id");
                 std::string autotest_token = config->get("user", "autotest_token");
+                std::string sAvatar        = config->get("user", "avatar");
+                std::string sName          = config->get("user", "name");
                 AccountInfo::LoginStatus status = AccountInfo::LoginStatus::STATUS_LOGOUT;
                 if (!config->get("user", "login_status").empty())
                     status = (AccountInfo::LoginStatus)std::stoi(config->get("user", "login_status"));
-                AccountInfo* info = new AccountInfo(account, user_id, status);
+                AccountInfo* info = new AccountInfo(account, user_id,token,sName,sAvatar,status,autotest_token);
                 info->m_autotest_token = autotest_token;
                 info->set_token(token);
                 return info;
@@ -3221,9 +3227,13 @@ namespace Slic3r {
                             this->request_open_project(project_id.value());
                         }
                     }
+                } else if (command_str.compare("get_login_info")==0) {
+                    GUI::wxGetApp().CallAfter([this] { this->show_login_info(); });
                 }
                 else if (command_str.compare("homepage_login_or_register") == 0) {
-                    this->request_login_or_register();
+                    GUI::wxGetApp().CallAfter([this] { this->request_login_or_register(); });
+                } else if (command_str.compare("homepage_logout")==0) {
+                    GUI::wxGetApp().CallAfter([this] { this->request_logout(); });
                 }
                 else if (command_str.compare("homepage_newproject") == 0) {
                     this->request_open_project("<new>");
@@ -3298,8 +3308,47 @@ namespace Slic3r {
 
     void AccountManager::request_login_or_register()
     {
-         GUI::LoginDialog dlg;
-         dlg.ShowModal();
+         //GUI::LoginDialog dlg;
+         //dlg.ShowModal();
+
+         GUI::ZUserLogin dlg;
+         dlg.run();
+        
+         show_login_info();
     }
+
+    void AccountManager::show_login_info() 
+    {
+        if (GUI::wxGetApp().getAccountManager()->is_user_login()) {
+            GUI::wxGetApp().getAccountManager()->load_user_info();
+
+            json m_Res              = json::object();
+            m_Res["command"]        = "studio_userlogin";
+            m_Res["sequence_id"]    = "10001";
+            m_Res["data"]           = json::object();
+            m_Res["data"]["avatar"] = GUI::wxGetApp().getAccountManager()->m_curr_user->m_avatar;
+            m_Res["data"]["name"]   = GUI::wxGetApp().getAccountManager()->m_curr_user->m_name;
+
+            wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
+
+            GUI::wxGetApp().run_script(strJS);
+        }    
+    }
+
+
+    void AccountManager::request_logout() 
+    { 
+        user_logout();
+        
+        json m_Res              = json::object();
+        m_Res["command"]        = "studio_useroffline";
+        m_Res["sequence_id"]    = "10001";
+
+        wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
+
+        GUI::wxGetApp().run_script(strJS);
+    }
+
+
 
 } // namespace Slic3r

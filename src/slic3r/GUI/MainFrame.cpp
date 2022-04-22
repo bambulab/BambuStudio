@@ -2191,6 +2191,12 @@ void MainFrame::load_url(wxString url)
     wxQueueEvent(this, evt);
 }
 
+void MainFrame::RunScript(wxString js) 
+{ 
+    if (m_webview != nullptr) 
+        m_webview->RunScript(js);
+}
+
 void MainFrame::technology_changed()
 {
     // upadte DiffDlg
