@@ -27,6 +27,14 @@ inline int correct_filament_temperature(int filament_temp)
 
 namespace Slic3r {
 
+
+enum PRINTER_TYPE {
+    PRINTER_3DPrinter_UKNOWN,
+    PRINTER_3DPrinter_X1_Carbon,
+    PRINTER_3DPrinter_X1,
+    PRINTER_3DPrinter_P1,
+};
+
 enum PRINTING_STAGE {
     PRINTING_STAGE_PRINTING = 0,
     PRINTING_STAGE_BED_LEVELING,
@@ -190,6 +198,17 @@ public:
 };
 
 
+class FirmwareInfo
+{
+public:
+    std::string module_type;    // ota or ams
+    std::string version;
+    std::string url;
+    std::string name;
+    std::string release_note;
+};
+
+   
 class MachineObject
 {
 private:
@@ -230,12 +249,15 @@ public:
     };
 
     static inline int m_sequence_id = 20000;
+    static PRINTER_TYPE parse_printer_type(std::string type_str);
+    std::string get_printer_type_string();
 
     MachineObject(AccountManager& acc, std::string name, std::string id, std::string ip);
     /* properties */
     std::string dev_name;
     std::string dev_ip;
     std::string dev_id;
+    PRINTER_TYPE printer_type;
 
     std::string bind_user_name;
     std::string bind_user_id;
@@ -292,6 +314,7 @@ public:
     std::string upgrade_progress;
     std::string upgrade_message;
     std::string upgrade_status;
+    std::vector<FirmwareInfo> firmware_list;
 
     /* printing */
     int     mc_print_stage;
@@ -311,6 +334,7 @@ public:
     std::string iot_profile_id;
     std::string iot_project_id;
     std::string iot_task_status;
+    std::string subtask_name;
 
     std::string print_status;   /* enum string: FINISH, RUNNING, PAUSE, INIT, FAILED */
 
@@ -423,6 +447,8 @@ public:
     /* iot operation apis */
     void request_bind(ResultFn fn, bool force_bind = false);
     void request_unbind(ResultFn fn);
+
+    bool get_firmware_info();
 
     /* common apis */
     inline bool is_local() { return !dev_ip.empty(); }

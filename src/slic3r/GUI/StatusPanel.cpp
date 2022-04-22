@@ -1152,7 +1152,20 @@ void StatusPanel::update_subtask(MachineObject *obj)
     if (last_subtask != obj->subtask_) {
         BOOST_LOG_TRIVIAL(trace) << "monitor: change to sub task id = " << obj->subtask_->task_id;
         // update subtask name
-        wxString subtask_text = wxString::Format("%s(%s)", GUI::from_u8(obj->subtask_->task_name), obj->subtask_->task_id);
+        wxString subtask_text;
+        if (!obj->subtask_name.empty()) {
+#if !BBL_RELEASE_TO_PUBLIC
+            subtask_text = wxString::Format("%s(%s)", GUI::from_u8(obj->subtask_name), obj->subtask_->task_id);
+#else
+            subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
+#endif
+        } else {
+#if !BBL_RELEASE_TO_PUBLIC
+            subtask_text = wxString::Format("%s(%s)", GUI::from_u8(obj->subtask_->task_name), obj->subtask_->task_id);
+#else
+            subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_->task_name));
+#endif
+        }
         m_staticText_subtask_value->SetLabelText(subtask_text);
         if (web_request.IsOk()) web_request.Cancel();
         m_start_loading_thumbnail = true;

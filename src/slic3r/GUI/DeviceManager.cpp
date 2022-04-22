@@ -171,6 +171,31 @@ void AmsTray::update_color_from_str(std::string color)
     this->color = color;
 }
 
+PRINTER_TYPE MachineObject::parse_printer_type(std::string type_str)
+{
+    if (type_str.compare("3DPrinter-P1") == 0) {
+        return PRINTER_TYPE::PRINTER_3DPrinter_P1;
+    } else if (type_str.compare("3DPrinter-X1") == 0) {
+        return PRINTER_TYPE::PRINTER_3DPrinter_X1;
+    } else if (type_str.compare("3DPrinter-X1-Carbon") == 0) {
+        return PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon;
+    }
+
+    BOOST_LOG_TRIVIAL(trace) << "unknown printer type: " << type_str;
+    return PRINTER_TYPE::PRINTER_3DPrinter_UKNOWN;
+}
+
+std::string MachineObject::get_printer_type_string()
+{
+    if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_P1)
+        return "3DPrinter-P1";
+    else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1)
+        return "3DPrinter-X1";
+    else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon)
+        return "3DPrinter-X1-Carbon";
+    return "3DPrinter";
+}
+
 MachineObject::MachineObject(AccountManager& acc, std::string name, std::string id, std::string ip)
     :acc_(acc),
     mqtt_cb(nullptr),
@@ -795,6 +820,14 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 if (jj["chamber_temper"].is_number_float()) {
                     chamber_temp = jj["chamber_temper"].get<float>();
                 }
+            }
+
+            if (jj.contains("printer_type")) {
+                printer_type = parse_printer_type(jj["printer_type"].get<std::string>());
+            }
+
+            if (jj.contains("subtask_name")) {
+                subtask_name = jj["subtask_name"].get<std::string>();
             }
 
             /* cooling */
@@ -1512,6 +1545,72 @@ void MachineObject::request_bind(ResultFn resFn, bool force_bind)
 void MachineObject::request_unbind(ResultFn fn)
 {
     acc_.request_user_unbind(this->dev_id, fn);
+}
+
+bool MachineObject::get_firmware_info()
+{
+    int          result = 0;
+    unsigned int http_code;
+    std::string  http_body;
+    result = acc_.get_machine_version(dev_id, http_code, http_body);
+    if (result < 0) {
+        // get upgrade list failed
+        return false;
+    }
+    try {
+        json j = json::parse(http_body);
+        if (j.contains("devices") && !j["devices"].is_null()) {
+            firmware_list.clear();
+            for (json::iterator it = j["devices"].begin(); it != j["devices"].end(); it++) {
+                if ((*it)["dev_id"].get<std::string>() == this->dev_id) {
+                    try {
+                        json firmware = (*it)["firmware"];
+                        for (json::iterator firmware_it = firmware.begin(); firmware_it != firmware.end(); firmware_it++) {
+                            FirmwareInfo item;
+                            item.version     = (*firmware_it)["version"].get<std::string>();
+                            item.url         = (*firmware_it)["url"].get<std::string>();
+                            item.module_type = "ota";
+                            int name_start   = item.url.find_last_of('/') + 1;
+                            if (name_start > 0) {
+                                item.name = item.url.substr(name_start, item.url.length() - name_start);
+                                firmware_list.push_back(item);
+                            } else {
+                                BOOST_LOG_TRIVIAL(trace) << "skip";
+                            }
+                        }
+                    } catch (...) {}
+                    try {
+                        if ((*it).contains("ams")) {
+                            json ams_list = (*it)["ams"];
+                            if (ams_list.size() > 0) {
+                                auto ams_front    = ams_list.front();
+                                json firmware_ams = (ams_front)["firmware"];
+                                for (json::iterator ams_it = firmware_ams.begin(); ams_it != firmware_ams.end(); ams_it++) {
+                                    FirmwareInfo item;
+                                    item.version   = (*ams_it)["version"].get<std::string>();
+                                    item.url       = (*ams_it)["url"].get<std::string>();
+                                    item.module_type = "ams";
+                                    int name_start = item.url.find_last_of('/') + 1;
+                                    if (name_start > 0) {
+                                        item.name = item.url.substr(name_start, item.url.length() - name_start);
+                                        firmware_list.push_back(item);
+                                    } else {
+                                        BOOST_LOG_TRIVIAL(trace) << "skip";
+                                    }
+                                }
+                            }
+                        }
+                    } catch (...) {
+                        ;
+                    }
+                }
+            }
+        }
+    }
+    catch(...) {
+        return false;
+    }
+    return true;
 }
 
 void MachineObject::set_bind_status(std::string status)
