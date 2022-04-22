@@ -13,7 +13,7 @@ public:
     std::vector<float> read_matrix_values();
     std::vector<float> read_extruders_values();
     void toggle_advanced(bool user_action = false);
-	void format_sizer(wxSizer* sizer, wxPanel* page, wxGridSizer* grid_sizer, const wxString& info, const wxString& table_title, int table_lshift=0);
+    void create_panels(wxWindow* parent, const int num);
         
 private:
     void fill_in_matrix();
@@ -27,6 +27,7 @@ private:
     bool m_advanced                     = false;
 	wxPanel*	m_page_simple = nullptr;
 	wxPanel*	m_page_advanced = nullptr;
+    wxPanel* header_line_panel = nullptr;
     wxBoxSizer*	m_sizer = nullptr;
     wxBoxSizer* m_sizer_simple = nullptr;
     wxBoxSizer* m_sizer_advanced = nullptr;
@@ -44,6 +45,7 @@ public:
     std::vector<float> get_matrix() const    { return m_output_matrix; }
     std::vector<float> get_extruders() const { return m_output_extruders; }
 
+    wxBoxSizer* create_btn_sizer(long flags);
 
 private:
     WipingPanel*  m_panel_wiping  = nullptr;
