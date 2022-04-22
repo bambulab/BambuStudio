@@ -4,12 +4,12 @@
   "name": "Bambu Lab X1 Carbon 0.2 nozzle",
   "from": "system",
   "instantiation": "true",
-  "inherits": "Bambu Lab X1 Carbon",
+  "inherits": "Bambu Lab X1 Carbon 0.4 nozzle",
   "nozzle_diameter": [
       "0.2"
   ],
   "printer_variant": "0.2",
-  "printer_model": "BBL_3DP_X1_Carbon",
+  "printer_model": "Bambu Lab X1 Carbon",
   "default_filament_profile": [
       "Bambu PLA Basic @BBL X1C"
   ],

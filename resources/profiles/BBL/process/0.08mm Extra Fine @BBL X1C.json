@@ -5,5 +5,7 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_process_bbl_0.08",
-    "compatible_printers_condition": "printer_model=~/(BBL_3DP_X1).*/ and nozzle_diameter[0]==0.4 and auxiliary_fan"
+    "compatible_printers": [
+      "Bambu Lab X1 Carbon 0.4 nozzle"
+    ]
 }

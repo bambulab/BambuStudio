@@ -41,7 +41,7 @@ static std::vector<std::string> s_project_options {
 
 //BBS: add BBL as default
 const char *PresetBundle::BBL_BUNDLE = "BBL";
-const char *PresetBundle::BBL_DEFAULT_PRINTER_MODEL = "BBL_3DP_X1";
+const char *PresetBundle::BBL_DEFAULT_PRINTER_MODEL = "Bambu Lab X1 Carbon";
 const char *PresetBundle::BBL_DEFAULT_PRINTER_VARIANT = "0.4";
 const char *PresetBundle::BBL_DEFAULT_FILAMENT = "Generic PLA";
 
@@ -2223,6 +2223,10 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                 else if (boost::iequals(it.key(), BBL_JSON_KEY_NAME)) {
                     //get name
                     model.name = it.value();
+                }
+                else if (boost::iequals(it.key(), BBL_JSON_KEY_MODEL_ID)) {
+                    //get model_id
+                    model.model_id = it.value();
                 }
                 else if (boost::iequals(it.key(), BBL_JSON_KEY_NOZZLE_DIAMETER)) {
                     //get nozzle diameter

@@ -50,6 +50,7 @@
 #define BBL_JSON_KEY_BED_TEXTURE                "bed_texture"
 #define BBL_JSON_KEY_HOTEND_MODEL               "hotend_model"
 #define BBL_JSON_KEY_DEFAULT_MATERIALS          "default_materials"
+#define BBL_JSON_KEY_MODEL_ID                   "model_id"
 
 
 namespace Slic3r {
@@ -91,6 +92,8 @@ public:
         PrinterModel() {}
         std::string                 id;
         std::string                 name;
+        //BBS: this is internal id for the printer. Currently only used for searching in database
+        std::string                 model_id;
         PrinterTechnology           technology;
         std::string                 family;
         std::vector<PrinterVariant> variants;

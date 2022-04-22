@@ -1,14 +1,15 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.00.00.11",
+    "version": "01.00.00.12",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
         {
-            "name": "BBL_3DP_X1_Carbon",
-            "sub_path": "machine/BBL_3DP_X1_Carbon.json"
+            "name": "Bambu Lab X1 Carbon",
+            "sub_path": "machine/Bambu Lab X1 Carbon.json"
         }
+
     ],
     "process_list": [
         {
@@ -70,10 +71,6 @@
         {
             "name": "0.28mm Extra Draft @BBL X1C",
             "sub_path": "process/0.28mm Extra Draft @BBL X1C.json"
-        },
-        {
-            "name": "0.20mm Bambu Support W @BBL X1C",
-            "sub_path": "process/0.20mm Bambu Support W @BBL X1C.json"
         }
     ],
     "filament_list": [
@@ -102,8 +99,8 @@
             "sub_path": "filament/fdm_filament_pc.json"
         },
         {
-            "name": "fdm_filament_pa6+cf",
-            "sub_path": "filament/fdm_filament_pa6+cf.json"
+            "name": "fdm_filament_pa+cf",
+            "sub_path": "filament/fdm_filament_pa+cf.json"
         },
         {
             "name": "Generic PLA",
@@ -188,8 +185,8 @@
             "sub_path": "machine/fdm_bbl_3dp_001_common.json"
         },
         {
-            "name": "Bambu Lab X1 Carbon",
-            "sub_path": "machine/Bambu Lab X1 Carbon.json"
+            "name": "Bambu Lab X1 Carbon 0.4 nozzle",
+            "sub_path": "machine/Bambu Lab X1 Carbon 0.4 nozzle.json"
         }
     ]
 }

@@ -8,7 +8,7 @@
     "bottom_shell_layers": "3",
     "top_shell_layers": "4",
     "bridge_flow": "0.8",
-    "initial_layer_speed": "60",
+    "initial_layer_speed": "75",
     "initial_layer_infill_speed": "120",
     "outer_wall_speed": "200",
     "inner_wall_speed": "300",

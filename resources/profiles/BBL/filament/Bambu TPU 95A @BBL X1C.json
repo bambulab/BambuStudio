@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFU00",
-    "setting_id": "GFU00",
+    "setting_id": "S00-GFU00",
     "name": "Bambu TPU 95A @BBL X1C",
     "from": "system",
     "instantiation": "true",
@@ -21,5 +21,7 @@
     "filament_retraction_length": [
         "0.4"
     ],
-    "compatible_printers_condition": "printer_model=~/(BBL_3DP_X1).*/ and nozzle_diameter[0]==0.4"
+    "compatible_printers": [
+      "Bambu Lab X1 Carbon 0.4 nozzle"
+    ]
 }
