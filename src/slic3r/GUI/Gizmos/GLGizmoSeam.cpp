@@ -70,7 +70,49 @@ void GLGizmoSeam::render_painter_gizmo() const
     glsafe(::glDisable(GL_BLEND));
 }
 
+void GLGizmoSeam::render_triangles(const Selection& selection) const
+{
+    ClippingPlaneDataWrapper clp_data = this->get_clipping_plane_data();
+    auto* shader = wxGetApp().get_shader("mm_gouraud");
+    if (!shader)
+        return;
+    shader->start_using();
+    shader->set_uniform("clipping_plane", clp_data.clp_dataf);
+    shader->set_uniform("z_range", clp_data.z_range);
+    ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
 
+    const ModelObject* mo = m_c->selection_info()->model_object();
+    int                mesh_id = -1;
+    for (const ModelVolume* mv : mo->volumes) {
+        if (!mv->is_model_part())
+            continue;
+
+        ++mesh_id;
+
+        const Transform3d trafo_matrix = mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() * mv->get_matrix();
+
+        bool is_left_handed = trafo_matrix.matrix().determinant() < 0.;
+        if (is_left_handed)
+            glsafe(::glFrontFace(GL_CW));
+
+        glsafe(::glPushMatrix());
+        glsafe(::glMultMatrixd(trafo_matrix.data()));
+
+        float normal_z = -::cos(Geometry::deg2rad(m_highlight_by_angle_threshold_deg));
+        Matrix3f normal_matrix = static_cast<Matrix3f>(trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>());
+
+        shader->set_uniform("volume_world_matrix", trafo_matrix);
+        shader->set_uniform("volume_mirrored", is_left_handed);
+        shader->set_uniform("slope.actived", m_parent.is_using_slope());
+        shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
+        shader->set_uniform("slope.normal_z", normal_z);
+        m_triangle_selectors[mesh_id]->render(m_imgui);
+
+        glsafe(::glPopMatrix());
+        if (is_left_handed)
+            glsafe(::glFrontFace(GL_CCW));
+    }
+}
 
 void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 {
@@ -256,6 +298,10 @@ void GLGizmoSeam::update_from_model_object(bool first_update)
     m_triangle_selectors.clear();
 
     int volume_id = -1;
+    std::vector<std::array<float, 4>> ebt_colors;
+    ebt_colors.push_back(GLVolume::NEUTRAL_COLOR);
+    ebt_colors.push_back(TriangleSelectorGUI::enforcers_color);
+    ebt_colors.push_back(TriangleSelectorGUI::blockers_color);
     for (const ModelVolume* mv : mo->volumes) {
         if (! mv->is_model_part())
             continue;
@@ -265,7 +311,7 @@ void GLGizmoSeam::update_from_model_object(bool first_update)
         // This mesh does not account for the possible Z up SLA offset.
         const TriangleMesh* mesh = &mv->mesh();
 
-        m_triangle_selectors.emplace_back(std::make_unique<TriangleSelectorGUI>(*mesh));
+        m_triangle_selectors.emplace_back(std::make_unique<TriangleSelectorPatch>(*mesh, ebt_colors));
         // Reset of TriangleSelector is done inside TriangleSelectorGUI's constructor, so we don't need it to perform it again in deserialize().
         m_triangle_selectors.back()->deserialize(mv->seam_facets.get_data(), false);
         m_triangle_selectors.back()->request_update_render_data();

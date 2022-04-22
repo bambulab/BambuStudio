@@ -18,6 +18,8 @@ protected:
     std::string on_get_name() const override;
     PainterGizmoType get_painter_type() const override;
 
+    void render_triangles(const Selection& selection) const override;
+
     wxString handle_snapshot_action_name(bool shift_down, Button button_down) const override;
 
     std::string get_gizmo_entering_text() const override { return _u8L("Entering Seam painting"); }

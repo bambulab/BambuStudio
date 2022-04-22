@@ -962,6 +962,10 @@ void TriangleSelectorGUI::update_render_data()
         iva.release_geometry();
 
     for (const Triangle &tr : m_triangles) {
+        bool is_valid = tr.valid();
+        bool is_split = tr.is_split();
+        EnforcerBlockerType type = tr.get_state();
+        bool is_select_by_seed_fill = tr.is_selected_by_seed_fill();
         if (!tr.valid() || tr.is_split() || (tr.get_state() == EnforcerBlockerType::NONE && !tr.is_selected_by_seed_fill()))
             continue;
 
