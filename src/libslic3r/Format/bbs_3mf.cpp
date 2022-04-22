@@ -17,6 +17,7 @@
 
 #include <limits>
 #include <stdexcept>
+#include <iomanip>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -32,6 +33,8 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/foreach.hpp>
+#include <openssl/md5.h>
+
 namespace pt = boost::property_tree;
 
 #include <tbb/parallel_reduce.h>
@@ -4025,6 +4028,39 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
         }
 
+        // add plate_N.gcode.md5 to file
+        if (!m_skip_static && m_save_gcode) {
+            for (int i = 0; i < plate_data_list.size(); i++) {
+                PlateData *plate_data = plate_data_list[i];
+                if (!plate_data->gcode_file.empty() && plate_data->is_sliced_valid && boost::filesystem::exists(plate_data->gcode_file)) {
+                    unsigned char digest[16];
+                    MD5_CTX       ctx;
+                    MD5_Init(&ctx);
+                    auto                        src_gcode_file = plate_data->gcode_file;
+                    boost::filesystem::ifstream ifs(src_gcode_file, std::ios::binary);
+                    std::string                 buf(64 * 1024, 0);
+                    const std::size_t &         size      = boost::filesystem::file_size(src_gcode_file);
+                    std::size_t                 left_size = size;
+                    while (ifs) {
+                        ifs.read(buf.data(), buf.size());
+                        int read_bytes = ifs.gcount();
+                        MD5_Update(&ctx, (unsigned char *) buf.data(), read_bytes);
+                    }
+                    MD5_Final(digest, &ctx);
+                    char md5_str[33];
+                    for (int j = 0; j < 16; j++) { sprintf(&md5_str[j * 2], "%02X", (unsigned int) digest[j]); }
+                    plate_data->gcode_file_md5 = std::string(md5_str);
+                    std::string target_file    = (boost::format("Metadata/plate_%1%.gcode.md5") % (plate_data->plate_index + 1)).str();
+                    if (!mz_zip_writer_add_mem(&archive, target_file.c_str(), (const void *) plate_data->gcode_file_md5.c_str(), plate_data->gcode_file_md5.length(),
+                                               MZ_DEFAULT_COMPRESSION)) {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__
+                                                 << boost::format(", store  gcode md5 to 3mf,  length %1%, failed\n") % plate_data->gcode_file_md5.length();
+                        return false;
+                    }
+                }
+            }
+        }
+
         // Adds gcode files ("Metadata/plate_1.gcode, plate_2.gcode, ...)
         // Before _add_model_config_file_to_archive, because we modify plate_data
         //if (!m_skip_static && !_add_gcode_file_to_archive(archive, model, plate_data_list, proFn)) {
@@ -5324,6 +5360,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // Store mesh transformation in full precision, as the volumes are stored transformed and they need to be transformed back
         // when loaded as accurately as possible.
 		stream << std::setprecision(std::numeric_limits<double>::max_digits10);
+        stream << std::setiosflags(std::ios::fixed) << std::setprecision(2);
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<" << CONFIG_TAG << ">\n";
 
@@ -5391,7 +5428,7 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
 
     boost::mutex mutex;
     tbb::parallel_for(tbb::blocked_range<size_t>(0, plate_data_list2.size(), 1), [this, &plate_data_list2, &root_archive = archive, &mutex](const tbb::blocked_range<size_t>& range) {
-        for (int i = range.begin(); i < range.end(); ++i) {
+        for (int i = range.begin(); i < range.end(); ++i) {            
             PlateData* plate_data = plate_data_list2[i];
             auto src_gcode_file = plate_data->gcode_file;
             bool encrypted = boost::algorithm::ends_with(src_gcode_file, "_encrypted.gcode");

@@ -44,6 +44,7 @@ struct PlateData
     int plate_index;
     std::vector<std::pair<int, int>> objects_and_instances;
     std::string     gcode_file;
+    std::string     gcode_file_md5;
     std::string     thumbnail_file;
     std::string     gcode_prediction;
     std::string     gcode_weight;
