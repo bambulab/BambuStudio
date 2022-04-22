@@ -20,8 +20,8 @@
 #include <boost/log/trivial.hpp>
 #include <boost/timer.hpp>
 
-static const float GROUND_Z = -0.02f;
-static const std::array<float, 4> DEFAULT_MODEL_COLOR = { 0.235f, 0.235f, 0.235f, 1.0f };
+static const float GROUND_Z = -0.04f;
+static const std::array<float, 4> DEFAULT_MODEL_COLOR = { 0.3255f, 0.337f, 0.337f, 1.0f };
 static const std::array<float, 4> PICKING_MODEL_COLOR = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 namespace Slic3r {
@@ -188,13 +188,13 @@ void Bed3D::Axes::render() const
 }
 
 //BBS: add part plate logic
-bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom,
+bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_height, const std::string& custom_model, bool force_as_custom,
     const Vec2d position, bool with_reset)
 {
-    auto check_texture = [](const std::string& texture) {
+    /*auto check_texture = [](const std::string& texture) {
         boost::system::error_code ec; // so the exists call does not throw (e.g. after a permission problem)
         return !texture.empty() && (boost::algorithm::iends_with(texture, ".png") || boost::algorithm::iends_with(texture, ".svg")) && boost::filesystem::exists(texture, ec);
-    };
+    };*/
 
     auto check_model = [](const std::string& model) {
         boost::system::error_code ec;
@@ -213,11 +213,11 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
         texture = system_texture;
     }
 
-    std::string texture_filename = custom_texture.empty() ? texture : custom_texture;
+    /*std::string texture_filename = custom_texture.empty() ? texture : custom_texture;
     if (! texture_filename.empty() && ! check_texture(texture_filename)) {
         BOOST_LOG_TRIVIAL(error) << "Unable to load bed texture: " << texture_filename;
         texture_filename.clear();
-    }
+    }*/
 
     std::string model_filename = custom_model.empty() ? model : custom_model;
     if (! model_filename.empty() && ! check_model(model_filename)) {
@@ -226,7 +226,7 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
     }
 
     //BBS: add position related logic
-    if (m_bed_shape == printable_area && m_build_volume.printable_height() == printable_height && m_type == type && m_texture_filename == texture_filename && m_model_filename == model_filename && position == m_position)
+    if (m_bed_shape == printable_area && m_build_volume.printable_height() == printable_height && m_type == type && m_model_filename == model_filename && position == m_position)
         // No change, no need to update the UI.
         return false;
 
@@ -245,13 +245,13 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
     else
         m_build_volume = BuildVolume { printable_area, printable_height };
     m_type = type;
-    m_texture_filename = texture_filename;
+    //m_texture_filename = texture_filename;
     m_model_filename = model_filename;
     //BBS: add part plate logic
     m_extended_bounding_box = this->calc_extended_bounding_box(false);
 
     //BBS: add part plate logic
-#if 0
+/*#if 0
     ExPolygon poly{ Polygon::new_scale(printable_area) };
 #else
     ExPolygon poly;
@@ -265,11 +265,11 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
     const BoundingBox& bed_bbox = poly.contour.bounding_box();
     calc_gridlines(poly, bed_bbox);
 
-    m_polygon = offset(poly.contour, (float)bed_bbox.radius() * 1.7f, jtRound, scale_(0.5))[0];
+    m_polygon = offset(poly.contour, (float)bed_bbox.radius() * 1.7f, jtRound, scale_(0.5))[0];*/
 
     if (with_reset) {
         this->release_VBOs();
-        m_texture.reset();
+        //m_texture.reset();
         m_model.reset();
     }
     //BBS: add part plate logic, always update model offset
@@ -288,7 +288,7 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
 //BBS: add api to set position for partplate related bed
 void Bed3D::set_position(Vec2d& position)
 {
-    set_shape(m_bed_shape, m_build_volume.printable_height(), m_texture_filename, m_model_filename, false, position, false);
+    set_shape(m_bed_shape, m_build_volume.printable_height(), m_model_filename, false, position, false);
 }
 
 void Bed3D::set_axes_mode(bool origin)
@@ -301,7 +301,7 @@ void Bed3D::set_axes_mode(bool origin)
     }
 }
 
-bool Bed3D::contains(const Point& point) const
+/*bool Bed3D::contains(const Point& point) const
 {
     return m_polygon.contains(point);
 }
@@ -309,20 +309,20 @@ bool Bed3D::contains(const Point& point) const
 Point Bed3D::point_projection(const Point& point) const
 {
     return m_polygon.point_projection(point);
-}
+}*/
 
-void Bed3D::render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes, bool show_texture)
+void Bed3D::render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes)
 {
-    render_internal(canvas, bottom, scale_factor, show_axes, show_texture, false);
+    render_internal(canvas, bottom, scale_factor, show_axes);
 }
 
-void Bed3D::render_for_picking(GLCanvas3D& canvas, bool bottom, float scale_factor)
+/*void Bed3D::render_for_picking(GLCanvas3D& canvas, bool bottom, float scale_factor)
 {
     render_internal(canvas, bottom, scale_factor, false, false, true);
-}
+}*/
 
 void Bed3D::render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
-    bool show_axes, bool show_texture, bool picking)
+    bool show_axes)
 {
     float* factor = const_cast<float*>(&m_scale_factor);
     *factor = scale_factor;
@@ -332,13 +332,13 @@ void Bed3D::render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    m_model.set_color(-1, picking ? PICKING_MODEL_COLOR : DEFAULT_MODEL_COLOR);
+    m_model.set_color(-1, DEFAULT_MODEL_COLOR);
 
     switch (m_type)
     {
-    case Type::System: { render_system(canvas, bottom, show_texture); break; }
+    case Type::System: { render_system(canvas, bottom); break; }
     default:
-    case Type::Custom: { render_custom(canvas, bottom, show_texture, picking); break; }
+    case Type::Custom: { render_custom(canvas, bottom); break; }
     }
 
     glsafe(::glDisable(GL_DEPTH_TEST));
@@ -375,7 +375,7 @@ BoundingBoxf3 Bed3D::calc_extended_bounding_box(bool consider_model_offset) cons
     return out;
 }
 
-void Bed3D::calc_triangles(const ExPolygon& poly)
+/*void Bed3D::calc_triangles(const ExPolygon& poly)
 {
     if (! m_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z))
         BOOST_LOG_TRIVIAL(error) << "Unable to create bed triangles";
@@ -406,7 +406,7 @@ void Bed3D::calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox)
 
     if (!m_gridlines.set_from_lines(gridlines, GROUND_Z))
         BOOST_LOG_TRIVIAL(error) << "Unable to create bed grid lines\n";
-}
+}*/
 
 // Try to match the print bed shape with the shape of an active profile. If such a match exists,
 // return the print bed model.
@@ -438,16 +438,16 @@ void Bed3D::render_axes() const
         m_axes.render();
 }
 
-void Bed3D::render_system(GLCanvas3D& canvas, bool bottom, bool show_texture) const
+void Bed3D::render_system(GLCanvas3D& canvas, bool bottom) const
 {
     if (!bottom)
         render_model();
 
-    if (show_texture)
-        render_texture(bottom, canvas);
+    /*if (show_texture)
+        render_texture(bottom, canvas);*/
 }
 
-void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
+/*void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
 {
     GLTexture* texture = const_cast<GLTexture*>(&m_texture);
     GLTexture* temp_texture = const_cast<GLTexture*>(&m_temp_texture);
@@ -580,7 +580,7 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
             shader->stop_using();
         }
     }
-}
+}*/
 
 //BBS: add part plate related logic
 void Bed3D::update_model_offset() const
@@ -629,23 +629,23 @@ void Bed3D::render_model() const
     }
 }
 
-void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom, bool show_texture, bool picking) const
+void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom) const
 {
-    if (m_texture_filename.empty() && m_model_filename.empty()) {
-        render_default(bottom, picking);
+    if (m_model_filename.empty()) {
+        render_default(bottom);
         return;
     }
 
     if (!bottom)
         render_model();
 
-    if (show_texture)
-        render_texture(bottom, canvas);
+    /*if (show_texture)
+        render_texture(bottom, canvas);*/
 }
 
-void Bed3D::render_default(bool bottom, bool picking) const
+void Bed3D::render_default(bool bottom) const
 {
-    const_cast<GLTexture*>(&m_texture)->reset();
+    /*const_cast<GLTexture*>(&m_texture)->reset();
 
     unsigned int triangles_vcount = m_triangles.get_vertices_count();
     if (triangles_vcount > 0) {
@@ -681,7 +681,7 @@ void Bed3D::render_default(bool bottom, bool picking) const
         glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
 
         glsafe(::glDisable(GL_BLEND));
-    }
+    }*/
 }
 
 void Bed3D::release_VBOs()

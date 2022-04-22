@@ -508,8 +508,9 @@ int CLI::run(int argc, char **argv)
     double plate_stride;
     if (m_models.size() > 0)
     {
+        std::string bed_texture;
         partplate_list.reset_size(bedfs[2].x() - bedfs[0].x(), bedfs[2].y() - bedfs[0].y(), print_height);
-        partplate_list.set_shapes(bedfs, excluse_areas, height_to_lid, height_to_rod);
+        partplate_list.set_shapes(bedfs, excluse_areas, bed_texture, height_to_lid, height_to_rod);
         plate_stride = partplate_list.plate_stride_x();
         BOOST_LOG_TRIVIAL(info) << "bed size, x="<<bedfs[2].x() - bedfs[0].x()<<",y="<<bedfs[2].y() - bedfs[0].y()<<",z="<< print_height <<"\n";
     }

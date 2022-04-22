@@ -43,7 +43,7 @@
 using boost::optional;
 namespace fs = boost::filesystem;
 
-static const float GROUND_Z = -0.01f;
+static const float GROUND_Z = -0.03f;
 static const float GRABBER_X_FACTOR = 0.20f;
 static const float GRABBER_Y_FACTOR = 0.03f;
 static const float GRABBER_Z_VALUE = 0.5f;
@@ -67,8 +67,8 @@ class Bed3D;
 std::array<float, 4> PartPlate::SELECT_COLOR		= { 0.367f, 0.367f, 0.367f, 1.0f };
 std::array<float, 4> PartPlate::UNSELECT_COLOR		= { 0.82f, 0.82f, 0.82f, 1.0f };
 std::array<float, 4> PartPlate::DEFAULT_COLOR		= { 0.5f, 0.5f, 0.5f, 1.0f };
-std::array<float, 4> PartPlate::LINE_TOP_COLOR		= { 0.89f, 0.89f, 0.89f, 0.6f };
-std::array<float, 4> PartPlate::LINE_TOP_SEL_COLOR  = { 0.28f, 0.28f, 0.28f, 0.6f};
+std::array<float, 4> PartPlate::LINE_TOP_COLOR		= { 0.89f, 0.89f, 0.89f, 1.0f };
+std::array<float, 4> PartPlate::LINE_TOP_SEL_COLOR  = { 0.608f, 0.608f, 0.608f, 1.0f};
 std::array<float, 4> PartPlate::LINE_BOTTOM_COLOR	= { 0.8f, 0.8f, 0.8f, 0.4f };
 std::array<float, 4> PartPlate::HEIGHT_LIMIT_TOP_COLOR		= { 0.6f, 0.6f, 1.0f, 1.0f };
 std::array<float, 4> PartPlate::HEIGHT_LIMIT_BOTTOM_COLOR	= { 0.4f, 0.4f, 1.0f, 1.0f };
@@ -194,28 +194,45 @@ void PartPlate::calc_exclude_triangles(const ExPolygon& poly) {
 }
 
 void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox) {
-	Polylines axes_lines;
+	Polylines axes_lines, axes_lines_bolder;
+	int count = 0;
 	for (coord_t x = pp_bbox.min(0); x <= pp_bbox.max(0); x += scale_(10.0)) {
 		Polyline line;
 		line.append(Point(x, pp_bbox.min(1)));
 		line.append(Point(x, pp_bbox.max(1)));
-		axes_lines.push_back(line);
+
+		count ++;
+		if ( (count % 5) == 0 )
+			axes_lines_bolder.push_back(line);
+		else
+			axes_lines.push_back(line);
 	}
+	count = 0;
 	for (coord_t y = pp_bbox.min(1); y <= pp_bbox.max(1); y += scale_(10.0)) {
 		Polyline line;
 		line.append(Point(pp_bbox.min(0), y));
 		line.append(Point(pp_bbox.max(0), y));
 		axes_lines.push_back(line);
+
+		count ++;
+		if ( (count % 5) == 0 )
+			axes_lines_bolder.push_back(line);
+		else
+			axes_lines.push_back(line);
 	}
 
 	// clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
 	Lines gridlines = to_lines(intersection_pl(axes_lines, offset(poly, (float)SCALED_EPSILON)));
+	Lines gridlines_bolder = to_lines(intersection_pl(axes_lines_bolder, offset(poly, (float)SCALED_EPSILON)));
 
 	// append bed contours
 	Lines contour_lines = to_lines(poly);
 	std::copy(contour_lines.begin(), contour_lines.end(), std::back_inserter(gridlines));
 
 	if (!m_gridlines.set_from_lines(gridlines, GROUND_Z))
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
+
+	if (!m_gridlines_bolder.set_from_lines(gridlines_bolder, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
 }
 
@@ -342,12 +359,140 @@ void PartPlate::render_background(bool force_default_color) const {
 	glsafe(::glDepthMask(GL_TRUE));
 }
 
+void PartPlate::render_logo(bool bottom) const
+{
+	//GLTexture* texture = const_cast<GLTexture*>(&m_logo_texture);
+
+	if (m_partplate_list->m_logo_texture_filename.empty()) {
+		m_partplate_list->m_logo_texture.reset();
+		return;
+	}
+
+	//GLTexture* temp_texture = const_cast<GLTexture*>(&m_temp_texture);
+
+	if (m_partplate_list->m_logo_texture.get_id() == 0 || m_partplate_list->m_logo_texture.get_source() != m_partplate_list->m_logo_texture_filename) {
+		m_partplate_list->m_logo_texture.reset();
+
+		if (boost::algorithm::iends_with(m_partplate_list->m_logo_texture_filename, ".svg")) {
+			/*// use higher resolution images if graphic card and opengl version allow
+			GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
+			if (temp_texture->get_id() == 0 || temp_texture->get_source() != m_texture_filename) {
+				// generate a temporary lower resolution texture to show while no main texture levels have been compressed
+				if (!temp_texture->load_from_svg_file(m_texture_filename, false, false, false, max_tex_size / 8)) {
+					render_default(bottom, false);
+					return;
+				}
+				canvas.request_extra_frame();
+			}*/
+
+			// starts generating the main texture, compression will run asynchronously
+			GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
+			if (!m_partplate_list->m_logo_texture.load_from_svg_file(m_partplate_list->m_logo_texture_filename, true, true, true, max_tex_size/8)) {
+				BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!")%m_partplate_list->m_logo_texture_filename;
+				return;
+			}
+		}
+		else if (boost::algorithm::iends_with(m_partplate_list->m_logo_texture_filename, ".png")) {
+			// generate a temporary lower resolution texture to show while no main texture levels have been compressed
+			/* if (temp_texture->get_id() == 0 || temp_texture->get_source() != m_logo_texture_filename) {
+				if (!temp_texture->load_from_file(m_logo_texture_filename, false, GLTexture::None, false)) {
+					render_default(bottom, false);
+					return;
+				}
+				canvas.request_extra_frame();
+			}*/
+
+			// starts generating the main texture, compression will run asynchronously
+			if (!m_partplate_list->m_logo_texture.load_from_file(m_partplate_list->m_logo_texture_filename, true, GLTexture::MultiThreaded, true)) {
+				BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!")%m_partplate_list->m_logo_texture_filename;
+				return;
+			}
+		}
+		else {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": can not load logo texture from %1%, unsupported format")%m_partplate_list->m_logo_texture_filename;
+            return;
+		}
+	}
+    else if (m_partplate_list->m_logo_texture.unsent_compressed_data_available()) {
+		// sends to gpu the already available compressed levels of the main texture
+		m_partplate_list->m_logo_texture.send_compressed_data_to_gpu();
+
+		// the temporary texture is not needed anymore, reset it
+		//if (temp_texture->get_id() != 0)
+		//    temp_texture->reset();
+
+		//canvas.request_extra_frame();
+    }
+
+	if (m_logo_triangles.get_vertices_count() > 0) {
+		GLShaderProgram* shader = wxGetApp().get_shader("printbed");
+		if (shader != nullptr) {
+			shader->start_using();
+			//shader->set_uniform("transparent_background", bottom);
+			//shader->set_uniform("svg_source", boost::algorithm::iends_with(m_texture.get_source(), ".svg"));
+			shader->set_uniform("transparent_background", 0);
+			shader->set_uniform("svg_source", 0);
+
+			//glsafe(::glEnable(GL_DEPTH_TEST));
+			glsafe(::glDepthMask(GL_FALSE));
+			if (bottom)
+				glsafe(::glFrontFace(GL_CW));
+
+			unsigned int stride = m_logo_triangles.get_vertex_data_size();
+
+			GLint position_id = shader->get_attrib_location("v_position");
+			GLint tex_coords_id = shader->get_attrib_location("v_tex_coords");
+			if (position_id != -1) {
+				glsafe(::glEnableVertexAttribArray(position_id));
+			}
+			if (tex_coords_id != -1) {
+				glsafe(::glEnableVertexAttribArray(tex_coords_id));
+			}
+
+			// show the temporary texture while no compressed data is available
+			GLuint tex_id = (GLuint)m_partplate_list->m_logo_texture.get_id();
+			unsigned int* vbo_id = const_cast<unsigned int*>(&m_vbo_id);
+			if (*vbo_id == 0) {
+				glsafe(::glGenBuffers(1, vbo_id));
+				glsafe(::glBindBuffer(GL_ARRAY_BUFFER, *vbo_id));
+				glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)m_logo_triangles.get_vertices_data_size(), (const GLvoid*)m_logo_triangles.get_vertices_data(), GL_STATIC_DRAW));
+				glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+			}
+
+			glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
+			glsafe(::glBindBuffer(GL_ARRAY_BUFFER, *vbo_id));
+
+			if (position_id != -1)
+				glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)m_logo_triangles.get_position_offset()));
+			if (tex_coords_id != -1)
+				glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)m_logo_triangles.get_tex_coords_offset()));
+			glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)m_logo_triangles.get_vertices_count()));
+
+			if (tex_coords_id != -1)
+				glsafe(::glDisableVertexAttribArray(tex_coords_id));
+
+			if (position_id != -1)
+				glsafe(::glDisableVertexAttribArray(position_id));
+
+			glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+			glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
+
+			if (bottom)
+				glsafe(::glFrontFace(GL_CCW));
+
+			glsafe(::glDepthMask(GL_TRUE));
+
+			shader->stop_using();
+		}
+	}
+}
+
 void PartPlate::render_exclude_area(bool force_default_color) const {
 	if (force_default_color) //for thumbnail case
 		return;
 
 	unsigned int triangles_vcount = m_exclude_triangles.get_vertices_count();
-	std::array<float, 4> select_color{ 0.45f, 0.45f, 0.45f, 1.0f };
+	std::array<float, 4> select_color{ 0.765f, 0.7686f, 0.7686f, 1.0f };
 	std::array<float, 4> unselect_color{ 0.9f, 0.9f, 0.9f, 1.0f };
 	std::array<float, 4> default_color{ 0.9f, 0.9f, 0.9f, 1.0f };
 
@@ -381,18 +526,23 @@ void PartPlate::render_exclude_area(bool force_default_color) const {
 }*/
 
 void PartPlate::render_grid(bool bottom) const {
+	//glsafe(::glEnable(GL_MULTISAMPLE));
 	// draw grid
-	glsafe(::glLineWidth(1.5f * m_scale_factor));
+	glsafe(::glLineWidth(1.0f * m_scale_factor));
 	if (bottom)
 		glsafe(::glColor4fv(LINE_BOTTOM_COLOR.data()));
-    else {
-        if (m_selected)
-            glsafe(::glColor4fv(LINE_TOP_SEL_COLOR.data()));
-        else
+	else {
+		if (m_selected)
+			glsafe(::glColor4fv(LINE_TOP_SEL_COLOR.data()));
+		else
 			glsafe(::glColor4fv(LINE_TOP_COLOR.data()));
-    }
+	}
 	glsafe(::glVertexPointer(3, GL_FLOAT, m_gridlines.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
 	glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines.get_vertices_count()));
+
+	glsafe(::glLineWidth(2.0f * m_scale_factor));
+	glsafe(::glVertexPointer(3, GL_FLOAT, m_gridlines_bolder.get_vertex_data_size(), (GLvoid*)m_gridlines_bolder.get_vertices_data()));
+	glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines_bolder.get_vertices_count()));
 }
 
 void PartPlate::render_height_limit(PartPlate::HeightLimitMode mode) const
@@ -1357,6 +1507,156 @@ void PartPlate::move_instances_to(PartPlate& left_plate, PartPlate& right_plate,
 	return;
 }
 
+void PartPlate::generate_logo_polygon(ExPolygon &logo_polygon)
+{
+	if (m_shape.size() == 4)
+	{
+		//rectangle case
+		for (int i = 0; i < 4; i++)
+		{
+			const Vec2d& p = m_shape[i];
+			if ((i  == 0) || (i  == 1)) {
+				logo_polygon.contour.append({ scale_(p(0)), scale_(p(1) - 12.f) });
+			}
+			else {
+				logo_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
+			}
+		}
+	}
+	else {
+		for (const Vec2d& p : m_shape) {
+			logo_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
+		}
+	}
+}
+
+void PartPlate::generate_print_polygon(ExPolygon &print_polygon)
+{
+	auto compute_points = [&print_polygon](Vec2d& center, double radius, double start_angle, double stop_angle, int count)
+	{
+		double angle, angle_steps;
+		angle_steps = (stop_angle - start_angle) / (count - 1);
+		for(int j = 0; j < count; j++ )
+		{
+			double angle = start_angle + j * angle_steps;
+			double x = center(0) + ::cos(angle) * radius;
+			double y = center(1) + ::sin(angle) * radius;
+			print_polygon.contour.append({ scale_(x), scale_(y) });
+		}
+	};
+
+	int points_count = 8;
+	if (m_shape.size() == 4)
+	{
+			//rectangle case
+			for (int i = 0; i < 4; i++)
+			{
+				const Vec2d& p = m_shape[i];
+				Vec2d center;
+				double start_angle, stop_angle, angle_steps, radius_x, radius_y, radius;
+				switch (i) {
+					case 0:
+						radius = 5.f;
+						center(0) = p(0) + radius;
+						center(1) = p(1) + radius;
+						start_angle = PI;
+						stop_angle = 1.5 * PI;
+						compute_points(center, radius, start_angle, stop_angle, points_count);
+						break;
+					case 1:
+						print_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
+						break;
+					case 2:
+						radius_x = (int)(p(0)) % 10;
+                        radius_y = (int)(p(1)) % 10;
+						radius = (radius_x > radius_y)?radius_y: radius_x;
+						if (radius < 5.0)
+							radius = 5.f;
+						center(0) = p(0) - radius;
+						center(1) = p(1) - radius;
+						start_angle = 0;
+						stop_angle = 0.5 * PI;
+						compute_points(center, radius, start_angle, stop_angle, points_count);
+						break;
+					case 3:
+                        radius_x = (int)(p(0)) % 10;
+						radius_y = (int)(p(1)) % 10;
+						radius = (radius_x > radius_y)?radius_y: radius_x;
+						if (radius < 5.0)
+							radius = 5.f;
+						center(0) = p(0) + radius;
+						center(1) = p(1) - radius;
+						start_angle = 0.5 * PI;
+						stop_angle = PI;
+						compute_points(center, radius, start_angle, stop_angle, points_count);
+						break;
+				}
+			}
+	}
+	else {
+		for (const Vec2d& p : m_shape) {
+			print_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
+		}
+	}
+}
+
+void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
+{
+	auto compute_exclude_points = [&exclude_polygon](Vec2d& center, double radius, double start_angle, double stop_angle, int count)
+	{
+		double angle, angle_steps;
+		angle_steps = (stop_angle - start_angle) / (count - 1);
+		for(int j = 0; j < count; j++ )
+		{
+			double angle = start_angle + j * angle_steps;
+			double x = center(0) + ::cos(angle) * radius;
+			double y = center(1) + ::sin(angle) * radius;
+			exclude_polygon.contour.append({ scale_(x), scale_(y) });
+		}
+	};
+
+	int points_count = 8;
+	if (m_exclude_area.size() == 4)
+	{
+			//rectangle case
+			for (int i = 0; i < 4; i++)
+			{
+				const Vec2d& p = m_exclude_area[i];
+				Vec2d center;
+				double start_angle, stop_angle, angle_steps, radius_x, radius_y, radius;
+				switch (i) {
+					case 0:
+						radius = 5.f;
+						center(0) = p(0) + radius;
+						center(1) = p(1) + radius;
+						start_angle = PI;
+						stop_angle = 1.5 * PI;
+						compute_exclude_points(center, radius, start_angle, stop_angle, points_count);
+						break;
+					case 1:
+						exclude_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
+						break;
+					case 2:
+						radius = 3.f;
+						center(0) = p(0) - radius;
+						center(1) = p(1) - radius;
+						start_angle = 0;
+						stop_angle = 0.5 * PI;
+						compute_exclude_points(center, radius, start_angle, stop_angle, points_count);
+						break;
+					case 3:
+						exclude_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
+						break;
+				}
+			}
+	}
+	else {
+		for (const Vec2d& p : m_exclude_area) {
+			exclude_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
+		}
+	}
+}
+
 bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Vec2d position, float height_to_lid, float height_to_rod)
 {
 	if ((m_shape == shape)&&(m_exclude_area == exclude_areas)
@@ -1381,17 +1681,23 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 
 		calc_bounding_boxes();
 
-		ExPolygon poly;
-		for (const Vec2d& p : m_shape) {
-			poly.contour.append({ scale_(p(0)), scale_(p(1)) });
-		}
+		ExPolygon logo_poly;
+		generate_logo_polygon(logo_poly);
+		if (!m_logo_triangles.set_from_triangles(triangulate_expolygon_2f(logo_poly, NORMALS_UP), GROUND_Z+0.28f))
+		    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create plate triangles\n";
 
+		ExPolygon poly;
+		/*for (const Vec2d& p : m_shape) {
+			poly.contour.append({ scale_(p(0)), scale_(p(1)) });
+		}*/
+		generate_print_polygon(poly);
 		calc_triangles(poly);
 
 		ExPolygon exclude_poly;
-		for (const Vec2d& p : m_exclude_area) {
+		/*for (const Vec2d& p : m_exclude_area) {
 			exclude_poly.contour.append({ scale_(p(0)), scale_(p(1)) });
-		}
+		}*/
+		generate_exclude_polygon(exclude_poly);
 		calc_exclude_triangles(exclude_poly);
 
 		const BoundingBox& pp_bbox = poly.contour.bounding_box();
@@ -1475,6 +1781,9 @@ void PartPlate::render(bool bottom, bool only_body, bool force_background_color,
 	}
 
 	render_grid(bottom);
+
+	if (!bottom && m_selected)
+		render_logo(bottom);
 
 	if (is_current)
 		render_height_limit(mode);
@@ -2026,7 +2335,7 @@ int PartPlateList::create_plate(bool adjust_position)
 		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":old_cols %1% -> new_cols %2%") % old_cols % cols;
 		//update the origin of each plate
 		update_all_plates_pos_and_size(adjust_position, false);
-		set_shapes(m_shape, m_exclude_areas, m_height_to_lid, m_height_to_rod);
+		set_shapes(m_shape, m_exclude_areas, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
 
 		if (m_plater) {
 			Vec2d pos = compute_shape_position(m_current_plate, cols);
@@ -2194,7 +2503,7 @@ int PartPlateList::delete_plate(int index)
 	{
 		//update the origin of each plate
 		update_all_plates_pos_and_size();
-		set_shapes(m_shape, m_exclude_areas, m_height_to_lid, m_height_to_rod);
+		set_shapes(m_shape, m_exclude_areas, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
 	}
 	else
 	{
@@ -3062,7 +3371,6 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 	return;
 }
 
-
 /*rendering related functions*/
 //render
 void PartPlateList::render(bool bottom, float scale_factor, bool only_current, bool only_body, int hover_id)
@@ -3172,7 +3480,7 @@ void PartPlateList::select_plate_view()
 	m_plater->get_camera().select_view("topfront");
 }
 
-bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_areas, float height_to_lid, float height_to_rod)
+bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_areas, const std::string& texture_filename, float height_to_lid, float height_to_rod)
 {
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	m_shape = shape;
@@ -3194,6 +3502,16 @@ bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_area
 	}
 
 	calc_bounding_boxes();
+
+	auto check_texture = [](const std::string& texture) {
+		boost::system::error_code ec; // so the exists call does not throw (e.g. after a permission problem)
+		return !texture.empty() && (boost::algorithm::iends_with(texture, ".png") || boost::algorithm::iends_with(texture, ".svg")) && boost::filesystem::exists(texture, ec);
+	};
+	if (! texture_filename.empty() && ! check_texture(texture_filename)) {
+		BOOST_LOG_TRIVIAL(error) << "Unable to load bed texture: " << texture_filename;
+	}
+	else
+		m_logo_texture_filename = texture_filename;
 
 	return true;
 }
@@ -3308,7 +3626,7 @@ int PartPlateList::rebuild_plates_after_deserialize(std::vector<bool>& previous_
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plates count %1%") % m_plate_list.size();
 	update_plate_cols();
-	set_shapes(m_shape, m_exclude_areas, m_height_to_lid, m_height_to_rod);
+	set_shapes(m_shape, m_exclude_areas, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
 		m_plate_list[i]->m_plater = this->m_plater;

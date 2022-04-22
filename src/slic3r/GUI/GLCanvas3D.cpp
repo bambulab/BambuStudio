@@ -5376,10 +5376,10 @@ void GLCanvas3D::_render_bed(bool bottom, bool show_axes)
           && m_gizmos.get_current_type() != GLGizmosManager::Seam
           && m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation);
     */
-    bool show_texture = false;
+    //bool show_texture = true;
     //BBS set axes mode
     m_bed.set_axes_mode(m_main_toolbar.is_enabled());
-    m_bed.render(*this, bottom, scale_factor, show_axes, show_texture);
+    m_bed.render(*this, bottom, scale_factor, show_axes);
 }
 
 void GLCanvas3D::_render_bed_for_picking(bool bottom)
@@ -5389,7 +5389,7 @@ void GLCanvas3D::_render_bed_for_picking(bool bottom)
     scale_factor = m_retina_helper->get_scale_factor();
 #endif // ENABLE_RETINA_GL
 
-    m_bed.render_for_picking(*this, bottom, scale_factor);
+    //m_bed.render_for_picking(*this, bottom, scale_factor);
 }
 
 void GLCanvas3D::_render_platelist(bool bottom, bool only_current, bool only_body, int hover_id) const

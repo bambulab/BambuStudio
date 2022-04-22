@@ -1,7 +1,7 @@
 #ifndef slic3r_3DBed_hpp_
 #define slic3r_3DBed_hpp_
 
-#include "GLTexture.hpp"
+//#include "GLTexture.hpp"
 #include "3DScene.hpp"
 #include "GLModel.hpp"
 
@@ -84,18 +84,18 @@ public:
 
 private:
     BuildVolume m_build_volume;
-    Type m_type{ Type::Custom };
-    std::string m_texture_filename;
+    Type m_type{ Type::System };
+    //std::string m_texture_filename;
     std::string m_model_filename;
     // Print volume bounding box exteded with axes and model.
     BoundingBoxf3 m_extended_bounding_box;
     // Slightly expanded print bed polygon, for collision detection.
-    Polygon m_polygon;
-    GeometryBuffer m_triangles;
-    GeometryBuffer m_gridlines;
-    GLTexture m_texture;
+    //Polygon m_polygon;
+    //GeometryBuffer m_triangles;
+    //GeometryBuffer m_gridlines;
+    //GLTexture m_texture;
     // temporary texture shown until the main texture has still no levels compressed
-    GLTexture m_temp_texture;
+    //GLTexture m_temp_texture;
     GLModel m_model;
     Vec3d m_model_offset{ Vec3d::Zero() };
     unsigned int m_vbo_id{ 0 };
@@ -115,7 +115,7 @@ public:
     //FIXME if the build volume max print height is updated, this function still returns zero
     // as this class does not use it, thus there is no need to update the UI.
     // BBS
-    bool set_shape(const Pointfs& printable_area, const double printable_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false,
+    bool set_shape(const Pointfs& printable_area, const double printable_height, const std::string& custom_model, bool force_as_custom = false,
         const Vec2d position = Vec2d::Zero(), bool with_reset = true);
 
     void set_position(Vec2d& position);
@@ -138,8 +138,8 @@ public:
     bool contains(const Point& point) const;
     Point point_projection(const Point& point) const;
 
-    void render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes, bool show_texture);
-    void render_for_picking(GLCanvas3D& canvas, bool bottom, float scale_factor);
+    void render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes);
+    //void render_for_picking(GLCanvas3D& canvas, bool bottom, float scale_factor);
 
 private:
     //BBS: add partplate related logic
@@ -150,13 +150,13 @@ private:
     void update_model_offset() const;
     static std::tuple<Type, std::string, std::string> detect_type(const Pointfs& shape);
     void render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
-        bool show_axes, bool show_texture, bool picking);
+        bool show_axes);
     void render_axes() const;
-    void render_system(GLCanvas3D& canvas, bool bottom, bool show_texture) const;
-    void render_texture(bool bottom, GLCanvas3D& canvas) const;
+    void render_system(GLCanvas3D& canvas, bool bottom) const;
+    //void render_texture(bool bottom, GLCanvas3D& canvas) const;
     void render_model() const;
-    void render_custom(GLCanvas3D& canvas, bool bottom, bool show_texture, bool picking) const;
-    void render_default(bool bottom, bool picking) const;
+    void render_custom(GLCanvas3D& canvas, bool bottom) const;
+    void render_default(bool bottom) const;
     void release_VBOs();
 };
 

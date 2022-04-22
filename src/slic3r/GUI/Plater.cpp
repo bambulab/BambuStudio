@@ -5443,7 +5443,7 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_ar
 {
     //BBS: add shape position
     Vec2d shape_position = partplate_list.get_current_shape_position();
-    bool new_shape = bed.set_shape(shape, printable_height, custom_texture, custom_model, force_as_custom, shape_position);
+    bool new_shape = bed.set_shape(shape, printable_height, custom_model, force_as_custom, shape_position);
 
     float prev_height_lid, prev_height_rod;
     partplate_list.get_height_limits(prev_height_lid, prev_height_rod);
@@ -5462,7 +5462,7 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_ar
 
         //Pointfs& exclude_areas = config->option<ConfigOptionPoints>("bed_exclude_area")->values;
         partplate_list.reset_size(max.x() - min.x(), max.y() - min.y(), z);
-        partplate_list.set_shapes(shape, exclude_areas, height_to_lid, height_to_rod);
+        partplate_list.set_shapes(shape, exclude_areas, custom_texture, height_to_lid, height_to_rod);
     }
 }
 
@@ -8365,11 +8365,17 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 
 void Plater::set_bed_shape() const
 {
+    std::string texture_filename;
+    auto bundle = wxGetApp().preset_bundle;
+    if (bundle != nullptr) {
+        const Preset* curr = &bundle->printers.get_selected_preset();
+        texture_filename = PresetUtils::system_printer_bed_texture(*curr);
+    }
     set_bed_shape(p->config->option<ConfigOptionPoints>("printable_area")->values,
         //BBS: add bed exclude areas
         p->config->option<ConfigOptionPoints>("bed_exclude_area")->values,
         p->config->option<ConfigOptionFloat>("printable_height")->value,
-        {}, {});
+        texture_filename, {});
 }
 
 //BBS: add bed exclude area

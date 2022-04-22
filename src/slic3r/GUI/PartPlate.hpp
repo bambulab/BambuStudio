@@ -116,7 +116,9 @@ private:
     unsigned int m_vbo_id{ 0 };
     GeometryBuffer m_triangles;
     GeometryBuffer m_exclude_triangles;
+    GeometryBuffer m_logo_triangles;
     GeometryBuffer m_gridlines;
+    GeometryBuffer m_gridlines_bolder;
     GeometryBuffer m_height_limit_common;
     GeometryBuffer m_height_limit_bottom;
     GeometryBuffer m_height_limit_top;
@@ -141,6 +143,9 @@ private:
 
     void init();
     bool valid_instance(int obj_id, int instance_id);
+    void generate_print_polygon(ExPolygon &print_polygon);
+    void generate_exclude_polygon(ExPolygon &exclude_polygon);
+    void generate_logo_polygon(ExPolygon &logo_polygon);
     void calc_bounding_boxes() const;
     void calc_triangles(const ExPolygon& poly);
     void calc_exclude_triangles(const ExPolygon& poly);
@@ -150,6 +155,7 @@ private:
     void calc_vertex_for_icons(int index, GeometryBuffer &buffer);
     void calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer);
     void render_background(bool force_default_color = false) const;
+    void render_logo(bool bottom) const;
     void render_exclude_area(bool force_default_color) const;
     //void render_background_for_picking(const float* render_color) const;
     void render_grid(bool bottom) const;
@@ -415,6 +421,8 @@ class PartPlateList : public ObjectBase
     Pointfs m_exclude_areas;
     BoundingBoxf3 m_bounding_box;
     bool m_intialized;
+    std::string m_logo_texture_filename;
+    GLTexture m_logo_texture;
     GLTexture m_del_texture;
     GLTexture m_del_hovered_texture;
     GLTexture m_arrange_texture;
@@ -574,7 +582,7 @@ public:
     int select_plate_by_obj(int obj_index, int instance_index);
     void calc_bounding_boxes();
     void select_plate_view();
-    bool set_shapes(const Pointfs& shape, const Pointfs& exclude_areas, float height_to_lid, float height_to_rod);
+    bool set_shapes(const Pointfs& shape, const Pointfs& exclude_areas, const std::string& custom_texture, float height_to_lid, float height_to_rod);
     void set_hover_id(int id);
     void reset_hover_id();
     bool intersects(const BoundingBoxf3 &bb);
