@@ -38,6 +38,7 @@ ParamsDialog::ParamsDialog(wxWindow * parent)
         }
     });
 	Bind(wxEVT_CLOSE_WINDOW, [this](auto& event) {
+#if 0
 		auto tab = dynamic_cast<Tab *>(m_panel->get_current_tab());
         if (event.CanVeto() && tab->m_presets->current_is_dirty()) {
 			bool ok = tab->may_discard_current_dirty_preset();
@@ -51,6 +52,9 @@ ParamsDialog::ParamsDialog(wxWindow * parent)
         } else {
             Hide();
         }
+#else
+        Hide();
+#endif
     });
 }
 
