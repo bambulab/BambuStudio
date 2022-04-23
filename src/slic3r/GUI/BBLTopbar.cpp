@@ -240,7 +240,7 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     m_publish_item->SetDisabledBitmap(m_publish_disable_bitmap);
     this->AddSpacer(12);
 
-    wxBitmap model_store_bitmap = create_scaled_bitmap("topbar_store", nullptr, TOPBAR_ICON_SIZE);
+    /*wxBitmap model_store_bitmap = create_scaled_bitmap("topbar_store", nullptr, TOPBAR_ICON_SIZE);
     m_model_store_item = this->AddTool(ID_MODEL_STORE, "", model_store_bitmap);
     this->AddSpacer(12);
 
@@ -248,6 +248,7 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     m_account_item = this->AddTool(ID_ACCOUNT, "", account_bitmap);
 
     this->AddSpacer(12);
+    */
 
     this->AddSeparator();
     this->AddSpacer(6);
@@ -295,8 +296,8 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnSaveProject, this, wxID_SAVE);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnRedo, this, wxID_REDO);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnUndo, this, wxID_UNDO);
-    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnAccountClicked, this, ID_ACCOUNT);
-    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnModelStoreClicked, this, ID_MODEL_STORE);
+    //this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnAccountClicked, this, ID_ACCOUNT);
+    //this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnModelStoreClicked, this, ID_MODEL_STORE);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnPublishClicked, this, ID_PUBLISH);
 }
 
@@ -520,11 +521,12 @@ void BBLTopbar::Rescale() {
     item->SetBitmap(create_scaled_bitmap("topbar_publish", nullptr, TOPBAR_ICON_SIZE));
     item->SetDisabledBitmap(create_scaled_bitmap("topbar_publish_disable", nullptr, TOPBAR_ICON_SIZE));
 
-    item = this->FindTool(ID_MODEL_STORE);
+    /*item = this->FindTool(ID_MODEL_STORE);
     item->SetBitmap(create_scaled_bitmap("topbar_store", nullptr, TOPBAR_ICON_SIZE));
 
     item = this->FindTool(ID_ACCOUNT);
     item->SetBitmap(create_scaled_bitmap("topbar_account", nullptr, TOPBAR_ICON_SIZE));
+    */
 
     item = this->FindTool(wxID_ICONIZE_FRAME);
     item->SetBitmap(create_scaled_bitmap("topbar_min", nullptr, TOPBAR_ICON_SIZE));
