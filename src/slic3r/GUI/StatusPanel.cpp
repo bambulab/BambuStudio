@@ -753,13 +753,17 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
     sizer->Add(m_ams_control, 0, wxALIGN_CENTER_HORIZONTAL, 0);
 
     // display demo, to be removed
-    //m_ams_control->EnterNoneAMSMode();
-    //auto caninfo0_0 = Caninfo{"0", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    //auto caninfo0_1 = Caninfo{"1", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    //auto caninfo0_2 = Caninfo{"2", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    //auto caninfo0_3 = Caninfo{"3", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    //AMSinfo ams1 = AMSinfo{"0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    //std::vector<AMSinfo> ams_info{ams1};
+    //auto                 caninfo0_0 = Caninfo{"can0", _L("PLA1"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    //auto                 caninfo0_1 = Caninfo{"can1", _L("PLA2"), wxColour(255,192,203), AMSCanType::AMS_CAN_TYPE_BRAND};
+    //auto                 caninfo0_2 = Caninfo{"can2", _L("PLA3"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_THIRDBRAND};
+    //auto                 caninfo0_3 = Caninfo{"cam3", _L("PLA4"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_THIRDBRAND};
+    //auto                 caninfo0_33 = Caninfo{"can43", _L("DDD"), wxColour(148,0,211), AMSCanType::AMS_CAN_TYPE_THIRDBRAND};
+
+    //AMSinfo              ams1       = AMSinfo{"ams0", std::vector<Caninfo>{caninfo0_0, caninfo0_1}};
+    //AMSinfo              ams2       = AMSinfo{"ams1", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2}};
+    //AMSinfo              ams3       = AMSinfo{"ams2", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    //AMSinfo              ams4       = AMSinfo{"ams3", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_33}};
+    //std::vector<AMSinfo> ams_info{ams1,ams2,ams3,ams4};
     //m_ams_control->UpdateAms(ams_info);
     return sizer;
 }
@@ -1106,7 +1110,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
 
     if (obj->amsList.empty() || obj->ams_exist_bits == 0) {
-        m_ams_control->RemoveAll();
+        //m_ams_control->RemoveAll();
         m_ams_control->EnterNoneAMSMode();
         return;
     } else {
@@ -1123,7 +1127,7 @@ void StatusPanel::update_ams(MachineObject *obj)
             || obj->tray_is_bbl_bits != last_tray_is_bbl_bits
             || obj->tray_read_done_bits != last_read_done_bits
             ) {
-            m_ams_control->RemoveAll();
+            //m_ams_control->RemoveAll();
             m_ams_control->UpdateAms(ams_info, true);
             //select current ams
             if (!obj->m_ams_id.empty())
@@ -1506,7 +1510,8 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                     m_filament_setting_dlg->ams_filament_id = tray_it->second->setting_id;
                 }
             }
-            m_filament_setting_dlg->Show(true);
+            m_filament_setting_dlg->Popup(true);
+            m_filament_setting_dlg->SetPosition(m_ams_control->GetScreenPosition());
         }
         catch(...) {
             ;

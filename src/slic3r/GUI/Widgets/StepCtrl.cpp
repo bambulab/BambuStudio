@@ -45,6 +45,13 @@ void StepCtrlBase::SelectItem(int item)
     Refresh();
 }
 
+void StepCtrlBase::Idle() 
+{ 
+    step = -1; 
+    sendStepCtrlEvent();
+    Refresh();
+}
+
 bool StepCtrlBase::SetTipFont(wxFont const& font)
 {
     font_tip = font;

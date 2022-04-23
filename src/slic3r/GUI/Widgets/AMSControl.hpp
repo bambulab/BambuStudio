@@ -117,8 +117,8 @@ class AMSrefresh : public wxWindow
 public:
     AMSrefresh();
     AMSrefresh(
-        wxWindow *parent, wxWindowID id, wxString number = wxEmptyString, std::string canid = "", const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
-    AMSrefresh(wxWindow *parent, wxWindowID id, int number, std::string canid, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+        wxWindow *parent, wxWindowID id, wxString number, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    AMSrefresh(wxWindow *parent, wxWindowID id, int number, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     void        PlayLoading();
     void        StopLoading();
     void        create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
@@ -127,7 +127,9 @@ public:
     void        OnClick(wxMouseEvent &evt);
     void        post_event(wxCommandEvent &&event);
     void        paintEvent(wxPaintEvent &evt);
-    std::string m_canid;
+    void        Update(Caninfo info);
+    Caninfo     m_info;
+       
 
 protected:
     wxAnimationCtrl *m_animationCtrl = {nullptr};
@@ -169,18 +171,16 @@ public:
 
 public:
     int          m_can_index;
-    std::string  m_can_id;
     void         Update(Caninfo info, bool refresh = true);
     void         UnableSelected() { m_unable_selected = true; };
-    void         ableSelected() { m_unable_selected = false; };
+    void         EableSelected() { m_unable_selected = false; };
     void         SetLibColour(wxColour const &color);
     wxColour     GetLibColour();
     void         OnSelected();
     void         UnSelected();
-
     virtual bool Enable(bool enable = true);
     void         post_event(wxCommandEvent &&event);
-
+    Caninfo      m_info;
 protected:
     wxStaticBitmap *m_edit_bitmp      = {nullptr};
     wxStaticBitmap *m_edit_bitmp_light= {nullptr};
@@ -189,7 +189,7 @@ protected:
     bool            m_unable_selected = {false};
     bool            m_enable          = {false};
     bool            m_selected        = {false};
-    Caninfo         m_info;
+   
     double          m_radius = {4};
     wxColour        m_border_color;
     wxColour        m_road_def_color;
@@ -211,7 +211,7 @@ public:
     void create(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
 
 public:
-    Caninfo                      m_caninfo;
+    Caninfo                      m_info;
     int                          m_canindex       = {0};
     AMSRoadMode                  m_rode_mode      = {AMSRoadMode::AMS_ROAD_MODE_LEFT_RIGHT};
     std::vector<AMSPassRoadMode> m_pass_rode_mode = {AMSPassRoadMode::AMS_ROAD_MODE_NONE};
@@ -220,6 +220,7 @@ public:
     double                       m_radius         = {4};
     wxColour                     m_road_def_color;
     wxColour                     m_road_color;
+    void                         Update(Caninfo   info);
 
     void SetPassRoadColour(wxColour col);
     void SetMode(AMSRoadMode mode);
@@ -241,6 +242,11 @@ public:
     AMSItem();
     AMSItem(wxWindow *parent, wxWindowID id, AMSinfo amsinfo, const wxSize cube_size = wxSize(14, 14), const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
 
+    bool         m_open           = {false};
+    void         Open();
+    void         Close();
+   
+    void         Update(AMSinfo amsinfo);
     void         create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
     void         OnEnterWindow(wxMouseEvent &evt);
     void         OnLeaveWindow(wxMouseEvent &evt);
@@ -289,6 +295,7 @@ public:
     AMSRoad *canRoad;
 };
 
+
 WX_DECLARE_HASH_MAP(wxString, Canrefreshs *, wxStringHash, wxStringEqual, CanrefreshsHash);
 WX_DECLARE_HASH_MAP(wxString, CanLibs *, wxStringHash, wxStringEqual, CanLibsHash);
 WX_DECLARE_HASH_MAP(wxString, CanRoads *, wxStringHash, wxStringEqual, CansRoadsHash);
@@ -299,8 +306,8 @@ public:
     AmsCans();
     AmsCans(wxWindow *parent, wxWindowID id, AMSinfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
 
+    void        Update(AMSinfo info);
     void        create(wxWindow *parent, wxWindowID id, AMSinfo info, const wxPoint &pos, const wxSize &size);
-    void        UpdateCan(AMSinfo info);
     void        AddCan(Caninfo caninfo, int canindex, int maxcan);
     void        SelectCan(std::string can_id);
     void        SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step);
@@ -311,8 +318,8 @@ public:
     std::string GetCurrentCan() { return m_canlib_id; };
 
 public:
-    int             m_canlib_selection = {-1};
     std::string     m_canlib_id;
+    int             m_canlib_selection = {-1};
     int             m_selection = {0};
     int             m_can_count = {0};
     CanLibsHash     m_can_lib_list;
@@ -329,7 +336,7 @@ Description:AMSControl
 class AmsCansWindow
 {
 public:
-    wxString amsID;
+    wxString amsIndex;
     AmsCans *amsCans;
     // wxWindow *amsCans;
 };
@@ -337,7 +344,7 @@ public:
 class AmsItems
 {
 public:
-    wxString amsID;
+    wxString amsIndex;
     AMSItem *amsItem;
 };
 
@@ -365,6 +372,7 @@ protected:
 
     wxSimplebook *m_simplebook_right       = {nullptr};
     wxSimplebook *m_simplebook_calibration = {nullptr};
+    wxSimplebook *m_simplebook_amsitems    = {nullptr};
     wxSimplebook *m_simplebook_ams         = {nullptr};
     wxSimplebook *m_simplebook_cans        = {nullptr};
 
@@ -406,9 +414,9 @@ public:
     void ShowFilamentTip(bool hasams = true);
 
     void UpdateStepCtrl();
+    void CreateAms();
     void UpdateAms(std::vector<AMSinfo> info, bool keep_selection = true);
     void AddAms(AMSinfo info, bool refresh = true);
-    void RemoveAms(std::string ams_id);
     void RemoveAll();
     void SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP step);
     void SwitchAms(std::string ams_id);

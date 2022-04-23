@@ -47,6 +47,7 @@ public:
     int  GetSelection() const;
 
     void SelectItem(int item);
+    void Idle();
 
     wxString GetItemText(unsigned int item) const;
     void     SetItemText(unsigned int item, wxString const &value);

@@ -27,14 +27,19 @@
 
 namespace Slic3r { namespace GUI {
 
-class AMSMaterialsSetting : public DPIDialog
+class AMSMaterialsSetting : public wxPopupTransientWindow
 {
 public:
     AMSMaterialsSetting(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = 0);
     ~AMSMaterialsSetting();
     void create();
 
-    bool Show(bool show) override;
+	void input_finish();
+    void Dismiss() override;
+    void Popup(bool show);
+
+
+
 	void on_select_ok(wxMouseEvent &event);
     void set_color(wxColour color);
 
@@ -44,10 +49,11 @@ public:
     std::string    ams_filament_id;
 
 protected:
-    void on_dpi_changed(const wxRect &suggested_rect) override;
+    //void on_dpi_changed(const wxRect &suggested_rect) override;
     void on_select_filament(wxCommandEvent& evt);
 
 protected:
+    wxStaticText *      warning_text;
     wxPanel *           m_panel_body;
     wxStaticText *      m_title_filament;
     ComboBox *          m_comboBox_filament;
