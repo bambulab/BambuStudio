@@ -115,7 +115,7 @@ void PrintJob::process()
     }
 
 
-    msg = _L("The printing project is being uploaded... 0%%");
+    msg = _L("The printing project is uploading...");
     curr_percent = 25;
     update_status(curr_percent, msg);
 
@@ -135,7 +135,6 @@ void PrintJob::process()
                 return;
             }
             percent = curr_percent + percent * 50 / 100;
-            msg = wxString::Format(_L("The printing project is being uploaded... %d%%"), percent);
             update_status(percent, msg);
         });
 

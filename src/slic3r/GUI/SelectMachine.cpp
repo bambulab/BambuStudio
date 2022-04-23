@@ -902,11 +902,11 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     m_comboBox_printer->Clear();
 
 
-    if (m_fitst_time_enter) {
+    if (m_first_time_enter) {
         int         err_code;
         std::string err_msg;
         c->update_my_machine_list_info(err_code, err_msg, true);
-        m_fitst_time_enter = false;
+        m_first_time_enter = false;
     }
 
 
@@ -936,8 +936,9 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
 
 
     if (m_list.size() > 0) {
-        if (m_printer_last_select.empty()) { m_list[0]->dev_id; }
-
+        if (m_printer_last_select.empty()) {
+            m_printer_last_select = m_list[0]->dev_name;
+        }
         for (auto i = 0; i < m_list.size(); i++) {
             if (m_list[i]->dev_name == m_printer_last_select) {
                  m_comboBox_printer->SetSelection(i);
@@ -983,7 +984,7 @@ wxImage *SelectMachineDialog::LoadImageFromBlob(const unsigned char *data, int s
 
 bool SelectMachineDialog::Show(bool show)
 {
-    m_fitst_time_enter = true;
+    m_first_time_enter = true;
 
     //thumbmail
     sizer_thumbnail->Clear();

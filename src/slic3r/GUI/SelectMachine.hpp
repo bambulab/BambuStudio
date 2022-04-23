@@ -202,7 +202,7 @@ private:
     void init_bind();
     void init_timer();
 
-    bool            m_fitst_time_enter{true};
+    bool            m_first_time_enter{true};
     int             m_print_plate_idx;
     std::string     m_printer_last_select;
     int             m_bed_last_select{0};
