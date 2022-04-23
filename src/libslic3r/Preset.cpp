@@ -674,7 +674,8 @@ static std::vector<std::string> s_Preset_print_options {
     "prime_tower_width", "wipe_tower_brim_width", "prime_volume",
     "wipe_tower_no_sparse_layers", "compatible_printers", "compatible_printers_condition", "inherits",
     // BBS
-    "tree_support_branch_angle", "tree_support_with_infill", "tree_support_wall_count",
+     "tree_support_branch_angle", "tree_support_with_infill", "tree_support_wall_count", "tree_support_branch_distance",
+     "tree_support_branch_diameter",
      "detect_narrow_internal_solid_infill",
      "gcode_add_line_number", "bbl_bed_temperature_gcode", "enable_arc_fitting", "infill_combination", "adaptive_layer_height",
      "support_transition_speed","support_transition_line_width",

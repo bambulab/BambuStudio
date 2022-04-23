@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-28 11:38+0800\n"
+"POT-Creation-Date: 2022-04-28 16:02+0800\n"
 "PO-Revision-Date: 2022-04-27 21:51+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4867,8 +4867,21 @@ msgid ""
 "tree support allowed to make.If the angle is increased, the branches can be "
 "printed more horizontally, allowing them to reach farther."
 msgstr ""
-"此设置确定了允许树枝支撑的最大悬垂角度。如果角度增加，可以更水平地打印分支，"
+"此设置确定了允许树状支撑的最大悬垂角度。如果角度增加，可以更水平地打印分支，"
 "使它们可以到达更远的地方。"
+
+msgid "Tree support branch distance"
+msgstr "树状支撑分支距离"
+
+msgid ""
+"This setting determines the distance between neighboring tree support nodes."
+msgstr "此设置确定了树状支撑的相邻节点之间的距离。"
+
+msgid "Tree support branch diameter"
+msgstr "树状支撑分支直径"
+
+msgid "This setting determines the initial diameter of support nodes."
+msgstr "此设置确定了树状支撑节点的初始直径。"
 
 msgid "Tree support wall loops"
 msgstr "树状支撑外墙层数"
@@ -5441,12 +5454,6 @@ msgstr "切片网格"
 
 #~ msgid "Wall around the support"
 #~ msgstr "支撑外壁"
-
-#~ msgid "Tree support branch distance"
-#~ msgstr "树状支撑分支距离"
-
-#~ msgid "Tree support branch diameter"
-#~ msgstr "树状支撑分支直径"
 
 #~ msgid "Thick bridges"
 #~ msgstr "桥接面大层高"

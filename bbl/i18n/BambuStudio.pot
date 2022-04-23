@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-28 11:38+0800\n"
+"POT-Creation-Date: 2022-04-28 16:02+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4745,6 +4745,19 @@ msgid ""
 "This setting determines the maximum overhang angle that t he branches of "
 "tree support allowed to make.If the angle is increased, the branches can be "
 "printed more horizontally, allowing them to reach farther."
+msgstr ""
+
+msgid "Tree support branch distance"
+msgstr ""
+
+msgid ""
+"This setting determines the distance between neighboring tree support nodes."
+msgstr ""
+
+msgid "Tree support branch diameter"
+msgstr ""
+
+msgid "This setting determines the initial diameter of support nodes."
 msgstr ""
 
 msgid "Tree support wall loops"

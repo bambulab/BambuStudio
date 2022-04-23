@@ -572,6 +572,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     //BBS
     //((ConfigOptionBool,                wipe_into_objects))
     // BBS
+    ((ConfigOptionFloat,              tree_support_branch_distance))
+    ((ConfigOptionFloat,              tree_support_branch_diameter))
     ((ConfigOptionFloat,              tree_support_branch_angle))
     ((ConfigOptionInt,                tree_support_wall_count))
     ((ConfigOptionBool,               tree_support_with_infill))

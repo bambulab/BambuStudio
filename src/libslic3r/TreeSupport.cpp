@@ -36,7 +36,7 @@ namespace Slic3r
 #define FIRST_LAYER_EXPANSION 1.2
 
 static constexpr float tree_support_branch_distance = 1.0;
-static constexpr float tree_support_branch_diameter = 5.0;
+static constexpr float tree_support_branch_diameter = 1.0;
 static constexpr float tree_support_branch_diameter_angle = 5.0;
 
 inline unsigned int round_divide(unsigned int dividend, unsigned int divisor) //!< Return dividend divided by divisor rounded to the nearest integer
@@ -1418,7 +1418,7 @@ void TreeSupport::generate_toolpaths()
     coordf_t support_spacing = object_config.support_base_pattern_spacing.value + m_support_material_flow.spacing();
     coordf_t support_density = std::min(1., m_support_material_flow.spacing() / support_spacing);
 
-    const coordf_t branch_radius = tree_support_branch_diameter / 2;
+    const coordf_t branch_radius = object_config.tree_support_branch_diameter.value / 2;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
 
     if (m_object->tree_support_layers().empty())
@@ -1896,6 +1896,7 @@ void TreeSupport::generate_support_areas()
 inline coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, size_t tip_layers, double diameter_angle_scale_factor)
 {
     double radius;
+#if 1
     if ((layers_to_top + 1) > tip_layers)
     {
         radius = base_radius + base_radius * (layers_to_top + 1) * diameter_angle_scale_factor;
@@ -1904,6 +1905,11 @@ inline coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, s
     {
         radius = base_radius * (layers_to_top + 1) / tip_layers;
     }
+#else
+    double scale = static_cast<double>(layers_to_top + 1) / tip_layers;
+    scale = layers_to_top < tip_layers ? (0.5 + scale / 2) : (1 + static_cast<double>(layers_to_top - tip_layers) * diameter_angle_scale_factor);
+    radius = scale * base_radius;
+#endif
     radius = std::min(radius, MAX_BRANCH_RADIUS);
     return radius;
 }
@@ -1913,7 +1919,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     const PrintObjectConfig &config = m_object->config();
     bool has_brim = m_object->print()->has_brim();
     int bottom_gap_layers = round(m_slicing_params.gap_object_support / m_slicing_params.layer_height);
-    const coordf_t branch_radius = tree_support_branch_diameter / 2;
+    const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
     Polygon branch_circle; //Pre-generate a circle with correct diameter so that we don't have to recompute those (co)sines every time.
     for (unsigned int i = 0; i < CIRCLE_RESOLUTION; i++)
@@ -1989,8 +1995,9 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                     else {
                         Polygon circle;
                         size_t layers_to_top = node.distance_to_top;
-                        double scale = static_cast<double>(layers_to_top + 1) / tip_layers;
-                        scale = layers_to_top < tip_layers ? (0.5 + scale / 2) : (1 + static_cast<double>(layers_to_top - tip_layers) * diameter_angle_scale_factor);
+                        //double scale = static_cast<double>(layers_to_top + 1) / tip_layers;
+                        //scale = layers_to_top < tip_layers ? (0.5 + scale / 2) : (1 + static_cast<double>(layers_to_top - tip_layers) * diameter_angle_scale_factor);
+                        double scale = calc_branch_radius(1, node.distance_to_top, tip_layers, diameter_angle_scale_factor);
                         scale = std::min(scale, MAX_BRANCH_RADIUS / branch_radius);
                         for (auto iter = branch_circle.points.begin(); iter != branch_circle.points.end(); iter++)
                         {
@@ -2137,6 +2144,12 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                         floor_areas = std::move(diff_ex(floor_areas, bottom_gap));
                     }
                 }
+
+                // remove holes since they are impossible to be printed
+                for (auto& area : base_areas)
+                    area.holes.clear();                
+                for(auto& area: floor_areas)
+                    area.holes.clear();
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
                 draw_contours_and_nodes_to_svg(layer_nr, base_areas, roof_areas, roof_1st_layer, {}, {}, "circles", { "base","roof","roof1st" });
 #endif
@@ -2161,7 +2174,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
     const double tan_angle = tan(angle);
     const coordf_t max_move_distance = (angle < M_PI / 2) ? (coordf_t)(tan_angle * layer_height) : std::numeric_limits<coordf_t>::max();
     const double max_move_distance2 = max_move_distance * max_move_distance;
-    const coordf_t branch_radius = tree_support_branch_diameter / 2;
+    const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
     const size_t tip_layers = branch_radius / layer_height; //The number of layers to be shrinking the circle to create a tip. This produces a 45 degree angle.
     const double diameter_angle_scale_factor = sin(tree_support_branch_diameter_angle * M_PI / 180.) * layer_height / branch_radius; //Scale factor per layer to produce the desired angle.
     const coordf_t radius_sample_resolution = m_ts_data->m_radius_sample_resolution;
@@ -2658,7 +2671,7 @@ void TreeSupport::adjust_layer_heights(std::vector<std::vector<Node*>>& contact_
 void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::Node*>>& contact_nodes)
 {
     const PrintObjectConfig &config = m_object->config();
-    const coordf_t point_spread = scale_(tree_support_branch_distance);
+    const coordf_t point_spread = scale_(config.tree_support_branch_distance.value);
 
     //First generate grid points to cover the entire area of the print.
     BoundingBox bounding_box = m_object->bounding_box();
@@ -2774,6 +2787,21 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                     contact_nodes[layer_nr].emplace_back(contact_node);
                 }
             }
+
+            // add points at corners
+            auto& points = overhang_part.contour.points;
+            for (int i=0;i<points.size();i++)
+            {
+                auto pt = points[i];
+                auto v1 = (pt - points[(i - 1 + points.size()) % points.size()]).normalized();
+                auto v2 = (pt - points[(i + 1) % points.size()]).normalized();
+                if (v1.dot(v2) > -0.7) {
+                    Node* contact_node = new Node(pt, 0, layer_nr % 2, support_roof_layers, true, Node::NO_PARENT, print_z, height);
+                    contact_nodes[layer_nr].emplace_back(contact_node);
+                }
+            }
+
+        
         }
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG

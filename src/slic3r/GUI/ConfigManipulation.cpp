@@ -518,7 +518,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     toggle_field("support_threshold_angle", have_support_material && (support_type == stNormalAuto || support_type == stTreeAuto || support_type==stHybridAuto));
     //toggle_field("support_closing_radius", have_support_material && support_style == smsSnug);
 
-    for (auto el : { "tree_support_branch_angle", "tree_support_wall_count", "tree_support_with_infill" })
+    for (auto el : {"tree_support_branch_angle", "tree_support_wall_count", "tree_support_with_infill", "tree_support_branch_distance", "tree_support_branch_diameter"})
         toggle_field(el, config->opt_bool("enable_support") && (support_type == stTreeAuto || support_type == stTree || support_type == stHybridAuto));
 
     for (auto el : { "support_interface_spacing", "support_interface_filament",

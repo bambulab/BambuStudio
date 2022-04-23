@@ -1803,6 +1803,8 @@ void TabPrint::build()
 
         //BBS
         optgroup = page->new_optgroup(L("Advanced"));
+        optgroup->append_single_option_line("tree_support_branch_distance");
+        optgroup->append_single_option_line("tree_support_branch_diameter");
         optgroup->append_single_option_line("tree_support_branch_angle");
         optgroup->append_single_option_line("tree_support_wall_count");
         optgroup->append_single_option_line("tree_support_with_infill");

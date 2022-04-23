@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-28 11:38+0800\n"
+"POT-Creation-Date: 2022-04-28 16:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4991,6 +4991,19 @@ msgstr ""
 "support are allowed to make. If the angle is increased, the branches can be "
 "printed more horizontally, allowing them to reach farther."
 
+msgid "Tree support branch distance"
+msgstr ""
+
+msgid ""
+"This setting determines the distance between neighboring tree support nodes."
+msgstr ""
+
+msgid "Tree support branch diameter"
+msgstr ""
+
+msgid "This setting determines the initial diameter of support nodes."
+msgstr ""
+
 msgid "Tree support wall loops"
 msgstr ""
 
@@ -5239,7 +5252,6 @@ msgstr ""
 msgid "Slicing mesh"
 msgstr ""
 
-#, c-format
 #~ msgid ""
 #~ "Speed for line of wall which has degree of overhang between 0% and "
 #~ "25% line width. 0 means using original wall speed"
@@ -5247,7 +5259,6 @@ msgstr ""
 #~ "Speed for lines of walls which have a degree of overhang between 0% and "
 #~ "25% line width. 0 means using original wall speed."
 
-#, c-format
 #~ msgid ""
 #~ "Speed for line of wall which has degree of overhang between 25% and "
 #~ "50% line width. 0 means using original wall speed"
@@ -5255,7 +5266,6 @@ msgstr ""
 #~ "Speed for lines of walls which have a degree of overhang between 25% and "
 #~ "50% line width. 0 means using original wall speed."
 
-#, c-format
 #~ msgid ""
 #~ "Speed for line of wall which has degree of overhang between 50% and "
 #~ "75% line width. 0 means using original wall speed"
@@ -5263,7 +5273,6 @@ msgstr ""
 #~ "Speed for lines of walls which have a degree of overhang between 50% and "
 #~ "75% line width. 0 means using original wall speed."
 
-#, c-format
 #~ msgid ""
 #~ "Speed for line of wall which has degree of overhang between 75% and "
 #~ "100% line width. 0 means using original wall speed"
@@ -5280,7 +5289,6 @@ msgstr ""
 #~ msgid "Bmabu High Temperature Plate"
 #~ msgstr "Bambu high temperature plate"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Detect the overhang percentage relative to line width and use different "
 #~ "speed to print. For 100% overhang, bridge speed is used"

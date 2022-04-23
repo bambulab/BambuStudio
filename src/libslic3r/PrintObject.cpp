@@ -634,6 +634,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "raft_first_layer_expansion"
             || opt_key == "bridge_no_support"
             || opt_key == "initial_layer_line_width"
+            || opt_key == "tree_support_branch_distance" 
+            || opt_key == "tree_support_branch_diameter"
             || opt_key == "tree_support_branch_angle"
             || opt_key == "tree_support_with_infill"
             || opt_key == "tree_support_wall_count") {

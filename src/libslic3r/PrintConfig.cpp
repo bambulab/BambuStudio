@@ -2267,6 +2267,26 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(40.));
 
+    def           = this->add("tree_support_branch_distance", coFloat);
+    def->label    = L("Tree support branch distance");
+    def->category = L("Support");
+    def->tooltip  = L("This setting determines the distance between neighboring tree support nodes.");
+    def->sidetext = L("mm");
+    def->min      = 1.0;
+    def->max      = 10;
+    def->mode     = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(5.));
+
+    def           = this->add("tree_support_branch_diameter", coFloat);
+    def->label    = L("Tree support branch diameter");
+    def->category = L("Support");
+    def->tooltip  = L("This setting determines the initial diameter of support nodes.");
+    def->sidetext = L("mm");
+    def->min      = 1.0;
+    def->max      = 10;
+    def->mode     = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(5.));
+
     def = this->add("tree_support_wall_count", coInt);
     def->label = L("Tree support wall loops");
     def->category = L("Support");
