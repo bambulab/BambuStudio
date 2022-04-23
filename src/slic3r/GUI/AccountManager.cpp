@@ -61,6 +61,16 @@ namespace Slic3r {
         if (successFn) {
             successFn(cli_.get_client_id());
         }
+        // re sucscribe the monitoring printer
+        AccountManager* manager = (AccountManager*)context_;
+        if (manager) {
+            GUI::wxGetApp().CallAfter([manager] {
+                MachineObject* obj = manager->get_default_machine();
+                if (obj) {
+                    manager->set_monitor_machine(obj->dev_id);
+                }
+            });
+        }
     }
 
     void cloud_conn_callback::on_failure(const mqtt::token& tok)
@@ -98,8 +108,8 @@ namespace Slic3r {
             /* params[1] is dev id, topic is : device/[dev_id]/report */
             std::map<std::string, MachineObject*>::iterator it = manager->myBindMachineList.find(params[1]);
             if (it == manager->myBindMachineList.end()) return;
+
             std::string json_str;
-            if (it == manager->myBindMachineList.end()) return;
 
             if (it->second) {
                 try {
