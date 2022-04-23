@@ -202,8 +202,8 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     this->AddSeparator();
     this->AddSpacer(FromDIP(5));
 
-    wxBitmap open_bitmap = create_scaled_bitmap("topbar_open", nullptr, TOPBAR_ICON_SIZE);
-    wxAuiToolBarItem* tool_item = this->AddTool(wxID_OPEN, "", open_bitmap);
+    //wxBitmap open_bitmap = create_scaled_bitmap("topbar_open", nullptr, TOPBAR_ICON_SIZE);
+    //wxAuiToolBarItem* tool_item = this->AddTool(wxID_OPEN, "", open_bitmap);
 
     this->AddSpacer(FromDIP(10));
 
@@ -500,8 +500,8 @@ void BBLTopbar::Rescale() {
     item = this->FindTool(ID_TOP_DROPDOWN_MENU);
     item->SetBitmap(create_scaled_bitmap("topbar_dropdown", nullptr, TOPBAR_ICON_SIZE));
 
-    item = this->FindTool(wxID_OPEN);
-    item->SetBitmap(create_scaled_bitmap("topbar_open", nullptr, TOPBAR_ICON_SIZE));
+    //item = this->FindTool(wxID_OPEN);
+    //item->SetBitmap(create_scaled_bitmap("topbar_open", nullptr, TOPBAR_ICON_SIZE));
 
     item = this->FindTool(wxID_SAVE);
     item->SetBitmap(create_scaled_bitmap("topbar_save", nullptr, TOPBAR_ICON_SIZE));
