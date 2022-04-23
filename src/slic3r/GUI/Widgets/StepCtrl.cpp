@@ -16,7 +16,7 @@ StepCtrlBase::StepCtrlBase(wxWindow *      parent,
                    const wxSize &  size,
                    long            style)
     : StaticBox(parent, id, pos, size, style)
-    , font_tip(Label::Body_16)
+    , font_tip(Label::Body_14)
     , clr_bar(0xACACAC)
     , clr_step(0xACACAC)
     , clr_text(std::make_pair(0x00AE42, (int) StateColor::Checked), 
@@ -240,7 +240,7 @@ void StepIndicator::doRender(wxDC &dc)
         font_height = dc.GetTextExtent(steps[0]).y;
 
     int    itemWidth = steps.size() == 1 ? size.y : (size.y - font_height) / (steps.size() - 1);
-    wxRect rcBar     = {radius - bar_width / 2, radius, bar_width, size.y - radius * 2};
+    wxRect rcBar     = {radius - bar_width / 2, radius, bar_width, size.y - radius * 4};
 
     dc.SetPen(wxPen(clr_bar.colorForStates(states)));
     dc.SetBrush(wxBrush(clr_bar.colorForStates(states)));
@@ -257,7 +257,14 @@ void StepIndicator::doRender(wxDC &dc)
                 | (disabled ? StateColor::Disabled : checked ? StateColor::Checked : 0)));
         dc.SetFont(checked ? GetFont().Bold() : GetFont());
         wxSize textSize = dc.GetTextExtent(steps[i]);
-        dc.DrawText(steps[i], circleX + radius * 3, circleY - (textSize.y/2));
+
+
+        if (steps[i].Find("\n") >= 0) {
+            dc.DrawText(steps[i], circleX + radius * 3, circleY - textSize.y / 4);
+        } else {
+            dc.DrawText(steps[i], circleX + radius * 3, circleY - (textSize.y/2));
+        }
+        
         if (disabled) {
             wxSize sz = bmp_ok.GetBmpSize();
             dc.DrawBitmap(bmp_ok.bmp(), circleX - radius, circleY - radius);

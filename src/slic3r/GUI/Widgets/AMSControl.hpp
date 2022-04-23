@@ -7,15 +7,21 @@
 #include "Button.hpp"
 #include "../DeviceManager.hpp"
 #include <wx/simplebook.h>
+#include <wx/hyperlink.h>
+#include <wx/animate.h>
 
+#define AMS_CONTROL_BRAND_COLOUR wxColour(0, 174, 66)
+#define AMS_CONTROL_GRAY700 wxColour(107, 107, 107)
+#define AMS_CONTROL_GRAY800 wxColour(50, 58, 61)
+#define AMS_CONTROL_GRAY500 wxColour(172, 172, 172)
 #define AMS_CONTROL_DISABLE_COLOUR wxColour(206, 206, 206)
-#define AMS_CONTROL_DISABLE_TEXT_COLOUR wxColour(144,144,144)
+#define AMS_CONTROL_DISABLE_TEXT_COLOUR wxColour(144, 144, 144)
 #define AMS_CONTROL_WHITE_COLOUR wxColour(255, 255, 255)
 #define AMS_CONTROL_BLACK_COLOUR wxColour(0, 0, 0)
-#define AMS_CONTROL_ROAD_DEF_COLOUR wxColour(172, 172, 172)
 #define AMS_CONTROL_DEF_BLOCK_BK_COLOUR wxColour(238, 238, 238)
-#define AMS_EXTRUDER_DEF_COLOUR wxColour(234,234,234)
+#define AMS_EXTRUDER_DEF_COLOUR wxColour(234, 234, 234)
 #define AMS_CONTROL_MAX_COUNT 4
+#define AMS_CONTRO_CALIBRATION_BUTTON_SIZE wxSize(FromDIP(150), FromDIP(28))
 
 // enum AMSRoadMode{
 //    AMS_ROAD_MODE_LEFT,
@@ -23,13 +29,13 @@
 //    AMS_ROAD_MODE_END,
 //};
 
-namespace Slic3r {
-namespace GUI {
+namespace Slic3r { namespace GUI {
 
 enum class AMSRoadMode : int {
     AMS_ROAD_MODE_LEFT,
     AMS_ROAD_MODE_LEFT_RIGHT,
     AMS_ROAD_MODE_END,
+    AMS_ROAD_MODE_NONE,
 };
 
 enum class AMSPassRoadMode : int {
@@ -106,17 +112,21 @@ class AMSrefresh : public wxWindow
 {
 public:
     AMSrefresh();
-    AMSrefresh(wxWindow *parent, wxWindowID id, wxString number = wxEmptyString, std::string canid = "", const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    AMSrefresh(
+        wxWindow *parent, wxWindowID id, wxString number = wxEmptyString, std::string canid = "", const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     AMSrefresh(wxWindow *parent, wxWindowID id, int number, std::string canid, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
-    void create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
-    void OnEnterWindow(wxMouseEvent &evt);
-    void OnLeaveWindow(wxMouseEvent &evt);
-    void OnClick(wxMouseEvent &evt);
-    void post_event(wxCommandEvent &&event);
-    void paintEvent(wxPaintEvent &evt);  
+    void        PlayLoading();
+    void        StopLoading();
+    void        create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
+    void        OnEnterWindow(wxMouseEvent &evt);
+    void        OnLeaveWindow(wxMouseEvent &evt);
+    void        OnClick(wxMouseEvent &evt);
+    void        post_event(wxCommandEvent &&event);
+    void        paintEvent(wxPaintEvent &evt);
     std::string m_canid;
 
 protected:
+    wxAnimationCtrl *m_animationCtrl = {nullptr};
     bool         m_selected = {false};
     wxBitmap     m_bitmap_normal;
     wxBitmap     m_bitmap_selected;
@@ -138,7 +148,7 @@ public:
     void render(wxDC &dc);
     void doRender(wxDC &dc);
 
-    bool     m_turn_on                = {false};
+    bool     m_turn_on = {false};
     wxBitmap monitor_ams_extruder_off;
     wxBitmap monitor_ams_extruder_on;
     AMSextruder(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
@@ -155,27 +165,31 @@ public:
     void create(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
 
 public:
-    int  m_can_index;
+    int          m_can_index;
     std::string  m_can_id;
-    void Update(Caninfo info, bool refresh = true);
-    void UnableSelected() { m_unable_selected = true; };
-    void ableSelected() { m_unable_selected = false; };
-    void SetLibColour(wxColour const &color);
-    void OnSelected();
-    void UnSelected();
+    void         Update(Caninfo info, bool refresh = true);
+    void         UnableSelected() { m_unable_selected = true; };
+    void         ableSelected() { m_unable_selected = false; };
+    void         SetLibColour(wxColour const &color);
+    void         OnSelected();
+    void         UnSelected();
+
     virtual bool Enable(bool enable = true);
-    void post_event(wxCommandEvent &&event);
+    void         post_event(wxCommandEvent &&event);
 
 protected:
-    wxBitmap m_bitmap_editable;
-    bool     m_unable_selected = {false};
-    bool     m_enable = {false};
-    bool     m_selected        = {false};
-    Caninfo  m_info;
-    double   m_radius = {4};
-    wxColour m_border_color;
-    wxColour m_road_def_color;
-    wxColour m_lib_color;
+    wxStaticBitmap *m_edit_bitmp;
+    wxStaticBitmap *m_edit_bitmp_light;
+    wxBitmap        m_bitmap_editable;
+    wxBitmap        m_bitmap_editable_lifht;
+    bool            m_unable_selected = {false};
+    bool            m_enable          = {false};
+    bool            m_selected        = {false};
+    Caninfo         m_info;
+    double          m_radius = {4};
+    wxColour        m_border_color;
+    wxColour        m_road_def_color;
+    wxColour        m_lib_color;
 
     void paintEvent(wxPaintEvent &evt);
     void render(wxDC &dc);
@@ -222,14 +236,14 @@ public:
     AMSItem();
     AMSItem(wxWindow *parent, wxWindowID id, AMSinfo amsinfo, const wxSize cube_size = wxSize(14, 14), const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
 
-    void    create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
-    void    OnEnterWindow(wxMouseEvent &evt);
-    void    OnLeaveWindow(wxMouseEvent &evt);
-    void    SetCubeSize(wxSize size);
-    void    OnSelected();
-    void    UnSelected();
+    void         create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
+    void         OnEnterWindow(wxMouseEvent &evt);
+    void         OnLeaveWindow(wxMouseEvent &evt);
+    void         SetCubeSize(wxSize size);
+    void         OnSelected();
+    void         UnSelected();
     virtual bool Enable(bool enable = true);
-    AMSinfo m_amsinfo;
+    AMSinfo      m_amsinfo;
 
 protected:
     wxSize   m_cube_size;
@@ -249,6 +263,13 @@ protected:
 /*************************************************
 Description:AmsCans
 **************************************************/
+class Canrefreshs
+{
+public:
+    wxString canID;
+    AMSrefresh * canrefresh;
+};
+
 class CanLibs
 {
 public:
@@ -263,6 +284,7 @@ public:
     AMSRoad *canRoad;
 };
 
+WX_DECLARE_HASH_MAP(wxString, Canrefreshs *, wxStringHash, wxStringEqual, CanrefreshsHash);
 WX_DECLARE_HASH_MAP(wxString, CanLibs *, wxStringHash, wxStringEqual, CanLibsHash);
 WX_DECLARE_HASH_MAP(wxString, CanRoads *, wxStringHash, wxStringEqual, CansRoadsHash);
 
@@ -272,11 +294,15 @@ public:
     AmsCans();
     AmsCans(wxWindow *parent, wxWindowID id, AMSinfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
 
-    void create(wxWindow *parent, wxWindowID id, AMSinfo info, const wxPoint &pos, const wxSize &size);
-    void UpdateCan(AMSinfo info);
-    void AddCan(Caninfo caninfo, int canindex, int maxcan);
-    void SelectCan(std::string can_id);
-    void SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step);
+    void        create(wxWindow *parent, wxWindowID id, AMSinfo info, const wxPoint &pos, const wxSize &size);
+    void        UpdateCan(AMSinfo info);
+    void        AddCan(Caninfo caninfo, int canindex, int maxcan);
+    void        SelectCan(std::string can_id);
+    void        SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step);
+
+    void        PlayRridLoading(wxString canid);
+    void        StopRridLoading(wxString canid);
+
     std::string GetCurrentCan() { return m_canlib_id; };
 
 public:
@@ -286,6 +312,7 @@ public:
     int             m_can_count = {0};
     CanLibsHash     m_can_lib_list;
     CansRoadsHash   m_can_road_list;
+    CanrefreshsHash m_can_refresh_list;
     AMSinfo         m_info;
     wxBoxSizer *    sizer_can = {nullptr};
     AMSPassRoadSTEP m_step    = {AMSPassRoadSTEP ::AMS_ROAD_STEP_NONE};
@@ -312,7 +339,7 @@ public:
 WX_DECLARE_HASH_MAP(wxString, AmsCansWindow *, wxStringHash, wxStringEqual, AmsCansHash);
 WX_DECLARE_HASH_MAP(wxString, AmsItems *, wxStringHash, wxStringEqual, AmsItemsHash);
 
-class AMSControl : public wxWindow
+class AMSControl : public wxSimplebook
 {
 public:
     AMSControl(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
@@ -320,30 +347,53 @@ public:
     void init_scaled_buttons();
 
 protected:
+    int m_ams_count = {0};
+
     std::map<std::string, int> m_ams_selection;
     std::vector<AMSinfo>       m_ams_info;
 
-    std::string m_current_ams;
-    int m_ams_count = {0};
-
+    std::string  m_current_ams;
     AmsItemsHash m_ams_item_list;
     AmsCansHash  m_ams_cans_list;
 
-    wxSimplebook *m_simplebook;
-    wxWindow *    m_panel_top  = {nullptr};
-    StaticBox *   m_panel_can  = {nullptr};
-    wxBoxSizer *  m_sizer_top  = {nullptr};
-    wxBoxSizer *  m_sizer_cans = {nullptr};
+    wxSimplebook *m_simplebook_right       = {nullptr};
+    wxSimplebook *m_simplebook_calibration = {nullptr};
+    wxSimplebook *m_simplebook_ams         = {nullptr};
+    wxSimplebook *m_simplebook_cans        = {nullptr};
 
-    ::StepIndicator *m_filament_step;
-    Button *         m_button_extruder_feed;
-    Button *         m_button_extruder_back;
-    Button *         m_button_ams_setting;
+    wxStaticText *m_tip_load_info            = {nullptr};
+    wxStaticText *m_text_calibration_percent = {nullptr};
+    wxWindow *    m_none_ams_panel           = {nullptr};
+    wxWindow *    m_panel_top                = {nullptr};
+
+    StaticBox * m_panel_can  = {nullptr};
+    wxBoxSizer *m_sizer_top  = {nullptr};
+    wxBoxSizer *m_sizer_cans = {nullptr};
+
+    ::StepIndicator *m_filament_step = {nullptr};
+
+    Button *m_button_extruder_feed = {nullptr};
+    Button *m_button_extruder_back = {nullptr};
+    Button *m_button_ams_setting   = {nullptr};
+
+    wxHyperlinkCtrl *m_hyperlink = {nullptr};
 
 public:
     std::string GetCurentAms();
     std::string GetCurrentCan(std::string amsid);
-    void msw_rescale();
+
+    void EnterNoneAMSMode();
+    void ExitNoneAMSMode();
+
+    void EnterCalibrationMode(bool read_to_calibration);
+    void ExitcClibrationMode();
+
+    void SetClibrationpercent(int percent);
+    void SetClibrationLink(wxString link);
+
+    void PlayRridLoading(wxString amsid, wxString canid);
+    void StopRridLoading(wxString amsid, wxString canid);
+
     void UpdateStepCtrl(bool load = true);
     void UpdateAms(std::vector<AMSinfo> info, bool keep_selection = true);
     void AddAms(AMSinfo info, bool refresh = true);
@@ -351,12 +401,15 @@ public:
     void RemoveAll();
     void SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP STEP);
     void SwitchAms(std::string ams_id);
-    void SetFilamentStep(int item_idx);
-    virtual bool Enable(bool enable = true); 
+    void SetFilamentStep(int item_idx, bool hasams = true);
+    virtual bool Enable(bool enable = true);
 
+    void msw_rescale();
     void on_filament_load(wxCommandEvent &event);
     void on_filament_unload(wxCommandEvent &event);
     void on_ams_setting_click(wxCommandEvent &event);
+    void on_clibration_again_click(wxMouseEvent &event);
+    void on_clibration_cancel_click(wxMouseEvent &event);
 
     void post_event(wxEvent &&event);
 
@@ -370,8 +423,9 @@ wxDECLARE_EVENT(EVT_AMS_SETTINGS, SimpleEvent);
 wxDECLARE_EVENT(EVT_AMS_REFRESH_RFID, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_ON_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_ON_FILAMENT_EDIT, wxCommandEvent);
+wxDECLARE_EVENT(EVT_AMS_CLIBRATION_AGAIN, wxCommandEvent);
+wxDECLARE_EVENT(EVT_AMS_CLIBRATION_CANCEL, wxCommandEvent);
 
-}
-}
+}} // namespace Slic3r::GUI
 
 #endif // !slic3r_GUI_amscontrol_hpp_

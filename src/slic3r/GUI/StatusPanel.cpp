@@ -629,15 +629,17 @@ wxBoxSizer *StatusBasePanel::create_bed_control()
     StateColor z_1_ctrl_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered),
                            std::pair<wxColour, int>(BUTTON_NORMAL2_COL, StateColor::Normal));
 
-    m_bpButton_z_10 = new Button(this, wxString("+10"));
+    m_bpButton_z_10 = new Button(this, wxString("10"), "monitor_bed_up", 0, FromDIP(15));
     m_bpButton_z_10->SetBackgroundColor(z_10_ctrl_bg);
     m_bpButton_z_10->SetBorderColor(z_10_ctrl_bd);
     m_bpButton_z_10->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
                                 std::make_pair(NORMAL_TEXT_COL,(int) StateColor::Normal)));
+    m_bpButton_z_10->SetMinSize(wxSize(FromDIP(48), FromDIP(40)));
+    m_bpButton_z_10->SetCornerRadius(0);
 
     bSizer_z_ctrl->Add(m_bpButton_z_10, 1, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
-    m_bpButton_z_1 = new Button(this, wxString("+1"));
+    m_bpButton_z_1 = new Button(this, wxString("1"),"monitor_bed_up", 0, FromDIP(15));
     m_bpButton_z_1->SetBackgroundColor(z_1_ctrl_bg);
     m_bpButton_z_1->SetBorderColor(z_1_ctrl_bd);
     m_bpButton_z_1->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
@@ -647,7 +649,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control()
 
     bSizer_z_ctrl->Add(0, FromDIP(6), 0, wxEXPAND, 0);
 
-    m_bpButton_z_down_1 = new Button(this, wxString("-1"));
+    m_bpButton_z_down_1 = new Button(this, wxString("1"),"monitor_bed_up", 0, FromDIP(15));
     m_bpButton_z_down_1->SetBackgroundColor(z_1_ctrl_bg);
     m_bpButton_z_down_1->SetBorderColor(z_1_ctrl_bd);
     m_bpButton_z_down_1->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
@@ -655,7 +657,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control()
 
     bSizer_z_ctrl->Add(m_bpButton_z_down_1, 1, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
-    m_bpButton_z_down_10 = new Button(this, wxString("-10"));
+    m_bpButton_z_down_10 = new Button(this, wxString("10"), "monitor_bed_down", 0, FromDIP(15));
     m_bpButton_z_down_10->SetBackgroundColor(z_10_ctrl_bg);
     m_bpButton_z_down_10->SetBorderColor(z_10_ctrl_bd);
     m_bpButton_z_down_10->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
@@ -739,13 +741,12 @@ wxBoxSizer *StatusBasePanel::create_ams_group()
 
     // display demo, to be removed
     auto caninfo0_0 = Caninfo{"0", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_1 = Caninfo{"1", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_2 = Caninfo{"2", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_3 = Caninfo{"3", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    AMSinfo ams1 = AMSinfo{"0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    std::vector<AMSinfo> ams_info{ams1};
-    m_ams_control->UpdateAms(ams_info);
-
+     auto caninfo0_1 = Caninfo{"1", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+     auto caninfo0_2 = Caninfo{"2", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+     auto caninfo0_3 = Caninfo{"3", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+     AMSinfo ams1 = AMSinfo{"0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+     std::vector<AMSinfo> ams_info{ams1};
+     m_ams_control->UpdateAms(ams_info);
     return sizer;
 }
 
@@ -1275,22 +1276,22 @@ void StatusPanel::on_axis_ctrl_xy(wxCommandEvent &event)
 
 void StatusPanel::on_axis_ctrl_z_up_10(wxCommandEvent &event)
 {
-    if (obj) obj->command_axis_control("Z", 1.0, 10.0f, 900);
+   if (obj) obj->command_axis_control("Z", 1.0, -10.0f, 900);
 }
 
 void StatusPanel::on_axis_ctrl_z_up_1(wxCommandEvent &event)
 {
-    if (obj) obj->command_axis_control("Z", 1.0, 1.0f, 900);
+    if (obj) obj->command_axis_control("Z", 1.0, -1.0f, 900);
 }
 
 void StatusPanel::on_axis_ctrl_z_down_1(wxCommandEvent &event)
 {
-    if (obj) obj->command_axis_control("Z", 1.0, -1.0f, 900);
+    if (obj) obj->command_axis_control("Z", 1.0, 1.0f, 900);
 }
 
 void StatusPanel::on_axis_ctrl_z_down_10(wxCommandEvent &event)
 {
-    if (obj) obj->command_axis_control("Z", 1.0, -10.0f, 900);
+    if (obj) obj->command_axis_control("Z", 1.0, 10.0f, 900);
 }
 
 void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent &event)
