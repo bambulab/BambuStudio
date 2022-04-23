@@ -6,7 +6,7 @@
 namespace Slic3r { namespace GUI {
 
 AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
-    : DPIDialog(parent, id, wxEmptyString, pos, size, style)
+    : wxPopupTransientWindow(parent, wxBORDER_NONE)
 {
     create();
 }
@@ -54,11 +54,11 @@ void AMSMaterialsSetting::create()
     m_sizer_temperature->Add(0, 0, 0, wxEXPAND, 0);
 
     wxBoxSizer *sizer_other = new wxBoxSizer(wxVERTICAL);
-    m_label_other = new wxStaticText(m_panel_body, wxID_ANY, _L("Others"), wxDefaultPosition, wxDefaultSize, 0);
-    m_label_other->SetFont(::Label::Body_13);
-    m_label_other->SetForegroundColour(AMS_MATERIALS_SETTING_GREY300);
-    m_label_other->Wrap(-1);
-    sizer_other->Add(m_label_other, 0, wxALIGN_CENTER, 0);
+      //m_label_other = new wxStaticText(m_panel_body, wxID_ANY, _L("Others"), wxDefaultPosition, wxDefaultSize, 0);
+      //m_label_other->SetFont(::Label::Body_13);
+      //m_label_other->SetForegroundColour(AMS_MATERIALS_SETTING_GREY300);
+      //m_label_other->Wrap(-1);
+      //sizer_other->Add(m_label_other, 0, wxALIGN_CENTER, 0);
 
     wxBoxSizer * sizer_tempinput_other= new wxBoxSizer(wxHORIZONTAL);;
     m_input_other = new TextInput(m_panel_body, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE, wxTE_CENTER|wxTE_PROCESS_ENTER);
@@ -68,9 +68,14 @@ void AMSMaterialsSetting::create()
     sizer_tempinput_other->Add(bitmapother, 0, wxALIGN_CENTER, 0);
     sizer_other->Add(sizer_tempinput_other, 0, wxALIGN_CENTER, 0);
 
-    m_sizer_temperature->Add(sizer_other, 0, wxALL | wxEXPAND, 0);
+    m_sizer_temperature->Add(sizer_other, 0, wxALL | wxALIGN_CENTER, 0);
     m_sizer_temperature->AddStretchSpacer();
 
+    auto warning_string = _L("The minmum temperature should not be less than " + wxString::Format("%d", 100));
+    warning_text = new wxStaticText(m_panel_body, wxID_ANY, warning_string, wxDefaultPosition, wxDefaultSize, 0);
+    warning_text->SetFont(::Label::Body_13);
+    warning_text->SetForegroundColour(wxColour(255,111,0));
+    warning_text->Wrap(-1);
    
     wxBoxSizer *m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_button->Add(0, 0, 1, wxEXPAND, 0);
@@ -92,6 +97,8 @@ void AMSMaterialsSetting::create()
     m_sizer_body->Add(m_sizer_colour, 0, wxEXPAND, 0);
     m_sizer_body->Add(0,0,0,wxEXPAND | wxTOP, 16);
     m_sizer_body->Add(m_sizer_temperature, 0, wxEXPAND, 0);
+    m_sizer_body->Add(0,0,0,wxEXPAND | wxTOP, 5);
+    m_sizer_body->Add(warning_text, 0, wxEXPAND, 0);
     m_sizer_body->Add(0,0,0,wxEXPAND | wxTOP, 24);
     m_sizer_body->Add(m_sizer_button, 0, wxEXPAND, 0);
 
@@ -137,7 +144,7 @@ void AMSMaterialsSetting::on_select_ok(wxMouseEvent &event)
         }
     }
 
-    EndModal(true);
+    Dismiss();
 }
 
 void AMSMaterialsSetting::set_color(wxColour color)
@@ -145,7 +152,7 @@ void AMSMaterialsSetting::set_color(wxColour color)
     m_colourPicker1->SetColour(color);
 }
 
-bool AMSMaterialsSetting::Show(bool show)
+void AMSMaterialsSetting::Popup(bool show)
 {
     int selection_idx = -1, idx = 0;
     wxArrayString filament_items;
@@ -162,7 +169,7 @@ bool AMSMaterialsSetting::Show(bool show)
                         if (opt_strs) {
                             opt_strs->get_at(0);
                             wxString text_nozzle_temp = wxString::Format("%s", opt_strs->get_at(0));
-                            m_input_other->GetTextCtrl()->SetValue(text_nozzle_temp);
+                            //m_input_other->GetTextCtrl()->SetValue(text_nozzle_temp);
                         }
                     }
                 }
@@ -174,13 +181,18 @@ bool AMSMaterialsSetting::Show(bool show)
             }
         }
     }
-    return DPIDialog::Show(show);
+    wxPopupTransientWindow::Popup();
 }
 
-void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect) 
-{
-    m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
+void AMSMaterialsSetting::SetMaxTemp(int max) 
+{ 
+    max_temp = max; 
 }
+
+//void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect) 
+//{
+//    m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
+//}
 
 void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 {
