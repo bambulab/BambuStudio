@@ -1964,6 +1964,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 Node* first_node = curr_layer_nodes.front();
                 ts_layer->print_z = first_node->print_z;
                 ts_layer->height = first_node->height;
+
                 if (ts_layer->height < EPSILON)
                     continue;
 
@@ -2228,6 +2229,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                 Node* next_node = new Node(*p_node);
                 next_node->distance_to_top++;
                 next_node->support_roof_layers_below--;
+                next_node->print_z -= m_object->get_layer(layer_nr)->height;
                 contact_nodes[layer_nr - 1].emplace_back(next_node);
             }
         }
@@ -2363,7 +2365,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     size_t new_support_roof_layers_below = std::max(node.support_roof_layers_below, neighbour->support_roof_layers_below) - 1;
 
                     const bool to_buildplate = !is_inside_ex(m_ts_data->get_avoidance(0, layer_nr - 1), next_position);
-                    Node* next_node = new Node(next_position, new_distance_to_top, node.skin_direction, new_support_roof_layers_below, to_buildplate, p_node);
+                    Node* next_node = new Node(next_position, new_distance_to_top, node.skin_direction, new_support_roof_layers_below, to_buildplate, p_node,p_node->print_z,p_node->height);
                     next_node->movement = next_position - node.position;
                     contact_nodes[layer_nr - 1].push_back(next_node);
 
@@ -2524,8 +2526,9 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                 }
 
                 const bool to_buildplate = !is_inside_ex(m_ts_data->m_layer_outlines[layer_nr], next_layer_vertex);// !is_inside_ex(m_ts_data->get_avoidance(m_ts_data->m_xy_distance, layer_nr - 1), next_layer_vertex);
-                Node* next_node = new Node(next_layer_vertex, node.distance_to_top + 1, node.skin_direction, node.support_roof_layers_below - 1, to_buildplate, p_node);
-                next_node->movement = movement;
+                Node *     next_node     = new Node(next_layer_vertex, node.distance_to_top + 1, node.skin_direction, node.support_roof_layers_below - 1, to_buildplate, p_node,
+                                           m_object->get_layer(layer_nr - 1)->print_z, m_object->get_layer(layer_nr-1)->height);
+                next_node->movement  = movement;
                 contact_nodes[layer_nr - 1].push_back(next_node);
             }
         }
@@ -2584,8 +2587,6 @@ void TreeSupport::adjust_layer_heights(std::vector<std::vector<Node*>>& contact_
         return;
     }
 
-    assert(!config.adaptive_layer_height);
-
     // extreme layer_id
     std::vector<int> extremes;
     const coordf_t layer_height = config.layer_height.value;
@@ -2635,7 +2636,7 @@ void TreeSupport::adjust_layer_heights(std::vector<std::vector<Node*>>& contact_
         assert(step >= layer_height - EPSILON);
         for (int layer_nr = extr1_layer_nr + 1; layer_nr < extr2_layer_nr; layer_nr++) {
             std::vector<Node*>& curr_layer_nodes = contact_nodes[layer_nr];
-            if (std::abs(print_z - m_object->get_layer(layer_nr)->print_z) < layer_height / 2 + EPSILON) {
+            if (std::abs(print_z - curr_layer_nodes[0]->print_z) < step / 2 + EPSILON) {
                 for (Node* node : curr_layer_nodes) {
                     node->print_z = print_z;
                     node->height = step;
@@ -2643,9 +2644,9 @@ void TreeSupport::adjust_layer_heights(std::vector<std::vector<Node*>>& contact_
                 print_z += step;
             }
             else {
-                for (Node* node : curr_layer_nodes) {
+                for (Node *node : curr_layer_nodes) {
                     node->print_z = 0.0;
-                    node->height = 0.0;
+                    node->height  = 0.0;
                 }
             }
         }
@@ -2716,6 +2717,8 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
             continue;
 
         m_highest_overhang_layer = std::max(m_highest_overhang_layer, layer_nr);
+        auto print_z             = m_object->get_layer(layer_nr)->print_z;
+        auto height              = m_object->get_layer(layer_nr)->height;
 
         for (const ExPolygon &overhang_part : overhang)
         {
@@ -2724,7 +2727,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                 Point candidate = overhang_bounds.center();
                 if (!overhang_part.contains(candidate))
                     move_inside_expoly(overhang_part, candidate);
-                Node* contact_node = new Node(candidate, 0, (layer_nr + z_distance_top_layers) % 2, support_roof_layers, true, Node::NO_PARENT);
+                Node *contact_node     = new Node(candidate, 0, (layer_nr + z_distance_top_layers) % 2, support_roof_layers, true, Node::NO_PARENT, print_z, height);
                 contact_node->type = ePolygon;
                 contact_node->overhang = &overhang_part;
                 contact_nodes[layer_nr].emplace_back(contact_node);
@@ -2748,7 +2751,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                         {
                             constexpr size_t distance_to_top = 0;
                             constexpr bool to_buildplate = true;
-                            Node* contact_node = new Node(candidate, distance_to_top, (layer_nr + z_distance_top_layers) % 2, support_roof_layers, to_buildplate, Node::NO_PARENT);
+                            Node* contact_node = new Node(candidate, distance_to_top, (layer_nr + z_distance_top_layers) % 2, support_roof_layers, to_buildplate, Node::NO_PARENT,print_z,height);
                             contact_nodes[layer_nr].emplace_back(contact_node);
                             added = true;
                         }
@@ -2764,8 +2767,8 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                     if (!overhang_part.contains(candidate))
                         move_inside_expoly(overhang_part, candidate);
                     constexpr size_t distance_to_top = 0;
-                    constexpr bool to_buildplate = true;
-                    Node* contact_node = new Node(candidate, distance_to_top, layer_nr % 2, support_roof_layers, to_buildplate, Node::NO_PARENT);
+                    constexpr bool   to_buildplate   = true;
+                    Node *           contact_node    = new Node(candidate, distance_to_top, layer_nr % 2, support_roof_layers, to_buildplate, Node::NO_PARENT, print_z, height);
                     contact_nodes[layer_nr].emplace_back(contact_node);
                 }
             }

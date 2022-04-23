@@ -220,7 +220,8 @@ public:
          , height(0.0)
         {}
 
-        Node(const Point position, const size_t distance_to_top, const bool skin_direction, const int support_roof_layers_below, const bool to_buildplate, Node* const parent)
+        Node(const Point position, const size_t distance_to_top, const bool skin_direction, const int support_roof_layers_below, const bool to_buildplate, Node* const parent,
+             coordf_t     print_z_, coordf_t height_)
          : distance_to_top(distance_to_top)
          , position(position)
          , skin_direction(skin_direction)
@@ -228,8 +229,8 @@ public:
          , support_floor_layers_above(0)
          , to_buildplate(to_buildplate)
          , parent(parent)
-         , print_z(0.0)
-         , height(0.0)
+         , print_z(print_z_)
+         , height(height_)
         {}
 
 #ifdef DEBUG // Clear the delete node's data so if there's invalid access after, we may get a clue by inspecting that node.
