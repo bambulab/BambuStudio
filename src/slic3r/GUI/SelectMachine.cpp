@@ -363,9 +363,9 @@ void SelectMachinePopup::on_timer(wxTimerEvent &event)
 
 static wxString MACHINE_BED_TYPE_STRING[BED_TYPE_COUNT] = {
     //_L("Auto"),
-    _L("Bmabu Cool Plate"),
-    _L("Bmabu Engineering Plate"),
-    _L("Bmabu High Temperature Plate")
+    _L("Bambu Cool Plate"),
+    _L("Bamabu Engineering Plate"),
+    _L("Bamabu High Temperature Plate")
 };
 
 static std::string MachineBedTypeString[BED_TYPE_COUNT] = {
@@ -395,8 +395,9 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
     SetIcon(wxIcon(icon_path, wxBITMAP_TYPE_ICO));
 
-    this->SetSizeHints(wxSize(-1, -1), wxSize(-1, -1));
-    this->SetBackgroundColour(m_colour_def_color);
+
+    Freeze();
+    SetBackgroundColour(m_colour_def_color);
 
     m_sizer_main = new wxBoxSizer(wxVERTICAL);
 
@@ -412,7 +413,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_image->SetBackgroundColour(m_colour_def_color);
 
     sizer_thumbnail = new wxBoxSizer(wxVERTICAL);
-
     m_image->SetSizer(sizer_thumbnail);
     m_image->Layout();
 
@@ -516,13 +516,13 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     //m_sizer_bed->Add(m_comboBox_bed, 1, wxEXPAND | wxRIGHT, 30);
     //m_sizer_main->Add(m_sizer_bed, 0, wxEXPAND | wxLEFT | wxRIGHT, 30);
 
-    wxGridSizer *m_sizer_select = new wxGridSizer(2, 2, 0, 0);
+    m_sizer_select = new wxGridSizer(2, 2, 0, 0);
 
     m_sizer_main->Add(0, 0, 0, wxTOP, 16);
-    auto select_bed       = create_item_checkbox(L("Bed Leveling"), this, L("Bed Leveling"), "bed_leveling");
-    auto select_vibration = create_item_checkbox(L("Vibration Calibration"), this, L("Vibration Calibration"), "vibration_cali");
-    auto select_flow      = create_item_checkbox(L("Flow Calibration"), this, L("Flow Calibration"), "flow_cali");
-    auto select_record    = create_item_checkbox(L("Record Timelapse"), this, L("Record Timelapse"), "time_lapse");
+    select_bed       = create_item_checkbox(_L("Bed Leveling"), this, _L("Bed Leveling"), "bed_leveling");
+    select_vibration = create_item_checkbox(_L("Vibration Calibration"), this, _L("Vibration Calibration"), "vibration_cali");
+    select_flow      = create_item_checkbox(_L("Flow Calibration"), this, _L("Flow Calibration"), "flow_cali");
+    select_record    = create_item_checkbox(_L("Record Timelapse"), this, _L("Record Timelapse"), "time_lapse");
 
     m_sizer_select->Add(select_bed);
     m_sizer_select->Add(select_vibration);
@@ -634,6 +634,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     SetSizer(m_sizer_main);
     Layout();
     Fit();
+    Thaw();
 
     // init_model();
     prepare_mode();
@@ -673,6 +674,39 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
     text->Bind(wxEVT_LEFT_DOWN, [this, check](wxMouseEvent &) { check->SetValue(check->GetValue() ? false : true); });
     m_checkbox_list[param] = check;
     return checkbox;
+}
+
+void SelectMachineDialog::update_select_layout(PRINTER_TYPE type) 
+{ 
+    if (type == PRINTER_TYPE::PRINTER_3DPrinter_UKNOWN) { 
+        select_bed->Hide();
+        select_vibration->Hide();
+        select_flow->Hide();
+        select_record->Hide();
+    }
+
+    if (type == PRINTER_TYPE::PRINTER_3DPrinter_X1) {
+        select_bed->Show();
+        select_vibration->Show();
+        select_flow->Show();
+        select_record->Hide();
+    }
+
+    if (type == PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon) {
+        select_bed->Show();
+        select_vibration->Show();
+        select_flow->Show();
+        select_record->Hide();
+    }
+
+    if (type == PRINTER_TYPE::PRINTER_3DPrinter_P1) {
+        select_bed->Show();
+        select_vibration->Show();
+        select_flow->Hide();
+        select_record->Hide();
+    }
+
+    Fit();
 }
 
 void SelectMachineDialog::prepare_mode()
@@ -934,14 +968,17 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     if (m_list.size() > 0) {
         if (m_printer_last_select.empty()) {
             m_printer_last_select = m_list[0]->dev_name;
+            update_select_layout(m_list[0]->printer_type);
         }
         for (auto i = 0; i < m_list.size(); i++) {
             if (m_list[i]->dev_name == m_printer_last_select) {
-                 m_comboBox_printer->SetSelection(i);
+                update_select_layout(m_list[i]->printer_type);
+                m_comboBox_printer->SetSelection(i);
             }
         }
     } else {
         m_printer_last_select = -1;
+        update_select_layout(PRINTER_TYPE::PRINTER_3DPrinter_UKNOWN);
     }
 }
 
@@ -954,6 +991,8 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     for (int i = 0; i < m_list.size(); i++) {
         if (m_list[i]->dev_name == m_printer_last_select) {
             c->default_machine    = m_list[i]->dev_id;
+            update_select_layout(m_list[i]->printer_type);
+            break;
         }
     }
 }
@@ -983,6 +1022,7 @@ bool SelectMachineDialog::Show(bool show)
     m_first_time_enter = true;
 
     //thumbmail
+    Freeze();
     sizer_thumbnail->Clear();
     ThumbnailData *data = wxGetApp().plater()->get_thumbnail()[m_plater->get_partplate_list().get_curr_plate_index()];
     wxImage        image(data->width, data->height);
@@ -1121,6 +1161,7 @@ bool SelectMachineDialog::Show(bool show)
         m_refresh_timer->Stop();
     }
 
+    Thaw();
     return DPIDialog::Show(show);
 }
 
