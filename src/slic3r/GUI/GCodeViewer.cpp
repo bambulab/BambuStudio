@@ -894,8 +894,8 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
             m_time_estimate_mode = PrintEstimatedStatistics::ETimeMode::Normal;
     }
 
-    // set to color print by default if extruders > 1
-    if (gcode_result.extruders_count > 1) {
+    // set to color print by default if use multi extruders
+    if (m_extruder_ids.size() > 1) {
         for (int i = 0; i < view_type_items.size(); i++) {
             if (view_type_items[i] == EViewType::ColorPrint) {
                 m_view_type_sel = i;
