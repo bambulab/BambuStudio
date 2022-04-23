@@ -110,32 +110,30 @@ void AMSMaterialsSetting::create()
 
 void AMSMaterialsSetting::on_select_ok(wxMouseEvent &event)
 {
-    wxString bed_temp     = m_input_other->GetTextCtrl()->GetValue();
+    wxString nozzle_temp  = m_input_other->GetTextCtrl()->GetValue();
     auto filament         = m_comboBox_filament->GetValue();
 
-    long bed_temp_int;
-    bed_temp.ToLong(&bed_temp_int);
+    long nozzle_temp_int;
+    nozzle_temp.ToLong(&nozzle_temp_int);
 
     wxColour color = m_colourPicker1->GetColour();
     char col_buf[10];
     sprintf(col_buf, "%02X%02X%02XFF", (int) color.Red(), (int) color.Green(), (int) color.Blue());
 
-    std::string setting_id;
-
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
             if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
-                setting_id = it->setting_id;
+                ams_filament_id = it->filament_id;
             }
         }
     }
-    if (setting_id.empty()) {
+    if (ams_filament_id.empty() || nozzle_temp.empty()) {
         //TODO warning
         BOOST_LOG_TRIVIAL(trace) << "Invalid Setting id";
     } else {
         if (obj) {
-            obj->command_ams_filament_settings(ams_id, tray_id, setting_id, std::string(col_buf), bed_temp_int);
+            obj->command_ams_filament_settings(ams_id, tray_id, ams_filament_id, std::string(col_buf), nozzle_temp_int);
         }
     }
 
@@ -149,14 +147,31 @@ void AMSMaterialsSetting::set_color(wxColour color)
 
 bool AMSMaterialsSetting::Show(bool show)
 {
+    int selection_idx = -1, idx = 0;
     wxArrayString filament_items;
     if (show) {
         PresetBundle* preset_bundle = wxGetApp().preset_bundle;
         if (preset_bundle) {
             for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
                 filament_items.push_back(it->alias);
+                if (it->filament_id == ams_filament_id) {
+                    selection_idx = idx;
+                    ConfigOption* opt = it->config.option("nozzle_temperature");
+                    if (opt) {
+                        ConfigOptionStrings *opt_strs = dynamic_cast<ConfigOptionStrings *>(opt);
+                        if (opt_strs) {
+                            opt_strs->get_at(0);
+                            wxString text_nozzle_temp = wxString::Format("%s", opt_strs->get_at(0));
+                            m_input_other->GetTextCtrl()->SetValue(text_nozzle_temp);
+                        }
+                    }
+                }
+                idx++;
             }
             m_comboBox_filament->Set(filament_items);
+            if (selection_idx >= 0 && selection_idx < filament_items.size()) {
+                m_comboBox_filament->SetSelection(selection_idx);
+            }
         }
     }
     return DPIDialog::Show(show);
@@ -172,8 +187,15 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
-            if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {                
-                ;
+            if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
+                ConfigOption *opt = it->config.option("nozzle_temperature");
+                if (opt) {
+                    ConfigOptionInts *opt_strs = dynamic_cast<ConfigOptionInts *>(opt);
+                    if (opt_strs) {
+                        wxString text_nozzle_temp = wxString::Format("%d", opt_strs->get_at(0));
+                        m_input_other->GetTextCtrl()->SetValue(text_nozzle_temp);
+                    }
+                }
             }
         }
     }

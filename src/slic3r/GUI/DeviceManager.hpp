@@ -179,7 +179,7 @@ public:
     std::string     bed_temp_type;
     std::string     bed_temp;
     std::string     hot_end_temp_max;
-    std::string     hot_end_temp_limit; // hot_endtemp_limit
+    std::string     hot_end_temp_limit; // hot_endtemp_limit, nozzle temperature
     std::string     xcam_info;
     std::string     uuid;
 
@@ -284,17 +284,21 @@ public:
 
     /* Ams Properties */
     std::map<std::string, Ams*> amsList;    // key: ams[id], start with 0
-    int     ams_exist_bits;
-    int     tray_exist_bits;
-    int     tray_is_bbl_bits;               // valid bits
-    int     tray_read_done_bits;
+    long  ams_exist_bits;
+    long  tray_exist_bits;
+    long  tray_is_bbl_bits; // valid bits
+    long  tray_read_done_bits;
     AmsStatusMain ams_status_main;
     int     ams_status_sub;
 
-    std::string m_ams_now;
-    std::string m_tray_now;
+    std::string m_ams_id;           // local ams  : "0" ~ "3"
+    std::string m_tray_id;          // local tray id : "0" ~ "3"
+    std::string m_tray_now;         // tray_now : "0" ~ "15" or "255"
+    std::string m_tray_tar;         // tray_tar : "0" ~ "15" or "255"
+    void _parse_tray_now(std::string tray_now);
     bool    is_ams_need_update;
 
+    inline bool is_ams_unload() { return m_tray_tar.compare("255") == 0; }
     Ams*     get_curr_Ams();
     AmsTray* get_curr_tray();
     AmsTray *get_ams_tray(std::string ams_id, std::string tray_id);

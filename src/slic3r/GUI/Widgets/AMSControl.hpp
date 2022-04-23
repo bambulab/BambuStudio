@@ -52,6 +52,10 @@ enum class AMSPassRoadSTEP : int {
     AMS_ROAD_STEP_1, // lib -> extrusion
     AMS_ROAD_STEP_2, // extrusion->buffer
     AMS_ROAD_STEP_3, // extrusion
+
+    AMS_ROAD_STEP_COMBO_LOAD_STEP1, 
+    AMS_ROAD_STEP_COMBO_LOAD_STEP2,
+    AMS_ROAD_STEP_COMBO_LOAD_STEP3,
 };
 
 enum class AMSPassRoadType : int {
@@ -160,7 +164,6 @@ Description:AMSLib
 class AMSLib : public wxWindow
 {
 public:
-    AMSLib();
     AMSLib(wxWindow *parent, wxWindowID id, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     void create(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
 
@@ -171,6 +174,7 @@ public:
     void         UnableSelected() { m_unable_selected = true; };
     void         ableSelected() { m_unable_selected = false; };
     void         SetLibColour(wxColour const &color);
+    wxColour     GetLibColour();
     void         OnSelected();
     void         UnSelected();
 
@@ -178,8 +182,8 @@ public:
     void         post_event(wxCommandEvent &&event);
 
 protected:
-    wxStaticBitmap *m_edit_bitmp;
-    wxStaticBitmap *m_edit_bitmp_light;
+    wxStaticBitmap *m_edit_bitmp      = {nullptr};
+    wxStaticBitmap *m_edit_bitmp_light= {nullptr};
     wxBitmap        m_bitmap_editable;
     wxBitmap        m_bitmap_editable_lifht;
     bool            m_unable_selected = {false};
@@ -398,7 +402,6 @@ public:
     void PlayRridLoading(wxString amsid, wxString canid);
     void StopRridLoading(wxString amsid, wxString canid);
 
-   
     void SetFilamentStep(int item_idx, bool isload = true);
     void ShowFilamentTip(bool hasams = true);
 
@@ -407,7 +410,7 @@ public:
     void AddAms(AMSinfo info, bool refresh = true);
     void RemoveAms(std::string ams_id);
     void RemoveAll();
-    void SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP STEP);
+    void SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP step);
     void SwitchAms(std::string ams_id);
     virtual bool Enable(bool enable = true);
 

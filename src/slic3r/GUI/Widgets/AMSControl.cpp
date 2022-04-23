@@ -268,10 +268,13 @@ void AMSextruder::doRender(wxDC &dc)
 /*************************************************
 Description:AMSLib
 **************************************************/
-AMSLib::AMSLib() : m_border_color(wxColour(130, 130, 128)), m_lib_color(AMS_CONTROL_WHITE_COLOUR), m_road_def_color(AMS_CONTROL_GRAY500) { SetFont(Label::Body_12); }
-
-AMSLib::AMSLib(wxWindow *parent, wxWindowID id, Caninfo info, const wxPoint &pos, const wxSize &size) : AMSLib()
+AMSLib::AMSLib(wxWindow *parent, wxWindowID id, Caninfo info, const wxPoint &pos, const wxSize &size)
 {
+    m_border_color = (wxColour(130, 130, 128));
+    m_lib_color    = AMS_CONTROL_WHITE_COLOUR;
+    m_road_def_color = AMS_CONTROL_GRAY500;
+    SetFont(Label::Body_12);
+
     Update(info, false);
     Bind(wxEVT_PAINT, &AMSLib::paintEvent, this);
     // Bind(wxEVT_LEFT_DOWN, &AMSLib::OnSelected, this);
@@ -339,6 +342,11 @@ void AMSLib::SetLibColour(wxColour const &color)
     Refresh();
 }
 
+wxColour AMSLib::GetLibColour()
+{
+    return m_lib_color;
+}
+
 void AMSLib::OnSelected()
 {
     if (!wxWindow::IsEnabled()) return ;
@@ -387,17 +395,11 @@ void AMSLib::render(wxDC &dc)
 void AMSLib::doRender(wxDC &dc)
 {
     wxSize size = GetSize();
-
     auto tmp_lib_colour     = m_lib_color;
     auto temp_text_colour   = AMS_CONTROL_DISABLE_TEXT_COLOUR;
 
     Slic3r::GUI::BitmapCache bmcache;
-   /* float                    gray = 0.299 * m_lib_color.Red() + 0.587 * m_lib_color.Green() + 0.114 * m_lib_color.Blue();
-    if (gray < 130)
-        temp_text_colour = AMS_CONTROL_WHITE_COLOUR;
-    else
-        temp_text_colour = AMS_CONTROL_BLACK_COLOUR;*/
-    if (m_lib_color.GetLuminance() < 0.5) {
+    if (tmp_lib_colour.GetLuminance() < 0.5) {
         temp_text_colour = AMS_CONTROL_WHITE_COLOUR;
     } else {
          temp_text_colour = AMS_CONTROL_BLACK_COLOUR;
@@ -840,7 +842,6 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan)
     m_panel_lib->m_can_id    = caninfo.can_id;
     m_panel_lib->m_can_index = canindex;
     auto m_panel_road        = new AMSRoad(amscan, wxID_ANY, caninfo, canindex, maxcan, wxDefaultPosition, wxSize(-1, AMS_CAN_ROAD_SIZE));
-    m_panel_road->SetPassRoadColour(caninfo.material_colour);
     m_sizer_ams->Add(m_panel_lib, 1, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(4));
     m_sizer_ams->Add(m_panel_road, 0, wxEXPAND, 0);
 
@@ -915,12 +916,23 @@ void AmsCans::SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP s
         return;
     }
 
+    // get colour
+    auto tag_colour = *wxWHITE;
+    CanLibsHash::iterator libi = m_can_lib_list.begin();
+    while (libi != m_can_lib_list.end()) {
+        wxString  id     = libi->first;
+        CanLibs * lib    = libi->second;
+        if (canid == id) tag_colour = lib->canLib->GetLibColour();
+        libi++;
+    }
+
+
     // unload
     if (type == AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD) {
         auto iter = m_can_road_list.begin();
         while (iter != m_can_road_list.end()) {
             CanRoads *road = iter->second;
-
+ 
             auto index = road->canRoad->m_canindex;
             auto pr    = std::vector<AMSPassRoadMode>{};
 
@@ -933,6 +945,8 @@ void AmsCans::SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP s
                 if (index == 0 && tag_can_index == index) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_TOP); }
                 if (index == 0 && tag_can_index > index) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_RIGHT); }
             }
+
+            road->canRoad->SetPassRoadColour(tag_colour);
             road->canRoad->OnPassRoad(pr);
             iter++;
         }
@@ -954,6 +968,7 @@ void AmsCans::SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP s
 
             if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_2) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_BOTTOM); }
 
+            road->canRoad->SetPassRoadColour(tag_colour);
             road->canRoad->OnPassRoad(pr);
             iter++;
         }
@@ -1258,7 +1273,7 @@ std::string AMSControl::GetCurrentCan(std::string amsid)
 
 void AMSControl::EnterNoneAMSMode() 
 { 
-    m_simplebook_ams->SetSelection(0); 
+    m_simplebook_ams->SetSelection(1); 
     ShowFilamentTip(false);
 }
 
@@ -1417,20 +1432,23 @@ void AMSControl::RemoveAms(std::string ams_id)
 
 void AMSControl::RemoveAll()
 {
-    m_simplebook_cans->DeleteAllPages();
     AmsItemsHash::iterator ii = m_ams_item_list.begin();
     while (ii != m_ams_item_list.end()) {
         AmsItems *cust = ii->second;
         cust->amsItem->Destroy();
         ii++;
     }
+    
+    if (m_simplebook_cans->GetPageCount() > 0) { 
+        m_simplebook_cans->DeleteAllPages(); 
+    }
 
-    /*  AmsCansHash::iterator ci = m_ams_cans_list.begin();
-        while (ci != m_ams_cans_list.end()) {
-            AmsCansWindow *cust = ci->second;
-            cust->amsCans->Destroy();
-            ci++;
-        }*/
+    //AmsCansHash::iterator ci = m_ams_cans_list.begin();
+    //while (ci != m_ams_cans_list.end()) {
+    //    AmsCansWindow *cust = ci->second;
+    //    cust->amsCans->Destroy();
+    //    ci++;
+    //}
 
     m_ams_item_list.clear();
     m_ams_cans_list.clear();
@@ -1514,26 +1532,45 @@ bool AMSControl::Enable(bool enable)
     return  wxWindow::Enable(enable); 
 }
 
-void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP STEP)
+void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP step)
 {
-    if ( STEP == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) { m_extruder->TurnOff();}
-
-    if (type == AMSPassRoadType::AMS_ROAD_TYPE_LOAD && STEP == AMSPassRoadSTEP::AMS_ROAD_STEP_3) { 
+    /*if (type == AMSPassRoadType::AMS_ROAD_TYPE_LOAD && STEP == AMSPassRoadSTEP::AMS_ROAD_STEP_3) {
         m_extruder->TurnOn();
         return;
     }
 
-    if (type == AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD && STEP == AMSPassRoadSTEP::AMS_ROAD_STEP_1) { 
-        m_extruder->TurnOn(); 
+    if (type == AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD && STEP == AMSPassRoadSTEP::AMS_ROAD_STEP_1) {
+        m_extruder->TurnOn();
         return;
-    }
+    }*/
 
-    
     AmsCansHash::iterator iter     = m_ams_cans_list.find(ams_id);
     bool                  notfound = (iter == m_ams_cans_list.end());
     if (notfound) return;
     AmsCansWindow *cust = iter->second;
-    cust->amsCans->SetAmsStep(canid, type, STEP);
+
+    if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) { 
+        m_extruder->TurnOff(); 
+        cust->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    }
+
+    type = AMSPassRoadType::AMS_ROAD_TYPE_LOAD;
+    if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1) {
+        m_extruder->TurnOff();
+        cust->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
+        cust->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
+    }
+
+    if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2) {
+        m_extruder->TurnOn();
+        cust->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    }
+    
+    if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3) {
+        m_extruder->TurnOn();
+        cust->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
+        cust->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
+    }
 }
 
 void AMSControl::on_filament_load(wxCommandEvent &event)

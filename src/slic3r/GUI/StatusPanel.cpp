@@ -744,13 +744,14 @@ wxBoxSizer *StatusBasePanel::create_ams_group()
     sizer->Add(m_ams_control, 0, wxALIGN_CENTER_HORIZONTAL, 0);
 
     // display demo, to be removed
-    auto caninfo0_0 = Caninfo{"0", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-     auto caninfo0_1 = Caninfo{"1", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-     auto caninfo0_2 = Caninfo{"2", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-     auto caninfo0_3 = Caninfo{"3", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-     AMSinfo ams1 = AMSinfo{"0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-     std::vector<AMSinfo> ams_info{ams1};
-     m_ams_control->UpdateAms(ams_info);
+    //m_ams_control->EnterNoneAMSMode();
+    //auto caninfo0_0 = Caninfo{"0", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    //auto caninfo0_1 = Caninfo{"1", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    //auto caninfo0_2 = Caninfo{"2", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    //auto caninfo0_3 = Caninfo{"3", _L("None"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    //AMSinfo ams1 = AMSinfo{"0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    //std::vector<AMSinfo> ams_info{ams1};
+    //m_ams_control->UpdateAms(ams_info);
     return sizer;
 }
 
@@ -819,7 +820,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_tempCtrl_bed->Connect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_set_focus), NULL, this);
     m_tempCtrl_nozzle->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_kill_focus), NULL, this);
     m_tempCtrl_nozzle->Connect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_set_focus), NULL, this);
-    m_switch_lamp->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_lamp_switch), NULL, this);                        // TODO
+    m_switch_lamp->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_lamp_switch), NULL, this);
     m_switch_nozzle_fan->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this); // TODO
     m_switch_printing_fan->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_printing_fan_switch), NULL, this);
     m_bpButton_xy->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_xy), NULL, this);         // TODO
@@ -1084,13 +1085,16 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
 
     if (!obj) {
-        last_tray_exist_bits = -1;
+        last_tray_exist_bits    = -1;
+        last_ams_exist_bits     = -1;
+        last_tray_is_bbl_bits   = -1;
+        last_read_done_bits     = -1;
         return;
     }
 
     if (obj->amsList.empty() || obj->ams_exist_bits == 0) {
-        //m_ams_control->RemoveAll();
-        //m_ams_control->SetFilamentStep(-1, false);
+        m_ams_control->RemoveAll();
+        m_ams_control->EnterNoneAMSMode();
         return;
     } else {
         show_ams_group(true);
@@ -1101,12 +1105,20 @@ void StatusPanel::update_ams(MachineObject *obj)
             if (ams->second->is_exists && info.parse_ams_info(ams->second)) 
                 ams_info.push_back(info);
         }
-        if (obj->tray_exist_bits != last_tray_exist_bits) {
+        if (obj->ams_exist_bits != last_ams_exist_bits
+            || obj->tray_exist_bits != last_tray_exist_bits
+            || obj->tray_is_bbl_bits != last_tray_is_bbl_bits
+            || obj->tray_read_done_bits != last_read_done_bits
+            ) {
             m_ams_control->RemoveAll();
             m_ams_control->UpdateAms(ams_info, true);
             //select current ams
-            m_ams_control->SwitchAms(obj->m_ams_now);
+            if (!obj->m_ams_id.empty())
+                m_ams_control->SwitchAms(obj->m_ams_id);
             last_tray_exist_bits = obj->tray_exist_bits;
+            last_ams_exist_bits = obj->ams_exist_bits;
+            last_tray_is_bbl_bits = obj->tray_is_bbl_bits;
+            last_read_done_bits = obj->tray_read_done_bits;
         }
     }
 
@@ -1115,43 +1127,70 @@ void StatusPanel::update_ams(MachineObject *obj)
         obj->tray_read_done_bits, obj->tray_is_bbl_bits);
     m_ams_debug->SetLabelText(text_debug);
 
+    if (!obj->is_ams_unload()) {
+        ;//TODO set filament step to load
+    } else {
+        ;//TODO set filament step to unload
+    }
+    
+
     std::string curr_ams_id = m_ams_control->GetCurentAms();
     std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
     if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
         // wait to heat hotend
         if (obj->ams_status_sub == 0x02) {
             m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE);
-            if (curr_ams_id == obj->m_ams_now) {
-                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_now, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+            if (curr_ams_id == obj->m_ams_id) {
+                if (!obj->is_ams_unload()) {
+                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+                } else {
+                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+                }
             }
         } else if (obj->ams_status_sub == 0x03) {
             m_ams_control->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT);
-            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_now, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+            if (!obj->is_ams_unload())
+                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1);
+            else
+                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
         } else if (obj->ams_status_sub == 0x04) {
             m_ams_control->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT);
-            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_now, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            if (!obj->is_ams_unload())
+                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
+            else
+                 m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
         } else if (obj->ams_status_sub == 0x05) {
             m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT);
-            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_now, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
+            if (!obj->is_ams_unload())
+                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
+            else
+                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
         } else if (obj->ams_status_sub == 0x06) {
             m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT);
-            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_now, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+            if (!obj->is_ams_unload())
+                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
+            else
+                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
         } else if (obj->ams_status_sub == 0x07) {
             m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT);
-            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_now, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
         } else {
-            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_now, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
         }
     } else if (obj->ams_status_main == AMS_STATUS_MAIN_ASSIST) {
         m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE);
-        m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_now, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+        m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
     }
     else {
         m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE);
-        m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_now, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+        if (!obj->is_ams_unload()) {
+            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
+        } else {
+            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+        }
     }
 
-    if (m_ams_control->GetCurentAms() != obj->m_ams_now) {
+    if (m_ams_control->GetCurentAms() != obj->m_ams_id) {
         m_ams_control->SetAmsStep(curr_ams_id, curr_can_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     }
 
@@ -1438,7 +1477,7 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
         m_filament_setting_dlg = new AMSMaterialsSetting((wxWindow *)this, wxID_ANY);
     if (obj) {
         std::string ams_id = m_ams_control->GetCurentAms();
-        std::string tray_id = m_ams_control->GetCurrentCan(ams_id);
+        std::string tray_id = event.GetString().ToStdString(); // m_ams_control->GetCurrentCan(ams_id);
         try {
             int ams_id_int                  = atoi(ams_id.c_str());
             int tray_id_int                 = atoi(tray_id.c_str());
@@ -1451,6 +1490,7 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                 if (tray_it != it->second->trayList.end()) {
                     wxColor color = AmsTray::decode_color(tray_it->second->color);
                     m_filament_setting_dlg->set_color(color);
+                    m_filament_setting_dlg->ams_filament_id = tray_it->second->setting_id;
                 }
             }
             m_filament_setting_dlg->Show(true);

@@ -263,7 +263,10 @@ public:
     MachineObject *obj {nullptr};
     BBLSubTask *   last_subtask{nullptr};
     BBLProfile *   last_profile{nullptr};
-    int            last_tray_exist_bits { -1 };
+    long           last_tray_exist_bits { -1 };
+    long           last_ams_exist_bits { -1 };
+    long           last_tray_is_bbl_bits{ -1 };
+    long           last_read_done_bits{ -1 };
 
     void set_default();
     void show_status(int status);

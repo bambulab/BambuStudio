@@ -41,7 +41,7 @@ public:
     MachineObject *obj{nullptr};
     int            ams_id { 0 };
     int            tray_id { 0 };
-    std::string    setting_id;
+    std::string    ams_filament_id;
 
 protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;

@@ -309,9 +309,31 @@ bool MachineObject::check_valid_ip()
     return true;
 }
 
+void MachineObject::_parse_tray_now(std::string tray_now)
+{
+    m_tray_now = tray_now;
+    if (tray_now.empty()) {
+        return;
+    } else {
+        try {
+            int tray_now_int = atoi(tray_now.c_str());
+            if (tray_now_int >= 0 && tray_now_int < 16) {
+                m_ams_id = std::to_string(tray_now_int >> 2);
+                m_tray_id = std::to_string(tray_now_int & 0x3);
+            }
+            else if (tray_now_int == 255) {
+                m_ams_id = "0";
+                m_tray_id = "0";
+            }
+        }
+        catch(...) {
+        }
+    }
+}
+
 Ams *MachineObject::get_curr_Ams()
 {
-    auto it = amsList.find(m_ams_now);
+    auto it = amsList.find(m_ams_id);
     if (it != amsList.end())
         return it->second;
     return nullptr;
@@ -560,7 +582,7 @@ int MachineObject::command_ams_calibrate(int ams_id)
     return this->publish_gcode(gcode_cmd);
 }
 
-int MachineObject::command_ams_filament_settings(int ams_id, int tray_id, std::string setting_id, std::string tray_color, int bed_temp)
+int MachineObject::command_ams_filament_settings(int ams_id, int tray_id, std::string setting_id, std::string tray_color, int nozzle_temp)
 {
     json j;
     j["print"]["command"] = "ams_filament_setting";
@@ -570,9 +592,7 @@ int MachineObject::command_ams_filament_settings(int ams_id, int tray_id, std::s
     j["print"]["tray_info_idx"] = setting_id;
     // format "FFFFFFFF"   RGBA
     j["print"]["tray_color"]    = tray_color;
-    // fixed bed_temp_type
-    j["print"]["bed_temp_type"] = 0;
-    j["print"]["bed_temp"]      = bed_temp;
+    j["print"]["nozzle_temp"]   = nozzle_temp;
 
     return this->publish_json(j.dump());
 }
@@ -1100,27 +1120,33 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                         boost::optional<std::string> tray_exist_bits_str    = print.get_optional<std::string>("tray_exist_bits");
                         boost::optional<std::string> tray_read_done_bits_str= print.get_optional<std::string>("tray_read_done_bits");
                         boost::optional<std::string> tray_is_bbl_bits_str   = print.get_optional<std::string>("tray_is_bbl_bits");
-                        boost::optional<std::string> ams_now_str            = print.get_optional<std::string>("ams_now");
                         boost::optional<std::string> tray_now_str           = print.get_optional<std::string>("tray_now");
+                        boost::optional<std::string> tray_tar_str           = print.get_optional<std::string>("tray_tar");
 
-                        int last_ams_exist_bits = ams_exist_bits;
-                        int last_tray_exist_bits = tray_exist_bits;
+                        long int last_ams_exist_bits = ams_exist_bits;
+                        long int last_tray_exist_bits = tray_exist_bits;
+                        long int last_is_bbl_bits     = tray_is_bbl_bits;
+                        long int last_read_done_bits  = tray_read_done_bits;
                         if (ams_exist_bits_str.has_value())
-                            ams_exist_bits = stoi(ams_exist_bits_str.value(), nullptr, 16);
+                            ams_exist_bits = stol(ams_exist_bits_str.value(), nullptr, 16);
                         if (tray_exist_bits_str.has_value())
-                            tray_exist_bits = stoi(tray_exist_bits_str.value(), nullptr, 16);
+                            tray_exist_bits = stol(tray_exist_bits_str.value(), nullptr, 16);
                         if (tray_is_bbl_bits_str.has_value())
-                            tray_is_bbl_bits = stoi(tray_is_bbl_bits_str.value(), nullptr, 16);
+                            tray_is_bbl_bits = stol(tray_is_bbl_bits_str.value(), nullptr, 16);
                         if (tray_read_done_bits_str.has_value())
-                            tray_read_done_bits = stoi(tray_read_done_bits_str.value(), nullptr, 16);
-                        if (ams_now_str.has_value())
-                            m_ams_now = ams_now_str.value();
-                        if (tray_now_str.has_value())
-                            m_tray_now = tray_now_str.value();
+                            tray_read_done_bits = stol(tray_read_done_bits_str.value(), nullptr, 16);
 
+                        if (tray_now_str.has_value()) {
+                            this->_parse_tray_now(tray_now_str.value());
+                            
+                        }
+                        if (tray_tar_str.has_value())
+                            m_tray_tar = tray_tar_str.value();
 
                         if (ams_exist_bits != last_ams_exist_bits
-                            || last_tray_exist_bits != last_tray_exist_bits) {
+                            || last_tray_exist_bits != last_tray_exist_bits
+                            || tray_is_bbl_bits != last_is_bbl_bits ||
+                            tray_read_done_bits != last_read_done_bits) {
                             is_ams_need_update = true;
                         }
                         else {
