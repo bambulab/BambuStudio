@@ -154,7 +154,7 @@ public:
     static wxColour decode_color(const std::string &color)
     {
         std::array<int, 3> ret = {0, 0, 0};
-        const char *       c   = color.data() + 1;
+        const char *       c   = color.data();
         if (color.size() == 8) {
             for (size_t j = 0; j < 3; ++j) {
                 int digit1 = hex_digit_to_int(*c++);
@@ -286,7 +286,8 @@ public:
     std::map<std::string, Ams*> amsList;    // key: ams[id], start with 0
     int     ams_exist_bits;
     int     tray_exist_bits;
-    int     tray_is_bbl_bits;
+    int     tray_is_bbl_bits;               // valid bits
+    int     tray_read_done_bits;
     AmsStatusMain ams_status_main;
     int     ams_status_sub;
 

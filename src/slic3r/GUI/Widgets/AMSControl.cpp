@@ -65,7 +65,13 @@ bool AMSinfo::parse_ams_info(Ams *ams)
         if (it != ams->trayList.end() && it->second->is_exists) {
             info.can_id          = it->second->id;
             info.material_name   = it->second->type;
-            info.material_colour = decode_color(it->second->color);
+            if (!it->second->color.empty()) {
+                info.material_colour = AmsTray::decode_color(it->second->color);
+            } else {
+                // set to white by default
+                info.material_colour = wxColour(255, 255, 255);
+            }
+
             if (MachineObject::is_bbl_filament(it->second->tag_uid)) {
                 info.material_state  = AMSCanType::AMS_CAN_TYPE_BRAND;
             } else {
@@ -1299,7 +1305,10 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection)
     m_ams_info = info;
     std::vector<AMSinfo>::iterator it;
     Freeze();
-    for (it = info.begin(); it != info.end(); it++) { AddAms(*it, true); }
+    for (it = info.begin(); it != info.end(); it++) {
+        AddAms(*it, true);
+    }
+    //TODO
     m_sizer_top->Layout();
     Thaw();
 
@@ -1473,7 +1482,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     bool                  notfound = (iter == m_ams_cans_list.end());
     if (notfound) return;
     AmsCansWindow *cust = iter->second;
-    // cust->amsCans->SetAmsStep(canid, type, STEP);
+    cust->amsCans->SetAmsStep(canid, type, STEP);
 }
 
 void AMSControl::on_filament_load(wxCommandEvent &event)

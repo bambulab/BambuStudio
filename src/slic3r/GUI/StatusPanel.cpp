@@ -734,6 +734,10 @@ wxBoxSizer *StatusBasePanel::create_ams_group()
 
     sizer->Add(0, FromDIP(35), 0, wxEXPAND, 0);
 
+#if !BBL_RELEASE_TO_PUBLIC
+    m_ams_debug = new wxStaticText(this, wxID_ANY, _L("Debug Info"), wxDefaultPosition, wxDefaultSize, 0);
+    sizer->Add(m_ams_debug, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+#endif
 
     m_ams_control = new AMSControl(this, wxID_ANY);
     m_ams_control->SetMinSize(m_ams_control->GetSize());
@@ -1085,7 +1089,8 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
 
     if (obj->amsList.empty() || obj->ams_exist_bits == 0) {
-        show_ams_group(false);
+        //m_ams_control->RemoveAll();
+        //m_ams_control->SetFilamentStep(-1, false);
         return;
     } else {
         show_ams_group(true);
@@ -1099,39 +1104,75 @@ void StatusPanel::update_ams(MachineObject *obj)
         if (obj->tray_exist_bits != last_tray_exist_bits) {
             m_ams_control->RemoveAll();
             m_ams_control->UpdateAms(ams_info, true);
+            //select current ams
+            m_ams_control->SwitchAms(obj->m_ams_now);
             last_tray_exist_bits = obj->tray_exist_bits;
         }
     }
 
+    //Ams Debug Info
+    wxString text_debug = wxString::Format("tray_now: %s, main: %d, sub: %d, rfid: %x, valid: %x", obj->m_tray_now, obj->ams_status_main, obj->ams_status_sub,
+        obj->tray_read_done_bits, obj->tray_is_bbl_bits);
+    m_ams_debug->SetLabelText(text_debug);
+
     std::string curr_ams_id = m_ams_control->GetCurentAms();
     std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
     if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
-        //wait to heat hotend
+        // wait to heat hotend
         if (obj->ams_status_sub == 0x02) {
             m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE);
-            m_ams_control->SetAmsStep(curr_ams_id, curr_can_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+            if (curr_ams_id == obj->m_ams_now) {
+                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_now, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+            }
         } else if (obj->ams_status_sub == 0x03) {
             m_ams_control->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT);
-            m_ams_control->SetAmsStep(curr_ams_id, curr_can_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_now, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
         } else if (obj->ams_status_sub == 0x04) {
             m_ams_control->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT);
-            m_ams_control->SetAmsStep(curr_ams_id, curr_can_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_now, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
         } else if (obj->ams_status_sub == 0x05) {
-            m_ams_control->SetAmsStep(curr_ams_id, curr_can_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
             m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT);
+            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_now, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
         } else if (obj->ams_status_sub == 0x06) {
             m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT);
-            m_ams_control->SetAmsStep(curr_ams_id, curr_can_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
+            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_now, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
         } else if (obj->ams_status_sub == 0x07) {
             m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT);
-            m_ams_control->SetAmsStep(curr_ams_id, curr_can_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_now, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
         } else {
-            m_ams_control->SetAmsStep(curr_ams_id, curr_can_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_now, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
         }
-    } else {
+    } else if (obj->ams_status_main == AMS_STATUS_MAIN_ASSIST) {
         m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE);
-        m_ams_control->SetAmsStep(curr_ams_id, curr_can_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+        m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_now, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
     }
+    else {
+        m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE);
+        m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_now, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+    }
+
+    if (m_ams_control->GetCurentAms() != obj->m_ams_now) {
+        m_ams_control->SetAmsStep(curr_ams_id, curr_can_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    }
+
+    for (auto ams_it = obj->amsList.begin(); ams_it != obj->amsList.end(); ams_it++) {
+        std::string ams_id = ams_it->first;
+        try {
+            int ams_id_int = atoi(ams_id.c_str());
+            for (auto tray_it = ams_it->second->trayList.begin(); tray_it != ams_it->second->trayList.end(); tray_it++) {
+                std::string tray_id = tray_it->first;
+                int tray_id_int = atoi(tray_id.c_str());
+                if ((obj->tray_read_done_bits & (1 << (ams_id_int * 4 + tray_id_int))) == 0) {
+                    m_ams_control->PlayRridLoading(ams_id, tray_id);
+                } else {
+                    m_ams_control->StopRridLoading(ams_id, tray_id);
+                }
+            }
+        }
+        catch(...) {
+        }
+    }
+    // update rfid button style
 }
 
 void StatusPanel::update_subtask(MachineObject *obj)

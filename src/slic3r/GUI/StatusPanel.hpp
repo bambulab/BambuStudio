@@ -110,6 +110,7 @@ protected:
     StaticLine *    m_temp_extruder_line;
     StaticLine *    m_ams_staticline;
     wxBoxSizer*     m_ams_list;
+    wxStaticText *  m_ams_debug;
     AMSControl*     m_ams_control;
     wxStaticBitmap *m_ams_extruder_img;
     wxStaticBitmap* m_bitmap_extruder_img;

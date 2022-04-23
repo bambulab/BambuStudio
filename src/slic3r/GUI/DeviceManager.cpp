@@ -193,6 +193,8 @@ void machine_conn_callback::message_arrived(mqtt::const_message_ptr msg)
 
 void AmsTray::update_color_from_str(std::string color)
 {
+    if (color.empty()) return;
+
     if (this->color.compare(color) == 0)
         return;
 
@@ -360,6 +362,8 @@ void MachineObject::_parse_ams_status(int ams_status)
     } else {
         ams_status_main = AmsStatusMain::AMS_STATUS_MAIN_UNKNOWN;
     }
+
+    BOOST_LOG_TRIVIAL(trace) << "ams_debug: main = " << ams_status_main_int << ", sub = " << ams_status_sub;
 }
 
 bool MachineObject::is_bbl_filament(std::string tag_uid)
@@ -1094,6 +1098,7 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                         // for ams changed event
                         boost::optional<std::string> ams_exist_bits_str     = print.get_optional<std::string>("ams_exist_bits");
                         boost::optional<std::string> tray_exist_bits_str    = print.get_optional<std::string>("tray_exist_bits");
+                        boost::optional<std::string> tray_read_done_bits_str= print.get_optional<std::string>("tray_read_done_bits");
                         boost::optional<std::string> tray_is_bbl_bits_str   = print.get_optional<std::string>("tray_is_bbl_bits");
                         boost::optional<std::string> ams_now_str            = print.get_optional<std::string>("ams_now");
                         boost::optional<std::string> tray_now_str           = print.get_optional<std::string>("tray_now");
@@ -1106,6 +1111,8 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                             tray_exist_bits = stoi(tray_exist_bits_str.value(), nullptr, 16);
                         if (tray_is_bbl_bits_str.has_value())
                             tray_is_bbl_bits = stoi(tray_is_bbl_bits_str.value(), nullptr, 16);
+                        if (tray_read_done_bits_str.has_value())
+                            tray_read_done_bits = stoi(tray_read_done_bits_str.value(), nullptr, 16);
                         if (ams_now_str.has_value())
                             m_ams_now = ams_now_str.value();
                         if (tray_now_str.has_value())
@@ -1124,8 +1131,6 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                         // compare ams_list
                         for (auto ams = ams_list.begin(); ams != ams_list.end(); ++ams) {
                             std::string ams_id = ams->second.get_optional<std::string>("id").value();
-                            pt::ptree tray_list = ams->second.get_child("tray");
-
                             if (ams_id.empty()) continue;
 
                             Ams* curr_ams = nullptr;
@@ -1151,6 +1156,9 @@ int MachineObject::parse_json(std::string topic, std::string payload)
 
                             if (!curr_ams) continue;
 
+                            if (!ams->second.get_child_optional("tray").has_value()) continue;
+
+                            pt::ptree tray_list = ams->second.get_child("tray");
                             for (auto tray = tray_list.begin(); tray != tray_list.end(); ++tray) {
                                 std::string tray_id     = tray->second.get_optional<std::string>("id").value();
                                 boost::optional<std::string> id                 = tray->second.get_optional<std::string>("id");
