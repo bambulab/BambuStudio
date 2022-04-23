@@ -345,6 +345,17 @@ bool MachineObject::is_bbl_filament(std::string tag_uid)
     return false;
 }
 
+std::string MachineObject::get_firmware_type_str()
+{
+    if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER)
+        return "engineer";
+    else if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION)
+        return "product";
+    
+    // return engineer by default;
+    return "engineer";
+}
+
 wxString MachineObject::get_curr_stage()
 {
     if (stage_info.empty()) return "";
@@ -867,6 +878,18 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                     }
                 }
             } catch (...) {
+                ;
+            }
+
+            /* get fimware type */
+            try {
+                if (jj.contains("lifecycle")) {
+                    if (jj["lifecycle"].get<std::string>() == "engineer")
+                        firmware_type = PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER;
+                    else if (jj["lifecycle"].get<std::string>() == "product")
+                        firmware_type = PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION;
+                }
+            } catch(...) {
                 ;
             }
 

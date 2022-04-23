@@ -2207,10 +2207,10 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
         hardware_version = "v5";
     }
 
+    MachineObject *obj        = dev_manager_.get_default();
     int server_sel = m_radioBox_server->GetSelection();
     if (server_sel == 1) {
         Slic3r::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
-        MachineObject* obj = dev_manager_.get_default();
         if (!obj) {
             this->send_log_evt("Please Select a printer");
             return;
@@ -2285,11 +2285,12 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
         }
     }
     else if (server_sel == 0) {
-        std::string url = (boost::format("%1%?module_name=%2%&build_type=%3%&hardware_version=%4%")
+        std::string url = (boost::format("%1%?module_name=%2%&build_type=%3%&hardware_version=%4%&firmware_type=%5%")
                             % UPGRADE_URL
                             % upgrade_post_url[upgrade_module]
                             % upgrade_mode_name[upgrade_mode]
-                            % hardware_version).str();
+                            % hardware_version
+                            % obj->get_firmware_type_str()).str();
         Http http = Http::get(url);
         http.auth_basic("slicer", "znFx94AAew8VVHv");
         http.on_complete([this](std::string body, unsigned) {

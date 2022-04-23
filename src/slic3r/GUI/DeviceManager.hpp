@@ -197,6 +197,12 @@ public:
     std::map<std::string, AmsTray*> trayList;
 };
 
+enum PrinterFirmwareType {
+    FIRMWARE_TYPE_ENGINEER = 0,
+    FIRMWARE_TYPE_PRODUCTION,
+    FIRMEARE_TYPE_UKNOWN,
+};
+
 
 class FirmwareInfo
 {
@@ -311,10 +317,13 @@ public:
     bool upgrade_force_upgrade;
     bool upgrade_new_version;
     bool upgrade_consistency_request;
+    PrinterFirmwareType       firmware_type; // engineer|production
     std::string upgrade_progress;
     std::string upgrade_message;
     std::string upgrade_status;
     std::vector<FirmwareInfo> firmware_list;
+
+    std::string get_firmware_type_str();
 
     /* printing */
     int     mc_print_stage;
