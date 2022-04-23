@@ -7300,9 +7300,8 @@ void Plater::export_gcode(bool prefer_removable)
     if (p->model.objects.empty())
         return;
 
-    if (get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(true))
-        return;
-
+    //if (get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(true))
+    //    return;
 
     if (p->process_completed_with_error)
         return;

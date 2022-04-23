@@ -928,6 +928,10 @@ bool MainFrame::can_export_gcode() const
         return false;
 
     // TODO:: add other filters
+    PartPlateList &part_plate_list = m_plater->get_partplate_list();
+    PartPlate *current_plate = part_plate_list.get_curr_plate();
+    if (!current_plate->is_slice_result_ready_for_print())
+        return false;
 
     return true;
 }
@@ -1548,8 +1552,8 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, "menu_export_stl", nullptr,
             [this](){return can_export_model(); }, this);
         // BBS export Gcode
-        wxMenuItem* item_export_gcode = append_menu_item(export_menu, wxID_ANY, _L("Export G-code") + dots/* + "\tCtrl+G"*/, _L("Export current plate as G-code"),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(false); }, "menu_export_gcode", nullptr,
+        wxMenuItem* item_export_gcode = append_menu_item(export_menu, wxID_ANY, _L("Export Sliced File") + dots/* + "\tCtrl+G"*/, _L("Export current Sliced file"),
+            [this](wxCommandEvent&) { if (m_plater) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE)); }, "menu_export_sliced_file", nullptr,
             [this](){return can_export_gcode(); }, this);
 
         append_submenu(fileMenu, export_menu, wxID_ANY, _L("Export"), "");
