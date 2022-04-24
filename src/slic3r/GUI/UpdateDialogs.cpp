@@ -150,7 +150,7 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_
 	if (changelog_textctrl)
 		content_sizer->Add(changelog_textctrl, 1, wxEXPAND);
 
-	add_button(wxID_OK, true, force_before_wizard ? _L("YES") : "YES");
+	add_button(wxID_OK, true, force_before_wizard ? _L("YES") : _L("YES"));
 	if (force_before_wizard) {
 		auto* btn = add_button(wxID_CLOSE, false, _L("NO"));
 		btn->Bind(wxEVT_BUTTON, [this](const wxCommandEvent&) { EndModal(wxID_CLOSE); });

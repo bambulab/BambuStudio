@@ -230,11 +230,11 @@ void ArrangeJob::prepare_all() {
     if (m_selected.empty()) {
         if (!selected_is_locked) {
             m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
-                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("No arrangable objects are selected!")));
+                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("No arrangable objects are selected.")));
         }
         else {
             m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
-                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("All the selected objects are on the locked plate,\nWe can not do auto-arrange on these objects!")));
+                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("All the selected objects are on the locked plate,\nWe can not do auto-arrange on these objects.")));
         }
     }
 
@@ -280,7 +280,7 @@ void ArrangeJob::prepare_partplate() {
 
     if (plate->is_locked()) {
         m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
-            NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("This plate is locked,\nWe can not do auto-arrange on this plate!")));
+            NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("This plate is locked,\nWe can not do auto-arrange on this plate.")));
         return;
     }
 
@@ -407,7 +407,7 @@ void ArrangeJob::check_unprintable()
 
             m_unprintable.push_back(*it);
             auto msg = (boost::format(
-                _utf8(L("Object %s has zero size and can't be arranged!")))
+                _utf8(L("Object %s has zero size and can't be arranged.")))
                 % _utf8(it->name)).str();
             wxGetApp().plater()->get_notification_manager()->push_plater_warning_notification(msg);
             it = m_selected.erase(it);
@@ -423,7 +423,7 @@ void ArrangeJob::on_exception(const std::exception_ptr &eptr)
         if (eptr)
             std::rethrow_exception(eptr);
     } catch (libnest2d::GeometryException &) {
-        show_error(m_plater, _(L("Arrange failed! "
+        show_error(m_plater, _(L("Arrange failed. "
                                  "Found some exceptions when processing object Geometries")));
     } catch (std::exception &) {
         PlaterJob::on_exception(eptr);

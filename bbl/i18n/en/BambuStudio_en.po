@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-24 21:03+0800\n"
+"POT-Creation-Date: 2022-04-24 23:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -527,7 +527,7 @@ msgid "%s can't be percentage"
 msgstr "%s can’t be a percentage"
 
 #: src/slic3r/GUI/Field.cpp:268 src/slic3r/GUI/Field.cpp:326
-#: src/slic3r/GUI/Field.cpp:1616
+#: src/slic3r/GUI/Field.cpp:1609
 msgid "Invalid numeric."
 msgstr ""
 
@@ -541,7 +541,7 @@ msgid "Parameter validation"
 msgstr ""
 
 #: src/slic3r/GUI/Field.cpp:294 src/slic3r/GUI/Field.cpp:390
-#: src/slic3r/GUI/Field.cpp:1628
+#: src/slic3r/GUI/Field.cpp:1621
 msgid "Value is out of range."
 msgstr ""
 
@@ -1456,30 +1456,30 @@ msgstr ""
 msgid "Language"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:2620
+#: src/slic3r/GUI/GUI_App.cpp:2625
 msgid "*"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:2946 src/slic3r/GUI/GUI_App.cpp:3006
+#: src/slic3r/GUI/GUI_App.cpp:2951 src/slic3r/GUI/GUI_App.cpp:3011
 msgid "Modifications to the preset have been saved"
 msgid_plural "Modifications to the presets have been saved"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/slic3r/GUI/GUI_App.cpp:3009
+#: src/slic3r/GUI/GUI_App.cpp:3014
 msgid "All modifications will be discarded for new project."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:3150 src/slic3r/GUI/Plater.cpp:6832
+#: src/slic3r/GUI/GUI_App.cpp:3155 src/slic3r/GUI/Plater.cpp:6832
 msgid "G-code files can not be loaded with models together!"
 msgstr "G-code files and models cannot be loaded together!"
 
-#: src/slic3r/GUI/GUI_App.cpp:3150 src/slic3r/GUI/Plater.cpp:6824
+#: src/slic3r/GUI/GUI_App.cpp:3155 src/slic3r/GUI/Plater.cpp:6824
 #: src/slic3r/GUI/Plater.cpp:6832
 msgid "G-code loading"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:3336
+#: src/slic3r/GUI/GUI_App.cpp:3342
 msgid "Select a G-code file:"
 msgstr ""
 
@@ -2323,7 +2323,6 @@ msgid "Edit"
 msgstr ""
 
 #: src/slic3r/GUI/Jobs/ArrangeJob.cpp:172
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:237
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-arrange on these objects!"
@@ -2332,16 +2331,20 @@ msgstr ""
 "Cannot auto-arrange these objects."
 
 #: src/slic3r/GUI/Jobs/ArrangeJob.cpp:233
-msgid "No arrangable objects are selected!"
+msgid "No arrangable objects are selected."
+msgstr ""
+
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:237
+msgid ""
+"All the selected objects are on the locked plate,\n"
+"We can not do auto-arrange on these objects."
 msgstr ""
 
 #: src/slic3r/GUI/Jobs/ArrangeJob.cpp:283
 msgid ""
 "This plate is locked,\n"
-"We can not do auto-arrange on this plate!"
+"We can not do auto-arrange on this plate."
 msgstr ""
-"This plate is locked.\n"
-"Cannot auto-arrange this plate."
 
 #: src/slic3r/GUI/Jobs/ArrangeJob.cpp:333
 msgid "Arranging..."
@@ -2349,13 +2352,12 @@ msgstr ""
 
 #: src/slic3r/GUI/Jobs/ArrangeJob.cpp:410
 #, c-format, boost-format
-msgid "Object %s has zero size and can't be arranged!"
+msgid "Object %s has zero size and can't be arranged."
 msgstr ""
 
 #: src/slic3r/GUI/Jobs/ArrangeJob.cpp:426
-msgid "Arrange failed! Found some exceptions when processing object Geometries"
+msgid "Arrange failed. Found some exceptions when processing object Geometries"
 msgstr ""
-"Arrange failed. Exception were found when processing object geometries."
 
 #: src/slic3r/GUI/Jobs/ArrangeJob.cpp:562
 msgid "Arranging canceled."
@@ -2386,18 +2388,14 @@ msgstr ""
 #: src/slic3r/GUI/Jobs/OrientJob.cpp:78
 msgid ""
 "All the selected objects are on the locked plate,\n"
-"We can not do auto-orient on these objects!"
+"We can not do auto-orient on these objects."
 msgstr ""
-"All the selected objects are on a locked plate.\n"
-"We cannot auto-orient these objects!"
 
 #: src/slic3r/GUI/Jobs/OrientJob.cpp:116
 msgid ""
 "This plate is locked,\n"
-"We can not do auto-orient on this plate!"
+"We can not do auto-orient on this plate."
 msgstr ""
-"This plate is locked.\n"
-"We cannot auto-orient objects on this plate!"
 
 #: src/slic3r/GUI/Jobs/OrientJob.cpp:165
 msgid "Orienting"
@@ -2973,43 +2971,43 @@ msgstr ""
 msgid "Skip"
 msgstr ""
 
-#: src/slic3r/GUI/NotificationManager.hpp:784
+#: src/slic3r/GUI/NotificationManager.hpp:788
 msgid "3D Mouse disconnected."
 msgstr ""
 
-#: src/slic3r/GUI/NotificationManager.hpp:785
+#: src/slic3r/GUI/NotificationManager.hpp:789
 msgid "Configuration can update now."
 msgstr "A new configuration is available. Update now?"
 
-#: src/slic3r/GUI/NotificationManager.hpp:785
+#: src/slic3r/GUI/NotificationManager.hpp:789
 msgid "Detail."
 msgstr "More"
 
-#: src/slic3r/GUI/NotificationManager.hpp:797
+#: src/slic3r/GUI/NotificationManager.hpp:801
 msgid "Integration was successful."
 msgstr ""
 
-#: src/slic3r/GUI/NotificationManager.hpp:799
+#: src/slic3r/GUI/NotificationManager.hpp:803
 msgid "Integration failed."
 msgstr ""
 
-#: src/slic3r/GUI/NotificationManager.hpp:801
+#: src/slic3r/GUI/NotificationManager.hpp:805
 msgid "Undo integration was successful."
 msgstr ""
 
-#: src/slic3r/GUI/NotificationManager.hpp:803
+#: src/slic3r/GUI/NotificationManager.hpp:807
 msgid "Undo integration failed."
 msgstr ""
 
-#: src/slic3r/GUI/NotificationManager.hpp:804
+#: src/slic3r/GUI/NotificationManager.hpp:808
 msgid "Exporting."
 msgstr "Exporting"
 
-#: src/slic3r/GUI/NotificationManager.hpp:805
+#: src/slic3r/GUI/NotificationManager.hpp:809
 msgid "Software has New version."
 msgstr "An update is available!"
 
-#: src/slic3r/GUI/NotificationManager.hpp:805
+#: src/slic3r/GUI/NotificationManager.hpp:809
 msgid "Goto download page."
 msgstr "Go to download page"
 
@@ -7145,6 +7143,32 @@ msgstr ""
 #: src/libslic3r/PrintObjectSlice.cpp:569
 msgid "Slicing mesh"
 msgstr ""
+
+#~ msgid ""
+#~ "This plate is locked,\n"
+#~ "We can not do auto-arrange on this plate!"
+#~ msgstr ""
+#~ "This plate is locked.\n"
+#~ "Cannot auto-arrange this plate."
+
+#~ msgid ""
+#~ "Arrange failed! Found some exceptions when processing object Geometries"
+#~ msgstr ""
+#~ "Arrange failed. Exception were found when processing object geometries."
+
+#~ msgid ""
+#~ "All the selected objects are on the locked plate,\n"
+#~ "We can not do auto-orient on these objects!"
+#~ msgstr ""
+#~ "All the selected objects are on a locked plate.\n"
+#~ "We cannot auto-orient these objects!"
+
+#~ msgid ""
+#~ "This plate is locked,\n"
+#~ "We can not do auto-orient on this plate!"
+#~ msgstr ""
+#~ "This plate is locked.\n"
+#~ "We cannot auto-orient objects on this plate!"
 
 #~ msgid "Whether to synchronize cloud user data?\n"
 #~ msgstr "Synchronize cloud user data?\n"

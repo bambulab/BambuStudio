@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-24 21:03+0800\n"
-"PO-Revision-Date: 2022-04-24 21:07+0800\n"
+"POT-Creation-Date: 2022-04-24 23:37+0800\n"
+"PO-Revision-Date: 2022-04-24 23:59+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -70,7 +70,7 @@ msgstr "发布模型/配置"
 
 #: src/slic3r/GUI/BBLTopbar.cpp:425
 msgid "Please slice all plates before upload"
-msgstr ""
+msgstr "请在上传之前将所有盘切片"
 
 #: src/slic3r/GUI/PublishDialog.cpp:21
 msgid "Slice all plate to obtain time and filament estimation"
@@ -550,7 +550,7 @@ msgid "%s can't be percentage"
 msgstr "%s 不可以是百分比"
 
 #: src/slic3r/GUI/Field.cpp:268 src/slic3r/GUI/Field.cpp:326
-#: src/slic3r/GUI/Field.cpp:1616
+#: src/slic3r/GUI/Field.cpp:1609
 msgid "Invalid numeric."
 msgstr "数值错误。"
 
@@ -564,7 +564,7 @@ msgid "Parameter validation"
 msgstr "参数验证"
 
 #: src/slic3r/GUI/Field.cpp:294 src/slic3r/GUI/Field.cpp:390
-#: src/slic3r/GUI/Field.cpp:1628
+#: src/slic3r/GUI/Field.cpp:1621
 msgid "Value is out of range."
 msgstr "值越界。"
 
@@ -936,7 +936,7 @@ msgstr "上色工具条"
 #: src/slic3r/GUI/GLCanvas3D.cpp:6246 src/slic3r/GUI/GLCanvas3D.cpp:6255
 #: src/slic3r/GUI/GLCanvas3D.cpp:6258
 msgid "Explosion Ratio"
-msgstr ""
+msgstr "爆炸比例"
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:6290 src/slic3r/GUI/GLCanvas3D.cpp:6316
 msgid "Total Volume:"
@@ -1482,35 +1482,35 @@ msgstr "选择语言"
 msgid "Language"
 msgstr "语言"
 
-#: src/slic3r/GUI/GUI_App.cpp:2620
+#: src/slic3r/GUI/GUI_App.cpp:2625
 msgid "*"
 msgstr "*"
 
-#: src/slic3r/GUI/GUI_App.cpp:2946 src/slic3r/GUI/GUI_App.cpp:3006
+#: src/slic3r/GUI/GUI_App.cpp:2951 src/slic3r/GUI/GUI_App.cpp:3011
 msgid "Modifications to the preset have been saved"
 msgid_plural "Modifications to the presets have been saved"
 msgstr[0] "对预设的修改已被保存"
 
-#: src/slic3r/GUI/GUI_App.cpp:3009
+#: src/slic3r/GUI/GUI_App.cpp:3014
 msgid "All modifications will be discarded for new project."
 msgstr "在新项目中所有修改都会被丢弃。"
 
-#: src/slic3r/GUI/GUI_App.cpp:3150 src/slic3r/GUI/Plater.cpp:6832
+#: src/slic3r/GUI/GUI_App.cpp:3155 src/slic3r/GUI/Plater.cpp:6832
 msgid "G-code files can not be loaded with models together!"
 msgstr "G-code文件不能和模型一起加载"
 
-#: src/slic3r/GUI/GUI_App.cpp:3150 src/slic3r/GUI/Plater.cpp:6824
+#: src/slic3r/GUI/GUI_App.cpp:3155 src/slic3r/GUI/Plater.cpp:6824
 #: src/slic3r/GUI/Plater.cpp:6832
 msgid "G-code loading"
 msgstr "正在加载G-code文件"
 
-#: src/slic3r/GUI/GUI_App.cpp:3336
+#: src/slic3r/GUI/GUI_App.cpp:3342
 msgid "Select a G-code file:"
 msgstr "选择一个G-code文件："
 
 #: src/slic3r/GUI/GUI_Init.cpp:59 src/slic3r/GUI/GUI_Init.cpp:63
 msgid "Bambu Studio initialization failed"
-msgstr ""
+msgstr "Bambu Studio初始化失败"
 
 #: src/slic3r/GUI/GUI_Factories.cpp:53 src/slic3r/GUI/GUI_Factories.cpp:73
 #: src/slic3r/GUI/GUI_Factories.cpp:92 src/slic3r/GUI/GUI_Factories.cpp:242
@@ -2338,7 +2338,6 @@ msgid "Edit"
 msgstr "编辑"
 
 #: src/slic3r/GUI/Jobs/ArrangeJob.cpp:172
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:237
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-arrange on these objects!"
@@ -2347,13 +2346,21 @@ msgstr ""
 "无法对这些对象做自动摆盘。"
 
 #: src/slic3r/GUI/Jobs/ArrangeJob.cpp:233
-msgid "No arrangable objects are selected!"
+msgid "No arrangable objects are selected."
+msgstr "没有可摆盘的对象被选中。"
+
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:237
+msgid ""
+"All the selected objects are on the locked plate,\n"
+"We can not do auto-arrange on these objects."
 msgstr ""
+"所有选中的对象都处于被锁定的盘上，\n"
+"无法对这些对象做自动摆盘。"
 
 #: src/slic3r/GUI/Jobs/ArrangeJob.cpp:283
 msgid ""
 "This plate is locked,\n"
-"We can not do auto-arrange on this plate!"
+"We can not do auto-arrange on this plate."
 msgstr ""
 "该盘处于锁定状态，\n"
 "无法对其进行自动摆盘"
@@ -2364,11 +2371,11 @@ msgstr "自动摆放中..."
 
 #: src/slic3r/GUI/Jobs/ArrangeJob.cpp:410
 #, c-format, boost-format
-msgid "Object %s has zero size and can't be arranged!"
+msgid "Object %s has zero size and can't be arranged."
 msgstr "对象%s的尺寸为0，无法被自动摆放。"
 
 #: src/slic3r/GUI/Jobs/ArrangeJob.cpp:426
-msgid "Arrange failed! Found some exceptions when processing object Geometries"
+msgid "Arrange failed. Found some exceptions when processing object Geometries"
 msgstr "自动摆放失败，处理对象几何数据时遇到异常。"
 
 #: src/slic3r/GUI/Jobs/ArrangeJob.cpp:562
@@ -2397,7 +2404,7 @@ msgstr ""
 #: src/slic3r/GUI/Jobs/OrientJob.cpp:78
 msgid ""
 "All the selected objects are on the locked plate,\n"
-"We can not do auto-orient on these objects!"
+"We can not do auto-orient on these objects."
 msgstr ""
 "所有选中的对象都处于被锁定的盘上，\n"
 "无法对这些对象做自动朝向。"
@@ -2405,10 +2412,10 @@ msgstr ""
 #: src/slic3r/GUI/Jobs/OrientJob.cpp:116
 msgid ""
 "This plate is locked,\n"
-"We can not do auto-orient on this plate!"
+"We can not do auto-orient on this plate."
 msgstr ""
 "该盘处于锁定状态，\n"
-"无法对其进行自动朝向"
+"无法对其进行自动朝向。"
 
 #: src/slic3r/GUI/Jobs/OrientJob.cpp:165
 msgid "Orienting"
@@ -2607,7 +2614,7 @@ msgstr "导出所有对象为STL"
 
 #: src/slic3r/GUI/MainFrame.cpp:1555
 msgid "Export current Sliced file"
-msgstr ""
+msgstr "导出当前已切片的文件"
 
 #: src/slic3r/GUI/MainFrame.cpp:1559 src/slic3r/GUI/Plater.cpp:8576
 msgid "Export"
@@ -2861,7 +2868,7 @@ msgstr "终止"
 
 #: src/slic3r/GUI/StatusPanel.cpp:355
 msgid "0%"
-msgstr ""
+msgstr "0%"
 
 #: src/slic3r/GUI/StatusPanel.cpp:398
 msgid "Machine Control"
@@ -2873,7 +2880,7 @@ msgstr "温度和轴移动控制"
 
 #: src/slic3r/GUI/StatusPanel.cpp:545
 msgid "100%"
-msgstr ""
+msgstr "100%"
 
 #: src/slic3r/GUI/StatusPanel.cpp:559
 msgid "Lamp"
@@ -2989,43 +2996,43 @@ msgstr "下载"
 msgid "Skip"
 msgstr "跳过"
 
-#: src/slic3r/GUI/NotificationManager.hpp:784
+#: src/slic3r/GUI/NotificationManager.hpp:788
 msgid "3D Mouse disconnected."
 msgstr "3D鼠标断连。"
 
-#: src/slic3r/GUI/NotificationManager.hpp:785
+#: src/slic3r/GUI/NotificationManager.hpp:789
 msgid "Configuration can update now."
 msgstr "配置现在可以升级。"
 
-#: src/slic3r/GUI/NotificationManager.hpp:785
+#: src/slic3r/GUI/NotificationManager.hpp:789
 msgid "Detail."
 msgstr "详情。"
 
-#: src/slic3r/GUI/NotificationManager.hpp:797
+#: src/slic3r/GUI/NotificationManager.hpp:801
 msgid "Integration was successful."
 msgstr "集成成功。"
 
-#: src/slic3r/GUI/NotificationManager.hpp:799
+#: src/slic3r/GUI/NotificationManager.hpp:803
 msgid "Integration failed."
 msgstr "集成失败。"
 
-#: src/slic3r/GUI/NotificationManager.hpp:801
+#: src/slic3r/GUI/NotificationManager.hpp:805
 msgid "Undo integration was successful."
 msgstr "集成取消成功。"
 
-#: src/slic3r/GUI/NotificationManager.hpp:803
+#: src/slic3r/GUI/NotificationManager.hpp:807
 msgid "Undo integration failed."
 msgstr "集成取消失败。"
 
-#: src/slic3r/GUI/NotificationManager.hpp:804
+#: src/slic3r/GUI/NotificationManager.hpp:808
 msgid "Exporting."
 msgstr "正在导出。"
 
-#: src/slic3r/GUI/NotificationManager.hpp:805
+#: src/slic3r/GUI/NotificationManager.hpp:809
 msgid "Software has New version."
 msgstr "发现新的软件版本。"
 
-#: src/slic3r/GUI/NotificationManager.hpp:805
+#: src/slic3r/GUI/NotificationManager.hpp:809
 msgid "Goto download page."
 msgstr "前往下载网站。"
 
@@ -3276,7 +3283,7 @@ msgstr "该3mf文件不兼容，仅加载几何数据！"
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Found following keys "
 "unrecognized:\n"
-msgstr ""
+msgstr "该3mf的版本%s比%s的版本%s新，发现以下参数键值无法识别；\n"
 
 #: src/slic3r/GUI/Plater.cpp:2481
 msgid "You'd better upgrade your software.\n"
@@ -3284,7 +3291,7 @@ msgstr "建议升级您的软件版本。\n"
 
 #: src/slic3r/GUI/Plater.cpp:2485
 msgid "Newer 3mf version"
-msgstr ""
+msgstr "较新的3mf版本"
 
 #: src/slic3r/GUI/Plater.cpp:2648
 msgid "Name of components inside step file is not UTF8 format!"
@@ -3615,7 +3622,7 @@ msgstr "语言选择"
 
 #: src/slic3r/GUI/Preferences.cpp:125
 msgid "Switching application language while some presets are modified."
-msgstr ""
+msgstr "在切换应用语言之前发现某些参数预设有更改"
 
 #: src/slic3r/GUI/Preferences.cpp:144
 msgid "Changing application language"
@@ -3688,7 +3695,7 @@ msgstr "开启后，将缺省使用Bambu Studio打开.step文件"
 
 #: src/slic3r/GUI/Preferences.cpp:615
 msgid "Backup"
-msgstr ""
+msgstr "备份"
 
 #: src/slic3r/GUI/Preferences.cpp:617
 msgid "Backup switch"
@@ -4851,7 +4858,7 @@ msgstr "写入回调失败"
 #, boost-format
 msgid ""
 "%1% is too close to exclusion area, there will be collisions when printing."
-msgstr ""
+msgstr "%1%离不可打印区域太近，会造成打印时出现碰撞。"
 
 #: src/libslic3r/Print.cpp:427
 #, boost-format
@@ -4859,11 +4866,13 @@ msgid ""
 "\n"
 "%1% is too close to exclusion area, there will be collisions when printing."
 msgstr ""
+"\n"
+"%1%离不可打印区域太近，会造成打印时出现碰撞。"
 
 #: src/libslic3r/Print.cpp:439
 #, boost-format
 msgid "%1% is too close to others, there will be collisions when printing."
-msgstr ""
+msgstr "%1%离其它对象太近，会造成打印时出现碰撞。"
 
 #: src/libslic3r/Print.cpp:443
 #, boost-format
@@ -4871,11 +4880,13 @@ msgid ""
 "\n"
 "%1% is too close to others, there will be collisions when printing."
 msgstr ""
+"\n"
+"%1%离其它对象太近，会造成打印时出现碰撞。"
 
 #: src/libslic3r/Print.cpp:561
 #, boost-format
 msgid "%1% is too tall, there will be collisions when printing."
-msgstr ""
+msgstr "%1%的高度过高，会造成打印时出现碰撞。"
 
 #: src/libslic3r/Print.cpp:565
 #, boost-format
@@ -4883,15 +4894,17 @@ msgid ""
 "\n"
 "%1% is too tall, there will be collisions when printing."
 msgstr ""
+"\n"
+"%1%的高度过高，会造成打印时出现碰撞。"
 
 #: src/libslic3r/Print.cpp:627
 msgid " is too close to others, there will be collisions when printing.\n"
-msgstr ""
+msgstr "离其它对象太近，会造成打印时出现碰撞。\n"
 
 #: src/libslic3r/Print.cpp:632
 msgid ""
 " is too close to exclusion area, there will be collisions when printing.\n"
-msgstr ""
+msgstr "离不可打印区域太近，会造成打印时出现碰撞。\n"
 
 #: src/libslic3r/Print.cpp:662
 msgid ""
@@ -6976,6 +6989,34 @@ msgstr "生成支撑"
 #: src/libslic3r/PrintObjectSlice.cpp:569
 msgid "Slicing mesh"
 msgstr "切片网格"
+
+#~ msgid ""
+#~ "This plate is locked,\n"
+#~ "We can not do auto-arrange on this plate!"
+#~ msgstr ""
+#~ "该盘处于锁定状态，\n"
+#~ "无法对其进行自动摆盘"
+
+#~ msgid "Object %s has zero size and can't be arranged!"
+#~ msgstr "对象%s的尺寸为0，无法被自动摆放。"
+
+#~ msgid ""
+#~ "Arrange failed! Found some exceptions when processing object Geometries"
+#~ msgstr "自动摆放失败，处理对象几何数据时遇到异常。"
+
+#~ msgid ""
+#~ "All the selected objects are on the locked plate,\n"
+#~ "We can not do auto-orient on these objects!"
+#~ msgstr ""
+#~ "所有选中的对象都处于被锁定的盘上，\n"
+#~ "无法对这些对象做自动朝向。"
+
+#~ msgid ""
+#~ "This plate is locked,\n"
+#~ "We can not do auto-orient on this plate!"
+#~ msgstr ""
+#~ "该盘处于锁定状态，\n"
+#~ "无法对其进行自动朝向"
 
 #~ msgid "Export current plate as G-code"
 #~ msgstr "导出当前盘的G-code"

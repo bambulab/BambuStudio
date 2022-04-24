@@ -3297,8 +3297,9 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
     wxCHECK_MSG(mainframe != nullptr, false, "Internal error: Main frame not created / null");
 
     if (reason == ConfigWizard::RR_USER) {
-        if (preset_updater->config_update(app_config->orig_version(), PresetUpdater::UpdateParams::FORCED_BEFORE_WIZARD) == PresetUpdater::R_ALL_CANCELED)
-            return false;
+        //TODO: turn off it currently, maybe need to turn on in the future
+        //if (preset_updater->config_update(app_config->orig_version(), PresetUpdater::UpdateParams::FORCED_BEFORE_WIZARD) == PresetUpdater::R_ALL_CANCELED)
+        //    return false;
     }
 
     //auto wizard = new ConfigWizard(mainframe);
