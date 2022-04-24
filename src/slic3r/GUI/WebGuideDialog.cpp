@@ -35,6 +35,10 @@ GuideFrame::GuideFrame(GUI_App *pGUI)
     : wxDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "BambuStudio", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxTAB_TRAVERSAL),
 	m_appconfig_new()
 {
+    std::string strFinish = wxGetApp().app_config->get("firstguide", "finish");
+    if (strFinish == "true") 
+        SetWindowStyleFlag(wxCAPTION | wxCLOSE_BOX | wxSYSTEM_MENU);
+
     // INI
     m_SectionName = "firstguide";
     PrivacyUse    = true;
