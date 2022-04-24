@@ -2316,7 +2316,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         // Load the print, filament or printer preset.
         std::string               preset_name;
         DynamicPrintConfig        config;
-        std::string 			  alias_name, inherits, instantiation, setting_id;
+        std::string 			  alias_name, inherits, instantiation, setting_id, filament_id;
         std::vector<std::string>  renamed_from;
         const DynamicPrintConfig* default_config = nullptr;
         std::string               reason;
@@ -2336,6 +2336,9 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             auto setting_it = key_values.find(BBL_JSON_KEY_SETTING_ID);
             if (setting_it != key_values.end())
                 setting_id = setting_it->second;
+            auto filament_it = key_values.find(BBL_JSON_KEY_FILAMENT_ID);
+            if (filament_it != key_values.end())
+                filament_id = filament_it->second;
             //check whether it inherits other preset or not
             auto it1 = key_values.find(BBL_JSON_KEY_INHERITS);
             if (it1 != key_values.end()) {
@@ -2433,6 +2436,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             loaded.vendor = current_vendor_profile;
             loaded.version = current_vendor_profile->config_version;
             loaded.setting_id = setting_id;
+            loaded.filament_id = filament_id;
         }
 
         // Derive the profile logical name aka alias from the preset name if the alias was not stated explicitely.

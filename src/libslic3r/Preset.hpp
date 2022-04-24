@@ -41,6 +41,7 @@
 #define BBL_JSON_KEY_TYPE           "type"
 #define BBL_JSON_KEY_FROM           "from"
 #define BBL_JSON_KEY_SETTING_ID     "setting_id"
+#define BBL_JSON_KEY_FILAMENT_ID    "filament_id"
 #define BBL_JSON_KEY_INHERITS       "inherits"
 #define BBL_JSON_KEY_INSTANTIATION  "instantiation"
 #define BBL_JSON_KEY_NOZZLE_DIAMETER            "nozzle_diameter"
@@ -221,6 +222,7 @@ public:
     Semver              version;         // version of preset
     std::string         ini_str;         // ini string of preset
     std::string         setting_id;      // setting id in cloud database
+    std::string         filament_id;      // setting id in cloud database
     std::string         user_id;         // preset user_id
     std::string         base_id;         // base id of preset
     std::string         sync_info;       // enum: "delete", "create", "update", ""

@@ -764,6 +764,9 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
             else if (boost::iequals(it.key(), BBL_JSON_KEY_SETTING_ID)) {
                 key_values.emplace(BBL_JSON_KEY_SETTING_ID, it.value());
             }
+            else if (boost::iequals(it.key(), BBL_JSON_KEY_FILAMENT_ID)) {
+                key_values.emplace(BBL_JSON_KEY_FILAMENT_ID, it.value());
+            }
             else if (boost::iequals(it.key(), BBL_JSON_KEY_FROM)) {
                 key_values.emplace(BBL_JSON_KEY_FROM, it.value());
             }

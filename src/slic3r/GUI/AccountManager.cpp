@@ -2966,7 +2966,7 @@ namespace Slic3r {
                         BOOST_LOG_TRIVIAL(error) << boost::format("name %1%, local setting_id %2% is different with remote id %3%")
                             %preset->name %preset->setting_id %setting_id.value();
                     }
-                    else
+                    else if (preset->setting_id.empty())
                         preset->setting_id = setting_id.value();
                 }
             }
