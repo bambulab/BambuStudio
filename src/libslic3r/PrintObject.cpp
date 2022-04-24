@@ -1490,7 +1490,8 @@ void PrintObject::bridge_over_infill()
             
             Layer       *layer       = *layer_it;
             LayerRegion *layerm      = layer->m_regions[region_id];
-            Flow         bridge_flow = layerm->bridging_flow(frSolidInfill);
+            //BBS: enable thick bridge for internal bridge only
+            Flow         bridge_flow = layerm->bridging_flow(frSolidInfill, true);
 
             // extract the stInternalSolid surfaces that might be transformed into bridges
             Polygons internal_solid;
