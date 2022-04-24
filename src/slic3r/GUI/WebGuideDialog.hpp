@@ -75,11 +75,15 @@ public:
     int LoadProfile();
     int LoadProfileFamily(wxString strVendor, wxString strFilePath);
     int SaveProfile();
+    int GetFilamentInfo(std::string filepath, std::string &sVendor, std::string &sType);
+
 
     bool apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater, bool& apply_keeped_changes);
     bool run();
 
+    void        StrReplace(std::string &strBase, std::string strSrc, std::string strDes);
     std::string w2s(wxString sSrc);
+    void        GetStardardFilePath(std::string &FilePath);
     bool LoadFile(std::string jPath, std::string & sContent);
 
 private:

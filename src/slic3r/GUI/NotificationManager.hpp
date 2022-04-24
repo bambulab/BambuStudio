@@ -291,6 +291,10 @@ public:
     void bbl_show_gcode_overlap_notification();
     void bbl_close_gcode_overlap_notification();
 
+	//BBS--sole notification
+    void bbl_show_sole_text_notification(NotificationType sType,const std::string &text, bool bOverride, int level, bool autohide);
+    void bbl_chose_sole_text_notification(NotificationType sType);
+
 private:
 	// duration 0 means not disapearing
 	struct NotificationData {

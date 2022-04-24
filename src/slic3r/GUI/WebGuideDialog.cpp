@@ -754,6 +754,64 @@ bool GuideFrame::run()
     }
 }
 
+int GuideFrame::GetFilamentInfo(std::string filepath, std::string &sVendor, std::string &sType)
+{
+    GetStardardFilePath(filepath);
+
+    try {
+        std::string contents;
+        LoadFile(w2s(filepath), contents);
+        json jLocal = json::parse(contents);
+
+        if (sVendor == "") {
+            if (jLocal.contains("filament_vendor")) 
+                sVendor = jLocal["filament_vendor"][0];
+        }
+
+        if (sType == "") {
+            if (jLocal.contains("filament_type")) 
+                sType = jLocal["filament_type"][0];
+        }
+
+        if (sVendor == "" || sType == "") 
+        {
+            if (jLocal.contains("inherits")) {
+                boost::filesystem::path sf(filepath.c_str());
+                filepath = sf.string();
+
+                wxString strFile   = filepath;
+                wxString strFolder = strFile.BeforeLast(boost::filesystem::path::preferred_separator);
+
+                std::string FName = jLocal["inherits"];
+
+                wxString strNewFile = wxString::Format("%s%c%s.json", strFolder.mb_str(), boost::filesystem::path::preferred_separator, FName.c_str());
+
+                boost::filesystem::path nf(strNewFile.c_str());
+                if (boost::filesystem::exists(nf))
+                    return GetFilamentInfo(w2s(strNewFile), sVendor, sType);
+                else
+                    return -1;
+            } else {
+                if (sType == "")
+                    return -1;
+                else
+                    sVendor = "Generic";
+                    return 0;
+            }
+        } else
+            return 0;
+    }
+    catch (std::exception &e)
+    {
+        // wxLogMessage("GUIDE: load_profile_error  %s ", e.what());
+        // wxMessageBox(e.what(), "", MB_OK);
+        return -1;
+    }
+
+    return 0;
+}
+
+
 int GuideFrame::LoadProfile()
 {
     try {
@@ -965,20 +1023,14 @@ int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
 
                 wxString strInstant = pm["instantiation"];
                 if (strInstant.compare("true") == 0) {
-                    bool bExist = pm.contains("filament_vendor");
+                    std::string sV;
+                    std::string sT;
 
-                    wxString sVendor = pm.contains("filament_vendor") ? pm["filament_vendor"][0] : "Generic";
-                    OneFF["vendor"]  = std::string(sVendor.mb_str());
+                    int nRet = GetFilamentInfo(encode_path(w2s(ModelFilePath).c_str()), sV, sT);
+                    if (nRet != 0) continue;
 
-                    wxString strInherits = pm["inherits"];
-                    wxString strTypeFile = wxString::Format("%s\\%s\\filament\\%s.json", strFolder, strVendor, strInherits.mb_str());
-                    LoadFile(w2s(strTypeFile), contents);
-                    json tm = json::parse(contents);
-
-                    wxString sN = tm["name"];
-                    wxString sT = tm["filament_type"].at(0);
-
-                    OneFF["type"] = tm["filament_type"][0];
+                    OneFF["vendor"] = sV;
+                    OneFF["type"] = sT;
 
                     OneFF["models"] = "";
                     OneFF["selected"] = 0;
@@ -1004,7 +1056,6 @@ int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
                     bFind           = 1;
                 }
             }
-
 
             OneFF["models"]                    = w2s(vModel);
 
@@ -1038,9 +1089,26 @@ int GuideFrame::LoadProfileFamily(wxString strVendor, wxString strFilePath)
     return 0;
 }
 
+void GuideFrame::StrReplace(std::string &strBase, std::string strSrc, std::string strDes)
+{
+    int pos    = 0;
+    int srcLen = strSrc.size();
+    int desLen = strDes.size();
+    pos = strBase.find(strSrc, pos);
+    while ((pos != std::string::npos)) {
+        strBase.replace(pos, srcLen, strDes);
+        pos = strBase.find(strSrc, (pos + desLen));
+    }
+}  
+
 std::string GuideFrame::w2s(wxString sSrc)
 {
     return std::string(sSrc.mb_str());
+}
+
+void GuideFrame::GetStardardFilePath(std::string &FilePath) {
+    StrReplace(FilePath, "\\", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator))); 
+    StrReplace(FilePath, "\/", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator))); 
 }
 
 bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)

@@ -2154,5 +2154,53 @@ void NotificationManager::bbl_close_gcode_overlap_notification()
         if (notification->get_type() == NotificationType::BBLGcodeOverlap) { notification->close(); }
 }
 
+void NotificationManager::bbl_show_sole_text_notification(NotificationType sType, const std::string &text, bool bOverride, int level, bool autohide) {
+   
+	NotificationLevel nlevel;
+    int               nHideTime = 20;
+    switch ( level) {
+    case 1: 
+		nlevel = NotificationLevel::WarningNotificationLevel; 
+		nHideTime = 0;
+		break;
+    case 2: 
+		nlevel = NotificationLevel::ErrorNotificationLevel; break;
+        nHideTime = 0;
+    case 0: 
+    default: 
+		nlevel = NotificationLevel::PrintInfoNotificationLevel;
+
+		if (autohide == false) nHideTime = 86400 * 10;
+        break;
+    }
+
+    NotificationData data{sType, nlevel, nHideTime, text};
+    for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
+        if (notification->get_type() == sType) {
+            if (bOverride) {
+                notification->update(data);
+            }
+            else {
+                NotificationData sdata{sType, nlevel, nHideTime, notification->get_text1() + "\n" + text};
+                notification->update(sdata);
+            }
+
+            return;
+        }
+    }
+
+    auto notification = std::make_unique<NotificationManager::PopNotification>(data, m_id_provider, m_evt_handler);
+    notification->set_Multiline(true);
+    push_notification_data(std::move(notification), 0);
+}
+void NotificationManager::bbl_chose_sole_text_notification(NotificationType sType)
+{
+    for (std::unique_ptr<PopNotification> &notification : m_pop_notifications)
+        if (notification->get_type() == sType) { notification->close(); }
+}
+
+
+
+
 }//namespace GUI
 }//namespace Slic3r

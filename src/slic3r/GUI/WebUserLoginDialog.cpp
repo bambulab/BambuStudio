@@ -238,9 +238,9 @@ void ZUserLogin::OnDocumentLoaded(wxWebViewEvent &evt)
 {
     // Only notify if the document is the main frame, not a subframe
     wxString tmpUrl = evt.GetURL();
-    wxString NowUrl = m_browser->GetCurrentURL();
+    std::string strHost  = wxGetApp().app_config->get_web_host_url();
 
-    if (evt.GetURL() == m_browser->GetCurrentURL() && NowUrl==TargetUrl) {
+    if ( tmpUrl.Contains(strHost) ) {
         m_networkOk = true;
         // wxLogMessage("%s", "Document loaded; url='" + evt.GetURL() + "'");
     }
