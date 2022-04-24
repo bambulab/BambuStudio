@@ -268,7 +268,11 @@ public:
     bool is_dirty() { return m_dirty; }
     void set_as_dirty(bool dirty = true) { m_dirty = dirty; }
     bool is_need_post_tick_event() { return m_is_need_post_tick_changed_event; }
-    void reset_post_tick_event(bool val = false) { m_is_need_post_tick_changed_event = val; }
+    void reset_post_tick_event(bool val = false) {
+        m_is_need_post_tick_changed_event = val;
+        m_tick_change_event_type = Type::Unknown;
+    }
+    Type get_post_tick_event_type() { return m_tick_change_event_type; }
 
     ExtrudersSequence m_extruders_sequence;
 protected:
@@ -341,7 +345,8 @@ private:
     std::vector<double>      m_layers_values;
     std::vector<std::string> m_extruder_colors;
     std::string              m_print_obj_idxs;
-    bool                     m_is_need_post_tick_changed_event;
+    bool                     m_is_need_post_tick_changed_event { false };
+    Type                     m_tick_change_event_type;
 
     std::vector<double> m_alternate_values;
 };

@@ -16,7 +16,8 @@ enum Type
     PausePrint,
     ToolChange,
     Template,
-    Custom
+    Custom,
+    Unknown,
 };
 
 struct Item

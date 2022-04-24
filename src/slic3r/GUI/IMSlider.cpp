@@ -429,6 +429,8 @@ IMSlider::IMSlider(int lowerValue, int higherValue, int minValue, int maxValue, 
     // BBS set to none style by default
     m_extra_style = style == wxSL_VERTICAL ? 0 : 0;
     m_selection   = ssUndef;
+    m_is_need_post_tick_changed_event = false;
+    m_tick_change_event_type = Type::Unknown;
 
     m_ticks.set_extruder_colors(&m_extruder_colors);
 }
@@ -604,8 +606,9 @@ bool IMSlider::IsNewPrint()
     return true;
 }
 
-void IMSlider::post_ticks_changed_event(Type type /*= Custom*/)
+void IMSlider::post_ticks_changed_event(Type type)
 {
+    m_tick_change_event_type = type;
     m_is_need_post_tick_changed_event = true;
 }
 
@@ -638,6 +641,7 @@ void IMSlider::add_code_as_tick(Type type, int selected_extruder)
 
 bool IMSlider::check_ticks_changed_event(Type type)
 {
+    //BBL only support MultiExtruder
     if (m_ticks.mode == m_mode || (type != ColorChange && type != ToolChange) ||
         (m_ticks.mode == SingleExtruder && m_mode == MultiAsSingle) || // All ColorChanges will be applied for 1st extruder
         (m_ticks.mode == MultiExtruder && m_mode == MultiAsSingle))    // Just mark ColorChanges for all unused extruders
@@ -657,28 +661,6 @@ bool IMSlider::check_ticks_changed_event(Type type)
             post_ticks_changed_event(ColorChange);
         }
         */
-        return false;
-    }
-    //          m_ticks_mode == MultiAsSingle
-    if (m_ticks.has_tick_with_code(ToolChange)) {
-        //wxString message = m_mode == SingleExtruder ?
-        //                       (_L("The last color change data was saved for a multi extruder printing.") + "\n\n" +
-        //                        _L("Select YES if you want to delete all saved tool changes, \n"
-        //                           "NO if you want all tool changes switch to color changes, \n"
-        //                           "or CANCEL to leave it unchanged.") +
-        //                        "\n\n\t" + _L("Do you want to delete all saved tool changes?")) :
-        //                       ( // MultiExtruder
-        //                           _L("The last color change data was saved for a multi extruder printing with tool changes for whole print.") + "\n\n" +
-        //                           _L("Your current changes will delete all saved extruder (tool) changes.") + "\n\n\t" + _L("Are you sure you want to continue?"));
-        //BBS GUI::MessageDialog msg(this, message, _L("Notice"), wxYES_NO | (m_mode == SingleExtruder ? wxCANCEL : 0));
-        //const int          answer = msg.ShowModal();
-        //if (answer == wxID_YES) {
-        //    m_ticks.erase_all_ticks_with_code(ToolChange);
-        //    post_ticks_changed_event(ToolChange);
-        //} else if (m_mode == SingleExtruder && answer == wxID_NO) {
-        //    m_ticks.switch_code(ToolChange, ColorChange);
-        //    post_ticks_changed_event(ColorChange);
-        //}
         return false;
     }
 
@@ -1172,14 +1154,16 @@ void IMSlider::render_menu()
         ImGui::MenuItem(_u8L("Add Pause").c_str(), "", &selected);
         if (selected) { add_code_as_tick(PausePrint); }
 
-        if (ImGui::BeginMenu(_u8L("Change Filament").c_str())) {
-            for (int i = 0; i < extruder_num; i++) {
-                std::array<float, 4>rgba = decode_color_to_float_array(colors[i]);
-                ImU32 icon_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
-                if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", icon_clr, false, true))
-                    add_code_as_tick(ToolChange, i + 1);
+        //BBS render this menu item only when extruder_num > 1
+        if (extruder_num > 1) {
+            if (ImGui::BeginMenu(_u8L("Change Filament").c_str())) {
+                for (int i = 0; i < extruder_num; i++) {
+                    std::array<float, 4> rgba     = decode_color_to_float_array(colors[i]);
+                    ImU32                icon_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
+                    if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", icon_clr, false, true)) add_code_as_tick(ToolChange, i + 1);
+                }
+                ImGui::EndMenu();
             }
-            ImGui::EndMenu();
         }
         ImGui::EndPopup();
     }

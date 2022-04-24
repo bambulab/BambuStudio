@@ -1946,10 +1946,22 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     if (wxGetApp().is_editor()) {
         preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
         preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_COLLAPSE_SIDEBAR, [this](SimpleEvent&) { this->q->collapse_sidebar(!this->q->is_sidebar_collapsed());  });
-        preview->get_wxglcanvas()->Bind(EVT_CUSTOMEVT_TICKSCHANGED, [this](SimpleEvent&) {
+        preview->get_wxglcanvas()->Bind(EVT_CUSTOMEVT_TICKSCHANGED, [this](wxCommandEvent& event) {
+            Type tick_event_type = (Type)event.GetInt();
             Model &model                   = wxGetApp().plater()->model();
             model.custom_gcode_per_print_z = preview->get_canvas3d()->get_gcode_viewer().get_layers_slider()->GetTicksValues();
-            preview->on_tick_changed();
+            preview->on_tick_changed(tick_event_type);
+
+            // BBS set to invalid state only
+            if (tick_event_type == Type::ToolChange) {
+                PartPlate *plate = this->q->get_partplate_list().get_curr_plate();
+                if (plate) {
+                    plate->update_slice_result_valid_state(false);
+                }
+            }
+
+            // update slice and print button
+            wxGetApp().mainframe->update_slice_print_status(MainFrame::SlicePrintEventType::eEventSliceUpdate, true, false);
         });
     }
     if (wxGetApp().is_gcode_viewer())
