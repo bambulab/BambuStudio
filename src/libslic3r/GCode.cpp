@@ -1504,6 +1504,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     }
     if (this->m_objsWithBrim.empty() && this->m_objSupportsWithBrim.empty()) m_brim_done = true;
 
+    //BBS: open spaghetti detector
+    if (print.config().spaghetti_detector.value)
+        file.write("M981 S1 P20000 ;open spaghetti detector\n");
+
     // Do all objects for each layer.
     if (print.config().print_sequence == PrintSequence::ByObject) {
         size_t finished_objects = 0;
@@ -1564,12 +1568,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
             // and export G-code into file.
             this->process_layers(print, tool_ordering, collect_layers_to_print(object), *print_object_instance_sequential_active - object.instances().data(), file, prime_extruder);
-            //BBS: close spaghetti detector after printing last layer of object
-            if (print.config().spaghetti_detector.value) {
-                //BBS: don't need to close if the object has only one layer. Because spaghetti detector has not been opened in this case.
-                if (m_second_layer_things_done)
-                    file.write("M981 S0 P20000 ; close spaghetti detector\n");
-            }
 #ifdef HAS_PRESSURE_EQUALIZER
             if (m_pressure_equalizer)
                 file.write(m_pressure_equalizer->process("", true));
@@ -1634,12 +1632,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
         // and export G-code into file.
         this->process_layers(print, tool_ordering, print_object_instances_ordering, layers_to_print, file);
-        //BBS: close spaghetti detector after printing last layer of object
-        if (print.config().spaghetti_detector.value) {
-            //BBS: don't need to close if the object has only one layer. Because spaghetti detector has not been opened in this case.
-            if (m_second_layer_things_done)
-                file.write("M981 S0 P20000 ; close spaghetti detector\n");
-        }
 #ifdef HAS_PRESSURE_EQUALIZER
         if (m_pressure_equalizer)
             file.write(m_pressure_equalizer->process("", true));
@@ -1655,6 +1647,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write(m_writer.set_fan(0));
     //BBS: make sure the additional fan is closed when end
     file.write(m_writer.set_additional_fan(0));
+    //BBS: close spaghetti detector
+    if (print.config().spaghetti_detector.value)
+        file.write("M981 S0 P20000 ; close spaghetti detector\n");
 
     // adds tag for processor
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
@@ -2377,11 +2372,6 @@ GCode::LayerResult GCode::process_layer(
     }
 
     if (! first_layer && ! m_second_layer_things_done) {
-        //BBS: open spaghetti detector at second layer
-        if (print.config().spaghetti_detector.value) {
-            gcode += ";open spaghetti detector after first layer\n";
-            gcode += "M981 S1 P20000\n";
-        }
         //BBS:  reset acceleration at sencond layer
         if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
             double acceleration = m_config.default_acceleration.value;
