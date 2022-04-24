@@ -4426,7 +4426,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     auto is_visible = [plate_idx, plate_build_volume](const GLVolume& v) {
         bool ret = v.printable;
         if (plate_idx >= 0) {
-            ret &= plate_build_volume.intersects(v.transformed_bounding_box());
+            ret &= plate_build_volume.contains(v.transformed_bounding_box());
         }
         else {
             ret &= (!v.shader_outside_printer_detection_enabled || !v.is_outside);
@@ -4449,17 +4449,15 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     }
 
     BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: plate_idx %1% volumes size %2%, shader %3%") % plate_idx % visible_volumes.size() %shader;
-    /*BoundingBoxf3 volumes_box;
+    BoundingBoxf3 volumes_box = plate_build_volume;
+    volumes_box.min.z() = 0;
+    volumes_box.max.z() = 0;
     if (!visible_volumes.empty()) {
         for (const GLVolume* vol : visible_volumes) {
             volumes_box.merge(vol->transformed_bounding_box());
         }
     }
-    else {
-        // This happens for empty projects
-        //volumes_box = m_bed.extended_bounding_box();
-        volumes_box = plate_build_volume;
-    }*/
+
     Camera camera;
     camera.set_type(camera_type);
     //BBS modify scene box to plate scene bounding box
@@ -4470,8 +4468,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     //BoundingBoxf3 plate_box = plate->get_bounding_box(false);
     //plate_box.min.z() = 0.0;
     //plate_box.max.z() = 0.0;
-    camera.zoom_to_box(plate_build_volume);
-    //camera.zoom_to_box(volumes_box);
+    camera.zoom_to_box(volumes_box);
     camera.select_view("topfront");
     camera.apply_view_matrix();
 
