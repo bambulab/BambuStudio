@@ -524,7 +524,7 @@ void ArrangeJob::process()
         for (auto item : m_unselected)
             BOOST_LOG_TRIVIAL(debug) << item.name << ", extruder: " << item.extrude_id << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
     }
-    params.parallel = false;
+
     arrangement::arrange(m_selected, m_unselected, bedpts, params);
 
     // sort by item id
