@@ -1646,9 +1646,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 return;
             }
             std::map<std::string, std::string> key_values;
-            int ret = config.load_from_json(dest_file, config_substitutions, true, key_values);
+            std::string reason;
+            int ret = config.load_from_json(dest_file, config_substitutions, true, key_values, reason);
             if (ret) {
-                add_error("Error load config from json");
+                add_error("Error load config from json:"+reason);
                 return;
             }
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", load project config file successfully from %1%\n") %dest_file;
@@ -1677,7 +1678,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             DynamicPrintConfig config;
             //ConfigSubstitutions config_substitutions = config.load_from_ini(dest_file, Enable);
             std::map<std::string, std::string> key_values;
-            ConfigSubstitutions config_substitutions = use_json? config.load_from_json(dest_file, Enable, key_values) : config.load_from_ini(dest_file, Enable);
+            std::string reason;
+            ConfigSubstitutions config_substitutions = use_json? config.load_from_json(dest_file, Enable, key_values, reason) : config.load_from_ini(dest_file, Enable);
+            if (!reason.empty()) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", load project embedded config from  %1% failed\n") % dest_file;
+                //skip this file
+                return;
+            }
             ConfigOptionString* print_name;
             ConfigOptionStrings* filament_names;
             std::string preset_name;
@@ -5428,7 +5435,7 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
 
     boost::mutex mutex;
     tbb::parallel_for(tbb::blocked_range<size_t>(0, plate_data_list2.size(), 1), [this, &plate_data_list2, &root_archive = archive, &mutex](const tbb::blocked_range<size_t>& range) {
-        for (int i = range.begin(); i < range.end(); ++i) {            
+        for (int i = range.begin(); i < range.end(); ++i) {
             PlateData* plate_data = plate_data_list2[i];
             auto src_gcode_file = plate_data->gcode_file;
             bool encrypted = boost::algorithm::ends_with(src_gcode_file, "_encrypted.gcode");

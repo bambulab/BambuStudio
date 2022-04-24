@@ -68,7 +68,8 @@ Semver get_version_from_json(std::string file_path)
     }
     catch(nlohmann::detail::parse_error &err) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file_path<<" got a nlohmann::detail::parse_error, reason = " << err.what();
-        throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", file_path, err.what()));
+        return Semver();
+        //throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", file_path, err.what()));
     }
 }
 
@@ -90,7 +91,8 @@ int get_values_from_json(std::string file_path, std::vector<std::string>& keys, 
     }
     catch(nlohmann::detail::parse_error &err) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file_path<<" got a nlohmann::detail::parse_error, reason = " << err.what();
-        throw ConfigurationError(format("Failed loading json file \"%1%\": %2%", file_path, err.what()));
+        //throw ConfigurationError(format("Failed loading json file \"%1%\": %2%", file_path, err.what()));
+        return 0;
     }
     return key_values.size();
 }
@@ -923,9 +925,20 @@ void PresetCollection::load_presets(
                     //BBS: change to json format
                     //ConfigSubstitutions config_substitutions = config.load_from_ini(preset.file, substitution_rule);
                     std::map<std::string, std::string> key_values;
-                    ConfigSubstitutions config_substitutions = config.load_from_json(preset.file, substitution_rule, key_values);
+                    std::string reason;
+                    ConfigSubstitutions config_substitutions = config.load_from_json(preset.file, substitution_rule, key_values, reason);
                     if (! config_substitutions.empty())
                         substitutions.push_back({ preset.name, m_type, PresetConfigSubstitutions::Source::UserFile, preset.file, std::move(config_substitutions) });
+                    if (!reason.empty()) {
+                        fs::path file_path(preset.file);
+                        if (fs::exists(file_path))
+                            fs::remove(file_path);
+                        file_path.replace_extension(".info");
+                        if (fs::exists(file_path))
+                            fs::remove(file_path);
+                        BOOST_LOG_TRIVIAL(error) << boost::format("parse config %1% failed")%preset.file;
+                        continue;
+                    }
 
                     std::string version_str = key_values[BBL_JSON_KEY_VERSION];
                     boost::optional<Semver> version = Semver::parse(version_str);
@@ -968,9 +981,23 @@ void PresetCollection::load_presets(
                     //BBS: add config related logs
                     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", preset type %1%, name %2%, path %3%, is_system %4%, is_default %5% is_visible %6%")%Preset::get_type_string(m_type) %preset.name %preset.file %preset.is_system %preset.is_default %preset.is_visible;
                 } catch (const std::ifstream::failure &err) {
-                    throw Slic3r::RuntimeError(std::string("The selected preset cannot be loaded: ") + preset.file + "\n\tReason: " + err.what());
+                    BOOST_LOG_TRIVIAL(error) << boost::format("The user-config cannot be loaded: %1%. Reason: %2%")%preset.file %err.what();
+                    fs::path file_path(preset.file);
+                    if (fs::exists(file_path))
+                        fs::remove(file_path);
+                    file_path.replace_extension(".info");
+                    if (fs::exists(file_path))
+                        fs::remove(file_path);
+                    //throw Slic3r::RuntimeError(std::string("The selected preset cannot be loaded: ") + preset.file + "\n\tReason: " + err.what());
                 } catch (const std::runtime_error &err) {
-                    throw Slic3r::RuntimeError(std::string("Failed loading the preset file: ") + preset.file + "\n\tReason: " + err.what());
+                    BOOST_LOG_TRIVIAL(error) << boost::format("Failed loading the user-config file: %1%. Reason: %2%")%preset.file %err.what();
+                    //throw Slic3r::RuntimeError(std::string("Failed loading the preset file: ") + preset.file + "\n\tReason: " + err.what());
+                    fs::path file_path(preset.file);
+                    if (fs::exists(file_path))
+                        fs::remove(file_path);
+                    file_path.replace_extension(".info");
+                    if (fs::exists(file_path))
+                        fs::remove(file_path);
                 }
                 presets_loaded.emplace_back(preset);
             } catch (const std::runtime_error &err) {
@@ -2524,7 +2551,8 @@ void PhysicalPrinterCollection::load_printers(
                     DynamicPrintConfig config;
                     //ConfigSubstitutions config_substitutions = config.load_from_ini(printer.file, substitution_rule);
                     std::map<std::string, std::string> key_values;
-                    ConfigSubstitutions config_substitutions = config.load_from_json(printer.file, substitution_rule, key_values);
+                    std::string reason;
+                    ConfigSubstitutions config_substitutions = config.load_from_json(printer.file, substitution_rule, key_values, reason);
                     if (! config_substitutions.empty())
                         substitutions.push_back({ name, Preset::TYPE_PHYSICAL_PRINTER, PresetConfigSubstitutions::Source::UserFile, printer.file, std::move(config_substitutions) });
                     printer.update_from_config(config);

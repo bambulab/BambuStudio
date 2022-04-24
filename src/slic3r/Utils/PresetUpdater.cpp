@@ -482,7 +482,7 @@ void PresetUpdater::priv::sync_resources(std::map<std::string, Resource> &resour
         if (cancel) { return; }
         auto resource_name = resource_it.first;
         boost::to_lower(resource_name);
-        std::string query_resource = (boost::format("%1%=%2%") 
+        std::string query_resource = (boost::format("%1%=%2%")
             % resource_name % resource_it.second.version).str();
         if (!first) query_params += "&";
         query_params += query_resource;
@@ -949,7 +949,7 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
                 std::string changelog_file = (cache_path / (vendor_name + ".changelog")).string();
                 boost::nowide::ifstream ifs(changelog_file);
                 if (ifs) {
-                    std::ostringstream oss; 
+                    std::ostringstream oss;
                     oss<< ifs.rdbuf();
                     changelog = oss.str();
                     //ifs>>changelog;
@@ -1156,7 +1156,7 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
     //		return R_INCOMPAT_EXIT;
     //	}
 
-    //} else 
+    //} else
     if (updates.updates.size() > 0) {
 
         bool force_update = false;
@@ -1222,7 +1222,7 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
                 return R_UPDATE_REJECT;
             }
         }
-		
+
         // MsgUpdateConfig will show after the notificaation is clicked
     } else {
         BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:No configuration updates available.";
@@ -1264,7 +1264,7 @@ void PresetUpdater::on_update_notification_confirm()
 	}
 	else {
 		BOOST_LOG_TRIVIAL(info) << "User refused the update";
-	}	
+	}
 }
 
 bool PresetUpdater::version_check_enabled() const

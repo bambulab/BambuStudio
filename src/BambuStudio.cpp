@@ -175,7 +175,14 @@ int CLI::run(int argc, char **argv)
         ConfigSubstitutions config_substitutions;
         try {
             BOOST_LOG_TRIVIAL(info) << "load setting file "<< file << ", with rule "<< config_substitution_rule << std::endl;
-            config_substitutions = config.load(file, config_substitution_rule);
+            std::map<std::string, std::string> key_values;
+            std::string reason;
+
+            config_substitutions = config.load_from_json(file, config_substitution_rule, key_values, reason);
+            if (!reason.empty()) {
+                BOOST_LOG_TRIVIAL(error) << "Can not load config from file "<<file<<"\n";
+                flush_and_exit(1);
+            }
             //BOOST_LOG_TRIVIAL(info) << "got printable_area "<< config.option("printable_area")->serialize() << std::endl;
         } catch (std::exception &ex) {
             boost::nowide::cerr << "Loading setting file \"" << file << "\" failed: " << ex.what() << std::endl;
@@ -214,7 +221,13 @@ int CLI::run(int argc, char **argv)
         ConfigSubstitutions config_substitutions;
         try {
             BOOST_LOG_TRIVIAL(info) << "load filament file "<< file << ", with rule "<< config_substitution_rule << std::endl;
-            config_substitutions = config.load(file, config_substitution_rule);
+            std::string reason;
+            std::map<std::string, std::string> key_values;
+            config_substitutions = config.load_from_json(file, config_substitution_rule, key_values, reason);
+            if (!reason.empty()) {
+                BOOST_LOG_TRIVIAL(error) << "Can not load filament config from file "<<file<<"\n";
+                flush_and_exit(1);
+            }
             //BOOST_LOG_TRIVIAL(info) << "got printable_area "<< config.option("printable_area")->serialize() << std::endl;
         } catch (std::exception &ex) {
             boost::nowide::cerr << "Loading filament file \"" << file << "\" failed: " << ex.what() << std::endl;

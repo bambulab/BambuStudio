@@ -2110,6 +2110,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     // Enable substitutions for user config bundle, throw an exception when loading a system profile.
     ConfigSubstitutionContext  substitution_context { compatibility_rule };
     PresetsConfigSubstitutions substitutions;
+    std::string vendor_system_path = data_dir() + "/" + PRESET_SYSTEM_DIR;
 
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, path %1%, compatibility_rule %2%")%path.c_str()%compatibility_rule;
@@ -2162,7 +2163,8 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                 std::string version_str = it.value();
                 auto config_version = Semver::parse(version_str);
                 if (! config_version) {
-                    throw ConfigurationError((boost::format("vendor `%1%` 's config version: `%2%` invalid") % vendor_name % version_str).str());
+                    throw ConfigurationError((boost::format("vendor %1%'s config version: %2% invalid\nSuggest cleaning the directory %3% firstly")
+                        % vendor_name % version_str %vendor_system_path).str());
                 } else {
                     vendor_profile.config_version = std::move(*config_version);
                 }
@@ -2199,7 +2201,9 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     }
     catch(nlohmann::detail::parse_error &err) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<root_file<<" got a nlohmann::detail::parse_error, reason = " << err.what();
-        throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", root_file, err.what()));
+        throw ConfigurationError((boost::format("Failed loading configuration file %1%: %2%\nSuggest cleaning the directory %3% firstly")
+                %root_file %err.what() %vendor_system_path).str());
+        //goto __error_process;
     }
 
     //2) paste the machine model
@@ -2279,7 +2283,8 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         }
         catch(nlohmann::detail::parse_error &err) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<< subfile <<" got a nlohmann::detail::parse_error, reason = " << err.what();
-            throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", subfile, err.what()));
+            throw ConfigurationError((boost::format("Failed loading configuration file %1%: %2%\nSuggest cleaning the directory %3% firstly")
+                %subfile %err.what() %vendor_system_path).str());
         }
 
         if (! model.id.empty() && ! model.variants.empty())
@@ -2306,7 +2311,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         std::pair<std::string, std::string>& subfile_iter,
         std::map<std::string, DynamicPrintConfig>& config_maps,
         PresetCollection* presets_collection,
-        size_t& count) -> Preset* {
+        size_t& count) -> std::string {
         std::string subfile = path + "/" + vendor_name + "/" + subfile_iter.second;
         // Load the print, filament or printer preset.
         std::string               preset_name;
@@ -2314,13 +2319,18 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         std::string 			  alias_name, inherits, instantiation, setting_id;
         std::vector<std::string>  renamed_from;
         const DynamicPrintConfig* default_config = nullptr;
+        std::string               reason;
         try {
             std::map<std::string, std::string> key_values;
             substitution_context.substitutions.clear();
 
             //parse the json elements
             DynamicPrintConfig config_src;
-            config_src.load_from_json(subfile, substitution_context, false, key_values);
+            config_src.load_from_json(subfile, substitution_context, false, key_values, reason);
+            if (!reason.empty()) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": load config file "<<subfile<<" Failed!";
+                return reason;
+            }
             preset_name = key_values[BBL_JSON_KEY_NAME];
             instantiation = key_values[BBL_JSON_KEY_INSTANTIATION];
             auto setting_it = key_values.find(BBL_JSON_KEY_SETTING_ID);
@@ -2336,7 +2346,9 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                 }
                 else {
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": can not find inherits "<<inherits<<" for " << preset_name;
-                    throw ConfigurationError(format("can not find inherits %1% for %2%", inherits, preset_name));
+                    //throw ConfigurationError(format("can not find inherits %1% for %2%", inherits, preset_name));
+                    reason = "Can not find inherits: " + inherits;
+                    return reason;
                 }
             }
             else {
@@ -2349,7 +2361,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             config.apply(config_src);
             if (instantiation == "false") {
                 config_maps.emplace(preset_name, std::move(config));
-                return nullptr;
+                return reason;
             }
             if (config.has("alias"))
                 alias_name = (dynamic_cast<const ConfigOptionString *>(config.option("alias")))->value;
@@ -2361,7 +2373,8 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         }
         catch(nlohmann::detail::parse_error &err) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<< subfile <<" got a nlohmann::detail::parse_error, reason = " << err.what();
-            throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", subfile, err.what()));
+            reason = std::string("json parse error") + err.what();
+            return reason;
         }
 
         // Report configuration fields, which are misplaced into a wrong group.
@@ -2377,13 +2390,15 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             if (printer_model.empty()) {
                 BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" <<
                     preset_name << "\" defines no printer model, it will be ignored.";
-                return nullptr;
+                reason = std::string("can not find printer_model");
+                return reason;
             }
             auto printer_variant = config.opt_string("printer_variant");
             if (printer_variant.empty()) {
                 BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" <<
                     preset_name << "\" defines no printer variant, it will be ignored.";
-                return nullptr;
+                reason = std::string("can not find printer_variant");
+                return reason;
             }
             auto it_model = std::find_if(current_vendor_profile->models.cbegin(), current_vendor_profile->models.cend(),
                 [&](const VendorProfile::PrinterModel &m) { return m.id == printer_model; }
@@ -2391,20 +2406,23 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             if (it_model == current_vendor_profile->models.end()) {
                 BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" <<
                     preset_name << "\" defines invalid printer model \"" << printer_model << "\", it will be ignored.";
-                return nullptr;
+                reason = std::string("can not find printer model in vendor profile");
+                return reason;
             }
             auto it_variant = it_model->variant(printer_variant);
             if (it_variant == nullptr) {
                 BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" <<
                     preset_name << "\" defines invalid printer variant \"" << printer_variant << "\", it will be ignored.";
-                return nullptr;
+                reason = std::string("can not find printer_variant in vendor profile");
+                return reason;
             }
         }
         const Preset *preset_existing = presets_collection->find_preset(preset_name, false);
         if (preset_existing != nullptr) {
             BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" <<
                 preset_name << "\" has already been loaded from another Confing Bundle.";
-            return nullptr;
+            reason = std::string("duplicated defines");
+            return reason;
         }
 
         auto file_path = (boost::filesystem::path(data_dir())  /PRESET_SYSTEM_DIR/ vendor_name / subfile_iter.second).make_preferred();
@@ -2441,7 +2459,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         ++count;
         //BBS: add config related logs
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", got preset %1%, from %2%")%loaded.name %subfile;
-        return &loaded;
+        return reason;
     };
 
     std::map<std::string, DynamicPrintConfig> configs;
@@ -2450,7 +2468,13 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     configs.clear();
     for (auto& subfile : process_subfiles)
     {
-        parse_subfile(substitution_context, substitutions, flags, subfile, configs, presets, presets_loaded);
+        std::string reason = parse_subfile(substitution_context, substitutions, flags, subfile, configs, presets, presets_loaded);
+        if (!reason.empty()) {
+            //parse error
+            std::string subfile_path = path + "/" + vendor_name + "/" + subfile.second;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse process setting from %1%") % subfile_path;
+            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path %vendor_system_path).str());
+        }
     }
 
     //3.2) paste the filaments
@@ -2458,7 +2482,13 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     configs.clear();
     for (auto& subfile : filament_subfiles)
     {
-        parse_subfile(substitution_context, substitutions, flags, subfile, configs, presets, presets_loaded);
+        std::string reason = parse_subfile(substitution_context, substitutions, flags, subfile, configs, presets, presets_loaded);
+        if (!reason.empty()) {
+            //parse error
+            std::string subfile_path = path + "/" + vendor_name + "/" + subfile.second;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse filament setting from %1%") % subfile_path;
+            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path %vendor_system_path).str());
+        }
     }
 
     //3.3) paste the printers
@@ -2466,7 +2496,13 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     configs.clear();
     for (auto& subfile : machine_subfiles)
     {
-        Preset *loaded = parse_subfile(substitution_context, substitutions, flags, subfile, configs, presets, presets_loaded);
+        std::string reason = parse_subfile(substitution_context, substitutions, flags, subfile, configs, presets, presets_loaded);
+        if (!reason.empty()) {
+            //parse error
+            std::string subfile_path = path + "/" + vendor_name + "/" + subfile.second;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse printer setting from %1%") % subfile_path;
+            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path %vendor_system_path).str());
+        }
     }
 
     //BBS: add config related logs

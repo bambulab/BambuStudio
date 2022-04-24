@@ -37,7 +37,7 @@ int GUI_Run(GUI_InitParams &params)
 #endif // __APPLE__
 
     //BBS: remove the try-catch and let exception goto above
-    //try {
+    try {
         //GUI::GUI_App* gui = new GUI::GUI_App(params.start_as_gcodeviewer ? GUI::GUI_App::EAppMode::GCodeViewer : GUI::GUI_App::EAppMode::Editor);
         GUI::GUI_App* gui = new GUI::GUI_App();
         //if (gui->get_app_mode() != GUI::GUI_App::EAppMode::GCodeViewer) {
@@ -54,15 +54,15 @@ int GUI_Run(GUI_InitParams &params)
         gui->init_params = &params;
 
         return wxEntry(params.argc, params.argv);
-    /*} catch (const Slic3r::Exception &ex) {
-        boost::nowide::cerr << ex.what() << std::endl;
-        wxMessageBox(boost::nowide::widen(ex.what()), _L("Application initialization failed"), wxICON_STOP);
+    } catch (const Slic3r::Exception &ex) {
+        BOOST_LOG_TRIVIAL(error) << ex.what() << std::endl;
+        show_error(nullptr, _L("Bambu Studio initialization failed"));
         throw;
     } catch (const std::exception &ex) {
-        boost::nowide::cerr << "BambuStudio GUI initialization failed: " << ex.what() << std::endl;
-        wxMessageBox(format_wxstr(_L("Fatal error, exception: %1%"), ex.what()), _L("Application initialization failed"), wxICON_STOP);
+        BOOST_LOG_TRIVIAL(error) << ex.what() << std::endl;
+        show_error(nullptr, _L("Bambu Studio initialization failed"));
         throw;
-    }*/
+    }
     // error
     return 1;
 }

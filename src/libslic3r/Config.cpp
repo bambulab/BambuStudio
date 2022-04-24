@@ -714,23 +714,28 @@ ConfigSubstitutions ConfigBase::load(const std::string &file, ForwardCompatibili
     std::map<std::string, std::string> key_values;
     if (is_gcode_file(file))
         return this->load_from_gcode_file(file, compatibility_rule);
-    else if (is_json_file(file))
-        return this->load_from_json(file, compatibility_rule, key_values);
-    else
-        return this->load_from_ini(file, compatibility_rule);
+    else if (is_json_file(file)) {
+        std::string reason;
+        return this->load_from_json(file, compatibility_rule, key_values, reason);
+    }
+    else {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "unsupported format for config file" << file;
+        return ConfigSubstitutions();
+        //return this->load_from_ini(file, compatibility_rule);
+    }
 }
 
 //BBS: add json support
-ConfigSubstitutions ConfigBase::load_from_json(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule, std::map<std::string, std::string>& key_values)
+ConfigSubstitutions ConfigBase::load_from_json(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule, std::map<std::string, std::string>& key_values, std::string& reason)
 {
     int ret = 0;
     ConfigSubstitutionContext substitutions_ctxt(compatibility_rule);
 
-    ret = load_from_json(file, substitutions_ctxt, true, key_values);
+    ret = load_from_json(file, substitutions_ctxt, true, key_values, reason);
     return std::move(substitutions_ctxt.substitutions);
 }
 
-int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContext& substitution_context, bool load_inherits_to_config, std::map<std::string, std::string>& key_values)
+int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContext& substitution_context, bool load_inherits_to_config, std::map<std::string, std::string>& key_values, std::string& reason)
 {
     json j;
     try {
@@ -843,13 +848,19 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
         }
         return 0;
     }
-    catch (const ConfigurationError &e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" got a ConfigurationError, reason = " << e.what();
-        throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", file, e.what()));
+    catch (const std::ifstream::failure &err)  {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" got a ifstream error, reason = " << err.what();
+        reason = std::string("ifstreamError: ") + err.what();
+        //throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", file, e.what()));
     }
     catch(nlohmann::detail::parse_error &err) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" got a nlohmann::detail::parse_error, reason = " << err.what();
-        throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", file, err.what()));
+        reason = std::string("JsonParseError: ") + err.what();
+        //throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", file, err.what()));
+    }
+    catch(std::exception &err) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" got a generic exception, reason = " << err.what();
+        reason = std::string("std::exception: ") + err.what();
     }
     return -1;
 }

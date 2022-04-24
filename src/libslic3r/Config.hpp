@@ -2125,8 +2125,8 @@ public:
     //BBS support load from ini string
     ConfigSubstitutions load_string_map(std::map<std::string, std::string> &key_values, ForwardCompatibilitySubstitutionRule compatibility_rule);
     //BBS: add json support
-    int load_from_json(const std::string &file, ConfigSubstitutionContext& substitutions, bool load_inherits_in_config, std::map<std::string, std::string>& key_values);
-    ConfigSubstitutions load_from_json(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule, std::map<std::string, std::string>& key_values);
+    int load_from_json(const std::string &file, ConfigSubstitutionContext& substitutions, bool load_inherits_in_config, std::map<std::string, std::string>& key_values, std::string& reason);
+    ConfigSubstitutions load_from_json(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule, std::map<std::string, std::string>& key_values, std::string& reason);
 
     ConfigSubstitutions load_from_ini(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule);
     ConfigSubstitutions load_from_ini_string(const std::string &data, ForwardCompatibilitySubstitutionRule compatibility_rule);
