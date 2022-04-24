@@ -5,7 +5,6 @@
     "instantiation": "false",
     "inherits": "fdm_process_bbl_common",
     "layer_height": "0.08",
-    "wall_loops": "3",
     "bottom_shell_layers": "7",
     "top_shell_layers": "9",
     "bridge_flow": "1",

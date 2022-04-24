@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.00.01.00",
+    "version": "01.00.01.01",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -99,8 +99,8 @@
             "sub_path": "filament/fdm_filament_pc.json"
         },
         {
-            "name": "fdm_filament_pa+cf",
-            "sub_path": "filament/fdm_filament_pa+cf.json"
+            "name": "fdm_filament_hpc",
+            "sub_path": "filament/fdm_filament_hpc.json"
         },
         {
             "name": "Bambu TPU 95A @base",
@@ -131,8 +131,8 @@
             "sub_path": "filament/Bambu Support W @base.json"
         },
         {
-            "name": "Bambu PA12-CF @base",
-            "sub_path": "filament/Bambu PA12-CF @base.json"
+            "name": "Bambu PA-CF @base",
+            "sub_path": "filament/Bambu PA-CF @base.json"
         },
         {
             "name": "Bambu PET-CF @base",
@@ -203,8 +203,8 @@
             "sub_path": "filament/Bambu Support W @BBL X1C.json"
         },
         {
-            "name": "Bambu PA12-CF @BBL X1C",
-            "sub_path": "filament/Bambu PA12-CF @BBL X1C.json"
+            "name": "Bambu PA-CF @BBL X1C",
+            "sub_path": "filament/Bambu PA-CF @BBL X1C.json"
         },
         {
             "name": "Bambu PET-CF @BBL X1C",

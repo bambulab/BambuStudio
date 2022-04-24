@@ -2565,7 +2565,7 @@ void TabFilament::toggle_options()
 
         for (auto el : { "fan_max_speed", "fan_cooling_layer_time", "slow_down_layer_time", "slow_down_min_speed" })
             toggle_option(el, cooling);
-        //BBS
+
         for (auto el : { "additional_cooling_fan_speed", "fan_min_speed", "close_fan_the_first_x_layers", "full_fan_speed_layer" })
             toggle_option(el, reduce_fan_stop_start_freq);
     }
@@ -3301,6 +3301,11 @@ void TabPrinter::toggle_options()
 {
     if (!m_active_page || m_presets->get_edited_preset().printer_technology() == ptSLA)
         return;
+
+    if (m_active_page->title() == "Basic information") {
+        toggle_line("nozzle_type", m_config->opt_bool("can_switch_nozzle_type"));
+        toggle_line("auxiliary_fan", m_config->opt_bool("can_add_auxiliary_fan"));
+    }
 
     bool have_multiple_extruders = m_extruders_count > 1;
     if (m_active_page->title() == "Custom G-code") {

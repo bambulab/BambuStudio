@@ -1,15 +1,15 @@
 {
     "type": "filament",
     "filament_id": "GFN00",
-    "name": "Bambu PA12-CF @base",
+    "name": "Bambu PA-CF @base",
     "from": "system",
     "instantiation": "false",
-    "inherits": "fdm_filament_pa+cf",
+    "inherits": "fdm_filament_hpc",
     "filament_vendor": [
         "Bambu Lab"
     ],
     "filament_type": [
-        "PA+CF"
+        "HPC"
     ],
     "nozzle_temperature_initial_layer": [
         "280"

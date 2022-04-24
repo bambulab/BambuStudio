@@ -29,7 +29,7 @@
     "sparse_infill_density": "15%",
     "sparse_infill_pattern": "grid",
     "initial_layer_acceleration": "5000",
-    "initial_layer_line_width": "0.42",
+    "initial_layer_line_width": "0.5",
     "initial_layer_print_height": "0.2",
     "initial_layer_speed": "30",
     "gap_infill_speed": "50",

@@ -1,10 +1,10 @@
 {
     "type": "filament",
     "setting_id": "GFSN00",
-    "name": "Bambu PA12-CF @BBL X1C",
+    "name": "Bambu PA-CF @BBL X1C",
     "from": "system",
     "instantiation": "true",
-    "inherits": "Bambu PA12-CF @base",
+    "inherits": "Bambu PA-CF @base",
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.4 nozzle"
     ]
