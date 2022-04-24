@@ -1090,14 +1090,7 @@ void Choice::set_selection()
     choice_ctrl* field = dynamic_cast<choice_ctrl*>(window);
 	switch (m_opt.type) {
 	case coEnum:{
-        if (m_opt.get_default_value<ConfigOptionEnum<SeamPosition>>()) {
-            int id_value = m_opt.get_default_value<ConfigOptionEnum<SeamPosition>>()->value; //!!
-            field->SetSelection(id_value);
-        }
-        else if (m_opt.get_default_value<ConfigOptionEnum<BedType>>()) {
-            int id_value = m_opt.get_default_value<ConfigOptionEnum<BedType>>()->value; //!!
-            field->SetSelection(id_value);
-        }
+        field->SetSelection(m_opt.default_value->getInt());
 		break;
 	}
 	case coFloat:
