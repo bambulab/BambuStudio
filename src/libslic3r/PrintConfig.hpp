@@ -204,6 +204,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SeamPosition)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLADisplayOrientation)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLAPillarConnectionMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BrimType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BedType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(DraftShield)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 
@@ -742,6 +743,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionPoints,             bed_exclude_area))
     // BBS
     ((ConfigOptionEnumsGeneric,       bed_type))
+    ((ConfigOptionEnum<BedType>,      curr_bed_type))
     ((ConfigOptionInts,               bed_temperature))
     ((ConfigOptionInts,               overhang_fan_speed))
     ((ConfigOptionEnumsGeneric,       overhang_fan_threshold))

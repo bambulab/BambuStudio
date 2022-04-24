@@ -29,6 +29,8 @@ public:
 
     void SetTextLayout(EHorizontalOrientation orient, int margin = 15);
 
+    void SetLayoutStyle(int style);
+
     void SetLabel(const wxString& label);
 
     bool SetForegroundColour(wxColour const & colour) override;
@@ -69,6 +71,7 @@ private:
     wxColour        bottom_color;
 
     bool pressedDown = false;
+    int  layout_style = 0;
 
     EHorizontalOrientation text_orientation;
     int text_margin;

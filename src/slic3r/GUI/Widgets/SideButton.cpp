@@ -70,6 +70,13 @@ void SideButton::SetTextLayout(EHorizontalOrientation orient, int margin)
     Refresh();
 }
 
+void SideButton::SetLayoutStyle(int style)
+{
+    layout_style = style;
+    messureSize();
+    Refresh();
+}
+
 void SideButton::SetLabel(const wxString& label)
 {
     wxWindow::SetLabel(label);
@@ -198,10 +205,15 @@ void SideButton::render(wxDC& dc)
     // draw text style
     else {
         if (radius > 1e-5) {
-            dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
-            dc.DrawRectangle(0, 0, size.x - radius, size.y);
-            dc.SetPen(wxNullPen);
-            dc.DrawRectangle(size.x - radius - pen_width, pen_width, 2 * pen_width, size.y - 2 * pen_width);
+            if (layout_style == 1) {
+                dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
+                dc.SetPen(wxNullPen);
+            } else {
+                dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
+                dc.DrawRectangle(0, 0, size.x - radius, size.y);
+                dc.SetPen(wxNullPen);
+                dc.DrawRectangle(size.x - radius - pen_width, pen_width, 2 * pen_width, size.y - 2 * pen_width);
+            }
         } else {
             dc.DrawRectangle(0, 0, size.x, size.y);
         }

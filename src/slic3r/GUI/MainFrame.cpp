@@ -1014,15 +1014,15 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_slice_select = eSlicePlate;
     m_print_select = ePrintPlate;
 
-    m_slice_btn = new SideButton(this, _L("Slice plate"), "");
-    m_slice_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, 14 * em / 10);
+    m_slice_btn = new SideButton(this, _L("Slice"), "");
+    //m_slice_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, 14 * em / 10);
     m_print_btn = new SideButton(this, _L("Print"), "");
     m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, 14 * em / 10);
 
     update_side_button_style();
-    m_slice_option_btn->Enable();
+    //m_slice_option_btn->Enable();
     m_print_option_btn->Enable();
-    sizer->Add(m_slice_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
+    //sizer->Add(m_slice_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
     sizer->Add(m_slice_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
     sizer->Add(15 * em / 10, 0, 0, 0, 0);
     sizer->Add(m_print_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
@@ -1064,12 +1064,14 @@ wxBoxSizer* MainFrame::create_side_tools()
             wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE));
     });
 
+    // only support single plate currently
+#if 0
     m_slice_option_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
             SidePopup* p = new SidePopup(this);
             SideButton* slice_all_btn = new SideButton(p, _L("Slice all"), "");
             slice_all_btn->SetCornerRadius(0);
-            SideButton* slice_plate_btn = new SideButton(p, _L("Slice plate"), "");
+            SideButton* slice_plate_btn = new SideButton(p, _L("Slice"), "");
             slice_plate_btn->SetCornerRadius(0);
 
             slice_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
@@ -1096,6 +1098,7 @@ wxBoxSizer* MainFrame::create_side_tools()
             p->Popup();
         }
     );
+#endif
 
     m_print_option_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
@@ -1240,17 +1243,23 @@ void MainFrame::update_side_button_style()
 {
     // BBS
     int em = em_unit();
-    m_slice_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Left, 15 * em / 10);
+
+    m_slice_btn->SetLayoutStyle(1);
+    m_slice_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center, 15 * em / 10);
     m_slice_btn->SetMinSize(wxSize(-1, 24 * em / 10));
     m_slice_btn->SetCornerRadius(12 * em / 10);
     m_slice_btn->SetExtraSize(wxSize(38 * em / 10, 10 * em / 10));
     m_slice_btn->SetBottomColour(wxColour(0x3B4446));
+
+
+#if 0
     m_slice_option_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center);
     m_slice_option_btn->SetCornerRadius(12 * em / 10);
     m_slice_option_btn->SetExtraSize(wxSize(10 * em / 10, 10 * em / 10));
     m_slice_option_btn->SetIconOffset(2 * em / 10);
     m_slice_option_btn->SetMinSize(wxSize(24 * em / 10, 24 * em / 10));
     m_slice_option_btn->SetBottomColour(wxColour(0x3B4446));
+#endif
     m_print_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Left, 15 * em / 10);
     m_print_btn->SetCornerRadius(12 * em / 10);
     m_print_btn->SetExtraSize(wxSize(38 * em / 10, 10 * em / 10));
@@ -1316,7 +1325,7 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     update_side_button_style();
 
     m_slice_btn->Rescale();
-    m_slice_option_btn->Rescale();
+    //m_slice_option_btn->Rescale();
     m_print_btn->Rescale();
     m_print_option_btn->Rescale();
 

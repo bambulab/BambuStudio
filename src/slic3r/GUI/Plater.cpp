@@ -560,8 +560,24 @@ Sidebar::Sidebar(Plater *parent)
     bSizer_filament_content->Add(p->sizer_filaments, 1, wxALIGN_CENTER | wxALL);
     p->m_panel_filament_content->SetSizer(p->sizer_filaments);
     p->m_panel_filament_content->Layout();
-
     scrolled_sizer->Add(p->m_panel_filament_content, 0, wxTOP | wxBOTTOM | wxEXPAND, 10);
+
+    wxBoxSizer* bed_type_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxStaticText* bed_type_title = new wxStaticText(p->scrolled, wxID_ANY, _L("Bed type"));
+    bed_type_title->Wrap(-1);
+    bed_type_title->SetFont(Label::Body_14);
+    ComboBox* bed_type_list = new ComboBox(p->scrolled, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
+    DynamicPrintConfig& config = wxGetApp().preset_bundle->project_config;
+    const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
+    if (bed_type_def && bed_type_def->enum_keys_map) {
+        for (auto item : *bed_type_def->enum_keys_map)
+            bed_type_list->AppendString(_L(item.first));
+    }
+
+    bed_type_list->Select(0);
+    bed_type_sizer->Add(bed_type_title, 0, wxALL | wxEXPAND, 10);
+    bed_type_sizer->Add(bed_type_list, 1, wxALL | wxEXPAND, 10);
+    scrolled_sizer->Add(bed_type_sizer, 0, wxTOP | wxBOTTOM | wxEXPAND, 10);
     scrolled_sizer->AddSpacer(15);
 
     //p->m_staticline2 = new wxStaticLine( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
@@ -1564,6 +1580,8 @@ struct Plater::priv
     //BBS: add no_slice option
     void set_current_panel(wxPanel* panel, bool no_slice = true);
 
+    void on_combobox_select(wxCommandEvent&);
+    void on_select_bed_type(wxCommandEvent&);
     void on_select_preset(wxCommandEvent&);
     void on_slicing_update(SlicingStatusEvent&);
     void on_slicing_completed(wxCommandEvent&);
@@ -1835,7 +1853,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
 
     if (wxGetApp().is_editor()) {
         // Preset change event
-        sidebar->Bind(wxEVT_COMBOBOX, &priv::on_select_preset, this);
+        sidebar->Bind(wxEVT_COMBOBOX, &priv::on_combobox_select, this);
         sidebar->Bind(EVT_OBJ_LIST_OBJECT_SELECT, [this](wxEvent&) { priv::selection_changed(); });
         // BBS: should bind BACKGROUND_PROCESS event to plater
         q->Bind(EVT_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
@@ -4362,6 +4380,41 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
     }
 
     current_panel->SetFocusFromKbd();
+}
+
+// BBS
+void Plater::priv::on_combobox_select(wxCommandEvent &evt)
+{
+    PlaterPresetComboBox* preset_combo_box = dynamic_cast<PlaterPresetComboBox*>(evt.GetEventObject());
+    if (preset_combo_box) {
+        this->on_select_preset(evt);
+    }
+    else {
+        this->on_select_bed_type(evt);
+    }
+}
+
+void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
+{
+    ComboBox* combo = static_cast<ComboBox*>(evt.GetEventObject());
+    int selection = combo->GetSelection();
+    wxString bed_type_name = combo->GetString(selection);
+
+    DynamicPrintConfig& config = wxGetApp().preset_bundle->project_config;
+    const t_config_enum_values* keys_map = print_config_def.get("curr_bed_type")->enum_keys_map;
+    if (keys_map) {
+        BedType bed_type = btCount;
+        for (auto item : *keys_map) {
+            if (_L(item.first) == bed_type_name)
+                bed_type = (BedType)item.second;
+        }
+
+        if (bed_type != btCount) {
+            config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
+            // update plater with new config
+            q->on_config_change(wxGetApp().preset_bundle->full_config());
+        }
+    }
 }
 
 void Plater::priv::on_select_preset(wxCommandEvent &evt)

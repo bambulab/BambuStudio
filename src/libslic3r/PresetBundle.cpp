@@ -37,6 +37,7 @@ static std::vector<std::string> s_project_options {
     "wipe_tower_x",
     "wipe_tower_y",
     "wipe_tower_rotation_angle",
+    "curr_bed_type",
 };
 
 //BBS: add BBL as default

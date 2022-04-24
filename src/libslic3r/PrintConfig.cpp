@@ -215,6 +215,7 @@ static const t_config_enum_values s_keys_map_BedType = {
     { "Engineering Plate",  btEP  },
     { "High Temp Plate",    btPEI  }
 };
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedType)
 
 static t_config_enum_values s_keys_map_NozzleType {
     { "hardened_steel", int(NozzleType::ntHardenedSteel) },
@@ -348,13 +349,24 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Bed types supported by the printer");
     def->mode = comSimple;
     def->enum_keys_map = &s_keys_map_BedType;
+    for (auto item : s_keys_map_BedType) {
+        def->enum_values.emplace_back(item.first);
+        def->enum_labels.emplace_back(item.first);
+    }
+    def->set_default_value(new ConfigOptionEnumsGeneric{ (int)btPC });
+
+    def = this->add("curr_bed_type", coEnums);
+    def->label = L("Bed Type");
+    def->tooltip = L("Bed types supported by the printer");
+    def->mode = comSimple;
+    def->enum_keys_map = &s_keys_map_BedType;
     def->enum_values.emplace_back("Cool Plate");
     def->enum_values.emplace_back("Engineering Plate");
     def->enum_values.emplace_back("High Temp Plate");
     def->enum_labels.emplace_back(L("Cool Plate"));
     def->enum_labels.emplace_back(L("Engineering Plate"));
     def->enum_labels.emplace_back(L("High Temp Plate"));
-    def->set_default_value(new ConfigOptionEnumsGeneric{ (int)btPC });
+    def->set_default_value(new ConfigOptionEnum<BedType>(btPC));
 
     def = this->add("before_layer_change_gcode", coString);
     def->label = L("Before layer change G-code");

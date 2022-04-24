@@ -121,7 +121,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "change_filament_gcode",
         "wipe",
         // BBS
-        "wipe_distance"
+        "wipe_distance",
+        "curr_bed_type",
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -910,6 +911,13 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                     if (!validate_extrusion_width(region.config(), opt_key, layer_height, err_msg))
 		            	return  {err_msg, object, opt_key};
         }
+    }
+
+    const ConfigOptionInts& bed_temp_opt = m_config.bed_temperature;
+    for (unsigned int extruder_id : extruders) {
+        int curr_bed_temp = bed_temp_opt.get_at(extruder_id * BedType::btCount + m_config.curr_bed_type);
+        if (curr_bed_temp == 0)
+            return { L("Current bed type do not support filament ") + std::to_string(extruder_id + 1) + "." };
     }
 
     return {};
