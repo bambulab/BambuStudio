@@ -1,26 +1,10 @@
 {
     "type": "filament",
-    "filament_id": "GFS00",
     "setting_id": "S00-GFS00",
     "name": "Bambu Support W @BBL X1C",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pla",
-    "filament_vendor": [
-        "Bambu Lab"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "220"
-    ],
-    "nozzle_temperature": [
-        "230"
-    ],
-    "bed_temperature": [
-        "40,60,0"
-    ],
-    "bed_temperature_initial_layer": [
-        "40,60,0"
-    ],
+    "inherits": "Bambu Support W @base",
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.4 nozzle"
     ]

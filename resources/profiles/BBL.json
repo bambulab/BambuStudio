@@ -103,6 +103,62 @@
             "sub_path": "filament/fdm_filament_pa+cf.json"
         },
         {
+            "name": "Bambu TPU 95A @base",
+            "sub_path": "filament/Bambu TPU 95A @base.json"
+        },
+        {
+            "name": "Bambu PLA Matte @base",
+            "sub_path": "filament/Bambu PLA Matte @base.json"
+        },
+        {
+            "name": "Bambu PLA Basic @base",
+            "sub_path": "filament/Bambu PLA Basic @base.json"
+        },
+        {
+            "name": "Bambu PLA Impact @base",
+            "sub_path": "filament/Bambu PLA Impact @base.json"
+        },
+        {
+            "name": "Bambu PLA Metal @base",
+            "sub_path": "filament/Bambu PLA Metal @base.json"
+        },
+        {
+            "name": "Bambu ABS @base",
+            "sub_path": "filament/Bambu ABS @base.json"
+        },
+        {
+            "name": "Bambu Support W @base",
+            "sub_path": "filament/Bambu Support W @base.json"
+        },
+        {
+            "name": "Bambu PA12-CF @base",
+            "sub_path": "filament/Bambu PA12-CF @base.json"
+        },
+        {
+            "name": "Bambu PET-CF @base",
+            "sub_path": "filament/Bambu PET-CF @base.json"
+        },
+        {
+            "name": "Bambu PC @base",
+            "sub_path": "filament/Bambu PC @base.json"
+        },
+        {
+            "name": "Kexcelled K5 PLA @base",
+            "sub_path": "filament/Kexcelled K5 PLA @base.json"
+        },
+        {
+            "name": "Kexcelled K6 PLA @base",
+            "sub_path": "filament/Kexcelled K6 PLA @base.json"
+        },
+        {
+            "name": "PolyTerra PLA @base",
+            "sub_path": "filament/PolyTerra PLA @base.json"
+        },
+        {
+            "name": "PolyLite PLA @base",
+            "sub_path": "filament/PolyLite PLA @base.json"
+        },
+        {
             "name": "Generic PLA",
             "sub_path": "filament/Generic PLA.json"
         },

@@ -560,6 +560,21 @@ bool is_compatible_with_print(const PresetWithVendorProfile &preset, const Prese
             compatible_prints->values.end();
 }
 
+//BBS: If one filament or process preset is compatible with one system printer preset,
+// then we think this filament or process preset should be compatible with all
+// user printer preset which is inherited from this system printer preset.
+// Because printer_model and nozzle_diameter in BBL system machine preset
+// can't be changed by user.
+bool is_compatible_with_parent_printer(const PresetWithVendorProfile& preset, const PresetWithVendorProfile& active_printer)
+{
+    auto *compatible_printers     = dynamic_cast<const ConfigOptionStrings*>(preset.preset.config.option("compatible_printers"));
+    bool  has_compatible_printers = compatible_printers != nullptr && ! compatible_printers->values.empty();
+    //BBS: FIXME only check the parent now, but should check grand-parent as well.
+    return has_compatible_printers &&
+           std::find(compatible_printers->values.begin(), compatible_printers->values.end(), active_printer.preset.inherits()) !=
+               compatible_printers->values.end();
+}
+
 bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer, const DynamicPrintConfig *extra_config)
 {
 	if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
@@ -577,9 +592,11 @@ bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const Pre
             return true;
         }
     }
-    return preset.preset.is_default || active_printer.preset.name.empty() || ! has_compatible_printers ||
+    return preset.preset.is_default || active_printer.preset.name.empty() || !has_compatible_printers ||
         std::find(compatible_printers->values.begin(), compatible_printers->values.end(), active_printer.preset.name) !=
-            compatible_printers->values.end();
+        compatible_printers->values.end()
+        //BBS
+        || (!active_printer.preset.is_system && is_compatible_with_parent_printer(preset, active_printer));
 }
 
 bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer)

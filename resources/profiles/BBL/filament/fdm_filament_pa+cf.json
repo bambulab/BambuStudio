@@ -49,7 +49,6 @@
     "overhang_fan_speed": [
         "30"
     ],
-    "top_fan_speed": "0",
     "nozzle_temperature": [
         "290"
     ],

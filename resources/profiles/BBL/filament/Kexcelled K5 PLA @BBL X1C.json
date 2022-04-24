@@ -1,37 +1,14 @@
 {
     "type": "filament",
-    "filament_id": "GFL20",
     "setting_id": "S00-GFL20",
     "name": "Kexcelled K5 PLA @BBL X1C",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pla",
-    "filament_vendor": [
-        "Kexcelled"
-    ],
-    "filament_cost": [
-        "25.4"
-    ],
-    "filament_density": [
-        "1.24"
-    ],
-    "nozzle_temperature": [
-        "230"
-    ],
-    "bed_temperature": [
-        "35,0,60"
-    ],
-    "bed_temperature_initial_layer": [
-        "35,0,60"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "220"
-    ],
+    "inherits": "Kexcelled K5 PLA @base",
     "filament_max_volumetric_speed": [
         "26.8"
     ],
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.4 nozzle"
     ]
-
 }

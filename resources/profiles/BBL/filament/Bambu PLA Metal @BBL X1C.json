@@ -1,26 +1,10 @@
 {
     "type": "filament",
-    "filament_id": "GFA02",
     "setting_id": "S00-GFA02",
     "name": "Bambu PLA Metal @BBL X1C",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pla",
-    "filament_vendor": [
-        "Bambu Lab"
-    ],
-    "filament_cost": [
-        "25.4"
-    ],
-    "filament_density": [
-        "1.24"
-    ],
-    "nozzle_temperature": [
-        "230"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "220"
-    ],
+    "inherits": "Bambu PLA Metal @base",
     "filament_max_volumetric_speed": [
         "25"
     ],

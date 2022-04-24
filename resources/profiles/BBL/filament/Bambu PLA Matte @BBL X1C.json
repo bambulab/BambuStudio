@@ -1,32 +1,10 @@
 {
     "type": "filament",
-    "filament_id": "GFA01",
     "setting_id": "S00-GFA01",
     "name": "Bambu PLA Matte @BBL X1C",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pla",
-    "filament_vendor": [
-        "Bambu Lab"
-    ],
-    "filament_cost": [
-        "25.4"
-    ],
-    "filament_density": [
-        "1.24"
-    ],
-    "nozzle_temperature": [
-        "230"
-    ],
-    "bed_temperature": [
-        "30,0,60"
-    ],
-    "bed_temperature_initial_layer": [
-        "30,0,60"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "210"
-    ],
+    "inherits": "Bambu PLA Matte @base",
     "filament_max_volumetric_speed": [
         "28.6"
     ],

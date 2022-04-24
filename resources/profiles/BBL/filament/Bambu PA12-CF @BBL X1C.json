@@ -1,29 +1,10 @@
 {
     "type": "filament",
-    "filament_id": "GFN00",
     "setting_id": "S00-GFN00",
     "name": "Bambu PA12-CF @BBL X1C",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pa+cf",
-    "filament_vendor": [
-        "Bambu Lab"
-    ],
-    "filament_type": [
-        "PA6+CF"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "280"
-    ],
-    "nozzle_temperature": [
-        "280"
-    ],
-    "bed_temperature": [
-        "0,100,100"
-    ],
-    "bed_temperature_initial_layer": [
-        "0,100,100"
-    ],
+    "inherits": "Bambu PA12-CF @base",
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.4 nozzle"
     ]

@@ -1,0 +1,17 @@
+{
+    "type": "filament",
+    "filament_id": "GFC00",
+    "name": "Bambu PC @base",
+    "from": "system",
+    "instantiation": "false",
+    "inherits": "fdm_filament_pc",
+    "filament_vendor": [
+        "Bambu Lab"
+    ],
+    "nozzle_temperature": [
+        "280"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "270"
+    ]
+}
