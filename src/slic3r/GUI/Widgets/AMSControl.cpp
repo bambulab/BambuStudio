@@ -487,6 +487,11 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
 
 void AMSRoad::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) { wxWindow::Create(parent, id, pos, size); }
 
+void AMSRoad::SetPassRoadColour(wxColour col) 
+{
+    m_road_color = col;
+}
+
 void AMSRoad::SetMode(AMSRoadMode mode)
 {
     m_rode_mode = mode;
@@ -828,6 +833,7 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan)
     m_panel_lib->m_can_id    = caninfo.can_id;
     m_panel_lib->m_can_index = canindex;
     auto m_panel_road        = new AMSRoad(amscan, wxID_ANY, caninfo, canindex, maxcan, wxDefaultPosition, wxSize(-1, AMS_CAN_ROAD_SIZE));
+    m_panel_road->SetPassRoadColour(caninfo.material_colour);
     m_sizer_ams->Add(m_panel_lib, 1, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(4));
     m_sizer_ams->Add(m_panel_road, 0, wxEXPAND, 0);
 
@@ -889,6 +895,19 @@ void AmsCans::SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP s
 
     if (tag_can_index == -1) return;
 
+    if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
+        auto iter = m_can_road_list.begin();
+        while (iter != m_can_road_list.end()) {
+            CanRoads *road = iter->second;
+            auto pr    = std::vector<AMSPassRoadMode>{};
+            pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_NONE);
+            road->canRoad->OnPassRoad(pr);
+            iter++;
+        }
+
+        return;
+    }
+
     // unload
     if (type == AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD) {
         auto iter = m_can_road_list.begin();
@@ -899,7 +918,9 @@ void AmsCans::SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP s
             auto pr    = std::vector<AMSPassRoadMode>{};
 
             pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_BOTTOM);
-            if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_2) {
+            if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_2) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_BOTTOM); }
+
+            if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_3) {
                 if (index == tag_can_index && index > 0) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_LEFT); }
                 if (index < tag_can_index && index > 0) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_LEFT_RIGHT); }
                 if (index == 0 && tag_can_index == index) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_TOP); }
@@ -1027,9 +1048,8 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     wxBoxSizer *m_sizer_left_bottom = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *sizer_sextruder     = new wxBoxSizer(wxHORIZONTAL);
 
-    auto extruder = new AMSextruder(amswin, wxID_ANY, wxDefaultPosition, AMS_EXTRUDER_SIZE);
-    extruder->TurnOn();
-    sizer_sextruder->Add(extruder, 1, wxEXPAND | wxALL, 0);
+    m_extruder = new AMSextruder(amswin, wxID_ANY, wxDefaultPosition, AMS_EXTRUDER_SIZE);
+    sizer_sextruder->Add(m_extruder, 1, wxEXPAND | wxALL, 0);
     m_sizer_left_bottom->Add(sizer_sextruder, 1, wxEXPAND, 0);
 
     m_sizer_left_bottom->Add(0, 0, 0, wxEXPAND, 0);
@@ -1478,6 +1498,19 @@ bool AMSControl::Enable(bool enable)
 
 void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP STEP)
 {
+    if ( STEP == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) { m_extruder->TurnOff();}
+
+    if (type == AMSPassRoadType::AMS_ROAD_TYPE_LOAD && STEP == AMSPassRoadSTEP::AMS_ROAD_STEP_3) { 
+        m_extruder->TurnOn();
+        return;
+    }
+
+    if (type == AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD && STEP == AMSPassRoadSTEP::AMS_ROAD_STEP_1) { 
+        m_extruder->TurnOn(); 
+        return;
+    }
+
+    
     AmsCansHash::iterator iter     = m_ams_cans_list.find(ams_id);
     bool                  notfound = (iter == m_ams_cans_list.end());
     if (notfound) return;

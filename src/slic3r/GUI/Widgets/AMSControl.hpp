@@ -217,6 +217,7 @@ public:
     wxColour                     m_road_def_color;
     wxColour                     m_road_color;
 
+    void SetPassRoadColour(wxColour col);
     void SetMode(AMSRoadMode mode);
     void OnPassRoad(std::vector<AMSPassRoadMode> prord_list);
     void UpdatePassRoad(int tag_index, AMSPassRoadType type, AMSPassRoadSTEP step);
@@ -355,6 +356,8 @@ protected:
     std::string  m_current_ams;
     AmsItemsHash m_ams_item_list;
     AmsCansHash  m_ams_cans_list;
+
+    AMSextruder* m_extruder                = {nullptr};
 
     wxSimplebook *m_simplebook_right       = {nullptr};
     wxSimplebook *m_simplebook_calibration = {nullptr};
