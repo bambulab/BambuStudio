@@ -318,7 +318,7 @@ void BBLTopbar::OnSaveProject(wxAuiToolBarEvent& event)
 {
     MainFrame* main_frame = dynamic_cast<MainFrame*>(m_frame);
     Plater* plater = main_frame->plater();
-    plater->export_3mf(into_path(plater->get_project_filename(".3mf")));
+    plater->save_project();
 }
 
 void BBLTopbar::OnUndo(wxAuiToolBarEvent& event)
