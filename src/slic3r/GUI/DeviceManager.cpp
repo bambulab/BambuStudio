@@ -52,16 +52,45 @@ std::string PRINTING_STAGE_STR[PRINTING_STAGE_COUNT] = {
     "nozzle_tip_cleaning"
     };
 
-inline wxString get_stage_string(std::string stage_str)
+inline wxString get_stage_string(int stage)
 {
-    //TODO
-    if (stage_str == "printing") {
-        return _L("start printing...");
-    } else if (stage_str == "bed_leveling") {
-        return _L("bed leveling...");
-    } else {
-        return wxString(stage_str);
+    switch(stage) {
+    case 0:
+        return _L("Printing...");
+    case 1:
+        return _L("The bed is auto leveling...");
+    case 2:
+        return _L("The hot bed is preheating...");
+    case 3:
+        return _L("Frequncy sweeping...");
+    case 4:
+        return _L("Change the filament...");
+    case 5:
+        return _L("Pause(M400)");
+    case 6:
+        return _L("Pause(Lack of filament)");
+    case 7:
+        return _L("The nozzle is preheating...");
+    case 8:
+        return _L("Extruder compensation scanning...");
+    case 9:
+        return _L("Bed surface scanning...");
+    case 10:
+        return _L("First layer scanning...");
+    case 11:
+        return _L("Bed surface is auto identifying...");
+    case 12:
+        return _L("In the calibration of extrinsic parameters");
+    case 13:
+        return _L("The tool head is homing...");
+    case 14:
+        return _L("Nozzle cleaning...");
+    case 15:
+        return _L("In the calibration of temperature protection");
+    default:
+        ;
     }
+    return "";
 }
 
 static uint64_t lzo_out_len = 5 * 1024;
@@ -266,6 +295,7 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
     mc_print_percent = 0;
     mc_print_sub_stage = 0;
     mc_left_time = 0;
+    printing_speed_lvl   = PrintingSpeedLevel::SPEED_LEVEL_INVALID;
 }
 
 bool MachineObject::check_valid_ip()
@@ -358,14 +388,18 @@ std::string MachineObject::get_firmware_type_str()
 
 wxString MachineObject::get_curr_stage()
 {
-    if (stage_info.empty()) return "";
-
-    for (auto it = stage_info.begin(); it != stage_info.end(); it++) {
-        if (it->second == 1) {
-            return get_stage_string(it->first);
-        }
+    if (stage_list_info.empty()) {
+        return "";
     }
-    return "";
+    return get_stage_string(stage_curr);
+}
+
+PrintingSpeedLevel MachineObject::_parse_printing_speed_lvl(int lvl)
+{
+    if (lvl < (int)SPEED_LEVEL_COUNT)
+        return PrintingSpeedLevel(lvl);
+
+    return PrintingSpeedLevel::SPEED_LEVEL_INVALID;
 }
 
 int MachineObject::command_get_version()
@@ -580,6 +614,16 @@ int MachineObject::command_set_work_light(LIGHT_EFFECT effect, int on_time, int 
     j["system"]["led_off_time"] = off_time;
     j["system"]["loop_times"] = loops;
     j["system"]["interval_time"] = interval;
+
+    return this->publish_json(j.dump());
+}
+
+int MachineObject::command_set_printing_speed(PrintingSpeedLevel lvl)
+{
+    json j;
+    j["print"]["command"] = "print_speed";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["param"] = std::to_string((int)lvl);
 
     return this->publish_json(j.dump());
 }
@@ -866,18 +910,35 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 ;
             }
 
+            /* parse speed */
             try {
-                if (jj.contains("stage")) {
-                    stage_info.clear();
-                    if (jj["stage"].is_array()) {
-                        for (auto it = jj["stage"].begin(); it != jj["stage"].end(); it++) {
+                if (jj.contains("spd_lvl")) {
+
+                    printing_speed_lvl = (PrintingSpeedLevel)jj["spd_lvl"].get<int>();
+                }
+                if (jj.contains("spd_mag")) {
+                    printing_speed_mag = jj["spd_mag"].get<int>();
+                }
+            }
+            catch(...) {
+                ;
+            }
+
+            try {
+                if (jj.contains("stg")) {
+                    stage_list_info.clear();
+                    if (jj["stg"].is_array()) {
+                        for (auto it = jj["stg"].begin(); it != jj["stg"].end(); it++) {
                             for (auto kv = (*it).begin(); kv != (*it).end(); kv++) {
-                                stage_info.emplace(std::make_pair(kv.key(), kv.value().get<int>()));
+                                stage_list_info.push_back(kv.value().get<int>());
                             }
                         }
                     }
                 }
-            } catch (...) {
+                if (jj.contains("stg_cur")) {
+                    stage_curr = jj["stg_cur"].get<int>();
+                }
+            } catch(...) {
                 ;
             }
 

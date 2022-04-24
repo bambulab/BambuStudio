@@ -546,7 +546,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control()
     m_switch_speed->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_speed->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
                                     std::make_pair(NORMAL_TEXT_COL,(int) StateColor::Normal)));
-    m_switch_speed->Hide();
+    //m_switch_speed->Hide();
 
     line_sizer->Add(m_switch_speed, 1, wxALIGN_CENTER | wxALL, 0);
 
@@ -1063,6 +1063,9 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     // speed and lamp
     m_switch_nozzle_fan->SetValue(obj->cooling_fan_speed > 0);
     m_switch_printing_fan->SetValue(obj->big_fan1_speed > 0);
+
+    wxString text_speed = wxString::Format("%d%%", obj->printing_speed_mag);
+    m_switch_speed->SetLabel(text_speed);
 }
 
 void StatusPanel::update_ams(MachineObject *obj)
@@ -1478,7 +1481,11 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
     step->AppendItem(_L("Sport"), "140%");
     step->AppendItem(_L("Ludicrous"), "180%");
     step->SelectItem(speed);
-    step->Bind(EVT_STEP_CHANGED, [this](auto &e) { this->speed = e.GetInt(); });
+    step->Bind(EVT_STEP_CHANGED, [this](auto &e) {
+        PrintingSpeedLevel lvl = (PrintingSpeedLevel)e.GetInt();
+        this->speed = e.GetInt();
+        obj->command_set_printing_speed(lvl);
+    });
     popUp->Bind(wxEVT_SHOW, [this](auto &e) {
         if (!e.IsShown()) {
             wxGetApp().CallAfter([popUp = e.GetEventObject()] { delete popUp; });

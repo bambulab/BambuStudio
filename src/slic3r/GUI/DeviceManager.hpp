@@ -54,6 +54,16 @@ enum PRINTING_STAGE {
     PRINTING_STAGE_COUNT
 };
 
+
+enum PrintingSpeedLevel {
+    SPEED_LEVEL_INVALID = 0,
+    SPEED_LEVEL_SILENCE = 1,
+    SPEED_LEVEL_NORMAL = 2,
+    SPEED_LEVEL_RAPID = 3,
+    SPEED_LEVEL_RAMPAGE = 4,
+    SPEED_LEVEL_COUNT
+};
+
 class AccountManager;
 
 class sub_action_listener : public virtual mqtt::iaction_listener
@@ -333,7 +343,8 @@ public:
     int     mc_print_percent;       /* left print progess in percent */
     int     mc_left_time;           /* left time in seconds */
 
-    std::map<std::string, int>  stage_info; /* printing stage info */
+    std::vector<int> stage_list_info;
+    int stage_curr = 0;
 
     wxString get_curr_stage();
 
@@ -346,6 +357,9 @@ public:
     std::string subtask_name;
 
     std::string print_status;   /* enum string: FINISH, RUNNING, PAUSE, INIT, FAILED */
+    PrintingSpeedLevel printing_speed_lvl;
+    int                printing_speed_mag;
+    PrintingSpeedLevel _parse_printing_speed_lvl(int lvl);
 
     /* mqtt connections */
     CONNECTION_TYPE conn_type;
@@ -417,6 +431,9 @@ public:
 
     int command_set_chamber_light(LIGHT_EFFECT effect, int on_time = 500, int off_time = 500, int loops = 1, int interval = 1000);
     int command_set_work_light(LIGHT_EFFECT effect, int on_time = 500, int off_time = 500, int loops = 1, int interval = 1000);
+
+    // set printing speed
+    int command_set_printing_speed(PrintingSpeedLevel lvl);
 
     // axis string is X, Y, Z, E
     int command_axis_control(std::string axis, double unit = 1.0f, double value = 1.0f, int speed = 3000);
