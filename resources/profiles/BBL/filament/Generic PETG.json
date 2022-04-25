@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFG99",
-    "setting_id": "S00-GFG99",
+    "setting_id": "GFSG99",
     "name": "Generic PETG",
     "from": "system",
     "instantiation": "true",

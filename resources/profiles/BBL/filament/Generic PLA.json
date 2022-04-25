@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFL99",
-    "setting_id": "S00-GFL99",
+    "setting_id": "GFSL99",
     "name": "Generic PLA",
     "from": "system",
     "instantiation": "true",

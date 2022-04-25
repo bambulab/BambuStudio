@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFB99",
-    "setting_id": "S00-GFB99",
+    "setting_id": "GFSB99",
     "name": "Generic ABS",
     "from": "system",
     "instantiation": "true",
