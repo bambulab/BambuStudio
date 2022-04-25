@@ -114,8 +114,8 @@ void ProgressBar::Reset()
 void ProgressBar::SetProgress(int step)
 { 
     m_disable = false;
-    if (step < 0 || m_step >= m_max) return;
-    if (step == m_step) return;
+    if (step < 0) return;
+    //if (step == m_step) return;
     m_step = step;
     Refresh();
 }
