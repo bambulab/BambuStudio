@@ -198,7 +198,8 @@ void PrintJob::process()
 
     BBLSubTask* subTask = new BBLSubTask();
 
-    subTask->task_bed_type = this->task_bed_type;
+    //BBS hide bed choice
+    //subTask->task_bed_type = this->task_bed_type;
     subTask->task_bed_leveling = this->task_bed_leveling;
     subTask->task_flow_cali = this->task_flow_cali;
     subTask->task_vabration_cali = this->task_vabration_cali;

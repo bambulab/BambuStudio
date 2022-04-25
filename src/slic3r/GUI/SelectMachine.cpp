@@ -502,24 +502,19 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 14);
 
-    wxBoxSizer *m_sizer_bed = new wxBoxSizer(wxHORIZONTAL);
-
-    m_staticText_bed_title = new wxStaticText(this, wxID_ANY, L("Bed style"), wxDefaultPosition, wxSize(-1, -1), 0);
-    m_staticText_bed_title->SetFont(::Label::Head_14);
-    m_staticText_bed_title->Wrap(-1);
-    m_staticText_bed_title->SetForegroundColour(m_colour_bold_color);
-    m_staticText_bed_title->SetBackgroundColour(m_colour_def_color);
-
-    m_sizer_bed->Add(m_staticText_bed_title, 0, wxALL | wxEXPAND, 5);
-
-    m_sizer_bed->Add(0, 0, 0, wxEXPAND | wxLEFT, 12);
-
-    m_comboBox_bed = new ::ComboBox(this, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
-
-    for (auto i = 0; i < m_bedtype_list.size(); i++) { m_comboBox_bed->Append(m_bedtype_list[i]); }
-
-    m_sizer_bed->Add(m_comboBox_bed, 1, wxEXPAND | wxRIGHT, 30);
-    m_sizer_main->Add(m_sizer_bed, 0, wxEXPAND | wxLEFT | wxRIGHT, 30);
+    //BBS hide bed choice
+    //wxBoxSizer *m_sizer_bed = new wxBoxSizer(wxHORIZONTAL);
+    //m_staticText_bed_title = new wxStaticText(this, wxID_ANY, L("Bed style"), wxDefaultPosition, wxSize(-1, -1), 0);
+    //m_staticText_bed_title->SetFont(::Label::Head_14);
+    //m_staticText_bed_title->Wrap(-1);
+    //m_staticText_bed_title->SetForegroundColour(m_colour_bold_color);
+    //m_staticText_bed_title->SetBackgroundColour(m_colour_def_color);
+    //m_sizer_bed->Add(m_staticText_bed_title, 0, wxALL | wxEXPAND, 5);
+    //m_sizer_bed->Add(0, 0, 0, wxEXPAND | wxLEFT, 12);
+    //m_comboBox_bed = new ::ComboBox(this, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
+    //for (auto i = 0; i < m_bedtype_list.size(); i++) { m_comboBox_bed->Append(m_bedtype_list[i]); }
+    //m_sizer_bed->Add(m_comboBox_bed, 1, wxEXPAND | wxRIGHT, 30);
+    //m_sizer_main->Add(m_sizer_bed, 0, wxEXPAND | wxLEFT | wxRIGHT, 30);
 
     wxGridSizer *m_sizer_select = new wxGridSizer(2, 2, 0, 0);
 
@@ -813,7 +808,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     }
 
 #ifdef BBL_CHECK_USER_REPORT
-  /*  int  task_id   = 0;
+    int  task_id   = 0;
      bool printable = true;
      c->user_check_report(&task_id, &printable);
      if (task_id != 0 && !printable) {
@@ -821,7 +816,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         std::string report_url = (boost::format("https://autotest.bambu-lab.com/slicerAddReport?task_id=%1%&token=%2%") % task_id % c->get_curr_user()->m_autotest_token).str();
         wxLaunchDefaultBrowser(report_url);
         return;
-    }*/
+    }
 #endif
 
     m_need_disable_btn_ensure = true;
@@ -846,7 +841,8 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, dev_id);
 
     m_print_job->set_print_config(
-        MachineBedTypeString[m_comboBox_bed->GetSelection()], 
+        //MachineBedTypeString[m_comboBox_bed->GetSelection()],
+        MachineBedTypeString[0],
         m_checkbox_list["bed_leveling"]->GetValue(),
         m_checkbox_list["flow_cali"]->GetValue(),
         m_checkbox_list["vibration_cali"]->GetValue(),
@@ -1107,7 +1103,7 @@ bool SelectMachineDialog::Show(bool show)
 
     // bed type
     m_bed_last_select = 0;
-    m_comboBox_bed->SetSelection(m_bed_last_select);
+    //m_comboBox_bed->SetSelection(m_bed_last_select);
 
     // checkbox
     m_checkbox_list["bed_leveling"]->SetValue(true);
