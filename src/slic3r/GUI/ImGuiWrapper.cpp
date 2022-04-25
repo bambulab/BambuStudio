@@ -64,8 +64,6 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::FoldButtonIcon         , "im_fold"                       },
     {ImGui::UnfoldButtonIcon       , "im_unfold"                     },
     {ImGui::GcodePauseIcon         , "im_gcode_pause"                },
-    {ImGui::TickIcon               , "im_tick"                       },
-    {ImGui::TickCloseIcon          , "im_tick_close"                 },
 
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {
@@ -120,13 +118,13 @@ int ImGuiWrapper::TOOLBAR_WINDOW_FLAGS = ImGuiWindowFlags_AlwaysAutoResize
                                  | ImGuiWindowFlags_NoTitleBar;
 
 
-bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const ImS32 v_max, ImS32* out_value, ImRect* out_handle, ImGuiSliderFlags flags/* = 0*/)
+bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const ImS32 v_max, ImS32* out_value, ImRect* out_handle, ImGuiSliderFlags flags/* = 0*/, const int fixed_value/* = -1*/, const ImVec4& fixed_rect/* = ImRect()*/)
 {
     ImGuiContext& context = *GImGui;
 
     const ImGuiAxis axis = (flags & ImGuiSliderFlags_Vertical) ? ImGuiAxis_Y : ImGuiAxis_X;
 
-    const float handle_sz = 10.0f * sqrt(2);
+    const ImVec2 handle_sz = out_handle->GetSize();
     ImS32 v_range = (v_min < v_max ? v_max - v_min : v_min - v_max);
     const float region_usable_sz = (region.Max[axis] - region.Min[axis]);
     const float region_usable_pos_min = region.Min[axis];
@@ -135,19 +133,20 @@ bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const 
     // Process interacting with the slider
     ImS32 v_new = *out_value;
     bool value_changed = false;
+    // wheel behavior
     if (ImGui::ItemHoverable(region, id)) {
         v_new = ImClamp(*out_value + (ImS32)(context.IO.MouseWheel), v_min, v_max);
     }
-    if (context.ActiveId == id)
-    {
-        float mouse_pos_ratio = 0.0f;
-        if (context.ActiveIdSource == ImGuiInputSource_Mouse)
+    // drag behavior
+        if (context.ActiveId == id)
         {
-            if (!context.IO.MouseDown[0])
+            float mouse_pos_ratio = 0.0f;
+            if (context.ActiveIdSource == ImGuiInputSource_Mouse)
             {
-                ImGui::ClearActiveID();
-            }
-            else {
+                if (context.IO.MouseReleased[0])
+                {
+                    ImGui::ClearActiveID();
+                }
                 if (context.IO.MouseDown[0])
                 {
                     const float mouse_abs_pos = context.IO.MousePos[axis];
@@ -155,12 +154,16 @@ bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const 
                     if (axis == ImGuiAxis_Y)
                         mouse_pos_ratio = 1.0f - mouse_pos_ratio;
                     v_new = v_min + (ImS32)(v_range * mouse_pos_ratio + 0.5f);
-                }
 
+                }
             }
         }
+    // click in fixed_rect behavior
+    if (ImGui::ItemHoverable(fixed_rect, id) && context.IO.MouseReleased[0])
+    {
+        v_new = fixed_value;
     }
-
+    
 	// apply result, output value
 	if (*out_value != v_new)
 	{
@@ -174,10 +177,8 @@ bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const 
     handle_pos_ratio = axis == ImGuiAxis_Y ? 1.0f - handle_pos_ratio : handle_pos_ratio;
     const float handle_pos = region_usable_pos_min + (region_usable_pos_max - region_usable_pos_min) * handle_pos_ratio;
 
-    if (axis == ImGuiAxis_X)
-        *out_handle = ImRect(handle_pos - handle_sz * 0.5f, region.Min.y, handle_pos + handle_sz * 0.5f, region.Max.y);
-    else
-        *out_handle = ImRect(region.Min.x, handle_pos - handle_sz * 0.5f, region.Max.x, handle_pos + handle_sz * 0.5f);
+    ImVec2 new_handle_center = axis == ImGuiAxis_Y ? ImVec2(out_handle->GetCenter().x, handle_pos) : ImVec2(handle_pos, out_handle->GetCenter().y);
+    *out_handle = ImRect(new_handle_center - handle_sz * 0.5f, new_handle_center + handle_sz * 0.5f);
 
     return value_changed;
 }
@@ -208,27 +209,6 @@ bool button_with_pos(const char* label, const ImVec2& size, const ImVec2& pos, I
     ImGui::RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb);
 
     return pressed;
-}
-
-ClickedWhere is_clicked_in_rect(const ImRect& rect, ImGuiMouseButton mouse_btn/* = 0*/) {
-    
-    ImGuiContext& g = *GImGui;
-
-    if (g.IO.MouseClicked[mouse_btn])  /* mouse_btn:(0 = left, 1 = right, 2 = middle)*/
-    {
-        if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max))
-            return ClickedIn;
-        else
-            return ClickedOut;
-    }
-
-    //clicked other mouse button
-    if (g.IO.MouseClicked[0] || g.IO.MouseClicked[1] || g.IO.MouseClicked[2])
-    {
-        return ClickedOut;
-    }
-
-    return NotClicked;
 }
 
 bool menu_item_with_icon(const char* label, const char* shortcut, ImU32 icon_color, bool selected, bool enabled/* = true*/) {

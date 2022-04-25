@@ -73,7 +73,7 @@ static constexpr const float TRACKBALLSIZE = 0.8f;
 
 static const float SLIDER_DEFAULT_RIGHT_MARGIN  = 10.0f;
 static const float SLIDER_DEFAULT_BOTTOM_MARGIN = 10.0f;
-static const float SLIDER_RIGHT_MARGIN          = 75.0f;
+static const float SLIDER_RIGHT_MARGIN          = 105.0f;
 static const float SLIDER_BOTTOM_MARGIN         = 60.0f;
 
 

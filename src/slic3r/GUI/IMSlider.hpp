@@ -94,6 +94,12 @@ enum LabelType
     ltEstimatedTime,
 };
 
+enum VSliderMode
+{
+    Regular,
+    Colored,
+};
+
 struct TickCode
 {
     bool operator<(const TickCode& other) const { return other.tick > this->tick; }
@@ -278,11 +284,13 @@ public:
 protected:
     void correct_lower_value();
     void correct_higher_value();
-    bool horizontal_slider(const char* str_id, int* v, int v_min, int v_max, ImVec2 size, float scale = 1.0);
-    void render_colored_band(const ImVec2& pos, ImRect main_band);
+    bool horizontal_slider(const char* str_id, int* v, int v_min, int v_max, const ImVec2& pos, const ImVec2& size, float scale = 1.0);
+    void draw_background(const ImRect& groove);
+    void draw_colored_band(const ImRect& groove, const ImRect& slideable_region);
+    void draw_ticks(const ImRect& slideable_region);
     bool vertical_slider(const char* str_id, int* higher_value, int* lower_value,
         std::string& higher_label, std::string& lower_label,
-        int v_min, int v_max, ImVec2 size,
+        int v_min, int v_max, const ImVec2& pos, const ImVec2& size,
         SelectedSlider& selection, bool one_layer_flag = false, float scale = 1.0f);
     bool is_wipe_tower_layer(int tick) const;
 
@@ -290,6 +298,9 @@ private:
     std::string get_label(int tick, LabelType label_type = ltHeightWithLayer);
     double get_double_value(const SelectedSlider& selection);
     int    get_tick_from_value(double value, bool force_lower_bound = false);
+    float get_pos_from_value(int v_min, int v_max, int value, const ImRect& rect);
+
+
 
     std::string get_color_for_tool_change_tick(std::set<TickCode>::const_iterator it) const;
     // Get active extruders for tick.
@@ -314,13 +325,13 @@ private:
     bool m_is_one_layer       = false;
     bool m_is_focused         = false;
     bool m_show_menu         = false;
-    bool m_selected_tick      = false;
     bool m_force_mode_apply   = true;
     bool m_enable_action_icon = true;
     bool m_enable_cog_icon    = false;
     bool m_is_wipe_tower      = false; // This flag indicates that there is multiple extruder print with wipe tower
     bool m_display_lower      = true;
     bool m_display_higher     = true;
+    int  m_selected_tick_value = -1;
 
     /* BBS slider images */
     void *m_reset_normal_id;
@@ -333,6 +344,7 @@ private:
 
     DrawMode            m_draw_mode = dmRegular;
     Mode                m_mode          = SingleExtruder;
+    VSliderMode          m_vslider_mode = Regular;
     int                 m_only_extruder = -1;
 
     long                m_style;

@@ -44,13 +44,16 @@ namespace GUI {
 constexpr double min_delta_area = scale_(scale_(25));  // equal to 25 mm2
 constexpr double miscalculation = scale_(scale_(1));   // equal to 1 mm2
 
-static const float RIGHT_MARGIN   = 13.0f;
-static const float BOTTOM_MARGIN  = 13.0f;
-static const float TOP_MARGIN     =  3.0f;
+//static const ImVec2 MIN_RECT_SIZE  = ImVec2(81, 52);
+//static const float TOP_MARGIN     =  3.0f;
 static const float LEFT_MARGIN    = 13.0f + 100.0f;  // avoid thumbnail toolbar
-static const ImVec2 HORIZONTAL_SLIDER_SIZE = ImVec2(470, 40);
-static const ImVec2 VERTICAL_SLIDER_SIZE = ImVec2(65, 485);
-static const ImVec2 MIN_RECT_SIZE  = ImVec2(81, 52);
+static const float SLIDER_LENGTH  = 680.0f;
+static const ImVec2 ONE_LAYER_OFFSET  = ImVec2(41.0f, 44.0f);
+static const ImVec2 HORIZONTAL_SLIDER_SIZE = ImVec2(714.0f, 90.0f);//714 = 680 + handle_dummy_width * 2
+static const ImVec2 VERTICAL_SLIDER_SIZE = ImVec2(120.0f, 748.0f);//748 = 680 + text_dummy_height * 2
+
+    int m_tick_value = -1;
+    ImVec4 m_tick_rect;
 
 bool equivalent_areas(const double& bottom_area, const double& top_area)
 {
@@ -681,7 +684,33 @@ void IMSlider::switch_one_layer_mode()
     set_as_dirty();
 }
 
-bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int v_max, ImVec2 size, float scale)
+void IMSlider::draw_background(const ImRect& groove) {
+    const ImU32 bg_rect_col = IM_COL32(255, 255, 255, 255);
+    const ImU32 groove_col = IM_COL32(206, 206, 206, 255);
+
+    if (is_horizontal() || m_ticks.empty()) {
+        ImVec2 groove_padding = ImVec2(2.0f, 2.0f);
+
+        ImRect bg_rect = groove;
+        bg_rect.Expand(groove_padding);
+
+        // draw bg of slider
+        ImGui::RenderFrame(bg_rect.Min, bg_rect.Max, bg_rect_col, false, 0.5 * bg_rect.GetWidth());
+        // draw bg of scroll
+        ImGui::RenderFrame(groove.Min, groove.Max, groove_col, false, 0.5 * groove.GetWidth());
+    }
+    else {
+        ImVec2 groove_padding = ImVec2(5.0f, 7.0f);
+
+        ImRect bg_rect = groove;
+        bg_rect.Expand(groove_padding);
+
+        // draw bg of slider
+        ImGui::RenderFrame(bg_rect.Min, bg_rect.Max, bg_rect_col, false, bg_rect.GetWidth() * 0.5);
+    }
+}
+
+bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int v_max,const ImVec2& pos,const ImVec2& size, float scale)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
@@ -692,112 +721,107 @@ bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int 
     ImGuiContext& context = *GImGui;
     const ImGuiID id = window->GetID(str_id);
 
-    ImVec2 padding(11, 7);
-    float offset_of_handle = 10.0f / sqrt(2);
-    ImVec2 pos = window->DC.CursorPos;
     const ImRect draw_region(pos, pos + size);
     ImGui::ItemSize(draw_region);
 
-    // Draw background rect
-    float fixed_bar_height = 18.0f;
-    ImVec2 slider_bar_start = ImVec2(pos.x, pos.y + size.y - fixed_bar_height);
-    ImVec2 slider_bar_size = ImVec2(size.x, fixed_bar_height);
-    const ImRect bg_rect(slider_bar_start, slider_bar_start + slider_bar_size);
-    const ImU32 bg_rect_col = IM_COL32(255, 255, 255, 255);
-    ImGui::RenderFrame(bg_rect.Min, bg_rect.Max, bg_rect_col, false, 0.5 * fixed_bar_height);
+    float groove_y = 8.0f;
+    float bottom_dummy = 44.0f;
+    float handle_dummy_width = 17.0f;
+    float handle_radius = 14.0f;
 
-    // Draw background of scroll line
-    const ImRect scroll_rect(bg_rect.Min + padding, bg_rect.Max - padding);
-    const ImU32 scroll_bg_col = IM_COL32(238, 238, 238, 255);
-    ImGui::RenderFrame(scroll_rect.Min, scroll_rect.Max, scroll_bg_col, false, 0.5 * fixed_bar_height - padding.y);
+    const ImU32 white_bg = IM_COL32(255, 255, 255, 255);
+    const ImU32 handle_clr = IM_COL32(0, 174, 66, 255);
+    const ImU32 handle_border_clr = IM_COL32(248, 248, 248, 255);
 
-    // Draw handle dynamically according to mouse position
-    // set slideable region
-    const ImRect slideable_region(ImVec2(scroll_rect.Min.x, bg_rect.Min.y), ImVec2(scroll_rect.Max.x, bg_rect.Max.y));
-    // set active(slideable) region.
-    const bool hovered = ImGui::ItemHoverable(slideable_region, id);
-    if (hovered && context.IO.MouseDown[0])
-    {
+    // calc groove size
+    ImVec2 groove_start = ImVec2(pos.x + handle_dummy_width, pos.y + size.y - groove_y - bottom_dummy);
+    ImVec2 groove_size = ImVec2(size.x - 2 * handle_dummy_width, groove_y);
+    ImRect groove = ImRect(groove_start, groove_start + groove_size);
+
+    // set active(draggable) region.
+    ImRect draggable_region = ImRect(groove.Min.x, groove.GetCenter().y, groove.Max.x, groove.GetCenter().y);
+    draggable_region.Expand(ImVec2(0.0f, 19.0f)); // TODO: adjust expand
+    float mid_y = draggable_region.GetCenter().y;
+    bool hovered = ImGui::ItemHoverable(draggable_region, id);
+    if (hovered && context.IO.MouseDown[0]) {
         ImGui::SetActiveID(id, window);
         ImGui::SetFocusID(id, window);
         ImGui::FocusWindow(window);
     }
-    // update handle position and value & draw handle
-    ImRect handle;
-    const ImU32 handle_and_line_col = IM_COL32(0, 174, 66, 255);
-    const ImU32 handle_and_line_border_col = IM_COL32(0, 98, 0, 255);
-    const bool value_changed = slider_behavior(id, slideable_region, (const ImS32)v_min, (const ImS32)v_max, (ImS32*)value, &handle);
+
+    // draw background
+    draw_background(groove);
+
+    // set slideable region
+    const ImRect slideable_region(draggable_region);
+
+    // initialize the handle
+    float handle_pos = get_pos_from_value(v_min, v_max, *value, slideable_region);
+    ImRect handle = ImRect(handle_pos - handle_radius, mid_y - handle_radius, handle_pos + handle_radius, mid_y + handle_radius);
+
+    // update handle position and value
+    bool value_changed = slider_behavior(id, slideable_region, (const ImS32)v_min, (const ImS32)v_max, (ImS32*)value, &handle);
     ImVec2 handle_center = handle.GetCenter();
 
-    // Draw slider border
-    const ImRect scroll_line(scroll_rect.Min, ImVec2(handle_center.x, scroll_rect.Max.y));
-    window->DrawList->AddNgon(handle_center, offset_of_handle + 1, handle_and_line_border_col, 4);
-    window->DrawList->AddRect(scroll_line.Min - ImVec2(1, 1), scroll_line.Max + ImVec2(1, 1), handle_and_line_border_col, 0.5 * fixed_bar_height - padding.y);
-    // Draw slider
-    window->DrawList->AddNgonFilled(handle_center, offset_of_handle, handle_and_line_col, 4);
-    window->DrawList->AddRectFilled(scroll_line.Min, scroll_line.Max, handle_and_line_col, 0.5 * fixed_bar_height - padding.y);
+    // draw scroll line
+    ImRect scroll_line = ImRect(ImVec2(slideable_region.Min.x, mid_y - 4.0f), ImVec2(handle_center.x, mid_y + 4.0f));
+    window->DrawList->AddRectFilled(scroll_line.Min, scroll_line.Max, handle_clr, 2.0f);
 
-    // Draw label
+    // draw handle
+    window->DrawList->AddCircleFilled(handle_center, handle_radius , handle_border_clr);
+    window->DrawList->AddCircleFilled(handle_center, handle_radius - 2.0f, handle_clr);
+
+    // draw label
     auto text_utf8 = into_u8(std::to_string(*value));
     ImVec2 text_content_size = ImGui::CalcTextSize(text_utf8.c_str(), NULL, false, -1.0f);
     //ImVec2 text_content_size = calc_text_size(std::to_string(*value));
-    ImVec2 text_padding = ImVec2(5.0f, 1.0f);
+    ImVec2 text_padding = ImVec2(5.0f, 2.0f);
     ImVec2 text_size = text_content_size + text_padding * 2;
-    ImVec2 text_start = ImVec2(handle_center.x - 0.5 * text_size.x, pos.y);
+    ImVec2 text_start = ImVec2(handle_center.x - 0.5 * text_size.x, handle.Min.y - text_size.y - 6.06f);
     ImRect text_rect(text_start, text_start + text_size);
-    ImGui::RenderFrame(text_rect.Min, text_rect.Max, bg_rect_col, false, 2.0f);
+    ImGui::RenderFrame(text_rect.Min, text_rect.Max, white_bg, false, 2.0f);
     ImVec2 pos_1 = ImVec2(text_rect.GetCenter().x - 3.5f, text_rect.Max.y);
     ImVec2 pos_2 = ImVec2(text_rect.GetCenter().x + 3.5f, text_rect.Max.y);
     ImVec2 pos_3 = ImVec2(text_rect.GetCenter().x, text_rect.Max.y + 6.06f);
-    window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, bg_rect_col);
+    window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, white_bg); //TODO:triangle should get in text rect
     ImGui::RenderText(text_start + text_padding, std::to_string(*value).c_str());
 
     ImGui::SetWindowFontScale(1.0f);
     return value_changed;
 }
 
-void IMSlider::render_colored_band(const ImVec2& pos, ImRect main_band) {
-    if (is_horizontal())
+void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_region) {
+    if (m_ticks.empty())
         return;
-    if (m_draw_mode != dmRegular)
-        return;
-    if (m_ticks.empty() || m_mode == MultiExtruder)
-        return;
+
+    const ImU32 blank_col = IM_COL32(255, 255, 255, 255);
+
+    ImVec2 blank_padding = ImVec2(6.0f, 5.0f);
+
+    ImRect blank_rect = ImRect(groove.GetCenter().x - 1.0f, groove.Min.y, groove.GetCenter().x + 1.0f, groove.Max.y);
+
+    ImRect main_band = ImRect(blank_rect);
+    main_band.Expand(blank_padding);
 
     auto draw_band = [](const ImU32& clr, const ImRect& band_rc)
     {
-        ImGui::RenderFrame(band_rc.Min, band_rc.Max, clr, false);
+        ImGui::RenderFrame(band_rc.Min, band_rc.Max, clr, false, band_rc.GetWidth() * 0.5);
+        //cover round corner
+        ImGui::RenderFrame(ImVec2(band_rc.Min.x, band_rc.Max.y - band_rc.GetWidth() * 0.5), band_rc.Max, clr, false);
     };
-
-    auto get_tick_pos = [this, main_band](int tick)
-    {
-        int v_min = GetMinValue();
-        int v_max = GetMaxValue();
-        float tick_pos_ratio = (v_max - v_min) != 0 ? ((float)(tick - v_min) / (float)(v_max - v_min)) : 0.0f;
-        tick_pos_ratio = 1.0f - tick_pos_ratio;
-        float  tick_pos = main_band.Min.y + (main_band.Max.y - main_band.Min.y) * tick_pos_ratio;
-        return tick_pos;
-    };
-
-    float btn_offset = 35.0f;
-    float tick_offset = 12.0f;
-    ImVec2 btn_size = ImVec2(16.0f, 16.0f);
-    ImVec2 tick_size = ImVec2(20.0f, 4.0f);
-
+    //draw colored band
     ImRect band_rect(main_band);
     const int default_color_idx = m_mode == MultiAsSingle ? std::max<int>(m_only_extruder - 1, 0) : 0;
     std::array<float, 4>rgba = decode_color_to_float_array(m_extruder_colors[default_color_idx]);
     ImU32 band_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
-    draw_band(band_clr, band_rect);
+    ImGui::RenderFrame(band_rect.Min, band_rect.Max, band_clr, false, band_rect.GetWidth() * 0.5);
 
-    static float selected_tick_pos;
-    static int selected_tick;
+    static float tick_pos;
     std::set<TickCode>::const_iterator tick_it = m_ticks.ticks.begin();
     while (tick_it != m_ticks.ticks.end())
     {
         //get position from tick
-        float  tick_pos = get_tick_pos(tick_it->tick);
-
+        tick_pos = get_pos_from_value(GetMinValue(), GetMaxValue(), tick_it->tick, slideable_region);
         //draw colored band
         if (tick_it->type == ToolChange) {
             if ((m_mode == SingleExtruder) || (m_mode == MultiAsSingle))
@@ -814,51 +838,82 @@ void IMSlider::render_colored_band(const ImVec2& pos, ImRect main_band) {
                 }
             }
         }
+        tick_it++;
+    }
 
-        //draw tick
-        ImGui::PushID(tick_it->tick);
-        std::wstring tick_btn_name = ImGui::TickIcon + boost::nowide::widen(std::string(""));
-        ImVec2 tick_start_pos(main_band.GetCenter().x - tick_offset - tick_size.x / 2, tick_pos - tick_size.y / 2);
-        if (button_with_pos(into_u8(tick_btn_name).c_str(), tick_size, tick_start_pos)) {
-            //record clicked tick
-            selected_tick_pos = tick_pos;
-            selected_tick = tick_it->tick;
-            m_selected_tick = true;
-        }
+    //draw blank line
+    ImGui::RenderFrame(blank_rect.Min, blank_rect.Max, blank_col, false, blank_rect.GetWidth() * 0.5);
+}
 
-        //draw pause icon
-        if (tick_it->type == PausePrint && selected_tick != tick_it->tick) {
-            std::wstring pause_btn_name = ImGui::GcodePauseIcon + boost::nowide::widen(std::string(""));
-            if (button_with_pos(into_u8(pause_btn_name).c_str(), btn_size, ImVec2(main_band.GetCenter().x - btn_offset - btn_size.x / 2, tick_pos - btn_size.y / 2)))
-            {
-                int i = 0;
-                //TODO:pause button reaction
-            }
+void IMSlider::draw_ticks(const ImRect& slideable_region) {
+    //if(m_draw_mode != dmRegular)
+    //    return;
+    //if (m_ticks.empty() || m_mode == MultiExtruder)
+    //    return;
+    if (m_ticks.empty())
+        return;
+
+    ImVec2 btn_offset = ImVec2(13.0f, 7.0f);
+    ImVec2 btn_size = ImVec2(16.0f, 16.0f);
+    float handle_radius = 14.0f;
+    float line_offset = 9.0f;
+    const ImU32 tick_clr = IM_COL32(144, 144, 144, 255);
+    const ImU32 tick_hover_box_clr = IM_COL32(219, 253, 231, 255);
+    const ImU32 delete_btn_clr = IM_COL32(144, 144, 144, 255);
+
+    auto get_tick_pos = [this, slideable_region](int tick)
+    {
+        int v_min = GetMinValue();
+        int v_max = GetMaxValue();
+        return get_pos_from_value(v_min, v_max, tick, slideable_region);
+    };
+
+
+    float tick_pos;
+    std::set<TickCode>::const_iterator tick_it = m_ticks.ticks.begin();
+    while (tick_it != m_ticks.ticks.end())
+    {
+        tick_pos = get_tick_pos(tick_it->tick);
+
+        //draw tick hover box when hovered
+        ImRect tick_hover_box = ImRect(slideable_region.GetCenter().x - 23.0f, tick_pos - 8.0f, slideable_region.GetCenter().x + 23.0f, tick_pos + 8.0f);
+
+        if (ImGui::IsMouseHoveringRect(tick_hover_box.Min, tick_hover_box.Max))
+        {
+            ImGui::RenderFrame(tick_hover_box.Min, tick_hover_box.Max, tick_hover_box_clr, false);
+            m_tick_value = tick_it->tick;
+            m_tick_rect = ImVec4(tick_hover_box.Min.x, tick_hover_box.Min.y, tick_hover_box.Max.x, tick_hover_box.Max.y);
         }
-        ImGui::PopID();
         ++tick_it;
     }
 
-    //draw delete_tick icon
-    if (m_selected_tick) {
-        std::wstring tick_close_btn_name = ImGui::TickCloseIcon + boost::nowide::widen(std::string(""));
-        if (button_with_pos(into_u8(tick_close_btn_name).c_str(), btn_size, ImVec2(main_band.GetCenter().x - btn_offset - btn_size.x / 2, selected_tick_pos - btn_size.y / 2)))
-        {
-            //delete tick
-            auto it = m_ticks.ticks.find(TickCode{ selected_tick });
-            if (it != m_ticks.ticks.end() && check_ticks_changed_event(it->type)) {
-                Type type = it->type;
-                m_ticks.ticks.erase(it);
-                post_ticks_changed_event(type);
-            }
+    tick_it = m_ticks.ticks.begin();
+    while (tick_it != m_ticks.ticks.end())
+    {
+        tick_pos = get_tick_pos(tick_it->tick);
 
-            m_selected_tick = false;
+        //draw ticks
+        ImRect tick_left = ImRect(slideable_region.GetCenter().x - 19.0f, tick_pos - 1.0f, slideable_region.GetCenter().x - 11.0f, tick_pos);
+        ImRect tick_right = ImRect(slideable_region.GetCenter().x + 11.0f, tick_pos - 1.0f, slideable_region.GetCenter().x + 19.0f, tick_pos);
+        ImGui::RenderFrame(tick_left.Min, tick_left.Max, tick_clr, false);
+        ImGui::RenderFrame(tick_right.Min, tick_right.Max, tick_clr, false);
+
+        //draw pause icon
+        ImGui::PushID(tick_it->tick);
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+        if (tick_it->type == PausePrint) {
+            std::wstring pause_btn_name = ImGui::GcodePauseIcon + boost::nowide::widen(std::string(""));
+            button_with_pos(into_u8(pause_btn_name).c_str(), btn_size, ImVec2(slideable_region.GetCenter().x + btn_offset.x, tick_pos - btn_offset.y));
         }
+        ImGui::PopStyleColor(1);
+        ImGui::PopID();
+
+        ++tick_it;
     }
 }
 
 bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower_value, std::string& higher_label, std::string& lower_label,
-    int v_min, int v_max, ImVec2 size, SelectedSlider& selection, bool one_layer_flag, float scale)
+    int v_min, int v_max, const ImVec2& pos,const ImVec2& size, SelectedSlider& selection, bool one_layer_flag, float scale)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     ImGui::SetWindowFontScale(1.0f / scale);
@@ -868,188 +923,298 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
     ImGuiContext& context = *GImGui;
     const ImGuiID id = window->GetID(str_id);
 
-    ImVec2 padding(7, 11);
-    float offset_of_handle = 10.0f / sqrt(2);
-    float line_offset = 4.0f;
-    float right_blank = 3.0f;
-    float half_edge = 8.0f;     // triangle half edge
-    ImVec2 pos = window->DC.CursorPos;
     const ImRect draw_region(pos, pos + size);
     ImGui::ItemSize(draw_region);
 
-    float fixed_bar_width = 20.0f;
-    ImVec2 text_content_size = ImVec2(28.0f, 30.0f);
-    ImVec2 text_padding = ImVec2(4.0f, 0.0f);
-    ImVec2 text_size = text_content_size + text_padding * 2;
-    float  text_dummy_height = text_content_size.y / 2.0f;
+    float groove_x = 8.0f;
+    float right_dummy = 24.0f;
+    float text_dummy_height = 34.0f;
 
-    // calc slider bar size
-    ImVec2 slider_bar_start = ImVec2(pos.x + size.x - fixed_bar_width - right_blank, pos.y + text_dummy_height);
-    ImVec2 slider_bar_size = ImVec2(fixed_bar_width, size.y - text_dummy_height);
+    float handle_radius = 14.0f;
+    float line_offset = 9.0f;
+    float one_handle_offset = 26.0f;
+    float bar_width = 12.0f;
 
-    // draw bg of slider
-    const ImRect bg_rect(slider_bar_start, slider_bar_start + slider_bar_size);
-    const ImU32 bg_rect_col = IM_COL32(255, 255, 255, 255);
-    ImGui::RenderFrame(bg_rect.Min, bg_rect.Max, bg_rect_col, false, 0.5 * fixed_bar_width);
+    ImVec2 text_content_size;// = ImVec2(28.0f, text_dummy_height);
+    ImVec2 text_padding;// = ImVec2(4.0f, 0.0f);
+    ImVec2 text_size;// = text_content_size + text_padding * 2;
 
-    // draw bg of scroll
-    const ImRect scroll_rect(bg_rect.Min + padding, bg_rect.Max - padding);
-    const ImU32 scroll_bg_col = IM_COL32(238, 238, 238, 255);
-    ImGui::RenderFrame(scroll_rect.Min, scroll_rect.Max, scroll_bg_col, false, 0.5 * fixed_bar_width - padding.x);
+    const ImU32 white_bg = IM_COL32(255, 255, 255, 255);
+    const ImU32 handle_clr = IM_COL32(0, 174, 66, 255);
+    const ImU32 handle_border_clr = IM_COL32(248, 248, 248, 255);
+    const ImU32 delete_btn_clr = IM_COL32(144, 144, 144, 255);
 
-    // set slideable region
-    ImRect slideable_region(ImVec2(bg_rect.Min.x, scroll_rect.Min.y), ImVec2(bg_rect.Max.x, scroll_rect.Max.y));;
-    ImRect higher_slideable_region = ImRect(slideable_region.Min, slideable_region.Max - ImVec2(0, offset_of_handle));
-    ImRect lower_slideable_region = ImRect(slideable_region.Min + ImVec2(0, offset_of_handle), slideable_region.Max);
-    ImRect triangle_slideable_region = ImRect(ImVec2(slideable_region.GetCenter().x - half_edge * 1.73f, slideable_region.Min.y), ImVec2(slideable_region.GetCenter().x, slideable_region.Max.y));
+    // calc slider groove size
+    ImVec2 groove_start = ImVec2(pos.x + size.x - groove_x - right_dummy, pos.y + text_dummy_height);
+    ImVec2 groove_size = ImVec2(groove_x, size.y - 2 * text_dummy_height);
+    ImRect groove = ImRect(groove_start, groove_start + groove_size);
 
     // set active(draggable) region.
-    const bool hovered = ImGui::ItemHoverable(slideable_region, id);
+    ImRect draggable_region = ImRect(groove.GetCenter().x, groove.Min.y, groove.GetCenter().x, groove.Max.y);
+    draggable_region.Expand(ImVec2(40.0f, 0));
+    float mid_x = draggable_region.GetCenter().x;
+    bool hovered = ImGui::ItemHoverable(draggable_region, id) && !ImGui::ItemHoverable(m_tick_rect, id);
     if (hovered && context.IO.MouseDown[0]) {
         ImGui::SetActiveID(id, window);
         ImGui::SetFocusID(id, window);
         ImGui::FocusWindow(window);
     }
-    // set initial position of the handles.
-    ImS32 v_clamped = (v_min < v_max) ? ImClamp(*lower_value, v_min, v_max) : ImClamp(*lower_value, v_max, v_min);
-    float handle_pos_ratio = (v_max - v_min) != 0 ? ((float)(v_clamped - v_min) / (float)(v_max - v_min)) : 0.0f;
-    handle_pos_ratio = 1.0f - handle_pos_ratio;
-    float  handle_pos = lower_slideable_region.Min.y + (lower_slideable_region.Max.y - lower_slideable_region.Min.y) * handle_pos_ratio;
-    ImRect lower_handle = ImRect(lower_slideable_region.Min.x, handle_pos - offset_of_handle, lower_slideable_region.Max.x, handle_pos + offset_of_handle);
 
-    v_clamped = (v_min < v_max) ? ImClamp(*higher_value, v_min, v_max) : ImClamp(*higher_value, v_max, v_min);
-    handle_pos_ratio = (v_max - v_min) != 0 ? ((float)(v_clamped - v_min) / (float)(v_max - v_min)) : 0.0f;
-    handle_pos_ratio = 1.0f - handle_pos_ratio;
-    handle_pos = higher_slideable_region.Min.y + (higher_slideable_region.Max[1] - higher_slideable_region.Min.y) * handle_pos_ratio;
-    ImRect higher_handle = ImRect(higher_slideable_region.Min.x, handle_pos - offset_of_handle, higher_slideable_region.Max.x, handle_pos + offset_of_handle);
-    
-    ImVec2 higher_handle_center = higher_handle.GetCenter();
-    ImVec2 lower_handle_center = lower_handle.GetCenter();
-    ImVec2 middle_center = higher_handle.GetCenter();
+    // draw background
+    draw_background(groove);
 
-    ImRect triangle_handle = ImRect(ImVec2(middle_center.x - half_edge * 1.73f, middle_center.y - half_edge), ImVec2(middle_center.x, middle_center.y + half_edge));
 
-    // draw colored band
-    ImRect main_band(ImVec2(bg_rect.Min.x, scroll_rect.Min.y), ImVec2(bg_rect.Max.x, scroll_rect.Max.y));
-    render_colored_band(pos, main_band);
-   
+    // Processing interacting
+    // set slideable region
+    ImRect higher_slideable_region = ImRect(draggable_region.Min, draggable_region.Max - ImVec2(0, handle_radius));
+    ImRect lower_slideable_region = ImRect(draggable_region.Min + ImVec2(0, handle_radius), draggable_region.Max);
+    ImRect one_slideable_region = draggable_region;
 
+    // initialize the handles.
+    float higher_handle_pos = get_pos_from_value(v_min, v_max, *higher_value, higher_slideable_region);
+    ImRect higher_handle = ImRect(mid_x - handle_radius, higher_handle_pos - handle_radius, mid_x + handle_radius, higher_handle_pos + handle_radius);
+
+    float  lower_handle_pos = get_pos_from_value(v_min, v_max, *lower_value, lower_slideable_region);
+    ImRect lower_handle = ImRect(mid_x - handle_radius, lower_handle_pos - handle_radius, mid_x + handle_radius, lower_handle_pos + handle_radius);
+
+    ImRect one_handle = ImRect(higher_handle.Min - ImVec2(one_handle_offset, 0), higher_handle.Max - ImVec2(one_handle_offset, 0));
+
+    static bool become_del_handle = false;
+    static bool pressed_in_del = false;
     bool value_changed = false;
-    const ImU32 handle_and_line_col = IM_COL32(0, 174, 66, 255);
-    const ImU32 handle_and_line_border_col = IM_COL32(0, 98, 0, 255);
-    if (!one_layer_flag) {
-        // set a select-region where can select a handle when clicked
-        bool higher_handle_clicked = false;
-        bool lower_handle_clicked = false;
-        higher_handle_clicked = (ImGui::ItemHoverable(higher_handle, id) && context.IO.MouseClicked[0]);
-        lower_handle_clicked = (ImGui::ItemHoverable(lower_handle, id) && context.IO.MouseClicked[0]);
-
+    if (!one_layer_flag) 
+    {
         // select higher handle by default
-        if (selection == ssUndef) { selection = ssHigher; }
-        if (higher_handle_clicked) { selection = ssHigher; }
-        if (lower_handle_clicked) { selection = ssLower; }
+        static bool h_selected = true;
+        if (ImGui::ItemHoverable(higher_handle, id) && context.IO.MouseClicked[0]) {
+            selection = ssHigher; 
+            h_selected = true;
+            m_tick_value = -1;
+            m_tick_rect = ImVec4();
+        }
+        if (ImGui::ItemHoverable(lower_handle, id) && context.IO.MouseClicked[0]) {
+            selection = ssLower; 
+            h_selected = false;
+            m_tick_value = -1;
+            m_tick_rect = ImVec4();
+        }
 
         // update handle position and value
-        if (selection == ssHigher)
+        if (h_selected)
+        {
             value_changed = slider_behavior(id, higher_slideable_region, v_min, v_max,
-                higher_value, &higher_handle, ImGuiSliderFlags_Vertical);
-        if (selection == ssLower)
-            value_changed = slider_behavior(id, lower_slideable_region, v_min, v_max,
-                lower_value, &lower_handle, ImGuiSliderFlags_Vertical);
+                higher_value, &higher_handle, ImGuiSliderFlags_Vertical, 
+                m_tick_value, m_tick_rect);
 
-        higher_handle_center = higher_handle.GetCenter();
-        lower_handle_center = lower_handle.GetCenter();
-        if (higher_handle_center.y + offset_of_handle > lower_handle_center.y && selection == ssHigher)
+            auto it = m_ticks.ticks.find(TickCode{ *higher_value });
+            if (it != m_ticks.ticks.end() && check_ticks_changed_event(it->type))
+            {
+                become_del_handle = true;
+            }
+            else {
+                become_del_handle = false;
+                pressed_in_del = false;
+            }
+        }
+        if (!h_selected) {
+            value_changed = slider_behavior(id, lower_slideable_region, v_min, v_max,
+                lower_value, &lower_handle, ImGuiSliderFlags_Vertical,
+                m_tick_value, m_tick_rect);
+
+            auto it = m_ticks.ticks.find(TickCode{ *lower_value });
+            if (it != m_ticks.ticks.end() && check_ticks_changed_event(it->type))
+            {
+                become_del_handle = true;
+            }
+            else {
+                become_del_handle = false;
+                pressed_in_del = false;
+            }
+        }
+
+        ImVec2 higher_handle_center = higher_handle.GetCenter();
+        ImVec2 lower_handle_center = lower_handle.GetCenter();
+        if (higher_handle_center.y + handle_radius > lower_handle_center.y && h_selected)
         {
             lower_handle = higher_handle;
-            lower_handle.TranslateY(offset_of_handle);
-            lower_handle_center.y = higher_handle_center.y + offset_of_handle;
+            lower_handle.TranslateY(handle_radius);
+            lower_handle_center.y = higher_handle_center.y + handle_radius;
             *lower_value = *higher_value;
         }
-        if (higher_handle_center.y + offset_of_handle > lower_handle_center.y && selection == ssLower)
+        if (higher_handle_center.y + handle_radius > lower_handle_center.y && !h_selected)
         {
             higher_handle = lower_handle;
-            higher_handle.TranslateY(-offset_of_handle);
-            higher_handle_center.y = lower_handle_center.y - offset_of_handle;
+            higher_handle.TranslateY(-handle_radius);
+            higher_handle_center.y = lower_handle_center.y - handle_radius;
             *higher_value = *lower_value;
         }
 
         // judge whether to open menu
-        if (is_clicked_in_rect(selection == ssHigher ? higher_handle : lower_handle, 1) == ClickedIn)
+        if (ImGui::ItemHoverable(h_selected ? higher_handle : lower_handle, id) && context.IO.MouseClicked[1])
             m_show_menu = true;
-        if (is_clicked_in_rect(selection == ssHigher ? higher_handle : lower_handle, 1) == ClickedOut)
+        if ((!ImGui::ItemHoverable(h_selected ? higher_handle : lower_handle, id) && context.IO.MouseClicked[1]) ||
+            context.IO.MouseClicked[0])
             m_show_menu = false;
 
-        // draw slider border
-        const ImRect scroll_line(ImVec2(scroll_rect.Min.x, higher_handle_center.y), ImVec2(scroll_rect.Max.x, lower_handle_center.y));
-        window->DrawList->AddRect(scroll_line.Min - ImVec2(1, 1), scroll_line.Max + ImVec2(1, 1), handle_and_line_border_col, 2.0f);
-        window->DrawList->AddNgon(higher_handle_center, offset_of_handle + 1, handle_and_line_border_col, 4);
-        window->DrawList->AddNgon(lower_handle_center, offset_of_handle + 1, handle_and_line_border_col, 4);
-        // draw slider
-        window->DrawList->AddRectFilled(scroll_line.Min, scroll_line.Max, handle_and_line_col, 2.0f);
-        window->DrawList->AddNgonFilled(higher_handle_center, offset_of_handle, handle_and_line_col, 4);
-        window->DrawList->AddNgonFilled(lower_handle_center, offset_of_handle, handle_and_line_col, 4);
 
-        //draw cross lines
-        if (selection == ssHigher) {
-            window->DrawList->AddLine(higher_handle_center + ImVec2(-line_offset, 0.0f), higher_handle_center + ImVec2(line_offset, 0.0f), IM_COL32(255, 255, 255, 255));
-            window->DrawList->AddLine(higher_handle_center + ImVec2(0.0f, -line_offset), higher_handle_center + ImVec2(0.0f, line_offset), IM_COL32(255, 255, 255, 255));
+        if (!m_ticks.empty()) {
+            // draw ticks
+            draw_ticks(h_selected ? higher_slideable_region : lower_slideable_region);
+            // draw colored band
+            draw_colored_band(groove, h_selected ? higher_slideable_region : lower_slideable_region);
         }
-        if (selection == ssLower) {
-            window->DrawList->AddLine(lower_handle_center + ImVec2(-line_offset, 0.0f), lower_handle_center + ImVec2(line_offset, 0.0f), IM_COL32(255, 255, 255, 255));
-            window->DrawList->AddLine(lower_handle_center + ImVec2(0.0f, -line_offset), lower_handle_center + ImVec2(0.0f, line_offset), IM_COL32(255, 255, 255, 255));
+        else {
+            // draw scroll line
+            ImRect scroll_line = ImRect(ImVec2(mid_x - 4.0f, higher_handle_center.y), ImVec2(mid_x + 4.0f, lower_handle_center.y));
+            window->DrawList->AddRectFilled(scroll_line.Min, scroll_line.Max, handle_clr, 2.0f);
+        }
+
+        // draw handles
+        window->DrawList->AddCircleFilled(higher_handle_center, handle_radius, handle_border_clr);
+        window->DrawList->AddCircleFilled(higher_handle_center, handle_radius - 2.0f, handle_clr);
+        window->DrawList->AddCircleFilled(lower_handle_center, handle_radius, handle_border_clr);
+        window->DrawList->AddCircleFilled(lower_handle_center, handle_radius - 2.0f, handle_clr);
+        if (h_selected) {
+            window->DrawList->AddCircleFilled(higher_handle_center, handle_radius, handle_border_clr);
+            window->DrawList->AddCircleFilled(higher_handle_center, handle_radius - 2.0f, handle_clr);
+            window->DrawList->AddLine(higher_handle_center + ImVec2(-line_offset, 0.0f), higher_handle_center + ImVec2(line_offset, 0.0f), white_bg, 2);
+            window->DrawList->AddLine(higher_handle_center + ImVec2(0.0f, -line_offset), higher_handle_center + ImVec2(0.0f, line_offset), white_bg, 2);
+        }
+        if (!h_selected) {
+            window->DrawList->AddLine(lower_handle_center + ImVec2(-line_offset, 0.0f), lower_handle_center + ImVec2(line_offset, 0.0f), white_bg, 2);
+            window->DrawList->AddLine(lower_handle_center + ImVec2(0.0f, -line_offset), lower_handle_center + ImVec2(0.0f, line_offset), white_bg, 2);
+        }
+
+        if (become_del_handle) {
+
+            if (context.IO.MouseDown[0] &&
+                (ImGui::ItemHoverable(h_selected ? higher_handle : lower_handle, id)))
+            {
+                pressed_in_del = true;
+            }
+            if (pressed_in_del && context.IO.MouseReleased[0] && ImGui::ItemHoverable(h_selected ? higher_handle : lower_handle, id)) {
+                pressed_in_del = false;
+                //delete tick
+                auto it = m_ticks.ticks.find(TickCode{ h_selected ? *higher_value : *lower_value });
+                if (it != m_ticks.ticks.end() && check_ticks_changed_event(it->type))
+                {
+                    Type type = it->type;
+                    m_ticks.ticks.erase(it);
+                    post_ticks_changed_event(type);
+                    m_tick_value = -1;
+                    m_tick_rect = ImVec4();
+                }
+            }
+
+            if (h_selected) {
+                window->DrawList->AddCircleFilled(higher_handle_center, handle_radius - 2.0f, delete_btn_clr);
+                window->DrawList->AddLine(higher_handle_center + ImVec2(-line_offset, 0.0f), higher_handle_center + ImVec2(line_offset, 0.0f), white_bg, 2);
+            }
+            if (!h_selected) {
+                window->DrawList->AddCircleFilled(lower_handle_center, handle_radius - 2.0f, delete_btn_clr);
+                window->DrawList->AddLine(lower_handle_center + ImVec2(-line_offset, 0.0f), lower_handle_center + ImVec2(line_offset, 0.0f), white_bg, 2);
+            }
         }
 
         // draw higher label
-        ImVec2 text_start = ImVec2(pos.x, higher_handle_center.y - text_size.y);
+        auto text_utf8 = into_u8(higher_label);
+        text_content_size = ImGui::CalcTextSize(text_utf8.c_str(), NULL, false, -1.0f);
+        //ImVec2 text_content_size = calc_text_size(std::to_string(*value));
+        text_padding = ImVec2(5.0f, 2.0f);
+        text_size = text_content_size + text_padding * 2;
+        ImVec2 text_start = ImVec2(higher_handle.Min.x - text_size.x - 9.0f, higher_handle_center.y - text_size.y);
         ImRect text_rect(text_start, text_start + text_size);
-        ImGui::RenderFrame(text_rect.Min, text_rect.Max, bg_rect_col, false, 2.0f);
-        ImVec2 pos_1 = text_rect.Max;
-        ImVec2 pos_2 = ImVec2(pos_1.x, higher_handle_center.y - 6.0f);
-        ImVec2 pos_3 = ImVec2(higher_handle_center.x - 0.5 * fixed_bar_width, higher_handle_center.y);
-        window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, bg_rect_col);
+        ImGui::RenderFrame(text_rect.Min, text_rect.Max, white_bg, false, 2.0f);
+        ImVec2 pos_1 = text_rect.Max - ImVec2(2.0f, 0.0f);
+        ImVec2 pos_2 = pos_1 - ImVec2(0.0f, 8.0f);
+        ImVec2 pos_3 = pos_1 + ImVec2(9.0f, 0.0f);
+        window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, white_bg);
         ImGui::RenderText(text_start + text_padding, higher_label.c_str());
-        //draw lower label
-        text_start = ImVec2(pos.x, lower_handle_center.y);
+        // draw lower label
+        text_utf8 = into_u8(lower_label);
+        text_content_size = ImGui::CalcTextSize(text_utf8.c_str(), NULL, false, -1.0f);
+        text_padding = ImVec2(5.0f, 2.0f);
+        text_size = text_content_size + text_padding * 2;
+        text_start = ImVec2(lower_handle.Min.x - text_size.x - 9.0f, lower_handle_center.y);
         text_rect = ImRect(text_start, text_start + text_size);
-        ImGui::RenderFrame(text_rect.Min, text_rect.Max, bg_rect_col, false, 2.0f);
-        pos_1 = ImVec2(text_rect.Max.x, text_rect.Min.y);
-        pos_2 = ImVec2(pos_1.x, lower_handle_center.y + 6.0f);
-        pos_3 = ImVec2(lower_handle_center.x - 0.5 * fixed_bar_width, lower_handle_center.y);
-        window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, bg_rect_col);
+        ImGui::RenderFrame(text_rect.Min, text_rect.Max, white_bg, false, 2.0f);
+        pos_1 = ImVec2(text_rect.Max.x, text_rect.Min.y) - ImVec2(2.0f, 0.0f);
+        pos_2 = pos_1 + ImVec2(0.0f, 8.0f);
+        pos_3 = pos_1 + ImVec2(9.0f, 0.0f);
+        window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, white_bg);
         ImGui::RenderText(text_start + text_padding, lower_label.c_str());
     }
-    else {
+    if (one_layer_flag) 
+    {
         // update handle position
-        value_changed = slider_behavior(id, triangle_slideable_region, v_min, v_max,
-                higher_value, &triangle_handle, ImGuiSliderFlags_Vertical);
-        ImVec2 triangle_center = triangle_handle.GetCenter();
-        middle_center.y = triangle_center.y;
+        value_changed = slider_behavior(id, one_slideable_region, v_min, v_max,
+            higher_value, &one_handle, ImGuiSliderFlags_Vertical,
+            m_tick_value, m_tick_rect);
+        auto it = m_ticks.ticks.find(TickCode{ *higher_value });
+        if (it != m_ticks.ticks.end() && check_ticks_changed_event(it->type))
+        {
+            become_del_handle = true;
+        }
+        else {
+            become_del_handle = false;
+            pressed_in_del;
+        }
+        ImVec2 handle_center = one_handle.GetCenter();
 
         // judge whether to open menu
-        if (is_clicked_in_rect(triangle_handle, 1) == ClickedIn)
+        if (ImGui::ItemHoverable(one_handle, id) && context.IO.MouseClicked[1])
             m_show_menu = true;
-        if (is_clicked_in_rect(triangle_handle, 1) == ClickedOut)
+        if ((!ImGui::ItemHoverable(one_handle, id) && context.IO.MouseClicked[1]) ||
+            context.IO.MouseClicked[0])
             m_show_menu = false;
         
-        // draw handle
-        ImVec2 pos_1 = triangle_center - ImVec2(0.5f * half_edge * 1.73f, half_edge);
-        ImVec2 pos_2 = triangle_center - ImVec2(0.5f * half_edge * 1.73f, -half_edge);
-        ImVec2 pos_3 = triangle_center + ImVec2(0.5f * half_edge * 1.73f, 0.0f);
-        window->DrawList->AddRect(middle_center - ImVec2(0.5 * fixed_bar_width, 1.0f) - ImVec2(0.6f, 0.6f), middle_center + ImVec2(0.5f * fixed_bar_width + right_blank, 1.0f) + ImVec2(0.6f, 0.6f), handle_and_line_border_col, false, 1.0f);
-        window->DrawList->AddTriangle(pos_1 - ImVec2(1.0f, 1.0f), pos_2 - ImVec2(1.0f, -1.0f), pos_3 + ImVec2(1.0f, 0.0f), handle_and_line_border_col);
-        window->DrawList->AddRectFilled(middle_center - ImVec2(0.5 * fixed_bar_width, 1.0f), middle_center + ImVec2(0.5f * fixed_bar_width + right_blank, 1.0f), handle_and_line_col, false, 1.0f);
-        window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, handle_and_line_col);
+        ImVec2 bar_center = higher_handle.GetCenter();
 
-        // draw cross lines
-        ImVec2 pos_4 = ImVec2(middle_center.x - half_edge * 1.73f + half_edge / 1.73f, middle_center.y);
-        window->DrawList->AddLine(pos_4 + ImVec2(-line_offset, 0.0f), pos_4 + ImVec2(line_offset, 0.0f), IM_COL32(255, 255, 255, 255));
-        window->DrawList->AddLine(pos_4 + ImVec2(0.0, -line_offset), pos_4 + ImVec2(0.0, line_offset), IM_COL32(255, 255, 255, 255));
+        if (!m_ticks.empty()) {
+            // draw ticks
+            draw_ticks(one_slideable_region);
+            // draw colored band
+            draw_colored_band(groove, one_slideable_region);
+        }
+
+        // draw handle
+        window->DrawList->AddLine(ImVec2(mid_x - bar_width, handle_center.y), ImVec2(mid_x + bar_width, handle_center.y), handle_clr, 2);
+        window->DrawList->AddCircleFilled(handle_center, handle_radius, handle_border_clr);
+        window->DrawList->AddCircleFilled(handle_center, handle_radius - 2.0f, handle_clr);
+        window->DrawList->AddLine(handle_center + ImVec2(-line_offset, 0.0f), handle_center + ImVec2(line_offset, 0.0f), white_bg, 2);
+        window->DrawList->AddLine(handle_center + ImVec2(0.0f, -line_offset), handle_center + ImVec2(0.0f, line_offset), white_bg, 2);
+        if (become_del_handle) {
+            if (context.IO.MouseDown[0] &&
+                (ImGui::ItemHoverable(one_handle, id)))
+            {
+                pressed_in_del = true;
+            }
+            if (pressed_in_del && context.IO.MouseReleased[0] && ImGui::ItemHoverable(one_handle, id)) {
+                pressed_in_del = false;
+                //delete tick
+                auto it = m_ticks.ticks.find(TickCode{ *higher_value });
+                if (it != m_ticks.ticks.end() && check_ticks_changed_event(it->type))
+                {
+                    Type type = it->type;
+                    m_ticks.ticks.erase(it);
+                    post_ticks_changed_event(type);
+                    m_tick_value = -1;
+                    m_tick_rect = ImVec4();
+                }
+            }
+            window->DrawList->AddCircleFilled(handle_center, handle_radius - 2.0f, delete_btn_clr);
+            window->DrawList->AddLine(handle_center + ImVec2(-line_offset, 0.0f), handle_center + ImVec2(line_offset, 0.0f), white_bg, 2);
+        }
 
         // draw label
-        ImVec2 text_start = ImVec2(pos.x, middle_center.y - 0.5 * text_size.y);
+        auto text_utf8 = into_u8(higher_label);
+        text_content_size = ImGui::CalcTextSize(text_utf8.c_str(), NULL, false, -1.0f);
+        //ImVec2 text_content_size = calc_text_size(std::to_string(*value));
+        text_padding = ImVec2(5.0f, 2.0f);
+        text_size = text_content_size + text_padding * 2;
+        ImVec2 text_start = ImVec2(one_handle.Min.x - text_size.x, handle_center.y - 0.5 * text_size.y);
         ImRect text_rect = ImRect(text_start, text_start + text_size);
-        ImGui::RenderFrame(text_rect.Min, text_rect.Max, bg_rect_col, false, 2.0f);
+        ImGui::RenderFrame(text_rect.Min, text_rect.Max, white_bg, false, 2.0f);
         ImGui::RenderText(text_start + text_padding, higher_label.c_str());
     }
 
@@ -1064,8 +1229,10 @@ bool IMSlider::render(int canvas_width, int canvas_height)
     ImGuiWrapper &imgui = *wxGetApp().imgui();
     /* style and colors */
     ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_WindowBorderSize, 0);
+    ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0.682f, 0.259f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text, ImVec4(0, 0.682f, 0.259f, 1.0f));
 
     int windows_flag = ImGuiWindowFlags_NoTitleBar
                        | ImGuiWindowFlags_NoCollapse
@@ -1080,28 +1247,30 @@ bool IMSlider::render(int canvas_width, int canvas_height)
         // use maxium slider
         //float  pos_x = std::max(float(canvas_width - MIN_RECT_SIZE.x - HORIZONTAL_SLIDER_SIZE.x), 0.0f);
         //ImVec2 size  = ImVec2(std::min(HORIZONTAL_SLIDER_SIZE.x, canvas_width - MIN_RECT_SIZE.x), HORIZONTAL_SLIDER_SIZE.y);
-        float  pos_x = LEFT_MARGIN;
-        float  pos_y = std::max(float(canvas_height - HORIZONTAL_SLIDER_SIZE.y - BOTTOM_MARGIN), 0.0f);
-        ImVec2 size  = ImVec2(std::max(0.0f, canvas_width - MIN_RECT_SIZE.x - LEFT_MARGIN), HORIZONTAL_SLIDER_SIZE.y);
+        //float  pos_x = LEFT_MARGIN;
+        //float  pos_y = std::max(float(canvas_height - HORIZONTAL_SLIDER_SIZE.y - BOTTOM_MARGIN), 0.0f);
+        //ImVec2 size  = ImVec2(std::max(0.0f, canvas_width - MIN_RECT_SIZE.x - LEFT_MARGIN), HORIZONTAL_SLIDER_SIZE.y);
+        float pos_x = std::max(LEFT_MARGIN, 0.2f * canvas_width);
+        float pos_y = canvas_height - HORIZONTAL_SLIDER_SIZE.y;
+        ImVec2 size = ImVec2(canvas_width - 2 * pos_x, HORIZONTAL_SLIDER_SIZE.y);
         imgui.set_next_window_pos(pos_x, pos_y, ImGuiCond_Always);
         imgui.begin(std::string("moves_slider"), windows_flag);
         int value = GetHigherValue();
-        if (horizontal_slider("moves_slider", &value, GetMinValue(), GetMaxValue(), size, scale)) {
+        if (horizontal_slider("moves_slider", &value, GetMinValue(), GetMaxValue(),ImVec2(pos_x, pos_y), size, scale)) {
             result = true;
             SetHigherValue(value);
         }
         imgui.end();
     } else {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.68f, 0.26f, 0.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.68f, 0.26f, 0.0f));
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
-        float  pos_x = std::max(float(canvas_width - VERTICAL_SLIDER_SIZE.x - RIGHT_MARGIN), 0.0f);
+        //float  pos_x = std::max(float(canvas_width - VERTICAL_SLIDER_SIZE.x - RIGHT_MARGIN), 0.0f);
         //float  pos_y = std::max(float(canvas_height - VERTICAL_SLIDER_SIZE.y - MIN_RECT_SIZE.y), 0.0f);
         //ImVec2 size  = ImVec2(VERTICAL_SLIDER_SIZE.x, std::min(VERTICAL_SLIDER_SIZE.y, canvas_height - MIN_RECT_SIZE.y));
         // use maxium slider
-        float pos_y = TOP_MARGIN;
-        ImVec2 size  = ImVec2(VERTICAL_SLIDER_SIZE.x, std::max(0.0f,canvas_height - MIN_RECT_SIZE.y - TOP_MARGIN));
+        //float pos_y = TOP_MARGIN;
+        //ImVec2 size = ImVec2(VERTICAL_SLIDER_SIZE.x, std::max(0.0f, canvas_height - MIN_RECT_SIZE.y - TOP_MARGIN));
+        float pos_x = canvas_width - VERTICAL_SLIDER_SIZE.x;
+        float pos_y = std::max(ONE_LAYER_OFFSET.y, 0.15f * canvas_height - (VERTICAL_SLIDER_SIZE.y - SLIDER_LENGTH));
+        ImVec2 size = ImVec2(VERTICAL_SLIDER_SIZE.x, canvas_height - 2 * pos_y);
         imgui.set_next_window_pos(pos_x, pos_y, ImGuiCond_Always);
         imgui.begin(std::string("laysers_slider"), windows_flag);
 
@@ -1114,27 +1283,26 @@ bool IMSlider::render(int canvas_width, int canvas_height)
         int temp_higher_value    = higher_value;
         int temp_lower_value     = lower_value;
         if (vertical_slider("laysers_slider", &higher_value, &lower_value, higher_label, lower_label, GetMinValue(), GetMaxValue(),
-                  size, m_selection, is_one_layer(), scale)) {
+                  ImVec2(pos_x, pos_y), size, m_selection, is_one_layer(), scale)) {
             if (temp_higher_value != higher_value)
                 SetHigherValue(higher_value);
             if (temp_lower_value != lower_value)
                 SetLowerValue(lower_value);
             result = true;
         }
-        ImGui::PopStyleVar(1);
-        ImGui::PopStyleColor(3);
 
-        ImGui::Dummy(ImVec2(8,0));
-        ImGui::SameLine(44);
+        ImGui::Spacing();
+        ImGui::SameLine(VERTICAL_SLIDER_SIZE.x - ONE_LAYER_OFFSET.x);
         ImTextureID normal_id = is_one_layer() ? m_one_layer_on_id : m_one_layer_off_id;
         ImTextureID hover_id  = is_one_layer() ? m_one_layer_on_hover_id : m_one_layer_off_hover_id;
         if (ImGui::ImageButton3(normal_id, hover_id, ImVec2(28, 28))) {
             switch_one_layer_mode();
         }
+
         imgui.end();
     }
 
-    ImGui::PopStyleVar(1);
+    ImGui::PopStyleVar(3);
     ImGui::PopStyleColor(2);
     return result;
 }
@@ -1268,6 +1436,19 @@ int IMSlider::get_tick_from_value(double value, bool force_lower_bound /* = fals
 
     if (it == m_values.end()) return -1;
     return int(it - m_values.begin());
+}
+
+float IMSlider::get_pos_from_value(int v_min, int v_max, int value, const ImRect& rect) {
+    float pos_ratio = (v_max - v_min) != 0 ? ((float)(value - v_min) / (float)(v_max - v_min)) : 0.0f;
+    float handle_pos;
+    if (is_horizontal()) {
+        handle_pos = rect.Min.x + (rect.Max.x - rect.Min.x) * pos_ratio;
+    }
+    else {
+        pos_ratio = 1.0f - pos_ratio;
+        handle_pos = rect.Min.y + (rect.Max.y - rect.Min.y) * pos_ratio;
+    }
+    return handle_pos;
 }
 
 std::string IMSlider::get_color_for_tool_change_tick(std::set<TickCode>::const_iterator it) const
