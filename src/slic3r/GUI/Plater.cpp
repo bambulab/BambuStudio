@@ -4894,7 +4894,8 @@ void Plater::priv::on_action_slice_all(SimpleEvent&)
         //select plate
         q->select_plate(m_cur_slice_plate);
         q->reslice();
-        q->select_view_3D("Preview");
+        if (!m_is_publishing)
+            q->select_view_3D("Preview");
     }
 }
 
@@ -5496,9 +5497,13 @@ bool Plater::priv::show_publish_dlg(bool show)
     if (show) {
         m_publish_dlg->reset();
         m_publish_dlg->start_slicing();
-        m_publish_dlg->Show();
+        //m_publish_dlg->Show();
+        m_publish_dlg->ShowModal();
     } else {
-        m_publish_dlg->Hide();
+        m_publish_dlg->EndModal(wxID_OK);
+        //cancel the slicing
+        if (this->background_process.running())
+            this->background_process.stop();
     }
     return true;
 }
