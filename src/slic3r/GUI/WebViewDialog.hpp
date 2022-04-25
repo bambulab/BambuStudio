@@ -85,8 +85,8 @@ public:
     void OnEnableDevTools(wxCommandEvent& evt);
     void OnClose(wxCloseEvent& evt);
 
-private:
-    void SendRecentList();
+public:
+    void SendRecentList(wxString const &sequence_id);
     void SendLoginInfo();
 
 private:

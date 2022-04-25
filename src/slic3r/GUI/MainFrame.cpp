@@ -2186,6 +2186,7 @@ void MainFrame::get_recent_projects(boost::property_tree::wptree &tree)
         boost::property_tree::wptree item;
         std::wstring proj = m_recent_projects.GetHistoryFile(i).ToStdWstring();
         if (!boost::filesystem::exists(proj)) continue;
+        item.put(L"project_name", proj.substr(proj.find_last_of(L"/\\") + 1));
         item.put(L"path", proj);
         boost::system::error_code ec;
         std::time_t t = boost::filesystem::last_write_time(proj, ec);

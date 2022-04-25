@@ -9,6 +9,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/LoginDialog.hpp"
+#include "slic3r/GUI/MainFrame.hpp"
 #include "nlohmann/json.hpp"
 #include "slic3r/Utils/minilzo_extension.hpp"
 #include <boost/filesystem/path.hpp>
@@ -3250,6 +3251,9 @@ namespace Slic3r {
                 }
                 else if (command_str.compare("homepage_openproject") == 0) {
                     this->request_open_project({});
+                }
+                else if (command_str.compare("get_recent_projects") == 0) {
+                    GUI::wxGetApp().mainframe->m_webview->SendRecentList(from_u8(sequence_id.value()));
                 }
                 else if (command_str.compare("homepage_open_recentfile") == 0) {
                     if (root.get_child_optional("data") != boost::none) {

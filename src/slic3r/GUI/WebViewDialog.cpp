@@ -422,14 +422,14 @@ void WebViewPanel::OnClose(wxCloseEvent& evt)
     this->Hide();
 }
 
-void WebViewPanel::SendRecentList()
+void WebViewPanel::SendRecentList(wxString const &sequence_id)
 {
     boost::property_tree::wptree req;
     boost::property_tree::wptree data;
     wxGetApp().mainframe->get_recent_projects(data);
-    req.put(L"sequence_id", L"0");
-    req.put(L"command", L"studio_send_recentfile");
-    req.put_child(L"data", data);
+    req.put(L"sequence_id", sequence_id);
+    req.put(L"command", L"get_recent_projects");
+    req.put_child(L"response", data);
     std::wostringstream oss;
     pt::write_json(oss, req, false);
     RunScript(wxString::Format("HandleStudio(%s)", oss.str()));
@@ -511,7 +511,7 @@ void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
 
 void WebViewPanel::OnTitleChanged(wxWebViewEvent &evt)
 {
-    wxGetApp().CallAfter([this] { SendRecentList(); });
+    // wxGetApp().CallAfter([this] { SendRecentList(); });
 }
 
 /**
