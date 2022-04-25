@@ -192,7 +192,6 @@ private:
     void init_bind();
     void init_timer();
 
-    bool m_first_time_enter{true};
     int  m_print_plate_idx;
 
     int         m_bed_last_select{0};

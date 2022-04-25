@@ -918,26 +918,25 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     // update machine list, collections of bind list and local free
     Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
 
-    if (c->is_user_login()) {
+    if (!c->is_user_login()) return;
+    int         err_code;
+    std::string err_msg;
+    c->update_my_machine_list_info(err_code, err_msg, true);
+
+
+
+   /* if (c->is_user_login()) {
         boost::thread get_print_info_thread = Slic3r::create_thread([this] {
             Slic3r::AccountManager *acc = Slic3r::GUI::wxGetApp().getAccountManager();
             int                     err_code;
             std::string             err_msg;
             acc->update_my_machine_list_info(err_code, err_msg, true);
         });
-    }
+    }*/
 
     // clear machine list
     m_list.clear();
     m_comboBox_printer->Clear();
-
-
-    if (m_first_time_enter) {
-        int         err_code;
-        std::string err_msg;
-        c->update_my_machine_list_info(err_code, err_msg, true);
-        m_first_time_enter = false;
-    }
 
 
     std::vector<std::string> machine_list;
@@ -1019,8 +1018,6 @@ wxImage *SelectMachineDialog::LoadImageFromBlob(const unsigned char *data, int s
 
 bool SelectMachineDialog::Show(bool show)
 {
-    m_first_time_enter = true;
-
     //thumbmail
     Freeze();
     sizer_thumbnail->Clear();
