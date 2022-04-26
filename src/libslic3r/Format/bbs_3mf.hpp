@@ -20,6 +20,15 @@ struct ThumbnailData;
 #define EMBEDDED_PRINTER_FILE_FORMAT      "Metadata/machine_settings_%1%.config"
 
 
+//BBS: define assistant struct to store temporary variable during exporting 3mf
+class PackingTemporaryData
+{
+public:
+    std::string _3mf_cover_thumbnail;
+    std::string _3mf_printer_thumbnail;
+    PackingTemporaryData() {}
+};
+
 
 //BBS: define plate data list related structures
 struct PlateData

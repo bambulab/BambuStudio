@@ -120,6 +120,8 @@ const std::string GCODE_EXTENSION = ".gcode";
 const std::string CONTENT_TYPES_FILE = "[Content_Types].xml";
 const std::string RELATIONSHIPS_FILE = "_rels/.rels";
 const std::string THUMBNAIL_FILE = "Metadata/plate_1.png";
+const std::string PRINTER_THUMBNAIL_FILE = "bambulab_thumbnail.png";
+const std::string _3MF_COVER_FILE = "3mf_thumbnail.png";
 //const std::string PRINT_CONFIG_FILE = "Metadata/Slic3r_PE.config";
 //const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
 const std::string BBS_PRINT_CONFIG_FILE = "Metadata/print_profile.config";
@@ -3621,6 +3623,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             importer->_handle_end_config_xml_element(name);
     }
 
+
     class _BBS_3MF_Exporter : public _BBS_3MF_Base
     {
         struct BuildItem
@@ -3707,7 +3710,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool _add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, int index);
         bool _add_calibration_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, int index);
         bool _add_bbox_file_to_archive(mz_zip_archive& archive, const PlateBBoxData& id_bboxes, int index);
-        bool _add_relationships_file_to_archive(mz_zip_archive& archive, std::string const & from = {}, std::vector<std::string> const & targets = {}, std::vector<std::string> const & types = {}) const;
+        bool _add_relationships_file_to_archive(mz_zip_archive &                archive,
+                                                std::string const &             from    = {},
+                                                std::vector<std::string> const &targets = {},
+                                                std::vector<std::string> const &types   = {},
+                                                PackingTemporaryData            data    = PackingTemporaryData()) const;
         bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data, Export3mfProgressFn proFn = nullptr, BBLProject* project = nullptr) const;
         bool _add_key_store_to_archive(mz_zip_archive& archive, KeyStore const & store);
         bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int object_id, ModelObject const & object, unsigned int backup_id, VolumeToObjectIDMap& volumes_objectID) const;
@@ -3727,7 +3734,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool _add_slice_info_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list);
         bool _add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, Export3mfProgressFn proFn = nullptr);
         bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config);
-        bool _add_auxiliary_dir_to_archive(mz_zip_archive& archive, const std::string& aux_dir);
+        bool _add_auxiliary_dir_to_archive(mz_zip_archive &archive, const std::string &aux_dir, PackingTemporaryData &data);
 
         static int convert_instance_id_to_resource_id(const Model& model, int obj_id, int instance_id)
         {
@@ -3819,6 +3826,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         const std::vector<PlateBBoxData*>& id_bboxes,
         BBLProject* project)
     {
+        PackingTemporaryData temp_data;
+
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
 
@@ -3915,21 +3924,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     }
                 }
             }
-        }
-
-        //BBS progress point
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_RELATIONS\n");
-        if (proFn) {
-            proFn(EXPORT_STAGE_ADD_RELATIONS, 0, 1, cb_cancel);
-            if (cb_cancel)
-                return false;
-        }
-
-        // Adds relationships file ("_rels/.rels").
-        // The content of this file is the same for each BambuStudio 3mf.
-        // The relationshis file contains a reference to the geometry file "3D/3dmodel.model", the name was chosen to be compatible with CURA.
-        if (!_add_relationships_file_to_archive(archive)) {
-            return false;
         }
 
         //BBS progress point
@@ -4098,9 +4092,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
 
         //BBS progress point
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_GCODE\n");
-
-        //BBS progress point
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_AUXILIARIES\n");
         if (proFn) {
             proFn(EXPORT_STAGE_ADD_AUXILIARIES, 0, 1, cb_cancel);
@@ -4108,7 +4099,22 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 return false;
         }
 
-        if (!m_skip_static && !_add_auxiliary_dir_to_archive(archive, model.get_auxiliary_file_temp_path())) {
+        if (!m_skip_static && !_add_auxiliary_dir_to_archive(archive, model.get_auxiliary_file_temp_path(), temp_data)) {
+            return false;
+        }
+
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_RELATIONS\n");
+        if (proFn) {
+            proFn(EXPORT_STAGE_ADD_RELATIONS, 0, 1, cb_cancel);
+            if (cb_cancel)
+                return false;
+        }
+
+        // Adds relationships file ("_rels/.rels").
+        // The content of this file is the same for each BambuStudio 3mf.
+        // The relationshis file contains a reference to the geometry file "3D/3dmodel.model", the name was chosen to be compatible with CURA.
+        if (!_add_relationships_file_to_archive(archive, {}, {}, {}, temp_data)) {
             return false;
         }
 
@@ -4239,14 +4245,23 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
-    bool _BBS_3MF_Exporter::_add_relationships_file_to_archive(mz_zip_archive& archive, std::string const & from, std::vector<std::string> const & targets, std::vector<std::string> const & types) const
+    bool _BBS_3MF_Exporter::_add_relationships_file_to_archive(
+        mz_zip_archive &archive, std::string const &from, std::vector<std::string> const &targets, std::vector<std::string> const &types, PackingTemporaryData data) const
     {
         std::stringstream stream;
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n";
         if (from.empty()) {
             stream << " <Relationship Target=\"/" << MODEL_FILE << "\" Id=\"rel-1\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\"/>\n";
-            stream << " <Relationship Target=\"/" << THUMBNAIL_FILE << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\"/>\n";
+
+            if (data._3mf_printer_thumbnail.empty()) {
+                stream << " <Relationship Target=\"/" << THUMBNAIL_FILE
+                       << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\"/>\n";
+            } else {
+                stream << " <Relationship Target=\"/" << data._3mf_printer_thumbnail
+                       << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\"/>\n";
+            }
+
             if (m_key_store) {
                 stream << " <Relationship Target=\"/" << KEYSTORE_FILE << "\" Id=\"rel-3\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2019/04/keystore\"/>\n";
                 stream << " <Relationship Target=\"/" << KEYSTORE_FILE << "\" Id=\"rel-3\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/mustpreserve\"/>\n";
@@ -5540,7 +5555,7 @@ bool _BBS_3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_ar
     return true;
 }
 
-bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive& archive, const std::string& aux_dir)
+bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, const std::string &aux_dir, PackingTemporaryData &data)
 {
     bool result = true;
 
@@ -5580,6 +5595,18 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive& archive, c
                 std::replace(dst_in_3mf.begin(), dst_in_3mf.end(), '\\', '/');
 
                 result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
+
+                // copy to /Metadata folder
+                if (dir_entry.path().filename() == _3MF_COVER_FILE) {
+                    dst_in_3mf = "Metadata/" + _3MF_COVER_FILE;
+                    data._3mf_cover_thumbnail = dst_in_3mf;
+                    result &=_add_file_to_archive(archive, dst_in_3mf, src_file);
+                }
+                if (dir_entry.path().filename() == PRINTER_THUMBNAIL_FILE) {
+                    dst_in_3mf = "Metadata/" + PRINTER_THUMBNAIL_FILE;
+                    data._3mf_printer_thumbnail = dst_in_3mf;
+                    result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
+                }
             }
         }
     }
