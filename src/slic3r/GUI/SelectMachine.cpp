@@ -679,9 +679,9 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
 void SelectMachineDialog::update_select_layout(PRINTER_TYPE type) 
 { 
     if (type == PRINTER_TYPE::PRINTER_3DPrinter_UKNOWN) { 
-        select_bed->Hide();
-        select_vibration->Hide();
-        select_flow->Hide();
+        select_bed->Show();
+        select_vibration->Show();
+        select_flow->Show();
         select_record->Hide();
     }
 

@@ -273,7 +273,7 @@ public:
     std::string dev_name;
     std::string dev_ip;
     std::string dev_id;
-    PRINTER_TYPE printer_type;
+    PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
 
     std::string bind_user_name;
     std::string bind_user_id;
