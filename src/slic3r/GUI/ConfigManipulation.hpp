@@ -88,6 +88,10 @@ public:
         m_is_initialized_support_material_overhangs_queried = true;
         m_support_material_overhangs_queried = queried;
     }
+
+private:
+    std::vector<int> get_temperature_range_by_filament_type(const std::string &filament_type);
+
 };
 
 } // GUI

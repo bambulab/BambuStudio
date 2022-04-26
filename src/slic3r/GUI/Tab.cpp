@@ -2369,14 +2369,10 @@ void TabFilament::build()
         optgroup->append_single_option_line("temperature_vitrification");
 
         optgroup = page->new_optgroup(L("Recommanded temperature range"));
-        Line line = { L("Nozzle temperature range"), L("Recommanded nozzle temperature range") };
-        line.append_option(optgroup->get_option("nozzle_temperature_range_low"));
-        line.append_option(optgroup->get_option("nozzle_temperature_range_high"));
-        optgroup->append_line(line);
         optgroup->append_single_option_line("bed_temperature_difference");
 
         optgroup = page->new_optgroup(L("Print temperature"));
-        line = { L("Nozzle"), L("Nozzle temperature when printing") };
+        Line line = { L("Nozzle"), L("Nozzle temperature when printing") };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
         line.append_option(optgroup->get_option("nozzle_temperature"));
         optgroup->append_line(line);
@@ -2400,7 +2396,6 @@ void TabFilament::build()
                 int first_layer_bed_temp = filament_config.opt_int("bed_temperature_initial_layer", bed_type);
                 this->get_field("bed_temperature")->set_value(bed_temp, true);
                 this->get_field("bed_temperature_initial_layer")->set_value(first_layer_bed_temp, true);
-                m_config_manipulation.check_bed_temperature_difference(&filament_config);
                 on_value_change(opt_key, value);
             }
             else if (opt_key == "bed_temperature" || opt_key == "bed_temperature_initial_layer") {

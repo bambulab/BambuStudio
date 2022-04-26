@@ -1391,7 +1391,7 @@ void PrintConfigDef::init_fff_params()
             (void)L("Maximum E speed");
             def->sidetext = L("mm/s");
             def->min = 0;
-            def->mode = comDevelop;
+            def->mode = comSimple;
             def->set_default_value(new ConfigOptionFloats(axis.max_feedrate));
             // Add the machine acceleration limits for XYZE axes (M201)
             def = this->add("machine_max_acceleration_" + axis.name, coFloats);
@@ -1409,7 +1409,7 @@ void PrintConfigDef::init_fff_params()
             (void)L("Maximum acceleration of the E axis");
             def->sidetext = L("mm/s²");
             def->min = 0;
-            def->mode = comDevelop;
+            def->mode = comSimple;
             def->set_default_value(new ConfigOptionFloats(axis.max_acceleration));
             // Add the machine jerk limits for XYZE axes (M205)
             def = this->add("machine_max_jerk_" + axis.name, coFloats);
@@ -1427,7 +1427,7 @@ void PrintConfigDef::init_fff_params()
             (void)L("Maximum jerk of the E axis");
             def->sidetext = L("mm/s");
             def->min = 0;
-            def->mode = comDevelop;
+            def->mode = comSimple;
             def->set_default_value(new ConfigOptionFloats(axis.max_jerk));
         }
     }
@@ -1461,6 +1461,7 @@ void PrintConfigDef::init_fff_params()
     //                 "as travel acceleration (M204 T).");
     def->sidetext = L("mm/s²");
     def->min = 0;
+    def->readonly = true;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
@@ -1472,6 +1473,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Maximum acceleration for retracting (M204 R)");
     def->sidetext = L("mm/s²");
     def->min = 0;
+    def->readonly = true;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
@@ -1482,6 +1484,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Maximum acceleration for travel (M204 T)");
     def->sidetext = L("mm/s²");
     def->min = 0;
+    def->readonly = true;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
@@ -2280,22 +2283,6 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 200 });
-
-    def = this->add("nozzle_temperature_range_high", coInts);
-    def->label = L("Highest");
-    def->tooltip = L("The lowest recommanded nozzle temperature when print with this filament");
-    def->sidetext = L("°C");
-    def->min = 0;
-    def->max = 300;
-    def->set_default_value(new ConfigOptionInts { 300 });
-
-    def = this->add("nozzle_temperature_range_low", coInts);
-    def->label = L("Lowest");
-    def->tooltip = L("The highest recommanded nozzle temperature when print with this filament");
-    def->sidetext = L("°C");
-    def->min = 0;
-    def->max = 300;
-    def->set_default_value(new ConfigOptionInts { 0 });
 
     def = this->add("bed_temperature_difference", coInts);
     def->label = L("Bed temperature difference");
@@ -3296,7 +3283,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "tree_support_branch_diameter_angle", "tree_support_collision_resolution",
         "small_perimeter_speed", "max_volumetric_speed", "max_print_speed",
         "support_bottom_z_distance", "support_closing_radius", "slicing_mode", "slice_closing_radius",
-        "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration"
+        "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration", "nozzle_temperature_range_high", "nozzle_temperature_range_low"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {

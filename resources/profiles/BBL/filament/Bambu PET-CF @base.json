@@ -16,11 +16,5 @@
     ],
     "nozzle_temperature": [
         "280"
-    ],
-    "nozzle_temperature_range_low": [
-        "270"
-    ],
-    "nozzle_temperature_range_high": [
-        "295"
     ]
 }
