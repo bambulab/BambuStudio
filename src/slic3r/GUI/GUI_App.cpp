@@ -850,15 +850,15 @@ static void register_win32_device_notification_event()
         return false;
     });
 
-	wxWindow::MSWRegisterMessageHandler(WM_COPYDATA, [](wxWindow* win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
-		COPYDATASTRUCT* copy_data_structure = { 0 };
-		copy_data_structure = (COPYDATASTRUCT*)lParam;
-		if (copy_data_structure->dwData == 1) {
-			LPCWSTR arguments = (LPCWSTR)copy_data_structure->lpData;
-			Slic3r::GUI::wxGetApp().other_instance_message_handler()->handle_message(boost::nowide::narrow(arguments));
-		}
-		return true;
-		});
+	//wxWindow::MSWRegisterMessageHandler(WM_COPYDATA, [](wxWindow* win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
+	//	COPYDATASTRUCT* copy_data_structure = { 0 };
+	//	copy_data_structure = (COPYDATASTRUCT*)lParam;
+	//	if (copy_data_structure->dwData == 1) {
+	//		LPCWSTR arguments = (LPCWSTR)copy_data_structure->lpData;
+	//		Slic3r::GUI::wxGetApp().other_instance_message_handler()->handle_message(boost::nowide::narrow(arguments));
+	//	}
+	//	return true;
+	//	});
 }
 #endif // WIN32
 
@@ -1000,10 +1000,11 @@ void GUI_App::post_init()
         });
     }
 
-#ifdef _WIN32
+//BBS: remove the single instance currently
+/*#ifdef _WIN32
     // Sets window property to mainframe so other instances can indentify it.
     OtherInstanceMessageHandler::init_windows_properties(mainframe, m_instance_hash_int);
-#endif //WIN32
+#endif //WIN32*/
 }
 
 IMPLEMENT_APP(GUI_App)
@@ -1017,7 +1018,7 @@ GUI_App::GUI_App()
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
-	, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
+	//, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
     , m_account_manager(new Slic3r::AccountManager())
 {
     m_backend = new Slic3r::CommuBackend();
@@ -1194,11 +1195,11 @@ void GUI_App::init_http_extra_header()
     Http::set_extra_headers(extra_headers);
 }
 
-void GUI_App::init_single_instance_checker(const std::string &name, const std::string &path)
+/*void GUI_App::init_single_instance_checker(const std::string &name, const std::string &path)
 {
     BOOST_LOG_TRIVIAL(debug) << "init wx instance checker " << name << " "<< path;
     m_single_instance_checker = std::make_unique<wxSingleInstanceChecker>(boost::nowide::widen(name), boost::nowide::widen(path));
-}
+}*/
 
 bool GUI_App::OnInit()
 {
@@ -1354,7 +1355,7 @@ bool GUI_App::on_init_inner()
             associate_3mf_files();
         if (app_config->get("associate_stl") == "true")
             associate_stl_files();
-        if (app_config->get("associate_step") == "true") 
+        if (app_config->get("associate_step") == "true")
             associate_step_files();
 #endif // __WXMSW__
 
@@ -1490,9 +1491,9 @@ bool GUI_App::on_init_inner()
 
     update_mode(); // update view mode after fix of the object_list size
 
-#ifdef __APPLE__
-    other_instance_message_handler()->bring_instance_forward();
-#endif //__APPLE__
+//#ifdef __APPLE__
+//    other_instance_message_handler()->bring_instance_forward();
+//#endif //__APPLE__
 
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
@@ -2875,7 +2876,7 @@ void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_
                 associate_3mf_files();
             if (app_config->get("associate_stl") == "true")
                 associate_stl_files();
-            if (app_config->get("associate_step") == "true") 
+            if (app_config->get("associate_step") == "true")
                 associate_step_files();
         }
         else {
@@ -3238,9 +3239,9 @@ void GUI_App::load_url(wxString url)
     return mainframe->load_url(url);
 }
 
-void GUI_App::run_script(wxString js) 
-{ 
-    return mainframe->RunScript(js); 
+void GUI_App::run_script(wxString js)
+{
+    return mainframe->RunScript(js);
 }
 
 Notebook* GUI_App::tab_panel() const
@@ -3652,7 +3653,7 @@ void GUI_App::disassociate_3mf_files()
         ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 }
 
-void GUI_App::disassociate_stl_files() 
+void GUI_App::disassociate_stl_files()
 {
     wchar_t app_path[MAX_PATH];
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
@@ -3674,7 +3675,7 @@ void GUI_App::disassociate_stl_files()
     if (is_new) ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 }
 
-void GUI_App::disassociate_step_files() 
+void GUI_App::disassociate_step_files()
 {
     wchar_t app_path[MAX_PATH];
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
@@ -3720,7 +3721,7 @@ void GUI_App::associate_stl_files()
         ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 }
 
-void GUI_App::associate_step_files() 
+void GUI_App::associate_step_files()
 {
     wchar_t app_path[MAX_PATH];
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));

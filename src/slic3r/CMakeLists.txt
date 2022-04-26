@@ -297,8 +297,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ObjectDataViewModel.hpp
     GUI/AuxiliaryDataViewModel.cpp
     GUI/AuxiliaryDataViewModel.hpp
-    GUI/InstanceCheck.cpp
-    GUI/InstanceCheck.hpp
+    #GUI/InstanceCheck.cpp
+    #GUI/InstanceCheck.hpp
     GUI/Search.cpp
     GUI/Search.hpp
     GUI/NotificationManager.cpp
@@ -359,8 +359,8 @@ if (APPLE)
             GUI/RemovableDriveManagerMM.mm
             GUI/RemovableDriveManagerMM.h
             GUI/Mouse3DHandlerMac.mm
-            GUI/InstanceCheckMac.mm
-            GUI/InstanceCheckMac.h
+            #GUI/InstanceCheckMac.mm
+            #GUI/InstanceCheckMac.h
             GUI/wxMediaCtrl2.mm
             GUI/wxMediaCtrl2.h
         )

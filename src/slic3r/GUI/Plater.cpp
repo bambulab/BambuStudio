@@ -2129,7 +2129,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
         //wxPostEvent(this->q, wxCommandEvent{EVT_RESTORE_PROJECT});
     }
 
-    this->q->Bind(EVT_LOAD_MODEL_OTHER_INSTANCE, [this](LoadFromOtherInstanceEvent& evt) {
+    /*this->q->Bind(EVT_LOAD_MODEL_OTHER_INSTANCE, [this](LoadFromOtherInstanceEvent& evt) {
         BOOST_LOG_TRIVIAL(trace) << "Received load from other instance event.";
         wxArrayString input_files;
         for (size_t i = 0; i < evt.data.size(); ++i) {
@@ -2140,8 +2140,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     });
     this->q->Bind(EVT_INSTANCE_GO_TO_FRONT, [this](InstanceGoToFrontEvent &) {
         bring_instance_forward();
-    });
-    wxGetApp().other_instance_message_handler()->init(this->q);
+    });*/
+    //wxGetApp().other_instance_message_handler()->init(this->q);
 
 #ifdef SUPPORT_COLLAPSED_SIDEBAR
     // collapse sidebar according to saved value
@@ -5980,10 +5980,10 @@ void Plater::priv::update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bo
 
 void Plater::priv::bring_instance_forward() const
 {
-#ifdef __APPLE__
+/*#ifdef __APPLE__
     wxGetApp().other_instance_message_handler()->bring_instance_forward();
     return;
-#endif //__APPLE__
+#endif //__APPLE__*/
     if (main_frame == nullptr) {
         BOOST_LOG_TRIVIAL(debug) << "Couldnt bring instance forward - mainframe is null";
         return;
