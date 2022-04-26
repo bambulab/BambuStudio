@@ -13,12 +13,19 @@ namespace GUI {
 static const int LOAD_STEP_COUNT = 4;
 static const int UNLOAD_STEP_COUNT = 3;
 
-static wxString FILAMENT_STEP_STRING[LOAD_STEP_COUNT] = {
+static wxString FILAMENT_LOAD_STEP_STRING[LOAD_STEP_COUNT] = {
     _L("Heat the nozzle to target \ntemperature"),
     _L("Cut filament"),
     _L("Pull back current filament"),
     _L("Push new filament \ninto extruder")
 };
+
+static wxString FILAMENT_UNLOAD_STEP_STRING[UNLOAD_STEP_COUNT] = {
+    _L("Heat the nozzle to target \ntemperature"), 
+    _L("Cut filament"), 
+    _L("Pull back current filament")                                     
+};
+
 
 wxDEFINE_EVENT(EVT_AMS_LOAD, SimpleEvent);
 wxDEFINE_EVENT(EVT_AMS_UNLOAD, SimpleEvent);
@@ -1085,11 +1092,6 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_simplebook_right->SetSize(AMS_STEP_SIZE);
     m_sizer_right->Add(m_simplebook_right, 0, wxALL, 0);
 
-    m_filament_step = new ::StepIndicator(m_simplebook_right, wxID_ANY);
-    m_filament_step->SetMinSize(AMS_STEP_SIZE);
-    m_filament_step->SetSize(AMS_STEP_SIZE);
-    m_simplebook_right->AddPage(m_filament_step, wxEmptyString, false);
-    
 
    	auto tip_right = new wxPanel(m_simplebook_right, wxID_ANY, wxDefaultPosition, AMS_STEP_SIZE, wxTAB_TRAVERSAL);
     wxBoxSizer *m_sizer_right_tip = new wxBoxSizer(wxVERTICAL);
@@ -1105,7 +1107,19 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_sizer_right_tip->Add(m_tip_load_info, 0, 0, 0);
     tip_right->SetSizer(m_sizer_right_tip);
     tip_right->Layout();
+
+    m_filament_load_step = new ::StepIndicator(m_simplebook_right, wxID_ANY);
+    m_filament_load_step->SetMinSize(AMS_STEP_SIZE);
+    m_filament_load_step->SetSize(AMS_STEP_SIZE);
+
+    m_filament_unload_step = new ::StepIndicator(m_simplebook_right, wxID_ANY);
+    m_filament_unload_step->SetMinSize(AMS_STEP_SIZE);
+    m_filament_unload_step->SetSize(AMS_STEP_SIZE);
+    
+
     m_simplebook_right->AddPage(tip_right, wxEmptyString, false);
+    m_simplebook_right->AddPage(m_filament_load_step, wxEmptyString, false);
+    m_simplebook_right->AddPage(m_filament_unload_step, wxEmptyString, false);
 
 
     wxBoxSizer *m_sizer_right_bottom = new wxBoxSizer(wxHORIZONTAL);
@@ -1244,8 +1258,8 @@ std::string AMSControl::GetCurrentCan(std::string amsid)
 
 void AMSControl::EnterNoneAMSMode() 
 { 
-    m_simplebook_ams->SetSelection(1); 
-    SetFilamentStep(-1, false);
+    m_simplebook_ams->SetSelection(0); 
+    ShowFilamentTip(false);
 }
 
 void AMSControl::ExitNoneAMSMode() 
@@ -1302,17 +1316,10 @@ void AMSControl::msw_rescale()
     Layout();
 }
 
-void AMSControl::UpdateStepCtrl(bool load)
+void AMSControl::UpdateStepCtrl()
 {
-    if (load) {
-        for (int i = 0; i < LOAD_STEP_COUNT; i++) {
-            m_filament_step->AppendItem(FILAMENT_STEP_STRING[i]);
-        }
-    } else {
-        for (int i = 0; i < UNLOAD_STEP_COUNT; i++) {
-            m_filament_step->AppendItem(FILAMENT_STEP_STRING[i]);
-        }
-    }
+    for (int i = 0; i < LOAD_STEP_COUNT; i++) { m_filament_load_step->AppendItem(FILAMENT_LOAD_STEP_STRING[i]); }
+    for (int i = 0; i < UNLOAD_STEP_COUNT; i++) { m_filament_unload_step->AppendItem(FILAMENT_UNLOAD_STEP_STRING[i]); }
 }
 
 void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection)
@@ -1460,17 +1467,28 @@ void AMSControl::SwitchAms(std::string ams_id)
     m_current_ams = ams_id;
 }
 
-void AMSControl::SetFilamentStep(int item_idx, bool hasams)
+void AMSControl::SetFilamentStep(int item_idx, bool isload)
 {
-    if (item_idx == -1) {
+    if (item_idx >= 0 && isload && item_idx < FilamentStep::STEP_COUNT) {
         m_simplebook_right->SetSelection(1);
-        if (hasams)  m_tip_load_info->SetLabelText(_L("Choose an AMS slot then press \"Load\" or \"Unload\" button to Automatic load or unload"));
-        else  m_tip_load_info->SetLabelText(_L("Before loading, please make sure the filament is pushed into toolhead."));
-        m_tip_load_info->Wrap(AMS_STEP_SIZE.x);
-        m_tip_load_info->SetMinSize(AMS_STEP_SIZE);
-     }
-   
-    if (item_idx >= 0 && item_idx < FilamentStep::STEP_COUNT) m_filament_step->SelectItem(item_idx);
+        m_filament_load_step->SelectItem(item_idx); 
+    }
+
+    if (item_idx >= 0 && !isload && item_idx < FilamentStep::STEP_COUNT) {
+        m_simplebook_right->SetSelection(2);
+        m_filament_unload_step->SelectItem(item_idx);
+    }
+}
+
+void AMSControl::ShowFilamentTip(bool hasams) 
+{
+    m_simplebook_right->SetSelection(0);
+    if (hasams)
+        m_tip_load_info->SetLabelText(_L("Choose an AMS slot then press \"Load\" or \"Unload\" button to Automatic load or unload"));
+    else
+        m_tip_load_info->SetLabelText(_L("Before loading, please make sure the filament is pushed into toolhead."));
+    m_tip_load_info->Wrap(AMS_STEP_SIZE.x);
+    m_tip_load_info->SetMinSize(AMS_STEP_SIZE);
 }
 
 bool AMSControl::Enable(bool enable) 
@@ -1492,7 +1510,7 @@ bool AMSControl::Enable(bool enable)
     m_button_extruder_feed->Enable(enable);
     m_button_ams_setting->Enable(enable);
 
-    m_filament_step->Enable(enable);
+    m_filament_load_step->Enable(enable);
     return  wxWindow::Enable(enable); 
 }
 

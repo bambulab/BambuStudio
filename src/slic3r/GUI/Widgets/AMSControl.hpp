@@ -373,7 +373,8 @@ protected:
     wxBoxSizer *m_sizer_top  = {nullptr};
     wxBoxSizer *m_sizer_cans = {nullptr};
 
-    ::StepIndicator *m_filament_step = {nullptr};
+    ::StepIndicator *m_filament_load_step = {nullptr};
+    ::StepIndicator *m_filament_unload_step = {nullptr};
 
     Button *m_button_extruder_feed = {nullptr};
     Button *m_button_extruder_back = {nullptr};
@@ -397,14 +398,17 @@ public:
     void PlayRridLoading(wxString amsid, wxString canid);
     void StopRridLoading(wxString amsid, wxString canid);
 
-    void UpdateStepCtrl(bool load = true);
+   
+    void SetFilamentStep(int item_idx, bool isload = true);
+    void ShowFilamentTip(bool hasams = true);
+
+    void UpdateStepCtrl();
     void UpdateAms(std::vector<AMSinfo> info, bool keep_selection = true);
     void AddAms(AMSinfo info, bool refresh = true);
     void RemoveAms(std::string ams_id);
     void RemoveAll();
     void SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP STEP);
     void SwitchAms(std::string ams_id);
-    void SetFilamentStep(int item_idx, bool hasams = true);
     virtual bool Enable(bool enable = true);
 
     void msw_rescale();
