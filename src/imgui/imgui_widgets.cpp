@@ -1259,7 +1259,7 @@ bool ImGui::BBLCheckbox(const char *label, bool *v)
         MarkItemEdited(id);
     }
 
-    const ImRect check_bb(pos, pos + ImVec2(square_sz, square_sz));
+    const ImRect check_bb(ImVec2(pos.x, pos.y + style.ItemInnerSpacing.x * 0.5), pos + ImVec2(square_sz, square_sz + style.ItemInnerSpacing.x * 0.5));
     RenderNavHighlight(total_bb, id);
     RenderFrame(check_bb.Min, check_bb.Max,
                 GetColorU32((held && hovered) ? ImGuiCol_FrameBgActive :

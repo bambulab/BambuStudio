@@ -408,7 +408,6 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
     }
     ImGui::PopStyleVar(1);
     ImGui::Separator();
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0, 6.0));
     // Part selection
     m_imgui->bbl_checkbox(_L("Keep upper part"), m_keep_upper);
     m_imgui->bbl_checkbox(_L("Keep lower part"), m_keep_lower);
@@ -435,7 +434,6 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
     m_imgui->disabled_begin((!m_keep_upper && !m_keep_lower && !m_do_segment));
     const bool cut_clicked = m_imgui->button(_L("Perform cut"));
     m_imgui->disabled_end();
-    ImGui::PopStyleVar(1);
     m_imgui->end();
     ImGuiWrapper::pop_toolbar_style();
 
