@@ -9,11 +9,13 @@ class Button : public StaticBox
     wxSize textSize;
     wxSize minSize; // set by outer
     wxSize paddingSize;
-    ScalableBitmap icon;
+    ScalableBitmap active_icon;
+    ScalableBitmap inactive_icon;
 
     StateColor   text_color;
 
     bool pressedDown = false;
+    bool m_selected = true;
 
     static const int buttonWidth = 200;
     static const int buttonHeight = 50;
@@ -29,6 +31,8 @@ public:
 
     void SetIcon(const wxString& icon);
 
+    void SetInactiveIcon(const wxString& icon);
+
     void SetMinSize(const wxSize& size) override;
     
     void SetPaddingSize(const wxSize& size);
@@ -36,6 +40,8 @@ public:
     void SetTextColor(StateColor const &color);
 
     void SetTextColorNormal(wxColor const &color);
+
+    void SetSelected(bool selected = true) { m_selected = selected; }
 
     bool Enable(bool enable = true);
 

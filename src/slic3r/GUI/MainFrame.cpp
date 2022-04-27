@@ -542,8 +542,8 @@ void MainFrame::update_layout()
     case ESettingsLayout::Old:
     {
         m_plater->Reparent(m_tabpanel);
-        m_tabpanel->InsertPage(tp3DEditor, m_plater, _L("Prepare"), std::string("notebook_plater_active"));
-        m_tabpanel->InsertPage(tpPreview, m_plater, _L("Preview"), std::string("notebook_preview_active"));
+        m_tabpanel->InsertPage(tp3DEditor, m_plater, _L("Prepare"), std::string("tab_3d_active"), std::string("tab_3d_inactive"));
+        m_tabpanel->InsertPage(tpPreview, m_plater, _L("Preview"), std::string("tab_preview_active"), std::string("tab_preview_inactive"));
         m_main_sizer->Add(m_tabpanel, 1, wxEXPAND | wxTOP, 0);
         m_plater->Show();
         m_tabpanel->Show();
@@ -712,8 +712,7 @@ void MainFrame::init_tabpanel()
             m_webview->load_url(url);
         });
 
-        m_tabpanel->AddPage(m_webview, "", "notebook_home_active");
-
+        m_tabpanel->AddPage(m_webview, "", "tab_home_active", "tab_home_inactive");
         m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
     }
 
@@ -727,10 +726,10 @@ void MainFrame::init_tabpanel()
 
         //BBS add pages
         m_monitor = new MonitorPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-        m_tabpanel->AddPage(m_monitor, _L("Monitor"), "notebook_monitor_active");
+        m_tabpanel->AddPage(m_monitor, _L("Monitor"), std::string("tab_monitor_active"), std::string("tab_monitor_inactive"));
 #if !BBL_RELEASE_TO_PUBLIC
         m_debug_tool_dlg = new DebugToolDialog(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-        m_tabpanel->AddPage(m_debug_tool_dlg, _L("Debug"), "debugtool");
+        m_tabpanel->AddPage(m_debug_tool_dlg, _L("Debug"), "debugtool", "debugtool");
 #endif
     }
 

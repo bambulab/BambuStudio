@@ -45,7 +45,7 @@ bool Button::Create(wxWindow* parent, wxString text, wxString icon, long style, 
     wxWindow::SetLabel(text);
     if (!icon.IsEmpty()) {
         //BBS set button icon default size to 20
-        this->icon = ScalableBitmap(this, icon.ToStdString(), iconSize > 0 ? iconSize : 20);
+        this->active_icon = ScalableBitmap(this, icon.ToStdString(), iconSize > 0 ? iconSize : 20);
     }
     messureSize();
     return true;
@@ -62,11 +62,22 @@ void Button::SetIcon(const wxString& icon)
 {
     if (!icon.IsEmpty()) {
         //BBS set button icon default size to 20
-        this->icon = ScalableBitmap(this, icon.ToStdString(), this->icon.px_cnt());
+        this->active_icon = ScalableBitmap(this, icon.ToStdString(), this->active_icon.px_cnt());
     }
     else
     {
-        this->icon = ScalableBitmap();
+        this->active_icon = ScalableBitmap();
+    }
+    Refresh();
+}
+
+void Button::SetInactiveIcon(const wxString &icon)
+{
+    if (!icon.IsEmpty()) {
+        // BBS set button icon default size to 20
+        this->inactive_icon = ScalableBitmap(this, icon.ToStdString(), this->active_icon.px_cnt());
+    } else {
+        this->inactive_icon = ScalableBitmap();
     }
     Refresh();
 }
@@ -109,8 +120,12 @@ bool Button::Enable(bool enable)
 
 void Button::Rescale()
 {
-    if (this->icon.bmp().IsOk())
-        this->icon.msw_rescale();
+    if (this->active_icon.bmp().IsOk())
+        this->active_icon.msw_rescale();
+
+    if (this->inactive_icon.bmp().IsOk())
+        this->inactive_icon.msw_rescale();
+
     messureSize();
 }
 
@@ -135,6 +150,14 @@ void Button::render(wxDC& dc)
     // calc content size
     wxSize szIcon;
     wxSize szContent = textSize;
+
+
+    ScalableBitmap icon;
+    if (m_selected || ((states & (int)StateColor::State::Hovered) != 0))
+        icon = active_icon;
+    else
+        icon = inactive_icon;
+
     if (icon.bmp().IsOk()) {
         if (szContent.y > 0) {
             //BBS norrow size between text and icon
@@ -176,12 +199,12 @@ void Button::messureSize()
         return;
     }
     wxSize szContent = textSize;
-    if (this->icon.bmp().IsOk()) {
+    if (this->active_icon.bmp().IsOk()) {
         if (szContent.y > 0) {
             //BBS norrow size between text and icon
             szContent.x += 5;
         }
-        wxSize szIcon = this->icon.bmp().GetSize();
+        wxSize szIcon = this->active_icon.bmp().GetSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y)
             szContent.y = szIcon.y;

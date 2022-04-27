@@ -23,7 +23,7 @@ public:
     void SetSelection(int sel);
     void UpdateMode();
     void Rescale();
-    bool InsertPage(size_t n, const wxString& text, bool bSelect = false, const std::string& bmp_name = "");
+    bool InsertPage(size_t n, const wxString &text, bool bSelect = false, const std::string &bmp_name = "", const std::string &inactive_bmp_name = "");
     void RemovePage(size_t n);
     bool SetPageImage(size_t n, const std::string& bmp_name) const;
     void SetPageText(size_t n, const wxString& strText);
@@ -102,7 +102,7 @@ public:
     // by this control) and show it immediately.
     bool ShowNewPage(wxWindow * page)
     {
-        return AddPage(page, wxString(), ""/*true *//* select it */);
+        return AddPage(page, wxString(), "", "");
     }
 
 
@@ -138,10 +138,11 @@ public:
     bool AddPage(wxWindow* page,
                  const wxString& text,
                  const std::string& bmp_name,
+                 const std::string& inactive_bmp_name,
                  bool bSelect = false)
     {
         DoInvalidateBestSize();
-        return InsertPage(GetPageCount(), page, text, bmp_name, bSelect);
+        return InsertPage(GetPageCount(), page, text, bmp_name, inactive_bmp_name, bSelect);
     }
 
     // Page management
@@ -166,12 +167,13 @@ public:
                     wxWindow * page,
                     const wxString & text,
                     const std::string& bmp_name = "",
+                    const std::string& inactive_bmp_name = "",
                     bool bSelect = false)
     {
         if (!wxBookCtrlBase::InsertPage(n, page, text, bSelect))
             return false;
 
-        GetBtnsListCtrl()->InsertPage(n, text, bSelect, bmp_name);
+        GetBtnsListCtrl()->InsertPage(n, text, bSelect, bmp_name, inactive_bmp_name);
 
         if (bSelect)
             SetSelection(n);

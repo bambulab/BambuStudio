@@ -182,10 +182,10 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
 
     this->AddSpacer(5);
 
-    wxBitmap logo_bitmap = create_scaled_bitmap("topbar_logo", nullptr, TOPBAR_ICON_SIZE);
+    /*wxBitmap logo_bitmap = create_scaled_bitmap("topbar_logo", nullptr, TOPBAR_ICON_SIZE);
     wxAuiToolBarItem* logo_item = this->AddTool(ID_LOGO, "", logo_bitmap);
     logo_item->SetHoverBitmap(logo_bitmap);
-    logo_item->SetActive(false);
+    logo_item->SetActive(false);*/
 
     wxBitmap file_bitmap = create_scaled_bitmap("topbar_file", nullptr, TOPBAR_ICON_SIZE);
     m_file_menu_item = this->AddTool(ID_TOP_FILE_MENU, "File", file_bitmap, wxEmptyString);
@@ -491,8 +491,8 @@ void BBLTopbar::Rescale() {
     int em = em_unit(this);
     wxAuiToolBarItem* item;
 
-    item = this->FindTool(ID_LOGO);
-    item->SetBitmap(create_scaled_bitmap("topbar_logo", nullptr, TOPBAR_ICON_SIZE));
+    /*item = this->FindTool(ID_LOGO);
+    item->SetBitmap(create_scaled_bitmap("topbar_logo", nullptr, TOPBAR_ICON_SIZE));*/
 
     item = this->FindTool(ID_TOP_FILE_MENU);
     item->SetBitmap(create_scaled_bitmap("topbar_file", nullptr, TOPBAR_ICON_SIZE));
