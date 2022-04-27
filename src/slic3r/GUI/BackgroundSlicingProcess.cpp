@@ -469,9 +469,11 @@ void BackgroundSlicingProcess::join_background_thread()
 
 bool BackgroundSlicingProcess::start()
 {
-	if (m_print->empty())
-		// The print is empty (no object in Model, or all objects are out of the print bed).
-		return false;
+	if (m_print->empty()) {
+		if (!m_current_plate  || !m_current_plate->is_slice_result_valid())
+			// The print is empty (no object in Model, or all objects are out of the print bed).
+		    return false;
+	}
 
 	std::unique_lock<std::mutex> lck(m_mutex);
 	if (m_state == STATE_INITIAL) {

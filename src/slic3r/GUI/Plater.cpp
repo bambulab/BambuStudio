@@ -2848,10 +2848,28 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     //BBS: add gcode loading logic in the end
     if (load_model && load_config) {
         partplate_list.load_gcode_files();
-        //set to 3d tab
-        q->select_view_3D("3D");
-        //select plate 0 as default
-        q->select_plate(0);
+        if (model.objects.empty()) {
+            PartPlate * first_plate = partplate_list.get_plate(0);
+            if (first_plate->is_slice_result_valid()) {
+                //select plate 0 as default
+                q->select_plate(0);
+                //set to 3d tab
+                q->select_view_3D("Preview");
+                wxGetApp().mainframe->select_tab(MainFrame::tpPreview);
+            }
+            else {
+                //set to 3d tab
+                q->select_view_3D("3D");
+                //select plate 0 as default
+                q->select_plate(0);
+            }
+        }
+        else {
+            //set to 3d tab
+            q->select_view_3D("3D");
+            //select plate 0 as default
+            q->select_plate(0);
+        }
     }
 
     if (load_model) {
@@ -3673,6 +3691,17 @@ bool Plater::priv::restart_background_process(unsigned int state)
             return true;
         }
     }
+    else if (this->background_process.empty()) {
+        PartPlate* cur_plate = background_process.get_current_plate();
+        if (cur_plate->is_slice_result_valid() && ((state & UPDATE_BACKGROUND_PROCESS_FORCE_RESTART) != 0)) {
+            if (this->background_process.start()) {
+                if (!show_warning_dialog)
+                    on_slicing_began();
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: start successfully")%__LINE__;
+                return true;
+            }
+        }
+    }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: not started")%__LINE__;
     return false;
 }
@@ -4184,6 +4213,9 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             bool model_fits = this->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
             //BBS: add partplate logic
             PartPlate * current_plate = this->partplate_list.get_curr_plate();
+            bool only_has_gcode_need_preview = false;
+            if (current_plate->is_slice_result_valid() && this->model.objects.empty() && !current_plate->has_printable_instances())
+                only_has_gcode_need_preview = true;
 
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": from set_current_panel, no_slice %1%, export_in_progress %2%, model_fits %3%, m_is_slicing %4%")%no_slice%export_in_progress%model_fits%m_is_slicing;
 
@@ -4201,6 +4233,11 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
                     int plate_index = this->background_process.get_current_plate()->get_index();
                     this->partplate_list.select_plate(plate_index);
                 }
+            }
+            else if (only_has_gcode_need_preview)
+            {
+                this->m_slice_all = false;
+                this->q->reslice();
             }
             //BBS: process empty plate, reset previous toolpath
             else if (!current_plate->has_printable_instances())
@@ -6133,7 +6170,7 @@ void Plater::load_project(wxString const& filename2,
     }
 
     // BBS set default 3D view and direction after loading project
-    p->select_view_3D("3D");
+    //p->select_view_3D("3D");
     p->select_view("topfront");
     p->camera.requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
 
@@ -8136,13 +8173,16 @@ void Plater::reslice()
     else {
         //BBS: add reset logic for empty plate
         PartPlate * current_plate = p->background_process.get_current_plate();
-        current_plate->update_slice_result_valid_state(true);
-        p->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, false);
 
-        if (!current_plate->has_printable_instances())
+        if (!current_plate->has_printable_instances()) {
             clean_gcode_toolpaths = true;
-        else
+            current_plate->update_slice_result_valid_state(false);
+        }
+        else {
             clean_gcode_toolpaths = false;
+            current_plate->update_slice_result_valid_state(true);
+        }
+        p->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, false);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": background process in idle state, use previous result, clean_gcode_toolpaths=%1%")%clean_gcode_toolpaths;
     }
 
@@ -8954,6 +8994,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
                     else {
                         //just refresh_print
                         refresh_print();
+                        p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false, true);
                     }
                 }
                 else {// from multiple slice's next
