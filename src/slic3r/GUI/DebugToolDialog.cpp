@@ -1403,6 +1403,11 @@ void DebugToolDialog::on_update_list(SimpleEvent& evt)
     Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     std::string username = account_manager->get_user_name();
 
+    if (!account_manager->is_user_login()) {
+        wxGetApp().request_login();
+        return;
+    }
+
     std::map<std::string, MachineObject*> list = dev_manager_.get_all_machine_list();
     std::vector<MachineObject*> display_list;
 
@@ -2204,16 +2209,21 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
     UPGRADE_MODE upgrade_mode = (UPGRADE_MODE)cb_upgrade_mode->GetCurrentSelection();
     std::string hardware_version;
     if (cb_upgrade_version->GetCurrentSelection() == 0) {
-        hardware_version = "v6";
+        hardware_version = "v7";
     } else if (cb_upgrade_version->GetCurrentSelection() == 1) {
-        hardware_version = "v5";
+        hardware_version = "v6";
     } else if (cb_upgrade_version->GetCurrentSelection() == 2) {
+        hardware_version = "v5";
+    } else if (cb_upgrade_version->GetCurrentSelection() == 3) {
         hardware_version = "v4";
     } else {
-        hardware_version = "v5";
+        hardware_version = "v7";
     }
 
     MachineObject *obj        = dev_manager_.get_default();
+    if (!obj)
+        return;
+
     int server_sel = m_radioBox_server->GetSelection();
     if (server_sel == 1) {
         Slic3r::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
