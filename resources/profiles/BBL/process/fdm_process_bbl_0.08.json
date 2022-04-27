@@ -13,7 +13,7 @@
     "initial_layer_infill_speed": "120",
     "outer_wall_speed": "200",
     "inner_wall_speed": "300",
-    "sparse_infill_speed": "300",
+    "sparse_infill_speed": "400",
     "internal_solid_infill_speed": "250",
     "top_surface_speed": "200",
     "gap_infill_speed": "250",
