@@ -582,6 +582,7 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
     index = 1;
     index_unit  = 1;
     //ImGui::PushItemWidth(unit_size * 2);
+    ImGui::AlignTextToFramePadding();
     imgui_wrapper->text(_L("Position"));
     ImGui::SameLine(caption_max + index * space_size);
     ImGui::PushItemWidth(unit_size);
@@ -602,6 +603,7 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
     index_unit = 1;
 
     //ImGui::PushItemWidth(unit_size * 2);
+    ImGui::AlignTextToFramePadding();
     imgui_wrapper->text(_L("Rotation"));
     ImGui::SameLine(caption_max + index * space_size);
     ImGui::PushItemWidth(unit_size);
@@ -718,6 +720,7 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     index_unit = 1;
 
     //ImGui::PushItemWidth(unit_size * 2);
+    ImGui::AlignTextToFramePadding();
     imgui_wrapper->text(_L("Scale"));
     ImGui::SameLine(caption_max + space_size);
     ImGui::PushItemWidth(unit_size);
@@ -753,6 +756,7 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     index              = 2;
     index_unit         = 1;
     //ImGui::PushItemWidth(unit_size * 2);
+    ImGui::AlignTextToFramePadding();
     imgui_wrapper->text(_L("Size"));
     ImGui::SameLine(caption_max + space_size);
     ImGui::PushItemWidth(unit_size);

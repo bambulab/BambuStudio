@@ -1375,12 +1375,15 @@ void ImGuiWrapper::push_toolbar_style()
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(238/255.0f, 238/255.0f, 238/255.0f, 0.00f));        // 10
     ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, COL_GREEN_LIGHT);                                     // 11
     ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));//12
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.42f, 0.42f, 0.42f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
 }
 
 void ImGuiWrapper::pop_toolbar_style()
 {
     // size in push toolbar style
-    ImGui::PopStyleColor(12);
+    ImGui::PopStyleColor(15);
     ImGui::PopStyleVar(5);
 }
 

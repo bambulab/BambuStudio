@@ -400,12 +400,14 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         if (i != 0) ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(0.5f));
 
         if (m_current_tool == paint_icons[i]) {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.80f, 0.80f, 1.00f, 1.00f)); // r, g, b, a
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.80f, 0.80f, 1.00f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.81f, 0.81f, 0.81f, 1.0f)); // r, g, b, a
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.81f, 0.81f, 0.81f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.81f, 0.81f, 0.81f, 1.0f));
         }
-
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
         bool btn_clicked = ImGui::Button(into_u8(btn_name).c_str());
-        if (m_current_tool == paint_icons[i]) ImGui::PopStyleColor(2);
+        ImGui::PopStyleVar(1);
+        if (m_current_tool == paint_icons[i]) ImGui::PopStyleColor(3);
 
         if (btn_clicked && m_current_tool != paint_icons[i]) {
             m_current_tool = paint_icons[i];

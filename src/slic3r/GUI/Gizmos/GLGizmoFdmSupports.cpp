@@ -87,13 +87,13 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["remove_caption"]        = _L("Shift + Left mouse button") + ": ";
     m_desc["remove"]                = _L("Erase painting");
     m_desc["remove_all"]            = _L("Erase all painting");
-    m_desc["highlight_by_angle"]    = _L("Highlight overhang areas");
+    m_desc["highlight_by_angle"]    = _L("Highlight overhang areas") + ": ";
     m_desc["tiny_patch_filter"]     = _L("Tiny patch filter");
     m_desc["filter_tiny"]           = _L("Filter tiny patch");
     m_desc["brush_size"]            = _L("Set pen size");
     m_desc["brush_size_caption"]    = _L("Ctrl + Mouse wheel") + ": ";
     m_desc["tool_type"]             = _L("Tool type");
-    m_desc["smart_fill_angle"]      = _L("Smart fill angle");
+    m_desc["smart_fill_angle"]      = _L("Smart fill angle") + ": ";
 
     memset(&m_print_instance, sizeof(m_print_instance), 0);
     return true;
@@ -249,12 +249,14 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         if (i != 0) ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(1.3f));
 
         if (m_current_tool == paint_icons[i]) {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.80f, 0.80f, 1.00f, 1.00f)); // r, g, b, a
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.80f, 0.80f, 1.00f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.81f, 0.81f, 0.81f, 1.0f)); // r, g, b, a
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.81f, 0.81f, 0.81f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.81f, 0.81f, 0.81f, 1.0f));
         }
-
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
         bool btn_clicked = ImGui::Button(into_u8(btn_name).c_str());
-        if (m_current_tool == paint_icons[i]) ImGui::PopStyleColor(2);
+        ImGui::PopStyleVar(1);
+        if (m_current_tool == paint_icons[i])ImGui::PopStyleColor(3);
 
         if (btn_clicked && m_current_tool != paint_icons[i]) {
             m_current_tool = paint_icons[i];
@@ -299,7 +301,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     float position_before_text_y = ImGui::GetCursorPos().y;
     ImGui::AlignTextToFramePadding();
-    m_imgui->text(m_desc["highlight_by_angle"] + ":");
+    m_imgui->text(m_desc["highlight_by_angle"]);
     ImGui::AlignTextToFramePadding();
     float position_after_text_y = ImGui::GetCursorPos().y;
     ImGui::SameLine(sliders_left_width);
@@ -364,9 +366,9 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);
-
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 5.0f));
     ImGui::SameLine();
-    if (m_imgui->button(m_desc.at("filter_tiny"),0.0,24.0)) {
+    if (m_imgui->button(m_desc.at("filter_tiny"))) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection", UndoRedo::SnapshotType::GizmoAction);
 
         for (int i = 0; i < m_triangle_selectors.size(); i++) {
@@ -380,7 +382,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     ImGui::SameLine();
 
-    if (m_imgui->button(m_desc.at("remove_all"),0.0,24.0)) {
+    if (m_imgui->button(m_desc.at("remove_all"))) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection", UndoRedo::SnapshotType::GizmoAction);
         ModelObject *        mo  = m_c->selection_info()->model_object();
         int                  idx = -1;
@@ -394,7 +396,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         update_model_object();
         m_parent.set_as_dirty();
     }
-    ImGui::PopStyleVar(1);
+    ImGui::PopStyleVar(2);
     m_imgui->end();
 
     // BBS
