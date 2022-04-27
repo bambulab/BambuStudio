@@ -112,7 +112,7 @@ public:
     virtual void		disable() = 0;
 
 	/// Fires the enable or disable function, based on the input.
-    inline void			toggle(bool en) { en ? enable() : disable(); }
+    void			toggle(bool en);
 
 	virtual wxString	get_tooltip_text(const wxString& default_string);
 

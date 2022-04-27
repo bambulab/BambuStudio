@@ -187,7 +187,12 @@ void Field::on_back_to_sys_value()
 		m_back_to_sys_value(m_opt_id);
 }
 
-wxString Field::get_tooltip_text(const wxString& default_string)
+
+/// Fires the enable or disable function, based on the input.
+
+void Field::toggle(bool en) { en && !m_opt.readonly ? enable() : disable(); }
+
+wxString Field::get_tooltip_text(const wxString &default_string)
 {
 	wxString tooltip_text("");
 	//wxString tooltip = _(m_opt.tooltip);
