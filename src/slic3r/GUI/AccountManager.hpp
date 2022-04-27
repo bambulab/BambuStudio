@@ -31,6 +31,7 @@
 
 #define DEFAULT_BBL_SETTING_VERSION     "00.00.00.01"
 
+#define REGION_JSON_CONFIG_URL "https://upgrade-qa.bambu-lab.com/studio/server_region/00.00.00.01/server_region.json";
 
 #define MSG_SUCCESS                     "success"
 
@@ -38,6 +39,26 @@
 #define RET_POLLING_TIMEOUT             -3
 
 namespace pt = boost::property_tree;
+
+
+enum UserRegion {
+    REGION_USA,
+    REGION_CHN,
+    REGION_OTHERS
+};
+
+class RegionServer
+{
+public:
+    RegionServer() {}
+    UserRegion      region;
+    std::string     iot_server_host;
+    std::string     mqtt_server_host;
+    std::string     tutk_server_host;
+    std::string     wifi_code;
+
+    static std::string convert_region_to_contry_code(std::string region);
+};
 
 namespace Slic3r {
 
@@ -272,6 +293,9 @@ private:
 public:
     std::string MQTT_HOST = "ssl://47.100.225.51:8883";
     const int MQTT_QOS = 0;
+    UserRegion user_region;
+    RegionServer user_region_server;
+    bool is_region_config_ready { false };
 
     typedef std::function<void(int progress)> ProgressFn;
     typedef std::function<void(int retcode, std::string info)> LoginFn;
@@ -399,7 +423,7 @@ public:
     void get_profile_info(BBLProject* &project, BBLProfile* &profile);
 
     // POST /my/task
-    int post_task(BBLProject* project, BBLProfile* profile, BBLSubTask *task, unsigned &http_code, std::string &http_body);
+    int post_task(BBLProject* project, BBLProfile* profile, BBLSubTask *task, unsigned int &http_code, std::string &http_body);
 
     // Get /my/ticket
     int get_ticket(std::string ticket, unsigned int &http_code, std::string &http_body);
@@ -408,7 +432,12 @@ public:
     int post_ticket(std::string ticket, unsigned int &http_code, std::string &http_body);
 
     // GET /my/tasks
-    int get_tasks(std::string dev_id, unsigned limit, unsigned &http_code, std::string &http_body);
+    int get_tasks(std::string dev_id, unsigned limit, unsigned int &http_code, std::string &http_body);
+
+    // GET region json
+    int get_region_config(unsigned int &http_code, std::string &http_body);
+
+    int prepare_region_config();
 
     bool can_publish();
 
@@ -448,6 +477,7 @@ public:
     void reset_project();
 
     void set_host(std::string host_url);
+    std::string get_host() { return host; }
     void set_user_info_path(std::string user_info_filename) { m_user_info_filename = user_info_filename; }
     std::string get_user_id() {
         if (m_curr_user) {

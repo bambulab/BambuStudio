@@ -79,7 +79,7 @@ void BindJob::process()
 
 
     curr_percent = 20;
-    update_status(curr_percent, "sending login info");
+    update_status(curr_percent, "sending login info");    
     std::string login_request = obj->build_login_request();
     result = obj->local_client->publish(login_request);
     if (result < 0) {

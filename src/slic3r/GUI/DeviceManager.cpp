@@ -812,14 +812,26 @@ int MachineObject::command_new_bind()
 
 std::string MachineObject::build_login_request()
 {
-    json j;
-    j["login"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["login"]["command"]     = "login";
-    j["login"]["wifi"]        = "CN";
-    j["login"]["tutk"]        = "ASIA";
-    j["login"]["iot"]         = "https://api-qa.bambu-lab.com/v1";
-    j["login"]["emqx"]        = "ssl://47.100.225.51:8883";
-    return j.dump();
+    if (acc_.is_region_config_ready) {
+        json j;
+        j["login"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        j["login"]["command"]     = "login";
+        j["login"]["wifi"]        = acc_.user_region_server.wifi_code;
+        j["login"]["tutk"]        = acc_.user_region_server.tutk_server_host;
+        j["login"]["iot"]         = acc_.get_host();    //TODO use api werver
+        j["login"]["emqx"]        = acc_.MQTT_HOST;     //TODO user_region_server.mqtt_server_host;
+        return j.dump();
+    } else {
+        // default request
+        json j;
+        j["login"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        j["login"]["command"]     = "login";
+        j["login"]["wifi"]        = "DE";
+        j["login"]["tutk"]        = "EU";
+        j["login"]["iot"]         = acc_.get_host();
+        j["login"]["emqx"]        = acc_.MQTT_HOST;
+        return j.dump();
+    }
 }
 
 
@@ -2008,7 +2020,7 @@ void DeviceManager::on_machine_alive(std::string dev_name, std::string dev_id, s
                 obj->reconnect();
             }
         }
-        //obj->wifi_signal = printer_signal;
+        obj->wifi_signal = printer_signal;
         BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery:: Update Machine Info, printer_sn = " << dev_id << ", signal = " << printer_signal;
         obj->last_alive = Slic3r::Utils::get_current_time_utc();
         obj->is_alive = true;
@@ -2017,7 +2029,7 @@ void DeviceManager::on_machine_alive(std::string dev_name, std::string dev_id, s
         /* insert a new machine */
         obj = new MachineObject(acc_, dev_name, dev_id, dev_ip);
         obj->printer_type = MachineObject::parse_printer_type(printer_type_str);
-        //obj->wifi_signal = printer_signal;
+        obj->wifi_signal = printer_signal;
         localMachineList.insert(std::make_pair(dev_id, obj));
 
         BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery::New Machine, ip = " << dev_ip << ", printer_name= " << dev_name << ", printer_type = " << printer_type_str << ", signal = " << printer_signal;

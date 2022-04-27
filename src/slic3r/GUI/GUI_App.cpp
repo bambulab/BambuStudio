@@ -1397,6 +1397,9 @@ bool GUI_App::on_init_inner()
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(true);
 
+    //get region config for studio
+    m_account_manager->prepare_region_config();
+
     //BBS init account_manager
     m_account_manager->load_user_info();
 

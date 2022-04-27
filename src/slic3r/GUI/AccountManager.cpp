@@ -54,6 +54,17 @@ uint64_t lzo_out_len = 5 * 1024;
 const uint64_t LZO_OUT_MAX_LEN = 5 * 1024;
 unsigned char lzo_out[LZO_OUT_MAX_LEN];
 
+
+std::string RegionServer::convert_region_to_contry_code(std::string region)
+{
+    if (region == "CHN")
+        return "CN";
+    else if (region == "USA")
+        return "US";
+    else
+        return "Others";
+}
+
 namespace Slic3r {
     void cloud_conn_callback::connected(const std::string& cause)
     {
@@ -335,6 +346,11 @@ namespace Slic3r {
 
     int AccountManager::connect_mqtt(bool sync)
     {
+        if (!is_region_config_ready) {
+            BOOST_LOG_TRIVIAL(error) << "config is not ready!";
+            return -1;
+        }
+
         BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt";
         if (m_curr_user == nullptr) {
             return -1;
@@ -352,6 +368,7 @@ namespace Slic3r {
             // update mqtt user_name and password
             mqtt_opt.set_user_name((boost::format("u_%1%") % m_curr_user->m_user_id).str());
             mqtt_opt.set_password(m_curr_user->get_token());
+            //mqtt_cli = new mqtt::async_client(user_region_server.mqtt_server_host, client_id);
             mqtt_cli = new mqtt::async_client(MQTT_HOST, client_id);
             mqtt_cb = new cloud_conn_callback(*mqtt_cli, mqtt_opt, this);
             if (mqtt_cli) {
@@ -2749,6 +2766,87 @@ namespace Slic3r {
             .on_error([this](std::string body, std::string error, unsigned status) {
                 ;
             }).perform_sync();
+        return result;
+    }
+
+    int AccountManager::prepare_region_config()
+    {
+        unsigned int http_code;
+        std::string http_body;
+        int result = get_region_config(http_code, http_body);
+        json js;
+        if (result < 0) {
+            //try to load from local file
+            boost::filesystem::path config_file = (boost::filesystem::path(Slic3r::data_dir()) / "region.conf");
+            if (!boost::filesystem::exists(config_file))
+                return result;
+            std::ifstream ifs(config_file.make_preferred().string());
+            js = json::parse(ifs);
+        }
+        else {
+            // write to local config file
+            std::string path = (boost::filesystem::path(Slic3r::data_dir()) / ("region.conf")).make_preferred().string();
+            try {
+                js = json::parse(http_body);
+                std::ofstream file(path);
+                file << js;
+                file.close();
+            } 
+            catch (json::parse_error &e) {
+                BOOST_LOG_TRIVIAL(trace) << "prepare_region_config, parse json failed! e=" << e.what();
+                return -1;
+            }
+            catch (...) {
+                BOOST_LOG_TRIVIAL(trace) << "prepare_region_config, parse json failed!";
+                return -1;
+            }
+        }
+
+        // load region server
+        bool found = false;
+        AppConfig * config       = wxGetApp().app_config;
+        std::string country_code = RegionServer::convert_region_to_contry_code(config->get("region"));
+        try {
+            if (js.contains(country_code)) {
+                found                                     = true;
+                this->user_region_server.iot_server_host  = js[country_code]["api"].get<std::string>();
+                this->user_region_server.mqtt_server_host = js[country_code]["emqx"].get<std::string>();
+                this->user_region_server.tutk_server_host = js[country_code]["tutk"].get<std::string>();
+                this->user_region_server.wifi_code        = js[country_code]["wifi"].get<std::string>();
+            }
+        }
+        catch(...) {
+            return -1;
+        }
+        if (found) {
+            is_region_config_ready = true;
+            return 0;
+        } else {
+            BOOST_LOG_TRIVIAL(error) << "can not fount " << country_code;
+        }
+        return -1;
+    }
+
+    int AccountManager::get_region_config(unsigned int &http_code, std::string &http_body)
+    {
+        int result = -1;
+        std::string url = REGION_JSON_CONFIG_URL;
+        Http http = Http::get(url);
+        http.timeout_max(10)
+            .header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .on_complete(
+                [this, &http_code, &http_body, &result](std::string body, unsigned status)
+                {
+                    http_code = status;
+                    http_body = body;
+                    result = 0;
+                })
+            .on_error([this, &http_code, &http_body](std::string body, std::string error, unsigned status) {
+                    http_code = status;
+                    http_body = body;
+                })
+        .perform_sync();
         return result;
     }
 
