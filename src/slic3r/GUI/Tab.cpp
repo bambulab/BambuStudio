@@ -712,7 +712,9 @@ void Tab::update_label_colours()
                 page->m_is_modified_values ? &m_modified_label_clr :
                 (m_type < Preset::TYPE_COUNT ? &m_default_text_clr : &m_modified_label_clr);
 
-            m_tabctrl->SetItemTextColour(cur_item, *clr);
+            m_tabctrl->SetItemTextColour(cur_item, clr == &m_modified_label_clr ? *clr : StateColor(
+                        std::make_pair(0x6B6B6B, (int) StateColor::NotChecked),
+                        std::make_pair(*clr, (int) StateColor::Normal)));
             break;
         }
         cur_item = m_tabctrl->GetNextVisible(cur_item);
@@ -964,7 +966,9 @@ void Tab::update_changed_tree_ui()
                                                  (cur_item < Preset::TYPE_COUNT ? &m_default_text_clr : &m_modified_label_clr);
 
             if (page->set_item_colour(clr))
-                m_tabctrl->SetItemTextColour(cur_item, *clr);
+                m_tabctrl->SetItemTextColour(cur_item, clr == &m_modified_label_clr ? *clr : StateColor(
+                        std::make_pair(0x6B6B6B, (int) StateColor::NotChecked),
+                        std::make_pair(*clr, (int) StateColor::Normal)));
 
             page->m_is_nonsys_values = !sys_page;
             page->m_is_modified_values = modified_page;
@@ -3553,7 +3557,9 @@ void Tab::rebuild_page_tree()
         if (!p->get_show())
             continue;
         auto itemId = m_tabctrl->AppendItem(translate_category(p->title(), m_type), p->iconID());
-        m_tabctrl->SetItemTextColour(itemId, p->get_item_colour());
+        m_tabctrl->SetItemTextColour(itemId, p->get_item_colour() == m_modified_label_clr ? p->get_item_colour() : StateColor(
+                        std::make_pair(0x6B6B6B, (int) StateColor::NotChecked),
+                        std::make_pair(p->get_item_colour(), (int) StateColor::Normal)));
         if (translate_category(p->title(), m_type) == selected)
             item = itemId;
     }

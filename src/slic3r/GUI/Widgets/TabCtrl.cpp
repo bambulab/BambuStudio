@@ -168,10 +168,10 @@ void TabCtrl::AssignImageList(wxImageList* imageList)
     images = imageList;
 }
 
-void TabCtrl::SetItemTextColour(unsigned int item, const wxColour& col)
+void TabCtrl::SetItemTextColour(unsigned int item, const StateColor &col)
 {
     if (item >= btns.size()) return;
-    btns[item]->SetTextColorNormal(col);
+    btns[item]->SetTextColor(col);
 }
 
 int TabCtrl::GetFirstVisibleItem() const

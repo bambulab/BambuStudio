@@ -55,7 +55,7 @@ public:
     
     void AssignImageList(wxImageList *imageList);
 
-    void SetItemTextColour(unsigned int item, const wxColour& col);
+    void SetItemTextColour(unsigned int item, const StateColor& col);
 
     /* fakes */
     int GetFirstVisibleItem() const;
