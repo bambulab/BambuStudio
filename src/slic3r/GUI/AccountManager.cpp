@@ -301,25 +301,21 @@ namespace Slic3r {
     {
         m_curr_user = AccountInfo::load_from_json();
         if (this->is_user_login()) {
-            this->on_user_login();
+            this->on_user_login(0);
         }
         return 0;
     }
 
-    void AccountManager::on_user_login(bool online_login)
+    void AccountManager::on_user_login(int online_login)
     {
-        BOOST_LOG_TRIVIAL(info) << "set_preset: set preset_folder = " << get_curr_user()->get_user_id();
-        GUI::wxGetApp().app_config->set("preset_folder", get_curr_user()->get_user_id());
-        connect_mqtt();
-
         KeyStore::global_consumers.clear();
         auto kek = m_curr_user->get_user_id();
         kek.resize(32, '0');
-        KeyStore::global_consumers.push_back({ m_curr_user->get_user_id(), "",  kek});
+        KeyStore::global_consumers.push_back({m_curr_user->get_user_id(), "", kek});
 
-        GUI::wxGetApp().preset_bundle->update_user_presets_directory(m_curr_user->get_user_id());
-        if (online_login)
-            GUI::wxGetApp().reload_user_presets();
+        auto evt = new wxCommandEvent(EVT_USER_LOGIN);
+        evt->SetInt(online_login);
+        wxQueueEvent(&GUI::wxGetApp(), evt);
     }
 
     int AccountManager::save_user_info()
@@ -656,7 +652,7 @@ namespace Slic3r {
                             save_user_info();
 
                             /* connect mqtt */
-                            this->on_user_login(true);
+                            this->on_user_login(1);
                             if (fn) {
                                 fn(0, "Login Ok!");
                             }
@@ -3015,7 +3011,7 @@ namespace Slic3r {
 
         if (is_user_login())
         {
-            on_user_login(true);
+            on_user_login(1);
         }
     }
 

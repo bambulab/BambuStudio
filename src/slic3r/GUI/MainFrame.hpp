@@ -36,9 +36,6 @@ class wxProgressDialog;
 
 namespace Slic3r {
 
-// BBS
-//class ProgressStatusBar;
-
 namespace GUI
 {
 
@@ -330,6 +327,9 @@ public:
 	static constexpr int WM_USER_MEDIACHANGED { 0x7FFF }; // WM_USER from 0x0400 to 0x7FFF, picking the last one to not interfere with wxWidgets allocation
 #endif // _WIN32
 };
+
+wxDECLARE_EVENT(EVT_HTTP_ERROR, wxCommandEvent);
+wxDECLARE_EVENT(EVT_USER_LOGIN, wxCommandEvent);
 
 } // GUI
 } //Slic3r

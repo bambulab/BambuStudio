@@ -63,6 +63,9 @@ namespace Slic3r {
 namespace GUI {
 
 wxDEFINE_EVENT(EVT_SELECT_TAB, wxCommandEvent);
+wxDEFINE_EVENT(EVT_HTTP_ERROR, wxCommandEvent);
+wxDEFINE_EVENT(EVT_USER_LOGIN, wxCommandEvent);
+
 // BBS: backup
 wxDEFINE_EVENT(EVT_BACKUP_POST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_LOAD_URL, wxCommandEvent);

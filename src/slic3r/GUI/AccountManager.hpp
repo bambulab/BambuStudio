@@ -309,7 +309,7 @@ public:
 
     /* user login register apis */
     bool is_user_login();
-    void on_user_login(bool online_login = false);
+    void on_user_login(int online_login = 0);
     int user_login_autotest(std::string account, std::string password);
     int user_login(std::string account, std::string password, LoginFn fn);
     int user_get_profile(std::string account, LoginFn fn);

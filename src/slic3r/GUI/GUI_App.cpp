@@ -1050,6 +1050,9 @@ GUI_App::GUI_App()
     } else {
         m_account_manager->set_host(QAT_HOST_URL);
     }
+
+    Bind(EVT_HTTP_ERROR, &GUI_App::on_http_error, this);
+    Bind(EVT_USER_LOGIN, &GUI_App::on_user_login, this);
 }
 
 GUI_App::~GUI_App()
@@ -2122,13 +2125,41 @@ void GUI_App::download_project(std::string project_id)
 
 void GUI_App::handle_http_error(unsigned int status, std::string body)
 {
+    // tips body size must less than 1024
+    auto evt = new wxCommandEvent(EVT_HTTP_ERROR);
+    evt->SetInt(status);
+    evt->SetString(wxString(body));
+    wxQueueEvent(this, evt);
+}
+
+void GUI_App::on_http_error(wxCommandEvent &evt)
+{
+    int status = evt.GetInt();
     if (status == 401) {
         if (m_account_manager->is_user_login()) {
+            // move to GUI
             m_account_manager->user_logout();
-            wxString msg = wxString::Format("Token is Invalid! Please Login!");
+            wxString msg = wxString::Format(_L("Login information has expired, please login again."));
             wxMessageBox(msg);
         }
+    } else if (status == 403) {
+        ;
+    } else if (status == 422) {
+        ;
     }
+}
+
+void GUI_App::on_user_login(wxCommandEvent &evt)
+{
+    int online_login = evt.GetInt();
+    std::string user_id = m_account_manager->get_curr_user()->get_user_id();
+    BOOST_LOG_TRIVIAL(info) << "set_preset: set preset_folder = " << user_id;
+    GUI::wxGetApp().app_config->set("preset_folder", user_id);
+    m_account_manager->connect_mqtt();
+
+    GUI::wxGetApp().preset_bundle->update_user_presets_directory(user_id);
+    if (online_login)
+        GUI::wxGetApp().reload_user_presets();
 }
 
 

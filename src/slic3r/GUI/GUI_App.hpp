@@ -275,6 +275,8 @@ public:
     void            request_model_download(std::string import_json);
     void            download_project(std::string project_id);
     void            handle_http_error(unsigned int status, std::string body);
+    void            on_http_error(wxCommandEvent &evt);
+    void            on_user_login(wxCommandEvent &evt);
     void            request_new_version();
     void            no_new_version();
     void            reload_settings();
