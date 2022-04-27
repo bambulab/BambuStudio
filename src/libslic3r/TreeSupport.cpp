@@ -2636,6 +2636,8 @@ void TreeSupport::adjust_layer_heights(std::vector<std::vector<Node*>>& contact_
         assert(step >= layer_height - EPSILON);
         for (int layer_nr = extr1_layer_nr + 1; layer_nr < extr2_layer_nr; layer_nr++) {
             std::vector<Node*>& curr_layer_nodes = contact_nodes[layer_nr];
+            if (curr_layer_nodes.empty()) continue;
+
             if (std::abs(print_z - curr_layer_nodes[0]->print_z) < step / 2 + EPSILON) {
                 for (Node* node : curr_layer_nodes) {
                     node->print_z = print_z;
