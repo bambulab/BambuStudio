@@ -1035,12 +1035,14 @@ private:
         for (const auto& region : config_.m_nonprefered_regions)
         {
             Box bb1 = region.boundingBox();
-            if (bbin.height() - bb1.maxCorner().y() > bb.height()) {
+            if (bb1.maxCorner().y()<bbin.height()/5 &&
+                bbin.height() - bb1.maxCorner().y() > bb.height() && bb.height()>bbin.height()-2*bb1.maxCorner().y()) {
                 // could use a tighter bound by moving bed center higher
                 bin_reduced.minCorner().y() = bb1.maxCorner().y();
                 continue;
             }
-            if (bbin.width() - bb1.maxCorner().x() > bb.width()) {
+            if (bb1.maxCorner().x()<bbin.width()/5 &&
+                bbin.width() - bb1.maxCorner().x() > bb.width() && bb.width()>bbin.width()-2*bb1.maxCorner().x()) {
                 // could use a tighter bound
                 bin_reduced.minCorner().x() = bb1.maxCorner().x();
                 continue;
