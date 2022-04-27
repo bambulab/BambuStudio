@@ -687,7 +687,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Outer wall");
     def->category = L("Speed");
     def->tooltip = L("Speed of outer wall which is outermost and visible. "
-                     "It's used to be slower than inner wall speed to get better quality");
+                     "It's used to be slower than inner wall speed to get better quality.");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
@@ -1597,7 +1597,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Detect overhang wall");
     def->category = L("Quality");
     def->tooltip = L("Detect the overhang percentage relative to line width and use different speed to print. "
-                     "For 100% overhang, bridge speed is used");
+                     "For 100%% overhang, bridge speed is used");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(true));
 

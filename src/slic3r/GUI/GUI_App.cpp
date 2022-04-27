@@ -2133,7 +2133,7 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
         if (m_account_manager->is_user_login()) {
             // move to GUI
             m_account_manager->user_logout();
-            wxString msg = wxString::Format(_L("Login information has expired, please login again."));
+            wxString msg = wxString::Format(_L("Login information expired. Please login again."));
             wxMessageBox(msg);
         }
     } else if (status == 403) {

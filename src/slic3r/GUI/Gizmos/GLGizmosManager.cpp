@@ -649,9 +649,9 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         }
         else if (is_dragging()) {
             switch (m_current) {
-            case Move:   { m_parent.do_move(L("Gizmo-Move")); break; }
-            case Scale:  { m_parent.do_scale(L("Gizmo-Scale")); break; }
-            case Rotate: { m_parent.do_rotate(L("Gizmo-Rotate")); break; }
+            case Move:   { m_parent.do_move(("Tool-Move")); break; }
+            case Scale:  { m_parent.do_scale(("Tool-Scale")); break; }
+            case Rotate: { m_parent.do_rotate(("Tool-Rotate")); break; }
             default: break;
             }
 

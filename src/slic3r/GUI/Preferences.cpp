@@ -614,7 +614,7 @@ void PreferencesDialog::create_general_page()
 
     auto title_backup = create_item_title(_L("Backup"), page, _L("Backup"));
     //auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
-    auto item_backup  = create_item_checkbox(_L("Backup switch"), page,_L("Backup switch"), 50, "backup_switch");
+    auto item_backup  = create_item_checkbox(_L("Auto-Backup"), page,_L("Auto-Backup"), 50, "backup_switch");
     auto item_backup_interval = create_item_backup_input(_L("Backup interval"), page, _L("Backup interval"), "backup_interval");
 
     sizer_page->Add(title_general_settings, 0, wxTOP, 26);
