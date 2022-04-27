@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-27 22:09+0800\n"
+"POT-Creation-Date: 2022-04-27 22:34+0800\n"
 "PO-Revision-Date: 2022-03-12 17:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com> , patched traditional "
 "chinese by Cheng-Hsien Ho <taksito@gmail.com>\n"
@@ -4239,6 +4239,21 @@ msgid ""
 "acceleration to print"
 msgstr ""
 
+msgid "Maximum speed X"
+msgstr ""
+
+msgid "Maximum speed Y"
+msgstr ""
+
+msgid "Maximum speed Z"
+msgstr ""
+
+msgid "Maximum speed E"
+msgstr ""
+
+msgid "Machine limits"
+msgstr ""
+
 msgid "Maximum X speed"
 msgstr ""
 
@@ -4249,9 +4264,6 @@ msgid "Maximum Z speed"
 msgstr ""
 
 msgid "Maximum E speed"
-msgstr ""
-
-msgid "Machine limits"
 msgstr ""
 
 msgid "Maximum acceleration X"

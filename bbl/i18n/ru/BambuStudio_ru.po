@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-27 22:09+0800\n"
+"POT-Creation-Date: 2022-04-27 22:34+0800\n"
 "PO-Revision-Date: 2021-02-03 14:06+0100\n"
 "Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -4263,6 +4263,21 @@ msgid ""
 "acceleration to print"
 msgstr ""
 
+msgid "Maximum speed X"
+msgstr ""
+
+msgid "Maximum speed Y"
+msgstr ""
+
+msgid "Maximum speed Z"
+msgstr ""
+
+msgid "Maximum speed E"
+msgstr ""
+
+msgid "Machine limits"
+msgstr "Ограничения принтера"
+
 msgid "Maximum X speed"
 msgstr ""
 
@@ -4274,9 +4289,6 @@ msgstr ""
 
 msgid "Maximum E speed"
 msgstr ""
-
-msgid "Machine limits"
-msgstr "Ограничения принтера"
 
 msgid "Maximum acceleration X"
 msgstr "Максимальное ускорение по X"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-27 22:09+0800\n"
+"POT-Creation-Date: 2022-04-27 22:34+0800\n"
 "PO-Revision-Date: 2022-04-27 21:51+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -262,19 +262,22 @@ msgid ""
 "Please make sure whether to use the temperature to print.\n"
 "\n"
 msgstr ""
+"当温度超出推荐范围时，喷嘴可能堵塞。\n"
+"请检查是否使用该温度打印。\n"
 
 #, c-format, boost-format
 msgid ""
 "Recommanded nozzle temperature of this filament type is [%d, %d] degree "
 "centigrade"
-msgstr ""
+msgstr "该类型材料的建议喷嘴温度是[%d, %d]摄氏度"
 
 #, c-format, boost-format
 msgid ""
 "Bed temperature of other layer is lower than bed temperature of initial "
 "layer for more than %d degree centigrade.\n"
 "This may cause model broken free from build plate during printing"
-msgstr ""
+msgstr "其它层的热床温度比首层热床温度低太多，超过了%d 摄氏度。\n"
+"这可能导致打印中模型从热床脱落"
 
 msgid ""
 "Too small layer height.\n"
@@ -4347,6 +4350,21 @@ msgid ""
 "acceleration to print"
 msgstr "机器是否支持使用低加速度打印的静音模式。"
 
+msgid "Maximum speed X"
+msgstr "X最大速度"
+
+msgid "Maximum speed Y"
+msgstr "Y最大速度"
+
+msgid "Maximum speed Z"
+msgstr "Z最大速度"
+
+msgid "Maximum speed E"
+msgstr "E最大速度"
+
+msgid "Machine limits"
+msgstr "机器限制"
+
 msgid "Maximum X speed"
 msgstr "X最大速度"
 
@@ -4358,9 +4376,6 @@ msgstr "Z最大速度"
 
 msgid "Maximum E speed"
 msgstr "E最大速度"
-
-msgid "Machine limits"
-msgstr "机器限制"
 
 msgid "Maximum acceleration X"
 msgstr "X最大加速度"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-27 22:09+0800\n"
+"POT-Creation-Date: 2022-04-27 22:34+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4439,6 +4439,21 @@ msgid ""
 "acceleration to print"
 msgstr ""
 
+msgid "Maximum speed X"
+msgstr ""
+
+msgid "Maximum speed Y"
+msgstr ""
+
+msgid "Maximum speed Z"
+msgstr ""
+
+msgid "Maximum speed E"
+msgstr ""
+
+msgid "Machine limits"
+msgstr ""
+
 msgid "Maximum X speed"
 msgstr ""
 
@@ -4449,9 +4464,6 @@ msgid "Maximum Z speed"
 msgstr ""
 
 msgid "Maximum E speed"
-msgstr ""
-
-msgid "Machine limits"
 msgstr ""
 
 msgid "Maximum acceleration X"

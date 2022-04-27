@@ -1378,10 +1378,10 @@ void PrintConfigDef::init_fff_params()
             // Add the machine feedrate limits for XYZE axes. (M203)
             def = this->add("machine_max_speed_" + axis.name, coFloats);
             def->full_label = (boost::format("Maximum speed %1%") % axis_upper).str();
-            (void)L("Maximum X speed");
-            (void)L("Maximum Y speed");
-            (void)L("Maximum Z speed");
-            (void)L("Maximum E speed");
+            (void)L("Maximum speed X");
+            (void)L("Maximum speed Y");
+            (void)L("Maximum speed Z");
+            (void)L("Maximum speed E");
             def->category = L("Machine limits");
             def->readonly = true;
             def->tooltip  = (boost::format("Maximum speed of %1% axis") % axis_upper).str();
