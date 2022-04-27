@@ -3871,6 +3871,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(1.0f,1.0f,1.0f,0.6f));
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.42f, 0.42f, 0.42f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
     ImGui::SetNextWindowBgAlpha(0.6f);
     const float max_height = 0.75f * static_cast<float>(cnv_size.get_height());
     const float child_height = 0.3333f * max_height;
@@ -4159,7 +4162,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.68f, 0.26f, 0.78f));
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
     //ImGui::PushItemWidth(
-    if (ImGui::Button(into_u8(btn_name).c_str(), ImVec2(16, 0))) {
+    float button_width = ImGui::CalcTextSize(into_u8(btn_name).c_str()).x;
+    if (ImGui::Button(into_u8(btn_name).c_str(), ImVec2(button_width, 0))) {
         m_fold = !m_fold;
     }
     ImGui::PopStyleColor(3);
@@ -4167,7 +4171,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::SameLine();
     ImGui::Text(_u8L("Color Scheme").c_str());
     push_combo_style();
-    ImGui::PushItemWidth(176.0);
+    float combo_width = ImGui::GetContentRegionAvailWidth() - ImGui::CalcTextSize(_u8L("Color Scheme").c_str()).x - button_width - ImGui::GetStyle().FramePadding.x * 4;
+    ImGui::PushItemWidth(combo_width);
     ImGui::SameLine();
     const char* view_type_value = view_type_items_str[m_view_type_sel].c_str();
     ImGuiComboFlags flags = 0;
@@ -4196,7 +4201,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
     if (m_fold) {
         imgui.end();
-        ImGui::PopStyleColor(3);
+        ImGui::PopStyleColor(6);
         ImGui::PopStyleVar();
         return;
     }
@@ -4384,7 +4389,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::Spacing();
         append_headers({_u8L("Options"), "", "", "", _u8L("Display")}, offsets);
         const bool travel_visible = m_buffers[buffer_id(EMoveType::Travel)].visible;
-
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 3.0f));
         append_item(EItemType::None, Travel_Colors[0], _u8L("travel"), travel_visible, "", 0.0f, 0.0f, offsets, 0.0, 0.0, [this, travel_visible]() {
             m_buffers[buffer_id(EMoveType::Travel)].visible = !m_buffers[buffer_id(EMoveType::Travel)].visible;
             // update buffers' render paths
@@ -4392,6 +4397,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             update_moves_slider();
             wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
             });
+        ImGui::PopStyleVar(1);
         break;
     }
     case EViewType::FanSpeed:       { append_range(m_extrusions.ranges.fan_speed, 0); break; }
@@ -4904,7 +4910,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     legend_height = ImGui::GetCurrentWindow()->Size.y;
 
     imgui.end();
-    ImGui::PopStyleColor(3);
+    ImGui::PopStyleColor(6);
     ImGui::PopStyleVar();
 }
 
