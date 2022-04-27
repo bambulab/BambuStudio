@@ -3937,7 +3937,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // Adds model file ("3D/3dmodel.model").
         // This is the one and only file that contains all the geometry (vertices and triangles) of all ModelVolumes.
         IdToObjectDataMap objects_data;
-        if (!m_skip_model) {
+        //if (!m_skip_model)
+        {
             if (!_add_model_file_to_archive(filename, archive, model, objects_data, proFn, project)) { return false; }
 
             // Adds layer height profile file ("Metadata/Slic3r_PE_layer_heights_profile.txt").
@@ -4432,60 +4433,62 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         int obj_idx = 0;
         std::vector<unsigned int> object_ids;
         std::vector<std::string> object_paths;
-        for (ModelObject* obj : model.objects) {
-            if (sub_model && obj != objects_data.begin()->second.object) continue;
+        if (!m_skip_model) {
+            for (ModelObject* obj : model.objects) {
+                if (sub_model && obj != objects_data.begin()->second.object) continue;
 
-            if (proFn) {
-                proFn(EXPORT_STAGE_ADD_MODELS, obj_idx, model.objects.size(), cb_cancel);
-                if (cb_cancel)
-                    return false;
-                obj_idx++;
-            }
-
-            if (obj == nullptr)
-                continue;
-
-            // Index of an object in the 3MF file corresponding to the 1st instance of a ModelObject.
-            IdToObjectDataMap::iterator object_it = objects_data.begin();
-            if (!sub_model) {
-                // For backup, use backup id as object id
-                int backup_id = const_cast<Model&>(model).get_object_backup_id(*obj);
-                if (m_skip_static) object_id = backup_id;
-                object_it = objects_data.insert({ (int) object_id, {obj, backup_id} }).first;
-            }
-
-            if (write_object) {
-                // Store geometry of all ModelVolumes contained in a single ModelObject into a single 3MF indexed triangle set object.
-                // object_it->second.volumes_objectID will contain the offsets of the ModelVolumes in that single indexed triangle set.
-                // object_id will be increased to point to the 1st instance of the next ModelObject.
-                if (!_add_object_to_model_stream(context, object_it->first, *obj, object_it->second.backup_id, object_it->second.volumes_objectID)) {
-                    add_error("Unable to add object to archive");
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add object to archive\n");
-                    return false;
+                if (proFn) {
+                    proFn(EXPORT_STAGE_ADD_MODELS, obj_idx, model.objects.size(), cb_cancel);
+                    if (cb_cancel)
+                        return false;
+                    obj_idx++;
                 }
-            }
 
-            if (sub_model) break;
+                if (obj == nullptr)
+                    continue;
 
-            object_ids.push_back(object_id);
-            unsigned int curr_id;
-            if (m_skip_static)
-                curr_id =  object_id;
-            else
-                curr_id =  object_id + obj->volumes.size();
+                // Index of an object in the 3MF file corresponding to the 1st instance of a ModelObject.
+                IdToObjectDataMap::iterator object_it = objects_data.begin();
+                if (!sub_model) {
+                    // For backup, use backup id as object id
+                    int backup_id = const_cast<Model&>(model).get_object_backup_id(*obj);
+                    if (m_skip_static) object_id = backup_id;
+                    object_it = objects_data.insert({ (int) object_id, {obj, backup_id} }).first;
+                }
 
-            object_id = object_id + obj->volumes.size() + 1;
+                if (write_object) {
+                    // Store geometry of all ModelVolumes contained in a single ModelObject into a single 3MF indexed triangle set object.
+                    // object_it->second.volumes_objectID will contain the offsets of the ModelVolumes in that single indexed triangle set.
+                    // object_id will be increased to point to the 1st instance of the next ModelObject.
+                    if (!_add_object_to_model_stream(context, object_it->first, *obj, object_it->second.backup_id, object_it->second.volumes_objectID)) {
+                        add_error("Unable to add object to archive");
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add object to archive\n");
+                        return false;
+                    }
+                }
 
-            unsigned int count = 0;
-            for (const ModelInstance* instance : obj->instances) {
-                Transform3d t = instance->get_matrix();
-                // instance_id is just a 1 indexed index in build_items.
-                //assert(m_skip_static || curr_id == build_items.size() + 1);
-                auto filename = boost::format(m_key_store ? "3D/Objects/%s_%d_encrypted.model" :  "3D/Objects/%s_%d.model") % obj->name % object_it->second.backup_id;
-                if (count == 0)
-                    object_paths.push_back(filename.str());
-                build_items.emplace_back(m_split_model ? "/" + filename.str() : "", curr_id, t, instance->printable);
-                count++;
+                if (sub_model) break;
+
+                object_ids.push_back(object_id);
+                unsigned int curr_id;
+                if (m_skip_static)
+                    curr_id =  object_id;
+                else
+                    curr_id =  object_id + obj->volumes.size();
+
+                object_id = object_id + obj->volumes.size() + 1;
+
+                unsigned int count = 0;
+                for (const ModelInstance* instance : obj->instances) {
+                    Transform3d t = instance->get_matrix();
+                    // instance_id is just a 1 indexed index in build_items.
+                    //assert(m_skip_static || curr_id == build_items.size() + 1);
+                    auto filename = boost::format(m_key_store ? "3D/Objects/%s_%d_encrypted.model" :  "3D/Objects/%s_%d.model") % obj->name % object_it->second.backup_id;
+                    if (count == 0)
+                        object_paths.push_back(filename.str());
+                    build_items.emplace_back(m_split_model ? "/" + filename.str() : "", curr_id, t, instance->printable);
+                    count++;
+                }
             }
         }
 
@@ -4515,7 +4518,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
         }
 
-        if (write_object) return true;
+        if (m_skip_model || write_object) return true;
 
         // write model rels
         _add_relationships_file_to_archive(archive, MODEL_RELS_FILE, object_paths, {"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"});
@@ -5986,7 +5989,8 @@ bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstituti
     _BBS_3MF_Importer importer;
     bool res = importer.load_model_from_file(path, *model, *plate_data_list, *project_presets, *config, *config_substitutions, strategy, *is_bbl_3mf, *file_version, proFn, project);
     importer.log_errors();
-    handle_legacy_project_loaded(importer.version(), *config);
+    //BBS: remove legacy project logic currently
+    //handle_legacy_project_loaded(importer.version(), *config);
     return res;
 }
 
