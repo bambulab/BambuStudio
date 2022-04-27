@@ -1650,17 +1650,23 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
 
 bool DebugToolDialog::Show(bool show)
 {
-    CommuBackend* backend = wxGetApp().getCommuBackend();
+    CommuBackend* backend = wxGetApp().getCommuBackend();;
     if (show) {
-        if (btn_connect->IsEnabled()) {
-            backend->set_ssdp_discovery(true);
+        if (backend) {
+            backend->start();
+            if (btn_connect->IsEnabled()) {
+                backend->set_ssdp_discovery(true);
+            }
         }
         m_timer->Stop();
         m_timer->SetOwner(this);
         m_timer->Start(10000);
     }
     else {
-        backend->set_ssdp_discovery(false);
+        if (backend) {
+            backend->stop();
+            backend->set_ssdp_discovery(false);
+        }
         m_timer->Stop();
     }
 

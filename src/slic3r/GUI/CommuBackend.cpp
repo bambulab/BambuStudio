@@ -65,10 +65,12 @@ namespace Slic3r {
 #if defined(__WINDOWS__)
     int SsdpDiscovery::send_msg(int card_no)
     {
+        int count = 0;
         while (!sdp_quit) {
-            if (keep_sending)
+            if (keep_sending && (count % 100) == 0)
                 bbl_send_ssdp_msg(broadcast_sock_list[card_no]);
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(4000));
+            count++;
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
         }
         return 0;
     }
@@ -82,6 +84,7 @@ namespace Slic3r {
             memset(&packet, 0, sizeof(packet));
             memset(rece_buff, 0, BUFSIZE);
             bbl_read_from_ssdp(ssdp_sock_list[card_no], rece_buff, &recv_size, BUFSIZE);
+            if (sdp_quit) return;
             int result = lssdp_packet_parser(rece_buff, recv_size, &packet);
             if (result >= 0) {
                 BOOST_LOG_TRIVIAL(trace) << "Location=" << packet.location << ", USN=" << packet.usn << ", ST=" << packet.st;
@@ -107,6 +110,7 @@ namespace Slic3r {
             memset(&packet, 0, sizeof(packet));
             memset(rece_buff, 0, BUFSIZE);
             bbl_read_from_broadcast(broadcast_sock_list[card_no], rece_buff, &recv_size, BUFSIZE);
+            if (sdp_quit) return;
             int result = lssdp_packet_parser(rece_buff, recv_size, &packet);
             if (result >= 0) {
                 if (strncmp(packet.st, SDP_BBL_DEVICE, strlen(SDP_BBL_DEVICE)) == 0) {
@@ -218,13 +222,14 @@ namespace Slic3r {
         sdp_quit = false;
 #if defined(__WINDOWS__)
         /* create thread to recv ssdp message */
-        int card_numbers = bbl_init_multi_socket(ssdp_sock_list, MAX_SOCKET_NUM);
-        card_numbers = bbl_init_broadcast_socket(broadcast_sock_list, MAX_SOCKET_NUM);
-        for (int i = 0; i < card_numbers; i++) {
+        card_number  = bbl_init_multi_socket(ssdp_sock_list, MAX_SOCKET_NUM);
+        card_number = bbl_init_broadcast_socket(broadcast_sock_list, MAX_SOCKET_NUM);
+        for (int i = 0; i < card_number; i++) {
             try {
-                boost::thread recv_thread = Slic3r::create_thread([this, i] {this->recv_sdp_msg(i); });
-                boost::thread send_thread = Slic3r::create_thread([this, i] {this->send_msg(i); });
-                boost::thread recv_multi_thread = Slic3r::create_thread([this, i] {this->recv_broadcast_msg(i); });
+                recv_thread_list[i] = Slic3r::create_thread([this, i] { this->recv_sdp_msg(i); });
+                send_thread_list[i] = Slic3r::create_thread([this, i] { this->send_msg(i); });
+                recv_broadcast_thread_list[i] = Slic3r::create_thread([this, i] { this->recv_broadcast_msg(i); });
+                BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::start_discover(), create thread " << i;
             }
             catch (std::exception& e)
             {
@@ -246,6 +251,19 @@ namespace Slic3r {
     void SsdpDiscovery::stop_discover()
     {
         sdp_quit = true;
+#if defined(__WINDOWS__)
+        for (int i = 0; i < card_number; i++) {
+            closesocket(ssdp_sock_list[i]);
+            closesocket(broadcast_sock_list[i]);
+            recv_thread_list[i].interrupt();
+            recv_thread_list[i].join();
+            send_thread_list[i].interrupt();
+            send_thread_list[i].join();
+            recv_broadcast_thread_list[i].interrupt();
+            recv_broadcast_thread_list[i].join();
+            BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::stop_discover(), join thread " << i;
+        }
+#endif
         return;
     }
 
@@ -256,13 +274,18 @@ namespace Slic3r {
 
     int CommuBackend::start()
     {
-        ssdp->start_discover();
+        if (!m_started) {
+            ssdp->start_discover();
+            m_started = true;
+        }
         return 0;
     }
 
     int CommuBackend::stop()
     {
-        ssdp->stop_discover();
+        if (m_started)
+            ssdp->stop_discover();
+        m_started = false;
         return 0;
     }    
 

@@ -9,12 +9,15 @@
 #include <wx/event.h>
 #include <boost/optional.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/thread.hpp>
 #include <boost/log/trivial.hpp>
 #include "slic3r/GUI/Event.hpp"
 #include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/Ssdp.hpp"
 
 namespace pt = boost::property_tree;
+
+#define MAX_CARD_NUMBER     20
 
 namespace Slic3r {
 
@@ -23,6 +26,12 @@ class SsdpDiscovery
 private:
     bool sdp_quit = false;
     bool keep_sending = false;
+
+    int card_number = 0;
+
+    boost::thread   recv_thread_list[MAX_CARD_NUMBER];
+    boost::thread   send_thread_list[MAX_CARD_NUMBER];
+    boost::thread   recv_broadcast_thread_list[MAX_CARD_NUMBER];
 
 #if defined(__WINDOWS__)
     int send_msg(int card_no);
@@ -48,6 +57,7 @@ public:
     CommuBackend();
     ~CommuBackend();
 
+    bool is_started() { return m_started; }
     int start();
     int stop();
 
@@ -58,6 +68,7 @@ public:
     
 
 protected:
+    bool m_started = false;
 
 private:
     /* Ssdp */

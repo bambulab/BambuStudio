@@ -232,12 +232,12 @@ void MonitorPanel::select_machine(std::string machine_sn)
 
  void MonitorPanel::on_timer(wxTimerEvent& event)
 {
-    //Freeze();
+    Freeze();
     update_all();
 
     Layout();
     Refresh();
-    //Thaw(); // will cause media ctrl period flush
+    Thaw(); // will cause media ctrl period flush
 }
 
  void MonitorPanel::on_select_printer(wxCommandEvent& event)

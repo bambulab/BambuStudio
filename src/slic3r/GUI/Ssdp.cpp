@@ -399,7 +399,7 @@ int bbl_read_from_ssdp(SOCKET socket, char* buf, int *buf_size, int max_buf_size
 	char staticBuf[BUFSIZE];
 	struct sockaddr_storage __ss;
 	socklen_t socklen = sizeof(__ss);
-	size_t byteReceived = 0;
+	int byteReceived = 0;
 	char ntop_buf[INET6_ADDRSTRLEN];
 
 	memset(staticBuf, 0, sizeof(staticBuf));
@@ -414,7 +414,7 @@ int bbl_read_from_ssdp(SOCKET socket, char* buf, int *buf_size, int max_buf_size
 		0,
 		(struct sockaddr*)&__ss,
 		&socklen);
-	if (byteReceived > 0) {
+    if (byteReceived > 0 && byteReceived < max_buf_size) {
 		requestBuf[byteReceived] = '\0';
 		/* clang-format off */
 		printf("byte %d, received str: %s\n", byteReceived, requestBuf);
@@ -432,7 +432,7 @@ int bbl_read_from_broadcast(SOCKET socket, char* buf, int* buf_size, int max_buf
 	char staticBuf[BUFSIZE];
 	struct sockaddr_storage __ss;
 	socklen_t socklen = sizeof(__ss);
-	size_t byteReceived = 0;
+	int byteReceived = 0;
 	char ntop_buf[INET6_ADDRSTRLEN];
 
 	memset(staticBuf, 0, sizeof(staticBuf));
@@ -447,7 +447,7 @@ int bbl_read_from_broadcast(SOCKET socket, char* buf, int* buf_size, int max_buf
 		0,
 		(struct sockaddr*)&__ss,
 		&socklen);
-	if (byteReceived > 0) {
+	if (byteReceived > 0 && byteReceived < max_buf_size) {
 		requestBuf[byteReceived] = '\0';
 		/* clang-format off */
 		printf("byte %d, received str: %s\n", byteReceived, requestBuf);

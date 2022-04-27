@@ -1004,10 +1004,6 @@ void GUI_App::post_init()
     // Sets window property to mainframe so other instances can indentify it.
     OtherInstanceMessageHandler::init_windows_properties(mainframe, m_instance_hash_int);
 #endif //WIN32
-
-    // start ssdp and connect mqtt
-    m_backend->start();
-
 }
 
 IMPLEMENT_APP(GUI_App)
@@ -1029,7 +1025,6 @@ GUI_App::GUI_App()
 
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
 	this->init_app_config();
-
 
     //BBS
     this->init_http_extra_header();
@@ -2042,7 +2037,6 @@ void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_max
 
     window->Bind(wxEVT_CLOSE_WINDOW, [=](wxCloseEvent &event) {
         m_device_manager->disconnect_all();
-        m_backend->stop();
         window_pos_save(window, name);
         event.Skip();
     });
