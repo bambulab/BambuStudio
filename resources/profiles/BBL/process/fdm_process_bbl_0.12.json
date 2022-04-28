@@ -11,10 +11,10 @@
     "initial_layer_speed": "75",
     "initial_layer_infill_speed": "120",
     "outer_wall_speed": "200",
-    "inner_wall_speed": "300",
-    "sparse_infill_speed": "300",
-    "internal_solid_infill_speed": "250",
+    "inner_wall_speed": "350",
+    "sparse_infill_speed": "430",
+    "internal_solid_infill_speed": "350",
     "top_surface_speed": "200",
-    "gap_infill_speed": "250",
+    "gap_infill_speed": "350",
     "travel_speed": "480"
 }

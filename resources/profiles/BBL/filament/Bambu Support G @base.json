@@ -1,0 +1,26 @@
+{
+    "type": "filament",
+    "filament_id": "GFS01",
+    "name": "Bambu Support G @base",
+    "from": "system",
+    "instantiation": "false",
+    "inherits": "fdm_filament_hpc",
+    "filament_vendor": [
+        "Bambu Lab"
+    ],
+    "filament_type": [
+        "HPC"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "280"
+    ],
+    "nozzle_temperature": [
+        "280"
+    ],
+    "bed_temperature": [
+        "0,100,100"
+    ],
+    "bed_temperature_initial_layer": [
+        "0,100,100"
+    ]
+}

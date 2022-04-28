@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.00.01.04",
+    "version": "01.00.01.05",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -131,6 +131,10 @@
             "sub_path": "filament/Bambu Support W @base.json"
         },
         {
+            "name": "Bambu Support G @base",
+            "sub_path": "filament/Bambu Support G @base.json"
+        },
+        {
             "name": "Bambu PA-CF @base",
             "sub_path": "filament/Bambu PA-CF @base.json"
         },
@@ -187,14 +191,6 @@
             "sub_path": "filament/Bambu PLA Basic @BBL X1C.json"
         },
         {
-            "name": "Bambu PLA Impact @BBL X1C",
-            "sub_path": "filament/Bambu PLA Impact @BBL X1C.json"
-        },
-        {
-            "name": "Bambu PLA Metal @BBL X1C",
-            "sub_path": "filament/Bambu PLA Metal @BBL X1C.json"
-        },
-        {
             "name": "Bambu ABS @BBL X1C",
             "sub_path": "filament/Bambu ABS @BBL X1C.json"
         },
@@ -203,12 +199,12 @@
             "sub_path": "filament/Bambu Support W @BBL X1C.json"
         },
         {
-            "name": "Bambu PA-CF @BBL X1C",
-            "sub_path": "filament/Bambu PA-CF @BBL X1C.json"
+            "name": "Bambu Support G @BBL X1C",
+            "sub_path": "filament/Bambu Support G @BBL X1C.json"
         },
         {
-            "name": "Bambu PET-CF @BBL X1C",
-            "sub_path": "filament/Bambu PET-CF @BBL X1C.json"
+            "name": "Bambu PA-CF @BBL X1C",
+            "sub_path": "filament/Bambu PA-CF @BBL X1C.json"
         },
         {
             "name": "Bambu PC @BBL X1C",
