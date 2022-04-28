@@ -844,6 +844,14 @@ void GLGizmoPainterBase::on_set_state()
 
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
         on_opening();
+
+        const Selection& selection = m_parent.get_selection();
+        Camera& camera = wxGetApp().plater()->get_camera();
+        Vec3d rotate_target = selection.get_bounding_box().center();
+        rotate_target(2) = 0.f;
+        Vec3d position = camera.get_position();
+        //camera.set_target(rotate_target);
+        camera.look_at(position, rotate_target, Vec3d::UnitZ());
     }
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
         // we are actually shutting down
@@ -851,6 +859,11 @@ void GLGizmoPainterBase::on_set_state()
         m_old_mo_id = -1;
         //m_iva.release_geometry();
         m_triangle_selectors.clear();
+
+        //Camera& camera = wxGetApp().plater()->get_camera();
+        //camera.look_at(camera.get_position(), m_previous_target, Vec3d::UnitZ());
+        //camera.set_target(m_previous_target);
+        //camera.recover_from_free_camera();
     }
     m_old_state = m_state;
 }
