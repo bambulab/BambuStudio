@@ -1142,6 +1142,7 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                         }
                         if (tray_tar_str.has_value())
                             m_tray_tar = tray_tar_str.value();
+
                         if (ams_exist_bits != last_ams_exist_bits
                             || last_tray_exist_bits != last_tray_exist_bits
                             || tray_is_bbl_bits != last_is_bbl_bits ||
