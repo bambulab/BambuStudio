@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-27 22:34+0800\n"
+"POT-Creation-Date: 2022-04-28 11:38+0800\n"
 "PO-Revision-Date: 2022-04-27 21:51+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -276,7 +276,8 @@ msgid ""
 "Bed temperature of other layer is lower than bed temperature of initial "
 "layer for more than %d degree centigrade.\n"
 "This may cause model broken free from build plate during printing"
-msgstr "其它层的热床温度比首层热床温度低太多，超过了%d 摄氏度。\n"
+msgstr ""
+"其它层的热床温度比首层热床温度低太多，超过了%d 摄氏度。\n"
 "这可能导致打印中模型从热床脱落"
 
 msgid ""
@@ -2881,8 +2882,13 @@ msgstr "首层速度"
 msgid "Other layers speed"
 msgstr "其他层速度"
 
-msgid "Overhang"
-msgstr "悬垂"
+msgid "Overhang speed"
+msgstr "悬垂速度"
+
+msgid ""
+"Speed for different overhang degree. Overhang degree is expressed as "
+"percentage of line width"
+msgstr "不同悬垂程度的打印速度。悬垂程度使用相对于线宽的百分表示"
 
 msgid "Travel speed"
 msgstr "空驶速度"
@@ -3700,32 +3706,14 @@ msgid ""
 "material for bridge, to improve sag"
 msgstr "稍微减小这个数值（比如0.9）可以减小桥接的材料量，来改善下垂。"
 
-#, c-format
-msgid ""
-"Speed for line of wall which has degree of overhang between 0% and 25% line "
-"width. 0 means using original wall speed"
-msgstr ""
+msgid "Slow down for overhang"
+msgstr "悬垂降速"
+
+msgid "Enable this option to slow printing down for different overhang degree"
+msgstr "打开这个选项将降低不同悬垂程度的走线的打印速度"
 
 msgid "mm/s"
 msgstr "mm/s"
-
-#, c-format
-msgid ""
-"Speed for line of wall which has degree of overhang between 25% and 50% line "
-"width. 0 means using original wall speed"
-msgstr ""
-
-#, c-format
-msgid ""
-"Speed for line of wall which has degree of overhang between 50% and 75% line "
-"width. 0 means using original wall speed"
-msgstr ""
-
-#, c-format
-msgid ""
-"Speed for line of wall which has degree of overhang between 75% and "
-"100% line width. 0 means using original wall speed"
-msgstr ""
 
 msgid "Speed of bridge and completely overhang wall"
 msgstr "桥接和完全悬空的外墙的打印速度"
@@ -5118,6 +5106,9 @@ msgstr "生成支撑"
 
 msgid "Slicing mesh"
 msgstr "切片网格"
+
+#~ msgid "Overhang"
+#~ msgstr "悬垂"
 
 #~ msgid ""
 #~ "Nozzle may be blocked when the temperature is out of recommanded range.\n"

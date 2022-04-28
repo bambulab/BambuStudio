@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-27 22:34+0800\n"
+"POT-Creation-Date: 2022-04-28 11:38+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1666,10 +1666,10 @@ msgid "Print all"
 msgstr ""
 
 msgid "Export sliced file"
-msgstr ""
+msgstr "Export Sliced File"
 
 msgid "Export Sliced File"
-msgstr "Export sliced file"
+msgstr "Export Sliced File"
 
 msgid "Auxiliary"
 msgstr ""
@@ -2874,7 +2874,12 @@ msgstr "First layer speed"
 msgid "Other layers speed"
 msgstr ""
 
-msgid "Overhang"
+msgid "Overhang speed"
+msgstr ""
+
+msgid ""
+"Speed for different overhang degree. Overhang degree is expressed as "
+"percentage of line width"
 msgstr ""
 
 msgid "Travel speed"
@@ -3728,40 +3733,14 @@ msgstr ""
 "Decrease this value slightly(for example 0.9) to reduce the amount of "
 "material for bridges, to avoid sagging."
 
-#, c-format
-msgid ""
-"Speed for line of wall which has degree of overhang between 0% and 25% line "
-"width. 0 means using original wall speed"
+msgid "Slow down for overhang"
 msgstr ""
-"Speed for lines of walls which have a degree of overhang between 0% and "
-"25% line width. 0 means using original wall speed."
+
+msgid "Enable this option to slow printing down for different overhang degree"
+msgstr ""
 
 msgid "mm/s"
 msgstr ""
-
-#, c-format
-msgid ""
-"Speed for line of wall which has degree of overhang between 25% and 50% line "
-"width. 0 means using original wall speed"
-msgstr ""
-"Speed for lines of walls which have a degree of overhang between 25% and "
-"50% line width. 0 means using original wall speed."
-
-#, c-format
-msgid ""
-"Speed for line of wall which has degree of overhang between 50% and 75% line "
-"width. 0 means using original wall speed"
-msgstr ""
-"Speed for lines of walls which have a degree of overhang between 50% and "
-"75% line width. 0 means using original wall speed."
-
-#, c-format
-msgid ""
-"Speed for line of wall which has degree of overhang between 75% and "
-"100% line width. 0 means using original wall speed"
-msgstr ""
-"Speed for lines of walls which have a degree of overhang between 75% and "
-"100% line width. 0 means using original wall speed."
 
 msgid "Speed of bridge and completely overhang wall"
 msgstr "Speed of bridges and 100% overhang walls."
@@ -5259,6 +5238,38 @@ msgstr ""
 
 msgid "Slicing mesh"
 msgstr ""
+
+#, c-format
+#~ msgid ""
+#~ "Speed for line of wall which has degree of overhang between 0% and "
+#~ "25% line width. 0 means using original wall speed"
+#~ msgstr ""
+#~ "Speed for lines of walls which have a degree of overhang between 0% and "
+#~ "25% line width. 0 means using original wall speed."
+
+#, c-format
+#~ msgid ""
+#~ "Speed for line of wall which has degree of overhang between 25% and "
+#~ "50% line width. 0 means using original wall speed"
+#~ msgstr ""
+#~ "Speed for lines of walls which have a degree of overhang between 25% and "
+#~ "50% line width. 0 means using original wall speed."
+
+#, c-format
+#~ msgid ""
+#~ "Speed for line of wall which has degree of overhang between 50% and "
+#~ "75% line width. 0 means using original wall speed"
+#~ msgstr ""
+#~ "Speed for lines of walls which have a degree of overhang between 50% and "
+#~ "75% line width. 0 means using original wall speed."
+
+#, c-format
+#~ msgid ""
+#~ "Speed for line of wall which has degree of overhang between 75% and "
+#~ "100% line width. 0 means using original wall speed"
+#~ msgstr ""
+#~ "Speed for lines of walls which have a degree of overhang between 75% and "
+#~ "100% line width. 0 means using original wall speed."
 
 #~ msgid "Bmabu Cool Plate"
 #~ msgstr "Bambu cool plate"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-27 22:34+0800\n"
+"POT-Creation-Date: 2022-04-28 11:38+0800\n"
 "PO-Revision-Date: 2022-03-12 17:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com> , patched traditional "
 "chinese by Cheng-Hsien Ho <taksito@gmail.com>\n"
@@ -2816,7 +2816,12 @@ msgstr ""
 msgid "Other layers speed"
 msgstr ""
 
-msgid "Overhang"
+msgid "Overhang speed"
+msgstr ""
+
+msgid ""
+"Speed for different overhang degree. Overhang degree is expressed as "
+"percentage of line width"
 msgstr ""
 
 msgid "Travel speed"
@@ -3613,31 +3618,13 @@ msgid ""
 "material for bridge, to improve sag"
 msgstr ""
 
-#, c-format
-msgid ""
-"Speed for line of wall which has degree of overhang between 0% and 25% line "
-"width. 0 means using original wall speed"
+msgid "Slow down for overhang"
+msgstr ""
+
+msgid "Enable this option to slow printing down for different overhang degree"
 msgstr ""
 
 msgid "mm/s"
-msgstr ""
-
-#, c-format
-msgid ""
-"Speed for line of wall which has degree of overhang between 25% and 50% line "
-"width. 0 means using original wall speed"
-msgstr ""
-
-#, c-format
-msgid ""
-"Speed for line of wall which has degree of overhang between 50% and 75% line "
-"width. 0 means using original wall speed"
-msgstr ""
-
-#, c-format
-msgid ""
-"Speed for line of wall which has degree of overhang between 75% and "
-"100% line width. 0 means using original wall speed"
 msgstr ""
 
 msgid "Speed of bridge and completely overhang wall"
