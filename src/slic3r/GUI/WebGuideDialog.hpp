@@ -73,7 +73,7 @@ public:
 
     //Model - Machine - Filaments
     int LoadProfile();
-    int LoadProfileFamily(wxString strVendor, wxString strFilePath);
+    int LoadProfileFamily(std::string strVendor, std::string strFilePath);
     int SaveProfile();
     int GetFilamentInfo(std::string filepath, std::string &sVendor, std::string &sType);
 
