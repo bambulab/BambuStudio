@@ -721,7 +721,7 @@ std::map<int, Polygons> PerimeterGenerator::generate_lower_polygons_series(float
         offset_series.push_back(start_offset + (i + 0.5) * (end_offset - start_offset) / (overhang_sampling_number - 1));
     }
     // BBS: increase start_offset a little to avoid to calculate 90 degree as overhang
-    offset_series[0] = start_offset + 0.05 * (end_offset - start_offset) / (overhang_sampling_number - 1);
+    offset_series[0] = start_offset + 0.5 * (end_offset - start_offset) / (overhang_sampling_number - 1);
     offset_series[overhang_sampling_number - 2] = end_offset;
 
     std::map<int, Polygons> lower_polygons_series;

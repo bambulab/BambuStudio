@@ -417,7 +417,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.emplace_back("50%");
     def->enum_values.emplace_back("75%");
     def->enum_values.emplace_back("95%");
-    def->enum_labels.emplace_back("5%");
+    def->enum_labels.emplace_back("10%");
     def->enum_labels.emplace_back("25%");
     def->enum_labels.emplace_back("50%");
     def->enum_labels.emplace_back("75%");
@@ -434,12 +434,19 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
-    def = this->add("overhang_1_4_speed", coFloat);
-    def->label = "(0%, 25%)";
+    def = this->add("enable_overhang_speed", coBool);
+    def->label = L("Slow down for overhang");
     def->category = L("Speed");
-    def->full_label = "(0%, 25%)";
-    def->tooltip = L("Speed for line of wall which has degree of overhang between 0% and 25% line width. "
-                     "0 means using original wall speed");
+    def->tooltip = L("Enable this option to slow printing down for different overhang degree");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool{ true });
+
+    def = this->add("overhang_1_4_speed", coFloat);
+    def->label = "(10%, 25%)";
+    def->category = L("Speed");
+    def->full_label = "(10%, 25%)";
+    //def->tooltip = L("Speed for line of wall which has degree of overhang between 10% and 25% line width. "
+    //                 "0 means using original wall speed");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
@@ -449,8 +456,8 @@ void PrintConfigDef::init_fff_params()
     def->label = "[25%, 50%)";
     def->category = L("Speed");
     def->full_label = "[25%, 50%)";
-    def->tooltip = L("Speed for line of wall which has degree of overhang between 25% and 50% line width. "
-                     "0 means using original wall speed");
+    //def->tooltip = L("Speed for line of wall which has degree of overhang between 25% and 50% line width. "
+    //                 "0 means using original wall speed");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
@@ -460,7 +467,7 @@ void PrintConfigDef::init_fff_params()
     def->label = "[50%, 75%)";
     def->category = L("Speed");
     def->full_label = "[50%, 75%)";
-    def->tooltip = L("Speed for line of wall which has degree of overhang between 50% and 75% line width. 0 means using original wall speed");
+    //def->tooltip = L("Speed for line of wall which has degree of overhang between 50% and 75% line width. 0 means using original wall speed");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
@@ -470,7 +477,7 @@ void PrintConfigDef::init_fff_params()
     def->label = "[75%, 100%)";
     def->category = L("Speed");
     def->full_label = "[75%, 100%)";
-    def->tooltip = L("Speed for line of wall which has degree of overhang between 75% and 100% line width. 0 means using original wall speed");
+    //def->tooltip = L("Speed for line of wall which has degree of overhang between 75% and 100% line width. 0 means using original wall speed");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;

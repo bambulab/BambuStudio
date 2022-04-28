@@ -704,6 +704,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_interface_speed"
             //BBS
             || opt_key == "support_transition_speed"
+            || opt_key == "enable_overhang_speed"
             || opt_key == "overhang_1_4_speed"
             || opt_key == "overhang_2_4_speed"
             || opt_key == "overhang_3_4_speed"

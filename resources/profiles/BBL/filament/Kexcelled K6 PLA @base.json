@@ -14,6 +14,9 @@
     "filament_density": [
         "1.24"
     ],
+    "filament_flow_ratio": [
+        "0.95"
+    ],
     "bed_temperature": [
         "35,0,60"
     ],

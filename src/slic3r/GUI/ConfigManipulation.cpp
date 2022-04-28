@@ -554,6 +554,12 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
 
     bool have_avoid_crossing_perimeters = config->opt_bool("reduce_crossing_wall");
     toggle_field("max_travel_detour_distance", have_avoid_crossing_perimeters);
+
+    bool has_overhang_speed = config->opt_bool("enable_overhang_speed");
+    toggle_line("overhang_1_4_speed", has_overhang_speed);
+    toggle_line("overhang_2_4_speed", has_overhang_speed);
+    toggle_line("overhang_3_4_speed", has_overhang_speed);
+    toggle_line("overhang_4_4_speed", has_overhang_speed);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

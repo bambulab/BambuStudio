@@ -1761,7 +1761,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("sparse_infill_speed");
         optgroup->append_single_option_line("internal_solid_infill_speed");
         optgroup->append_single_option_line("top_surface_speed");
-        Line line = { L("Overhang"), "" };
+        optgroup->append_single_option_line("enable_overhang_speed");
+        Line line = { L("Overhang speed"), L("Speed for different overhang degree. Overhang degree is expressed as percentage of line width") };
         line.append_option(optgroup->get_option("overhang_1_4_speed"));
         line.append_option(optgroup->get_option("overhang_2_4_speed"));
         line.append_option(optgroup->get_option("overhang_3_4_speed"));
