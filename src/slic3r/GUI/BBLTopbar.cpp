@@ -11,7 +11,7 @@
 #include "WebViewDialog.hpp"
 #include "PartPlate.hpp"
 
-#define TOPBAR_ICON_SIZE 18
+#define TOPBAR_ICON_SIZE  FromDIP(18)
 
 using namespace Slic3r;
 
@@ -192,45 +192,45 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
 
     this->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
 
-    this->AddSpacer(5);
+    this->AddSpacer(FromDIP(5));
 
     wxBitmap dropdown_bitmap = create_scaled_bitmap("topbar_dropdown", nullptr, TOPBAR_ICON_SIZE);
     m_dropdown_menu_item = this->AddTool(ID_TOP_DROPDOWN_MENU, "",
         dropdown_bitmap, wxEmptyString);
 
-    this->AddSpacer(5);
+    this->AddSpacer(FromDIP(5));
     this->AddSeparator();
-    this->AddSpacer(5);
+    this->AddSpacer(FromDIP(5));
 
     wxBitmap open_bitmap = create_scaled_bitmap("topbar_open", nullptr, TOPBAR_ICON_SIZE);
     wxAuiToolBarItem* tool_item = this->AddTool(wxID_OPEN, "", open_bitmap);
 
-    this->AddSpacer(10);
+    this->AddSpacer(FromDIP(10));
 
     wxBitmap save_bitmap = create_scaled_bitmap("topbar_save", nullptr, TOPBAR_ICON_SIZE);
     wxAuiToolBarItem* save_btn = this->AddTool(wxID_SAVE, "", save_bitmap);
 
-    this->AddSpacer(10);
+    this->AddSpacer(FromDIP(10));
 
     wxBitmap undo_bitmap = create_scaled_bitmap("topbar_undo", nullptr, TOPBAR_ICON_SIZE);
     m_undo_item = this->AddTool(wxID_UNDO, "", undo_bitmap);
     wxBitmap undo_inactive_bitmap = create_scaled_bitmap("topbar_undo_inactive", nullptr, TOPBAR_ICON_SIZE);
     m_undo_item->SetDisabledBitmap(undo_inactive_bitmap);
 
-    this->AddSpacer(10);
+    this->AddSpacer(FromDIP(10));
 
     wxBitmap redo_bitmap = create_scaled_bitmap("topbar_redo", nullptr, TOPBAR_ICON_SIZE);
     m_redo_item = this->AddTool(wxID_REDO, "", redo_bitmap);
     wxBitmap redo_inactive_bitmap = create_scaled_bitmap("topbar_redo_inactive", nullptr, TOPBAR_ICON_SIZE);
     m_redo_item->SetDisabledBitmap(redo_inactive_bitmap);
 
-    this->AddSpacer(10);
+    this->AddSpacer(FromDIP(10));
     this->AddStretchSpacer(1);
 
-    m_title_item = this->AddLabel(ID_TITLE, "", 300);
-    m_title_item->SetAlignment(wxALIGN_CENTER);
+    m_title_item = this->AddLabel(ID_TITLE, "", FromDIP(300));
+    m_title_item->SetAlignment(wxCENTER);
 
-    this->AddSpacer(10);
+    this->AddSpacer(FromDIP(10));
     this->AddStretchSpacer(1);
 
 
@@ -238,7 +238,7 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     m_publish_item            = this->AddTool(ID_PUBLISH, "", m_publish_bitmap);
     wxBitmap m_publish_disable_bitmap = create_scaled_bitmap("topbar_publish_disable", nullptr, TOPBAR_ICON_SIZE);
     m_publish_item->SetDisabledBitmap(m_publish_disable_bitmap);
-    this->AddSpacer(12);
+    this->AddSpacer(FromDIP(12));
 
     /*wxBitmap model_store_bitmap = create_scaled_bitmap("topbar_store", nullptr, TOPBAR_ICON_SIZE);
     m_model_store_item = this->AddTool(ID_MODEL_STORE, "", model_store_bitmap);
@@ -251,12 +251,12 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     */
 
     this->AddSeparator();
-    this->AddSpacer(6);
+    this->AddSpacer(FromDIP(6));
 
     wxBitmap iconize_bitmap = create_scaled_bitmap("topbar_min", nullptr, TOPBAR_ICON_SIZE);
     wxAuiToolBarItem* iconize_btn = this->AddTool(wxID_ICONIZE_FRAME, "", iconize_bitmap);
 
-    this->AddSpacer(6);
+    this->AddSpacer(FromDIP(6));
 
     maximize_bitmap = create_scaled_bitmap("topbar_max", nullptr, TOPBAR_ICON_SIZE);
     window_bitmap = create_scaled_bitmap("topbar_win", nullptr, TOPBAR_ICON_SIZE);
@@ -267,16 +267,16 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
         maximize_btn = this->AddTool(wxID_MAXIMIZE_FRAME, "", maximize_bitmap);
     }
 
-    this->AddSpacer(6);
+    this->AddSpacer(FromDIP(6));
 
     wxBitmap close_bitmap = create_scaled_bitmap("topbar_close", nullptr, TOPBAR_ICON_SIZE);
     wxAuiToolBarItem* close_btn = this->AddTool(wxID_CLOSE_FRAME, "", close_bitmap);
 
-    this->AddSpacer(6);
+    this->AddSpacer(FromDIP(6));
 
     Realize();
     // m_toolbar_h = this->GetSize().GetHeight();
-    m_toolbar_h = 30;
+    m_toolbar_h = FromDIP(30);
 
     int client_w = parent->GetClientSize().GetWidth();
     this->SetSize(client_w, m_toolbar_h);
@@ -515,7 +515,6 @@ void BBLTopbar::Rescale() {
     item->SetDisabledBitmap(create_scaled_bitmap("topbar_redo_inactive", nullptr, TOPBAR_ICON_SIZE));
 
     item = this->FindTool(ID_TITLE);
-    m_title_item->SetMinSize(wxSize(300 * em / 10, -1));
 
     item = this->FindTool(ID_PUBLISH);
     item->SetBitmap(create_scaled_bitmap("topbar_publish", nullptr, TOPBAR_ICON_SIZE));
