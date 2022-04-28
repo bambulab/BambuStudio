@@ -1089,24 +1089,25 @@ bool SelectMachineDialog::Show(bool show)
 
         wxBoxSizer *item_sizer_h = new wxBoxSizer(wxHORIZONTAL);
         wxBoxSizer *item_sizer_v = new wxBoxSizer(wxVERTICAL);
+        
+        if (extruder >= 0 && extruder < materials.size()) {
+            auto item_name = new wxStaticText(item, wxID_ANY, _L(materials[extruder]), wxDefaultPosition, wxDefaultSize, 0);
+            item_name->SetBackgroundColour(colour_rgb);
+            item_name->SetFont(::Label::Body_13);
+            item_sizer_v->Add(item_name, 0, wxALIGN_CENTER | wxBOTTOM | wxTOP, 1);
+            item_sizer_h->Add(item_sizer_v, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 8);
 
-        auto item_name = new wxStaticText(item, wxID_ANY, _L(materials[extruder]), wxDefaultPosition, wxDefaultSize, 0);
-        item_name->SetBackgroundColour(colour_rgb);
-        item_name->SetFont(::Label::Body_13);
-        item_sizer_v->Add(item_name, 0, wxALIGN_CENTER | wxBOTTOM | wxTOP, 1);
-        item_sizer_h->Add(item_sizer_v, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 8);
+            item->SetBackgroundColor(colour_rgb);
+            if (colour_rgb.GetLuminance() < 0.5) {
+                item->SetBorderColor(colour_rgb);
+            } else {
+                item->SetBorderColor(*wxBLACK);
+            }
 
-        item->SetBackgroundColor(colour_rgb);
-        if (colour_rgb.GetLuminance() < 0.5) {
-            item->SetBorderColor(colour_rgb);
-        } else {
-            item->SetBorderColor(*wxBLACK);
+            auto textcolor = colour_rgb.GetLuminance() < 0.5 ? *wxWHITE : *wxBLACK;
+
+            item_name->SetForegroundColour(textcolor);
         }
-
-        auto  textcolor = colour_rgb.GetLuminance() < 0.5? *wxWHITE : *wxBLACK;
-
-
-        item_name->SetForegroundColour(textcolor);
 
         //item->SetSize(wxSize(-1, 23));
         //item->SetMinSize(wxSize(-1, 23));
