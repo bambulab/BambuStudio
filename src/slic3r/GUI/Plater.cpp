@@ -2853,10 +2853,18 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     if (load_model && load_config) {
         partplate_list.load_gcode_files();
         if (model.objects.empty()) {
-            PartPlate * first_plate = partplate_list.get_plate(0);
+            PartPlate * first_plate = nullptr;
+            int plate_cnt = partplate_list.get_plate_count();
+            int index = 0;
+            for (index = 0; index < plate_cnt; index ++)
+            {
+                first_plate = partplate_list.get_plate(index);
+                if (first_plate->is_slice_result_valid())
+                    break;
+            }
             if (first_plate->is_slice_result_valid()) {
                 //select plate 0 as default
-                q->select_plate(0);
+                q->select_plate(index);
                 //set to 3d tab
                 q->select_view_3D("Preview");
                 wxGetApp().mainframe->select_tab(MainFrame::tpPreview);
