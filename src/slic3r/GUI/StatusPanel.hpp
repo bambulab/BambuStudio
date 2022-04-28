@@ -122,6 +122,9 @@ protected:
     wxBoxSizer *    m_tasklist_sizer;
     wxBoxSizer *    m_tasklist_caption_sizer;
 
+    wxPanel *       m_machine_ctrl_panel;
+    wxPanel *       m_project_task_panel;
+
     // Virtual event handlers, override them in your derived class
     virtual void on_subtask_report(wxCommandEvent &event) { event.Skip(); }
     virtual void on_subtask_pause_resume(wxCommandEvent &event) { event.Skip(); }
@@ -152,18 +155,18 @@ public:
 
     void init_bitmaps();
     wxBoxSizer *create_monitoring_page();
-    wxBoxSizer *create_project_task_page();
-    wxBoxSizer *create_machine_control_page();
+    wxBoxSizer *create_project_task_page(wxWindow *parent);
+    wxBoxSizer *create_machine_control_page(wxWindow *parent);
 
-    wxBoxSizer *create_temp_axis_group();
-    wxBoxSizer *create_temp_control();
-    wxBoxSizer *create_misc_control();
-    wxBoxSizer *create_axis_control();
-    wxBoxSizer *create_bed_control();
-    wxBoxSizer *create_extruder_control();
+    wxBoxSizer *create_temp_axis_group(wxWindow *parent);
+    wxBoxSizer *create_temp_control(wxWindow *parent);
+    wxBoxSizer *create_misc_control(wxWindow *parent);
+    wxBoxSizer *create_axis_control(wxWindow *parent);
+    wxBoxSizer *create_bed_control(wxWindow *parent);
+    wxBoxSizer *create_extruder_control(wxWindow *parent);
 
-    wxBoxSizer *create_ams_group();
-    wxBoxSizer *create_cali_group();
+    wxBoxSizer *create_ams_group(wxWindow *parent);
+    wxBoxSizer *create_cali_group(wxWindow *parent);
 
     void show_ams_group(bool show = true);
 };

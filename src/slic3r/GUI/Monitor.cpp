@@ -201,6 +201,9 @@ void MonitorPanel::set_default()
     m_bitmap_wifi_signal = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
     sizer->Add(m_bitmap_wifi_signal, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(20));
 
+    //TEST function
+    //m_bitmap_wifi_signal->Connect(wxEVT_LEFT_DCLICK, wxMouseEventHandler(MonitorPanel::on_update_all), NULL, this);
+
     return sizer; 
 }
 
@@ -229,15 +232,19 @@ void MonitorPanel::select_machine(std::string machine_sn)
     wxQueueEvent(this, event);
 }
 
+void MonitorPanel::on_update_all(wxMouseEvent &event)
+{
+    update_all();
+    Layout();
+    Refresh();
+}
 
  void MonitorPanel::on_timer(wxTimerEvent& event)
 {
-    Freeze();
     update_all();
 
     Layout();
     Refresh();
-    Thaw(); // will cause media ctrl period flush
 }
 
  void MonitorPanel::on_select_printer(wxCommandEvent& event)
