@@ -560,7 +560,11 @@ Sidebar::Sidebar(Plater *parent)
     bSizer_filament_content->Add(p->sizer_filaments, 1, wxALIGN_CENTER | wxALL);
     p->m_panel_filament_content->SetSizer(p->sizer_filaments);
     p->m_panel_filament_content->Layout();
-    scrolled_sizer->Add(p->m_panel_filament_content, 0, wxTOP | wxBOTTOM | wxEXPAND, 10);
+    scrolled_sizer->Add(p->m_panel_filament_content, 0, wxTOP | wxEXPAND, FromDIP(10));
+
+    wxStaticLine* bed_type_line = new wxStaticLine(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    bed_type_line->SetBackgroundColour(static_line_col);
+    scrolled_sizer->Add(bed_type_line, 0, wxALL | wxEXPAND, FromDIP(10));
 
     wxBoxSizer* bed_type_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxStaticText* bed_type_title = new wxStaticText(p->scrolled, wxID_ANY, _L("Bed type"));
@@ -575,9 +579,9 @@ Sidebar::Sidebar(Plater *parent)
     }
 
     bed_type_list->Select(0);
-    bed_type_sizer->Add(bed_type_title, 0, wxALL | wxEXPAND, 10);
-    bed_type_sizer->Add(bed_type_list, 1, wxALL | wxEXPAND, 10);
-    scrolled_sizer->Add(bed_type_sizer, 0, wxTOP | wxBOTTOM | wxEXPAND, 10);
+    bed_type_sizer->Add(bed_type_title, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(10));
+    bed_type_sizer->Add(bed_type_list, 1, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(10));
+    scrolled_sizer->Add(bed_type_sizer, 0, wxBOTTOM | wxEXPAND, FromDIP(10));
     scrolled_sizer->AddSpacer(15);
 
     //p->m_staticline2 = new wxStaticLine( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
