@@ -681,11 +681,15 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
         const wxString& item_name = (i == 0 ? _L("Default") : wxString::Format(_L("Filament %d"), i)) +
             (is_active_extruder ? " (" + _L("active") + ")" : "");
 
-
-        append_menu_item(extruder_selection_menu, wxID_ANY, item_name, "",
-            [i](wxCommandEvent&) { obj_list()->set_extruder_for_selected_items(i); }, *icons[icon_idx], menu,
-            [is_active_extruder]() { return !is_active_extruder; }, m_parent);
-
+        if (icon_idx >= 0 && icon_idx < icons.size()) {
+            append_menu_item(
+                extruder_selection_menu, wxID_ANY, item_name, "", [i](wxCommandEvent &) { obj_list()->set_extruder_for_selected_items(i); }, *icons[icon_idx], menu,
+                [is_active_extruder]() { return !is_active_extruder; }, m_parent);
+        } else {
+            append_menu_item(
+                extruder_selection_menu, wxID_ANY, item_name, "", [i](wxCommandEvent &) { obj_list()->set_extruder_for_selected_items(i); }, "", menu,
+                [is_active_extruder]() { return !is_active_extruder; }, m_parent);
+        }
     }
 
     menu->AppendSubMenu(extruder_selection_menu, name);
