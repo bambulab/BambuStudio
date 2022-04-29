@@ -142,7 +142,7 @@ public:
         scale_font(m_constant_text.version_font, 1.5f);
 
         // this font will be used for the action string
-        m_action_font = m_constant_text.credits_font.Bold();
+        m_action_font = m_constant_text.credits_font;
 
         // draw logo and constant info text
         Decorate(m_main_bitmap);
@@ -157,7 +157,7 @@ public:
             wxMemoryDC memDC;
             memDC.SelectObject(bitmap);
             memDC.SetFont(m_action_font);
-            memDC.SetTextForeground(*wxBLACK);
+            memDC.SetTextForeground(wxColour(144, 144, 144));
             int width = bitmap.GetWidth();
             int text_height = memDC.GetTextExtent(text).GetHeight();
             int text_width = memDC.GetTextExtent(text).GetWidth();
@@ -198,17 +198,17 @@ public:
         memDc.SetFont(m_constant_text.title_font);
         memDc.DrawLabel(m_constant_text.title, title_rect, wxALIGN_RIGHT | wxALIGN_BOTTOM);
         //BBS align bottom of title and version text
-        wxRect version_rect(wxPoint(split_width + text_padding, top_margin), wxPoint(width, top_margin + title_height - 3 * m_scale));
+        wxRect version_rect(wxPoint(split_width + text_padding, top_margin), wxPoint(width, top_margin + title_height - text_padding));
         memDc.SetFont(m_constant_text.version_font);
         memDc.SetTextForeground(wxColor(134, 134, 134));
         memDc.DrawLabel(m_constant_text.version, version_rect, wxALIGN_LEFT | wxALIGN_BOTTOM);
 
         // load bitmap for logo
         BitmapCache bmp_cache;
-        int logo_margin = FromDIP(100 * m_scale);
-        int logo_size = FromDIP(128 * m_scale);
+        int logo_margin = FromDIP(72 * m_scale);
+        int logo_size = FromDIP(122 * m_scale);
         wxBitmap logo_bmp = *bmp_cache.load_svg("splash_logo", logo_size, logo_size);
-        int logo_y = top_margin + title_height + logo_margin;
+        int logo_y = top_margin + title_rect.GetHeight() + logo_margin;
         memDc.DrawBitmap(logo_bmp, (width - logo_size) / 2, logo_y, true);
 
         // calculate position for the dynamic text
@@ -218,7 +218,7 @@ public:
 
     static wxBitmap MakeBitmap()
     {
-        int width = FromDIP(480,nullptr);
+        int width = FromDIP(480, nullptr);
         int height = FromDIP(480, nullptr);
 
         wxImage image(width, height);
@@ -306,7 +306,7 @@ private:
             credits = "";
 
             title_font = Label::Head_16;
-            version_font = Label::Body_10;
+            version_font = Label::Body_16;
             credits_font = init_font;
         }
     }
