@@ -910,6 +910,8 @@ namespace Slic3r {
         if (result == 0) {
             try {
                 json j = json::parse(print_info);
+
+
                 if (!j["devices"].is_null() && j["devices"].is_array()) {
                     for (auto& elem : j["devices"]) {
                         MachineObject* obj = new MachineObject(*this, "", "", "");

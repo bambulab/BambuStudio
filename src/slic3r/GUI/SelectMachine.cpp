@@ -21,9 +21,11 @@
 
 namespace Slic3r { namespace GUI {
 
+wxDEFINE_EVENT(EVT_FINISHED_UPDATE_MACHINE_LIST, wxCommandEvent);
+
 #define INITIAL_NUMBER_OF_MACHINES 0
 #define LIST_REFRESH_INTERVAL 3000
-#define MACHINE_LIST_REFRESH_INTERVAL 100
+#define MACHINE_LIST_REFRESH_INTERVAL 2000
 
 MachineListModel::MachineListModel() : wxDataViewVirtualListModel(INITIAL_NUMBER_OF_MACHINES) { ; }
 
@@ -630,6 +632,9 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_main->Add(0, 0, 0,  wxTOP, 12);
 
+    //bind
+    Bind(EVT_FINISHED_UPDATE_MACHINE_LIST, &SelectMachineDialog::update_printer_combobox, this);
+
     // sending_mode();
     SetSizer(m_sizer_main);
     Layout();
@@ -911,53 +916,31 @@ std::vector<std::string> SelectMachineDialog::sort_string(std::vector<std::strin
     return outputArray;
 }
 
-void SelectMachineDialog::on_timer(wxTimerEvent &event)
-{
+void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
+{ 
     if (m_print_job && m_need_disable_btn_ensure && m_print_job->is_finalized() && !m_print_job->is_finished()) {
         m_button_ensure->Enable();
         m_need_disable_btn_ensure = false;
     }
 
-    // update machine list, collections of bind list and local free
     Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
-
-    if (!c->is_user_login()) return;
-    int         err_code;
-    std::string err_msg;
-    c->update_my_machine_list_info(err_code, err_msg, true);
-
-
-
-   /* if (c->is_user_login()) {
-        boost::thread get_print_info_thread = Slic3r::create_thread([this] {
-            Slic3r::AccountManager *acc = Slic3r::GUI::wxGetApp().getAccountManager();
-            int                     err_code;
-            std::string             err_msg;
-            acc->update_my_machine_list_info(err_code, err_msg, true);
-        });
-    }*/
 
     // clear machine list
     m_list.clear();
     m_comboBox_printer->Clear();
-
 
     std::vector<std::string> machine_list;
 
     // same machine only appear once
     std::map<std::string, MachineObject *>::iterator it;
     for (it = c->myBindMachineList.begin(); it != c->myBindMachineList.end(); it++) {
-        if (it->second && it->second->is_online()) {
-            machine_list.push_back(it->second->dev_name);
-        }
+        if (it->second && it->second->is_online()) { machine_list.push_back(it->second->dev_name); }
     }
 
     machine_list = sort_string(machine_list);
     std::vector<std::string>::iterator tt;
     for (tt = machine_list.begin(); tt != machine_list.end(); tt++) {
-
         for (it = c->myBindMachineList.begin(); it != c->myBindMachineList.end(); it++) {
-
             if (it->second->dev_name == *tt) {
                 m_list.push_back(it->second);
                 m_comboBox_printer->Append(it->second->dev_name);
@@ -965,7 +948,6 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
             }
         }
     }
-
 
     if (m_list.size() > 0) {
         if (m_printer_last_select.empty()) {
@@ -981,6 +963,26 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     } else {
         m_printer_last_select = -1;
         update_select_layout(PRINTER_TYPE::PRINTER_3DPrinter_UKNOWN);
+    }
+}
+
+
+void SelectMachineDialog::on_timer(wxTimerEvent &event)
+{
+    Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
+    if (c->is_user_login()) {
+
+        if (this == NULL || this == nullptr) { return;}
+        boost::thread get_print_info_thread = Slic3r::create_thread([this] {
+            Slic3r::AccountManager *acc = Slic3r::GUI::wxGetApp().getAccountManager();
+            int                     err_code;
+            std::string             err_msg;
+            acc->update_my_machine_list_info(err_code, err_msg, true);
+
+            wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
+            event.SetEventObject(this);
+            wxPostEvent(this, event);
+        });
     }
 }
 

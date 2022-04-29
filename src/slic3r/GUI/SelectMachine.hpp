@@ -284,6 +284,7 @@ protected:
     std::shared_ptr<PrintJob> m_print_job;
 
     // Virtual event handlers, overide them in your derived class
+    void                     update_printer_combobox(wxCommandEvent &event);
     void                     on_cancel(wxCloseEvent &event);
     void                     on_ok(wxCommandEvent &event);
     std::vector<std::string> sort_string(std::vector<std::string> strArray);
@@ -293,6 +294,7 @@ protected:
     wxImage *                LoadImageFromBlob(const unsigned char *data, int size);
 };
 
+wxDECLARE_EVENT(EVT_FINISHED_UPDATE_MACHINE_LIST, wxCommandEvent);
 }} // namespace Slic3r::GUI
 
 #endif
