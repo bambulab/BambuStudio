@@ -68,24 +68,28 @@ SliceInfoPopup::SliceInfoPopup(wxWindow *parent, wxBitmap bmp, BBLSliceInfo *inf
     wxBoxSizer * caption_left_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer * caption_right_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto prediction_bitmap = new wxStaticBitmap(m_panel, wxID_ANY, create_scaled_bitmap("monitor_item_prediction", nullptr, 16));
-    wxString predict_text = get_bbl_monitor_time_dhm(info->prediction);
+    wxString predict_text;
+    if (info)
+        predict_text = get_bbl_monitor_time_dhm(info->prediction);
     auto prediction = new wxStaticText(m_panel, wxID_ANY, predict_text, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
-    caption_left_sizer->Add(prediction_bitmap, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-    caption_left_sizer->Add(prediction, 1, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    caption_left_sizer->Add(prediction_bitmap, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    caption_left_sizer->Add(prediction, 1, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     prediction->Wrap(-1);
     auto cost_bitmap = new wxStaticBitmap(m_panel, wxID_ANY, create_scaled_bitmap("monitor_item_cost", nullptr, 16));
-    wxString cost_text = wxString::Format("%sg", info->weight);
+    wxString cost_text;
+    if (info)
+        cost_text = wxString::Format("%sg", info->weight);
     auto used_g_text = new wxStaticText(m_panel, wxID_ANY, cost_text, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
-    caption_right_sizer->Add(cost_bitmap, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-    caption_right_sizer->Add(used_g_text, 1, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    caption_right_sizer->Add(cost_bitmap, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    caption_right_sizer->Add(used_g_text, 1, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
-    caption_sizer->Add(caption_left_sizer,  1, 0, 5);
-    caption_sizer->Add(caption_right_sizer, 1, 0, 5);
+    caption_sizer->Add(caption_left_sizer, 1, 0, FromDIP(5));
+    caption_sizer->Add(caption_right_sizer, 1, 0, FromDIP(5));
 
     topSizer->Add(caption_sizer, 0, wxEXPAND | wxALL, 0);
     auto static_line = new StaticLine(m_panel);
     topSizer->Add(static_line, 0, wxEXPAND | wxALL, 0);
-    wxGridSizer *grid_sizer = new wxGridSizer(2, wxSize(10, 0));
+    wxGridSizer *grid_sizer = new wxGridSizer(2, wxSize(FromDIP(10), 0));
     if (info) {
         for (auto f : info->filaments_info) {
             auto f_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -94,31 +98,31 @@ SliceInfoPopup::SliceInfoPopup(wxWindow *parent, wxBitmap bmp, BBLSliceInfo *inf
             wxColour color = decode_color(f.color);
             f_type->SetBackgroundColor(color);
             auto  textcolor = wxColour(0, 0, 0);
-            if (calc_gray(color))
+            if (calc_gray(color) <= 128)
                 textcolor = wxColour(255, 255, 255);
             else
                 textcolor = wxColour(0, 0, 0);
 
             f_type->SetTextColor(textcolor);
-            f_type->SetSize(wxSize(40, 20));
-            f_type->SetMinSize(wxSize(40, 20));
-            f_type->SetMaxSize(wxSize(40, 20));
-            f_type->SetCornerRadius(10);
+            f_type->SetSize(wxSize(FromDIP(40), FromDIP(20)));
+            f_type->SetMinSize(wxSize(FromDIP(40), FromDIP(20)));
+            f_type->SetMaxSize(wxSize(FromDIP(40), FromDIP(20)));
+            f_type->SetCornerRadius(FromDIP(10));
 
             wxString used_g_text = wxString::Format("%.1fg", f.used_g);
             auto f_used_g = new wxStaticText(m_panel, wxID_ANY, used_g_text, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
             f_used_g->Wrap(-1);
-            f_used_g->SetSize(wxSize(60, -1));
-            f_sizer->Add(f_type, 0, wxEXPAND | wxALL, 5);
-            f_sizer->Add(f_used_g, 0, wxEXPAND | wxALL, 5);
+            f_used_g->SetSize(wxSize(FromDIP(60), -1));
+            f_sizer->Add(f_type, 0, wxEXPAND | wxALL, FromDIP(5));
+            f_sizer->Add(f_used_g, 0, wxEXPAND | wxALL, FromDIP(5));
             grid_sizer->Add(f_sizer, 0, wxEXPAND, 0);
         }
     }
-    topSizer->Add(grid_sizer, 0, wxALL, 5);
-    main_sizer->Add(13, 0, 0, 0);
+    topSizer->Add(grid_sizer, 0, wxALL, FromDIP(5));
+    main_sizer->Add(FromDIP(13), 0, 0, 0);
     main_sizer->Add(topSizer, 0, wxEXPAND | wxALL, 0);
-    main_sizer->Add(13, 0, 0, 0);
-    main_sizer->SetMinSize(wxSize(200, -1));
+    main_sizer->Add(FromDIP(13), 0, 0, 0);
+    main_sizer->SetMinSize(wxSize(FromDIP(200), -1));
     m_panel->SetSizer(main_sizer);
     m_panel->Layout();
 
