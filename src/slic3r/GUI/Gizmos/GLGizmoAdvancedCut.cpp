@@ -412,7 +412,6 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
     // Part selection
     m_imgui->bbl_checkbox(_L("Keep upper part"), m_keep_upper);
     m_imgui->bbl_checkbox(_L("Keep lower part"), m_keep_lower);
-    ImGui::SameLine();
 
 #if 0
     // Auto segment input
@@ -429,12 +428,12 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
 #endif
 
     // Cut button
-    const bool reset_clicked = m_imgui->button(_L("Reset"));
-    if (reset_clicked) { reset_all(); }
-    ImGui::SameLine();
     m_imgui->disabled_begin((!m_keep_upper && !m_keep_lower && !m_do_segment));
     const bool cut_clicked = m_imgui->button(_L("Perform cut"));
     m_imgui->disabled_end();
+    ImGui::SameLine();
+    const bool reset_clicked = m_imgui->button(_L("Reset"));
+    if (reset_clicked) { reset_all(); }
     m_imgui->end();
     ImGuiWrapper::pop_toolbar_style();
 
