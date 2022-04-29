@@ -1996,7 +1996,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("normal"));
     def->enum_labels.push_back(L("tree"));
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionEnum<SupportType>(stTreeAuto));
+    def->set_default_value(new ConfigOptionEnum<SupportType>(stNormalAuto));
 
     def = this->add("support_object_xy_distance", coFloat);
     def->label = L("Support/object xy distance");
@@ -2274,7 +2274,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min      = 1.0;
     def->max      = 10;
-    def->mode     = comDevelop;
+    def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5.));
 
     def           = this->add("tree_support_branch_diameter", coFloat);
@@ -2284,7 +2284,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min      = 1.0;
     def->max      = 10;
-    def->mode     = comDevelop;
+    def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5.));
 
     def = this->add("tree_support_wall_count", coInt);

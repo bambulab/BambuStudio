@@ -521,6 +521,14 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     for (auto el : {"tree_support_branch_angle", "tree_support_wall_count", "tree_support_with_infill", "tree_support_branch_distance", "tree_support_branch_diameter"})
         toggle_field(el, config->opt_bool("enable_support") && (support_type == stTreeAuto || support_type == stTree || support_type == stHybridAuto));
 
+    // hide tree support settings when normal is selected
+    bool support_is_tree = std::set<SupportType>{stTreeAuto, stHybridAuto, stTree}.count(support_type) != 0;
+    toggle_line("tree_support_branch_distance", support_is_tree);
+    toggle_line("tree_support_branch_diameter", support_is_tree);
+    toggle_line("tree_support_branch_angle", support_is_tree);
+    toggle_line("tree_support_wall_count", support_is_tree);
+    toggle_line("tree_support_with_infill", support_is_tree);
+
     for (auto el : { "support_interface_spacing", "support_interface_filament",
                     "support_interface_speed", "support_interface_loop_pattern",
                     "support_transition_speed","support_bottom_interface_spacing" })
