@@ -356,35 +356,35 @@ protected:
         }            
         }
 
-#if 1
-        double clearance_height_to_lid = params.clearance_height_to_lid;
-        double clearance_height_to_rod = params.clearance_height_to_rod;
-        bool hasRowHeightConflict = false;
-        bool hasLidHeightConflict = false;
-        auto iy1 = item.boundingBox().minCorner().y();
-        auto iy2 = item.boundingBox().maxCorner().y();
-        auto ix1 = item.boundingBox().minCorner().x();
 
-        for (int i = 0; i < m_items.size(); i++) {
-            Item& p = m_items[i];
-            if (p.is_virt_object) continue;
-            auto px1 = p.boundingBox().minCorner().x();
-            auto py1 = p.boundingBox().minCorner().y();
-            auto py2 = p.boundingBox().maxCorner().y();
-            auto inter_min = std::max(iy1, py1); // min y of intersection
-            auto inter_max = std::min(iy2, py2); // max y of intersection. length=max_y-min_y>0 means intersection exists
-            if (inter_max - inter_min > 0) {
-                // if they inter, the one on the left will be printed first
-                double h = ix1 < px1 ? item.height : p.height;
-                hasRowHeightConflict |= (h > clearance_height_to_rod);
-            }
-            // only last item can be heigher than clearance_height_to_lid, so if the existing items are higher than clearance_height_to_lid, there is height conflict
-            hasLidHeightConflict |= (p.height > clearance_height_to_lid);
-        }
-
-        double lambda3 = LARGE_COST_TO_REJECT;
-        double lambda4 = LARGE_COST_TO_REJECT;
         if (params.is_seq_print) {
+            double clearance_height_to_lid = params.clearance_height_to_lid;
+            double clearance_height_to_rod = params.clearance_height_to_rod;
+            bool hasRowHeightConflict = false;
+            bool hasLidHeightConflict = false;
+            auto iy1 = item.boundingBox().minCorner().y();
+            auto iy2 = item.boundingBox().maxCorner().y();
+            auto ix1 = item.boundingBox().minCorner().x();
+
+            for (int i = 0; i < m_items.size(); i++) {
+                Item& p = m_items[i];
+                if (p.is_virt_object) continue;
+                auto px1 = p.boundingBox().minCorner().x();
+                auto py1 = p.boundingBox().minCorner().y();
+                auto py2 = p.boundingBox().maxCorner().y();
+                auto inter_min = std::max(iy1, py1); // min y of intersection
+                auto inter_max = std::min(iy2, py2); // max y of intersection. length=max_y-min_y>0 means intersection exists
+                if (inter_max - inter_min > 0) {
+                    // if they inter, the one on the left will be printed first
+                    double h = ix1 < px1 ? item.height : p.height;
+                    hasRowHeightConflict |= (h > clearance_height_to_rod);
+                }
+                // only last item can be heigher than clearance_height_to_lid, so if the existing items are higher than clearance_height_to_lid, there is height conflict
+                hasLidHeightConflict |= (p.height > clearance_height_to_lid);
+            }
+
+            double lambda3 = LARGE_COST_TO_REJECT;
+            double lambda4 = LARGE_COST_TO_REJECT;
             for (int i = 0; i < m_items.size(); i++) {
                 Item& p = m_items[i];
                 if (p.is_virt_object) continue;
@@ -395,11 +395,17 @@ protected:
         else {
             for (int i = 0; i < m_items.size(); i++) {
                 Item& p = m_items[i];
-                if (p.is_virt_object) continue;
-                score += lambda3 * (item.bed_temp - p.bed_temp != 0);
+                if (p.is_virt_object) {
+                    // Better not put items above wipe tower
+                    if (p.is_wipe_tower)
+                        score += ibb.maxCorner().y() > p.boundingBox().maxCorner().y();
+                    else
+                        continue;
+                } else
+                    score += LARGE_COST_TO_REJECT * (item.bed_temp - p.bed_temp != 0);
             }
         }
-#endif
+
         std::set<int> extruder_ids;
         for (int i = 0; i < m_items.size(); i++) {
             Item& p = m_items[i];
