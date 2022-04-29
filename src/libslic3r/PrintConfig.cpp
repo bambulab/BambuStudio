@@ -3741,18 +3741,19 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->cli = "export-gcode|gcode|g";
     def->set_default_value(new ConfigOptionBool(false));*/
 
-    def = this->add("gcodeviewer", coBool);
+    /*def = this->add("gcodeviewer", coBool);
     // BBS: remove _L()
     def->label = ("G-code viewer");
     def->tooltip = ("Visualize an already sliced and saved G-code");
     def->cli = "gcodeviewer";
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(false));*/
 
-    def = this->add("slice", coBool);
+    def = this->add("slice", coInt);
     def->label = L("Slice");
-    def->tooltip = L("Slice the models.");
+    def->tooltip = L("Slice the plates: 0-all plates, i-plate i, others-invalid");
     def->cli = "slice";
-    def->set_default_value(new ConfigOptionBool(false));
+    def->cli_params = "option";
+    def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("help", coBool);
     def->label = L("Help");

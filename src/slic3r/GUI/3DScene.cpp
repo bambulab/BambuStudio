@@ -68,6 +68,21 @@ void glAssertRecentCallImpl(const char* file_name, unsigned int line, const char
 }
 #endif // HAS_GLSAFE
 
+// BBS
+std::vector<std::array<float, 4>> get_extruders_colors()
+{
+    unsigned char                     rgb_color[3] = {};
+    std::vector<std::string>          colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    std::vector<std::array<float, 4>> colors_out(colors.size());
+    for (const std::string& color : colors) {
+        Slic3r::GUI::BitmapCache::parse_color(color, rgb_color);
+        size_t color_idx = &color - &colors.front();
+        colors_out[color_idx] = { float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, 1.f };
+    }
+
+    return colors_out;
+}
+
 namespace Slic3r {
 
 #if ENABLE_SMOOTH_NORMALS
@@ -625,21 +640,6 @@ void GLVolume::set_range(double min_z, double max_z)
     }
 }
 
-// BBS
-static std::vector<std::array<float, 4>> get_extruders_colors()
-{
-    unsigned char                     rgb_color[3] = {};
-    std::vector<std::string>          colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
-    std::vector<std::array<float, 4>> colors_out(colors.size());
-    for (const std::string& color : colors) {
-        Slic3r::GUI::BitmapCache::parse_color(color, rgb_color);
-        size_t color_idx = &color - &colors.front();
-        colors_out[color_idx] = { float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, 1.f };
-    }
-
-    return colors_out;
-}
-
 //BBS: add outline related logic
 //static unsigned char stencil_data[1284][2944];
 void GLVolume::render(bool with_outline) const
@@ -844,7 +844,7 @@ void GLVolume::render(bool with_outline) const
 }
 
 //BBS add render for simple case
-void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects) const
+void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<std::array<float, 4>>& extruder_colors) const
 {
     if (this->is_left_handed())
         glFrontFace(GL_CW);
@@ -881,7 +881,6 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
     } while (0);
 
     if (color_volume) {
-        std::vector<std::array<float, 4>> colors = get_extruders_colors();
         glsafe(::glMultMatrixd(world_matrix().data()));
         for (int idx = 0; idx < mmuseg_ivas.size(); idx++) {
             GLIndexedVertexArray& iva = mmuseg_ivas[idx];
@@ -891,13 +890,13 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
             if (shader) {
                 if (idx == 0) {
                     int extruder_id = model_volume->extruder_id();
-                    shader->set_uniform("uniform_color", colors[extruder_id - 1]);
+                    shader->set_uniform("uniform_color", extruder_colors[extruder_id - 1]);
                 }
                 else {
-                    if (idx <= colors.size())
-                        shader->set_uniform("uniform_color", colors[idx - 1]);
+                    if (idx <= extruder_colors.size())
+                        shader->set_uniform("uniform_color", extruder_colors[idx - 1]);
                     else
-                        shader->set_uniform("uniform_color", colors[0]);
+                        shader->set_uniform("uniform_color", extruder_colors[0]);
                 }
             }
             iva.render(this->tverts_range, this->qverts_range);

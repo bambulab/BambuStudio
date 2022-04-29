@@ -56,7 +56,8 @@ bool GLGizmoMmuSegmentation::on_is_activable() const
     return GLGizmoPainterBase::on_is_activable() && wxGetApp().filaments_cnt() > 1;
 }
 
-static std::vector<std::array<float, 4>> get_extruders_colors()
+//BBS: use the global one in 3DScene.cpp
+/*static std::vector<std::array<float, 4>> get_extruders_colors()
 {
     unsigned char                     rgb_color[3] = {};
     std::vector<std::string>          colors       = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
@@ -68,7 +69,7 @@ static std::vector<std::array<float, 4>> get_extruders_colors()
     }
 
     return colors_out;
-}
+}*/
 
 static std::vector<int> get_extruder_id_for_volumes(const ModelObject &model_object)
 {

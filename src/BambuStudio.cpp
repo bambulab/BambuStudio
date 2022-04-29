@@ -912,6 +912,7 @@ int CLI::run(int argc, char **argv)
 
     // loop through action options
     bool export_to_3mf = false;
+    int plate_to_slice = 0;
     std::string export_3mf_file;
     std::string outfile_dir = m_config.opt_string("outputdir");
     std::vector<ThumbnailData*> calibration_thumbnails;
@@ -951,6 +952,8 @@ int CLI::run(int argc, char **argv)
             export_3mf_file = m_config.opt_string(opt_key);
         //} else if (opt_key == "export_gcode" || opt_key == "export_sla" || opt_key == "slice") {
         } else if (opt_key == "slice") {
+            //BBS: slice 0 means all plates, i means plate i;
+            plate_to_slice = m_config.option<ConfigOptionInt>("slice")->value;
             /*if (opt_key == "export_gcode" && printer_technology == ptSLA) {
                 boost::nowide::cerr << "error: cannot export G-code for an FFF configuration" << std::endl;
                 flush_and_exit(1);
@@ -958,7 +961,7 @@ int CLI::run(int argc, char **argv)
                 boost::nowide::cerr << "error: cannot export SLA slices for a SLA configuration" << std::endl;
                 flush_and_exit(1);
             }*/
-            BOOST_LOG_TRIVIAL(info) << "Need to slice for "<<partplate_list.get_plate_count()<<" partplates!" << std::endl;
+            BOOST_LOG_TRIVIAL(info) << "Need to slice for plate "<<plate_to_slice <<", total plate count "<<partplate_list.get_plate_count()<<" partplates!" << std::endl;
             // Make a copy of the model if the current action is not the last action, as the model may be
             // modified by the centering and such.
             Model model_copy;
@@ -989,6 +992,10 @@ int CLI::run(int argc, char **argv)
                 int print_index;
                 for (int index = 0; index < partplate_list.get_plate_count(); index ++)
                 {
+                    if ((plate_to_slice != 0) && (plate_to_slice != (index + 1))) {
+                        BOOST_LOG_TRIVIAL(info) << "Skip plate " << index+1 << std::endl;
+                        continue;
+                    }
                     //get the current partplate
                     Slic3r::GUI::PartPlate* part_plate = partplate_list.get_plate(index);
                     part_plate->get_print(&print, &gcode_result, &print_index);
@@ -1154,18 +1161,33 @@ int CLI::run(int argc, char **argv)
             }
         }
 
+        std::vector<std::string> colors;
+        if (filament_color) {
+            colors= filament_color->vserialize();
+        }
+        else
+            colors.push_back("#FFFFFF");
+
+        std::vector<std::array<float, 4>> colors_out(colors.size());
+        unsigned char rgb_color[3] = {};
+        for (const std::string& color : colors) {
+            Slic3r::GUI::BitmapCache::parse_color(color, rgb_color);
+            size_t color_idx = &color - &colors.front();
+            colors_out[color_idx] = { float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, 1.f };
+        }
+
         int gl_major, gl_minor, gl_verbos;
         glfwGetVersion(&gl_major, &gl_minor, &gl_verbos);
-	BOOST_LOG_TRIVIAL(info) << boost::format("opengl version %1%.%2%.%3%")%gl_major %gl_minor %gl_verbos;
+        BOOST_LOG_TRIVIAL(info) << boost::format("opengl version %1%.%2%.%3%")%gl_major %gl_minor %gl_verbos;
 
         glfwSetErrorCallback(glfw_callback);
         int ret = glfwInit();
-	if (ret == GLFW_FALSE) {
+        if (ret == GLFW_FALSE) {
             int code = glfwGetError(NULL);
-	    BOOST_LOG_TRIVIAL(error) << "glfwInit return error, code " <<code<< std::endl;
-	}
-	else {
-	    BOOST_LOG_TRIVIAL(info) << "glfwInit Success."<< std::endl;
+            BOOST_LOG_TRIVIAL(error) << "glfwInit return error, code " <<code<< std::endl;
+        }
+        else {
+            BOOST_LOG_TRIVIAL(info) << "glfwInit Success."<< std::endl;
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, gl_major);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, gl_minor);
             glfwWindowHint(GLFW_RED_BITS, 8);
@@ -1175,11 +1197,13 @@ int CLI::run(int argc, char **argv)
             glfwWindowHint(GLFW_VISIBLE, false);
             //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+#ifdef __linux__
             glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_OSMESA_CONTEXT_API);
+#endif
             //glfwDisable(GLFW_AUTO_POLL_EVENTS);
-//#ifdef __WXMAC__
-//            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-//#endif
+#ifdef __WXMAC__
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
             GLFWwindow* window = glfwCreateWindow(640, 480, "base_window", NULL, NULL);
             if (window == NULL)
             {
@@ -1187,7 +1211,7 @@ int CLI::run(int argc, char **argv)
             }
             else
                 glfwMakeContextCurrent(window);
-	}
+        }
         bool opengl_valid = opengl_mgr.init_gl();
         if (!opengl_valid) {
             BOOST_LOG_TRIVIAL(error) << "init opengl failed! skip thumbnail generating" << std::endl;
@@ -1237,7 +1261,7 @@ int CLI::run(int argc, char **argv)
                             BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: ARB");
                             Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*thumbnail_data,
                                thumbnail_width, thumbnail_height, thumbnail_params,
-                               partplate_list, model.objects, glvolume_collection, shader, Slic3r::GUI::Camera::EType::Ortho);
+                               partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
                             break;
                         }
                 case Slic3r::GUI::OpenGLManager::EFramebufferType::Ext:
@@ -1245,7 +1269,7 @@ int CLI::run(int argc, char **argv)
                             BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: EXT");
                             Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*thumbnail_data,
                                thumbnail_width, thumbnail_height, thumbnail_params,
-                               partplate_list, model.objects, glvolume_collection, shader, Slic3r::GUI::Camera::EType::Ortho);
+                               partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
                             break;
                         }
                 default:
@@ -1255,6 +1279,12 @@ int CLI::run(int argc, char **argv)
                 thumbnails.push_back(thumbnail_data);
 
                 //render calibration thumbnail
+                if (!part_plate->get_slice_result() || !part_plate->is_slice_result_valid()) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% doesn't have a valid sliced result, skip it")%(i+1);
+                    calibration_thumbnails.push_back(new ThumbnailData());
+                    plate_bboxes.push_back(new PlateBBoxData());
+                    continue;
+                }
                 PrintBase  *print_base=NULL;
                 Slic3r::GUI::GCodeResult *gcode_result = NULL;
                 int print_index;
