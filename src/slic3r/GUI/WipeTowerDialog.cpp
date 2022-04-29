@@ -11,14 +11,14 @@
 #include <wx/sizer.h>
 
 int scale(const int val) { return val * Slic3r::GUI::wxGetApp().em_unit() / 10; }
-int ITEM_WIDTH() { return scale(23); }
+int ITEM_WIDTH() { return scale(30); }
 static const wxColour text_color = wxColour(107, 107, 107, 255);
 
 #define ICON_SIZE  wxSize(FromDIP(16), FromDIP(16))
 #define TABLE_BORDER FromDIP(28)
 #define HEADER_VERT_PADDING  FromDIP(12)
-#define HEADER_BEG_PADDING  FromDIP(33)
-#define ICON_GAP  FromDIP(37)
+#define HEADER_BEG_PADDING  FromDIP(30)
+#define ICON_GAP  FromDIP(44)
 #define HEADER_END_PADDING  FromDIP(24)
 #define ROW_VERT_PADDING  FromDIP(6)
 #define ROW_BEG_PADDING  FromDIP(20)
@@ -27,6 +27,7 @@ static const wxColour text_color = wxColour(107, 107, 107, 255);
 #define BTN_SIZE wxSize(FromDIP(58), FromDIP(24))
 #define BTN_GAP FromDIP(20)
 #define TEXT_BEG_PADDING FromDIP(41)
+#define MAX_FLUSH_VALUE 999
 
 static void update_ui(wxWindow* window)
 {
@@ -221,8 +222,20 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
                 edit_boxes[i][j]->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent&) {});
                 edit_boxes[i][j]->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent&) {});
             }
-            else
-                edit_boxes[i][j]->SetValue(wxString("") << int(matrix[m_number_of_extruders*j + i]));
+            else {
+                edit_boxes[i][j]->SetValue(wxString("") << int(matrix[m_number_of_extruders * j + i]));
+
+                edit_boxes[i][j]->Bind(wxEVT_TEXT, [this, i, j](wxCommandEvent& e) {
+                    wxString str = edit_boxes[i][j]->GetValue();
+                    int value = wxAtoi(str);
+                    if (value > MAX_FLUSH_VALUE) {
+                        value = MAX_FLUSH_VALUE;
+                        str = wxString::Format(("%d"), MAX_FLUSH_VALUE);
+                        edit_boxes[i][j]->SetValue(str);
+                    }
+                    });
+
+            }
         }
     }
 
