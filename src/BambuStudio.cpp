@@ -1237,7 +1237,7 @@ int CLI::run(int argc, char **argv)
                             BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: ARB");
                             Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*thumbnail_data,
                                thumbnail_width, thumbnail_height, thumbnail_params,
-                               partplate_list, glvolume_collection, shader, Slic3r::GUI::Camera::EType::Ortho);
+                               partplate_list, model.objects, glvolume_collection, shader, Slic3r::GUI::Camera::EType::Ortho);
                             break;
                         }
                 case Slic3r::GUI::OpenGLManager::EFramebufferType::Ext:
@@ -1245,7 +1245,7 @@ int CLI::run(int argc, char **argv)
                             BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: EXT");
                             Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*thumbnail_data,
                                thumbnail_width, thumbnail_height, thumbnail_params,
-                               partplate_list, glvolume_collection, shader, Slic3r::GUI::Camera::EType::Ortho);
+                               partplate_list, model.objects, glvolume_collection, shader, Slic3r::GUI::Camera::EType::Ortho);
                             break;
                         }
                 default:

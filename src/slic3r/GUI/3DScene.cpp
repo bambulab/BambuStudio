@@ -844,15 +844,70 @@ void GLVolume::render(bool with_outline) const
 }
 
 //BBS add render for simple case
-void GLVolume::simple_render() const
+void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects) const
 {
     if (this->is_left_handed())
         glFrontFace(GL_CW);
     glsafe(::glCullFace(GL_BACK));
     glsafe(::glPushMatrix());
 
-    glsafe(::glMultMatrixd(world_matrix().data()));
-    this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+    bool color_volume = false;
+    ModelObject* model_object = nullptr;
+    ModelVolume* model_volume = nullptr;
+    do {
+        if (object_idx() >= model_objects.size())
+            break;
+        model_object = model_objects[object_idx()];
+
+        if (volume_idx() >=  model_object->volumes.size())
+            break;
+        model_volume = model_object->volumes[volume_idx()];
+        if (model_volume->mmu_segmentation_facets.empty())
+            break;
+
+        color_volume = true;
+        if (model_volume->mmu_segmentation_facets.timestamp() != mmuseg_ts) {
+            mmuseg_ivas.clear();
+            std::vector<indexed_triangle_set> its_per_color;
+            model_volume->mmu_segmentation_facets.get_facets(*model_volume, its_per_color);
+            mmuseg_ivas.resize(its_per_color.size());
+            for (int idx = 0; idx < its_per_color.size(); idx++) {
+                mmuseg_ivas[idx].load_its_flat_shading(its_per_color[idx]);
+                mmuseg_ivas[idx].finalize_geometry(true);
+            }
+
+            mmuseg_ts = model_volume->mmu_segmentation_facets.timestamp();
+        }
+    } while (0);
+
+    if (color_volume) {
+        std::vector<std::array<float, 4>> colors = get_extruders_colors();
+        glsafe(::glMultMatrixd(world_matrix().data()));
+        for (int idx = 0; idx < mmuseg_ivas.size(); idx++) {
+            GLIndexedVertexArray& iva = mmuseg_ivas[idx];
+            if (iva.triangle_indices_size == 0 && iva.quad_indices_size == 0)
+                continue;
+
+            if (shader) {
+                if (idx == 0) {
+                    int extruder_id = model_volume->extruder_id();
+                    shader->set_uniform("uniform_color", colors[extruder_id - 1]);
+                }
+                else {
+                    if (idx <= colors.size())
+                        shader->set_uniform("uniform_color", colors[idx - 1]);
+                    else
+                        shader->set_uniform("uniform_color", colors[0]);
+                }
+            }
+            iva.render(this->tverts_range, this->qverts_range);
+        }
+    }
+    else {
+        glsafe(::glMultMatrixd(world_matrix().data()));
+        this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+    }
+
     glsafe(::glPopMatrix());
     if (this->is_left_handed())
         glFrontFace(GL_CCW);

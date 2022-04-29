@@ -11,6 +11,7 @@
 #include "libslic3r/ObjectID.hpp"
 
 #include "GLModel.hpp"
+#include "GLShader.hpp"
 
 #include <functional>
 #include <optional>
@@ -42,7 +43,10 @@ class ExtrusionEntity;
 class ExtrusionEntityCollection;
 class ModelObject;
 class ModelVolume;
+class GLShaderProgram;
 enum ModelInstanceEPrintVolumeState : unsigned char;
+
+using ModelObjectPtrs = std::vector<ModelObject*>;
 
 // Return appropriate color based on the ModelVolume.
 std::array<float, 4> color_from_model_volume(const ModelVolume& model_volume);
@@ -512,7 +516,7 @@ public:
     virtual void        render(bool with_outline = false) const;
 
     //BBS: add simple render function for thumbnail
-    void simple_render() const;
+    void simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects) const;
 
     void                finalize_geometry(bool opengl_initialized) { this->indexed_vertex_array.finalize_geometry(opengl_initialized); }
     void                release_geometry() { this->indexed_vertex_array.release_geometry(); }

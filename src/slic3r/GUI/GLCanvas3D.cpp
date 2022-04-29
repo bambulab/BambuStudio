@@ -1353,17 +1353,18 @@ void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w,
 void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type)
 {
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    ModelObjectPtrs& model_objects = GUI::wxGetApp().model().objects;
     switch (OpenGLManager::get_framebuffers_type())
     {
     case OpenGLManager::EFramebufferType::Arb:
         { render_thumbnail_framebuffer(thumbnail_data, w, h, thumbnail_params,
-            wxGetApp().plater()->get_partplate_list(), volumes, shader, camera_type); break; }
+            wxGetApp().plater()->get_partplate_list(), model_objects, volumes, shader, camera_type); break; }
     case OpenGLManager::EFramebufferType::Ext:
         { render_thumbnail_framebuffer_ext(thumbnail_data, w, h, thumbnail_params,
-            wxGetApp().plater()->get_partplate_list(), volumes, shader, camera_type); break; }
+            wxGetApp().plater()->get_partplate_list(), model_objects, volumes, shader, camera_type); break; }
     default:
         { render_thumbnail_legacy(thumbnail_data, w, h, thumbnail_params,
-            wxGetApp().plater()->get_partplate_list(), volumes, shader, camera_type); break; }
+            wxGetApp().plater()->get_partplate_list(), model_objects, volumes, shader, camera_type); break; }
     }
 }
 
@@ -4419,7 +4420,7 @@ static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 
-void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, const GLVolumeCollection& volumes, GLShaderProgram* shader, Camera::EType camera_type)
+void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, GLShaderProgram* shader, Camera::EType camera_type)
 {
     //BBS modify visible calc function
     int plate_idx = thumbnail_params.plate_id;
@@ -4520,7 +4521,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         // the volume may have been deactivated by an active gizmo
         bool is_active = vol->is_active;
         vol->is_active = true;
-        vol->simple_render();
+        vol->simple_render(shader,  model_objects);
         vol->is_active = is_active;
     }
 
@@ -4536,7 +4537,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: finished");
 }
 
-void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, const GLVolumeCollection& volumes, GLShaderProgram* shader, Camera::EType camera_type)
+void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, GLShaderProgram* shader, Camera::EType camera_type)
 {
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
@@ -4587,7 +4588,7 @@ void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, uns
     glsafe(::glDrawBuffers(1, drawBufs));
 
     if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
-        render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, volumes, shader, camera_type);
+        render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, model_objects, volumes, shader, camera_type);
 
         if (multisample) {
             GLuint resolve_fbo;
@@ -4640,7 +4641,7 @@ void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, uns
     BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail prepare: finished");
 }
 
-void GLCanvas3D::render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, const GLVolumeCollection& volumes, GLShaderProgram* shader, Camera::EType camera_type)
+void GLCanvas3D::render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, GLShaderProgram* shader, Camera::EType camera_type)
 {
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
@@ -4690,7 +4691,7 @@ void GLCanvas3D::render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data,
     glsafe(::glDrawBuffers(1, drawBufs));
 
     if (::glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT) {
-        render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, volumes, shader, camera_type);
+        render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list,  model_objects, volumes, shader, camera_type);
 
         if (multisample) {
             GLuint resolve_fbo;
@@ -4739,7 +4740,7 @@ void GLCanvas3D::render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data,
     //    glsafe(::glDisable(GL_MULTISAMPLE));
 }
 
-void GLCanvas3D::render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList &partplate_list, const GLVolumeCollection& volumes, GLShaderProgram* shader, Camera::EType camera_type)
+void GLCanvas3D::render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList &partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, GLShaderProgram* shader, Camera::EType camera_type)
 {
     // check that thumbnail size does not exceed the default framebuffer size
     const Size& cnv_size = get_canvas_size();
@@ -4755,7 +4756,7 @@ void GLCanvas3D::render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned
     if (!thumbnail_data.is_valid())
         return;
 
-    render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, volumes, shader, camera_type);
+    render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list,  model_objects, volumes, shader, camera_type);
 
     glsafe(::glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
