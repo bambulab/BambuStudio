@@ -3256,7 +3256,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         }
         case EMoveType::Travel: {
             if (!top_layer_only || m_sequential_view.current.last == global_endpoints.last || is_travel_in_layers_range(path_id, m_layers_z_range[1], m_layers_z_range[1]))
-                color = (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool || m_view_type == EViewType::ColorPrint) ? extrusion_color(path) : travel_color(path);
+                color = (m_view_type == EViewType::Feedrate || m_view_type == EViewType::Tool) ? extrusion_color(path) : travel_color(path);
             else
                 color = Neutral_Color;
 
