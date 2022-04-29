@@ -93,9 +93,9 @@ namespace GUI {
 
         glsafe(::glLineWidth(1.5f));
         float color[3];
-        color[0] = (m_state == Select) ? 0.3f : 1.0f;
-        color[1] = (m_state == Select) ? 1.0f : 0.3f;
-        color[2] = 0.3f;
+        color[0] = 0.00f;
+        color[1] = 1.00f;
+        color[2] = 0.38f;
         glsafe(::glColor3fv(color));
 
         glsafe(::glDisable(GL_DEPTH_TEST));
