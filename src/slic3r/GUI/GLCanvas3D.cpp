@@ -1194,7 +1194,7 @@ void GLCanvas3D::render()
     bool only_current = false, only_body = false, show_axes = true, no_partplate = false;
     GLGizmosManager::EType gizmo_type = m_gizmos.get_current_type();
     if (!m_main_toolbar.is_enabled()) {
-        only_body = true;
+        //only_body = true;
         only_current = true;
     }
     else if ((gizmo_type == GLGizmosManager::FdmSupports) || (gizmo_type == GLGizmosManager::Seam) || (gizmo_type == GLGizmosManager::MmuSegmentation))
@@ -4488,7 +4488,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
 
     //GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr) {
-        BOOST_LOG_TRIVIAL(info) <<  boost::format("render_thumbnail: shader is null, return directly"); 
+        BOOST_LOG_TRIVIAL(info) <<  boost::format("render_thumbnail: shader is null, return directly");
         return;
     }
 
@@ -4553,7 +4553,7 @@ void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, uns
     GLuint render_fbo;
     glsafe(::glGenFramebuffers(1, &render_fbo));
     glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, render_fbo));
-    
+
     BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail prepare: w %1%, h %2%, max_samples  %3%, render_fbo %4%") %w %h %max_samples % render_fbo;
     GLuint render_tex = 0;
     GLuint render_tex_buffer = 0;
@@ -5399,12 +5399,7 @@ void GLCanvas3D::_render_bed_for_picking(bool bottom)
 
 void GLCanvas3D::_render_platelist(bool bottom, bool only_current, bool only_body, int hover_id) const
 {
-    float scale_factor = 1.0;
-#if ENABLE_RETINA_GL
-    scale_factor = m_retina_helper->get_scale_factor();
-#endif // ENABLE_RETINA_GL
-
-    wxGetApp().plater()->get_partplate_list().render(bottom, scale_factor, only_current, only_body, hover_id);
+    wxGetApp().plater()->get_partplate_list().render(bottom, only_current, only_body, hover_id);
 }
 
 void GLCanvas3D::_render_plates_for_picking() const

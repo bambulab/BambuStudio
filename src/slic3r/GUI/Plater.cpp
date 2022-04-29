@@ -7625,6 +7625,9 @@ void Plater::export_gcode_3mf()
     //calc default_output_file, get default output file from background process
     fs::path default_output_file;
     default_output_file = into_path(get_project_filename(".3mf"));
+    if (default_output_file.empty())
+        default_output_file = into_path(get_project_name() + ".3mf");
+
     //BBS replace gcode extension to .gcode.3mf
     default_output_file = default_output_file.replace_extension(".gcode.3mf");
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));

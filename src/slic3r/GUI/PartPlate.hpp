@@ -284,7 +284,7 @@ public:
     bool intersects(const BoundingBoxf3& bb) const;
 
     Point point_projection(const Point& point) const;
-    void render(bool bottom, bool only_body = false, bool force_background_color = false, bool is_current = false, HeightLimitMode mode = HEIGHT_LIMIT_BOTH, int hover_id = -1);
+    void render(bool bottom, bool only_body = false, bool force_background_color = false, HeightLimitMode mode = HEIGHT_LIMIT_NONE, int hover_id = -1);
     void render_for_picking() const { on_render_for_picking(); }
     void set_selected();
     void set_unselected();
@@ -575,7 +575,7 @@ public:
     void postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool selected);
 
     /*rendering related functions*/
-    void render(bool bottom, float scale_factor, bool only_current = false, bool only_body = false, int hover_id = -1);
+    void render(bool bottom,    bool only_current = false, bool only_body = false, int hover_id = -1);
     void render_for_picking_pass();
     BoundingBoxf3& get_bounding_box() { return m_bounding_box; }
     //int select_plate_by_hover_id(int hover_id);

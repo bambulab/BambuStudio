@@ -1766,7 +1766,7 @@ Point PartPlate::point_projection(const Point& point) const
 	return m_polygon.point_projection(point);
 }
 
-void PartPlate::render(bool bottom, bool only_body, bool force_background_color, bool is_current, HeightLimitMode mode, int hover_id)
+void PartPlate::render(bool bottom, bool only_body, bool force_background_color, HeightLimitMode mode, int hover_id)
 {
 	glsafe(::glEnable(GL_DEPTH_TEST));
 	glsafe(::glEnable(GL_BLEND));
@@ -1782,11 +1782,10 @@ void PartPlate::render(bool bottom, bool only_body, bool force_background_color,
 
 	render_grid(bottom);
 
-	if (!bottom && m_selected)
+	if (!bottom && m_selected && !only_body)
 		render_logo(bottom);
 
-	if (is_current)
-		render_height_limit(mode);
+	render_height_limit(mode);
 
 	if (!only_body) {
 		/*float render_color[4];
@@ -3376,7 +3375,7 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 
 /*rendering related functions*/
 //render
-void PartPlateList::render(bool bottom, float scale_factor, bool only_current, bool only_body, int hover_id)
+void PartPlateList::render(bool bottom, bool only_current, bool only_body, int hover_id)
 {
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
@@ -3395,16 +3394,17 @@ void PartPlateList::render(bool bottom, float scale_factor, bool only_current, b
 		if (only_current && (current_index != m_current_plate))
 			continue;
 		if (current_index == m_current_plate) {
+			PartPlate::HeightLimitMode height_mode = (only_current)?PartPlate::HEIGHT_LIMIT_NONE:m_height_limit_mode;
 			if (plate_hover_index == current_index)
-				(*it)->render(bottom, only_body, false, !only_current, m_height_limit_mode, plate_hover_action);
+				(*it)->render(bottom, only_body, false, height_mode, plate_hover_action);
 			else
-				(*it)->render(bottom, only_body, false, !only_current, m_height_limit_mode, -1);
+				(*it)->render(bottom, only_body, false, height_mode, -1);
 		}
 		else {
 			if (plate_hover_index == current_index)
-				(*it)->render(bottom, only_body, false, false, m_height_limit_mode, plate_hover_action);
+				(*it)->render(bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, plate_hover_action);
 			else
-				(*it)->render(bottom, only_body, false, false, m_height_limit_mode, -1);
+				(*it)->render(bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, -1);
 		}
 	}
 }
