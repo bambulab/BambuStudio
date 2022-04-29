@@ -399,7 +399,11 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                                     if (! temp_slices[idx_region2].expolygons.empty()) {
                                         const PrintObjectRegions::VolumeRegion& region2 = layer_range.volume_regions[idx_region2];
                                         if (!region2.model_volume->is_negative_volume() && overlap_in_xy(*region.bbox, *region2.bbox))
-                                            trim_overlap(temp_slices[idx_region2].expolygons, temp_slices[idx_region].expolygons);
+                                            //BBS: handle negative_volume seperately, always minus the negative volume and don't need to trim overlap
+                                            if (!region.model_volume->is_negative_volume())
+                                                trim_overlap(temp_slices[idx_region2].expolygons, temp_slices[idx_region].expolygons);
+                                            else
+                                                temp_slices[idx_region2].expolygons = diff_ex(temp_slices[idx_region2].expolygons, temp_slices[idx_region].expolygons);
                                     }
                             }
                         }
