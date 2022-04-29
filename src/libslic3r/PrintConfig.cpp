@@ -564,10 +564,10 @@ void PrintConfigDef::init_fff_params()
 
     // The following value is to be stored into the project file (AMF, 3MF, Config ...)
     // and it contains a sum of "compatible_printers_condition" values over the print and filament profiles.
-    def = this->add("compatible_printers_condition_cummulative", coStrings);
+    def = this->add("compatible_machine_expression_group", coStrings);
     def->set_default_value(new ConfigOptionStrings());
     def->cli = ConfigOptionDef::nocli;
-    def = this->add("compatible_prints_condition_cummulative", coStrings);
+    def = this->add("compatible_process_expression_group", coStrings);
     def->set_default_value(new ConfigOptionStrings());
     def->cli = ConfigOptionDef::nocli;
 
@@ -882,8 +882,10 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PET");
     def->enum_values.push_back("ABS");
     def->enum_values.push_back("TPU");
-    def->enum_values.push_back("HPC");
+    def->enum_values.push_back("PA-CF");
+    def->enum_values.push_back("PET-CF");
     def->enum_values.push_back("PC");
+    def->enum_values.push_back("Support");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionStrings { "PLA" });
 
@@ -1280,7 +1282,7 @@ void PrintConfigDef::init_fff_params()
 
     // The following value is to be stored into the project file (AMF, 3MF, Config ...)
     // and it contains a sum of "inherits" values over the print and filament profiles.
-    def = this->add("inherits_cummulative", coStrings);
+    def = this->add("inherits_group", coStrings);
     def->set_default_value(new ConfigOptionStrings());
     def->cli = ConfigOptionDef::nocli;
 
@@ -3294,6 +3296,14 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         //BBS: replace monotonic pattern to be monotonicline for top and bottom surface
         if (value == "monotonic")
             value = "monotonicline";
+    } else if (opt_key == "filament_type" && value == "HPC") {
+        value == "PA-CF";
+    } else if (opt_key == "inherits_cummulative") {
+        opt_key = "inherits_group";
+    } else if (opt_key == "compatible_printers_condition_cummulative") {
+        opt_key = "compatible_machine_expression_group";
+    } else if (opt_key == "compatible_prints_condition_cummulative") {
+        opt_key = "compatible_process_expression_group";
     }
 
     // Ignore the following obsolete configuration keys:

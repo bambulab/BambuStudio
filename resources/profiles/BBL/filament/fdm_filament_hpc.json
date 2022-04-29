@@ -22,9 +22,6 @@
     "filament_max_volumetric_speed": [
         "11"
     ],
-    "filament_type": [
-        "HPC"
-    ],
     "filament_density": [
         "1.04"
     ],

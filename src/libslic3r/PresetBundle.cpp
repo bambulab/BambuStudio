@@ -467,7 +467,7 @@ bool PresetBundle::validate_printers(const std::string &name, DynamicPrintConfig
         std::min(config.option<ConfigOptionFloats>("nozzle_diameter"  )->values.size(),
                  config.option<ConfigOptionFloats>("filament_diameter")->values.size()) : 1;
     inherits_values.resize(num_extruders + 2, std::string());
-    inherits_values  = config.option<ConfigOptionStrings>("inherits_cummulative", true)->values;
+    inherits_values  = config.option<ConfigOptionStrings>("inherits_group", true)->values;
 
     std::string inherits;
     if (inherits_values.size() >= (num_extruders + 2))
@@ -1141,9 +1141,9 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
         if (nonempty)
             out.set_key_value(key, new ConfigOptionStrings(std::move(values)));
     };
-    add_if_some_non_empty(std::move(compatible_printers_condition), "compatible_printers_condition_cummulative");
-    add_if_some_non_empty(std::move(compatible_prints_condition),   "compatible_prints_condition_cummulative");
-    add_if_some_non_empty(std::move(inherits),                      "inherits_cummulative");
+    add_if_some_non_empty(std::move(compatible_printers_condition), "compatible_machine_expression_group");
+    add_if_some_non_empty(std::move(compatible_prints_condition),   "compatible_process_expression_group");
+    add_if_some_non_empty(std::move(inherits),                      "inherits_group");
     //BBS: add logic for settings check between different system presets
     add_if_some_non_empty(std::move(different_settings),            "different_settings_to_system");
 
@@ -1194,9 +1194,9 @@ DynamicPrintConfig PresetBundle::full_sla_config() const
         if (nonempty)
             out.set_key_value(key, new ConfigOptionStrings(std::move(values)));
     };
-    add_if_some_non_empty(std::move(compatible_printers_condition), "compatible_printers_condition_cummulative");
-    add_if_some_non_empty(std::move(compatible_prints_condition),   "compatible_prints_condition_cummulative");
-    add_if_some_non_empty(std::move(inherits),                      "inherits_cummulative");
+    add_if_some_non_empty(std::move(compatible_printers_condition), "compatible_machine_expression_group");
+    add_if_some_non_empty(std::move(compatible_prints_condition),   "compatible_process_expression_group");
+    add_if_some_non_empty(std::move(inherits),                      "inherits_group");
 
 	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptSLA;
 	return out;
@@ -1303,12 +1303,12 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": , name_or_path %1%, is_external %2%, num_filaments %3%") % name_or_path % is_external % num_filaments;
-    // Make a copy of the "compatible_printers_condition_cummulative" and "inherits_cummulative" vectors, which
+    // Make a copy of the "compatible_machine_expression_group" and "inherits_group" vectors, which
     // accumulate values over all presets (print, filaments, printers).
     // These values will be distributed into their particular presets when loading.
-    std::vector<std::string> compatible_printers_condition_values   = std::move(config.option<ConfigOptionStrings>("compatible_printers_condition_cummulative", true)->values);
-    std::vector<std::string> compatible_prints_condition_values     = std::move(config.option<ConfigOptionStrings>("compatible_prints_condition_cummulative",   true)->values);
-    std::vector<std::string> inherits_values                        = std::move(config.option<ConfigOptionStrings>("inherits_cummulative", true)->values);
+    std::vector<std::string> compatible_printers_condition_values   = std::move(config.option<ConfigOptionStrings>("compatible_machine_expression_group", true)->values);
+    std::vector<std::string> compatible_prints_condition_values     = std::move(config.option<ConfigOptionStrings>("compatible_process_expression_group",   true)->values);
+    std::vector<std::string> inherits_values                        = std::move(config.option<ConfigOptionStrings>("inherits_group", true)->values);
     //BBS: add different settings check logic
     bool has_different_settings_to_system                           = config.option("different_settings_to_system")?true:false;
     std::vector<std::string> different_values                       = std::move(config.option<ConfigOptionStrings>("different_settings_to_system", true)->values);

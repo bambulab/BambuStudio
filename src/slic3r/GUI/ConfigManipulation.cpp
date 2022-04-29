@@ -63,10 +63,10 @@ std::vector<int> ConfigManipulation::get_temperature_range_by_filament_type(cons
         return std::vector<int>{260, 280};
     else if (filament_type == "PET")
         return std::vector<int>{220, 260};
-    else if (filament_type == "HPC")
+    else if (filament_type == "PET-CF" || filament_type == "PA-CF")
         return std::vector<int>{270, 300};
     else
-        //BBS: don't need to pop-up temperature checking window if filament_type is unknown
+        //BBS: don't need to pop-up temperature checking window if filament_type is unknown or Support
         return std::vector<int>{0, 0};
 }
 

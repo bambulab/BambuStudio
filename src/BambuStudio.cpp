@@ -278,14 +278,14 @@ int CLI::run(int argc, char **argv)
                 continue;
             else if (source_opt->is_scalar()) {
                 if (opt_key == "compatible_printers_condition") {
-                    ConfigOption *opt = m_print_config.option("compatible_printers_condition_cummulative", true);
+                    ConfigOption *opt = m_print_config.option("compatible_machine_expression_group", true);
                     ConfigOptionStrings* opt_vec_dst = static_cast<ConfigOptionStrings*>(opt);
                     if (opt_vec_dst->size() == 0)
                         opt_vec_dst->resize(1, new ConfigOptionString());
                     opt_vec_dst->set_at(source_opt, index+1, 0);
                 }
                 else if (opt_key == "compatible_prints_condition") {
-                    ConfigOption *opt = m_print_config.option("compatible_prints_condition_cummulative", true);
+                    ConfigOption *opt = m_print_config.option("compatible_process_expression_group", true);
                     ConfigOptionStrings* opt_vec_dst = static_cast<ConfigOptionStrings*>(opt);
                     if (opt_vec_dst->size() == 0)
                         opt_vec_dst->resize(1, new ConfigOptionString());
