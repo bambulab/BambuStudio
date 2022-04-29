@@ -133,18 +133,25 @@ void ButtonsListCtrl::SetSelection(int sel)
         return;
     // BBS: change button color
     wxColour selected_btn_bg("#00AE42");    // Gradient #00AE42
-    wxColour default_btn_bg("#3B4446");     // Gradient #414B4E
     if (m_selection >= 0) {
-        m_pageButtons[m_selection]->SetBackgroundColor(default_btn_bg);
+        StateColor bg_color = StateColor(
+        std::pair{wxColour(107, 107, 107), (int) StateColor::Hovered},
+        std::pair{wxColour(59, 68, 70), (int) StateColor::Normal});
+        m_pageButtons[m_selection]->SetBackgroundColor(bg_color);
         StateColor text_color = StateColor(
         std::pair{wxColour(255, 255, 255), (int) StateColor::Hovered},
-        std::pair{wxColour(172,172, 172), (int) StateColor::Normal}
+        std::pair{wxColour(238,238, 238), (int) StateColor::Normal}
         );
         m_pageButtons[m_selection]->SetSelected(false);
         m_pageButtons[m_selection]->SetTextColor(text_color);
     }
     m_selection = sel;
-    m_pageButtons[m_selection]->SetBackgroundColor(selected_btn_bg);
+
+    StateColor bg_color = StateColor(
+        std::pair{wxColour(0, 174, 66), (int) StateColor::Hovered},
+        std::pair{wxColour(0,174, 66), (int) StateColor::Normal});
+    m_pageButtons[m_selection]->SetBackgroundColor(bg_color);
+
     StateColor text_color = StateColor(
         std::pair{wxColour(255, 255, 255), (int) StateColor::Hovered},
         std::pair{wxColour(255, 255, 255), (int) StateColor::Normal}
@@ -157,8 +164,6 @@ void ButtonsListCtrl::SetSelection(int sel)
 
 bool ButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /* = false*/, const std::string &bmp_name /* = ""*/, const std::string &inactive_bmp_name)
 {
-    // BBS: use Button
-    wxColour default_btn_bg("#3B4446"); // Gradient #414B4E
     Button * btn = new Button(this, text.empty() ? text : " " + text, bmp_name, wxNO_BORDER);
     btn->SetCornerRadius(0);
 
@@ -166,10 +171,14 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /*
     //BBS set size for button
     btn->SetMinSize({(text.empty() ? 40 : 132) * em / 10, 36 * em / 10});
 
-    btn->SetBackgroundColor(default_btn_bg);
+    StateColor bg_color = StateColor(
+        std::pair{wxColour(107, 107, 107), (int) StateColor::Hovered},
+        std::pair{wxColour(59, 68, 70), (int) StateColor::Normal});
+
+    btn->SetBackgroundColor(bg_color);
     StateColor text_color = StateColor(
         std::pair{wxColour(255, 255, 255), (int) StateColor::Hovered},
-        std::pair{wxColour(172,172, 172), (int) StateColor::Normal});
+        std::pair{wxColour(238,238, 238), (int) StateColor::Normal});
     btn->SetTextColor(text_color);
     btn->SetInactiveIcon(inactive_bmp_name);
     btn->SetSelected(false);
