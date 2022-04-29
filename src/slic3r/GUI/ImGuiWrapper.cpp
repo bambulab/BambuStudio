@@ -113,7 +113,11 @@ const ImVec4 ImGuiWrapper::COL_SEPARATOR         = { 0.93f, 0.93f, 0.93f,1.0f };
 const ImVec4 ImGuiWrapper::COL_TITLE_BG          = { 0.745f, 0.745f, 0.745f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_WINDOW_BG         = { 1.000f, 1.000f, 1.000f, 0.95f };
 
-
+int ImGuiWrapper::TOOLBAR_WINDOW_FLAGS = ImGuiWindowFlags_AlwaysAutoResize
+                                 | ImGuiWindowFlags_NoMove
+                                 | ImGuiWindowFlags_NoResize
+                                 | ImGuiWindowFlags_NoCollapse
+                                 | ImGuiWindowFlags_NoTitleBar;
 
 
 bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const ImS32 v_max, ImS32* out_value, ImRect* out_handle, ImGuiSliderFlags flags/* = 0*/)

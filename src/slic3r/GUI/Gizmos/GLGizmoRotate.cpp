@@ -407,7 +407,7 @@ void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limi
     //if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
     //    return;
     if (m_object_manipulation)
-        m_object_manipulation->do_render_input_window(m_imgui, "Rotate", x, y, bottom_limit);
+        m_object_manipulation->do_render_rotate_window(m_imgui, "Rotate", x, y, bottom_limit);
     //RotoptimzeWindow popup{m_imgui, m_rotoptimizewin_state, {x, y, bottom_limit}};
 }
 

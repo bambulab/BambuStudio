@@ -512,32 +512,26 @@ bool GizmoObjectManipulation::reset_button(ImGuiWrapper *imgui_wrapper, float ca
      return unit_size + 8.0;
  }
 
-void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
+void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
 {
-    //static float last_y = 0.0f;
-    //static float last_h = 0.0f;
-
-    //BBS: GUI refactor: move gizmo to the right
+    // BBS: GUI refactor: move gizmo to the right
 #if BBS_TOOLBAR_ON_TOP
     imgui_wrapper->set_next_window_pos(x, y, ImGuiCond_Always, 0.f, 0.0f);
 #else
     imgui_wrapper->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
 #endif
 
-    //BBS
+    // BBS
     ImGuiWrapper::push_toolbar_style();
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0, 6.0));
 
     std::string name = this->m_new_title_string + "##" + window_name;
-    imgui_wrapper->begin(_L(name), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+    imgui_wrapper->begin(_L(name), ImGuiWrapper::TOOLBAR_WINDOW_FLAGS);
 
-    auto update = [this](unsigned int active_id, std::string opt_key, Vec3d original_value, Vec3d new_value)->int {
-        for (int i = 0; i < 3; i++)
-        {
-            if (original_value[i] != new_value[i])
-            {
-                if (active_id != m_last_active_item)
-                {
+    auto update = [this](unsigned int active_id, std::string opt_key, Vec3d original_value, Vec3d new_value) -> int {
+        for (int i = 0; i < 3; i++) {
+            if (original_value[i] != new_value[i]) {
+                if (active_id != m_last_active_item) {
                     on_change(opt_key, i, new_value[i]);
                     return i;
                 }
@@ -546,10 +540,10 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
         return -1;
     };
 
-    float space_size = imgui_wrapper->get_style_scaling() * 8;
+    float space_size    = imgui_wrapper->get_style_scaling() * 8;
     float position_size = imgui_wrapper->calc_text_size(_L("Position")).x + space_size;
-    float World_size = imgui_wrapper->calc_text_size(_L("World coordinates")).x + space_size;
-    float caption_max = std::max(position_size, World_size) + 2 * space_size;
+    float World_size    = imgui_wrapper->calc_text_size(_L("World coordinates")).x + space_size;
+    float caption_max   = std::max(position_size, World_size) + 2 * space_size;
     float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
 
     // position
@@ -560,10 +554,10 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
         original_position = this->m_new_position;
     Vec3d display_position = m_buffered_position;
     // Rotation
-    Vec3d rotation = this->m_buffered_rotation;
+    Vec3d rotation   = this->m_buffered_rotation;
     float unit_size  = max_unit_size(2, display_position, rotation);
-    int index      = 1;
-    int index_unit = 1;
+    int   index      = 1;
+    int   index_unit = 1;
 
     ImGui::AlignTextToFramePadding();
     unsigned int current_active_id = ImGui::GetActiveID();
@@ -579,9 +573,8 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("Z");
 
-    index = 1;
-    index_unit  = 1;
-    //ImGui::PushItemWidth(unit_size * 2);
+    index      = 1;
+    index_unit = 1;
     ImGui::AlignTextToFramePadding();
     imgui_wrapper->text(_L("Position"));
     ImGui::SameLine(caption_max + index * space_size);
@@ -597,12 +590,92 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
     imgui_wrapper->text(this->m_new_unit_string);
     m_buffered_position = display_position;
     update(current_active_id, "position", original_position, m_buffered_position);
-    //the init position values are not zero, won't add reset button
+    // the init position values are not zero, won't add reset button
 
-    index = 1;
+    // send focus to m_glcanvas
+    bool focued_on_text = false;
+    for (int j = 0; j < 3; j++) {
+        unsigned int id = ImGui::GetID(label_values[0][j]);
+        if (current_active_id == id) {
+            m_glcanvas.handle_sidebar_focus_event(label_values[0][j] + 2, true);
+            focued_on_text = true;
+            break;
+        }
+    }
+    if (!focued_on_text) m_glcanvas.handle_sidebar_focus_event("", false);
+
+    m_last_active_item = current_active_id;
+
+    imgui_wrapper->end();
+    ImGui::PopStyleVar(1);
+    ImGuiWrapper::pop_toolbar_style();
+}
+
+void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
+{
+    // BBS: GUI refactor: move gizmo to the right
+#if BBS_TOOLBAR_ON_TOP
+    imgui_wrapper->set_next_window_pos(x, y, ImGuiCond_Always, 0.f, 0.0f);
+#else
+    imgui_wrapper->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
+#endif
+
+    // BBS
+    ImGuiWrapper::push_toolbar_style();
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0, 6.0));
+
+    std::string name = this->m_new_title_string + "##" + window_name;
+    imgui_wrapper->begin(_L(name), ImGuiWrapper::TOOLBAR_WINDOW_FLAGS);
+
+    auto update = [this](unsigned int active_id, std::string opt_key, Vec3d original_value, Vec3d new_value) -> int {
+        for (int i = 0; i < 3; i++) {
+            if (original_value[i] != new_value[i]) {
+                if (active_id != m_last_active_item) {
+                    on_change(opt_key, i, new_value[i]);
+                    return i;
+                }
+            }
+        }
+        return -1;
+    };
+
+    float space_size    = imgui_wrapper->get_style_scaling() * 8;
+    float position_size = imgui_wrapper->calc_text_size(_L("Position")).x + space_size;
+    float World_size    = imgui_wrapper->calc_text_size(_L("World coordinates")).x + space_size;
+    float caption_max   = std::max(position_size, World_size) + 2 * space_size;
+    float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
+
+    // position
+    Vec3d original_position;
+    if (this->m_imperial_units)
+        original_position = this->m_new_position * this->mm_to_in;
+    else
+        original_position = this->m_new_position;
+    Vec3d display_position = m_buffered_position;
+    // Rotation
+    Vec3d rotation   = this->m_buffered_rotation;
+    float unit_size  = max_unit_size(2, display_position, rotation);
+    int   index      = 1;
+    int   index_unit = 1;
+
+    ImGui::AlignTextToFramePadding();
+    unsigned int current_active_id = ImGui::GetActiveID();
+    ImGui::PushItemWidth(caption_max);
+    imgui_wrapper->text(_L("World coordinates"));
+    ImGui::SameLine(caption_max + index * space_size);
+    ImGui::PushItemWidth(unit_size);
+    ImGui::TextAlignCenter("X");
+    ImGui::SameLine(caption_max + unit_size + (++index) * space_size);
+    ImGui::PushItemWidth(unit_size);
+    ImGui::TextAlignCenter("Y");
+    ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
+    ImGui::PushItemWidth(unit_size);
+    ImGui::TextAlignCenter("Z");
+
+    index      = 1;
     index_unit = 1;
 
-    //ImGui::PushItemWidth(unit_size * 2);
+    // ImGui::PushItemWidth(unit_size * 2);
     ImGui::AlignTextToFramePadding();
     imgui_wrapper->text(_L("Rotation"));
     ImGui::SameLine(caption_max + index * space_size);
@@ -619,41 +692,32 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
     m_buffered_rotation = rotation;
     update(current_active_id, "rotation", this->m_new_rotation, m_buffered_rotation);
 
-
-
     if (m_show_clear_rotation) {
         ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size + end_text_size);
-        if (reset_button(imgui_wrapper, caption_max, unit_size, space_size, end_text_size)) {
-            reset_rotation_value();
-        }
+        if (reset_button(imgui_wrapper, caption_max, unit_size, space_size, end_text_size)) { reset_rotation_value(); }
     } else {
         ImGui::SameLine(caption_max + 3 * unit_size + 5 * space_size + end_text_size);
         ImGui::InvisibleButton("", ImVec2(14.0f, 14.0f));
     }
 
-
-    //send focus to m_glcanvas
+    // send focus to m_glcanvas
     bool focued_on_text = false;
-    for (int i = 0; i < 2; i++)
-    for (int j = 0; j < 3; j++)
-    {
-        unsigned int id =  ImGui::GetID(label_values[i][j]);
-        if (current_active_id == id)
-        {
-            m_glcanvas.handle_sidebar_focus_event(label_values[i][j]+2, true);
+    for (int j = 0; j < 3; j++) {
+        unsigned int id = ImGui::GetID(label_values[1][j]);
+        if (current_active_id == id) {
+            m_glcanvas.handle_sidebar_focus_event(label_values[1][j] + 2, true);
             focued_on_text = true;
             break;
         }
     }
-    if (!focued_on_text)
-        m_glcanvas.handle_sidebar_focus_event("", false);
+    if (!focued_on_text) m_glcanvas.handle_sidebar_focus_event("", false);
 
     m_last_active_item = current_active_id;
 
     imgui_wrapper->end();
-    ImGui::PopStyleVar(1);
 
-    //BBS
+    // BBS
+    ImGui::PopStyleVar(1);
     ImGuiWrapper::pop_toolbar_style();
 }
 
@@ -671,7 +735,7 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0, 6.0));
 
     std::string name = this->m_new_title_string + "##" + window_name;
-    imgui_wrapper->begin(_L(name),ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+    imgui_wrapper->begin(_L(name), ImGuiWrapper::TOOLBAR_WINDOW_FLAGS);
 
     auto update = [this](unsigned int active_id, std::string opt_key, Vec3d original_value, Vec3d new_value)->int {
         for (int i = 0; i < 3; i++)

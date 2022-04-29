@@ -176,6 +176,9 @@ public:
     static void push_menu_style();
     static void pop_menu_style();
 
+    //BBS
+    static int TOOLBAR_WINDOW_FLAGS;
+
 private:
     void init_font(bool compress);
     void init_input();
