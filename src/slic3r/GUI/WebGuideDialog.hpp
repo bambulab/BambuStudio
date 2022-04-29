@@ -41,7 +41,8 @@ public:
     virtual ~GuideFrame();
 
     enum GuidePage {
-        BBL_WELCOME,
+        BBL_WELCOME, 
+        BBL_REGION,
         BBL_MODELS,
         BBL_FILAMENTS,
         BBL_FILAMENT_ONLY,

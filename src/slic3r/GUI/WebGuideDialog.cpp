@@ -101,7 +101,8 @@ GuideFrame::GuideFrame(GUI_App *pGUI)
     // wxLogMessage("User Agent: %s", m_browser->GetUserAgent());
 
     // Set a more sensible size for web browsing
-    SetSize(FromDIP(wxSize(1280, 800)));
+    SetSize(FromDIP(wxSize(820, 660)));
+    CenterOnParent();
 
     // Connect the webview events
     Bind(wxEVT_WEBVIEW_NAVIGATING, &GuideFrame::OnNavigationRequest, this, m_browser->GetId());
@@ -120,8 +121,7 @@ GuideFrame::GuideFrame(GUI_App *pGUI)
     LoadProfile();
 
     // UI
-    SetStartPage(BBL_WELCOME);
-    CenterOnParent();
+    SetStartPage(BBL_REGION);
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  finished");
 }
@@ -149,13 +149,16 @@ wxString GuideFrame::SetStartPage(GuidePage startpage)
     //wxLogMessage("GUIDE: webpage_2  %s", TargetUrl.mb_str());
 
     if (startpage == BBL_WELCOME){
-        SetTitle(_L("Guide"));
+        SetTitle(_L("Setup Wizard"));
         TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string().c_str());
+    } else if (startpage == BBL_REGION) {
+        SetTitle(_L("Setup Wizard"));
+        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\11\\index.html").make_preferred().string().c_str());
     } else if (startpage == BBL_MODELS) {
-        SetTitle(_L("Guide"));
+        SetTitle(_L("Setup Wizard"));
         TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\21\\index.html").make_preferred().string().c_str());
     } else if (startpage == BBL_FILAMENTS) {
-        SetTitle(_L("Guide"));
+        SetTitle(_L("Setup Wizard"));
 
         int nSize = m_ProfileJson["model"].size();
 
@@ -171,7 +174,7 @@ wxString GuideFrame::SetStartPage(GuidePage startpage)
         TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\24\\index.html").make_preferred().string().c_str());
     }
     else {
-        SetTitle(_L("Guide"));
+        SetTitle(_L("Setup Wizard"));
         TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\21\\index.html").make_preferred().string().c_str());
     }
 
@@ -257,8 +260,9 @@ void GuideFrame::OnNewWindow(wxWebViewEvent &evt)
 {
     wxString flag = " (other)";
 
-    if (evt.GetNavigationAction() == wxWEBVIEW_NAV_ACTION_USER) { flag = " (user)"; }
-
+    wxString NewUrl= evt.GetURL();
+    wxLaunchDefaultBrowser(NewUrl);
+    //if (evt.GetNavigationAction() == wxWEBVIEW_NAV_ACTION_USER) { flag = " (user)"; }
     // wxLogMessage("%s", "New window; url='" + evt.GetURL() + "'" + flag);
 
     // If we handle new window events then just load them in this window as we

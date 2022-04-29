@@ -149,22 +149,28 @@ function SortUI()
 		    }
 			
 			//Filament
-			let pFila=$("#ItemBlockArea input[vendor='"+fVendor+"'][model='"+fModel+"'][filatype='"+fType+"'][name='"+fShortName+"']");
+			let pFila=$("#ItemBlockArea input[vendor='"+fVendor+"'][filatype='"+fType+"'][name='"+fShortName+"']");
 	        if(pFila.length==0)
 		    {
-			    let HtmlFila='<div class="MItem"><input type="checkbox" vendor="'+fVendor+'"  filatype="'+fType+'" model="'+fModel+'" name="'+key+'" />'+fShortName+'</div>';
+			    let HtmlFila='<div class="MItem"><input type="checkbox" vendor="'+fVendor+'"  filatype="'+fType+'" model="'+fModel+'" name="'+fShortName+'" />'+fShortName+'</div>';
 			
 			    $("#ItemBlockArea").append(HtmlFila);
 				
 				if(fSelect==1)
 				{
-					$("#ItemBlockArea input[vendor='"+fVendor+"'][model='"+fModel+"'][filatype='"+fType+"'][name='"+key+"']").prop("checked",true);
+					$("#ItemBlockArea input[vendor='"+fVendor+"'][filatype='"+fType+"'][name='"+fShortName+"']").prop("checked",true);
 					
 					SelectNumber++;
 				}
-				else
-					$("#ItemBlockArea input[vendor='"+fVendor+"'][model='"+fModel+"'][filatype='"+fType+"'][name='"+key+"']").prop("checked",false);
+//				else
+//					$("#ItemBlockArea input[vendor='"+fVendor+"'][model='"+fModel+"'][filatype='"+fType+"'][name='"+key+"']").prop("checked",false);
 		    } 
+				else
+			{
+				let strModel=pFila.attr("model");
+				
+				pFila.attr("model", strModel+fModel);
+			}
 		}
 	}
 
@@ -402,7 +408,6 @@ function ChooseDefaultFilament()
 	ShowNotice(0);
 }
 
-
 function SelectAllFilament( nShow )
 {
 	if( nShow==0 )
@@ -414,7 +419,6 @@ function SelectAllFilament( nShow )
 		$('#ItemBlockArea input').prop("checked",true);
 	}
 }
-
 
 function ShowNotice( nShow )
 {
@@ -446,7 +450,14 @@ function ResponseFilamentResult()
 	for(let n=0;n<nAll;n++)
 	{
 		let sName=FilaSelectedList[n].getAttribute("name");
-		FilaArray.push(sName);
+		
+	    for( let key in m_ProfileItem['filament'] )
+	    {
+			let FName=GetFilamentShortname(key);
+			
+			if(FName==sName)
+				FilaArray.push(key);
+		}
 	}
 	
 	var tSend={};

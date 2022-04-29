@@ -23,7 +23,6 @@
 #include <wx/panel.h>
 #include <wx/tbarbase.h>
 #include "wx/textctrl.h"
-#include <wx/timer.h>
 
 
 namespace Slic3r {
@@ -88,6 +87,9 @@ public:
 
     wxTimer * m_LoginUpdateTimer{nullptr};
     void OnFreshLoginStatus(wxTimerEvent &event);
+
+private:
+    void SendRecentList();
 
 public:
     void SendRecentList(wxString const &sequence_id);

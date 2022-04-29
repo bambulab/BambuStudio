@@ -6,11 +6,12 @@ html
 body
 {
 	text-align:center;
+	padding-top: 10%;
 }
 
 #SlicerIcon
 {
-	margin-top:20%;
+
 }
 
 #Title

@@ -22,6 +22,12 @@ namespace GUI {
 
     wxDEFINE_EVENT(EVT_RESPONSE_MESSAGE, wxCommandEvent);
 
+    #define LOGIN_INFO_UPDATE_TIMER_ID 10002
+
+    BEGIN_EVENT_TABLE(WebViewPanel, wxPanel)
+    EVT_TIMER(LOGIN_INFO_UPDATE_TIMER_ID, WebViewPanel::OnFreshLoginStatus)
+    END_EVENT_TABLE()
+
 
 
 WebViewPanel::WebViewPanel(wxWindow *parent)
@@ -243,11 +249,21 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     Bind(wxEVT_IDLE, &WebViewPanel::OnIdle, this);
     Bind(wxEVT_CLOSE_WINDOW, &WebViewPanel::OnClose, this);
    
+    //update login status
+    m_LoginUpdateTimer = new wxTimer(this, LOGIN_INFO_UPDATE_TIMER_ID);
+    m_LoginUpdateTimer->Start(2000);
  }
 
 WebViewPanel::~WebViewPanel()
 {
     delete m_tools_menu;
+
+    if (m_LoginUpdateTimer != nullptr) {
+        m_LoginUpdateTimer->Stop();
+        delete m_LoginUpdateTimer;
+        m_LoginUpdateTimer = NULL;
+    }
+
 }
 
 
@@ -420,6 +436,10 @@ void WebViewPanel::OnEnableDevTools(wxCommandEvent& evt)
 void WebViewPanel::OnClose(wxCloseEvent& evt)
 {
     this->Hide();
+}
+
+void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event) { 
+    Slic3r::GUI::wxGetApp().getAccountManager()->show_login_info();
 }
 
 void WebViewPanel::SendRecentList(wxString const &sequence_id)

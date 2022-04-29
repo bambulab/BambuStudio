@@ -3397,19 +3397,21 @@ namespace Slic3r {
 
     void AccountManager::show_login_info() 
     {
-        if (GUI::wxGetApp().getAccountManager()->is_user_login()) {
-            GUI::wxGetApp().getAccountManager()->load_user_info();
+        if (is_user_login()) {
+            load_user_info();
 
             json m_Res              = json::object();
             m_Res["command"]        = "studio_userlogin";
             m_Res["sequence_id"]    = "10001";
             m_Res["data"]           = json::object();
-            m_Res["data"]["avatar"] = GUI::wxGetApp().getAccountManager()->m_curr_user->m_avatar;
-            m_Res["data"]["name"]   = GUI::wxGetApp().getAccountManager()->m_curr_user->m_name;
+            m_Res["data"]["avatar"] = m_curr_user->m_avatar;
+            m_Res["data"]["name"]   = m_curr_user->m_name;
 
             wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
 
             GUI::wxGetApp().run_script(strJS);
+        } else {
+            request_logout();
         }    
     }
 
