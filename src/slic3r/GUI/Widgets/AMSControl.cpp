@@ -127,8 +127,14 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
     m_bitmap_selected = create_scaled_bitmap("ams_refresh_selected", this, AMS_REFRESH_SIZE.x);
 
     m_animationCtrl = new wxAnimationCtrl(this, wxID_ANY, wxNullAnimation, wxPoint(0, 0), AMS_REFRESH_SIZE, wxAC_NO_AUTORESIZE);
+<<<<<<< HEAD   (1f44b0 FIX: gizmo_cut: fix the rotate angle limit issue)
     auto             path            = (boost::format("%1%/images/refresh.gif") % resources_dir()).str();
     if (m_animationCtrl->LoadFile(path)) m_animationCtrl->Hide(); 
+=======
+    auto path       = (boost::format("%1%/images/refresh.gif") % resources_dir()).str();
+    path            = encode_path(path.c_str());
+    if (m_animationCtrl->LoadFile(path)) m_animationCtrl->Hide();
+>>>>>>> CHANGE (b362c2 FIX:chinese path:fixed bugs caused by chinese path)
 
     SetSize(m_bitmap_normal.GetSize());
     SetMinSize(m_bitmap_normal.GetSize());

@@ -6647,7 +6647,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
 
     // icon
     std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
-    SetIcon(wxIcon(icon_path, wxBITMAP_TYPE_ICO));
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
 

@@ -34,7 +34,9 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
         : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
     //wxString url = wxString(wxGetApp().app_config->get_web_host_url()) + MODEL_STORE_URL;
-    wxString url = resources_dir() + "/web/homepage/index.html";
+    //wxString url = resources_dir() + "/web/homepage/index.html";
+
+    wxString url = encode_path(wxString::Format("%s/web/homepage/index.html",resources_dir()).c_str());
     m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION);
 
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);

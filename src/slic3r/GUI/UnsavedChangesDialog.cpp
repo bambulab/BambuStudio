@@ -814,7 +814,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
 {
     // icon
     std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
-    SetIcon(wxIcon(icon_path, wxBITMAP_TYPE_ICO));
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
   
 
