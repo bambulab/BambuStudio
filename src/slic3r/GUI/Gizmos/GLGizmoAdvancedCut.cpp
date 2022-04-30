@@ -65,7 +65,7 @@ GLGizmoAdvancedCut::GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& ic
     , m_keep_lower(true)
     , m_rotate_lower(false)
     , m_do_segment(false)
-    , m_segment_smoothing_alpha(0.5) 
+    , m_segment_smoothing_alpha(0.5)
     , m_segment_number(5)
 {
     for (int i = 0; i < 4; i++)
@@ -205,8 +205,12 @@ void GLGizmoAdvancedCut::on_update(const UpdateData& data)
 
     Vec3d rotation;
     for (int i = 0; i < 3; i++)
+    {
         rotation(i) = m_gizmos[i].get_angle();
-    
+        if (rotation(i) < 0)
+            rotation(i) = 2*PI + rotation(i);
+    }
+
     m_rotation = rotation;
 
     if (m_hover_id == get_group_id())
