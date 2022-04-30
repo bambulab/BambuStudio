@@ -219,10 +219,10 @@ int CLI::run(int argc, char **argv)
         }
         DynamicPrintConfig  config;
         ConfigSubstitutions config_substitutions;
+        std::map<std::string, std::string> key_values;
         try {
             BOOST_LOG_TRIVIAL(info) << "load filament file "<< file << ", with rule "<< config_substitution_rule << std::endl;
             std::string reason;
-            std::map<std::string, std::string> key_values;
             config_substitutions = config.load_from_json(file, config_substitution_rule, key_values, reason);
             if (!reason.empty()) {
                 BOOST_LOG_TRIVIAL(error) << "Can not load filament config from file "<<file<<"\n";
@@ -261,6 +261,15 @@ int CLI::run(int argc, char **argv)
             ConfigOptionString option(name);
             opt_filament_settings->set_at(&option, index, 0);
         }
+        std::string filament_id;
+        ConfigOptionStrings *opt_filament_ids = static_cast<ConfigOptionStrings *> (m_print_config.option("filament_ids", true));
+        auto filament_id_iter = key_values.find(BBL_JSON_KEY_FILAMENT_ID);
+        if (filament_id_iter != key_values.end())
+            filament_id = filament_id_iter->second;
+        ConfigOptionString* filament_id_setting = new ConfigOptionString(filament_id);
+        if (opt_filament_ids->size() < filament_count)
+            opt_filament_ids->resize(filament_count, filament_id_setting);
+        opt_filament_ids->set_at(filament_id_setting, index, 0);
         //parse the filament value to index th
         //loop through options and apply them
         for (const t_config_option_key &opt_key : config.keys()) {
@@ -1152,12 +1161,14 @@ int CLI::run(int argc, char **argv)
         // get type and color for platedata
         auto* filament_types = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_type"));
         const ConfigOptionStrings* filament_color = dynamic_cast<const ConfigOptionStrings *>(m_print_config.option("filament_colour"));
+        //auto* filament_id = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_ids"));
 
         for (int i = 0; i < plate_data_list.size(); i++) {
             PlateData *plate_data = plate_data_list[i];
             for (auto it = plate_data->slice_flaments_info.begin(); it != plate_data->slice_flaments_info.end(); it++) {
                 it->type  = filament_types?filament_types->get_at(it->id):"PLA";
                 it->color = filament_color?filament_color->get_at(it->id):"#FFFFFF";
+                //it->filament_id = filament_id?filament_id->get_at(it->id):"unknown";
             }
         }
 

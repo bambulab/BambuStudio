@@ -915,6 +915,10 @@ void PrintConfigDef::init_fff_params()
     //BBS: open this option to command line
     //def->cli = ConfigOptionDef::nocli;
 
+    def = this->add("filament_ids", coStrings);
+    def->set_default_value(new ConfigOptionStrings());
+    def->cli = ConfigOptionDef::nocli;
+
     def = this->add("filament_vendor", coStrings);
     def->set_default_value(new ConfigOptionStrings{L("(Undefined)")});
     def->cli = ConfigOptionDef::nocli;

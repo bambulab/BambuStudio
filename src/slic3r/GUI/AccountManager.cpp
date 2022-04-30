@@ -2850,6 +2850,7 @@ namespace Slic3r {
                         boost::optional<std::string> name = root.get_optional<std::string>("name");
                         boost::optional<std::string> type = root.get_optional<std::string>("type");
                         boost::optional<std::string> base_id = root.get_optional<std::string>("base_id");
+                        boost::optional<std::string> filament_id = root.get_optional<std::string>("filament_id");
 
                         if (name.has_value()) {
                             if (preset->name.empty())
@@ -2874,6 +2875,9 @@ namespace Slic3r {
                         }
                         if (version.has_value())
                             preset->key_values.insert(std::make_pair("version", version.value()));
+                        if (filament_id.has_value()) {
+                            preset->filament_id = filament_id.value();
+                        }
                         if (m_curr_user)
                             preset->key_values.insert(std::make_pair("user_id", m_curr_user->get_user_id()));
                     }
@@ -3391,11 +3395,11 @@ namespace Slic3r {
 
          GUI::ZUserLogin dlg;
          dlg.run();
-        
+
          show_login_info();
     }
 
-    void AccountManager::show_login_info() 
+    void AccountManager::show_login_info()
     {
         if (is_user_login()) {
             load_user_info();
@@ -3416,10 +3420,10 @@ namespace Slic3r {
     }
 
 
-    void AccountManager::request_logout() 
-    { 
+    void AccountManager::request_logout()
+    {
         user_logout();
-        
+
         json m_Res              = json::object();
         m_Res["command"]        = "studio_useroffline";
         m_Res["sequence_id"]    = "10001";

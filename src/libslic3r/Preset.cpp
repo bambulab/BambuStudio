@@ -980,10 +980,14 @@ void PresetCollection::load_presets(
                     const Preset& default_preset = this->default_preset_for(config);
                     if (inherit_preset) {
                         preset.config = inherit_preset->config;
+                        preset.filament_id = inherit_preset->filament_id;
                     }
                     else {
+                        //should not happen
+                        BOOST_LOG_TRIVIAL(error) << boost::format("can not find parent for config %1%!")%preset.file;
                         // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
-                        preset.config = default_preset.config;
+                        //preset.config = default_preset.config;
+                        continue;
                     }
                     preset.config.apply(std::move(config));
                     Preset::normalize(preset.config);
@@ -1109,10 +1113,13 @@ void PresetCollection::load_project_embedded_presets(std::vector<Preset*>& proje
             const Preset& default_preset = this->default_preset_for(config);
             if (inherit_preset) {
                 preset->config = inherit_preset->config;
+                preset->filament_id = inherit_preset->filament_id;
             }
             else {
                 // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
-                preset->config = default_preset.config;
+                //preset->config = default_preset.config;
+                BOOST_LOG_TRIVIAL(error) << boost::format("can not find parent for config %1%!")%preset->file;
+                continue;
             }
             preset->config.apply(std::move(config));
             Preset::normalize(preset->config);
@@ -1319,6 +1326,8 @@ void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_prese
                 BOOST_LOG_TRIVIAL(warning) << "local setting_id " << iter->setting_id<<", cloud setting_id "<<preset->setting_id;
                 iter->setting_id = preset->setting_id;
             }
+            if (iter->filament_id.empty() && iter->type == Preset::Type::TYPE_FILAMENT)
+                iter->filament_id = preset->filament_id;
             //BBS: we should compare the time between cloud and local
             if ((preset->updated_time == 0) || (preset->updated_time <= iter->updated_time)) {
                 if (preset->updated_time < iter->updated_time)
@@ -1464,7 +1473,8 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     const std::set<std::string> &different_settings_list,
     // Select the preset after loading?
     LoadAndSelect                select,
-    const Semver                file_version)
+    const Semver                file_version,
+    const std::string           filament_id)
 {
     // Load the preset over a default preset, so that the missing fields are filled in from the default preset.
     DynamicPrintConfig cfg(this->default_preset_for(combined_config).config);
@@ -1668,6 +1678,15 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     Preset &preset = this->load_preset(path, new_name, std::move(cfg), select == LoadAndSelect::Always);
     preset.is_external = true;
     preset.version = file_version;
+    if (!filament_id.empty())
+        preset.filament_id = filament_id;
+    else {
+        if (!inherits.empty()) {
+            Preset *parent = this->find_preset(inherits, false, true);
+            if (parent)
+                preset.filament_id = parent->filament_id;
+        }
+    }
     if (from_project) {
         preset.is_project_embedded = true;
     }

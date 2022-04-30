@@ -123,7 +123,7 @@ public:
     std::string     task_duration;      /* duration created by machine, unit seconds */
     std::string     task_thumbnail_url; /* url of task thumbnail */
     /* user options */
-    std::string     task_bed_type;      /* bed_type of task, enum "auto" "pe", "pc", "pei" */  
+    std::string     task_bed_type;      /* bed_type of task, enum "auto" "pe", "pc", "pei" */
     bool            task_bed_leveling;  /* bed leveling of task */
     bool            task_flow_cali;     /* flow calibration of task */
     bool            task_vabration_cali;/* vabration calibration of task */

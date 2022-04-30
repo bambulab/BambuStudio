@@ -449,7 +449,8 @@ public:
         const std::set<std::string> &different_settings_list,
         // Select the preset after loading?
         LoadAndSelect                select = LoadAndSelect::Always,
-        const Semver                file_version = Semver());
+        const Semver                file_version = Semver(),
+        const std::string           filament_id = std::string());
 
     // Save the preset under a new name. If the name is different from the old one,
     // a new preset is stored into the list of presets.
