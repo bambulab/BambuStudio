@@ -766,10 +766,10 @@ std::vector<std::string> DiffViewCtrl::selected_options()
 //------------------------------------------
 
 static std::string none{"none"};
-#define UNSAVE_CHANGE_DIALOG_SCROLL_WINDOW_SIZE wxSize(FromDIP(470), FromDIP(374))
-#define UNSAVE_CHANGE_DIALOG_ACTION_LINE_SIZE wxSize(FromDIP(470), FromDIP(40))
+#define UNSAVE_CHANGE_DIALOG_SCROLL_WINDOW_SIZE wxSize(FromDIP(490), FromDIP(374))
+#define UNSAVE_CHANGE_DIALOG_ACTION_LINE_SIZE wxSize(FromDIP(490), FromDIP(40))
 #define UNSAVE_CHANGE_DIALOG_FIRST_VALUE_WIDTH FromDIP(190)
-#define UNSAVE_CHANGE_DIALOG_VALUE_WIDTH FromDIP(145)
+#define UNSAVE_CHANGE_DIALOG_VALUE_WIDTH FromDIP(150)
 #define UNSAVE_CHANGE_DIALOG_ITEM_HEIGHT FromDIP(24)
 #define UNSAVE_CHANGE_DIALOG_BUTTON_SIZE wxSize(FromDIP(70), FromDIP(24))
 
@@ -864,10 +864,10 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     title_block_middle->SetBackgroundColour(wxColour(172, 172, 172));
 
     m_sizer_top->Add(title_block_middle, 0, wxBOTTOM | wxEXPAND | wxTOP, 2);
-    auto m_panel_oldv = new wxPanel( m_table_top, wxID_ANY, wxDefaultPosition, wxSize( UNSAVE_CHANGE_DIALOG_VALUE_WIDTH,-1 ), wxTAB_TRAVERSAL );
+    auto m_panel_oldv = new wxPanel( m_table_top, wxID_ANY, wxDefaultPosition, wxSize(UNSAVE_CHANGE_DIALOG_VALUE_WIDTH,-1), wxTAB_TRAVERSAL );
     wxBoxSizer *top_title_oldv = new wxBoxSizer(wxVERTICAL);
-    top_title_oldv->SetMinSize(wxSize(UNSAVE_CHANGE_DIALOG_VALUE_WIDTH, -1));
     wxBoxSizer *top_title_oldv_h = new wxBoxSizer(wxHORIZONTAL);
+
     static_oldv_title = new wxStaticText(m_panel_oldv, wxID_ANY, _L("Old Value"), wxDefaultPosition, wxDefaultSize, 0);
     static_oldv_title->SetFont(::Label::Body_13);
     static_oldv_title->Wrap(-1);
@@ -885,11 +885,9 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
 
     auto m_panel_newv = new wxPanel( m_table_top, wxID_ANY, wxDefaultPosition, wxSize( UNSAVE_CHANGE_DIALOG_VALUE_WIDTH,-1 ), wxTAB_TRAVERSAL );
     wxBoxSizer *top_title_newv = new wxBoxSizer(wxVERTICAL);
-
-    top_title_newv->SetMinSize(wxSize(UNSAVE_CHANGE_DIALOG_VALUE_WIDTH, -1));
     wxBoxSizer *top_title_newv_h = new wxBoxSizer(wxHORIZONTAL);
 
-    static_newv_title = new wxStaticText(m_panel_newv, wxID_ANY, _L("New Value"), wxDefaultPosition, wxSize(-1, -1), 0);
+    static_newv_title = new wxStaticText(m_panel_newv, wxID_ANY, _L("New Value"), wxDefaultPosition, wxDefaultSize, 0);
     static_newv_title->SetFont(::Label::Body_13);
     static_newv_title->Wrap(-1);
     static_newv_title->SetForegroundColour(*wxWHITE);
@@ -908,8 +906,8 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     m_sizer_top->Fit(m_table_top);
     m_sizer_tab->Add(m_table_top, 1, 0, 0);
 
-    m_scrolledWindow = new wxScrolledWindow(m_panel_tab, wxID_ANY, wxDefaultPosition, UNSAVE_CHANGE_DIALOG_SCROLL_WINDOW_SIZE,  wxNO_BORDER|wxVERTICAL);
-    m_scrolledWindow->SetScrollRate(5, 5);
+    m_scrolledWindow = new wxScrolledWindow(m_panel_tab, wxID_ANY, wxDefaultPosition, UNSAVE_CHANGE_DIALOG_SCROLL_WINDOW_SIZE,  wxNO_BORDER|wxVSCROLL);
+    m_scrolledWindow->SetScrollRate(0, 5);
     m_scrolledWindow->SetBackgroundColour(GREY200);
     m_sizer_bottom = new wxBoxSizer(wxVERTICAL);
     m_sizer_bottom->Add(m_scrolledWindow, 1, wxEXPAND, 0);
@@ -1459,28 +1457,31 @@ void UnsavedChangesDialog::update_list()
                 panel_left->Layout();
                 sizer_item->Add(panel_left, 0, wxALIGN_CENTER, 0);
 
-                auto        panel_oldv  = new wxPanel(panel_item, wxID_ANY, wxDefaultPosition, wxSize(UNSAVE_CHANGE_DIALOG_VALUE_WIDTH - 15, -1), wxTAB_TRAVERSAL);
+                auto        panel_oldv  = new wxPanel(panel_item, wxID_ANY, wxDefaultPosition, wxSize(UNSAVE_CHANGE_DIALOG_VALUE_WIDTH, -1), wxTAB_TRAVERSAL);
                 wxBoxSizer *sizer_old_v = new wxBoxSizer(wxVERTICAL);
 
-                auto text_oldv = new wxStaticText(panel_oldv, wxID_ANY, data.old_value, wxDefaultPosition, wxDefaultSize, 0);
+
+                data.old_value = subreplace(data.old_value.ToStdString(), "\n", " ");
+                auto text_oldv = new wxStaticText(panel_oldv, wxID_ANY, data.old_value, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
                 text_oldv->SetFont(::Label::Body_13);
                 text_oldv->Wrap(-1);
                 text_oldv->SetForegroundColour(GREY700);
-                sizer_old_v->Add(text_oldv, 0, wxALIGN_CENTER, 0);
+                sizer_old_v->Add(text_oldv, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5);
 
                 panel_oldv->SetSizer(sizer_old_v);
                 panel_oldv->Layout();
                 sizer_item->Add(panel_oldv, 0, wxALIGN_CENTER, 0);
 
-                auto        panel_newv  = new wxPanel(panel_item, wxID_ANY, wxDefaultPosition, wxSize(UNSAVE_CHANGE_DIALOG_VALUE_WIDTH - 15, -1), wxTAB_TRAVERSAL);
+                auto        panel_newv  = new wxPanel(panel_item, wxID_ANY, wxDefaultPosition, wxSize(UNSAVE_CHANGE_DIALOG_VALUE_WIDTH, -1), wxTAB_TRAVERSAL);
                 wxBoxSizer *sizer_new_v = new wxBoxSizer(wxVERTICAL);
 
-                auto text_newv = new wxStaticText(panel_newv, wxID_ANY, data.new_value, wxDefaultPosition, wxSize(-1, -1), 0);
+                data.new_value = subreplace(data.new_value.ToStdString(), "\n", " ");
+                auto text_newv = new wxStaticText(panel_newv, wxID_ANY, data.new_value, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
                 text_newv->SetFont(::Label::Body_13);
                 text_newv->Wrap(-1);
                 text_newv->SetForegroundColour(GREY700);
 
-                sizer_new_v->Add(text_newv, 0, wxALIGN_CENTER, 0);
+                sizer_new_v->Add(text_newv, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5);
 
                 panel_newv->SetSizer(sizer_new_v);
                 panel_newv->Layout();
@@ -1504,6 +1505,17 @@ void UnsavedChangesDialog::update_list()
 
        m_scrolledWindow->SetSizer(m_listsizer);
     // m_scrolledWindow->Layout();
+}
+
+std::string UnsavedChangesDialog::subreplace(std::string resource_str, std::string sub_str, std::string new_str)
+{
+    std::string            dst_str = resource_str;
+    std::string::size_type pos     = 0;
+    while ((pos = dst_str.find(sub_str)) != std::string::npos)
+    {
+        dst_str.replace(pos, sub_str.length(), new_str);
+    }
+    return dst_str;
 }
 
 void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* presets_)

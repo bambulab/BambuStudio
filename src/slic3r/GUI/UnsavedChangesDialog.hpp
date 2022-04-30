@@ -329,7 +329,8 @@ public:
     void build(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, const wxString& header = "");
     void update(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, const wxString& header);
     void update_list();
-    void update_tree(Preset::Type type, PresetCollection *presets);
+    std::string subreplace(std::string resource_str, std::string sub_str, std::string new_str);
+    void        update_tree(Preset::Type type, PresetCollection *presets);
     void show_info_line(Action action, std::string preset_name = "");
     void update_config(Action action);
     void close(Action action);
