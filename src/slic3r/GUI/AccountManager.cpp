@@ -3404,8 +3404,6 @@ namespace Slic3r {
     void AccountManager::show_login_info()
     {
         if (is_user_login()) {
-            load_user_info();
-
             json m_Res              = json::object();
             m_Res["command"]        = "studio_userlogin";
             m_Res["sequence_id"]    = "10001";
