@@ -374,6 +374,9 @@ void PresetBundle::reset_project_embedded_presets()
     this->filaments.reset_project_embedded_presets();
     this->printers.reset_project_embedded_presets();
 
+    this->update_multi_material_filament_presets();
+    this->update_compatible(PresetSelectCompatibleType::Never);
+
     //update filament_presets
     for (size_t i = 0; i < filament_presets.size(); ++ i)
     {
