@@ -73,6 +73,8 @@ GLGizmoAdvancedCut::GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& ic
 
     set_group_id(m_gizmos.size());
     m_rotation.setZero();
+    //m_current_base_rotation.setZero();
+    m_rotate_cmds.clear();
     m_buffered_rotation.setZero();
 }
 
@@ -90,18 +92,25 @@ void GLGizmoAdvancedCut::update_plane_points()
         plane_points_rot[i] = m_cut_plane_points[i] - plane_center;
     }
 
-    if (m_rotation(0) > EPSILON)
+    if (m_rotation(0) > EPSILON) {
         rotate_x_3d(plane_points_rot, m_rotation(0));
-    if (m_rotation(1) > EPSILON)
+        m_rotate_cmds.emplace(m_rotate_cmds.begin(), m_rotation(0), X);
+    }
+    if (m_rotation(1) > EPSILON) {
         rotate_y_3d(plane_points_rot, m_rotation(1));
-    if (m_rotation(2) > EPSILON)
+        m_rotate_cmds.emplace(m_rotate_cmds.begin(), m_rotation(1), Y);
+    }
+    if (m_rotation(2) > EPSILON) {
         rotate_z_3d(plane_points_rot, m_rotation(2));
+        m_rotate_cmds.emplace(m_rotate_cmds.begin(), m_rotation(2), Z);
+    }
 
     Vec3d plane_normal = calc_plane_normal(plane_points_rot);
     for (int i = 0; i < plane_points_rot.size(); i++) {
         m_cut_plane_points[i] = plane_points_rot[i] + plane_center + plane_normal * m_movement;
     }
 
+    //m_current_base_rotation += m_rotation;
     m_rotation.setZero();
     m_movement = 0.0;
 }
@@ -141,6 +150,8 @@ void GLGizmoAdvancedCut::reset_cut_plane()
     m_cut_plane_points[3] = { min_x, max_y, 0 };
     m_movement = 0.0;
     m_rotation.setZero();
+    //m_current_base_rotation.setZero();
+    m_rotate_cmds.clear();
 }
 
 void GLGizmoAdvancedCut::reset_all()
@@ -212,6 +223,7 @@ void GLGizmoAdvancedCut::on_update(const UpdateData& data)
     }
 
     m_rotation = rotation;
+    //m_move_grabber.angles = m_current_base_rotation + m_rotation;
 
     if (m_hover_id == get_group_id())
         set_movement(m_start_movement + calc_projection(data.mouse_ray));
@@ -275,6 +287,7 @@ void GLGizmoAdvancedCut::on_render()
     // Draw the grabber and the connecting line
     Vec3d plane_center_rot = calc_plane_center(plane_points_rot);
     m_move_grabber.center = plane_center_rot + plane_normal_rot * Offset;
+    //m_move_grabber.angles = m_current_base_rotation + m_rotation;
 
     glsafe(::glDisable(GL_DEPTH_TEST));
     glsafe(::glLineWidth(m_hover_id != -1 ? 2.0f : 1.5f));
@@ -288,9 +301,52 @@ void GLGizmoAdvancedCut::on_render()
     glDisable(GL_LINE_STIPPLE);
 
     //std::copy(std::begin(GrabberColor), std::end(GrabberColor), m_move_grabber.color);
-    m_move_grabber.color = GrabberColor;
-    m_move_grabber.hover_color = GrabberHoverColor;
-    m_move_grabber.render(m_hover_id == get_group_id(), (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0));
+    //m_move_grabber.color = GrabberColor;
+    //m_move_grabber.hover_color = GrabberHoverColor;
+    //m_move_grabber.render(m_hover_id == get_group_id(), (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0));
+    bool hover = (m_hover_id == get_group_id());
+    std::array<float, 4> render_color;
+    if (hover) {
+        render_color = GrabberHoverColor;
+    }
+    else
+        render_color = GrabberColor;
+
+    const GLModel& cube = m_move_grabber.get_cube();
+    //BBS set to fixed size grabber
+    //float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
+    float fullsize = 8.0f;
+    if (GLGizmoBase::INV_ZOOM > 0) {
+        fullsize = m_move_grabber.FixedGrabberSize * GLGizmoBase::INV_ZOOM;
+    }
+
+    const_cast<GLModel*>(&cube)->set_color(-1, render_color);
+
+    glsafe(::glPushMatrix());
+    glsafe(::glTranslated(m_move_grabber.center.x(), m_move_grabber.center.y(), m_move_grabber.center.z()));
+
+    if (m_rotation(0) > EPSILON)
+        glsafe(::glRotated(Geometry::rad2deg(m_rotation(0)), 1.0, 0.0, 0.0));
+    if (m_rotation(1) > EPSILON)
+        glsafe(::glRotated(Geometry::rad2deg(m_rotation(1)), 0.0, 1.0, 0.0));
+    if (m_rotation(2) > EPSILON)
+        glsafe(::glRotated(Geometry::rad2deg(m_rotation(2)), 0.0, 0.0, 1.0));
+    for (int index = 0; index < m_rotate_cmds.size(); index ++)
+    {
+        Rotate_data& data = m_rotate_cmds[index];
+        if (data.ax == X)
+            glsafe(::glRotated(Geometry::rad2deg(data.angle), 1.0, 0.0, 0.0));
+        else if (data.ax == Y)
+            glsafe(::glRotated(Geometry::rad2deg(data.angle), 0.0, 1.0, 0.0));
+        else if (data.ax == Z)
+            glsafe(::glRotated(Geometry::rad2deg(data.angle), 0.0, 0.0, 1.0));
+    }
+    //glsafe(::glRotated(Geometry::rad2deg(angles.z()), 0.0, 0.0, 1.0));
+    //glsafe(::glRotated(Geometry::rad2deg(angles.y()), 0.0, 1.0, 0.0));
+    //glsafe(::glRotated(Geometry::rad2deg(angles.x()), 1.0, 0.0, 0.0));
+    glsafe(::glScaled(fullsize, fullsize, fullsize));
+    cube.render();
+    glsafe(::glPopMatrix());
 
     // Should be placed at last, because GLGizmoRotate3D clears depth buffer
     GLGizmoRotate3D::on_render();

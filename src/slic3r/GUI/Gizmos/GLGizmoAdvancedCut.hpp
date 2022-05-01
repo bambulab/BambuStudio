@@ -9,6 +9,15 @@ namespace GUI {
 
 class GLGizmoAdvancedCut : public GLGizmoRotate3D
 {
+struct Rotate_data {
+    double  angle;
+    Axis    ax;
+
+    Rotate_data(double an, Axis a)
+        : angle(an), ax(a)
+    {
+    }
+};
 private:
     static const double Offset;
     static const double Margin;
@@ -19,6 +28,8 @@ private:
     double m_start_movement;
 
     Vec3d m_rotation;
+    //Vec3d m_current_base_rotation;
+    std::vector<Rotate_data> m_rotate_cmds;
 
     Vec3d m_buffered_rotation;
     double m_buffered_movement;
