@@ -243,8 +243,15 @@ void TriangleSelector::select_patch(int facet_start, std::unique_ptr<Cursor> &&c
     // world coords and does not change after scaling.
     if (m_old_cursor_radius_sqr != m_cursor->radius_sqr) {
         // BBS: improve details for large cursor radius
-        set_edge_limit(std::min(std::sqrt(m_cursor->radius_sqr) / 5.f, 0.2f));
-        m_old_cursor_radius_sqr = m_cursor->radius_sqr;
+        TriangleSelector::HeightRange* hr_cursor = dynamic_cast<TriangleSelector::HeightRange*>(m_cursor.get());
+        if (hr_cursor == nullptr) {
+            set_edge_limit(std::min(std::sqrt(m_cursor->radius_sqr) / 5.f, 0.2f));
+            m_old_cursor_radius_sqr = m_cursor->radius_sqr;
+        }
+        else {
+            set_edge_limit(0.05);
+            m_old_cursor_radius_sqr = 0.05;
+        }
     }
 
     const float highlight_angle_limit = cos(Geometry::deg2rad(highlight_by_angle_deg));
@@ -269,14 +276,14 @@ void TriangleSelector::select_patch(int facet_start, std::unique_ptr<Cursor> &&c
     std::vector<bool> visited(m_orig_size_indices, false);
 
     for (int i = 0; i < start_facets.size(); i++) {
-        int facet_id = start_facets[i];
-        if (visited[facet_id])
+        int start_facet_id = start_facets[i];
+        if (visited[start_facet_id])
             continue;
 
         // Now start with the facet the pointer points to and check all adjacent facets.
         std::vector<int> facets_to_check;
         facets_to_check.reserve(16);
-        facets_to_check.emplace_back(facet_id);
+        facets_to_check.emplace_back(start_facet_id);
 
         // Breadth-first search around the hit point. facets_to_check may grow significantly large.
         // Head of the bread-first facets_to_check FIFO.
@@ -1092,15 +1099,19 @@ bool TriangleSelector::HeightRange::is_pointer_in_triangle(const Vec3f& p1_, con
 
 bool TriangleSelector::HeightRange::is_mesh_point_inside(const Vec3f& point) const
 {
+    // just use 40% edge limit as tolerance
+    const float tolerance = 0.02;
     const Vec3f transformed_point = trafo * point;
+    float top_z = m_z_world + m_height + tolerance;
+    float bot_z = m_z_world - tolerance;
 
-    return transformed_point.z() > m_z_world && transformed_point.z() < m_z_world + m_height;
+    return transformed_point.z() > bot_z && transformed_point.z() < top_z;
 }
 
 bool TriangleSelector::HeightRange::is_edge_inside_cursor(const Triangle& tr, const std::vector<Vertex>& vertices) const
 {
-    float top_z = m_z_world + m_height;
-    float bot_z = m_z_world;
+    float top_z = m_z_world + m_height + EPSILON;
+    float bot_z = m_z_world - EPSILON;
     std::array<Vec3f, 3> pts;
     for (int i = 0; i < 3; ++i) {
         pts[i] = vertices[tr.verts_idxs[i]].v;
