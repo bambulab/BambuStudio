@@ -762,6 +762,7 @@ private:
     std::vector<CustomGCode::Item> m_custom_gcode_per_print_z;
 
     bool m_contained_in_bed{ true };
+    mutable bool m_no_render_path { false };
 
 public:
     GCodeViewer();

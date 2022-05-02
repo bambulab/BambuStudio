@@ -1086,8 +1086,9 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
 
     //BBS fixed bottom_margin for space to render horiz slider
     int bottom_margin = 64;
+
     //BBS move to developer mode
-    if (m_sequential_view.current.last != m_sequential_view.endpoints.last) {
+    if (m_sequential_view.current.last != m_sequential_view.endpoints.last && !m_no_render_path) {
         m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
         m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
         //BBS fixed buttom margin. m_moves_slider.pos_y
@@ -1103,6 +1104,7 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
     if (m_moves_slider->is_dirty()) {
         update_sequential_view_current((m_moves_slider->GetLowerValueD() - 1.0),
             static_cast<unsigned int>(m_moves_slider->GetHigherValueD() - 1.0));
+        m_moves_slider->set_as_dirty(false);
     }
 }
 
@@ -3146,7 +3148,17 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
     // update current sequential position
     sequential_view->current.first = !top_layer_only && keep_sequential_current_first ? std::clamp(sequential_view->current.first, global_endpoints.first, global_endpoints.last) : global_endpoints.first;
-    sequential_view->current.last = keep_sequential_current_last ? std::clamp(sequential_view->current.last, global_endpoints.first, global_endpoints.last) : global_endpoints.last;
+    if (global_endpoints.last == 0) {
+        m_no_render_path = true;
+    } else {
+        m_no_render_path = false;
+    }
+
+    if (!m_no_render_path) {
+        sequential_view->current.last = keep_sequential_current_last ? std::clamp(sequential_view->current.last, global_endpoints.first, global_endpoints.last) : global_endpoints.last;
+    } else {
+        sequential_view->current.last = sequential_view->current.first;
+    }
 
     // get the world position from the vertex buffer
     bool found = false;
