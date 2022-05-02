@@ -512,7 +512,7 @@ private:
     friend class Print;
 };
 
-std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Print& print);
+std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Print& print, bool init_order = false);
 
 }
 

@@ -1186,14 +1186,18 @@ static inline std::vector<const PrintInstance*> sort_object_instances_by_max_z(c
 
 // Produce a vector of PrintObjects in the order of their respective ModelObjects in print.model().
 //BBS: add sort logic for seq-print
-std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Print& print)
+std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Print& print, bool init_order)
 {
     // Build up map from ModelInstance* to PrintInstance*
     std::vector<std::pair<const ModelInstance*, const PrintInstance*>> model_instance_to_print_instance;
     model_instance_to_print_instance.reserve(print.num_object_instances());
     for (const PrintObject *print_object : print.objects())
         for (const PrintInstance &print_instance : print_object->instances())
+        {
+            if (init_order)
+                const_cast<ModelInstance*>(print_instance.model_instance)->arrange_order = print_instance.model_instance->id().id;
             model_instance_to_print_instance.emplace_back(print_instance.model_instance, &print_instance);
+        }
     std::sort(model_instance_to_print_instance.begin(), model_instance_to_print_instance.end(), [](auto &l, auto &r) { return l.first->arrange_order < r.first->arrange_order; });
 
     std::vector<const PrintInstance*> instances;

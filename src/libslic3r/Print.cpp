@@ -578,7 +578,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
 //BBS
 static StringObjectException layered_print_cleareance_valid(const Print &print, StringObjectException *warning)
 {
-    std::vector<const PrintInstance*> print_instances_ordered = sort_object_instances_by_model_order(print);
+    std::vector<const PrintInstance*> print_instances_ordered = sort_object_instances_by_model_order(print, true);
     if (print_instances_ordered.size() < 1)
         return {};
 
@@ -627,10 +627,14 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
             if (warning) {
                 warning->string = inst->model_instance->get_object()->name + L(" is too close to others, there will be collisions when printing.\n");
                 warning->object = inst->model_instance->get_object();
-                }
+            }
         }
         if (!intersection(exclude_polys, convex_hull).empty()) {
             return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there will be collisions when printing.\n"), inst->model_instance->get_object()};
+            /*if (warning) {
+                warning->string = inst->model_instance->get_object()->name + L(" is too close to exclusion area, there will be collisions when printing.\n");
+                warning->object = inst->model_instance->get_object();
+            }*/
         }
         convex_hulls_other.emplace_back(convex_hull);
     }
@@ -660,8 +664,14 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     convex_hulls_temp.push_back(wipe_tower_convex_hull);
     if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
         if (warning) {
-            warning->string += L("Prime Tower is too close to others, there will be collisions when printing.");
+            warning->string += L("Prime Tower is too close to others, there will be collisions when printing.\n");
         }
+    }
+    if (!intersection(exclude_polys, convex_hulls_temp).empty()) {
+        /*if (warning) {
+            warning->string += L("Prime Tower is too close to exclusion area, there will be collisions when printing.\n");
+        }*/
+        return {L("Prime Tower is too close to exclusion area, there will be collisions when printing.\n")};
     }
 
     return {};
