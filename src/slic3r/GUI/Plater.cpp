@@ -8583,6 +8583,9 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             bed_shape_changed = true;
             update_scheduled = true;
         }
+        else if (opt_key == "print_sequence") {
+            update_scheduled = true;
+        }
         else if (opt_key == "printer_model") {
             p->reset_gcode_toolpaths();
             // update to force bed selection(for texturing)
