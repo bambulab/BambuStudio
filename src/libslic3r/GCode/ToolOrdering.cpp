@@ -195,11 +195,12 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
     std::vector<unsigned int> tool_order;
     int initial_extruder_id = -1;
     std::map<int, double> min_areas_per_extruder;
+
     for (auto object : print.objects()) {
         auto first_layer = object->get_layer(0);
         for (auto layerm : first_layer->regions()) {
             int extruder_id = layerm->region().config().option("wall_filament")->getInt();
-            for (auto expoly : to_expolygons(layerm->slices.surfaces)) {
+            for (auto expoly : layerm->raw_slices) {
                 double contour_area = expoly.contour.area();
                 auto iter = min_areas_per_extruder.find(extruder_id);
                 if (iter == min_areas_per_extruder.end()) {
