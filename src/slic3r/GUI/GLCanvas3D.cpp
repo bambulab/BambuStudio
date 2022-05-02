@@ -855,6 +855,9 @@ void GLCanvas3D::update_instance_printable_state_for_object(const size_t obj_idx
         for (GLVolume* volume : m_volumes.volumes) {
             if ((volume->object_idx() == (int)obj_idx) && (volume->instance_idx() == inst_idx))
                 volume->printable = instance->printable;
+                if (!volume->printable) {
+                    volume->render_color = GLVolume::UNPRINTABLE_COLOR;
+                }
         }
     }
 }

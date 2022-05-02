@@ -714,6 +714,7 @@ void GLVolume::render(bool with_outline) const
 
     //BBS: add logic of outline rendering
     GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
+    //BOOST_LOG_TRIVIAL(info) << boost::format(": %1%, with_outline %2%, shader %3%.")%__LINE__ %with_outline %shader;
     if (with_outline && shader != nullptr)
     {
         do
@@ -773,6 +774,7 @@ void GLVolume::render(bool with_outline) const
 
             Transform3d matrix = world_matrix();
             render_body();
+            //BOOST_LOG_TRIVIAL(info) << boost::format(": %1%, outline render body, shader name %2%")%__LINE__ %shader->get_name();
 
 #if 0 //dump stencil buffer after first rendering
             memset(stencil_data, 0, sizeof(stencil_data));
@@ -825,6 +827,7 @@ void GLVolume::render(bool with_outline) const
             matrix = world_matrix(scale);
             glsafe(::glMultMatrixd(matrix.data()));
             this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+            //BOOST_LOG_TRIVIAL(info) << boost::format(": %1%, outline render for body, shader name %2%")%__LINE__ %shader->get_name();
             shader->set_uniform("is_outline", false);
 
             //glStencilMask(0xFF);
@@ -837,6 +840,7 @@ void GLVolume::render(bool with_outline) const
     }
     else {
         render_body();
+        //BOOST_LOG_TRIVIAL(info) << boost::format(": %1%, normal render.")%__LINE__;
     }
     glsafe(::glPopMatrix());
     if (this->is_left_handed())
@@ -1188,8 +1192,12 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
 
     for (GLVolumeWithIdAndZ& volume : to_render) {
 #if ENABLE_MODIFIERS_ALWAYS_TRANSPARENT
-        if (type == ERenderType::Transparent)
+        if (type == ERenderType::Transparent) {
             volume.first->force_transparent = true;
+            //BOOST_LOG_TRIVIAL(info) << boost::format("transparent rendering...");
+        }
+        //else
+        //    BOOST_LOG_TRIVIAL(info) << boost::format("opaque rendering...");
 #endif // ENABLE_MODIFIERS_ALWAYS_TRANSPARENT
         volume.first->set_render_color();
 #if ENABLE_MODIFIERS_ALWAYS_TRANSPARENT
@@ -1213,11 +1221,14 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         shader->set_uniform("uniform_color", volume.first->render_color);
         shader->set_uniform("z_range", m_z_range, 2);
         shader->set_uniform("clipping_plane", m_clipping_plane, 4);
+        //BOOST_LOG_TRIVIAL(info) << boost::format("set uniform_color to {%1%, %2%, %3%, %4%}, with_outline=%5%, selected %6%")
+        //    %volume.first->render_color[0]%volume.first->render_color[1]%volume.first->render_color[2]%volume.first->render_color[3]
+        //    %with_outline%volume.first->selected;
 
         //BBS set print_volume to render volume
-        shader->set_uniform("print_volume.type", static_cast<int>(m_render_volume.type));
-        shader->set_uniform("print_volume.xy_data", m_render_volume.data);
-        shader->set_uniform("print_volume.z_data", m_render_volume.zs);
+        //shader->set_uniform("print_volume.type", static_cast<int>(m_render_volume.type));
+        //shader->set_uniform("print_volume.xy_data", m_render_volume.data);
+        //shader->set_uniform("print_volume.z_data", m_render_volume.zs);
 
         /*shader->set_uniform("print_volume.type", static_cast<int>(m_print_volume.type));
         shader->set_uniform("print_volume.xy_data", m_print_volume.data);
