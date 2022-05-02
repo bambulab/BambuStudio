@@ -114,7 +114,6 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
     m_animationCtrl = new wxAnimationCtrl(this, wxID_ANY, wxNullAnimation, wxPoint(0, 0), AMS_REFRESH_SIZE, wxAC_NO_AUTORESIZE);
 
     auto path       = (boost::format("%1%/images/refresh.gif") % resources_dir()).str();
-    path            = encode_path(path.c_str());
     if (m_animationCtrl->LoadFile(path)) m_animationCtrl->Hide();
 
 
@@ -171,7 +170,7 @@ void AMSrefresh::paintEvent(wxPaintEvent &evt)
     dc.SetBrush(wxBrush(colour));
     dc.SetFont(Label::Body_10);
     dc.SetTextForeground(colour);
-    auto tsize = dc.GetMultiLineTextExtent(m_text);
+    auto tsize = dc.GetTextExtent(m_text);
     pot        = wxPoint((size.x - tsize.x) / 2, (size.y - tsize.y) / 2 + 1);
     dc.DrawText(m_text, pot);
 }
@@ -472,9 +471,19 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
 
 void AMSRoad::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) { wxWindow::Create(parent, id, pos, size); }
 
-void AMSRoad::Update(Caninfo info)
+void AMSRoad::Update(Caninfo info, int canindex, int maxcan)
 {
     m_info = info;
+    m_canindex = canindex;
+    if (m_canindex == 0 && maxcan == 1) {
+        m_rode_mode = AMSRoadMode::AMS_ROAD_MODE_END_ONLY; 
+    } else if (m_canindex == 0 && maxcan > 1) {
+        m_rode_mode = AMSRoadMode::AMS_ROAD_MODE_END;
+    } else if (m_canindex < (maxcan - 1)) {
+        m_rode_mode = AMSRoadMode::AMS_ROAD_MODE_LEFT_RIGHT;
+    } else if (m_canindex == (maxcan - 1)) {
+        m_rode_mode = AMSRoadMode::AMS_ROAD_MODE_LEFT;
+    }
     m_pass_rode_mode.push_back(AMSPassRoadMode::AMS_ROAD_MODE_NONE);
     Refresh();
 }
@@ -533,6 +542,13 @@ void AMSRoad::doRender(wxDC &dc)
         dc.DrawLine(size.x / 2, size.y * 0.6 - 1, size.x, size.y * 0.6 - 1);
     }
 
+     // end mode only
+    if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END_ONLY) {
+        dc.SetBrush(wxBrush(m_road_def_color));
+        dc.DrawLine(size.x / 2, -1, size.x / 2, size.y * 0.6 - 1);
+        dc.DrawLine(size.x / 2, size.y * 0.6, size.x / 2, size.y);
+    }
+
     // end none
     if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_NONE) {
         dc.SetBrush(wxBrush(m_road_def_color));
@@ -565,7 +581,7 @@ void AMSRoad::doRender(wxDC &dc)
     }
 
     // end mode
-    if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END) {
+    if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END || m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END_ONLY) {
         dc.SetPen(wxPen(m_road_def_color, 2, wxSOLID));
         dc.SetBrush(wxBrush(m_road_def_color));
         dc.DrawRoundedRectangle(size.x * 0.37 / 2, size.y * 0.6 - size.y / 6, size.x * 0.63, size.y / 3, m_radius);
@@ -612,7 +628,7 @@ void AMSRoad::OnPassRoad(std::vector<AMSPassRoadMode> prord_list)
     }
 
     // left end
-    if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END) {
+    if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END || m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END_ONLY) {
         for (auto i = 0; i < prord_list.size(); i++) {
             std::vector<AMSPassRoadMode>::iterator iter = std::find(end_types.begin(), end_types.end(), prord_list[i]);
             if (iter != end_types.end()) m_pass_rode_mode.push_back(prord_list[i]);
@@ -665,7 +681,8 @@ void AMSItem::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const 
 {
     wxWindow::Create(parent, id, pos, size);
     SetBackgroundColour(AMS_CONTROL_WHITE_COLOUR);
-    SetCubeSize(AMS_ITEM_CUBE_SIZE);
+    HideHumidity();
+    Refresh();
 }
 
 void AMSItem::OnEnterWindow(wxMouseEvent &evt)
@@ -680,16 +697,6 @@ void AMSItem::OnLeaveWindow(wxMouseEvent &evt)
     // Refresh();
 }
 
-void AMSItem::SetCubeSize(wxSize size)
-{
-    /*  m_cube_size = size;
-      wxSize new_size;
-      new_size.x = m_cube_size.x * 4 + m_space * 3 + m_padding * 2;
-      new_size.y = m_cube_size.y + m_padding * 2;*/
-    SetSize(AMS_ITEM_SIZE);
-    SetMinSize(AMS_ITEM_SIZE);
-    Refresh();
-}
 
 void AMSItem::OnSelected()
 {
@@ -701,6 +708,28 @@ void AMSItem::OnSelected()
 void AMSItem::UnSelected()
 {
     m_selected = false;
+    Refresh();
+}
+
+void AMSItem::ShowHumidity() 
+{
+    m_show_humidity = true;
+    SetSize(AMS_ITEM_HUMIDITY_SIZE);
+    SetMinSize(AMS_ITEM_HUMIDITY_SIZE);
+    Refresh();
+}
+
+void AMSItem::HideHumidity() 
+{
+    m_show_humidity = false;
+    SetSize(AMS_ITEM_SIZE);
+    SetMinSize(AMS_ITEM_SIZE);
+    Refresh();
+}
+
+void AMSItem::SetHumidity(int humidity) 
+{
+    m_humidity = humidity;
     Refresh();
 }
 
@@ -749,6 +778,20 @@ void AMSItem::doRender(wxDC &dc)
         dc.DrawRoundedRectangle(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y, 2);
         left += AMS_ITEM_CUBE_SIZE.x;
         left += m_space;
+    }
+
+    if (m_show_humidity) {
+        left = 4 * AMS_ITEM_CUBE_SIZE.x + 6 * m_space;
+        dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 1));
+        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+        dc.DrawLine(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, left, AMS_ITEM_CUBE_SIZE.y);
+
+        left += m_space;
+        dc.SetFont(::Label::Body_13);
+        dc.SetTextForeground(AMS_CONTROL_GRAY800);
+        auto tsize = dc.GetTextExtent("00% RH");
+        auto text  = wxString::Format("%d%% RH", m_humidity);
+        dc.DrawText(text, wxPoint(left, (size.y - tsize.y) / 2 -2));
     }
 
     auto border_colour = m_border_colour;
@@ -803,43 +846,36 @@ void AmsCans::Update(AMSinfo info)
     m_info      = info;
     m_can_count = info.cans.size();
 
-    auto count_index = 0;
-    for (auto itor = m_can_refresh_list.begin(); itor != m_can_refresh_list.end(); itor++) {
-        Canrefreshs *item = itor->second;
-        if (count_index < m_can_count) {
-            item->canrefresh->Update(info.cans[count_index]);
-            item->canrefresh->Show();
+   
+    for (auto i = 0; i < m_can_refresh_list.GetCount(); i++){
+        Canrefreshs *refresh = m_can_refresh_list[i];
+        if (i < m_can_count) {
+            refresh->canrefresh->Update(info.cans[i]);
+            refresh->canrefresh->Show();
         } else {
-            item->canrefresh->Hide();
+            refresh->canrefresh->Hide();
         }
-
-        count_index++;
     }
 
-    count_index = 0;
-    for (auto itor = m_can_lib_list.begin(); itor != m_can_lib_list.end(); itor++) {
-        CanLibs *item = itor->second;
-        if (count_index < m_can_count) {
-            item->canLib->Update(info.cans[count_index]);
-            item->canLib->Show();
+   
+    for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
+        CanLibs *lib = m_can_lib_list[i];
+        if (i < m_can_count) {
+            lib->canLib->Update(info.cans[i]);
+            lib->canLib->Show();
         } else {
-            item->canLib->Hide();
+            lib->canLib->Hide();
         }
-
-        count_index++;
     }
 
-    count_index = 0;
-    for (auto itor = m_can_road_list.begin(); itor != m_can_road_list.end(); itor++) {
-        CanRoads *item = itor->second;
-        if (count_index < m_can_count) {
-            item->canRoad->Update(info.cans[count_index]);
-            item->canRoad->Show();
+   for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
+        CanRoads *road = m_can_road_list[i];
+        if (i < m_can_count) {
+            road->canRoad->Update(info.cans[i], i, m_can_count);
+            road->canRoad->Show();
         } else {
-            item->canRoad->Hide();
+            road->canRoad->Hide();
         }
-
-        count_index++;
     }
 
     Layout();
@@ -854,20 +890,17 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan)
     m_sizer_ams->Add(m_panel_refresh, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_ams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(2));
     auto m_panel_lib = new AMSLib(amscan, wxID_ANY, caninfo, wxDefaultPosition, AMS_CAN_LIB_SIZE);
-    m_panel_lib->Bind(wxEVT_LEFT_DOWN, [this, canindex, caninfo](wxMouseEvent &ev) {
+    m_panel_lib->Bind(wxEVT_LEFT_DOWN, [this, canindex](wxMouseEvent &ev) {
         m_canlib_selection = canindex;
-        m_canlib_id        = caninfo.can_id;
+        //m_canlib_id        = caninfo.can_id;
 
-        CanLibsHash::iterator ci = m_can_lib_list.begin();
-        while (ci != m_can_lib_list.end()) {
-            CanLibs *cust = ci->second;
-            if (cust->canLib->m_info.can_id == m_canlib_id) {
-                cust->canLib->OnSelected();
+        for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
+            CanLibs *lib = m_can_lib_list[i];
+            if (lib->canLib->m_can_index == m_canlib_selection) {
+                lib->canLib->OnSelected();
             } else {
-                cust->canLib->UnSelected();
+                lib->canLib->UnSelected();
             }
-
-            ci++;
         }
     });
 
@@ -885,61 +918,56 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan)
     Canrefreshs *canrefresh               = new Canrefreshs;
     canrefresh->canID                     = caninfo.can_id;
     canrefresh->canrefresh                = m_panel_refresh;
-    m_can_refresh_list[canrefresh->canID] = canrefresh;
+    m_can_refresh_list.Add(canrefresh);
 
     CanLibs *canlib               = new CanLibs;
     canlib->canID                 = caninfo.can_id;
     canlib->canLib                = m_panel_lib;
-    m_can_lib_list[canlib->canID] = canlib;
+    m_can_lib_list.Add(canlib);
 
     CanRoads *canroad              = new CanRoads;
     canroad->canID                 = caninfo.can_id;
     canroad->canRoad               = m_panel_road;
-    m_can_road_list[canlib->canID] = canroad;
+    m_can_road_list.Add(canroad);
 }
 
 void AmsCans::SelectCan(std::string can_id)
 {
-    auto it = m_can_lib_list.find(can_id);
-    if (it != m_can_lib_list.end()) {
-        if (it->second && it->second->canLib) m_canlib_selection = it->second->canLib->m_can_index;
+    for (auto i = 0; i < m_can_lib_list.GetCount(); i++) { 
+        CanLibs *lib = m_can_lib_list[i]; 
+        if (lib->canLib->m_info.can_id == can_id) {
+            m_canlib_selection = lib->canLib->m_can_index;
+        }
     }
 
     m_canlib_id = can_id;
 
-    CanLibsHash::iterator ci = m_can_lib_list.begin();
-    while (ci != m_can_lib_list.end()) {
-        CanLibs *cust = ci->second;
-        if (cust->canLib->m_info.can_id == m_canlib_id) {
-            cust->canLib->OnSelected();
+   for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
+        CanLibs *lib = m_can_lib_list[i];
+        if (lib->canLib->m_info.can_id == m_canlib_id) {
+            lib->canLib->OnSelected();
         } else {
-            cust->canLib->UnSelected();
+            lib->canLib->UnSelected();
         }
-
-        ci++;
     }
 }
 
 void AmsCans::SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step)
 {
     auto                    tag_can_index = -1;
-    CansRoadsHash::iterator i             = m_can_road_list.begin();
-    while (i != m_can_road_list.end()) {
-        CanRoads *tag_road = i->second;
-        if (canid == tag_road->canRoad->m_info.can_id) { tag_can_index = tag_road->canRoad->m_canindex; }
-        i++;
+    for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
+        CanRoads *road = m_can_road_list[i];
+        if (canid == road->canRoad->m_info.can_id) { tag_can_index = road->canRoad->m_canindex; }
     }
 
     if (tag_can_index == -1) return;
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
-        auto iter = m_can_road_list.begin();
-        while (iter != m_can_road_list.end()) {
-            CanRoads *road = iter->second;
+        for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
+            CanRoads *road = m_can_road_list[i];
             auto      pr   = std::vector<AMSPassRoadMode>{};
             pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_NONE);
             road->canRoad->OnPassRoad(pr);
-            iter++;
         }
 
         return;
@@ -947,18 +975,15 @@ void AmsCans::SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP s
 
     // get colour
     auto                  tag_colour = *wxWHITE;
-    CanLibsHash::iterator libi       = m_can_lib_list.begin();
-    while (libi != m_can_lib_list.end()) {
-        CanLibs *lib = libi->second;
+    for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
+        CanLibs *lib = m_can_lib_list[i]; 
         if (canid == lib->canLib->m_info.can_id) tag_colour = lib->canLib->GetLibColour();
-        libi++;
     }
 
     // unload
     if (type == AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD) {
-        auto iter = m_can_road_list.begin();
-        while (iter != m_can_road_list.end()) {
-            CanRoads *road = iter->second;
+        for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
+            CanRoads *road = m_can_road_list[i];
  
             auto index = road->canRoad->m_canindex;
             auto pr    = std::vector<AMSPassRoadMode>{};
@@ -975,15 +1000,13 @@ void AmsCans::SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP s
 
             road->canRoad->SetPassRoadColour(tag_colour);
             road->canRoad->OnPassRoad(pr);
-            iter++;
         }
     }
 
     // load
     if (type == AMSPassRoadType::AMS_ROAD_TYPE_LOAD) {
-        auto iter = m_can_road_list.begin();
-        while (iter != m_can_road_list.end()) {
-            CanRoads *road = iter->second;
+        for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
+            CanRoads *road = m_can_road_list[i];
 
             auto index = road->canRoad->m_canindex;
             auto pr    = std::vector<AMSPassRoadMode>{};
@@ -997,34 +1020,40 @@ void AmsCans::SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP s
 
             road->canRoad->SetPassRoadColour(tag_colour);
             road->canRoad->OnPassRoad(pr);
-            iter++;
         }
     }
 }
 
+
 void AmsCans::PlayRridLoading(wxString canid)
 {
-    CanrefreshsHash::iterator ci = m_can_refresh_list.begin();
-    while (ci != m_can_refresh_list.end()) {
-        Canrefreshs *cust = ci->second;
-        if (cust->canID == canid) { cust->canrefresh->PlayLoading(); }
-        ci++;
+    for (auto i = 0; i < m_can_refresh_list.GetCount(); i++) {
+        Canrefreshs *refresh = m_can_refresh_list[i];
+        if (refresh->canrefresh->m_info.can_id == canid) { refresh->canrefresh->PlayLoading(); }
     }
+}
+
+std::string AmsCans::GetCurrentCan() 
+{ 
+    if (m_canlib_selection > -1 && m_canlib_selection < m_can_lib_list.size()) {
+        CanLibs *lib = m_can_lib_list[m_canlib_selection];
+        return lib->canLib->m_info.can_id; 
+    }
+    return "";
 }
 
 void AmsCans::StopRridLoading(wxString canid)
 {
-    CanrefreshsHash::iterator ci = m_can_refresh_list.begin();
-    while (ci != m_can_refresh_list.end()) {
-        Canrefreshs *cust = ci->second;
-        if (cust->canID == canid) { cust->canrefresh->StopLoading(); }
-        ci++;
+    for (auto i = 0; i < m_can_refresh_list.GetCount(); i++) {
+        Canrefreshs *refresh = m_can_refresh_list[i];
+        if (refresh->canrefresh->m_info.can_id == canid) { refresh->canrefresh->StopLoading(); }
     }
 }
 
 /*************************************************
 Description:AMSControl
 **************************************************/
+//WX_DEFINE_OBJARRAY(AmsItemsHash);
 AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) : wxSimplebook(parent, wxID_ANY, pos, size)
 {
     SetBackgroundColour(*wxWHITE);
@@ -1296,17 +1325,13 @@ std::string AMSControl::GetCurentAms() { return m_current_ams; }
 std::string AMSControl::GetCurrentCan(std::string amsid)
 {
     std::string           current_can;
-    AmsCansHash::iterator ci = m_ams_cans_list.begin();
-    while (ci != m_ams_cans_list.end()) {
-        AmsCansWindow *ams = ci->second;
+    for (auto i = 0; i< m_ams_cans_list.GetCount(); i++){
+        AmsCansWindow *ams = m_ams_cans_list[i];
         if (ams->amsCans->m_info.ams_id == amsid) {
             current_can = ams->amsCans->GetCurrentCan();
-
-            return current_can;
+            return current_can; 
         }
-        ci++;
     }
-
     return current_can;
 }
 
@@ -1346,20 +1371,26 @@ void AMSControl::SetClibrationLink(wxString link)
 
 void AMSControl::PlayRridLoading(wxString amsid, wxString canid)
 {
-    AmsCansHash::iterator iter     = m_ams_cans_list.find(amsid);
-    bool                  notfound = (iter == m_ams_cans_list.end());
-    if (notfound) return;
-    AmsCansWindow *cust = iter->second;
-    cust->amsCans->PlayRridLoading(canid);
+    AmsCansHash::iterator iter        = m_ams_cans_list.begin();
+    auto                   count_item_index = 0;
+
+   for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
+        AmsCansWindow *cans = m_ams_cans_list[i];
+        if (cans->amsCans->m_info.ams_id == amsid) {cans->amsCans->PlayRridLoading(canid); }
+        iter++;
+    }
 }
 
 void AMSControl::StopRridLoading(wxString amsid, wxString canid)
 {
-    AmsCansHash::iterator iter     = m_ams_cans_list.find(amsid);
-    bool                  notfound = (iter == m_ams_cans_list.end());
-    if (notfound) return;
-    AmsCansWindow *cust = iter->second;
-    cust->amsCans->StopRridLoading(canid);
+    AmsCansHash::iterator iter             = m_ams_cans_list.begin();
+    auto                  count_item_index = 0;
+
+    for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
+        AmsCansWindow *cans = m_ams_cans_list[i];
+        if (cans->amsCans->m_info.ams_id == amsid) { cans->amsCans->StopRridLoading(canid); }
+        iter++;
+    }
 }
 
 void AMSControl::msw_rescale()
@@ -1376,19 +1407,21 @@ void AMSControl::UpdateStepCtrl()
 
 void AMSControl::CreateAms()
 {
-    auto caninfo0_0 = Caninfo{"0", _L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_1 = Caninfo{"1", _L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_2 = Caninfo{"2", _L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_3 = Caninfo{"3", _L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_0 = Caninfo{"def_can_0", _L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_1 = Caninfo{"def_can_1", _L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_2 = Caninfo{"def_can_2", _L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_3 = Caninfo{"def_can_3", _L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
 
-    AMSinfo                        ams1 = AMSinfo{"0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo                        ams2 = AMSinfo{"1", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo                        ams3 = AMSinfo{"2", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo                        ams4 = AMSinfo{"3", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo                        ams1 = AMSinfo{"def_ams_0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo                        ams2 = AMSinfo{"def_ams_1", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo                        ams3 = AMSinfo{"def_ams_2", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo                        ams4 = AMSinfo{"def_ams_3", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
     std::vector<AMSinfo>           ams_info{ams1, ams2, ams3, ams4};
     std::vector<AMSinfo>::iterator it;
     Freeze();
-    for (it = ams_info.begin(); it != ams_info.end(); it++) { AddAms(*it, true); }
+    for (it = ams_info.begin(); it != ams_info.end(); it++) {
+        AddAms(*it, true); 
+    }
     m_sizer_top->Layout();
     Thaw();
 }
@@ -1401,32 +1434,23 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection)
 
     // update item
     m_ams_info                              = info;
-    AmsItemsHash::iterator item_iter        = m_ams_item_list.begin();
-    auto                   count_item_index = 0;
-    while (item_iter != m_ams_item_list.end()) {
-        AmsItems *item = item_iter->second;
-        if (count_item_index < info.size()) {
-            item->amsItem->Update(m_ams_info[count_item_index]);
+    for (auto i = 0; i < m_ams_item_list.GetCount(); i++) {
+         AmsItems* item  = m_ams_item_list[i]; 
+        if (i < info.size()) {
+            item->amsItem->Update(m_ams_info[i]);
             item->amsItem->Open();
         } else {
             item->amsItem->Close();
         }
-        count_item_index++;
-        item_iter++;
     }
 
     // update cans
-    count_item_index                = 0;
-    AmsCansHash::iterator cans_iter = m_ams_cans_list.begin();
-    while (cans_iter != m_ams_cans_list.end()) {
-        AmsCansWindow *canwin = cans_iter->second;
-
-        if (count_item_index < info.size()) {
-            canwin->amsCans->m_info = m_ams_info[count_item_index];
-            canwin->amsCans->Update(m_ams_info[count_item_index]);
+    for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
+        AmsCansWindow *cans = m_ams_cans_list[i];
+        if (i < info.size()) {
+            cans->amsCans->m_info = m_ams_info[i];
+            cans->amsCans->Update(m_ams_info[i]);
         }
-        count_item_index++;
-        cans_iter++;
     }
 
     if (m_current_senect.empty() && info.size() > 0) {
@@ -1437,10 +1461,18 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection)
 
         if (keep_selection) {
             SwitchAms(curr_ams_id);
-            auto iter = m_ams_cans_list.find(curr_can_id);
+
+             for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
+                AmsCansWindow *cans = m_ams_cans_list[i];
+                if (i < info.size()) {
+                    cans->amsCans->SelectCan(curr_can_id);
+                }
+            }
+
+          /*  auto iter = m_ams_cans_list.find(curr_can_id);
             if (iter != m_ams_cans_list.end()) {
                 if (iter->second && iter->second->amsCans) iter->second->amsCans->SelectCan(curr_can_id);
-            }
+            }*/
         }
     }
 }
@@ -1456,10 +1488,11 @@ void AMSControl::AddAms(AMSinfo info, bool refresh)
         e.Skip();
     });
 
-    AmsItems *item                  = new AmsItems;
+    AmsItems *item                  = new AmsItems();
     item->amsIndex                  = info.ams_id;
     item->amsItem                   = amsitem;
-    m_ams_item_list[item->amsIndex] = item;
+
+    m_ams_item_list.Add(item);
     m_sizer_top->Add(amsitem, 0, wxALL | wxEXPAND, 3);
 
     AmsCansWindow *canswin = new AmsCansWindow();
@@ -1467,7 +1500,7 @@ void AMSControl::AddAms(AMSinfo info, bool refresh)
 
     canswin->amsIndex                  = info.ams_id;
     canswin->amsCans                   = amscans;
-    m_ams_cans_list[canswin->amsIndex] = canswin;
+    m_ams_cans_list.Add(canswin);
 
     m_simplebook_cans->AddPage(amscans, wxEmptyString, false);
     amscans->m_selection = m_simplebook_cans->GetPageCount() - 1;
@@ -1479,20 +1512,7 @@ void AMSControl::AddAms(AMSinfo info, bool refresh)
 
 void AMSControl::RemoveAll()
 {
-    /* AmsItemsHash::iterator ii   = m_ams_item_list.begin();
-     auto                   count_item_index = 0;
-     while (ii != m_ams_item_list.end()) {
-         AmsItems *cust  = ii->second;
-         cust->amsItem->Hide();
-         count_item_index++;
-         ii++;
-     }*/
-
-    // m_ams_item_list.clear();
-    // m_ams_cans_list.clear();
-
     m_sizer_top->Layout();
-
     m_ams_count      = 0;
     m_current_senect = "";
     m_ams_info.clear();
@@ -1501,25 +1521,24 @@ void AMSControl::RemoveAll()
 
 void AMSControl::SwitchAms(std::string ams_id)
 {
-    AmsItemsHash::iterator ii = m_ams_item_list.begin();
-    while (ii != m_ams_item_list.end()) {
-        AmsItems *cust = ii->second;
-        if (cust->amsItem->m_amsinfo.ams_id == ams_id) {
-            cust->amsItem->OnSelected();
+     for (auto i = 0; i < m_ams_item_list.GetCount(); i++) {
+        AmsItems*  item = m_ams_item_list[i]; 
+        if (item->amsItem->m_amsinfo.ams_id == ams_id) {
+            item->amsItem->OnSelected();
+            item->amsItem->ShowHumidity();
             m_current_senect = ams_id;
         } else {
-            cust->amsItem->UnSelected();
+            item->amsItem->UnSelected();
+            item->amsItem->HideHumidity();
         }
-        ii++;
+        m_sizer_top->Layout();
+        //m_panel_top->Fit();
     }
 
-    AmsCansHash::iterator ci = m_ams_cans_list.begin();
-    while (ci != m_ams_cans_list.end()) {
-        AmsCansWindow *cust = ci->second;
-        if (cust->amsCans->m_info.ams_id == ams_id) { m_simplebook_cans->SetSelection(cust->amsCans->m_selection); }
-        ci++;
+    for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
+        AmsCansWindow *cans = m_ams_cans_list[i];
+        if (cans->amsCans->m_info.ams_id == ams_id) { m_simplebook_cans->SetSelection(cans->amsCans->m_selection); }
     }
-
     m_current_ams = ams_id;
 }
 
@@ -1557,20 +1576,26 @@ void AMSControl::ShowFilamentTip(bool hasams)
     m_tip_load_info->SetMinSize(AMS_STEP_SIZE);
 }
 
+void AMSControl::SetHumidity(std::string amsid, int humidity) 
+{
+    for (auto i = 0; i < m_ams_item_list.GetCount(); i++) {
+        AmsItems *item = m_ams_item_list[i];
+        if (amsid == item->amsItem->m_amsinfo.ams_id) {
+            item->amsItem->SetHumidity(humidity);
+        }
+    }
+}
+
 bool AMSControl::Enable(bool enable)
 {
-    AmsItemsHash::iterator ii = m_ams_item_list.begin();
-    while (ii != m_ams_item_list.end()) {
-        AmsItems *cust = ii->second;
-        cust->amsItem->Enable(enable);
-        ii++;
+    for (auto i = 0; i < m_ams_item_list.GetCount(); i++) {
+      AmsItems* item = m_ams_item_list[i]; 
+      item->amsItem->Enable(enable);
     }
 
-    AmsCansHash::iterator ci = m_ams_cans_list.begin();
-    while (ci != m_ams_cans_list.end()) {
-        AmsCansWindow *cust = ci->second;
-        cust->amsCans->Enable(enable);
-        ci++;
+     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
+        AmsCansWindow *cans = m_ams_cans_list[i];
+        cans->amsCans->Enable(enable);
     }
     m_button_extruder_back->Enable(enable);
     m_button_extruder_feed->Enable(enable);
@@ -1582,46 +1607,48 @@ bool AMSControl::Enable(bool enable)
 
 void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP step)
 {
-    AmsCansHash::iterator ci       = m_ams_cans_list.begin();
-    AmsCansWindow *       cust     = nullptr;
+    AmsCansWindow *       cans     = nullptr;
     bool                  notfound = true;
-    while (ci != m_ams_cans_list.end()) {
-        cust = ci->second;
-        if (cust->amsCans->m_info.ams_id == ams_id) {
+
+    for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
+        cans = m_ams_cans_list[i];
+        if (cans->amsCans->m_info.ams_id == ams_id) {
             notfound = false;
             break;
         }
-        ci++;
     }
 
     if (notfound) return;
-    if (cust == nullptr) return;
+    if (cans == nullptr) return;
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
         m_extruder->TurnOff();
-        cust->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+        cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     }
 
     type = AMSPassRoadType::AMS_ROAD_TYPE_LOAD;
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1) {
         m_extruder->TurnOff();
-        cust->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
-        cust->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
+        cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
+        cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
     }
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2) {
         m_extruder->TurnOn();
-        cust->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+        cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     }
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3) {
         m_extruder->TurnOn();
-        cust->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
-        cust->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
+        cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
+        cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
     }
 }
 
-void AMSControl::on_filament_load(wxCommandEvent &event) { post_event(SimpleEvent(EVT_AMS_LOAD)); }
+void AMSControl::on_filament_load(wxCommandEvent &event) { 
+    post_event(SimpleEvent(EVT_AMS_LOAD)); 
+    GetCurrentCan(GetCurentAms());
+}
 
 void AMSControl::on_filament_unload(wxCommandEvent &event) { post_event(SimpleEvent(EVT_AMS_UNLOAD)); }
 

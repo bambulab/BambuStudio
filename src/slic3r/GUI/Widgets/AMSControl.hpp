@@ -9,6 +9,7 @@
 #include <wx/simplebook.h>
 #include <wx/hyperlink.h>
 #include <wx/animate.h>
+#include <wx/dynarray.h>
 
 #define AMS_CONTROL_BRAND_COLOUR wxColour(0, 174, 66)
 #define AMS_CONTROL_GRAY700 wxColour(107, 107, 107)
@@ -35,6 +36,7 @@ enum class AMSRoadMode : int {
     AMS_ROAD_MODE_LEFT,
     AMS_ROAD_MODE_LEFT_RIGHT,
     AMS_ROAD_MODE_END,
+    AMS_ROAD_MODE_END_ONLY,
     AMS_ROAD_MODE_NONE,
 };
 
@@ -81,6 +83,7 @@ enum FilamentStep {
 
 #define AMS_ITEM_CUBE_SIZE wxSize(FromDIP(14), FromDIP(14))
 #define AMS_ITEM_SIZE wxSize(FromDIP(82), FromDIP(27))
+#define AMS_ITEM_HUMIDITY_SIZE wxSize(FromDIP(150), FromDIP(27))
 #define AMS_CAN_LIB_SIZE wxSize(FromDIP(58), FromDIP(84))
 #define AMS_CAN_ROAD_SIZE FromDIP(60)
 #define AMS_CAN_ITEM_HEIGHT_SIZE FromDIP(27)
@@ -102,8 +105,6 @@ struct AMSinfo
 {
 public:
     std::string ams_id;
-    // std::vector<std::string> material_name;
-    // std::vector<wxColour>    material_colour;
     std::vector<Caninfo> cans;
 
     bool parse_ams_info(Ams *ams);
@@ -220,7 +221,7 @@ public:
     double                       m_radius         = {4};
     wxColour                     m_road_def_color;
     wxColour                     m_road_color;
-    void                         Update(Caninfo   info);
+    void                         Update(Caninfo info, int canindex, int maxcan);
 
     void SetPassRoadColour(wxColour col);
     void SetMode(AMSRoadMode mode);
@@ -240,7 +241,7 @@ class AMSItem : public wxWindow
 {
 public:
     AMSItem();
-    AMSItem(wxWindow *parent, wxWindowID id, AMSinfo amsinfo, const wxSize cube_size = wxSize(14, 14), const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    AMSItem(wxWindow *parent, wxWindowID id, AMSinfo amsinfo, const wxSize cube_size = wxSize(14,14), const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
 
     bool         m_open           = {false};
     void         Open();
@@ -250,9 +251,11 @@ public:
     void         create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
     void         OnEnterWindow(wxMouseEvent &evt);
     void         OnLeaveWindow(wxMouseEvent &evt);
-    void         SetCubeSize(wxSize size);
     void         OnSelected();
     void         UnSelected();
+    void         ShowHumidity();
+    void         HideHumidity();
+    void         SetHumidity(int humidity);
     virtual bool Enable(bool enable = true);
     AMSinfo      m_amsinfo;
 
@@ -264,6 +267,8 @@ protected:
     int      m_space             = {5};
     bool     m_hover             = {false};
     bool     m_selected          = {false};
+    bool     m_show_humidity     = {false};
+    int      m_humidity         = {0};
 
     void         paintEvent(wxPaintEvent &evt);
     void         render(wxDC &dc);
@@ -295,10 +300,9 @@ public:
     AMSRoad *canRoad;
 };
 
-
-WX_DECLARE_HASH_MAP(wxString, Canrefreshs *, wxStringHash, wxStringEqual, CanrefreshsHash);
-WX_DECLARE_HASH_MAP(wxString, CanLibs *, wxStringHash, wxStringEqual, CanLibsHash);
-WX_DECLARE_HASH_MAP(wxString, CanRoads *, wxStringHash, wxStringEqual, CansRoadsHash);
+WX_DEFINE_ARRAY(Canrefreshs*, CanrefreshsHash);
+WX_DEFINE_ARRAY(CanLibs*, CanLibsHash);
+WX_DEFINE_ARRAY(CanRoads*, CansRoadsHash);
 
 class AmsCans : public wxWindow
 {
@@ -311,11 +315,10 @@ public:
     void        AddCan(Caninfo caninfo, int canindex, int maxcan);
     void        SelectCan(std::string can_id);
     void        SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step);
-
     void        PlayRridLoading(wxString canid);
     void        StopRridLoading(wxString canid);
 
-    std::string GetCurrentCan() { return m_canlib_id; };
+    std::string GetCurrentCan();
 
 public:
     std::string     m_canlib_id;
@@ -338,7 +341,6 @@ class AmsCansWindow
 public:
     wxString amsIndex;
     AmsCans *amsCans;
-    // wxWindow *amsCans;
 };
 
 class AmsItems
@@ -348,8 +350,9 @@ public:
     AMSItem *amsItem;
 };
 
-WX_DECLARE_HASH_MAP(wxString, AmsCansWindow *, wxStringHash, wxStringEqual, AmsCansHash);
-WX_DECLARE_HASH_MAP(wxString, AmsItems *, wxStringHash, wxStringEqual, AmsItemsHash);
+WX_DEFINE_ARRAY(AmsCansWindow*, AmsCansHash);
+WX_DEFINE_ARRAY(AmsItems*, AmsItemsHash);
+
 
 class AMSControl : public wxSimplebook
 {
@@ -413,6 +416,7 @@ public:
     void SetFilamentStep(int item_idx, bool isload = true);
     void ShowFilamentTip(bool hasams = true);
 
+    void SetHumidity(std::string amsid, int humidity);
     void UpdateStepCtrl();
     void CreateAms();
     void UpdateAms(std::vector<AMSinfo> info, bool keep_selection = true);
