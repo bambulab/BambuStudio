@@ -113,6 +113,17 @@ namespace GUI {
 
 class MainFrame;
 
+
+static std::string convert_studio_language_to_api(std::string lang_code)
+{
+    if (lang_code == "zh_CN")
+        return "zh_hans";
+    else if (lang_code == "zh_TW")
+        return "zh_hant";
+    else
+        return "en";
+}
+
 class BBLSplashScreen : public wxSplashScreen
 {
 public:
@@ -1191,7 +1202,7 @@ void GUI_App::init_http_extra_header()
     std::string os_version = (boost::format("%1%.%2%.%3%") % major % minor % micro).str();
     extra_headers.insert(std::make_pair("X-BBL-OS-Version", os_version));
     extra_headers.insert(std::make_pair("X-BBL-Device-ID", app_config->get("slicer_uuid")));
-    extra_headers.insert(std::make_pair("X-BBL-Language", app_config->get("language")));
+    extra_headers.insert(std::make_pair("X-BBL-Language", convert_studio_language_to_api(app_config->get("language"))));
     Http::set_extra_headers(extra_headers);
 }
 

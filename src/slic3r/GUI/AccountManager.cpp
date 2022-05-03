@@ -1340,6 +1340,9 @@ namespace Slic3r {
                 catch(...) {
                     ;
                 }
+            })
+            .on_error([this](std::string body, std::string error, unsigned int status) {
+                BOOST_LOG_TRIVIAL(error) << "check new version" << body;
             }).perform();
     }
 
