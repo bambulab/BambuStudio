@@ -112,6 +112,10 @@ AddMachinePanel::~AddMachinePanel() {
     init_timer();
 
     m_bitmap_printer_type->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
+    m_bitmap_arrow->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
+    m_staticText_printer_name->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
+    m_bitmap_wifi_signal->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
+
     Bind(wxEVT_TIMER, &MonitorPanel::on_timer, this);
     Bind(wxEVT_SIZE, &MonitorPanel::on_size, this);
     Bind(wxEVT_COMMAND_CHOICE_SELECTED, &MonitorPanel::on_select_printer, this);
@@ -120,6 +124,9 @@ AddMachinePanel::~AddMachinePanel() {
 MonitorPanel::~MonitorPanel()
 {
     m_bitmap_printer_type->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
+    m_bitmap_arrow->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
+    m_staticText_printer_name->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
+    m_bitmap_wifi_signal->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
 
     if (m_refresh_timer)
         m_refresh_timer->Stop();
