@@ -1168,7 +1168,7 @@ std::vector<Preset*> PresetCollection::get_project_embedded_presets()
 }
 
 //BBS: reset project embedded presets
-void PresetCollection::reset_project_embedded_presets()
+bool PresetCollection::reset_project_embedded_presets()
 {
     std::deque<Preset>::iterator it = m_presets.begin();
     bool re_select = false;
@@ -1190,9 +1190,13 @@ void PresetCollection::reset_project_embedded_presets()
         else
             it++;
     }
+
     if (re_select)
-        this->select_preset(first_visible_idx());
+        m_idx_selected = -1;
+
     unlock();
+
+    return re_select;
 }
 
 void PresetCollection::set_sync_info_and_save(std::string name, std::string setting_id, std::string syncinfo)

@@ -2992,8 +2992,8 @@ bool GUI_App::check_and_save_current_preset_changes(const wxString& caption, con
             // synchronize config.ini with the current selections.
             preset_bundle->export_selections(*app_config);
 
-            MessageDialog(nullptr, _L_PLURAL("Modifications to the preset have been saved",
-                                             "Modifications to the presets have been saved", dlg.get_names_and_types().size())).ShowModal();
+            //MessageDialog(nullptr, _L_PLURAL("Modifications to the preset have been saved",
+            //                                 "Modifications to the presets have been saved", dlg.get_names_and_types().size())).ShowModal();
         }
     }
 
@@ -3027,8 +3027,8 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
             return false;
 
         auto reset_modifications = [this, is_called_from_configwizard]() {
-            if (is_called_from_configwizard)
-                return; // no need to discared changes. It will be done fromConfigWizard closing
+            //if (is_called_from_configwizard)
+            //    return; // no need to discared changes. It will be done fromConfigWizard closing
 
             PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
             for (const Tab* const tab : tabs_list) {
@@ -3052,12 +3052,12 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
                 // synchronize config.ini with the current selections.
                 preset_bundle->export_selections(*app_config);
 
-                wxString text = _L_PLURAL("Modifications to the preset have been saved",
-                    "Modifications to the presets have been saved", preset_names_and_types.size());
-                if (!is_called_from_configwizard)
-                    text += "\n\n" + _L("All modifications will be discarded for new project.");
+                //wxString text = _L_PLURAL("Modifications to the preset have been saved",
+                //    "Modifications to the presets have been saved", preset_names_and_types.size());
+                //if (!is_called_from_configwizard)
+                //    text += "\n\n" + _L("All modifications will be discarded for new project.");
 
-                MessageDialog(nullptr, text).ShowModal();
+                //MessageDialog(nullptr, text).ShowModal();
                 reset_modifications();
             }
             else if (dlg.transfer_changes() && (dlg.has_unselected_options() || is_called_from_configwizard)) {

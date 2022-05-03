@@ -259,7 +259,7 @@ public:
     void select_all();
     void deselect_all();
     void remove(size_t obj_idx);
-    void reset();
+    void reset(bool apply_presets_change = false);
     void reset_with_confirm();
     //BBS: return int for various result
     int close_with_confirm(std::function<bool(bool yes_or_no)> second_check = nullptr); // BBS close project

@@ -1508,7 +1508,7 @@ struct Plater::priv
     void remove(size_t obj_idx);
     void delete_object_from_model(size_t obj_idx, bool refresh_immediately = true); //BBS
     void delete_all_objects_from_model();
-    void reset();
+    void reset(bool apply_presets_change = false);
     void mirror(Axis axis);
     void split_object();
     void split_volume();
@@ -2851,7 +2851,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             MessageDialog msg_dlg(q, _L("Load these files as a single object with multiple parts?\n"), _L("Object with multiple parts was detected"),
                                   wxICON_WARNING | wxYES | wxNO);
             if (msg_dlg.ShowModal() == wxID_YES) { new_model->convert_multipart_object(filaments_cnt); }
-        } 
+        }
 
         auto loaded_idxs = load_model_objects(new_model->objects);
         obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
@@ -3298,7 +3298,7 @@ void Plater::priv::delete_all_objects_from_model()
     model.custom_gcode_per_print_z.gcodes.clear();
 }
 
-void Plater::priv::reset()
+void Plater::priv::reset(bool apply_presets_change)
 {
     Plater::TakeSnapshot snapshot(q, "Reset Project", UndoRedo::SnapshotType::ProjectSeparator);
 
@@ -3339,7 +3339,10 @@ void Plater::priv::reset()
 
     //BBS: reset all project embedded presets
     wxGetApp().preset_bundle->reset_project_embedded_presets();
-    wxGetApp().load_current_presets(false, false);
+    if (apply_presets_change)
+        wxGetApp().apply_keeped_preset_modifications();
+    else
+        wxGetApp().load_current_presets(false, false);
 
     model.custom_gcode_per_print_z.gcodes.clear();
 
@@ -6091,8 +6094,9 @@ SLAPrint&       Plater::sla_print()         { return p->sla_print; }
 
 void Plater::new_project(bool skip_confirm, bool silent)
 {
+    bool transfer_preset_changes = false;
     // BBS: save confirm
-    auto check = [](bool yes_or_no) {
+    auto check = [&transfer_preset_changes](bool yes_or_no) {
         wxString header = _L("Some presets are modified.") + "\n" +
             (yes_or_no ? _L("You can keep the modified presets to the new project or discard them") :
                 _L("You can keep the modifield presets to the new project, discard or save changes as new presets."));
@@ -6100,7 +6104,7 @@ void Plater::new_project(bool skip_confirm, bool silent)
         int act_buttons = ab::KEEP;
         if (!yes_or_no)
             act_buttons |= ab::SAVE;
-        return wxGetApp().check_and_keep_current_preset_changes(_L("Creating a new project"), header, act_buttons);
+        return wxGetApp().check_and_keep_current_preset_changes(_L("Creating a new project"), header, act_buttons, &transfer_preset_changes);
     };
     int result;
     if (!skip_confirm && (result = close_with_confirm(check)) == wxID_CANCEL)
@@ -6117,7 +6121,7 @@ void Plater::new_project(bool skip_confirm, bool silent)
     //get_partplate_list().reinit();
     //get_partplate_list().update_slice_context_to_current_plate(p->background_process);
     //p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
-    reset();
+    reset(transfer_preset_changes);
     reset_project_dirty_initial_presets();
     wxGetApp().update_saved_preset_from_current_preset();
     update_project_dirty_from_presets();
@@ -6987,7 +6991,7 @@ bool Plater::load_files(const wxArrayString& filenames)
 
     // BBS: check file types
     std::sort(normal_paths.begin(), normal_paths.end(), [](fs::path obj1, fs::path obj2) { return obj1.filename().string() < obj2.filename().string(); });
-    
+
     auto loadfiles_type  = LoadFilesType::NoFile;
     auto amf_files_count = get_3mf_file_count(normal_paths);
 
@@ -7003,8 +7007,8 @@ bool Plater::load_files(const wxArrayString& filenames)
     auto res        = true;
 
     switch (loadfiles_type) {
-    case LoadFilesType::Single3MF: 
-        open_3mf_file(normal_paths[0]); 
+    case LoadFilesType::Single3MF:
+        open_3mf_file(normal_paths[0]);
         break;
 
     case LoadFilesType::SingleOther:
@@ -7101,7 +7105,7 @@ bool Plater::open_3mf_file(const fs::path &file_path)
     return true;
 }
 
-int Plater::get_3mf_file_count(std::vector<fs::path> paths) 
+int Plater::get_3mf_file_count(std::vector<fs::path> paths)
 {
     auto count = 0;
     for (const auto &path : paths) {
@@ -7152,11 +7156,11 @@ void Plater::add_file()
         open_3mf_file(paths[0]);
     	break;
 
-    case LoadFilesType::SingleOther: 
+    case LoadFilesType::SingleOther:
         if (!load_files(paths, LoadStrategy::LoadModel, false).empty()) { wxGetApp().mainframe->update_title(); }
         break;
 
-    case LoadFilesType::Multiple3MF: 
+    case LoadFilesType::Multiple3MF:
         first_file = std::vector<fs::path>{paths[0]};
         for (auto i = 0; i < paths.size(); i++) {
             if (i > 0) { other_file.push_back(paths[i]); }
@@ -7166,9 +7170,9 @@ void Plater::add_file()
         if (!load_files(other_file, LoadStrategy::LoadModel).empty()) { wxGetApp().mainframe->update_title(); }
         break;
 
-    case LoadFilesType::MultipleOther: 
-        if (!load_files(paths, LoadStrategy::LoadModel, true).empty()) { 
-            wxGetApp().mainframe->update_title(); 
+    case LoadFilesType::MultipleOther:
+        if (!load_files(paths, LoadStrategy::LoadModel, true).empty()) {
+            wxGetApp().mainframe->update_title();
         }
         break;
 
@@ -7228,7 +7232,7 @@ void Plater::select_all() { p->select_all(); }
 void Plater::deselect_all() { p->deselect_all(); }
 
 void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
-void Plater::reset() { p->reset(); }
+void Plater::reset(bool apply_presets_change) { p->reset(apply_presets_change); }
 void Plater::reset_with_confirm()
 {
     if (p->model.objects.empty() || MessageDialog(static_cast<wxWindow *>(this), _L("All objects will be removed, continue?"),

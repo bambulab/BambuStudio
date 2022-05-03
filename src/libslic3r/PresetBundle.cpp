@@ -370,12 +370,43 @@ std::vector<Preset*> PresetBundle::get_current_project_embedded_presets()
 //BBS: reset project embedded presets
 void PresetBundle::reset_project_embedded_presets()
 {
-    this->prints.reset_project_embedded_presets();
-    this->filaments.reset_project_embedded_presets();
-    this->printers.reset_project_embedded_presets();
+    std::string prefer_printer;
+    Preset& current_printer = this->printers.get_selected_preset();
+    ConfigOption* inherits = current_printer.config.option("inherits");
+    if (inherits) {
+        prefer_printer = dynamic_cast<ConfigOptionString *>(inherits)->value;
+    }
+    //first printer, then filament, then print
+    bool printer_reselect = this->printers.reset_project_embedded_presets();
+    bool filament_reselect = this->filaments.reset_project_embedded_presets();
+    bool print_reselect = this->prints.reset_project_embedded_presets();
 
-    this->update_multi_material_filament_presets();
-    this->update_compatible(PresetSelectCompatibleType::Never);
+    if (printer_reselect) {
+        if (!prefer_printer.empty())
+           this->printers.select_preset_by_name(prefer_printer, true);
+        else
+           this->printers.select_preset(this->printers.first_visible_idx());
+
+        //this->update_multi_material_filament_presets();
+        this->update_compatible(PresetSelectCompatibleType::Never);
+    }
+    else if (filament_reselect || print_reselect) {
+        //Preset& current_printer = this->printers.get_selected_preset();
+        /*if (filament_reselect) {
+            const std::vector<std::string> &prefered_filament_profiles = current_printer.config.option<ConfigOptionStrings>("default_filament_profile")->values;
+            const std::string prefered_filament_profile = prefered_filament_profiles.empty() ? std::string() : prefered_filament_profiles.front();
+            if (!prefered_filament_profile.empty())
+               this->filaments.select_preset_by_name(prefered_filament_profile, true);
+            else
+               this->filaments.select_preset(this->filaments.first_visible_idx());
+        }
+
+        if (print_reselect) {
+        }*/
+        this->update_compatible(PresetSelectCompatibleType::Never);
+    }
+
+    //this->update_multi_material_filament_presets();
 
     //update filament_presets
     for (size_t i = 0; i < filament_presets.size(); ++ i)

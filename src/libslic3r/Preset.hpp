@@ -418,7 +418,7 @@ public:
     //BBS: add project embedded presets logic
     void load_project_embedded_presets(std::vector<Preset*>& project_presets, const std::string& type, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
     std::vector<Preset*> get_project_embedded_presets();
-    void reset_project_embedded_presets();
+    bool reset_project_embedded_presets();
 
     // Load a preset from an already parsed config file, insert it into the sorted sequence of presets
     // and select it, losing previous modifications.
@@ -474,10 +474,10 @@ public:
     // Return the selected preset, without the user modifications applied.
     Preset&         get_selected_preset() {
         //BBS fix crash when m_idx_selected == -1, give a default value
-        if (m_idx_selected == size_t(-1))
-            return m_presets[0];
-        else
-            return m_presets[m_idx_selected];
+        if ((m_idx_selected < 0) || (m_idx_selected >= m_presets.size())) {
+            select_preset(first_visible_idx());
+        }
+        return m_presets[m_idx_selected];
     }
     const Preset&   get_selected_preset() const { return m_presets[m_idx_selected]; }
     size_t          get_selected_idx()    const { return m_idx_selected; }
