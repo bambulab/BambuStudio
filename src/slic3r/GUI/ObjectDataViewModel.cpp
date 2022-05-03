@@ -2031,6 +2031,44 @@ wxDataViewItem ObjectDataViewModel::SetObjectPrintableState(
     return obj_item;
 }
 
+bool ObjectDataViewModel::IsColorPainted(wxDataViewItem& item) const
+{
+    ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(item.GetID());
+    if (!node)
+        return false;
+
+    return node->m_color_enable;
+}
+
+bool ObjectDataViewModel::IsSupportPainted(wxDataViewItem& item) const
+{
+    ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(item.GetID());
+    if (!node)
+        return false;
+
+    return node->m_support_enable;
+}
+
+void ObjectDataViewModel::SetColorPaintState(const bool painted, wxDataViewItem obj_item)
+{
+    ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(obj_item.GetID());
+    if (!node)
+        return;
+
+    node->set_color_icon(painted);
+    ItemChanged(obj_item);
+}
+
+void ObjectDataViewModel::SetSupportPaintState(const bool painted, wxDataViewItem obj_item)
+{
+    ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(obj_item.GetID());
+    if (!node)
+        return;
+
+    node->set_support_icon(painted);
+    ItemChanged(obj_item);
+}
+
 void ObjectDataViewModel::Rescale()
 {
     m_volume_bmps = MenuFactory::get_volume_bitmaps();

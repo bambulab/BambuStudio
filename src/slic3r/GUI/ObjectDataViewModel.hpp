@@ -428,6 +428,11 @@ public:
                                       int subobj_idx = -1, 
                                       ItemType subobj_type = itInstance);
     wxDataViewItem SetObjectPrintableState(PrintIndicator printable, wxDataViewItem obj_item);
+    // BBS
+    bool    IsColorPainted(wxDataViewItem& item) const;
+    bool    IsSupportPainted(wxDataViewItem& item) const;
+    void    SetColorPaintState(const bool painted, wxDataViewItem obj_item);
+    void    SetSupportPaintState(const bool painted, wxDataViewItem obj_item);
 
     void    SetAssociatedControl(wxDataViewCtrl* ctrl) { m_ctrl = ctrl; }
     // Rescale bitmaps for existing Items

@@ -2923,34 +2923,33 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
     wxDataViewItem item_obj = m_objects_model->GetItemById(obj_idx);
     assert(item_obj.IsOk());
 
-    ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item_obj.GetID();
     {
-        bool shows = node->HasSupportPainting();
+        bool shows = m_objects_model->IsSupportPainted(item_obj);
         bool should_show = printer_technology() == ptFFF
             && std::any_of(model_object->volumes.begin(), model_object->volumes.end(),
                 [](const ModelVolume* mv) {
                     return !mv->supported_facets.empty();
                 });
         if (shows && !should_show) {
-            node->set_support_icon(false);
+            m_objects_model->SetSupportPaintState(false, item_obj);
         }
         else if (!shows && should_show) {
-            node->set_support_icon(true);
+            m_objects_model->SetSupportPaintState(true, item_obj);
         }
     }
 
     {
-        bool shows = node->HasColorPainting();
+        bool shows = m_objects_model->IsColorPainted(item_obj);
         bool should_show = printer_technology() == ptFFF
             && std::any_of(model_object->volumes.begin(), model_object->volumes.end(),
                 [](const ModelVolume* mv) {
                     return !mv->mmu_segmentation_facets.empty();
                 });
         if (shows && !should_show) {
-            node->set_color_icon(false);
+            m_objects_model->SetColorPaintState(false, item_obj);
         }
         else if (!shows && should_show) {
-            node->set_color_icon(true);
+            m_objects_model->SetColorPaintState(true, item_obj);
         }
     }
 
