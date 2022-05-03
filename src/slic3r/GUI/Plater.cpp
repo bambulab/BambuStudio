@@ -6974,6 +6974,7 @@ bool Plater::load_files(const wxArrayString& filenames)
             snapshot_label += encode_path(normal_paths[i].filename().string().c_str());
         }
     }
+
     Plater::TakeSnapshot snapshot(this, snapshot_label);
     //load_files(normal_paths, LoadStrategy::LoadModel);
 
@@ -7070,6 +7071,8 @@ bool Plater::open_3mf_file(const fs::path &file_path)
 
     switch (load_type) {
         case LoadType::OpenProject: {
+            // remove snapshot taken by load_files and add_file
+            undo();
             if (wxGetApp().can_load_project())
                 load_project(from_path(file_path));
             break;
