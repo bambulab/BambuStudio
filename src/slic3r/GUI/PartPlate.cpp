@@ -2792,6 +2792,27 @@ int PartPlateList::find_instance(int obj_id, int instance_id)
 	return ret;
 }
 
+/*instance related operations*/
+//find instance in which plate, return -1 when not found
+//this function only judges whether it is intersect with plate
+int PartPlateList::find_instance(BoundingBoxf3& bounding_box)
+{
+	int ret = -1;
+
+	//update the plates after it
+	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	{
+		PartPlate* plate = m_plate_list[i];
+		assert(plate != NULL);
+
+		if (plate->intersects(bounding_box))
+			return i;
+	}
+
+	//return -1 for not found
+	return ret;
+}
+
 //this function not only judges whether it is intersect with plate, but also judges whether it is fully included in plate
 //returns -1 when can not find any plate
 int PartPlateList::find_instance_belongs(int obj_id, int instance_id)

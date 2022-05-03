@@ -2638,7 +2638,11 @@ void Selection::paste_objects_from_clipboard()
         ModelObject* dst_object = m_model->add_object(*src_object);
 
         // BBS: find an empty cell to put the copied object
-        auto start_point = src_object->instances.front()->get_offset();
+        BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(0);
+        PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+        bool in_current = plate->intersects(bbox);
+
+        auto start_point = in_current?src_object->instances.front()->get_offset():plate->get_build_volume().center();
         auto empty_cell = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)});
         Vec3d displacement = { empty_cell.x(),empty_cell.y(),start_point(2) };
         for (ModelInstance* inst : dst_object->instances)

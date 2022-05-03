@@ -546,6 +546,7 @@ public:
     //find instance in which plate, return -1 when not found
     //this function only judges whether it is intersect with plate
     int find_instance(int obj_id, int instance_id);
+    int find_instance(BoundingBoxf3& bounding_box);
 
     //find instance belongs to which plate
     //this function not only judges whether it is intersect with plate, but also judges whether it is fully included in plate

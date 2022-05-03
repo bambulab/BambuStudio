@@ -3881,7 +3881,10 @@ double GLCanvas3D::get_size_proportional_to_max_bed_size(double factor) const
 //BBS
 std::vector<Vec2f> GLCanvas3D::get_empty_cells(const Vec2f start_point)
 {
-    const BoundingBoxf& bbox = m_bed.build_volume().bounding_volume2d();
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    BoundingBoxf3 build_volume = plate->get_build_volume();
+    Vec2d vmin(build_volume.min.x(), build_volume.min.y()), vmax(build_volume.max.x(), build_volume.max.y());
+    BoundingBoxf bbox(vmin, vmax);
     std::vector<Vec2f> cells;
     for (float x = bbox.min.x(); x < bbox.max.x(); x+=10)
         for (float y = bbox.min.y(); y < bbox.max.y(); y += 10)
