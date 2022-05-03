@@ -4962,6 +4962,13 @@ void Plater::priv::on_action_publish(wxCommandEvent &event)
 {
     if (q != nullptr) {
         if (event.GetInt() == EVT_PUBLISHING_START) {
+            // update by background slicing process
+            if (process_completed_with_error) {
+                wxString msg = _L("Please resolve the slicing errors and publish again.");
+                this->m_publish_dlg->UpdateStatus(msg, false);
+                return;
+            }
+
             m_is_publishing = true;
             // if slicing is ready publish project, else slicing first
             if (partplate_list.is_all_slice_results_valid()) {
