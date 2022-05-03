@@ -530,16 +530,21 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     toggle_line("tree_support_with_infill", support_is_tree);
 
     for (auto el : { "support_interface_spacing", "support_interface_filament",
-                    "support_interface_speed", "support_interface_loop_pattern",
-                    "support_transition_speed","support_bottom_interface_spacing" })
+                     "support_interface_loop_pattern", "support_bottom_interface_spacing" })
         toggle_field(el, have_support_material && have_support_interface);
+
+    //BBS
+    bool have_skirt_height = have_skirt &&
+                             (config->opt_int("skirt_height") > 1 || config->opt_enum<DraftShield>("draft_shield") != dsEnabled);
+    toggle_field("support_speed", have_support_material || have_skirt_height);
+    toggle_field("support_interface_speed", have_support_material && have_support_interface);
+    toggle_field("support_transition_speed", have_support_material && support_is_tree);
 
     // BBS
     //toggle_field("support_material_synchronize_layers", have_support_soluble);
 
     toggle_field("inner_wall_line_width", have_perimeters || have_skirt || have_brim);
     toggle_field("support_filament", have_support_material || have_skirt);
-    toggle_field("support_speed", have_support_material || have_brim || have_skirt);
 
     toggle_field("raft_contact_distance", have_raft && !have_support_soluble);
     for (auto el : { "raft_expansion" })
