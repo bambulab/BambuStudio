@@ -308,7 +308,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     SetSize(min_size/*wxSize(760, 490)*/);
 #else
     SetMinSize(min_size/*wxSize(760, 490)*/);
-    SetSize(GetMinSize());
+    SetSize(wxSize(FromDIP(1200), FromDIP(800)));
 #endif
     Layout();
 

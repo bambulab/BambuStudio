@@ -285,6 +285,12 @@ void WindowMetrics::sanitize_for_display(const wxRect &screen_rect)
     rect.y = std::min(rect.y, screen_rect.y + 4*screen_rect.height/5);
 }
 
+void WindowMetrics::center_for_display(const wxRect &screen_rect)
+{
+    rect.x = std::max(0, (screen_rect.GetWidth() - rect.GetWidth()) / 2);
+    rect.y = std::max(0, (screen_rect.GetHeight() - rect.GetHeight()) / 2);
+}
+
 std::string WindowMetrics::serialize() const
 {
     return (boost::format("%1%; %2%; %3%; %4%; %5%")

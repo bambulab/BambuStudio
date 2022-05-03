@@ -23,9 +23,9 @@ namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_FINISHED_UPDATE_MACHINE_LIST, wxCommandEvent);
 
-#define INITIAL_NUMBER_OF_MACHINES 0
-#define LIST_REFRESH_INTERVAL 3000
-#define MACHINE_LIST_REFRESH_INTERVAL 2000
+#define INITIAL_NUMBER_OF_MACHINES      0
+#define LIST_REFRESH_INTERVAL           3000
+#define MACHINE_LIST_REFRESH_INTERVAL   100
 
 MachineListModel::MachineListModel() : wxDataViewVirtualListModel(INITIAL_NUMBER_OF_MACHINES) { ; }
 
@@ -971,7 +971,6 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
 {
     Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
     if (c->is_user_login()) {
-
         if (this == NULL || this == nullptr) { return;}
         boost::thread get_print_info_thread = Slic3r::create_thread([this] {
             Slic3r::AccountManager *acc = Slic3r::GUI::wxGetApp().getAccountManager();

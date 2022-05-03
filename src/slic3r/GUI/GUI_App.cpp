@@ -1325,8 +1325,8 @@ bool GUI_App::on_init_inner()
         // Detect position (display) to show the splash screen
         // Now this position is equal to the mainframe position
         wxPoint splashscreen_pos = wxDefaultPosition;
-        if (app_config->has("window_mainframe")) {
-            auto metrics = WindowMetrics::deserialize(app_config->get("window_mainframe"));
+        if (app_config->has("win_main")) {
+            auto metrics = WindowMetrics::deserialize(app_config->get("win_main"));
             if (metrics)
                 splashscreen_pos = metrics->get_rect().GetPosition();
         }
@@ -2041,15 +2041,19 @@ void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_max
 
     window->Bind(wxEVT_CLOSE_WINDOW, [=](wxCloseEvent &event) {
         m_device_manager->disconnect_all();
-        window_pos_save(window, name);
+        window_pos_save(window, "main");
         event.Skip();
     });
 
-    window_pos_restore(window, name, default_maximized);
-
-    on_window_geometry(window, [=]() {
-        window_pos_sanitize(window);
-    });
+    if (window_pos_restore(window, "main", default_maximized)) {
+        on_window_geometry(window, [=]() {
+            window_pos_sanitize(window);
+        });
+    } else {
+        on_window_geometry(window, [=]() {
+            window_pos_center(window);
+        });
+    }
 }
 
 void GUI_App::load_project(wxWindow *parent, wxString& input_file) const
@@ -3427,33 +3431,34 @@ void GUI_App::gcode_thumbnails_debug()
 void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)
 {
     if (name.empty()) { return; }
-    const auto config_key = (boost::format("window_%1%") % name).str();
+    const auto config_key = (boost::format("win_%1%") % name).str();
 
     WindowMetrics metrics = WindowMetrics::from_window(window);
     app_config->set(config_key, metrics.serialize());
     app_config->save();
 }
 
-void GUI_App::window_pos_restore(wxTopLevelWindow* window, const std::string &name, bool default_maximized)
+bool GUI_App::window_pos_restore(wxTopLevelWindow* window, const std::string &name, bool default_maximized)
 {
-    if (name.empty()) { return; }
-    const auto config_key = (boost::format("window_%1%") % name).str();
+    if (name.empty()) { return false; }
+    const auto config_key = (boost::format("win_%1%") % name).str();
 
     if (! app_config->has(config_key)) {
-        window->Maximize(default_maximized);
-        return;
+        //window->Maximize(default_maximized);
+        return false;
     }
 
     auto metrics = WindowMetrics::deserialize(app_config->get(config_key));
     if (! metrics) {
         window->Maximize(default_maximized);
-        return;
+        return true;
     }
 
     const wxRect& rect = metrics->get_rect();
     window->SetPosition(rect.GetPosition());
     window->SetSize(rect.GetSize());
     window->Maximize(metrics->get_maximized());
+    return true;
 }
 
 void GUI_App::window_pos_sanitize(wxTopLevelWindow* window)
@@ -3469,6 +3474,24 @@ void GUI_App::window_pos_sanitize(wxTopLevelWindow* window)
 
     auto metrics = WindowMetrics::from_window(window);
     metrics.sanitize_for_display(display);
+    if (window->GetScreenRect() != metrics.get_rect()) {
+        window->SetSize(metrics.get_rect());
+    }
+}
+
+void GUI_App::window_pos_center(wxTopLevelWindow *window)
+{
+    /*unsigned*/int display_idx = wxDisplay::GetFromWindow(window);
+    wxRect display;
+    if (display_idx == wxNOT_FOUND) {
+        display = wxDisplay(0u).GetClientArea();
+        window->Move(display.GetTopLeft());
+    } else {
+        display = wxDisplay(display_idx).GetClientArea();
+    }
+
+    auto metrics = WindowMetrics::from_window(window);
+    metrics.center_for_display(display);
     if (window->GetScreenRect() != metrics.get_rect()) {
         window->SetSize(metrics.get_rect());
     }

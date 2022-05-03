@@ -410,8 +410,9 @@ private:
     bool            check_older_app_config(Semver current_version, bool backup);
     void            copy_older_config();
     void            window_pos_save(wxTopLevelWindow* window, const std::string &name);
-    void            window_pos_restore(wxTopLevelWindow* window, const std::string &name, bool default_maximized = false);
+    bool            window_pos_restore(wxTopLevelWindow* window, const std::string &name, bool default_maximized = false);
     void            window_pos_sanitize(wxTopLevelWindow* window);
+    void            window_pos_center(wxTopLevelWindow *window);
     bool            select_language();
 
     bool            config_wizard_startup();
