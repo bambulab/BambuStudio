@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-03 18:23+0800\n"
-"PO-Revision-Date: 2022-04-27 21:51+0800\n"
+"POT-Creation-Date: 2022-05-03 22:46+0800\n"
+"PO-Revision-Date: 2022-05-03 22:47+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -2365,6 +2365,9 @@ msgstr "无效数据"
 msgid "Slicing Plate %d"
 msgstr "正切切片盘%d"
 
+msgid "Please resolve the slicing errors and publish again."
+msgstr ""
+
 msgid "Some presets are modified."
 msgstr "预设已被修改。"
 
@@ -3573,8 +3576,9 @@ msgstr "擦拭塔要求支撑和对象采用同样的层高。"
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "层高不能超过喷嘴直径"
 
-msgid "Current bed type do not support filament "
-msgstr "当前热床不支持耗材丝"
+#, c-format, boost-format
+msgid "Plate %d: %s does not support filament %s.\n"
+msgstr "盘%d：%s不支持耗材丝%s\n"
 
 msgid "Generating infills"
 msgstr "正在生成填充"
@@ -5123,6 +5127,9 @@ msgstr "生成支撑"
 
 msgid "Slicing mesh"
 msgstr "切片网格"
+
+#~ msgid "Current bed type do not support filament "
+#~ msgstr "当前热床不支持耗材丝"
 
 #~ msgid "Open"
 #~ msgstr "打开"

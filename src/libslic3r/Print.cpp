@@ -926,8 +926,26 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     const ConfigOptionInts& bed_temp_opt = m_config.bed_temperature;
     for (unsigned int extruder_id : extruders) {
         int curr_bed_temp = bed_temp_opt.get_at(extruder_id * BedType::btCount + m_config.curr_bed_type);
-        if (curr_bed_temp == 0)
-            return { L("Current bed type do not support filament ") + std::to_string(extruder_id + 1) + "." };
+        const ConfigOptionDef* bed_type_def = print_config_def.get("bed_type");
+        assert(bed_type_def != nullptr);
+
+        const t_config_enum_values* bed_type_keys_map = bed_type_def->enum_keys_map;
+        const ConfigOptionInts& bed_temp_opt = m_config.bed_temperature;
+        for (unsigned int extruder_id : extruders) {
+            int curr_bed_temp = bed_temp_opt.get_at(extruder_id * BedType::btCount + m_config.curr_bed_type);
+            if (curr_bed_temp == 0 && bed_type_keys_map != nullptr) {
+                std::string bed_type_name;
+                for (auto item : *bed_type_keys_map) {
+                    if (item.second == m_config.curr_bed_type) {
+                        bed_type_name = item.first;
+                        break;
+                    }
+                }
+
+                return { format(L("Plate %d: %s does not support filament %s.\n"), this->get_plate_index() + 1,
+                                L(bed_type_name), extruder_id + 1) };
+            }
+        }
     }
 
     return {};

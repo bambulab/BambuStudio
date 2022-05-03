@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-03 18:23+0800\n"
+"POT-Creation-Date: 2022-05-03 22:46+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2308,6 +2308,9 @@ msgstr ""
 msgid "Slicing Plate %d"
 msgstr ""
 
+msgid "Please resolve the slicing errors and publish again."
+msgstr ""
+
 msgid "Some presets are modified."
 msgstr ""
 
@@ -3500,7 +3503,8 @@ msgstr ""
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr ""
 
-msgid "Current bed type do not support filament "
+#, possible-c-format, possible-boost-format
+msgid "Plate %d: %s does not support filament %s.\n"
 msgstr ""
 
 msgid "Generating infills"
