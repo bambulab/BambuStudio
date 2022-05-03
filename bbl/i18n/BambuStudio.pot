@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-29 19:46+0800\n"
+"POT-Creation-Date: 2022-05-03 18:23+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1540,15 +1540,10 @@ msgstr ""
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
-"We can not do auto-arrange on these objects!"
+"We can not do auto-arrange on these objects."
 msgstr ""
 
 msgid "No arrangable objects are selected."
-msgstr ""
-
-msgid ""
-"All the selected objects are on the locked plate,\n"
-"We can not do auto-arrange on these objects."
 msgstr ""
 
 msgid ""
@@ -1563,14 +1558,15 @@ msgstr ""
 msgid "Object %s has zero size and can't be arranged."
 msgstr ""
 
-msgid "Arrange failed. Found some exceptions when processing object Geometries"
+msgid ""
+"Arrange failed. Found some exceptions when processing object geometries."
 msgstr ""
 
 msgid "Arranging canceled."
 msgstr ""
 
 msgid ""
-"Arranging is done but there are unpacked items! Reduce spacing and try again!"
+"Arranging is done but there are unpacked items. Reduce spacing and try again."
 msgstr ""
 
 msgid "Arranging done."
@@ -1593,7 +1589,7 @@ msgid ""
 "We can not do auto-orient on this plate."
 msgstr ""
 
-msgid "Orienting"
+msgid "Orienting..."
 msgstr ""
 
 msgid "Error! Unable to create thread!"
@@ -1654,6 +1650,9 @@ msgid "Choose Filaments"
 msgstr ""
 
 msgid "Show Configuration Folder"
+msgstr ""
+
+msgid "Bind Dialog"
 msgstr ""
 
 msgid "Check for Update"
@@ -1842,6 +1841,9 @@ msgid "Help"
 msgstr ""
 
 msgid "Save configuration as:"
+msgstr ""
+
+msgid "File is missing"
 msgstr ""
 
 msgid "Filament Settings"
@@ -2229,7 +2231,7 @@ msgstr ""
 msgid "Loading file: %s"
 msgstr ""
 
-msgid "The Config is not compatible, can not load!"
+msgid "The Config is not compatible and can not be loaded."
 msgstr ""
 
 msgid "Incompatible 3mf"
@@ -2267,6 +2269,12 @@ msgid "Objects with zero volume removed"
 msgstr ""
 
 msgid "The volume of the object is zero"
+msgstr ""
+
+msgid "Load these files as a single object with multiple parts?\n"
+msgstr ""
+
+msgid "Object with multiple parts was detected"
 msgstr ""
 
 msgid "Export STL file:"
@@ -2356,9 +2364,6 @@ msgid "Open as project"
 msgstr ""
 
 msgid "Import geometry only"
-msgstr ""
-
-msgid "Import presets only"
 msgstr ""
 
 msgid "Don't show again"
@@ -3250,7 +3255,9 @@ msgstr ""
 msgid "Open G-code file:"
 msgstr ""
 
-msgid "One object has empty initial layer and can't be printed."
+msgid ""
+"One object has empty initial layer and can't be printed. Please Cut the "
+"bottom or enable supports."
 msgstr ""
 
 #, possible-boost-format
@@ -3440,8 +3447,7 @@ msgid ""
 " is too close to exclusion area, there will be collisions when printing.\n"
 msgstr ""
 
-msgid ""
-"Prime Tower is too close to others, there will be collisions when printing."
+msgid "Prime Tower"
 msgstr ""
 
 msgid "No extrusions under current settings."
@@ -4902,7 +4908,7 @@ msgstr ""
 msgid "Export project as 3MF."
 msgstr ""
 
-msgid "Slice the models."
+msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
 msgstr ""
 
 msgid "Show command help."

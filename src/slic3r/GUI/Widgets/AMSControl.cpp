@@ -1250,13 +1250,13 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     wxBoxSizer *sizer_err_calibration_v = new wxBoxSizer(wxVERTICAL);
     m_hyperlink = new wxHyperlinkCtrl(m_calibration_err_panel, wxID_ANY, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
     m_hyperlink->SetVisitedColour(wxColour(31, 142, 234));
-    auto m_tip_calibration_err = new wxStaticText(m_calibration_err_panel, wxID_ANY, _L("calibration problem, click to see the solution"), wxDefaultPosition, wxDefaultSize, 0);
+    auto m_tip_calibration_err = new wxStaticText(m_calibration_err_panel, wxID_ANY, _L("A problem occured during calibration. Click to view the solution."), wxDefaultPosition, wxDefaultSize, 0);
     m_tip_calibration_err->SetFont(::Label::Body_14);
     m_tip_calibration_err->SetForegroundColour(AMS_CONTROL_GRAY700);
 
     wxBoxSizer *sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
-    auto       m_button_calibration_again = new Button(m_calibration_err_panel, _L("calibrate again"));
+    auto       m_button_calibration_again = new Button(m_calibration_err_panel, _L("Calibrate again"));
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     m_button_calibration_again->SetBackgroundColor(btn_bg_green);
@@ -1268,8 +1268,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     sizer_button->Add(m_button_calibration_again, 0, wxALL, 5);
 
-
-    auto       m_button_calibration_cancel = new Button(m_calibration_err_panel, _L("cancel calibrate"));
+    auto       m_button_calibration_cancel = new Button(m_calibration_err_panel, _L("Cancel calibration"));
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
                             std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
                             std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));

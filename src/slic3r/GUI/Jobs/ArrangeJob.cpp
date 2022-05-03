@@ -169,7 +169,7 @@ void ArrangeJob::prepare_selected() {
             m_selected.swap(m_unselected);
         else {
             m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
-                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("All the selected objects are on the locked plate,\nWe can not do auto-arrange on these objects!")));
+                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("All the selected objects are on the locked plate,\nWe can not do auto-arrange on these objects.")));
             }
         }
 
@@ -424,7 +424,7 @@ void ArrangeJob::on_exception(const std::exception_ptr &eptr)
             std::rethrow_exception(eptr);
     } catch (libnest2d::GeometryException &) {
         show_error(m_plater, _(L("Arrange failed. "
-                                 "Found some exceptions when processing object Geometries")));
+                                 "Found some exceptions when processing object geometries.")));
     } catch (std::exception &) {
         PlaterJob::on_exception(eptr);
     }
@@ -560,7 +560,7 @@ void ArrangeJob::process()
     // finalize just here.
     update_status(int(count),
         was_canceled() ? _(L("Arranging canceled.")) :
-        we_have_unpackable_items ? _(L("Arranging is done but there are unpacked items! Reduce spacing and try again!")) : _(L("Arranging done.")));
+        we_have_unpackable_items ? _(L("Arranging is done but there are unpacked items. Reduce spacing and try again.")) : _(L("Arranging done.")));
 }
 
 static std::string concat_strings(const std::set<std::string> &strings,

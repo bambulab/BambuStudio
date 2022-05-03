@@ -664,14 +664,14 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     convex_hulls_temp.push_back(wipe_tower_convex_hull);
     if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
         if (warning) {
-            warning->string += L("Prime Tower is too close to others, there will be collisions when printing.\n");
+            warning->string += L("Prime Tower") + L(" is too close to others, there will be collisions when printing.\n");
         }
     }
     if (!intersection(exclude_polys, convex_hulls_temp).empty()) {
         /*if (warning) {
             warning->string += L("Prime Tower is too close to exclusion area, there will be collisions when printing.\n");
         }*/
-        return {L("Prime Tower is too close to exclusion area, there will be collisions when printing.\n")};
+        return {L("Prime Tower") + L(" is too close to exclusion area, there will be collisions when printing.\n")};
     }
 
     return {};

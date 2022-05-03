@@ -162,7 +162,7 @@ void OrientJob::on_exception(const std::exception_ptr &eptr)
 void OrientJob::process()
 {
     auto start = std::chrono::steady_clock::now();
-    static const auto arrangestr = _(L("Orienting"));
+    static const auto arrangestr = _(L("Orienting..."));
 
     const GLCanvas3D::OrientSettings& settings = m_plater->canvas3D()->get_orient_settings();
 

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-29 19:46+0800\n"
+"POT-Creation-Date: 2022-05-03 18:23+0800\n"
 "PO-Revision-Date: 2022-04-27 21:51+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -55,7 +55,7 @@ msgid "Calibrating AMS..."
 msgstr "正在校准AMS..."
 
 msgid "A problem occured during calibration. Click to view the solution."
-msgstr "校准过程中发生问题。点击以查看解决方案。"
+msgstr "校准过程遇到问题。点击查看解决方案。"
 
 msgid "Calibrate again"
 msgstr "重新校准"
@@ -1584,20 +1584,13 @@ msgstr "编辑"
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
-"We can not do auto-arrange on these objects!"
+"We can not do auto-arrange on these objects."
 msgstr ""
 "所有选中的对象都处于被锁定的盘上，\n"
 "无法对这些对象做自动摆盘。"
 
 msgid "No arrangable objects are selected."
 msgstr "没有可摆盘的对象被选中。"
-
-msgid ""
-"All the selected objects are on the locked plate,\n"
-"We can not do auto-arrange on these objects."
-msgstr ""
-"所有选中的对象都处于被锁定的盘上，\n"
-"无法对这些对象做自动摆盘。"
 
 msgid ""
 "This plate is locked,\n"
@@ -1613,14 +1606,15 @@ msgstr "自动摆放中..."
 msgid "Object %s has zero size and can't be arranged."
 msgstr "对象%s的尺寸为0，无法被自动摆放。"
 
-msgid "Arrange failed. Found some exceptions when processing object Geometries"
+msgid ""
+"Arrange failed. Found some exceptions when processing object geometries."
 msgstr "自动摆放失败，处理对象几何数据时遇到异常。"
 
 msgid "Arranging canceled."
 msgstr "已取消自动摆放。"
 
 msgid ""
-"Arranging is done but there are unpacked items! Reduce spacing and try again!"
+"Arranging is done but there are unpacked items. Reduce spacing and try again."
 msgstr "已完成自动摆放，但是有未被摆到盘内的项，可在减小间距后重试。"
 
 msgid "Arranging done."
@@ -1649,7 +1643,7 @@ msgstr ""
 "该盘处于锁定状态，\n"
 "无法对其进行自动朝向。"
 
-msgid "Orienting"
+msgid "Orienting..."
 msgstr "自动朝向中..."
 
 msgid "Error! Unable to create thread!"
@@ -1711,6 +1705,9 @@ msgstr "选择耗材丝"
 
 msgid "Show Configuration Folder"
 msgstr "打开配置文件夹"
+
+msgid "Bind Dialog"
+msgstr "绑定对话框"
 
 msgid "Check for Update"
 msgstr "检查新版本"
@@ -1899,6 +1896,9 @@ msgstr "帮助"
 
 msgid "Save configuration as:"
 msgstr "预设另存为："
+
+msgid "File is missing"
+msgstr "文件丢失"
 
 msgid "Filament Settings"
 msgstr "打印丝设置"
@@ -2288,7 +2288,7 @@ msgstr "恢复"
 msgid "Loading file: %s"
 msgstr "加载文件：%s"
 
-msgid "The Config is not compatible, can not load!"
+msgid "The Config is not compatible and can not be loaded."
 msgstr "该配置不兼容，无法被加载"
 
 msgid "Incompatible 3mf"
@@ -2327,6 +2327,12 @@ msgstr "体积为零的对象已被移除"
 
 msgid "The volume of the object is zero"
 msgstr "对象的体积为零"
+
+msgid "Load these files as a single object with multiple parts?\n"
+msgstr "将这些文件加载为一个多零件对象？\n"
+
+msgid "Object with multiple parts was detected"
+msgstr "检测到多零件对象"
 
 msgid "Export STL file:"
 msgstr "导出 STL 文件："
@@ -2416,9 +2422,6 @@ msgstr "按项目打开"
 
 msgid "Import geometry only"
 msgstr "仅导入模型数据"
-
-msgid "Import presets only"
-msgstr "仅导入预设"
 
 msgid "Don't show again"
 msgstr "不再显示"
@@ -3319,8 +3322,10 @@ msgstr "CURL初始化失败。查看日志以获取详细信息。"
 msgid "Open G-code file:"
 msgstr "打开G-code文件："
 
-msgid "One object has empty initial layer and can't be printed."
-msgstr "模型出现空层无法打印。"
+msgid ""
+"One object has empty initial layer and can't be printed. Please Cut the "
+"bottom or enable supports."
+msgstr "模型出现空层无法打印。请切掉底部或打开支撑。"
 
 #, boost-format
 msgid "Object can't be printed for empty layer between %1% and %2%."
@@ -3515,9 +3520,8 @@ msgid ""
 " is too close to exclusion area, there will be collisions when printing.\n"
 msgstr "离不可打印区域太近，会造成打印时出现碰撞。\n"
 
-msgid ""
-"Prime Tower is too close to others, there will be collisions when printing."
-msgstr "擦拭塔和其他对象挨得太近，会造成打印时出现碰撞。"
+msgid "Prime Tower"
+msgstr "擦拭塔"
 
 msgid "No extrusions under current settings."
 msgstr "根据当前设置，不会生成任何打印。"
@@ -5041,8 +5045,8 @@ msgstr "导出3MF"
 msgid "Export project as 3MF."
 msgstr "导出项目为3MF。"
 
-msgid "Slice the models."
-msgstr "对模型切片。"
+msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
+msgstr ""
 
 msgid "Show command help."
 msgstr "显示命令行帮助。"
@@ -5119,6 +5123,57 @@ msgstr "生成支撑"
 
 msgid "Slicing mesh"
 msgstr "切片网格"
+
+#~ msgid "Open"
+#~ msgstr "打开"
+
+#~ msgid "Add support blocker"
+#~ msgstr "添加支撑屏蔽"
+
+#~ msgid "Add support enforcer"
+#~ msgstr "添加支撑生成器"
+
+#~ msgid "Load from disk"
+#~ msgstr "从硬盘加载"
+
+#~ msgid "Import presets only"
+#~ msgstr "仅导入预设"
+
+#~ msgid "Slice the models."
+#~ msgstr "对模型切片。"
+
+#~ msgid ""
+#~ "All the selected objects are on the locked plate,\n"
+#~ "We can not do auto-arrange on these objects!"
+#~ msgstr ""
+#~ "所有选中的对象都处于被锁定的盘上，\n"
+#~ "无法对这些对象做自动摆盘。"
+
+#~ msgid ""
+#~ "Arrange failed. Found some exceptions when processing object Geometries"
+#~ msgstr "自动摆放失败，处理对象几何数据时遇到异常。"
+
+#~ msgid ""
+#~ "Arranging is done but there are unpacked items! Reduce spacing and try "
+#~ "again!"
+#~ msgstr "已完成自动摆放，但是有未被摆到盘内的项，可在减小间距后重试。"
+
+#~ msgid "Orienting"
+#~ msgstr "自动朝向中..."
+
+#~ msgid "The Config is not compatible, can not load!"
+#~ msgstr "该配置不兼容，无法被加载"
+
+#~ msgid "One object has empty initial layer and can't be printed."
+#~ msgstr "模型出现空层无法打印。"
+
+#~ msgid ""
+#~ "Prime Tower is too close to others, there will be collisions when "
+#~ "printing."
+#~ msgstr "擦拭塔和其他对象挨得太近，会造成打印时出现碰撞。"
+
+#~ msgid "Cancel Calibration"
+#~ msgstr "取消校准"
 
 #~ msgid "Guide"
 #~ msgstr "引导"
@@ -5278,12 +5333,6 @@ msgstr "切片网格"
 #~ msgid "Print plate"
 #~ msgstr "打印单盘"
 
-#~ msgid "Add support blocker"
-#~ msgstr "添加支撑屏蔽"
-
-#~ msgid "Add support enforcer"
-#~ msgstr "添加支撑生成器"
-
 #~ msgid "Switching Presets: Unsaved Changes"
 #~ msgstr "切换预设:未保存的更改"
 
@@ -5302,12 +5351,6 @@ msgstr "切片网格"
 
 #~ msgid "Ratio"
 #~ msgstr "比例"
-
-#~ msgid "Load these files as a single object with multiple parts?\n"
-#~ msgstr "将这些文件加载为一个多零件对象？\n"
-
-#~ msgid "Object with multiple parts was detected"
-#~ msgstr "检测到多零件对象"
 
 #~ msgid "Show daily tip on startup"
 #~ msgstr "启动时显示每日小贴士"

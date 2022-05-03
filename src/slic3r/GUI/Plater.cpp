@@ -2481,7 +2481,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         load_config      = false;
                         if (!load_model) {
                             //only load config case, return directly
-                            show_info(q, _L("The Config is not compatible, can not load!"), _L("Incompatible 3mf"));
+                            show_info(q, _L("The Config is not compatible and can not be loaded."), _L("Incompatible 3mf"));
                             return empty_result;
                         }
                         load_old_project = true;
