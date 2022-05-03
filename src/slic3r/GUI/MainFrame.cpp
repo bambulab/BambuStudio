@@ -2189,6 +2189,7 @@ void MainFrame::add_to_recent_projects(const wxString& filename)
         }
         wxGetApp().app_config->set_recent_projects(recent_projects);
         wxGetApp().app_config->save();
+        m_webview->SendRecentList("");
     }
 }
 
@@ -2197,14 +2198,16 @@ void MainFrame::get_recent_projects(boost::property_tree::wptree &tree)
     for (size_t i = 0; i < m_recent_projects.GetCount(); ++i) {
         boost::property_tree::wptree item;
         std::wstring proj = m_recent_projects.GetHistoryFile(i).ToStdWstring();
-        if (!boost::filesystem::exists(proj)) continue;
         item.put(L"project_name", proj.substr(proj.find_last_of(L"/\\") + 1));
         item.put(L"path", proj);
         boost::system::error_code ec;
         std::time_t t = boost::filesystem::last_write_time(proj, ec);
-        if (ec) continue;
-        std::wstring time = wxDateTime(t).Format().ToStdWstring();
-        item.put(L"time", time);
+        if (!ec) {
+            std::wstring time = wxDateTime(t).Format().ToStdWstring();
+            item.put(L"time", time);
+        } else {
+            item.put(L"time", _L("File is missing"));
+        }
         tree.push_back({L"", item});
     }
 }
