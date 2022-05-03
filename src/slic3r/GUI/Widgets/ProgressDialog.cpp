@@ -89,13 +89,12 @@ void ProgressDialog::SetTopParent(wxWindow *parent)
 wxString ProgressDialog::FormatString(wxString title)
 {
     auto current_width = 0;
-
     m_mode = 0;
     for (int i = 0; i < title.length(); i++) {
         current_width = m_msg->GetTextExtent(title.SubString(0, i)).x;
         if (current_width > PROGRESSDIALOG_GAUGE_SIZE.x) {
             m_mode = 1;
-            title.insert(i-1, "\n");
+            //title.insert(i - 1, "\n");
             break;
         }
     }
@@ -123,9 +122,9 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
     if (!wxDialog::Create(m_parentTop, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, GetWindowStyle())) return false;
     SetBackgroundColour(PROGRESSDIALOG_DEF_BK);
 
-   /* SetSize(DESIGN_RESOUTION_PROGRESS_SIZE);
-    SetMinSize(DESIGN_RESOUTION_PROGRESS_SIZE);
-    SetMaxSize(DESIGN_RESOUTION_PROGRESS_SIZE);*/
+    /* SetSize(DESIGN_RESOUTION_PROGRESS_SIZE);
+     SetMinSize(DESIGN_RESOUTION_PROGRESS_SIZE);
+     SetMaxSize(DESIGN_RESOUTION_PROGRESS_SIZE);*/
 
     SetMaximum(maximum);
     EnsureActiveEventLoopExists();
@@ -138,48 +137,47 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
 
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
 
-    m_top_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_top_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
     m_top_line->SetBackgroundColour(wxColour(166, 169, 170));
 
     m_sizer_main->Add(m_top_line, 0, wxEXPAND, 0);
-
     m_sizer_main->Add(0, 0, 0, wxTOP, 24);
 
-    m_simplebook  = new wxSimplebook(this, wxID_ANY, wxDefaultPosition,PROGRESSDIALOG_SIMPLEBOOK_SIZE, 0);
-    m_panel_2line = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, PROGRESSDIALOG_SIMPLEBOOK_SIZE, wxTAB_TRAVERSAL);
-    m_panel_2line->SetBackgroundColour(PROGRESSDIALOG_DEF_BK);
-    m_panel_2line->Hide();
+    m_simplebook = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, PROGRESSDIALOG_SIMPLEBOOK_SIZE, 0);
 
-    m_panel_1line = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_panel_1line = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, PROGRESSDIALOG_SIMPLEBOOK_SIZE, 0);
+    m_panel_1line->SetMaxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE);
     m_panel_1line->SetBackgroundColour(PROGRESSDIALOG_DEF_BK);
+    m_simplebook->AddPage(m_panel_1line, wxEmptyString, false);
+
+    m_panel_2line = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, PROGRESSDIALOG_SIMPLEBOOK_SIZE, 0);
+    m_panel_2line->SetMaxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE);
+    m_panel_2line->SetBackgroundColour(PROGRESSDIALOG_DEF_BK);
+    m_simplebook->AddPage(m_panel_2line, wxEmptyString, false);
 
     wxBoxSizer *sizer_1line = new wxBoxSizer(wxHORIZONTAL);
-    m_msg                   = new wxStaticText(m_panel_1line, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x, -1), 0);
+    m_msg                   = new wxStaticText(m_panel_1line, wxID_ANY, wxEmptyString, wxDefaultPosition, PROGRESSDIALOG_SIMPLEBOOK_SIZE, 0);
     m_msg->Wrap(-1);
     m_msg->SetFont(::Label::Body_13);
     m_msg->SetForegroundColour(PROGRESSDIALOG_GREY_700);
     sizer_1line->Add(m_msg, 0, wxALIGN_CENTER, 0);
-
     m_panel_1line->SetSizer(sizer_1line);
     m_panel_1line->Layout();
     sizer_1line->Fit(m_panel_1line);
-    m_simplebook->AddPage(m_panel_1line, wxEmptyString, false);
 
     wxBoxSizer *sizer_2line = new wxBoxSizer(wxVERTICAL);
-    m_msg_2line = new wxStaticText(m_panel_2line, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x, -1), 0);
-    m_msg_2line->Wrap(-1);
+    m_msg_2line             = new wxStaticText(m_panel_2line, wxID_ANY, wxEmptyString, wxDefaultPosition, PROGRESSDIALOG_SIMPLEBOOK_SIZE, 0);
+    m_msg_2line->Wrap(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x);
     m_msg_2line->SetFont(::Label::Body_13);
     m_msg_2line->SetForegroundColour(PROGRESSDIALOG_GREY_700);
+    m_msg_2line->SetMaxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE);
     sizer_2line->Add(m_msg_2line, 1, wxALL, 0);
     m_panel_2line->SetSizer(sizer_2line);
     m_panel_2line->Layout();
     sizer_2line->Fit(m_panel_2line);
-    m_simplebook->AddPage(m_panel_2line, wxEmptyString, false);
-  
 
     m_sizer_main->Add(m_simplebook, 1, wxEXPAND | wxLEFT | wxRIGHT, 28);
-
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 4);
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 0);
 
     int gauge_style = wxGA_HORIZONTAL;
     if (style & wxPD_SMOOTH) gauge_style |= wxGA_SMOOTH;
@@ -223,7 +221,6 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 16);
     m_sizer_main->Add(m_sizer_bottom, 1, wxEXPAND | wxLEFT | wxRIGHT, 28);
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 10);
-
 
     SetSizer(m_sizer_main);
     Layout();
@@ -749,16 +746,13 @@ ProgressDialog::~ProgressDialog()
 }
 
 void ProgressDialog::DoSetSize(int x, int y, int width, int height, int sizeFlags /*= wxSIZE_AUTO*/)
-{ 
-    
-    if (m_button_cancel != nullptr) {
-        m_button_cancel->SetMinSize(PROGRESSDIALOG_CANCEL_BUTTON_SIZE);
-    }
+{
+    if (m_button_cancel != nullptr) { m_button_cancel->SetMinSize(PROGRESSDIALOG_CANCEL_BUTTON_SIZE); }
     if (m_block_left != nullptr && m_block_right != nullptr) {
         m_block_left->SetPosition(wxPoint(0, 0));
         m_block_right->SetPosition(wxPoint(PROGRESSDIALOG_GAUGE_SIZE.x - 2, 0));
     }
-    wxWindow::DoSetSize(x,y,width,height,sizeFlags);
+    wxWindow::DoSetSize(x, y, width, height, sizeFlags);
 }
 
 void ProgressDialog::DisableOtherWindows()
