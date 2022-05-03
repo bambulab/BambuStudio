@@ -117,9 +117,9 @@ class MainFrame;
 static std::string convert_studio_language_to_api(std::string lang_code)
 {
     if (lang_code == "zh_CN")
-        return "zh_hans";
+        return "zh-hans";
     else if (lang_code == "zh_TW")
-        return "zh_hant";
+        return "zh-hant";
     else
         return "en";
 }
