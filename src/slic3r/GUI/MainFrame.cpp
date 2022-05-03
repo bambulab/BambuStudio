@@ -2257,22 +2257,16 @@ void MainFrame::update_presets_ui()
 
 void MainFrame::on_select_default_preset(SimpleEvent& evt)
 {
-    wxMessageDialog dialog(this,
-                           _L("Do you want to synchronize your personal data from Bambu Cloud? \n"
-                              "Contains the following information:\n"
-                              "1. The Process presets;\n"
-                              "2. The Filament presets;\n"
-                              "3. The Machine presets;\n"),
-                           _L("Synchronization"),
-                           wxCENTER |
-                           wxYES_DEFAULT | wxYES_NO |
-                           wxICON_INFORMATION);
-
-    wxString extmsg;
-    dialog.SetYesNoLabels(
-         _L("Yes"),
-         _L("No")
-         );
+    MessageDialog dialog(this,
+                    _L("Do you want to synchronize your personal data from Bambu Cloud? \n"
+                        "Contains the following information:\n"
+                        "1. The Process presets\n"
+                        "2. The Filament presets\n"
+                        "3. The Machine presets\n"),
+                    _L("Synchronization"),
+                    wxCENTER |
+                    wxYES_DEFAULT | wxYES_NO |
+                    wxICON_INFORMATION);
 
     /* get setting list */
     Slic3r::AccountManager* acc = wxGetApp().getAccountManager();
