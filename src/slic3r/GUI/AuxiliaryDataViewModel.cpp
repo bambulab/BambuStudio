@@ -466,6 +466,7 @@ bool AuxiliaryModel::Rename(const wxDataViewItem& item, const wxString& name)
 
     Slic3r::put_other_changes();
     node->name = name;
+    node->path = m_root_dir + "\\" + parent->name + "\\" + name;
     return true;
 }
 
