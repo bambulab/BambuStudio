@@ -67,7 +67,7 @@ void PrintJob::process()
     }
 
     /* check gcode is valid */
-    if (plate->get_gcode_filename().empty()) {
+    if (!plate->is_valid_gcode_file()) {
         update_status(curr_percent, "Internal error, no gcode in 3mf file!");
         return;
     }

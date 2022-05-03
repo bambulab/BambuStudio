@@ -224,6 +224,15 @@ public:
         return "";
     }
 
+    bool is_valid_gcode_file() {
+        if (get_gcode_filename().empty())
+            return false;
+        boost::filesystem::path gcode_file(m_gcode_result->filename);
+        if (!boost::filesystem::exists(gcode_file))
+            return false;
+        return true;
+    }
+
     //get the plate's center point origin
     Vec3d get_center_origin();
     /* size and position related functions*/
