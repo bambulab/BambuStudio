@@ -346,10 +346,10 @@ namespace Slic3r {
 
     int AccountManager::connect_mqtt(bool sync)
     {
-        if (!is_region_config_ready) {
+        /*if (!is_region_config_ready) {
             BOOST_LOG_TRIVIAL(error) << "config is not ready!";
             return -1;
-        }
+        }*/
 
         BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt";
         if (m_curr_user == nullptr) {
