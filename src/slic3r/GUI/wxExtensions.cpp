@@ -438,7 +438,7 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
     static Slic3r::GUI::BitmapCache cache;
 
     unsigned int width = 0;
-    unsigned int height = (unsigned int)(em_unit(win) * px_cnt * 0.1f + 0.5f);
+    unsigned int height = (unsigned int) (win->FromDIP(px_cnt) + 0.5f);
 
     std::string bmp_name = bmp_name_in;
     boost::replace_last(bmp_name, ".png", "");

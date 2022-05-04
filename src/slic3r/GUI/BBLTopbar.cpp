@@ -11,7 +11,7 @@
 #include "WebViewDialog.hpp"
 #include "PartPlate.hpp"
 
-#define TOPBAR_ICON_SIZE  FromDIP(18)
+#define TOPBAR_ICON_SIZE  18
 
 using namespace Slic3r;
 
