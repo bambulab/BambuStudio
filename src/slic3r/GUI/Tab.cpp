@@ -3940,6 +3940,7 @@ void Tab::activate_selected_page(std::function<void()> throw_if_canceled)
     update_changed_ui();
     update_description_lines();
     toggle_options();
+    m_active_page->update_visibility(m_mode, true); // for taggle line
 }
 
 //BBS: GUI refactor
