@@ -1384,6 +1384,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     }
 
     update();
+    m_active_page->update_visibility(m_mode, true);
 }
 
 // Show/hide the 'purging volumes' button
@@ -4763,7 +4764,6 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
 //!        wxTheApp->CallAfter([this, opt_key, value]() {
             static_cast<Tab*>(tab)->update_dirty();
             static_cast<Tab*>(tab)->on_value_change(opt_key, value);
-            static_cast<Tab*>(tab)->update_visibility();
 //!        });
     };
 

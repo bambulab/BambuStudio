@@ -360,6 +360,7 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
     bool suppress_hyperlinks = false;
 
     for (CtrlLine& line : ctrl_lines) {
+        if (!line.is_visible) continue;
         line.is_focused = is_point_in_rect(pos, line.rect_label);
         if (line.is_focused) {
             if (!suppress_hyperlinks && !line.og_line.label_path.empty())
@@ -422,6 +423,7 @@ void OG_CustomCtrl::OnLeftDown(wxMouseEvent& event)
     const wxPoint pos = event.GetLogicalPosition(wxClientDC(this));
 
     for (const CtrlLine& line : ctrl_lines) {
+        if (!line.is_visible) continue;
         if (line.launch_browser())
             return;
         for (size_t opt_idx = 0; opt_idx < line.rects_undo_icon.size(); opt_idx++)
