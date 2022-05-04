@@ -2848,8 +2848,7 @@ GCode::LayerResult GCode::process_layer(
         if (first_layer) {
             //BBS: retract first to avoid droping when scan model
             gcode += this->retract();
-            gcode += ";scan model after print first layer\n";
-            gcode += "M976 S1 P1\nM400 S5\n";
+            gcode += "M976 S1 P1 ; scan model after print first layer\n";
             gcode += this->unretract();
         }
     }

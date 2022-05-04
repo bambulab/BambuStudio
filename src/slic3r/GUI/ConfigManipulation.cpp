@@ -536,9 +536,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     //BBS
     bool have_skirt_height = have_skirt &&
                              (config->opt_int("skirt_height") > 1 || config->opt_enum<DraftShield>("draft_shield") != dsEnabled);
-    toggle_field("support_speed", have_support_material || have_skirt_height);
-    toggle_field("support_interface_speed", have_support_material && have_support_interface);
-    toggle_field("support_transition_speed", have_support_material && support_is_tree);
+    toggle_line("support_speed", have_support_material || have_skirt_height);
+    toggle_line("support_interface_speed", have_support_material && have_support_interface);
+    toggle_line("support_transition_speed", have_support_material && support_is_tree);
 
     // BBS
     //toggle_field("support_material_synchronize_layers", have_support_soluble);
