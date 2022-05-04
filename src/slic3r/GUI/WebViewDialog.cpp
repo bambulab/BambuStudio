@@ -37,6 +37,10 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     //wxString url = resources_dir() + "/web/homepage/index.html";
 
     wxString url = encode_path(wxString::Format("%s/web/homepage/index.html",resources_dir()).c_str());
+    std::string strlang = wxGetApp().app_config->get("language");
+    if (strlang != "") 
+        url = encode_path(wxString::Format("%s/web/homepage/index.html?lang=%s", resources_dir(), strlang).c_str());
+
     m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION);
 
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
@@ -479,7 +483,7 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
 {
     const wxString &url = evt.GetURL();
     if (url.StartsWith("File://") || url.StartsWith("file://")) {
-        if (!url.EndsWith("/web/homepage/index.html")) {
+        if (!url.Contains("/web/homepage/index.html")) {
             evt.Veto();
             return;
         }
