@@ -8550,7 +8550,8 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 {
     bool update_scheduled = false;
     bool bed_shape_changed = false;
-    for (auto opt_key : p->config->diff(config)) {
+    t_config_option_keys diff_keys = p->config->diff(config);
+    for (auto opt_key : diff_keys) {
         if (opt_key == "filament_colour") {
             update_scheduled = true; // update should be scheduled (for update 3DScene) #2738
 
@@ -8640,7 +8641,14 @@ void Plater::set_bed_shape() const
     auto bundle = wxGetApp().preset_bundle;
     if (bundle != nullptr) {
         const Preset* curr = &bundle->printers.get_selected_preset();
-        texture_filename = PresetUtils::system_printer_bed_texture(*curr);
+        if (curr->is_system)
+            texture_filename = PresetUtils::system_printer_bed_texture(*curr);
+        else {
+            auto *printer_model = curr->config.opt<ConfigOptionString>("printer_model");
+            if (printer_model != nullptr && ! printer_model->value.empty()) {
+                texture_filename = bundle->get_texture_for_printer_model(printer_model->value);
+            }
+        }
     }
     set_bed_shape(p->config->option<ConfigOptionPoints>("printable_area")->values,
         //BBS: add bed exclude areas
@@ -8689,7 +8697,7 @@ void Plater::force_print_bed_update()
 {
     // Fill in the printer model key with something which cannot possibly be valid, so that Plater::on_config_change() will update the print bed
     // once a new Printer profile config is loaded.
-    p->config->opt_string("printer_model", true) = "\x01\x00\x01";
+    p->config->opt_string("printer_model", true) = "bbl_empty";
 }
 
 void Plater::on_activate()

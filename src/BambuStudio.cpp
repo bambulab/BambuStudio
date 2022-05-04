@@ -122,10 +122,11 @@ int CLI::run(int argc, char **argv)
     /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc="<< argc << std::endl;
     for (int index=0; index < argc; index++)
         BOOST_LOG_TRIVIAL(info) << "index="<< index <<", arg is "<< argv[index] <<std::endl;
-    int debug_argc = 8;
+    int debug_argc = 9;
     char *debug_argv[] = {
         "E:\work\projects\bambu_studio\bamboo_slicer\build\src\Debug\bambu-studio.exe",
         "--slice",
+        "0",
         "--export-3mf=output.3mf",
         "test_thumbnail.3mf",
         "--load-settings",

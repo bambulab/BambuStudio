@@ -417,10 +417,19 @@ std::tuple<Bed3D::Type, std::string, std::string> Bed3D::detect_type(const Point
         const Preset* curr = &bundle->printers.get_selected_preset();
         while (curr != nullptr) {
             if (curr->config.has("printable_area")) {
+                std::string texture_filename, model_filename;
                 if (shape == dynamic_cast<const ConfigOptionPoints*>(curr->config.option("printable_area"))->values) {
-                    std::string model_filename = PresetUtils::system_printer_bed_model(*curr);
-                    std::string texture_filename = PresetUtils::system_printer_bed_texture(*curr);
-                    if (!model_filename.empty() && !texture_filename.empty())
+                    if (curr->is_system)
+                        model_filename = PresetUtils::system_printer_bed_model(*curr);
+                    else {
+                        auto *printer_model = curr->config.opt<ConfigOptionString>("printer_model");
+                        if (printer_model != nullptr && ! printer_model->value.empty()) {
+                            model_filename = bundle->get_stl_model_for_printer_model(printer_model->value);
+                        }
+                    }
+                    //std::string model_filename = PresetUtils::system_printer_bed_model(*curr);
+                    //std::string texture_filename = PresetUtils::system_printer_bed_texture(*curr);
+                    if (!model_filename.empty())
                         return { Type::System, model_filename, texture_filename };
                 }
             }

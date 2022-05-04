@@ -419,6 +419,64 @@ void PresetBundle::reset_project_embedded_presets()
     }
 }
 
+//BBS: get bed texture for printer model
+std::string PresetBundle::get_texture_for_printer_model(std::string model_name)
+{
+    std::string texture_name, vendor_name, out;
+
+    for (auto vendor_profile: this->vendors)
+    {
+        for (auto vendor_model: vendor_profile.second.models)
+        {
+            if (vendor_model.name == model_name)
+            {
+                texture_name = vendor_model.bed_texture;
+                vendor_name = vendor_profile.first;
+                break;
+            }
+        }
+    }
+
+    if (!texture_name.empty())
+    {
+        out = Slic3r::data_dir() + "/vendor/" + vendor_name + "/" + texture_name;
+        if (!boost::filesystem::exists(boost::filesystem::path(out)))
+            out = Slic3r::resources_dir() + "/profiles/" + vendor_name + "/" + texture_name;
+    }
+
+    return out;
+}
+
+//BBS: get stl model for printer model
+std::string PresetBundle::get_stl_model_for_printer_model(std::string model_name)
+{
+    std::string stl_name, vendor_name, out;
+
+    for (auto vendor_profile: this->vendors)
+    {
+        for (auto vendor_model: vendor_profile.second.models)
+        {
+            if (vendor_model.name == model_name)
+            {
+                stl_name = vendor_model.bed_model;
+                vendor_name = vendor_profile.first;
+                break;
+            }
+        }
+    }
+
+    if (!stl_name.empty())
+    {
+        out = Slic3r::data_dir() + "/vendor/" + vendor_name + "/" + stl_name;
+        if (!boost::filesystem::exists(boost::filesystem::path(out)))
+            out = Slic3r::resources_dir() + "/profiles/" + vendor_name + "/" + stl_name;
+    }
+
+    return out;
+}
+
+
+
 PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &config, std::map<std::string, Preset*> my_presets, ForwardCompatibilitySubstitutionRule substitution_rule)
 {
     // First load the vendor specific system presets.
