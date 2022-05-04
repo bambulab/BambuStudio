@@ -779,6 +779,10 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
             else {
                 t_config_option_key opt_key = it.key();
                 std::string value_str;
+                this->handle_legacy(opt_key, value_str);
+                if (opt_key.empty())
+                    continue;
+
                 if (it.value().is_string()) {
                     //bool test1 = (it.key() == std::string("end_gcode"));
                     if (boost::iequals(opt_key, BBL_JSON_KEY_INHERITS)) {
