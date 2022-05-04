@@ -36,7 +36,6 @@ public:
 };
 WX_DECLARE_LIST(RadioSelector, RadioSelectorList);
 
-
 #define DESIGN_RESOUTION_PREFERENCES wxSize(618, 520)
 #define DESIGN_SELECTOR_NOMORE_COLOR wxColour(248, 248, 248)
 #define DESIGN_SELECTOR_SELECTED_COLOR wxColour(255, 255, 255)
@@ -46,6 +45,7 @@ WX_DECLARE_LIST(RadioSelector, RadioSelectorList);
 #define DESIGN_TAB_PAGE_SIZE wxSize(FromDIP(460), FromDIP(470))
 #define DESIGN_TITLE_SIZE wxSize(FromDIP(100), -1)
 #define DESIGN_COMBOBOX_SIZE wxSize(FromDIP(140), -1)
+#define DESIGN_LARGE_COMBOBOX_SIZE wxSize(FromDIP(160), -1)
 #define DESIGN_INPUT_SIZE wxSize(FromDIP(100), -1)
 
 class CheckBox;
@@ -63,8 +63,7 @@ protected:
     wxBoxSizer *  m_sizer_right;
     wxSimplebook *m_simplebook;
 
-    wxPanel *     m_panel_selects;
-
+    wxPanel *m_panel_selects;
 
     // bool								m_settings_layout_changed {false};
     bool m_seq_top_layer_only_changed{false};
@@ -91,8 +90,8 @@ public:
     wxWindow *create_tab_button(int id, wxString text);
 
     // debug mode
-    ::CheckBox * m_developer_mode_ckeckbox = {nullptr};
-    ::CheckBox * m_dump_video_ckeckbox = {nullptr};
+    ::CheckBox * m_developer_mode_ckeckbox   = {nullptr};
+    ::CheckBox * m_dump_video_ckeckbox       = {nullptr};
     ::TextInput *m_backup_interval_textinput = {nullptr};
 
     wxString m_developer_mode_def;
@@ -128,6 +127,8 @@ public:
     void create_select_domain_widget();
 
     void Split(const std::string &src, const std::string &separator, std::vector<wxString> &dest);
+
+    int m_current_language_selected = {0};
 
 protected:
     void OnSelectTabel(wxCommandEvent &event);

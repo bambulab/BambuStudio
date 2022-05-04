@@ -6,8 +6,13 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
+<<<<<<< HEAD   (6f6f35 ENH: auto adjust wipe tower pos to make sure it is inside th)
 "POT-Creation-Date: 2022-05-03 23:12+0800\n"
 "PO-Revision-Date: 2022-05-03 23:13+0800\n"
+=======
+"POT-Creation-Date: 2022-05-04 17:51+0800\n"
+"PO-Revision-Date: 2022-05-03 23:05+0800\n"
+>>>>>>> CHANGE (ca7684 ENH: preferences: chinese(simplified) displays in Chinese)
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -499,7 +504,7 @@ msgid "Tool"
 msgstr "工具"
 
 msgid "Filament"
-msgstr "打印丝"
+msgstr "耗材丝"
 
 msgid "Extruder position"
 msgstr "挤出机位置"
@@ -1097,13 +1102,6 @@ msgstr "语言"
 msgid "*"
 msgstr "*"
 
-msgid "Modifications to the preset have been saved"
-msgid_plural "Modifications to the presets have been saved"
-msgstr[0] "对预设的修改已被保存"
-
-msgid "All modifications will be discarded for new project."
-msgstr "在新项目中所有修改都会被丢弃。"
-
 msgid "G-code files can not be loaded with models together!"
 msgstr "G-code文件不能和模型一起加载"
 
@@ -1666,9 +1664,6 @@ msgstr "准备"
 
 msgid "Preview"
 msgstr "预览"
-
-msgid "Monitor"
-msgstr "打印机"
 
 msgid "Debug"
 msgstr "调试"
@@ -2549,6 +2544,9 @@ msgstr "体积： %1% 毫米³\n"
 #, boost-format
 msgid "Triangles: %1%, "
 msgstr "三角形数： %1%, "
+
+msgid "Chinese (Simplified)"
+msgstr "中文(简体)"
 
 msgid "Switching the language requires application restart.\n"
 msgstr "切换语言要求重启应用程序。\n"
@@ -5121,6 +5119,16 @@ msgstr "生成支撑"
 
 msgid "Slicing mesh"
 msgstr "切片网格"
+
+#~ msgid "Monitor"
+#~ msgstr "打印机"
+
+#~ msgid "Modifications to the preset have been saved"
+#~ msgid_plural "Modifications to the presets have been saved"
+#~ msgstr[0] "对预设的修改已被保存"
+
+#~ msgid "All modifications will be discarded for new project."
+#~ msgstr "在新项目中所有修改都会被丢弃。"
 
 #~ msgid ""
 #~ "Do you want to synchronize your personal data from Bambu Cloud? \n"

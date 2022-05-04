@@ -58,7 +58,10 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
     combo_title->Wrap(-1);
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER | wxALL, 3);
 
-     auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    combobox->SetFont(::Label::Body_13);
+    combobox->GetDropDown().SetFont(::Label::Body_13);
+
     std::vector<wxString>::iterator iter;
     for (iter = vlist.begin(); iter != vlist.end(); iter++) { combobox->Append(*iter); }
     
@@ -91,23 +94,34 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER | wxALL, 3);
 
 
-    auto current_language = app_config->get(param);
-    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    combobox->SetFont(::Label::Body_13);
+    combobox->GetDropDown().SetFont(::Label::Body_13);
 
     std::vector<wxString>::iterator iter;
     for (size_t i = 0; i < vlist.size(); ++i) {
-        combobox->Append(vlist[i]->Description);
-        if (current_language == vlist[i]->CanonicalName) { 
-            combobox->SetValue(vlist[i]->Description); 
-        }
-    }
+        auto language_name = vlist[i]->Description;
 
-    //auto index = app_config->get(param);
-    //if (!index.empty()) { combobox->SetSelection(atoi(index.c_str())); }
+        if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CHINESE_SIMPLIFIED)) { 
+            //language_name = _L(vlist[i]->Description);
+            language_name = _L("Chinese (Simplified)");
+        }
+
+        if (app_config->get(param) == vlist[i]->CanonicalName) { 
+            m_current_language_selected = i;
+        }
+        combobox->Append(language_name);
+    }
+    combobox->SetSelection(m_current_language_selected); 
 
     m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
 
-    combobox->Bind(wxEVT_COMBOBOX, [this, param, vlist](wxCommandEvent &e) {
+    combobox->Bind(wxEVT_LEFT_DOWN, [this, combobox](wxMouseEvent &e) { 
+        m_current_language_selected = combobox->GetSelection();
+        e.Skip();
+    });
+
+    combobox->Bind(wxEVT_COMBOBOX, [this, param, vlist, combobox](wxCommandEvent &e) {
         if (e.GetString().mb_str() != app_config->get(param)) {
             {
                 // the dialog needs to be destroyed before the call to switch_language()
@@ -115,8 +129,12 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
                 // so we put it into an inner scope
                 MessageDialog msg_wingow(nullptr, _L("Switching the language requires application restart.\n") + "\n" + _L("Do you want to continue?"),
                                          L("Language selection"), wxICON_QUESTION | wxOK | wxCANCEL);
-                 if (msg_wingow.ShowModal() == wxID_CANCEL) return;
+                if (msg_wingow.ShowModal() == wxID_CANCEL) {
+                    combobox->SetSelection(m_current_language_selected);
+                    return;
+                }
             }
+
             auto check = [this](bool yes_or_no) {
                 // if (yes_or_no)
                 //    return true;
@@ -124,26 +142,16 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
                 return wxGetApp().check_and_keep_current_preset_changes(_L("Switching application language"),
                                                                         _L("Switching application language while some presets are modified."), act_btns);
             };
-            if (wxGetApp().plater()->close_with_confirm(check) == wxID_CANCEL) {
-                wxString name = app_config->get(param);
-                for (size_t i = 0; i < vlist.size(); ++i) {
-                    if (name == vlist[i]->CanonicalName) {
-                        dynamic_cast<ComboBox *>(e.GetEventObject())->SetLabel(vlist[i]->Description);
-                        break;
-                    }
-                }
-                return;
-            }
-            for (size_t i = 0; i < vlist.size(); ++i) {
-                if (e.GetString().mb_str() == vlist[i]->Description) {
-                    app_config->set(param, vlist[i]->CanonicalName.ToUTF8().data());
-                    app_config->save();
 
-                    wxGetApp().load_language(vlist[i]->CanonicalName, false);
-                    Close();
-                    wxGetApp().recreate_GUI(_L("Changing application language"));
-                    break;
-                }
+            m_current_language_selected = combobox->GetSelection();
+            if (m_current_language_selected >= 0 && m_current_language_selected < vlist.size()) {
+                app_config->set(param, vlist[m_current_language_selected]->CanonicalName.ToUTF8().data());
+                app_config->save();
+
+                wxGetApp().load_language(vlist[m_current_language_selected]->CanonicalName, false);
+                Close();
+                wxGetApp().recreate_GUI(_L("Changing application language"));
+
             }
         }
 
@@ -166,6 +174,9 @@ wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxW
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER | wxALL, 3);
 
     auto                            combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    combobox->SetFont(::Label::Body_13);
+    combobox->GetDropDown().SetFont(::Label::Body_13);
+
     std::vector<wxString>::iterator iter;
     for (iter = vlist.begin(); iter != vlist.end(); iter++) { combobox->Append(*iter); }
     m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
@@ -206,6 +217,10 @@ wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
    m_sizer_tcombox->Add(combo_title, 0, wxALIGN_CENTER | wxALL, 3);
 
    auto combobox_left = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+   combobox_left->SetFont(::Label::Body_13);
+   combobox_left->GetDropDown().SetFont(::Label::Body_13);
+
+
    for (iter = vlista.begin(); iter != vlista.end(); iter++) { combobox_left->Append(*iter); }
    combobox_left->SetValue(std::string(params[0].mb_str()));
    m_sizer_tcombox->Add(combobox_left, 0, wxALIGN_CENTER, 0);
@@ -217,6 +232,9 @@ wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
    m_sizer_tcombox->Add(combo_title_add, 0, wxALIGN_CENTER | wxALL, 3);
 
    auto combobox_right = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+   combobox_right->SetFont(::Label::Body_13);
+   combobox_right->GetDropDown().SetFont(::Label::Body_13);
+
    for (iter = vlistb.begin(); iter != vlistb.end(); iter++) { combobox_right->Append(*iter); }
    combobox_right->SetValue(std::string(params[1].mb_str()));
    m_sizer_tcombox->Add(combobox_right, 0, wxALIGN_CENTER, 0);
@@ -432,7 +450,7 @@ void PreferencesDialog::create()
 
     // set icon for dialog
     std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+    SetIcon(wxIcon(icon_path, wxBITMAP_TYPE_ICO));
 
     this->SetSizeHints(wxDefaultSize, wxDefaultSize);
     this->SetBackgroundColour(DESIGN_SELECTOR_SELECTED_COLOR);

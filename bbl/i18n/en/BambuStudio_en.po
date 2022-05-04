@@ -2,7 +2,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
+<<<<<<< HEAD   (6f6f35 ENH: auto adjust wipe tower pos to make sure it is inside th)
 "POT-Creation-Date: 2022-05-03 23:12+0800\n"
+=======
+"POT-Creation-Date: 2022-05-04 17:51+0800\n"
+>>>>>>> CHANGE (ca7684 ENH: preferences: chinese(simplified) displays in Chinese)
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1067,14 +1071,6 @@ msgstr ""
 msgid "*"
 msgstr ""
 
-msgid "Modifications to the preset have been saved"
-msgid_plural "Modifications to the presets have been saved"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "All modifications will be discarded for new project."
-msgstr ""
-
 msgid "G-code files can not be loaded with models together!"
 msgstr "G-code files and models cannot be loaded together!"
 
@@ -1641,9 +1637,6 @@ msgid "Prepare"
 msgstr ""
 
 msgid "Preview"
-msgstr ""
-
-msgid "Monitor"
 msgstr ""
 
 msgid "Debug"
@@ -2529,6 +2522,9 @@ msgstr ""
 
 #, boost-format
 msgid "Triangles: %1%, "
+msgstr ""
+
+msgid "Chinese (Simplified)"
 msgstr ""
 
 msgid "Switching the language requires application restart.\n"
