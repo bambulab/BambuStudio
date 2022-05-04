@@ -852,10 +852,11 @@ bool MainFrame::is_active_and_shown_tab(wxPanel* panel)
 
 bool MainFrame::can_start_new_project() const
 {
-    return m_plater && (!m_plater->get_project_filename(".3mf").IsEmpty() ||
+    /*return m_plater && (!m_plater->get_project_filename(".3mf").IsEmpty() ||
                         GetTitle().StartsWith('*')||
                         wxGetApp().has_current_preset_changes() ||
-                        !m_plater->model().objects.empty());
+                        !m_plater->model().objects.empty());*/
+    return m_plater;
 }
 
 bool MainFrame::can_save() const
@@ -2220,9 +2221,9 @@ void MainFrame::load_url(wxString url)
     wxQueueEvent(this, evt);
 }
 
-void MainFrame::RunScript(wxString js) 
-{ 
-    if (m_webview != nullptr) 
+void MainFrame::RunScript(wxString js)
+{
+    if (m_webview != nullptr)
         m_webview->RunScript(js);
 }
 
