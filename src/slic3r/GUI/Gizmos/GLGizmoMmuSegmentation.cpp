@@ -585,7 +585,7 @@ void GLGizmoMmuSegmentation::init_model_triangle_selectors()
 
         // This mesh does not account for the possible Z up SLA offset.
         const TriangleMesh* mesh = &mv->mesh();
-        m_triangle_selectors.emplace_back(std::make_unique<TriangleSelectorPatch>(*mesh, ebt_colors));
+        m_triangle_selectors.emplace_back(std::make_unique<TriangleSelectorPatch>(*mesh, ebt_colors, 0.2));
         // Reset of TriangleSelector is done inside TriangleSelectorMmGUI's constructor, so we don't need it to perform it again in deserialize().
         m_triangle_selectors.back()->deserialize(mv->mmu_segmentation_facets.get_data(), false);
         m_triangle_selectors.back()->request_update_render_data();

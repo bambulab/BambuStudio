@@ -65,8 +65,8 @@ public:
 
 class TriangleSelectorGUI : public TriangleSelector {
 public:
-    explicit TriangleSelectorGUI(const TriangleMesh& mesh)
-        : TriangleSelector(mesh) {}
+    explicit TriangleSelectorGUI(const TriangleMesh& mesh, float edge_limit = 0.6f)
+        : TriangleSelector(mesh, edge_limit) {}
     virtual ~TriangleSelectorGUI() = default;
 
     // Render current selection. Transformation matrices are supposed
@@ -124,8 +124,8 @@ struct TrianglePatch {
 
 class TriangleSelectorPatch : public TriangleSelectorGUI {
 public:
-    explicit TriangleSelectorPatch(const TriangleMesh& mesh, const std::vector<std::array<float, 4>> ebt_colors)
-        : TriangleSelectorGUI(mesh), m_ebt_colors(ebt_colors) {}
+    explicit TriangleSelectorPatch(const TriangleMesh& mesh, const std::vector<std::array<float, 4>> ebt_colors, float edge_limit = 0.6f)
+        : TriangleSelectorGUI(mesh, edge_limit), m_ebt_colors(ebt_colors) {}
     virtual ~TriangleSelectorPatch() = default;
 
     // Render current selection. Transformation matrices are supposed
