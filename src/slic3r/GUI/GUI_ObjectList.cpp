@@ -2290,6 +2290,8 @@ void ObjectList::split()
 
     //BBS: notify partplate the modify
     notify_instance_updated(obj_idx);
+
+    update_info_items(obj_idx);
 }
 
 void ObjectList::merge(bool to_multipart_object)

@@ -2465,6 +2465,12 @@ size_t ModelVolume::split(unsigned int max_extruders)
             this->set_new_unique_id();
             // reset the source to disable reload from disk
             this->source = ModelVolume::Source();
+
+            // BBS: reset facet annotations
+            this->mmu_segmentation_facets.reset();
+            this->exterior_facets.reset();
+            this->supported_facets.reset();
+            this->seam_facets.reset();
         }
         else
             this->object->volumes.insert(this->object->volumes.begin() + (++ivolume), new ModelVolume(object, *this, std::move(mesh)));
