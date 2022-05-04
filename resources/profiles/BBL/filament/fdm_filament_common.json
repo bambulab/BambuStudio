@@ -12,8 +12,6 @@
     "overhang_fan_speed": [
         "100"
     ],
-    "coasting_enable": "0",
-    "coasting_length": "3",
     "cooling": [
         "1"
     ],

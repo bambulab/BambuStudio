@@ -5,7 +5,6 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_process_bbl_0.16",
-    "renamed_from": "0.16mm OPTIMAL @BBL001",
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.4 nozzle"
     ]

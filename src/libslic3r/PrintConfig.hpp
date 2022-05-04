@@ -697,12 +697,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                spaghetti_detector))
     ((ConfigOptionBool,                gcode_add_line_number))
     ((ConfigOptionBool,                bbl_bed_temperature_gcode))
-    //BBS: remove_freq_sweep, remove_bed_leveling and remove_extrusion_calibration should be removed
-    //These three config is useless now. Will be removed after all user has use new preset for some time.
-    ((ConfigOptionBool,                remove_freq_sweep))
-    ((ConfigOptionBool,                remove_bed_leveling))
-    ((ConfigOptionBool,                remove_extrusion_calibration))
-
     ((ConfigOptionEnum<GCodeFlavor>,   gcode_flavor))
     ((ConfigOptionString,              layer_change_gcode))
 //#ifdef HAS_PRESSURE_EQUALIZER
