@@ -1863,7 +1863,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Output file"));
         optgroup->append_single_option_line("gcode_add_line_number");
-        optgroup->append_single_option_line("bbl_bed_temperature_gcode");
+        //optgroup->append_single_option_line("bbl_bed_temperature_gcode");
         Option option = optgroup->get_option("filename_format");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
