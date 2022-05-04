@@ -1,15 +1,18 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.00.01.08",
+    "version": "01.00.01.09",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
         {
             "name": "Bambu Lab X1 Carbon",
             "sub_path": "machine/Bambu Lab X1 Carbon.json"
+        },
+        {
+            "name": "Bambu Lab X1",
+            "sub_path": "machine/Bambu Lab X1.json"
         }
-
     ],
     "process_list": [
         {
@@ -239,6 +242,10 @@
         {
             "name": "Bambu Lab X1 Carbon 0.4 nozzle",
             "sub_path": "machine/Bambu Lab X1 Carbon 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab X1 0.4 nozzle",
+            "sub_path": "machine/Bambu Lab X1 0.4 nozzle.json"
         }
     ]
 }
