@@ -1806,6 +1806,7 @@ void StatusPanel::msw_rescale()
     m_switch_printing_fan->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_printing_fan->Rescale();
 
+    m_ams_control->msw_rescale();
     //m_filament_step->Rescale();
 
     Layout();

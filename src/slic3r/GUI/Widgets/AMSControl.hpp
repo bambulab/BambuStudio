@@ -85,13 +85,13 @@ enum FilamentStep {
 #define AMS_ITEM_SIZE wxSize(FromDIP(82), FromDIP(27))
 #define AMS_ITEM_HUMIDITY_SIZE wxSize(FromDIP(150), FromDIP(27))
 #define AMS_CAN_LIB_SIZE wxSize(FromDIP(58), FromDIP(84))
-#define AMS_CAN_ROAD_SIZE FromDIP(60)
+#define AMS_CAN_ROAD_SIZE wxSize(FromDIP(66), FromDIP(60))
 #define AMS_CAN_ITEM_HEIGHT_SIZE FromDIP(27)
 #define AMS_CANS_SIZE wxSize(FromDIP(284), FromDIP(186))
-#define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(172))
+#define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(186))
 #define AMS_STEP_SIZE wxSize(FromDIP(172), FromDIP(180))
-#define AMS_REFRESH_SIZE wxSize(26, 26)
-#define AMS_EXTRUDER_SIZE wxSize(70, 55)
+#define AMS_REFRESH_SIZE wxSize(FromDIP(26), FromDIP(26))
+#define AMS_EXTRUDER_SIZE wxSize(FromDIP(76), FromDIP(55))
 
 struct Caninfo
 {
@@ -248,6 +248,7 @@ public:
     void         Close();
    
     void         Update(AMSinfo amsinfo);
+    void         Update();
     void         create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
     void         OnEnterWindow(wxMouseEvent &evt);
     void         OnLeaveWindow(wxMouseEvent &evt);
@@ -379,6 +380,7 @@ protected:
     wxSimplebook *m_simplebook_ams         = {nullptr};
     wxSimplebook *m_simplebook_cans        = {nullptr};
 
+    wxStaticText *m_tip_right_top             = {nullptr};
     wxStaticText *m_tip_load_info            = {nullptr};
     wxStaticText *m_text_calibration_percent = {nullptr};
     wxWindow *    m_none_ams_panel           = {nullptr};
@@ -387,6 +389,7 @@ protected:
     StaticBox * m_panel_can  = {nullptr};
     wxBoxSizer *m_sizer_top  = {nullptr};
     wxBoxSizer *m_sizer_cans = {nullptr};
+    wxBoxSizer *m_sizer_right_tip = {nullptr};
 
     ::StepIndicator *m_filament_load_step = {nullptr};
     ::StepIndicator *m_filament_unload_step = {nullptr};
