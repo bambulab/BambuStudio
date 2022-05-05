@@ -254,10 +254,8 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     //Connect the idle events
     Bind(wxEVT_IDLE, &WebViewPanel::OnIdle, this);
     Bind(wxEVT_CLOSE_WINDOW, &WebViewPanel::OnClose, this);
-   
-    //update login status
-    m_LoginUpdateTimer = new wxTimer(this, LOGIN_INFO_UPDATE_TIMER_ID);
-    m_LoginUpdateTimer->Start(2000);
+
+    m_LoginUpdateTimer = nullptr;
  }
 
 WebViewPanel::~WebViewPanel()
@@ -565,6 +563,12 @@ void WebViewPanel::OnNewWindow(wxWebViewEvent& evt)
 
 void WebViewPanel::OnScriptMessage(wxWebViewEvent& evt)
 {
+    // update login status
+    if (m_LoginUpdateTimer == nullptr) {
+        m_LoginUpdateTimer = new wxTimer(this, LOGIN_INFO_UPDATE_TIMER_ID);
+        m_LoginUpdateTimer->Start(2000);
+    }
+
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("Script message received; value = %s, handler = %s", evt.GetString(), evt.GetMessageHandler());
     Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
