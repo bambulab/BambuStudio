@@ -2214,11 +2214,14 @@ void PartPlateList::reset_size(int width, int depth, int height)
 
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":before size: plate_width %1%, plate_depth %2%, plate_height %3%") % m_plate_width % m_plate_depth % m_plate_height;
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":after size: plate_width %1%, plate_depth %2%, plate_height %3%") % width % depth % height;
-	m_plate_width = width;
-	m_plate_depth = depth;
-	m_plate_height = height;
-
-	update_all_plates_pos_and_size();
+	if ((m_plate_width != width) || (m_plate_depth != depth) || (m_plate_height != height))
+	{
+		m_plate_width = width;
+		m_plate_depth = depth;
+		m_plate_height = height;
+		update_all_plates_pos_and_size(false, false);
+		reload_all_objects();
+	}
 
 	return;
 }
