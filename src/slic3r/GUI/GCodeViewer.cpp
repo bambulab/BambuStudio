@@ -667,6 +667,8 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
     if (m_gl_data_initialized)
         return;
 
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": enter, m_buffers.size=%1%")
+        %m_buffers.size();
     // initializes opengl data of TBuffers
     for (size_t i = 0; i < m_buffers.size(); ++i) {
         TBuffer& buffer = m_buffers[i];
@@ -738,6 +740,7 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
     m_layers_slider->init_texture();
 
     m_gl_data_initialized = true;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished");
 }
 
 void GCodeViewer::update_by_mode(ConfigOptionMode mode)
@@ -913,7 +916,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     //BBS: add mutex for protection of gcode result
     gcode_result.unlock();
     //BBS: add logs
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished!");
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished, m_buffers size %1%!")%m_buffers.size();
 }
 
 void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::vector<std::string>& str_tool_colors)
@@ -935,6 +938,7 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
 
     //BBS: add mutex for protection of gcode result
     if (m_moves_count == 0) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": gcode result m_moves_count is 0, return directly!");
         gcode_result.unlock();
         return;
     }
@@ -1261,7 +1265,7 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
     unsigned char begin_id = buffer_id(EMoveType::Retract);
     unsigned char end_id = buffer_id(EMoveType::Count);
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("render_calibration_thumbnail: begin_id %1%, end_id %2%")%begin_id %end_id; 
+    BOOST_LOG_TRIVIAL(info) << boost::format("render_calibration_thumbnail: begin_id %1%, end_id %2%")%begin_id %end_id;
     for (unsigned char i = begin_id; i < end_id; ++i) {
         TBuffer& buffer = m_buffers[i];
         if (!buffer.visible || !buffer.has_data())
@@ -1812,18 +1816,21 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
     // max index buffer size, in bytes
     static const size_t IBUFFER_THRESHOLD_BYTES = 64 * 1024 * 1024;
 
+    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(",build_volume center{%1%, %2%}, moves count %3%\n")%build_volume.bed_center().x() % build_volume.bed_center().y() %gcode_result.moves.size();
     auto log_memory_usage = [this](const std::string& label, const std::vector<MultiVertexBuffer>& vertices, const std::vector<MultiIndexBuffer>& indices) {
         int64_t vertices_size = 0;
         for (const MultiVertexBuffer& buffers : vertices) {
             for (const VertexBuffer& buffer : buffers) {
                 vertices_size += SLIC3R_STDVEC_MEMSIZE(buffer, float);
             }
+            //BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format("vertices count %1%\n")%buffers.size();
         }
         int64_t indices_size = 0;
         for (const MultiIndexBuffer& buffers : indices) {
             for (const IndexBuffer& buffer : buffers) {
                 indices_size += SLIC3R_STDVEC_MEMSIZE(buffer, IBufferType);
             }
+            //BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format("indices count %1%\n")%buffers.size();
         }
         log_memory_used(label, vertices_size + indices_size);
     };
@@ -2206,6 +2213,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
     m_max_bounding_box = m_paths_bounding_box;
     m_max_bounding_box.merge(m_paths_bounding_box.max + m_sequential_view.marker.get_bounding_box().size().z() * Vec3d::UnitZ());
 
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(",m_paths_bounding_box {%1%, %2%}-{%3%, %4%}\n")
+        %m_paths_bounding_box.min.x() %m_paths_bounding_box.min.y() %m_paths_bounding_box.max.x() %m_paths_bounding_box.max.y();
+
     //if (wxGetApp().is_editor())
     {
         //BBS: use convex_hull for toolpath outside check
@@ -2238,6 +2248,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
         if (move.type != EMoveType::Seam)
             m_sequential_view.gcode_ids.push_back(move.gcode_id);
     }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(",m_contained_in_bed %1%\n")%m_contained_in_bed;
 
     std::vector<MultiVertexBuffer> vertices(m_buffers.size());
     std::vector<MultiIndexBuffer> indices(m_buffers.size());
@@ -2280,6 +2291,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
         InstanceBuffer& inst_buffer = instances[id];
         InstanceIdBuffer& inst_id_buffer = instances_ids[id];
         InstancesOffsets& inst_offsets = instances_offsets[id];
+
+        /*if (i%1000 == 1) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":i=%1%, buffer_id %2% render_type %3%, gcode_id %4%\n")
+                %i %(int)id %(int)t_buffer.render_primitive_type %curr.gcode_id;
+        }*/
 
         // ensure there is at least one vertex buffer
         if (v_multibuffer.empty())
@@ -2334,6 +2350,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
         }
     }
 
+    /*for (size_t b = 0; b < vertices.size(); ++b) {
+        MultiVertexBuffer& v_multibuffer = vertices[b];
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":b=%1%, vertex buffer count %2%\n")
+            %b %v_multibuffer.size();
+    }*/
     auto extract_move_id = [&seams_ids](size_t id) {
             for (int i = seams_ids.size() - 1; i >= 0; --i) {
                 if (seams_ids[i] < id + i + 1)
@@ -2991,6 +3012,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     auto start_time = std::chrono::high_resolution_clock::now();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": enter, m_buffers size %1%!")%m_buffers.size();
     auto extrusion_color = [this](const Path& path) {
         Color color;
         switch (m_view_type)
@@ -3714,6 +3736,7 @@ void GCodeViewer::render_toolpaths()
 
     unsigned char begin_id = buffer_id(EMoveType::Retract);
     unsigned char end_id = buffer_id(EMoveType::Count);
+    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":begin_id %1%, end_id %2% ")%(int)begin_id %(int)end_id;
 
     for (unsigned char i = begin_id; i < end_id; ++i) {
         TBuffer& buffer = m_buffers[i];
@@ -3742,6 +3765,7 @@ void GCodeViewer::render_toolpaths()
                 }
                 int uniform_color = shader->get_uniform_location("uniform_color");
                 auto it_path = buffer.render_paths.begin();
+                //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":buffer indices size %1%, render_path size %2% ")%buffer.indices.size() %buffer.render_paths.size();
                 for (unsigned int ibuffer_id = 0; ibuffer_id < static_cast<unsigned int>(buffer.indices.size()); ++ibuffer_id) {
                     const IBuffer& i_buffer = buffer.indices[ibuffer_id];
                     // Skip all paths with ibuffer_id < ibuffer_id.
@@ -5068,6 +5092,8 @@ void GCodeViewer::log_memory_used(const std::string& label, int64_t additional) 
         }
         int64_t layers_size = SLIC3R_STDVEC_MEMSIZE(m_layers.get_zs(), double);
         layers_size += SLIC3R_STDVEC_MEMSIZE(m_layers.get_endpoints(), Layers::Endpoints);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format("paths_size %1%, render_paths_size %2%,layers_size %3%, additional %4%\n")
+            %paths_size %render_paths_size %layers_size %additional;
         BOOST_LOG_TRIVIAL(trace) << label
             << "(" << format_memsize_MB(additional + paths_size + render_paths_size + layers_size) << ");"
             << log_memory_info();
