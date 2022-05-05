@@ -1542,70 +1542,70 @@ static inline Polygons detect_overhangs(
                         lower_layer_polygons);
                 }
                 //FIXME add user defined filtering here based on minimal area or minimum radius or whatever.
-            }
 
-            // BBS
-            ExPolygons lower_layer_offseted = offset_ex(lower_layer_expolys, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS);
-            for (ExPolygon& expoly : layerm->raw_slices) {
-                bool is_sharp_tail = false;
-                float accum_height = layer.height;
-                do {
-                    if (!g_config_support_sharp_tails) {
-                        is_sharp_tail = false;
-                        break;
-                    }
-
-                    // 1. nothing below
-                    // check whether this is a sharp tail region
-                    if (intersection_ex({ expoly }, lower_layer_offseted).empty()) {
-                        is_sharp_tail = expoly.area() < area_thresh_well_supported;
-                        break;
-                    }
-
-                    // 2. something below
-                    // check whether this is above a sharp tail region.
-
-                    // 2.1 If no sharp tail below, this is considered as common region.
-                    ExPolygons supported_by_lower = intersection_ex({ expoly }, lower_layer_sharptails);
-                    if (supported_by_lower.empty()) {
-                        is_sharp_tail = false;
-                        break;
-                    }
-
-                    // 2.2 If sharp tail below, check whether it support this region enough.
-                    float supported_area = 0.f;
-                    BoundingBox bbox;
-                    for (ExPolygon& temp : supported_by_lower) {
-                        supported_area += temp.area();
-                        bbox.merge(get_extents(temp));
-                    }
-
-                    if (supported_area > area_thresh_well_supported) {
-                        is_sharp_tail = false;
-                        break;
-                    }
-
-                    if (bbox.size().x() > length_thresh_well_supported && bbox.size().y() > length_thresh_well_supported) {
-                        is_sharp_tail = false;
-                        break;
-                    }
-
-                    // 2.3 check whether sharp tail exceed the max height
-                    for (auto& lower_sharp_tail_height : lower_layer_sharptails_height) {
-                        if (!intersection_ex(*lower_sharp_tail_height.first, expoly).empty()) {
-                            accum_height += lower_sharp_tail_height.second;
+                // BBS
+                ExPolygons lower_layer_offseted = offset_ex(lower_layer_expolys, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS);
+                for (ExPolygon& expoly : layerm->raw_slices) {
+                    bool is_sharp_tail = false;
+                    float accum_height = layer.height;
+                    do {
+                        if (!g_config_support_sharp_tails) {
+                            is_sharp_tail = false;
                             break;
                         }
+
+                        // 1. nothing below
+                        // check whether this is a sharp tail region
+                        if (intersection_ex({ expoly }, lower_layer_offseted).empty()) {
+                            is_sharp_tail = expoly.area() < area_thresh_well_supported;
+                            break;
+                        }
+
+                        // 2. something below
+                        // check whether this is above a sharp tail region.
+
+                        // 2.1 If no sharp tail below, this is considered as common region.
+                        ExPolygons supported_by_lower = intersection_ex({ expoly }, lower_layer_sharptails);
+                        if (supported_by_lower.empty()) {
+                            is_sharp_tail = false;
+                            break;
+                        }
+
+                        // 2.2 If sharp tail below, check whether it support this region enough.
+                        float supported_area = 0.f;
+                        BoundingBox bbox;
+                        for (ExPolygon& temp : supported_by_lower) {
+                            supported_area += temp.area();
+                            bbox.merge(get_extents(temp));
+                        }
+
+                        if (supported_area > area_thresh_well_supported) {
+                            is_sharp_tail = false;
+                            break;
+                        }
+
+                        if (bbox.size().x() > length_thresh_well_supported && bbox.size().y() > length_thresh_well_supported) {
+                            is_sharp_tail = false;
+                            break;
+                        }
+
+                        // 2.3 check whether sharp tail exceed the max height
+                        for (auto& lower_sharp_tail_height : lower_layer_sharptails_height) {
+                            if (!intersection_ex(*lower_sharp_tail_height.first, expoly).empty()) {
+                                accum_height += lower_sharp_tail_height.second;
+                                break;
+                            }
+                        }
+
+                        is_sharp_tail = accum_height < sharp_tail_max_support_height;
+                    } while (0);
+
+                    if (is_sharp_tail) {
+                        ExPolygons overhang = diff_ex({ expoly }, lower_layer_polygons);
+                        layer.sharp_tails.push_back(expoly);
+                        layer.sharp_tails_height.insert({ &expoly, accum_height });
+                        polygons_append(diff_polygons, to_polygons(overhang));
                     }
-
-                    is_sharp_tail = accum_height < sharp_tail_max_support_height;
-                } while (0);
-
-                if (is_sharp_tail) {
-                    ExPolygons overhang = diff_ex({ expoly }, lower_layer_polygons);
-                    layer.sharp_tails.push_back(expoly);
-                    layer.sharp_tails_height.insert({ &expoly, accum_height });
-                    polygons_append(diff_polygons, to_polygons(overhang));
                 }
             }
 
