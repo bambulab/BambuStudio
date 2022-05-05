@@ -1,11 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-<<<<<<< HEAD   (6f6f35 ENH: auto adjust wipe tower pos to make sure it is inside th)
-"POT-Creation-Date: 2022-05-03 23:12+0800\n"
-=======
-"POT-Creation-Date: 2022-05-04 17:51+0800\n"
->>>>>>> CHANGE (ca7684 ENH: preferences: chinese(simplified) displays in Chinese)
+"POT-Creation-Date: 2022-05-05 12:42+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -4100,24 +4096,6 @@ msgid "BBL private bed temperature"
 msgstr ""
 
 msgid "Use BBL private temperature gcode instead of standard M140/M190"
-msgstr ""
-
-msgid "Remove frequency sweep gcode"
-msgstr ""
-
-msgid "Enable this to skip frequency sweep when start printing"
-msgstr ""
-
-msgid "Remove bed leveling gcode"
-msgstr ""
-
-msgid "Enable this to skip bed leveling when start printing"
-msgstr ""
-
-msgid "Remove extrusion calibration gcode"
-msgstr ""
-
-msgid "Enable this to skip extrusion calibration when start printing"
 msgstr ""
 
 msgid "Scan first layer"

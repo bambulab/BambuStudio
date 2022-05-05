@@ -2,11 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-<<<<<<< HEAD   (6f6f35 ENH: auto adjust wipe tower pos to make sure it is inside th)
-"POT-Creation-Date: 2022-05-03 23:12+0800\n"
-=======
-"POT-Creation-Date: 2022-05-04 17:51+0800\n"
->>>>>>> CHANGE (ca7684 ENH: preferences: chinese(simplified) displays in Chinese)
+"POT-Creation-Date: 2022-05-05 12:42+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4259,24 +4255,6 @@ msgstr ""
 msgid "Use BBL private temperature gcode instead of standard M140/M190"
 msgstr "Use BBL private temperature G-code instead of standard M140/M190."
 
-msgid "Remove frequency sweep gcode"
-msgstr "Remove frequency sweep G-code"
-
-msgid "Enable this to skip frequency sweep when start printing"
-msgstr "Enable this to skip frequency sweeping when you start printing."
-
-msgid "Remove bed leveling gcode"
-msgstr "Remove bed leveling G-code"
-
-msgid "Enable this to skip bed leveling when start printing"
-msgstr "Enable this to skip bed leveling when you start printing."
-
-msgid "Remove extrusion calibration gcode"
-msgstr "Remove extrusion calibration G-code"
-
-msgid "Enable this to skip extrusion calibration when start printing"
-msgstr "Enable this to skip the extrusion calibration when you start printing."
-
 msgid "Scan first layer"
 msgstr ""
 
@@ -5251,6 +5229,25 @@ msgstr ""
 
 msgid "Slicing mesh"
 msgstr ""
+
+#~ msgid "Remove frequency sweep gcode"
+#~ msgstr "Remove frequency sweep G-code"
+
+#~ msgid "Enable this to skip frequency sweep when start printing"
+#~ msgstr "Enable this to skip frequency sweeping when you start printing."
+
+#~ msgid "Remove bed leveling gcode"
+#~ msgstr "Remove bed leveling G-code"
+
+#~ msgid "Enable this to skip bed leveling when start printing"
+#~ msgstr "Enable this to skip bed leveling when you start printing."
+
+#~ msgid "Remove extrusion calibration gcode"
+#~ msgstr "Remove extrusion calibration G-code"
+
+#~ msgid "Enable this to skip extrusion calibration when start printing"
+#~ msgstr ""
+#~ "Enable this to skip the extrusion calibration when you start printing."
 
 #~ msgid ""
 #~ "All the selected objects are on the locked plate,\n"

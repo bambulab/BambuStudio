@@ -6,13 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-<<<<<<< HEAD   (6f6f35 ENH: auto adjust wipe tower pos to make sure it is inside th)
-"POT-Creation-Date: 2022-05-03 23:12+0800\n"
-"PO-Revision-Date: 2022-05-03 23:13+0800\n"
-=======
-"POT-Creation-Date: 2022-05-04 17:51+0800\n"
+"POT-Creation-Date: 2022-05-05 12:42+0800\n"
 "PO-Revision-Date: 2022-05-03 23:05+0800\n"
->>>>>>> CHANGE (ca7684 ENH: preferences: chinese(simplified) displays in Chinese)
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -4194,24 +4189,6 @@ msgstr "BBL自定义床温"
 msgid "Use BBL private temperature gcode instead of standard M140/M190"
 msgstr "使用BBL自定义的私有温度控制G代码替代标准的M140/M190。"
 
-msgid "Remove frequency sweep gcode"
-msgstr "跳过扫频"
-
-msgid "Enable this to skip frequency sweep when start printing"
-msgstr "打开这个设置将跳过开始打印时的扫频阶段。"
-
-msgid "Remove bed leveling gcode"
-msgstr "跳过调平"
-
-msgid "Enable this to skip bed leveling when start printing"
-msgstr "打开这个设置将跳过开始打印时的调平阶段。"
-
-msgid "Remove extrusion calibration gcode"
-msgstr "跳过挤出标定"
-
-msgid "Enable this to skip extrusion calibration when start printing"
-msgstr "打开这个设置将跳过开始打印时的挤出标定。"
-
 msgid "Scan first layer"
 msgstr "首层扫描"
 
@@ -5119,6 +5096,24 @@ msgstr "生成支撑"
 
 msgid "Slicing mesh"
 msgstr "切片网格"
+
+#~ msgid "Remove frequency sweep gcode"
+#~ msgstr "跳过扫频"
+
+#~ msgid "Enable this to skip frequency sweep when start printing"
+#~ msgstr "打开这个设置将跳过开始打印时的扫频阶段。"
+
+#~ msgid "Remove bed leveling gcode"
+#~ msgstr "跳过调平"
+
+#~ msgid "Enable this to skip bed leveling when start printing"
+#~ msgstr "打开这个设置将跳过开始打印时的调平阶段。"
+
+#~ msgid "Remove extrusion calibration gcode"
+#~ msgstr "跳过挤出标定"
+
+#~ msgid "Enable this to skip extrusion calibration when start printing"
+#~ msgstr "打开这个设置将跳过开始打印时的挤出标定。"
 
 #~ msgid "Monitor"
 #~ msgstr "打印机"
