@@ -818,6 +818,7 @@ void SelectMachineDialog::reset()
 
 void SelectMachineDialog::on_ok(wxCommandEvent &event)
 {
+    int result = 0;
     m_status_bar->set_status_text("exporting 3mf was cancelled");
 
     if (m_printer_last_select.empty()) {
@@ -868,12 +869,18 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     m_status_bar->reset();
     m_status_bar->set_prog_block();
 
-    m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool &cancel) {
+    result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool &cancel) {
         bool cancelled = false;
         wxString msg = _L("Exporting 3mf...");
         m_status_bar->update_status(msg, cancelled, 15, true);
         m_export_3mf_cancel = cancel = cancelled;
     });
+
+    if (result < 0) {
+        wxString msg = _L("Internal Error. Exporting 3mf failed, please reslice again.");
+        m_status_bar->set_status_text(msg);
+        return;
+    }
 
     if (m_export_3mf_cancel) {
         m_status_bar->set_status_text("exporting 3mf was cancelled");

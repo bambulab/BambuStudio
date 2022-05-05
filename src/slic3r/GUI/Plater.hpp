@@ -316,7 +316,7 @@ public:
     void suppress_background_process(const bool stop_background_process) ;
     /* -1: send current gcode if not specified
      * -2: send all gcode to target machine */
-    void send_gcode(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
+    int send_gcode(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
     //BBS jump to nonitor after print job finished
     void print_job_finished(wxCommandEvent &evt);
 	void eject_drive();

@@ -5452,7 +5452,7 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
     }
 
     boost::mutex mutex;
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, plate_data_list2.size(), 1), [this, &plate_data_list2, &root_archive = archive, &mutex](const tbb::blocked_range<size_t>& range) {
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, plate_data_list2.size(), 1), [this, &plate_data_list2, &root_archive = archive, &mutex, &result](const tbb::blocked_range<size_t>& range) {
         for (int i = range.begin(); i < range.end(); ++i) {
             PlateData* plate_data = plate_data_list2[i];
             auto src_gcode_file = plate_data->gcode_file;
@@ -5460,6 +5460,7 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
             std::string gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (plate_data->plate_index + 1)).str();
             if (m_key_store)
                 gcode_in_3mf.insert(gcode_in_3mf.length() - 6, "_encrypted");
+
             plate_data->gcode_file = gcode_in_3mf;
             mz_zip_archive archive;
             mz_zip_writer_staged_context context;
@@ -5474,6 +5475,11 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
                     std::string userkey, iv;
                     m_key_store->setup(path, encrypt, true);
                     encrypt.open(context);
+                }
+                boost::filesystem::path src_gcode_path(src_gcode_file);
+                if (!boost::filesystem::exists(src_gcode_path)) {
+                    BOOST_LOG_TRIVIAL(error) << "Gcode is missing, filename = " << src_gcode_file;
+                    result = false;
                 }
                 boost::filesystem::ifstream ifs(src_gcode_file, std::ios::binary);
                 std::string buf(64 * 1024, 0);

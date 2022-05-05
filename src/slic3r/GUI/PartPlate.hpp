@@ -228,8 +228,10 @@ public:
         if (get_gcode_filename().empty())
             return false;
         boost::filesystem::path gcode_file(m_gcode_result->filename);
-        if (!boost::filesystem::exists(gcode_file))
+        if (!boost::filesystem::exists(gcode_file)) {
+            BOOST_LOG_TRIVIAL(info) << "invalid gcode file, file is missing, file = " << m_gcode_result->filename;
             return false;
+        }
         return true;
     }
 

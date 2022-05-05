@@ -8416,8 +8416,9 @@ void Plater::reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &
     this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
 }
 
-void Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
+int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
 {
+    int result = 0;
     /* generate 3mf */
     if (plate_idx == PLATE_CURRENT_IDX) {
         p->m_print_job_data.plate_idx = get_partplate_list().get_curr_plate_index();
@@ -8432,9 +8433,13 @@ void Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
         p->m_print_job_data._3mf_path.replace_extension("3mf");
     }
     catch (std::exception& e) {
-        BOOST_LOG_TRIVIAL(trace) << "generate 3mf path failed";
+        BOOST_LOG_TRIVIAL(error) << "generate 3mf path failed";
+        return -1;
     }
-    export_3mf(p->m_print_job_data._3mf_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode, plate_idx, proFn);
+
+    result = export_3mf(p->m_print_job_data._3mf_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode, plate_idx, proFn);
+
+    return result;
 }
 
 //BBS
