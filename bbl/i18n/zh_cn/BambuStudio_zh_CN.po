@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-05 12:42+0800\n"
+"POT-Creation-Date: 2022-05-05 13:54+0800\n"
 "PO-Revision-Date: 2022-05-03 23:05+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -33,11 +33,11 @@ msgid ""
 "into extruder"
 msgstr "送出新的耗材丝到挤出机"
 
-msgid "None"
-msgstr "无"
+msgid "Empty"
+msgstr ""
 
-msgid "Tip: Click the button to edit your filament"
-msgstr "提示：点击此按钮以编辑耗材丝"
+msgid "Click the pencil icon to edit the filament"
+msgstr ""
 
 msgid "Load"
 msgstr "上料"
@@ -67,9 +67,6 @@ msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filiament."
 msgstr "选择1个AMS槽位，然后点击加载/卸载按钮以自动加载/卸载耗材丝。"
-
-msgid "Before loading, please make sure the filament is pushed into toolhead."
-msgstr "加载前，请确保耗材丝已送入到工具头内。"
 
 msgid "File"
 msgstr "文件"
@@ -4144,6 +4141,9 @@ msgid ""
 "look. This setting controls the fuzzy position"
 msgstr "打印外墙时随机抖动，使外表面产生绒效果。这个设置决定适用的位置。"
 
+msgid "None"
+msgstr "无"
+
 msgid "All walls"
 msgstr "所有墙"
 
@@ -5096,6 +5096,13 @@ msgstr "生成支撑"
 
 msgid "Slicing mesh"
 msgstr "切片网格"
+
+#~ msgid "Tip: Click the button to edit your filament"
+#~ msgstr "提示：点击此按钮以编辑耗材丝"
+
+#~ msgid ""
+#~ "Before loading, please make sure the filament is pushed into toolhead."
+#~ msgstr "加载前，请确保耗材丝已送入到工具头内。"
 
 #~ msgid "Remove frequency sweep gcode"
 #~ msgstr "跳过扫频"

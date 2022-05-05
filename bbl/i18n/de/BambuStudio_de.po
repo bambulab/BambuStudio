@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-05 12:42+0800\n"
+"POT-Creation-Date: 2022-05-05 13:54+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -25,10 +25,10 @@ msgid ""
 "into extruder"
 msgstr ""
 
-msgid "None"
-msgstr "Kein"
+msgid "Empty"
+msgstr ""
 
-msgid "Tip: Click the button to edit your filament"
+msgid "Click the pencil icon to edit the filament"
 msgstr ""
 
 msgid "Load"
@@ -58,9 +58,6 @@ msgstr ""
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filiament."
-msgstr ""
-
-msgid "Before loading, please make sure the filament is pushed into toolhead."
 msgstr ""
 
 msgid "File"
@@ -4053,6 +4050,9 @@ msgid ""
 "Randomly jitter while printing the wall, so that the surface has a rough "
 "look. This setting controls the fuzzy position"
 msgstr ""
+
+msgid "None"
+msgstr "Kein"
 
 msgid "All walls"
 msgstr "Alle Wände"
