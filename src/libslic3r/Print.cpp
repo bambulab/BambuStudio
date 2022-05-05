@@ -68,9 +68,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         //BBS: add bed_exclude_area
         "bed_exclude_area",
         "before_layer_change_gcode",
+        "enable_overhang_bridge_fan"
         "overhang_fan_speed",
         "overhang_fan_threshold",
-        "cooling",
+        "slow_down_for_layer_cooling",
         "default_acceleration",
         "deretraction_speed",
         "close_fan_the_first_x_layers",

@@ -9,7 +9,7 @@
     "reduce_fan_stop_start_freq": [
         "1"
     ],
-    "cooling": [
+    "slow_down_for_layer_cooling": [
         "1"
     ],
     "fan_cooling_layer_time": [

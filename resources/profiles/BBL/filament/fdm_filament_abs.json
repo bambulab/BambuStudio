@@ -10,7 +10,7 @@
     "bed_temperature": [
         "90,90,90"
     ],
-    "cooling": [
+    "slow_down_for_layer_cooling": [
         "1"
     ],
     "close_fan_the_first_x_layers": [

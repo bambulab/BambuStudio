@@ -1419,7 +1419,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     this->print_machine_envelope(file, print);
 
     // Disable fan.
-    if (!print.config().cooling.get_at(initial_extruder_id) || print.config().close_fan_the_first_x_layers.get_at(initial_extruder_id)) {
+    if (print.config().close_fan_the_first_x_layers.get_at(initial_extruder_id)) {
         file.write(m_writer.set_fan(0));
         //BBS: disable additional fan
         file.write(m_writer.set_additional_fan(0));
@@ -3514,7 +3514,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     std::string comment;
     if (m_enable_cooling_markers) {
-        if (path.get_overhang_degree() > EXTRUDER_CONFIG(overhang_fan_threshold) || is_bridge(path.role()))
+        if (EXTRUDER_CONFIG(enable_overhang_bridge_fan) &&
+            (path.get_overhang_degree() > EXTRUDER_CONFIG(overhang_fan_threshold) || is_bridge(path.role())))
             gcode += ";_OVERHANG_FAN_START\n";
         else
             comment = ";_EXTRUDE_SET_SPEED";
@@ -3582,7 +3583,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         }
     }
     if (m_enable_cooling_markers)
-        gcode += (is_bridge(path.role()) || path.get_overhang_degree() > EXTRUDER_CONFIG(overhang_fan_threshold)) ?
+        gcode += (EXTRUDER_CONFIG(enable_overhang_bridge_fan) &&
+                  (is_bridge(path.role()) || path.get_overhang_degree() > EXTRUDER_CONFIG(overhang_fan_threshold))) ?
         ";_OVERHANG_FAN_END\n" : ";_EXTRUDE_END\n";
 
     this->set_last_pos(path.last_point());

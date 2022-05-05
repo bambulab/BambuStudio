@@ -2437,10 +2437,6 @@ void TabFilament::build()
         //optgroup->append_line(line);
 
     page = add_options_page(L("Cooling"), "empty");
-        std::string category_path = "cooling_127569#";
-        optgroup = page->new_optgroup(L("Enable"));
-        optgroup->append_single_option_line("reduce_fan_stop_start_freq");
-        optgroup->append_single_option_line("cooling");
 
         //line = { "", "" };
         //line.full_width = 1;
@@ -2448,24 +2444,29 @@ void TabFilament::build()
         //    return description_line_widget(parent, &m_cooling_description_line);
         //};
         //optgroup->append_line(line);
+        optgroup = page->new_optgroup(L("Cooling for specific layer"));
+        optgroup->append_single_option_line("close_fan_the_first_x_layers");
+        //optgroup->append_single_option_line("full_fan_speed_layer");
 
-        optgroup = page->new_optgroup(L("Fan settings"));
-        line = { L("Fan speed"), L("Max fan speed and min fan speed") };
-        line.label_path = category_path + "fan-settings";
+        optgroup = page->new_optgroup(L("Part cooling fan"));
+        line = { L("Min fan speed threshold"), L("Part cooling fan speed will be min when the estimated layer time is longer than the setting value") };
         line.append_option(optgroup->get_option("fan_min_speed"));
-        line.append_option(optgroup->get_option("fan_max_speed"));
+        line.append_option(optgroup->get_option("fan_cooling_layer_time"));
         optgroup->append_line(line);
+        line = { L("Max fan speed threshold"), L("Part cooling fan speed will be max when the estimated layer time is shorter than the setting value") };
+        line.append_option(optgroup->get_option("fan_max_speed"));
+        line.append_option(optgroup->get_option("slow_down_layer_time"));
+        optgroup->append_line(line);
+        optgroup->append_single_option_line("reduce_fan_stop_start_freq");
+        optgroup->append_single_option_line("slow_down_for_layer_cooling");
+        optgroup->append_single_option_line("slow_down_min_speed");
+
+        optgroup->append_single_option_line("enable_overhang_bridge_fan");
         optgroup->append_single_option_line("overhang_fan_threshold");
         optgroup->append_single_option_line("overhang_fan_speed");
-        optgroup->append_single_option_line("close_fan_the_first_x_layers");
-        optgroup->append_single_option_line("full_fan_speed_layer");
+
+        optgroup = page->new_optgroup(L("Auxiliary part cooling fan"));
         optgroup->append_single_option_line("additional_cooling_fan_speed");
-
-        optgroup = page->new_optgroup(L("Cooling thresholds"), 25);
-
-        optgroup->append_single_option_line("fan_cooling_layer_time");
-        optgroup->append_single_option_line("slow_down_layer_time");
-        optgroup->append_single_option_line("slow_down_min_speed");
 
         //BBS
         add_filament_overrides_page();
@@ -2561,14 +2562,12 @@ void TabFilament::toggle_options()
 
     if (m_active_page->title() == "Cooling")
     {
-        bool cooling = m_config->opt_bool("cooling", 0);
-        bool reduce_fan_stop_start_freq = cooling || m_config->opt_bool("reduce_fan_stop_start_freq", 0);
+        bool cooling = m_config->opt_bool("slow_down_for_layer_cooling", 0);
+        toggle_option("slow_down_min_speed", cooling);
 
-        for (auto el : { "fan_max_speed", "fan_cooling_layer_time", "slow_down_layer_time", "slow_down_min_speed" })
-            toggle_option(el, cooling);
-
-        for (auto el : { "additional_cooling_fan_speed", "fan_min_speed", "close_fan_the_first_x_layers", "full_fan_speed_layer" })
-            toggle_option(el, reduce_fan_stop_start_freq);
+        bool has_enable_overhang_bridge_fan = m_config->opt_bool("enable_overhang_bridge_fan", 0);
+        for (auto el : { "overhang_fan_speed", "overhang_fan_threshold" })
+            toggle_option(el, has_enable_overhang_bridge_fan);
     }
 
     //BBS: filament_retract serial parameter is shown on page directly without being controlled by check box

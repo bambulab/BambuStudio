@@ -398,22 +398,29 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.));
 
+    def = this->add("enable_overhang_bridge_fan", coBools);
+    def->label = L("Force cooling for overhang and bridge");
+    def->tooltip = L("Enable this option to optimize part cooling fan speed for overhang and bridge to get better cooling");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBools{ true });
+
     def = this->add("overhang_fan_speed", coInts);
-    def->label = L("Overhang fan speed");
-    def->tooltip = L("Fan speed when printing bridge and overhang wall");
+    def->label = L("Part cooling fan speed for overhang");
+    def->tooltip = L("Force part cooling fan to be this speed when printing bridge or overhang wall which has large overhang degree. "
+                     "Forcing cooling for overhang and bridge can get better quality for these part");
     def->sidetext = L("%");
     def->min = 0;
     def->max = 100;
-    def->mode = comAdvanced;
+    def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInts { 100 });
 
     def = this->add("overhang_fan_threshold", coEnums);
     def->label = L("Cooling overhang threshold");
-    def->tooltip = L("Force cooling fan speed to be overhang_fan_speed when overhang degree of printed part exceeds this value. "
-                     "Expressed as percentage which indicides how many width of the line without support from lower layer");
+    def->tooltip = L("Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. "
+                     "Expressed as percentage which indicides how much width of the line without support from lower layer");
     def->sidetext = L("");
     def->enum_keys_map = &s_keys_map_OverhangFanThreshold;
-    def->mode = comAdvanced;
+    def->mode = comDevelop;
     def->enum_values.emplace_back("5%");
     def->enum_values.emplace_back("25%");
     def->enum_values.emplace_back("50%");
@@ -589,10 +596,11 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<PrintSequence>(PrintSequence::ByLayer));
 
-    def = this->add("cooling", coBools);
-    def->label = L("Enable auto cooling");
-    def->tooltip = L("Enable auto cooling to adjust printing speed and fan speed "
-                     "according to layer printing time automatically");
+    def = this->add("slow_down_for_layer_cooling", coBools);
+    def->label = L("Slow printing down for longer layer cooling time");
+    def->tooltip = L("Enable this option to slow printing speed down to make the final layer time not shorter than "
+                     "the layer time threshold in \"Max fan speed threshold\", so that layer can be cooled for longer time. "
+                     "This can improve the cooling quality for needle and small details");
     def->set_default_value(new ConfigOptionBools { true });
 
     def = this->add("default_acceleration", coFloat);
@@ -616,13 +624,13 @@ void PrintConfigDef::init_fff_params()
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("close_fan_the_first_x_layers", coInts);
-    def->label = L("Disable fan for the first");
-    def->tooltip = L("Close cooling fan for the first certain layers. We usually close fan for the initial layer "
+    def->label = L("No cooling for the first");
+    def->tooltip = L("Close all cooling fan for the first certain layers. Cooling of the first layer used to be close "
                      "to get better build plate adhesion");
     def->sidetext = L("layers");
     def->min = 0;
     def->max = 1000;
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 1 });
 
     def = this->add("bridge_no_support", coBool);
@@ -799,19 +807,18 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("reduce_fan_stop_start_freq", coBools);
     def->label = L("Keep fan always on");
-    def->tooltip = L("Starting fan from stop state usually costs lots's of time. "
-                     "If enable this setting, fan will never be stoped and will run at least "
+    def->tooltip = L("If enable this setting, part cooling fan will never be stoped and will run at least "
                      "at minimum speed to reduce the frequency of starting and stoping");
     def->set_default_value(new ConfigOptionBools { false });
 
     def = this->add("fan_cooling_layer_time", coInts);
-    def->label = L("Enable fan if layer print time is below");
-    def->tooltip = L("Cooling fan will be enabled for layers of which estimated time is shorter than this value. "
+    def->label = L("Layer time");
+    def->tooltip = L("Part cooling fan will be enabled for layers of which estimated time is shorter than this value. "
                      "Fan speed is interpolated between the minimum and maximum fan speeds according to layer printing time");
     def->sidetext = L("s");
     def->min = 0;
     def->max = 1000;
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 60 });
 
     def = this->add("filament_colour", coStrings);
@@ -1169,8 +1176,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnum<NozzleType>(ntHardenedSteel));
 
     def = this->add("auxiliary_fan", coBool);
-    def->label = L("Auxiliary fan");
-    def->tooltip = L("Enable this option if machine has auxiliary fan");
+    def->label = L("Auxiliary part cooling fan");
+    def->tooltip = L("Enable this option if machine has auxiliary part cooling fan");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(true));
 
@@ -1478,12 +1485,13 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
     def = this->add("fan_max_speed", coInts);
-    def->label = L("Max");
-    def->tooltip = L("Maximum fan speed for cooling");
+    def->label = L("Max fan speed");
+    def->tooltip = L("Part cooling fan speed may be increased when auto cooling is enabled. "
+                     "This is the maximum speed limitation of part cooling fan");
     def->sidetext = L("%");
     def->min = 0;
     def->max = 100;
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 100 });
 
     def = this->add("max_layer_height", coFloats);
@@ -1520,21 +1528,22 @@ void PrintConfigDef::init_fff_params()
 #endif /* HAS_PRESSURE_EQUALIZER */
 
     def = this->add("fan_min_speed", coInts);
-    def->label = L("Min");
-    def->tooltip = L("Minimum fan speed for cooling");
+    def->label = L("Min fan speed");
+    def->tooltip = L("Minimum speed for part cooling fan");
     def->sidetext = L("%");
     def->min = 0;
     def->max = 100;
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 20 });
 
     def = this->add("additional_cooling_fan_speed", coInts);
-    def->label = L("Additional cooling fan speed");
-    def->tooltip = L("Speed of additional cooling fan");
+    def->label = L("Auxiliary part cooling fan speed");
+    def->tooltip = L("Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed during printing except the first several layers "
+                     "which is defined by no cooling layers");
     def->sidetext = L("%");
     def->min = 0;
     def->max = 100;
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 0 });
 
     def = this->add("min_layer_height", coFloats);
@@ -1551,7 +1560,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The minimum printing speed when slow down for cooling");
     def->sidetext = L("mm/s");
     def->min = 0;
-    def->mode = comAdvanced;
+    def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats { 10. });
 
     def = this->add("nozzle_diameter", coFloats);
@@ -1853,13 +1862,13 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("slow_down_layer_time", coInts);
-    def->label = L("Slow down if layer print time is below");
+    def->label = L("Layer time");
     def->tooltip = L("The printing speed in exported gcode will be slowed down, when the estimated layer time is shorter than this value, to "
                      "get better cooling for these layers");
     def->sidetext = L("s");
     def->min = 0;
     def->max = 1000;
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 5 });
 
     def = this->add("minimum_sparse_infill_area", coFloat);
@@ -3259,6 +3268,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "compatible_machine_expression_group";
     } else if (opt_key == "compatible_prints_condition_cummulative") {
         opt_key = "compatible_process_expression_group";
+    }  else if (opt_key == "cooling") {
+        opt_key = "slow_down_for_layer_cooling";
     }
 
     // Ignore the following obsolete configuration keys:

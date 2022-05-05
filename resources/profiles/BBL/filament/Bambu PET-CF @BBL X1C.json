@@ -5,7 +5,7 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "Bambu PET-CF @base",
-    "cooling": [
+    "slow_down_for_layer_cooling": [
         "1"
     ],
     "reduce_fan_stop_start_freq": [
