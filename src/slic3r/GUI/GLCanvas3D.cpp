@@ -4852,7 +4852,7 @@ bool GLCanvas3D::_init_main_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "add";
-    item.icon_filename = "toolbar_add.svg";
+    item.icon_filename = "toolbar_open.svg";
     item.tooltip = _utf8(L("Add"));
     item.sprite_id = 0;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ADD)); };
