@@ -381,21 +381,25 @@ void MonitorPanel::update_all()
 
 bool MonitorPanel::Show(bool show)
 {
+    Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
     if (show) {
         m_refresh_timer->Stop();
         m_refresh_timer->SetOwner(this);
         m_refresh_timer->Start(REFRESH_INTERVAL);
         wxPostEvent(this, wxTimerEvent());
+        if (c)
+            c->start_subscribe();
 
         //set a default machine when obj is null
-        if (obj == nullptr) {
-            Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
+        if (obj == nullptr && c) {
             c->load_last_machine();
         }
     }
     else {
         m_refresh_timer->Stop();
         m_status_info_panel->m_media_play_ctrl->SetMachineObject(nullptr);
+        if (c)
+            c->stop_subscribe();
     }
     return wxPanel::Show(show);
 }

@@ -523,15 +523,6 @@ namespace Slic3r {
         }
     }
 
-    void AccountManager::update_subscription()
-    {
-        std::map<std::string, MachineObject*>::iterator it;
-        BOOST_LOG_TRIVIAL(trace) << "update_subscription, machine list = " << myBindMachineList.size();
-        for (it = myBindMachineList.begin(); it != myBindMachineList.end(); it++) {
-            add_subscribe(it->second);
-        }
-    }
-
     void AccountManager::set_monitor_machine(std::string dev_id)
     {
         BOOST_LOG_TRIVIAL(trace) << "set monitor machine = " << dev_id;
@@ -547,7 +538,8 @@ namespace Slic3r {
         }
 
         //subscribe new machine
-        this->add_subscribe(dev_id);
+        if (m_is_subscribing)
+            this->add_subscribe(dev_id);
 
         std::map<std::string, MachineObject *>::iterator it = myBindMachineList.find(dev_id);
         if (it != myBindMachineList.end()) {
@@ -573,6 +565,26 @@ namespace Slic3r {
                     set_monitor_machine(it->second->dev_id);
             }
         }
+    }
+
+    void AccountManager::start_subscribe()
+    {
+        BOOST_LOG_TRIVIAL(trace) << "start_subscribe, machine=" << default_machine;
+        if (!default_machine.empty())
+            this->add_subscribe(default_machine);
+
+        MachineObject* obj = get_default_machine();
+        if (obj)
+            obj->reset();
+        m_is_subscribing = true;
+    }
+
+    void AccountManager::stop_subscribe()
+    {
+        BOOST_LOG_TRIVIAL(trace) << "stop_subscribe, machine=" << default_machine;
+        if (!default_machine.empty())
+            this->del_subscribe(default_machine);
+        m_is_subscribing = false;
     }
 
     bool AccountManager::is_user_login()

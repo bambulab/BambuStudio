@@ -288,6 +288,7 @@ private:
     mqtt::ssl_options mqtt_ssl_opt;
     std::string mqtt_uuid;
     boost::thread reconn_thread;
+    bool m_is_subscribing { false };
 
     int mqtt_uuid_bytes;
 public:
@@ -327,10 +328,13 @@ public:
     void del_subscribe(MachineObject* obj);
     void add_subscribe(std::string dev_id);
     void del_subscribe(std::string dev_id);
-    void update_subscription();
 
     void set_monitor_machine(std::string dev_id);
     void load_last_machine();
+
+    //control subscribe default machine
+    void start_subscribe();
+    void stop_subscribe();
 
     /* user login register apis */
     bool is_user_login();

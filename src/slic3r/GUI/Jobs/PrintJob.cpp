@@ -211,7 +211,7 @@ void PrintJob::process()
     if (project->project_name.empty())
         subTask->task_name = wxString::Format(_L("Plate %d"), curr_plate_idx).ToUTF8().data();
     else
-        subTask->task_name = wxString::Format(_L("%s (Plate %d)"), from_u8(project->project_name), curr_plate_idx).ToUTF8().data();
+        subTask->task_name = wxString::Format(_L("%s"), from_u8(project->project_name), curr_plate_idx).ToUTF8().data();
 
     res = c->post_task(project, profile, subTask, http_code, http_body);
     if (res < 0) {
