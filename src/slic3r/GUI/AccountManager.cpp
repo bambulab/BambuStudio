@@ -1435,6 +1435,7 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         Http http = Http::get(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
+            .timeout_max(10)
             .on_complete([this, show_tips](std::string body, unsigned) {
                 std::stringstream ss(body);
                 pt::ptree root;
@@ -1455,10 +1456,12 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
                                     boost::optional<std::string> url         = software_node.get_optional<std::string>("url");
                                     boost::optional<std::string> version     = software_node.get_optional<std::string>("version");
                                     boost::optional<std::string> description = software_node.get_optional<std::string>("description");
+                                    boost::optional<bool> force_update       = software_node.get_optional<bool>("force_update");
                                     if (version.has_value() && url.has_value() && description.has_value()) {
                                         version_info.url = url.value();
                                         version_info.parse_version_str(version.value());
                                         version_info.description = description.value();
+                                        version_info.force_upgrade = force_update.has_value() ? force_update.value() : false;
                                         check_update(show_tips);
                                     }
                                 }
@@ -1481,10 +1484,22 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         if (version_info.url.empty()) return;
 
         if (version_info.compare(SLIC3R_VERSION) > 0) {
-            GUI::wxGetApp().request_new_version();
+            //test
+            //version_info.force_upgrade = true;
+            if (version_info.force_upgrade) {
+                wxGetApp().app_config->set_bool("force_upgrade", version_info.force_upgrade);
+                wxGetApp().app_config->set("upgrade", "force_upgrade", true);
+                wxGetApp().app_config->set("upgrade", "description", version_info.description);
+                wxGetApp().app_config->set("upgrade", "version", version_info.version_str);
+                wxGetApp().app_config->set("upgrade", "url", version_info.url);
+                GUI::wxGetApp().enter_force_upgrade();
+            } else {
+                GUI::wxGetApp().request_new_version();
+            }
         }
         // Same Version
         else if (version_info.compare(SLIC3R_VERSION) == 0) {
+            wxGetApp().app_config->set("upgrade", "force_upgrade", false);
             if (show_tips)
                 GUI::wxGetApp().no_new_version();
         } else {

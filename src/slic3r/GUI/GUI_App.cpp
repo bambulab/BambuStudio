@@ -1018,9 +1018,8 @@ void GUI_App::post_init()
         #endif // _WIN32
                 this->preset_updater->slic3r_update_notify();
 
-            //BBS: check new version if user is login
-            if (m_account_manager->is_user_login())
-                m_account_manager->check_new_version();
+            //BBS: check new version
+            m_account_manager->check_new_version();
         });
     }
 
@@ -1395,6 +1394,32 @@ bool GUI_App::on_init_inner()
                      ;
                  }
             }
+            });
+
+        Bind(EVT_ENTER_FORCE_UPGRADE, [this](const wxCommandEvent& evt) {
+                wxString      version_str = wxString::FromUTF8(this->app_config->get("upgrade", "version"));
+                wxString      description_text = wxString::FromUTF8(this->app_config->get("upgrade", "description"));
+                std::string   download_url = this->app_config->get("upgrade", "url");
+                wxString tips = wxString::Format(_L("Click to download new version in default browser: %s"), version_str);
+                DownloadDialog dialog(this->mainframe,
+                    tips,
+                    _L("The Bambu Studio needs an upgrade"),
+                    false,
+                    wxCENTER | wxICON_INFORMATION);
+                dialog.SetExtendedMessage(description_text);
+
+                int result = dialog.ShowModal();
+                switch (result)
+                {
+                 case wxID_YES:
+                     wxLaunchDefaultBrowser(download_url);
+                     break;
+                 case wxID_NO:
+                     wxGetApp().mainframe->Close(true);
+                     break;
+                 default:
+                     wxGetApp().mainframe->Close(true);
+                }
             });
     }
     else {
@@ -2191,6 +2216,12 @@ void GUI_App::request_new_version()
 {
     wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
     evt->SetString(GUI::from_u8(m_account_manager->version_info.version_str));
+    GUI::wxGetApp().QueueEvent(evt);
+}
+
+void GUI_App::enter_force_upgrade()
+{
+    wxCommandEvent *evt = new wxCommandEvent(EVT_ENTER_FORCE_UPGRADE);
     GUI::wxGetApp().QueueEvent(evt);
 }
 

@@ -277,6 +277,7 @@ public:
     void            on_http_error(wxCommandEvent &evt);
     void            on_user_login(wxCommandEvent &evt);
     void            request_new_version();
+    void            enter_force_upgrade();
     void            no_new_version();
     void            reload_settings();
     void            reload_user_presets();

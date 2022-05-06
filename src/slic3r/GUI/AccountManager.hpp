@@ -124,11 +124,13 @@ public:
     std::string version_name;
     std::string description;
     std::string url;
+    bool        force_upgrade { false };
     int      ver_items[VERSION_LEN];  // AA.BB.CC.DD
     VersionInfo() {
         for (int i = 0; i < VERSION_LEN; i++) {
             ver_items[i] = 0;
         }
+        force_upgrade = false;
     }
 
     void parse_version_str(std::string str) {
