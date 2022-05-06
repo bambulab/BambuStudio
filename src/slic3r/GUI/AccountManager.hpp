@@ -330,6 +330,7 @@ public:
     void update_subscription();
 
     void set_monitor_machine(std::string dev_id);
+    void load_last_machine();
 
     /* user login register apis */
     bool is_user_login();

@@ -1091,13 +1091,13 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
     //BBS fixed bottom_margin for space to render horiz slider
     int bottom_margin = 64;
 
-    //BBS move to developer mode
-    if (m_sequential_view.current.last != m_sequential_view.endpoints.last && !m_no_render_path) {
+    //BBS always render the hotend-marker
+    //if (m_sequential_view.current.last != m_sequential_view.endpoints.last && !m_no_render_path) {
         m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
         m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
         //BBS fixed buttom margin. m_moves_slider.pos_y
         m_sequential_view.render(legend_height, canvas_width - right_margin, canvas_height - bottom_margin);
-    }
+    //}
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS

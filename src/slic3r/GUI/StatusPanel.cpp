@@ -1327,8 +1327,12 @@ void StatusPanel::update_subtask(MachineObject *obj)
     m_gauge_progress->SetValue(obj->subtask_->task_progress);
     m_staticText_progress_percent->SetLabelText(wxString::Format("%d%%", obj->subtask_->task_progress));
 
-    // update printing stage
-    m_printing_stage_value->SetLabelText(obj->get_curr_stage());
+    if (!obj->is_printing_finished()) {
+        // update printing stage
+        m_printing_stage_value->SetLabelText(obj->get_curr_stage());
+    } else {
+        m_printing_stage_value->SetLabelText("");
+    }
 
     this->Layout();
 }

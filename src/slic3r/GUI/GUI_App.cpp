@@ -1430,6 +1430,7 @@ bool GUI_App::on_init_inner()
     scrn->SetText(_L("Loading user presets..."));
     int loaded_preset_result = -1;
     if (m_account_manager->is_user_login()) {
+        // get setting list, update setting list
         loaded_preset_result = m_account_manager->get_setting_list(
             [this](std::string body, std::string error, unsigned http_status) {
                 BOOST_LOG_TRIVIAL(trace) << "load my settings failed! body = " << body;
@@ -2169,6 +2170,11 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
     BOOST_LOG_TRIVIAL(info) << "set_preset: set preset_folder = " << user_id;
     GUI::wxGetApp().app_config->set("preset_folder", user_id);
     m_account_manager->connect_mqtt();
+
+    // get machine list
+    int         err_code;
+    std::string err_msg;
+    m_account_manager->update_my_machine_list_info(err_code, err_msg);
 
     GUI::wxGetApp().preset_bundle->update_user_presets_directory(user_id);
     if (online_login)

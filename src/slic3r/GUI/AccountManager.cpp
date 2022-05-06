@@ -77,10 +77,7 @@ namespace Slic3r {
         AccountManager* manager = (AccountManager*)context_;
         if (manager) {
             GUI::wxGetApp().CallAfter([manager] {
-                MachineObject* obj = manager->get_default_machine();
-                if (obj) {
-                    manager->set_monitor_machine(obj->dev_id);
-                }
+                manager->load_last_machine();
             });
         }
     }
@@ -537,9 +534,13 @@ namespace Slic3r {
 
     void AccountManager::set_monitor_machine(std::string dev_id)
     {
+        BOOST_LOG_TRIVIAL(trace) << "set monitor machine = " << dev_id;
         std::string old_dev_id = this->default_machine;
 
+        // store last_monitor_printer
+        wxGetApp().app_config->set("last_monitor_machine", dev_id);
         this->default_machine = dev_id;
+
         //unsubscribe old machine
         if (!old_dev_id.empty() && old_dev_id.compare(dev_id) != 0) {
             this->del_subscribe(old_dev_id);
@@ -551,6 +552,26 @@ namespace Slic3r {
         std::map<std::string, MachineObject *>::iterator it = myBindMachineList.find(dev_id);
         if (it != myBindMachineList.end()) {
             it->second->reset();
+        }
+    }
+
+    void AccountManager::load_last_machine()
+    {
+        if (myBindMachineList.empty()) return;
+        else if (myBindMachineList.size() == 1) {
+            auto it = myBindMachineList.begin();
+            if (it != myBindMachineList.end() && it->second)
+                set_monitor_machine(it->second->dev_id);
+        } else {
+            std::string last_monitor_machine = wxGetApp().app_config->get("last_monitor_machine");
+            auto it = myBindMachineList.find(last_monitor_machine);
+            if (it != myBindMachineList.end()) {
+                set_monitor_machine(it->second->dev_id);
+            } else {
+                auto it = myBindMachineList.begin();
+                if (it != myBindMachineList.end() && it->second)
+                    set_monitor_machine(it->second->dev_id);
+            }
         }
     }
 
@@ -977,6 +998,7 @@ namespace Slic3r {
     {
         std::map<std::string, MachineObject*>::iterator it;
         if (default_machine.empty() && !myBindMachineList.empty()) {
+            load_last_machine();
             it = myBindMachineList.begin();
             if (!it->second) return nullptr;
             default_machine = it->second->dev_id;
