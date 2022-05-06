@@ -12,6 +12,7 @@ namespace GUI {
 
 class BindJob : public PlaterJob
 {
+    wxWindow *           m_event_handle{nullptr};
     std::function<void()> m_success_fun{nullptr};
     std::string         m_dev_id;
     bool                m_job_finished{ false };
@@ -30,10 +31,16 @@ public:
     bool is_finished() { return m_job_finished;  }
 
     void on_success(std::function<void()> success);
+    void update_status(int st, const wxString &msg);
     void process() override;
     void finalize() override;
+    void set_event_handle(wxWindow* hanle);
+    void post_event();
 };
 
+wxDECLARE_EVENT(EVT_BIND_UPDATE_MESSAGE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_BIND_MACHINE_SUCCESS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_BIND_MACHINE_FAIL, wxCommandEvent);
 }} // namespace Slic3r::GUI
 
 #endif // ARRANGEJOB_HPP

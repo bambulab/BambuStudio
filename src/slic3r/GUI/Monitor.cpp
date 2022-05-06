@@ -191,27 +191,27 @@ void MonitorPanel::set_default()
 
  wxBoxSizer* MonitorPanel::create_side_tools()
 {
-    wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_side_tools_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    sizer->Add(FromDIP(17), 0, 0, wxALL, 0);
+    m_side_tools_sizer->Add(FromDIP(17), 0, 0, wxALL, 0);
     m_bitmap_printer_type = new wxStaticBitmap(this, wxID_ANY, m_printer_img, wxDefaultPosition, wxDefaultSize, 0);
-    sizer->Add(m_bitmap_printer_type, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(6));
+    m_side_tools_sizer->Add(m_bitmap_printer_type, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(6));
 
     m_bitmap_arrow = new wxStaticBitmap(this, wxID_ANY, m_arrow_img, wxDefaultPosition, wxDefaultSize, 0);
-    sizer->Add(m_bitmap_arrow, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
+    m_side_tools_sizer->Add(m_bitmap_arrow, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
 
     m_staticText_printer_name = new wxStaticText(this, wxID_ANY, _L("Selected a printer"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     m_staticText_printer_name->Wrap(-1);
     m_staticText_printer_name->SetMaxSize(wxSize(FromDIP(120), -1));
-    sizer->Add(m_staticText_printer_name, 1, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    m_side_tools_sizer->Add(m_staticText_printer_name, 1, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     m_bitmap_wifi_signal = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    sizer->Add(m_bitmap_wifi_signal, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(20));
+    m_side_tools_sizer->Add(m_bitmap_wifi_signal, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(20));
 
     //TEST function
     //m_bitmap_wifi_signal->Connect(wxEVT_LEFT_DCLICK, wxMouseEventHandler(MonitorPanel::on_update_all), NULL, this);
 
-    return sizer; 
+    return m_side_tools_sizer; 
 }
 
 void MonitorPanel::msw_rescale()
@@ -279,9 +279,13 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
     /* query print info */
     SelectMachinePopup *m_select_machine = new SelectMachinePopup(this);
 
-    wxPoint pos = m_bitmap_printer_type->ClientToScreen(wxPoint(0, 0));
-    pos.y += m_bitmap_printer_type->GetRect().height;
+   /* wxPoint pos = m_bitmap_printer_type->ClientToScreen(wxPoint(0, 0));
+    pos.y += m_bitmap_printer_type->GetRect().height;*/
 
+    auto pos = m_bitmap_printer_type->GetParent()->ClientToScreen(wxPoint(0, 0));
+    pos.y += m_side_tools_sizer->GetSize().y;
+    pos.x += (m_side_tools_sizer->GetSize().x - m_select_machine->GetSize().x) / 2;
+    
     m_select_machine->Position(pos, wxSize(0, 0));
     m_select_machine->Popup();
 }

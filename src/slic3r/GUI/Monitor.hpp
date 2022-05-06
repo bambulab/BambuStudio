@@ -84,6 +84,7 @@ private:
     wxStaticBitmap* m_bitmap_arrow;
     wxStaticText*   m_staticText_printer_name;
     wxStaticBitmap* m_bitmap_wifi_signal;
+    wxBoxSizer *    m_side_tools_sizer;
 
 	/* images */
     wxBitmap m_signal_strong_img;

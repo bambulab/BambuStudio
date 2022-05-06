@@ -90,20 +90,25 @@ private:
 class MachineObjectPanel : public wxPanel
 {
 private:
-    wxColour m_text_color;
-    wxColour m_bg_colour;
-    wxColour m_hover_colour;
-    wxColour m_leftdown_colour;
-
-    std::string m_dev_id;
+    int         m_last_wifi_signal;
+    int         m_wifi_type;
+    bool        m_state_can_bind{false};
+    bool        m_select_unbind{false};
+    bool        m_showunbind{false};
+    bool        m_idle{true};
+    bool        m_hover {false};
     wxBitmap    m_printing_img;
     wxBitmap    m_owner_img;
+    wxBitmap    m_unbind_img;
+    wxBitmap    m_select_unbind_img;
+    wxBitmap    m_wifi_none_img;
+    wxBitmap    m_wifi_weak_img;
+    wxBitmap    m_wifi_middle_img;
+    wxBitmap    m_wifi_strong_img;
+    wxStaticBitmap *m_unbindimg;
+    MachineObject *m_info;
 
 protected:
-    wxString m_printer_name;
-    wxString m_printer_time;
-    wxString m_printer_task;
-
     wxBitmap        m_bitmap_type;
     wxStaticBitmap *m_bitmap_info;
     wxStaticBitmap *m_bitmap_bind;
@@ -117,15 +122,48 @@ public:
                        const wxString &name  = wxEmptyString);
     ~MachineObjectPanel();
 
+	void show_unbind_dialog();
+    void show_bind_dialog();
     // void update_machine_info(MachineObject* obj);
+ 
+    void set_printer_idle();
+    void set_printer_busy();
+
+    void set_printer_unbind();
+    void set_printer_wifi();
+
+    void set_can_bind(bool canbind);
+
+    void update_machine_info(/*std::string dev_id, wxString dev_name, int progress, wxString owner*/ MachineObject *info);
+
+protected:
     void OnPaint(wxPaintEvent &event);
-    void DrawTextString(wxDC &dc, const wxString &text, const wxPoint &pt, bool bold = false);
-    void update_machine_info(std::string dev_id, wxString dev_name, int progress, wxString owner);
+    void render(wxDC &dc);
+    void doRender(wxDC &dc);
     void on_mouse_enter(wxMouseEvent &evt);
     void on_mouse_leave(wxMouseEvent &evt);
     void on_mouse_left_down(wxMouseEvent &evt);
     void on_mouse_left_up(wxMouseEvent &evt);
 };
+
+#define SELECT_MACHINE_POPUP_SIZE wxSize(FromDIP(250), FromDIP(420))
+#define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(230), FromDIP(400))
+#define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(220), FromDIP(36))
+#define SELECT_MACHINE_GREY900 wxColour(38, 46, 48)
+#define SELECT_MACHINE_GREY600 wxColour(144,144,144)
+#define SELECT_MACHINE_GREY400 wxColour(206, 206, 206)
+#define SELECT_MACHINE_BRAND wxColour(0, 174, 66)
+#define SELECT_MACHINE_REMIND wxColour(255,111,0)
+#define SELECT_MACHINE_LIGHT_GREEN wxColour(219, 253, 231)
+
+class MachinePanel
+{
+public:
+    wxString mIndex;
+    MachineObjectPanel *mPanel;
+};
+
+WX_DEFINE_ARRAY(MachinePanel*, MachinePanelHash);
 
 class SelectMachinePopup : public wxPopupTransientWindow
 {
@@ -139,33 +177,22 @@ public:
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
     virtual bool Show(bool show = true) wxOVERRIDE;
 
-    void update_machine_list(std::vector<MachineObject *> obj_list);
+    void update_machine_list(wxCommandEvent &event);
+	void start_ssdp();
+	void stop_ssdp();
 
 private:
-    const int POPUP_WIDTH  = 25;
-    const int POPUP_HEIGHT = 47;
+    wxBoxSizer *                      m_sizer_body{nullptr};
+    wxBoxSizer *                      m_sizer_my_devices{nullptr};
+    wxBoxSizer *                      m_sizer_other_devices{nullptr};
+    wxScrolledWindow *                m_scrolledWindow{nullptr};
+    wxWindow *                        m_panel_body{nullptr};
+    wxTimer *                         m_refresh_timer{nullptr};
+    MachinePanelHash                  m_list_Machine_panel;
+    boost::thread                     get_print_info_thread;
 
-    wxColour m_bg_colour;
-    wxColour m_hover_colour;
-    wxColour m_bold_colour;
-    wxColour m_thumb_Ccolor;
-
-    ScrolledWindow *m_scrolledWindow{nullptr};
-    wxWindow *      m_border_panel;
-    wxWindow *      m_client_panel;
-
-    wxBoxSizer *                      m_sizer_body;
-    wxBoxSizer *                      m_sizer_main;
-    wxBoxSizer *                      m_sizer_border;
-    wxStaticText *                    m_staticText_select;
-    wxWindow *                        m_block_line;
-    wxTimer *                         m_refresh_timer;
-    std::vector<MachineObjectPanel *> obj_panels;
-    std::vector<MachineObject *>      m_obj_list;
-
-    bool update = false;
-
-    boost::thread get_print_info_thread;
+    std::map<std::string, MachineObject*> m_bind_machine_list; 
+    std::map<std::string, MachineObject*> m_free_machine_list;
 
 private:
     void OnMouse(wxMouseEvent &event);
@@ -174,8 +201,9 @@ private:
     void OnSetFocus(wxFocusEvent &event);
     void OnKillFocus(wxFocusEvent &event);
     void OnButton(wxCommandEvent &event);
-
     void on_timer(wxTimerEvent &event);
+
+	wxWindow* create_title_panel(wxString text);
 
 private:
     wxDECLARE_ABSTRACT_CLASS(SelectMachinePopup);
@@ -192,7 +220,7 @@ private:
     void init_bind();
     void init_timer();
 
-    int  m_print_plate_idx;
+    int m_print_plate_idx;
 
     int         m_bed_last_select{0};
     std::string m_printer_last_select;

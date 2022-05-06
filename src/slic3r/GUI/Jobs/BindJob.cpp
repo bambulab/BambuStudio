@@ -7,6 +7,10 @@
 namespace Slic3r {
 namespace GUI {
 
+wxDEFINE_EVENT(EVT_BIND_UPDATE_MESSAGE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_BIND_MACHINE_SUCCESS, wxCommandEvent);
+wxDEFINE_EVENT(EVT_BIND_MACHINE_FAIL, wxCommandEvent);
+
 wxString get_login_fail_reason(std::string fail_reason)
 {
     if (fail_reason == "NO Regions")
@@ -44,6 +48,16 @@ void BindJob::on_success(std::function<void()> success)
     m_success_fun = success;
 }
 
+void BindJob::update_status(int st, const wxString &msg)
+{ 
+    GUI::Job::update_status(st, msg);
+    //post_event(wxCommandEvent(EVT_BIND_UPDATE_MESSAGE), msg);
+    wxCommandEvent event(EVT_BIND_UPDATE_MESSAGE);
+    event.SetString(msg);
+    event.SetEventObject(m_event_handle);
+    wxPostEvent(m_event_handle, event);
+}
+
 void BindJob::process()
 {
     /* display info */
@@ -62,6 +76,7 @@ void BindJob::process()
     if (it == list.end()) {
         msg = wxString::Format("Can not find Printer SN = %s", m_dev_id);
         update_status(curr_percent, msg);
+        post_event();
         return;
     }
     MachineObject *obj = it->second;
@@ -74,6 +89,7 @@ void BindJob::process()
         BOOST_LOG_TRIVIAL(trace) << "login_bind: local connect failed!";
         msg = wxString::Format("Connecting printer=%s(sn:%s), ip = %s failed!", obj->dev_name, m_dev_id, obj->dev_ip);
         update_status(curr_percent, msg);
+        post_event();
         return;
     }
 
@@ -122,6 +138,7 @@ void BindJob::process()
     if (timeout || login_ticket.empty()) {
         BOOST_LOG_TRIVIAL(trace) << "login_bind: timeout to get ticket";
         update_status(curr_percent, "get ticket failed");
+        post_event();
         obj->local_disconnect();
         return;
     }
@@ -132,6 +149,7 @@ void BindJob::process()
     result = acc->get_ticket(login_ticket, http_code, http_body);
     if (result < 0) {
         update_status(curr_percent, "get ticket api failed");
+        post_event();
         BOOST_LOG_TRIVIAL(trace) << "login_bind: http_code = " << http_code << ", http_body = " << http_body;
         obj->local_disconnect();
         return;
@@ -140,6 +158,7 @@ void BindJob::process()
     result = acc->post_ticket(login_ticket, http_code, http_body);
     if (result < 0) {
         update_status(curr_percent, "post ticket failed");
+        post_event();
         BOOST_LOG_TRIVIAL(trace) << "login_bind: http_code = " << http_code << ", http_body = " << http_body;
         obj->local_disconnect();
         return;
@@ -160,6 +179,8 @@ void BindJob::process()
                 wxString reason = get_login_fail_reason(fail_reason);
                 msg = wxString::Format("Bind Failed, reason = %s", reason);
                 update_status(curr_percent, msg);
+                post_event();
+                
                 BOOST_LOG_TRIVIAL(trace) << "login_bind: bind failed reason = " << fail_reason;
                 obj->local_disconnect();
                 return;
@@ -182,6 +203,10 @@ void BindJob::process()
     obj->local_disconnect();
     curr_percent = 100;
     update_status(curr_percent, "Bind Success!");
+    wxCommandEvent event(EVT_BIND_MACHINE_SUCCESS);
+    event.SetEventObject(m_event_handle);
+    wxPostEvent(m_event_handle, event);
+    //post_event(wxCommandEvent(EVT_BIND_MACHINE_SUCCESS));
 
     return;
 
@@ -192,6 +217,18 @@ void BindJob::finalize()
     if (was_canceled()) return;
 
     Job::finalize();
+}
+
+void BindJob::set_event_handle(wxWindow *hanle) 
+{ 
+    m_event_handle = hanle;
+}
+
+void BindJob::post_event() 
+{
+    wxCommandEvent event(EVT_BIND_MACHINE_FAIL);
+    event.SetEventObject(m_event_handle);
+    wxPostEvent(m_event_handle, event);
 }
 
 }} // namespace Slic3r::GUI

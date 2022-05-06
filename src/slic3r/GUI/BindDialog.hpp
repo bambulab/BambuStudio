@@ -1,7 +1,6 @@
 #ifndef slic3r_BindDialog_hpp_
 #define slic3r_BindDialog_hpp_
 
-
 #include "I18N.hpp"
 
 #include <wx/font.h>
@@ -16,24 +15,30 @@
 #include <wx/image.h>
 #include <wx/icon.h>
 #include <wx/dialog.h>
+#include <curl/curl.h>
 #include "wxExtensions.hpp"
 #include "Plater.hpp"
 #include "Widgets/StepCtrl.hpp"
 #include "Widgets/ProgressDialog.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/ProgressBar.hpp"
+#include "Widgets/RoundedRectangle.hpp"
 #include "Jobs/BindJob.hpp"
 #include "BBLStatusBar.hpp"
+#include "BBLStatusBarBind.hpp"
 
+#define BIND_DIALOG_GREY200 wxColour(248, 248, 248)
+#define BIND_DIALOG_GREY800 wxColour(50, 58, 61)
+#define BIND_DIALOG_GREY900 wxColour(38, 46, 48)
+#define BIND_DIALOG_BUTTON_SIZE wxSize(FromDIP(68), FromDIP(24))
+#define BIND_DIALOG_BUTTON_PANEL_SIZE wxSize(FromDIP(450), FromDIP(30))
 
-namespace Slic3r {
-namespace GUI {
-
-
+namespace Slic3r { namespace GUI {
 class BindDialog : public DPIDialog
 {
 private:
     wxArrayString printer_list_item;
+
 protected:
     wxButton *    btn_start_ssdp;
     wxButton *    btn_stop_ssdp;
@@ -45,7 +50,7 @@ protected:
     wxButton *    btn_unbind;
     Plater *      m_plater{nullptr};
 
-    std::shared_ptr<BindJob> m_bind_job;
+    std::shared_ptr<BindJob>      m_bind_job;
     std::shared_ptr<BBLStatusBar> m_status_bar;
 
     void on_start_ssdp(wxCommandEvent &event);
@@ -62,8 +67,60 @@ public:
     void on_dpi_changed(const wxRect &suggested_rect) override;
 };
 
-} // GUI
-} // Slic3r
+struct MemoryStruct
+{
+    char * memory;
+    size_t read_pos;
+    size_t size;
+};
 
+class BindMachineDilaog : public DPIDialog
+{
+private:
+    StaticBox *   m_panel_left;
+    StaticBox *   m_panel_right;
+    wxStaticText *m_status_text;
+    Button *      m_button_bind;
+    Button *      m_button_cancel;
+    wxSimplebook *m_simplebook;
+    wxStaticBitmap *m_avatar;
 
-#endif  /* slic3r_BindDialog_hpp_ */
+    MachineObject *                   m_machine_info{nullptr};
+    std::shared_ptr<BindJob>          m_bind_job;
+    std::shared_ptr<BBLStatusBarBind> m_status_bar;
+
+public:
+    BindMachineDilaog(Plater *plater = nullptr);
+    ~BindMachineDilaog();
+    wxImage *DownloadImage(std::string image_url);
+    void     on_cancel(wxCommandEvent &event);
+    void     on_bind_fail(wxCommandEvent &event);
+    void     on_update_message(wxCommandEvent &event);
+    void     on_bind_success(wxCommandEvent &event);
+    void     on_bind_printer(wxCommandEvent &event);
+    void     on_dpi_changed(const wxRect &suggested_rect) override;
+    void     update_machine_info(MachineObject *info) { m_machine_info = info; };
+};
+
+class UnBindMachineDilaog : public DPIDialog
+{
+protected:
+    wxStaticText *m_status_text;
+    Button *      m_button_unbind;
+    Button *      m_button_cancel;
+    MachineObject *m_machine_info{nullptr};
+    wxStaticBitmap *m_avatar;
+
+public:
+    UnBindMachineDilaog(Plater *plater = nullptr);
+    ~UnBindMachineDilaog();
+
+    void on_cancel(wxCommandEvent &event);
+    void on_unbind_printer(wxCommandEvent &event);
+    void on_dpi_changed(const wxRect &suggested_rect) override;
+    void update_machine_info(MachineObject *info) { m_machine_info = info; };
+};
+
+}} // namespace Slic3r::GUI
+
+#endif /* slic3r_BindDialog_hpp_ */

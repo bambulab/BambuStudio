@@ -183,7 +183,8 @@ void MsgDialog::apply_style(long style)
     if (style & wxNO)       add_button(wxID_NO, false,_L("No"));
     if (style & wxCANCEL)   add_button(wxID_CANCEL, false, _L("Cancel"));
 
-    logo->SetBitmap( create_scaled_bitmap(style & wxICON_WARNING        ? "obj_warning" :
+    logo->SetBitmap( create_scaled_bitmap(style & wxAPPLY        ? "completed" :
+                                          style & wxICON_WARNING        ? "obj_warning" :
                                           style & wxICON_INFORMATION    ? "info"        :
                                           style & wxICON_QUESTION       ? "question"    : "BambuStudio", this, 64, style & wxICON_ERROR));
 }
