@@ -462,6 +462,7 @@ public:
     /* camera */
     void get_camera_url(std::string const &              device,
                         std::function<void(std::string)> callback);
+    std::string get_tutk_region();
 
     int get_machine_version(std::string dev_id, unsigned &http_code, std::string &http_body);
 
