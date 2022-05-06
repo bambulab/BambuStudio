@@ -431,6 +431,26 @@ void PrintObject::generate_support_material()
     }
 }
 
+void PrintObject::simplify_extrusion_path()
+{
+    if (this->set_started(posSimplifyPath)) {
+        m_print->set_status(89, L("Simplify extrusion path"));
+        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of layers in parallel - start";
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, m_layers.size()),
+            [this](const tbb::blocked_range<size_t>& range) {
+                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+                    m_print->throw_if_canceled();
+                    m_layers[layer_idx]->simplify_extrusion_path();
+                }
+            }
+        );
+        m_print->throw_if_canceled();
+        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of layers in parallel - end";
+        this->set_done(posSimplifyPath);
+    }
+}
+
 std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> PrintObject::prepare_adaptive_infill_data()
 {
     using namespace FillAdaptive;
@@ -745,15 +765,15 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
     
     // propagate to dependent steps
     if (step == posPerimeters) {
-		invalidated |= this->invalidate_steps({ posPrepareInfill, posInfill, posIroning });
+		invalidated |= this->invalidate_steps({ posPrepareInfill, posInfill, posIroning, posSimplifyPath });
         invalidated |= m_print->invalidate_steps({ psSkirtBrim });
     } else if (step == posPrepareInfill) {
-        invalidated |= this->invalidate_steps({ posInfill, posIroning });
+        invalidated |= this->invalidate_steps({ posInfill, posIroning, posSimplifyPath });
     } else if (step == posInfill) {
-        invalidated |= this->invalidate_steps({ posIroning });
+        invalidated |= this->invalidate_steps({ posIroning, posSimplifyPath });
         invalidated |= m_print->invalidate_steps({ psSkirtBrim });
     } else if (step == posSlice) {
-		invalidated |= this->invalidate_steps({ posPerimeters, posPrepareInfill, posInfill, posIroning, posSupportMaterial });
+		invalidated |= this->invalidate_steps({ posPerimeters, posPrepareInfill, posInfill, posIroning, posSupportMaterial, posSimplifyPath });
         invalidated |= m_print->invalidate_steps({ psSkirtBrim });
         m_slicing_params.valid = false;
     } else if (step == posSupportMaterial) {

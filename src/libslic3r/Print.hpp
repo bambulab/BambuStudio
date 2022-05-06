@@ -66,7 +66,7 @@ enum PrintStep {
 
 enum PrintObjectStep {
     posSlice, posPerimeters, posPrepareInfill,
-    posInfill, posIroning, posSupportMaterial, posCount,
+    posInfill, posIroning, posSupportMaterial, posSimplifyPath, posCount,
 };
 
 // A PrintRegion object represents a group of volumes to print
@@ -416,6 +416,7 @@ private:
     void infill();
     void ironing();
     void generate_support_material();
+    void simplify_extrusion_path();
 
     void slice_volumes();
     //BBS

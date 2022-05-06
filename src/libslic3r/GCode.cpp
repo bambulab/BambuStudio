@@ -3025,23 +3025,6 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     //if (is_perimeter(paths.front().role()) && loop.length() <= SMALL_PERIMETER_LENGTH && speed == -1)
     //    speed = m_config.small_perimeter_speed.get_abs_value(m_config.inner_wall_speed);
 
-     //BBS: use tbb to do simplify
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, paths.size()),
-        [this, &paths](const tbb::blocked_range<size_t>& range) {
-            for (size_t i = range.begin(); i < range.end(); ++i) {
-                if (m_config.enable_arc_fitting &&
-                    paths[i].polyline.fitting_result.empty() &&
-                    !m_config.spiral_mode) {
-                    if (paths[i].role() == erInternalInfill)
-                        paths[i].simplify_by_fitting_arc(SCALED_SPARSE_INFILL_RESOLUTION);
-                    else
-                        paths[i].simplify_by_fitting_arc(m_scaled_resolution);
-                } else {
-                    paths[i].simplify(m_scaled_resolution);
-                }
-            }
-        });
-
     // extrude along the path
     std::string gcode;
     for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
@@ -3109,23 +3092,6 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
 {
     // extrude along the path
     std::string gcode;
-    //BBS: use tbb to do simplify
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, multipath.paths.size()),
-        [this, &multipath](const tbb::blocked_range<size_t>& range) {
-            for (size_t i = range.begin(); i < range.end(); ++i) {
-                if (m_config.enable_arc_fitting &&
-                    multipath.paths[i].polyline.fitting_result.empty() &&
-                    !m_config.spiral_mode) {
-                    if (multipath.paths[i].role() == erInternalInfill)
-                        multipath.paths[i].simplify_by_fitting_arc(SCALED_SPARSE_INFILL_RESOLUTION);
-                    else
-                        multipath.paths[i].simplify_by_fitting_arc(m_scaled_resolution);
-                } else {
-                    multipath.paths[i].simplify(m_scaled_resolution);
-                }
-            }
-        });
-
     for (ExtrusionPath path : multipath.paths)
         gcode += this->_extrude(path, description, speed);
 
@@ -3165,18 +3131,6 @@ std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string des
 std::string GCode::extrude_path(ExtrusionPath path, std::string description, double speed)
 {
 //    description += ExtrusionEntity::role_to_string(path.role());
-    //BBS: do arc fitting simplify or common simplify before extrude path
-    // Arc move is not supported in spiral_mode mode.
-    if (m_config.enable_arc_fitting &&
-        path.polyline.fitting_result.empty() &&
-        !m_config.spiral_mode) {
-        if (path.role() == erInternalInfill)
-            path.simplify_by_fitting_arc(SCALED_SPARSE_INFILL_RESOLUTION);
-        else
-            path.simplify_by_fitting_arc(m_scaled_resolution);
-    } else {
-        path.simplify(m_scaled_resolution);
-    }
     std::string gcode = this->_extrude(path, description, speed);
     if (m_wipe.enable) {
         m_wipe.path = std::move(path.polyline);

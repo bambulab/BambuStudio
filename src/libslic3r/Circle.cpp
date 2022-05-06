@@ -197,6 +197,72 @@ Vec3f Circle::calc_tangential_vector(const Vec3f& pos, const Vec3f& center_pos, 
     return res;
 }
 
+bool ArcSegment::reverse()
+{
+    if (!is_valid())
+        return false;
+    std::swap(start_point, end_point);
+    direction = (direction == ArcDirection::Arc_Dir_CCW) ? ArcDirection::Arc_Dir_CW : ArcDirection::Arc_Dir_CCW;
+    angle_radians *= -1.0;
+    std::swap(polar_start_theta, polar_end_theta);
+    return true;
+}
+
+bool ArcSegment::clip_start(const Point &point)
+{
+    if (!is_valid() || point == center || !is_point_inside(point))
+        return false;
+    start_point = get_closest_point(point);
+    update_angle_and_length();
+    return true;
+}
+
+bool ArcSegment::clip_end(const Point &point)
+{
+    if (!is_valid() || point == center || !is_point_inside(point))
+        return false;
+    end_point = get_closest_point(point);
+    update_angle_and_length();
+    return true;
+}
+
+bool ArcSegment::split_at(const Point &point, ArcSegment& p1, ArcSegment& p2)
+{
+    if (!is_valid() || point == center || !is_point_inside(point))
+        return false;
+    Point segment_point = get_closest_point(point);
+    p1 = ArcSegment(center, radius, this->start_point, segment_point, this->direction);
+    p2 = ArcSegment(center, radius, segment_point, this->end_point,  this->direction);
+    return true;
+}
+
+bool ArcSegment::is_point_inside(const Point& point) const
+{
+    double polar_theta = get_polar_radians(point);
+    double radian_delta = polar_theta - polar_start_theta;
+    if (radian_delta > 0 && direction == ArcDirection::Arc_Dir_CW)
+        radian_delta = radian_delta - 2 * M_PI;
+    else if (radian_delta < 0 && direction == ArcDirection::Arc_Dir_CCW)
+        radian_delta = radian_delta + 2 * M_PI;
+
+    return (direction == ArcDirection::Arc_Dir_CCW ?
+            radian_delta > 0.0 && radian_delta < angle_radians :
+            radian_delta < 0.0 && radian_delta > angle_radians);
+}
+
+void ArcSegment::update_angle_and_length()
+{
+    polar_start_theta = get_polar_radians(start_point);
+    polar_end_theta = get_polar_radians(end_point);
+    angle_radians = polar_end_theta - polar_start_theta;
+    if (angle_radians < 0 && direction == ArcDirection::Arc_Dir_CCW)
+        angle_radians = angle_radians + 2 * M_PI;
+    else if (angle_radians > 0 && direction == ArcDirection::Arc_Dir_CW)
+        angle_radians = angle_radians - 2 * M_PI;
+    length = fabs(angle_radians) * radius;
+    is_arc = true;
+}
+
 bool ArcSegment::try_create_arc(
     const Points& points,
     ArcSegment& target_arc,
@@ -291,6 +357,7 @@ bool ArcSegment::try_create_arc(
     if (direction == ArcDirection::Arc_Dir_CW)
         angle_radians *= -1.0;
 
+    target_arc.is_arc = true;
     target_arc.direction = direction;
     target_arc.center = c.center;
     target_arc.radius = c.radius;

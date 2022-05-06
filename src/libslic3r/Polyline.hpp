@@ -19,46 +19,103 @@ typedef std::vector<ThickPolyline> ThickPolylines;
 class Polyline : public MultiPoint {
 public:
     Polyline() {};
-    Polyline(const Polyline &other) : MultiPoint(other.points) {}
-    Polyline(Polyline &&other) : MultiPoint(std::move(other.points)) {}
-    Polyline(std::initializer_list<Point> list) : MultiPoint(list) {}
-    explicit Polyline(const Point &p1, const Point &p2) { points.reserve(2); points.emplace_back(p1); points.emplace_back(p2); }
-    explicit Polyline(const Points &points) : MultiPoint(points) {}
-    explicit Polyline(Points &&points) : MultiPoint(std::move(points)) {}
-    Polyline& operator=(const Polyline &other) { points = other.points; return *this; }
-    Polyline& operator=(Polyline &&other) { points = std::move(other.points); return *this; }
+    Polyline(const Polyline& other) : MultiPoint(other.points), fitting_result(other.fitting_result) {}
+    Polyline(Polyline &&other) : MultiPoint(std::move(other.points)), fitting_result(std::move(other.fitting_result))  {}
+    Polyline(std::initializer_list<Point> list) : MultiPoint(list) { 
+        fitting_result.clear();
+    }
+    explicit Polyline(const Point &p1, const Point &p2) {
+        points.reserve(2);
+        points.emplace_back(p1);
+        points.emplace_back(p2);
+        fitting_result.clear();
+    }
+    explicit Polyline(const Points &points) : MultiPoint(points) {
+        fitting_result.clear();
+    }
+    explicit Polyline(Points &&points) : MultiPoint(std::move(points)) {
+        fitting_result.clear();
+    }
+    Polyline& operator=(const Polyline& other) {
+        points = other.points;
+        fitting_result = other.fitting_result;
+        return *this;
+    }
+    Polyline& operator=(Polyline&& other) {
+        points = std::move(other.points);
+        fitting_result = std::move(other.fitting_result);
+        return *this;
+    }
 	static Polyline new_scale(const std::vector<Vec2d> &points) {
 		Polyline pl;
 		pl.points.reserve(points.size());
 		for (const Vec2d &pt : points)
 			pl.points.emplace_back(Point::new_scale(pt(0), pt(1)));
+        //BBS: new_scale doesn't support arc, so clean
+        pl.fitting_result.clear();
 		return pl;
     }
     
-    void append(const Point &point) { this->points.push_back(point); }
-    void append(const Points &src) { this->append(src.begin(), src.end()); }
-    void append(const Points::const_iterator &begin, const Points::const_iterator &end) { this->points.insert(this->points.end(), begin, end); }
+    void append(const Point &point) {
+        //BBS: don't need to append same point
+        if (!this->empty() && this->last_point() == point)
+            return;
+        MultiPoint::append(point);
+        append_fitting_result_after_append_points();
+    }
+    void append(const Points &src) {
+        //BBS: don't need to append same point
+        if (!this->empty() && !src.empty() && this->last_point() == src[0])
+            this->append(src.begin() + 1, src.end());
+        else
+            this->append(src.begin(), src.end());
+    }
+    void append(const Points::const_iterator &begin, const Points::const_iterator &end) {
+        //BBS: don't need to append same point
+        if (!this->empty() && begin != end && this->last_point() == *begin)
+            MultiPoint::append(begin + 1, end);
+        else
+            MultiPoint::append(begin, end);
+        append_fitting_result_after_append_points();
+    }
     void append(Points &&src)
     {
-        if (this->points.empty()) {
-            this->points = std::move(src);
-        } else {
-            this->points.insert(this->points.end(), src.begin(), src.end());
-            src.clear();
-        }
+        MultiPoint::append(std::move(src));
+        append_fitting_result_after_append_points();
     }
     void append(const Polyline &src) 
-    { 
-        points.insert(points.end(), src.points.begin(), src.points.end());
+    {
+        if (!src.is_valid()) return;
+
+        if (this->points.empty()) {
+            this->points = src.points;
+            this->fitting_result = src.fitting_result;
+        } else {
+            //BBS: append the first point to create connection first, update the fitting date as well
+            this->append(src.points[0]);
+            //BBS: then append the remain points
+            MultiPoint::append(src.points.begin() + 1, src.points.end());
+            //BBS: finally append the fitting data
+            append_fitting_result_after_append_polyline(src);
+        }
     }
 
     void append(Polyline &&src) 
     {
+        if (!src.is_valid()) return;
+
         if (this->points.empty()) {
             this->points = std::move(src.points);
+            this->fitting_result = std::move(src.fitting_result);
         } else {
-            this->points.insert(this->points.end(), src.points.begin(), src.points.end());
+            //BBS: append the first point to create connection first, update the fitting date as well
+            this->append(src.points[0]);
+            //BBS: then append the remain points
+            MultiPoint::append(src.points.begin() + 1, src.points.end());
+            //BBS: finally append the fitting data
+            append_fitting_result_after_append_polyline(src);
             src.points.clear();
+            src.fitting_result.clear();
         }
     }
   
@@ -66,6 +123,8 @@ public:
     const Point& leftmost_point() const;
     Lines lines() const override;
 
+    void clear() { MultiPoint::clear(); this->fitting_result.clear(); }
+    void reverse();
     void clip_end(double distance);
     void clip_start(double distance);
     void extend_end(double distance);
@@ -73,7 +132,9 @@ public:
     Points equally_spaced_points(double distance) const;
     void simplify(double tolerance);
 //    template <class T> void simplify_by_visibility(const T &area);
-    void split_at(const Point &point, Polyline* p1, Polyline* p2) const;
+    void split_at(Point &point, Polyline* p1, Polyline* p2) const;
+    bool split_at_index(const size_t index, Polyline* p1, Polyline* p2) const;
+
     bool is_straight() const;
     bool is_closed() const { return this->points.front() == this->points.back(); }
 
@@ -83,6 +144,13 @@ public:
     void simplify_by_fitting_arc(double tolerance);
     //BBS: 
     Polylines equally_spaced_lines(double distance) const;
+
+private:
+    void append_fitting_result_after_append_points();
+    void append_fitting_result_after_append_polyline(const Polyline& src);
+    void reset_to_linear_move();
+    bool split_fitting_result_before_index(const size_t index, Point &new_endpoint, std::vector<PathFittingData>& data) const;
+    bool split_fitting_result_after_index(const size_t index, Point &new_startpoint, std::vector<PathFittingData>& data) const;
 };
 
 inline bool operator==(const Polyline &lhs, const Polyline &rhs) { return lhs.points == rhs.points; }

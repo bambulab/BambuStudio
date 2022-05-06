@@ -165,15 +165,23 @@ bool ExtrusionLoop::split_at_vertex(const Point &point)
         if (idx != -1) {
             if (this->paths.size() == 1) {
                 // just change the order of points
-                path->polyline.points.insert(path->polyline.points.end(), path->polyline.points.begin() + 1, path->polyline.points.begin() + idx + 1);
-                path->polyline.points.erase(path->polyline.points.begin(), path->polyline.points.begin() + idx);
+                Polyline p1, p2;
+                path->polyline.split_at_index(idx, &p1, &p2);
+                if (p1.is_valid() && p2.is_valid()) {
+                    p2.append(std::move(p1));
+                    std::swap(path->polyline.points, p2.points);
+                    std::swap(path->polyline.fitting_result, p2.fitting_result);
+                }
             } else {
                 // new paths list starts with the second half of current path
                 ExtrusionPaths new_paths;
+                Polyline p1, p2;
+                path->polyline.split_at_index(idx, &p1, &p2);
                 new_paths.reserve(this->paths.size() + 1);
                 {
                     ExtrusionPath p = *path;
-                    p.polyline.points.erase(p.polyline.points.begin(), p.polyline.points.begin() + idx);
+                    std::swap(p.polyline.points, p2.points);
+                    std::swap(p.polyline.fitting_result, p2.fitting_result);
                     if (p.polyline.is_valid()) new_paths.push_back(p);
                 }
             
@@ -186,7 +194,8 @@ bool ExtrusionLoop::split_at_vertex(const Point &point)
                 // finally we add the first half of current path
                 {
                     ExtrusionPath p = *path;
-                    p.polyline.points.erase(p.polyline.points.begin() + idx + 1, p.polyline.points.end());
+                    std::swap(p.polyline.points, p1.points);
+                    std::swap(p.polyline.fitting_result, p1.fitting_result);
                     if (p.polyline.is_valid()) new_paths.push_back(p);
                 }
                 // we can now override the old path list with the new one and stop looping
@@ -246,13 +255,18 @@ void ExtrusionLoop::split_at(const Point &point, bool prefer_non_overhang)
     path.polyline.split_at(p, &p1.polyline, &p2.polyline);
     
     if (this->paths.size() == 1) {
-        if (! p1.polyline.is_valid())
+        if (!p1.polyline.is_valid()) {
             std::swap(this->paths.front().polyline.points, p2.polyline.points);
-        else if (! p2.polyline.is_valid())
+            std::swap(this->paths.front().polyline.fitting_result, p2.polyline.fitting_result);
+        }
+        else if (!p2.polyline.is_valid()) {
             std::swap(this->paths.front().polyline.points, p1.polyline.points);
+            std::swap(this->paths.front().polyline.fitting_result, p1.polyline.fitting_result);
+        }
         else {
-            p2.polyline.points.insert(p2.polyline.points.end(), p1.polyline.points.begin() + 1, p1.polyline.points.end());
+            p2.polyline.append(std::move(p1.polyline));
             std::swap(this->paths.front().polyline.points, p2.polyline.points);
+            std::swap(this->paths.front().polyline.fitting_result, p2.polyline.fitting_result);
         }
     } else {
         // install the two paths

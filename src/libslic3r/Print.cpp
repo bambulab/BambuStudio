@@ -199,6 +199,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);
             steps.emplace_back(psSkirtBrim);
+            osteps.emplace_back(posSimplifyPath);
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             //FIXME invalidate all steps of all objects as well?
@@ -1239,6 +1240,9 @@ void Print::process()
         this->finalize_first_layer_convex_hull();
         this->set_done(psSkirtBrim);
     }
+    //BBS
+    for (PrintObject *obj : m_objects)
+        obj->simplify_extrusion_path();
 
     BOOST_LOG_TRIVIAL(info) << "Slicing process finished." << log_memory_info();
 }

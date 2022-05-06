@@ -23,6 +23,19 @@ struct PathFittingData{
     // BBS: only valid when path_type is arc move
     // Used to store detail information of arc segment
     ArcSegment arc_data;
+
+    bool is_linear_move() {
+        return (path_type == EMovePathType::Linear_move);
+    }
+    bool is_arc_move() {
+        return (path_type == EMovePathType::Arc_move_ccw || path_type == EMovePathType::Arc_move_cw);
+    }
+    bool reverse_arc_path() {
+        if (!is_arc_move() || !arc_data.reverse())
+            return false;
+        path_type = (arc_data.direction == ArcDirection::Arc_Dir_CCW) ? EMovePathType::Arc_move_ccw : EMovePathType::Arc_move_cw;
+        return true;
+    }
 };
 
 class ArcFitter {

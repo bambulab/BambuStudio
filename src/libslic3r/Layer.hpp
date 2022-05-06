@@ -85,6 +85,13 @@ public:
 
     // Is there any valid extrusion assigned to this LayerRegion?
     bool    has_extrusions() const { return ! this->perimeters.entities.empty() || ! this->fills.entities.empty(); }
+    //BBS
+    void    simplify_extrusion_entity();
+private:
+    void    simplify_entity_collection(ExtrusionEntityCollection* entity_collection);
+    void    simplify_path(ExtrusionPath* path);
+    void    simplify_multi_path(ExtrusionMultiPath* multipath);
+    void    simplify_loop(ExtrusionLoop* loop);
 
 protected:
     friend class Layer;
@@ -168,6 +175,9 @@ public:
 
     // Is there any valid extrusion assigned to this LayerRegion?
     virtual bool            has_extrusions() const { for (auto layerm : m_regions) if (layerm->has_extrusions()) return true; return false; }
+
+    //BBS
+    void simplify_extrusion_path() { for (auto layerm : m_regions) layerm->simplify_extrusion_entity();}
 
 protected:
     friend class PrintObject;

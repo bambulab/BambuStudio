@@ -21,6 +21,11 @@ public:
     Point center;
     double radius;
 
+    Point get_closest_point(const Point& input) {
+        Vec2d v = (input - center).cast<double>().normalized();
+        return (center + (v * radius).cast<coord_t>());
+    }
+
     static bool try_create_circle(const Point &p1, const Point &p2, const Point &p3, const double max_radius, Circle& new_circle);
     static bool try_create_circle(const Points& points, const double max_radius, const double tolerance, Circle& new_circle);
     double get_polar_radians(const Point& p1) const;
@@ -62,18 +67,43 @@ enum class ArcDirection : unsigned char {
 
 class ArcSegment: public Circle {
 public:
-    ArcSegment(): Circle() {};
+    ArcSegment(): Circle() {}
+    ArcSegment(Point center, double radius, Point start, Point end, ArcDirection dir) :
+        Circle(center, radius),
+        start_point(start),
+        end_point(end),
+        direction(dir) {
+        if (radius == 0.0 ||
+            start_point == center ||
+            end_point == center ||
+            start_point == end_point) {
+            is_arc = false;
+            return;
+        }
+        update_angle_and_length();
+        is_arc = true;
+    }
 
     bool is_arc = false;
     double length = 0;
     double angle_radians = 0;
     double polar_start_theta = 0;
     double polar_end_theta = 0;
-    double max_deviation = 0;
     Point start_point { Point(0,0) };
     Point end_point{ Point(0,0) };
-    ArcDirection direction = ArcDirection:: Arc_Dir_unknow;
+    ArcDirection direction = ArcDirection::Arc_Dir_unknow;
 
+    bool is_valid() const { return is_arc; }
+    bool clip_start(const Point& point);
+    bool clip_end(const Point& point);
+    bool reverse();
+    bool split_at(const Point& point, ArcSegment& p1, ArcSegment& p2);
+    bool is_point_inside(const Point& point) const;
+
+private:
+    void update_angle_and_length();
+
+public:
     static bool try_create_arc(
         const Points &points,
         ArcSegment& target_arc,

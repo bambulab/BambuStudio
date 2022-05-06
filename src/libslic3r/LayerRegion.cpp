@@ -495,5 +495,86 @@ void LayerRegion::export_region_fill_surfaces_to_svg_debug(const char *name) con
     this->export_region_fill_surfaces_to_svg(debug_out_path("LayerRegion-fill_surfaces-%s-%d.svg", name, idx ++).c_str());
 }
 
+//BBS
+void LayerRegion::simplify_extrusion_entity()
+{
+    simplify_entity_collection(&perimeters);
+    simplify_entity_collection(&fills);
+}
+
+void LayerRegion::simplify_entity_collection(ExtrusionEntityCollection* entity_collection)
+{
+    for (size_t i = 0; i < entity_collection->entities.size(); i++) {
+        if (ExtrusionEntityCollection* collection = dynamic_cast<ExtrusionEntityCollection*>(entity_collection->entities[i]))
+            this->simplify_entity_collection(collection);
+        else if (ExtrusionPath* path = dynamic_cast<ExtrusionPath*>(entity_collection->entities[i]))
+            this->simplify_path(path);
+        else if (ExtrusionMultiPath* multipath = dynamic_cast<ExtrusionMultiPath*>(entity_collection->entities[i]))
+            this->simplify_multi_path(multipath);
+        else if (ExtrusionLoop* loop = dynamic_cast<ExtrusionLoop*>(entity_collection->entities[i]))
+            this->simplify_loop(loop);
+        else
+            throw Slic3r::InvalidArgument("Invalid extrusion entity supplied to simplify_entity_collection()");
+    }
+}
+
+void LayerRegion::simplify_path(ExtrusionPath* path)
+{
+    const auto print_config = this->layer()->object()->print()->config();
+    const bool spiral_mode = print_config.spiral_mode;
+    const bool enable_arc_fitting = print_config.enable_arc_fitting;
+    const auto scaled_resolution = scaled<double>(print_config.resolution.value);
+
+    if (enable_arc_fitting &&
+        !spiral_mode) {
+        if (path->role() == erInternalInfill)
+            path->simplify_by_fitting_arc(SCALED_SPARSE_INFILL_RESOLUTION);
+        else
+            path->simplify_by_fitting_arc(scaled_resolution);
+    } else {
+        path->simplify(scaled_resolution);
+    }
+}
+
+void LayerRegion::simplify_multi_path(ExtrusionMultiPath* multipath)
+{
+    const auto print_config = this->layer()->object()->print()->config();
+    const bool spiral_mode = print_config.spiral_mode;
+    const bool enable_arc_fitting = print_config.enable_arc_fitting;
+    const auto scaled_resolution = scaled<double>(print_config.resolution.value);
+
+    for (size_t i = 0; i < multipath->paths.size(); ++i) {
+        if (enable_arc_fitting &&
+            !spiral_mode) {
+            if (multipath->paths[i].role() == erInternalInfill)
+                multipath->paths[i].simplify_by_fitting_arc(SCALED_SPARSE_INFILL_RESOLUTION);
+            else
+                multipath->paths[i].simplify_by_fitting_arc(scaled_resolution);
+        } else {
+            multipath->paths[i].simplify(scaled_resolution);
+        }
+    }
+}
+
+void LayerRegion::simplify_loop(ExtrusionLoop* loop)
+{
+    const auto print_config = this->layer()->object()->print()->config();
+    const bool spiral_mode = print_config.spiral_mode;
+    const bool enable_arc_fitting = print_config.enable_arc_fitting;
+    const auto scaled_resolution = scaled<double>(print_config.resolution.value);
+
+    for (size_t i = 0; i < loop->paths.size(); ++i) {
+        if (enable_arc_fitting &&
+            !spiral_mode) {
+            if (loop->paths[i].role() == erInternalInfill)
+                loop->paths[i].simplify_by_fitting_arc(SCALED_SPARSE_INFILL_RESOLUTION);
+            else
+                loop->paths[i].simplify_by_fitting_arc(scaled_resolution);
+        } else {
+            loop->paths[i].simplify(scaled_resolution);
+        }
+    }
+}
+
 }
  
