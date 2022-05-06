@@ -2145,11 +2145,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                     }
                 }
 
-                // remove holes since they are impossible to be printed
-                for (auto& area : base_areas)
-                    area.holes.clear();                
-                for(auto& area: floor_areas)
-                    area.holes.clear();
+
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
                 draw_contours_and_nodes_to_svg(layer_nr, base_areas, roof_areas, roof_1st_layer, {}, {}, "circles", { "base","roof","roof1st" });
 #endif
