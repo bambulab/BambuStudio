@@ -41,7 +41,7 @@ var LangText={
 		"t39":"Confirm",
 		"t40":"Network disconnect, please check and try again later.",
 		"t47":"Please select your login region",
-		"t48":"United States",
+		"t48":"North America/Europe/Asia-Pacific",
 		"t49":"China",
 		"t50":"log out",
 		"t52":"Skip",
@@ -51,7 +51,10 @@ var LangText={
 		"t56":".We will not collect any private data such as names, addresses, payment information, or phone numbers. By enabling this service, you agree to these terms and the Statement about ",
 		"t57":"User Experience Improvement Program",
 		"t58":"and",
-		"t59":"."
+		"t59":".",
+		"t60":"Europe",
+		"t61":"North America",
+		"t62":"Others"
 	},
 	"zh_CN":{
 		"t1":"欢迎使用Bambu Studio",
@@ -95,7 +98,7 @@ var LangText={
 		"t39":"确定",
 		"t40":"网络不通，请检查并稍后重试。",
 		"t47":"请选择登录区域",
-		"t48":"美国",
+		"t48":"亚太",
 		"t49":"中国",
 		"t50":"退出登录",
 		"t52":"忽略",
@@ -105,7 +108,10 @@ var LangText={
 		"t56":"。我们不会搜集你的个人隐私数据，包括姓名、地址、银行账号、电话号码。启用此服务即表示您同意这些条款和声明：",
 		"t57":"用户体验改善计划",
 		"t58":"和",
-		"t59":"。"
+		"t59":"。",
+		"t60":"欧洲",
+		"t61":"北美",
+		"t62":"其他"	
 	}
 };
 

@@ -57,9 +57,15 @@ unsigned char lzo_out[LZO_OUT_MAX_LEN];
 
 std::string RegionServer::convert_region_to_contry_code(std::string region)
 {
-    if (region == "CHN")
+    if (region == "CHN" || region == "China")
         return "CN";
     else if (region == "USA")
+        return "US";
+    else if (region == "Asia-Pacific")
+        return "Others";
+    else if (region == "Europe")
+        return "US";
+    else if (region == "North America")
         return "US";
     else
         return "Others";

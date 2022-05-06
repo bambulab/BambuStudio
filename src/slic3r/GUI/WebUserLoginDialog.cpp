@@ -125,7 +125,7 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
     // wxLogMessage("User Agent: %s", m_browser->GetUserAgent());
 
     // Set a more sensible size for web browsing
-    SetSize(FromDIP(wxSize(1280, 800)));
+    SetSize(FromDIP(wxSize(630, 820)));
 
     // Connect the webview events
     Bind(wxEVT_WEBVIEW_NAVIGATING, &ZUserLogin::OnNavigationRequest, this, m_browser->GetId());
