@@ -431,6 +431,9 @@ private:
     void _generate_support_material();
     std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> prepare_adaptive_infill_data();
 
+    // BBS
+    bool is_support_necessary();
+
     // XYZ in scaled coordinates
     Vec3crd									m_size;
     PrintObjectConfig                       m_config;
@@ -452,7 +455,6 @@ private:
     // BBS
     TreeSupportLayerPtrs                    m_tree_support_layers;
     TreeSupportData                         * m_tree_support_preview_cache;
-    TreeSupport                             *m_tree_support;
 
     // this is set to true when LayerRegion->slices is split in top/internal/bottom
     // so that next call to make_perimeters() performs a union() before computing loops

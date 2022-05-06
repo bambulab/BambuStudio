@@ -404,20 +404,17 @@ void PrintObject::generate_support_material()
         this->clear_support_layers();
         this->clear_tree_support_layers();
 
-        m_tree_support = new TreeSupport(*this, m_slicing_params);
-        m_tree_support->detect_object_overhangs();
-
         if ((this->has_support() && m_layers.size() > 1) || (this->has_raft() && ! m_layers.empty())) {
             m_print->set_status(85, L("Generating support"));    
+
             this->_generate_support_material();
             m_print->throw_if_canceled();
         } else {
             // BBS: pop a warning if objects have significant amount of overhangs but support material is not enabled
-            if (m_tree_support->max_overhang_area > SQ(scale_(20)) || m_tree_support->has_sharp_tail)
+            if (this->is_support_necessary())
                 this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
                     "It seems model " + this->model_object()->name + " needs support to print! Please enable support material.");
                 //+ " max_overhang_area="+ std::to_string(m_tree_support->max_overhang_area*SQ(SCALING_FACTOR))+", has_sharp_tail="+std::to_string(m_tree_support->has_sharp_tail));
-            this->clear_tree_support_layers();
 #if 0
             // Printing without supports. Empty layer means some objects or object parts are levitating,
             // therefore they cannot be printed without supports.
@@ -426,7 +423,7 @@ void PrintObject::generate_support_material()
                     throw Slic3r::SlicingError("Levitating objects cannot be printed without supports.");
 #endif
         }
-        delete m_tree_support;
+
         this->set_done(posSupportMaterial);
     }
 }
@@ -2219,7 +2216,168 @@ void PrintObject::_generate_support_material()
     PrintObjectSupportMaterial support_material(this, m_slicing_params);
     support_material.generate(*this);
 
-    m_tree_support->generate_support_areas();
+    TreeSupport tree_support(*this, m_slicing_params);
+    tree_support.generate_support_areas();
+}
+
+// BBS
+#define SUPPORT_SURFACES_OFFSET_PARAMETERS ClipperLib::jtSquare, 0.
+#define SUPPORT_MATERIAL_MARGIN 1.2
+
+static void remove_bridges_from_contacts(
+    const PrintConfig& print_config,
+    const Layer& lower_layer,
+    const Polygons& lower_layer_polygons,
+    const LayerRegion& layerm,
+    float                fw,
+    Polygons& contact_polygons)
+{
+    // compute the area of bridging perimeters
+    Polygons bridges;
+    Polygons perimeter_expanded;
+    {
+        // Surface supporting this layer, expanded by 0.5 * nozzle_diameter, as we consider this kind of overhang to be sufficiently supported.
+        Polygons lower_grown_slices = expand(lower_layer_polygons,
+            0.5f * float(scale_(print_config.nozzle_diameter.get_at(layerm.region().config().wall_filament - 1))),
+            SUPPORT_SURFACES_OFFSET_PARAMETERS);
+
+        Polylines overhang_perimeters = diff_pl(layerm.perimeters.as_polylines(), lower_grown_slices);
+        Flow perimeter_bridge_flow = layerm.bridging_flow(frPerimeter);
+        const float w = float(0.5 * std::max(perimeter_bridge_flow.scaled_width(), perimeter_bridge_flow.scaled_spacing())) + scaled<float>(0.001);
+        for (Polyline& polyline : overhang_perimeters)
+            if (polyline.is_straight()) {
+                // This is a bridge
+                polyline.extend_start(fw);
+                polyline.extend_end(fw);
+                // Is the straight perimeter segment supported at both sides?
+                Point pts[2] = { polyline.first_point(), polyline.last_point() };
+                bool  supported[2] = { false, false };
+                for (size_t i = 0; i < lower_layer.lslices.size() && !(supported[0] && supported[1]); ++i)
+                    for (int j = 0; j < 2; ++j)
+                        if (!supported[j] && lower_layer.lslices_bboxes[i].contains(pts[j]) && lower_layer.lslices[i].contains(pts[j]))
+                            supported[j] = true;
+                if (supported[0] && supported[1])
+                    // Offset a polyline into a thick line.
+                    polygons_append(bridges, offset(polyline, w));
+            }
+        bridges = union_(bridges);
+        perimeter_expanded = offset(overhang_perimeters, w);
+    }
+
+    
+    for (const Surface& surface : layerm.fill_surfaces.surfaces) {
+        if (surface.surface_type == stBottomBridge && surface.bridge_angle != -1) {
+            ExPolygons bridge_fill_offseted = offset_ex(surface.expolygon, fw * 0.3);
+            // case 1. inner bridge infill does not has peremeter around it
+            if (intersection_ex(perimeter_expanded, bridges).empty()) {
+                polygons_append(bridges, surface.expolygon);
+                continue;
+            }
+            
+            // case 2. FIXME: normal bridge infill should has at leat one bridge perimeter around it
+            if (!intersection_ex(bridge_fill_offseted, bridges).empty())
+                polygons_append(bridges, surface.expolygon);
+        }
+    }
+
+#if 0
+    {
+        std::string filename = get_svg_filename(layerm.layer()->id());
+        SVG svg(filename, layerm.layer()->object()->bounding_box());
+        svg.draw(contact_polygons, "red");
+        svg.draw(bridges, "blue");
+    }
+#endif
+
+    contact_polygons = diff(contact_polygons, bridges, ApplySafetyOffset::Yes);
+}
+
+bool PrintObject::is_support_necessary()
+{
+    static const double super_overhang_area_threshold = SQ(scale_(5.0));
+
+    double threshold_rad = (m_config.support_threshold_angle.value < EPSILON ? 30 : m_config.support_threshold_angle.value + 1) * M_PI / 180.;
+    int enforce_support_layers = m_config.enforce_support_layers;
+    const coordf_t extrusion_width = m_config.line_width.value;
+    const coordf_t extrusion_width_scaled = scale_(extrusion_width);
+
+    for (size_t layer_nr = enforce_support_layers + 1; layer_nr < this->layer_count(); layer_nr++) {
+        Layer* layer = m_layers[layer_nr];
+        Layer* lower_layer = layer->lower_layer;
+
+        coordf_t support_offset_scaled = extrusion_width_scaled * 0.9;
+        ExPolygons lower_layer_offseted = offset_ex(lower_layer->lslices, support_offset_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
+
+        // 1. check sharp tail
+        for (const LayerRegion* layerm : layer->regions()) {
+            for (const ExPolygon& expoly : layerm->raw_slices) {
+                // detect sharp tail
+                if (intersection_ex({ expoly }, lower_layer_offseted).empty())
+                    return true;
+            }
+        }
+
+        // 2. check overhang area
+        ExPolygons super_overhang_expolys = std::move(diff_ex(layer->lslices, lower_layer_offseted));
+        super_overhang_expolys.erase(std::remove_if(
+            super_overhang_expolys.begin(),
+            super_overhang_expolys.end(),
+            [extrusion_width_scaled](ExPolygon& area) {
+                return offset_ex(area, -0.1 * extrusion_width_scaled).empty();
+            }),
+            super_overhang_expolys.end());
+
+        Polygons super_overhang_polys = to_polygons(super_overhang_expolys);
+        // remove bridge
+        if (!super_overhang_polys.empty()) {
+            for (const LayerRegion* layerm : layer->regions()) {
+                float fw = float(layerm->flow(frExternalPerimeter).scaled_width());
+                remove_bridges_from_contacts(m_print->config(), *lower_layer, to_polygons(lower_layer->lslices), *layerm, fw, super_overhang_polys);
+                super_overhang_polys = union_(super_overhang_polys);
+            }
+        }
+
+        super_overhang_polys.erase(std::remove_if(
+            super_overhang_polys.begin(),
+            super_overhang_polys.end(),
+            [extrusion_width_scaled](Polygon& area) {
+                return offset_ex(area, -0.1 * extrusion_width_scaled).empty();
+            }),
+            super_overhang_polys.end());
+
+        double super_overhang_area = 0.0;
+        for (Polygon& poly : super_overhang_polys) {
+            bool is_ccw = poly.is_counter_clockwise();
+            if (is_ccw) {
+                if (super_overhang_area > super_overhang_area_threshold)
+                    return true;
+                super_overhang_area = poly.area();
+            }
+            else {
+                super_overhang_area -= poly.area();
+            }
+        }
+
+        if (super_overhang_area > super_overhang_area_threshold)
+            return true;
+
+        // 3. check overhang distance
+        const double distance_threshold_scaled = extrusion_width_scaled * 2;
+        ExPolygons lower_layer_offseted_2 = offset_ex(lower_layer->lslices, distance_threshold_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
+        ExPolygons exceed_overhang = std::move(diff_ex(super_overhang_polys, lower_layer_offseted_2));
+        exceed_overhang.erase(std::remove_if(
+            exceed_overhang.begin(),
+            exceed_overhang.end(),
+            [extrusion_width_scaled](ExPolygon& area) {
+                // tolerance for 1 extrusion width offset
+                return offset_ex(area, -0.5 * extrusion_width_scaled).empty();
+            }),
+            exceed_overhang.end());
+        if (!exceed_overhang.empty())
+            return true;
+    }
+
+    return false;
 }
 
 static void project_triangles_to_slabs(ConstLayerPtrsAdaptor layers, const indexed_triangle_set &custom_facets, const Transform3f &tr, bool seam, std::vector<Polygons> &out)
