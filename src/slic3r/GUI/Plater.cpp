@@ -7908,8 +7908,8 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     const std::string path_u8 = into_u8(path);
     wxBusyCursor wait;
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": path=%1%, backup=%2%, export_plate_idx=%3%")
-        %output_path.string()%(strategy & SaveStrategy::Backup)%export_plate_idx;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": path=%1%, backup=%2%, export_plate_idx=%3%, SaveStrategy=%4%")
+        %output_path.string()%(strategy & SaveStrategy::Backup)%export_plate_idx %(unsigned int)strategy;
 
     //BBS: add plate logic for thumbnail generate
     std::vector<ThumbnailData*> thumbnails;
@@ -9380,7 +9380,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                     Polygons polygons;
                     std::vector<std::pair<Polygon, float>> height_polygons;
                     StringObjectException err = p->background_process.validate(&warning, &polygons, &height_polygons);
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": validate err=%1%, warning=%2%")%err.string%warning.string;
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": validate err=%1%, warning=%2%, model_fits %3%")%err.string%warning.string %model_fits;
 
                     if (err.string.empty()) {
                         p->notification_manager->set_all_slicing_errors_gray(true);
@@ -9437,10 +9437,12 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                 if (model_fits && part_plate->has_printable_instances())
                 {
                     //p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, true));
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": will set can_slice to true");
                     p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, true);
                 }
                 else
                 {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": will set can_slice to false, has_printable_instances %1%")%part_plate->has_printable_instances();
                     //p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
                     p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
                 }

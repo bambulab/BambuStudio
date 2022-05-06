@@ -919,6 +919,7 @@ void GUI_App::post_init()
         throw Slic3r::RuntimeError("Calling post_init() while not yet initialized");
 
 #if BBL_HAS_FIRST_PAGE
+    BOOST_LOG_TRIVIAL(info) << "begin load_gl_resources";
     mainframe->Freeze();
     plater_->canvas3D()->enable_render(false);
     mainframe->select_tab(size_t(MainFrame::tp3DEditor));
@@ -926,15 +927,22 @@ void GUI_App::post_init()
     //BBS init the opengl resource here
     Size canvas_size = plater_->canvas3D()->get_canvas_size();
     wxGetApp().imgui()->set_display_size(static_cast<float>(canvas_size.get_width()), static_cast<float>(canvas_size.get_height()));
+    BOOST_LOG_TRIVIAL(info) << "start to init opengl";
     wxGetApp().init_opengl();
+    BOOST_LOG_TRIVIAL(info) << "finished init opengl";
     plater_->canvas3D()->init();
+    BOOST_LOG_TRIVIAL(info) << "finished init canvas3D";
     wxGetApp().imgui()->new_frame();
+    BOOST_LOG_TRIVIAL(info) << "finished init imgui frame";
     plater_->canvas3D()->enable_render(true);
-    plater_->canvas3D()->render();
+    BOOST_LOG_TRIVIAL(info) << "start to render a first frame for test";
+    plater_->canvas3D()->render(false);
+    BOOST_LOG_TRIVIAL(info) << "finished rendering a first frame for test";
     if (is_editor())
         mainframe->select_tab(size_t(0));
     mainframe->Thaw();
     plater_->trigger_restore_project(1);
+    BOOST_LOG_TRIVIAL(info) << "end load_gl_resources";
 #endif
 
     //BBS: remove GCodeViewer as seperate APP logic
@@ -942,7 +950,7 @@ void GUI_App::post_init()
         if (! this->init_params->input_files.empty())
             this->plater()->load_gcode(wxString::FromUTF8(this->init_params->input_files[0].c_str()));
     }
-    else*/
+    else
     {
         if (! this->init_params->preset_substitutions.empty())
             show_substitutions_info(this->init_params->preset_substitutions);
@@ -973,7 +981,7 @@ void GUI_App::post_init()
         }
         if (! this->init_params->extra_config.empty())
             this->mainframe->load_config(this->init_params->extra_config);
-    }
+    }*/
 
     // BBS: to be checked
 #if SUPPORT_SHOW_HINTS
@@ -987,7 +995,9 @@ void GUI_App::post_init()
     // This is ugly but I honestly found no better way to do it.
     // Neither wxShowEvent nor wxWindowCreateEvent work reliably.
     if (this->preset_updater) { // G-Code Viewer does not initialize preset_updater.
+        BOOST_LOG_TRIVIAL(info) << "before check_updates";
         this->check_updates(false);
+        BOOST_LOG_TRIVIAL(info) << "after check_updates";
         CallAfter([this] {
             bool cw_showed = this->config_wizard_startup();
 
@@ -1011,6 +1021,7 @@ void GUI_App::post_init()
         });
     }
 
+    BOOST_LOG_TRIVIAL(info) << "finished post_init";
 //BBS: remove the single instance currently
 /*#ifdef _WIN32
     // Sets window property to mainframe so other instances can indentify it.
@@ -1342,6 +1353,7 @@ bool GUI_App::on_init_inner()
                 splashscreen_pos = metrics->get_rect().GetPosition();
         }
 
+        BOOST_LOG_TRIVIAL(info) << "begin to show the splash screen...";
         //BBS use BBL splashScreen
         scrn = new BBLSplashScreen(bmp, wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 10000, splashscreen_pos);
 #ifndef __linux__
@@ -1350,6 +1362,7 @@ bool GUI_App::on_init_inner()
         scrn->SetText(_L("Loading configuration")+ dots);
     }
 
+    BOOST_LOG_TRIVIAL(info) << "loading systen presets...";
     preset_bundle = new PresetBundle();
 
     // just checking for existence of Slic3r::data_dir is not enough : it may be an empty directory
@@ -1427,6 +1440,7 @@ bool GUI_App::on_init_inner()
         }
     //}
     //BBS loading user preset
+    BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
     scrn->SetText(_L("Loading user presets..."));
     int loaded_preset_result = -1;
     if (m_account_manager->is_user_login()) {
@@ -1437,6 +1451,7 @@ bool GUI_App::on_init_inner()
             }
         );
     }
+    BOOST_LOG_TRIVIAL(info) << "start_sync_service...";
     //BBS
     start_sync_service();
 
@@ -1450,6 +1465,7 @@ bool GUI_App::on_init_inner()
     // Let the libslic3r know the callback, which will translate messages on demand.
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
 
+    BOOST_LOG_TRIVIAL(info) << "create the main window";
     mainframe = new MainFrame();
     // hide settings tabs after first Layout
     if (is_editor()) {
@@ -1481,6 +1497,7 @@ bool GUI_App::on_init_inner()
     // BBS:
     mainframe->topbar()->SaveNormalRect();
     mainframe->Show(true);
+    BOOST_LOG_TRIVIAL(info) << "main frame firstly shown";
 
 #if BBL_HAS_FIRST_PAGE
     //BBS: set tp3DEditor firstly
@@ -1542,6 +1559,7 @@ bool GUI_App::on_init_inner()
 
     flush_logs();
 
+    BOOST_LOG_TRIVIAL(info) << "finished the gui app init";
     //BBS: delete splash screen
     delete scrn;
     return true;
@@ -3518,7 +3536,9 @@ void GUI_App::window_pos_center(wxTopLevelWindow *window)
 bool GUI_App::config_wizard_startup()
 {
     if (!m_app_conf_exists || preset_bundle->printers.only_default_printers()) {
+        BOOST_LOG_TRIVIAL(info) << "run wizard...";
         run_wizard(ConfigWizard::RR_DATA_EMPTY);
+        BOOST_LOG_TRIVIAL(info) << "finished run wizard";
         return true;
     } /*else if (get_app_config()->legacy_datadir()) {
         // Looks like user has legacy pre-vendorbundle data directory,

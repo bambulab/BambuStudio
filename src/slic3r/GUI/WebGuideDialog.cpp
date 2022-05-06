@@ -36,7 +36,7 @@ GuideFrame::GuideFrame(GUI_App *pGUI)
 	m_appconfig_new()
 {
     std::string strFinish = wxGetApp().app_config->get("firstguide", "finish");
-    if (strFinish == "true") 
+    if (strFinish == "true")
         SetWindowStyleFlag(wxCAPTION | wxCLOSE_BOX | wxSYSTEM_MENU);
 
     // INI
@@ -747,8 +747,10 @@ bool GuideFrame::run()
     //p->set_run_reason(reason);
     //p->set_start_page(start_page);
 
+    BOOST_LOG_TRIVIAL(info) << "GuideFrame before ShowModal";
     if (this->ShowModal() == wxID_OK) {
         bool apply_keeped_changes = false;
+        BOOST_LOG_TRIVIAL(info) << "GuideFrame returned ok";
         if (! this->apply_config(app.app_config, app.preset_bundle, app.preset_updater, apply_keeped_changes))
             return false;
 
@@ -791,16 +793,16 @@ int GuideFrame::GetFilamentInfo(std::string filepath, std::string &sVendor, std:
         json jLocal = json::parse(contents);
 
         if (sVendor == "") {
-            if (jLocal.contains("filament_vendor")) 
+            if (jLocal.contains("filament_vendor"))
                 sVendor = jLocal["filament_vendor"][0];
         }
 
         if (sType == "") {
-            if (jLocal.contains("filament_type")) 
+            if (jLocal.contains("filament_type"))
                 sType = jLocal["filament_type"][0];
         }
 
-        if (sVendor == "" || sType == "") 
+        if (sVendor == "" || sType == "")
         {
             if (jLocal.contains("inherits")) {
                 boost::filesystem::path sf(filepath.c_str());
@@ -827,7 +829,7 @@ int GuideFrame::GetFilamentInfo(std::string filepath, std::string &sVendor, std:
                     sVendor = "Generic";
                     return 0;
             }
-        } 
+        }
         else
             return 0;
     }
@@ -1158,7 +1160,7 @@ void GuideFrame::StrReplace(std::string &strBase, std::string strSrc, std::strin
         strBase.replace(pos, srcLen, strDes);
         pos = strBase.find(strSrc, (pos + desLen));
     }
-}  
+}
 
 std::string GuideFrame::w2s(wxString sSrc)
 {
@@ -1166,8 +1168,8 @@ std::string GuideFrame::w2s(wxString sSrc)
 }
 
 void GuideFrame::GetStardardFilePath(std::string &FilePath) {
-    StrReplace(FilePath, "\\", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator))); 
-    StrReplace(FilePath, "\/", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator))); 
+    StrReplace(FilePath, "\\", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
+    StrReplace(FilePath, "\/", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
 }
 
 bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)

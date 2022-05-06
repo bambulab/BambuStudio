@@ -3834,7 +3834,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool cb_cancel = false;
 
         //BBS progress point
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_OPEN_3MF\n");
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(",before open zip writer, m_skip_static %1%, m_save_gcode %2%\n")%m_skip_static %m_save_gcode;
         if (proFn) {
             proFn(EXPORT_STAGE_OPEN_3MF, 0, 1, cb_cancel);
             if (cb_cancel)
@@ -3859,7 +3859,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         } lock{ archive, &filename};
 
         //BBS progress point
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_CONTENT_TYPES\n");
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", before add _add_content_types_file_to_archive\n");
         if (proFn) {
             proFn(EXPORT_STAGE_CONTENT_TYPES, 0, 1, cb_cancel);
             if (cb_cancel)
@@ -3873,7 +3873,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
 
         //BBS progress point
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_CONTENT_TYPES\n");
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(",before add thumbnails, count %1%\n")%thumbnail_data.size();
 
         //BBS: add thumbnail for each plate
         if (!m_skip_static && thumbnail_data.size()>0) {
@@ -3895,6 +3895,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
         }
 
+
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(",before add calibration data, count %1%\n")%calibration_data.size();
         //BBS add calibration thumbnail for each plate
         if (!m_skip_static && calibration_data.size() > 0) {
             // Adds the file Metadata/calibration_p[X].png.
@@ -3927,7 +3929,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
 
         //BBS progress point
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_MODELS\n");
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", before add models\n");
         if (proFn) {
             proFn(EXPORT_STAGE_ADD_MODELS, 0, 1, cb_cancel);
             if (cb_cancel)
@@ -3985,7 +3987,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }*/
 
             // BBS progress point
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_CUSTOM_GCODE\n");
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", before add custom gcodes\n");
             if (proFn) {
                 proFn(EXPORT_STAGE_ADD_CUSTOM_GCODE, 0, 1, cb_cancel);
                 if (cb_cancel) return false;
@@ -3996,7 +3998,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (!_add_custom_gcode_per_print_z_file_to_archive(archive, model, config)) { return false; }
 
             // BBS progress point
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_PRINT_CONFIG\n");
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", before add project_settings\n");
             if (proFn) {
                 proFn(EXPORT_STAGE_ADD_PRINT_CONFIG, 0, 1, cb_cancel);
                 if (cb_cancel) return false;
@@ -4011,7 +4013,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
 
             // BBS progress point
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_CONFIG_FILE\n");
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", before add project embedded settings\n");
             if (proFn) {
                 proFn(EXPORT_STAGE_ADD_CONFIG_FILE, 0, 1, cb_cancel);
                 if (cb_cancel) return false;
@@ -4022,7 +4024,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 // BBS: add project embedded preset files
                 _add_project_embedded_presets_to_archive(archive, model, project_presets);
 
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_PROJECT_CONFIG\n");
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", finished add project embedded settings, size %1%\n")%project_presets.size();
                 if (proFn) {
                     proFn(EXPORT_STAGE_ADD_PROJECT_CONFIG, 0, 1, cb_cancel);
                     if (cb_cancel) return false;
@@ -4056,7 +4058,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     if (!mz_zip_writer_add_mem(&archive, target_file.c_str(), (const void *) plate_data->gcode_file_md5.c_str(), plate_data->gcode_file_md5.length(),
                                                MZ_DEFAULT_COMPRESSION)) {
                         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__
-                                                 << boost::format(", store  gcode md5 to 3mf,  length %1%, failed\n") % plate_data->gcode_file_md5.length();
+                                                 << boost::format(", store  gcode md5 to 3mf's %1%,  length %2%, failed\n") %target_file %plate_data->gcode_file_md5.length();
                         return false;
                     }
                 }
@@ -4067,6 +4069,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // Before _add_model_config_file_to_archive, because we modify plate_data
         //if (!m_skip_static && !_add_gcode_file_to_archive(archive, model, plate_data_list, proFn)) {
         if (!m_skip_static && m_save_gcode && !_add_gcode_file_to_archive(archive, model, plate_data_list, proFn)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", _add_gcode_file_to_archive failed\n");
             return false;
         }
 
@@ -4075,11 +4078,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // As there is just a single Indexed Triangle Set data stored per ModelObject, offsets of volumes into their respective Indexed Triangle Set data
         // is stored here as well.
         if (!_add_model_config_file_to_archive(archive, model, plate_data_list, objects_data)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", _add_model_config_file_to_archive failed\n");
             return false;
         }
 
         //BBS progress point
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_SLICE_INFO\n");
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", before add sliced info to 3mf\n");
         if (proFn) {
             proFn(EXPORT_STAGE_ADD_SLICE_INFO, 0, 1, cb_cancel);
             if (cb_cancel)
@@ -4089,11 +4093,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // Adds sliced info of plate file ("Metadata/slice_info.config")
         // This file contains all sliced info of all plates
         if (!_add_slice_info_config_file_to_archive(archive, model, plate_data_list)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", _add_slice_info_config_file_to_archive failed\n");
             return false;
         }
 
         //BBS progress point
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_AUXILIARIES\n");
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", before add auxiliary dir to 3mf\n");
         if (proFn) {
             proFn(EXPORT_STAGE_ADD_AUXILIARIES, 0, 1, cb_cancel);
             if (cb_cancel)
@@ -4101,11 +4106,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
 
         if (!m_skip_static && !_add_auxiliary_dir_to_archive(archive, model.get_auxiliary_file_temp_path(), temp_data)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", _add_auxiliary_dir_to_archive failed\n");
             return false;
         }
 
         //BBS progress point
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_RELATIONS\n");
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", before add relation file to 3mf\n");
         if (proFn) {
             proFn(EXPORT_STAGE_ADD_RELATIONS, 0, 1, cb_cancel);
             if (cb_cancel)
@@ -4116,11 +4122,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // The content of this file is the same for each BambuStudio 3mf.
         // The relationshis file contains a reference to the geometry file "3D/3dmodel.model", the name was chosen to be compatible with CURA.
         if (!_add_relationships_file_to_archive(archive, {}, {}, {}, temp_data)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", _add_relationships_file_to_archive failed\n");
             return false;
         }
 
         // BBS: encrypt, should be last step
         if (m_key_store && !_add_key_store_to_archive(archive, *m_key_store)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", _add_key_store_to_archive failed\n");
             return false;
         }
 
@@ -4131,7 +4139,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
 
         //BBS progress point
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_FINISH\n");
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", finished exporting 3mf\n");
         if (proFn) {
             proFn(EXPORT_STAGE_FINISH, 0, 1, cb_cancel);
             if (cb_cancel)

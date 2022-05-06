@@ -690,7 +690,7 @@ public:
 
     bool is_dragging() const { return m_gizmos.is_dragging() || m_moving; }
 
-    void render();
+    void render(bool only_init = false);
     void enable_render(bool enabled)
     {
         m_enable_render = enabled;

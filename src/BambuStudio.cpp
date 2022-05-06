@@ -1259,98 +1259,102 @@ int CLI::run(int argc, char **argv)
 
             ThumbnailsParams thumbnail_params;
             GLShaderProgram* shader = opengl_mgr.get_shader("gouraud_light");
+            if (!shader) {
+                BOOST_LOG_TRIVIAL(error) << boost::format("can not get shader for rendering thumbnail");
+            }
+            else {
+                for (int i = 0; i < partplate_list.get_plate_count(); i++) {
+                    Slic3r::GUI::PartPlate *part_plate      = partplate_list.get_plate(i);
+                    ThumbnailData *        thumbnail_data   = new ThumbnailData();
+                    unsigned int thumbnail_width = 256, thumbnail_height = 256;
+                    const ThumbnailsParams thumbnail_params = {{}, false, true, true, true, i};
 
-            for (int i = 0; i < partplate_list.get_plate_count(); i++) {
-                Slic3r::GUI::PartPlate *part_plate      = partplate_list.get_plate(i);
-                ThumbnailData *        thumbnail_data   = new ThumbnailData();
-                unsigned int thumbnail_width = 256, thumbnail_height = 256;
-                const ThumbnailsParams thumbnail_params = {{}, false, true, true, true, i};
-
-                switch (Slic3r::GUI::OpenGLManager::get_framebuffers_type())
-                {
-                case Slic3r::GUI::OpenGLManager::EFramebufferType::Arb:
-                        {
-                            BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: ARB");
-                            Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*thumbnail_data,
-                               thumbnail_width, thumbnail_height, thumbnail_params,
-                               partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
+                    switch (Slic3r::GUI::OpenGLManager::get_framebuffers_type())
+                    {
+                    case Slic3r::GUI::OpenGLManager::EFramebufferType::Arb:
+                            {
+                                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: ARB");
+                                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*thumbnail_data,
+                                   thumbnail_width, thumbnail_height, thumbnail_params,
+                                   partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
+                                break;
+                            }
+                    case Slic3r::GUI::OpenGLManager::EFramebufferType::Ext:
+                            {
+                                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: EXT");
+                                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*thumbnail_data,
+                                   thumbnail_width, thumbnail_height, thumbnail_params,
+                                   partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
+                                break;
+                            }
+                    default:
+                            BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: unknown");
                             break;
-                        }
-                case Slic3r::GUI::OpenGLManager::EFramebufferType::Ext:
-                        {
-                            BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: EXT");
-                            Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*thumbnail_data,
-                               thumbnail_width, thumbnail_height, thumbnail_params,
-                               partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
-                            break;
-                        }
-                default:
-                        BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: unknown");
-                        break;
+                    }
+                    thumbnails.push_back(thumbnail_data);
+
+                    //render calibration thumbnail
+                    if (!part_plate->get_slice_result() || !part_plate->is_slice_result_valid()) {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% doesn't have a valid sliced result, skip it")%(i+1);
+                        calibration_thumbnails.push_back(new ThumbnailData());
+                        plate_bboxes.push_back(new PlateBBoxData());
+                        continue;
+                    }
+                    PrintBase  *print_base=NULL;
+                    Slic3r::GUI::GCodeResult *gcode_result = NULL;
+                    int print_index;
+                    part_plate->get_print(&print_base, &gcode_result, &print_index);
+
+                    BuildVolume build_volume(part_plate->get_shape(), print_height);
+                    const std::vector<BoundingBoxf3>& exclude_bounding_box = part_plate->get_exclude_areas();
+                    Print *print = dynamic_cast<Print *>(print_base);
+                    Slic3r::GUI::GCodeViewer gcode_viewer;
+                    gcode_viewer.init(ConfigOptionMode::comAdvanced, nullptr);
+                    gcode_viewer.load(*gcode_result, *print, build_volume, exclude_bounding_box, false, ConfigOptionMode::comAdvanced, false);
+
+                    std::vector<std::string> colors;
+                    if (filament_color)
+                        colors = filament_color->values;
+                    gcode_viewer.refresh(*gcode_result, colors);
+
+                    ThumbnailData* calibration_data = new ThumbnailData();
+                    const ThumbnailsParams calibration_params = { {}, false, true, true, true, i };
+                    //BBS fixed size
+                    const int cali_thumbnail_width = 2560;
+                    const int cali_thumbnail_height = 2560;
+                    gcode_viewer.render_calibration_thumbnail(*calibration_data, cali_thumbnail_width, cali_thumbnail_height,
+                        calibration_params, partplate_list, opengl_mgr);
+                    //generate_calibration_thumbnail(*calibration_data, thumbnail_width, thumbnail_height, calibration_params);
+                    //*plate_bboxes[index] = p->generate_first_layer_bbox();
+                    calibration_thumbnails.push_back(calibration_data);
+
+                    PlateBBoxData* plate_bbox = new PlateBBoxData();
+                    std::vector<BBoxData>& id_bboxes = plate_bbox->bbox_objs;
+                    BoundingBoxf bbox_all;
+                    auto seq_print  = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+                    if ( seq_print && (seq_print->value == PrintSequence::ByObject))
+                        plate_bbox->is_seq_print = true;
+
+                    auto objects = print->objects();
+                    auto orig = part_plate->get_origin();
+                    Vec2d orig2d = { orig[0], orig[1] };
+
+                    for (auto obj : objects)
+                    {
+                        BBoxData data;
+                        auto bb_scaled = obj->get_first_layer_bbox(data.area, data.layer_height, data.name);
+                        auto bb = unscaled(bb_scaled);
+                        bb.min -= orig2d;
+                        bb.max -= orig2d;
+                        bbox_all.merge(bb);
+                        data.area *= (SCALING_FACTOR * SCALING_FACTOR); // unscale area
+                        data.id = obj->id().id;
+                        data.bbox = { bb.min.x(),bb.min.y(),bb.max.x(),bb.max.y() };
+                        id_bboxes.emplace_back(std::move(data));
+                    }
+                    plate_bbox->bbox_all = { bbox_all.min.x(),bbox_all.min.y(),bbox_all.max.x(),bbox_all.max.y() };
+                    plate_bboxes.push_back(plate_bbox);
                 }
-                thumbnails.push_back(thumbnail_data);
-
-                //render calibration thumbnail
-                if (!part_plate->get_slice_result() || !part_plate->is_slice_result_valid()) {
-                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% doesn't have a valid sliced result, skip it")%(i+1);
-                    calibration_thumbnails.push_back(new ThumbnailData());
-                    plate_bboxes.push_back(new PlateBBoxData());
-                    continue;
-                }
-                PrintBase  *print_base=NULL;
-                Slic3r::GUI::GCodeResult *gcode_result = NULL;
-                int print_index;
-                part_plate->get_print(&print_base, &gcode_result, &print_index);
-
-                BuildVolume build_volume(part_plate->get_shape(), print_height);
-                const std::vector<BoundingBoxf3>& exclude_bounding_box = part_plate->get_exclude_areas();
-                Print *print = dynamic_cast<Print *>(print_base);
-                Slic3r::GUI::GCodeViewer gcode_viewer;
-                gcode_viewer.init(ConfigOptionMode::comAdvanced, nullptr);
-                gcode_viewer.load(*gcode_result, *print, build_volume, exclude_bounding_box, false, ConfigOptionMode::comAdvanced, false);
-
-                std::vector<std::string> colors;
-                if (filament_color)
-                    colors = filament_color->values;
-                gcode_viewer.refresh(*gcode_result, colors);
-
-                ThumbnailData* calibration_data = new ThumbnailData();
-                const ThumbnailsParams calibration_params = { {}, false, true, true, true, i };
-                //BBS fixed size
-                const int cali_thumbnail_width = 2560;
-                const int cali_thumbnail_height = 2560;
-                gcode_viewer.render_calibration_thumbnail(*calibration_data, cali_thumbnail_width, cali_thumbnail_height,
-                    calibration_params, partplate_list, opengl_mgr);
-                //generate_calibration_thumbnail(*calibration_data, thumbnail_width, thumbnail_height, calibration_params);
-                //*plate_bboxes[index] = p->generate_first_layer_bbox();
-                calibration_thumbnails.push_back(calibration_data);
-
-                PlateBBoxData* plate_bbox = new PlateBBoxData();
-                std::vector<BBoxData>& id_bboxes = plate_bbox->bbox_objs;
-                BoundingBoxf bbox_all;
-                auto seq_print  = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-                if ( seq_print && (seq_print->value == PrintSequence::ByObject))
-                    plate_bbox->is_seq_print = true;
-
-                auto objects = print->objects();
-                auto orig = part_plate->get_origin();
-                Vec2d orig2d = { orig[0], orig[1] };
-
-                for (auto obj : objects)
-                {
-                    BBoxData data;
-                    auto bb_scaled = obj->get_first_layer_bbox(data.area, data.layer_height, data.name);
-                    auto bb = unscaled(bb_scaled);
-                    bb.min -= orig2d;
-                    bb.max -= orig2d;
-                    bbox_all.merge(bb);
-                    data.area *= (SCALING_FACTOR * SCALING_FACTOR); // unscale area
-                    data.id = obj->id().id;
-                    data.bbox = { bb.min.x(),bb.min.y(),bb.max.x(),bb.max.y() };
-                    id_bboxes.emplace_back(std::move(data));
-                }
-                plate_bbox->bbox_all = { bbox_all.min.x(),bbox_all.min.y(),bbox_all.max.x(),bbox_all.max.y() };
-                plate_bboxes.push_back(plate_bbox);
             }
         }
 
@@ -1394,6 +1398,8 @@ int CLI::run(int argc, char **argv)
         params.input_files  = std::move(m_input_files);
         //BBS: remove GCodeViewer as seperate APP logic
         //params.start_as_gcodeviewer = start_as_gcodeviewer;
+
+        BOOST_LOG_TRIVIAL(info) << "begin to launch BambuStudio GUI soon";
         return Slic3r::GUI::GUI_Run(params);
 #else // SLIC3R_GUI
         // No GUI support. Just print out a help.

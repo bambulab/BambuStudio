@@ -656,6 +656,7 @@ bool GLCanvas3D::init()
     if (m_canvas == nullptr || m_context == nullptr)
         return false;
 
+    BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< " enter";
     glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
     glsafe(::glClearDepth(1.0f));
 
@@ -703,15 +704,19 @@ bool GLCanvas3D::init()
     // we defer the geometry finalization of volumes until the first call to render()
     m_volumes.finalize_geometry(true);
 
+    BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< ": before gizmo init";
     if (m_gizmos.is_enabled() && !m_gizmos.init())
         std::cout << "Unable to initialize gizmos: please, check that all the required textures are available" << std::endl;
 
+    BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< ": before _init_toolbars";
     if (!_init_toolbars())
         return false;
 
+    BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< ": finish _init_toolbars";
     if (m_selection.is_enabled() && !m_selection.init())
         return false;
 
+    BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< ": finish m_selection";
 
 #if ENABLE_IMGUI_STYLE_EDITOR
     //BBS load render color for style editor
@@ -1099,7 +1104,7 @@ float GLCanvas3D::get_collapse_toolbar_height()
 }
 
 
-void GLCanvas3D::render()
+void GLCanvas3D::render(bool only_init)
 {
     if (m_in_render) {
         // if called recursively, return
@@ -1133,6 +1138,9 @@ void GLCanvas3D::render()
         post_event(SimpleEvent(EVT_GLCANVAS_UPDATE_BED_SHAPE));
         return;
     }
+
+    if (only_init)
+        return;
 
 #if ENABLE_ENVIRONMENT_MAP
     if (wxGetApp().is_editor())

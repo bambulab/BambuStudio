@@ -13,8 +13,6 @@
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/log/trivial.hpp>
 //#include <boost/nowide/iostream.hpp>
 
 #include "libslic3r/libslic3r.h"
