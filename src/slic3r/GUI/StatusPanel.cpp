@@ -337,7 +337,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow* parent)
 
     bSizer_task_btn->Add(m_button_pause_resume, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));
 
-    m_button_abort = new Button(parent, _L("Abort"));
+    m_button_abort = new Button(parent, _L("Stop"));
 
     StateColor abort_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
                         std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),

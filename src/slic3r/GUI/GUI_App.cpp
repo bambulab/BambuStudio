@@ -2192,8 +2192,9 @@ void GUI_App::request_new_version()
 
 void GUI_App::no_new_version()
 {
-    wxString msg = wxString::Format("Your slicer version is the newest!");
-    wxMessageBox(msg);
+    wxString msg = _L("This is the newest version.");
+    InfoDialog dlg(nullptr, _L("Info"), msg);
+    dlg.ShowModal();
 }
 
 void GUI_App::reload_settings()

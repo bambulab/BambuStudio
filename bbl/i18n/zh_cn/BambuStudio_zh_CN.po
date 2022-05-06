@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-05 13:54+0800\n"
-"PO-Revision-Date: 2022-05-03 23:05+0800\n"
+"POT-Creation-Date: 2022-05-06 17:39+0800\n"
+"PO-Revision-Date: 2022-05-06 17:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -1082,6 +1082,12 @@ msgstr "选择一个文件（gcode/.gco/.g/.ngc/ngc）："
 msgid "Login information expired. Please login again."
 msgstr "登录信息过期。请重新登录。"
 
+msgid "This is the newest version."
+msgstr "已经是最新版本。"
+
+msgid "Info"
+msgstr "信息"
+
 msgid "Switching application language"
 msgstr "切换应用程序语言"
 
@@ -1449,9 +1455,6 @@ msgid ""
 "If first selected item is a part, the second one should be part in the same "
 "object."
 msgstr "如果第一个选择的是零件，那么第二个选择的也必须是同一个对象中的零件。"
-
-msgid "Info"
-msgstr "信息"
 
 msgid "The type of the last solid object part is not to be changed."
 msgstr "不允许修改对象中最后一个实体零件的类型。"
@@ -1968,8 +1971,8 @@ msgstr "打印进度"
 msgid "Report"
 msgstr "报告"
 
-msgid "Abort"
-msgstr "终止"
+msgid "Stop"
+msgstr "停止"
 
 msgid "0%"
 msgstr "0%"
@@ -2042,6 +2045,15 @@ msgstr "选择打印机"
 
 msgid "No printer"
 msgstr "无打印机"
+
+msgid "OK"
+msgstr "确认"
+
+msgid "Yes"
+msgstr "是"
+
+msgid "No"
+msgstr "否"
 
 #, c-format, boost-format
 msgid "%s error"
@@ -2409,9 +2421,6 @@ msgstr "仅导入模型数据"
 
 msgid "Don't show again"
 msgstr "不再显示"
-
-msgid "OK"
-msgstr "确认"
 
 msgid "Only one G-code file can be opened at the same time."
 msgstr "只能同时打开一个G-code文件。"
@@ -2842,6 +2851,9 @@ msgstr "请先填写报告！"
 
 msgid "Exporting 3mf..."
 msgstr "正在导出3mf..."
+
+msgid "Internal Error. Exporting 3mf failed, please reslice again."
+msgstr ""
 
 #. TRN "Save current Settings"
 #, c-format, boost-format
@@ -5097,6 +5109,9 @@ msgstr "生成支撑"
 msgid "Slicing mesh"
 msgstr "切片网格"
 
+#~ msgid "Abort"
+#~ msgstr "终止"
+
 #~ msgid "Tip: Click the button to edit your filament"
 #~ msgstr "提示：点击此按钮以编辑耗材丝"
 
@@ -5144,12 +5159,6 @@ msgstr "切片网格"
 #~ "1. 工艺预设；\n"
 #~ "2. 打印丝预设；\n"
 #~ "3. 打印机预设；\n"
-
-#~ msgid "Yes"
-#~ msgstr "是"
-
-#~ msgid "No"
-#~ msgstr "否"
 
 #~ msgid "Current bed type do not support filament "
 #~ msgstr "当前热床不支持耗材丝"

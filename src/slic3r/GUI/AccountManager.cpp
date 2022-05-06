@@ -1378,7 +1378,11 @@ namespace Slic3r {
         }
         // Same Version
         else if (version_info.compare(SLIC3R_VERSION) == 0) {
-            GUI::wxGetApp().no_new_version();
+            if (show_tips)
+                GUI::wxGetApp().no_new_version();
+        } else {
+            if (show_tips)
+                GUI::wxGetApp().no_new_version();
         }
     }
 

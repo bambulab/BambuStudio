@@ -1453,9 +1453,10 @@ static wxMenu* generate_help_menu()
     append_menu_item(helpMenu, wxID_ANY, _L("Check for Update"), _L("Check for Update"),
         [](wxCommandEvent&) {
             AccountManager* acc = wxGetApp().getAccountManager();
-            if (acc && acc->is_user_login()) {
+            //BBS do not request login
+            //if (acc && acc->is_user_login()) {
                 acc->check_new_version(true);
-            }
+            //
         }, "", nullptr, []() {
             // BBS always return true
             AccountManager* acc = wxGetApp().getAccountManager();

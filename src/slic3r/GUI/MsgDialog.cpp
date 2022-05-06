@@ -178,10 +178,10 @@ Button* MsgDialog::get_button(wxWindowID btn_id){
 
 void MsgDialog::apply_style(long style)
 {
-    if (style & wxOK)       add_button(wxID_OK, true, wxT("OK"));
-    if (style & wxYES)      add_button(wxID_YES, true, wxT("Yes"));
-    if (style & wxNO)       add_button(wxID_NO, false,wxT("No"));
-    if (style & wxCANCEL)   add_button(wxID_CANCEL, false, wxT("Cancel"));
+    if (style & wxOK)       add_button(wxID_OK, true, _L("OK"));
+    if (style & wxYES)      add_button(wxID_YES, true, _L("Yes"));
+    if (style & wxNO)       add_button(wxID_NO, false,_L("No"));
+    if (style & wxCANCEL)   add_button(wxID_CANCEL, false, _L("Cancel"));
 
     logo->SetBitmap( create_scaled_bitmap(style & wxICON_WARNING        ? "obj_warning" :
                                           style & wxICON_INFORMATION    ? "info"        :

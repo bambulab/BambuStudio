@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-05 13:54+0800\n"
+"POT-Creation-Date: 2022-05-06 17:39+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1033,6 +1033,12 @@ msgstr ""
 msgid "Login information expired. Please login again."
 msgstr ""
 
+msgid "This is the newest version."
+msgstr ""
+
+msgid "Info"
+msgstr ""
+
 msgid "Switching application language"
 msgstr ""
 
@@ -1401,9 +1407,6 @@ msgstr ""
 msgid ""
 "If first selected item is a part, the second one should be part in the same "
 "object."
-msgstr ""
-
-msgid "Info"
 msgstr ""
 
 msgid "The type of the last solid object part is not to be changed."
@@ -1908,7 +1911,7 @@ msgstr ""
 msgid "Report"
 msgstr ""
 
-msgid "Abort"
+msgid "Stop"
 msgstr ""
 
 msgid "0%"
@@ -1981,6 +1984,15 @@ msgid "Selected a printer"
 msgstr ""
 
 msgid "No printer"
+msgstr ""
+
+msgid "OK"
+msgstr ""
+
+msgid "Yes"
+msgstr ""
+
+msgid "No"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -2350,9 +2362,6 @@ msgid "Import geometry only"
 msgstr ""
 
 msgid "Don't show again"
-msgstr ""
-
-msgid "OK"
 msgstr ""
 
 msgid "Only one G-code file can be opened at the same time."
@@ -2781,6 +2790,9 @@ msgid "Please fill report first!"
 msgstr ""
 
 msgid "Exporting 3mf..."
+msgstr ""
+
+msgid "Internal Error. Exporting 3mf failed, please reslice again."
 msgstr ""
 
 #. TRN "Save current Settings"
