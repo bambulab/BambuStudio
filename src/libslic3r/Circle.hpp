@@ -6,6 +6,8 @@
 
 namespace Slic3r {
 
+constexpr double ZERO_TOLERANCE = 0.000005;
+
 class Circle {
 public:
     Circle() {
@@ -27,6 +29,24 @@ public:
 
     //BBS: only support calculate on X-Y plane, Z is useless
     static Vec3f calc_tangential_vector(const Vec3f& pos, const Vec3f& center_pos, const bool is_ccw);
+    static bool get_closest_perpendicular_point(const Point& p1, const Point& p2, const Point& c, Point& out);
+    static bool is_equal(double x, double y, double tolerance = ZERO_TOLERANCE) {
+        double abs_difference = std::fabs(x - y);
+        return abs_difference < tolerance;
+    };
+    static bool greater_than(double x, double y, double tolerance = ZERO_TOLERANCE) {
+        return x > y && !Circle::is_equal(x, y, tolerance);
+    };
+    static bool greater_than_or_equal(double x, double y, double tolerance = ZERO_TOLERANCE) {
+        return x > y || Circle::is_equal(x, y, tolerance);
+    };
+    static bool less_than(double x, double y, double tolerance = ZERO_TOLERANCE) {
+        return x < y && !Circle::is_equal(x, y, tolerance);
+    };
+    static bool less_than_or_equal(double x, double y, double tolerance = ZERO_TOLERANCE){
+        return x < y || Circle::is_equal(x, y, tolerance);
+    };
+
 };
 
 enum class ArcDirection : unsigned char {

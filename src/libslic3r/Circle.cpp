@@ -54,7 +54,7 @@ bool Circle::try_create_circle(const Point& p1, const Point& p2, const Point& p3
 bool Circle::try_create_circle(const Points& points, const double max_radius, const double tolerance, Circle& new_circle)
 {
     size_t count = points.size();
-    int middle_index = count / 2;
+    size_t middle_index = count / 2;
     // BBS: the middle point will almost always produce the best arcs with high possibility.
     if (count == 3) {
         return (Circle::try_create_circle(points[0], points[middle_index], points[count - 1], max_radius, new_circle)
@@ -101,53 +101,84 @@ double Circle::get_polar_radians(const Point& p1) const
 
 bool Circle::is_over_deviation(const Points& points, const double tolerance)
 {
-    int max_index = points.size() - 1;
+    Point closest_point;
+    Point temp;
+    double distance_from_center;
     // BBS: skip the first and last points since they has fit perfectly.
-    for (int index = 0; index < max_index; index++)
+    for (size_t index = 0; index < points.size() - 1; index++)
     {
         if (index != 0)
         {
             //BBS: check fitting tolerance
-            Point temp = points[index] - center;
-            double distance_from_center = sqrt((double)temp.x() * (double)temp.x() + (double)temp.y() * (double)temp.y());
+            temp = points[index] - center;
+            distance_from_center = sqrt((double)temp.x() * (double)temp.x() + (double)temp.y() * (double)temp.y());
             if (std::fabs(distance_from_center - radius) > tolerance)
                 return true;
         }
 
         //BBS: Check the point perpendicular from the segment to the circle's center
-        Line line = Line(points[index], points[(size_t)index + 1]);
-        double distance = line.distance_to(center);
-        if (std::fabs(distance - radius) > tolerance)
-            return true;
+        if (get_closest_perpendicular_point(points[index], points[(size_t)index + 1], center, closest_point)) {
+            temp = closest_point - center;
+            distance_from_center = sqrt((double)temp.x() * (double)temp.x() + (double)temp.y() * (double)temp.y());
+            if (std::fabs(distance_from_center - radius) > tolerance)
+                return true;
+        }
     }
     return false;
+}
+
+bool Circle::get_closest_perpendicular_point(const Point& p1, const Point& p2, const Point& c, Point& out)
+{
+    double x1 = p1.x();
+    double y1 = p1.y();
+    double x2 = p2.x();
+    double y2 = p2.y();
+    double x_dif = x2 - x1;
+    double y_dif = y2 - y1;
+    //BBS: [(Cx - Ax)(Bx - Ax) + (Cy - Ay)(By - Ay)] / [(Bx - Ax) ^ 2 + (By - Ay) ^ 2]
+    double num = (c[0] - x1) * x_dif + (c[1] - y1) * y_dif;
+    double denom = (x_dif * x_dif) + (y_dif * y_dif);
+    double t = num / denom;
+
+    //BBS: Considering this a failure if t == 0 or t==1 within tolerance.  In that case we hit the endpoint, which is OK.
+    if (Circle::less_than_or_equal(t, 0) || Circle::greater_than_or_equal(t, 1))
+        return false;
+
+    out[0] = x1 + t * (x2 - x1);
+    out[1] = y1 + t * (y2 - y1);
+    return true;
 }
 
 bool Circle::get_deviation_sum_squared(const Points& points, const double tolerance, double& total_deviation)
 {
     total_deviation = 0;
+    Point temp;
+    double distance_from_center,  deviation;
     // BBS: skip the first and last points since they are on the circle
     for (int index = 1; index < points.size() - 1; index++)
     {
         //BBS: make sure the length from the center of our circle to the test point is 
         // at or below our max distance.
-        Point temp = points[index] - center;
-        double distance_from_center = sqrt((double)temp.x() * (double)temp.x() + (double)temp.y() * (double)temp.y());
-        double deviation = std::fabs(distance_from_center - radius);
+        temp = points[index] - center;
+        distance_from_center = sqrt((double)temp.x() * (double)temp.x() + (double)temp.y() * (double)temp.y());
+        deviation = std::fabs(distance_from_center - radius);
         total_deviation += deviation * deviation;
         if (deviation > tolerance)
             return false;
 
     }
+    Point closest_point;
     //BBS: check the point perpendicular from the segment to the circle's center
     for (int index = 0; index < points.size() - 1; index++)
     {
-        Line line = Line(points[index], points[(size_t)index + 1]);
-        double distance = line.distance_to(center);
-        double deviation = std::fabs(distance - radius);
-        total_deviation += deviation * deviation;
-        if (deviation > tolerance)
-            return false;
+        if (get_closest_perpendicular_point(points[index], points[(size_t)index + 1], center, closest_point)) {
+            temp = closest_point - center;
+            distance_from_center = sqrt((double)temp.x() * (double)temp.x() + (double)temp.y() * (double)temp.y());
+            deviation = std::fabs(distance_from_center - radius);
+            total_deviation += deviation * deviation;
+            if (deviation > tolerance)
+                return false;
+        }
     }
     return true;
 }
@@ -292,9 +323,9 @@ bool ArcSegment::are_points_within_slice(const ArcSegment& test_arc, const Point
         will_cross_zero = test_arc.polar_start_theta < test_arc.polar_end_theta;
 
     //BBS: check if point 1 to point 2 cross zero
+    double polar_test;
     for (int index = point_count - 2; index < point_count; index++)
     {
-        double polar_test;
         if (index < point_count - 1)
           polar_test = test_arc.get_polar_radians(points[index]);
         else
