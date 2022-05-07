@@ -153,7 +153,8 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
             //!            To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
             auto label = (option.label == L_CONTEXT("Top", "Layers") || option.label == L_CONTEXT("Bottom", "Layers")) ?
                 _CTX(option.label, "Layers") : _(option.label);
-            label += ":";
+            // BBS
+            //label += ":";
 
             wxCoord label_w, label_h;
 #ifdef __WXMSW__
@@ -769,7 +770,8 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
             }
         }
         is_url_string = !suppress_hyperlinks && !og_line.label_path.empty();
-        h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label + ":", text_clr, ctrl->opt_group->label_width * ctrl->m_em_unit, is_url_string);
+        // BBS
+        h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label /* + ":" */, text_clr, ctrl->opt_group->label_width * ctrl->m_em_unit, is_url_string);
     }
 
     // If there's a widget, build it and set result to the correct position.
@@ -845,7 +847,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
             label = (option.label == L_CONTEXT("Top", "Layers") || option.label == L_CONTEXT("Bottom", "Layers")) ?
                     _CTX(option.label, "Layers") : _(option.label);
 #if !OPTION_LABEL_AT_RIGHT // BBS
-            label += ":";
+            //label += ":";
 #endif
 
             if (is_url_string)
