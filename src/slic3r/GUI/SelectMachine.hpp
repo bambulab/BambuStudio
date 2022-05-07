@@ -287,6 +287,7 @@ protected:
     void                     update_printer_combobox(wxCommandEvent &event);
     void                     on_cancel(wxCloseEvent &event);
     void                     on_ok(wxCommandEvent &event);
+    void                     on_print_job_cancel(wxCommandEvent &evt);
     std::vector<std::string> sort_string(std::vector<std::string> strArray);
     void                     on_timer(wxTimerEvent &event);
     void                     on_selection_changed(wxCommandEvent &event);

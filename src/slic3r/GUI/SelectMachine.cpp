@@ -22,6 +22,7 @@
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_FINISHED_UPDATE_MACHINE_LIST, wxCommandEvent);
+wxDEFINE_EVENT(EVT_PRINT_JOB_CANCEL, wxCommandEvent);
 
 #define INITIAL_NUMBER_OF_MACHINES      0
 #define LIST_REFRESH_INTERVAL           3000
@@ -634,6 +635,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     //bind
     Bind(EVT_FINISHED_UPDATE_MACHINE_LIST, &SelectMachineDialog::update_printer_combobox, this);
+    Bind(EVT_PRINT_JOB_CANCEL, &SelectMachineDialog::on_print_job_cancel, this);
 
     // sending_mode();
     SetSizer(m_sizer_main);
@@ -902,13 +904,22 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     m_print_job->on_success([this]() { finish_mode(); });
 
     m_status_bar->set_cancel_callback_fina([this]() {
-        if (m_print_job->is_running()) { m_print_job->cancel(); }
-        prepare_mode();
-        reset();
+        m_print_job->cancel();
+        wxCommandEvent *event = new wxCommandEvent(EVT_PRINT_JOB_CANCEL);
+        wxQueueEvent(this, event);
     });
 
     wxCommandEvent evt(m_plater->get_print_finished_event());
     m_print_job->start();
+}
+
+void SelectMachineDialog::on_print_job_cancel(wxCommandEvent &evt)
+{
+    if (m_print_job->is_running()) {
+        m_print_job->join(5 * 1000);
+    }
+    prepare_mode();
+    reset();
 }
 
 std::vector<std::string> SelectMachineDialog::sort_string(std::vector<std::string> strArray)

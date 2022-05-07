@@ -224,11 +224,10 @@ void PrintJob::process()
         update_status(curr_percent, msg);
     }
 
-    wxCommandEvent evt(m_print_job_completed_id);
-    evt.SetString(m_dev_id);
-    wxQueueEvent(m_plater, evt.Clone());
+    wxCommandEvent* evt = new wxCommandEvent(m_print_job_completed_id);
+    evt->SetString(m_dev_id);
+    wxQueueEvent(m_plater, evt);
     m_job_finished = true;
-    if (m_success_fun != nullptr) { m_success_fun(); }
 }
 
 void PrintJob::finalize() {
