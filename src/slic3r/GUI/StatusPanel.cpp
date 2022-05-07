@@ -1099,8 +1099,8 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         m_switch_lamp_timeout--;
     else {
         m_switch_lamp->SetValue(light_on);
-        wxString label = light_on ? "On" : "Off";
-        m_switch_lamp->SetLabels(label, label);
+        /*wxString label = light_on ? "On" : "Off";
+        m_switch_lamp->SetLabels(label, label);*/
     }
 
     wxString text_speed = wxString::Format("%d%%", obj->printing_speed_mag);

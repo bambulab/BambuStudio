@@ -165,7 +165,7 @@ MonitorPanel::~MonitorPanel()
 
     m_tabpanel->AddPage(m_status_info_panel, _L("Status"), "", true);
     m_tabpanel->AddPage(m_media_file_panel, _L("Media"), "", false);
-    m_tabpanel->AddPage(m_upgrade_panel, _L("Upgrade"), "", false);
+    m_tabpanel->AddPage(m_upgrade_panel, _L("Update"), "", false);
 
     m_initialized = true;
 

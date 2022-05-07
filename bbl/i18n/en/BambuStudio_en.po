@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-07 18:16+0800\n"
+"POT-Creation-Date: 2022-05-08 01:01+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -646,6 +646,9 @@ msgid "Auto rotate for arrangement"
 msgstr ""
 
 msgid "Allow multiple materials on same plate"
+msgstr ""
+
+msgid "Avoid extrusion calibration region"
 msgstr ""
 
 msgid "Arrange"
@@ -2007,7 +2010,7 @@ msgstr ""
 msgid "Media"
 msgstr ""
 
-msgid "Upgrade"
+msgid "Update"
 msgstr ""
 
 msgid "Selected a printer"
@@ -3313,6 +3316,78 @@ msgstr ""
 msgid "Open G-code file:"
 msgstr ""
 
+msgid "print project cancelled."
+msgstr ""
+
+msgid "Failed to create the print job. Please try agian."
+msgstr ""
+
+msgid "Failed to upload the print job. Please try agian."
+msgstr ""
+
+msgid "Uploading print job timed out. Please try again."
+msgstr ""
+
+msgid "Failed to send the print job. Please try again."
+msgstr ""
+
+msgid "Sending print task timed out. Please try again."
+msgstr ""
+
+msgid "Creating a print job..."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"\n"
+"req_pro,err:code=%u,msg=%s"
+msgstr ""
+
+msgid "Uploading the print job..."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"\n"
+"upload,err:code=%u,msg=%s"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"\n"
+"put_no,err:code=%u,msg=%s"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"\n"
+"get_no,err:code=%u,msg=%s"
+msgstr ""
+
+msgid "The print job has been sent to your printer."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Invalid plate index %d"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Plate %d"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"\n"
+"pos_task,err:code=%u,msg=%s"
+msgstr ""
+
+msgid "Start printing..."
+msgstr ""
+
 msgid ""
 "One object has empty initial layer and can't be printed. Please Cut the "
 "bottom or enable supports."
@@ -3649,9 +3724,6 @@ msgid "°C"
 msgstr ""
 
 msgid "Bed temperature"
-msgstr ""
-
-msgid "Bed Type"
 msgstr ""
 
 msgid "Bed types supported by the printer"

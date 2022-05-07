@@ -10,12 +10,12 @@
 namespace Slic3r {
 namespace GUI {
 
-static wxString printjob_cancel_str = _L("print project cancelled!");
-static wxString failed_to_create_str = _L("Failed to create the printing task. Please try again!");
-static wxString failed_to_upload_str = _L("Failed to upload the printing task. Please try again!");
-static wxString timeout_to_upload_str = _L("Uploading printing task timed out. Please try again!");
-static wxString failed_to_sending_str = _L("Failed to send the printing task. Please try again!");
-static wxString timeout_to_sending_str = _L("Sending the printing task has timed out. Please try again!");
+static wxString printjob_cancel_str = _L("print project cancelled.");
+static wxString failed_to_create_str = _L("Failed to create the print job. Please try agian.");
+static wxString failed_to_upload_str = _L("Failed to upload the print job. Please try agian.");
+static wxString timeout_to_upload_str = _L("Uploading print job timed out. Please try again.");
+static wxString failed_to_sending_str = _L("Failed to send the print job. Please try again.");
+static wxString timeout_to_sending_str = _L("Sending print task timed out. Please try again.");
 
 PrintJob::PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater* plater, std::string dev_id)
 : PlaterJob{ std::move(pri), plater },
@@ -47,7 +47,7 @@ void PrintJob::on_success(std::function<void()> success)
 void PrintJob::process()
 {
     /* display info */
-    wxString msg = _L("Creating a print project...");
+    wxString msg = _L("Creating a print job...");
     int curr_percent = 25;
     update_status(curr_percent, msg);
 
@@ -68,7 +68,7 @@ void PrintJob::process()
 
     /* check gcode is valid */
     if (!plate->is_valid_gcode_file()) {
-        update_status(curr_percent, "Internal error, no gcode in 3mf file!");
+        update_status(curr_percent, "Internal error, no gcode in 3mf file");
         return;
     }
 
@@ -94,18 +94,18 @@ void PrintJob::process()
     if (res == 0 && !project->project_id.empty()) {
         BOOST_LOG_TRIVIAL(trace) << "print_job: get project id = " << project->project_id;
     } else {
-        wxString error_msg = wxString::Format(_L("\nreq_pro,err:code=%u,msg=%s"), http_code, http_body);
+        wxString error_msg = wxString::Format(L("\nreq_pro,err:code=%u,msg=%s"), http_code, http_body);
         update_status(curr_percent, failed_to_create_str + error_msg);
-        BOOST_LOG_TRIVIAL(trace) << "print_job: request project id failed! error_msg=" << error_msg.ToStdString();
+        BOOST_LOG_TRIVIAL(trace) << "print_job: request project id failed error_msg=" << error_msg.ToStdString();
         return;
     }
 
     if (res == 0 && !profile->profile_id.empty() && !profile->upload_ticket.empty() && !profile->upload_url.empty()) {
         BOOST_LOG_TRIVIAL(trace) << "print_job: get profile id = " << profile->profile_id;
     } else {
-        wxString error_msg = wxString::Format(_L("\nreq_pro,err:code=%u,msg=%s"), http_code, http_body);
+        wxString error_msg = wxString::Format(L("\nreq_pro,err:code=%u,msg=%s"), http_code, http_body);
         update_status(curr_percent, failed_to_create_str + error_msg);
-        BOOST_LOG_TRIVIAL(trace) << "print_job: request project id failed! error_msg=" << error_msg.ToStdString();
+        BOOST_LOG_TRIVIAL(trace) << "print_job: request project id failed error_msg=" << error_msg.ToStdString();
         return;
     }
 
@@ -115,7 +115,7 @@ void PrintJob::process()
     }
 
 
-    msg = _L("The printing project is uploading...");
+    msg = _L("Uploading the print job...");
     curr_percent = 25;
     update_status(curr_percent, msg);
 
@@ -144,16 +144,16 @@ void PrintJob::process()
     }
 
     if (res < 0) {
-        wxString error_msg = wxString::Format(_L("\nupload,err:code=%u,msg=%s"), http_code, http_body);
+        wxString error_msg = wxString::Format(L("\nupload,err:code=%u,msg=%s"), http_code, http_body);
         update_status(curr_percent, failed_to_upload_str + error_msg);
-        BOOST_LOG_TRIVIAL(trace) << "print_job: uploading is failed!";
+        BOOST_LOG_TRIVIAL(trace) << "print_job: uploading is failed";
         return;
     }
 
     /* put notifications */
     res = c->put_notification(profile, project->project_path.filename().string(), http_code, http_body);
     if (res < 0) {
-        wxString error_msg = wxString::Format(_L("\nput_no,err:code=%u,msg=%s"), http_code, http_body);
+        wxString error_msg = wxString::Format(L("\nput_no,err:code=%u,msg=%s"), http_code, http_body);
         update_status(curr_percent, failed_to_upload_str + error_msg);
         return;
     }
@@ -174,13 +174,13 @@ void PrintJob::process()
         BOOST_LOG_TRIVIAL(trace) << "print_job: subtask is canceled when uploading...";
         return;
     } else if (res < 0) {
-        wxString error_msg = wxString::Format(_L("\nget_no,err:code=%u,msg=%s"), http_code, http_body);
+        wxString error_msg = wxString::Format(L("\nget_no,err:code=%u,msg=%s"), http_code, http_body);
         update_status(curr_percent, failed_to_upload_str + error_msg);
         return;
     }
 
     curr_percent = 75;
-    msg = _L("The printing project is being sent...");
+    msg = _L("The print job has been sent to your printer.");
     update_status(curr_percent, msg);
 
 
@@ -191,7 +191,7 @@ void PrintJob::process()
     else if (job_data.plate_idx == PLATE_CURRENT_IDX)
         curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
     else {
-        msg = wxString::Format(_L("Invalid plate index %d"), job_data.plate_idx);
+        msg = wxString::Format(L("Invalid plate index %d"), job_data.plate_idx);
         update_status(curr_percent, msg);
         return;
     }
@@ -209,25 +209,26 @@ void PrintJob::process()
     subTask->task_partplate_idx = std::to_string(curr_plate_idx);
     subTask->task_printer_dev_id = m_dev_id;
     if (project->project_name.empty())
-        subTask->task_name = wxString::Format(_L("Plate %d"), curr_plate_idx).ToUTF8().data();
+        subTask->task_name = wxString::Format(L("Plate %d"), curr_plate_idx).ToUTF8().data();
     else
-        subTask->task_name = wxString::Format(_L("%s"), from_u8(project->project_name), curr_plate_idx).ToUTF8().data();
+        subTask->task_name = wxString::Format(L("%s"), from_u8(project->project_name), curr_plate_idx).ToUTF8().data();
 
     res = c->post_task(project, profile, subTask, http_code, http_body);
     if (res < 0) {
-        wxString error_msg = wxString::Format(_L("\npos_task,err:code=%u,msg=%s"), http_code, http_body);
+        wxString error_msg = wxString::Format(L("\npos_task,err:code=%u,msg=%s"), http_code, http_body);
         update_status(curr_percent, failed_to_sending_str + error_msg);
         return;
     } else {
         curr_percent = 100;
-        msg = _L("The printing task was sent successfully!");
+        msg = _L("Start printing...");
         update_status(curr_percent, msg);
     }
 
-    wxCommandEvent* evt = new wxCommandEvent(m_print_job_completed_id);
-    evt->SetString(m_dev_id);
-    wxQueueEvent(m_plater, evt);
+    wxCommandEvent evt(m_print_job_completed_id);
+    evt.SetString(m_dev_id);
+    wxQueueEvent(m_plater, evt.Clone());
     m_job_finished = true;
+    if (m_success_fun != nullptr) { m_success_fun(); }
 }
 
 void PrintJob::finalize() {

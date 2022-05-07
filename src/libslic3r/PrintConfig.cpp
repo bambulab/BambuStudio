@@ -345,7 +345,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts { 0 });
 
     def = this->add("bed_type", coEnums);
-    def->label = L("Bed Type");
+    def->label = L("Bed type");
     def->tooltip = L("Bed types supported by the printer");
     def->mode = comSimple;
     def->enum_keys_map = &s_keys_map_BedType;
@@ -356,7 +356,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnumsGeneric{ (int)btPC });
 
     def = this->add("curr_bed_type", coEnums);
-    def->label = L("Bed Type");
+    def->label = L("Bed type");
     def->tooltip = L("Bed types supported by the printer");
     def->mode = comSimple;
     def->enum_keys_map = &s_keys_map_BedType;
