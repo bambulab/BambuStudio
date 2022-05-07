@@ -464,6 +464,9 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
         // Nothing is supported, no supports are generated.
         return;
 
+    if (object.print()->canceled())
+        return;
+
 #ifdef SLIC3R_DEBUG
     static int iRun = 0;
     iRun ++;
@@ -483,6 +486,9 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     MyLayersPtr bottom_contacts = this->bottom_contact_layers_and_layer_support_areas(
         object, top_contacts, buildplate_covered,
         layer_storage, layer_support_areas);
+
+    if (object.print()->canceled())
+        return;
 
 #ifdef SLIC3R_DEBUG
     for (size_t layer_id = 0; layer_id < object.layers().size(); ++ layer_id)
@@ -543,6 +549,9 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     // There is also a 1st intermediate layer containing bases of support columns.
     // Inflate the bases of the support columns and create the raft base under the object.
     MyLayersPtr raft_layers = this->generate_raft_base(object, top_contacts, interface_layers, base_interface_layers, intermediate_layers, layer_storage);
+
+    if (object.print()->canceled())
+        return;
 
 #ifdef SLIC3R_DEBUG
     for (const MyLayer *l : interface_layers)
@@ -2171,7 +2180,13 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
         );
 
         overhangs_per_layers[layer_id] = std::move(overhang_polygons);
+
+        if (object.print()->canceled())
+            return MyLayersPtr();
     }
+
+    if (object.print()->canceled())
+        return MyLayersPtr();
 
     // BBS
     if (g_config_remove_small_overhangs) {
@@ -2264,6 +2279,9 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
             }
         }
     }
+
+    if (object.print()->canceled())
+        return MyLayersPtr();
 
     for (size_t layer_id = this->has_raft() ? 0 : 1; layer_id < num_layers; layer_id++) {
         const Layer& layer = *object.layers()[layer_id];
