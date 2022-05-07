@@ -51,7 +51,7 @@ public:
 
     //Web Function
     void load_url(wxString &url);
-    wxString SetStartPage(GuidePage startpage=BBL_WELCOME);
+    wxString SetStartPage(GuidePage startpage=BBL_WELCOME, bool load = true);
 
     void UpdateState();
     void OnIdle(wxIdleEvent &evt);

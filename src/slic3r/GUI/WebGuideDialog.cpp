@@ -81,7 +81,7 @@ GuideFrame::GuideFrame(GUI_App *pGUI)
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  set start page to welcome");
-    wxString TargetUrl = SetStartPage(BBL_WELCOME);
+    wxString TargetUrl = SetStartPage(BBL_WELCOME, false);
     bool bRet = m_browser->Create(this, wxID_ANY, TargetUrl, wxDefaultPosition, wxDefaultSize);
     m_browser->EnableContextMenu(false);
     SetSizer(topsizer);
@@ -136,13 +136,14 @@ GuideFrame::~GuideFrame()
 
 void GuideFrame::load_url(wxString &url)
 {
+    BOOST_LOG_TRIVIAL(trace) << "app_start: GuideFrame url=" << url.ToStdString();
     this->Show();
     m_browser->LoadURL(url);
     m_browser->SetFocus();
     UpdateState();
 }
 
-wxString GuideFrame::SetStartPage(GuidePage startpage)
+wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
 {
     //wxLogMessage("GUIDE: webpage_1  %s", (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string().c_str() );
     wxString TargetUrl = encode_path( (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string().c_str() );
@@ -182,7 +183,8 @@ wxString GuideFrame::SetStartPage(GuidePage startpage)
     if (strlang != "")
         TargetUrl = wxString::Format("%s?lang=%s", w2s(TargetUrl), strlang);
 
-    load_url(TargetUrl);
+    if (load)
+        load_url(TargetUrl);
 
     return TargetUrl;
 }
