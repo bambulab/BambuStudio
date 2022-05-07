@@ -1697,9 +1697,9 @@ void StatusPanel::show_status(int status) {
     if (((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0) ||
         ((status & (int)MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)) {
         if ((status & (int)MonitorStatus::MONITOR_DISCONNECTED_SERVER))
-            m_connection_info->SetLabel(_L("Unable to connect server"));
+            m_connection_info->SetLabel(_L("Failed to connect to the server"));
         else
-            m_connection_info->SetLabel(_L("Unable to get printer status"));
+            m_connection_info->SetLabel(_L("Failed to connect to the printer"));
         m_connection_info->Show();
         m_panel_monitoring_title->Layout();
         m_button_report->Enable(false);
