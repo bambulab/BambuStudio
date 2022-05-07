@@ -1,3 +1,4 @@
+var m_OldRegion='';
 var m_Region='';
 
 function OnInit()
@@ -33,11 +34,11 @@ function HandleStudio( pVal )
 
 function HandleRegionlList(  pItem )
 {
-	let strRegion=pItem['region'];
+	m_OldRegion=pItem['region'];
 	
-	let nNum=$(".RegionItem[region='"+strRegion+"']").length;
+	let nNum=$(".RegionItem[region='"+m_OldRegion+"']").length;
 	if( nNum==1 )
-		ChooseRegion(strRegion);
+		ChooseRegion(m_OldRegion);
 }
 
 

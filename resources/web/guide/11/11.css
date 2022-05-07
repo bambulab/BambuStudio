@@ -50,3 +50,19 @@
 	background-color:#00AE42;
 	color: #fff;
 }
+
+#ChangeTip
+{
+	margin-top: 15px;
+	line-height:20px;
+	text-align: center;
+	display: flex;
+	align-items: center;
+}
+
+.TipIcon
+{
+	width:24px;
+	height: 24px;
+	margin-right: 5px;
+}

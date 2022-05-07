@@ -363,8 +363,22 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
         else if (strCmd == "user_guide_finish") {
             SaveProfile();
 
-            //Close();
+            std::string oldregion = m_ProfileJson["region"];
+            bool        bLogin    = false;
+            if (m_Region != oldregion) { 
+                wxGetApp().getAccountManager()->is_region_config_ready = false;
+                wxGetApp().getAccountManager()->prepare_region_config();
+               
+                if (wxGetApp().getAccountManager()->is_user_login()) { 
+                    bLogin = true;
+                    wxGetApp().getAccountManager()->user_logout(); 
+                }
+            }
+
             this->EndModal(wxID_OK);
+
+            if (bLogin)
+                GUI::wxGetApp().CallAfter([this] { login(); });
         }
         else if (strCmd == "user_guide_cancel") {
             this->EndModal(wxID_CANCEL);

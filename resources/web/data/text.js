@@ -14,12 +14,12 @@ var LangText={
 		"t12":"None",
 		"t13":"mm nozzel",
 		"t14":"Filament Selection",
-		"t15":"Printer",
+		"t15":"printer",
 		"t16":"Filament type",
 		"t17":"Vendor",
 		"t18":"error",
 		"t19":"At least one filament must be selected.",
-		"t20":"Do you want to use default filament?",
+		"t20":"Do you want to use default filament ?",
 		"t21":"yes",
 		"t22":"no",
 		"t23":"Release note",
@@ -34,7 +34,7 @@ var LangText={
 		"t32":"Create new project",
 		"t33":"Open project",
 		"t34":"hotspot",
-		"t35":"Recently Opened",
+		"t35":"Recently opened",
 		"t36":"ok",
 		"t37":"At least one printer must be selected.",
 		"t38":"Cancel",
@@ -43,7 +43,7 @@ var LangText={
 		"t47":"Please select your login region",
 		"t48":"North America/Europe/Asia-Pacific",
 		"t49":"China",
-		"t50":"log out",
+		"t50":"Log out",
 		"t52":"Skip",
 		"t53":"Join",
 		"t54":"In the 3D Printing community, we learn from each other's successes and failures to adjust our own slicing parameters and settings. Bambu Studio follows the same principle and uses machine learning to improve its performance from the successes and failures of the vast number of prints by our users. We are training Bambu Studio to be more smarter by feeding them the real-world data. If you are willing, this service will access information from your error logs and usage logs, which may include information described in",
@@ -54,7 +54,8 @@ var LangText={
 		"t59":".",
 		"t60":"Europe",
 		"t61":"North America",
-		"t62":"Others"
+		"t62":"Others",
+		"t63":"After changing the region, your account will be logged out. Please log in again later."
 	},
 	"zh_CN":{
 		"t1":"欢迎使用Bambu Studio",
@@ -111,7 +112,8 @@ var LangText={
 		"t59":"。",
 		"t60":"欧洲",
 		"t61":"北美",
-		"t62":"其他"	
+		"t62":"其他",
+		"t63":"切换区域后，你的账号会被登出。稍后请重新登录。"
 	}
 };
 
