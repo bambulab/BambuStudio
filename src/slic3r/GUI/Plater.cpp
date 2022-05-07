@@ -1232,8 +1232,11 @@ public:
 
     virtual bool OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames);
 
+    void handleOnIdle(wxIdleEvent & event);
+
 private:
     Plater* m_plater;
+    wxArrayString m_filenames;
 };
 
 bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames)
@@ -1244,11 +1247,18 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
 #endif // WIN32
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": drag %1% files into app")%filenames.size();
-    bool res = (m_plater != nullptr) ? m_plater->load_files(filenames) : false;
-    wxGetApp().mainframe->update_title();
+    m_filenames = filenames;
+    wxGetApp().Bind(wxEVT_IDLE, &PlaterDropTarget::handleOnIdle, this);
+    return true;
+}
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": return %1%")%res;
-    return res;
+void PlaterDropTarget::handleOnIdle(wxIdleEvent &event)
+{
+    wxGetApp().mainframe->Raise();
+    wxGetApp().Unbind(wxEVT_IDLE, &PlaterDropTarget::handleOnIdle, this);
+    if (m_plater != nullptr) m_plater->load_files(m_filenames);
+    m_filenames.clear();
+    wxGetApp().mainframe->update_title();
 }
 
 // State to manage showing after export notifications and device ejecting
