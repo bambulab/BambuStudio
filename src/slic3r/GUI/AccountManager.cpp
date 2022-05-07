@@ -183,11 +183,13 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
 
                 it->second->parse_json(msg->get_topic(), json_str);
 
+#if !BBL_RELEASE_TO_PUBLIC
                 if (it->second->is_ams_need_update)
                     GUI::wxGetApp().CallAfter([manager, m = params[1]] {
                         std::map<std::string, MachineObject *>::iterator it = manager->myBindMachineList.find(m);
                         GUI::wxGetApp().sidebar().load_ams_list(it->second->amsList);
                     });
+#endif
             }
         }
     }
