@@ -621,9 +621,9 @@ public:
     void print() const;
 
     //get the all the sliced result
-    void get_sliced_result(std::vector<bool>& sliced_result);
+    void get_sliced_result(std::vector<bool>& sliced_result, std::vector<std::string>& gcode_paths);
     //retruct plates structures after de-serialize
-    int rebuild_plates_after_deserialize(std::vector<bool>& previous_sliced_result);
+    int rebuild_plates_after_deserialize(std::vector<bool>& previous_sliced_result, std::vector<std::string>& previous_gcode_paths);
 
     //retruct plates structures after auto-arrangement
     int rebuild_plates_after_arrangement(bool recycle_plates = true);

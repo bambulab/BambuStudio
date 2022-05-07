@@ -671,6 +671,7 @@ public:
     const Vec3d get_plate_origin() const { return m_origin; }
     //BBS: export gcode from previous gcode file from 3mf
     void set_gcode_file_ready();
+    void set_gcode_file_invalidated();
     void export_gcode_from_previous_file(const std::string& file, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
     //BBS: add modify_count logic
     int get_modified_count() const {return m_modified_count;}

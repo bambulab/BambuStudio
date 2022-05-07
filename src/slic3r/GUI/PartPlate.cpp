@@ -113,7 +113,7 @@ PartPlate::~PartPlate()
 	//	::gluDeleteQuadric(m_quadric);
 	release_opengl_resource();
 
-	boost::nowide::remove(m_tmp_gcode_path.c_str());
+	//boost::nowide::remove(m_tmp_gcode_path.c_str());
 }
 
 void PartPlate::init()
@@ -3637,16 +3637,19 @@ int PartPlateList::create_plate_from_gcode_file(const std::string& filename)
 	return ret;
 }
 
-void PartPlateList::get_sliced_result(std::vector<bool>& sliced_result)
+void PartPlateList::get_sliced_result(std::vector<bool>& sliced_result, std::vector<std::string>& gcode_paths)
 {
 	sliced_result.resize(m_plate_list.size());
+	gcode_paths.resize(m_plate_list.size());
+
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
 		sliced_result[i] = m_plate_list[i]->m_slice_result_valid;
+		gcode_paths[i] = m_plate_list[i]->m_tmp_gcode_path;
 	}
 }
 //rebuild data which are not serialized after de-serialize
-int PartPlateList::rebuild_plates_after_deserialize(std::vector<bool>& previous_sliced_result)
+int PartPlateList::rebuild_plates_after_deserialize(std::vector<bool>& previous_sliced_result, std::vector<std::string>& previous_gcode_paths)
 {
 	int ret = 0;
 
@@ -3655,6 +3658,7 @@ int PartPlateList::rebuild_plates_after_deserialize(std::vector<bool>& previous_
 	set_shapes(m_shape, m_exclude_areas, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
+		bool need_reset_print = false;
 		m_plate_list[i]->m_plater = this->m_plater;
 		m_plate_list[i]->m_partplate_list = this;
 		m_plate_list[i]->m_model = this->m_model;
@@ -3663,6 +3667,14 @@ int PartPlateList::rebuild_plates_after_deserialize(std::vector<bool>& previous_
 		if (m_plate_list[i]->m_slice_result_valid) {
 			if ((i >= previous_sliced_result.size()) || !previous_sliced_result[i])
 				m_plate_list[i]->update_slice_result_valid_state(false);
+		}
+		if ((i < previous_gcode_paths.size())
+			&& !previous_gcode_paths[i].empty()
+			&& (m_plate_list[i]->m_tmp_gcode_path != previous_gcode_paths[i])) {
+			if (boost::filesystem::exists(previous_gcode_paths[i])) {
+				boost::nowide::remove(previous_gcode_paths[i].c_str());
+				need_reset_print = true;
+			}
 		}
 
 		std::map<int, PrintBase*>::iterator it = m_print_list.find(m_plate_list[i]->m_print_index);
@@ -3682,6 +3694,13 @@ int PartPlateList::rebuild_plates_after_deserialize(std::vector<bool>& previous_
 			{
 				m_plate_list[i]->set_print(it->second, it2->second, m_plate_list[i]->m_print_index);
 				it->second->set_plate_index(i);
+				if (need_reset_print) {
+					Print *print = dynamic_cast<Print*>(it->second);
+					it2->second->reset();
+					print->set_gcode_file_invalidated();
+					if ((i == m_current_plate)&&m_plater)
+						m_plater->reset_gcode_toolpaths();
+				}
 				continue;
 			}
 		}

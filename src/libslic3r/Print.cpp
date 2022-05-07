@@ -1702,6 +1702,12 @@ void Print::set_gcode_file_ready()
 	this->set_done(psGCodeExport);
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(": done");
 }
+//BBS: add gcode file preload logic
+void Print::set_gcode_file_invalidated()
+{
+    this->invalidate_step(psGCodeExport);
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(": done");
+}
 
 //BBS: add gcode file preload logic
 void Print::export_gcode_from_previous_file(const std::string& file, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb)
