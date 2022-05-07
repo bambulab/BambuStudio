@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-06 17:39+0800\n"
-"PO-Revision-Date: 2022-05-06 17:39+0800\n"
+"POT-Creation-Date: 2022-05-07 11:53+0800\n"
+"PO-Revision-Date: 2022-05-07 11:57+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -5105,6 +5105,14 @@ msgstr "生成填充"
 
 msgid "Generating support"
 msgstr "生成支撑"
+
+msgid "Checking support necessity"
+msgstr "检查支撑必要性"
+
+#, c-format, boost-format
+msgid ""
+"It seems object %s needs support to print. Please enable support generation."
+msgstr "对象“%s”可能需要添加支撑才能打印。建议开启支撑生成。"
 
 msgid "Slicing mesh"
 msgstr "切片网格"

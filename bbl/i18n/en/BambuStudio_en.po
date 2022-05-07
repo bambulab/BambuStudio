@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-06 17:39+0800\n"
+"POT-Creation-Date: 2022-05-07 11:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5267,6 +5267,14 @@ msgid "Generating infill"
 msgstr ""
 
 msgid "Generating support"
+msgstr ""
+
+msgid "Checking support necessity"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"It seems object %s needs support to print. Please enable support generation."
 msgstr ""
 
 msgid "Slicing mesh"
