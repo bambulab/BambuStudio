@@ -994,8 +994,8 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     m_cancel_btn->Bind(wxEVT_LEFT_DOWN, [this](wxEvent &) { this->EndModal(wxID_CANCEL); });
     m_cancel_btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
     m_cancel_btn->SetCornerRadius(12);
-    m_sizer_button->Add(m_cancel_btn, 0, wxLEFT | wxRIGHT, 5);
-
+    m_sizer_button->Add(m_cancel_btn, 0, wxLEFT, 5);
+    m_sizer_button->Add(0,0,0,wxRIGHT,20);
 
     if (!m_app_config_key.empty()) {}
 
