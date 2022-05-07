@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-07 15:15+0800\n"
+"POT-Creation-Date: 2022-05-07 18:16+0800\n"
 "Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -517,7 +517,7 @@ msgstr "Débit volumétrique (mm³/s)"
 msgid "Used filament"
 msgstr "Filament utilisé"
 
-msgid "Filament N"
+msgid "Filament N XX"
 msgstr ""
 
 msgid "Color Print"

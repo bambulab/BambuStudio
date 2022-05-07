@@ -4359,7 +4359,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             ::sprintf(buffer, imperial_units ? "%.2fg" : "%.2fg", item);
             if (::strlen(buffer) > longest_used_filament_g_string.length()) longest_used_filament_g_string = buffer;
         }
-        offsets = calculate_offsets(labels, times, {_u8L("Filament N"), longest_used_filament_string, longest_used_filament_g_string, _u8L("Display")}, icon_size);
+        // BBL XX is placeholder
+        offsets = calculate_offsets(labels, times, {_u8L("Filament N XX"), longest_used_filament_string, longest_used_filament_g_string, _u8L("Display")}, icon_size);
         append_headers({_u8L("Color Print"), _u8L("Comsumption"), "", "", _u8L("Display")}, offsets);
         break;
     }
