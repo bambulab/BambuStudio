@@ -4465,7 +4465,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     auto is_visible = [plate_idx, plate_build_volume](const GLVolume& v) {
         bool ret = v.printable;
         if (plate_idx >= 0) {
-            ret &= plate_build_volume.contains(v.transformed_bounding_box());
+            ret &= plate_build_volume.contains(v.transformed_convex_hull_bounding_box());
         }
         else {
             ret &= (!v.shader_outside_printer_detection_enabled || !v.is_outside);
