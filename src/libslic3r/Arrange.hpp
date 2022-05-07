@@ -115,8 +115,9 @@ struct ArrangeParams {
     bool allow_rotations = false;
 
     //BBS: add specific arrange params
-    bool allow_multi_materials_on_same_plate = true;
-    bool is_seq_print = false;
+    bool  allow_multi_materials_on_same_plate = true;
+    bool  avoid_extrusion_cali_region         = true;
+    bool  is_seq_print                        = false;
     float bed_shrink_x = 0;
     float bed_shrink_y = 0;
     float brim_skirt_distance = 0;

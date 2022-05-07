@@ -3252,7 +3252,6 @@ bool PartPlateList::preprocess_nonprefered_areas(arrangement::ArrangePolygons& r
 
 	//has exclude areas
 	PartPlate* plate = m_plate_list[0];
-	regions.clear();
 	for (int index = 0; index < nonprefered_regions.size(); index++)
 	{
 		Polygon ap = scaled(nonprefered_regions[index]).polygon();

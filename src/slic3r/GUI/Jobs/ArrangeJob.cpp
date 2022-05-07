@@ -86,6 +86,7 @@ void ArrangeJob::clear_input()
         for (auto mi : obj->instances)
             mi->printable ? count++ : cunprint++;
 
+    params.nonprefered_regions.clear();
     m_selected.clear();
     m_unselected.clear();
     m_unprintable.clear();
@@ -441,15 +442,16 @@ void ArrangeJob::process()
     params.cleareance_radius = print.config().extruder_clearance_radius.value;
     params.allow_rotations = settings.enable_rotation;
     params.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
+    params.avoid_extrusion_cali_region         = settings.avoid_extrusion_cali_region;
     params.is_seq_print = settings.is_seq_print;
     params.min_obj_distance = scaled(settings.distance);
 
     if (params.is_seq_print)
         params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius));
-    else {
-        // BBS: nonprefered regions are not working for sequential printing now
-        m_plater->get_partplate_list().preprocess_nonprefered_areas(params.nonprefered_regions, 1);
-    }
+
+    if (params.avoid_extrusion_cali_region)
+        m_plater->get_partplate_list().preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
+    
 
     double skirt_distance = print.has_skirt() ? print.config().skirt_distance.value : 0;
     bool is_auto_brim = print.has_auto_brim();

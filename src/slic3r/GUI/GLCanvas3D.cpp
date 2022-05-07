@@ -4335,6 +4335,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     std::string dist_key = "min_object_distance", rot_key = "enable_rotation";
     std::string bed_shrink_x_key = "bed_shrink_x", bed_shrink_y_key = "bed_shrink_y";
     std::string multi_material_key = "allow_multi_materials_on_same_plate";
+    std::string avoid_extrusion_key = "avoid_extrusion_cali_region";
     std::string postfix;
     //BBS:
     bool seq_print = false;
@@ -4385,6 +4386,12 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     if (imgui->bbl_checkbox(_L("Allow multiple materials on same plate"), settings.allow_multi_materials_on_same_plate)) {
         settings_out.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
         appcfg->set("arrange", multi_material_key.c_str(), settings_out.allow_multi_materials_on_same_plate ? "1" : "0");
+        settings_changed = true;
+    }
+
+    if (imgui->bbl_checkbox(_L("Avoid extrusion calibration region"), settings.avoid_extrusion_cali_region)) {
+        settings_out.avoid_extrusion_cali_region = settings.avoid_extrusion_cali_region;
+        appcfg->set("arrange", avoid_extrusion_key.c_str(), settings_out.avoid_extrusion_cali_region ? "1" : "0");
         settings_changed = true;
     }
 
