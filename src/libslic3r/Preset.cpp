@@ -1183,8 +1183,10 @@ bool PresetCollection::reset_project_embedded_presets()
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" type %1% , delete preset %2%")%Preset::get_type_string(m_type) % it->name;
             if ((!re_select) && (m_idx_selected == count))
                 re_select = true;
-            if (m_idx_selected > count)
+            if (m_idx_selected > count) {
                 m_idx_selected--;
+                count--;
+            }
             it = m_presets.erase(it);
         }
         else
