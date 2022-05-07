@@ -1151,8 +1151,8 @@ int MachineObject::parse_json(std::string topic, std::string payload)
             }
 
             try {
-                if (jj.contains("light_report") && jj["light_report"].is_array()) {
-                    for (auto it = jj["light_report"].begin(); it != jj["light_report"].end(); it++) {
+                if (jj.contains("lights_report") && jj["lights_report"].is_array()) {
+                    for (auto it = jj["lights_report"].begin(); it != jj["lights_report"].end(); it++) {
                         if ((*it)["node"].get<std::string>().compare("chamber_light") == 0)
                             chamber_light = light_effect_parse((*it)["mode"].get<std::string>());
                         if ((*it)["node"].get<std::string>().compare("work_light") == 0)

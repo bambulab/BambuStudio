@@ -658,7 +658,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
 
     bSizer_z_ctrl->Add(0, FromDIP(6), 0, wxEXPAND, 0);
 
-    m_bpButton_z_down_1 = new Button(parent, wxString("1"), "monitor_bed_up", 0, FromDIP(15));
+    m_bpButton_z_down_1 = new Button(parent, wxString("1"), "monitor_bed_down", 0, FromDIP(15));
     m_bpButton_z_down_1->SetBackgroundColor(z_1_ctrl_bg);
     m_bpButton_z_down_1->SetBorderColor(z_1_ctrl_bd);
     m_bpButton_z_down_1->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
@@ -1084,8 +1084,24 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     if (!obj) return;
 
     // speed and lamp
-    m_switch_nozzle_fan->SetValue(obj->cooling_fan_speed > 0);
-    m_switch_printing_fan->SetValue(obj->big_fan1_speed > 0);
+    if (m_switch_nozzle_fan_timeout > 0)
+        m_switch_nozzle_fan_timeout--;
+    else
+        m_switch_nozzle_fan->SetValue(obj->cooling_fan_speed > 0);
+    if (m_switch_printing_fan_timeout > 0)
+        m_switch_printing_fan_timeout--;
+    else
+        m_switch_printing_fan->SetValue(obj->big_fan1_speed > 0);
+
+    bool light_on = obj->chamber_light != MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_OFF;
+    BOOST_LOG_TRIVIAL(trace) << "light: " << light_on ? "on" : "off";
+    if (m_switch_lamp_timeout > 0)
+        m_switch_lamp_timeout--;
+    else {
+        m_switch_lamp->SetValue(light_on);
+        wxString label = light_on ? "On" : "Off";
+        m_switch_lamp->SetLabels(label, label);
+    }
 
     wxString text_speed = wxString::Format("%d%%", obj->printing_speed_mag);
     m_switch_speed->SetLabel(text_speed);
@@ -1610,9 +1626,11 @@ void StatusPanel::on_printing_fan_switch(wxCommandEvent &event)
     if (value) {
         obj->command_control_fan(MachineObject::FanType::BIG_COOLING_FAN, true);
         m_switch_printing_fan->SetValue(true);
+        m_switch_printing_fan_timeout = COMMAND_TIMEOUT;
     } else {
         obj->command_control_fan(MachineObject::FanType::BIG_COOLING_FAN, false);
         m_switch_printing_fan->SetValue(false);
+        m_switch_printing_fan_timeout = COMMAND_TIMEOUT;
     }
 }
 
@@ -1625,9 +1643,11 @@ void StatusPanel::on_nozzle_fan_switch(wxCommandEvent &event)
     if (value) {
         obj->command_control_fan(MachineObject::FanType::COOLING_FAN, true);
         m_switch_nozzle_fan->SetValue(true);
+        m_switch_nozzle_fan_timeout = COMMAND_TIMEOUT;
     } else {
         obj->command_control_fan(MachineObject::FanType::COOLING_FAN, false);
         m_switch_nozzle_fan->SetValue(false);
+        m_switch_nozzle_fan_timeout = COMMAND_TIMEOUT;
     }
 }
 void StatusPanel::on_lamp_switch(wxCommandEvent &event)
@@ -1638,9 +1658,12 @@ void StatusPanel::on_lamp_switch(wxCommandEvent &event)
 
     if (value) {
         m_switch_lamp->SetValue(true);
+        //do not update when timeout > 0
+        m_switch_lamp_timeout = COMMAND_TIMEOUT;
         obj->command_set_chamber_light(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_ON);
     } else {
         m_switch_lamp->SetValue(false);
+        m_switch_lamp_timeout = COMMAND_TIMEOUT;
         obj->command_set_chamber_light(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_OFF);
     }
     

@@ -28,6 +28,8 @@
 
 class StepIndicator;
 
+#define COMMAND_TIMEOUT         2
+
 namespace Slic3r {
 namespace GUI {
 
@@ -85,6 +87,7 @@ protected:
 
     wxStaticText *  m_staticText_control;
     ImageSwitchButton *m_switch_lamp;
+    int               m_switch_lamp_timeout{0};
     ImageSwitchButton *m_switch_speed;
 
     wxStaticText *  m_staticText_temp_caption;
@@ -95,7 +98,9 @@ protected:
     TempInput *     m_tempCtrl_bed;
     TempInput *     m_tempCtrl_frame;
     ImageSwitchButton *m_switch_nozzle_fan;
+    int             m_switch_nozzle_fan_timeout{0};
     ImageSwitchButton *m_switch_printing_fan;
+    int             m_switch_printing_fan_timeout{0};
 
     AxisCtrlButton *m_bpButton_xy;
     wxStaticText *  m_staticText_xy;
