@@ -244,8 +244,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->remove_selected(); }, wxID_HIGHEST + wxID_DELETE);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->select_all(); }, wxID_HIGHEST + wxID_SELECTALL);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->deselect_all(); }, wxID_HIGHEST + wxID_CANCEL);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->undo(); }, wxID_HIGHEST + wxID_UNDO);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->redo(); }, wxID_HIGHEST + wxID_REDO);
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { 
+        if (m_plater->is_view3D_shown())
+            m_plater->undo();
+        }, wxID_HIGHEST + wxID_UNDO);
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) {
+        if (m_plater->is_view3D_shown())
+            m_plater->redo();
+        }, wxID_HIGHEST + wxID_REDO);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); }, wxID_HIGHEST + wxID_COPY);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); }, wxID_HIGHEST + wxID_PASTE);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->cut_selection_to_clipboard(); }, wxID_HIGHEST + wxID_CUT);
@@ -697,7 +703,7 @@ void MainFrame::init_tabpanel()
             //monitor
         }
 
-        if (panel == m_plater) {
+        if (sel == tp3DEditor) {
             m_topbar->EnableUndoRedoItems();
         }
         else {

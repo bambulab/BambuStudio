@@ -1604,7 +1604,8 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
     step->Bind(EVT_STEP_CHANGED, [this](auto &e) {
         PrintingSpeedLevel lvl = (PrintingSpeedLevel)e.GetInt();
         this->speed = e.GetInt();
-        obj->command_set_printing_speed(lvl);
+        if (obj)
+            obj->command_set_printing_speed(lvl);
     });
     popUp->Bind(wxEVT_SHOW, [this](auto &e) {
         if (!e.IsShown()) {

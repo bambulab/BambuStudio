@@ -2293,7 +2293,9 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else /* __APPLE__ */
         case WXK_CONTROL_Y:
 #endif /* __APPLE__ */
-            post_event(SimpleEvent(EVT_GLCANVAS_REDO));
+            if (m_canvas_type == CanvasView3D) {
+                post_event(SimpleEvent(EVT_GLCANVAS_REDO));
+            }
         break;
 #ifdef __APPLE__
         case 'z':
@@ -2301,7 +2303,10 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else /* __APPLE__ */
         case WXK_CONTROL_Z:
 #endif /* __APPLE__ */
-            post_event(SimpleEvent(EVT_GLCANVAS_UNDO));
+            // only support redu/undo in CanvasView3D
+            if (m_canvas_type == CanvasView3D) {
+                post_event(SimpleEvent(EVT_GLCANVAS_UNDO));
+            }
         break;
 
         // BBS
