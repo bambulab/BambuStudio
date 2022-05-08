@@ -41,7 +41,7 @@ var LangText={
 		"t39":"Confirm",
 		"t40":"Network disconnect, please check and try again later.",
 		"t47":"Please select your login region",
-		"t48":"North America/Europe/Asia-Pacific",
+		"t48":"Asia-Pacific",
 		"t49":"China",
 		"t50":"Log out",
 		"t52":"Skip",
