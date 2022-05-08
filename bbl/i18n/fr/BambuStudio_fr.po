@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-08 15:23+0800\n"
+"POT-Creation-Date: 2022-05-08 17:55+0800\n"
 "Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1203,16 +1203,16 @@ msgstr ""
 msgid "Restore to meter"
 msgstr ""
 
-msgid "Merge"
-msgstr "Fusionner"
-
-msgid "Merge the selected objects to an object with multiple parts"
+msgid "Assemble"
 msgstr ""
 
-msgid "Merge the selected objects to an object with single part"
+msgid "Assemble the selected objects to an object with multiple parts"
 msgstr ""
 
-msgid "Merge the selected parts to a single part"
+msgid "Assemble the selected objects to an object with single part"
+msgstr ""
+
+msgid "Assemble the selected parts to a single part"
 msgstr ""
 
 msgid "Along X axis"
@@ -1314,6 +1314,9 @@ msgstr ""
 msgid "Set Filament for selected items"
 msgstr ""
 
+msgid "current"
+msgstr ""
+
 msgid "Set Unprintable"
 msgstr "Définir non-Imprimable"
 
@@ -1389,8 +1392,8 @@ msgstr ""
 msgid "The target object contains only one part and can not be splited."
 msgstr ""
 
-msgid "Merged"
-msgstr "Fusionné"
+msgid "Assembly"
+msgstr ""
 
 msgid "Object"
 msgstr ""
@@ -5055,6 +5058,12 @@ msgstr ""
 
 msgid "Slicing mesh"
 msgstr ""
+
+#~ msgid "Merge"
+#~ msgstr "Fusionner"
+
+#~ msgid "Merged"
+#~ msgstr "Fusionné"
 
 #~ msgid "Transfer"
 #~ msgstr "Transférer"

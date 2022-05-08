@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-08 15:23+0800\n"
+"POT-Creation-Date: 2022-05-08 17:55+0800\n"
 "PO-Revision-Date: 2022-03-12 17:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com> , patched traditional "
 "chinese by Cheng-Hsien Ho <taksito@gmail.com>\n"
@@ -1204,16 +1204,16 @@ msgstr ""
 msgid "Restore to meter"
 msgstr ""
 
-msgid "Merge"
-msgstr "合併"
-
-msgid "Merge the selected objects to an object with multiple parts"
+msgid "Assemble"
 msgstr ""
 
-msgid "Merge the selected objects to an object with single part"
+msgid "Assemble the selected objects to an object with multiple parts"
 msgstr ""
 
-msgid "Merge the selected parts to a single part"
+msgid "Assemble the selected objects to an object with single part"
+msgstr ""
+
+msgid "Assemble the selected parts to a single part"
 msgstr ""
 
 msgid "Along X axis"
@@ -1315,6 +1315,9 @@ msgstr ""
 msgid "Set Filament for selected items"
 msgstr ""
 
+msgid "current"
+msgstr ""
+
 msgid "Set Unprintable"
 msgstr ""
 
@@ -1388,7 +1391,7 @@ msgstr ""
 msgid "The target object contains only one part and can not be splited."
 msgstr ""
 
-msgid "Merged"
+msgid "Assembly"
 msgstr ""
 
 msgid "Object"
@@ -5042,6 +5045,9 @@ msgstr ""
 
 msgid "Slicing mesh"
 msgstr ""
+
+#~ msgid "Merge"
+#~ msgstr "合併"
 
 #~ msgid "Add support blocker"
 #~ msgstr "添加支撐屏蔽"

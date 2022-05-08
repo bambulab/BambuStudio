@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-08 15:23+0800\n"
+"POT-Creation-Date: 2022-05-08 17:55+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1221,16 +1221,16 @@ msgstr "Convert from Meter"
 msgid "Restore to meter"
 msgstr "Restore to Meter"
 
-msgid "Merge"
+msgid "Assemble"
 msgstr ""
 
-msgid "Merge the selected objects to an object with multiple parts"
+msgid "Assemble the selected objects to an object with multiple parts"
 msgstr ""
 
-msgid "Merge the selected objects to an object with single part"
+msgid "Assemble the selected objects to an object with single part"
 msgstr ""
 
-msgid "Merge the selected parts to a single part"
+msgid "Assemble the selected parts to a single part"
 msgstr ""
 
 msgid "Along X axis"
@@ -1332,6 +1332,9 @@ msgstr ""
 msgid "Set Filament for selected items"
 msgstr ""
 
+msgid "current"
+msgstr ""
+
 msgid "Set Unprintable"
 msgstr ""
 
@@ -1407,7 +1410,7 @@ msgstr ""
 msgid "The target object contains only one part and can not be splited."
 msgstr "The target object contains only one part and can not be split."
 
-msgid "Merged"
+msgid "Assembly"
 msgstr ""
 
 msgid "Object"

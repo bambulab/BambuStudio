@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-08 15:23+0800\n"
+"POT-Creation-Date: 2022-05-08 17:55+0800\n"
 "PO-Revision-Date: 2021-02-03 14:06+0100\n"
 "Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -1210,16 +1210,16 @@ msgstr ""
 msgid "Restore to meter"
 msgstr ""
 
-msgid "Merge"
-msgstr "Объединить"
-
-msgid "Merge the selected objects to an object with multiple parts"
+msgid "Assemble"
 msgstr ""
 
-msgid "Merge the selected objects to an object with single part"
+msgid "Assemble the selected objects to an object with multiple parts"
 msgstr ""
 
-msgid "Merge the selected parts to a single part"
+msgid "Assemble the selected objects to an object with single part"
+msgstr ""
+
+msgid "Assemble the selected parts to a single part"
 msgstr ""
 
 msgid "Along X axis"
@@ -1321,6 +1321,9 @@ msgstr ""
 msgid "Set Filament for selected items"
 msgstr ""
 
+msgid "current"
+msgstr ""
+
 msgid "Set Unprintable"
 msgstr "Задать \"Не для печати\""
 
@@ -1398,8 +1401,8 @@ msgstr ""
 msgid "The target object contains only one part and can not be splited."
 msgstr ""
 
-msgid "Merged"
-msgstr "Объединённые"
+msgid "Assembly"
+msgstr ""
 
 msgid "Object"
 msgstr ""
@@ -5064,6 +5067,12 @@ msgstr ""
 
 msgid "Slicing mesh"
 msgstr ""
+
+#~ msgid "Merge"
+#~ msgstr "Объединить"
+
+#~ msgid "Merged"
+#~ msgstr "Объединённые"
 
 #~ msgid "Transfer"
 #~ msgstr "Перенести"
