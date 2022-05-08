@@ -3836,8 +3836,8 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->label = L("Duplicate by grid");
     def->tooltip = L("Multiply copies by creating a grid.");
 
-    def = this->add("merge", coBool);
-    def->label = L("Merge");
+    def = this->add("assemble", coBool);
+    def->label = L("Assemble");
     def->tooltip = L("Arrange the supplied models in a plate and merge them in a single model in order to perform actions once.");
     def->cli = "merge|m";*/
 

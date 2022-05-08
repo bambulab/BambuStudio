@@ -759,7 +759,7 @@ void MenuFactory::append_menu_items_convert_unit(wxMenu* menu, int insert_pos/* 
 
 void MenuFactory::append_menu_item_merge_to_multipart_object(wxMenu* menu)
 {
-    append_menu_item(menu, wxID_ANY, _L("Merge"), _L("Merge the selected objects to an object with multiple parts"),
+    append_menu_item(menu, wxID_ANY, _L("Assemble"), _L("Assemble the selected objects to an object with multiple parts"),
         [](wxCommandEvent&) { obj_list()->merge(true); }, "", menu,
         []() { return obj_list()->can_merge_to_multipart_object(); }, m_parent);
 }
@@ -767,7 +767,7 @@ void MenuFactory::append_menu_item_merge_to_multipart_object(wxMenu* menu)
 void MenuFactory::append_menu_item_merge_to_single_object(wxMenu* menu)
 {
     menu->AppendSeparator();
-    append_menu_item(menu, wxID_ANY, _L("Merge"), _L("Merge the selected objects to an object with single part"),
+    append_menu_item(menu, wxID_ANY, _L("Assemble"), _L("Assemble the selected objects to an object with single part"),
         [](wxCommandEvent&) { obj_list()->merge(false); }, "", menu,
         []() { return obj_list()->can_merge_to_single_object(); }, m_parent);
 }
@@ -775,7 +775,7 @@ void MenuFactory::append_menu_item_merge_to_single_object(wxMenu* menu)
 void MenuFactory::append_menu_item_merge_parts_to_single_part(wxMenu* menu)
 {
     menu->AppendSeparator();
-    append_menu_item(menu, wxID_ANY, _L("Merge"), _L("Merge the selected parts to a single part"),
+    append_menu_item(menu, wxID_ANY, _L("Assemble"), _L("Assemble the selected parts to a single part"),
         [](wxCommandEvent&) { obj_list()->merge_volumes(); }, "", menu,
         []() { return true; }, m_parent);
 }
@@ -885,8 +885,9 @@ void MenuFactory::create_bbl_object_menu()
     append_menu_item_delete(&m_object_menu);
     m_object_menu.AppendSeparator();
     // Modifier Part
-    append_menu_items_add_volume(&m_object_menu);
-    m_object_menu.AppendSeparator();
+    // BBS
+    //append_menu_items_add_volume(&m_object_menu);
+    //m_object_menu.AppendSeparator();
     // Set filament insert menu item here
     // Set Printable
     wxMenuItem* menu_item_printable = append_menu_item_printable(&m_object_menu);
@@ -1072,7 +1073,7 @@ wxMenu* MenuFactory::default_menu()
 
 wxMenu* MenuFactory::object_menu()
 {
-    append_menu_item_change_filament(&m_object_menu, 13);
+    append_menu_item_change_filament(&m_object_menu, 7);
     append_menu_items_convert_unit(&m_object_menu, 16);
     return &m_object_menu;
 }
@@ -1278,13 +1279,13 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu, int insert_pos)
         initial_extruder = config.has("extruder") ? config.extruder() : 1;
     }
 
-    for (int i = 0; i <= filaments_cnt; i++)
+    for (int i = 1; i <= filaments_cnt; i++)
     {
         bool is_active_extruder = i == initial_extruder;
         int icon_idx = i == 0 ? 0 : i - 1;
 
-        const wxString& item_name = (i == 0 ? _L("Default") : wxString::Format(_L("Filament %d"), i)) +
-            (is_active_extruder ? " (" + _L("active") + ")" : "");
+        const wxString& item_name = wxString::Format(_L("Filament %d"), i) +
+            (is_active_extruder ? " (" + _L("current") + ")" : "");
 
         append_menu_item(extruder_selection_menu, wxID_ANY, item_name, "",
             [i](wxCommandEvent&) { obj_list()->set_extruder_for_selected_items(i); }, *icons[icon_idx], menu,

@@ -2387,14 +2387,14 @@ void ObjectList::merge(bool to_multipart_object)
         GetSelections(sels);
         assert(!sels.IsEmpty());
 
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Merge");
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Assemble");
 
         get_object_idxs(obj_idxs, sels);
 
         // resulted objects merge to the one
         Model* model = (*m_objects)[0]->get_model();
         ModelObject* new_object = model->add_object();
-        new_object->name = _u8L("Merged");
+        new_object->name = _u8L("Assembly");
         ModelConfig &config = new_object->config;
 
         for (int obj_idx : obj_idxs) {
