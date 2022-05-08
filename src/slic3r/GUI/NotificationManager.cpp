@@ -629,6 +629,17 @@ void NotificationManager::PopNotification::update(const NotificationData& n)
     const_cast<NotificationData&>(m_data).callback	 = n.callback;
 	init();
 }
+
+void NotificationManager::PopNotification::append(const std::string& append_str)
+{
+	m_text1            = m_text1 + "\n" + append_str;
+	//m_hypertext      = n.hypertext;
+	//m_text2          = n.text2;
+	//const_cast<NotificationData&>(m_data).callback	 = n.callback;
+	init();
+	m_multiline        = false;
+}
+
 bool NotificationManager::PopNotification::compare_text(const std::string& text) const
 {
 	std::wstring wt1 = boost::nowide::widen(m_text1);
@@ -1412,9 +1423,12 @@ void NotificationManager::push_slicing_error_notification(const std::string& tex
 	push_notification_data({ NotificationType::SlicingError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("Error:") + "\n" + text }, 0);
 	set_slicing_progress_hidden();
 }
-void NotificationManager::push_slicing_warning_notification(const std::string& text, bool gray, ObjectID oid, int warning_step)
+void NotificationManager::push_slicing_warning_notification(const std::string& text, bool gray, ObjectID oid, int warning_step, int warning_msg_id)
 {
 	NotificationData data { NotificationType::SlicingWarning, NotificationLevel::WarningNotificationLevel, 0,  _u8L("Warning:") + "\n" + text };
+
+	data.sub_msg_id = warning_msg_id;
+	data.ori_text = text;
 
 	auto notification = std::make_unique<NotificationManager::ObjectIDNotification>(data, m_id_provider, m_evt_handler);
 	notification->object_id = oid;
@@ -1790,7 +1804,11 @@ bool NotificationManager::push_notification_data(std::unique_ptr<NotificationMan
 	bool retval = false;
 	if (this->activate_existing(notification.get())) {
 		if (m_initialized) { // ignore update action - it cant be initialized if canvas and imgui context is not ready
-			m_pop_notifications.back()->update(notification->get_data());
+			if (notification->get_type() == NotificationType::SlicingWarning) {
+				m_pop_notifications.back()->append(notification->get_data().ori_text);
+			}
+			else
+				m_pop_notifications.back()->update(notification->get_data());
 		}
 	} else {
 		m_pop_notifications.emplace_back(std::move(notification));
@@ -1934,9 +1952,13 @@ bool NotificationManager::activate_existing(const NotificationManager::PopNotifi
 				auto w1 = dynamic_cast<const ObjectIDNotification*>(notification);
 				auto w2 = dynamic_cast<const ObjectIDNotification*>(it->get());
 				if (w1 != nullptr && w2 != nullptr) {
-					if (!(*it)->compare_text(new_text) || w1->object_id != w2->object_id) {
+					const NotificationData& data1 = w1->get_data();
+					const NotificationData& data2 = w2->get_data();
+					if (data1.sub_msg_id != data2.sub_msg_id)
 						continue;
-					}
+					//if (!(*it)->compare_text(new_text) || w1->object_id != w2->object_id) {
+					//	continue;
+					//}
 				} else {
 					continue;
 				}
@@ -2155,19 +2177,19 @@ void NotificationManager::bbl_close_gcode_overlap_notification()
 }
 
 void NotificationManager::bbl_show_sole_text_notification(NotificationType sType, const std::string &text, bool bOverride, int level, bool autohide) {
-   
+
 	NotificationLevel nlevel;
     int               nHideTime = 20;
     switch ( level) {
-    case 1: 
-		nlevel = NotificationLevel::WarningNotificationLevel; 
+    case 1:
+		nlevel = NotificationLevel::WarningNotificationLevel;
 		nHideTime = 0;
 		break;
-    case 2: 
+    case 2:
 		nlevel = NotificationLevel::ErrorNotificationLevel; break;
         nHideTime = 0;
-    case 0: 
-    default: 
+    case 0:
+    default:
 		nlevel = NotificationLevel::PrintInfoNotificationLevel;
 
 		if (autohide == false) nHideTime = 86400 * 10;

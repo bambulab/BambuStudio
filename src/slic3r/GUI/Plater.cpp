@@ -4562,7 +4562,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
     //BBS: add slice project logic
     std::string title_text = L("Slicing");
     evt.status.text = title_text + evt.status.text;
-    if (evt.status.percent >= -1) {
+    if (evt.status.percent >= 0) {
         if (m_ui_jobs.is_any_running()) {
             // Avoid a race condition
             return;
@@ -4622,7 +4622,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         // Now process state.warnings.
         for (auto const& warning : state.warnings) {
             if (warning.current) {
-                notification_manager->push_slicing_warning_notification(warning.message, false, object_id, warning_step);
+                notification_manager->push_slicing_warning_notification(warning.message, false, object_id, warning_step, warning.message_id);
                 add_warning(warning, object_id.id);
             }
         }
@@ -4675,10 +4675,14 @@ void Plater::priv::on_slicing_began()
 }
 void Plater::priv::add_warning(const Slic3r::PrintStateBase::Warning& warning, size_t oid)
 {
-    for (auto const& it : current_warnings) {
+    for (auto& it : current_warnings) {
         if (warning.message_id == it.first.message_id) {
             if (warning.message_id != 0 || (warning.message_id == 0 && warning.message == it.first.message))
+            {
+                if (warning.message_id != 0)
+                    it.first.message = warning.message;
                 return;
+            }
         }
     }
     current_warnings.emplace_back(std::pair<Slic3r::PrintStateBase::Warning, size_t>(warning, oid));

@@ -6,7 +6,7 @@
 
 #include "I18N.hpp"
 
-//! macro used to mark string used at localization, 
+//! macro used to mark string used at localization,
 //! return same string
 #define L(s) Slic3r::I18N::translate(s)
 
@@ -45,7 +45,7 @@ void PrintBase::update_object_placeholders(DynamicConfig &config, const std::str
 	            input_file = model_object->name.empty() ? model_object->input_file : model_object->name;
 	    }
     }
-    
+
     config.set_key_value("num_objects", new ConfigOptionInt(num_objects));
     config.set_key_value("num_instances", new ConfigOptionInt(num_instances));
 
@@ -91,12 +91,12 @@ std::string PrintBase::output_filepath(const std::string &path, const std::strin
     if (path.empty())
         // get the first input file name
         return (boost::filesystem::path(m_model.propose_export_file_name_and_path()).parent_path() / this->output_filename(filename_base)).make_preferred().string();
-    
+
     // if we were supplied a directory, use it and append our automatically generated filename
     boost::filesystem::path p(path);
     if (boost::filesystem::is_directory(p))
         return (p / this->output_filename(filename_base)).make_preferred().string();
-    
+
     // if we were supplied a file which is not a directory, use it
     return path;
 }
@@ -110,10 +110,11 @@ void  PrintBase::set_status(int percent, const std::string &message, unsigned in
         BOOST_LOG_TRIVIAL(info) <<boost::format("Percent %1%: %2%\n")%percent %message.c_str();
 }
 
-void PrintBase::status_update_warnings(int step, PrintStateBase::WarningLevel /* warning_level */, const std::string &message, const PrintObjectBase* print_object)
+void PrintBase::status_update_warnings(int step, PrintStateBase::WarningLevel /* warning_level */,
+    const std::string &message, const PrintObjectBase* print_object, PrintStateBase::SlicingNotificationType message_id)
 {
     if (this->m_status_callback) {
-        auto status = print_object ? SlicingStatus(*print_object, step, message) : SlicingStatus(*this, step, message);
+        auto status = print_object ? SlicingStatus(*print_object, step, message, message_id) : SlicingStatus(*this, step, message, message_id);
         m_status_callback(status);
     }
     else if (! message.empty())
@@ -121,11 +122,12 @@ void PrintBase::status_update_warnings(int step, PrintStateBase::WarningLevel /*
 }
 
 //BBS: add PrintObject id into slicing status
-void PrintBase::status_update_warnings(int step, PrintStateBase::WarningLevel /* warning_level */, const std::string& message, PrintObjectBase &object)
+void PrintBase::status_update_warnings(int step, PrintStateBase::WarningLevel /* warning_level */,
+    const std::string& message, PrintObjectBase &object, PrintStateBase::SlicingNotificationType message_id)
 {
     //BBS: add object it into slicing status
     if (this->m_status_callback) {
-        m_status_callback(SlicingStatus(object, step, message));
+        m_status_callback(SlicingStatus(object, step, message, message_id));
     }
     else if (!message.empty())
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", PrintObject warning: %1%\n")% message.c_str();
@@ -133,18 +135,19 @@ void PrintBase::status_update_warnings(int step, PrintStateBase::WarningLevel /*
 
 
 std::mutex& PrintObjectBase::state_mutex(PrintBase *print)
-{ 
+{
 	return print->state_mutex();
 }
 
 std::function<void()> PrintObjectBase::cancel_callback(PrintBase *print)
-{ 
+{
 	return print->cancel_callback();
 }
 
-void PrintObjectBase::status_update_warnings(PrintBase *print, int step, PrintStateBase::WarningLevel warning_level, const std::string &message)
+void PrintObjectBase::status_update_warnings(PrintBase *print, int step, PrintStateBase::WarningLevel warning_level,
+    const std::string &message, PrintStateBase::SlicingNotificationType message_id)
 {
-    print->status_update_warnings(step, warning_level, message, this);
+    print->status_update_warnings(step, warning_level, message, this, message_id);
 }
 
 } // namespace Slic3r

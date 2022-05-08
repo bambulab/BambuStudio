@@ -684,7 +684,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
             + _(L("Maybe parts of the object at these height are too thin, or the object has faulty mesh"));
 
         const_cast<Print*>(object.print())->active_step_add_warning(
-            PrintStateBase::WarningLevel::CRITICAL, warning);
+            PrintStateBase::WarningLevel::CRITICAL, warning, PrintStateBase::SlicingEmptyGcodeLayers);
     }
 
     return layers_to_print;

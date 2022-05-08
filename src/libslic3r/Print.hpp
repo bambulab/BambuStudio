@@ -460,7 +460,6 @@ private:
     // this is set to true when LayerRegion->slices is split in top/internal/bottom
     // so that next call to make_perimeters() performs a union() before computing loops
     bool                    				m_typed_slices = false;
-    // BBS: first layer slices sorted by volume
     std::vector < VolumeSlices >            firstLayerObjSliceByVolume;
 
     // BBS: per object skirt

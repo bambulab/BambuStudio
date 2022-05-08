@@ -878,7 +878,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                     bool has_enforcers = mv->is_support_enforcer() ||
                         (mv->is_model_part() && mv->supported_facets.has_facets(*mv, EnforcerBlockerType::ENFORCER));
                     if (has_enforcers) {
-                        warning->string = "_SUPPORTS_OFF";
+                        warning->string = L("Support enforcers are used but support is not enabled. Please enable support.");
                         warning->object = object;
                         break;
                     }

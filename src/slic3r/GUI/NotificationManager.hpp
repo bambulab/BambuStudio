@@ -180,7 +180,7 @@ public:
 	// Creates Slicing Error notification with a custom text and no fade out.
 	void push_slicing_error_notification(const std::string& text);
 	// Creates Slicing Warning notification with a custom text and no fade out.
-	void push_slicing_warning_notification(const std::string& text, bool gray, ObjectID oid, int warning_step);
+	void push_slicing_warning_notification(const std::string& text, bool gray, ObjectID oid, int warning_step, int warning_msg_id);
 	// marks slicing errors as gray
 	void set_all_slicing_errors_gray(bool g);
 	// marks slicing warings as gray
@@ -309,6 +309,8 @@ private:
 		// Examples in basic_notifications.
         std::function<bool(wxEvtHandler*)> callback;
 		const std::string        text2;
+		int                      sub_msg_id {-1};
+		std::string        ori_text;
 	};
 
 	// Cache of IDs to identify and reuse ImGUI windows.
@@ -350,6 +352,7 @@ private:
 		virtual void           close() { m_state = EState::ClosePending; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);}
 		// data from newer notification of same type
 		void                   update(const NotificationData& n);
+		void                   append(const std::string& append_str);
 		bool                   is_finished() const { return m_state == EState::ClosePending || m_state == EState::Finished; }
         void                   reinit() { m_state = EState::Unknown; }
 		// returns top after movement

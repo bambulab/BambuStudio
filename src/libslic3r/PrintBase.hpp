@@ -43,6 +43,15 @@ public:
         CRITICAL
     };
 
+    enum SlicingNotificationType
+    {
+        SlicingDefaultNotification = 0,    //normal status update, called by set_status
+        SlicingReplaceInitEmptyLayers,
+        SlicingNeedSupportOn,
+        SlicingEmptyGcodeLayers,
+        SlicingGcodeOverlap
+    };
+
     typedef size_t TimeStamp;
 
     // A new unique timestamp is being assigned to the step every time the step changes its state.
@@ -279,23 +288,23 @@ public:
         assert(state.state == STARTED);
         std::pair<StepType, bool> retval(static_cast<StepType>(m_step_active), true);
         // Does a warning of the same level and message or message_id exist already?
-		auto it = (message_id == 0) ?
+        auto it = (message_id == 0) ?
             std::find_if(state.warnings.begin(), state.warnings.end(), [&message](const auto &w) { return w.message_id == 0 && w.message == message; }) :
             std::find_if(state.warnings.begin(), state.warnings.end(), [message_id](const auto& w) { return w.message_id == message_id; });
-    	if (it == state.warnings.end())
-    		// No, create a new warning and update UI.
-        	state.warnings.emplace_back(PrintStateBase::Warning{ warning_level, true, message, message_id });
+        if (it == state.warnings.end())
+            // No, create a new warning and update UI.
+            state.warnings.emplace_back(PrintStateBase::Warning{ warning_level, true, message, message_id });
         else if (it->message != message || it->level != warning_level) {
-        	// Yes, however it needs an update.
-        	it->message = message;
-        	it->level 	= warning_level;
-        	it->current = true;
+            // Yes, however it needs an update.
+            it->message = message;
+            it->level 	= warning_level;
+            it->current = true;
         } else if (it->current)
-        	// Yes, and it is current. Don't update UI.
-        	retval.second = false;
+            // Yes, and it is current. Don't update UI.
+            retval.second = false;
         else
-        	// Yes, but it is not current. Mark it as current.
-        	it->current = true;
+            // Yes, but it is not current. Mark it as current.
+            it->current = true;
         return retval;
     }
 
@@ -324,7 +333,9 @@ protected:
 	// Notify UI about a new warning of a milestone "step" on this PrintObjectBase.
 	// The UI will be notified by calling a status callback registered on print.
 	// If no status callback is registered, the message is printed to console.
-	void 				   				status_update_warnings(PrintBase *print, int step, PrintStateBase::WarningLevel warning_level, const std::string &message);
+    void status_update_warnings(PrintBase *print, int step, PrintStateBase::WarningLevel warning_level,
+        const std::string &message, PrintStateBase::SlicingNotificationType message_id = PrintStateBase::SlicingDefaultNotification);
+    void emptylayer_update_msg(PrintBase* print, int type, const std::string& message, bool overwrite);
 
     ModelObject                  *m_model_object;
 };
@@ -406,12 +417,21 @@ public:
     virtual void            finalize() {}
 
     struct SlicingStatus {
-		SlicingStatus(int percent, const std::string &text, unsigned int flags = 0, int warning_step = -1) :
-            percent(percent), text(text), flags(flags), warning_step(warning_step) {}
-        SlicingStatus(const PrintBase &print, int warning_step, const std::string& text) :
-            flags(UPDATE_PRINT_STEP_WARNINGS), warning_object_id(print.id()), text(text), warning_step(warning_step) {}
-        SlicingStatus(const PrintObjectBase &print_object, int warning_step, const std::string& text) :
-            flags(UPDATE_PRINT_OBJECT_STEP_WARNINGS), warning_object_id(print_object.id()), text(text), warning_step(warning_step) {}
+        SlicingStatus(int percent, const std::string &text, unsigned int flags = 0, int warning_step = -1,
+            PrintStateBase::SlicingNotificationType  msg_type = PrintStateBase::SlicingDefaultNotification) :
+            percent(percent), text(text), flags(flags), warning_step(warning_step), message_type(msg_type)
+        {
+        }
+        SlicingStatus(const PrintBase &print, int warning_step, const std::string& text,
+            PrintStateBase::SlicingNotificationType  msg_type = PrintStateBase::SlicingDefaultNotification) :
+            flags(UPDATE_PRINT_STEP_WARNINGS), warning_object_id(print.id()), text(text), warning_step(warning_step), message_type(msg_type)
+        {
+        }
+        SlicingStatus(const PrintObjectBase &print_object, int warning_step, const std::string& text,
+            PrintStateBase::SlicingNotificationType  msg_type = PrintStateBase::SlicingDefaultNotification) :
+            flags(UPDATE_PRINT_OBJECT_STEP_WARNINGS), warning_object_id(print_object.id()), text(text), warning_step(warning_step), message_type(msg_type)
+        {
+        }
         int             percent { -1 };
         std::string     text;
         // Bitmap of flags.
@@ -431,6 +451,8 @@ public:
         ObjectID        warning_object_id;
         // For which Print or PrintObject step a new warning is being issued?
         int             warning_step { -1 };
+
+        PrintStateBase::SlicingNotificationType  message_type {PrintStateBase::SlicingDefaultNotification};
     };
     typedef std::function<void(const SlicingStatus&)>  status_callback_type;
     // Default status console print out in the form of percent => message.
@@ -489,9 +511,11 @@ protected:
 	// Notify UI about a new warning of a milestone "step" on this PrintBase.
 	// The UI will be notified by calling a status callback.
 	// If no status callback is registered, the message is printed to console.
-    void 				   status_update_warnings(int step, PrintStateBase::WarningLevel warning_level, const std::string &message, const PrintObjectBase* print_object = nullptr);
+    void 				   status_update_warnings(int step, PrintStateBase::WarningLevel warning_level,
+        const std::string &message, const PrintObjectBase* print_object = nullptr, PrintStateBase::SlicingNotificationType message_id = PrintStateBase::SlicingDefaultNotification);
     //BBS: add api to update printobject's warnings
-	void                   status_update_warnings(int step, PrintStateBase::WarningLevel /* warning_level */, const std::string& message, PrintObjectBase &object);
+	void                   status_update_warnings(int step, PrintStateBase::WarningLevel /* warning_level */,
+	    const std::string& message, PrintObjectBase &object, PrintStateBase::SlicingNotificationType message_id = PrintStateBase::SlicingDefaultNotification);
 
     // If the background processing stop was requested, throw CanceledException.
     // To be called by the worker thread and its sub-threads (mostly launched on the TBB thread pool) regularly.
@@ -559,11 +583,13 @@ protected:
 
     // Add a slicing warning to the active Print step and send a status notification.
     // This method could be called multiple times between this->set_started() and this->set_done().
-    void            active_step_add_warning(PrintStateBase::WarningLevel warning_level, const std::string &message, int message_id = 0) {
-    	std::pair<PrintStepEnum, bool> active_step = m_state.active_step_add_warning(warning_level, message, message_id, this->state_mutex());
-    	if (active_step.second)
-    		// Update UI.
-            this->status_update_warnings(static_cast<int>(active_step.first), warning_level, message);
+    void            active_step_add_warning(PrintStateBase::WarningLevel warning_level, const std::string &message,
+                            PrintStateBase::SlicingNotificationType message_id = PrintStateBase::SlicingDefaultNotification)
+    {
+        std::pair<PrintStepEnum, bool> active_step = m_state.active_step_add_warning(warning_level, message, (int)message_id, this->state_mutex());
+        if (active_step.second)
+            // Update UI.
+            this->status_update_warnings(static_cast<int>(active_step.first), warning_level, message, nullptr, message_id);
     }
 
 private:
@@ -609,10 +635,11 @@ protected:
 
     // Add a slicing warning to the active PrintObject step and send a status notification.
     // This method could be called multiple times between this->set_started() and this->set_done().
-    void            active_step_add_warning(PrintStateBase::WarningLevel warning_level, const std::string &message, int message_id = 0) {
-    	std::pair<PrintObjectStepEnum, bool> active_step = m_state.active_step_add_warning(warning_level, message, message_id, PrintObjectBase::state_mutex(m_print));
+    void            active_step_add_warning(PrintStateBase::WarningLevel warning_level, const std::string &message,
+                        PrintStateBase::SlicingNotificationType message_id = PrintStateBase::SlicingDefaultNotification) {
+    	std::pair<PrintObjectStepEnum, bool> active_step = m_state.active_step_add_warning(warning_level, message,(int) message_id, PrintObjectBase::state_mutex(m_print));
     	if (active_step.second)
-    		this->status_update_warnings(m_print, static_cast<int>(active_step.first), warning_level, message);
+    		this->status_update_warnings(m_print, static_cast<int>(active_step.first), warning_level, message, message_id);
     }
 
 protected:
