@@ -8199,7 +8199,7 @@ void Plater::publish_project()
 
     bool load_url = true;
     if (design_id.empty() && !publish_project) {
-        msg = _L("Internal Error. design id is empty.");
+        msg = _L("Internal error.") + _L(" ") + _L("Design id is empty.");
         BOOST_LOG_TRIVIAL(trace) << msg;
         load_url = false;
     }

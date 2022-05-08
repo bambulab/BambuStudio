@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-08 01:01+0800\n"
+"POT-Creation-Date: 2022-05-08 15:23+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2449,7 +2449,10 @@ msgstr ""
 msgid "get_no,err:code=%u,msg=%s"
 msgstr ""
 
-msgid "Internal Error. design id is empty."
+msgid "Internal error."
+msgstr ""
+
+msgid "Design id is empty."
 msgstr ""
 
 msgid ""
@@ -2803,7 +2806,7 @@ msgstr ""
 msgid "Exporting 3mf..."
 msgstr ""
 
-msgid "Internal Error. Exporting 3mf failed, please reslice again."
+msgid "Exporting 3mf failed, please slice again."
 msgstr ""
 
 #. TRN "Save current Settings"
@@ -3036,9 +3039,6 @@ msgstr "Neuer Wert"
 
 msgid "Keep"
 msgstr "Behalten"
-
-msgid "Transfer"
-msgstr "Transfer"
 
 msgid "Don't save"
 msgstr "Nicht sichern"
@@ -4468,7 +4468,7 @@ msgstr ""
 #, c-format, boost-format
 msgid ""
 "Detect the overhang percentage relative to line width and use different "
-"speed to print. For 100%% overhang, bridge speed is used"
+"speed to print. For 100%% overhang, bridge speed is used."
 msgstr ""
 
 msgid ""
@@ -5058,6 +5058,9 @@ msgstr ""
 
 msgid "Slicing mesh"
 msgstr ""
+
+#~ msgid "Transfer"
+#~ msgstr "Transfer"
 
 #~ msgid "Upgrade"
 #~ msgstr "Aktualisieren"

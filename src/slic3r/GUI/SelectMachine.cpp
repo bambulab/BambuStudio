@@ -879,7 +879,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     });
 
     if (result < 0) {
-        wxString msg = _L("Internal Error. Exporting 3mf failed, please reslice again.");
+        wxString msg = _L("Internal error.") + _L(" ") + _L("Exporting 3mf failed, please slice again.");
         m_status_bar->set_status_text(msg);
         return;
     }
