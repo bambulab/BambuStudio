@@ -920,12 +920,11 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
 
     m_sizer_main->Add(0, 0, 0, wxTOP, 9);
 
-    m_info_line = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(-1, 44), 0);
-    m_info_line->SetFont(::Label::Body_13);
-    m_info_line->Wrap(-1);
-    m_info_line->SetForegroundColour(wxColour(255, 111, 0));
-
-    m_sizer_main->Add(m_info_line, 0, wxLEFT | wxRIGHT, 20);
+   /* m_info_line = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(-1, 44), 0);
+     m_info_line->SetFont(::Label::Body_13);
+     m_info_line->Wrap(-1);
+     m_info_line->SetForegroundColour(wxColour(255, 111, 0));
+     m_sizer_main->Add(m_info_line, 0, wxLEFT | wxRIGHT, 20);*/
 
     wxBoxSizer *m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
@@ -972,7 +971,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
         if (dependent_presets && switched_presets && (type == dependent_presets->type() ?
             dependent_presets->get_edited_preset().printer_technology() == dependent_presets->find_preset(new_selected_preset)->printer_technology() :
             switched_presets->get_edited_preset().printer_technology() == switched_presets->find_preset(new_selected_preset)->printer_technology()))
-            add_btn(&m_transfer_btn, m_move_btn_id, "menu_paste", Action::Transfer, switched_presets->get_edited_preset().name == new_selected_preset ? _L("Keep") : _L("Transfer"), true);
+            add_btn(&m_transfer_btn, m_move_btn_id, "menu_paste", Action::Transfer, switched_presets->get_edited_preset().name == new_selected_preset ? _L("Keep") : _L("Keep"), true);
     }
     if (!m_transfer_btn && (ActionButtons::KEEP & m_buttons))
         add_btn(&m_transfer_btn, m_move_btn_id, "menu_paste", Action::Transfer, _L("Keep"), true);
@@ -984,22 +983,22 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     }
 
     // "Save" button
-    if (ActionButtons::SAVE & m_buttons) add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, _L("Save"), false);
+    //if (ActionButtons::SAVE & m_buttons) add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, _L("Save"), false);
 
     /* ScalableButton *cancel_btn = new ScalableButton(this, wxID_CANCEL, "cross", _L("Cancel"), wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true, 24);
       buttons->Add(cancel_btn, 1, wxLEFT | wxRIGHT, 5);
       cancel_btn->SetFont(btn_font);*/
-    m_cancel_btn = new Button(this, _L("Cancel"));
-    m_cancel_btn->SetTextColor(wxColour(107, 107, 107));
-    m_cancel_btn->Bind(wxEVT_LEFT_DOWN, [this](wxEvent &) { this->EndModal(wxID_CANCEL); });
-    m_cancel_btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
-    m_cancel_btn->SetCornerRadius(12);
-    m_sizer_button->Add(m_cancel_btn, 0, wxLEFT, 5);
-    m_sizer_button->Add(0,0,0,wxRIGHT,20);
+    /* m_cancel_btn = new Button(this, _L("Cancel"));
+     m_cancel_btn->SetTextColor(wxColour(107, 107, 107));
+     m_cancel_btn->Bind(wxEVT_LEFT_DOWN, [this](wxEvent &) { this->EndModal(wxID_CANCEL); });
+     m_cancel_btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
+     m_cancel_btn->SetCornerRadius(12);
+     m_sizer_button->Add(m_cancel_btn, 0, wxLEFT, 5);
+     m_sizer_button->Add(0,0,0,wxRIGHT,20);*/
 
     if (!m_app_config_key.empty()) {}
 
-   
+    m_sizer_button->Add(0, 0, 0, wxRIGHT, 20);
     m_sizer_main->Add(m_sizer_button, 0, wxEXPAND | wxTOP, 6);
     m_sizer_main->Add(0, 0, 1, wxTOP, 18);
 
@@ -1019,6 +1018,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
 
 void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name)
 {
+    return;
     if (action == Action::Undef && !m_has_long_strings)
         m_info_line->SetLabel(wxEmptyString);
     else {
@@ -1311,8 +1311,12 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
     PresetCollection* presets = dependent_presets;
 
     // activate buttons and labels
-    if (m_save_btn)
-        m_save_btn    ->Bind(wxEVT_ENTER_WINDOW, [this, presets]                           (wxMouseEvent& e) { show_info_line(Action::Save, presets ? presets->get_selected_preset().name : ""); e.Skip(); });
+    /* if (m_save_btn)
+         m_save_btn    ->Bind(wxEVT_ENTER_WINDOW, [this, presets](wxMouseEvent& e) {
+         show_info_line(Action::Save, presets ? presets->get_selected_preset().name : ""); e.Skip();
+     });*/
+   
+
     if (m_transfer_btn) {
         bool is_empty_name = dependent_presets && type != dependent_presets->type();
         m_transfer_btn->Bind(wxEVT_ENTER_WINDOW, [this, new_selected_preset, is_empty_name](wxMouseEvent& e) { show_info_line(Action::Transfer, is_empty_name ? "" : new_selected_preset); e.Skip(); });
@@ -1596,11 +1600,11 @@ void UnsavedChangesDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     int em = em_unit();
 
-    msw_buttons_rescale(this, em, { wxID_CANCEL, m_save_btn_id, m_move_btn_id, m_continue_btn_id });
-    for (auto btn : {m_save_btn, m_transfer_btn, m_discard_btn, m_discard_btn})
+    msw_buttons_rescale(this, em, { wxID_CANCEL, m_move_btn_id, m_continue_btn_id });
+    for (auto btn : {m_transfer_btn, m_discard_btn, m_discard_btn})
         if (btn) btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
 
-    m_cancel_btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
+    //m_cancel_btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
     const wxSize& size = wxSize(70 * em, 30 * em);
     SetMinSize(size);
     //m_tree->Rescale(em);
