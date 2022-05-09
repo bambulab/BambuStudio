@@ -63,6 +63,22 @@ public:
         MultiPoint::append(point);
         append_fitting_result_after_append_points();
     }
+
+    void append_before(const Point& point) {
+        //BBS: don't need to append same point
+        if (!this->empty() && this->first_point() == point)
+            return;
+        if (this->size() == 1) {
+            this->fitting_result.clear();
+            MultiPoint::append(point);
+            MultiPoint::reverse();
+        } else {
+            this->reverse();
+            this->append(point);
+            this->reverse();
+        }
+    }
+
     void append(const Points &src) {
         //BBS: don't need to append same point
         if (!this->empty() && !src.empty() && this->last_point() == src[0])

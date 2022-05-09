@@ -226,7 +226,7 @@ void Polyline::split_at(Point &point, Polyline* p1, Polyline* p2) const
     if (this->points.empty()) return;
 
     //0 judge whether the point is on the polyline
-    size_t index = this->find_point(point);
+    int index = this->find_point(point);
     if (index != -1) {
         //BBS: the spilit point is on the polyline, then easy
         split_at_index(index, p1, p2);
@@ -255,17 +255,13 @@ void Polyline::split_at(Point &point, Polyline* p1, Polyline* p2) const
     {
         this->split_at_index(index, p1, p2);
         p1->append(point);
-        p2->reverse();
-        p2->append(point);
-        p2->reverse();
+        p2->append_before(point);
     } else {
         Polyline temp;
         this->split_at_index(line_idx, p1, &temp);
         p1->append(point);
         this->split_at_index(line_idx + 1, &temp, p2);
-        p2->reverse();
-        p2->append(point);
-        p2->reverse();
+        p2->append_before(point);
     }
 }
 
@@ -277,9 +273,11 @@ bool Polyline::split_at_index(const size_t index, Polyline* p1, Polyline* p2) co
 
     if (index == 0) {
         p1->clear();
+        p1->append(this->first_point());
         *p2 = *this;
     } else if (index == this->size() - 1) {
         p2->clear();
+        p2->append(this->last_point());
         *p1 = *this;
     } else {
         //BBS: spilit first part
@@ -328,6 +326,14 @@ void Polyline::append_fitting_result_after_append_points() {
 
 void Polyline::append_fitting_result_after_append_polyline(const Polyline& src)
 {
+    //BBS: append a polyline which has fitting data to a polyline without fitting data.
+    //Then create a fake fitting data first, so that we can keep the fitting data in last polyline
+    if (this->fitting_result.empty() &&
+        !src.fitting_result.empty()) {
+        if (!this->points.empty())
+            this->fitting_result.emplace_back(PathFittingData{ 0, this->size() - 1, EMovePathType::Linear_move, ArcSegment() });
+    }
+
     if (!this->fitting_result.empty()) {
         //BBS: offset and save the fitting_result from src polyline
         if (!src.fitting_result.empty()) {
