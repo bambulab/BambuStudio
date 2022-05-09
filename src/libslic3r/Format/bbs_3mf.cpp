@@ -680,6 +680,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         std::string m_start_part_path;
         std::string m_key_store_path;
+        std::string m_thumbnail_path;
         std::vector<std::string> m_sub_model_paths;
         std::vector<std::string> m_encrypted_paths;
 
@@ -701,6 +702,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //BBS: add plate data related logic
         // add backup & restore logic
         bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, LoadStrategy strategy, bool& is_bbl_3mf, Semver& file_version, Import3mfProgressFn proFn = nullptr, BBLProject *project = nullptr);
+        bool get_thumbnail(const std::string &filename, std::string &data);
         unsigned int version() const { return m_version; }
 
     private:
@@ -956,6 +958,44 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         if (m_key_store)
             model.set_key_store(m_key_store);
         return result;
+    }
+
+    bool _BBS_3MF_Importer::get_thumbnail(const std::string &filename, std::string &data)
+    {
+        mz_zip_archive archive;
+        mz_zip_zero_struct(&archive);
+
+        struct close_lock
+        {
+            mz_zip_archive *archive;
+            void            close()
+            {
+                if (archive) {
+                    close_zip_reader(archive);
+                    archive = nullptr;
+                }
+            }
+            ~close_lock() { close(); }
+        } lock{&archive};
+
+        if (!open_zip_reader(&archive, filename)) {
+            add_error("Unable to open the file");
+            return false;
+        }
+
+        // BBS: load relationships
+        if (!_extract_xml_from_archive(archive, RELATIONSHIPS_FILE, _handle_start_relationships_element, _handle_end_relationships_element))
+            return false;
+        if (!m_thumbnail_path.empty()) {
+            return _extract_from_archive(archive, m_thumbnail_path, [&data](auto &archive, auto const &stat) -> bool {
+                data.resize(stat.m_uncomp_size);
+                return mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, data.data(), data.size(), 0);
+            });
+        }
+        return _extract_from_archive(archive, THUMBNAIL_FILE, [&data](auto &archive, auto const &stat) -> bool {
+            data.resize(stat.m_uncomp_size);
+            return mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, data.data(), data.size(), 0);
+        });
     }
 
     void _BBS_3MF_Importer::_destroy_xml_parser()
@@ -3209,6 +3249,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             m_key_store_path = path;
         } else if (boost::starts_with(type, "http://schemas.openxmlformats.org/") && boost::ends_with(type, "encryptedfile")) {
             m_encrypted_paths.push_back(path);
+        } else if (boost::starts_with(type, "http://schemas.openxmlformats.org/") && boost::ends_with(type, "thumbnail")) {
+            m_thumbnail_path = path;
         }
         return true;
     }
@@ -6006,6 +6048,15 @@ bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstituti
     //BBS: remove legacy project logic currently
     //handle_legacy_project_loaded(importer.version(), *config);
     return res;
+}
+
+std::string bbs_3mf_get_thumbnail(const char *path)
+{
+    _BBS_3MF_Importer importer;
+    std::string data;
+    bool res = importer.get_thumbnail(path, data);
+    if (!res) importer.log_errors();
+    return data;
 }
 
 bool store_bbs_3mf(StoreParams& store_params)

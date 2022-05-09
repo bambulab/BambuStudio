@@ -1542,6 +1542,7 @@ void MainFrame::init_menubar_as_editor()
                         }
                     wxGetApp().app_config->set_recent_projects(recent_projects);
                     wxGetApp().app_config->save();
+                    m_webview->SendRecentList("");
                 }
             }
             }, wxID_FILE1, wxID_FILE9);
@@ -1552,6 +1553,7 @@ void MainFrame::init_menubar_as_editor()
         {
             m_recent_projects.AddFileToHistory(from_u8(project));
         }
+        m_recent_projects.LoadThumbnails();
 
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_recent_projects.GetCount() > 0); }, recent_projects_submenu->GetId());
 
@@ -2201,6 +2203,43 @@ void MainFrame::add_to_recent_projects(const wxString& filename)
     }
 }
 
+std::wstring MainFrame::FileHistory::GetThumbnailUrl(int index) const
+{
+    if (m_thumbnails[index].empty()) return L"";
+    std::wstringstream wss;
+    wss << L"data:image/png;base64,";
+    wss << wxBase64Encode(m_thumbnails[index].data(), m_thumbnails[index].size());
+    return wss.str();
+}
+
+void MainFrame::FileHistory::AddFileToHistory(const wxString &file)
+{
+    wxFileHistory::AddFileToHistory(file);
+    if (m_load_called)
+        m_thumbnails.push_front(bbs_3mf_get_thumbnail(into_u8(file).c_str()));
+    else
+        m_thumbnails.push_front("");
+}
+
+void MainFrame::FileHistory::RemoveFileFromHistory(size_t i)
+{
+    wxFileHistory::RemoveFileFromHistory(i);
+    m_thumbnails.erase(m_thumbnails.begin() + i);
+}
+
+void MainFrame::FileHistory::LoadThumbnails()
+{
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, GetCount()), [this](tbb::blocked_range<size_t> range) {
+        for (size_t i = range.begin(); i < range.end(); ++i) {
+            auto thumbnail = bbs_3mf_get_thumbnail(into_u8(GetHistoryFile(i)).c_str());
+            if (!thumbnail.empty()) {
+                m_thumbnails[i] = thumbnail;
+            }
+        }
+    });
+    m_load_called = true;
+}
+
 void MainFrame::get_recent_projects(boost::property_tree::wptree &tree)
 {
     for (size_t i = 0; i < m_recent_projects.GetCount(); ++i) {
@@ -2213,6 +2252,8 @@ void MainFrame::get_recent_projects(boost::property_tree::wptree &tree)
         if (!ec) {
             std::wstring time = wxDateTime(t).Format().ToStdWstring();
             item.put(L"time", time);
+            auto thumbnail = m_recent_projects.GetThumbnailUrl(i);
+            if (!thumbnail.empty()) item.put(L"image", thumbnail);
         } else {
             item.put(L"time", _L("File is missing"));
         }

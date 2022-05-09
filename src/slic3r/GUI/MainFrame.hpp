@@ -134,7 +134,21 @@ class MainFrame : public DPIFrame
     // vector of a MenuBar items changeable in respect to printer technology 
     std::vector<wxMenuItem*> m_changeable_menu_items;
 
-    wxFileHistory m_recent_projects;
+    struct FileHistory : wxFileHistory
+    {
+        FileHistory(int max) : wxFileHistory(max) {}
+        std::wstring GetThumbnailUrl(int index) const;
+
+        virtual void AddFileToHistory(const wxString &file);
+        virtual void RemoveFileFromHistory(size_t i);
+
+        void LoadThumbnails();
+    private:
+        std::deque<std::string> m_thumbnails;
+        bool m_load_called = false;
+    };
+
+    FileHistory m_recent_projects;
 
     enum class ESettingsLayout
     {
