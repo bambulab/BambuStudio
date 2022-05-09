@@ -13,6 +13,7 @@
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/Utils/Http.hpp"
+//#include "GUI_App.hpp"
 
 
 #define BBL_INTERNAL_TEST
@@ -82,14 +83,7 @@ private:
         BOOST_LOG_TRIVIAL(trace) << "subscribe return code: " << tok.get_return_code();
         BOOST_LOG_TRIVIAL(trace) << "subscribe reason code: " << tok.get_reason_code();
     }
-    void on_success(const mqtt::token& tok) override {
-        for (int i = 0; i < tok.get_topics()->size(); i++) {
-            BOOST_LOG_TRIVIAL(trace) << "subscribe topic:" << (*tok.get_topics())[i].c_str() << " success";
-        }
-
-        BOOST_LOG_TRIVIAL(trace) << "subscribe return code: " << tok.get_return_code();
-        BOOST_LOG_TRIVIAL(trace) << "subscribe reason code: " << tok.get_reason_code();
-    }
+    void on_success(const mqtt::token& tok) override;
 public:
     action_listener(const std::string& name, void* context) : name_(name), context_(context) {}
 };
@@ -332,6 +326,7 @@ public:
 
     void set_monitor_machine(std::string dev_id);
     void load_last_machine();
+    void request_pushing_print(std::string topic_str);
 
     //control subscribe default machine
     void start_subscribe();

@@ -337,6 +337,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/PrintResultDialog.cpp
     GUI/SelectMachine.hpp
     GUI/SelectMachine.cpp
+    Utils/json_diff.hpp
+    Utils/json_diff.cpp
     Utils/Http.cpp
     Utils/Http.hpp
     Utils/Sftp.cpp

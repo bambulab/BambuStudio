@@ -11,6 +11,7 @@
 #include "CommuBackend.hpp"
 #include "AccountManager.hpp"
 #include "libslic3r/ProjectTask.hpp"
+#include "slic3r/Utils/json_diff.hpp"
 
 #define USE_LOCAL_SOCKET_BIND 0
 
@@ -386,6 +387,8 @@ public:
     SuccessFn  successFn;
     FailedFn failedFn;
     LostFn lostFn;
+    json_diff print_json;
+
 
     /* local communicate */
     std::string login_ticket;
@@ -408,6 +411,7 @@ public:
     
     /* command commands */
     int command_get_version();
+    int command_request_push_all();
 
     /* control apis */
     int command_xyz_abs();

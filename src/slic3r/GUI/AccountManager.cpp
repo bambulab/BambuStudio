@@ -72,6 +72,24 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
 }
 
 namespace Slic3r {
+    void action_listener::on_success(const mqtt::token& tok) {
+        // re sucscribe the monitoring printer
+        AccountManager *manager = (AccountManager *) context_;
+        for (int i = 0; i < tok.get_topics()->size(); i++) {
+            BOOST_LOG_TRIVIAL(trace) << "subscribe topic:" << (*tok.get_topics())[i].c_str() << " success";
+            std::string topic_str = (*tok.get_topics())[i];
+             if (manager) {
+             GUI::wxGetApp().CallAfter([manager, topic_str] {
+                manager->request_pushing_print(topic_str);
+                });
+            }
+        }
+
+        BOOST_LOG_TRIVIAL(trace) << "subscribe return code: " << tok.get_return_code();
+        BOOST_LOG_TRIVIAL(trace) << "subscribe reason code: " << tok.get_reason_code();
+    }
+
+
     void cloud_conn_callback::connected(const std::string& cause)
     {
         BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::connected!";
@@ -570,6 +588,21 @@ namespace Slic3r {
                 if (it != myBindMachineList.end() && it->second)
                     set_monitor_machine(it->second->dev_id);
             }
+        }
+    }
+
+    void AccountManager::request_pushing_print(std::string topic_str)
+    {
+        // topic_str = device/device_id/report
+        std::vector<std::string> params;
+        boost::split(params, topic_str, boost::is_any_of("/"));
+        // BBS device, dev_id, report at least 3 params
+        if (params.size() <= 2) return;
+
+        /* params[1] is dev id, topic is : device/[dev_id]/report */
+        std::map<std::string, MachineObject *>::iterator it = myBindMachineList.find(params[1]);
+        if (it != myBindMachineList.end()) {
+            it->second->command_request_push_all();
         }
     }
 

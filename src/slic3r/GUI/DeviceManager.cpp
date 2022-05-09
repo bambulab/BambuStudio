@@ -444,6 +444,15 @@ int MachineObject::command_get_version()
     return this->publish_json(j.dump());
 }
 
+int MachineObject::command_request_push_all()
+{
+    BOOST_LOG_TRIVIAL(trace) << "command_request_push_all";
+    json j;
+    j["pushing"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["pushing"]["command"]     = "pushall";
+    return this->publish_json(j.dump());
+}
+
 int MachineObject::command_xyz_abs()
 {
     return this->publish_gcode("G90 \n");
@@ -1023,11 +1032,42 @@ int MachineObject::publish_json(std::string json_str, ResultFn resFn, int qos)
 int MachineObject::parse_json(std::string topic, std::string payload)
 {
     try {
-        // json style parser
-        json j = json::parse(payload);
+        bool restored_json = false;
+        json j;
+        json j_pre = json::parse(payload);
+
+        if (j_pre.contains(JSON_CMD_PRINT)) {
+            if (j_pre["print"].contains("command")) {
+                if (j_pre["print"]["command"].get<std::string>() == "push_status") {
+                    if (j_pre["print"].contains("msg")) {
+                        if (j_pre["print"]["msg"].get<int>() == 0) {           //all message
+                            print_json.diff2all_base_reset(j_pre);
+                        } else if (j_pre["print"]["msg"].get<int>() == 1) {    //diff message
+                            if (print_json.diff2all(j_pre, j) == 0) {
+                                restored_json = true;
+                            } else {
+                                BOOST_LOG_TRIVIAL(trace) << "restore failed!";
+                                if (print_json.is_need_request()) {
+                                    BOOST_LOG_TRIVIAL(trace) << "parse_json: need request pushall";
+                                    // request new push
+                                    GUI::wxGetApp().CallAfter([this] { this->command_request_push_all(); });
+                                    return -1;
+                                }
+                            }
+                        } else {
+                            BOOST_LOG_TRIVIAL(warning) << "unsupported msg_type=" << j_pre["print"]["msg_type"].get<std::string>();
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!restored_json) {
+            j = json::parse(payload);
+        }
+
 
         if (j.contains(JSON_CMD_PRINT)) {
-
             /* update last received time */
             last_update_time = std::chrono::system_clock::now();
 
