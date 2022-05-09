@@ -475,7 +475,32 @@ std::string PresetBundle::get_stl_model_for_printer_model(std::string model_name
     return out;
 }
 
+std::string PresetBundle::get_hotend_model_for_printer_model(std::string model_name)
+{
+    std::string hotend_stl, vendor_name, out;
 
+    for (auto vendor_profile: this->vendors)
+    {
+        for (auto vendor_model: vendor_profile.second.models)
+        {
+            if (vendor_model.name == model_name)
+            {
+                hotend_stl = vendor_model.hotend_model;
+                vendor_name = vendor_profile.first;
+                break;
+            }
+        }
+    }
+
+    if (!hotend_stl.empty())
+    {
+        out = Slic3r::data_dir() + "/vendor/" + vendor_name + "/" + hotend_stl;
+        if (!boost::filesystem::exists(boost::filesystem::path(out)))
+            out = Slic3r::resources_dir() + "/profiles/" + vendor_name + "/" + hotend_stl;
+    }
+
+    return out;
+}
 
 PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &config, std::map<std::string, Preset*> my_presets, ForwardCompatibilitySubstitutionRule substitution_rule)
 {

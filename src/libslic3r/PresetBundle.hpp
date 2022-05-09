@@ -68,6 +68,7 @@ public:
     //BBS: find printer model
     std::string get_texture_for_printer_model(std::string model_name);
     std::string get_stl_model_for_printer_model(std::string model_name);
+    std::string get_hotend_model_for_printer_model(std::string model_name);
 
     // Export selections (current print, current filaments, current printer) into config.ini
     void            export_selections(AppConfig &config);

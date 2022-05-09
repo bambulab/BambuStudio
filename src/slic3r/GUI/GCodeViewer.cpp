@@ -288,7 +288,7 @@ void GCodeViewer::SequentialRangeCap::reset() {
 void GCodeViewer::SequentialView::Marker::init(std::string filename)
 {
     if (filename.empty()) {
-        m_model.init_from(stilized_arrow(16, 1.5f, 3.0f, 0.8f, 3.0f));
+        //m_model.init_from(stilized_arrow(16, 1.5f, 3.0f, 0.8f, 3.0f));
     } else {
         m_model.init_from_file(filename);
     }
@@ -723,7 +723,18 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
     std::string filename;
     if (preset_bundle != nullptr) {
         const Preset* curr = &preset_bundle->printers.get_selected_preset();
-        filename = PresetUtils::system_printer_hotend_model(*curr);
+        if (curr->is_system)
+            filename = PresetUtils::system_printer_hotend_model(*curr);
+        else {
+            auto *printer_model = curr->config.opt<ConfigOptionString>("printer_model");
+            if (printer_model != nullptr && ! printer_model->value.empty()) {
+                filename = preset_bundle->get_hotend_model_for_printer_model(printer_model->value);
+            }
+
+            if (filename.empty()) {
+                filename = preset_bundle->get_hotend_model_for_printer_model(PresetBundle::BBL_DEFAULT_PRINTER_MODEL);
+            }
+        }
     }
 
     m_sequential_view.marker.init(filename);
