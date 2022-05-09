@@ -24,6 +24,7 @@
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_FINISHED_UPDATE_MACHINE_LIST, wxCommandEvent);
+wxDEFINE_EVENT(EVT_REQUEST_BIND_LIST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_JOB_CANCEL, wxCommandEvent);
 
 #define INITIAL_NUMBER_OF_MACHINES 0
@@ -114,25 +115,25 @@ MachineObjectPanel::~MachineObjectPanel() {}
 
 void MachineObjectPanel::show_unbind_dialog()
 {
-    //if (m_info->can_abort()) return;
+    // if (m_info->can_abort()) return;
     UnBindMachineDilaog dlg;
     dlg.update_machine_info(m_info);
     switch (dlg.ShowModal()) {
     case wxID_YES: {
         break;
     }
-        
+
     case wxID_NO: {
         break;
     }
-        
+
     default:;
     }
 }
 
 void MachineObjectPanel::show_bind_dialog()
 {
-    //if (m_info->can_abort()) return;
+    // if (m_info->can_abort()) return;
     BindMachineDilaog dlg;
     dlg.update_machine_info(m_info);
     switch (dlg.ShowModal()) {
@@ -150,13 +151,19 @@ void MachineObjectPanel::show_bind_dialog()
 
 void MachineObjectPanel::set_printer_idle()
 {
-    m_idle = true;
+    m_state = PrinterState::IDLE;
     Refresh();
 }
 
 void MachineObjectPanel::set_printer_busy()
 {
-    m_idle = false;
+    m_state = PrinterState::BUSY;
+    Refresh();
+}
+
+void MachineObjectPanel::set_printer_offline() 
+{
+    m_state = PrinterState::OFFLINE;
     Refresh();
 }
 
@@ -196,10 +203,7 @@ void MachineObjectPanel::set_printer_wifi()
     Refresh();
 }
 
-void MachineObjectPanel::set_can_bind(bool canbind) 
-{
-    m_state_can_bind = canbind;
-}
+void MachineObjectPanel::set_can_bind(bool canbind) { m_state_can_bind = canbind; }
 
 void MachineObjectPanel::OnPaint(wxPaintEvent &event)
 {
@@ -230,11 +234,9 @@ void MachineObjectPanel::doRender(wxDC &dc)
     wxSize size = GetSize();
     dc.SetPen(*wxTRANSPARENT_PEN);
 
-    if (m_idle) {
-        dc.SetBrush(SELECT_MACHINE_BRAND);
-    } else {
-        dc.SetBrush(SELECT_MACHINE_REMIND);
-    }
+    if (m_state == PrinterState::IDLE) { dc.SetBrush(SELECT_MACHINE_BRAND); }
+    if (m_state == PrinterState::BUSY) { dc.SetBrush(SELECT_MACHINE_REMIND); }
+    if (m_state == PrinterState::OFFLINE) { dc.SetBrush(SELECT_MACHINE_GREY400); }
 
     dc.DrawCircle(left, size.y / 2, 3);
 
@@ -270,7 +272,8 @@ void MachineObjectPanel::doRender(wxDC &dc)
 void MachineObjectPanel::update_machine_info(/*std::string dev_id, wxString dev_name, int progress, wxString owner*/ MachineObject *info)
 {
     m_info = info;
-    m_info->can_abort() ? set_printer_busy() : set_printer_idle();
+    //m_info->can_abort() ? set_printer_busy() : set_printer_idle();
+
     set_printer_wifi();
     Refresh();
 }
@@ -278,11 +281,11 @@ void MachineObjectPanel::update_machine_info(/*std::string dev_id, wxString dev_
 void MachineObjectPanel::on_mouse_enter(wxMouseEvent &evt)
 {
     m_hover = true;
-   /* if (!m_info->can_abort()) {
-        set_printer_unbind();
-    } else {
-        set_printer_wifi();
-    }*/
+    /* if (!m_info->can_abort()) {
+         set_printer_unbind();
+     } else {
+         set_printer_wifi();
+     }*/
     if (!m_state_can_bind) {
         set_printer_unbind();
     } else {
@@ -391,6 +394,7 @@ wxBEGIN_EVENT_TABLE(SelectMachinePopup, wxPopupTransientWindow) EVT_MOUSE_EVENTS
 
     m_refresh_timer = new wxTimer();
     Bind(EVT_FINISHED_UPDATE_MACHINE_LIST, &SelectMachinePopup::update_machine_list, this);
+    Bind(EVT_REQUEST_BIND_LIST, &SelectMachinePopup::update_other_devices, this);
     Bind(wxEVT_TIMER, &SelectMachinePopup::on_timer, this);
 }
 
@@ -463,22 +467,47 @@ wxWindow *SelectMachinePopup::create_title_panel(wxString text)
 
 void SelectMachinePopup::on_timer(wxTimerEvent &event)
 {
+    DeviceManager *dev_manager = wxGetApp().getDeviceManager();
+    auto all_machine_list        = dev_manager->get_all_machine_list();
+
+    dev_manager->query_bind_status(
+        // CompleteFn
+        [this, all_machine_list](std::string body) {
+             m_free_machine_list.clear();
+             for (auto &elem : all_machine_list) {
+                MachineObject *dev = elem.second;
+                if (dev->get_bind_str() == "Free") { 
+                    this->m_free_machine_list[elem.first] = elem.second;
+                }
+             }
+            wxCommandEvent event(EVT_REQUEST_BIND_LIST);
+            event.SetEventObject(this);
+            wxPostEvent(this, event);
+        },
+        // ErrorFn
+        [this](int status, std::string error, std::string body) {
+            //to do
+    });
+}
+
+void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
+{
     for (auto i = 0; i < m_list_Machine_panel.GetCount(); i++) {
         MachinePanel *mpanel = m_list_Machine_panel[i];
         mpanel->mPanel->Destroy();
     }
 
     m_list_Machine_panel.clear();
-    m_free_machine_list.clear();
-
-    DeviceManager *              dev_manager = wxGetApp().getDeviceManager();
-    m_free_machine_list        = dev_manager->get_all_machine_list();
-
     for (auto &elem : m_free_machine_list) {
+        MachineObject *     mobj = elem.second;
         MachineObjectPanel *op = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
         op->set_can_bind(true);
+        //if (mobj->can_abort()) {op->set_printer_busy();} 
+        if (can_abort(mobj->iot_task_status)) {
+            op->set_printer_busy();
+        }
+        else {op->set_printer_idle();}
         op->update_machine_info(elem.second);
-        //op->Bind(wxEVT_LEFT_UP, &SelectMachinePopup::OnLeftUp, this);
         m_sizer_other_devices->Add(op, 0, wxEXPAND, 0);
 
         MachinePanel *mpanel = new MachinePanel();
@@ -486,7 +515,6 @@ void SelectMachinePopup::on_timer(wxTimerEvent &event)
         mpanel->mPanel       = op;
         m_list_Machine_panel.Add(mpanel);
     }
-
     Layout();
     Fit();
 }
@@ -494,18 +522,34 @@ void SelectMachinePopup::on_timer(wxTimerEvent &event)
 void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
 {
     Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
-     m_bind_machine_list.clear();
+    m_bind_machine_list.clear();
 
     m_bind_machine_list = c->myBindMachineList;
     for (auto &elem : m_bind_machine_list) {
+        MachineObject *     mobj = elem.second;
         MachineObjectPanel *op = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
         op->set_can_bind(false);
+        if (!mobj->is_online()) {
+            op->set_printer_offline();
+        } else {
+            if (can_abort(mobj->iot_task_status)) {
+                op->set_printer_busy();
+            } else {
+                op->set_printer_idle();
+            }
+        }
         op->update_machine_info(elem.second);
-        //op->Bind(wxEVT_LEFT_UP, &SelectMachinePopup::OnLeftUp, this);
+        // op->Bind(wxEVT_LEFT_UP, &SelectMachinePopup::OnLeftUp, this);
         m_sizer_my_devices->Add(op, 0, wxEXPAND, 0);
     }
     Layout();
     Fit();
+}
+
+bool SelectMachinePopup::can_abort(std::string state)
+{
+    if (state.compare("PAUSE") == 0 || state.compare("RUNNING") == 0 || state.compare("PREPARE") == 0) { return true; }
+    return false;
 }
 
 void SelectMachinePopup::start_ssdp()
@@ -603,8 +647,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_basic->Add(m_sizer_basic_weight, 0, wxALIGN_CENTER, 0);
     m_sizer_basic->Add(0, 0, 0, wxEXPAND | wxLEFT | wxRIGHT, 30);
 
-
-    auto weightimg = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("print-weight", this, 18), wxDefaultPosition,wxSize(FromDIP(18), FromDIP(18)), 0);
+    auto weightimg = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("print-weight", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
     m_sizer_basic_time->Add(weightimg, 1, wxEXPAND | wxALL, 5);
     m_stext_weight = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
     m_sizer_basic_time->Add(m_stext_weight, 0, wxALL, 5);
@@ -1033,8 +1076,8 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     m_status_bar->set_prog_block();
 
     result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool &cancel) {
-        bool cancelled = false;
-        wxString msg = _L("Exporting 3mf...");
+        bool     cancelled = false;
+        wxString msg       = _L("Exporting 3mf...");
         m_status_bar->update_status(msg, cancelled, 15, true);
         m_export_3mf_cancel = cancel = cancelled;
     });
@@ -1071,9 +1114,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
 
 void SelectMachineDialog::on_print_job_cancel(wxCommandEvent &evt)
 {
-    if (m_print_job->is_running()) {
-        m_print_job->join(5 * 1000);
-    }
+    if (m_print_job->is_running()) { m_print_job->join(5 * 1000); }
     prepare_mode();
     reset();
 }

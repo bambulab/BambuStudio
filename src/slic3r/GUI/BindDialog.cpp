@@ -375,7 +375,7 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
      if (m_machine_info->dev_id.empty()) return;
 
      //check own
-     if (!m_machine_info->bind_user_id.empty()) return;
+     //if (!m_machine_info->bind_user_id.empty()) return;
 
      m_simplebook->SetSelection(0);
      m_bind_job = std::make_shared<BindJob>(m_status_bar, wxGetApp().plater(), m_machine_info->dev_id);

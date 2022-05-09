@@ -39,6 +39,12 @@
 
 namespace Slic3r { namespace GUI {
 
+enum PrinterState {
+    OFFLINE,
+    IDLE,
+    BUSY
+};
+
 class Material
 {
 public:
@@ -95,8 +101,8 @@ private:
     bool        m_state_can_bind{false};
     bool        m_select_unbind{false};
     bool        m_showunbind{false};
-    bool        m_idle{true};
     bool        m_hover {false};
+    PrinterState   m_state;
     wxBitmap    m_printing_img;
     wxBitmap    m_owner_img;
     wxBitmap    m_unbind_img;
@@ -128,6 +134,7 @@ public:
  
     void set_printer_idle();
     void set_printer_busy();
+    void set_printer_offline();
 
     void set_printer_unbind();
     void set_printer_wifi();
@@ -178,7 +185,8 @@ public:
     virtual bool Show(bool show = true) wxOVERRIDE;
 
     void update_machine_list(wxCommandEvent &event);
-	void start_ssdp();
+    bool can_abort(std::string state);
+    void start_ssdp();
 	void stop_ssdp();
 
 private:
@@ -203,7 +211,8 @@ private:
     void OnButton(wxCommandEvent &event);
     void on_timer(wxTimerEvent &event);
 
-	wxWindow* create_title_panel(wxString text);
+	void      update_other_devices(wxCommandEvent &event);
+    wxWindow *create_title_panel(wxString text);
 
 private:
     wxDECLARE_ABSTRACT_CLASS(SelectMachinePopup);
@@ -324,6 +333,8 @@ protected:
 };
 
 wxDECLARE_EVENT(EVT_FINISHED_UPDATE_MACHINE_LIST, wxCommandEvent);
+wxDECLARE_EVENT(EVT_REQUEST_BIND_LIST, wxCommandEvent);
+
 }} // namespace Slic3r::GUI
 
 #endif
