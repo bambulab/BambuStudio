@@ -26,6 +26,7 @@
 
 #define POLL_3MF_TIMEOUT                180
 #define POLL_3MF_INTERVAL               1
+#define POLL_NOTIFICATION_TIMEOUT_MAX   600
 #define POLL_NOTIFICATION_TIMEOUT       120
 #define POLL_NOTIFICATION_INTERVAL      2
 
@@ -350,7 +351,8 @@ public:
 
     // GET /api/user/notification
     /* return: -1 : failed, 1 : success, -2: cancelled, -3: timeout */
-    int get_notification(BBLProfile* profile, unsigned int &http_code, std::string &http_body, CancelFn cancel_fn = nullptr);
+    int get_notification(BBLProfile *profile, unsigned int &http_code, std::string &http_body, CancelFn cancel_fn = nullptr, int timeout = POLL_NOTIFICATION_TIMEOUT);
+    int calc_get_notification_timeout(boost::filesystem::path &file);
 
     // PUT /api/user/notification
     int put_notification(BBLProfile* profile, std::string upload_filename, unsigned int &http_code, std::string &http_body);

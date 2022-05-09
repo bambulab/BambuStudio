@@ -12,6 +12,11 @@
 
 using namespace nlohmann;
 
+#define ENV_DEV_HOST		"0"
+#define ENV_QAT_HOST		"1"
+#define ENV_PRE_HOST		"2"
+#define ENV_PRODUCT_HOST	"3"
+
 #define DEV_HOST_URL    "https://api-dev.bambu-lab.com/v1"
 #define QAT_HOST_URL    "https://api-qa.bambu-lab.com/v1"
 #define PRE_HOST_URL    "https://api-pre.bambu-lab.com/v1"

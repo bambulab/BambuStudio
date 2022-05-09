@@ -8151,11 +8151,11 @@ void Plater::publish_project()
 
         /* get notifications */
         bool cancel = false;
+        int  timeout = c->calc_get_notification_timeout(project->project_path);
         res = c->get_notification(profile, http_code, http_body,
             [cont]() {
                 return !cont;
-            }
-        );
+            }, timeout);
 
         if (res == RET_POLLING_TIMEOUT) {
             msg = _L("Uploading is timed out. Please try again!");
@@ -8447,7 +8447,15 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
         return -1;
     }
 
-    result = export_3mf(p->m_print_job_data._3mf_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode, plate_idx, proFn);
+    SaveStrategy strategy = SaveStrategy::Silence | SaveStrategy::SkipModel | SaveStrategy::WithGcode;
+#if !BBL_RELEASE_TO_PUBLIC
+    //only save model in QA environment
+    std::string sel = get_app_config()->get("iot_environment");
+    if (sel == ENV_QAT_HOST)
+        strategy = SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode;
+#endif
+
+    result = export_3mf(p->m_print_job_data._3mf_path, strategy, plate_idx, proFn);
 
     return result;
 }

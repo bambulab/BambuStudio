@@ -44,6 +44,7 @@ static const std::string MODELS_STR = "models";
 const std::string AppConfig::SECTION_FILAMENTS = "filaments";
 const std::string AppConfig::SECTION_MATERIALS = "sla_materials";
 
+
 void AppConfig::reset()
 {
     m_storage.clear();
@@ -937,11 +938,11 @@ void AppConfig::update_last_backup_dir(const std::string& dir)
 std::string AppConfig::get_web_host_url()
 {
     std::string sel = get("iot_environment");
-    if (sel == "0") {
+    if (sel == ENV_DEV_HOST) {
         return DEV_WEB_HOST_URL;
-    } else if (sel == "1") {
+    } else if (sel == ENV_QAT_HOST) {
         return QAT_WEB_HOST_URL;
-    } else if (sel == "2") {
+    } else if (sel == ENV_PRE_HOST) {
         return PRE_WEB_HOST_URL;
     } else {
         return QAT_WEB_HOST_URL;

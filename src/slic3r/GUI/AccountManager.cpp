@@ -786,7 +786,7 @@ namespace Slic3r {
             .perform_sync();
     }
 
-    int AccountManager::get_notification(BBLProfile* profile, unsigned int& http_code, std::string& http_body, CancelFn cancel_fn)
+    int AccountManager::get_notification(BBLProfile* profile, unsigned int& http_code, std::string& http_body, CancelFn cancel_fn, int timeout)
     {
         int result = -1;
         if (!profile || profile->upload_ticket.empty()) return -1;
@@ -826,7 +826,9 @@ namespace Slic3r {
                 }
             );
 
-        while (retry < retry_max) {
+        std::chrono::system_clock::time_point curr_time = std::chrono::system_clock::now();
+        bool has_timeout = false;
+        while (!has_timeout) {
             http.perform_sync();
             /* failed */
             if (result == -1) return -1;
@@ -840,12 +842,29 @@ namespace Slic3r {
 
             retry++;
             BOOST_LOG_TRIVIAL(trace) << "get notification, retry = " << retry;
+            std::chrono::system_clock::time_point last_update_time = std::chrono::system_clock::now();
+            auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_update_time);
+            if (diff.count() > timeout * 1000) {
+                has_timeout = true;
+            }
             boost::this_thread::sleep_for(boost::chrono::milliseconds(POLL_NOTIFICATION_INTERVAL * 1000));
         }
-        if (retry == retry_max) {
+        if (has_timeout) {
             /* timeout */
             return RET_POLLING_TIMEOUT;
         }
+        return result;
+    }
+
+    int AccountManager::calc_get_notification_timeout(boost::filesystem::path &file)
+    {
+        int result = 0;
+        boost::uintmax_t size = boost::filesystem::file_size(file);
+        boost::uintmax_t size_m = size / 1024 / 1024;
+        int timeout = size_m * 2;
+        BOOST_LOG_TRIVIAL(trace) << "calc_get_notification_timeout, file size = " << size << ", timeout = " << timeout;
+        result = std::max(timeout, POLL_NOTIFICATION_TIMEOUT);
+        result = std::min(result, POLL_NOTIFICATION_TIMEOUT_MAX);
         return result;
     }
 

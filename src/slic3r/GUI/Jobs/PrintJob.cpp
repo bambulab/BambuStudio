@@ -160,11 +160,11 @@ void PrintJob::process()
 
     /* get notifications */
     bool cancel = false;
+    int  timeout = c->calc_get_notification_timeout(project->project_path);
     res = c->get_notification(profile, http_code, http_body,
         [this]() {
             return was_canceled();
-        }
-        );
+        }, timeout);
 
     if (res == RET_POLLING_TIMEOUT) {
         update_status(curr_percent, timeout_to_upload_str);

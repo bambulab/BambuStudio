@@ -754,11 +754,11 @@ void PreferencesDialog::create_debug_page()
     auto radio2 = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), page, wxEmptyString, 50, 1, "qa_host");
     auto radio3 = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"), page, wxEmptyString, 50, 1, "pre_host");
 
-    if (m_iot_environment_def == "0") {
+    if (m_iot_environment_def == ENV_DEV_HOST) {
         on_select_radio("dev_host");
-    } else if (m_iot_environment_def == "1") {
+    } else if (m_iot_environment_def == ENV_QAT_HOST) {
         on_select_radio("qa_host");
-    } else if (m_iot_environment_def == "2") {
+    } else if (m_iot_environment_def == ENV_PRE_HOST) {
         on_select_radio("pre_host");
     }
 
@@ -779,11 +779,11 @@ void PreferencesDialog::create_debug_page()
 
             if (m_backup_interval_def != m_backup_interval_time) { m_backup_interval_textinput->GetTextCtrl()->SetValue(m_backup_interval_def); }
 
-            if (m_iot_environment_def == "0") {
+            if (m_iot_environment_def == ENV_DEV_HOST) {
                 on_select_radio("dev_host");
-            } else if (m_iot_environment_def == "1") {
+            } else if (m_iot_environment_def == ENV_QAT_HOST) {
                 on_select_radio("qa_host");
-            } else if (m_iot_environment_def == "2") {
+            } else if (m_iot_environment_def == ENV_PRE_HOST) {
                 on_select_radio("pre_host");
             }
 
@@ -795,20 +795,20 @@ void PreferencesDialog::create_debug_page()
             auto param = get_select_radio(1);
 
             std::map<wxString, wxString> iot_environment_map;
-            iot_environment_map["dev_host"] = "0";
-            iot_environment_map["qa_host"]  = "1";
-            iot_environment_map["pre_host"] = "2";
+            iot_environment_map["dev_host"] = ENV_DEV_HOST;
+            iot_environment_map["qa_host"]  = ENV_QAT_HOST;
+            iot_environment_map["pre_host"] = ENV_PRE_HOST;
 
             if (iot_environment_map[param] != m_iot_environment_def) {
                 AccountManager *manager = wxGetApp().getAccountManager();
                 if (param == "dev_host") {
-                    app_config->set("iot_environment", "0");
+                    app_config->set("iot_environment", ENV_DEV_HOST);
                     manager->set_host(DEV_HOST_URL);
                 } else if (param == "qa_host") {
-                    app_config->set("iot_environment", "1");
+                    app_config->set("iot_environment", ENV_QAT_HOST);
                     manager->set_host(QAT_HOST_URL);
                 } else if (param == "pre_host") {
-                    app_config->set("iot_environment", "2");
+                    app_config->set("iot_environment", ENV_PRE_HOST);
                     manager->set_host(PRE_HOST_URL);
                 }
                 manager->user_logout();
