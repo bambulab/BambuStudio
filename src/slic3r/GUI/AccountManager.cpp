@@ -25,7 +25,6 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-
 #include "slic3r/GUI/WebUserLoginDialog.hpp"
 
 using namespace nlohmann;
@@ -54,9 +53,13 @@ uint64_t lzo_out_len = 5 * 1024;
 const uint64_t LZO_OUT_MAX_LEN = 5 * 1024;
 unsigned char lzo_out[LZO_OUT_MAX_LEN];
 
+namespace Slic3r {
+
 
 std::string RegionServer::convert_region_to_contry_code(std::string region)
 {
+    AppConfig *config = wxGetApp().app_config;
+    if (config->is_engineering_region()) { return region; }
     if (region == "CHN" || region == "China")
         return "CN";
     else if (region == "USA")
@@ -71,7 +74,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         return "Others";
 }
 
-namespace Slic3r {
     void action_listener::on_success(const mqtt::token& tok) {
         // re sucscribe the monitoring printer
         AccountManager *manager = (AccountManager *) context_;
@@ -93,10 +95,6 @@ namespace Slic3r {
     void cloud_conn_callback::connected(const std::string& cause)
     {
         BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::connected!";
-        /* update sub_topics */
-        if (successFn) {
-            successFn(cli_.get_client_id());
-        }
         // re sucscribe the monitoring printer
         AccountManager* manager = (AccountManager*)context_;
         if (manager) {
@@ -108,11 +106,9 @@ namespace Slic3r {
 
     void cloud_conn_callback::on_failure(const mqtt::token& tok)
     {
-        BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::on_failure, Connection(mqtt) failed! retry=" << nretry_;
-        /* TODO mqtt connect failed tips */
-        if (failedFn) {
-            failedFn(cli_.get_client_id());
-        }
+        BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::on_failure, Connection(mqtt) failed! return code = "
+            << tok.get_return_code() << ", reason code = " <<tok.get_reason_code() << ", retry=" << nretry_;
+        nretry_++;
     }
 
     void cloud_conn_callback::on_success(const mqtt::token& tok)
@@ -123,9 +119,6 @@ namespace Slic3r {
 
     void cloud_conn_callback::connection_lost(const std::string& cause) {
         BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::connection_lost!, cause =" << cause;
-        if (lostFn) {
-            lostFn(cli_.get_client_id());
-        }
     }
 
     void cloud_conn_callback::message_arrived(mqtt::const_message_ptr msg)
@@ -181,13 +174,6 @@ namespace Slic3r {
                     });
             }
         }
-    }
-
-    void cloud_conn_callback::set_connect_fns(SuccessFn sFn, FailedFn fFn, LostFn lFn)
-    {
-        successFn = sFn;
-        failedFn = fFn;
-        lostFn = lFn;
     }
 
     std::string VersionInfo::convert_full_version(std::string short_version)
@@ -277,6 +263,27 @@ namespace Slic3r {
         }
     }
 
+    std::string AccountManager::get_emqx_server_host()
+    {
+        if (is_region_config_ready)
+            return user_region_server.mqtt_server_host;
+        return MQTT_HOST;
+    }
+
+    std::string AccountManager::get_official_server_host()
+    {
+        if (is_region_config_ready)
+            return user_region_server.official_host;
+        return wxGetApp().app_config->get_web_host_url();
+    }
+
+    std::string AccountManager::get_design_server_host()
+    {
+        if (is_region_config_ready)
+            return user_region_server.design_host;
+        return wxGetApp().app_config->get_web_host_url();
+    }
+
     AccountManager::AccountManager()
         :mqtt_opt(mqtt::connect_options_builder().clean_session().finalize()),
         mqtt_cli(nullptr),
@@ -288,13 +295,11 @@ namespace Slic3r {
         mqtt_opt.set_max_inflight(500);
         mqtt_opt.set_connect_timeout(10);
 
-        mqtt_ssl_opt.ca_path(resources_dir() + "/cert");
-        std::string key_store = resources_dir() + "/cert/slicer.crt";
-        std::string trust_store = resources_dir() + "/cert/slicer_chain.crt";
-        std::string private_key = resources_dir() + "/cert/slicer_pri.pem";
-        mqtt_ssl_opt.set_key_store(key_store);
-        mqtt_ssl_opt.set_trust_store(trust_store);
-        mqtt_ssl_opt.set_private_key(private_key);
+#if !BBL_RELEASE_TO_PUBLIC
+        set_engineering_mqtt_opt();
+#else
+        set_product_mqtt_opt();
+#endif
         mqtt_opt.set_ssl(mqtt_ssl_opt);
 
         m_curr_user = nullptr;
@@ -305,6 +310,24 @@ namespace Slic3r {
         if (mqtt_cli->is_connected())
             mqtt_cli->disconnect();
         Http::disable_log();
+    }
+
+    void AccountManager::set_product_mqtt_opt()
+    {
+        std::string trust_store = resources_dir() + "/cert/slicer_base64.cer";
+        mqtt_ssl_opt.set_trust_store(trust_store);
+        mqtt_opt.set_ssl(mqtt_ssl_opt);
+    }
+
+    void AccountManager::set_engineering_mqtt_opt()
+    {
+        mqtt_ssl_opt.ca_path(resources_dir() + "/cert");
+        std::string key_store = resources_dir() + "/cert/slicer.crt";
+        std::string trust_store = resources_dir() + "/cert/slicer_chain.crt";
+        std::string private_key = resources_dir() + "/cert/slicer_pri.pem";
+        mqtt_ssl_opt.set_key_store(key_store);
+        mqtt_ssl_opt.set_trust_store(trust_store);
+        mqtt_ssl_opt.set_private_key(private_key);
     }
 
     void AccountManager::init_log()
@@ -387,10 +410,20 @@ namespace Slic3r {
             std::string client_id = (boost::format("slicer:%1%:%2%") % m_curr_user->m_user_id % mqtt_uuid).str();
 
             // update mqtt user_name and password
-            mqtt_opt.set_user_name((boost::format("u_%1%") % m_curr_user->m_user_id).str());
+            std::string user_name = (boost::format("u_%1%") % m_curr_user->m_user_id).str();
+            mqtt_opt.set_user_name(user_name);
             mqtt_opt.set_password(m_curr_user->get_token());
-            //mqtt_cli = new mqtt::async_client(user_region_server.mqtt_server_host, client_id);
-            mqtt_cli = new mqtt::async_client(MQTT_HOST, client_id);
+            std::string mqtt_host = get_emqx_server_host();
+            BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, client_id = " << client_id;
+            BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, user_name = " << user_name;
+            BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, password = " << m_curr_user->get_token();
+            BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, mqtt_host = " << mqtt_host;
+            if (wxGetApp().app_config->is_engineering_region()) {
+                set_engineering_mqtt_opt();
+            } else {
+                set_product_mqtt_opt();
+            }
+            mqtt_cli = new mqtt::async_client(mqtt_host, client_id);
             mqtt_cb = new cloud_conn_callback(*mqtt_cli, mqtt_opt, this);
             if (mqtt_cli) {
                 mqtt_cli->set_callback(*mqtt_cb);
@@ -2896,43 +2929,52 @@ namespace Slic3r {
         return result;
     }
 
-    int AccountManager::prepare_region_config()
+    int AccountManager::reload_region_servers(bool update_config)
     {
-        unsigned int http_code;
-        std::string http_body;
-        int result = get_region_config(http_code, http_body);
         json js;
-        if (result < 0) {
-            //try to load from local file
-            boost::filesystem::path config_file = (boost::filesystem::path(Slic3r::data_dir()) / "region.conf");
-            if (!boost::filesystem::exists(config_file))
-                return result;
+        boost::filesystem::path config_file = (boost::filesystem::path(Slic3r::data_dir()) / "region.conf");
+        if (update_config) {
+            unsigned int http_code;
+            std::string  http_body;
+            int          result = get_region_config(http_code, http_body);
+            if (result < 0) {
+                // try to load from local file
+                if (!boost::filesystem::exists(config_file)) {
+                    BOOST_LOG_TRIVIAL(error) << "region config file is missing";
+                    return result;
+                }
+                std::ifstream ifs(config_file.make_preferred().string());
+                js = json::parse(ifs);
+            } else {
+                // write to local config file
+                std::string path = (boost::filesystem::path(Slic3r::data_dir()) / ("region.conf")).make_preferred().string();
+                try {
+                    js = json::parse(http_body);
+                    std::ofstream file(path);
+                    file << js;
+                    file.close();
+                    BOOST_LOG_TRIVIAL(error) << "update region config file";
+                } catch (json::parse_error &e) {
+                    BOOST_LOG_TRIVIAL(trace) << "prepare_region_config, parse json failed! e=" << e.what();
+                    return -1;
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(trace) << "prepare_region_config, parse json failed!";
+                    return -1;
+                }
+            }
+        } else {
+            if (!boost::filesystem::exists(config_file)) {
+                BOOST_LOG_TRIVIAL(error) << "region config file is missing";
+                return -1;
+            }
             std::ifstream ifs(config_file.make_preferred().string());
             js = json::parse(ifs);
-        }
-        else {
-            // write to local config file
-            std::string path = (boost::filesystem::path(Slic3r::data_dir()) / ("region.conf")).make_preferred().string();
-            try {
-                js = json::parse(http_body);
-                std::ofstream file(path);
-                file << js;
-                file.close();
-            } 
-            catch (json::parse_error &e) {
-                BOOST_LOG_TRIVIAL(trace) << "prepare_region_config, parse json failed! e=" << e.what();
-                return -1;
-            }
-            catch (...) {
-                BOOST_LOG_TRIVIAL(trace) << "prepare_region_config, parse json failed!";
-                return -1;
-            }
         }
 
         // load region server
         bool found = false;
-        AppConfig * config       = wxGetApp().app_config;
-        std::string country_code = RegionServer::convert_region_to_contry_code(config->get("region"));
+        AppConfig *config = wxGetApp().app_config;
+        std::string country_code = RegionServer::convert_region_to_contry_code(config->get_region());
         try {
             if (js.contains(country_code)) {
                 found                                     = true;
@@ -2940,6 +2982,15 @@ namespace Slic3r {
                 this->user_region_server.mqtt_server_host = js[country_code]["emqx"].get<std::string>();
                 this->user_region_server.tutk_server_host = js[country_code]["tutk"].get<std::string>();
                 this->user_region_server.wifi_code        = js[country_code]["wifi"].get<std::string>();
+                this->user_region_server.official_host    = js[country_code]["web_official"].get<std::string>();
+                this->user_region_server.design_host      = js[country_code]["web_design"].get<std::string>();
+                this->set_host(user_region_server.iot_server_host);
+                BOOST_LOG_TRIVIAL(trace) << "region update iot = " << user_region_server.iot_server_host;
+                BOOST_LOG_TRIVIAL(trace) << "region update mqtt = " << user_region_server.mqtt_server_host;
+                BOOST_LOG_TRIVIAL(trace) << "region update tutk = " << user_region_server.tutk_server_host;
+                BOOST_LOG_TRIVIAL(trace) << "region update official = " << user_region_server.official_host;
+                BOOST_LOG_TRIVIAL(trace) << "region update design = " << user_region_server.design_host;
+                BOOST_LOG_TRIVIAL(trace) << "region update wifi_code = " << user_region_server.wifi_code;
             }
         }
         catch(...) {

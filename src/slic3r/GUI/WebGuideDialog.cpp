@@ -367,7 +367,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             bool        bLogin    = false;
             if (m_Region != oldregion) { 
                 wxGetApp().getAccountManager()->is_region_config_ready = false;
-                wxGetApp().getAccountManager()->prepare_region_config();
+                wxGetApp().getAccountManager()->reload_region_servers();
                
                 if (wxGetApp().getAccountManager()->is_user_login()) { 
                     bLogin = true;

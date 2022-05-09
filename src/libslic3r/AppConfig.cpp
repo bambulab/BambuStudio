@@ -938,6 +938,7 @@ void AppConfig::update_last_backup_dir(const std::string& dir)
 std::string AppConfig::get_web_host_url()
 {
     std::string sel = get("iot_environment");
+
     if (sel == ENV_DEV_HOST) {
         return DEV_WEB_HOST_URL;
     } else if (sel == ENV_QAT_HOST) {
@@ -947,6 +948,32 @@ std::string AppConfig::get_web_host_url()
     } else {
         return QAT_WEB_HOST_URL;
     }
+    return PRE_WEB_HOST_URL;
+}
+
+std::string AppConfig::get_region()
+{
+    std::string sel = get("iot_environment");
+    std::string region;
+    if (sel == ENV_DEV_HOST)
+        region = "ENV_CN_DEV";
+    else if (sel == ENV_QAT_HOST)
+        region = "ENV_CN_QA";
+    else if (sel == ENV_PRE_HOST)
+        region = "ENV_CN_PRE";
+    if (region.empty())
+        return this->get("region");
+    return region;
+}
+
+bool AppConfig::is_engineering_region(){
+    std::string sel = get("iot_environment");
+    std::string region;
+    if (sel == ENV_DEV_HOST
+        || sel == ENV_QAT_HOST
+        ||sel == ENV_PRE_HOST)
+        return true;
+    return false;
 }
 
 

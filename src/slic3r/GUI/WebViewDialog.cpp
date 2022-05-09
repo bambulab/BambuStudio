@@ -33,9 +33,6 @@ namespace GUI {
 WebViewPanel::WebViewPanel(wxWindow *parent)
         : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
-    //wxString url = wxString(wxGetApp().app_config->get_web_host_url()) + MODEL_STORE_URL;
-    //wxString url = resources_dir() + "/web/homepage/index.html";
-
     wxString url = encode_path(wxString::Format("%s/web/homepage/index.html",resources_dir()).c_str());
     std::string strlang = wxGetApp().app_config->get("language");
     if (strlang != "") 

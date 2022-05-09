@@ -8221,7 +8221,8 @@ void Plater::publish_project()
                                 % design_id).str();
         }
 
-        url = wxGetApp().app_config->get_web_host_url() + url;
+        std::string host_url = c->get_design_server_host();
+        url = host_url + url;
         GUI::wxGetApp().load_url(wxString(url));
     } else {
         BOOST_LOG_TRIVIAL(trace) << "publish failed: error = " << msg;

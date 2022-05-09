@@ -372,26 +372,6 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
             Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
             return account_manager->is_user_login();
         }, this);
-    /*
-    append_menu_item(accountMenu, wxID_ANY, _L("My Project List"), _L(""),
-        [this](wxCommandEvent&) {
-            GUI::wxGetApp().load_url(wxString(wxGetApp().app_config->get_web_host_url() + MY_PROJECT_LIST_URL));
-        }, "", nullptr,
-        [this]() {
-            Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
-            return account_manager->is_user_login();
-        },
-            this);
-    append_menu_item(accountMenu, wxID_ANY, _L("My Collections"), _L(""),
-        [this](wxCommandEvent&) {
-            GUI::wxGetApp().load_url(wxString(wxGetApp().app_config->get_web_host_url() + MY_COLLECTIONS_URL));
-        }, "", nullptr,
-        [this]() {
-            Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
-            return account_manager->is_user_login();
-        },
-            this);
-    */
     auto publish_model_and_profile = [this](wxCommandEvent&) {
         if (wxGetApp().check_login()) {
             wxGetApp().plater()->show_publish_dialog();

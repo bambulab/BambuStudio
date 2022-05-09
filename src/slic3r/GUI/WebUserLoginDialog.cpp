@@ -52,18 +52,22 @@ string &replace_str(string &str, const string &to_replaced, const string &newcha
 ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_ANY, "BambuStudio")
 {
     // Url
-    TargetUrl = wxGetApp().app_config->get_web_host_url() + "/sign-in";
+    AppConfig * config   = wxGetApp().app_config;
+    AccountManager* acc = wxGetApp().getAccountManager();
+    std::string host_url = acc->get_official_server_host();
+    TargetUrl = host_url + "/sign-in";
     // wxString TargetUrl = "https://portal-dev.bambu-lab.com/sign-in";
     // wxString TargetUrl = "https://ab3f-103-167-134-129.ngrok.io";
 
-    m_networkOk=false;
+    m_networkOk = false;
 
-    std::string strlang = wxGetApp().app_config->get("language");
+    std::string strlang = config->get("language");
     if (strlang != "") { 
         replace_str(strlang, "_", "-"); 
-
-        TargetUrl = wxGetApp().app_config->get_web_host_url() + "/" + strlang + "/sign-in";
+        TargetUrl = host_url + "/" + strlang + "/sign-in";
     }
+
+    BOOST_LOG_TRIVIAL(trace) << "login url = " << TargetUrl.ToStdString();
 
     m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION);
 
@@ -238,7 +242,8 @@ void ZUserLogin::OnDocumentLoaded(wxWebViewEvent &evt)
 {
     // Only notify if the document is the main frame, not a subframe
     wxString tmpUrl = evt.GetURL();
-    std::string strHost  = wxGetApp().app_config->get_web_host_url();
+    AccountManager *acc  = wxGetApp().getAccountManager();
+    std::string strHost  = acc->get_official_server_host();
 
     if ( tmpUrl.Contains(strHost) ) {
         m_networkOk = true;
@@ -246,10 +251,6 @@ void ZUserLogin::OnDocumentLoaded(wxWebViewEvent &evt)
     }
 
     UpdateState();
-
-    // wxCommandEvent *event = new
-    // wxCommandEvent(EVT_WEB_RESPONSE_MESSAGE,this->GetId()); wxQueueEvent(this,
-    // event);
 }
 
 /**

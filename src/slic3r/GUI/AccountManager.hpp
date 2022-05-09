@@ -33,7 +33,7 @@
 
 #define DEFAULT_BBL_SETTING_VERSION     "00.00.00.01"
 
-#define REGION_JSON_CONFIG_URL "https://upgrade-qa.bambu-lab.com/studio/server_region/00.00.00.01/server_region.json";
+#define REGION_JSON_CONFIG_URL          "http://list.servers.bambulab.com";
 
 #define MSG_SUCCESS                     "success"
 
@@ -49,20 +49,22 @@ enum UserRegion {
     REGION_OTHERS
 };
 
+namespace Slic3r {
+
 class RegionServer
 {
 public:
     RegionServer() {}
-    UserRegion      region;
-    std::string     iot_server_host;
-    std::string     mqtt_server_host;
-    std::string     tutk_server_host;
-    std::string     wifi_code;
+    UserRegion  region;
+    std::string iot_server_host;
+    std::string mqtt_server_host;
+    std::string tutk_server_host;
+    std::string wifi_code;
+    std::string official_host;
+    std::string design_host;
 
     static std::string convert_region_to_contry_code(std::string region);
 };
-
-namespace Slic3r {
 
 typedef std::function<void(std::string name)> SuccessFn;
 typedef std::function<void(std::string name)> FailedFn;
@@ -96,9 +98,6 @@ private:
     mqtt::connect_options& connOpts_;
     std::vector<std::string> sub_topics;
     void* context_;
-    SuccessFn  successFn;
-    FailedFn failedFn;
-    LostFn lostFn;
 
     void connected(const std::string& cause) override;
 
@@ -114,7 +113,6 @@ public:
         : nretry_(0), cli_(cli), connOpts_(connOpts), context_(context) {}
 
     void add_topics(std::string topic) { sub_topics.push_back(topic); }
-    void set_connect_fns(SuccessFn sFn, FailedFn fFn, LostFn lFn);
 };
 
 
@@ -284,6 +282,8 @@ private:
     std::string mqtt_uuid;
     boost::thread reconn_thread;
     bool m_is_subscribing { false };
+    void set_product_mqtt_opt();
+    void set_engineering_mqtt_opt();
 
     int mqtt_uuid_bytes;
 public:
@@ -292,6 +292,10 @@ public:
     UserRegion user_region;
     RegionServer user_region_server;
     bool is_region_config_ready { false };
+
+    std::string get_emqx_server_host();
+    std::string get_official_server_host();
+    std::string get_design_server_host();
 
     typedef std::function<void(int progress)> ProgressFn;
     typedef std::function<void(int retcode, std::string info)> LoginFn;
@@ -439,7 +443,7 @@ public:
     // GET region json
     int get_region_config(unsigned int &http_code, std::string &http_body);
 
-    int prepare_region_config();
+    int reload_region_servers(bool update_config = false);
 
     bool can_publish();
 

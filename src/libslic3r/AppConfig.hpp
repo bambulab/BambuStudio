@@ -166,6 +166,8 @@ public:
 	void                update_last_backup_dir(const std::string &dir);
 
 	std::string			get_web_host_url();
+	std::string         get_region();
+    bool				is_engineering_region();
 
 	// reset the current print / filament / printer selections, so that 
 	// the  PresetBundle::load_selections(const AppConfig &config) call will select

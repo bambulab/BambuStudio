@@ -1055,23 +1055,6 @@ GUI_App::GUI_App()
     //BBS
     this->init_http_extra_header();
 
-    if (!app_config->get("iot_environment_custom").empty()) {
-        m_account_manager->set_host(app_config->get("custom_iot_environment"));
-    } else if (!app_config->get("iot_environment").empty()) {
-        std::string sel = app_config->get("iot_environment");
-        if (sel == "0") {
-            m_account_manager->set_host(DEV_HOST_URL);
-        } else if (sel == "1") {
-            m_account_manager->set_host(QAT_HOST_URL);
-        } else if (sel == "2") {
-            m_account_manager->set_host(PRE_HOST_URL);
-        } else {
-            m_account_manager->set_host(QAT_HOST_URL);
-        }
-    } else {
-        m_account_manager->set_host(QAT_HOST_URL);
-    }
-
     Bind(EVT_HTTP_ERROR, &GUI_App::on_http_error, this);
     Bind(EVT_USER_LOGIN, &GUI_App::on_user_login, this);
 }
@@ -1425,7 +1408,7 @@ bool GUI_App::on_init_inner()
     preset_bundle->set_default_suppressed(true);
 
     //get region config for studio
-    m_account_manager->prepare_region_config();
+    m_account_manager->reload_region_servers(true);
 
     //BBS init account_manager
     m_account_manager->load_user_info();

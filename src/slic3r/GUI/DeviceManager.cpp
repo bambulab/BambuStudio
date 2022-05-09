@@ -849,8 +849,8 @@ std::string MachineObject::build_login_request()
         j["login"]["command"]     = "login";
         j["login"]["wifi"]        = acc_.user_region_server.wifi_code;
         j["login"]["tutk"]        = acc_.user_region_server.tutk_server_host;
-        j["login"]["iot"]         = acc_.get_host();    //TODO use api werver
-        j["login"]["emqx"]        = acc_.MQTT_HOST;     //TODO user_region_server.mqtt_server_host;
+        j["login"]["iot"]         = acc_.get_host();
+        j["login"]["emqx"]        = acc_.get_emqx_server_host();
         return j.dump();
     } else {
         // default request
