@@ -1898,8 +1898,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(w, v);
                 const float margin = 10.f;
                 BoundingBoxf3 plate_bbox = wxGetApp().plater()->get_partplate_list().get_plate(plate_id)->get_bounding_box();
-                if (y + margin + wipe_tower_size(1) > plate_bbox.max(1)) {
-                    y = plate_bbox.max(1) - wipe_tower_size(1) - margin;
+                coordf_t plate_bbox_y_max_local_coord = plate_bbox.max(1) - plate_origin(1);
+                if (y + margin + wipe_tower_size(1) > plate_bbox_y_max_local_coord) {
+                    y = plate_bbox_y_max_local_coord - wipe_tower_size(1) - margin;
                     ConfigOptionFloat wt_y_opt(y);
                     dynamic_cast<ConfigOptionFloats*>(proj_cfg.option("wipe_tower_y"))->set_at(&wt_y_opt, plate_id, 0);
                 }
