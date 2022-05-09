@@ -111,10 +111,7 @@ AddMachinePanel::~AddMachinePanel() {
 
     init_timer();
 
-    m_bitmap_printer_type->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
-    m_bitmap_arrow->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
-    m_staticText_printer_name->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
-    m_bitmap_wifi_signal->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
+    m_side_tools->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
 
     Bind(wxEVT_TIMER, &MonitorPanel::on_timer, this);
     Bind(wxEVT_SIZE, &MonitorPanel::on_size, this);
@@ -123,11 +120,7 @@ AddMachinePanel::~AddMachinePanel() {
 
 MonitorPanel::~MonitorPanel()
 {
-    m_bitmap_printer_type->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
-    m_bitmap_arrow->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
-    m_staticText_printer_name->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
-    m_bitmap_wifi_signal->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
-
+    m_side_tools->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
     if (m_refresh_timer)
         m_refresh_timer->Stop();
 }
@@ -152,8 +145,10 @@ MonitorPanel::~MonitorPanel()
 
  void MonitorPanel::init_tabpanel()
 {
-    wxBoxSizer* side_tools = create_side_tools();
-    m_tabpanel             = new Tabbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, side_tools, wxNB_LEFT | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
+    m_side_tools = new SideTools(this, wxID_ANY);
+    wxBoxSizer* sizer_side_tools = new wxBoxSizer(wxVERTICAL);
+    sizer_side_tools->Add(m_side_tools, 1, wxEXPAND, 0);
+    m_tabpanel             = new Tabbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizer_side_tools, wxNB_LEFT | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
     m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {
         ;
     });
@@ -181,7 +176,7 @@ void MonitorPanel::set_default()
     m_status_info_panel->set_default();
 
     /* reset side tool*/
-    m_bitmap_wifi_signal->SetBitmap(wxNullBitmap);
+    //m_bitmap_wifi_signal->SetBitmap(wxNullBitmap);
 
     /* reset time lapse panel */
     m_media_file_panel->SetMachineObject(nullptr);
@@ -189,29 +184,18 @@ void MonitorPanel::set_default()
     wxGetApp().sidebar().load_ams_list({});
 }
 
- wxBoxSizer* MonitorPanel::create_side_tools()
+wxWindow* MonitorPanel::create_side_tools()
 {
-    m_side_tools_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-    m_side_tools_sizer->Add(FromDIP(17), 0, 0, wxALL, 0);
-    m_bitmap_printer_type = new wxStaticBitmap(this, wxID_ANY, m_printer_img, wxDefaultPosition, wxDefaultSize, 0);
-    m_side_tools_sizer->Add(m_bitmap_printer_type, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(6));
-
-    m_bitmap_arrow = new wxStaticBitmap(this, wxID_ANY, m_arrow_img, wxDefaultPosition, wxDefaultSize, 0);
-    m_side_tools_sizer->Add(m_bitmap_arrow, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
-
-    m_staticText_printer_name = new wxStaticText(this, wxID_ANY, _L("Selected a printer"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
-    m_staticText_printer_name->Wrap(-1);
-    m_staticText_printer_name->SetMaxSize(wxSize(FromDIP(120), -1));
-    m_side_tools_sizer->Add(m_staticText_printer_name, 1, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-
-    m_bitmap_wifi_signal = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    m_side_tools_sizer->Add(m_bitmap_wifi_signal, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(20));
-
     //TEST function
     //m_bitmap_wifi_signal->Connect(wxEVT_LEFT_DCLICK, wxMouseEventHandler(MonitorPanel::on_update_all), NULL, this);
 
-    return m_side_tools_sizer; 
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+    auto        panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(0, FromDIP(50)));
+    panel->SetBackgroundColour(wxColour(135,206,250));
+    panel->SetSizer(sizer);
+    sizer->Layout();
+    panel->Fit();
+    return panel;
 }
 
 void MonitorPanel::msw_rescale()
@@ -219,8 +203,7 @@ void MonitorPanel::msw_rescale()
     init_bitmap();
 
     /* side_tool rescale */
-    m_bitmap_printer_type->SetBitmap(m_printer_img);
-    m_bitmap_arrow->SetBitmap(m_arrow_img);
+    m_side_tools->msw_rescale();
 
     m_tabpanel->Rescale();
     m_status_add_machine_panel->msw_rescale();
@@ -279,13 +262,9 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
     /* query print info */
     SelectMachinePopup *m_select_machine = new SelectMachinePopup(this);
 
-   /* wxPoint pos = m_bitmap_printer_type->ClientToScreen(wxPoint(0, 0));
-    pos.y += m_bitmap_printer_type->GetRect().height;*/
 
-    auto pos = m_bitmap_printer_type->GetParent()->ClientToScreen(wxPoint(0, 0));
-    pos.y += m_side_tools_sizer->GetSize().y;
-    pos.x += (m_side_tools_sizer->GetSize().x - m_select_machine->GetSize().x) / 2;
-    
+    wxPoint pos = m_side_tools->ClientToScreen(wxPoint(0, 0));
+    pos.y += m_side_tools->GetRect().height;
     m_select_machine->Position(pos, wxSize(0, 0));
     m_select_machine->Popup();
 }
@@ -307,7 +286,7 @@ void MonitorPanel::on_size(wxSizeEvent &event)
 
     /* Update Device Info */
     wxString machine_name_text = wxString::Format("%s", from_u8(obj->dev_name));
-    m_staticText_printer_name->SetLabelText(machine_name_text);
+    m_side_tools->set_current_printer_name(machine_name_text);
 
     /*
     wxString printing_status_text = wxString::Format("%s", obj->print_status);
@@ -326,19 +305,19 @@ void MonitorPanel::on_size(wxSizeEvent &event)
 
         if (last_wifi_signal != wifi_signal_val) {
             if (wifi_signal_val > -45) {
-                m_bitmap_wifi_signal->SetBitmap(m_signal_strong_img);
+                m_side_tools->set_current_printer_sigin(WifiSignal::STRONG);
             }
             else if (wifi_signal_val <= -45 && wifi_signal_val >= -60) {
-                m_bitmap_wifi_signal->SetBitmap(m_signal_middle_img);
+                m_side_tools->set_current_printer_sigin(WifiSignal::MIDDLE);
             }
             else {
-                m_bitmap_wifi_signal->SetBitmap(m_signal_weak_img);
+                m_side_tools->set_current_printer_sigin(WifiSignal::WEAK);
             }
         }
         last_wifi_signal = wifi_signal_val;
     }
     else {
-        m_bitmap_wifi_signal->SetBitmap(m_signal_weak_img);
+        m_side_tools->set_current_printer_sigin(WifiSignal::WEAK);
     }
 }
 
@@ -421,7 +400,7 @@ void MonitorPanel::show_status(int status)
     Freeze();
     if ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0) {
         set_default();
-        m_staticText_printer_name->SetLabel(_L("No printer"));
+        m_side_tools->set_none_printer_mode();
         m_status_info_panel->show_status(status);
         //m_tabpanel->RemovePage(0);
         //m_tabpanel->InsertNewPage(0, m_status_info_panel, _L("Status"), "", true);
@@ -433,9 +412,8 @@ void MonitorPanel::show_status(int status)
         ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0) ||
         ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
         ) {
-        if (((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0) ||
-            ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0))
-            m_bitmap_wifi_signal->SetBitmap(m_signal_no_img);
+        if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0))
+            m_side_tools->set_current_printer_sigin(WifiSignal::NONE);
 
         m_status_info_panel->show_status(status);
         //m_tabpanel->RemovePage(0);

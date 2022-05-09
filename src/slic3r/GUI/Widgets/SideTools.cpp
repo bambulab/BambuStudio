@@ -1,0 +1,168 @@
+#include "SideTools.hpp"
+#include <wx/dcmemory.h>
+#include <wx/dcgraph.h>
+#include "Label.hpp"
+#include "../wxExtensions.hpp"
+#include "../I18N.hpp"
+
+namespace Slic3r { namespace GUI {
+	SideTools::SideTools(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
+{
+    wxPanel::Create(parent, id, pos, wxSize(0, FromDIP(55)));
+    Bind(wxEVT_PAINT, &SideTools::OnPaint, this);
+
+    SetBackgroundColour(*wxWHITE);
+
+    m_printing_img = create_scaled_bitmap("monitor_printer", nullptr, 24);
+    m_arrow_img    = create_scaled_bitmap("monitor_arrow", nullptr, 14);
+
+    m_none_printing_img = create_scaled_bitmap("monitor_none_printer", nullptr, 24);
+    m_none_arrow_img    = create_scaled_bitmap("monitor_none_arrow", nullptr, 14);
+    m_none_add_img      = create_scaled_bitmap("monitor_none_add", nullptr, 14);
+
+    m_wifi_none_img     = create_scaled_bitmap("monitor_signal_no", nullptr, 18);
+    m_wifi_weak_img     = create_scaled_bitmap("monitor_signal_weak", nullptr, 18);
+    m_wifi_middle_img   = create_scaled_bitmap("monitor_signal_middle", nullptr, 18);
+    m_wifi_strong_img   = create_scaled_bitmap("monitor_signal_strong", nullptr, 18);
+
+    this->Bind(wxEVT_ENTER_WINDOW, &SideTools::on_mouse_enter, this);
+    this->Bind(wxEVT_LEAVE_WINDOW, &SideTools::on_mouse_leave, this);
+    this->Bind(wxEVT_LEFT_DOWN, &SideTools::on_mouse_left_down, this);
+    this->Bind(wxEVT_LEFT_UP, &SideTools::on_mouse_left_up, this);
+}
+
+SideTools::~SideTools() {}
+
+void SideTools::set_none_printer_mode() 
+{ 
+    m_none_printer = true;
+    Refresh();
+}
+
+
+void SideTools::set_current_printer_name(wxString dev_name) 
+{
+     m_none_printer = false;
+     m_dev_name     = dev_name;
+     Refresh();
+}
+
+void SideTools::set_current_printer_sigin(WifiSignal sign) 
+{
+     m_none_printer = false;
+     m_wifi_type    = sign;
+     Refresh();
+}
+
+
+void SideTools::msw_rescale() 
+{ 
+    Refresh();
+}
+
+void SideTools::OnPaint(wxPaintEvent &event)
+{
+    wxPaintDC dc(this);
+    render(dc);
+}
+
+void SideTools::render(wxDC &dc)
+{
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({0, 0}, size, &dc, {0, 0});
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+}
+
+void SideTools::doRender(wxDC &dc)
+{
+    auto   left = FromDIP(25);
+    wxSize size = GetSize();
+    
+    //if (m_none_printer) {
+    //    dc.SetPen(SIDE_TOOLS_LIGHT_GREEN);
+    //    dc.SetBrush(SIDE_TOOLS_LIGHT_GREEN);
+    //    dc.DrawRectangle(0, 0, size.x, size.y);
+    //}
+
+    if (m_none_printer) {
+        dc.SetPen(SIDE_TOOLS_BRAND);
+        dc.SetBrush(SIDE_TOOLS_BRAND);
+        dc.DrawRectangle(0, 0, size.x, size.y);
+
+        dc.DrawBitmap(m_none_printing_img, left, (size.y - m_none_printing_img.GetSize().y) / 2);
+
+        left += (m_none_printing_img.GetSize().x + FromDIP(15));
+        dc.DrawBitmap(m_none_arrow_img, left, (size.y - m_none_arrow_img.GetSize().y) / 2);
+
+        left += (m_none_arrow_img.GetSize().x + FromDIP(6));
+        dc.SetFont(::Label::Body_14);
+        dc.SetBackgroundMode(wxTRANSPARENT);
+        dc.SetTextForeground(*wxWHITE);
+
+        auto sizet = dc.GetTextExtent(_L("No printer"));
+        dc.DrawText(_L("No printer"), wxPoint(left, (size.y - sizet.y) / 2));
+
+        left = size.x - FromDIP(30) - m_wifi_none_img.GetSize().x;
+        dc.DrawBitmap(m_none_add_img, left, (size.y - m_none_add_img.GetSize().y) / 2);
+    } else {
+        dc.DrawBitmap(m_printing_img, left, (size.y - m_printing_img.GetSize().y) / 2);
+
+        left += (m_printing_img.GetSize().x + FromDIP(12));
+        dc.DrawBitmap(m_arrow_img, left, (size.y - m_arrow_img.GetSize().y) / 2);
+
+        left += (m_arrow_img.GetSize().x + FromDIP(7));
+        dc.SetFont(::Label::Body_16);
+        dc.SetBackgroundMode(wxTRANSPARENT);
+        dc.SetTextForeground(SIDE_TOOLS_GREY900);
+
+        auto sizet = dc.GetTextExtent(m_dev_name);
+        dc.DrawText(m_dev_name, wxPoint(left, (size.y - sizet.y) / 2));
+
+        left = size.x - FromDIP(30) - m_wifi_none_img.GetSize().x;
+        if (m_wifi_type == WifiSignal::NONE) dc.DrawBitmap(m_wifi_none_img, left, (size.y - m_wifi_none_img.GetSize().y) / 2);
+        if (m_wifi_type == WifiSignal::WEAK) dc.DrawBitmap(m_wifi_weak_img, left, (size.y - m_wifi_weak_img.GetSize().y) / 2);
+        if (m_wifi_type == WifiSignal::MIDDLE) dc.DrawBitmap(m_wifi_middle_img, left, (size.y - m_wifi_middle_img.GetSize().y) / 2);
+        if (m_wifi_type == WifiSignal::STRONG) dc.DrawBitmap(m_wifi_strong_img, left, (size.y - m_wifi_strong_img.GetSize().y) / 2);
+    }
+
+    if (m_hover) {
+        dc.SetPen(SIDE_TOOLS_BRAND);
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRectangle(0, 0, size.x, size.y);
+    }
+}
+
+void SideTools::on_mouse_left_down(wxMouseEvent &evt)
+{
+    m_click = true;
+    Refresh();
+}
+
+void SideTools::on_mouse_left_up(wxMouseEvent &evt) 
+{
+     m_click = false;
+     Refresh();
+}
+
+void SideTools::on_mouse_enter(wxMouseEvent &evt)
+{
+    m_hover = true;
+    Refresh();
+}
+
+void SideTools::on_mouse_leave(wxMouseEvent &evt)
+{
+    m_hover = false;
+    Refresh();
+}
+}}

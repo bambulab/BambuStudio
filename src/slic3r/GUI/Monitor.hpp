@@ -45,6 +45,7 @@
 #include "slic3r/GUI/StatusPanel.hpp"
 #include "slic3r/GUI/UpgradePanel.hpp"
 #include "slic3r/GUI/AmsWidgets.hpp"
+#include "Widgets/SideTools.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -80,6 +81,7 @@ private:
 	UpgradePanel*       m_upgrade_panel;
 
 	/* side tools */
+    SideTools*      m_side_tools{nullptr};
     wxStaticBitmap* m_bitmap_printer_type;
     wxStaticBitmap* m_bitmap_arrow;
     wxStaticText*   m_staticText_printer_name;
@@ -107,7 +109,7 @@ public:
     void init_timer();
     void init_tabpanel();
     void set_default();
-    wxBoxSizer* create_side_tools();
+    wxWindow* create_side_tools();
 
 	void msw_rescale();
 
