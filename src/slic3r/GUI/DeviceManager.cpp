@@ -216,6 +216,20 @@ PRINTER_TYPE MachineObject::parse_printer_type(std::string type_str)
     return PRINTER_TYPE::PRINTER_3DPrinter_UKNOWN;
 }
 
+PRINTER_TYPE MachineObject::parse_iot_printer_type(std::string type_str)
+{
+    if (type_str.compare("BL-P003") == 0) {
+        return PRINTER_TYPE::PRINTER_3DPrinter_P1;
+    } else if (type_str.compare("BL-P002") == 0) {
+        return PRINTER_TYPE::PRINTER_3DPrinter_X1;
+    } else if (type_str.compare("BL-P001") == 0) {
+        return PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon;
+    }
+
+    BOOST_LOG_TRIVIAL(trace) << "unknown printer type: " << type_str;
+    return PRINTER_TYPE::PRINTER_3DPrinter_UKNOWN;
+}
+
 std::string MachineObject::get_printer_type_string()
 {
     if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_P1)

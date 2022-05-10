@@ -1041,6 +1041,10 @@ namespace Slic3r {
                             obj->iot_project_id = elem["project_id"].get<std::string>();
                         if (!elem["task_status"].is_null())
                             obj->iot_task_status = elem["task_status"].get<std::string>();
+                        if (elem.contains("dev_model_name") && !elem["dev_model_name"].is_null())
+                            obj->printer_type = MachineObject::parse_iot_printer_type(elem["dev_model_name"].get<std::string>());
+                        if (elem.contains("dev_product_name") && !elem["dev_product_name"].is_null())
+                            obj->product_name = elem["dev_product_name"].get<std::string>();
                         show_list.push_back(obj);
                     }
                 }

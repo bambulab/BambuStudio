@@ -35,9 +35,9 @@ namespace Slic3r {
 
 enum PRINTER_TYPE {
     PRINTER_3DPrinter_UKNOWN,
-    PRINTER_3DPrinter_X1_Carbon,
-    PRINTER_3DPrinter_X1,
-    PRINTER_3DPrinter_P1,
+    PRINTER_3DPrinter_X1_Carbon,    // BL-P001
+    PRINTER_3DPrinter_X1,           // BL-P002
+    PRINTER_3DPrinter_P1,           // BL-P003
 };
 
 enum PRINTING_STAGE {
@@ -271,6 +271,7 @@ public:
 
     static inline int m_sequence_id = 20000;
     static PRINTER_TYPE parse_printer_type(std::string type_str);
+    static PRINTER_TYPE parse_iot_printer_type(std::string type_str);
     std::string get_printer_type_string();
 
     MachineObject(AccountManager& acc, std::string name, std::string id, std::string ip);
@@ -279,6 +280,7 @@ public:
     std::string dev_ip;
     std::string dev_id;
     PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
+    std::string product_name;       // set by iot service, get /user/print
 
     std::string bind_user_name;
     std::string bind_user_id;
