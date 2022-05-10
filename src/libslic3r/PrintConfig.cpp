@@ -380,8 +380,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("bottom_shell_layers", coInt);
     def->label = L("Bottom shell layers");
     def->category = L("Strength");
-    def->tooltip =  L("The number of solid layers of bottom shell, including bottom surface layer. When the thickness calculated by this value "
-                     "is thinner than bottom shell thickness, the bottom shell layers number will be increased when slicing.");
+    def->tooltip =  L("This is the number of solid layers of bottom shell, including the bottom "
+                      "surface layer. When the thickness calculated by this value is thinner "
+                      "than bottom shell thickness, the bottom shell layers will be increased");
     def->full_label = L("Bottom shell layers");
     def->min = 0;
     def->set_default_value(new ConfigOptionInt(2));
@@ -389,8 +390,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("bottom_shell_thickness", coFloat);
     def->label = L("Bottom shell thickness");
     def->category = L("Strength");
-    def->tooltip = L("The number of bottom solid layers is increased when slicing if the thickness calculated by bottom_shell_layers is "
-                     "thinner than this value. This can avoid too thin shell when layer height is small");
+    def->tooltip = L("The number of bottom solid layers is increased when slicing if the thickness calculated by bottom shell layers is "
+                     "thinner than this value. This can avoid having too thin shell when layer height is small. 0 means that "
+                     "this setting is disabled and thickness of bottom shell is absolutely determained by bottom shell layers");
     def->full_label = L("Bottom shell thickness");
     def->sidetext = L("mm");
     def->min = 0;
@@ -2346,8 +2348,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("top_shell_layers", coInt);
     def->label = L("Top shell layers");
     def->category = L("Strength");
-    def->tooltip = L("The number of solid layers of top shell, including top surface layer. When the thickness calculated by this value "
-                     "is thinner than top shell thickness, the top shell layers number will be increased when slicing");
+    def->tooltip = L("This is the number of solid layers of top shell, including the top "
+                     "surface layer. When the thickness calculated by this value is thinner "
+                     "than top shell thickness, the top shell layers will be increased");
     def->full_label = L("Top solid layers");
     def->min = 0;
     def->set_default_value(new ConfigOptionInt(2));
@@ -2355,8 +2358,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("top_shell_thickness", coFloat);
     def->label = L("Top shell thickness");
     def->category = L("Strength");
-    def->tooltip = L("The number of top solid layers is increased when slicing if the thickness calculated by top_shell_layers is "
-                     "thinner than this value. This can avoid too thin shell when layer height is small");
+    def->tooltip = L("The number of top solid layers is increased when slicing if the thickness calculated by top shell layers is "
+                     "thinner than this value. This can avoid having too thin shell when layer height is small. 0 means that "
+                     "this setting is disabled and thickness of top shell is absolutely determained by top shell layers");
     def->full_label = L("Top shell thickness");
     def->sidetext = L("mm");
     def->min = 0;

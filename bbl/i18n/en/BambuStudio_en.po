@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-08 17:55+0800\n"
+"POT-Creation-Date: 2022-05-10 11:09+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2812,6 +2812,12 @@ msgstr ""
 msgid "Offline"
 msgstr ""
 
+msgid "My Device"
+msgstr ""
+
+msgid "Other Device"
+msgstr ""
+
 msgid "Bambu Cool Plate"
 msgstr ""
 
@@ -3748,25 +3754,21 @@ msgid "Bottom shell layers"
 msgstr ""
 
 msgid ""
-"The number of solid layers of bottom shell, including bottom surface layer. "
-"When the thickness calculated by this value is thinner than bottom shell "
-"thickness, the bottom shell layers number will be increased when slicing."
-msgstr ""
 "This is the number of solid layers of bottom shell, including the bottom "
 "surface layer. When the thickness calculated by this value is thinner than "
-"bottom shell thickness, the bottom shell layers will be increased."
+"bottom shell thickness, the bottom shell layers will be increased"
+msgstr ""
 
 msgid "Bottom shell thickness"
 msgstr ""
 
 msgid ""
 "The number of bottom solid layers is increased when slicing if the thickness "
-"calculated by bottom_shell_layers is thinner than this value. This can avoid "
-"too thin shell when layer height is small"
-msgstr ""
-"The number of bottom solid layers is increased when slicing if the thickness "
 "calculated by bottom shell layers is thinner than this value. This can avoid "
-"having shells that are too thin when layer height is small."
+"having too thin shell when layer height is small. 0 means that this setting "
+"is disabled and thickness of bottom shell is absolutely determained by "
+"bottom shell layers"
+msgstr ""
 
 msgid "Overhang fan speed"
 msgstr ""
@@ -5150,20 +5152,11 @@ msgstr "This is the speed for solid top surface infill."
 msgid "Top shell layers"
 msgstr ""
 
-# please check for accuracy
-# C-See if I can make this more concise/less complex
-# Maybe: This is the number of solid layers of top shell, including the surface layer.  When the thickness calculated by this is thinner than the top shell thickness, additional top shell layers will be added when slicing.
-# [Yifan] “top shell thickness” is a setting name. Maybe it can be expressed as the following.
-# This is the number of solid layers of top shell, including the surface layer.  When the thickness calculated by this is thinner than “Top shell thickness”, additional top shell layers will be added when slicing.
-# [Cory] Updated a bit with the feedback here, and I updated the title of “Top Shell Thickness” to add Title Casing so that it’s in the explanation here and in the name of that item.
 msgid ""
-"The number of solid layers of top shell, including top surface layer. When "
-"the thickness calculated by this value is thinner than top shell thickness, "
-"the top shell layers number will be increased when slicing"
-msgstr ""
-"This is the number of solid layers of top shell, including the surface "
+"This is the number of solid layers of top shell, including the top surface "
 "layer. When the thickness calculated by this value is thinner than top shell "
-"thickness, more top shell layers will be added when slicing."
+"thickness, the top shell layers will be increased"
+msgstr ""
 
 msgid "Top solid layers"
 msgstr ""
@@ -5173,12 +5166,11 @@ msgstr ""
 
 msgid ""
 "The number of top solid layers is increased when slicing if the thickness "
-"calculated by top_shell_layers is thinner than this value. This can avoid "
-"too thin shell when layer height is small"
-msgstr ""
-"The number of top solid layers is increased when slicing if the thickness "
 "calculated by top shell layers is thinner than this value. This can avoid "
-"having too thin a shell when layer height is small."
+"having too thin shell when layer height is small. 0 means that this setting "
+"is disabled and thickness of top shell is absolutely determained by top "
+"shell layers"
+msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "This is the speed at which traveling is done."
@@ -5352,8 +5344,54 @@ msgid ""
 "It seems object %s needs support to print. Please enable support generation."
 msgstr ""
 
+msgid "Optimize extrusion path"
+msgstr ""
+
 msgid "Slicing mesh"
 msgstr ""
+
+# please check for accuracy
+# C-See if I can make this more concise/less complex
+# Maybe: This is the number of solid layers of top shell, including the surface layer.  When the thickness calculated by this is thinner than the top shell thickness, additional top shell layers will be added when slicing.
+# [Yifan] “top shell thickness” is a setting name. Maybe it can be expressed as the following.
+# This is the number of solid layers of top shell, including the surface layer.  When the thickness calculated by this is thinner than “Top shell thickness”, additional top shell layers will be added when slicing.
+# [Cory] Updated a bit with the feedback here, and I updated the title of “Top Shell Thickness” to add Title Casing so that it’s in the explanation here and in the name of that item.
+#~ msgid ""
+#~ "The number of solid layers of top shell, including top surface layer. "
+#~ "When the thickness calculated by this value is thinner than top shell "
+#~ "thickness, the top shell layers number will be increased when slicing"
+#~ msgstr ""
+#~ "This is the number of solid layers of top shell, including the surface "
+#~ "layer. When the thickness calculated by this value is thinner than top "
+#~ "shell thickness, more top shell layers will be added when slicing."
+
+#~ msgid ""
+#~ "The number of solid layers of bottom shell, including bottom surface "
+#~ "layer. When the thickness calculated by this value is thinner than bottom "
+#~ "shell thickness, the bottom shell layers number will be increased when "
+#~ "slicing."
+#~ msgstr ""
+#~ "This is the number of solid layers of bottom shell, including the bottom "
+#~ "surface layer. When the thickness calculated by this value is thinner "
+#~ "than bottom shell thickness, the bottom shell layers will be increased."
+
+#~ msgid ""
+#~ "The number of bottom solid layers is increased when slicing if the "
+#~ "thickness calculated by bottom_shell_layers is thinner than this value. "
+#~ "This can avoid too thin shell when layer height is small"
+#~ msgstr ""
+#~ "The number of bottom solid layers is increased when slicing if the "
+#~ "thickness calculated by bottom shell layers is thinner than this value. "
+#~ "This can avoid having shells that are too thin when layer height is small."
+
+#~ msgid ""
+#~ "The number of top solid layers is increased when slicing if the thickness "
+#~ "calculated by top_shell_layers is thinner than this value. This can avoid "
+#~ "too thin shell when layer height is small"
+#~ msgstr ""
+#~ "The number of top solid layers is increased when slicing if the thickness "
+#~ "calculated by top shell layers is thinner than this value. This can avoid "
+#~ "having too thin a shell when layer height is small."
 
 #~ msgid "Unable to connect server"
 #~ msgstr "Unable to connect to server"

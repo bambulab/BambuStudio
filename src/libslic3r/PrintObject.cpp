@@ -434,7 +434,7 @@ void PrintObject::generate_support_material()
 void PrintObject::simplify_extrusion_path()
 {
     if (this->set_started(posSimplifyPath)) {
-        m_print->set_status(89, L("Simplify extrusion path"));
+        m_print->set_status(89, L("Optimize extrusion path"));
         BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of layers in parallel - start";
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),

@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-08 17:55+0800\n"
+"POT-Creation-Date: 2022-05-10 11:09+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2767,6 +2767,12 @@ msgstr ""
 msgid "Offline"
 msgstr ""
 
+msgid "My Device"
+msgstr ""
+
+msgid "Other Device"
+msgstr ""
+
 msgid "Bambu Cool Plate"
 msgstr ""
 
@@ -3676,9 +3682,9 @@ msgid "Bottom shell layers"
 msgstr ""
 
 msgid ""
-"The number of solid layers of bottom shell, including bottom surface layer. "
-"When the thickness calculated by this value is thinner than bottom shell "
-"thickness, the bottom shell layers number will be increased when slicing."
+"This is the number of solid layers of bottom shell, including the bottom "
+"surface layer. When the thickness calculated by this value is thinner than "
+"bottom shell thickness, the bottom shell layers will be increased"
 msgstr ""
 
 msgid "Bottom shell thickness"
@@ -3686,8 +3692,10 @@ msgstr ""
 
 msgid ""
 "The number of bottom solid layers is increased when slicing if the thickness "
-"calculated by bottom_shell_layers is thinner than this value. This can avoid "
-"too thin shell when layer height is small"
+"calculated by bottom shell layers is thinner than this value. This can avoid "
+"having too thin shell when layer height is small. 0 means that this setting "
+"is disabled and thickness of bottom shell is absolutely determained by "
+"bottom shell layers"
 msgstr ""
 
 msgid "Overhang fan speed"
@@ -4889,9 +4897,9 @@ msgid "Top shell layers"
 msgstr ""
 
 msgid ""
-"The number of solid layers of top shell, including top surface layer. When "
-"the thickness calculated by this value is thinner than top shell thickness, "
-"the top shell layers number will be increased when slicing"
+"This is the number of solid layers of top shell, including the top surface "
+"layer. When the thickness calculated by this value is thinner than top shell "
+"thickness, the top shell layers will be increased"
 msgstr ""
 
 msgid "Top solid layers"
@@ -4902,8 +4910,10 @@ msgstr ""
 
 msgid ""
 "The number of top solid layers is increased when slicing if the thickness "
-"calculated by top_shell_layers is thinner than this value. This can avoid "
-"too thin shell when layer height is small"
+"calculated by top shell layers is thinner than this value. This can avoid "
+"having too thin shell when layer height is small. 0 means that this setting "
+"is disabled and thickness of top shell is absolutely determained by top "
+"shell layers"
 msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"
@@ -5057,6 +5067,9 @@ msgstr ""
 #, c-format, boost-format
 msgid ""
 "It seems object %s needs support to print. Please enable support generation."
+msgstr ""
+
+msgid "Optimize extrusion path"
 msgstr ""
 
 msgid "Slicing mesh"
