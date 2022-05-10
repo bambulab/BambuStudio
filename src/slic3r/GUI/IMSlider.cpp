@@ -49,7 +49,7 @@ constexpr double miscalculation = scale_(scale_(1));   // equal to 1 mm2
 static const float LEFT_MARGIN    = 13.0f + 100.0f;  // avoid thumbnail toolbar
 static const float SLIDER_LENGTH  = 680.0f;
 static const ImVec2 ONE_LAYER_OFFSET  = ImVec2(41.0f, 44.0f);
-static const ImVec2 HORIZONTAL_SLIDER_SIZE = ImVec2(714.0f, 90.0f);//714 = 680 + handle_dummy_width * 2
+static const ImVec2 HORIZONTAL_SLIDER_SIZE = ImVec2(764.0f, 90.0f);//764 = 680 + handle_dummy_width * 2 + text_right_dummy
 static const ImVec2 VERTICAL_SLIDER_SIZE = ImVec2(120.0f, 748.0f);//748 = 680 + text_dummy_height * 2
 
     int m_tick_value = -1;
@@ -727,6 +727,7 @@ bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int 
     float groove_y = 8.0f;
     float bottom_dummy = 44.0f;
     float handle_dummy_width = 17.0f;
+    float text_right_dummy = 50.0f;
     float handle_radius = 14.0f;
 
     const ImU32 white_bg = IM_COL32(255, 255, 255, 255);
@@ -735,12 +736,15 @@ bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int 
 
     // calc groove size
     ImVec2 groove_start = ImVec2(pos.x + handle_dummy_width, pos.y + size.y - groove_y - bottom_dummy);
-    ImVec2 groove_size = ImVec2(size.x - 2 * handle_dummy_width, groove_y);
+    ImVec2 groove_size = ImVec2(size.x - 2 * handle_dummy_width - text_right_dummy, groove_y);
     ImRect groove = ImRect(groove_start, groove_start + groove_size);
 
+    ImRect slideable_region = ImRect(groove.Min.x, groove.GetCenter().y, groove.Max.x, groove.GetCenter().y);
+    slideable_region.Expand(ImVec2(0.0f, 19.0f));
+
     // set active(draggable) region.
-    ImRect draggable_region = ImRect(groove.Min.x, groove.GetCenter().y, groove.Max.x, groove.GetCenter().y);
-    draggable_region.Expand(ImVec2(0.0f, 19.0f)); // TODO: adjust expand
+    ImRect draggable_region = slideable_region;
+    draggable_region.Expand(ImVec2(handle_radius, 0.0f)); // TODO: adjust expand
     float mid_y = draggable_region.GetCenter().y;
     bool hovered = ImGui::ItemHoverable(draggable_region, id);
     if (hovered && context.IO.MouseDown[0]) {
@@ -751,9 +755,6 @@ bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int 
 
     // draw background
     draw_background(groove);
-
-    // set slideable region
-    const ImRect slideable_region(draggable_region);
 
     // initialize the handle
     float handle_pos = get_pos_from_value(v_min, v_max, *value, slideable_region);
@@ -768,7 +769,7 @@ bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int 
     window->DrawList->AddRectFilled(scroll_line.Min, scroll_line.Max, handle_clr, 2.0f);
 
     // draw handle
-    window->DrawList->AddCircleFilled(handle_center, handle_radius , handle_border_clr);
+    window->DrawList->AddCircleFilled(handle_center, handle_radius, handle_border_clr);
     window->DrawList->AddCircleFilled(handle_center, handle_radius - 2.0f, handle_clr);
 
     // draw label
@@ -777,13 +778,13 @@ bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int 
     //ImVec2 text_content_size = calc_text_size(std::to_string(*value));
     ImVec2 text_padding = ImVec2(5.0f, 2.0f);
     ImVec2 text_size = text_content_size + text_padding * 2;
-    ImVec2 text_start = ImVec2(handle_center.x - 0.5 * text_size.x, handle.Min.y - text_size.y - 6.06f);
+    ImVec2 text_start = ImVec2(handle_center.x + handle_radius + 8.0f, handle_center.y - 0.5 * text_size.y);
     ImRect text_rect(text_start, text_start + text_size);
     ImGui::RenderFrame(text_rect.Min, text_rect.Max, white_bg, false, 2.0f);
-    ImVec2 pos_1 = ImVec2(text_rect.GetCenter().x - 3.5f, text_rect.Max.y);
-    ImVec2 pos_2 = ImVec2(text_rect.GetCenter().x + 3.5f, text_rect.Max.y);
-    ImVec2 pos_3 = ImVec2(text_rect.GetCenter().x, text_rect.Max.y + 6.06f);
-    window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, white_bg); //TODO:triangle should get in text rect
+    ImVec2 pos_1 = ImVec2(text_rect.Min.x, text_rect.GetCenter().y - 3.5f);
+    ImVec2 pos_2 = ImVec2(text_rect.Min.x, text_rect.GetCenter().y + 3.5f);
+    ImVec2 pos_3 = ImVec2(text_rect.Min.x - 6.06f, text_rect.GetCenter().y);
+    window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, white_bg);
     ImGui::RenderText(text_start + text_padding, std::to_string(*value).c_str());
 
     ImGui::SetWindowFontScale(1.0f);
