@@ -1162,6 +1162,35 @@ int MachineObject::parse_json(std::string topic, std::string payload)
             } catch (...) {
                 ;
             }
+
+            try {
+                if (jj.contains("upgrade_state")) {
+                    if (jj["upgrade_state"].contains("status"))
+                        upgrade_status = jj["upgrade_state"]["status"].get<std::string>();
+                    if (jj["upgrade_state"].contains("progress"))
+                        upgrade_progress = jj["upgrade_state"]["progress"].get<std::string>();
+                    if (jj["upgrade_state"].contains("new_version_state"))
+                        upgrade_new_version = jj["upgrade_state"]["new_version_state"].get<int>() == 1 ? true : false;
+                    if (jj["upgrade_state"].contains("ams_new_version_number"))
+                        ams_new_version_number = jj["upgrade_state"]["ams_new_version_number"].get<std::string>();
+                    if (jj["upgrade_state"].contains("ota_new_version_number"))
+                        ota_new_version_number = jj["upgrade_state"]["ota_new_version_number"].get<std::string>();
+                    if (jj["upgrade_state"].contains("module"))
+                        upgrade_module = jj["upgrade_state"]["module"].get<std::string>();
+                    if (jj["upgrade_state"].contains("message"))
+                        upgrade_message = jj["upgrade_state"]["message"].get<std::string>();
+                    if (jj["upgrade_state"].contains("consistency_request"))
+                        upgrade_consistency_request = jj["upgrade_state"]["consistency_request"].get<bool>();
+                    if (jj["upgrade_state"].contains("force_upgrade"))
+                        upgrade_force_upgrade = jj["upgrade_state"]["force_upgrade"].get<bool>();
+                    if (jj["upgrade_state"].contains("err_code"))
+                        upgrade_err_code = jj["upgrade_state"]["err_code"].get<int>();
+                    if (jj["upgrade_state"].contains("in_prepare"))
+                        upgrade_in_prepare = jj["upgrade_state"]["in_prepare"].get<bool>();
+                }
+            } catch (...) {
+                ;
+            }
         }
 
         std::stringstream ss(payload);
@@ -1444,8 +1473,8 @@ int MachineObject::parse_json(std::string topic, std::string payload)
         else if (root.get_child_optional("info") != boost::none) {
             pt::ptree info = root.get_child("info");
         }
-        // upgrade push info
-        else if (root.get_child_optional("upgrade") != boost::none) {
+        // upgrade push info move to print push status
+        /*else if (root.get_child_optional("upgrade") != boost::none) {
             pt::ptree upgrade = root.get_child("upgrade");
             boost::optional<std::string> upgrade_module         = upgrade.get_optional<std::string>("module");
             boost::optional<std::string> upgrade_status_val     = upgrade.get_optional<std::string>("status");
@@ -1464,7 +1493,7 @@ int MachineObject::parse_json(std::string topic, std::string payload)
             if (consistency_request.has_value())
                 upgrade_consistency_request = consistency_request.value();
 
-        }
+        }*/
         // event info
         else if (root.get_child_optional("event") != boost::none) {
             pt::ptree event_node = root.get_child("event");
@@ -1859,6 +1888,8 @@ bool MachineObject::get_firmware_info()
                             FirmwareInfo item;
                             item.version     = (*firmware_it)["version"].get<std::string>();
                             item.url         = (*firmware_it)["url"].get<std::string>();
+                            if ((*firmware_it).contains("description"))
+                                item.description = (*firmware_it)["description"].get<std::string>();
                             item.module_type = "ota";
                             int name_start   = item.url.find_last_of('/') + 1;
                             if (name_start > 0) {
@@ -1879,6 +1910,8 @@ bool MachineObject::get_firmware_info()
                                     FirmwareInfo item;
                                     item.version   = (*ams_it)["version"].get<std::string>();
                                     item.url       = (*ams_it)["url"].get<std::string>();
+                                    if ((*ams_it).contains("description"))
+                                        item.description = (*ams_it)["description"].get<std::string>();
                                     item.module_type = "ams";
                                     int name_start = item.url.find_last_of('/') + 1;
                                     if (name_start > 0) {

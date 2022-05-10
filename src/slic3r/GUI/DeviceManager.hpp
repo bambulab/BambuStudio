@@ -225,7 +225,7 @@ public:
     std::string version;
     std::string url;
     std::string name;
-    std::string release_note;
+    std::string description;
 };
 
    
@@ -333,13 +333,18 @@ public:
     LIGHT_EFFECT work_light;
 
     /* upgrade */
-    bool upgrade_force_upgrade;
-    bool upgrade_new_version;
+    bool upgrade_force_upgrade { false };
+    bool upgrade_new_version { false };
     bool upgrade_consistency_request;
+    bool upgrade_in_prepare { false };
     PrinterFirmwareType       firmware_type; // engineer|production
     std::string upgrade_progress;
     std::string upgrade_message;
     std::string upgrade_status;
+    std::string upgrade_module;
+    std::string ams_new_version_number;
+    std::string ota_new_version_number;
+    int upgrade_err_code = 0;
     std::vector<FirmwareInfo> firmware_list;
 
     std::string get_firmware_type_str();
