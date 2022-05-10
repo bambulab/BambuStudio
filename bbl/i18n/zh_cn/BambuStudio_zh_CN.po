@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-10 11:09+0800\n"
+"POT-Creation-Date: 2022-05-10 15:20+0800\n"
 "PO-Revision-Date: 2022-05-08 17:56+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2362,7 +2362,7 @@ msgstr "无效数据"
 
 #, c-format, boost-format
 msgid "Slicing Plate %d"
-msgstr "正切切片盘%d"
+msgstr "正在切片盘%d"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "请解决切片错误后再重新发布。"
@@ -3426,6 +3426,10 @@ msgstr "部分模型在这些高度可能过薄，或者模型存在面片错误
 msgid "No object can be printed. Maybe too small"
 msgstr "没有可打印的对象。可能是因为尺寸过小。"
 
+#, boost-format
+msgid "Generating G-code: layer %1%"
+msgstr "正在生成G-code：层%1%"
+
 msgid "Inner wall"
 msgstr "内墙"
 
@@ -3660,9 +3664,6 @@ msgstr "层高不能超过喷嘴直径"
 msgid "Plate %d: %s does not support filament %s.\n"
 msgstr "盘%d：%s不支持耗材丝%s\n"
 
-msgid "Generating infills"
-msgstr "正在生成填充"
-
 msgid "Generating skirt & brim"
 msgstr "正在生成skirt和brim"
 
@@ -3752,8 +3753,8 @@ msgid ""
 "surface layer. When the thickness calculated by this value is thinner than "
 "bottom shell thickness, the bottom shell layers will be increased"
 msgstr ""
-"底部壳体实心层层数，包括底面。当由该层数计算的厚度小于底部壳体厚度，切"
-"片时会增加底部壳体的层数"
+"底部壳体实心层层数，包括底面。当由该层数计算的厚度小于底部壳体厚度，切片时会"
+"增加底部壳体的层数"
 
 msgid "Bottom shell thickness"
 msgstr "底部壳体厚度"
@@ -3765,9 +3766,9 @@ msgid ""
 "is disabled and thickness of bottom shell is absolutely determained by "
 "bottom shell layers"
 msgstr ""
-"如果由底部壳体层数算出的厚度小于这个数值，那么切片时将自动增加底部壳体层"
-"数。这能够避免当层高很小时，底部壳体过薄。0表示关闭这个设置，同时底部壳体的厚度完全"
-"由底部壳体层数决定"
+"如果由底部壳体层数算出的厚度小于这个数值，那么切片时将自动增加底部壳体层数。"
+"这能够避免当层高很小时，底部壳体过薄。0表示关闭这个设置，同时底部壳体的厚度完"
+"全由底部壳体层数决定"
 
 msgid "Overhang fan speed"
 msgstr "冷却悬空风扇转速"
@@ -5019,8 +5020,8 @@ msgid ""
 "layer. When the thickness calculated by this value is thinner than top shell "
 "thickness, the top shell layers will be increased"
 msgstr ""
-"顶部壳体实心层层数，包括顶面。当由该层数计算的厚度小于顶部壳体厚度，切"
-"片时会增加顶部壳体的层数"
+"顶部壳体实心层层数，包括顶面。当由该层数计算的厚度小于顶部壳体厚度，切片时会"
+"增加顶部壳体的层数"
 
 msgid "Top solid layers"
 msgstr "顶部壳体层数"
@@ -5035,9 +5036,9 @@ msgid ""
 "is disabled and thickness of top shell is absolutely determained by top "
 "shell layers"
 msgstr ""
-"如果由顶部壳体层数算出的厚度小于这个数值，那么切片时将自动增加顶部壳体层"
-"数。这能够避免当层高很小时，顶部壳体过薄。0表示关闭这个设置，同时顶部壳体的厚度完全"
-"由顶部壳体层数决定"
+"如果由顶部壳体层数算出的厚度小于这个数值，那么切片时将自动增加顶部壳体层数。"
+"这能够避免当层高很小时，顶部壳体过薄。0表示关闭这个设置，同时顶部壳体的厚度完"
+"全由顶部壳体层数决定"
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "空驶的速度。空驶是无挤出量的快速移动。"
@@ -5188,25 +5189,56 @@ msgstr "zip文件中存在错误"
 msgid "Generating walls"
 msgstr "生成内外墙"
 
-msgid "Generating infill"
-msgstr "生成填充"
+msgid "Generating infill regions"
+msgstr "正在生成填充区域"
+
+msgid "Generating infill toolpath"
+msgstr "正在生成填充走线"
 
 msgid "Generating support"
-msgstr "生成支撑"
+msgstr "正在生成支撑"
 
 msgid "Checking support necessity"
-msgstr "检查支撑必要性"
+msgstr "正在检查支撑必要性"
 
 #, c-format, boost-format
 msgid ""
 "It seems object %s needs support to print. Please enable support generation."
 msgstr "对象“%s”可能需要添加支撑才能打印。建议开启支撑生成。"
 
-msgid "Optimize extrusion path"
-msgstr "优化挤出走线"
+msgid "Optimizing toolpath"
+msgstr "正在优化走线"
 
 msgid "Slicing mesh"
 msgstr "切片网格"
+
+#, boost-format
+#~ msgid "Slicing plate %1%"
+#~ msgstr "正在切片盘 %1%"
+
+#, boost-format
+#~ msgid "Slicing Plate %1% "
+#~ msgstr "正在切片盘 %1% "
+
+#, boost-format
+#~ msgid "Slicing Plate %1%"
+#~ msgstr "正在切片盘 %1%"
+
+#, c-format, boost-format
+#~ msgid "Generating G-code: layer %d"
+#~ msgstr "正在生成G-code：层 %d"
+
+#~ msgid "Generating G-code: layer "
+#~ msgstr "正在生成G-code：层 "
+
+#~ msgid "Generating infills"
+#~ msgstr "正在生成填充"
+
+#~ msgid "Generating infill"
+#~ msgstr "生成填充"
+
+#~ msgid "Optimize extrusion path"
+#~ msgstr "优化挤出走线"
 
 #~ msgid ""
 #~ "The number of solid layers of top shell, including top surface layer. "

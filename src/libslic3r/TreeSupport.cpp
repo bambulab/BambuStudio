@@ -1850,19 +1850,19 @@ void TreeSupport::generate_support_areas()
 
     // Generate overhang areas
     profiler.stage_start(STAGE_DETECT_OVERHANGS);
-    m_object->print()->set_status(86, "Support: detect_object_overhangs");
+    //m_object->print()->set_status(55, "Support: detect_object_overhangs");
     detect_object_overhangs();
     profiler.stage_finish(STAGE_DETECT_OVERHANGS);
 
     // Generate contact points of tree support
     profiler.stage_start(STAGE_GENERATE_CONTACT_NODES);
-    m_object->print()->set_status(87, "Support: generate_contact_points");
+    //m_object->print()->set_status(56, "Support: generate_contact_points");
     generate_contact_points(contact_nodes);
     profiler.stage_finish(STAGE_GENERATE_CONTACT_NODES);
 
     //Drop nodes to lower layers.
     profiler.stage_start(STAGE_DROP_DOWN_NODES);
-    m_object->print()->set_status(90, "Support: drop_nodes");
+    //m_object->print()->set_status(60, "Support: drop_nodes");
     drop_nodes(contact_nodes);
     profiler.stage_finish(STAGE_DROP_DOWN_NODES);
 
@@ -1871,7 +1871,7 @@ void TreeSupport::generate_support_areas()
 
     //Generate support areas.
     profiler.stage_start(STAGE_DRAW_CIRCLES);
-    m_object->print()->set_status(92, "Support: draw_circles");
+    //m_object->print()->set_status(65, "Support: draw_circles");
     draw_circles(contact_nodes);
     profiler.stage_finish(STAGE_DRAW_CIRCLES);
 
@@ -1886,7 +1886,7 @@ void TreeSupport::generate_support_areas()
     contact_nodes.clear();
 
     profiler.stage_start(STAGE_GENERATE_TOOLPATHS);
-    m_object->print()->set_status(95, "Generate toolpath");
+    //m_object->print()->set_status(69, "Generate toolpath");
     generate_toolpaths();
     profiler.stage_finish(STAGE_GENERATE_TOOLPATHS);
 
@@ -2090,7 +2090,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                     ts_layer->lslices_bboxes.emplace_back(get_extents(expoly));
                 ts_layer->backup_untyped_slices();
 
-                m_object->print()->set_status(95, "Support: draw_circles at layer " + std::to_string(layer_nr));
+                //m_object->print()->set_status(65, "Support: draw_circles at layer " + std::to_string(layer_nr));
 
                 // join roof segments
                 double contact_dist_scaled = scale_(m_slicing_params.gap_support_object);
@@ -2183,7 +2183,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
     //m_mst_line_x_layer_contour_caches.resize(contact_nodes.size());
 
     {// get outlines below and avoidance area using tbb
-        m_object->print()->set_status(90, "Support: preparing avoidance regions ");
+        //m_object->print()->set_status(59, "Support: preparing avoidance regions ");
         // get all the possible radiis
         std::vector<std::set<coordf_t> > all_layer_radius(m_highest_overhang_layer+1);
         std::vector<std::set<size_t> > all_layer_node_dist(m_highest_overhang_layer+1);
@@ -2230,7 +2230,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
         const Layer* ts_layer = m_object->get_tree_support_layer(layer_nr);
         if (layer_contact_nodes.empty())
             continue;
-        m_object->print()->set_status(90, "Support: drop_nodes at layer " + std::to_string(layer_nr));
+        //m_object->print()->set_status(60, "Support: drop_nodes at layer " + std::to_string(layer_nr));
 
         for (Node* p_node : layer_contact_nodes)
         {

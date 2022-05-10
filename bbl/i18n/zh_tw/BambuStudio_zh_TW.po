@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-10 11:09+0800\n"
+"POT-Creation-Date: 2022-05-10 15:20+0800\n"
 "PO-Revision-Date: 2022-03-12 17:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com> , patched traditional "
 "chinese by Cheng-Hsien Ho <taksito@gmail.com>\n"
@@ -3352,6 +3352,10 @@ msgstr ""
 msgid "No object can be printed. Maybe too small"
 msgstr ""
 
+#, boost-format
+msgid "Generating G-code: layer %1%"
+msgstr ""
+
 msgid "Inner wall"
 msgstr ""
 
@@ -3578,9 +3582,6 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s.\n"
-msgstr ""
-
-msgid "Generating infills"
 msgstr ""
 
 msgid "Generating skirt & brim"
@@ -5039,7 +5040,10 @@ msgstr ""
 msgid "Generating walls"
 msgstr ""
 
-msgid "Generating infill"
+msgid "Generating infill regions"
+msgstr ""
+
+msgid "Generating infill toolpath"
 msgstr ""
 
 msgid "Generating support"
@@ -5053,7 +5057,7 @@ msgid ""
 "It seems object %s needs support to print. Please enable support generation."
 msgstr ""
 
-msgid "Optimize extrusion path"
+msgid "Optimizing toolpath"
 msgstr ""
 
 msgid "Slicing mesh"

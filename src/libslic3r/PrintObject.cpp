@@ -126,7 +126,7 @@ void PrintObject::make_perimeters()
     if (! this->set_started(posPerimeters))
         return;
 
-    m_print->set_status(20, L("Generating walls"));
+    m_print->set_status(15, L("Generating walls"));
     BOOST_LOG_TRIVIAL(info) << "Generating walls..." << log_memory_info();
     
     // Revert the typed slices into untyped slices.
@@ -229,9 +229,7 @@ void PrintObject::prepare_infill()
 {
     if (! this->set_started(posPrepareInfill))
         return;
-
-    m_print->set_status(30, L("Generating infill"));
-
+    m_print->set_status(25, L("Generating infill regions"));
     if (m_typed_slices) {
         // To improve robustness of detect_surfaces_type() when reslicing (working with typed slices), see GH issue #7442.
         // The preceding step (perimeter generator) only modifies extra_perimeters and the extra perimeters are only used by discover_vertical_shells()
@@ -357,6 +355,8 @@ void PrintObject::infill()
     this->prepare_infill();
 
     if (this->set_started(posInfill)) {
+        m_print->set_status(35, L("Generating infill toolpath"));
+
         auto [adaptive_fill_octree, support_fill_octree] = this->prepare_adaptive_infill_data();
 
         BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - start";
@@ -405,14 +405,14 @@ void PrintObject::generate_support_material()
         this->clear_tree_support_layers();
 
         if ((this->has_support() && m_layers.size() > 1) || (this->has_raft() && ! m_layers.empty())) {
-            m_print->set_status(85, L("Generating support"));    
+            m_print->set_status(50, L("Generating support"));
 
             this->_generate_support_material();
             m_print->throw_if_canceled();
         } else {
             // BBS: pop a warning if objects have significant amount of overhangs but support material is not enabled
             if (this->is_support_necessary()) {
-                m_print->set_status(85, L("Checking support necessity"));
+                m_print->set_status(50, L("Checking support necessity"));
 
                 std::string warning_message = format(L("It seems object %s needs support to print. Please enable support generation."), this->model_object()->name);
                 this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning_message);
@@ -434,7 +434,7 @@ void PrintObject::generate_support_material()
 void PrintObject::simplify_extrusion_path()
 {
     if (this->set_started(posSimplifyPath)) {
-        m_print->set_status(89, L("Optimize extrusion path"));
+        m_print->set_status(75, L("Optimizing toolpath"));
         BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of layers in parallel - start";
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),

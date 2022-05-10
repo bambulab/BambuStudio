@@ -1131,7 +1131,6 @@ void Print::process()
     BOOST_LOG_TRIVIAL(info) << "Starting the slicing process." << log_memory_info();
     for (PrintObject *obj : m_objects)
         obj->make_perimeters();
-    this->set_status(70, L("Generating infills"));
     for (PrintObject *obj : m_objects)
         obj->infill();
     for (PrintObject *obj : m_objects)
@@ -1142,7 +1141,6 @@ void Print::process()
         m_wipe_tower_data.clear();
         m_tool_ordering.clear();
         if (this->has_wipe_tower()) {
-            //this->set_status(95, L("Generating wipe tower"));
             this->_make_wipe_tower();
         } else if (this->config().print_sequence != PrintSequence::ByObject) {
         	// Initialize the tool ordering, so it could be used by the G-code preview slider for planning tool changes and filament switches.
@@ -1153,7 +1151,7 @@ void Print::process()
         this->set_done(psWipeTower);
     }
     if (this->set_started(psSkirtBrim)) {
-        this->set_status(88, L("Generating skirt & brim"));
+        this->set_status(70, L("Generating skirt & brim"));
 
         m_skirt.clear();
         m_skirt_convex_hull.clear();
@@ -1264,7 +1262,7 @@ std::string Print::export_gcode(const std::string& path_template, GCodeProcessor
         message += path;
     } else
         message = L("Generating G-code");
-    this->set_status(90, message);
+    this->set_status(80, message);
 
     // The following line may die for multiple reasons.
     GCode gcode;

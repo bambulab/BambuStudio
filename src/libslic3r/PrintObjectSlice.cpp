@@ -570,7 +570,7 @@ void PrintObject::slice()
     if (! this->set_started(posSlice))
         return;
     //BBS: add flag to reload scene for shell rendering
-    m_print->set_status(10, L("Slicing mesh"), PrintBase::SlicingStatus::RELOAD_SCENE);
+    m_print->set_status(5, L("Slicing mesh"), PrintBase::SlicingStatus::RELOAD_SCENE);
     std::vector<coordf_t> layer_height_profile;
     this->update_layer_height_profile(*this->model_object(), m_slicing_params, layer_height_profile);
     m_print->throw_if_canceled();

@@ -1135,7 +1135,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("scan_first_layer", coBool);
     def->label = L("Scan first layer");
     def->tooltip = L("Enable this to enable the camera on printer to check the quality of first layer");
-    def->mode = comDevelop;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
     //BBS
     def = this->add("spaghetti_detector", coBool);
