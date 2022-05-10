@@ -46,6 +46,7 @@ class StatusBasePanel : public wxScrolledWindow
 protected:
     wxBitmap m_item_placeholder;
     wxBitmap m_thumbnail_placeholder;
+    wxBitmap m_thumbnail_sdcard;
     wxBitmap m_bitmap_item_prediction;
     wxBitmap m_bitmap_item_cost;
     wxBitmap m_bitmap_item_print;
@@ -191,6 +192,7 @@ protected:
 
     wxString     m_request_url;
     bool         m_start_loading_thumbnail = false;
+    bool         m_load_sdcard_thumbnail = false;
     wxWebRequest web_request;
 
     bool bed_temp_input    = false;
@@ -251,6 +253,8 @@ protected:
     /* update apis */
     void update(MachineObject* obj);
     void update_subtask(MachineObject *obj);
+    void update_cloud_subtask(MachineObject *obj);
+    void update_sdcard_subtask(MachineObject *obj);
     void update_tasklist(MachineObject* obj);
     void update_temp_ctrl(MachineObject *obj);
     void update_misc_ctrl(MachineObject *obj);

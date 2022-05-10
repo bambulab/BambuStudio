@@ -428,6 +428,14 @@ PrintingSpeedLevel MachineObject::_parse_printing_speed_lvl(int lvl)
     return PrintingSpeedLevel::SPEED_LEVEL_INVALID;
 }
 
+bool MachineObject::is_sdcard_printing()
+{
+    if (can_abort() && obj_subtask_id.compare("0") == 0)
+        return true;
+    else
+        return false;
+}
+
 int MachineObject::command_get_version()
 {
     json j;
@@ -1249,9 +1257,11 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                     }
 
                     /* valid subtask */
-                    if (subtask_id.has_value() && !subtask_id.value().empty() && subtask_id.value().compare("0") != 0)
-                    {
-                        update_subtask(subtask_id.value());
+                    if (subtask_id.has_value() && !subtask_id.value().empty()) {
+                        if (subtask_id.value().compare("0") != 0) {
+                            update_subtask(subtask_id.value());
+                        }
+                        obj_subtask_id = subtask_id.value();
                     }
 
                     BBLSubTask* curr_task = get_subtask();

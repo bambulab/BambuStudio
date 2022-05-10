@@ -403,6 +403,8 @@ public:
     BBLTask* task_;
     BBLSubTask* subtask_;
     BBLSubTask* temptask_;
+    std::string obj_subtask_id;     // subtask_id == 0 for sdcard
+    bool is_sdcard_printing();
     
     /* command commands */
     int command_get_version();

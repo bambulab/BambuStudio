@@ -166,6 +166,7 @@ void StatusBasePanel::init_bitmaps()
     m_bitmap_fan_off  = create_scaled_bitmap("monitor_fan_off", nullptr, 24);
     m_bitmap_speed    = create_scaled_bitmap("monitor_speed", nullptr, 24);
     m_thumbnail_placeholder = create_scaled_bitmap("monitor_placeholder", nullptr, 120);
+    m_thumbnail_sdcard = create_scaled_bitmap("monitor_sdcard_thumbnail", nullptr, 120);
     m_bitmap_extruder = *cache.load_png("monitor_extruder", FromDIP(48), FromDIP(96), false, false);
     m_bitmap_ams_extruder_on  = create_scaled_bitmap("monitor_ams_extruder_on", nullptr, 60);
     m_bitmap_ams_extruder_off = create_scaled_bitmap("monitor_ams_extruder_off", nullptr, 60);
@@ -1273,6 +1274,43 @@ void StatusPanel::update_subtask(MachineObject *obj)
         return;
     }
 
+    if (obj->is_sdcard_printing()) {
+        update_sdcard_subtask(obj);
+    } else {
+        update_cloud_subtask(obj);
+    }
+
+    // update gcode progress
+    std::string left_time;
+    wxString    left_time_text = NA_STR;
+
+    // valid gcode percent / left time
+    if (obj->mc_left_time != 0 || obj->mc_print_percent != 0) {
+        try {
+            left_time = get_bbl_monitor_time_dhm(obj->mc_left_time);
+        } catch (...) {
+            ;
+        }
+        if (!left_time.empty())
+            left_time_text = wxString::Format("-%s", left_time);
+    }
+
+    // update current subtask progress
+    m_staticText_progress_left->SetLabelText(left_time_text);
+
+    if (!obj->is_printing_finished()) {
+        // update printing stage
+        m_printing_stage_value->SetLabelText(obj->get_curr_stage());
+    } else {
+        m_printing_stage_value->SetLabelText("");
+    }
+
+    this->Layout();
+}
+
+void StatusPanel::update_cloud_subtask(MachineObject *obj)
+{
+    if (!obj) return;
     if (!obj->subtask_) return;
 
     // update subtask static info
@@ -1322,35 +1360,26 @@ void StatusPanel::update_subtask(MachineObject *obj)
         }
     }
 
-    // update gcode progress
-    
-    std::string left_time;
-    wxString    left_time_text = NA_STR;
-
-    // valid gcode percent / left time
-    if (obj->mc_left_time != 0 || obj->mc_print_percent != 0) {
-        try {
-            left_time = get_bbl_monitor_time_dhm(obj->mc_left_time);
-        } catch (...) {
-            ;
-        }
-        if (!left_time.empty())
-            left_time_text = wxString::Format("-%s", left_time);
-    }
-
-    // update current subtask progress
-    m_staticText_progress_left->SetLabelText(left_time_text);
     m_gauge_progress->SetValue(obj->subtask_->task_progress);
     m_staticText_progress_percent->SetLabelText(wxString::Format("%d%%", obj->subtask_->task_progress));
+}
 
-    if (!obj->is_printing_finished()) {
-        // update printing stage
-        m_printing_stage_value->SetLabelText(obj->get_curr_stage());
-    } else {
-        m_printing_stage_value->SetLabelText("");
+void StatusPanel::update_sdcard_subtask(MachineObject *obj)
+{
+    if (!obj) return;
+
+    if (!obj->subtask_name.empty()) {
+        wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
+        m_staticText_subtask_value->SetLabelText(subtask_text);
     }
 
-    this->Layout();
+    if (!m_load_sdcard_thumbnail) {
+        m_bitmap_thumbnail->SetBitmap(m_thumbnail_sdcard);
+        m_load_sdcard_thumbnail = true;
+    }
+
+    m_gauge_progress->SetValue(obj->temptask_->task_progress);
+    m_staticText_progress_percent->SetLabelText(wxString::Format("%d%%", obj->temptask_->task_progress));
 }
 
 void StatusPanel::update_tasklist(MachineObject *obj)
@@ -1374,6 +1403,8 @@ void StatusPanel::reset_printing_values()
     m_staticText_progress_left->SetLabelText("N/A");
     m_staticText_progress_percent->SetLabelText("0%");
     m_bitmap_thumbnail->SetBitmap(m_thumbnail_placeholder);
+    m_start_loading_thumbnail = false;
+    m_load_sdcard_thumbnail = false;
     this->Layout();
 }
 
