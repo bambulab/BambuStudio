@@ -127,6 +127,7 @@ public:
 
     bool Show(bool show);
 
+	void update_side_panel();
     void show_status(int status);
 
     MachineObject *obj;

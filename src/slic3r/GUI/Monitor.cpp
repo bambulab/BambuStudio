@@ -28,6 +28,7 @@
 #include "MediaPlayCtrl.h"
 #include "MediaFilePanel.h"
 #include "Plater.hpp"
+#include "BindDialog.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -112,7 +113,6 @@ AddMachinePanel::~AddMachinePanel() {
     init_timer();
 
     m_side_tools->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
-
     Bind(wxEVT_TIMER, &MonitorPanel::on_timer, this);
     Bind(wxEVT_SIZE, &MonitorPanel::on_size, this);
     Bind(wxEVT_COMMAND_CHOICE_SELECTED, &MonitorPanel::on_select_printer, this);
@@ -337,6 +337,10 @@ void MonitorPanel::update_all()
     m_status_info_panel->m_media_play_ctrl->SetMachineObject(IsShown() ? obj : nullptr);
     //m_media_file_panel->SetMachineObject(obj);
 
+    if (!obj) { 
+        update_side_panel();
+    }
+
 
     if (!obj) {
         show_status((int)MONITOR_NO_PRINTER);
@@ -387,6 +391,23 @@ bool MonitorPanel::Show(bool show)
     return wxPanel::Show(show);
 }
 
+void MonitorPanel::update_side_panel() 
+{
+    Slic3r::AccountManager *account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    auto                    is_next_machine = false;
+    for (auto it = account_manager->myBindMachineList.begin(); it != account_manager->myBindMachineList.end(); it++) {
+        if (it->second && it->second->is_online()) {
+            wxCommandEvent *event = new wxCommandEvent(wxEVT_COMMAND_CHOICE_SELECTED);
+            event->SetString(it->second->dev_id);
+            wxQueueEvent(this, event);
+            is_next_machine = true;
+            return;
+        }
+    }
+
+    if (!is_next_machine) { m_side_tools->set_none_printer_mode(); }
+}
+
 void MonitorPanel::show_status(int status)
 {
     if (!m_initialized) return;
@@ -400,7 +421,7 @@ void MonitorPanel::show_status(int status)
     Freeze();
     if ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0) {
         set_default();
-        m_side_tools->set_none_printer_mode();
+        //m_side_tools->set_none_printer_mode();
         m_status_info_panel->show_status(status);
         //m_tabpanel->RemovePage(0);
         //m_tabpanel->InsertNewPage(0, m_status_info_panel, _L("Status"), "", true);

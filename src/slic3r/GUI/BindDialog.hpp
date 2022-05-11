@@ -56,7 +56,6 @@ protected:
     void on_start_ssdp(wxCommandEvent &event);
     void on_stop_ssdp(wxCommandEvent &event);
     void on_bind_printer(wxCommandEvent &event);
-    void on_unbind_printer(wxCommandEvent &event);
     void on_refresh(wxCommandEvent &event);
 
 public:
@@ -92,7 +91,6 @@ private:
 public:
     BindMachineDilaog(Plater *plater = nullptr);
     ~BindMachineDilaog();
-    wxImage *DownloadImage(std::string image_url);
     void     on_cancel(wxCommandEvent &event);
     void     on_bind_fail(wxCommandEvent &event);
     void     on_update_message(wxCommandEvent &event);

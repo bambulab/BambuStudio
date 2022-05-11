@@ -62,7 +62,7 @@ BindDialog::BindDialog(Plater *plater)
     wxBoxSizer *btn_sizer;
     btn_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    btn_bind = new wxButton(this, wxID_ANY, wxT("Bind"), wxDefaultPosition, wxDefaultSize, 0);
+    btn_bind = new wxButton(this, wxID_ANY, _L("Confirm"), wxDefaultPosition, wxDefaultSize, 0);
     btn_sizer->Add(btn_bind, 0, wxALL, 5);
 
     /*btn_unbind = new wxButton(this, wxID_ANY, wxT("Unbind"), wxDefaultPosition, wxDefaultSize, 0);
@@ -80,7 +80,6 @@ BindDialog::BindDialog(Plater *plater)
     btn_start_ssdp->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindDialog::on_start_ssdp), NULL, this);
     btn_stop_ssdp->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindDialog::on_stop_ssdp), NULL, this);
     btn_bind->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindDialog::on_bind_printer), NULL, this);
-    //btn_unbind->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindDialog::on_unbind_printer), NULL, this);
     btn_refresh->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindDialog::on_refresh), NULL, this);
 }
 
@@ -88,7 +87,6 @@ BindDialog::~BindDialog() {
     btn_start_ssdp->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindDialog::on_start_ssdp), NULL, this);
     btn_stop_ssdp->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindDialog::on_stop_ssdp), NULL, this);
     btn_bind->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindDialog::on_bind_printer), NULL, this);
-    //btn_unbind->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindDialog::on_unbind_printer), NULL, this);
     btn_refresh->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindDialog::on_refresh), NULL, this);
 }
 
@@ -123,10 +121,6 @@ void BindDialog::on_bind_printer(wxCommandEvent &event)
     }
 }
 
-void BindDialog::on_unbind_printer(wxCommandEvent &event)
-{
-}
-
 void BindDialog::on_refresh(wxCommandEvent &event)
 {
     printer_list_item.clear();
@@ -146,7 +140,7 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
 }
 
  BindMachineDilaog::BindMachineDilaog(Plater *plater /*= nullptr*/) 
-     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Bind Machine"), wxDefaultPosition, wxDefaultSize, wxCAPTION)
+     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Log in Printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION)
  {
      std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
      SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -231,7 +225,7 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
 
      m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(20));
 
-     m_status_text = new wxStaticText(this, wxID_ANY, L("Would you like to bind the printer with current account?"), wxDefaultPosition,
+     m_status_text = new wxStaticText(this, wxID_ANY, _L("Would you like to log in the current account from this printer?"), wxDefaultPosition,
                                            wxSize(BIND_DIALOG_BUTTON_PANEL_SIZE.x, -1), wxST_ELLIPSIZE_END);
      m_status_text->SetForegroundColour(wxColour(107, 107, 107));
      m_status_text->SetFont(::Label::Body_13);
@@ -246,7 +240,7 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
      button_panel->SetBackgroundColour(*wxWHITE);
      wxBoxSizer *m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
      m_sizer_button->Add(0, 0, 1, wxEXPAND, 5);
-     m_button_bind = new Button(button_panel, _L("Bind"));
+     m_button_bind = new Button(button_panel, _L("Confirm"));
      StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                              std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
      m_button_bind->SetBackgroundColor(btn_bg_green);
@@ -320,29 +314,6 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
  //    return realsize;
  //}
 
- wxImage* BindMachineDilaog::DownloadImage(std::string image_url)
- {
-     wxImage *           pImg = NULL;
-     struct MemoryStruct chunk;
-     CURL *              curlCtx = curl_easy_init();
-     curl_easy_setopt(curlCtx, CURLOPT_URL, image_url.c_str());
-     curl_easy_setopt(curlCtx, CURLOPT_WRITEDATA, (void *) &chunk);
-     //curl_easy_setopt(curlCtx, CURLOPT_WRITEFUNCTION, WriteCallback);
-     curl_easy_setopt(curlCtx, CURLOPT_FOLLOWLOCATION, 1);
-     chunk.memory = NULL;
-     chunk.size   = 0;
-     CURLcode rc  = curl_easy_perform(curlCtx);
-     if (rc) { printf("!!! Failed to download\n"); }
-     wxMemoryInputStream memin(chunk.memory, chunk.size);
-     if ((pImg = new wxImage()) != NULL) {
-         if (!pImg->LoadFile(memin, wxBITMAP_TYPE_ANY)) {
-             //delete pImg;
-             //pImg = NULL;
-         }
-     }
-     curl_easy_cleanup(curlCtx);
-     return pImg;
- }
 
  void BindMachineDilaog::on_cancel(wxCommandEvent &event)
  { 
@@ -362,7 +333,7 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
  void BindMachineDilaog::on_bind_success(wxCommandEvent &event) 
  {
      EndModal(wxID_CANCEL);
-     MessageDialog msg_wingow(nullptr, _L("Bind device success!"), "", wxAPPLY | wxOK);
+     MessageDialog msg_wingow(nullptr, _L("Log in success."), "", wxAPPLY | wxOK);
      if (msg_wingow.ShowModal() == wxOK) { return; }
  }
 
@@ -390,7 +361,7 @@ void BindMachineDilaog::on_dpi_changed(const wxRect &suggested_rect)
 }
 
 UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/) 
-     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("UnBind Machine"), wxDefaultPosition, wxDefaultSize, wxCAPTION)
+     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Log out Printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION)
  {
      std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
      SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -476,7 +447,7 @@ UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
 
      m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(20));
 
-     m_status_text = new wxStaticText(this, wxID_ANY, L("Would you like to unbind the printer with current account?"), wxDefaultPosition,
+     m_status_text = new wxStaticText(this, wxID_ANY, _L("Would you like to log out the current account from this printer?"), wxDefaultPosition,
                                            wxSize(BIND_DIALOG_BUTTON_PANEL_SIZE.x, -1), wxST_ELLIPSIZE_END);
      m_status_text->SetForegroundColour(wxColour(107, 107, 107));
      m_status_text->SetFont(::Label::Body_13);
@@ -487,7 +458,7 @@ UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
      wxBoxSizer *m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
      m_sizer_button->Add(0, 0, 1, wxEXPAND, 5);
-     m_button_unbind = new Button(this, _L("UnBind"));
+     m_button_unbind = new Button(this, _L("Confirm"));
      StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                              std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
      m_button_unbind->SetBackgroundColor(btn_bg_green);
@@ -543,30 +514,37 @@ void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event)
 {
     Slic3r::AccountManager *account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     if (!account_manager->is_user_login()) {
-        m_status_text->SetLabelText(_L("Please login first!"));
+        m_status_text->SetLabelText(_L("Please log in first"));
         return;
     }
 
 
     if (!m_machine_info) {
-        m_status_text->SetLabelText(_L("Invalid Printer! Please Select a Printer!"));
+        m_status_text->SetLabelText(_L("Invalid printer. Please select a printer."));
         return;
     }
 
     m_machine_info->request_unbind([this](int result, std::string body) {
+       
         if (result == 0) {
-            EndModal(wxID_CANCEL);
-            MessageDialog msg_wingow(nullptr, _L("UnBind device success!"), "", wxAPPLY | wxOK);
-            if (msg_wingow.ShowModal() == wxOK) { 
-                return; 
-            }
+           /* EndModal(wxID_CANCEL);
+            MessageDialog msg_wingow(nullptr, _L("Log out success"), "", wxAPPLY | wxOK);
+            if (msg_wingow.ShowModal() == wxOK) { return; }*/
+         
+            Slic3r::AccountManager *account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+            int                     err_code;
+            std::string             err_msg;
+            account_manager->update_my_machine_list_info(err_code, err_msg, true);
+
+            m_status_text->SetLabelText(_L("Log out success."));
+            m_button_unbind->Hide();
         } else {
-            m_status_text->SetLabelText(_L("Unbind device failed!"));
+            m_status_text->SetLabelText(_L("Log out failed"));
             return;
         }
     });
 
-    m_status_text->SetLabelText(_L("Unbind device failed!"));
+    m_status_text->SetLabelText(_L("Log out failed"));
 }
 
  void UnBindMachineDilaog::on_dpi_changed(const wxRect &suggested_rect) 
