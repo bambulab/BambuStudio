@@ -23,6 +23,7 @@
 
 #include "MainFrame.hpp"
 #include <boost/dll.hpp>
+#include <slic3r/GUI/Widgets/WebView.hpp>
 
 
 using namespace nlohmann;
@@ -50,40 +51,16 @@ GuideFrame::GuideFrame(GUI_App *pGUI)
     // set the frame icon
     wxBoxSizer *topsizer = new wxBoxSizer(wxVERTICAL);
 
-#if wxUSE_WEBVIEW_EDGE
-    // Check if a fixed version of edge is present in
-    // $executable_path/edge_fixed and use it
-    wxFileName edgeFixedDir(wxStandardPaths::Get().GetExecutablePath());
-    edgeFixedDir.SetFullName("");
-    edgeFixedDir.AppendDir("edge_fixed");
-    if (edgeFixedDir.DirExists()) {
-        wxWebViewEdge::MSWSetBrowserExecutableDir(edgeFixedDir.GetFullPath());
-        wxLogMessage("Using fixed edge version");
-    }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  set start page to welcome");
+    wxString TargetUrl = SetStartPage(BBL_WELCOME, false);
 
-#endif
     // Create the webview
-    m_browser = wxWebView::New();
-    if (m_browser) {
-        m_browser->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
-
-#ifndef __WXMAC__
-        // We register the wxfs:// protocol for testing purposes
-        m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("bbl")));
-        // And the memory: file system
-        m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
-#endif
-
-        if (!m_browser->AddScriptMessageHandler("wx")) wxLogError("Could not add script message handler");
-    } else {
+    m_browser = WebView::CreateWebView(this, TargetUrl);
+    if (m_browser == nullptr) {
         wxLogError("Could not init m_browser");
         return;
     }
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  set start page to welcome");
-    wxString TargetUrl = SetStartPage(BBL_WELCOME, false);
-    bool bRet = m_browser->Create(this, wxID_ANY, TargetUrl, wxDefaultPosition, wxDefaultSize);
-    m_browser->EnableContextMenu(false);
     SetSizer(topsizer);
 
 #ifdef __WXMAC__

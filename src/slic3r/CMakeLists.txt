@@ -66,6 +66,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/ProgressBar.hpp
     GUI/Widgets/SideTools.cpp
     GUI/Widgets/SideTools.hpp
+    GUI/Widgets/WebView.cpp
+    GUI/Widgets/WebView.hpp
     GUI/AboutDialog.cpp
     GUI/AboutDialog.hpp
     GUI/AuxiliaryDialog.cpp

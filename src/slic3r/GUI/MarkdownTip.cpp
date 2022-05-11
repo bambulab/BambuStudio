@@ -2,6 +2,7 @@
 #include "GUI_App.hpp"
 #include "GUI.hpp"
 #include "MainFrame.hpp"
+#include "Widgets/WebView.hpp"
 
 #include "libslic3r/Utils.hpp"
 #include "I18N.hpp"
@@ -267,23 +268,12 @@ class FakeWebView : public wxWebView
 
 wxWebView* MarkdownTip::CreateTipView(wxWindow* parent)
 {
-    //return new FakeWebView;
-
-    wxWebView* tipView = wxWebView::New();
+    wxWebView *tipView = WebView::CreateWebView(parent, "");
     if (tipView == nullptr)
         return new FakeWebView;
-
-#ifdef __WIN32__
-    tipView->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
-    tipView->Create(parent, wxID_ANY, "", wxDefaultPosition, {400, 300}, wxBORDER_NONE);
-#else
-    tipView->Create(parent, wxID_ANY, "", wxDefaultPosition, {400, 300}, wxBORDER_NONE);
-    tipView->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
-#endif
     tipView->Bind(wxEVT_WEBVIEW_LOADED, &MarkdownTip::OnLoaded, this);
     tipView->Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &MarkdownTip::OnTitleChanged, this);
     tipView->Bind(wxEVT_WEBVIEW_ERROR, &MarkdownTip::OnError, this);
-    tipView->EnableContextMenu(false);
     return tipView;
 }
 
