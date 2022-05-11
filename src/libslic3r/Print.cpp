@@ -836,15 +836,15 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             // instead of currently used logic "extrusion width wrt. layer height", see GH issues #1923 #2829.
 //        	double extrusion_width_min = config.get_abs_value(opt_key, min_nozzle_diameter);
 //        	double extrusion_width_max = config.get_abs_value(opt_key, max_nozzle_diameter);
-            double extrusion_width_min = config.get_abs_value(opt_key, layer_height);
-            double extrusion_width_max = config.get_abs_value(opt_key, layer_height);
+            double extrusion_width_min = config.get_abs_value(opt_key);
+            double extrusion_width_max = config.get_abs_value(opt_key);
         	if (extrusion_width_min == 0) {
         		// Default "auto-generated" extrusion width is always valid.
         	} else if (extrusion_width_min <= layer_height) {
-                err_msg = L("Extrusion width value is too low.");
+                err_msg = L("Too small line width");
 				return false;
-			} else if (extrusion_width_max >= max_nozzle_diameter * 3.) {
-                err_msg = L("Extrusion width value is too high.");
+			} else if (extrusion_width_max >= max_nozzle_diameter * 2.5) {
+                err_msg = L("Too large line width");
 				return false;
 			}
 			return true;
@@ -911,10 +911,8 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             std::string err_msg;
             if (!validate_extrusion_width(object->config(), "line_width", layer_height, err_msg))
             	return {err_msg, object, "line_width"};
-            //BBS: add support_transition_line_width check
             if (object->has_support() || object->has_raft()) {
-                if (!validate_extrusion_width(object->config(), "support_line_width", layer_height, err_msg) ||
-                    !validate_extrusion_width(object->config(), "support_transition_line_width", layer_height, err_msg))
+                if (!validate_extrusion_width(object->config(), "support_line_width", layer_height, err_msg))
                     return {err_msg, object, "support_line_width"};
             }
             for (const char *opt_key : { "inner_wall_line_width", "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width", "top_surface_line_width" })
@@ -1016,7 +1014,7 @@ double Print::skirt_first_layer_height() const
 
 Flow Print::brim_flow() const
 {
-    ConfigOptionFloatOrPercent width = m_config.initial_layer_line_width;
+    ConfigOptionFloat width = m_config.initial_layer_line_width;
     if (width.value == 0)
         width = m_print_regions.front()->config().inner_wall_line_width;
     if (width.value == 0)
@@ -1036,9 +1034,7 @@ Flow Print::brim_flow() const
 
 Flow Print::skirt_flow() const
 {
-    ConfigOptionFloatOrPercent width = m_config.initial_layer_line_width;
-    if (width.value == 0)
-        width = m_print_regions.front()->config().inner_wall_line_width;
+    ConfigOptionFloat width = m_config.initial_layer_line_width;
     if (width.value == 0)
         width = m_objects.front()->config().line_width;
 

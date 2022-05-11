@@ -1698,11 +1698,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("initial_layer_line_width");
         optgroup->append_single_option_line("outer_wall_line_width");
         optgroup->append_single_option_line("inner_wall_line_width");
+        optgroup->append_single_option_line("top_surface_line_width");
         optgroup->append_single_option_line("sparse_infill_line_width");
         optgroup->append_single_option_line("internal_solid_infill_line_width");
-        optgroup->append_single_option_line("top_surface_line_width");
         optgroup->append_single_option_line("support_line_width");
-        optgroup->append_single_option_line("support_transition_line_width");
 
         optgroup = page->new_optgroup(L("Seam"));
         optgroup->append_single_option_line("seam_position");
@@ -1773,7 +1772,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("gap_infill_speed");
         optgroup->append_single_option_line("support_speed");
         optgroup->append_single_option_line("support_interface_speed");
-        optgroup->append_single_option_line("support_transition_speed");
 
         optgroup = page->new_optgroup(L("Travel speed"));
         optgroup->append_single_option_line("travel_speed");

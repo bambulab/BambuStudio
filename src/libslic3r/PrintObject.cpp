@@ -635,7 +635,6 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "enforce_support_layers"
             || opt_key == "support_filament"
             || opt_key == "support_line_width"
-            || opt_key == "support_transition_line_width"
             || opt_key == "support_interface_top_layers"
             || opt_key == "support_interface_bottom_layers"
             || opt_key == "support_interface_pattern"
@@ -725,7 +724,6 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_speed"
             || opt_key == "support_interface_speed"
             //BBS
-            || opt_key == "support_transition_speed"
             || opt_key == "enable_overhang_speed"
             || opt_key == "overhang_1_4_speed"
             || opt_key == "overhang_2_4_speed"

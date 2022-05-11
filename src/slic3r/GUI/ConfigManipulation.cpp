@@ -510,11 +510,12 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     for (auto el : { "support_style", "support_base_pattern",
                     "support_base_pattern_spacing", "support_angle", 
                     "support_interface_pattern", "support_interface_top_layers", "support_interface_bottom_layers",
-                    "bridge_no_support", "support_line_width", "support_top_z_distance",
+                    "bridge_no_support", "support_top_z_distance",
                      //BBS: add more support params to dependent of enable_support
                     "support_type","support_on_build_plate_only",
-                    "support_object_xy_distance", "support_transition_line_width", "independent_support_layer_height"})
+                    "support_object_xy_distance", "independent_support_layer_height"})
         toggle_field(el, have_support_material);
+    toggle_line("support_line_width", have_support_material);
     toggle_field("support_threshold_angle", have_support_material && (support_type == stNormalAuto || support_type == stTreeAuto || support_type==stHybridAuto));
     //toggle_field("support_closing_radius", have_support_material && support_style == smsSnug);
 
@@ -538,7 +539,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
                              (config->opt_int("skirt_height") > 1 || config->opt_enum<DraftShield>("draft_shield") != dsEnabled);
     toggle_line("support_speed", have_support_material || have_skirt_height);
     toggle_line("support_interface_speed", have_support_material && have_support_interface);
-    toggle_line("support_transition_speed", have_support_material && support_is_tree);
 
     // BBS
     //toggle_field("support_material_synchronize_layers", have_support_soluble);

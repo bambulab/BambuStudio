@@ -1401,7 +1401,6 @@ void TreeSupport::generate_toolpaths()
     const PrintConfig &print_config = m_object->print()->config();
     const PrintObjectConfig &object_config = m_object->config();
     coordf_t support_extrusion_width = object_config.support_line_width.value > 0 ? object_config.support_line_width : object_config.line_width;
-    coordf_t support_transition_line_width = object_config.support_transition_line_width.value > 0 ? object_config.support_transition_line_width : object_config.line_width;
     coordf_t nozzle_diameter = print_config.nozzle_diameter.get_at(object_config.support_filament - 1);
 
     const size_t wall_count = object_config.tree_support_wall_count.value;
@@ -1514,7 +1513,6 @@ void TreeSupport::generate_toolpaths()
 
                 TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_id);
                 Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
-                Flow transition_flow(support_transition_line_width, ts_layer->height, nozzle_diameter);
                 Fill* filler_interface = Fill::new_from_type(ipRectilinear);
                 filler_interface->angle = Geometry::deg2rad(object_config.support_angle.value + 90.);//(1 - obj_is_vertical) * M_PI_2;//((1-obj_is_vertical) + int(layer_id / num_layers_to_change_infill_direction)) * M_PI_2;;//layer_id % 2 ? 0 : M_PI_2;
 
@@ -1593,7 +1591,7 @@ void TreeSupport::generate_toolpaths()
                         filler_support->spacing = m_support_material_flow.spacing();
                         ExtrusionRole role;
                         Flow flow = (layer_id == 0 && m_raft_layers == 0) ? m_object->print()->brim_flow() :
-                            (filler_type == ipRectilinear && (layer_id % num_layers_to_change_infill_direction == 0) ? transition_flow : support_flow);
+                            (filler_type == ipRectilinear && (layer_id % num_layers_to_change_infill_direction == 0) ? support_transition_flow(m_object) : support_flow);
                         if (with_infill && layer_id > 0) {
                             if (filler_type == ipRectilinear) {
                                 role = erSupportMaterial;// layer_id% num_layers_to_change_infill_direction == 0 ? erSupportTransition : erSupportMaterial;
@@ -1948,7 +1946,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     const size_t bottom_interface_layers = config.support_interface_bottom_layers.value;
     const size_t tip_layers = branch_radius / layer_height; //The number of layers to be shrinking the circle to create a tip. This produces a 45 degree angle.
     const double diameter_angle_scale_factor = sin(tree_support_branch_diameter_angle * M_PI / 180.) * layer_height / branch_radius; //Scale factor per layer to produce the desired angle.
-    const coordf_t line_width = config.support_line_width.get_abs_value(layer_height);
+    const coordf_t line_width = config.support_line_width;
 
     // coconut: previously std::unordered_map in m_collision_cache is not multi-thread safe which may cause programs stuck, here we change to tbb::concurrent_unordered_map
     tbb::parallel_for(

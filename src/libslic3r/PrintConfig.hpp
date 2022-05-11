@@ -529,7 +529,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               brim_width))
     ((ConfigOptionBool,                bridge_no_support))
     ((ConfigOptionFloat,               elefant_foot_compensation))
-    ((ConfigOptionFloatOrPercent,      line_width))
+    ((ConfigOptionFloat,               line_width))
     // Force the generation of solid shells between adjacent materials/volumes.
     ((ConfigOptionBool,                interface_shells))
     ((ConfigOptionFloat,               layer_height))
@@ -548,7 +548,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               support_top_z_distance))
     ((ConfigOptionInt,                 enforce_support_layers))
     ((ConfigOptionInt,                 support_filament))
-    ((ConfigOptionFloatOrPercent,      support_line_width))
+    ((ConfigOptionFloat,               support_line_width))
     ((ConfigOptionBool,                support_interface_loop_pattern))
     ((ConfigOptionInt,                 support_interface_filament))
     ((ConfigOptionInt,                 support_interface_top_layers))
@@ -579,8 +579,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,               tree_support_with_infill))
     ((ConfigOptionBool,               detect_narrow_internal_solid_infill))
     ((ConfigOptionBool,               adaptive_layer_height))
-    ((ConfigOptionFloatOrPercent,     support_transition_line_width))
-    ((ConfigOptionFloat,              support_transition_speed))
     ((ConfigOptionFloat,              support_bottom_interface_spacing))
 )
 
@@ -594,7 +592,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                bridge_speed))
     ((ConfigOptionEnum<InfillPattern>,  top_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>,  bottom_surface_pattern))
-    ((ConfigOptionFloatOrPercent,       outer_wall_line_width))
+    ((ConfigOptionFloat,                outer_wall_line_width))
     ((ConfigOptionFloat,                outer_wall_speed))
     ((ConfigOptionFloat,                infill_direction))
     ((ConfigOptionPercent,              sparse_infill_density))
@@ -604,7 +602,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))
     ((ConfigOptionFloat,                gap_infill_speed))
     ((ConfigOptionInt,                  sparse_infill_filament))
-    ((ConfigOptionFloatOrPercent,       sparse_infill_line_width))
+    ((ConfigOptionFloat,                sparse_infill_line_width))
     ((ConfigOptionPercent,              infill_wall_overlap))
     ((ConfigOptionFloat,                sparse_infill_speed))
     //BBS
@@ -617,17 +615,17 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Detect bridging perimeters
     ((ConfigOptionBool,                 detect_overhang_wall))
     ((ConfigOptionInt,                  wall_filament))
-    ((ConfigOptionFloatOrPercent,       inner_wall_line_width))
+    ((ConfigOptionFloat,                inner_wall_line_width))
     ((ConfigOptionFloat,                inner_wall_speed))
     // Total number of perimeters.
     ((ConfigOptionInt,                  wall_loops))
     ((ConfigOptionFloat,                minimum_sparse_infill_area))
     ((ConfigOptionInt,                  solid_infill_filament))
-    ((ConfigOptionFloatOrPercent,       internal_solid_infill_line_width))
+    ((ConfigOptionFloat,                internal_solid_infill_line_width))
     ((ConfigOptionFloat,                internal_solid_infill_speed))
     // Detect thin walls.
     ((ConfigOptionBool,                 detect_thin_wall))
-    ((ConfigOptionFloatOrPercent,       top_surface_line_width))
+    ((ConfigOptionFloat,                top_surface_line_width))
     ((ConfigOptionInt,                  top_shell_layers))
     ((ConfigOptionFloat,                top_shell_thickness))
     ((ConfigOptionFloat,                top_surface_speed))
@@ -760,7 +758,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              initial_layer_acceleration))
     // BBS
     ((ConfigOptionInts,               bed_temperature_initial_layer))
-    ((ConfigOptionFloatOrPercent,     initial_layer_line_width))
+    ((ConfigOptionFloat,              initial_layer_line_width))
     ((ConfigOptionFloat,              initial_layer_print_height))
     ((ConfigOptionFloat,              initial_layer_speed))
     //BBS

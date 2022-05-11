@@ -37,7 +37,7 @@ Generator::Generator(const PrintObject &print_object)
     // Note: There's not going to be a layer below the first one, so the 'initial layer height' doesn't have to be taken into account.
     const double               layer_thickness      = object_config.layer_height;
 
-    m_infill_extrusion_width = scaled<float>(region_config.sparse_infill_line_width.percent ? default_infill_extrusion_width * 0.01 * region_config.sparse_infill_line_width : region_config.sparse_infill_line_width);
+    m_infill_extrusion_width = scaled<float>(region_config.sparse_infill_line_width.value);
     m_supporting_radius = scaled<coord_t>(m_infill_extrusion_width * 0.001 / region_config.sparse_infill_density);
 
     const double lightning_infill_overhang_angle = M_PI / 4; // 45 degrees

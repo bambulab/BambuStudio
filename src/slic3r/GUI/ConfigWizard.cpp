@@ -1380,11 +1380,10 @@ void PageDiameters::apply_custom_config(DynamicPrintConfig &config)
     auto set_extrusion_width = [&config, opt_nozzle](const char *key, double dmr) {
         char buf[64]; // locales don't matter here (sprintf/atof)
         sprintf(buf, "%.2lf", dmr * opt_nozzle->values.front() / 0.4);
-        config.set_key_value(key, new ConfigOptionFloatOrPercent(atof(buf), false));
+        config.set_key_value(key, new ConfigOptionFloat(atof(buf)));
     };
 
     set_extrusion_width("support_line_width", 0.35);
-    set_extrusion_width("support_transition_line_width", 0.60); // BBS
     set_extrusion_width("top_surface_line_width",		  0.40);
     set_extrusion_width("initial_layer_line_width",		  0.42);
 

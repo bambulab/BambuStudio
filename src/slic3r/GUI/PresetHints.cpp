@@ -120,7 +120,6 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
     const auto &inner_wall_line_width           = *print_config.option<ConfigOptionFloatOrPercent>("inner_wall_line_width");
     const auto &internal_solid_infill_line_width        = *print_config.option<ConfigOptionFloatOrPercent>("internal_solid_infill_line_width");
     const auto& support_line_width    = *print_config.option<ConfigOptionFloatOrPercent>("support_line_width");
-    const auto &support_transition_line_width  = *print_config.option<ConfigOptionFloatOrPercent>("support_transition_line_width");//BBS
     const auto &top_surface_line_width          = *print_config.option<ConfigOptionFloatOrPercent>("top_surface_line_width");
     const auto &initial_layer_speed                   = *print_config.option<ConfigOptionFloatOrPercent>("initial_layer_speed");
 

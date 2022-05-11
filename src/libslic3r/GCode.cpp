@@ -3408,7 +3408,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 double new_speed = m_config.get_abs_value(overhang_speed_key_map[overhang_degree].c_str());
                 speed = new_speed == 0.0 ? speed : new_speed;
             }
-        } else if (path.role() == erOverhangPerimeter || path.role() == erBridgeInfill) {
+        } else if (path.role() == erOverhangPerimeter || path.role() == erBridgeInfill || path.role() == erSupportTransition) {
             speed = m_config.get_abs_value("bridge_speed");
         } else if (path.role() == erInternalInfill) {
             speed = m_config.get_abs_value("sparse_infill_speed");
@@ -3426,15 +3426,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         // only slow down tree support and normal support still use speed in config directly.
         }
         else if (path.role() == erSupportMaterial ||
-                 path.role() == erSupportMaterialInterface ||
-                 path.role() == erSupportTransition) {
+                 path.role() == erSupportMaterialInterface) {
             const double  support_speed = m_config.support_speed.value;
             const double  support_interface_speed = m_config.get_abs_value("support_interface_speed");
             speed = (path.role() == erSupportMaterial) ? support_speed : support_interface_speed;
-            const double  support_transition_speed = m_config.get_abs_value("support_transition_speed");
-            speed = (path.role() == erSupportMaterial) ? support_speed :
-                ((path.role() == erSupportMaterialInterface) ? support_interface_speed :
-                    support_transition_speed);
         } else {
             throw Slic3r::InvalidArgument("Invalid speed");
         }
