@@ -1208,6 +1208,7 @@ std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Pri
             if (it != model_instance_to_print_instance.end() && it->first == model_instance)
                 instances.emplace_back(it->second);
         }
+    std::sort(instances.begin(), instances.end(), [](auto& l, auto& r) { return l->model_instance->arrange_order < r->model_instance->arrange_order; });
     return instances;
 }
 
