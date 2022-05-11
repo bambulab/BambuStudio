@@ -688,11 +688,11 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_warn->Add(0, 0, 1, wxEXPAND, 5);
 
-    auto warimg = new wxStaticBitmap(m_panel_warn, wxID_ANY, create_scaled_bitmap("obj_warning", m_panel_warn, wxGetApp().em_unit() * 3), wxDefaultPosition,
-                                     wxSize(wxGetApp().em_unit() * 3, wxGetApp().em_unit() * 3), 0);
+    auto warimg = new wxStaticBitmap(m_panel_warn, wxID_ANY, create_scaled_bitmap("obj_warning", m_panel_warn, 15), wxDefaultPosition,
+                                     wxSize(FromDIP(15), FromDIP(15)), 0);
     m_sizer_warn->Add(warimg, 0, wxEXPAND, 0);
 
-    m_statictext_warn = new wxStaticText(m_panel_warn, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, 0);
+    m_statictext_warn = new wxStaticText(m_panel_warn, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
     m_statictext_warn->Wrap(-1);
     m_statictext_warn->SetFont(::Label::Body_13);
     m_statictext_warn->SetForegroundColour(wxColour(255, 111, 0));
@@ -1028,23 +1028,18 @@ void SelectMachineDialog::reset()
 void SelectMachineDialog::on_ok(wxCommandEvent &event)
 {
     int result = 0;
-    m_status_bar->set_status_text("exporting 3mf was cancelled");
+    m_status_bar->set_status_text("Exporting 3mf was cancelled.");
 
     if (m_printer_last_select.empty()) {
-        update_err_msg(_L("Please select a printer first!"));
+        update_err_msg(_L("Please select a printer first."));
         return;
-    }
-
-    std::string dev_id;
-    for (int i = 0; i < m_list.size(); i++) {
-        if (m_list[i]->dev_name == m_printer_last_select) { dev_id = m_list[i]->dev_id; }
     }
 
     Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
 
-    std::map<std::string, MachineObject *>::iterator it = c->myBindMachineList.find(dev_id);
+    std::map<std::string, MachineObject *>::iterator it = c->myBindMachineList.find(m_printer_last_select);
     if (it == c->myBindMachineList.end()) {
-        update_err_msg(_L("Please select a printer first!"));
+        update_err_msg(_L("Please select a printer first."));
         return;
     }
 
@@ -1054,13 +1049,15 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         return;
     }
 
+     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  "<< m_printer_last_select << std::endl;
+
 #if !BBL_RELEASE_TO_PUBLIC
 #ifdef BBL_CHECK_USER_REPORT
     int  task_id   = 0;
     bool printable = true;
     c->user_check_report(&task_id, &printable);
     if (task_id != 0 && !printable) {
-        update_err_msg(_L("Please fill report first!"));
+        update_err_msg(_L("Please fill report first."));
         std::string report_url = (boost::format("https://autotest.bambu-lab.com/slicerAddReport?task_id=%1%&token=%2%") % task_id % c->get_curr_user()->m_autotest_token).str();
         wxLaunchDefaultBrowser(report_url);
         return;
@@ -1089,11 +1086,11 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     }
 
     if (m_export_3mf_cancel) {
-        m_status_bar->set_status_text("exporting 3mf was cancelled");
+        m_status_bar->set_status_text("Exporting 3mf was cancelled");
         return;
     }
 
-    m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, dev_id);
+    m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, m_printer_last_select);
 
     m_print_job->set_print_config(
         // MachineBedTypeString[m_comboBox_bed->GetSelection()],
@@ -1145,15 +1142,13 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
     std::vector<std::string> machine_list;
 
     // same machine only appear once
-    std::map<std::string, MachineObject *>::iterator it;
-    for (it = c->myBindMachineList.begin(); it != c->myBindMachineList.end(); it++) {
+    for (auto it = c->myBindMachineList.begin(); it != c->myBindMachineList.end(); it++) {
         if (it->second && it->second->is_online()) { machine_list.push_back(it->second->dev_name); }
     }
 
     machine_list = sort_string(machine_list);
-    std::vector<std::string>::iterator tt;
-    for (tt = machine_list.begin(); tt != machine_list.end(); tt++) {
-        for (it = c->myBindMachineList.begin(); it != c->myBindMachineList.end(); it++) {
+    for (auto tt = machine_list.begin(); tt != machine_list.end(); tt++) {
+        for (auto it = c->myBindMachineList.begin(); it != c->myBindMachineList.end(); it++) {
             if (it->second->dev_name == *tt) {
                 m_list.push_back(it->second);
                 m_comboBox_printer->Append(it->second->dev_name);
@@ -1164,19 +1159,21 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
 
     if (m_list.size() > 0) {
         if (m_printer_last_select.empty()) {
-            m_printer_last_select = m_list[0]->dev_name;
+            m_printer_last_select = m_list[0]->dev_id;
             update_select_layout(m_list[0]->printer_type);
         }
         for (auto i = 0; i < m_list.size(); i++) {
-            if (m_list[i]->dev_name == m_printer_last_select) {
+            if (m_list[i]->dev_id == m_printer_last_select) {
                 update_select_layout(m_list[i]->printer_type);
                 m_comboBox_printer->SetSelection(i);
             }
         }
     } else {
-        m_printer_last_select = -1;
+        m_printer_last_select = "";
         update_select_layout(PRINTER_TYPE::PRINTER_3DPrinter_UKNOWN);
     }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  "for send task, current printer id =  "<< m_printer_last_select << std::endl;
 }
 
 void SelectMachineDialog::on_timer(wxTimerEvent &event)
@@ -1201,10 +1198,14 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 {
     Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
     if (event.GetString().empty()) { return; }
-    m_printer_last_select = event.GetString().ToStdString();
+
+    auto dev_name = event.GetString().ToStdString();
+    auto selection = event.GetSelection();
 
     for (int i = 0; i < m_list.size(); i++) {
-        if (m_list[i]->dev_name == m_printer_last_select) {
+        if (m_list[i]->dev_name == dev_name && i == selection) {
+            m_printer_last_select = m_list[i]->dev_id;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  "for send task, current printer id =  "<< m_printer_last_select << std::endl;
             c->default_machine = m_list[i]->dev_id;
             update_select_layout(m_list[i]->printer_type);
             break;
@@ -1214,6 +1215,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 
 void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
+    m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_status_bar->msw_rescale();
     Fit();
     Refresh();
