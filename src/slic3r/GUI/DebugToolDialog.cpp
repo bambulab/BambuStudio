@@ -86,7 +86,7 @@ void GcodePrintJob::process()
     bool printable = true;
     acc->user_check_report(&task_id, &printable);
     if (task_id!=0 && !printable) {
-        update_status(0, _L("Please fill report first!"));
+        update_status(0, _L("Please fill report first."));
         std::string report_url = (boost::format("https://autotest.bambu-lab.com/slicerAddReport?task_id=%1%&token=%2%")
             % task_id
             % acc->get_curr_user()->m_autotest_token
@@ -223,7 +223,7 @@ void GcodePrintJob::process()
         return;
     }
     else if (res < 0) {
-        wxString error_msg = wxString::Format(_L("get_no,err:code=%u,msg=%s"), http_code, http_body);
+        wxString error_msg = wxString::Format(_devL("get_no,err:code=%u,msg=%s"), http_code, http_body);
         update_status(curr_percent, error_msg);
         return;
     }

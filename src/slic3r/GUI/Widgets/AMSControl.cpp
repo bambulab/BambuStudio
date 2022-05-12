@@ -1122,7 +1122,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     auto        amscans         = new AmsCans(m_none_ams_panel, wxID_ANY, none_ams);
     sizer_ams_panel->Add(amscans, 0, wxALL, 0);
     sizer_ams_panel->Add(0, 0, 0, wxLEFT, 20);
-    auto m_tip_none_ams = new wxStaticText(m_none_ams_panel, wxID_ANY, _L("Click the pencil icon to edit the filament"), wxDefaultPosition, wxDefaultSize, 0);
+    auto m_tip_none_ams = new wxStaticText(m_none_ams_panel, wxID_ANY, _L("Click the pencil icon to edit the filament."), wxDefaultPosition, wxDefaultSize, 0);
     m_tip_none_ams->Wrap(150);
     m_tip_none_ams->SetFont(::Label::Body_13);
     m_tip_none_ams->SetForegroundColour(AMS_CONTROL_GRAY500);

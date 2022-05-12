@@ -596,7 +596,7 @@ static std::string MachineBedTypeString[BED_TYPE_COUNT] = {
 };
 
 SelectMachineDialog::SelectMachineDialog(Plater *plater)
-    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send Task to"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send print job to"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_plater(plater)
     , m_export_3mf_cancel(false)
 {
@@ -1080,7 +1080,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     });
 
     if (result < 0) {
-        wxString msg = _L("Internal error.") + _L(" ") + _L("Exporting 3mf failed, please slice again.");
+        wxString msg = _L("Internal error.") + _devL(" ") + _L("Exporting 3mf failed, please slice again.");
         m_status_bar->set_status_text(msg);
         return;
     }

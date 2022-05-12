@@ -31,6 +31,8 @@ src/slic3r/GUI/GUI_ObjectTable.hpp
 src/slic3r/GUI/GUI_ObjectTableSettings.cpp
 src/slic3r/GUI/GUI_ObjectTableSettings.hpp
 src/slic3r/GUI/GUI_Preview.cpp
+src/slic3r/GUI/Widgets/SideTools.cpp
+src/slic3r/GUI/Widgets/AMSControl.cpp
 src/slic3r/GUI/ImGuiWrapper.cpp
 src/slic3r/GUI/Jobs/ArrangeJob.cpp
 src/slic3r/GUI/Jobs/OrientJob.cpp
@@ -60,6 +62,7 @@ src/slic3r/GUI/Search.cpp
 src/slic3r/GUI/Selection.cpp
 src/slic3r/GUI/SelectMachine.cpp
 src/slic3r/GUI/SendSystemInfoDialog.cpp
+src/slic3r/GUI/BindDialog.cpp
 src/slic3r/GUI/Tab.cpp
 src/slic3r/GUI/Tab.hpp
 src/slic3r/GUI/UnsavedChangesDialog.cpp

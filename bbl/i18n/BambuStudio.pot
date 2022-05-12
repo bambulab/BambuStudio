@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-12 10:29+0800\n"
+"POT-Creation-Date: 2022-05-12 17:40+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -37,7 +37,7 @@ msgstr ""
 msgid "Empty"
 msgstr ""
 
-msgid "Click the pencil icon to edit the filament"
+msgid "Click the pencil icon to edit the filament."
 msgstr ""
 
 msgid "Load"
@@ -1388,9 +1388,6 @@ msgstr ""
 msgid "Deleting the last solid part is not allowed."
 msgstr ""
 
-msgid "1"
-msgstr ""
-
 msgid "The target object contains only one part and can not be splited."
 msgstr ""
 
@@ -1534,6 +1531,9 @@ msgid "Reset parameter"
 msgstr ""
 
 msgid "Multicolor Print"
+msgstr ""
+
+msgid "No printer"
 msgstr ""
 
 msgid "Edit"
@@ -2329,10 +2329,6 @@ msgstr ""
 msgid "prepare 3mf file..."
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "get_des,err:code=%u,msg=%s"
-msgstr ""
-
 msgid "Import project failed, Please try again!"
 msgstr ""
 
@@ -2355,7 +2351,7 @@ msgstr ""
 msgid "Drop project file"
 msgstr ""
 
-msgid "Plese select an action"
+msgid "Please select an action"
 msgstr ""
 
 msgid "Open as project"
@@ -2407,6 +2403,10 @@ msgid "Preparing to upload your project..."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
+msgid "get_des,err:code=%u,msg=%s"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
 msgid "req_proj,err:code=%u,msg=%s"
 msgstr ""
 
@@ -2424,22 +2424,10 @@ msgstr ""
 msgid "Upload has been canceled."
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "upload,err:code=%u,msg=%s"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "put_no,err:code=%u,msg=%s"
-msgstr ""
-
 msgid "Failed to publish. Please try again!"
 msgstr ""
 
 msgid "Uploading is timed out. Please try again!"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "get_no,err:code=%u,msg=%s"
 msgstr ""
 
 msgid "Internal error."
@@ -2774,7 +2762,7 @@ msgstr ""
 msgid "Bamabu High Temperature Plate"
 msgstr ""
 
-msgid "Send Task to"
+msgid "Send print job to"
 msgstr ""
 
 msgid "Bed Leveling"
@@ -2808,6 +2796,36 @@ msgid "Exporting 3mf..."
 msgstr ""
 
 msgid "Exporting 3mf failed, please slice again."
+msgstr ""
+
+msgid "Confirm"
+msgstr ""
+
+msgid "Log in printer"
+msgstr ""
+
+msgid "Would you like to log in this printer with current account?"
+msgstr ""
+
+msgid "Log in successful."
+msgstr ""
+
+msgid "Log out printer"
+msgstr ""
+
+msgid "Would you like to log out the printer?"
+msgstr ""
+
+msgid "Please log in first."
+msgstr ""
+
+msgid "There was a problem connecting to the printer. Please try again."
+msgstr ""
+
+msgid "Log out successful."
+msgstr ""
+
+msgid "Failed to log out."
 msgstr ""
 
 #. TRN "Save current Settings"
@@ -3286,12 +3304,6 @@ msgstr ""
 msgid "Creating a print job..."
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid ""
-"\n"
-"req_pro,err:code=%u,msg=%s"
-msgstr ""
-
 msgid "Uploading the print job..."
 msgstr ""
 
@@ -3299,18 +3311,6 @@ msgstr ""
 msgid ""
 "\n"
 "upload,err:code=%u,msg=%s"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid ""
-"\n"
-"put_no,err:code=%u,msg=%s"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid ""
-"\n"
-"get_no,err:code=%u,msg=%s"
 msgstr ""
 
 msgid "The print job has been sent to your printer."
@@ -3326,12 +3326,6 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "%s"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid ""
-"\n"
-"pos_task,err:code=%u,msg=%s"
 msgstr ""
 
 msgid "Start printing..."

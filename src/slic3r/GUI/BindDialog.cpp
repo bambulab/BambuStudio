@@ -140,7 +140,7 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
 }
 
  BindMachineDilaog::BindMachineDilaog(Plater *plater /*= nullptr*/) 
-     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Log in Printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION)
+     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Log in printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION)
  {
      std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
      SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -225,7 +225,7 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
 
      m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(20));
 
-     m_status_text = new wxStaticText(this, wxID_ANY, _L("Would you like to log in the current account from this printer?"), wxDefaultPosition,
+     m_status_text = new wxStaticText(this, wxID_ANY, _L("Would you like to log in this printer with current account?"), wxDefaultPosition,
                                            wxSize(BIND_DIALOG_BUTTON_PANEL_SIZE.x, -1), wxST_ELLIPSIZE_END);
      m_status_text->SetForegroundColour(wxColour(107, 107, 107));
      m_status_text->SetFont(::Label::Body_13);
@@ -333,7 +333,7 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
  void BindMachineDilaog::on_bind_success(wxCommandEvent &event) 
  {
      EndModal(wxID_CANCEL);
-     MessageDialog msg_wingow(nullptr, _L("Log in success."), "", wxAPPLY | wxOK);
+     MessageDialog msg_wingow(nullptr, _L("Log in successful."), "", wxAPPLY | wxOK);
      if (msg_wingow.ShowModal() == wxOK) { return; }
  }
 
@@ -361,7 +361,7 @@ void BindMachineDilaog::on_dpi_changed(const wxRect &suggested_rect)
 }
 
 UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/) 
-     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Log out Printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION)
+     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Log out printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION)
  {
      std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
      SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -447,7 +447,7 @@ UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
 
      m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(20));
 
-     m_status_text = new wxStaticText(this, wxID_ANY, _L("Would you like to log out the current account from this printer?"), wxDefaultPosition,
+     m_status_text = new wxStaticText(this, wxID_ANY, _L("Would you like to log out the printer?"), wxDefaultPosition,
                                            wxSize(BIND_DIALOG_BUTTON_PANEL_SIZE.x, -1), wxST_ELLIPSIZE_END);
      m_status_text->SetForegroundColour(wxColour(107, 107, 107));
      m_status_text->SetFont(::Label::Body_13);
@@ -514,13 +514,13 @@ void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event)
 {
     Slic3r::AccountManager *account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     if (!account_manager->is_user_login()) {
-        m_status_text->SetLabelText(_L("Please log in first"));
+        m_status_text->SetLabelText(_L("Please log in first."));
         return;
     }
 
 
     if (!m_machine_info) {
-        m_status_text->SetLabelText(_L("Invalid printer. Please select a printer."));
+        m_status_text->SetLabelText(_L("There was a problem connecting to the printer. Please try again."));
         return;
     }
 
@@ -536,15 +536,15 @@ void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event)
             std::string             err_msg;
             account_manager->update_my_machine_list_info(err_code, err_msg, true);
 
-            m_status_text->SetLabelText(_L("Log out success."));
+            m_status_text->SetLabelText(_L("Log out successful."));
             m_button_unbind->Hide();
         } else {
-            m_status_text->SetLabelText(_L("Log out failed"));
+            m_status_text->SetLabelText(_L("Failed to log out."));
             return;
         }
     });
 
-    m_status_text->SetLabelText(_L("Log out failed"));
+    //m_status_text->SetLabelText(_L("Log out failed."));
 }
 
  void UnBindMachineDilaog::on_dpi_changed(const wxRect &suggested_rect) 

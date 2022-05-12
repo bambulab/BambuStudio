@@ -6319,7 +6319,7 @@ void Plater::import_model_id(const std::string& import_json)
         profile->model_id = model_id;
         res = c->get_profile_3mf(profile, http_code, http_body);
         if (res < 0 && profile->url.empty() && profile->md5.empty()) {
-            wxString error_msg = wxString::Format(_L("get_des,err:code=%u,msg=%s"), http_code, http_body);
+            wxString error_msg = wxString::Format(_devL("get_des,err:code=%u,msg=%s"), http_code, http_body);
             msg = _L("Import project failed, Please try again!") + error_msg;
             return;
         }
@@ -6682,7 +6682,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     wxBoxSizer *m_sizer_name = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *m_sizer_fline = new wxBoxSizer(wxHORIZONTAL);
 
-    m_fname_title = new wxStaticText(this, wxID_ANY, _L("Plese select an action"), wxDefaultPosition, wxDefaultSize, 0);
+    m_fname_title = new wxStaticText(this, wxID_ANY, _L("Please select an action"), wxDefaultPosition, wxDefaultSize, 0);
     m_fname_title->Wrap(-1);
     m_fname_title->SetFont(::Label::Body_13);
     m_fname_title->SetForegroundColour(wxColour(107, 107, 107));
@@ -8132,7 +8132,7 @@ void Plater::publish_project()
         }
 
         if (res < 0) {
-            wxString error_msg = wxString::Format(_L("upload,err:code=%u,msg=%s"), http_code, http_body);
+            wxString error_msg = wxString::Format(_devL("upload,err:code=%u,msg=%s"), http_code, http_body);
             msg = failed_to_publish_str + error_msg;
             BOOST_LOG_TRIVIAL(trace) << msg;
             cont = false;
@@ -8142,7 +8142,7 @@ void Plater::publish_project()
         std::string upload_filename = (boost::format("%1%.3mf") % project->project_name).str();
         res = c->put_notification(profile, upload_filename, http_code, http_body);
         if (res < 0) {
-            wxString error_msg = wxString::Format(_L("put_no,err:code=%u,msg=%s"), http_code, http_body);
+            wxString error_msg = wxString::Format(_devL("put_no,err:code=%u,msg=%s"), http_code, http_body);
             msg = _L("Failed to publish. Please try again!") + error_msg;
             BOOST_LOG_TRIVIAL(trace) << msg;
             cont = false;
@@ -8169,7 +8169,7 @@ void Plater::publish_project()
             return;
         }
         else if (res < 0) {
-            wxString error_msg = wxString::Format(_L("get_no,err:code=%u,msg=%s"), http_code, http_body);
+            wxString error_msg = wxString::Format(_devL("get_no,err:code=%u,msg=%s"), http_code, http_body);
             msg = _L("Failed to publish. Please try again!") + error_msg;
             BOOST_LOG_TRIVIAL(trace) << msg;
             return;
@@ -8199,7 +8199,7 @@ void Plater::publish_project()
 
     bool load_url = true;
     if (design_id.empty() && !publish_project) {
-        msg = _L("Internal error.") + _L(" ") + _L("Design id is empty.");
+        msg = _L("Internal error.") + _devL(" ") + _L("Design id is empty.");
         BOOST_LOG_TRIVIAL(trace) << msg;
         load_url = false;
     }

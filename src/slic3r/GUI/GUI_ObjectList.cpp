@@ -2209,7 +2209,7 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
 #if 0
                 if (obj_item) {
                     // BBS
-                    wxString extruder = object->config.has("extruder") ? wxString::Format("%d", object->config.extruder()) : _L("1");
+                    wxString extruder = object->config.has("extruder") ? wxString::Format("%d", object->config.extruder()) : _devL("1");
                     m_objects_model->SetExtruder(extruder, obj_item);
                 }
 #endif
