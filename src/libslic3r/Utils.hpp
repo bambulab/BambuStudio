@@ -468,10 +468,11 @@ inline std::string get_bbl_monitor_time_dhm(float time_in_secs)
         ::sprintf(buffer, "%dd%dh%dm", days, hours, minutes);
     else if (hours > 0)
         ::sprintf(buffer, "%dh%dm", hours, minutes);
-    else if (minutes > 0)
+    else if (minutes >= 0)
         ::sprintf(buffer, "%dm", minutes);
-    else
+    else {
         return "";
+    }
 
     return buffer;
 }

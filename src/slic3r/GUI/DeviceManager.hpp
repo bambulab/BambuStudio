@@ -229,6 +229,15 @@ public:
     std::string description;
 };
 
+class HMSItem
+{
+public:
+    int attr = 0;
+    int code = 0;
+    std::string action;
+    std::string detail;
+};
+
    
 class MachineObject
 {
@@ -377,6 +386,9 @@ public:
     PrintingSpeedLevel printing_speed_lvl;
     int                printing_speed_mag;
     PrintingSpeedLevel _parse_printing_speed_lvl(int lvl);
+
+    /* HMS */
+    std::vector<HMSItem>    hms_list;
 
     /* mqtt connections */
     CONNECTION_TYPE conn_type;

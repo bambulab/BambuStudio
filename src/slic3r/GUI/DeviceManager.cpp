@@ -1253,6 +1253,24 @@ int MachineObject::parse_json(std::string topic, std::string payload)
             } catch (...) {
                 ;
             }
+
+            try {
+                hms_list.clear();
+                if (jj.contains("hms")) {
+                    if (jj["hms"].is_array()) {
+                        for (auto it = jj["hms"].begin(); it != jj["hms"].end(); it++) {
+                            HMSItem item;
+                            if ((*it).contains("attr"))
+                                item.attr   = (*it)["attr"].get<int>();
+                            if ((*it).contains("code"))
+                                item.code   = (*it)["code"].get<int>();
+                            hms_list.push_back(item);
+                        }
+                    }
+                }
+            } catch (...) {
+                ;
+            }
         }
 
         std::stringstream ss(payload);
