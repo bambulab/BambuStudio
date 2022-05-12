@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-10 15:20+0800\n"
+"POT-Creation-Date: 2022-05-12 10:15+0800\n"
 "PO-Revision-Date: 2022-05-08 17:56+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1061,6 +1061,9 @@ msgstr "在默认浏览器中点击下载最新版本: %s"
 msgid "New version of Bambu Studio"
 msgstr "新版本的Bambu Studio"
 
+msgid "The Bambu Studio needs an upgrade"
+msgstr ""
+
 msgid "Loading user presets..."
 msgstr "正在加载用户预设..."
 
@@ -2046,12 +2049,6 @@ msgstr "录像"
 msgid "Update"
 msgstr "升级"
 
-msgid "Selected a printer"
-msgstr "选择打印机"
-
-msgid "No printer"
-msgstr "无打印机"
-
 msgid "OK"
 msgstr "确认"
 
@@ -2702,6 +2699,9 @@ msgstr ""
 msgid "PRE host: api-pre.bambu-lab.com/v1"
 msgstr ""
 
+msgid "Product host"
+msgstr ""
+
 msgid "debug save button"
 msgstr ""
 
@@ -2855,14 +2855,14 @@ msgstr "发送"
 msgid "send completed"
 msgstr "发送完成"
 
-msgid "Please select a printer first!"
-msgstr "请先选择打印机!"
+msgid "Please select a printer first."
+msgstr ""
 
 msgid "Current printer is busy. Please select another one."
 msgstr "当前打印机正忙，请选择另一台打印机。"
 
-msgid "Please fill report first!"
-msgstr "请先填写报告！"
+msgid "Please fill report first."
+msgstr ""
 
 msgid "Exporting 3mf..."
 msgstr "正在导出3mf..."
@@ -3647,11 +3647,11 @@ msgid ""
 "heights."
 msgstr "擦拭塔要求各个对象拥有同样的层高。"
 
-msgid "Extrusion width value is too low."
-msgstr "挤出宽度太小。"
+msgid "Too small line width"
+msgstr "线宽太小"
 
-msgid "Extrusion width value is too high."
-msgstr "挤出宽度太大。"
+msgid "Too large line width"
+msgstr "线宽太大"
 
 msgid ""
 "The prime tower requires that support has the same layer height with object."
@@ -3949,13 +3949,8 @@ msgstr "底面图案"
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "除了桥接外的底面填充的走线图案"
 
-msgid ""
-"Line width of outer wall. It's relative to nozzle diameter if expressed as "
-"percentage"
-msgstr "外墙的线宽。如果表示为百分数，则基数为喷嘴直径。"
-
-msgid "mm or %"
-msgstr "mm 或 %"
+msgid "Line width of outer wall"
+msgstr "外墙的线宽"
 
 msgid ""
 "Speed of outer wall which is outermost and visible. It's used to be slower "
@@ -4188,10 +4183,8 @@ msgstr "首层床温"
 msgid "Bed temperature of the initial layer"
 msgstr "首层床温"
 
-msgid ""
-"Line width of initial layer. It's relative to nozzle diameter if expressed "
-"as percentage"
-msgstr "首层的线宽。如果表示为百分数，则基数为喷嘴直径。"
+msgid "Line width of initial layer"
+msgstr "首层的线宽"
 
 msgid "Initial layer height"
 msgstr "首层层高"
@@ -4341,10 +4334,8 @@ msgstr ""
 msgid "Filament to print internal sparse infill."
 msgstr "打印内部稀疏填充的耗材丝"
 
-msgid ""
-"Line width of internal sparse infill. It's relative to nozzle diameter if "
-"expressed as percentage"
-msgstr "内部稀疏填充的线宽。如果表示为百分数，则基数为喷嘴直径。"
+msgid "Line width of internal sparse infill"
+msgstr "内部稀疏填充的线宽"
 
 msgid "Infill/Wall overlap"
 msgstr "填充/外墙 重叠"
@@ -4581,10 +4572,8 @@ msgid ""
 msgstr ""
 "检测悬空相对于线宽的百分比，并应用不同的速度打印。100%%的悬空将使用桥接速度。"
 
-msgid ""
-"Line width of inner wall. It's relative to nozzle diameter if expressed as "
-"percentage"
-msgstr "内圈墙的线宽。如果表示为百分数，则基数为喷嘴直径。"
+msgid "Line width of inner wall"
+msgstr "内墙的线宽"
 
 msgid "Speed of inner wall"
 msgstr "内圈墙打印速度"
@@ -4742,10 +4731,8 @@ msgstr "小于这个阈值的稀疏填充区域将会被内部实心填充替代
 msgid "mm²"
 msgstr "mm²"
 
-msgid ""
-"Line width of internal solid infill. It's relative to nozzle diameter if "
-"expressed as percentage"
-msgstr "内部实心填充的线宽。如果表示为百分数，则基数为喷嘴直径。"
+msgid "Line width of internal solid infill"
+msgstr "内部实心填充的线宽"
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "内部实心填充的速度，不是顶面和底面。"
@@ -4828,15 +4815,8 @@ msgstr "支撑顶部和模型之间的z间隙"
 msgid "Filament to print support and skirt."
 msgstr "打印支撑和skirt的耗材丝"
 
-msgid ""
-"Used to set line width for support. It's relative to nozzle diameter if "
-"expressed as percentage"
-msgstr "支撑的线宽。如果表示为百分比，则基数为喷嘴直径。"
-
-msgid ""
-"Used to set line width for support transition. It's relative to nozzle "
-"diameter if expressed as percentage"
-msgstr "支撑面转换层的线宽。如果表示为百分比，则基数为喷嘴直径。"
+msgid "Line width of support"
+msgstr "支撑的线宽"
 
 msgid "Interface use loop pattern"
 msgstr "接触面采用圈形走线。"
@@ -4871,11 +4851,6 @@ msgstr "底部接触面走线的线距。0表示实心接触面。"
 
 msgid "Speed of support interface"
 msgstr "支撑面速度"
-
-msgid ""
-"Speed for printing support transition layers in which support infill "
-"direction is changed"
-msgstr "打印支撑转换层的速度，支撑填充的方向会在此层发生变化。"
 
 msgid "Base pattern"
 msgstr "支撑主体图案"
@@ -5004,10 +4979,8 @@ msgid ""
 "tool change"
 msgstr "换料时插入的G-code，包括T命令。"
 
-msgid ""
-"Used to set line width for top surfaces. It's relative to nozzle diameter if "
-"expressed as percentage"
-msgstr "顶面填充的线宽。如果用百分比表示，则基数为喷嘴直径。"
+msgid "Line width for top surfaces"
+msgstr "顶面的线宽"
 
 msgid "Speed of top surface infill which is solid"
 msgstr "顶面实心填充的速度"
@@ -5211,6 +5184,72 @@ msgstr "正在优化走线"
 
 msgid "Slicing mesh"
 msgstr "切片网格"
+
+#~ msgid "Selected a printer"
+#~ msgstr "选择打印机"
+
+#~ msgid "No printer"
+#~ msgstr "无打印机"
+
+#~ msgid "Please select a printer first!"
+#~ msgstr "请先选择打印机!"
+
+#~ msgid "Please fill report first!"
+#~ msgstr "请先填写报告！"
+
+#~ msgid "Extrusion width value is too low."
+#~ msgstr "挤出宽度太小。"
+
+#~ msgid "Extrusion width value is too high."
+#~ msgstr "挤出宽度太大。"
+
+#~ msgid ""
+#~ "Line width of outer wall. It's relative to nozzle diameter if expressed "
+#~ "as percentage"
+#~ msgstr "外墙的线宽。如果表示为百分数，则基数为喷嘴直径。"
+
+#~ msgid "mm or %"
+#~ msgstr "mm 或 %"
+
+#~ msgid ""
+#~ "Line width of initial layer. It's relative to nozzle diameter if "
+#~ "expressed as percentage"
+#~ msgstr "首层的线宽。如果表示为百分数，则基数为喷嘴直径。"
+
+#~ msgid ""
+#~ "Line width of internal sparse infill. It's relative to nozzle diameter if "
+#~ "expressed as percentage"
+#~ msgstr "内部稀疏填充的线宽。如果表示为百分数，则基数为喷嘴直径。"
+
+#~ msgid ""
+#~ "Line width of inner wall. It's relative to nozzle diameter if expressed "
+#~ "as percentage"
+#~ msgstr "内圈墙的线宽。如果表示为百分数，则基数为喷嘴直径。"
+
+#~ msgid ""
+#~ "Line width of internal solid infill. It's relative to nozzle diameter if "
+#~ "expressed as percentage"
+#~ msgstr "内部实心填充的线宽。如果表示为百分数，则基数为喷嘴直径。"
+
+#~ msgid ""
+#~ "Used to set line width for support. It's relative to nozzle diameter if "
+#~ "expressed as percentage"
+#~ msgstr "支撑的线宽。如果表示为百分比，则基数为喷嘴直径。"
+
+#~ msgid ""
+#~ "Used to set line width for support transition. It's relative to nozzle "
+#~ "diameter if expressed as percentage"
+#~ msgstr "支撑面转换层的线宽。如果表示为百分比，则基数为喷嘴直径。"
+
+#~ msgid ""
+#~ "Speed for printing support transition layers in which support infill "
+#~ "direction is changed"
+#~ msgstr "打印支撑转换层的速度，支撑填充的方向会在此层发生变化。"
+
+#~ msgid ""
+#~ "Used to set line width for top surfaces. It's relative to nozzle diameter "
+#~ "if expressed as percentage"
+#~ msgstr "顶面填充的线宽。如果用百分比表示，则基数为喷嘴直径。"
 
 #, boost-format
 #~ msgid "Slicing plate %1%"

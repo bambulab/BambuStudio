@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-10 15:20+0800\n"
+"POT-Creation-Date: 2022-05-12 10:29+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1016,6 +1016,9 @@ msgstr ""
 msgid "New version of Bambu Studio"
 msgstr ""
 
+msgid "The Bambu Studio needs an upgrade"
+msgstr ""
+
 msgid "Loading user presets..."
 msgstr ""
 
@@ -1993,12 +1996,6 @@ msgstr ""
 msgid "Update"
 msgstr ""
 
-msgid "Selected a printer"
-msgstr ""
-
-msgid "No printer"
-msgstr ""
-
 msgid "OK"
 msgstr ""
 
@@ -2649,6 +2646,9 @@ msgstr ""
 msgid "PRE host: api-pre.bambu-lab.com/v1"
 msgstr ""
 
+msgid "Product host"
+msgstr ""
+
 msgid "debug save button"
 msgstr ""
 
@@ -2803,13 +2803,13 @@ msgstr ""
 msgid "send completed"
 msgstr ""
 
-msgid "Please select a printer first!"
+msgid "Please select a printer first."
 msgstr ""
 
 msgid "Current printer is busy. Please select another one."
 msgstr ""
 
-msgid "Please fill report first!"
+msgid "Please fill report first."
 msgstr ""
 
 msgid "Exporting 3mf..."
@@ -3581,10 +3581,10 @@ msgid ""
 "heights."
 msgstr ""
 
-msgid "Extrusion width value is too low."
+msgid "Too small line width"
 msgstr ""
 
-msgid "Extrusion width value is too high."
+msgid "Too large line width"
 msgstr ""
 
 msgid ""
@@ -3870,13 +3870,8 @@ msgstr ""
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr ""
 
-msgid ""
-"Line width of outer wall. It's relative to nozzle diameter if expressed as "
-"percentage"
+msgid "Line width of outer wall"
 msgstr ""
-
-msgid "mm or %"
-msgstr "mm oder %"
 
 msgid ""
 "Speed of outer wall which is outermost and visible. It's used to be slower "
@@ -4100,9 +4095,7 @@ msgstr ""
 msgid "Bed temperature of the initial layer"
 msgstr ""
 
-msgid ""
-"Line width of initial layer. It's relative to nozzle diameter if expressed "
-"as percentage"
+msgid "Line width of initial layer"
 msgstr ""
 
 msgid "Initial layer height"
@@ -4248,9 +4241,7 @@ msgstr ""
 msgid "Filament to print internal sparse infill."
 msgstr ""
 
-msgid ""
-"Line width of internal sparse infill. It's relative to nozzle diameter if "
-"expressed as percentage"
+msgid "Line width of internal sparse infill"
 msgstr ""
 
 msgid "Infill/Wall overlap"
@@ -4483,9 +4474,7 @@ msgid ""
 "speed to print. For 100%% overhang, bridge speed is used."
 msgstr ""
 
-msgid ""
-"Line width of inner wall. It's relative to nozzle diameter if expressed as "
-"percentage"
+msgid "Line width of inner wall"
 msgstr ""
 
 msgid "Speed of inner wall"
@@ -4636,9 +4625,7 @@ msgstr ""
 msgid "mm²"
 msgstr "mm²"
 
-msgid ""
-"Line width of internal solid infill. It's relative to nozzle diameter if "
-"expressed as percentage"
+msgid "Line width of internal solid infill"
 msgstr ""
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
@@ -4718,14 +4705,7 @@ msgstr ""
 msgid "Filament to print support and skirt."
 msgstr ""
 
-msgid ""
-"Used to set line width for support. It's relative to nozzle diameter if "
-"expressed as percentage"
-msgstr ""
-
-msgid ""
-"Used to set line width for support transition. It's relative to nozzle "
-"diameter if expressed as percentage"
+msgid "Line width of support"
 msgstr ""
 
 msgid "Interface use loop pattern"
@@ -4762,11 +4742,6 @@ msgid "Spacing of bottom interface lines. Zero means solid interface"
 msgstr ""
 
 msgid "Speed of support interface"
-msgstr ""
-
-msgid ""
-"Speed for printing support transition layers in which support infill "
-"direction is changed"
 msgstr ""
 
 msgid "Base pattern"
@@ -4886,9 +4861,7 @@ msgid ""
 "tool change"
 msgstr ""
 
-msgid ""
-"Used to set line width for top surfaces. It's relative to nozzle diameter if "
-"expressed as percentage"
+msgid "Line width for top surfaces"
 msgstr ""
 
 msgid "Speed of top surface infill which is solid"
@@ -5078,6 +5051,9 @@ msgstr ""
 
 msgid "Slicing mesh"
 msgstr ""
+
+#~ msgid "mm or %"
+#~ msgstr "mm oder %"
 
 #~ msgid "Merge"
 #~ msgstr "Zusammenfügen"
