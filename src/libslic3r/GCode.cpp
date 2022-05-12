@@ -2802,7 +2802,9 @@ GCode::LayerResult GCode::process_layer(
                     //FIXME the following code prints regions in the order they are defined, the path is not optimized in any way.
                     bool is_infill_first = print.config().wall_infill_order == WallInfillOrder::InfillInnerOuter ||
                                            print.config().wall_infill_order == WallInfillOrder::InfillOuterInner;
-                    if (is_infill_first) {
+                    //BBS: for first layer, we always print wall firstly to get better bed adhesive force
+                    //This behaviour is same with cura
+                    if (is_infill_first && !first_layer) {
                         gcode += this->extrude_infill(print, by_region_specific, false);
                         gcode += this->extrude_perimeters(print, by_region_specific, lower_layer_edge_grids[instance_to_print.layer_id]);
                     } else {
