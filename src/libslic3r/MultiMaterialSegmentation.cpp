@@ -1435,6 +1435,8 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
         int     top_shell_layers        { 0 };
         // Maximum number of bottom layers for a queried color.
         int     bottom_shell_layers     { 0 };
+        //BBS: spacing according to width and layer height
+        float   extrusion_spacing{ 0.f };
     };
     auto layer_color_stat = [&layers = std::as_const(layers)](const size_t layer_idx, const size_t color_idx) -> LayerColorStat {
         LayerColorStat out;
@@ -1444,19 +1446,22 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                 // color_idx == 0 means "don't know" extruder aka the underlying extruder.
                 // As this region may split existing regions, we collect statistics over all regions for color_idx == 0.
                 color_idx == 0 || config.wall_filament == int(color_idx)) {
-                out.extrusion_width     = std::max<float>(out.extrusion_width, float(config.inner_wall_line_width));
+                //BBS: the extrusion line width is outer wall rather than inner wall
+                out.extrusion_width     = std::max<float>(out.extrusion_width, float(config.outer_wall_line_width));
                 out.top_shell_layers    = std::max<int>(out.top_shell_layers, config.top_shell_layers);
                 out.bottom_shell_layers = std::max<int>(out.bottom_shell_layers, config.bottom_shell_layers);
                 out.small_region_threshold = config.gap_infill_speed.value > 0 ?
                                              // Gap fill enabled. Enable a single line of 1/2 extrusion width.
-                                             0.5f * float(config.inner_wall_line_width) :
+                                             0.5f * float(config.outer_wall_line_width) :
                                              // Gap fill disabled. Enable two lines slightly overlapping.
-                                             float(config.inner_wall_line_width) + 0.7f * Flow::rounded_rectangle_extrusion_spacing(float(config.inner_wall_line_width), float(layer.height));
+                                             float(config.outer_wall_line_width) + 0.7f * Flow::rounded_rectangle_extrusion_spacing(float(config.outer_wall_line_width), float(layer.height));
                 out.small_region_threshold = scaled<float>(out.small_region_threshold * 0.5f);
+                out.extrusion_spacing = Flow::rounded_rectangle_extrusion_spacing(float(config.outer_wall_line_width), float(layer.height));
                 ++ out.num_regions;
             }
         assert(out.num_regions > 0);
         out.extrusion_width = scaled<float>(out.extrusion_width);
+        out.extrusion_spacing = scaled<float>(out.extrusion_spacing);
         return out;
     };
 
@@ -1478,7 +1483,9 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                             float offset = 0.f;
                             ExPolygons layer_slices_trimmed = input_expolygons[layer_idx];
                             for (int last_idx = int(layer_idx) - 1; last_idx >= std::max(int(layer_idx - 1), int(0)); --last_idx) {
-                                offset -= stat.extrusion_width;
+                                //BBS: offset width should be 2*spacing to avoid too narrow area which has overlap of wall line
+                                //offset -= stat.extrusion_width ;
+                                offset -= (2 * stat.extrusion_spacing);
                                 layer_slices_trimmed = intersection_ex(layer_slices_trimmed, input_expolygons[last_idx]);
                                 ExPolygons last = opening_ex(intersection_ex(top_ex, offset_ex(layer_slices_trimmed, offset)), stat.small_region_threshold);
                                 if (last.empty())
@@ -1497,7 +1504,9 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                             float offset = 0.f;
                             ExPolygons layer_slices_trimmed = input_expolygons[layer_idx];
                             for (size_t last_idx = layer_idx + 1; last_idx < std::min(layer_idx + 2, num_layers); ++last_idx) {
-                                offset -= stat.extrusion_width;
+                                //BBS: offset width should be 2*spacing to avoid too narrow area which has overlap of wall line
+                                //offset -= stat.extrusion_width;
+                                offset -= (2 * stat.extrusion_spacing);
                                 layer_slices_trimmed = intersection_ex(layer_slices_trimmed, input_expolygons[last_idx]);
                                 ExPolygons last = opening_ex(intersection_ex(bottom_ex, offset_ex(layer_slices_trimmed, offset)), stat.small_region_threshold);
                                 if (last.empty())
