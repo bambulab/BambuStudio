@@ -91,7 +91,8 @@ enum FilamentStep {
 #define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(186))
 #define AMS_STEP_SIZE wxSize(FromDIP(172), FromDIP(180))
 #define AMS_REFRESH_SIZE wxSize(FromDIP(26), FromDIP(26))
-#define AMS_EXTRUDER_SIZE wxSize(FromDIP(76), FromDIP(55))
+#define AMS_EXTRUDER_SIZE wxSize(FromDIP(66), FromDIP(55))
+#define AMS_EXTRUDER_BITMAP_SIZE wxSize(FromDIP(36), FromDIP(55))
 
 struct Caninfo
 {
@@ -148,13 +149,17 @@ Description:AMSextruder
 class AMSextruder : public wxWindow
 {
 public:
-    void TurnOn();
+    void TurnOn(wxColour col);
     void TurnOff();
     void create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
     void paintEvent(wxPaintEvent &evt);
     void render(wxDC &dc);
     void doRender(wxDC &dc);
+    void set_color(wxColour col);
+    void msw_rescale();  
 
+    wxPanel *m_bitmap_panel{nullptr};
+    wxStaticBitmap *m_bitmap{nullptr};
     bool     m_turn_on = {false};
     wxBitmap monitor_ams_extruder_off;
     wxBitmap monitor_ams_extruder_on;
@@ -314,8 +319,9 @@ public:
     void        Update(AMSinfo info);
     void        create(wxWindow *parent, wxWindowID id, AMSinfo info, const wxPoint &pos, const wxSize &size);
     void        AddCan(Caninfo caninfo, int canindex, int maxcan);
-    void        SelectCan(std::string can_id);
+    void        SelectCan(std::string canid);
     void        SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step);
+    wxColour    GetCanColour(wxString canid);
     void        PlayRridLoading(wxString canid);
     void        StopRridLoading(wxString canid);
 
@@ -379,6 +385,7 @@ protected:
     wxSimplebook *m_simplebook_amsitems    = {nullptr};
     wxSimplebook *m_simplebook_ams         = {nullptr};
     wxSimplebook *m_simplebook_cans        = {nullptr};
+    wxSimplebook *m_simplebook_bottom      = {nullptr};
 
     wxStaticText *m_tip_right_top             = {nullptr};
     wxStaticText *m_tip_load_info            = {nullptr};

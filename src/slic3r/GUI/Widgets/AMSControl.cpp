@@ -193,26 +193,62 @@ Description:AMSextruder
 **************************************************/
 AMSextruder::AMSextruder(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) { create(parent, id, pos, size); }
 
-void AMSextruder::TurnOn()
+void AMSextruder::TurnOn(wxColour col)
 {
+    set_color(col);
     m_turn_on = true;
     Refresh();
 }
 
 void AMSextruder::TurnOff()
 {
+    set_color(wxColour(234,234,234));
     m_turn_on = false;
     Refresh();
 }
 
 void AMSextruder::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
-    wxWindow::Create(parent, id, pos, size, wxBORDER_NONE);
-    monitor_ams_extruder_off = create_scaled_bitmap("monitor_ams_extruder_off", nullptr, 55);
-    monitor_ams_extruder_on  = create_scaled_bitmap("monitor_ams_extruder_on", nullptr, 55);
-    Bind(wxEVT_PAINT, &AMSextruder::paintEvent, this);
+    wxWindow::Create(parent, id, pos, AMS_EXTRUDER_SIZE, wxBORDER_NONE);
+    //monitor_ams_extruder_off = create_scaled_bitmap("monitor_ams_extruder_off", nullptr, 55);
+    //monitor_ams_extruder_on  = create_scaled_bitmap("monitor_ams_extruder_on", nullptr, 55);
+    //Bind(wxEVT_PAINT, &AMSextruder::paintEvent, this);
     SetBackgroundColour(AMS_CONTROL_WHITE_COLOUR);
+
+   	wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
+
+    m_bitmap_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, AMS_EXTRUDER_BITMAP_SIZE, wxTAB_TRAVERSAL);
+    m_bitmap_panel->SetBackgroundColour(wxColour(234,234,234));
+    wxBoxSizer *m_bitmap_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_bitmap = new wxStaticBitmap(m_bitmap_panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, AMS_EXTRUDER_BITMAP_SIZE, 0);
+    m_bitmap_sizer->Add(m_bitmap, 0, wxALIGN_CENTER, 0);
+
+    m_bitmap_panel->SetSizer(m_bitmap_sizer);
+    m_bitmap_panel->Layout();
+    m_sizer_body->Add(m_bitmap_panel, 0, wxALIGN_CENTER, 0);
+
+    SetSizer(m_sizer_body);
+    Layout();
+
+    auto path = (boost::format("%1%/images/monitor_ams_extruder.png") % resources_dir()).str();
+    path      = encode_path(path.c_str());
+    auto image = wxImage(path);
+    image.Rescale(AMS_EXTRUDER_BITMAP_SIZE.x, AMS_EXTRUDER_BITMAP_SIZE.y);
+    auto bitmap = wxBitmap(image);
+    m_bitmap->SetBitmap(bitmap);
 }
+
+void AMSextruder::msw_rescale() 
+{
+    auto path  = (boost::format("%1%/images/monitor_ams_extruder.png") % resources_dir()).str();
+    path       = encode_path(path.c_str());
+    auto image = wxImage(path);
+    image.Rescale(AMS_EXTRUDER_BITMAP_SIZE.x, AMS_EXTRUDER_BITMAP_SIZE.y);
+    auto bitmap = wxBitmap(image);
+    m_bitmap->SetBitmap(bitmap);
+}
+
 
 void AMSextruder::paintEvent(wxPaintEvent &evt)
 {
@@ -252,6 +288,13 @@ void AMSextruder::doRender(wxDC &dc)
         dc.DrawBitmap(monitor_ams_extruder_off, pot);
         // dc.DrawCircle(pot.x + FromDIP(17), pot.y + monitor_ams_extruder_off.GetSize().y / 2 + FromDIP(2), FromDIP(7));
     }
+}
+
+void AMSextruder::set_color(wxColour col) 
+{ 
+    m_bitmap_panel->SetBackgroundColour(col);
+    Update();
+    Refresh();
 }
 
 /*************************************************
@@ -936,16 +979,16 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan)
     m_can_road_list.Add(canroad);
 }
 
-void AmsCans::SelectCan(std::string can_id)
+void AmsCans::SelectCan(std::string canid)
 {
     for (auto i = 0; i < m_can_lib_list.GetCount(); i++) { 
         CanLibs *lib = m_can_lib_list[i]; 
-        if (lib->canLib->m_info.can_id == can_id) {
+        if (lib->canLib->m_info.can_id == canid) {
             m_canlib_selection = lib->canLib->m_can_index;
         }
     }
 
-    m_canlib_id = can_id;
+    m_canlib_id = canid;
 
    for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
         CanLibs *lib = m_can_lib_list[i];
@@ -1055,6 +1098,16 @@ void AmsCans::StopRridLoading(wxString canid)
     }
 }
 
+wxColour AmsCans::GetCanColour(wxString canid) 
+{
+    wxColour col = *wxWHITE;
+    for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
+        CanLibs *lib = m_can_lib_list[i];
+        if (lib->canLib->m_info.can_id == canid) { col =  lib->canLib->m_info.material_colour; }
+    }
+    return col;
+}
+
 /*************************************************
 Description:AMSControl
 **************************************************/
@@ -1141,14 +1194,20 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_sizer_left->Add(m_panel_can, 1, wxEXPAND, 0);
 
     wxBoxSizer *m_sizer_left_bottom = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer *sizer_sextruder     = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *sizer_sextruder     = new wxBoxSizer(wxVERTICAL);
 
-    m_extruder = new AMSextruder(amswin, wxID_ANY, wxDefaultPosition, AMS_EXTRUDER_SIZE);
-    sizer_sextruder->Add(m_extruder, 0,  wxEXPAND, 0);
-    m_sizer_left_bottom->Add(sizer_sextruder, 1, wxEXPAND, 0);
+    auto extruder_pane = new wxPanel(amswin, wxID_ANY, wxDefaultPosition, AMS_EXTRUDER_SIZE);
+    extruder_pane->SetSizer(sizer_sextruder);
+    extruder_pane->Layout();
+
+    extruder_pane->SetBackgroundColour(wxColour(46,139,87));
+    m_extruder = new AMSextruder(extruder_pane, wxID_ANY, wxDefaultPosition, AMS_EXTRUDER_SIZE);
+    sizer_sextruder->Add(m_extruder, 0,  wxALIGN_CENTER, 0);
+
+    m_sizer_left_bottom->Add(extruder_pane, 0, wxLEFT, FromDIP(10));
 
     m_sizer_left_bottom->Add(0, 0, 0, wxEXPAND, 0);
-    m_sizer_left_bottom->Add(0, 0, 0, wxALL | wxLEFT, 26);
+    m_sizer_left_bottom->Add(0, 0, 0, wxALL | wxLEFT, FromDIP(26));
 
     StateColor extruder_bg(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Pressed),
                            std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Hovered),
@@ -1160,18 +1219,18 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_extruder_feed->SetBackgroundColor(extruder_bg);
     m_button_extruder_feed->SetBorderColor(extruder_bd);
     m_button_extruder_feed->SetFont(Label::Body_10);
-    m_sizer_left_bottom->Add(m_button_extruder_feed, 0, wxTOP, 20);
-    m_sizer_left_bottom->Add(0, 0, 0, wxALL | wxLEFT, 10);
+    m_sizer_left_bottom->Add(m_button_extruder_feed, 0, wxTOP, FromDIP(20));
+    m_sizer_left_bottom->Add(0, 0, 0, wxALL | wxLEFT, FromDIP(10));
 
     m_button_extruder_back = new Button(amswin, _L("Unload"));
     m_button_extruder_back->SetBackgroundColor(extruder_bg);
     m_button_extruder_back->SetBorderColor(extruder_bd);
     m_button_extruder_back->SetFont(Label::Body_10);
-    m_sizer_left_bottom->Add(m_button_extruder_back, 0, wxTOP, 20);
+    m_sizer_left_bottom->Add(m_button_extruder_back, 0, wxTOP, FromDIP(20));
 
-    m_sizer_left->Add(m_sizer_left_bottom, 0, wxEXPAND, 5);
-    m_sizer_bottom->Add(m_sizer_left, 0, wxEXPAND, 5);
-    m_sizer_bottom->Add(0, 0, 0, wxEXPAND | wxLEFT, 43);
+    m_sizer_left->Add(m_sizer_left_bottom, 0, 0, 0);
+    m_sizer_bottom->Add(m_sizer_left, 0, 0, 0);
+    m_sizer_bottom->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(43));
 
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxVERTICAL);
     m_simplebook_right        = new wxSimplebook(amswin, wxID_ANY);
@@ -1402,6 +1461,7 @@ void AMSControl::StopRridLoading(wxString amsid, wxString canid)
 
 void AMSControl::msw_rescale()
 {
+    m_extruder->msw_rescale();
     m_button_extruder_back->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
     m_button_extruder_feed->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
     m_button_ams_setting->SetMinSize(wxSize(FromDIP(88), FromDIP(33)));
@@ -1664,12 +1724,12 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     }
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2) {
-        m_extruder->TurnOn();
+        m_extruder->TurnOn(cans->amsCans->GetCanColour(canid));
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     }
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3) {
-        m_extruder->TurnOn();
+        m_extruder->TurnOn(cans->amsCans->GetCanColour(canid));
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
     }
