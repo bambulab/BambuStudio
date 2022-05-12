@@ -3388,6 +3388,13 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         return "";
     }
 
+    std::string AccountManager::get_nick_name()
+    {
+        if (m_curr_user)
+            return m_curr_user->m_name;
+        return "";
+    }
+
     void AccountManager::set_host(std::string host_url)
     {
         /* invalid token and logout */

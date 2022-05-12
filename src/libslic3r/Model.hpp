@@ -1179,6 +1179,16 @@ struct GlobalSpeedMap
     double supportSpeed;
     double maxSpeed;
 };
+
+class ModelDesignInfo
+{
+public:
+    std::string DesignId;               // DisignId for Model
+    std::string Designer;               // Designer nickname in utf8
+    std::string DesignerUserId;         // Designer user_id string
+    std::string DesignCoverThumbnail;   // cover thumbnail in Auxiliaries
+};
+
 // The print bed content.
 // Description of a triangular model with multiple materials, multiple instances with various affine transformations
 // and with multiple modifier meshes.
@@ -1197,6 +1207,9 @@ public:
     // BBS static members store extruder parameters and speed map of all models
     static std::map<size_t, ExtruderParams> extruderParamsMap;
     static GlobalSpeedMap printSpeedMap;
+
+    // DesignInfo of Model
+    std::shared_ptr<ModelDesignInfo> design_info = nullptr;
     
     // Extensions for color print
     CustomGCode::Info custom_gcode_per_print_z;

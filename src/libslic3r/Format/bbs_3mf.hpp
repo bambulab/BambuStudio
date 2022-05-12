@@ -24,8 +24,10 @@ struct ThumbnailData;
 class PackingTemporaryData
 {
 public:
-    std::string _3mf_cover_thumbnail;
-    std::string _3mf_printer_thumbnail;
+    std::string _3mf_thumbnail;
+    std::string _3mf_printer_thumbnail_middle;
+    std::string _3mf_printer_thumbnail_small;
+    
     PackingTemporaryData() {}
 };
 

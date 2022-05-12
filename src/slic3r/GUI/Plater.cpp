@@ -2581,6 +2581,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (!config_substitutions.empty()) show_substitutions_info(config_substitutions.substitutions, filename.string());
 
                     this->model.custom_gcode_per_print_z = model.custom_gcode_per_print_z;
+                    //BBS
+                    this->model.design_info = model.design_info;
                 }
 
                 if (load_config) {
@@ -7977,17 +7979,41 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
         }
     }
 
-    if (Slic3r::store_bbs_3mf(store_params)) {
-    //if (Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, project_presets, export_config ? &cfg : nullptr, full_pathnames, thumbnails, true /*zip64*/, backup, proFn, silence)) {
+    // handle Design Info
+    bool has_design_info = false;
+    ModelDesignInfo designInfo;
+    if (p->model.design_info != nullptr) {
+        if (!p->model.design_info->Designer.empty()) {
+            BOOST_LOG_TRIVIAL(trace) << "design_info, found designer = " << p->model.design_info->Designer;
+            has_design_info = true;
+        }
+    }
+    if (!has_design_info) {
+        // add Designed Info 
+        if (p->model.design_info == nullptr && p->acc_) {
+            // set designInfo before export and reset after export
+            if (p->acc_->is_user_login()) {
+                p->model.design_info                 = std::make_shared<ModelDesignInfo>();
+                p->model.design_info->Designer       = p->acc_->get_nick_name();
+                p->model.design_info->DesignerUserId = p->acc_->get_user_id();
+                BOOST_LOG_TRIVIAL(trace) << "design_info prepare, designer = " << p->model.design_info->Designer;
+                BOOST_LOG_TRIVIAL(trace) << "design_info prepare, designer_user_id = " << p->model.design_info->DesignerUserId;
+            }
+        }
+    }
+
+    bool store_result = Slic3r::store_bbs_3mf(store_params);
+    // reset designed info
+    if (!has_design_info)
+        p->model.design_info = nullptr;
+
+    if (store_result) {
         if (!(store_params.strategy & SaveStrategy::Silence)) {
             // Success
             p->set_project_filename(path);
         }
     }
     else {
-        if (!(store_params.strategy & SaveStrategy::Silence)) {
-            ;
-        }
         return -1;
     }
 

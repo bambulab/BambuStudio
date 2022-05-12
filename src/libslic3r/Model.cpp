@@ -64,6 +64,9 @@ Model& Model::assign_copy(const Model &rhs)
     // BBS: for encrypt
     this->key_store = rhs.key_store;
 
+    // BBS: for design info
+    this->design_info = rhs.design_info;
+
     return *this;
 }
 
@@ -93,6 +96,8 @@ Model& Model::assign_copy(Model &&rhs)
     this->next_object_backup_id = rhs.next_object_backup_id;
     this->key_store = rhs.key_store;
     rhs.key_store.reset();
+    this->design_info = rhs.design_info;
+    rhs.design_info.reset();
     return *this;
 }
 

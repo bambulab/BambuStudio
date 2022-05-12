@@ -480,6 +480,7 @@ public:
     AccountInfo* user() { return m_curr_user; }
     void         change_curr_user(AccountInfo * pAcc);
     std::string get_user_name();
+    std::string get_nick_name();
     std::string get_token_str();
 
     /* project apis */

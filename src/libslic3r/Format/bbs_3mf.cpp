@@ -108,7 +108,9 @@ const unsigned int MM_PAINTING_VERSION           = 0;
 const std::string BBS_FDM_SUPPORTS_PAINTING_VERSION = "BambuStudio:FdmSupportsPaintingVersion";
 const std::string BBS_SEAM_PAINTING_VERSION         = "BambuStudio:SeamPaintingVersion";
 const std::string BBS_MM_PAINTING_VERSION           = "BambuStudio:MmPaintingVersion";
-const std::string BBL_MODEL_ID_TAG                       = "model_id";
+const std::string BBL_MODEL_ID_TAG                  = "model_id";
+const std::string BBL_DESIGNER_TAG                  = "Designer";
+const std::string BBL_DESIGNER_USER_ID_TAG          = "DesignerUserId";
 
 const std::string MODEL_FOLDER = "3D/";
 const std::string MODEL_EXTENSION = ".model";
@@ -116,11 +118,14 @@ const std::string MODEL_FILE = "3D/3dmodel.model"; // << this is the only format
 const std::string MODEL_RELS_FILE = "3D/_rels/3dmodel.model.rels";
 //BBS: add metadata_folder
 const std::string METADATA_DIR = "Metadata/";
+const std::string ACCESOR_DIR = "accesories/";
 const std::string GCODE_EXTENSION = ".gcode";
 const std::string CONTENT_TYPES_FILE = "[Content_Types].xml";
 const std::string RELATIONSHIPS_FILE = "_rels/.rels";
 const std::string THUMBNAIL_FILE = "Metadata/plate_1.png";
-const std::string PRINTER_THUMBNAIL_FILE = "bambulab_thumbnail.png";
+const std::string THUMBNAIL_FOR_PRINTER_FILE = "Metadata/bbl_thumbnail.png";
+const std::string PRINTER_THUMBNAIL_SMALL_FILE = "thumbnail_small.png";
+const std::string PRINTER_THUMBNAIL_MIDDLE_FILE = "thumbnail_middle.png";
 const std::string _3MF_COVER_FILE = "3mf_thumbnail.png";
 //const std::string PRINT_CONFIG_FILE = "Metadata/Slic3r_PE.config";
 //const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
@@ -651,6 +656,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         unsigned int m_seam_painting_version         = 0;
         unsigned int m_mm_painting_version           = 0;
         std::string  m_model_id;
+        std::string  m_designer;
+        std::string  m_designer_user_id;
 
         XML_Parser m_xml_parser;
         // Error code returned by the application side of the parser. In that case the expat may not reliably deliver the error state
@@ -1147,6 +1154,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             })) {
             add_error("Archive does not contain a valid model");
             return false;
+        }
+
+        if (!m_designer_user_id.empty() && !m_designer.empty()) {
+            m_model->design_info = std::make_shared<ModelDesignInfo>();
+            m_model->design_info->DesignerUserId = m_designer_user_id;
+            m_model->design_info->Designer = m_designer;
         }
 
         //got project id
@@ -2723,8 +2736,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         m_curr_characters.clear();
 
         std::string name = bbs_get_attribute_value_string(attributes, num_attributes, NAME_ATTR);
-        if (!name.empty())
+        if (!name.empty()) {
             m_curr_metadata_name = name;
+        }
 
         return true;
     }
@@ -2766,6 +2780,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 _(L("The selected 3MF contains multi-material painted object using a newer version of BambuStudio and is not compatible.")));*/
         } else if (m_curr_metadata_name == BBL_MODEL_ID_TAG) {
             m_model_id = m_curr_characters;
+        } else if (m_curr_metadata_name == BBL_DESIGNER_TAG) {
+            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found designer = " << m_curr_characters;
+            m_designer = m_curr_characters;
+        } else if (m_curr_metadata_name == BBL_DESIGNER_USER_ID_TAG) {
+            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found designer_user_id = " << m_curr_characters;
+            m_designer_user_id = m_curr_characters;
         }
 
         return true;
@@ -4305,11 +4325,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         if (from.empty()) {
             stream << " <Relationship Target=\"/" << MODEL_FILE << "\" Id=\"rel-1\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\"/>\n";
 
-            if (data._3mf_printer_thumbnail.empty()) {
+            if (data._3mf_thumbnail.empty()) {
                 stream << " <Relationship Target=\"/" << THUMBNAIL_FILE
                        << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\"/>\n";
             } else {
-                stream << " <Relationship Target=\"/" << data._3mf_printer_thumbnail
+                stream << " <Relationship Target=\"/" << data._3mf_thumbnail
                        << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\"/>\n";
             }
 
@@ -4317,6 +4337,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << " <Relationship Target=\"/" << KEYSTORE_FILE << "\" Id=\"rel-3\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2019/04/keystore\"/>\n";
                 stream << " <Relationship Target=\"/" << KEYSTORE_FILE << "\" Id=\"rel-3\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/mustpreserve\"/>\n";
             }
+            if (!data._3mf_printer_thumbnail_middle.empty()) {
+                stream << " <Relationship Target=\"/" << data._3mf_printer_thumbnail_middle
+                       << "\" Id=\"rel-4\" Type=\"http://schemas.bambulab.com/package/2021/cover-thumbnail-middle\"/>\n";
+            }
+            if (!data._3mf_printer_thumbnail_small.empty())
+                stream << " <Relationship Target=\"/" << data._3mf_printer_thumbnail_small
+                       << "\" Id=\"rel-5\" Type=\"http://schemas.bambulab.com/package/2021/cover-thumbnail-small\"/>\n";
         }
         else if (targets.empty()) {
             return false;
@@ -4445,8 +4472,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << " <" << METADATA_TAG << " name=\"" << BBS_MM_PAINTING_VERSION << "\">" << MM_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";*/
 
             std::string name = xml_escape(boost::filesystem::path(filename).stem().string());
+
+            std::string user_name;
+            std::string user_id;
+            if (model.design_info) {
+                 user_name = model.design_info->Designer;
+                 user_id = model.design_info->DesignerUserId;
+                 BOOST_LOG_TRIVIAL(trace) << "design_info, save_3mf found designer = " << user_name;
+                 BOOST_LOG_TRIVIAL(trace) << "design_info, save_3mf found designer_user_id = " << user_id;
+            }
             stream << " <" << METADATA_TAG << " name=\"Title\">" << name << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"Designer\">" << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_TAG << "\">" << user_name << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_USER_ID_TAG << "\">" << user_id << "</" << METADATA_TAG << ">\n";
             stream << " <" << METADATA_TAG << " name=\"Description\">" << name << "</" << METADATA_TAG << ">\n";
             stream << " <" << METADATA_TAG << " name=\"Copyright\">" << "</" << METADATA_TAG << ">\n";
             stream << " <" << METADATA_TAG << " name=\"LicenseTerms\">" << "</" << METADATA_TAG << ">\n";
@@ -5655,15 +5692,21 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, c
 
                 result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
 
+                // BBS generate thumbnails
                 // copy to /Metadata folder
                 if (dir_entry.path().filename() == _3MF_COVER_FILE) {
-                    dst_in_3mf = "Metadata/" + _3MF_COVER_FILE;
-                    data._3mf_cover_thumbnail = dst_in_3mf;
+                    dst_in_3mf = METADATA_DIR + _3MF_COVER_FILE;
+                    data._3mf_thumbnail = dst_in_3mf;
                     result &=_add_file_to_archive(archive, dst_in_3mf, src_file);
                 }
-                if (dir_entry.path().filename() == PRINTER_THUMBNAIL_FILE) {
-                    dst_in_3mf = "Metadata/" + PRINTER_THUMBNAIL_FILE;
-                    data._3mf_printer_thumbnail = dst_in_3mf;
+                if (dir_entry.path().filename() == PRINTER_THUMBNAIL_SMALL_FILE) {
+                    dst_in_3mf                        = METADATA_DIR + PRINTER_THUMBNAIL_SMALL_FILE;
+                    data._3mf_printer_thumbnail_small = dst_in_3mf;
+                    result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
+                }
+                if (dir_entry.path().filename() == PRINTER_THUMBNAIL_MIDDLE_FILE) {
+                    dst_in_3mf = METADATA_DIR + PRINTER_THUMBNAIL_MIDDLE_FILE;
+                    data._3mf_printer_thumbnail_middle = dst_in_3mf;
                     result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
                 }
             }
