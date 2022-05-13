@@ -73,6 +73,7 @@ public:
         FdmSupports,
         MmuSegmentation,
         Simplify,
+        Modifier,
         Seam,
         SlaSupports,
         // BBS

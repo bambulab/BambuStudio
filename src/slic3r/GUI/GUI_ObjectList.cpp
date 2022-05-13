@@ -1871,14 +1871,16 @@ static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf
     else if (type_name == "Cylinder")
         // Centered around 0, sitting on the print bed.
         // The cylinder has the same volume as the box above.
-        mesh = its_make_cylinder(0.564 * side, side);
+        mesh = its_make_cylinder(0.5 * side, side);
     else if (type_name == "Sphere")
         // Centered around 0, half the sphere below the print bed, half above.
         // The sphere has the same volume as the box above.
-        mesh = its_make_sphere(0.62 * side, PI / 18);
+        mesh = its_make_sphere(0.5 * side, PI / 18);
     else if (type_name == "Slab")
         // Sitting on the print bed, left front front corner at (0, 0).
         mesh = its_make_cube(bb.size().x() * 1.5, bb.size().y() * 1.5, bb.size().z() * 0.5);
+    else if (type_name == "Cone")
+        mesh = its_make_cone(0.5 * side, side);
     return TriangleMesh(mesh);
 }
 
@@ -1959,6 +1961,14 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
 
     //BBS: notify partplate the modify
     notify_instance_updated(obj_idx);
+
+    //BBS Switch to Objects List after add a modifier
+    wxGetApp().params_panel()->switch_to_object();
+
+    //Show Dialog
+    if (wxGetApp().app_config->get("do_not_show_modifer_tips").empty()) {
+        ;//TODO show a dialog, and set app_config if check do not show again
+    }
 }
 
 void ObjectList::load_shape_object(const std::string& type_name)
