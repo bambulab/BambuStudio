@@ -943,29 +943,29 @@ void TreeSupport::detect_object_overhangs()
                 const ExPolygons& lower_layer_sharptails = lower_layer->sharp_tails;
                 auto& lower_layer_sharptails_height = lower_layer->sharp_tails_height;
                 for (ExPolygon& expoly : layer->lslices) {
-                    bool is_sharp_tail = false;
-                    float accum_height = layer->height;
+                    bool  is_sharp_tail = false;
+                    float accum_height  = layer->height;
                     do {
                         // 1. nothing below
                         // check whether this is a sharp tail region
-                        if (intersection_ex({ expoly }, lower_layer_offseted).empty()) {
+                        if (intersection_ex({expoly}, lower_layer_offseted).empty()) {
                             is_sharp_tail = expoly.area() < area_thresh_well_supported;
                             break;
-                            }
+                        }
 
                         // 2. something below
                         // check whether this is above a sharp tail region.
 
                         // 2.1 If no sharp tail below, this is considered as common region.
-                        ExPolygons supported_by_lower = intersection_ex({ expoly }, lower_layer_sharptails);
+                        ExPolygons supported_by_lower = intersection_ex({expoly}, lower_layer_sharptails);
                         if (supported_by_lower.empty()) {
                             is_sharp_tail = false;
                             break;
-                            }
+                        }
 
                         // 2.2 If sharp tail below, check whether it support this region enough.
-                            float       supported_area = area(supported_by_lower);
-                        BoundingBox bbox = get_extents(supported_by_lower);
+                        float       supported_area = area(supported_by_lower);
+                        BoundingBox bbox           = get_extents(supported_by_lower);
 
                         if (supported_area > area_thresh_well_supported) {
                             is_sharp_tail = false;
@@ -978,25 +978,28 @@ void TreeSupport::detect_object_overhangs()
                         }
 
                         // 2.3 check whether sharp tail exceed the max height
-                        for (auto& lower_sharp_tail_height : lower_layer_sharptails_height) {
+                        for (auto &lower_sharp_tail_height : lower_layer_sharptails_height) {
                             if (!intersection_ex(*lower_sharp_tail_height.first, expoly).empty()) {
                                 accum_height += lower_sharp_tail_height.second;
                                 break;
-                                }
                             }
+                        }
 
                         is_sharp_tail = accum_height < sharp_tail_max_support_height;
-                        } while (0);
+                    } while (0);
 
-                        if (is_sharp_tail) {
-                            has_sharp_tail      = true;
-                            ExPolygons overhang = diff_ex({expoly}, lower_layer->lslices);
-                            layer->sharp_tails.push_back(expoly);
-                            layer->sharp_tails_height.insert({ &expoly, accum_height });
-                            //append(overhang_areas, overhang);
-                            overhang_areas = union_ex(overhang_areas, overhang);
-                        }
+                    if (is_sharp_tail) {
+                        has_sharp_tail      = true;
+                        ExPolygons overhang = diff_ex({expoly}, lower_layer->lslices);
+                        layer->sharp_tails.push_back(expoly);
+                        layer->sharp_tails_height.insert({ &expoly, accum_height });
+                        append(overhang_areas, overhang);
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
+                        SVG svg(get_svg_filename(std::to_string(layer->print_z), "sharp_tail"), m_object->bounding_box());
+                        if (svg.is_opened()) svg.draw(overhang, "yellow");
+#endif
                     }
+                }
 #endif
             }
 
@@ -1018,7 +1021,8 @@ void TreeSupport::detect_object_overhangs()
                 else
                     ts_layer->overhang_areas.emplace_back(poly);
 #else
-                ts_layer->overhang_areas.emplace_back(poly);
+                if (!offset_ex(poly, -0.1 * extrusion_width_scaled).empty())
+                    ts_layer->overhang_areas.emplace_back(poly);
 #endif
             }
 
@@ -1028,7 +1032,7 @@ void TreeSupport::detect_object_overhangs()
                 }
             }
 
-            if (is_auto && g_config_support_sharp_tails)
+            if (is_auto && /*g_config_support_sharp_tails*/0)
             {  // update well supported regions
                 ExPolygons regions_well_supported2;
                 // regions intersects with lower regions_well_supported or large support are also well supported
