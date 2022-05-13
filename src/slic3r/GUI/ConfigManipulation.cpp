@@ -128,10 +128,10 @@ void ConfigManipulation::check_bed_temperature_difference(DynamicPrintConfig* co
     if (config->has("bed_temperature_difference")
         && config->has("bed_temperature")
         && config->has("bed_temperature_initial_layer")
-        && config->has("bed_type")) {
-        int bed_type = config->opt_enum("bed_type", 0);
-        int first_layer_bed_temp = config->opt_int("bed_temperature_initial_layer", bed_type);
-        int bed_temp = config->opt_int("bed_temperature", bed_type);
+        && config->has("curr_bed_type")) {
+        int curr_bed_type = config->opt_enum("curr_bed_type", 0);
+        int first_layer_bed_temp = config->opt_int("bed_temperature_initial_layer", curr_bed_type);
+        int bed_temp = config->opt_int("bed_temperature", curr_bed_type);
         int bed_temp_difference = config->opt_int("bed_temperature_difference", 0);
         if (first_layer_bed_temp - bed_temp > bed_temp_difference) {
             const wxString msg_text = wxString::Format(_L("Bed temperature of other layer is lower than bed temperature of initial layer for more than %d degree centigrade.\nThis may cause model broken free from build plate during printing"), bed_temp_difference);

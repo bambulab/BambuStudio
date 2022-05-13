@@ -200,7 +200,11 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
         auto first_layer = object->get_layer(0);
         for (auto layerm : first_layer->regions()) {
             int extruder_id = layerm->region().config().option("wall_filament")->getInt();
+            
             for (auto expoly : layerm->raw_slices) {
+                if (offset_ex(expoly, -0.2 * scale_(print.config().initial_layer_line_width)).empty())
+                    continue;
+
                 double contour_area = expoly.contour.area();
                 auto iter = min_areas_per_extruder.find(extruder_id);
                 if (iter == min_areas_per_extruder.end()) {
@@ -237,7 +241,10 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
     auto first_layer = object.get_layer(0);
     for (auto layerm : first_layer->regions()) {
         int extruder_id = layerm->region().config().option("wall_filament")->getInt();
-        for (auto expoly : to_expolygons(layerm->slices.surfaces)) {
+        for (auto expoly : layerm->raw_slices) {
+            if (offset_ex(expoly, -0.2 * scale_(object.config().line_width)).empty())
+                continue;
+
             double contour_area = expoly.contour.area();
             auto iter = min_areas_per_extruder.find(extruder_id);
             if (iter == min_areas_per_extruder.end()) {

@@ -1037,6 +1037,10 @@ Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double wipe_volu
 	wipe_tower_size.setZero();
 	wipe_tower_size(0) = w;
 
+	ConfigOption* layer_height_opt = wxGetApp().preset_bundle->prints.get_edited_preset().config.option("layer_height");
+	if (layer_height_opt)
+		layer_height = layer_height_opt->getFloat();
+
 	// empty plate
 	if (plate_extruders.empty())
 		return wipe_tower_size;

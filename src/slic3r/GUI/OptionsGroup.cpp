@@ -704,8 +704,10 @@ void ConfigOptionsGroup::reload_config()
 		int 			   opt_index = kvp.second.second;
 		const ConfigOptionDef &option = m_options.at(opt_id).opt;
         // BBS
+#if 0
         if (opt_id == "bed_temperature" || opt_id == "bed_temperature_initial_layer")
             opt_index = (int)m_config->opt_enum("bed_type", 0);
+#endif
 		this->set_value(opt_id, config_value(opt_key, opt_index, option.gui_flags == "serialized"));
 	}
 }
