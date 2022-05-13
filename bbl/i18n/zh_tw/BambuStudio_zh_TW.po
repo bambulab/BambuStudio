@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-12 17:40+0800\n"
+"POT-Creation-Date: 2022-05-13 12:05+0800\n"
 "PO-Revision-Date: 2022-03-12 17:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com> , patched traditional "
 "chinese by Cheng-Hsien Ho <taksito@gmail.com>\n"
@@ -2169,6 +2169,10 @@ msgstr ""
 msgid "Printer settings"
 msgstr ""
 
+#, boost-format
+msgid " plate %1%:"
+msgstr ""
+
 msgid "Invalid name, the following characters are not allowed:"
 msgstr ""
 
@@ -2857,8 +2861,9 @@ msgid "Overhang speed"
 msgstr ""
 
 msgid ""
-"Speed for different overhang degree. Overhang degree is expressed as "
-"percentage of line width"
+"This is the speed for various overhang degrees. Overhang degrees are "
+"expressed as a percentage of line width. 0 speed means no slowing down for "
+"the overhang degree range and wall speed is used"
 msgstr ""
 
 msgid "Travel speed"
@@ -3569,6 +3574,10 @@ msgstr ""
 
 msgid ""
 "The prime tower requires that support has the same layer height with object."
+msgstr ""
+
+msgid ""
+"Support enforcers are used but support is not enabled. Please enable support."
 msgstr ""
 
 msgid "Layer height cannot exceed nozzle diameter"
@@ -5027,7 +5036,19 @@ msgstr ""
 msgid "Optimizing toolpath"
 msgstr ""
 
+msgid "Empty layers around bottom are replaced by nearest normal layers."
+msgstr ""
+
+msgid ""
+"The model has overlapping or self-intersecting facets. I tried to repair it, "
+"however you might want to check the results or repair the input file and "
+"retry."
+msgstr ""
+
 msgid "Slicing mesh"
+msgstr ""
+
+msgid " Object:"
 msgstr ""
 
 #~ msgid "Merge"

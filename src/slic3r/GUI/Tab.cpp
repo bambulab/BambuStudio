@@ -1752,17 +1752,17 @@ void TabPrint::build()
         optgroup->append_single_option_line("reduce_infill_retraction");
 
     page = add_options_page(L("Speed"), "empty");
-        optgroup = page->new_optgroup(L("Initial layer speed"));
+        optgroup = page->new_optgroup(L("Initial layer speed"), 15);
         optgroup->append_single_option_line("initial_layer_speed");
         optgroup->append_single_option_line("initial_layer_infill_speed");
-        optgroup = page->new_optgroup(L("Other layers speed"));
+        optgroup = page->new_optgroup(L("Other layers speed"), 15);
         optgroup->append_single_option_line("outer_wall_speed");
         optgroup->append_single_option_line("inner_wall_speed");
         optgroup->append_single_option_line("sparse_infill_speed");
         optgroup->append_single_option_line("internal_solid_infill_speed");
         optgroup->append_single_option_line("top_surface_speed");
         optgroup->append_single_option_line("enable_overhang_speed");
-        Line line = { L("Overhang speed"), L("Speed for different overhang degree. Overhang degree is expressed as percentage of line width") };
+        Line line = { L("Overhang speed"), L("This is the speed for various overhang degrees. Overhang degrees are expressed as a percentage of line width. 0 speed means no slowing down for the overhang degree range and wall speed is used") };
         line.append_option(optgroup->get_option("overhang_1_4_speed"));
         line.append_option(optgroup->get_option("overhang_2_4_speed"));
         line.append_option(optgroup->get_option("overhang_3_4_speed"));
@@ -1773,10 +1773,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_speed");
         optgroup->append_single_option_line("support_interface_speed");
 
-        optgroup = page->new_optgroup(L("Travel speed"));
+        optgroup = page->new_optgroup(L("Travel speed"), 15);
         optgroup->append_single_option_line("travel_speed");
 
-        optgroup = page->new_optgroup(L("Acceleration"));
+        optgroup = page->new_optgroup(L("Acceleration"), 15);
         optgroup->append_single_option_line("initial_layer_acceleration");
         optgroup->append_single_option_line("default_acceleration");
 

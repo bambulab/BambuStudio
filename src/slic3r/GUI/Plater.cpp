@@ -4560,7 +4560,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": event_type %1%, percent %2%, text %3%") % evt.GetEventType() % evt.status.percent % evt.status.text;
     //BBS: add slice project logic
-    std::string title_text = L("Slicing");
+    std::string title_text = _u8L("Slicing");
     evt.status.text = title_text + evt.status.text;
     if (evt.status.percent >= 0) {
         if (m_ui_jobs.is_any_running()) {
