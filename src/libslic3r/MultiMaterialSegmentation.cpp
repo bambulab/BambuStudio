@@ -1485,7 +1485,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                             for (int last_idx = int(layer_idx) - 1; last_idx >= std::max(int(layer_idx - 1), int(0)); --last_idx) {
                                 //BBS: offset width should be 2*spacing to avoid too narrow area which has overlap of wall line
                                 //offset -= stat.extrusion_width ;
-                                offset -= (2 * stat.extrusion_spacing);
+                                offset -= (stat.extrusion_spacing + stat.extrusion_width);
                                 layer_slices_trimmed = intersection_ex(layer_slices_trimmed, input_expolygons[last_idx]);
                                 ExPolygons last = opening_ex(intersection_ex(top_ex, offset_ex(layer_slices_trimmed, offset)), stat.small_region_threshold);
                                 if (last.empty())
@@ -1506,7 +1506,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                             for (size_t last_idx = layer_idx + 1; last_idx < std::min(layer_idx + 2, num_layers); ++last_idx) {
                                 //BBS: offset width should be 2*spacing to avoid too narrow area which has overlap of wall line
                                 //offset -= stat.extrusion_width;
-                                offset -= (2 * stat.extrusion_spacing);
+                                offset -= (stat.extrusion_spacing + stat.extrusion_width);
                                 layer_slices_trimmed = intersection_ex(layer_slices_trimmed, input_expolygons[last_idx]);
                                 ExPolygons last = opening_ex(intersection_ex(bottom_ex, offset_ex(layer_slices_trimmed, offset)), stat.small_region_threshold);
                                 if (last.empty())
