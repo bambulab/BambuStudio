@@ -46,15 +46,15 @@ body
 {
 	font-size:28px;
 	line-height: 28px;
-	height: 28px;
 	color: #00AE42;
+	padding: 0px 10mm;
 }
 
 
 #Content
 {
 	height: 76%;
-	padding: 10mm 10mm;	
+	padding: 5mm 10mm;	
 	overflow-y:hidden;
 	text-align: left;
 	font-size: 14px;

@@ -5,7 +5,7 @@ var LangText={
 		"t3":"User Agreement",
 		"t4":"Disagree",
 		"t5":"Agree",
-		"t6":"Help us to improve Bambu Studio",
+		"t6":"We kindly request your help to improve<br/> everyone's printing",
 		"t7":"Allow sending anonymous data",
 		"t8":"Back",
 		"t9":"Next",
@@ -46,7 +46,7 @@ var LangText={
 		"t50":"Log out",
 		"t52":"Skip",
 		"t53":"Join",
-		"t54":"In the 3D Printing community, we learn from each other's successes and failures to adjust our own slicing parameters and settings. Bambu Studio follows the same principle and uses machine learning to improve its performance from the successes and failures of the vast number of prints by our users. We are training Bambu Studio to be more smarter by feeding them the real-world data. If you are willing, this service will access information from your error logs and usage logs, which may include information described in",
+		"t54":"In the 3D printing community, we learn from each other's successes and failures to adjust our own slicing parameters and settings. Bambu Studio follows the same principle and uses machine learning to improve its performance from the successes and failures of the vast number of prints by our users. We are training Bambu Studio to be more smarter by feeding them the real-world data. If you are willing, this service will access information from your error logs and usage logs, which may include information described in",
 		"t55":"Privacy Policy",
 		"t56":".We will not collect any private data such as names, addresses, payment information, or phone numbers. By enabling this service, you agree to these terms and the statement about Privacy Policy",
 		"t57":"",
@@ -104,11 +104,11 @@ var LangText={
 		"t50":"退出登录",
 		"t52":"忽略",
 		"t53":"同意",
-		"t54":"在社区中，我们从每一次成功或失败的经历中吸取经验，不断优化切片参数和打印设置。Bambu Studio遵循同样的原则，通过使用机器学习算法，从大量打印的成功与失败中不断总结学习，从而提高打印机的性能。换句话说，我们可以通过向Bambu Studio提供真实世界的数据来训练它并让它变得更聪明，就像特斯拉用每个人的驾驶数据训练他们的自动驾驶仪一样。此服务需要访问有关错误日志和使用日志的信息，详细信息描述可以查看",
+		"t54":"在3D打印社区，我们从彼此的成功和失败中学习调整自己的切片参数和设置。Bambu Studio遵循同样的原则，通过机器学习的方式从大量用户打印的成功和失败中获取经验，从而改善打印性能。我们通过向Bambu Studio提供真实世界的数据来训练他们变得更聪明。如果您愿意，此服务将访问您的错误日志和使用日志中的信息，其中可能包括",
 		"t55":"隐私策略",
-		"t56":"。我们不会搜集你的个人隐私数据，包括姓名、地址、银行账号、电话号码。启用此服务即表示您同意这些条款和声明：",
-		"t57":"用户体验改善计划",
-		"t58":"和",
+		"t56":"中描述的信息。我们不会收集任何私人数据，如姓名、地址、支付信息或电话号码。启用此服务即表示您同意这些条款和有关隐私政策的声明",
+		"t57":"",
+		"t58":"",
 		"t59":"。",
 		"t60":"欧洲",
 		"t61":"北美",
@@ -149,12 +149,7 @@ function TranslatePage()
 		let tid=$(OneNode).attr("tid");
 		if( LangText[strLang].hasOwnProperty(tid) )
 		{
-			if($(OneNode).is('input'))
-			{
-				$(OneNode).html(LangText[strLang][tid]);
-			}
-			else
-				$(OneNode).text( LangText[strLang][tid] );
+			$(OneNode).html(LangText[strLang][tid]);
 		}
 	}
 }
