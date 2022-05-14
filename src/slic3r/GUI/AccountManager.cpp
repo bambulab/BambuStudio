@@ -3709,7 +3709,7 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
             m_Res["data"]["avatar"] = m_curr_user->m_avatar;
             m_Res["data"]["name"]   = m_curr_user->m_name;
 
-            wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
+            wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', true, json::error_handler_t::ignore));
 
             GUI::wxGetApp().run_script(strJS);
         } else {
