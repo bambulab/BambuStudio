@@ -607,19 +607,38 @@ void MenuFactory::append_menu_item_rename(wxMenu* menu)
     menu->AppendSeparator();
 }
 
-wxMenuItem* MenuFactory::append_menu_item_fix_through_netfabb(wxMenu* menu)
+void MenuFactory::append_menu_item_fix_through_netfabb(wxMenu* menu)
 {
     //BBS
-    /*if (!is_windows10())
-        return nullptr;*/
+    if (!is_windows10())
+        return;
 
+#if BBL_RELEASE_TO_PUBLIC
     wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Fix model"), "",
         [](wxCommandEvent&) { obj_list()->fix_through_netfabb(); }, "", menu,
         []() {return plater()->can_fix_through_netfabb(); }, plater());
 
     return menu_item;
-}
+#else
+    wxMenu* repair_menu = new wxMenu();
+    if (!repair_menu)
+        return;
 
+    append_menu_item(repair_menu, wxID_ANY, _L("Fix model through cloud"), "",
+        [](wxCommandEvent&) { obj_list()->fix_through_netfabb(); }, "", menu);
+    append_menu_item(repair_menu, wxID_ANY, _L("Fix model locally"), "",
+        [](wxCommandEvent&) { obj_list()->fix_local(); }, "", menu);
+
+    append_submenu(menu, repair_menu, wxID_ANY, _L("Fix model"), "", "",
+        []() { return plater()->can_fix_through_netfabb(); }, m_parent);
+
+    /*wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Fix model"), "",
+        [](wxCommandEvent&) { obj_list()->fix_through_netfabb(); }, "", menu,
+        []() {return plater()->can_fix_through_netfabb(); }, plater());
+
+    return menu_item;*/
+#endif
+}
 
 void MenuFactory::append_menu_item_export_stl(wxMenu* menu, bool is_mulity_menu)
 {

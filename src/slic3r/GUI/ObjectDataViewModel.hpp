@@ -313,7 +313,7 @@ public:
     void Init();
 
     wxDataViewItem AddPlate(PartPlate* part_plate, wxString name = wxEmptyString, bool refresh = true);
-    wxDataViewItem AddObject(ModelObject* model_object, bool refresh = true);
+    wxDataViewItem AddObject(ModelObject* model_object, std::string warning_bitmap, bool refresh = true);
     wxDataViewItem AddVolumeChild(  const wxDataViewItem &parent_item,
                                     const wxString &name,
                                     const Slic3r::ModelVolumeType volume_type,
@@ -425,7 +425,7 @@ public:
     void    SetVolumeType(const wxDataViewItem &item, const Slic3r::ModelVolumeType type);
     ModelVolumeType GetVolumeType(const wxDataViewItem &item);
     wxDataViewItem SetPrintableState( PrintIndicator printable, int obj_idx,
-                                      int subobj_idx = -1, 
+                                      int subobj_idx = -1,
                                       ItemType subobj_type = itInstance);
     wxDataViewItem SetObjectPrintableState(PrintIndicator printable, wxDataViewItem obj_item);
     // BBS

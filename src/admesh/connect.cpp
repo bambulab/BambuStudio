@@ -321,7 +321,7 @@ private:
 			}
 
 			// Of the second pair, which vertex, if any, should be changed.
-			if (stl->facet_start[edge_a.facet_number].vertex[v2a] == stl->facet_start[edge_b.facet_number].vertex[v2b]) {
+			if (stl->facet_start[edge_a.facet_number].vertex[v2a] != stl->facet_start[edge_b.facet_number].vertex[v2b]) {
 				// These facets are different.
 				if (  (stl->neighbors_start[edge_a.facet_number].neighbor[v2a] == -1)
 			       && (stl->neighbors_start[edge_a.facet_number].neighbor[(v2a + 2) % 3] == -1)) {

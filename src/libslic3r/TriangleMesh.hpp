@@ -151,7 +151,7 @@ public:
     void   restore_optional() {}
 
     const TriangleMeshStats& stats() const { return m_stats; }
-    
+
     indexed_triangle_set its;
 
 private:
@@ -260,6 +260,42 @@ inline int its_triangle_edge_index(const stl_triangle_vertex_indices &triangle_i
            triangle_edge(0) == triangle_indices[1] && triangle_edge(1) == triangle_indices[2] ? 1 :
            triangle_edge(0) == triangle_indices[2] && triangle_edge(1) == triangle_indices[0] ? 2 : -1;
 }
+
+// juedge whether two triangles has the same vertices
+inline bool its_triangle_vertex_the_same(const stl_triangle_vertex_indices &triangle_indices_1, const stl_triangle_vertex_indices &triangle_indices_2)
+{
+    bool ret = false;
+    if (triangle_indices_1[0] == triangle_indices_2[0])
+    {
+        if ((triangle_indices_1[1] ==  triangle_indices_2[1])
+            && (triangle_indices_1[2] ==  triangle_indices_2[2]))
+            ret = true;
+        else if ((triangle_indices_1[1] ==  triangle_indices_2[2])
+            && (triangle_indices_1[2] ==  triangle_indices_2[1]))
+            ret = true;
+    }
+    else if (triangle_indices_1[0] == triangle_indices_2[1])
+    {
+        if ((triangle_indices_1[1] ==  triangle_indices_2[0])
+            && (triangle_indices_1[2] ==  triangle_indices_2[2]))
+            ret = true;
+        else if ((triangle_indices_1[1] ==  triangle_indices_2[2])
+            && (triangle_indices_1[2] ==  triangle_indices_2[0]))
+            ret = true;
+    }
+    else if (triangle_indices_1[0] == triangle_indices_2[2])
+    {
+        if ((triangle_indices_1[1] ==  triangle_indices_2[0])
+            && (triangle_indices_1[2] ==  triangle_indices_2[1]))
+            ret = true;
+        else if ((triangle_indices_1[1] ==  triangle_indices_2[1])
+            && (triangle_indices_1[2] ==  triangle_indices_2[0]))
+            ret = true;
+    }
+
+    return ret;
+}
+
 
 using its_triangle = std::array<stl_vertex, 3>;
 
