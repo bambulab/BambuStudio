@@ -106,7 +106,7 @@ public:
         task_bed_type       = obj.task_bed_type;
         task_bed_leveling   = obj.task_bed_leveling;
         task_flow_cali      = obj.task_flow_cali;
-        task_vabration_cali = obj.task_vabration_cali;
+        task_vibration_cali = obj.task_vibration_cali;
     }
 
     std::string     task_id;            /* plate id */
@@ -126,7 +126,7 @@ public:
     std::string     task_bed_type;      /* bed_type of task, enum "auto" "pe", "pc", "pei" */
     bool            task_bed_leveling;  /* bed leveling of task */
     bool            task_flow_cali;     /* flow calibration of task */
-    bool            task_vabration_cali;/* vabration calibration of task */
+    bool            task_vibration_cali; /* vibration calibration of task */
     bool            task_record_timelapse; /* record timelapse of task */
 
     // task of plate info

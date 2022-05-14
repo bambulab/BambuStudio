@@ -202,7 +202,7 @@ void PrintJob::process()
     //subTask->task_bed_type = this->task_bed_type;
     subTask->task_bed_leveling = this->task_bed_leveling;
     subTask->task_flow_cali = this->task_flow_cali;
-    subTask->task_vabration_cali = this->task_vabration_cali;
+    subTask->task_vibration_cali = this->task_vibration_cali;
     subTask->task_record_timelapse = this->task_record_timelapse;
 
     subTask->task_gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (curr_plate_idx)).str();

@@ -1651,7 +1651,7 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         j["bedType"] = task->task_bed_type;
         j["bedLeveling"] = task->task_bed_leveling;
         j["flowCali"] = task->task_flow_cali;
-        j["vabrationCali"] = task->task_vabration_cali;
+        j["vibrationCali"] = task->task_vibration_cali;
         return j.dump();
     }
 

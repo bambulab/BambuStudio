@@ -1817,7 +1817,7 @@ int MachineObject::send_wan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
     j["print"]["bed_leveling"]      = task->task_bed_leveling;
     j["print"]["bed_type"]          = task->task_bed_type;
     j["print"]["flow_cali"]         = task->task_flow_cali;
-    j["print"]["vibration_cali"]    = task->task_vabration_cali;
+    j["print"]["vibration_cali"]    = task->task_vibration_cali;
 
     std::string json_str = j.dump();
     json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());

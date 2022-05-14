@@ -75,7 +75,7 @@ namespace Slic3r {
             j["info"]["bed_type"]       = task_bed_type;
             j["info"]["bed_leveling"]   = task_bed_leveling;
             j["info"]["flow_cali"]      = task_flow_cali;
-            j["info"]["vibration_cali"] = task_vabration_cali;
+            j["info"]["vibration_cali"] = task_vibration_cali;
             j["info"]["record_timelapse"] = task_record_timelapse;
             return j.dump();
         }
