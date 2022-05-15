@@ -7989,7 +7989,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
         }
     }
     if (!has_design_info) {
-        // add Designed Info 
+        // add Designed Info
         if (p->model.design_info == nullptr && p->acc_) {
             // set designInfo before export and reset after export
             if (p->acc_->is_user_login()) {
@@ -8671,8 +8671,9 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     if (bed_shape_changed)
         set_bed_shape();
 
+    GLCanvas3D* view3d_canvas = get_view3D_canvas3D();
     auto seq_print  = config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-    if ( seq_print ) {
+    if ( seq_print && view3d_canvas && view3d_canvas->is_rendering_enabled() ) {
         NotificationManager *notify_manager = get_notification_manager();
         if (seq_print->value == PrintSequence::ByObject) {
             std::string info_text = L("Print By Object: \nSuggest to use auto-arrange to avoid collisions when printing.");
