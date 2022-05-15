@@ -2715,9 +2715,13 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                                 const int new_pos = keyCode == WXK_UP ? m_layers_slider->GetHigherValue() + 1 : m_layers_slider->GetHigherValue() - 1;
                                 m_layers_slider->SetHigherValue(new_pos);
                                 if (m_layers_slider->is_one_layer()) m_layers_slider->SetLowerValue(m_layers_slider->GetHigherValue());
+                                // BBS set as dirty, update in render_gcode()
+                                m_layers_slider->set_as_dirty();
                             } else if (keyCode == WXK_LEFT || keyCode == WXK_RIGHT) {
                                 const int new_pos = keyCode == WXK_RIGHT ? m_moves_slider->GetHigherValue() + 1 : m_moves_slider->GetHigherValue() - 1;
                                 m_moves_slider->SetHigherValue(new_pos);
+                                // BBS set as dirty, update in render_gcode()
+                                m_moves_slider->set_as_dirty();
                             }
                             m_dirty = true;
                         }
@@ -5567,6 +5571,7 @@ void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
 {
     m_gcode_viewer.render(canvas_width, canvas_height, SLIDER_RIGHT_MARGIN);
     IMSlider *layers_slider = m_gcode_viewer.get_layers_slider();
+    IMSlider *moves_slider  = m_gcode_viewer.get_moves_slider();
 
     if (layers_slider->is_need_post_tick_event()) {
         auto evt = new wxCommandEvent(EVT_CUSTOMEVT_TICKSCHANGED, m_canvas->GetId());
@@ -5581,6 +5586,12 @@ void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
             m_gcode_viewer.set_layers_z_range({static_cast<unsigned int>(layers_slider->GetLowerValue()), static_cast<unsigned int>(layers_slider->GetHigherValue())});
         }
         layers_slider->set_as_dirty(false);
+        post_event(SimpleEvent(EVT_GLCANVAS_UPDATE));
+    }
+
+    if (moves_slider->is_dirty()) {
+        moves_slider->set_as_dirty(false);
+        m_gcode_viewer.update_sequential_view_current((moves_slider->GetLowerValueD() - 1.0), static_cast<unsigned int>(moves_slider->GetHigherValueD() - 1.0));
         post_event(SimpleEvent(EVT_GLCANVAS_UPDATE));
     }
 }

@@ -1115,12 +1115,6 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
 
     //BBS render slider
     render_slider(canvas_width, canvas_height);
-
-    if (m_moves_slider->is_dirty()) {
-        update_sequential_view_current((m_moves_slider->GetLowerValueD() - 1.0),
-            static_cast<unsigned int>(m_moves_slider->GetHigherValueD() - 1.0));
-        m_moves_slider->set_as_dirty(false);
-    }
 }
 
 #define ENABLE_CALIBRATION_THUMBNAIL_OUTPUT 0
