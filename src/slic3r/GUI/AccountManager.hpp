@@ -39,6 +39,7 @@
 
 #define RET_POLLING_CANEL               -2
 #define RET_POLLING_TIMEOUT             -3
+#define RET_MD5_CHECK_FAILED            -4
 
 namespace pt = boost::property_tree;
 

@@ -123,6 +123,13 @@ void PrintJob::process()
 
     /* upload and poll */
     BOOST_LOG_TRIVIAL(trace) << "print_job: start to uploading...";
+    // check file size
+    if (!Http::check_file_size(project->project_path)) {
+        msg = _L("The size of the uploaded file cannot exceed 1 GB.");
+        update_status(curr_percent, msg);
+        return;
+    }
+
     res = c->upload_3mf_to_oss(profile, http_code, http_body,
         [this, curr_percent, cancel_str, &msg](Http::Progress progress, bool &cancel) {
             int percent = 0;
@@ -134,6 +141,11 @@ void PrintJob::process()
                 update_status(percent, cancel_str);
                 return;
             }
+            if (progress.upload_spd > 0.01f) {
+                double left_time = (progress.ultotal - progress.ulnow) / progress.upload_spd;
+                msg = wxString::Format(L("Uploading %d%%, remaining time %s"), percent, get_bbl_remain_time_dhms(left_time));
+                BOOST_LOG_TRIVIAL(trace) << "print_job: uploading " << percent << ", remaining time " << get_bbl_remain_time_dhms(left_time);
+            }
             percent = curr_percent + percent * 50 / 100;
             update_status(percent, msg);
         });
@@ -144,9 +156,15 @@ void PrintJob::process()
     }
 
     if (res < 0) {
-        wxString error_msg = wxString::Format(L("\nupload,err:code=%u,msg=%s"), http_code, http_body);
-        update_status(curr_percent, failed_to_upload_str + error_msg);
-        BOOST_LOG_TRIVIAL(trace) << "print_job: uploading is failed";
+        if (res == RET_MD5_CHECK_FAILED) {
+            wxString error_msg = _L(" Failed to upload the print job. Check Md5 failed, please try agian.");
+            update_status(curr_percent, error_msg);
+            BOOST_LOG_TRIVIAL(trace) << "print_job: uploading is failed, check md5 failed";
+        } else {
+            wxString error_msg = wxString::Format(L("\nupload,err:code=%u,msg=%s"), http_code, http_body);
+            update_status(curr_percent, failed_to_upload_str + error_msg);
+            BOOST_LOG_TRIVIAL(trace) << "print_job: uploading is failed";
+        }
         return;
     }
 
@@ -223,12 +241,10 @@ void PrintJob::process()
         msg = _L("Start printing...");
         update_status(curr_percent, msg);
     }
-
-    wxCommandEvent evt(m_print_job_completed_id);
-    evt.SetString(m_dev_id);
-    wxQueueEvent(m_plater, evt.Clone());
+    wxCommandEvent *evt = new wxCommandEvent(m_print_job_completed_id);
+    evt->SetString(m_dev_id);
+    wxQueueEvent(m_plater, evt);
     m_job_finished = true;
-    if (m_success_fun != nullptr) { m_success_fun(); }
 }
 
 void PrintJob::finalize() {

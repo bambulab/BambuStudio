@@ -193,7 +193,7 @@ struct Http::priv
 	enum {
 		DEFAULT_TIMEOUT_CONNECT = 10,
         DEFAULT_TIMEOUT_MAX = 0,
-		DEFAULT_SIZE_LIMIT = 500 * 1024 * 1024,
+		DEFAULT_SIZE_LIMIT = 1024 * 1024 * 1024,
 	};
 
 	::CURL *curl;
@@ -208,6 +208,7 @@ struct Http::priv
 	std::deque<fs::ifstream> form_files;
 	std::string postfields;
 	std::string error_buffer;    // Used for CURLOPT_ERRORBUFFER
+    std::string headers;
 	size_t limit;
 	bool cancel;
     std::unique_ptr<fs::ifstream> putFile;
@@ -217,6 +218,7 @@ struct Http::priv
 	Http::ErrorFn errorfn;
 	Http::ProgressFn progressfn;
 	Http::IPResolveFn ipresolvefn;
+	Http::HeaderCallbackFn headerfn;
 
 	priv(const std::string &url);
 	~priv();
@@ -226,6 +228,7 @@ struct Http::priv
 	static int xfercb(void *userp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow);
 	static int xfercb_legacy(void *userp, double dltotal, double dlnow, double ultotal, double ulnow);
 	static size_t form_file_read_cb(char *buffer, size_t size, size_t nitems, void *userp);
+    static size_t headers_cb(char *buffer, size_t size, size_t nitems, void *userp);
 
 	void set_timeout_connect(long timeout);
     void set_timeout_max(long timeout);
@@ -322,7 +325,11 @@ int Http::priv::xfercb(void *userp, curl_off_t dltotal, curl_off_t dlnow, curl_o
 	bool cb_cancel = false;
 
 	if (self->progressfn) {
-		Progress progress(dltotal, dlnow, ultotal, ulnow);
+		double speed;
+        curl_easy_getinfo(self->curl, CURLINFO_SPEED_UPLOAD, &speed);
+		if (speed > 0.01)
+			speed = speed;
+		Progress progress(dltotal, dlnow, ultotal, ulnow, speed);
 		self->progressfn(progress, cb_cancel);
 	}
 
@@ -347,6 +354,17 @@ size_t Http::priv::form_file_read_cb(char *buffer, size_t size, size_t nitems, v
 	}
 
 	return stream->gcount();
+}
+
+size_t Http::priv::headers_cb(char *buffer, size_t size, size_t nitems, void *userp)
+{
+	auto self = static_cast<priv*>(userp);
+
+	if (self->headerfn) {
+        self->headers.append(buffer, nitems * size);
+		self->headerfn(self->headers);
+	}
+	return nitems * size;
 }
 
 void Http::priv::set_timeout_connect(long timeout)
@@ -465,6 +483,9 @@ void Http::priv::http_perform()
 	::curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writecb);
 	::curl_easy_setopt(curl, CURLOPT_WRITEDATA, static_cast<void*>(this));
 	::curl_easy_setopt(curl, CURLOPT_READFUNCTION, form_file_read_cb);
+	//BBS set header functions
+	::curl_easy_setopt(curl, CURLOPT_HEADERDATA, static_cast<void *>(this));
+	::curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, headers_cb);
 
 	::curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 #if LIBCURL_VERSION_MAJOR >= 7 && LIBCURL_VERSION_MINOR >= 32
@@ -741,6 +762,12 @@ Http& Http::on_ip_resolve(IPResolveFn fn)
 	return *this;
 }
 
+Http &Http::on_header_callback(HeaderCallbackFn fn)
+{
+	if (p) { p->headerfn = std::move(fn); }
+	return *this;
+}
+
 Http::Ptr Http::perform()
 {
 	auto self = std::make_shared<Http>(std::move(*this));
@@ -825,6 +852,14 @@ bool Http::disable_log()
 	}
 	g_http_log_file = nullptr;
 	return true;
+}
+
+bool Http::check_file_size(boost::filesystem::path file)
+{
+    const std::size_t &         size = boost::filesystem::file_size(file);
+    if (size < Http::priv::DEFAULT_SIZE_LIMIT)
+        return true;
+    return false;
 }
 
 void Http::register_global_handler(ErrorFn g_err_fn)

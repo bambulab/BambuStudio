@@ -22,9 +22,14 @@ public:
 		size_t dlnow;     // Bytes downloaded so far
 		size_t ultotal;   // Total bytes to upload
 		size_t ulnow;     // Bytes uploaded so far
+        double upload_spd{0.0f};
 
 		Progress(size_t dltotal, size_t dlnow, size_t ultotal, size_t ulnow) :
 			dltotal(dltotal), dlnow(dlnow), ultotal(ultotal), ulnow(ulnow)
+		{}
+
+		Progress(size_t dltotal, size_t dlnow, size_t ultotal, size_t ulnow, double ulspd) :
+			dltotal(dltotal), dlnow(dlnow), ultotal(ultotal), ulnow(ulnow), upload_spd(ulspd)
 		{}
 	};
 
@@ -44,6 +49,8 @@ public:
 
 	typedef std::function<void(std::string/* address */)> IPResolveFn;
 
+	typedef std::function<void(std::string headers)> HeaderCallbackFn;
+
 	Http(Http &&other);
 
 	// Note: strings are expected to be UTF-8-encoded
@@ -61,6 +68,8 @@ public:
 	//BBS save log to a file
 	static bool enable_log(std::string filename);
 	static bool disable_log();
+
+	static bool check_file_size(boost::filesystem::path file);
 
 	//BBS set global header for each http request
 	static void set_extra_headers(std::map<std::string, std::string> headers);
@@ -146,6 +155,8 @@ public:
 	// Callback called after succesful HTTP request (after on_complete callback)
 	// Called if curl_easy_getinfo resolved just used IP address.
 	Http& on_ip_resolve(IPResolveFn fn);
+	// Callback called when response header is received
+	Http& on_header_callback(HeaderCallbackFn fn);
 
 	// Starts performing the request in a background thread
 	Ptr perform();

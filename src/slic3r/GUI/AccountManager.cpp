@@ -5,6 +5,7 @@
 #include "libslic3r/Thread.hpp"
 #include "libslic3r/Format/Secure.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include "libslic3r/Utils.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Plater.hpp"
@@ -25,6 +26,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+
 #include "slic3r/GUI/WebUserLoginDialog.hpp"
 
 using namespace nlohmann;
@@ -928,9 +930,9 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         boost::uintmax_t size = boost::filesystem::file_size(file);
         boost::uintmax_t size_m = size / 1024 / 1024;
         int timeout = size_m * 2;
-        BOOST_LOG_TRIVIAL(trace) << "calc_get_notification_timeout, file size = " << size << ", timeout = " << timeout;
         result = std::max(timeout, POLL_NOTIFICATION_TIMEOUT);
         result = std::min(result, POLL_NOTIFICATION_TIMEOUT_MAX);
+        BOOST_LOG_TRIVIAL(trace) << "calc_get_notification_timeout, file size = " << size << ", timeout = " << timeout;
         return result;
     }
 
@@ -1998,6 +2000,11 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
             return -1;
         }
 
+        std::string md5_str;
+        std::string full_filename = profile->project_->project_path.generic_string();
+        Slic3r::bbl_calc_md5(full_filename, md5_str);
+        BOOST_LOG_TRIVIAL(trace) << "print_job: upload_3mf md5 = " << md5_str;
+
         // reset values
         http_code = 0;
         http_body = "";
@@ -2012,13 +2019,26 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
                     }
                 )
                 .on_progress(proFn)
-                .on_error(
-                    [this, &result, &http_code, &http_body](std::string body, std::string error, unsigned status) {
-                        http_code = status;
-                        http_body = body;
-                        result = -1;
+            .on_header_callback([this, &result, &md5_str](std::string headers) {
+                if (headers.empty()) return;
+                int tag_pos = headers.find("ETag:");
+                if (tag_pos > 0) {
+                    size_t start_pos = headers.find("\"", tag_pos);
+                    std::string md5_in_header = headers.substr(start_pos + 1, 32);
+                    if (md5_in_header.compare(md5_str) != 0 && !md5_str.empty()) {
+                        result = RET_MD5_CHECK_FAILED;
                     }
-                );
+                    BOOST_LOG_TRIVIAL(trace) << "print_job: found Etag = " << md5_in_header;
+                }
+                
+            })
+            .on_error(
+                [this, &result, &http_code, &http_body](std::string body, std::string error, unsigned status) {
+                    http_code = status;
+                    http_body = body;
+                    result = -1;
+                }
+            );
         http_put.perform_sync();
         return result;
     }
