@@ -106,6 +106,8 @@ void GLGizmoAdvancedCut::update_plane_points()
     }
 
     Vec3d plane_normal = calc_plane_normal(plane_points_rot);
+    if (m_movement == 0 && m_height_delta != 0)
+        m_movement = plane_normal(2) * m_height_delta;// plane_normal.dot(Vec3d(0, 0, m_height_delta))
     for (int i = 0; i < plane_points_rot.size(); i++) {
         m_cut_plane_points[i] = plane_points_rot[i] + plane_center + plane_normal * m_movement;
     }
@@ -113,6 +115,7 @@ void GLGizmoAdvancedCut::update_plane_points()
     //m_current_base_rotation += m_rotation;
     m_rotation.setZero();
     m_movement = 0.0;
+    m_height_delta = 0;
 }
 
 std::array<Vec3d, 4> GLGizmoAdvancedCut::get_plane_points() const
@@ -149,6 +152,8 @@ void GLGizmoAdvancedCut::reset_cut_plane()
     m_cut_plane_points[2] = { max_x, max_y, 0 };
     m_cut_plane_points[3] = { min_x, max_y, 0 };
     m_movement = 0.0;
+    m_height = box.size()[2] / 2.0;
+    m_height_delta = 0;
     m_rotation.setZero();
     //m_current_base_rotation.setZero();
     m_rotate_cmds.clear();
@@ -207,6 +212,7 @@ void GLGizmoAdvancedCut::on_start_dragging()
     const Selection& selection = m_parent.get_selection();
     const BoundingBoxf3& box = selection.get_bounding_box();
     m_start_movement = m_movement;
+    m_start_height = m_height;
     m_drag_pos = m_move_grabber.center;
 }
 
@@ -225,8 +231,12 @@ void GLGizmoAdvancedCut::on_update(const UpdateData& data)
     m_rotation = rotation;
     //m_move_grabber.angles = m_current_base_rotation + m_rotation;
 
-    if (m_hover_id == get_group_id())
-        set_movement(m_start_movement + calc_projection(data.mouse_ray));
+    if (m_hover_id == get_group_id()) {
+        double move = calc_projection(data.mouse_ray);
+        set_movement(m_start_movement + move);
+        Vec3d plane_normal = get_plane_normal();
+        m_height = m_start_height + plane_normal(2) * move;
+    }
 }
 
 void GLGizmoAdvancedCut::on_render()
@@ -466,6 +476,27 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
         }
     } else {
         m_buffered_movement = movement;
+    }
+    
+    // height input box
+    double height = m_height;
+    ImGui::PushItemWidth(caption_size);
+    ImGui::AlignTextToFramePadding();
+    m_imgui->text(_L("Height:"));
+    ImGui::SameLine(caption_size + 1 * space_size);
+    ImGui::PushItemWidth(3 * unit_size + 2 * space_size);
+    ImGui::BBLInputDouble("##cut_height", &height, 0.0f, 0.0f, "%.2f");
+    if (current_active_id != m_last_active_id) {
+        if (std::abs(m_buffered_height - m_height) > EPSILON) {
+            m_height_delta = m_buffered_height - m_height;
+            m_height = m_buffered_height;
+            //m_buffered_height = 0.0;
+            update_plane_points();
+            m_parent.post_event(SimpleEvent(wxEVT_PAINT));
+        }
+    }
+    else {
+        m_buffered_height = height;
     }
     ImGui::PopStyleVar(1);
     ImGui::Separator();

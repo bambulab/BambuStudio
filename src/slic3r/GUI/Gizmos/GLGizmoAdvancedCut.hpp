@@ -25,7 +25,10 @@ private:
     static const std::array<float, 4> GrabberHoverColor;
 
     mutable double m_movement;
+    mutable double m_height;  // height of cut plane to heatbed
+    mutable double m_height_delta;  // height of cut plane to heatbed
     double m_start_movement;
+    double m_start_height;
 
     Vec3d m_rotation;
     //Vec3d m_current_base_rotation;
@@ -33,6 +36,7 @@ private:
 
     Vec3d m_buffered_rotation;
     double m_buffered_movement;
+    double m_buffered_height;
 
     Vec3d m_drag_pos;
 
