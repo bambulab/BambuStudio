@@ -118,6 +118,59 @@ int ImGuiWrapper::TOOLBAR_WINDOW_FLAGS = ImGuiWindowFlags_AlwaysAutoResize
                                  | ImGuiWindowFlags_NoTitleBar;
 
 
+bool get_data_from_svg(const std::string &filename, unsigned int max_size_px, ThumbnailData &thumbnail_data)
+{
+    bool compression_enabled = false;
+
+    NSVGimage *image = nsvgParseFromFile(filename.c_str(), "px", 96.0f);
+    if (image == nullptr) { return false; }
+
+    float scale = (float) max_size_px / std::max(image->width, image->height);
+
+    thumbnail_data.width  = (int) (scale * image->width);
+    thumbnail_data.height = (int) (scale * image->height);
+
+    int n_pixels = thumbnail_data.width * thumbnail_data.height;
+
+    if (n_pixels <= 0) {
+        nsvgDelete(image);
+        return false;
+    }
+
+    NSVGrasterizer *rast = nsvgCreateRasterizer();
+    if (rast == nullptr) {
+        nsvgDelete(image);
+        return false;
+    }
+
+    // creates the temporary buffer only once, with max size, and reuse it for all the levels, if generating mipmaps
+    std::vector<unsigned char> data(n_pixels * 4, 0);
+    thumbnail_data.pixels = data;
+    nsvgRasterize(rast, image, 0, 0, scale, thumbnail_data.pixels.data(), thumbnail_data.width, thumbnail_data.height, thumbnail_data.width * 4);
+
+    // we manually generate mipmaps because glGenerateMipmap() function is not reliable on all graphics cards
+    int   lod_w = thumbnail_data.width;
+    int   lod_h = thumbnail_data.height;
+    GLint level = 0;
+    while (lod_w > 1 || lod_h > 1) {
+        ++level;
+
+        lod_w = std::max(lod_w / 2, 1);
+        lod_h = std::max(lod_h / 2, 1);
+        scale /= 2.0f;
+
+        data.resize(lod_w * lod_h * 4);
+
+        nsvgRasterize(rast, image, 0, 0, scale, data.data(), lod_w, lod_h, lod_w * 4);
+    }
+
+    nsvgDeleteRasterizer(rast);
+    nsvgDelete(image);
+
+    return true;
+}
+
+
 bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const ImS32 v_max, ImS32* out_value, ImRect* out_handle, ImGuiSliderFlags flags/* = 0*/, const int fixed_value/* = -1*/, const ImVec4& fixed_rect/* = ImRect()*/)
 {
     ImGuiContext& context = *GImGui;

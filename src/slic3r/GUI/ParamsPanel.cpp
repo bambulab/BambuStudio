@@ -17,12 +17,170 @@
 #include "Widgets/SwitchButton.hpp"
 #include "Widgets/Button.hpp"
 
+
 namespace Slic3r {
 namespace GUI {
+
+    
+TipsDialog::TipsDialog(wxWindow *parent, const wxString &title)
+    : DPIDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+{
+    SetBackgroundColour(*wxWHITE);
+    std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+    wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
+
+    m_top_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_top_line->SetBackgroundColour(wxColour(166, 169, 170));
+
+    m_sizer_main->Add(m_top_line, 0, wxEXPAND, 0);
+
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(20));
+
+    m_msg = new wxStaticText(this, wxID_ANY, _L("Switch to per-object setting mode to edit modifier settings."), wxDefaultPosition, wxDefaultSize, 0);
+    m_msg->Wrap(-1);
+    m_msg->SetFont(::Label::Body_13);
+    m_msg->SetForegroundColour(wxColour(107, 107, 107));
+    m_msg->SetBackgroundColour(wxColour(255, 255, 255));
+
+    m_sizer_main->Add(m_msg, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(40));
+
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(5));
+
+    wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *m_sizer_left   = new wxBoxSizer(wxHORIZONTAL);
+
+    auto dont_show_again = create_item_checkbox(_L("Don't show again"), this, _L("Don't show again"), "do_not_show_modifer_tips");
+    m_sizer_left->Add(dont_show_again, 1, wxALL, FromDIP(5));
+
+    m_sizer_bottom->Add(m_sizer_left, 1, wxEXPAND, FromDIP(5));
+
+    wxBoxSizer *m_sizer_right = new wxBoxSizer(wxHORIZONTAL);
+
+    m_confirm = new Button(this, _L("OK"));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+
+    m_confirm->SetBackgroundColor(btn_bg_green);
+    m_confirm->SetBorderColor(wxColour(0, 174, 66));
+    m_confirm->SetTextColor(wxColour(255, 255, 255));
+    m_confirm->SetSize(TIPS_DIALOG_BUTTON_SIZE);
+    m_confirm->SetMinSize(TIPS_DIALOG_BUTTON_SIZE);
+    m_confirm->SetCornerRadius(12);
+    m_confirm->Bind(wxEVT_LEFT_DOWN, &TipsDialog::on_ok, this);
+    m_sizer_right->Add(m_confirm, 0, wxALL, FromDIP(5));
+
+    m_sizer_bottom->Add(m_sizer_right, 0, wxEXPAND, FromDIP(5));
+    m_sizer_main->Add(m_sizer_bottom, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(40));
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(20));
+
+    SetSizer(m_sizer_main);
+    Layout();
+    Fit();
+    Centre(wxBOTH);
+}
+
+wxBoxSizer *TipsDialog::create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param)
+{
+    wxBoxSizer *m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
+
+    m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 5);
+
+    auto checkbox = new ::CheckBox(parent);
+    m_sizer_checkbox->Add(checkbox, 0, wxALIGN_CENTER, 0);
+    m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 8);
+
+    auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxSize(-1, -1), 0);
+    checkbox_title->SetForegroundColour(wxColour(144, 144, 144));
+    checkbox_title->SetFont(::Label::Body_13);
+    checkbox_title->Wrap(-1);
+    m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, 3);
+
+    m_show_again = wxGetApp().app_config->get(param) == "true" ? true : false;
+    checkbox->SetValue(m_show_again);
+
+    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent &e) {
+        m_show_again = m_show_again ? false : true;
+        e.Skip();
+    });
+
+    return m_sizer_checkbox;
+}
+
+void TipsDialog::on_dpi_changed(const wxRect &suggested_rect)
+{
+    if (m_confirm) m_confirm->SetMinSize(TIPS_DIALOG_BUTTON_SIZE);
+    if (m_cancel) m_cancel->SetMinSize(TIPS_DIALOG_BUTTON_SIZE);
+    Fit();
+    Refresh();
+}
+
+void TipsDialog::on_ok(wxMouseEvent &event)
+{
+    if (m_show_again) {
+        wxGetApp().app_config->set_bool("do_not_show_modifer_tips", m_show_again);
+    }
+    EndModal(wxID_OK);
+}
+
+void ParamsPanel::Highlighter::set_timer_owner(wxEvtHandler *owner, int timerid /* = wxID_ANY*/)
+{
+    m_timer.SetOwner(owner, timerid);
+}
+
+void ParamsPanel::Highlighter::init(std::pair<wxStaticBitmap *, bool *> params, wxWindow *parent)
+    {
+    if (m_timer.IsRunning()) invalidate();
+    if (!params.first || !params.second) return;
+
+    m_timer.Start(300, false);
+
+    m_bitmap         = params.first;
+    m_show_blink_ptr = params.second;
+    m_parent         = parent;
+
+    *m_show_blink_ptr = true;
+    }
+
+void ParamsPanel::Highlighter::invalidate()
+{
+    m_timer.Stop();
+
+    if (m_bitmap && m_show_blink_ptr) {
+        *m_show_blink_ptr = false;
+        m_bitmap->Show(*m_show_blink_ptr);
+        if (m_parent) {
+            m_parent->Layout();
+            m_parent->Refresh();
+        }
+        m_show_blink_ptr = nullptr;
+        m_bitmap         = nullptr;
+        m_parent         = nullptr;
+    }
+
+    m_blink_counter = 0;
+}
+
+void ParamsPanel::Highlighter::blink()
+{
+    if (m_bitmap && m_show_blink_ptr) {
+        *m_show_blink_ptr = !*m_show_blink_ptr;
+        m_bitmap->Show(*m_show_blink_ptr);
+        if (m_parent) {
+            m_parent->Layout();
+            m_parent->Refresh();
+        }
+    } else
+        return;
+
+    if ((++m_blink_counter) == 11) invalidate();
+}
 
 ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name )
     : wxPanel( parent, id, pos, size, style, name )
 {
+    init_bitmaps();
     // BBS: new layout
     SetBackgroundColour(*wxWHITE);
 #if __WXOSX__
@@ -57,6 +215,9 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         m_mode_region = new SwitchButton(m_top_panel);
         m_mode_region->SetLabels(_L("Global"), _L("Objects"));
         //m_mode_region->GetSize(&width, &height);
+        m_tips_arrow = new wxStaticBitmap(m_top_panel, wxID_ANY, m_tips_arrow_icon);
+        m_tips_arrow->Hide();
+
         m_title_view = new Label(Label::Body_14, _L("Advance"), m_top_panel);
         m_title_view->Wrap( -1 );
         m_mode_view = new SwitchButton(m_top_panel, wxID_ABOUT);
@@ -73,6 +234,12 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         m_setting_btn = new ScalableButton(m_top_panel, wxID_ANY, "table", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
         m_setting_btn->SetToolTip(_L("View all object's settings"));
         m_setting_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->PopupObjectTable(-1, -1, {0, 0}); });
+
+        m_highlighter.set_timer_owner(this, 0);    
+        this->Bind(wxEVT_TIMER, [this](wxTimerEvent &)
+        {
+            m_highlighter.blink();
+        });
     }
 
     m_staticline_filament = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
@@ -131,6 +298,11 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
     //m_import_from_file->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().mainframe->load_config_file(); });
 }
 
+void ParamsPanel::init_bitmaps()
+{
+    m_tips_arrow_icon = create_scaled_bitmap("tips_arrow", nullptr, 24);
+}
+
 void ParamsPanel::create_layout()
 {
 #ifdef __WINDOWS__
@@ -140,28 +312,30 @@ void ParamsPanel::create_layout()
 
     m_left_sizer = new wxBoxSizer( wxVERTICAL );
     // BBS: new layout
-    m_left_sizer->SetMinSize( wxSize( 40 * em_unit(this), -1 ) );
+    m_left_sizer->SetMinSize( wxSize(40 * em_unit(this), -1 ) );
 
     if (m_top_panel) {
         m_mode_sizer = new wxBoxSizer( wxHORIZONTAL );
-        m_mode_sizer->AddSpacer(22 * em_unit(this) / 10);
+        m_mode_sizer->AddSpacer(FromDIP(22));
         m_mode_sizer->Add( m_title_label, 0, wxALIGN_CENTER );
-        m_mode_sizer->AddSpacer(9);
+        m_mode_sizer->AddSpacer(FromDIP(9));
         m_mode_sizer->Add( m_mode_region, 0, wxALIGN_CENTER );
+        m_mode_sizer->AddSpacer(FromDIP(9));
+        m_mode_sizer->Add( m_tips_arrow, 0, wxALIGN_CENTER);
         m_mode_sizer->AddStretchSpacer(1);
         m_mode_sizer->Add( m_title_view, 0, wxALIGN_CENTER );
-        m_mode_sizer->AddSpacer(9);
+        m_mode_sizer->AddSpacer(FromDIP(9));
         m_mode_sizer->Add( m_mode_view, 0, wxALIGN_CENTER );
-        m_mode_sizer->AddSpacer(16);
+        m_mode_sizer->AddSpacer(FromDIP(16));
         m_mode_sizer->Add( m_setting_btn, 0, wxALIGN_CENTER );
-        m_mode_sizer->AddSpacer(16);
+        m_mode_sizer->AddSpacer(FromDIP(16));
 #if !BBL_RELEASE_TO_PUBLIC
         m_mode_sizer->Add( m_compare_btn, 0, wxALIGN_CENTER );
-        m_mode_sizer->AddSpacer(16);
+        m_mode_sizer->AddSpacer(FromDIP(16));
 #endif
         //m_mode_sizer->Add( m_search_btn, 0, wxALIGN_CENTER );
         //m_mode_sizer->AddSpacer(16);
-        m_mode_sizer->SetMinSize(-1, 4 * em_unit(this));
+        m_mode_sizer->SetMinSize(-1, FromDIP(40));
         m_top_panel->SetSizer(m_mode_sizer);
         //m_left_sizer->Add( m_top_panel, 0, wxEXPAND );
     }
@@ -429,10 +603,14 @@ void ParamsPanel::switch_to_global()
     set_active_tab(nullptr);
 }
 
-void ParamsPanel::switch_to_object()
+void ParamsPanel::switch_to_object(bool with_tips)
 {
     m_mode_region->SetValue(true);
     set_active_tab(nullptr);
+    if (with_tips) {
+        m_highlighter.init(std::pair(m_tips_arrow, &m_tips_arror_blink), m_top_panel);
+        m_highlighter.blink();
+    }
 }
 
 void ParamsPanel::free_sizers()

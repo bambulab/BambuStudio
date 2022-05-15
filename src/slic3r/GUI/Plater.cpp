@@ -588,10 +588,10 @@ Sidebar::Sidebar(Plater *parent)
     }
 
     bed_type_list->Select(0);
-    bed_type_sizer->Add(bed_type_title, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(10));
-    bed_type_sizer->Add(bed_type_list, 1, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(10));
+    bed_type_sizer->Add(bed_type_title, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    bed_type_sizer->Add(bed_type_list, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND, FromDIP(10));
     scrolled_sizer->Add(bed_type_sizer, 0, wxBOTTOM | wxEXPAND, FromDIP(10));
-    scrolled_sizer->AddSpacer(15);
+    scrolled_sizer->AddSpacer(FromDIP(15));
 
     //p->m_staticline2 = new wxStaticLine( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
     //p->m_staticline2->SetBackgroundColour( static_line_col );
@@ -685,9 +685,9 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
         });
     combobox->edit_btn = edit_btn;
 
-    combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 3 * em / 10);
+    combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
 
-    combo_and_btn_sizer->Add(8 * em / 10, 0, 0, 0, 0);
+    combo_and_btn_sizer->Add(FromDIP(8), 0, 0, 0, 0);
 
     // BBS:  filament double columns
     auto side = filament_idx % 2;

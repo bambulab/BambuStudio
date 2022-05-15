@@ -1963,11 +1963,12 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     notify_instance_updated(obj_idx);
 
     //BBS Switch to Objects List after add a modifier
-    wxGetApp().params_panel()->switch_to_object();
+    wxGetApp().params_panel()->switch_to_object(true);
 
     //Show Dialog
     if (wxGetApp().app_config->get("do_not_show_modifer_tips").empty()) {
-        ;//TODO show a dialog, and set app_config if check do not show again
+        TipsDialog dlg(wxGetApp().mainframe, _L("Add Modifier"));
+        dlg.ShowModal();
     }
 }
 

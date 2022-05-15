@@ -1,32 +1,5 @@
-<svg width="46" height="45" viewBox="0 0 46 45" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g filter="url(#filter0_d_126_161)">
-<rect x="5" y="4" width="26" height="24" fill="#849BC8"/>
-<rect x="4.5" y="3.5" width="27" height="25" stroke="black"/>
-</g>
-<g filter="url(#filter1_d_126_161)">
-<rect x="15" y="12" width="26" height="24" fill="#849BC8"/>
-<rect x="14.5" y="11.5" width="27" height="25" stroke="black"/>
-</g>
-<defs>
-<filter id="filter0_d_126_161" x="0" y="3" width="36" height="34" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-<feFlood flood-opacity="0" result="BackgroundImageFix"/>
-<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
-<feOffset dy="4"/>
-<feGaussianBlur stdDeviation="2"/>
-<feComposite in2="hardAlpha" operator="out"/>
-<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
-<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_126_161"/>
-<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_126_161" result="shape"/>
-</filter>
-<filter id="filter1_d_126_161" x="10" y="11" width="36" height="34" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-<feFlood flood-opacity="0" result="BackgroundImageFix"/>
-<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
-<feOffset dy="4"/>
-<feGaussianBlur stdDeviation="2"/>
-<feComposite in2="hardAlpha" operator="out"/>
-<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
-<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_126_161"/>
-<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_126_161" result="shape"/>
-</filter>
-</defs>
+<svg width="43" height="42" viewBox="0 0 43 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="13.9966" y="13.6648" width="13.7939" height="14.4547" fill="#B9C7CE"/>
+<rect x="4.00488" y="4.46069" width="24.1147" height="24.1147" stroke="#262E30"/>
+<rect x="14.4966" y="13.4246" width="24.1147" height="24.1147" stroke="#262E30"/>
 </svg>

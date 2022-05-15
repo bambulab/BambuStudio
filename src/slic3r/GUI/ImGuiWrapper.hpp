@@ -9,6 +9,7 @@
 #include <wx/string.h>
 
 #include "libslic3r/Point.hpp"
+#include "libslic3r/GCode/ThumbnailData.hpp"
 
 namespace Slic3r {namespace Search {
 struct OptionViewParameters;
@@ -23,9 +24,13 @@ struct ImRect;
 namespace Slic3r {
 namespace GUI {
 
+
+bool get_data_from_svg(const std::string &filename, unsigned int max_size_px, ThumbnailData &thumbnail_data);
+
 bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const ImS32 v_max, ImS32* out_value, ImRect* out_handle, ImGuiSliderFlags flags = 0, const int fixed_value = -1, const ImVec4& fixed_rect = ImVec4());
 bool button_with_pos(const char* label, const ImVec2& size, const ImVec2& pos, ImGuiButtonFlags flags = 0);
 bool menu_item_with_icon(const char* label, const char* shortcut, ImU32 icon_color, bool selected, bool enabled = true);
+
 
 class ImGuiWrapper
 {

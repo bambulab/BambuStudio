@@ -26,15 +26,36 @@
 #include <wx/panel.h>
 
 #include "wxExtensions.hpp"
+#include "GUI_Utils.hpp"
+#include "Widgets/Button.hpp"
 
 class SwitchButton;
 class StaticBox;
+
+#define TIPS_DIALOG_BUTTON_SIZE wxSize(FromDIP(60), FromDIP(24))
 
 namespace Slic3r {
 namespace GUI {
 
 ///////////////////////////////////////////////////////////////////////////
 
+class TipsDialog : public DPIDialog
+{
+private:
+    bool m_show_again{false};
+
+public:
+    TipsDialog(wxWindow *parent, const wxString &title);
+    Button *m_confirm{nullptr};
+    Button *m_cancel{nullptr};
+    wxPanel *m_top_line{nullptr};
+    wxStaticText *m_msg;
+
+protected:
+    void on_dpi_changed(const wxRect &suggested_rect) override;
+    void on_ok(wxMouseEvent &event);
+    wxBoxSizer *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param);
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class ParamsPanel
@@ -59,6 +80,8 @@ class ParamsPanel : public wxPanel
         StaticBox* m_top_panel{ nullptr };
         wxStaticText* m_title_label { nullptr };
         SwitchButton* m_mode_region { nullptr };
+        wxStaticBitmap* m_tips_arrow{ nullptr };
+        bool m_tips_arror_blink{false};
         wxStaticText* m_title_view { nullptr };
         SwitchButton* m_mode_view { nullptr };
         //wxBitmapButton* m_search_button { nullptr };
@@ -91,8 +114,24 @@ class ParamsPanel : public wxPanel
 
         wxBitmap m_toggle_on_icon;
         wxBitmap m_toggle_off_icon;
+        wxBitmap m_tips_arrow_icon;
 
         wxPanel* m_current_tab { nullptr };
+
+        struct Highlighter
+        {
+            void set_timer_owner(wxEvtHandler *owner, int timerid = wxID_ANY);
+            void init(std::pair<wxStaticBitmap *, bool *>, wxWindow *parent = nullptr);
+            void blink();
+            void invalidate();
+
+        private:
+            wxStaticBitmap *m_bitmap { nullptr };
+            bool *         m_show_blink_ptr{nullptr};
+            int            m_blink_counter{0};
+            wxTimer        m_timer;
+            wxWindow *      m_parent { nullptr };
+        } m_highlighter;
 
         void OnToggled(wxCommandEvent& event);
 
@@ -100,6 +139,7 @@ class ParamsPanel : public wxPanel
 		ParamsPanel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1800,1080 ), long style = wxTAB_TRAVERSAL, const wxString& type = wxEmptyString );
 		~ParamsPanel();
 
+        void init_bitmaps();
         void rebuild_panels();
         void create_layout();
         //clear the right page
@@ -110,7 +150,7 @@ class ParamsPanel : public wxPanel
         void update_mode();
         void msw_rescale();
         void switch_to_global();
-        void switch_to_object();
+        void switch_to_object(bool with_tips = false);
 
         StaticBox* get_top_panel() { return m_top_panel; }
 
