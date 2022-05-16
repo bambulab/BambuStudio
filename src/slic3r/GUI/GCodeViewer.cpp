@@ -4682,37 +4682,37 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 }
             }
 
-            offsets = calculate_offsets(labels, times, { _u8L("Event"), _u8L("Remaining time"), _u8L("Duration"), longest_used_filament_string }, 2.0f * icon_size);
+            //offsets = calculate_offsets(labels, times, { _u8L("Event"), _u8L("Remaining time"), _u8L("Duration"), longest_used_filament_string }, 2.0f * icon_size);
 
-            ImGui::Spacing();
-            append_headers({ _u8L("Event"), _u8L("Remaining time"), _u8L("Duration"), _u8L("Used filament") }, offsets);
-            const bool need_scrollable = static_cast<float>(partial_times.size()) * (icon_size + ImGui::GetStyle().ItemSpacing.y) > child_height;
-            if (need_scrollable)
-                // add scrollable region
-                ImGui::BeginChild("events", { -1.0f, child_height }, false);
+            //ImGui::Spacing();
+            //append_headers({ _u8L("Event"), _u8L("Remaining time"), _u8L("Duration"), _u8L("Used filament") }, offsets);
+            //const bool need_scrollable = static_cast<float>(partial_times.size()) * (icon_size + ImGui::GetStyle().ItemSpacing.y) > child_height;
+            //if (need_scrollable)
+            //    // add scrollable region
+            //    ImGui::BeginChild("events", { -1.0f, child_height }, false);
 
-            for (const PartialTime& item : partial_times) {
-                switch (item.type)
-                {
-                case PartialTime::EType::Print: {
-                    append_print(item.color1, offsets, item.times, item.used_filament);
-                    break;
-                }
-                case PartialTime::EType::Pause: {
-                    imgui.text(_u8L("Pause"));
-                    ImGui::SameLine(offsets[0]);
-                    imgui.text(short_time(get_time_dhms(item.times.second - item.times.first)));
-                    break;
-                }
-                case PartialTime::EType::ColorChange: {
-                    append_color_change(item.color1, item.color2, offsets, item.times);
-                    break;
-                }
-                }
-            }
+            //for (const PartialTime& item : partial_times) {
+            //    switch (item.type)
+            //    {
+            //    case PartialTime::EType::Print: {
+            //        append_print(item.color1, offsets, item.times, item.used_filament);
+            //        break;
+            //    }
+            //    case PartialTime::EType::Pause: {
+            //        imgui.text(_u8L("Pause"));
+            //        ImGui::SameLine(offsets[0]);
+            //        imgui.text(short_time(get_time_dhms(item.times.second - item.times.first)));
+            //        break;
+            //    }
+            //    case PartialTime::EType::ColorChange: {
+            //        append_color_change(item.color1, item.color2, offsets, item.times);
+            //        break;
+            //    }
+            //    }
+            //}
 
-            if (need_scrollable)
-                ImGui::EndChild();
+            //if (need_scrollable)
+            //    ImGui::EndChild();
         }
     }
 
