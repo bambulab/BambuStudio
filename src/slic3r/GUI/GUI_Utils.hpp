@@ -447,6 +447,15 @@ public:
     ~TaskTimer();
 };
 
+
+/* Image Generator */
+#define _3MF_COVER_SIZE                  wxSize(240, 240)
+#define PRINTER_THUMBNAIL_SMALL_SIZE     wxSize(252, 188)
+#define PRINTER_THUMBNAIL_MIDDLE_SIZE    wxSize(680, 680)
+
+bool load_image(const std::string& filename, wxImage &image);
+bool generate_image(const std::string &filename, wxImage &image, wxSize img_size);
+
 }}
 
 #endif

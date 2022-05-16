@@ -328,6 +328,45 @@ TaskTimer::~TaskTimer()
 #endif
 }
 
+/* Image Generator */
+bool load_image(const std::string &filename, wxImage &image)
+{
+    bool    result = true;
+    wxImage img;
+    if (boost::algorithm::iends_with(filename, ".png")) {
+        result = image.LoadFile(wxString::FromUTF8(filename.c_str()), wxBITMAP_TYPE_PNG);
+    } else if (boost::algorithm::iends_with(filename, ".bmp")) {
+        result = image.LoadFile(wxString::FromUTF8(filename.c_str()), wxBITMAP_TYPE_BMP);
+    } else if (boost::algorithm::iends_with(filename, ".jpg")) {
+        result = image.LoadFile(wxString::FromUTF8(filename.c_str()), wxBITMAP_TYPE_JPEG);
+    } else {
+        return false;
+    }
+    return result;
+}
+
+bool generate_image(const std::string &filename, wxImage &image, wxSize img_size)
+{
+    bool    result = true;
+    wxImage img;
+    result = load_image(filename, img);
+    if (!result) return result;
+
+    image = wxImage(img_size);
+    image.SetType(wxBITMAP_TYPE_PNG);
+    image.InitAlpha();
+    image.Clear(0);
+    unsigned char *alpha = image.GetAlpha();
+    if (alpha) { ::memset(alpha, wxIMAGE_ALPHA_TRANSPARENT, image.GetWidth() * image.GetHeight()); }
+    float h_factor   = img.GetHeight() / (float) image.GetHeight();
+    float w_factor   = img.GetWidth() / (float) image.GetWidth();
+    float factor     = std::max(h_factor, w_factor);
+    int   tar_height = (int) ((float) img.GetHeight() / factor);
+    int   tar_width  = (int) ((float) img.GetWidth() / factor);
+    img              = img.Rescale(tar_width, tar_height);
+    image.Paste(img, (image.GetWidth() - tar_width) / 2, (image.GetHeight() - tar_height) / 2);
+    return true;
+}
 
 }
 }
