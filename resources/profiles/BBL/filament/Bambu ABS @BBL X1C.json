@@ -5,6 +5,9 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "Bambu ABS @base",
+    "filament_flow_ratio": [
+        "0.91"
+    ],
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.4 nozzle",
       "Bambu Lab X1 0.4 nozzle"
