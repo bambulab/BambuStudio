@@ -1463,9 +1463,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     {
         const ConfigOptionInts& bed_temp_opt = m_config.bed_temperature_initial_layer;
         int curr_bed_type = 0;
-        if (m_config.bbl_bed_temperature_gcode)
-            curr_bed_type = m_config.bed_type.get_at(initial_extruder_id);
-        else
+        //if (m_config.bbl_bed_temperature_gcode)
+        //    curr_bed_type = m_config.bed_type.get_at(initial_extruder_id);
+        //else
             curr_bed_type = m_config.curr_bed_type.getInt();
         int curr_bed_temp = bed_temp_opt.get_at(initial_extruder_id * BedType::btCount + curr_bed_type);
 

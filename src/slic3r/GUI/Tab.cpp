@@ -2381,7 +2381,14 @@ void TabFilament::build()
 
         line = { L("Bed"), L("Bed temperature of different bed type when printing") };
         // BBS
-        line.append_option(optgroup->get_option("bed_type"));
+        ConfigOptionDef def = *print_config_def.get("curr_bed_type");
+        def.label = "";
+        def.tooltip = "";
+        def.type = coEnum;
+        def.mode = comSimple;
+        def.set_default_value(new ConfigOptionEnum<BedType>(btPC));
+        Option bed_type_option(def, "bed_type");
+        line.append_option(bed_type_option);
         line.append_option(optgroup->get_option("bed_temperature_initial_layer"));
         line.append_option(optgroup->get_option("bed_temperature"));
         optgroup->append_line(line);
@@ -2404,7 +2411,8 @@ void TabFilament::build()
                 DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
                 ConfigOptionInts* bed_temps_opt = dynamic_cast<ConfigOptionInts*>(filament_config.option(opt_key));
                 ConfigOptionInt temp_opt(boost::any_cast<int>(value));
-                int bed_type = filament_config.opt_enum("bed_type", 0);
+                //int bed_type = filament_config.opt_enum("bed_type", 0);
+                int bed_type = boost::any_cast<int>(this->get_field("bed_type")->get_value());
                 bed_temps_opt->set_at(&temp_opt, bed_type, 0);
                 // update dirty after value change
                 update_dirty();
@@ -3438,6 +3446,7 @@ void Tab::load_current_preset()
         else
             wxGetApp().obj_list()->update_objects_list_filament_column(1);
     }
+
     // Reload preset pages with the new configuration values.
     reload_config();
 

@@ -1154,6 +1154,8 @@ wxString get_string_from_enum(const std::string& opt_key, const DynamicPrintConf
     return from_u8(_utf8(names[val]));
 }
 
+// BBS
+#if 0
 static size_t get_id_from_opt_key(std::string opt_key)
 {
     int pos = opt_key.find("#");
@@ -1163,6 +1165,7 @@ static size_t get_id_from_opt_key(std::string opt_key)
     }
     return 0;
 }
+#endif
 
 static wxString get_full_label(std::string opt_key, const DynamicPrintConfig& config)
 {
@@ -1177,7 +1180,14 @@ static wxString get_full_label(std::string opt_key, const DynamicPrintConfig& co
 
 static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& config)
 {
-    size_t opt_idx = get_id_from_opt_key(opt_key);
+    int orig_opt_idx = -1;
+    int opt_idx = -1;
+    int pos = opt_key.find("#");
+    if (pos > 0) {
+        boost::erase_head(opt_key, pos + 1);
+        orig_opt_idx = static_cast<size_t>(atoi(opt_key.c_str()));
+    }
+    opt_idx = orig_opt_idx >= 0 ? orig_opt_idx : 0;
     opt_key = get_pure_opt_key(opt_key);
 
     if (config.option(opt_key)->is_nil())
@@ -1199,8 +1209,19 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
         }
         else {
             auto values = config.opt<ConfigOptionInts>(opt_key);
-            if (opt_idx < values->size())
+            if (orig_opt_idx >= 0 && orig_opt_idx < values->size()) {
                 return from_u8((boost::format("%1%") % values->get_at(opt_idx)).str());
+            }
+            else {
+                std::string value_str;
+                for (int i = 0; i < values->size(); i++) {
+                    value_str += std::to_string(values->get_at(i));
+                    if (i != values->size() - 1) {
+                        value_str += ",";
+                    }
+                }
+                return from_u8(value_str);
+            }
         }
         return _L("Undef");
     }

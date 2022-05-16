@@ -737,7 +737,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     //BBS: add bed_exclude_area
     ((ConfigOptionPoints,             bed_exclude_area))
     // BBS
-    ((ConfigOptionEnumsGeneric,       bed_type))
     ((ConfigOptionEnum<BedType>,      curr_bed_type))
     ((ConfigOptionInts,               bed_temperature))
     ((ConfigOptionBools,              enable_overhang_bridge_fan))

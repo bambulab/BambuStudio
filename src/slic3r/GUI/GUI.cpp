@@ -193,7 +193,8 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 		// BBS
 		case coEnums:{
 			ConfigOptionEnumsGeneric* vec_new = new ConfigOptionEnumsGeneric{ boost::any_cast<int>(value) };
-			config.option<ConfigOptionEnumsGeneric>(opt_key)->set_at(vec_new, opt_index, 0);
+			if (config.has(opt_key))
+				config.option<ConfigOptionEnumsGeneric>(opt_key)->set_at(vec_new, opt_index, 0);
 			}
 			break;
 		case coPoints:{
