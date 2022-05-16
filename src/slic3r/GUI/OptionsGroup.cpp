@@ -270,7 +270,8 @@ void OptionsGroup::activate_line(Line& line)
 	// Set sidetext width for a better alignment of options in line
 	// "m_show_modified_btns==true" means that options groups are in tabs
 	if (option_set.size() > 1 && m_use_custom_ctrl) {
-		sidetext_width = Field::def_width_thinner();
+        sublabel_width = Field::def_width();
+        sidetext_width = Field::def_width_thinner();
 	}
 
 	// if we have a single option with no label, no sidetext just add it directly to sizer

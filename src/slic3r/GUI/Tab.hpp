@@ -73,6 +73,9 @@ public:
 
 	bool				m_is_modified_values{ false };
 	bool				m_is_nonsys_values{ true };
+	// BBS
+    bool            m_split_multi_line      = false;
+    bool            m_option_label_at_right = false;
 
 public:
 	std::vector <ConfigOptionsGroupShp> m_optgroups;

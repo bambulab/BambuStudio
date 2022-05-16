@@ -576,6 +576,11 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
 //	page->SetDoubleBuffered(true);
 #endif //__WINDOWS__
 
+    if (dynamic_cast<TabPrint*>(this)) {
+        page->m_split_multi_line = true;
+        page->m_option_label_at_right = true;
+    }
+
     if (!is_extruder_pages)
         m_pages.push_back(page);
 
@@ -1385,6 +1390,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 
     update();
     m_active_page->update_visibility(m_mode, true);
+    m_page_view->Layout();
 }
 
 // Show/hide the 'purging volumes' button
@@ -4753,6 +4759,8 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
     //! config_ have to be "right"
     ConfigOptionsGroupShp optgroup = is_extruder_og ? std::make_shared<ExtruderOptionsGroup>(m_parent, title, m_config, true)
         : std::make_shared<ConfigOptionsGroup>(m_parent, title, m_config, true);
+    optgroup->split_multi_line     = this->m_split_multi_line;
+    optgroup->option_label_at_right = this->m_option_label_at_right;
     if (noncommon_label_width >= 0)
         optgroup->label_width = noncommon_label_width;
 

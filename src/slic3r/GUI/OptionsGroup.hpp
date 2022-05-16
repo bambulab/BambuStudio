@@ -100,7 +100,9 @@ using t_opt_map = std::map< std::string, std::pair<std::string, int> >;
 
 class OptionsGroup {
 public:
-    const bool		staticbox {true};
+    const bool staticbox{true};
+    bool split_multi_line{false};
+    bool option_label_at_right{false};
     // BBS: new layout
     wxWindow *     stb;
     const wxString  title;
