@@ -126,6 +126,7 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
 
     m_machine_ctrl_panel = new wxPanel(this);
     m_machine_ctrl_panel->SetBackgroundColour(*wxWHITE);
+    m_machine_ctrl_panel->SetDoubleBuffered(true);
     auto m_machine_control = create_machine_control_page(m_machine_ctrl_panel);
     m_machine_ctrl_panel->SetSizer(m_machine_control);
     m_machine_ctrl_panel->Layout();
@@ -751,6 +752,7 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
 
     m_ams_control = new AMSControl(parent, wxID_ANY);
     m_ams_control->SetMinSize(m_ams_control->GetSize());
+    m_ams_control->SetDoubleBuffered(true);
     sizer->Add(m_ams_control, 0, wxALIGN_CENTER_HORIZONTAL, 0);
 
     // display demo, to be removed
@@ -777,9 +779,12 @@ wxBoxSizer *StatusBasePanel::create_cali_group(wxWindow *parent)
 
 void StatusBasePanel::show_ams_group(bool show)
 {
-    m_ams_control->Show(show);
-    m_staticText_ams_ctrl_caption->Show(show);
-    m_ams_staticline->Show(show);
+    if (m_show_ams_group != show) {
+        m_ams_control->Show(show);
+        m_staticText_ams_ctrl_caption->Show(show);
+        m_ams_staticline->Show(show);
+    }
+    m_show_ams_group = show;
 }
 
 
@@ -1127,8 +1132,8 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
 
     if (obj->amsList.empty() || obj->ams_exist_bits == 0) {
-        //m_ams_control->RemoveAll();
         m_ams_control->EnterNoneAMSMode();
+        show_ams_group(false);
         return;
     } else {
         show_ams_group(true);
@@ -1144,7 +1149,6 @@ void StatusPanel::update_ams(MachineObject *obj)
             || obj->tray_is_bbl_bits != last_tray_is_bbl_bits
             || obj->tray_read_done_bits != last_read_done_bits
             ) {
-            //m_ams_control->RemoveAll();
             m_ams_control->UpdateAms(ams_info, true);
             //select current ams
             if (!obj->m_ams_id.empty())
@@ -1236,9 +1240,9 @@ void StatusPanel::update_ams(MachineObject *obj)
                 std::string tray_id = tray_it->first;
                 int tray_id_int = atoi(tray_id.c_str());
                 if ((obj->tray_read_done_bits & (1 << (ams_id_int * 4 + tray_id_int))) == 0) {
-                    m_ams_control->PlayRridLoading(ams_id, tray_id);
+                    //m_ams_control->PlayRridLoading(ams_id, tray_id);
                 } else {
-                    m_ams_control->StopRridLoading(ams_id, tray_id);
+                    //m_ams_control->StopRridLoading(ams_id, tray_id);
                 }
             }
         }

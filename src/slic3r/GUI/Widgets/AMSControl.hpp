@@ -144,6 +144,7 @@ public:
 
 protected:
     wxAnimationCtrl *m_animationCtrl = {nullptr};
+    bool             m_play_loading = {false};
     bool             m_selected      = {false};
     wxBitmap         m_bitmap_normal;
     wxBitmap         m_bitmap_selected;

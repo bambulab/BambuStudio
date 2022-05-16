@@ -122,14 +122,18 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
 
 void AMSrefresh::PlayLoading()
 {
+    if (m_play_loading) return;
     this->m_animationCtrl->Show();
     this->m_animationCtrl->Play();
+    m_play_loading = true;
 }
 
 void AMSrefresh::StopLoading()
 {
+    if (!m_play_loading) return;
     this->m_animationCtrl->Stop();
     this->m_animationCtrl->Hide();
+    m_play_loading = false;
 }
 
 void AMSrefresh::OnEnterWindow(wxMouseEvent &evt)
@@ -196,14 +200,12 @@ void AMSextruder::TurnOn(wxColour col)
 {
     set_color(col);
     m_turn_on = true;
-    Refresh();
 }
 
 void AMSextruder::TurnOff()
 {
     set_color(AMS_EXTRUDER_DEF_COLOUR);
     m_turn_on = false;
-    Refresh();
 }
 
 void AMSextruder::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
@@ -218,6 +220,7 @@ void AMSextruder::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
 
     m_bitmap_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, AMS_EXTRUDER_BITMAP_SIZE, wxTAB_TRAVERSAL);
     m_bitmap_panel->SetBackgroundColour(wxColour(AMS_EXTRUDER_DEF_COLOUR));
+    m_bitmap_panel->SetDoubleBuffered(true);
     m_bitmap_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     monitor_ams_extruder = create_scaled_bitmap("monitor_ams_extruder", nullptr, AMS_EXTRUDER_BITMAP_SIZE.y);
@@ -299,8 +302,6 @@ void AMSextruder::doRender(wxDC &dc)
 void AMSextruder::set_color(wxColour col) 
 { 
     m_bitmap_panel->SetBackgroundColour(col);
-    Update();
-    Refresh();
 }
 
 /*************************************************
@@ -690,7 +691,7 @@ void AMSRoad::OnPassRoad(std::vector<AMSPassRoadMode> prord_list)
         }
     }
 
-    Refresh();
+    //Refresh();
 }
 
 /*************************************************
@@ -724,7 +725,6 @@ void AMSItem::Close()
 void AMSItem::Update(AMSinfo amsinfo)
 {
     m_amsinfo = amsinfo;
-    Refresh();
 }
 
 void AMSItem::Update() {}
@@ -1167,6 +1167,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     // none ams mode
     m_none_ams_panel = new wxPanel(m_simplebook_ams, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
     m_none_ams_panel->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    m_none_ams_panel->SetDoubleBuffered(true);
 
     wxBoxSizer *sizer_ams_panel = new wxBoxSizer(wxHORIZONTAL);
     AMSinfo     none_ams        = AMSinfo{"0", std::vector<Caninfo>{Caninfo{"0", _L("Empty"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE}}};
@@ -1217,6 +1218,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     StateColor btn_bd_green(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Enabled));
     StateColor btn_bd_white(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
     StateColor btn_text_green(std::pair<wxColour, int>(*wxBLACK, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Enabled));
+    m_sizer_left_bottom->AddStretchSpacer();
     m_button_extruder_feed = new Button(amswin, _L("Load"));
     m_button_extruder_feed->SetBackgroundColor(btn_bg_green);
     m_button_extruder_feed->SetBorderColor(btn_bd_green);
@@ -1231,8 +1233,8 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_extruder_back->SetFont(Label::Body_10);
     m_sizer_left_bottom->Add(m_button_extruder_back, 0, wxTOP, FromDIP(20));
 
-    m_sizer_left->Add(m_sizer_left_bottom, 0, 0, 0);
-    m_sizer_bottom->Add(m_sizer_left, 0, 0, 0);
+    m_sizer_left->Add(m_sizer_left_bottom, 0, wxEXPAND, 0);
+    m_sizer_bottom->Add(m_sizer_left, 0, wxEXPAND, 0);
     m_sizer_bottom->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(43));
 
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxVERTICAL);

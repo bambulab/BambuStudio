@@ -117,6 +117,7 @@ protected:
     StaticLine *    m_ams_staticline;
     wxBoxSizer*     m_ams_list;
     wxStaticText *  m_ams_debug;
+    bool            m_show_ams_group{false};
     AMSControl*     m_ams_control;
     wxStaticBitmap *m_ams_extruder_img;
     wxStaticBitmap* m_bitmap_extruder_img;
