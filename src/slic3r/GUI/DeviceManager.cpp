@@ -288,6 +288,17 @@ PRINTER_TYPE MachineObject::parse_iot_printer_type(std::string type_str)
     return PRINTER_TYPE::PRINTER_3DPrinter_UKNOWN;
 }
 
+wxString MachineObject::get_printer_type_display_str()
+{
+    if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_P1)
+        return "Bambu Lab P1";
+    else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1)
+        return "Bambu Lab X1";
+    else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon)
+        return "Bambu Lab X1 Carbon";
+    return _L("Unknown");
+}
+
 std::string MachineObject::get_printer_type_string()
 {
     if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_P1)
@@ -484,6 +495,73 @@ std::string MachineObject::get_firmware_type_str()
     return "engineer";
 }
 
+bool MachineObject::is_in_upgrading()
+{
+    return upgrade_display_state == (int)UpgradingInProgress;
+}
+
+bool MachineObject::is_upgrading_avalable()
+{
+    return upgrade_display_state == (int)UpgradingAvaliable;
+}
+
+int MachineObject::get_upgrade_percent()
+{
+    if (upgrade_progress.empty())
+        return 0;
+    try {
+        int result = atoi(upgrade_progress.c_str());
+        return result;
+    } catch(...) {
+        ;
+    }
+    return 0;
+}
+
+std::string MachineObject::get_ota_version()
+{
+    auto it = module_vers.find("ota");
+    if (it != module_vers.end()) {
+        //double check name
+        if (it->second.name == "ota") {
+            return it->second.sw_ver;
+        }
+    }
+    return "";
+}
+
+wxString MachineObject::get_upgrade_result_str(int err_code)
+{
+    switch(err_code) {
+    case UpgradeNoError:
+        return _L("Upgrade Success");
+    case UpgradeDownloadFailed:
+        return _L("Downloading failed");
+    case UpgradeVerfifyFailed:
+        return _L("Verification failed");
+    case UpgradeFlashFailed:
+        return _L("Upgrade failed");
+    case UpgradePrinting:
+        return _L("Upgrade failed");
+    default:
+        return _L("Upgrade failed");
+    }
+    return "";
+}
+
+std::map<int, MachineObject::ModuleVersionInfo> MachineObject::get_ams_version()
+{
+    std::map<int, ModuleVersionInfo> result;
+    for (int i = 0; i < 4; i++) {
+        std::string ams_id = "ams/" + std::to_string(i);
+        auto it = module_vers.find(ams_id);
+        if (it != module_vers.end()) {
+            result.emplace(std::pair(i, it->second));
+        }
+    }
+    return result;
+}
+
 wxString MachineObject::get_curr_stage()
 {
     if (stage_list_info.empty()) {
@@ -522,6 +600,33 @@ int MachineObject::command_request_push_all()
     json j;
     j["pushing"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["pushing"]["command"]     = "pushall";
+    return this->publish_json(j.dump());
+}
+
+int MachineObject::command_upgrade_confirm()
+{
+    BOOST_LOG_TRIVIAL(trace) << "command_upgrade_confirm";
+    json j;
+    j["upgrade"]["command"] = "upgrade_confirm";
+    j["upgrade"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["upgrade"]["src_id"] = 1; // 1 for slicer
+    return this->publish_json(j.dump());
+}
+
+int MachineObject::command_upgrade_firmware(FirmwareInfo info)
+{
+    std::string version     = info.version;
+    std::string dst_url     = info.url;
+    std::string module_name = info.module_type;
+
+    json j;
+    j["upgrade"]["command"]     = "start";
+    j["upgrade"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["upgrade"]["url"]         = info.url;
+    j["upgrade"]["module"]      = info.module_type;
+    j["upgrade"]["version"]     = info.version;
+    j["upgrade"]["src_id"]      = 1;
+
     return this->publish_json(j.dump());
 }
 
@@ -1287,9 +1392,9 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 if (jj.contains("upgrade_state")) {
                     if (jj["upgrade_state"].contains("status"))
                         upgrade_status = jj["upgrade_state"]["status"].get<std::string>();
-                    if (jj["upgrade_state"].contains("progress"))
+                    if (jj["upgrade_state"].contains("progress")) {
                         upgrade_progress = jj["upgrade_state"]["progress"].get<std::string>();
-                    if (jj["upgrade_state"].contains("new_version_state"))
+                    } if (jj["upgrade_state"].contains("new_version_state"))
                         upgrade_new_version = jj["upgrade_state"]["new_version_state"].get<int>() == 1 ? true : false;
                     if (jj["upgrade_state"].contains("ams_new_version_number"))
                         ams_new_version_number = jj["upgrade_state"]["ams_new_version_number"].get<std::string>();
@@ -1305,8 +1410,30 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                         upgrade_force_upgrade = jj["upgrade_state"]["force_upgrade"].get<bool>();
                     if (jj["upgrade_state"].contains("err_code"))
                         upgrade_err_code = jj["upgrade_state"]["err_code"].get<int>();
-                    if (jj["upgrade_state"].contains("in_prepare"))
-                        upgrade_in_prepare = jj["upgrade_state"]["in_prepare"].get<bool>();
+                    if (jj["upgrade_state"].contains("dis_state"))
+                        upgrade_display_state = jj["upgrade_state"]["dis_state"].get<int>();
+                    else {
+                        //BBS compatibility with old version
+                        if (upgrade_status == "DOWNLOADING"
+                            || upgrade_status == "FLASHING"
+                            || upgrade_status == "UPGRADE_REQUEST"
+                            || upgrade_status == "PRE_FLASH_START"
+                            || upgrade_status == "PRE_FLASH_SUCCESS") {
+                            upgrade_display_state = (int) UpgradingDisplayState::UpgradingInProgress;
+                        } else if (upgrade_status == "UPGRADE_SUCCESS"
+                                    || upgrade_status == "DOWNLOAD_FAIL"
+                                    || upgrade_status == "FLASH_FAIL"
+                                    || upgrade_status == "PRE_FLASH_FAIL"
+                                    || upgrade_status == "UPGRADE_FAIL") {
+                            upgrade_display_state = (int) UpgradingDisplayState::UpgradingFinished;
+                        } else {
+                            if (upgrade_new_version) {
+                                upgrade_display_state = (int) UpgradingDisplayState::UpgradingAvaliable;
+                            } else {
+                                upgrade_display_state = (int) UpgradingDisplayState::UpgradingUnavaliable;
+                            }
+                        }
+                    }
                 }
             } catch (...) {
                 ;
@@ -1331,6 +1458,25 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 ;
             }
         }
+        try {
+            if (j.contains("info")) {
+                if (j["info"].contains("command") && j["info"]["command"].get<std::string>() == "get_version") {
+                    json j_module = j["info"]["module"];
+                    module_vers.clear();
+                    for (auto it = j_module.begin(); it != j_module.end(); it++) {
+                        ModuleVersionInfo ver_info;
+                        ver_info.name = (*it)["name"].get<std::string>();
+                        if ((*it).contains("sw_ver"))
+                            ver_info.sw_ver = (*it)["sw_ver"].get<std::string>();
+                        if ((*it).contains("sn"))
+                            ver_info.sn = (*it)["sn"].get<std::string>();
+                        if ((*it).contains("hw_ver"))
+                            ver_info.hw_ver = (*it)["hw_ver"].get<std::string>();
+                        module_vers.emplace(ver_info.name, ver_info);
+                    }
+                }
+            }
+        } catch (...) {}
 
         std::stringstream ss(payload);
         pt::ptree root;
@@ -1604,15 +1750,6 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 boost::optional<std::string> sequence_id = print.get_optional<std::string>("sequence_id");
                 BOOST_LOG_TRIVIAL(trace) << "ack of project_file " << payload;
             }
-            // ack of get_version
-            else if (command.value().compare("get_version") == 0) {
-                pt::ptree version = root.get_child("sw_ver");
-                BOOST_LOG_TRIVIAL(trace) << "parse_json, get_version topic=" << topic << ", payload = " << payload;
-            }
-        }
-        // info command
-        else if (root.get_child_optional("info") != boost::none) {
-            pt::ptree info = root.get_child("info");
         }
         // upgrade push info move to print push status
         /*else if (root.get_child_optional("upgrade") != boost::none) {

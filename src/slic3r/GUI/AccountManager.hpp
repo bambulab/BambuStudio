@@ -333,7 +333,7 @@ public:
 
     void set_monitor_machine(std::string dev_id);
     void load_last_machine();
-    void request_pushing_print(std::string topic_str);
+    void on_printer_subscribe_topic(std::string topic_str);
 
     //control subscribe default machine
     void start_subscribe();

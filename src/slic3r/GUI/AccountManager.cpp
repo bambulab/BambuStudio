@@ -84,7 +84,7 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
             std::string topic_str = (*tok.get_topics())[i];
              if (manager) {
              GUI::wxGetApp().CallAfter([manager, topic_str] {
-                manager->request_pushing_print(topic_str);
+                    manager->on_printer_subscribe_topic(topic_str);
                 });
             }
         }
@@ -626,7 +626,7 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         }
     }
 
-    void AccountManager::request_pushing_print(std::string topic_str)
+    void AccountManager::on_printer_subscribe_topic(std::string topic_str)
     {
         // topic_str = device/device_id/report
         std::vector<std::string> params;
@@ -635,9 +635,12 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         if (params.size() <= 2) return;
 
         /* params[1] is dev id, topic is : device/[dev_id]/report */
+
+        /* request_pushing_print */
         std::map<std::string, MachineObject *>::iterator it = myBindMachineList.find(params[1]);
         if (it != myBindMachineList.end()) {
             it->second->command_request_push_all();
+            it->second->command_get_version();
         }
     }
 

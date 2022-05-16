@@ -3,8 +3,10 @@
 
 #include <wx/panel.h>
 #include <slic3r/GUI/Widgets/Button.hpp>
+#include "Widgets/ProgressBar.hpp"
 #include <slic3r/GUI/DeviceManager.hpp>
 #include <slic3r/GUI/Widgets/ScrolledWindow.hpp>
+
 
 namespace Slic3r {
 namespace GUI {
@@ -12,52 +14,109 @@ namespace GUI {
 class MachineInfoPanel : public wxPanel
 {
 protected:
-    wxPanel* m_panel_caption;
-    wxStaticText* m_staticText_machine_name;
-    wxPanel* m_panel_content;
-    wxStaticBitmap* m_bitmap_machine;
-    wxStaticText* m_staticText_model_title;
-    wxStaticText* m_staticText_model;
-    wxStaticText* m_staticText_serial_number_title;
-    wxStaticText* m_staticText_serial_number;
-    wxStaticText* m_staticText_software_version_title;
-    wxStaticText* m_staticText_software_version;
-    Button* m_button_upgrade_firmware;
-    void upgrade_firmware(wxCommandEvent& event);
+    wxPanel *       m_panel_caption;
+    wxStaticBitmap *m_upgrade_status_img;
+    wxStaticText *  m_caption_text;
+    wxStaticBitmap *m_printer_img;
+    wxStaticText *  m_staticText_model_id;
+    wxStaticText *  m_staticText_model_id_val;
+    wxStaticText *  m_staticText_sn;
+    wxStaticText *  m_staticText_sn_val;
+    wxStaticBitmap *m_ota_new_version_img;
+    wxStaticText *  m_staticText_ver;
+    wxStaticText *  m_staticText_ver_val;
+    wxStaticLine *  m_staticline;
+    wxStaticBitmap *m_ams_img;
+
+    /* ams info */
+    bool           m_last_ams_show = true;
+    wxBoxSizer*    m_ams_sizer;
+    wxStaticText*  m_staticText_ams;
+    wxStaticText*  m_staticText_ams_sn;
+    wxStaticText * m_staticText_ams_sn_val;
+    wxStaticBitmap* m_ams_new_version_img;
+    wxStaticText*  m_staticText_ams_ver;
+    wxStaticText*  m_staticText_ams_ver_val;
+
+    /* upgrade widgets */
+    wxBoxSizer*     m_upgrading_sizer;
+    wxStaticText *  m_staticText_upgrading_info;
+    ProgressBar *   m_upgrade_progress;
+    wxStaticText *  m_staticText_upgrading_percent;
+    wxStaticBitmap *m_upgrade_retry_img;
+    wxStaticText *  m_staticText_release_note;
+    Button *        m_button_upgrade_firmware;
+
+    wxPanel* create_caption_panel(wxWindow *parent);
+    wxFlexGridSizer* create_ams_sizer();
+
+    wxBitmap upgrade_gray_icon;
+    wxBitmap upgrade_green_icon;
+    wxBitmap upgrade_yellow_icon;
+    int last_status = -1;
+
+    void upgrade_firmware_internal();
+    void on_upgrade_firmware(wxCommandEvent &event);
 
 public:
     MachineInfoPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString);
     ~MachineInfoPanel();
-    void update(MachineObject *obj, FirmwareInfo info);
+
+    void init_bitmaps();
+
+    Button* get_btn() {
+        return m_button_upgrade_firmware;
+    }
+
     void msw_rescale() {}
 
+    void update(MachineObject *obj);
+    void update_ams(MachineObject *obj);
+    void show_status(int status);
+    void show_ams(bool show = false, bool force_update = false);
+
     MachineObject *m_obj{nullptr};
-    FirmwareInfo  m_info;
+    FirmwareInfo  m_ota_info;
+    FirmwareInfo  m_ams_info;
+
+    bool is_upgrading = false;
+
+    enum PanelType {
+        ptUndef,
+        ptPushPanel,
+        ptOtaPanel,
+        ptAmsPanel,
+    }panel_type;
 };
 
+enum UpgradeMode {
+    umPushUpgrading,
+    umSelectOtaVerUpgrading,
+    umSelectAmsVerUpgrading,
+};
+static UpgradeMode upgrade_mode;
 
 class UpgradePanel : public wxPanel
 {
 protected:
     wxScrolledWindow* m_scrolledWindow;
     wxBoxSizer* m_machine_list_sizer;
-    std::vector<MachineInfoPanel*> m_machine_info_panels;
-    std::vector<FirmwareInfo>      m_firmware_info;
-    
+    MachineInfoPanel *m_push_upgrade_panel{nullptr};
+
+    //enable_select_firmware only in debug mode
+    bool enable_select_firmware = false;
+    bool m_initialized = false;
 
 public:
     UpgradePanel(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~UpgradePanel();
-    void clean_machine_info_list();
-    //void show_machine_info_list(bool show = true);
-    void update_machine_info_list(std::vector<MachineObject*>& obj_list);
-    void updata_machine_firmware_info(MachineObject *obj);
+    void clean_push_upgrade_panel();
     void msw_rescale() {}
     bool Show(bool show = true) override;
 
-    void update(MachineObject *obj_);
+    void update(MachineObject *obj);
 
-    MachineObject *obj { nullptr };
+    MachineObject *m_obj { nullptr };
 };
 
 }

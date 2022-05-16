@@ -272,6 +272,14 @@ public:
     static wxString get_hms_msg_level_str(HMSMessageLevel level);
 };
 
+
+#define UpgradeNoError          0
+#define UpgradeDownloadFailed   -1
+#define UpgradeVerfifyFailed    -2
+#define UpgradeFlashFailed      -3
+#define UpgradePrinting         -4
+
+
    
 class MachineObject
 {
@@ -312,10 +320,27 @@ public:
         CHAMBER_FAN = 3,
     };
 
+    enum UpgradingDisplayState {
+        UpgradingUnavaliable = 0,
+        UpgradingAvaliable = 1,
+        UpgradingInProgress = 2,
+        UpgradingFinished = 3
+    };
+
+    class ModuleVersionInfo
+    {
+    public:
+        std::string name;
+        std::string sn;
+        std::string hw_ver;
+        std::string sw_ver;
+    };
+
     static inline int m_sequence_id = 20000;
     static PRINTER_TYPE parse_printer_type(std::string type_str);
     static PRINTER_TYPE parse_iot_printer_type(std::string type_str);
     std::string get_printer_type_string();
+    wxString get_printer_type_display_str();
 
     MachineObject(AccountManager& acc, std::string name, std::string id, std::string ip);
     /* properties */
@@ -382,7 +407,7 @@ public:
     bool upgrade_force_upgrade { false };
     bool upgrade_new_version { false };
     bool upgrade_consistency_request;
-    bool upgrade_in_prepare { false };
+    int upgrade_display_state = 0;          // 0 : upgrade unavailable, 1: upgrade idle, 2: upgrading, 3: upgrade_finished
     PrinterFirmwareType       firmware_type; // engineer|production
     std::string upgrade_progress;
     std::string upgrade_message;
@@ -390,10 +415,18 @@ public:
     std::string upgrade_module;
     std::string ams_new_version_number;
     std::string ota_new_version_number;
+    std::map<std::string, ModuleVersionInfo> module_vers;
     int upgrade_err_code = 0;
     std::vector<FirmwareInfo> firmware_list;
 
     std::string get_firmware_type_str();
+    bool is_in_upgrading();
+    bool is_upgrading_avalable();
+    int get_upgrade_percent();
+    std::string get_ota_version();
+    wxString get_upgrade_result_str(int upgrade_err_code);
+    // key: ams_id start as 0,1,2,3
+    std::map<int, ModuleVersionInfo> get_ams_version();
 
     /* printing */
     int     mc_print_stage;
@@ -460,6 +493,10 @@ public:
     /* command commands */
     int command_get_version();
     int command_request_push_all();
+
+    /* command upgrade */
+    int command_upgrade_confirm();
+    int command_upgrade_firmware(FirmwareInfo info);
 
     /* control apis */
     int command_xyz_abs();
