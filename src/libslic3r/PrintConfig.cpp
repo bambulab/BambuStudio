@@ -405,7 +405,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBools{ true });
 
     def = this->add("overhang_fan_speed", coInts);
-    def->label = L("Part cooling fan speed for overhang");
+    def->label = L("Fan speed for overhang");
     def->tooltip = L("Force part cooling fan to be this speed when printing bridge or overhang wall which has large overhang degree. "
                      "Forcing cooling for overhang and bridge can get better quality for these part");
     def->sidetext = L("%");
@@ -597,7 +597,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnum<PrintSequence>(PrintSequence::ByLayer));
 
     def = this->add("slow_down_for_layer_cooling", coBools);
-    def->label = L("Slow printing down for longer layer cooling time");
+    def->label = L("Slow printing down for better layer cooling");
     def->tooltip = L("Enable this option to slow printing speed down to make the final layer time not shorter than "
                      "the layer time threshold in \"Max fan speed threshold\", so that layer can be cooled for longer time. "
                      "This can improve the cooling quality for needle and small details");
@@ -625,7 +625,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("close_fan_the_first_x_layers", coInts);
     def->label = L("No cooling for the first");
-    def->tooltip = L("Close all cooling fan for the first certain layers. Cooling of the first layer used to be close "
+    def->tooltip = L("Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed "
                      "to get better build plate adhesion");
     def->sidetext = L("layers");
     def->min = 0;
@@ -1485,7 +1485,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
     def = this->add("fan_max_speed", coInts);
-    def->label = L("Max fan speed");
+    def->label = L("Fan speed");
     def->tooltip = L("Part cooling fan speed may be increased when auto cooling is enabled. "
                      "This is the maximum speed limitation of part cooling fan");
     def->sidetext = L("%");
@@ -1528,7 +1528,7 @@ void PrintConfigDef::init_fff_params()
 #endif /* HAS_PRESSURE_EQUALIZER */
 
     def = this->add("fan_min_speed", coInts);
-    def->label = L("Min fan speed");
+    def->label = L("Fan speed");
     def->tooltip = L("Minimum speed for part cooling fan");
     def->sidetext = L("%");
     def->min = 0;
@@ -1537,7 +1537,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts { 20 });
 
     def = this->add("additional_cooling_fan_speed", coInts);
-    def->label = L("Auxiliary part cooling fan speed");
+    def->label = L("Fan speed");
     def->tooltip = L("Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed during printing except the first several layers "
                      "which is defined by no cooling layers");
     def->sidetext = L("%");

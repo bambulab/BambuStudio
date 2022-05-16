@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-13 12:05+0800\n"
+"POT-Creation-Date: 2022-05-16 10:36+0800\n"
 "PO-Revision-Date: 2022-05-08 17:56+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1432,6 +1432,9 @@ msgstr "错误！"
 msgid "Generic"
 msgstr "通用"
 
+msgid "Add Modifier"
+msgstr ""
+
 msgid "Deleting the last solid part is not allowed."
 msgstr "不允许删除对象的最后一个实体零件。"
 
@@ -2210,6 +2213,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "底部"
 
+msgid "Switch to per-object setting mode to edit modifier settings."
+msgstr ""
+
+msgid "Don't show again"
+msgstr "不再显示"
+
 msgid "Global"
 msgstr "全局"
 
@@ -2421,9 +2430,6 @@ msgstr "按项目打开"
 
 msgid "Import geometry only"
 msgstr "仅导入模型数据"
-
-msgid "Don't show again"
-msgstr "不再显示"
 
 msgid "Only one G-code file can be opened at the same time."
 msgstr "只能同时打开一个G-code文件。"
@@ -3002,20 +3008,33 @@ msgstr "体积速度限制"
 msgid "Cooling"
 msgstr "冷却"
 
-msgid "Enable"
-msgstr "开启"
+msgid "Cooling for specific layer"
+msgstr "特定层冷却"
 
-msgid "Fan settings"
-msgstr "风扇设置"
+msgid "Part cooling fan"
+msgstr "部件冷却风扇"
 
-msgid "Fan speed"
-msgstr "风扇速度"
+msgid "Min fan speed threshold"
+msgstr "最小风扇速度阈值"
 
-msgid "Max fan speed and min fan speed"
-msgstr "最大和最小风扇转速"
+msgid ""
+"Part cooling fan speed will start to run at min speed when the estimated "
+"layer time is no longer than the layer time in setting. When layer time is "
+"shorter than threshold, fan speed is interpolated between the minimum and "
+"maximum fan speed according to layer printing time"
+msgstr "当预估的层时间不大于设定的数值时，部件冷却风扇将开始运行在最小速度。层时间"
+"小于阈值时，实际风扇转速将根据层打印时间在最大和最小风扇速度之间插值获得"
 
-msgid "Cooling thresholds"
-msgstr "冷却阈值"
+msgid "Max fan speed threshold"
+msgstr "最大风扇速度阈值"
+
+msgid ""
+"Part cooling fan speed will be max when the estimated layer time is shorter "
+"than the setting value"
+msgstr "当预计的层打印时间比设置值要短时，部件冷却风扇转速将达到最大值"
+
+msgid "Auxiliary part cooling fan"
+msgstr "辅助部件冷却风扇"
 
 msgid "Filament start G-code"
 msgstr "耗材丝起始G-code"
@@ -3775,22 +3794,35 @@ msgstr ""
 "这能够避免当层高很小时，底部壳体过薄。0表示关闭这个设置，同时底部壳体的厚度完"
 "全由底部壳体层数决定"
 
-msgid "Overhang fan speed"
-msgstr "冷却悬空风扇转速"
+msgid "Force cooling for overhang and bridge"
+msgstr "悬垂/桥接强制冷却"
 
-msgid "Fan speed when printing bridge and overhang wall"
-msgstr "打印桥接和悬空墙的风扇转速"
+msgid ""
+"Enable this option to optimize part cooling fan speed for overhang and "
+"bridge to get better cooling"
+msgstr "使能这个选项将自动优化桥接和悬垂的风扇转速以获得更好的冷却"
+
+msgid "Fan speed for overhang"
+msgstr ""
+
+msgid ""
+"Force part cooling fan to be this speed when printing bridge or overhang "
+"wall which has large overhang degree. Forcing cooling for overhang and "
+"bridge can get better quality for these part"
+msgstr ""
+"当打印桥接和超过设定阈值的悬垂时，强制部件冷却风扇为设定的速度值。强制冷却能"
+"够使悬垂和桥接获得更好的打印质量"
 
 msgid "Cooling overhang threshold"
 msgstr "冷却悬空阈值"
 
 msgid ""
-"Force cooling fan speed to be overhang_fan_speed when overhang degree of "
-"printed part exceeds this value. Expressed as percentage which indicides how "
-"many width of the line without support from lower layer"
+"Force cooling fan to be specific speed when overhang degree of printed part "
+"exceeds this value. Expressed as percentage which indicides how much width "
+"of the line without support from lower layer"
 msgstr ""
-"当打印部分的走线悬空程度超过这个值时，强制冷却风扇的转速为“冷却悬空风扇转"
-"速”。悬空程度使用无低层支撑部分的宽度相对线宽的百分比表示。"
+"当打印部分的悬垂程度超出设定值，强制冷却风扇为设置的速度。悬垂程度表示为未被"
+"低层支撑的部分占线宽的百分比"
 
 msgid "Bridge flow"
 msgstr "桥接流量"
@@ -3870,14 +3902,18 @@ msgstr "逐层"
 msgid "By object"
 msgstr "逐件"
 
-msgid "Enable auto cooling"
-msgstr "开启自动冷却"
+msgid "Slow printing down for better layer cooling"
+msgstr "降低打印速度以得到更好的冷却"
 
 msgid ""
-"Enable auto cooling to adjust printing speed and fan speed according to "
-"layer printing time automatically"
+"Enable this option to slow printing speed down to make the final layer time "
+"not shorter than the layer time threshold in \"Max fan speed threshold\", so "
+"that layer can be cooled for longer time. This can improve the cooling "
+"quality for needle and small details"
 msgstr ""
-"开启自动冷却后，风扇转速和打印速度都会根据每一层的预估打印时间自动调整。"
+"使能这个设置，将降低打印速度，使得最终的层打印时间不小于\"最大风扇速度阈值"
+"\"里的层时间阈值，从而使得该层获得更久的冷却。这能够改善尖顶和小细节的冷却效"
+"果"
 
 msgid "Normal printing"
 msgstr "普通打印"
@@ -3902,14 +3938,13 @@ msgstr "默认切片配置"
 msgid "Default process profile when switch to this machine profile"
 msgstr "该机器的默认切片配置"
 
-msgid "Disable fan for the first"
-msgstr "关闭风扇对开始的"
+msgid "No cooling for the first"
+msgstr "关闭冷却对前"
 
 msgid ""
-"Close cooling fan for the first certain layers. We usually close fan for the "
-"initial layer to get better build plate adhesion"
+"Close all cooling fan for the first certain layers. Cooling fan of the first "
+"layer used to be closed to get better build plate adhesion"
 msgstr ""
-"对开始的一些层关闭冷却风扇。通常关闭首层的冷却风扇来获得更好的热床粘接。"
 
 msgid "layers"
 msgstr "层"
@@ -4029,23 +4064,22 @@ msgid "Keep fan always on"
 msgstr "保持风扇常开"
 
 msgid ""
-"Starting fan from stop state usually costs lots's of time. If enable this "
-"setting, fan will never be stoped and will run at least at minimum speed to "
-"reduce the frequency of starting and stoping"
+"If enable this setting, part cooling fan will never be stoped and will run "
+"at least at minimum speed to reduce the frequency of starting and stoping"
 msgstr ""
-"风扇的启停需要消耗较长时间。如果打开这个设置，那么风扇就不会停下。至少维持在"
-"最小转速运行，来避免频繁启停。"
+"如果使能这个设置，部件冷却风扇将永远不会停止，并且会至少运行在最小风扇转速值"
+"以减少风扇的启停频次"
 
-msgid "Enable fan if layer print time is below"
-msgstr "开启风扇当层时间小于"
+msgid "Layer time"
+msgstr "层时间"
 
 msgid ""
-"Cooling fan will be enabled for layers of which estimated time is shorter "
-"than this value. Fan speed is interpolated between the minimum and maximum "
-"fan speeds according to layer printing time"
+"Part cooling fan will be enabled for layers of which estimated time is "
+"shorter than this value. Fan speed is interpolated between the minimum and "
+"maximum fan speeds according to layer printing time"
 msgstr ""
-"当层预估打印时间小于这个阈值时，冷却风扇将被开启。风扇转速会根据层时间的长短"
-"做线性插值。"
+"当层预估打印时间小于该数值时，部件冷却风扇将会被开启。风扇转速将根据层打印时"
+"间在最大和最小风扇转速之间插值获得"
 
 msgid "s"
 msgstr "秒"
@@ -4315,11 +4349,8 @@ msgstr "不锈钢"
 msgid "Brass"
 msgstr "黄铜"
 
-msgid "Auxiliary fan"
-msgstr "辅助风扇"
-
-msgid "Enable this option if machine has auxiliary fan"
-msgstr "当机器有辅助风扇时打开这个选项"
+msgid "Enable this option if machine has auxiliary part cooling fan"
+msgstr "如果机器有辅助部件冷却风扇，使能该选项"
 
 msgid "G-code flavor"
 msgstr "G-code风格"
@@ -4513,28 +4544,35 @@ msgstr "空驶最大加速度"
 msgid "Maximum acceleration for travel (M204 T)"
 msgstr "空驶最大加速度(M204 T)"
 
+msgid "Fan speed"
+msgstr "风扇速度"
+
+msgid ""
+"Part cooling fan speed may be increased when auto cooling is enabled. This "
+"is the maximum speed limitation of part cooling fan"
+msgstr ""
+
 msgid "Max"
 msgstr "最大"
-
-msgid "Maximum fan speed for cooling"
-msgstr "冷却风扇最大速度"
 
 msgid ""
 "The largest printable layer height for extruder. Used tp limits the maximum "
 "layer hight when enable adaptive layer height"
 msgstr "挤出头最大可打印的层高。用于限制开启自适应层高时的最大层高。"
 
+msgid "Minimum speed for part cooling fan"
+msgstr "部件冷却风扇的最小转速"
+
+msgid ""
+"Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
+"during printing except the first several layers which is defined by no "
+"cooling layers"
+msgstr ""
+"辅助部件冷却风扇的转速。辅助部件冷却风扇将一直运行在该速度，除了设置的无需冷"
+"却的前若干层"
+
 msgid "Min"
 msgstr "最小"
-
-msgid "Minimum fan speed for cooling"
-msgstr "冷却风扇最小转速"
-
-msgid "Additional cooling fan speed"
-msgstr "增强冷却风扇转速"
-
-msgid "Speed of additional cooling fan"
-msgstr "增强冷却风扇转速"
 
 msgid ""
 "The lowest printable layer height for extruder. Used tp limits the minimum "
@@ -4560,6 +4598,9 @@ msgid ""
 "Don't retract when the travel is in infill area absolutely. That means the "
 "oozing can't been seen"
 msgstr "当完全在填充区域内部空驶时不会抽，即便渗出滴料也是不可见的。"
+
+msgid "Enable"
+msgstr "开启"
 
 msgid "Filename format"
 msgstr "文件名格式"
@@ -4715,9 +4756,6 @@ msgstr "Skirt圈数"
 
 msgid "Number of loops for the skirt. Zero means disabling skirt"
 msgstr "skirt的圈数。0表示关闭skirt。"
-
-msgid "Slow down if layer print time is below"
-msgstr "降速当层时间小于"
 
 msgid ""
 "The printing speed in exported gcode will be slowed down, when the estimated "
@@ -5203,6 +5241,104 @@ msgstr "正在切片网格"
 
 msgid " Object:"
 msgstr " 对象："
+
+#~ msgid ""
+#~ "Part cooling fan speed will start to run at min speed when the estimated "
+#~ "layer time is no longer than the layer time in setting"
+#~ msgstr "当预估的层时间不大于设定的数值时，部件冷却风扇将开始运行在最小速度"
+
+#~ msgid "Auxiliary part cooling fan speed"
+#~ msgstr "辅助部件冷却风扇的转速"
+
+#~ msgid "Max fan speed"
+#~ msgstr "最大风扇转速"
+
+#~ msgid "Min fan speed"
+#~ msgstr "最小风扇转速"
+
+#~ msgid "Part cooling fan speed for overhang"
+#~ msgstr "悬垂风扇转速"
+
+#~ msgid "Fan settings"
+#~ msgstr "风扇设置"
+
+#~ msgid "Max fan speed and min fan speed"
+#~ msgstr "最大和最小风扇转速"
+
+#~ msgid "Cooling thresholds"
+#~ msgstr "冷却阈值"
+
+#~ msgid "Overhang fan speed"
+#~ msgstr "冷却悬空风扇转速"
+
+#~ msgid "Fan speed when printing bridge and overhang wall"
+#~ msgstr "打印桥接和悬空墙的风扇转速"
+
+#~ msgid ""
+#~ "Force cooling fan speed to be overhang_fan_speed when overhang degree of "
+#~ "printed part exceeds this value. Expressed as percentage which indicides "
+#~ "how many width of the line without support from lower layer"
+#~ msgstr ""
+#~ "当打印部分的走线悬空程度超过这个值时，强制冷却风扇的转速为“冷却悬空风扇转"
+#~ "速”。悬空程度使用无低层支撑部分的宽度相对线宽的百分比表示。"
+
+#~ msgid "Enable auto cooling"
+#~ msgstr "开启自动冷却"
+
+#~ msgid ""
+#~ "Enable auto cooling to adjust printing speed and fan speed according to "
+#~ "layer printing time automatically"
+#~ msgstr ""
+#~ "开启自动冷却后，风扇转速和打印速度都会根据每一层的预估打印时间自动调整。"
+
+#~ msgid "Disable fan for the first"
+#~ msgstr "关闭风扇对开始的"
+
+#~ msgid ""
+#~ "Close cooling fan for the first certain layers. We usually close fan for "
+#~ "the initial layer to get better build plate adhesion"
+#~ msgstr ""
+#~ "对开始的一些层关闭冷却风扇。通常关闭首层的冷却风扇来获得更好的热床粘接。"
+
+#~ msgid ""
+#~ "Starting fan from stop state usually costs lots's of time. If enable this "
+#~ "setting, fan will never be stoped and will run at least at minimum speed "
+#~ "to reduce the frequency of starting and stoping"
+#~ msgstr ""
+#~ "风扇的启停需要消耗较长时间。如果打开这个设置，那么风扇就不会停下。至少维持"
+#~ "在最小转速运行，来避免频繁启停。"
+
+#~ msgid "Enable fan if layer print time is below"
+#~ msgstr "开启风扇当层时间小于"
+
+#~ msgid ""
+#~ "Cooling fan will be enabled for layers of which estimated time is shorter "
+#~ "than this value. Fan speed is interpolated between the minimum and "
+#~ "maximum fan speeds according to layer printing time"
+#~ msgstr ""
+#~ "当层预估打印时间小于这个阈值时，冷却风扇将被开启。风扇转速会根据层时间的长"
+#~ "短做线性插值。"
+
+#~ msgid "Auxiliary fan"
+#~ msgstr "辅助风扇"
+
+#~ msgid "Enable this option if machine has auxiliary fan"
+#~ msgstr "当机器有辅助风扇时打开这个选项"
+
+#~ msgid "Maximum fan speed for cooling"
+#~ msgstr "冷却风扇最大速度"
+
+#~ msgid "Minimum fan speed for cooling"
+#~ msgstr "冷却风扇最小转速"
+
+#~ msgid "Additional cooling fan speed"
+#~ msgstr "增强冷却风扇转速"
+
+#~ msgid "Speed of additional cooling fan"
+#~ msgstr "增强冷却风扇转速"
+
+#~ msgid "Slow down if layer print time is below"
+#~ msgstr "降速当层时间小于"
 
 #, boost-format
 #~ msgid " plate %1% :"

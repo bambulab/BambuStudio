@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-13 12:05+0800\n"
+"POT-Creation-Date: 2022-05-16 10:36+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1385,6 +1385,9 @@ msgstr ""
 msgid "Generic"
 msgstr ""
 
+msgid "Add Modifier"
+msgstr ""
+
 msgid "Deleting the last solid part is not allowed."
 msgstr ""
 
@@ -2152,6 +2155,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr ""
 
+msgid "Switch to per-object setting mode to edit modifier settings."
+msgstr ""
+
+msgid "Don't show again"
+msgstr ""
+
 msgid "Global"
 msgstr ""
 
@@ -2362,9 +2371,6 @@ msgid "Open as project"
 msgstr ""
 
 msgid "Import geometry only"
-msgstr ""
-
-msgid "Don't show again"
 msgstr ""
 
 msgid "Only one G-code file can be opened at the same time."
@@ -2939,19 +2945,31 @@ msgstr ""
 msgid "Cooling"
 msgstr ""
 
-msgid "Enable"
+msgid "Cooling for specific layer"
 msgstr ""
 
-msgid "Fan settings"
+msgid "Part cooling fan"
 msgstr ""
 
-msgid "Fan speed"
+msgid "Min fan speed threshold"
 msgstr ""
 
-msgid "Max fan speed and min fan speed"
+msgid ""
+"Part cooling fan speed will start to run at min speed when the estimated "
+"layer time is no longer than the layer time in setting. When layer time is "
+"shorter than threshold, fan speed is interpolated between the minimum and "
+"maximum fan speed according to layer printing time"
 msgstr ""
 
-msgid "Cooling thresholds"
+msgid "Max fan speed threshold"
+msgstr ""
+
+msgid ""
+"Part cooling fan speed will be max when the estimated layer time is shorter "
+"than the setting value"
+msgstr ""
+
+msgid "Auxiliary part cooling fan"
 msgstr ""
 
 msgid "Filament start G-code"
@@ -3694,19 +3712,30 @@ msgid ""
 "bottom shell layers"
 msgstr ""
 
-msgid "Overhang fan speed"
+msgid "Force cooling for overhang and bridge"
 msgstr ""
 
-msgid "Fan speed when printing bridge and overhang wall"
+msgid ""
+"Enable this option to optimize part cooling fan speed for overhang and "
+"bridge to get better cooling"
+msgstr ""
+
+msgid "Fan speed for overhang"
+msgstr ""
+
+msgid ""
+"Force part cooling fan to be this speed when printing bridge or overhang "
+"wall which has large overhang degree. Forcing cooling for overhang and "
+"bridge can get better quality for these part"
 msgstr ""
 
 msgid "Cooling overhang threshold"
 msgstr ""
 
 msgid ""
-"Force cooling fan speed to be overhang_fan_speed when overhang degree of "
-"printed part exceeds this value. Expressed as percentage which indicides how "
-"many width of the line without support from lower layer"
+"Force cooling fan to be specific speed when overhang degree of printed part "
+"exceeds this value. Expressed as percentage which indicides how much width "
+"of the line without support from lower layer"
 msgstr ""
 
 msgid "Bridge flow"
@@ -3785,12 +3814,14 @@ msgstr ""
 msgid "By object"
 msgstr ""
 
-msgid "Enable auto cooling"
+msgid "Slow printing down for better layer cooling"
 msgstr ""
 
 msgid ""
-"Enable auto cooling to adjust printing speed and fan speed according to "
-"layer printing time automatically"
+"Enable this option to slow printing speed down to make the final layer time "
+"not shorter than the layer time threshold in \"Max fan speed threshold\", so "
+"that layer can be cooled for longer time. This can improve the cooling "
+"quality for needle and small details"
 msgstr ""
 
 msgid "Normal printing"
@@ -3816,12 +3847,12 @@ msgstr ""
 msgid "Default process profile when switch to this machine profile"
 msgstr ""
 
-msgid "Disable fan for the first"
+msgid "No cooling for the first"
 msgstr ""
 
 msgid ""
-"Close cooling fan for the first certain layers. We usually close fan for the "
-"initial layer to get better build plate adhesion"
+"Close all cooling fan for the first certain layers. Cooling fan of the first "
+"layer used to be closed to get better build plate adhesion"
 msgstr ""
 
 msgid "layers"
@@ -3937,18 +3968,17 @@ msgid "Keep fan always on"
 msgstr ""
 
 msgid ""
-"Starting fan from stop state usually costs lots's of time. If enable this "
-"setting, fan will never be stoped and will run at least at minimum speed to "
-"reduce the frequency of starting and stoping"
+"If enable this setting, part cooling fan will never be stoped and will run "
+"at least at minimum speed to reduce the frequency of starting and stoping"
 msgstr ""
 
-msgid "Enable fan if layer print time is below"
+msgid "Layer time"
 msgstr ""
 
 msgid ""
-"Cooling fan will be enabled for layers of which estimated time is shorter "
-"than this value. Fan speed is interpolated between the minimum and maximum "
-"fan speeds according to layer printing time"
+"Part cooling fan will be enabled for layers of which estimated time is "
+"shorter than this value. Fan speed is interpolated between the minimum and "
+"maximum fan speeds according to layer printing time"
 msgstr ""
 
 msgid "s"
@@ -4213,10 +4243,7 @@ msgstr ""
 msgid "Brass"
 msgstr ""
 
-msgid "Auxiliary fan"
-msgstr ""
-
-msgid "Enable this option if machine has auxiliary fan"
+msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr ""
 
 msgid "G-code flavor"
@@ -4406,10 +4433,15 @@ msgstr ""
 msgid "Maximum acceleration for travel (M204 T)"
 msgstr ""
 
-msgid "Max"
+msgid "Fan speed"
 msgstr ""
 
-msgid "Maximum fan speed for cooling"
+msgid ""
+"Part cooling fan speed may be increased when auto cooling is enabled. This "
+"is the maximum speed limitation of part cooling fan"
+msgstr ""
+
+msgid "Max"
 msgstr ""
 
 msgid ""
@@ -4417,16 +4449,16 @@ msgid ""
 "layer hight when enable adaptive layer height"
 msgstr ""
 
+msgid "Minimum speed for part cooling fan"
+msgstr ""
+
+msgid ""
+"Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
+"during printing except the first several layers which is defined by no "
+"cooling layers"
+msgstr ""
+
 msgid "Min"
-msgstr ""
-
-msgid "Minimum fan speed for cooling"
-msgstr ""
-
-msgid "Additional cooling fan speed"
-msgstr ""
-
-msgid "Speed of additional cooling fan"
 msgstr ""
 
 msgid ""
@@ -4452,6 +4484,9 @@ msgstr ""
 msgid ""
 "Don't retract when the travel is in infill area absolutely. That means the "
 "oozing can't been seen"
+msgstr ""
+
+msgid "Enable"
 msgstr ""
 
 msgid "Filename format"
@@ -4599,9 +4634,6 @@ msgid "Skirt loops"
 msgstr ""
 
 msgid "Number of loops for the skirt. Zero means disabling skirt"
-msgstr ""
-
-msgid "Slow down if layer print time is below"
 msgstr ""
 
 msgid ""
