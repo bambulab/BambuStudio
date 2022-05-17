@@ -7896,11 +7896,11 @@ std::vector<ThumbnailData *> Plater::get_thumbnail()
 // BBS: backup
 int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy strategy, int export_plate_idx, Export3mfProgressFn proFn)
 {
-    if (p->model.objects.empty()) {
-        MessageDialog dialog(nullptr, _L("No objects to export."), _L("Save project"), wxYES);
-        if (dialog.ShowModal() == wxYES)
-            return -1;
-    }
+    //if (p->model.objects.empty()) {
+    //    MessageDialog dialog(nullptr, _L("No objects to export."), _L("Save project"), wxYES);
+    //    if (dialog.ShowModal() == wxYES) 
+    //        return -1;
+    //}
 
     if (output_path.empty())
         return -1;
