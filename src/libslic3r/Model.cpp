@@ -1855,6 +1855,11 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
                 new_object->add_instance(*model_instance);
             ModelVolume* new_vol = new_object->add_volume(*volume, std::move(mesh));
 
+            if (is_multi_volume_object) {
+                // BBS: volume geometry not changed, so we can keep the color paint facets
+                new_vol->mmu_segmentation_facets.assign(volume->mmu_segmentation_facets);
+            }
+
             // BBS: clear volume's config, as we already set them into object
             new_vol->config.reset();
 
