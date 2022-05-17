@@ -114,6 +114,7 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
     m_animationCtrl = new wxAnimationCtrl(this, wxID_ANY, wxNullAnimation, wxPoint(0, 0), AMS_REFRESH_SIZE, wxAC_NO_AUTORESIZE);
 
     auto path = (boost::format("%1%/images/refresh.gif") % resources_dir()).str();
+    path      = encode_path(path.c_str());
     if (m_animationCtrl->LoadFile(path)) m_animationCtrl->Hide();
 
     SetSize(m_bitmap_normal.GetSize());
