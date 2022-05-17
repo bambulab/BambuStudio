@@ -1,10 +1,10 @@
 bambustudio_add_cmake_project(
     CGAL
-    # GIT_REPOSITORY https://github.com.cnpmjs.org/CGAL/cgal.git
-    # GIT_TAG        caacd806dc55c61cc68adaad99f2240f00493b29 # releases/CGAL-5.3
+     GIT_REPOSITORY https://github.com.cnpmjs.org/CGAL/cgal.git
+     GIT_TAG        caacd806dc55c61cc68adaad99f2240f00493b29 # releases/CGAL-5.3
     # For whatever reason, this keeps downloading forever (repeats downloads if finished)
-    URL      https://github.com.cnpmjs.org/CGAL/cgal/archive/releases/CGAL-5.0.zip
-    URL_HASH SHA256=c2b035bd078687b6d8c0fb6371a7443adcdb647856af9969532c4050cd5f48e5
+    #URL      https://github.com.cnpmjs.org/CGAL/cgal/archive/releases/CGAL-5.0.zip
+    #URL_HASH SHA256=c2b035bd078687b6d8c0fb6371a7443adcdb647856af9969532c4050cd5f48e5
     DEPENDS dep_Boost dep_GMP dep_MPFR
 )
 

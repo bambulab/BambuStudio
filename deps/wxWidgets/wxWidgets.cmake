@@ -10,10 +10,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 bambustudio_add_cmake_project(wxWidgets
-    GIT_REPOSITORY "ssh://lane.wei@gerrit.bambooolab.com:29418/bbl/wxWidget"
+    GIT_REPOSITORY "ssh://gerrit.bambooolab.com:29418/bbl/wxWidget"
     #GIT_TAG ${_wx_git_tag}
     #GIT_TAG tm_cross_compile #${_wx_git_tag}
-    # URL ssh://lane.wei@gerrit.bambooolab.com:29418/bbl/wxWidget
+    # URL ssh://gerrit.bambooolab.com:29418/bbl/wxWidget
     # URL_HASH SHA256=1dc34e0ef90c2a05b36df3c6a87ff80254186e23d5035b6500e82f4da628152a
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} dep_TIFF dep_JPEG
     CMAKE_ARGS

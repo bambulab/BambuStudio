@@ -189,7 +189,7 @@ include(wxWidgets/wxWidgets.cmake)
 set(_dep_list
     dep_Boost
     dep_TBB
-    dep_CURL
+#    dep_CURL
     dep_wxWidgets
     dep_Cereal
     dep_NLopt
