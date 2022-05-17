@@ -472,8 +472,8 @@ void PreferencesDialog::create()
     m_sizer_left->Add(create_tab_button(0, _L("General")), 0, wxEXPAND, 0);
     m_sizer_left->Add(create_tab_button(1, _L("GUI")), 0, wxEXPAND, 0);
     m_sizer_left->Add(create_tab_button(2, _L("Sync")), 0, wxEXPAND, 0);
-    m_sizer_left->Add(create_tab_button(3, _L("Shortcuts")), 0, wxEXPAND, 0);
 #if !BBL_RELEASE_TO_PUBLIC
+    m_sizer_left->Add(create_tab_button(3, _L("Shortcuts")), 0, wxEXPAND, 0);
     m_sizer_left->Add(create_tab_button(4, _L("Debug")), 0, wxEXPAND, 0);
 #endif
 
@@ -496,8 +496,8 @@ void PreferencesDialog::create()
     create_general_page();
     create_gui_page();
     create_sync_page();
-    create_shortcuts_page();
 #if !BBL_RELEASE_TO_PUBLIC
+    create_shortcuts_page();
     create_debug_page();
 #endif
 
