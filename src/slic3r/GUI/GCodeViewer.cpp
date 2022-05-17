@@ -1167,12 +1167,6 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
     ](TBuffer &buffer, std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
         for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
-            // BBS skip skirt when generate calibraiton thumbnail
-            if (buffer.paths[it->path_id].role == ExtrusionRole::erSkirt
-                || buffer.paths[it->path_id].role == ExtrusionRole::erWipeTower
-                || buffer.paths[it->path_id].role == ExtrusionRole::erCustom)
-                continue;
-
             const RenderPath& path = *it;
             // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
             assert(!path.sizes.empty());
@@ -1454,17 +1448,31 @@ void GCodeViewer::render_calibration_thumbnail(ThumbnailData& thumbnail_data, un
     // reset values and refresh render
     int       last_view_type_sel = m_view_type_sel;
     EViewType last_view_type     = m_view_type;
+    unsigned int last_role_visibility_flags = m_extrusions.role_visibility_flags;
     // set color scheme to Line Type
     for (int i = 0; i < view_type_items.size(); i++) {
-        if (view_type_items[i] == EViewType::FeatureType) {
+        if (view_type_items[i] == EViewType::ColorPrint) {
             m_view_type_sel = i;
             break;
         }
     }
-    set_view_type(EViewType::FeatureType);
+    set_view_type(EViewType::ColorPrint);
     // set m_layers_z_range to 0, 0
     std::array<unsigned int, 2> tmp_layers_z_range = m_layers_z_range;
     m_layers_z_range = {0, 0};
+    // BBS exclude feature types
+    m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags & ~(1 << erSkirt);
+    m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags & ~(1 << erWipeTower);
+    m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags & ~(1 << erCustom);
+    // BBS include feature types
+    m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erPerimeter);
+    m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erExternalPerimeter);
+    m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erOverhangPerimeter);
+    m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erSolidInfill);
+    m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erTopSolidInfill);
+    m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erInternalInfill);
+    m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erBottomSurface);
+
     refresh_render_paths(false, false);
 
     _render_calibration_thumbnail_framebuffer(thumbnail_data, w, h, thumbnail_params, partplate_list, opengl_manager);
@@ -1474,7 +1482,7 @@ void GCodeViewer::render_calibration_thumbnail(ThumbnailData& thumbnail_data, un
     m_view_type_sel = last_view_type_sel;
     set_view_type(last_view_type);
     m_layers_z_range = tmp_layers_z_range;
-
+    m_extrusions.role_visibility_flags = last_role_visibility_flags;
     refresh_render_paths(false, false);
 }
 
