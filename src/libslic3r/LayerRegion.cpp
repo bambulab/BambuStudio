@@ -95,6 +95,8 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
     if (this->layer()->lower_layer != nullptr)
         // Cummulative sum of polygons over all the regions.
         g.lower_slices = &this->layer()->lower_layer->lslices;
+    if (this->layer()->upper_layer != NULL)
+        g.upper_slices = &this->layer()->upper_layer->lslices;
     
     g.layer_id              = (int)this->layer()->id();
     g.ext_perimeter_flow    = this->flow(frExternalPerimeter);

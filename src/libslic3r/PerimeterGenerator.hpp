@@ -14,6 +14,7 @@ class PerimeterGenerator {
 public:
     // Inputs:
     const SurfaceCollection     *slices;
+    const ExPolygons            *upper_slices;
     const ExPolygons            *lower_slices;
     double                       layer_height;
     int                          layer_id;
@@ -52,7 +53,7 @@ public:
         ExtrusionEntityCollection*  gap_fill,
         // Infills without the gap fills
         SurfaceCollection*          fill_surfaces)
-        : slices(slices), lower_slices(nullptr), layer_height(layer_height),
+        : slices(slices), upper_slices(nullptr), lower_slices(nullptr), layer_height(layer_height),
             layer_id(-1), perimeter_flow(flow), ext_perimeter_flow(flow),
             overhang_flow(flow), solid_infill_flow(flow),
             config(config), object_config(object_config), print_config(print_config),
