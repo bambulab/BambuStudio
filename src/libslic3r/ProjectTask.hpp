@@ -75,6 +75,14 @@ public:
     BBLProfile*     profile_;
 };
 
+enum TaskUserOptions {
+    OPTIONS_BED_LEVELING   = 0,
+    OPTIONS_VIBRATION_CALI = 1,
+    OPTIONS_FLOW_CALI      = 2,
+    OPTIONS_LAYER_INSPECT  = 3,
+    OPTIONS_RECORD_TIMELAPSE = 4
+};
+
 class BBLSubTask {
 public:
     enum SubTaskStatus {
@@ -107,6 +115,7 @@ public:
         task_bed_leveling   = obj.task_bed_leveling;
         task_flow_cali      = obj.task_flow_cali;
         task_vibration_cali = obj.task_vibration_cali;
+        task_layer_inspect  = obj.task_layer_inspect;
     }
 
     std::string     task_id;            /* plate id */
@@ -127,6 +136,7 @@ public:
     bool            task_bed_leveling;  /* bed leveling of task */
     bool            task_flow_cali;     /* flow calibration of task */
     bool            task_vibration_cali; /* vibration calibration of task */
+    bool            task_layer_inspect {true}; /* first layer inspection of task */
     bool            task_record_timelapse; /* record timelapse of task */
 
     // task of plate info

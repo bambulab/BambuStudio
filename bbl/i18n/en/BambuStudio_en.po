@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-16 10:36+0800\n"
+"POT-Creation-Date: 2022-05-17 15:39+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -576,15 +576,6 @@ msgstr ""
 msgid "Pause"
 msgstr ""
 
-msgid "Event"
-msgstr ""
-
-msgid "Remaining time"
-msgstr ""
-
-msgid "Duration"
-msgstr ""
-
 msgid "Printer"
 msgstr ""
 
@@ -929,10 +920,16 @@ msgstr ""
 msgid "Rotation:"
 msgstr ""
 
+msgid "Height:"
+msgstr ""
+
 msgid "Keep upper part"
 msgstr ""
 
 msgid "Keep lower part"
+msgstr ""
+
+msgid "Cut to parts"
 msgstr ""
 
 msgid "Auto Segment"
@@ -2837,6 +2834,9 @@ msgstr "Vibration calibration"
 msgid "Flow Calibration"
 msgstr "Flow calibration"
 
+msgid "First Layer Inspection"
+msgstr ""
+
 msgid "Record Timelapse"
 msgstr "Record timelapse"
 
@@ -3386,6 +3386,16 @@ msgid "Creating a print job..."
 msgstr ""
 
 msgid "Uploading the print job..."
+msgstr ""
+
+msgid "The size of the uploaded file cannot exceed 1 GB."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Uploading %d%%, remaining time %s"
+msgstr ""
+
+msgid " Failed to upload the print job. Check Md5 failed, please try agian."
 msgstr ""
 
 #, c-format, boost-format

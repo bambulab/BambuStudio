@@ -278,6 +278,7 @@ protected:
     wxWindow *select_bed{nullptr};
     wxWindow *select_vibration{nullptr};
     wxWindow *select_flow{nullptr};
+    wxWindow *select_layer_inspect {nullptr};
     wxWindow *select_record{nullptr};
 
 public:

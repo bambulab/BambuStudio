@@ -218,11 +218,11 @@ void PrintJob::process()
 
     //BBS hide bed choice
     //subTask->task_bed_type = this->task_bed_type;
-    subTask->task_bed_leveling = this->task_bed_leveling;
-    subTask->task_flow_cali = this->task_flow_cali;
-    subTask->task_vibration_cali = this->task_vibration_cali;
-    subTask->task_record_timelapse = this->task_record_timelapse;
-
+    subTask->task_bed_leveling      = this->task_bed_leveling;
+    subTask->task_flow_cali         = this->task_flow_cali;
+    subTask->task_vibration_cali    = this->task_vibration_cali;
+    subTask->task_record_timelapse  = this->task_record_timelapse;
+    subTask->task_layer_inspect     = this->task_layer_inspect;
     subTask->task_gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (curr_plate_idx)).str();
     subTask->task_partplate_idx = std::to_string(curr_plate_idx);
     subTask->task_printer_dev_id = m_dev_id;

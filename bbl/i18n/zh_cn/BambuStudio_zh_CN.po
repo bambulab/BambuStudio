@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-16 10:36+0800\n"
-"PO-Revision-Date: 2022-05-08 17:56+0800\n"
+"POT-Creation-Date: 2022-05-17 15:39+0800\n"
+"PO-Revision-Date: 2022-05-17 15:42+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -606,15 +606,6 @@ msgstr "打印"
 msgid "Pause"
 msgstr "暂停"
 
-msgid "Event"
-msgstr "事件"
-
-msgid "Remaining time"
-msgstr "剩余时间"
-
-msgid "Duration"
-msgstr "持续时间"
-
 msgid "Printer"
 msgstr "打印机"
 
@@ -961,11 +952,17 @@ msgstr "移动："
 msgid "Rotation:"
 msgstr "旋转："
 
+msgid "Height:"
+msgstr ""
+
 msgid "Keep upper part"
 msgstr "保留上半部分"
 
 msgid "Keep lower part"
 msgstr "保留下半部分"
+
+msgid "Cut to parts"
+msgstr ""
 
 msgid "Auto Segment"
 msgstr "自动分割"
@@ -1916,7 +1913,7 @@ msgstr ""
 "包含如下信息:\n"
 "1. 工艺预设\n"
 "2. 打印丝预设\n"
-"3.打印机预设\n"
+"3. 打印机预设\n"
 
 msgid "Synchronization"
 msgstr "同步"
@@ -2844,6 +2841,9 @@ msgstr "震动校准"
 msgid "Flow Calibration"
 msgstr "流量校准"
 
+msgid "First Layer Inspection"
+msgstr "首层扫描"
+
 msgid "Record Timelapse"
 msgstr "录制Timelapse"
 
@@ -3022,8 +3022,9 @@ msgid ""
 "layer time is no longer than the layer time in setting. When layer time is "
 "shorter than threshold, fan speed is interpolated between the minimum and "
 "maximum fan speed according to layer printing time"
-msgstr "当预估的层时间不大于设定的数值时，部件冷却风扇将开始运行在最小速度。层时间"
-"小于阈值时，实际风扇转速将根据层打印时间在最大和最小风扇速度之间插值获得"
+msgstr ""
+"当预估的层时间不大于设定的数值时，部件冷却风扇将开始运行在最小速度。层时间小"
+"于阈值时，实际风扇转速将根据层打印时间在最大和最小风扇速度之间插值获得"
 
 msgid "Max fan speed threshold"
 msgstr "最大风扇速度阈值"
@@ -3400,6 +3401,16 @@ msgstr "创建打印任务..."
 
 msgid "Uploading the print job..."
 msgstr "上传打印任务..."
+
+msgid "The size of the uploaded file cannot exceed 1 GB."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Uploading %d%%, remaining time %s"
+msgstr ""
+
+msgid " Failed to upload the print job. Check Md5 failed, please try agian."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -5242,6 +5253,15 @@ msgstr "正在切片网格"
 msgid " Object:"
 msgstr " 对象："
 
+#~ msgid "Event"
+#~ msgstr "事件"
+
+#~ msgid "Remaining time"
+#~ msgstr "剩余时间"
+
+#~ msgid "Duration"
+#~ msgstr "持续时间"
+
 #~ msgid ""
 #~ "Part cooling fan speed will start to run at min speed when the estimated "
 #~ "layer time is no longer than the layer time in setting"
@@ -5340,7 +5360,6 @@ msgstr " 对象："
 #~ msgid "Slow down if layer print time is below"
 #~ msgstr "降速当层时间小于"
 
-#, boost-format
 #~ msgid " plate %1% :"
 #~ msgstr "盘%1%:"
 
@@ -5445,19 +5464,15 @@ msgstr " 对象："
 #~ "if expressed as percentage"
 #~ msgstr "顶面填充的线宽。如果用百分比表示，则基数为喷嘴直径。"
 
-#, boost-format
 #~ msgid "Slicing plate %1%"
 #~ msgstr "正在切片盘 %1%"
 
-#, boost-format
 #~ msgid "Slicing Plate %1% "
 #~ msgstr "正在切片盘 %1% "
 
-#, boost-format
 #~ msgid "Slicing Plate %1%"
 #~ msgstr "正在切片盘 %1%"
 
-#, c-format, boost-format
 #~ msgid "Generating G-code: layer %d"
 #~ msgstr "正在生成G-code：层 %d"
 
@@ -5527,7 +5542,6 @@ msgstr " 对象："
 #~ msgid "Internal Error. Exporting 3mf failed, please slice again."
 #~ msgstr "内部错误。导出3mf失败，请重新切片。"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Detect the overhang percentage relative to line width and use different "
 #~ "speed to print. For 100%% overhang, bridge speed is used"
