@@ -1663,7 +1663,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
             //instance->set_rotation(Vec3d(attributes.has(ModelObjectCutAttribute::FlipLower) ? Geometry::deg2rad(180.0) : 0.0, 0.0, rot_z));
         }
 
-        if(lower!=res.back())
+        if(res.empty() || lower != res.back())
             res.push_back(lower);
     }
 
