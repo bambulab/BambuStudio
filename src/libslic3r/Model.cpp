@@ -66,6 +66,7 @@ Model& Model::assign_copy(const Model &rhs)
 
     // BBS: for design info
     this->design_info = rhs.design_info;
+    this->model_info = rhs.model_info;
 
     return *this;
 }
@@ -98,6 +99,8 @@ Model& Model::assign_copy(Model &&rhs)
     rhs.key_store.reset();
     this->design_info = rhs.design_info;
     rhs.design_info.reset();
+    this->model_info = rhs.model_info;
+    rhs.model_info.reset();
     return *this;
 }
 

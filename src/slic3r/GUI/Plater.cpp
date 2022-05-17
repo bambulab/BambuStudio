@@ -2583,6 +2583,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     this->model.custom_gcode_per_print_z = model.custom_gcode_per_print_z;
                     //BBS
                     this->model.design_info = model.design_info;
+                    this->model.model_info = model.model_info;
                 }
 
                 if (load_config) {

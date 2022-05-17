@@ -111,6 +111,10 @@ const std::string BBS_MM_PAINTING_VERSION           = "BambuStudio:MmPaintingVer
 const std::string BBL_MODEL_ID_TAG                  = "model_id";
 const std::string BBL_DESIGNER_TAG                  = "Designer";
 const std::string BBL_DESIGNER_USER_ID_TAG          = "DesignerUserId";
+const std::string BBL_DESIGNER_COVER_FILE_TAG       = "DesignerCover";
+const std::string BBL_DESCRIPTION_TAG               = "Description";
+const std::string BBL_COPYRIGHT_TAG                 = "CopyRight";
+const std::string BBL_LICENSE_TAG                   = "License";
 
 const std::string MODEL_FOLDER = "3D/";
 const std::string MODEL_EXTENSION = ".model";
@@ -124,9 +128,10 @@ const std::string CONTENT_TYPES_FILE = "[Content_Types].xml";
 const std::string RELATIONSHIPS_FILE = "_rels/.rels";
 const std::string THUMBNAIL_FILE = "Metadata/plate_1.png";
 const std::string THUMBNAIL_FOR_PRINTER_FILE = "Metadata/bbl_thumbnail.png";
+const std::string THUMBNAILS_DIR = ".thumbnails";
 const std::string PRINTER_THUMBNAIL_SMALL_FILE = "thumbnail_small.png";
 const std::string PRINTER_THUMBNAIL_MIDDLE_FILE = "thumbnail_middle.png";
-const std::string _3MF_COVER_FILE = "3mf_thumbnail.png";
+const std::string _3MF_COVER_FILE = "thumbnail_3mf.png";
 //const std::string PRINT_CONFIG_FILE = "Metadata/Slic3r_PE.config";
 //const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
 const std::string BBS_PRINT_CONFIG_FILE = "Metadata/print_profile.config";
@@ -658,6 +663,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         std::string  m_model_id;
         std::string  m_designer;
         std::string  m_designer_user_id;
+        std::string  m_designer_cover;
+        ModelInfo  model_info;
 
         XML_Parser m_xml_parser;
         // Error code returned by the application side of the parser. In that case the expat may not reliably deliver the error state
@@ -1161,6 +1168,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             m_model->design_info->DesignerUserId = m_designer_user_id;
             m_model->design_info->Designer = m_designer;
         }
+
+        m_model->model_info = std::make_shared<ModelInfo>();
+        m_model->model_info->load(model_info);
 
         //got project id
         if (project) {
@@ -2786,6 +2796,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         } else if (m_curr_metadata_name == BBL_DESIGNER_USER_ID_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found designer_user_id = " << m_curr_characters;
             m_designer_user_id = m_curr_characters;
+        } else if (m_curr_metadata_name == BBL_DESIGNER_COVER_FILE_TAG) {
+            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found designer_cover = " << m_curr_characters;
+            model_info.cover_file = m_curr_characters;
+        } else if (m_curr_metadata_name == BBL_DESCRIPTION_TAG) {
+            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found description = " << m_curr_characters;
+            model_info.description = m_curr_characters;
+        } else if (m_curr_metadata_name == BBL_LICENSE_TAG) {
+            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found license = " << m_curr_characters;
+            model_info.license = m_curr_characters;
+        } else if (m_curr_metadata_name == BBL_COPYRIGHT_TAG) {
+            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found license = " << m_curr_characters;
+            model_info.copyright = m_curr_characters;
         }
 
         return true;
@@ -4475,19 +4497,33 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             std::string user_name;
             std::string user_id;
+            std::string design_cover;
+            std::string license;
+            std::string description;
+            std::string copyright;
+            std::string rating;
             if (model.design_info) {
                  user_name = model.design_info->Designer;
                  user_id = model.design_info->DesignerUserId;
                  BOOST_LOG_TRIVIAL(trace) << "design_info, save_3mf found designer = " << user_name;
                  BOOST_LOG_TRIVIAL(trace) << "design_info, save_3mf found designer_user_id = " << user_id;
             }
+
+            if (model.model_info) {
+                design_cover = model.model_info->cover_file;
+                license = model.model_info->license;
+                description = model.model_info->description;
+                copyright = model.model_info->copyright;
+                BOOST_LOG_TRIVIAL(trace) << "design_info, save_3mf found designer_cover = " << design_cover;
+            }
+
             stream << " <" << METADATA_TAG << " name=\"Title\">" << name << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_TAG << "\">" << user_name << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_USER_ID_TAG << "\">" << user_id << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"Description\">" << name << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"Copyright\">" << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"LicenseTerms\">" << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"Rating\">" << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_TAG            << "\">" << user_name    << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_USER_ID_TAG    << "\">" << user_id      << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_COVER_FILE_TAG << "\">" << design_cover << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESCRIPTION_TAG         << "\">" << description  << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"" << BBL_COPYRIGHT_TAG           << "\">" << copyright    << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"" << BBL_LICENSE_TAG             << "\">" << license      << "</" << METADATA_TAG << ">\n";
 
             /* save model info */
             if (project)
@@ -5680,7 +5716,33 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, c
             std::string dst_in_3mf;
             if (boost::filesystem::is_directory(dir_entry.path()))
             {
-                directories.push_back(dir_entry.path());
+                if (dir_entry.path().filename() == THUMBNAILS_DIR) {
+                    boost::filesystem::directory_iterator iterator(dir_entry.path());
+                    for (auto &file_entry : iterator) {
+                        if (boost::filesystem::is_regular_file(file_entry.path())) {
+                            // BBS generate thumbnails
+                            // copy to /Metadata folder
+                            if (file_entry.path().filename() == _3MF_COVER_FILE) {
+                                dst_in_3mf          = METADATA_DIR + _3MF_COVER_FILE;
+                                data._3mf_thumbnail = dst_in_3mf;
+                                result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
+                            }
+                            if (file_entry.path().filename() == PRINTER_THUMBNAIL_SMALL_FILE) {
+                                dst_in_3mf                        = METADATA_DIR + PRINTER_THUMBNAIL_SMALL_FILE;
+                                data._3mf_printer_thumbnail_small = dst_in_3mf;
+                                result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
+                            }
+                            if (file_entry.path().filename() == PRINTER_THUMBNAIL_MIDDLE_FILE) {
+                                dst_in_3mf                         = METADATA_DIR + PRINTER_THUMBNAIL_MIDDLE_FILE;
+                                data._3mf_printer_thumbnail_middle = dst_in_3mf;
+                                result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
+                            }
+                        }
+                    }
+                }
+                else {
+                    directories.push_back(dir_entry.path());
+                }
                 continue;
             }
             if (boost::filesystem::is_regular_file(dir_entry.path()))
@@ -5691,24 +5753,6 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, c
                 std::replace(dst_in_3mf.begin(), dst_in_3mf.end(), '\\', '/');
 
                 result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
-
-                // BBS generate thumbnails
-                // copy to /Metadata folder
-                if (dir_entry.path().filename() == _3MF_COVER_FILE) {
-                    dst_in_3mf = METADATA_DIR + _3MF_COVER_FILE;
-                    data._3mf_thumbnail = dst_in_3mf;
-                    result &=_add_file_to_archive(archive, dst_in_3mf, src_file);
-                }
-                if (dir_entry.path().filename() == PRINTER_THUMBNAIL_SMALL_FILE) {
-                    dst_in_3mf                        = METADATA_DIR + PRINTER_THUMBNAIL_SMALL_FILE;
-                    data._3mf_printer_thumbnail_small = dst_in_3mf;
-                    result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
-                }
-                if (dir_entry.path().filename() == PRINTER_THUMBNAIL_MIDDLE_FILE) {
-                    dst_in_3mf = METADATA_DIR + PRINTER_THUMBNAIL_MIDDLE_FILE;
-                    data._3mf_printer_thumbnail_middle = dst_in_3mf;
-                    result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
-                }
             }
         }
     }

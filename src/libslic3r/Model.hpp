@@ -1180,13 +1180,30 @@ struct GlobalSpeedMap
     double maxSpeed;
 };
 
+/* info in ModelDesignInfo can not changed after initialization */
 class ModelDesignInfo
 {
 public:
     std::string DesignId;               // DisignId for Model
     std::string Designer;               // Designer nickname in utf8
     std::string DesignerUserId;         // Designer user_id string
-    std::string DesignCoverThumbnail;   // cover thumbnail in Auxiliaries
+};
+
+/* info in ModelInfo can be changed after initialization */
+class ModelInfo
+{
+public:
+    std::string cover_file;
+    std::string license;
+    std::string description;
+    std::string copyright;
+
+    void load(ModelInfo &info) {
+        this->cover_file    = info.cover_file;
+        this->license       = info.license;
+        this->description   = info.description;
+        this->copyright     = info.copyright;
+    }
 };
 
 // The print bed content.
@@ -1210,6 +1227,7 @@ public:
 
     // DesignInfo of Model
     std::shared_ptr<ModelDesignInfo> design_info = nullptr;
+    std::shared_ptr<ModelInfo> model_info = nullptr;
     
     // Extensions for color print
     CustomGCode::Info custom_gcode_per_print_z;
@@ -1302,6 +1320,7 @@ public:
     std::string   propose_export_file_name_and_path(const std::string &new_extension) const;
     //BBS: add auxiliary files temp path
     std::string   get_auxiliary_file_temp_path();
+
     // BBS: backup
     std::string   get_backup_path();
     void          set_backup_path(const std::string &path);
