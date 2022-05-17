@@ -1014,7 +1014,7 @@ std::vector<int> PartPlate::get_extruders() const
 
 		int obj_support_extr = 0;
 		const ConfigOption* support_extr_opt = mo->config.option("support_filament");
-		if (support_intf_extr_opt != nullptr)
+		if (support_extr_opt != nullptr)
 			obj_support_extr = support_extr_opt->getInt();
 		if (obj_support_extr != 0)
 			plate_extruders.push_back(obj_support_extr);
