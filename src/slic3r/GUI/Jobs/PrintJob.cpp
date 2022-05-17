@@ -134,7 +134,7 @@ void PrintJob::process()
         [this, curr_percent, cancel_str, &msg](Http::Progress progress, bool &cancel) {
             int percent = 0;
             if (progress.ultotal != 0) {
-                percent = progress.ulnow / progress.ultotal;
+                percent = progress.ulnow * 100 / progress.ultotal;
             }
             if (was_canceled()) {
                 cancel = true;

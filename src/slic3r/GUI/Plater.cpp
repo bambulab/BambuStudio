@@ -8252,7 +8252,7 @@ void Plater::publish_project()
                                 % design_id).str();
         }
 
-        std::string host_url = c->get_design_server_host();
+        std::string host_url = c->get_official_server_host();
         url = host_url + url;
         GUI::wxGetApp().load_url(wxString(url));
     } else {
