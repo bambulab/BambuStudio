@@ -27,8 +27,8 @@
 
 namespace Slic3r {
 
-//BBS: 500% of sparse_infill_line_width
-float Fill::infill_anchor = 500;
+//BBS: 0% of sparse_infill_line_width, no anchor at the start of sparse infill
+float Fill::infill_anchor = 0;
 //BBS: 20mm
 float Fill::infill_anchor_max = 20;
 
