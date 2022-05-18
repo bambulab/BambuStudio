@@ -109,6 +109,7 @@ const std::string BBS_FDM_SUPPORTS_PAINTING_VERSION = "BambuStudio:FdmSupportsPa
 const std::string BBS_SEAM_PAINTING_VERSION         = "BambuStudio:SeamPaintingVersion";
 const std::string BBS_MM_PAINTING_VERSION           = "BambuStudio:MmPaintingVersion";
 const std::string BBL_MODEL_ID_TAG                  = "model_id";
+const std::string BBL_MODEL_NAME_TAG                = "Title";
 const std::string BBL_DESIGNER_TAG                  = "Designer";
 const std::string BBL_DESIGNER_USER_ID_TAG          = "DesignerUserId";
 const std::string BBL_DESIGNER_COVER_FILE_TAG       = "DesignerCover";
@@ -2790,6 +2791,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 _(L("The selected 3MF contains multi-material painted object using a newer version of BambuStudio and is not compatible.")));*/
         } else if (m_curr_metadata_name == BBL_MODEL_ID_TAG) {
             m_model_id = m_curr_characters;
+        } else if (m_curr_metadata_name == BBL_MODEL_NAME_TAG) {
+            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found model name = " << m_curr_characters;
+            model_info.model_name = m_curr_metadata_name;
         } else if (m_curr_metadata_name == BBL_DESIGNER_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found designer = " << m_curr_characters;
             m_designer = m_curr_characters;
@@ -4493,8 +4497,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (model.is_mm_painted())
                 stream << " <" << METADATA_TAG << " name=\"" << BBS_MM_PAINTING_VERSION << "\">" << MM_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";*/
 
-            std::string name = xml_escape(boost::filesystem::path(filename).stem().string());
-
+            std::string name;
             std::string user_name;
             std::string user_id;
             std::string design_cover;
@@ -4511,13 +4514,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             if (model.model_info) {
                 design_cover = model.model_info->cover_file;
-                license = model.model_info->license;
-                description = model.model_info->description;
-                copyright = model.model_info->copyright;
+                license      = model.model_info->license;
+                description  = model.model_info->description;
+                copyright    = model.model_info->copyright;
+                name         = model.model_info->model_name;
                 BOOST_LOG_TRIVIAL(trace) << "design_info, save_3mf found designer_cover = " << design_cover;
             }
 
-            stream << " <" << METADATA_TAG << " name=\"Title\">" << name << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"" << BBL_MODEL_NAME_TAG          << "\">" << name         << "</" << METADATA_TAG << ">\n";
             stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_TAG            << "\">" << user_name    << "</" << METADATA_TAG << ">\n";
             stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_USER_ID_TAG    << "\">" << user_id      << "</" << METADATA_TAG << ">\n";
             stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_COVER_FILE_TAG << "\">" << design_cover << "</" << METADATA_TAG << ">\n";

@@ -1197,12 +1197,14 @@ public:
     std::string license;
     std::string description;
     std::string copyright;
+    std::string model_name;
 
     void load(ModelInfo &info) {
         this->cover_file    = info.cover_file;
         this->license       = info.license;
         this->description   = info.description;
         this->copyright     = info.copyright;
+        this->model_name    = info.model_name;
     }
 };
 
