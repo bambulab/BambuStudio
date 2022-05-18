@@ -46,8 +46,6 @@ GuideFrame::GuideFrame(GUI_App *pGUI)
 
     m_MainPtr = pGUI;
 
-    m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION);
-
     // set the frame icon
     wxBoxSizer *topsizer = new wxBoxSizer(wxVERTICAL);
 
@@ -62,12 +60,6 @@ GuideFrame::GuideFrame(GUI_App *pGUI)
     }
 
     SetSizer(topsizer);
-
-#ifdef __WXMAC__
-    // With WKWebView handlers need to be registered before creation
-    m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("wxfs")));
-    m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
-#endif
 
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
@@ -123,43 +115,44 @@ void GuideFrame::load_url(wxString &url)
 wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
 {
     //wxLogMessage("GUIDE: webpage_1  %s", (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string().c_str() );
-    wxString TargetUrl = encode_path( (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string().c_str() );
+    wxString TargetUrl = encode_path( (boost::filesystem::path(resources_dir()) / "web/guide/1/index.html").make_preferred().string().c_str() );
     //wxLogMessage("GUIDE: webpage_2  %s", TargetUrl.mb_str());
 
     if (startpage == BBL_WELCOME){
         SetTitle(_L("Setup Wizard"));
-        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string().c_str());
+        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web/guide/1/index.html").make_preferred().string().c_str());
     } else if (startpage == BBL_REGION) {
         SetTitle(_L("Setup Wizard"));
-        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\11\\index.html").make_preferred().string().c_str());
+        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web/guide/11/index.html").make_preferred().string().c_str());
     } else if (startpage == BBL_MODELS) {
         SetTitle(_L("Setup Wizard"));
-        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\21\\index.html").make_preferred().string().c_str());
+        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web/guide/21/index.html").make_preferred().string().c_str());
     } else if (startpage == BBL_FILAMENTS) {
         SetTitle(_L("Setup Wizard"));
 
         int nSize = m_ProfileJson["model"].size();
 
         if (nSize>0)
-            TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\22\\index.html").make_preferred().string().c_str());
+            TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web/guide/22/index.html").make_preferred().string().c_str());
         else
-            TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\21\\index.html").make_preferred().string().c_str());
+            TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web/guide/21/index.html").make_preferred().string().c_str());
     } else if (startpage == BBL_FILAMENT_ONLY) {
         SetTitle(_L("Filaments Selection"));
-        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\23\\index.html").make_preferred().string().c_str());
+        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web/guide/23/index.html").make_preferred().string().c_str());
     } else if (startpage == BBL_MODELS_ONLY) {
         SetTitle(_L("Printer Selection"));
-        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\24\\index.html").make_preferred().string().c_str());
+        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web/guide/24/index.html").make_preferred().string().c_str());
     }
     else {
         SetTitle(_L("Setup Wizard"));
-        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\guide\\21\\index.html").make_preferred().string().c_str());
+        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web/guide/21/index.html").make_preferred().string().c_str());
     }
 
     std::string strlang = wxGetApp().app_config->get("language");
     if (strlang != "")
         TargetUrl = wxString::Format("%s?lang=%s", w2s(TargetUrl), strlang);
 
+    TargetUrl = "file://" + TargetUrl;
     if (load)
         load_url(TargetUrl);
 
