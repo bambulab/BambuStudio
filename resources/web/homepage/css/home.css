@@ -244,6 +244,8 @@ body
 .FileImg
 {
 	text-align: center;
+	background-color: #E4E4E4;
+	border-radius: 8px;
 }
 
 .FileItem img
