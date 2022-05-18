@@ -2201,7 +2201,10 @@ void DebugToolDialog::refresh_device_list()
 
 wxString DebugToolDialog::get_machine_display_item(MachineObject* obj)
 {
-    return wxString::Format("%-16s(%s)[bind:%s]", obj->dev_ip, obj->dev_id, obj->get_bind_str());
+    if (obj->dev_name.empty())
+        return wxString::Format("%-16s(%s)[bind:%s]", obj->dev_ip, obj->dev_id, obj->get_bind_str());
+    else
+        return wxString::Format("%-16s(%s)[bind:%s]", obj->dev_ip, obj->dev_name, obj->get_bind_str());
 }
 
 void DebugToolDialog::refresh_firmware_list(bool show_error)
