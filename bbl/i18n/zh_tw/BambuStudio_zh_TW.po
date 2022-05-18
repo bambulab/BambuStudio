@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-17 15:39+0800\n"
+"POT-Creation-Date: 2022-05-18 11:08+0800\n"
 "PO-Revision-Date: 2022-03-12 17:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com> , patched traditional "
 "chinese by Cheng-Hsien Ho <taksito@gmail.com>\n"
@@ -2388,12 +2388,6 @@ msgid "Save G-code file as:"
 msgstr ""
 
 msgid "Save Sliced file as:"
-msgstr ""
-
-msgid "No objects to export."
-msgstr ""
-
-msgid "Save project"
 msgstr ""
 
 msgid "Failed to publish your project. Please try agian!"

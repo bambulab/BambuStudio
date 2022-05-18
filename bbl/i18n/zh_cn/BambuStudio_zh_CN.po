@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-17 15:39+0800\n"
+"POT-Creation-Date: 2022-05-18 11:08+0800\n"
 "PO-Revision-Date: 2022-05-17 15:42+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2452,12 +2452,6 @@ msgstr "G-code文件另存为："
 msgid "Save Sliced file as:"
 msgstr "切片文件另存为："
 
-msgid "No objects to export."
-msgstr "没有可导出的对象。"
-
-msgid "Save project"
-msgstr "保存项目"
-
 msgid "Failed to publish your project. Please try agian!"
 msgstr "项目发布失败。请重试！"
 
@@ -3814,7 +3808,7 @@ msgid ""
 msgstr "使能这个选项将自动优化桥接和悬垂的风扇转速以获得更好的冷却"
 
 msgid "Fan speed for overhang"
-msgstr ""
+msgstr "悬垂风扇速度"
 
 msgid ""
 "Force part cooling fan to be this speed when printing bridge or overhang "
@@ -3956,6 +3950,7 @@ msgid ""
 "Close all cooling fan for the first certain layers. Cooling fan of the first "
 "layer used to be closed to get better build plate adhesion"
 msgstr ""
+"对开始的一些层关闭所有的部件冷却风扇。通常关闭首层冷却用来获得更好的热床粘接"
 
 msgid "layers"
 msgstr "层"
@@ -5252,6 +5247,12 @@ msgstr "正在切片网格"
 
 msgid " Object:"
 msgstr " 对象："
+
+#~ msgid "No objects to export."
+#~ msgstr "没有可导出的对象。"
+
+#~ msgid "Save project"
+#~ msgstr "保存项目"
 
 #~ msgid "Event"
 #~ msgstr "事件"

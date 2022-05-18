@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-17 15:39+0800\n"
+"POT-Creation-Date: 2022-05-18 11:08+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2432,12 +2432,6 @@ msgid "Save G-code file as:"
 msgstr ""
 
 msgid "Save Sliced file as:"
-msgstr ""
-
-msgid "No objects to export."
-msgstr ""
-
-msgid "Save project"
 msgstr ""
 
 msgid "Failed to publish your project. Please try agian!"
