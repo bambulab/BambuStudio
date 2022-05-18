@@ -1636,7 +1636,7 @@ static inline Polygons detect_overhangs(
                 SupportMaterialInternal::remove_bridges_from_contacts(
                     print_config, lower_layer, lower_layer_polygons, *layerm, fw, diff_polygons);
 
-            if (diff_polygons.empty())
+            if (diff_polygons.empty() || offset(diff_polygons, -0.1 * fw).empty())
                 continue;
 
             polygons_append(overhang_polygons, diff_polygons);
