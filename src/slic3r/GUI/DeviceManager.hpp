@@ -229,13 +229,47 @@ public:
     std::string description;
 };
 
+enum ModuleID {
+    MODULE_UKNOWN       = 0x00,
+    MODULE_01           = 0x01,
+    MODULE_02           = 0x02,
+    MODULE_MC           = 0x03,
+    MODULE_04           = 0x04,
+    MODULE_MAINBOARD    = 0x05,
+    MODULE_06           = 0x06,
+    MODULE_AMS          = 0x07,
+    MODULE_TH           = 0x08,
+    MODULE_09           = 0x09,
+    MODULE_10           = 0x0A,
+    MODULE_11           = 0x0B,
+    MODULE_XCAM         = 0x0C,
+    MODULE_13           = 0x0D,
+    MODULE_14           = 0x0E,
+    MODULE_15           = 0x0F,
+    MODULE_MAX          = 0x10
+};
+
+enum HMSMessageLevel {
+    HMS_UNKNOWN = 0,
+    HMS_FATAL   = 1,
+    HMS_SERIOUS = 2,
+    HMS_COMMON  = 3,
+    HMS_INFO    = 4,
+    HMS_MSG_LEVEL_MAX,
+};
+
 class HMSItem
 {
 public:
-    int attr = 0;
-    int code = 0;
-    std::string action;
-    std::string detail;
+    ModuleID        module_id;
+    unsigned        module_num;
+    unsigned        part_id;
+    unsigned        reserved;
+    HMSMessageLevel msg_level = HMS_UNKNOWN;
+    int             msg_code = 0;
+    bool parse_hms_info(unsigned attr, unsigned code);
+    static wxString get_module_name(ModuleID module_id);
+    static wxString get_hms_msg_level_str(HMSMessageLevel level);
 };
 
    

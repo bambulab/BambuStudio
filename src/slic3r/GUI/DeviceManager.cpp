@@ -202,6 +202,64 @@ void AmsTray::update_color_from_str(std::string color)
     this->color = color;
 }
 
+bool HMSItem::parse_hms_info(unsigned attr, unsigned code)
+{
+    bool result = true;
+    unsigned int model_id_int = (attr >> 24) & 0xFF;
+    if (model_id_int < (unsigned) MODULE_MAX)
+        this->module_id = (ModuleID)model_id_int;
+    else
+        this->module_id = MODULE_UKNOWN;
+    this->module_num = (attr >> 16) & 0xFF;
+    this->part_id    = (attr >> 8) & 0xFF;
+    this->reserved   = (attr >> 0) & 0xFF;
+    unsigned msg_level_int = code >> 16;
+    if (msg_level_int < (unsigned)HMS_MSG_LEVEL_MAX)
+        this->msg_level = (HMSMessageLevel)msg_level_int;
+    else
+        this->msg_level = HMS_UNKNOWN;
+    this->msg_code = code & 0xFFFF;
+    return result;
+}
+
+wxString HMSItem::get_module_name(ModuleID module_id)
+{
+    switch (module_id)
+    {
+    case MODULE_MC:
+        return _L("MC");
+    case MODULE_MAINBOARD:
+        return _L("MainBoard");
+    case MODULE_AMS:
+        return _L("AMS");
+    case MODULE_TH:
+        return _L("TH");
+    case MODULE_XCAM:
+        return _L("XCam");
+    default:
+        wxString text = _L("Unknown") + wxString::Format("0x%x", (unsigned)module_id);
+        return text;
+    }
+    return "";
+}
+
+wxString HMSItem::get_hms_msg_level_str(HMSMessageLevel level)
+{
+    switch(level) {
+    case HMS_FATAL:
+        return _L("Fatal");
+    case HMS_SERIOUS:
+        return _L("Serious");
+    case HMS_COMMON:
+        return _L("Common");
+    case HMS_INFO:
+        return _L("Info");
+    default:
+        return _L("Unknown");
+    }
+    return "";
+}
+
 PRINTER_TYPE MachineObject::parse_printer_type(std::string type_str)
 {
     if (type_str.compare("3DPrinter-P1") == 0) {
@@ -1260,10 +1318,11 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                     if (jj["hms"].is_array()) {
                         for (auto it = jj["hms"].begin(); it != jj["hms"].end(); it++) {
                             HMSItem item;
-                            if ((*it).contains("attr"))
-                                item.attr   = (*it)["attr"].get<int>();
-                            if ((*it).contains("code"))
-                                item.code   = (*it)["code"].get<int>();
+                            if ((*it).contains("attr") && (*it).contains("code")) {
+                                unsigned attr = (*it)["attr"].get<unsigned>();
+                                unsigned code = (*it)["code"].get<unsigned>();
+                                item.parse_hms_info(attr, code);
+                            }
                             hms_list.push_back(item);
                         }
                     }

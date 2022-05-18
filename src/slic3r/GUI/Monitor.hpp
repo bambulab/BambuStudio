@@ -44,6 +44,7 @@
 #include "slic3r/GUI/MonitorBasePanel.h"
 #include "slic3r/GUI/StatusPanel.hpp"
 #include "slic3r/GUI/UpgradePanel.hpp"
+#include "slic3r/GUI/HMSPanel.hpp"
 #include "slic3r/GUI/AmsWidgets.hpp"
 #include "Widgets/SideTools.hpp"
 
@@ -76,9 +77,10 @@ private:
     wxSizer*        m_main_sizer{ nullptr };
     
     AddMachinePanel*    m_status_add_machine_panel;
-    StatusPanel*		m_status_info_panel;
-    MediaFilePanel*		m_media_file_panel;
-	UpgradePanel*       m_upgrade_panel;
+    StatusPanel*        m_status_info_panel;
+    MediaFilePanel*     m_media_file_panel;
+    UpgradePanel*       m_upgrade_panel;
+    HMSPanel*           m_hms_panel;
 
 	/* side tools */
     SideTools*      m_side_tools{nullptr};
