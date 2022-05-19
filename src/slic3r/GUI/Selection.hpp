@@ -360,8 +360,8 @@ public:
     void cut_to_clipboard();
     void copy_to_clipboard();
     void paste_from_clipboard();
-    //BBS get export mesh for exporting stl
-    TriangleMesh get_export_mesh();
+    //BBS get selected object instance lists
+    std::set<std::pair<int, int>> get_selected_object_instances();
 
     const Clipboard& get_clipboard() const { return m_clipboard; }
 

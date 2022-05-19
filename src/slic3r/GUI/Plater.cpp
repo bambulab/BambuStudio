@@ -7718,23 +7718,25 @@ void Plater::export_stl(bool extended, bool selection_only)
 
 
     // Following lambda generates a combined mesh for export with normals pointing outwards.
-    auto mesh_to_export = [](const ModelObject* mo, bool instances) -> TriangleMesh {
+    auto mesh_to_export = [](const ModelObject& mo, int instance_id) {
         TriangleMesh mesh;
-        for (const ModelVolume *v : mo->volumes)
+        for (const ModelVolume* v : mo.volumes)
             if (v->is_model_part()) {
                 TriangleMesh vol_mesh(v->mesh());
                 vol_mesh.transform(v->get_matrix(), true);
                 mesh.merge(vol_mesh);
             }
-        if (instances) {
+        if (instance_id == -1) {
             TriangleMesh vols_mesh(mesh);
             mesh = TriangleMesh();
-            for (const ModelInstance *i : mo->instances) {
+            for (const ModelInstance* i : mo.instances) {
                 TriangleMesh m = vols_mesh;
                 m.transform(i->get_matrix(), true);
                 mesh.merge(m);
             }
         }
+        else if (0 <= instance_id && instance_id < int(mo.instances.size()))
+            mesh.transform(mo.instances[instance_id]->get_matrix(), true);
         return mesh;
     };
 
@@ -7746,25 +7748,30 @@ void Plater::export_stl(bool extended, bool selection_only)
                 const ModelObject* model_object = p->model.objects[obj_idx];
                 if (selection.get_mode() == Selection::Instance)
                 {
-                    if (selection.is_single_full_object())
-                        mesh = mesh_to_export(model_object, true);
-                    else
-                        mesh = mesh_to_export(model_object, false);
+                    mesh = std::move(mesh_to_export(*model_object, ( model_object->instances.size() > 1) ? -1 : selection.get_instance_idx()));
                 }
                 else
                 {
                     const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
                     mesh = model_object->volumes[volume->volume_idx()]->mesh();
                     mesh.transform(volume->get_volume_transformation().get_matrix(), true);
-                    mesh.translate(-model_object->origin_translation.cast<float>());
                 }
-            } else if (selection.is_multiple_full_object()) {
-                mesh = std::move(p->get_selection().get_export_mesh());
+
+                if (model_object->instances.size() == 1)
+                    mesh.translate(-model_object->origin_translation.cast<float>());
+            }
+            else if (selection.is_multiple_full_object()) {
+                const std::set<std::pair<int, int>>& instances_idxs = p->get_selection().get_selected_object_instances();
+                for (const std::pair<int, int>& i : instances_idxs)
+                {
+                    ModelObject* object = p->model.objects[i.first];
+                    mesh.merge(mesh_to_export(*object, i.second));
+                }
             }
         }
         else {
             for (const ModelObject *o : p->model.objects)
-                mesh.merge(mesh_to_export(o, true));
+                mesh.merge(mesh_to_export(*o, -1));
         }
     }
     else

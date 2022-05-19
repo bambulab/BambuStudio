@@ -1691,13 +1691,13 @@ void Selection::paste_from_clipboard()
 }
 
 //BBS get export mesh for exporting stl
-TriangleMesh Selection::get_export_mesh()
+std::set<std::pair<int, int>> Selection::get_selected_object_instances()
 {
-    TriangleMesh mesh;
-    // BBS only support multi full object now
-    if (!is_multiple_full_object()) return mesh;
-
     std::set<std::pair<int, int>> instances_idxs;
+    // BBS only support multi full object now
+    if (!is_multiple_full_object())
+        return instances_idxs;
+
     for (ObjectIdxsToInstanceIdxsMap::iterator obj_it = m_cache.content.begin(); obj_it != m_cache.content.end(); ++obj_it)
     {
         for (InstanceIdxsList::reverse_iterator inst_it = obj_it->second.rbegin(); inst_it != obj_it->second.rend(); ++inst_it)
@@ -1706,25 +1706,7 @@ TriangleMesh Selection::get_export_mesh()
         }
     }
 
-    for (const std::pair<int, int>& i : instances_idxs)
-    {
-        ModelObject* object = m_model->objects[i.first];
-        for (const ModelVolume *v : object->volumes)
-        if (v->is_model_part()) {
-            TriangleMesh vol_mesh(v->mesh());
-            vol_mesh.transform(v->get_matrix(), true);
-            mesh.merge(vol_mesh);
-        }
-
-        TriangleMesh vols_mesh(mesh);
-        mesh = TriangleMesh();
-        for (const ModelInstance *i : object->instances) {
-            TriangleMesh m = vols_mesh;
-            m.transform(i->get_matrix(), true);
-            mesh.merge(m);
-        }
-    }
-    return mesh;
+    return instances_idxs;
 }
 
 void Selection::fill_color(int extruder_id)
