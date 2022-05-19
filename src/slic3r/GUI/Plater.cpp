@@ -7973,6 +7973,12 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
         for (auto it = plate_data->slice_flaments_info.begin(); it != plate_data->slice_flaments_info.end(); it++) {
             it->type  = filament_types ? filament_types->get_at(it->id) : "PLA";
             it->color = filament_color ? filament_color->get_at(it->id) : "#FFFFFF";
+            // save filament info used in curr plate
+            int index = p->partplate_list.get_curr_plate_index();
+            if (store_params.id_bboxes.size() > index) {
+                store_params.id_bboxes[index]->filament_ids.push_back(it->id);
+                store_params.id_bboxes[index]->filament_colors.push_back(it->color);
+            }
         }
     }
 

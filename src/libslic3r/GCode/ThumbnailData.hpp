@@ -67,10 +67,14 @@ struct PlateBBoxData
 {
     std::vector<coordf_t> bbox_all;  // total bounding box of all objects including brim
     std::vector<BBoxData> bbox_objs; // BBoxData of seperate object
+    std::vector<int>      filament_ids; // filament id used in curr plate
+    std::vector<std::string> filament_colors;
     bool is_seq_print = false;
 
     void to_json(nlohmann::json& j) const{
         j = nlohmann::json{ {"bbox_all",bbox_all} };
+        j["filament_ids"] = filament_ids;
+        j["filament_colors"] = filament_colors;
         j["is_seq_print"] = is_seq_print;
         for (const auto& bbox : bbox_objs) {
             nlohmann::json j_bbox;
@@ -80,6 +84,8 @@ struct PlateBBoxData
     }
     void from_json(const nlohmann::json& j) {
         j.at("bbox_all").get_to(bbox_all);
+        j.at("filament_ids").get_to(filament_ids);
+        j.at("filament_colors").get_to(filament_colors);
         j.at("is_seq_print").get_to(is_seq_print);
         for (auto& bbox_j : j.at("bbox_objects")) {
             BBoxData bbox_data;
