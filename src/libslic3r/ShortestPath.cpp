@@ -1964,28 +1964,34 @@ ClipperLib::PolyNodes chain_clipper_polynodes(const Points &points, const Clippe
 	return chain_path_items(points, items);
 }
 
-std::vector<const PrintInstance*> chain_print_object_instances(const Print &print)
+// BBS
+std::vector<const PrintInstance*> chain_print_object_instances(const std::vector<const PrintObject*>& print_objects, const Point* start_near)
 {
-    // Order objects using a nearest neighbor search.
-    Points object_reference_points;
-    std::vector<std::pair<size_t, size_t>> instances;
-    for (size_t i = 0; i < print.objects().size(); ++ i) {
-    	const PrintObject &object = *print.objects()[i];
-    	for (size_t j = 0; j < object.instances().size(); ++ j) {
-    		// Sliced PrintObjects are centered, object.instances()[j].shift is the center of the PrintObject in G-code coordinates.
-        	object_reference_points.emplace_back(object.instances()[j].shift);
-        	instances.emplace_back(i, j);
-        }
-    }
+	// Order objects using a nearest neighbor search.
+	Points object_reference_points;
+	std::vector<std::pair<size_t, size_t>> instances;
+	for (size_t i = 0; i < print_objects.size(); ++i) {
+		const PrintObject& object = *print_objects[i];
+		for (size_t j = 0; j < object.instances().size(); ++j) {
+			// Sliced PrintObjects are centered, object.instances()[j].shift is the center of the PrintObject in G-code coordinates.
+			object_reference_points.emplace_back(object.instances()[j].shift);
+			instances.emplace_back(i, j);
+		}
+	}
 	auto segment_end_point = [&object_reference_points](size_t idx, bool /* first_point */) -> const Point& { return object_reference_points[idx]; };
-	std::vector<std::pair<size_t, bool>> ordered = chain_segments_greedy<Point, decltype(segment_end_point)>(segment_end_point, instances.size(), nullptr);
-    std::vector<const PrintInstance*> out;
+	std::vector<std::pair<size_t, bool>> ordered = chain_segments_greedy<Point, decltype(segment_end_point)>(segment_end_point, instances.size(), start_near);
+	std::vector<const PrintInstance*> out;
 	out.reserve(instances.size());
-	for (auto &segment_and_reversal : ordered) {
-		const std::pair<size_t, size_t> &inst = instances[segment_and_reversal.first];
-		out.emplace_back(&print.objects()[inst.first]->instances()[inst.second]);
+	for (auto& segment_and_reversal : ordered) {
+		const std::pair<size_t, size_t>& inst = instances[segment_and_reversal.first];
+		out.emplace_back(&print_objects[inst.first]->instances()[inst.second]);
 	}
 	return out;
+}
+
+std::vector<const PrintInstance*> chain_print_object_instances(const Print &print)
+{
+	return chain_print_object_instances(print.objects().vector(), nullptr);
 }
 
 Polylines chain_lines(const std::vector<Line> &lines, const double point_distance_epsilon)

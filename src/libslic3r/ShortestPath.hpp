@@ -31,6 +31,9 @@ std::vector<ClipperLib::PolyNode*>	 chain_clipper_polynodes(const Points &points
 // Returns pairs of PrintObject idx and instance of that PrintObject.
 class Print;
 struct PrintInstance;
+// BBS
+class PrintObject;
+std::vector<const PrintInstance*> chain_print_object_instances(const std::vector<const PrintObject*>& print_objects, const Point* start_near);
 std::vector<const PrintInstance*> 	 chain_print_object_instances(const Print &print);
 
 // Chain lines into polylines.

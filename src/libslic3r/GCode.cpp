@@ -2689,7 +2689,32 @@ GCode::LayerResult GCode::process_layer(
         if (objects_by_extruder_it == by_extruder.end())
             continue;
 
-        std::vector<InstanceToPrint> instances_to_print = sort_print_object_instances(objects_by_extruder_it->second, layers, ordering, single_object_instance_idx);
+        // BBS: ordering instances by extruder
+        std::vector<InstanceToPrint> instances_to_print;
+        bool has_prime_tower = print.config().enable_prime_tower
+            && print.config().print_sequence == PrintSequence::ByLayer
+            && print.extruders().size() > 1;
+        if (has_prime_tower) {
+            int plate_idx = print.get_plate_index();
+            Point wt_pos(print.config().wipe_tower_x.get_at(plate_idx), print.config().wipe_tower_y.get_at(plate_idx));
+
+            std::vector<GCode::ObjectByExtruder>& objects_by_extruder = objects_by_extruder_it->second;
+            std::vector<const PrintObject*> print_objects;
+            for (int obj_idx = 0; obj_idx < objects_by_extruder.size(); obj_idx++) {
+                auto& object_by_extruder = objects_by_extruder[obj_idx];
+                if (object_by_extruder.islands.empty() && (object_by_extruder.support == nullptr || object_by_extruder.support->empty()))
+                    continue;
+
+                print_objects.push_back(print.get_object(obj_idx));
+            }
+
+            std::vector<const PrintInstance*> new_ordering = chain_print_object_instances(print_objects, &wt_pos);
+            std::reverse(new_ordering.begin(), new_ordering.end());
+            instances_to_print = sort_print_object_instances(objects_by_extruder_it->second, layers, &new_ordering, single_object_instance_idx);
+        }
+        else {
+            instances_to_print = sort_print_object_instances(objects_by_extruder_it->second, layers, ordering, single_object_instance_idx);
+        }
 
         // BBS
         if (print.config().print_sequence == PrintSequence::ByObject && prime_extruder && first_layer && extruder_id == first_extruder_id) {
