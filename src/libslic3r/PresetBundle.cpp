@@ -2824,6 +2824,7 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
         const std::vector<std::string> &m_prefered_names;
     };
 
+    BOOST_LOG_TRIVIAL(info) << boost::format("update_compatibility for all presets enter");
 	switch (printer_preset.printer_technology()) {
     case ptFFF:
     {
@@ -2876,6 +2877,8 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
 	}
     default: break;
     }
+
+    BOOST_LOG_TRIVIAL(info) << boost::format("update_compatibility for all presets exit");
 }
 
 //BBS: add a API to dump current configbundle as default configbundle

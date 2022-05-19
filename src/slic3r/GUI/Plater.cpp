@@ -2741,52 +2741,45 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 if (imperial_units)
                     // Convert even if the object is big.
                     convert_from_imperial_units(model, false);
-                // else if (model.looks_like_saved_in_meters()) {
-                // BBS do not handle look like in meters
-                // auto convert_model_if = [](Model& model, bool condition) {
+                else if (model.looks_like_saved_in_meters()) {
+                    // BBS do not handle look like in meters
+                    MessageDialog dlg(q,  format_wxstr(_L("The object from file %s is too small, and maybe in meters or inches.\n Do you want to scale to millimeters?"), from_path(filename)),
+                            _L("Object too small"), wxICON_QUESTION | wxYES_NO);
+                    int answer = dlg.ShowModal();
+                    if (answer == wxID_YES)
+                        model.convert_from_meters(true);
+                }
+                else if (model.looks_like_imperial_units()) {
+                    // BBS do not handle look like in meters
+                    MessageDialog dlg(q,  format_wxstr(_L("The object from file %s is too small, and maybe in meters or inches.\n Do you want to scale to millimeters?"), from_path(filename)),
+                            _L("Object too small"), wxICON_QUESTION | wxYES_NO);
+                    int answer = dlg.ShowModal();
+                    if (answer == wxID_YES)
+                        convert_from_imperial_units(model, true);
+                }
+                // else if (model.looks_like_imperial_units()) {
+                // BBS do not handle look like in imperial
+                // auto convert_model_if = [convert_from_imperial_units](Model& model, bool condition) {
                 //    if (condition)
                 //        //FIXME up-scale only the small parts?
-                //        model.convert_from_meters(true);
+                //        convert_from_imperial_units(model, true);
                 //};
-                // if (answer_convert_from_meters == wxOK_DEFAULT) {
+                // if (answer_convert_from_imperial_units == wxOK_DEFAULT) {
                 //    RichMessageDialog dlg(q, format_wxstr(_L_PLURAL(
-                //        "The dimensions of the object from file %s seem to be defined in meters.\n"
+                //        "The dimensions of the object from file %s seem to be defined in inches.\n"
                 //        "The internal unit of BambuStudio is a millimeter. Do you want to recalculate the dimensions of the object?",
-                //        "The dimensions of some objects from file %s seem to be defined in meters.\n"
-                //        "The internal unit of BambuStudio is a millimeter. Do you want to recalculate the dimensions of these objects?", model.objects.size()),
-                //        from_path(filename)) + "\n", _L("The object is too small"), wxICON_QUESTION | wxYES_NO);
+                //        "The dimensions of some objects from file %s seem to be defined in inches.\n"
+                //        "The internal unit of BambuStudio is a millimeter. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename))
+                //        + "\n", _L("The object is too small"), wxICON_QUESTION | wxYES_NO);
                 //    dlg.ShowCheckBox(_L("Apply to all the remaining small objects being loaded."));
                 //    int answer = dlg.ShowModal();
                 //    if (dlg.IsCheckBoxChecked())
-                //        answer_convert_from_meters = answer;
+                //        answer_convert_from_imperial_units = answer;
                 //    else
                 //        convert_model_if(model, answer == wxID_YES);
                 //}
-                // convert_model_if(model, answer_convert_from_meters == wxID_YES);
+                // convert_model_if(model, answer_convert_from_imperial_units == wxID_YES);
             }
-            // else if (model.looks_like_imperial_units()) {
-            // BBS do not handle look like in imperial
-            // auto convert_model_if = [convert_from_imperial_units](Model& model, bool condition) {
-            //    if (condition)
-            //        //FIXME up-scale only the small parts?
-            //        convert_from_imperial_units(model, true);
-            //};
-            // if (answer_convert_from_imperial_units == wxOK_DEFAULT) {
-            //    RichMessageDialog dlg(q, format_wxstr(_L_PLURAL(
-            //        "The dimensions of the object from file %s seem to be defined in inches.\n"
-            //        "The internal unit of BambuStudio is a millimeter. Do you want to recalculate the dimensions of the object?",
-            //        "The dimensions of some objects from file %s seem to be defined in inches.\n"
-            //        "The internal unit of BambuStudio is a millimeter. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename))
-            //        + "\n", _L("The object is too small"), wxICON_QUESTION | wxYES_NO);
-            //    dlg.ShowCheckBox(_L("Apply to all the remaining small objects being loaded."));
-            //    int answer = dlg.ShowModal();
-            //    if (dlg.IsCheckBoxChecked())
-            //        answer_convert_from_imperial_units = answer;
-            //    else
-            //        convert_model_if(model, answer == wxID_YES);
-            //}
-            // convert_model_if(model, answer_convert_from_imperial_units == wxID_YES);
-            //}
 
             // if (model.looks_like_multipart_object()) {
             //   MessageDialog msg_dlg(q, _L(
@@ -2874,8 +2867,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
     //BBS: add gcode loading logic in the end
     if (load_model && load_config) {
-        partplate_list.load_gcode_files();
         if (model.objects.empty()) {
+            partplate_list.load_gcode_files();
             PartPlate * first_plate = nullptr;
             int plate_cnt = partplate_list.get_plate_count();
             int index = 0;

@@ -578,7 +578,7 @@ static inline int auto_extruder_id(unsigned int max_extruders, unsigned int &cnt
 
 void Model::convert_multipart_object(unsigned int max_extruders)
 {
-	assert(this->objects.size() >= 2);
+    assert(this->objects.size() >= 2);
     if (this->objects.size() < 2)
         return;
 
@@ -588,6 +588,7 @@ void Model::convert_multipart_object(unsigned int max_extruders)
     //FIXME copy the config etc?
 
     unsigned int extruder_counter = 0;
+
 	for (const ModelObject* o : this->objects)
     	for (const ModelVolume* v : o->volumes) {
             // If there are more than one object, put all volumes together
@@ -605,9 +606,9 @@ void Model::convert_multipart_object(unsigned int max_extruders)
                 return new_v;
             };
             if (o->instances.empty()) {
-            	copy_volume(object->add_volume(*v))->set_transformation(trafo_volume);
+                copy_volume(object->add_volume(*v))->set_transformation(trafo_volume);
             } else {
-            	for (const ModelInstance* i : o->instances)
+                for (const ModelInstance* i : o->instances)
                     // ...so, transform everything to a common reference system (world)
                 	copy_volume(object->add_volume(*v))->set_transformation(i->get_transformation() * trafo_volume);
             }
@@ -621,7 +622,7 @@ void Model::convert_multipart_object(unsigned int max_extruders)
     this->objects.push_back(object);
 }
 
-static constexpr const double volume_threshold_inches = 9.0; // 9 = 3*3*3;
+static constexpr const double volume_threshold_inches = 8.0; // 9 = 2*2*2;
 
 bool Model::looks_like_imperial_units() const
 {
@@ -648,7 +649,7 @@ void Model::convert_from_imperial_units(bool only_small_volumes)
         }
 }
 
-static constexpr const double volume_threshold_meters = 0.001; // 0.001 = 0.1*0.1*0.1
+static constexpr const double volume_threshold_meters = 0.008; // 0.008 = 0.2*0.2*0.2
 
 bool Model::looks_like_saved_in_meters() const
 {
@@ -2668,7 +2669,11 @@ void ModelVolume::mirror(Axis axis)
 void ModelVolume::scale_geometry_after_creation(const Vec3f& versor)
 {
 	const_cast<TriangleMesh*>(m_mesh.get())->scale(versor);
-	const_cast<TriangleMesh*>(m_convex_hull.get())->scale(versor);
+    if (m_convex_hull->empty())
+        //BBS: recompute the convex hull if it is null for previous too small
+        this->calculate_convex_hull();
+    else
+        const_cast<TriangleMesh*>(m_convex_hull.get())->scale(versor);
 }
 
 void ModelVolume::transform_this_mesh(const Transform3d &mesh_trafo, bool fix_left_handed)

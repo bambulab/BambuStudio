@@ -1488,6 +1488,7 @@ void Tab::cache_config_diff(const std::vector<std::string>& selected_options)
 void Tab::apply_config_from_cache()
 {
     bool was_applied = false;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": enter");
     // check and apply extruders count for printer preset
     if (m_type == Preset::TYPE_PRINTER)
         was_applied = static_cast<TabPrinter*>(this)->apply_extruder_cnt_from_cache();
@@ -1501,6 +1502,7 @@ void Tab::apply_config_from_cache()
 
     if (was_applied)
         update_dirty();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": exit, was_applied=%1%")%was_applied;
 }
 
 
@@ -3440,6 +3442,7 @@ void Tab::reactive_preset_combo_box()
 // Initialize the UI from the current preset
 void Tab::load_current_preset()
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": enter");
     const Preset& preset = m_presets->get_edited_preset();
 
     update_btns_enabling();
@@ -3543,6 +3546,7 @@ void Tab::load_current_preset()
 #if 0
     );
 #endif
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": exit");
 }
 
 //Regerenerate content of the page tree.
@@ -3625,6 +3629,8 @@ void Tab::update_preset_choice()
 // If the current profile is modified, user is asked to save the changes.
 void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/, const std::string& last_selected_ph_printer_name/* =""*/)
 {
+    BOOST_LOG_TRIVIAL(info) << boost::format("select preset, name %1%, delete_current %2%")
+        %preset_name %delete_current;
     if (preset_name.empty()) {
         if (delete_current) {
             // Find an alternate preset to be selected after the current preset is deleted.
@@ -3637,6 +3643,8 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
             if (idx_new == presets.size())
                 for (idx_new = idx_current - 1; idx_new > 0 && ! presets[idx_new].is_visible; -- idx_new);
             preset_name = presets[idx_new].name;
+            BOOST_LOG_TRIVIAL(info) << boost::format("cause by delete current ,choose the next visible, idx %1%, name %2%")
+                                        %idx_new %preset_name;
         } else {
             //BBS select first visible item first
             const std::deque<Preset> &presets 		= this->m_presets->get_presets();
@@ -3648,6 +3656,8 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
                 // If no name is provided, select the "-- default --" preset.
                 preset_name = m_presets->default_preset().name;
             }
+            BOOST_LOG_TRIVIAL(info) << boost::format("not cause by delete current ,choose the first visible, idx %1%, name %2%")
+                                        %idx_new %preset_name;
         }
     }
     //BBS: add project embedded preset logic and refine is_external
@@ -3661,6 +3671,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
     m_dependent_tabs.clear();
     if (current_dirty && ! may_discard_current_dirty_preset(nullptr, preset_name)) {
         canceled = true;
+        BOOST_LOG_TRIVIAL(info) << boost::format("current dirty and cancelled");
     } else if (print_tab) {
         // Before switching the print profile to a new one, verify, whether the currently active filament or SLA material
         // are compatible with the new print.
@@ -3680,6 +3691,8 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
             if (old_preset_dirty && ! new_preset_compatible)
                 dependent.discard_current_changes();
         }
+        BOOST_LOG_TRIVIAL(info) << boost::format("select process, new_preset_compatible %1%, old_preset_dirty %2%, cancelled %3%")
+            %new_preset_compatible %old_preset_dirty % canceled;
     } else if (printer_tab) {
         // Before switching the printer to a new one, verify, whether the currently active print and filament
         // are compatible with the new printer.
@@ -3704,9 +3717,9 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
             };
             std::vector<PresetUpdate> updates = {
                 { Preset::Type::TYPE_PRINT,         &m_preset_bundle->prints,       ptFFF },
-                { Preset::Type::TYPE_SLA_PRINT,     &m_preset_bundle->sla_prints,   ptSLA },
+                //{ Preset::Type::TYPE_SLA_PRINT,     &m_preset_bundle->sla_prints,   ptSLA },
                 { Preset::Type::TYPE_FILAMENT,      &m_preset_bundle->filaments,    ptFFF },
-                { Preset::Type::TYPE_SLA_MATERIAL,  &m_preset_bundle->sla_materials,ptSLA }
+                //{ Preset::Type::TYPE_SLA_MATERIAL,  &m_preset_bundle->sla_materials,ptSLA }
             };
             for (PresetUpdate &pu : updates) {
                 pu.old_preset_dirty = (old_printer_technology == pu.technology) && pu.presets->current_is_dirty();
@@ -3726,8 +3739,12 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
         }
         if (! canceled)
         	technology_changed = old_printer_technology != new_printer_technology;
+
+        BOOST_LOG_TRIVIAL(info) << boost::format("select machine, technology_changed %1%, canceled %2%")
+                %technology_changed  % canceled;
     }
 
+    BOOST_LOG_TRIVIAL(info) << boost::format("before delete action, canceled %1%, delete_current %2%") %canceled %delete_current;
     if (! canceled && delete_current) {
         // Delete the file and select some other reasonable preset.
         // It does not matter which preset will be made active as the preset will be re-selected from the preset_name variable.
@@ -3741,14 +3758,17 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
                 BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
                 acc->need_delete_presets.push_back(current_preset.setting_id);
             }
+            BOOST_LOG_TRIVIAL(info) << boost::format("will delete current preset...");
             m_presets->delete_current_preset();
-        } catch (const std::exception & /* e */) {
+        } catch (const std::exception & ex) {
             //FIXME add some error reporting!
             canceled = true;
+            BOOST_LOG_TRIVIAL(info) << boost::format("found exception when delete: %1%") %ex.what();
         }
     }
 
     if (canceled) {
+        BOOST_LOG_TRIVIAL(info) << boost::format("canceled delete, update ui...");
         if (m_type == Preset::TYPE_PRINTER) {
             if (!last_selected_ph_printer_name.empty() &&
                 m_presets->get_edited_preset().name == PhysicalPrinter::get_preset_name(last_selected_ph_printer_name)) {
@@ -3768,6 +3788,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
         // if this action was initiated from the plater.
         on_presets_changed();
     } else {
+        BOOST_LOG_TRIVIAL(info) << boost::format("successfully delete, will update compatibility");
         if (current_dirty)
             m_presets->discard_current_changes();
 
@@ -3814,6 +3835,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
 
     if (technology_changed)
         wxGetApp().mainframe->technology_changed();
+    BOOST_LOG_TRIVIAL(info) << boost::format("select preset, exit");
 }
 
 // If the current preset is dirty, the user is asked whether the changes may be discarded.
@@ -4270,6 +4292,9 @@ void Tab::delete_preset()
     //std::string action = current_preset.is_external ? _utf8(L("remove")) : _utf8(L("delete"));
     // TRN  remove/delete
 
+    BOOST_LOG_TRIVIAL(info) << boost::format("delete preset %1%, setting_id %2%, user_id %3%, base_id %4%, sync_info %5%, type %6%")
+        %current_preset.name%current_preset.setting_id%current_preset.user_id%current_preset.base_id%current_preset.sync_info
+        %Preset::get_type_string(m_type);
     PhysicalPrinterCollection& physical_printers = m_preset_bundle->physical_printers;
     wxString msg;
 
@@ -4339,16 +4364,19 @@ void Tab::delete_preset()
         physical_printers.delete_preset_from_printers(current_preset.name);
 
     //BBS delete preset
-    AccountManager* acc = wxGetApp().getAccountManager();
+    //will delete in select_preset
+    /*AccountManager* acc = wxGetApp().getAccountManager();
     current_preset.sync_info = "delete";
     if (!current_preset.setting_id.empty()) {
         BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
         acc->need_delete_presets.push_back(current_preset.setting_id);
-    }
+    }*/
 
     // Select will handle of the preset dependencies, of saving & closing the depending profiles, and
     // finally of deleting the preset.
     this->select_preset("", true);
+
+    BOOST_LOG_TRIVIAL(info) << boost::format("delete preset finished");
 }
 
 void Tab::toggle_show_hide_incompatible()
