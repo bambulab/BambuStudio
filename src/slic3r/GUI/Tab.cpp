@@ -2362,6 +2362,8 @@ void TabFilament::build()
     load_initial_data();
 
     auto page = add_options_page(L("Filament"), "spool");
+    page->m_split_multi_line = true;
+    page->m_option_label_at_right = true;
         //BBS
         auto optgroup = page->new_optgroup(L("Basic information"));
         // Set size as all another fields for a better alignment
@@ -2382,12 +2384,14 @@ void TabFilament::build()
         optgroup->append_single_option_line("bed_temperature_difference");
 
         optgroup = page->new_optgroup(L("Print temperature"));
+        optgroup->split_multi_line = true;
+        optgroup->option_label_at_right = true;
         Line line = { L("Nozzle"), L("Nozzle temperature when printing") };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
         line.append_option(optgroup->get_option("nozzle_temperature"));
         optgroup->append_line(line);
 
-        line = { L("Bed"), L("Bed temperature of different bed type when printing") };
+        line = {L("Bed"), L("Bed temperature of different bed type when printing")};
         // BBS
         ConfigOptionDef def = *print_config_def.get("curr_bed_type");
         def.label = "";
@@ -2397,6 +2401,8 @@ void TabFilament::build()
         def.set_default_value(new ConfigOptionEnum<BedType>(btPC));
         Option bed_type_option(def, "bed_type");
         line.append_option(bed_type_option);
+
+        // BBS
         line.append_option(optgroup->get_option("bed_temperature_initial_layer"));
         line.append_option(optgroup->get_option("bed_temperature"));
         optgroup->append_line(line);

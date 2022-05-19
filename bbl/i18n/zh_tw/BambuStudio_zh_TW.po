@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-18 11:08+0800\n"
+"POT-Creation-Date: 2022-05-19 20:51+0800\n"
 "PO-Revision-Date: 2022-03-12 17:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com> , patched traditional "
 "chinese by Cheng-Hsien Ho <taksito@gmail.com>\n"
@@ -401,6 +401,36 @@ msgstr ""
 
 msgid "In the calibration of temperature protection"
 msgstr ""
+
+msgid "MC"
+msgstr ""
+
+msgid "MainBoard"
+msgstr ""
+
+msgid "AMS"
+msgstr ""
+
+msgid "TH"
+msgstr ""
+
+msgid "XCam"
+msgstr ""
+
+msgid "Unknown"
+msgstr ""
+
+msgid "Fatal"
+msgstr ""
+
+msgid "Serious"
+msgstr ""
+
+msgid "Common"
+msgstr ""
+
+msgid "Info"
+msgstr "信息"
 
 msgid "N/A"
 msgstr ""
@@ -1041,9 +1071,6 @@ msgstr ""
 msgid "This is the newest version."
 msgstr ""
 
-msgid "Info"
-msgstr "信息"
-
 msgid "Switching application language"
 msgstr ""
 
@@ -1159,6 +1186,12 @@ msgid "Rename"
 msgstr "重命名"
 
 msgid "Fix model"
+msgstr ""
+
+msgid "Fix model through cloud"
+msgstr ""
+
+msgid "Fix model locally"
 msgstr ""
 
 msgid "Export as STL"
@@ -1342,8 +1375,8 @@ msgid_plural "%1$d errors repaired"
 msgstr[0] ""
 
 #, c-format, boost-format
-msgid "%1$d open edge"
-msgid_plural "%1$d open edges"
+msgid "%1$d non-manifold edge"
+msgid_plural "%1$d non-manifold edges"
 msgstr[0] ""
 
 msgid "Remaining errors"
@@ -1454,6 +1487,9 @@ msgid_plural "Failed to repair folowing model objects"
 msgstr[0] ""
 
 msgid "Repairing was canceled"
+msgstr ""
+
+msgid "Repair finished"
 msgstr ""
 
 msgid "Additional process preset"
@@ -1987,6 +2023,9 @@ msgstr ""
 msgid "Update"
 msgstr ""
 
+msgid "HMS"
+msgstr ""
+
 msgid "OK"
 msgstr ""
 
@@ -2447,7 +2486,7 @@ msgstr ""
 msgid "Send to printer"
 msgstr ""
 
-msgid "Custom supports, seams and color painting were removed after repairing."
+msgid "Custom supports and color painting were removed before repairing."
 msgstr ""
 
 msgid "Invalid number"
@@ -2925,6 +2964,9 @@ msgstr ""
 msgid "Nozzle temperature when printing"
 msgstr ""
 
+msgid "The bed type that correspond to the following temperatures"
+msgstr ""
+
 msgid "Bed temperature of different bed type when printing"
 msgstr ""
 
@@ -3259,9 +3301,6 @@ msgid "Repaired 3mf file does not contain any volume"
 msgstr ""
 
 msgid "Repaired 3mf file contains more than one volume"
-msgstr ""
-
-msgid "Repair finished"
 msgstr ""
 
 msgid "Repair canceled"

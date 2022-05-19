@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-18 11:08+0800\n"
+"POT-Creation-Date: 2022-05-19 20:51+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -396,6 +396,36 @@ msgstr ""
 
 msgid "In the calibration of temperature protection"
 msgstr ""
+
+msgid "MC"
+msgstr ""
+
+msgid "MainBoard"
+msgstr ""
+
+msgid "AMS"
+msgstr ""
+
+msgid "TH"
+msgstr ""
+
+msgid "XCam"
+msgstr ""
+
+msgid "Unknown"
+msgstr "Sconosciuto"
+
+msgid "Fatal"
+msgstr ""
+
+msgid "Serious"
+msgstr ""
+
+msgid "Common"
+msgstr ""
+
+msgid "Info"
+msgstr "Info"
 
 msgid "N/A"
 msgstr "N/A"
@@ -1038,9 +1068,6 @@ msgstr ""
 msgid "This is the newest version."
 msgstr ""
 
-msgid "Info"
-msgstr "Info"
-
 msgid "Switching application language"
 msgstr ""
 
@@ -1156,6 +1183,12 @@ msgid "Rename"
 msgstr "Rinomina"
 
 msgid "Fix model"
+msgstr ""
+
+msgid "Fix model through cloud"
+msgstr ""
+
+msgid "Fix model locally"
 msgstr ""
 
 msgid "Export as STL"
@@ -1340,10 +1373,10 @@ msgstr[0] ""
 msgstr[1] ""
 
 #, c-format, boost-format
-msgid "%1$d open edge"
-msgid_plural "%1$d open edges"
-msgstr[0] "‪%1$d‬ bordo aperto"
-msgstr[1] "‪%1$d‬ bordi aperti"
+msgid "%1$d non-manifold edge"
+msgid_plural "%1$d non-manifold edges"
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "Remaining errors"
 msgstr "Errori rimanenti"
@@ -1456,6 +1489,9 @@ msgstr[1] ""
 
 msgid "Repairing was canceled"
 msgstr "La riparazione è stata annullata"
+
+msgid "Repair finished"
+msgstr ""
 
 msgid "Additional process preset"
 msgstr ""
@@ -1991,6 +2027,9 @@ msgstr ""
 msgid "Update"
 msgstr ""
 
+msgid "HMS"
+msgstr ""
+
 msgid "OK"
 msgstr ""
 
@@ -2453,7 +2492,7 @@ msgstr "Invia G-code"
 msgid "Send to printer"
 msgstr "Manda alla stampante"
 
-msgid "Custom supports, seams and color painting were removed after repairing."
+msgid "Custom supports and color painting were removed before repairing."
 msgstr ""
 
 msgid "Invalid number"
@@ -2932,6 +2971,9 @@ msgstr "Ugello"
 msgid "Nozzle temperature when printing"
 msgstr ""
 
+msgid "The bed type that correspond to the following temperatures"
+msgstr ""
+
 msgid "Bed temperature of different bed type when printing"
 msgstr ""
 
@@ -3267,9 +3309,6 @@ msgid "Repaired 3mf file does not contain any volume"
 msgstr ""
 
 msgid "Repaired 3mf file contains more than one volume"
-msgstr ""
-
-msgid "Repair finished"
 msgstr ""
 
 msgid "Repair canceled"
@@ -5097,6 +5136,11 @@ msgstr ""
 msgid " Object:"
 msgstr ""
 
+#~ msgid "%1$d open edge"
+#~ msgid_plural "%1$d open edges"
+#~ msgstr[0] "‪%1$d‬ bordo aperto"
+#~ msgstr[1] "‪%1$d‬ bordi aperti"
+
 #~ msgid "Save project"
 #~ msgstr "Salva progetto"
 
@@ -6647,9 +6691,6 @@ msgstr ""
 
 #~ msgid "Drag and drop G-code file"
 #~ msgstr "Trascina e rilascia un file G-code"
-
-#~ msgid "Unknown"
-#~ msgstr "Sconosciuto"
 
 #~ msgid "Skirt/Brim"
 #~ msgstr "Skirt/Brim"
@@ -10407,8 +10448,8 @@ msgstr ""
 #~ msgstr "Rilevati dati avanzati"
 
 #~ msgid ""
-#~ "You can't to add the object(s) from %s because of one or some of them "
-#~ "is(are) multi-part"
+#~ "You can't to add the object(s) from %s because of one or some of them is"
+#~ "(are) multi-part"
 #~ msgstr ""
 #~ "Non è possibile aggiungere oggetti da %s perché uno o più sono multi-parte"
 
@@ -13081,8 +13122,8 @@ msgstr ""
 #~ "default extruder and bed temperature are reset using non-wait command; "
 #~ "however if M104, M109, M140 or M190 are detected in this custom code, "
 #~ "Slic3r will not add temperature commands. Note that you can use "
-#~ "placeholder variables for all Slic3r settings, so you can put a \"M109 "
-#~ "S[first_layer_temperature]\" command wherever you want."
+#~ "placeholder variables for all Slic3r settings, so you can put a \"M109 S"
+#~ "[first_layer_temperature]\" command wherever you want."
 #~ msgstr ""
 #~ "Questo codice è inserito tra gli oggetti quando si utilizza una stampa "
 #~ "sequenziale. Come predefinito, la temperatura di estrusione e del piano "
@@ -13793,8 +13834,8 @@ msgstr ""
 #~ msgid ""
 #~ "This experimental setting uses outputs the E values in cubic millimeters "
 #~ "instead of linear millimeters. If your firmware doesn't already know "
-#~ "filament diameter(s), you can put commands like 'M200 "
-#~ "D[filament_diameter_0] T0' in your start G-code in order to turn "
+#~ "filament diameter(s), you can put commands like 'M200 D"
+#~ "[filament_diameter_0] T0' in your start G-code in order to turn "
 #~ "volumetric mode on and use the filament diameter associated to the "
 #~ "filament selected in Slic3r. This is only supported in recent Marlin."
 #~ msgstr ""
@@ -15381,16 +15422,16 @@ msgstr ""
 #~ "anteposti automaticamente così si è liberi di personalizzare liberamente "
 #~ "l'ordine dei comandi di riscaldamento e altre azioni personalizzate. Da "
 #~ "notare che è possibile utilizzare delle variabili segnaposto per tutte le "
-#~ "impostazioni di PrusaSlicer, così è possibile inserire un comando \"M109 "
-#~ "S[first_layer_temperature]\" ovunque lo si desideri. Se hai estrusori "
+#~ "impostazioni di PrusaSlicer, così è possibile inserire un comando \"M109 S"
+#~ "[first_layer_temperature]\" ovunque lo si desideri. Se hai estrusori "
 #~ "multipli, il gcode è processato nell'ordine degli estrusori."
 
 #~ msgid ""
 #~ "This custom code is inserted before every toolchange. Placeholder "
 #~ "variables for all PrusaSlicer settings as well as {toolchange_z}, "
 #~ "{previous_extruder} and {next_extruder} can be used. When a tool-changing "
-#~ "command which changes to the correct extruder is included (such as "
-#~ "T{next_extruder}), PrusaSlicer will emit no other such command. It is "
+#~ "command which changes to the correct extruder is included (such as T"
+#~ "{next_extruder}), PrusaSlicer will emit no other such command. It is "
 #~ "therefore possible to script custom behaviour both before and after the "
 #~ "toolchange."
 #~ msgstr ""

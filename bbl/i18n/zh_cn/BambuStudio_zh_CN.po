@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-18 11:08+0800\n"
+"POT-Creation-Date: 2022-05-19 20:51+0800\n"
 "PO-Revision-Date: 2022-05-17 15:42+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -436,6 +436,36 @@ msgstr "挤出头端面清理中..."
 
 msgid "In the calibration of temperature protection"
 msgstr "挤出头温度保护标定"
+
+msgid "MC"
+msgstr ""
+
+msgid "MainBoard"
+msgstr ""
+
+msgid "AMS"
+msgstr ""
+
+msgid "TH"
+msgstr ""
+
+msgid "XCam"
+msgstr ""
+
+msgid "Unknown"
+msgstr "未定义"
+
+msgid "Fatal"
+msgstr ""
+
+msgid "Serious"
+msgstr ""
+
+msgid "Common"
+msgstr ""
+
+msgid "Info"
+msgstr "信息"
 
 msgid "N/A"
 msgstr "N/A"
@@ -1088,9 +1118,6 @@ msgstr "登录信息过期。请重新登录。"
 msgid "This is the newest version."
 msgstr "已经是最新版本。"
 
-msgid "Info"
-msgstr "信息"
-
 msgid "Switching application language"
 msgstr "切换应用程序语言"
 
@@ -1207,6 +1234,12 @@ msgstr "重命名"
 
 msgid "Fix model"
 msgstr "修复模型"
+
+msgid "Fix model through cloud"
+msgstr ""
+
+msgid "Fix model locally"
+msgstr ""
 
 msgid "Export as STL"
 msgstr "导出为 STL"
@@ -1389,9 +1422,9 @@ msgid_plural "%1$d errors repaired"
 msgstr[0] "%1$d个错误被修复"
 
 #, c-format, boost-format
-msgid "%1$d open edge"
-msgid_plural "%1$d open edges"
-msgstr[0] "%1$d条非闭合边"
+msgid "%1$d non-manifold edge"
+msgid_plural "%1$d non-manifold edges"
+msgstr[0] ""
 
 msgid "Remaining errors"
 msgstr "剩余错误"
@@ -1502,6 +1535,9 @@ msgstr[0] "以下模型对象修复失败"
 
 msgid "Repairing was canceled"
 msgstr "修复被取消"
+
+msgid "Repair finished"
+msgstr "修复已完成"
 
 msgid "Additional process preset"
 msgstr "附加工艺预设"
@@ -2049,6 +2085,9 @@ msgstr "录像"
 msgid "Update"
 msgstr "升级"
 
+msgid "HMS"
+msgstr ""
+
 msgid "OK"
 msgstr "确认"
 
@@ -2511,8 +2550,8 @@ msgstr "发送 G 代码"
 msgid "Send to printer"
 msgstr "发送到打印机"
 
-msgid "Custom supports, seams and color painting were removed after repairing."
-msgstr "修复后自定义支撑、接缝、上色配置会被删除。"
+msgid "Custom supports and color painting were removed before repairing."
+msgstr ""
 
 msgid "Invalid number"
 msgstr "无效数字"
@@ -2993,6 +3032,9 @@ msgstr "喷嘴"
 msgid "Nozzle temperature when printing"
 msgstr "打印时的喷嘴温度"
 
+msgid "The bed type that correspond to the following temperatures"
+msgstr "与下列温度对应的热床类型"
+
 msgid "Bed temperature of different bed type when printing"
 msgstr "打印时不同类型热床的温度"
 
@@ -3338,9 +3380,6 @@ msgstr "修复的3mf文件不包含任何零件"
 
 msgid "Repaired 3mf file contains more than one volume"
 msgstr "已修复的3mf文件包含多个零件"
-
-msgid "Repair finished"
-msgstr "修复已完成"
 
 msgid "Repair canceled"
 msgstr "修复被取消"
@@ -3908,7 +3947,7 @@ msgid "By object"
 msgstr "逐件"
 
 msgid "Slow printing down for better layer cooling"
-msgstr "降低打印速度以得到更好的冷却"
+msgstr "降低打印速度 以得到更好的冷却"
 
 msgid ""
 "Enable this option to slow printing speed down to make the final layer time "
@@ -5247,6 +5286,14 @@ msgstr "正在切片网格"
 
 msgid " Object:"
 msgstr " 对象："
+
+#~ msgid "%1$d open edge"
+#~ msgid_plural "%1$d open edges"
+#~ msgstr[0] "%1$d条非闭合边"
+
+#~ msgid ""
+#~ "Custom supports, seams and color painting were removed after repairing."
+#~ msgstr "修复后自定义支撑、接缝、上色配置会被删除。"
 
 #~ msgid "No objects to export."
 #~ msgstr "没有可导出的对象。"
@@ -6796,9 +6843,6 @@ msgstr " 对象："
 
 #~ msgid "Drag and drop G-code file"
 #~ msgstr "拖拽或丢弃G-code文件"
-
-#~ msgid "Unknown"
-#~ msgstr "未定义"
 
 #~ msgid "Skirt/Brim"
 #~ msgstr "裙边/侧裙"

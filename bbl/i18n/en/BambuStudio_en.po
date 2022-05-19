@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-18 11:08+0800\n"
+"POT-Creation-Date: 2022-05-19 20:51+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -408,6 +408,36 @@ msgid "Nozzle cleaning..."
 msgstr ""
 
 msgid "In the calibration of temperature protection"
+msgstr ""
+
+msgid "MC"
+msgstr ""
+
+msgid "MainBoard"
+msgstr ""
+
+msgid "AMS"
+msgstr ""
+
+msgid "TH"
+msgstr ""
+
+msgid "XCam"
+msgstr ""
+
+msgid "Unknown"
+msgstr ""
+
+msgid "Fatal"
+msgstr ""
+
+msgid "Serious"
+msgstr ""
+
+msgid "Common"
+msgstr ""
+
+msgid "Info"
 msgstr ""
 
 msgid "N/A"
@@ -1058,9 +1088,6 @@ msgstr ""
 msgid "This is the newest version."
 msgstr ""
 
-msgid "Info"
-msgstr ""
-
 msgid "Switching application language"
 msgstr ""
 
@@ -1177,6 +1204,12 @@ msgstr ""
 
 msgid "Fix model"
 msgstr "Fix Model"
+
+msgid "Fix model through cloud"
+msgstr ""
+
+msgid "Fix model locally"
+msgstr ""
 
 msgid "Export as STL"
 msgstr ""
@@ -1360,8 +1393,8 @@ msgstr[0] ""
 msgstr[1] ""
 
 #, c-format, boost-format
-msgid "%1$d open edge"
-msgid_plural "%1$d open edges"
+msgid "%1$d non-manifold edge"
+msgid_plural "%1$d non-manifold edges"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -1478,6 +1511,9 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "Repairing was canceled"
+msgstr ""
+
+msgid "Repair finished"
 msgstr ""
 
 msgid "Additional process preset"
@@ -2019,6 +2055,9 @@ msgstr ""
 msgid "Update"
 msgstr ""
 
+msgid "HMS"
+msgstr ""
+
 msgid "OK"
 msgstr ""
 
@@ -2491,7 +2530,7 @@ msgstr ""
 msgid "Send to printer"
 msgstr ""
 
-msgid "Custom supports, seams and color painting were removed after repairing."
+msgid "Custom supports and color painting were removed before repairing."
 msgstr ""
 
 msgid "Invalid number"
@@ -2983,6 +3022,9 @@ msgstr ""
 msgid "Nozzle temperature when printing"
 msgstr ""
 
+msgid "The bed type that correspond to the following temperatures"
+msgstr ""
+
 msgid "Bed temperature of different bed type when printing"
 msgstr ""
 
@@ -3324,9 +3366,6 @@ msgstr "The repaired 3mf file does not contain any volume."
 
 msgid "Repaired 3mf file contains more than one volume"
 msgstr "The repaired 3mf file contains more than one volume."
-
-msgid "Repair finished"
-msgstr ""
 
 msgid "Repair canceled"
 msgstr ""

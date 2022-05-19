@@ -169,7 +169,7 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                     label_h = label_h * 2;
                 label_w = sublabel_width;
             }
-            h_pos += label_w + 1 + m_h_gap;
+            h_pos += label_w + 8 + m_h_gap;
             if (ctrl_line.height < label_h) ctrl_line.height = label_h;
         }                
     };
@@ -855,6 +855,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
             else if(opt == option_set.front())
                 is_url_string = !suppress_hyperlinks && !og_line.label_path.empty();
             h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label, field ? (field->blink() ? &blink_color : field->label_color()) : nullptr, ctrl->opt_group->sublabel_width * ctrl->m_em_unit, is_url_string);
+            h_pos += 8;
         }
 
         // BBS: new layout
