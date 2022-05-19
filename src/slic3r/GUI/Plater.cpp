@@ -6129,6 +6129,7 @@ void Plater::new_project(bool skip_confirm, bool silent)
 
     //BBS: add only gcode mode
     m_only_gcode = false;
+    get_notification_manager()->bbl_close_plateinfo_notification();
 
     if (!silent)
         wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
@@ -6189,6 +6190,7 @@ void Plater::load_project(wxString const& filename2,
 
     //BBS: add only gcode mode
     m_only_gcode = false;
+    get_notification_manager()->bbl_close_plateinfo_notification();
 
     wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
 
@@ -7898,7 +7900,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
 {
     //if (p->model.objects.empty()) {
     //    MessageDialog dialog(nullptr, _L("No objects to export."), _L("Save project"), wxYES);
-    //    if (dialog.ShowModal() == wxYES) 
+    //    if (dialog.ShowModal() == wxYES)
     //        return -1;
     //}
 

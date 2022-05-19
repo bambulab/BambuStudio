@@ -3926,6 +3926,8 @@ std::vector<Vec2f> GLCanvas3D::get_empty_cells(const Vec2f start_point)
         ModelInstance* model_instance0 = model_object->instances.front();
         Polygon hull_2d = model_object->convex_hull_2d(Geometry::assemble_transform({ 0.0, 0.0, model_instance0->get_offset().z() }, model_instance0->get_rotation(),
             model_instance0->get_scaling_factor(), model_instance0->get_mirror()));
+        if (hull_2d.empty())
+            continue;
 
         const auto& instances = model_object->instances;
         double rotation_z0 = instances.front()->get_rotation().z();
