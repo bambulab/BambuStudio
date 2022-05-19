@@ -740,6 +740,9 @@ void MainFrame::init_tabpanel()
 #endif
     }
 
+    m_auxiliary = new AuxiliaryPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    m_tabpanel->AddPage(m_auxiliary, _L("Auxiliary"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"));
+
     if (m_plater) {
         // load initial config
         auto full_config = wxGetApp().preset_bundle->full_config();
@@ -1346,7 +1349,7 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     //BBS GUI refactor: remove unused layout new/dlg
     //if (m_layout != ESettingsLayout::Dlg) // Do not update tabs if the Settings are in the separated dialog
     m_param_panel->msw_rescale();
-
+    m_auxiliary->msw_rescale();
     m_monitor->msw_rescale();
 
     // BBS

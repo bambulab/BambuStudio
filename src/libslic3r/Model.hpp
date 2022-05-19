@@ -1195,11 +1195,11 @@ public:
 class ModelInfo
 {
 public:
-    std::string cover_file;
-    std::string license;
-    std::string description;
-    std::string copyright;
-    std::string model_name;
+    std::string cover_file;     // utf8 format
+    std::string license;        // utf8 format
+    std::string description;    // utf8 format
+    std::string copyright;      // utf8 format
+    std::string model_name;     // utf8 format
 
     void load(ModelInfo &info) {
         this->cover_file    = info.cover_file;
@@ -1233,6 +1233,15 @@ public:
     std::shared_ptr<ModelDesignInfo> design_info = nullptr;
     std::shared_ptr<ModelInfo> model_info = nullptr;
 
+    void SetDesigner(std::string designer, std::string designer_user_id) {
+        if (design_info == nullptr) {
+            design_info = std::make_shared<ModelDesignInfo>();
+        }
+        design_info->Designer = designer;
+        //BBS tips: clean design user id when set designer
+        design_info->DesignerUserId = designer_user_id;
+    }
+    
     // Extensions for color print
     CustomGCode::Info custom_gcode_per_print_z;
 

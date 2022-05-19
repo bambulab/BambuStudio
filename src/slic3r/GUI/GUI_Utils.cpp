@@ -345,7 +345,7 @@ bool load_image(const std::string &filename, wxImage &image)
     return result;
 }
 
-bool generate_image(const std::string &filename, wxImage &image, wxSize img_size)
+bool generate_image(const std::string &filename, wxImage &image, wxSize img_size, int method)
 {
     bool    result = true;
     wxImage img;
@@ -358,13 +358,23 @@ bool generate_image(const std::string &filename, wxImage &image, wxSize img_size
     image.Clear(0);
     unsigned char *alpha = image.GetAlpha();
     if (alpha) { ::memset(alpha, wxIMAGE_ALPHA_TRANSPARENT, image.GetWidth() * image.GetHeight()); }
-    float h_factor   = img.GetHeight() / (float) image.GetHeight();
-    float w_factor   = img.GetWidth() / (float) image.GetWidth();
-    float factor     = std::max(h_factor, w_factor);
-    int   tar_height = (int) ((float) img.GetHeight() / factor);
-    int   tar_width  = (int) ((float) img.GetWidth() / factor);
-    img              = img.Rescale(tar_width, tar_height);
-    image.Paste(img, (image.GetWidth() - tar_width) / 2, (image.GetHeight() - tar_height) / 2);
+    if (method == GERNERATE_IMAGE_RESIZE) {
+        float h_factor   = img.GetHeight() / (float) image.GetHeight();
+        float w_factor   = img.GetWidth() / (float) image.GetWidth();
+        float factor     = std::max(h_factor, w_factor);
+        int   tar_height = (int) ((float) img.GetHeight() / factor);
+        int   tar_width  = (int) ((float) img.GetWidth() / factor);
+        img              = img.Rescale(tar_width, tar_height);
+        image.Paste(img, (image.GetWidth() - tar_width) / 2, (image.GetHeight() - tar_height) / 2);
+    } else if (method == GERNERATE_IMAGE_CROP_VERTICAL) {
+        float w_factor   = img.GetWidth() / (float) image.GetWidth();
+        int   tar_height = (int) ((float) img.GetHeight() / w_factor);
+        int   tar_width  = (int) ((float) img.GetWidth() / w_factor);
+        img              = img.Rescale(tar_width, tar_height);
+        image.Paste(img, (image.GetWidth() - tar_width) / 2, (image.GetHeight() - tar_height) / 2);
+    } else {
+        return false;
+    }
     return true;
 }
 

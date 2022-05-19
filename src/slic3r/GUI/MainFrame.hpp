@@ -19,6 +19,7 @@
 //BBS: GUI refactor
 #include "ParamsPanel.hpp"
 #include "Monitor.hpp"
+#include "Auxiliary.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "DebugToolDialog.hpp"
 #include "Widgets/SideButton.hpp"
@@ -301,6 +302,7 @@ public:
     Plater*               m_plater { nullptr };
     //BBS: GUI refactor
     MonitorPanel*         m_monitor{ nullptr };
+    AuxiliaryPanel*       m_auxiliary{ nullptr };
     DebugToolDialog*      m_debug_tool_dlg{ nullptr };
     WebViewPanel*         m_webview { nullptr };
     wxLogWindow*          m_log_window { nullptr };

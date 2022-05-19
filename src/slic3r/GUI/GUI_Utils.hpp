@@ -452,9 +452,11 @@ public:
 #define _3MF_COVER_SIZE                  wxSize(240, 240)
 #define PRINTER_THUMBNAIL_SMALL_SIZE     wxSize(252, 188)
 #define PRINTER_THUMBNAIL_MIDDLE_SIZE    wxSize(680, 680)
+#define GERNERATE_IMAGE_RESIZE           0
+#define GERNERATE_IMAGE_CROP_VERTICAL    1
 
 bool load_image(const std::string& filename, wxImage &image);
-bool generate_image(const std::string &filename, wxImage &image, wxSize img_size);
+bool generate_image(const std::string &filename, wxImage &image, wxSize img_size, int method = GERNERATE_IMAGE_RESIZE);
 
 }}
 

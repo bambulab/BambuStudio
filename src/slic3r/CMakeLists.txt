@@ -72,6 +72,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/AboutDialog.hpp
     GUI/AuxiliaryDialog.cpp
     GUI/AuxiliaryDialog.hpp
+    GUI/Auxiliary.cpp
+    GUI/Auxiliary.hpp
     GUI/BackgroundSlicingProcess.cpp
     GUI/BackgroundSlicingProcess.hpp
     GUI/BitmapCache.cpp

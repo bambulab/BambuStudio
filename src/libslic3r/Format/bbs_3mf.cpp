@@ -5726,6 +5726,7 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, c
                         if (boost::filesystem::is_regular_file(file_entry.path())) {
                             // BBS generate thumbnails
                             // copy to /Metadata folder
+                            src_file = file_entry.path().string();
                             if (file_entry.path().filename() == _3MF_COVER_FILE) {
                                 dst_in_3mf          = METADATA_DIR + _3MF_COVER_FILE;
                                 data._3mf_thumbnail = dst_in_3mf;
