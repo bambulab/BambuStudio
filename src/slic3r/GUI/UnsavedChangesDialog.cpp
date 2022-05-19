@@ -983,7 +983,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     }
 
     // "Save" button
-    //if (ActionButtons::SAVE & m_buttons) add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, _L("Save"), false);
+    if (ActionButtons::SAVE & m_buttons) add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, _L("Save"), false);
 
     /* ScalableButton *cancel_btn = new ScalableButton(this, wxID_CANCEL, "cross", _L("Cancel"), wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true, 24);
       buttons->Add(cancel_btn, 1, wxLEFT | wxRIGHT, 5);
@@ -1332,10 +1332,11 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
     PresetCollection* presets = dependent_presets;
 
     // activate buttons and labels
-    /* if (m_save_btn)
-         m_save_btn    ->Bind(wxEVT_ENTER_WINDOW, [this, presets](wxMouseEvent& e) {
-         show_info_line(Action::Save, presets ? presets->get_selected_preset().name : ""); e.Skip();
-     });*/
+    if (m_save_btn)
+        m_save_btn->Bind(wxEVT_ENTER_WINDOW, [this, presets](wxMouseEvent &e) {
+            show_info_line(Action::Save, presets ? presets->get_selected_preset().name : "");
+            e.Skip();
+        });
    
 
     if (m_transfer_btn) {
