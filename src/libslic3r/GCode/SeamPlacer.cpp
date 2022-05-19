@@ -442,6 +442,7 @@ void SeamPlacer::place_seam(ExtrusionLoop& loop, const Point& last_pos, bool ext
     ++m_plan_idx;
 }
 
+constexpr float CLOSE_TO_LAST_SEAM_THRESHOLD = 5;
 
 // Returns a seam for an EXTERNAL perimeter.
 Point SeamPlacer::calculate_seam(const Layer& layer, const SeamPosition seam_position,
@@ -502,6 +503,18 @@ Point SeamPlacer::calculate_seam(const Layer& layer, const SeamPosition seam_pos
             last_pos_weight = 5.f;
         } if (seam_position == spNearest) {
             // last_pos already contains current nozzle position
+
+            // BBS: if the project point of current nozzle position is close to the last seam of this object
+            // then we think the current nozzle position is almost same with last same.
+            // So that last seam can be treat as one factor even in cost based strategy to make seam more posible to be aligned
+            if (po != nullptr) {
+                std::optional<Point> pos = m_seam_history.get_last_seam(m_po_list[po_idx], layer_idx, polygon_bb);
+                if (pos.has_value()) {
+                    Point project_point = polygon.point_projection(last_pos);
+                    if ((pos->cast<double>() - project_point.cast<double>()).squaredNorm() < std::pow(scale_(CLOSE_TO_LAST_SEAM_THRESHOLD), 2.))
+                        last_pos = *pos;
+                }
+            }
         }
 
         // Insert a projection of last_pos into the polygon.
@@ -592,7 +605,7 @@ Point SeamPlacer::calculate_seam(const Layer& layer, const SeamPosition seam_pos
             }
         }
 
-        if (seam_position == spAligned)
+        if (seam_position == spAligned || seam_position == spNearest)
             m_seam_history.add_seam(po, polygon.points[idx_min], polygon_bb);
 
 
