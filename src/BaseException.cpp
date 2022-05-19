@@ -223,9 +223,9 @@ LONG WINAPI CBaseException::UnhandledExceptionFilter(PEXCEPTION_POINTERS pExcept
 	if (pExceptionInfo->ExceptionRecord->ExceptionCode < 0x80000000
 		//BBS: Load project on computers with SDC may trigger this exception (in ShowModal()),
 		//     It's not fatal and should be ignored, or there will be lots of meaningless crash logs
-		|| pExceptionInfo->ExceptionRecord->ExceptionCode==0xe0434352
+		|| pExceptionInfo->ExceptionRecord->ExceptionCode==0xe0434352)
 		//BBS: ignore the exception when copy preset
-		|| pExceptionInfo->ExceptionRecord->ExceptionCode==0xe06d7363)
+		//|| pExceptionInfo->ExceptionRecord->ExceptionCode==0xe06d7363)
 	{
 		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": got an ExceptionCode %1%, skip it!") % pExceptionInfo->ExceptionRecord->ExceptionCode;
 		return EXCEPTION_CONTINUE_SEARCH;
