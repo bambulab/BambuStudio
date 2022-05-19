@@ -8240,7 +8240,7 @@ void Plater::publish_project()
     if (upload_finish && load_url) {
         p->m_publish_dlg->SetPublishStep(PublishStep::STEP_FILL_INFO, true);
         wxMilliSleep(1000);
-        p->m_publish_dlg->Hide();
+        p->m_publish_dlg->Close();
         std::string url;
         if (publish_project) {
             url = (boost::format(MY_MODEL_PUBLISH_URL_FORMAT)
