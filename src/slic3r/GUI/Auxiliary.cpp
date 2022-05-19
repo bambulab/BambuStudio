@@ -32,27 +32,35 @@ wxDEFINE_EVENT(EVT_AUXILIARY_UPDATE_COVER, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AUXILIARY_UPDATE_DELETE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AUXILIARY_UPDATE_RENAME, wxCommandEvent);
 
-const static std::array<wxString, 5> s_default_folders = {("Model Pictures"), ("Bill of Materials"), ("Assembly Guide"), ("Others"), (".thumbnails")};
 
-AuFile::AuFile(wxWindow *parent, fs::path file_path, wxString file_name, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
+AuFile::AuFile(wxWindow *parent, fs::path file_path, wxString file_name, AuxiliaryFolderType type, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
 {
     Freeze();
     wxPanel::Create(parent, id, pos, wxSize(FromDIP(300), FromDIP(340)), style);
     SetBackgroundColour(AUFILE_GREY300);
     wxBoxSizer *sizer_body = new wxBoxSizer(wxVERTICAL);
 
+    // auto m_file_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(300), FromDIP(300)));
+    // m_file_img->SetBitmap(*bitmap);
+
+    m_type      = type;
     m_file_path = file_path;
     m_file_name = file_name;
 
-    // auto m_file_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(300), FromDIP(300)));
-    if (m_file_path.empty()) { m_file_path = (boost::format("%1%/images/auxiliary_none_image.png") % resources_dir()).str(); }
-
-    // m_file_path       = encode_path(m_file_path.c_str());
-    auto image = new wxImage(encode_path(m_file_path.string().c_str()));
-    image->Rescale(FromDIP(300), FromDIP(300));
-    m_file_bitmap = wxBitmap(*image);
-    // m_file_img->SetBitmap(*bitmap);
-
+    if (m_type == MODEL_PICTURE) {
+        if (m_file_path.empty()) { m_file_path = (boost::format("%1%/images/auxiliary_none_image.png") % resources_dir()).str(); }
+        auto image = new wxImage(encode_path(m_file_path.string().c_str()));
+        image->Rescale(FromDIP(300), FromDIP(300));
+        m_file_bitmap = wxBitmap(*image);
+    } else {
+        //m_file_path = 
+        auto temp_file = (boost::format("%1%/images/auxiliary_none_image.png") % resources_dir()).str();
+        auto image = new wxImage(encode_path(temp_file.c_str()));
+        image->Rescale(FromDIP(300), FromDIP(300));
+        m_file_bitmap = wxBitmap(*image);
+    }
+    
+   
     cover_text_left  = _L("Set to cover");
     cover_text_right = _L("Rename");
     cover_text_cover = _L("Cover");
@@ -143,28 +151,36 @@ void AuFile::doRender(wxDC &dc)
         dc.DrawBitmap(m_file_edit_mask, 0, size.y - m_file_edit_mask.GetSize().y);
         dc.SetFont(Label::Body_14);
         dc.SetTextForeground(*wxWHITE);
+        if (m_type == MODEL_PICTURE) {
+            // left text
+            auto sizet = dc.GetTextExtent(cover_text_left);
+            auto pos   = wxPoint(0, 0);
+            pos.x      = (size.x / 2 - sizet.x) / 2;
+            pos.y      = (size.y - (m_file_edit_mask.GetSize().y + sizet.y) / 2);
+            dc.DrawText(cover_text_left, pos);
 
-        // left text
-        auto sizet = dc.GetTextExtent(cover_text_left);
-        auto pos   = wxPoint(0, 0);
-        pos.x      = (size.x / 2 - sizet.x) / 2;
-        pos.y      = (size.y - (m_file_edit_mask.GetSize().y + sizet.y) / 2);
-        dc.DrawText(cover_text_left, pos);
+            // right text
+            sizet = dc.GetTextExtent(cover_text_right);
+            pos   = wxPoint(0, 0);
+            pos.x = size.x / 2 + (size.x / 2 - sizet.x) / 2;
+            pos.y = (size.y - (m_file_edit_mask.GetSize().y + sizet.y) / 2);
+            dc.DrawText(cover_text_right, pos);
 
-        // right text
-        sizet = dc.GetTextExtent(cover_text_right);
-        pos   = wxPoint(0, 0);
-        pos.x = size.x / 2 + (size.x / 2 - sizet.x) / 2;
-        pos.y = (size.y - (m_file_edit_mask.GetSize().y + sizet.y) / 2);
-        dc.DrawText(cover_text_right, pos);
-
-        // Split
-        dc.SetPen(AUFILE_GREY700);
-        dc.SetBrush(AUFILE_GREY700);
-        pos   = wxPoint(0, 0);
-        pos.x = size.x / 2 - 1;
-        pos.y = size.y - FromDIP(30) - (m_file_edit_mask.GetSize().y - FromDIP(30)) / 2;
-        dc.DrawRectangle(pos.x, pos.y, 2, FromDIP(30));
+            // Split
+            dc.SetPen(AUFILE_GREY700);
+            dc.SetBrush(AUFILE_GREY700);
+            pos   = wxPoint(0, 0);
+            pos.x = size.x / 2 - 1;
+            pos.y = size.y - FromDIP(30) - (m_file_edit_mask.GetSize().y - FromDIP(30)) / 2;
+            dc.DrawRectangle(pos.x, pos.y, 2, FromDIP(30));
+        } else {
+            // right text
+            auto sizet = dc.GetTextExtent(cover_text_right);
+            auto pos   = wxPoint(0, 0);
+            pos.x = (size.x  - sizet.x) / 2;
+            pos.y = (size.y - (m_file_edit_mask.GetSize().y + sizet.y) / 2);
+            dc.DrawText(cover_text_right, pos);
+        }       
     }
 
     if (m_cover) {
@@ -263,7 +279,7 @@ void AuFile::on_input_enter(wxCommandEvent &evt)
 
     // post event
     auto event = wxCommandEvent(EVT_AUXILIARY_UPDATE_RENAME);
-    event.SetString(wxString::Format("%s|%s|%s", "Model Pictures", m_file_path.string(), new_dir_path.string()));
+    event.SetString(wxString::Format("%s|%s|%s", s_default_folders[m_type], m_file_path.string(), new_dir_path.string()));
     event.SetEventObject(m_parent);
     wxPostEvent(m_parent, event);
 
@@ -331,7 +347,7 @@ void AuFile::on_set_cover()
         thumbnail_img.SaveFile(encode_path(cover_img_path.c_str()));
     }
 
-    result = generate_image(m_file_path.string(), thumbnail_img, PRINTER_THUMBNAIL_SMALL_SIZE, GERNERATE_IMAGE_CROP_VERTICAL);
+    result = generate_image(m_file_path.string(), thumbnail_img, PRINTER_THUMBNAIL_SMALL_SIZE);
     if (result) {
         auto small_img_path = dir_path.string() + "/thumbnail_small.png";
         thumbnail_img.SaveFile(encode_path(small_img_path.c_str()));
@@ -344,7 +360,7 @@ void AuFile::on_set_cover()
     }
 
     auto evt = wxCommandEvent(EVT_AUXILIARY_UPDATE_COVER);
-    evt.SetString("Model Pictures");
+    evt.SetString(s_default_folders[m_type]);
     evt.SetEventObject(m_parent);
     wxPostEvent(m_parent, evt);
 }
@@ -360,7 +376,7 @@ void AuFile::on_set_delete()
 
     if (is_fine) {
         auto evt = wxCommandEvent(EVT_AUXILIARY_UPDATE_DELETE);
-        evt.SetString(wxString::Format("%s|%s", "Model Pictures", m_file_path.string()));
+        evt.SetString(wxString::Format("%s|%s", s_default_folders[m_type], m_file_path.string()));
         evt.SetEventObject(m_parent);
         wxPostEvent(m_parent, evt);
     }
@@ -447,7 +463,7 @@ void AuFolderPanel::update(std::vector<fs::path> paths)
     clear();
     for (auto i = 0; i < paths.size(); i++) {
         std::string name   = fs::path(paths[i].c_str()).filename().string();
-        auto        aufile = new AuFile(m_scrolledWindow, paths[i], name, wxID_ANY);
+        auto        aufile = new AuFile(m_scrolledWindow, paths[i], name, m_type, wxID_ANY);
         m_gsizer_content->Add(aufile, 0, 0, 0);
         auto af  = new AuFiles;
         af->path = paths[i].string();
@@ -463,7 +479,7 @@ void AuFolderPanel::msw_rescale() {}
 void AuFolderPanel::on_add(wxCommandEvent &event)
 {
     auto evt = wxCommandEvent(EVT_AUXILIARY_IMPORT);
-    evt.SetString("Model Pictures");
+    evt.SetString(s_default_folders[m_type]);
     evt.SetEventObject(m_parent);
     wxPostEvent(m_parent, evt);
 }
@@ -664,7 +680,13 @@ void AuxiliaryPanel::on_import_file(wxCommandEvent &event)
 
     wxString     src_path;
     wxString     dst_path;
-    wxFileDialog dialog(this, _L("Choose files"), wxEmptyString, wxEmptyString, wxFileSelectorDefaultWildcardStr, wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
+
+     wxString wildcard = wxFileSelectorDefaultWildcardStr;
+    if (file_model == s_default_folders[MODEL_PICTURE]) {
+        wildcard = wxT("JPEG files (*.jpeg)|*.jpeg|BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif|PNG files (*.png)|*.png|JPG files (*.jpg)|*.jpg");
+    } 
+
+    wxFileDialog dialog(this, _L("Choose files"), wxEmptyString, wxEmptyString, wildcard, wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
     if (dialog.ShowModal() == wxID_OK) {
         wxArrayString file_paths;
         dialog.GetPaths(file_paths);
@@ -674,14 +696,41 @@ void AuxiliaryPanel::on_import_file(wxCommandEvent &event)
             fs::path src_bfs_path(file_path.ToStdWstring());
             wxString dir_path = m_root_dir;
             dir_path += "\\" + file_model;
-            dir_path += "\\" + src_bfs_path.filename().generic_wstring();
+            
+
+
+            auto is_exist = false;
+            auto iter = m_paths_list.find(file_model.ToStdString());
+            if (iter != m_paths_list.end()) {
+                std::vector<fs::path> list = iter->second;
+                for (auto i = 0; i < list.size(); i++) {
+                    if (src_bfs_path.filename() == list[i].filename()) { 
+                        is_exist = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (!is_exist) {
+                dir_path += "\\" + src_bfs_path.filename().generic_wstring();
+            } else {
+                time_t t1 = time(0);
+                char   ch1[64];
+                strftime(ch1, sizeof(ch1), "%T", localtime(&t1));
+                std::string time_text = ch1;
+
+                auto before_name = replaceSpace(src_bfs_path.filename().string(), src_bfs_path.extension().string(), "");
+                time_text = replaceSpace(time_text, ":", "_");
+                dir_path += "\\" + before_name + "_" + time_text + src_bfs_path.extension().wstring();
+            }
+           
 
             boost::system::error_code ec;
             if (!fs::copy_file(src_bfs_path, fs::path(dir_path.ToStdWstring()), fs::copy_option::overwrite_if_exists, ec)) continue;
             Slic3r::put_other_changes();
 
             // add in file list
-            auto iter = m_paths_list.find(file_model.ToStdString());
+            iter = m_paths_list.find(file_model.ToStdString());
             auto file_fs_path = fs::path(dir_path.c_str());
             if (iter != m_paths_list.end()) {
                 m_paths_list[file_model.ToStdString()].push_back(file_fs_path);
@@ -710,6 +759,13 @@ void AuxiliaryPanel::create_folder(wxString name)
         }
     }
     fs::create_directory(bfs_path);
+}
+
+std::string AuxiliaryPanel::replaceSpace(std::string s, std::string ts, std::string ns)
+{
+    int    index   = -1;
+    while ((index = s.find(ts.c_str())) >= 0) { s = s.replace(index, ts.length(), ns.c_str()); }
+    return s;
 }
 
 void AuxiliaryPanel::Reload(wxString aux_path)
@@ -792,6 +848,9 @@ void AuxiliaryPanel::update_all_panel()
 
     for (mit = m_paths_list.begin(); mit != m_paths_list.end(); mit++) {
         if (mit->first == "Model Pictures") { m_pictures_panel->update(mit->second); }
+        if (mit->first == "Bill of Materials") { m_bill_of_materials_panel->update(mit->second); }
+        if (mit->first == "Assembly Guide") { m_assembly_panel->update(mit->second); }
+        if (mit->first == "Others") { m_others_panel->update(mit->second); }
     }
 }
 

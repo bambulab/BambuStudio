@@ -59,13 +59,17 @@ enum AuxiliaryFolderType {
     DESIGNER,
 };
 
- enum ValidationType { Valid, NoValid, Warning };
+const static std::array<wxString, 5> s_default_folders = {("Model Pictures"), ("Bill of Materials"), ("Assembly Guide"), ("Others"), (".thumbnails")};
+
+
+enum ValidationType { Valid, NoValid, Warning };
 
 namespace Slic3r { namespace GUI {
 
 class AuFile : public wxPanel
 {
 public:
+    AuxiliaryFolderType m_type;
     bool                m_hover{false};
     bool                m_cover{false};
     wxStaticText*       m_text_name {nullptr};
@@ -81,7 +85,7 @@ public:
     wxBitmap m_file_delete;
 
 public:
-    AuFile(wxWindow *parent, fs::path file_path, wxString file_name = wxEmptyString,  wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
+    AuFile(wxWindow *parent, fs::path file_path, wxString file_name, AuxiliaryFolderType type, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     void enter_rename_mode();
     void exit_rename_mode();
     void OnPaint(wxPaintEvent &evt);
@@ -166,14 +170,14 @@ public:
 class AuxiliaryPanel : public wxPanel
 {
 private:
-    Tabbook *m_tabpanel{nullptr};
-    wxSizer *m_main_sizer{nullptr};
+    Tabbook *m_tabpanel = {nullptr};
+    wxSizer *m_main_sizer = {nullptr};
 
-    AuFolderPanel *m_pictures_panel;
-    wxPanel *      m_bill_of_materials_panel;
-    wxPanel *      m_assembly_panel;
-    wxPanel *      m_others_panel;
-    wxPanel *      m_designer_panel;
+    AuFolderPanel *m_pictures_panel= {nullptr};
+    AuFolderPanel *m_bill_of_materials_panel= {nullptr};
+    AuFolderPanel *m_assembly_panel= {nullptr};
+    AuFolderPanel *m_others_panel= {nullptr};
+    wxPanel *      m_designer_panel= {nullptr};
 
     /* images */
     wxBitmap  m_signal_strong_img;
@@ -201,7 +205,8 @@ public:
     wxString                                        m_root_dir;
     void                                            init_auxiliary();
     void                                            create_folder(wxString name = wxEmptyString);
-        void                                         on_import_file(wxCommandEvent &event);
+    std::string                                     replaceSpace(std::string s, std::string ts, std::string ns);
+    void                                            on_import_file(wxCommandEvent &event);
     void                                            Reload(wxString aux_path);
 
     void update_all_panel();
