@@ -60,7 +60,9 @@ ParamsDialog::ParamsDialog(wxWindow * parent)
 
 void ParamsDialog::Popup()
 {
+#ifdef __WIN32__
     Reparent(wxGetApp().mainframe);
+#endif
     Center();
     Show();
 }
