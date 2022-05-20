@@ -529,7 +529,7 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
     m_bind_machine_list = c->myBindMachineList;
     for (auto &elem : m_bind_machine_list) {
         MachineObject *     mobj = elem.second;
-        MachineObjectPanel *op = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
+        MachineObjectPanel *op   = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
         op->set_can_bind(false);
         if (!mobj->is_online()) {
             op->set_printer_offline();
@@ -544,6 +544,7 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
         // op->Bind(wxEVT_LEFT_UP, &SelectMachinePopup::OnLeftUp, this);
         m_sizer_my_devices->Add(op, 0, wxEXPAND, 0);
     }
+
     Layout();
     Fit();
 }
@@ -1051,9 +1052,15 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         return;
     }
 
-    // TODO check printing status
+    // check printing status
     if (!it->second->can_print()) {
-        update_err_msg(L("Current printer is busy. Please select another one."));
+        update_err_msg(_L("Current printer is busy. Please select another one."));
+        return;
+    }
+
+    // check upgrading status
+    if (it->second->upgrade_display_state == MachineObject::UpgradingDisplayState::UpgradingInProgress) {
+        update_err_msg(_L("Current printer is in upgrading. Please try again after the upgrade."));
         return;
     }
 
@@ -1153,14 +1160,17 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
 
     std::vector<std::string> machine_list;
 
+    std::map<std::string, MachineObject *> my_bind_machine_list = c->myBindMachineList;
     // same machine only appear once
-    for (auto it = c->myBindMachineList.begin(); it != c->myBindMachineList.end(); it++) {
-        if (it->second && it->second->is_online()) { machine_list.push_back(it->second->dev_name); }
+    for (auto it = my_bind_machine_list.begin(); it != my_bind_machine_list.end(); it++) {
+        if (it->second && it->second->is_online()) {
+            machine_list.push_back(it->second->dev_name);
+        }
     }
-
+    
     machine_list = sort_string(machine_list);
     for (auto tt = machine_list.begin(); tt != machine_list.end(); tt++) {
-        for (auto it = c->myBindMachineList.begin(); it != c->myBindMachineList.end(); it++) {
+        for (auto it = my_bind_machine_list.begin(); it != my_bind_machine_list.end(); it++) {
             if (it->second->dev_name == *tt) {
                 m_list.push_back(it->second);
                 m_comboBox_printer->Append(it->second->dev_name);
@@ -1183,6 +1193,8 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
     } else {
         m_printer_last_select = "";
         update_select_layout(PRINTER_TYPE::PRINTER_3DPrinter_UKNOWN);
+        m_comboBox_printer->SetTextLabel("");
+        update_err_msg(_L("No printer available"));
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  "for send task, current printer id =  "<< m_printer_last_select << std::endl;
