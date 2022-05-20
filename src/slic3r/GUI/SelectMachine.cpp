@@ -213,6 +213,7 @@ void MachineObjectPanel::OnPaint(wxPaintEvent &event)
 
 void MachineObjectPanel::render(wxDC &dc)
 {
+#ifdef __WXMSW__
     wxSize     size = GetSize();
     wxMemoryDC memdc;
     wxBitmap   bmp(size.x, size.y);
@@ -226,6 +227,9 @@ void MachineObjectPanel::render(wxDC &dc)
 
     memdc.SelectObject(wxNullBitmap);
     dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
 }
 
 void MachineObjectPanel::doRender(wxDC &dc)

@@ -268,6 +268,7 @@ void AMSextruder::paintEvent(wxPaintEvent &evt)
 
 void AMSextruder::render(wxDC &dc)
 {
+#ifdef __WXMSW__
     wxSize     size = GetSize();
     wxMemoryDC memdc;
     wxBitmap   bmp(size.x, size.y);
@@ -281,6 +282,9 @@ void AMSextruder::render(wxDC &dc)
 
     memdc.SelectObject(wxNullBitmap);
     dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
 }
 
 void AMSextruder::doRender(wxDC &dc)
@@ -406,6 +410,7 @@ bool AMSLib::Enable(bool enable) { return wxWindow::Enable(enable); }
 
 void AMSLib::render(wxDC &dc)
 {
+#ifdef __WXMSW__
     wxSize     size = GetSize();
     wxMemoryDC memdc;
     wxBitmap   bmp(size.x, size.y);
@@ -419,6 +424,9 @@ void AMSLib::render(wxDC &dc)
 
     memdc.SelectObject(wxNullBitmap);
     dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
 }
 
 void AMSLib::doRender(wxDC &dc)
@@ -556,6 +564,7 @@ void AMSRoad::paintEvent(wxPaintEvent &evt)
 
 void AMSRoad::render(wxDC &dc)
 {
+#ifdef __WXMSW__
     wxSize     size = GetSize();
     wxMemoryDC memdc;
     wxBitmap   bmp(size.x, size.y);
@@ -569,6 +578,9 @@ void AMSRoad::render(wxDC &dc)
 
     memdc.SelectObject(wxNullBitmap);
     dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
 }
 
 void AMSRoad::doRender(wxDC &dc)
@@ -795,6 +807,7 @@ void AMSItem::paintEvent(wxPaintEvent &evt)
 
 void AMSItem::render(wxDC &dc)
 {
+#ifdef __WXMSW__
     wxSize     size = GetSize();
     wxMemoryDC memdc;
     wxBitmap   bmp(size.x, size.y);
@@ -808,6 +821,9 @@ void AMSItem::render(wxDC &dc)
 
     memdc.SelectObject(wxNullBitmap);
     dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
 }
 
 void AMSItem::doRender(wxDC &dc)

@@ -145,6 +145,7 @@ void ProgressBar::paintEvent(wxPaintEvent &evt)
 
 void ProgressBar::render(wxDC &dc)
 {
+#ifdef __WXMSW__
     wxSize     size = GetSize();
     wxMemoryDC memdc;
     wxBitmap   bmp(size.x, size.y);
@@ -158,6 +159,9 @@ void ProgressBar::render(wxDC &dc)
 
     memdc.SelectObject(wxNullBitmap);
     dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
 }
 
 void ProgressBar::doRender(wxDC &dc)
