@@ -788,8 +788,12 @@ void Model::load_from(Model& model)
     model.backup_path.clear();
     object_backup_id_map = model.object_backup_id_map;
     next_object_backup_id = model.next_object_backup_id;
-    key_store = model.key_store;
+    key_store   = model.key_store;
+    design_info = model.design_info;
+    model_info  = model.model_info;
     model.key_store.reset();
+    model.design_info.reset();
+    model.model_info.reset();
 }
 
 // BBS: backup

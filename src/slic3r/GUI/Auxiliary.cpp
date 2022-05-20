@@ -97,11 +97,11 @@ AuFile::AuFile(wxWindow *parent, fs::path file_path, wxString file_name, Auxilia
     Thaw();
 
     Bind(wxEVT_PAINT, &AuFile::OnPaint, this);
+    Bind(wxEVT_ERASE_BACKGROUND, &AuFile::OnEraseBackground, this);
     Bind(wxEVT_ENTER_WINDOW, &AuFile::on_mouse_enter, this);
     Bind(wxEVT_LEAVE_WINDOW, &AuFile::on_mouse_leave, this);
     Bind(wxEVT_LEFT_DOWN, &AuFile::on_mouse_left_down, this);
     Bind(wxEVT_LEFT_UP, &AuFile::on_mouse_left_up, this);
-    //m_input_name->Bind(wxEVT_KILL_FOCUS, &AuFile::on_kill_focus, this);
     m_input_name->Bind(wxEVT_TEXT_ENTER, &AuFile::on_input_enter, this);
 }
 
@@ -121,31 +121,33 @@ void AuFile::exit_rename_mode()
 
 void AuFile::OnPaint(wxPaintEvent &event)
 {
-    wxPaintDC dc(this);
-    render(dc);
+    //wxPaintDC dc(this);
+    //render(dc);
+    wxBufferedPaintDC dc(this);
+    PrepareDC(dc);
+    PaintBackground(dc);
+    PaintForeground(dc);
 }
 
-void AuFile::render(wxDC &dc)
+void AuFile::PaintBackground(wxDC &dc)
 {
-    wxSize     size = GetSize();
-    wxMemoryDC memdc;
-    wxBitmap   bmp(size.x, size.y);
-    memdc.SelectObject(bmp);
-    memdc.Blit({0, 0}, size, &dc, {0, 0});
+    wxColour backgroundColour = GetBackgroundColour();
+    if (!backgroundColour.Ok()) backgroundColour = AUFILE_GREY300;
+    dc.SetBrush(wxBrush(backgroundColour));
+    dc.SetPen(wxPen(backgroundColour, 1));
+    wxRect windowRect(wxPoint(0, 0), GetClientSize());
 
-    {
-        wxGCDC dc2(memdc);
-        doRender(dc2);
-    }
-
-    memdc.SelectObject(wxNullBitmap);
-    dc.DrawBitmap(bmp, 0, 0);
+    //CalcUnscrolledPosition(windowRect.x, windowRect.y, &windowRect.x, &windowRect.y);
+    dc.DrawRectangle(windowRect);
+    dc.DrawBitmap(m_file_bitmap, 0, 0);
 }
 
-void AuFile::doRender(wxDC &dc)
+void AuFile::OnEraseBackground(wxEraseEvent &evt) {}
+
+void AuFile::PaintForeground(wxDC &dc)
 {
     wxSize size = wxSize(FromDIP(300), FromDIP(300));
-    dc.DrawBitmap(m_file_bitmap, 0, 0);
+    //dc.DrawBitmap(m_file_bitmap, 0, 0);
 
     if (m_hover) {
         dc.DrawBitmap(m_file_edit_mask, 0, size.y - m_file_edit_mask.GetSize().y);
@@ -347,7 +349,7 @@ void AuFile::on_set_cover()
         thumbnail_img.SaveFile(encode_path(cover_img_path.c_str()));
     }
 
-    result = generate_image(m_file_path.string(), thumbnail_img, PRINTER_THUMBNAIL_SMALL_SIZE);
+    result = generate_image(m_file_path.string(), thumbnail_img, PRINTER_THUMBNAIL_SMALL_SIZE, GERNERATE_IMAGE_CROP_VERTICAL);
     if (result) {
         auto small_img_path = dir_path.string() + "/thumbnail_small.png";
         thumbnail_img.SaveFile(encode_path(small_img_path.c_str()));
@@ -370,8 +372,23 @@ void AuFile::on_set_delete()
     fs::path bfs_path = m_file_path;
     auto     is_fine = fs::remove(bfs_path);
 
-    if (wxGetApp().plater()->model().model_info == nullptr) { wxGetApp().plater()->model().model_info = std::make_shared<ModelInfo>(); }
+    if (m_cover) {
+        auto full_path          = m_file_path.branch_path();
+        auto full_root_path     = full_path.branch_path();
+        auto full_root_path_str = encode_path(full_root_path.string().c_str());
+        auto dir                = wxString::Format("%s/.thumbnails", full_root_path_str);
+        fs::path dir_path(dir.c_str());
 
+        auto cover_img_path = dir_path.string() + "/thumbnail_3mf.png";
+        auto small_img_path = dir_path.string() + "/thumbnail_small.png";
+        auto middle_img_path = dir_path.string() + "/thumbnail_middle.png";
+
+        if (fs::exists(fs::path(cover_img_path))) { fs::remove(fs::path(cover_img_path));}
+        if (fs::exists(fs::path(small_img_path))) { fs::remove(fs::path(small_img_path)); }
+        if (fs::exists(fs::path(middle_img_path))) { fs::remove(fs::path(middle_img_path)); }
+    }
+
+    if (wxGetApp().plater()->model().model_info == nullptr) { wxGetApp().plater()->model().model_info = std::make_shared<ModelInfo>(); }
     if (wxGetApp().plater()->model().model_info->cover_file == m_file_name) { wxGetApp().plater()->model().model_info->cover_file = ""; }
 
     if (is_fine) {
@@ -394,7 +411,26 @@ void AuFile::set_cover(bool cover)
 
 AuFile::~AuFile() {}
 
-void AuFile::msw_rescale() {}
+void AuFile::msw_rescale() 
+{ 
+    m_file_cover     = create_scaled_bitmap("auxiliary_cover", this, 50);
+    m_file_edit_mask = create_scaled_bitmap("auxiliary_edit_mask", this, 43);
+    m_file_delete    = create_scaled_bitmap("auxiliary_delete", this, 28);
+
+    if (m_type == MODEL_PICTURE) {
+        if (m_file_path.empty()) { m_file_path = (boost::format("%1%/images/auxiliary_none_image.png") % resources_dir()).str(); }
+        auto image = new wxImage(encode_path(m_file_path.string().c_str()));
+        image->Rescale(FromDIP(300), FromDIP(300));
+        m_file_bitmap = wxBitmap(*image);
+    } else {
+        // m_file_path =
+        auto temp_file = (boost::format("%1%/images/auxiliary_none_image.png") % resources_dir()).str();
+        auto image     = new wxImage(encode_path(temp_file.c_str()));
+        image->Rescale(FromDIP(300), FromDIP(300));
+        m_file_bitmap = wxBitmap(*image);
+    }
+    Refresh();
+}
 
 AuFolderPanel::AuFolderPanel(wxWindow *parent, AuxiliaryFolderType type, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
     : wxPanel(parent, id, pos, size, style)
@@ -462,7 +498,17 @@ void AuFolderPanel::update(std::vector<fs::path> paths)
 {
     clear();
     for (auto i = 0; i < paths.size(); i++) {
-        std::string name   = fs::path(paths[i].c_str()).filename().string();
+        //std::string name   = fs::path(paths[i].c_str()).filename().string();
+        /* auto utf_path     = encode_path(paths[i].string().c_str());
+         std::string name     = "";
+
+         size_t found = utf_path.find_last_of("\\");
+         if (found != std::string::npos) {
+             name = utf_path.substr(found, utf_path.length());
+         }*/
+        std::string temp_name   = fs::path(paths[i].c_str()).filename().string();
+        auto name             = encode_path(temp_name.c_str());
+
         auto        aufile = new AuFile(m_scrolledWindow, paths[i], name, m_type, wxID_ANY);
         m_gsizer_content->Add(aufile, 0, 0, 0);
         auto af  = new AuFiles;
@@ -474,7 +520,14 @@ void AuFolderPanel::update(std::vector<fs::path> paths)
     Layout();
 }
 
-void AuFolderPanel::msw_rescale() {}
+void AuFolderPanel::msw_rescale() 
+{
+    m_button_add->SetMinSize(wxSize(FromDIP(80), FromDIP(24)));
+    for (auto i = 0; i < m_aufiles_list.GetCount(); i++) {
+        AuFiles *aufile = m_aufiles_list[i];
+        aufile->file->msw_rescale();
+    }
+}
 
 void AuFolderPanel::on_add(wxCommandEvent &event)
 {
@@ -639,10 +692,11 @@ wxWindow *AuxiliaryPanel::create_side_tools()
     return panel;
 }
 
-void AuxiliaryPanel::msw_rescale()
-{
-    Layout();
-    Refresh();
+void AuxiliaryPanel::msw_rescale() { 
+    m_pictures_panel->msw_rescale();
+    m_bill_of_materials_panel->msw_rescale();
+    m_assembly_panel->msw_rescale();
+    m_others_panel->msw_rescale();
 }
 
 void AuxiliaryPanel::on_size(wxSizeEvent &event)
@@ -780,7 +834,6 @@ void AuxiliaryPanel::Reload(wxString aux_path)
 
     m_root_dir = aux_path;
     m_paths_list.clear();
-
     // Check new path. If not exist, create a new one.
     if (!fs::exists(new_aux_path)) {
         fs::create_directory(new_aux_path);
@@ -791,6 +844,7 @@ void AuxiliaryPanel::Reload(wxString aux_path)
             fs::create_directory(folder_path.ToStdWstring());
         }
         update_all_panel();
+        m_designer_panel->update_info();
         return;
     }
 
@@ -838,13 +892,14 @@ void AuxiliaryPanel::Reload(wxString aux_path)
 
     update_all_panel();
     update_all_cover();
+    m_designer_panel->update_info();
 }
 
 void AuxiliaryPanel::update_all_panel()
 {
     std::map<std::string, std::vector<fs::path>>::iterator mit;
 
-    if (m_paths_list.size() <= 0) { m_pictures_panel->clear(); }
+    m_pictures_panel->clear();
 
     for (mit = m_paths_list.begin(); mit != m_paths_list.end(); mit++) {
         if (mit->first == "Model Pictures") { m_pictures_panel->update(mit->second); }
@@ -877,26 +932,28 @@ void AuxiliaryPanel::update_all_cover()
 
      auto m_text_designer = new wxStaticText(this, wxID_ANY, wxT("Designer"), wxDefaultPosition, wxSize(120, -1), 0);
      m_text_designer->Wrap(-1);
-     m_sizer_designer->Add(m_text_designer, 0, wxALL, 5);
+     m_sizer_designer->Add(m_text_designer, 0, wxALIGN_CENTER, 0);
 
-     m_input_designer =  new ::TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(300), FromDIP(35)), wxTE_PROCESS_ENTER);
+     m_input_designer =  new ::TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(450), FromDIP(30)), wxTE_PROCESS_ENTER);
      m_input_designer->GetTextCtrl()->SetFont(::Label::Body_13);
-     m_sizer_designer->Add(m_input_designer, 0, wxALL, 5);
+     m_input_designer->GetTextCtrl()->SetSize(wxSize(FromDIP(450), FromDIP(22)));
+     m_sizer_designer->Add(m_input_designer, 0, wxALIGN_CENTER, 0);
 
      wxBoxSizer *m_sizer_model_name = new wxBoxSizer(wxHORIZONTAL);
 
      auto m_text_model_name = new wxStaticText(this, wxID_ANY, wxT("Model Name"), wxDefaultPosition, wxSize(120, -1), 0);
      m_text_model_name->Wrap(-1);
-     m_sizer_model_name->Add(m_text_model_name, 0, wxALL, 5);
+     m_sizer_model_name->Add(m_text_model_name, 0, wxALIGN_CENTER, 0);
 
-     m_imput_model_name =  new ::TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(300), FromDIP(35)), wxTE_PROCESS_ENTER);
+     m_imput_model_name =  new ::TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition,wxSize(FromDIP(450),FromDIP(30)), wxTE_PROCESS_ENTER);
      m_imput_model_name->GetTextCtrl()->SetFont(::Label::Body_13);
-     m_sizer_model_name->Add(m_imput_model_name, 0, wxALL, 5);
+     m_imput_model_name->GetTextCtrl()->SetSize(wxSize(FromDIP(450), FromDIP(22)));
+     m_sizer_model_name->Add(m_imput_model_name, 0, wxALIGN_CENTER, 0);
 
      m_sizer_body->Add( 0, 0, 0, wxTOP, 50 );
-     m_sizer_body->Add(m_sizer_designer, 0, wxEXPAND, 5);
+     m_sizer_body->Add(m_sizer_designer, 0, wxLEFT, 50);
      m_sizer_body->Add( 0, 0, 0, wxTOP, 20 );
-     m_sizer_body->Add(m_sizer_model_name, 0, wxEXPAND, 5);
+     m_sizer_body->Add(m_sizer_model_name, 0, wxLEFT, 50);
 
      SetSizer(m_sizer_body);
      Layout();
@@ -938,4 +995,21 @@ void DesignerPanel::on_input_enter_model(wxCommandEvent &evt)
 }
 
 
- }} // namespace Slic3r::GUI
+void DesignerPanel::update_info() 
+{
+    if (wxGetApp().plater()->model().design_info != nullptr) {
+        wxString text = wxString::FromUTF8(wxGetApp().plater()->model().design_info->Designer);
+        m_input_designer->GetTextCtrl()->SetValue(text);
+    } else {
+        m_input_designer->GetTextCtrl()->SetValue(wxEmptyString);
+    }
+
+    if (wxGetApp().plater()->model().model_info != nullptr) {
+        wxString text = wxString::FromUTF8(wxGetApp().plater()->model().model_info->model_name);
+        m_imput_model_name->GetTextCtrl()->SetValue(text);
+    } else {
+         m_imput_model_name->GetTextCtrl()->SetValue(wxEmptyString);
+    }
+}
+
+}} // namespace Slic3r::GUI

@@ -89,11 +89,11 @@ public:
     void enter_rename_mode();
     void exit_rename_mode();
     void OnPaint(wxPaintEvent &evt);
-    void render(wxDC &dc);
-    void doRender(wxDC &dc);
+    void PaintBackground(wxDC &dc);
+    void OnEraseBackground(wxEraseEvent &evt);
+    void PaintForeground(wxDC &dc);
     void on_mouse_enter(wxMouseEvent &evt);
     void on_mouse_leave(wxMouseEvent &evt);
-    void on_kill_focus(wxFocusEvent &evt);
     void on_input_enter(wxCommandEvent &evt);
     void on_mouse_left_down(wxMouseEvent &evt);
     void on_mouse_left_up(wxMouseEvent &evt);
@@ -164,6 +164,7 @@ public:
     bool Show(bool show) override;
     void                on_input_enter_designer(wxCommandEvent &evt);
     void                on_input_enter_model(wxCommandEvent &evt);
+    void                update_info();
 };
 
 
@@ -177,7 +178,7 @@ private:
     AuFolderPanel *m_bill_of_materials_panel= {nullptr};
     AuFolderPanel *m_assembly_panel= {nullptr};
     AuFolderPanel *m_others_panel= {nullptr};
-    wxPanel *      m_designer_panel= {nullptr};
+    DesignerPanel * m_designer_panel= {nullptr};
 
     /* images */
     wxBitmap  m_signal_strong_img;
@@ -201,7 +202,7 @@ public:
     bool Show(bool show);
 
     // core logic
-    std::map<std::string, std::vector<fs::path>>   m_paths_list;
+    std::map<std::string, std::vector<fs::path>>    m_paths_list;
     wxString                                        m_root_dir;
     void                                            init_auxiliary();
     void                                            create_folder(wxString name = wxEmptyString);
