@@ -914,15 +914,10 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     if (! m_placeholder_parser_failed_templates.empty()) {
         // G-code export proceeded, but some of the PlaceholderParser substitutions failed.
         //FIXME localize!
-        std::string msg = std::string("G-code export to ") + path + " failed due to invalid custom G-code sections:\n\n";
+        std::string msg = Slic3r::format(_(L("Failed to generate gcode for invalid custom G-code.\n\n")));
         for (const auto &name_and_error : m_placeholder_parser_failed_templates)
-            msg += name_and_error.first + "\n" + name_and_error.second + "\n";
-        msg += "\nPlease inspect the file ";
-        msg += path_tmp + " for error messages enclosed between\n";
-        msg += "        !!!!! Failed to process the custom G-code template ...\n";
-        msg += "and\n";
-        msg += "        !!!!! End of an error report for the custom G-code template ...\n";
-        msg += "for all macro processing errors.";
+            msg += name_and_error.first + " " + name_and_error.second + "\n";
+        msg += Slic3r::format(_(L("Please check the custom G-code or use the default custom G-code.")));
         throw Slic3r::PlaceholderParserError(msg);
     }
 

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-19 20:51+0800\n"
+"POT-Creation-Date: 2022-05-20 13:30+0800\n"
 "PO-Revision-Date: 2022-05-17 15:42+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -574,7 +574,7 @@ msgid "Line Width (mm)"
 msgstr "线宽（mm）"
 
 msgid "Speed (mm/s)"
-msgstr "回退速度(mm/s)"
+msgstr "速度(mm/s)"
 
 msgid "Fan Speed (%)"
 msgstr "风扇速度（%）"
@@ -1708,6 +1708,9 @@ msgstr "预览"
 msgid "Debug"
 msgstr "调试"
 
+msgid "Auxiliary"
+msgstr "附件"
+
 msgid "Slice"
 msgstr "切片"
 
@@ -1725,9 +1728,6 @@ msgstr "导出切片文件"
 
 msgid "Export Sliced File"
 msgstr "导出切片文件"
-
-msgid "Auxiliary"
-msgstr "附件"
 
 msgid "Beginner's Tutorial"
 msgstr "新手引导"
@@ -2372,6 +2372,15 @@ msgstr "体积为零的对象已被移除"
 
 msgid "The volume of the object is zero"
 msgstr "对象的体积为零"
+
+#, c-format, boost-format
+msgid ""
+"The object from file %s is too small, and maybe in meters or inches.\n"
+" Do you want to scale to millimeters?"
+msgstr ""
+
+msgid "Object too small"
+msgstr ""
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "将这些文件加载为一个多零件对象？\n"
@@ -3032,9 +3041,6 @@ msgstr "喷嘴"
 msgid "Nozzle temperature when printing"
 msgstr "打印时的喷嘴温度"
 
-msgid "The bed type that correspond to the following temperatures"
-msgstr "与下列温度对应的热床类型"
-
 msgid "Bed temperature of different bed type when printing"
 msgstr "打印时不同类型热床的温度"
 
@@ -3487,6 +3493,15 @@ msgid ""
 "faulty mesh"
 msgstr "部分模型在这些高度可能过薄，或者模型存在面片错误"
 
+msgid ""
+"Failed to generate gcode for invalid custom G-code.\n"
+"\n"
+msgstr "由于错误的自定义G-code，G-code生成失败。\n"
+"\n"
+
+msgid "Please check the custom G-code or use the default custom G-code."
+msgstr "请检查自定义G-code，或者使用默认的。"
+
 msgid "No object can be printed. Maybe too small"
 msgstr "没有可打印的对象。可能是因为尺寸过小。"
 
@@ -3844,7 +3859,7 @@ msgstr "悬垂/桥接强制冷却"
 msgid ""
 "Enable this option to optimize part cooling fan speed for overhang and "
 "bridge to get better cooling"
-msgstr "使能这个选项将自动优化桥接和悬垂的风扇转速以获得更好的冷却"
+msgstr "勾选这个选项将自动优化桥接和悬垂的风扇转速以获得更好的冷却"
 
 msgid "Fan speed for overhang"
 msgstr "悬垂风扇速度"
@@ -3955,7 +3970,7 @@ msgid ""
 "that layer can be cooled for longer time. This can improve the cooling "
 "quality for needle and small details"
 msgstr ""
-"使能这个设置，将降低打印速度，使得最终的层打印时间不小于\"最大风扇速度阈值"
+"勾选这个选项，将降低打印速度，使得最终的层打印时间不小于\"最大风扇速度阈值"
 "\"里的层时间阈值，从而使得该层获得更久的冷却。这能够改善尖顶和小细节的冷却效"
 "果"
 
@@ -4112,7 +4127,7 @@ msgid ""
 "If enable this setting, part cooling fan will never be stoped and will run "
 "at least at minimum speed to reduce the frequency of starting and stoping"
 msgstr ""
-"如果使能这个设置，部件冷却风扇将永远不会停止，并且会至少运行在最小风扇转速值"
+"如果勾选这个选项，部件冷却风扇将永远不会停止，并且会至少运行在最小风扇转速值"
 "以减少风扇的启停频次"
 
 msgid "Layer time"
@@ -4395,7 +4410,7 @@ msgid "Brass"
 msgstr "黄铜"
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
-msgstr "如果机器有辅助部件冷却风扇，使能该选项"
+msgstr "如果机器有辅助部件冷却风扇，勾选该选项"
 
 msgid "G-code flavor"
 msgstr "G-code风格"
@@ -5286,6 +5301,13 @@ msgstr "正在切片网格"
 
 msgid " Object:"
 msgstr " 对象："
+
+#, boost-format
+msgid "Error at line %1%:\n"
+msgstr "错误在行%1%：\n"
+
+#~ msgid "The bed type that correspond to the following temperatures"
+#~ msgstr "与下列温度对应的热床类型"
 
 #~ msgid "%1$d open edge"
 #~ msgid_plural "%1$d open edges"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-19 20:51+0800\n"
+"POT-Creation-Date: 2022-05-20 13:30+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1653,6 +1653,9 @@ msgstr ""
 msgid "Debug"
 msgstr ""
 
+msgid "Auxiliary"
+msgstr ""
+
 msgid "Slice"
 msgstr ""
 
@@ -1669,9 +1672,6 @@ msgid "Export sliced file"
 msgstr ""
 
 msgid "Export Sliced File"
-msgstr ""
-
-msgid "Auxiliary"
 msgstr ""
 
 msgid "Beginner's Tutorial"
@@ -2313,6 +2313,15 @@ msgid "Objects with zero volume removed"
 msgstr ""
 
 msgid "The volume of the object is zero"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"The object from file %s is too small, and maybe in meters or inches.\n"
+" Do you want to scale to millimeters?"
+msgstr ""
+
+msgid "Object too small"
 msgstr ""
 
 msgid "Load these files as a single object with multiple parts?\n"
@@ -2969,9 +2978,6 @@ msgstr ""
 msgid "Nozzle temperature when printing"
 msgstr ""
 
-msgid "The bed type that correspond to the following temperatures"
-msgstr ""
-
 msgid "Bed temperature of different bed type when printing"
 msgstr ""
 
@@ -3413,6 +3419,14 @@ msgstr ""
 msgid ""
 "Maybe parts of the object at these height are too thin, or the object has "
 "faulty mesh"
+msgstr ""
+
+msgid ""
+"Failed to generate gcode for invalid custom G-code.\n"
+"\n"
+msgstr ""
+
+msgid "Please check the custom G-code or use the default custom G-code."
 msgstr ""
 
 msgid "No object can be printed. Maybe too small"
@@ -5130,4 +5144,8 @@ msgid "Slicing mesh"
 msgstr ""
 
 msgid " Object:"
+msgstr ""
+
+#, possible-boost-format
+msgid "Error at line %1%:\n"
 msgstr ""
