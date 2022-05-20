@@ -1164,7 +1164,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             return false;
         }
 
-        if (!m_designer_user_id.empty() && !m_designer.empty()) {
+        if (!m_designer.empty()) {
             m_model->design_info = std::make_shared<ModelDesignInfo>();
             m_model->design_info->DesignerUserId = m_designer_user_id;
             m_model->design_info->Designer = m_designer;
@@ -2793,7 +2793,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             m_model_id = m_curr_characters;
         } else if (m_curr_metadata_name == BBL_MODEL_NAME_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found model name = " << m_curr_characters;
-            model_info.model_name = m_curr_metadata_name;
+            model_info.model_name = m_curr_characters;
         } else if (m_curr_metadata_name == BBL_DESIGNER_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found designer = " << m_curr_characters;
             m_designer = m_curr_characters;
@@ -5727,21 +5727,19 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, c
                             // BBS generate thumbnails
                             // copy to /Metadata folder
                             src_file = file_entry.path().string();
+                            /* save to .thumbnails */
+                            dst_in_3mf = file_entry.path().string();
+                            dst_in_3mf.replace(0, root_dir_len, AUXILIARY_DIR);
+                            std::replace(dst_in_3mf.begin(), dst_in_3mf.end(), '\\', '/');
                             if (file_entry.path().filename() == _3MF_COVER_FILE) {
-                                dst_in_3mf          = METADATA_DIR + _3MF_COVER_FILE;
                                 data._3mf_thumbnail = dst_in_3mf;
-                                result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
-                            }
-                            if (file_entry.path().filename() == PRINTER_THUMBNAIL_SMALL_FILE) {
-                                dst_in_3mf                        = METADATA_DIR + PRINTER_THUMBNAIL_SMALL_FILE;
+                            } else if (file_entry.path().filename() == PRINTER_THUMBNAIL_SMALL_FILE) {
                                 data._3mf_printer_thumbnail_small = dst_in_3mf;
-                                result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
-                            }
-                            if (file_entry.path().filename() == PRINTER_THUMBNAIL_MIDDLE_FILE) {
-                                dst_in_3mf                         = METADATA_DIR + PRINTER_THUMBNAIL_MIDDLE_FILE;
+                            } else if (file_entry.path().filename() == PRINTER_THUMBNAIL_MIDDLE_FILE) {
                                 data._3mf_printer_thumbnail_middle = dst_in_3mf;
-                                result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
                             }
+                            
+                            result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
                         }
                     }
                 }
@@ -5756,7 +5754,6 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, c
                 dst_in_3mf = dir_entry.path().string();
                 dst_in_3mf.replace(0, root_dir_len, AUXILIARY_DIR);
                 std::replace(dst_in_3mf.begin(), dst_in_3mf.end(), '\\', '/');
-
                 result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
             }
         }
