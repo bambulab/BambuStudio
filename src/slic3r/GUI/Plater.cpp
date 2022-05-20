@@ -579,17 +579,17 @@ Sidebar::Sidebar(Plater *parent)
     wxStaticText* bed_type_title = new wxStaticText(p->scrolled, wxID_ANY, _L("Bed type"));
     bed_type_title->Wrap(-1);
     bed_type_title->SetFont(Label::Body_14);
-    ComboBox* bed_type_list = new ComboBox(p->scrolled, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
+    m_bed_type_list = new ComboBox(p->scrolled, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
     DynamicPrintConfig& config = wxGetApp().preset_bundle->project_config;
     const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
     if (bed_type_def && bed_type_def->enum_keys_map) {
         for (auto item : *bed_type_def->enum_keys_map)
-            bed_type_list->AppendString(_L(item.first));
+            m_bed_type_list->AppendString(_L(item.first));
     }
 
-    bed_type_list->Select(0);
+    m_bed_type_list->Select(0);
     bed_type_sizer->Add(bed_type_title, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
-    bed_type_sizer->Add(bed_type_list, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND, FromDIP(10));
+    bed_type_sizer->Add(m_bed_type_list, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND, FromDIP(10));
     scrolled_sizer->Add(bed_type_sizer, 0, wxBOTTOM | wxEXPAND, FromDIP(10));
     scrolled_sizer->AddSpacer(FromDIP(15));
 
@@ -1004,6 +1004,12 @@ void Sidebar::on_filaments_change(size_t num_filaments)
 
     p->m_panel_filament_title->Layout();
     p->m_panel_filament_title->Refresh();
+}
+
+void Sidebar::on_bed_type_change(BedType bed_type)
+{
+    if (m_bed_type_list != nullptr)
+        m_bed_type_list->SetSelection(bed_type);
 }
 
 void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
@@ -2667,6 +2673,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             // to avoid black (default) colors for Extruders in the ObjectList,
                             // when for extruder colors are used filament colors
                             q->on_filaments_change(preset_bundle->filament_presets.size());
+
+                            ConfigOption* bed_type_opt = preset_bundle->project_config.option("curr_bed_type");
+                            if (bed_type_opt != nullptr)
+                                q->on_bed_type_change((BedType)bed_type_opt->getInt());
                             is_project_file = true;
                         }
                     }
@@ -8599,6 +8609,11 @@ void Plater::on_filaments_change(size_t num_filaments)
     update_filament_colors_in_full_config();
     sidebar().on_filaments_change(num_filaments);
     sidebar().obj_list()->update_objects_list_filament_column(num_filaments);
+}
+
+void Plater::on_bed_type_change(BedType bed_type)
+{
+    sidebar().on_bed_type_change(bed_type);
 }
 
 bool Plater::update_filament_colors_in_full_config()

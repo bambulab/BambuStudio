@@ -28,6 +28,7 @@ class wxButton;
 class ScalableButton;
 class wxScrolledWindow;
 class wxString;
+class ComboBox;
 
 namespace Slic3r {
 
@@ -109,6 +110,8 @@ public:
     void jump_to_option(const std::string& opt_key, Preset::Type type, const std::wstring& category);
     // BBS. Add on_filaments_change() method.
     void on_filaments_change(size_t num_filaments);
+    // BBS
+    void on_bed_type_change(BedType bed_type);
     void load_ams_list(std::map<std::string, Ams *> const & list);
 
     ObjectList*             obj_list();
@@ -154,6 +157,7 @@ private:
 
     wxBoxSizer* m_scrolled_sizer = nullptr;
     ScalableButton* m_flushing_volume_btn = nullptr;
+    ComboBox* m_bed_type_list = nullptr;
 };
 
 class Plater: public wxPanel
@@ -342,6 +346,8 @@ public:
     bool leave_gizmos_stack();
 
     void on_filaments_change(size_t extruders_count);
+    // BBS
+    void on_bed_type_change(BedType bed_type);
     bool update_filament_colors_in_full_config();
     void on_config_change(const DynamicPrintConfig &config);
     void force_filament_colors_update();
