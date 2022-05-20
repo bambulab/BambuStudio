@@ -4,6 +4,7 @@
 #include <wx/webviewarchivehandler.h>
 #include <wx/webviewfshandler.h>
 #include <wx/msw/webview_edge.h>
+#include <wx/uri.h>
 
 wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
 {
@@ -18,12 +19,14 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
         wxLogMessage("Using fixed edge version");
     }
 #endif
+    auto url2  = url;
+    if (!url2.empty()) { url2 = wxURI(url2).BuildURI(); }
 
     auto webView = wxWebView::New();
     if (webView) {
 #ifdef __WIN32__
         webView->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
-        webView->Create(parent, wxID_ANY, url, wxDefaultPosition, wxDefaultSize);
+        webView->Create(parent, wxID_ANY, url2, wxDefaultPosition, wxDefaultSize);
         //We register the wxfs:// protocol for testing purposes
         webView->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("bbl")));
         //And the memory: file system
@@ -33,7 +36,7 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
         webView->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("wxfs")));
         // And the memory: file system
         webView->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
-        webView->Create(parent, wxID_ANY, url, wxDefaultPosition, wxDefaultSize);
+        webView->Create(parent, wxID_ANY, url2, wxDefaultPosition, wxDefaultSize);
         webView->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
 #endif
 #ifdef __WXMAC__
