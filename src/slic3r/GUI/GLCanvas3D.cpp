@@ -5149,8 +5149,13 @@ BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_be
         bb.merge(wxGetApp().plater()->get_partplate_list().get_bounding_box());
     }
 
-    if (!m_main_toolbar.is_enabled())
-        bb.merge(m_gcode_viewer.get_max_bounding_box());
+    if (!m_main_toolbar.is_enabled()) {
+        const BoundingBoxf3& toolpath_bb = m_gcode_viewer.get_max_bounding_box();
+        if (toolpath_bb.max_size() > 0.f)
+            bb.merge(toolpath_bb);
+        else
+            bb.merge(m_gcode_viewer.get_shell_bounding_box());
+    }
 
     if ((m_canvas_type == CanvasView3D) && (fff_print()->config().print_sequence == PrintSequence::ByObject)) {
         float height_to_lid, height_to_rod;

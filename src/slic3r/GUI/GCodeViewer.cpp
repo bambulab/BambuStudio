@@ -1035,6 +1035,7 @@ void GCodeViewer::reset_shell()
 {
     m_shells.volumes.clear();
     m_shells.print_id = -1;
+    m_shell_bounding_box = BoundingBoxf3();
 }
 
 void GCodeViewer::reset()
@@ -1052,6 +1053,7 @@ void GCodeViewer::reset()
     }
     m_paths_bounding_box = BoundingBoxf3();
     m_max_bounding_box = BoundingBoxf3();
+    m_shell_bounding_box = BoundingBoxf3();
     m_max_print_height = 0.0f;
     m_tools.m_tool_colors = std::vector<Color>();
     m_tools.m_tool_visibles = std::vector<bool>();
@@ -3007,9 +3009,11 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
 
     for (GLVolume* volume : m_shells.volumes.volumes) {
         volume->zoom_to_volumes = false;
-        volume->color[3] = 0.25f;
+        volume->color[3] = 0.5f;
         volume->force_native_color = true;
         volume->set_render_color();
+        //BBS: add shell bounding box logic
+        m_shell_bounding_box.merge(volume->transformed_bounding_box());
     }
 
     //BBS: always load shell when preview
@@ -3895,10 +3899,12 @@ void GCodeViewer::render_shells()
             v->finalize_geometry(true);
     }
 
+    glsafe(::glEnable(GL_DEPTH_TEST));
 //    glsafe(::glDepthMask(GL_FALSE));
 
     shader->start_using();
-    m_shells.volumes.render(GLVolumeCollection::ERenderType::Transparent, true, wxGetApp().plater()->get_camera().get_view_matrix());
+    //BBS: reopen cul faces
+    m_shells.volumes.render(GLVolumeCollection::ERenderType::Transparent, false, wxGetApp().plater()->get_camera().get_view_matrix());
     shader->stop_using();
 
 //    glsafe(::glDepthMask(GL_TRUE));

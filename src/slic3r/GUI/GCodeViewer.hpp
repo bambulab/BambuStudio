@@ -723,6 +723,8 @@ private:
     BoundingBoxf3 m_paths_bounding_box;
     // bounding box of toolpaths + marker tools
     BoundingBoxf3 m_max_bounding_box;
+    //BBS: add shell bounding box
+    BoundingBoxf3 m_shell_bounding_box;
     float m_max_print_height{ 0.0f };
 
     //BBS save m_tools_color and m_tools_visible
@@ -797,6 +799,7 @@ public:
 
     const BoundingBoxf3& get_paths_bounding_box() const { return m_paths_bounding_box; }
     const BoundingBoxf3& get_max_bounding_box() const { return m_max_bounding_box; }
+    const BoundingBoxf3& get_shell_bounding_box() const { return m_shell_bounding_box; }
     const std::vector<double>& get_layers_zs() const { return m_layers.get_zs(); }
 
     const SequentialView& get_sequential_view() const { return m_sequential_view; }
