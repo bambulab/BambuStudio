@@ -425,7 +425,8 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
 
 void SelectMachinePopup::OnDismiss()
 {
-    stop_ssdp();
+    Slic3r::create_thread([this] { stop_ssdp(); });
+
     get_print_info_thread.interrupt();
     if (get_print_info_thread.joinable()) get_print_info_thread.join();
 
@@ -434,9 +435,6 @@ void SelectMachinePopup::OnDismiss()
         delete m_refresh_timer;
         m_refresh_timer = nullptr;
     }
-
-    get_print_info_thread.interrupt();
-    if (get_print_info_thread.joinable()) get_print_info_thread.join();
     wxPopupTransientWindow::OnDismiss();
 }
 
