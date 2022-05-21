@@ -20,6 +20,9 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
     }
 #endif
     auto url2  = url;
+#ifdef __WIN32__
+    url2.Replace("\\", "/");
+#endif
     if (!url2.empty()) { url2 = wxURI(url2).BuildURI(); }
 
     auto webView = wxWebView::New();
