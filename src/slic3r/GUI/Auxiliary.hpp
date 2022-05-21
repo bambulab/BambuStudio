@@ -84,6 +84,11 @@ public:
     wxBitmap m_file_edit_mask;
     wxBitmap m_file_delete;
 
+    wxBitmap m_bitmap_other;
+    wxBitmap m_bitmap_excel;
+    wxBitmap m_bitmap_pdf;
+    wxBitmap m_bitmap_txt;
+
 public:
     AuFile(wxWindow *parent, fs::path file_path, wxString file_name, AuxiliaryFolderType type, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     void enter_rename_mode();
@@ -95,7 +100,7 @@ public:
     void on_mouse_enter(wxMouseEvent &evt);
     void on_mouse_leave(wxMouseEvent &evt);
     void on_input_enter(wxCommandEvent &evt);
-    void on_mouse_left_down(wxMouseEvent &evt);
+    void on_dclick(wxMouseEvent &evt);
     void on_mouse_left_up(wxMouseEvent &evt);
 
     void on_set_cover();

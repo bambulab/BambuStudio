@@ -53,14 +53,18 @@ AuFile::AuFile(wxWindow *parent, fs::path file_path, wxString file_name, Auxilia
         image->Rescale(FromDIP(300), FromDIP(300));
         m_file_bitmap = wxBitmap(*image);
     } else {
-        //m_file_path = 
-        auto temp_file = (boost::format("%1%/images/auxiliary_none_image.png") % resources_dir()).str();
-        auto image = new wxImage(encode_path(temp_file.c_str()));
-        image->Rescale(FromDIP(300), FromDIP(300));
-        m_file_bitmap = wxBitmap(*image);
+        m_bitmap_excel = create_scaled_bitmap("placeholder_excel", nullptr, 300);
+        m_bitmap_pdf   = create_scaled_bitmap("placeholder_pdf", nullptr, 300);
+        m_bitmap_txt   = create_scaled_bitmap("placeholder_txt", nullptr, 300);
+
+       /* auto temp_file = (boost::format("%1%/images/auxiliary_none_image.png") % resources_dir()).str();
+         auto image = new wxImage(encode_path(temp_file.c_str()));
+         image->Rescale(FromDIP(300), FromDIP(300));*/
+        if (m_type == OTHERS) {m_file_bitmap = m_bitmap_txt;}
+        if (m_type == BILL_OF_MATERIALS) {m_file_bitmap = m_bitmap_excel;}
+        if (m_type == ASSEMBLY_GUIDE) {m_file_bitmap = m_bitmap_pdf;}
     }
     
-   
     cover_text_left  = _L("Set to cover");
     cover_text_right = _L("Rename");
     cover_text_cover = _L("Cover");
@@ -100,8 +104,8 @@ AuFile::AuFile(wxWindow *parent, fs::path file_path, wxString file_name, Auxilia
     Bind(wxEVT_ERASE_BACKGROUND, &AuFile::OnEraseBackground, this);
     Bind(wxEVT_ENTER_WINDOW, &AuFile::on_mouse_enter, this);
     Bind(wxEVT_LEAVE_WINDOW, &AuFile::on_mouse_leave, this);
-    Bind(wxEVT_LEFT_DOWN, &AuFile::on_mouse_left_down, this);
     Bind(wxEVT_LEFT_UP, &AuFile::on_mouse_left_up, this);
+    Bind(wxEVT_LEFT_DCLICK, &AuFile::on_dclick, this);
     m_input_name->Bind(wxEVT_TEXT_ENTER, &AuFile::on_input_enter, this);
 }
 
@@ -293,7 +297,10 @@ void AuFile::on_input_enter(wxCommandEvent &evt)
     // evt.Skip();
 }
 
-void AuFile::on_mouse_left_down(wxMouseEvent &evt) {}
+void AuFile::on_dclick(wxMouseEvent &evt) 
+{
+     wxLaunchDefaultApplication(m_file_path.wstring(), 0);
+}
 
 void AuFile::on_mouse_left_up(wxMouseEvent &evt)
 {
@@ -416,6 +423,11 @@ void AuFile::msw_rescale()
     m_file_cover     = create_scaled_bitmap("auxiliary_cover", this, 50);
     m_file_edit_mask = create_scaled_bitmap("auxiliary_edit_mask", this, 43);
     m_file_delete    = create_scaled_bitmap("auxiliary_delete", this, 28);
+
+    m_bitmap_other = create_scaled_bitmap("placeholder_other", this, 300);
+    m_bitmap_excel = create_scaled_bitmap("placeholder_excel", this, 300);
+    m_bitmap_pdf   = create_scaled_bitmap("placeholder_pdf", this, 300);
+    m_bitmap_txt   = create_scaled_bitmap("placeholder_txt", this, 300);
 
     if (m_type == MODEL_PICTURE) {
         if (m_file_path.empty()) { m_file_path = (boost::format("%1%/images/auxiliary_none_image.png") % resources_dir()).str(); }
@@ -736,9 +748,14 @@ void AuxiliaryPanel::on_import_file(wxCommandEvent &event)
     wxString     dst_path;
 
      wxString wildcard = wxFileSelectorDefaultWildcardStr;
+
     if (file_model == s_default_folders[MODEL_PICTURE]) {
         wildcard = wxT("JPEG files (*.jpeg)|*.jpeg|BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif|PNG files (*.png)|*.png|JPG files (*.jpg)|*.jpg");
     } 
+
+    if (file_model == s_default_folders[OTHERS]) {  wildcard = wxT("TXT files (*.txt)|*.txt"); }
+    if (file_model == s_default_folders[BILL_OF_MATERIALS]){ wildcard = wxT("EXCEL files (*.xls)|*.xls|EXCEL files (*.xlsx)|*.xlsx"); }
+    if (file_model == s_default_folders[ASSEMBLY_GUIDE]) { wildcard = wxT("PDF files (*.pdf)|*.pdf"); }
 
     wxFileDialog dialog(this, _L("Choose files"), wxEmptyString, wxEmptyString, wildcard, wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
     if (dialog.ShowModal() == wxID_OK) {
