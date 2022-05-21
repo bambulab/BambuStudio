@@ -69,7 +69,8 @@ void ComboBox::SetSelection(int n)
 {
     drop.SetSelection(n);
     SetLabel(drop.GetValue());
-    SetIcon(icons[n]);
+    if (drop.selection >= 0)
+        SetIcon(icons[drop.selection]);
 }
 
 void ComboBox::Rescale()
@@ -87,6 +88,8 @@ void ComboBox::SetValue(const wxString &value)
 {
     drop.SetValue(value);
     SetLabel(value);
+    if (drop.selection >= 0)
+        SetIcon(icons[drop.selection]);
 }
 
 void ComboBox::SetLabel(const wxString &value)
