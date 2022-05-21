@@ -91,7 +91,7 @@
 #include "../Utils/UndoRedo.hpp"
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/Process.hpp"
-#include "RemovableDriveManager.hpp"
+//#include "RemovableDriveManager.hpp"
 #include "InstanceCheck.hpp"
 #include "NotificationManager.hpp"
 #include "PresetComboBoxes.hpp"
@@ -2080,7 +2080,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     //notification_manager = new NotificationManager(this->q);
 
     if (wxGetApp().is_editor()) {
-        this->q->Bind(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, [this](EjectDriveNotificationClickedEvent&) { this->q->eject_drive(); });
+        //this->q->Bind(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, [this](EjectDriveNotificationClickedEvent&) { this->q->eject_drive(); });
         this->q->Bind(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, [this](ExportGcodeNotificationClickedEvent&) { this->q->export_gcode(true); });
         this->q->Bind(EVT_PRESET_UPDATE_AVAILABLE_CLICKED, [](PresetUpdateAvailableClickedEvent&) {  wxGetApp().get_preset_updater()->on_update_notification_confirm(); });
 
@@ -2110,12 +2110,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
         });
         */
         // Start the background thread and register this window as a target for update events.
-        wxGetApp().removable_drive_manager()->init(this->q);
-#ifdef _WIN32
+        //wxGetApp().removable_drive_manager()->init(this->q);
+//#ifdef _WIN32
         // Trigger enumeration of removable media on Win32 notification.
-        this->q->Bind(EVT_VOLUME_ATTACHED, [this](VolumeAttachedEvent &evt) { wxGetApp().removable_drive_manager()->volumes_changed(); });
-        this->q->Bind(EVT_VOLUME_DETACHED, [this](VolumeDetachedEvent &evt) { wxGetApp().removable_drive_manager()->volumes_changed(); });
-#endif /* _WIN32 */
+        //this->q->Bind(EVT_VOLUME_ATTACHED, [this](VolumeAttachedEvent &evt) { wxGetApp().removable_drive_manager()->volumes_changed(); });
+        //this->q->Bind(EVT_VOLUME_DETACHED, [this](VolumeDetachedEvent &evt) { wxGetApp().removable_drive_manager()->volumes_changed(); });
+//#endif /* _WIN32 */
     }
 
     // Initialize the Undo / Redo stack with a first snapshot.
@@ -4852,14 +4852,15 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             notification_manager->close_notification_of_type(NotificationType::ExportOngoing);
         }
         // If writing to removable drive was scheduled, show notification with eject button
-        if (exporting_status == ExportingStatus::EXPORTING_TO_REMOVABLE && !has_error) {
+        /*if (exporting_status == ExportingStatus::EXPORTING_TO_REMOVABLE && !has_error) {
             //show_action_buttons(ready_to_slice);
             this->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, ready_to_slice, true);
             notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path,
                 // Don't offer the "Eject" button on ChromeOS, the Linux side has no control over it.
                 platform_flavor() != PlatformFlavor::LinuxOnChromium);
-            wxGetApp().removable_drive_manager()->set_exporting_finished(true);
-        }else if (exporting_status == ExportingStatus::EXPORTING_TO_LOCAL && !has_error)
+            //wxGetApp().removable_drive_manager()->set_exporting_finished(true);
+        }else */
+        if (exporting_status == ExportingStatus::EXPORTING_TO_LOCAL && !has_error)
             notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path, false);
     }
 
@@ -7605,16 +7606,16 @@ void Plater::export_gcode(bool prefer_removable)
     }
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
     AppConfig 				&appconfig 				 = *wxGetApp().app_config;
-    RemovableDriveManager 	&removable_drive_manager = *wxGetApp().removable_drive_manager();
+    //RemovableDriveManager 	&removable_drive_manager = *wxGetApp().removable_drive_manager();
     // Get a last save path, either to removable media or to an internal media.
     std::string      		 start_dir 				 = appconfig.get_last_output_dir(default_output_file.parent_path().string(), prefer_removable);
-    if (prefer_removable) {
+    /*if (prefer_removable) {
         // Returns a path to a removable media if it exists, prefering start_dir. Update the internal removable drives database.
         start_dir = removable_drive_manager.get_removable_drive_path(start_dir);
         if (start_dir.empty())
             // Direct user to the last internal media.
             start_dir = appconfig.get_last_output_dir(default_output_file.parent_path().string(), false);
-    }
+    }*/
 
     fs::path output_path;
     {
@@ -7642,7 +7643,8 @@ void Plater::export_gcode(bool prefer_removable)
     }
 
     if (! output_path.empty()) {
-        bool path_on_removable_media = removable_drive_manager.set_and_verify_last_save_path(output_path.string());
+        //bool path_on_removable_media = removable_drive_manager.set_and_verify_last_save_path(output_path.string());
+        bool path_on_removable_media = false;
         p->notification_manager->new_export_began(path_on_removable_media);
         p->exporting_status = path_on_removable_media ? ExportingStatus::EXPORTING_TO_REMOVABLE : ExportingStatus::EXPORTING_TO_LOCAL;
         p->last_output_path = output_path.string();
@@ -8526,11 +8528,11 @@ void Plater::print_job_finished(wxCommandEvent &evt)
 }
 
 // Called when the Eject button is pressed.
-void Plater::eject_drive()
+/*void Plater::eject_drive()
 {
     wxBusyCursor wait;
     wxGetApp().removable_drive_manager()->eject_drive();
-}
+}*/
 
 void Plater::take_snapshot(const std::string &snapshot_name) { p->take_snapshot(snapshot_name); }
 //void Plater::take_snapshot(const wxString &snapshot_name) { p->take_snapshot(snapshot_name); }

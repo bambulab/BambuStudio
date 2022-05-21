@@ -87,7 +87,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/GLShadersManager.hpp
     GUI/GLShadersManager.cpp
     GUI/GLShader.cpp
-    GUI/GLShader.hpp    
+    GUI/GLShader.hpp
     GUI/GLCanvas3D.hpp
     GUI/GLCanvas3D.cpp
     GUI/OpenGLManager.hpp
@@ -141,7 +141,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/IMToolbar.hpp
     GUI/IMToolbar.cpp
     GUI/GCodeViewer.hpp
-    GUI/GCodeViewer.cpp    
+    GUI/GCodeViewer.cpp
     GUI/Preferences.cpp
     GUI/Preferences.hpp
     GUI/AMSSetting.cpp
@@ -246,8 +246,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/wxExtensions.hpp
     GUI/WipeTowerDialog.cpp
     GUI/WipeTowerDialog.hpp
-    GUI/RemovableDriveManager.cpp
-    GUI/RemovableDriveManager.hpp
+    #GUI/RemovableDriveManager.cpp
+    #GUI/RemovableDriveManager.hpp
     GUI/SendSystemInfoDialog.cpp
     GUI/SendSystemInfoDialog.hpp
     GUI/ImGuiWrapper.hpp
@@ -257,7 +257,7 @@ set(SLIC3R_GUI_SOURCES
     Config/Snapshot.cpp
     Config/Snapshot.hpp
     Config/Version.cpp
-    Config/Version.hpp    
+    Config/Version.hpp
     Utils/ASCIIFolding.cpp
     Utils/ASCIIFolding.hpp
     GUI/ConfigWizard.cpp
@@ -266,7 +266,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/MsgDialog.cpp
     GUI/MsgDialog.hpp
     GUI/UpdateDialogs.cpp
-    GUI/UpdateDialogs.hpp    
+    GUI/UpdateDialogs.hpp
     GUI/Jobs/Job.hpp
     GUI/Jobs/Job.cpp
     GUI/Jobs/PlaterJob.hpp
@@ -374,8 +374,8 @@ if (APPLE)
     list(APPEND SLIC3R_GUI_SOURCES
             Utils/RetinaHelperImpl.mm
             Utils/MacDarkMode.mm
-            GUI/RemovableDriveManagerMM.mm
-            GUI/RemovableDriveManagerMM.h
+            #GUI/RemovableDriveManagerMM.mm
+            #GUI/RemovableDriveManagerMM.h
             GUI/Mouse3DHandlerMac.mm
             #GUI/InstanceCheckMac.mm
             #GUI/InstanceCheckMac.h
@@ -398,7 +398,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 
 encoding_check(libslic3r_gui)
 
-target_link_libraries(libslic3r_gui libslic3r cereal imgui minilzo GLEW::GLEW OpenGL::GL hidapi libcurl 
+target_link_libraries(libslic3r_gui libslic3r cereal imgui minilzo GLEW::GLEW OpenGL::GL hidapi libcurl
 ${wxWidgets_LIBRARIES} eclipse-paho-mqtt-c::paho-mqtt3as-static paho-mqttpp3::paho-mqttpp3-static glfw)
 
 if (MSVC)

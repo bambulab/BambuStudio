@@ -62,7 +62,7 @@
 #include "SysInfoDialog.hpp"
 #include "UpdateDialogs.hpp"
 #include "Mouse3DController.hpp"
-#include "RemovableDriveManager.hpp"
+//#include "RemovableDriveManager.hpp"
 #include "InstanceCheck.hpp"
 #include "NotificationManager.hpp"
 #include "UnsavedChangesDialog.hpp"
@@ -1041,7 +1041,7 @@ GUI_App::GUI_App()
     , m_app_mode(EAppMode::Editor)
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
-	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
+	//, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 	//, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
     , m_account_manager(new Slic3r::AccountManager())
 {

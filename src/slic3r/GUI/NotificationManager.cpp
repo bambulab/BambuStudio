@@ -29,7 +29,7 @@ static constexpr int   FADING_OUT_TIMEOUT = 100;
 namespace Slic3r {
 namespace GUI {
 
-wxDEFINE_EVENT(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, EjectDriveNotificationClickedEvent);
+//wxDEFINE_EVENT(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, EjectDriveNotificationClickedEvent);
 wxDEFINE_EVENT(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, ExportGcodeNotificationClickedEvent);
 wxDEFINE_EVENT(EVT_PRESET_UPDATE_AVAILABLE_CLICKED, PresetUpdateAvailableClickedEvent);
 
@@ -772,11 +772,11 @@ void NotificationManager::ExportFinishedNotification::render_text(ImGuiWrapper& 
 void NotificationManager::ExportFinishedNotification::render_close_button(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
 	PopNotification::render_close_button(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
-	if(m_to_removable && ! m_eject_pending)
-		render_eject_button(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
+	//if(m_to_removable && ! m_eject_pending)
+	//	render_eject_button(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
 }
 
-void NotificationManager::ExportFinishedNotification::render_eject_button(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
+/*void NotificationManager::ExportFinishedNotification::render_eject_button(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
 	ImVec2 win_size(win_size_x, win_size_y);
 	ImVec2 win_pos(win_pos_x, win_pos_y);
@@ -831,7 +831,7 @@ void NotificationManager::ExportFinishedNotification::render_eject_button(ImGuiW
 		on_eject_click();
 	}
 	ImGui::PopStyleColor(5);
-}
+}*/
 bool NotificationManager::ExportFinishedNotification::on_text_click()
 {
 	open_folder(m_export_dir_path);

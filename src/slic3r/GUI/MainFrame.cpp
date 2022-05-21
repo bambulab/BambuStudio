@@ -28,7 +28,7 @@
 #include "wxExtensions.hpp"
 #include "GUI_ObjectList.hpp"
 #include "Mouse3DController.hpp"
-#include "RemovableDriveManager.hpp"
+//#include "RemovableDriveManager.hpp"
 #include "InstanceCheck.hpp"
 #include "I18N.hpp"
 #include "GLCanvas3D.hpp"
@@ -244,7 +244,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->remove_selected(); }, wxID_HIGHEST + wxID_DELETE);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->select_all(); }, wxID_HIGHEST + wxID_SELECTALL);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->deselect_all(); }, wxID_HIGHEST + wxID_CANCEL);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { 
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) {
         if (m_plater->is_view3D_shown())
             m_plater->undo();
         }, wxID_HIGHEST + wxID_UNDO);
@@ -641,7 +641,7 @@ void MainFrame::shutdown()
     }
 
     // Stop the background thread of the removable drive manager, so that no new updates will be sent to the Plater.
-    wxGetApp().removable_drive_manager()->shutdown();
+    //wxGetApp().removable_drive_manager()->shutdown();
 	//stop listening for messages from other instances
 	//wxGetApp().other_instance_message_handler()->shutdown(this);
     // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
@@ -949,7 +949,7 @@ bool MainFrame::can_export_gcode() const
     return true;
 }
 
-bool MainFrame::can_export_gcode_sd() const
+/*bool MainFrame::can_export_gcode_sd() const
 {
     if (m_plater == nullptr)
         return false;
@@ -968,7 +968,7 @@ bool MainFrame::can_export_gcode_sd() const
 bool MainFrame::can_eject() const
 {
 	return wxGetApp().removable_drive_manager()->status().has_eject;
-}
+}*/
 
 bool MainFrame::can_slice() const
 {

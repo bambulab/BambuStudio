@@ -110,8 +110,8 @@ class MainFrame : public DPIFrame
     bool can_export_toolpaths() const;
     bool can_export_supports() const;
     bool can_export_gcode() const;
-    bool can_export_gcode_sd() const;
-    bool can_eject() const;
+    //bool can_export_gcode_sd() const;
+    //bool can_eject() const;
     bool can_slice() const;
     bool can_change_view() const;
     bool can_select() const;
@@ -123,7 +123,7 @@ class MainFrame : public DPIFrame
     // BBS
     wxBoxSizer* create_side_tools();
 
-    // MenuBar items changeable in respect to printer technology 
+    // MenuBar items changeable in respect to printer technology
     enum MenuItems
     {                   //   FFF                  SLA
         miExport = 0,   // Export G-code        Export
@@ -132,7 +132,7 @@ class MainFrame : public DPIFrame
         miPrinterTab,   // Different bitmap for Printer Settings
     };
 
-    // vector of a MenuBar items changeable in respect to printer technology 
+    // vector of a MenuBar items changeable in respect to printer technology
     std::vector<wxMenuItem*> m_changeable_menu_items;
 
     struct FileHistory : wxFileHistory
@@ -160,7 +160,7 @@ class MainFrame : public DPIFrame
         //Dlg,
         GCodeViewer
     };
-    
+
     ESettingsLayout m_layout{ ESettingsLayout::Unknown };
 
     //BBS GUI refactor
@@ -170,7 +170,7 @@ class MainFrame : public DPIFrame
         ePrintPlate = 1,
         eExportSlicedFile = 2,
         eExportGcode = 3,
-        
+
     };
 
     enum SliceSelectType
@@ -195,7 +195,7 @@ public:
     //BBS GUI refactor
     enum TabPosition
     {
-        tpHome = 0, 
+        tpHome = 0,
         tp3DEditor = 1,
         //tpSettings = 1,
         tpPreview = 2,
