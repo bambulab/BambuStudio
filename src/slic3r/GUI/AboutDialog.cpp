@@ -207,38 +207,38 @@ void CopyrightsDialog::onCloseDialog(wxEvent &)
 }
 
 AboutDialog::AboutDialog()
-    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, from_u8((boost::format(_utf8(L("About %s"))) % (wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME)).str()), wxDefaultPosition,
-        wxDefaultSize, /*wxCAPTION*/wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),wxID_ANY,from_u8((boost::format(_utf8(L("About %s"))) % (wxGetApp().is_editor() ? SLIC3R_APP_FULL_NAME : GCODEVIEWER_APP_NAME)).str()),wxDefaultPosition,
+        wxDefaultSize, /*wxCAPTION*/wxDEFAULT_DIALOG_STYLE)
 {
     SetFont(wxGetApp().normal_font());
 
     wxColour bgr_clr = wxGetApp().get_window_default_clr();//wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 	SetBackgroundColour(bgr_clr);
-    wxBoxSizer* hsizer = new wxBoxSizer(wxHORIZONTAL);
+
+    wxPanel *m_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(430), FromDIP(237)), wxTAB_TRAVERSAL);
+
+    wxBoxSizer *panel_versizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *vesizer  = new wxBoxSizer(wxVERTICAL);
+
+    m_panel->SetSizer(panel_versizer);
+
+    wxBoxSizer *ver_sizer = new wxBoxSizer(wxVERTICAL);
+    ver_sizer->SetMinSize(wxSize(FromDIP(-1), FromDIP(155)));
 
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
-	main_sizer->Add(hsizer, 0, wxEXPAND | wxALL, 20);
-
+    main_sizer->Add(m_panel, 1, wxEXPAND | wxALL, 0);
+    main_sizer->Add(ver_sizer, 0, wxEXPAND | wxALL, 0);
+    
     // logo
-    m_logo_bitmap = ScalableBitmap(this, wxGetApp().logo_name(), 192);
-    m_logo = new wxStaticBitmap(this, wxID_ANY, m_logo_bitmap.bmp());
-	hsizer->Add(m_logo, 1, wxALIGN_CENTER_VERTICAL);
-    
-    wxBoxSizer* vsizer = new wxBoxSizer(wxVERTICAL); 	
-    hsizer->Add(vsizer, 2, wxEXPAND|wxLEFT, 20);
+    m_logo_bitmap = ScalableBitmap(this, "BambuStudio_about", 240);
+    m_logo = new wxStaticBitmap(this, wxID_ANY, m_logo_bitmap.bmp(), wxDefaultPosition,wxDefaultSize, 0);
+    m_logo->SetSizer(vesizer);
 
-    // title
-    {
-        wxStaticText* title = new wxStaticText(this, wxID_ANY, wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME, wxDefaultPosition, wxDefaultSize);
-        wxFont title_font = GUI::wxGetApp().bold_font();
-        title_font.SetFamily(wxFONTFAMILY_ROMAN);
-        title_font.SetPointSize(24);
-        title->SetFont(title_font);
-        vsizer->Add(title, 0, wxALIGN_LEFT | wxTOP, 10);
-    }
-    
+    panel_versizer->Add(m_logo, 1, wxALL | wxEXPAND, 0);
+
     // version
     {
+        vesizer->Add(0, FromDIP(165), 1, wxEXPAND, FromDIP(5));
         auto version_string = _L("Version") + " " + std::string(SLIC3R_VERSION);
         wxStaticText* version = new wxStaticText(this, wxID_ANY, version_string.c_str(), wxDefaultPosition, wxDefaultSize);
         wxFont version_font = GetFont();
@@ -247,74 +247,42 @@ AboutDialog::AboutDialog()
         #else
             version_font.SetPointSize(11);
         #endif
+        version_font.SetPointSize(12);
         version->SetFont(version_font);
-        vsizer->Add(version, 0, wxALIGN_LEFT | wxBOTTOM, 10);
+        version->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
+        version->SetBackgroundColour(wxColour(0, 174, 66));
+        vesizer->Add(version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
+        vesizer->Add(0, 0, 1, wxEXPAND, FromDIP(5));
     }
-    
+
+    wxStaticText *html_text = new wxStaticText(this, wxID_ANY, "Copyright(C) 2022-2032 Bambu Lab", wxDefaultPosition, wxDefaultSize);
+    ver_sizer->Add(0, 0, 1, wxEXPAND, FromDIP(5));
+    html_text->SetForegroundColour(wxColour(107, 107, 107));
+    ver_sizer->Add(html_text, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
+
     // text
-    m_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO/*NEVER*/);
-    {
-        m_html->SetMinSize(wxSize(-1, 16 * wxGetApp().em_unit()));
-        wxFont font = get_default_font(this);
-        const auto text_clr = wxGetApp().get_label_clr_default();//wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
-		auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
-		auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
-
-		const int fs = font.GetPointSize()-1;
-        int size[] = {fs,fs,fs,fs,fs,fs,fs};
-        m_html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
-        m_html->SetBorders(2);
-        const std::string copyright_str = _utf8(L("Copyright"));
-        // TRN "Slic3r _is licensed under the_ License"
-        const std::string is_lecensed_str = _utf8(L("is licensed under the"));
-        const std::string license_str = _utf8(L("GNU Affero General Public License, version 3"));
-        const std::string based_on_str = _utf8(L("BambuStudio is based on Slic3r by Alessandro Ranellucci and the RepRap community."));
-        const std::string contributors_str = _utf8(L("Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Petr Ledvina, Joseph Lenox, Y. Sapir, Mike Sheldrake, Vojtech Bubnik and numerous others."));
-        const auto text = from_u8(
-            (boost::format(
-            "<html>"
-            "<body bgcolor= %1% link= %2%>"
-            "<font color=%3%>"
-            "%4% &copy; 2016-2021 Bambu Research. <br />"
-            "%5% &copy; 2011-2018 Alessandro Ranellucci. <br />"
-            "<a href=\"http://slic3r.org/\">Slic3r</a> %6% "
-            "<a href=\"http://www.gnu.org/licenses/agpl-3.0.html\">%7%</a>."
-            "<br /><br />"
-            "%8%"
-            "<br /><br />"
-            "%9%"
-            "</font>"
-            "</body>"
-            "</html>") % bgr_clr_str % text_clr_str % text_clr_str
-            % copyright_str % copyright_str
-            % is_lecensed_str
-            % license_str
-            % based_on_str
-            % contributors_str).str());
-        m_html->SetPage(text);
-        vsizer->Add(m_html, 1, wxEXPAND | wxBOTTOM, 10);
-        m_html->Bind(wxEVT_HTML_LINK_CLICKED, &AboutDialog::onLinkClicked, this);
-    }
-
-
-    wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxCLOSE);
-
-    m_copy_rights_btn_id = NewControlId();
-    auto copy_rights_btn = new wxButton(this, m_copy_rights_btn_id, _L("Portions copyright")+dots);
-    buttons->Insert(0, copy_rights_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 5);
-    copy_rights_btn->Bind(wxEVT_BUTTON, &AboutDialog::onCopyrightBtn, this);
-
-    m_copy_version_btn_id = NewControlId();
-    auto copy_version_btn = new wxButton(this, m_copy_version_btn_id, _L("Copy Version Info"));
-    buttons->Insert(1, copy_version_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 5);
-    copy_version_btn->Bind(wxEVT_BUTTON, &AboutDialog::onCopyToClipboard, this);
-
-    wxGetApp().UpdateDlgDarkUI(this, true);
-    
-    this->SetEscapeId(wxID_CLOSE);
-    this->Bind(wxEVT_BUTTON, &AboutDialog::onCloseDialog, this, wxID_CLOSE);
-    vsizer->Add(buttons, 0, wxEXPAND | wxRIGHT | wxBOTTOM, 3);
-
+    m_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_NEVER /*NEVER*/);
+      {
+          wxFont font = get_default_font(this);
+          const int fs = font.GetPointSize()-1;
+          int size[] = {fs,fs,fs,fs,fs,fs,fs};
+          m_html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
+          m_html->SetMinSize(wxSize(FromDIP(-1), FromDIP(16)));
+          m_html->SetBorders(2);
+          const auto text = from_u8(
+              (boost::format(
+              "<html>"
+              "<body>"
+              "<p style=\"text-align:center\"><a  href=\"www.bambulab.com\">www.bambulab.com</ a></p>"
+              "</body>"
+              "</html>")
+            ).str());
+          m_html->SetPage(text);
+          ver_sizer->Add(m_html, 0, wxEXPAND, FromDIP(5));
+          ver_sizer->Add(0, 0, 1, wxEXPAND, FromDIP(5));
+          m_html->Bind(wxEVT_HTML_LINK_CLICKED, &AboutDialog::onLinkClicked, this);
+      }
+    m_panel->Layout();
 	SetSizer(main_sizer);
 	main_sizer->SetSizeHints(this);
 }

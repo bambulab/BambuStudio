@@ -1472,9 +1472,9 @@ static wxMenu* generate_help_menu()
             return false;
         });
     // About
-    //wxString about_title = wxString::Format(_L("&About %s"), SLIC3R_APP_NAME);
-    //append_menu_item(helpMenu, wxID_ANY, about_title, about_title,
-    //        [](wxCommandEvent&) { Slic3r::GUI::about(); });
+    wxString about_title = wxString::Format(_L("&About %s"), SLIC3R_APP_NAME);
+    append_menu_item(helpMenu, wxID_ANY, about_title, about_title,
+            [](wxCommandEvent&) { Slic3r::GUI::about(); });
     return helpMenu;
 }
 
