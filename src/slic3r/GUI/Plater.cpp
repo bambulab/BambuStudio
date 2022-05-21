@@ -4282,9 +4282,14 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
                 this->q->reslice();
             }
             //BBS: process empty plate, reset previous toolpath
-            else if (!current_plate->has_printable_instances())
+            else
             {
                 reset_gcode_toolpaths();
+                //this->q->refresh_print();
+                if (!preview->get_canvas3d()->is_initialized())
+                {
+                    preview->get_canvas3d()->render(true);
+                }
             }
             this->partplate_list.select_plate_view();
 
@@ -9274,6 +9279,8 @@ int Plater::select_plate(int plate_index, bool need_slice)
         }
         else
         {
+            //check inside status
+            bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
             if (is_preview_shown())
             {
                 if (need_slice)
@@ -9281,13 +9288,17 @@ int Plater::select_plate(int plate_index, bool need_slice)
                     p->process_completed_with_error = false;
                     p->m_slice_all = false;
                     reset_gcode_toolpaths();
-                    reslice();
+                    if (model_fits)
+                        reslice();
+                    else {
+                        p->ready_to_slice = false;
+                        p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
+                        refresh_print();
+                    }
                 }
             }
             else
             {
-                //check inside status
-                bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
                 if (p->printer_technology == ptFFF) {
                     StringObjectException warning;
                     Polygons polygons;
