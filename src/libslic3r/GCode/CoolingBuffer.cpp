@@ -38,6 +38,7 @@ void CoolingBuffer::reset(const Vec3d &position)
     m_current_pos[4] = float(m_config.travel_speed.value);
     m_fan_speed = -1;
     m_additional_fan_speed = -1;
+    m_current_fan_speed = -1;
 }
 
 struct CoolingLine
@@ -59,6 +60,7 @@ struct CoolingLine
         //BBS: add G2 G3 type
         TYPE_G2                 = 1 << 12,
         TYPE_G3                 = 1 << 13,
+        TYPE_FORCE_RESUME_FAN   = 1 << 14,
     };
 
     CoolingLine(unsigned int type, size_t  line_start, size_t  line_end) :
@@ -486,6 +488,8 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
             line.time = line.time_max = float(
                 (pos_S > 0) ? atof(sline.c_str() + pos_S + 1) :
                 (pos_P > 0) ? atof(sline.c_str() + pos_P + 1) * 0.001 : 0.);
+        } else if (boost::starts_with(sline, ";_FORCE_RESUME_FAN_SPEED")) {
+            line.type = CoolingLine::TYPE_FORCE_RESUME_FAN;
         }
         if (line.type != 0)
             adjustment->lines.emplace_back(std::move(line));
@@ -766,6 +770,7 @@ std::string CoolingBuffer::apply_layer_cooldown(
         if (fan_speed_new != m_fan_speed) {
             m_fan_speed = fan_speed_new;
             //BBS
+            m_current_fan_speed = fan_speed_new;
             new_gcode  += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
         }
         //BBS
@@ -791,14 +796,23 @@ std::string CoolingBuffer::apply_layer_cooldown(
             }
             new_gcode.append(line_start, line_end - line_start);
         } else if (line->type & CoolingLine::TYPE_OVERHANG_FAN_START) {
-            if (overhang_fan_control)
+            if (overhang_fan_control) {
                 //BBS
+                m_current_fan_speed = overhang_fan_speed;
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, overhang_fan_speed);
+            }
         } else if (line->type & CoolingLine::TYPE_OVERHANG_FAN_END) {
-            if (overhang_fan_control)
+            if (overhang_fan_control) {
                 //BBS
+                m_current_fan_speed = m_fan_speed;
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
-        } else if (line->type & CoolingLine::TYPE_EXTRUDE_END) {
+            }
+        } else if (line->type & CoolingLine::TYPE_FORCE_RESUME_FAN) {
+            //BBS: force to write a fan speed command again
+            if (m_current_fan_speed != -1)
+                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
+        }
+        else if (line->type & CoolingLine::TYPE_EXTRUDE_END) {
             // Just remove this comment.
         } else if (line->type & (CoolingLine::TYPE_ADJUSTABLE | CoolingLine::TYPE_EXTERNAL_PERIMETER | CoolingLine::TYPE_WIPE | CoolingLine::TYPE_HAS_F)) {
             // Find the start of a comment, or roll to the end of line.

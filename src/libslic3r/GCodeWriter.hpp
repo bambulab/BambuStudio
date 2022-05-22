@@ -25,7 +25,7 @@ public:
     GCodeWriter() : 
         multiple_extruders(false), m_extruder(nullptr),
         m_single_extruder_multi_material(false),
-        m_last_acceleration(0), m_max_acceleration(0), m_last_fan_speed(0),
+        m_last_acceleration(0), m_max_acceleration(0),
         /*m_last_bed_temperature(0), */m_last_bed_temperature_reached(true),
         m_lifted(0),
         m_to_lift(0),
@@ -80,7 +80,6 @@ public:
 
     //BBS: set offset for gcode writer
     void set_xy_offset(double x, double y) { m_x_offset = x; m_y_offset = y; }
-    unsigned int get_fan() { return m_last_fan_speed; }
 
     // To be called by the CoolingBuffer from another thread.
     static std::string set_fan(const GCodeFlavor gcode_flavor, unsigned int speed);
@@ -105,7 +104,6 @@ private:
     // Limit for setting the acceleration, to respect the machine limits set for the Marlin firmware.
     // If set to zero, the limit is not in action.
     unsigned int    m_max_acceleration;
-    unsigned int    m_last_fan_speed;
     //BBS
     unsigned int    m_last_additional_fan_speed;
     // BBS

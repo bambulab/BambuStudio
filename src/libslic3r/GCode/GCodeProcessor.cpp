@@ -3403,7 +3403,9 @@ void GCodeProcessor::process_M104(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_M106(const GCodeReader::GCodeLine& line)
 {
-    if (!line.has('P')) {
+    //BBS: for Bambu machine ,we both use M106 P1 and M106 to indicate the part cooling fan
+    //So we must not ignore M106 P1
+    if (!line.has('P') || (line.has('P') && line.p() == 1.0f)) {
         // The absence of P means the print cooling fan, so ignore anything else.
         float new_fan_speed;
         if (line.has_value('S', new_fan_speed))

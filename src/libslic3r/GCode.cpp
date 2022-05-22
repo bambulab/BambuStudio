@@ -326,7 +326,6 @@ bool GCode::gcode_label_objects = false;
             {
                 GCodeWriter& gcode_writer = gcodegen.m_writer;
                 FullPrintConfig& full_config = gcodegen.m_config;
-                unsigned int fan_speed = gcode_writer.get_fan();
                 float old_retract_length = gcode_writer.extruder() != nullptr ? full_config.retraction_length.get_at(previous_extruder_id) : 0;
                 float new_retract_length = full_config.retraction_length.get_at(new_extruder_id);
                 float old_retract_length_toolchange = gcode_writer.extruder() != nullptr ? full_config.retract_length_toolchange.get_at(previous_extruder_id) : 0;
@@ -347,7 +346,9 @@ bool GCode::gcode_label_objects = false;
                 config.set_key_value("max_layer_z", new ConfigOptionFloat(gcodegen.m_max_layer_z));
                 config.set_key_value("relative_e_axis", new ConfigOptionBool(RELATIVE_E_AXIS));
                 config.set_key_value("toolchange_count", new ConfigOptionInt((int)gcodegen.m_toolchange_count));
-                config.set_key_value("fan_speed", new ConfigOptionInt((int)fan_speed));
+                //BBS: fan speed is useless placeholer now, but we don't remove it to avoid
+                //slicing error in old change_filament_gcode in old 3MF
+                config.set_key_value("fan_speed", new ConfigOptionInt((int)0));
                 config.set_key_value("old_retract_length", new ConfigOptionFloat(old_retract_length));
                 config.set_key_value("new_retract_length", new ConfigOptionFloat(new_retract_length));
                 config.set_key_value("old_retract_length_toolchange", new ConfigOptionFloat(old_retract_length_toolchange));
@@ -365,7 +366,8 @@ bool GCode::gcode_label_objects = false;
 
             // retract before toolchange
             toolchange_gcode_str = toolchange_retract_str + toolchange_gcode_str;
-            //BBS: current position is unclear after interting change_filament_gcode
+            //BBS: current position and fan_speed is unclear after interting change_filament_gcode
+            toolchange_gcode_str += ";_FORCE_RESUME_FAN_SPEED\n";
             gcodegen.writer().set_current_position_clear(false);
 
             // move to start_pos for wiping after toolchange
@@ -3790,7 +3792,6 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         gcode += m_ooze_prevention.pre_toolchange(*this);
 
     // BBS
-    unsigned int fan_speed = m_writer.get_fan();
     float new_retract_length = m_config.retraction_length.get_at(extruder_id);
     float new_retract_length_toolchange = m_config.retract_length_toolchange.get_at(extruder_id);
     int new_filament_temp = m_config.nozzle_temperature.get_at(extruder_id);
@@ -3827,7 +3828,9 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     dyn_config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
     dyn_config.set_key_value("relative_e_axis", new ConfigOptionBool(RELATIVE_E_AXIS));
     dyn_config.set_key_value("toolchange_count", new ConfigOptionInt((int)m_toolchange_count));
-    dyn_config.set_key_value("fan_speed", new ConfigOptionInt((int)fan_speed));
+    //BBS: fan speed is useless placeholer now, but we don't remove it to avoid
+    //slicing error in old change_filament_gcode in old 3MF
+    dyn_config.set_key_value("fan_speed", new ConfigOptionInt((int)0));
     dyn_config.set_key_value("old_retract_length", new ConfigOptionFloat(old_retract_length));
     dyn_config.set_key_value("new_retract_length", new ConfigOptionFloat(new_retract_length));
     dyn_config.set_key_value("old_retract_length_toolchange", new ConfigOptionFloat(old_retract_length_toolchange));
@@ -3847,8 +3850,9 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         toolchange_gcode_parsed = placeholder_parser_process("change_filament_gcode", change_filament_gcode, extruder_id, &dyn_config);
         gcode += toolchange_gcode_parsed;
         check_add_eol(gcode);
-        //BBS: gcode writer doesn't know where the extruder is after inserting tool change gcode
-        //Set this flag so that normal lift will be used the first time after tool change
+        //BBS: gcode writer doesn't know where the extruder is and whether fan speed is changed after inserting tool change gcode
+        //Set this flag so that normal lift will be used the first time after tool change.
+        gcode += ";_FORCE_RESUME_FAN_SPEED\n";
         m_writer.set_current_position_clear(false);
     }
 

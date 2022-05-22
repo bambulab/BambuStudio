@@ -57,6 +57,8 @@ private:
 
     // Old logic: proportional.
     bool                        m_cooling_logic_proportional = false;
+    //BBS: current fan speed
+    int                         m_current_fan_speed;
 };
 
 }
