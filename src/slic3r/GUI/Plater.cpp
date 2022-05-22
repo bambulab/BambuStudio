@@ -4860,8 +4860,8 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
                 platform_flavor() != PlatformFlavor::LinuxOnChromium);
             //wxGetApp().removable_drive_manager()->set_exporting_finished(true);
         }else */
-        if (exporting_status == ExportingStatus::EXPORTING_TO_LOCAL && !has_error)
-            notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path, false);
+        //if (exporting_status == ExportingStatus::EXPORTING_TO_LOCAL && !has_error)
+        //    notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path, false);
     }
 
     exporting_status = ExportingStatus::NOT_EXPORTING;
@@ -7703,6 +7703,7 @@ void Plater::export_gcode_3mf()
         export_3mf(output_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode | SaveStrategy::SkipModel, curr_plate_idx); // BBS: silence
         // update lost output dir
         appconfig.update_last_output_dir(output_path.parent_path().string(), false);
+        p->notification_manager->push_exporting_finished_notification(output_path.string(), p->last_output_dir_path, false);
     }
 }
 
