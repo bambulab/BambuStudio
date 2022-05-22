@@ -662,6 +662,7 @@ void DebugToolDialog::init()
     cb_my_device_list->Bind(wxEVT_COMBOBOX, &DebugToolDialog::on_select_mybind_device, this);
 
     btn_refresh_my_device->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+            cb_my_device_list->Disable();
             Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
             account_manager->request_bind_list(
                 [this](int result, std::string info) {
@@ -1481,6 +1482,7 @@ void DebugToolDialog::on_update_mybind_list(SimpleEvent& evt)
         cb_my_device_list->Select(select);
         last_wlan_device_selection = select;
     }
+    cb_my_device_list->Enable();
 }
 
 void DebugToolDialog::on_mqtt_failed(wxCommandEvent& evt)
@@ -1664,7 +1666,8 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
 
 bool DebugToolDialog::Show(bool show)
 {
-    CommuBackend* backend = wxGetApp().getCommuBackend();;
+    CommuBackend* backend = wxGetApp().getCommuBackend();
+    Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
     if (show) {
         if (backend) {
             backend->start();
@@ -1675,6 +1678,9 @@ bool DebugToolDialog::Show(bool show)
         m_timer->Stop();
         m_timer->SetOwner(this);
         m_timer->Start(10000);
+
+        if (c)
+            c->start_subscribe("debug");
     }
     else {
         if (backend) {
@@ -1682,6 +1688,9 @@ bool DebugToolDialog::Show(bool show)
             backend->set_ssdp_discovery(false);
         }
         m_timer->Stop();
+
+        if (c)
+            c->stop_subscribe("debug");
     }
 
     return wxPanel::Show(show);
@@ -1743,9 +1752,14 @@ void DebugToolDialog::on_log_info(wxCommandEvent& evt)
 
 void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
 {
-    Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-
-    MachineObject* obj = device_manager->get_default();
+    MachineObject *obj = nullptr;
+    if (radio_btn_lan->GetValue()) {
+        Slic3r::DeviceManager *device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+        obj = device_manager->get_default();
+    } else {
+        Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+        obj = account_manager->get_default_machine();
+    }
 
     if (!obj) return;
 
@@ -1808,12 +1822,20 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
         m_staticText_request_consisitency_upgrade->SetLabelText("False");
     }
 
-    if (mqtt_msg_queue.empty()) {
-        return;
+    std::string json_str;
+    if (radio_btn_lan->GetValue()) {
+        if (mqtt_msg_queue.empty()) {
+            return;
+        }
+        json_str = mqtt_msg_queue.front();
+        mqtt_msg_queue.pop();
+    } else {
+        if (mqtt_msg_queue_cloud.empty()) {
+            return;
+        }
+        json_str = mqtt_msg_queue_cloud.front();
+        mqtt_msg_queue_cloud.pop();
     }
-    
-    std::string json_str = mqtt_msg_queue.front();
-    mqtt_msg_queue.pop();
 
     try {
         BOOST_LOG_TRIVIAL(trace) << "on_message_arrived: json_str=" << json_str;
@@ -2377,21 +2399,22 @@ int DebugToolDialog::log_info(std::string line)
 int DebugToolDialog::publishGcode(std::string gcode)
 {
     Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    int result = 0;
-    //can not publish gcode when logout
-    if (!account_manager->is_user_login()) {
-        this->log_info("Please login first!");
-        return -1;
-    }
-    Slic3r::AccountInfo* info = account_manager->get_curr_user();
-    if (!info) {
-        this->log_info("User info is invalid!");
-        return -1;
-    }
+    if (radio_btn_lan->GetValue()) {
+        int result = 0;
+        // can not publish gcode when logout
+        if (!account_manager->is_user_login()) {
+            this->log_info("Please login first!");
+            return -1;
+        }
+        Slic3r::AccountInfo *info = account_manager->get_curr_user();
+        if (!info) {
+            this->log_info("User info is invalid!");
+            return -1;
+        }
 
 #ifdef __CHECK_BIND_USER__
         /* compare with bind user */
-        MachineObject* obj = dev_manager_.get_default();
+        MachineObject *obj = dev_manager_.get_default();
         if (!obj) return -1;
         if (obj->bind_user_id.empty()) return -1;
         if (obj->bind_user_id.compare(account_manager->get_curr_user()->get_user_id()) != 0) {
@@ -2401,22 +2424,27 @@ int DebugToolDialog::publishGcode(std::string gcode)
         }
 #endif
 
-    pt::ptree root, print;
-    print.put("command", "gcode_line");
-    print.put("param", gcode);
-    print.put("sequence_id", this->m_sequence_id++);
-    print.put("user_id", info->get_user_id());
-    root.put_child("print", print);
-    std::stringstream oss;
-    pt::write_json(oss, root, false);
-    std::string json_str = oss.str();
+        pt::ptree root, print;
+        print.put("command", "gcode_line");
+        print.put("param", gcode);
+        print.put("sequence_id", this->m_sequence_id++);
+        print.put("user_id", info->get_user_id());
+        root.put_child("print", print);
+        std::stringstream oss;
+        pt::write_json(oss, root, false);
+        std::string json_str = oss.str();
 
-    result = this->publish_json(json_str);
-    if (result != 0) {
-        this->log_info("publish_json failed");
+        result = this->publish_json(json_str);
+        if (result != 0) { this->log_info("publish_json failed"); }
+    } else {
+        MachineObject *obj = account_manager->get_default_machine();
+        if (!obj) {
+            this->send_log_evt("Invalid Printer! Please Select a Printer!");
+            return -1;
+        }
+        return obj->publish_gcode(gcode);
     }
-
-    return result;
+    return 0;
 }
 
 void DebugToolDialog::on_timer(wxTimerEvent& event)
@@ -2483,9 +2511,8 @@ void DebugToolDialog::on_select_mybind_device(wxCommandEvent& evt)
     //machine_list_items
     int selection = evt.GetSelection();
     if (selection < mybind_machine_list_items.size()) {
-        account_manager->default_machine = mybind_machine_list_items[selection];
-        send_log_evt("Select Printer=" + account_manager->default_machine);
-
+        account_manager->set_monitor_machine(mybind_machine_list_items[selection]);
+        send_log_evt("Select Printer=" + mybind_machine_list_items[selection]);
         /* update widget values */
         last_wlan_device_selection = selection;
     }
@@ -2497,6 +2524,7 @@ void DebugToolDialog::on_select_mybind_device(wxCommandEvent& evt)
     if (!obj) return;
 
     obj->set_msg_recv_fn([this](std::string topic, std::string payload) {
+            mqtt_msg_queue_cloud.push(payload);
             auto evt = new wxCommandEvent(EVT_MESSAGE_ARRIVED, this->GetId());
             evt->SetString(payload);
             wxQueueEvent(this, evt);

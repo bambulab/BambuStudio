@@ -6,6 +6,7 @@
 ///////////////////////////////////////////////////////////////////////////
 
 #include "DebugToolPanel.h"
+#include "I18N.hpp"
 
 ///////////////////////////////////////////////////////////////////////////
 using namespace Slic3r::GUI;
@@ -21,13 +22,13 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	wxBoxSizer* bSizer_lan;
 	bSizer_lan = new wxBoxSizer( wxHORIZONTAL );
 
-	radio_btn_lan = new wxRadioButton( this, wxID_ANY, wxT("LOCAL CONN"), wxDefaultPosition, wxDefaultSize, 0 );
+	radio_btn_lan = new wxRadioButton( this, wxID_ANY, _L("LOCAL CONN"), wxDefaultPosition, wxDefaultSize, 0 );
 	radio_btn_lan->SetValue( true );
 	radio_btn_lan->SetMinSize( wxSize( 100,-1 ) );
 
 	bSizer_lan->Add( radio_btn_lan, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	m_staticText_lan = new wxStaticText( this, wxID_ANY, wxT("SELECT:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_lan = new wxStaticText( this, wxID_ANY, _L("SELECT:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_lan->Wrap( -1 );
 	bSizer_lan->Add( m_staticText_lan, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -39,21 +40,21 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_bpButton_search = new wxBitmapButton( this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize( -1,-1 ), wxBU_AUTODRAW|0 );
 	bSizer_lan->Add( m_bpButton_search, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-	btn_refresh_device_list = new wxButton( this, wxID_ANY, wxT("REFRESH"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_refresh_device_list = new wxButton(this, wxID_ANY, _L("REFRESH"), wxDefaultPosition, wxDefaultSize, 0);
 	bSizer_lan->Add( btn_refresh_device_list, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	btn_connect = new wxButton( this, wxID_ANY, wxT("CONNECT"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_connect = new wxButton(this, wxID_ANY, _L("CONNECT"), wxDefaultPosition, wxDefaultSize, 0);
 	bSizer_lan->Add( btn_connect, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	btn_disconnect = new wxButton( this, wxID_ANY, wxT("DISCONNECT"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_disconnect = new wxButton(this, wxID_ANY, _L("DISCONNECT"), wxDefaultPosition, wxDefaultSize, 0);
 	btn_disconnect->Enable( false );
 
 	bSizer_lan->Add( btn_disconnect, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	btn_bind = new wxButton( this, wxID_ANY, wxT("BIND"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_bind = new wxButton(this, wxID_ANY, _L("BIND"), wxDefaultPosition, wxDefaultSize, 0);
 	bSizer_lan->Add( btn_bind, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	btn_unbind = new wxButton( this, wxID_ANY, wxT("UNBIND"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_unbind = new wxButton(this, wxID_ANY, _L("UNBIND"), wxDefaultPosition, wxDefaultSize, 0);
 	bSizer_lan->Add( btn_unbind, 0, wxALL, 5 );
 
 
@@ -62,12 +63,12 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	wxBoxSizer* bSizer_wan;
 	bSizer_wan = new wxBoxSizer( wxHORIZONTAL );
 
-	radio_btn_wan = new wxRadioButton( this, wxID_ANY, wxT("CLOUD CONN"), wxDefaultPosition, wxDefaultSize, 0 );
+	radio_btn_wan = new wxRadioButton( this, wxID_ANY, _L("CLOUD CONN"), wxDefaultPosition, wxDefaultSize, 0 );
 	radio_btn_wan->SetMinSize( wxSize( 100,-1 ) );
 
 	bSizer_wan->Add( radio_btn_wan, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	m_staticText_wan = new wxStaticText( this, wxID_ANY, wxT("SELECT:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_wan = new wxStaticText(this, wxID_ANY, _L("SELECT:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_staticText_wan->Wrap( -1 );
 	bSizer_wan->Add( m_staticText_wan, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -76,7 +77,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	bSizer_wan->Add( cb_my_device_list, 0, wxALL, 5 );
 
-	btn_refresh_my_device = new wxButton( this, wxID_ANY, wxT("REFRESH"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_refresh_my_device = new wxButton(this, wxID_ANY, _L("REFRESH"), wxDefaultPosition, wxDefaultSize, 0);
 	bSizer_wan->Add( btn_refresh_my_device, 0, wxALIGN_CENTER|wxALL, 5 );
 
 
@@ -116,13 +117,13 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	wxBoxSizer* bSizer12;
 	bSizer12 = new wxBoxSizer( wxVERTICAL );
 
-	btn_get_version = new wxButton( m_panel_common, wxID_ANY, wxT("Get Version"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_get_version = new wxButton(m_panel_common, wxID_ANY, _L("Get Version"), wxDefaultPosition, wxDefaultSize, 0);
 	bSizer12->Add( btn_get_version, 0, wxALL, 5 );
 
 	wxBoxSizer* bSizer21;
 	bSizer21 = new wxBoxSizer( wxHORIZONTAL );
 
-	m_staticText6 = new wxStaticText( m_panel_common, wxID_ANY, wxT("Force Upgrading:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText6 = new wxStaticText(m_panel_common, wxID_ANY, _L("Force Upgrading:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_staticText6->Wrap( -1 );
 	bSizer21->Add( m_staticText6, 0, wxALL, 5 );
 
@@ -137,7 +138,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_panel_common->SetSizer( bSizer12 );
 	m_panel_common->Layout();
 	bSizer12->Fit( m_panel_common );
-	m_notebook1->AddPage( m_panel_common, wxT("Common"), false );
+    m_notebook1->AddPage(m_panel_common, _L("Common"), false);
 	m_panel_run_3mf = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer13;
 	bSizer13 = new wxBoxSizer( wxVERTICAL );
@@ -145,7 +146,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	wxBoxSizer* bSizer14;
 	bSizer14 = new wxBoxSizer( wxHORIZONTAL );
 
-	label_3mf_filename = new wxStaticText( m_panel_run_3mf, wxID_ANY, wxT("3mf File:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	label_3mf_filename = new wxStaticText(m_panel_run_3mf, wxID_ANY, _L("3mf File:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
 	label_3mf_filename->Wrap( -1 );
 	label_3mf_filename->SetMinSize( wxSize( 100,-1 ) );
 
@@ -156,7 +157,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	bSizer14->Add( txt_3mf_filename, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	btn_select_3mf_file = new wxButton( m_panel_run_3mf, wxID_ANY, wxT("Select File"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_select_3mf_file = new wxButton(m_panel_run_3mf, wxID_ANY, _L("Select File"), wxDefaultPosition, wxDefaultSize, 0);
 	bSizer14->Add( btn_select_3mf_file, 0, wxALL, 5 );
 
 
@@ -171,7 +172,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	bSizer15->Add( label_upload_progress, 0, wxALL, 5 );
 
-	label_3mf_progress = new wxStaticText( m_panel_run_3mf, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	label_3mf_progress = new wxStaticText( m_panel_run_3mf, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	label_3mf_progress->Wrap( -1 );
 	bSizer15->Add( label_3mf_progress, 0, wxALL, 5 );
 
@@ -181,22 +182,22 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	wxBoxSizer* bSizer16;
 	bSizer16 = new wxBoxSizer( wxHORIZONTAL );
 
-	btn_run_3mf = new wxButton( m_panel_run_3mf, wxID_ANY, wxT("Run Slice 3mf"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_run_3mf = new wxButton( m_panel_run_3mf, wxID_ANY, _L("Run Slice 3mf"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer16->Add( btn_run_3mf, 0, wxALL, 5 );
 
-	btn_3mf_pause = new wxButton( m_panel_run_3mf, wxID_ANY, wxT("Pause"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_3mf_pause = new wxButton( m_panel_run_3mf, wxID_ANY, _L("Pause"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer16->Add( btn_3mf_pause, 0, wxALL, 5 );
 
-	btn_3mf_resume = new wxButton( m_panel_run_3mf, wxID_ANY, wxT("Resume"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_3mf_resume = new wxButton( m_panel_run_3mf, wxID_ANY, _L("Resume"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer16->Add( btn_3mf_resume, 0, wxALL, 5 );
 
-	btn_3mf_abort_print = new wxButton( m_panel_run_3mf, wxID_ANY, wxT("Abort"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_3mf_abort_print = new wxButton( m_panel_run_3mf, wxID_ANY, _L("Abort"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer16->Add( btn_3mf_abort_print, 0, wxALL, 5 );
 
 
 	bSizer13->Add( bSizer16, 0, wxEXPAND, 5 );
 
-	m_staticText_run_3mf_tips = new wxStaticText( m_panel_run_3mf, wxID_ANY, wxT("Only Support Print First Plate Now!"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_run_3mf_tips = new wxStaticText( m_panel_run_3mf, wxID_ANY, _L("Only Support Print First Plate Now!"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_run_3mf_tips->Wrap( -1 );
 	bSizer13->Add( m_staticText_run_3mf_tips, 0, wxALL, 5 );
 
@@ -207,7 +208,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_panel_run_3mf->SetSizer( bSizer13 );
 	m_panel_run_3mf->Layout();
 	bSizer13->Fit( m_panel_run_3mf );
-	m_notebook1->AddPage( m_panel_run_3mf, wxT("Run Slice  3mf"), false );
+	m_notebook1->AddPage( m_panel_run_3mf, _L("Run Slice  3mf"), false );
 	m_panel_run_gcode = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer131;
 	bSizer131 = new wxBoxSizer( wxHORIZONTAL );
@@ -218,7 +219,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	wxBoxSizer* bSizer141;
 	bSizer141 = new wxBoxSizer( wxHORIZONTAL );
 
-	label_gcode_filename = new wxStaticText( m_panel_run_gcode, wxID_ANY, wxT("Gcode File:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	label_gcode_filename = new wxStaticText( m_panel_run_gcode, wxID_ANY, _L("Gcode File:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
 	label_gcode_filename->Wrap( -1 );
 	label_gcode_filename->SetMinSize( wxSize( 100,-1 ) );
 
@@ -229,7 +230,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	bSizer141->Add( txt_gcode_filename, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	btn_select_gcode_file = new wxButton( m_panel_run_gcode, wxID_ANY, wxT("Select File"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_select_gcode_file = new wxButton( m_panel_run_gcode, wxID_ANY, _L("Select File"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer141->Add( btn_select_gcode_file, 0, wxALL, 5 );
 
 
@@ -238,7 +239,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	wxBoxSizer* bSizer151;
 	bSizer151 = new wxBoxSizer( wxHORIZONTAL );
 
-	label_upload_progress1 = new wxStaticText( m_panel_run_gcode, wxID_ANY, wxT("Status:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	label_upload_progress1 = new wxStaticText( m_panel_run_gcode, wxID_ANY, _L("Status:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
 	label_upload_progress1->Wrap( -1 );
 	label_upload_progress1->SetMinSize( wxSize( 100,-1 ) );
 
@@ -254,16 +255,16 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	wxBoxSizer* bSizer161;
 	bSizer161 = new wxBoxSizer( wxHORIZONTAL );
 
-	btn_run_gcode = new wxButton( m_panel_run_gcode, wxID_ANY, wxT("Run Gcode"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_run_gcode = new wxButton( m_panel_run_gcode, wxID_ANY, _L("Run Gcode"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer161->Add( btn_run_gcode, 0, wxALL, 5 );
 
-	btn_pause = new wxButton( m_panel_run_gcode, wxID_ANY, wxT("Pause"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_pause = new wxButton( m_panel_run_gcode, wxID_ANY, _L("Pause"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer161->Add( btn_pause, 0, wxALL, 5 );
 
-	btn_resume = new wxButton( m_panel_run_gcode, wxID_ANY, wxT("Resume"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_resume = new wxButton( m_panel_run_gcode, wxID_ANY, _L("Resume"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer161->Add( btn_resume, 0, wxALL, 5 );
 
-	btn_abort_print = new wxButton( m_panel_run_gcode, wxID_ANY, wxT("Abort"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_abort_print = new wxButton( m_panel_run_gcode, wxID_ANY, _L("Abort"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer161->Add( btn_abort_print, 0, wxALL, 5 );
 
 
@@ -282,150 +283,150 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_panel_run_gcode->SetSizer( bSizer131 );
 	m_panel_run_gcode->Layout();
 	bSizer131->Fit( m_panel_run_gcode );
-	m_notebook1->AddPage( m_panel_run_gcode, wxT("Run Gcode"), false );
+	m_notebook1->AddPage( m_panel_run_gcode, _L("Run Gcode"), false );
 	m_panel_info_control = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer17;
 	bSizer17 = new wxBoxSizer( wxHORIZONTAL );
 
 	wxStaticBoxSizer* sbSizer_info;
-	sbSizer_info = new wxStaticBoxSizer( new wxStaticBox( m_panel_info_control, wxID_ANY, wxT("Status") ), wxVERTICAL );
+	sbSizer_info = new wxStaticBoxSizer( new wxStaticBox( m_panel_info_control, wxID_ANY, _L("Status") ), wxVERTICAL );
 
 	wxGridSizer* bSizer_info;
 	bSizer_info = new wxGridSizer( 0, 2, 0, 0 );
 
-	m_staticText_nozzle_temp_title = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("Nozzle Temp:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	m_staticText_nozzle_temp_title = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("Nozzle Temp:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
 	m_staticText_nozzle_temp_title->Wrap( -1 );
 	bSizer_info->Add( m_staticText_nozzle_temp_title, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	label_hot_end_temp_val = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	label_hot_end_temp_val = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	label_hot_end_temp_val->Wrap( -1 );
 	bSizer_info->Add( label_hot_end_temp_val, 0, wxALIGN_LEFT|wxALL, 5 );
 
-	m_staticText_bed_temp_title = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("Bed Temp:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_bed_temp_title = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("Bed Temp:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_bed_temp_title->Wrap( -1 );
 	bSizer_info->Add( m_staticText_bed_temp_title, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	label_bed_end_temp_val = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	label_bed_end_temp_val = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	label_bed_end_temp_val->Wrap( -1 );
 	bSizer_info->Add( label_bed_end_temp_val, 0, wxALIGN_LEFT|wxALL, 5 );
 
-	m_staticText_pocket_temp = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("Chamber Temp:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_pocket_temp = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("Chamber Temp:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_pocket_temp->Wrap( -1 );
 	bSizer_info->Add( m_staticText_pocket_temp, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	m_staticText_volume_temp_val = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_volume_temp_val = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_volume_temp_val->Wrap( -1 );
 	bSizer_info->Add( m_staticText_volume_temp_val, 0, wxALL, 5 );
 
-	m_staticText_frame_temp = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("Frame Temp:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_frame_temp = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("Frame Temp:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_frame_temp->Wrap( -1 );
 	bSizer_info->Add( m_staticText_frame_temp, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	m_staticText_frame_temp_value = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_frame_temp_value = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_frame_temp_value->Wrap( -1 );
 	bSizer_info->Add( m_staticText_frame_temp_value, 0, wxALIGN_LEFT|wxALL, 5 );
 
-	m_staticText_progress = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("Print Progress:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_progress = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("Print Progress:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_progress->Wrap( -1 );
 	bSizer_info->Add( m_staticText_progress, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	label_print_progress_val = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	label_print_progress_val = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	label_print_progress_val->Wrap( -1 );
 	bSizer_info->Add( label_print_progress_val, 0, wxALIGN_LEFT|wxALL, 5 );
 
-	m_staticText_wifi_signal = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("WiFi Signal:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_wifi_signal = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("WiFi Signal:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_wifi_signal->Wrap( -1 );
 	bSizer_info->Add( m_staticText_wifi_signal, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	label_wifi_signal_val = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	label_wifi_signal_val = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	label_wifi_signal_val->Wrap( -1 );
 	bSizer_info->Add( label_wifi_signal_val, 0, wxALIGN_LEFT|wxALL, 5 );
 
-	m_staticText_th_link = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("TH Link State:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_th_link = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("TH Link State:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_th_link->Wrap( -1 );
 	bSizer_info->Add( m_staticText_th_link, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	label_wifi_link_th_val = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	label_wifi_link_th_val = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	label_wifi_link_th_val->Wrap( -1 );
 	bSizer_info->Add( label_wifi_link_th_val, 0, wxALIGN_LEFT|wxALL, 5 );
 
-	m_staticText_ams_link = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("AMS Link State:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_ams_link = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("AMS Link State:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_ams_link->Wrap( -1 );
 	bSizer_info->Add( m_staticText_ams_link, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	label_wifi_link_ams_val = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	label_wifi_link_ams_val = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	label_wifi_link_ams_val->Wrap( -1 );
 	bSizer_info->Add( label_wifi_link_ams_val, 0, wxALIGN_LEFT|wxALL, 5 );
 
-	m_staticText_big1_speed_title = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("BigFan1 Speed:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_big1_speed_title = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("BigFan1 Speed:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_big1_speed_title->Wrap( -1 );
 	bSizer_info->Add( m_staticText_big1_speed_title, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	m_staticText_big1_speed = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_big1_speed = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_big1_speed->Wrap( -1 );
 	bSizer_info->Add( m_staticText_big1_speed, 0, wxALIGN_LEFT|wxALL, 5 );
 
-	m_staticText_big2_speed_title = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("BigFan2 Speed:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_big2_speed_title = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("BigFan2 Speed:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_big2_speed_title->Wrap( -1 );
 	bSizer_info->Add( m_staticText_big2_speed_title, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	m_staticText_big2_speed = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_big2_speed = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_big2_speed->Wrap( -1 );
 	bSizer_info->Add( m_staticText_big2_speed, 0, wxALIGN_LEFT|wxALL, 5 );
 
-	m_staticText_cooling_speed_title = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("Cooling Fan Speed:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_cooling_speed_title = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("Cooling Fan Speed:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_cooling_speed_title->Wrap( -1 );
 	bSizer_info->Add( m_staticText_cooling_speed_title, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	m_staticText_cooling_speed = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_cooling_speed = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_cooling_speed->Wrap( -1 );
 	bSizer_info->Add( m_staticText_cooling_speed, 0, wxALIGN_LEFT|wxALL, 5 );
 
-	m_staticText_heatbreak_speed_title = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("Heatbreak Fan Speed:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_heatbreak_speed_title = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("Heatbreak Fan Speed:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_heatbreak_speed_title->Wrap( -1 );
 	bSizer_info->Add( m_staticText_heatbreak_speed_title, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	m_staticText_heatbreak_speed = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_heatbreak_speed = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_heatbreak_speed->Wrap( -1 );
 	bSizer_info->Add( m_staticText_heatbreak_speed, 0, wxALIGN_LEFT|wxALL, 5 );
 
-	m_staticText_print_stage = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("Print State(MC):"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_print_stage = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("Print State(MC):"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_print_stage->Wrap( -1 );
 	bSizer_info->Add( m_staticText_print_stage, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	m_staticText_mc_print_stage = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_mc_print_stage = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_mc_print_stage->Wrap( -1 );
 	bSizer_info->Add( m_staticText_mc_print_stage, 0, wxALL, 5 );
 
-	m_staticText_mc_sub_stage_title = new wxStaticText(sbSizer_info->GetStaticBox(), wxID_ANY, wxT("Print Sub State(MC):"), wxDefaultPosition, wxDefaultSize, 0);
+	m_staticText_mc_sub_stage_title = new wxStaticText(sbSizer_info->GetStaticBox(), wxID_ANY, _L("Print Sub State(MC):"), wxDefaultPosition, wxDefaultSize, 0);
 	m_staticText_mc_sub_stage_title->Wrap(-1);
 	bSizer_info->Add(m_staticText_mc_sub_stage_title, 0, wxALIGN_RIGHT | wxALL, 5);
 
-	m_staticText_mc_sub_stage_value = new wxStaticText(sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0);
+	m_staticText_mc_sub_stage_value = new wxStaticText(sbSizer_info->GetStaticBox(), wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0);
 	m_staticText_mc_sub_stage_value->Wrap(-1);
 	bSizer_info->Add(m_staticText_mc_sub_stage_value, 0, wxALL, 5);
 
-	m_staticText_print_error_code = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("PrintErrCode(MC):"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_print_error_code = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("PrintErrCode(MC):"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_print_error_code->Wrap( -1 );
 	bSizer_info->Add( m_staticText_print_error_code, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	m_staticText_mc_print_error_code = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_mc_print_error_code = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_mc_print_error_code->Wrap( -1 );
 	bSizer_info->Add( m_staticText_mc_print_error_code, 0, wxALL, 5 );
 
-	m_staticText_gcode_line_number = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("Gcode Line:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_gcode_line_number = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("Gcode Line:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_gcode_line_number->Wrap( -1 );
 	bSizer_info->Add( m_staticText_gcode_line_number, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	m_staticText_mc_print_line_number = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_mc_print_line_number = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_mc_print_line_number->Wrap( -1 );
 	bSizer_info->Add( m_staticText_mc_print_line_number, 0, wxALIGN_LEFT|wxALL, 5 );
 
-	m_staticText_subtask_id_title = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("SubTask ID:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_subtask_id_title = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("SubTask ID:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_subtask_id_title->Wrap( -1 );
 	bSizer_info->Add( m_staticText_subtask_id_title, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	m_staticText_subtask_id = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_subtask_id = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_subtask_id->Wrap( -1 );
 	bSizer_info->Add( m_staticText_subtask_id, 0, wxALIGN_LEFT|wxALL, 5 );
 
@@ -446,34 +447,34 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	gSizer1 = new wxGridSizer( 0, 2, 0, 0 );
 
 	gSizer1->SetMinSize( wxSize( 240,-1 ) );
-	btn_set_hot_bed_temp = new wxButton( m_panel_settings, wxID_ANY, wxT("Set Bed Temp"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_set_hot_bed_temp = new wxButton( m_panel_settings, wxID_ANY, _L("Set Bed Temp"), wxDefaultPosition, wxDefaultSize, 0 );
 	gSizer1->Add( btn_set_hot_bed_temp, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	txt_set_hot_bed_temp = new wxTextCtrl( m_panel_settings, wxID_ANY, wxT("60"), wxDefaultPosition, wxDefaultSize, 0 );
+	txt_set_hot_bed_temp = new wxTextCtrl( m_panel_settings, wxID_ANY, _L("60"), wxDefaultPosition, wxDefaultSize, 0 );
 	gSizer1->Add( txt_set_hot_bed_temp, 0, wxALIGN_LEFT|wxALL, 5 );
 
-	btn_set_hot_end_temp = new wxButton( m_panel_settings, wxID_ANY, wxT("Set Nozzle Temp"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_set_hot_end_temp = new wxButton( m_panel_settings, wxID_ANY, _L("Set Nozzle Temp"), wxDefaultPosition, wxDefaultSize, 0 );
 	gSizer1->Add( btn_set_hot_end_temp, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	txt_set_hot_end_temp = new wxTextCtrl( m_panel_settings, wxID_ANY, wxT("200"), wxDefaultPosition, wxDefaultSize, 0 );
+	txt_set_hot_end_temp = new wxTextCtrl( m_panel_settings, wxID_ANY, _L("200"), wxDefaultPosition, wxDefaultSize, 0 );
 	gSizer1->Add( txt_set_hot_end_temp, 0, wxALIGN_LEFT|wxALL, 5 );
 
-	btn_fan_on = new wxButton( m_panel_settings, wxID_ANY, wxT("Fan On"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_fan_on = new wxButton( m_panel_settings, wxID_ANY, _L("Fan On"), wxDefaultPosition, wxDefaultSize, 0 );
 	gSizer1->Add( btn_fan_on, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	btn_fan_off = new wxButton( m_panel_settings, wxID_ANY, wxT("Fan Off"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_fan_off = new wxButton( m_panel_settings, wxID_ANY, _L("Fan Off"), wxDefaultPosition, wxDefaultSize, 0 );
 	gSizer1->Add( btn_fan_off, 0, wxALIGN_LEFT|wxALL, 5 );
 
-	btn_auto_leveling = new wxButton( m_panel_settings, wxID_ANY, wxT("Auto Leveling(G29)"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_auto_leveling = new wxButton( m_panel_settings, wxID_ANY, _L("Auto Leveling(G29)"), wxDefaultPosition, wxDefaultSize, 0 );
 	gSizer1->Add( btn_auto_leveling, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	btn_xyz_abs_mode = new wxButton( m_panel_settings, wxID_ANY, wxT("XYZ-abs(G90)"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_xyz_abs_mode = new wxButton( m_panel_settings, wxID_ANY, _L("XYZ-abs(G90)"), wxDefaultPosition, wxDefaultSize, 0 );
 	gSizer1->Add( btn_xyz_abs_mode, 0, wxALIGN_LEFT|wxALL, 5 );
 
-	btn_return_home = new wxButton( m_panel_settings, wxID_ANY, wxT("Return Home(G28)"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_return_home = new wxButton( m_panel_settings, wxID_ANY, _L("Return Home(G28)"), wxDefaultPosition, wxDefaultSize, 0 );
 	gSizer1->Add( btn_return_home, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-	m_button_calibration = new wxButton( m_panel_settings, wxID_ANY, wxT("Start Calibration"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_button_calibration = new wxButton( m_panel_settings, wxID_ANY, _L("Start Calibration"), wxDefaultPosition, wxDefaultSize, 0 );
 	gSizer1->Add( m_button_calibration, 0, wxALIGN_LEFT | wxALL, 5 );
 
 
@@ -482,9 +483,9 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	wxBoxSizer* bSizer37;
 	bSizer37 = new wxBoxSizer( wxHORIZONTAL );
 
-	wxString m_radioBox_chamber_lightChoices[] = { wxT("On"), wxT("Off"), wxT("Flash") };
+	wxString m_radioBox_chamber_lightChoices[] = { _L("On"), _L("Off"), _L("Flash") };
 	int m_radioBox_chamber_lightNChoices = sizeof( m_radioBox_chamber_lightChoices ) / sizeof( wxString );
-	m_radioBox_chamber_light = new wxRadioBox( m_panel_settings, wxID_ANY, wxT("Chamber Light"), wxDefaultPosition, wxDefaultSize, m_radioBox_chamber_lightNChoices, m_radioBox_chamber_lightChoices, 1, wxRA_SPECIFY_ROWS );
+	m_radioBox_chamber_light = new wxRadioBox( m_panel_settings, wxID_ANY, _L("Chamber Light"), wxDefaultPosition, wxDefaultSize, m_radioBox_chamber_lightNChoices, m_radioBox_chamber_lightChoices, 1, wxRA_SPECIFY_ROWS );
 	m_radioBox_chamber_light->SetSelection( 0 );
 	bSizer37->Add( m_radioBox_chamber_light, 1, wxALL|wxEXPAND, 5 );
 
@@ -494,9 +495,9 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	wxBoxSizer* bSizer38;
 	bSizer38 = new wxBoxSizer( wxVERTICAL );
 
-	wxString m_radioBox_work_lightChoices[] = { wxT("On"), wxT("Off"), wxT("Flash") };
+	wxString m_radioBox_work_lightChoices[] = { _L("On"), _L("Off"), _L("Flash") };
 	int m_radioBox_work_lightNChoices = sizeof( m_radioBox_work_lightChoices ) / sizeof( wxString );
-	m_radioBox_work_light = new wxRadioBox( m_panel_settings, wxID_ANY, wxT("Work Light"), wxDefaultPosition, wxDefaultSize, m_radioBox_work_lightNChoices, m_radioBox_work_lightChoices, 1, wxRA_SPECIFY_ROWS );
+	m_radioBox_work_light = new wxRadioBox( m_panel_settings, wxID_ANY, _L("Work Light"), wxDefaultPosition, wxDefaultSize, m_radioBox_work_lightNChoices, m_radioBox_work_lightChoices, 1, wxRA_SPECIFY_ROWS );
 	m_radioBox_work_light->SetSelection( 0 );
 	bSizer38->Add( m_radioBox_work_light, 1, wxALL|wxEXPAND, 5 );
 

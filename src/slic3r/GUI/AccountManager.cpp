@@ -596,9 +596,10 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
             this->del_subscribe(old_dev_id);
         }
 
-        //subscribe new machine
-        if (m_is_subscribing)
+        //subscribe new machine, call start_subscribe first
+        if (m_is_subscribing) {
             this->add_subscribe(dev_id);
+        }
 
         std::map<std::string, MachineObject *>::iterator it = myBindMachineList.find(dev_id);
         if (it != myBindMachineList.end()) {
@@ -644,7 +645,7 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         }
     }
 
-    void AccountManager::start_subscribe()
+    void AccountManager::start_subscribe(std::string module)
     {
         BOOST_LOG_TRIVIAL(trace) << "start_subscribe, machine=" << default_machine;
         if (!default_machine.empty())
@@ -653,15 +654,25 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         MachineObject* obj = get_default_machine();
         if (obj)
             obj->reset();
+        if (!module.empty() && subscribe_module.find(module) == subscribe_module.end()) {
+            subscribe_module.emplace(std::make_pair(module, true));
+        }
         m_is_subscribing = true;
     }
 
-    void AccountManager::stop_subscribe()
+    void AccountManager::stop_subscribe(std::string module)
     {
         BOOST_LOG_TRIVIAL(trace) << "stop_subscribe, machine=" << default_machine;
-        if (!default_machine.empty())
-            this->del_subscribe(default_machine);
-        m_is_subscribing = false;
+        if (!module.empty() && subscribe_module.find(module) != subscribe_module.end())
+            subscribe_module.erase(module);
+        if (subscribe_module.empty()) {
+            if (!default_machine.empty()) {
+                this->del_subscribe(default_machine);
+            }
+            m_is_subscribing = false;
+        } else {
+            return;
+        }
     }
 
     bool AccountManager::is_user_login()

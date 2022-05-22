@@ -1189,7 +1189,7 @@ int MachineObject::publish_json(std::string json_str, ResultFn resFn, int qos)
 
     if (!client->is_connected()) {
         if (resFn) {
-            resFn(-1, "Please Connect First!");
+            resFn(-1, "Not connected now");
         }
         return -1;
     }

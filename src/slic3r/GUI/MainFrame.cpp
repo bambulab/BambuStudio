@@ -1028,19 +1028,16 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_print_select = ePrintPlate;
 
     m_slice_btn = new SideButton(this, _L("Slice"), "");
-    //m_slice_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, 14 * em / 10);
     m_print_btn = new SideButton(this, _L("Print"), "");
-    m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, 14 * em / 10);
+    m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
 
     update_side_button_style();
-    //m_slice_option_btn->Enable();
     m_print_option_btn->Enable();
-    //sizer->Add(m_slice_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
-    sizer->Add(m_slice_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
-    sizer->Add(15 * em / 10, 0, 0, 0, 0);
-    sizer->Add(m_print_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
-    sizer->Add(m_print_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
-    sizer->Add(19 * em / 10, 0, 0, 0, 0);
+    sizer->Add(m_slice_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
+    sizer->Add(FromDIP(15), 0, 0, 0, 0);
+    sizer->Add(m_print_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
+    sizer->Add(m_print_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
+    sizer->Add(FromDIP(19), 0, 0, 0, 0);
 
     sizer->Layout();
 
@@ -1162,11 +1159,15 @@ wxBoxSizer* MainFrame::create_side_tools()
         }
     );
 
-   /* Button *aux_btn = new Button(this, _L("Auxiliary"));
-     aux_btn->SetBackgroundColour(0x3B4446);
-     aux_btn->Bind(wxEVT_BUTTON, [](auto e) { wxGetApp().sidebar().show_auxiliary_dialog(); });
-     sizer->Add(aux_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);*/
-    sizer->Add(19 * em / 10, 0, 0, 0, 0);
+    /*
+    Button * aux_btn = new Button(this, _L("Auxiliary"));
+    aux_btn->SetBackgroundColour(0x3B4446);
+    aux_btn->Bind(wxEVT_BUTTON, [](auto e) {
+        wxGetApp().sidebar().show_auxiliary_dialog();
+    });
+    sizer->Add(aux_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
+    */
+    sizer->Add(FromDIP(19), 0, 0, 0, 0);
 
     return sizer;
 }
@@ -1256,10 +1257,10 @@ void MainFrame::update_side_button_style()
     int em = em_unit();
 
     m_slice_btn->SetLayoutStyle(1);
-    m_slice_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center, 15 * em / 10);
-    m_slice_btn->SetMinSize(wxSize(-1, 24 * em / 10));
-    m_slice_btn->SetCornerRadius(12 * em / 10);
-    m_slice_btn->SetExtraSize(wxSize(38 * em / 10, 10 * em / 10));
+    m_slice_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center, FromDIP(15));
+    m_slice_btn->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_slice_btn->SetCornerRadius(FromDIP(12));
+    m_slice_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(10)));
     m_slice_btn->SetBottomColour(wxColour(0x3B4446));
 
 
@@ -1271,16 +1272,16 @@ void MainFrame::update_side_button_style()
     m_slice_option_btn->SetMinSize(wxSize(24 * em / 10, 24 * em / 10));
     m_slice_option_btn->SetBottomColour(wxColour(0x3B4446));
 #endif
-    m_print_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Left, 15 * em / 10);
-    m_print_btn->SetCornerRadius(12 * em / 10);
-    m_print_btn->SetExtraSize(wxSize(38 * em / 10, 10 * em / 10));
-    m_print_btn->SetMinSize(wxSize(-1, 24 * em / 10));
+    m_print_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Left, FromDIP(15));
+    m_print_btn->SetCornerRadius(FromDIP(12));
+    m_print_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(10)));
+    m_print_btn->SetMinSize(wxSize(-1, FromDIP(24)));
     m_print_btn->SetBottomColour(wxColour(0x3B4446));
     m_print_option_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center);
-    m_print_option_btn->SetCornerRadius(12 * em / 10);
-    m_print_option_btn->SetExtraSize(wxSize(10 * em / 10, 10 * em / 10));
-    m_print_option_btn->SetIconOffset(2 * em / 10);
-    m_print_option_btn->SetMinSize(wxSize(24 * em / 10, 24 * em / 10));
+    m_print_option_btn->SetCornerRadius(FromDIP(12));
+    m_print_option_btn->SetExtraSize(wxSize(FromDIP(10), FromDIP(10)));
+    m_print_option_btn->SetIconOffset(FromDIP(2));
+    m_print_option_btn->SetMinSize(wxSize(FromDIP(24), FromDIP(24)));
     m_print_option_btn->SetBottomColour(wxColour(0x3B4446));
 }
 

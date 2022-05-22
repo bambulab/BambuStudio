@@ -285,6 +285,7 @@ private:
     std::string mqtt_uuid;
     boost::thread reconn_thread;
     bool m_is_subscribing { false };
+    std::map<std::string, bool> subscribe_module;
     void set_product_mqtt_opt();
     void set_engineering_mqtt_opt();
 
@@ -336,8 +337,8 @@ public:
     void on_printer_subscribe_topic(std::string topic_str);
 
     //control subscribe default machine
-    void start_subscribe();
-    void stop_subscribe();
+    void start_subscribe(std::string module = "");
+    void stop_subscribe(std::string module = "");
 
     /* user login register apis */
     bool is_user_login();

@@ -197,6 +197,7 @@ public:
             std::fstream customGcodeCacheFile;
             wxTimer* m_deviceListTimer;
 			std::queue<std::string> mqtt_msg_queue;
+            std::queue<std::string> mqtt_msg_queue_cloud;
 
 			void init();
             void init_model();
