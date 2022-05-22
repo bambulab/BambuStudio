@@ -1273,7 +1273,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
         m_button_pause_resume->Enable(false);
     }
 
-    if (obj->print_status.compare("FAILED") == 0) {
+    if (!obj->print_status.empty() && obj->print_status.compare("FAILED") == 0) {
         reset_printing_values();
         return;
     }
