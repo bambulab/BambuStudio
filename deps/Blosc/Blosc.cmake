@@ -7,9 +7,9 @@ else()
 endif()
 
 bambustudio_add_cmake_project(Blosc
-    #URL https://github.com.cnpmjs.org/Blosc/c-blosc/archive/refs/tags/v1.17.0.zip
+    #URL https://github.com/Blosc/c-blosc/archive/refs/tags/v1.17.0.zip
     #URL_HASH SHA256=7463a1df566704f212263312717ab2c36b45d45cba6cd0dccebf91b2cc4b4da9
-    URL https://github.com.cnpmjs.org/tamasmeszaros/c-blosc/archive/refs/heads/v1.17.0_tm.zip
+    URL https://github.com/tamasmeszaros/c-blosc/archive/refs/heads/v1.17.0_tm.zip
     URL_HASH SHA256=dcb48bf43a672fa3de6a4b1de2c4c238709dad5893d1e097b8374ad84b1fc3b3
     DEPENDS ${ZLIB_PKG}
     # Patching upstream does not work this way with git version 2.28 installed on mac worker
