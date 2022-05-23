@@ -2243,12 +2243,14 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
     UPGRADE_MODE upgrade_mode = (UPGRADE_MODE)cb_upgrade_mode->GetCurrentSelection();
     std::string hardware_version;
     if (cb_upgrade_version->GetCurrentSelection() == 0) {
-        hardware_version = "v7";
+        hardware_version = "v8";
     } else if (cb_upgrade_version->GetCurrentSelection() == 1) {
-        hardware_version = "v6";
+        hardware_version = "v7";
     } else if (cb_upgrade_version->GetCurrentSelection() == 2) {
-        hardware_version = "v5";
+        hardware_version = "v6";
     } else if (cb_upgrade_version->GetCurrentSelection() == 3) {
+        hardware_version = "v5";
+    } else if (cb_upgrade_version->GetCurrentSelection() == 4) {
         hardware_version = "v4";
     } else {
         hardware_version = "v7";
