@@ -271,7 +271,7 @@ public:
     void bbl_close_plateinfo_notification();
 
 	//BBS--Objects Info
-	void bbl_show_objectsinfo_notification(const std::string &text);
+	void bbl_show_objectsinfo_notification(const std::string &text, bool is_warning);
     void bbl_close_objectsinfo_notification();
 
     void bbl_show_seqprintinfo_notification(const std::string &text);
@@ -311,6 +311,7 @@ private:
 		const std::string        text2;
 		int                      sub_msg_id {-1};
 		std::string        ori_text;
+        bool                use_warn_color { false };
 	};
 
 	// Cache of IDs to identify and reuse ImGUI windows.

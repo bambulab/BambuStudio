@@ -437,7 +437,7 @@ static std::string get_warning_icon_name(const TriangleMeshStats& stats)
     return stats.manifold() ? (stats.repaired() ? "obj_warning" : "") : "obj_warning";
 }
 
-MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol_idx /*= -1*/, wxString* sidebar_info /*= nullptr*/) const
+MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol_idx /*= -1*/, wxString* sidebar_info /*= nullptr*/, int* non_manifold_edges) const
 {
     if (obj_idx < 0)
         return { {}, {} }; // hide tooltip
@@ -447,8 +447,8 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol
         (*m_objects)[obj_idx]->volumes[vol_idx]->mesh().stats();
 
     if (!stats.repaired() && stats.manifold()) {
-        if (sidebar_info)
-            *sidebar_info = _L("No errors");
+        //if (sidebar_info)
+        //    *sidebar_info = _L("No errors");
         return { {}, {} }; // hide tooltip
     }
 
@@ -461,14 +461,18 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol
         tooltip += auto_repaired_info + "\n";
     }
     if (!stats.manifold()) {
-        remaining_info = format_wxstr(_L_PLURAL("%1$d non-manifold edge", "%1$d non-manifold edges", stats.open_edges), stats.open_edges);
+        remaining_info = format_wxstr(_L_PLURAL("Error: %1$d non-manifold edge.", "Error: %1$d non-manifold edges.", stats.open_edges), stats.open_edges);
 
         tooltip += _L("Remaining errors") + ":\n";
         tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d non-manifold edge", "%1$d non-manifold edges", stats.open_edges), stats.open_edges) + "\n";
     }
 
-    if (sidebar_info)
+    if (sidebar_info) {
         *sidebar_info = stats.manifold() ? auto_repaired_info : (remaining_info + (stats.repaired() ? ("\n" + auto_repaired_info) : ""));
+    }
+
+    if (non_manifold_edges)
+        *non_manifold_edges = stats.open_edges;
 
     if (is_windows10() && !sidebar_info)
         tooltip += "\n" + _L("Right click the icon to fix model object");
@@ -476,7 +480,7 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol
     return { tooltip, get_warning_icon_name(stats) };
 }
 
-MeshErrorsInfo ObjectList::get_mesh_errors_info(wxString* sidebar_info /*= nullptr*/)
+MeshErrorsInfo ObjectList::get_mesh_errors_info(wxString* sidebar_info /*= nullptr*/, int* non_manifold_edges)
 {
     wxDataViewItem item = GetSelection();
     if (!item)
@@ -493,7 +497,7 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(wxString* sidebar_info /*= nullp
     }
     assert(obj_idx >= 0);
 
-    return get_mesh_errors_info(obj_idx, vol_idx, sidebar_info);
+    return get_mesh_errors_info(obj_idx, vol_idx, sidebar_info, non_manifold_edges);
 }
 
 void ObjectList::set_tooltip_for_item(const wxPoint& pt)

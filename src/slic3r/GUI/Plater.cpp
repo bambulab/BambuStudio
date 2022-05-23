@@ -9701,13 +9701,14 @@ void Plater::show_object_info()
     volume_val = volume_val * pow(koef,3);
     info_text += (boost::format(_utf8(L("Volume: %1% mm³\n"))) %volume_val).str();
 
-    info_text += (boost::format(_utf8(L("Triangles: %1%, "))) %face_count).str();
+    info_text += (boost::format(_utf8(L("Triangles: %1%\n"))) %face_count).str();
 
     wxString info_manifold;
-    auto mesh_errors = p->sidebar->obj_list()->get_mesh_errors_info(&info_manifold);
+    int non_manifold_edges = 0;
+    auto mesh_errors = p->sidebar->obj_list()->get_mesh_errors_info(&info_manifold, &non_manifold_edges);
     info_text += into_u8(info_manifold);
 
-    notify_manager->bbl_show_objectsinfo_notification(info_text);
+    notify_manager->bbl_show_objectsinfo_notification(info_text, (non_manifold_edges > 0));
 }
 
 bool Plater::show_publish_dialog(bool show)

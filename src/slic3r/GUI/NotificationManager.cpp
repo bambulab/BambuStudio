@@ -169,8 +169,12 @@ void NotificationManager::PopNotification::use_bbl_theme()
         m_CurrentColor = m_ErrorColor;
     else if (m_data.level == NotificationLevel::WarningNotificationLevel)
         m_CurrentColor = m_WarnColor;
-    else
-        m_CurrentColor = m_NormalColor;
+    else {
+        if (m_data.use_warn_color)
+            m_CurrentColor = m_WarnColor;
+        else
+            m_CurrentColor = m_NormalColor;
+    }
 
 	//OldStyle.Colors[ImGuiCol_Border] = m_CurrentColor;
 
@@ -2066,16 +2070,20 @@ void NotificationManager::bbl_close_plateinfo_notification()
         }
 }
 
-void NotificationManager::bbl_show_objectsinfo_notification(const std::string &text)
+void NotificationManager::bbl_show_objectsinfo_notification(const std::string &text, bool is_warning)
 {
     NotificationData data{NotificationType::BBLObjectInfo, NotificationLevel::PrintInfoNotificationLevel, 86400 * 10, text};
+    if (is_warning)
+        data.use_warn_color = true;
 
-    for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
+    for (auto it = m_pop_notifications.begin(); it != m_pop_notifications.end();) {
+        std::unique_ptr<PopNotification>& notification = *it;
         if (notification->get_type() == NotificationType::BBLObjectInfo) {
-            notification->reinit();
-            notification->update(data);
-            return;
+            it = m_pop_notifications.erase(it);
+            break;
         }
+        else
+            ++it;
     }
 
     auto notification = std::make_unique<NotificationManager::PopNotification>(data, m_id_provider, m_evt_handler);
