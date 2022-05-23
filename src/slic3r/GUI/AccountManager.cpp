@@ -434,18 +434,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
                 else
                     mqtt_cli->connect(mqtt_opt, this, *mqtt_cb);
             }
-
-            reconn_thread = Slic3r::create_thread([this] {
-                try {
-                    while(mqtt_cli) {
-                        check_mqtt_connection();
-                        boost::this_thread::sleep_for(boost::chrono::milliseconds(2000));
-                    }
-                }
-                catch (boost::thread_interrupted&) {
-                    BOOST_LOG_TRIVIAL(trace) << "reconn_thread is interrupted";
-                }
-            });
             return 0;
         }
         catch (mqtt::exception& e) {
@@ -485,6 +473,7 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         if (is_user_login() && mqtt_cli && !mqtt_cli->is_connected()) {
             try {
                 mqtt_cli->connect(mqtt_opt, this, *mqtt_cb);
+                BOOST_LOG_TRIVIAL(trace) << "check_mqtt_connection: reconnecting";
             } catch(const mqtt::exception& exc) {
                 BOOST_LOG_TRIVIAL(error) << "mqtt_exception: " << exc.what();
             }

@@ -338,6 +338,13 @@ void MonitorPanel::update_all()
         return;
     }
 
+    // check mqtt connection and reconnect if disconnected
+    try {
+        account_manager->check_mqtt_connection();
+    } catch (...) {
+        ;
+    }
+
     obj = account_manager->get_default_machine();
     m_status_info_panel->obj = obj;
 
