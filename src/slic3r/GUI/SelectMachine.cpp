@@ -1036,6 +1036,7 @@ void SelectMachineDialog::reset()
 
 void SelectMachineDialog::on_ok(wxCommandEvent &event)
 {
+    update_err_msg(wxEmptyString);
     int result = 0;
     m_status_bar->set_status_text("Exporting 3mf was cancelled.");
 
@@ -1220,6 +1221,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
 
 void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 {
+    update_err_msg(wxEmptyString);
     Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
     if (event.GetString().empty()) { return; }
 
@@ -1345,7 +1347,7 @@ bool SelectMachineDialog::Show(bool show)
             item_name->SetForegroundColour(textcolor);
         }
         item->SetSize(wxSize(-1, FromDIP(20)));
-        item->SetCornerRadius(FromDIP(10));
+        item->SetCornerRadius(FromDIP(9));
         item->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {});
         item->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &e) {});
         item->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {});
