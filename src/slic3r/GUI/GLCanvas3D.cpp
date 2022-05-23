@@ -6004,6 +6004,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar() const
 
     bool is_hovered = false;
 
+    m_sel_plate_toolbar.set_icon_size(80.0f, 80.0f);
     float button_width = m_sel_plate_toolbar.icon_width;
     float button_height = m_sel_plate_toolbar.icon_height;
     float frame_padding = 1.0f;
@@ -6058,8 +6059,8 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar() const
         // draw image
         ImVec2 button_start_pos = ImGui::GetCursorScreenPos();
         ImGui::PushID(i);
-        ImVec2 uv0 = ImVec2(0.0f, button_height / item->image_height);  // UV coordinates for lower-left
-        ImVec2 uv1 = ImVec2(button_width / item->image_width, 0.0f);    // UV coordinates in our texture
+        ImVec2 uv0 = ImVec2(0.0f, 1.0f);    // UV coordinates for lower-left
+        ImVec2 uv1 = ImVec2(1.0f, 0.0f);    // UV coordinates in our texture
 
         if (item->selected) {
             ImGui::PushStyleColor(ImGuiCol_Button, button_active);
