@@ -172,8 +172,6 @@ public:
     wxPanel *       m_bitmap_panel{nullptr};
     wxStaticBitmap *m_bitmap{nullptr};
     bool            m_turn_on = {false};
-    wxBitmap        monitor_ams_extruder_off;
-    wxBitmap        monitor_ams_extruder_on;
     wxBitmap        monitor_ams_extruder;
     AMSextruder(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
 };
@@ -266,7 +264,6 @@ public:
     void Close();
 
     void         Update(AMSinfo amsinfo);
-    void         Update();
     void         create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
     void         OnEnterWindow(wxMouseEvent &evt);
     void         OnLeaveWindow(wxMouseEvent &evt);

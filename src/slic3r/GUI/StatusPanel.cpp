@@ -169,8 +169,6 @@ void StatusBasePanel::init_bitmaps()
     m_thumbnail_placeholder = create_scaled_bitmap("monitor_placeholder", nullptr, 120);
     m_thumbnail_sdcard = create_scaled_bitmap("monitor_sdcard_thumbnail", nullptr, 120);
     m_bitmap_extruder = *cache.load_png("monitor_extruder", FromDIP(48), FromDIP(96), false, false);
-    m_bitmap_ams_extruder_on  = create_scaled_bitmap("monitor_ams_extruder_on", nullptr, 60);
-    m_bitmap_ams_extruder_off = create_scaled_bitmap("monitor_ams_extruder_off", nullptr, 60);
 }
 
 wxBoxSizer *StatusBasePanel::create_monitoring_page()

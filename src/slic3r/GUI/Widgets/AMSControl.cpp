@@ -212,9 +212,6 @@ void AMSextruder::TurnOff()
 void AMSextruder::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
     wxWindow::Create(parent, id, pos, AMS_EXTRUDER_SIZE, wxBORDER_NONE);
-    // monitor_ams_extruder_off = create_scaled_bitmap("monitor_ams_extruder_off", nullptr, 55);
-    // monitor_ams_extruder_on  = create_scaled_bitmap("monitor_ams_extruder_on", nullptr, 55);
-    // Bind(wxEVT_PAINT, &AMSextruder::paintEvent, this);
     SetBackgroundColour(AMS_CONTROL_WHITE_COLOUR);
 
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
@@ -260,50 +257,6 @@ void AMSextruder::msw_rescale()
     Refresh();
 }
 
-void AMSextruder::paintEvent(wxPaintEvent &evt)
-{
-    wxPaintDC dc(this);
-    render(dc);
-}
-
-void AMSextruder::render(wxDC &dc)
-{
-#ifdef __WXMSW__
-    wxSize     size = GetSize();
-    wxMemoryDC memdc;
-    wxBitmap   bmp(size.x, size.y);
-    memdc.SelectObject(bmp);
-    memdc.Blit({0, 0}, size, &dc, {0, 0});
-
-    {
-        wxGCDC dc2(memdc);
-        doRender(dc2);
-    }
-
-    memdc.SelectObject(wxNullBitmap);
-    dc.DrawBitmap(bmp, 0, 0);
-#else
-    doRender(dc);
-#endif
-}
-
-void AMSextruder::doRender(wxDC &dc)
-{
-    wxSize size = GetSize();
-    auto   midx = AMS_EXTRUDER_SIZE.x - AMS_CAN_ROAD_SIZE.x + (AMS_CAN_ROAD_SIZE.x / 2);
-    // auto   midx = FromDIP(42.5);
-
-    auto pot = wxPoint(midx - monitor_ams_extruder_on.GetSize().x / 2, 0);
-
-    if (m_turn_on) {
-        dc.DrawBitmap(monitor_ams_extruder_on, pot);
-        // dc.DrawCircle(pot.x + FromDIP(17), pot.y + monitor_ams_extruder_on.GetSize().y / 2 + FromDIP(2), FromDIP(7));
-    } else {
-        dc.DrawBitmap(monitor_ams_extruder_off, pot);
-        // dc.DrawCircle(pot.x + FromDIP(17), pot.y + monitor_ams_extruder_off.GetSize().y / 2 + FromDIP(2), FromDIP(7));
-    }
-}
-
 void AMSextruder::set_color(wxColour col) 
 { 
     m_bitmap_panel->SetBackgroundColour(col);
@@ -347,66 +300,15 @@ void AMSLib::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
     m_sizer_body->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_body->Add(m_sizer_edit, 0, wxALIGN_CENTER, 0);
     m_sizer_body->Add(0, 0, 0, wxBOTTOM, GetSize().y * 0.12);
-
     SetSizer(m_sizer_body);
     Layout();
 }
 
 void AMSLib::paintEvent(wxPaintEvent &evt)
 {
-    wxPaintDC dc(this);
+    wxPaintDC dc(this); 
     render(dc);
 }
-
-void AMSLib::Update(Caninfo info, bool refresh)
-{
-    m_info = info;
-    switch (m_info.material_state) {
-    case AMSCanType::AMS_CAN_TYPE_NONE:
-        m_info.material_name = _L("Empty");
-        SetLibColour(AMS_CONTROL_WHITE_COLOUR);
-        break;
-    case AMSCanType::AMS_CAN_TYPE_BRAND: SetLibColour(m_info.material_colour); break;
-    case AMSCanType::AMS_CAN_TYPE_THIRDBRAND: SetLibColour(m_info.material_colour); break;
-    default: break;
-    }
-
-    if (refresh) Refresh();
-}
-
-void AMSLib::SetLibColour(wxColour const &color)
-{
-    m_lib_color = color;
-    Refresh();
-}
-
-wxColour AMSLib::GetLibColour() { return m_lib_color; }
-
-void AMSLib::OnSelected()
-{
-    if (!wxWindow::IsEnabled()) return;
-    if (m_unable_selected) return;
-
-    post_event(wxCommandEvent(EVT_AMS_ON_SELECTED));
-    m_selected = true;
-    Refresh();
-}
-
-void AMSLib::post_event(wxCommandEvent &&event)
-{
-    event.SetString(m_info.can_id);
-    event.SetEventObject(m_parent);
-    wxPostEvent(m_parent, event);
-    event.Skip();
-}
-
-void AMSLib::UnSelected()
-{
-    m_selected = false;
-    Refresh();
-}
-
-bool AMSLib::Enable(bool enable) { return wxWindow::Enable(enable); }
 
 void AMSLib::render(wxDC &dc)
 {
@@ -432,7 +334,7 @@ void AMSLib::render(wxDC &dc)
 void AMSLib::doRender(wxDC &dc)
 {
     wxSize size             = GetSize();
-    auto   tmp_lib_colour   = m_lib_color;
+    auto   tmp_lib_colour   = m_info.material_colour;
     auto   temp_text_colour = AMS_CONTROL_DISABLE_TEXT_COLOUR;
 
     Slic3r::GUI::BitmapCache bmcache;
@@ -484,26 +386,76 @@ void AMSLib::doRender(wxDC &dc)
         dc.SetTextForeground(temp_text_colour);
         dc.DrawText(m_info.material_name, pot);
     }
+}
+
+void AMSLib::Update(Caninfo info, bool refresh)
+{
+    m_info = info;
+    /*  switch (m_info.material_state) {
+      case AMSCanType::AMS_CAN_TYPE_NONE:
+          m_info.material_name = _L("Empty");
+          SetLibColour(AMS_CONTROL_WHITE_COLOUR);
+          break;
+      case AMSCanType::AMS_CAN_TYPE_BRAND: SetLibColour(m_info.material_colour); break;
+      case AMSCanType::AMS_CAN_TYPE_THIRDBRAND: SetLibColour(m_info.material_colour); break;
+      default: break;
+      }*/
+
 
     // edit
     if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND) {
-        // dc.DrawBitmap(m_bitmap_editable, {(size.x - m_bitmap_editable.GetSize().x) / 2, int(size.y * 0.7)});
-        m_edit_bitmp->SetBackgroundColour(tmp_lib_colour);
-        m_edit_bitmp_light->SetBackgroundColour(tmp_lib_colour);
+        m_edit_bitmp->SetBackgroundColour(m_info.material_colour);
+        m_edit_bitmp_light->SetBackgroundColour(m_info.material_colour);
 
-        if (tmp_lib_colour.GetLuminance() < 0.5) {
+        if (m_info.material_colour.GetLuminance() < 0.5) {
             m_edit_bitmp->Hide();
             m_edit_bitmp_light->Show();
         } else {
             m_edit_bitmp->Show();
             m_edit_bitmp_light->Hide();
         }
-
-        Layout();
     } else {
         m_edit_bitmp->Hide();
     }
+
+    Layout();
+    if (refresh) Refresh();
 }
+
+void AMSLib::SetLibColour(wxColour const &color)
+{
+    m_lib_color = color;
+    Refresh();
+}
+
+wxColour AMSLib::GetLibColour() { return m_lib_color; }
+
+void AMSLib::OnSelected()
+{
+    if (!wxWindow::IsEnabled()) return;
+    if (m_unable_selected) return;
+
+    post_event(wxCommandEvent(EVT_AMS_ON_SELECTED));
+    m_selected = true;
+    Refresh();
+}
+
+void AMSLib::post_event(wxCommandEvent &&event)
+{
+    event.SetString(m_info.can_id);
+    event.SetEventObject(m_parent);
+    wxPostEvent(m_parent, event);
+    event.Skip();
+}
+
+void AMSLib::UnSelected()
+{
+    m_selected = false;
+    Refresh();
+}
+
+bool AMSLib::Enable(bool enable) { return wxWindow::Enable(enable); }
+
 /*************************************************
 Description:AMSRoad
 **************************************************/
@@ -740,8 +692,6 @@ void AMSItem::Update(AMSinfo amsinfo)
     m_amsinfo = amsinfo;
 }
 
-void AMSItem::Update() {}
-
 void AMSItem::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
     wxWindow::Create(parent, id, pos, size);
@@ -859,7 +809,7 @@ void AMSItem::doRender(wxDC &dc)
         dc.SetTextForeground(AMS_CONTROL_GRAY800);
         auto tsize = dc.GetTextExtent("00% RH");
         auto text  = wxString::Format("%d%% RH", m_humidity);
-        dc.DrawText(text, wxPoint(left, (size.y - tsize.y) / 2 - 2));
+        dc.DrawText(text, wxPoint(left, (size.y - tsize.y) / 2));
     }
 
     auto border_colour = m_border_colour;
@@ -923,7 +873,7 @@ void AmsCans::Update(AMSinfo info)
             refresh->canrefresh->Hide();
         }
     }
-
+   
     for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
         CanLibs *lib = m_can_lib_list[i];
         if (i < m_can_count) {
@@ -933,7 +883,7 @@ void AmsCans::Update(AMSinfo info)
             lib->canLib->Hide();
         }
     }
-
+    return;
     for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
         CanRoads *road = m_can_road_list[i];
         if (i < m_can_count) {
@@ -1132,7 +1082,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     SetBackgroundColour(*wxWHITE);
 
     // normal mode
-    Freeze();
+    //Freeze();
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
     auto        amswin       = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
     amswin->SetBackgroundColour(*wxWHITE);
@@ -1302,7 +1252,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     amswin->SetSizer(m_sizer_body);
     amswin->Layout();
     amswin->Fit();
-    Thaw();
+    //Thaw();
 
     SetSize(amswin->GetSize());
     SetMinSize(amswin->GetSize());
@@ -1594,7 +1544,7 @@ void AMSControl::AddAms(AMSinfo info, bool refresh)
     item->amsItem  = amsitem;
 
     m_ams_item_list.Add(item);
-    m_sizer_top->Add(amsitem, 0, wxALL | wxEXPAND, 3);
+    m_sizer_top->Add(amsitem, 0, wxALIGN_CENTER, 0);
 
     AmsCansWindow *canswin = new AmsCansWindow();
     auto           amscans = new AmsCans(m_simplebook_cans, wxID_ANY, info);

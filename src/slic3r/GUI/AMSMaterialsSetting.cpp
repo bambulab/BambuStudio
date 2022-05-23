@@ -174,7 +174,8 @@ void AMSMaterialsSetting::set_color(wxColour color)
 
 void AMSMaterialsSetting::Dismiss() 
 { 
-    Destroy();
+    //Destroy();
+    wxPopupTransientWindow::Dismiss();
 }
 
 void AMSMaterialsSetting::Popup(bool show)

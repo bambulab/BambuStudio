@@ -57,8 +57,6 @@ protected:
     wxBitmap m_bitmap_fan_on;
     wxBitmap m_bitmap_fan_off;
     wxBitmap m_bitmap_extruder;
-    wxBitmap m_bitmap_ams_extruder_on;
-    wxBitmap m_bitmap_ams_extruder_off;
 
     /* title panel */
     wxPanel *       m_panel_monitoring_title;
