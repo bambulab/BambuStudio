@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.00.03.00",
+    "version": "01.00.03.01",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -186,12 +186,24 @@
             "sub_path": "filament/Bambu TPU 95A @BBL X1C.json"
         },
         {
+            "name": "Bambu TPU 95A @BBL X1",
+            "sub_path": "filament/Bambu TPU 95A @BBL X1.json"
+        },
+        {
             "name": "Bambu PLA Matte @BBL X1C",
             "sub_path": "filament/Bambu PLA Matte @BBL X1C.json"
         },
         {
+            "name": "Bambu PLA Matte @BBL X1",
+            "sub_path": "filament/Bambu PLA Matte @BBL X1.json"
+        },
+        {
             "name": "Bambu PLA Basic @BBL X1C",
             "sub_path": "filament/Bambu PLA Basic @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PLA Basic @BBL X1",
+            "sub_path": "filament/Bambu PLA Basic @BBL X1.json"
         },
         {
             "name": "Bambu ABS @BBL X1C",
@@ -200,6 +212,10 @@
         {
             "name": "Bambu Support W @BBL X1C",
             "sub_path": "filament/Bambu Support W @BBL X1C.json"
+        },
+        {
+            "name": "Bambu Support W @BBL X1",
+            "sub_path": "filament/Bambu Support W @BBL X1.json"
         },
         {
             "name": "Bambu Support G @BBL X1C",
@@ -218,16 +234,32 @@
             "sub_path": "filament/Kexcelled K5 PLA @BBL X1C.json"
         },
         {
+            "name": "Kexcelled K5 PLA @BBL X1",
+            "sub_path": "filament/Kexcelled K5 PLA @BBL X1.json"
+        },
+        {
             "name": "Kexcelled K6 PLA @BBL X1C",
             "sub_path": "filament/Kexcelled K6 PLA @BBL X1C.json"
+        },
+        {
+            "name": "Kexcelled K6 PLA @BBL X1",
+            "sub_path": "filament/Kexcelled K6 PLA @BBL X1.json"
         },
         {
             "name": "PolyLite PLA @BBL X1C",
             "sub_path": "filament/PolyLite PLA @BBL X1C.json"
         },
         {
+            "name": "PolyLite PLA @BBL X1",
+            "sub_path": "filament/PolyLite PLA @BBL X1.json"
+        },
+        {
             "name": "PolyTerra PLA @BBL X1C",
             "sub_path": "filament/PolyTerra PLA @BBL X1C.json"
+        },
+        {
+            "name": "PolyTerra PLA @BBL X1",
+            "sub_path": "filament/PolyTerra PLA @BBL X1.json"
         }
     ],
     "machine_list": [

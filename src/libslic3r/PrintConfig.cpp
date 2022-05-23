@@ -903,7 +903,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Filament price. For statistics only");
     def->sidetext = L("money/kg");
     def->min = 0;
-    def->mode = comAdvanced;
+    def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats { 0. });
 
     def = this->add("filament_settings_id", coStrings);

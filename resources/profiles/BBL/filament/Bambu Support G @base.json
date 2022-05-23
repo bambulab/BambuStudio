@@ -11,6 +11,9 @@
     "filament_type": [
         "Support"
     ],
+    "filament_density": [
+        "1.22"
+    ],
     "nozzle_temperature_initial_layer": [
         "280"
     ],
