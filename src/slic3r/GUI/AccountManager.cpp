@@ -2034,7 +2034,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
                     }
                     BOOST_LOG_TRIVIAL(trace) << "print_job: found Etag = " << md5_in_header;
                 }
-                
             })
             .on_error(
                 [this, &result, &http_code, &http_body](std::string body, std::string error, unsigned status) {
@@ -3049,6 +3048,7 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         int result = -1;
         std::string url = REGION_JSON_CONFIG_URL;
         Http http = Http::get(url);
+        bool http_302 = false;
         http.timeout_max(10)
             .header("accept", "application/json")
             .header("Authorization", get_token_str())
@@ -3059,11 +3059,43 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
                     http_body = body;
                     result = 0;
                 })
+            .on_header_callback([this, &http_302, &url](std::string headers)
+            {
+                if (headers.empty()) return;
+                int tag_pos = headers.find("Location:");
+                if (tag_pos > 0) {
+                    size_t start_pos = headers.find("h", tag_pos);
+                    size_t end_pos = headers.find(".json", tag_pos);
+                    end_pos += 5;
+                    if (start_pos > 0 && end_pos > 0 && end_pos > start_pos) {
+                        url = headers.substr(start_pos, end_pos - start_pos);
+                        BOOST_LOG_TRIVIAL(trace) << "get_region_config: found new url = " << url;
+                        http_302 = true;
+                    }
+                }
+
+            })
             .on_error([this, &http_code, &http_body](std::string body, std::string error, unsigned status) {
                     http_code = status;
                     http_body = body;
                 })
         .perform_sync();
+
+        if (http_302) {
+            Http new_http = Http::get(url);
+            new_http.header("accept", "application/json")
+                .header("Authorization", get_token_str())
+                .on_complete([this, &http_code, &http_body, &result](std::string body, unsigned status) {
+                    http_code = status;
+                    http_body = body;
+                    result    = 0;
+                })
+                .on_error([this, &http_code, &http_body](std::string body, std::string error, unsigned status) {
+                    http_code = status;
+                    http_body = body;
+                })
+                .perform_sync();
+        }
         return result;
     }
 

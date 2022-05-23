@@ -100,10 +100,14 @@ namespace Slic3r {
     {
         int count = 0;
         while (!sdp_quit) {
-            if (keep_sending && (count % 100) == 0)
-                bbl_send_ssdp_msg(broadcast_sock_list[card_no]);
-            count++;
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
+            try {
+                if (keep_sending && (count % 100) == 0)
+                    bbl_send_ssdp_msg(broadcast_sock_list[card_no]);
+                count++;
+                boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
+            } catch(...) {
+                ;
+            }
         }
         return 0;
     }
@@ -113,10 +117,15 @@ namespace Slic3r {
         char buff[BUFSIZE];
         int size;
         while (!sdp_quit) {
-            memset(buff, 0, BUFSIZE);
-            bbl_read_from_ssdp(ssdp_sock_list[card_no], buff, &size, BUFSIZE);
-            parse_sdp_message(buff, size);
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(200));
+            try {
+                memset(buff, 0, BUFSIZE);
+                bbl_read_from_ssdp(ssdp_sock_list[card_no], buff, &size, BUFSIZE);
+                parse_sdp_message(buff, size);
+                boost::this_thread::sleep_for(boost::chrono::milliseconds(200));
+            }
+            catch(...) {
+                ;
+            }
         }
     }
 
@@ -126,11 +135,16 @@ namespace Slic3r {
         int size;
         lssdp_packet packet;
         while (!sdp_quit) {
-            memset(&packet, 0, sizeof(packet));
-            memset(buff, 0, BUFSIZE);
-            bbl_read_from_broadcast(broadcast_sock_list[card_no], buff, &size, BUFSIZE);
-            parse_sdp_message(buff, size);
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(200));
+            try {
+                memset(&packet, 0, sizeof(packet));
+                memset(buff, 0, BUFSIZE);
+                bbl_read_from_broadcast(broadcast_sock_list[card_no], buff, &size, BUFSIZE);
+                parse_sdp_message(buff, size);
+                boost::this_thread::sleep_for(boost::chrono::milliseconds(200));
+            }
+            catch(...) {
+                ;
+            }
         }
     }
 #elif defined(__APPLE__)
