@@ -362,13 +362,24 @@ void NotificationManager::PopNotification::count_lines()
 				if (ImGui::CalcTextSize(text.substr(last_end, next_space - last_end).c_str()).x > m_window_width - m_window_width_offset ||
 					ImGui::CalcTextSize(text.substr(last_end, next_space - last_end).c_str()).x < (m_window_width - m_window_width_offset) / 4 * 3
 					) {
-					float width_of_a = ImGui::CalcTextSize("a").x;
-					int letter_count = (int)((m_window_width - m_window_width_offset) / width_of_a);
-					while (last_end + letter_count < text.size() && ImGui::CalcTextSize(text.substr(last_end, letter_count).c_str()).x < m_window_width - m_window_width_offset) {
+					//BBS
+					wxString wx_text = from_u8(text.substr(last_end, text.length() - last_end).c_str());
+                    float    width_of_char = ImGui::CalcTextSize("a").x;
+                    int letter_count = (int) ((m_window_width - m_window_width_offset) / width_of_char) / 2;	// give a predict value of char count
+					int output_count = 0;
+					while (true) {
+                        if (letter_count >= wx_text.size())
+							break;
+                        float used_space = ImGui::CalcTextSize(into_u8(wx_text.SubString(0, letter_count)).c_str()).x;
+                        if (used_space > m_window_width - m_window_width_offset)
+							break;
 						letter_count++;
 					}
-					m_endlines.push_back(last_end + letter_count);
-					last_end += letter_count;
+					if (letter_count > 0) {
+						output_count = into_u8(wx_text.SubString(0, letter_count - 1)).size();
+                    }
+                    m_endlines.push_back(last_end + output_count);
+                    last_end += output_count;
 				} else {
 					m_endlines.push_back(next_space);
 					last_end = next_space + 1;
