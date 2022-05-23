@@ -4350,7 +4350,8 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         size_t idx_layer_intermediate     = size_t(-1);
         size_t idx_layer_interface        = size_t(-1);
         size_t idx_layer_base_interface   = size_t(-1);
-        const auto fill_type_first_layer  = ipRectilinear;
+        // BBS
+        const auto fill_type_first_layer  = ipConcentric;
         auto filler_interface       = std::unique_ptr<Fill>(Fill::new_from_type(m_support_params.contact_fill_pattern));
         // Filler for the 1st layer interface, if different from filler_interface.
         auto filler_first_layer_ptr = std::unique_ptr<Fill>(range.begin() == 0 && m_support_params.contact_fill_pattern != fill_type_first_layer ? Fill::new_from_type(fill_type_first_layer) : nullptr);
