@@ -168,6 +168,10 @@ void PrintJob::process()
         return;
     }
 
+    msg          = _L("Wait for the sending task to complete");
+    curr_percent = 80;
+    update_status(curr_percent, msg);
+
     /* put notifications */
     res = c->put_notification(profile, project->project_path.filename().string(), http_code, http_body);
     if (res < 0) {
@@ -197,7 +201,7 @@ void PrintJob::process()
         return;
     }
 
-    curr_percent = 75;
+    curr_percent = 95;
     msg = _L("The print job has been sent to your printer.");
     update_status(curr_percent, msg);
 

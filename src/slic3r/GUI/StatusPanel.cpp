@@ -750,10 +750,12 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
     sizer->Add(m_ams_debug, 0, wxALIGN_CENTER_HORIZONTAL, 0);
 #endif
 
+#if !BBL_RELEASE_TO_PUBLIC
     m_ams_control = new AMSControl(parent, wxID_ANY);
     m_ams_control->SetMinSize(m_ams_control->GetSize());
     m_ams_control->SetDoubleBuffered(true);
     sizer->Add(m_ams_control, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+#endif
 
     // display demo, to be removed
     //auto                 caninfo0_0 = Caninfo{"can0", _L("PLA1"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
@@ -779,12 +781,14 @@ wxBoxSizer *StatusBasePanel::create_cali_group(wxWindow *parent)
 
 void StatusBasePanel::show_ams_group(bool show)
 {
+#if !BBL_RELEASE_TO_PUBLIC
     if (m_show_ams_group != show) {
         m_ams_control->Show(show);
         m_staticText_ams_ctrl_caption->Show(show);
         m_ams_staticline->Show(show);
     }
     m_show_ams_group = show;
+#endif
 }
 
 
@@ -1049,7 +1053,9 @@ void StatusPanel::update(MachineObject *obj)
 
     //BBS hide tasklist info
     //update_tasklist(obj);
+#if !BBL_RELEASE_TO_PUBLIC
     update_ams(obj);
+#endif
 
     m_machine_ctrl_panel->Thaw();
 }
@@ -1784,7 +1790,9 @@ void StatusPanel::show_status(int status) {
         m_staticText_z_tip->SetForegroundColour(DISCONNECT_TEXT_COL);
         m_staticText_e->SetForegroundColour(DISCONNECT_TEXT_COL);
         m_staticText_ams_ctrl_caption->SetForegroundColour(DISCONNECT_TEXT_COL);
+#if !BBL_RELEASE_TO_PUBLIC
         m_ams_control->Enable(false);
+#endif
         
     } else if ((status & (int)MonitorStatus::MONITOR_NORMAL) != 0) {
         m_connection_info->Hide();
@@ -1809,7 +1817,9 @@ void StatusPanel::show_status(int status) {
         m_staticText_z_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
         m_staticText_e->SetForegroundColour(TEXT_LIGHT_FONT_COL);
         m_staticText_ams_ctrl_caption->SetForegroundColour(NORMAL_TEXT_COL);
+#if !BBL_RELEASE_TO_PUBLIC
         m_ams_control->Enable();
+#endif
     }
 }
 
