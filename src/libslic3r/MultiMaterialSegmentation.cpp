@@ -982,6 +982,44 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
             const ColoredLine colored_line      = lines_colored[edge_it->cell()->source_index()];
             const ColoredLine contour_line_prev = get_prev_contour_line(edge_it);
             const ColoredLine contour_line_next = get_next_contour_line(edge_it);
+            bool has_color_change = false;
+            {
+                const double tolerance = 15 * SCALED_EPSILON;
+                double acc_len = 0.0;
+                size_t contour_line_local_idx = lines_colored[edge_it->cell()->source_index()].local_line_idx;
+                size_t poly_idx = lines_colored[edge_it->cell()->source_index()].poly_idx;
+                size_t contour_line_size = color_poly[poly_idx].size();
+                size_t contour_prev_local_idx = (contour_line_local_idx > 0) ? contour_line_local_idx - 1 : contour_line_size - 1;
+                while (!has_color_change) {
+                    ColoredLine& prev_line = lines_colored[graph.get_global_index(poly_idx, contour_prev_local_idx)];
+                    if (!has_same_color(prev_line, colored_line)) {
+                        has_color_change = true;
+                        break;
+                    }
+
+                    acc_len += prev_line.line.length();
+                    if (acc_len >= tolerance)
+                        break;
+
+                    contour_prev_local_idx = (contour_prev_local_idx > 0) ? contour_prev_local_idx - 1 : contour_line_size - 1;
+                }
+
+                acc_len = 0.0;
+                size_t contour_next_local_idx = (contour_line_local_idx + 1) % contour_line_size;
+                while (!has_color_change) {
+                    ColoredLine& next_line = lines_colored[graph.get_global_index(poly_idx, contour_next_local_idx)];
+                    if (!has_same_color(colored_line, next_line)) {
+                        has_color_change = true;
+                        break;
+                    }
+
+                    acc_len += next_line.line.length();
+                    if (acc_len >= tolerance)
+                        break;
+
+                    contour_next_local_idx = (contour_next_local_idx + 1) % contour_line_size;
+                }
+            }
 
             if (edge_it->vertex0()->color() >= graph.nodes_count() || edge_it->vertex1()->color() >= graph.nodes_count()) {
                 enum class Vertex { VERTEX0, VERTEX1 };
@@ -1016,12 +1054,12 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
                 const size_t to_idx   = edge_it->vertex1()->color();
                 if (graph.is_vertex_on_contour(edge_it->vertex0())) {
                     if (is_point_closer_to_beginning_of_line(contour_line, edge_line.a)) {
-                        if ((!has_same_color(contour_line_prev, colored_line) || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line_prev.line, contour_line, edge_line.b)) {
+                        if ((has_color_change || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line_prev.line, contour_line, edge_line.b)) {
                             graph.append_edge(from_idx, to_idx);
                             force_edge_adding[colored_line.poly_idx] = false;
                         }
                     } else {
-                        if ((!has_same_color(contour_line_next, colored_line) || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line, contour_line_next.line, edge_line.b)) {
+                        if ((has_color_change || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line, contour_line_next.line, edge_line.b)) {
                             graph.append_edge(from_idx, to_idx);
                             force_edge_adding[colored_line.poly_idx] = false;
                         }
@@ -1029,12 +1067,12 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
                 } else {
                     assert(graph.is_vertex_on_contour(edge_it->vertex1()));
                     if (is_point_closer_to_beginning_of_line(contour_line, edge_line.b)) {
-                        if ((!has_same_color(contour_line_prev, colored_line) || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line_prev.line, contour_line, edge_line.a)) {
+                        if ((has_color_change || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line_prev.line, contour_line, edge_line.a)) {
                             graph.append_edge(from_idx, to_idx);
                             force_edge_adding[colored_line.poly_idx] = false;
                         }
                     } else {
-                        if ((!has_same_color(contour_line_next, colored_line) || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line, contour_line_next.line, edge_line.a)) {
+                        if ((has_color_change || force_edge_adding[colored_line.poly_idx]) && points_inside(contour_line, contour_line_next.line, edge_line.a)) {
                             graph.append_edge(from_idx, to_idx);
                             force_edge_adding[colored_line.poly_idx] = false;
                         }
@@ -1048,30 +1086,22 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
                 Point real_v1        = Point(coord_t(real_v1_double.x()), coord_t(real_v1_double.y()));
 
                 if (is_point_closer_to_beginning_of_line(contour_line, intersection)) {
-                    Line first_part(intersection, real_v0);
-                    Line second_part(intersection, real_v1);
-
-                    if (!has_same_color(contour_line_prev, colored_line)) {
-                        if (points_inside(contour_line_prev.line, contour_line, first_part.b))
+                    if (has_color_change)
+                    {
+                        if (points_inside(contour_line_prev.line, contour_line, real_v0))
                             graph.append_edge(edge_it->vertex0()->color(), graph.get_border_arc(edge_it->cell()->source_index()).from_idx);
 
-                        if (points_inside(contour_line_prev.line, contour_line, second_part.b))
+                        if (points_inside(contour_line_prev.line, contour_line, real_v1))
                             graph.append_edge(edge_it->vertex1()->color(), graph.get_border_arc(edge_it->cell()->source_index()).from_idx);
                     }
                 } else {
-                    const size_t int_point_idx    = graph.get_border_arc(edge_it->cell()->source_index()).to_idx;
-                    const Vec2d  int_point_double = graph.nodes[int_point_idx].point;
-                    const Point  int_point        = Point(coord_t(int_point_double.x()), coord_t(int_point_double.y()));
+                    if (has_color_change)
+                    {
+                        if (points_inside(contour_line, contour_line_next.line, real_v0))
+                            graph.append_edge(edge_it->vertex0()->color(), graph.get_border_arc(edge_it->cell()->source_index()).to_idx);
 
-                    const Line first_part(int_point, real_v0);
-                    const Line second_part(int_point, real_v1);
-
-                    if (!has_same_color(contour_line_next, colored_line)) {
-                        if (points_inside(contour_line, contour_line_next.line, first_part.b))
-                            graph.append_edge(edge_it->vertex0()->color(), int_point_idx);
-
-                        if (points_inside(contour_line, contour_line_next.line, second_part.b))
-                            graph.append_edge(edge_it->vertex1()->color(), int_point_idx);
+                        if (points_inside(contour_line, contour_line_next.line, real_v1))
+                            graph.append_edge(edge_it->vertex1()->color(), graph.get_border_arc(edge_it->cell()->source_index()).to_idx);
                     }
                 }
             }
