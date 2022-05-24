@@ -283,7 +283,6 @@ private:
     mqtt::connect_options mqtt_opt;
     mqtt::ssl_options mqtt_ssl_opt;
     std::string mqtt_uuid;
-    boost::thread reconn_thread;
     bool m_is_subscribing { false };
     std::map<std::string, bool> subscribe_module;
     void set_product_mqtt_opt();

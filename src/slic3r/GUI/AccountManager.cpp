@@ -457,10 +457,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
                 }
                 delete mqtt_cli;
                 mqtt_cli = nullptr;
-                reconn_thread.interrupt();
-                if (reconn_thread.joinable()) {
-                    reconn_thread.join();
-                }
             }
         } catch(...) {
             ;
