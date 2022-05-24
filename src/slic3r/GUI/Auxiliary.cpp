@@ -65,7 +65,7 @@ AuFile::AuFile(wxWindow *parent, fs::path file_path, wxString file_name, Auxilia
         if (m_type == ASSEMBLY_GUIDE) {m_file_bitmap = m_bitmap_pdf;}
     }
     
-    cover_text_left  = _L("Set to cover");
+    cover_text_left  = _L("Set as cover");
     cover_text_right = _L("Rename");
     cover_text_cover = _L("Cover");
 
@@ -424,7 +424,6 @@ void AuFile::msw_rescale()
     m_file_edit_mask = create_scaled_bitmap("auxiliary_edit_mask", this, 43);
     m_file_delete    = create_scaled_bitmap("auxiliary_delete", this, 28);
 
-    m_bitmap_other = create_scaled_bitmap("placeholder_other", this, 300);
     m_bitmap_excel = create_scaled_bitmap("placeholder_excel", this, 300);
     m_bitmap_pdf   = create_scaled_bitmap("placeholder_pdf", this, 300);
     m_bitmap_txt   = create_scaled_bitmap("placeholder_txt", this, 300);
@@ -681,7 +680,6 @@ void AuxiliaryPanel::init_tabpanel()
     m_bill_of_materials_panel = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::BILL_OF_MATERIALS);
     m_assembly_panel          = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::ASSEMBLY_GUIDE);
     m_others_panel            = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::OTHERS);
-    m_designer_panel          = new DesignerPanel(m_tabpanel, AuxiliaryFolderType::DESIGNER);
 
     m_tabpanel->AddPage(m_pictures_panel, _L("Pictures"), "", true);
     m_tabpanel->AddPage(m_bill_of_materials_panel, _L("Bill of Materials"), "", false);
@@ -689,6 +687,7 @@ void AuxiliaryPanel::init_tabpanel()
     m_tabpanel->AddPage(m_others_panel, _L("Others"), "", false);
 
     #if !BBL_RELEASE_TO_PUBLIC
+    m_designer_panel          = new DesignerPanel(m_tabpanel, AuxiliaryFolderType::DESIGNER);
     m_tabpanel->AddPage(m_designer_panel, _L("Designer"), "", false);
     #endif
 }
@@ -861,7 +860,9 @@ void AuxiliaryPanel::Reload(wxString aux_path)
             fs::create_directory(folder_path.ToStdWstring());
         }
         update_all_panel();
+        #if !BBL_RELEASE_TO_PUBLIC
         m_designer_panel->update_info();
+        #endif
         return;
     }
 
@@ -909,7 +910,9 @@ void AuxiliaryPanel::Reload(wxString aux_path)
 
     update_all_panel();
     update_all_cover();
+    #if !BBL_RELEASE_TO_PUBLIC
     m_designer_panel->update_info();
+    #endif
 }
 
 void AuxiliaryPanel::update_all_panel()

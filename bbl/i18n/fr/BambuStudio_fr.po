@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-20 17:29+0800\n"
+"POT-Creation-Date: 2022-05-25 12:22+0800\n"
 "Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -428,6 +428,18 @@ msgstr ""
 
 msgid "Info"
 msgstr "Info"
+
+msgid "Update successful."
+msgstr ""
+
+msgid "Downloading failed."
+msgstr ""
+
+msgid "Verification failed."
+msgstr ""
+
+msgid "Update failed."
+msgstr ""
 
 msgid "N/A"
 msgstr "N/A"
@@ -1365,9 +1377,6 @@ msgstr ""
 msgid "Name"
 msgstr "Nom"
 
-msgid "No errors"
-msgstr ""
-
 #, c-format, boost-format
 msgid "%1$d error repaired"
 msgid_plural "%1$d errors repaired"
@@ -1375,13 +1384,19 @@ msgstr[0] ""
 msgstr[1] ""
 
 #, c-format, boost-format
-msgid "%1$d non-manifold edge"
-msgid_plural "%1$d non-manifold edges"
+msgid "Error: %1$d non-manifold edge."
+msgid_plural "Error: %1$d non-manifold edges."
 msgstr[0] ""
 msgstr[1] ""
 
 msgid "Remaining errors"
 msgstr "Erreurs restantes"
+
+#, c-format, boost-format
+msgid "%1$d non-manifold edge"
+msgid_plural "%1$d non-manifold edges"
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "Right click the icon to fix model object"
 msgstr ""
@@ -1657,7 +1672,7 @@ msgstr "Aperçu"
 msgid "Debug"
 msgstr ""
 
-msgid "Auxiliary"
+msgid "Project"
 msgstr ""
 
 msgid "Slice"
@@ -1695,6 +1710,10 @@ msgstr ""
 
 msgid "Check for Update"
 msgstr ""
+
+#, c-format, boost-format
+msgid "&About %s"
+msgstr "&Au sujet de %s"
 
 msgid "Default View"
 msgstr ""
@@ -2106,9 +2125,6 @@ msgstr "Plus"
 
 msgid "Open Folder."
 msgstr "Ouvrir un répertoire."
-
-msgid "Eject drive"
-msgstr "Éjecter le lecteur"
 
 #, c-format, boost-format
 msgid "%1$d Object has custom supports."
@@ -2530,7 +2546,7 @@ msgid "Volume: %1% mm³\n"
 msgstr ""
 
 #, boost-format
-msgid "Triangles: %1%, "
+msgid "Triangles: %1%\n"
 msgstr ""
 
 msgid "Chinese (Simplified)"
@@ -2845,6 +2861,9 @@ msgstr ""
 msgid "Current printer is busy. Please select another one."
 msgstr ""
 
+msgid "The printer is being updated. Please try again after the update."
+msgstr ""
+
 msgid "Please fill report first."
 msgstr ""
 
@@ -2852,6 +2871,9 @@ msgid "Exporting 3mf..."
 msgstr ""
 
 msgid "Exporting 3mf failed, please slice again."
+msgstr ""
+
+msgid "No printer available"
 msgstr ""
 
 msgid "Confirm"
@@ -3191,6 +3213,31 @@ msgstr "Nombre d'extrudeurs"
 msgid "Capabilities"
 msgstr "Fonctionnalités"
 
+msgid "Set as cover"
+msgstr ""
+
+msgid "Cover"
+msgstr ""
+
+#, boost-format
+msgid "The name \"%1%\" already exists."
+msgstr ""
+
+msgid "Pictures"
+msgstr ""
+
+msgid "Bill of Materials"
+msgstr ""
+
+msgid "Assembly Guide"
+msgstr ""
+
+msgid "Designer"
+msgstr ""
+
+msgid "Choose files"
+msgstr ""
+
 #, c-format, boost-format
 msgid "%s Update"
 msgstr ""
@@ -3387,6 +3434,9 @@ msgstr ""
 msgid ""
 "\n"
 "upload,err:code=%u,msg=%s"
+msgstr ""
+
+msgid "Wait for the job to be sent."
 msgstr ""
 
 msgid "The print job has been sent to your printer."
@@ -5156,6 +5206,9 @@ msgstr ""
 msgid "Error at line %1%:\n"
 msgstr ""
 
+#~ msgid "Eject drive"
+#~ msgstr "Éjecter le lecteur"
+
 #~ msgid "%1$d open edge"
 #~ msgid_plural "%1$d open edges"
 #~ msgstr[0] "%1$d arrête ouverte"
@@ -6570,9 +6623,6 @@ msgstr ""
 
 #~ msgid "Show &Configuration Folder"
 #~ msgstr "Afficher le Répertoire de &Configuration"
-
-#~ msgid "&About %s"
-#~ msgstr "&Au sujet de %s"
 
 #~ msgid "&Open G-code"
 #~ msgstr "&Ouvrir le G-code"

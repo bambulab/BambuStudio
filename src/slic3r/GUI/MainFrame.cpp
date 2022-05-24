@@ -741,7 +741,7 @@ void MainFrame::init_tabpanel()
     }
 
     m_auxiliary = new AuxiliaryPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    m_tabpanel->AddPage(m_auxiliary, _L("Auxiliary"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"));
+    m_tabpanel->AddPage(m_auxiliary, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"));
 
     if (m_plater) {
         // load initial config

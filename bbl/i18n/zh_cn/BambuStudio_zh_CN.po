@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-20 17:29+0800\n"
+"POT-Creation-Date: 2022-05-25 12:22+0800\n"
 "PO-Revision-Date: 2022-05-17 15:42+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -466,6 +466,18 @@ msgstr ""
 
 msgid "Info"
 msgstr "信息"
+
+msgid "Update successful."
+msgstr "更新成功。"
+
+msgid "Downloading failed."
+msgstr "下载失败。"
+
+msgid "Verification failed."
+msgstr "验证失败。"
+
+msgid "Update failed."
+msgstr "更新失败。"
 
 msgid "N/A"
 msgstr "N/A"
@@ -1413,21 +1425,23 @@ msgstr "锁定"
 msgid "Name"
 msgstr "名称"
 
-msgid "No errors"
-msgstr "无错误"
-
 #, c-format, boost-format
 msgid "%1$d error repaired"
 msgid_plural "%1$d errors repaired"
 msgstr[0] "%1$d个错误被修复"
 
 #, c-format, boost-format
-msgid "%1$d non-manifold edge"
-msgid_plural "%1$d non-manifold edges"
+msgid "Error: %1$d non-manifold edge."
+msgid_plural "Error: %1$d non-manifold edges."
 msgstr[0] ""
 
 msgid "Remaining errors"
 msgstr "剩余错误"
+
+#, c-format, boost-format
+msgid "%1$d non-manifold edge"
+msgid_plural "%1$d non-manifold edges"
+msgstr[0] ""
 
 msgid "Right click the icon to fix model object"
 msgstr "右键点击此图标可修复模型对象"
@@ -1708,8 +1722,8 @@ msgstr "预览"
 msgid "Debug"
 msgstr "调试"
 
-msgid "Auxiliary"
-msgstr "附件"
+msgid "Project"
+msgstr "项目"
 
 msgid "Slice"
 msgstr "切片"
@@ -1746,6 +1760,10 @@ msgstr "绑定对话框"
 
 msgid "Check for Update"
 msgstr "检查新版本"
+
+#, c-format, boost-format
+msgid "&About %s"
+msgstr "关于 %s"
 
 msgid "Default View"
 msgstr "默认视图"
@@ -2162,9 +2180,6 @@ msgstr "详情"
 
 msgid "Open Folder."
 msgstr "打开目录。"
-
-msgid "Eject drive"
-msgstr "弹出设备"
 
 #, c-format, boost-format
 msgid "%1$d Object has custom supports."
@@ -2586,8 +2601,8 @@ msgid "Volume: %1% mm³\n"
 msgstr "体积： %1% 毫米³\n"
 
 #, boost-format
-msgid "Triangles: %1%, "
-msgstr "三角形数： %1%, "
+msgid "Triangles: %1%\n"
+msgstr ""
 
 msgid "Chinese (Simplified)"
 msgstr "中文(简体)"
@@ -2901,6 +2916,9 @@ msgstr "请先选择一台打印机。"
 msgid "Current printer is busy. Please select another one."
 msgstr "当前打印机正忙，请选择另一台打印机。"
 
+msgid "The printer is being updated. Please try again after the update."
+msgstr "打印机正在更新。 请更新后重试。"
+
 msgid "Please fill report first."
 msgstr "请先填写报告。"
 
@@ -2909,6 +2927,9 @@ msgstr "正在导出3mf..."
 
 msgid "Exporting 3mf failed, please slice again."
 msgstr "导出3mf失败，请重新切片。"
+
+msgid "No printer available"
+msgstr "没有可用的打印机"
 
 msgid "Confirm"
 msgstr "确定"
@@ -3257,6 +3278,31 @@ msgstr "挤出机数量"
 msgid "Capabilities"
 msgstr "能力"
 
+msgid "Set as cover"
+msgstr "设置为封面"
+
+msgid "Cover"
+msgstr "封面"
+
+#, boost-format
+msgid "The name \"%1%\" already exists."
+msgstr "名字\"%1%\"已经存在"
+
+msgid "Pictures"
+msgstr "图片"
+
+msgid "Bill of Materials"
+msgstr "物料清单"
+
+msgid "Assembly Guide"
+msgstr "组装指南"
+
+msgid "Designer"
+msgstr "设计师"
+
+msgid "Choose files"
+msgstr "选择文件"
+
 #, c-format, boost-format
 msgid "%s Update"
 msgstr "%s 更新"
@@ -3456,6 +3502,9 @@ msgid ""
 "\n"
 "upload,err:code=%u,msg=%s"
 msgstr ""
+
+msgid "Wait for the job to be sent."
+msgstr "等待任务发送完成。"
 
 msgid "The print job has been sent to your printer."
 msgstr "打印任务已发送至打印机。"
@@ -5307,6 +5356,22 @@ msgstr " 对象："
 msgid "Error at line %1%:\n"
 msgstr "错误在行%1%：\n"
 
+#~ msgid "Set to cover"
+#~ msgstr "设置为封面"
+
+#~ msgid "No errors"
+#~ msgstr "无错误"
+
+#~ msgid "Auxiliary"
+#~ msgstr "附件"
+
+#~ msgid "Eject drive"
+#~ msgstr "弹出设备"
+
+#, boost-format
+#~ msgid "Triangles: %1%, "
+#~ msgstr "三角形数： %1%, "
+
 #~ msgid "The bed type that correspond to the following temperatures"
 #~ msgstr "与下列温度对应的热床类型"
 
@@ -6786,9 +6851,6 @@ msgstr "错误在行%1%：\n"
 
 #~ msgid "Report a bug of BambuStudio"
 #~ msgstr "报告BambuStudio的Bug"
-
-#~ msgid "&About %s"
-#~ msgstr "关于 %s"
 
 #~ msgid "&Open G-code"
 #~ msgstr "打开G-code"

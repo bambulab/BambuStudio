@@ -84,7 +84,6 @@ public:
     wxBitmap m_file_edit_mask;
     wxBitmap m_file_delete;
 
-    wxBitmap m_bitmap_other;
     wxBitmap m_bitmap_excel;
     wxBitmap m_bitmap_pdf;
     wxBitmap m_bitmap_txt;

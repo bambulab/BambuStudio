@@ -534,17 +534,17 @@ wxString MachineObject::get_upgrade_result_str(int err_code)
 {
     switch(err_code) {
     case UpgradeNoError:
-        return _L("Upgrade Success");
+        return _L("Update successful.");
     case UpgradeDownloadFailed:
-        return _L("Downloading failed");
+        return _L("Downloading failed.");
     case UpgradeVerfifyFailed:
-        return _L("Verification failed");
+        return _L("Verification failed.");
     case UpgradeFlashFailed:
-        return _L("Upgrade failed");
+        return _L("Update failed.");
     case UpgradePrinting:
-        return _L("Upgrade failed");
+        return _L("Update failed.");
     default:
-        return _L("Upgrade failed");
+        return _L("Update failed.");
     }
     return "";
 }

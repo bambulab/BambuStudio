@@ -1061,7 +1061,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
 
     // check upgrading status
     if (it->second->upgrade_display_state == MachineObject::UpgradingDisplayState::UpgradingInProgress) {
-        update_err_msg(_L("Current printer is in upgrading. Please try again after the upgrade."));
+        update_err_msg(_L("The printer is being updated. Please try again after the update."));
         return;
     }
 

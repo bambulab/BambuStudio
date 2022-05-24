@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-20 17:29+0800\n"
+"POT-Creation-Date: 2022-05-25 12:22+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -438,6 +438,18 @@ msgid "Common"
 msgstr ""
 
 msgid "Info"
+msgstr ""
+
+msgid "Update successful."
+msgstr ""
+
+msgid "Downloading failed."
+msgstr ""
+
+msgid "Verification failed."
+msgstr ""
+
+msgid "Update failed."
 msgstr ""
 
 msgid "N/A"
@@ -1383,9 +1395,6 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-msgid "No errors"
-msgstr ""
-
 #, c-format, boost-format
 msgid "%1$d error repaired"
 msgid_plural "%1$d errors repaired"
@@ -1393,13 +1402,19 @@ msgstr[0] ""
 msgstr[1] ""
 
 #, c-format, boost-format
-msgid "%1$d non-manifold edge"
-msgid_plural "%1$d non-manifold edges"
+msgid "Error: %1$d non-manifold edge."
+msgid_plural "Error: %1$d non-manifold edges."
 msgstr[0] ""
 msgstr[1] ""
 
 msgid "Remaining errors"
 msgstr ""
+
+#, c-format, boost-format
+msgid "%1$d non-manifold edge"
+msgid_plural "%1$d non-manifold edges"
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "Right click the icon to fix model object"
 msgstr ""
@@ -1683,7 +1698,7 @@ msgstr ""
 msgid "Debug"
 msgstr ""
 
-msgid "Auxiliary"
+msgid "Project"
 msgstr ""
 
 msgid "Slice"
@@ -1720,6 +1735,10 @@ msgid "Bind Dialog"
 msgstr ""
 
 msgid "Check for Update"
+msgstr ""
+
+#, c-format, boost-format
+msgid "&About %s"
 msgstr ""
 
 msgid "Default View"
@@ -2131,9 +2150,6 @@ msgid "More"
 msgstr ""
 
 msgid "Open Folder."
-msgstr ""
-
-msgid "Eject drive"
 msgstr ""
 
 #, c-format, boost-format
@@ -2566,7 +2582,7 @@ msgid "Volume: %1% mm³\n"
 msgstr ""
 
 #, boost-format
-msgid "Triangles: %1%, "
+msgid "Triangles: %1%\n"
 msgstr ""
 
 msgid "Chinese (Simplified)"
@@ -2894,6 +2910,9 @@ msgstr ""
 msgid "Current printer is busy. Please select another one."
 msgstr ""
 
+msgid "The printer is being updated. Please try again after the update."
+msgstr ""
+
 msgid "Please fill report first."
 msgstr ""
 
@@ -2901,6 +2920,9 @@ msgid "Exporting 3mf..."
 msgstr ""
 
 msgid "Exporting 3mf failed, please slice again."
+msgstr ""
+
+msgid "No printer available"
 msgstr ""
 
 msgid "Confirm"
@@ -3240,6 +3262,31 @@ msgstr ""
 msgid "Capabilities"
 msgstr ""
 
+msgid "Set as cover"
+msgstr ""
+
+msgid "Cover"
+msgstr ""
+
+#, boost-format
+msgid "The name \"%1%\" already exists."
+msgstr ""
+
+msgid "Pictures"
+msgstr ""
+
+msgid "Bill of Materials"
+msgstr ""
+
+msgid "Assembly Guide"
+msgstr ""
+
+msgid "Designer"
+msgstr ""
+
+msgid "Choose files"
+msgstr ""
+
 #, c-format, boost-format
 msgid "%s Update"
 msgstr ""
@@ -3441,6 +3488,9 @@ msgstr ""
 msgid ""
 "\n"
 "upload,err:code=%u,msg=%s"
+msgstr ""
+
+msgid "Wait for the job to be sent."
 msgstr ""
 
 msgid "The print job has been sent to your printer."

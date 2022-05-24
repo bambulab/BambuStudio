@@ -168,7 +168,7 @@ void PrintJob::process()
         return;
     }
 
-    msg          = _L("Wait for the sending task to complete");
+    msg          = _L("Wait for the job to be sent.");
     curr_percent = 80;
     update_status(curr_percent, msg);
 
