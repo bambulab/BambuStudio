@@ -4378,9 +4378,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             int i = 0;
             for (auto & path : targets) {
                 for (auto & type : types)
-                    stream << " <Relationship Target=\"/" << path << "\" Id=\"rel-" << boost::to_string(++i) << "\" Type=\"" << type << "\"/>\n";
+                    stream << " <Relationship Target=\"/" << xml_escape(path) << "\" Id=\"rel-" << boost::to_string(++i) << "\" Type=\"" << type << "\"/>\n";
                 if (m_key_store) {
-                    stream << " <Relationship Target=\"/" << path << "\" Id=\"rel-" << boost::to_string(++i) << "\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/encryptedfile\"/>\n";
+                    stream << " <Relationship Target=\"/" << xml_escape(path) << "\" Id=\"rel-" << boost::to_string(++i) << "\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/encryptedfile\"/>\n";
                     const_cast<std::vector<std::string>&>(m_encrypted_paths).push_back("/" + path);
                 }
             }
@@ -5034,7 +5034,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (m_production_ext)
                 stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{item.id} << BUILD_UUID_SUFFIX;
             if (!item.path.empty())
-                stream << "\" " << PPATH_ATTR << "=\"" << item.path;
+                stream << "\" " << PPATH_ATTR << "=\"" << xml_escape(item.path);
             stream << "\" " << TRANSFORM_ATTR << "=\"";
             for (unsigned c = 0; c < 4; ++c) {
                 for (unsigned r = 0; r < 3; ++r) {
@@ -5738,7 +5738,7 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, c
                             } else if (file_entry.path().filename() == PRINTER_THUMBNAIL_MIDDLE_FILE) {
                                 data._3mf_printer_thumbnail_middle = dst_in_3mf;
                             }
-                            
+
                             result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
                         }
                     }
