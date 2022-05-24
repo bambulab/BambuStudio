@@ -60,6 +60,12 @@ namespace Slic3r {
 
 std::string RegionServer::convert_region_to_contry_code(std::string region)
 {
+    /* fix PRE environment when release to public */
+#if BBL_RELEASE_TO_PUBLIC
+    AppConfig* config = wxGetApp().app_config;
+    config->set("iot_environment", "2");
+    return "ENV_CN_PRE";
+#else
     AppConfig *config = wxGetApp().app_config;
     if (config->is_engineering_region()) { return region; }
     if (region == "CHN" || region == "China")
@@ -74,6 +80,8 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         return "US";
     else
         return "Others";
+    return "";
+#endif
 }
 
     void action_listener::on_success(const mqtt::token& tok) {
@@ -111,12 +119,18 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::on_failure, Connection(mqtt) failed! return code = "
             << tok.get_return_code() << ", reason code = " <<tok.get_reason_code() << ", retry=" << nretry_;
         nretry_++;
+        AccountManager* manager = (AccountManager*)context_;
+        if (manager)
+            manager->m_is_connecting = false;
     }
 
     void cloud_conn_callback::on_success(const mqtt::token& tok)
     {
         BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::on_success, Connection(mqtt) OK! cli id=" << cli_.get_client_id();
         /* mqtt connect on success tips, same as connected */
+        AccountManager* manager = (AccountManager*)context_;
+        if (manager)
+            manager->m_is_connecting = false;
     }
 
     void cloud_conn_callback::connection_lost(const std::string& cause) {
@@ -296,12 +310,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         default_profile = new BBLProfile(default_project);
         mqtt_opt.set_max_inflight(500);
         mqtt_opt.set_connect_timeout(10);
-
-#if !BBL_RELEASE_TO_PUBLIC
-        set_engineering_mqtt_opt();
-#else
-        set_product_mqtt_opt();
-#endif
         mqtt_opt.set_ssl(mqtt_ssl_opt);
 
         m_curr_user = nullptr;
@@ -420,15 +428,19 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
             BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, user_name = " << user_name;
             BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, password = " << m_curr_user->get_token();
             BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, mqtt_host = " << mqtt_host;
-            if (wxGetApp().app_config->is_engineering_region()) {
+
+            std::string country_code = RegionServer::convert_region_to_contry_code(wxGetApp().app_config->get_region());
+            if (country_code == "ENV_CN_PRE" || country_code == "ENV_CN_QA" || country_code == "ENV_CN_DEV") {
                 set_engineering_mqtt_opt();
             } else {
                 set_product_mqtt_opt();
             }
+            mqtt_opt.set_ssl(mqtt_ssl_opt);
             mqtt_cli = new mqtt::async_client(mqtt_host, client_id);
             mqtt_cb = new cloud_conn_callback(*mqtt_cli, mqtt_opt, this);
             if (mqtt_cli) {
                 mqtt_cli->set_callback(*mqtt_cb);
+                m_is_connecting = true;
                 if (sync)
                     mqtt_cli->connect(mqtt_opt, this, *mqtt_cb)->wait_for(3000);
                 else
@@ -466,8 +478,9 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
 
     void AccountManager::check_mqtt_connection()
     {
-        if (is_user_login() && mqtt_cli && !mqtt_cli->is_connected()) {
+        if (is_user_login() && mqtt_cli && !mqtt_cli->is_connected() && !m_is_connecting) {
             try {
+                m_is_connecting = true;
                 mqtt_cli->connect(mqtt_opt, this, *mqtt_cb);
                 BOOST_LOG_TRIVIAL(trace) << "check_mqtt_connection: reconnecting";
             } catch(const mqtt::exception& exc) {

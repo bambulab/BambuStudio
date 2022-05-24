@@ -292,6 +292,7 @@ private:
 public:
     std::string MQTT_HOST = "ssl://47.100.225.51:8883";
     const int MQTT_QOS = 0;
+    bool m_is_connecting{ false };
     UserRegion user_region;
     RegionServer user_region_server;
     bool is_region_config_ready { false };
