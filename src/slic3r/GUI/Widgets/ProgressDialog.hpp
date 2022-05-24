@@ -26,7 +26,7 @@ class WXDLLIMPEXP_CORE ProgressDialog : public wxDialog
 {
 public:
     ProgressDialog();
-    ProgressDialog(const wxString &title, const wxString &message, int maximum = 100, wxWindow *parent = NULL, int style = wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    ProgressDialog(const wxString &title, const wxString &message, int maximum = 100, wxWindow *parent = NULL, int style = wxPD_APP_MODAL | wxPD_AUTO_HIDE, bool adaptive = false);
 
 	void OnPaint(wxPaintEvent &evt);
     virtual ~ProgressDialog();
@@ -67,11 +67,12 @@ public:
 
     int m_mode = 0;          // 0 is 1line mode 1 is 2line mode
 
-    wxSizer *       m_sizer_main;
-    wxPanel *       m_top_line;
-    wxSimplebook *  m_simplebook;
-    wxPanel *       m_panel_2line;
-    wxPanel *       m_panel_1line;
+    bool            m_adaptive = {false};
+    wxSizer *       m_sizer_main = {nullptr};
+    wxPanel *       m_top_line= {nullptr};
+    wxSimplebook *  m_simplebook= {nullptr};
+    wxPanel *       m_panel_2line= {nullptr};
+    wxPanel *       m_panel_1line= {nullptr};
     Button*         m_button_cancel = {nullptr};
     wxWindow *      m_block_left = {nullptr};
     wxWindow *      m_block_right = {nullptr};

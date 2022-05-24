@@ -4556,7 +4556,7 @@ void ObjectList::fix_through_netfabb()
 
     // Open a progress dialog.
     ProgressDialog progress_dlg(_L("Repairing model object"), "", 100, find_toplevel_parent(plater),
-                                    wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
+                                    wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT, true);
     int model_idx{ 0 };
     if (vol_idxs.empty()) {
         int vol_idx{ -1 };
