@@ -2965,78 +2965,55 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
 
     int AccountManager::reload_region_servers(bool update_config)
     {
-        json js;
-        boost::filesystem::path config_file = (boost::filesystem::path(Slic3r::data_dir()) / "region.conf");
-        if (update_config) {
-            unsigned int http_code;
-            std::string  http_body;
-            int          result = get_region_config(http_code, http_body);
-            if (result < 0) {
-                // try to load from local file
-                if (!boost::filesystem::exists(config_file)) {
-                    BOOST_LOG_TRIVIAL(error) << "region config file is missing";
-                    return result;
-                }
-                std::ifstream ifs(config_file.make_preferred().string());
-                js = json::parse(ifs);
-            } else {
-                // write to local config file
-                std::string path = (boost::filesystem::path(Slic3r::data_dir()) / ("region.conf")).make_preferred().string();
-                try {
-                    js = json::parse(http_body);
-                    std::ofstream file(path);
-                    file << js;
-                    file.close();
-                    BOOST_LOG_TRIVIAL(error) << "update region config file";
-                } catch (json::parse_error &e) {
-                    BOOST_LOG_TRIVIAL(trace) << "prepare_region_config, parse json failed! e=" << e.what();
-                    return -1;
-                } catch (...) {
-                    BOOST_LOG_TRIVIAL(trace) << "prepare_region_config, parse json failed!";
-                    return -1;
-                }
-            }
-        } else {
-            if (!boost::filesystem::exists(config_file)) {
-                BOOST_LOG_TRIVIAL(error) << "region config file is missing";
-                return -1;
-            }
-            std::ifstream ifs(config_file.make_preferred().string());
-            js = json::parse(ifs);
-        }
-
-        // load region server
-        bool found = false;
-        AppConfig *config = wxGetApp().app_config;
+        AppConfig* config = wxGetApp().app_config;
         std::string country_code = RegionServer::convert_region_to_contry_code(config->get_region());
-        try {
-            if (js.contains(country_code)) {
-                found                                     = true;
-                this->user_region_server.iot_server_host  = js[country_code]["api"].get<std::string>();
-                this->user_region_server.mqtt_server_host = js[country_code]["emqx"].get<std::string>();
-                this->user_region_server.tutk_server_host = js[country_code]["tutk"].get<std::string>();
-                this->user_region_server.wifi_code        = js[country_code]["wifi"].get<std::string>();
-                this->user_region_server.official_host    = js[country_code]["web_official"].get<std::string>();
-                this->user_region_server.design_host      = js[country_code]["web_design"].get<std::string>();
-                this->set_host(user_region_server.iot_server_host);
-                BOOST_LOG_TRIVIAL(trace) << "region update iot = " << user_region_server.iot_server_host;
-                BOOST_LOG_TRIVIAL(trace) << "region update mqtt = " << user_region_server.mqtt_server_host;
-                BOOST_LOG_TRIVIAL(trace) << "region update tutk = " << user_region_server.tutk_server_host;
-                BOOST_LOG_TRIVIAL(trace) << "region update official = " << user_region_server.official_host;
-                BOOST_LOG_TRIVIAL(trace) << "region update design = " << user_region_server.design_host;
-                BOOST_LOG_TRIVIAL(trace) << "region update wifi_code = " << user_region_server.wifi_code;
-            }
-        }
-        catch(...) {
-            return -1;
-        }
-        if (found) {
-            is_region_config_ready = true;
-            return 0;
+        if (country_code == "CN") {
+            user_region_server.iot_server_host  = "https://api.bambulab.cn/v1";
+            user_region_server.mqtt_server_host = "ssl://cn.mqtt.bambulab.com:8883";
+            user_region_server.tutk_server_host = "CN";
+            user_region_server.wifi_code        = "CN";
+            user_region_server.official_host    = "https://bambulab.cn";
+        } else if (country_code == "US") {
+            user_region_server.iot_server_host  = "https://api.bambulab.com/v1";
+            user_region_server.mqtt_server_host = "ssl://us.mqtt.bambulab.com:8883";
+            user_region_server.tutk_server_host = "US";
+            user_region_server.wifi_code        = "US";
+            user_region_server.official_host    = "https://bambulab.com";
+        } else if (country_code == "ENV_CN_PRE") {
+            user_region_server.iot_server_host = "https://api-pre.bambu-lab.com/v1";
+            user_region_server.mqtt_server_host = "ssl://47.100.225.51:8883";
+            user_region_server.tutk_server_host = "CN";
+            user_region_server.wifi_code        = "CN";
+            user_region_server.official_host    = "https://portal-pre.bambu-lab.com";
+        } else if (country_code == "ENV_CN_QA") {
+            user_region_server.iot_server_host = "https://api-qa.bambu-lab.com/v1";
+            user_region_server.mqtt_server_host = "ssl://47.100.225.51:8883";
+            user_region_server.tutk_server_host = "CN";
+            user_region_server.wifi_code        = "CN";
+            user_region_server.official_host    = "https://portal-qa.bambu-lab.com";
+        } else if (country_code == "ENV_CN_DEV") {
+            user_region_server.iot_server_host = "https://api-dev.bambu-lab.com/v1";
+            user_region_server.mqtt_server_host = "ssl://47.100.225.51:8883";
+            user_region_server.tutk_server_host = "CN";
+            user_region_server.wifi_code        = "CN";
+            user_region_server.official_host    = "https://portal-dev.bambu-lab.com";
         } else {
-            BOOST_LOG_TRIVIAL(error) << "can not fount " << country_code;
+            user_region_server.iot_server_host = "https://api.bambulab.com/v1";
+            user_region_server.mqtt_server_host = "ssl://us.mqtt.bambulab.com:8883";
+            user_region_server.tutk_server_host = "ALL";
+            user_region_server.wifi_code        = "DE";
+            user_region_server.official_host = "https://bambulab.com";
         }
-        return -1;
+        this->set_host(user_region_server.iot_server_host);
+
+
+        BOOST_LOG_TRIVIAL(trace) << "region update iot = " << user_region_server.iot_server_host;
+        BOOST_LOG_TRIVIAL(trace) << "region update mqtt = " << user_region_server.mqtt_server_host;
+        BOOST_LOG_TRIVIAL(trace) << "region update tutk = " << user_region_server.tutk_server_host;
+        BOOST_LOG_TRIVIAL(trace) << "region update official = " << user_region_server.official_host;
+        BOOST_LOG_TRIVIAL(trace) << "region update design = " << user_region_server.design_host;
+        BOOST_LOG_TRIVIAL(trace) << "region update wifi_code = " << user_region_server.wifi_code;
+        return 0;
     }
 
     int AccountManager::get_region_config(unsigned int &http_code, std::string &http_body)
