@@ -280,11 +280,8 @@ namespace Slic3r {
         for (int i = 0; i < card_number; i++) {
             closesocket(ssdp_sock_list[i]);
             closesocket(broadcast_sock_list[i]);
-            recv_thread_list[i].interrupt();
             recv_thread_list[i].join();
-            send_thread_list[i].interrupt();
             send_thread_list[i].join();
-            recv_broadcast_thread_list[i].interrupt();
             recv_broadcast_thread_list[i].join();
             BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::stop_discover(), join thread " << i;
         }
