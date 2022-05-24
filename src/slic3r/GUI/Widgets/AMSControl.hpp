@@ -53,6 +53,8 @@ enum class AMSAction : int {
     AMS_ACTION_NONE,
     AMS_ACTION_LOAD,
     AMS_ACTION_UNLOAD,
+    AMS_ACTION_PRINTING,
+    AMS_ACTION_NORMAL,
 };
 
 enum class AMSPassRoadSTEP : int {
@@ -429,6 +431,7 @@ public:
     std::string GetCurrentCan(std::string amsid);
 	wxColour GetCanColour(std::string amsid, std::string canid);
 
+	void SetActionState(AMSAction action);
     void EnterNoneAMSMode();
     void ExitNoneAMSMode();
 
@@ -444,7 +447,6 @@ public:
     void SetFilamentStep(int item_idx, bool isload = true);
     void ShowFilamentTip(bool hasams = true);
 
-    void EnableAllAction();
     void SetHumidity(std::string amsid, int humidity);
     void UpdateStepCtrl();
     void CreateAms();

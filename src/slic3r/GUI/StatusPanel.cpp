@@ -1254,6 +1254,17 @@ void StatusPanel::update_ams(MachineObject *obj)
         }
     }
     // update rfid button style
+
+
+    // update load/unload enable state
+    // printing
+    if (obj->can_abort() || obj->can_resume()) {
+        m_ams_control->SetActionState(AMSAction::AMS_ACTION_PRINTING);
+    }
+
+    if (!obj->can_abort() && !obj->can_resume() && obj->ams_status_main == AMS_STATUS_MAIN_IDLE) { 
+        m_ams_control->SetActionState(AMSAction::AMS_ACTION_NORMAL);
+    }
 }
 
 void StatusPanel::update_subtask(MachineObject *obj)

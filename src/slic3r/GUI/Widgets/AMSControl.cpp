@@ -1387,6 +1387,29 @@ wxColour AMSControl::GetCanColour(std::string amsid, std::string canid)
     return col;
 }
 
+void AMSControl::SetActionState(AMSAction action) 
+{
+    switch (action) {
+    case Slic3r::GUI::AMSAction::AMS_ACTION_NONE: break;
+    case Slic3r::GUI::AMSAction::AMS_ACTION_LOAD: 
+        m_button_extruder_feed->Enable();
+        m_button_extruder_back->Disable();
+        break;
+    case Slic3r::GUI::AMSAction::AMS_ACTION_UNLOAD: 
+        m_button_extruder_feed->Disable();
+        m_button_extruder_back->Enable();
+        break;
+    case Slic3r::GUI::AMSAction::AMS_ACTION_PRINTING: 
+        m_button_extruder_feed->Disable();
+        m_button_extruder_back->Disable();
+        break;
+    case Slic3r::GUI::AMSAction::AMS_ACTION_NORMAL: break;
+        m_button_extruder_feed->Enable();
+        m_button_extruder_back->Enable();
+    default: break;
+    }
+}
+
 void AMSControl::EnterNoneAMSMode()
 {
     m_simplebook_amsitems->SetSelection(1);
@@ -1640,12 +1663,6 @@ void AMSControl::ShowFilamentTip(bool hasams)
     m_tip_load_info->SetMinSize(AMS_STEP_SIZE);
 }
 
-void AMSControl::EnableAllAction() 
-{
-    m_button_extruder_feed->Enable();
-    m_button_extruder_back->Enable();
-}
-
 void AMSControl::SetHumidity(std::string amsid, int humidity)
 {
     for (auto i = 0; i < m_ams_item_list.GetCount(); i++) {
@@ -1690,24 +1707,24 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     if (cans == nullptr) return;
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
-        if (ams_id == m_current_ams) {m_extruder->TurnOff();}
+        if (ams_id == m_current_ams) { m_extruder->TurnOff(); }
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     }
 
     type = AMSPassRoadType::AMS_ROAD_TYPE_LOAD;
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1) {
-        if (ams_id == m_current_ams) {m_extruder->TurnOff();}
+        if (ams_id == m_current_ams) { m_extruder->TurnOff(); }
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
     }
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2) {
-        if (ams_id == m_current_ams) {m_extruder->TurnOn(GetCanColour(ams_id, canid));}
+        if (ams_id == m_current_ams) { m_extruder->TurnOn(GetCanColour(ams_id, canid)); }
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     }
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3) {
-         if (ams_id == m_current_ams) {m_extruder->TurnOn(GetCanColour(ams_id, canid));}
+        if (ams_id == m_current_ams) { m_extruder->TurnOn(GetCanColour(ams_id, canid)); }
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
     }
@@ -1717,6 +1734,14 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
             m_ams_info[i].current_step   = step;
             m_ams_info[i].current_can_id = canid;
         }
+    }
+
+    if (type == AMSPassRoadType::AMS_ROAD_TYPE_LOAD) { 
+        SetActionState(AMSAction::AMS_ACTION_LOAD); 
+    }
+
+    if (type == AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD) { 
+        SetActionState(AMSAction::AMS_ACTION_UNLOAD); 
     }
 }
 
