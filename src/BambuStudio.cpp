@@ -608,7 +608,7 @@ int CLI::run(int argc, char **argv)
                     }
                 } catch (std::exception &ex) {
                     boost::nowide::cerr << "error: " << ex.what() << std::endl;
-                    return 1;
+                    flush_and_exit(1);
                 }
             }
         } else if (opt_key == "center") {
@@ -677,7 +677,7 @@ int CLI::run(int argc, char **argv)
             const Vec3d &opt = m_config.opt<ConfigOptionPoint3>(opt_key)->value;
             if (opt.x() <= 0 || opt.y() <= 0 || opt.z() <= 0) {
                 boost::nowide::cerr << "--scale-to-fit requires a positive volume" << std::endl;
-                return 1;
+                flush_and_exit(1);
             }
             for (auto &model : m_models)
                 for (auto &o : model.objects)
@@ -948,12 +948,12 @@ int CLI::run(int argc, char **argv)
             for (auto &model : m_models)
                 model.add_default_instances();
             if (! this->export_models(IO::STL))
-                return 1;
+                flush_and_exit(1);
         } else if (opt_key == "export_obj") {
             for (auto &model : m_models)
                 model.add_default_instances();
             if (! this->export_models(IO::OBJ))
-                return 1;
+                flush_and_exit(1);
         }/* else if (opt_key == "export_amf") {
             if (! this->export_models(IO::AMF))
                 return 1;
@@ -1059,8 +1059,8 @@ int CLI::run(int argc, char **argv)
                     if (!err.string.empty()) {
                         boost::nowide::cerr << err.string << std::endl;
                         //BBS: continue for other plates
-                        continue;
-                        //return 1;
+                        //continue;
+                        flush_and_exit(1);
                     }
                     else if (!warning.string.empty())
                         BOOST_LOG_TRIVIAL(info) << "got warnings: "<< warning.string << std::endl;
@@ -1107,7 +1107,8 @@ int CLI::run(int argc, char **argv)
                         } catch (const std::exception &ex) {
                             BOOST_LOG_TRIVIAL(info) << "found slicing or export error for partplate "<<index << std::endl;
                             boost::nowide::cerr << ex.what() << std::endl;
-                            continue;
+                            //continue;
+                            flush_and_exit(1);
                         }
                 }//end for partplate
 /*
