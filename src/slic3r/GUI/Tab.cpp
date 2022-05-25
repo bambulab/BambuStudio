@@ -2110,6 +2110,7 @@ void TabPrintModel::reset_model_config()
         notify_changed(config.first);
     }
     update_model_config();
+    wxGetApp().mainframe->on_config_changed(m_config);
 }
 
 bool TabPrintModel::has_key(std::string const& key)

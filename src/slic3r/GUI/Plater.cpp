@@ -1034,7 +1034,6 @@ void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
                 ams.set_key_value("filament_settings_id", new ConfigOptionStrings{iter->name});
             } else {
                 std::shared_ptr<Preset *> preset(new Preset*(new Preset(Preset::TYPE_FILAMENT, {})));
-                tray.second->setting_id = "252860";
                 (*preset)->setting_id = tray.second->setting_id;
                 ams.set_key_value("filament_settings_id", new ConfigOptionStrings{tray.second->setting_id});
                 wxGetApp().getAccountManager()->get_setting(*preset, [preset] {
