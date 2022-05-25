@@ -314,7 +314,11 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
     //BBS: a z_hop need to be handle when travel
     if (std::abs(m_to_lift) > EPSILON) {
         assert(std::abs(m_lifted) < EPSILON);
-        if (m_to_lift + m_pos(2) > point(2)) {
+        //BBS: don't need to do real lift if the current position is absolutely same with target.
+        //This ususally happens when the last extrusion line is short and the end of wipe position
+        //is same with the traget point by chance.
+        if ((!this->is_current_position_clear() || m_pos != dest_point) &&
+            m_to_lift + m_pos(2) > point(2)) {
             m_lifted = m_to_lift + m_pos(2) - point(2);
             dest_point(2) = m_to_lift + m_pos(2);
         }
@@ -325,10 +329,10 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         Vec3d source = { m_pos(0) - m_x_offset, m_pos(1) - m_y_offset, m_pos(2) };
         Vec3d target = { dest_point(0) - m_x_offset, dest_point(1) - m_y_offset, dest_point(2) };
         Vec3d delta = target - source;
+        Vec2d delta_no_z = { delta(0), delta(1) };
         //BBS: don'need slope travel because we don't know where is the source position the first time
-        if (this->is_current_position_clear() && delta(2) > 0) {
-
-            Vec2d delta_no_z = { delta(0), delta(1) };
+        //BBS: Also don't need to do slope move or spiral lift if x-y distance is absolute zero
+        if (this->is_current_position_clear() && delta(2) > 0 && delta_no_z.norm() != 0.0f) {
             double radius = delta(2) / (2 * PI * atan(GCodeWriter::slope_threshold));
             Vec2d ij_offset = radius * delta_no_z.normalized();
             ij_offset = { -ij_offset(1), ij_offset(0) };
