@@ -35,31 +35,40 @@ wxDEFINE_EVENT(EVT_AUXILIARY_UPDATE_RENAME, wxCommandEvent);
 
 AuFile::AuFile(wxWindow *parent, fs::path file_path, wxString file_name, AuxiliaryFolderType type, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
 {
-    Freeze();
     wxPanel::Create(parent, id, pos, wxSize(FromDIP(300), FromDIP(340)), style);
     SetBackgroundColour(AUFILE_GREY300);
     wxBoxSizer *sizer_body = new wxBoxSizer(wxVERTICAL);
 
-    // auto m_file_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(300), FromDIP(300)));
-    // m_file_img->SetBitmap(*bitmap);
+   SetSize(wxSize(FromDIP(300), FromDIP(340)));
+   SetMinSize(wxSize(FromDIP(300), FromDIP(340)));
+   SetMaxSize(wxSize(FromDIP(300), FromDIP(340)));
 
     m_type      = type;
     m_file_path = file_path;
     m_file_name = file_name;
 
     if (m_type == MODEL_PICTURE) {
-        if (m_file_path.empty()) { m_file_path = (boost::format("%1%/images/auxiliary_none_image.png") % resources_dir()).str(); }
+        if (m_file_path.empty()) { return; }
         auto image = new wxImage(encode_path(m_file_path.string().c_str()));
-        image->Rescale(FromDIP(300), FromDIP(300));
+
+        //constrain
+        auto size = wxSize(0, 0);
+        float proportion = float(image->GetSize().x) / float(image->GetSize().y);
+        if (proportion >= 1) { 
+            size.x = FromDIP(300);
+            size.y = FromDIP(300) / proportion;
+        } else {
+            size.y = FromDIP(300);
+            size.x = FromDIP(300) * proportion;
+        }
+
+        image->Rescale(size.x, size.y);
         m_file_bitmap = wxBitmap(*image);
     } else {
         m_bitmap_excel = create_scaled_bitmap("placeholder_excel", nullptr, 300);
         m_bitmap_pdf   = create_scaled_bitmap("placeholder_pdf", nullptr, 300);
         m_bitmap_txt   = create_scaled_bitmap("placeholder_txt", nullptr, 300);
 
-       /* auto temp_file = (boost::format("%1%/images/auxiliary_none_image.png") % resources_dir()).str();
-         auto image = new wxImage(encode_path(temp_file.c_str()));
-         image->Rescale(FromDIP(300), FromDIP(300));*/
         if (m_type == OTHERS) {m_file_bitmap = m_bitmap_txt;}
         if (m_type == BILL_OF_MATERIALS) {m_file_bitmap = m_bitmap_excel;}
         if (m_type == ASSEMBLY_GUIDE) {m_file_bitmap = m_bitmap_pdf;}
@@ -98,7 +107,6 @@ AuFile::AuFile(wxWindow *parent, fs::path file_path, wxString file_name, Auxilia
     SetSizer(sizer_body);
     Layout();
     Fit();
-    Thaw();
 
     Bind(wxEVT_PAINT, &AuFile::OnPaint, this);
     Bind(wxEVT_ERASE_BACKGROUND, &AuFile::OnEraseBackground, this);
@@ -143,7 +151,13 @@ void AuFile::PaintBackground(wxDC &dc)
 
     //CalcUnscrolledPosition(windowRect.x, windowRect.y, &windowRect.x, &windowRect.y);
     dc.DrawRectangle(windowRect);
-    dc.DrawBitmap(m_file_bitmap, 0, 0);
+
+
+    wxSize size = wxSize(FromDIP(300), FromDIP(300));
+    dc.SetPen(AUFILE_GREY200);
+    dc.SetBrush(AUFILE_GREY200);
+    dc.DrawRectangle(0,0,size.x,size.y);
+    dc.DrawBitmap(m_file_bitmap, (size.x - m_file_bitmap.GetSize().x) / 2, (size.y - m_file_bitmap.GetSize().y) / 2);
 }
 
 void AuFile::OnEraseBackground(wxEraseEvent &evt) {}
@@ -151,7 +165,6 @@ void AuFile::OnEraseBackground(wxEraseEvent &evt) {}
 void AuFile::PaintForeground(wxDC &dc)
 {
     wxSize size = wxSize(FromDIP(300), FromDIP(300));
-    //dc.DrawBitmap(m_file_bitmap, 0, 0);
 
     if (m_hover) {
         dc.DrawBitmap(m_file_edit_mask, 0, size.y - m_file_edit_mask.GetSize().y);
@@ -424,21 +437,30 @@ void AuFile::msw_rescale()
     m_file_edit_mask = create_scaled_bitmap("auxiliary_edit_mask", this, 43);
     m_file_delete    = create_scaled_bitmap("auxiliary_delete", this, 28);
 
-    m_bitmap_excel = create_scaled_bitmap("placeholder_excel", this, 300);
-    m_bitmap_pdf   = create_scaled_bitmap("placeholder_pdf", this, 300);
-    m_bitmap_txt   = create_scaled_bitmap("placeholder_txt", this, 300);
-
     if (m_type == MODEL_PICTURE) {
-        if (m_file_path.empty()) { m_file_path = (boost::format("%1%/images/auxiliary_none_image.png") % resources_dir()).str(); }
+        if (m_file_path.empty()) { return;}
         auto image = new wxImage(encode_path(m_file_path.string().c_str()));
-        image->Rescale(FromDIP(300), FromDIP(300));
+        // constrain
+        auto  size       = wxSize(0, 0);
+        float proportion = float(image->GetSize().x) / float(image->GetSize().y);
+        if (proportion >= 1) {
+            size.x = FromDIP(300);
+            size.y = FromDIP(300) / proportion;
+        } else {
+            size.y = FromDIP(300);
+            size.x = FromDIP(300) * proportion;
+        }
+
+        image->Rescale(size.x, size.y);
         m_file_bitmap = wxBitmap(*image);
     } else {
-        // m_file_path =
-        auto temp_file = (boost::format("%1%/images/auxiliary_none_image.png") % resources_dir()).str();
-        auto image     = new wxImage(encode_path(temp_file.c_str()));
-        image->Rescale(FromDIP(300), FromDIP(300));
-        m_file_bitmap = wxBitmap(*image);
+        m_bitmap_excel = create_scaled_bitmap("placeholder_excel", nullptr, 300);
+        m_bitmap_pdf   = create_scaled_bitmap("placeholder_pdf", nullptr, 300);
+        m_bitmap_txt   = create_scaled_bitmap("placeholder_txt", nullptr, 300);
+
+        if (m_type == OTHERS) { m_file_bitmap = m_bitmap_txt; }
+        if (m_type == BILL_OF_MATERIALS) { m_file_bitmap = m_bitmap_excel; }
+        if (m_type == ASSEMBLY_GUIDE) { m_file_bitmap = m_bitmap_pdf; }
     }
     Refresh();
 }
@@ -509,14 +531,6 @@ void AuFolderPanel::update(std::vector<fs::path> paths)
 {
     clear();
     for (auto i = 0; i < paths.size(); i++) {
-        //std::string name   = fs::path(paths[i].c_str()).filename().string();
-        /* auto utf_path     = encode_path(paths[i].string().c_str());
-         std::string name     = "";
-
-         size_t found = utf_path.find_last_of("\\");
-         if (found != std::string::npos) {
-             name = utf_path.substr(found, utf_path.length());
-         }*/
         std::string temp_name   = fs::path(paths[i].c_str()).filename().string();
         auto name             = encode_path(temp_name.c_str());
 

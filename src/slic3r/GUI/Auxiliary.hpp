@@ -49,6 +49,7 @@
 
 #define AUFILE_GREY700 wxColour(107, 107, 107)
 #define AUFILE_GREY300 wxColour(238, 238, 238)
+#define AUFILE_GREY200 wxColour(248, 248, 248)
 
 enum AuxiliaryFolderType {
     MODEL_PICTURE,
