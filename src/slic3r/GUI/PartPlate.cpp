@@ -2452,12 +2452,12 @@ int PartPlateList::delete_plate(int index)
 		return -1;
 	}
 
-	// BBS: erase unnecessary snapshot
-	m_plater->take_snapshot("delete partplate");
-
-	// BBS: add wipe tower logic
 	if (m_plater) {
 		// In GUI mode
+		// BBS: erase unnecessary snapshot
+		m_plater->take_snapshot("delete partplate");
+
+		// BBS: add wipe tower logic
 		DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
 		ConfigOptionFloats* wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
 		ConfigOptionFloats* wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
@@ -2506,7 +2506,8 @@ int PartPlateList::delete_plate(int index)
 	else {
 		//delete the plate behind current, just need to update the position of Bed3D
 		Vec2d pos = compute_shape_position(m_current_plate, m_plate_cols);
-		m_plater->set_bed_position(pos);
+		if (m_plater)
+			m_plater->set_bed_position(pos);
 	}
 
 	unprintable_plate.set_index(m_plate_list.size());
@@ -2586,7 +2587,8 @@ int PartPlateList::select_plate(int index)
 
 	// BBS: erase unnecessary snapshot
 	if (get_curr_plate_index() != index && m_intialized) {
-		m_plater->take_snapshot("select partplate!");
+		if (m_plater)
+			m_plater->take_snapshot("select partplate!");
 	}
 
 	std::vector<PartPlate *>::iterator it = m_plate_list.begin();
