@@ -9,7 +9,7 @@
     "top_shell_layers": "9",
     "bridge_flow": "1",
     "ironing_flow": "8%",
-    "initial_layer_speed": "75",
+    "initial_layer_speed": "50",
     "initial_layer_infill_speed": "120",
     "outer_wall_speed": "200",
     "inner_wall_speed": "350",
