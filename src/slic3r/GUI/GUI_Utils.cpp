@@ -347,6 +347,8 @@ bool load_image(const std::string &filename, wxImage &image)
 
 bool generate_image(const std::string &filename, wxImage &image, wxSize img_size, int method)
 {
+    wxInitAllImageHandlers();
+
     bool    result = true;
     wxImage img;
     result = load_image(filename, img);
@@ -354,9 +356,13 @@ bool generate_image(const std::string &filename, wxImage &image, wxSize img_size
 
     image = wxImage(img_size);
     image.SetType(wxBITMAP_TYPE_PNG);
-    image.InitAlpha();
-    image.Clear(0);
-    unsigned char *alpha = image.GetAlpha();
+    if (!image.HasAlpha()) {
+        image.InitAlpha();
+    }
+    
+    //image.Clear(0);
+    //unsigned char *alpha = image.GetAlpha();
+    unsigned char* alpha = new unsigned char[image.GetWidth() *  image.GetHeight()];
     if (alpha) { ::memset(alpha, wxIMAGE_ALPHA_TRANSPARENT, image.GetWidth() * image.GetHeight()); }
     if (method == GERNERATE_IMAGE_RESIZE) {
         float h_factor   = img.GetHeight() / (float) image.GetHeight();
@@ -375,6 +381,8 @@ bool generate_image(const std::string &filename, wxImage &image, wxSize img_size
     } else {
         return false;
     }
+
+    image.ConvertAlphaToMask(image.GetMaskRed(), image.GetMaskGreen(), image.GetMaskBlue());
     return true;
 }
 
