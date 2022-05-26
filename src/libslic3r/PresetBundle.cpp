@@ -1035,13 +1035,42 @@ void PresetBundle::set_num_filaments(unsigned int n)
     int old_filament_count = this->filament_presets.size();
     if (n > old_filament_count && old_filament_count != 0)
         filament_presets.resize(n, filament_presets.front());
-    else
+    else {
         filament_presets.resize(n);
+    }
 
     ConfigOptionStrings* filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
     filament_color->resize(n);
 
     update_multi_material_filament_presets();
+}
+
+//BBS: check whether this is the only edited filament
+bool PresetBundle::is_the_only_edited_filament(unsigned int filament_index)
+{
+    int n = this->filament_presets.size();
+    if (filament_index >= n)
+        return false;
+
+    std::string name = this->filament_presets[filament_index];
+    Preset& edited_preset = this->filaments.get_edited_preset();
+    if (edited_preset.name != name)
+        return false;
+
+    int index = 0;
+    while (index < n)
+    {
+        if (index == filament_index) {
+            index ++;
+            continue;
+        }
+        std::string filament_preset = this->filament_presets[index];
+        if (edited_preset.name == filament_preset)
+            return false;
+        else
+            index ++;
+    }
+    return true;
 }
 
 DynamicPrintConfig PresetBundle::full_config() const
@@ -1102,7 +1131,10 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
         compatible_printers_condition.emplace_back(this->filaments.get_edited_preset().compatible_printers_condition());
         compatible_prints_condition  .emplace_back(this->filaments.get_edited_preset().compatible_prints_condition());
         //BBS: add logic for settings check between different system presets
-        std::string filament_inherits = this->filaments.get_edited_preset().inherits();
+        //std::string filament_inherits = this->filaments.get_edited_preset().inherits();
+        std::string current_preset_name = this->filament_presets[0];
+        const Preset* preset = this->filaments.find_preset(current_preset_name, true);
+        std::string filament_inherits = preset->inherits();
         inherits                     .emplace_back(filament_inherits);
         filament_ids.emplace_back(this->filaments.get_edited_preset().filament_id);
 

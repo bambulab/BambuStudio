@@ -75,6 +75,8 @@ public:
 
     // BBS
     void            set_num_filaments(unsigned int n);
+    //BBS: check whether this is the only edited filament
+    bool is_the_only_edited_filament(unsigned int filament_index);
 
     PresetCollection            prints;
     PresetCollection            sla_prints;
