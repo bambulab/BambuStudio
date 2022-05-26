@@ -127,27 +127,37 @@ public:
 /*************************************************
 Description:AMSrefresh
 **************************************************/
+#define AMS_REFRESH_PLAY_LOADING_TIMER 200
 class AMSrefresh : public wxWindow
 {
 public:
     AMSrefresh();
     AMSrefresh(wxWindow *parent, wxWindowID id, wxString number, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     AMSrefresh(wxWindow *parent, wxWindowID id, int number, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    ~AMSrefresh();
     void    PlayLoading();
     void    StopLoading();
     void    create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
+    void    on_timer(wxTimerEvent &event);
     void    OnEnterWindow(wxMouseEvent &evt);
     void    OnLeaveWindow(wxMouseEvent &evt);
     void    OnClick(wxMouseEvent &evt);
     void    post_event(wxCommandEvent &&event);
     void    paintEvent(wxPaintEvent &evt);
     void    Update(Caninfo info);
+    void    msw_rescale();
     Caninfo m_info;
 
 protected:
+    wxTimer *m_playing_timer= {nullptr};
+    int      m_rotation_angle = {360};
+
     wxAnimationCtrl *m_animationCtrl = {nullptr};
+    
+
     bool             m_play_loading = {false};
     bool             m_selected      = {false};
+    wxBitmap         m_bitmap_rotation;
     wxBitmap         m_bitmap_normal;
     wxBitmap         m_bitmap_selected;
     wxString         m_text;
@@ -336,6 +346,7 @@ public:
     //wxColour GetCanColour(wxString canid);
     void     PlayRridLoading(wxString canid);
     void     StopRridLoading(wxString canid);
+    void     msw_rescale();
 
     std::string GetCurrentCan();
 

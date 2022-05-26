@@ -98,11 +98,21 @@ AMSrefresh::AMSrefresh(wxWindow *parent, wxWindowID id, int number, Caninfo info
     create(parent, id, pos, size);
 }
 
+ AMSrefresh::~AMSrefresh() 
+ {
+     if (m_playing_timer) {
+         m_playing_timer->Stop();
+         delete m_playing_timer;
+         m_playing_timer = nullptr;
+     }
+ }
+
 void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
     wxWindow::Create(parent, id, pos, size, wxBORDER_NONE);
     SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
-
+   
+    Bind(wxEVT_TIMER, &AMSrefresh::on_timer, this);
     Bind(wxEVT_PAINT, &AMSrefresh::paintEvent, this);
     Bind(wxEVT_ENTER_WINDOW, &AMSrefresh::OnEnterWindow, this);
     Bind(wxEVT_LEAVE_WINDOW, &AMSrefresh::OnLeaveWindow, this);
@@ -111,30 +121,49 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
     m_bitmap_normal   = create_scaled_bitmap("ams_refresh_normal", this, 26);
     m_bitmap_selected = create_scaled_bitmap("ams_refresh_selected", this, 26);
 
-    m_animationCtrl = new wxAnimationCtrl(this, wxID_ANY, wxNullAnimation, wxPoint(0, 0), AMS_REFRESH_SIZE, wxAC_NO_AUTORESIZE);
-
+  /*  m_animationCtrl = new wxAnimationCtrl(this, wxID_ANY, wxNullAnimation, wxDefaultPosition, AMS_REFRESH_SIZE);
     auto path = (boost::format("%1%/images/refresh.gif") % resources_dir()).str();
     path      = encode_path(path.c_str());
-    if (m_animationCtrl->LoadFile(path)) m_animationCtrl->Hide();
+    if (m_animationCtrl->LoadFile(path)) m_animationCtrl->Hide();*/
 
-    SetSize(m_bitmap_normal.GetSize());
-    SetMinSize(m_bitmap_normal.GetSize());
+    m_playing_timer = new wxTimer();
+    m_playing_timer->SetOwner(this);
+    wxPostEvent(this, wxTimerEvent());
+
+    SetSize(AMS_REFRESH_SIZE);
+    SetMinSize(AMS_REFRESH_SIZE);
+}
+
+void AMSrefresh::on_timer(wxTimerEvent &event) 
+{
+    if (m_rotation_angle == 0) {
+        m_rotation_angle = 360;
+    } else {
+        m_rotation_angle--;
+    }
+    Refresh();
 }
 
 void AMSrefresh::PlayLoading()
 {
-    if (m_play_loading) return;
-    this->m_animationCtrl->Show();
-    this->m_animationCtrl->Play();
+    if (m_play_loading)  return;
+    //this->m_animationCtrl->Show();
+    //this->m_animationCtrl->Play();
     m_play_loading = true;
+    m_rotation_angle = 360;
+    m_playing_timer->Start(AMS_REFRESH_PLAY_LOADING_TIMER);
+    Refresh();
 }
 
 void AMSrefresh::StopLoading()
 {
+   
     if (!m_play_loading) return;
-    this->m_animationCtrl->Stop();
-    this->m_animationCtrl->Hide();
+    //this->m_animationCtrl->Stop();
+    //this->m_animationCtrl->Hide();
+    m_playing_timer->Stop();
     m_play_loading = false;
+    Refresh();
 }
 
 void AMSrefresh::OnEnterWindow(wxMouseEvent &evt)
@@ -149,7 +178,9 @@ void AMSrefresh::OnLeaveWindow(wxMouseEvent &evt)
     Refresh();
 }
 
-void AMSrefresh::OnClick(wxMouseEvent &evt) { post_event(wxCommandEvent(EVT_AMS_REFRESH_RFID)); }
+void AMSrefresh::OnClick(wxMouseEvent &evt) {
+    post_event(wxCommandEvent(EVT_AMS_REFRESH_RFID)); 
+}
 
 void AMSrefresh::post_event(wxCommandEvent &&event)
 {
@@ -168,7 +199,17 @@ void AMSrefresh::paintEvent(wxPaintEvent &evt)
     if (!wxWindow::IsEnabled()) { colour = AMS_CONTROL_GRAY500; }
 
     auto pot = wxPoint((size.x - m_bitmap_selected.GetSize().x) / 2, (size.y - m_bitmap_selected.GetSize().y) / 2);
-    dc.DrawBitmap(m_selected ? m_bitmap_selected : m_bitmap_normal, pot);
+
+    if (!m_play_loading) {
+        dc.DrawBitmap(m_selected ? m_bitmap_selected : m_bitmap_normal, pot);
+    } else {
+        m_bitmap_rotation   = create_scaled_bitmap("ams_refresh_normal", this, 26);
+        auto image        = m_bitmap_rotation.ConvertToImage();
+        wxPoint offset;
+        auto loading_img  = image.Rotate(m_rotation_angle, wxPoint(image.GetWidth() / 2, image.GetHeight() / 2), true, &offset);
+        auto loading_bitmap = wxBitmap(loading_img);
+        dc.DrawBitmap( loading_bitmap, offset.x , offset.y);
+    }
 
     dc.SetPen(wxPen(colour));
     dc.SetBrush(wxBrush(colour));
@@ -184,6 +225,8 @@ void AMSrefresh::Update(Caninfo info)
     m_info = info;
     StopLoading();
 }
+
+void AMSrefresh::msw_rescale() { }
 
 void AMSrefresh::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
@@ -235,12 +278,6 @@ void AMSextruder::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
 
 void AMSextruder::msw_rescale()
 {
-    /*auto path  = (boost::format("%1%/images/monitor_ams_extruder.png") % resources_dir()).str();
-    path       = encode_path(path.c_str());
-    auto image = wxImage(path);
-    image.Rescale(AMS_EXTRUDER_BITMAP_SIZE.x, AMS_EXTRUDER_BITMAP_SIZE.y);
-    auto bitmap = wxBitmap(image);
-    m_bitmap->SetBitmap(bitmap);*/
     m_bitmap_panel->RemoveChild(m_bitmap);
     m_bitmap->Destroy();
     m_bitmap = nullptr;
@@ -1063,6 +1100,14 @@ void AmsCans::StopRridLoading(wxString canid)
     }
 }
 
+void AmsCans::msw_rescale() 
+{
+    for (auto i = 0; i < m_can_refresh_list.GetCount(); i++) {
+        Canrefreshs *refresh = m_can_refresh_list[i];
+        refresh->canrefresh->msw_rescale(); 
+    }
+}
+
 //wxColour AmsCans::GetCanColour(wxString canid)
 //{
 //    wxColour col = *wxWHITE;
@@ -1477,9 +1522,14 @@ void AMSControl::msw_rescale()
     m_button_extruder_back->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
     m_button_extruder_feed->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
     m_button_ams_setting->SetMinSize(wxSize(FromDIP(88), FromDIP(33)));
-    m_sizer_top->Layout();
+
+    for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
+        AmsCansWindow *cans = m_ams_cans_list[i];
+        cans->amsCans->msw_rescale();
+    }
+
     Layout();
-    Refresh();
+    //Refresh();
 }
 
 void AMSControl::UpdateStepCtrl()
