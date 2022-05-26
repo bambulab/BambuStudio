@@ -240,7 +240,7 @@ if (WIN32)
 
 
 else ()
-    if (APPLE)
+    if (APPLE AND NOT CMAKE_MACOSX_BUNDLE)
         # On OSX, the name of the binary matches the name of the Application.
         add_custom_command(TARGET BambuStudio POST_BUILD
             COMMAND ln -sf BambuStudio bambu-studio
@@ -259,6 +259,8 @@ else ()
     if (XCODE)
         # Because of Debug/Release/etc. configurations (similar to MSVC) the slic3r binary is located in an extra level
         set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/resources")
+    elseif (CMAKE_MACOSX_BUNDLE)
+        set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/BambuStudio.app/Contents/resources")
     else ()
         set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/../resources")
     endif ()
