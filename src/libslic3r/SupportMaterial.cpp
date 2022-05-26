@@ -1828,13 +1828,13 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
         // it will support layers printed with a bridging flow.
         if (g_config_thick_bridges && SupportMaterialInternal::has_bridging_extrusions(layer)) {
             coordf_t bridging_height = 0.;
-            coordf_t bridging_height_aligned = 0.f;
             for (const LayerRegion* region : layer.regions())
                 bridging_height += region->region().bridging_height_avg(print_config);
             bridging_height /= coordf_t(layer.regions().size());
+            // BBS: align bridging height
             if (!object_config.independent_support_layer_height)
-                bridging_height_aligned = std::ceil(bridging_height / object_config.layer_height - EPSILON) * object_config.layer_height;
-            coordf_t bridging_print_z = layer.print_z - bridging_height_aligned - slicing_params.gap_support_object;
+                bridging_height = std::ceil(bridging_height / object_config.layer_height - EPSILON) * object_config.layer_height;
+            coordf_t bridging_print_z = layer.print_z - bridging_height - slicing_params.gap_support_object;
             if (bridging_print_z >= min_print_z) {
                 // Not below the first layer height means this layer is printable.
                 if (print_z < min_print_z + support_layer_height_min) {
@@ -3381,12 +3381,14 @@ std::pair<PrintObjectSupportMaterial::MyLayersPtr, PrintObjectSupportMaterial::M
         // Base extruder: Either "print with active extruder" not soluble.
         (m_object_config->support_filament.value == 0 || ! m_print_config->filament_soluble.get_at(m_object_config->support_filament.value - 1));
     bool   snug_supports                 = m_object_config->support_style.value == smsSnug;
-    int num_interface_layers_top         = m_object_config->support_interface_top_layers;
-    int num_interface_layers_bottom      = m_object_config->support_interface_bottom_layers;
+    // BBS: if support interface and support base do not use the same filament, add a base layer to improve their adhesion
+    bool differnt_support_interface_filament = m_object_config->support_interface_filament.value != m_object_config->support_filament.value;
+    int num_base_interface_layers_top = differnt_support_interface_filament ? 1 : 0;
+    int num_base_interface_layers_bottom = differnt_support_interface_filament ? 1 : 0;
+    int num_interface_layers_top = m_object_config->support_interface_top_layers + num_base_interface_layers_top;
+    int num_interface_layers_bottom = m_object_config->support_interface_bottom_layers + num_base_interface_layers_bottom;
     if (num_interface_layers_bottom < 0)
         num_interface_layers_bottom = num_interface_layers_top;
-    int num_base_interface_layers_top    = soluble_interface_non_soluble_base ? std::min(num_interface_layers_top / 2, 2) : 0;
-    int num_base_interface_layers_bottom = soluble_interface_non_soluble_base ? std::min(num_interface_layers_bottom / 2, 2) : 0;
 
     if (! intermediate_layers.empty() && (num_interface_layers_top > 1 || num_interface_layers_bottom > 1)) {
         // For all intermediate layers, collect top contact surfaces, which are not further than support_interface_top_layers.
@@ -3517,7 +3519,7 @@ std::pair<PrintObjectSupportMaterial::MyLayersPtr, PrintObjectSupportMaterial::M
         remove_nulls(base_interface_layers);
         BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::generate_interface_layers() in parallel - end";
     }
-    
+
     return base_and_interface_layers;
 }
 
