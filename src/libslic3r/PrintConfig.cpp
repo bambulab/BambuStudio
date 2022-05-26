@@ -2282,8 +2282,8 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip = L("Detect thin wall which can't contain two line width. And use single line to print. "
                      "Maybe printed not very well, because it's not closed loop");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("change_filament_gcode", coString);
     def->label = L("Change filament G-code");
