@@ -264,7 +264,7 @@ ModelNode* DiffModel::AddOptionWithGroup(ModelNode* category_node, wxString grou
     return AddOption(group_node, option_name, old_value, new_value);
 }
 
-ModelNode* DiffModel::AddOptionWithGroupAndCategory(ModelNode* preset_node, wxString category_name, wxString group_name, 
+ModelNode* DiffModel::AddOptionWithGroupAndCategory(ModelNode* preset_node, wxString category_name, wxString group_name,
                                             wxString option_name, wxString old_value, wxString new_value, const std::string category_icon_name)
 {
     preset_node->Append(std::make_unique<ModelNode>(preset_node, category_name, category_icon_name));
@@ -296,14 +296,14 @@ wxDataViewItem DiffModel::AddOption(Preset::Type type, wxString category_name, w
                     for (std::unique_ptr<ModelNode> &group : category->GetChildren())
                         if (group->text() == group_name)
                             return wxDataViewItem((void*)AddOption(group.get(), option_name, old_value, new_value));
-                    
+
                     return wxDataViewItem((void*)AddOptionWithGroup(category.get(), group_name, option_name, old_value, new_value));
                 }
 
             return wxDataViewItem((void*)AddOptionWithGroupAndCategory(preset.get(), category_name, group_name, option_name, old_value, new_value, category_icon_name));
         }
 
-    return wxDataViewItem(nullptr);    
+    return wxDataViewItem(nullptr);
 }
 
 static void update_children(ModelNode* parent)
@@ -342,7 +342,7 @@ void DiffModel::UpdateItemEnabling(wxDataViewItem item)
     node->UpdateEnabling();
 
     update_children(node);
-    update_parents(node);    
+    update_parents(node);
 }
 
 bool DiffModel::IsEnabledItem(const wxDataViewItem& item)
@@ -541,7 +541,7 @@ wxDataViewItem DiffModel::Delete(const wxDataViewItem& item)
     wxDataViewItem parent(node_parent);
 
     ModelNodePtrArray& parents_children = node_parent ? node_parent->GetChildren() : m_preset_nodes;
-    auto it = find_if(parents_children.begin(), parents_children.end(), 
+    auto it = find_if(parents_children.begin(), parents_children.end(),
                       [node](std::unique_ptr<ModelNode>& child) { return child.get() == node; });
     assert(it != parents_children.end());
     it = parents_children.erase(it);
@@ -576,7 +576,7 @@ static std::string get_pure_opt_key(std::string opt_key)
     if (pos > 0)
         boost::erase_tail(opt_key, opt_key.size() - pos);
     return opt_key;
-}    
+}
 
 // ----------------------------------------------------------------------------
 //                  DiffViewCtrl
@@ -638,7 +638,7 @@ void DiffViewCtrl::Rescale(int em /*= 0*/)
 }
 
 
-void DiffViewCtrl::Append(  const std::string& opt_key, Preset::Type type, 
+void DiffViewCtrl::Append(  const std::string& opt_key, Preset::Type type,
                             wxString category_name, wxString group_name, wxString option_name,
                             wxString old_value, wxString new_value, const std::string category_icon_name)
 {
@@ -795,15 +795,15 @@ UnsavedChangesDialog::UnsavedChangesDialog(const wxString &caption, const wxStri
     this->CenterOnScreen();
 }
 
-UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *dependent_presets, const std::string &new_selected_preset)
+UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *dependent_presets, const std::string &new_selected_preset, bool no_transfer)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),
                 wxID_ANY,
                 _L("Discard or Keep changes"),
-                wxDefaultPosition, 
-                wxDefaultSize, 
+                wxDefaultPosition,
+                wxDefaultSize,
                 wxCAPTION | wxCLOSE_BOX)
 {
-    if (new_selected_preset.empty())
+    if (new_selected_preset.empty() || no_transfer)
         m_buttons &= ~ActionButtons::TRANSFER;
     build(type, dependent_presets, new_selected_preset);
     this->CenterOnScreen();
@@ -816,7 +816,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
-  
+
 
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
 
@@ -1029,7 +1029,7 @@ void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name
             text = ActionButtons::DONT_SAVE & m_buttons ? _L("All changes will not be saved") :_L("All changes will be discarded.");
         else {
             if (preset_name.empty())
-                text = action == Action::Save           ? _L("Save the selected options.") : 
+                text = action == Action::Save           ? _L("Save the selected options.") :
                        ActionButtons::KEEP & m_buttons  ? _L("Keep the selected options.") :
                                                           _L("Transfer the selected options to the newly selected preset.");
             else
@@ -1082,7 +1082,7 @@ bool UnsavedChangesDialog::save(PresetCollection* dependent_presets, bool show_s
         names_and_types.emplace_back(preset_data);
         //names_and_types.emplace_back(make_pair(name, preset.type));
     }
-    // save all presets 
+    // save all presets
     else
     {
         std::vector<Preset::Type> types_for_save;
@@ -1277,7 +1277,7 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
         if (strings) {
             if (opt_key == "compatible_printers" || opt_key == "compatible_prints") {
                 if (strings->empty())
-                    return _L("All"); 
+                    return _L("All");
                 for (size_t id = 0; id < strings->size(); id++)
                     out += from_u8(strings->get_at(id)) + "\n";
                 out.RemoveLast(1);
@@ -1295,7 +1295,7 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
         return out;
     }
     case coEnum: {
-        return get_string_from_enum(opt_key, config, 
+        return get_string_from_enum(opt_key, config,
             opt_key == "top_surface_pattern" ||
             opt_key == "bottom_surface_pattern" ||
             opt_key == "sparse_infill_pattern");
@@ -1337,7 +1337,7 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
             show_info_line(Action::Save, presets ? presets->get_selected_preset().name : "");
             e.Skip();
         });
-   
+
 
     if (m_transfer_btn) {
         bool is_empty_name = dependent_presets && type != dependent_presets->type();
@@ -1373,12 +1373,12 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
     wxString action_msg;
     action_msg = format_wxstr(_L("You have changed some preset settings. \nWould you like to keep these changed settings after switching preset?"));
     m_action_line->SetLabel(action_msg);
-   
+
     update_tree(type, presets);
     update_list();
 }
 
-void UnsavedChangesDialog::update_list() 
+void UnsavedChangesDialog::update_list()
 {
     std::map<wxString, std::vector<PresetItem>> class_g_list;
     std::map<wxString, std::vector<wxString>>   class_c_list;
@@ -1407,13 +1407,13 @@ void UnsavedChangesDialog::update_list()
             //class_c_list[m_presetitems[i].category_name].push_back(m_presetitems[i].group_name);
             std::vector<wxString>::iterator it;
             it = find(class_c_list[m_presetitems[i].category_name].begin(), class_c_list[m_presetitems[i].category_name].end(), m_presetitems[i].group_name);
-            if (it == class_c_list[m_presetitems[i].category_name].end()) { 
-                class_c_list[m_presetitems[i].category_name].push_back(m_presetitems[i].group_name); 
+            if (it == class_c_list[m_presetitems[i].category_name].end()) {
+                class_c_list[m_presetitems[i].category_name].push_back(m_presetitems[i].group_name);
             }
         }
     }
 
-    
+
 
     auto m_listsizer = new wxBoxSizer(wxVERTICAL);
     for (auto iter = class_c_list.begin(); iter != class_c_list.end(); iter++) {
@@ -1468,7 +1468,7 @@ void UnsavedChangesDialog::update_list()
 
                 auto panel_left = new wxPanel(panel_item, wxID_ANY, wxDefaultPosition, wxSize(UNSAVE_CHANGE_DIALOG_FIRST_VALUE_WIDTH , -1), wxTAB_TRAVERSAL);
                 panel_left->SetBackgroundColour(GREY200);
-         
+
                 wxBoxSizer *sizer_left_v = new wxBoxSizer(wxVERTICAL);
 
                 auto text_left = new wxStaticText(panel_left, wxID_ANY, data.option_name, wxDefaultPosition, wxSize(-1, -1), 0);
@@ -1750,7 +1750,7 @@ static std::string get_selection(PresetComboBox* preset_combo)
 DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
     : DPIDialog(mainframe, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
     m_pr_technology(wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology())
-{    
+{
 #if defined(__WXMSW__)
     // ys_FIXME! temporary workaround for correct font scaling
     // Because of from wxWidgets 3.1.3 auto rescaling is implemented for the Fonts,
@@ -1774,7 +1774,7 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
     m_bottom_info_line->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold());
 
     wxBoxSizer* presets_sizer = new wxBoxSizer(wxVERTICAL);
-    
+
     for (auto new_type : { Preset::TYPE_PRINT, Preset::TYPE_FILAMENT, Preset::TYPE_SLA_PRINT, Preset::TYPE_SLA_MATERIAL, Preset::TYPE_PRINTER })
     {
         const PresetCollection* collection = get_preset_collection(new_type);
@@ -1791,7 +1791,7 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
                     std::string preset_name = cb->GetString(selection).ToUTF8().data();
                     update_compatibility(Preset::remove_suffix_modified(preset_name), new_type, preset_bundle);
                 }
-                update_tree(); 
+                update_tree();
             });
             if (collection->get_selected_idx() != (size_t)-1)
                 cb->update(collection->get_selected_preset().name);
@@ -1809,7 +1809,7 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
 
         equal_bmp->Bind(wxEVT_BUTTON, [presets_left, presets_right, this](wxEvent&) {
             std::string preset_name = get_selection(presets_left);
-            presets_right->update(preset_name); 
+            presets_right->update(preset_name);
             if (m_view_type == Preset::TYPE_INVALID)
                 update_compatibility(Preset::remove_suffix_modified(preset_name), presets_right->get_type(), m_preset_bundle_right.get());
             update_tree();
@@ -1853,7 +1853,7 @@ void DiffPresetDialog::update_controls_visibility(Preset::Type type /* = Preset:
     for (auto preset_combos : m_preset_combos) {
         Preset::Type cb_type = preset_combos.presets_left->get_type();
         bool show = type != Preset::TYPE_INVALID    ? type == cb_type :
-                    cb_type == Preset::TYPE_PRINTER ? true : 
+                    cb_type == Preset::TYPE_PRINTER ? true :
                     m_pr_technology == ptFFF        ? cb_type == Preset::TYPE_PRINT || cb_type == Preset::TYPE_FILAMENT :
                                                       cb_type == Preset::TYPE_SLA_PRINT || cb_type == Preset::TYPE_SLA_MATERIAL;
         preset_combos.presets_left->Show(show);
@@ -1908,7 +1908,7 @@ void DiffPresetDialog::update_presets(Preset::Type type)
                 break;
             }
         }
-    else 
+    else
         for (auto preset_combos : m_preset_combos) {
             if (preset_combos.presets_left->get_type() == type) {
                 preset_combos.presets_left->update();
@@ -2082,7 +2082,7 @@ void DiffPresetDialog::update_compatibility(const std::string& preset_name, Pres
         technology_changed = old_printer_technology != new_printer_technology;
     }
 
-    // select preset 
+    // select preset
     presets->select_preset_by_name(preset_name, false);
 
     // Mark the print & filament enabled if they are compatible with the currently selected preset.

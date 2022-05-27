@@ -2,7 +2,7 @@
 #define slic3r_Tab_hpp_
 
 //	 The "Expert" tab at the right of the main tabbed window.
-//	
+//
 //	 This file implements following packages:
 //	   Slic3r::GUI::Tab;
 //	       Slic3r::GUI::Tab::Print;
@@ -134,7 +134,7 @@ protected:
 	std::string			m_name;
 	const wxString		m_title;
 	TabPresetComboBox*	m_presets_choice { nullptr };
-	
+
 	//BBS: GUI refactor
 	wxPanel*			m_top_panel;
 	wxStaticText* m_static_title;
@@ -173,7 +173,7 @@ protected:
 	PresetDependencies 	m_compatible_prints;
 
     /* Indicates, that default preset or preset inherited from default is selected
-     * This value is used for a options color updating 
+     * This value is used for a options color updating
      * (use green color only for options, which values are equal to system values)
      */
     bool                    m_is_default_preset {false};
@@ -197,9 +197,9 @@ protected:
 	ScalableBitmap 		   *m_bmp_non_system;
 	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
 	ScalableBitmap 			m_bmp_value_revert;
-    
-    std::vector<ScalableButton*>	m_scaled_buttons = {};    
-    std::vector<ScalableBitmap*>	m_scaled_bitmaps = {};    
+
+    std::vector<ScalableButton*>	m_scaled_buttons = {};
+    std::vector<ScalableBitmap*>	m_scaled_bitmaps = {};
     std::vector<ScalableBitmap>     m_scaled_icons_list = {};
 
 	// Colors for ui "decoration"
@@ -263,7 +263,7 @@ protected:
 		bool*			m_show_blink_ptr{nullptr};
 		int				m_blink_counter	{0};
 	    wxTimer         m_timer;
-	} 
+	}
     m_highlighter;
 
 	DynamicPrintConfig 	m_cache_config;
@@ -280,7 +280,7 @@ public:
 	ogStaticText*		m_parent_preset_description_line = nullptr;
 	ScalableButton*		m_detach_preset_btn	= nullptr;
 
-	// map of option name -> wxColour (color of the colored label, associated with option) 
+	// map of option name -> wxColour (color of the colored label, associated with option)
     // Used for options which don't have corresponded field
 	std::map<std::string, wxColour>	m_colored_Label_colors;
 
@@ -307,8 +307,8 @@ public:
 	virtual bool supports_printer_technology(const PrinterTechnology tech) const = 0;
 
 	void		create_preset_tab();
-    void        add_scaled_button(wxWindow* parent, ScalableButton** btn, const std::string& icon_name, 
-                                  const wxString& label = wxEmptyString, 
+    void        add_scaled_button(wxWindow* parent, ScalableButton** btn, const std::string& icon_name,
+                                  const wxString& label = wxEmptyString,
                                   long style = wxBU_EXACTFIT | wxNO_BORDER);
     void        add_scaled_bitmap(wxWindow* parent, ScalableBitmap& btn, const std::string& icon_name);
 	void		update_ui_items_related_on_parent_preset(const Preset* selected_preset_parent);
@@ -319,8 +319,8 @@ public:
     void		update_btns_enabling();
     void		update_preset_choice();
     // Select a new preset, possibly delete the current one.
-	void		select_preset(std::string preset_name = "", bool delete_current = false, const std::string& last_selected_ph_printer_name = "");
-	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "");
+	void		select_preset(std::string preset_name = "", bool delete_current = false, const std::string& last_selected_ph_printer_name = "", bool force_select = false);
+	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "", bool no_transfer = false);
 
     virtual void    clear_pages();
     virtual void    update_description_lines();

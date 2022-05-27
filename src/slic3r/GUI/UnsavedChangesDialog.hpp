@@ -26,7 +26,7 @@ class PresetComboBox;
 class MainFrame;
 using ModelNodePtrArray = std::vector<std::unique_ptr<ModelNode>>;
 
-// On all of 3 different platforms Bitmap+Text icon column looks different 
+// On all of 3 different platforms Bitmap+Text icon column looks different
 // because of Markup text is missed or not implemented.
 // As a temporary workaround, we will use:
 // MSW - DataViewBitmapText (our custom renderer wxBitmap + wxString, supported Markup text)
@@ -321,7 +321,7 @@ public:
     };
 
     // show unsaved changes when preset is switching
-    UnsavedChangesDialog(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset);
+    UnsavedChangesDialog(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, bool no_transfer = false);
     // show unsaved changes for all another cases
     UnsavedChangesDialog(const wxString& caption, const wxString& header, const std::string& app_config_key, int act_buttons);
     ~UnsavedChangesDialog(){};
@@ -350,23 +350,23 @@ public:
     std::string get_preset_name() { return names_and_types[0].name; }
 
     std::vector<std::string> get_unselected_options(Preset::Type type) { /* return m_tree->options(type, false);*/return std::vector<std::string>();}
-    std::vector<std::string> get_selected_options  (Preset::Type type)  { 
-        //return m_tree->options(type, true); 
+    std::vector<std::string> get_selected_options  (Preset::Type type)  {
+        //return m_tree->options(type, true);
          std::vector<std::string> tmp;
-        for (int i = 0; i < m_presetitems.size(); i++) { 
-            if (m_presetitems[i].type == type) { 
-                tmp.push_back(m_presetitems[i].opt_key); 
+        for (int i = 0; i < m_presetitems.size(); i++) {
+            if (m_presetitems[i].type == type) {
+                tmp.push_back(m_presetitems[i].opt_key);
             }
         }
 
         return tmp;
     }
-    std::vector<std::string> get_selected_options()                     { 
+    std::vector<std::string> get_selected_options()                     {
         //return m_tree->selected_options();
-        
+
         std::vector<std::string> tmp;
         for (int i = 0; i < m_presetitems.size(); i++)
-        { 
+        {
            tmp.push_back(m_presetitems[i].opt_key);
         }
 
@@ -433,7 +433,7 @@ protected:
     void on_sys_color_changed() override;
 };
 
-} 
+}
 }
 
 #endif //slic3r_UnsavedChangesDialog_hpp_
