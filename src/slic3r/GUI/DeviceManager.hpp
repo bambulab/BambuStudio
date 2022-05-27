@@ -364,7 +364,8 @@ public:
     long  tray_is_bbl_bits; // valid bits
     long  tray_read_done_bits;
     AmsStatusMain ams_status_main;
-    int     ams_status_sub;
+    int   ams_status_sub;
+    int   ams_version;
 
     std::string m_ams_id;           // local ams  : "0" ~ "3"
     std::string m_tray_id;          // local tray id : "0" ~ "3"

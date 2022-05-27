@@ -1127,13 +1127,17 @@ void StatusPanel::update_ams(MachineObject *obj)
         m_filament_setting_dlg->obj = obj;
     }
 
-    if (!obj) {
+    if (!obj || !obj->is_connected()) {
         last_tray_exist_bits    = -1;
         last_ams_exist_bits     = -1;
         last_tray_is_bbl_bits   = -1;
         last_read_done_bits     = -1;
+        last_ams_version        = -1;
+        m_ams_control->EnterNoneAMSMode();
+        show_ams_group(false);
         return;
     }
+
 
     if (obj->amsList.empty() || obj->ams_exist_bits == 0) {
         m_ams_control->EnterNoneAMSMode();
@@ -1152,15 +1156,18 @@ void StatusPanel::update_ams(MachineObject *obj)
             || obj->tray_exist_bits != last_tray_exist_bits
             || obj->tray_is_bbl_bits != last_tray_is_bbl_bits
             || obj->tray_read_done_bits != last_read_done_bits
+            || obj->ams_version != last_ams_version
             ) {
             m_ams_control->UpdateAms(ams_info, true);
             //select current ams
             if (!obj->m_ams_id.empty())
                 m_ams_control->SwitchAms(obj->m_ams_id);
+
             last_tray_exist_bits = obj->tray_exist_bits;
             last_ams_exist_bits = obj->ams_exist_bits;
             last_tray_is_bbl_bits = obj->tray_is_bbl_bits;
             last_read_done_bits = obj->tray_read_done_bits;
+            last_ams_version = obj->ams_version;
         }
     }
 
@@ -1244,9 +1251,9 @@ void StatusPanel::update_ams(MachineObject *obj)
                 std::string tray_id = tray_it->first;
                 int tray_id_int = atoi(tray_id.c_str());
                 if ((obj->tray_read_done_bits & (1 << (ams_id_int * 4 + tray_id_int))) == 0) {
-                    //m_ams_control->PlayRridLoading(ams_id, tray_id);
+                    m_ams_control->PlayRridLoading(ams_id, tray_id);
                 } else {
-                    //m_ams_control->StopRridLoading(ams_id, tray_id);
+                    m_ams_control->StopRridLoading(ams_id, tray_id);
                 }
             }
         }
@@ -1259,11 +1266,11 @@ void StatusPanel::update_ams(MachineObject *obj)
     // update load/unload enable state
     // printing
     if (obj->can_abort() || obj->can_resume()) {
-        m_ams_control->SetActionState(AMSAction::AMS_ACTION_PRINTING);
-    }
-
-    if (!obj->can_abort() && !obj->can_resume() && obj->ams_status_main == AMS_STATUS_MAIN_IDLE) { 
-        m_ams_control->SetActionState(AMSAction::AMS_ACTION_NORMAL);
+        if (obj->ams_status_main == AMS_STATUS_MAIN_IDLE) {
+            m_ams_control->SetActionState(AMSAction::AMS_ACTION_NORMAL);
+        } else {
+            m_ams_control->SetActionState(AMSAction::AMS_ACTION_PRINTING);
+        }
     }
 }
 
@@ -1722,6 +1729,7 @@ void StatusPanel::on_lamp_switch(wxCommandEvent &event)
 
 void StatusPanel::on_thumbnail_enter(wxMouseEvent &event)
 {
+    //TODO FIXME
     if (obj) {
         if (!obj->profile_ || !obj->subtask_) return;
         std::map<std::string, BBLSliceInfo *>::iterator iter = obj->profile_->slice_info.find(obj->subtask_->task_partplate_idx);

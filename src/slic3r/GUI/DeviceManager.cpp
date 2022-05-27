@@ -1610,11 +1610,13 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                         boost::optional<std::string> tray_is_bbl_bits_str   = print.get_optional<std::string>("tray_is_bbl_bits");
                         boost::optional<std::string> tray_now_str           = print.get_optional<std::string>("tray_now");
                         boost::optional<std::string> tray_tar_str           = print.get_optional<std::string>("tray_tar");
+                        boost::optional<int> ams_version_int                = print.get_optional<int>("version");
 
                         long int last_ams_exist_bits = ams_exist_bits;
                         long int last_tray_exist_bits = tray_exist_bits;
                         long int last_is_bbl_bits     = tray_is_bbl_bits;
                         long int last_read_done_bits  = tray_read_done_bits;
+                        long int last_ams_version     = ams_version;
                         if (ams_exist_bits_str.has_value())
                             ams_exist_bits = stol(ams_exist_bits_str.value(), nullptr, 16);
                         if (tray_exist_bits_str.has_value())
@@ -1623,6 +1625,8 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                             tray_is_bbl_bits = stol(tray_is_bbl_bits_str.value(), nullptr, 16);
                         if (tray_read_done_bits_str.has_value())
                             tray_read_done_bits = stol(tray_read_done_bits_str.value(), nullptr, 16);
+                        if (ams_version_int.has_value())
+                            ams_version = ams_version_int.value();
 
                         if (tray_now_str.has_value()) {
                             this->_parse_tray_now(tray_now_str.value());
@@ -1633,8 +1637,9 @@ int MachineObject::parse_json(std::string topic, std::string payload)
 
                         if (ams_exist_bits != last_ams_exist_bits
                             || last_tray_exist_bits != last_tray_exist_bits
-                            || tray_is_bbl_bits != last_is_bbl_bits ||
-                            tray_read_done_bits != last_read_done_bits) {
+                            || tray_is_bbl_bits != last_is_bbl_bits
+                            || tray_read_done_bits != last_read_done_bits
+                            || last_ams_version != ams_version) {
                             is_ams_need_update = true;
                         }
                         else {

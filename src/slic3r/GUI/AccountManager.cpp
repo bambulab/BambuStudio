@@ -645,7 +645,7 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
 
     void AccountManager::start_subscribe(std::string module)
     {
-        BOOST_LOG_TRIVIAL(trace) << "start_subscribe, machine=" << default_machine;
+        BOOST_LOG_TRIVIAL(trace) << "start_subscribe, machine=" << default_machine << ", module = " << module;
         if (!default_machine.empty())
             this->add_subscribe(default_machine);
 
@@ -660,9 +660,11 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
 
     void AccountManager::stop_subscribe(std::string module)
     {
-        BOOST_LOG_TRIVIAL(trace) << "stop_subscribe, machine=" << default_machine;
+        BOOST_LOG_TRIVIAL(trace) << "stop_subscribe, machine=" << default_machine << ", module = " << module;
         if (!module.empty() && subscribe_module.find(module) != subscribe_module.end())
             subscribe_module.erase(module);
+        else
+            return;
         if (subscribe_module.empty()) {
             if (!default_machine.empty()) {
                 this->del_subscribe(default_machine);

@@ -168,24 +168,38 @@ protected:
 /*************************************************
 Description:AMSextruder
 **************************************************/
+class AMSextruderImage: public wxWindow
+{
+public:
+    void TurnOn(wxColour col);
+    void TurnOff();
+    void msw_rescale();
+    void paintEvent(wxPaintEvent &evt);
+
+	void            render(wxDC &dc);
+    bool            m_turn_on = {false};
+    wxColour        m_colour;
+    wxBitmap        m_ams_extruder;
+    void            doRender(wxDC &dc);
+    AMSextruderImage(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    ~AMSextruderImage();
+};
+
+
 class AMSextruder : public wxWindow
 {
 public:
     void TurnOn(wxColour col);
     void TurnOff();
     void create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
-    void paintEvent(wxPaintEvent &evt);
-    void render(wxDC &dc);
-    void doRender(wxDC &dc);
-    void set_color(wxColour col);
     void msw_rescale();
 
     wxBoxSizer *    m_bitmap_sizer{nullptr};
     wxPanel *       m_bitmap_panel{nullptr};
-    wxStaticBitmap *m_bitmap{nullptr};
-    bool            m_turn_on = {false};
+    AMSextruderImage *m_amsSextruder{nullptr};
     wxBitmap        monitor_ams_extruder;
     AMSextruder(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    ~AMSextruder();
 };
 
 /*************************************************
@@ -196,13 +210,11 @@ class AMSLib : public wxWindow
 public:
     AMSLib(wxWindow *parent, wxWindowID id, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     void create(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
-
 public:
     int          m_can_index;
     void         Update(Caninfo info, bool refresh = true);
     void         UnableSelected() { m_unable_selected = true; };
     void         EableSelected() { m_unable_selected = false; };
-    void         SetLibColour(wxColour const &color);
     wxColour     GetLibColour();
     void         OnSelected();
     void         UnSelected();
@@ -218,12 +230,16 @@ protected:
     bool            m_unable_selected = {false};
     bool            m_enable          = {false};
     bool            m_selected        = {false};
+    bool            m_hover           = {false};
 
     double   m_radius = {4};
     wxColour m_border_color;
     wxColour m_road_def_color;
     wxColour m_lib_color;
 
+    void on_enter_window(wxMouseEvent &evt);
+    void on_leave_window(wxMouseEvent &evt);
+    void on_left_down(wxMouseEvent &evt);
     void paintEvent(wxPaintEvent &evt);
     void render(wxDC &dc);
     void doRender(wxDC &dc);
@@ -290,7 +306,6 @@ public:
 protected:
     wxSize   m_cube_size;
     wxColour m_background_colour = {AMS_CONTROL_DEF_BLOCK_BK_COLOUR};
-    wxColour m_border_colour     = {wxColour(0, 174, 66)};
     int      m_padding           = {6};
     int      m_space             = {5};
     bool     m_hover             = {false};

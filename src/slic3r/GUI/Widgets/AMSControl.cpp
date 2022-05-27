@@ -213,10 +213,10 @@ void AMSrefresh::paintEvent(wxPaintEvent &evt)
 
     dc.SetPen(wxPen(colour));
     dc.SetBrush(wxBrush(colour));
-    dc.SetFont(Label::Body_10);
+    dc.SetFont(Label::Body_12);
     dc.SetTextForeground(colour);
     auto tsize = dc.GetTextExtent(m_text);
-    pot        = wxPoint((size.x - tsize.x) / 2, (size.y - tsize.y) / 2 + 1);
+    pot        = wxPoint((size.x - tsize.x) / 2, (size.y - tsize.y) / 2);
     dc.DrawText(m_text, pot);
 }
 
@@ -238,18 +238,94 @@ void AMSrefresh::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 /*************************************************
 Description:AMSextruder
 **************************************************/
+void AMSextruderImage::TurnOn(wxColour col) 
+{
+    m_colour  = col;
+    Refresh();
+}
+
+void AMSextruderImage::TurnOff() 
+{
+    m_colour = AMS_EXTRUDER_DEF_COLOUR;
+    Refresh();
+}
+
+void AMSextruderImage::msw_rescale() 
+{
+    //m_ams_extruder.SetSize(AMS_EXTRUDER_BITMAP_SIZE);
+    //auto image     = m_ams_extruder.ConvertToImage();
+    m_ams_extruder = create_scaled_bitmap("monitor_ams_extruder", nullptr, 55);
+    Refresh();
+}
+
+void AMSextruderImage::paintEvent(wxPaintEvent &evt) 
+{
+    wxPaintDC dc(this);
+    render(dc);
+}
+
+void AMSextruderImage::render(wxDC &dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({0, 0}, size, &dc, {0, 0});
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void AMSextruderImage::doRender(wxDC &dc) 
+{ 
+    auto size = GetSize();
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.SetBrush(m_colour);
+    dc.DrawRectangle(0, 0, size.x, size.y);
+    dc.DrawBitmap(m_ams_extruder, wxPoint( (size.x - m_ams_extruder.GetSize().x) / 2, (size.y - m_ams_extruder.GetSize().y) / 2 ));
+}
+
+
+AMSextruderImage::AMSextruderImage(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) 
+{
+    wxWindow::Create(parent, id, pos, AMS_EXTRUDER_BITMAP_SIZE); 
+    SetBackgroundColour(*wxWHITE);
+
+    m_ams_extruder = create_scaled_bitmap("monitor_ams_extruder", nullptr,55);
+
+    SetSize(AMS_EXTRUDER_BITMAP_SIZE);
+    SetMinSize(AMS_EXTRUDER_BITMAP_SIZE);
+    SetMaxSize(AMS_EXTRUDER_BITMAP_SIZE);
+
+
+    Bind(wxEVT_PAINT, &AMSextruderImage::paintEvent, this);
+}
+
+AMSextruderImage::~AMSextruderImage() {}
+
+
+
 AMSextruder::AMSextruder(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) { create(parent, id, pos, size); }
 
+ AMSextruder::~AMSextruder() {}
+
 void AMSextruder::TurnOn(wxColour col)
-{
-    set_color(col);
-    m_turn_on = true;
+{ 
+    m_amsSextruder->TurnOn(col);
 }
 
 void AMSextruder::TurnOff()
 {
-    set_color(AMS_EXTRUDER_DEF_COLOUR);
-    m_turn_on = false;
+    m_amsSextruder->TurnOff();
 }
 
 void AMSextruder::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
@@ -264,9 +340,8 @@ void AMSextruder::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_bitmap_panel->SetDoubleBuffered(true);
     m_bitmap_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    monitor_ams_extruder = create_scaled_bitmap("monitor_ams_extruder", nullptr, AMS_EXTRUDER_BITMAP_SIZE.y);
-    m_bitmap             = new wxStaticBitmap(m_bitmap_panel, wxID_ANY, monitor_ams_extruder, wxDefaultPosition, AMS_EXTRUDER_BITMAP_SIZE, 0);
-    m_bitmap_sizer->Add(m_bitmap, 0, wxALIGN_CENTER, 0);
+    m_amsSextruder = new AMSextruderImage(m_bitmap_panel, wxID_ANY, wxDefaultPosition, AMS_EXTRUDER_BITMAP_SIZE);
+    m_bitmap_sizer->Add(m_amsSextruder, 0, wxALIGN_CENTER, 0);
 
     m_bitmap_panel->SetSizer(m_bitmap_sizer);
     m_bitmap_panel->Layout();
@@ -278,25 +353,10 @@ void AMSextruder::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
 
 void AMSextruder::msw_rescale()
 {
-    m_bitmap_panel->RemoveChild(m_bitmap);
-    m_bitmap->Destroy();
-    m_bitmap = nullptr;
-    Layout();
-    Update();
-
-    monitor_ams_extruder = create_scaled_bitmap("monitor_ams_extruder", nullptr, AMS_EXTRUDER_BITMAP_SIZE.y);
-    m_bitmap             = new wxStaticBitmap(m_bitmap_panel, wxID_ANY, monitor_ams_extruder, wxDefaultPosition, AMS_EXTRUDER_BITMAP_SIZE, 0);
-    m_bitmap->SetBackgroundColour(wxColour(34, 139, 34));
-    m_bitmap_sizer->Add(m_bitmap, 0, wxALIGN_CENTER, 0);
-    m_bitmap_sizer->Layout();
+    m_amsSextruder->msw_rescale();
     Layout();
     Update();
     Refresh();
-}
-
-void AMSextruder::set_color(wxColour col) 
-{ 
-    m_bitmap_panel->SetBackgroundColour(col);
 }
 
 /*************************************************
@@ -305,12 +365,15 @@ Description:AMSLib
 AMSLib::AMSLib(wxWindow *parent, wxWindowID id, Caninfo info, const wxPoint &pos, const wxSize &size)
 {
     m_border_color   = (wxColour(130, 130, 128));
-    m_lib_color      = AMS_CONTROL_WHITE_COLOUR;
     m_road_def_color = AMS_CONTROL_GRAY500;
-    SetFont(Label::Body_12);
     wxWindow::SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
     create(parent, id, pos, size);
+
     Bind(wxEVT_PAINT, &AMSLib::paintEvent, this);
+    Bind(wxEVT_ENTER_WINDOW, &AMSLib::on_enter_window, this);
+    Bind(wxEVT_LEAVE_WINDOW, &AMSLib::on_leave_window, this);
+    Bind(wxEVT_LEFT_DOWN, &AMSLib::on_left_down, this);
+
     Update(info, false);
 }
 
@@ -322,24 +385,43 @@ void AMSLib::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
 
     wxBoxSizer *m_sizer_edit = new wxBoxSizer(wxHORIZONTAL);
 
-    m_bitmap_editable       = create_scaled_bitmap("ams_editable", this, 16);
-    m_bitmap_editable_lifht = create_scaled_bitmap("ams_editable_light", this, 16);
+    m_bitmap_editable       = create_scaled_bitmap("ams_editable", this, 14);
+    m_bitmap_editable_lifht = create_scaled_bitmap("ams_editable_light", this, 14);
 
-    m_edit_bitmp       = new wxStaticBitmap(this, wxID_ANY, m_bitmap_editable, wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), wxTAB_TRAVERSAL);
-    m_edit_bitmp_light = new wxStaticBitmap(this, wxID_ANY, m_bitmap_editable_lifht, wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), wxTAB_TRAVERSAL);
-    m_sizer_edit->Add(m_edit_bitmp, 0, wxALIGN_CENTER, 0);
-    m_sizer_edit->Add(m_edit_bitmp_light, 0, wxALIGN_CENTER, 0);
-    m_edit_bitmp->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { post_event(wxCommandEvent(EVT_AMS_ON_FILAMENT_EDIT)); });
-
-    m_edit_bitmp_light->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { post_event(wxCommandEvent(EVT_AMS_ON_FILAMENT_EDIT)); });
-    m_edit_bitmp->Hide();
-    m_edit_bitmp_light->Hide();
     m_sizer_body->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_body->Add(m_sizer_edit, 0, wxALIGN_CENTER, 0);
     m_sizer_body->Add(0, 0, 0, wxBOTTOM, GetSize().y * 0.12);
     SetSizer(m_sizer_body);
     Layout();
 }
+
+void AMSLib::on_enter_window(wxMouseEvent &evt)
+{ 
+    m_hover = true;
+    Refresh();
+}
+
+void AMSLib::on_leave_window(wxMouseEvent &evt)
+{ 
+    m_hover = false;
+    Refresh();
+}
+
+void AMSLib::on_left_down(wxMouseEvent &evt)
+{
+    //dc.DrawBitmap(temp_bitmap, (size.x - m_bitmap_editable.GetSize().x) / 2, ( size.y - FromDIP(10) - temp_bitmap.GetSize().y) );
+    auto size = GetSize();
+    auto pos = evt.GetPosition();
+    auto left = FromDIP(20);
+    auto top  = (size.y - FromDIP(10) - m_bitmap_editable_lifht.GetSize().y);
+    auto right = size.x -  FromDIP(20);
+    auto bottom = size.y - FromDIP(10);
+
+    if (pos.x >= left && pos.x <= right && pos.y >= top && top <= bottom) {
+       post_event(wxCommandEvent(EVT_AMS_ON_FILAMENT_EDIT)); 
+    }
+}
+
 
 void AMSLib::paintEvent(wxPaintEvent &evt)
 {
@@ -372,13 +454,16 @@ void AMSLib::doRender(wxDC &dc)
 {
     wxSize size             = GetSize();
     auto   tmp_lib_colour   = m_info.material_colour;
-    auto   temp_text_colour = AMS_CONTROL_DISABLE_TEXT_COLOUR;
+    auto   temp_text_colour = AMS_CONTROL_GRAY800;
+    auto   temp_bitmap      = m_bitmap_editable_lifht;
 
-    Slic3r::GUI::BitmapCache bmcache;
     if (tmp_lib_colour.GetLuminance() < 0.5) {
         temp_text_colour = AMS_CONTROL_WHITE_COLOUR;
+        temp_bitmap      = m_bitmap_editable_lifht;
     } else {
-        temp_text_colour = AMS_CONTROL_BLACK_COLOUR;
+        temp_text_colour = AMS_CONTROL_GRAY800;
+        temp_bitmap      = m_bitmap_editable;
+        
     }
 
     if (!wxWindow::IsEnabled()) {
@@ -404,8 +489,25 @@ void AMSLib::doRender(wxDC &dc)
         } else {
             dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(8), size.y - FromDIP(8), m_radius);
         }
+    }
+    
+    if (!m_selected && m_hover) {
+        dc.SetPen(wxPen(AMS_CONTROL_BRAND_COLOUR, 2, wxSOLID));
+        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+        if (m_radius == 0) {
+            dc.DrawRectangle(0, 0, size.x, size.y);
+        } else {
+            dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(1), size.y - FromDIP(1), m_radius);
+        }
+
+        dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+        dc.SetBrush(wxBrush(tmp_lib_colour));
+        if (m_radius == 0) {
+            dc.DrawRectangle(0, 0, size.x, size.y);
+        } else {
+            dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(8), size.y - FromDIP(8), m_radius);
+        }
     } else {
-        // lib
         dc.SetPen(wxPen(tmp_lib_colour, 1, wxSOLID));
         dc.SetBrush(wxBrush(tmp_lib_colour));
         if (m_radius == 0) {
@@ -415,57 +517,25 @@ void AMSLib::doRender(wxDC &dc)
         }
     }
 
-    // text
-    if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND || m_info.material_state == AMSCanType::AMS_CAN_TYPE_NONE) {
-        auto tsize = dc.GetMultiLineTextExtent(m_info.material_name);
-        auto pot   = wxPoint((size.x - tsize.x) / 2, size.y * 0.7);
-        dc.SetFont(::Label::Head_12);
-        dc.SetTextForeground(temp_text_colour);
-        dc.DrawText(m_info.material_name, pot);
-    }
+    
+      // text
+    auto tsize = dc.GetMultiLineTextExtent(m_info.material_name);
+    auto pot   = wxPoint((size.x - tsize.x) / 2, (size.y - tsize.y) / 2 + FromDIP(3));
+    dc.SetFont(::Label::Body_13);
+    dc.SetTextForeground(temp_text_colour);
+    dc.DrawText(m_info.material_name, pot);
+    // edit icon
+    dc.DrawBitmap(temp_bitmap, (size.x - m_bitmap_editable.GetSize().x) / 2, ( size.y - FromDIP(10) - temp_bitmap.GetSize().y) );
 }
 
 void AMSLib::Update(Caninfo info, bool refresh)
 {
     m_info = info;
-    /*  switch (m_info.material_state) {
-      case AMSCanType::AMS_CAN_TYPE_NONE:
-          m_info.material_name = _L("Empty");
-          SetLibColour(AMS_CONTROL_WHITE_COLOUR);
-          break;
-      case AMSCanType::AMS_CAN_TYPE_BRAND: SetLibColour(m_info.material_colour); break;
-      case AMSCanType::AMS_CAN_TYPE_THIRDBRAND: SetLibColour(m_info.material_colour); break;
-      default: break;
-      }*/
-
-
-    // edit
-    if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND) {
-        m_edit_bitmp->SetBackgroundColour(m_info.material_colour);
-        m_edit_bitmp_light->SetBackgroundColour(m_info.material_colour);
-
-        if (m_info.material_colour.GetLuminance() < 0.5) {
-            m_edit_bitmp->Hide();
-            m_edit_bitmp_light->Show();
-        } else {
-            m_edit_bitmp->Show();
-            m_edit_bitmp_light->Hide();
-        }
-    } else {
-        m_edit_bitmp->Hide();
-    }
-
     Layout();
     if (refresh) Refresh();
 }
 
-void AMSLib::SetLibColour(wxColour const &color)
-{
-    m_lib_color = color;
-    Refresh();
-}
-
-wxColour AMSLib::GetLibColour() { return m_lib_color; }
+wxColour AMSLib::GetLibColour() { return m_info.material_colour; }
 
 void AMSLib::OnSelected()
 {
@@ -839,7 +909,7 @@ void AMSItem::doRender(wxDC &dc)
         left = 4 * AMS_ITEM_CUBE_SIZE.x + 6 * m_space;
         dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 1));
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-        dc.DrawLine(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, left, AMS_ITEM_CUBE_SIZE.y);
+        dc.DrawLine(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, left, ((size.y - AMS_ITEM_CUBE_SIZE.y) / 2) + AMS_ITEM_CUBE_SIZE.y);
 
         left += m_space;
         dc.SetFont(::Label::Body_13);
@@ -849,7 +919,7 @@ void AMSItem::doRender(wxDC &dc)
         dc.DrawText(text, wxPoint(left, (size.y - tsize.y) / 2));
     }
 
-    auto border_colour = m_border_colour;
+    auto border_colour = AMS_CONTROL_BRAND_COLOUR;
     if (!wxWindow::IsEnabled()) { border_colour = AMS_CONTROL_DISABLE_COLOUR; }
 
     if (m_hover) {
@@ -920,7 +990,6 @@ void AmsCans::Update(AMSinfo info)
             lib->canLib->Hide();
         }
     }
-    return;
     for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
         CanRoads *road = m_can_road_list[i];
         if (i < m_can_count) {
@@ -955,6 +1024,7 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan)
                 lib->canLib->UnSelected();
             }
         }
+        ev.Skip();
     });
 
     m_panel_lib->m_info.can_id = caninfo.can_id;
@@ -1381,16 +1451,14 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     CreateAms();
     SetSelection(0);
     EnterNoneAMSMode();
-
-    // a->SetPosition({200,200});
 }
 
 void AMSControl::init_scaled_buttons()
 {
-    m_button_extruder_feed->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
-    m_button_extruder_feed->SetCornerRadius(FromDIP(12));
-    m_button_extruder_back->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
-    m_button_extruder_back->SetCornerRadius(FromDIP(12));
+    m_button_extruder_feed->SetMinSize(wxSize(FromDIP(54), FromDIP(24)));
+    m_button_extruder_feed->SetCornerRadius(FromDIP(11));
+    m_button_extruder_back->SetMinSize(wxSize(FromDIP(54), FromDIP(24)));
+    m_button_extruder_back->SetCornerRadius(FromDIP(11));
     m_button_ams_setting->SetMinSize(wxSize(FromDIP(88), FromDIP(33)));
     m_button_ams_setting->SetCornerRadius(FromDIP(12));
 }
@@ -1423,7 +1491,7 @@ wxColour AMSControl::GetCanColour(std::string amsid, std::string canid)
     for (auto i = 0; i < m_ams_info.size(); i++) {
         if (m_ams_info[i].ams_id == amsid) { 
             for (auto o = 0; o < m_ams_info[i].cans.size(); o++) {
-                if (m_ams_info[i].cans[o].can_id == m_ams_info[i].current_can_id) { 
+                if (m_ams_info[i].cans[o].can_id == canid) { 
                     col = m_ams_info[i].cans[o].material_colour;
                 }
             }
@@ -1519,8 +1587,8 @@ void AMSControl::StopRridLoading(wxString amsid, wxString canid)
 void AMSControl::msw_rescale()
 {
     m_extruder->msw_rescale();
-    m_button_extruder_back->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
-    m_button_extruder_feed->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
+    m_button_extruder_back->SetMinSize(wxSize(FromDIP(54), FromDIP(24)));
+    m_button_extruder_feed->SetMinSize(wxSize(FromDIP(54), FromDIP(24)));
     m_button_ams_setting->SetMinSize(wxSize(FromDIP(88), FromDIP(33)));
 
     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
@@ -1529,7 +1597,7 @@ void AMSControl::msw_rescale()
     }
 
     Layout();
-    //Refresh();
+    Refresh();
 }
 
 void AMSControl::UpdateStepCtrl()
@@ -1617,7 +1685,7 @@ void AMSControl::AddAms(AMSinfo info, bool refresh)
     item->amsItem  = amsitem;
 
     m_ams_item_list.Add(item);
-    m_sizer_top->Add(amsitem, 0, wxALIGN_CENTER, 0);
+    m_sizer_top->Add(amsitem, 0, wxALIGN_CENTER|wxRIGHT, 6);
 
     AmsCansWindow *canswin = new AmsCansWindow();
     auto           amscans = new AmsCans(m_simplebook_cans, wxID_ANY, info);
