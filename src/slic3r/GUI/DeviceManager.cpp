@@ -56,7 +56,8 @@ inline wxString get_stage_string(int stage)
 {
     switch(stage) {
     case 0:
-        return _L("Printing...");
+        //return _L("Printing...");
+        return "";
     case 1:
         return _L("The bed is auto leveling...");
     case 2:
