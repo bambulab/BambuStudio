@@ -8189,13 +8189,20 @@ void Plater::publish_project()
                 if (progress.ultotal != 0) {
                     percent = progress.ulnow * 100 / progress.ultotal;
                 }
-                msg = wxString::Format(_L("%d%% uploaded..."), percent);
+
+                if (progress.upload_spd > 0.01f) {
+                    double left_time = (progress.ultotal - progress.ulnow) / progress.upload_spd;
+                    msg = wxString::Format(L("Uploading %d%%, remaining time %s"), percent, get_bbl_remain_time_dhms(left_time));
+                    BOOST_LOG_TRIVIAL(trace) << "publish_project: uploading " << percent << ", remaining time " << get_bbl_remain_time_dhms(left_time);
+                }
             });
 
         if (!cont) {
             msg = _L("Upload has been canceled.");
             return;
         }
+
+        msg = _L("Publishing...");
 
         if (res < 0) {
             wxString error_msg = wxString::Format(_devL("upload,err:code=%u,msg=%s"), http_code, http_body);

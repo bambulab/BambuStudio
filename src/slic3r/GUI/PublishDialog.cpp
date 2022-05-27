@@ -193,7 +193,7 @@ void PublishDialog::SetPublishStep(PublishStep step, bool yield, int percent)
             m_progress->SetValue(85);
     } else if (step == PublishStep::STEP_FILL_INFO) {
         m_text_progress->SetLabelText(_L("Jump to webpage"));
-        m_progress->SetValue(95);
+        m_progress->SetValue(100);
     }
 
     if (yield)
