@@ -71,6 +71,7 @@ public:
     void msw_rescale() {}
 
     void update(MachineObject *obj);
+    void update_version_text(MachineObject *obj);
     void update_ams(MachineObject *obj);
     void show_status(int status);
     void show_ams(bool show = false, bool force_update = false);
@@ -114,6 +115,7 @@ public:
     void msw_rescale() {}
     bool Show(bool show = true) override;
 
+    void refresh_version_and_firmware(MachineObject* obj);
     void update(MachineObject *obj);
 
     MachineObject *m_obj { nullptr };

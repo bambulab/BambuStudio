@@ -2,6 +2,7 @@
 #include <slic3r/GUI/Widgets/Label.hpp>
 #include <slic3r/GUI/I18N.hpp>
 #include "GUI.hpp"
+#include "GUI_App.hpp"
 #include "libslic3r/Thread.hpp"
 
 namespace Slic3r {
@@ -312,6 +313,12 @@ void MachineInfoPanel::update(MachineObject* obj)
         m_panel_caption->Layout();
         m_panel_caption->Thaw();
 
+        // update version
+        update_version_text(obj);
+
+        // update ams
+        update_ams(obj);
+
         //update progress
         int upgrade_percent = obj->get_upgrade_percent();
         if (obj->upgrade_display_state == (int) MachineObject::UpgradingDisplayState::UpgradingInProgress) {
@@ -329,29 +336,41 @@ void MachineInfoPanel::update(MachineObject* obj)
         wxString sn_text = obj->dev_id;
         m_staticText_sn_val->SetLabelText(sn_text.MakeUpper());
 
+        this->Layout();
+        this->Thaw();
+    }
+}
+
+void MachineInfoPanel::update_version_text(MachineObject* obj)
+{
+    if (obj->upgrade_display_state == (int)MachineObject::UpgradingDisplayState::UpgradingInProgress) {
+        m_staticText_ver_val->SetLabelText("-");
+        m_staticText_ams_ver_val->SetLabelText("-");
+        m_ota_new_version_img->Hide();
+    } else {
+        // update version text
         auto it = obj->module_vers.find("ota");
         if (obj->upgrade_new_version
             && !obj->ota_new_version_number.empty()) {
             if (it != obj->module_vers.end()) {
                 wxString ver_text = wxString::Format("%s->%s", it->second.sw_ver, obj->ota_new_version_number);
                 m_staticText_ver_val->SetLabelText(ver_text);
-            } else {
+            }
+            else {
                 m_staticText_ver_val->SetLabelText("-");
             }
             m_ota_new_version_img->Show();
-        } else {
+        }
+        else {
             if (it != obj->module_vers.end()) {
                 wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Lastest version"));
                 m_staticText_ver_val->SetLabelText(ver_text);
-            } else {
+            }
+            else {
                 m_staticText_ver_val->SetLabelText("-");
             }
             m_ota_new_version_img->Hide();
         }
-
-        update_ams(obj);
-        this->Layout();
-        this->Thaw();
     }
 }
 
@@ -515,25 +534,31 @@ void UpgradePanel::clean_push_upgrade_panel()
     }
 }
 
+void UpgradePanel::refresh_version_and_firmware(MachineObject* obj)
+{
+    BOOST_LOG_TRIVIAL(trace) << "refresh version";
+    if (obj) {
+        m_obj->command_get_version();
+        boost::thread update_info_thread = Slic3r::create_thread([this] {
+            m_obj->get_firmware_info();
+            int count = 0;
+            while (count < 100) {
+                if (!m_obj->module_vers.empty()) break;
+                boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
+                count++;
+            }
+            if (count == 100)
+                BOOST_LOG_TRIVIAL(trace) << "get_firmware_info timeout";
+            m_initialized = true;
+        });
+    }
+}
+
 void UpgradePanel::update(MachineObject *obj)
 {
     if (m_obj != obj) {
         m_obj = obj;
-        if (m_obj) {
-            m_obj->command_get_version();
-            boost::thread update_info_thread = Slic3r::create_thread([this] {
-                m_obj->get_firmware_info();
-                int count = 0;
-                while (count < 100) {
-                    if (!m_obj->module_vers.empty()) break;
-                    boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
-                    count++;
-                }
-                if (count == 100)
-                    BOOST_LOG_TRIVIAL(trace) << "get_firmware_info timeout";
-                m_initialized = true;
-            });
-        }
+        refresh_version_and_firmware(obj);
     }
 
     Freeze();
@@ -561,6 +586,13 @@ void UpgradePanel::update(MachineObject *obj)
 
 bool UpgradePanel::Show(bool show)
 {
+    if (show) {
+        Slic3r::AccountManager* acc = wxGetApp().getAccountManager();
+        if (acc) {
+            MachineObject* obj = acc->get_default_machine();
+            refresh_version_and_firmware(obj);
+        }
+    }
     return wxPanel::Show(show);
 }
 
