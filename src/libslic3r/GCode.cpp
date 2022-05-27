@@ -3371,9 +3371,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             acceleration = m_config.bridge_acceleration.value;
         } else if (m_config.perimeter_acceleration.value > 0 && is_perimeter(path.role())) {
             acceleration = m_config.perimeter_acceleration.value;
-        } else if (m_config.infill_acceleration.value > 0 && is_infill(path.role())) {
-            acceleration = m_config.infill_acceleration.value;
 #endif
+        } else if (m_config.top_surface_acceleration.value > 0 && is_top_surface(path.role())) {
+            acceleration = m_config.top_surface_acceleration.value;
         } else {
             acceleration = m_config.default_acceleration.value;
         }
@@ -3544,7 +3544,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         gcode += m_writer.extrude_to_xy(
                             this->point_to_gcode(line.b),
                             e_per_mm * line_length,
-                            comment);
+                            comment, path.is_force_no_extrusion());
                     }
                     break;
                 }
@@ -3559,7 +3559,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                             center_offset,
                             e_per_mm * arc_length,
                             arc.direction == ArcDirection::Arc_Dir_CCW,
-                            comment);
+                            comment, path.is_force_no_extrusion());
                     break;
                 }
                 default:

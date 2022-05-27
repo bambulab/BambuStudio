@@ -701,6 +701,9 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("zig-zag");
+#if !BBL_RELEASE_TO_PUBLIC
+    def->enum_values.push_back("monotonic");
+#endif
     //BBS: use monotonicline pattern to replace monotonic for top and bottom surface
     def->enum_values.push_back("monotonicline");
     //def->enum_values.push_back("alignedrectilinear");
@@ -709,7 +712,10 @@ void PrintConfigDef::init_fff_params()
     //def->enum_values.push_back("octagramspiral");
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Zig zag"));
+#if !BBL_RELEASE_TO_PUBLIC
     def->enum_labels.push_back(L("Monotonic"));
+#endif
+    def->enum_labels.push_back(L("Monotonic line"));
     //def->enum_labels.push_back(L("Aligned Rectilinear"));
     //def->enum_labels.push_back(L("Hilbert Curve"));
     //def->enum_labels.push_back(L("Archimedean Chords"));
@@ -1029,6 +1035,14 @@ void PrintConfigDef::init_fff_params()
     //def->enum_labels.push_back(L("Lightning"));
 #endif // HAS_LIGHTNING_INFILL
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCubic));
+
+    def = this->add("top_surface_acceleration", coFloat);
+    def->label = L("Top surface");
+    def->tooltip = L("Acceleration of top surface infill. Using a lower value may improve top surface quality");
+    def->sidetext = L("mm/s²");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(2000));
 
     def = this->add("initial_layer_acceleration", coFloat);
     def->label = L("Initial layer");
@@ -3295,9 +3309,11 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         //Reset to default value by erasing these key to avoid parsing error.
         opt_key = "";
     } else if (opt_key == "top_surface_pattern" || opt_key == "bottom_surface_pattern") {
+#if BBL_RELEASE_TO_PUBLIC
         //BBS: replace monotonic pattern to be monotonicline for top and bottom surface
         if (value == "monotonic")
             value = "monotonicline";
+#endif
     } else if (opt_key == "filament_type" && value == "PA-CF") {
         value == "PA";
     } else if (opt_key == "inherits_cummulative") {
@@ -3306,7 +3322,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "compatible_machine_expression_group";
     } else if (opt_key == "compatible_prints_condition_cummulative") {
         opt_key = "compatible_process_expression_group";
-    }  else if (opt_key == "cooling") {
+    } else if (opt_key == "cooling") {
         opt_key = "slow_down_for_layer_cooling";
     }
 

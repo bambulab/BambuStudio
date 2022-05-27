@@ -67,10 +67,10 @@ public:
     std::string travel_to_xyz(const Vec3d &point, const std::string &comment = std::string());
     std::string travel_to_z(double z, const std::string &comment = std::string());
     bool        will_move_z(double z) const;
-    std::string extrude_to_xy(const Vec2d &point, double dE, const std::string &comment = std::string());
+    std::string extrude_to_xy(const Vec2d &point, double dE, const std::string &comment = std::string(), bool force_no_extrusion = false);
     //BBS: generate G2 or G3 extrude which moves by arc
-    std::string extrude_arc_to_xy(const Vec2d &point, const Vec2d &center_offset, double dE, const bool is_ccw, const std::string &comment = std::string());
-    std::string extrude_to_xyz(const Vec3d &point, double dE, const std::string &comment = std::string());
+    std::string extrude_arc_to_xy(const Vec2d &point, const Vec2d &center_offset, double dE, const bool is_ccw, const std::string &comment = std::string(), bool force_no_extrusion = false);
+    std::string extrude_to_xyz(const Vec3d &point, double dE, const std::string &comment = std::string(), bool force_no_extrusion = false);
     std::string retract(bool before_wipe = false);
     std::string retract_for_toolchange(bool before_wipe = false);
     std::string unretract();

@@ -15,6 +15,7 @@
 #include "../Geometry.hpp"
 #include "../Surface.hpp"
 #include "../ShortestPath.hpp"
+#include "../VariableWidth.hpp"
 
 #include "FillRectilinear.hpp"
 
@@ -3087,5 +3088,167 @@ Points sample_grid_pattern(const Polygons &polygons, coord_t spacing)
 {
     return sample_grid_pattern(union_ex(polygons), spacing);
 }
+
+void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out)
+{
+    ExtrusionEntityCollection *coll_nosort = new ExtrusionEntityCollection();
+    coll_nosort->no_sort = this->no_sort();
+
+    ExPolygons rectilinear_areas, gapfill_areas;
+    //BBS: always use no overlap expolygons to avoid overflow in top surface
+    split_polygon_gap_fill(this->no_overlap_expolygons, params, rectilinear_areas, gapfill_areas);
+
+    Polylines polylines_rectilinear;
+    Surface rectilinear_surface{ *surface };
+    FillParams params2 = params;
+    params2.monotonic = true;
+    params2.anchor_length_max = 0.0f;
+
+    for (const ExPolygon &rectilinear_area : rectilinear_areas) {
+        rectilinear_surface.expolygon = rectilinear_area, 0 - 0.5 * params.flow.scaled_spacing();
+        fill_surface_by_lines(&rectilinear_surface, params2, polylines_rectilinear);
+    }
+    ExPolygons unextruded_areas;
+    if (!polylines_rectilinear.empty()) {
+        // calculate actual flow from spacing (which might have been adjusted by the infill
+        // pattern generator)
+        double flow_mm3_per_mm = params.flow.mm3_per_mm();
+        double flow_width = params.flow.width();
+        if (params.using_internal_flow) {
+            // if we used the internal flow we're not doing a solid infill
+            // so we can safely ignore the slight variation that might have
+            // been applied to f->spacing
+        }
+        else {
+            Flow new_flow = params.flow.with_spacing(this->spacing);
+            flow_mm3_per_mm = new_flow.mm3_per_mm();
+            flow_width = new_flow.width();
+        }
+
+        extrusion_entities_append_paths_with_wipe(
+                coll_nosort->entities, std::move(polylines_rectilinear),
+                params.extrusion_role,
+                flow_mm3_per_mm, float(flow_width), params.flow.height());
+        unextruded_areas = diff_ex(rectilinear_areas, union_ex(coll_nosort->polygons_covered_by_spacing(10)));
+    }
+    else
+        unextruded_areas = rectilinear_areas;
+
+    //gapfill
+    gapfill_areas.insert(gapfill_areas.end(), unextruded_areas.begin(), unextruded_areas.end());
+    gapfill_areas = union_ex(gapfill_areas);
+    if (gapfill_areas.size() > 0 && params.density >= 1) {
+        double min = 0.4 * scale_(this->spacing) * (1 - INSET_OVERLAP_TOLERANCE);
+        double max = 2. * scale_(this->spacing);
+        ExPolygons gaps_ex = diff_ex(
+            offset2_ex(gapfill_areas, -float(min / 2), float(min / 2)),
+            offset2_ex(gapfill_areas, -float(max / 2), float(max / 2)),
+            ApplySafetyOffset::Yes);
+        ThickPolylines polylines;
+        for (ExPolygon& ex : gaps_ex) {
+            //BBS: Use DP simplify to avoid duplicated points and accelerate medial-axis calculation as well.
+            ex.douglas_peucker(SCALED_RESOLUTION);
+            ex.medial_axis(max, min, &polylines);
+        }
+
+        if (!polylines.empty() && !is_bridge(params.extrusion_role)) {
+            ExtrusionEntityCollection gap_fill;
+            variable_width(polylines, erGapFill, params.flow, gap_fill.entities);
+            coll_nosort->append(std::move(gap_fill.entities));
+        }
+    }
+
+    if (!coll_nosort->empty()) {
+        out.push_back(coll_nosort);
+    } else {
+        delete coll_nosort;
+    }
+}
+
+void FillMonotonicLineWGapFill::split_polygon_gap_fill(const ExPolygons& input, const FillParams& params, ExPolygons& rectilinear, ExPolygons& gapfill)
+{
+    // remove areas for gapfill
+    // factor=0.5 : remove area smaller than a spacing. factor=1 : max spacing for the gapfill (but not the width)
+    //choose between 2 to avoid dotted line  effect.
+    float factor1 = 0.99f;
+    float factor2 = 0.7f;
+    ExPolygons rectilinear_areas1 = offset2_ex(input, -params.flow.scaled_spacing() * factor1, params.flow.scaled_spacing() * factor1);
+    ExPolygons rectilinear_areas2 = offset2_ex(input, -params.flow.scaled_spacing() * factor2, params.flow.scaled_spacing() * factor2);
+    //choose the best one
+    rectilinear = rectilinear_areas1.size() <= rectilinear_areas2.size() + 1 || rectilinear_areas2.empty() ? rectilinear_areas1 : rectilinear_areas2;
+    //get gapfill
+    gapfill = diff_ex(input, rectilinear);
+}
+
+void FillMonotonicLineWGapFill::fill_surface_by_lines(const Surface* surface, const FillParams& params, Polylines& polylines_out)
+{
+    // At the end, only the new polylines will be rotated back.
+    size_t n_polylines_out_initial = polylines_out.size();
+
+    // Shrink the input polygon a bit first to not push the infill lines out of the perimeters.
+//    const float INFILL_OVERLAP_OVER_SPACING = 0.3f;
+    const float INFILL_OVERLAP_OVER_SPACING = 0.45f;
+    assert(INFILL_OVERLAP_OVER_SPACING > 0 && INFILL_OVERLAP_OVER_SPACING < 0.5f);
+
+    // Rotate polygons so that we can work with vertical lines here
+    std::pair<float, Point> rotate_vector = this->_infill_direction(surface);
+
+    assert(params.full_infill());
+    coord_t line_spacing = coord_t(scale_(this->spacing));
+
+    // On the polygons of poly_with_offset, the infill lines will be connected.
+    ExPolygonWithOffset poly_with_offset(
+        surface->expolygon,
+        - rotate_vector.first, 
+        float(scale_(0 - (0.5 - INFILL_OVERLAP_OVER_SPACING) * this->spacing)),
+        float(scale_(0 - 0.5f * this->spacing)));
+    if (poly_with_offset.n_contours_inner == 0) {
+        // Not a single infill line fits.
+        //FIXME maybe one shall trigger the gap fill here?
+        return;
+    }
+
+    BoundingBox bounding_box = poly_with_offset.bounding_box_src();
+
+    // define flow spacing according to requested density
+    assert(!params.dont_adjust);
+    line_spacing = this->_adjust_solid_spacing(bounding_box.size()(0), line_spacing);
+    this->spacing = unscale<double>(line_spacing);
+
+    // Intersect a set of euqally spaced vertical lines wiht expolygon.
+    size_t  n_vlines = (bounding_box.max(0) - bounding_box.min(0) + line_spacing - 1) / line_spacing;
+	coord_t x0 = bounding_box.min(0);
+	if (params.full_infill())
+		x0 += (line_spacing + coord_t(SCALED_EPSILON)) / 2;
+
+    std::vector<SegmentedIntersectionLine> segs = slice_region_by_vertical_lines(poly_with_offset, n_vlines, x0, line_spacing);
+    // Connect by horizontal / vertical links, classify the links based on link_max_length as too long.
+	connect_segment_intersections_by_contours(poly_with_offset, segs, params, link_max_length);
+
+    // Sometimes the outer contour pinches the inner contour from both sides along a single vertical line.
+    // This situation is not handled correctly by generate_montonous_regions().
+    // Insert phony OUTER_HIGH / OUTER_LOW pairs at the position where the contour is pinched.
+    pinch_contours_insert_phony_outer_intersections(segs);
+	std::vector<MonotonicRegion> regions = generate_montonous_regions(segs);
+
+	connect_monotonic_regions(regions, poly_with_offset, segs);
+    if (! regions.empty()) {
+		std::mt19937_64 rng;
+		std::vector<MonotonicRegionLink> path = chain_monotonic_regions(regions, poly_with_offset, segs, rng);
+		polylines_from_paths(path, poly_with_offset, segs, polylines_out);
+    }
+
+    // paths must be rotated back
+    for (Polylines::iterator it = polylines_out.begin() + n_polylines_out_initial; it != polylines_out.end(); ++ it) {
+        // No need to translate, the absolute position is irrelevant.
+        // it->translate(- rotate_vector.second(0), - rotate_vector.second(1));
+        assert(! it->has_duplicate_points());
+        it->rotate(rotate_vector.first);
+        //FIXME rather simplify the paths to avoid very short edges?
+        //assert(! it->has_duplicate_points());
+        it->remove_duplicate_points();
+    }
+}
+
 
 } // namespace Slic3r

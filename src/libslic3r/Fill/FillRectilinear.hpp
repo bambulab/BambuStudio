@@ -118,6 +118,21 @@ protected:
     float _layer_angle(size_t idx) const override { return 0.f; }
 };
 
+class FillMonotonicLineWGapFill : public Fill
+{
+public:
+    ~FillMonotonicLineWGapFill() override = default;
+    void fill_surface_extrusion(const Surface *surface, const FillParams &params, ExtrusionEntitiesPtr &out) override;
+    static void split_polygon_gap_fill(const ExPolygons& input, const FillParams& params, ExPolygons& rectilinear, ExPolygons& gapfill);
+
+protected:
+    Fill* clone() const override { return new FillMonotonicLineWGapFill(*this); };
+    bool no_sort() const override { return true; }
+
+private:
+    void fill_surface_by_lines(const Surface* surface, const FillParams& params, Polylines& polylines_out);
+};
+
 Points sample_grid_pattern(const ExPolygon &expolygon, coord_t spacing);
 Points sample_grid_pattern(const ExPolygons &expolygons, coord_t spacing);
 Points sample_grid_pattern(const Polygons &polygons, coord_t spacing);

@@ -449,18 +449,20 @@ bool GCodeWriter::will_move_z(double z) const
     return true;
 }
 
-std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std::string &comment)
+std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std::string &comment, bool force_no_extrusion)
 {
     m_pos(0) = point(0);
     m_pos(1) = point(1);
-    m_extruder->extrude(dE);
+    if (!force_no_extrusion)
+        m_extruder->extrude(dE);
 
     //BBS: take plate offset into consider
     Vec2d point_on_plate = { point(0) - m_x_offset, point(1) - m_y_offset };
 
     GCodeG1Formatter w;
     w.emit_xy(point_on_plate);
-    w.emit_e(m_extruder->E());
+    if (!force_no_extrusion)
+        w.emit_e(m_extruder->E());
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return w.string();
@@ -469,35 +471,39 @@ std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std:
 //BBS: generate G2 or G3 extrude which moves by arc
 //point is end point which means X and Y axis
 //center_offset is I and J axis
-std::string GCodeWriter::extrude_arc_to_xy(const Vec2d& point, const Vec2d& center_offset, double dE, const bool is_ccw, const std::string& comment)
+std::string GCodeWriter::extrude_arc_to_xy(const Vec2d& point, const Vec2d& center_offset, double dE, const bool is_ccw, const std::string& comment, bool force_no_extrusion)
 {
     m_pos(0) = point(0);
     m_pos(1) = point(1);
-    m_extruder->extrude(dE);
+    if (!force_no_extrusion)
+        m_extruder->extrude(dE);
 
     Vec2d point_on_plate = { point(0) - m_x_offset, point(1) - m_y_offset };
 
     GCodeG2G3Formatter w(is_ccw);
     w.emit_xy(point_on_plate);
     w.emit_ij(center_offset);
-    w.emit_e(m_extruder->E());
+    if (!force_no_extrusion)
+        w.emit_e(m_extruder->E());
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return w.string();
 }
 
-std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std::string &comment)
+std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std::string &comment, bool force_no_extrusion)
 {
     m_pos = point;
     m_lifted = 0;
-    m_extruder->extrude(dE);
+    if (!force_no_extrusion)
+        m_extruder->extrude(dE);
     
     //BBS: take plate offset into consider
     Vec3d point_on_plate = { point(0) - m_x_offset, point(1) - m_y_offset, point(2) };
 
     GCodeG1Formatter w;
     w.emit_xyz(point_on_plate);
-    w.emit_e(m_extruder->E());
+    if (!force_no_extrusion)
+        w.emit_e(m_extruder->E());
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return w.string();

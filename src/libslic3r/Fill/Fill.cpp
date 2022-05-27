@@ -27,7 +27,7 @@ struct SurfaceFillParams
     // in unscaled coordinates
     coordf_t    	spacing = 0.;
     // infill / perimeter overlap, in unscaled coordinates
-//    coordf_t    	overlap = 0.;
+    coordf_t    	overlap = 0.;
     // Angle as provided by the region config, in radians.
     float       	angle = 0.f;
     // Is bridging used for this fill? Bridging parameters may be used even if this->flow.bridge() is not set.
@@ -68,7 +68,7 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(extruder);
 		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, pattern);
 		RETURN_COMPARE_NON_EQUAL(spacing);
-//		RETURN_COMPARE_NON_EQUAL(overlap);
+		RETURN_COMPARE_NON_EQUAL(overlap);
 		RETURN_COMPARE_NON_EQUAL(angle);
 		RETURN_COMPARE_NON_EQUAL(density);
 //		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, dont_adjust);
@@ -86,7 +86,7 @@ struct SurfaceFillParams
 		return  this->extruder 			== rhs.extruder 		&&
 				this->pattern 			== rhs.pattern 			&&
 				this->spacing 			== rhs.spacing 			&&
-//				this->overlap 			== rhs.overlap 			&&
+				this->overlap 			== rhs.overlap 			&&
 				this->angle   			== rhs.angle   			&&
 				this->bridge   			== rhs.bridge   		&&
 //				this->bridge_angle 		== rhs.bridge_angle		&&
@@ -430,6 +430,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.flow = surface_fill.params.flow;
 		params.extrusion_role = surface_fill.params.extrusion_role;
 		params.using_internal_flow = using_internal_flow;
+		params.no_extrusion_overlap = surface_fill.params.overlap;
 
 		LayerRegion* layerm = this->m_regions[surface_fill.region_id];
 		for (ExPolygon& expoly : surface_fill.expolygons) {

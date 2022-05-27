@@ -59,7 +59,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
     // BBS: for internal solid infill only
     case ipConcentricGapFill:   return new FillConcentricWGapFill();
     // BBS: for bottom and top surface only
-    case ipMonotonicLine:       return new FillMonotonicLine();
+    case ipMonotonicLine:       return new FillMonotonicLineWGapFill();
     default: throw Slic3r::InvalidArgument("unknown type");
     }
 }

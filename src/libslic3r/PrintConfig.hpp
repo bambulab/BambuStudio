@@ -788,6 +788,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBools,              reduce_fan_stop_start_freq))
     ((ConfigOptionInts,               fan_cooling_layer_time))
     ((ConfigOptionStrings,            filament_colour))
+    ((ConfigOptionFloat,              top_surface_acceleration))
     ((ConfigOptionFloat,              initial_layer_acceleration))
     ((ConfigOptionFloat,              initial_layer_line_width))
     ((ConfigOptionFloat,              initial_layer_print_height))

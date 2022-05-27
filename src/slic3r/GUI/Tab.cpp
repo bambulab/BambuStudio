@@ -1786,6 +1786,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Acceleration"), 15);
         optgroup->append_single_option_line("initial_layer_acceleration");
+        optgroup->append_single_option_line("top_surface_acceleration");
         optgroup->append_single_option_line("default_acceleration");
 
 #ifdef HAS_PRESSURE_EQUALIZER
