@@ -289,6 +289,26 @@ PRINTER_TYPE MachineObject::parse_iot_printer_type(std::string type_str)
     return PRINTER_TYPE::PRINTER_3DPrinter_UKNOWN;
 }
 
+PRINTER_TYPE MachineObject::parse_preset_printer_type(std::string type_str)
+{
+    return parse_iot_printer_type(type_str);
+}
+
+std::string MachineObject::get_preset_printer_model_name(PRINTER_TYPE printer_type)
+{
+    if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_P1) {
+        return "Bambu Lab P1";
+    } else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1) {
+        return "Bambu Lab X1";
+    } else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon) {
+        return "Bambu Lab X1 Carbon";
+    } else {
+        return "";
+    }
+}
+
+
+
 wxString MachineObject::get_printer_type_display_str()
 {
     if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_P1)

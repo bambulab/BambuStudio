@@ -339,6 +339,9 @@ public:
     static inline int m_sequence_id = 20000;
     static PRINTER_TYPE parse_printer_type(std::string type_str);
     static PRINTER_TYPE parse_iot_printer_type(std::string type_str);
+    static PRINTER_TYPE parse_preset_printer_type(std::string type_str);
+    static std::string get_preset_printer_model_name(PRINTER_TYPE printer_type);
+
     std::string get_printer_type_string();
     wxString get_printer_type_display_str();
 

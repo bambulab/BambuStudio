@@ -10,7 +10,6 @@ AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id, const 
 {
     create();
 }
-AMSMaterialsSetting::~AMSMaterialsSetting() {}
 
 void AMSMaterialsSetting::create()
 {
@@ -118,7 +117,12 @@ void AMSMaterialsSetting::create()
 
     this->Centre(wxBOTH);
 
-    m_comboBox_filament->Bind(wxEVT_COMBOBOX, &AMSMaterialsSetting::on_select_filament, this);
+    m_comboBox_filament->Connect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(AMSMaterialsSetting::on_select_filament), NULL, this);
+}
+
+AMSMaterialsSetting::~AMSMaterialsSetting()
+{
+    m_comboBox_filament->Disconnect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(AMSMaterialsSetting::on_select_filament), NULL, this);
 }
 
 
@@ -151,13 +155,12 @@ void AMSMaterialsSetting::on_select_ok(wxMouseEvent &event)
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
-            if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
+            if (it->name.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
                 ams_filament_id = it->filament_id;
             }
         }
     }
     if (ams_filament_id.empty() || nozzle_temp.empty()) {
-        //TODO warning
         BOOST_LOG_TRIVIAL(trace) << "Invalid Setting id";
     } else {
         if (obj) {
@@ -185,26 +188,52 @@ void AMSMaterialsSetting::Popup(bool show)
     if (show) {
         PresetBundle* preset_bundle = wxGetApp().preset_bundle;
         if (preset_bundle) {
-            for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
-                filament_items.push_back(it->alias);
-                if (it->filament_id == ams_filament_id) {
-                    selection_idx = idx;
-                    ConfigOption* opt = it->config.option("nozzle_temperature");
-                    if (opt) {
-                        ConfigOptionStrings *opt_strs = dynamic_cast<ConfigOptionStrings *>(opt);
-                        if (opt_strs) {
-                            opt_strs->get_at(0);
-                            wxString text_nozzle_temp = wxString::Format("%s", opt_strs->get_at(0));
-                            m_input_other->GetTextCtrl()->SetValue(text_nozzle_temp);
+            for (auto filament_it = preset_bundle->filaments.begin(); filament_it != preset_bundle->filaments.end(); filament_it++) {
+                // filter by system preset
+                if (!filament_it->is_system) continue;
+
+                for (auto printer_it = preset_bundle->printers.begin(); printer_it != preset_bundle->printers.end(); printer_it++) {
+                    // filter by system preset
+                    if (!printer_it->is_system) continue;
+                    // get printer_model
+                    ConfigOption* printer_model_opt = printer_it->config.option("printer_model");
+                    ConfigOptionString* printer_model_str = dynamic_cast<ConfigOptionString*>(printer_model_opt);
+                    if (!printer_model_str || !obj)
+                        continue;
+
+                    // use printer_model as printer type
+                    if (printer_model_str->value != MachineObject::get_preset_printer_model_name(obj->printer_type))
+                        continue;
+                    ConfigOption* printer_opt = filament_it->config.option("compatible_printers");
+                    ConfigOptionStrings* printer_strs = dynamic_cast<ConfigOptionStrings*>(printer_opt);
+                    for (auto printer_str : printer_strs->values) {
+                        if (printer_it->name == printer_str) {
+                            // name matched
+                            filament_items.push_back(filament_it->name);
+                            if (filament_it->filament_id == ams_filament_id) {
+                                selection_idx = idx;
+                                ConfigOption* opt = filament_it->config.option("nozzle_temperature");
+                                if (opt) {
+                                    ConfigOptionStrings* opt_strs = dynamic_cast<ConfigOptionStrings*>(opt);
+                                    if (opt_strs) {
+                                        opt_strs->get_at(0);
+                                        wxString text_nozzle_temp = wxString::Format("%s", opt_strs->get_at(0));
+                                        m_input_other->GetTextCtrl()->SetValue(text_nozzle_temp);
+                                    }
+                                }
+                            }
+                            idx++;
                         }
                     }
                 }
-                idx++;
             }
-            m_comboBox_filament->Set(filament_items);
-            if (selection_idx >= 0 && selection_idx < filament_items.size()) {
-                m_comboBox_filament->SetSelection(selection_idx);
-            }
+        }
+        m_comboBox_filament->Set(filament_items);
+        if (selection_idx >= 0 && selection_idx < filament_items.size()) {
+            m_comboBox_filament->SetSelection(selection_idx);
+        }
+        else {
+            m_comboBox_filament->SetSelection(selection_idx);
         }
     }
     wxPopupTransientWindow::Popup();
@@ -220,7 +249,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
-            if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
+            if (it->name.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
                 ConfigOption *opt = it->config.option("nozzle_temperature");
                 if (opt) {
                     ConfigOptionInts *opt_strs = dynamic_cast<ConfigOptionInts *>(opt);
@@ -231,6 +260,9 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
                 }
             }
         }
+    }
+    if (m_input_other->GetTextCtrl()->GetValue().IsEmpty()) {
+        m_input_other->GetTextCtrl()->SetValue("220");
     }
 }
 

@@ -1570,6 +1570,7 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
     if (!m_filament_setting_dlg)
         m_filament_setting_dlg = new AMSMaterialsSetting((wxWindow *)this, wxID_ANY);
     if (obj) {
+        m_filament_setting_dlg->obj = obj;
         std::string ams_id = m_ams_control->GetCurentAms();
         std::string tray_id = event.GetString().ToStdString(); // m_ams_control->GetCurrentCan(ams_id);
         try {
