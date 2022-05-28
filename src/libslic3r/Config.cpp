@@ -455,9 +455,12 @@ void ConfigBase::apply_only(const ConfigBase &other, const t_config_option_keys 
 }
 
 // Are the two configs equal? Ignoring options not present in both configs.
-bool ConfigBase::equals(const ConfigBase &other) const
+//BBS: add skipped keys logic
+bool ConfigBase::equals(const ConfigBase &other, const std::set<std::string>* skipped_keys) const
 {
     for (const t_config_option_key &opt_key : this->keys()) {
+        if (skipped_keys && (skipped_keys->count(opt_key) != 0))
+            continue;
         const ConfigOption *this_opt  = this->option(opt_key);
         const ConfigOption *other_opt = other.option(opt_key);
         if (this_opt != nullptr && other_opt != nullptr && *this_opt != *other_opt)
@@ -1496,8 +1499,9 @@ t_config_option_keys StaticConfig::keys() const
 
 // Iterate over the pairs of options with equal keys, call the fn.
 // Returns true on early exit by fn().
+//BBS: add skipped key logic
 template<typename Fn>
-static inline bool dynamic_config_iterate(const DynamicConfig &lhs, const DynamicConfig &rhs, Fn fn)
+static inline bool dynamic_config_iterate(const DynamicConfig &lhs, const DynamicConfig &rhs, Fn fn, const std::set<std::string>* skipped_keys = nullptr)
 {
     std::map<t_config_option_key, std::unique_ptr<ConfigOption>>::const_iterator i = lhs.cbegin();
     std::map<t_config_option_key, std::unique_ptr<ConfigOption>>::const_iterator j = rhs.cbegin();
@@ -1508,7 +1512,11 @@ static inline bool dynamic_config_iterate(const DynamicConfig &lhs, const Dynami
             ++ j;
         else {
             assert(i->first == j->first);
-            if (fn(i->first, i->second.get(), j->second.get()))
+            if (skipped_keys && (skipped_keys->count(i->first) != 0))
+            {
+                //do nothing
+            }
+            else if (fn(i->first, i->second.get(), j->second.get()))
                 // Early exit by fn.
                 return true;
             ++ i;
@@ -1519,10 +1527,12 @@ static inline bool dynamic_config_iterate(const DynamicConfig &lhs, const Dynami
 }
 
 // Are the two configs equal? Ignoring options not present in both configs.
-bool DynamicConfig::equals(const DynamicConfig &other) const
+//BBS: add skipped keys logic
+bool DynamicConfig::equals(const DynamicConfig &other, const std::set<std::string>* skipped_keys) const
 {
     return ! dynamic_config_iterate(*this, other,
-        [](const t_config_option_key & /* key */, const ConfigOption *l, const ConfigOption *r) { return *l != *r; });
+        [](const t_config_option_key & /* key */, const ConfigOption *l, const ConfigOption *r) { return *l != *r; },
+        skipped_keys);
 }
 
 // Returns options differing in the two configs, ignoring options not present in both configs.

@@ -1992,6 +1992,8 @@ void NotificationManager::set_in_preview(bool preview)
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::PlaterWarning)
             notification->hide(preview);
+        if (notification->get_type() == NotificationType::BBLPlateInfo)
+            notification->hide(preview);
         if (notification->get_type() == NotificationType::SignDetected)
             notification->hide(!preview);
         if (notification->get_type() == NotificationType::BBLObjectInfo)
@@ -2072,7 +2074,17 @@ void NotificationManager::bbl_close_plateinfo_notification()
 
 void NotificationManager::bbl_show_objectsinfo_notification(const std::string &text, bool is_warning)
 {
-    NotificationData data{NotificationType::BBLObjectInfo, NotificationLevel::PrintInfoNotificationLevel, 86400 * 10, text};
+    std::string hyper_text;
+    auto callback = std::function<bool(wxEvtHandler *)>();
+    if (is_warning) {
+        callback =[](wxEvtHandler *) {
+            wxCommandEvent *evt = new wxCommandEvent(EVT_REPAIR_MODEL);
+            wxQueueEvent(wxGetApp().plater(), evt);
+            return false;
+        };
+        hyper_text =  _u8L(" (Repair)");
+    }
+    NotificationData data{NotificationType::BBLObjectInfo, NotificationLevel::PrintInfoNotificationLevel, 86400 * 10, text, hyper_text, callback};
     if (is_warning)
         data.use_warn_color = true;
 

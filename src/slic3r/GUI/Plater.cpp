@@ -150,6 +150,8 @@ wxDEFINE_EVENT(EVT_PUBLISH,                         wxCommandEvent);
 // BBS: backup & restore
 wxDEFINE_EVENT(EVT_RESTORE_PROJECT,                 wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_FINISHED,                  wxCommandEvent);
+//BBS: repair model
+wxDEFINE_EVENT(EVT_REPAIR_MODEL,                  wxCommandEvent);
 
 
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
@@ -1649,6 +1651,8 @@ struct Plater::priv
 
     void on_object_select(SimpleEvent&);
     void on_right_click(RBtnEvent&);
+    //BBS: add model repair
+    void on_repair_model(wxCommandEvent &event);
     //BBS: add part plate related logic
     void on_plate_right_click(RBtnPlateEvent&);
     void on_plate_selected(SimpleEvent&);
@@ -1841,6 +1845,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     background_process.set_export_finished_event(EVT_EXPORT_FINISHED);
     this->q->Bind(EVT_SLICING_UPDATE, &priv::on_slicing_update, this);
     this->q->Bind(EVT_PUBLISH, &priv::on_action_publish, this);
+    this->q->Bind(EVT_REPAIR_MODEL, &priv::on_repair_model, this);
 
     view3D = new View3D(q, bed, &model, config, &background_process);
     //BBS: use partplater's gcode
@@ -5125,6 +5130,12 @@ void Plater::priv::on_object_select(SimpleEvent& evt)
 {
     wxGetApp().obj_list()->update_selections();
     selection_changed();
+}
+
+//BBS: repair model through netfabb
+void Plater::priv::on_repair_model(wxCommandEvent &event)
+{
+    wxGetApp().obj_list()->fix_through_netfabb();
 }
 
 void Plater::priv::on_right_click(RBtnEvent& evt)

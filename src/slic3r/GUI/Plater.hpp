@@ -80,6 +80,8 @@ enum class ActionButtonType : int;
 //BBS: add EVT_SLICING_UPDATE declare here
 wxDECLARE_EVENT(EVT_SLICING_UPDATE, Slic3r::SlicingStatusEvent);
 wxDECLARE_EVENT(EVT_PUBLISH,        wxCommandEvent);
+wxDECLARE_EVENT(EVT_REPAIR_MODEL,        wxCommandEvent);
+
 
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 

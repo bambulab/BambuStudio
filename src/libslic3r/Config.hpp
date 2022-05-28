@@ -2073,7 +2073,8 @@ public:
     // or this ConfigBase is of a StaticConfig type and it does not support some of the keys, and ignore_nonexistent is not set.
     void apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false);
     // Are the two configs equal? Ignoring options not present in both configs.
-    bool equals(const ConfigBase &other) const;
+    //BBS: add skipped_keys logic
+    bool equals(const ConfigBase &other, const std::set<std::string>* skipped_keys = nullptr) const;
     // Returns options differing in the two configs, ignoring options not present in both configs.
     t_config_option_keys diff(const ConfigBase &other) const;
     // Returns options being equal in the two configs, ignoring options not present in both configs.
@@ -2278,7 +2279,8 @@ public:
     }
 
     // Are the two configs equal? Ignoring options not present in both configs.
-    bool equals(const DynamicConfig &other) const;
+    //BBS: add skipped_keys logic
+    bool equals(const DynamicConfig &other, const std::set<std::string>* skipped_keys = nullptr) const;
     // Returns options differing in the two configs, ignoring options not present in both configs.
     t_config_option_keys diff(const DynamicConfig &other) const;
     // Returns options being equal in the two configs, ignoring options not present in both configs.
