@@ -30,15 +30,15 @@ namespace Slic3r { namespace GUI {
 class AMSMaterialsSetting : public wxPopupTransientWindow
 {
 public:
-    AMSMaterialsSetting(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = 0);
+    AMSMaterialsSetting(wxWindow *parent, wxWindowID id);
     ~AMSMaterialsSetting();
     void create();
 
-	void input_finish();
+	void paintEvent(wxPaintEvent &evt);
+    void input_finish();
+    void on_select_cancel(wxMouseEvent &event);
     void Dismiss() override;
-    void Popup(bool show);
-
-
+    void Popup(bool show,  bool third = true, wxString filament = wxEmptyString, wxColour colour = *wxWHITE, wxString sn = wxEmptyString, wxString tep = wxEmptyString);
 
 	void on_select_ok(wxMouseEvent &event);
     void set_color(wxColour color);
@@ -46,13 +46,22 @@ public:
     MachineObject *obj{nullptr};
     int            ams_id { 0 };
     int            tray_id { 0 };
+
     std::string    ams_filament_id;
+
+    bool           m_is_third;
+    wxString       m_brand_filament;
+    wxString       m_brand_sn;
+    wxString       m_brand_tmp;
+    wxColour       m_brand_colour;
 
 protected:
     //void on_dpi_changed(const wxRect &suggested_rect) override;
     void on_select_filament(wxCommandEvent& evt);
 
 protected:
+    wxPanel *           m_panel_SN;
+    wxStaticText *      m_sn_number;
     wxStaticText *      warning_text;
     wxPanel *           m_panel_body;
     wxStaticText *      m_title_filament;
@@ -63,6 +72,7 @@ protected:
     wxStaticText *      m_label_other;
     TextInput *         m_input_other;
     Button *            m_button_confirm;
+    Button *            m_button_cancel;
 
 };
 

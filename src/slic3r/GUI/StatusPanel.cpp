@@ -728,7 +728,7 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
     wxBoxSizer *bSizer_extruder_ctrl_caption;
     bSizer_extruder_ctrl_caption = new wxBoxSizer(wxHORIZONTAL);
 
-    m_staticText_ams_ctrl_caption = new wxStaticText(parent, wxID_ANY, _L("AMS Control"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_ams_ctrl_caption = new wxStaticText(parent, wxID_ANY, _L("AMS"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_ams_ctrl_caption->Wrap(-1);
     m_staticText_ams_ctrl_caption->SetFont(GROUP_TITLE_FONT);
 
@@ -1586,6 +1586,7 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                     wxColor color = AmsTray::decode_color(tray_it->second->color);
                     m_filament_setting_dlg->set_color(color);
                     m_filament_setting_dlg->ams_filament_id = tray_it->second->setting_id;
+                    m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(tray_it->second->tag_uid);
                 }
             }
             m_filament_setting_dlg->Popup(true);

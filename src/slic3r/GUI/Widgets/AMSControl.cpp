@@ -410,15 +410,15 @@ void AMSLib::on_leave_window(wxMouseEvent &evt)
 void AMSLib::on_left_down(wxMouseEvent &evt)
 {
     //dc.DrawBitmap(temp_bitmap, (size.x - m_bitmap_editable.GetSize().x) / 2, ( size.y - FromDIP(10) - temp_bitmap.GetSize().y) );
-    auto size = GetSize();
-    auto pos = evt.GetPosition();
-    auto left = FromDIP(20);
-    auto top  = (size.y - FromDIP(10) - m_bitmap_editable_lifht.GetSize().y);
-    auto right = size.x -  FromDIP(20);
-    auto bottom = size.y - FromDIP(10);
+    if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE) {
+        auto size   = GetSize();
+        auto pos    = evt.GetPosition();
+        auto left   = FromDIP(20);
+        auto top    = (size.y - FromDIP(10) - m_bitmap_editable_lifht.GetSize().y);
+        auto right  = size.x - FromDIP(20);
+        auto bottom = size.y - FromDIP(10);
 
-    if (pos.x >= left && pos.x <= right && pos.y >= top && top <= bottom) {
-       post_event(wxCommandEvent(EVT_AMS_ON_FILAMENT_EDIT)); 
+        if (pos.x >= left && pos.x <= right && pos.y >= top && top <= bottom) { post_event(wxCommandEvent(EVT_AMS_ON_FILAMENT_EDIT)); }
     }
 }
 
@@ -518,14 +518,32 @@ void AMSLib::doRender(wxDC &dc)
     }
 
     
-      // text
-    auto tsize = dc.GetMultiLineTextExtent(m_info.material_name);
-    auto pot   = wxPoint((size.x - tsize.x) / 2, (size.y - tsize.y) / 2 + FromDIP(3));
+    // text
     dc.SetFont(::Label::Body_13);
     dc.SetTextForeground(temp_text_colour);
-    dc.DrawText(m_info.material_name, pot);
+
+    if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND) {
+        if (m_info.material_name.empty()) {
+            auto tsize = dc.GetMultiLineTextExtent(L("?"));
+            auto pot   = wxPoint((size.x - tsize.x) / 2, (size.y - tsize.y) / 2 + FromDIP(3));
+            dc.DrawText(L("?"), pot);
+        } else {
+            auto tsize = dc.GetMultiLineTextExtent(m_info.material_name);
+            auto pot   = wxPoint((size.x - tsize.x) / 2, (size.y - tsize.y) / 2 + FromDIP(3));
+            dc.DrawText(m_info.material_name, pot);
+        }
+    } 
+    
+    if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_EMPTY) {
+        auto tsize = dc.GetMultiLineTextExtent(_L("Empty"));
+        auto pot   = wxPoint((size.x - tsize.x) / 2, (size.y - tsize.y) / 2 + FromDIP(3));
+        dc.DrawText(_L("Empty"), pot);
+    }
+    
     // edit icon
-    dc.DrawBitmap(temp_bitmap, (size.x - m_bitmap_editable.GetSize().x) / 2, ( size.y - FromDIP(10) - temp_bitmap.GetSize().y) );
+    if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE) {
+        dc.DrawBitmap(temp_bitmap, (size.x - m_bitmap_editable.GetSize().x) / 2, ( size.y - FromDIP(10) - temp_bitmap.GetSize().y) );
+    }
 }
 
 void AMSLib::Update(Caninfo info, bool refresh)
@@ -1252,7 +1270,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_none_ams_panel->SetDoubleBuffered(true);
 
     wxBoxSizer *sizer_ams_panel = new wxBoxSizer(wxHORIZONTAL);
-    AMSinfo     none_ams        = AMSinfo{"0", std::vector<Caninfo>{Caninfo{"0", _L("Empty"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE}}};
+    AMSinfo     none_ams        = AMSinfo{"0", std::vector<Caninfo>{Caninfo{"0", wxEmptyString, *wxWHITE, AMSCanType::AMS_CAN_TYPE_EMPTY}}};
     auto        amscans         = new AmsCans(m_none_ams_panel, wxID_ANY, none_ams);
     sizer_ams_panel->Add(amscans, 0, wxALL, 0);
     sizer_ams_panel->Add(0, 0, 0, wxLEFT, 20);
@@ -1608,10 +1626,10 @@ void AMSControl::UpdateStepCtrl()
 
 void AMSControl::CreateAms()
 {
-    auto caninfo0_0 = Caninfo{"def_can_0", _L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_1 = Caninfo{"def_can_1", _L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_2 = Caninfo{"def_can_2", _L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_3 = Caninfo{"def_can_3", _L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_0 = Caninfo{"def_can_0", L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_1 = Caninfo{"def_can_1", L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_2 = Caninfo{"def_can_2", L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_3 = Caninfo{"def_can_3", L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
 
     AMSinfo                        ams1 = AMSinfo{"def_ams_0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
     AMSinfo                        ams2 = AMSinfo{"def_ams_1", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};

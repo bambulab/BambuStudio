@@ -78,6 +78,7 @@ enum class AMSCanType : int {
     AMS_CAN_TYPE_NONE,
     AMS_CAN_TYPE_BRAND,
     AMS_CAN_TYPE_THIRDBRAND,
+    AMS_CAN_TYPE_EMPTY,
 };
 
 enum FilamentStep {
