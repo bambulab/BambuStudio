@@ -524,6 +524,10 @@ Sidebar::Sidebar(Plater *parent)
         if (wxGetApp().preset_bundle->is_the_only_edited_filament(filament_count) || (filament_count == 1)) {
             wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0], false, "", true);
         }
+
+        if (p->editing_filament >= filament_count) {
+            p->editing_filament = 0;
+        }
         wxGetApp().preset_bundle->set_num_filaments(filament_count);
         wxGetApp().plater()->on_filaments_change(filament_count);
         wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
