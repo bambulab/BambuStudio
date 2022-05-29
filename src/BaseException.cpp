@@ -257,6 +257,14 @@ LONG WINAPI CBaseException::UnhandledExceptionFilter(PEXCEPTION_POINTERS pExcept
 	return EXCEPTION_CONTINUE_SEARCH;
 }
 
+LONG WINAPI CBaseException::UnhandledExceptionFilter2(PEXCEPTION_POINTERS pExceptionInfo )
+{
+	CBaseException base(GetCurrentProcess(), GetCurrentProcessId(), NULL, pExceptionInfo);
+	base.ShowExceptionInformation();
+
+	return EXCEPTION_CONTINUE_SEARCH;
+}
+
 BOOL CBaseException::GetLogicalAddress(
 	PVOID addr, PTSTR szModule, DWORD len, DWORD& section, DWORD& offset )
 {
@@ -324,10 +332,19 @@ void CBaseException::ShowExceptionInformation()
 {
 	OutputString(_T("Exceptions:\r\n"));
 	ShowExceptionResoult(m_pEp->ExceptionRecord->ExceptionCode);
+
+	OutputString(_T("Exception Flag :0x%x "), m_pEp->ExceptionRecord->ExceptionFlags);
+	OutputString(_T("NumberParameters :%ld \n"), m_pEp->ExceptionRecord->NumberParameters);
+	for (int i = 0; i < m_pEp->ExceptionRecord->NumberParameters; i++)
+	{
+		OutputString(_T("Param %d :0x%x \n"), i, m_pEp->ExceptionRecord->ExceptionInformation[i]);
+	}
+	OutputString(_T("Context :%p \n"), m_pEp->ContextRecord);
+
 	TCHAR szFaultingModule[MAX_PATH];
 	DWORD section, offset;
 	GetLogicalAddress(m_pEp->ExceptionRecord->ExceptionAddress, szFaultingModule, sizeof(szFaultingModule), section, offset );
-	OutputString( _T("Fault address:  %08X %02X:%08X %s\r\n"), m_pEp->ExceptionRecord->ExceptionAddress, section, offset, szFaultingModule );
+	OutputString( _T("Fault address:  0x%X 0x%X:0x%X %s\r\n"), m_pEp->ExceptionRecord->ExceptionAddress, section, offset, szFaultingModule );
 
 	ShowRegistorInformation(m_pEp->ContextRecord);
 

@@ -1,3 +1,4 @@
+#include "GUI.hpp"
 #include "GUI_Utils.hpp"
 #include "GUI_App.hpp"
 
@@ -29,6 +30,89 @@ wxDEFINE_EVENT(EVT_HID_DEVICE_DETACHED, HIDDeviceDetachedEvent);
 wxDEFINE_EVENT(EVT_VOLUME_ATTACHED, VolumeAttachedEvent);
 wxDEFINE_EVENT(EVT_VOLUME_DETACHED, VolumeDetachedEvent);
 #endif // _WIN32
+
+CopyFileResult copy_file_gui(const std::string &from, const std::string &to, std::string& error_message, const bool with_check)
+{
+#ifdef WIN32
+    //still has exceptions
+    /*wxString src = from_u8(from);
+    wxString dest = from_u8(to);
+
+    bool result = CopyFile(src.wc_str(), dest.wc_str(), false);
+    if (!result) {
+        DWORD errCode = GetLastError();
+        error_message = "Error: " + errCode;
+        return FAIL_COPY_FILE;
+    }
+    return SUCCESS;*/
+
+    wxString src = from_u8(from);
+    wxString dest = from_u8(to);
+    BOOL result;
+    char* buff = nullptr;
+    HANDLE handlesrc = nullptr;
+    HANDLE handledst = nullptr;
+    CopyFileResult ret = SUCCESS;
+
+    handlesrc = CreateFile(src.wc_str(),
+        GENERIC_READ,
+        FILE_SHARE_READ,
+        NULL,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_TEMPORARY,
+        0);
+    if(handlesrc==INVALID_HANDLE_VALUE){
+        error_message = "Error: open src file";
+        ret = FAIL_COPY_FILE;
+        goto __finished;
+    }
+
+    handledst=CreateFile(dest.wc_str(),
+        GENERIC_WRITE,
+        FILE_SHARE_READ,
+        NULL,
+        CREATE_ALWAYS,
+        FILE_ATTRIBUTE_TEMPORARY,
+        0);
+    if(handledst==INVALID_HANDLE_VALUE){
+        error_message = "Error: create dest file";
+        ret = FAIL_COPY_FILE;
+        goto __finished;
+    }
+
+    DWORD size=GetFileSize(handlesrc,NULL);
+    buff = new char[size+1];
+    DWORD dwRead=0,dwWrite;
+    result = ReadFile(handlesrc, buff, size, &dwRead, NULL);
+    if (!result) {
+        DWORD errCode = GetLastError();
+        error_message = "Error: " + errCode;
+        ret = FAIL_COPY_FILE;
+        goto __finished;
+    }
+    buff[size]=0;
+    result = WriteFile(handledst,buff,size,&dwWrite,NULL);
+    if (!result) {
+        DWORD errCode = GetLastError();
+        error_message = "Error: " + errCode;
+        ret = FAIL_COPY_FILE;
+        goto __finished;
+    }
+
+__finished:
+    if (handlesrc)
+        CloseHandle(handlesrc);
+    if (handledst)
+        CloseHandle(handledst);
+    if (buff)
+        delete[] buff;
+
+    return ret;
+#else
+    return copy_file(from, to, error_message, with_check);
+#endif
+}
+
 
 wxTopLevelWindow* find_toplevel_parent(wxWindow *window)
 {
@@ -172,7 +256,7 @@ bool check_dark_mode() {
 
 
 #ifdef _WIN32
-void update_dark_ui(wxWindow* window) 
+void update_dark_ui(wxWindow* window)
 {
 #ifdef SUPPORT_DARK_MODE
     bool is_dark = wxGetApp().app_config->get("dark_color_mode") == "1";// ? true : check_dark_mode();// #ysDarkMSW - Allow it when we deside to support the sustem colors for application
@@ -359,7 +443,7 @@ bool generate_image(const std::string &filename, wxImage &image, wxSize img_size
     if (!image.HasAlpha()) {
         image.InitAlpha();
     }
-    
+
     //image.Clear(0);
     //unsigned char *alpha = image.GetAlpha();
     unsigned char* alpha = new unsigned char[image.GetWidth() *  image.GetHeight()];

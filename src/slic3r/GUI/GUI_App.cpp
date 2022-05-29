@@ -81,6 +81,11 @@
 #include "WebGuideDialog.hpp"
 #include "WebUserLoginDialog.hpp"
 
+//#ifdef WIN32
+//#include "BaseException.h"
+//#endif
+
+
 #ifdef __WXMSW__
 #include <dbt.h>
 #include <shlobj.h>
@@ -890,7 +895,20 @@ static void generic_exception_handle()
     // If a custom error message window (or some other solution) were to be used, it would be necessary
     // to turn off wxLogError() usage in wx APIs, most notably in wxImage
     // - see https://docs.wxwidgets.org/trunk/classwx_image.html#aa32e5d3507cc0f8c3330135bc0befc6a
-
+/*#ifdef WIN32
+    //LPEXCEPTION_POINTERS exception_pointers = nullptr;
+    __try {
+        throw;
+    }
+    __except (CBaseException::UnhandledExceptionFilter2(GetExceptionInformation()), EXCEPTION_EXECUTE_HANDLER) {
+    //__except (exception_pointers = GetExceptionInformation(), EXCEPTION_EXECUTE_HANDLER) {
+    //    if (exception_pointers) {
+    //        CBaseException::UnhandledExceptionFilter(exception_pointers);
+    //    }
+    //    else
+            throw;
+    }
+#else*/
     try {
         throw;
     } catch (const std::bad_alloc& ex) {
@@ -900,19 +918,22 @@ static void generic_exception_handle()
                                               "It may be a bug. It will be appreciated if you report the issue to our team."));
         wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _L("Fatal error"), wxOK | wxICON_ERROR);
         BOOST_LOG_TRIVIAL(error) << boost::format("std::bad_alloc exception: %1%") % ex.what();
+
         std::terminate();
-    } catch (const boost::io::bad_format_string& ex) {
+        //throw;
+     } catch (const boost::io::bad_format_string& ex) {
         wxString errmsg = _L("BambuStudio will terminate because of a localization error. "
                              "It will be appreciated if you report the specific scenario this issue happened.");
         wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _L("Critical error"), wxOK | wxICON_ERROR);
         BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
         std::terminate();
-        throw;
+        //throw;
     } catch (const std::exception& ex) {
-        wxLogError(format_wxstr(_L("Unhandled exception: %1%"), ex.what()));
+        wxLogError(format_wxstr(_L("BambuStudio got an unhandled exception: %1%"), ex.what()));
         BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
         throw;
     }
+//#endif
 }
 
 void GUI_App::post_init()
@@ -932,13 +953,17 @@ void GUI_App::post_init()
     wxGetApp().imgui()->set_display_size(static_cast<float>(canvas_size.get_width()), static_cast<float>(canvas_size.get_height()));
     BOOST_LOG_TRIVIAL(info) << "start to init opengl";
     wxGetApp().init_opengl();
+
     BOOST_LOG_TRIVIAL(info) << "finished init opengl";
     plater_->canvas3D()->init();
+
     BOOST_LOG_TRIVIAL(info) << "finished init canvas3D";
     wxGetApp().imgui()->new_frame();
+
     BOOST_LOG_TRIVIAL(info) << "finished init imgui frame";
     plater_->canvas3D()->enable_render(true);
     BOOST_LOG_TRIVIAL(info) << "start to render a first frame for test";
+
     plater_->canvas3D()->render(false);
     BOOST_LOG_TRIVIAL(info) << "finished rendering a first frame for test";
     if (is_editor())
@@ -1210,13 +1235,12 @@ void GUI_App::init_http_extra_header()
 
 bool GUI_App::OnInit()
 {
-    //BBS: remove the try-catch and let exception goto above
-    //try {
+    try {
         return on_init_inner();
-    //} catch (const std::exception&) {
-    //    generic_exception_handle();
-    //    return false;
-    //}
+    } catch (const std::exception&) {
+        generic_exception_handle();
+        return false;
+    }
 }
 
 bool GUI_App::on_init_inner()

@@ -816,17 +816,98 @@ CopyFileResult copy_file_inner(const std::string& from, const std::string& to, s
 
 CopyFileResult copy_file(const std::string &from, const std::string &to, std::string& error_message, const bool with_check)
 {
-	std::string to_temp = to + ".tmp";
-	CopyFileResult ret_val = copy_file_inner(from, to_temp, error_message);
+#ifdef WIN32
+    //wxString src = from_u8(from);
+    //wxString dest = from_u8(to);
+    const char* src_str = from.c_str();
+    const char* dest_str = to.c_str();
+    int src_wlen = ::MultiByteToWideChar(CP_UTF8, NULL, src_str, strlen(src_str), NULL, 0);
+    wchar_t* src_wstr = new wchar_t[src_wlen + 1];
+    ::MultiByteToWideChar(CP_UTF8, NULL, src_str, strlen(src_str), src_wstr, src_wlen);
+    src_wstr[src_wlen] = '\0';
+
+    int dst_wlen = ::MultiByteToWideChar(CP_UTF8, NULL, dest_str, strlen(dest_str), NULL, 0);
+    wchar_t* dst_wstr = new wchar_t[dst_wlen + 1];
+    ::MultiByteToWideChar(CP_UTF8, NULL, dest_str, strlen(dest_str), dst_wstr, dst_wlen);
+    dst_wstr[dst_wlen] = '\0';
+
+    BOOL result;
+    char* buff = nullptr;
+    HANDLE handlesrc = nullptr;
+    HANDLE handledst = nullptr;
+    CopyFileResult ret = SUCCESS;
+
+    handlesrc = CreateFile(src_wstr,
+        GENERIC_READ,
+        FILE_SHARE_READ,
+        NULL,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_TEMPORARY,
+        0);
+    if(handlesrc==INVALID_HANDLE_VALUE){
+        error_message = "Error: open src file";
+        ret = FAIL_COPY_FILE;
+        goto __finished;
+    }
+
+    handledst=CreateFile(dst_wstr,
+        GENERIC_WRITE,
+        FILE_SHARE_READ,
+        NULL,
+        CREATE_ALWAYS,
+        FILE_ATTRIBUTE_TEMPORARY,
+        0);
+    if(handledst==INVALID_HANDLE_VALUE){
+        error_message = "Error: create dest file";
+        ret = FAIL_COPY_FILE;
+        goto __finished;
+    }
+
+    DWORD size=GetFileSize(handlesrc,NULL);
+    buff = new char[size+1];
+    DWORD dwRead=0,dwWrite;
+    result = ReadFile(handlesrc, buff, size, &dwRead, NULL);
+    if (!result) {
+        DWORD errCode = GetLastError();
+        error_message = "Error: " + errCode;
+        ret = FAIL_COPY_FILE;
+        goto __finished;
+    }
+    buff[size]=0;
+    result = WriteFile(handledst,buff,size,&dwWrite,NULL);
+    if (!result) {
+        DWORD errCode = GetLastError();
+        error_message = "Error: " + errCode;
+        ret = FAIL_COPY_FILE;
+        goto __finished;
+    }
+
+__finished:
+    if (src_wstr)
+        delete[] src_wstr;
+    if (dst_wstr)
+        delete[] dst_wstr;
+    if (handlesrc)
+        CloseHandle(handlesrc);
+    if (handledst)
+        CloseHandle(handledst);
+    if (buff)
+        delete[] buff;
+
+    return ret;
+#else
+    std::string to_temp = to + ".tmp";
+    CopyFileResult ret_val = copy_file_inner(from, to_temp, error_message);
     if(ret_val == SUCCESS)
-	{
+    {
         if (with_check)
             ret_val = check_copy(from, to_temp);
 
         if (ret_val == 0 && rename_file(to_temp, to))
-        	ret_val = FAIL_RENAMING;
-	}
-	return ret_val;
+            ret_val = FAIL_RENAMING;
+    }
+    return ret_val;
+#endif
 }
 
 CopyFileResult check_copy(const std::string &origin, const std::string &copy)
