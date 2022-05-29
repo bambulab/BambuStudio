@@ -120,9 +120,14 @@ void BindJob::process()
                 json j = json::parse(json_str);
                 if (j.contains("login") && !j["login"].is_null()) {
                     if (j["login"]["command"].get<std::string>() == "login_report") {
-                        login_ticket       = j["login"]["ticket"].get<std::string>();
-                        std::string status = j["login"]["status"].get<std::string>();
-                        if (status.compare("wait_auth") == 0 && !login_ticket.empty()) { break; }
+                        std::string status;
+                        if (j["login"].contains("status"))
+                            status = j["login"]["status"].get<std::string>();
+                        if (j["login"].contains("ticket"))
+                            login_ticket = j["login"]["ticket"].get<std::string>();
+                        if (status.compare("wait_auth") == 0 && !login_ticket.empty()) {
+                            break;
+                        }
                     }
                 }
             } catch (...) {
