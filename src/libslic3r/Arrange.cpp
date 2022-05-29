@@ -467,6 +467,7 @@ public:
 
             for(unsigned idx = 0; idx < items.size(); ++idx) {
                 Item& itm = items[idx];
+                if (itm.is_virt_object) continue;
                 if(isBig(itm.area())) m_rtree.insert({itm.boundingBox(), idx});
                 m_smallsrtree.insert({itm.boundingBox(), idx});
             }
