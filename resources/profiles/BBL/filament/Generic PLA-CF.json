@@ -1,22 +1,19 @@
 {
     "type": "filament",
-    "filament_id": "GFB99",
-    "setting_id": "GFSB99",
-    "name": "Generic ABS",
+    "filament_id": "GFL98",
+    "setting_id": "GFSL98",
+    "name": "Generic PLA-CF",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_abs",
-    "filament_cost": [
-        "27.82"
-    ],
-    "filament_density": [
-        "1.04"
-    ],
+    "inherits": "fdm_filament_pla",
     "filament_flow_ratio": [
         "0.95"
     ],
     "filament_max_volumetric_speed": [
-        "16"
+        "12"
+    ],
+    "slow_down_layer_time": [
+        "7"
     ],
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.4 nozzle",

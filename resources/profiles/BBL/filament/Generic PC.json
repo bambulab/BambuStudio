@@ -1,19 +1,11 @@
 {
     "type": "filament",
-    "filament_id": "GFN00",
-    "name": "Bambu PA-CF @base",
+    "filament_id": "GFC99",
+    "setting_id": "GFSC99",
+    "name": "Generic PC",
     "from": "system",
-    "instantiation": "false",
-    "inherits": "fdm_filament_hpc",
-    "filament_vendor": [
-        "Bambu Lab"
-    ],
-    "filament_type": [
-        "PA"
-    ],
-    "filament_density": [
-        "1.09"
-    ],
+    "instantiation": "true",
+    "inherits": "fdm_filament_pc",
     "nozzle_temperature_initial_layer": [
         "280"
     ],
@@ -25,5 +17,8 @@
     ],
     "bed_temperature_initial_layer": [
         "0,100,100"
+    ],
+    "filament_max_volumetric_speed": [
+        "16"
     ]
 }

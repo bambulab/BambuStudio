@@ -878,10 +878,12 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PET");
     def->enum_values.push_back("ABS");
     def->enum_values.push_back("TPU");
-    def->enum_values.push_back("PA-CF");
+    def->enum_values.push_back("PA");
     def->enum_values.push_back("PET-CF");
     def->enum_values.push_back("PC");
     def->enum_values.push_back("Support");
+    def->enum_values.push_back("ASA");
+    def->enum_values.push_back("PVA");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionStrings { "PLA" });
 
@@ -3249,8 +3251,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         //BBS: replace monotonic pattern to be monotonicline for top and bottom surface
         if (value == "monotonic")
             value = "monotonicline";
-    } else if (opt_key == "filament_type" && value == "HPC") {
-        value == "PA-CF";
+    } else if (opt_key == "filament_type" && value == "PA-CF") {
+        value == "PA";
     } else if (opt_key == "inherits_cummulative") {
         opt_key = "inherits_group";
     } else if (opt_key == "compatible_printers_condition_cummulative") {

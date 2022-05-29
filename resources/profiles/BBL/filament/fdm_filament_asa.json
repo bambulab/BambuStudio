@@ -1,0 +1,67 @@
+{
+    "type": "filament",
+    "name": "fdm_filament_asa",
+    "from": "system",
+    "instantiation": "false",
+    "inherits": "fdm_filament_common",
+    "bed_type": [
+        "Cool Plate"
+    ],
+    "bed_temperature": [
+        "90,90,90"
+    ],
+    "slow_down_for_layer_cooling": [
+        "1"
+    ],
+    "close_fan_the_first_x_layers": [
+        "3"
+    ],
+    "fan_cooling_layer_time": [
+        "20"
+    ],
+    "filament_max_volumetric_speed": [
+        "28.6"
+    ],
+    "filament_type": [
+        "ASA"
+    ],
+    "filament_density": [
+        "1.04"
+    ],
+    "filament_cost": [
+        "20"
+    ],
+    "bed_temperature_initial_layer": [
+        "90,90,90"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "260"
+    ],
+    "reduce_fan_stop_start_freq": [
+        "0"
+    ],
+    "fan_max_speed": [
+        "30"
+    ],
+    "fan_min_speed": [
+        "30"
+    ],
+    "overhang_fan_threshold": [
+        "25%"
+    ],
+    "overhang_fan_speed": [
+        "60"
+    ],
+    "nozzle_temperature": [
+        "270"
+    ],
+    "temperature_vitrification": [
+        "100"
+    ],
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "slow_down_layer_time": [
+        "3"
+    ]
+}

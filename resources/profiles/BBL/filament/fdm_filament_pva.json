@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "fdm_filament_pla",
+    "name": "fdm_filament_pva",
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
@@ -8,16 +8,16 @@
         "Cool Plate"
     ],
     "bed_temperature": [
-        "35,0,45"
+        "35,0,60"
     ],
     "fan_cooling_layer_time": [
         "100"
     ],
     "filament_max_volumetric_speed": [
-        "12"
+        "15"
     ],
     "filament_type": [
-        "PLA"
+        "PVA"
     ],
     "filament_density": [
         "1.24"
@@ -26,7 +26,7 @@
         "20"
     ],
     "bed_temperature_initial_layer": [
-        "35,0,45"
+        "35,0,60"
     ],
     "nozzle_temperature_initial_layer": [
         "220"

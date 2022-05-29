@@ -21,10 +21,10 @@
         "220"
     ],
     "bed_temperature": [
-        "35,0,60"
+        "35,0,45"
     ],
     "bed_temperature_initial_layer": [
-        "35,0,60"
+        "35,0,45"
     ],
     "nozzle_temperature_initial_layer": [
         "220"

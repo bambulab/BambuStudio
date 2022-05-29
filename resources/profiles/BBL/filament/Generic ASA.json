@@ -1,22 +1,22 @@
 {
     "type": "filament",
-    "filament_id": "GFB99",
-    "setting_id": "GFSB99",
-    "name": "Generic ABS",
+    "filament_id": "GFB98",
+    "setting_id": "GFSB98",
+    "name": "Generic ASA",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_abs",
-    "filament_cost": [
-        "27.82"
-    ],
-    "filament_density": [
-        "1.04"
-    ],
+    "inherits": "fdm_filament_asa",
     "filament_flow_ratio": [
         "0.95"
     ],
     "filament_max_volumetric_speed": [
-        "16"
+        "12"
+    ],
+    "nozzle_temperature": [
+        "260"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "260"
     ],
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.4 nozzle",

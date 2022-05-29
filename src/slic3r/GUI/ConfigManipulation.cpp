@@ -53,9 +53,9 @@ void ConfigManipulation::toggle_line(const std::string& opt_key, const bool togg
 //BBS: directly hard-code map the recommanded temperature range by filament_type
 std::vector<int> ConfigManipulation::get_temperature_range_by_filament_type(const std::string &filament_type)
 {
-    if (filament_type == "PLA")
+    if (filament_type == "PLA" || filament_type == "PVA")
         return std::vector<int>{190, 250};
-    else if (filament_type == "ABS")
+    else if (filament_type == "ABS" || filament_type == "ASA")
         return std::vector<int>{240, 270};
     else if (filament_type == "TPU")
         return std::vector<int>{200, 250};
@@ -63,7 +63,7 @@ std::vector<int> ConfigManipulation::get_temperature_range_by_filament_type(cons
         return std::vector<int>{260, 280};
     else if (filament_type == "PET")
         return std::vector<int>{220, 260};
-    else if (filament_type == "PET-CF" || filament_type == "PA-CF")
+    else if (filament_type == "PET-CF" || filament_type == "PA")
         return std::vector<int>{270, 300};
     else
         //BBS: don't need to pop-up temperature checking window if filament_type is unknown or Support

@@ -18,6 +18,9 @@
     "overhang_fan_speed": [
         "80"
     ],
+    "overhang_fan_threshold": [
+        "50%"
+    ],
     "fan_max_speed": [
         "60"
     ],
@@ -29,6 +32,12 @@
     ],
     "slow_down_layer_time": [
         "8"
+    ],
+    "filament_flow_ratio": [
+        "0.95"
+    ],
+    "filament_max_volumetric_speed": [
+        "20"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n{if (bed_temperature[current_extruder] >60)||(bed_temperature_initial_layer[current_extruder] >60)}M106 P3 S180\n{elsif (bed_temperature[current_extruder] >70)||(bed_temperature_initial_layer[current_extruder] >70)}M106 P3 S255\n{endif};Prevent PETG from jamming"
