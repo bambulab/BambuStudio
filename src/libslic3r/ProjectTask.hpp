@@ -246,6 +246,7 @@ public:
     std::string     project_3mf_file;
     fs::path        project_path;
     std::string     project_content;
+    std::string     project_country_code;
 
 
     std::vector<BBLProfile*>   profiles;

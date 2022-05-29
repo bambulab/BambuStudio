@@ -116,6 +116,7 @@ const std::string BBL_DESIGNER_COVER_FILE_TAG       = "DesignerCover";
 const std::string BBL_DESCRIPTION_TAG               = "Description";
 const std::string BBL_COPYRIGHT_TAG                 = "CopyRight";
 const std::string BBL_LICENSE_TAG                   = "License";
+const std::string BBL_REGION_TAG                    = "Region";
 
 const std::string MODEL_FOLDER = "3D/";
 const std::string MODEL_EXTENSION = ".model";
@@ -662,10 +663,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         unsigned int m_seam_painting_version         = 0;
         unsigned int m_mm_painting_version           = 0;
         std::string  m_model_id;
+        std::string  m_contry_code;
         std::string  m_designer;
         std::string  m_designer_user_id;
         std::string  m_designer_cover;
-        ModelInfo  model_info;
+        ModelInfo    model_info;
+        BBLProject   project_info;
 
         XML_Parser m_xml_parser;
         // Error code returned by the application side of the parser. In that case the expat may not reliably deliver the error state
@@ -1176,6 +1179,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //got project id
         if (project) {
             project->project_model_id = m_model_id;
+            project->project_country_code = m_contry_code;
         }
 
         //BBS: version check
@@ -2810,8 +2814,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found license = " << m_curr_characters;
             model_info.license = m_curr_characters;
         } else if (m_curr_metadata_name == BBL_COPYRIGHT_TAG) {
-            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found license = " << m_curr_characters;
+            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found copyright = " << m_curr_characters;
             model_info.copyright = m_curr_characters;
+        } else if (m_curr_metadata_name == BBL_REGION_TAG) {
+            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found region = " << m_curr_characters;
+            m_contry_code = m_curr_characters;
         }
 
         return true;
@@ -4505,6 +4512,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string description;
             std::string copyright;
             std::string rating;
+            std::string model_id;
+            std::string region_code;
             if (model.design_info) {
                  user_name = model.design_info->Designer;
                  user_id = model.design_info->DesignerUserId;
@@ -4521,6 +4530,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 BOOST_LOG_TRIVIAL(trace) << "design_info, save_3mf found designer_cover = " << design_cover;
             }
 
+            if (project) {
+                model_id = project->project_model_id;
+                region_code = project->project_country_code;
+            }
+
             stream << " <" << METADATA_TAG << " name=\"" << BBL_MODEL_NAME_TAG          << "\">" << name         << "</" << METADATA_TAG << ">\n";
             stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_TAG            << "\">" << user_name    << "</" << METADATA_TAG << ">\n";
             stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_USER_ID_TAG    << "\">" << user_id      << "</" << METADATA_TAG << ">\n";
@@ -4530,8 +4544,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             stream << " <" << METADATA_TAG << " name=\"" << BBL_LICENSE_TAG             << "\">" << license      << "</" << METADATA_TAG << ">\n";
 
             /* save model info */
-            if (project)
-                stream << " <" << METADATA_TAG << " name=\"" << BBL_MODEL_ID_TAG << "\">" << project->project_model_id << "</" << METADATA_TAG << ">\n";
+            if (!model_id.empty()) {
+                stream << " <" << METADATA_TAG << " name=\"" << BBL_MODEL_ID_TAG << "\">" << model_id    << "</" << METADATA_TAG << ">\n";
+                stream << " <" << METADATA_TAG << " name=\"" << BBL_REGION_TAG << "\">"   << region_code << "</" << METADATA_TAG << ">\n";
+            }
 
             std::string date = Slic3r::Utils::utc_timestamp(Slic3r::Utils::get_current_time_utc());
             // keep only the date part of the string

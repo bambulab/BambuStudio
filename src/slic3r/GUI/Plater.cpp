@@ -6422,6 +6422,10 @@ void Plater::import_model_id(const std::string& import_json)
         /*BBS set project info after load project, project info is reset in load project */
         p->project.project_model_id  = model_id;
         p->project.project_design_id = design_id;
+        AppConfig* config = wxGetApp().app_config;
+        if (config) {
+            p->project.project_country_code = RegionServer::convert_region_to_contry_code(config->get_region());
+        }
 
         // show save new project
         p->set_project_filename(filename);
@@ -8271,8 +8275,13 @@ void Plater::publish_project()
 
     cont_dlg = true;
 
-    /* set project to curr plater project, save project model id */
+    /* set project to curr plater project, save project model id and save region config */
     p->project.project_model_id = project->project_model_id;
+    p->project.project_country_code = wxGetApp().app_config->get_region();
+    AppConfig* config = wxGetApp().app_config;
+    if (config) {
+        project->project_country_code = RegionServer::convert_region_to_contry_code(config->get_region());
+    }
 
     bool load_url = true;
     if (design_id.empty() && !publish_project) {
