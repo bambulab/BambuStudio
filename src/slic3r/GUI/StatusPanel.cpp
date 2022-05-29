@@ -1730,9 +1730,10 @@ void StatusPanel::on_lamp_switch(wxCommandEvent &event)
 
 void StatusPanel::on_thumbnail_enter(wxMouseEvent &event)
 {
-    //TODO FIXME
     if (obj) {
         if (!obj->profile_ || !obj->subtask_) return;
+        if (m_slice_info_popup && m_slice_info_popup->IsShown())
+            return;
         std::map<std::string, BBLSliceInfo *>::iterator iter = obj->profile_->slice_info.find(obj->subtask_->task_partplate_idx);
         if (iter->second) {
             m_slice_info_popup = std::make_shared<SliceInfoPopup>(this, m_bitmap_thumbnail->GetBitmap(), iter->second);
@@ -1747,8 +1748,9 @@ void StatusPanel::on_thumbnail_enter(wxMouseEvent &event)
 
 void StatusPanel::on_thumbnail_leave(wxMouseEvent &event)
 {
-    if (obj && m_slice_info_popup)
-        m_slice_info_popup->Dismiss();
+    //BBS do not auto dissmiss
+    //if (obj && m_slice_info_popup)
+        //m_slice_info_popup->Dismiss();
 }
 
 void StatusPanel::on_auto_leveling(wxCommandEvent &event)
