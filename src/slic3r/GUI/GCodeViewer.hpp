@@ -817,10 +817,13 @@ public:
     bool is_only_gcode_in_preview() const { return m_only_gcode_in_preview; }
 
     EViewType get_view_type() const { return m_view_type; }
-    void set_view_type(EViewType type) {
+    void set_view_type(EViewType type, bool reset_feature_type_visible = true) {
         if (type == EViewType::Count)
             type = EViewType::FeatureType;
         m_view_type = (EViewType)type;
+        if (reset_feature_type_visible && type == EViewType::ColorPrint) {
+            reset_visible(EViewType::FeatureType);
+        }
     }
     void reset_visible(EViewType type) {
         if (type == EViewType::FeatureType) {

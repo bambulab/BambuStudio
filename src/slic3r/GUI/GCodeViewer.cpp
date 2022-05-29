@@ -1458,7 +1458,7 @@ void GCodeViewer::render_calibration_thumbnail(ThumbnailData& thumbnail_data, un
             break;
         }
     }
-    set_view_type(EViewType::ColorPrint);
+    set_view_type(EViewType::ColorPrint, false);
     // set m_layers_z_range to 0, 0
     std::array<unsigned int, 2> tmp_layers_z_range = m_layers_z_range;
     m_layers_z_range = {0, 0};
@@ -1482,7 +1482,7 @@ void GCodeViewer::render_calibration_thumbnail(ThumbnailData& thumbnail_data, un
     // restore values and refresh render
     // reset m_layers_z_range and view type
     m_view_type_sel = last_view_type_sel;
-    set_view_type(last_view_type);
+    set_view_type(last_view_type, false);
     m_layers_z_range = tmp_layers_z_range;
     m_extrusions.role_visibility_flags = last_role_visibility_flags;
     refresh_render_paths(false, false);
