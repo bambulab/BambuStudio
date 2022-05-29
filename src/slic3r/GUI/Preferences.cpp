@@ -450,7 +450,7 @@ void PreferencesDialog::create()
 
     // set icon for dialog
     std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
-    SetIcon(wxIcon(icon_path, wxBITMAP_TYPE_ICO));
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     this->SetSizeHints(wxDefaultSize, wxDefaultSize);
     this->SetBackgroundColour(DESIGN_SELECTOR_SELECTED_COLOR);
