@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-25 12:22+0800\n"
+"POT-Creation-Date: 2022-05-29 16:31+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -348,9 +348,6 @@ msgid ""
 "Switch to zig-zag pattern?\n"
 "Yes - switch to zig-zag pattern automaticlly\n"
 "No  - reset density to default non 100% value automaticlly\n"
-msgstr ""
-
-msgid "Printing..."
 msgstr ""
 
 msgid "The bed is auto leveling..."
@@ -729,7 +726,7 @@ msgstr ""
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr ""
 
-msgid "Objects being edited are not visible."
+msgid "Only the object being edit is visible."
 msgstr ""
 
 msgid ""
@@ -2486,10 +2483,13 @@ msgid "Uploading..."
 msgstr ""
 
 #, c-format, boost-format
-msgid "%d%% uploaded..."
+msgid "Uploading %d%%, remaining time %s"
 msgstr ""
 
 msgid "Upload has been canceled."
+msgstr ""
+
+msgid "Publishing..."
 msgstr ""
 
 msgid "Failed to publish. Please try again!"
@@ -3420,10 +3420,6 @@ msgid "Uploading the print job..."
 msgstr ""
 
 msgid "The size of the uploaded file cannot exceed 1 GB."
-msgstr ""
-
-#, c-format, boost-format
-msgid "Uploading %d%%, remaining time %s"
 msgstr ""
 
 msgid " Failed to upload the print job. Check Md5 failed, please try agian."

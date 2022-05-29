@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-25 12:22+0800\n"
-"PO-Revision-Date: 2022-05-17 15:42+0800\n"
+"POT-Creation-Date: 2022-05-29 16:31+0800\n"
+"PO-Revision-Date: 2022-05-29 16:33+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -389,9 +389,6 @@ msgstr ""
 "是 - 自动切换到锯齿图案\n"
 "否 - 自动重置为非100%填充密度\n"
 
-msgid "Printing..."
-msgstr "打印中..."
-
 msgid "The bed is auto leveling..."
 msgstr "热床正在自动调平..."
 
@@ -772,8 +769,8 @@ msgstr "检测到有对象放在盘的边界上。"
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "检测超出热床边界的G-code路径。"
 
-msgid "Objects being edited are not visible."
-msgstr "正在编辑的对象是不可见的。"
+msgid "Only the object being edit is visible."
+msgstr "只有正在编辑的对象是可见的。"
 
 msgid ""
 "An object is layed over the boundary of plate.\n"
@@ -2540,11 +2537,14 @@ msgid "Uploading..."
 msgstr "上传中"
 
 #, c-format, boost-format
-msgid "%d%% uploaded..."
-msgstr "已上传 %d%%"
+msgid "Uploading %d%%, remaining time %s"
+msgstr ""
 
 msgid "Upload has been canceled."
 msgstr "上传已被取消。"
+
+msgid "Publishing..."
+msgstr ""
 
 msgid "Failed to publish. Please try again!"
 msgstr "发布失败，请重试！"
@@ -3488,10 +3488,6 @@ msgid "Uploading the print job..."
 msgstr "上传打印任务..."
 
 msgid "The size of the uploaded file cannot exceed 1 GB."
-msgstr ""
-
-#, c-format, boost-format
-msgid "Uploading %d%%, remaining time %s"
 msgstr ""
 
 msgid " Failed to upload the print job. Check Md5 failed, please try agian."
@@ -5355,6 +5351,16 @@ msgstr " 对象："
 #, boost-format
 msgid "Error at line %1%:\n"
 msgstr "错误在行%1%：\n"
+
+#~ msgid "Printing..."
+#~ msgstr "打印中..."
+
+#~ msgid "Objects being edited are not visible."
+#~ msgstr "正在编辑的对象是不可见的。"
+
+#, c-format, boost-format
+#~ msgid "%d%% uploaded..."
+#~ msgstr "已上传 %d%%"
 
 #~ msgid "Set to cover"
 #~ msgstr "设置为封面"
