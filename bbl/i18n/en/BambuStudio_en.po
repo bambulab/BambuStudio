@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-29 16:31+0800\n"
+"POT-Creation-Date: 2022-05-31 17:17+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -27,6 +27,9 @@ msgstr ""
 msgid ""
 "Push new filament \n"
 "into extruder"
+msgstr ""
+
+msgid "?"
 msgstr ""
 
 msgid "Empty"
@@ -1038,7 +1041,7 @@ msgid "Critical error"
 msgstr ""
 
 #, boost-format
-msgid "Unhandled exception: %1%"
+msgid "BambuStudio got an unhandled exception: %1%"
 msgstr ""
 
 msgid ""
@@ -1716,6 +1719,12 @@ msgstr "Export Sliced File"
 msgid "Export Sliced File"
 msgstr ""
 
+msgid "Keyboard Shortcuts"
+msgstr ""
+
+msgid "Show the list of the keyboard shortcuts"
+msgstr ""
+
 msgid "Beginner's Tutorial"
 msgstr ""
 
@@ -2031,9 +2040,6 @@ msgstr "X/Y axis"
 
 msgid "Bed"
 msgstr ""
-
-msgid "AMS Control"
-msgstr "AMS control"
 
 msgid "Debug Info"
 msgstr ""
@@ -3376,6 +3382,180 @@ msgid "The configuration package is changed in previous Config Guide"
 msgstr ""
 
 msgid "Configuration package changed"
+msgstr ""
+
+msgid "Toolbar"
+msgstr ""
+
+msgid "Objects list"
+msgstr ""
+
+msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
+msgstr ""
+
+msgid "Select all objects"
+msgstr ""
+
+msgid "Copy to clipboard"
+msgstr ""
+
+msgid "Paste from clipboard"
+msgstr ""
+
+msgid "Camera view - Default"
+msgstr ""
+
+msgid "Camera view - Top"
+msgstr ""
+
+msgid "Camera view - Bottom"
+msgstr ""
+
+msgid "Camera view - Front"
+msgstr ""
+
+msgid "Camera view - Behind"
+msgstr ""
+
+msgid "Camera Angle - Left side"
+msgstr ""
+
+msgid "Camera Angle - Right side"
+msgstr ""
+
+msgid "keyboard 1-9: set filament for object/part"
+msgstr ""
+
+msgid "Show keyboard shortcuts list"
+msgstr ""
+
+msgid "Global shortcuts"
+msgstr ""
+
+msgid "Arrange all objects"
+msgstr ""
+
+msgid "Arrange objects on selected plates"
+msgstr ""
+
+msgid ""
+"Auto orientates selected objects or all objects.If there are selected "
+"objects, it just orientates the selected ones.Otherwise, it will orientates "
+"all objects in the project."
+msgstr ""
+
+msgid ""
+"Auto orientates selected objects or all objects.If there are selected "
+"objects, it just orientates the selected ones.Otherwise, it will orientates "
+"all objects in the current disk."
+msgstr ""
+
+msgid "Select multiple objects"
+msgstr ""
+
+msgid "Select objects by rectangle"
+msgstr ""
+
+msgid "Arrow Up"
+msgstr ""
+
+msgid "Move selection 10 mm in positive Y direction"
+msgstr ""
+
+msgid "Arrow Down"
+msgstr ""
+
+msgid "Move selection 10 mm in negative Y direction"
+msgstr ""
+
+msgid "Arrow Left"
+msgstr ""
+
+msgid "Move selection 10 mm in negative X direction"
+msgstr ""
+
+msgid "Arrow Right"
+msgstr ""
+
+msgid "Move selection 10 mm in positive X direction"
+msgstr ""
+
+msgid "Shift + Any arrow"
+msgstr ""
+
+msgid "Movement step set to 1 mm"
+msgstr ""
+
+msgid "Ctrl + Any arrow"
+msgstr ""
+
+msgid "Movement in camera space"
+msgstr ""
+
+msgid "Collapse/Expand the sidebar"
+msgstr ""
+
+msgid "Render statistics debugging box"
+msgstr ""
+
+msgid "Plater"
+msgstr ""
+
+msgid "Move: press to snap by 1mm"
+msgstr ""
+
+msgid "Support/Color Painting: adjust pen radius"
+msgstr ""
+
+msgid "Alt + Mouse wheel"
+msgstr ""
+
+msgid "Support/Color Painting: adjust section position"
+msgstr ""
+
+msgid "Gizmo"
+msgstr ""
+
+msgid "Set extruder number for the objects and parts"
+msgstr ""
+
+msgid "Delete objects, parts, modifiers  "
+msgstr ""
+
+msgid "Space"
+msgstr ""
+
+msgid "Select the object/part and press space to change the name"
+msgstr ""
+
+msgid "Mouse click"
+msgstr ""
+
+msgid "Select the object/part and mouse click to change the name"
+msgstr ""
+
+msgid "Objects List"
+msgstr ""
+
+msgid "Vertical slider - Move active thumb Up"
+msgstr ""
+
+msgid "Vertical slider - Move active thumb Down"
+msgstr ""
+
+msgid "Horizontal slider - Move active thumb Left"
+msgstr ""
+
+msgid "Horizontal slider - Move active thumb Right"
+msgstr ""
+
+msgid "On/Off one layer mode of the vertical slider"
+msgstr ""
+
+msgid "Move slider 5x faster"
+msgstr ""
+
+msgid "Shift + Mouse wheel"
 msgstr ""
 
 msgid "Saving objects into the 3mf failed."
@@ -5429,6 +5609,9 @@ msgstr ""
 #, boost-format
 msgid "Error at line %1%:\n"
 msgstr ""
+
+#~ msgid "AMS Control"
+#~ msgstr "AMS control"
 
 #~ msgid "Fan speed when printing bridge and overhang wall"
 #~ msgstr "Fan speed when printing bridges and overhang walls."

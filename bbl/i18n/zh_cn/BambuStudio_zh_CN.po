@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-29 16:31+0800\n"
-"PO-Revision-Date: 2022-05-29 16:33+0800\n"
+"POT-Creation-Date: 2022-05-31 17:17+0800\n"
+"PO-Revision-Date: 2022-05-17 15:42+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -32,6 +32,9 @@ msgid ""
 "Push new filament \n"
 "into extruder"
 msgstr "送出新的耗材丝到挤出机"
+
+msgid "?"
+msgstr ""
 
 msgid "Empty"
 msgstr "空"
@@ -1069,8 +1072,8 @@ msgid "Critical error"
 msgstr "严重错误"
 
 #, boost-format
-msgid "Unhandled exception: %1%"
-msgstr "未处理的异常：%1%"
+msgid "BambuStudio got an unhandled exception: %1%"
+msgstr "Bambu Studio捕捉到一个未处理的异常：%1%"
 
 msgid ""
 "BambuStudio configuration file may be corrupted and is not abled to be "
@@ -1740,6 +1743,12 @@ msgstr "导出切片文件"
 msgid "Export Sliced File"
 msgstr "导出切片文件"
 
+msgid "Keyboard Shortcuts"
+msgstr "快捷键"
+
+msgid "Show the list of the keyboard shortcuts"
+msgstr "显示快捷键列表"
+
 msgid "Beginner's Tutorial"
 msgstr "新手引导"
 
@@ -2060,9 +2069,6 @@ msgstr "X/Y 轴"
 
 msgid "Bed"
 msgstr "热床"
-
-msgid "AMS Control"
-msgstr "AMS 控制"
 
 msgid "Debug Info"
 msgstr ""
@@ -3390,6 +3396,184 @@ msgstr "参数配置包在之前的配置向导中发生了变更"
 
 msgid "Configuration package changed"
 msgstr "参数配置包发生变更"
+
+msgid "Toolbar"
+msgstr "工具栏"
+
+msgid "Objects list"
+msgstr "对象列表"
+
+msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
+msgstr "从STL/STEP/3MF/OBJ/AMF文件中导入几何数据"
+
+msgid "Select all objects"
+msgstr "选择所有对象"
+
+msgid "Copy to clipboard"
+msgstr "复制到剪贴板"
+
+msgid "Paste from clipboard"
+msgstr "从剪切板粘贴"
+
+msgid "Camera view - Default"
+msgstr "摄像机视角 - 默认"
+
+msgid "Camera view - Top"
+msgstr "摄像机视角 - 顶部"
+
+msgid "Camera view - Bottom"
+msgstr "摄像机视角 - 底部"
+
+msgid "Camera view - Front"
+msgstr "摄像机视角 - 前面"
+
+msgid "Camera view - Behind"
+msgstr "摄像机视角 - 后面"
+
+msgid "Camera Angle - Left side"
+msgstr "摄像机视角 - 左面"
+
+msgid "Camera Angle - Right side"
+msgstr "摄像机视角 - 右面"
+
+msgid "keyboard 1-9: set filament for object/part"
+msgstr "按键1-9：设置对象/零件的耗材丝"
+
+msgid "Show keyboard shortcuts list"
+msgstr "显示键盘快捷键列表"
+
+msgid "Global shortcuts"
+msgstr "全局快捷键"
+
+msgid "Arrange all objects"
+msgstr "全局整理"
+
+msgid "Arrange objects on selected plates"
+msgstr "单盘整理"
+
+msgid ""
+"Auto orientates selected objects or all objects.If there are selected "
+"objects, it just orientates the selected ones.Otherwise, it will orientates "
+"all objects in the project."
+msgstr ""
+"自动调整选定零件/所有零件的方向,有选定零件时调整选定零件的朝向,没有选择零件"
+"时调整所有零件的朝向"
+
+msgid ""
+"Auto orientates selected objects or all objects.If there are selected "
+"objects, it just orientates the selected ones.Otherwise, it will orientates "
+"all objects in the current disk."
+msgstr ""
+"自动调整选定零件/所有零件的方向,有选定零件时调整选定零件的朝向,没有选择零件"
+"时调整当前盘所有零件的朝向"
+
+msgid "Select multiple objects"
+msgstr "选择多个对象"
+
+msgid "Select objects by rectangle"
+msgstr "框选多个零件"
+
+msgid "Arrow Up"
+msgstr "上箭头"
+
+msgid "Move selection 10 mm in positive Y direction"
+msgstr "Y方向移动 10mm"
+
+msgid "Arrow Down"
+msgstr "下箭头"
+
+msgid "Move selection 10 mm in negative Y direction"
+msgstr "Y方向移动 10mm"
+
+msgid "Arrow Left"
+msgstr "左箭头"
+
+msgid "Move selection 10 mm in negative X direction"
+msgstr "X方向移动 10mm"
+
+msgid "Arrow Right"
+msgstr "右箭头"
+
+msgid "Move selection 10 mm in positive X direction"
+msgstr "X方向移动 10mm"
+
+msgid "Shift + Any arrow"
+msgstr "Shift + 方向键"
+
+msgid "Movement step set to 1 mm"
+msgstr "沿X、Y轴以1mm为步进移动对象"
+
+msgid "Ctrl + Any arrow"
+msgstr "Ctrl + 方向键"
+
+msgid "Movement in camera space"
+msgstr "沿相机视角移动对象"
+
+msgid "Collapse/Expand the sidebar"
+msgstr "收起/展开 侧边栏"
+
+msgid "Render statistics debugging box"
+msgstr "渲染统计数据调试框"
+
+msgid "Plater"
+msgstr "准备"
+
+msgid "Move: press to snap by 1mm"
+msgstr "移动：以1mm为步进移动"
+
+msgid "Support/Color Painting: adjust pen radius"
+msgstr "支撑/颜色绘制：调节画笔半径"
+
+msgid "Alt + Mouse wheel"
+msgstr "Alt + 鼠标滚轮"
+
+msgid "Support/Color Painting: adjust section position"
+msgstr "支撑/色彩绘制：调节剖面位置"
+
+msgid "Gizmo"
+msgstr ""
+
+msgid "Set extruder number for the objects and parts"
+msgstr "设置对象、零件使用的挤出机编号"
+
+msgid "Delete objects, parts, modifiers  "
+msgstr "删除对象、零件、修改器"
+
+msgid "Space"
+msgstr "空格键"
+
+msgid "Select the object/part and press space to change the name"
+msgstr "选中对象、零件，按空格可修改名称"
+
+msgid "Mouse click"
+msgstr "双击鼠标"
+
+msgid "Select the object/part and mouse click to change the name"
+msgstr "选中对象、零件，双击零件名可修改名称"
+
+msgid "Objects List"
+msgstr ""
+
+msgid "Vertical slider - Move active thumb Up"
+msgstr "垂直滑动条 - 向上移动一层"
+
+msgid "Vertical slider - Move active thumb Down"
+msgstr "垂直滑动条 - 向下移动一层"
+
+msgid "Horizontal slider - Move active thumb Left"
+msgstr "水平滑动条 - 向左移动一步"
+
+msgid "Horizontal slider - Move active thumb Right"
+msgstr "水平滑动条 - 向右移动一步"
+
+msgid "On/Off one layer mode of the vertical slider"
+msgstr "开启/关闭垂直滑动条的单层模式"
+
+msgid "Move slider 5x faster"
+msgstr "5倍速移动滑动条"
+
+msgid "Shift + Mouse wheel"
+msgstr "Shift + 鼠标滚轮"
 
 msgid "Saving objects into the 3mf failed."
 msgstr "保存对象到3mf失败。"
@@ -5352,6 +5536,79 @@ msgstr " 对象："
 msgid "Error at line %1%:\n"
 msgstr "错误在行%1%：\n"
 
+#~ msgid "Import STL/OBJ/AMF/3MF without config, keep plater"
+#~ msgstr "导入STL/OBJ/AMF/3MF"
+
+#~ msgid "Overall"
+#~ msgstr "全局"
+
+#~ msgid "Build plate"
+#~ msgstr "构建板"
+
+#~ msgid "Object list"
+#~ msgstr "对象列表"
+
+#~ msgid "Camera view. - Default"
+#~ msgstr "摄像机视角 - 默认"
+
+#~ msgid "Camera view. - Top"
+#~ msgstr "摄像机视角 - 顶部"
+
+#~ msgid "Camera view. - Bottom"
+#~ msgstr "摄像机视角 - 底部"
+
+#~ msgid "Camera view. - Front"
+#~ msgstr "摄像机视角 - 前面"
+
+#~ msgid "Camera view. - Behind"
+#~ msgstr "摄像机视角 - 后面"
+
+#~ msgid "Camera Angle. - Left side"
+#~ msgstr "摄像机视角 - 左面"
+
+#~ msgid "Camera Angle. - Right side"
+#~ msgstr "摄像机视角 - 右面"
+
+#~ msgid "1-9 Set part consumable wire"
+#~ msgstr "1-9 设置零件耗材丝"
+
+#~ msgid "overall_shortcuts"
+#~ msgstr "全局快捷键"
+
+#~ msgid "Arrange all parts"
+#~ msgstr "全局整理"
+
+#~ msgid ""
+#~ "Automatically adjust the orientation of selected parts/all parts,\n"
+#~ "            When there are selected parts - adjust selected parts "
+#~ "orientation,\n"
+#~ "            When no part is selected - adjust the orientation of all parts"
+#~ msgstr ""
+#~ "自动调整选定零件/所有零件的方向,有选定零件时-调整选定零件的朝向,没有选择零"
+#~ "件时-调整所有零件的朝向"
+
+#~ msgid "Select multiple parts"
+#~ msgstr "选择多个零件"
+
+#~ msgid "Box selection of multiple parts"
+#~ msgstr "框选多个零件"
+
+#~ msgid "Gizmo move: Press to snap by 1mm"
+#~ msgstr "Gizmo 移动:按下1mm"
+
+#~ msgid "Gizmo/Supports/Gizmo Color/Painting: Adjust brush radius"
+#~ msgstr "调节画笔半径"
+
+#~ msgid "Gizmo/Supports/Gizmo Color/Painting:Position of regulated section"
+#~ msgstr "调节剖面位置"
+
+#, boost-format
+#~ msgid "Unhandled exception: %1%"
+#~ msgstr "未处理的异常：%1%"
+
+#~ msgid "AMS Control"
+#~ msgstr "AMS 控制"
+
 #~ msgid "Printing..."
 #~ msgstr "打印中..."
 
@@ -6358,9 +6615,6 @@ msgstr "错误在行%1%：\n"
 #~ msgid "Copy to Clipboard"
 #~ msgstr "拷贝到剪切板"
 
-#~ msgid "Alt + Mouse wheel"
-#~ msgstr "Alt + 鼠标滚轮"
-
 #~ msgid "Printing by object G-code"
 #~ msgstr "逐件打印G-code"
 
@@ -6759,17 +7013,8 @@ msgstr "错误在行%1%：\n"
 #~ msgid "Could not arrange model objects! Some geometries may be invalid."
 #~ msgstr "无法排列模型对象！某些几何图形可能无效。"
 
-#~ msgid "Keyboard Shortcuts"
-#~ msgstr "快捷键"
-
 #~ msgid "(Re)slice"
 #~ msgstr "重新切片"
-
-#~ msgid "Copy to clipboard"
-#~ msgstr "复制到剪贴板"
-
-#~ msgid "Paste from clipboard"
-#~ msgstr "從剪貼板粘貼"
 
 #~ msgid "Search"
 #~ msgstr "搜索"
@@ -6798,9 +7043,6 @@ msgstr "错误在行%1%：\n"
 #~ msgid "Camera view"
 #~ msgstr "摄像机视图"
 
-#~ msgid "Show keyboard shortcuts list"
-#~ msgstr "显示键盘快捷键列表"
-
 #~ msgid "Arrange selection"
 #~ msgstr "整理选中的"
 
@@ -6809,18 +7051,6 @@ msgstr "错误在行%1%：\n"
 
 #~ msgid "Remove Instance of the selected object"
 #~ msgstr "删除所选对象的实例"
-
-#~ msgid "Arrow Up"
-#~ msgstr "上箭头"
-
-#~ msgid "Arrow Down"
-#~ msgstr "上箭头"
-
-#~ msgid "Arrow Left"
-#~ msgstr "左箭头"
-
-#~ msgid "Arrow Right"
-#~ msgstr "右箭头"
 
 #~ msgid "Gizmo move"
 #~ msgstr "线框移动"
@@ -6840,14 +7070,8 @@ msgstr "错误在行%1%：\n"
 #~ msgid "Gizmo SLA support points"
 #~ msgstr "SLA支撑点"
 
-#~ msgid "Plater"
-#~ msgstr "准备"
-
 #~ msgid "Open a G-code file"
 #~ msgstr "打开G-code 文件"
-
-#~ msgid "Show the list of the keyboard shortcuts"
-#~ msgstr "显示快捷键列表"
 
 #~ msgid "Show &Configuration Folder"
 #~ msgstr "打开配置文件夹"

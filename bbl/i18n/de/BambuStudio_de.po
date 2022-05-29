@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-29 16:31+0800\n"
+"POT-Creation-Date: 2022-05-31 17:17+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,6 +23,9 @@ msgstr ""
 msgid ""
 "Push new filament \n"
 "into extruder"
+msgstr ""
+
+msgid "?"
 msgstr ""
 
 msgid "Empty"
@@ -1023,7 +1026,7 @@ msgid "Critical error"
 msgstr "Kritischer Fehler"
 
 #, boost-format
-msgid "Unhandled exception: %1%"
+msgid "BambuStudio got an unhandled exception: %1%"
 msgstr ""
 
 msgid ""
@@ -1693,6 +1696,12 @@ msgstr ""
 msgid "Export Sliced File"
 msgstr ""
 
+msgid "Keyboard Shortcuts"
+msgstr "Tastaturkürzel"
+
+msgid "Show the list of the keyboard shortcuts"
+msgstr "Liste der Tastaturkürzel anzeigen"
+
 msgid "Beginner's Tutorial"
 msgstr ""
 
@@ -2008,9 +2017,6 @@ msgstr ""
 
 msgid "Bed"
 msgstr "Druckbett"
-
-msgid "AMS Control"
-msgstr ""
 
 msgid "Debug Info"
 msgstr ""
@@ -3326,6 +3332,180 @@ msgid "The configuration package is changed in previous Config Guide"
 msgstr ""
 
 msgid "Configuration package changed"
+msgstr ""
+
+msgid "Toolbar"
+msgstr ""
+
+msgid "Objects list"
+msgstr ""
+
+msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
+msgstr ""
+
+msgid "Select all objects"
+msgstr "Alle Objekte auswählen"
+
+msgid "Copy to clipboard"
+msgstr "Zu Zwischenablage kopieren"
+
+msgid "Paste from clipboard"
+msgstr "Aus Zwischenablage einfügen"
+
+msgid "Camera view - Default"
+msgstr ""
+
+msgid "Camera view - Top"
+msgstr ""
+
+msgid "Camera view - Bottom"
+msgstr ""
+
+msgid "Camera view - Front"
+msgstr ""
+
+msgid "Camera view - Behind"
+msgstr ""
+
+msgid "Camera Angle - Left side"
+msgstr ""
+
+msgid "Camera Angle - Right side"
+msgstr ""
+
+msgid "keyboard 1-9: set filament for object/part"
+msgstr ""
+
+msgid "Show keyboard shortcuts list"
+msgstr "Liste der Tastaturkürzel anzeigen"
+
+msgid "Global shortcuts"
+msgstr ""
+
+msgid "Arrange all objects"
+msgstr ""
+
+msgid "Arrange objects on selected plates"
+msgstr ""
+
+msgid ""
+"Auto orientates selected objects or all objects.If there are selected "
+"objects, it just orientates the selected ones.Otherwise, it will orientates "
+"all objects in the project."
+msgstr ""
+
+msgid ""
+"Auto orientates selected objects or all objects.If there are selected "
+"objects, it just orientates the selected ones.Otherwise, it will orientates "
+"all objects in the current disk."
+msgstr ""
+
+msgid "Select multiple objects"
+msgstr ""
+
+msgid "Select objects by rectangle"
+msgstr ""
+
+msgid "Arrow Up"
+msgstr "Pfeil hoch"
+
+msgid "Move selection 10 mm in positive Y direction"
+msgstr "Auswahl 10 mm in positiver Y-Richtung verschieben"
+
+msgid "Arrow Down"
+msgstr "Pfeil runter"
+
+msgid "Move selection 10 mm in negative Y direction"
+msgstr "Auswahl 10 mm in negativer Y-Richtung verschieben"
+
+msgid "Arrow Left"
+msgstr "Pfeil links"
+
+msgid "Move selection 10 mm in negative X direction"
+msgstr "Auswahl 10 mm in negativer X-Richtung verschieben"
+
+msgid "Arrow Right"
+msgstr "Pfeil rechts"
+
+msgid "Move selection 10 mm in positive X direction"
+msgstr "Auswahl 10 mm in positiver X-Richtung verschieben"
+
+msgid "Shift + Any arrow"
+msgstr ""
+
+msgid "Movement step set to 1 mm"
+msgstr "Bewegungsschritt auf 1 mm eingestellt"
+
+msgid "Ctrl + Any arrow"
+msgstr ""
+
+msgid "Movement in camera space"
+msgstr "Bewegung im Kameraraum"
+
+msgid "Collapse/Expand the sidebar"
+msgstr "Seitenleiste zu-/ausklappen"
+
+msgid "Render statistics debugging box"
+msgstr ""
+
+msgid "Plater"
+msgstr "Druckplatte"
+
+msgid "Move: press to snap by 1mm"
+msgstr ""
+
+msgid "Support/Color Painting: adjust pen radius"
+msgstr ""
+
+msgid "Alt + Mouse wheel"
+msgstr "Alt + Mausrad"
+
+msgid "Support/Color Painting: adjust section position"
+msgstr ""
+
+msgid "Gizmo"
+msgstr ""
+
+msgid "Set extruder number for the objects and parts"
+msgstr ""
+
+msgid "Delete objects, parts, modifiers  "
+msgstr ""
+
+msgid "Space"
+msgstr ""
+
+msgid "Select the object/part and press space to change the name"
+msgstr ""
+
+msgid "Mouse click"
+msgstr ""
+
+msgid "Select the object/part and mouse click to change the name"
+msgstr ""
+
+msgid "Objects List"
+msgstr "Objektliste"
+
+msgid "Vertical slider - Move active thumb Up"
+msgstr "Vertikaler Schieberegler - Aktiven Schieber nach oben bewegen"
+
+msgid "Vertical slider - Move active thumb Down"
+msgstr "Vertikaler Schieberegler - Aktiven Schieber nach unten bewegen"
+
+msgid "Horizontal slider - Move active thumb Left"
+msgstr "Horizontaler Schieberegler - Aktiven Schieber nach links bewegen"
+
+msgid "Horizontal slider - Move active thumb Right"
+msgstr "Horizontaler Schieberegler - Aktiven Schieber nach rechts bewegen"
+
+msgid "On/Off one layer mode of the vertical slider"
+msgstr "Ein/Aus Einschichtmodus des vertikalen Schiebereglers"
+
+msgid "Move slider 5x faster"
+msgstr ""
+
+msgid "Shift + Mouse wheel"
 msgstr ""
 
 msgid "Saving objects into the 3mf failed."
@@ -5206,6 +5386,27 @@ msgstr ""
 msgid "Error at line %1%:\n"
 msgstr ""
 
+#~ msgid "Import STL/OBJ/AMF/3MF without config, keep plater"
+#~ msgstr ""
+#~ "Importiere STL/OBJ/AMF/3MF mit Konfigurationsdaten, Druckplatte "
+#~ "beibehalten"
+
+#~ msgid "All gizmos: Rotate - left mouse button; Pan - right mouse button"
+#~ msgstr ""
+#~ "Alles Gizmos: Drehen - linke Maustaste; Schwenken - rechte Maustaste"
+
+#~ msgid "Gizmo move: Press to snap by 1mm"
+#~ msgstr "Gizmo Bewegung: Drücken um um 1 mm zu Rasten"
+
+#~ msgid "Any arrow"
+#~ msgstr "Jeder Pfeil"
+
+#~ msgid "Mouse wheel"
+#~ msgstr "Mausrad"
+
+#~ msgid "Gizmos"
+#~ msgstr "Gizmos"
+
 #~ msgid "Eject drive"
 #~ msgstr "Laufwerk auswerfen"
 
@@ -5481,9 +5682,6 @@ msgstr ""
 
 #~ msgid "&Help"
 #~ msgstr "&Hilfe"
-
-#~ msgid "Alt + Mouse wheel"
-#~ msgstr "Alt + Mausrad"
 
 #~ msgid "Select a gcode file:"
 #~ msgstr "Gcode Datei auswählen:"
@@ -6236,9 +6434,6 @@ msgstr ""
 #~ "Modellobjekte konnten nicht angeordnet werden! Einige Geometrien können "
 #~ "ungültig sein."
 
-#~ msgid "Keyboard Shortcuts"
-#~ msgstr "Tastaturkürzel"
-
 #~ msgid "New project, clear plater"
 #~ msgstr "Neues Projekt, Druckplatte leeren"
 
@@ -6265,15 +6460,6 @@ msgstr ""
 
 #~ msgid "Eject SD card / Flash drive"
 #~ msgstr "SD-Karte/Flash-Laufwerk auswerfen"
-
-#~ msgid "Select all objects"
-#~ msgstr "Alle Objekte auswählen"
-
-#~ msgid "Copy to clipboard"
-#~ msgstr "Zu Zwischenablage kopieren"
-
-#~ msgid "Paste from clipboard"
-#~ msgstr "Aus Zwischenablage einfügen"
 
 #~ msgid "Reload plater from disk"
 #~ msgstr "Druckplatte neu von der Festplatte laden"
@@ -6311,9 +6497,6 @@ msgstr ""
 #~ msgid "Show/Hide object/instance labels"
 #~ msgstr "Objekt-/Kopiebeschriftungen ein-/ausblenden"
 
-#~ msgid "Show keyboard shortcuts list"
-#~ msgstr "Liste der Tastaturkürzel anzeigen"
-
 #~ msgid "Commands"
 #~ msgstr "Befehle"
 
@@ -6338,39 +6521,6 @@ msgstr ""
 
 #~ msgid "Press to activate deselection rectangle"
 #~ msgstr "Drücken um das Abwahlrechteck zu aktivieren"
-
-#~ msgid "Arrow Up"
-#~ msgstr "Pfeil hoch"
-
-#~ msgid "Move selection 10 mm in positive Y direction"
-#~ msgstr "Auswahl 10 mm in positiver Y-Richtung verschieben"
-
-#~ msgid "Arrow Down"
-#~ msgstr "Pfeil runter"
-
-#~ msgid "Move selection 10 mm in negative Y direction"
-#~ msgstr "Auswahl 10 mm in negativer Y-Richtung verschieben"
-
-#~ msgid "Arrow Left"
-#~ msgstr "Pfeil links"
-
-#~ msgid "Move selection 10 mm in negative X direction"
-#~ msgstr "Auswahl 10 mm in negativer X-Richtung verschieben"
-
-#~ msgid "Arrow Right"
-#~ msgstr "Pfeil rechts"
-
-#~ msgid "Move selection 10 mm in positive X direction"
-#~ msgstr "Auswahl 10 mm in positiver X-Richtung verschieben"
-
-#~ msgid "Any arrow"
-#~ msgstr "Jeder Pfeil"
-
-#~ msgid "Movement step set to 1 mm"
-#~ msgstr "Bewegungsschritt auf 1 mm eingestellt"
-
-#~ msgid "Movement in camera space"
-#~ msgstr "Bewegung im Kameraraum"
 
 #~ msgid "Page Up"
 #~ msgstr "Page Up"
@@ -6439,9 +6589,6 @@ msgstr ""
 #~ msgid "Switch between Editor/Preview"
 #~ msgstr "Umschalten zwischen Editor/Vorschau"
 
-#~ msgid "Collapse/Expand the sidebar"
-#~ msgstr "Seitenleiste zu-/ausklappen"
-
 #~ msgid "Show/Hide 3Dconnexion devices settings dialog, if enabled"
 #~ msgstr ""
 #~ "Dialogfeld Einstellungen für 3Dconnexion-Geräte anzeigen/verbergen, falls "
@@ -6452,16 +6599,6 @@ msgstr ""
 
 #~ msgid "Minimize application"
 #~ msgstr "Anwendung minimieren"
-
-#~ msgid "Plater"
-#~ msgstr "Druckplatte"
-
-#~ msgid "All gizmos: Rotate - left mouse button; Pan - right mouse button"
-#~ msgstr ""
-#~ "Alles Gizmos: Drehen - linke Maustaste; Schwenken - rechte Maustaste"
-
-#~ msgid "Gizmo move: Press to snap by 1mm"
-#~ msgstr "Gizmo Bewegung: Drücken um um 1 mm zu Rasten"
 
 #~ msgid "Gizmo scale: Press to snap by 5%"
 #~ msgstr "Gizmo Skalieren: Drücken, um um 5% zu rasten"
@@ -6484,9 +6621,6 @@ msgstr ""
 #~ "Gizmo Rotieren: Drücken, um ausgewählte Objekte um ihr eigenes Zentrum zu "
 #~ "drehen"
 
-#~ msgid "Gizmos"
-#~ msgstr "Gizmos"
-
 #~ msgid ""
 #~ "The following shortcuts are applicable when the specified gizmo is active"
 #~ msgstr ""
@@ -6502,29 +6636,11 @@ msgstr ""
 #~ msgid "Set extruder number for the selected items"
 #~ msgstr "Extrudernummer für die ausgewählten Elemente einstellen"
 
-#~ msgid "Objects List"
-#~ msgstr "Objektliste"
-
 #~ msgid "Open a G-code file"
 #~ msgstr "Öffne eine G-Code-Datei"
 
 #~ msgid "Reload the plater from disk"
 #~ msgstr "Druckplatte neu von der Festplatte laden"
-
-#~ msgid "Vertical slider - Move active thumb Up"
-#~ msgstr "Vertikaler Schieberegler - Aktiven Schieber nach oben bewegen"
-
-#~ msgid "Vertical slider - Move active thumb Down"
-#~ msgstr "Vertikaler Schieberegler - Aktiven Schieber nach unten bewegen"
-
-#~ msgid "Horizontal slider - Move active thumb Left"
-#~ msgstr "Horizontaler Schieberegler - Aktiven Schieber nach links bewegen"
-
-#~ msgid "Horizontal slider - Move active thumb Right"
-#~ msgstr "Horizontaler Schieberegler - Aktiven Schieber nach rechts bewegen"
-
-#~ msgid "On/Off one layer mode of the vertical slider"
-#~ msgstr "Ein/Aus Einschichtmodus des vertikalen Schiebereglers"
 
 #~ msgid "Show/Hide Legend and Estimated printing time"
 #~ msgstr "Legende und geschätzte Druckzeit anzeigen/verbergen"
@@ -6591,9 +6707,6 @@ msgstr ""
 
 #~ msgid "Keyboard shortcuts"
 #~ msgstr "Tastaturkürzel"
-
-#~ msgid "Show the list of the keyboard shortcuts"
-#~ msgstr "Liste der Tastaturkürzel anzeigen"
 
 #~ msgid "Show &Configuration Folder"
 #~ msgstr "Zeige &Konfigurationsordner"
@@ -14918,9 +15031,6 @@ msgstr ""
 #~ msgid "Select all points"
 #~ msgstr "Alle Punkte auswählen"
 
-#~ msgid "Mouse wheel"
-#~ msgstr "Mausrad"
-
 #~ msgid "Move clipping plane"
 #~ msgstr "Beschnittebene bewegen"
 
@@ -15715,11 +15825,6 @@ msgstr ""
 
 #~ msgid "Open project STL/OBJ/AMF/3MF with config, clear plater"
 #~ msgstr "Öffne Projekt STL/OBJ/AMF/3MF mit Konfiguration, Druckplatte leeren"
-
-#~ msgid "Import STL/OBJ/AMF/3MF without config, keep plater"
-#~ msgstr ""
-#~ "Importiere STL/OBJ/AMF/3MF mit Konfigurationsdaten, Druckplatte "
-#~ "beibehalten"
 
 #~ msgid "Prusa 3D &Drivers"
 #~ msgstr "Prusa 3&D Treiber"

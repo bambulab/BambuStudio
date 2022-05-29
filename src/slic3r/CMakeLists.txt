@@ -347,6 +347,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/SelectMachine.cpp
     Utils/json_diff.hpp
     Utils/json_diff.cpp
+    GUI/KBShortcutsDialog.hpp
+    GUI/KBShortcutsDialog.cpp
     Utils/Http.cpp
     Utils/Http.hpp
     Utils/Sftp.cpp

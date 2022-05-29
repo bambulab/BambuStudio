@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-29 16:31+0800\n"
+"POT-Creation-Date: 2022-05-31 17:17+0800\n"
 "PO-Revision-Date: 2021-02-03 14:06+0100\n"
 "Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -33,6 +33,9 @@ msgstr ""
 msgid ""
 "Push new filament \n"
 "into extruder"
+msgstr ""
+
+msgid "?"
 msgstr ""
 
 msgid "Empty"
@@ -1027,7 +1030,7 @@ msgid "Critical error"
 msgstr "Критическая ошибка"
 
 #, boost-format
-msgid "Unhandled exception: %1%"
+msgid "BambuStudio got an unhandled exception: %1%"
 msgstr ""
 
 msgid ""
@@ -1699,6 +1702,12 @@ msgstr ""
 msgid "Export Sliced File"
 msgstr ""
 
+msgid "Keyboard Shortcuts"
+msgstr "Горячие клавиши"
+
+msgid "Show the list of the keyboard shortcuts"
+msgstr "Показать список сочетаний клавиш"
+
 msgid "Beginner's Tutorial"
 msgstr ""
 
@@ -2014,9 +2023,6 @@ msgstr ""
 
 msgid "Bed"
 msgstr "Стол"
-
-msgid "AMS Control"
-msgstr ""
 
 msgid "Debug Info"
 msgstr ""
@@ -3335,6 +3341,181 @@ msgid "The configuration package is changed in previous Config Guide"
 msgstr ""
 
 msgid "Configuration package changed"
+msgstr ""
+
+msgid "Toolbar"
+msgstr ""
+
+msgid "Objects list"
+msgstr ""
+
+msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
+msgstr ""
+
+msgid "Select all objects"
+msgstr "Выбрать все модели"
+
+msgid "Copy to clipboard"
+msgstr "Копировать в буфер"
+
+msgid "Paste from clipboard"
+msgstr "Вставить из буфера обмена"
+
+msgid "Camera view - Default"
+msgstr ""
+
+msgid "Camera view - Top"
+msgstr ""
+
+msgid "Camera view - Bottom"
+msgstr ""
+
+msgid "Camera view - Front"
+msgstr ""
+
+msgid "Camera view - Behind"
+msgstr ""
+
+msgid "Camera Angle - Left side"
+msgstr ""
+
+msgid "Camera Angle - Right side"
+msgstr ""
+
+msgid "keyboard 1-9: set filament for object/part"
+msgstr ""
+
+msgid "Show keyboard shortcuts list"
+msgstr "Показать список сочетаний клавиш"
+
+msgid "Global shortcuts"
+msgstr ""
+
+msgid "Arrange all objects"
+msgstr ""
+
+msgid "Arrange objects on selected plates"
+msgstr ""
+
+msgid ""
+"Auto orientates selected objects or all objects.If there are selected "
+"objects, it just orientates the selected ones.Otherwise, it will orientates "
+"all objects in the project."
+msgstr ""
+
+msgid ""
+"Auto orientates selected objects or all objects.If there are selected "
+"objects, it just orientates the selected ones.Otherwise, it will orientates "
+"all objects in the current disk."
+msgstr ""
+
+msgid "Select multiple objects"
+msgstr ""
+
+msgid "Select objects by rectangle"
+msgstr ""
+
+msgid "Arrow Up"
+msgstr "Стрелка вверх"
+
+msgid "Move selection 10 mm in positive Y direction"
+msgstr "Перемещение выбранного на 10 мм по оси Y+"
+
+msgid "Arrow Down"
+msgstr "Стрелка вниз"
+
+msgid "Move selection 10 mm in negative Y direction"
+msgstr "Перемещение выбранного на 10 мм по оси Y-"
+
+msgid "Arrow Left"
+msgstr "Стрелка влево"
+
+msgid "Move selection 10 mm in negative X direction"
+msgstr "Перемещение выбранного на 10 мм по оси X-"
+
+msgid "Arrow Right"
+msgstr "Стрелка вправо"
+
+msgid "Move selection 10 mm in positive X direction"
+msgstr "Перемещение выбранного на 10 мм по оси X+"
+
+msgid "Shift + Any arrow"
+msgstr ""
+
+msgid "Movement step set to 1 mm"
+msgstr "Зафиксировать шаг перемещения на 1 мм"
+
+msgid "Ctrl + Any arrow"
+msgstr ""
+
+msgid "Movement in camera space"
+msgstr "Перемещение выбранного по отношению к камере"
+
+msgid "Collapse/Expand the sidebar"
+msgstr "Свернуть/Развернуть боковую панель"
+
+msgid "Render statistics debugging box"
+msgstr ""
+
+msgid "Plater"
+msgstr "Стол"
+
+msgid "Move: press to snap by 1mm"
+msgstr ""
+
+msgid "Support/Color Painting: adjust pen radius"
+msgstr ""
+
+msgid "Alt + Mouse wheel"
+msgstr "Alt + Колесо мыши"
+
+msgid "Support/Color Painting: adjust section position"
+msgstr ""
+
+msgid "Gizmo"
+msgstr ""
+
+msgid "Set extruder number for the objects and parts"
+msgstr ""
+
+msgid "Delete objects, parts, modifiers  "
+msgstr ""
+
+msgid "Space"
+msgstr ""
+
+msgid "Select the object/part and press space to change the name"
+msgstr ""
+
+msgid "Mouse click"
+msgstr ""
+
+msgid "Select the object/part and mouse click to change the name"
+msgstr ""
+
+msgid "Objects List"
+msgstr ""
+
+msgid "Vertical slider - Move active thumb Up"
+msgstr "Вертикальный ползунок - Сдвинуть активный ползунок вверх"
+
+msgid "Vertical slider - Move active thumb Down"
+msgstr "Вертикальный ползунок - Сдвинуть активный ползунок вниз"
+
+msgid "Horizontal slider - Move active thumb Left"
+msgstr "Горизонтальный ползунок - Сдвинуть активный ползунок влево"
+
+msgid "Horizontal slider - Move active thumb Right"
+msgstr "Горизонтальный ползунок - Сдвинуть активный ползунок вправо"
+
+msgid "On/Off one layer mode of the vertical slider"
+msgstr ""
+"Включение/Отключение функции \"Режим одного слоя\" у вертикального ползунка"
+
+msgid "Move slider 5x faster"
+msgstr ""
+
+msgid "Shift + Mouse wheel"
 msgstr ""
 
 msgid "Saving objects into the 3mf failed."
@@ -5213,6 +5394,26 @@ msgstr ""
 msgid "Error at line %1%:\n"
 msgstr ""
 
+#~ msgid "Import STL/OBJ/AMF/3MF without config, keep plater"
+#~ msgstr "Загрузить STL/OBJ/AMF/3MF проект с конфигурацией, не очищая стол"
+
+#~ msgid "All gizmos: Rotate - left mouse button; Pan - right mouse button"
+#~ msgstr ""
+#~ "Все гизмо: Вращение камеры - левая кнопка мыши; Перемещение камеры - "
+#~ "правая кнопка мыши"
+
+#~ msgid "Gizmo move: Press to snap by 1mm"
+#~ msgstr "Гизмо перемещения: Фиксации перемещения на 1 мм"
+
+#~ msgid "Any arrow"
+#~ msgstr "Любая стрелка"
+
+#~ msgid "Mouse wheel"
+#~ msgstr "Колесо мыши"
+
+#~ msgid "Gizmos"
+#~ msgstr "Гизмо"
+
 #~ msgid "Eject drive"
 #~ msgstr "Извлечь диск"
 
@@ -5447,9 +5648,6 @@ msgstr ""
 
 #~ msgid "&Help"
 #~ msgstr "&Помощь"
-
-#~ msgid "Alt + Mouse wheel"
-#~ msgstr "Alt + Колесо мыши"
 
 #~ msgid "Select a gcode file:"
 #~ msgstr "Выбрать файл G-кода:"
@@ -6041,9 +6239,6 @@ msgstr ""
 #~ "Не удалось расставить части модели! Некоторые геометрии могут быть "
 #~ "недопустимыми."
 
-#~ msgid "Keyboard Shortcuts"
-#~ msgstr "Горячие клавиши"
-
 #~ msgid "New project, clear plater"
 #~ msgstr "Новый проект, пустой стол"
 
@@ -6070,15 +6265,6 @@ msgstr ""
 
 #~ msgid "Eject SD card / Flash drive"
 #~ msgstr "Извлечь SD-карту / USB-накопитель"
-
-#~ msgid "Select all objects"
-#~ msgstr "Выбрать все модели"
-
-#~ msgid "Copy to clipboard"
-#~ msgstr "Копировать в буфер"
-
-#~ msgid "Paste from clipboard"
-#~ msgstr "Вставить из буфера обмена"
 
 #~ msgid "Reload plater from disk"
 #~ msgstr "Перезагрузить стол с диска"
@@ -6116,9 +6302,6 @@ msgstr ""
 #~ msgid "Show/Hide object/instance labels"
 #~ msgstr "Показать/Скрыть имена файлов модели/копии"
 
-#~ msgid "Show keyboard shortcuts list"
-#~ msgstr "Показать список сочетаний клавиш"
-
 #~ msgid "Commands"
 #~ msgstr "Команды"
 
@@ -6143,39 +6326,6 @@ msgstr ""
 
 #~ msgid "Press to activate deselection rectangle"
 #~ msgstr "Активация прямоугольника отмены выделения"
-
-#~ msgid "Arrow Up"
-#~ msgstr "Стрелка вверх"
-
-#~ msgid "Move selection 10 mm in positive Y direction"
-#~ msgstr "Перемещение выбранного на 10 мм по оси Y+"
-
-#~ msgid "Arrow Down"
-#~ msgstr "Стрелка вниз"
-
-#~ msgid "Move selection 10 mm in negative Y direction"
-#~ msgstr "Перемещение выбранного на 10 мм по оси Y-"
-
-#~ msgid "Arrow Left"
-#~ msgstr "Стрелка влево"
-
-#~ msgid "Move selection 10 mm in negative X direction"
-#~ msgstr "Перемещение выбранного на 10 мм по оси X-"
-
-#~ msgid "Arrow Right"
-#~ msgstr "Стрелка вправо"
-
-#~ msgid "Move selection 10 mm in positive X direction"
-#~ msgstr "Перемещение выбранного на 10 мм по оси X+"
-
-#~ msgid "Any arrow"
-#~ msgstr "Любая стрелка"
-
-#~ msgid "Movement step set to 1 mm"
-#~ msgstr "Зафиксировать шаг перемещения на 1 мм"
-
-#~ msgid "Movement in camera space"
-#~ msgstr "Перемещение выбранного по отношению к камере"
 
 #~ msgid "Page Up"
 #~ msgstr "Page Up"
@@ -6235,9 +6385,6 @@ msgstr ""
 #~ msgid "Switch between Editor/Preview"
 #~ msgstr "Переключение между редактором/предпросмотром"
 
-#~ msgid "Collapse/Expand the sidebar"
-#~ msgstr "Свернуть/Развернуть боковую панель"
-
 #~ msgid "Show/Hide 3Dconnexion devices settings dialog, if enabled"
 #~ msgstr ""
 #~ "Показать/скрыть диалоговое окно настроек устройств 3Dconnexion (если "
@@ -6247,17 +6394,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Показать/Скрыть диалоговое окно настроек \n"
 #~ "устройств 3Dconnexion"
-
-#~ msgid "Plater"
-#~ msgstr "Стол"
-
-#~ msgid "All gizmos: Rotate - left mouse button; Pan - right mouse button"
-#~ msgstr ""
-#~ "Все гизмо: Вращение камеры - левая кнопка мыши; Перемещение камеры - "
-#~ "правая кнопка мыши"
-
-#~ msgid "Gizmo move: Press to snap by 1mm"
-#~ msgstr "Гизмо перемещения: Фиксации перемещения на 1 мм"
 
 #~ msgid "Gizmo scale: Press to snap by 5%"
 #~ msgstr "Гизмо масштаба: Фиксация увеличения на 5%"
@@ -6276,9 +6412,6 @@ msgstr ""
 #~ "Gizmo rotate: Press to rotate selected objects around their own center"
 #~ msgstr "Гизмо поворота: Поворот выбранных моделей вокруг своего центра"
 
-#~ msgid "Gizmos"
-#~ msgstr "Гизмо"
-
 #~ msgid ""
 #~ "The following shortcuts are applicable when the specified gizmo is active"
 #~ msgstr "Следующие сочетания клавиш применимы, когда активна выбранная гизмо"
@@ -6288,23 +6421,6 @@ msgstr ""
 
 #~ msgid "Reload the plater from disk"
 #~ msgstr "Перезагрузить стол с диска"
-
-#~ msgid "Vertical slider - Move active thumb Up"
-#~ msgstr "Вертикальный ползунок - Сдвинуть активный ползунок вверх"
-
-#~ msgid "Vertical slider - Move active thumb Down"
-#~ msgstr "Вертикальный ползунок - Сдвинуть активный ползунок вниз"
-
-#~ msgid "Horizontal slider - Move active thumb Left"
-#~ msgstr "Горизонтальный ползунок - Сдвинуть активный ползунок влево"
-
-#~ msgid "Horizontal slider - Move active thumb Right"
-#~ msgstr "Горизонтальный ползунок - Сдвинуть активный ползунок вправо"
-
-#~ msgid "On/Off one layer mode of the vertical slider"
-#~ msgstr ""
-#~ "Включение/Отключение функции \"Режим одного слоя\" у вертикального "
-#~ "ползунка"
 
 #~ msgid "Show/Hide Legend and Estimated printing time"
 #~ msgstr "Показать/Скрыть условные обозначения/расчётное время печати"
@@ -6368,9 +6484,6 @@ msgstr ""
 
 #~ msgid "Keyboard shortcuts"
 #~ msgstr "Горячие клавиши"
-
-#~ msgid "Show the list of the keyboard shortcuts"
-#~ msgstr "Показать список сочетаний клавиш"
 
 #~ msgid "Show &Configuration Folder"
 #~ msgstr "Показать &конфигурационную папку"
@@ -12658,9 +12771,6 @@ msgstr ""
 #~ msgid "Select all points"
 #~ msgstr "Выбрать все точки"
 
-#~ msgid "Mouse wheel"
-#~ msgstr "Колесо мыши"
-
 #~ msgid "Move clipping plane"
 #~ msgstr "Переместить плоскость отсечения"
 
@@ -13164,9 +13274,6 @@ msgstr ""
 
 #~ msgid "Open project STL/OBJ/AMF/3MF with config, clear plater"
 #~ msgstr "Открыть STL/OBJ/AMF/3MF проект с конфигурацией, очистив стол"
-
-#~ msgid "Import STL/OBJ/AMF/3MF without config, keep plater"
-#~ msgstr "Загрузить STL/OBJ/AMF/3MF проект с конфигурацией, не очищая стол"
 
 #~ msgid "Prusa 3D &Drivers"
 #~ msgstr "&Драйверы Prusa 3D"

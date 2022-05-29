@@ -70,6 +70,7 @@
 #include "DesktopIntegrationDialog.hpp"
 #include "SendSystemInfoDialog.hpp"
 #include "ParamsDialog.hpp"
+#include "KBShortcutsDialog.hpp"
 
 #include "BitmapCache.hpp"
 #include "Notebook.hpp"
@@ -1957,6 +1958,8 @@ void GUI_App::system_info()
 void GUI_App::keyboard_shortcuts()
 {
     //BBS TODO add shortcut dialog
+    KBShortcutsDialog dlg;
+    dlg.ShowModal();
 }
 
 
