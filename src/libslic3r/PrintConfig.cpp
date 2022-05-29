@@ -1133,7 +1133,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("spaghetti_detector", coBool);
     def->label = L("Enable spaghetti detector");
     def->tooltip = L("Enable the camera on printer to check spaghetti");
-    def->mode = comDevelop;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("can_switch_nozzle_type", coBool);
