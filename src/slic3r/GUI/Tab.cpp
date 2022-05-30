@@ -1801,7 +1801,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_on_build_plate_only");
         //optgroup->append_single_option_line("enforce_support_layers");
 
-        optgroup = page->new_optgroup(L("Material for support"));
+        optgroup = page->new_optgroup(L("Support filament"));
         optgroup->append_single_option_line("support_filament");
         optgroup->append_single_option_line("support_interface_filament");
 

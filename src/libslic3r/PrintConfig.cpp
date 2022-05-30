@@ -2042,7 +2042,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_filament", coInt);
     def->label = L("Support");
     def->category = L("Support");
-    def->tooltip = L("Filament to print support and skirt.");
+    def->tooltip = L("Filament to print support and skirt. 0 means no specific filament for support and current filament is used");
     def->min = 0;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(1));
@@ -2066,7 +2066,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_interface_filament", coInt);
     def->label = L("Support interface");
     def->category = L("Support");
-    def->tooltip = L("Filament to print support interface");
+    def->tooltip = L("Filament to print support interface. 0 means no specific filament for support interface and current filament is used");
     def->min = 0;
     //BBS
     def->mode = comSimple;
