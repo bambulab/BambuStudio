@@ -93,6 +93,7 @@ public:
     void SendRecentList(wxString const &sequence_id);
     void SendLoginInfo();
 
+    void update_mode();
 private:
 
     wxWebView* m_browser;

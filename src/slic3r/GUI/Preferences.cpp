@@ -839,7 +839,7 @@ void PreferencesDialog::create_debug_page()
                 Slic3r::GUI::wxGetApp().save_mode(comAdvanced);
             }
 
-            this->Destroy();
+            this->Close();
             break;
         }
         }

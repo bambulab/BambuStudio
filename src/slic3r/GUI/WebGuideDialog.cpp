@@ -346,12 +346,14 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             }
 
             this->EndModal(wxID_OK);
+            this->Close();
 
             if (bLogin)
                 GUI::wxGetApp().CallAfter([this] { login(); });
         }
         else if (strCmd == "user_guide_cancel") {
             this->EndModal(wxID_CANCEL);
+            this->Close();
         } else if (strCmd == "save_region") {
             m_Region = j["region"];
         }

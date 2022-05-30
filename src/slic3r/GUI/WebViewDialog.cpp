@@ -60,7 +60,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_button_reload = new wxButton(this, wxID_ANY, wxT("Reload"), wxDefaultPosition, wxDefaultSize, 0);
     bSizer_toolbar->Add(m_button_reload, 0, wxALL, 5);
 
-    m_url = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+    m_url = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
     bSizer_toolbar->Add(m_url, 1, wxALL | wxEXPAND, 5);
 
     m_button_tools = new wxButton(this, wxID_ANY, wxT("Tools"), wxDefaultPosition, wxDefaultSize, 0);
@@ -69,7 +69,6 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     // Create panel for find toolbar.
     wxPanel* panel = new wxPanel(this);
     topsizer->Add(bSizer_toolbar, 0, wxEXPAND, 0);
-    topsizer->Hide(topsizer->GetItemCount() - 1);
     topsizer->Add(panel, wxSizerFlags().Expand());
 
     // Create sizer for panel.
@@ -429,6 +428,12 @@ void WebViewPanel::SendLoginInfo()
     RunScript(strJS);
 }
 
+void WebViewPanel::update_mode()
+{
+    int app_mode = Slic3r::GUI::wxGetApp().get_mode();
+    GetSizer()->Show(size_t(0), app_mode == comDevelop);
+    GetSizer()->Layout();
+}
 
 /**
     * Callback invoked when there is a request to load a new page (for instance
