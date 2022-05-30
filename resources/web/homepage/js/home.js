@@ -185,4 +185,4 @@ function OnLogOut()
 	SendWXMessage( JSON.stringify(tSend) );	
 }
 
-
+window.postMessage = HandleStudio

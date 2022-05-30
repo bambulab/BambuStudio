@@ -412,7 +412,7 @@ void WebViewPanel::SendRecentList(wxString const &sequence_id)
     req.put_child(L"response", data);
     std::wostringstream oss;
     pt::write_json(oss, req, false);
-    RunScript(wxString::Format("HandleStudio(%s)", oss.str()));
+    RunScript(wxString::Format("window.postMessage(%s)", oss.str()));
 }
 
 void WebViewPanel::SendLoginInfo() 
@@ -424,7 +424,7 @@ void WebViewPanel::SendLoginInfo()
     m_Res["data"]["avatar"] = wxGetApp().getAccountManager()->get_curr_user()->m_avatar;
     m_Res["data"]["name"]   = wxGetApp().getAccountManager()->get_curr_user()->m_name;
 
-    wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
+    wxString strJS = wxString::Format("window.postMessage(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
     RunScript(strJS);
 }
 
