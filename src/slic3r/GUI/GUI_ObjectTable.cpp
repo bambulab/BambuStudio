@@ -1494,30 +1494,31 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
 {
     const float font_size = 1.5f * wxGetApp().em_unit();
 
-    //first column for plate_index
-    ObjectGridCol* col = new ObjectGridCol(coString, "plate_index", L(" "), true, false, false, false, wxALIGN_LEFT); //bool only_object, bool icon, bool edit, bool config
-    m_col_data.push_back(col);
 
-    //second column for module name
-    col = new ObjectGridCol(coString, "assemble_name", ObjectGridTable::category_all, true, false, true, false, wxALIGN_LEFT);
-    m_col_data.push_back(col);
-
-    //3th column: for object/volume name
-    col = new ObjectGridCol(coString, "name", ObjectGridTable::category_all, false, false, true, false, wxALIGN_LEFT);
-    col->size = 128;
-    m_col_data.push_back(col);
-
-    //printable for object
-    col = new ObjectGridCol(coBool, "printable", ObjectGridTable::category_all, true, false, true, false, wxALIGN_RIGHT);
+    // printable for object
+    ObjectGridCol* col       = new ObjectGridCol(coBool, "printable", ObjectGridTable::category_all, true, false, true, false, wxALIGN_CENTRE);
     col->size = object_grid->GetTextExtent(L("Printable")).x;
     m_col_data.push_back(col);
 
-    //reset icon for printable
+    // reset icon for printable
     col = new ObjectGridCol(coBool, "printable_reset", ObjectGridTable::category_all, true, true, false, false, wxALIGN_CENTRE);
     m_col_data.push_back(col);
 
+    //first column for plate_index
+    col = new ObjectGridCol(coString, "plate_index", L(" "), true, false, false, false, wxALIGN_CENTRE); //bool only_object, bool icon, bool edit, bool config
+    m_col_data.push_back(col);
+
+    //second column for module name
+    col = new ObjectGridCol(coString, "assemble_name", ObjectGridTable::category_all, true, false, true, false, wxALIGN_CENTRE);
+    m_col_data.push_back(col);
+
+    //3th column: for object/volume name
+    col = new ObjectGridCol(coString, "name", ObjectGridTable::category_all, false, false, true, false, wxALIGN_CENTRE);
+    col->size = 200;
+    m_col_data.push_back(col);
+
     //object/volume extruder_id
-    col = new ObjectGridCol(coEnum, "extruder", ObjectGridTable::category_all, false, false, true, true, wxALIGN_LEFT);
+    col = new ObjectGridCol(coEnum, "extruder", ObjectGridTable::category_all, false, false, true, true, wxALIGN_CENTRE);
     col->size = 128;
     //the spec now guarantees vectors store their elements contiguously
     col->choices = &m_panel->m_filaments_name[0];
@@ -1529,7 +1530,7 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     m_col_data.push_back(col);
 
     //object layer height
-    col = new ObjectGridCol(coFloat, "layer_height", L("Quality"), true, false, true, true, wxALIGN_RIGHT);
+    col = new ObjectGridCol(coFloat, "layer_height", L("Quality"), true, false, true, true, wxALIGN_CENTRE);
     col->size = object_grid->GetTextExtent(L("Layer height")).x;
     m_col_data.push_back(col);
 
@@ -1538,7 +1539,7 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     m_col_data.push_back(col);
 
     //object/volume perimeters
-    col = new ObjectGridCol(coInt, "wall_loops", L("Strength"), false, false, true, true, wxALIGN_RIGHT);
+    col = new ObjectGridCol(coInt, "wall_loops", L("Strength"), false, false, true, true, wxALIGN_CENTRE);
     col->size = object_grid->GetTextExtent(L("Wall loops")).x;
     m_col_data.push_back(col);
 
@@ -1547,7 +1548,7 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     m_col_data.push_back(col);
 
     //object/volume fill density
-    col = new ObjectGridCol(coPercent, "sparse_infill_density", L("Strength"), false, false, true, true, wxALIGN_RIGHT);
+    col = new ObjectGridCol(coPercent, "sparse_infill_density", L("Strength"), false, false, true, true, wxALIGN_CENTRE);
     col->size = object_grid->GetTextExtent(L("Infill density(%)")).x;
     m_col_data.push_back(col);
 
@@ -1556,7 +1557,7 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     m_col_data.push_back(col);
 
     //support material
-    col = new ObjectGridCol(coBool, "enable_support", L("Support"), true, false, true, true, wxALIGN_RIGHT);
+    col = new ObjectGridCol(coBool, "enable_support", L("Support"), true, false, true, true, wxALIGN_CENTRE);
     col->size = object_grid->GetTextExtent(L("Support")).x;
     m_col_data.push_back(col);
 
@@ -1565,7 +1566,7 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     m_col_data.push_back(col);
 
     //Bed Adhesion
-    col = new ObjectGridCol(coEnum, "brim_type", L("Support"), true, false, true, true, wxALIGN_RIGHT);
+    col = new ObjectGridCol(coEnum, "brim_type", L("Support"), true, false, true, true, wxALIGN_CENTRE);
     col->size = object_grid->GetTextExtent(L("Auto Brim")).x + 8; //add 8 for border
     col->choices = brim_choices;
     col->choice_count = WXSIZEOF(brim_choices);
@@ -1576,7 +1577,7 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     m_col_data.push_back(col);
 
     //object/volume speed
-    col = new ObjectGridCol(coFloat, "inner_wall_speed", L("Speed"), false, false, true, true, wxALIGN_RIGHT);
+    col = new ObjectGridCol(coFloat, "inner_wall_speed", L("Speed"), false, false, true, true, wxALIGN_CENTRE);
     col->size = object_grid->GetTextExtent(L("Inner wall speed")).x;
     m_col_data.push_back(col);
 
@@ -1948,10 +1949,11 @@ void ObjectGridTable::update_row_properties()
                 }
             }
             else if (col == ObjectGridTable::col_name) {
-                if (grid_row->row_type == ObjectGridTable::row_object)
+                grid_table->SetCellFont(row, col, Label::Body_13);
+                /*if (grid_row->row_type == ObjectGridTable::row_object)
                     grid_table->SetCellFont(row, col, Label::Head_14);
                 else
-                    grid_table->SetCellFont(row, col, Label::Body_14);
+                    grid_table->SetCellFont(row, col, Label::Body_14);*/
             }
         }
     }
@@ -2206,7 +2208,7 @@ void ObjectGridTable::OnSelectCell(int row, int col)
         ModelObject* object = m_panel->m_model->objects[grid_row->object_id];
 
         //m_panel->m_object_settings->get_og()->set_name(GUI::from_u8(grid_row->name.value));
-        m_panel->m_page_text->SetLabel(GUI::from_u8(grid_row->name.value));
+        //m_panel->m_page_text->SetLabel(GUI::from_u8(grid_row->name.value));
         m_panel->m_object_settings->UpdateAndShow(row, true, is_object, false, object, grid_row->config, grid_col->category);
 
         std::vector<ObjectVolumeID> object_volume_ids;
@@ -2246,8 +2248,9 @@ void ObjectGridTable::OnSelectCell(int row, int col)
         wxGetApp().obj_list()->select_items(object_volume_ids);
     }
     m_panel->m_side_window->Layout();
-    m_panel->m_side_window->ShowScrollbars(wxSHOW_SB_NEVER, wxSHOW_SB_ALWAYS);
+    //m_panel->m_side_window->ShowScrollbars(wxSHOW_SB_NEVER, wxSHOW_SB_ALWAYS);
     m_panel->m_side_window->Thaw();
+    m_panel->Layout();
     m_current_row = row;
     m_current_col = col;
 }
@@ -2332,7 +2335,7 @@ void ObjectGridTable::resetValuesInCurrentCell(wxEvent& WXUNUSED(event))
 
 void ObjectGridTable::enable_reset_all_button(bool enable)
 {
-    m_panel->m_global_reset->Enable(enable);
+    //m_panel->m_global_reset->Enable(enable);
 }
 
 wxIMPLEMENT_CLASS(ObjectTablePanel, wxPanel);
@@ -2358,8 +2361,12 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
     m_float_validator.SetRange(0, 100);
     m_bg_colour = wxColour(0xff, 0xff, 0xff);
     //m_hover_colour = wxColour(61, 70, 72);
-    this->SetBackgroundColour(m_bg_colour);
+    SetBackgroundColour(m_bg_colour);
 
+    SetSize(wxSize(-1, FromDIP(450)));
+    SetMinSize(wxSize(-1, FromDIP(450)));
+    SetMaxSize(wxSize(-1, FromDIP(450)));
+   
     //m_search_line = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
 
     init_bitmap();
@@ -2369,30 +2376,37 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
 	m_top_sizer = new wxBoxSizer(wxHORIZONTAL);
     //m_top_sizer->Add(m_search_line, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 10);
 
+
     m_object_grid = new ObjectGrid(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
     m_object_grid_table = new ObjectGridTable(this);
     this->load_data();
     //m_object_grid_table->SetAttrProvider(new MyGridCellAttrProvider);
     //m_object_grid->AssignTable(m_object_grid_table);
 
-    //set sizers
-	m_top_sizer->Add(m_object_grid, 1, wxEXPAND);
 
-    m_side_window = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(g_min_setting_width,-1), wxVSCROLL);
+    m_side_window = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(460),FromDIP(480)), wxVSCROLL);
+    m_side_window->SetScrollRate( 0, 5 );
     m_page_sizer = new wxBoxSizer(wxVERTICAL);
     m_page_top_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_side_window->SetBackgroundColour(wxColour(0xff, 0xff, 0xff));
     m_side_window->SetSizer(m_page_sizer);
     m_side_window->SetScrollbars(1, 20, 1, 2);
-    m_side_window->ShowScrollbars(wxSHOW_SB_NEVER, wxSHOW_SB_NEVER);
+    //m_side_window->ShowScrollbars(wxSHOW_SB_NEVER, wxSHOW_SB_NEVER);
+
     //m_side_window->EnableScrolling(false, true);
     //m_side_window->SetSize(wxSize(128, 512));
-    m_page_text = new wxStaticText(m_side_window, wxID_ANY, wxString(L("Per Object Setting")), wxDefaultPosition, wxSize(-1, 32), wxALIGN_CENTRE_HORIZONTAL|wxST_ELLIPSIZE_END);
-    m_page_text->SetMaxSize(wxSize(256, 32));
-    m_page_text->SetFont(Label::Head_18);
-    m_page_top_sizer->Add(m_page_text, 0, wxEXPAND, 5);
-    m_bmp_reset = ScalableBitmap(m_side_window, "undo");
+
+    /* m_page_text = new wxStaticText(m_side_window, wxID_ANY, wxString(L("Per Object Setting")), wxDefaultPosition, wxSize(-1, 32), wxALIGN_CENTRE_HORIZONTAL|wxST_ELLIPSIZE_END);
+     m_page_text->SetMaxSize(wxSize(256, 32));
+     m_page_text->SetFont(Label::Head_18);
+     m_page_top_sizer->Add(m_page_text, 0, wxEXPAND, 5);*/
+
+
+   
+
     //TODO, adjust later
+    /*
+     _bmp_reset = ScalableBitmap(m_side_window, "undo");
     m_bmp_reset_disable = ScalableBitmap(m_side_window, "dot");
     m_global_reset = new ScalableButton(m_side_window, wxID_ANY, m_bmp_reset);
     m_global_reset->SetToolTip(_(L("Reset All")));
@@ -2404,19 +2418,30 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
     });
     m_global_reset->Enable(false);
     m_page_top_sizer->AddSpacer(16);
-    m_page_top_sizer->Add(m_global_reset, 0, wxEXPAND, 5);
+    m_page_top_sizer->Add(m_global_reset, 0, wxEXPAND, 5);*/
+
+
+
     //create object settings
+    m_side_window->SetFont(::Label::Body_12);
     m_object_settings = new ObjectTableSettings(m_side_window, m_object_grid_table);
     m_object_settings->Hide();
-    m_page_sizer->Add(m_page_top_sizer, 0, wxEXPAND | wxTOP | wxALIGN_CENTER_HORIZONTAL, 5);
-    m_page_sizer->Add(m_object_settings->get_sizer(), 1, wxEXPAND | wxTOP, 5);
+    m_page_sizer->Add(m_page_top_sizer, 0, wxEXPAND | wxALIGN_CENTER_HORIZONTAL, 5);
+    m_page_sizer->Add(m_object_settings->get_sizer(), 1, wxEXPAND, 5);
 
-    m_top_sizer->Add(m_side_window, 0, wxEXPAND);
+    auto m_line_left = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(1,-1), wxTAB_TRAVERSAL);
+    m_line_left->SetBackgroundColour(wxColour(0xA6, 0xa9, 0xAA));
+
+
+    m_top_sizer->Add(m_object_grid, 1, wxEXPAND,0);
+    m_top_sizer->Add(m_line_left, 0, wxEXPAND, 0);
+    m_top_sizer->Add(m_side_window,0,0,0);
 
     //wxBoxSizer * page_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-	this->SetSizer(m_top_sizer);
-	this->Layout();
+    SetFont(::Label::Body_13);
+    SetSizer(m_top_sizer);
+    Layout();
 }
 
 int ObjectTablePanel::init_bitmap()
@@ -2492,11 +2517,11 @@ void ObjectTablePanel::load_data()
     //construct tables
     //m_object_grid->CreateGrid(rows, cols, wxGridSelectCells);
 #if HAS_COL_HEADER
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_printable, L("Printable"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_printable_reset, "");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_plate_index, L("Plate"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_assemble_name, L("Module"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_name, L("Name"));
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_printable, L("Printable"));
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_printable_reset, "");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments, L("Filaments"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments_reset, "");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height, L("Layer height"));
@@ -2511,7 +2536,9 @@ void ObjectTablePanel::load_data()
     m_object_grid->SetColLabelValue(ObjectGridTable::col_brim_type_reset, "");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_speed_perimeter, L("Inner wall speed"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_speed_perimeter_reset, "");
-    m_object_grid->SetLabelFont(Label::Body_14);
+    m_object_grid->SetLabelFont(Label::Head_13);
+    m_object_grid->SetLabelTextColour(wxColour(0x30,0x3a,0x3c));
+    m_object_grid->SetLabelBackgroundColour(wxColour(0xff,0xff,0xff));
 #else
     m_object_grid->HideColLabels();
 #endif
@@ -2523,7 +2550,7 @@ void ObjectTablePanel::load_data()
     wxGridCellAttr *attr;
     attr = new wxGridCellAttr;
     //attr->SetBackgroundColour(wxColour(191, 191, 255));
-    attr->SetBackgroundColour(wxColour(255, 255, 255));
+    attr->SetBackgroundColour(*wxWHITE);
     attr->SetTextColour(*wxBLACK);
     attr->SetAlignment(wxALIGN_CENTRE, wxALIGN_CENTRE);
     attr->SetReadOnly(true);
@@ -2532,9 +2559,9 @@ void ObjectTablePanel::load_data()
     m_object_grid->SetRowSize(0, 0);
 #endif
     //merges
+    m_object_grid->SetCellSize(0, ObjectGridTable::col_printable, 1, 2);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_assemble_name, 1, 1);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_name, 1, 1);
-    m_object_grid->SetCellSize(0, ObjectGridTable::col_printable, 1, 2);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_filaments, 1, 2);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_layer_height, 1, 2);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_wall_loops, 1, 2);
@@ -2627,10 +2654,11 @@ void ObjectTablePanel::load_data()
                         break;
                 }
                 if (col == ObjectGridTable::col_name) {
-                    if (grid_row->row_type == ObjectGridTable::row_object)
-                        m_object_grid->SetCellFont(row, col, Label::Head_14);
-                    else
-                        m_object_grid->SetCellFont(row, col, Label::Body_14);
+                    m_object_grid->SetCellFont(row, col, Label::Body_13);
+                    /* if (grid_row->row_type == ObjectGridTable::row_object)
+                         m_object_grid->SetCellFont(row, col, Label::Head_14);
+                     else
+                         m_object_grid->SetCellFont(row, col, Label::Body_14);*/
                 }
             }
         }
@@ -2638,12 +2666,13 @@ void ObjectTablePanel::load_data()
     m_object_grid->Fit();
     for (int i = 0; i < ObjectGridTable::col_max; i++)
     {
-        ObjectGridTable::ObjectGridCol* grid_col = m_object_grid_table->get_grid_col(i);
+        ObjectGridTable::ObjectGridCol *grid_col = m_object_grid_table->get_grid_col(i);
         if (grid_col->size > 0) {
             int fit_size1 = m_object_grid->GetColSize(i);
-            if (grid_col->size < fit_size1)
-                m_object_grid->SetColSize(i, grid_col->size);
+            m_object_grid->SetColSize(i, grid_col->size);
+            //if (grid_col->size < fit_size1) m_object_grid->SetColSize(i, grid_col->size);
         }
+
         //else {
             //adjust the left col
             //int delta = grid_col->size - fit_size1;
@@ -2819,20 +2848,18 @@ void ObjectTablePanel::resetAllValuesInSideWindow(int row, bool is_object, Model
 // ObjectTableDialog
 // ----------------------------------------------------------------------------
 ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model *modelObj, wxSize maxSize)
-    : GUI::DPIDialog(parent, wxID_ANY, _L("Object/Part Setting"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX),
+    : GUI::DPIDialog(parent, wxID_ANY, _L("Object/Part Setting"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE),
     m_model(modelObj), m_plater(platerObj)
 {
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
-
-    m_bg_colour = wxColour(0, 0, 0);
     //this->SetBackgroundColour(m_bg_colour);
 
     //m_top_sizer = new wxBoxSizer( wxVERTICAL );
 
     //m_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    this->SetBackgroundColour(m_bg_colour);
+    SetBackgroundColour(*wxWHITE);
 
     //m_static_title = new wxStaticText( m_panel, wxID_ANY, wxT("Totally Objects, Parts"), wxDefaultPosition, wxDefaultSize, 0 );
     //m_static_title->SetFont(Label::Head_12);
@@ -2847,8 +2874,18 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
 
     // And also actually enable them.
     //m_panel->SetScrollRate(10, 10);
+    auto m_main_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_obj_panel = new ObjectTablePanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE, wxString("Tabel Panel"), m_plater, m_model);
+    // icon
+    std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+    //top line
+    auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_line_top->SetBackgroundColour(wxColour(0xA6, 0xa9, 0xAA));
+    m_main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
+
+    m_obj_panel = new ObjectTablePanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE, wxEmptyString, m_plater, m_model);
     //m_top_sizer->Add(m_obj_panel, 1, wxALL | wxEXPAND, 5);
 
     wxSize panel_size = m_obj_panel->get_init_size();
@@ -2879,6 +2916,11 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
 
     //this->Layout();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", created, this %1%, m_obj_panel %2%") %this % m_obj_panel;
+
+    m_main_sizer->Add(m_obj_panel, 1, wxEXPAND, 0);
+    SetSizer(m_main_sizer);
+    Layout();
+    Fit();
 }
 
 ObjectTableDialog::~ObjectTableDialog()
@@ -2925,6 +2967,10 @@ void ObjectTableDialog::OnClose(wxCloseEvent &evt)
 
 void ObjectTableDialog::OnSize(wxSizeEvent& event)
 {
+    SetSize(wxSize(-1, FromDIP(480)));
+    SetMinSize(wxSize(-1, FromDIP(480)));
+    SetMaxSize(wxSize(-1, FromDIP(480)));
+    return;
     wxSize new_size = event.GetSize();
     if ((new_size.GetWidth() > g_dialog_max_width) || (new_size.GetHeight() > g_dialog_max_height)) {
         int width = (new_size.GetWidth() > g_dialog_max_width)?new_size.GetWidth():g_dialog_max_width;

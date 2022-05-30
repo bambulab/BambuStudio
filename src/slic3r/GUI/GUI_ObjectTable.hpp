@@ -211,7 +211,7 @@ public:
     };
     enum GridColType
     {
-        col_plate_index = 0,
+      /*  col_plate_index = 0,
         col_assemble_name = 1,
         col_name = col_assemble_name + 1,
         col_printable = col_name + 1,
@@ -230,6 +230,26 @@ public:
         col_brim_type_reset = col_brim_type + 1,
         col_speed_perimeter = col_brim_type_reset + 1,
         col_speed_perimeter_reset = col_speed_perimeter + 1,
+        col_max*/
+        col_printable             = 0,
+        col_printable_reset       = 1,
+        col_plate_index           = 2,
+        col_assemble_name         = 3,
+        col_name                  = 4,
+        col_filaments             = 5,
+        col_filaments_reset       = 6,
+        col_layer_height          = 7,
+        col_layer_height_reset    = 8,
+        col_wall_loops            = 9,
+        col_wall_loops_reset      = 10,
+        col_fill_density          = 11,
+        col_fill_density_reset    = 12,
+        col_enable_support        = 13,
+        col_enable_support_reset  = 14,
+        col_brim_type             = 15,
+        col_brim_type_reset       = 16,
+        col_speed_perimeter       = 17,
+        col_speed_perimeter_reset = 18,
         col_max
     };
 
@@ -527,9 +547,8 @@ private:
 
 class ObjectTableDialog : public GUI::DPIDialog
 {
-    const int POPUP_WIDTH   = 512;
-    const int POPUP_HEIGHT  = 1024;
-    wxColour m_bg_colour;
+    const int POPUP_WIDTH   = FromDIP(512);
+    const int POPUP_HEIGHT  = FromDIP(1024);
 
     //wxPanel*             m_panel{ nullptr };
     wxBoxSizer*          m_top_sizer{ nullptr };

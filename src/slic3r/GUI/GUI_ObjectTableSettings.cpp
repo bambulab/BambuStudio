@@ -162,7 +162,7 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
 
             auto btn = new ScalableButton(parent, wxID_ANY, m_bmp_reset);
             btn->SetToolTip(_(L("Reset parameter")));
-
+            btn->SetBackgroundColour(*wxWHITE);
             btn->SetBitmapFocus(m_bmp_reset_focus.bmp());
             btn->SetBitmapHover(m_bmp_reset_focus.bmp());
             btn->SetBitmapDisabled(m_bmp_reset_disable.bmp());
