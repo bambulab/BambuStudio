@@ -46,7 +46,7 @@ var LangText={
 		"t50":"Log out",
 		"t52":"Skip",
 		"t53":"Join",
-		"t54":"In the 3D printing community, we learn from each other's successes and failures to adjust our own slicing parameters and settings. Bambu Studio follows the same principle and uses machine learning to improve its performance from the successes and failures of the vast number of prints by our users. We are training Bambu Studio to be more smarter by feeding them the real-world data. If you are willing, this service will access information from your error logs and usage logs, which may include information described in ",
+		"t54":"In the 3D printing community, we learn from each other's successes and failures to adjust our own slicing parameters and settings. Bambu Studio follows the same principle and uses machine learning to improve its performance from the successes and failures of the vast number of prints by our users. We are training Bambu Studio to be smarter by feeding it the real-world data. If you are willing, this service will access information from your error logs and usage logs, which may include information described in ",
 		"t55":"Privacy Policy",
 		"t56":". We will not collect any private data such as names, addresses, payment information, or phone numbers. By enabling this service, you agree to these terms and the statement about Privacy Policy",
 		"t57":"",
