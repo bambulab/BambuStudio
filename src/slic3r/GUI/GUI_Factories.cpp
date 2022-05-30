@@ -1317,10 +1317,20 @@ void MenuFactory::append_menu_item_set_printable(wxMenu* menu)
 {
     const Selection& selection = plater()->canvas3D()->get_selection();
     bool all_printable = true;
-    ModelObjectPtrs objects = selection.get_model()->objects;
-    for (auto it = objects.begin(); it != objects.end(); it++) {
-        for (auto inst : (*it)->instances)
-            all_printable &= inst->printable;
+    ObjectList* list = obj_list();
+    wxDataViewItemArray sels;
+    list->GetSelections(sels);
+
+    for (wxDataViewItem item : sels) {
+        ItemType type = list->GetModel()->GetItemType(item);
+        bool check;
+        if (type != itInstance && type != itObject)
+            continue;
+        else {
+            int obj_idx = list->GetModel()->GetObjectIdByItem(item);
+            int inst_idx = type == itObject ? 0 : list->GetModel()->GetInstanceIdByItem(item);
+            all_printable &= list->object(obj_idx)->instances[inst_idx]->printable;
+        }
     }
 
     wxString menu_text = all_printable ? L("Set Unprintable") : _L("Set Printable");
