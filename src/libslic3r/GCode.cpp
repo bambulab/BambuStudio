@@ -892,8 +892,16 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     m_processor.set_key_store(print->m_model.get_key_store());
     m_processor.initialize(path_tmp);
     GCodeOutputStream file(boost::nowide::fopen(path_tmp.c_str(), "wb"), m_processor, print->m_model.get_key_store(), path);
-    if (! file.is_open())
+    if (! file.is_open()) {
+        BOOST_LOG_TRIVIAL(error) << std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n" << std::endl;
+        fs::path file_path(path);
+        fs::path folder = file_path.parent_path();
+        if (!fs::exists(folder)) {
+            //fs::create_directory(folder);
+            BOOST_LOG_TRIVIAL(error) << "the parent path " + folder.string() +" is not there!!!" << std::endl;
+        }
         throw Slic3r::RuntimeError(std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n");
+    }
 
     try {
         m_placeholder_parser_failed_templates.clear();
