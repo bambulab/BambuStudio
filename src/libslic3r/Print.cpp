@@ -188,6 +188,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             // Thus switching between soluble / non-soluble interface layer material may require recalculation of supports.
             //FIXME Killing supports on any change of "filament_soluble" is rough. We should check for each object whether that is necessary.
             osteps.emplace_back(posSupportMaterial);
+            osteps.emplace_back(posSimplifySupportPath);
         } else if (
                opt_key == "initial_layer_line_width"
             || opt_key == "min_layer_height"
@@ -199,8 +200,9 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);
-            steps.emplace_back(psSkirtBrim);
             osteps.emplace_back(posSimplifyPath);
+            osteps.emplace_back(posSimplifySupportPath);
+            steps.emplace_back(psSkirtBrim);
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             //FIXME invalidate all steps of all objects as well?

@@ -435,7 +435,8 @@ void PrintObject::simplify_extrusion_path()
 {
     if (this->set_started(posSimplifyPath)) {
         m_print->set_status(75, L("Optimizing toolpath"));
-        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of layers in parallel - start";
+        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of object in parallel - start";
+        //BBS: infill and walls
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
             [this](const tbb::blocked_range<size_t>& range) {
@@ -446,8 +447,36 @@ void PrintObject::simplify_extrusion_path()
             }
         );
         m_print->throw_if_canceled();
-        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of layers in parallel - end";
+        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of object in parallel - end";
         this->set_done(posSimplifyPath);
+    }
+
+    if (this->set_started(posSimplifySupportPath)) {
+        //BBS: share same progress
+        m_print->set_status(75, L("Optimizing toolpath"));
+        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of support in parallel - start";
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, m_support_layers.size()),
+            [this](const tbb::blocked_range<size_t>& range) {
+                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+                    m_print->throw_if_canceled();
+                    m_support_layers[layer_idx]->simplify_support_extrusion_path();
+                }
+            }
+        );
+        m_print->throw_if_canceled();
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, m_tree_support_layers.size()),
+            [this](const tbb::blocked_range<size_t>& range) {
+                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+                    m_print->throw_if_canceled();
+                    m_tree_support_layers[layer_idx]->simplify_support_extrusion_path();
+                }
+            }
+        );
+        m_print->throw_if_canceled();
+        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of support in parallel - end";
+        this->set_done(posSimplifySupportPath);
     }
 }
 
@@ -775,6 +804,7 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
         invalidated |= m_print->invalidate_steps({ psSkirtBrim });
         m_slicing_params.valid = false;
     } else if (step == posSupportMaterial) {
+        invalidated |= this->invalidate_steps({ posSimplifySupportPath });
         invalidated |= m_print->invalidate_steps({ psSkirtBrim });
         m_slicing_params.valid = false;
     }

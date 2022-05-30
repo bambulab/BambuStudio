@@ -66,7 +66,7 @@ enum PrintStep {
 
 enum PrintObjectStep {
     posSlice, posPerimeters, posPrepareInfill,
-    posInfill, posIroning, posSupportMaterial, posSimplifyPath, posCount,
+    posInfill, posIroning, posSupportMaterial, posSimplifyPath, posSimplifySupportPath, posCount,
 };
 
 // A PrintRegion object represents a group of volumes to print

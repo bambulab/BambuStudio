@@ -190,6 +190,12 @@ protected:
         m_id(id), m_object(object) {}
     virtual ~Layer();
 
+//BBS: method to simplify support path
+    void    simplify_support_entity_collection(ExtrusionEntityCollection* entity_collection);
+    void    simplify_support_path(ExtrusionPath* path);
+    void    simplify_support_multi_path(ExtrusionMultiPath* multipath);
+    void    simplify_support_loop(ExtrusionLoop* loop);
+
 private:
     // Sequential index of layer, 0-based, offsetted by number of raft layers.
     size_t              m_id;
@@ -212,6 +218,8 @@ public:
 
     // Zero based index of an interface layer, used for alternating direction of interface / contact layers.
     size_t                      interface_id() const { return m_interface_id; }
+
+    void simplify_support_extrusion_path() { this->simplify_support_entity_collection(&support_fills); }
 
 protected:
     friend class PrintObject;
@@ -236,6 +244,8 @@ public:
     ExPolygons base_areas;
 
     virtual bool has_extrusions() const { return !support_fills.empty(); }
+
+    void simplify_support_extrusion_path() { this->simplify_support_entity_collection(&support_fills);}
 
 protected:
     friend class PrintObject;
