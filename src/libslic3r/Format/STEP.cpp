@@ -28,8 +28,8 @@
 #include "TopExp_Explorer.hxx"
 #include "BRep_Tool.hxx"
 
-const double STEP_TRANS_CHORD_ERROR = 0.0012;
-const double STEP_TRANS_ANGLE_RES = 0.12;
+const double STEP_TRANS_CHORD_ERROR = 0.002;
+const double STEP_TRANS_ANGLE_RES = 0.2;
 
 const int LOAD_STEP_STAGE_READ_FILE          = 0;
 const int LOAD_STEP_STAGE_GET_SOLID          = 1;
