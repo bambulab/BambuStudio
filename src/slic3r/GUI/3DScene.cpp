@@ -683,6 +683,12 @@ void GLVolume::render(bool with_outline) const
         if (color_volume) {
             GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
             std::vector<std::array<float, 4>> colors = get_extruders_colors();
+
+            //when force_transparent, we need to keep the alpha
+            if (force_native_color && (render_color[3] < 1.0)) {
+                for (int index = 0; index < colors.size(); index ++)
+                    colors[index][3] = render_color[3];
+            }
             glsafe(::glMultMatrixd(world_matrix().data()));
             for (int idx = 0; idx < mmuseg_ivas.size(); idx++) {
                 GLIndexedVertexArray& iva = mmuseg_ivas[idx];
