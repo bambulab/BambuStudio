@@ -2904,6 +2904,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
 //BBS: always load shell when preview
 void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_previewing)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": initialized=%1%, force_previewing=%2%")%initialized %force_previewing;
     if ((print.id().id == m_shells.print_id)&&(print.get_modified_count() == m_shells.print_modify_count)) {
         //BBS: update force previewing logic
         if (force_previewing)
@@ -3021,7 +3022,8 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
     m_shells.print_id = print.id().id;
     m_shells.print_modify_count = print.get_modified_count();
     m_shells.previewing = true;
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": shell loaded, id change to %1%, modify_count %2%, object count %3%") % m_shells.print_id % m_shells.print_modify_count % object_count;
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": shell loaded, id change to %1%, modify_count %2%, object count %3%, glvolume count %4%")
+        % m_shells.print_id % m_shells.print_modify_count % object_count %m_shells.volumes.volumes.size();
 }
 
 void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const
