@@ -70,7 +70,14 @@ AuFile::AuFile(wxWindow *parent, fs::path file_path, wxString file_name, Auxilia
         m_bitmap_txt   = create_scaled_bitmap("placeholder_txt", nullptr, 300);
 
         if (m_type == OTHERS) {m_file_bitmap = m_bitmap_txt;}
-        if (m_type == BILL_OF_MATERIALS) {m_file_bitmap = m_bitmap_excel;}
+        if (m_type == BILL_OF_MATERIALS) {
+            if (m_file_path.extension() == ".xls" || m_file_path.extension() == ".xlsx") {
+                m_file_bitmap = m_bitmap_excel;
+            }
+
+            if (m_file_path.extension() == ".pdf") { m_file_bitmap = m_bitmap_pdf; }
+            
+        }
         if (m_type == ASSEMBLY_GUIDE) {m_file_bitmap = m_bitmap_pdf;}
     }
     
@@ -767,7 +774,7 @@ void AuxiliaryPanel::on_import_file(wxCommandEvent &event)
     } 
 
     if (file_model == s_default_folders[OTHERS]) {  wildcard = wxT("TXT files (*.txt)|*.txt"); }
-    if (file_model == s_default_folders[BILL_OF_MATERIALS]){ wildcard = wxT("EXCEL files (*.xls)|*.xls|EXCEL files (*.xlsx)|*.xlsx"); }
+    if (file_model == s_default_folders[BILL_OF_MATERIALS]){ wildcard = wxT("EXCEL files (*.xls)|*.xls|EXCEL files (*.xlsx)|*.xlsx|PDF files (*.pdf)|*.pdf"); }
     if (file_model == s_default_folders[ASSEMBLY_GUIDE]) { wildcard = wxT("PDF files (*.pdf)|*.pdf"); }
 
     wxFileDialog dialog(this, _L("Choose files"), wxEmptyString, wxEmptyString, wildcard, wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
@@ -818,10 +825,8 @@ void AuxiliaryPanel::on_import_file(wxCommandEvent &event)
             auto file_fs_path = fs::path(dir_path.c_str());
             if (iter != m_paths_list.end()) {
                 m_paths_list[file_model.ToStdString()].push_back(file_fs_path);
-                break;
             } else {
                 m_paths_list[file_model.ToStdString()] = std::vector<fs::path>{file_fs_path};
-                break;
             }
         }
         update_all_panel();
@@ -934,6 +939,9 @@ void AuxiliaryPanel::update_all_panel()
     std::map<std::string, std::vector<fs::path>>::iterator mit;
 
     m_pictures_panel->clear();
+    m_bill_of_materials_panel->clear();
+    m_assembly_panel->clear();
+    m_others_panel->clear();
 
     for (mit = m_paths_list.begin(); mit != m_paths_list.end(); mit++) {
         if (mit->first == "Model Pictures") { m_pictures_panel->update(mit->second); }
