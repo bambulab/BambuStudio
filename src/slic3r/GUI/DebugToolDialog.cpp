@@ -561,6 +561,9 @@ void DebugToolDialog::init()
         this->refresh_device_list();
         });
 
+    btn_bind->Hide();
+    btn_unbind->Hide();
+
     btn_unbind->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
             Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
             if (!account_manager->is_user_login()) {
