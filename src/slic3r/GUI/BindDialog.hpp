@@ -76,6 +76,8 @@ struct MemoryStruct
 class BindMachineDilaog : public DPIDialog
 {
 private:
+    wxStaticText * m_printer_name;
+    wxStaticText * m_user_name;
     StaticBox *   m_panel_left;
     StaticBox *   m_panel_right;
     wxStaticText *m_status_text;
@@ -98,11 +100,14 @@ public:
     void     on_bind_printer(wxCommandEvent &event);
     void     on_dpi_changed(const wxRect &suggested_rect) override;
     void     update_machine_info(MachineObject *info) { m_machine_info = info; };
+    void     on_show(wxShowEvent &event);
 };
 
 class UnBindMachineDilaog : public DPIDialog
 {
 protected:
+    wxStaticText *  m_printer_name;
+    wxStaticText *  m_user_name;
     wxStaticText *m_status_text;
     Button *      m_button_unbind;
     Button *      m_button_cancel;
@@ -117,6 +122,7 @@ public:
     void on_unbind_printer(wxCommandEvent &event);
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void update_machine_info(MachineObject *info) { m_machine_info = info; };
+    void on_show(wxShowEvent &event);
 };
 
 }} // namespace Slic3r::GUI

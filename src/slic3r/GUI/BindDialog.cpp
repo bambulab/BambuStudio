@@ -161,9 +161,12 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
      wxBoxSizer *m_sizere_left_h = new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer *m_sizere_left_v= new wxBoxSizer(wxVERTICAL);
 
-     auto m_printer_img = new wxStaticBitmap(m_panel_left, wxID_ANY, create_scaled_bitmap("printer_thumbnail", nullptr, 96), wxDefaultPosition, wxSize(FromDIP(100), FromDIP(96)),
-                                             0);
+     auto m_printer_img = new wxStaticBitmap(m_panel_left, wxID_ANY, create_scaled_bitmap("printer_thumbnail", nullptr, 96), wxDefaultPosition, wxSize(FromDIP(100), FromDIP(96)), 0);
+     m_printer_name = new wxStaticText(m_panel_left, wxID_ANY, wxEmptyString);
+     m_printer_name->SetFont(::Label::Head_14);
      m_sizere_left_v->Add(m_printer_img, 0, wxALIGN_CENTER, 0);
+     m_sizere_left_v->Add(0, 0, 0, wxTOP, 5);
+     m_sizere_left_v->Add(m_printer_name, 0, wxALIGN_CENTER, 0);
      m_sizere_left_h->Add(m_sizere_left_v, 1, wxALIGN_CENTER, 0);
 
      m_panel_left->SetSizer(m_sizere_left_h);
@@ -177,10 +180,14 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
      m_panel_right->SetMinSize(wxSize(FromDIP(201), FromDIP(212)));
      m_panel_right->SetCornerRadius(8);
      m_panel_right->SetBackgroundColor(BIND_DIALOG_GREY200);
+
+     m_user_name = new wxStaticText(m_panel_right, wxID_ANY, wxEmptyString);
+     m_user_name->SetFont(::Label::Head_14);
      wxBoxSizer *m_sizer_right_h = new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer *m_sizer_right_v = new wxBoxSizer(wxVERTICAL);
 
      Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
+     m_user_name->SetLabelText(c->get_curr_user()->m_name);
     /* if (c->is_user_login()) {
          
      }*/
@@ -215,6 +222,8 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
      request.Start();
 
      m_sizer_right_v->Add(m_avatar, 0, wxALIGN_CENTER, 0);
+     m_sizer_right_v->Add(0, 0, 0, wxTOP, 7);
+     m_sizer_right_v->Add(m_user_name, 0, wxALIGN_CENTER, 0);
      m_sizer_right_h->Add(m_sizer_right_v, 1, wxALIGN_CENTER, 0);
 
      m_panel_right->SetSizer(m_sizer_right_h);
@@ -284,6 +293,7 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
      Fit();
      Centre(wxBOTH);
 
+     Bind(wxEVT_SHOW, &BindMachineDilaog::on_show, this);
      m_button_bind->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDilaog::on_bind_printer), NULL, this);
      m_button_cancel->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDilaog::on_cancel), NULL, this);
      this->Connect(EVT_BIND_MACHINE_FAIL, wxCommandEventHandler(BindMachineDilaog::on_bind_fail), NULL, this);
@@ -360,6 +370,13 @@ void BindMachineDilaog::on_dpi_changed(const wxRect &suggested_rect)
     m_button_cancel->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
 }
 
+void BindMachineDilaog::on_show(wxShowEvent &event) 
+{
+    m_printer_name->SetLabelText(m_machine_info->get_printer_type_string());
+    Layout();
+}
+
+
 UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/) 
      : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Log out printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION)
  {
@@ -384,7 +401,11 @@ UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
 
      auto m_printer_img = new wxStaticBitmap(m_panel_left, wxID_ANY, create_scaled_bitmap("printer_thumbnail", nullptr, 96), wxDefaultPosition, wxSize(FromDIP(100), FromDIP(96)),
                                              0);
+     m_printer_name     = new wxStaticText(m_panel_left, wxID_ANY, wxEmptyString);
+     m_printer_name->SetFont(::Label::Head_14);
      m_sizere_left_v->Add(m_printer_img, 0, wxALIGN_CENTER, 0);
+     m_sizere_left_v->Add(0, 0, 0, wxTOP, 5);
+     m_sizere_left_v->Add(m_printer_name, 0, wxALIGN_CENTER, 0);
      m_sizere_left_h->Add(m_sizere_left_v, 1, wxALIGN_CENTER, 0);
 
      m_panel_left->SetSizer(m_sizere_left_h);
@@ -398,10 +419,13 @@ UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
      m_panel_right->SetMinSize(wxSize(FromDIP(201), FromDIP(212)));
      m_panel_right->SetCornerRadius(8);
      m_panel_right->SetBackgroundColor(BIND_DIALOG_GREY200);
+     m_user_name = new wxStaticText(m_panel_right, wxID_ANY, wxEmptyString);
+     m_user_name->SetFont(::Label::Head_14);
      wxBoxSizer *m_sizer_right_h = new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer *m_sizer_right_v = new wxBoxSizer(wxVERTICAL);
 
      Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
+     m_user_name->SetLabelText(c->get_curr_user()->m_name);
     /* if (c->is_user_login()) {
          
      }*/
@@ -437,6 +461,8 @@ UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
 
 
      m_sizer_right_v->Add(m_avatar, 0, wxALIGN_CENTER, 0);
+     m_sizer_right_v->Add(0, 0, 0, wxTOP, 7);
+     m_sizer_right_v->Add(m_user_name, 0, wxALIGN_CENTER, 0);
      m_sizer_right_h->Add(m_sizer_right_v, 1, wxALIGN_CENTER, 0);
 
      m_panel_right->SetSizer(m_sizer_right_h);
@@ -494,6 +520,7 @@ UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
      Fit();
      Centre(wxBOTH);
 
+     Bind(wxEVT_SHOW, &UnBindMachineDilaog::on_show, this);
      m_button_unbind->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDilaog::on_unbind_printer), NULL, this);
      m_button_cancel->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDilaog::on_cancel), NULL, this);
  }
@@ -553,4 +580,10 @@ void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event)
       m_button_cancel->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
 }
 
- }} // namespace Slic3r::GUI
+void UnBindMachineDilaog::on_show(wxShowEvent &event)
+{
+    m_printer_name->SetLabelText(m_machine_info->get_printer_type_string());
+    Layout();
+}
+
+}} // namespace Slic3r::GUI
