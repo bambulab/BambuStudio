@@ -52,40 +52,40 @@ std::string PRINTING_STAGE_STR[PRINTING_STAGE_COUNT] = {
     "nozzle_tip_cleaning"
     };
 
-inline wxString get_stage_string(int stage)
+wxString get_stage_string(int stage)
 {
     switch(stage) {
     case 0:
-        //return _L("Printing...");
+        //return _L("Printing");
         return "";
     case 1:
-        return _L("The bed is auto leveling...");
+        return _L("The bed is auto leveling");
     case 2:
-        return _L("The hot bed is preheating...");
+        return _L("The hot bed is preheating");
     case 3:
-        return _L("Frequncy sweeping...");
+        return _L("Frequncy sweeping");
     case 4:
-        return _L("Change the filament...");
+        return _L("Change the filament");
     case 5:
         return _L("Pause(M400)");
     case 6:
         return _L("Pause(Lack of filament)");
     case 7:
-        return _L("The nozzle is preheating...");
+        return _L("The nozzle is preheating");
     case 8:
-        return _L("Extruder compensation scanning...");
+        return _L("Extruder compensation scanning");
     case 9:
-        return _L("Bed surface scanning...");
+        return _L("Bed surface scanning");
     case 10:
-        return _L("First layer scanning...");
+        return _L("First layer scanning");
     case 11:
-        return _L("Bed surface is auto identifying...");
+        return _L("Bed surface is auto identifying");
     case 12:
         return _L("In the calibration of extrinsic parameters");
     case 13:
-        return _L("The tool head is homing...");
+        return _L("The tool head is homing");
     case 14:
-        return _L("Nozzle cleaning...");
+        return _L("Nozzle cleaning");
     case 15:
         return _L("In the calibration of temperature protection");
     default:
@@ -591,6 +591,30 @@ wxString MachineObject::get_curr_stage()
     return get_stage_string(stage_curr);
 }
 
+int MachineObject::get_curr_stage_idx()
+{
+    int result = -1;
+    for (int i = 0; i < stage_list_info.size(); i++) {
+        if (stage_list_info[i] == stage_curr) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+bool MachineObject::is_in_calibration()
+{
+    BBLSubTask* curr_task = get_subtask();
+    if (curr_task) {
+        if (!curr_task->task_name.empty()
+            && boost::contains(curr_task->task_name, "auto_cali_for_user.gcode")
+            && stage_curr != 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 PrintingSpeedLevel MachineObject::_parse_printing_speed_lvl(int lvl)
 {
     if (lvl < (int)SPEED_LEVEL_COUNT)
@@ -882,6 +906,16 @@ int MachineObject::command_axis_control(std::string axis, double unit, double va
         return -1;
     }
     return this->publish_gcode(cmd);
+}
+
+int MachineObject::command_start_calibration()
+{
+    // fixed gcode file
+    json j;
+    j["print"]["command"] = "gcode_file";
+    j["print"]["param"] = "/usr/etc/print/auto_cali_for_user.gcode";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    return this->publish_json(j.dump());
 }
 
 int MachineObject::command_bind()
@@ -2295,6 +2329,12 @@ bool MachineObject::can_abort()
         return true;
     }
     return false;
+}
+
+bool MachineObject::is_in_printing()
+{
+    bool result = can_abort();
+    return result;
 }
 
 bool MachineObject::is_printing_finished()

@@ -126,6 +126,10 @@ protected:
     wxBoxSizer *    m_printing_sizer;
     wxBoxSizer *    m_tasklist_sizer;
     wxBoxSizer *    m_tasklist_caption_sizer;
+    wxStaticText*   m_staticText_calibration_caption;
+    wxStaticText*   m_calibration_text;
+    Button*         m_calibration_btn;
+    StepIndicator*  m_calibration_flow;
 
     wxPanel *       m_machine_ctrl_panel;
     wxPanel *       m_project_task_panel;
@@ -248,6 +252,9 @@ protected:
     void on_auto_leveling(wxCommandEvent &event);
     void on_xyz_abs(wxCommandEvent &event);
 
+    /* calibration */
+    void on_start_calibration(wxCommandEvent &event);
+
 
     /* update apis */
     void update(MachineObject* obj);
@@ -258,6 +265,7 @@ protected:
     void update_temp_ctrl(MachineObject *obj);
     void update_misc_ctrl(MachineObject *obj);
     void update_ams(MachineObject* obj);
+    void update_cali(MachineObject* obj);
 
     void reset_printing_values();
     void on_webrequest_state(wxWebRequestEvent &evt);
@@ -279,6 +287,10 @@ public:
     long           last_tray_is_bbl_bits{ -1 };
     long           last_read_done_bits{ -1 };
     long           last_ams_version { -1 };
+
+    std::vector<int> last_stage_list_info;
+
+    bool is_stage_list_info_changed(MachineObject* obj);
 
     void set_default();
     void show_status(int status);

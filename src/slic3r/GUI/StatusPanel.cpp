@@ -427,8 +427,13 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
 
     bSizer_control->Add(m_ams_ctrl_sizer, 0, wxEXPAND, 0);
 
-    bSizer_right->Add(bSizer_control, 1, wxEXPAND | wxALL, 0);    
-    bSizer_right->Add(0, FromDIP(20), 0, wxEXPAND, 0);
+    auto m_cali_sizer = create_cali_group(parent);
+
+    bSizer_control->Add(0, FromDIP(20), 0, wxEXPAND, 0);
+
+    bSizer_control->Add(m_cali_sizer, 0, wxEXPAND, 0);
+
+    bSizer_right->Add(bSizer_control, 1, wxEXPAND | wxALL, 0);
 
     return bSizer_right;
 }
@@ -774,6 +779,54 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
 wxBoxSizer *StatusBasePanel::create_cali_group(wxWindow *parent)
 {
     auto sizer = new wxBoxSizer(wxVERTICAL);
+    
+    wxBoxSizer* cali_caption_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_staticText_calibration_caption = new wxStaticText(parent, wxID_ANY, _L("Calibration"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_calibration_caption->Wrap(-1);
+    m_staticText_calibration_caption->SetFont(GROUP_TITLE_FONT);
+
+    cali_caption_sizer->Add(m_staticText_calibration_caption, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, GROUP_TITLE_LEFT_MARGIN);
+
+    m_ams_staticline = new StaticLine(parent);
+    m_ams_staticline->SetLineColour(GROUP_STATIC_LINE_COL);
+    cali_caption_sizer->Add(m_ams_staticline, 1, wxRIGHT | wxLEFT | wxALIGN_CENTER_VERTICAL, GROUP_TITLE_LINE_MARGIN);
+    cali_caption_sizer->Add(GROUP_TITLE_RIGHT_MARGIN - GROUP_TITLE_LINE_MARGIN, 0, 0, wxEXPAND, 0);
+
+    wxBoxSizer* cali_left_sizer = new wxBoxSizer(wxVERTICAL);
+    m_calibration_text = new wxStaticText(parent, wxID_ANY, _L("Calibration program"), wxDefaultPosition, wxDefaultSize, 0);
+    m_calibration_text->Wrap(-1);
+    cali_left_sizer->Add(m_calibration_text, 1, wxEXPAND | wxLEFT, FromDIP(53));
+    cali_left_sizer->AddStretchSpacer();
+
+    wxBoxSizer* cali_right_sizer = new wxBoxSizer(wxVERTICAL);
+
+    m_calibration_flow = new StepIndicator(parent, wxID_ANY);
+    StateColor bg_color(std::pair<wxColour, int>(wxColour(248, 248, 248), StateColor::Normal));
+    m_calibration_flow->SetBackgroundColor(bg_color);
+    m_calibration_flow->SetFont(Label::Body_14);
+    m_calibration_flow->SetMinSize(wxSize(FromDIP(200), FromDIP(180)));
+    m_calibration_flow->SetSize(wxSize(FromDIP(200), FromDIP(180)));
+
+    cali_right_sizer->Add(m_calibration_flow, 1, wxEXPAND | wxALL, FromDIP(10));
+
+    m_calibration_btn = new Button(parent, _L("Start Calibration"));
+    cali_right_sizer->Add(m_calibration_btn, 0, wxEXPAND | wxALL, 0);
+
+    sizer->Add(cali_caption_sizer, 0, wxEXPAND | wxALL, 0);
+
+    auto content_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    content_sizer->Add(cali_left_sizer, 1, wxEXPAND | wxALL, 0);
+
+    content_sizer->Add(cali_right_sizer, 0, wxEXPAND | wxRIGHT, FromDIP(43));
+
+    sizer->Add(0, FromDIP(20), 0, wxEXPAND | wxALL, 0);
+
+    sizer->Add(content_sizer, 0, wxEXPAND, 0);
+
+    sizer->Add(0, FromDIP(10), 0, wxEXPAND, 0);
+
     return sizer;
 }
 
@@ -859,6 +912,8 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     Bind(EVT_AMS_ON_FILAMENT_EDIT, &StatusPanel::on_filament_edit, this);
 
     m_switch_speed->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
+
+    m_calibration_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
 }
 
 StatusPanel::~StatusPanel()
@@ -883,6 +938,8 @@ StatusPanel::~StatusPanel()
     m_bpButton_z_down_10->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_z_down_10), NULL, this);
     m_bpButton_e_10->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_e_up_10), NULL, this);
     m_bpButton_e_down_10->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_e_down_10), NULL, this);
+    m_switch_speed->Disconnect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
+    m_calibration_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
 }
 
 void StatusPanel::init_scaled_buttons()
@@ -1054,6 +1111,8 @@ void StatusPanel::update(MachineObject *obj)
 #if !BBL_RELEASE_TO_PUBLIC
     update_ams(obj);
 #endif
+
+    update_cali(obj);
 
     m_machine_ctrl_panel->Thaw();
 }
@@ -1270,6 +1329,37 @@ void StatusPanel::update_ams(MachineObject *obj)
             m_ams_control->SetActionState(AMSAction::AMS_ACTION_NORMAL);
         } else {
             m_ams_control->SetActionState(AMSAction::AMS_ACTION_PRINTING);
+        }
+    }
+}
+
+void StatusPanel::update_cali(MachineObject *obj)
+{
+    if (!obj) return;
+
+    // in printing
+    if (obj->is_in_printing()) {
+        m_calibration_flow->DeleteAllItems();
+        m_calibration_btn->Disable();
+        return;
+    } else {
+        m_calibration_btn->Enable();
+        if (!obj->is_in_calibration()) {
+            m_calibration_flow->DeleteAllItems();
+            m_calibration_btn->SetLabel(_L("Start Calibration"));
+        } else {
+            m_calibration_btn->Disable();
+            m_calibration_btn->SetLabel(_L("Calibrating"));
+
+            if (is_stage_list_info_changed(obj)) {
+                // change items if stage_list_info changed
+                m_calibration_flow->DeleteAllItems();
+                for (int i = 0; i < obj->stage_list_info.size(); i++) {
+                    m_calibration_flow->AppendItem(get_stage_string(obj->stage_list_info[i]));
+                }
+            }
+            int index = obj->get_curr_stage_idx();
+            m_calibration_flow->SelectItem(index);
         }
     }
 }
@@ -1762,6 +1852,29 @@ void StatusPanel::on_auto_leveling(wxCommandEvent &event)
 void StatusPanel::on_xyz_abs(wxCommandEvent &event)
 {
     if (obj) obj->command_xyz_abs();
+}
+
+void StatusPanel::on_start_calibration(wxCommandEvent& event)
+{
+    if (obj) {
+        BOOST_LOG_TRIVIAL(trace) << "on_start_calibration";
+        obj->command_start_calibration();
+    }
+}
+
+bool StatusPanel::is_stage_list_info_changed(MachineObject* obj)
+{
+    if (!obj) return true;
+
+    if (last_stage_list_info.size() != obj->stage_list_info.size())
+        return true;
+
+    for (int i = 0; i < last_stage_list_info.size(); i++) {
+        if (last_stage_list_info[i] != obj->stage_list_info[i])
+            return true;
+    }
+    last_stage_list_info = obj->stage_list_info;
+    return false;
 }
 
 void StatusPanel::set_default()

@@ -31,6 +31,9 @@ inline int correct_filament_temperature(int filament_temp)
     return temp;
 }
 
+wxString get_stage_string(int stage);
+
+
 namespace Slic3r {
 
 enum PRINTER_TYPE {
@@ -444,6 +447,9 @@ public:
     int stage_curr = 0;
 
     wxString get_curr_stage();
+    // return curr stage index of stage list
+    int get_curr_stage_idx();
+    bool is_in_calibration();
 
     /* iot printing status */
     std::string iot_printing_taskname;
@@ -553,6 +559,9 @@ public:
     // axis string is X, Y, Z, E
     int command_axis_control(std::string axis, double unit = 1.0f, double value = 1.0f, int speed = 3000);
 
+    // calibration printer
+    int command_start_calibration();
+
     // device bind and unbind
     int command_bind();
     int command_unbind();
@@ -610,6 +619,7 @@ public:
     bool can_resume();
     bool can_pause();
     bool can_abort();
+    bool is_in_printing();
     bool is_printing_finished();
     void reset();
 
