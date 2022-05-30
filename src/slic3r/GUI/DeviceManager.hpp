@@ -520,6 +520,7 @@ public:
     int command_set_nozzle(int temp);
 
     int command_ams_switch(std::string tray_id, int old_temp = 210, int new_temp = 210);
+    int command_ams_change_filament(int tray_id);
     int command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt);
     int command_ams_calibrate(int ams_id);
     int command_ams_filament_settings(int ams_id, int tray_id, std::string setting_id, std::string tray_color, int bed_temp);

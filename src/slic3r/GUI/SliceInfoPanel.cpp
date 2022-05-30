@@ -79,7 +79,7 @@ SliceInfoPopup::SliceInfoPopup(wxWindow *parent, wxBitmap bmp, BBLSliceInfo *inf
     wxString cost_text;
     if (info) {
         if (!info->weight.empty()) {
-            cost_text = wxString::Format("%s g", info->weight);
+            cost_text = wxString::Format("%sg", info->weight);
         } else {
             cost_text = "0 g";
         }
@@ -114,7 +114,7 @@ SliceInfoPopup::SliceInfoPopup(wxWindow *parent, wxBitmap bmp, BBLSliceInfo *inf
             f_type->SetMaxSize(wxSize(FromDIP(40), FromDIP(20)));
             f_type->SetCornerRadius(FromDIP(10));
 
-            wxString used_g_text = wxString::Format("%.1f g", f.used_g);
+            wxString used_g_text = wxString::Format("%.1fg", f.used_g);
             auto f_used_g = new wxStaticText(m_panel, wxID_ANY, used_g_text, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
             f_used_g->Wrap(-1);
             f_used_g->SetSize(wxSize(FromDIP(60), -1));
@@ -313,7 +313,7 @@ void SliceInfoPanel::update(BBLSliceInfo *info)
     wxString prediction = wxString::Format("%s", get_bbl_time_dhms(info->prediction));
     m_text_item_prediction->SetLabelText(prediction);
 
-    wxString weight = wxString::Format("%s g", info->weight);
+    wxString weight = wxString::Format("%sg", info->weight);
     m_text_item_cost->SetLabelText(weight);
 
     m_text_plate_index->SetLabelText(info->index);

@@ -1825,14 +1825,18 @@ void StatusPanel::on_thumbnail_enter(wxMouseEvent &event)
         if (!obj->profile_ || !obj->subtask_) return;
         if (m_slice_info_popup && m_slice_info_popup->IsShown())
             return;
-        std::map<std::string, BBLSliceInfo *>::iterator iter = obj->profile_->slice_info.find(obj->subtask_->task_partplate_idx);
-        if (iter->second) {
-            m_slice_info_popup = std::make_shared<SliceInfoPopup>(this, m_bitmap_thumbnail->GetBitmap(), iter->second);
-            wxWindow *ctrl     = (wxWindow *) event.GetEventObject();
-            wxPoint   pos      = ctrl->ClientToScreen(wxPoint(0, 0));
-            wxSize    sz       = ctrl->GetSize();
-            m_slice_info_popup->Position(pos, wxSize(sz.x / 2, sz.y / 2));
-            m_slice_info_popup->Popup();
+        if (obj->profile_) {
+            std::map<std::string, BBLSliceInfo *>::iterator iter = obj->profile_->slice_info.find(obj->subtask_->task_partplate_idx);
+            if (iter != obj->profile_->slice_info.end()) {
+                if (iter->second) {
+                    m_slice_info_popup = std::make_shared<SliceInfoPopup>(this, m_bitmap_thumbnail->GetBitmap(), iter->second);
+                    wxWindow *ctrl     = (wxWindow *) event.GetEventObject();
+                    wxPoint   pos      = ctrl->ClientToScreen(wxPoint(0, 0));
+                    wxSize    sz       = ctrl->GetSize();
+                    m_slice_info_popup->Position(pos, wxSize(sz.x / 2, sz.y / 2));
+                    m_slice_info_popup->Popup();
+                }
+            }
         }
     }
 }
