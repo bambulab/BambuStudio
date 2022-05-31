@@ -1709,7 +1709,7 @@ void MainFrame::init_menubar_as_editor()
     //const auto config_wizard_tooltip = from_u8((boost::format(_utf8(L("Run %s"))) % config_wizard_name).str());
     //auto config_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuWizard + config_id_base, config_wizard_name, config_wizard_tooltip);
     auto preference_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuPreferences + config_id_base, _L("Preferences"), "");
-    auto printer_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuPrinter + config_id_base, _L("Printer"), "");
+    //auto printer_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuPrinter + config_id_base, _L("Printer"), "");
     //auto language_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuLanguage + config_id_base, _L("Switch Language"), "");
     m_topbar->GetTopMenu()->Bind(wxEVT_MENU, [this, config_id_base](wxEvent& event) {
         switch (event.GetId() - config_id_base) {
@@ -1785,7 +1785,7 @@ void MainFrame::init_menubar_as_editor()
         m_topbar->AddDropDownSubMenu(viewMenu, _L("View"));
     //BBS add Preference
     m_topbar->AddDropDownMenuItem(preference_item);
-    m_topbar->AddDropDownMenuItem(printer_item);
+    //m_topbar->AddDropDownMenuItem(printer_item);
     //m_topbar->AddDropDownMenuItem(language_item);
     //m_topbar->AddDropDownMenuItem(config_item);
     m_topbar->AddDropDownSubMenu(helpMenu, _L("Help"));

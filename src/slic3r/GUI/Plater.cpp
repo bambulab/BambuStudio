@@ -271,7 +271,7 @@ struct Sidebar::priv
     wxBoxSizer *sizer_filaments;
     PlaterPresetComboBox *combo_sla_print;
     PlaterPresetComboBox *combo_sla_material;
-    PlaterPresetComboBox *combo_printer;
+    PlaterPresetComboBox* combo_printer = nullptr;
     wxBoxSizer *sizer_params;
 
     //BBS Sidebar widgets
@@ -287,6 +287,11 @@ struct Sidebar::priv
     wxScrolledWindow* m_scrolledWindow_filament_content;
     wxStaticLine* m_staticline2;
     wxPanel* m_panel_project_title;
+
+    // BBS printer config
+    StaticBox* m_panel_printer_title = nullptr;
+    wxStaticText* m_text_printer_settings = nullptr;
+    wxPanel* m_panel_printer_content = nullptr;
 
     ObjectList          *m_object_list{ nullptr };
     wxPanel             *m_object_panel;
@@ -432,6 +437,99 @@ Sidebar::Sidebar(Plater *parent)
     is_msw = true;
 #endif //__WINDOWS__
 
+    // add printer
+    {
+        /***************** 1. create printer title bar    **************/
+        // 1.1 create title bar resources
+        p->m_panel_printer_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE);
+        p->m_panel_printer_title->SetBackgroundColor(title_bg);
+        p->m_panel_printer_title->SetBackgroundColor(0xF1F1F1);
+
+        p->m_text_printer_settings = new wxStaticText(p->m_panel_printer_title, wxID_ANY, _L("Printer"), wxDefaultPosition, wxDefaultSize, 0);
+        p->m_text_printer_settings->Wrap(-1);
+        p->m_text_printer_settings->SetFont(Label::Body_14);
+
+        ScalableButton* select_btn = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "settings");
+        select_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+            // p->editing_filament = -1;
+            // wxGetApp().params_dialog()->Popup();
+            // wxGetApp().get_tab(Preset::TYPE_FILAMENT)->restore_last_select_item();
+            wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
+            });
+
+        wxBoxSizer* h_sizer_title = new wxBoxSizer(wxHORIZONTAL);
+        h_sizer_title->Add(22 * em / 10, 0, 0, 0, 0);
+        h_sizer_title->Add(p->m_text_printer_settings, 0, wxALIGN_CENTER);
+        h_sizer_title->Add(10 * em / 10, 0, 0, 0, 0);
+        h_sizer_title->SetMinSize(-1, 3 * em);
+        h_sizer_title->Add(select_btn, 0, wxALIGN_CENTER | wxALL, em / 2);
+
+        p->m_panel_printer_title->SetSizer(h_sizer_title);
+        p->m_panel_printer_title->Layout();
+
+        // 1.2 Add spliters around title bar
+        // add spliter 1
+        auto spliter_1 = new ::StaticLine(p->scrolled);
+        spliter_1->SetBackgroundColour("#A6A9AA");
+        scrolled_sizer->Add(spliter_1, 0, wxEXPAND);
+
+        // add printer title
+        scrolled_sizer->Add(p->m_panel_printer_title, 0, wxEXPAND | wxALL, 0);
+
+        // add spliter 2
+        auto spliter_2 = new ::StaticLine(p->scrolled);
+        spliter_2->SetBackgroundColour("#ACACAC");
+        scrolled_sizer->Add(spliter_2, 0, wxEXPAND);
+
+
+        /*************************** 2. add printer content ************************/
+        p->m_panel_printer_content = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+        p->m_panel_printer_content->SetBackgroundColour(wxColour(255, 255, 255));
+
+        PlaterPresetComboBox* combo_printer = new PlaterPresetComboBox(p->m_panel_printer_content, Preset::TYPE_PRINTER);
+        ScalableButton* edit_btn = new ScalableButton(p->m_panel_printer_content, wxID_ANY, "edit");
+        edit_btn->SetBackgroundColour(wxColour(255, 255, 255));
+        edit_btn->SetToolTip(_L("Click to edit preset"));
+        edit_btn->Bind(wxEVT_BUTTON, [this, combo_printer](wxCommandEvent)
+            {
+                p->editing_filament = 0;
+                combo_printer->switch_to_tab();
+            });
+        combo_printer->edit_btn = edit_btn;
+        p->combo_printer = combo_printer;
+
+        wxBoxSizer* vsizer_printer = new wxBoxSizer(wxVERTICAL);
+        wxBoxSizer* hsizer_printer = new wxBoxSizer(wxHORIZONTAL);
+
+        hsizer_printer->Add(combo_printer, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, 3 * em / 10);
+        hsizer_printer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 3 * em / 10);
+        hsizer_printer->Add(8 * em / 10, 0, 0, 0, 0);
+        vsizer_printer->Add(hsizer_printer, 0, wxEXPAND, 0);
+
+        // Bed type selection
+        wxBoxSizer* bed_type_sizer = new wxBoxSizer(wxHORIZONTAL);
+        wxStaticText* bed_type_title = new wxStaticText(p->m_panel_printer_content, wxID_ANY, _L("Bed type"));
+        bed_type_title->Wrap(-1);
+        bed_type_title->SetFont(Label::Body_14);
+        m_bed_type_list = new ComboBox(p->m_panel_printer_content, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
+        DynamicPrintConfig& config = wxGetApp().preset_bundle->project_config;
+        const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
+        if (bed_type_def && bed_type_def->enum_keys_map) {
+            for (auto item : *bed_type_def->enum_keys_map)
+                m_bed_type_list->AppendString(_L(item.first));
+        }
+
+        m_bed_type_list->Select(0);
+        bed_type_sizer->Add(bed_type_title, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+        bed_type_sizer->Add(m_bed_type_list, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND, FromDIP(10));
+        vsizer_printer->Add(bed_type_sizer, 0, wxEXPAND | wxTOP, em / 2);
+
+        p->m_panel_printer_content->SetSizer(vsizer_printer);
+        p->m_panel_printer_content->Layout();
+        scrolled_sizer->Add(p->m_panel_printer_content, 0, wxTOP | wxEXPAND, em / 2);
+        scrolled_sizer->AddSpacer(3 * em / 2);
+    }
+
     // add filament title
     p->m_panel_filament_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE);
     p->m_panel_filament_title->SetBackgroundColor(title_bg);
@@ -444,8 +542,8 @@ Sidebar::Sidebar(Plater *parent)
     p->m_staticText_filament_settings->Wrap( -1 );
     p->m_staticText_filament_settings->SetFont(Label::Body_14);
     bSizer39->Add( p->m_staticText_filament_settings, 0, wxALIGN_CENTER );
-    bSizer39->Add( 10 * em / 10, 0, 0, 0, 0 );
-    bSizer39->SetMinSize(-1, 4 * em);
+    bSizer39->Add(10 * em / 10, 0, 0, 0, 0);
+    bSizer39->SetMinSize(-1, 3 * em);
 
     p->m_panel_filament_title->SetSizer( bSizer39 );
     p->m_panel_filament_title->Layout();
@@ -584,29 +682,8 @@ Sidebar::Sidebar(Plater *parent)
     bSizer_filament_content->Add(p->sizer_filaments, 1, wxALIGN_CENTER | wxALL);
     p->m_panel_filament_content->SetSizer(p->sizer_filaments);
     p->m_panel_filament_content->Layout();
-    scrolled_sizer->Add(p->m_panel_filament_content, 0, wxTOP | wxEXPAND, FromDIP(10));
-
-    wxStaticLine* bed_type_line = new wxStaticLine(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
-    bed_type_line->SetBackgroundColour(static_line_col);
-    scrolled_sizer->Add(bed_type_line, 0, wxALL | wxEXPAND, FromDIP(10));
-
-    wxBoxSizer* bed_type_sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxStaticText* bed_type_title = new wxStaticText(p->scrolled, wxID_ANY, _L("Bed type"));
-    bed_type_title->Wrap(-1);
-    bed_type_title->SetFont(Label::Body_14);
-    m_bed_type_list = new ComboBox(p->scrolled, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
-    DynamicPrintConfig& config = wxGetApp().preset_bundle->project_config;
-    const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
-    if (bed_type_def && bed_type_def->enum_keys_map) {
-        for (auto item : *bed_type_def->enum_keys_map)
-            m_bed_type_list->AppendString(_L(item.first));
-    }
-
-    m_bed_type_list->Select(0);
-    bed_type_sizer->Add(bed_type_title, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
-    bed_type_sizer->Add(m_bed_type_list, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND, FromDIP(10));
-    scrolled_sizer->Add(bed_type_sizer, 0, wxBOTTOM | wxEXPAND, FromDIP(10));
-    scrolled_sizer->AddSpacer(FromDIP(15));
+    scrolled_sizer->Add(p->m_panel_filament_content, 0, wxTOP | wxEXPAND, em / 2);
+    scrolled_sizer->AddSpacer(3 * em / 2);
 
     //p->m_staticline2 = new wxStaticLine( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
     //p->m_staticline2->SetBackgroundColour( static_line_col );
@@ -757,6 +834,9 @@ void Sidebar::update_all_preset_comboboxes()
         for (PlaterPresetComboBox* cb : p->combos_filament)
             cb->update();
     }
+
+    if (p->combo_printer)
+        p->combo_printer->update();
 }
 
 void Sidebar::update_presets(Preset::Type preset_type)
@@ -856,8 +936,9 @@ void Sidebar::change_top_border_for_mode_sizer(bool increase_border)
 void Sidebar::msw_rescale()
 {
     SetMinSize(wxSize(42 * wxGetApp().em_unit(), -1));
+    p->m_panel_printer_title->GetSizer()->SetMinSize(-1, 3 * wxGetApp().em_unit());
     p->m_panel_filament_title->GetSizer()
-        ->SetMinSize(-1, 4 * wxGetApp().em_unit());
+        ->SetMinSize(-1, 3 * wxGetApp().em_unit());
     //BBS
 #if 0
     if (p->mode_sizer)

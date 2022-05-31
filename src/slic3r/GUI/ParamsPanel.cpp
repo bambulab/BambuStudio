@@ -335,7 +335,7 @@ void ParamsPanel::create_layout()
 #endif
         //m_mode_sizer->Add( m_search_btn, 0, wxALIGN_CENTER );
         //m_mode_sizer->AddSpacer(16);
-        m_mode_sizer->SetMinSize(-1, FromDIP(40));
+        m_mode_sizer->SetMinSize(-1, FromDIP(30));
         m_top_panel->SetSizer(m_mode_sizer);
         //m_left_sizer->Add( m_top_panel, 0, wxEXPAND );
     }
@@ -585,7 +585,7 @@ void ParamsPanel::msw_rescale()
 {
     m_left_sizer->SetMinSize(wxSize(40 * em_unit(this), -1));
     if (m_mode_sizer)
-        m_mode_sizer->SetMinSize(-1, 4 * em_unit(this));
+        m_mode_sizer->SetMinSize(-1, 3 * em_unit(this));
     if (m_mode_region)
         ((SwitchButton* )m_mode_region)->Rescale();
     if (m_mode_view)
