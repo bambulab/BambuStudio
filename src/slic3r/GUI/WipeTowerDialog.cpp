@@ -14,20 +14,21 @@ int scale(const int val) { return val * Slic3r::GUI::wxGetApp().em_unit() / 10; 
 int ITEM_WIDTH() { return scale(30); }
 static const wxColour text_color = wxColour(107, 107, 107, 255);
 
-#define ICON_SIZE  wxSize(FromDIP(16), FromDIP(16))
-#define TABLE_BORDER FromDIP(28)
-#define HEADER_VERT_PADDING  FromDIP(12)
-#define HEADER_BEG_PADDING  FromDIP(30)
-#define ICON_GAP  FromDIP(44)
-#define HEADER_END_PADDING  FromDIP(24)
-#define ROW_VERT_PADDING  FromDIP(6)
-#define ROW_BEG_PADDING  FromDIP(20)
-#define EDIT_BOXES_GAP  FromDIP(30)
-#define ROW_END_PADDING  FromDIP(21)
-#define BTN_SIZE wxSize(FromDIP(58), FromDIP(24))
-#define BTN_GAP FromDIP(20)
-#define TEXT_BEG_PADDING FromDIP(41)
-#define MAX_FLUSH_VALUE 999
+#define ICON_SIZE               wxSize(FromDIP(16), FromDIP(16))
+#define TABLE_BORDER            FromDIP(28)
+#define HEADER_VERT_PADDING     FromDIP(12)
+#define HEADER_BEG_PADDING      FromDIP(30)
+#define ICON_GAP                FromDIP(44)
+#define HEADER_END_PADDING      FromDIP(24)
+#define ROW_VERT_PADDING        FromDIP(6)
+#define ROW_BEG_PADDING         FromDIP(20)
+#define EDIT_BOXES_GAP          FromDIP(30)
+#define ROW_END_PADDING         FromDIP(21)
+#define BTN_SIZE                wxSize(FromDIP(58), FromDIP(24))
+#define BTN_GAP                 FromDIP(20)
+#define TEXT_BEG_PADDING        FromDIP(41)
+#define MAX_FLUSH_VALUE         999
+#define MIN_WIPING_DIALOG_WIDTH FromDIP(400)
 
 static void update_ui(wxWindow* window)
 {
@@ -104,20 +105,18 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
 : wxDialog(parent, wxID_ANY, _(L("Flushing volumes for filament change")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE/* | wxRESIZE_BORDER*/)
 {
     this->SetBackgroundColour(*wxWHITE);
-    update_ui(this);
+    this->SetMinSize(wxSize(MIN_WIPING_DIALOG_WIDTH, -1));
 
-    //auto widget_button = new wxButton(this,wxID_ANY,"-",wxPoint(0,0),wxDefaultSize);
-    //update_ui(widget_button);
     m_panel_wiping = new WipingPanel(this, matrix, extruders, extruder_colours, nullptr);
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
     // set min sizer width according to extruders count
-    const auto sizer_width = (int)((sqrt(matrix.size()) + 2.8)*ITEM_WIDTH());
+    auto sizer_width = (int)((sqrt(matrix.size()) + 2.8)*ITEM_WIDTH());
+    sizer_width = sizer_width > MIN_WIPING_DIALOG_WIDTH ? sizer_width : MIN_WIPING_DIALOG_WIDTH;
     main_sizer->SetMinSize(wxSize(sizer_width, -1));
 
-    main_sizer->Add(m_panel_wiping, 0, wxEXPAND | wxALL, 0);
-    //main_sizer->Add(widget_button, 0, wxALIGN_CENTER_HORIZONTAL | wxCENTER | wxBOTTOM, 5);
+    main_sizer->Add(m_panel_wiping, 1, wxEXPAND | wxALL, 0);
 
     auto btn_sizer = create_btn_sizer(wxOK | wxCANCEL);
     main_sizer->Add(btn_sizer, 0, wxBOTTOM | wxRIGHT | wxEXPAND, BTN_GAP);
@@ -125,7 +124,6 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
     main_sizer->SetSizeHints(this);
 
     if (this->FindWindowById(wxID_OK, this)) {
-        update_ui(static_cast<wxButton*>(this->FindWindowById(wxID_OK, this)));
         this->FindWindowById(wxID_OK, this)->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {                 // if OK button is clicked..
             m_output_matrix = m_panel_wiping->read_matrix_values();    // ..query wiping panel and save returned values
             m_output_extruders = m_panel_wiping->read_extruders_values(); // so they can be recovered later by calling get_...()
@@ -138,8 +136,6 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
 
     }
     this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) { EndModal(wxCANCEL); });
-
-    this->Show();
 }
 
 void WipingPanel::create_panels(wxWindow* parent, const int num) {
