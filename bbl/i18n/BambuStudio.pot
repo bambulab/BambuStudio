@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-31 17:17+0800\n"
+"POT-Creation-Date: 2022-05-31 21:59+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -275,6 +275,11 @@ msgid ""
 msgstr ""
 
 msgid ""
+"Bed temperature is higher than vitrification temperature of this filament.\n"
+"This may cause nozzle blocked and printing failure"
+msgstr ""
+
+msgid ""
 "Too small layer height.\n"
 "Reset to 0.2"
 msgstr ""
@@ -355,16 +360,16 @@ msgid ""
 "No  - reset density to default non 100% value automaticlly\n"
 msgstr ""
 
-msgid "The bed is auto leveling..."
+msgid "The bed is auto leveling"
 msgstr ""
 
-msgid "The hot bed is preheating..."
+msgid "The hot bed is preheating"
 msgstr ""
 
-msgid "Frequncy sweeping..."
+msgid "Frequncy sweeping"
 msgstr ""
 
-msgid "Change the filament..."
+msgid "Change the filament"
 msgstr ""
 
 msgid "Pause(M400)"
@@ -373,28 +378,28 @@ msgstr ""
 msgid "Pause(Lack of filament)"
 msgstr ""
 
-msgid "The nozzle is preheating..."
+msgid "The nozzle is preheating"
 msgstr ""
 
-msgid "Extruder compensation scanning..."
+msgid "Extruder compensation scanning"
 msgstr ""
 
-msgid "Bed surface scanning..."
+msgid "Bed surface scanning"
 msgstr ""
 
-msgid "First layer scanning..."
+msgid "First layer scanning"
 msgstr ""
 
-msgid "Bed surface is auto identifying..."
+msgid "Bed surface is auto identifying"
 msgstr ""
 
 msgid "In the calibration of extrinsic parameters"
 msgstr ""
 
-msgid "The tool head is homing..."
+msgid "The tool head is homing"
 msgstr ""
 
-msgid "Nozzle cleaning..."
+msgid "Nozzle cleaning"
 msgstr ""
 
 msgid "In the calibration of temperature protection"
@@ -620,7 +625,10 @@ msgstr ""
 msgid "Normal mode"
 msgstr ""
 
-msgid "First layer"
+msgid "Prepare time"
+msgstr ""
+
+msgid "Model printing time"
 msgstr ""
 
 msgid "Total"
@@ -2014,7 +2022,19 @@ msgstr ""
 msgid "Debug Info"
 msgstr ""
 
+msgid "Calibration"
+msgstr ""
+
+msgid "Calibration program"
+msgstr ""
+
+msgid "Start Calibration"
+msgstr ""
+
 msgid "Printing List"
+msgstr ""
+
+msgid "Calibrating"
 msgstr ""
 
 msgid "Resume"
@@ -2156,6 +2176,9 @@ msgid "Warning:"
 msgstr ""
 
 msgid "Export ok."
+msgstr ""
+
+msgid " (Repair)"
 msgstr ""
 
 msgid "WARNING:"
@@ -2952,7 +2975,7 @@ msgstr ""
 msgid "Acceleration"
 msgstr ""
 
-msgid "Material for support"
+msgid "Support filament"
 msgstr ""
 
 msgid "Others"
@@ -5012,7 +5035,9 @@ msgstr ""
 msgid "The z gap between the top support interface and object"
 msgstr ""
 
-msgid "Filament to print support and skirt."
+msgid ""
+"Filament to print support and skirt. 0 means no specific filament for "
+"support and current filament is used"
 msgstr ""
 
 msgid "Line width of support"
@@ -5025,7 +5050,9 @@ msgid ""
 "Cover the top contact layer of the supports with loops. Disabled by default."
 msgstr ""
 
-msgid "Filament to print support interface"
+msgid ""
+"Filament to print support interface. 0 means no specific filament for "
+"support interface and current filament is used"
 msgstr ""
 
 msgid "Top interface layers"

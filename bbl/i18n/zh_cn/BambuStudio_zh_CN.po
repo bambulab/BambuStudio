@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-31 17:17+0800\n"
+"POT-Creation-Date: 2022-05-31 21:59+0800\n"
 "PO-Revision-Date: 2022-05-17 15:42+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -281,6 +281,12 @@ msgstr ""
 "这可能导致打印中模型从热床脱落"
 
 msgid ""
+"Bed temperature is higher than vitrification temperature of this filament.\n"
+"This may cause nozzle blocked and printing failure"
+msgstr "热床温度已高于这个耗材的软化温度。\n"
+"这可能导致堵头和打印失败"
+
+msgid ""
 "Too small layer height.\n"
 "Reset to 0.2"
 msgstr "层高过小。将重置为0.2"
@@ -392,17 +398,17 @@ msgstr ""
 "是 - 自动切换到锯齿图案\n"
 "否 - 自动重置为非100%填充密度\n"
 
-msgid "The bed is auto leveling..."
-msgstr "热床正在自动调平..."
+msgid "The bed is auto leveling"
+msgstr ""
 
-msgid "The hot bed is preheating..."
-msgstr "热床预热中..."
+msgid "The hot bed is preheating"
+msgstr ""
 
-msgid "Frequncy sweeping..."
-msgstr "机械模态扫频中..."
+msgid "Frequncy sweeping"
+msgstr ""
 
-msgid "Change the filament..."
-msgstr "换料中..."
+msgid "Change the filament"
+msgstr ""
 
 msgid "Pause(M400)"
 msgstr "暂停（M400）"
@@ -410,29 +416,29 @@ msgstr "暂停（M400）"
 msgid "Pause(Lack of filament)"
 msgstr "缺料暂停"
 
-msgid "The nozzle is preheating..."
-msgstr "热端预热中..."
+msgid "The nozzle is preheating"
+msgstr ""
 
-msgid "Extruder compensation scanning..."
-msgstr "挤出补偿扫描中..."
+msgid "Extruder compensation scanning"
+msgstr ""
 
-msgid "Bed surface scanning..."
-msgstr "床面扫描中..."
+msgid "Bed surface scanning"
+msgstr ""
 
-msgid "First layer scanning..."
-msgstr "首层扫描中..."
+msgid "First layer scanning"
+msgstr ""
 
-msgid "Bed surface is auto identifying..."
-msgstr "床面类型识别中..."
+msgid "Bed surface is auto identifying"
+msgstr ""
 
 msgid "In the calibration of extrinsic parameters"
 msgstr "轮廓仪外参标定中..."
 
-msgid "The tool head is homing..."
-msgstr "工具头回中"
+msgid "The tool head is homing"
+msgstr ""
 
-msgid "Nozzle cleaning..."
-msgstr "挤出头端面清理中..."
+msgid "Nozzle cleaning"
+msgstr ""
 
 msgid "In the calibration of temperature protection"
 msgstr "挤出头温度保护标定"
@@ -660,8 +666,11 @@ msgstr "总预估"
 msgid "Normal mode"
 msgstr "普通模式"
 
-msgid "First layer"
-msgstr "首层"
+msgid "Prepare time"
+msgstr "准备时间"
+
+msgid "Model printing time"
+msgstr "模型打印时间"
 
 msgid "Total"
 msgstr "总计"
@@ -2073,8 +2082,20 @@ msgstr "热床"
 msgid "Debug Info"
 msgstr ""
 
+msgid "Calibration"
+msgstr ""
+
+msgid "Calibration program"
+msgstr ""
+
+msgid "Start Calibration"
+msgstr ""
+
 msgid "Printing List"
 msgstr "项目切片"
+
+msgid "Calibrating"
+msgstr ""
 
 msgid "Resume"
 msgstr "继续"
@@ -2214,6 +2235,9 @@ msgstr "警告："
 
 msgid "Export ok."
 msgstr "导出成功."
+
+msgid " (Repair)"
+msgstr ""
 
 msgid "WARNING:"
 msgstr "警告："
@@ -3013,8 +3037,8 @@ msgstr "空驶速度"
 msgid "Acceleration"
 msgstr "加速度"
 
-msgid "Material for support"
-msgstr "支撑材料"
+msgid "Support filament"
+msgstr "支撑耗材"
 
 msgid "Others"
 msgstr "其他"
@@ -3456,16 +3480,16 @@ msgid ""
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
 "all objects in the project."
 msgstr ""
-"自动调整选定零件/所有零件的方向,有选定零件时调整选定零件的朝向,没有选择零件"
-"时调整所有零件的朝向"
+"自动调整选定零件/所有零件的方向,有选定零件时调整选定零件的朝向,没有选择零件时"
+"调整所有零件的朝向"
 
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
 "all objects in the current disk."
 msgstr ""
-"自动调整选定零件/所有零件的方向,有选定零件时调整选定零件的朝向,没有选择零件"
-"时调整当前盘所有零件的朝向"
+"自动调整选定零件/所有零件的方向,有选定零件时调整选定零件的朝向,没有选择零件时"
+"调整当前盘所有零件的朝向"
 
 msgid "Select multiple objects"
 msgstr "选择多个对象"
@@ -5145,8 +5169,10 @@ msgstr "顶部Z距离"
 msgid "The z gap between the top support interface and object"
 msgstr "支撑顶部和模型之间的z间隙"
 
-msgid "Filament to print support and skirt."
-msgstr "打印支撑和skirt的耗材丝"
+msgid ""
+"Filament to print support and skirt. 0 means no specific filament for "
+"support and current filament is used"
+msgstr "打印支撑和skirt的耗材丝。0代表不指定特定的耗材丝，并使用当前耗材"
 
 msgid "Line width of support"
 msgstr "支撑的线宽"
@@ -5158,8 +5184,10 @@ msgid ""
 "Cover the top contact layer of the supports with loops. Disabled by default."
 msgstr "使用圈形走线覆盖顶部接触面。默认关闭。"
 
-msgid "Filament to print support interface"
-msgstr "打印支撑接触面的耗材丝"
+msgid ""
+"Filament to print support interface. 0 means no specific filament for "
+"support interface and current filament is used"
+msgstr "打印支撑接触面的耗材丝。0代表不指定特定的耗材丝，并使用当前耗材"
 
 msgid "Top interface layers"
 msgstr "顶部接触面层数"
@@ -5535,6 +5563,51 @@ msgstr " 对象："
 #, boost-format
 msgid "Error at line %1%:\n"
 msgstr "错误在行%1%：\n"
+
+#~ msgid "The bed is auto leveling..."
+#~ msgstr "热床正在自动调平..."
+
+#~ msgid "The hot bed is preheating..."
+#~ msgstr "热床预热中..."
+
+#~ msgid "Frequncy sweeping..."
+#~ msgstr "机械模态扫频中..."
+
+#~ msgid "Change the filament..."
+#~ msgstr "换料中..."
+
+#~ msgid "The nozzle is preheating..."
+#~ msgstr "热端预热中..."
+
+#~ msgid "Extruder compensation scanning..."
+#~ msgstr "挤出补偿扫描中..."
+
+#~ msgid "Bed surface scanning..."
+#~ msgstr "床面扫描中..."
+
+#~ msgid "First layer scanning..."
+#~ msgstr "首层扫描中..."
+
+#~ msgid "Bed surface is auto identifying..."
+#~ msgstr "床面类型识别中..."
+
+#~ msgid "The tool head is homing..."
+#~ msgstr "工具头回中"
+
+#~ msgid "Nozzle cleaning..."
+#~ msgstr "挤出头端面清理中..."
+
+#~ msgid "First layer"
+#~ msgstr "首层"
+
+#~ msgid "Material for support"
+#~ msgstr "支撑材料"
+
+#~ msgid "Filament to print support and skirt."
+#~ msgstr "打印支撑和skirt的耗材丝"
+
+#~ msgid "Filament to print support interface"
+#~ msgstr "打印支撑接触面的耗材丝"
 
 #~ msgid "Import STL/OBJ/AMF/3MF without config, keep plater"
 #~ msgstr "导入STL/OBJ/AMF/3MF"
