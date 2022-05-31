@@ -2431,7 +2431,7 @@ void TabFilament::build()
                 bed_temps_opt->set_at(&temp_opt, bed_type, 0);
                 // update dirty after value change
                 update_dirty();
-                m_config_manipulation.check_bed_temperature_difference(&filament_config);
+                m_config_manipulation.check_bed_temperature_difference(bed_type, &filament_config);
                 on_value_change(opt_key, value);
             }
             else if (opt_key == "nozzle_temperature") {

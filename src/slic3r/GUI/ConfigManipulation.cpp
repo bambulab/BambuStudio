@@ -120,7 +120,7 @@ void ConfigManipulation::check_nozzle_temperature_initial_layer_range(DynamicPri
     }
 }
 
-void ConfigManipulation::check_bed_temperature_difference(DynamicPrintConfig* config)
+void ConfigManipulation::check_bed_temperature_difference(int bed_type, DynamicPrintConfig* config)
 {
     if (is_msg_dlg_already_exist)
         return;
@@ -128,11 +128,11 @@ void ConfigManipulation::check_bed_temperature_difference(DynamicPrintConfig* co
     if (config->has("bed_temperature_difference")
         && config->has("bed_temperature")
         && config->has("bed_temperature_initial_layer")
-        && config->has("curr_bed_type")) {
-        int curr_bed_type = config->opt_enum("curr_bed_type", 0);
-        int first_layer_bed_temp = config->opt_int("bed_temperature_initial_layer", curr_bed_type);
-        int bed_temp = config->opt_int("bed_temperature", curr_bed_type);
+        && config->has("temperature_vitrification")) {
+        int first_layer_bed_temp = config->opt_int("bed_temperature_initial_layer", bed_type);
+        int bed_temp = config->opt_int("bed_temperature", bed_type);
         int bed_temp_difference = config->opt_int("bed_temperature_difference", 0);
+        int vitrification = config->opt_int("temperature_vitrification", 0);
         if (first_layer_bed_temp - bed_temp > bed_temp_difference) {
             const wxString msg_text = wxString::Format(_L("Bed temperature of other layer is lower than bed temperature of initial layer for more than %d degree centigrade.\nThis may cause model broken free from build plate during printing"), bed_temp_difference);
             MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
@@ -140,6 +140,16 @@ void ConfigManipulation::check_bed_temperature_difference(DynamicPrintConfig* co
             dialog.ShowModal();
             is_msg_dlg_already_exist = false;
         }
+
+        if (first_layer_bed_temp > vitrification ||
+            bed_temp > vitrification) {
+            const wxString msg_text = wxString::Format(_L("Bed temperature is higher than vitrification temperature of this filament.\nThis may cause nozzle blocked and printing failure"));
+            MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
+            is_msg_dlg_already_exist = true;
+            dialog.ShowModal();
+            is_msg_dlg_already_exist = false;
+        }
+
     }
 }
 
@@ -167,7 +177,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     //BBS: limite the max layer_herght
-    if (config->opt_float("layer_height") > 0.3 + EPSILON)
+    if (config->opt_float("layer_height") > 0.6 + EPSILON)
     {
         const wxString msg_text = _(L("Too large layer height.\nReset to 0.2"));
         MessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);

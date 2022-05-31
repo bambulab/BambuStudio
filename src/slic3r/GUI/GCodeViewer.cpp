@@ -4902,14 +4902,15 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         imgui.title(time_title + ":");
 
         std::string filament_str = _u8L("Filament");
-        std::string first_str = _u8L("First layer");
+        std::string prepare_str = _u8L("Prepare time");
+        std::string print_str = _u8L("Model printing time");
         std::string total_str = _u8L("Total");
 
         float max_len = 10.0f + ImGui::GetStyle().ItemSpacing.x;
         if (time_mode.layers_times.empty())
             max_len += ImGui::CalcTextSize(total_str.c_str()).x;
         else {
-            max_len += std::max(std::max(ImGui::CalcTextSize(first_str.c_str()).x, ImGui::CalcTextSize(total_str.c_str()).x), ImGui::CalcTextSize(filament_str.c_str()).x);
+            max_len += std::max(ImGui::CalcTextSize(print_str.c_str()).x ,std::max(std::max(ImGui::CalcTextSize(prepare_str.c_str()).x, ImGui::CalcTextSize(total_str.c_str()).x), ImGui::CalcTextSize(filament_str.c_str()).x));
         }
 
         //BBS display filament cost
@@ -4927,11 +4928,19 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ::sprintf(buf, "  %.2f g", ps.total_weight);
         imgui.text(buf);
 
-        if (!time_mode.layers_times.empty()) {
-            imgui.text(first_str + ":");
+        auto role_time = [time_mode](ExtrusionRole role) {
+            auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [role](const std::pair<ExtrusionRole, float>& item) { return role == item.first; });
+            return (it != time_mode.roles_times.end()) ? it->second : 0.0f;
+        };
+        //BBS: start gcode is prepeare time
+        if (role_time(erCustom) != 0.0f) {
+            imgui.text(prepare_str + ":");
             ImGui::SameLine(max_len);
-            imgui.text(short_time(get_time_dhms(time_mode.layers_times.front())));
+            imgui.text(short_time(get_time_dhms(role_time(erCustom))));
         }
+        imgui.text(print_str + ":");
+        ImGui::SameLine(max_len);
+        imgui.text(short_time(get_time_dhms(time_mode.time - role_time(erCustom))));
         imgui.text(total_str + ":");
         ImGui::SameLine(max_len);
         imgui.text(short_time(get_time_dhms(time_mode.time)));
