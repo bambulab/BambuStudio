@@ -90,9 +90,8 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
 
     m_staticline = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
     m_staticline->SetBackgroundColour(wxColour(206,206,206));
-    m_main_left_sizer->Add(m_staticline, 0, wxEXPAND | wxLEFT, 40);
-
     m_staticline->Show(false);
+    m_main_left_sizer->Add(m_staticline, 0, wxEXPAND | wxLEFT, 40);
 
     m_ams_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_ams_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(200, 200), 0);
@@ -376,7 +375,7 @@ void MachineInfoPanel::update_version_text(MachineObject* obj)
 
 void MachineInfoPanel::update_ams(MachineObject *obj)
 {
-    if (!obj->amsList.empty()) {
+    if (obj->ams_exist_bits != 0) {
         show_ams(true);
         std::map<int, MachineObject::ModuleVersionInfo> ver_list = obj->get_ams_version();
         
@@ -411,6 +410,7 @@ void MachineInfoPanel::update_ams(MachineObject *obj)
     } else {
         show_ams(false);
     }
+    this->Layout();
 }
 
 void MachineInfoPanel::show_status(int status)
@@ -478,6 +478,8 @@ void MachineInfoPanel::show_ams(bool show, bool force_update)
 {
     if (m_last_ams_show != show || force_update) {
         m_ams_sizer->Show(show);
+        m_staticline->Show(show);
+        BOOST_LOG_TRIVIAL(trace) << "upgrade: show_ams = " << show;
     }
     m_last_ams_show = show;
 }
@@ -567,8 +569,6 @@ void UpgradePanel::update(MachineObject *obj)
         clean_push_upgrade_panel();
         m_push_upgrade_panel = new MachineInfoPanel(m_scrolledWindow);
         m_machine_list_sizer->Add(m_push_upgrade_panel, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, FromDIP(8));
-        Layout();
-        
         m_initialized = false;
     }
 
@@ -579,6 +579,7 @@ void UpgradePanel::update(MachineObject *obj)
 
     if (!obj)
         clean_push_upgrade_panel();
+    this->Layout();
     Thaw();
 
     m_obj = obj;
