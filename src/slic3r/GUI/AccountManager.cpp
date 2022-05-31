@@ -1020,6 +1020,40 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         return 0;
     }
 
+    int AccountManager::modify_device_name(std::string dev_id, std::string dev_name, unsigned int& http_code, std::string& http_body)
+    {
+        int result = -1;
+        std::string url = (boost::format("%1%/iot-service/api/user/device/info") % host).str();
+
+        json j;
+        j["dev_id"] = dev_id;
+        j["dev_name"] = dev_name;
+
+        Http http = Http::patch(url);
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .header("Content-Type", "application/json")
+            .set_post_body(j.dump())
+            .on_complete(
+                [this, &result, &http_code, &http_body](std::string body, unsigned int status) {
+                    http_code = status;
+                    http_body = body;
+                    try {
+                        json j = json::parse(body);
+                        if (j.contains("message") && j["message"].get<std::string>() == MSG_SUCCESS) {
+                            result = 0;
+                        }
+                    } catch(...) {
+                        ;
+                    }
+            })
+            .on_error([this, &http_code, &http_body](std::string body, std::string error, unsigned status) {
+                    http_code = status;
+                    http_body = body;
+        }).perform_sync();
+        return result;
+    }
+
     /* print apis */
     int AccountManager::get_print_info(std::string& result, int& err_code, std::string err_msg, bool sync)
     {

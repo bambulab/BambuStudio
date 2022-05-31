@@ -381,6 +381,10 @@ public:
     int request_unbind(std::string device_id, ResultFn fn);
     int request_bind_list(ResultFn fn = nullptr);
 
+    /* device apis */
+    // PATCH /user/device/info
+    int modify_device_name(std::string dev_id, std::string dev_name, unsigned int &http_code, std::string &http_body);
+
     /* print apis */
     int get_print_info(std::string &result, int &err_code, std::string err_msg, bool sync = true);
     void update_my_machine_list_info(int& err_code, std::string& err_msg, bool sync = true);

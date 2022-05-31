@@ -802,12 +802,14 @@ int MachineObject::command_ams_switch(std::string tray_id, int old_temp, int new
     return this->publish_gcode(gcode);
 }
 
-int MachineObject::command_ams_change_filament(int tray_id)
+int MachineObject::command_ams_change_filament(int tray_id, int old_temp, int new_temp)
 {
     json j;
     j["print"]["command"] = "ams_change_filament";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["target"] = tray_id;
+    j["print"]["curr_temp"] = old_temp;
+    j["print"]["tar_temp"] = new_temp;
     return this->publish_json(j.dump());
 }
 
