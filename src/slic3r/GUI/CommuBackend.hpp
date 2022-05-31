@@ -83,21 +83,21 @@ public:
 class LocalClient
 {
 private:
-    ;
+    int ConnectSocket;
 
 public:
-    LocalClient() {}
+    LocalClient();
 
     static const int PRO_HEADER_SIZE = 2;
     static const int PRO_LENGTH_SIZE = 2;
     static const int PRO_TAIL_SIZE = 2;
     static int PRO_EXTRA_SIZE;
 
-    int publish(std::string json_str) { return 0; }
-    int connect(std::string server_ip, int port) { return 0; }
-    int disconnect() { return 0; }
-    int send(const char *buf, unsigned int size) { return 0; }
-    int recv(std::string &json_str) { return 0; }
+    int publish(std::string json_str);
+    int connect(std::string server_ip, int port);
+    int disconnect();
+    int send(const char *buf, unsigned int size);
+    int recv(std::string &json_str);
 };
 #endif
 

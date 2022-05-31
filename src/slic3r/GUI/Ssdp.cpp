@@ -6,23 +6,181 @@
 #include <boost/log/trivial.hpp>
 #include "libslic3r/Utils.hpp"
 
-#if defined(__WINDOWS__)
-
 static struct SDP_CONST Global = {
-	// SSDP Method
-	"M-SEARCH",
-	"NOTIFY",
-	"RESPONSE",
+    // SSDP Method
+    "M-SEARCH",
+    "NOTIFY",
+    "RESPONSE",
 
-	// SSDP Header
-	"M-SEARCH * HTTP/1.1\r\n",
-	"NOTIFY * HTTP/1.1\r\n",
-	"HTTP/1.1 200 OK\r\n",
+    // SSDP Header
+    "M-SEARCH * HTTP/1.1\r\n",
+    "NOTIFY * HTTP/1.1\r\n",
+    "HTTP/1.1 200 OK\r\n",
 
-	// IP Address
-	"127.0.0.1",
-	"239.255.255.250"
+    // IP Address
+    "127.0.0.1",
+    "239.255.255.250",
+    nullptr
 };
+
+int lssdp_packet_parser(const char* data, size_t data_len, lssdp_packet* packet) {
+    if (data == NULL) {
+        return LSSDP_PARSE_INVALID;
+    }
+
+    if (data_len != strlen(data)) {
+        return LSSDP_PARSE_INVALID;
+    }
+
+    if (packet == NULL) {
+        return LSSDP_PARSE_INVALID;
+    }
+
+    // 1. compare SSDP Method Header: M-SEARCH, NOTIFY, RESPONSE
+    size_t i;
+    if ((i = strlen(Global.HEADER_MSEARCH)) < data_len && memcmp(data, Global.HEADER_MSEARCH, i) == 0) {
+        strcpy(packet->method, Global.MSEARCH);
+        return LSSDP_PARSE_COMMAND;
+    }
+    else if ((i = strlen(Global.HEADER_NOTIFY)) < data_len && memcmp(data, Global.HEADER_NOTIFY, i) == 0) {
+        strcpy(packet->method, Global.NOTIFY);
+    }
+    else if ((i = strlen(Global.HEADER_RESPONSE)) < data_len && memcmp(data, Global.HEADER_RESPONSE, i) == 0) {
+        strcpy(packet->method, Global.RESPONSE);
+        return LSSDP_PARSE_COMMAND;
+    }
+    else {
+        return -1;
+    }
+
+    // 2. parse each field line
+    size_t start = i;
+    for (i = start; i < data_len; i++) {
+        if (data[i] == '\n' && i - 1 > start && data[i - 1] == '\r') {
+            parse_field_line(data, start, i - 2, packet);
+            start = i + 1;
+        }
+    }
+    return 0;
+}
+
+int get_colon_index(const char* string, size_t start, size_t end) {
+    size_t i;
+    for (i = start; i <= end; i++) {
+        if (string[i] == ':') {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int trim_spaces(const char* string, size_t* start, size_t* end) {
+    int i = *start;
+    int j = *end;
+
+    while (i <= *end && (!isprint(string[i]) || isspace(string[i]))) i++;
+    while (j >= *start && (!isprint(string[j]) || isspace(string[j]))) j--;
+
+    if (i > j) {
+        return -1;
+    }
+
+    *start = i;
+    *end = j;
+    return 0;
+}
+
+int parse_field_line(const char* data, size_t start, size_t end, lssdp_packet* packet) {
+    // 1. find the colon
+    if (data[start] == ':') {
+        printf("the first character of line should not be colon\n");
+        printf("%s\n", data);
+        return -1;
+    }
+
+    int colon = get_colon_index(data, start + 1, end);
+    if (colon == -1) {
+        printf("there is no colon in line\n");
+        printf("%s\n", data);
+        return -1;
+    }
+
+    if (colon == end) {
+        // value is empty
+        return -1;
+    }
+
+
+    // 2. get field, field_len
+    size_t i = start;
+    size_t j = colon - 1;
+    if (trim_spaces(data, &i, &j) == -1) {
+        return -1;
+    }
+    const char* field = &data[i];
+    size_t field_len = j - i + 1;
+
+
+    // 3. get value, value_len
+    i = colon + 1;
+    j = end;
+    if (trim_spaces(data, &i, &j) == -1) {
+        return -1;
+    };
+    const char* value = &data[i];
+    size_t value_len = j - i + 1;
+    // 4. set each field's value to packet
+    if (field_len == strlen("st") && strncmp(field, "ST", field_len) == 0) {
+        memcpy(packet->st, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
+        return 0;
+    }
+
+    if (field_len == strlen("nt") && strncmp(field, "NT", field_len) == 0) {
+        memcpy(packet->st, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
+        return 0;
+    }
+
+    if (field_len == strlen("usn") && strncmp(field, "USN", field_len) == 0) {
+        memcpy(packet->usn, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
+        return 0;
+    }
+
+    if (field_len == strlen("location") && strncmp(field, "Location", field_len) == 0) {
+        memcpy(packet->location, value, value_len < LSSDP_LOCATION_LEN ? value_len : LSSDP_LOCATION_LEN - 1);
+        return 0;
+    }
+
+    if (field_len == strlen("DevModel.bambu.com") && strncmp(field, "DevModel.bambu.com", field_len) == 0) {
+        memcpy(packet->printer_type, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
+        return 0;
+    }
+
+    if (field_len == strlen("DevName.bambu.com") && strncmp(field, "DevName.bambu.com", field_len) == 0) {
+        memcpy(packet->printer_name, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
+        return 0;
+    }
+
+    if (field_len == strlen("DevSignal.bambu.com") && strncmp(field, "DevSignal.bambu.com", field_len) == 0) {
+        memcpy(packet->printer_signal, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
+        return 0;
+    }
+
+    if (field_len == strlen("sm_id") && strncmp(field, "sm_id", field_len) == 0) {
+        memcpy(packet->sm_id, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
+        return 0;
+    }
+
+    if (field_len == strlen("dev_type") && strncmp(field, "dev_type", field_len) == 0) {
+        memcpy(packet->device_type, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
+        return 0;
+    }
+
+    // the field is not in the struct packet
+    return 0;
+}
+
+
+#if defined(__WINDOWS__)
 
 int bbl_init_socket()
 {
@@ -459,163 +617,6 @@ int bbl_read_from_broadcast(SOCKET socket, char* buf, int* buf_size, int max_buf
 	return 0;
 }
 
-
-int lssdp_packet_parser(const char* data, size_t data_len, lssdp_packet* packet) {
-	if (data == NULL) {
-		return LSSDP_PARSE_INVALID;
-	}
-
-	if (data_len != strlen(data)) {
-		return LSSDP_PARSE_INVALID;
-	}
-
-	if (packet == NULL) {
-		return LSSDP_PARSE_INVALID;
-	}
-
-	// 1. compare SSDP Method Header: M-SEARCH, NOTIFY, RESPONSE
-	size_t i;
-	if ((i = strlen(Global.HEADER_MSEARCH)) < data_len && memcmp(data, Global.HEADER_MSEARCH, i) == 0) {
-		strcpy(packet->method, Global.MSEARCH);
-		return LSSDP_PARSE_COMMAND;
-	}
-	else if ((i = strlen(Global.HEADER_NOTIFY)) < data_len && memcmp(data, Global.HEADER_NOTIFY, i) == 0) {
-		strcpy(packet->method, Global.NOTIFY);
-	}
-	else if ((i = strlen(Global.HEADER_RESPONSE)) < data_len && memcmp(data, Global.HEADER_RESPONSE, i) == 0) {
-		strcpy(packet->method, Global.RESPONSE);
-		return LSSDP_PARSE_COMMAND;
-	}
-	else {
-		return -1;
-	}
-
-	// 2. parse each field line
-	size_t start = i;
-	for (i = start; i < data_len; i++) {
-		if (data[i] == '\n' && i - 1 > start && data[i - 1] == '\r') {
-			parse_field_line(data, start, i - 2, packet);
-			start = i + 1;
-		}
-	}
-	return 0;
-}
-
-int parse_field_line(const char* data, size_t start, size_t end, lssdp_packet* packet) {
-	// 1. find the colon
-	if (data[start] == ':') {
-		printf("the first character of line should not be colon\n");
-		printf("%s\n", data);
-		return -1;
-	}
-
-	int colon = get_colon_index(data, start + 1, end);
-	if (colon == -1) {
-		printf("there is no colon in line\n");
-		printf("%s\n", data);
-		return -1;
-	}
-
-	if (colon == end) {
-		// value is empty
-		return -1;
-	}
-
-
-	// 2. get field, field_len
-	size_t i = start;
-	size_t j = colon - 1;
-	if (trim_spaces(data, &i, &j) == -1) {
-		return -1;
-	}
-	const char* field = &data[i];
-	size_t field_len = j - i + 1;
-
-
-	// 3. get value, value_len
-	i = colon + 1;
-	j = end;
-	if (trim_spaces(data, &i, &j) == -1) {
-		return -1;
-	};
-	const char* value = &data[i];
-	size_t value_len = j - i + 1;
-	// 4. set each field's value to packet
-	if (field_len == strlen("st") && strncmp(field, "ST", field_len) == 0) {
-		memcpy(packet->st, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
-		return 0;
-	}
-
-	if (field_len == strlen("nt") && strncmp(field, "NT", field_len) == 0) {
-		memcpy(packet->st, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
-		return 0;
-	}
-
-	if (field_len == strlen("usn") && strncmp(field, "USN", field_len) == 0) {
-		memcpy(packet->usn, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
-		return 0;
-	}
-
-	if (field_len == strlen("location") && strncmp(field, "Location", field_len) == 0) {
-		memcpy(packet->location, value, value_len < LSSDP_LOCATION_LEN ? value_len : LSSDP_LOCATION_LEN - 1);
-		return 0;
-	}
-
-    if (field_len == strlen("DevModel.bambu.com") && strncmp(field, "DevModel.bambu.com", field_len) == 0) {
-        memcpy(packet->printer_type, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
-		return 0;
-    }
-
-    if (field_len == strlen("DevName.bambu.com") && strncmp(field, "DevName.bambu.com", field_len) == 0) {
-        memcpy(packet->printer_name, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
-		return 0;
-    }
-
-    if (field_len == strlen("DevSignal.bambu.com") && strncmp(field, "DevSignal.bambu.com", field_len) == 0) {
-        memcpy(packet->printer_signal, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
-		return 0;
-    }
-
-	if (field_len == strlen("sm_id") && strncmp(field, "sm_id", field_len) == 0) {
-		memcpy(packet->sm_id, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
-		return 0;
-	}
-
-	if (field_len == strlen("dev_type") && strncmp(field, "dev_type", field_len) == 0) {
-		memcpy(packet->device_type, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
-		return 0;
-	}
-
-	// the field is not in the struct packet
-	return 0;
-}
-
-int get_colon_index(const char* string, size_t start, size_t end) {
-	size_t i;
-	for (i = start; i <= end; i++) {
-		if (string[i] == ':') {
-			return i;
-		}
-	}
-	return -1;
-}
-
-int trim_spaces(const char* string, size_t* start, size_t* end) {
-	int i = *start;
-	int j = *end;
-
-	while (i <= *end && (!isprint(string[i]) || isspace(string[i]))) i++;
-	while (j >= *start && (!isprint(string[j]) || isspace(string[j]))) j--;
-
-	if (i > j) {
-		return -1;
-	}
-
-	*start = i;
-	*end = j;
-	return 0;
-}
-
 #elif defined(__APPLE__)
 #include <stdio.h>      // snprintf, vsnprintf
 #include <stdlib.h>     // malloc, free
@@ -645,67 +646,15 @@ int trim_spaces(const char* string, size_t* start, size_t* end) {
 #define lssdp_error(fmt, agrs...) lssdp_log(LSSDP_LOG_ERROR, __LINE__, __func__, fmt, ##agrs)
 
 
-/** Struct: lssdp_packet **/
-typedef struct lssdp_packet {
-    char            method      [LSSDP_FIELD_LEN];      // M-SEARCH, NOTIFY, RESPONSE
-    char            st          [LSSDP_FIELD_LEN];      // Search Target
-    char            usn         [LSSDP_FIELD_LEN];      // Unique Service Name
-    char            location    [LSSDP_LOCATION_LEN];   // Location
-
-    /* Additional SSDP Header Fields */
-    char            sm_id       [LSSDP_FIELD_LEN];
-    char            device_type [LSSDP_FIELD_LEN];
-    long long       update_time;
-} lssdp_packet;
-
-
 /** Internal Function **/
 static int send_multicast_data(const char * data, const struct lssdp_interface interface, unsigned short ssdp_port);
 static int lssdp_send_response(lssdp_ctx * lssdp, struct sockaddr_in address);
-static int lssdp_packet_parser(const char * data, size_t data_len, lssdp_packet * packet);
-static int parse_field_line(const char * data, size_t start, size_t end, lssdp_packet * packet);
-static int get_colon_index(const char * string, size_t start, size_t end);
-static int trim_spaces(const char * string, size_t * start, size_t * end);
 static int lssdp_log(int level, int line, const char * func, const char * format, ...);
 static int neighbor_list_add(lssdp_ctx * lssdp, const lssdp_packet packet);
 static int lssdp_neighbor_remove_all(lssdp_ctx * lssdp);
 static void neighbor_list_free(lssdp_nbr * list);
 static struct lssdp_interface * find_interface_in_LAN(lssdp_ctx * lssdp, uint32_t address);
 
-
-/** Global Variable **/
-static struct {
-    const char * MSEARCH;
-    const char * NOTIFY;
-    const char * RESPONSE;
-
-    const char * HEADER_MSEARCH;
-    const char * HEADER_NOTIFY;
-    const char * HEADER_RESPONSE;
-
-    const char * ADDR_LOCALHOST;
-    const char * ADDR_MULTICAST;
-
-    void (* log_callback)(const char * file, const char * tag, int level, int line, const char * func, const char * message);
-
-} Global = {
-    // SSDP Method
-    .MSEARCH  = "M-SEARCH",
-    .NOTIFY   = "NOTIFY",
-    .RESPONSE = "RESPONSE",
-
-    // SSDP Header
-    .HEADER_MSEARCH  = "M-SEARCH * HTTP/1.1\r\n",
-    .HEADER_NOTIFY   = "NOTIFY * HTTP/1.1\r\n",
-    .HEADER_RESPONSE = "HTTP/1.1 200 OK\r\n",
-
-    // IP Address
-    .ADDR_LOCALHOST = "127.0.0.1",
-    .ADDR_MULTICAST = "239.255.255.250",
-
-    // Log Callback
-    .log_callback = NULL
-};
 
 
 // 01. lssdp_network_interface_update
@@ -1392,157 +1341,6 @@ static int lssdp_send_response(lssdp_ctx * lssdp, struct sockaddr_in address) {
         lssdp_info("SEND => %-8s   %s => %s\n", Global.RESPONSE, interface->ip, msearch_ip);
     }
 
-    return 0;
-}
-
-static int lssdp_packet_parser(const char * data, size_t data_len, lssdp_packet * packet) {
-    if (data == NULL) {
-        lssdp_error("data should not be NULL\n");
-        return -1;
-    }
-
-    if (data_len != strlen(data)) {
-        lssdp_error("data_len (%zu) is not match to the data length (%zu)\n", data_len, strlen(data));
-        return -1;
-    }
-
-    if (packet == NULL) {
-        lssdp_error("packet should not be NULL\n");
-        return -1;
-    }
-
-    // 1. compare SSDP Method Header: M-SEARCH, NOTIFY, RESPONSE
-    size_t i;
-    if ((i = strlen(Global.HEADER_MSEARCH)) < data_len && memcmp(data, Global.HEADER_MSEARCH, i) == 0) {
-        strcpy(packet->method, Global.MSEARCH);
-    } else if ((i = strlen(Global.HEADER_NOTIFY)) < data_len && memcmp(data, Global.HEADER_NOTIFY, i) == 0) {
-        strcpy(packet->method, Global.NOTIFY);
-    } else if ((i = strlen(Global.HEADER_RESPONSE)) < data_len && memcmp(data, Global.HEADER_RESPONSE, i) == 0) {
-        strcpy(packet->method, Global.RESPONSE);
-    } else {
-        lssdp_warn("received unknown SSDP packet\n");
-        lssdp_debug("%s\n", data);
-        return -1;
-    }
-
-    // 2. parse each field line
-    size_t start = i;
-    for (i = start; i < data_len; i++) {
-        if (data[i] == '\n' && i - 1 > start && data[i - 1] == '\r') {
-            parse_field_line(data, start, i - 2, packet);
-            start = i + 1;
-        }
-    }
-
-    // 3. set update_time
-    long long current_time = get_current_time();
-    if (current_time < 0) {
-        lssdp_error("got invalid timestamp %lld\n", current_time);
-        return -1;
-    }
-    packet->update_time = current_time;
-    return 0;
-}
-
-static int parse_field_line(const char * data, size_t start, size_t end, lssdp_packet * packet) {
-    // 1. find the colon
-    if (data[start] == ':') {
-        lssdp_warn("the first character of line should not be colon\n");
-        lssdp_debug("%s\n", data);
-        return -1;
-    }
-
-    int colon = get_colon_index(data, start + 1, end);
-    if (colon == -1) {
-        lssdp_warn("there is no colon in line\n");
-        lssdp_debug("%s\n", data);
-        return -1;
-    }
-
-    if (colon == end) {
-        // value is empty
-        return -1;
-    }
-
-
-    // 2. get field, field_len
-    size_t i = start;
-    size_t j = colon - 1;
-    if (trim_spaces(data, &i, &j) == -1) {
-        return -1;
-    }
-    const char * field = &data[i];
-    size_t field_len = j - i + 1;
-
-
-    // 3. get value, value_len
-    i = colon + 1;
-    j = end;
-    if (trim_spaces(data, &i, &j) == -1) {
-        return -1;
-    };
-    const char * value = &data[i];
-    size_t value_len = j - i + 1;
-
-
-    // 4. set each field's value to packet
-    if (field_len == strlen("st") && strncasecmp(field, "st", field_len) == 0) {
-        memcpy(packet->st, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
-        return 0;
-    }
-
-    if (field_len == strlen("nt") && strncasecmp(field, "nt", field_len) == 0) {
-        memcpy(packet->st, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
-        return 0;
-    }
-
-    if (field_len == strlen("usn") && strncasecmp(field, "usn", field_len) == 0) {
-        memcpy(packet->usn, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
-        return 0;
-    }
-
-    if (field_len == strlen("location") && strncasecmp(field, "location", field_len) == 0) {
-        memcpy(packet->location, value, value_len < LSSDP_LOCATION_LEN ? value_len : LSSDP_LOCATION_LEN - 1);
-        return 0;
-    }
-
-    if (field_len == strlen("sm_id") && strncasecmp(field, "sm_id", field_len) == 0) {
-        memcpy(packet->sm_id, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
-        return 0;
-    }
-
-    if (field_len == strlen("dev_type") && strncasecmp(field, "dev_type", field_len) == 0) {
-        memcpy(packet->device_type, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
-        return 0;
-    }
-
-    // the field is not in the struct packet
-    return 0;
-}
-
-static int get_colon_index(const char * string, size_t start, size_t end) {
-    size_t i;
-    for (i = start; i <= end; i++) {
-        if (string[i] == ':') {
-            return i;
-        }
-    }
-    return -1;
-}
-
-static int trim_spaces(const char * string, size_t * start, size_t * end) {
-    int i = *start;
-    int j = *end;
-
-    while (i <= *end   && (!isprint(string[i]) || isspace(string[i]))) i++;
-    while (j >= *start && (!isprint(string[j]) || isspace(string[j]))) j--;
-
-    if (i > j) {
-        return -1;
-    }
-
-    *start = i;
-    *end   = j;
     return 0;
 }
 

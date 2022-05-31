@@ -62,9 +62,8 @@ namespace Slic3r {
         }
     }
 
-    void SsdpDiscovery::parse_sdp_message(const char *rece_buff, unsigned int recv_size)
+    static void on_parse_sdp_message(const char* rece_buff, unsigned int recv_size)
     {
-#if defined(__WINDOWS__)
         lssdp_packet packet;
         memset(&packet, 0, sizeof(packet));
         int result = lssdp_packet_parser(rece_buff, recv_size, &packet);
@@ -75,24 +74,32 @@ namespace Slic3r {
                     std::string printer_name = packet.printer_name;
                     std::string printer_type = packet.printer_type;
                     std::string printer_signal = packet.printer_signal;
-                    std::string printer_ip   = std::string(packet.location);
+                    std::string printer_ip = std::string(packet.location);
                     std::string printer_dev_id = std::string(packet.usn);
-                    Slic3r::DeviceManager *device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+                    Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
                     if (device_manager) {
                         device_manager->on_machine_alive(printer_name, printer_dev_id, printer_ip, printer_type, printer_signal);
                     }
-                } catch (std::exception &e) {
+                }
+                catch (std::exception& e) {
                     BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::parse_sdp_message, exception=" << e.what();
-                } catch (...) {
+                }
+                catch (...) {
                     BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::parse_sdp_message, exception!";
                 }
-            } else {
+            }
+            else {
                 BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery: mismatch packet.st = " << packet.st;
             }
-        } else {
+        }
+        else {
             BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery: lssdp_packet_parser error = " << result;
         }
-#endif
+    }
+
+    void SsdpDiscovery::parse_sdp_message(const char *rece_buff, unsigned int recv_size)
+    {
+        on_parse_sdp_message(rece_buff, recv_size);
     }
 
 #if defined(__WINDOWS__)
@@ -215,6 +222,13 @@ namespace Slic3r {
             }
         }
     }
+
+    static int on_packet_received(struct lssdp_ctx* lssdp, const char* packet, size_t packet_len)
+    {
+        BOOST_LOG_TRIVIAL(trace) << "ssdp_mac: on_packet_received, packet = " << packet << ", size = " << packet_len;
+        on_parse_sdp_message(packet, packet_len);
+        return 0;
+    }
 #endif
 
 
@@ -237,7 +251,7 @@ namespace Slic3r {
         lssdp.network_interface_changed_callback = show_interface_list_and_rebind_socket;
         // BBS: fix crash
         lssdp.neighbor_list = NULL;
-        lssdp.packet_received_callback = NULL;
+        lssdp.packet_received_callback = on_packet_received;
 #endif
         keep_sending = false;
     }
@@ -289,10 +303,13 @@ namespace Slic3r {
         return;
     }
 
-#if defined(__WINDOWS__)
+
+    // share same api on mac and windows
     int LocalClient::PRO_EXTRA_SIZE = LocalClient::PRO_HEADER_SIZE + LocalClient::PRO_LENGTH_SIZE + LocalClient::PRO_TAIL_SIZE;
+
     LocalClient::LocalClient()
     {
+        ;
     }
 
     int LocalClient::publish(std::string json_str)
@@ -310,6 +327,52 @@ namespace Slic3r {
         return send(buf, msg_len);
     }
 
+    int LocalClient::recv(std::string& json_str)
+    {
+        int iResult = 0;
+        char buf[1024];
+        int    size = 1024;
+        iResult = ::recv(ConnectSocket, buf, size, 0);
+        if (iResult > 0) {
+            BOOST_LOG_TRIVIAL(trace) << "login_bind: recv bytes = " << iResult;
+            unsigned int idx = 0;
+            while (iResult - idx > LocalClient::PRO_EXTRA_SIZE) {
+                if ((unsigned char)buf[idx] == 0xA5 && (unsigned char)buf[idx + 1] == 0xA5) {
+                    short msg_len = 0;
+                    memcpy(&msg_len, &buf[idx + LocalClient::PRO_HEADER_SIZE], LocalClient::PRO_LENGTH_SIZE);
+                    BOOST_LOG_TRIVIAL(trace) << "login_bind: parse msg_len = " << msg_len;
+                    if (msg_len >= LocalClient::PRO_EXTRA_SIZE && msg_len <= iResult - idx) {
+                        if ((unsigned char)buf[idx + msg_len - 1] == 0xA7 && (unsigned char)buf[idx + msg_len - 2] == 0xA7) {
+                            json_str = std::string((char*)&buf[idx + LocalClient::PRO_HEADER_SIZE + LocalClient::PRO_LENGTH_SIZE], msg_len - LocalClient::PRO_EXTRA_SIZE);
+                            return 0;
+                        }
+                        else {
+                            BOOST_LOG_TRIVIAL(trace) << "login_bind: invalid proto format";
+                        }
+                    }
+                    else {
+                        BOOST_LOG_TRIVIAL(trace) << "login_bind: invalid msg_len = " << msg_len;
+                    }
+                }
+                else {
+                    BOOST_LOG_TRIVIAL(trace) << "login_bind: header is not match, buf 0/1 = " << (int)buf[idx] << " " << (int)buf[idx + 1];
+                }
+
+                idx += 2;
+            }
+            return -1;
+        }
+        else if (iResult == 0) {
+            return 0;
+        }
+        else {
+            BOOST_LOG_TRIVIAL(trace) << "login_bind: recv result = " << iResult;
+            return -1;
+        }
+        return 1;
+    }
+
+#if defined(__WINDOWS__)
     int LocalClient::connect(std::string server_ip, int port)
     {
         // init win socket
@@ -384,45 +447,40 @@ namespace Slic3r {
 
         return 0;
     }
+#else
 
-    int LocalClient::recv(std::string &json_str)
+    int LocalClient::connect(std::string server_ip, int port)
     {
-        int iResult = 0;
-        char buf[1024];
-        int    size = 1024;
-        iResult = ::recv(ConnectSocket, buf, size, 0);
-        if (iResult > 0) {
-            BOOST_LOG_TRIVIAL(trace) << "login_bind: recv bytes = " << iResult;
-            unsigned int idx = 0;
-            while (iResult - idx > LocalClient::PRO_EXTRA_SIZE) {
-                if ((unsigned char)buf[idx] == 0xA5 && (unsigned char)buf[idx + 1] == 0xA5) {
-                    short msg_len = 0;
-                    memcpy(&msg_len, &buf[idx + LocalClient::PRO_HEADER_SIZE], LocalClient::PRO_LENGTH_SIZE);
-                    BOOST_LOG_TRIVIAL(trace) << "login_bind: parse msg_len = " << msg_len;
-                    if (msg_len >= LocalClient::PRO_EXTRA_SIZE && msg_len <= iResult - idx) {
-                        if ((unsigned char)buf[idx + msg_len - 1] == 0xA7 && (unsigned char)buf[idx + msg_len - 2] == 0xA7) {
-                            json_str = std::string((char *) &buf[idx + LocalClient::PRO_HEADER_SIZE + LocalClient::PRO_LENGTH_SIZE], msg_len - LocalClient::PRO_EXTRA_SIZE);
-                            return 0;
-                        } else {
-                            BOOST_LOG_TRIVIAL(trace) << "login_bind: invalid proto format";
-                        }
-                    } else {
-                        BOOST_LOG_TRIVIAL(trace) << "login_bind: invalid msg_len = " << msg_len;
-                    }
-                } else {
-                    BOOST_LOG_TRIVIAL(trace) << "login_bind: header is not match, buf 0/1 = " << (int)buf[idx] <<" "<< (int)buf[idx+1];
-                }
-
-                idx += 2;
-            }
-            return -1;
-        } else if (iResult == 0) {
-            return 0;
-        } else {
-            BOOST_LOG_TRIVIAL(trace) << "login_bind: recv last error = " << WSAGetLastError();
+        ConnectSocket = socket(AF_INET, SOCK_STREAM, 0);
+        if (ConnectSocket < 0) {
+            BOOST_LOG_TRIVIAL(trace) << "login_bind: create socket failed!";
             return -1;
         }
-        return 1;
+        struct sockaddr_in server_addr;
+
+        bzero((char*)&server_addr, sizeof(server_addr));
+        server_addr.sin_family = AF_INET;
+        server_addr.sin_addr.s_addr = inet_addr(server_ip.c_str());
+        server_addr.sin_port = htons(port);
+
+        /*int recvTimeout = 2 * 1000;
+        setsockopt(ConnectSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&recvTimeout, sizeof(int));*/
+
+        if (::connect(ConnectSocket, (struct sockaddr*)&server_addr, sizeof(server_addr))) {
+            BOOST_LOG_TRIVIAL(trace) << "login_bind: connect failed!";
+            close(ConnectSocket);
+            ConnectSocket = -1;
+        }
+        return 0;
+    }
+    int LocalClient::disconnect()
+    {
+        close(ConnectSocket);
+        return 0;
+    }
+    int LocalClient::send(const char* buf, unsigned int size)
+    {
+        return ::send(ConnectSocket, buf, size, 0);
     }
 #endif
 
