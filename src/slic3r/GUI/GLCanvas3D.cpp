@@ -1883,7 +1883,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     }
 
     // BBS
-    if (printer_technology == ptFFF && m_config->has("filament_colour")) {
+    if (printer_technology == ptFFF && m_config->has("filament_colour") && (m_canvas_type != ECanvasType::CanvasAssembleView)) {
         // Should the wipe tower be visualized ?
         unsigned int filaments_count = (unsigned int)dynamic_cast<const ConfigOptionStrings*>(m_config->option("filament_colour"))->values.size();
 
@@ -3205,7 +3205,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     else
                         rotate_target = volumes_bounding_box().center();
                     //BBS do not limit rotate in assemble view
-                    camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
+                    //camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
+                    camera.rotate_on_sphere_with_target(rot.x(), rot.y(), true, rotate_target);
                 }
                 else {
 #ifdef SUPPORT_FEEE_CAMERA
