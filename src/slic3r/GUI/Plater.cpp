@@ -4427,6 +4427,12 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
 
         preview->get_canvas3d()->bind_event_handlers();
 
+        GLGizmosManager& gizmos = view3D->get_canvas3d()->get_gizmos_manager();
+        if (gizmos.is_running()) {
+            gizmos.reset_all_states();
+            gizmos.update_data();
+        }
+
         if (wxGetApp().is_editor()) {
             // see: Plater::priv::object_list_changed()
             // FIXME: it may be better to have a single function making this check and let it be called wherever needed
@@ -8926,8 +8932,9 @@ GLCanvas3D* Plater::get_current_canvas3D()
 
 void Plater::arrange()
 {
-    if (!p->m_ui_jobs.is_any_running())
+    if (!p->m_ui_jobs.is_any_running()) {
         p->m_ui_jobs.arrange();
+    }
 }
 
 void Plater::set_current_canvas_as_dirty()
@@ -9575,7 +9582,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
     else if ((action == 2)&&(!right_click))
     {
         //arrange the plate
-        take_snapshot("select_orient partplate");
+        //take_snapshot("select_orient partplate");
         ret = select_plate(plate_index);
         if (!ret)
         {
@@ -9591,7 +9598,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
     else if ((action == 3)&&(!right_click))
     {
         //arrange the plate
-        take_snapshot("select_arrange partplate");
+        //take_snapshot("select_arrange partplate");
         ret = select_plate(plate_index);
         if (!ret)
         {
@@ -9628,6 +9635,7 @@ int Plater::delete_plate(int plate_index)
     if (plate_index == -1)
         index = p->partplate_list.get_curr_plate_index();
 
+    take_snapshot("delete partplate");
     ret = p->partplate_list.delete_plate(index);
 
     //BBS: update the current print to the current plate

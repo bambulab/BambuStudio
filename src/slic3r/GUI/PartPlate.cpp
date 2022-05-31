@@ -2454,9 +2454,6 @@ int PartPlateList::delete_plate(int index)
 
 	if (m_plater) {
 		// In GUI mode
-		// BBS: erase unnecessary snapshot
-		m_plater->take_snapshot("delete partplate");
-
 		// BBS: add wipe tower logic
 		DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
 		ConfigOptionFloats* wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");

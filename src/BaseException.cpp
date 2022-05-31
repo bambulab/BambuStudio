@@ -340,6 +340,7 @@ void CBaseException::ShowExceptionInformation()
 		OutputString(_T("Param %d :0x%x \n"), i, m_pEp->ExceptionRecord->ExceptionInformation[i]);
 	}
 	OutputString(_T("Context :%p \n"), m_pEp->ContextRecord);
+    OutputString(_T("ContextFlag : 0x%x, EFlags: 0x%x \n"), m_pEp->ContextRecord->ContextFlags, m_pEp->ContextRecord->EFlags);
 
 	TCHAR szFaultingModule[MAX_PATH];
 	DWORD section, offset;
