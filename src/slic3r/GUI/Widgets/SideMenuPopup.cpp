@@ -39,9 +39,13 @@ bool SidePopup::Show( bool show )
     return wxPopupTransientWindow::Show(show);
 }
 
-void SidePopup::Popup(wxWindow* WXUNUSED(focus))
+void SidePopup::Popup(wxWindow* focus)
 {
     Create();
+    if (focus) {
+        wxPoint pos = focus->ClientToScreen(wxPoint(0, -6));
+        Position(pos, {0, focus->GetSize().y + 12});
+    }
     wxPopupTransientWindow::Popup();
 }
 

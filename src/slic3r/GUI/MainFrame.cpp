@@ -1103,9 +1103,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                 });
             p->append_button(slice_all_btn);
             p->append_button(slice_plate_btn);
-            wxPoint popup_pos = m_slice_btn->ClientToScreen(wxPoint(0, 0));
-            p->Position(popup_pos, wxSize(0, m_slice_btn->GetSize().y));
-            p->Popup();
+            p->Popup(m_slice_btn);
         }
     );
 #endif
@@ -1153,9 +1151,7 @@ wxBoxSizer* MainFrame::create_side_tools()
 #endif
             p->append_button(print_plate_btn);
             p->append_button(export_sliced_file_btn);
-            wxPoint popup_pos = m_print_btn->ClientToScreen(wxPoint(0, 0));
-            p->Position(popup_pos, wxSize(0, m_print_btn->GetSize().y));
-            p->Popup();
+            p->Popup(m_print_btn);
         }
     );
 
