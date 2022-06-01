@@ -2508,21 +2508,9 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
 
     std::string AccountManager::get_tutk_region()
     {
-        if (is_region_config_ready && !user_region_server.tutk_server_host.empty()) {
-            auto region = user_region_server.tutk_server_host;
-            boost::algorithm::to_lower(region);
-            return region;
-        } else {
-            auto region = wxGetApp().app_config->get("region");
-            if (region == "CHN")
-                return "cn";
-            else if (region == "USA")
-                return "us";
-            else {
-                return "all";
-            }
-        }
-        return "";
+        auto region = user_region_server.tutk_server_host;
+        boost::algorithm::to_lower(region);
+        return region;
     }
 
     int AccountManager::get_machine_version(std::string dev_id, unsigned &http_code, std::string &http_body)
