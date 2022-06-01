@@ -25,8 +25,8 @@ KBShortcutsDialog::KBShortcutsDialog()
     const wxFont& bold_font = wxGetApp().bold_font();
     SetFont(font);
 
-   /* std::string icon_path = (boost::format("%1%/images/title_icon.ico") % resources_dir()).str();
-    SetIcon(wxIcon(icon_path, wxBITMAP_TYPE_ICO));*/
+    std::string icon_path = (boost::format("%1%/images/title_icon.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     this->SetSizeHints(wxDefaultSize, wxDefaultSize);
     this->SetBackgroundColour(wxColour(255, 255, 255));
@@ -291,7 +291,7 @@ wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const ShortcutsItem& s
     scrollable_panel->SetInitialSize(wxSize(FromDIP(850), FromDIP(450)));
 
     wxBoxSizer* scrollable_panel_sizer = new wxBoxSizer(wxVERTICAL);
-    wxFlexGridSizer* grid_sizer = new wxFlexGridSizer(2 * columns_count, 5, 15);
+    wxFlexGridSizer* grid_sizer = new wxFlexGridSizer(3 * columns_count, 5, 15);
 
     int items_count = (int)shortcuts.second.size();
     for (int i = 0; i < max_items_per_column; ++i) {
@@ -301,17 +301,13 @@ wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const ShortcutsItem& s
                 const auto& [shortcut, description] = shortcuts.second[id];
                 auto key = new wxStaticText(scrollable_panel, wxID_ANY, _(shortcut));
                 key->SetFont(bold_font);
-                grid_sizer->Add(key, 0, wxALIGN_CENTRE_VERTICAL,100);
+                grid_sizer->Add(key, 0, wxALIGN_CENTRE_VERTICAL);
+
+                grid_sizer->Add(new wxStaticText(scrollable_panel, wxID_ANY, "  "), 0, wxALIGN_CENTRE_VERTICAL);
 
                 auto desc = new wxStaticText(scrollable_panel, wxID_ANY, _(description));
                 desc->SetFont(font);
                 grid_sizer->Add(desc, 0, wxALIGN_CENTRE_VERTICAL);
-            }
-            else {
-                if (columns_count > 1) {
-                    grid_sizer->Add(new wxStaticText(scrollable_panel, wxID_ANY, ""), 0, wxALIGN_CENTRE_VERTICAL);
-                    grid_sizer->Add(new wxStaticText(scrollable_panel, wxID_ANY, ""), 0, wxALIGN_CENTRE_VERTICAL);
-                }
             }
         }
     }
