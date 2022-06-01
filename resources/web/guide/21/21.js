@@ -121,9 +121,16 @@ function HandleModelList( pVal )
 		}
 		else
 		{
-			$("input[vendor='"+OneModel['vendor']+"'][model='"+OneModel['model']+"'][nozzel='"+0.4+"']").prop("checked", true);			
+			$("input[vendor='"+OneModel['vendor']+"'][model='"+OneModel['model']+"']").prop("checked", false);
 		}
 	}	
+
+	let AlreadySelect=$("input:checked");
+	let nSelect=AlreadySelect.length;
+	if(nSelect==0)
+	{
+		$("input[nozzel='0.4']").prop("checked", true);
+	}
 	
 	TranslatePage();
 }
