@@ -806,7 +806,7 @@ void AuxiliaryPanel::on_import_file(wxCommandEvent &event)
             // Copy imported file to project temp directory
             fs::path src_bfs_path(file_path.ToStdWstring());
             wxString dir_path = m_root_dir;
-            dir_path += "\\" + file_model;
+            dir_path += "/" + file_model;
             
 
 
@@ -823,7 +823,7 @@ void AuxiliaryPanel::on_import_file(wxCommandEvent &event)
             }
             
             if (!is_exist) {
-                dir_path += "\\" + src_bfs_path.filename().generic_wstring();
+                dir_path += "/" + src_bfs_path.filename().generic_wstring();
             } else {
                 time_t t1 = time(0);
                 char   ch1[64];
@@ -832,7 +832,7 @@ void AuxiliaryPanel::on_import_file(wxCommandEvent &event)
 
                 auto before_name = replaceSpace(src_bfs_path.filename().string(), src_bfs_path.extension().string(), "");
                 time_text = replaceSpace(time_text, ":", "_");
-                dir_path += "\\" + before_name + "_" + time_text + src_bfs_path.extension().wstring();
+                dir_path += "/" + before_name + "_" + time_text + src_bfs_path.extension().wstring();
             }
            
 
@@ -859,7 +859,7 @@ void AuxiliaryPanel::create_folder(wxString name)
     wxString folder_name = name;
 
     // Create folder in file system
-    fs::path bfs_path((m_root_dir + "\\" + folder_name).ToStdWstring());
+    fs::path bfs_path((m_root_dir + "/" + folder_name).ToStdWstring());
     if (fs::exists(bfs_path)) {
         try {
             bool is_done = fs::remove_all(bfs_path);
@@ -894,7 +894,7 @@ void AuxiliaryPanel::Reload(wxString aux_path)
         fs::create_directory(new_aux_path);
         // Create default folders if they are not loaded
         for (auto folder : s_default_folders) {
-            wxString folder_path = aux_path + "\\" + folder;
+            wxString folder_path = aux_path + "/" + folder;
             if (fs::exists(folder_path.ToStdWstring())) continue;
             fs::create_directory(folder_path.ToStdWstring());
         }
@@ -942,7 +942,7 @@ void AuxiliaryPanel::Reload(wxString aux_path)
     // Create default folders if they are not loaded
     wxDataViewItemArray default_items;
     for (auto folder : s_default_folders) {
-        wxString folder_path = aux_path + "\\" + folder;
+        wxString folder_path = aux_path + "/" + folder;
         if (fs::exists(folder_path.ToStdWstring())) continue;
         fs::create_directory(folder_path.ToStdWstring());
     }
