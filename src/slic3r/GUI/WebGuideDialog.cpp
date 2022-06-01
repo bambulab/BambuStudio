@@ -335,18 +335,18 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
 
             std::string oldregion = m_ProfileJson["region"];
             bool        bLogin    = false;
-            if (m_Region != oldregion) { 
+            if (m_Region != oldregion) {
                 wxGetApp().getAccountManager()->is_region_config_ready = false;
                 wxGetApp().getAccountManager()->reload_region_servers();
-               
-                if (wxGetApp().getAccountManager()->is_user_login()) { 
+
+                if (wxGetApp().getAccountManager()->is_user_login()) {
                     bLogin = true;
-                    wxGetApp().getAccountManager()->user_logout(); 
+                    wxGetApp().getAccountManager()->user_logout();
                 }
             }
 
             this->EndModal(wxID_OK);
-            this->Close();
+            //this->Close();
 
             if (bLogin)
                 GUI::wxGetApp().CallAfter([this] { login(); });
@@ -587,6 +587,10 @@ int GuideFrame::SaveProfile()
         CopyDir(rsrc_vendor_dir,vendor_dir);
     }*/
 
+    std::string strAll = m_ProfileJson.dump(-1, ' ', false, json::error_handler_t::ignore);
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "before save to app_config: "<< std::endl<<strAll;
+
     //set filaments to app_config
     const std::string &section_name = AppConfig::SECTION_FILAMENTS;
     std::map<std::string, std::string> section_new;
@@ -615,11 +619,13 @@ int GuideFrame::SaveProfile()
                 if (pos != std::string::npos) {
                     nozzle   = selected.substr(0, pos);
                     m_appconfig_new.set_variant(vendor_name, model_name, nozzle, "true");
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("vendor_name %1%, model_name %2%, nozzle %3% selected")%vendor_name %model_name %nozzle;
                     selected = selected.substr(pos + 1);
                     boost::trim(selected);
                 }
                 else {
                     m_appconfig_new.set_variant(vendor_name, model_name, selected, "true");
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("vendor_name %1%, model_name %2%, nozzle %3% selected")%vendor_name %model_name %selected;
                     break;
                 }
             }
@@ -734,6 +740,7 @@ bool GuideFrame::run()
         // BBS
         //app.obj_manipul()->update_ui_from_settings();
         BOOST_LOG_TRIVIAL(info) << "GuideFrame applied";
+        this->Close();
         return true;
     } else {
         BOOST_LOG_TRIVIAL(info) << "GuideFrame cancelled";
