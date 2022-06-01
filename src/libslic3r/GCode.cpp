@@ -303,6 +303,8 @@ bool GCode::gcode_label_objects = false;
                 check_add_eol(end_filament_gcode_str);
             }
         }
+        //BBS: increase toolchange count
+        gcodegen.m_toolchange_count++;
 
         // BBS: should be placed before toolchange parsing
         std::string toolchange_retract_str = gcodegen.retract(true, false);
