@@ -105,6 +105,10 @@ MachineObjectPanel::MachineObjectPanel(wxWindow *parent, wxWindowID id, const wx
     m_wifi_middle_img   = create_scaled_bitmap("monitor_signal_middle", nullptr, 18);
     m_wifi_strong_img   = create_scaled_bitmap("monitor_signal_strong", nullptr, 18);
 
+    m_printer_statue_offline = create_scaled_bitmap("printer_statue_offline", nullptr, 15);
+    m_printer_statue_busy = create_scaled_bitmap("printer_statue_busy", nullptr, 15);
+    m_printer_statue_idle = create_scaled_bitmap("printer_statue_idle", nullptr, 15);
+
     this->Bind(wxEVT_ENTER_WINDOW, &MachineObjectPanel::on_mouse_enter, this);
     this->Bind(wxEVT_LEAVE_WINDOW, &MachineObjectPanel::on_mouse_leave, this);
     this->Bind(wxEVT_LEFT_DOWN, &MachineObjectPanel::on_mouse_left_down, this);
@@ -238,13 +242,15 @@ void MachineObjectPanel::doRender(wxDC &dc)
     wxSize size = GetSize();
     dc.SetPen(*wxTRANSPARENT_PEN);
 
-    if (m_state == PrinterState::IDLE) { dc.SetBrush(SELECT_MACHINE_BRAND); }
-    if (m_state == PrinterState::BUSY) { dc.SetBrush(SELECT_MACHINE_REMIND); }
-    if (m_state == PrinterState::OFFLINE) { dc.SetBrush(SELECT_MACHINE_GREY400); }
+    auto dwbitmap = m_printer_statue_offline;
+    if (m_state == PrinterState::IDLE) {dwbitmap = m_printer_statue_idle;}
+    if (m_state == PrinterState::BUSY) { dwbitmap = m_printer_statue_busy; }
+    if (m_state == PrinterState::OFFLINE) { dwbitmap = m_printer_statue_offline; }
 
-    dc.DrawCircle(left, size.y / 2, 3);
+    //dc.DrawCircle(left, size.y / 2, 3);
+    dc.DrawBitmap(dwbitmap, wxPoint(left, (size.y - dwbitmap.GetSize().y) / 2));
 
-    left += 11;
+    left += dwbitmap.GetSize().x + 11;
     dc.SetFont(Label::Body_14);
     dc.SetBackgroundMode(wxTRANSPARENT);
     dc.SetTextForeground(SELECT_MACHINE_GREY900);
@@ -1174,7 +1180,7 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
         for (auto it = my_bind_machine_list.begin(); it != my_bind_machine_list.end(); it++) {
             if (it->second->dev_name == *tt) {
                 m_list.push_back(it->second);
-                m_comboBox_printer->Append(it->second->dev_name);
+                m_comboBox_printer->Append(from_u8(it->second->dev_name));
                 break;
             }
         }

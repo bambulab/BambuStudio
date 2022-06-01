@@ -111,6 +111,11 @@ private:
     wxBitmap    m_wifi_weak_img;
     wxBitmap    m_wifi_middle_img;
     wxBitmap    m_wifi_strong_img;
+
+    wxBitmap m_printer_statue_offline;
+    wxBitmap m_printer_statue_busy;
+    wxBitmap m_printer_statue_idle;
+
     wxStaticBitmap *m_unbindimg;
     MachineObject *m_info;
 
