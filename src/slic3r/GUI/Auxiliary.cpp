@@ -697,20 +697,25 @@ void AuxiliaryPanel::init_tabpanel()
     m_tabpanel = new Tabbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizer_side_tools, wxNB_LEFT | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
     m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent &e) { ; });
 
+    #if !BBL_RELEASE_TO_PUBLIC
+    m_designer_panel = new DesignerPanel(m_tabpanel, AuxiliaryFolderType::DESIGNER);
+    m_tabpanel->AddPage(m_designer_panel, _L("Designer"), "", true);
+    #endif
+
     m_pictures_panel          = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::MODEL_PICTURE);
     m_bill_of_materials_panel = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::BILL_OF_MATERIALS);
     m_assembly_panel          = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::ASSEMBLY_GUIDE);
     m_others_panel            = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::OTHERS);
 
+    #if !BBL_RELEASE_TO_PUBLIC
+    m_tabpanel->AddPage(m_pictures_panel, _L("Pictures"), "", false);
+    #else
     m_tabpanel->AddPage(m_pictures_panel, _L("Pictures"), "", true);
+    #endif
+    
     m_tabpanel->AddPage(m_bill_of_materials_panel, _L("Bill of Materials"), "", false);
     m_tabpanel->AddPage(m_assembly_panel, _L("Assembly Guide"), "", false);
     m_tabpanel->AddPage(m_others_panel, _L("Others"), "", false);
-
-    #if !BBL_RELEASE_TO_PUBLIC
-    m_designer_panel          = new DesignerPanel(m_tabpanel, AuxiliaryFolderType::DESIGNER);
-    m_tabpanel->AddPage(m_designer_panel, _L("Designer"), "", false);
-    #endif
 }
 
 wxWindow *AuxiliaryPanel::create_side_tools()
@@ -770,7 +775,8 @@ void AuxiliaryPanel::on_import_file(wxCommandEvent &event)
      wxString wildcard = wxFileSelectorDefaultWildcardStr;
 
     if (file_model == s_default_folders[MODEL_PICTURE]) {
-        wildcard = wxT("JPEG files (*.jpeg)|*.jpeg|BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif|PNG files (*.png)|*.png|JPG files (*.jpg)|*.jpg");
+        //wildcard = wxT("JPEG files (*.jpeg)|*.jpeg|BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif|PNG files (*.png)|*.png|JPG files (*.jpg)|*.jpg");
+        wildcard = wxT("files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp");
     } 
 
     if (file_model == s_default_folders[OTHERS]) {  wildcard = wxT("TXT files (*.txt)|*.txt"); }
