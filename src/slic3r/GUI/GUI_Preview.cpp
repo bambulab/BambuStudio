@@ -798,12 +798,10 @@ void AssembleView::reload_scene(bool refresh_immediately, bool force_full_scene_
 {
     if (m_canvas != nullptr) {
         if (!m_canvas->is_initialized()) {
-            m_canvas->render();
-            m_canvas->reload_scene(refresh_immediately, force_full_scene_refresh);
+            m_canvas->render(true);
         }
-        else {
-            m_canvas->reload_scene(refresh_immediately, force_full_scene_refresh);
-        }
+        m_canvas->reload_scene(refresh_immediately, force_full_scene_refresh);
+        m_canvas->reload_scene(refresh_immediately, force_full_scene_refresh);
     }
 }
 

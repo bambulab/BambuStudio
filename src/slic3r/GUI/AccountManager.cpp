@@ -3687,7 +3687,11 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
                     this->request_open_project({});
                 }
                 else if (command_str.compare("get_recent_projects") == 0) {
-                    GUI::wxGetApp().mainframe->m_webview->SendRecentList(from_u8(sequence_id.value()));
+                    if (GUI::wxGetApp().mainframe) {
+                        if (GUI::wxGetApp().mainframe->m_webview) {
+                            GUI::wxGetApp().mainframe->m_webview->SendRecentList(from_u8(sequence_id.value()));
+                        }
+                    }
                 }
                 else if (command_str.compare("homepage_open_recentfile") == 0) {
                     if (root.get_child_optional("data") != boost::none) {
