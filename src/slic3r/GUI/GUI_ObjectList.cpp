@@ -48,7 +48,7 @@ static PrinterTechnology printer_technology()
 
 static const Selection& scene_selection()
 {
-    return wxGetApp().plater()->canvas3D()->get_selection();
+    return wxGetApp().plater()->get_view3D_canvas3D()->get_selection();
 }
 
 // Config from current edited printer preset
@@ -3800,12 +3800,12 @@ void ObjectList::update_selections()
 
 void ObjectList::update_selections_on_canvas()
 {
-    Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    Selection& selection = wxGetApp().plater()->get_view3D_canvas3D()->get_selection();
 
     const int sel_cnt = GetSelectedItemsCount();
     if (sel_cnt == 0) {
         selection.remove_all();
-        wxGetApp().plater()->canvas3D()->update_gizmos_on_off_state();
+        wxGetApp().plater()->get_view3D_canvas3D()->update_gizmos_on_off_state();
         return;
     }
 
@@ -3895,7 +3895,7 @@ void ObjectList::update_selections_on_canvas()
         selection.add_volumes(mode, volume_idxs, single_selection);
     }
 
-    wxGetApp().plater()->canvas3D()->update_gizmos_on_off_state();
+    wxGetApp().plater()->get_view3D_canvas3D()->update_gizmos_on_off_state();
     wxGetApp().plater()->canvas3D()->render();
 }
 
@@ -4479,7 +4479,7 @@ void ObjectList::fix_through_netfabb()
 {
     // Do not fix anything when a gizmo is open. There might be issues with updates
     // and what is worse, the snapshot time would refer to the internal stack.
-    if (!wxGetApp().plater()->canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::Undefined))
+    if (!wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::Undefined))
         return;
 
     //          model_name
@@ -4621,7 +4621,7 @@ void ObjectList::fix_local()
 {
     // Do not fix anything when a gizmo is open. There might be issues with updates
     // and what is worse, the snapshot time would refer to the internal stack.
-    if (!wxGetApp().plater()->canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::Undefined))
+    if (!wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::Undefined))
         return;
 
     //          model_name

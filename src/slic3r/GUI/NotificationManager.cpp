@@ -2072,7 +2072,7 @@ void NotificationManager::bbl_close_plateinfo_notification()
         }
 }
 
-void NotificationManager::bbl_show_objectsinfo_notification(const std::string &text, bool is_warning)
+void NotificationManager::bbl_show_objectsinfo_notification(const std::string &text, bool is_warning, bool is_hidden)
 {
     std::string hyper_text;
     auto callback = std::function<bool(wxEvtHandler *)>();
@@ -2100,6 +2100,8 @@ void NotificationManager::bbl_show_objectsinfo_notification(const std::string &t
 
     auto notification = std::make_unique<NotificationManager::PopNotification>(data, m_id_provider, m_evt_handler);
     notification->set_Multiline(true);
+    if (is_hidden)
+        notification->hide(true);
     push_notification_data(std::move(notification), 0);
 }
 
