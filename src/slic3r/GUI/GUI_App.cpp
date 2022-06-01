@@ -3422,8 +3422,9 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
     //const bool res = wizard->run(reason, start_page);
     GuideFrame wizard(this);
     auto page = start_page == ConfigWizard::SP_WELCOME ? GuideFrame::BBL_WELCOME :
-                start_page == ConfigWizard::SP_FILAMENTS ? GuideFrame::BBL_FILAMENT_ONLY
-                : GuideFrame::BBL_MODELS;
+                start_page == ConfigWizard::SP_FILAMENTS ? GuideFrame::BBL_FILAMENT_ONLY :
+                start_page == ConfigWizard::SP_PRINTERS ? GuideFrame::BBL_MODELS_ONLY :
+                GuideFrame::BBL_MODELS;
     wizard.SetStartPage(page);
     bool       res = wizard.run();
 
