@@ -207,6 +207,9 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         m_top_panel = new StaticBox(this, wxID_ANY, wxDefaultPosition);
         m_top_panel->SetBackgroundColor(0xF8F8F8);
         m_top_panel->SetBackgroundColor2(0xF1F1F1);
+
+        m_process_icon = new ScalableButton(m_top_panel, wxID_ANY, "process");
+
         m_title_label = new Label(Label::Body_14, _L("Process"), m_top_panel);
         m_title_label->Wrap( -1 );
 
@@ -316,7 +319,9 @@ void ParamsPanel::create_layout()
 
     if (m_top_panel) {
         m_mode_sizer = new wxBoxSizer( wxHORIZONTAL );
-        m_mode_sizer->AddSpacer(FromDIP(22));
+        m_mode_sizer->AddSpacer(FromDIP(11));
+        m_mode_sizer->Add(m_process_icon, 0, wxALIGN_CENTER);
+        m_mode_sizer->AddSpacer(FromDIP(11));
         m_mode_sizer->Add( m_title_label, 0, wxALIGN_CENTER );
         m_mode_sizer->AddSpacer(FromDIP(9));
         m_mode_sizer->Add( m_mode_region, 0, wxALIGN_CENTER );

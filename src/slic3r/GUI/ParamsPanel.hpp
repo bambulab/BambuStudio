@@ -78,6 +78,7 @@ class ParamsPanel : public wxPanel
         wxBoxSizer* m_mode_sizer { nullptr };
         // // BBS: new layout
         StaticBox* m_top_panel{ nullptr };
+        ScalableButton* m_process_icon{ nullptr };
         wxStaticText* m_title_label { nullptr };
         SwitchButton* m_mode_region { nullptr };
         wxStaticBitmap* m_tips_arrow{ nullptr };

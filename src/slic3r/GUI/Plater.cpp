@@ -287,9 +287,11 @@ struct Sidebar::priv
     wxScrolledWindow* m_scrolledWindow_filament_content;
     wxStaticLine* m_staticline2;
     wxPanel* m_panel_project_title;
+    ScalableButton* m_filament_icon = nullptr;
 
     // BBS printer config
     StaticBox* m_panel_printer_title = nullptr;
+    ScalableButton* m_printer_icon = nullptr;
     wxStaticText* m_text_printer_settings = nullptr;
     wxPanel* m_panel_printer_content = nullptr;
 
@@ -445,6 +447,7 @@ Sidebar::Sidebar(Plater *parent)
         p->m_panel_printer_title->SetBackgroundColor(title_bg);
         p->m_panel_printer_title->SetBackgroundColor(0xF1F1F1);
 
+        p->m_printer_icon = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "printer");
         p->m_text_printer_settings = new wxStaticText(p->m_panel_printer_title, wxID_ANY, _L("Printer"), wxDefaultPosition, wxDefaultSize, 0);
         p->m_text_printer_settings->Wrap(-1);
         p->m_text_printer_settings->SetFont(Label::Body_14);
@@ -458,11 +461,12 @@ Sidebar::Sidebar(Plater *parent)
             });
 
         wxBoxSizer* h_sizer_title = new wxBoxSizer(wxHORIZONTAL);
-        h_sizer_title->Add(22 * em / 10, 0, 0, 0, 0);
+        h_sizer_title->Add(p->m_printer_icon, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, em);
         h_sizer_title->Add(p->m_text_printer_settings, 0, wxALIGN_CENTER);
-        h_sizer_title->Add(10 * em / 10, 0, 0, 0, 0);
+        h_sizer_title->AddStretchSpacer();
+        h_sizer_title->Add(select_btn, 0, wxALIGN_CENTER);
+        h_sizer_title->Add(15 * em / 10, 0, 0, 0, 0);
         h_sizer_title->SetMinSize(-1, 3 * em);
-        h_sizer_title->Add(select_btn, 0, wxALIGN_CENTER | wxALL, em / 2);
 
         p->m_panel_printer_title->SetSizer(h_sizer_title);
         p->m_panel_printer_title->Layout();
@@ -527,7 +531,7 @@ Sidebar::Sidebar(Plater *parent)
         p->m_panel_printer_content->SetSizer(vsizer_printer);
         p->m_panel_printer_content->Layout();
         scrolled_sizer->Add(p->m_panel_printer_content, 0, wxTOP | wxEXPAND, em / 2);
-        scrolled_sizer->AddSpacer(3 * em / 2);
+        scrolled_sizer->AddSpacer(2 * em);
     }
 
     // add filament title
@@ -537,10 +541,11 @@ Sidebar::Sidebar(Plater *parent)
 
     wxBoxSizer* bSizer39;
     bSizer39 = new wxBoxSizer( wxHORIZONTAL );
-    bSizer39->Add( 22 * em / 10, 0, 0, 0, 0 );
+    p->m_filament_icon = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "filament");
     p->m_staticText_filament_settings = new wxStaticText( p->m_panel_filament_title, wxID_ANY, _L("Filament"), wxDefaultPosition, wxDefaultSize, 0 );
     p->m_staticText_filament_settings->Wrap( -1 );
     p->m_staticText_filament_settings->SetFont(Label::Body_14);
+    bSizer39->Add(p->m_filament_icon, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, em);
     bSizer39->Add( p->m_staticText_filament_settings, 0, wxALIGN_CENTER );
     bSizer39->Add(10 * em / 10, 0, 0, 0, 0);
     bSizer39->SetMinSize(-1, 3 * em);
@@ -554,16 +559,6 @@ Sidebar::Sidebar(Plater *parent)
     auto spliter_2 = new ::StaticLine(p->scrolled);
     spliter_2->SetBackgroundColour("#ACACAC");
     scrolled_sizer->Add(spliter_2, 0, wxEXPAND);
-
-    ScalableButton *set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
-    set_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
-        // p->editing_filament = -1;
-        // wxGetApp().params_dialog()->Popup();
-        // wxGetApp().get_tab(Preset::TYPE_FILAMENT)->restore_last_select_item();
-        wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
-    });
-
-    bSizer39->Add(set_btn, 0, wxALIGN_CENTER | wxALL, 5 * em / 10);
 
     // BBS
     // add wiping dialog
@@ -634,7 +629,18 @@ Sidebar::Sidebar(Plater *parent)
     });
 
     bSizer39->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
-    bSizer39->Add(10 * em / 10, 0, 0, 0, 0);
+    bSizer39->Add(2 * em, 0, 0, 0, 0);
+
+    ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
+    set_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+        // p->editing_filament = -1;
+        // wxGetApp().params_dialog()->Popup();
+        // wxGetApp().get_tab(Preset::TYPE_FILAMENT)->restore_last_select_item();
+        wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
+        });
+
+    bSizer39->Add(set_btn, 0, wxALIGN_CENTER);
+    bSizer39->Add(15 * em / 10, 0, 0, 0, 0);
 
     // add filament content
     p->m_panel_filament_content = new wxPanel( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
@@ -683,7 +689,7 @@ Sidebar::Sidebar(Plater *parent)
     p->m_panel_filament_content->SetSizer(p->sizer_filaments);
     p->m_panel_filament_content->Layout();
     scrolled_sizer->Add(p->m_panel_filament_content, 0, wxTOP | wxEXPAND, em / 2);
-    scrolled_sizer->AddSpacer(3 * em / 2);
+    scrolled_sizer->AddSpacer(2 * em);
 
     //p->m_staticline2 = new wxStaticLine( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
     //p->m_staticline2->SetBackgroundColour( static_line_col );
