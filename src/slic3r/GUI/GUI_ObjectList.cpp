@@ -48,7 +48,8 @@ static PrinterTechnology printer_technology()
 
 static const Selection& scene_selection()
 {
-    return wxGetApp().plater()->get_view3D_canvas3D()->get_selection();
+    //BBS return current canvas3D return wxGetApp().plater()->get_view3D_canvas3D()->get_selection();
+    return wxGetApp().plater()->get_current_canvas3D()->get_selection();
 }
 
 // Config from current edited printer preset

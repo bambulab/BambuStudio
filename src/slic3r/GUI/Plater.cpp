@@ -1423,7 +1423,7 @@ struct Plater::priv
     //GLToolbar view_toolbar;
     GLToolbar collapse_toolbar;
     Preview *preview;
-    AssembleView* assemble_view;
+    AssembleView* assemble_view { nullptr };
     bool first_enter_assemble{ true };
     std::unique_ptr<NotificationManager> notification_manager;
 
@@ -1611,6 +1611,8 @@ struct Plater::priv
 
     const Selection& get_selection() const;
     Selection& get_selection();
+    Selection& get_curr_selection();
+
     int get_selected_object_idx() const;
     int get_selected_volume_idx() const;
     void selection_changed();
@@ -2438,6 +2440,10 @@ void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
         BOOST_LOG_TRIVIAL(info) << "select assemble view";
         set_current_panel(assemble_view, no_slice);
     }
+
+    //BBS update selection
+    wxGetApp().obj_list()->update_selections();
+    selection_changed();
 
     apply_free_camera_correction(false);
 }
@@ -3296,6 +3302,11 @@ const Selection& Plater::priv::get_selection() const
 Selection& Plater::priv::get_selection()
 {
     return view3D->get_canvas3d()->get_selection();
+}
+
+Selection& Plater::priv::get_curr_selection()
+{
+    return get_current_canvas3D()->get_selection();
 }
 
 int Plater::priv::get_selected_object_idx() const
@@ -7441,7 +7452,9 @@ void Plater::delete_all_objects_from_model()
 
 void Plater::remove_selected()
 {
-    if (p->get_selection().is_empty())
+    /*if (p->get_selection().is_empty())
+        return;*/
+    if (p->get_curr_selection().is_empty())
         return;
 
     // BBS: check before deleting object
@@ -7450,7 +7463,10 @@ void Plater::remove_selected()
 
     Plater::TakeSnapshot snapshot(this, "Delete Selected Objects");
     p->m_ui_jobs.cancel_all();
-    p->view3D->delete_selected();
+
+    //BBS delete current selected
+    // p->view3D->delete_selected();
+    p->get_current_canvas3D()->delete_selected();
 }
 
 void Plater::increase_instances(size_t num)
@@ -9010,6 +9026,13 @@ const GLCanvas3D* Plater::canvas3D() const
 GLCanvas3D* Plater::get_view3D_canvas3D()
 {
     return p->view3D->get_canvas3d();
+}
+
+GLCanvas3D* Plater::get_assmeble_canvas3D()
+{
+    if (p->assemble_view)
+        return p->assemble_view->get_canvas3d();
+    return nullptr;
 }
 
 GLCanvas3D* Plater::get_current_canvas3D()

@@ -584,6 +584,7 @@ public:
 
     void set_context(wxGLContext* context) { m_context = context; }
     void set_type(ECanvasType type) { m_canvas_type = type; }
+    ECanvasType get_canvas_type() { return m_canvas_type; }
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 	const wxGLCanvas* get_wxglcanvas() const { return m_canvas; }

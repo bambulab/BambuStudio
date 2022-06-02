@@ -375,6 +375,7 @@ public:
     const GLCanvas3D * canvas3D() const;
     GLCanvas3D* get_current_canvas3D();
     GLCanvas3D* get_view3D_canvas3D();
+    GLCanvas3D* get_assmeble_canvas3D();
 
     void arrange();
     void orient();
