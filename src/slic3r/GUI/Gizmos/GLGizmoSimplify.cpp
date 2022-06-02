@@ -58,7 +58,7 @@ static ModelVolume* get_model_volume(const Selection& selection, Model& model)
 GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
                                  const std::string &icon_filename,
                                  unsigned int       sprite_id)
-    : GLGizmoBase(parent, icon_filename, sprite_id)
+    : GLGizmoBase(parent, icon_filename, -1)
     , m_volume(nullptr)
     , m_show_wireframe(false)
     , m_move_to_center(false)
@@ -512,12 +512,6 @@ bool GLGizmoSimplify::on_is_activable() const
 {
     return m_parent.get_selection().is_single_full_object() ||
         m_parent.get_selection().is_single_volume();
-}
-
-bool GLGizmoSimplify::on_is_selectable() const
-{
-    std::string is_dev = wxGetApp().app_config->get("developer_mode");
-    return is_dev == "true";
 }
 
 void GLGizmoSimplify::on_set_state() 

@@ -1293,6 +1293,11 @@ void GLGizmosManager::do_render_overlay() const
         zoomed_top_y -= zoomed_stride_y;
 #endif
     }
+
+    // BBS simplify gizmo is not a selected gizmo and need to render input window
+    if (!is_render_current && m_current != Undefined) {
+        m_gizmos[m_current]->render_input_window(0.5 * cnv_w + zoomed_top_x * zoom, height, cnv_h);
+    }
 }
 
 float GLGizmosManager::get_scaled_total_height() const

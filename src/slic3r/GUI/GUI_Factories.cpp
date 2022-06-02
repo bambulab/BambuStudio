@@ -1240,12 +1240,9 @@ void MenuFactory::append_menu_item_clone(wxMenu* menu)
 
 void MenuFactory::append_menu_item_simplify(wxMenu* menu)
 {
-    // BBS: remove simplify menu entry
-#if 0
     wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Reduce Triangles"), "",
         [](wxCommandEvent&) { obj_list()->simplify(); }, "", menu,
         []() {return plater()->can_simplify(); }, m_parent);
-#endif
 }
 
 void MenuFactory::append_menu_item_per_object_settings(wxMenu* menu)
