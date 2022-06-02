@@ -35,8 +35,6 @@ namespace Slic3r
 #define unscale_(val) ((val) * SCALING_FACTOR)
 #define FIRST_LAYER_EXPANSION 1.2
 
-static constexpr float tree_support_branch_distance = 1.0;
-static constexpr float tree_support_branch_diameter = 1.0;
 static constexpr float tree_support_branch_diameter_angle = 5.0;
 
 inline unsigned int round_divide(unsigned int dividend, unsigned int divisor) //!< Return dividend divided by divisor rounded to the nearest integer
@@ -1947,10 +1945,12 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     // generate areas
     const coordf_t circle_side_length = 2 * branch_radius * sin(M_PI / CIRCLE_RESOLUTION); //Side length of a regular polygon.
     const coordf_t layer_height = config.layer_height.value;
-    const size_t bottom_interface_layers = config.support_interface_bottom_layers.value;
+    const size_t   top_interface_layers = config.support_interface_top_layers.value;
+    const size_t   bottom_interface_layers = config.support_interface_bottom_layers.value;
     const size_t tip_layers = branch_radius / layer_height; //The number of layers to be shrinking the circle to create a tip. This produces a 45 degree angle.
     const double diameter_angle_scale_factor = sin(tree_support_branch_diameter_angle * M_PI / 180.) * layer_height / branch_radius; //Scale factor per layer to produce the desired angle.
     const coordf_t line_width = config.support_line_width;
+    const coordf_t line_width_scaled           = scale_(line_width);
 
     // coconut: previously std::unordered_map in m_collision_cache is not multi-thread safe which may cause programs stuck, here we change to tbb::concurrent_unordered_map
     tbb::parallel_for(
@@ -1997,10 +1997,14 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                     else {
                         Polygon circle;
                         size_t layers_to_top = node.distance_to_top;
-                        //double scale = static_cast<double>(layers_to_top + 1) / tip_layers;
-                        //scale = layers_to_top < tip_layers ? (0.5 + scale / 2) : (1 + static_cast<double>(layers_to_top - tip_layers) * diameter_angle_scale_factor);
-                        double scale = calc_branch_radius(1, node.distance_to_top, tip_layers, diameter_angle_scale_factor);
-                        scale = std::min(scale, MAX_BRANCH_RADIUS / branch_radius);
+                        double  scale;
+                        if (top_interface_layers>0) { // if has infill, branch circles should be larger
+                            scale = static_cast<double>(layers_to_top + 1) / tip_layers;
+                            scale = layers_to_top < tip_layers ? (0.5 + scale / 2) : (1 + static_cast<double>(layers_to_top - tip_layers) * diameter_angle_scale_factor);
+                        } else {
+                            scale = calc_branch_radius(1, node.distance_to_top, tip_layers, diameter_angle_scale_factor);
+                            scale = std::min(scale, MAX_BRANCH_RADIUS / branch_radius);
+                        }
                         for (auto iter = branch_circle.points.begin(); iter != branch_circle.points.end(); iter++)
                         {
                             Point corner = (*iter) * scale;
@@ -2153,6 +2157,70 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 #endif
             }
         });
+
+#if 1
+        // move the holes to contour so they can be well supported
+
+        // check if poly's contour intersects with expoly's contour
+        auto intersects_contour = [](Polygon poly, ExPolygon expoly, Point& pt_on_poly, Point& pt_on_expoly, float dist_thresh = 0.01) {
+            float min_dist = std::numeric_limits<float>::max();
+            for (auto from : poly.points) {
+                for (int i = 0; i < expoly.num_contours(); i++) {
+                    const Point *candidate = expoly.contour_or_hole(i).closest_point(from);
+                    double       dist2     = vsize2_with_unscale(*candidate - from);
+                    if (dist2 < min_dist) {
+                        min_dist     = dist2;
+                        pt_on_poly   = from;
+                        pt_on_expoly = *candidate;
+                    }
+                    if (dist2 < dist_thresh) { 
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
+
+        for (int layer_nr = m_object->layer_count()-1; layer_nr >0; layer_nr--) {
+            if (print->canceled()) break;
+            const std::vector<Node *> &curr_layer_nodes = contact_nodes[layer_nr];
+            TreeSupportLayer *         ts_layer         = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
+            assert(ts_layer != nullptr);
+
+            // skip if current layer has no points. This fixes potential crash in get_collision (see jira BBL001-355)
+            if (curr_layer_nodes.empty()) continue;
+            if (ts_layer->height < EPSILON) continue;
+
+            ExPolygons &base_areas = ts_layer->base_areas;
+
+            int layer_nr_lower = layer_nr - 1;
+            for (layer_nr_lower; layer_nr_lower >= 0; layer_nr_lower--) {
+                if (!m_object->get_tree_support_layer(layer_nr_lower + m_raft_layers)->base_areas.empty()) break;
+                }
+            ExPolygons &base_areas_lower = m_object->get_tree_support_layer(layer_nr_lower + m_raft_layers)->base_areas;
+
+            for (auto& base_area : base_areas) {
+                for (auto &hole : base_area.holes) { 
+                    for (auto &base_area_lower : base_areas_lower) {
+                        Point pt_on_poly, pt_on_expoly;
+                        // if a hole doesn't intersect with lower layer's contours, add a hole to lower layer and move it slightly to the contour
+                        if (!intersection_ex(ExPolygon(hole), base_area_lower).empty() && !intersects_contour(hole, base_area_lower, pt_on_poly, pt_on_expoly)) {
+                            Polygon hole_lower = hole;
+                            Point   direction  = normal(pt_on_expoly - pt_on_poly, line_width_scaled/2);
+                            hole_lower.translate(direction);
+                            // note to expand a hole, we need to do negative offset
+                            auto hole_expanded = offset(hole_lower, -line_width_scaled / 4, ClipperLib::JoinType::jtSquare);
+                            if (!hole_expanded.empty())
+                                append(base_area_lower.holes, hole_expanded);
+                            else
+                                base_area_lower.holes.push_back(std::move(hole_lower));
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+#endif
 
         TreeSupportLayerPtrs& ts_layers = m_object->tree_support_layers();
         auto iter = std::remove_if(ts_layers.begin(), ts_layers.end(), [](TreeSupportLayer* ts_layer) { return ts_layer->height < EPSILON; });
@@ -2657,10 +2725,7 @@ void TreeSupport::adjust_layer_heights(std::vector<std::vector<Node*>>& contact_
                 print_z += step;
             }
             else {
-                for (Node *node : curr_layer_nodes) {
-                    node->print_z = 0.0;
-                    node->height  = 0.0;
-                }
+                curr_layer_nodes.clear();
             }
         }
     }
