@@ -1072,26 +1072,15 @@ int MachineObject::command_new_bind()
 
 std::string MachineObject::build_login_request()
 {
-    if (acc_.is_region_config_ready) {
-        json j;
-        j["login"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        j["login"]["command"]     = "login";
-        j["login"]["wifi"]        = acc_.user_region_server.wifi_code;
-        j["login"]["tutk"]        = acc_.user_region_server.tutk_server_host;
-        j["login"]["iot"]         = acc_.get_host();
-        j["login"]["emqx"]        = acc_.get_emqx_server_host();
-        return j.dump();
-    } else {
-        // default request
-        json j;
-        j["login"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        j["login"]["command"]     = "login";
-        j["login"]["wifi"]        = "DE";
-        j["login"]["tutk"]        = "EU";
-        j["login"]["iot"]         = acc_.get_host();
-        j["login"]["emqx"]        = acc_.MQTT_HOST;
-        return j.dump();
-    }
+    json j;
+    j["login"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["login"]["command"]     = "login";
+    j["login"]["wifi"]        = acc_.user_region_server.wifi_code;
+    j["login"]["tutk"]        = acc_.user_region_server.tutk_server_host;
+    j["login"]["iot"]         = acc_.get_host();
+    j["login"]["apix"]        = acc_.user_region_server.api_servier_host;
+    j["login"]["emqx"]        = acc_.get_emqx_server_host();
+    return j.dump();
 }
 
 

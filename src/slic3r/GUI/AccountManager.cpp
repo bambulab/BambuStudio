@@ -281,23 +281,17 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
 
     std::string AccountManager::get_emqx_server_host()
     {
-        if (is_region_config_ready)
-            return user_region_server.mqtt_server_host;
-        return MQTT_HOST;
+        return user_region_server.mqtt_server_host;
     }
 
     std::string AccountManager::get_official_server_host()
     {
-        if (is_region_config_ready)
-            return user_region_server.official_host;
-        return wxGetApp().app_config->get_web_host_url();
+        return user_region_server.official_host;
     }
 
     std::string AccountManager::get_design_server_host()
     {
-        if (is_region_config_ready)
-            return user_region_server.design_host;
-        return wxGetApp().app_config->get_web_host_url();
+        return user_region_server.design_host;
     }
 
     AccountManager::AccountManager()
@@ -3006,36 +3000,42 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         std::string country_code = RegionServer::convert_region_to_contry_code(config->get_region());
         if (country_code == "CN") {
             user_region_server.iot_server_host  = "https://api.bambulab.cn/v1";
+            user_region_server.api_servier_host = "https://api.bambulab.cn/";
             user_region_server.mqtt_server_host = "ssl://cn.mqtt.bambulab.com:8883";
             user_region_server.tutk_server_host = "CN";
             user_region_server.wifi_code        = "CN";
             user_region_server.official_host    = "https://bambulab.cn";
         } else if (country_code == "US") {
             user_region_server.iot_server_host  = "https://api.bambulab.com/v1";
+            user_region_server.api_servier_host = "https://api.bambulab.com/";
             user_region_server.mqtt_server_host = "ssl://us.mqtt.bambulab.com:8883";
             user_region_server.tutk_server_host = "US";
             user_region_server.wifi_code        = "US";
             user_region_server.official_host    = "https://bambulab.com";
         } else if (country_code == "ENV_CN_PRE") {
-            user_region_server.iot_server_host = "https://api-pre.bambu-lab.com/v1";
+            user_region_server.iot_server_host  = "https://api-pre.bambu-lab.com/v1";
+            user_region_server.api_servier_host = "https://api-pre.bambu-lab.com/";
             user_region_server.mqtt_server_host = "ssl://47.100.225.51:8883";
             user_region_server.tutk_server_host = "CN";
             user_region_server.wifi_code        = "CN";
             user_region_server.official_host    = "https://portal-pre.bambu-lab.com";
         } else if (country_code == "ENV_CN_QA") {
             user_region_server.iot_server_host = "https://api-qa.bambu-lab.com/v1";
+            user_region_server.api_servier_host = "https://api-qa.bambu-lab.com/";
             user_region_server.mqtt_server_host = "ssl://47.100.225.51:8883";
             user_region_server.tutk_server_host = "CN";
             user_region_server.wifi_code        = "CN";
             user_region_server.official_host    = "https://portal-qa.bambu-lab.com";
         } else if (country_code == "ENV_CN_DEV") {
             user_region_server.iot_server_host = "https://api-dev.bambu-lab.com/v1";
+            user_region_server.api_servier_host = "https://api-dev.bambu-lab.com/";
             user_region_server.mqtt_server_host = "ssl://47.100.225.51:8883";
             user_region_server.tutk_server_host = "CN";
             user_region_server.wifi_code        = "CN";
             user_region_server.official_host    = "https://portal-dev.bambu-lab.com";
         } else {
             user_region_server.iot_server_host = "https://api.bambulab.com/v1";
+            user_region_server.api_servier_host = "https://api.bambulab.com/";
             user_region_server.mqtt_server_host = "ssl://us.mqtt.bambulab.com:8883";
             user_region_server.tutk_server_host = "ALL";
             user_region_server.wifi_code        = "DE";
@@ -3043,8 +3043,8 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         }
         this->set_host(user_region_server.iot_server_host);
 
-
         BOOST_LOG_TRIVIAL(trace) << "region update iot = " << user_region_server.iot_server_host;
+        BOOST_LOG_TRIVIAL(trace) << "region update api = " << user_region_server.api_servier_host;
         BOOST_LOG_TRIVIAL(trace) << "region update mqtt = " << user_region_server.mqtt_server_host;
         BOOST_LOG_TRIVIAL(trace) << "region update tutk = " << user_region_server.tutk_server_host;
         BOOST_LOG_TRIVIAL(trace) << "region update official = " << user_region_server.official_host;
@@ -3463,9 +3463,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
 
     void AccountManager::set_host(std::string host_url)
     {
-        /* invalid token and logout */
-        user_logout();
-
         BOOST_LOG_TRIVIAL(trace) << "set host to " << host_url;
         host = host_url;
     }

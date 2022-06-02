@@ -58,6 +58,7 @@ public:
     RegionServer() {}
     UserRegion  region;
     std::string iot_server_host;
+    std::string api_servier_host;
     std::string mqtt_server_host;
     std::string tutk_server_host;
     std::string wifi_code;
@@ -295,7 +296,6 @@ public:
     bool m_is_connecting{ false };
     UserRegion user_region;
     RegionServer user_region_server;
-    bool is_region_config_ready { false };
 
     std::string get_emqx_server_host();
     std::string get_official_server_host();
