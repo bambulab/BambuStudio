@@ -47,9 +47,11 @@ DropDown::DropDown(wxWindow *             parent,
     // BBS set default font
     SetFont(Label::Body_14);
 #ifdef __WXOSX__
-    Bind(wxEVT_ACTIVATE, [this](auto e) {
-        if (!e.GetActive())
+    Bind(wxEVT_ACTIVATE, [this](auto & e) {
+        if (!e.GetActive()) {
             Hide();
+            OnDismiss();
+        }
     });
 #endif
 }
