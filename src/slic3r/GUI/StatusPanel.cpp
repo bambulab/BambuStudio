@@ -1124,9 +1124,14 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     m_tempCtrl_bed->SetCurrTemp((int) obj->bed_temp);
 
     // update temprature if not input temp target
-    if (!bed_temp_input) {
-        m_tempCtrl_bed->SetTagTemp((int) obj->bed_temp_target);
+    if (m_temp_bed_timeout > 0) {
+        m_temp_bed_timeout--;
+    } else {
+        if (!bed_temp_input) {
+            m_tempCtrl_bed->SetTagTemp((int) obj->bed_temp_target);
+        }
     }
+
     if (abs(obj->bed_temp - obj->bed_temp_target) >= TEMP_THRESHOLD_VAL) {
         m_tempCtrl_bed->SetIconActive();
     } else {
@@ -1134,8 +1139,13 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     }
 
     m_tempCtrl_nozzle->SetCurrTemp((int) obj->nozzle_temp);
-    if (!nozzle_temp_input) {
-        m_tempCtrl_nozzle->SetTagTemp((int) obj->nozzle_temp_target);
+
+    if (m_temp_nozzle_timeout > 0) {
+        m_temp_nozzle_timeout--;
+    } else {
+        if (!nozzle_temp_input) {
+            m_tempCtrl_nozzle->SetTagTemp((int) obj->nozzle_temp_target);
+        }
     }
 
     if (abs(obj->nozzle_temp - obj->nozzle_temp_target) >= TEMP_THRESHOLD_VAL) {
@@ -1152,11 +1162,13 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
 {
     if (!obj) return;
 
-    // speed and lamp
+    // nozzle fan
     if (m_switch_nozzle_fan_timeout > 0)
         m_switch_nozzle_fan_timeout--;
     else
         m_switch_nozzle_fan->SetValue(obj->cooling_fan_speed > 0);
+
+    // printing fan
     if (m_switch_printing_fan_timeout > 0)
         m_switch_printing_fan_timeout--;
     else
@@ -1573,8 +1585,10 @@ void StatusPanel::on_set_bed_temp()
     wxString      str = m_tempCtrl_bed->GetTextCtrl()->GetValue();
     try {
         long bed_temp;
-        if (str.ToLong(&bed_temp) && obj)
+        if (str.ToLong(&bed_temp) && obj) {
+            m_temp_bed_timeout = COMMAND_TIMEOUT;
             obj->command_set_bed(bed_temp);
+        }
     }
     catch(...) {
         ;
@@ -1586,8 +1600,10 @@ void StatusPanel::on_set_nozzle_temp()
     wxString      str = m_tempCtrl_nozzle->GetTextCtrl()->GetValue();
     try {
         long nozzle_temp;
-        if (str.ToLong(&nozzle_temp) && obj)
+        if (str.ToLong(&nozzle_temp) && obj) {
+            m_temp_nozzle_timeout = COMMAND_TIMEOUT;
             obj->command_set_nozzle(nozzle_temp);
+        }
     }
     catch(...) {
         ;

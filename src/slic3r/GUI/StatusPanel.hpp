@@ -93,8 +93,10 @@ protected:
 
     /* TempInput */
     TempInput *     m_tempCtrl_nozzle;
+    int             m_temp_nozzle_timeout {0};
     StaticLine *    m_line_nozzle;
     TempInput *     m_tempCtrl_bed;
+    int             m_temp_bed_timeout {0};
     TempInput *     m_tempCtrl_frame;
     ImageSwitchButton *m_switch_nozzle_fan;
     int             m_switch_nozzle_fan_timeout{0};
