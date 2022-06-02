@@ -33,6 +33,15 @@ wxDEFINE_EVENT(EVT_AUXILIARY_UPDATE_DELETE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AUXILIARY_UPDATE_RENAME, wxCommandEvent);
 
 
+const std::vector<std::string> license_list = {
+    "BSD License",
+    "Apache License",
+    "GPL License",
+    "LGPL License",
+    "MIT License",
+    "CC License"
+};
+
 AuFile::AuFile(wxWindow *parent, fs::path file_path, wxString file_name, AuxiliaryFolderType type, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
 {
     wxPanel::Create(parent, id, pos, wxSize(FromDIP(300), FromDIP(340)), style);
@@ -716,6 +725,11 @@ void AuxiliaryPanel::init_tabpanel()
     m_tabpanel->AddPage(m_bill_of_materials_panel, _L("Bill of Materials"), "", false);
     m_tabpanel->AddPage(m_assembly_panel, _L("Assembly Guide"), "", false);
     m_tabpanel->AddPage(m_others_panel, _L("Others"), "", false);
+
+#if !BBL_RELEASE_TO_PUBLIC
+    m_designer_panel          = new DesignerPanel(m_tabpanel, AuxiliaryFolderType::DESIGNER);
+    m_tabpanel->AddPage(m_designer_panel, _L("License"), "", false);
+#endif
 }
 
 wxWindow *AuxiliaryPanel::create_side_tools()
@@ -978,7 +992,7 @@ void AuxiliaryPanel::update_all_cover()
      wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
      wxBoxSizer *m_sizer_designer = new wxBoxSizer(wxHORIZONTAL);
 
-     auto m_text_designer = new wxStaticText(this, wxID_ANY, wxT("Designer"), wxDefaultPosition, wxSize(120, -1), 0);
+     auto m_text_designer = new wxStaticText(this, wxID_ANY, _L("Designer"), wxDefaultPosition, wxSize(120, -1), 0);
      m_text_designer->Wrap(-1);
      m_sizer_designer->Add(m_text_designer, 0, wxALIGN_CENTER, 0);
 
@@ -989,7 +1003,7 @@ void AuxiliaryPanel::update_all_cover()
 
      wxBoxSizer *m_sizer_model_name = new wxBoxSizer(wxHORIZONTAL);
 
-     auto m_text_model_name = new wxStaticText(this, wxID_ANY, wxT("Model Name"), wxDefaultPosition, wxSize(120, -1), 0);
+     auto m_text_model_name = new wxStaticText(this, wxID_ANY, _L("Model Name"), wxDefaultPosition, wxSize(120, -1), 0);
      m_text_model_name->Wrap(-1);
      m_sizer_model_name->Add(m_text_model_name, 0, wxALIGN_CENTER, 0);
 
@@ -998,10 +1012,22 @@ void AuxiliaryPanel::update_all_cover()
      m_imput_model_name->GetTextCtrl()->SetSize(wxSize(FromDIP(450), FromDIP(22)));
      m_sizer_model_name->Add(m_imput_model_name, 0, wxALIGN_CENTER, 0);
 
-     m_sizer_body->Add( 0, 0, 0, wxTOP, 50 );
-     m_sizer_body->Add(m_sizer_designer, 0, wxLEFT, 50);
-     m_sizer_body->Add( 0, 0, 0, wxTOP, 20 );
-     m_sizer_body->Add(m_sizer_model_name, 0, wxLEFT, 50);
+     wxBoxSizer *m_sizer_license = new wxBoxSizer(wxHORIZONTAL);
+     auto m_text_license = new wxStaticText(this, wxID_ANY, _L("License"), wxDefaultPosition, wxSize(120, -1), 0);
+     m_text_license->Wrap(-1);
+     m_sizer_license->Add(m_text_license, 0, wxALIGN_CENTER, 0);
+
+     m_combo_license = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(450, -1), 0, NULL, wxCB_READONLY);
+     m_sizer_license->Add(m_combo_license, 0, wxALIGN_CENTER, 0);
+
+     m_sizer_body->Add( 0, 0, 0, wxTOP, FromDIP(50) );
+     m_sizer_body->Add(m_sizer_designer, 0, wxLEFT, FromDIP(50));
+     m_sizer_body->Add( 0, 0, 0, wxTOP, FromDIP(20));
+     m_sizer_body->Add(m_sizer_model_name, 0, wxLEFT, FromDIP(50));
+     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(20));
+     m_sizer_body->Add(m_sizer_license, 0, wxLEFT, FromDIP(50));
+
+     init_license_list();
 
      SetSizer(m_sizer_body);
      Layout();
@@ -1009,9 +1035,35 @@ void AuxiliaryPanel::update_all_cover()
 
      m_input_designer->Bind(wxEVT_TEXT, &DesignerPanel::on_input_enter_designer, this);
      m_imput_model_name->Bind(wxEVT_TEXT, &DesignerPanel::on_input_enter_model, this);
+     m_combo_license->Connect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(DesignerPanel::on_select_license), NULL, this);
 }
 
- DesignerPanel::~DesignerPanel() {}
+ DesignerPanel::~DesignerPanel()
+ {
+     m_combo_license->Disconnect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(DesignerPanel::on_select_license), NULL, this);
+ }
+
+ void DesignerPanel::init_license_list()
+ {
+     wxArrayString text_licese;
+     for (int i = 0; i < license_list.size(); i++) {
+         text_licese.Add(license_list[i]);
+     }
+     m_combo_license->Set(text_licese);
+ }
+
+ void DesignerPanel::on_select_license(wxCommandEvent&evt)
+ {
+     int selected = evt.GetInt();
+     if (selected >= 0 && selected < license_list.size()) {
+         if (wxGetApp().plater()->model().model_info == nullptr) {
+             wxGetApp().plater()->model().model_info = std::make_shared<ModelInfo>();
+         }
+         if (wxGetApp().plater()->model().model_info != nullptr) {
+             wxGetApp().plater()->model().model_info->license = license_list[selected];
+         }
+     }
+ }
 
 bool DesignerPanel::Show(bool show) 
 {
