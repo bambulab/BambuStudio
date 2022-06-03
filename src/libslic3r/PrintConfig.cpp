@@ -2433,13 +2433,13 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(0.));
 
-    def = this->add("wipe_tower_brim_width", coFloat);
-    //def->label = L("Wipe tower brim width");
-    //def->tooltip = L("Wipe tower brim width");
-    //def->sidetext = L("mm");
-    def->mode = comDevelop;
+    def = this->add("prime_tower_brim_width", coFloat);
+    def->label = L("Brim width");
+    def->tooltip = L("Brim width");
+    def->sidetext = L("mm");
+    def->mode = comAdvanced;
     def->min = 0.;
-    def->set_default_value(new ConfigOptionFloat(2.));
+    def->set_default_value(new ConfigOptionFloat(3.));
 //BBS
     //def = this->add("wipe_into_infill", coBool);
     //def->category = L("Wipe options");
@@ -3218,6 +3218,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "prime_tower_width";
     } else if (opt_key == "wiping_volume") {
         opt_key = "prime_volume";
+    } else if (opt_key == "wipe_tower_brim_width") {
+        opt_key = "prime_tower_brim_width";
     } else if (opt_key == "tool_change_gcode") {
         opt_key = "change_filament_gcode";
     } else if (opt_key == "bridge_fan_speed") {

@@ -169,7 +169,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "bed_temperature"
             || opt_key == "enable_prime_tower"
             || opt_key == "prime_tower_width"
-            || opt_key == "wipe_tower_brim_width"
+            || opt_key == "prime_tower_brim_width"
             //|| opt_key == "wipe_tower_bridging"
             || opt_key == "wipe_tower_no_sparse_layers"
             || opt_key == "flush_volumes_matrix"
@@ -1534,10 +1534,10 @@ const WipeTowerData& Print::wipe_tower_data(size_t filaments_cnt) const
     if (! is_step_done(psWipeTower) && filaments_cnt !=0) {
         // BBS
         double width = m_config.prime_tower_width;
-        double layer_height = 0.08f; // hard code layer height
+        double layer_height = 0.2; // hard code layer height
         double wipe_volume = m_config.prime_volume;
         const_cast<Print*>(this)->m_wipe_tower_data.depth = wipe_volume * (filaments_cnt - 1) / (layer_height * width);
-        const_cast<Print*>(this)->m_wipe_tower_data.brim_width = m_config.wipe_tower_brim_width;
+        const_cast<Print*>(this)->m_wipe_tower_data.brim_width = m_config.prime_tower_brim_width;
     }
 
     return m_wipe_tower_data;

@@ -22,6 +22,7 @@ class WipeTower
 {
 public:
     static const std::string never_skip_tag() { return "_GCODE_WIPE_TOWER_NEVER_SKIP_TAG"; }
+	static const float min_wipe_tower_depth;
 
     struct Extrusion
     {
@@ -163,7 +164,8 @@ public:
 		m_layer_height			= layer_height;
 		m_depth_traversed  = 0.f;
         m_current_layer_finished = false;
-		m_current_shape = (! is_first_layer && m_current_shape == SHAPE_NORMAL) ? SHAPE_REVERSED : SHAPE_NORMAL;
+		//m_current_shape = (! is_first_layer && m_current_shape == SHAPE_NORMAL) ? SHAPE_REVERSED : SHAPE_NORMAL;
+		m_current_shape = SHAPE_NORMAL;
 		if (is_first_layer) {
             m_num_layer_changes = 0;
             m_num_tool_changes 	= 0;
@@ -334,6 +336,9 @@ private:
 
     // Goes through m_plan, calculates border and finish_layer extrusions and subtracts them from last wipe
     void save_on_last_wipe();
+
+	// BBS
+	box_coordinates align_perimeter(const box_coordinates& perimeter_box);
 
 
     // to store information about tool changes for a given layer

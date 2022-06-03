@@ -1846,6 +1846,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("enable_prime_tower");
         optgroup->append_single_option_line("prime_tower_width");
         optgroup->append_single_option_line("prime_volume");
+        optgroup->append_single_option_line("prime_tower_brim_width");
 
         optgroup = page->new_optgroup(L("Special mode"));
         optgroup->append_single_option_line("print_sequence");
