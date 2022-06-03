@@ -1239,23 +1239,35 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter)
         writer.rectangle(wt_box, feedrate);
     }
 
-    // brim
+    // brim chamfer
     float spacing = m_perimeter_width - m_layer_height * float(1. - M_PI_4);
-    if (first_layer) {
-        // How many perimeters shall the brim have?
-        int loops_num = (m_wipe_tower_brim_width + spacing / 2.f) / spacing;
-        if (loops_num > 0) {
-            box_coordinates box = wt_box;
-            for (size_t i = 0; i < loops_num; ++i) {
-                box.expand(spacing);
-                writer.rectangle(box);
-            }
-
-            // Save actual brim width to be later passed to the Print object, which will use it
-            // for skirt calculation and pass it to GLCanvas for precise preview box
-            m_wipe_tower_brim_width_real = wt_box.ld.x() - box.ld.x() + spacing / 2.f;
-            wt_box = box;
+    // How many perimeters shall the brim have?
+    int loops_num = (m_wipe_tower_brim_width + spacing / 2.f) / spacing;
+    const float max_chamfer_width = 3.f;
+    if (!first_layer) {
+        // stop print chamfer if depth changes
+        if (m_layer_info->depth != m_plan.front().depth) {
+            loops_num = 0;
         }
+        else {
+            // limit max chamfer width to 3 mm
+            int chamfer_loops_num = (int)(max_chamfer_width / spacing);
+            int dist_to_1st = m_layer_info - m_plan.begin() - m_first_layer_idx;
+            loops_num = std::min(loops_num, chamfer_loops_num) - dist_to_1st;
+        }
+    }
+
+    if (loops_num > 0) {
+        box_coordinates box = wt_box;
+        for (size_t i = 0; i < loops_num; ++i) {
+            box.expand(spacing);
+            writer.rectangle(box);
+        }
+
+        // Save actual brim width to be later passed to the Print object, which will use it
+        // for skirt calculation and pass it to GLCanvas for precise preview box
+        m_wipe_tower_brim_width_real = wt_box.ld.x() - box.ld.x() + spacing / 2.f;
+        wt_box = box;
     }
 
     // Now prepare future wipe. box contains rectangle that was extruded last (ccw).
