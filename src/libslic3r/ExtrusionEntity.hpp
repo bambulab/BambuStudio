@@ -296,6 +296,8 @@ public:
 	ExtrusionEntity* clone_move() override { return new ExtrusionLoop(std::move(*this)); }
     bool make_clockwise();
     bool make_counter_clockwise();
+    bool is_clockwise() { return this->polygon().is_clockwise(); }
+    bool is_counter_clockwise() { return this->polygon().is_counter_clockwise(); }
     void reverse() override;
     const Point& first_point() const override { return this->paths.front().polyline.points.front(); }
     const Point& last_point() const override { assert(this->first_point() == this->paths.back().polyline.points.back()); return this->first_point(); }

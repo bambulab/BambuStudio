@@ -3026,8 +3026,11 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     if (m_layer->lower_layer && lower_layer_edge_grid != nullptr && ! *lower_layer_edge_grid)
         *lower_layer_edge_grid = calculate_layer_edge_grid(*m_layer->lower_layer);
 
-    // extrude all loops ccw
-    bool was_clockwise = loop.make_counter_clockwise();
+    //BBS: extrude contour of wall ccw, hole of wall cw, except spiral mode
+    bool was_clockwise = loop.is_clockwise();
+    if (m_config.spiral_mode || !is_perimeter(loop.role()))
+        loop.make_counter_clockwise();
+    bool current_clockwise = loop.is_clockwise();
 
     // find the point of the loop that is closest to the current extruder position
     // or randomize if requested
@@ -3096,7 +3099,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         //FIXME improve the algorithm in case the loop is split into segments with a low number of points (see the Point b query).
         Point a = paths.front().polyline.points[1];  // second point
         Point b = *(paths.back().polyline.points.end()-3);       // second to last point
-        if (was_clockwise) {
+        if (was_clockwise != current_clockwise) {
             // swap points
             Point c = a; a = b; b = c;
         }
@@ -3104,7 +3107,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         double angle = paths.front().first_point().ccw_angle(a, b) / 3;
 
         // turn left if contour, turn right if hole
-        if (was_clockwise) angle *= -1;
+        if (was_clockwise != current_clockwise) angle *= -1;
 
         // create the destination point along the first segment and rotate it
         // we make sure we don't exceed the segment length because we don't know
