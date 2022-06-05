@@ -684,6 +684,9 @@ protected:
     bool                invalidate_step(PrintStep step);
 
 private:
+    //BBS
+    static StringObjectException check_multi_filament_valid(const Print &print);
+
     bool                invalidate_state_by_config_options(const ConfigOptionResolver &new_config, const std::vector<t_config_option_key> &opt_keys);
 
     void                _make_skirt();

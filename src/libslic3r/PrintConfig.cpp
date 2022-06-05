@@ -927,7 +927,6 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PA");
     def->enum_values.push_back("PET-CF");
     def->enum_values.push_back("PC");
-    def->enum_values.push_back("Support");
     def->enum_values.push_back("ASA");
     def->enum_values.push_back("PVA");
     def->mode = comSimple;

@@ -102,10 +102,6 @@
             "sub_path": "filament/fdm_filament_pc.json"
         },
         {
-            "name": "fdm_filament_hpc",
-            "sub_path": "filament/fdm_filament_hpc.json"
-        },
-        {
             "name": "fdm_filament_asa",
             "sub_path": "filament/fdm_filament_asa.json"
         },

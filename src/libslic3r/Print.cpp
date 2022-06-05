@@ -685,6 +685,44 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     return {};
 }
 
+//BBS
+static std::map<std::string, bool> filament_is_high_temp {
+        {"PLA",     false},
+        {"PET",     true},
+        {"ABS",     true},
+        {"TPU",     false},
+        {"PA",      true},
+        {"PET-CF",  true},
+        {"PC",      true},
+        {"ASA",     true},
+        {"PVA",     false}
+};
+
+//BBS: this function is used to check whether multi filament can be printed
+StringObjectException Print::check_multi_filament_valid(const Print& print)
+{
+    bool has_high_temperature_filament = false;
+    bool has_low_temperature_filament = false;
+
+    auto print_config = print.config();
+    std::vector<unsigned int> extruders = print.extruders();
+
+    for (const auto& extruder_idx : extruders) {
+        std::string filament_type = print_config.filament_type.get_at(extruder_idx);
+        if (filament_is_high_temp.find(filament_type) != filament_is_high_temp.end()) {
+            if (filament_is_high_temp[filament_type])
+                has_high_temperature_filament = true;
+            else
+                has_low_temperature_filament = true;
+        }
+    }
+
+    if (has_high_temperature_filament && has_low_temperature_filament)
+        return { L("Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing") };
+
+    return {std::string()};
+}
+
 // Precondition: Print::validate() requires the Print::apply() to be called its invocation.
 //BBS: refine seq-print validation logic
 StringObjectException Print::validate(StringObjectException *warning, Polygons* collison_polygons, std::vector<std::pair<Polygon, float>>* height_polygons) const
@@ -696,6 +734,12 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
     if (extruders.empty())
         return { L("No extrusions under current settings.") };
+
+    if (extruders.size() > 1) {
+        auto ret = check_multi_filament_valid(*this);
+        if (!ret.string.empty())
+            return ret;
+    }
 
     if (m_config.print_sequence == PrintSequence::ByObject) {
         //BBS: refine seq-print validation logic
