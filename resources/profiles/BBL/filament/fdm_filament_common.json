@@ -3,8 +3,23 @@
     "name": "fdm_filament_common",
     "from": "system",
     "instantiation": "false",
-    "bed_temperature": [
-        "60,60,60"
+    "cool_plate_temp" : [
+        "60"
+    ],
+    "eng_plate_temp" : [
+        "60"
+    ],
+    "hot_plate_temp" : [
+        "60"
+    ],
+    "cool_plate_temp_initial_layer" : [
+        "60"
+    ],
+    "eng_plate_temp_initial_layer" : [
+        "60"
+    ],
+    "hot_plate_temp_initial_layer" : [
+        "60"
     ],
     "overhang_fan_threshold": [
         "95%"
@@ -89,9 +104,6 @@
     ],
     "bed_type": [
         "Cool Plate"
-    ],
-    "bed_temperature_initial_layer": [
-        "60,60,60"
     ],
     "nozzle_temperature_initial_layer": [
         "200"

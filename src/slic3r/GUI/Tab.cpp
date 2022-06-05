@@ -1871,7 +1871,6 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Output file"));
         optgroup->append_single_option_line("gcode_add_line_number");
-        //optgroup->append_single_option_line("bbl_bed_temperature_gcode");
         Option option = optgroup->get_option("filename_format");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
@@ -2393,60 +2392,43 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("nozzle_temperature"));
         optgroup->append_line(line);
 
-        line = {L("Bed"), L("Bed temperature of different bed type when printing")};
-        // BBS
-        ConfigOptionDef def = *print_config_def.get("curr_bed_type");
-        def.label = "";
-        def.tooltip = "";
-        def.type = coEnum;
-        def.mode = comSimple;
-        def.set_default_value(new ConfigOptionEnum<BedType>(btPC));
-        Option bed_type_option(def, "bed_type");
-        line.append_option(bed_type_option);
+        line = { L("Cool plate"), L("Bed temperature when cool plate is installed") };
+        line.append_option(optgroup->get_option("cool_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("cool_plate_temp"));
+        optgroup->append_line(line);
 
-        // BBS
-        line.append_option(optgroup->get_option("bed_temperature_initial_layer"));
-        line.append_option(optgroup->get_option("bed_temperature"));
+        line = { L("Engineering plate"), L("Bed temperature when engineering plate is installed") };
+        line.append_option(optgroup->get_option("eng_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("eng_plate_temp"));
+        optgroup->append_line(line);
+
+        line = { L("High Temp Plate"), L("Bed temperature when high temperature plate is installed") };
+        line.append_option(optgroup->get_option("hot_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("hot_plate_temp"));
         optgroup->append_line(line);
 
         optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value)
         {
-            DynamicPrintConfig& filament_config1 = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+            DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
 
             update_dirty();
-            if (opt_key == "bed_type") {
-                int bed_type = boost::any_cast<int>(value);
-                DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
-                int bed_temp = filament_config.opt_int("bed_temperature", bed_type);
-                int first_layer_bed_temp = filament_config.opt_int("bed_temperature_initial_layer", bed_type);
-                this->get_field("bed_temperature")->set_value(bed_temp, true);
-                this->get_field("bed_temperature_initial_layer")->set_value(first_layer_bed_temp, true);
-                on_value_change(opt_key, value);
+            if (opt_key == "cool_plate_temp" || opt_key == "cool_plate_temp_initial_layer") {
+                m_config_manipulation.check_bed_temperature_difference(BedType::btPC, &filament_config);
             }
-            else if (opt_key == "bed_temperature" || opt_key == "bed_temperature_initial_layer") {
-                DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
-                ConfigOptionInts* bed_temps_opt = dynamic_cast<ConfigOptionInts*>(filament_config.option(opt_key));
-                ConfigOptionInt temp_opt(boost::any_cast<int>(value));
-                //int bed_type = filament_config.opt_enum("bed_type", 0);
-                int bed_type = boost::any_cast<int>(this->get_field("bed_type")->get_value());
-                bed_temps_opt->set_at(&temp_opt, bed_type, 0);
-                // update dirty after value change
-                update_dirty();
-                m_config_manipulation.check_bed_temperature_difference(bed_type, &filament_config);
-                on_value_change(opt_key, value);
+            else if (opt_key == "eng_plate_temp" || opt_key == "eng_plate_temp_initial_layer") {
+                m_config_manipulation.check_bed_temperature_difference(BedType::btEP, &filament_config);
+            }
+            else if (opt_key == "hot_plate_temp" || opt_key == "hot_plate_temp_initial_layer") {
+                m_config_manipulation.check_bed_temperature_difference(BedType::btPEI, &filament_config);
             }
             else if (opt_key == "nozzle_temperature") {
-                DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
                 m_config_manipulation.check_nozzle_temperature_range(&filament_config);
-                on_value_change(opt_key, value);
             }
             else if (opt_key == "nozzle_temperature_initial_layer") {
-                DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
                 m_config_manipulation.check_nozzle_temperature_initial_layer_range(&filament_config);
-                on_value_change(opt_key, value);
             }
-            else
-                on_value_change(opt_key, value);
+
+            on_value_change(opt_key, value);
         };
 
         //BBS

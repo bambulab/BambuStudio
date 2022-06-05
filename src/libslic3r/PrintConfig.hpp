@@ -185,6 +185,34 @@ static std::string bed_type_to_gcode_string(const BedType type)
     return type_str;
 }
 
+static std::string get_bed_temp_key(const BedType type)
+{
+    if (type == btPC)
+        return "cool_plate_temp";
+
+    if (type == btEP)
+        return "eng_plate_temp";
+
+    if (type == btPEI)
+        return "hot_plate_temp";
+
+    return "";
+}
+
+static std::string get_bed_temp_1st_layer_key(const BedType type)
+{
+    if (type == btPC)
+        return "cool_plate_temp_initial_layer";
+
+    if (type == btEP)
+        return "eng_plate_temp_initial_layer";
+
+    if (type == btPEI)
+        return "hot_plate_temp_initial_layer";
+
+    return "";
+}
+
 #define CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(NAME) \
     template<> const t_config_enum_names& ConfigOptionEnum<NAME>::get_enum_names(); \
     template<> const t_config_enum_values& ConfigOptionEnum<NAME>::get_enum_values();
@@ -738,7 +766,12 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionPoints,             bed_exclude_area))
     // BBS
     ((ConfigOptionEnum<BedType>,      curr_bed_type))
-    ((ConfigOptionInts,               bed_temperature))
+    ((ConfigOptionInts,               cool_plate_temp))
+    ((ConfigOptionInts,               eng_plate_temp))
+    ((ConfigOptionInts,               hot_plate_temp)) // hot is short for high temperature
+    ((ConfigOptionInts,               cool_plate_temp_initial_layer))
+    ((ConfigOptionInts,               eng_plate_temp_initial_layer))
+    ((ConfigOptionInts,               hot_plate_temp_initial_layer)) // hot is short for high temperature
     ((ConfigOptionBools,              enable_overhang_bridge_fan))
     ((ConfigOptionInts,               overhang_fan_speed))
     ((ConfigOptionEnumsGeneric,       overhang_fan_threshold))
@@ -756,8 +789,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts,               fan_cooling_layer_time))
     ((ConfigOptionStrings,            filament_colour))
     ((ConfigOptionFloat,              initial_layer_acceleration))
-    // BBS
-    ((ConfigOptionInts,               bed_temperature_initial_layer))
     ((ConfigOptionFloat,              initial_layer_line_width))
     ((ConfigOptionFloat,              initial_layer_print_height))
     ((ConfigOptionFloat,              initial_layer_speed))

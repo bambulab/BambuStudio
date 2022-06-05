@@ -330,9 +330,6 @@ void Preset::normalize(DynamicPrintConfig &config)
         for (const std::string &key : Preset::filament_options()) {
             if (key == "compatible_prints" || key == "compatible_printers")
                 continue;
-            // BBS
-            if (key == "bed_temperature" || key == "bed_temperature_initial_layer")
-                continue;
             auto *opt = config.option(key, false);
             /*assert(opt != nullptr);
             assert(opt->is_vector());*/
@@ -677,7 +674,7 @@ static std::vector<std::string> s_Preset_print_options {
      "tree_support_branch_angle", "tree_support_with_infill", "tree_support_wall_count", "tree_support_branch_distance",
      "tree_support_branch_diameter",
      "detect_narrow_internal_solid_infill",
-     "gcode_add_line_number", "bbl_bed_temperature_gcode", "enable_arc_fitting", "infill_combination", "adaptive_layer_height",
+     "gcode_add_line_number", "enable_arc_fitting", "infill_combination", "adaptive_layer_height",
      "support_bottom_interface_spacing", "enable_overhang_speed", "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed",
      "initial_layer_infill_speed"
 };
@@ -687,7 +684,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_flow_ratio", "filament_density", "filament_cost", "filament_minimal_purge_on_wipe_tower",
     "nozzle_temperature", "nozzle_temperature_initial_layer",
     // BBS
-    "bed_temperature", "bed_temperature_initial_layer",
+    "cool_plate_temp", "eng_plate_temp", "hot_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp_initial_layer", "hot_plate_temp_initial_layer",
     // "bed_type",
     //BBS:temperature_vitrification
     "temperature_vitrification", "reduce_fan_stop_start_freq", "slow_down_for_layer_cooling", "fan_min_speed",

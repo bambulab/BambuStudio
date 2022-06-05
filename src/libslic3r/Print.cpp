@@ -91,10 +91,11 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_density",
         "filament_cost",
         "initial_layer_acceleration",
-        "bed_temperature_initial_layer",
         // BBS
+        "cool_plate_temp_initial_layer",
+        "eng_plate_temp_initial_layer",
+        "hot_plate_temp_initial_layer",
         "gcode_add_line_number",
-        "bbl_bed_temperature_gcode",
         "layer_change_gcode",
         "fan_min_speed",
         "fan_max_speed",
@@ -166,7 +167,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "gcode_flavor"
             || opt_key == "single_extruder_multi_material"
             || opt_key == "nozzle_temperature"
-            || opt_key == "bed_temperature"
+            // BBS
+            || opt_key == "cool_plate_temp"
+            || opt_key == "eng_plate_temp"
+            || opt_key == "hot_plate_temp"
             || opt_key == "enable_prime_tower"
             || opt_key == "prime_tower_width"
             || opt_key == "prime_tower_brim_width"
@@ -930,12 +934,10 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     assert(bed_type_def != nullptr);
 
     const t_config_enum_values* bed_type_keys_map = bed_type_def->enum_keys_map;
-    const ConfigOptionInts& bed_temp_opt = m_config.bed_temperature;
     for (unsigned int extruder_id : extruders) {
-        int curr_bed_temp = bed_temp_opt.get_at(extruder_id * BedType::btCount + m_config.curr_bed_type);
-        const ConfigOptionInts& bed_temp_opt = m_config.bed_temperature;
+        const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key(m_config.curr_bed_type));
         for (unsigned int extruder_id : extruders) {
-            int curr_bed_temp = bed_temp_opt.get_at(extruder_id * BedType::btCount + m_config.curr_bed_type);
+            int curr_bed_temp = bed_temp_opt->get_at(extruder_id);
             if (curr_bed_temp == 0 && bed_type_keys_map != nullptr) {
                 std::string bed_type_name;
                 for (auto item : *bed_type_keys_map) {

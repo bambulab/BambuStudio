@@ -608,18 +608,17 @@ double getTemperatureFromExtruder(const PrintObject* printObject) {
         }
     }
 
+    const PrintConfig& config = print->config();
+    int curr_bed_type = config.option("curr_bed_type")->getInt();
+    const ConfigOptionInts* bed_temp_1st_layer_opt = config.option<ConfigOptionInts>(get_bed_temp_1st_layer_key((BedType)curr_bed_type));
+
     double maxDeltaTemp = 0;
     for (auto extruderID : extrudersFirstLayer) {
-        int bedTemp = 0;
-        for (int i = 0; i != BedType::btCount; ++i) {
-            if (print->config().bed_temperature.get_at((extruderID - 1) * BedType::btCount + i) != 0) {
-                bedTemp = print->config().bed_temperature.get_at((extruderID - 1) * BedType::btCount + i);
-                break;
-            }
-        }
+        int bedTemp = bed_temp_1st_layer_opt->get_at(extruderID - 1);
         if (bedTemp > maxDeltaTemp)
             maxDeltaTemp = bedTemp;
     }
+
     return maxDeltaTemp;
 }
 //BBS adhesion coefficients from print object class

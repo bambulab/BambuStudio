@@ -1468,24 +1468,16 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     }
 
     {
-        const ConfigOptionInts& bed_temp_opt = m_config.bed_temperature_initial_layer;
-        int curr_bed_type = 0;
-        //if (m_config.bbl_bed_temperature_gcode)
-        //    curr_bed_type = m_config.bed_type.get_at(initial_extruder_id);
-        //else
-            curr_bed_type = m_config.curr_bed_type.getInt();
-        int curr_bed_temp = bed_temp_opt.get_at(initial_extruder_id * BedType::btCount + curr_bed_type);
+        int curr_bed_type = m_config.curr_bed_type.getInt();
 
         std::string first_layer_bed_temp_str;
-        for (int bed_type = 0; bed_type < BedType::btCount; bed_type++) {
-            int bed_temp = bed_temp_opt.get_at(initial_extruder_id * BedType::btCount + bed_type);
-            first_layer_bed_temp_str += bed_type_to_gcode_string((BedType)bed_type) + "=" + std::to_string(bed_temp);
-            if (bed_type < BedType::btCount - 1)
-                first_layer_bed_temp_str += ",";
-        }
-        m_placeholder_parser.set("bed_temperature_initial_layer_vector", new ConfigOptionString(first_layer_bed_temp_str));
-        m_placeholder_parser.set("bed_temperature_initial_layer_single", new ConfigOptionInt(curr_bed_temp));
-        m_placeholder_parser.set("bed_type", new ConfigOptionInt(to_bambu_bed_type((BedType)curr_bed_type)));
+        const ConfigOptionInts* first_bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_1st_layer_key((BedType)curr_bed_type));
+        const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key((BedType)curr_bed_type));
+        m_placeholder_parser.set("bbl_bed_temperature_gcode", new ConfigOptionBool(false));
+        m_placeholder_parser.set("bed_temperature_initial_layer", new ConfigOptionInts(*first_bed_temp_opt));
+        m_placeholder_parser.set("bed_temperature", new ConfigOptionInts(*bed_temp_opt));
+        m_placeholder_parser.set("bed_temperature_initial_layer_single", new ConfigOptionInt(first_bed_temp_opt->get_at(initial_extruder_id)));
+        m_placeholder_parser.set("bed_temperature_initial_layer_vector", new ConfigOptionString(""));
     }
     std::string machine_start_gcode = this->placeholder_parser_process("machine_start_gcode", print.config().machine_start_gcode.value, initial_extruder_id);
     // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
@@ -1957,17 +1949,14 @@ void GCode::print_machine_envelope(GCodeOutputStream &file, Print &print)
 // BBS
 void GCode::get_bed_temperature(const int extruder_id, const bool is_first_layer, std::vector<int>& temps_per_bed, int& default_temp) const
 {
-    const ConfigOptionInts& bed_temp_opt = is_first_layer ? m_config.bed_temperature_initial_layer : m_config.bed_temperature;
-    //int sel_bed_type = m_config.bed_type.get_at(extruder_id);
-    int sel_bed_type = m_config.curr_bed_type;
-
     temps_per_bed.resize((int)BedType::btCount, 0);
     for (int bed_type = 0; bed_type < BedType::btCount; bed_type++) {
-        int temp_idx = extruder_id * BedType::btCount + bed_type;
-        temps_per_bed[bed_type] = bed_temp_opt.get_at(temp_idx);
-
-        if (bed_type == sel_bed_type)
-            default_temp = bed_temp_opt.get_at(temp_idx);
+        std::string bed_temp_key = is_first_layer ? get_bed_temp_key((BedType)bed_type) : get_bed_temp_1st_layer_key((BedType)bed_type);
+        const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(bed_temp_key);
+        
+        temps_per_bed[bed_type] = bed_temp_opt->get_at(extruder_id);
+        if (bed_type == m_config.curr_bed_type)
+            default_temp = temps_per_bed[bed_type];
     }
 }
 

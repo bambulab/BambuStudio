@@ -4,12 +4,6 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
-    "bed_type": [
-        "Cool Plate"
-    ],
-    "bed_temperature": [
-        "35,0,45"
-    ],
     "fan_cooling_layer_time": [
         "100"
     ],
@@ -25,8 +19,23 @@
     "filament_cost": [
         "20"
     ],
-    "bed_temperature_initial_layer": [
-        "35,0,45"
+    "cool_plate_temp" : [
+        "35"
+    ],
+    "eng_plate_temp" : [
+        "0"
+    ],
+    "hot_plate_temp" : [
+        "45"
+    ],
+    "cool_plate_temp_initial_layer" : [
+        "35"
+    ],
+    "eng_plate_temp_initial_layer" : [
+        "0"
+    ],
+    "hot_plate_temp_initial_layer" : [
+        "45"
     ],
     "nozzle_temperature_initial_layer": [
         "220"

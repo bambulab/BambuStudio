@@ -2873,11 +2873,9 @@ double getTemperatureFromExtruder(const ModelVolumePtrs objectVolumes) {
     double maxDeltaTemp = 0;
     for (auto extruderID : extruders) {
         if (Model::extruderParamsMap.find(extruderID) != Model::extruderParamsMap.end())
-            for (int i = 0; i != BedType::btCount; ++i) {
-                if (Model::extruderParamsMap.at(extruderID).bedTemp[i] != 0){
-                    maxDeltaTemp = std::max(maxDeltaTemp, Model::extruderParamsMap.at(extruderID).bedTemp[i]);
-                    break;
-                }
+            if (Model::extruderParamsMap.at(extruderID).bedTemp != 0){
+                maxDeltaTemp = std::max(maxDeltaTemp, (double)Model::extruderParamsMap.at(extruderID).bedTemp);
+                break;
             }
     }
     return maxDeltaTemp;

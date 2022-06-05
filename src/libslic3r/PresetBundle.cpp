@@ -1225,19 +1225,7 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
             } else {
                 // BBS
                 ConfigOptionVectorBase* opt_vec_dst = static_cast<ConfigOptionVectorBase*>(opt_dst);
-                if (key == "bed_temperature" || key == "bed_temperature_initial_layer") {
-                    for (size_t i = 0; i < num_filaments; i++) {
-                        const ConfigOptionInts* bed_temp_opt = dynamic_cast<const ConfigOptionInts*>(filament_configs[i]->option(key));
-                        for (size_t type = 0; type < (size_t)BedType::btCount; type++) {
-                            if (type < bed_temp_opt->size())
-                                opt_vec_dst->set_at(bed_temp_opt, i * BedType::btCount + type, type);
-                            else
-                                // BBS FIXME: set bed temperature to 0 for new bed types
-                                opt_vec_dst->set_at(new ConfigOptionInt(0), i * BedType::btCount + type, type);
-                        }
-                    }
-                }
-                else {
+                {
                     std::vector<const ConfigOption*> filament_opts(num_filaments, nullptr);
                     // Setting a vector value from all filament_configs.
                     for (size_t i = 0; i < filament_opts.size(); ++i)
@@ -1594,21 +1582,6 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 if (other_opt->is_scalar()) {
                     for (size_t i = 0; i < configs.size(); ++ i)
                         configs[i].option(key, false)->set(other_opt);
-                }
-                // BBS
-                else if (key == "bed_temperature" || key == "bed_temperature_initial_layer") {
-                    const ConfigOptionInts* other_matrix_opt = dynamic_cast<const ConfigOptionInts*>(config.option(key));
-                    int n_old_bed_types = other_matrix_opt->size() / num_filaments;
-                    assert(n_old_bed_types <= BedType::btCount);
-
-                    // Other_matrix_opt contains temperature collection of extruders* bed_types, so just pick temps for the i-th extruder.
-                    // New bed types, which are not contained in other_matrix_opt, set to 0 value.
-                    for (size_t i = 0; i < configs.size(); ++i) {
-                        ConfigOptionInts* current_opt = dynamic_cast<ConfigOptionInts*>(configs[i].option(key, false));
-                        current_opt->resize(BedType::btCount, 0);
-                        for (int bed_type = 0; bed_type < n_old_bed_types; bed_type++)
-                            current_opt->set_at(other_matrix_opt, bed_type, i * n_old_bed_types + bed_type);
-                    }
                 }
                 else if (key != "compatible_printers" && key != "compatible_prints") {
                     for (size_t i = 0; i < configs.size(); ++i)
@@ -2474,6 +2447,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         std::map<std::string, std::string>& filament_id_maps,
         PresetCollection* presets_collection,
         size_t& count) -> std::string {
+
         std::string subfile = path + "/" + vendor_name + "/" + subfile_iter.second;
         // Load the print, filament or printer preset.
         std::string               preset_name;

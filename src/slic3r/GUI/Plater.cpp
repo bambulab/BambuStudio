@@ -2389,7 +2389,7 @@ void Plater::setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extPara
     for (unsigned int i = 0; i != numExtruders; ++i) {
         std::string matName = "";
         // BBS
-        std::array<double, BedType::btCount> bedTemp;
+        int bedTemp = 0;
         double endTemp = 0.f;
         if (config.has("filament_type")) {
             matName = config.opt_string("filament_type", i);
@@ -2398,9 +2398,9 @@ void Plater::setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extPara
             endTemp = config.opt_int("nozzle_temperature", i);
         }
 
-        if (config.has("bed_temperature")) {
-            for (int type = 0; type < BedType::btCount; type++)
-                bedTemp[type] = config.opt_int("bed_temperature", i * BedType::btCount + type);
+        if (config.has("curr_bed_type")) {
+            BedType curr_bed_type = config.opt_enum<BedType>("curr_bed_type");
+            bedTemp = config.opt_int(get_bed_temp_key(curr_bed_type), i);
         }
         if (i == 0) extParas.insert({ i,{matName, bedTemp, endTemp} });
         extParas.insert({ i + 1,{matName, bedTemp, endTemp} });

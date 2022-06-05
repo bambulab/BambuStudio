@@ -334,15 +334,61 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(0.));
 
-    def = this->add("bed_temperature", coInts);
+    // BBS
+    def = this->add("cool_plate_temp", coInts);
     def->label = L("Other layers");
-    def->tooltip = L("Bed temperature for layers except the initial one");
+    def->tooltip = L("bed temperature for layers except the initial one");
     def->sidetext = L("°C");
     def->full_label = L("Bed temperature");
     def->min = 0;
-    //BBS
     def->max = 120;
-    def->set_default_value(new ConfigOptionInts { 0 });
+    def->set_default_value(new ConfigOptionInts{ 35 });
+
+    def = this->add("eng_plate_temp", coInts);
+    def->label = L("Other layers");
+    def->tooltip = L("bed temperature for layers except the initial one");
+    def->sidetext = L("°C");
+    def->full_label = L("Bed temperature");
+    def->min = 0;
+    def->max = 120;
+    def->set_default_value(new ConfigOptionInts{ 45 });
+
+    def = this->add("hot_plate_temp", coInts);
+    def->label = L("Other layers");
+    def->tooltip = L("bed temperature for layers except the initial one");
+    def->sidetext = L("°C");
+    def->full_label = L("Bed temperature");
+    def->min = 0;
+    def->max = 120;
+    def->set_default_value(new ConfigOptionInts{ 45 });
+
+    def = this->add("cool_plate_temp_initial_layer", coInts);
+    def->label = L("Initial layer");
+    def->full_label = L("Initial layer bed temperature");
+    def->tooltip = L("Bed temperature of the initial layer");
+    def->sidetext = L("°C");
+    def->max = 0;
+    def->max = 120;
+    def->set_default_value(new ConfigOptionInts{ 0 });
+
+    def = this->add("eng_plate_temp_initial_layer", coInts);
+    def->label = L("Initial layer");
+    def->full_label = L("Initial layer bed temperature");
+    def->tooltip = L("Bed temperature of the initial layer");
+    def->sidetext = L("°C");
+    def->max = 0;
+    def->max = 120;
+    def->set_default_value(new ConfigOptionInts{ 0 });
+
+    def = this->add("hot_plate_temp_initial_layer", coInts);
+    def->label = L("Initial layer");
+    def->full_label = L("Initial layer bed temperature");
+    def->tooltip = L("Bed temperature of the initial layer");
+    def->sidetext = L("°C");
+    def->max = 0;
+    def->max = 120;
+    def->set_default_value(new ConfigOptionInts{ 0 });
+
 
     def = this->add("curr_bed_type", coEnums);
     def->label = L("Bed type");
@@ -993,15 +1039,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(300));
 
-    def = this->add("bed_temperature_initial_layer", coInts);
-    def->label = L("Initial layer");
-    def->full_label = L("Initial layer bed temperature");
-    def->tooltip = L("Bed temperature of the initial layer");
-    def->sidetext = L("°C");
-    def->max = 0;
-    def->max = 120;
-    def->set_default_value(new ConfigOptionInts { 0 });
-
     def = this->add("initial_layer_line_width", coFloat);
     def->label = L("Initial layer");
     def->category = L("Quality");
@@ -1116,13 +1153,6 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Add line number");
     def->tooltip = L("Enable this to add line number(Nx) at the beginning of each G-Code line");
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(0));
-
-    // BBS
-    def = this->add("bbl_bed_temperature_gcode", coBool);
-    def->label = L("BBL private bed temperature");
-    def->tooltip = L("Use BBL private temperature gcode instead of standard M140/M190");
-    def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(0));
 
     // BBS
@@ -3279,7 +3309,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "small_perimeter_speed", "max_volumetric_speed", "max_print_speed",
         "support_bottom_z_distance", "support_closing_radius", "slicing_mode", "slice_closing_radius",
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration", "nozzle_temperature_range_high", "nozzle_temperature_range_low",
-        "support_transition_line_width", "support_transition_speed"
+        "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {

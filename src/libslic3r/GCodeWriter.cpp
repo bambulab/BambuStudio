@@ -141,24 +141,7 @@ std::string GCodeWriter::set_bed_temperature(std::vector<int> temps_per_bed, int
         comment = "set bed temperature";
     }
 
-    if (!this->config.bbl_bed_temperature_gcode) {
-        gcode << code << " S" << default_temp << " ; " << comment << "\n";
-    }
-    else {
-        if (target_temp_changed) {
-            gcode << "M1002 set_heatbed_surface_temp:";
-            for (int bed_type = 0; bed_type < temps_per_bed.size(); bed_type++) {
-                gcode << bed_type_to_gcode_string((BedType)bed_type) << "=" << temps_per_bed[bed_type];
-                if (bed_type == temps_per_bed.size() - 1)
-                    gcode << ";" << "config bed temps" << "\n";
-                else
-                    gcode << ",";
-            }
-        }
-
-        gcode << code << " A" << " S" << default_temp << ";" << comment << "\n";
-    }
-
+    gcode << code << " S" << default_temp << " ; " << comment << "\n";
     return gcode.str();
 }
 

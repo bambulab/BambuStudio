@@ -604,6 +604,7 @@ void ConfigOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const b
 			return;
 		}
 
+#if 0
         // BBS
         if (opt_id == "bed_temperature" || opt_id == "bed_temperature_initial_layer") {
             if (m_modelconfig)
@@ -611,6 +612,7 @@ void ConfigOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const b
             OptionsGroup::on_change_OG(opt_id, value);
             return;
         }
+#endif
 
 		auto 				itOption  = it->second;
 		const std::string  &opt_key   = itOption.first;
@@ -645,6 +647,7 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 		auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
 		value = int(nozzle_diameter->values.size());
 	}
+#if 0
     // BBS
     else if (opt_key == "bed_temperature" || opt_key == "bed_temperature_initial_layer") {
         // BBS: config is preset initial value, not presets.m_edited_preset,
@@ -659,6 +662,7 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
             value = bed_type < bed_temps->size() ? bed_temps->get_at(bed_type) : 0;
         }
     }
+#endif
     else if (m_opt_map.find(opt_key) == m_opt_map.end() ||
 		    // This option don't have corresponded field
 		     opt_key == "printable_area"				||
@@ -696,6 +700,7 @@ void ConfigOptionsGroup::on_kill_focus(const std::string& opt_key)
 
 void ConfigOptionsGroup::reload_config()
 {
+#if 0
     // BBS
     auto bed_type_field = this->get_field("bed_type");
     int default_bed_type = BedType::btPC;
@@ -714,6 +719,7 @@ void ConfigOptionsGroup::reload_config()
 
         bed_type_field->set_value(default_bed_type, false);
     }
+#endif
 
 	for (auto &kvp : m_opt_map) {
 		// Name of the option field (name of the configuration key, possibly suffixed with '#' and the index of a scalar inside a vector.
@@ -723,9 +729,11 @@ void ConfigOptionsGroup::reload_config()
 		// index in the vector option, zero for scalars
 		int 			   opt_index = kvp.second.second;
 		const ConfigOptionDef &option = m_options.at(opt_id).opt;
+#if 0
         // BBS
         if ((opt_id == "bed_temperature" || opt_id == "bed_temperature_initial_layer") && bed_type_field != nullptr)
             opt_index = default_bed_type;
+#endif
 		this->set_value(opt_id, config_value(opt_key, opt_index, option.gui_flags == "serialized"));
 	}
 }

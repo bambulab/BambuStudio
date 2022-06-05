@@ -20,10 +20,22 @@
     "nozzle_temperature": [
         "280"
     ],
-    "bed_temperature": [
-        "0,100,100"
+	"cool_plate_temp" : [
+        "0"
     ],
-    "bed_temperature_initial_layer": [
-        "0,100,100"
+	"eng_plate_temp" : [
+        "100"
+    ],
+	"hot_plate_temp" : [
+        "100"
+    ],
+    "cool_plate_temp_initial_layer" : [
+        "0"
+    ],
+    "eng_plate_temp_initial_layer" : [
+        "100"
+    ],
+    "hot_plate_temp_initial_layer" : [
+        "100"
     ]
 }
