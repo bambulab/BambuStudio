@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-31 21:59+0800\n"
+"POT-Creation-Date: 2022-06-05 18:42+0800\n"
 "PO-Revision-Date: 2021-02-03 14:06+0100\n"
 "Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -982,6 +982,68 @@ msgstr ""
 msgid "Perform cut"
 msgstr "Выполнить разрез"
 
+msgid "Mesh name"
+msgstr ""
+
+msgid "Detail level"
+msgstr ""
+
+msgid "Decimate ratio"
+msgstr ""
+
+#, boost-format
+msgid ""
+"Processing model '%1%' with more than 1M triangles could be slow. It is "
+"highly recommended to simplify the model."
+msgstr ""
+
+msgid "Simplify model"
+msgstr ""
+
+msgid "Simplify"
+msgstr ""
+
+msgid "Simplification is currently only allowed when a single part is selected"
+msgstr ""
+
+msgid "Error"
+msgstr "Ошибка"
+
+msgid "Extra high"
+msgstr ""
+
+msgid "High"
+msgstr ""
+
+msgid "Medium"
+msgstr ""
+
+msgid "Low"
+msgstr ""
+
+msgid "Extra low"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d triangles"
+msgstr ""
+
+msgid "Show wireframe"
+msgstr ""
+
+msgid "Close"
+msgstr "Закрыть"
+
+msgid "Operation already cancelling. Please wait few seconds."
+msgstr ""
+
+msgid "Can't apply when proccess preview."
+msgstr ""
+
+#, boost-format
+msgid "Process %1% / 100"
+msgstr ""
+
 msgid "Notice"
 msgstr "Примечание"
 
@@ -1797,9 +1859,6 @@ msgstr "Недавние проекты"
 msgid "The project is no longer available."
 msgstr ""
 
-msgid "Error"
-msgstr "Ошибка"
-
 msgid "Save Project"
 msgstr ""
 
@@ -1986,9 +2045,6 @@ msgstr "Опции:"
 
 msgid "Swap Y/Z axes"
 msgstr "Поменять местами оси Y/Z"
-
-msgid "Close"
-msgstr "Закрыть"
 
 msgid "Monitoring"
 msgstr ""
@@ -2306,13 +2362,13 @@ msgstr ""
 msgid "Filament changes"
 msgstr ""
 
-msgid "Flushing volumes"
-msgstr ""
-
 msgid "Click to edit preset"
 msgstr "Нажмите, чтобы изменить профиль"
 
 msgid "Bed type"
+msgstr ""
+
+msgid "Flushing volumes"
 msgstr ""
 
 msgid "Untitled"
@@ -3265,6 +3321,9 @@ msgstr ""
 msgid "The name \"%1%\" already exists."
 msgstr ""
 
+msgid "Designer"
+msgstr ""
+
 msgid "Pictures"
 msgstr ""
 
@@ -3274,10 +3333,13 @@ msgstr ""
 msgid "Assembly Guide"
 msgstr ""
 
-msgid "Designer"
+msgid "License"
 msgstr ""
 
 msgid "Choose files"
+msgstr ""
+
+msgid "Model Name"
 msgstr ""
 
 #, c-format, boost-format

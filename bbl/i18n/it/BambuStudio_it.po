@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-31 21:59+0800\n"
+"POT-Creation-Date: 2022-06-05 18:42+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -973,6 +973,70 @@ msgstr ""
 msgid "Perform cut"
 msgstr "Effettua taglio"
 
+msgid "Mesh name"
+msgstr "Nome mesh"
+
+msgid "Detail level"
+msgstr "Livello di dettaglio"
+
+msgid "Decimate ratio"
+msgstr "Rapporto di decimazione"
+
+#, boost-format
+msgid ""
+"Processing model '%1%' with more than 1M triangles could be slow. It is "
+"highly recommended to simplify the model."
+msgstr ""
+
+msgid "Simplify model"
+msgstr "Semplifica modello"
+
+msgid "Simplify"
+msgstr "Semplifica"
+
+msgid "Simplification is currently only allowed when a single part is selected"
+msgstr ""
+"La semplificazione è attualmente consentita solo quando è selezionata una "
+"singola parte"
+
+msgid "Error"
+msgstr "Errore"
+
+msgid "Extra high"
+msgstr "Molto alto"
+
+msgid "High"
+msgstr "Alto"
+
+msgid "Medium"
+msgstr "Medio"
+
+msgid "Low"
+msgstr "Basso"
+
+msgid "Extra low"
+msgstr "Molto basso"
+
+#, c-format, boost-format
+msgid "%d triangles"
+msgstr "%d triangoli"
+
+msgid "Show wireframe"
+msgstr "Mostra wireframe"
+
+msgid "Close"
+msgstr "Chiudi"
+
+msgid "Operation already cancelling. Please wait few seconds."
+msgstr "Operazione già annullata. Si prega di attendere qualche secondo."
+
+msgid "Can't apply when proccess preview."
+msgstr "Non si può applicare durante la creazione dell'anteprima."
+
+#, boost-format
+msgid "Process %1% / 100"
+msgstr "Processo %1% / 100"
+
 msgid "Notice"
 msgstr "Avvertenza"
 
@@ -1786,9 +1850,6 @@ msgstr "Prog&etti recenti"
 msgid "The project is no longer available."
 msgstr ""
 
-msgid "Error"
-msgstr "Errore"
-
 msgid "Save Project"
 msgstr ""
 
@@ -1975,9 +2036,6 @@ msgstr "Opzioni:"
 
 msgid "Swap Y/Z axes"
 msgstr "Inverti assi Y/Z"
-
-msgid "Close"
-msgstr "Chiudi"
 
 msgid "Monitoring"
 msgstr ""
@@ -2293,13 +2351,13 @@ msgstr ""
 msgid "Filament changes"
 msgstr ""
 
-msgid "Flushing volumes"
-msgstr ""
-
 msgid "Click to edit preset"
 msgstr "Clicca per modificare il preset"
 
 msgid "Bed type"
+msgstr ""
+
+msgid "Flushing volumes"
 msgstr ""
 
 msgid "Untitled"
@@ -3250,6 +3308,9 @@ msgstr ""
 msgid "The name \"%1%\" already exists."
 msgstr ""
 
+msgid "Designer"
+msgstr ""
+
 msgid "Pictures"
 msgstr ""
 
@@ -3259,10 +3320,13 @@ msgstr ""
 msgid "Assembly Guide"
 msgstr ""
 
-msgid "Designer"
+msgid "License"
 msgstr ""
 
 msgid "Choose files"
+msgstr ""
+
+msgid "Model Name"
 msgstr ""
 
 #, c-format, boost-format
@@ -7582,63 +7646,12 @@ msgstr ""
 #~ msgid "Invalid pinhead diameter"
 #~ msgstr "Diametro apice non valido"
 
-#~ msgid "Mesh name"
-#~ msgstr "Nome mesh"
-
-#~ msgid "Detail level"
-#~ msgstr "Livello di dettaglio"
-
-#~ msgid "Decimate ratio"
-#~ msgstr "Rapporto di decimazione"
-
 #~ msgid ""
 #~ "Processing model '%1%' with more than 1M triangles could be slow. It is "
 #~ "highly recommend to reduce amount of triangles."
 #~ msgstr ""
 #~ "L'elaborazione del modello '%1%' con più di 1M di triangoli potrebbe "
 #~ "essere lenta. Si consiglia vivamente di ridurre la quantità di triangoli."
-
-#~ msgid "Simplify model"
-#~ msgstr "Semplifica modello"
-
-#~ msgid "Simplify"
-#~ msgstr "Semplifica"
-
-#~ msgid ""
-#~ "Simplification is currently only allowed when a single part is selected"
-#~ msgstr ""
-#~ "La semplificazione è attualmente consentita solo quando è selezionata una "
-#~ "singola parte"
-
-#~ msgid "Extra high"
-#~ msgstr "Molto alto"
-
-#~ msgid "High"
-#~ msgstr "Alto"
-
-#~ msgid "Medium"
-#~ msgstr "Medio"
-
-#~ msgid "Low"
-#~ msgstr "Basso"
-
-#~ msgid "Extra low"
-#~ msgstr "Molto basso"
-
-#~ msgid "%d triangles"
-#~ msgstr "%d triangoli"
-
-#~ msgid "Show wireframe"
-#~ msgstr "Mostra wireframe"
-
-#~ msgid "Operation already cancelling. Please wait few seconds."
-#~ msgstr "Operazione già annullata. Si prega di attendere qualche secondo."
-
-#~ msgid "Can't apply when proccess preview."
-#~ msgstr "Non si può applicare durante la creazione dell'anteprima."
-
-#~ msgid "Process %1% / 100"
-#~ msgstr "Processo %1% / 100"
 
 #~ msgid "Post-processing scripts"
 #~ msgstr "Script di post produzione"

@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-31 21:59+0800\n"
+"POT-Creation-Date: 2022-06-05 18:42+0800\n"
 "Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -975,6 +975,70 @@ msgstr ""
 msgid "Perform cut"
 msgstr "Effectuer la coupe"
 
+msgid "Mesh name"
+msgstr "Nom du maillage"
+
+msgid "Detail level"
+msgstr "Niveau de détail"
+
+msgid "Decimate ratio"
+msgstr "Rapport de décimation"
+
+#, boost-format
+msgid ""
+"Processing model '%1%' with more than 1M triangles could be slow. It is "
+"highly recommended to simplify the model."
+msgstr ""
+
+msgid "Simplify model"
+msgstr "Simplifier le modèle"
+
+msgid "Simplify"
+msgstr "Simplifier"
+
+msgid "Simplification is currently only allowed when a single part is selected"
+msgstr ""
+"La simplification n'est actuellement autorisée que lorsqu'une seule pièce "
+"est sélectionnée"
+
+msgid "Error"
+msgstr "Erreur"
+
+msgid "Extra high"
+msgstr "Très haut"
+
+msgid "High"
+msgstr "Élevé"
+
+msgid "Medium"
+msgstr "Moyen"
+
+msgid "Low"
+msgstr "Faible"
+
+msgid "Extra low"
+msgstr "Très bas"
+
+#, c-format, boost-format
+msgid "%d triangles"
+msgstr "%d triangles"
+
+msgid "Show wireframe"
+msgstr "Afficher la vue filaire"
+
+msgid "Close"
+msgstr "Fermer"
+
+msgid "Operation already cancelling. Please wait few seconds."
+msgstr "Opération déjà annulée. Veuillez patienter quelques secondes."
+
+msgid "Can't apply when proccess preview."
+msgstr "Ne peut pas s'appliquer lors du processus de prévisualisation."
+
+#, boost-format
+msgid "Process %1% / 100"
+msgstr "Processus %1% / 100"
+
 msgid "Notice"
 msgstr "Remarque"
 
@@ -1788,9 +1852,6 @@ msgstr "Proj&ets récents"
 msgid "The project is no longer available."
 msgstr ""
 
-msgid "Error"
-msgstr "Erreur"
-
 msgid "Save Project"
 msgstr ""
 
@@ -1977,9 +2038,6 @@ msgstr "Options :"
 
 msgid "Swap Y/Z axes"
 msgstr "Permuter les axes Y/Z"
-
-msgid "Close"
-msgstr "Fermer"
 
 msgid "Monitoring"
 msgstr ""
@@ -2295,13 +2353,13 @@ msgstr ""
 msgid "Filament changes"
 msgstr ""
 
-msgid "Flushing volumes"
-msgstr ""
-
 msgid "Click to edit preset"
 msgstr "Cliquez pour éditer le préréglage"
 
 msgid "Bed type"
+msgstr ""
+
+msgid "Flushing volumes"
 msgstr ""
 
 msgid "Untitled"
@@ -3252,6 +3310,9 @@ msgstr ""
 msgid "The name \"%1%\" already exists."
 msgstr ""
 
+msgid "Designer"
+msgstr ""
+
 msgid "Pictures"
 msgstr ""
 
@@ -3261,10 +3322,13 @@ msgstr ""
 msgid "Assembly Guide"
 msgstr ""
 
-msgid "Designer"
+msgid "License"
 msgstr ""
 
 msgid "Choose files"
+msgstr ""
+
+msgid "Model Name"
 msgstr ""
 
 #, c-format, boost-format
@@ -7620,15 +7684,6 @@ msgstr ""
 #~ msgid "Invalid pinhead diameter"
 #~ msgstr "Diamètre de tête d'épingle non valide"
 
-#~ msgid "Mesh name"
-#~ msgstr "Nom du maillage"
-
-#~ msgid "Detail level"
-#~ msgstr "Niveau de détail"
-
-#~ msgid "Decimate ratio"
-#~ msgstr "Rapport de décimation"
-
 #~ msgid ""
 #~ "Processing model '%1%' with more than 1M triangles could be slow. It is "
 #~ "highly recommend to reduce amount of triangles."
@@ -7636,48 +7691,6 @@ msgstr ""
 #~ "Le traitement du modèle '%1%' avec plus de 1 million de triangles peut "
 #~ "être lent. Il est fortement recommandé de réduire la quantité de "
 #~ "triangles."
-
-#~ msgid "Simplify model"
-#~ msgstr "Simplifier le modèle"
-
-#~ msgid "Simplify"
-#~ msgstr "Simplifier"
-
-#~ msgid ""
-#~ "Simplification is currently only allowed when a single part is selected"
-#~ msgstr ""
-#~ "La simplification n'est actuellement autorisée que lorsqu'une seule pièce "
-#~ "est sélectionnée"
-
-#~ msgid "Extra high"
-#~ msgstr "Très haut"
-
-#~ msgid "High"
-#~ msgstr "Élevé"
-
-#~ msgid "Medium"
-#~ msgstr "Moyen"
-
-#~ msgid "Low"
-#~ msgstr "Faible"
-
-#~ msgid "Extra low"
-#~ msgstr "Très bas"
-
-#~ msgid "%d triangles"
-#~ msgstr "%d triangles"
-
-#~ msgid "Show wireframe"
-#~ msgstr "Afficher la vue filaire"
-
-#~ msgid "Operation already cancelling. Please wait few seconds."
-#~ msgstr "Opération déjà annulée. Veuillez patienter quelques secondes."
-
-#~ msgid "Can't apply when proccess preview."
-#~ msgstr "Ne peut pas s'appliquer lors du processus de prévisualisation."
-
-#~ msgid "Process %1% / 100"
-#~ msgstr "Processus %1% / 100"
 
 #~ msgid "Post-processing scripts"
 #~ msgstr "Scripts de post-traitement"

@@ -83,6 +83,7 @@ enum TreeSupportStage {
     STAGE_projection_onto_ex,
     STAGE_get_collision,
     STAGE_intersection_ln,
+    STAGE_total,
     NUM_STAGES
 };
 
@@ -132,8 +133,11 @@ public:
     std::string report()
     {
         std::stringstream ss;
-        ss << "STAGE_DETECT_OVERHANGS: " << stage_durations[STAGE_DETECT_OVERHANGS] << "; STAGE_GENERATE_CONTACT_NODES: " << stage_durations[STAGE_GENERATE_CONTACT_NODES]
-            << "; STAGE_DROP_DOWN_NODES: " << stage_durations[STAGE_DROP_DOWN_NODES] << "; STAGE_DRAW_CIRCLES: " << stage_durations[STAGE_DRAW_CIRCLES]
+        ss << "total overhange cost: " << stage_durations[STAGE_total]
+            << "; STAGE_DETECT_OVERHANGS: " << stage_durations[STAGE_DETECT_OVERHANGS]
+            << "; STAGE_GENERATE_CONTACT_NODES: " << stage_durations[STAGE_GENERATE_CONTACT_NODES]
+            << "; STAGE_DROP_DOWN_NODES: " << stage_durations[STAGE_DROP_DOWN_NODES]
+            << "; STAGE_DRAW_CIRCLES: " << stage_durations[STAGE_DRAW_CIRCLES]
             << "; STAGE_GENERATE_TOOLPATHS: " << stage_durations[STAGE_GENERATE_TOOLPATHS]
             << "; STAGE_MinimumSpanningTree: " << stage_durations[STAGE_MinimumSpanningTree]
             << "; STAGE_GET_AVOIDANCE: " << stage_durations[STAGE_GET_AVOIDANCE]
@@ -1847,6 +1851,7 @@ void TreeSupport::generate_support_areas()
 
     std::vector<std::vector<Node*>> contact_nodes(m_object->layers().size()); //Generate empty layers to store the points in.
 
+    profiler.stage_start(STAGE_total);
 
     // Generate overhang areas
     profiler.stage_start(STAGE_DETECT_OVERHANGS);
@@ -1890,6 +1895,7 @@ void TreeSupport::generate_support_areas()
     generate_toolpaths();
     profiler.stage_finish(STAGE_GENERATE_TOOLPATHS);
 
+    profiler.stage_finish(STAGE_total);
     BOOST_LOG_TRIVIAL(debug) << "tree support time " << profiler.report();
 }
 
@@ -2199,8 +2205,9 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 }
             ExPolygons &base_areas_lower = m_object->get_tree_support_layer(layer_nr_lower + m_raft_layers)->base_areas;
 
-            for (auto& base_area : base_areas) {
-                for (auto &hole : base_area.holes) { 
+            for (const auto& base_area : base_areas) {
+                for (const auto &hole : base_area.holes) { 
+                    // auto hole_bbox = get_extents(hole).polygon();
                     for (auto &base_area_lower : base_areas_lower) {
                         Point pt_on_poly, pt_on_expoly;
                         // if a hole doesn't intersect with lower layer's contours, add a hole to lower layer and move it slightly to the contour

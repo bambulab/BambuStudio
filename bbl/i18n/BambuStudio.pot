@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-31 21:59+0800\n"
+"POT-Creation-Date: 2022-06-05 18:42+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -976,6 +976,68 @@ msgstr ""
 msgid "Perform cut"
 msgstr ""
 
+msgid "Mesh name"
+msgstr ""
+
+msgid "Detail level"
+msgstr ""
+
+msgid "Decimate ratio"
+msgstr ""
+
+#, possible-boost-format
+msgid ""
+"Processing model '%1%' with more than 1M triangles could be slow. It is "
+"highly recommended to simplify the model."
+msgstr ""
+
+msgid "Simplify model"
+msgstr ""
+
+msgid "Simplify"
+msgstr ""
+
+msgid "Simplification is currently only allowed when a single part is selected"
+msgstr ""
+
+msgid "Error"
+msgstr ""
+
+msgid "Extra high"
+msgstr ""
+
+msgid "High"
+msgstr ""
+
+msgid "Medium"
+msgstr ""
+
+msgid "Low"
+msgstr ""
+
+msgid "Extra low"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "%d triangles"
+msgstr ""
+
+msgid "Show wireframe"
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+msgid "Operation already cancelling. Please wait few seconds."
+msgstr ""
+
+msgid "Can't apply when proccess preview."
+msgstr ""
+
+#, possible-boost-format
+msgid "Process %1% / 100"
+msgstr ""
+
 msgid "Notice"
 msgstr ""
 
@@ -1784,9 +1846,6 @@ msgstr ""
 msgid "The project is no longer available."
 msgstr ""
 
-msgid "Error"
-msgstr ""
-
 msgid "Save Project"
 msgstr ""
 
@@ -1972,9 +2031,6 @@ msgid "Options:"
 msgstr ""
 
 msgid "Swap Y/Z axes"
-msgstr ""
-
-msgid "Close"
 msgstr ""
 
 msgid "Monitoring"
@@ -2291,13 +2347,13 @@ msgstr ""
 msgid "Filament changes"
 msgstr ""
 
-msgid "Flushing volumes"
-msgstr ""
-
 msgid "Click to edit preset"
 msgstr ""
 
 msgid "Bed type"
+msgstr ""
+
+msgid "Flushing volumes"
 msgstr ""
 
 msgid "Untitled"
@@ -3248,6 +3304,9 @@ msgstr ""
 msgid "The name \"%1%\" already exists."
 msgstr ""
 
+msgid "Designer"
+msgstr ""
+
 msgid "Pictures"
 msgstr ""
 
@@ -3257,10 +3316,13 @@ msgstr ""
 msgid "Assembly Guide"
 msgstr ""
 
-msgid "Designer"
+msgid "License"
 msgstr ""
 
 msgid "Choose files"
+msgstr ""
+
+msgid "Model Name"
 msgstr ""
 
 #, possible-c-format, possible-boost-format

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-31 21:59+0800\n"
+"POT-Creation-Date: 2022-06-05 18:42+0800\n"
 "PO-Revision-Date: 2022-05-17 15:42+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -283,7 +283,8 @@ msgstr ""
 msgid ""
 "Bed temperature is higher than vitrification temperature of this filament.\n"
 "This may cause nozzle blocked and printing failure"
-msgstr "热床温度已高于这个耗材的软化温度。\n"
+msgstr ""
+"热床温度已高于这个耗材的软化温度。\n"
 "这可能导致堵头和打印失败"
 
 msgid ""
@@ -1020,6 +1021,68 @@ msgstr "自动分割"
 
 msgid "Perform cut"
 msgstr "执行切割"
+
+msgid "Mesh name"
+msgstr "Mesh名"
+
+msgid "Detail level"
+msgstr "细节等级"
+
+msgid "Decimate ratio"
+msgstr "简化率"
+
+#, boost-format
+msgid ""
+"Processing model '%1%' with more than 1M triangles could be slow. It is "
+"highly recommended to simplify the model."
+msgstr "处理超出1M个三角形面片的模型“%1%”可能会很慢。强烈建议简化模型。"
+
+msgid "Simplify model"
+msgstr "简化模型"
+
+msgid "Simplify"
+msgstr "简化"
+
+msgid "Simplification is currently only allowed when a single part is selected"
+msgstr "仅支持对单个零件做简化"
+
+msgid "Error"
+msgstr "错误"
+
+msgid "Extra high"
+msgstr "非常高"
+
+msgid "High"
+msgstr "高"
+
+msgid "Medium"
+msgstr "中"
+
+msgid "Low"
+msgstr "低"
+
+msgid "Extra low"
+msgstr "非常低"
+
+#, c-format, boost-format
+msgid "%d triangles"
+msgstr "%d 个三角形"
+
+msgid "Show wireframe"
+msgstr "显示线框"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "Operation already cancelling. Please wait few seconds."
+msgstr "操作已在取消中，请等待片刻。"
+
+msgid "Can't apply when proccess preview."
+msgstr "处理预览的过程中无法应用。"
+
+#, boost-format
+msgid "Process %1% / 100"
+msgstr "处理 %1% / 100"
 
 msgid "Notice"
 msgstr "通知"
@@ -1839,9 +1902,6 @@ msgstr "最近的项目"
 msgid "The project is no longer available."
 msgstr "此项目不可用。"
 
-msgid "Error"
-msgstr "错误"
-
 msgid "Save Project"
 msgstr "保存项目"
 
@@ -2033,9 +2093,6 @@ msgstr "选项："
 
 msgid "Swap Y/Z axes"
 msgstr "交换Y/Z轴"
-
-msgid "Close"
-msgstr "关闭"
 
 msgid "Monitoring"
 msgstr "实时视频"
@@ -2349,14 +2406,14 @@ msgstr "预估打印时间"
 msgid "Filament changes"
 msgstr "材料切换"
 
-msgid "Flushing volumes"
-msgstr "冲刷体积"
-
 msgid "Click to edit preset"
 msgstr "点击编辑配置"
 
 msgid "Bed type"
 msgstr "热床类型"
+
+msgid "Flushing volumes"
+msgstr "冲刷体积"
 
 msgid "Untitled"
 msgstr "未命名"
@@ -3318,6 +3375,9 @@ msgstr "封面"
 msgid "The name \"%1%\" already exists."
 msgstr "名字\"%1%\"已经存在"
 
+msgid "Designer"
+msgstr "设计师"
+
 msgid "Pictures"
 msgstr "图片"
 
@@ -3327,11 +3387,14 @@ msgstr "物料清单"
 msgid "Assembly Guide"
 msgstr "组装指南"
 
-msgid "Designer"
-msgstr "设计师"
+msgid "License"
+msgstr "许可证"
 
 msgid "Choose files"
 msgstr "选择文件"
+
+msgid "Model Name"
+msgstr "模型名字"
 
 #, c-format, boost-format
 msgid "%s Update"
@@ -5564,6 +5627,14 @@ msgstr " 对象："
 msgid "Error at line %1%:\n"
 msgstr "错误在行%1%：\n"
 
+#, boost-format
+#~ msgid ""
+#~ "Processing model '%1%' with more than 1M triangles could be slow. It is "
+#~ "highly recommended to reduce the amount of triangles."
+#~ msgstr ""
+#~ "处理超出1M个三角形面片的模型“%1%”可能会很慢。强烈建议减少模型的三角形面片"
+#~ "数量。"
+
 #~ msgid "The bed is auto leveling..."
 #~ msgstr "热床正在自动调平..."
 
@@ -7479,62 +7550,6 @@ msgstr "错误在行%1%：\n"
 
 #~ msgid "First layer height"
 #~ msgstr "第一层高度"
-
-#~ msgid "Mesh name"
-#~ msgstr "Mesh名"
-
-#~ msgid "Detail level"
-#~ msgstr "细节等级"
-
-#~ msgid "Decimate ratio"
-#~ msgstr "简化率"
-
-#~ msgid ""
-#~ "Processing model '%1%' with more than 1M triangles could be slow. It is "
-#~ "highly recommend to reduce amount of triangles."
-#~ msgstr ""
-#~ "正在处理超出1M个三角形面片的模型 %1% ，处理过程可能会比较缓慢。强烈建议简"
-#~ "化模型的三角形面片数量。"
-
-#~ msgid "Simplify model"
-#~ msgstr "简化模型"
-
-#~ msgid "Simplify"
-#~ msgstr "简化"
-
-#~ msgid ""
-#~ "Simplification is currently only allowed when a single part is selected"
-#~ msgstr "仅支持对单个零件做简化"
-
-#~ msgid "Extra high"
-#~ msgstr "非常高"
-
-#~ msgid "High"
-#~ msgstr "高"
-
-#~ msgid "Medium"
-#~ msgstr "中"
-
-#~ msgid "Low"
-#~ msgstr "低"
-
-#~ msgid "Extra low"
-#~ msgstr "非常低"
-
-#~ msgid "%d triangles"
-#~ msgstr "%d 个三角形"
-
-#~ msgid "Show wireframe"
-#~ msgstr "显示线框"
-
-#~ msgid "Operation already cancelling. Please wait few seconds."
-#~ msgstr "操作已经取消，请等待片刻。"
-
-#~ msgid "Can't apply when proccess preview."
-#~ msgstr "处理预览的过程中无法应用。"
-
-#~ msgid "Process %1% / 100"
-#~ msgstr "处理 %1% / 100"
 
 #~ msgid "choose a directory"
 #~ msgstr "选择文件夹"

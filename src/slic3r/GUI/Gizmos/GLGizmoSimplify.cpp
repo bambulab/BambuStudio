@@ -63,11 +63,10 @@ GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
     , m_show_wireframe(false)
     , m_move_to_center(false)
     // translation for GUI size
-    // BBS: remove _u8L() modifier
-    , tr_mesh_name(("Mesh name"))
-    , tr_triangles(("Triangles"))
-    , tr_detail_level(("Detail level"))
-    , tr_decimate_ratio(("Decimate ratio"))
+    , tr_mesh_name(_u8L("Mesh name"))
+    , tr_triangles(_u8L("Triangles"))
+    , tr_detail_level(_u8L("Detail level"))
+    , tr_decimate_ratio(_u8L("Decimate ratio"))
 {}
 
 GLGizmoSimplify::~GLGizmoSimplify()
@@ -109,13 +108,10 @@ void GLGizmoSimplify::add_simplify_suggestion_notification(
     if (big_ids.empty()) return;
 
     for (size_t object_id : big_ids) {
-        // BBS: remove _L() modifier
-        std::string t = GUI::format((
+        std::string t = GUI::format(_L(
             "Processing model '%1%' with more than 1M triangles "
-            "could be slow. It is highly recommend to reduce "
-            "amount of triangles."), objects[object_id]->name);
-        // BBS: remove _u8L() modifier
-        std::string hypertext = ("Simplify model");
+            "could be slow. It is highly recommended to simplify the model."), objects[object_id]->name);
+        std::string hypertext = _u8L("Simplify model");
 
         std::function<bool(wxEvtHandler *)> open_simplify =
             [object_id](wxEvtHandler *) {
@@ -142,8 +138,7 @@ void GLGizmoSimplify::add_simplify_suggestion_notification(
 
 std::string GLGizmoSimplify::on_get_name() const
 {
-    // BBS: remove _u8L() modifier
-    return ("Simplify");
+    return _u8L("Simplify");
 }
 
 void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limit)
@@ -155,10 +150,9 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         stop_worker_thread_request();
         close();
         if (! m_parent.get_selection().is_single_volume()) {
-            // BBS: remove _L modifier
             MessageDialog msg((wxWindow*)wxGetApp().mainframe,
-                ("Simplification is currently only allowed when a single part is selected"),
-                ("Error"));
+                _L("Simplification is currently only allowed when a single part is selected"),
+                _L("Error"));
             msg.ShowModal();
         }
         return;
@@ -229,13 +223,14 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
                ImGuiWindowFlags_NoCollapse;
     m_imgui->begin(on_get_name(), flag);
     m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, tr_mesh_name + ":");
-    ImGui::SameLine(m_gui_cfg->top_left_width);
+    // BBS: somehow the calculated utf8 width is too narrow, have to add 35 here
+    ImGui::SameLine(m_gui_cfg->top_left_width+35);
     std::string name = m_volume->name;
     if (name.length() > m_gui_cfg->max_char_in_name)
         name = name.substr(0, m_gui_cfg->max_char_in_name - 3) + "...";
     m_imgui->text(name);
     m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, tr_triangles + ":");
-    ImGui::SameLine(m_gui_cfg->top_left_width);
+    ImGui::SameLine(m_gui_cfg->top_left_width+35);
 
     size_t orig_triangle_count = m_volume->mesh().its.indices.size();
     m_imgui->text(std::to_string(orig_triangle_count));
@@ -250,13 +245,12 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::SameLine();
     m_imgui->disabled_begin(m_configuration.use_count);
     ImGui::Text("%s", tr_detail_level.c_str());
-    // BBS: remove _u8L() modifier
     std::vector<std::string> reduce_captions = {
-        static_cast<std::string>(("Extra high")),
-        static_cast<std::string>(("High")),
-        static_cast<std::string>(("Medium")),
-        static_cast<std::string>(("Low")),
-        static_cast<std::string>(("Extra low"))
+        static_cast<std::string>(_u8L("Extra high")),
+        static_cast<std::string>(_u8L("High")),
+        static_cast<std::string>(_u8L("Medium")),
+        static_cast<std::string>(_u8L("Low")),
+        static_cast<std::string>(_u8L("Extra low"))
     };
     ImGui::SameLine(m_gui_cfg->bottom_left_width);
     ImGui::SetNextItemWidth(m_gui_cfg->input_width);
@@ -306,19 +300,17 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     ImGui::NewLine();
     ImGui::SameLine(m_gui_cfg->bottom_left_width);
-    // BBS: remove _u8L() modifier
-    ImGui::Text(("%d triangles"), m_configuration.wanted_count);
+    ImGui::Text(_u8L("%d triangles").c_str(), m_configuration.wanted_count);
     m_imgui->disabled_end(); // use_count
 
-    ImGui::Checkbox(("Show wireframe"), &m_show_wireframe);
+    ImGui::Checkbox(_u8L("Show wireframe").c_str(), &m_show_wireframe);
 
     m_imgui->disabled_begin(is_cancelling);
     if (m_imgui->button(_L("Close"))) {
         close();
     }
     else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_cancelling)
-        // BBS: remove _u8L() modifier
-        ImGui::SetTooltip("%s", "Operation already cancelling. Please wait few seconds.");
+        ImGui::SetTooltip("%s", _u8L("Operation already cancelling. Please wait few seconds.").c_str());
     m_imgui->disabled_end(); // state cancelling
 
     ImGui::SameLine();
@@ -328,8 +320,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         apply_simplify();
     }
     else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_worker_running) {
-        // BBS: remove _u8L() modifier
-        ImGui::SetTooltip("%s", "Can't apply when proccess preview.");
+        ImGui::SetTooltip("%s", _u8L("Can't apply when proccess preview.").c_str());
     }
     m_imgui->disabled_end(); // state !settings
 
@@ -337,8 +328,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     if (is_worker_running) { // apply or preview
         ImGui::SameLine(m_gui_cfg->bottom_left_width);
         // draw progress bar
-        // BBS: remove _L() modifier
-        std::string progress_text = GUI::format(("Process %1% / 100"), std::to_string(progress));
+        std::string progress_text = GUI::format(_L("Process %1% / 100"), std::to_string(progress));
         ImVec2 progress_size(m_gui_cfg->input_width, 0.f);
         ImGui::ProgressBar(progress / 100., progress_size, progress_text.c_str());
     }
