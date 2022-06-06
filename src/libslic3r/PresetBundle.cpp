@@ -1511,10 +1511,10 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         std::string print_different_settings = different_values[0];
         Slic3r::unescape_strings_cstyle(print_different_settings, print_different_keys_vector);
         std::set<std::string> print_different_keys_set(print_different_keys_vector.begin(), print_different_keys_vector.end());
-        if (!has_different_settings_to_system) {
-            print_different_keys_set.clear();
-        }
-        else
+        //if (!has_different_settings_to_system) {
+        //    print_different_keys_set.clear();
+        //}
+        //else
             print_different_keys_set.insert(ignore_settings_list.begin(), ignore_settings_list.end());
         load_preset(this->prints, 0, "print_settings_id", print_different_keys_set, std::string());
 
@@ -1522,10 +1522,10 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         std::string printer_different_settings = different_values[num_filaments + 1];
         Slic3r::unescape_strings_cstyle(printer_different_settings, printer_different_keys_vector);
         std::set<std::string> printer_different_keys_set(printer_different_keys_vector.begin(), printer_different_keys_vector.end());
-        if (!has_different_settings_to_system) {
-            printer_different_keys_set.clear();
-        }
-        else
+        //if (!has_different_settings_to_system) {
+        //    printer_different_keys_set.clear();
+        //}
+        //else
             printer_different_keys_set.insert(ignore_settings_list.begin(), ignore_settings_list.end());
         //BBS: add config related logs
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": load printer preset from printer_settings_id");
@@ -1552,10 +1552,10 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             std::string filament_different_settings = different_values[1];
             Slic3r::unescape_strings_cstyle(filament_different_settings, filament_different_keys_vector);
             std::set<std::string> filament_different_keys_set(filament_different_keys_vector.begin(), filament_different_keys_vector.end());
-            if (!has_different_settings_to_system) {
-                filament_different_keys_set.clear();
-            }
-            else
+            //if (!has_different_settings_to_system) {
+            //    filament_different_keys_set.clear();
+            //}
+            //else
                 filament_different_keys_set.insert(ignore_settings_list.begin(), ignore_settings_list.end());
 
             std::string filament_id = filament_ids[0];
@@ -1613,10 +1613,10 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 std::string filament_different_settings = different_values[i+1];
                 Slic3r::unescape_strings_cstyle(filament_different_settings, filament_different_keys_vector);
                 std::set<std::string> filament_different_keys_set(filament_different_keys_vector.begin(), filament_different_keys_vector.end());
-                if (!has_different_settings_to_system) {
-                    filament_different_keys_set.clear();
-                }
-                else
+                //if (!has_different_settings_to_system) {
+                //    filament_different_keys_set.clear();
+                //}
+                //else
                     filament_different_keys_set.insert(ignore_settings_list.begin(), ignore_settings_list.end());
 
                 std::string filament_id = filament_ids[i];

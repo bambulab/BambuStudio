@@ -369,7 +369,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("°C");
     def->max = 0;
     def->max = 120;
-    def->set_default_value(new ConfigOptionInts{ 0 });
+    def->set_default_value(new ConfigOptionInts{ 35 });
 
     def = this->add("eng_plate_temp_initial_layer", coInts);
     def->label = L("Initial layer");
@@ -378,7 +378,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("°C");
     def->max = 0;
     def->max = 120;
-    def->set_default_value(new ConfigOptionInts{ 0 });
+    def->set_default_value(new ConfigOptionInts{ 45 });
 
     def = this->add("hot_plate_temp_initial_layer", coInts);
     def->label = L("Initial layer");
@@ -387,7 +387,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("°C");
     def->max = 0;
     def->max = 120;
-    def->set_default_value(new ConfigOptionInts{ 0 });
+    def->set_default_value(new ConfigOptionInts{ 45 });
 
 
     def = this->add("curr_bed_type", coEnums);
