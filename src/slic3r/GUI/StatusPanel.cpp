@@ -779,8 +779,8 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
 wxBoxSizer *StatusBasePanel::create_cali_group(wxWindow *parent)
 {
     auto sizer = new wxBoxSizer(wxVERTICAL);
-    
-    wxBoxSizer* cali_caption_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    wxBoxSizer *cali_caption_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_staticText_calibration_caption = new wxStaticText(parent, wxID_ANY, _L("Calibration"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_calibration_caption->Wrap(-1);
@@ -793,39 +793,152 @@ wxBoxSizer *StatusBasePanel::create_cali_group(wxWindow *parent)
     cali_caption_sizer->Add(m_ams_staticline, 1, wxRIGHT | wxLEFT | wxALIGN_CENTER_VERTICAL, GROUP_TITLE_LINE_MARGIN);
     cali_caption_sizer->Add(GROUP_TITLE_RIGHT_MARGIN - GROUP_TITLE_LINE_MARGIN, 0, 0, wxEXPAND, 0);
 
-    wxBoxSizer* cali_left_sizer = new wxBoxSizer(wxVERTICAL);
-    m_calibration_text = new wxStaticText(parent, wxID_ANY, _L("Calibration program"), wxDefaultPosition, wxDefaultSize, 0);
-    m_calibration_text->Wrap(-1);
-    cali_left_sizer->Add(m_calibration_text, 1, wxEXPAND | wxLEFT, FromDIP(53));
-    cali_left_sizer->AddStretchSpacer();
+   /* wxBoxSizer *cali_left_sizer = new wxBoxSizer(wxVERTICAL);
+     m_calibration_text          = new wxStaticText(parent, wxID_ANY, _L("Calibration program"), wxDefaultPosition, wxDefaultSize, 0);
+     m_calibration_text->Wrap(-1);
+     cali_left_sizer->Add(m_calibration_text, 1, wxEXPAND | wxLEFT, FromDIP(53));
+     cali_left_sizer->AddStretchSpacer();
 
-    wxBoxSizer* cali_right_sizer = new wxBoxSizer(wxVERTICAL);
+     wxBoxSizer *cali_right_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_calibration_flow = new StepIndicator(parent, wxID_ANY);
+     m_calibration_flow = new StepIndicator(parent, wxID_ANY);
+     StateColor bg_color(std::pair<wxColour, int>(wxColour(248, 248, 248), StateColor::Normal));
+     m_calibration_flow->SetBackgroundColor(bg_color);
+     m_calibration_flow->SetFont(Label::Body_14);
+     m_calibration_flow->SetMinSize(wxSize(FromDIP(200), FromDIP(180)));
+     m_calibration_flow->SetSize(wxSize(FromDIP(200), FromDIP(180)));
+
+     cali_right_sizer->Add(m_calibration_flow, 1, wxEXPAND | wxALL, FromDIP(10));
+
+     m_calibration_btn = new Button(parent, _L("Start Calibration"));
+     cali_right_sizer->Add(m_calibration_btn, 0, wxEXPAND | wxALL, 0);
+
+    
+
+     auto content_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+     content_sizer->Add(cali_left_sizer, 1, wxEXPAND | wxALL, 0);
+
+     content_sizer->Add(cali_right_sizer, 0, wxEXPAND | wxRIGHT, FromDIP(43));*/
+
+
+
+    //sizer->Add(0, FromDIP(20), 0, wxEXPAND | wxALL, 0);
+
+    //sizer->Add(content_sizer, 0, wxEXPAND, 0);
+
+    //sizer->Add(0, FromDIP(10), 0, wxEXPAND, 0);
+
+
+    wxBoxSizer *sizer_body = new wxBoxSizer(wxHORIZONTAL);
+
+    auto cali_left_panel = new StaticBox(parent, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(303), FromDIP(243)));
+    cali_left_panel->SetBackgroundColor(wxColour(0xF8,0xF8,0xF8));
+    cali_left_panel->SetBorderColor(wxColour(0xF8, 0xF8, 0xF8));
+
+    wxBoxSizer *cali_left_sizer = new wxBoxSizer(wxVERTICAL);
+
+    cali_left_sizer->Add(0, 0, 0, wxTOP, FromDIP(25));
+
+    auto cali_left_text_top = new wxStaticText(cali_left_panel, wxID_ANY, _L("Calibration program"), wxDefaultPosition, wxDefaultSize, 0);
+    cali_left_text_top->SetFont(::Label::Head_14);
+    cali_left_text_top->Wrap(-1);
+    cali_left_text_top->SetForegroundColour(wxColour(0x32, 0x3A, 0x3D));
+    cali_left_text_top->SetBackgroundColour(wxColour(0xF8,0xF8,0xF8));
+
+    cali_left_sizer->Add(cali_left_text_top, 0, wxLEFT, FromDIP(15));
+
+    cali_left_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
+
+    auto cali_left_text_body =
+        new wxStaticText(cali_left_panel, wxID_ANY,
+                         _L("Calibration program detects the status of your device systematically to minimise deviation. It keeps the device at its the best performance"),
+                         wxDefaultPosition, wxSize(FromDIP(260), -1), 0);
+    cali_left_text_body->Wrap(FromDIP(260));
+    cali_left_text_body->SetForegroundColour(wxColour(0x6B, 0x6B, 0x6B));
+    cali_left_text_body->SetBackgroundColour(wxColour(0xF8,0xF8,0xF8));
+    cali_left_text_body->SetFont(::Label::Body_13);
+    cali_left_sizer->Add(cali_left_text_body, 0, wxLEFT, FromDIP(15));
+
+    cali_left_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+
+    auto cali_left_text_top_prepar = new wxStaticText(cali_left_panel, wxID_ANY, _L("Preparation before calibration"), wxDefaultPosition, wxDefaultSize, 0);
+    cali_left_text_top_prepar->SetFont(::Label::Head_14);
+    cali_left_text_top_prepar->SetForegroundColour(wxColour(0x32, 0x3A, 0x3D));
+    cali_left_text_top_prepar->SetBackgroundColour(wxColour(0xF8,0xF8,0xF8));
+    cali_left_text_top_prepar->Wrap(-1);
+    cali_left_sizer->Add(cali_left_text_top_prepar, 0, wxLEFT, FromDIP(15));
+
+    cali_left_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
+
+    auto cali_left_text_body_prepar =
+        new wxStaticText(cali_left_panel, wxID_ANY,
+                         _L("Before calibration, please make sure a filament is loaded and its nozzle temperature and bed temperature is set in Feeding lab."),
+                         wxDefaultPosition, wxSize(FromDIP(260), -1), 0);
+    cali_left_text_body_prepar->Wrap(FromDIP(260));
+    cali_left_text_body_prepar->SetFont(::Label::Body_13);
+    cali_left_text_body_prepar->SetForegroundColour(wxColour(0x6B, 0x6B, 0x6B));
+    cali_left_text_body_prepar->SetBackgroundColour(wxColour(0xF8,0xF8,0xF8));
+    cali_left_sizer->Add(cali_left_text_body_prepar, 0, wxLEFT, FromDIP(15));
+
+    cali_left_panel->SetSizer(cali_left_sizer);
+    cali_left_panel->Layout();
+    sizer_body->Add(cali_left_panel, 0, wxALL, 0);
+
+    sizer_body->Add(0, 0, 0, wxLEFT, FromDIP(8));
+
+    wxBoxSizer *cali_right_sizer = new wxBoxSizer(wxVERTICAL);
+
+    auto cali_right_panel = new StaticBox(parent, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(182), FromDIP(200)));
+    cali_right_panel->SetBackgroundColor(wxColour(0xF8, 0xF8, 0xF8));
+    cali_right_panel->SetBorderColor(wxColour(0xF8, 0xF8, 0xF8));
+
+    wxBoxSizer *sali_right_step_top = new wxBoxSizer(wxVERTICAL);
+
+    sali_right_step_top->Add(0, 0, 0, wxTOP, FromDIP(10));
+
+    auto cali_text_right_top = new wxStaticText(cali_right_panel, wxID_ANY, _L("Calibration Flow"), wxDefaultPosition, wxDefaultSize, 0);
+    cali_text_right_top->Wrap(-1);
+    cali_text_right_top->SetFont(::Label::Head_14);
+    cali_text_right_top->SetForegroundColour(wxColour(0x00, 0xAE, 0x42));
+    cali_text_right_top->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
+    sali_right_step_top->Add(cali_text_right_top, 0, wxLEFT, FromDIP(15));
+
+    cali_right_panel->SetSizer(sali_right_step_top);
+    cali_right_panel->Layout();
+    cali_right_sizer->Add(cali_right_panel, 0, 0, 0);
+
+    cali_right_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
+
+
+    m_calibration_flow = new StepIndicator(cali_right_panel, wxID_ANY);
     StateColor bg_color(std::pair<wxColour, int>(wxColour(248, 248, 248), StateColor::Normal));
     m_calibration_flow->SetBackgroundColor(bg_color);
     m_calibration_flow->SetFont(Label::Body_14);
-    m_calibration_flow->SetMinSize(wxSize(FromDIP(200), FromDIP(180)));
-    m_calibration_flow->SetSize(wxSize(FromDIP(200), FromDIP(180)));
+    m_calibration_flow->SetMinSize(wxSize(FromDIP(182), FromDIP(145)));
+    m_calibration_flow->SetSize(wxSize(FromDIP(182), FromDIP(145)));
 
-    cali_right_sizer->Add(m_calibration_flow, 1, wxEXPAND | wxALL, FromDIP(10));
-
+    sali_right_step_top->Add(m_calibration_flow, 0, wxALIGN_CENTER, 0);
     m_calibration_btn = new Button(parent, _L("Start Calibration"));
-    cali_right_sizer->Add(m_calibration_btn, 0, wxEXPAND | wxALL, 0);
 
-    sizer->Add(cali_caption_sizer, 0, wxEXPAND | wxALL, 0);
+    StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+    StateColor btn_bd_green(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Enabled));
 
-    auto content_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_calibration_btn->SetBackgroundColor(btn_bg_green);
+    m_calibration_btn->SetBorderColor(btn_bd_green);
+    m_calibration_btn->SetTextColor(*wxWHITE);
+    m_calibration_btn->SetSize(wxSize(FromDIP(182), FromDIP(36)));
+    m_calibration_btn->SetMinSize(wxSize(FromDIP(182), FromDIP(36)));
 
-    content_sizer->Add(cali_left_sizer, 1, wxEXPAND | wxALL, 0);
+    cali_right_sizer->Add(m_calibration_btn, 0, wxALL, 0);
 
-    content_sizer->Add(cali_right_sizer, 0, wxEXPAND | wxRIGHT, FromDIP(43));
+    sizer_body->Add(cali_right_sizer, 0, wxALL, 0);
 
-    sizer->Add(0, FromDIP(20), 0, wxEXPAND | wxALL, 0);
 
-    sizer->Add(content_sizer, 0, wxEXPAND, 0);
-
-    sizer->Add(0, FromDIP(10), 0, wxEXPAND, 0);
+    sizer->Add(cali_caption_sizer, 0, wxALL, 0);
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+    sizer->Add(sizer_body, 0, wxALIGN_CENTER, wxEXPAND, 0);
 
     return sizer;
 }
@@ -2035,6 +2148,8 @@ void StatusPanel::msw_rescale()
 
     m_ams_control->msw_rescale();
     //m_filament_step->Rescale();
+
+    m_calibration_btn->SetMinSize(wxSize(FromDIP(182), FromDIP(36)));
 
     Layout();
     Refresh();
