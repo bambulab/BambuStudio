@@ -61,8 +61,6 @@ Model& Model::assign_copy(const Model &rhs)
 
     // copy custom code per height
     this->custom_gcode_per_print_z = rhs.custom_gcode_per_print_z;
-    // BBS: for encrypt
-    this->key_store = rhs.key_store;
 
     // BBS: for design info
     this->design_info = rhs.design_info;
@@ -95,8 +93,6 @@ Model& Model::assign_copy(Model &&rhs)
     this->backup_path = std::move(rhs.backup_path);
     this->object_backup_id_map = std::move(rhs.object_backup_id_map);
     this->next_object_backup_id = rhs.next_object_backup_id;
-    this->key_store = rhs.key_store;
-    rhs.key_store.reset();
     this->design_info = rhs.design_info;
     rhs.design_info.reset();
     this->model_info = rhs.model_info;
@@ -788,10 +784,8 @@ void Model::load_from(Model& model)
     model.backup_path.clear();
     object_backup_id_map = model.object_backup_id_map;
     next_object_backup_id = model.next_object_backup_id;
-    key_store   = model.key_store;
     design_info = model.design_info;
     model_info  = model.model_info;
-    model.key_store.reset();
     model.design_info.reset();
     model.model_info.reset();
 }

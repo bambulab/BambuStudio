@@ -3,7 +3,6 @@
 #include "DeviceManager.hpp"
 #include "libslic3r/Time.hpp"
 #include "libslic3r/Thread.hpp"
-#include "libslic3r/Format/Secure.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Utils.hpp"
 #include "slic3r/Utils/Http.hpp"
@@ -370,10 +369,8 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
 
     void AccountManager::on_user_login(int online_login)
     {
-        KeyStore::global_consumers.clear();
         auto kek = m_curr_user->get_user_id();
         kek.resize(32, '0');
-        KeyStore::global_consumers.push_back({m_curr_user->get_user_id(), "", kek});
 
         auto evt = new wxCommandEvent(EVT_USER_LOGIN);
         evt->SetInt(online_login);

@@ -13,7 +13,6 @@
 #include "../I18N.hpp"
 
 #include "bbs_3mf.hpp"
-#include "Secure.hpp"
 
 #include <limits>
 #include <stdexcept>
@@ -151,8 +150,6 @@ const std::string PROJECT_EMBEDDED_PRINT_PRESETS_FILE = "Metadata/print_setting_
 const std::string PROJECT_EMBEDDED_SLICE_PRESETS_FILE = "Metadata/process_settings_";
 const std::string PROJECT_EMBEDDED_FILAMENT_PRESETS_FILE = "Metadata/filament_settings_";
 const std::string PROJECT_EMBEDDED_PRINTER_PRESETS_FILE = "Metadata/machine_settings_";
-// BBS: encrypt
-const std::string KEYSTORE_FILE = "Secure/keystore.xml";
 
 
 const unsigned int AUXILIARY_STR_LEN = 12;
@@ -697,10 +694,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         std::string m_sub_model_path;
 
         std::string m_start_part_path;
-        std::string m_key_store_path;
         std::string m_thumbnail_path;
         std::vector<std::string> m_sub_model_paths;
-        std::vector<std::string> m_encrypted_paths;
 
         //BBS: plater related structures
         bool m_is_bbl_3mf { false };
@@ -708,10 +703,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         PlateDataMaps m_plater_data;
         PlateData* m_curr_plater;
         CurrentInstance m_curr_instance;
-
-        // BBS: encrypt
-        std::shared_ptr<KeyStore> m_key_store;
-        KeyStoreLoader * m_key_store_loader = nullptr;
 
     public:
         _BBS_3MF_Importer();
@@ -851,12 +842,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         bool _handle_start_relationship(const char** attributes, unsigned int num_attributes);
 
-        // BBS: encrypt key store
-        static void XMLCALL _handle_start_key_store_element(void* userData, const char* name, const char** attributes);
-        static void XMLCALL _handle_end_key_store_element(void* userData, const char* name);
-        void _handle_start_key_store_element(const char* name, const char** attributes);
-        void _handle_end_key_store_element(const char* name);
-
         void _generate_current_object_list(std::vector<Id> &sub_objects, Id object_id, IdToCurrentObjectMap current_objects);
         bool _generate_volumes_new(ModelObject& object, const std::vector<Id> &sub_objects, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions);
         bool _generate_volumes(ModelObject& object, const Geometry& geometry, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions);
@@ -886,8 +871,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
     _BBS_3MF_Importer::~_BBS_3MF_Importer()
     {
-        if (m_key_store_loader)
-            delete m_key_store_loader;
         _destroy_xml_parser();
         clear_errors();
 
@@ -973,8 +956,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
         if (m_load_restore && !result) // not clear failed backup data for later analyze
             model.set_backup_path("detach");
-        if (m_key_store)
-            model.set_key_store(m_key_store);
         return result;
     }
 
@@ -1103,21 +1084,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // BBS: load relationships
         if (!_extract_xml_from_archive(archive, RELATIONSHIPS_FILE, _handle_start_relationships_element, _handle_end_relationships_element))
             return false;
-        // BBS: load key_store
-        if (!m_key_store_path.empty()) {
-            if (proFn) {
-                proFn(IMPORT_STAGE_READ_FILES, 1, 3, cb_cancel);
-                if (cb_cancel)
-                    return false;
-            }
-            m_key_store.reset(new KeyStore);
-            m_key_store_loader = KeyStoreLoader::create(m_key_store.get());
-            if (!_extract_xml_from_archive(archive, m_key_store_path, _handle_start_key_store_element, _handle_end_key_store_element))
-                return false;
-            m_model->set_key_store(m_key_store);
-            delete m_key_store_loader;
-            m_key_store_loader = nullptr;
-        }
         if (m_start_part_path.empty())
             return false;
         // BBS: load sub models (Production Extension)
@@ -1634,7 +1600,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             XML_Parser& parser;
             _BBS_3MF_Importer& importer;
             const mz_zip_archive_file_stat& stat;
-            ZipDecrypt * decrypt = nullptr;
 
             CallbackData(XML_Parser& parser, _BBS_3MF_Importer& importer, const mz_zip_archive_file_stat& stat) : parser(parser), importer(importer), stat(stat) {}
         };
@@ -1647,7 +1612,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         {
             mz_file_write_func callback = [](void* pOpaque, mz_uint64 file_ofs, const void* pBuf, size_t n)->size_t {
                 CallbackData* data = (CallbackData*)pOpaque;
-                if (!XML_Parse(data->parser, (const char*)pBuf, (int)n, (data->decrypt ? data->decrypt->done() : (file_ofs + n == data->stat.m_uncomp_size)) ? 1 : 0) || data->importer.parse_error()) {
+                if (!XML_Parse(data->parser, (const char*)pBuf, (int)n, (file_ofs + n == data->stat.m_uncomp_size) ? 1 : 0) || data->importer.parse_error()) {
                     char error_buf[1024];
                     ::sprintf(error_buf, "Error (%s) while parsing '%s' at line %d", data->importer.parse_error_message(), data->stat.m_filename, (int)XML_GetCurrentLineNumber(data->parser));
                     throw Slic3r::FileIOError(error_buf);
@@ -1655,18 +1620,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 return n;
             };
             void* opaque = &data;
-            ZipDecrypt decrypt;
-            std::string path = std::string("/") + stat.m_filename;
-            if (std::find(m_encrypted_paths.begin(), m_encrypted_paths.end(), path) != m_encrypted_paths.end()) {
-                std::string userkey, iv;
-                if (!m_key_store->setup(path, decrypt, false) || !decrypt.open(stat.m_uncomp_size, callback, opaque)) {
-                    add_error("Can't decrypt " + path + " without match key");
-                    return false;
-                }
-                data.decrypt = &decrypt;
-                callback = &ZipDecrypt::static_callback;
-                opaque = &decrypt;
-            }
             res = mz_zip_reader_extract_to_callback(&archive, stat.m_file_index, callback, opaque, 0);
         }
         catch (const version_error& e)
@@ -1877,8 +1830,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 add_error("Error while extract gcode file to temp directory");
                 return;
             }
-            if (m_key_store)
-                m_key_store->rename("/" + src_file, dest_path.string());
         }
         return ;
     }
@@ -2308,10 +2259,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
     void _BBS_3MF_Importer::_handle_xml_characters(const XML_Char* s, int len)
     {
-        if (m_key_store_loader) {
-            m_key_store_loader->handle_xml_characters(s, len);
-            return;
-        }
         m_curr_characters.append(s, len);
     }
 
@@ -3298,49 +3245,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         if (boost::starts_with(type, "http://schemas.microsoft.com/3dmanufacturing/") && boost::ends_with(type, "3dmodel")) {
             if (m_start_part_path.empty()) m_start_part_path = path;
             else m_sub_model_paths.push_back(path);
-        } else if (boost::starts_with(type, "http://schemas.microsoft.com/3dmanufacturing/") && boost::ends_with(type, "keystore")) {
-            m_key_store_path = path;
-        } else if (boost::starts_with(type, "http://schemas.openxmlformats.org/") && boost::ends_with(type, "encryptedfile")) {
-            m_encrypted_paths.push_back(path);
         } else if (boost::starts_with(type, "http://schemas.openxmlformats.org/") && boost::ends_with(type, "thumbnail")) {
             m_thumbnail_path = path;
         }
         return true;
-    }
-
-    void XMLCALL _BBS_3MF_Importer::_handle_start_key_store_element(void* userData, const char* name, const char** attributes)
-    {
-        _BBS_3MF_Importer* importer = (_BBS_3MF_Importer*)userData;
-        if (importer != nullptr)
-            importer->_handle_start_key_store_element(name, attributes);
-    }
-
-    void XMLCALL _BBS_3MF_Importer::_handle_end_key_store_element(void* userData, const char* name)
-    {
-        _BBS_3MF_Importer* importer = (_BBS_3MF_Importer*)userData;
-        if (importer != nullptr)
-            importer->_handle_end_key_store_element(name);
-    }
-
-    void _BBS_3MF_Importer::_handle_start_key_store_element(const char* name, const char** attributes)
-    {
-        if (m_xml_parser == nullptr || m_key_store_loader == nullptr)
-            return;
-
-        bool res = m_key_store_loader->handle_start_xml_element(name, attributes);
-        if (!res)
-            _stop_xml_parser();
-    }
-
-    void _BBS_3MF_Importer::_handle_end_key_store_element(const char* name)
-    {
-        if (m_xml_parser == nullptr || m_key_store_loader == nullptr)
-            return;
-
-        bool res = m_key_store_loader->handle_end_xml_element(name);
-
-        if (!res)
-            _stop_xml_parser();
     }
 
     void _BBS_3MF_Importer::_generate_current_object_list(std::vector<Id> &sub_objects, Id object_id, IdToCurrentObjectMap current_objects)
@@ -3773,8 +3681,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool m_split_model { false };       // save object per file with Production Extention
         bool m_save_gcode { false };        // whether to save gcode for normal save
         bool m_skip_model { false };        // skip model when exporting .gcode.3mf
-        std::shared_ptr<KeyStore> m_key_store; // save object encrypted with Secure Content Extention
-        std::vector<std::string> m_encrypted_paths;
 
     public:
         //BBS: add plate data related logic
@@ -3811,7 +3717,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                                                 std::vector<std::string> const &types   = {},
                                                 PackingTemporaryData            data    = PackingTemporaryData()) const;
         bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data, Export3mfProgressFn proFn = nullptr, BBLProject* project = nullptr) const;
-        bool _add_key_store_to_archive(mz_zip_archive& archive, KeyStore const & store);
         bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int object_id, ModelObject const & object, unsigned int backup_id, VolumeToObjectIDMap& volumes_objectID) const;
         //BBS: change volume to seperate objects
         bool _add_mesh_to_object_stream(std::function<bool(std::string&, bool)> const& flush, ModelObject const & object, unsigned int backup_id, VolumeToObjectIDMap& volumes_objectID, unsigned int& obj_idx) const;
@@ -3853,19 +3758,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         m_zip64 = store_params.strategy & SaveStrategy::Zip64;
         m_production_ext = store_params.strategy & SaveStrategy::ProductionExt;
 
-        m_key_store = store_params.model->get_key_store();
-        if (m_key_store) {
-            store_params.strategy = store_params.strategy | SaveStrategy::Encrypted;
-            m_key_store.reset(new KeyStore(*m_key_store)); // not modify origin, such as gcode paths
-        }
         m_skip_static = store_params.strategy & SaveStrategy::SkipStatic;
         m_split_model = store_params.strategy & SaveStrategy::SplitModel;
         m_save_gcode = store_params.strategy & SaveStrategy::WithGcode;
         m_skip_model  = store_params.strategy & SaveStrategy::SkipModel;
-        if (store_params.strategy & SaveStrategy::SecureContentExt) {
-            if (!m_key_store)
-                m_key_store.reset(KeyStore::create(""));
-        }
 
         boost::system::error_code ec;
         std::string filename = std::string(store_params.path);
@@ -3887,12 +3783,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         m_production_ext = true;
         m_from_backup_save = true;
         Model const & model = *object.get_model();
-        m_key_store = model.get_key_store();
 
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
 
-        auto filename = boost::format(m_key_store ? "3D/Objects/%s_%d_encrypted.model" :  "3D/Objects/%s_%d.model") % object.name % obj_id;
+        auto filename = boost::format("3D/Objects/%s_%d.model") % object.name % obj_id;
         std::string filepath = temp_path + "/" + filename.str();
         if (!open_zip_writer(&archive, filepath)) {
             add_error("Unable to open the file");
@@ -4221,12 +4116,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             return false;
         }
 
-        // BBS: encrypt, should be last step
-        if (m_key_store && !_add_key_store_to_archive(archive, *m_key_store)) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", _add_key_store_to_archive failed\n");
-            return false;
-        }
-
         if (!mz_zip_writer_finalize_archive(&archive)) {
             add_error("Unable to finalize the archive");
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to finalize the archive\n");
@@ -4277,8 +4166,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         stream << " <Default Extension=\"model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>\n";
         stream << " <Default Extension=\"png\" ContentType=\"image/png\"/>\n";
         stream << " <Default Extension=\"gcode\" ContentType=\"text/x.gcode\"/>\n";
-        if (m_key_store)
-            stream << " <Override ContentType=\"application/vnd.ms-package.3dmanufacturing-keystore+xml\" PartName=\"/" << KEYSTORE_FILE << "\"/>\n";
         stream << "</Types>";
 
         std::string out = stream.str();
@@ -4366,10 +4253,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                        << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\"/>\n";
             }
 
-            if (m_key_store) {
-                stream << " <Relationship Target=\"/" << KEYSTORE_FILE << "\" Id=\"rel-3\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2019/04/keystore\"/>\n";
-                stream << " <Relationship Target=\"/" << KEYSTORE_FILE << "\" Id=\"rel-3\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/mustpreserve\"/>\n";
-            }
             if (!data._3mf_printer_thumbnail_middle.empty()) {
                 stream << " <Relationship Target=\"/" << data._3mf_printer_thumbnail_middle
                        << "\" Id=\"rel-4\" Type=\"http://schemas.bambulab.com/package/2021/cover-thumbnail-middle\"/>\n";
@@ -4386,10 +4269,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             for (auto & path : targets) {
                 for (auto & type : types)
                     stream << " <Relationship Target=\"/" << xml_escape(path) << "\" Id=\"rel-" << boost::to_string(++i) << "\" Type=\"" << type << "\"/>\n";
-                if (m_key_store) {
-                    stream << " <Relationship Target=\"/" << xml_escape(path) << "\" Id=\"rel-" << boost::to_string(++i) << "\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/encryptedfile\"/>\n";
-                    const_cast<std::vector<std::string>&>(m_encrypted_paths).push_back("/" + path);
-                }
             }
         }
         stream << "</Relationships>";
@@ -4405,20 +4284,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
-    bool _BBS_3MF_Exporter::_add_key_store_to_archive(mz_zip_archive& archive, KeyStore const & store)
-    {
-        std::stringstream stream;
-        m_key_store->save(stream, m_encrypted_paths);
-        std::string out = stream.str();
-
-        if (!mz_zip_writer_add_mem(&archive, KEYSTORE_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
-            add_error("Unable to add key store file to archive");
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add key store file to archive\n");
-            return false;
-        }
-
-        return true;
-    }
 
     static void reset_stream(std::stringstream &stream)
     {
@@ -4457,31 +4322,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 // GH issue #6193.
                 (uint64_t(1) << 32) - 1,
 #if WRITE_ZIP_LANGUAGE_ENCODING
-            nullptr, nullptr, 0, sub_model && m_key_store ? MZ_BEST_SPEED : MZ_DEFAULT_LEVEL, nullptr, 0, nullptr, 0)) {
+            nullptr, nullptr, 0, MZ_DEFAULT_LEVEL, nullptr, 0, nullptr, 0)) {
 #else
-            nullptr, nullptr, 0, sub_model && m_key_store ? MZ_BEST_SPEED | MZ_ZIP_FLAG_ASCII_FILENAME : MZ_DEFAULT_COMPRESSION, extra.c_str(), extra.length(), extra.c_str(), extra.length())) {
+            nullptr, nullptr, 0, MZ_DEFAULT_COMPRESSION, extra.c_str(), extra.length(), extra.c_str(), extra.length())) {
 #endif
             add_error("Unable to add model file to archive");
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add model file to archive\n");
             return false;
-        }
-
-        // BBS: encrypt
-        struct MyZipEncrypt : ZipEncrypt {
-            ~MyZipEncrypt() { // work as close lock
-                if (!input_context) return;
-                auto context = input_context;
-                close();
-                mz_zip_writer_add_staged_finish(context);
-            }
-        } encrypt;
-        std::string path = "/" + filename;
-        if (sub_model && m_key_store) {
-            std::string userkey, iv;
-            if (!m_key_store->setup(path, encrypt, true))
-                return false;
-            if (!encrypt.open(context))
-                return false;
         }
 
         {
@@ -4626,7 +4473,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     Transform3d t = instance->get_matrix();
                     // instance_id is just a 1 indexed index in build_items.
                     //assert(m_skip_static || curr_id == build_items.size() + 1);
-                    auto filename = boost::format(m_key_store ? "3D/Objects/%s_%d_encrypted.model" :  "3D/Objects/%s_%d.model") % obj->name % object_it->second.backup_id;
+                    auto filename = boost::format("3D/Objects/%s_%d.model") % obj->name % object_it->second.backup_id;
                     if (count == 0)
                         object_paths.push_back(filename.str());
                     build_items.emplace_back(m_split_model ? "/" + filename.str() : "", curr_id, t, instance->printable);
@@ -4652,8 +4499,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string buf = stream.str();
 
             if ((! buf.empty() && ! mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) ||
-                ! encrypt.close() || // switch context if open
-                (sub_model && m_key_store && !m_key_store->finalize(path, encrypt)) ||
                 ! mz_zip_writer_add_staged_finish(&context)) {
                 add_error("Unable to add model file to archive");
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add model file to archive\n");
@@ -5599,10 +5444,7 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
         for (int i = range.begin(); i < range.end(); ++i) {
             PlateData* plate_data = plate_data_list2[i];
             auto src_gcode_file = plate_data->gcode_file;
-            bool encrypted = boost::algorithm::ends_with(src_gcode_file, "_encrypted.gcode");
             std::string gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (plate_data->plate_index + 1)).str();
-            if (m_key_store)
-                gcode_in_3mf.insert(gcode_in_3mf.length() - 6, "_encrypted");
 
             plate_data->gcode_file = gcode_in_3mf;
             mz_zip_archive archive;
@@ -5611,14 +5453,7 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
             mz_zip_writer_init_heap(&archive, 0, 1024 * 1024);
             {
                 mz_zip_writer_add_staged_open(&archive, &context, gcode_in_3mf.c_str(), m_zip64 ? (uint64_t(1) << 30) * 16 : (uint64_t(1) << 32) - 1, nullptr, nullptr, 0,
-                    m_key_store ? MZ_BEST_SPEED : MZ_DEFAULT_COMPRESSION, nullptr, 0, nullptr, 0);
-                ZipEncrypt encrypt;
-                std::string path = "/" + gcode_in_3mf;
-                if (m_key_store && !encrypted) {
-                    std::string userkey, iv;
-                    m_key_store->setup(path, encrypt, true);
-                    encrypt.open(context);
-                }
+                    MZ_DEFAULT_COMPRESSION, nullptr, 0, nullptr, 0);
                 boost::filesystem::path src_gcode_path(src_gcode_file);
                 if (!boost::filesystem::exists(src_gcode_path)) {
                     BOOST_LOG_TRIVIAL(error) << "Gcode is missing, filename = " << src_gcode_file;
@@ -5629,12 +5464,6 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
                 while (ifs) {
                     ifs.read(buf.data(), buf.size());
                     mz_zip_writer_add_staged_data(&context, buf.data(), ifs.gcount());
-                }
-                if (m_key_store && !encrypted) {
-                    encrypt.close();
-                    m_key_store->finalize(path, encrypt);
-                } else if (m_key_store) {
-                    m_key_store->rename(src_gcode_file, path);
                 }
                 mz_zip_writer_add_staged_finish(&context);
             }
@@ -5838,7 +5667,6 @@ public:
         // clone object
         auto model = object.get_model();
         auto o = m_temp_model.add_object(object);
-        m_temp_model.set_key_store(model->get_key_store());
         int backup_id = model->get_object_backup_id(object);
         push_task({ AddObject, (size_t) backup_id, object.get_model()->get_backup_path(), o, 1 });
     }
@@ -5867,7 +5695,6 @@ public:
                 canceled_tasks.push_back(t);
             m_ui_tasks.clear();
             m_tasks.clear();
-            m_temp_model.set_key_store(nullptr);
         }
         m_tasks.push_back({ RemoveBackup, model.id().id, model.get_backup_path(), nullptr, removeAll });
         ++m_task_seq;
