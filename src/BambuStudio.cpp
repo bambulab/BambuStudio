@@ -118,6 +118,7 @@ int CLI::run(int argc, char **argv)
         boost::nowide::cerr << text.c_str() << std::endl;
         return 1;
     }
+    BOOST_LOG_TRIVIAL(info) << "Current BambuStudio Version "<< SLIC3R_VERSION << std::endl;
 
     /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc="<< argc << std::endl;
     for (int index=0; index < argc; index++)
@@ -1065,8 +1066,10 @@ int CLI::run(int argc, char **argv)
                     else if (!warning.string.empty())
                         BOOST_LOG_TRIVIAL(info) << "got warnings: "<< warning.string << std::endl;
 
-                    if (print->empty())
+                    if (print->empty()) {
                         BOOST_LOG_TRIVIAL(info) << "Nothing to print for " << outfile << " . Either the print is empty or no object is fully inside the print volume." << std::endl;
+                        flush_and_exit(1);
+                    }
                     else
                         try {
                             std::string outfile_final;
