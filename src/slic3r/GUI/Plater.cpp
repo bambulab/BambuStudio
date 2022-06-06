@@ -1360,9 +1360,16 @@ void PlaterDropTarget::handleOnIdle(wxIdleEvent &event)
 {
     wxGetApp().mainframe->Raise();
     wxGetApp().Unbind(wxEVT_IDLE, &PlaterDropTarget::handleOnIdle, this);
-    if (m_plater != nullptr) m_plater->load_files(m_filenames);
+    if (m_plater != nullptr) {
+        if (m_plater->is_background_process_slicing()) {
+            show_info(m_plater, _L("Need to stop slicing first."), _L("Drop Files when slicing"));
+        }
+        else {
+            m_plater->load_files(m_filenames);
+            wxGetApp().mainframe->update_title();
+        }
+    }
     m_filenames.clear();
-    wxGetApp().mainframe->update_title();
 }
 
 // State to manage showing after export notifications and device ejecting
