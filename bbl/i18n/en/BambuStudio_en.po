@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-05 18:42+0800\n"
+"POT-Creation-Date: 2022-06-07 09:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -38,8 +38,8 @@ msgstr ""
 msgid "Click the pencil icon to edit the filament."
 msgstr ""
 
-msgid "Load"
-msgstr ""
+msgid "Load Filament"
+msgstr "Load"
 
 msgid "Unload"
 msgstr ""
@@ -1251,6 +1251,12 @@ msgstr "Add Negative Part"
 msgid "Add modifier"
 msgstr "Add Modifier"
 
+msgid "Add support blocker"
+msgstr "Add Support Blocker"
+
+msgid "Add support enforcer"
+msgstr "Add Support Enforcer"
+
 msgid "Select settings"
 msgstr ""
 
@@ -1260,10 +1266,16 @@ msgstr ""
 msgid "Delete the selected object"
 msgstr ""
 
+msgid "Load"
+msgstr ""
+
 msgid "Cube"
 msgstr ""
 
 msgid "Cylinder"
+msgstr ""
+
+msgid "Cone"
 msgstr ""
 
 msgid "Add settings"
@@ -3138,7 +3150,22 @@ msgstr ""
 msgid "Nozzle temperature when printing"
 msgstr ""
 
-msgid "Bed temperature of different bed type when printing"
+msgid "Cool plate"
+msgstr ""
+
+msgid "Bed temperature when cool plate is installed"
+msgstr ""
+
+msgid "Engineering plate"
+msgstr ""
+
+msgid "Bed temperature when engineering plate is installed"
+msgstr ""
+
+msgid "High Temp Plate"
+msgstr ""
+
+msgid "Bed temperature when high temperature plate is installed"
 msgstr ""
 
 msgid "Volumetric speed limitation"
@@ -3981,6 +4008,12 @@ msgstr ""
 msgid "Prime Tower"
 msgstr ""
 
+msgid ""
+"Can not print multiple filaments which have large difference of temperature "
+"together. Otherwise, the extruder and nozzle may be blocked or damaged "
+"during printing"
+msgstr ""
+
 msgid "No extrusions under current settings."
 msgstr ""
 
@@ -4114,14 +4147,23 @@ msgstr ""
 msgid "Other layers"
 msgstr ""
 
-msgid "Bed temperature for layers except the initial one"
-msgstr "Bed temperature after first layer"
+msgid "bed temperature for layers except the initial one"
+msgstr ""
 
 msgid "°C"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr ""
+
+msgid "Initial layer"
+msgstr "First layer"
+
+msgid "Initial layer bed temperature"
+msgstr "First layer bed temperature"
+
+msgid "Bed temperature of the initial layer"
+msgstr "Bed temperature for the first layer"
 
 msgid "Bed types supported by the printer"
 msgstr ""
@@ -4130,9 +4172,6 @@ msgid "Cool Plate"
 msgstr ""
 
 msgid "Engineering Plate"
-msgstr ""
-
-msgid "High Temp Plate"
 msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
@@ -4592,21 +4631,12 @@ msgstr ""
 msgid "Adaptive Cubic"
 msgstr ""
 
-msgid "Initial layer"
-msgstr "First layer"
-
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
 "adhensive"
 msgstr ""
 "This is the printing acceleration for the first layer. Using limited "
 "acceleration can improve build plate adhesion."
-
-msgid "Initial layer bed temperature"
-msgstr "First layer bed temperature"
-
-msgid "Bed temperature of the initial layer"
-msgstr "Bed temperature for the first layer"
 
 msgid "Line width of initial layer"
 msgstr ""
@@ -4710,12 +4740,6 @@ msgstr ""
 msgid "Enable this to add line number(Nx) at the beginning of each G-Code line"
 msgstr ""
 "Enable this to add line number(Nx) at the beginning of each G-Code line."
-
-msgid "BBL private bed temperature"
-msgstr ""
-
-msgid "Use BBL private temperature gcode instead of standard M140/M190"
-msgstr "Use BBL private temperature G-code instead of standard M140/M190."
 
 msgid "Scan first layer"
 msgstr ""
@@ -5699,6 +5723,12 @@ msgstr ""
 msgid "Error at line %1%:\n"
 msgstr ""
 
+#~ msgid "Bed temperature for layers except the initial one"
+#~ msgstr "Bed temperature after first layer"
+
+#~ msgid "Use BBL private temperature gcode instead of standard M140/M190"
+#~ msgstr "Use BBL private temperature G-code instead of standard M140/M190."
+
 #~ msgid "Material for support"
 #~ msgstr "Support material"
 
@@ -5893,12 +5923,6 @@ msgstr ""
 
 #~ msgid "Unable to connect server"
 #~ msgstr "Unable to connect to server"
-
-#~ msgid "Add support blocker"
-#~ msgstr "Add Support Blocker"
-
-#~ msgid "Add support enforcer"
-#~ msgstr "Add Support Enforcer"
 
 #~ msgid ""
 #~ "Speed of outer wall which is outermost and visible. It's used to be "

@@ -272,10 +272,9 @@ const std::vector<std::pair<std::string, std::string>> MenuFactory::ADD_VOLUME_M
 //       menu_item Name              menu_item bitmap name
         {L("Add part"),              "menu_add_part" },           // ~ModelVolumeType::MODEL_PART
         {L("Add negative part"),     "menu_add_negative" },       // ~ModelVolumeType::NEGATIVE_VOLUME
-        {L("Add modifier"),          "menu_add_modifier"}         // ~ModelVolumeType::PARAMETER_MODIFIER
-        //BBS remove to add support blocker
-        //{L("Add support blocker"),   "menu_support_blocker"},     // ~ModelVolumeType::SUPPORT_BLOCKER
-        //{L("Add support enforcer"),  "menu_support_enforcer"}     // ~ModelVolumeType::SUPPORT_ENFORCER
+        {L("Add modifier"),          "menu_add_modifier"},         // ~ModelVolumeType::PARAMETER_MODIFIER
+        {L("Add support blocker"),   "menu_support_blocker"},     // ~ModelVolumeType::SUPPORT_BLOCKER
+        {L("Add support enforcer"),  "menu_support_enforcer"}     // ~ModelVolumeType::SUPPORT_ENFORCER
 };
 
 static Plater* plater()
@@ -436,12 +435,12 @@ wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType ty
     auto sub_menu = new wxMenu;
 
     if (type != ModelVolumeType::INVALID) {
-        append_menu_item(sub_menu, wxID_ANY, _L("Load") + " " + dots, "",
+        append_menu_item(sub_menu, wxID_ANY, _L("Load..."), "",
             [type](wxCommandEvent&) { obj_list()->load_subobject(type); }, "", menu);
         sub_menu->AppendSeparator();
     }
 
-    for (auto& item : { L("Cube"), L("Cylinder"), L("Sphere") })
+    for (auto &item : {L("Cube"), L("Cylinder"), L("Sphere"), L("Cone")})
     {
         append_menu_item(sub_menu, wxID_ANY, _(item), "",
             [type, item](wxCommandEvent&) { obj_list()->load_generic_subobject(item, type); }, "", menu);
@@ -916,8 +915,8 @@ void MenuFactory::create_bbl_object_menu()
     m_object_menu.AppendSeparator();
     // Modifier Part
     // BBS
-    //append_menu_items_add_volume(&m_object_menu);
-    //m_object_menu.AppendSeparator();
+    append_menu_items_add_volume(&m_object_menu);
+    m_object_menu.AppendSeparator();
     // Set filament insert menu item here
     // Set Printable
     wxMenuItem* menu_item_printable = append_menu_item_printable(&m_object_menu);

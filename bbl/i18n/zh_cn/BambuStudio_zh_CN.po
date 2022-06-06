@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-05 18:42+0800\n"
+"POT-Creation-Date: 2022-06-07 09:53+0800\n"
 "PO-Revision-Date: 2022-05-17 15:42+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -42,8 +42,8 @@ msgstr "空"
 msgid "Click the pencil icon to edit the filament."
 msgstr "点击铅笔图标编辑耗材丝。"
 
-msgid "Load"
-msgstr "上料"
+msgid "Load Filament"
+msgstr "进料"
 
 msgid "Unload"
 msgstr "下料"
@@ -1283,6 +1283,12 @@ msgstr "添加负零件"
 msgid "Add modifier"
 msgstr "添加修改器"
 
+msgid "Add support blocker"
+msgstr "添加支撑屏蔽"
+
+msgid "Add support enforcer"
+msgstr "添加支撑生成器"
+
 msgid "Select settings"
 msgstr "选择设置"
 
@@ -1292,11 +1298,17 @@ msgstr "删除"
 msgid "Delete the selected object"
 msgstr "删除所选对象"
 
+msgid "Load"
+msgstr "上料"
+
 msgid "Cube"
 msgstr "立方体"
 
 msgid "Cylinder"
 msgstr "圆柱体"
+
+msgid "Cone"
+msgstr "锥体"
 
 msgid "Add settings"
 msgstr "添加设置"
@@ -3149,8 +3161,23 @@ msgstr "喷嘴"
 msgid "Nozzle temperature when printing"
 msgstr "打印时的喷嘴温度"
 
-msgid "Bed temperature of different bed type when printing"
-msgstr "打印时不同类型热床的温度"
+msgid "Cool plate"
+msgstr ""
+
+msgid "Bed temperature when cool plate is installed"
+msgstr ""
+
+msgid "Engineering plate"
+msgstr ""
+
+msgid "Bed temperature when engineering plate is installed"
+msgstr ""
+
+msgid "High Temp Plate"
+msgstr "高温打印热床"
+
+msgid "Bed temperature when high temperature plate is installed"
+msgstr ""
 
 msgid "Volumetric speed limitation"
 msgstr "体积速度限制"
@@ -4006,6 +4033,12 @@ msgstr "离不可打印区域太近，会造成打印时出现碰撞。\n"
 msgid "Prime Tower"
 msgstr "擦拭塔"
 
+msgid ""
+"Can not print multiple filaments which have large difference of temperature "
+"together. Otherwise, the extruder and nozzle may be blocked or damaged "
+"during printing"
+msgstr ""
+
 msgid "No extrusions under current settings."
 msgstr "根据当前设置，不会生成任何打印。"
 
@@ -4121,14 +4154,23 @@ msgstr "避免跨越外墙时的最大绕行距离。如果绕行距离大于这
 msgid "Other layers"
 msgstr "其它层"
 
-msgid "Bed temperature for layers except the initial one"
-msgstr "打印除首层外的其它层时的床温"
+msgid "bed temperature for layers except the initial one"
+msgstr ""
 
 msgid "°C"
 msgstr "°C"
 
 msgid "Bed temperature"
 msgstr "床温"
+
+msgid "Initial layer"
+msgstr "首层"
+
+msgid "Initial layer bed temperature"
+msgstr "首层床温"
+
+msgid "Bed temperature of the initial layer"
+msgstr "首层床温"
 
 msgid "Bed types supported by the printer"
 msgstr "打印机所支持的热床类型"
@@ -4138,9 +4180,6 @@ msgstr "低温打印热床"
 
 msgid "Engineering Plate"
 msgstr "工程材料热床"
-
-msgid "High Temp Plate"
-msgstr "高温打印热床"
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "在每次换层抬升z高度之前插入这段G-code"
@@ -4585,19 +4624,10 @@ msgstr "蜂窝"
 msgid "Adaptive Cubic"
 msgstr "自适应立方体"
 
-msgid "Initial layer"
-msgstr "首层"
-
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
 "adhensive"
 msgstr "首层加速度。使用较低值可以改善和构建板的粘接。"
-
-msgid "Initial layer bed temperature"
-msgstr "首层床温"
-
-msgid "Bed temperature of the initial layer"
-msgstr "首层床温"
 
 msgid "Line width of initial layer"
 msgstr "首层的线宽"
@@ -4688,12 +4718,6 @@ msgstr "标注行号"
 
 msgid "Enable this to add line number(Nx) at the beginning of each G-Code line"
 msgstr "打开这个设置，G-code的每一行的开头会增加Nx标注行号。"
-
-msgid "BBL private bed temperature"
-msgstr "BBL自定义床温"
-
-msgid "Use BBL private temperature gcode instead of standard M140/M190"
-msgstr "使用BBL自定义的私有温度控制G代码替代标准的M140/M190。"
 
 msgid "Scan first layer"
 msgstr "首层扫描"
@@ -5627,6 +5651,18 @@ msgstr " 对象："
 msgid "Error at line %1%:\n"
 msgstr "错误在行%1%：\n"
 
+#~ msgid "Bed temperature of different bed type when printing"
+#~ msgstr "打印时不同类型热床的温度"
+
+#~ msgid "Bed temperature for layers except the initial one"
+#~ msgstr "打印除首层外的其它层时的床温"
+
+#~ msgid "BBL private bed temperature"
+#~ msgstr "BBL自定义床温"
+
+#~ msgid "Use BBL private temperature gcode instead of standard M140/M190"
+#~ msgstr "使用BBL自定义的私有温度控制G代码替代标准的M140/M190。"
+
 #, boost-format
 #~ msgid ""
 #~ "Processing model '%1%' with more than 1M triangles could be slow. It is "
@@ -6196,12 +6232,6 @@ msgstr "错误在行%1%：\n"
 
 #~ msgid "Open"
 #~ msgstr "打开"
-
-#~ msgid "Add support blocker"
-#~ msgstr "添加支撑屏蔽"
-
-#~ msgid "Add support enforcer"
-#~ msgstr "添加支撑生成器"
 
 #~ msgid "Load from disk"
 #~ msgstr "从硬盘加载"

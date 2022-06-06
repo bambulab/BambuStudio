@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-05 18:42+0800\n"
+"POT-Creation-Date: 2022-06-07 09:53+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -43,7 +43,7 @@ msgstr ""
 msgid "Click the pencil icon to edit the filament."
 msgstr ""
 
-msgid "Load"
+msgid "Load Filament"
 msgstr ""
 
 msgid "Unload"
@@ -1232,6 +1232,12 @@ msgstr ""
 msgid "Add modifier"
 msgstr ""
 
+msgid "Add support blocker"
+msgstr ""
+
+msgid "Add support enforcer"
+msgstr ""
+
 msgid "Select settings"
 msgstr ""
 
@@ -1241,10 +1247,16 @@ msgstr ""
 msgid "Delete the selected object"
 msgstr ""
 
+msgid "Load"
+msgstr ""
+
 msgid "Cube"
 msgstr ""
 
 msgid "Cylinder"
+msgstr ""
+
+msgid "Cone"
 msgstr ""
 
 msgid "Add settings"
@@ -3085,7 +3097,22 @@ msgstr ""
 msgid "Nozzle temperature when printing"
 msgstr ""
 
-msgid "Bed temperature of different bed type when printing"
+msgid "Cool plate"
+msgstr ""
+
+msgid "Bed temperature when cool plate is installed"
+msgstr ""
+
+msgid "Engineering plate"
+msgstr ""
+
+msgid "Bed temperature when engineering plate is installed"
+msgstr ""
+
+msgid "High Temp Plate"
+msgstr ""
+
+msgid "Bed temperature when high temperature plate is installed"
 msgstr ""
 
 msgid "Volumetric speed limitation"
@@ -3921,6 +3948,12 @@ msgstr ""
 msgid "Prime Tower"
 msgstr ""
 
+msgid ""
+"Can not print multiple filaments which have large difference of temperature "
+"together. Otherwise, the extruder and nozzle may be blocked or damaged "
+"during printing"
+msgstr ""
+
 msgid "No extrusions under current settings."
 msgstr ""
 
@@ -4036,13 +4069,22 @@ msgstr ""
 msgid "Other layers"
 msgstr ""
 
-msgid "Bed temperature for layers except the initial one"
+msgid "bed temperature for layers except the initial one"
 msgstr ""
 
 msgid "°C"
 msgstr ""
 
 msgid "Bed temperature"
+msgstr ""
+
+msgid "Initial layer"
+msgstr ""
+
+msgid "Initial layer bed temperature"
+msgstr ""
+
+msgid "Bed temperature of the initial layer"
 msgstr ""
 
 msgid "Bed types supported by the printer"
@@ -4052,9 +4094,6 @@ msgid "Cool Plate"
 msgstr ""
 
 msgid "Engineering Plate"
-msgstr ""
-
-msgid "High Temp Plate"
 msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
@@ -4474,18 +4513,9 @@ msgstr ""
 msgid "Adaptive Cubic"
 msgstr ""
 
-msgid "Initial layer"
-msgstr ""
-
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
 "adhensive"
-msgstr ""
-
-msgid "Initial layer bed temperature"
-msgstr ""
-
-msgid "Bed temperature of the initial layer"
 msgstr ""
 
 msgid "Line width of initial layer"
@@ -4572,12 +4602,6 @@ msgid "Add line number"
 msgstr ""
 
 msgid "Enable this to add line number(Nx) at the beginning of each G-Code line"
-msgstr ""
-
-msgid "BBL private bed temperature"
-msgstr ""
-
-msgid "Use BBL private temperature gcode instead of standard M140/M190"
 msgstr ""
 
 msgid "Scan first layer"

@@ -148,7 +148,7 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, "toolbar_support.svg", EType::FdmSupports));
     m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, "mmu_segmentation.svg", EType::MmuSegmentation));
     m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "reduce_triangles.svg", EType::Simplify));
-    m_gizmos.emplace_back(new GLGizmoModifier(m_parent, "toolbar_modifier.svg", EType::Modifier));
+    //m_gizmos.emplace_back(new GLGizmoModifier(m_parent, "toolbar_modifier.svg", EType::Modifier));
     //m_gizmos.emplace_back(new GLGizmoSeam(m_parent, "toolbar_seam.svg", EType::Seam));
     //m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", sprite_id++));
     //m_gizmos.emplace_back(new GLGizmoFaceDetector(m_parent, "face recognition.svg", sprite_id++));
