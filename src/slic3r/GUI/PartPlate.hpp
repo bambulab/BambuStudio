@@ -204,6 +204,8 @@ public:
     static const int plate_thumbnail_width = 512;
     static const int plate_thumbnail_height = 512;
 
+    ThumbnailData cali_thumbnail_data;
+
     //set the plate's index
     void set_index(int index);
 
@@ -365,6 +367,10 @@ public:
     }
     //load gcode from file
     int load_gcode_from_file(const std::string& filename);
+    //load thumbnail data from file
+    int load_thumbnail_data(std::string filename);
+    //load pattern thumbnail data from file
+    int load_pattern_thumbnail_data(std::string filename);
 
     void print() const;
 

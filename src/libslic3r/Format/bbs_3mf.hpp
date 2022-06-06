@@ -15,6 +15,9 @@ struct FilamentInfo;
 struct ThumbnailData;
 
 #define GCODE_FILE_FORMAT               "Metadata/plate_%1%.gcode"
+#define THUMBNAIL_FILE_FORMAT           "Metadata/plate_%1%.png"
+#define PATTERN_FILE_FORMAT             "Metadata/plate_%1%_pattern_layer_0.png"
+#define PATTERN_CONFIG_FILE_FORMAT      "Metadata/plate_%1%.json"
 #define EMBEDDED_PRINT_FILE_FORMAT      "Metadata/process_settings_%1%.config"
 #define EMBEDDED_FILAMENT_FILE_FORMAT      "Metadata/filament_settings_%1%.config"
 #define EMBEDDED_PRINTER_FILE_FORMAT      "Metadata/machine_settings_%1%.config"
@@ -57,6 +60,9 @@ struct PlateData
     std::string     gcode_file;
     std::string     gcode_file_md5;
     std::string     thumbnail_file;
+    ThumbnailData   plate_thumbnail;
+    ThumbnailData   pattern_thumbnail;
+    std::string     pattern_file;
     std::string     gcode_prediction;
     std::string     gcode_weight;
     std::vector<FilamentInfo> slice_flaments_info;

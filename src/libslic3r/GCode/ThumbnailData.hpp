@@ -21,6 +21,10 @@ struct ThumbnailData
     void reset();
 
     bool is_valid() const;
+    void load_from(ThumbnailData &data) {
+        this->set(data.width, data.height);
+        pixels = data.pixels;
+    }
 };
 
 //BBS: add plate id into thumbnail render logic

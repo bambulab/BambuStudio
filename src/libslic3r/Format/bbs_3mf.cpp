@@ -125,6 +125,8 @@ const std::string MODEL_RELS_FILE = "3D/_rels/3dmodel.model.rels";
 const std::string METADATA_DIR = "Metadata/";
 const std::string ACCESOR_DIR = "accesories/";
 const std::string GCODE_EXTENSION = ".gcode";
+const std::string THUMBNAIL_EXTENSION = ".png";
+const std::string CALIBRATION_INFO_EXTENSION = ".json";
 const std::string CONTENT_TYPES_FILE = "[Content_Types].xml";
 const std::string RELATIONSHIPS_FILE = "_rels/.rels";
 const std::string THUMBNAIL_FILE = "Metadata/plate_1.png";
@@ -228,6 +230,8 @@ static constexpr const char* LAST_TRIANGLE_ID_ATTR = "lastid";
 static constexpr const char* SUBTYPE_ATTR = "subtype";
 static constexpr const char* LOCK_ATTR = "locked";
 static constexpr const char* GCODE_FILE_ATTR = "gcode_file";
+static constexpr const char* THUMBNAIL_FILE_ATTR = "thumbnail_file";
+static constexpr const char* PATTERN_FILE_ATTR = "pattern_file";
 static constexpr const char* OBJECT_ID_ATTR = "object_id";
 static constexpr const char* INSTANCEID_ATTR = "instance_id";
 static constexpr const char* PLATERID_ATTR = "plater_id";
@@ -749,7 +753,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         void _extract_project_embedded_presets_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, std::vector<Preset*>&project_presets, Model& model, Preset::Type type, bool use_json = true);
 
         void _extract_auxiliary_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
-        void _extract_gcode_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
+        void _extract_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
 
         // handlers to parse the .model file
         void _handle_start_model_xml_element(const char* name, const char** attributes);
@@ -1246,7 +1250,15 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 }
                 else if (!dont_load_config && boost::algorithm::istarts_with(name, METADATA_DIR) && boost::algorithm::iends_with(name, GCODE_EXTENSION)) {
                     //load gcode files
-                    _extract_gcode_file_from_archive(archive, stat);
+                    _extract_file_from_archive(archive, stat);
+                }
+                else if (!dont_load_config && boost::algorithm::istarts_with(name, METADATA_DIR) && boost::algorithm::iends_with(name, THUMBNAIL_EXTENSION)) {
+                    //BBS parsing pattern thumbnail and plate thumbnails
+                    _extract_file_from_archive(archive, stat);
+                }
+                else if (!dont_load_config && boost::algorithm::istarts_with(name, METADATA_DIR) && boost::algorithm::iends_with(name, CALIBRATION_INFO_EXTENSION)) {
+                    //BBS parsing pattern config files
+                    _extract_file_from_archive(archive, stat);
                 }
             }
         }
@@ -1453,6 +1465,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->gcode_weight = it->second->gcode_weight;
             plate_data_list[it->first-1]->toolpath_outside = it->second->toolpath_outside;
             plate_data_list[it->first-1]->slice_flaments_info = it->second->slice_flaments_info;
+            plate_data_list[it->first-1]->thumbnail_file = (m_load_restore || it->second->thumbnail_file.empty()) ? it->second->thumbnail_file : m_backup_path + "/" + it->second->thumbnail_file;
+            plate_data_list[it->first-1]->pattern_file = (m_load_restore || it->second->pattern_file.empty()) ? it->second->pattern_file : m_backup_path + "/" + it->second->pattern_file;
             it++;
         }
 
@@ -1815,8 +1829,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
     }
 
-    //BBS: extract gcode file name from archive
-    void _BBS_3MF_Importer::_extract_gcode_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)
+    void _BBS_3MF_Importer::_extract_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)
     {
         if (stat.m_uncomp_size > 0) {
             std::string src_file = decode_path(stat.m_filename);
@@ -1827,11 +1840,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % dest_path % stat.m_filename % res;
             if (res == 0) {
-                add_error("Error while extract gcode file to temp directory");
+                add_error("Error while extract file to temp directory");
                 return;
             }
         }
-        return ;
+        return;
     }
 
     /*void _BBS_3MF_Importer::_extract_layer_heights_profile_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)
@@ -3017,6 +3030,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             {
                 m_curr_plater->gcode_file = value;
             }
+            else if (key == THUMBNAIL_FILE_ATTR)
+            {
+                m_curr_plater->thumbnail_file = value;
+            }
+            else if (key == PATTERN_FILE_ATTR)
+            {
+                m_curr_plater->pattern_file = value;
+            }
             else if (key == INSTANCEID_ATTR)
             {
                 m_curr_instance.instance_id = atoi(value.c_str());
@@ -3863,10 +3884,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
 
         //BBS progress point
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(",before add thumbnails, count %1%\n")%thumbnail_data.size();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(",before add thumbnails, count %1%\n") % thumbnail_data.size();
 
         //BBS: add thumbnail for each plate
-        if (!m_skip_static && thumbnail_data.size()>0) {
+        if (!m_skip_static && thumbnail_data.size() > 0) {
             // Adds the file Metadata/thumbnail.png.
             for (unsigned int index = 0; index < thumbnail_data.size(); index++)
             {
@@ -4206,7 +4227,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         size_t png_size = 0;
         void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)thumbnail_data.pixels.data(), thumbnail_data.width, thumbnail_data.height, 4, &png_size, MZ_DEFAULT_COMPRESSION, 1);
         if (png_data != nullptr) {
-            std::string thumbnail_name = (boost::format("Metadata/plate_%1%_pattern_layer_0.png") % (index + 1)).str();
+            std::string thumbnail_name = (boost::format(PATTERN_FILE_FORMAT) % (index + 1)).str();
             res = mz_zip_writer_add_mem(&archive, thumbnail_name.c_str(), (const void*)png_data, png_size, MZ_NO_COMPRESSION);
             mz_free(png_data);
         }
@@ -4226,7 +4247,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         id_bboxes.to_json(j);
         std::string out = j.dump();
 
-        std::string json_file_name = (boost::format("Metadata/plate_%1%.json") % (index + 1)).str();
+        std::string json_file_name = (boost::format(PATTERN_CONFIG_FILE_FORMAT) % (index + 1)).str();
         if (!mz_zip_writer_add_mem(&archive, json_file_name.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
             add_error("Unable to add json file to archive");
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add json file to archive\n");
@@ -5292,12 +5313,20 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 //plate index
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PLATERID_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->plate_index + 1 << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << LOCK_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->locked<< "\"/>\n";
-                if (!plate_data->gcode_file.empty()) {
-                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->gcode_file<< "\"/>\n";
+                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << plate_data->gcode_file << "\"/>\n";
+                if (!plate_data->gcode_file.empty()) {   
                     gcode_paths.push_back(plate_data->gcode_file);
-                } else {
-                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"\" />\n";
                 }
+                if (plate_data->plate_thumbnail.is_valid()) {
+                    std::string thumbnail_file_in_3mf = (boost::format(THUMBNAIL_FILE_FORMAT) % (plate_data->plate_index + 1)).str();
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << THUMBNAIL_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << thumbnail_file_in_3mf << "\"/>\n";
+                }
+
+                if (plate_data->pattern_thumbnail.is_valid()) {
+                    std::string pattern_file_in_3mf = (boost::format(PATTERN_FILE_FORMAT) % (plate_data->plate_index + 1)).str();
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PATTERN_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << pattern_file_in_3mf << "\"/>\n";
+                }
+
                 if (instance_size > 0)
                 {
                     for (unsigned int j = 0; j < instance_size; ++j)

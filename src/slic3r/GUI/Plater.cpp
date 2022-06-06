@@ -8084,9 +8084,11 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     // BBS: backup
     if (!(strategy & SaveStrategy::Backup)) {
         for (int i = 0; i < p->partplate_list.get_plate_count(); i++) {
-            ThumbnailData* thumbnail_data = new ThumbnailData();
-            const ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i };
-            p->generate_thumbnail(*thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho);
+            ThumbnailData* thumbnail_data = &p->partplate_list.get_plate(i)->thumbnail_data;
+            if (!p->partplate_list.get_plate(i)->thumbnail_data.is_valid()) {
+                const ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i };
+                p->generate_thumbnail(p->partplate_list.get_plate(i)->thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho);
+            }
             thumbnails.push_back(thumbnail_data);
 
             calibration_thumbnails.push_back(new ThumbnailData());
@@ -8193,10 +8195,6 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     }
 
     release_PlateData_list(plate_data_list);
-    for (unsigned int i = 0; i < thumbnails.size(); i++)
-    {
-        delete thumbnails[i];
-    }
 
     for (unsigned int i = 0; i < calibration_thumbnails.size(); i++)
     {

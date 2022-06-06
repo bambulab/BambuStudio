@@ -416,7 +416,6 @@ TaskTimer::~TaskTimer()
 bool load_image(const std::string &filename, wxImage &image)
 {
     bool    result = true;
-    wxImage img;
     if (boost::algorithm::iends_with(filename, ".png")) {
         result = image.LoadFile(wxString::FromUTF8(filename.c_str()), wxBITMAP_TYPE_PNG);
     } else if (boost::algorithm::iends_with(filename, ".bmp")) {

@@ -1948,6 +1948,44 @@ int PartPlate::load_gcode_from_file(const std::string& filename)
 	return ret;
 }
 
+int PartPlate::load_thumbnail_data(std::string filename)
+{
+	bool result = true;
+	wxImage img;
+	if (boost::algorithm::iends_with(filename, ".png")) {
+		result = img.LoadFile(wxString::FromUTF8(filename.c_str()), wxBITMAP_TYPE_PNG);
+	}
+	if (result) {
+		thumbnail_data.set(img.GetWidth(), img.GetHeight());
+		for (int i = 0; i < img.GetWidth() * img.GetHeight(); i++) {
+			memcpy(&thumbnail_data.pixels[4 * i], (unsigned char*)(img.GetData() + 3 * i), 3);
+			thumbnail_data.pixels[4 * i + 3] = *(unsigned char*)(img.GetAlpha() + i);
+		}
+	} else {
+		return -1;
+	}
+	return 0;
+}
+
+int PartPlate::load_pattern_thumbnail_data(std::string filename)
+{
+	bool result = true;
+	wxImage img;
+	result = load_image(filename, img);
+	if (result) {
+		cali_thumbnail_data.set(img.GetWidth(), img.GetHeight());
+		for (int i = 0; i < img.GetWidth() * img.GetHeight(); i++) {
+			memcpy(&thumbnail_data.pixels[4 * i], (unsigned char*)(img.GetData() + 3 * i), 3);
+			thumbnail_data.pixels[4 * i + 3] = *(unsigned char*)(img.GetAlpha() + i);
+		}
+	}
+	else {
+		return -1;
+	}
+	return 0;
+}
+
+
 void PartPlate::print() const
 {
 	unsigned int count=0;
@@ -3815,6 +3853,8 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 		PlateData* plate_data_item = new PlateData();
 		plate_data_item->locked = m_plate_list[i]->m_locked;
 		plate_data_item->plate_index = m_plate_list[i]->m_plate_index;
+		plate_data_item->plate_thumbnail.load_from(m_plate_list[i]->thumbnail_data);
+
 		if (m_plate_list[i]->obj_to_instance_set.size() > 0)
 		{
 			for (std::set<std::pair<int, int>>::iterator it = m_plate_list[i]->obj_to_instance_set.begin(); it != m_plate_list[i]->obj_to_instance_set.end(); ++it)
@@ -3897,6 +3937,18 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		}
 		ps.total_used_filament *= 1000; //koef
 		gcode_result->toolpath_outside = plate_data_list[i]->toolpath_outside;
+
+		if (!plate_data_list[i]->thumbnail_file.empty()) {
+			if (boost::filesystem::exists(plate_data_list[i]->thumbnail_file)) {
+				m_plate_list[index]->load_thumbnail_data(plate_data_list[i]->thumbnail_file);
+			}
+		}
+		if (!plate_data_list[i]->pattern_file.empty()) {
+			if (boost::filesystem::exists(plate_data_list[i]->pattern_file)) {
+				m_plate_list[index]->load_pattern_thumbnail_data(plate_data_list[i]->pattern_file);
+			}
+		}
+
 	}
 	print();
 	ret = reload_all_objects();
