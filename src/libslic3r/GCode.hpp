@@ -33,9 +33,6 @@ namespace Slic3r {
 // Forward declarations.
 class GCode;
 
-class KeyStore;
-class EVP_Cipher;
-
 namespace { struct Item; }
 struct PrintInstance;
 class ConstPrintObjectPtrsAdaptor;
@@ -238,8 +235,7 @@ public:
 private:
     class GCodeOutputStream {
     public:
-        // BBS: encrypt gcode
-        GCodeOutputStream(FILE* f, GCodeProcessor& processor, std::shared_ptr<KeyStore> key_store, std::string const & path);
+        GCodeOutputStream(FILE *f, GCodeProcessor &processor) : f(f), m_processor(processor) {}
         ~GCodeOutputStream() { this->close(); }
 
         bool is_open() const { return f; }
@@ -263,10 +259,6 @@ private:
     private:
         FILE *f = nullptr;
         GCodeProcessor &m_processor;
-        // BBS: encrypt gcode
-        std::shared_ptr<KeyStore> m_key_store;
-        std::string const m_path;
-        EVP_Cipher * m_encrypt = nullptr;
     };
     void            _do_export(Print &print, GCodeOutputStream &file, ThumbnailsGeneratorCallback thumbnail_cb);
 

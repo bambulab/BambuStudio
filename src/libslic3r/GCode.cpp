@@ -34,7 +34,6 @@
 #include <boost/nowide/cstdlib.hpp>
 
 #include "SVG.hpp"
-#include "Format/Secure.hpp"
 
 #include <tbb/parallel_for.h>
 
@@ -890,10 +889,8 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     std::string path_tmp(path);
     path_tmp += ".tmp";
 
-    // BBS: encrypt gcode
-    m_processor.set_key_store(print->m_model.get_key_store());
     m_processor.initialize(path_tmp);
-    GCodeOutputStream file(boost::nowide::fopen(path_tmp.c_str(), "wb"), m_processor, print->m_model.get_key_store(), path);
+    GCodeOutputStream file(boost::nowide::fopen(path_tmp.c_str(), "wb"), m_processor);
     if (! file.is_open()) {
         BOOST_LOG_TRIVIAL(error) << std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n" << std::endl;
         fs::path file_path(path);
@@ -3265,27 +3262,7 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
     return gcode;
 }
 
-// BBS: encrypt gcode
-GCode::GCodeOutputStream::GCodeOutputStream(FILE* f, GCodeProcessor& processor, std::shared_ptr<KeyStore> key_store, std::string const & path)
-    : f(f)
-    , m_processor(processor)
-    , m_key_store(key_store)
-    , m_path(path)
-{
-    if (m_key_store) {
-        DeflateEncrypt * de = new DeflateEncrypt;
-        if (m_key_store->setup(m_path, *de, true)) {
-            de->set_output([](void * file, unsigned char const * data, int len) {
-                return fwrite(data, 1, len, (FILE *)file) == len;
-            }, f);
-            m_encrypt = de;
-        } else {
-            delete de;
-        }
-    }
-}
-
-bool GCode::GCodeOutputStream::is_error() const
+bool GCode::GCodeOutputStream::is_error() const 
 {
     return ::ferror(this->f);
 }
@@ -3296,15 +3273,7 @@ void GCode::GCodeOutputStream::flush()
 }
 
 void GCode::GCodeOutputStream::close()
-{
-    // BBS: encrypt gcode
-    if (m_encrypt) {
-        m_encrypt->finalize();
-        m_key_store->finalize(m_path, *m_encrypt);
-        delete m_encrypt;
-        m_encrypt = nullptr;
-        ::fflush(this->f);
-    }
+{ 
     if (this->f) {
         ::fclose(this->f);
         this->f = nullptr;
@@ -3316,13 +3285,7 @@ void GCode::GCodeOutputStream::write(const char *what)
     if (what != nullptr) {
         const char* gcode = what;
         // writes string to file
-        size_t len = ::strlen(gcode);
-        // BBS: encrypt gcode
-        if (m_encrypt) {
-            m_encrypt->update((unsigned char *)gcode, len);
-        } else {
-            fwrite(gcode, 1, len, this->f);
-        }
+        fwrite(gcode, 1, ::strlen(gcode), this->f);
         //FIXME don't allocate a string, maybe process a batch of lines?
         m_processor.process_buffer(std::string(gcode));
     }

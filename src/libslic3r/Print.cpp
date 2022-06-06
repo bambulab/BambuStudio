@@ -1765,8 +1765,6 @@ void Print::export_gcode_from_previous_file(const std::string& file, GCodeProces
         const Vec3d origin = this->get_plate_origin();
         processor.set_xy_offset(origin(0), origin(1));
         //processor.enable_producers(true);
-        // BBS: decrypt gcode
-        processor.set_key_store(m_model.get_key_store());
         processor.process_file(file);
 
         *result = std::move(processor.extract_result());

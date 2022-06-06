@@ -11,8 +11,6 @@
 
 namespace Slic3r {
 
-class KeyStore;
-
 class GCodeReader {
 public:
     class GCodeLine {
@@ -125,9 +123,6 @@ public:
     void parse_line(const std::string &line, Callback callback)
         { GCodeLine gline; this->parse_line(line.c_str(), line.c_str() + line.size(), gline, callback); }
 
-    // BBS: decrypt gcode
-    void set_key_store(std::shared_ptr<KeyStore> key_store) { m_key_store = key_store; }
-    std::shared_ptr<KeyStore> get_key_store() { return m_key_store; }
     // Returns false if reading the file failed.
     bool parse_file(const std::string &file, callback_t callback);
     // Collect positions of line ends in the binary G-code to be used by the G-code viewer when memory mapping and displaying section of G-code
@@ -184,8 +179,6 @@ private:
     bool        m_verbose;
     // To be set by the callback to stop parsing.
     bool        m_parsing{ false };
-    // BBS: decrypt gcode
-    std::shared_ptr<KeyStore> m_key_store;
 };
 
 } /* namespace Slic3r */
