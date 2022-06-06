@@ -3420,7 +3420,13 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
 
     //auto wizard = new ConfigWizard(mainframe);
     //const bool res = wizard->run(reason, start_page);
-    GuideFrame wizard(this);
+
+    std::string strFinish = wxGetApp().app_config->get("firstguide", "finish");
+    long        pStyle    = wxCAPTION | wxCLOSE_BOX | wxSYSTEM_MENU;
+    if (strFinish == "false" || strFinish.empty()) 
+        pStyle = wxCAPTION | wxTAB_TRAVERSAL;
+
+    GuideFrame wizard(this, pStyle);
     auto page = start_page == ConfigWizard::SP_WELCOME ? GuideFrame::BBL_WELCOME :
                 start_page == ConfigWizard::SP_FILAMENTS ? GuideFrame::BBL_FILAMENT_ONLY :
                 start_page == ConfigWizard::SP_PRINTERS ? GuideFrame::BBL_MODELS_ONLY :

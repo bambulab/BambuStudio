@@ -32,14 +32,10 @@ namespace Slic3r { namespace GUI {
 
 json m_ProfileJson;
 
-GuideFrame::GuideFrame(GUI_App *pGUI)
-    : wxDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "BambuStudio", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxTAB_TRAVERSAL),
+GuideFrame::GuideFrame(GUI_App *pGUI, long style)
+    : wxDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "BambuStudio", wxDefaultPosition, wxDefaultSize, style),
 	m_appconfig_new()
 {
-    std::string strFinish = wxGetApp().app_config->get("firstguide", "finish");
-    if (strFinish == "true")
-        SetWindowStyleFlag(wxCAPTION | wxCLOSE_BOX | wxSYSTEM_MENU);
-
     // INI
     m_SectionName = "firstguide";
     PrivacyUse    = true;

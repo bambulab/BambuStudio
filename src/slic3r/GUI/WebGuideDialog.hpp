@@ -37,7 +37,7 @@ namespace Slic3r { namespace GUI {
 class GuideFrame : public wxDialog
 {
 public:
-    GuideFrame(GUI_App *pGUI);
+    GuideFrame(GUI_App *pGUI, long style = wxCAPTION | wxCLOSE_BOX | wxSYSTEM_MENU);
     virtual ~GuideFrame();
 
     enum GuidePage {
@@ -69,7 +69,7 @@ public:
     void OnScriptResponseMessage(wxCommandEvent &evt);
     void RunScript(const wxString &javascript);
 
-    //Logic cccccccccccc
+    //Logic
     bool IsFirstUse();
 
     //Model - Machine - Filaments
