@@ -421,9 +421,15 @@ std::vector<wxBitmap> MenuFactory::get_volume_bitmaps()
 
 void MenuFactory::append_menu_item_delete(wxMenu* menu)
 {
+#ifdef __WINDOWS__
     append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Delete the selected object"),
         [](wxCommandEvent&) { plater()->remove_selected(); }, "menu_delete", nullptr,
         []() { return plater()->can_delete(); }, m_parent);
+#else
+    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Delete the selected object"),
+        [](wxCommandEvent&) { plater()->remove_selected(); }, "", nullptr,
+        []() { return plater()->can_delete(); }, m_parent);
+#endif
 }
 
 wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType type) {
@@ -828,8 +834,13 @@ MenuFactory::MenuFactory()
 void MenuFactory::create_default_menu()
 {
     wxMenu* sub_menu = append_submenu_add_generic(&m_default_menu, ModelVolumeType::INVALID);
+#ifdef __WINDOWS__
     append_submenu(&m_default_menu, sub_menu, wxID_ANY, _L("Add Primitive"), "", "menu_add_part",
         []() {return true; }, m_parent);
+#else
+    append_submenu(&m_default_menu, sub_menu, wxID_ANY, _L("Add Primitive"), "", "",
+        []() {return true; }, m_parent);
+#endif
 }
 
 void MenuFactory::create_common_object_menu(wxMenu* menu)
@@ -1044,15 +1055,29 @@ void MenuFactory::create_plate_menu()
         }, "", nullptr, []() {return true; }, plater());
 
     // delete current plate
+#ifdef __WINDOWS__
     append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Remove the selected plate"),
         [](wxCommandEvent&) { plater()->delete_plate(); }, "menu_delete", nullptr,
         []() { return plater()->can_delete_plate(); }, m_parent);
+#else
+    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Remove the selected plate"),
+        [](wxCommandEvent&) { plater()->delete_plate(); }, "", nullptr,
+        []() { return plater()->can_delete_plate(); }, m_parent);
+#endif
+    
 
     // add shapes
     menu->AppendSeparator();
     wxMenu* sub_menu = append_submenu_add_generic(menu, ModelVolumeType::INVALID);
+    
+#ifdef __WINDOWS__
     append_submenu(menu, sub_menu, wxID_ANY, _L("Add Primitive"), "", "menu_add_part",
         []() {return true; }, m_parent);
+#else
+    append_submenu(menu, sub_menu, wxID_ANY, _L("Add Primitive"), "", "",
+        []() {return true; }, m_parent);
+#endif
+    
 
     return;
 }
