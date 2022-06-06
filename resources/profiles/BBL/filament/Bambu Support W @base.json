@@ -11,26 +11,14 @@
     "filament_density": [
         "1.30"
     ],
-    "nozzle_temperature_initial_layer": [
-        "220"
-    ],
-    "nozzle_temperature": [
-        "220"
-    ],
     "cool_plate_temp": [
         "40"
-    ],
-    "eng_plate_temp": [
-        "0"
     ],
     "hot_plate_temp": [
         "40"
     ],
     "cool_plate_temp_initial_layer": [
         "40"
-    ],
-    "eng_plate_temp_initial_layer": [
-        "0"
     ],
     "hot_plate_temp_initial_layer": [
         "40"

@@ -12,12 +12,6 @@
     "filament_max_volumetric_speed": [
         "12"
     ],
-    "nozzle_temperature": [
-        "260"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "260"
-    ],
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.4 nozzle",
       "Bambu Lab X1 0.4 nozzle"

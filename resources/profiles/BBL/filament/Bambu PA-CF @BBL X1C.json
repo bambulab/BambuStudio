@@ -5,9 +5,6 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "Bambu PA-CF @base",
-    "filament_flow_ratio": [
-        "0.96"
-    ],
     "filament_max_volumetric_speed": [
         "8"
     ],

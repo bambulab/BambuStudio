@@ -37,6 +37,9 @@
     "filament_cost": [
         "20"
     ],
+    "filament_retraction_length": [
+        "0.4"
+    ],
     "nozzle_temperature_initial_layer": [
         "240"
     ],

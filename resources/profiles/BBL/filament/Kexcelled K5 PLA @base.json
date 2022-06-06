@@ -15,12 +15,9 @@
         "1.24"
     ],
     "filament_flow_ratio": [
-        "0.95"
+        "0.93"
     ],
     "nozzle_temperature": [
         "230"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "220"
     ]
 }

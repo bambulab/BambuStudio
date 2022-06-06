@@ -11,7 +11,7 @@
         "0"
     ],
     "hot_plate_temp" : [
-        "60"
+        "45"
     ],
     "cool_plate_temp_initial_layer" : [
         "35"
@@ -20,7 +20,7 @@
         "0"
     ],
     "hot_plate_temp_initial_layer" : [
-        "60"
+        "45"
     ],
     "fan_cooling_layer_time": [
         "100"
@@ -68,7 +68,7 @@
         "220"
     ],
     "temperature_vitrification": [
-        "60"
+        "50"
     ],
     "slow_down_min_speed": [
         "50"
