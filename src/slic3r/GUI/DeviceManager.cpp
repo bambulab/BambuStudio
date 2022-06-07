@@ -1080,6 +1080,8 @@ std::string MachineObject::build_login_request()
     j["login"]["iot"]         = acc_.get_host();
     j["login"]["apix"]        = acc_.user_region_server.api_servier_host;
     j["login"]["emqx"]        = acc_.get_emqx_server_host();
+    j["login"]["base_domain"] = acc_.user_region_server.base_domain;
+    j["login"]["environment"] = acc_.user_region_server.environment;
     return j.dump();
 }
 

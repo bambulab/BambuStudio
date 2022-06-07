@@ -62,8 +62,8 @@ public:
     std::string mqtt_server_host;
     std::string tutk_server_host;
     std::string wifi_code;
-    std::string official_host;
-    std::string design_host;
+    std::string base_domain;
+    std::string environment;
 
     static std::string convert_region_to_contry_code(std::string region);
 };
@@ -299,7 +299,6 @@ public:
 
     std::string get_emqx_server_host();
     std::string get_official_server_host();
-    std::string get_design_server_host();
 
     typedef std::function<void(int progress)> ProgressFn;
     typedef std::function<void(int retcode, std::string info)> LoginFn;

@@ -302,7 +302,7 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
             std::string strToken = j["data"]["token"];
 
             std::string strUserID         = j["data"]["user"]["uid"];
-            std::string strAccount = j["data"]["user"]["account"];
+            std::string strAccount        = j["data"]["user"]["account"];
             std::string strAvatar         = j["data"]["user"]["avatar"];
             std::string strName           = j["data"]["user"]["name"];
 
