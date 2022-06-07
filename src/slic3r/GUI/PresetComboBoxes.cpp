@@ -865,7 +865,7 @@ void PlaterPresetComboBox::update()
     std::string filament_color;
     if (m_type == Preset::TYPE_FILAMENT)
     {
-        unsigned char rgb[3];
+        //unsigned char rgb[3];
         filament_color = m_preset_bundle->project_config.opt_string("filament_colour", (unsigned int) m_filament_idx);
         //if (!bitmap_cache().parse_color(filament_color, rgb))
         //    // Extruder color is not defined.
