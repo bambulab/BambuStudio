@@ -1085,7 +1085,10 @@ Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double wipe_volu
 	if (plate_extruders.empty())
 		return wipe_tower_size;
 
-	wipe_tower_size(1) = wipe_volume * (plate_extruders.size() - 1) / (layer_height * w);
+	double depth = wipe_volume * (plate_extruders.size() - 1) / (layer_height * w);
+	if (depth > EPSILON)
+		wipe_tower_size(1) = std::max((double)WipeTower::min_wipe_tower_depth, depth);
+
 	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
 		if (!contain_instance_totally(obj_idx, 0))
 			continue;

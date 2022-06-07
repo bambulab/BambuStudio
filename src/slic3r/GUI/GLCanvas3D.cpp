@@ -1904,9 +1904,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 const Print* print = m_process->fff_print();
                 float brim_width = print->wipe_tower_data(filaments_count).brim_width;
                 Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(w, v);
-                if (wipe_tower_size(1) > EPSILON)
-                    wipe_tower_size(1) = std::max((double)WipeTower::min_wipe_tower_depth, wipe_tower_size(1));
-
                 const float margin = 15.f;
                 BoundingBoxf3 plate_bbox = wxGetApp().plater()->get_partplate_list().get_plate(plate_id)->get_bounding_box();
                 coordf_t plate_bbox_y_max_local_coord = plate_bbox.max(1) - plate_origin(1);
@@ -3896,8 +3893,13 @@ GLCanvas3D::WipeTowerInfo GLCanvas3D::get_wipe_tower_info(int plate_idx) const
                               proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y")->get_at(plate_idx));
             // BBS: don't support rotation
             //wti.m_rotation = (M_PI/180.) * proj_cfg->opt_float("wipe_tower_rotation_angle");
+
+            auto& preset = wxGetApp().preset_bundle->prints.get_edited_preset();
+            float wt_brim_width = preset.config.opt_float("prime_tower_brim_width");
+
             const BoundingBoxf3& bb = vol->bounding_box();
             wti.m_bb = BoundingBoxf{to_2d(bb.min), to_2d(bb.max)};
+            wti.m_bb.offset(wt_brim_width);
 
             float brim_width = wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_float("prime_tower_brim_width");
             wti.m_bb.offset((brim_width));
