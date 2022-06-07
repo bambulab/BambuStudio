@@ -729,13 +729,73 @@ bool ImGui::ButtonEx(const char* label, const ImVec2& size_arg, ImGuiButtonFlags
     //if (pressed && !(flags & ImGuiButtonFlags_DontClosePopups) && (window->Flags & ImGuiWindowFlags_Popup))
     //    CloseCurrentPopup();
 
+
     IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags);
     return pressed;
 }
 
+bool ImGui::BBLButtonEx(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags)
+{
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
+    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+
+    ImVec2 pos = window->DC.CursorPos;
+    if ((flags & ImGuiButtonFlags_AlignTextBaseLine) && style.FramePadding.y < window->DC.CurrLineTextBaseOffset) // Try to vertically align buttons that are smaller/have no padding so that text baseline matches (bit hacky, since it shouldn't be a flag)
+        pos.y += window->DC.CurrLineTextBaseOffset - style.FramePadding.y;
+    ImVec2 size = CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
+
+    const ImRect bb(pos, pos + size);
+    ItemSize(size, style.FramePadding.y);
+    if (!ItemAdd(bb, id))
+        return false;
+
+    if (g.CurrentItemFlags & ImGuiItemFlags_ButtonRepeat)
+        flags |= ImGuiButtonFlags_Repeat;
+    bool hovered, held;
+    bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
+
+    bool b_hover = false;
+    if (hovered)
+    {
+        PushStyleColor(ImGuiCol_Text,GetColorU32(ImGuiCol_CheckMark));
+        b_hover = true;
+    }
+
+    // Render
+    const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+    RenderNavHighlight(bb, id);
+    RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
+
+    if (g.LogEnabled)
+        LogSetNextTextDecoration("[", "]");
+    RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb);
+
+    // Automatically close popups
+    //if (pressed && !(flags & ImGuiButtonFlags_DontClosePopups) && (window->Flags & ImGuiWindowFlags_Popup))
+    //    CloseCurrentPopup();
+
+
+    if (hovered) {PopStyleColor(1);}
+
+    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags);
+    return pressed;
+}
+
+
 bool ImGui::Button(const char* label, const ImVec2& size_arg)
 {
     return ButtonEx(label, size_arg, ImGuiButtonFlags_None);
+}
+
+bool ImGui::BBLButton(const char* label, const ImVec2& size_arg)
+{
+    return BBLButtonEx(label, size_arg, ImGuiButtonFlags_None);
 }
 
 // Small buttons fits within text without additional vertical spacing.
@@ -1445,6 +1505,53 @@ bool ImGui::RadioButton(const char* label, bool active)
     return pressed;
 }
 
+bool ImGui::BBLRadioButton(const char *label, bool active)
+{
+    ImGuiWindow *window = GetCurrentWindow();
+    if (window->SkipItems) return false;
+
+    ImGuiContext & g = *GImGui;
+    const ImGuiStyle &style = g.Style;
+    const ImGuiID id = window->GetID(label);
+    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+
+    const float square_sz = GetFrameHeight();
+    const ImVec2 pos = window->DC.CursorPos;
+    const ImRect check_bb(ImVec2(pos.x - style.ItemInnerSpacing.x,pos.y), pos + ImVec2(square_sz, square_sz));
+    const ImRect total_bb(pos, pos + ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f));
+    ItemSize(total_bb, style.FramePadding.y);
+    if (!ItemAdd(total_bb, id)) return false;
+
+    ImVec2 center      = check_bb.GetCenter();
+    center.x           = IM_ROUND(center.x);
+    center.y           = IM_ROUND(center.y);
+    const float radius = (square_sz - 2.5f) * 0.5f;
+
+    bool hovered, held;
+    bool pressed = ButtonBehavior(total_bb, id, &hovered, &held);
+    if (pressed) MarkItemEdited(id);
+
+    RenderNavHighlight(total_bb, id);
+    window->DrawList->AddCircleFilled(center, radius, GetColorU32((held && hovered) ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg), 16);
+
+    if (active) {
+        const float pad = ImMax(1.0f, IM_FLOOR(square_sz / 3.5f));
+        window->DrawList->AddCircleFilled(center, radius - pad, GetColorU32(ImGuiCol_CheckMark), 16);
+    }
+
+    if (style.FrameBorderSize > 0.0f) {
+        window->DrawList->AddCircle(center + ImVec2(1, 1), radius, GetColorU32(ImGuiCol_BorderShadow), 16, style.FrameBorderSize);
+        window->DrawList->AddCircle(center, radius, GetColorU32(ImGuiCol_Border), 16, style.FrameBorderSize);
+    }
+
+    ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y + style.FramePadding.y);
+    if (g.LogEnabled) LogRenderedText(&label_pos, active ? "(x)" : "( )");
+    if (label_size.x > 0.0f) RenderText(label_pos, label);
+
+    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags);
+    return pressed;
+}
+
 // FIXME: This would work nicely if it was a public template, e.g. 'template<T> RadioButton(const char* label, T* v, T v_button)', but I'm not sure how we would expose it..
 bool ImGui::RadioButton(const char* label, int* v, int v_button)
 {
@@ -1502,6 +1609,34 @@ void ImGui::BBLProgressBar(float fraction, const ImVec2 &size_arg, const char *o
     ImVec2 pos  = window->DC.CursorPos;
     ImVec2 size = CalcItemSize(size_arg, CalcItemWidth(), g.FontSize + style.FramePadding.y * 2.0f);
     ImRect bb(pos, pos + size);
+    ItemSize(size, style.FramePadding.y);
+    if (!ItemAdd(bb, 0)) return;
+
+    // Render
+    fraction = ImSaturate(fraction);
+    RenderFrame(bb.Min, bb.Max, GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
+    bb.Expand(ImVec2(-style.FrameBorderSize, -style.FrameBorderSize));
+    RenderRectFilledRangeH(window->DrawList, bb, GetColorU32(ImGuiCol_PlotHistogram), 0.0f, fraction, style.FrameRounding);
+
+    // Default displaying the fraction as percentage string, but user can override it
+    char overlay_buf[32];
+    if (!overlay) {
+        ImFormatString(overlay_buf, IM_ARRAYSIZE(overlay_buf), "%.0f%%", fraction * 100 + 0.01f);
+        overlay = overlay_buf;
+    }
+}
+
+void ImGui::BBLProgressBar2(float fraction, const ImVec2 &size_arg, const char *overlay)
+{
+    ImGuiWindow *window = GetCurrentWindow();
+    if (window->SkipItems) return;
+
+    ImGuiContext &    g     = *GImGui;
+    const ImGuiStyle &style = g.Style;
+
+    ImVec2 pos  = window->DC.CursorPos;
+    ImVec2 size = CalcItemSize(size_arg, CalcItemWidth(), g.FontSize/2.5);
+    ImRect bb(ImVec2(pos.x,pos.y + size.y), ImVec2(pos.x + size.x,pos.y + 2 * size.y));
     ItemSize(size, style.FramePadding.y);
     if (!ItemAdd(bb, 0)) return;
 
@@ -2784,7 +2919,7 @@ bool ImGui::BBLDragScalar(const char *label, ImGuiDataType data_type, void *p_da
             SetFocusID(id, window);
             FocusWindow(window);
             g.ActiveIdUsingNavDirMask = (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
-            if (temp_input_allowed && (focus_requested || (clicked && g.IO.KeyCtrl) || double_clicked || g.NavInputId == id)) temp_input_is_active = true;
+            if (temp_input_allowed && (focus_requested || (clicked && g.IO.KeyCtrl) || clicked || g.NavInputId == id)) temp_input_is_active = true;
         }
         // Experimental: simple click (without moving) turns Drag into an InputText
         // FIXME: Currently polling ImGuiConfigFlags_IsTouchScreen, may either poll an hypothetical ImGuiBackendFlags_HasKeyboard and/or an explicit drag settings.
@@ -3453,6 +3588,83 @@ bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* p_dat
     IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags);
     return value_changed;
 }
+
+bool ImGui::BBLSliderScalarIn(const char *label, ImGuiDataType data_type, void *p_data, const void *p_min, const void *p_max, const char *format, ImGuiSliderFlags flags)
+{
+    ImGuiWindow *window = GetCurrentWindow();
+    if (window->SkipItems) return false;
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
+    const float w = CalcItemWidth();
+
+    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
+    const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
+
+    const bool temp_input_allowed = (flags & ImGuiSliderFlags_NoInput) == 0;
+    ItemSize(total_bb, style.FramePadding.y);
+    if (!ItemAdd(total_bb, id, &frame_bb, temp_input_allowed ? ImGuiItemAddFlags_Focusable : 0)) return false;
+
+    // Default format string when passing NULL
+    if (format == NULL)
+        format = DataTypeGetInfo(data_type)->PrintFmt;
+    else if (data_type == ImGuiDataType_S32 && strcmp(format, "%d") != 0) // (FIXME-LEGACY: Patch old "%.0f" format string to use "%d", read function more details.)
+        format = PatchFormatStringFloatToInt(format);
+
+    // Tabbing or CTRL-clicking on Slider turns it into an input box
+    const bool hovered              = ItemHoverable(frame_bb, id);
+    bool       temp_input_is_active = temp_input_allowed && TempInputIsActive(id);
+    if (!temp_input_is_active) {
+        const bool focus_requested = temp_input_allowed && (window->DC.LastItemStatusFlags & ImGuiItemStatusFlags_Focused) != 0;
+        const bool clicked         = (hovered && g.IO.MouseClicked[0]);
+        if (focus_requested || clicked || g.NavActivateId == id || g.NavInputId == id) {
+            SetActiveID(id, window);
+            SetFocusID(id, window);
+            FocusWindow(window);
+            g.ActiveIdUsingNavDirMask |= (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
+            if (temp_input_allowed && (focus_requested || (clicked && g.IO.KeyCtrl) || g.NavInputId == id)) temp_input_is_active = true;
+        }
+    }
+    const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : g.HoveredId == id ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
+
+    // Slider behavior
+    ImRect     grab_bb;
+    const bool value_changed = SliderBehavior(frame_bb, id, data_type, p_data, p_min, p_max, format, flags, &grab_bb);
+    if (value_changed) MarkItemEdited(id);
+
+    // Render grab
+    ImVec2 center = frame_bb.GetCenter();
+    float square_sz = GetFrameHeight();
+    const float radius = (square_sz - 10.0f) * 0.5f;
+    float pad = ImMax(1.0f, IM_FLOOR(square_sz / 5.5f));
+    ImVec2 lin_pos_begin = ImVec2(frame_bb.Min.x + 2, center.y);
+    ImVec2 lin_pos_end   = ImVec2(frame_bb.Max.x - (frame_bb.Max.x - frame_bb.Min.x) * 0.2, center.y);
+
+    if (grab_bb.Max.x > grab_bb.Min.x) {
+        window->DrawList->AddLine(lin_pos_begin, lin_pos_end, frame_col);
+        window->DrawList->AddCircleFilled(lin_pos_begin, radius - pad, frame_col, style.GrabRounding);
+        for (int i = 1; i < 5; i++)
+        {
+            window->DrawList->AddCircleFilled(ImVec2(frame_bb.Min.x + (frame_bb.Max.x - frame_bb.Min.x) * 0.2 * i, center.y), radius - pad, frame_col, style.GrabRounding);
+        }
+        window->DrawList->AddCircleFilled(ImVec2(grab_bb.Min.x, center.y), radius, GetColorU32(ImGuiCol_SliderGrab), style.GrabRounding);
+        window->DrawList->AddCircleFilled(ImVec2(grab_bb.Min.x, center.y), radius - pad -1, GetColorU32(ImGuiCol_CheckMark), style.GrabRounding);
+    }
+
+    // Display value using user-provided display format so user can add prefix/suffix/decorations to the value.
+    char        value_buf[64];
+    const char *value_buf_end = value_buf + DataTypeFormatString(value_buf, IM_ARRAYSIZE(value_buf), data_type, p_data, format);
+    if (g.LogEnabled) LogSetNextTextDecoration("{", "}");
+    float end_x = (frame_bb.Max.x - frame_bb.Min.x) * 0.8 + style.ItemInnerSpacing.x * 2;
+    float value_size = CalcTextSize(value_buf).x;
+    RenderTextClipped(ImVec2(frame_bb.Min.x + end_x,frame_bb.Min.y),ImVec2(frame_bb.Max.x + value_size,frame_bb.Max.y), value_buf, value_buf_end, NULL, ImVec2(0.5f, 0.5f));
+
+    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags);
+    return value_changed;
+}
+
 
 // Add multiple sliders on 1 line for compact edition of multiple components
 bool ImGui::SliderScalarN(const char* label, ImGuiDataType data_type, void* v, int components, const void* v_min, const void* v_max, const char* format, ImGuiSliderFlags flags)

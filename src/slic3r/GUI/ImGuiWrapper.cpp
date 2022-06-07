@@ -653,6 +653,12 @@ bool ImGuiWrapper::button(const wxString &label)
     return ImGui::Button(label_utf8.c_str());
 }
 
+bool ImGuiWrapper::bbl_button(const wxString &label)
+{
+    auto label_utf8 = into_u8(label);
+    return ImGui::BBLButton(label_utf8.c_str());
+}
+
 bool ImGuiWrapper::button(const wxString& label, float width, float height)
 {
     auto label_utf8 = into_u8(label);
@@ -720,6 +726,25 @@ bool ImGuiWrapper::bbl_checkbox(const wxString &label, bool &value)
 
     if (b_value) { ImGui::PopStyleColor(3);}
     return result;
+}
+
+bool ImGuiWrapper::bbl_radio_button(const char *label, bool active)
+{
+    bool result;
+    bool b_value = active;
+    if (b_value) {
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+    }
+    result = ImGui::BBLRadioButton(label,active);
+    if (b_value) { ImGui::PopStyleColor(3); }
+    return result;
+}
+
+bool ImGuiWrapper::bbl_sliderin(const char *label, int *v, int v_min, int v_max, const char *format, ImGuiSliderFlags flags)
+{
+    return ImGui::BBLSliderScalarIn(label, ImGuiDataType_S32, v, &v_min, &v_max, format, flags);
 }
 
 void ImGuiWrapper::text(const char *label)

@@ -141,9 +141,39 @@ std::string GLGizmoSimplify::on_get_name() const
     return _u8L("Simplify");
 }
 
+void GLGizmoSimplify::push_simplify_style()
+{
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 10.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowTitleAlign, ImVec2(0.05f, 0.50f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 3.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(50 / 255.0f, 58 / 255.0f, 61 / 255.0f, 1.00f));              // 1
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGuiWrapper::COL_WINDOW_BG);                                   // 2
+    ImGui::PushStyleColor(ImGuiCol_TitleBg, ImGuiWrapper::COL_TITLE_BG);                                     // 3
+    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImGuiWrapper::COL_TITLE_BG);                               // 4
+    ImGui::PushStyleColor(ImGuiCol_Separator, ImGuiWrapper::COL_SEPARATOR);                                  // 5
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                              // 6
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));                       // 7
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));                        // 8
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 1.00f)); // 9
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 1.00f));  // 10
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));        // 11
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                           // 12
+    ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImGuiWrapper::COL_GREEN_LIGHT);
+    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+
+}
+void GLGizmoSimplify::pop_simplify_style()
+{
+    ImGui::PopStyleColor(14);
+    ImGui::PopStyleVar(5);
+}
+
 void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limit)
 {
     create_gui_cfg();
+
     const Selection &selection = m_parent.get_selection();
     const ModelVolume *act_volume = get_model_volume(selection, wxGetApp().plater()->model());
     if (act_volume == nullptr) {
@@ -218,30 +248,44 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
             ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
         }
     }
+    float space_size = m_imgui->get_style_scaling() * 8;
+    float mesh_size = m_imgui->calc_text_size(_L("Mesh name")).x + m_imgui->scaled(2.0f);
+    float triangle_size = m_imgui->calc_text_size(_L("Triangles")).x + m_imgui->scaled(2.0f);
+    float text_left_width = std::max(triangle_size,mesh_size);
 
+    float detail_size = m_imgui->calc_text_size(_L("Detail level")).x + m_imgui->scaled(2.0f);
+    float decimate_size = m_imgui->calc_text_size(_L("Decimate ratio")).x + m_imgui->scaled(2.0f);
+    float circle_size = m_imgui->scaled(2.0f);
+    float bottom_left_width = std::max(detail_size, decimate_size) + circle_size;
+
+    float slider_width = m_imgui->scaled(5.0f);
+
+    push_simplify_style();
     int flag = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize |
                ImGuiWindowFlags_NoCollapse;
     m_imgui->begin(on_get_name(), flag);
-    m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, tr_mesh_name + ":");
+
+    m_imgui->text_colored(ImVec4(0.15f, 0.18f, 0.19f, 1.00f), tr_mesh_name + ":");
     // BBS: somehow the calculated utf8 width is too narrow, have to add 35 here
-    ImGui::SameLine(m_gui_cfg->top_left_width+35);
+    ImGui::SameLine(text_left_width + space_size);
     std::string name = m_volume->name;
     if (name.length() > m_gui_cfg->max_char_in_name)
         name = name.substr(0, m_gui_cfg->max_char_in_name - 3) + "...";
-    m_imgui->text(name);
-    m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, tr_triangles + ":");
-    ImGui::SameLine(m_gui_cfg->top_left_width+35);
+    m_imgui->text_colored(ImVec4(0.42f, 0.42f, 0.42f, 1.00f), name);
+
+    m_imgui->text_colored(ImVec4(0.15f, 0.18f, 0.19f, 1.00f), tr_triangles + ":");
+    ImGui::SameLine(text_left_width + space_size);
 
     size_t orig_triangle_count = m_volume->mesh().its.indices.size();
-    m_imgui->text(std::to_string(orig_triangle_count));
-
+    m_imgui->text_colored(ImVec4(0.42f, 0.42f, 0.42f, 1.00f), std::to_string(orig_triangle_count));
 
     ImGui::Separator();
 
-    if(ImGui::RadioButton("##use_error", !m_configuration.use_count)) {
+    if (m_imgui->bbl_radio_button("##use_error", !m_configuration.use_count)) {
         m_configuration.use_count = !m_configuration.use_count;
         start_process = true;
     }
+
     ImGui::SameLine();
     m_imgui->disabled_begin(m_configuration.use_count);
     ImGui::Text("%s", tr_detail_level.c_str());
@@ -252,10 +296,16 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         static_cast<std::string>(_u8L("Low")),
         static_cast<std::string>(_u8L("Extra low"))
     };
-    ImGui::SameLine(m_gui_cfg->bottom_left_width);
-    ImGui::SetNextItemWidth(m_gui_cfg->input_width);
+    ImGui::SameLine(bottom_left_width);
+    ImGui::PushItemWidth(bottom_left_width - space_size);
     static int reduction = 2;
-    if(ImGui::SliderInt("##ReductionLevel", &reduction, 0, 4, reduce_captions[reduction].c_str())) {
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.81f, 0.81f, 0.81f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.81f, 0.81f, 0.81f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.81f, 0.81f, 0.81f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+
+    if (m_imgui->bbl_sliderin("##ReductionLevel", &reduction, 0, 4, reduce_captions[reduction].c_str())) {
         if (reduction < 0) reduction = 0;
         if (reduction > 4) reduction = 4;
         switch (reduction) {
@@ -267,29 +317,33 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         }
         start_process = true;
     }
+    ImGui::PopStyleColor(5);
     m_imgui->disabled_end(); // !use_count
 
-    if (ImGui::RadioButton("##use_count", m_configuration.use_count)) {
+    if (m_imgui->bbl_radio_button("##use_count", m_configuration.use_count)) {
         m_configuration.use_count = !m_configuration.use_count;
         start_process = true;
     }
+
     ImGui::SameLine();
 
     // show preview result triangle count (percent)
     if (!m_configuration.use_count) {
         m_configuration.wanted_count = static_cast<uint32_t>(m_triangle_count);
-        m_configuration.decimate_ratio = 
+        m_configuration.decimate_ratio =
             (1.0f - (m_configuration.wanted_count / (float) orig_triangle_count)) * 100.f;
     }
 
     m_imgui->disabled_begin(!m_configuration.use_count);
     ImGui::Text("%s", tr_decimate_ratio.c_str());
-    ImGui::SameLine(m_gui_cfg->bottom_left_width);
-    ImGui::SetNextItemWidth(m_gui_cfg->input_width);
-    const char * format = (m_configuration.decimate_ratio > 10)? "%.0f %%": 
+    ImGui::SameLine(bottom_left_width);
+
+    const char * format = (m_configuration.decimate_ratio > 10)? "%.0f %%":
         ((m_configuration.decimate_ratio > 1)? "%.1f %%":"%.2f %%");
 
-    if(m_imgui->slider_float("##decimate_ratio",  &m_configuration.decimate_ratio, 0.f, 100.f, format)){
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
+    ImGui::PushItemWidth(slider_width + space_size);
+    if (m_imgui->bbl_slider_float_style("##decimate_ratio", &m_configuration.decimate_ratio, 0.f, 100.f, format)) {
         if (m_configuration.decimate_ratio < 0.f)
             m_configuration.decimate_ratio = 0.01f;
         if (m_configuration.decimate_ratio > 100.f)
@@ -297,16 +351,45 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         m_configuration.fix_count_by_ratio(orig_triangle_count);
         start_process = true;
     }
+    ImGui::SameLine();
+    ImGui::PopStyleVar(1);
+
+    ImGui::PushItemWidth(ImGui::CalcTextSize("100.00%").x + space_size);
+
+    ImGui::BBLDragFloat("##decimate_ratio_input", &m_configuration.decimate_ratio, 0.05f, 0.0f, 0.0f, "%.2f%%");
 
     ImGui::NewLine();
-    ImGui::SameLine(m_gui_cfg->bottom_left_width);
+    ImGui::SameLine(bottom_left_width + space_size);
     ImGui::Text(_u8L("%d triangles").c_str(), m_configuration.wanted_count);
     m_imgui->disabled_end(); // use_count
 
-    ImGui::Checkbox(_u8L("Show wireframe").c_str(), &m_show_wireframe);
+    m_imgui->bbl_checkbox(_L("Show wireframe").c_str(), m_show_wireframe);
 
+     // draw progress bar
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,12);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0,0));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(10,20));
+    if (is_worker_running) { // apply or preview
+        // draw progress bar
+        std::string progress_text = GUI::format(_L("%1%"), std::to_string(progress)) + "%%";
+        ImVec2 progress_size(bottom_left_width - space_size, 0.0f);
+        ImGui::BBLProgressBar2(progress / 100., progress_size);
+        ImGui::SameLine();
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextColored(ImVec4(0.42f, 0.42f, 0.42f, 1.00f), progress_text.c_str());
+        ImGui::SameLine(bottom_left_width + slider_width +  m_imgui->scaled(1.0f));
+    } else {
+        ImGui::Dummy(ImVec2(bottom_left_width - space_size, -1));
+        ImGui::SameLine(bottom_left_width + slider_width +  m_imgui->scaled(1.0f));
+    }
+    ImGui::PopStyleVar(3);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,12);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(10,3));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(10,0));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.15f, 0.18f, 0.19f, 1.00f));
     m_imgui->disabled_begin(is_cancelling);
-    if (m_imgui->button(_L("Close"))) {
+    if (m_imgui->bbl_button(_L("Close"))) {
         close();
     }
     else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_cancelling)
@@ -316,23 +399,19 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::SameLine();
 
     m_imgui->disabled_begin(is_worker_running || ! is_result_ready);
-    if (m_imgui->button(_L("Apply"))) {
+    if (m_imgui->bbl_button(_L("Apply"))) {
         apply_simplify();
     }
     else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_worker_running) {
         ImGui::SetTooltip("%s", _u8L("Can't apply when proccess preview.").c_str());
     }
-    m_imgui->disabled_end(); // state !settings
 
-    // draw progress bar
-    if (is_worker_running) { // apply or preview
-        ImGui::SameLine(m_gui_cfg->bottom_left_width);
-        // draw progress bar
-        std::string progress_text = GUI::format(_L("Process %1% / 100"), std::to_string(progress));
-        ImVec2 progress_size(m_gui_cfg->input_width, 0.f);
-        ImGui::ProgressBar(progress / 100., progress_size, progress_text.c_str());
-    }
+    m_imgui->disabled_end(); // state !settings
+    ImGui::PopStyleVar(3);
+    ImGui::PopStyleColor(1);
+
     m_imgui->end();
+    pop_simplify_style();
     if (start_process)
         process();
 }
