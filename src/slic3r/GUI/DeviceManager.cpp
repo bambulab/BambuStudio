@@ -1323,32 +1323,32 @@ int MachineObject::parse_json(std::string topic, std::string payload)
 
             /* temperature */
             if (jj.contains("bed_temper")) {
-                if (jj["bed_temper"].is_number_float()) {
+                if (jj["bed_temper"].is_number()) {
                     bed_temp = jj["bed_temper"].get<float>();
                 }
             }
             if (jj.contains("bed_target_temper")) {
-                if (jj["bed_target_temper"].is_number_float()) {
+                if (jj["bed_target_temper"].is_number()) {
                     bed_temp_target = jj["bed_target_temper"].get<float>();
                 }
             }
             if (jj.contains("frame_temper")) {
-                if (jj["frame_temper"].is_number_float()) {
+                if (jj["frame_temper"].is_number()) {
                     frame_temp = jj["frame_temper"].get<float>();
                 }
             }
             if (jj.contains("nozzle_temper")) {
-                if (jj["nozzle_temper"].is_number_float()) {
+                if (jj["nozzle_temper"].is_number()) {
                     nozzle_temp = jj["nozzle_temper"].get<float>();
                 }
             }
             if (jj.contains("nozzle_target_temper")) {
-                if (jj["nozzle_target_temper"].is_number_float()) {
+                if (jj["nozzle_target_temper"].is_number()) {
                     nozzle_temp_target = jj["nozzle_target_temper"].get<float>();
                 }
             }
             if (jj.contains("chamber_temper")) {
-                if (jj["chamber_temper"].is_number_float()) {
+                if (jj["chamber_temper"].is_number()) {
                     chamber_temp = jj["chamber_temper"].get<float>();
                 }
             }
