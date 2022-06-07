@@ -1537,12 +1537,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 
         if (num_filaments <= 1) {
             // Split the "compatible_printers_condition" and "inherits" from the cummulative vectors to separate filament presets.
-            //BBS: TODO, currently use '~' insteadof '*'
-            std::string inherits_value = inherits_values[1];
-            size_t pos = inherits_value.find_first_of('*');
-            if (pos != std::string::npos)
-                inherits_value.replace(pos, 1, 1, '~');
-            inherits                      = inherits_value;
+            inherits                      = inherits_values[1];
             compatible_printers_condition = compatible_printers_condition_values[1];
 			compatible_prints_condition   = compatible_prints_condition_values.front();
 			Preset                *loaded = nullptr;
@@ -1601,12 +1596,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 // Split the "compatible_printers_condition" and "inherits" from the cummulative vectors to separate filament presets.
                 cfg.opt_string("compatible_printers_condition", true) = compatible_printers_condition_values[i + 1];
                 cfg.opt_string("compatible_prints_condition",   true) = compatible_prints_condition_values[i];
-                //BBS: TODO, currently use '~' insteadof '*'
-                std::string inherits_value = inherits_values[i + 1];
-                size_t pos = inherits_value.find_first_of('*');
-                if (pos != std::string::npos)
-                    inherits_value.replace(pos, 1, 1, '~');
-                cfg.opt_string("inherits", true)                      = inherits_value;
+                cfg.opt_string("inherits", true)                      = inherits_values[i + 1];
 
                 //BBS: add different settings logic
                 std::vector<std::string> filament_different_keys_vector;

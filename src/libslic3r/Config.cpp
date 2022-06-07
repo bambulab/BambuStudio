@@ -782,24 +782,19 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
             else {
                 t_config_option_key opt_key = it.key();
                 std::string value_str;
-                this->handle_legacy(opt_key, value_str);
-                if (opt_key.empty())
-                    continue;
 
                 if (it.value().is_string()) {
                     //bool test1 = (it.key() == std::string("end_gcode"));
-                    if (boost::iequals(opt_key, BBL_JSON_KEY_INHERITS)) {
-                        //BBS: TODO, currently use '~' insteadof '*'
-                        std::string value = it.value();
-                        size_t pos = value.find_first_of('*');
-                        if (pos != std::string::npos)
-                            value.replace(pos, 1, 1, '~');
-                        this->set_deserialize(opt_key, value, substitution_context);
-                    }
-                    else
-                        this->set_deserialize(opt_key, it.value(), substitution_context);
+                    this->set_deserialize(opt_key, it.value(), substitution_context);
                 }
                 else if (it.value().is_array()) {
+                    t_config_option_key opt_key_src = opt_key;
+                    this->handle_legacy(opt_key, value_str);
+                    if (opt_key.empty()) {
+                        //BBS: record these options
+                        substitution_context.unrecogized_keys.push_back(opt_key_src);
+                        continue;
+                    }
                     bool valid = true, first = true, use_comma = true;
                     //bool test2 = (it.key() == std::string("filament_end_gcode"));
                     const ConfigOptionDef* optdef = config_def->get(opt_key);
