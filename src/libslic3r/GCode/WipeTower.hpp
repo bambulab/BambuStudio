@@ -71,6 +71,11 @@ public:
         // New tool
         int new_tool;
 
+        // BBS: in bbl filament_change_gcode, toolhead will be moved to the wipe tower automatically.
+        // But if finish_layer_tcr is before tool_change_tcr, we have to travel to the wipe tower before
+        // executing the gcode finish_layer_tcr.
+        bool is_finish_first = false;
+
 		// Sum the total length of the extrusion.
 		float total_extrusion_length_in_plane() {
 			float e_length = 0.f;
@@ -120,7 +125,8 @@ public:
     // WipeTowerWriter is moved from !
     ToolChangeResult construct_tcr(WipeTowerWriter& writer,
                                    bool priming,
-                                   size_t old_tool) const;
+                                   size_t old_tool,
+                                   bool is_finish = false) const;
 
 	// x			-- x coordinates of wipe tower in mm ( left bottom corner )
 	// y			-- y coordinates of wipe tower in mm ( left bottom corner )

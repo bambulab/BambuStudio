@@ -271,7 +271,7 @@ bool GCode::gcode_label_objects = false;
         // BBS: toolchange gcode will move to start_pos,
         // so only perform movement when printing sparse partition to support upper layer.
         // start_pos is the position in plate coordinate.
-        if (! tcr.priming && !gcodegen.writer().need_toolchange(new_extruder_id)) {
+        if (! tcr.priming && tcr.is_finish_first) {
             // Move over the wipe tower.
             gcode += gcodegen.retract();
             gcodegen.m_avoid_crossing_perimeters.use_external_mp_once();

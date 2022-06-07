@@ -500,7 +500,8 @@ private:
 
 WipeTower::ToolChangeResult WipeTower::construct_tcr(WipeTowerWriter& writer,
                                                      bool priming,
-                                                     size_t old_tool) const
+                                                     size_t old_tool,
+                                                     bool is_finish) const
 {
     ToolChangeResult result;
     result.priming      = priming;
@@ -514,6 +515,7 @@ WipeTower::ToolChangeResult WipeTower::construct_tcr(WipeTowerWriter& writer,
     result.gcode        = std::move(writer.gcode());
     result.extrusions   = std::move(writer.extrusions());
     result.wipe_path    = std::move(writer.wipe_path());
+    result.is_finish_first = is_finish;
     return result;
 }
 
@@ -1159,7 +1161,6 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter)
     box_coordinates fill_box(Vec2f(m_perimeter_width, m_layer_info->depth - (sparse_fill_depth - m_perimeter_width)),
                              m_wipe_tower_width - 2 * m_perimeter_width, sparse_fill_depth - 2 * m_perimeter_width);
 
-
     writer.set_initial_position((m_left_to_right ? fill_box.ru : fill_box.lu), // so there is never a diagonal travel
                                  m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
 
@@ -1167,11 +1168,11 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter)
 
     // inner perimeter of the sparse section, if there is space for it:
     if (fill_box.ru.y() - fill_box.rd.y() > m_perimeter_width - WT_EPSILON)
-        writer.rectangle(fill_box.ld, fill_box.rd.x()-fill_box.ld.x(), fill_box.ru.y()-fill_box.rd.y(), feedrate);
+        writer.rectangle(fill_box.ld, fill_box.rd.x() - fill_box.ld.x(), fill_box.ru.y() - fill_box.rd.y(), feedrate);
 
     // we are in one of the corners, travel to ld along the perimeter:
-    if (writer.x() > fill_box.ld.x()+EPSILON) writer.travel(fill_box.ld.x(),writer.y());
-    if (writer.y() > fill_box.ld.y()+EPSILON) writer.travel(writer.x(),fill_box.ld.y());
+    if (writer.x() > fill_box.ld.x() + EPSILON) writer.travel(fill_box.ld.x(), writer.y());
+    if (writer.y() > fill_box.ld.y() + EPSILON) writer.travel(writer.x(), fill_box.ld.y());
 
     // Extrude infill to support the material to be printed above.
     const float dy = (fill_box.lu.y() - fill_box.ld.y() - m_perimeter_width);
@@ -1285,7 +1286,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter)
         if (m_current_tool < m_used_filament_length.size())
             m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
-    return construct_tcr(writer, false, old_tool);
+    return construct_tcr(writer, false, old_tool, true);
 }
 
 // Appends a toolchange into m_plan and calculates neccessary depth of the corresponding box
