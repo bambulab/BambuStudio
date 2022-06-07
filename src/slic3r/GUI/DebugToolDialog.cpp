@@ -1825,6 +1825,12 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
         m_staticText_request_consisitency_upgrade->SetLabelText("False");
     }
 
+    m_staticText_upgrade_module_value->SetLabelText(obj->upgrade_module);
+    label_upgrade_status_val->SetLabelText(obj->upgrade_status);
+    label_upgrade_progress_val->SetLabelText(obj->upgrade_progress);
+    label_upgrade_message_val->SetLabelText(obj->upgrade_message);
+
+
     std::string json_str;
     if (radio_btn_lan->GetValue()) {
         if (mqtt_msg_queue.empty()) {
