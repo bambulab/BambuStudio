@@ -5449,7 +5449,7 @@ void Plater::priv::set_project_filename(const wxString& filename)
 
     wxGetApp().mainframe->update_title();
 
-    if (!m_project_folder.empty())
+    if (!m_project_folder.empty() && !q->m_only_gcode)
         wxGetApp().mainframe->add_to_recent_projects(filename);
 }
 
@@ -6246,7 +6246,7 @@ Print&          Plater::fff_print()         { return p->fff_print; }
 const SLAPrint& Plater::sla_print() const   { return p->sla_print; }
 SLAPrint&       Plater::sla_print()         { return p->sla_print; }
 
-void Plater::new_project(bool skip_confirm, bool silent)
+int Plater::new_project(bool skip_confirm, bool silent)
 {
     bool transfer_preset_changes = false;
     // BBS: save confirm
@@ -6262,7 +6262,7 @@ void Plater::new_project(bool skip_confirm, bool silent)
     };
     int result;
     if (!skip_confirm && (result = close_with_confirm(check)) == wxID_CANCEL)
-        return;
+        return wxID_CANCEL;
 
     //BBS: add only gcode mode
     m_only_gcode = false;
@@ -6299,6 +6299,7 @@ void Plater::new_project(bool skip_confirm, bool silent)
 
     up_to_date(true, false);
     up_to_date(true, true);
+    return wxID_YES;
 }
 
 
@@ -6651,7 +6652,8 @@ void Plater::load_gcode(const wxString& filename)
     m_last_loaded_gcode = filename;
 
     // BSS: create a new project when load_gcode, force close previous one
-    new_project(false, true);
+    if (new_project(false, true) != wxID_YES)
+        return;
 
     m_only_gcode = true;
 
