@@ -112,7 +112,7 @@ AddMachinePanel::~AddMachinePanel() {
 
     init_timer();
 
-    m_side_tools->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
+    m_side_tools->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
     Bind(wxEVT_TIMER, &MonitorPanel::on_timer, this);
     Bind(wxEVT_SIZE, &MonitorPanel::on_size, this);
     Bind(wxEVT_COMMAND_CHOICE_SELECTED, &MonitorPanel::on_select_printer, this);
@@ -120,7 +120,7 @@ AddMachinePanel::~AddMachinePanel() {
 
 MonitorPanel::~MonitorPanel()
 {
-    m_side_tools->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
+    m_side_tools->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
     if (m_refresh_timer)
         m_refresh_timer->Stop();
 }

@@ -182,6 +182,7 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
      m_panel_right->SetBackgroundColor(BIND_DIALOG_GREY200);
 
      m_user_name = new wxStaticText(m_panel_right, wxID_ANY, wxEmptyString);
+     m_user_name->SetBackgroundColour(BIND_DIALOG_GREY200);
      m_user_name->SetFont(::Label::Head_14);
      wxBoxSizer *m_sizer_right_h = new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer *m_sizer_right_v = new wxBoxSizer(wxVERTICAL);
@@ -198,7 +199,7 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
      if (!request.IsOk()) {
          // todo request fail
      }
- 
+
      Bind(wxEVT_WEBREQUEST_STATE, [this](wxWebRequestEvent &evt) {
          switch (evt.GetState()) {
          // Request completed
@@ -209,6 +210,7 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
                  auto bitmap = new wxBitmap(avatar_stream);
                  //bitmap->SetSize(wxSize(FromDIP(60), FromDIP(60)));
                  m_avatar->SetBitmap(*bitmap);
+                 Layout();
              }
              break;
          }
@@ -420,6 +422,7 @@ UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
      m_panel_right->SetCornerRadius(8);
      m_panel_right->SetBackgroundColor(BIND_DIALOG_GREY200);
      m_user_name = new wxStaticText(m_panel_right, wxID_ANY, wxEmptyString);
+     m_user_name->SetBackgroundColour(BIND_DIALOG_GREY200);
      m_user_name->SetFont(::Label::Head_14);
      wxBoxSizer *m_sizer_right_h = new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer *m_sizer_right_v = new wxBoxSizer(wxVERTICAL);
@@ -447,6 +450,7 @@ UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
                  auto bitmap = new wxBitmap(avatar_stream);
                  //bitmap->SetSize(wxSize(FromDIP(60), FromDIP(60)));
                  m_avatar->SetBitmap(*bitmap);
+                 Layout();
              }
              break;
          }

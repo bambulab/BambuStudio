@@ -319,11 +319,7 @@ void MachineObjectPanel::on_mouse_left_down(wxMouseEvent &evt)
     auto bottom = (GetSize().y - m_unbind_img.GetSize().y) / 2 + m_unbind_img.GetSize().y;
     if ((evt.GetPosition().x >= left && evt.GetPosition().x <= right) && evt.GetPosition().y >= top && evt.GetPosition().y <= bottom) { m_select_unbind = true; }
     Refresh();
-    evt.Skip();
-}
-
-void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
-{
+    
     /* set monitor page to current device */
     if (m_state_can_bind) {
         show_bind_dialog();
@@ -346,6 +342,12 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
             wxGetApp().mainframe->SetFocus();
         }
     }
+    
+    evt.Skip();
+}
+
+void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
+{
     evt.Skip();
 }
 
@@ -410,6 +412,11 @@ wxBEGIN_EVENT_TABLE(SelectMachinePopup, wxPopupTransientWindow) EVT_MOUSE_EVENTS
 
 void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
 {
+    start_ssdp();
+    m_refresh_timer->Stop();
+    m_refresh_timer->SetOwner(this);
+    m_refresh_timer->Start(MACHINE_LIST_REFRESH_INTERVAL);
+    
     get_print_info_thread = Slic3r::create_thread([this] {
         Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
         int                     err_code;
@@ -420,28 +427,23 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
         event.SetEventObject(this);
         wxPostEvent(this, event);
     });
-
-    start_ssdp();
-    m_refresh_timer->Stop();
-    m_refresh_timer->SetOwner(this);
-    m_refresh_timer->Start(MACHINE_LIST_REFRESH_INTERVAL);
+    
     wxPostEvent(this, wxTimerEvent());
     wxPopupTransientWindow::Popup();
 }
 
 void SelectMachinePopup::OnDismiss()
 {
-    Slic3r::create_thread([this] { stop_ssdp(); });
-
-    get_print_info_thread.interrupt();
-    if (get_print_info_thread.joinable()) get_print_info_thread.join();
-
-    if (m_refresh_timer) {
-        m_refresh_timer->Stop();
-        delete m_refresh_timer;
-        m_refresh_timer = nullptr;
-    }
-    wxPopupTransientWindow::OnDismiss();
+    Slic3r::create_thread([this] {
+        stop_ssdp();
+        if (m_refresh_timer) {
+            m_refresh_timer->Stop();
+            delete m_refresh_timer;
+            m_refresh_timer = nullptr;
+        }
+        get_print_info_thread.interrupt();
+        if (get_print_info_thread.joinable()) get_print_info_thread.join();
+    });
 }
 
 bool SelectMachinePopup::ProcessLeftDown(wxMouseEvent &event) { return wxPopupTransientWindow::ProcessLeftDown(event); }
