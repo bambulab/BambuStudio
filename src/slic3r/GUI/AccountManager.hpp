@@ -44,6 +44,7 @@ using namespace nlohmann;
 #define RET_MD5_CHECK_FAILED            -4
 
 #define AGENT_CONFIG_FILE               "BambuNetworkEngine.conf"
+#define TOKEN_MIN_EXPIRES_IN            30
 
 namespace pt = boost::property_tree;
 
@@ -202,11 +203,18 @@ public:
 
     AccountInfo(std::string account, std::string user_id, AccountInfo::LoginStatus status = STATUS_LOGOUT);
     AccountInfo(std::string account, std::string user_id, std::string strToken, std::string strName, std::string strAvatar, AccountInfo::LoginStatus status,std::string strAutotestToken="");
+    AccountInfo(std::string account, std::string user_id, std::string strName, std::string strAvatar, AccountInfo::LoginStatus status, std::string strRefreshToken, long long refreshExpiresIn, std::string strToken = "", long long expiresIn = 0, std::string strAutotestToken = "");
 
     std::string user_id() { return m_user_id; }
     void set_token(std::string token) { m_token = token; }
+    void set_expires_in(long long expires_in) { m_expires_in = expires_in; }
+    void set_refresh_token(std::string refresh_token) { m_refresh_token = refresh_token; }
+    void set_refresh_expires_in(long long refresh_expires_in) { m_refresh_expires_in = refresh_expires_in; }
     void set_login_status(AccountInfo::LoginStatus status) { m_login_status = status; }
     std::string get_token() { return m_token; }
+    long long get_expires_in() { return m_expires_in; }
+    std::string get_refresh_token() { return m_refresh_token; }
+    long long get_refresh_expires_in() { return m_refresh_expires_in; }
     std::string get_account() { return m_account; }
     std::string get_user_id() { return m_user_id; }
     LoginStatus login_status() { return m_login_status; }
@@ -223,6 +231,9 @@ public:
     std::string m_user_id;
     std::string m_avatar;
     std::string m_token;
+    long long m_expires_in;
+    std::string m_refresh_token;
+    long long m_refresh_expires_in;
     LoginStatus m_login_status;
 
     std::string m_autotest_token;
@@ -420,6 +431,9 @@ public:
     // POST /api/user/project/{project_id}
     int request_profile_id(BBLProfile* profile, unsigned int &http_code, std::string &http_body);
 
+    // POST /api/user/refreshtoken
+    int request_refreshtoken(std::string refresh_token);
+
     // PUT alibaba oss
     int upload_3mf_to_oss(BBLProfile* profile, unsigned int &http_code, std::string & http_body, Http::ProgressFn proFn = nullptr);
 
@@ -492,7 +506,7 @@ public:
     
     std::string get_user_name();
     std::string get_nick_name();
-    std::string get_token_str();
+    std::string get_token_str(bool only_token = false);
 
     /* project apis */
     void reset_project();

@@ -170,11 +170,27 @@ namespace Slic3r {
         m_autotest_token = strAutotestToken;
     }
 
+    AccountInfo::AccountInfo(std::string account, std::string user_id, std::string strName, std::string strAvatar, AccountInfo::LoginStatus status, std::string strRefreshToken, long long refreshExpiresIn, std::string strToken, long long expiresIn, std::string strAutotestToken)
+    {
+        m_account = account;
+        m_user_id = user_id;
+        m_name = strName;
+        m_avatar = strAvatar;
+        m_login_status = status;
+        m_token = strToken;
+        m_expires_in = expiresIn;
+        m_refresh_token = strRefreshToken;
+        m_refresh_expires_in = refreshExpiresIn;
+        m_autotest_token = strAutotestToken;
+    }
 
     int AccountInfo::save_to_json(json& config_json)
     {
         config_json["user"]["account"] = m_account;
         config_json["user"]["token"] = m_token;
+        config_json["user"]["expires_in"] = m_expires_in;
+        config_json["user"]["refresh_token"] = m_refresh_token;
+        config_json["user"]["refresh_expires_in"] = m_refresh_expires_in;
         config_json["user"]["user_id"] = m_user_id;
         config_json["user"]["login_status"] = (int)m_login_status;
         config_json["user"]["autotest_token"] = m_autotest_token;
@@ -192,6 +208,9 @@ namespace Slic3r {
                     && config_json["user"].contains("user_id")) {
                     std::string account = config_json["user"]["account"].get<std::string>();
                     std::string token = config_json["user"]["token"].get<std::string>();
+                    long long expires_in = config_json["user"]["expires_in"].get<long long>();
+                    std::string refresh_token = config_json["user"]["refresh_token"].get<std::string>();
+                    long long refresh_expires_in = config_json["user"]["refresh_expires_in"].get<long long>();
                     std::string user_id = config_json["user"]["user_id"].get<std::string>();
                     std::string autotest_token = config_json["user"]["autotest_token"].get<std::string>();
                     std::string sAvatar = config_json["user"]["avatar"].get<std::string>();
@@ -199,9 +218,9 @@ namespace Slic3r {
                     AccountInfo::LoginStatus status = AccountInfo::LoginStatus::STATUS_LOGOUT;
                     if (config_json["user"].contains("login_status"))
                         status = (AccountInfo::LoginStatus)config_json["user"]["login_status"].get<int>();
-                    AccountInfo* info = new AccountInfo(account, user_id, token, sName, sAvatar, status, autotest_token);
-                    info->m_autotest_token = autotest_token;
-                    info->set_token(token);
+                    AccountInfo* info = new AccountInfo(account, user_id, sName, sAvatar, status, refresh_token, refresh_expires_in, token, expires_in, autotest_token);
+                    /*info->m_autotest_token = autotest_token;
+                    info->set_token(token);*/
                     return info;
                 }
             }
@@ -365,6 +384,7 @@ namespace Slic3r {
         return false;
     }
 
+
     int AccountManager::connect_mqtt(bool sync)
     {
         BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt";
@@ -384,11 +404,16 @@ namespace Slic3r {
             // update mqtt user_name and password
             std::string user_name = (boost::format("u_%1%") % m_curr_user->m_user_id).str();
             mqtt_opt.set_user_name(user_name);
-            mqtt_opt.set_password(m_curr_user->get_token());
+            std::string password = get_token_str(true);
+            if (password.empty()) { //invalid refreshToken or failed to get accessToken
+                user_logout();
+                return -1;
+            }
+            mqtt_opt.set_password(password);
             std::string mqtt_host = get_emqx_server_host();
             BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, client_id = " << client_id;
             BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, user_name = " << user_name;
-            BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, password = " << m_curr_user->get_token();
+            BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, password = " << password;
             BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, mqtt_host = " << mqtt_host;
 
             std::string country_code;
@@ -445,6 +470,12 @@ namespace Slic3r {
         if (is_user_login() && mqtt_cli && !mqtt_cli->is_connected() && !m_is_connecting) {
             try {
                 m_is_connecting = true;
+                std::string password = get_token_str(true);
+                if (password.empty()) { //invalid refreshToken or failed to get accessToken
+                    user_logout();
+                    return;
+                }
+                mqtt_opt.set_password(password);
                 mqtt_cli->connect(mqtt_opt, this, *mqtt_cb);
                 BOOST_LOG_TRIVIAL(trace) << "check_mqtt_connection: reconnecting";
             } catch(const mqtt::exception& exc) {
@@ -2778,13 +2809,71 @@ namespace Slic3r {
         }
     }
 
-    std::string AccountManager::get_token_str()
+    // update access_token
+    int AccountManager::request_refreshtoken(std::string refresh_token)
+    {
+        //std::string refresh_token = m_curr_user->get_refresh_token();
+        if (refresh_token.empty()) return -1;
+
+        int result = -1;
+
+        json j;
+        j["refreshToken"] = refresh_token;
+        std::string json_str = j.dump();
+        std::string url = (boost::format("%1%/user-service/user/refreshtoken") % host).str();
+
+        std::string post_body_str = j.dump();
+        if (post_body_str.empty()) return -1;
+
+        Http http = Http::post(url);
+        http.header("accept", "application/json")
+            .header("Content-Type", "application/json")
+            .set_post_body(post_body_str)
+            .on_complete([this, &result](std::string body, unsigned status) {
+            if (status == 200) {
+                try {
+                    json j = json::parse(body);
+                    result = 1;
+                    m_curr_user->set_token(j["accessToken"].get<std::string>());
+                    m_curr_user->set_expires_in(j["expiresIn"].get<int>() + std::time(nullptr));
+                    m_curr_user->set_refresh_token(j["refreshToken"].get<std::string>());
+                    m_curr_user->set_refresh_expires_in(j["refreshExpiresIn"].get<int>() + std::time(nullptr));
+                    BOOST_LOG_TRIVIAL(trace) << "get access_token = " << m_curr_user->get_token();
+                    BOOST_LOG_TRIVIAL(trace) << "get access_token_expires_in = " << std::to_string(m_curr_user->get_expires_in());
+                    BOOST_LOG_TRIVIAL(trace) << "get refresh_token = " << m_curr_user->get_refresh_token();
+                    BOOST_LOG_TRIVIAL(trace) << "get access_token_expires_in = " << std::to_string(m_curr_user->get_refresh_expires_in());
+
+                }
+                catch (...) {
+                    result = -1;
+                }
+            }})
+            .on_error([this, &result](std::string body, std::string error, unsigned status) {
+                result = -1;
+            })
+            .perform_sync();
+            return result;
+    }
+
+    std::string AccountManager::get_token_str(bool only_token)
     {
         if (m_curr_user) {
-            return (boost::format("Bearer %1%") % m_curr_user->m_token).str();
+            if (m_curr_user->get_refresh_expires_in() - std::time(nullptr) > TOKEN_MIN_EXPIRES_IN) { 
+                if (m_curr_user->get_expires_in() - std::time(nullptr) < TOKEN_MIN_EXPIRES_IN) {// need to update accessToken
+                    if (request_refreshtoken(m_curr_user->get_refresh_token()) == -1) { // failed to acquire new accessToken
+                        return "";
+                    }
+                }
+                if (only_token) {
+                    return m_curr_user->get_token();
+                }
+                return (boost::format("Bearer %1%") % m_curr_user->get_token()).str();
+            }
+            return ""; //invalid refreshToken
         }
         return "";
     }
+
 
     void AccountManager::reset_project()
     {

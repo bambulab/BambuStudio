@@ -300,14 +300,21 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
         }
         if (strCmd == "user_login") {
             std::string strToken = j["data"]["token"];
-
-            std::string strUserID         = j["data"]["user"]["uid"];
-            std::string strAccount        = j["data"]["user"]["account"];
-            std::string strAvatar         = j["data"]["user"]["avatar"];
-            std::string strName           = j["data"]["user"]["name"];
-
+            // the message from web component is defined as {string:string}, so there string to ll first.
+            long long expiresIn = stoll(j["data"]["expires_in"].get<string>()) + std::time(nullptr);
+            std::string strRefreshToken = j["data"]["refresh_token"];
+            long long refreshExpiresIn = stoll(j["data"]["refresh_expires_in"].get<string>()) + std::time(nullptr);
+            std::string strUserID       = j["data"]["user"]["uid"];
+            std::string strAccount      = j["data"]["user"]["account"];
+            std::string strAvatar       = j["data"]["user"]["avatar"];
+            std::string strName         = j["data"]["user"]["name"];
             //Save User Info
-            AccountInfo *pNewAcc = new Slic3r::AccountInfo(strAccount, strUserID, strToken, strName, strAvatar, AccountInfo::LoginStatus::STATUS_LOGIN, m_AutotestToken);
+            AccountInfo* pNewAcc = new Slic3r::AccountInfo(strAccount, strUserID, strName, strAvatar, AccountInfo::LoginStatus::STATUS_LOGIN, strRefreshToken, refreshExpiresIn, strToken, expiresIn, m_AutotestToken);
+
+            BOOST_LOG_TRIVIAL(trace) << "get access_token = " << strToken;
+            BOOST_LOG_TRIVIAL(trace) << "get access_token_expires_in = " << std::to_string(expiresIn);
+            BOOST_LOG_TRIVIAL(trace) << "get refresh_token = " << strRefreshToken;
+            BOOST_LOG_TRIVIAL(trace) << "get access_token_expires_in = " << std::to_string(refreshExpiresIn);
             wxGetApp().change_user(pNewAcc);
 
             Close();
