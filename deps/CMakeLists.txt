@@ -164,6 +164,7 @@ include(Boost/Boost.cmake)
 include(Cereal/Cereal.cmake)
 include(Qhull/Qhull.cmake)
 include(GLEW/GLEW.cmake)
+include(GLFW/GLFW.cmake)
 include(OpenCSG/OpenCSG.cmake)
 
 include(TBB/TBB.cmake)
@@ -179,23 +180,30 @@ include(CGAL/CGAL.cmake)
 include(NLopt/NLopt.cmake)
 
 include(OpenSSL/OpenSSL.cmake)
-##remove curl in deps, built it outside in the thirdparty
-#include(CURL/CURL.cmake)
+
+set(CURL_PKG "")
+if (NOT CURL_FOUND)
+    include(CURL/CURL.cmake)
+    set(CURL_PKG dep_CURL)
+endif ()
 
 include(JPEG/JPEG.cmake)
 include(TIFF/TIFF.cmake)
 include(wxWidgets/wxWidgets.cmake)
+include(OCCT/OCCT.cmake)
 
 set(_dep_list
     dep_Boost
     dep_TBB
-#    dep_CURL
+    ${CURL_PKG}
     dep_wxWidgets
     dep_Cereal
     dep_NLopt
     dep_OpenVDB
     dep_OpenCSG
     dep_CGAL
+    dep_OpenSSL
+    dep_GLFW
     ${PNG_PKG}
     ${ZLIB_PKG}
     ${EXPAT_PKG}
@@ -208,6 +216,12 @@ else()
     list(APPEND _dep_list "dep_Qhull")
     # Not working, static build has different Eigen
     #list(APPEND _dep_list "dep_libigl")
+endif()
+
+if (MSVC)
+    list(APPEND _dep_list "dep_OCCT")
+elseif (APPLE)
+    list(APPEND _dep_list "dep_OCCT")
 endif()
 
 add_custom_target(deps ALL DEPENDS ${_dep_list})
