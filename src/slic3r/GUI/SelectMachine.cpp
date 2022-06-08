@@ -491,10 +491,6 @@ void SelectMachinePopup::on_timer(wxTimerEvent &event)
             wxCommandEvent event(EVT_REQUEST_BIND_LIST);
             event.SetEventObject(this);
             wxPostEvent(this, event);
-        },
-        // ErrorFn
-        [this](int status, std::string error, std::string body) {
-            //to do
     });
 }
 

@@ -2404,7 +2404,7 @@ void DeviceManager::disconnect_all()
     }
 }
 
-void DeviceManager::query_bind_status(AccountManager::CompletedFn cFn, AccountManager::ErrorFn errFn)
+void DeviceManager::query_bind_status(AccountManager::CompletedFn cFn)
 {
     std::lock_guard<std::mutex> lock(listMutex);
     std::map<std::string, MachineObject*>::iterator it;
@@ -2413,14 +2413,7 @@ void DeviceManager::query_bind_status(AccountManager::CompletedFn cFn, AccountMa
         query_list.push_back(it->first);
     }
 
-    acc_.query_bind_status(query_list, cFn,
-        [this, errFn](int status, std::string error, std::string body) {
-            BOOST_LOG_TRIVIAL(trace) << "query_bind_status error=" << error << ", body=" << body << ", status=" << status;
-            if (errFn) {
-                errFn(status, error, body);
-            }
-        }
-    );
+    acc_.query_bind_status(query_list, cFn);
 }
 
 MachineObject* DeviceManager::get_default()

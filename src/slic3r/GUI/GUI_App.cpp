@@ -1045,7 +1045,7 @@ void GUI_App::post_init()
                 this->preset_updater->slic3r_update_notify();
 
             //BBS: check new version
-            m_account_manager->check_new_version();
+            this->check_new_version();
         });
     }
 
@@ -1096,6 +1096,17 @@ GUI_App::GUI_App()
                 std::map<std::string, MachineObject*>::iterator it = m_account_manager->myBindMachineList.find(dev_id);
                 GUI::wxGetApp().sidebar().load_ams_list(it->second->amsList);
         });
+    });
+
+    m_account_manager->set_get_country_code_fn([this](){
+            if (app_config)
+                return app_config->get_country_code();
+            return std::string();
+        }
+    );
+
+    m_account_manager->set_on_http_error_fn([this](unsigned int status, std::string body) {
+            this->handle_http_error(status, body);
     });
 
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
@@ -1425,20 +1436,20 @@ bool GUI_App::on_init_inner()
             if (this->plater_ != nullptr) {
                 // this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
                 //BBS show msg box to download new version
-                wxString tips = wxString::Format(_L("Click to download new version in default browser: %s"), m_account_manager->version_info.version_str);
+                wxString tips = wxString::Format(_L("Click to download new version in default browser: %s"), version_info.version_str);
                 DownloadDialog dialog(this->mainframe,
                     tips,
                     _L("New version of Bambu Studio"),
                     false,
                     wxCENTER | wxICON_INFORMATION);
 
-                wxString extmsg = wxString::FromUTF8(m_account_manager->version_info.description);
+                wxString extmsg = wxString::FromUTF8(version_info.description);
                 dialog.SetExtendedMessage(extmsg);
 
                  switch (dialog.ShowModal())
                  {
                  case wxID_YES:
-                     wxLaunchDefaultBrowser(m_account_manager->version_info.url);
+                     wxLaunchDefaultBrowser(version_info.url);
                      break;
                  case wxID_NO:
                      break;
@@ -2194,8 +2205,24 @@ void GUI_App::request_login(bool show_user_info)
 {
     ShowUserLogin();
 
-    if (show_user_info)
-        m_account_manager->show_login_info();
+    if (show_user_info) {
+        get_login_info();
+    }
+}
+
+void GUI_App::get_login_info()
+{
+    if (m_account_manager->is_user_login()) {
+        std::string login_cmd = m_account_manager->build_login_cmd();
+        wxString strJS = wxString::Format("window.postMessage(%s)", login_cmd);
+        GUI::wxGetApp().run_script(strJS);
+    }
+    else {
+        m_account_manager->user_logout();
+        std::string logout_cmd = m_account_manager->build_logout_cmd();
+        wxString strJS = wxString::Format("window.postMessage(%s)", logout_cmd);
+        GUI::wxGetApp().run_script(strJS);
+    }
 }
 
 
@@ -2276,7 +2303,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
             }
             else if (command_str.compare("get_login_info") == 0) {
                 CallAfter([this] {
-                    m_account_manager->show_login_info();
+                        get_login_info();
                     });
             }
             else if (command_str.compare("homepage_login_or_register") == 0) {
@@ -2286,7 +2313,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
             }
             else if (command_str.compare("homepage_logout") == 0) {
                 CallAfter([this] {
-                    m_account_manager->request_logout();
+                    m_account_manager->user_logout();
                 });
             }
             else if (command_str.compare("homepage_newproject") == 0) {
@@ -2412,12 +2439,95 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
         GUI::wxGetApp().reload_user_presets();
 }
 
+void GUI_App::check_update(bool show_tips)
+{
+    if (version_info.version_str.empty()) return;
+    if (version_info.url.empty()) return;
+
+    if (version_info.compare(SLIC3R_VERSION) > 0) {
+        if (version_info.force_upgrade) {
+            wxGetApp().app_config->set_bool("force_upgrade", version_info.force_upgrade);
+            wxGetApp().app_config->set("upgrade", "force_upgrade", true);
+            wxGetApp().app_config->set("upgrade", "description", version_info.description);
+            wxGetApp().app_config->set("upgrade", "version", version_info.version_str);
+            wxGetApp().app_config->set("upgrade", "url", version_info.url);
+            GUI::wxGetApp().enter_force_upgrade();
+        }
+        else {
+            GUI::wxGetApp().request_new_version();
+        }
+    } else {
+        wxGetApp().app_config->set("upgrade", "force_upgrade", false);
+        if (show_tips)
+            this->no_new_version();
+    }
+}
+
+void GUI_App::check_new_version(bool show_tips)
+{
+    std::string platform = "windows";
+
+#ifdef __WINDOWS__
+    platform = "windows";
+#endif
+#ifdef __APPLE__
+    platform = "macos";
+#endif
+#ifdef __LINUX__
+    platform = "linux";
+#endif
+    std::string query_params = (boost::format("?name=slicer&&version=%1%&&platform=%2%&&guide_version=%3%")
+        % VersionInfo::convert_full_version(SLIC3R_VERSION)
+        % platform
+        % VersionInfo::convert_full_version("0.0.0.1")
+        ).str();
+    std::string url = m_account_manager->get_slicer_info_url() + query_params;
+    Http http = Http::get(url);
+    http.header("accept", "application/json")
+        .timeout_max(10)
+        .on_complete([this, show_tips](std::string body, unsigned) {
+        try {
+            json j = json::parse(body);
+            if (j.contains("message")) {
+                if (j["message"].get<std::string>() == MSG_SUCCESS) {
+                    if (j.contains("software")) {
+                        if (j["software"].empty() && show_tips) {
+                            this->no_new_version();
+                        }
+                        else {
+                            if (j["software"].contains("url")
+                                && j["software"].contains("version")
+                                && j["software"].contains("description")) {
+                                version_info.url = j["software"]["url"].get<std::string>();
+                                version_info.version_str = j["software"]["version"].get<std::string>();
+                                version_info.description = j["software"]["description"].get<std::string>();
+                            }
+                            if (j["software"].contains("force_update")) {
+                                version_info.force_upgrade = j["software"]["force_update"].get<bool>();
+                            }
+                            CallAfter([this, show_tips](){
+                                this->check_update(show_tips);
+                            });
+                        }
+                    }
+                }
+            }
+        }
+        catch (...) {
+            ;
+        }
+            })
+        .on_error([this](std::string body, std::string error, unsigned int status) {
+            BOOST_LOG_TRIVIAL(error) << "check new version" << body;
+        }).perform();
+}
+
 
 //BBS pop up a dialog and download files
 void GUI_App::request_new_version()
 {
     wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
-    evt->SetString(GUI::from_u8(m_account_manager->version_info.version_str));
+    evt->SetString(GUI::from_u8(version_info.version_str));
     GUI::wxGetApp().QueueEvent(evt);
 }
 

@@ -176,6 +176,7 @@ private:
     Slic3r::CommuBackend* m_backend;
     Slic3r::DeviceManager* m_device_manager;
     Slic3r::AccountManager* m_account_manager;
+    VersionInfo     version_info;
     boost::thread   m_sync_update_thread;
     bool            enable_sync = true;
 
@@ -271,6 +272,7 @@ public:
     //BBS
     void            request_login(bool show_user_info = false);
     bool            check_login();
+    void            get_login_info();
     void            change_user(AccountInfo* user_info);
     void            request_user_login(int online_login);
     std::string     handle_web_request(std::string cmd);
@@ -282,6 +284,9 @@ public:
     void            handle_http_error(unsigned int status, std::string body);
     void            on_http_error(wxCommandEvent &evt);
     void            on_user_login(wxCommandEvent &evt);
+
+    void            check_update(bool show_tips);
+    void            check_new_version(bool show_tips = false);
     void            request_new_version();
     void            enter_force_upgrade();
     void            no_new_version();

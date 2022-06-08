@@ -1456,16 +1456,9 @@ static wxMenu* generate_help_menu()
     // Check New Version
     append_menu_item(helpMenu, wxID_ANY, _L("Check for Update"), _L("Check for Update"),
         [](wxCommandEvent&) {
-            AccountManager* acc = wxGetApp().getAccountManager();
-            //BBS do not request login
-            //if (acc && acc->is_user_login()) {
-                acc->check_new_version(true);
-            //
+            wxGetApp().check_new_version(true);
         }, "", nullptr, []() {
-            // BBS always return true
-            AccountManager* acc = wxGetApp().getAccountManager();
-            if (acc) return acc->is_user_login();
-            return false;
+            return true;
         });
     // About
     wxString about_title = wxString::Format(_L("&About %s"), SLIC3R_APP_NAME);

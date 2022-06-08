@@ -265,8 +265,7 @@ private:
 
     /* check valid of user or pwd */
     bool _check_valid(std::string user, std::string password);
-    /* common error code handler */
-    void _handle_error_code(int status, std::string error, std::string body);
+    
 
     /* mqtt cloud client */
     mqtt::async_client* mqtt_cli{ nullptr };
@@ -293,7 +292,6 @@ public:
     typedef std::function<void(int progress)> ProgressFn;
     typedef std::function<void(int retcode, std::string info)> LoginFn;
     typedef std::function<void(std::string body)> CompletedFn;
-    typedef std::function<void(int retcode, std::string error, std::string body)> ErrorFn;
     typedef std::function<void(int result, std::string info)> ResultFn;
     typedef std::function<bool()> CancelFn;
 
@@ -302,17 +300,23 @@ public:
     typedef std::function<void(std::string dev_id)>     OnAmsUpdateFn;
     typedef std::function<void(std::string topic_str)>  OnPrinterConnectedFn;
     typedef std::function<void()>                       OnServerConnectedFn;
+    typedef std::function<void(unsigned http_code, std::string http_body)> OnHttpErrorFn;
+    typedef std::function<std::string()>                GetCountryCodeFn;
 
     // ballbacks
     OnUserLoginFn           on_user_login_fn;
     OnAmsUpdateFn           on_ams_update_fn;
     OnPrinterConnectedFn    on_printer_connected_fn;
     OnServerConnectedFn     on_server_connected_fn;
+    OnHttpErrorFn           on_http_error_fn;
+    GetCountryCodeFn        get_country_code_fn;
 
     void set_on_user_login_fn(OnUserLoginFn fn) { on_user_login_fn  = fn; }
     void set_on_ams_update_fn(OnAmsUpdateFn fn) { on_ams_update_fn = fn; }
     void set_on_printer_connected_fn(OnPrinterConnectedFn fn) { on_printer_connected_fn = fn; }
     void set_on_server_connected_fn(OnServerConnectedFn fn) { on_server_connected_fn = fn; }
+    void set_on_http_error_fn(OnHttpErrorFn fn) { on_http_error_fn = fn; }
+    void set_get_country_code_fn(GetCountryCodeFn fn) { get_country_code_fn  = fn; }
 
     /* bambu stdio agent config */
     json config_json;
@@ -388,7 +392,7 @@ public:
     std::vector<std::string> need_delete_presets;   // store setting ids of preset
 
     /* bind apis */
-    int query_bind_status(std::vector<std::string> device_list, AccountManager::CompletedFn cFn, ErrorFn errFn);
+    int query_bind_status(std::vector<std::string> device_list, AccountManager::CompletedFn cFn);
     int request_unbind(std::string device_id, ResultFn fn);
     int request_bind_list(ResultFn fn = nullptr);
 
@@ -421,8 +425,6 @@ public:
 
     // upload_3mf_to_oss + put_notification + get_notification
     //int upload_3mf(BBLProfile* profile, unsigned int &http_code, std::string &http_body, Http::ProgressFn proFn = nullptr);
-
-    int poll_3mf(BBLProject* project, std::string profile_id, bool& cancel, Http::ErrorFn errFn = nullptr);
 
     // GET /api/user/profile/{profile_id}
     int get_profile_3mf(BBLProfile* profile, unsigned int &http_code, std::string http_body);
@@ -476,9 +478,6 @@ public:
     int get_machine_version(std::string dev_id, unsigned &http_code, std::string &http_body);
 
     /* slicer resources apis */
-    VersionInfo version_info;
-    void check_new_version(bool show_tips = false);
-    void check_update(bool show_tips = false);
     std::string get_slicer_info_url() { return _get_slicer_info_url(); }
 
     /* common apis */
@@ -508,11 +507,9 @@ public:
         return "";
     }
 
-    /* handle webpage command */
-    void handle_http_error(unsigned int status, std::string body);
-    void show_login_info();
-    void request_logout();
-
+    /* build webpage command */
+    std::string build_login_cmd();
+    std::string build_logout_cmd();
 };
 
 } // namespace Slic3r

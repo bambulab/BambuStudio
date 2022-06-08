@@ -332,7 +332,8 @@ namespace Slic3r {
 //#endif
         Http::register_global_handler(
             [this](std::string body, std::string error, unsigned int status) {
-                handle_http_error(status, body);
+                if (on_http_error_fn)
+                    on_http_error_fn(status, body);
             }
         );
     }
@@ -390,7 +391,9 @@ namespace Slic3r {
             BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, password = " << m_curr_user->get_token();
             BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, mqtt_host = " << mqtt_host;
 
-            std::string country_code = GUI::wxGetApp().app_config->get_country_code();
+            std::string country_code;
+            if (get_country_code_fn)
+                country_code = get_country_code_fn();
             if (country_code == "ENV_CN_PRE" || country_code == "ENV_CN_QA" || country_code == "ENV_CN_DEV") {
                 set_engineering_mqtt_opt();
             } else {
@@ -1010,7 +1013,7 @@ namespace Slic3r {
     }
 
 
-    int AccountManager::query_bind_status(std::vector<std::string> device_list, AccountManager::CompletedFn cFn, ErrorFn errFn)
+    int AccountManager::query_bind_status(std::vector<std::string> device_list, AccountManager::CompletedFn cFn)
     {
         Http http = Http::get(_get_qeury_bind_list_url(device_list));
         try {
@@ -1047,10 +1050,8 @@ namespace Slic3r {
                             cFn("");
                         }
                     }
-                }).on_error([&, device_list, errFn](std::string body, std::string error, unsigned status) {
-                    if (errFn) {
-                        errFn(status, error, body);
-                    }
+                }).on_error([&, device_list](std::string body, std::string error, unsigned status) {
+                    ;
                 }).perform();
         }
         catch (std::exception& e) {
@@ -1152,100 +1153,6 @@ namespace Slic3r {
                     }
                 }).perform();
                 return 0;
-    }
-
-    void AccountManager::check_new_version(bool show_tips)
-    {
-        std::string platform = "windows";
-#ifdef __WINDOWS__
-        platform = "windows";
-#endif
-#ifdef __APPLE__
-        platform = "macos";
-#endif
-#ifdef __LINUX__
-        platform = "linux";
-#endif
-        std::string query_params = (boost::format("?name=slicer&&version=%1%&&platform=%2%&&guide_version=%3%")
-            % VersionInfo::convert_full_version(SLIC3R_VERSION)
-            % platform
-            % VersionInfo::convert_full_version("0.0.0.1")
-            ).str();
-        std::string url = _get_slicer_info_url() + query_params;
-        Http http = Http::get(url);
-        http.header("accept", "application/json")
-            .header("Authorization", get_token_str())
-            .timeout_max(10)
-            .on_complete([this, show_tips](std::string body, unsigned) {
-                std::stringstream ss(body);
-                pt::ptree root;
-                try {
-                    pt::read_json(ss, root);
-                    if (root.empty()) return;
-                    boost::optional<std::string> message  = root.get_optional<std::string>("message");
-                    boost::optional<std::string> err_code = root.get_optional<std::string>("code");
-                    if (message.has_value()) {
-                        if (message.value().compare(MSG_SUCCESS) == 0) {
-                            if (root.get_child_optional("software") != boost::none) {
-                                pt::ptree software_node = root.get_child("software");
-
-                                // newest version
-                                if (software_node.empty() && err_code.value().compare("null") == 0 && show_tips) {
-                                    GUI::wxGetApp().no_new_version();
-                                } else {
-                                    boost::optional<std::string> url         = software_node.get_optional<std::string>("url");
-                                    boost::optional<std::string> version     = software_node.get_optional<std::string>("version");
-                                    boost::optional<std::string> description = software_node.get_optional<std::string>("description");
-                                    boost::optional<bool> force_update       = software_node.get_optional<bool>("force_update");
-                                    if (version.has_value() && url.has_value() && description.has_value()) {
-                                        version_info.url = url.value();
-                                        version_info.parse_version_str(version.value());
-                                        version_info.description = description.value();
-                                        version_info.force_upgrade = force_update.has_value() ? force_update.value() : false;
-                                        check_update(show_tips);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                catch(...) {
-                    ;
-                }
-            })
-            .on_error([this](std::string body, std::string error, unsigned int status) {
-                BOOST_LOG_TRIVIAL(error) << "check new version" << body;
-            }).perform();
-    }
-
-    void AccountManager::check_update(bool show_tips)
-    {
-        if (version_info.version_str.empty()) return;
-        if (version_info.url.empty()) return;
-
-        if (version_info.compare(SLIC3R_VERSION) > 0) {
-            //test
-            //version_info.force_upgrade = true;
-            if (version_info.force_upgrade) {
-                GUI::wxGetApp().app_config->set_bool("force_upgrade", version_info.force_upgrade);
-                GUI::wxGetApp().app_config->set("upgrade", "force_upgrade", true);
-                GUI::wxGetApp().app_config->set("upgrade", "description", version_info.description);
-                GUI::wxGetApp().app_config->set("upgrade", "version", version_info.version_str);
-                GUI::wxGetApp().app_config->set("upgrade", "url", version_info.url);
-                GUI::wxGetApp().enter_force_upgrade();
-            } else {
-                GUI::wxGetApp().request_new_version();
-            }
-        }
-        // Same Version
-        else if (version_info.compare(SLIC3R_VERSION) == 0) {
-            GUI::wxGetApp().app_config->set("upgrade", "force_upgrade", false);
-            if (show_tips)
-                GUI::wxGetApp().no_new_version();
-        } else {
-            if (show_tips)
-                GUI::wxGetApp().no_new_version();
-        }
     }
 
     int AccountManager::request_bind_list(ResultFn fn)
@@ -1706,93 +1613,6 @@ namespace Slic3r {
             )
             .perform_sync();
         return result;
-    }
-
-    // poll 3mf must have a profile id
-    int AccountManager::poll_3mf(BBLProject* project, std::string profile_id, bool& cancel, Http::ErrorFn errFn)
-    {
-        if (!project || project->project_id.empty()) return -1;
-
-        int retry_ = 0;
-        int retry_max = POLL_3MF_TIMEOUT;
-
-        std::string gather = json_request_poll_3mf_gather_model_only();
-
-        gather.erase(std::remove(gather.begin(), gather.end(), '\\'), gather.end());
-        gather = Http::url_encode(gather);
-        std::string ticket = "0";
-        std::string query_params = (boost::format("?profile_id=%1%&&gather=%2%&&ticket=%3%") % profile_id % gather % ticket).str();
-        std::string url = (boost::format("%1%/iot-service/api/user/project/%2%%3%") % host % project->project_id % query_params).str();
-        Http http = Http::get(url);
-
-        http.header("accept", "application/json")
-            .header("Authorization", get_token_str())
-            .on_complete(
-                [this, project](std::string body, unsigned) {
-                    std::stringstream ss(body);
-                    pt::ptree root;
-                    pt::read_json(ss, root);
-                    if (root.empty()) return;
-                    boost::optional<std::string> message = root.get_optional<std::string>("message");
-                    if (message.has_value()) {
-                        if (message.value().compare("ready") == 0 || message.value().compare(MSG_SUCCESS) == 0) {
-                            BOOST_LOG_TRIVIAL(info) << "get_project_info ok!";
-                            boost::optional<std::string> status = root.get_optional<std::string>("status");
-                            boost::optional<std::string> model_id = root.get_optional<std::string>("model_id");
-                            if (model_id.has_value()) {
-                                project->project_model_id = model_id.value();
-                            }
-                            boost::optional<std::string> name = root.get_optional<std::string>("name");
-                            if (name.has_value()) {
-                                project->project_name = name.value();
-                            }
-                            boost::optional<std::string> url = root.get_optional<std::string>("url");
-                            if (url.has_value()) {
-                                // check valid url
-                                if (url.value().compare("null") != 0) {
-                                    project->project_url = url.value();
-                                }
-                            }
-                            boost::optional<std::string> md5 = root.get_optional<std::string>("md5");
-                            if (md5.has_value()) {
-                                if (md5.value().compare("null") != 0) {
-                                    project->project_url_md5 = md5.value();
-                                }
-                            }
-                            boost::optional<std::string> create_time = root.get_optional<std::string>("create_time");
-                            if (create_time.has_value()) {
-                                project->project_create_time = create_time.value();
-                            }
-                            boost::optional<std::string> content = root.get_optional<std::string>("content");
-                            if (content.has_value()) {
-                                project->project_content = content.value();
-                            }
-
-                            //success
-                            return;
-                        }
-                    }
-                }
-        ).on_error(errFn);
-
-        while (project->project_url.empty() && retry_ < retry_max) {
-            // cancelled
-            if (cancel) {
-                BOOST_LOG_TRIVIAL(trace) << "download project cancelled";
-                return -1;
-            }
-
-            http.perform_sync();
-            retry_++;
-            BOOST_LOG_TRIVIAL(trace) << "download project failed, retry=" << retry_;
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
-        }
-
-        if (retry_ == retry_max) {
-            BOOST_LOG_TRIVIAL(trace) << "download project failed, retry_max";
-            return -1;
-        }
-        return 0;
     }
 
     // GET /api/user/profile/{profile_id}
@@ -3044,52 +2864,24 @@ namespace Slic3r {
         return true;
     }
 
-    void AccountManager::_handle_error_code(int status, std::string error, std::string body)
+    std::string AccountManager::build_login_cmd()
     {
-        switch (status) {
-        case 400:
-        case 401:
-            wxMessageBox("Token is invalid! Tips: input username@email.com, like: bbl@bambulab.com");
-            break;
-        default:
-            return;
-        }
+        json j = json::object();
+        j["command"]        = "studio_userlogin";
+        j["sequence_id"]    = "10001";
+        j["data"]           = json::object();
+        j["data"]["avatar"] = m_curr_user->m_avatar;
+        j["data"]["name"]   = m_curr_user->m_name;
+
+        return j.dump(-1, ' ', true, json::error_handler_t::ignore);
     }
 
-    void AccountManager::handle_http_error(unsigned int status, std::string body)
+    std::string AccountManager::build_logout_cmd()
     {
-        GUI::wxGetApp().handle_http_error(status, body);
-    }
-
-    void AccountManager::show_login_info()
-    {
-        if (is_user_login()) {
-            json m_Res              = json::object();
-            m_Res["command"]        = "studio_userlogin";
-            m_Res["sequence_id"]    = "10001";
-            m_Res["data"]           = json::object();
-            m_Res["data"]["avatar"] = m_curr_user->m_avatar;
-            m_Res["data"]["name"]   = m_curr_user->m_name;
-
-            wxString strJS = wxString::Format("window.postMessage(%s)", m_Res.dump(-1, ' ', true, json::error_handler_t::ignore));
-
-            GUI::wxGetApp().run_script(strJS);
-        } else {
-            request_logout();
-        }    
-    }
-
-    void AccountManager::request_logout()
-    {
-        user_logout();
-
-        json m_Res              = json::object();
-        m_Res["command"]        = "studio_useroffline";
-        m_Res["sequence_id"]    = "10001";
-
-        wxString strJS = wxString::Format("window.postMessage(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
-
-        GUI::wxGetApp().run_script(strJS);
+        json j = json::object();
+        j["command"]        = "studio_useroffline";
+        j["sequence_id"]    = "10001";
+        return j.dump(-1, ' ', false, json::error_handler_t::ignore);
     }
 
 

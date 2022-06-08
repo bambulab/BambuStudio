@@ -651,7 +651,7 @@ public:
     void on_machine_alive(std::string dev_name, std::string dev_id, std::string dev_ip, std::string printer_type_str = "", std::string printer_signal = "");
     /* disconnect all machine connections */
     void disconnect_all();
-    void query_bind_status(AccountManager::CompletedFn cFn, AccountManager::ErrorFn errFn);
+    void query_bind_status(AccountManager::CompletedFn cFn);
 
     MachineObject* get_default();   /* return default machine */
     std::map<std::string, MachineObject*> get_all_machine_list();

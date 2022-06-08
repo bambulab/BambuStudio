@@ -399,7 +399,7 @@ void WebViewPanel::OnClose(wxCloseEvent& evt)
 }
 
 void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event) { 
-    Slic3r::GUI::wxGetApp().getAccountManager()->show_login_info();
+    Slic3r::GUI::wxGetApp().get_login_info();
 }
 
 void WebViewPanel::SendRecentList(wxString const &sequence_id)

@@ -807,6 +807,18 @@ void PreferencesDialog::create_debug_page()
 
             if (iot_environment_map[param] != m_iot_environment_def) {
                 AccountManager *manager = wxGetApp().getAccountManager();
+                if (param == "dev_host") {
+                    app_config->set("iot_environment", ENV_DEV_HOST);
+                }
+                else if (param == "qa_host") {
+                    app_config->set("iot_environment", ENV_QAT_HOST);
+                }
+                else if (param == "pre_host") {
+                    app_config->set("iot_environment", ENV_PRE_HOST);
+                }
+                else if (param == "product_host") {
+                    app_config->set("iot_environment", ENV_PRODUCT_HOST);
+                }
                 manager->user_logout();
 
                 AppConfig* config = GUI::wxGetApp().app_config;

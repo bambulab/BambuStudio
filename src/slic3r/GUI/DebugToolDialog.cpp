@@ -2077,50 +2077,6 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
             }
             return;
         }
-        else if (root.get_child_optional("bind") != boost::none) {
-            pt::ptree bind = root.get_child("bind");
-            boost::optional<std::string> command = bind.get_optional<std::string>("command");
-            boost::optional<std::string> result = bind.get_optional<std::string>("result");
-            boost::optional<std::string> reason = bind.get_optional<std::string>("reason");
-            boost::optional<std::string> user_id = bind.get_optional<std::string>("user_id");
-
-            if (command.has_value())
-            {
-                if (command.value().compare("bind") == 0) {
-                    if (result.has_value()) {
-                        if (result.value().compare("success") == 0) {
-                            this->log_info("bind device ok!");
-                        }
-                        else if (result.value().compare("fail") == 0) {
-                            this->log_info("bind device failed!");
-                        }
-                    }
-                }
-                else if (command.value().compare("unbind") == 0) {
-                    if (result.has_value()) {
-                        if (result.value().compare("success") == 0) {
-                            this->log_info("unbind device ok!");
-                        }
-                        else if (result.value().compare("fail") == 0) {
-                            this->log_info("unbind device failed!");
-                        }
-                    }
-                }
-
-                Slic3r::AccountManager *account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-                if (account_manager->is_user_login()) {
-                    /* refresh bind status */
-                    dev_manager_.query_bind_status(
-                        // CompleteFn
-                        [this](std::string body) { ; },
-                        // ErrorFn
-                        [this](int status, std::string error, std::string body) {
-                            std::string error_str = (boost::format("Query Status Error, status=%1%, error=%2%, body=%3%") % status % error % body).str();
-                            this->send_log_evt(error_str);
-                        });
-                }
-            }
-        }
         else if (root.get_child_optional("system") != boost::none) {
             return;
         }
@@ -2147,12 +2103,6 @@ void DebugToolDialog::refresh_device_list()
         // CompleteFn
         [this](std::string body) {
             wxQueueEvent(this, new SimpleEvent(EVT_UPDATE_LIST));
-        }, 
-        // ErrorFn
-        [this](int status, std::string error, std::string body) {
-            std::string error_str = (boost::format("Query Status Error, status=%1%, error=%2%, body=%3%") % status % error % body).str();
-            this->send_log_evt(error_str);
-            
         });
 }
 
