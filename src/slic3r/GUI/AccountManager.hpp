@@ -13,7 +13,9 @@
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/Utils/Http.hpp"
-//#include "GUI_App.hpp"
+#include "nlohmann/json.hpp"
+
+using namespace nlohmann;
 
 
 #define BBL_INTERNAL_TEST
@@ -40,6 +42,8 @@
 #define RET_POLLING_CANEL               -2
 #define RET_POLLING_TIMEOUT             -3
 #define RET_MD5_CHECK_FAILED            -4
+
+#define AGENT_CONFIG_FILE               "BambuNetworkEngine.conf"
 
 namespace pt = boost::property_tree;
 
@@ -208,8 +212,8 @@ public:
     std::string get_account() { return m_account; }
     std::string get_user_id() { return m_user_id; }
     LoginStatus login_status() { return m_login_status; }
-    int save_to_json();
-    static AccountInfo* load_from_json();
+    int save_to_json(json& config_json);
+    static AccountInfo* load_from_json(json& config_json);
     bool is_valid() { return !m_user_id.empty() && !m_token.empty() && !m_account.empty(); }
 
     /* user project */
@@ -306,6 +310,18 @@ public:
     typedef std::function<void(int retcode, std::string error, std::string body)> ErrorFn;
     typedef std::function<void(int result, std::string info)> ResultFn;
     typedef std::function<bool()> CancelFn;
+
+    /* bambu stdio agent config */
+    json config_json;
+    std::string config_dir;
+    void set_config_dir(std::string dir) {
+        BOOST_LOG_TRIVIAL(trace) << "Agent: set_config_dir = " << dir;
+        config_dir = dir;
+    }
+    int save_config();
+    int load_config();
+    std::string get_config(std::string section, std::string key);
+
 
     AccountManager();
     ~AccountManager();

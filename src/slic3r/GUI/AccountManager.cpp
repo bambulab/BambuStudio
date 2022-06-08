@@ -10,7 +10,6 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/LoginDialog.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
-#include "nlohmann/json.hpp"
 #include <boost/filesystem/path.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -26,8 +25,6 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include "slic3r/GUI/WebUserLoginDialog.hpp"
-
-using namespace nlohmann;
 
 inline bool is_valid_property(json &j, std::string prop)
 {
@@ -204,47 +201,49 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
     }
 
 
-    int AccountInfo::save_to_json()
+    int AccountInfo::save_to_json(json& config_json)
     {
-        AppConfig* config = GUI::wxGetApp().app_config;
-        config->set("user", "account", m_account);
-        config->set("user", "token", m_token);
-        config->set("user", "user_id", m_user_id);
-        config->set("user", "login_status", std::to_string((int)m_login_status));
-        config->set("user", "autotest_token", m_autotest_token);
-        config->set("user", "name", m_name);
-        config->set("user", "avatar", m_avatar);
-        config->set_dirty();
+        config_json["user"]["account"] = m_account;
+        config_json["user"]["token"] = m_token;
+        config_json["user"]["user_id"] = m_user_id;
+        config_json["user"]["login_status"] = (int)m_login_status;
+        config_json["user"]["autotest_token"] = m_autotest_token;
+        config_json["user"]["name"] = m_name;
+        config_json["user"]["avatar"] = m_avatar;
         return 0;
     }
 
-    AccountInfo* AccountInfo::load_from_json()
+    AccountInfo* AccountInfo::load_from_json(json& config_json)
     {
         try {
-            AppConfig* config = GUI::wxGetApp().app_config;
-            if (config->has_section("user")) {
-                std::string account = config->get("user", "account");
-                std::string token = config->get("user", "token");
-                std::string user_id = config->get("user", "user_id");
-                std::string autotest_token = config->get("user", "autotest_token");
-                std::string sAvatar        = config->get("user", "avatar");
-                std::string sName          = config->get("user", "name");
-                AccountInfo::LoginStatus status = AccountInfo::LoginStatus::STATUS_LOGOUT;
-                if (!config->get("user", "login_status").empty())
-                    status = (AccountInfo::LoginStatus)std::stoi(config->get("user", "login_status"));
-                AccountInfo* info = new AccountInfo(account, user_id,token,sName,sAvatar,status,autotest_token);
-                info->m_autotest_token = autotest_token;
-                info->set_token(token);
-                return info;
-            } else {
+            if (config_json.contains("user")) {
+                if (config_json["user"].contains("account")
+                    && config_json["user"].contains("token")
+                    && config_json["user"].contains("user_id")) {
+                    std::string account = config_json["user"]["account"].get<std::string>();
+                    std::string token = config_json["user"]["token"].get<std::string>();
+                    std::string user_id = config_json["user"]["user_id"].get<std::string>();
+                    std::string autotest_token = config_json["user"]["autotest_token"].get<std::string>();
+                    std::string sAvatar = config_json["user"]["avatar"].get<std::string>();
+                    std::string sName = config_json["user"]["name"].get<std::string>();
+                    AccountInfo::LoginStatus status = AccountInfo::LoginStatus::STATUS_LOGOUT;
+                    if (config_json["user"].contains("login_status"))
+                        status = (AccountInfo::LoginStatus)config_json["user"]["login_status"].get<int>();
+                    AccountInfo* info = new AccountInfo(account, user_id, token, sName, sAvatar, status, autotest_token);
+                    info->m_autotest_token = autotest_token;
+                    info->set_token(token);
+                    return info;
+                }
+            }
+            else {
                 return nullptr;
             }
         }
         catch (std::exception& e)
         {
             BOOST_LOG_TRIVIAL(error) << "AccountManager::load_from_json() failed! exception=" << e.what();
-            return nullptr;
         }
+        return nullptr;
     }
 
     std::string AccountManager::get_emqx_server_host()
@@ -259,6 +258,48 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
                 return (boost::format("https://portal%1%.%2%") % user_region_server.environment % user_region_server.base_domain).str();
             else
                 return (boost::format("https://%1%") % user_region_server.base_domain).str();
+        }
+        return "";
+    }
+
+    int AccountManager::save_config()
+    {
+        BOOST_LOG_TRIVIAL(trace) << "Agent: save_config";
+        std::string dir_str = (boost::filesystem::path(config_dir) / AGENT_CONFIG_FILE).make_preferred().string();
+        std::ofstream json_file(encode_path(dir_str.c_str()));
+        if (json_file.is_open()) {
+            json_file << std::setw(4) << config_json << std::endl;
+            return 0;
+        }
+        else {
+            return -1;
+        }
+        return 0;
+    }
+
+    int AccountManager::load_config()
+    {
+        BOOST_LOG_TRIVIAL(trace) << "Agent: load_config";
+        std::string dir_str = (boost::filesystem::path(config_dir) / AGENT_CONFIG_FILE).make_preferred().string();
+        ifstream json_file(encode_path(dir_str.c_str()));
+        try {
+            if (json_file.is_open()) {
+                json_file >> config_json;
+                return 0;
+            }
+        }
+        catch (...) {
+            return -1;
+        }
+        return 0;
+    }
+
+    std::string AccountManager::get_config(std::string section, std::string key)
+    {
+        if (config_json.contains(section)) {
+            if (config_json["section"].contains(key)) {
+                return config_json[section][key].get<std::string>();
+            }
         }
         return "";
     }
@@ -280,6 +321,7 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
 
     AccountManager::~AccountManager()
     {
+        save_config();
         if (mqtt_cli->is_connected())
             mqtt_cli->disconnect();
         Http::disable_log();
@@ -327,7 +369,7 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
 
     int AccountManager::load_user_info()
     {
-        m_curr_user = AccountInfo::load_from_json();
+        m_curr_user = AccountInfo::load_from_json(config_json);
         if (this->is_user_login()) {
             this->on_user_login(0);
         }
@@ -347,7 +389,8 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
     int AccountManager::save_user_info()
     {
         if (m_curr_user) {
-            return m_curr_user->save_to_json();
+            m_curr_user->save_to_json(config_json);
+            save_config();
         }
         return 0;
     }
@@ -361,11 +404,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
 
     int AccountManager::connect_mqtt(bool sync)
     {
-        /*if (!is_region_config_ready) {
-            BOOST_LOG_TRIVIAL(error) << "config is not ready!";
-            return -1;
-        }*/
-
         BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt";
         if (m_curr_user == nullptr) {
             return -1;
@@ -547,7 +585,7 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         std::string old_dev_id = this->default_machine;
 
         // store last_monitor_printer
-        wxGetApp().app_config->set("last_monitor_machine", dev_id);
+        config_json["agent"]["last_monitor_machine"] = dev_id;
         this->default_machine = dev_id;
 
         //unsubscribe old machine
@@ -574,7 +612,7 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
             if (it != myBindMachineList.end() && it->second)
                 set_monitor_machine(it->second->dev_id);
         } else {
-            std::string last_monitor_machine = wxGetApp().app_config->get("last_monitor_machine");
+            std::string last_monitor_machine = get_config("agent", "last_monitor_machine");
             auto it = myBindMachineList.find(last_monitor_machine);
             if (it != myBindMachineList.end()) {
                 set_monitor_machine(it->second->dev_id);

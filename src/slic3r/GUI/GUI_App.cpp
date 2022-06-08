@@ -1161,6 +1161,9 @@ void GUI_App::init_app_config()
             if (!boost::filesystem::exists(data_dir_path))
                 boost::filesystem::create_directory(data_dir_path);
             set_data_dir(data_dir);
+
+            //BBS set config dir
+            m_account_manager->set_config_dir(data_dir);
         #else
             // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
             // https://github.com/Bambu3d/BambuStudio/issues/2911
@@ -1461,6 +1464,7 @@ bool GUI_App::on_init_inner()
     m_account_manager->reload_region_servers(true);
 
     //BBS init account_manager
+    m_account_manager->load_config();
     m_account_manager->load_user_info();
 
     //BBS if load user preset failed
