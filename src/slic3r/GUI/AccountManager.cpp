@@ -11,7 +11,6 @@
 #include "slic3r/GUI/LoginDialog.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "nlohmann/json.hpp"
-#include "slic3r/Utils/minilzo_extension.hpp"
 #include <boost/filesystem/path.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -49,10 +48,6 @@ void split_string(std::string s, std::vector<std::string>& v) {
     }
     v.push_back(t);
 }
-
-uint64_t lzo_out_len = 5 * 1024;
-const uint64_t LZO_OUT_MAX_LEN = 5 * 1024;
-unsigned char lzo_out[LZO_OUT_MAX_LEN];
 
 namespace Slic3r {
 
@@ -150,37 +145,9 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
             std::map<std::string, MachineObject*>::iterator it = manager->myBindMachineList.find(params[1]);
             if (it == manager->myBindMachineList.end()) return;
 
-            std::string json_str;
-
             if (it->second) {
-                try {
-                    // BBS check valid json
-                    char head = *msg->get_payload_ref().c_str();
-                    if (head == '{') {
-                        json j = json::parse(msg->get_payload_str());
-                        if (j.is_null()) return;
-                        json_str = msg->get_payload_str();
-                        BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << json_str;
-                    }
-                    else {
-                        int result = 0;
-                        lzo_out_len = LZO_OUT_MAX_LEN;
-                        result = lzo_decompress((unsigned char*)msg->get_payload_ref().data(), msg->get_payload().length(), lzo_out, &lzo_out_len);
-                        if (result == 0) {
-                            json_str = std::string((char*)lzo_out, lzo_out_len);
-                            BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", decompress payload=" << json_str;
-                        }
-                        else {
-                            BOOST_LOG_TRIVIAL(trace) << "message_arrived: invalid json and decompress failed, result = " << result;
-                        }
-                    }
-                }
-                catch (...) {
-                    ;
-                }
-                if (json_str.empty()) return;
-
-                it->second->parse_json(msg->get_topic(), json_str);
+                BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << msg->get_payload_str();
+                it->second->parse_json(msg->get_topic(), msg->get_payload_str());
 
 #if !BBL_RELEASE_TO_PUBLIC
                 if (it->second->is_ams_need_update)
