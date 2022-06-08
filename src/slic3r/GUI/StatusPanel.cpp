@@ -457,27 +457,29 @@ wxBoxSizer *StatusBasePanel::create_temp_axis_group(wxWindow *parent)
 
     sizer->Add(bSizer_temp_caption, 0, wxEXPAND | wxALL, 0);
 
-    wxBoxSizer *content_sizer = new wxStaticBoxSizer(new wxStaticBox(parent, wxID_ANY, wxEmptyString), wxHORIZONTAL);
+    //wxBoxSizer *content_sizer = new wxStaticBoxSizer(new wxStaticBox(parent, wxID_ANY, wxEmptyString), wxHORIZONTAL);
+    auto box = new RoundedRectangle(parent, wxColour(0xDC, 0xDC, 0xDC), wxDefaultPosition, wxDefaultSize, 2, 1);
+    wxBoxSizer *content_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *m_temp_ctrl = create_temp_control(box);
+    content_sizer->Add(m_temp_ctrl, 0, wxEXPAND | wxALL, 1);
 
-    wxBoxSizer *m_temp_ctrl = create_temp_control(parent);
-    content_sizer->Add(m_temp_ctrl, 0, wxEXPAND | wxALL, 0);
-
-    content_sizer->Add(FromDIP(10), 0, 0, wxEXPAND, 0);
-    m_temp_extruder_line = new StaticLine(parent, true);
+    content_sizer->Add(FromDIP(10), 0, 0, wxEXPAND, 1);
+    m_temp_extruder_line = new StaticLine(box, true);
     m_temp_extruder_line->SetLineColour(STATIC_BOX_LINE_COL);
-    content_sizer->Add(m_temp_extruder_line, 0, wxEXPAND, 0);
-    content_sizer->Add(9, 0, 0, wxEXPAND, 0);
+    content_sizer->Add(m_temp_extruder_line, 0, wxEXPAND, 1);
+    content_sizer->Add(9, 0, 0, wxEXPAND, 1);
 
-    auto m_axis_sizer = create_axis_control(parent);
+    auto m_axis_sizer = create_axis_control(box);
     content_sizer->Add(m_axis_sizer, 0, wxEXPAND | wxALL, FromDIP(9));
 
-    wxBoxSizer *bed_sizer = create_bed_control(parent);
+    wxBoxSizer *bed_sizer = create_bed_control(box);
     content_sizer->Add(bed_sizer, 0, wxEXPAND | wxALL, FromDIP(9));
 
-    wxBoxSizer *extruder_sizer = create_extruder_control(parent);
+    wxBoxSizer *extruder_sizer = create_extruder_control(box);
     content_sizer->Add(extruder_sizer, 0, wxEXPAND | wxALL, FromDIP(9));
 
-    sizer->Add(content_sizer, 0, wxEXPAND | wxALL, FromDIP(15));
+    box->SetSizer(content_sizer);
+    sizer->Add(box, 0, wxEXPAND | wxALL, FromDIP(15));
 
     return sizer;
 }
