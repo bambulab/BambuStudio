@@ -139,7 +139,11 @@ static wxIcon main_frame_icon(GUI_App::EAppMode app_mode)
 }
 
 // BBS
-#define BORDERLESS_FRAME_STYLE (wxRESIZE_BORDER | wxMINIMIZE_BOX |wxMAXIMIZE_BOX | wxCLOSE_BOX)
+#ifdef __WINDOWS__
+#define BORDERLESS_FRAME_STYLE (wxRESIZE_BORDER | wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxCLOSE_BOX)
+#else
+#define BORDERLESS_FRAME_STYLE (wxRESIZE_BORDER)
+#endif
 
 wxDEFINE_EVENT(EVT_SELECT_DEFAULT_PRESET,     SimpleEvent);
 
