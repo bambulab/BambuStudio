@@ -355,23 +355,6 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
         // wxMessageBox(e.what(), "json Exception", MB_OK);
     }
 
-    // wxLogMessage("Script message received; value = %s, handler = %s",
-    // evt.GetString(), evt.GetMessageHandler()); Slic3r::AccountManager*
-    // account_manager = Slic3r::GUI::wxGetApp().getAccountManager(); std::string
-    // response =
-    // account_manager->handle_web_request(evt.GetString().ToStdString()); if
-    // (response.empty()) return;
-
-    ///* remove \n in response string */
-    // response.erase(std::remove(response.begin(), response.end(), '\n'),
-    // response.end()); if (!response.empty()) {
-    //    m_response_js = wxString::Format("window.postMessage('%s')", response);
-    //    wxCommandEvent* event = new wxCommandEvent(EVT_RESPONSE_MESSAGE,
-    //    this->GetId()); wxQueueEvent(this, event);
-    //}
-    // else {
-    //    m_response_js.clear();
-    //}
     wxString strAll = m_ProfileJson.dump(-1,' ',false, json::error_handler_t::ignore);
 }
 

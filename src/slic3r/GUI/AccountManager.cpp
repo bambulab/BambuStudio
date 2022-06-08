@@ -1,15 +1,11 @@
 #include "libslic3r/libslic3r.h"
 #include "AccountManager.hpp"
 #include "DeviceManager.hpp"
-#include "libslic3r/Time.hpp"
-#include "libslic3r/Thread.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Utils.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Plater.hpp"
-#include "slic3r/GUI/LoginDialog.hpp"
-#include "slic3r/GUI/MainFrame.hpp"
 #include <boost/filesystem/path.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -23,8 +19,6 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-
-#include "slic3r/GUI/WebUserLoginDialog.hpp"
 
 inline bool is_valid_property(json &j, std::string prop)
 {
@@ -57,7 +51,7 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
     config->set("iot_environment", "2");
     return "ENV_CN_PRE";
 #else
-    AppConfig *config = wxGetApp().app_config;
+    AppConfig *config = GUI::wxGetApp().app_config;
     if (config->is_engineering_region()) { return region; }
     if (region == "CHN" || region == "China")
         return "CN";
@@ -371,19 +365,9 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
     {
         m_curr_user = AccountInfo::load_from_json(config_json);
         if (this->is_user_login()) {
-            this->on_user_login(0);
+            GUI::wxGetApp().on_user_login(0);
         }
         return 0;
-    }
-
-    void AccountManager::on_user_login(int online_login)
-    {
-        auto kek = m_curr_user->get_user_id();
-        kek.resize(32, '0');
-
-        auto evt = new wxCommandEvent(EVT_USER_LOGIN);
-        evt->SetInt(online_login);
-        wxQueueEvent(&GUI::wxGetApp(), evt);
     }
 
     int AccountManager::save_user_info()
@@ -428,7 +412,7 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
             BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, password = " << m_curr_user->get_token();
             BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, mqtt_host = " << mqtt_host;
 
-            std::string country_code = RegionServer::convert_region_to_contry_code(wxGetApp().app_config->get_region());
+            std::string country_code = RegionServer::convert_region_to_contry_code(GUI::wxGetApp().app_config->get_region());
             if (country_code == "ENV_CN_PRE" || country_code == "ENV_CN_QA" || country_code == "ENV_CN_DEV") {
                 set_engineering_mqtt_opt();
             } else {
@@ -491,33 +475,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         }
     }
 
-    void AccountManager::add_subscribe(MachineObject* obj)
-    {
-        std::string report_topic = (boost::format("device/%1%/report") % obj->dev_id).str();
-        try {
-            if (mqtt_cli && mqtt_cli->is_connected()) {
-                if (mqtt_topics.find(report_topic) == mqtt_topics.end()) {
-                    BOOST_LOG_TRIVIAL(trace) << "add_subscribe topic=" << report_topic;
-                    mqtt_topics.insert(std::make_pair(report_topic, obj));
-                }
-                else {
-                    BOOST_LOG_TRIVIAL(trace) << "add_subscribe topic=" << report_topic << " is exists";
-                }
-                action_listener* sub_listener = new action_listener("MQTT_Subscriber_" + report_topic, this);
-                mqtt_cli->subscribe(report_topic, 0, this, *sub_listener);
-            }
-            else {
-                BOOST_LOG_TRIVIAL(trace) << "add_subscribe failed, topic=" << report_topic << ", mqtt_cli is disconnect or invalid!";
-            }
-        }
-        catch (mqtt::exception& e) {
-            BOOST_LOG_TRIVIAL(trace) << "add_subscribe exception, topic=" << report_topic << ", exception error_str=" << e.get_error_str() << ", message=" << e.get_message();
-        }
-        catch (...) {
-            BOOST_LOG_TRIVIAL(trace) << "add_subscribe exception, topic=" << report_topic;
-        }
-    }
-
     void AccountManager::add_subscribe(std::string dev_id)
     {
         std::string report_topic = (boost::format("device/%1%/report") % dev_id).str();
@@ -538,30 +495,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         }
     }
 
-
-    void AccountManager::del_subscribe(MachineObject* obj)
-    {
-        std::string report_topic = (boost::format("device/%1%/report") % obj->dev_id).str();
-        std::map<std::string, MachineObject*>::iterator it = mqtt_topics.find(report_topic);
-        if (it == mqtt_topics.end()) {
-            return;
-        }
-
-        try {
-            if (mqtt_cli) {
-                BOOST_LOG_TRIVIAL(trace) << "del_subscribe topic=" << report_topic;
-                mqtt_topics.erase(report_topic);
-                mqtt_cli->unsubscribe(report_topic);
-            }
-        }
-        catch (mqtt::exception& e) {
-            BOOST_LOG_TRIVIAL(trace) << "del_subscribe exception, topic=" << report_topic << ", exception error_str=" << e.get_error_str() << ", message=" << e.get_message();
-        }
-        catch (...) {
-            BOOST_LOG_TRIVIAL(trace) << "del_subscribe exception, topic=" << report_topic;
-        }
-    }
-
     void AccountManager::del_subscribe(std::string dev_id)
     {
         std::string report_topic = (boost::format("device/%1%/report") % dev_id).str();
@@ -571,10 +504,10 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
                 mqtt_cli->unsubscribe(report_topic);
             }
         }
-        catch(mqtt::exception& e) {
+        catch (mqtt::exception& e) {
             BOOST_LOG_TRIVIAL(trace) << "del_subscribe exception, topic=" << report_topic << ", exception error_str=" << e.get_error_str() << ", message=" << e.get_message();
         }
-        catch(...) {
+        catch (...) {
             BOOST_LOG_TRIVIAL(trace) << "del_subscribe exception, topic=" << report_topic;
         }
     }
@@ -712,105 +645,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
                     BOOST_LOG_TRIVIAL(trace) << "error = " << error << ", body = " << body << ", status = " << status;
                 }
             ).perform_sync();
-        return 0;
-    }
-
-    int AccountManager::user_login(std::string account, std::string password, LoginFn fn)
-    {
-        // check valid account
-        if (!_check_valid(account, password)) {
-            return -1;
-        }
-
-        Http http = Http::post(std::move(_get_login_url()));
-        std::string json_str = _get_login_request(account, password);
-        http.header("accept", "application/json")
-            .header("Content-Type", "application/json")
-            .set_post_body(json_str)
-            .on_complete([&, this, account, fn](std::string body, unsigned) {
-                std::stringstream ss(body);
-                pt::ptree root;
-                pt::read_json(ss, root);
-
-                boost::optional<std::string> acceptToken = root.get_optional<std::string>("accessToken");
-                if (acceptToken.has_value()) {
-                    BOOST_LOG_TRIVIAL(trace) << "User = " << account << " Login Success!";
-                    if (!m_curr_user) {
-                        m_curr_user = new AccountInfo(account, "", AccountInfo::LoginStatus::STATUS_LOGIN);
-                    } else {
-                        m_curr_user->m_account = account;
-                        m_curr_user->set_login_status(AccountInfo::LoginStatus::STATUS_LOGIN);
-                    }
-                    m_curr_user->set_token(acceptToken.value());
-
-                    //get user id
-                    this->user_get_profile(account, fn);
-                    return;
-                }
-
-                BOOST_LOG_TRIVIAL(trace) << "Account = " << account << " Login Failed! error = " << body;
-                if (fn) {
-                    fn(-1, body);
-                }
-            }).on_error([&, this, account, fn](std::string body, std::string error, unsigned status) {
-                std::string error_tips = (boost::format("Login Failed! status=%1%, error=%2%, body=%3%")
-                                         % status % error % body).str();
-                BOOST_LOG_TRIVIAL(trace) << "Account= " << account << " Login Failed! msg: " << error_tips;
-                if (fn) {
-                    fn(-1, error_tips);
-                }
-            }).perform();
-
-        return 0;
-    }
-
-    int AccountManager::user_get_profile(std::string account, LoginFn fn)
-    {
-        Http http = Http::get(_get_user_profile_url(account));
-        try {
-            http.header("accept", "application/json")
-                .header("Authorization", get_token_str())
-                .header("Content-Type", "application/json")
-                .on_complete([&, fn](std::string body, unsigned code) {
-                    std::stringstream ss(body);
-                    pt::ptree root;
-                    pt::read_json(ss, root);
-                    boost::optional<std::string> uid = root.get_optional<std::string>("uid");
-                    boost::optional<std::string> account = root.get_optional<std::string>("account");
-                    boost::optional<std::string> name = root.get_optional<std::string>("name");
-                    boost::optional<std::string> avatar = root.get_optional<std::string>("avatar");
-                    if (uid.has_value()) {
-                        // update user info
-                        AccountInfo* info = this->get_curr_user();
-                        if (info) {
-                            info->m_name = name.has_value() ? name.value() : "";
-                            info->m_user_id = uid.value();
-                            info->m_avatar = avatar.has_value() ? avatar.value() : "";
-                            save_user_info();
-
-                            /* connect mqtt */
-                            this->on_user_login(1);
-                            if (fn) {
-                                fn(0, "Login Ok!");
-                            }
-                            return;
-                        }
-                    }
-                    if (fn) {
-                        fn(-1, "Login Failed! body=" + body);
-                    }
-                })
-                .on_error([fn](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(trace) << "Get user profile failed! status=" << status << ", error = " << body;
-                    if (fn) {
-                        fn(-1, "get user profile failed");
-                    }
-                })
-                .perform_sync();
-        }
-        catch (std::exception& e) {
-            ;
-        }
         return 0;
     }
 
@@ -1439,30 +1273,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
                     return 0;
     }
 
-    int AccountManager::submit_print_result(std::string device_id, std::string json_str, ResultFn fn)
-    {
-        std::string url = (boost::format("%1%/iot-service/api/user/report") % host).str();
-        Http http = Http::post(url);
-        http.header("accept", "application/json")
-            .header("Authorization", get_token_str())
-            .header("Content-Type", "application/json")
-            .set_post_body(json_str)
-            .on_complete([&, fn](std::string body, unsigned) {
-            BOOST_LOG_TRIVIAL(trace) << "AccountManager::submit_print_result complete, body=" << body;
-            if (fn) {
-                fn(0, body);
-            }
-                })
-            .on_error([&, fn](std::string body, std::string error, unsigned status) {
-                    std::string result_info = "status=" + std::to_string(status) + ",error=" + error + ",body=" + body;
-                    BOOST_LOG_TRIVIAL(trace) << "AccountManager::submit_print_result error, info=" << result_info;
-                    if (fn) {
-                        fn(-1, result_info);
-                    }
-                }).perform();
-                return 0;
-    }
-
     void AccountManager::check_new_version(bool show_tips)
     {
         std::string platform = "windows";
@@ -1536,11 +1346,11 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
             //test
             //version_info.force_upgrade = true;
             if (version_info.force_upgrade) {
-                wxGetApp().app_config->set_bool("force_upgrade", version_info.force_upgrade);
-                wxGetApp().app_config->set("upgrade", "force_upgrade", true);
-                wxGetApp().app_config->set("upgrade", "description", version_info.description);
-                wxGetApp().app_config->set("upgrade", "version", version_info.version_str);
-                wxGetApp().app_config->set("upgrade", "url", version_info.url);
+                GUI::wxGetApp().app_config->set_bool("force_upgrade", version_info.force_upgrade);
+                GUI::wxGetApp().app_config->set("upgrade", "force_upgrade", true);
+                GUI::wxGetApp().app_config->set("upgrade", "description", version_info.description);
+                GUI::wxGetApp().app_config->set("upgrade", "version", version_info.version_str);
+                GUI::wxGetApp().app_config->set("upgrade", "url", version_info.url);
                 GUI::wxGetApp().enter_force_upgrade();
             } else {
                 GUI::wxGetApp().request_new_version();
@@ -1548,7 +1358,7 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         }
         // Same Version
         else if (version_info.compare(SLIC3R_VERSION) == 0) {
-            wxGetApp().app_config->set("upgrade", "force_upgrade", false);
+            GUI::wxGetApp().app_config->set("upgrade", "force_upgrade", false);
             if (show_tips)
                 GUI::wxGetApp().no_new_version();
         } else {
@@ -1909,120 +1719,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
                         }
                     }
                     catch(...) {
-                        ;
-                    }
-                }
-            )
-            .on_error(
-                [this, &result, &http_code, &http_body](std::string body, std::string error, unsigned status) {
-                    result = -1;
-                    http_code = status;
-                    http_body = body;
-                }
-            )
-            .perform_sync();
-        return result;
-    }
-
-    int AccountManager::request_task_id(BBLTask* task, unsigned int& http_code, std::string& http_body)
-    {
-        int result = -1;
-
-        if (!task) return -1;
-
-        std::string json_str = json_request_body_post_task(task);
-        if (json_str.empty()) {
-            BOOST_LOG_TRIVIAL(trace) << "reqeust_task_id failed, json_str is empty";
-            return -1;
-        }
-
-        std::string url = (boost::format("%1%/iot-service/api/user/task") % host).str();
-
-        Http http = Http::post(url);
-        http.header("accept", "application/json")
-            .header("Authorization", get_token_str())
-            .header("Content-Type", "application/json")
-            .set_post_body(json_str)
-            .on_complete(
-                [this, task, &result, &http_code, &http_body](std::string body, unsigned int status) {
-                    http_code = status;
-                    http_body = body;
-                    try {
-                        json j = json::parse(body);
-                        if (is_valid_property(j, "message")) {
-                            if (j["message"].get<std::string>() == MSG_SUCCESS) {
-                                if (is_valid_property(j, "task_id")) {
-                                    task->task_id = j["task_id"].get<std::string>();
-                                    result = 0;
-                                }
-                            }
-                        }
-                    }
-                    catch (...) {
-                        result = -1;
-                    }
-
-                    std::stringstream ss(body);
-                    pt::ptree root;
-                    pt::read_json(ss, root);
-                    boost::optional<std::string> message = root.get_optional<std::string>("message");
-                    boost::optional<std::string> task_id = root.get_optional<std::string>("task_id");
-                    if (message.has_value()) {
-                        if (message.value().compare(MSG_SUCCESS) == 0) {
-                            if (task_id.has_value()) {
-                                task->task_id = task_id.value();
-                                return;
-                            }
-                        }
-                    }
-                    return;
-                }
-            )
-            .on_error(
-                [this, &result, &http_code, &http_body](std::string body, std::string error, unsigned status) {
-                    result = -1;
-                    http_code = status;
-                    http_body = error;
-                }
-            )
-            .perform_sync();
-        return result;
-    }
-
-    int AccountManager::request_subtask_id(BBLSubTask* task, unsigned int &http_code, std::string &http_body)
-    {
-        int result = -1;
-        if (!task) return -1;
-
-        std::string json_str = json_request_body_post_task(task);
-        if (json_str.empty()) {
-            BOOST_LOG_TRIVIAL(trace) << "reqeust_subtask_id json_str is empty";
-            return -1;
-        }
-
-        std::string url = (boost::format("%1%/iot-service/api/user/task") % host).str();
-
-        Http http = Http::post(url);
-        http.header("accept", "application/json")
-            .header("Authorization", get_token_str())
-            .header("Content-Type", "application/json")
-            .set_post_body(json_str)
-            .on_complete(
-                [this, task, &result, &http_code, &http_body](std::string body, unsigned status) {
-                    http_code = status;
-                    http_body = body;
-                    try {
-                        json j = json::parse(body);
-                        if (is_valid_property(j, "message")) {
-                            if (j["message"].get<std::string>() == MSG_SUCCESS) {
-                                if (is_valid_property(j, "task_id")) {
-                                    task->task_id = j["task_id"].get<std::string>();
-                                    result = 0;
-                                }
-                            }
-                        }
-
-                    } catch(...) {
                         ;
                     }
                 }
@@ -3001,7 +2697,7 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
 
     int AccountManager::reload_region_servers(bool update_config)
     {
-        AppConfig* config = wxGetApp().app_config;
+        AppConfig* config = GUI::wxGetApp().app_config;
         std::string country_code = RegionServer::convert_region_to_contry_code(config->get_region());
         if (country_code == "CN") {
             user_region_server.iot_server_host  = "https://api.bambulab.cn/v1";
@@ -3441,22 +3137,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         ;
     }
 
-    void AccountManager::change_curr_user(AccountInfo *pAcc)
-    {
-        if (m_curr_user)
-        {
-            delete m_curr_user;
-        }
-
-        m_curr_user = pAcc;
-        save_user_info();
-
-        if (is_user_login())
-        {
-            on_user_login(1);
-        }
-    }
-
     std::string AccountManager::get_user_name()
     {
         if (m_curr_user) {
@@ -3620,161 +3300,9 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         }
     }
 
-    std::string AccountManager::handle_web_request(std::string cmd)
-    {
-        try {
-            //BBS use nlohmann json format
-            json j = json::parse(cmd);
-
-            std::string web_cmd = j["command"].get<std::string>();
-            if (web_cmd == "request_model_download") {
-                json j_data = j["data"];
-                json import_j;
-                import_j["model_id"]    = j["data"]["model_id"].get<std::string>();
-                import_j["profile_id"] = j["data"]["profile_id"].get<std::string>();
-                import_j["design_id"] = "";
-                if (j["data"].contains("design_id"))
-                    import_j["design_id"] = j["data"]["design_id"].get<std::string>();
-                this->request_model_download(import_j.dump());
-            }
-
-            std::stringstream ss(cmd), oss;
-            pt::ptree root, response;
-            pt::read_json(ss, root);
-            if (root.empty())
-                return "";
-
-            boost::optional<std::string> sequence_id    = root.get_optional<std::string>("sequence_id");
-            boost::optional<std::string> command        = root.get_optional<std::string>("command");
-            if (command.has_value()) {
-                std::string command_str = command.value();
-                if (command_str.compare("request_user_token") == 0) {
-                    AccountInfo* info = get_curr_user();
-                    if (info && is_user_login()) {
-                        response.put("token", info->get_token());
-                        root.put_child("response", response);
-                        pt::write_json(oss, root, false);
-                        return oss.str();
-                    }
-                    else {
-                        response.put("token", "");
-                        root.put_child("response", response);
-                        pt::write_json(oss, root, false);
-                        return oss.str();
-                    }
-                }
-                else if (command_str.compare("request_project_download") == 0) {
-                    if (root.get_child_optional("data") != boost::none) {
-                        pt::ptree data_node = root.get_child("data");
-                        boost::optional<std::string> project_id = data_node.get_optional<std::string>("project_id");
-                        if (project_id.has_value()) {
-                            this->request_project_download(project_id.value());
-                        }
-                    }
-                }
-                else if (command_str.compare("open_project") == 0) {
-                    if (root.get_child_optional("data") != boost::none) {
-                        pt::ptree data_node = root.get_child("data");
-                        boost::optional<std::string> project_id = data_node.get_optional<std::string>("project_id");
-                        if (project_id.has_value()) {
-                            this->request_open_project(project_id.value());
-                        }
-                    }
-                } else if (command_str.compare("get_login_info")==0) {
-                    GUI::wxGetApp().CallAfter([this] { this->show_login_info(); });
-                }
-                else if (command_str.compare("homepage_login_or_register") == 0) {
-                    GUI::wxGetApp().CallAfter([this] { this->request_login_or_register(); });
-                } else if (command_str.compare("homepage_logout")==0) {
-                    GUI::wxGetApp().CallAfter([this] { this->request_logout(); });
-                }
-                else if (command_str.compare("homepage_newproject") == 0) {
-                    this->request_open_project("<new>");
-                }
-                else if (command_str.compare("homepage_openproject") == 0) {
-                    this->request_open_project({});
-                }
-                else if (command_str.compare("get_recent_projects") == 0) {
-                    if (GUI::wxGetApp().mainframe) {
-                        if (GUI::wxGetApp().mainframe->m_webview) {
-                            GUI::wxGetApp().mainframe->m_webview->SendRecentList(from_u8(sequence_id.value()));
-                        }
-                    }
-                }
-                else if (command_str.compare("homepage_open_recentfile") == 0) {
-                    if (root.get_child_optional("data") != boost::none) {
-                        pt::ptree data_node = root.get_child("data");
-                        boost::optional<std::string> path = data_node.get_optional<std::string>("path");
-                        if (path.has_value()) {
-                            this->request_open_project(path.value());
-                        }
-                    }
-                }
-                else if (command_str.compare("homepage_open_hotspot") == 0) {
-                    if (root.get_child_optional("data") != boost::none) {
-                        pt::ptree data_node = root.get_child("data");
-                        boost::optional<std::string> url       = data_node.get_optional<std::string>("url");
-                        if (url.has_value()) {
-                            this->request_open_project(url.value());
-                        }
-                    }
-                }
-            }
-        }
-        catch (...) {
-            BOOST_LOG_TRIVIAL(trace) << "parse json cmd failed " << cmd;
-            return "";
-        }
-        return "";
-    }
-
     void AccountManager::handle_http_error(unsigned int status, std::string body)
     {
         GUI::wxGetApp().handle_http_error(status, body);
-    }
-
-    void AccountManager::request_model_download(std::string import_json)
-    {
-        if (!is_user_login()) {
-            GUI::wxGetApp().request_login();
-            return;
-        }
-        GUI::wxGetApp().request_model_download(import_json);
-    }
-
-    void AccountManager::request_project_download(std::string project_id)
-    {
-        if (!is_user_login()) {
-            GUI::wxGetApp().request_login();
-            return;
-        }
-        GUI::wxGetApp().download_project(project_id);
-    }
-
-    void AccountManager::request_open_project(std::string project_id)
-    {
-        if (project_id == "<new>")
-            GUI::wxGetApp().plater()->new_project();
-        else if (project_id.empty())
-            GUI::wxGetApp().plater()->load_project();
-        else if (std::find_if_not(project_id.begin(), project_id.end(),
-                [](char c) { return std::isdigit(c);}) == project_id.end())
-            ;
-        else if (boost::algorithm::starts_with(project_id, "http"))
-            ;
-        else
-            GUI::wxGetApp().plater()->load_project(wxString::FromUTF8(project_id));
-    }
-
-    void AccountManager::request_login_or_register()
-    {
-         //GUI::LoginDialog dlg;
-         //dlg.ShowModal();
-
-         GUI::ZUserLogin dlg;
-         dlg.run();
-
-         show_login_info();
     }
 
     void AccountManager::show_login_info()
@@ -3794,7 +3322,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
             request_logout();
         }    
     }
-
 
     void AccountManager::request_logout()
     {

@@ -269,10 +269,16 @@ public:
     void            ShowUserLogin();
     void            ShowOnlyFilament();
     //BBS
-    void            request_login();
+    void            request_login(bool show_user_info = false);
     bool            check_login();
+    void            change_user(AccountInfo* user_info);
+    void            on_user_login(int online_login);
+    std::string     handle_web_request(std::string cmd);
     void            request_model_download(std::string import_json);
     void            download_project(std::string project_id);
+    void            request_project_download(std::string project_id);
+    void            request_open_project(std::string project_id);
+
     void            handle_http_error(unsigned int status, std::string body);
     void            on_http_error(wxCommandEvent &evt);
     void            on_user_login(wxCommandEvent &evt);

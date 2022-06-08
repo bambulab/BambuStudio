@@ -21,7 +21,6 @@
 #endif
 
 #include "AboutDialog.hpp"
-#include "LoginDialog.hpp"
 #include "MsgDialog.hpp"
 #include "format.hpp"
 

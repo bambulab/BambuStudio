@@ -473,8 +473,6 @@ void DeviceSearchDialog::update_list()
 {
     gcode_uploading = false;
     _3mf_uploading = false;
-        
-    summary = new PrintSummary();
 
     init();
 
@@ -787,12 +785,6 @@ void DebugToolDialog::init()
                 }
                 this->_3mf_uploading = true;
                 /* collection summary info */
-                summary->time_start = std::time(0);
-                std::tm* now_time = std::localtime(&summary->time_start);
-                std::stringstream buf;
-                buf << std::put_time(now_time, "%a %b %d %H:%M:%S");
-                summary->start_time = buf.str();
-                summary->has_time_start = true;
                 wxString path = txt_3mf_filename->GetValue();
 
                 /* create a subtask */
@@ -883,17 +875,6 @@ void DebugToolDialog::init()
 
     btn_run_gcode->Bind(wxEVT_BUTTON,
         [this](wxCommandEvent& evt) {
-
-            // job is running ?
-
-            /* collection summary info */
-            summary->time_start = std::time(0);
-            std::tm* now_time = std::localtime(&summary->time_start);
-            std::stringstream buf;
-            buf << std::put_time(now_time, "%a %b %d %H:%M:%S");
-            summary->start_time = buf.str();
-            summary->has_time_start = true;
-
             Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
             MachineObject* obj = device_manager->get_default();
             GcodePrintJob* m_print_job = new GcodePrintJob(m_status_bar, txt_gcode_filename->GetValue().ToUTF8().data(), obj);
@@ -1538,41 +1519,7 @@ void DebugToolDialog::on_mqtt_disconnected(wxCommandEvent& evt)
 
 void DebugToolDialog::on_print_end(wxCommandEvent& evt)
 {
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (account_manager && account_manager->is_user_login()) {
-        AccountInfo* user_info = account_manager->get_curr_user();
-        if (user_info) {
-            summary->username = user_info->get_account();
-            summary->user_id = user_info->get_user_id();
-        }
-        /* request to get version*/
-        this->get_version();
-    }
-
-    MachineObject* obj = device_manager->get_default();
-    if (obj) {
-        /* get slicer version */
-        summary->slicer_version = SLIC3R_VERSION;
-
-        /* get device_id */
-        summary->device_id = obj->dev_id;
-        /* get device_ip */
-        summary->device_ip = obj->dev_ip;
-        /* get host ip */
-        summary->host_ip = "192.168.0.1";
-    }
-
-    /* get duration */
-    if (summary->has_time_start) {
-        std::time_t t = std::time(0);
-        summary->duration = std::difftime(t, summary->time_start);
-    }
-    if (obj->subtask_)
-        summary->subtask_id = obj->subtask_->task_id;
-    
-    PrintResultDialog dlg(summary);
-    dlg.ShowModal();
+    ;
 }
 
 void DebugToolDialog::get_version() {
@@ -1876,24 +1823,6 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
                 boost::optional<std::string> gcode_start_time = print.get_optional<std::string>("gcode_start_time");
                 boost::optional<std::string> gcode_duration = print.get_optional<std::string>("gcode_duration");
                 boost::optional<std::string> gcode_file = print.get_optional<std::string>("gcode_file");
-
-                if (gcode_start_time.has_value()) {
-                    summary->start_time = gcode_start_time.value();
-                    BOOST_LOG_TRIVIAL(trace) << "summary start_time=" << summary->start_time;
-                }
-                if (gcode_duration.has_value()) {
-                    try {
-                        summary->duration = std::stoi(gcode_duration.value());
-                        BOOST_LOG_TRIVIAL(trace) << "summary duration=" << summary->duration;
-                    }
-                    catch (...) {
-                        ;
-                    }
-                }
-                if (gcode_file.has_value()) {
-                    summary->print_filename = gcode_file.value();
-                }
-
                 boost::optional<std::string> nozzle_temp_raw = print.get_optional<std::string>("nozzle_temp_raw");
                 boost::optional<std::string> nozzle_temp_target_raw = print.get_optional<std::string>("nozzle_target_temp_raw");
                 boost::optional<std::string> bed_temp_raw = print.get_optional<std::string>("bed_temp_raw");
@@ -2023,7 +1952,6 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
                     try {
                         if (before_progress > 0) {
                             std::string filename = progress.value().substr(0, before_progress);
-                            summary->print_filename = filename;
                         }
                     }
                     catch (std::exception& e) {
@@ -2094,7 +2022,6 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
                     std::stringstream oss;
                     pt::write_json(oss, version, false);
                     std::string json_str = oss.str();
-                    summary->device_version = json_str;
                 }
                 catch (std::exception& e) {
                     ;
@@ -2118,7 +2045,6 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
                         std::stringstream oss;
                         pt::write_json(oss, version, false);
                         std::string version_str = oss.str();
-                        summary->device_version = version_str;
                     }
                     catch (std::exception& e) {
                         ;

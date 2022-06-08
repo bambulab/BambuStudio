@@ -2167,10 +2167,14 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
 }
 
 //BBS
-void GUI_App::request_login()
+void GUI_App::request_login(bool show_user_info)
 {
     ShowUserLogin();
+
+    if (show_user_info)
+        m_account_manager->show_login_info();
 }
+
 
 bool GUI_App::check_login()
 {
@@ -2184,8 +2188,128 @@ bool GUI_App::check_login()
     return result;
 }
 
+void GUI_App::change_user(AccountInfo* user_info)
+{
+    m_account_manager->set_curr_user(user_info);
+
+    if (m_account_manager->is_user_login())
+    {
+        on_user_login(1);
+    }
+}
+
+void  GUI_App::on_user_login(int online_login)
+{
+    auto evt = new wxCommandEvent(EVT_USER_LOGIN);
+    evt->SetInt(online_login);
+    wxQueueEvent(this, evt);
+}
+
+std::string GUI_App::handle_web_request(std::string cmd)
+{
+    try {
+        //BBS use nlohmann json format
+        json j = json::parse(cmd);
+
+        std::string web_cmd = j["command"].get<std::string>();
+        if (web_cmd == "request_model_download") {
+            json j_data = j["data"];
+            json import_j;
+            import_j["model_id"] = j["data"]["model_id"].get<std::string>();
+            import_j["profile_id"] = j["data"]["profile_id"].get<std::string>();
+            import_j["design_id"] = "";
+            if (j["data"].contains("design_id"))
+                import_j["design_id"] = j["data"]["design_id"].get<std::string>();
+            this->request_model_download(import_j.dump());
+        }
+
+        std::stringstream ss(cmd), oss;
+        pt::ptree root, response;
+        pt::read_json(ss, root);
+        if (root.empty())
+            return "";
+
+        boost::optional<std::string> sequence_id = root.get_optional<std::string>("sequence_id");
+        boost::optional<std::string> command = root.get_optional<std::string>("command");
+        if (command.has_value()) {
+            std::string command_str = command.value();
+            if (command_str.compare("request_project_download") == 0) {
+                if (root.get_child_optional("data") != boost::none) {
+                    pt::ptree data_node = root.get_child("data");
+                    boost::optional<std::string> project_id = data_node.get_optional<std::string>("project_id");
+                    if (project_id.has_value()) {
+                        this->request_project_download(project_id.value());
+                    }
+                }
+            }
+            else if (command_str.compare("open_project") == 0) {
+                if (root.get_child_optional("data") != boost::none) {
+                    pt::ptree data_node = root.get_child("data");
+                    boost::optional<std::string> project_id = data_node.get_optional<std::string>("project_id");
+                    if (project_id.has_value()) {
+                        this->request_open_project(project_id.value());
+                    }
+                }
+            }
+            else if (command_str.compare("get_login_info") == 0) {
+                CallAfter([this] {
+                    m_account_manager->show_login_info();
+                    });
+            }
+            else if (command_str.compare("homepage_login_or_register") == 0) {
+                CallAfter([this] {
+                    this->request_login(true);
+                });
+            }
+            else if (command_str.compare("homepage_logout") == 0) {
+                CallAfter([this] {
+                    m_account_manager->request_logout();
+                });
+            }
+            else if (command_str.compare("homepage_newproject") == 0) {
+                this->request_open_project("<new>");
+            }
+            else if (command_str.compare("homepage_openproject") == 0) {
+                this->request_open_project({});
+            }
+            else if (command_str.compare("get_recent_projects") == 0) {
+                if (mainframe) {
+                    if (mainframe->m_webview) {
+                        mainframe->m_webview->SendRecentList(from_u8(sequence_id.value()));
+                    }
+                }
+            }
+            else if (command_str.compare("homepage_open_recentfile") == 0) {
+                if (root.get_child_optional("data") != boost::none) {
+                    pt::ptree data_node = root.get_child("data");
+                    boost::optional<std::string> path = data_node.get_optional<std::string>("path");
+                    if (path.has_value()) {
+                        this->request_open_project(path.value());
+                    }
+                }
+            }
+            else if (command_str.compare("homepage_open_hotspot") == 0) {
+                if (root.get_child_optional("data") != boost::none) {
+                    pt::ptree data_node = root.get_child("data");
+                    boost::optional<std::string> url = data_node.get_optional<std::string>("url");
+                    if (url.has_value()) {
+                        this->request_open_project(url.value());
+                    }
+                }
+            }
+        }
+    }
+    catch (...) {
+        BOOST_LOG_TRIVIAL(trace) << "parse json cmd failed " << cmd;
+        return "";
+    }
+    return "";
+}
+
 void GUI_App::request_model_download(std::string import_json)
 {
+    if (!check_login()) return;
+
     if (plater_) {
         plater_->request_model_download(import_json);
     }
@@ -2197,6 +2321,28 @@ void GUI_App::download_project(std::string project_id)
     if (plater_) {
         plater_->request_download_project(project_id);
     }
+}
+
+void GUI_App::request_project_download(std::string project_id)
+{
+    if (!check_login()) return;
+
+    download_project(project_id);
+}
+
+void GUI_App::request_open_project(std::string project_id)
+{
+    if (project_id == "<new>")
+        plater()->new_project();
+    else if (project_id.empty())
+        plater()->load_project();
+    else if (std::find_if_not(project_id.begin(), project_id.end(),
+        [](char c) { return std::isdigit(c); }) == project_id.end())
+        ;
+    else if (boost::algorithm::starts_with(project_id, "http"))
+        ;
+    else
+        plater()->load_project(wxString::FromUTF8(project_id));
 }
 
 void GUI_App::handle_http_error(unsigned int status, std::string body)

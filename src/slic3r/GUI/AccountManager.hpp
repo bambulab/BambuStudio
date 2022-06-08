@@ -231,7 +231,6 @@ public:
 };
 
 class MachineObject;
-class WebViewPanel;
 
 class AccountManager
 {
@@ -342,8 +341,6 @@ public:
     int connect_mqtt(bool sync = false);
     int disconnect_mqtt();
     void check_mqtt_connection();
-    void add_subscribe(MachineObject* obj);
-    void del_subscribe(MachineObject* obj);
     void add_subscribe(std::string dev_id);
     void del_subscribe(std::string dev_id);
 
@@ -357,10 +354,7 @@ public:
 
     /* user login register apis */
     bool is_user_login();
-    void on_user_login(int online_login = 0);
     int user_login_autotest(std::string account, std::string password);
-    int user_login(std::string account, std::string password, LoginFn fn);
-    int user_get_profile(std::string account, LoginFn fn);
     int user_logout();
     int user_register(std::string account, std::string passoword);
     int request_user_unbind(std::string device_id, ResultFn fn);
@@ -420,12 +414,6 @@ public:
     // POST /api/user/project/{project_id}
     int request_profile_id(BBLProfile* profile, unsigned int &http_code, std::string &http_body);
 
-    // POST /api/user/task
-    int request_task_id(BBLTask* task, unsigned int &http_code, std::string &http_body);
-
-    // POST /api/user/task
-    int request_subtask_id(BBLSubTask* task, unsigned int &http_code, std::string &http_body);
-
     // PUT alibaba oss
     int upload_3mf_to_oss(BBLProfile* profile, unsigned int &http_code, std::string & http_body, Http::ProgressFn proFn = nullptr);
 
@@ -480,9 +468,6 @@ public:
     void parse_setting(PresetBundle* preset_bundle, pt::ptree node, std::string type, std::string attr);
     void _parse_preset_internal(PresetBundle* preset_bundle, std::map<std::string, Preset*>& presets, pt::ptree node, std::string type, std::string attr);
 
-    /* submit */
-    int submit_print_result(std::string device_id, std::string json_str, ResultFn fn);
-
     /* camera */
     void get_camera_url(std::string const &              device,
                         std::function<void(std::string)> callback);
@@ -499,7 +484,13 @@ public:
     /* common apis */
     AccountInfo* get_curr_user() { return m_curr_user; }
     AccountInfo* user() { return m_curr_user; }
-    void         change_curr_user(AccountInfo * pAcc);
+    void        set_curr_user(AccountInfo *user_info) {
+        if (m_curr_user)
+            delete m_curr_user;
+        m_curr_user = user_info;
+        save_user_info();
+    }
+    
     std::string get_user_name();
     std::string get_nick_name();
     std::string get_token_str();
@@ -518,13 +509,7 @@ public:
     }
 
     /* handle webpage command */
-    std::string handle_web_request(std::string cmd);
     void handle_http_error(unsigned int status, std::string body);
-
-    void request_model_download(std::string import_json);
-    void request_project_download(std::string project_id);
-    void request_open_project(std::string project_id);
-    void request_login_or_register();
     void show_login_info();
     void request_logout();
 

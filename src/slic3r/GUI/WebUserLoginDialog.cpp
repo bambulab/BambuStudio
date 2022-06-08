@@ -308,31 +308,13 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
 
             //Save User Info
             AccountInfo *pNewAcc = new Slic3r::AccountInfo(strAccount, strUserID, strToken, strName, strAvatar, AccountInfo::LoginStatus::STATUS_LOGIN, m_AutotestToken);
-            wxGetApp().getAccountManager()->change_curr_user(pNewAcc);
+            wxGetApp().change_user(pNewAcc);
 
             Close();
         } 
     } catch (std::exception &e) {
         //wxMessageBox(e.what(), "json error", wxICON_WARNING);
     }
-
-    // wxLogMessage("Script message received; value = %s, handler = %s",
-    // evt.GetString(), evt.GetMessageHandler()); Slic3r::AccountManager*
-    // account_manager = Slic3r::GUI::wxGetApp().getAccountManager(); std::string
-    // response =
-    // account_manager->handle_web_request(evt.GetString().ToStdString()); if
-    // (response.empty()) return;
-
-    ///* remove \n in response string */
-    // response.erase(std::remove(response.begin(), response.end(), '\n'),
-    // response.end()); if (!response.empty()) {
-    //    m_response_js = wxString::Format("window.postMessage('%s')", response);
-    //    wxCommandEvent* event = new wxCommandEvent(EVT_RESPONSE_MESSAGE,
-    //    this->GetId()); wxQueueEvent(this, event);
-    //}
-    // else {
-    //    m_response_js.clear();
-    //}
 }
 
 void ZUserLogin::RunScript(const wxString &javascript)

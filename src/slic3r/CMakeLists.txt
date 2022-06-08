@@ -339,10 +339,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/BindDialog.hpp
     GUI/AccountManager.hpp
     GUI/AccountManager.cpp
-    GUI/LoginDialog.hpp
-    GUI/LoginDialog.cpp
-    GUI/PrintResultDialog.hpp
-    GUI/PrintResultDialog.cpp
     GUI/SelectMachine.hpp
     GUI/SelectMachine.cpp
     Utils/json_diff.hpp

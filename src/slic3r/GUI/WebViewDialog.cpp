@@ -533,8 +533,7 @@ void WebViewPanel::OnScriptMessage(wxWebViewEvent& evt)
 
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("Script message received; value = %s, handler = %s", evt.GetString(), evt.GetMessageHandler());
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    std::string response = account_manager->handle_web_request(evt.GetString().ToUTF8().data());
+    std::string response = wxGetApp().handle_web_request(evt.GetString().ToUTF8().data());
     if (response.empty()) return;
 
     /* remove \n in response string */

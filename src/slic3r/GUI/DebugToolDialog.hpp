@@ -18,7 +18,6 @@
 #include "MsgDialog.hpp"
 #include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
-#include "slic3r/GUI/PrintResultDialog.hpp"
 #include "slic3r/GUI/DebugToolPanel.h"
 #include "slic3r/GUI/Search.hpp"
 #include "slic3r/GUI/AmsWidgets.hpp"
@@ -214,9 +213,6 @@ public:
 
             std::string m_curr_dev_id;
             int last_progress;
-
-            /* print summery */
-            PrintSummary *summary;
         };
     }
 }
