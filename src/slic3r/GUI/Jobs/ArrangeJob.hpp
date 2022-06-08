@@ -36,6 +36,7 @@ class ArrangeJob : public PlaterJob
 
     //BBS:prepare the items from current selected partplate
     void prepare_partplate();
+    void prepare_wipe_tower();
 
     ArrangePolygon get_arrange_poly_(ModelInstance* mi);
     

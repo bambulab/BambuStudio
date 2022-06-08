@@ -2914,9 +2914,9 @@ void ModelInstance::get_arrange_polygon(void* ap) const
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid object, should not happen";
         return;
     }
-    ret.extrude_id = volume->extruder_id();
-    if (ret.extrude_id == 0) //the default extruder
-        ret.extrude_id = 1;
+    ret.extrude_ids = volume->get_extruders();
+    if (ret.extrude_ids.empty()) //the default extruder
+        ret.extrude_ids.push_back(1);
 
     // get user specified brim width per object
     // Note: if global brim_type=btNoBrim or brAutoBrim, user can't set individual brim_width

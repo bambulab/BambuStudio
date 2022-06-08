@@ -174,13 +174,8 @@ void ArrangeJob::prepare_selected() {
             }
         }
 
-    // BBS: prepare wipe tower for all possible plates
-    for (int bedid = 0; bedid < MAX_NUM_PLATES; bedid++)
-        if (auto wti = get_wipe_tower(*m_plater, bedid)) {
-            ArrangePolygon&& ap = get_wipetower_arrange_poly(&wti);
-            ap.bed_idx = bedid;
-            m_unselected.emplace_back(std::move(ap));
-            }
+    prepare_wipe_tower();    
+
 
     // The strides have to be removed from the fixed items. For the
     // arrangeable (selected) items bed_idx is ignored and the
@@ -239,14 +234,58 @@ void ArrangeJob::prepare_all() {
         }
     }
 
-    // BBS: prepare wipe tower for all possible plates
-    for (int bedid = 0; bedid < MAX_NUM_PLATES; bedid++)
-        if (auto wti = get_wipe_tower(*m_plater, bedid)) {
-            ArrangePolygon&& ap = get_wipetower_arrange_poly(&wti);
-            ap.bed_idx = bedid;
-            m_unselected.emplace_back(std::move(ap));
-        }
+    prepare_wipe_tower();    
 }
+
+void ArrangeJob::prepare_wipe_tower()
+{
+    bool need_wipe_tower = false;
+
+    // estimate if we need wipe tower for all plates:
+    // if multile extruders have same bed temp, we need wipe tower
+    if (!params.is_seq_print) {
+        // need wipe tower if some object has multiple extruders (has paint-on colors)
+        if (!params.allow_multi_materials_on_same_plate) { 
+            for (const auto &item : m_selected)
+                if (item.extrude_ids.size() > 1) {
+                    need_wipe_tower = true;
+                    break;
+                }
+        } else {
+            std::map<int, std::set<int>> bedTemp2extruderIds;
+            for (const auto &item : m_selected)
+                for (auto id : item.extrude_ids) { bedTemp2extruderIds[item.bed_temp].insert(id); }
+            for (const auto &be : bedTemp2extruderIds) {
+                if (be.second.size() > 1) {
+                    need_wipe_tower = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (need_wipe_tower) {
+        // BBS: prepare wipe tower for all possible plates
+        ArrangePolygon    wipe_tower_ap;
+        std::vector<bool> plates_have_wipe_tower(MAX_NUM_PLATES, false);
+        for (int bedid = 0; bedid < MAX_NUM_PLATES; bedid++)
+            if (auto wti = get_wipe_tower(*m_plater, bedid)) {
+                ArrangePolygon &&ap = get_wipetower_arrange_poly(&wti);
+                wipe_tower_ap       = ap;
+                ap.bed_idx          = bedid;
+                m_unselected.emplace_back(std::move(ap));
+                plates_have_wipe_tower[bedid] = true;
+            }
+
+        for (int bedid = 0; bedid < MAX_NUM_PLATES; bedid++) {
+            if (!plates_have_wipe_tower[bedid]) {
+                wipe_tower_ap.bed_idx = bedid;
+                m_unselected.emplace_back(wipe_tower_ap);
+            }
+        }
+    }
+}
+
 
 arrangement::ArrangePolygon ArrangeJob::get_arrange_poly_(ModelInstance *mi)
 {
@@ -333,6 +372,20 @@ void ArrangeJob::prepare()
     wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing,
         NotificationManager::NotificationLevel::RegularNotificationLevel, into_u8(_L("Arranging...")));
     m_plater->get_notification_manager()->bbl_close_plateinfo_notification();
+
+    {
+        const GLCanvas3D::ArrangeSettings &settings = static_cast<const GLCanvas3D *>(m_plater->canvas3D())->get_arrange_settings();
+        auto &                             print    = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+
+        params.clearance_height_to_rod             = print.config().extruder_clearance_height_to_rod.value;
+        params.clearance_height_to_lid             = print.config().extruder_clearance_height_to_lid.value;
+        params.cleareance_radius                   = print.config().extruder_clearance_radius.value;
+        params.allow_rotations                     = settings.enable_rotation;
+        params.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
+        params.avoid_extrusion_cali_region         = settings.avoid_extrusion_cali_region;
+        params.is_seq_print                        = settings.is_seq_print;
+        params.min_obj_distance                    = scaled(settings.distance);
+    }
 
     //BBS update extruder params and speed table before arranging
     Plater::setExtruderParams(Model::extruderParamsMap);
@@ -437,15 +490,6 @@ void ArrangeJob::process()
         static_cast<const GLCanvas3D*>(m_plater->canvas3D())->get_arrange_settings();
     auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
 
-    params.clearance_height_to_rod = print.config().extruder_clearance_height_to_rod.value;
-    params.clearance_height_to_lid = print.config().extruder_clearance_height_to_lid.value;
-    params.cleareance_radius = print.config().extruder_clearance_radius.value;
-    params.allow_rotations = settings.enable_rotation;
-    params.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
-    params.avoid_extrusion_cali_region         = settings.avoid_extrusion_cali_region;
-    params.is_seq_print = settings.is_seq_print;
-    params.min_obj_distance = scaled(settings.distance);
-
     if (params.is_seq_print)
         params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius));
 
@@ -520,11 +564,11 @@ void ArrangeJob::process()
     {
         BOOST_LOG_TRIVIAL(debug) << "items selected before arrange: ";
         for (auto selected : m_selected)
-            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_id << ", bed: " << selected.bed_idx
+            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_ids.back() << ", bed: " << selected.bed_idx
             << ", bed_temp: " << selected.first_bed_temp << ", print_temp: " << selected.print_temp;
         BOOST_LOG_TRIVIAL(debug) << "items unselected before arrange: ";
         for (auto item : m_unselected)
-            BOOST_LOG_TRIVIAL(debug) << item.name << ", extruder: " << item.extrude_id << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
+            BOOST_LOG_TRIVIAL(debug) << item.name << ", extruder: " << item.extrude_ids.back() << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
     }
 
     arrangement::arrange(m_selected, m_unselected, bedpts, params);
@@ -534,12 +578,12 @@ void ArrangeJob::process()
     {
         BOOST_LOG_TRIVIAL(debug) << "items selected after arrange: ";
         for (auto selected : m_selected)
-            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_id << ", bed: " << selected.bed_idx
+            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_ids.back() << ", bed: " << selected.bed_idx
             << ", bed_temp: " << selected.first_bed_temp << ", print_temp: " << selected.print_temp;
         BOOST_LOG_TRIVIAL(debug) << "items unselected after arrange: ";
         for (auto item : m_unselected)
             if (!item.is_virt_object)
-                BOOST_LOG_TRIVIAL(debug) << item.name << ", extruder: " << item.extrude_id << ", bed: " << item.bed_idx
+                BOOST_LOG_TRIVIAL(debug) << item.name << ", extruder: " << item.extrude_ids.back() << ", bed: " << item.bed_idx
                 << ", trans: " << item.translation.transpose();
     }
 

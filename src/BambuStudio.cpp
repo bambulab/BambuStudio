@@ -860,7 +860,7 @@ int CLI::run(int argc, char **argv)
             {
                 BOOST_LOG_TRIVIAL(info) << "items selected before arranging: ";
                 for (auto selected : selected)
-                    BOOST_LOG_TRIVIAL(info) << selected.name << ", extruder: " << selected.extrude_id << ", bed: " << selected.bed_idx
+                    BOOST_LOG_TRIVIAL(info) << selected.name << ", extruder: " << selected.extrude_ids.back() << ", bed: " << selected.bed_idx
                                             << ", trans: " << selected.translation.transpose();
             }
             arrange_cfg.progressind= [](unsigned st, std::string str = "") {
