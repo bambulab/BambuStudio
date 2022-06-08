@@ -332,7 +332,9 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             std::string oldregion = m_ProfileJson["region"];
             bool        bLogin    = false;
             if (m_Region != oldregion) {
-                wxGetApp().getAccountManager()->reload_region_servers();
+                AppConfig* config = GUI::wxGetApp().app_config;
+                std::string country_code = config->get_country_code();
+                wxGetApp().getAccountManager()->update_country_code(country_code);
                 if (wxGetApp().getAccountManager()->is_user_login()) {
                     bLogin = true;
                     wxGetApp().getAccountManager()->user_logout();

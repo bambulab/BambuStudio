@@ -68,8 +68,6 @@ public:
     std::string wifi_code;
     std::string base_domain;
     std::string environment;
-
-    static std::string convert_region_to_contry_code(std::string region);
 };
 
 typedef std::function<void(std::string name)> SuccessFn;
@@ -241,26 +239,15 @@ private:
     std::string host = "";
     std::string test_host = "https://autotest.bambooolab.com";
 
-    /* login, register */
-    std::string _get_login_request(std::string account, std::string password);
-    std::string _get_register_request(std::string account, std::string password);
-    std::string _get_login_url();
-    std::string _get_user_profile_url(std::string account);
-    std::string _get_register_url();
+    /* studio */
     std::string _get_slicer_info_url();
 
     /* bind */
-    std::string _get_bind_request(std::string device_id);
-    std::string _get_unbind_request(std::string device_id);
     std::string _get_bind_url(std::string device_id);
     std::string _get_bind_list_url();
-    std::string _get_bind_list_request();
-    std::string _get_query_bind_request(std::string device_id);
-    std::string _get_query_url(std::string device_id);
     std::string _get_qeury_bind_list_url(std::vector<std::string> device_id_list);
 
 
-    std::string _get_device_json(std::string device_id);
     std::string json_request_body_post_project(BBLProject* project);
     std::string json_request_body_post_profile(BBLProfile* profile);
     std::string json_request_body_post_task(BBLTask* task);
@@ -310,6 +297,23 @@ public:
     typedef std::function<void(int result, std::string info)> ResultFn;
     typedef std::function<bool()> CancelFn;
 
+    //define callbacks
+    typedef std::function<void(int online_login)>       OnUserLoginFn;
+    typedef std::function<void(std::string dev_id)>     OnAmsUpdateFn;
+    typedef std::function<void(std::string topic_str)>  OnPrinterConnectedFn;
+    typedef std::function<void()>                       OnServerConnectedFn;
+
+    // ballbacks
+    OnUserLoginFn           on_user_login_fn;
+    OnAmsUpdateFn           on_ams_update_fn;
+    OnPrinterConnectedFn    on_printer_connected_fn;
+    OnServerConnectedFn     on_server_connected_fn;
+
+    void set_on_user_login_fn(OnUserLoginFn fn) { on_user_login_fn  = fn; }
+    void set_on_ams_update_fn(OnAmsUpdateFn fn) { on_ams_update_fn = fn; }
+    void set_on_printer_connected_fn(OnPrinterConnectedFn fn) { on_printer_connected_fn = fn; }
+    void set_on_server_connected_fn(OnServerConnectedFn fn) { on_server_connected_fn = fn; }
+
     /* bambu stdio agent config */
     json config_json;
     std::string config_dir;
@@ -346,7 +350,7 @@ public:
 
     void set_monitor_machine(std::string dev_id);
     void load_last_machine();
-    void on_printer_subscribe_topic(std::string topic_str);
+    void on_printer_connected(std::string dev_id);
 
     //control subscribe default machine
     void start_subscribe(std::string module = "");
@@ -356,7 +360,6 @@ public:
     bool is_user_login();
     int user_login_autotest(std::string account, std::string password);
     int user_logout();
-    int user_register(std::string account, std::string passoword);
     int request_user_unbind(std::string device_id, ResultFn fn);
     void clean_user_data();
     void user_check_report(int* query_task_id, bool* printable);
@@ -386,7 +389,6 @@ public:
 
     /* bind apis */
     int query_bind_status(std::vector<std::string> device_list, AccountManager::CompletedFn cFn, ErrorFn errFn);
-    int request_bind(std::string device_id, ResultFn fn);
     int request_unbind(std::string device_id, ResultFn fn);
     int request_bind_list(ResultFn fn = nullptr);
 
@@ -451,10 +453,8 @@ public:
     // GET /my/tasks
     int get_tasks(std::string dev_id, unsigned limit, unsigned int &http_code, std::string &http_body);
 
-    // GET region json
-    int get_region_config(unsigned int &http_code, std::string &http_body);
-
-    int reload_region_servers(bool update_config = false);
+    int load_servers_from_region(std::string country_code);
+    int update_country_code(std::string country_code);
 
     bool can_publish();
 

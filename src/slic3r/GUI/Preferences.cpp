@@ -807,21 +807,11 @@ void PreferencesDialog::create_debug_page()
 
             if (iot_environment_map[param] != m_iot_environment_def) {
                 AccountManager *manager = wxGetApp().getAccountManager();
-                if (param == "dev_host") {
-                    app_config->set("iot_environment", ENV_DEV_HOST);
-                    manager->set_host(DEV_HOST_URL);
-                } else if (param == "qa_host") {
-                    app_config->set("iot_environment", ENV_QAT_HOST);
-                    manager->set_host(QAT_HOST_URL);
-                } else if (param == "pre_host") {
-                    app_config->set("iot_environment", ENV_PRE_HOST);
-                    manager->set_host(PRE_HOST_URL);
-                } else if (param == "product_host") {
-                    app_config->set("iot_environment", ENV_PRODUCT_HOST);
-                }
                 manager->user_logout();
 
-                manager->reload_region_servers(false);
+                AppConfig* config = GUI::wxGetApp().app_config;
+                std::string country_code = config->get_country_code();
+                manager->update_country_code(country_code);
                 wxMessageBox(_L("Swith cloud environment, Please login again!"));
             }
 

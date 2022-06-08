@@ -494,7 +494,6 @@ void PresetUpdater::priv::sync_resources(std::map<std::string, Resource> &resour
     }
 
     std::string url = account_manager->get_slicer_info_url();
-    // std::string url = (boost::format("%1%/iot-service/api/slicer/resource") % DEV_HOST_URL).str();
     url += query_params;
     Http http = Http::get(url);
     /*http.header("accept", "application/json")

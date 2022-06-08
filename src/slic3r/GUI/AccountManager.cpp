@@ -1,21 +1,17 @@
 #include "libslic3r/libslic3r.h"
 #include "AccountManager.hpp"
 #include "DeviceManager.hpp"
-#include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Utils.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
-#include "slic3r/GUI/Plater.hpp"
-#include <boost/filesystem/path.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-
 #include <thread>
 #include <mutex>
 #include <codecvt>
+#include <boost/filesystem/path.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <boost/foreach.hpp>
 #include <boost/typeof/typeof.hpp>
-
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -43,42 +39,23 @@ void split_string(std::string s, std::vector<std::string>& v) {
 namespace Slic3r {
 
 
-std::string RegionServer::convert_region_to_contry_code(std::string region)
-{
-    /* fix PRE environment when release to public */
-#if BBL_RELEASE_TO_PUBLIC
-    AppConfig* config = wxGetApp().app_config;
-    config->set("iot_environment", "2");
-    return "ENV_CN_PRE";
-#else
-    AppConfig *config = GUI::wxGetApp().app_config;
-    if (config->is_engineering_region()) { return region; }
-    if (region == "CHN" || region == "China")
-        return "CN";
-    else if (region == "USA")
-        return "US";
-    else if (region == "Asia-Pacific")
-        return "Others";
-    else if (region == "Europe")
-        return "US";
-    else if (region == "North America")
-        return "US";
-    else
-        return "Others";
-    return "";
-#endif
-}
-
     void action_listener::on_success(const mqtt::token& tok) {
         // re sucscribe the monitoring printer
         AccountManager *manager = (AccountManager *) context_;
         for (int i = 0; i < tok.get_topics()->size(); i++) {
             BOOST_LOG_TRIVIAL(trace) << "subscribe topic:" << (*tok.get_topics())[i].c_str() << " success";
             std::string topic_str = (*tok.get_topics())[i];
+            // topic_str = device/device_id/report
+            std::vector<std::string> params;
+            boost::split(params, topic_str, boost::is_any_of("/"));
+            // BBS device, dev_id, report at least 3 params
+            /* params[1] is dev id, topic is : device/[dev_id]/report */
+            if (params.size() <= 2) return;
+            std::string dev_id = params[1];
              if (manager) {
-             GUI::wxGetApp().CallAfter([manager, topic_str] {
-                    manager->on_printer_subscribe_topic(topic_str);
-                });
+                 if (manager->on_printer_connected_fn) {
+                     manager->on_printer_connected_fn(dev_id);
+                 }
             }
         }
 
@@ -93,9 +70,8 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         // re sucscribe the monitoring printer
         AccountManager* manager = (AccountManager*)context_;
         if (manager) {
-            GUI::wxGetApp().CallAfter([manager] {
-                manager->load_last_machine();
-            });
+            if (manager->on_server_connected_fn)
+                manager->on_server_connected_fn();
         }
     }
 
@@ -141,11 +117,11 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
                 it->second->parse_json(msg->get_topic(), msg->get_payload_str());
 
 #if !BBL_RELEASE_TO_PUBLIC
-                if (it->second->is_ams_need_update)
-                    GUI::wxGetApp().CallAfter([manager, m = params[1]] {
-                        std::map<std::string, MachineObject *>::iterator it = manager->myBindMachineList.find(m);
-                        GUI::wxGetApp().sidebar().load_ams_list(it->second->amsList);
-                    });
+                if (it->second->is_ams_need_update) {
+                    if (manager->on_ams_update_fn) {
+                        manager->on_ams_update_fn(params[1]);
+                    }
+                }
 #endif
             }
         }
@@ -365,7 +341,9 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
     {
         m_curr_user = AccountInfo::load_from_json(config_json);
         if (this->is_user_login()) {
-            GUI::wxGetApp().on_user_login(0);
+            if (on_user_login_fn) {
+                on_user_login_fn(0);
+            }
         }
         return 0;
     }
@@ -412,7 +390,7 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
             BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, password = " << m_curr_user->get_token();
             BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, mqtt_host = " << mqtt_host;
 
-            std::string country_code = RegionServer::convert_region_to_contry_code(GUI::wxGetApp().app_config->get_region());
+            std::string country_code = GUI::wxGetApp().app_config->get_country_code();
             if (country_code == "ENV_CN_PRE" || country_code == "ENV_CN_QA" || country_code == "ENV_CN_DEV") {
                 set_engineering_mqtt_opt();
             } else {
@@ -557,23 +535,16 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         }
     }
 
-    void AccountManager::on_printer_subscribe_topic(std::string topic_str)
+    void AccountManager::on_printer_connected(std::string dev_id)
     {
-        // topic_str = device/device_id/report
-        std::vector<std::string> params;
-        boost::split(params, topic_str, boost::is_any_of("/"));
-        // BBS device, dev_id, report at least 3 params
-        if (params.size() <= 2) return;
-
-        /* params[1] is dev id, topic is : device/[dev_id]/report */
-
         /* request_pushing_print */
-        std::map<std::string, MachineObject *>::iterator it = myBindMachineList.find(params[1]);
+        std::map<std::string, MachineObject *>::iterator it = myBindMachineList.find(dev_id);
         if (it != myBindMachineList.end()) {
             it->second->command_request_push_all();
             it->second->command_get_version();
         }
     }
+    
 
     void AccountManager::start_subscribe(std::string module)
     {
@@ -817,40 +788,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
                 http_error = body;
             }).perform_sync();
         return result;
-    }
-
-    int AccountManager::user_register(std::string account, std::string password)
-    {
-        Http http = Http::post(std::move(_get_register_url()));
-        std::string json_str = _get_login_request(account, password);
-        try {
-            http.header("accept", "application/json")
-                .header("Content-Type", "application/json")
-                .set_post_body(json_str)
-                .on_complete([&, account](std::string body, unsigned) {
-                std::stringstream ss(body);
-                pt::ptree root;
-                pt::read_json(ss, root);
-                boost::optional<std::string> ack_status = root.get_optional<std::string>("message");
-                if (ack_status.has_value()) {
-                    if (ack_status.value().compare(MSG_SUCCESS) == 0) {
-                        BOOST_LOG_TRIVIAL(trace) << "Account = " << account << " Register Success!";
-                    }
-                    else {
-                        BOOST_LOG_TRIVIAL(trace) << "Account = " << account << " Register Failed! error = " << body;
-                    }
-                }
-                else {
-                    BOOST_LOG_TRIVIAL(trace) << "Account = " << account << " Register Failed! error = " << body;
-                }
-                    }).on_error([&, account](std::string body, std::string error, unsigned status) {
-                        BOOST_LOG_TRIVIAL(trace) << "Account = " << account << " Register Failed! error = " << body;
-                        }).perform();
-        }
-        catch (std::exception& e) {
-            ;
-        }
-        return 0;
     }
 
     int AccountManager::modify_device_name(std::string dev_id, std::string dev_name, unsigned int& http_code, std::string& http_body)
@@ -1122,61 +1059,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         return 0;
     }
 
-    int AccountManager::request_bind(std::string device_id, ResultFn fn)
-    {
-        if (!m_curr_user) {
-            return -1;
-        }
-
-        std::string url = (boost::format("%1%/iot-service/api/device/%2%/bind") % host % device_id).str();
-        Http http = Http::put2(std::move(url));
-
-        std::string json_str;
-        pt::ptree root;
-        root.put("user_id", m_curr_user->get_user_id());
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        json_str = oss.str();
-
-        http.header("accept", "application/json")
-            .header("Authorization", get_token_str())
-            .header("Content-Type", "application/json")
-            .set_post_body(json_str)
-            .on_complete([&, device_id, fn](std::string body, unsigned) {
-            std::stringstream ss(body);
-            pt::ptree root;
-            pt::read_json(ss, root);
-            boost::optional<std::string> bind_status = root.get_optional<std::string>("message");
-            boost::optional<std::string> user_ca = root.get_optional<std::string>("user_ca");
-            boost::optional<std::string> devs_ca = root.get_optional<std::string>("devs_ca");
-            if (bind_status.has_value()) {
-                if (bind_status.value().compare("success") == 0) {
-                    BOOST_LOG_TRIVIAL(trace) << "Bind Device " << device_id << " OK!";
-                    // call complete function
-                    if (fn) {
-                        fn(0, body);
-                        return;
-                    }
-                }
-                else if (bind_status.value().compare("conflict") == 0) {
-                    BOOST_LOG_TRIVIAL(trace) << "Bind Device " << device_id << "  Conflict!";
-                }
-            }
-
-            if (fn) {
-                std::string info = "Bind Device=" + device_id + " Failed error=" + body;
-                fn(-1, info);
-                BOOST_LOG_TRIVIAL(trace) << "Bind Device " << device_id << "  Failed! error=" << body;
-            }
-                }).on_error([&, device_id, fn](std::string body, std::string error, unsigned status) {
-                    if (fn) {
-                        fn(-1, error);
-                    }
-                    BOOST_LOG_TRIVIAL(trace) << "Bind Device " << device_id << " Failed!";
-                    }).perform();
-                    return 0;
-    }
-
     int AccountManager::request_user_unbind(std::string device_id, ResultFn fn)
     {
         std::string url = (boost::format("%1%/iot-service/api/user/bind") % host).str();
@@ -1260,7 +1142,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
                 }
                 else {
                     BOOST_LOG_TRIVIAL(trace) << "Unind Device " << device_id << " Failed! status = " << bind_status.value();
-                    Slic3r::GUI::wxGetApp().show_message_box("Unbind device=" + device_id + " failed! error=" + body);
                 }
             }
                 }).on_error([&, device_id, fn](std::string body, std::string error, unsigned status) {
@@ -1269,8 +1150,8 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
                         std::string info = "Unbind device=" + device_id + "failed! error=" + body;
                         fn(-1, info);
                     }
-                    }).perform();
-                    return 0;
+                }).perform();
+                return 0;
     }
 
     void AccountManager::check_new_version(bool show_tips)
@@ -2695,58 +2576,67 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         return result;
     }
 
-    int AccountManager::reload_region_servers(bool update_config)
+    int AccountManager::update_country_code(std::string country_code)
     {
-        AppConfig* config = GUI::wxGetApp().app_config;
-        std::string country_code = RegionServer::convert_region_to_contry_code(config->get_region());
+        config_json["agent"]["country_code"] = country_code;
+        return load_servers_from_region(country_code);
+    }
+
+    int AccountManager::load_servers_from_region(std::string country_code)
+    {
         if (country_code == "CN") {
             user_region_server.iot_server_host  = "https://api.bambulab.cn/v1";
             user_region_server.api_servier_host = "https://api.bambulab.cn/";
             user_region_server.mqtt_server_host = "ssl://cn.mqtt.bambulab.com:8883";
             user_region_server.tutk_server_host = "CN";
-            user_region_server.wifi_code        = "CN";
-            user_region_server.base_domain      = "bambulab.cn";
-            user_region_server.environment      = "";
-        } else if (country_code == "US") {
-            user_region_server.iot_server_host  = "https://api.bambulab.com/v1";
+            user_region_server.wifi_code = "CN";
+            user_region_server.base_domain = "bambulab.cn";
+            user_region_server.environment = "";
+        }
+        else if (country_code == "US") {
+            user_region_server.iot_server_host = "https://api.bambulab.com/v1";
             user_region_server.api_servier_host = "https://api.bambulab.com/";
             user_region_server.mqtt_server_host = "ssl://us.mqtt.bambulab.com:8883";
             user_region_server.tutk_server_host = "US";
-            user_region_server.wifi_code        = "US";
-            user_region_server.base_domain      = "bambulab.com";
-            user_region_server.environment      = "";
-        } else if (country_code == "ENV_CN_PRE") {
-            user_region_server.iot_server_host  = "https://api-pre.bambu-lab.com/v1";
+            user_region_server.wifi_code = "US";
+            user_region_server.base_domain = "bambulab.com";
+            user_region_server.environment = "";
+        }
+        else if (country_code == "ENV_CN_PRE") {
+            user_region_server.iot_server_host = "https://api-pre.bambu-lab.com/v1";
             user_region_server.api_servier_host = "https://api-pre.bambu-lab.com/";
             user_region_server.mqtt_server_host = "ssl://47.100.225.51:8883";
             user_region_server.tutk_server_host = "CN";
-            user_region_server.wifi_code        = "CN";
-            user_region_server.base_domain      = "bambu-lab.com";
-            user_region_server.environment      = "-pre";
-        } else if (country_code == "ENV_CN_QA") {
+            user_region_server.wifi_code = "CN";
+            user_region_server.base_domain = "bambu-lab.com";
+            user_region_server.environment = "-pre";
+        }
+        else if (country_code == "ENV_CN_QA") {
             user_region_server.iot_server_host = "https://api-qa.bambu-lab.com/v1";
             user_region_server.api_servier_host = "https://api-qa.bambu-lab.com/";
             user_region_server.mqtt_server_host = "ssl://47.100.225.51:8883";
             user_region_server.tutk_server_host = "CN";
-            user_region_server.wifi_code        = "CN";
-            user_region_server.base_domain      = "bambu-lab.com";
-            user_region_server.environment      = "-qa";
-        } else if (country_code == "ENV_CN_DEV") {
+            user_region_server.wifi_code = "CN";
+            user_region_server.base_domain = "bambu-lab.com";
+            user_region_server.environment = "-qa";
+        }
+        else if (country_code == "ENV_CN_DEV") {
             user_region_server.iot_server_host = "https://api-dev.bambu-lab.com/v1";
             user_region_server.api_servier_host = "https://api-dev.bambu-lab.com/";
             user_region_server.mqtt_server_host = "ssl://47.100.225.51:8883";
             user_region_server.tutk_server_host = "CN";
-            user_region_server.wifi_code        = "CN";
-            user_region_server.base_domain      = "bambu-lab.com";
-            user_region_server.environment      = "-dev";
-        } else {
+            user_region_server.wifi_code = "CN";
+            user_region_server.base_domain = "bambu-lab.com";
+            user_region_server.environment = "-dev";
+        }
+        else {
             user_region_server.iot_server_host = "https://api.bambulab.com/v1";
             user_region_server.api_servier_host = "https://api.bambulab.com/";
             user_region_server.mqtt_server_host = "ssl://us.mqtt.bambulab.com:8883";
             user_region_server.tutk_server_host = "ALL";
-            user_region_server.wifi_code        = "DE";
-            user_region_server.base_domain      = "https://bambulab.com";
-            user_region_server.environment      = "";
+            user_region_server.wifi_code = "DE";
+            user_region_server.base_domain = "https://bambulab.com";
+            user_region_server.environment = "";
         }
         this->set_host(user_region_server.iot_server_host);
 
@@ -2758,62 +2648,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         BOOST_LOG_TRIVIAL(trace) << "region update environment = " << user_region_server.environment;
         BOOST_LOG_TRIVIAL(trace) << "region update wifi_code = " << user_region_server.wifi_code;
         return 0;
-    }
-
-    int AccountManager::get_region_config(unsigned int &http_code, std::string &http_body)
-    {
-        int result = -1;
-        std::string url = REGION_JSON_CONFIG_URL;
-        Http http = Http::get(url);
-        bool http_302 = false;
-        http.timeout_max(10)
-            .header("accept", "application/json")
-            .header("Authorization", get_token_str())
-            .on_complete(
-                [this, &http_code, &http_body, &result](std::string body, unsigned status)
-                {
-                    http_code = status;
-                    http_body = body;
-                    result = 0;
-                })
-            .on_header_callback([this, &http_302, &url](std::string headers)
-            {
-                if (headers.empty()) return;
-                int tag_pos = headers.find("Location:");
-                if (tag_pos > 0) {
-                    size_t start_pos = headers.find("h", tag_pos);
-                    size_t end_pos = headers.find(".json", tag_pos);
-                    end_pos += 5;
-                    if (start_pos > 0 && end_pos > 0 && end_pos > start_pos) {
-                        url = headers.substr(start_pos, end_pos - start_pos);
-                        BOOST_LOG_TRIVIAL(trace) << "get_region_config: found new url = " << url;
-                        http_302 = true;
-                    }
-                }
-
-            })
-            .on_error([this, &http_code, &http_body](std::string body, std::string error, unsigned status) {
-                    http_code = status;
-                    http_body = body;
-                })
-        .perform_sync();
-
-        if (http_302) {
-            Http new_http = Http::get(url);
-            new_http.header("accept", "application/json")
-                .header("Authorization", get_token_str())
-                .on_complete([this, &http_code, &http_body, &result](std::string body, unsigned status) {
-                    http_code = status;
-                    http_body = body;
-                    result    = 0;
-                })
-                .on_error([this, &http_code, &http_body](std::string body, std::string error, unsigned status) {
-                    http_code = status;
-                    http_body = body;
-                })
-                .perform_sync();
-        }
-        return result;
     }
 
     //BBS sync preset bundle when login
@@ -3158,16 +2992,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         host = host_url;
     }
 
-    std::string AccountManager::_get_query_url(std::string device_id)
-    {
-        if (m_curr_user) {
-            return (boost::format("%1%/iot-service/api/user/bind?dev_id=%2%") % host % device_id).str();
-        }
-        else {
-            return "";
-        }
-    }
-
     std::string AccountManager::_get_qeury_bind_list_url(std::vector<std::string> device_id_list)
     {
         std::string dev_id = "";
@@ -3188,25 +3012,9 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         }
     }
 
-
     std::string AccountManager::_get_bind_url(std::string device_id)
     {
         return (boost::format("%1%/iot-service/api/user/%2%/bind") % host % device_id).str();
-    }
-
-    std::string AccountManager::_get_login_url()
-    {
-        return (boost::format("%1%/user-service/user/login") % host).str();
-    }
-
-    std::string AccountManager::_get_user_profile_url(std::string account)
-    {
-        return (boost::format("%1%/user-service/my/profile") % host).str();
-    }
-
-    std::string AccountManager::_get_register_url()
-    {
-        return (boost::format("%1%/user/register") % host).str();
     }
 
     std::string AccountManager::_get_slicer_info_url()
@@ -3222,58 +3030,6 @@ std::string RegionServer::convert_region_to_contry_code(std::string region)
         else {
             return "";
         }
-    }
-
-    std::string AccountManager::_get_bind_list_request()
-    {
-        pt::ptree root;
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        return oss.str();
-    }
-
-    std::string AccountManager::_get_device_json(std::string device_id)
-    {
-        pt::ptree root;
-        root.put("dev_id", device_id);
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        return oss.str();
-    }
-
-    std::string AccountManager::_get_query_bind_request(std::string device_id)
-    {
-        return _get_device_json(device_id);
-    }
-
-    std::string AccountManager::_get_bind_request(std::string device_id)
-    {
-        return _get_device_json(device_id);
-    }
-
-    std::string AccountManager::_get_unbind_request(std::string device_id)
-    {
-        return _get_device_json(device_id);
-    }
-
-    std::string AccountManager::_get_login_request(std::string account, std::string password)
-    {
-        pt::ptree root;
-        root.put("account", account);
-        root.put("password", password);
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        return oss.str();
-    }
-
-    std::string AccountManager::_get_register_request(std::string account, std::string password)
-    {
-        pt::ptree root;
-        root.put("account", account);
-        root.put("password", password);
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        return oss.str();
     }
 
     std::string AccountManager::_get_project_url() {

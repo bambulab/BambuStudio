@@ -2182,25 +2182,6 @@ void MachineObject::update_subtask(std::string subtask_id)
     }*/
 }
 
-void MachineObject::request_bind(ResultFn resFn, bool force_bind)
-{
-    if (force_bind) {
-        acc_.request_bind(dev_id, resFn);
-    }
-    else {
-        /* send json command */
-        pt::ptree root, bind;
-        bind.put("sequence_id", MachineObject::m_sequence_id++);
-        bind.put<std::string>("dev_id", this->dev_id);
-        bind.put<std::string>("user_id", acc_.get_user_id());
-        root.put_child("bind", bind);
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        std::string json_str = oss.str();
-        this->publish_json(json_str, resFn);
-    }
-}
-
 void MachineObject::request_unbind(ResultFn fn)
 {
     acc_.request_user_unbind(this->dev_id, fn);

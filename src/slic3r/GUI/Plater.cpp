@@ -6540,7 +6540,7 @@ void Plater::import_model_id(const std::string& import_json)
         p->project.project_design_id = design_id;
         AppConfig* config = wxGetApp().app_config;
         if (config) {
-            p->project.project_country_code = RegionServer::convert_region_to_contry_code(config->get_region());
+            p->project.project_country_code = config->get_country_code();
         }
 
         // show save new project
@@ -8402,7 +8402,7 @@ void Plater::publish_project()
     p->project.project_country_code = wxGetApp().app_config->get_region();
     AppConfig* config = wxGetApp().app_config;
     if (config) {
-        project->project_country_code = RegionServer::convert_region_to_contry_code(config->get_region());
+        project->project_country_code = config->get_country_code();
     }
 
     bool load_url = true;

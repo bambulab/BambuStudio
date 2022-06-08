@@ -413,7 +413,7 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
 
 void BBLTopbar::OnModelStoreClicked(wxAuiToolBarEvent& event)
 {
-    GUI::wxGetApp().load_url(wxString(wxGetApp().app_config->get_web_host_url() + MODEL_STORE_URL));
+    //GUI::wxGetApp().load_url(wxString(wxGetApp().app_config->get_web_host_url() + MODEL_STORE_URL));
 }
 
 void BBLTopbar::OnPublishClicked(wxAuiToolBarEvent& event)

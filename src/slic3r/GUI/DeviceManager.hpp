@@ -606,7 +606,6 @@ public:
     void update_profile(std::string project_id, std::string profile_id);
 
     /* iot operation apis */
-    void request_bind(ResultFn fn, bool force_bind = false);
     void request_unbind(ResultFn fn);
 
     bool get_firmware_info();

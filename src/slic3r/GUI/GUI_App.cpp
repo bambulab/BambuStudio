@@ -1074,6 +1074,30 @@ GUI_App::GUI_App()
     m_backend = new Slic3r::CommuBackend();
     m_device_manager = new Slic3r::DeviceManager(*m_account_manager, *m_backend);
 
+    //set callbacks
+    m_account_manager->set_on_user_login_fn([this](int online_login) {
+        GUI::wxGetApp().request_user_login(online_login);
+    });
+
+    m_account_manager->set_on_printer_connected_fn([this](std::string dev_id) {
+        GUI::wxGetApp().CallAfter([this, dev_id] {
+            m_account_manager->on_printer_connected(dev_id);
+        });
+    });
+
+    m_account_manager->set_on_server_connected_fn([this]() {
+        GUI::wxGetApp().CallAfter([this] {
+            m_account_manager->load_last_machine();
+        });
+    });
+
+    m_account_manager->set_on_ams_update_fn([this](std::string dev_id) {
+            CallAfter([this, dev_id]{
+                std::map<std::string, MachineObject*>::iterator it = m_account_manager->myBindMachineList.find(dev_id);
+                GUI::wxGetApp().sidebar().load_ams_list(it->second->amsList);
+        });
+    });
+
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
 	this->init_app_config();
 
@@ -1460,11 +1484,10 @@ bool GUI_App::on_init_inner()
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(true);
 
-    //get region config for studio
-    m_account_manager->reload_region_servers(true);
-
     //BBS init account_manager
     m_account_manager->load_config();
+    std::string country_code = app_config->get_country_code();
+    m_account_manager->update_country_code(country_code);
     m_account_manager->load_user_info();
 
     //BBS if load user preset failed
@@ -2194,11 +2217,11 @@ void GUI_App::change_user(AccountInfo* user_info)
 
     if (m_account_manager->is_user_login())
     {
-        on_user_login(1);
+        request_user_login(1);
     }
 }
 
-void  GUI_App::on_user_login(int online_login)
+void  GUI_App::request_user_login(int online_login)
 {
     auto evt = new wxCommandEvent(EVT_USER_LOGIN);
     evt->SetInt(online_login);

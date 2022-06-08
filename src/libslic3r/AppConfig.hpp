@@ -17,13 +17,6 @@ using namespace nlohmann;
 #define ENV_PRE_HOST		"2"
 #define ENV_PRODUCT_HOST	"3"
 
-#define DEV_HOST_URL    "https://api-dev.bambu-lab.com/v1"
-#define QAT_HOST_URL    "https://api-qa.bambu-lab.com/v1"
-#define PRE_HOST_URL    "https://api-pre.bambu-lab.com/v1"
-
-#define DEV_WEB_HOST_URL "https://portal-dev.bambu-lab.com"
-#define QAT_WEB_HOST_URL "https://portal-qa.bambu-lab.com"
-#define PRE_WEB_HOST_URL "https://portal-pre.bambu-lab.com"
 
 namespace Slic3r {
 
@@ -165,8 +158,8 @@ public:
 	std::string 		get_last_backup_dir() const;
 	void                update_last_backup_dir(const std::string &dir);
 
-	std::string			get_web_host_url();
 	std::string         get_region();
+	std::string         get_country_code();
     bool				is_engineering_region();
 
 	// reset the current print / filament / printer selections, so that 

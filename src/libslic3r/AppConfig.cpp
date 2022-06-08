@@ -935,22 +935,6 @@ void AppConfig::update_last_backup_dir(const std::string& dir)
     this->save();
 }
 
-std::string AppConfig::get_web_host_url()
-{
-    std::string sel = get("iot_environment");
-
-    if (sel == ENV_DEV_HOST) {
-        return DEV_WEB_HOST_URL;
-    } else if (sel == ENV_QAT_HOST) {
-        return QAT_WEB_HOST_URL;
-    } else if (sel == ENV_PRE_HOST) {
-        return PRE_WEB_HOST_URL;
-    } else {
-        return QAT_WEB_HOST_URL;
-    }
-    return PRE_WEB_HOST_URL;
-}
-
 std::string AppConfig::get_region()
 {
     std::string sel = get("iot_environment");
@@ -964,6 +948,31 @@ std::string AppConfig::get_region()
     if (region.empty())
         return this->get("region");
     return region;
+}
+
+std::string AppConfig::get_country_code()
+{
+    std::string region = get_region();
+    /* fix PRE environment when release to public */
+#if BBL_RELEASE_TO_PUBLIC
+    this->set("iot_environment", "2");
+    return "ENV_CN_PRE";
+#else
+    if (is_engineering_region()) { return region; }
+    if (region == "CHN" || region == "China")
+        return "CN";
+    else if (region == "USA")
+        return "US";
+    else if (region == "Asia-Pacific")
+        return "Others";
+    else if (region == "Europe")
+        return "US";
+    else if (region == "North America")
+        return "US";
+    else
+        return "Others";
+    return "";
+#endif
 }
 
 bool AppConfig::is_engineering_region(){
