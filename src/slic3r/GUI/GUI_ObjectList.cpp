@@ -224,6 +224,8 @@ ObjectList::ObjectList(wxWindow* parent) :
                 if (filaments_count() > 1 && i <= filaments_count())
                     this->set_extruder_for_selected_items(i);
             }, wxID_LAST+i);
+        
+        m_accel = accel;
     }
 #else //__WXOSX__
     Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
@@ -245,9 +247,7 @@ ObjectList::ObjectList(wxWindow* parent) :
     //Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, &ObjectList::OnDropPossible,    this);
     //Bind(wxEVT_DATAVIEW_ITEM_DROP,          &ObjectList::OnDrop,            this);
 
-#ifdef __WXMSW__
     Bind(wxEVT_DATAVIEW_ITEM_EDITING_STARTED, &ObjectList::OnEditingStarted,  this);
-#endif /* __WXMSW__ */
     Bind(wxEVT_DATAVIEW_ITEM_EDITING_DONE,    &ObjectList::OnEditingDone,     this);
 
     Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, &ObjectList::ItemValueChanged,  this);
@@ -342,7 +342,7 @@ void ObjectList::create_objects_ctrl()
     AppendColumn(name_col);
 
     // column PrintableProperty (Icon) of the view control:
-    AppendBitmapColumn(" ", colPrint, wxDATAVIEW_CELL_INERT, 3*em,
+    AppendBitmapColumn(" ", colPrint, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, 3*em,
         wxALIGN_CENTER_HORIZONTAL, 0);
 
     // column Extruder of the view control:
@@ -4860,22 +4860,44 @@ void ObjectList::ItemValueChanged(wxDataViewEvent &event)
     }
 }
 
-#ifdef __WXMSW__
 // Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
 // Here the last active column is forgotten, so when leaving the editing mode, the next mouse click will not enter the editing mode of the newly selected column.
 void ObjectList::OnEditingStarted(wxDataViewEvent &event)
 {
+#ifdef __WXMSW__
 	m_last_selected_column = -1;
-}
+#else
+    event.Veto(); // Not edit with NSTableView's text
+    auto col = event.GetColumn();
+    if (col == colPrint) {
+        toggle_printable_state();
+        return;
+    }
+    if (col != colFilament && col != colName)
+        return;
+    auto column = GetColumn(col);
+    const auto renderer = column->GetRenderer();
+    auto item = event.GetItem();
+    if (!renderer->GetEditorCtrl()) {
+        renderer->StartEditing(item, GetItemRect(item, column));
+        if (col == colFilament) // TODO: not handle KILL_FOCUS from ComboBox
+            renderer->GetEditorCtrl()->PopEventHandler();
+        else if (col == colName) // TODO: for colName editing, disable shortcuts
+            SetAcceleratorTable(wxNullAcceleratorTable);
+    }
 #endif //__WXMSW__
-
+}
+    
 void ObjectList::OnEditingDone(wxDataViewEvent &event)
 {
     if (event.GetColumn() != colName)
         return;
 
     const auto renderer = dynamic_cast<BitmapTextRenderer*>(GetColumn(colName)->GetRenderer());
-
+#if __WXOSX__
+    SetAcceleratorTable(m_accel);
+#endif
+    
     if (renderer->WasCanceled())
 		wxTheApp->CallAfter([this]{ Plater::show_illegal_characters_warning(this); });
 

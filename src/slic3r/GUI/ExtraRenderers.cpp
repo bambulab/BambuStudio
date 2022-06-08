@@ -259,13 +259,13 @@ bool BitmapChoiceRenderer::GetValue(wxVariant& value) const
 
 bool BitmapChoiceRenderer::Render(wxRect rect, wxDC* dc, int state)
 {
-    int xoffset = 0;
+//    int xoffset = 0;
 
     const wxBitmap& icon = m_value.GetBitmap();
     if (icon.IsOk())
     {
         dc->DrawBitmap(icon, rect.x, rect.y + (rect.height - icon.GetHeight()) / 2);
-        xoffset = icon.GetWidth() + 4;
+//        xoffset = icon.GetWidth() + 4;
 
         if (rect.height==0)
           rect.height= icon.GetHeight();
@@ -273,9 +273,9 @@ bool BitmapChoiceRenderer::Render(wxRect rect, wxDC* dc, int state)
 
 #ifdef _WIN32
     // workaround for Windows DarkMode : Don't respect to the state & wxDATAVIEW_CELL_SELECTED to avoid update of the text color
-    RenderText(m_value.GetText(), xoffset, rect, dc, state & wxDATAVIEW_CELL_SELECTED ? 0 : state);
+//    RenderText(m_value.GetText(), xoffset, rect, dc, state & wxDATAVIEW_CELL_SELECTED ? 0 : state);
 #else
-    RenderText(m_value.GetText(), xoffset, rect, dc, state);
+//    RenderText(m_value.GetText(), xoffset, rect, dc, state);
 #endif
 
     return true;
@@ -283,10 +283,12 @@ bool BitmapChoiceRenderer::Render(wxRect rect, wxDC* dc, int state)
 
 wxSize BitmapChoiceRenderer::GetSize() const
 {
-    wxSize sz = GetTextExtent(m_value.GetText());
+    wxSize sz;// = GetTextExtent(m_value.GetText());
 
-    if (m_value.GetBitmap().IsOk())
+    if (m_value.GetBitmap().IsOk()) {
         sz.x += m_value.GetBitmap().GetWidth() + 4;
+        sz.y = m_value.GetBitmap().GetHeight();
+    }
 
     return sz;
 }
@@ -304,16 +306,10 @@ wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelR
     DataViewBitmapText data;
     data << value;
 
-#ifdef _WIN32
     ::ComboBox *c_editor = new ::ComboBox(parent, wxID_ANY, wxEmptyString,
-#else
-    auto c_editor = new wxBitmapComboBox(parent, wxID_ANY, wxEmptyString,
-#endif
-        labelRect.GetTopLeft(), wxSize(labelRect.GetWidth(), -1), 
+        labelRect.GetTopLeft(), wxSize(labelRect.GetWidth(), -1),
         0, nullptr, wxCB_READONLY | CB_NO_DROP_ICON | CB_NO_TEXT);
-#ifdef _WIN32
     c_editor->GetDropDown().SetUseContentWidth(true);
-#endif
     // BBS
     for (size_t i = 0; i < icons.size(); i++)
         c_editor->Append(wxString::Format("%d", i+1), *icons[i]);
@@ -321,7 +317,7 @@ wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelR
     c_editor->SetSelection(atoi(data.GetText().c_str()) - 1);
 
     
-#ifdef __linux__
+#ifndef _WIN32
     c_editor->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt) {
         // to avoid event propagation to other sidebar items
         evt.StopPropagation();
@@ -352,7 +348,6 @@ bool BitmapChoiceRenderer::GetValueFromEditorCtrl(wxWindow* ctrl, wxVariant& val
     value << bmpText;
     return true;
 }
-
 
 // ----------------------------------------------------------------------------
 // TextRenderer

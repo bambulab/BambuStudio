@@ -122,3 +122,24 @@ wxSize wxMediaCtrl2::DoGetBestSize() const
 
 @end
 
+#include <wx/dataview.h>
+#include <wx/osx/cocoa/dataview.h>
+#include <wx/osx/dataview.h>
+
+@implementation wxCocoaOutlineView (Edit)
+
+- (BOOL)outlineView: (NSOutlineView*) view shouldEditTableColumn:(nullable NSTableColumn *)tableColumn item:(nonnull id)item
+{
+    wxDataViewColumn* const col((wxDataViewColumn *)[tableColumn getColumnPointer]);
+    wxDataViewItem item2([static_cast<wxPointerObject *>(item) pointer]);
+
+    wxDataViewCtrl* const dvc = implementation->GetDataViewCtrl();
+    // Before doing anything we send an event asking if editing of this item is really wanted.
+    wxDataViewEvent event(wxEVT_DATAVIEW_ITEM_EDITING_STARTED, dvc, col, item2);
+    dvc->GetEventHandler()->ProcessEvent( event );
+    if( !event.IsAllowed() )
+        return NO;
+    return YES;
+}
+
+@end

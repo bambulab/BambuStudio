@@ -436,6 +436,7 @@ public:
 private:
 #ifdef __WXOSX__
 //    void OnChar(wxKeyEvent& event);
+    wxAcceleratorTable m_accel;
 #endif /* __WXOSX__ */
     void OnContextMenu(wxDataViewEvent &event);
     void list_manipulation(const wxPoint& mouse_pos, bool evt_context_menu = false);
@@ -449,10 +450,8 @@ private:
     bool can_drop(const wxDataViewItem& item) const ;
 
     void ItemValueChanged(wxDataViewEvent &event);
-#ifdef __WXMSW__
     // Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
 	void OnEditingStarted(wxDataViewEvent &event);
-#endif /* __WXMSW__ */
     void OnEditingDone(wxDataViewEvent &event);
 
     // BBS

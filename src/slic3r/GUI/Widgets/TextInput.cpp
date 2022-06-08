@@ -59,6 +59,7 @@ void TextInput::Create(wxWindow *     parent,
                        const wxSize & size,
                        long           style)
 {
+    text_ctrl = nullptr;
     wxWindow::Create(parent, wxID_ANY, pos, size, style);
 
     wxWindow::SetLabel(label);
@@ -178,10 +179,12 @@ void TextInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     bool align_right = GetWindowStyle() & wxRIGHT;
     if (align_right)
         textPos.x += labelSize.x;
-    wxSize textSize = text_ctrl->GetSize();
-    textSize.x = size.x - textPos.x - labelSize.x - 10;
-    text_ctrl->SetSize(textSize);
-    text_ctrl->SetPosition({textPos.x, (size.y - textSize.y) / 2});
+    if (text_ctrl) {
+            wxSize textSize = text_ctrl->GetSize();
+            textSize.x = size.x - textPos.x - labelSize.x - 10;
+            text_ctrl->SetSize(textSize);
+            text_ctrl->SetPosition({textPos.x, (size.y - textSize.y) / 2});
+    }
 }
 
 void TextInput::DoSetToolTipText(wxString const &tip)

@@ -65,11 +65,11 @@ class BitmapTextRenderer : public wxDataViewCustomRenderer
 public:
     BitmapTextRenderer(bool use_markup = false,
         wxDataViewCellMode mode =
-#ifdef __WXOSX__
-        wxDATAVIEW_CELL_INERT
-#else
+//#ifdef __WXOSX__
+//        wxDATAVIEW_CELL_INERT
+//#else
         wxDATAVIEW_CELL_EDITABLE
-#endif
+//#endif
 
         , int align = wxDVR_DEFAULT_ALIGNMENT
 #if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
@@ -97,11 +97,11 @@ public:
 
     bool        HasEditorCtrl() const override
     {
-#ifdef __WXOSX__
-        return false;
-#else
+//#ifdef __WXOSX__
+//        return false;
+//#else
         return true;
-#endif
+//#endif
     }
     wxWindow*   CreateEditorCtrl(wxWindow* parent, wxRect labelRect, const wxVariant& value) override;
     bool        GetValueFromEditorCtrl(wxWindow* ctrl, wxVariant& value) override;
@@ -133,11 +133,11 @@ class BitmapChoiceRenderer : public wxDataViewCustomRenderer
 {
 public:
     BitmapChoiceRenderer(wxDataViewCellMode mode =
-#ifdef __WXOSX__
-        wxDATAVIEW_CELL_INERT
-#else
+//#ifdef __WXOSX__
+//        wxDATAVIEW_CELL_INERT
+//#else
         wxDATAVIEW_CELL_EDITABLE
-#endif
+//#endif
         , int align = wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL
     ) : wxDataViewCustomRenderer(wxT("DataViewBitmapText"), mode, align) {}
 
