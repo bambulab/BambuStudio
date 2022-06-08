@@ -1212,14 +1212,18 @@ int CLI::run(int argc, char **argv)
             glfwWindowHint(GLFW_ALPHA_BITS, 8);
             glfwWindowHint(GLFW_VISIBLE, false);
             //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+            //glfwDisable(GLFW_AUTO_POLL_EVENTS);
+#ifdef __WXMAC__
+            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#else
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+#endif
+
 #ifdef __linux__
             glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_OSMESA_CONTEXT_API);
 #endif
-            //glfwDisable(GLFW_AUTO_POLL_EVENTS);
-#ifdef __WXMAC__
-            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
+
             GLFWwindow* window = glfwCreateWindow(640, 480, "base_window", NULL, NULL);
             if (window == NULL)
             {
