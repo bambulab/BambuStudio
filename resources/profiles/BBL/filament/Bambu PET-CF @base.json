@@ -11,6 +11,12 @@
     "filament_type": [
         "PET-CF"
     ],
+    "nozzle_temperature_range_low": [
+        "270"
+    ],
+    "nozzle_temperature_range_high": [
+        "300"
+    ],
     "nozzle_temperature_initial_layer": [
         "280"
     ],

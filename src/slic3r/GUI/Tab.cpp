@@ -2380,6 +2380,10 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_cost");
         //BBS
         optgroup->append_single_option_line("temperature_vitrification");
+        Line line = { L("Recommended nozzle temperature"), L("Recommended nozzle temperature range of this filament. 0 means no set") };
+        line.append_option(optgroup->get_option("nozzle_temperature_range_low"));
+        line.append_option(optgroup->get_option("nozzle_temperature_range_high"));
+        optgroup->append_line(line);
 
         optgroup = page->new_optgroup(L("Recommanded temperature range"));
         optgroup->append_single_option_line("bed_temperature_difference");
@@ -2387,7 +2391,7 @@ void TabFilament::build()
         optgroup = page->new_optgroup(L("Print temperature"));
         optgroup->split_multi_line = true;
         optgroup->option_label_at_right = true;
-        Line line = { L("Nozzle"), L("Nozzle temperature when printing") };
+        line = { L("Nozzle"), L("Nozzle temperature when printing") };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
         line.append_option(optgroup->get_option("nozzle_temperature"));
         optgroup->append_line(line);

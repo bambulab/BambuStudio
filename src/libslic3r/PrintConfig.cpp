@@ -2298,6 +2298,22 @@ void PrintConfigDef::init_fff_params()
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 200 });
 
+    def = this->add("nozzle_temperature_range_low", coInts);
+    def->label = L("Min");
+    //def->tooltip = L("");
+    def->sidetext = L("°C");
+    def->min = 0;
+    def->max = max_temp;
+    def->set_default_value(new ConfigOptionInts { 0 });
+
+    def = this->add("nozzle_temperature_range_high", coInts);
+    def->label = L("Max");
+    //def->tooltip = L("");
+    def->sidetext = L("°C");
+    def->min = 0;
+    def->max = max_temp;
+    def->set_default_value(new ConfigOptionInts { 0 });
+
     def = this->add("bed_temperature_difference", coInts);
     def->label = L("Bed temperature difference");
     def->tooltip = L("Do not recommand bed temperature of other layer to be lower than initial layer for more than this threshold. "
@@ -3307,7 +3323,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "tree_support_branch_diameter_angle", "tree_support_collision_resolution",
         "small_perimeter_speed", "max_volumetric_speed", "max_print_speed",
         "support_bottom_z_distance", "support_closing_radius", "slicing_mode", "slice_closing_radius",
-        "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration", "nozzle_temperature_range_high", "nozzle_temperature_range_low",
+        "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer"
     };
 

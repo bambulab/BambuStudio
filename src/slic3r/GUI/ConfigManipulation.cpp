@@ -50,43 +50,27 @@ void ConfigManipulation::toggle_line(const std::string& opt_key, const bool togg
         cb_toggle_line(opt_key, toggle);
 }
 
-//BBS: directly hard-code map the recommanded temperature range by filament_type
-std::vector<int> ConfigManipulation::get_temperature_range_by_filament_type(const std::string &filament_type)
-{
-    if (filament_type == "PLA" || filament_type == "PVA")
-        return std::vector<int>{190, 250};
-    else if (filament_type == "ABS" || filament_type == "ASA")
-        return std::vector<int>{240, 270};
-    else if (filament_type == "TPU")
-        return std::vector<int>{200, 250};
-    else if (filament_type == "PC")
-        return std::vector<int>{260, 280};
-    else if (filament_type == "PET")
-        return std::vector<int>{220, 260};
-    else if (filament_type == "PET-CF" || filament_type == "PA")
-        return std::vector<int>{270, 300};
-    else
-        //BBS: don't need to pop-up temperature checking window if filament_type is unknown or Support
-        return std::vector<int>{0, 0};
-}
-
 void ConfigManipulation::check_nozzle_temperature_range(DynamicPrintConfig *config)
 {
     if (is_msg_dlg_already_exist)
         return;
 
-    std::vector<int> temperature_range;
-    if (config->has("filament_type"))
-        temperature_range = get_temperature_range_by_filament_type(config->opt_string("filament_type", (unsigned int)0));
+    int temperature_range_low = config->has("nozzle_temperature_range_low") ?
+                                config->opt_int("nozzle_temperature_range_low", (unsigned int)0) :
+                                0;
+    int temperature_range_high = config->has("nozzle_temperature_range_high") ?
+                                 config->opt_int("nozzle_temperature_range_high", (unsigned int)0) :
+                                 0;
 
-    if (temperature_range[0] != 0 &&
+    if (temperature_range_low != 0 &&
+        temperature_range_high != 0 &&
         config->has("nozzle_temperature")) {
-        if (config->opt_int("nozzle_temperature", 0) < temperature_range[0] ||
-            config->opt_int("nozzle_temperature", 0) > temperature_range[1])
+        if (config->opt_int("nozzle_temperature", 0) < temperature_range_low ||
+            config->opt_int("nozzle_temperature", 0) > temperature_range_high)
         {
             wxString msg_text = _(L("Nozzle may be blocked when the temperature is out of recommanded range.\n"
                 "Please make sure whether to use the temperature to print.\n\n"));
-            msg_text += wxString::Format(_L("Recommanded nozzle temperature of this filament type is [%d, %d] degree centigrade"), temperature_range[0], temperature_range[1]);
+            msg_text += wxString::Format(_L("Recommanded nozzle temperature of this filament type is [%d, %d] degree centigrade"), temperature_range_low, temperature_range_high);
             MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
             is_msg_dlg_already_exist = true;
             dialog.ShowModal();
@@ -100,18 +84,22 @@ void ConfigManipulation::check_nozzle_temperature_initial_layer_range(DynamicPri
     if (is_msg_dlg_already_exist)
         return;
 
-    std::vector<int> temperature_range;
-    if (config->has("filament_type"))
-        temperature_range = get_temperature_range_by_filament_type(config->opt_string("filament_type", (unsigned int)0));
+    int temperature_range_low = config->has("nozzle_temperature_range_low") ?
+                            config->opt_int("nozzle_temperature_range_low", (unsigned int)0) :
+                            0;
+    int temperature_range_high = config->has("nozzle_temperature_range_high") ?
+                                 config->opt_int("nozzle_temperature_range_high", (unsigned int)0) :
+                                 0;
 
-    if (temperature_range[0] != 0 &&
+    if (temperature_range_low != 0 &&
+        temperature_range_high != 0 &&
         config->has("nozzle_temperature_initial_layer")) {
-        if (config->opt_int("nozzle_temperature_initial_layer", 0) < temperature_range[0] ||
-            config->opt_int("nozzle_temperature_initial_layer", 0) > temperature_range[1])
+        if (config->opt_int("nozzle_temperature_initial_layer", 0) < temperature_range_low ||
+            config->opt_int("nozzle_temperature_initial_layer", 0) > temperature_range_high)
         {
             wxString msg_text = _(L("Nozzle may be blocked when the temperature is out of recommanded range.\n"
                 "Please make sure whether to use the temperature to print.\n\n"));
-            msg_text += wxString::Format(_L("Recommanded nozzle temperature of this filament type is [%d, %d] degree centigrade"), temperature_range[0], temperature_range[1]);
+            msg_text += wxString::Format(_L("Recommanded nozzle temperature of this filament type is [%d, %d] degree centigrade"), temperature_range_low, temperature_range_high);
             MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
             is_msg_dlg_already_exist = true;
             dialog.ShowModal();

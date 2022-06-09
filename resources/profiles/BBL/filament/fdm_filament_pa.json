@@ -64,6 +64,12 @@
     "temperature_vitrification": [
         "108"
     ],
+    "nozzle_temperature_range_low": [
+        "270"
+    ],
+    "nozzle_temperature_range_high": [
+        "300"
+    ],
     "slow_down_min_speed": [
         "20"
     ],
