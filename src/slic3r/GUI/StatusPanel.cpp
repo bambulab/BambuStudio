@@ -1757,8 +1757,10 @@ void StatusPanel::on_ams_load(SimpleEvent &event)
             int old_temp = -1;
             int new_temp = -1;
             try {
-                if (!curr_tray->hot_end_temp_limit.empty()) old_temp = atoi(curr_tray->hot_end_temp_limit.c_str());
-                if (!targ_tray->hot_end_temp_limit.empty()) new_temp = atoi(targ_tray->hot_end_temp_limit.c_str());
+                if (!curr_tray->nozzle_temp_max.empty() && !curr_tray->nozzle_temp_min.empty())
+                    old_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
+                if (!targ_tray->nozzle_temp_max.empty() && !targ_tray->nozzle_temp_min.empty())
+                    new_temp = (atoi(targ_tray->nozzle_temp_min.c_str()) + atoi(targ_tray->nozzle_temp_max.c_str())) / 2;
             } catch (...) {
                 ;
             }

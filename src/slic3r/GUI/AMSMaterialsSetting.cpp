@@ -71,14 +71,24 @@ void AMSMaterialsSetting::create()
     m_sizer_temperature->Add(0, 0, 0, wxEXPAND, 0);
 
     wxBoxSizer *sizer_other           = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *sizer_tempinput_other = new wxBoxSizer(wxHORIZONTAL);
-    m_input_other                     = new ::TextInput(m_panel_body, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE,
+    wxBoxSizer *sizer_tempinput       = new wxBoxSizer(wxHORIZONTAL);
+    m_input_nozzle_min  = new ::TextInput(m_panel_body, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE,
                                     wxTE_CENTRE | wxTE_PROCESS_ENTER);
-    m_input_other->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-    auto bitmapother = new wxStaticBitmap(m_panel_body, -1, create_scaled_bitmap("degree", nullptr, 16), wxDefaultPosition, wxDefaultSize);
-    sizer_tempinput_other->Add(m_input_other, 0, wxALIGN_CENTER, 0);
-    sizer_tempinput_other->Add(bitmapother, 0, wxALIGN_CENTER, 0);
-    sizer_other->Add(sizer_tempinput_other, 0, wxALIGN_CENTER, 0);
+    m_input_nozzle_min->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    auto bitmap_min_degree = new wxStaticBitmap(m_panel_body, -1, create_scaled_bitmap("degree", nullptr, 16), wxDefaultPosition, wxDefaultSize);
+
+    m_input_nozzle_max = new ::TextInput(m_panel_body, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE,
+        wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_input_nozzle_max->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    auto bitmap_max_degree = new wxStaticBitmap(m_panel_body, -1, create_scaled_bitmap("degree", nullptr, 16), wxDefaultPosition, wxDefaultSize);
+
+    sizer_tempinput->Add(m_input_nozzle_min, 1, wxALIGN_CENTER, 0);
+    sizer_tempinput->Add(bitmap_min_degree, 0, wxALIGN_CENTER, 0);
+    sizer_tempinput->Add(FromDIP(10), 0, wxEXPAND, 0);
+    sizer_tempinput->Add(m_input_nozzle_max, 1, wxALIGN_CENTER, 0);
+    sizer_tempinput->Add(bitmap_max_degree, 0, wxALIGN_CENTER, 0);
+
+    sizer_other->Add(sizer_tempinput, 0, wxALIGN_CENTER, 0);
 
     m_sizer_temperature->Add(sizer_other, 0, wxALL | wxALIGN_CENTER, 0);
     m_sizer_temperature->AddStretchSpacer();
@@ -93,20 +103,35 @@ void AMSMaterialsSetting::create()
     warning_text->SetMinSize(wxSize(AMS_MATERIALS_SETTING_BODY_WIDTH, -1));
     warning_text->Hide();
 
-    m_input_other->GetTextCtrl()->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent &e) {
+    m_input_nozzle_min->GetTextCtrl()->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent &e) {
         warning_text->Hide();
         Layout();
         Fit();
         e.Skip();
     });
-    m_input_other->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &e) {
-        input_finish();
+    m_input_nozzle_min->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &e) {
+        input_min_finish();
         e.Skip();
     });
-    m_input_other->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent &e) {
-        input_finish();
+    m_input_nozzle_min->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent &e) {
+        input_min_finish();
         e.Skip();
     });
+
+    m_input_nozzle_max->GetTextCtrl()->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent& e) {
+        warning_text->Hide();
+        Layout();
+        Fit();
+        e.Skip();
+        });
+    m_input_nozzle_max->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent& e) {
+        input_max_finish();
+        e.Skip();
+        });
+    m_input_nozzle_max->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
+        input_max_finish();
+        e.Skip();
+        });
 
     wxBoxSizer *m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_button->Add(0, 0, 1, wxEXPAND, 0);
@@ -179,10 +204,11 @@ AMSMaterialsSetting::~AMSMaterialsSetting()
 }
 
 
-void AMSMaterialsSetting::input_finish() 
+void AMSMaterialsSetting::input_min_finish() 
 {
-    if (m_input_other->GetTextCtrl()->GetValue().empty())return;
-    auto val = std::atoi(m_input_other->GetTextCtrl()->GetValue().c_str());
+    if (m_input_nozzle_min->GetTextCtrl()->GetValue().empty())return;
+
+    auto val = std::atoi(m_input_nozzle_min->GetTextCtrl()->GetValue().c_str());
 
     if (val < FILAMENT_MIN_TEMP || val > FILAMENT_MAX_TEMP) {
         warning_text->Show();
@@ -192,6 +218,23 @@ void AMSMaterialsSetting::input_finish()
     Layout();
     Fit();
 }
+
+void AMSMaterialsSetting::input_max_finish()
+{
+    if (m_input_nozzle_max->GetTextCtrl()->GetValue().empty())return;
+
+    auto val = std::atoi(m_input_nozzle_max->GetTextCtrl()->GetValue().c_str());
+
+    if (val < FILAMENT_MIN_TEMP || val > FILAMENT_MAX_TEMP) {
+        warning_text->Show();
+    }
+    else {
+        warning_text->Hide();
+    }
+    Layout();
+    Fit();
+}
+
 void AMSMaterialsSetting::on_select_cancel(wxMouseEvent &event)
 {
     wxPopupTransientWindow::Dismiss();
@@ -199,11 +242,14 @@ void AMSMaterialsSetting::on_select_cancel(wxMouseEvent &event)
 
 void AMSMaterialsSetting::on_select_ok(wxMouseEvent &event)
 {
-    wxString nozzle_temp  = m_input_other->GetTextCtrl()->GetValue();
+    wxString nozzle_temp_min  = m_input_nozzle_min->GetTextCtrl()->GetValue();
     auto filament         = m_comboBox_filament->GetValue();
 
-    long nozzle_temp_int;
-    nozzle_temp.ToLong(&nozzle_temp_int);
+    wxString nozzle_temp_max = m_input_nozzle_max->GetTextCtrl()->GetValue();
+
+    long nozzle_temp_min_int, nozzle_temp_max_int;
+    nozzle_temp_min.ToLong(&nozzle_temp_min_int);
+    nozzle_temp_max.ToLong(&nozzle_temp_max_int);
 
     wxColour color = m_colourPicker1->GetColour();
     char col_buf[10];
@@ -217,11 +263,12 @@ void AMSMaterialsSetting::on_select_ok(wxMouseEvent &event)
             }
         }
     }
-    if (ams_filament_id.empty() || nozzle_temp.empty()) {
+
+    if (ams_filament_id.empty() || nozzle_temp_min.empty() || nozzle_temp_max.empty() || m_filament_type.empty()) {
         BOOST_LOG_TRIVIAL(trace) << "Invalid Setting id";
     } else {
         if (obj) {
-            obj->command_ams_filament_settings(ams_id, tray_id, ams_filament_id, std::string(col_buf), nozzle_temp_int);
+            obj->command_ams_filament_settings(ams_id, tray_id, ams_filament_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
         }
     }
     wxPopupTransientWindow::Dismiss();
@@ -246,10 +293,10 @@ void AMSMaterialsSetting::Popup(bool show, bool third, wxString filament, wxColo
         m_panel_SN->Show();
         m_comboBox_filament->SetValue(filament);
         m_sn_number->SetLabelText(sn);
-        m_input_other->GetTextCtrl()->SetValue(tep);
+        m_input_nozzle_min->GetTextCtrl()->SetValue(tep);
         m_colourPicker1->SetColour(colour);
         m_comboBox_filament->Disable();
-        m_input_other->Disable();
+        m_input_nozzle_min->Disable();
         wxPopupTransientWindow::Popup();
         Layout();
         return;
@@ -287,13 +334,22 @@ void AMSMaterialsSetting::Popup(bool show, bool third, wxString filament, wxColo
                             filament_items.push_back(filament_it->name);
                             if (filament_it->filament_id == ams_filament_id) {
                                 selection_idx = idx;
-                                ConfigOption* opt = filament_it->config.option("nozzle_temperature");
-                                if (opt) {
-                                    ConfigOptionStrings* opt_strs = dynamic_cast<ConfigOptionStrings*>(opt);
-                                    if (opt_strs) {
-                                        opt_strs->get_at(0);
-                                        wxString text_nozzle_temp = wxString::Format("%s", opt_strs->get_at(0));
-                                        m_input_other->GetTextCtrl()->SetValue(text_nozzle_temp);
+
+                                // update if nozzle_temperature_range is found
+                                ConfigOption* opt_min = filament_it->config.option("nozzle_temperature_range_low");
+                                if(opt_min) {
+                                    ConfigOptionInts* opt_min_ints = dynamic_cast<ConfigOptionInts*>(opt_min);
+                                    if (opt_min_ints) {
+                                        wxString text_nozzle_temp_min = wxString::Format("%d", opt_min_ints->get_at(0));
+                                        m_input_nozzle_min->GetTextCtrl()->SetValue(text_nozzle_temp_min);
+                                    }
+                                }
+                                ConfigOption* opt_max = filament_it->config.option("nozzle_temperature_range_high");
+                                if (opt_max) {
+                                    ConfigOptionInts* opt_max_ints = dynamic_cast<ConfigOptionInts*>(opt_max);
+                                    if (opt_max_ints) {
+                                        wxString text_nozzle_temp_max = wxString::Format("%d", opt_max_ints->get_at(0));
+                                        m_input_nozzle_max->GetTextCtrl()->SetValue(text_nozzle_temp_max);
                                     }
                                 }
                             }
@@ -314,30 +370,48 @@ void AMSMaterialsSetting::Popup(bool show, bool third, wxString filament, wxColo
     wxPopupTransientWindow::Popup();
 }
 
-//void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect) 
-//{
-//    m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
-//}
-
 void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 {
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
             if (it->name.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
-                ConfigOption *opt = it->config.option("nozzle_temperature");
-                if (opt) {
-                    ConfigOptionInts *opt_strs = dynamic_cast<ConfigOptionInts *>(opt);
-                    if (opt_strs) {
-                        wxString text_nozzle_temp = wxString::Format("%d", opt_strs->get_at(0));
-                        m_input_other->GetTextCtrl()->SetValue(text_nozzle_temp);
+                // update if nozzle_temperature_range is found
+                ConfigOption* opt_min = it->config.option("nozzle_temperature_range_low");
+                if (opt_min) {
+                    ConfigOptionInts* opt_min_ints = dynamic_cast<ConfigOptionInts*>(opt_min);
+                    if (opt_min_ints) {
+                        wxString text_nozzle_temp_min = wxString::Format("%d", opt_min_ints->get_at(0));
+                        m_input_nozzle_min->GetTextCtrl()->SetValue(text_nozzle_temp_min);
                     }
                 }
+                ConfigOption* opt_max = it->config.option("nozzle_temperature_range_high");
+                if (opt_max) {
+                    ConfigOptionInts* opt_max_ints = dynamic_cast<ConfigOptionInts*>(opt_max);
+                    if (opt_max_ints) {
+                        wxString text_nozzle_temp_max = wxString::Format("%d", opt_max_ints->get_at(0));
+                        m_input_nozzle_max->GetTextCtrl()->SetValue(text_nozzle_temp_max);
+                    }
+                }
+                ConfigOption* opt_type = it->config.option("filament_type");
+                bool found_filament_type = false;
+                if (opt_type) {
+                    ConfigOptionStrings* opt_type_strs = dynamic_cast<ConfigOptionStrings*>(opt_type);
+                    if (opt_type_strs) {
+                        found_filament_type = true;
+                        m_filament_type = opt_type_strs->get_at(0);
+                    }
+                }
+                if (!found_filament_type)
+                    m_filament_type = "";
             }
         }
     }
-    if (m_input_other->GetTextCtrl()->GetValue().IsEmpty()) {
-        m_input_other->GetTextCtrl()->SetValue("220");
+    if (m_input_nozzle_min->GetTextCtrl()->GetValue().IsEmpty()) {
+        m_input_nozzle_min->GetTextCtrl()->SetValue("220");
+    }
+    if (m_input_nozzle_max->GetTextCtrl()->GetValue().IsEmpty()) {
+        m_input_nozzle_max->GetTextCtrl()->SetValue("220");
     }
 }
 

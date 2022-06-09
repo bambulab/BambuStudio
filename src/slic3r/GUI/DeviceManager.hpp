@@ -186,8 +186,8 @@ public:
     std::string     time;
     std::string     bed_temp_type;
     std::string     bed_temp;
-    std::string     hot_end_temp_max;
-    std::string     hot_end_temp_limit; // hot_endtemp_limit, nozzle temperature
+    std::string     nozzle_temp_max;
+    std::string     nozzle_temp_min;
     std::string     xcam_info;
     std::string     uuid;
 
@@ -523,7 +523,7 @@ public:
     int command_ams_change_filament(int tray_id, int old_temp = 210, int new_temp = 210);
     int command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt);
     int command_ams_calibrate(int ams_id);
-    int command_ams_filament_settings(int ams_id, int tray_id, std::string setting_id, std::string tray_color, int bed_temp);
+    int command_ams_filament_settings(int ams_id, int tray_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max);
     int command_ams_select_tray(std::string tray_id);
     int command_ams_refresh_rfid(std::string tray_id);
 

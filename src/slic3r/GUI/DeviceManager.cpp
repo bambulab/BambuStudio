@@ -832,7 +832,7 @@ int MachineObject::command_ams_calibrate(int ams_id)
     return this->publish_gcode(gcode_cmd);
 }
 
-int MachineObject::command_ams_filament_settings(int ams_id, int tray_id, std::string setting_id, std::string tray_color, int nozzle_temp)
+int MachineObject::command_ams_filament_settings(int ams_id, int tray_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max)
 {
     json j;
     j["print"]["command"] = "ams_filament_setting";
@@ -842,7 +842,9 @@ int MachineObject::command_ams_filament_settings(int ams_id, int tray_id, std::s
     j["print"]["tray_info_idx"] = setting_id;
     // format "FFFFFFFF"   RGBA
     j["print"]["tray_color"]    = tray_color;
-    j["print"]["nozzle_temp"]   = nozzle_temp;
+    j["print"]["nozzle_temp_min"]   = nozzle_temp_min;
+    j["print"]["nozzle_temp_max"] = nozzle_temp_max;
+    j["print"]["tray_type"] = tray_type;
 
     return this->publish_json(j.dump());
 }
@@ -1749,8 +1751,12 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                                 boost::optional<std::string> tray_time          = tray->second.get_optional<std::string>("tray_time");
                                 boost::optional<std::string> bed_temp_type      = tray->second.get_optional<std::string>("bed_temp_type");
                                 boost::optional<std::string> bed_temp           = tray->second.get_optional<std::string>("bed_temp");
+                                boost::optional<std::string> nozzle_temp_max   = tray->second.get_optional<std::string>("nozzle_temp_max");
+                                boost::optional<std::string> nozzle_temp_min   = tray->second.get_optional<std::string>("nozzle_temp_min");
+
                                 boost::optional<std::string> hot_end_temp_max   = tray->second.get_optional<std::string>("hot_end_temp_max");
                                 boost::optional<std::string> hot_end_temp_limit = tray->second.get_optional<std::string>("hot_end_temp_limit");
+
                                 boost::optional<std::string> xcam_info          = tray->second.get_optional<std::string>("xcam_info");
                                 boost::optional<std::string> tray_uuid          = tray->second.get_optional<std::string>("tray_uuid");
 
@@ -1781,8 +1787,14 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                                     curr_tray->time         = tray_time.has_value() ? tray_time.value() : "";
                                     curr_tray->bed_temp_type = bed_temp_type.has_value() ? bed_temp_type.value() : "";
                                     curr_tray->bed_temp      = bed_temp.has_value() ? bed_temp.value() : "";
-                                    curr_tray->hot_end_temp_max = hot_end_temp_max.has_value() ? hot_end_temp_max.value() : "";
-                                    curr_tray->hot_end_temp_limit = hot_end_temp_limit.has_value() ? hot_end_temp_limit.value() : "";
+                                    if (nozzle_temp_max.has_value())
+                                        curr_tray->nozzle_temp_max = nozzle_temp_max.value();
+                                    if (hot_end_temp_max.has_value())
+                                        curr_tray->nozzle_temp_max = nozzle_temp_max.value();
+                                    if (nozzle_temp_min.has_value())
+                                        curr_tray->nozzle_temp_min = nozzle_temp_min.value();
+                                    if (hot_end_temp_limit.has_value())
+                                        curr_tray->nozzle_temp_min = hot_end_temp_limit.value();
                                     curr_tray->xcam_info          = xcam_info.has_value() ? xcam_info.value() : "";
                                     curr_tray->uuid               = tray_uuid.has_value() ? tray_uuid.value() : "";
                                     auto color = tray_color.has_value() ? tray_color.value() : "";

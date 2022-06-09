@@ -35,7 +35,8 @@ public:
     void create();
 
 	void paintEvent(wxPaintEvent &evt);
-    void input_finish();
+    void input_min_finish();
+    void input_max_finish();
     void on_select_cancel(wxMouseEvent &event);
     void Dismiss() override;
     void Popup(bool show,  bool third = true, wxString filament = wxEmptyString, wxColour colour = *wxWHITE, wxString sn = wxEmptyString, wxString tep = wxEmptyString);
@@ -54,6 +55,7 @@ public:
     wxString       m_brand_sn;
     wxString       m_brand_tmp;
     wxColour       m_brand_colour;
+    std::string    m_filament_type;
 
 protected:
     //void on_dpi_changed(const wxRect &suggested_rect) override;
@@ -70,7 +72,8 @@ protected:
     wxColourPickerCtrl *m_colourPicker1;
     wxStaticText *      m_title_temperature;
     wxStaticText *      m_label_other;
-    TextInput *         m_input_other;
+    TextInput *         m_input_nozzle_min;
+    TextInput*          m_input_nozzle_max;
     Button *            m_button_confirm;
     Button *            m_button_cancel;
 
