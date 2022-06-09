@@ -1372,7 +1372,14 @@ bool SelectMachineDialog::Show(bool show)
 
     // basic info
     auto aprint_stats = m_plater->get_partplate_list().get_current_fff_print().print_statistics();
-    auto time         = short_time(aprint_stats.estimated_normal_print_time);
+    wxString time;
+    PartPlate *plate = m_plater->get_partplate_list().get_curr_plate();
+    if (plate) {
+        if (plate->get_slice_result()) {
+            time = wxString::Format("%s", get_bbl_remain_time_dhms(plate->get_slice_result()->print_statistics.modes[0].time));
+        }
+    }
+
     char weight[64];
     ::sprintf(weight, "  %.2f g", aprint_stats.total_weight);
 
