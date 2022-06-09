@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-07 09:53+0800\n"
+"POT-Creation-Date: 2022-06-09 17:07+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -256,14 +256,14 @@ msgid "Bed Shape"
 msgstr ""
 
 msgid ""
-"Nozzle may be blocked when the temperature is out of recommanded range.\n"
+"Nozzle may be blocked when the temperature is out of recommended range.\n"
 "Please make sure whether to use the temperature to print.\n"
 "\n"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"Recommanded nozzle temperature of this filament type is [%d, %d] degree "
+"Recommended nozzle temperature of this filament type is [%d, %d] degree "
 "centigrade"
 msgstr ""
 
@@ -1247,9 +1247,6 @@ msgstr ""
 msgid "Delete the selected object"
 msgstr ""
 
-msgid "Load"
-msgstr ""
-
 msgid "Cube"
 msgstr ""
 
@@ -2094,6 +2091,22 @@ msgid "Calibration"
 msgstr ""
 
 msgid "Calibration program"
+msgstr ""
+
+msgid ""
+"Calibration program detects the status of your device systematically to "
+"minimise deviation. It keeps the device at its the best performance"
+msgstr ""
+
+msgid "Preparation before calibration"
+msgstr ""
+
+msgid ""
+"Before calibration, please make sure a filament is loaded and its nozzle "
+"temperature and bed temperature is set in Feeding lab."
+msgstr ""
+
+msgid "Calibration Flow"
 msgstr ""
 
 msgid "Start Calibration"
@@ -3085,7 +3098,13 @@ msgstr ""
 msgid "Basic information"
 msgstr ""
 
-msgid "Recommanded temperature range"
+msgid "Recommended nozzle temperature"
+msgstr ""
+
+msgid "Recommended nozzle temperature range of this filament. 0 means no set"
+msgstr ""
+
+msgid "Recommended temperature range"
 msgstr ""
 
 msgid "Print temperature"

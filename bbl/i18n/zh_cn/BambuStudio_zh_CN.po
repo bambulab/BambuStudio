@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-07 09:53+0800\n"
+"POT-Creation-Date: 2022-06-09 17:07+0800\n"
 "PO-Revision-Date: 2022-05-17 15:42+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -258,18 +258,18 @@ msgid "Bed Shape"
 msgstr "热床形状"
 
 msgid ""
-"Nozzle may be blocked when the temperature is out of recommanded range.\n"
+"Nozzle may be blocked when the temperature is out of recommended range.\n"
 "Please make sure whether to use the temperature to print.\n"
 "\n"
-msgstr ""
-"当温度超出推荐范围时，喷嘴可能堵塞。\n"
-"请检查是否使用该温度打印。\n"
+msgstr "当温度超过建议的范围时，喷嘴可能会堵塞。\n"
+"请确认是否使用该温度打印\n"
+"\n"
 
 #, c-format, boost-format
 msgid ""
-"Recommanded nozzle temperature of this filament type is [%d, %d] degree "
+"Recommended nozzle temperature of this filament type is [%d, %d] degree "
 "centigrade"
-msgstr "该类型材料的建议喷嘴温度是[%d, %d]摄氏度"
+msgstr "该耗材的推荐喷嘴温度是[%d, %d]摄氏度"
 
 #, c-format, boost-format
 msgid ""
@@ -1298,9 +1298,6 @@ msgstr "删除"
 msgid "Delete the selected object"
 msgstr "删除所选对象"
 
-msgid "Load"
-msgstr "上料"
-
 msgid "Cube"
 msgstr "立方体"
 
@@ -2155,6 +2152,22 @@ msgid "Calibration"
 msgstr ""
 
 msgid "Calibration program"
+msgstr ""
+
+msgid ""
+"Calibration program detects the status of your device systematically to "
+"minimise deviation. It keeps the device at its the best performance"
+msgstr ""
+
+msgid "Preparation before calibration"
+msgstr ""
+
+msgid ""
+"Before calibration, please make sure a filament is loaded and its nozzle "
+"temperature and bed temperature is set in Feeding lab."
+msgstr ""
+
+msgid "Calibration Flow"
 msgstr ""
 
 msgid "Start Calibration"
@@ -3149,7 +3162,13 @@ msgstr "回抽"
 msgid "Basic information"
 msgstr "基础信息"
 
-msgid "Recommanded temperature range"
+msgid "Recommended nozzle temperature"
+msgstr "建议喷嘴温度"
+
+msgid "Recommended nozzle temperature range of this filament. 0 means no set"
+msgstr "该材料的建议喷嘴温度范围。0表示未设置"
+
+msgid "Recommended temperature range"
 msgstr "建议温度范围"
 
 msgid "Print temperature"
@@ -4037,7 +4056,7 @@ msgid ""
 "Can not print multiple filaments which have large difference of temperature "
 "together. Otherwise, the extruder and nozzle may be blocked or damaged "
 "during printing"
-msgstr ""
+msgstr "不能将温度差异过大的材料一起打印。否则挤出机和喷嘴在打印中可能被堵塞或损坏"
 
 msgid "No extrusions under current settings."
 msgstr "根据当前设置，不会生成任何打印。"
@@ -5650,6 +5669,26 @@ msgstr " 对象："
 #, boost-format
 msgid "Error at line %1%:\n"
 msgstr "错误在行%1%：\n"
+
+#~ msgid ""
+#~ "Nozzle may be blocked when the temperature is out of recommanded range.\n"
+#~ "Please make sure whether to use the temperature to print.\n"
+#~ "\n"
+#~ msgstr ""
+#~ "当温度超出推荐范围时，喷嘴可能堵塞。\n"
+#~ "请检查是否使用该温度打印。\n"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Recommanded nozzle temperature of this filament type is [%d, %d] degree "
+#~ "centigrade"
+#~ msgstr "该类型材料的建议喷嘴温度是[%d, %d]摄氏度"
+
+#~ msgid "Load"
+#~ msgstr "上料"
+
+#~ msgid "Recommanded temperature range"
+#~ msgstr "建议温度范围"
 
 #~ msgid "Bed temperature of different bed type when printing"
 #~ msgstr "打印时不同类型热床的温度"

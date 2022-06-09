@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-07 09:53+0800\n"
+"POT-Creation-Date: 2022-06-09 17:07+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -254,14 +254,14 @@ msgid "Bed Shape"
 msgstr "Forma de la base de impresión"
 
 msgid ""
-"Nozzle may be blocked when the temperature is out of recommanded range.\n"
+"Nozzle may be blocked when the temperature is out of recommended range.\n"
 "Please make sure whether to use the temperature to print.\n"
 "\n"
 msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Recommanded nozzle temperature of this filament type is [%d, %d] degree "
+"Recommended nozzle temperature of this filament type is [%d, %d] degree "
 "centigrade"
 msgstr ""
 
@@ -1249,9 +1249,6 @@ msgstr "Borra"
 msgid "Delete the selected object"
 msgstr ""
 
-msgid "Load"
-msgstr "Cargar"
-
 msgid "Cube"
 msgstr ""
 
@@ -2099,6 +2096,22 @@ msgid "Calibration"
 msgstr ""
 
 msgid "Calibration program"
+msgstr ""
+
+msgid ""
+"Calibration program detects the status of your device systematically to "
+"minimise deviation. It keeps the device at its the best performance"
+msgstr ""
+
+msgid "Preparation before calibration"
+msgstr ""
+
+msgid ""
+"Before calibration, please make sure a filament is loaded and its nozzle "
+"temperature and bed temperature is set in Feeding lab."
+msgstr ""
+
+msgid "Calibration Flow"
 msgstr ""
 
 msgid "Start Calibration"
@@ -3090,7 +3103,13 @@ msgstr "Retracción"
 msgid "Basic information"
 msgstr ""
 
-msgid "Recommanded temperature range"
+msgid "Recommended nozzle temperature"
+msgstr ""
+
+msgid "Recommended nozzle temperature range of this filament. 0 means no set"
+msgstr ""
+
+msgid "Recommended temperature range"
 msgstr ""
 
 msgid "Print temperature"
@@ -5497,6 +5516,9 @@ msgstr ""
 #, boost-format
 msgid "Error at line %1%:\n"
 msgstr ""
+
+#~ msgid "Load"
+#~ msgstr "Cargar"
 
 #~ msgid "First layer"
 #~ msgstr "Primera capa"
