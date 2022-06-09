@@ -6183,7 +6183,11 @@ void GLCanvas3D::_render_return_toolbar() const
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     imgui.set_next_window_pos(window_pos_x, window_pos_y, ImGuiCond_Always, 0, 0);
+    
+#ifdef __WINDOWS__
     imgui.set_next_window_size(window_width, window_height, ImGuiCond_Always);
+#endif
+    
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 18.0f);
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.149f, 0.180f, 0.188f, 0.3f));
@@ -6205,7 +6209,8 @@ void GLCanvas3D::_render_return_toolbar() const
     ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     ImVec2 margin = ImVec2(10.0f, 5.0f);
 
-    if (ImGui::ImageTextButton(ImVec2(74.0f, 30.0f), "return", m_return_toolbar.get_return_texture_id(), ImVec2(20.0f, 20.0f), uv0, uv1, -1, bg_col, tint_col, margin)) {
+    ImVec2 real_size = ImVec2(74.0f, 30.0f);
+    if (ImGui::ImageTextButton(real_size, "return", m_return_toolbar.get_return_texture_id(), ImVec2(20.0f, 20.0f), uv0, uv1, -1, bg_col, tint_col, margin)) {
         if (m_canvas != nullptr)
             wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
     }
@@ -6241,33 +6246,47 @@ void GLCanvas3D::_render_paint_toolbar() const
     auto canvas_w = float(get_canvas_size().get_width());
     int extruder_num = colors.size();
     int item_spacing = 8 * wxGetApp().toolbar_icon_scale();
-    int button_size  = GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale() + item_spacing;
+    
+    std::vector<std::string> filament_types;
+   {
+       auto preset_bundle = wxGetApp().preset_bundle;
+       for (auto filament_name : preset_bundle->filament_presets) {
+           for (auto iter = preset_bundle->filaments.lbegin(); iter != preset_bundle->filaments.end(); iter++) {
+               if (filament_name.compare(iter->name) == 0) {
+                   ConfigOption* opt = iter->config.option("filament_type");
+                   ConfigOptionStrings* opt_strs = dynamic_cast<ConfigOptionStrings*>(opt);
+                   filament_types.push_back(opt_strs->get_at(0));
+               }
+           }
+       }
+   }
+    
+   #ifdef __WINDOWS__
+   std::string  item_text   = (boost::format("%1% %2%") % (11) % filament_types[0]).str();
+   const ImVec2 label_size  = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
+   int          button_size = label_size.x + item_spacing;
+   #else
+   int button_size  = GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale() + item_spacing;
+   #endif
+
     imgui.set_next_window_pos(0.5f * (canvas_w + (button_size + item_spacing) * extruder_num), button_size + item_spacing * 2, ImGuiCond_Always, 1.0f, 1.0f);
     imgui.begin(_L("Paint Toolbar"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar);
     bool disabled = !wxGetApp().plater()->can_fillcolor();
     unsigned char rgb[3];
-     std::vector<std::string> filament_types;
-    {
-        auto preset_bundle = wxGetApp().preset_bundle;
-        for (auto filament_name : preset_bundle->filament_presets) {
-            for (auto iter = preset_bundle->filaments.lbegin(); iter != preset_bundle->filaments.end(); iter++) {
-                if (filament_name.compare(iter->name) == 0) {
-                    ConfigOption* opt = iter->config.option("filament_type");
-                    ConfigOptionStrings* opt_strs = dynamic_cast<ConfigOptionStrings*>(opt);
-                    filament_types.push_back(opt_strs->get_at(0));
-                }
-            }
-        }
-    }
+
     for (int i = 0; i < extruder_num; i++) {
         if (i > 0) {
             if (filament_types.size() <= i) continue;
             std::string  item_text  = (boost::format("%1% %2%") % (i + 1) % filament_types[i]).str();
             const ImVec2 label_size = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
+            #ifdef __WINDOWS__
             if (i > 8)
-                ImGui::SameLine(0.5 * item_spacing + (button_size - label_size.x) / 2 + (button_size + item_spacing) * i );
+                ImGui::SameLine(0.5 * item_spacing + (button_size - label_size.x) / 2 + (button_size + item_spacing) * i);
             else
                 ImGui::SameLine((button_size - label_size.x) / 2 + (button_size + item_spacing) * i);
+            #else
+            ImGui::SameLine();
+            #endif     
         }
             //ImGui::SameLine();
         ImGui::PushID(i);
@@ -6301,7 +6320,12 @@ void GLCanvas3D::_render_paint_toolbar() const
         //TODO use filament type from filament management, current use PLA by default
         std::string item_text = (boost::format("%1% %2%") % (i + 1) % filament_types[i]).str();
         const ImVec2 label_size = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
-        ImGui::SameLine(item_spacing + (button_size - label_size.x) / 2 + (button_size + item_spacing) * i);
+        #ifdef __WINDOWS__
+         ImGui::SameLine(item_spacing + (button_size - label_size.x) / 2 + (button_size + item_spacing) * i);
+        #else
+         ImGui::SameLine(item_spacing + item_spacing / 2 + (button_size - label_size.x) / 2 + (button_size + item_spacing * 2) * i);
+        #endif
+       
         Slic3r::GUI::BitmapCache::parse_color(colors[i], rgb);
         float gray = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
         if (gray < 80)
@@ -6389,7 +6413,7 @@ void GLCanvas3D::_render_assemble_info() const
     ImGui::PushFont(font);
     ImGui::PopFont();
     imgui->set_next_window_pos(canvas_w - window_width, 0.0f, ImGuiCond_Always, 0, 0);
-    imgui->set_next_window_size(window_width, window_height, ImGuiCond_Always);
+    //imgui->set_next_window_size(window_width, window_height, ImGuiCond_Always);
     ImGuiWrapper::push_toolbar_style();
     imgui->begin(_L("Assembly Info"), ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
     font->Scale = origScale;
