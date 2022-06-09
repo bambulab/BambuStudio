@@ -1,6 +1,7 @@
 #include "libslic3r/libslic3r.h"
 #include "AccountManager.hpp"
 #include "DeviceManager.hpp"
+#include "BambuNetworkAgent.hpp"
 #include "libslic3r/Utils.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
@@ -578,7 +579,7 @@ namespace Slic3r {
             it->second->command_get_version();
         }
     }
-    
+
 
     void AccountManager::start_subscribe(std::string module)
     {
@@ -1334,43 +1335,60 @@ namespace Slic3r {
         return j.dump();
     }
 
-    std::string AccountManager::json_request_body_post_setting(Preset* preset)
+    std::string AccountManager::json_request_body_post_setting(std::string name, bool is_system, std::map<std::string, std::string>& values_map)
     {
-        std::string result;
-        if (!preset) return "";
-
         json j, setting_node;
 
-        j["public"] = preset->is_system ? true : false;
-        j["version"] = preset->version.to_string();
-        j["type"] = Preset::get_iot_type_string(preset->type);
-        j["name"] = preset->name;
+        j["public"] = is_system ? true : false;
+        j["name"] = name;
+        for (auto it = values_map.begin(); it != values_map.end(); it++) {
+            if (boost::iequals(it->first,IOT_JSON_KEY_VERSION)) {
+                j[IOT_JSON_KEY_VERSION] = it->second;
+            }
+            else if (boost::iequals(it->first, IOT_JSON_KEY_TYPE)) {
+                j[IOT_JSON_KEY_TYPE] = it->second;
+            }
+            else if (boost::iequals(it->first, IOT_JSON_KEY_BASE_ID)) {
+                j[IOT_JSON_KEY_BASE_ID] = it->second;
+            }
+            else
+                setting_node[it->first] = it->second;
+        }
+
+        /*j["type"] = values_map[IOT_JSON_KEY_TYPE];
+
         j["base_id"] = preset->base_id;
         for (const std::string &opt_key : preset->config.keys()) {
             setting_node[opt_key] = preset->config.opt_serialize(opt_key);
         }
-        setting_node["updated_time"] = std::to_string(preset->updated_time);
+        setting_node["updated_time"] = std::to_string(preset->updated_time);*/
         j["setting"] = setting_node;
 
         return j.dump();
     }
 
-    std::string AccountManager::json_request_body_put_setting(Preset* preset)
+    std::string AccountManager::json_request_body_put_setting(std::string name, std::map<std::string, std::string>& values_map)
     {
-        if (!preset) return "";
+        json j, setting_node;
 
-        pt::ptree root, setting_node;
-        root.put("version", preset->version.to_string());
-        root.put("name", preset->name);
-        root.put("base_id", preset->base_id);
-        for (const std::string &opt_key : preset->config.keys()) {
-            setting_node.put(opt_key, preset->config.opt_serialize(opt_key));
+        j["name"] = name;
+         for (auto it = values_map.begin(); it != values_map.end(); it++) {
+            if (boost::iequals(it->first,IOT_JSON_KEY_VERSION)) {
+                j[IOT_JSON_KEY_VERSION] = it->second;
+            }
+            else if (boost::iequals(it->first, IOT_JSON_KEY_TYPE)) {
+                //skip type in this api
+            }
+            else if (boost::iequals(it->first, IOT_JSON_KEY_BASE_ID)) {
+                j[IOT_JSON_KEY_BASE_ID] = it->second;
+            }
+            else
+                setting_node[it->first] = it->second;
         }
-        setting_node.put("updated_time", std::to_string(preset->updated_time));
-        root.add_child("setting", setting_node);
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        return oss.str();
+
+        j["setting"] = setting_node;
+
+        return j.dump();
     }
 
     std::string AccountManager::json_request_poll_3mf_gather_model_only()
@@ -2502,68 +2520,68 @@ namespace Slic3r {
     }
 
     //BBS sync preset bundle when login
-    int AccountManager::get_setting_list(Http::ErrorFn errFn)
+    int AccountManager::get_setting_list(std::string bundle_version, Http::ErrorFn errFn)
     {
-        PresetBundle* preset_bundle = GUI::wxGetApp().preset_bundle;
-        my_presets.clear();
+        //PresetBundle* preset_bundle = GUI::wxGetApp().preset_bundle;
+        m_my_presets.clear();
+        m_system_presets.clear();
 
-        std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
-        std::string query_params = (boost::format("?version=%s") % version).str();
+        std::string query_params = (boost::format("?version=%s") % bundle_version).str();
         std::string url = (boost::format("%1%/iot-service/api/slicer/setting%2%") % host % query_params).str();
         Http http = Http::get(url);
         http.timeout_max(10)
             .header("accept", "application/json")
             .header("Authorization", get_token_str())
             .on_complete(
-                [this, preset_bundle](std::string body, unsigned) {
+                [this](std::string body, unsigned) {
                     std::stringstream ss(body);
                     pt::ptree root;
                     pt::read_json(ss, root);
                     if (root.empty()) return;
                     boost::optional<std::string> message = root.get_optional<std::string>("message");
                     if (message.has_value() && message.value().compare(MSG_SUCCESS) == 0) {
-                        if (root.get_child_optional(PRESET_IOT_PRINTER_TYPE) != boost::none) {
-                            pt::ptree printer_node = root.get_child(PRESET_IOT_PRINTER_TYPE);
+                        if (root.get_child_optional(IOT_PRINTER_TYPE_STRING) != boost::none) {
+                            pt::ptree printer_node = root.get_child(IOT_PRINTER_TYPE_STRING);
                             if (printer_node.get_child_optional("public") != boost::none) {
                                 pt::ptree public_node = printer_node.get_child("public");
                                 for (auto setting_item = public_node.begin(); setting_item != public_node.end(); ++setting_item) {
-                                    parse_setting(preset_bundle, setting_item->second, PRESET_IOT_PRINTER_TYPE, "public");
+                                    parse_setting(setting_item->second, IOT_PRINTER_TYPE_STRING, "public");
                                 }
                             }
                             if (printer_node.get_child_optional("private") != boost::none) {
                                     pt::ptree private_node = printer_node.get_child("private");
                                     for (auto setting_item = private_node.begin(); setting_item != private_node.end(); ++setting_item) {
-                                        parse_setting(preset_bundle, setting_item->second, PRESET_IOT_PRINTER_TYPE, "private");
+                                        parse_setting(setting_item->second, IOT_PRINTER_TYPE_STRING, "private");
                                     }
                                 }
                         }
-                        if (root.get_child_optional(PRESET_IOT_FILAMENT_TYPE) != boost::none) {
-                            pt::ptree filament_node = root.get_child(PRESET_IOT_FILAMENT_TYPE);
+                        if (root.get_child_optional(IOT_FILAMENT_STRING) != boost::none) {
+                            pt::ptree filament_node = root.get_child(IOT_FILAMENT_STRING);
                             if (filament_node.get_child_optional("public") != boost::none) {
                                 pt::ptree public_node = filament_node.get_child("public");
                                 for (auto setting_item = public_node.begin(); setting_item != public_node.end(); ++setting_item) {
-                                    parse_setting(preset_bundle, setting_item->second, PRESET_IOT_FILAMENT_TYPE, "public");
+                                    parse_setting(setting_item->second, IOT_FILAMENT_STRING, "public");
                                 }
                             }
                             if (filament_node.get_child_optional("private") != boost::none) {
                                 pt::ptree private_node = filament_node.get_child("private");
                                 for (auto setting_item = private_node.begin(); setting_item != private_node.end(); ++setting_item) {
-                                    parse_setting(preset_bundle, setting_item->second, PRESET_IOT_FILAMENT_TYPE, "private");
+                                    parse_setting(setting_item->second, IOT_FILAMENT_STRING, "private");
                                 }
                             }
                         }
-                        if (root.get_child_optional(PRESET_IOT_PRINT_TYPE) != boost::none) {
-                            pt::ptree print_node = root.get_child(PRESET_IOT_PRINT_TYPE);
+                        if (root.get_child_optional(IOT_PRINT_TYPE_STRING) != boost::none) {
+                            pt::ptree print_node = root.get_child(IOT_PRINT_TYPE_STRING);
                             if (print_node.get_child_optional("public") != boost::none) {
                                 pt::ptree public_node = print_node.get_child("public");
                                 for (auto setting_item = public_node.begin(); setting_item != public_node.end(); ++setting_item) {
-                                    parse_setting(preset_bundle, setting_item->second, PRESET_IOT_PRINT_TYPE, "public");
+                                    parse_setting(setting_item->second, IOT_PRINT_TYPE_STRING, "public");
                                 }
                             }
                             if (print_node.get_child_optional("private") != boost::none) {
                                 pt::ptree private_node = print_node.get_child("private");
                                 for (auto setting_item = private_node.begin(); setting_item != private_node.end(); ++setting_item) {
-                                    parse_setting(preset_bundle, setting_item->second, PRESET_IOT_PRINT_TYPE, "private");
+                                    parse_setting(setting_item->second, IOT_PRINT_TYPE_STRING, "private");
                                 }
                             }
                         }
@@ -2572,24 +2590,25 @@ namespace Slic3r {
         ).on_error(errFn)
         .perform_sync();
 
-        std::map<std::string, Preset*>::iterator it;
-        for (it = my_presets.begin(); it != my_presets.end(); it++) {
-            get_setting(it->second);
+        std::map<std::string, std::map<std::string, std::string>>::iterator it;
+        for (it = m_my_presets.begin(); it != m_my_presets.end(); it++) {
+            get_setting(it->first, it->second);
         }
 
         GUI::wxGetApp().reload_settings();
         return 0;
     }
 
-    void AccountManager::get_setting(Preset *&preset, std::function<void(void)> callback)
+    void AccountManager::get_setting(std::string name, std::map<std::string, std::string>& values_map, std::function<void(void)> callback)
     {
-        std::string url = (boost::format("%1%/iot-service/api/slicer/setting/%2%") % host % preset->setting_id).str();
+        std::string setting_id = values_map[IOT_JSON_KEY_SETTING_ID];
+        std::string url = (boost::format("%1%/iot-service/api/slicer/setting/%2%") % host % setting_id).str();
         Http http = Http::get(url);
 
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
             .on_complete(
-                [this, preset, callback](std::string body, unsigned) {
+                [this, &values_map, callback](std::string body, unsigned) {
                     std::stringstream ss(body);
                     pt::ptree root;
                     pt::read_json(ss, root);
@@ -2597,40 +2616,37 @@ namespace Slic3r {
                     boost::optional<std::string> message = root.get_optional<std::string>("message");
                     if (message.has_value() && message.value().compare(MSG_SUCCESS) == 0) {
                         boost::optional<bool> public_str = root.get_optional<bool>("public");
-                        boost::optional<std::string> version = root.get_optional<std::string>("version");
-                        boost::optional<std::string> name = root.get_optional<std::string>("name");
-                        boost::optional<std::string> type = root.get_optional<std::string>("type");
-                        boost::optional<std::string> base_id = root.get_optional<std::string>("base_id");
-                        boost::optional<std::string> filament_id = root.get_optional<std::string>("filament_id");
+                        boost::optional<std::string> version = root.get_optional<std::string>(IOT_JSON_KEY_VERSION);
+                        boost::optional<std::string> name = root.get_optional<std::string>(IOT_JSON_KEY_NAME);
+                        boost::optional<std::string> type = root.get_optional<std::string>(IOT_JSON_KEY_TYPE);
+                        boost::optional<std::string> base_id = root.get_optional<std::string>(IOT_JSON_KEY_BASE_ID);
+                        boost::optional<std::string> filament_id = root.get_optional<std::string>(IOT_JSON_KEY_FILAMENT_ID);
 
-                        if (name.has_value()) {
-                            if (preset->name.empty())
-                                preset->name = name.value();
-                        }
+                        /*if (name.has_value()) {
+                            if (values_map[IOT_JSON_KEY_NAME].empty())
+                                values_map[IOT_JSON_KEY_NAME] = name.value();
+                        }*/
 
                         if (base_id.has_value()) {
-                            preset->base_id = base_id.value();
-                            if (preset->base_id.compare("null") == 0)
-                                preset->base_id.clear();
+                            values_map[IOT_JSON_KEY_BASE_ID] = base_id.value();
+                            if (values_map[IOT_JSON_KEY_BASE_ID].compare("null") == 0)
+                                values_map[IOT_JSON_KEY_BASE_ID].clear();
                         }
 
                         // check setting field and update setting field
                         if (root.get_child_optional("setting") != boost::none) {
                             pt::ptree setting_node = root.get_child("setting");
                             for (auto item = setting_node.begin(); item != setting_node.end(); ++item) {
-                                if (item->first == "updated_time")
-                                    preset->updated_time = std::atoll(item->second.data().c_str());
-                                else
-                                    preset->key_values.insert(std::make_pair(item->first, item->second.data()));
+                                values_map[item->first] = item->second.data();
                             }
                         }
                         if (version.has_value())
-                            preset->key_values.insert(std::make_pair("version", version.value()));
+                            values_map[IOT_JSON_KEY_VERSION] = version.value();
                         if (filament_id.has_value()) {
-                            preset->filament_id = filament_id.value();
+                            values_map[IOT_JSON_KEY_FILAMENT_ID] = filament_id.value();
                         }
                         if (m_curr_user)
-                            preset->key_values.insert(std::make_pair("user_id", m_curr_user->get_user_id()));
+                            values_map[IOT_JSON_KEY_USER_ID] = m_curr_user->get_user_id();
                     }
                     if (callback) callback();
                 }
@@ -2641,14 +2657,13 @@ namespace Slic3r {
             http.perform();
     }
 
-    int AccountManager::request_setting_id(Preset* &preset, unsigned int& http_code)
+    std::string AccountManager::request_setting_id(std::string name, std::map<std::string, std::string>& values_map, unsigned int& http_code)
     {
-        if (!preset) return -1;
-
         std::string url = (boost::format("%1%/iot-service/api/slicer/setting") % host).str();
 
         std::vector<std::string> params;
-        std::string request_str = json_request_body_post_setting(preset);
+        std::string request_str = json_request_body_post_setting(name, false, values_map);
+        std::string new_setting_id;
 
         Http http = Http::post(url);
         http.header("accept", "application/json")
@@ -2656,7 +2671,7 @@ namespace Slic3r {
             .header("Content-Type", "application/json")
             .set_post_body(request_str)
             .on_complete(
-                [this, preset, &http_code](std::string body, unsigned int code) {
+                [this, &new_setting_id, &http_code](std::string body, unsigned int code) {
                     BOOST_LOG_TRIVIAL(trace) << "request setting id, body=" << body;
                     http_code = code;
                     std::stringstream ss(body);
@@ -2664,11 +2679,11 @@ namespace Slic3r {
                     pt::read_json(ss, root);
                     if (root.empty()) return;
                     boost::optional<std::string> message = root.get_optional<std::string>("message");
-                    boost::optional<std::string> setting_id = root.get_optional<std::string>("setting_id");
+                    boost::optional<std::string> setting_id = root.get_optional<std::string>(IOT_JSON_KEY_SETTING_ID);
                     if (message.has_value()) {
                         if (message.value().compare(MSG_SUCCESS) == 0) {
                             if (setting_id.has_value()) {
-                                preset->setting_id = setting_id.value();
+                                new_setting_id = setting_id.value();
                                 return;
                             }
                         }
@@ -2679,15 +2694,15 @@ namespace Slic3r {
                     BOOST_LOG_TRIVIAL(trace) << "error = " << error << ", body = " << body << ", code = " << code;
                 }
             ).perform_sync();
-        return 0;
+        return new_setting_id;
     }
 
-    int AccountManager::put_setting(Preset* preset, unsigned int& http_code)
+    int AccountManager::put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>& values_map, unsigned int& http_code)
     {
         int result = -1;
         int* result_ptr = &result;
-        std::string request_body = json_request_body_put_setting(preset);
-        std::string url = (boost::format("%1%/iot-service/api/slicer/setting/%2%") % host % preset->setting_id).str();
+        std::string request_body = json_request_body_put_setting(name, values_map);
+        std::string url = (boost::format("%1%/iot-service/api/slicer/setting/%2%") % host % setting_id).str();
         Http http = Http::patch(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
@@ -2748,64 +2763,34 @@ namespace Slic3r {
         return result;
     }
 
-    void AccountManager::parse_setting(PresetBundle* preset_bundle, pt::ptree node, std::string type, std::string attr)
+    void AccountManager::parse_setting(pt::ptree node, std::string type, std::string attr)
     {
-        _parse_preset_internal(preset_bundle, my_presets, node, type, attr);
+        bool is_system = attr.compare("public") == 0 ? true : false;
+        if (is_system)
+            _parse_preset_internal(m_system_presets, node, type, is_system);
+        else
+            _parse_preset_internal(m_my_presets, node, type, is_system);
     }
 
-    void AccountManager::_parse_preset_internal(PresetBundle* preset_bundle, std::map<std::string, Preset*>& presets, pt::ptree node, std::string type, std::string attr)
+    void AccountManager::_parse_preset_internal(std::map<std::string, std::map<std::string, std::string>>& setting_maps, pt::ptree node, std::string type, bool is_system)
     {
-        boost::optional<std::string> setting_id = node.get_optional<std::string>("setting_id");
-        boost::optional<std::string> version = node.get_optional<std::string>("version");
-        boost::optional<std::string> name = node.get_optional<std::string>("name");
+        std::map<std::string, std::string> key_values;
+        boost::optional<std::string> setting_id = node.get_optional<std::string>(IOT_JSON_KEY_SETTING_ID);
+        boost::optional<std::string> version = node.get_optional<std::string>(IOT_JSON_KEY_VERSION);
+        boost::optional<std::string> name = node.get_optional<std::string>(IOT_JSON_KEY_NAME);
 
-        if (setting_id.has_value()) {
-            bool is_system = attr.compare("public") == 0 ? true : false;
-            Preset::Type curr_type = Preset::get_type_from_string(type);
-            if (curr_type == Preset::Type::TYPE_INVALID) {
-                BOOST_LOG_TRIVIAL(info) << boost::format("type %1% is invalid")%type;
-                return;
-            }
-            if (is_system) {
-                PresetCollection* preset_collection = nullptr;
-                switch(curr_type) {
-                    case Preset::TYPE_FILAMENT:
-                        preset_collection = &(preset_bundle->filaments);
-                        break;
-                    case Preset::TYPE_PRINTER:
-                        preset_collection = &(preset_bundle->printers);
-                        break;
-                    case Preset::TYPE_PRINT:
-                    default:
-                        preset_collection = &(preset_bundle->prints);
-                        break;
+        if (name.has_value() && setting_id.has_value()) {
+            key_values[IOT_JSON_KEY_SETTING_ID] = setting_id.value();
+            key_values[IOT_JSON_KEY_TYPE] = type;
+            if (!is_system) {
+                if (version.has_value()) {
+                    key_values[IOT_JSON_KEY_VERSION] = version.value();
                 }
-                Preset* preset = preset_collection->find_preset(name.value(), false, true);
-                if (preset) {
-                    if (!preset->setting_id.empty() && (preset->setting_id.compare(setting_id.value()) != 0)) {
-                        BOOST_LOG_TRIVIAL(error) << boost::format("name %1%, local setting_id %2% is different with remote id %3%")
-                            %preset->name %preset->setting_id %setting_id.value();
-                    }
-                    else if (preset->setting_id.empty())
-                        preset->setting_id = setting_id.value();
+                if (m_curr_user) {
+                    key_values[IOT_JSON_KEY_USER_ID] = m_curr_user->get_user_id();
                 }
             }
-            else {
-                std::map<std::string, Preset*>::iterator it = presets.find(setting_id.value());
-                if (it == presets.end()) {
-                    /* insert a new setting */
-                    Preset* preset = new Preset(curr_type, name.value(), false);
-                    preset->setting_id = setting_id.value();
-                    preset->is_system = false;
-                    if (version.has_value()) {
-                        preset->version = version.value();
-                    }
-                    if (m_curr_user) {
-                        preset->user_id = m_curr_user->get_user_id();
-                    }
-                    presets.insert(std::make_pair(setting_id.value(), preset));
-                }
-            }
+            setting_maps.emplace(name.value(), std::move(key_values));
         }
     }
 

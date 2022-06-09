@@ -41,7 +41,10 @@
 #define BBL_JSON_KEY_TYPE           "type"
 #define BBL_JSON_KEY_FROM           "from"
 #define BBL_JSON_KEY_SETTING_ID     "setting_id"
+#define BBL_JSON_KEY_BASE_ID        "base_id"
+#define BBL_JSON_KEY_USER_ID        "user_id"
 #define BBL_JSON_KEY_FILAMENT_ID    "filament_id"
+#define BBL_JSON_KEY_UPDATE_TIME    "updated_time"
 #define BBL_JSON_KEY_INHERITS       "inherits"
 #define BBL_JSON_KEY_INSTANTIATION  "instantiation"
 #define BBL_JSON_KEY_NOZZLE_DIAMETER            "nozzle_diameter"
@@ -406,7 +409,8 @@ public:
     //BBS: update user presets directory
     void            update_user_presets_directory(const std::string& dir_path, const std::string& type);
     void            save_user_presets(const std::string& dir_path, const std::string& type, std::vector<std::string>& need_to_delete_list);
-    void            load_user_presets(std::map<std::string, Preset*> my_presets, const std::string& type, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
+    bool            load_user_preset(std::string name, std::map<std::string, std::string> preset_values, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
+    void            update_after_user_presets_loaded();
     //BBS: get user presets
     int             get_user_presets(std::vector<Preset>& result_presets);
     void             set_sync_info_and_save(std::string name, std::string setting_id, std::string syncinfo);
@@ -414,6 +418,8 @@ public:
     //BBS: add function to generate differed preset for save
     //the pointer should be freed by the caller
     Preset* get_preset_differed_for_save(Preset& preset);
+    //BBS:get the differencen values to update
+    int get_differed_values_to_update(Preset& preset, std::map<std::string, std::string>& key_values);
 
     //BBS: add project embedded presets logic
     void load_project_embedded_presets(std::vector<Preset*>& project_presets, const std::string& type, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);

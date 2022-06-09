@@ -10,8 +10,8 @@
 #include <boost/algorithm/string.hpp>
 #include "mqtt/async_client.h"
 #include "libslic3r/ProjectTask.hpp"
-#include "libslic3r/Preset.hpp"
-#include "libslic3r/PresetBundle.hpp"
+//#include "libslic3r/Preset.hpp"
+//#include "libslic3r/PresetBundle.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "nlohmann/json.hpp"
 
@@ -264,8 +264,8 @@ private:
     std::string json_request_body_post_task(BBLTask* task);
     std::string json_request_body_post_task(BBLSubTask* task);
     std::string json_request_body_post_subtask(BBLProject* project, BBLProfile* profile, BBLSubTask* task);
-    std::string json_request_body_post_setting(Preset* preset);
-    std::string json_request_body_put_setting(Preset* preset);
+    std::string json_request_body_post_setting(std::string name, bool is_system, std::map<std::string, std::string>& values_map);
+    std::string json_request_body_put_setting(std::string name, std::map<std::string, std::string>& values_map);
     std::string json_request_poll_3mf_gather(BBLSubTask* task);
     std::string json_request_poll_3mf_gather_model_only();
 
@@ -276,7 +276,7 @@ private:
 
     /* check valid of user or pwd */
     bool _check_valid(std::string user, std::string password);
-    
+
 
     /* mqtt cloud client */
     mqtt::async_client* mqtt_cli{ nullptr };
@@ -399,7 +399,8 @@ public:
 
     /* project struct */
     std::map<std::string, BBLProject*> myProjectList;
-    std::map<std::string, Preset*> my_presets;      // key is setting_id
+    std::map<std::string, std::map<std::string, std::string>> m_system_presets;      // key is setting_id
+    std::map<std::string, std::map<std::string, std::string>> m_my_presets;      // key is setting_id
     std::vector<std::string> need_delete_presets;   // store setting ids of preset
 
     /* bind apis */
@@ -475,14 +476,14 @@ public:
     bool can_publish();
 
     /* preset settings api */
-    int get_setting_list(Http::ErrorFn errFn = nullptr);
-    void get_setting(Preset* &preset, std::function<void(void)> callback = {});
-    int request_setting_id(Preset* &preset, unsigned int& http_code);
-    int put_setting(Preset* preset, unsigned int& http_code);
+    int get_setting_list(std::string bundle_version, Http::ErrorFn errFn = nullptr);
+    void get_setting(std::string name, std::map<std::string, std::string>& values_map, std::function<void(void)> callback = {});
+    std::string request_setting_id(std::string name, std::map<std::string, std::string>& values_map, unsigned int& http_code);
+    int put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>& values_map, unsigned int& http_code);
     int del_setting(std::string setting_id, unsigned int& http_code);
 
-    void parse_setting(PresetBundle* preset_bundle, pt::ptree node, std::string type, std::string attr);
-    void _parse_preset_internal(PresetBundle* preset_bundle, std::map<std::string, Preset*>& presets, pt::ptree node, std::string type, std::string attr);
+    void parse_setting(pt::ptree node, std::string type, std::string attr);
+    void _parse_preset_internal(std::map<std::string, std::map<std::string, std::string>>& setting_maps, pt::ptree node, std::string type, bool is_system);
 
     /* camera */
     void get_camera_url(std::string const &              device,
@@ -503,7 +504,7 @@ public:
         m_curr_user = user_info;
         save_user_info();
     }
-    
+
     std::string get_user_name();
     std::string get_nick_name();
     std::string get_token_str(bool only_token = false);

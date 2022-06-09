@@ -1126,7 +1126,8 @@ void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
                 std::shared_ptr<Preset *> preset(new Preset*(new Preset(Preset::TYPE_FILAMENT, {})));
                 (*preset)->setting_id = tray.second->setting_id;
                 ams.set_key_value("filament_settings_id", new ConfigOptionStrings{tray.second->setting_id});
-                wxGetApp().getAccountManager()->get_setting(*preset, [preset] {
+                //TODO: comment it currently
+                /*wxGetApp().getAccountManager()->get_setting(*preset, [preset] {
                     wxGetApp().CallAfter([preset] {
                         if ((*preset)->name.empty())
                             return;
@@ -1142,7 +1143,7 @@ void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
                             }
                         }
                     });
-                });
+                });*/
             }
             ams.set_key_value("filament_colour", new ConfigOptionStrings{"#" + tray.second->color});
             filament_ams_list.emplace_back(std::move(ams));

@@ -301,6 +301,28 @@ Preset* PresetBundle::get_preset_differed_for_save(Preset& preset)
     return preset_collection->get_preset_differed_for_save(preset);
 }
 
+int PresetBundle::get_differed_values_to_update(Preset& preset, std::map<std::string, std::string>& key_values)
+{
+    PresetCollection* preset_collection;
+
+    switch(preset.type) {
+        case Preset::TYPE_PRINT:
+            preset_collection = &(this->prints);
+            break;
+        case Preset::TYPE_PRINTER:
+            preset_collection = &(this->printers);
+            break;
+        case Preset::TYPE_FILAMENT:
+            preset_collection = &(this->filaments);
+            break;
+        default:
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" invalid type %1%, return directly")%preset.type;
+            return -1;
+    }
+
+    return preset_collection->get_differed_values_to_update(preset, key_values);
+}
+
 //BBS: get vendor's current version
 Semver PresetBundle::get_vendor_profile_version(std::string vendor_name)
 {
@@ -502,38 +524,63 @@ std::string PresetBundle::get_hotend_model_for_printer_model(std::string model_n
     return out;
 }
 
-PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &config, std::map<std::string, Preset*> my_presets, ForwardCompatibilitySubstitutionRule substitution_rule)
+PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &config, std::map<std::string, std::map<std::string, std::string>>& my_presets, ForwardCompatibilitySubstitutionRule substitution_rule)
 {
     // First load the vendor specific system presets.
     PresetsConfigSubstitutions substitutions;
     std::string errors_cummulative;
+    bool process_added = false, filament_added = false, machine_added = false;
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, substitution_rule %1%, preset toltal count %2%")%substitution_rule%my_presets.size();
-    try {
-        this->prints.load_user_presets(my_presets, PRESET_PRINT_NAME, substitutions, substitution_rule);
+    std::map<std::string, std::map<std::string, std::string>>::iterator it;
+    for (it = my_presets.begin(); it != my_presets.end(); it++) {
+        std::string name = it->first;
+        std::map<std::string, std::string>& value_map = it->second;
+        //get the type first
+        std::map<std::string, std::string>::iterator type_iter = value_map.find(BBL_JSON_KEY_TYPE);
+        if (type_iter == value_map.end()) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(" can not find type for setting %1%")%name;
+            continue;
+        }
+        try {
+            PresetCollection *preset_collection = nullptr;
+            if (type_iter->second == PRESET_IOT_PRINT_TYPE) {
+                preset_collection = &(this->prints);
+                process_added |= preset_collection->load_user_preset(name, value_map, substitutions, substitution_rule);
+            }
+            else if (type_iter->second == PRESET_IOT_FILAMENT_TYPE) {
+                preset_collection = &(this->filaments);
+                filament_added |= preset_collection->load_user_preset(name, value_map, substitutions, substitution_rule);
+            }
+            else if (type_iter->second == PRESET_IOT_PRINTER_TYPE) {
+                preset_collection = &(this->printers);
+                machine_added |= preset_collection->load_user_preset(name, value_map, substitutions, substitution_rule);
+            }
+            else {
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("invalid type %1% for setting %2%") %type_iter->second %name;
+                continue;
+            }
+        }
+        catch (const std::runtime_error& err) {
+            errors_cummulative += err.what();
+        }
     }
-    catch (const std::runtime_error& err) {
-        errors_cummulative += err.what();
+    if (process_added) {
+        this->prints.update_after_user_presets_loaded();
     }
-    try {
-        this->filaments.load_user_presets(my_presets, PRESET_FILAMENT_NAME, substitutions, substitution_rule);
+    if (filament_added) {
+        this->filaments.update_after_user_presets_loaded();
     }
-    catch (const std::runtime_error& err) {
-        errors_cummulative += err.what();
-    }
-    try {
-        this->printers.load_user_presets(my_presets, PRESET_PRINTER_NAME, substitutions, substitution_rule);
-    }
-    catch (const std::runtime_error& err) {
-        errors_cummulative += err.what();
+    if (machine_added) {
+        this->printers.update_after_user_presets_loaded();
     }
 
     this->update_multi_material_filament_presets();
     this->update_compatible(PresetSelectCompatibleType::Never);
-    if (!errors_cummulative.empty())
-        throw Slic3r::RuntimeError(errors_cummulative);
-
     this->load_selections(config, PresetPreferences());
+
+    if (! errors_cummulative.empty())
+        throw Slic3r::RuntimeError(errors_cummulative);
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, returned substitutions %1%")%substitutions.size();
     return substitutions;
@@ -571,6 +618,56 @@ void PresetBundle::update_user_presets_directory(const std::string preset_folder
     this->filaments.update_user_presets_directory(dir_user_presets, PRESET_FILAMENT_NAME);
     this->printers.update_user_presets_directory(dir_user_presets, PRESET_PRINTER_NAME);
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished");
+}
+
+void PresetBundle::update_system_preset_setting_ids(std::map<std::string, std::map<std::string, std::string>>& system_presets)
+{
+    for (auto iterator: system_presets)
+    {
+        std::string name = iterator.first;
+        std::map<std::string, std::string>& value_map = iterator.second;
+        //get the type first
+        std::map<std::string, std::string>::iterator type_iter = value_map.find(BBL_JSON_KEY_TYPE);
+        if (type_iter == value_map.end()) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(" can not find type for setting %1%")%name;
+            continue;
+        }
+        PresetCollection *preset_collection = nullptr;
+        if (type_iter->second == PRESET_IOT_PRINTER_TYPE) {
+            preset_collection = &(this->printers);
+        }
+        else if (type_iter->second == PRESET_IOT_PRINTER_TYPE) {
+            preset_collection = &(this->printers);
+        }
+        else if (type_iter->second == PRESET_IOT_PRINTER_TYPE) {
+            preset_collection = &(this->printers);
+        }
+        else {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("invalid type %1% for setting %2%") %type_iter->second %name;
+            continue;
+        }
+        std::string setting_id;
+        if (value_map.count(BBL_JSON_KEY_SETTING_ID) > 0)
+            setting_id = value_map[BBL_JSON_KEY_SETTING_ID];
+        else {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(" can not find setting_id for setting %1%")%name;
+            continue;
+        }
+        Preset* preset = preset_collection->find_preset(name, false, true);
+        if (preset) {
+            if (!preset->setting_id.empty() && (preset->setting_id.compare(setting_id) != 0)) {
+                BOOST_LOG_TRIVIAL(error) << boost::format("name %1%, local setting_id %2% is different with remote id %3%")
+                    %preset->name %preset->setting_id %setting_id;
+            }
+            else if (preset->setting_id.empty())
+                preset->setting_id = setting_id;
+        }
+        else {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("can not find setting %1% in system presets, type %2%") %name %type_iter->second;
+            continue;
+        }
+    }
+    return;
 }
 
 //BBS: validate printers from previous project

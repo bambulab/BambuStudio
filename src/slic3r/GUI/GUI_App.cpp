@@ -1519,11 +1519,12 @@ bool GUI_App::on_init_inner()
     int loaded_preset_result = -1;
     if (m_account_manager->is_user_login()) {
         // get setting list, update setting list
+        std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
         loaded_preset_result = m_account_manager->get_setting_list(
+            version,
             [this](std::string body, std::string error, unsigned http_status) {
                 BOOST_LOG_TRIVIAL(trace) << "load my settings failed! body = " << body;
-            }
-        );
+            });
     }
     BOOST_LOG_TRIVIAL(info) << "start_sync_service...";
     //BBS
@@ -2547,7 +2548,7 @@ void GUI_App::no_new_version()
 void GUI_App::reload_settings()
 {
     if (preset_bundle && m_account_manager) {
-        preset_bundle->load_user_presets(*app_config, m_account_manager->my_presets, ForwardCompatibilitySubstitutionRule::Enable);
+        preset_bundle->load_user_presets(*app_config, m_account_manager->m_my_presets, ForwardCompatibilitySubstitutionRule::Enable);
         preset_bundle->save_user_presets(*app_config, m_account_manager->need_delete_presets);
     }
 }
@@ -2570,11 +2571,13 @@ void GUI_App::sync_preset(Preset* preset)
     if (!preset->is_user()) return;
 
     if (preset->setting_id.empty() && preset->sync_info.empty() && !preset->base_id.empty()) {
-        Preset* preset_to_upload = this->preset_bundle->get_preset_differed_for_save(*preset);
-        if (preset_to_upload) {
-            result = m_account_manager->request_setting_id(preset_to_upload, http_code);
-            if (!preset_to_upload->setting_id.empty()) {
-                preset->setting_id = preset_to_upload->setting_id;
+        std::map<std::string, std::string> values_map;
+        int ret = preset_bundle->get_differed_values_to_update(*preset, values_map);
+        if (!ret) {
+            std::string new_setting_id = m_account_manager->request_setting_id(preset->name, values_map, http_code);
+            if (!new_setting_id.empty()) {
+                preset->setting_id = new_setting_id;
+                result = 0;
             }
             else {
                 BOOST_LOG_TRIVIAL(trace) << "[sync_preset]init: request_setting_id failed, http code "<<http_code;
@@ -2585,18 +2588,21 @@ void GUI_App::sync_preset(Preset* preset)
                 else
                     result = -1;
             }
-            delete preset_to_upload;
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "[sync_preset]init: can not generate differed preset";
+            BOOST_LOG_TRIVIAL(trace) << "[sync_preset]init: can not generate differed key-values";
+            result = 0;
+            updated_info = "hold";
         }
     }
     else if ((preset->sync_info.compare("create") == 0) && !preset->base_id.empty()) {
-        Preset* preset_to_upload = this->preset_bundle->get_preset_differed_for_save(*preset);
-        if (preset_to_upload) {
-            result = m_account_manager->request_setting_id(preset_to_upload, http_code);
-            if (!preset_to_upload->setting_id.empty()) {
-                preset->setting_id = preset_to_upload->setting_id;
+        std::map<std::string, std::string> values_map;
+        int ret = preset_bundle->get_differed_values_to_update(*preset, values_map);
+        if (!ret) {
+            std::string new_setting_id = m_account_manager->request_setting_id(preset->name, values_map, http_code);
+            if (!new_setting_id.empty()) {
+                preset->setting_id = new_setting_id;
+                result = 0;
             }
             else {
                 BOOST_LOG_TRIVIAL(trace) << "[sync_preset]create: request_setting_id failed, http code "<<http_code;
@@ -2607,7 +2613,6 @@ void GUI_App::sync_preset(Preset* preset)
                 else
                     result = -1;
             }
-            delete preset_to_upload;
         }
         else {
             BOOST_LOG_TRIVIAL(trace) << "[sync_preset]create: can not generate differed preset";
@@ -2615,21 +2620,20 @@ void GUI_App::sync_preset(Preset* preset)
     }
     else if ((preset->sync_info.compare("update") == 0) && !preset->base_id.empty()) {
         if (!preset->setting_id.empty()) {
-            Preset* preset_to_upload = this->preset_bundle->get_preset_differed_for_save(*preset);
-            if (preset_to_upload) {
-                if (!preset_to_upload->base_id.empty()) {
-                    if (preset_to_upload->base_id ==  preset_to_upload->setting_id) {
-                        //clear the setting_id in this case
-                        preset->setting_id.clear();
-                        result = 0;
-                    }
-                    else
-                        result = m_account_manager->put_setting(preset_to_upload, http_code);
+            std::map<std::string, std::string> values_map;
+            int ret = preset_bundle->get_differed_values_to_update(*preset, values_map);
+            if (!ret) {
+                if (values_map[BBL_JSON_KEY_BASE_ID] ==  preset->setting_id) {
+                    //clear the setting_id in this case
+                    preset->setting_id.clear();
+                    result = 0;
                 }
-                delete preset_to_upload;
+                else
+                    result = m_account_manager->put_setting(preset->setting_id, preset->name, values_map, http_code);
             }
             else {
-                BOOST_LOG_TRIVIAL(trace) << "[sync_preset]update: can not generate differed preset, http code "<<http_code;
+                BOOST_LOG_TRIVIAL(trace) << "[sync_preset]update: can not generate differed key-values, we need to skip this preset "<< preset->name;
+                result = 0;
             }
         }
         else {
@@ -3706,7 +3710,7 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
 
     std::string strFinish = wxGetApp().app_config->get("firstguide", "finish");
     long        pStyle    = wxCAPTION | wxCLOSE_BOX | wxSYSTEM_MENU;
-    if (strFinish == "false" || strFinish.empty()) 
+    if (strFinish == "false" || strFinish.empty())
         pStyle = wxCAPTION | wxTAB_TRAVERSAL;
 
     GuideFrame wizard(this, pStyle);

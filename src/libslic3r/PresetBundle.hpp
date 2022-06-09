@@ -45,10 +45,11 @@ public:
     void     load_selections(AppConfig &config, const PresetPreferences& preferred_selection = PresetPreferences());
 
     // BBS Load user presets
-    PresetsConfigSubstitutions load_user_presets(AppConfig &config, std::map<std::string, Preset*> my_presets, ForwardCompatibilitySubstitutionRule rule);
+    PresetsConfigSubstitutions load_user_presets(AppConfig &config, std::map<std::string, std::map<std::string, std::string>>& my_presets, ForwardCompatibilitySubstitutionRule rule);
     void save_user_presets(AppConfig& config, std::vector<std::string>& need_to_delete_list);
     void remove_users_preset(AppConfig &config);
     void  update_user_presets_directory(const std::string preset_folder);
+    void update_system_preset_setting_ids(std::map<std::string, std::map<std::string, std::string>>& system_presets);
 
     //BBS: add API to get previous machine
     bool validate_printers(const std::string &name, DynamicPrintConfig& config);
@@ -56,6 +57,7 @@ public:
     //BBS: add function to generate differed preset for save
     //the pointer should be freed by the caller
     Preset* get_preset_differed_for_save(Preset& preset);
+    int get_differed_values_to_update(Preset& preset, std::map<std::string, std::string>& key_values);
 
     //BBS: get vendor's current version
     Semver get_vendor_profile_version(std::string vendor_name);

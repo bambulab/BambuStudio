@@ -1506,7 +1506,7 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { if (m_plater) m_plater->new_project(); }, "", nullptr,
             [this](){return m_plater != nullptr && can_start_new_project(); }, this);
         // Open Project
-        
+
 #ifdef __WINDOWS__
         append_menu_item(fileMenu, wxID_ANY, _L("Open Project") + dots + "\tCtrl+O", _L("Open a project file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "menu_open", nullptr,
@@ -1516,7 +1516,7 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "", nullptr,
             [this](){return m_plater != nullptr; }, this);
 #endif
-        
+
         // Recent Project
         wxMenu* recent_projects_menu = new wxMenu();
         wxMenuItem* recent_projects_submenu = append_submenu(fileMenu, recent_projects_menu, wxID_ANY, _L("Recent projects"), "");
@@ -1569,7 +1569,7 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(); }, "", nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
 #endif
-        
+
 
 #ifdef __WINDOWS__
         append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\tCtrl+Shift+S", _L("Save current project as"),
@@ -1580,7 +1580,7 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, "", nullptr,
             [this](){return m_plater != nullptr && can_save_as(); }, this);
 #endif
-        
+
 
         fileMenu->AppendSeparator();
 
@@ -1594,7 +1594,7 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { if (m_plater) { m_plater->add_model(); } }, "", nullptr,
             [this](){return m_plater != nullptr; }, this);
 #endif
-        
+
 
         wxMenu* export_menu = new wxMenu();
         // BBS export as STL
@@ -1630,7 +1630,7 @@ void MainFrame::init_menubar_as_editor()
     #else
         wxString hotkey_delete = "Del";
     #endif
-        
+
 #ifdef __WINDOWS__
         // BBS undo
         append_menu_item(editMenu, wxID_ANY, _L("Undo") + "\tCtrl+Z",
@@ -2387,7 +2387,8 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
     switch ( dialog.ShowModal() )
     {
         case wxID_YES: {
-            acc->get_setting_list();
+            std::string version = wxGetApp().preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
+            acc->get_setting_list(version);
             break;
         }
         case wxID_NO:

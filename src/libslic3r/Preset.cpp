@@ -1067,6 +1067,43 @@ Preset* PresetCollection::get_preset_differed_for_save(Preset& preset)
     return new_preset;
 }
 
+//BBS:get the differencen values to update
+int PresetCollection::get_differed_values_to_update(Preset& preset, std::map<std::string, std::string>& key_values)
+{
+    if (preset.is_system || preset.is_default || preset.is_project_embedded) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" Error: not a user preset! Should not happen, name %1%") %preset.name;
+        return -1;
+    }
+
+    //BBS: only save difference for user preset
+    std::string& inherit_preset = preset.inherits();
+    Preset* parent_preset = nullptr;
+    if (!inherit_preset.empty()) {
+        parent_preset = this->find_preset(inherit_preset, false, true);
+    }
+    if (parent_preset) {
+        DynamicPrintConfig temp_config;
+        std::vector<std::string> dirty_options = preset.config.diff(parent_preset->config);
+
+        for (auto option: dirty_options)
+        {
+            ConfigOption *opt_src = preset.config.option(option);
+            if (opt_src)
+                key_values[option] = opt_src->serialize();
+        }
+        //add other values
+        key_values[BBL_JSON_KEY_VERSION] = preset.version.to_string();
+        key_values[BBL_JSON_KEY_BASE_ID] = preset.base_id;
+        key_values[BBL_JSON_KEY_UPDATE_TIME] = std::to_string(preset.updated_time);
+        key_values[BBL_JSON_KEY_TYPE] = Preset::get_iot_type_string(preset.type);
+    }
+    else {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" Error: can not find the parent! Should not happen, name %1%") %preset.name;
+        return -1;
+    }
+    return 0;
+}
+
 //BBS: save user presets to local
 void PresetCollection::load_project_embedded_presets(std::vector<Preset*>& project_presets, const std::string& type, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule)
 {
@@ -1293,8 +1330,8 @@ void PresetCollection::save_user_presets(const std::string& dir_path, const std:
     return;
 }
 
-//BBS: load user presets from cloud side
-void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_presets, const std::string &type, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule)
+//BBS: load one user preset from key-values
+bool PresetCollection::load_user_preset(std::string name, std::map<std::string, std::string> preset_values, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule)
 {
     std::string errors_cummulative;
     // Store the loaded presets into a new vector, otherwise the binary search for already existing presets would be broken.
@@ -1302,112 +1339,172 @@ void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_prese
     //std::deque<Preset> presets_loaded;
     int count = 0;
 
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, type %1% , total preset counts %2%")%Preset::get_type_string(m_type) %my_presets.size();
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, name %1% , total value counts %2%")%name %preset_values.size();
+
+    //if the version is not matching, skip it
+    if (preset_values.find(BBL_JSON_KEY_VERSION) == preset_values.end()) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("can not find version, not loading for user preset %1%")%name;
+        return false;
+    }
+    std::string version_str = preset_values[BBL_JSON_KEY_VERSION];
+    boost::optional<Semver> cloud_version = Semver::parse(version_str);
+    if (!cloud_version) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("invalid version %1%, not loading for user preset %2%")%version_str %name;
+        return false;
+    }
+    Semver app_version = *(Semver::parse(SLIC3R_VERSION));
+    if ( cloud_version->maj() !=  app_version.maj()) {
+        BOOST_LOG_TRIVIAL(warning)<< __FUNCTION__ << boost::format("version %1% mismatch with app version %2%, not loading for user preset %3%")%version_str %SLIC3R_VERSION %name;
+        return false;
+    }
+
+    //setting_id
+    if (preset_values.find(BBL_JSON_KEY_SETTING_ID) == preset_values.end()) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("can not find setting_id, not loading for user preset %1%")%name;
+        return false;
+    }
+    std::string cloud_setting_id = preset_values[BBL_JSON_KEY_SETTING_ID];
+
+    //base_id
+    if (preset_values.find(BBL_JSON_KEY_BASE_ID) == preset_values.end()) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("can not find base_id, not loading for user preset %1%")%name;
+        return false;
+    }
+    std::string cloud_base_id = preset_values[BBL_JSON_KEY_BASE_ID];
+
+    //update_time
+    long long cloud_update_time = 0;
+    if (preset_values.find(BBL_JSON_KEY_UPDATE_TIME) != preset_values.end()) {
+        cloud_update_time = std::atoll(preset_values[BBL_JSON_KEY_UPDATE_TIME].c_str());
+    }
+
+    //user_id
+    if (preset_values.find(BBL_JSON_KEY_USER_ID) == preset_values.end()) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("can not find user_id, not loading for user preset %1%")%name;
+        return false;
+    }
+    std::string cloud_user_id = preset_values[BBL_JSON_KEY_USER_ID];
+
+    //filament_id
+    std::string cloud_filament_id;
+    if ((m_type == Preset::TYPE_FILAMENT) && preset_values.find(BBL_JSON_KEY_FILAMENT_ID) == preset_values.end()) {
+        cloud_filament_id = preset_values[BBL_JSON_KEY_FILAMENT_ID];
+    }
 
     lock();
-    std::map<std::string, Preset*>::iterator it;
-    for (it = my_presets.begin(); it != my_presets.end(); it++) {
-        if (it->second->type != Preset::get_type_from_string(type)) continue;
-        Preset* preset = it->second;
-        if (!preset->is_user()) continue;
-
-        //if the version is not matching, skip it
-        std::string version_str = preset->key_values[BBL_JSON_KEY_VERSION];
-        boost::optional<Semver> version = Semver::parse(version_str);
-        if (!version) continue;
-        Semver app_version = *(Semver::parse(SLIC3R_VERSION));
-        if ( version->maj() !=  app_version.maj()) {
-            BOOST_LOG_TRIVIAL(warning) << "Preset incompatibla, not loading: " << preset->name;
-            continue;
-        }
-        preset->version = *version;
-
-        std::string name = preset->name;
-        auto iter = this->find_preset_internal(name);
-        bool need_update = false;
-        if ((iter != m_presets.end()) && (iter->name == name)) {
-            BOOST_LOG_TRIVIAL(info) << "Preset already present, not loading: " << name;
-            if (iter->setting_id.compare(preset->setting_id) != 0) {
-                BOOST_LOG_TRIVIAL(warning) << "local setting_id " << iter->setting_id<<", cloud setting_id "<<preset->setting_id;
-                iter->setting_id = preset->setting_id;
-            }
-            if (iter->filament_id.empty() && iter->type == Preset::Type::TYPE_FILAMENT)
-                iter->filament_id = preset->filament_id;
-            //BBS: we should compare the time between cloud and local
-            if ((preset->updated_time == 0) || (preset->updated_time <= iter->updated_time)) {
-                if (preset->updated_time < iter->updated_time)
-                    iter->sync_info = "update";
-                else
-                    iter->sync_info.clear();
-                continue;
-            }
-            else {
-                //update the one from cloud which is newer
-                need_update = true;
+    //std::string name = preset->name;
+    auto iter = this->find_preset_internal(name);
+    bool need_update = false;
+    if ((iter != m_presets.end()) && (iter->name == name)) {
+        BOOST_LOG_TRIVIAL(info) << "Found the Preset locally: " << name;
+        //BBS: we should compare the time between cloud and local
+        if ((cloud_update_time == 0) || (cloud_update_time <= iter->updated_time)) {
+            if (cloud_update_time < iter->updated_time)
+                iter->sync_info = "update";
+            else
                 iter->sync_info.clear();
-            }
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("preset %1%'s update_time is eqaul or newer, cloud  update_time %2%, local update_time %3%")%name %cloud_update_time %iter->updated_time;
+            unlock();
+            return false;
         }
-        try {
-            DynamicPrintConfig config;
-            ConfigSubstitutions config_substitutions = config.load_string_map(it->second->key_values, rule);
-            if (! config_substitutions.empty())
-                substitutions.push_back({ preset->name, m_type, PresetConfigSubstitutions::Source::UserCloud, preset->name, std::move(config_substitutions) });
-
-            //BBS: use inherit config as the base
-            Preset* inherit_preset = nullptr;
-            ConfigOption* inherits_config = config.option(BBL_JSON_KEY_INHERITS);
-            if (inherits_config) {
-                ConfigOptionString * option_str = dynamic_cast<ConfigOptionString *> (inherits_config);
-                std::string inherits_value = option_str->value;
-                /*size_t pos = inherits_value.find_first_of('*');
-                if (pos != std::string::npos) {
-                    inherits_value.replace(pos, 1, 1, '~');
-                    option_str->value = inherits_value;
-                }*/
-                inherit_preset = this->find_preset(inherits_value, false, true);
-            }
-            const Preset& default_preset = this->default_preset_for(config);
-            if (inherit_preset) {
-                preset->config = inherit_preset->config;
-            }
-            else {
-                // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
-                preset->config = default_preset.config;
-            }
-            preset->config.apply(std::move(config));
-            Preset::normalize(preset->config);
-            // Report configuration fields, which are misplaced into a wrong group.
-            std::string incorrect_keys = Preset::remove_invalid_keys(preset->config, default_preset.config);
-            if (! incorrect_keys.empty())
-                BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" <<
-                    preset->name << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
-            if (need_update) {
-                iter->config = preset->config;
-                iter->updated_time = preset->updated_time;
-            }
-            else {
-                preset->loaded = true;
-                m_presets.insert(iter, *it->second);
-            }
-            count++;
-            //presets_loaded.emplace_back(*it->second);
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", %1% got user preset, name %2%, setting_id %3%, base_id %4%, sync_info %5% inherits %6%")
-                %Preset::get_type_string(m_type) %preset->name %preset->setting_id %preset->base_id %preset->sync_info %preset->inherits();
-        } catch (const std::runtime_error &err) {
-            errors_cummulative += err.what();
-            errors_cummulative += "\n";
+        else {
+            //update the one from cloud which is newer
+            need_update = true;
+            iter->sync_info.clear();
         }
     }
 
-    //m_presets.insert(m_presets.end(), std::make_move_iterator(presets_loaded.begin()), std::make_move_iterator(presets_loaded.end()));
-    std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
-    this->select_preset(first_visible_idx());
+    DynamicPrintConfig  new_config, cloud_config;
+    try {
+        ConfigSubstitutions config_substitutions = cloud_config.load_string_map(preset_values, rule);
+        if (! config_substitutions.empty())
+            substitutions.push_back({ name, m_type, PresetConfigSubstitutions::Source::UserCloud, name, std::move(config_substitutions) });
+
+        //BBS: use inherit config as the base
+        Preset* inherit_preset = nullptr;
+        ConfigOption* inherits_config = cloud_config.option(BBL_JSON_KEY_INHERITS);
+        if (inherits_config) {
+            ConfigOptionString * option_str = dynamic_cast<ConfigOptionString *> (inherits_config);
+            std::string inherits_value = option_str->value;
+            /*size_t pos = inherits_value.find_first_of('*');
+            if (pos != std::string::npos) {
+                inherits_value.replace(pos, 1, 1, '~');
+                option_str->value = inherits_value;
+            }*/
+            inherit_preset = this->find_preset(inherits_value, false, true);
+        }
+        const Preset& default_preset = this->default_preset_for(cloud_config);
+        if (inherit_preset) {
+            new_config = inherit_preset->config;
+        }
+        else {
+            // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
+            //new_config = default_preset.config;
+            //we should skip this preset here
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", can not find inherit preset for user preset %1%, just skip")%name;
+            unlock();
+            return false;
+        }
+        new_config.apply(std::move(cloud_config));
+        Preset::normalize(new_config);
+        // Report configuration fields, which are misplaced into a wrong group.
+        std::string incorrect_keys = Preset::remove_invalid_keys(new_config, default_preset.config);
+        if (! incorrect_keys.empty())
+            BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" <<
+                name << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
+        if (need_update) {
+            iter->config = new_config;
+            iter->updated_time = cloud_update_time;
+            iter->version = cloud_version.value();
+            iter->user_id = cloud_user_id;
+            iter->setting_id = cloud_setting_id;
+            iter->base_id = cloud_base_id;
+            iter->filament_id = cloud_filament_id;
+            //presets_loaded.emplace_back(*it->second);
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", update the user preset %1% from cloud, type %2%, setting_id %3%, base_id %4%, sync_info %5% inherits %6%")
+               % iter->name %Preset::get_type_string(m_type) %iter->setting_id %iter->base_id %iter->sync_info %iter->inherits();
+        }
+        else {
+            //create a new one
+            Preset* preset = new Preset(m_type, name, false);
+            preset->is_system = false;
+            preset->loaded = true;
+            preset->config = new_config;
+            preset->updated_time = cloud_update_time;
+            preset->version = cloud_version.value();
+            preset->user_id = cloud_user_id;
+            preset->setting_id = cloud_setting_id;
+            preset->base_id = cloud_base_id;
+            preset->filament_id = cloud_filament_id;
+            m_presets.insert(iter, *preset);
+            //presets_loaded.emplace_back(*it->second);
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", insert a new user preset %1%, type %2%, setting_id %3%, base_id %4%, sync_info %5% inherits %6%")
+               %preset->name %Preset::get_type_string(m_type) %preset->setting_id %preset->base_id %preset->sync_info %preset->inherits();
+        }
+    } catch (const std::runtime_error &err) {
+        errors_cummulative += err.what();
+        errors_cummulative += "\n";
+    }
 
     unlock();
 
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, %1% updated %2% presets, errors_cummulative %3%")%Preset::get_type_string(m_type) %count %errors_cummulative;
     if (! errors_cummulative.empty())
         throw Slic3r::RuntimeError(errors_cummulative);
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, load user preset %1% , type %2%, errors_cummulative %3%")%name %Preset::get_type_string(m_type) %errors_cummulative;
+    return (need_update)?false:true;
+}
+
+//re-sort and re-select
+void PresetCollection::update_after_user_presets_loaded()
+{
+    lock();
+    std::string     selected_name = get_selected_preset_name();
+    std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
+    this->select_preset_by_name(selected_name, false);
+    unlock();
+
+    return;
 }
 
 //BBS: validate_printers
