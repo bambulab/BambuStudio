@@ -225,6 +225,7 @@ public:
     //BBS static functions that update extruder params and speed table
     static void setPrintSpeedTable(Slic3r::GlobalSpeedMap& printSpeedMap);
     static void setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extParas);
+    static wxColour get_next_color_for_filament();
 
     // BBS: restore
     std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, LoadStrategy strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig,  bool ask_multi = false);

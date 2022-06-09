@@ -74,7 +74,7 @@ public:
     void            export_selections(AppConfig &config);
 
     // BBS
-    void            set_num_filaments(unsigned int n);
+    void            set_num_filaments(unsigned int n, std::string new_col = "");
     //BBS: check whether this is the only edited filament
     bool is_the_only_edited_filament(unsigned int filament_index);
 

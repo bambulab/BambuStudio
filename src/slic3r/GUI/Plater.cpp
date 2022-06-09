@@ -505,9 +505,9 @@ Sidebar::Sidebar(Plater *parent)
         wxBoxSizer* vsizer_printer = new wxBoxSizer(wxVERTICAL);
         wxBoxSizer* hsizer_printer = new wxBoxSizer(wxHORIZONTAL);
 
-        hsizer_printer->Add(combo_printer, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, 3 * em / 10);
-        hsizer_printer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 3 * em / 10);
-        hsizer_printer->Add(8 * em / 10, 0, 0, 0, 0);
+        hsizer_printer->Add(combo_printer, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
+        hsizer_printer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
+        hsizer_printer->Add(FromDIP(8), 0, 0, 0, 0);
         vsizer_printer->Add(hsizer_printer, 0, wxEXPAND, 0);
 
         // Bed type selection
@@ -526,12 +526,12 @@ Sidebar::Sidebar(Plater *parent)
         m_bed_type_list->Select(0);
         bed_type_sizer->Add(bed_type_title, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
         bed_type_sizer->Add(m_bed_type_list, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND, FromDIP(10));
-        vsizer_printer->Add(bed_type_sizer, 0, wxEXPAND | wxTOP, em / 2);
+        vsizer_printer->Add(bed_type_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
 
         p->m_panel_printer_content->SetSizer(vsizer_printer);
         p->m_panel_printer_content->Layout();
-        scrolled_sizer->Add(p->m_panel_printer_content, 0, wxTOP | wxEXPAND, em / 2);
-        scrolled_sizer->AddSpacer(2 * em);
+        scrolled_sizer->Add(p->m_panel_printer_content, 0, wxTOP | wxEXPAND, FromDIP(5));
+        scrolled_sizer->AddSpacer(FromDIP(20));
     }
 
     // add filament title
@@ -545,10 +545,10 @@ Sidebar::Sidebar(Plater *parent)
     p->m_staticText_filament_settings = new wxStaticText( p->m_panel_filament_title, wxID_ANY, _L("Filament"), wxDefaultPosition, wxDefaultSize, 0 );
     p->m_staticText_filament_settings->Wrap( -1 );
     p->m_staticText_filament_settings->SetFont(Label::Body_14);
-    bSizer39->Add(p->m_filament_icon, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, em);
+    bSizer39->Add(p->m_filament_icon, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(10));
     bSizer39->Add( p->m_staticText_filament_settings, 0, wxALIGN_CENTER );
-    bSizer39->Add(10 * em / 10, 0, 0, 0, 0);
-    bSizer39->SetMinSize(-1, 3 * em);
+    bSizer39->Add(FromDIP(10), 0, 0, 0, 0);
+    bSizer39->SetMinSize(-1, FromDIP(30));
 
     p->m_panel_filament_title->SetSizer( bSizer39 );
     p->m_panel_filament_title->Layout();
@@ -602,13 +602,15 @@ Sidebar::Sidebar(Plater *parent)
             return;
 
         int filament_count = p->combos_filament.size() + 1;
-        wxGetApp().preset_bundle->set_num_filaments(filament_count);
+        wxColour new_col = Plater::get_next_color_for_filament();
+        std::string new_color = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+        wxGetApp().preset_bundle->set_num_filaments(filament_count, new_color);
         wxGetApp().plater()->on_filaments_change(filament_count);
         wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     });
 
-    bSizer39->Add(add_btn, 0, wxALIGN_CENTER|wxALL, 5 * em / 10 );
-    bSizer39->Add( 10 * em / 10, 0, 0, 0, 0 );
+    bSizer39->Add(add_btn, 0, wxALIGN_CENTER|wxALL, FromDIP(5));
+    bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
 
     ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
     del_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e){
@@ -628,8 +630,8 @@ Sidebar::Sidebar(Plater *parent)
         wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     });
 
-    bSizer39->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
-    bSizer39->Add(2 * em, 0, 0, 0, 0);
+    bSizer39->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    bSizer39->Add(FromDIP(20), 0, 0, 0, 0);
 
     ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
     set_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
@@ -640,7 +642,7 @@ Sidebar::Sidebar(Plater *parent)
         });
 
     bSizer39->Add(set_btn, 0, wxALIGN_CENTER);
-    bSizer39->Add(15 * em / 10, 0, 0, 0, 0);
+    bSizer39->Add(FromDIP(15), 0, 0, 0, 0);
 
     // add filament content
     p->m_panel_filament_content = new wxPanel( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
@@ -660,12 +662,12 @@ Sidebar::Sidebar(Plater *parent)
     p->combos_filament[0] = new PlaterPresetComboBox(p->m_panel_filament_content, Preset::TYPE_FILAMENT);
     auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     // BBS:  filament double columns
-    combo_and_btn_sizer->Add(8 * em / 10, 0, 0, 0, 0);
+    combo_and_btn_sizer->Add(FromDIP(8), 0, 0, 0, 0);
     if (p->combos_filament[0]->clr_picker) {
         p->combos_filament[0]->clr_picker->SetLabel("1");
-        combo_and_btn_sizer->Add(p->combos_filament[0]->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 3 * em / 10);
+        combo_and_btn_sizer->Add(p->combos_filament[0]->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(3));
     }
-    combo_and_btn_sizer->Add(p->combos_filament[0], 1, wxALL | wxEXPAND, 2 * em / 10)->SetMinSize({-1, 3 * em});
+    combo_and_btn_sizer->Add(p->combos_filament[0], 1, wxALL | wxEXPAND, FromDIP(2))->SetMinSize({-1, FromDIP(30) });
 
     ScalableButton* edit_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "edit");
     edit_btn->SetBackgroundColour(wxColour(255, 255, 255));
@@ -679,8 +681,8 @@ Sidebar::Sidebar(Plater *parent)
         });
     combobox->edit_btn = edit_btn;
 
-    combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 3 * em / 10);
-    combo_and_btn_sizer->Add(8 * em / 10, 0, 0, 0, 0);
+    combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
+    combo_and_btn_sizer->Add(FromDIP(8), 0, 0, 0, 0);
 
     p->combos_filament[0]->set_filament_idx(0);
     p->sizer_filaments->GetItem((size_t)0)->GetSizer()->Add(combo_and_btn_sizer, 1, wxEXPAND);
@@ -688,13 +690,8 @@ Sidebar::Sidebar(Plater *parent)
     bSizer_filament_content->Add(p->sizer_filaments, 1, wxALIGN_CENTER | wxALL);
     p->m_panel_filament_content->SetSizer(p->sizer_filaments);
     p->m_panel_filament_content->Layout();
-    scrolled_sizer->Add(p->m_panel_filament_content, 0, wxTOP | wxEXPAND, em / 2);
-    scrolled_sizer->AddSpacer(2 * em);
-
-    //p->m_staticline2 = new wxStaticLine( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    //p->m_staticline2->SetBackgroundColour( static_line_col );
-
-    //scrolled_sizer->Add(p->m_staticline2, 0, wxEXPAND | wxALL, 0);
+    scrolled_sizer->Add(p->m_panel_filament_content, 0, wxTOP | wxEXPAND, FromDIP(5));
+    scrolled_sizer->AddSpacer(FromDIP(20));
 
     //add project title
     auto params_panel = ((MainFrame*)parent->GetParent())->m_param_panel;
@@ -752,10 +749,10 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
 
     // BBS:  filament double columns
     int em = wxGetApp().em_unit();
-    combo_and_btn_sizer->Add( 8 * em / 10, 0, 0, 0, 0 );
+    combo_and_btn_sizer->Add(FromDIP(8), 0, 0, 0, 0 );
     (*combo)->clr_picker->SetLabel(wxString::Format("%d", filament_idx + 1));
-    combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 3 * em / 10);
-    combo_and_btn_sizer->Add(*combo, 1, wxALL | wxEXPAND, 2 * em / 10)->SetMinSize({-1, 3 * em});
+    combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(3));
+    combo_and_btn_sizer->Add(*combo, 1, wxALL | wxEXPAND, FromDIP(2))->SetMinSize({-1, FromDIP(30)});
 
     /* BBS hide del_btn
     ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "delete_filament");
@@ -2405,6 +2402,21 @@ void Plater::setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extPara
         if (i == 0) extParas.insert({ i,{matName, bedTemp, endTemp} });
         extParas.insert({ i + 1,{matName, bedTemp, endTemp} });
     }
+}
+
+wxColour Plater::get_next_color_for_filament()
+{
+    static int curr_color_filamenet = 0;
+    wxColour colors[7] = {
+        *wxYELLOW,
+        * wxRED,
+        *wxBLUE,
+        *wxCYAN,
+        *wxLIGHT_GREY,
+        *wxWHITE,
+        *wxBLACK
+    };
+    return colors[curr_color_filamenet++ % 7];
 }
 
 void Plater::priv::apply_free_camera_correction(bool apply/* = true*/)
