@@ -214,7 +214,7 @@ public:
         int version_width = memDc.GetTextExtent(m_constant_text.version).GetWidth();
         int split_width = (width + title_width - version_width) / 2;
         wxRect title_rect(wxPoint(0, top_margin), wxPoint(split_width - text_padding, top_margin + title_height));
-        memDc.SetTextForeground(*wxBLACK);
+        memDc.SetTextForeground(wxColour(38, 46, 48));
         memDc.SetFont(m_constant_text.title_font);
         memDc.DrawLabel(m_constant_text.title, title_rect, wxALIGN_RIGHT | wxALIGN_BOTTOM);
         //BBS align bottom of title and version text

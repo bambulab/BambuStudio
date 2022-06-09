@@ -104,7 +104,7 @@ protected:
     int             m_switch_printing_fan_timeout{0};
 
     AxisCtrlButton *m_bpButton_xy;
-    wxStaticText *  m_staticText_xy;
+    //wxStaticText *  m_staticText_xy;
     Button *        m_bpButton_z_10;
     Button *        m_bpButton_z_1;
     Button *        m_bpButton_z_down_1;

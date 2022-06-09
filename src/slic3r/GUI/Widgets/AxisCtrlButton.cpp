@@ -18,11 +18,11 @@ EVT_MOTION(AxisCtrlButton::mouseMoving)
 EVT_PAINT(AxisCtrlButton::paintEvent)   
 END_EVENT_TABLE()
 
-#define OUTER_SIZE      FromDIP(138)
-#define INNER_SIZE      FromDIP(78)
-#define HOME_SIZE       FromDIP(30)
-#define BLANK_SIZE      FromDIP(30)
-#define GAP_SIZE        FromDIP(5)
+#define OUTER_SIZE      FromDIP(105)
+#define INNER_SIZE      FromDIP(58)
+#define HOME_SIZE       FromDIP(23)
+#define BLANK_SIZE      FromDIP(23)
+#define GAP_SIZE        FromDIP(4)
 
 AxisCtrlButton::AxisCtrlButton(wxWindow *parent, wxBitmap &icon, long stlye)
     : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, stlye)
@@ -250,7 +250,7 @@ void AxisCtrlButton::render(wxDC& dc)
     if (!IsEnabled())
         gc->SetFont(Label::Body_12, text_color.colorForStates(StateColor::Disabled));
     else
-	    gc->SetFont(Label::Body_12, text_color.colorForStates(states));
+	    gc->SetFont(Label::Head_12, text_color.colorForStates(states));
 	wxDouble w, h;
 	gc->GetTextExtent("Y", &w, &h);
 	gc->DrawText(wxT("Y"), -w / 2, -r_outer + (r_outer - r_inner) / 2 - h / 2);
