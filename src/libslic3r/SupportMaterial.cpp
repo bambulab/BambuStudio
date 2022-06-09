@@ -1459,10 +1459,10 @@ struct SlicesMarginCache
 };
 
 // BBS
-static const double area_thresh_well_supported = SQ(scale_(6));  // min: 4x4=16mm^2
-static const double length_thresh_well_supported = scale_(6);  // min: 4mm
-static const double sharp_tail_xy_gap = 0.2f;
-static const double sharp_tail_max_support_height = 10.f;
+static const double length_thresh_well_supported = scale_(6);  // min: 6mm
+static const double area_thresh_well_supported = SQ(length_thresh_well_supported);  // min: 6x6=36mm^2
+static const double sharp_tail_xy_gap = 0.25f;
+static const double sharp_tail_max_support_height = 8.f;
 
 // Tuple: overhang_polygons, contact_polygons, enforcer_polygons, no_interface_offset
 // no_interface_offset: minimum of external perimeter widths
@@ -1553,7 +1553,6 @@ static inline Polygons detect_overhangs(
                 //FIXME add user defined filtering here based on minimal area or minimum radius or whatever.
 
                 // BBS
-                ExPolygons lower_layer_offseted = offset_ex(lower_layer_expolys, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS);
                 for (ExPolygon& expoly : layerm->raw_slices) {
                     bool is_sharp_tail = false;
                     float accum_height = layer.height;
@@ -1564,8 +1563,9 @@ static inline Polygons detect_overhangs(
                         }
 
                         // 1. nothing below
-                        // check whether this is a sharp tail region
-                        if (intersection_ex({ expoly }, lower_layer_offseted).empty()) {
+                        // Check whether this is a sharp tail region.
+                        // Should use lower_layer_expolys without any offset. Otherwise, it may missing sharp tails near the main body.
+                        if (intersection_ex({ expoly }, lower_layer_expolys).empty()) {
                             is_sharp_tail = expoly.area() < area_thresh_well_supported;
                             break;
                         }
@@ -1606,13 +1606,28 @@ static inline Polygons detect_overhangs(
                             }
                         }
 
-                        is_sharp_tail = accum_height < sharp_tail_max_support_height;
+                        if (accum_height >= sharp_tail_max_support_height) {
+                            is_sharp_tail = false;
+                            break;
+                        }
+
+                        // 2.4 if the area grows fast than threshold, it get connected to other part or
+                        // it has a sharp slop and will be auto supported.
+                        ExPolygons new_overhang_expolys = diff_ex({ expoly }, lower_layer_sharptails);
+                        if (!offset_ex(new_overhang_expolys, -5.0 * fw).empty()) {
+                            is_sharp_tail = false;
+                            break;
+                        }
+
+                        // 2.5 mark the expoly as sharptail
+                        is_sharp_tail = true;
                     } while (0);
 
                     if (is_sharp_tail) {
                         ExPolygons overhang = diff_ex({ expoly }, lower_layer_polygons);
                         layer.sharp_tails.push_back(expoly);
                         layer.sharp_tails_height.insert({ &expoly, accum_height });
+                        overhang = offset_ex(overhang, 0.05 * fw);
                         polygons_append(diff_polygons, to_polygons(overhang));
                     }
                 }
@@ -1643,7 +1658,7 @@ static inline Polygons detect_overhangs(
         } // for each layer.region
     }
 
-    return overhang_polygons;
+    return union_(overhang_polygons);
 }
 
 // Tuple: overhang_polygons, contact_polygons, enforcer_polygons, no_interface_offset
@@ -2130,6 +2145,21 @@ static void add_overhang(std::vector<OverhangCluster>& clusters, Polygon* overha
 
 static  bool is_contour_ccw_test = false;
 
+static  std::string get_svg_filename(std::string layer_nr_or_z, std::string tag = "bbl_ts")
+{
+    static bool rand_init = false;
+
+    if (!rand_init) {
+        srand(time(NULL));
+        rand_init = true;
+    }
+
+    int rand_num = rand() % 1000000;
+    //makedir("./SVG");
+    std::string prefix = "./SVG/";
+    std::string suffix = ".svg";
+    return prefix + tag + "_" + layer_nr_or_z /*+ "_" + std::to_string(rand_num)*/ + suffix;
+}
 
 // Generate top contact layers supporting overhangs.
 // For a soluble interface material synchronize the layer heights with the object, otherwise leave the layer height undefined.
@@ -2228,7 +2258,6 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
             if (is_sharp_tail)
                 continue;
 
-
             // 4. check whether the overhang cluster is cantilever (far awary from main body)
             const Layer* layer = object.get_layer(cluster.min_layer);
             if (layer->lower_layer == NULL) continue;
@@ -2246,10 +2275,10 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                 }
                 dist_max = std::max(dist_max, dist_pt);
             }
-            if (dist_max > scale_(5))
+            if (dist_max > 5.0 * fw_scaled)
                 continue;
 
-            // 4. remove small overhangs
+            // 5. remove small overhangs
             for (auto overhangs : cluster.layer_overhangs) {
                 for (Polygon* poly : overhangs.second)
                     removed_overhang.insert(poly);
@@ -3170,7 +3199,8 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                 size_t i = idx_object_layer_overlapping;
                 for (; i < object.layers().size(); ++ i) {
                     const Layer &object_layer = *object.layers()[i];
-                    if (object_layer.bottom_z() > support_layer.print_z + gap_extra_above - EPSILON)
+                    // BBS: only with overlapped layer, do not consider vertical gap
+                    if (object_layer.bottom_z() > support_layer.print_z /* + gap_extra_above */ - EPSILON)
                         break;
 
                     for (const ExPolygon& expoly : object_layer.lslices) {
@@ -3188,7 +3218,8 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                         bool some_region_overlaps = false;
                         for (LayerRegion *region : object_layer.regions()) {
                             coordf_t bridging_height = region->region().bridging_height_avg(*m_print_config);
-                            if (object_layer.print_z - bridging_height > support_layer.print_z + gap_extra_above - EPSILON)
+                            // BBS: only with overlapped layer, do not consider vertical gap
+                            if (object_layer.print_z - bridging_height > support_layer.print_z + /* gap_extra_above */ - EPSILON)
                                 break;
                             some_region_overlaps = true;
                             polygons_append(polygons_trimming, 
