@@ -759,9 +759,9 @@ void TreeSupport::detect_object_overhangs()
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     const bool bridge_no_support = config.bridge_no_support.value;
     const int enforce_support_layers = config.enforce_support_layers.value;
-    const double area_thresh_well_supported = SQ(scale_(6));  // min: 4x4=16mm^2
-    const double length_thresh_well_supported = scale_(6);  // min: 4x4=16mm^2
-    static const double sharp_tail_max_support_height = 10.f;
+    const double area_thresh_well_supported = SQ(scale_(6));  // min: 6x6=36mm^2
+    const double length_thresh_well_supported = scale_(6);  // min: 6mm
+    static const double sharp_tail_max_support_height = 8.f;
     // a region is considered well supported if the number of layers below it exceeds this threshold
     const int thresh_layers_below = 10 / config.layer_height;
     const coordf_t max_bridge_length = scale_(20);
@@ -950,7 +950,7 @@ void TreeSupport::detect_object_overhangs()
                     do {
                         // 1. nothing below
                         // check whether this is a sharp tail region
-                        if (intersection_ex({expoly}, lower_layer_offseted).empty()) {
+                        if (intersection_ex({expoly}, lower_polys).empty()) {
                             is_sharp_tail = expoly.area() < area_thresh_well_supported;
                             break;
                         }
@@ -987,7 +987,21 @@ void TreeSupport::detect_object_overhangs()
                             }
                         }
 
-                        is_sharp_tail = accum_height < sharp_tail_max_support_height;
+                        if (accum_height >= sharp_tail_max_support_height) {
+                            is_sharp_tail = false;
+                            break;
+                        }
+
+                        // 2.4 if the area grows fast than threshold, it get connected to other part or
+                        // it has a sharp slop and will be auto supported.
+                        ExPolygons new_overhang_expolys = diff_ex({ expoly }, lower_layer_sharptails);
+                        if (!offset_ex(new_overhang_expolys, -5.0 * extrusion_width_scaled).empty()) {
+                            is_sharp_tail = false;
+                            break;
+                        }
+
+                        // 2.5 mark the expoly as sharptail
+                        is_sharp_tail = true;
                     } while (0);
 
                     if (is_sharp_tail) {
