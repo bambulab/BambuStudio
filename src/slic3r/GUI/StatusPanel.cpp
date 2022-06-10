@@ -198,7 +198,11 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_connection_info->SetSize(wxSize(-1, FromDIP(16)));
     m_connection_info->SetMinSize(wxSize(-1, FromDIP(16)));
     m_connection_info->SetMaxSize(wxSize(-1, FromDIP(16)));
-    m_connection_info->SetPaddingSize(wxSize(FromDIP(11), 0));
+#ifdef __WINDOWS__
+      m_connection_info->SetPaddingSize(wxSize(FromDIP(11), 0));
+#endif // __WINDOWS__
+
+  
     m_connection_info->Hide();
 
     bSizer_monitoring_title->Add(FromDIP(13), 0, 0, 0);
@@ -2129,7 +2133,9 @@ void StatusPanel::msw_rescale()
     m_connection_info->SetSize(wxSize(-1, FromDIP(16)));
     m_connection_info->SetMinSize(wxSize(-1, FromDIP(16)));
     m_connection_info->SetMaxSize(wxSize(-1, FromDIP(16)));
+#ifdef __WINDOWS__
     m_connection_info->SetPaddingSize(wxSize(FromDIP(11), 0));
+#endif // __WINDOWS__
 
     m_gauge_progress->Rescale();
 
