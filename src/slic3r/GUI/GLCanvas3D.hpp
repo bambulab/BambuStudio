@@ -450,6 +450,7 @@ private:
     std::vector<int> m_hover_plate_idxs;
     //BBS if explosion_ratio is changed, need to update volume bounding box
     mutable float m_explosion_ratio = 1.0;
+    mutable Vec3d m_rotation_center{ 0.0, 0.0, 0.0};
     //BBS store camera view
     Camera camera;
 

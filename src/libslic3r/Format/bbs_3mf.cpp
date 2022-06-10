@@ -3394,23 +3394,25 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             volume->calculate_convex_hull();
 
             // recreate custom supports, seam and mmu segmentation from previously loaded attribute
-            volume->supported_facets.reserve(triangles_count);
-            volume->seam_facets.reserve(triangles_count);
-            volume->mmu_segmentation_facets.reserve(triangles_count);
-            for (size_t i=0; i<triangles_count; ++i) {
-                assert(i < sub_object->geometry.custom_supports.size());
-                assert(i < sub_object->geometry.custom_seam.size());
-                assert(i < sub_object->geometry.mmu_segmentation.size());
-                if (! sub_object->geometry.custom_supports[i].empty())
-                    volume->supported_facets.set_triangle_from_string(i, sub_object->geometry.custom_supports[i]);
-                if (! sub_object->geometry.custom_seam[i].empty())
-                    volume->seam_facets.set_triangle_from_string(i, sub_object->geometry.custom_seam[i]);
-                if (! sub_object->geometry.mmu_segmentation[i].empty())
-                    volume->mmu_segmentation_facets.set_triangle_from_string(i, sub_object->geometry.mmu_segmentation[i]);
+            if (m_load_config) {
+                volume->supported_facets.reserve(triangles_count);
+                volume->seam_facets.reserve(triangles_count);
+                volume->mmu_segmentation_facets.reserve(triangles_count);
+                for (size_t i=0; i<triangles_count; ++i) {
+                    assert(i < sub_object->geometry.custom_supports.size());
+                    assert(i < sub_object->geometry.custom_seam.size());
+                    assert(i < sub_object->geometry.mmu_segmentation.size());
+                    if (! sub_object->geometry.custom_supports[i].empty())
+                        volume->supported_facets.set_triangle_from_string(i, sub_object->geometry.custom_supports[i]);
+                    if (! sub_object->geometry.custom_seam[i].empty())
+                        volume->seam_facets.set_triangle_from_string(i, sub_object->geometry.custom_seam[i]);
+                    if (! sub_object->geometry.mmu_segmentation[i].empty())
+                        volume->mmu_segmentation_facets.set_triangle_from_string(i, sub_object->geometry.mmu_segmentation[i]);
+                }
+                volume->supported_facets.shrink_to_fit();
+                volume->seam_facets.shrink_to_fit();
+                volume->mmu_segmentation_facets.shrink_to_fit();
             }
-            volume->supported_facets.shrink_to_fit();
-            volume->seam_facets.shrink_to_fit();
-            volume->mmu_segmentation_facets.shrink_to_fit();
 
             volume->set_type(volume_data->part_type);
 
@@ -5314,7 +5316,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PLATERID_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->plate_index + 1 << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << LOCK_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->locked<< "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << plate_data->gcode_file << "\"/>\n";
-                if (!plate_data->gcode_file.empty()) {   
+                if (!plate_data->gcode_file.empty()) {
                     gcode_paths.push_back(plate_data->gcode_file);
                 }
                 if (plate_data->plate_thumbnail.is_valid()) {

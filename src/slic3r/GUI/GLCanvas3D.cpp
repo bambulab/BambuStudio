@@ -3235,8 +3235,16 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             //camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
                             camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, rotate_target);
                         }
-                        else if (evt.ControlDown() || evt.CmdDown() && m_canvas_type == ECanvasType::CanvasView3D) {
-                            camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, wxGetApp().plater()->get_partplate_list().get_bounding_box().center());
+                        else if (evt.ControlDown() || evt.CmdDown()) {
+                            if ((m_rotation_center.x() == 0.f) && (m_rotation_center.y() == 0.f) && (m_rotation_center.z() == 0.f)) {
+                                auto canvas_w = float(get_canvas_size().get_width());
+                                auto canvas_h = float(get_canvas_size().get_height());
+                                Point screen_center(canvas_w/2, canvas_h/2);
+                                //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, wxGetApp().plater()->get_partplate_list().get_bounding_box().center());
+                                m_rotation_center = _mouse_to_3d(screen_center);
+                                m_rotation_center(2) = 0.f;
+                            }
+                            camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, m_rotation_center);
                         } else {
                             //BBS rotate with current plate center
                             PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
@@ -3281,8 +3289,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
     }
     else if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp()) {
-        if (evt.LeftUp())
+        if (evt.LeftUp()) {
             m_selection.stop_dragging();
+            m_rotation_center(0) = m_rotation_center(1) = m_rotation_center(2) = 0.f;
+        }
 
         if (m_mouse.drag.move_volume_idx != -1 && m_mouse.dragging) {
             do_move(L("Move Object"));
