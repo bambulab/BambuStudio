@@ -3889,6 +3889,9 @@ GLCanvas3D::WipeTowerInfo GLCanvas3D::get_wipe_tower_info(int plate_idx) const
             const BoundingBoxf3& bb = vol->bounding_box();
             wti.m_bb = BoundingBoxf{to_2d(bb.min), to_2d(bb.max)};
 
+            float brim_width = wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_float("prime_tower_brim_width");
+            wti.m_bb.offset((brim_width));
+
             // BBS: add partplate logic
             wti.m_plate_idx = plate_idx;
             break;
