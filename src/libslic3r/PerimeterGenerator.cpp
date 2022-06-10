@@ -594,8 +594,11 @@ void PerimeterGenerator::process()
             bool is_outer_wall_first = 
                 this->print_config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
                 this->print_config->wall_infill_order == WallInfillOrder::InfillOuterInner;
-            if (is_outer_wall_first || 
-                (this->layer_id == 0 && this->object_config->brim_width.value > 0))
+            if (is_outer_wall_first ||
+                //BBS: always print outer wall first when there indeed has brim.
+                (this->layer_id == 0 &&
+                 this->object_config->brim_type == BrimType::btOuterOnly &&
+                 this->object_config->brim_width.value > 0))
                 entities.reverse();
             // append perimeters for this slice as a collection
             if (! entities.empty())
