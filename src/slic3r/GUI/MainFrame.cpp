@@ -732,20 +732,19 @@ void MainFrame::init_tabpanel()
 
     wxGetApp().plater_ = m_plater;
 
-    if (wxGetApp().is_editor()) {
-        create_preset_tabs();
+    create_preset_tabs();
 
         //BBS add pages
-        m_monitor = new MonitorPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-        m_tabpanel->AddPage(m_monitor, _L("Printer"), std::string("tab_monitor_active"), std::string("tab_monitor_active"));
-#if !BBL_RELEASE_TO_PUBLIC
-        m_debug_tool_dlg = new DebugToolDialog(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-        m_tabpanel->AddPage(m_debug_tool_dlg, _L("Debug"), "debugtool", "debugtool");
-#endif
-    }
+    m_monitor = new MonitorPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    m_tabpanel->AddPage(m_monitor, _L("Printer"), std::string("tab_monitor_active"), std::string("tab_monitor_active"));
 
     m_auxiliary = new AuxiliaryPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_tabpanel->AddPage(m_auxiliary, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"));
+
+#if !BBL_RELEASE_TO_PUBLIC
+    m_debug_tool_dlg = new DebugToolDialog(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    m_tabpanel->AddPage(m_debug_tool_dlg, _L("Debug"), "debugtool", "debugtool");
+#endif
 
     if (m_plater) {
         // load initial config

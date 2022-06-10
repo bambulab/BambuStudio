@@ -707,30 +707,25 @@ void AuxiliaryPanel::init_tabpanel()
     m_tabpanel->SetBackgroundColour(*wxWHITE);
     m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent &e) { ; });
 
-    #if !BBL_RELEASE_TO_PUBLIC
+#if !BBL_RELEASE_TO_PUBLIC
     m_designer_panel = new DesignerPanel(m_tabpanel, AuxiliaryFolderType::DESIGNER);
-    m_tabpanel->AddPage(m_designer_panel, _L("Designer"), "", true);
-    #endif
+#endif
 
     m_pictures_panel          = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::MODEL_PICTURE);
     m_bill_of_materials_panel = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::BILL_OF_MATERIALS);
     m_assembly_panel          = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::ASSEMBLY_GUIDE);
     m_others_panel            = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::OTHERS);
 
-    #if !BBL_RELEASE_TO_PUBLIC
+    m_tabpanel->AddPage(m_designer_panel, _L("Designer"), "", true);
+
+#if !BBL_RELEASE_TO_PUBLIC
     m_tabpanel->AddPage(m_pictures_panel, _L("Pictures"), "", false);
-    #else
+#else
     m_tabpanel->AddPage(m_pictures_panel, _L("Pictures"), "", true);
-    #endif
-    
+#endif
     m_tabpanel->AddPage(m_bill_of_materials_panel, _L("Bill of Materials"), "", false);
     m_tabpanel->AddPage(m_assembly_panel, _L("Assembly Guide"), "", false);
     m_tabpanel->AddPage(m_others_panel, _L("Others"), "", false);
-
-#if !BBL_RELEASE_TO_PUBLIC
-    m_designer_panel          = new DesignerPanel(m_tabpanel, AuxiliaryFolderType::DESIGNER);
-    m_tabpanel->AddPage(m_designer_panel, _L("License"), "", false);
-#endif
 }
 
 wxWindow *AuxiliaryPanel::create_side_tools()

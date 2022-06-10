@@ -61,7 +61,7 @@ private:
     wxAuiToolBarItem* m_title_item;
     wxAuiToolBarItem* m_account_item;
     wxAuiToolBarItem* m_model_store_item;
-    wxAuiToolBarItem *m_publish_item;
+    //wxAuiToolBarItem *m_publish_item;
     wxAuiToolBarItem* m_undo_item;
     wxAuiToolBarItem* m_redo_item;
     wxAuiToolBarItem* maximize_btn;

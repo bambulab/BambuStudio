@@ -242,11 +242,11 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     this->AddStretchSpacer(1);
 
 #if !BBL_RELEASE_TO_PUBLIC
-    wxBitmap m_publish_bitmap = create_scaled_bitmap("topbar_publish", nullptr, TOPBAR_ICON_SIZE);
+    /*wxBitmap m_publish_bitmap = create_scaled_bitmap("topbar_publish", nullptr, TOPBAR_ICON_SIZE);
     m_publish_item            = this->AddTool(ID_PUBLISH, "", m_publish_bitmap);
     wxBitmap m_publish_disable_bitmap = create_scaled_bitmap("topbar_publish_disable", nullptr, TOPBAR_ICON_SIZE);
     m_publish_item->SetDisabledBitmap(m_publish_disable_bitmap);
-    this->AddSpacer(FromDIP(12));
+    this->AddSpacer(FromDIP(12));*/
 #endif
 
     /*wxBitmap model_store_bitmap = create_scaled_bitmap("topbar_store", nullptr, TOPBAR_ICON_SIZE);
@@ -259,7 +259,7 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     this->AddSpacer(12);
     */
 
-    this->AddSeparator();
+    //this->AddSeparator();
     this->AddSpacer(FromDIP(6));
 
     wxBitmap iconize_bitmap = create_scaled_bitmap("topbar_min", nullptr, TOPBAR_ICON_SIZE);
@@ -307,7 +307,7 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnUndo, this, wxID_UNDO);
     //this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnAccountClicked, this, ID_ACCOUNT);
     //this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnModelStoreClicked, this, ID_MODEL_STORE);
-    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnPublishClicked, this, ID_PUBLISH);
+    //this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnPublishClicked, this, ID_PUBLISH);
 }
 
 BBLTopbar::~BBLTopbar()
@@ -505,9 +505,9 @@ void BBLTopbar::Rescale() {
 
     item = this->FindTool(ID_TITLE);
 
-    item = this->FindTool(ID_PUBLISH);
+    /*item = this->FindTool(ID_PUBLISH);
     item->SetBitmap(create_scaled_bitmap("topbar_publish", nullptr, TOPBAR_ICON_SIZE));
-    item->SetDisabledBitmap(create_scaled_bitmap("topbar_publish_disable", nullptr, TOPBAR_ICON_SIZE));
+    item->SetDisabledBitmap(create_scaled_bitmap("topbar_publish_disable", nullptr, TOPBAR_ICON_SIZE));*/
 
     /*item = this->FindTool(ID_MODEL_STORE);
     item->SetBitmap(create_scaled_bitmap("topbar_store", nullptr, TOPBAR_ICON_SIZE));
