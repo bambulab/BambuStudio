@@ -2326,13 +2326,12 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 #ifdef _WIN32
     app_config->set_bool("associate_3mf", page_files_association->associate_3mf());
     app_config->set_bool("associate_stl", page_files_association->associate_stl());
-    //app_config->set("associate_gcode", page_files_association->associate_gcode());
 
     if (wxGetApp().is_editor()) {
         if (page_files_association->associate_3mf())
-            wxGetApp().associate_3mf_files();
+            wxGetApp().associate_files(L"3mf");
         if (page_files_association->associate_stl())
-            wxGetApp().associate_stl_files();
+            wxGetApp().associate_files(L"stl");
     }
 //    else {
 //        if (page_files_association->associate_gcode())

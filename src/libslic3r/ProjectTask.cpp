@@ -65,25 +65,6 @@ namespace Slic3r {
         task_bed_type  = "auto";
     }
 
-    std::string BBLSubTask::build_content_json()
-    {
-        try {
-            json j;
-            j["info"]["name"]           = task_name;
-            j["info"]["plate_idx"]      = task_partplate_idx;
-            j["info"]["printer"]        = task_printer_dev_id;
-            j["info"]["bed_type"]       = task_bed_type;
-            j["info"]["bed_leveling"]   = task_bed_leveling;
-            j["info"]["flow_cali"]      = task_flow_cali;
-            j["info"]["vibration_cali"] = task_vibration_cali;
-            j["info"]["record_timelapse"] = task_record_timelapse;
-            return j.dump();
-        }
-        catch (...) {
-            return "";
-        }
-    }
-
     int BBLSubTask::parse_content_json(std::string json_str)
     {
         try {
@@ -147,27 +128,6 @@ namespace Slic3r {
         return BBLSubTask::SubTaskStatus::TASK_UNKNOWN;
     }
 
-    std::string BBLTask::build_content_json()
-    {
-        /*
-        { 
-            # Only for task
-            "config": {
-                "key1" : "value1",
-                "key2" : "value2",
-                "key3" : "value3"
-                ...
-                }
-            }
-        }
-        */
-        pt::ptree root, config;
-        root.put_child("config", config);
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        return oss.str();
-    }
-
     int BBLTask::parse_content_json(std::string json)
     {
         try {
@@ -212,42 +172,6 @@ namespace Slic3r {
             BOOST_LOG_TRIVIAL(trace) << "parse_content_json failed! json=" << json;
         }
         return 0;
-    }
-
-    std::string BBLProject::build_content_json()
-    {
-        pt::ptree root, js_tasks;
-        for (int i = 0; i < profiles.size(); i++) {
-            for (int j = 0; j < profiles[i]->tasks.size(); j++) {
-                pt::ptree js_task, js_subtasks;
-                BBLTask* task = profiles[i]->tasks[j];
-                std::string task_create_time_str = task->task_create_time;
-
-                js_task.put("id", task->task_id);
-                js_task.put("name", task->task_name);
-                js_task.put("create_time", task_create_time_str);
-                js_task.put("status", task->task_status_str());
-
-                for (int k = 0; k < task->subtasks.size(); k++) {
-                    pt::ptree js_subtask;
-                    BBLSubTask* subtask = task->subtasks[k];
-                    js_subtask.put("id", subtask->task_id);
-                    js_subtask.put("name", subtask->task_name);
-                    js_subtask.put("create_time", subtask->task_create_time);
-                    js_subtask.put("plane", subtask->task_partplate_idx);
-                    js_subtask.put("printer", subtask->task_printer_dev_id);
-                    /* status, progress updated by printer */
-                    js_subtasks.push_back(std::make_pair("", js_subtask));
-                }
-                js_task.put_child("subtasks", js_subtasks); 
-                js_tasks.push_back(std::make_pair("", js_task));
-            }
-        }
-        root.put_child("tasks", js_tasks);
-        
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        return oss.str();
     }
 
     void BBLProject::reset()

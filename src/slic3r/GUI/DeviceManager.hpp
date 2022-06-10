@@ -564,7 +564,6 @@ public:
     int command_start_calibration();
 
     // device bind and unbind
-    int command_bind();
     int command_unbind();
 
     // new bind progress
@@ -637,10 +636,9 @@ private:
     const double ALIVE_TIMEOUT = 30.0;
     boost::thread m_device_check_alive;
     AccountManager& acc_;
-    CommuBackend& backend_;
 
 public:
-    DeviceManager(AccountManager& acc, CommuBackend& backend);
+    DeviceManager(AccountManager& acc);
     ~DeviceManager();
 
     std::mutex listMutex;

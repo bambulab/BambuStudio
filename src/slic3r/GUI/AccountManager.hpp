@@ -17,14 +17,10 @@
 
 using namespace nlohmann;
 
-
-#define BBL_INTERNAL_TEST
 #define BBL_CHECK_USER_REPORT
 
 #define MY_MODEL_PUBLISH_URL_FORMAT     "/my/models/%1%/publish?project_id=%2%&profile_id=%3%&design_id="
 #define MY_PROFILE_PUBLISH_URL_FORMAT   "/my/profiles/%1%/publish?project_id=%2%&design_id=%3%"
-#define MY_COLLECTIONS_URL              "/my/collections"
-#define MY_PROJECT_LIST_URL             "/my/projects"
 #define MODEL_STORE_URL                 "/designs"
 
 #define POLL_3MF_TIMEOUT                180
@@ -49,19 +45,12 @@ using namespace nlohmann;
 namespace pt = boost::property_tree;
 
 
-enum UserRegion {
-    REGION_USA,
-    REGION_CHN,
-    REGION_OTHERS
-};
-
 namespace Slic3r {
 
 class RegionServer
 {
 public:
     RegionServer() {}
-    UserRegion  region;
     std::string iot_server_host;
     std::string api_servier_host;
     std::string mqtt_server_host;
@@ -244,11 +233,8 @@ class MachineObject;
 class AccountManager
 {
 private:
-    AccountInfo* m_curr_user;
-
-    std::string m_user_info_filename;
+    AccountInfo* m_curr_user { nullptr };
     std::string host = "";
-    std::string test_host = "https://autotest.bambooolab.com";
 
     /* studio */
     std::string _get_slicer_info_url();
@@ -261,8 +247,6 @@ private:
 
     std::string json_request_body_post_project(BBLProject* project);
     std::string json_request_body_post_profile(BBLProfile* profile);
-    std::string json_request_body_post_task(BBLTask* task);
-    std::string json_request_body_post_task(BBLSubTask* task);
     std::string json_request_body_post_subtask(BBLProject* project, BBLProfile* profile, BBLSubTask* task);
     std::string json_request_body_post_setting(std::string name, bool is_system, std::map<std::string, std::string>& values_map);
     std::string json_request_body_put_setting(std::string name, std::map<std::string, std::string>& values_map);
@@ -294,7 +278,6 @@ public:
     std::string MQTT_HOST = "ssl://47.100.225.51:8883";
     const int MQTT_QOS = 0;
     bool m_is_connecting{ false };
-    UserRegion user_region;
     RegionServer user_region_server;
 
     std::string get_emqx_server_host();
@@ -373,7 +356,6 @@ public:
 
     /* user login register apis */
     bool is_user_login();
-    int user_login_autotest(std::string account, std::string password);
     int user_logout();
     int request_user_unbind(std::string device_id, ResultFn fn);
     void clean_user_data();
@@ -509,12 +491,8 @@ public:
     std::string get_nick_name();
     std::string get_token_str(bool only_token = false);
 
-    /* project apis */
-    void reset_project();
-
     void set_host(std::string host_url);
     std::string get_host() { return host; }
-    void set_user_info_path(std::string user_info_filename) { m_user_info_filename = user_info_filename; }
     std::string get_user_id() {
         if (m_curr_user) {
             return m_curr_user->user_id();

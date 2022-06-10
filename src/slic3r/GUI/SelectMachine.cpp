@@ -100,10 +100,10 @@ MachineObjectPanel::MachineObjectPanel(wxWindow *parent, wxWindowID id, const wx
 
     m_unbind_img        = create_scaled_bitmap("unbind", nullptr, 18);
     m_select_unbind_img = create_scaled_bitmap("unbind_selected", nullptr, 18);
-    m_wifi_none_img     = create_scaled_bitmap("monitor_signal_no", nullptr, 18);
+    /*m_wifi_none_img     = create_scaled_bitmap("monitor_signal_no", nullptr, 18);
     m_wifi_weak_img     = create_scaled_bitmap("monitor_signal_weak", nullptr, 18);
     m_wifi_middle_img   = create_scaled_bitmap("monitor_signal_middle", nullptr, 18);
-    m_wifi_strong_img   = create_scaled_bitmap("monitor_signal_strong", nullptr, 18);
+    m_wifi_strong_img   = create_scaled_bitmap("monitor_signal_strong", nullptr, 18);*/
 
     m_printer_statue_offline = create_scaled_bitmap("printer_statue_offline", nullptr, 15);
     m_printer_statue_busy = create_scaled_bitmap("printer_statue_busy", nullptr, 15);
@@ -266,10 +266,10 @@ void MachineObjectPanel::doRender(wxDC &dc)
         }
 
     } else {
-        if (m_wifi_type == 0) dc.DrawBitmap(m_wifi_none_img, left, (size.y - m_unbind_img.GetSize().y) / 2);
+        /*if (m_wifi_type == 0) dc.DrawBitmap(m_wifi_none_img, left, (size.y - m_unbind_img.GetSize().y) / 2);
         if (m_wifi_type == 1) dc.DrawBitmap(m_wifi_weak_img, left, (size.y - m_unbind_img.GetSize().y) / 2);
         if (m_wifi_type == 2) dc.DrawBitmap(m_wifi_middle_img, left, (size.y - m_unbind_img.GetSize().y) / 2);
-        if (m_wifi_type == 3) dc.DrawBitmap(m_wifi_strong_img, left, (size.y - m_unbind_img.GetSize().y) / 2);
+        if (m_wifi_type == 3) dc.DrawBitmap(m_wifi_strong_img, left, (size.y - m_unbind_img.GetSize().y) / 2);*/
     }
 
     if (m_hover) {

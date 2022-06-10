@@ -588,31 +588,6 @@ void DebugToolDialog::init()
                 }
             });
         });
-    btn_bind->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-        MachineObject* obj = dev_manager_.get_default();
-        if (!obj) {
-            this->send_log_evt("Invalid Printer! Please Select a Printer!");
-            return;
-        }
-
-#if USE_LOCAL_SOCKET_BIND
-        int result = obj->command_new_bind();
-        if (result == 0) {
-            send_log_evt("Bind Success!");
-        } else {
-            send_log_evt("Bind Failed!");
-        }
-#else
-        if (!obj->mqtt_cli || !obj->mqtt_cli->is_connected()) {
-            send_log_evt("Please login or connect first!");
-            return;
-        }
-
-        if (obj->command_bind() < 0) {
-            send_log_evt("Please login or connect first!");
-        }
-#endif
-    });
     btn_connect->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         MachineObject* obj = dev_manager_.get_default();
         if (!obj) {

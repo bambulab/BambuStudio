@@ -404,14 +404,9 @@ public:
     int  GetSingleChoiceIndex(const wxString& message, const wxString& caption, const wxArrayString& choices, int initialSelection);
 
 #ifdef __WXMSW__
-    void            associate_3mf_files();
-    void            associate_stl_files();
-    void            associate_step_files();
-    void            disassociate_3mf_files();
-    void            disassociate_stl_files();
-    void            disassociate_step_files();
-
-    void            associate_gcode_files();
+    // extend is stl/3mf/gcode/step etc
+    void            associate_files(std::wstring extend);
+    void            disassociate_files(std::wstring extend);
 #endif // __WXMSW__
 
 private:

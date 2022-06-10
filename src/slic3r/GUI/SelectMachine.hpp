@@ -107,10 +107,10 @@ private:
     wxBitmap    m_owner_img;
     wxBitmap    m_unbind_img;
     wxBitmap    m_select_unbind_img;
-    wxBitmap    m_wifi_none_img;
+    /*wxBitmap    m_wifi_none_img;
     wxBitmap    m_wifi_weak_img;
     wxBitmap    m_wifi_middle_img;
-    wxBitmap    m_wifi_strong_img;
+    wxBitmap    m_wifi_strong_img;*/
 
     wxBitmap m_printer_statue_offline;
     wxBitmap m_printer_statue_busy;

@@ -12,7 +12,6 @@
 #include "Plater.hpp"
 
 #include "nlohmann/json.hpp"
-#include "slic3r/Utils/minilzo_extension.hpp"
 #include <thread>
 #include <mutex>
 #include <codecvt>
@@ -93,10 +92,6 @@ wxString get_stage_string(int stage)
     }
     return "";
 }
-
-static uint64_t lzo_out_len = 5 * 1024;
-const uint64_t LZO_OUT_MAX_LEN = 5 * 1024;
-static unsigned char lzo_out[LZO_OUT_MAX_LEN];
 
 namespace Slic3r {
 
@@ -931,25 +926,6 @@ int MachineObject::command_start_calibration()
     return this->publish_json(j.dump());
 }
 
-int MachineObject::command_bind()
-{
-    std::string user_id = acc_.get_user_id();
-    if (user_id.empty()) {
-        return -1;
-    }
-    pt::ptree root, bind;
-    bind.put("command", "bind");
-    bind.put("dev_id", dev_id);
-    bind.put("user_id", user_id);
-    bind.put("sequence_id", MachineObject::m_sequence_id++);
-    root.put_child("bind", bind);
-    std::stringstream oss;
-    pt::write_json(oss, root, false);
-    std::string json_str = oss.str();
-
-    return this->publish_json(json_str);
-}
-
 int MachineObject::_parse_login_report(std::string json_str, std::string fail_reason)
 {
     try {
@@ -1094,17 +1070,13 @@ int MachineObject::command_unbind()
     if (user_id.empty()) {
         return -1;
     }
-    pt::ptree root, bind;
-    bind.put("command", "unbind");
-    bind.put("dev_id", dev_id);
-    bind.put("user_id", user_id);
-    bind.put("sequence_id", MachineObject::m_sequence_id++);
-    root.put_child("bind", bind);
-    std::stringstream oss;
-    pt::write_json(oss, root, false);
-    std::string json_str = oss.str();
 
-    return this->publish_json(json_str);
+    json j;
+    j["bind"]["command"] = "unbind";
+    j["bind"]["dev_id"] = dev_id;
+    j["bind"]["user_id"] = user_id;
+    j["bind"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    return this->publish_json(j.dump());
 }
 
 
@@ -1926,17 +1898,12 @@ int MachineObject::publish_gcode(std::string gcode_str)
     Slic3r::AccountInfo* info = acc_.get_curr_user();
     if (!info) return -1;
 
-    pt::ptree root, print;
-    print.put("command", "gcode_line");
-    print.put("param", gcode_str);
-    print.put("sequence_id", MachineObject::m_sequence_id++);
-    print.put("user_id", info->get_user_id());
-    root.put_child("print", print);
-    std::stringstream oss;
-    pt::write_json(oss, root, false);
-    std::string json_str = oss.str();
-
-    return publish_json(json_str);
+    json j;
+    j["print"]["command"] = "gcode_line";
+    j["print"]["param"] = gcode_str;
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["user_id"] = info->get_user_id();
+    return publish_json(j.dump());
 }
 
 std::string get_printer_dest_file(std::string file)
@@ -2156,42 +2123,7 @@ void MachineObject::update_subtask(std::string subtask_id)
     /* create a new subtask */
     subtask_ = new BBLSubTask();
     subtask_->task_id = subtask_id;
-
     acc_.get_subtask(subtask_);
-
-    // modify to user-service api
-    /*unsigned http_code;
-    std::string http_body;
-    unsigned limit = 1;
-    int         result = acc_.get_tasks(this->dev_id, limit, http_code, http_body);
-    if (result == 0) {
-        BOOST_LOG_TRIVIAL(trace) << "parse_task_info: " << http_body;
-        try {
-            json j = json::parse(http_body);
-            if (j.contains("hits") && !j["hits"].is_null() && j["hits"].is_array()) {
-                for (auto task = j["hits"].begin(); task != j["hits"].end(); task++) {
-                    int task_id = (*task)["title"].get<int>();
-                    if (std::to_string(task_id).compare(subtask_->task_id) == 0) {
-                        subtask_->task_name          = (*task)["title"].get<std::string>();
-                        subtask_->task_partplate_idx = std::to_string((*task)["plateIndex"].get<int>());
-                        subtask_->task_weightF       = (*task)["weight"].get<double>();
-                        subtask_->task_thumbnail_url = (*task)["cover"].get<std::string>();
-                        subtask_->task_status        = BBLSubTask::parse_user_service_task_status((*task)["status"].get<int>());
-                        subtask_->task_start_time    = (*task)["startTime"].get<std::string>();
-                        subtask_->task_end_time      = (*task)["endTime"].get<std::string>();
-                    } else {
-                        BOOST_LOG_TRIVIAL(trace) << "parse_task_info: task_id mismatch curr = " << subtask_->task_id;
-                    }
-                }
-            }
-        }
-        catch (...) {
-            ;
-        }
-    }
-    else {
-        BOOST_LOG_TRIVIAL(trace) << "parse_task_info: failed, status = " << http_code << ", body = " << http_body;
-    }*/
 }
 
 void MachineObject::request_unbind(ResultFn fn)
@@ -2356,9 +2288,8 @@ std::string MachineObject::build_report_topic(std::string dev_id)
     return (boost::format("device/%1%/report") % dev_id).str();
 }
 
-DeviceManager::DeviceManager(AccountManager& acc, CommuBackend& backend)
-    : acc_(acc),
-    backend_(backend)
+DeviceManager::DeviceManager(AccountManager& acc)
+    : acc_(acc)
 {
     try {
         m_device_check_alive = Slic3r::create_thread([this] { this->check_alive(); });

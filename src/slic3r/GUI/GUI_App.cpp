@@ -1072,7 +1072,7 @@ GUI_App::GUI_App()
     , m_account_manager(new Slic3r::AccountManager())
 {
     m_backend = new Slic3r::CommuBackend();
-    m_device_manager = new Slic3r::DeviceManager(*m_account_manager, *m_backend);
+    m_device_manager = new Slic3r::DeviceManager(*m_account_manager);
 
     //set callbacks
     m_account_manager->set_on_user_login_fn([this](int online_login) {
@@ -1424,11 +1424,13 @@ bool GUI_App::on_init_inner()
     if (is_editor()) {
 #ifdef __WXMSW__
         if (app_config->get("associate_3mf") == "true")
-            associate_3mf_files();
+            associate_files(L"3mf");
         if (app_config->get("associate_stl") == "true")
-            associate_stl_files();
+            associate_files(L"stl");
         if (app_config->get("associate_step") == "true")
-            associate_step_files();
+            associate_files(L"step");
+        if (app_config->get("associate_gcode") == "true")
+            associate_files(L"gcode");
 #endif // __WXMSW__
 
         preset_updater = new PresetUpdater();
@@ -1488,7 +1490,7 @@ bool GUI_App::on_init_inner()
     else {
 #ifdef __WXMSW__
         if (app_config->get("associate_gcode") == "true")
-            associate_gcode_files();
+            associate_files(L"gcode");
 #endif // __WXMSW__
     }
 
@@ -3250,15 +3252,15 @@ void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_
 #ifdef _WIN32
         if (is_editor()) {
             if (app_config->get("associate_3mf") == "true")
-                associate_3mf_files();
+                associate_files(L"3mf");
             if (app_config->get("associate_stl") == "true")
-                associate_stl_files();
+                associate_files(L"stl");
             if (app_config->get("associate_step") == "true")
-                associate_step_files();
+                associate_files(L"step");
         }
         else {
             if (app_config->get("associate_gcode") == "true")
-                associate_gcode_files();
+                associate_files(L"gcode");
         }
 #endif // _WIN32
     }
@@ -4011,7 +4013,8 @@ static bool del_win_registry(HKEY hkeyHive, const wchar_t *pszVar, const wchar_t
     return false;
 }
 
-void GUI_App::associate_3mf_files()
+
+void GUI_App::associate_files(std::wstring extend)
 {
     wchar_t app_path[MAX_PATH];
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
@@ -4021,7 +4024,7 @@ void GUI_App::associate_3mf_files()
     std::wstring prog_desc = L"BambuStudio";
     std::wstring prog_command = prog_path + L" \"%1\"";
     std::wstring reg_base = L"Software\\Classes";
-    std::wstring reg_extension = reg_base + L"\\.3mf";
+    std::wstring reg_extension = reg_base + L"\\." + extend;
     std::wstring reg_prog_id = reg_base + L"\\" + prog_id;
     std::wstring reg_prog_id_command = reg_prog_id + L"\\Shell\\Open\\Command";
 
@@ -4029,80 +4032,12 @@ void GUI_App::associate_3mf_files()
     is_new |= set_into_win_registry(HKEY_CURRENT_USER, reg_extension.c_str(), prog_id.c_str());
     is_new |= set_into_win_registry(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
     is_new |= set_into_win_registry(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
-
     if (is_new)
         // notify Windows only when any of the values gets changed
         ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 }
 
-void GUI_App::disassociate_3mf_files()
-{
-    wchar_t app_path[MAX_PATH];
-    ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
-
-    std::wstring prog_path           = L"\"" + std::wstring(app_path) + L"\"";
-    std::wstring prog_id             = L" Bambu.Studio.1";
-    std::wstring prog_desc           = L"BambuStudio";
-    std::wstring prog_command        = prog_path + L" \"%1\"";
-    std::wstring reg_base            = L"Software\\Classes";
-    std::wstring reg_extension       = reg_base + L"\\.3mf";
-    std::wstring reg_prog_id         = reg_base + L"\\" + prog_id;
-    std::wstring reg_prog_id_command = reg_prog_id + L"\\Shell\\Open\\Command";
-
-    bool is_new = false;
-    is_new |= del_win_registry(HKEY_CURRENT_USER, reg_extension.c_str(), prog_id.c_str());
-    is_new |= del_win_registry(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
-    is_new |= del_win_registry(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
-
-    if (is_new)
-        ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
-}
-
-void GUI_App::disassociate_stl_files()
-{
-    wchar_t app_path[MAX_PATH];
-    ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
-
-    std::wstring prog_path           = L"\"" + std::wstring(app_path) + L"\"";
-    std::wstring prog_id             = L" Bambu.Studio.1";
-    std::wstring prog_desc           = L"BambuStudio";
-    std::wstring prog_command        = prog_path + L" \"%1\"";
-    std::wstring reg_base            = L"Software\\Classes";
-    std::wstring reg_extension       = reg_base + L"\\.stl";
-    std::wstring reg_prog_id         = reg_base + L"\\" + prog_id;
-    std::wstring reg_prog_id_command = reg_prog_id + L"\\Shell\\Open\\Command";
-
-    bool is_new = false;
-    is_new |= del_win_registry(HKEY_CURRENT_USER, reg_extension.c_str(), prog_id.c_str());
-    is_new |= del_win_registry(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
-    is_new |= del_win_registry(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
-
-    if (is_new) ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
-}
-
-void GUI_App::disassociate_step_files()
-{
-    wchar_t app_path[MAX_PATH];
-    ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
-
-    std::wstring prog_path           = L"\"" + std::wstring(app_path) + L"\"";
-    std::wstring prog_id             = L" Bambu.Studio.1";
-    std::wstring prog_desc           = L"BambuStudio";
-    std::wstring prog_command        = prog_path + L" \"%1\"";
-    std::wstring reg_base            = L"Software\\Classes";
-    std::wstring reg_extension       = reg_base + L"\\.step";
-    std::wstring reg_prog_id         = reg_base + L"\\" + prog_id;
-    std::wstring reg_prog_id_command = reg_prog_id + L"\\Shell\\Open\\Command";
-
-    bool is_new = false;
-    is_new |= del_win_registry(HKEY_CURRENT_USER, reg_extension.c_str(), prog_id.c_str());
-    is_new |= del_win_registry(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
-    is_new |= del_win_registry(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
-
-    if (is_new) ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
-}
-
-void GUI_App::associate_stl_files()
+void GUI_App::disassociate_files(std::wstring extend)
 {
     wchar_t app_path[MAX_PATH];
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
@@ -4112,70 +4047,20 @@ void GUI_App::associate_stl_files()
     std::wstring prog_desc = L"BambuStudio";
     std::wstring prog_command = prog_path + L" \"%1\"";
     std::wstring reg_base = L"Software\\Classes";
-    std::wstring reg_extension = reg_base + L"\\.stl";
+    std::wstring reg_extension = reg_base + L"\\." + extend;
     std::wstring reg_prog_id = reg_base + L"\\" + prog_id;
     std::wstring reg_prog_id_command = reg_prog_id + L"\\Shell\\Open\\Command";
 
     bool is_new = false;
-    is_new |= set_into_win_registry(HKEY_CURRENT_USER, reg_extension.c_str(), prog_id.c_str());
-    is_new |= set_into_win_registry(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
-    is_new |= set_into_win_registry(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
+    is_new |= del_win_registry(HKEY_CURRENT_USER, reg_extension.c_str(), prog_id.c_str());
+    is_new |= del_win_registry(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
+    is_new |= del_win_registry(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
 
     if (is_new)
-        // notify Windows only when any of the values gets changed
-        ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
+       ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 }
 
-void GUI_App::associate_step_files()
-{
-    wchar_t app_path[MAX_PATH];
-    ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
 
-    std::wstring prog_path           = L"\"" + std::wstring(app_path) + L"\"";
-    std::wstring prog_id             = L" Bambu.Studio.1";
-    std::wstring prog_desc           = L"BambuStudio";
-    std::wstring prog_command        = prog_path + L" \"%1\"";
-    std::wstring reg_base            = L"Software\\Classes";
-    std::wstring reg_extension       = reg_base + L"\\.step";
-    std::wstring reg_prog_id         = reg_base + L"\\" + prog_id;
-    std::wstring reg_prog_id_command = reg_prog_id + L"\\Shell\\Open\\Command";
-
-    bool is_new = false;
-    is_new |= set_into_win_registry(HKEY_CURRENT_USER, reg_extension.c_str(), prog_id.c_str());
-    is_new |= set_into_win_registry(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
-    is_new |= set_into_win_registry(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
-
-    if (is_new)
-        // notify Windows only when any of the values gets changed
-        ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
-}
-
-void GUI_App::associate_gcode_files()
-{
-    wchar_t app_path[MAX_PATH];
-    ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
-
-    std::wstring prog_path = L"\"" + std::wstring(app_path) + L"\"";
-    //BBS: remove GCodeViewer as seperate APP logic
-    std::wstring prog_id = L" Bambu.Studio.1";
-    std::wstring prog_desc = L"BambuStudio";
-    //std::wstring prog_id = L"BambuStudio.GCodeViewer.1";
-    //std::wstring prog_desc = L"BambuStudioGCodeViewer";
-    std::wstring prog_command = prog_path + L" \"%1\"";
-    std::wstring reg_base = L"Software\\Classes";
-    std::wstring reg_extension = reg_base + L"\\.gcode";
-    std::wstring reg_prog_id = reg_base + L"\\" + prog_id;
-    std::wstring reg_prog_id_command = reg_prog_id + L"\\Shell\\Open\\Command";
-
-    bool is_new = false;
-    is_new |= set_into_win_registry(HKEY_CURRENT_USER, reg_extension.c_str(), prog_id.c_str());
-    is_new |= set_into_win_registry(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
-    is_new |= set_into_win_registry(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
-
-    if (is_new)
-        // notify Windows only when any of the values gets changed
-        ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
-}
 #endif // __WXMSW__
 
 } // GUI

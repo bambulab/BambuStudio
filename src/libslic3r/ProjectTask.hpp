@@ -155,9 +155,7 @@ public:
     BBLTask*        parent_task_;
     std::string     parent_id;
 
-    std::string build_content_json();
     int parse_content_json(std::string json_str);
-    bool is_report_done();
     static BBLSubTask::SubTaskStatus parse_status(std::string status);
     static BBLSubTask::SubTaskStatus parse_user_service_task_status(int status);
 };
@@ -199,7 +197,6 @@ public:
         }
     }
 
-    std::string build_content_json();
     int parse_content_json(std::string json);
 };
 
@@ -252,7 +249,6 @@ public:
     std::vector<BBLProfile*>   profiles;
 
     /* deprecated apis */
-    std::string build_content_json();
     void set_name(std::string name) { project_name = name; }
 
     void reset();

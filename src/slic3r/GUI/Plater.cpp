@@ -3485,8 +3485,6 @@ void Plater::priv::reset(bool apply_presets_change)
         object_list_changed();
     }
 
-    // BBS reset project
-    acc_->reset_project();
     project.reset();
 
     //BBS: reset all project embedded presets

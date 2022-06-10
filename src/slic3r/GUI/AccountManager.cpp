@@ -622,38 +622,6 @@ namespace Slic3r {
         return false;
     }
 
-    int AccountManager::user_login_autotest(std::string account, std::string password)
-    {
-        std::string::size_type pos = account.find_last_of('@');
-        if (pos == account.npos) {
-            BOOST_LOG_TRIVIAL(trace) << "invalid account name = " << account;
-            return -1;
-        }
-        account = account.substr(0, pos);
-        std::string url = "https://keycloak-qa.bambu-lab.com/auth/realms/staff/protocol/openid-connect/token";
-        std::string post_body = (boost::format("username=%1%&password=%2%&grant_type=password&client_id=slicer&client_secret=98f3173c-b4cf-4610-b265-dd4867af8241")
-                                % account
-                                % password).str();
-        Http http = Http::post(url);
-        http.header("Content-Type", "application/x-www-form-urlencoded")
-            .set_post_body(post_body)
-            .on_complete([&, this](std::string body, unsigned) {
-                    try {
-                        json j = json::parse(body);
-                        m_curr_user = new AccountInfo("", "", AccountInfo::LoginStatus::STATUS_LOGIN);
-                        m_curr_user->m_autotest_token = j["access_token"].get<std::string>();
-                    }
-                    catch (...) {
-                        ;
-                    }
-                })
-            .on_error([&, this](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(trace) << "error = " << error << ", body = " << body << ", status = " << status;
-                }
-            ).perform_sync();
-        return 0;
-    }
-
     int AccountManager::user_logout()
     {
         if (m_curr_user) {
@@ -863,7 +831,7 @@ namespace Slic3r {
     int AccountManager::get_print_info(std::string& result, int& err_code, std::string err_msg, bool sync)
     {
         std::string message;
-        std::string url = (boost::format("%1%/iot-service/api/user/print?force=true&device_id=") % host).str();
+        std::string url = (boost::format("%1%/iot-service/api/user/print?force=true") % host).str();
         Http http  = Http::get(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
@@ -1270,44 +1238,6 @@ namespace Slic3r {
         std::stringstream oss;
         pt::write_json(oss, root, false);
         return oss.str();
-    }
-
-    std::string AccountManager::json_request_body_post_task(BBLTask* task)
-    {
-        if (!task) return "";
-        if (task->task_project_id.empty()) return "";
-        if (task->task_profile_id.empty()) return "";
-
-        json j;
-        j["parent"] = 0;
-        j["project_id"] = task->task_project_id;
-        j["profile_id"] = task->task_profile_id;
-        j["name"] = task->task_name;
-        j["content"] = task->build_content_json();
-
-        return j.dump();
-    }
-
-    std::string AccountManager::json_request_body_post_task(BBLSubTask* task)
-    {
-        if (!task) return "";
-
-        if (task->task_printer_dev_id.empty()) return "";
-
-        json j;
-        if (task->parent_task_) {
-            if (!task->parent_task_->task_id.empty())
-                j["parent"] = task->parent_task_->task_id;
-            if (!task->parent_task_->task_project_id.empty())
-                j["project_id"] = task->parent_task_->task_project_id;
-            if (!task->parent_task_->task_profile_id.empty())
-                j["profile_id"] = task->parent_task_->task_profile_id;
-        }
-        j["dev_id"] = task->task_printer_dev_id;
-        j["name"] = task->task_name;
-        j["content"] = task->build_content_json();
-
-        return j.dump();
     }
 
     std::string AccountManager::json_request_body_post_subtask(BBLProject* project, BBLProfile* profile, BBLSubTask* task)
@@ -2857,12 +2787,6 @@ namespace Slic3r {
             return ""; //invalid refreshToken
         }
         return "";
-    }
-
-
-    void AccountManager::reset_project()
-    {
-        ;
     }
 
     std::string AccountManager::get_user_name()

@@ -375,29 +375,30 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
         if (param == "associate_3mf") {
              bool pbool = app_config->get("associate_3mf") == "true" ? true : false;
              if (pbool) {
-                 wxGetApp().associate_3mf_files();
+                 wxGetApp().associate_files(L"3mf");
              } else {
-                 wxGetApp().disassociate_3mf_files();
+                 wxGetApp().disassociate_files(L"3mf");
              }
         }
 
         if (param == "associate_stl") {
             bool pbool = app_config->get("associate_stl") == "true" ? true : false;
             if (pbool) {
-                wxGetApp().associate_stl_files();
+                wxGetApp().associate_files(L"stl");
             } else {
-                wxGetApp().disassociate_stl_files();
+                wxGetApp().disassociate_files(L"stl");
             }
         }
 
         if (param == "associate_step") {
             bool pbool = app_config->get("associate_step") == "true" ? true : false;
             if (pbool) {
-                wxGetApp().associate_step_files();
+                wxGetApp().associate_files(L"step");
             } else {
-                wxGetApp().disassociate_step_files();
+                wxGetApp().disassociate_files(L"step");
             }
         }
+
         #endif // __WXMSW__
 
         e.Skip();
