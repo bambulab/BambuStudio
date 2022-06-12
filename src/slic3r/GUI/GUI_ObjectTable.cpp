@@ -1483,11 +1483,11 @@ wxString ObjectGridTable::convert_filament_string(int index, wxString& filament_
 
 static wxString brim_choices[] =
 {
-    L("Auto brim"),
-    L("No brim"),
-    L("Outer brim only"),
-    L("Inner brim only"),
-    L("Outer and inner brim")
+    L("Auto"),
+    L("Manual"),
+    L("No-brim"),
+    //L("Inner brim only"),
+    //L("Outer and inner brim")
 };
 
 void ObjectGridTable::init_cols(ObjectGrid *object_grid)
