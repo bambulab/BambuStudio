@@ -1390,7 +1390,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 
     update();
     m_active_page->update_visibility(m_mode, true);
-    m_page_view->Layout();
+    m_page_view->GetParent()->Layout();
 }
 
 // Show/hide the 'purging volumes' button
@@ -2009,6 +2009,7 @@ void TabPrintModel::build()
 {
     m_presets = &m_prints;
     TabPrint::build();
+    init_options_list();
 
     auto page = add_options_page(L("Frequent"), "empty");
         auto optgroup = page->new_optgroup(L("Quality"));
