@@ -5907,7 +5907,7 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name, const UndoRed
         return;
     assert(m_prevent_snapshots >= 0);
     // BBS: single snapshot
-    if (m_single && !m_single->check())
+    if (m_single && !m_single->check(snapshot_modifies_project(snapshot_type) && (snapshot_name.empty() || snapshot_name.back() != '!')))
         return;
     UndoRedo::SnapshotData snapshot_data;
     snapshot_data.snapshot_type      = snapshot_type;

@@ -582,16 +582,18 @@ public:
 
         ~SingleSnapshot() { m_plater->single_snapshots_leave(this); }
 
-        bool check()
+        bool check(bool modify)
         {
-            if (token) return false;
+            if (token && (this->modify || !modify)) return false;
             token = true;
+            this->modify = modify;
             return true;
         }
 
     private:
         Plater *m_plater;
         bool    token = false;
+        bool    modify = false;
     };
 
     bool inside_snapshot_capture();
