@@ -461,7 +461,7 @@ void ArrangeJob::check_unprintable()
 
             m_unprintable.push_back(*it);
             auto msg = (boost::format(
-                _utf8(L("Object %s has zero size and can't be arranged.")))
+                _utf8("Object %s has zero size and can't be arranged."))
                 % _utf8(it->name)).str();
             wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
                                 NotificationManager::NotificationLevel::WarningNotificationLevel, msg);

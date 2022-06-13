@@ -243,6 +243,14 @@ public:
     ExPolygons floor_areas;
     ExPolygons base_areas;
 
+    enum AreaType {
+        BaseType=0,
+        RoofType=1,
+        FloorType=2,
+        Roof1stLayer=3
+    };
+    std::vector<std::pair<ExPolygon *, int>> area_groups;
+
     virtual bool has_extrusions() const { return !support_fills.empty(); }
 
     void simplify_support_extrusion_path() { this->simplify_support_entity_collection(&support_fills);}
