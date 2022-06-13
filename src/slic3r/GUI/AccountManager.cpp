@@ -1,13 +1,10 @@
-#include "libslic3r/libslic3r.h"
 #include "AccountManager.hpp"
-#include "DeviceManager.hpp"
 #include "BambuNetworkAgent.hpp"
-#include "libslic3r/Utils.hpp"
-#include "slic3r/Utils/Http.hpp"
-#include "slic3r/GUI/GUI_App.hpp"
 #include <thread>
 #include <mutex>
-#include <codecvt>
+#include <boost/thread.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -16,6 +13,25 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <openssl/md5.h>
+
+
+static std::string encode_path(const char* src)
+{
+#ifdef WIN32
+    // Convert the source utf8 encoded string to a wide string.
+    std::wstring wstr_src = boost::nowide::widen(src);
+    if (wstr_src.length() == 0)
+        return std::string();
+    // Convert a wide string to a local code page.
+    int size_needed = ::WideCharToMultiByte(0, 0, wstr_src.data(), (int)wstr_src.size(), nullptr, 0, nullptr, nullptr);
+    std::string str_dst(size_needed, 0);
+    ::WideCharToMultiByte(0, 0, wstr_src.data(), (int)wstr_src.size(), str_dst.data(), size_needed, nullptr, nullptr);
+    return str_dst;
+#else /* WIN32 */
+    return src;
+#endif /* WIN32 */
+}
 
 inline bool is_valid_property(json &j, std::string prop)
 {
@@ -35,6 +51,27 @@ void split_string(std::string s, std::vector<std::string>& v) {
         }
     }
     v.push_back(t);
+}
+
+static bool bbl_calc_md5(std::string& filename, std::string& md5_out)
+{
+    unsigned char digest[16];
+    MD5_CTX       ctx;
+    MD5_Init(&ctx);
+    boost::filesystem::ifstream ifs(filename, std::ios::binary);
+    std::string                 buf(64 * 1024, 0);
+    const std::size_t& size = boost::filesystem::file_size(filename);
+    std::size_t                 left_size = size;
+    while (ifs) {
+        ifs.read(buf.data(), buf.size());
+        int read_bytes = ifs.gcount();
+        MD5_Update(&ctx, (unsigned char*)buf.data(), read_bytes);
+    }
+    MD5_Final(digest, &ctx);
+    char md5_str[33];
+    for (int j = 0; j < 16; j++) { sprintf(&md5_str[j * 2], "%02X", (unsigned int)digest[j]); }
+    md5_out = std::string(md5_str);
+    return true;
 }
 
 namespace Slic3r {
@@ -109,22 +146,10 @@ namespace Slic3r {
             //BBS device, dev_id, report at least 3 params
             if (params.size() <= 2) return;
 
-            /* params[1] is dev id, topic is : device/[dev_id]/report */
-            std::map<std::string, MachineObject*>::iterator it = manager->myBindMachineList.find(params[1]);
-            if (it == manager->myBindMachineList.end()) return;
+            BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << msg->get_payload_str();
 
-            if (it->second) {
-                BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << msg->get_payload_str();
-                it->second->parse_json(msg->get_topic(), msg->get_payload_str());
-
-#if !BBL_RELEASE_TO_PUBLIC
-                if (it->second->is_ams_need_update) {
-                    if (manager->on_ams_update_fn) {
-                        manager->on_ams_update_fn(params[1]);
-                    }
-                }
-#endif
-            }
+            if (manager->on_message_fn)
+                manager->on_message_fn(params[1], msg->get_payload_str());   
         }
     }
 
@@ -271,7 +296,7 @@ namespace Slic3r {
     {
         BOOST_LOG_TRIVIAL(trace) << "Agent: load_config";
         std::string dir_str = (boost::filesystem::path(config_dir) / AGENT_CONFIG_FILE).make_preferred().string();
-        ifstream json_file(encode_path(dir_str.c_str()));
+        std::ifstream json_file(encode_path(dir_str.c_str()));
         try {
             if (json_file.is_open()) {
                 json_file >> config_json;
@@ -298,10 +323,8 @@ namespace Slic3r {
         :mqtt_opt(mqtt::connect_options_builder().clean_session().finalize()),
         mqtt_cli(nullptr),
         mqtt_cb(nullptr),
-        mqtt_uuid_bytes(4),
-        default_project(new BBLProject())
+        mqtt_uuid_bytes(4)
     {
-        default_profile = new BBLProfile(default_project);
         mqtt_opt.set_max_inflight(500);
         mqtt_opt.set_connect_timeout(10);
         mqtt_opt.set_ssl(mqtt_ssl_opt);
@@ -319,17 +342,17 @@ namespace Slic3r {
 
     void AccountManager::set_product_mqtt_opt()
     {
-        std::string trust_store = resources_dir() + "/cert/slicer_base64.cer";
+        std::string trust_store = resources_dir + "/cert/slicer_base64.cer";
         mqtt_ssl_opt.set_trust_store(trust_store);
         mqtt_opt.set_ssl(mqtt_ssl_opt);
     }
 
     void AccountManager::set_engineering_mqtt_opt()
     {
-        mqtt_ssl_opt.ca_path(resources_dir() + "/cert");
-        std::string key_store = resources_dir() + "/cert/slicer.crt";
-        std::string trust_store = resources_dir() + "/cert/slicer_chain.crt";
-        std::string private_key = resources_dir() + "/cert/slicer_pri.pem";
+        mqtt_ssl_opt.ca_path(resources_dir + "/cert");
+        std::string key_store = resources_dir + "/cert/slicer.crt";
+        std::string trust_store = resources_dir + "/cert/slicer_chain.crt";
+        std::string private_key = resources_dir + "/cert/slicer_pri.pem";
         mqtt_ssl_opt.set_key_store(key_store);
         mqtt_ssl_opt.set_trust_store(trust_store);
         mqtt_ssl_opt.set_private_key(private_key);
@@ -341,7 +364,8 @@ namespace Slic3r {
         std::tm* now_time = std::localtime(&t);
         std::stringstream buf;
         buf << std::put_time(now_time, "debug_http_%a_%b_%d_%H_%M_%S.log");
-        auto log_folder = (boost::filesystem::path(data_dir()) / "log").make_preferred();
+
+        auto log_folder = (boost::filesystem::path(config_dir) / "log").make_preferred();
         if (!boost::filesystem::exists(log_folder)) {
             boost::filesystem::create_directory(log_folder);
         }
@@ -527,8 +551,18 @@ namespace Slic3r {
 
     void AccountManager::set_monitor_machine(std::string dev_id)
     {
+        
         BOOST_LOG_TRIVIAL(trace) << "set monitor machine = " << dev_id;
         std::string old_dev_id = this->default_machine;
+
+        if (dev_id.empty()) {
+            return;
+        }
+
+        /*if (!mqtt_cli->is_connected()) {
+            BOOST_LOG_TRIVIAL(trace) << "set monitor machine not connected";
+            return;
+        }*/
 
         // store last_monitor_printer
         config_json["agent"]["last_monitor_machine"] = dev_id;
@@ -543,40 +577,24 @@ namespace Slic3r {
         if (m_is_subscribing) {
             this->add_subscribe(dev_id);
         }
-
-        std::map<std::string, MachineObject *>::iterator it = myBindMachineList.find(dev_id);
-        if (it != myBindMachineList.end()) {
-            it->second->reset();
-        }
     }
 
     void AccountManager::load_last_machine()
     {
         if (myBindMachineList.empty()) return;
         else if (myBindMachineList.size() == 1) {
-            auto it = myBindMachineList.begin();
-            if (it != myBindMachineList.end() && it->second)
-                set_monitor_machine(it->second->dev_id);
+            set_monitor_machine(myBindMachineList[0]);
         } else {
             std::string last_monitor_machine = get_config("agent", "last_monitor_machine");
-            auto it = myBindMachineList.find(last_monitor_machine);
-            if (it != myBindMachineList.end()) {
-                set_monitor_machine(it->second->dev_id);
-            } else {
-                auto it = myBindMachineList.begin();
-                if (it != myBindMachineList.end() && it->second)
-                    set_monitor_machine(it->second->dev_id);
+            bool found = false;
+            for (int i = 0; i < myBindMachineList.size(); i++) {
+                if (myBindMachineList[i] == last_monitor_machine) {
+                    set_monitor_machine(last_monitor_machine);
+                    found = true;
+                }
             }
-        }
-    }
-
-    void AccountManager::on_printer_connected(std::string dev_id)
-    {
-        /* request_pushing_print */
-        std::map<std::string, MachineObject *>::iterator it = myBindMachineList.find(dev_id);
-        if (it != myBindMachineList.end()) {
-            it->second->command_request_push_all();
-            it->second->command_get_version();
+            if (!found)
+                set_monitor_machine(myBindMachineList[0]);
         }
     }
 
@@ -587,9 +605,6 @@ namespace Slic3r {
         if (!default_machine.empty())
             this->add_subscribe(default_machine);
 
-        MachineObject* obj = get_default_machine();
-        if (obj)
-            obj->reset();
         if (!module.empty() && subscribe_module.find(module) == subscribe_module.end()) {
             subscribe_module.emplace(std::make_pair(module, true));
         }
@@ -636,15 +651,8 @@ namespace Slic3r {
     void AccountManager::clean_user_data()
     {
         default_machine = "";
-        default_project = nullptr;
         std::lock_guard<std::mutex> lock(listMutex);
-        std::map<std::string, MachineObject*>::iterator it;
-        for (it = myBindMachineList.begin(); it != myBindMachineList.end(); it++) {
-            delete it->second;
-            it->second = nullptr;
-        }
         myBindMachineList.clear();
-        mqtt_topics.clear();
         myProjectList.clear();
     }
 
@@ -828,231 +836,43 @@ namespace Slic3r {
     }
 
     /* print apis */
-    int AccountManager::get_print_info(std::string& result, int& err_code, std::string err_msg, bool sync)
+    int AccountManager::get_print_info(unsigned int& http_code, std::string &http_body)
     {
-        std::string message;
+        int result = -1;
         std::string url = (boost::format("%1%/iot-service/api/user/print?force=true") % host).str();
         Http http  = Http::get(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
             .header("Content-Type", "application/json")
-            .on_complete([&result, &err_code, &err_msg, &message](std::string body, unsigned status) {
-                try {
-                    json j = json::parse(body);
-                    result = body;
-                    message = j["message"];
-                    if (!j["code"].is_null())
-                        err_code = j["code"].get<int>();
-                    if (!j["error"].is_null())
-                        err_msg = j["error"].get<std::string>();
-                }
-                catch(...) {
-                    ;
-                }
+            .on_complete([&result, &http_code, &http_body](std::string body, unsigned status) {
+                http_code = status;
+                http_body = body;
+                result = 0;
             })
-            .on_error([&err_code, &err_msg](std::string body, std::string error, unsigned status) {
-                err_msg = (boost::format("status=%1%, body=%2%") % status %body).str();
+            .on_error([&http_code, &http_body](std::string body, std::string error, unsigned status) {
+                http_code = status;
+                http_body = body;
             }).perform_sync();
-        if (sync) {
-            http.perform_sync();
-            if (message == MSG_SUCCESS) {
-                return 0;
-            }
-            return -1;
-        } else {
-            http.perform();
-            return 0;
-        }
-        return 0;
+        return result;
     }
 
-    void AccountManager::update_my_machine_list_info(int &err_code, std::string &err_msg, bool sync)
+    int AccountManager::query_bind_status(std::vector<std::string> device_list, unsigned int &http_code, std::string &http_body)
     {
-        std::vector<MachineObject*>  show_list;
-        std::string print_info;
-        int result = get_print_info(print_info, err_code, err_msg, sync);
-        if (result == 0) {
-            try {
-                json j = json::parse(print_info);
-
-
-                if (!j["devices"].is_null() && j["devices"].is_array()) {
-                    for (auto& elem : j["devices"]) {
-                        MachineObject* obj = new MachineObject(*this, "", "", "");
-                        if (!elem["dev_id"].is_null())
-                            obj->dev_id = elem["dev_id"];
-                        if (!elem["dev_name"].is_null())
-                            obj->dev_name = elem["dev_name"];
-                        if (!elem["dev_online"].is_null())
-                            obj->m_is_online = elem["dev_online"].get<bool>();
-                        if (!elem["progress"].is_null())
-                            obj->mc_print_percent = elem["progress"].get<int>();
-                        if (!elem["task_name"].is_null())
-                            obj->iot_printing_taskname = elem["task_name"].get<std::string>();
-                        if (!elem["task_id"].is_null())
-                            obj->iot_task_id = elem["task_id"].get<std::string>();
-                        if (!elem["profile_id"].is_null())
-                            obj->iot_profile_id = elem["profile_id"].get<std::string>();
-                        if (!elem["project_id"].is_null())
-                            obj->iot_project_id = elem["project_id"].get<std::string>();
-                        if (!elem["task_status"].is_null())
-                            obj->iot_task_status = elem["task_status"].get<std::string>();
-                        if (elem.contains("dev_model_name") && !elem["dev_model_name"].is_null())
-                            obj->printer_type = MachineObject::parse_iot_printer_type(elem["dev_model_name"].get<std::string>());
-                        if (elem.contains("dev_product_name") && !elem["dev_product_name"].is_null())
-                            obj->product_name = elem["dev_product_name"].get<std::string>();
-                        show_list.push_back(obj);
-                    }
-                }
-            }
-            catch (...) {
-                ;
-            }
-        }
-        else {
-            // get empty list set empty list
-        }
-
-        update_my_machine_list(show_list);
-    }
-
-    void AccountManager::update_my_machine_list(std::vector<MachineObject*> list)
-    {
-        myBindMachineList.clear();
-        for (auto obj : list) {
-            myBindMachineList.emplace(std::make_pair(obj->dev_id, obj));
-        }
-    }
-
-    MachineObject* AccountManager::get_default_machine()
-    {
-        std::map<std::string, MachineObject*>::iterator it;
-        if (default_machine.empty() && !myBindMachineList.empty()) {
-            load_last_machine();
-            it = myBindMachineList.begin();
-            if (!it->second) return nullptr;
-            default_machine = it->second->dev_id;
-            return it->second;
-        }
-
-        it = myBindMachineList.find(default_machine);
-        if (it != myBindMachineList.end()) {
-            return it->second;
-        }
-
-        return nullptr;
-    }
-
-    MachineObject* AccountManager::find_machine(std::string dev_id)
-    {
-        std::map<std::string, MachineObject*>::iterator it = myBindMachineList.find(dev_id);
-        if (it != myBindMachineList.end()) {
-            return it->second;
-        }
-        return nullptr;
-    }
-    std::vector<MachineObject*> AccountManager::get_select_machine_list()
-    {
-        std::vector<MachineObject*> show_list;
-        std::map<std::string, MachineObject*>::iterator it;
-        for (it = myBindMachineList.begin();it != myBindMachineList.end(); it++)
-        {
-            show_list.push_back(it->second);
-        }
-        return show_list;
-    }
-
-
-    void AccountManager::update_my_bind_list(std::string body)
-    {
-        std::lock_guard<std::mutex> lock(listMutex);
-
-        std::set<std::string> new_list;
-        try {
-            pt::ptree root;
-            std::stringstream ss(body);
-            pt::read_json(ss, root);
-            pt::ptree bind_list = root.get_child("devices");
-            pt::ptree::iterator it = bind_list.begin();
-
-            int count = 0;
-            for (BOOST_AUTO(pos, bind_list.begin()); pos != bind_list.end(); ++pos)
-            {
-                std::string dev_id = pos->second.get_optional<std::string>("dev_id").value();
-                std::string dev_name = pos->second.get_optional<std::string>("name").value();
-                std::string online = pos->second.get_optional<std::string>("online").value();
-                new_list.insert(dev_id);
-
-                std::map<std::string, MachineObject*>::iterator iter = myBindMachineList.find(dev_id);
-                if (iter != myBindMachineList.end()) {
-                    /* update field */
-                    MachineObject* obj = iter->second;
-                    if (obj) {
-                        obj->dev_name = dev_name;
-                        obj->set_online_state(online.compare("true") == 0 ? true : false);
-                    }
-                } else {
-                    MachineObject* obj = new MachineObject(*this, dev_name, dev_id, "");
-                    obj->set_online_state(online.compare("true") == 0 ? true : false);
-                    obj->set_bind_status(this->get_user_name());
-                    myBindMachineList.insert(std::make_pair(dev_id, obj));
-                }
-            }
-            std::map<std::string, MachineObject*>::iterator iterat;
-            for (iterat = myBindMachineList.begin(); iterat != myBindMachineList.end(); ) {
-                if (new_list.find(iterat->first) == new_list.end()) {
-                    iterat = myBindMachineList.erase(iterat);
-                } else {
-                    iterat++;
-                }
-            }
-        }
-        catch (std::exception& e) {
-            ;
-        }
-    }
-
-
-    int AccountManager::query_bind_status(std::vector<std::string> device_list, AccountManager::CompletedFn cFn)
-    {
+        int result = -1;
         Http http = Http::get(_get_qeury_bind_list_url(device_list));
         try {
             http.header("accept", "application/json")
                 .header("Authorization", get_token_str())
                 .header("Content-Type", "application/json")
-                .on_complete([&, cFn](std::string body, unsigned) {
-                    /* eg: {"message": "free, user1, user2, user3, self"} */
-                    std::stringstream ss(body);
-                    pt::ptree root;
-                    pt::read_json(ss, root);
-                    if (root.empty()) return;
-                    DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-                    std::map<std::string, MachineObject*> list = device_manager->get_all_machine_list();
-                    std::map<std::string, MachineObject*>::iterator it;
-                    if (root.get_child_optional("bind_list") != boost::none) {
-                        bind_list_map.clear();
-                        pt::ptree bind_list = root.get_child("bind_list");
-                        for (auto bind_item = bind_list.begin(); bind_item != bind_list.end(); ++bind_item) {
-                            boost::optional<std::string> dev_id = bind_item->second.get_optional<std::string>("dev_id");
-                            boost::optional<std::string> user_id = bind_item->second.get_optional<std::string>("user_id");
-                            boost::optional<std::string> user_name = bind_item->second.get_optional<std::string>("user_name");
-                            if (dev_id.has_value()) {
-                                it = list.find(dev_id.value());
-                                if (it != list.end()) {
-                                    if (it->second) {
-                                        it->second->bind_user_id = user_id.value();
-                                        it->second->bind_user_name = user_name.value();
-                                    }
-                                }
-                            }
-                        }
-                        if (cFn) {
-                            cFn("");
-                        }
-                    }
-                }).on_error([&, device_list](std::string body, std::string error, unsigned status) {
-                    ;
-                }).perform();
+                .on_complete([&result, &http_code, &http_body](std::string body, unsigned status) {
+                    http_code = status;
+                    http_body = body;
+                    result = 0;
+                }).on_error([&result, &http_code, &http_body](std::string body, std::string error, unsigned status) {
+                    http_code = status;
+                    http_body = body;
+                    result = -1;
+                }).perform_sync();
         }
         catch (std::exception& e) {
             ;
@@ -1513,7 +1333,7 @@ namespace Slic3r {
 
         std::string md5_str;
         std::string full_filename = profile->project_->project_path.generic_string();
-        Slic3r::bbl_calc_md5(full_filename, md5_str);
+        bbl_calc_md5(full_filename, md5_str);
         BOOST_LOG_TRIVIAL(trace) << "print_job: upload_3mf md5 = " << md5_str;
 
         // reset values
@@ -2452,7 +2272,6 @@ namespace Slic3r {
     //BBS sync preset bundle when login
     int AccountManager::get_setting_list(std::string bundle_version, Http::ErrorFn errFn)
     {
-        //PresetBundle* preset_bundle = GUI::wxGetApp().preset_bundle;
         m_my_presets.clear();
         m_system_presets.clear();
 
@@ -2524,8 +2343,6 @@ namespace Slic3r {
         for (it = m_my_presets.begin(); it != m_my_presets.end(); it++) {
             get_setting(it->first, it->second);
         }
-
-        GUI::wxGetApp().reload_settings();
         return 0;
     }
 

@@ -1238,7 +1238,7 @@ void StatusPanel::update(MachineObject *obj)
     //BBS hide tasklist info
     //update_tasklist(obj);
 #if !BBL_RELEASE_TO_PUBLIC
-    update_ams(obj);
+    //update_ams(obj);
 #endif
 
     update_cali(obj);

@@ -357,7 +357,8 @@ wxBEGIN_EVENT_TABLE(SelectMachinePopup, wxPopupTransientWindow) EVT_MOUSE_EVENTS
     EVT_SET_FOCUS(SelectMachinePopup::OnSetFocus) EVT_KILL_FOCUS(SelectMachinePopup::OnKillFocus) wxEND_EVENT_TABLE()
 
         SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
-    : wxPopupTransientWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
+    : wxPopupTransientWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS),
+    m_dismiss(false)
 {
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
@@ -418,14 +419,14 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
     m_refresh_timer->Start(MACHINE_LIST_REFRESH_INTERVAL);
     
     get_print_info_thread = Slic3r::create_thread([this] {
-        Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
-        int                     err_code;
-        std::string             err_msg;
-        c->update_my_machine_list_info(err_code, err_msg);
-
-        wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
-        event.SetEventObject(this);
-        wxPostEvent(this, event);
+        DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+        dev->update_my_machine_list_info();
+        
+        if (!was_dismiss()) {
+            wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
+            event.SetEventObject(this);
+            wxPostEvent(this, event);
+        }
     });
     
     wxPostEvent(this, wxTimerEvent());
@@ -434,6 +435,8 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
 
 void SelectMachinePopup::OnDismiss()
 {
+    m_dismiss = true;
+
     Slic3r::create_thread([this] {
         stop_ssdp();
         if (m_refresh_timer) {
@@ -442,7 +445,9 @@ void SelectMachinePopup::OnDismiss()
             m_refresh_timer = nullptr;
         }
         get_print_info_thread.interrupt();
-        if (get_print_info_thread.joinable()) get_print_info_thread.join();
+        if (get_print_info_thread.joinable()) {
+            get_print_info_thread.join();
+        }
     });
 }
 
@@ -479,21 +484,18 @@ void SelectMachinePopup::on_timer(wxTimerEvent &event)
 {
     DeviceManager *dev_manager = wxGetApp().getDeviceManager();
     auto all_machine_list        = dev_manager->get_all_machine_list();
-
-    dev_manager->query_bind_status(
-        // CompleteFn
-        [this, all_machine_list](std::string body) {
-             m_free_machine_list.clear();
-             for (auto &elem : all_machine_list) {
-                MachineObject *dev = elem.second;
-                if (dev->get_bind_str() == "Free") { 
-                    this->m_free_machine_list[elem.first] = elem.second;
-                }
-             }
-            wxCommandEvent event(EVT_REQUEST_BIND_LIST);
-            event.SetEventObject(this);
-            wxPostEvent(this, event);
-    });
+    m_free_machine_list.clear();
+    m_free_machine_list = all_machine_list;
+    
+    /*for (auto& elem : all_machine_list) {
+        MachineObject* dev = elem.second;
+        if (dev->get_bind_str() == "Free") {
+            this->m_free_machine_list[elem.first] = elem.second;
+        }
+    }*/
+    wxCommandEvent bind_event(EVT_REQUEST_BIND_LIST);
+    bind_event.SetEventObject(this);
+    wxPostEvent(this, bind_event);
 }
 
 void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
@@ -527,10 +529,11 @@ void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
 
 void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
 {
-    Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
+    Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     m_bind_machine_list.clear();
+    m_bind_machine_list = dev->myBindMachineList;
 
-    m_bind_machine_list = c->myBindMachineList;
+    m_scrolledWindow->Freeze();
     for (auto &elem : m_bind_machine_list) {
         MachineObject *     mobj = elem.second;
         MachineObjectPanel *op   = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
@@ -551,6 +554,7 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
 
     Layout();
     Fit();
+    m_scrolledWindow->Thaw();
 }
 
 bool SelectMachinePopup::can_abort(std::string state)
@@ -1050,9 +1054,10 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     }
 
     Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
-
-    std::map<std::string, MachineObject *>::iterator it = c->myBindMachineList.find(m_printer_last_select);
-    if (it == c->myBindMachineList.end()) {
+    // TODO check
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    auto it = dev->myBindMachineList.find(m_printer_last_select);
+    if (it == dev->myBindMachineList.end()) {
         update_err_msg(_L("Please select a printer first."));
         return;
     }
@@ -1157,7 +1162,7 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
         m_need_disable_btn_ensure = false;
     }
 
-    Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
+    Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
 
     // clear machine list
     m_list.clear();
@@ -1165,7 +1170,7 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
 
     std::vector<std::string> machine_list;
 
-    std::map<std::string, MachineObject *> my_bind_machine_list = c->myBindMachineList;
+    std::map<std::string, MachineObject *> my_bind_machine_list = dev->myBindMachineList;
     // same machine only appear once
     for (auto it = my_bind_machine_list.begin(); it != my_bind_machine_list.end(); it++) {
         if (it->second && it->second->is_online()) {
@@ -1211,10 +1216,8 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     if (c->is_user_login()) {
         if (this == NULL || this == nullptr) { return; }
         boost::thread get_print_info_thread = Slic3r::create_thread([this] {
-            Slic3r::AccountManager *acc = Slic3r::GUI::wxGetApp().getAccountManager();
-            int                     err_code;
-            std::string             err_msg;
-            acc->update_my_machine_list_info(err_code, err_msg, true);
+            DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+            dev->update_my_machine_list_info();
 
             wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
             event.SetEventObject(this);

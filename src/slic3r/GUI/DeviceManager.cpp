@@ -183,7 +183,7 @@ void machine_conn_callback::message_arrived(mqtt::const_message_ptr msg)
             ;
         }
         if (json_str.empty()) return;
-        obj->parse_json(msg->get_topic(), json_str);
+        obj->parse_json(json_str);
     }
 }
 
@@ -1237,7 +1237,7 @@ int MachineObject::publish_json(std::string json_str, ResultFn resFn, int qos)
     return 0;
 }
 
-int MachineObject::parse_json(std::string topic, std::string payload)
+int MachineObject::parse_json(std::string payload)
 {
     try {
         bool restored_json = false;
@@ -1513,7 +1513,7 @@ int MachineObject::parse_json(std::string topic, std::string payload)
         pt::ptree root;
         pt::read_json(ss, root);
         if (root.empty()) {
-            BOOST_LOG_TRIVIAL(trace) << "parse_json failed! topic=" << topic << ", payload = " << payload;
+            BOOST_LOG_TRIVIAL(trace) << "parse_json failed! dev_id = " << this->dev_id << ", payload = " << payload;
             return -1;
         }
         // print command
@@ -1797,27 +1797,6 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 BOOST_LOG_TRIVIAL(trace) << "ack of project_file " << payload;
             }
         }
-        // upgrade push info move to print push status
-        /*else if (root.get_child_optional("upgrade") != boost::none) {
-            pt::ptree upgrade = root.get_child("upgrade");
-            boost::optional<std::string> upgrade_module         = upgrade.get_optional<std::string>("module");
-            boost::optional<std::string> upgrade_status_val     = upgrade.get_optional<std::string>("status");
-            boost::optional<std::string> upgrade_progress_val   = upgrade.get_optional<std::string>("progress");
-            boost::optional<std::string> upgrade_message_val    = upgrade.get_optional<std::string>("message");
-            boost::optional<bool> new_version                   = upgrade.get_optional<bool>("new_version");
-            boost::optional<bool> consistency_request           = upgrade.get_optional<bool>("consistency_request");
-            if (new_version.has_value())
-                upgrade_new_version = new_version.value();
-            if (upgrade_progress_val.has_value())
-                upgrade_progress = upgrade_progress_val.value();
-            if (upgrade_message_val.has_value())
-                upgrade_message = upgrade_message_val.value();
-            if (upgrade_status_val.has_value())
-                upgrade_status = upgrade_status_val.value();
-            if (consistency_request.has_value())
-                upgrade_consistency_request = consistency_request.value();
-
-        }*/
         // event info
         else if (root.get_child_optional("event") != boost::none) {
             pt::ptree event_node = root.get_child("event");
@@ -1834,27 +1813,7 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 }
             }
             /* fields: client_id, username, peername, proto_name, proto_ver, connected_at, timestamp, etc */
-            BOOST_LOG_TRIVIAL(trace) << "parse_json, event topic=" << topic << ", payload = " << payload;
-        }
-
-        else if (root.get_child_optional("bind") != boost::none) {
-            pt::ptree bind = root.get_child("bind");
-            boost::optional<std::string> command = bind.get_optional<std::string>("command");
-            boost::optional<std::string> result = bind.get_optional<std::string>("result");
-            boost::optional<std::string> reason = bind.get_optional<std::string>("reason");
-            boost::optional<std::string> dev_id = bind.get_optional<std::string>("dev_id");
-            boost::optional<std::string> user_id = bind.get_optional<std::string>("user_id");
-            if (command.has_value())
-            {
-                if (command.value().compare("bind") == 0) {
-                    ;
-                }
-                else if (command.value().compare("unbind") == 0) {
-                    ;
-                }
-            }
-
-            BOOST_LOG_TRIVIAL(trace) << "parse_json, bind topic=" << topic << ", payload = " << payload;
+            BOOST_LOG_TRIVIAL(trace) << "parse_json, event dev_id = " << this->dev_id << ", payload = " << payload;
         }
         else if (root.get_child_optional("system") != boost::none) {
             pt::ptree system = root.get_child("system");
@@ -1879,12 +1838,11 @@ int MachineObject::parse_json(std::string topic, std::string payload)
         }
     }
     catch (...) {
-        BOOST_LOG_TRIVIAL(trace) << "parse_json failed! topic=" << topic <<", payload = " << payload;
+        BOOST_LOG_TRIVIAL(trace) << "parse_json failed! dev_id=" << this->dev_id <<", payload = " << payload;
     }
 
-
     if (msg_recv_fn) {
-        msg_recv_fn(topic, payload);
+        msg_recv_fn(dev_id, payload);
     }
     return 0;
 }
@@ -2347,7 +2305,7 @@ void DeviceManager::disconnect_all()
     }
 }
 
-void DeviceManager::query_bind_status(AccountManager::CompletedFn cFn)
+void DeviceManager::query_bind_status()
 {
     std::lock_guard<std::mutex> lock(listMutex);
     std::map<std::string, MachineObject*>::iterator it;
@@ -2356,22 +2314,132 @@ void DeviceManager::query_bind_status(AccountManager::CompletedFn cFn)
         query_list.push_back(it->first);
     }
 
-    acc_.query_bind_status(query_list, cFn);
+    unsigned int http_code;
+    std::string http_body;
+    int result = acc_.query_bind_status(query_list, http_code, http_body);
+
+    try {
+        json j = json::parse(http_body);
+
+        std::map<std::string, MachineObject*> list = get_all_machine_list();
+        if (j.contains("bind_list")) {
+
+            for (auto& item : j["bind_list"]) {
+                auto it = localMachineList.find(item["dev_id"].get<std::string>());
+                if (it != localMachineList.end()) {
+                    if (!item["user_id"].is_null())
+                        it->second->bind_user_id = item["user_id"].get<std::string>();
+                    if (!item["user_name"].is_null())
+                        it->second->bind_user_name = item["user_name"].get<std::string>();
+                    else
+                        it->second->bind_user_name = "Free";
+                }
+            }
+        }
+    } catch(...) {
+        ;
+    }
 }
 
 MachineObject* DeviceManager::get_default()
 {
-    if (default_machine.empty())
+    if (local_default_machine.empty())
         return nullptr;
 
     /* find in local list */
-    std::map<std::string, MachineObject*>::iterator it = localMachineList.find(default_machine);
+    std::map<std::string, MachineObject*>::iterator it = localMachineList.find(local_default_machine);
     if (it != localMachineList.end()) {
         return it->second;
     }
 
     return nullptr;
 }
+
+void DeviceManager::update_my_bind_list(std::string body)
+{
+    std::set<std::string> new_list;
+    try {
+        json j = json::parse(body);
+        if (j.contains("devices") && !j["devices"].is_null()) {
+            for (auto& elem : j["devices"]) {
+                MachineObject* obj = nullptr;
+                std::string dev_id;
+                if (!elem["dev_id"].is_null()) {
+                    dev_id = elem["dev_id"].get<std::string>();
+                    new_list.insert(dev_id);
+                }
+                std::map<std::string, MachineObject*>::iterator iter = myBindMachineList.find(dev_id);
+                if (iter != myBindMachineList.end()) {
+                    /* update field */
+                    obj = iter->second;
+                    obj->dev_id = dev_id;
+                }
+                else {
+                    obj = new MachineObject(acc_, "", "", "");
+                    obj->set_bind_status(acc_.get_user_name());
+                    myBindMachineList.insert(std::make_pair(dev_id, obj));
+                }
+
+                if (!obj) continue;
+
+                if (!elem["dev_name"].is_null())
+                    obj->dev_name = elem["dev_name"].get<std::string>();
+                if (!elem["dev_online"].is_null())
+                    obj->m_is_online = elem["dev_online"].get<bool>();
+                if (!elem["progress"].is_null())
+                    obj->mc_print_percent = elem["progress"].get<int>();
+                if (!elem["task_name"].is_null())
+                    obj->iot_printing_taskname = elem["task_name"].get<std::string>();
+                if (!elem["task_id"].is_null())
+                    obj->iot_task_id = elem["task_id"].get<std::string>();
+                if (!elem["profile_id"].is_null())
+                    obj->iot_profile_id = elem["profile_id"].get<std::string>();
+                if (!elem["project_id"].is_null())
+                    obj->iot_project_id = elem["project_id"].get<std::string>();
+                if (!elem["task_status"].is_null())
+                    obj->iot_task_status = elem["task_status"].get<std::string>();
+                if (elem.contains("dev_model_name") && !elem["dev_model_name"].is_null())
+                    obj->printer_type = MachineObject::parse_iot_printer_type(elem["dev_model_name"].get<std::string>());
+                if (elem.contains("dev_product_name") && !elem["dev_product_name"].is_null())
+                    obj->product_name = elem["dev_product_name"].get<std::string>();
+            }
+
+            //remove MachineObject from myBindMachineList
+            std::map<std::string, MachineObject*>::iterator iterat;
+            for (iterat = myBindMachineList.begin(); iterat != myBindMachineList.end(); ) {
+                if (new_list.find(iterat->first) == new_list.end()) {
+                    iterat = myBindMachineList.erase(iterat);
+                }
+                else {
+                    iterat++;
+                }
+            }
+        }
+    }
+    catch (std::exception& e) {
+        ;
+    }
+}
+
+void DeviceManager::set_monitoring_machine(std::string dev_id)
+{
+    acc_.set_monitor_machine(dev_id);
+    std::map<std::string, MachineObject *>::iterator it = myBindMachineList.find(dev_id);
+    if (it != myBindMachineList.end()) {
+        it->second->reset();
+    }
+}
+
+void DeviceManager::update_my_machine_list_info()
+{
+    unsigned int http_code;
+    std::string http_body;
+    int result = acc_.get_print_info(http_code, http_body);
+    if (result == 0) {
+        update_my_bind_list(http_body);
+    }
+}
+
 
 std::map<std::string ,MachineObject*> DeviceManager::get_all_machine_list()
 {

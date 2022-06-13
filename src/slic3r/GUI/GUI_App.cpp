@@ -1081,20 +1081,18 @@ GUI_App::GUI_App()
 
     m_account_manager->set_on_printer_connected_fn([this](std::string dev_id) {
         GUI::wxGetApp().CallAfter([this, dev_id] {
-            m_account_manager->on_printer_connected(dev_id);
+            /* request_pushing_print */
+            std::map<std::string, MachineObject*>::iterator it = m_device_manager->myBindMachineList.find(dev_id);
+            if (it != m_device_manager->myBindMachineList.end()) {
+                it->second->command_request_push_all();
+                it->second->command_get_version();
+            }
         });
     });
 
     m_account_manager->set_on_server_connected_fn([this]() {
         GUI::wxGetApp().CallAfter([this] {
             m_account_manager->load_last_machine();
-        });
-    });
-
-    m_account_manager->set_on_ams_update_fn([this](std::string dev_id) {
-            CallAfter([this, dev_id]{
-                std::map<std::string, MachineObject*>::iterator it = m_account_manager->myBindMachineList.find(dev_id);
-                GUI::wxGetApp().sidebar().load_ams_list(it->second->amsList);
         });
     });
 
@@ -1107,6 +1105,24 @@ GUI_App::GUI_App()
 
     m_account_manager->set_on_http_error_fn([this](unsigned int status, std::string body) {
             this->handle_http_error(status, body);
+    });
+
+    m_account_manager->set_on_message_fn([this](std::string dev_id, std::string msg) {
+        /* params[1] is dev id, topic is : device/[dev_id]/report */
+        std::map<std::string, MachineObject*>::iterator it = m_device_manager->myBindMachineList.find(dev_id);
+        if (it == m_device_manager->myBindMachineList.end()) return;
+        if (it->second) {
+            it->second->parse_json(msg);
+
+#if !BBL_RELEASE_TO_PUBLIC
+            if (it->second->is_ams_need_update) {
+                CallAfter([this, dev_id] {
+                    std::map<std::string, MachineObject*>::iterator it = m_device_manager->myBindMachineList.find(dev_id);
+                    GUI::wxGetApp().sidebar().load_ams_list(it->second->amsList);
+                });
+#endif
+            }
+        }
     });
 
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
@@ -1180,7 +1196,7 @@ void GUI_App::init_app_config()
 	// Profiles for the alpha are stored into the BambuStudio-alpha directory to not mix with the current release.
     SetAppName(SLIC3R_APP_KEY);
 //	SetAppName(SLIC3R_APP_KEY "-alpha");
-//    SetAppName(SLIC3R_APP_KEY "-beta");
+//  SetAppName(SLIC3R_APP_KEY "-beta");
 //	SetAppDisplayName(SLIC3R_APP_NAME);
 
 	// Set the Slic3r data directory at the Slic3r XS module.
@@ -1199,6 +1215,8 @@ void GUI_App::init_app_config()
 
             //BBS set config dir
             m_account_manager->set_config_dir(data_dir);
+            //BBS set cert dir
+            m_account_manager->set_resource_dir(resources_dir());
         #else
             // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
             // https://github.com/Bambu3d/BambuStudio/issues/2911
@@ -1527,6 +1545,7 @@ bool GUI_App::on_init_inner()
             [this](std::string body, std::string error, unsigned http_status) {
                 BOOST_LOG_TRIVIAL(trace) << "load my settings failed! body = " << body;
             });
+        GUI::wxGetApp().reload_settings();
     }
     BOOST_LOG_TRIVIAL(info) << "start_sync_service...";
     //BBS
@@ -2433,9 +2452,8 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
     m_account_manager->connect_mqtt();
 
     // get machine list
-    int         err_code;
-    std::string err_msg;
-    m_account_manager->update_my_machine_list_info(err_code, err_msg);
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    dev->update_my_machine_list_info();
 
     GUI::wxGetApp().preset_bundle->update_user_presets_directory(user_id);
     if (online_login)

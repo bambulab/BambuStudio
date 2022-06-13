@@ -8695,8 +8695,9 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
 //BBS
 void Plater::print_job_finished(wxCommandEvent &evt)
 {
-    Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
-    c->set_monitor_machine(evt.GetString().ToStdString());
+    Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    dev->set_monitoring_machine(evt.GetString().ToStdString());
+
     p->hide_select_machine_dlg();
     p->main_frame->request_select_tab(MainFrame::TabPosition::tpMonitor);
 }

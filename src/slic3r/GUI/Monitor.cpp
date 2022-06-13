@@ -247,8 +247,8 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
 
  void MonitorPanel::on_select_printer(wxCommandEvent& event)
 {
-    Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
-    c->set_monitor_machine(event.GetString().ToStdString());
+    Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    dev->set_monitoring_machine(event.GetString().ToStdString());
 
     set_default();
     update_all();
@@ -269,7 +269,6 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
 
     /* query print info */
     SelectMachinePopup *m_select_machine = new SelectMachinePopup(this);
-
 
     wxPoint pos = m_side_tools->ClientToScreen(wxPoint(0, 0));
     pos.y += m_side_tools->GetRect().height;
@@ -330,6 +329,7 @@ void MonitorPanel::on_size(wxSizeEvent &event)
 void MonitorPanel::update_all()
 {
     Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
 
     //BBS check user login status
     if (!account_manager->is_user_login()) {
@@ -344,7 +344,7 @@ void MonitorPanel::update_all()
         ;
     }
 
-    obj = account_manager->get_default_machine();
+    obj = dev->get_default_machine();
     m_status_info_panel->obj = obj;
 
 #if !BBL_RELEASE_TO_PUBLIC
@@ -353,11 +353,6 @@ void MonitorPanel::update_all()
 
     m_status_info_panel->m_media_play_ctrl->SetMachineObject(IsShown() ? obj : nullptr);
     //m_media_file_panel->SetMachineObject(obj);
-
-    if (!obj) { 
-        update_side_panel();
-    }
-
 
     if (!obj) {
         show_status((int)MONITOR_NO_PRINTER);
@@ -420,9 +415,9 @@ bool MonitorPanel::Show(bool show)
 
 void MonitorPanel::update_side_panel() 
 {
-    Slic3r::AccountManager *account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    auto                    is_next_machine = false;
-    for (auto it = account_manager->myBindMachineList.begin(); it != account_manager->myBindMachineList.end(); it++) {
+    Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    auto is_next_machine = false;
+    for (auto it = dev->myBindMachineList.begin(); it != dev->myBindMachineList.end(); it++) {
         if (it->second && it->second->is_online()) {
             wxCommandEvent *event = new wxCommandEvent(wxEVT_COMMAND_CHOICE_SELECTED);
             event->SetString(it->second->dev_id);

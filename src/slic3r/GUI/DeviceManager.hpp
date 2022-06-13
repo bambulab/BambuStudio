@@ -295,7 +295,6 @@ public:
     typedef std::function<void()> UploadedFn;
     typedef std::function<void(int progress)> UploadProgressFn;
     typedef std::function<void(std::string error)> ErrorFn;
-    typedef std::function<void(std::string body)> CompletedFn;
     typedef std::function<void(int result, std::string info)> ResultFn;
 
     enum CONNECTION_TYPE {
@@ -589,7 +588,7 @@ public:
     void set_msg_send_fn(MsgFn fn) { msg_send_fn = std::move(fn); }
     void set_msg_recv_fn(MsgFn fn) { msg_recv_fn = std::move(fn); }
     int publish_json(std::string json_str, ResultFn resFn = nullptr, int qos = 0);
-    int parse_json(std::string topic, std::string payload);
+    int parse_json(std::string payload);
     int publish_gcode(std::string gcode_str);
 
     int send_print_task(BBLTask* task);
@@ -643,13 +642,31 @@ public:
 
     std::mutex listMutex;
     std::map<std::string, MachineObject*> localMachineList;     /* dev_id -> MachineObject* */
-    std::string default_machine;    /* dev_id */
+    std::string local_default_machine;    /* dev_id */
+
+    std::map<std::string, MachineObject*> myBindMachineList;    /* dev_id -> MachineObject* */
+    
+    
+    MachineObject* get_default_machine() {
+        std::string dev_id = acc_.get_default_machine();
+        if (dev_id.empty()) return nullptr;
+
+        auto it = myBindMachineList.find(dev_id);
+        if (it == myBindMachineList.end()) return nullptr;
+        return it->second;
+    }
+
+    void set_monitoring_machine(std::string dev_id);
+
+    void update_my_bind_list(std::string body);
+
+    void update_my_machine_list_info();
 
     /* create machine or update machine properties */
     void on_machine_alive(std::string dev_name, std::string dev_id, std::string dev_ip, std::string printer_type_str = "", std::string printer_signal = "");
     /* disconnect all machine connections */
     void disconnect_all();
-    void query_bind_status(AccountManager::CompletedFn cFn);
+    void query_bind_status();
 
     MachineObject* get_default();   /* return default machine */
     std::map<std::string, MachineObject*> get_all_machine_list();

@@ -5,13 +5,8 @@
 #include <vector>
 #include <string>
 #include <memory>
-#include <boost/thread.hpp>
-#include <boost/log/trivial.hpp>
-#include <boost/algorithm/string.hpp>
 #include "mqtt/async_client.h"
 #include "libslic3r/ProjectTask.hpp"
-//#include "libslic3r/Preset.hpp"
-//#include "libslic3r/PresetBundle.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "nlohmann/json.hpp"
 
@@ -28,10 +23,6 @@ using namespace nlohmann;
 #define POLL_NOTIFICATION_TIMEOUT_MAX   600
 #define POLL_NOTIFICATION_TIMEOUT       120
 #define POLL_NOTIFICATION_INTERVAL      2
-
-#define DEFAULT_BBL_SETTING_VERSION     "00.00.00.01"
-
-#define REGION_JSON_CONFIG_URL          "http://list.servers.bambulab.com";
 
 #define MSG_SUCCESS                     "success"
 
@@ -148,10 +139,6 @@ public:
         return convert_full_version(SLIC3R_VERSION);
     }
 
-    static std::string get_preset_version() {
-        return DEFAULT_BBL_SETTING_VERSION;
-    }
-
     /* return > 0, need update */
     int compare(std::string ver_str) {
         if (version_str.empty()) return -1;
@@ -211,9 +198,6 @@ public:
     static AccountInfo* load_from_json(json& config_json);
     bool is_valid() { return !m_user_id.empty() && !m_token.empty() && !m_account.empty(); }
 
-    /* user project */
-    std::vector<BBLProject*> project_list;
-
     std::string m_account;
     std::string m_name;
     std::string m_password;
@@ -227,8 +211,6 @@ public:
 
     std::string m_autotest_token;
 };
-
-class MachineObject;
 
 class AccountManager
 {
@@ -253,9 +235,6 @@ private:
     std::string json_request_poll_3mf_gather(BBLSubTask* task);
     std::string json_request_poll_3mf_gather_model_only();
 
-    /* default project and profile */
-    BBLProject* default_project;    /* current project */
-    BBLProfile* default_profile;    /* current profile */
     std::string _get_project_url();
 
     /* check valid of user or pwd */
@@ -285,39 +264,43 @@ public:
 
     typedef std::function<void(int progress)> ProgressFn;
     typedef std::function<void(int retcode, std::string info)> LoginFn;
-    typedef std::function<void(std::string body)> CompletedFn;
     typedef std::function<void(int result, std::string info)> ResultFn;
     typedef std::function<bool()> CancelFn;
 
     //define callbacks
     typedef std::function<void(int online_login)>       OnUserLoginFn;
-    typedef std::function<void(std::string dev_id)>     OnAmsUpdateFn;
     typedef std::function<void(std::string topic_str)>  OnPrinterConnectedFn;
     typedef std::function<void()>                       OnServerConnectedFn;
     typedef std::function<void(unsigned http_code, std::string http_body)> OnHttpErrorFn;
     typedef std::function<std::string()>                GetCountryCodeFn;
+    typedef std::function<void(std::string dev_id, std::string msg)> OnMessageFn;
 
     // ballbacks
     OnUserLoginFn           on_user_login_fn;
-    OnAmsUpdateFn           on_ams_update_fn;
     OnPrinterConnectedFn    on_printer_connected_fn;
     OnServerConnectedFn     on_server_connected_fn;
     OnHttpErrorFn           on_http_error_fn;
     GetCountryCodeFn        get_country_code_fn;
+    OnMessageFn             on_message_fn;
 
     void set_on_user_login_fn(OnUserLoginFn fn) { on_user_login_fn  = fn; }
-    void set_on_ams_update_fn(OnAmsUpdateFn fn) { on_ams_update_fn = fn; }
     void set_on_printer_connected_fn(OnPrinterConnectedFn fn) { on_printer_connected_fn = fn; }
     void set_on_server_connected_fn(OnServerConnectedFn fn) { on_server_connected_fn = fn; }
     void set_on_http_error_fn(OnHttpErrorFn fn) { on_http_error_fn = fn; }
     void set_get_country_code_fn(GetCountryCodeFn fn) { get_country_code_fn  = fn; }
+    void set_on_message_fn(OnMessageFn fn) { on_message_fn  = fn; }
 
     /* bambu stdio agent config */
     json config_json;
     std::string config_dir;
+    std::string resources_dir;
     void set_config_dir(std::string dir) {
         BOOST_LOG_TRIVIAL(trace) << "Agent: set_config_dir = " << dir;
         config_dir = dir;
+    }
+    void set_resource_dir(std::string dir) {
+        BOOST_LOG_TRIVIAL(trace) << "Agent: set_resource_dir = " << dir;
+        resources_dir = dir;
     }
     int save_config();
     int load_config();
@@ -333,10 +316,6 @@ public:
     int load_user_info();
     int save_user_info();
 
-    /* mqtt */
-    std::map<std::string, MachineObject*> mqtt_topics;
-    std::map<std::string, std::string> bind_list_map;    /* dev_id -> user_id */
-
     /* mqtt apis */
     mqtt::async_client* get_client() { return mqtt_cli; }
     bool is_mqtt_connected();
@@ -348,7 +327,6 @@ public:
 
     void set_monitor_machine(std::string dev_id);
     void load_last_machine();
-    void on_printer_connected(std::string dev_id);
 
     //control subscribe default machine
     void start_subscribe(std::string module = "");
@@ -371,13 +349,9 @@ public:
 
     /* myBindList */
     std::mutex listMutex;
-    std::map<std::string, MachineObject*>  myBindMachineList;   /* dev_id -> MachineObject* */
+    std::vector<std::string> myBindMachineList;                 /* dev_id */
     std::string default_machine;                                /* default bind machine dev_id */
-    /* create bind machine or update machine properties */
-    void update_my_bind_list(std::string body);
-    MachineObject* get_default_machine();
-    MachineObject* find_machine(std::string dev_id);
-    std::vector<MachineObject*> get_select_machine_list();
+    std::string get_default_machine() { return default_machine; }
 
     /* project struct */
     std::map<std::string, BBLProject*> myProjectList;
@@ -386,7 +360,7 @@ public:
     std::vector<std::string> need_delete_presets;   // store setting ids of preset
 
     /* bind apis */
-    int query_bind_status(std::vector<std::string> device_list, AccountManager::CompletedFn cFn);
+    int query_bind_status(std::vector<std::string> device_list, unsigned int &http_code, std::string &http_body);
     int request_unbind(std::string device_id, ResultFn fn);
     int request_bind_list(ResultFn fn = nullptr);
 
@@ -395,15 +369,7 @@ public:
     int modify_device_name(std::string dev_id, std::string dev_name, unsigned int &http_code, std::string &http_body);
 
     /* print apis */
-    int get_print_info(std::string &result, int &err_code, std::string err_msg, bool sync = true);
-    void update_my_machine_list_info(int& err_code, std::string& err_msg, bool sync = true);
-    void update_my_machine_list(std::vector<MachineObject*> list);
-
-    /* project apis */
-    BBLProject* get_default_project() { return default_project; }
-    void set_default_project(BBLProject* project) { default_project = project; }
-    BBLProfile* get_default_profile() { return default_profile; }
-    void set_default_profile(BBLProfile* profile) { default_profile = profile; }
+    int get_print_info(unsigned int& http_code, std::string& http_body);
 
     // POST /api/user/project
     int request_project_profile_id(BBLProject *project, BBLProfile *profile, unsigned int &http_code, std::string &http_body);

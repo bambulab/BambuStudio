@@ -193,6 +193,7 @@ public:
     bool can_abort(std::string state);
     void start_ssdp();
 	void stop_ssdp();
+    bool was_dismiss() { return m_dismiss; }
 
 private:
     wxBoxSizer *                      m_sizer_body{nullptr};
@@ -203,6 +204,7 @@ private:
     wxTimer *                         m_refresh_timer{nullptr};
     MachinePanelHash                  m_list_Machine_panel;
     boost::thread                     get_print_info_thread;
+    bool                              m_dismiss { false };
 
     std::map<std::string, MachineObject*> m_bind_machine_list; 
     std::map<std::string, MachineObject*> m_free_machine_list;

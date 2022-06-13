@@ -208,10 +208,8 @@ void BindJob::process()
     obj->local_disconnect();
     curr_percent = 100;
 
-    Slic3r::AccountManager *account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    int                     err_code;
-    std::string             err_msg;
-    account_manager->update_my_machine_list_info(err_code, err_msg, true);
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    dev->update_my_machine_list_info();
 
     update_status(curr_percent, "Bind Success!");
     wxCommandEvent event(EVT_BIND_MACHINE_SUCCESS);

@@ -2414,6 +2414,7 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
         case wxID_YES: {
             std::string version = wxGetApp().preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
             acc->get_setting_list(version);
+            GUI::wxGetApp().reload_settings();
             break;
         }
         case wxID_NO:

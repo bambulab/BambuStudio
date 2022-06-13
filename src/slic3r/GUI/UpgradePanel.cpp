@@ -588,9 +588,9 @@ void UpgradePanel::update(MachineObject *obj)
 bool UpgradePanel::Show(bool show)
 {
     if (show) {
-        Slic3r::AccountManager* acc = wxGetApp().getAccountManager();
-        if (acc) {
-            MachineObject* obj = acc->get_default_machine();
+        DeviceManager* dev = wxGetApp().getDeviceManager();
+        if (dev) {
+            MachineObject* obj = dev->get_default_machine();
             refresh_version_and_firmware(obj);
         }
     }

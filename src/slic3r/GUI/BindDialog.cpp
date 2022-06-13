@@ -558,14 +558,8 @@ void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event)
     m_machine_info->request_unbind([this](int result, std::string body) {
        
         if (result == 0) {
-           /* EndModal(wxID_CANCEL);
-            MessageDialog msg_wingow(nullptr, _L("Log out success"), "", wxAPPLY | wxOK);
-            if (msg_wingow.ShowModal() == wxOK) { return; }*/
-         
-            Slic3r::AccountManager *account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-            int                     err_code;
-            std::string             err_msg;
-            account_manager->update_my_machine_list_info(err_code, err_msg, true);
+            DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+            dev->update_my_machine_list_info();
 
             m_status_text->SetLabelText(_L("Log out successful."));
             m_button_unbind->Hide();

@@ -825,7 +825,8 @@ void DebugToolDialog::init()
                 subtask->task_gcode_in_3mf = gcode_path.filename().string();
 
                 /* send task */
-                MachineObject* obj = account_manager->get_default_machine();
+                DeviceManager* dev = wxGetApp().getDeviceManager();
+                MachineObject* obj = dev->get_default_machine();
                 if (obj) {
                     obj->send_wan_print_subtask(subtask,
                         [this, _3mf_file_str]() {
@@ -1422,7 +1423,8 @@ void DebugToolDialog::on_update_mybind_list(SimpleEvent& evt)
         last_my_bind_dev_id = mybind_machine_list_items[last_wlan_device_selection];
     }
     
-    std::map<std::string, MachineObject*> list = account_manager->myBindMachineList;
+    DeviceManager* dev = wxGetApp().getDeviceManager();
+    std::map<std::string, MachineObject*> list = dev->myBindMachineList;
     std::map<std::string, MachineObject*>::iterator iter;
     mybind_machine_list_items.clear();
     wxArrayString new_items;
@@ -1646,7 +1648,7 @@ int DebugToolDialog::publish_json(std::string json_str)
         );
     }
     else {
-        MachineObject* obj = account_manager->get_default_machine();
+        MachineObject* obj = dev_manager_.get_default_machine();
         if (!obj) {
             this->send_log_evt("Invalid Printer! Please Select a Printer!");
             return -1;
@@ -1679,11 +1681,9 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
 {
     MachineObject *obj = nullptr;
     if (radio_btn_lan->GetValue()) {
-        Slic3r::DeviceManager *device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-        obj = device_manager->get_default();
+        obj = dev_manager_.get_default();
     } else {
-        Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-        obj = account_manager->get_default_machine();
+        obj = dev_manager_.get_default_machine();
     }
 
     if (!obj) return;
@@ -2074,11 +2074,8 @@ void DebugToolDialog::refresh_device_list()
         return;
     }
 
-    dev_manager_.query_bind_status(
-        // CompleteFn
-        [this](std::string body) {
-            wxQueueEvent(this, new SimpleEvent(EVT_UPDATE_LIST));
-        });
+    dev_manager_.query_bind_status();
+    wxQueueEvent(this, new SimpleEvent(EVT_UPDATE_LIST));
 }
 
 wxString DebugToolDialog::get_machine_display_item(MachineObject* obj)
@@ -2299,7 +2296,7 @@ int DebugToolDialog::publishGcode(std::string gcode)
         result = this->publish_json(json_str);
         if (result != 0) { this->log_info("publish_json failed"); }
     } else {
-        MachineObject *obj = account_manager->get_default_machine();
+        MachineObject *obj = dev_manager_.get_default_machine();
         if (!obj) {
             this->send_log_evt("Invalid Printer! Please Select a Printer!");
             return -1;
@@ -2334,8 +2331,8 @@ void DebugToolDialog::on_select_device(wxCommandEvent& evt)
     //machine_list_items
     int selection = evt.GetSelection();
     if (selection < machine_list_items.size()) {
-        dev_manager_.default_machine = machine_list_items[selection];
-        send_log_evt("Select Printer=" + dev_manager_.default_machine);
+        dev_manager_.local_default_machine = machine_list_items[selection];
+        send_log_evt("Select Printer=" + dev_manager_.local_default_machine);
 
         /* update widget values */
         last_device_selection = selection;
@@ -2364,7 +2361,7 @@ void DebugToolDialog::on_select_device(wxCommandEvent& evt)
 void DebugToolDialog::on_select_mybind_device(wxCommandEvent& evt)
 {
     Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    MachineObject* last_obj = account_manager->get_default_machine();
+    MachineObject* last_obj = dev_manager_.get_default_machine();
     if (last_obj) {
         last_obj->set_msg_recv_fn(nullptr);
         last_obj->set_msg_send_fn(nullptr);
@@ -2373,7 +2370,7 @@ void DebugToolDialog::on_select_mybind_device(wxCommandEvent& evt)
     //machine_list_items
     int selection = evt.GetSelection();
     if (selection < mybind_machine_list_items.size()) {
-        account_manager->set_monitor_machine(mybind_machine_list_items[selection]);
+        dev_manager_.set_monitoring_machine(mybind_machine_list_items[selection]);
         send_log_evt("Select Printer=" + mybind_machine_list_items[selection]);
         /* update widget values */
         last_wlan_device_selection = selection;
@@ -2382,7 +2379,7 @@ void DebugToolDialog::on_select_mybind_device(wxCommandEvent& evt)
         BOOST_LOG_TRIVIAL(error) << "selection=" << selection << ", list items size=" << mybind_machine_list_items.size();
     }
 
-    MachineObject* obj = account_manager->get_default_machine();
+    MachineObject* obj = dev_manager_.get_default_machine();
     if (!obj) return;
 
     obj->set_msg_recv_fn([this](std::string topic, std::string payload) {
