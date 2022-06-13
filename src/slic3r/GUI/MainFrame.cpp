@@ -150,7 +150,6 @@ wxDEFINE_EVENT(EVT_SELECT_DEFAULT_PRESET,     SimpleEvent);
 MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_STYLE, "mainframe")
     // BBS
-    , m_topbar(new BBLTopbar(this))
     , m_recent_projects(9)
     , m_settings_dialog(this)
     , diff_dialog(this)
@@ -160,6 +159,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     if (wxGetApp().app_config->get("user_mode") == "develop") {
         wxGetApp().app_config->set("user_mode", "advanced");
      }
+    
     wxGetApp().app_config->set_bool("dump_video", false);
 
 
@@ -174,6 +174,20 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     // Fonts were created by the DPIFrame constructor for the monitor, on which the window opened.
     wxGetApp().update_fonts(this);
 
+    #ifdef __WINDOWS__
+        m_topbar         = new BBLTopbar(this);
+    #else
+    auto panel_topbar = new wxPanel(this, wxID_ANY);
+    panel_topbar->SetBackgroundColour(wxColour(38, 46, 48));
+    auto sizer_tobar = new wxBoxSizer(wxVERTICAL);
+    m_topbar         = new BBLTopbar(panel_topbar, this);
+    sizer_tobar->Add(m_topbar, 0, wxEXPAND);
+    panel_topbar->SetSizer(sizer_tobar);
+    panel_topbar->Layout();
+    #endif
+
+    
+    
     wxAuiToolBar* toolbar = new wxAuiToolBar();
 /*
 #ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
@@ -287,7 +301,13 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     // initialize layout
     m_main_sizer = new wxBoxSizer(wxVERTICAL);
     wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-    sizer->Add(m_topbar, 0, wxEXPAND);
+    #ifdef __WINDOWS__
+     sizer->Add(m_topbar, 0, wxEXPAND);
+    #else
+     sizer->Add(panel_topbar, 0, wxEXPAND);
+    #endif // __WINDOWS__
+
+   
     sizer->Add(m_main_sizer, 1, wxEXPAND);
     SetSizerAndFit(sizer);
     // initialize layout from config

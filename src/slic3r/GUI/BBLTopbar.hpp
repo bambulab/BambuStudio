@@ -12,7 +12,9 @@ using namespace Slic3r::GUI;
 class BBLTopbar : public wxAuiToolBar
 {
 public:
+    BBLTopbar(wxWindow* pwin, wxFrame* parent);
     BBLTopbar(wxFrame* parent);
+    void Init(wxFrame *parent);
     ~BBLTopbar();
     void UpdateToolbarWidth(int width);
     void Rescale();
@@ -34,6 +36,7 @@ public:
     void OnAccountClicked(wxAuiToolBarEvent& event);
     void OnModelStoreClicked(wxAuiToolBarEvent& event);
     void OnPublishClicked(wxAuiToolBarEvent &event);
+    void OnRestore();
 
     wxAuiToolBarItem* FindToolByCurrentPosition();
 
@@ -61,6 +64,11 @@ private:
     wxAuiToolBarItem* m_title_item;
     wxAuiToolBarItem* m_account_item;
     wxAuiToolBarItem* m_model_store_item;
+    
+    wxSize            m_size_curr_screen{wxSize(-1,-1)};
+    wxSize            m_size_unfull_on_macos{wxSize(-1,-1)};
+    wxPoint           m_pos_unfull_on_macos{wxPoint(-1,-1)};
+    
     //wxAuiToolBarItem *m_publish_item;
     wxAuiToolBarItem* m_undo_item;
     wxAuiToolBarItem* m_redo_item;

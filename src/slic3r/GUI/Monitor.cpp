@@ -282,8 +282,6 @@ void MonitorPanel::on_size(wxSizeEvent &event)
 {
     // limit size
     if (!wxGetApp().mainframe) return;
-
-    //wxGetApp().mainframe->SetMinSize(wxSize(FromDIP(1500), FromDIP(700)));
     Layout();
     Refresh();
 }
@@ -393,6 +391,10 @@ void MonitorPanel::update_all()
 
 bool MonitorPanel::Show(bool show)
 {
+#ifdef __APPLE__
+    wxGetApp().mainframe->SetMinSize(wxGetApp().plater()->GetMinSize());
+#endif
+    
     Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
     if (show) {
         m_refresh_timer->Stop();
