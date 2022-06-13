@@ -576,6 +576,16 @@ int CLI::run(int argc, char **argv)
             m_models.clear();
             m_models.emplace_back(std::move(m));*/
         }
+        else if (opt_key == "convert_unit") {
+            for (auto& model : m_models) {
+                if (model.looks_like_saved_in_meters()) {
+                    model.convert_from_meters(true);
+                }
+                else if (model.looks_like_imperial_units()) {
+                    model.convert_from_imperial_units(true);
+                }
+            }
+        }
         else if (opt_key == "orient") {
             for (auto& model : m_models)
                 for (ModelObject* o : model.objects)
@@ -1058,6 +1068,7 @@ int CLI::run(int argc, char **argv)
                     StringObjectException warning;
                     auto err = print->validate(&warning);
                     if (!err.string.empty()) {
+                        BOOST_LOG_TRIVIAL(info) << "got error when validate: "<< err.string << std::endl;
                         boost::nowide::cerr << err.string << std::endl;
                         //BBS: continue for other plates
                         //continue;

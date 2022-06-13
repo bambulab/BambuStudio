@@ -3861,6 +3861,11 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->tooltip = L("Arrange the supplied models in a plate and merge them in a single model in order to perform actions once.");
     def->cli = "merge|m";*/
 
+    def = this->add("convert_unit", coBool);
+    def->label = L("Convert Unit");
+    def->tooltip = L("Convert the units of model");
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("orient", coBool);
     def->label = L("Orient");
     def->tooltip = L("Orient the model");
