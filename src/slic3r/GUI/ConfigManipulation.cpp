@@ -122,7 +122,7 @@ void ConfigManipulation::check_bed_temperature_difference(int bed_type, DynamicP
         if (bed_temp_1st_layer_opt != nullptr && bed_temp_opt != nullptr) {
             int first_layer_bed_temp = bed_temp_1st_layer_opt->get_at(0);
             int bed_temp = bed_temp_opt->get_at(0);
-            if (std::abs(first_layer_bed_temp - bed_temp) > bed_temp_difference) {
+            if (first_layer_bed_temp - bed_temp > bed_temp_difference) {
                 const wxString msg_text = wxString::Format(_L("Bed temperature of other layer is lower than bed temperature of initial layer for more than %d degree centigrade.\nThis may cause model broken free from build plate during printing"), bed_temp_difference);
                 MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
                 is_msg_dlg_already_exist = true;
