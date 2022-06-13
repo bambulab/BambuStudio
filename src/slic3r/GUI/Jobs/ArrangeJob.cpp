@@ -174,7 +174,7 @@ void ArrangeJob::prepare_selected() {
             }
         }
 
-    prepare_wipe_tower();    
+    prepare_wipe_tower();
 
 
     // The strides have to be removed from the fixed items. For the
@@ -234,7 +234,7 @@ void ArrangeJob::prepare_all() {
         }
     }
 
-    prepare_wipe_tower();    
+    prepare_wipe_tower();
 }
 
 void ArrangeJob::prepare_wipe_tower()
@@ -245,7 +245,7 @@ void ArrangeJob::prepare_wipe_tower()
     // if multile extruders have same bed temp, we need wipe tower
     if (!params.is_seq_print) {
         // need wipe tower if some object has multiple extruders (has paint-on colors)
-        if (!params.allow_multi_materials_on_same_plate) { 
+        if (!params.allow_multi_materials_on_same_plate) {
             for (const auto &item : m_selected)
                 if (item.extrude_ids.size() > 1) {
                     need_wipe_tower = true;
@@ -463,7 +463,8 @@ void ArrangeJob::check_unprintable()
             auto msg = (boost::format(
                 _utf8(L("Object %s has zero size and can't be arranged.")))
                 % _utf8(it->name)).str();
-            wxGetApp().plater()->get_notification_manager()->push_plater_warning_notification(msg);
+            wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
+                                NotificationManager::NotificationLevel::WarningNotificationLevel, msg);
             it = m_selected.erase(it);
         }
         else
@@ -495,7 +496,7 @@ void ArrangeJob::process()
 
     if (params.avoid_extrusion_cali_region)
         m_plater->get_partplate_list().preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
-    
+
 
     double skirt_distance = print.has_skirt() ? print.config().skirt_distance.value : 0;
     bool is_auto_brim = print.has_auto_brim();
@@ -523,7 +524,7 @@ void ArrangeJob::process()
             if (region.is_virt_object)
                 region.poly.translate(-scaled(params.cleareance_radius/2), -scaled(params.cleareance_radius/2));
         }
-    } 
+    }
 
     // do not inflate brim_width. Objects are allowed to have overlapped brim.
     std::for_each(m_selected.begin(), m_selected.end(), [&](auto& ap) {ap.inflation = params.min_obj_distance / 2; });

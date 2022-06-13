@@ -106,6 +106,7 @@ class MainFrame : public DPIFrame
     void on_value_changed(wxCommandEvent&);
 
     bool can_start_new_project() const;
+    bool can_open_project() const;
     bool can_export_model() const;
     bool can_export_toolpaths() const;
     bool can_export_supports() const;

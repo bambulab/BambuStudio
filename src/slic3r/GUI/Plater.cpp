@@ -1362,13 +1362,8 @@ void PlaterDropTarget::handleOnIdle(wxIdleEvent &event)
     wxGetApp().mainframe->Raise();
     wxGetApp().Unbind(wxEVT_IDLE, &PlaterDropTarget::handleOnIdle, this);
     if (m_plater != nullptr) {
-        if (m_plater->is_background_process_slicing()) {
-            show_info(m_plater, _L("Need to stop slicing first."), _L("Drop Files when slicing"));
-        }
-        else {
-            m_plater->load_files(m_filenames);
-            wxGetApp().mainframe->update_title();
-        }
+        m_plater->load_files(m_filenames);
+        wxGetApp().mainframe->update_title();
     }
     m_filenames.clear();
 }
@@ -3038,6 +3033,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             //select plate 0 as default
             q->select_plate(0);
         }
+    }
+    else {
+        //always set to 3D after loading files
+        q->select_view_3D("3D");
+        wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
     }
 
     if (load_model) {
@@ -5031,6 +5031,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
                 }
             }
         }
+        q->SetDropTarget(new PlaterDropTarget(q));
     }
     else
     {
@@ -8537,13 +8538,16 @@ void Plater::reslice()
         // Post the "complete" callback message, so that it will slice the next plate soon
         wxQueueEvent(this, evt.Clone());
         p->m_is_slicing = true;
+        this->SetDropTarget(nullptr);
         if (p->m_cur_slice_plate == 0)
             reset_gcode_toolpaths();
         return;
     }
 
-    if (result)
+    if (result) {
         p->m_is_slicing = true;
+        this->SetDropTarget(nullptr);
+    }
 
     if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
     {
@@ -9879,7 +9883,7 @@ void Plater::show_object_info()
     auto mesh_errors = p->sidebar->obj_list()->get_mesh_errors_info(&info_manifold, &non_manifold_edges);
     info_text += into_u8(info_manifold);
 
-    notify_manager->bbl_show_objectsinfo_notification(info_text, (non_manifold_edges > 0), !(p->current_panel == p->view3D));
+    notify_manager->bbl_show_objectsinfo_notification(info_text, is_windows10()&&(non_manifold_edges > 0), !(p->current_panel == p->view3D));
 }
 
 bool Plater::show_publish_dialog(bool show)
@@ -9972,7 +9976,8 @@ void Plater::show_status_message(std::string s)
 
 bool Plater::can_delete() const { return p->can_delete(); }
 bool Plater::can_delete_all() const { return p->can_delete_all(); }
-bool Plater::can_add_plate() const { return p->can_add_plate(); }
+bool Plater::can_add_model() const { return !is_background_process_slicing(); }
+bool Plater::can_add_plate() const { return !is_background_process_slicing() && p->can_add_plate(); }
 bool Plater::can_delete_plate() const { return p->can_delete_plate(); }
 bool Plater::can_increase_instances() const { return p->can_increase_instances(); }
 bool Plater::can_decrease_instances() const { return p->can_decrease_instances(); }

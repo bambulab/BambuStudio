@@ -414,6 +414,7 @@ public:
 
     bool can_delete() const;
     bool can_delete_all() const;
+    bool can_add_model() const;
     bool can_add_plate() const;
     bool can_delete_plate() const;
     bool can_increase_instances() const;

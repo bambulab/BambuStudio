@@ -9,6 +9,7 @@
 #include <boost/format.hpp>
 
 static std::string g_log_folder;
+static std::atomic<int> g_crash_log_count = 0;
 
 CBaseException::CBaseException(HANDLE hProcess, WORD wPID, LPCTSTR lpSymbolPath, PEXCEPTION_POINTERS pEp):
 	CStackWalker(hProcess, wPID, lpSymbolPath)
@@ -24,7 +25,7 @@ CBaseException::CBaseException(HANDLE hProcess, WORD wPID, LPCTSTR lpSymbolPath,
 	std::stringstream buf;
 
 	if (!g_log_folder.empty()) {
-		buf << std::put_time(now_time, "crash_%a_%b_%d_%H_%M_%S.log");
+		buf << std::put_time(now_time, "crash_%a_%b_%d_%H_%M_%S_") <<g_crash_log_count++ <<".log";
 		auto log_folder = (boost::filesystem::path(g_log_folder) / "log").make_preferred();
 		if (!boost::filesystem::exists(log_folder)) {
 		    boost::filesystem::create_directory(log_folder);

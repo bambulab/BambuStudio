@@ -888,7 +888,12 @@ bool MainFrame::can_start_new_project() const
                         GetTitle().StartsWith('*')||
                         wxGetApp().has_current_preset_changes() ||
                         !m_plater->model().objects.empty());*/
-    return m_plater;
+    return (m_plater && !m_plater->is_background_process_slicing());
+}
+
+bool MainFrame::can_open_project() const
+{
+    return (m_plater && !m_plater->is_background_process_slicing());
 }
 
 bool MainFrame::can_save() const
@@ -1524,17 +1529,17 @@ void MainFrame::init_menubar_as_editor()
         // New Project
         append_menu_item(fileMenu, wxID_ANY, _L("New Project") + "\tCtrl+N", _L("Start a new project"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->new_project(); }, "", nullptr,
-            [this](){return m_plater != nullptr && can_start_new_project(); }, this);
+            [this](){return can_start_new_project(); }, this);
         // Open Project
 
 #ifdef __WINDOWS__
         append_menu_item(fileMenu, wxID_ANY, _L("Open Project") + dots + "\tCtrl+O", _L("Open a project file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "menu_open", nullptr,
-            [this](){return m_plater != nullptr; }, this);
+            [this](){return can_open_project(); }, this);
 #else
         append_menu_item(fileMenu, wxID_ANY, _L("Open Project") + dots + "\tCtrl+O", _L("Open a project file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "", nullptr,
-            [this](){return m_plater != nullptr; }, this);
+            [this](){return can_open_project(); }, this);
 #endif
 
         // Recent Project
@@ -1577,7 +1582,7 @@ void MainFrame::init_menubar_as_editor()
         }
         m_recent_projects.LoadThumbnails();
 
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_recent_projects.GetCount() > 0); }, recent_projects_submenu->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_open_project() && (m_recent_projects.GetCount() > 0)); }, recent_projects_submenu->GetId());
 
         // BBS: close save project
 #ifdef __WINDOWS__
@@ -1608,11 +1613,11 @@ void MainFrame::init_menubar_as_editor()
 #ifdef __WINDOWS__
         append_menu_item(fileMenu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots/* + "\tCtrl+I"*/, _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) { m_plater->add_model(); } }, "menu_import", nullptr,
-            [this](){return m_plater != nullptr; }, this);
+            [this](){return can_open_project(); }, this);
 #else
         append_menu_item(fileMenu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots/* + "\tCtrl+I"*/, _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) { m_plater->add_model(); } }, "", nullptr,
-            [this](){return m_plater != nullptr; }, this);
+            [this](){return can_open_project(); }, this);
 #endif
 
 
