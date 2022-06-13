@@ -229,48 +229,9 @@ void MarkdownTip::RunScript(std::string const& script)
 #endif
 }
 
-
-class FakeWebView : public wxWebView
-{
-    virtual bool Create(wxWindow* parent, wxWindowID id, const wxString& url, const wxPoint& pos, const wxSize& size, long style, const wxString& name) override { return false; }
-    virtual wxString GetCurrentTitle() const override { return wxString(); }
-    virtual wxString GetCurrentURL() const override { return wxString(); }
-    virtual bool IsBusy() const override { return false; }
-    virtual bool IsEditable() const override { return false; }
-    virtual void LoadURL(const wxString& url) override { }
-    virtual void Print() override { }
-    virtual void RegisterHandler(wxSharedPtr<wxWebViewHandler> handler) override { }
-    virtual void Reload(wxWebViewReloadFlags flags = wxWEBVIEW_RELOAD_DEFAULT) override { }
-    virtual bool RunScript(const wxString& javascript, wxString* output = NULL) const override { return false; }
-    virtual void SetEditable(bool enable = true) override { }
-    virtual void Stop() override { }
-    virtual bool CanGoBack() const override { return false; }
-    virtual bool CanGoForward() const override { return false; }
-    virtual void GoBack() override { }
-    virtual void GoForward() override { }
-    virtual void ClearHistory() override { }
-    virtual void EnableHistory(bool enable = true) override { }
-    virtual wxVector<wxSharedPtr<wxWebViewHistoryItem>> GetBackwardHistory() override { return {}; }
-    virtual wxVector<wxSharedPtr<wxWebViewHistoryItem>> GetForwardHistory() override { return {}; }
-    virtual void LoadHistoryItem(wxSharedPtr<wxWebViewHistoryItem> item) override { }
-    virtual bool CanSetZoomType(wxWebViewZoomType type) const override { return false; }
-    virtual float GetZoomFactor() const override { return 0.0f; }
-    virtual wxWebViewZoomType GetZoomType() const override { return wxWebViewZoomType(); }
-    virtual void SetZoomFactor(float zoom) override { }
-    virtual void SetZoomType(wxWebViewZoomType zoomType) override { }
-    virtual bool CanUndo() const override { return false; }
-    virtual bool CanRedo() const override { return false; }
-    virtual void Undo() override { }
-    virtual void Redo() override { }
-    virtual void* GetNativeBackend() const override { return nullptr; }
-    virtual void DoSetPage(const wxString& html, const wxString& baseUrl) override { }
-};
-
 wxWebView* MarkdownTip::CreateTipView(wxWindow* parent)
 {
     wxWebView *tipView = WebView::CreateWebView(parent, "");
-    if (tipView == nullptr)
-        return new FakeWebView;
     tipView->Bind(wxEVT_WEBVIEW_LOADED, &MarkdownTip::OnLoaded, this);
     tipView->Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &MarkdownTip::OnTitleChanged, this);
     tipView->Bind(wxEVT_WEBVIEW_ERROR, &MarkdownTip::OnError, this);
