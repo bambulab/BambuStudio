@@ -128,9 +128,6 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
     // m_browser->GetClassInfo()->GetClassName(),wxWebView::GetBackendVersionInfo().ToString());
     // wxLogMessage("User Agent: %s", m_browser->GetUserAgent());
 
-    // Set a more sensible size for web browsing
-    SetSize(FromDIP(wxSize(630, 820)));
-
     // Connect the webview events
     Bind(wxEVT_WEBVIEW_NAVIGATING, &ZUserLogin::OnNavigationRequest, this, m_browser->GetId());
     Bind(wxEVT_WEBVIEW_NAVIGATED, &ZUserLogin::OnNavigationComplete, this, m_browser->GetId());
@@ -146,8 +143,17 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
     // Bind(wxEVT_CLOSE_WINDOW, &ZUserLogin::OnClose, this);
 
     // UI
-    SetTitle( _L("Login"));
-    CenterOnParent();
+    SetTitle( _L("Login"));    
+    // Set a more sensible size for web browsing
+    wxSize pSize = FromDIP(wxSize(630, 820));
+    SetSize(pSize);
+
+    //CenterOnParent();
+    int screenheight = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y, NULL);
+    int screenwidth  = wxSystemSettings::GetMetric(wxSYS_SCREEN_X, NULL);
+    int MaxY         = (screenheight - pSize.y) > 0 ? (screenheight - pSize.y) / 2 : 0;
+    
+    this->SetPosition(wxPoint((screenwidth - pSize.x) / 2, MaxY));
 
     //Param
     m_AutotestToken = "";
