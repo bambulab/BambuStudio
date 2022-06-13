@@ -2573,8 +2573,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         const auto &path = input_files[i];
 #endif // _WIN32
         const auto filename         = path.filename();
-        const auto dlg_info         = _L("Loading file") + ": " + from_path(filename);
         int        progress_percent = static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size()));
+        const auto dlg_info         = _L("Loading file") + ": " + from_path((strategy & LoadStrategy::Restore) ? input_files[++i].filename() : filename);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": load file %1%") % filename;
         dlg_cont = dlg.Update(progress_percent, dlg_info);
         if (!dlg_cont) return empty_result;
@@ -6366,6 +6366,8 @@ void Plater::load_project(wxString const& filename2,
 
     std::vector<fs::path> input_paths;
     input_paths.push_back(path);
+    if (strategy & LoadStrategy::Restore)
+        input_paths.push_back(into_u8(originfile));
 
     std::vector<size_t> res = load_files(input_paths, strategy);
 
