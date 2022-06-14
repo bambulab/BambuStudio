@@ -245,12 +245,14 @@ body
 	text-align: center;
 	background-color: #E4E4E4;
 	border-radius: 8px;
+	width: 184px;
+	height: 184px;	
 }
 
 .FileItem img
 {
 	width: 184px;
-	height: 139px;
+	height: 184px;
 	border-radius: 8px;
 	display: inline-block;
 }
