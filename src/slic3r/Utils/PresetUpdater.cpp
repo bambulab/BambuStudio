@@ -276,8 +276,8 @@ bool PresetUpdater::priv::get_file(const std::string &url, const fs::path &targe
 		target_path.string(),
 		tmp_path.string());
 
-	Http::get(url)
-        .on_progress([](Http::Progress, bool &cancel) {
+    BBL::Http::get(url)
+        .on_progress([](BBL::Http::Progress, bool &cancel) {
 			if (cancel) { cancel = true; }
 		})
 		.on_error([&](std::string body, std::string error, unsigned http_status) {
@@ -472,7 +472,7 @@ void PresetUpdater::priv::sync_resources(std::map<std::string, Resource> &resour
 {
     std::map<std::string, Resource>    resource_list;
 
-    Slic3r::AccountManager *account_manager = GUI::wxGetApp().getAccountManager();
+    BBL::AccountManager *account_manager = GUI::wxGetApp().getAccountManager();
     if (!account_manager) {
         BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: can not get account manager";
         return;
@@ -495,7 +495,7 @@ void PresetUpdater::priv::sync_resources(std::map<std::string, Resource> &resour
 
     std::string url = account_manager->get_slicer_info_url();
     url += query_params;
-    Http http = Http::get(url);
+    BBL::Http http = BBL::Http::get(url);
     /*http.header("accept", "application/json")
         .header("client-type", "slicer")
         .header("os-type", "windows")
@@ -617,7 +617,7 @@ void PresetUpdater::priv::sync_config(const VendorMap vendors)
 
 	if (!enabled_config_update) { return; }
 
-    Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
+    BBL::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
     if (!account_manager) {
         BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: can not get account manager";
         return;
@@ -636,7 +636,7 @@ void PresetUpdater::priv::sync_config(const VendorMap vendors)
 
         std::string query_vendor = (boost::format("slicer/settings/%1%=%2%")
             % vendor_name
-            % VersionInfo::convert_full_version(SLIC3R_VERSION)
+            % BBL::VersionInfo::convert_full_version(SLIC3R_VERSION)
             ).str();
         if (!first)
             query_params += "&";
@@ -646,7 +646,7 @@ void PresetUpdater::priv::sync_config(const VendorMap vendors)
     std::string url = account_manager->get_slicer_info_url();
     //std::string url = (boost::format("%1%/iot-service/api/slicer/resource") % DEV_HOST_URL).str();
     url += query_params;
-    Http http = Http::get(url);
+    BBL::Http http = BBL::Http::get(url);
     /*http.header("accept", "application/json")
         .header("client-type", "slicer")
         .header("os-type", "windows")

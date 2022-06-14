@@ -1,10 +1,7 @@
 #include "Ssdp.hpp"
-
-
 #include <sstream>
 #include <string.h>
 #include <boost/log/trivial.hpp>
-#include "libslic3r/Utils.hpp"
 
 static struct SDP_CONST Global = {
     // SSDP Method

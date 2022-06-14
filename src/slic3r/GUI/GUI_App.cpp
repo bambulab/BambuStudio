@@ -1087,10 +1087,18 @@ GUI_App::GUI_App()
     , m_imgui(new ImGuiWrapper())
 	//, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 	//, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
-    , m_account_manager(new Slic3r::AccountManager())
+    , m_account_manager(new BBL::AccountManager())
 {
-    m_backend = new Slic3r::CommuBackend();
+    m_ssdp = new BBL::SsdpDiscovery();
     m_device_manager = new Slic3r::DeviceManager(*m_account_manager);
+
+    m_ssdp->set_on_machine_alive_fn(
+        [this](std::string dev_name, std::string dev_id, std::string dev_ip, std::string dev_type, std::string dev_signal) {
+            if (m_device_manager) {
+                m_device_manager->on_machine_alive(dev_name, dev_id, dev_ip, dev_type, dev_signal);
+            }
+        }
+    );
 
     //set callbacks
     m_account_manager->set_on_user_login_fn([this](int online_login) {
@@ -1105,12 +1113,6 @@ GUI_App::GUI_App()
                 it->second->command_request_push_all();
                 it->second->command_get_version();
             }
-        });
-    });
-
-    m_account_manager->set_on_server_connected_fn([this]() {
-        GUI::wxGetApp().CallAfter([this] {
-            m_account_manager->load_last_machine();
         });
     });
 
@@ -1285,7 +1287,7 @@ void GUI_App::init_http_extra_header()
 {
     std::map<std::string, std::string> extra_headers;
     extra_headers.insert(std::make_pair("X-BBL-Client-Type", "slicer"));
-    extra_headers.insert(std::make_pair("X-BBL-Client-Version", VersionInfo::convert_full_version(SLIC3R_VERSION)));
+    extra_headers.insert(std::make_pair("X-BBL-Client-Version", BBL::VersionInfo::convert_full_version(SLIC3R_VERSION)));
 #if defined(__WINDOWS__)
     extra_headers.insert(std::make_pair("X-BBL-OS-Type", "windows"));
 #elif defined(__APPLE__)
@@ -1299,7 +1301,7 @@ void GUI_App::init_http_extra_header()
     extra_headers.insert(std::make_pair("X-BBL-OS-Version", os_version));
     extra_headers.insert(std::make_pair("X-BBL-Device-ID", app_config->get("slicer_uuid")));
     extra_headers.insert(std::make_pair("X-BBL-Language", convert_studio_language_to_api(app_config->get("language"))));
-    Http::set_extra_headers(extra_headers);
+    BBL::Http::set_extra_headers(extra_headers);
 }
 
 /*void GUI_App::init_single_instance_checker(const std::string &name, const std::string &path)
@@ -1378,9 +1380,9 @@ bool GUI_App::on_init_inner()
 
 
     if (is_editor()) {
-        std::string msg = Http::tls_global_init();
+        std::string msg = BBL::Http::tls_global_init();
         std::string ssl_cert_store = app_config->get("tls_accepted_cert_store_location");
-        bool ssl_accept = app_config->get("tls_cert_store_accepted") == "yes" && ssl_cert_store == Http::tls_system_cert_store();
+        bool ssl_accept = app_config->get("tls_cert_store_accepted") == "yes" && ssl_cert_store == BBL::Http::tls_system_cert_store();
 
         if (!msg.empty() && !ssl_accept) {
             RichMessageDialog
@@ -1393,7 +1395,7 @@ bool GUI_App::on_init_inner()
             app_config->set("tls_cert_store_accepted",
                 dlg.IsCheckBoxChecked() ? "yes" : "no");
             app_config->set("tls_accepted_cert_store_location",
-                dlg.IsCheckBoxChecked() ? Http::tls_system_cert_store() : "");
+                dlg.IsCheckBoxChecked() ? BBL::Http::tls_system_cert_store() : "");
         }
     }
 
@@ -2188,7 +2190,6 @@ void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_max
     const std::string name = into_u8(window->GetName());
 
     window->Bind(wxEVT_CLOSE_WINDOW, [=](wxCloseEvent &event) {
-        m_device_manager->disconnect_all();
         window_pos_save(window, "main");
         event.Skip();
     });
@@ -2278,7 +2279,7 @@ bool GUI_App::check_login()
     return result;
 }
 
-void GUI_App::change_user(AccountInfo* user_info)
+void GUI_App::change_user(BBL::AccountInfo* user_info)
 {
     m_account_manager->set_curr_user(user_info);
 
@@ -2516,12 +2517,12 @@ void GUI_App::check_new_version(bool show_tips)
     platform = "linux";
 #endif
     std::string query_params = (boost::format("?name=slicer&&version=%1%&&platform=%2%&&guide_version=%3%")
-        % VersionInfo::convert_full_version(SLIC3R_VERSION)
+        % BBL::VersionInfo::convert_full_version(SLIC3R_VERSION)
         % platform
-        % VersionInfo::convert_full_version("0.0.0.1")
+        % BBL::VersionInfo::convert_full_version("0.0.0.1")
         ).str();
     std::string url = m_account_manager->get_slicer_info_url() + query_params;
-    Http http = Http::get(url);
+    BBL::Http http = BBL::Http::get(url);
     http.header("accept", "application/json")
         .timeout_max(10)
         .on_complete([this, show_tips](std::string body, unsigned) {

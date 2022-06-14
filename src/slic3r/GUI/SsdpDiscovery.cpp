@@ -1,4 +1,4 @@
-#include "CommuBackend.hpp"
+#include "SsdpDiscovery.hpp"
 
 #include <algorithm>
 #include <sstream>
@@ -12,16 +12,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <wx/event.h>
-
-#include "libslic3r/Time.hpp"
-#include "GUI.hpp"
-#include "GUI_App.hpp"
-#include "MainFrame.hpp"
-#include "libslic3r/Utils.hpp"
 #include "Ssdp.hpp"
-
-#include "libslic3r/Thread.hpp"
 
 #include <thread>
 #include <mutex>
@@ -39,7 +30,7 @@ SOCKET ssdp_sock_list[MAX_SOCKET_NUM];
 SOCKET broadcast_sock_list[MAX_SOCKET_NUM];
 #endif
 
-namespace Slic3r {
+namespace BBL {
 
     void SsdpDiscovery::on_sdp_alive(std::string dev_id, std::string dev_ip)
     {
@@ -47,11 +38,12 @@ namespace Slic3r {
 
         try {
             // Insert a new device or not
-            Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-            if (device_manager) {
-                //TODO get dev_name, use dev_ip instead
-                device_manager->on_machine_alive(dev_ip, dev_id, dev_ip);
-            }
+            //TODO
+            //Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+            //if (device_manager) {
+            //    //TODO get dev_name, use dev_ip instead
+            //    device_manager->on_machine_alive(dev_ip, dev_id, dev_ip);
+            //}
             return;
         }
         catch (std::exception& e) {
@@ -76,10 +68,11 @@ namespace Slic3r {
                     std::string printer_signal = packet.printer_signal;
                     std::string printer_ip = std::string(packet.location);
                     std::string printer_dev_id = std::string(packet.usn);
-                    Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+                    //TODO
+                    /*Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
                     if (device_manager) {
                         device_manager->on_machine_alive(printer_name, printer_dev_id, printer_ip, printer_type, printer_signal);
-                    }
+                    }*/
                 }
                 catch (std::exception& e) {
                     BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::parse_sdp_message, exception=" << e.what();
@@ -99,7 +92,36 @@ namespace Slic3r {
 
     void SsdpDiscovery::parse_sdp_message(const char *rece_buff, unsigned int recv_size)
     {
-        on_parse_sdp_message(rece_buff, recv_size);
+        lssdp_packet packet;
+        memset(&packet, 0, sizeof(packet));
+        int result = lssdp_packet_parser(rece_buff, recv_size, &packet);
+        if (result >= 0) {
+            if (strncmp(packet.st, SDP_BBL_DEVICE, strlen(SDP_BBL_DEVICE)) == 0) {
+                try {
+                    // set printer name to local ip by default
+                    std::string printer_name = packet.printer_name;
+                    std::string printer_type = packet.printer_type;
+                    std::string printer_signal = packet.printer_signal;
+                    std::string printer_ip = std::string(packet.location);
+                    std::string printer_dev_id = std::string(packet.usn);
+                    if (alive_fn) {
+                        alive_fn(printer_name, printer_dev_id, printer_ip, printer_type, printer_signal);
+                    }
+                }
+                catch (std::exception& e) {
+                    BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::parse_sdp_message, exception=" << e.what();
+                }
+                catch (...) {
+                    BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::parse_sdp_message, exception!";
+                }
+            }
+            else {
+                BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery: mismatch packet.st = " << packet.st;
+            }
+        }
+        else {
+            BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery: lssdp_packet_parser error = " << result;
+        }
     }
 
 #if defined(__WINDOWS__)
@@ -256,8 +278,12 @@ namespace Slic3r {
         keep_sending = false;
     }
 
-    void SsdpDiscovery::start_discover()
+    void SsdpDiscovery::start()
     {
+        if (!m_started) {
+            m_started = true;
+        }
+
         sdp_quit = false;
 #if defined(__WINDOWS__)
         /* create thread to recv ssdp message */
@@ -265,9 +291,9 @@ namespace Slic3r {
         card_number = bbl_init_broadcast_socket(broadcast_sock_list, MAX_SOCKET_NUM);
         for (int i = 0; i < card_number; i++) {
             try {
-                recv_thread_list[i] = Slic3r::create_thread([this, i] { this->recv_sdp_msg(i); });
-                send_thread_list[i] = Slic3r::create_thread([this, i] { this->send_msg(i); });
-                recv_broadcast_thread_list[i] = Slic3r::create_thread([this, i] { this->recv_broadcast_msg(i); });
+                recv_thread_list[i] = boost::thread([this, i] { this->recv_sdp_msg(i); });
+                send_thread_list[i] = boost::thread([this, i] { this->send_msg(i); });
+                recv_broadcast_thread_list[i] = boost::thread([this, i] { this->recv_broadcast_msg(i); });
                 BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::start_discover(), create thread " << i;
             }
             catch (std::exception& e)
@@ -278,7 +304,7 @@ namespace Slic3r {
 #elif defined(__APPLE__)
         lssdp_network_interface_update(&lssdp);
         try {
-            boost::thread _thread = Slic3r::create_thread([this]{this->ssdp_thread(); });
+            boost::thread _thread = boost::thread([this]{this->ssdp_thread(); });
         }
         catch (std::exception& e)
         {
@@ -287,8 +313,10 @@ namespace Slic3r {
 #endif
     }
 
-    void SsdpDiscovery::stop_discover()
+    void SsdpDiscovery::stop()
     {
+        if (m_started)
+            m_started = false;
         sdp_quit = true;
 #if defined(__WINDOWS__)
         for (int i = 0; i < card_number; i++) {
@@ -483,31 +511,4 @@ namespace Slic3r {
         return ::send(ConnectSocket, buf, size, 0);
     }
 #endif
-
-    CommuBackend::CommuBackend()
-    {
-        ssdp = new SsdpDiscovery();
-    }
-
-    int CommuBackend::start()
-    {
-        if (!m_started) {
-            ssdp->start_discover();
-            m_started = true;
-        }
-        return 0;
-    }
-
-    int CommuBackend::stop()
-    {
-        if (m_started)
-            ssdp->stop_discover();
-        m_started = false;
-        return 0;
-    }    
-
-    CommuBackend::~CommuBackend()
-    {
-        this->stop();
-    }
 }

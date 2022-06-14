@@ -3769,7 +3769,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
             //BBS delete preset
             Preset &current_preset = m_presets->get_selected_preset();
             current_preset.sync_info = "delete";
-            AccountManager* acc = wxGetApp().getAccountManager();
+            BBL::AccountManager* acc = wxGetApp().getAccountManager();
             if (!current_preset.setting_id.empty()) {
                 BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
                 acc->need_delete_presets.push_back(current_preset.setting_id);
@@ -4223,7 +4223,7 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
         return;
     }
 
-    AccountManager* acc = wxGetApp().getAccountManager();
+    BBL::AccountManager* acc = wxGetApp().getAccountManager();
     // set sync_info for sync service
     if (exist_preset) {
         new_preset->sync_info = "update";

@@ -1,5 +1,5 @@
-#ifndef slic3r_Ssdp_hpp_
-#define slic3r_Ssdp_hpp_
+#ifndef __Ssdp_hpp__
+#define __Ssdp_hpp__
 
 
 #include <string>

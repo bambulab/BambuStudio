@@ -1,5 +1,5 @@
-#ifndef slic3r_CommuBackend_hpp_
-#define slic3r_CommuBackend_hpp_
+#ifndef __BBL_SsdpDiscovery_hpp__
+#define __BBL_SsdpDiscovery_hpp__
 
 #include <string>
 #include <vector>
@@ -11,21 +11,27 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/thread.hpp>
 #include <boost/log/trivial.hpp>
-#include "slic3r/GUI/Event.hpp"
-#include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/Ssdp.hpp"
 
 namespace pt = boost::property_tree;
 
 #define MAX_CARD_NUMBER     20
 
-namespace Slic3r {
+namespace BBL {
 
 class SsdpDiscovery
 {
+public:
+    bool is_started() { return m_started; }
+
+    void set_ssdp_discovery(bool discovery) {
+        set_keep_sending(discovery);
+    }    
+
 private:
     bool sdp_quit = false;
     bool keep_sending = false;
+    bool m_started = false;
 
     int card_number = 0;
 
@@ -44,9 +50,14 @@ private:
     void ssdp_thread();
 #endif
 public:
+    typedef std::function<void(std::string dev_name, std::string dev_id, std::string dev_ip, std::string dev_type, std::string dev_signal)> OnMachineAliveFn;
+
+    OnMachineAliveFn alive_fn;
+    void set_on_machine_alive_fn(OnMachineAliveFn fn) { alive_fn  = fn; }
+
     SsdpDiscovery();
-    void start_discover();
-    void stop_discover();
+    void start();
+    void stop();
     void on_sdp_alive(std::string dev_id, std::string dev_ip);
     void parse_sdp_message(const char *rece_buff, unsigned int recv_size);
     void set_keep_sending(bool sending) { keep_sending = sending; }
@@ -100,30 +111,6 @@ public:
     int recv(std::string &json_str);
 };
 #endif
-
-class CommuBackend
-{
-public:
-    CommuBackend();
-    ~CommuBackend();
-
-    bool is_started() { return m_started; }
-    int start();
-    int stop();
-
-    void set_ssdp_discovery(bool discovery) {
-        if (ssdp)
-            ssdp->set_keep_sending(discovery);
-    }
-    
-
-protected:
-    bool m_started = false;
-
-private:
-    /* Ssdp */
-    SsdpDiscovery* ssdp;
-};
 
 }
 

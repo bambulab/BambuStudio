@@ -18,15 +18,9 @@
 #include <openssl/x509.h>
 #endif
 
-#include <libslic3r/libslic3r.h>
-#include <libslic3r/Utils.hpp>
-#include <slic3r/GUI/I18N.hpp>
-#include <slic3r/GUI/format.hpp>
-
 namespace fs = boost::filesystem;
 
-
-namespace Slic3r {
+namespace BBL {
 
 
 // Private
@@ -70,20 +64,17 @@ struct CurlGlobalInit
             }
 
             if (!bundle)
-                message = _u8L("Unable to get system certificate.");
+                message = "Unable to get system certificate.";
             else
-                message = Slic3r::GUI::format(
-                    _L("use system SSL certificate: %1%"),
-                    bundle);
+                message = (boost::format("use system SSL certificate: %1%") % bundle).str();
 
-             message += "\n" + Slic3r::GUI::format(_devL("To manually specify the system certificate store, "
-                                                   "set the %1% environment variable to the correct CA and restart the application"),
-                                                   SSL_CA_FILE);
+             message += "\n" + (boost::format("To manually specify the system certificate store, "
+                                                   "set the %1% environment variable to the correct CA and restart the application") % SSL_CA_FILE).str();
         }
 #endif // OPENSSL_CERT_OVERRIDE
 
         if (CURLcode ec = ::curl_global_init(CURL_GLOBAL_DEFAULT)) {
-            message += _u8L("CURL initialization failed. See the log for additional details.");
+            message += "CURL initialization failed. See the log for additional details.";
             BOOST_LOG_TRIVIAL(error) << ::curl_easy_strerror(ec);
         }
     }

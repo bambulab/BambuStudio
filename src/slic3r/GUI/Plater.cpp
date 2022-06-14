@@ -1372,7 +1372,7 @@ void PlaterDropTarget::handleOnIdle(wxIdleEvent &event)
         m_plater->load_files(m_filenames);
         wxGetApp().mainframe->update_title();
     }
-    m_filenames.clear();
+    //m_filenames.clear();
 }
 
 // State to manage showing after export notifications and device ejecting
@@ -1388,7 +1388,7 @@ struct Plater::priv
     // PIMPL back pointer ("Q-Pointer")
     Plater *q;
     MainFrame *main_frame;
-    AccountManager* acc_;
+    BBL::AccountManager* acc_;
 
     MenuFactory menus;
 
@@ -1522,7 +1522,7 @@ struct Plater::priv
     static const std::regex pattern_any_amf;
     static const std::regex pattern_prusa;
 
-    priv(Plater *q, MainFrame *main_frame, AccountManager* acc);
+    priv(Plater *q, MainFrame *main_frame, BBL::AccountManager* acc);
     ~priv();
 
     bool is_project_dirty() const { return dirty_state.is_dirty(); }
@@ -1885,7 +1885,7 @@ const std::regex Plater::priv::pattern_zip_amf(".*[.]zip[.]amf", std::regex::ica
 const std::regex Plater::priv::pattern_any_amf(".*[.](amf|amf[.]xml|zip[.]amf)", std::regex::icase);
 const std::regex Plater::priv::pattern_prusa(".*bbl", std::regex::icase);
 
-Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
+Plater::priv::priv(Plater *q, MainFrame *main_frame, BBL::AccountManager* acc)
     : q(q)
     , main_frame(main_frame)
     , acc_(acc)
@@ -6256,7 +6256,7 @@ void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& lab
 
 // Plater / Public
 
-Plater::Plater(wxWindow *parent, MainFrame *main_frame, AccountManager* acc)
+Plater::Plater(wxWindow *parent, MainFrame *main_frame, BBL::AccountManager* acc)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxGetApp().get_min_size())
     , p(new priv(this, main_frame, acc))
 {
@@ -6445,153 +6445,13 @@ int Plater::save_project(bool saveAs)
 //BBS import model by model id
 void Plater::import_model_id(const std::string& import_json)
 {
-    json j;
-    std::string model_id;
-    std::string profile_id;
-    std::string design_id;
-    try {
-        j = json::parse(import_json);
-        model_id = j["model_id"].get<std::string>();
-        profile_id = j["profile_id"].get<std::string>();
-        if (j.contains("design_id") && !j["design_id"].is_null())
-            design_id = j["design_id"].get<std::string>();
-    }
-    catch(...)
-    {
-        BOOST_LOG_TRIVIAL(trace) << "import_model_id failed, json = " << import_json;
-        return;
-    }
-
-    bool download_ok = false;
-    /* save to a file */
-
-    /* jump to 3D eidtor */
-    wxGetApp().mainframe->select_tab((size_t)MainFrame::TabPosition::tp3DEditor);
-
-    /* prepare progress dialog */
-    bool cont = true;
-    bool cont_dlg = true;
-    bool cancel = false;
-    wxString msg;
-    wxString dlg_title = _L("Importing Model");
-    wxString filename;
-    int percent = 1;
-    ProgressDialog dlg(dlg_title,
-                            wxString(' ', 100) + "\n\n\n\n",
-                            100,    // range
-                            this,   // parent
-                            wxPD_CAN_ABORT |
-                            wxPD_APP_MODAL |
-                            wxPD_AUTO_HIDE |
-                            wxPD_SMOOTH);
-
-    boost::filesystem::path target_path;
-
-    //reset params
-    p->project.reset();
-
-    /* prepare project and profile */
-    boost::thread import_thread = Slic3r::create_thread([&percent, &cont, &cancel, &msg, &target_path, &download_ok, model_id, profile_id, &filename] {
-        Slic3r::AccountManager* c = wxGetApp().getAccountManager();
-        int res = 0;
-        unsigned int http_code;
-        std::string http_body;
-
-        msg = _L("prepare 3mf file...");
-        BBLProfile *profile = new BBLProfile();
-        profile->profile_id = profile_id;
-        profile->model_id = model_id;
-        res = c->get_profile_3mf(profile, http_code, http_body);
-        if (res < 0 && profile->url.empty() && profile->md5.empty()) {
-            wxString error_msg = wxString::Format(_devL("get_des,err:code=%u,msg=%s"), http_code, http_body);
-            msg = _L("Import project failed, Please try again!") + error_msg;
-            return;
-        }
-        filename = from_u8(profile->filename);
-
-        msg = _L("downloading project ...");
-        /* save to temp folder 3mf file*/
-        target_path = wxStandardPaths::Get().GetTempDir().utf8_str().data();
-        boost::uuids::uuid uuid = boost::uuids::random_generator()();
-        std::string unique = to_string(uuid).substr(0, 6);
-
-        target_path /= (boost::format("%1%_%2%.3mf") % profile->filename % unique).str();
-        fs::path tmp_path = target_path;
-        tmp_path += format(".%1%", ".download");
-
-        auto http = Http::get(profile->url);
-        http.on_progress([&percent, &cont, &msg](Http::Progress progress, bool& cancel) {
-            if (!cont) cancel = true;
-                if (progress.dltotal != 0) {
-                    percent = progress.dlnow * 100 / progress.dltotal;
-                }
-                msg = wxString::Format(_L("Project downloaded %d%%"), percent);
-            })
-            .on_error([&msg, &cont](std::string body, std::string error, unsigned http_status) {
-                (void)body;
-                BOOST_LOG_TRIVIAL(error) << format("Error getting: `%1%`: HTTP %2%, %3%",
-                    body,
-                    http_status,
-                    error);
-                msg = wxString::Format("Download Failed! body=%s, error=%s, status=%d", body, error, http_status);
-                cont = false;
-                return;
-            })
-            .on_complete([&cont, &download_ok, tmp_path, target_path](std::string body, unsigned /* http_status */) {
-                fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
-                file.write(body.c_str(), body.size());
-                file.close();
-                fs::rename(tmp_path, target_path);
-                cont = false;
-                download_ok = true;
-            })
-            .perform_sync();
-
-        // for break while
-        cont = false;
-    });
-
-    while(cont && cont_dlg) {
-        wxMilliSleep(50);
-        cont_dlg = dlg.Update(percent, msg);
-        if (!cont_dlg) {
-            cont = cont_dlg;
-            cancel = true;
-        }
-
-        if (download_ok)
-            break;
-    }
-
-    if (import_thread.joinable())
-        import_thread.join();
-
-    dlg.Close();
-    if (download_ok) {
-        BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << target_path.string();
-        /* load project */
-        this->load_project(encode_path(target_path.string().c_str()), "<silence>");
-
-        /*BBS set project info after load project, project info is reset in load project */
-        p->project.project_model_id  = model_id;
-        p->project.project_design_id = design_id;
-        AppConfig* config = wxGetApp().app_config;
-        if (config) {
-            p->project.project_country_code = config->get_country_code();
-        }
-
-        // show save new project
-        p->set_project_filename(filename);
-    } else {
-        wxMessageBox(msg);
-        return;
-    }
+    return;
 }
 
 //BBS download project by project id
 void Plater::download_project(const wxString& project_id)
 {
-    ;
+    return;
 }
 
 void Plater::request_model_download(std::string import_json)
@@ -8245,234 +8105,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
 
 void Plater::publish_project()
 {
-    bool cont = true, skip;
-    bool cont_dlg = true;
-    int percent = 0;
-    bool upload_finish = false;
-    bool publish_project = true;
-    std::string design_id;
-
-    wxString failed_to_publish_str = _L("Failed to publish your project. Please try agian!");
-
-    // upload project first and publish
-    wxString msg;
-
-    if (!p->m_is_publishing || p->m_publish_dlg->was_cancelled()) return;
-
-    // export 3mf to temp folder
-    p->m_publish_dlg->SetPublishStep(PublishStep::STEP_PACKING, true);
-
-    boost::filesystem::path temp_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
-    boost::uuids::uuid uuid = boost::uuids::random_generator()();
-    std::string unique = to_string(uuid).substr(0, 6);
-    temp_path /= (boost::format("%1%_%2%.3mf") % std::string(p->get_project_name().mb_str(wxConvUTF8)) % unique).str();
-    BOOST_LOG_TRIVIAL(debug) << "publish_project: export to temp 3mf: " << temp_path.string();
-
-    int result = export_3mf(temp_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode, -1,
-        [this](int export_stage, int current, int total, bool& cancel) {
-            bool skip = false;
-            wxString msg = "";
-            p->m_publish_dlg->Pulse(msg, skip);
-            cancel = skip;
-        });
-
-    if (result < 0) {
-        BOOST_LOG_TRIVIAL(debug) << "publish_project: result = " << result;
-        msg = _L("preparing, export 3mf failed!");
-        //dlg.Update(percent, msg);
-        p->m_publish_dlg->UpdateStatus(msg);
-        return;
-    }
-
-    if (!p->m_is_publishing || p->m_publish_dlg->was_cancelled()) return;
-
-    /* create project and uploading */
-    p->m_publish_dlg->SetPublishStep(PublishStep::STEP_UPLOADING, true);
-    Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
-    BBLProject* project = &p->project;
-    project->project_name = std::string(p->get_project_name().mb_str(wxConvUTF8));
-    project->project_3mf_file = temp_path.string();
-    project->project_path = fs::path(project->project_3mf_file);
-
-    BBLProfile* profile = new BBLProfile(project);
-    profile->profile_name = wxGetApp().preset_bundle->prints.get_edited_preset().name;
-
-    boost::thread upload_thread = Slic3r::create_thread([c, failed_to_publish_str, &msg, &cont, &project, &profile, &percent, &upload_finish, temp_path, &design_id,
-    &publish_project] {
-        int res = 0;
-        unsigned int http_code;
-        std::string http_body;
-        msg = _L("Preparing to upload your project...");
-
-        // query design id
-        if (!project->project_model_id.empty()) {
-            unsigned int http_code;
-            std::string http_body;
-            res = c->get_design_info(project->project_model_id, design_id, http_code, http_body);
-            if (res < 0) {
-                wxString error_msg = wxString::Format(_L("get_des,err:code=%u,msg=%s"), http_code, http_body);
-                msg = failed_to_publish_str + error_msg;
-                BOOST_LOG_TRIVIAL(trace) << msg;
-                cont = false;
-                return;
-            } else {
-                if (design_id.empty()) {
-                    publish_project = true;
-                }
-                else {
-                    publish_project = false;
-                }
-            }
-        }
-
-        res = c->request_project_id(project, http_code, http_body);
-        if (res < 0 || project->project_id.empty()) {
-            wxString error_msg = wxString::Format(_L("req_proj,err:code=%u,msg=%s"), http_code, http_body);
-            msg = failed_to_publish_str + error_msg;
-            BOOST_LOG_TRIVIAL(trace) << msg;
-            cont = false;
-            return;
-        }
-
-        profile->project_   = project;
-        profile->project_id = project->project_id;
-        res = c->request_profile_id(profile, http_code, http_body);
-        if (res < 0 || profile->profile_id.empty())
-        {
-            wxString error_msg = wxString::Format(_L("req_prof,err:code=%u,msg=%s"), http_code, http_body);
-            msg = failed_to_publish_str + error_msg;
-            BOOST_LOG_TRIVIAL(trace) << msg;
-            cont = false;
-            return;
-        }
-
-        msg = _L("Uploading...");
-
-        res = c->upload_3mf_to_oss(profile, http_code, http_body,
-            [&percent, &cont, &msg](Http::Progress progress, bool& cancel) {
-                if (!cont) cancel = true;
-                if (progress.ultotal != 0) {
-                    percent = progress.ulnow * 100 / progress.ultotal;
-                }
-
-                if (progress.upload_spd > 0.01f) {
-                    double left_time = (progress.ultotal - progress.ulnow) / progress.upload_spd;
-                    msg = wxString::Format(L("Uploading %d%%, remaining time %s"), percent, get_bbl_remain_time_dhms(left_time));
-                    BOOST_LOG_TRIVIAL(trace) << "publish_project: uploading " << percent << ", remaining time " << get_bbl_remain_time_dhms(left_time);
-                }
-            });
-
-        if (!cont) {
-            msg = _L("Upload has been canceled.");
-            return;
-        }
-
-        msg = _L("Publishing...");
-
-        if (res < 0) {
-            wxString error_msg = wxString::Format(_devL("upload,err:code=%u,msg=%s"), http_code, http_body);
-            msg = failed_to_publish_str + error_msg;
-            BOOST_LOG_TRIVIAL(trace) << msg;
-            cont = false;
-            return;
-        }
-
-        std::string upload_filename = (boost::format("%1%.3mf") % project->project_name).str();
-        res = c->put_notification(profile, upload_filename, http_code, http_body);
-        if (res < 0) {
-            wxString error_msg = wxString::Format(_devL("put_no,err:code=%u,msg=%s"), http_code, http_body);
-            msg = _L("Failed to publish. Please try again!") + error_msg;
-            BOOST_LOG_TRIVIAL(trace) << msg;
-            cont = false;
-            return;
-        }
-
-        /* get notifications */
-        bool cancel = false;
-        int  timeout = c->calc_get_notification_timeout(project->project_path);
-        res = c->get_notification(profile, http_code, http_body,
-            [cont]() {
-                return !cont;
-            }, timeout);
-
-        if (res == RET_POLLING_TIMEOUT) {
-            msg = _L("Uploading is timed out. Please try again!");
-            BOOST_LOG_TRIVIAL(trace) << msg;
-            cont = false;
-            return;
-        }
-        else if (res == RET_POLLING_CANEL) {
-            msg = _L("Upload has been canceled.");
-            BOOST_LOG_TRIVIAL(trace) << msg;
-            return;
-        }
-        else if (res < 0) {
-            wxString error_msg = wxString::Format(_devL("get_no,err:code=%u,msg=%s"), http_code, http_body);
-            msg = _L("Failed to publish. Please try again!") + error_msg;
-            BOOST_LOG_TRIVIAL(trace) << msg;
-            return;
-        }
-
-        upload_finish = true;
-        cont = false;
-    });
-
-
-    while (cont && cont_dlg) {
-        wxMilliSleep(50);
-        cont_dlg = p->m_publish_dlg->UpdateStatus(msg);
-        if (!cont_dlg)
-            cont = cont_dlg;
-    }
-
-    if (upload_thread.joinable())
-        upload_thread.join();
-
-    if (!p->m_is_publishing || p->m_publish_dlg->was_cancelled()) return;
-
-    cont_dlg = true;
-
-    /* set project to curr plater project, save project model id and save region config */
-    p->project.project_model_id = project->project_model_id;
-    p->project.project_country_code = wxGetApp().app_config->get_region();
-    AppConfig* config = wxGetApp().app_config;
-    if (config) {
-        project->project_country_code = config->get_country_code();
-    }
-
-    bool load_url = true;
-    if (design_id.empty() && !publish_project) {
-        msg = _L("Internal error.") + _devL(" ") + _L("Design id is empty.");
-        BOOST_LOG_TRIVIAL(trace) << msg;
-        load_url = false;
-    }
-
-    if (upload_finish && load_url) {
-        p->m_publish_dlg->SetPublishStep(PublishStep::STEP_FILL_INFO, true);
-        wxMilliSleep(1000);
-        p->m_publish_dlg->Close();
-        std::string url;
-        if (publish_project) {
-            url = (boost::format(MY_MODEL_PUBLISH_URL_FORMAT)
-                                % project->project_model_id
-                                % project->project_id
-                                % profile->profile_id).str();
-        } else {
-            url = (boost::format(MY_PROFILE_PUBLISH_URL_FORMAT)
-                                % profile->profile_id
-                                % project->project_id
-                                % design_id).str();
-        }
-
-        std::string host_url = c->get_official_server_host();
-        url = host_url + url;
-        GUI::wxGetApp().load_url(wxString(url));
-    } else {
-        BOOST_LOG_TRIVIAL(trace) << "publish failed: error = " << msg;
-    }
-
-    if (profile)
-        delete profile;
+    return;
 }
 
 

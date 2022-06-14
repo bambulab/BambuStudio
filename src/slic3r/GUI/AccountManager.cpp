@@ -74,7 +74,7 @@ static bool bbl_calc_md5(std::string& filename, std::string& md5_out)
     return true;
 }
 
-namespace Slic3r {
+namespace BBL {
 
 
     void action_listener::on_success(const mqtt::token& tok) {
@@ -152,6 +152,87 @@ namespace Slic3r {
                 manager->on_message_fn(params[1], msg->get_payload_str());   
         }
     }
+
+
+
+    void machine_conn_callback::connected(const std::string& cause)
+    {
+        BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connected!";
+        /* subscribe current device reqeust and report */
+        
+        /*try {
+            MachineObject* obj = (MachineObject*)context_;
+            if (obj && obj->successFn) {
+                obj->successFn(cli_.get_client_id());
+            }
+            for (int i = 0; i < sub_topics.size(); i++) {
+                sub_action_listener* sub_listener = new sub_action_listener("LanSubscriber_" + sub_topics[i]);
+                cli_.subscribe(sub_topics[i], 0, nullptr, *sub_listener);
+            }
+
+            if (obj) {
+                obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_CONNECTED);
+            }
+        }
+        catch (mqtt::exception& e) {
+            BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connected, exception=" << e.what();
+        }*/
+    }
+
+    void machine_conn_callback::on_failure(const mqtt::token& tok)
+    {
+        BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::on_failure, Connection(mqtt) failed! retry=" << nretry_;
+        //MachineObject* obj = (MachineObject*)context_;
+        //if (obj) {
+        //    /* mqtt connect failed tips */
+        //    if (obj->failedFn) {
+        //        obj->failedFn(cli_.get_client_id());
+        //    }
+        //    obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
+        //}
+    }
+
+    void machine_conn_callback::on_success(const mqtt::token& tok)
+    {
+        BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::on_success, Connection(mqtt) OK!";
+        /*MachineObject* obj = (MachineObject*)context_;
+        if (obj) {
+            obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_CONNECTED);
+        }*/
+    }
+
+    void machine_conn_callback::connection_lost(const std::string& cause) {
+        BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connection_lost!, cause =" << cause;
+        /*MachineObject* obj = (MachineObject*)context_;
+        if (obj) {
+            if (obj->lostFn) {
+                obj->lostFn(cli_.get_client_id());
+            }
+            obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
+        }*/
+        ++nretry_;
+    }
+
+    void machine_conn_callback::message_arrived(mqtt::const_message_ptr msg)
+    {
+
+        /*MachineObject* obj = (MachineObject*)context_;
+
+        std::string json_str;
+        if (obj) {
+            try {
+                json_str = msg->get_payload_str();
+                BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << json_str;
+            }
+            catch (...) {
+                ;
+            }
+            if (json_str.empty()) return;
+            obj->parse_json(json_str);
+        }*/
+    }
+
+
 
     std::string VersionInfo::convert_full_version(std::string short_version)
     {
@@ -300,6 +381,8 @@ namespace Slic3r {
         try {
             if (json_file.is_open()) {
                 json_file >> config_json;
+                if (config_json.contains("last_monitor_machine"))
+                    this->default_machine = config_json["last_monitor_machine"];
                 return 0;
             }
         }
@@ -565,7 +648,7 @@ namespace Slic3r {
         }*/
 
         // store last_monitor_printer
-        config_json["agent"]["last_monitor_machine"] = dev_id;
+        config_json["last_monitor_machine"] = dev_id;
         this->default_machine = dev_id;
 
         //unsubscribe old machine
@@ -579,23 +662,64 @@ namespace Slic3r {
         }
     }
 
-    void AccountManager::load_last_machine()
+    void AccountManager::set_default_machine(std::string dev_id)
     {
-        if (myBindMachineList.empty()) return;
-        else if (myBindMachineList.size() == 1) {
-            set_monitor_machine(myBindMachineList[0]);
-        } else {
-            std::string last_monitor_machine = get_config("agent", "last_monitor_machine");
-            bool found = false;
-            for (int i = 0; i < myBindMachineList.size(); i++) {
-                if (myBindMachineList[i] == last_monitor_machine) {
-                    set_monitor_machine(last_monitor_machine);
-                    found = true;
-                }
-            }
-            if (!found)
-                set_monitor_machine(myBindMachineList[0]);
+        config_json["last_monitor_machine"] = dev_id;
+        default_machine = dev_id;
+        save_config();
+    }
+   
+
+    int AccountManager::local_connect_mqtt(std::string dev_id, std::string dev_ip)
+    {
+        if (!is_user_login()) {
+            BOOST_LOG_TRIVIAL(trace) << "local_connect_mqtt: need login";
+            return -1;
         }
+
+        /* lan mqtt connection */
+        // get a new mqtt_uuid
+        boost::uuids::uuid uuid = boost::uuids::random_generator()();
+        mqtt_uuid = to_string(uuid).substr(0, 4);
+
+        try {
+            mqtt_local_opt = mqtt::connect_options_builder().clean_session().finalize();
+            mqtt_local_opt.set_automatic_reconnect(3, 10);
+            mqtt_local_opt.set_max_inflight(1000);
+        
+            std::string client_id = (boost::format("%1%:%2%") % get_user_id() % mqtt_uuid).str();
+            std::string report_topic = (boost::format("device/%1%/report") % dev_id).str();
+            mqtt_local_cli = new mqtt::async_client(dev_ip, client_id);
+            mqtt_local_cb = new machine_conn_callback(*mqtt_local_cli, mqtt_local_opt, this);
+            mqtt_local_cb->add_topics(report_topic);
+            mqtt_local_cli->set_callback(*mqtt_cb);
+            mqtt_local_cli->connect(mqtt_local_opt, this, *mqtt_local_cb);
+        } catch (...) {
+            ;
+        }
+
+        return 0;
+    }
+
+    int AccountManager::local_disconnect_mqtt()
+    {
+        if (mqtt_local_cli) {
+            try {
+                mqtt_local_cli->disable_callbacks();
+                mqtt_local_cli->disconnect()->wait_for(100);
+                delete mqtt_local_cb;
+                mqtt_local_cb = nullptr;
+            }
+            catch (std::exception& e) {
+
+            }
+            catch (...) {
+                ;
+            }
+            delete mqtt_local_cli;
+            mqtt_local_cli = NULL;
+        }
+        return 0;
     }
 
 
@@ -650,9 +774,7 @@ namespace Slic3r {
 
     void AccountManager::clean_user_data()
     {
-        default_machine = "";
-        std::lock_guard<std::mutex> lock(listMutex);
-        myBindMachineList.clear();
+        set_default_machine("");
         myProjectList.clear();
     }
 
@@ -685,11 +807,8 @@ namespace Slic3r {
 
     int AccountManager::get_notification(BBLProfile* profile, unsigned int& http_code, std::string& http_body, CancelFn cancel_fn, int timeout)
     {
-        int result = -1;
+        int result = -1, retry = 0;
         if (!profile || profile->upload_ticket.empty()) return -1;
-
-        /* retry 120 seconds, 60 * 2 seconds */
-        int retry = 0, retry_max = POLL_NOTIFICATION_TIMEOUT / POLL_NOTIFICATION_INTERVAL;
 
         std::string url = (boost::format("%1%/iot-service/api/user/notification?action=upload&ticket=%2%") % host % profile->upload_ticket).str();
         Http http = Http::get(url);
@@ -734,7 +853,7 @@ namespace Slic3r {
             if (result == 1) return 0;
 
             if (cancel_fn) {
-                if (cancel_fn()) return RET_POLLING_CANEL;
+                if (cancel_fn()) return RET_ERR_CANCEL;
             }
 
             retry++;
@@ -748,7 +867,7 @@ namespace Slic3r {
         }
         if (has_timeout) {
             /* timeout */
-            return RET_POLLING_TIMEOUT;
+            return RET_ERR_TIMEOUT;
         }
         return result;
     }
@@ -884,13 +1003,9 @@ namespace Slic3r {
     {
         std::string url = (boost::format("%1%/iot-service/api/user/bind") % host).str();
 
-        std::string json_str;
-        pt::ptree root;
-        root.put("dev_id", device_id);
-        //root.put("force", "false");
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        json_str = oss.str();
+        json j;
+        j["dev_id"] = device_id;
+        std::string json_str = j.dump();
 
         Http http = Http::del(url);
         http.header("accept", "application/json")
@@ -942,37 +1057,31 @@ namespace Slic3r {
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
             .on_complete([&, device_id, fn](std::string body, unsigned) {
-            std::stringstream ss(body);
-            pt::ptree root;
-            pt::read_json(ss, root);
-            boost::optional<std::string> bind_status = root.get_optional<std::string>("message");
-            boost::optional<std::string> user_ca = root.get_optional<std::string>("user_ca");
-            boost::optional<std::string> devs_ca = root.get_optional<std::string>("devs_ca");
-            if (bind_status.has_value()) {
-                if (bind_status.value().compare("success") == 0) {
-                    BOOST_LOG_TRIVIAL(trace) << "Unind Device " << device_id << " OK!";
-                    if (fn) {
-                        fn(0, body);
+                try {
+                    json j = json::parse(body);
+                    if (j.contains("message")) {
+                        if (j["message"].get<std::string>() == MSG_SUCCESS) {
+                            BOOST_LOG_TRIVIAL(trace) << "Unind Device " << device_id << " OK!";
+                            if (fn) {
+                                fn(0, body);
+                            }
+                        } else if (j["message"].get<std::string>() == "free") {
+                            if (fn) {
+                                fn(0, body);
+                            }
+                        }
                     }
+                } catch (...) {
+                    ;
                 }
-                // already unbind, status is free
-                else if (bind_status.value().compare("free") == 0) {
-                    if (fn) {
-                        fn(0, body);
-                    }
+            }).on_error([&, device_id, fn](std::string body, std::string error, unsigned status) {
+                BOOST_LOG_TRIVIAL(trace) << "Unbind Device " << device_id << " Failed!";
+                if (fn) {
+                    std::string info = "Unbind device=" + device_id + "failed! error=" + body;
+                    fn(-1, info);
                 }
-                else {
-                    BOOST_LOG_TRIVIAL(trace) << "Unind Device " << device_id << " Failed! status = " << bind_status.value();
-                }
-            }
-                }).on_error([&, device_id, fn](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(trace) << "Unbind Device " << device_id << " Failed!";
-                    if (fn) {
-                        std::string info = "Unbind device=" + device_id + "failed! error=" + body;
-                        fn(-1, info);
-                    }
-                }).perform();
-                return 0;
+            }).perform();
+            return 0;
     }
 
     int AccountManager::request_bind_list(ResultFn fn)
@@ -1001,15 +1110,12 @@ namespace Slic3r {
                 boost::optional<std::string> message = root.get_optional<std::string>("message");
                 if (message.has_value()) {
                     if (message.value().compare(MSG_SUCCESS) == 0) {
-                        /* clear my bind machine list */
-                        //this->update_my_bind_list(body);
                         if (fn) {
                             fn(0, "get bind list ok");
                         }
                         return;
                     }
                     else if (message.value().compare("nodev") == 0) {
-                        //this->update_my_bind_list(body);
                         if (fn) {
                             fn(0, "get bind list ok");
                         }
@@ -1052,12 +1158,10 @@ namespace Slic3r {
     std::string AccountManager::json_request_body_post_profile(BBLProfile* profile)
     {
         std::string profile_name_str = profile->profile_name;
-        pt::ptree root;
-        root.put("name", profile_name_str);
-        root.put("content", profile->profile_content);
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        return oss.str();
+        json j;
+        j["name"] = profile_name_str;
+        j["content"] = profile->profile_content;
+        return j.dump();
     }
 
     std::string AccountManager::json_request_body_post_subtask(BBLProject* project, BBLProfile* profile, BBLSubTask* task)
@@ -1323,7 +1427,7 @@ namespace Slic3r {
 
     int AccountManager::upload_3mf_to_oss(BBLProfile* profile, unsigned int &http_code, std::string &http_body, Http::ProgressFn proFn)
     {
-        int result = RET_POLLING_CANEL;
+        int result = RET_ERR_CANCEL;
         if (!profile || !profile->project_) return -1;
         if (profile->upload_url.empty()) return -1;
         if (!fs::exists(profile->project_->project_path)) {
@@ -1415,7 +1519,7 @@ namespace Slic3r {
     }
 
     // GET /api/user/profile/{profile_id}
-    int AccountManager::get_profile_3mf(BBLProfile *profile, unsigned int &http_code, std::string http_body)
+    int AccountManager::get_profile_3mf(BBL::BBLProfile *profile, unsigned int &http_code, std::string http_body)
     {
         int result = -1;
         http_code  = 0;
@@ -1594,32 +1698,24 @@ namespace Slic3r {
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
             .on_complete(
-                [this, subtask](std::string body, unsigned) {
-                    std::stringstream ss(body);
-                    pt::ptree root;
-                    pt::read_json(ss, root);
-                    boost::optional<std::string> message = root.get_optional<std::string>("message");
-                    if (message.has_value()) {
-                        if (message.value().compare(MSG_SUCCESS) == 0) {
-                            boost::optional<std::string> name = root.get_optional<std::string>("name");
-                            if (name.has_value())
-                                subtask->task_name = name.value();
-                            boost::optional<std::string> status = root.get_optional<std::string>("status");
-                            if (status.has_value())
-                                subtask->task_status = BBLSubTask::parse_status(status.value());
-                            boost::optional<std::string> content = root.get_optional<std::string>("content");
-                            if (content.has_value())
-                                subtask->parse_content_json(content.value());
-                            boost::optional<std::string> create_time = root.get_optional<std::string>("create_time");
-                            if (create_time.has_value())
-                                subtask->task_create_time = create_time.value();
-                            boost::optional<std::string> update_time = root.get_optional<std::string>("update_time");
-                            if (update_time.has_value())
-                                subtask->task_update_time = update_time.value();
-                            boost::optional<std::string> parent_id = root.get_optional<std::string>("parent");
-                            if (parent_id.has_value())
-                                subtask->parent_id = parent_id.value();
+                [this, subtask](std::string body, unsigned status) {
+                    try {
+                        json j = json::parse(body);
+
+                        if (j.contains("message")) {
+                            if (j["message"].get<std::string>() == MSG_SUCCESS) {
+                                if (j.contains("name"))
+                                    subtask->task_name = j["name"].get<std::string>();
+                                if (j.contains("status"))
+                                    subtask->task_status = BBLSubTask::parse_status(j["status"].get<std::string>());
+                                if (j.contains("content"))
+                                    subtask->parse_content_json(j["content"].get<std::string>());
+                                if (j.contains("create_time"))
+                                    subtask->task_create_time = j["create_time"].get<std::string>();
+                            }
                         }
+                    } catch(...) {
+                        ;
                     }
                 }
             )
@@ -1629,6 +1725,39 @@ namespace Slic3r {
                 }
             )
             .perform();
+    }
+
+    void AccountManager::get_plate_index(std::string subtask_id, int& plate_index)
+    {
+        std::string url = (boost::format("%1%/iot-service/api/user/task/%2%") % host % subtask_id).str();
+        Http http = Http::get(url);
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .on_complete(
+                [this, &plate_index](std::string body, unsigned status) {
+                    try {
+                        json j = json::parse(body);
+                        if (j.contains("message")) {
+                            if (j["message"].get<std::string>() == MSG_SUCCESS) {
+                                if (j.contains("content")) {
+                                    std::string content_str = j["content"].get<std::string>();
+                                    json content_json = json::parse(content_str);
+                                    plate_index = content_json["info"]["plate_idx"].get<int>();
+                                }
+                            }
+                        }
+                    }
+                    catch (...) {
+                        ;
+                    }
+                }
+            )
+            .on_error(
+                [this](std::string body, std::string error, unsigned status) {
+                    BOOST_LOG_TRIVIAL(info) << "get_task info failed! body=" << body;
+                }
+            )
+            .perform_sync();
     }
 
     void AccountManager::get_machine_last_report_url(std::string dev_id, std::string& last_url)
@@ -1742,6 +1871,8 @@ namespace Slic3r {
             .perform_sync();
         return result;
     }
+
+    //void AccountManager::get_slice_info()
 
     void AccountManager::get_profile(BBLProject*& project, BBLProfile*& profile)
     {
@@ -1907,6 +2038,46 @@ namespace Slic3r {
             .perform();
     }
 
+    void AccountManager::get_slice_info(std::string project_id, std::string profile_id, int plate_index, std::string & slice_info_json)
+    {
+        std::string query_params = (boost::format("?profile_id=%1%") % profile_id).str();
+        std::string url = (boost::format("%1%/iot-service/api/user/project/%2%%3%") % host % project_id % query_params).str();
+        Http http = Http::get(url);
+
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .on_complete(
+                [this, profile_id, plate_index, &slice_info_json](std::string body, unsigned status) {
+                    try {
+                        json j = json::parse(body);
+                        if (j.contains("message")) {
+                            if (j["message"].get<std::string>() == MSG_SUCCESS) {
+                                BOOST_LOG_TRIVIAL(info) << "get slice info ok!";
+                                if (j.contains("profiles")) {
+                                    for (auto &profile: j["profiles"]) {
+                                        if (profile["profile_id"].get<std::string>() == profile_id) {
+                                            for( auto plate:profile["context"]["plates"]) {
+                                                if (plate["index"].get<int>() == plate_index) {
+                                                    slice_info_json = plate.dump(4);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch(...) {
+                        ;
+                    }
+                }
+            ).on_error(
+                [this](std::string body, std::string error, unsigned status) {
+                    BOOST_LOG_TRIVIAL(info) << "get_profile_info failed! body=" << body;
+                }
+            ).perform_sync();
+    }
+
     void AccountManager::get_project_info(BBLProject* project)
     {
         if (!project || project->project_id.empty()) return;
@@ -1937,7 +2108,7 @@ namespace Slic3r {
                             }
                             boost::optional<std::string> name = root.get_optional<std::string>("name");
                             if (name.has_value()) {
-                                ; //TODO convert name to wstring
+                                ;//TODO project->project_name = name.value();
                             }
                             boost::optional<std::string> create_time = root.get_optional<std::string>("create_time");
                             if (create_time.has_value()) {
@@ -2197,7 +2368,7 @@ namespace Slic3r {
 
     int AccountManager::update_country_code(std::string country_code)
     {
-        config_json["agent"]["country_code"] = country_code;
+        config_json["country_code"] = country_code;
         return load_servers_from_region(country_code);
     }
 
@@ -2699,6 +2870,317 @@ namespace Slic3r {
         return j.dump(-1, ' ', false, json::error_handler_t::ignore);
     }
 
+    int AccountManager::request_login_printer(std::string dev_ip, OnUpdateStatusFn update_fn)
+    {
+        int result = 0;
+        unsigned int http_code;
+        std::string  http_body;
+        bool was_cancelled = false;
+        std::string msg = 0;
+
+        if (update_fn) update_fn(LoginStageConnect, 0, "connecting");
+
+        BBL::LocalClient* local_client = new BBL::LocalClient();
+        if (!local_client) {
+            if (update_fn) update_fn(LoginStageConnect, -1, "create socket failed");
+            return -1;
+        }
+
+        result = local_client->connect(dev_ip, LOCAL_COMMU_PORT);
+        if (result < 0) {
+            BOOST_LOG_TRIVIAL(trace) << "login_bind: local connect failed!";
+            if (update_fn) update_fn(LoginStageConnect, -2, "connect failed");
+            return -1;
+        }
+
+        
+        if (update_fn) update_fn(LoginStageLogin, 0, "");
+
+        std::string login_request = this->build_login_request();
+        result = local_client->publish(login_request);
+        if (result < 0) {
+            BOOST_LOG_TRIVIAL(trace) << "login_bind: send login request failed, str = " << login_request;
+            if (update_fn) update_fn(LoginStageLogin, -1, "send msg failed");
+            local_client->disconnect();
+            return -1;
+        }
+
+        if (update_fn) update_fn(LoginStageWaitForLogin, 0, "");
+
+        std::string json_str;
+        std::string login_ticket;
+        bool        timeout = false;
+        int         recv_count = 0;
+        while (!timeout) {
+            result = local_client->recv(json_str);
+            if (!json_str.empty() && result >= 0) {
+                try {
+                    BOOST_LOG_TRIVIAL(trace) << "login_bind: json_str = " << json_str;
+                    json j = json::parse(json_str);
+                    if (j.contains("login") && !j["login"].is_null()) {
+                        if (j["login"]["command"].get<std::string>() == "login_report") {
+                            std::string status;
+                            if (j["login"].contains("status"))
+                                status = j["login"]["status"].get<std::string>();
+                            if (j["login"].contains("ticket"))
+                                login_ticket = j["login"]["ticket"].get<std::string>();
+                            if (status.compare("wait_auth") == 0 && !login_ticket.empty()) {
+                                break;
+                            }
+                        }
+                    }
+                }
+                catch (...) {
+                    ;
+                }
+            }
+            recv_count++;
+            if (recv_count > 10) {
+                timeout = true;
+            }
+        }
 
 
-} // namespace Slic3r
+        if (timeout || login_ticket.empty()) {
+            BOOST_LOG_TRIVIAL(trace) << "login_bind: timeout to get ticket";
+            if (update_fn) update_fn(LoginStageWaitForLogin, RET_ERR_TIMEOUT, "timeout");
+            local_client->disconnect();
+            return -1;
+        }
+
+        if (update_fn) update_fn(LoginStageGetIdentify, 0, "");
+
+        result = get_ticket(login_ticket, http_code, http_body);
+        if (result < 0) {
+            BOOST_LOG_TRIVIAL(trace) << "login_bind: http_code = " << http_code << ", http_body = " << http_body;
+            if (update_fn) update_fn(LoginStageGetIdentify, http_code, http_body);
+            local_client->disconnect();
+            return -1;
+        }
+
+        result = post_ticket(login_ticket, http_code, http_body);
+        if (result < 0) {
+            if (update_fn) update_fn(LoginStageGetIdentify, http_code, http_body);
+            BOOST_LOG_TRIVIAL(trace) << "login_bind: http_code = " << http_code << ", http_body = " << http_body;
+            local_client->disconnect();
+            return -1;
+        }
+
+        if (update_fn) update_fn(LoginStageWaitAuth, 0, "");
+        recv_count = 0;
+        while (!timeout) {
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
+            result = local_client->recv(json_str);
+            if (result >= 0) {
+                BOOST_LOG_TRIVIAL(trace) << "login_bind: json_str = " << json_str;
+                std::string fail_reason;
+                result = this->_parse_login_report(json_str, fail_reason);
+                if (result < 0) {
+                    BOOST_LOG_TRIVIAL(trace) << "login_bind: bind failed reason = " << fail_reason;
+                    if (update_fn) update_fn(LoginStageWaitAuth, -1, fail_reason);
+                    local_client->disconnect();
+                    return -1;
+                }
+                else if (result == 0) {
+                    break;
+                }
+                else if (result == 1) {
+                    ; // continue
+                }
+            }
+            recv_count++;
+            if (recv_count > 20) { timeout = true; }
+        }
+        if (timeout) {
+            if (update_fn) update_fn(LoginStageWaitAuth, RET_ERR_TIMEOUT, "");
+            BOOST_LOG_TRIVIAL(trace) << "login_bind: timeout to receive login_report";
+            local_client->disconnect();
+            return -1;
+        }
+
+        local_client->disconnect();
+        
+        if (update_fn) update_fn(LoginStageFinished, 0, "");
+        return 0;
+    }
+
+
+std::string AccountManager::build_login_request() {
+    json j;
+    j["login"]["sequence_id"] = std::to_string(AccountManager::m_sequence_id++);
+    j["login"]["command"]     = "login";
+    j["login"]["wifi"]        = user_region_server.wifi_code;
+    j["login"]["tutk"]        = user_region_server.tutk_server_host;
+    j["login"]["iot"]         = get_host();
+    j["login"]["apix"]        = user_region_server.api_servier_host;
+    j["login"]["emqx"]        = get_emqx_server_host();
+    j["login"]["base_domain"] = user_region_server.base_domain;
+    j["login"]["environment"] = user_region_server.environment;
+    return j.dump();
+}
+
+int AccountManager::_parse_login_report(std::string json_str, std::string fail_reason)
+{
+    try {
+        json j = json::parse(json_str);
+        if (j["login"]["command"].get<std::string>() == "login_report") {
+            std::string status = j["login"]["status"].get<std::string>();
+            if (status == "SUCCESS") {
+                return 0;
+            }
+            else if (status == "wait_auth") {
+                // continue to wait
+                return 1;
+            }
+            else {
+                fail_reason = j["login"]["reason"].get<std::string>();
+                return -1;
+            }
+        }
+    }
+    catch (...) {
+    }
+    return -1;
+}
+
+
+int AccountManager::start_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
+{
+    int res = 0;
+    unsigned http_code = 0;
+    std::string http_body;
+    int curr_percent = 0;
+    std::string msg;
+
+    // Create Printing Job
+    if (update_fn) update_fn(PrintingStageCreate, 0, "");
+
+    BBLProject* project = new BBLProject(params.project_name);
+    project->project_3mf_file = params.filename;
+    project->project_path = fs::path(params.filename);
+
+    BBLProfile* profile = new BBLProfile(project);
+    profile->profile_name = params.preset_name;
+
+    BOOST_LOG_TRIVIAL(trace) << "print_job: request project id";
+    res = request_project_profile_id(project, profile, http_code, http_body);
+
+    if (res < 0 || project->project_id.empty()
+        || profile->profile_id.empty()
+        || profile->upload_ticket.empty()
+        || profile->upload_url.empty()) {
+        update_fn(PrintingStageCreate, http_code, http_body);
+        BOOST_LOG_TRIVIAL(trace) << "print_job: request project id failed. code = " << http_code << ", http_body = " << http_body;
+        return -1;
+    }
+
+    BOOST_LOG_TRIVIAL(trace) << "print_job: get project id = " << project->project_id;
+    BOOST_LOG_TRIVIAL(trace) << "print_job: get profile id = " << profile->profile_id;
+
+    if (cancel_fn && cancel_fn()) {
+        return -1;
+    }
+
+    // Uploading 3mf File
+    if (update_fn) update_fn(PrintingStageUpload, 0, "");
+
+    BOOST_LOG_TRIVIAL(trace) << "print_job: start to uploading...";
+    // check file size
+    if (!Http::check_file_size(project->project_path)) {
+        if (update_fn) update_fn(PrintingStageUpload, RET_ERR_OVERSIZE, "The size of the uploaded file cannot exceed 1 GB.");
+        return -1;
+    }
+
+    res = this->upload_3mf_to_oss(profile, http_code, http_body,
+        [this, curr_percent, cancel_fn, update_fn, &msg](Http::Progress progress, bool& cancel) {
+            int percent = 0;
+            if (progress.ultotal != 0) {
+                percent = progress.ulnow * 100 / progress.ultotal;
+            }
+            if (cancel_fn && cancel_fn()) {
+                cancel = true;
+                return;
+            }
+            
+            msg = (boost::format("%1%/%2%") % progress.ulnow % progress.ultotal).str();
+            if (update_fn) update_fn(PrintingStageUpload, 0, msg);
+        });
+
+    if (cancel_fn && cancel_fn()) {
+        return -1;
+    }
+
+    if (res < 0) {
+        if (res == RET_MD5_CHECK_FAILED) {
+            msg = "check md5 failed.";
+            if (update_fn) update_fn(PrintingStageUpload, RET_MD5_CHECK_FAILED, msg);
+            BOOST_LOG_TRIVIAL(trace) << "print_job: uploading failed, check md5 failed";
+        }
+        else {
+            if (update_fn) update_fn(PrintingStageUpload, http_code, http_body);
+            BOOST_LOG_TRIVIAL(trace) << "print_job: uploading is failed";
+        }
+        return -1;
+    }
+
+
+    if (update_fn) update_fn(PrintingStageWaiting, 0, "");
+
+    /* put notifications */
+    res = this->put_notification(profile, project->project_path.filename().string(), http_code, http_body);
+    if (res < 0) {
+        if (update_fn) update_fn(PrintingStageWaiting, http_code, http_body);
+        return -1;
+    }
+
+    /* get notifications */
+    bool cancel = false;
+    int  timeout = this->calc_get_notification_timeout(project->project_path);
+    res = this->get_notification(profile, http_code, http_body,
+        [this, cancel_fn]() {
+            if (cancel_fn)
+                return cancel_fn();
+            return false;
+        }, timeout);
+
+    if (res < 0) {
+        if (res == RET_ERR_CANCEL) {
+            if (update_fn) update_fn(PrintingStageWaiting, RET_ERR_CANCEL, "");
+        } else if (res == RET_ERR_TIMEOUT) {
+            if (update_fn) update_fn(PrintingStageWaiting, RET_ERR_TIMEOUT, "");
+        } else {
+            if (update_fn) update_fn(PrintingStageWaiting, http_code, http_body);
+        }
+        return -1;
+    }
+
+    /* post task */
+    if (update_fn) update_fn(PrintingStageSending, 0, "");
+
+    BBLSubTask* subTask = new BBLSubTask();
+
+    //BBS hide bed choice
+    subTask->task_bed_leveling      = params.task_bed_leveling;
+    subTask->task_flow_cali         = params.task_flow_cali;
+    subTask->task_vibration_cali    = params.task_vibration_cali;
+    subTask->task_record_timelapse  = params.task_record_timelapse;
+    subTask->task_layer_inspect     = params.task_layer_inspect;
+    subTask->task_gcode_in_3mf      = (boost::format("Metadata/plate_%1%.gcode") % (params.plate_index)).str();
+    subTask->task_partplate_idx     = std::to_string(params.plate_index);
+    subTask->task_printer_dev_id    = params.dev_id;
+    if (project->project_name.empty())
+        subTask->task_name = (boost::format("Plate %1%") % params.plate_index).str();
+    else
+        subTask->task_name = params.project_name;
+
+    res = this->post_task(project, profile, subTask, http_code, http_body);
+    if (res < 0) {
+        if (update_fn) update_fn(PrintingStageSending, http_code, http_body);
+        return -1;
+    }
+    
+    if (update_fn) update_fn(PrintingStageSending, 0, "");
+    return 0;
+}
+
+}

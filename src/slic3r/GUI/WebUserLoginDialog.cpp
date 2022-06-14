@@ -54,7 +54,7 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
 {
     // Url
     AppConfig * config   = wxGetApp().app_config;
-    AccountManager* acc = wxGetApp().getAccountManager();
+    BBL::AccountManager* acc = wxGetApp().getAccountManager();
     std::string host_url = acc->get_official_server_host();
     TargetUrl = host_url + "/sign-in";
     // wxString TargetUrl = "https://portal-dev.bambu-lab.com/sign-in";
@@ -211,7 +211,7 @@ void ZUserLogin::OnDocumentLoaded(wxWebViewEvent &evt)
 {
     // Only notify if the document is the main frame, not a subframe
     wxString tmpUrl = evt.GetURL();
-    AccountManager *acc  = wxGetApp().getAccountManager();
+    BBL::AccountManager *acc  = wxGetApp().getAccountManager();
     std::string strHost  = acc->get_official_server_host();
 
     if ( tmpUrl.Contains(strHost) ) {
@@ -278,7 +278,7 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
             std::string strAvatar       = j["data"]["user"]["avatar"];
             std::string strName         = j["data"]["user"]["name"];
             //Save User Info
-            AccountInfo* pNewAcc = new Slic3r::AccountInfo(strAccount, strUserID, strName, strAvatar, AccountInfo::LoginStatus::STATUS_LOGIN, strRefreshToken, refreshExpiresIn, strToken, expiresIn, m_AutotestToken);
+            BBL::AccountInfo* pNewAcc = new BBL::AccountInfo(strAccount, strUserID, strName, strAvatar, BBL::AccountInfo::LoginStatus::STATUS_LOGIN, strRefreshToken, refreshExpiresIn, strToken, expiresIn, m_AutotestToken);
 
             BOOST_LOG_TRIVIAL(trace) << "get access_token = " << strToken;
             BOOST_LOG_TRIVIAL(trace) << "get access_token_expires_in = " << std::to_string(expiresIn);
@@ -394,7 +394,7 @@ void ZUserLogin::OnScriptResponseMessage(wxCommandEvent &WXUNUSED(evt))
 
 bool ZUserLogin::IsNetworkOK() 
 {
-    Http http = Http::get("https://www.baidu.com");
+    BBL::Http http = BBL::Http::get("https://www.baidu.com");
     http.header("accept", "application/json")
         .timeout_connect(5)
         .timeout_max(5)

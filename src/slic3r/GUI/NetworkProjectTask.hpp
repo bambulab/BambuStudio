@@ -1,5 +1,5 @@
-#ifndef slic3r_ProjectTask_hpp_
-#define slic3r_ProjectTask_hpp_
+#ifndef __NetworkProjectTask_hpp__
+#define __NetworkProjectTask_hpp__
 
 #include <map>
 #include <vector>
@@ -12,7 +12,7 @@
 
 namespace fs = boost::filesystem;
 
-namespace Slic3r {
+namespace BBL {
 
 class BBLProject;
 class BBLProfile;
@@ -20,7 +20,6 @@ class BBLTask;
 
 
 enum MachineBedType {
-    //BED_TYPE_AUTO = 0,
     BED_TYPE_PC = 0,
     BED_TYPE_PEI,
     BED_TYPE_PE,
@@ -70,7 +69,7 @@ public:
     std::string     gcode_url;
     std::string     gcode_dir;
     std::string     config_url;
-    float           weight;
+    std::string     weight;
     int             prediction;
     BBLProfile*     profile_;
 };
@@ -253,6 +252,6 @@ public:
     void reset();
 };
 
-} // namespace Slic3r
+}
 
-#endif //  slic3r_ProjectTask_hpp_
+#endif

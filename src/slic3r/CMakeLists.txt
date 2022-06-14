@@ -325,8 +325,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ProjectDirtyStateManager.cpp
     GUI/DesktopIntegrationDialog.cpp
     GUI/DesktopIntegrationDialog.hpp
-    GUI/CommuBackend.cpp
-    GUI/CommuBackend.hpp
+    GUI/SsdpDiscovery.cpp
+    GUI/SsdpDiscovery.hpp
     GUI/Ssdp.cpp
     GUI/Ssdp.hpp
     GUI/DebugToolPanel.cpp
@@ -339,6 +339,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/BindDialog.hpp
     GUI/AccountManager.hpp
     GUI/AccountManager.cpp
+    GUI/NetworkProjectTask.hpp
+    GUI/NetworkProjectTask.cpp
     GUI/SelectMachine.hpp
     GUI/SelectMachine.cpp
     Utils/json_diff.hpp

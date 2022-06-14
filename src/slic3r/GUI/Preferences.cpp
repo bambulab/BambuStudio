@@ -807,7 +807,7 @@ void PreferencesDialog::create_debug_page()
             iot_environment_map["product_host"] = ENV_PRODUCT_HOST;
 
             if (iot_environment_map[param] != m_iot_environment_def) {
-                AccountManager *manager = wxGetApp().getAccountManager();
+                BBL::AccountManager *manager = wxGetApp().getAccountManager();
                 if (param == "dev_host") {
                     app_config->set("iot_environment", ENV_DEV_HOST);
                 }

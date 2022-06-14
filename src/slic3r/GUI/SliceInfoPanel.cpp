@@ -2,6 +2,7 @@
 
 #include "I18N.hpp"
 #include "Widgets/Label.hpp"
+#include "libslic3r/Utils.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -78,10 +79,10 @@ SliceInfoPopup::SliceInfoPopup(wxWindow *parent, wxBitmap bmp, BBLSliceInfo *inf
     auto cost_bitmap = new wxStaticBitmap(m_panel, wxID_ANY, create_scaled_bitmap("monitor_item_cost", nullptr, 16));
     wxString cost_text;
     if (info) {
-        if (!info->weight.empty()) {
-            cost_text = wxString::Format("%sg", info->weight);
+        if (info->weight > 0) {
+            cost_text = wxString::Format("%.2fg", info->weight);
         } else {
-            cost_text = "0 g";
+            cost_text = "0g";
         }
     }
     auto used_g_text = new wxStaticText(m_panel, wxID_ANY, cost_text, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
@@ -314,7 +315,7 @@ void SliceInfoPanel::update(BBLSliceInfo *info)
     wxString prediction = wxString::Format("%s", get_bbl_time_dhms(info->prediction));
     m_text_item_prediction->SetLabelText(prediction);
 
-    wxString weight = wxString::Format("%sg", info->weight);
+    wxString weight = wxString::Format("%.2fg", info->weight);
     m_text_item_cost->SetLabelText(weight);
 
     m_text_plate_index->SetLabelText(info->index);

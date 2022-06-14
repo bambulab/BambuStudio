@@ -111,82 +111,6 @@ void split_string(std::string s, std::vector<std::string>& v) {
     v.push_back(t);
 }
 
-
-void machine_conn_callback::connected(const std::string& cause)
-{
-    BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connected!";
-    /* subscribe current device reqeust and report */
-    try {
-        MachineObject* obj = (MachineObject*)context_;
-        if (obj && obj->successFn) {
-            obj->successFn(cli_.get_client_id());
-        }
-        for (int i = 0; i < sub_topics.size(); i++) {
-            sub_action_listener* sub_listener = new sub_action_listener("LanSubscriber_" + sub_topics[i]);
-            cli_.subscribe(sub_topics[i], 0, nullptr, *sub_listener);
-        }
-        
-        if (obj) {
-            obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_CONNECTED);
-        }
-    }
-    catch (mqtt::exception& e) {
-        BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connected, exception=" << e.what();
-    }
-}
-
-void machine_conn_callback::on_failure(const mqtt::token& tok)
-{
-    BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::on_failure, Connection(mqtt) failed! retry=" << nretry_;
-    MachineObject* obj = (MachineObject*)context_;
-    if (obj) {
-        /* mqtt connect failed tips */
-        if (obj->failedFn) {
-            obj->failedFn(cli_.get_client_id());
-        }
-        obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
-    }
-}
-
-void machine_conn_callback::on_success(const mqtt::token& tok)
-{
-    BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::on_success, Connection(mqtt) OK!";
-    MachineObject* obj = (MachineObject*)context_;
-    if (obj) {
-        obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_CONNECTED);
-    }
-}
-
-void machine_conn_callback::connection_lost(const std::string& cause) {
-    BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connection_lost!, cause =" << cause;
-    MachineObject* obj = (MachineObject*)context_;
-    if (obj) {
-        if (obj->lostFn) {
-            obj->lostFn(cli_.get_client_id());
-        }
-        obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
-    }
-    ++nretry_;
-}
-
-void machine_conn_callback::message_arrived(mqtt::const_message_ptr msg)
-{
-    MachineObject* obj = (MachineObject*)context_;
-
-    std::string json_str;
-    if (obj) {
-        try {
-            json_str = msg->get_payload_str();
-            BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << json_str;
-        }
-        catch (...) {
-            ;
-        }
-        if (json_str.empty()) return;
-        obj->parse_json(json_str);
-    }
-}
-
 void AmsTray::update_color_from_str(std::string color)
 {
     if (color.empty()) return;
@@ -326,48 +250,34 @@ std::string MachineObject::get_printer_type_string()
     return "3DPrinter";
 }
 
-MachineObject::MachineObject(AccountManager& acc, std::string name, std::string id, std::string ip)
+MachineObject::MachineObject(BBL::AccountManager& acc, std::string name, std::string id, std::string ip)
     :acc_(acc),
-    mqtt_cb(nullptr),
-    mqtt_cli(nullptr),
     msg_send_fn(nullptr),
     msg_recv_fn(nullptr),
     dev_name(name),
     dev_id(id),
     dev_ip(ip),
     conn_type(CONNECTION_LAN),
-    project_(nullptr),
-    profile_(nullptr),
-    task_(nullptr),
     subtask_(nullptr),
-    temptask_(nullptr),
+    slice_info(nullptr),
     is_alive(false),
     m_is_online(false),
     successFn(nullptr),
     failedFn(nullptr),
-    lostFn(nullptr),
-    mqtt_uuid_bytes(4),
-    mqtt_opt(mqtt::connect_options_builder()
-        .clean_session()
-        .finalize())
+    lostFn(nullptr)
 {
-    boost::uuids::uuid uuid = boost::uuids::random_generator()();
-    mqtt_uuid = to_string(uuid).substr(0, mqtt_uuid_bytes);
-    mqtt_opt.set_automatic_reconnect(3, 10);
-    mqtt_opt.set_max_inflight(1000);
-
     /* create a dummy task to store info */
-    temptask_ = new BBLSubTask(nullptr);
+    subtask_ = new BBLSubTask(nullptr);
 
     reset();
 
     /* temprature fields */
-    nozzle_temp = 0.0f;
-    nozzle_temp_target = 0.0f;
-    bed_temp = 0.0f;
-    bed_temp_target = 0.0f;
-    chamber_temp = 0.0f;
-    frame_temp = 0.0f;
+    nozzle_temp         = 0.0f;
+    nozzle_temp_target  = 0.0f;
+    bed_temp            = 0.0f;
+    bed_temp_target     = 0.0f;
+    chamber_temp        = 0.0f;
+    frame_temp          = 0.0f;
 
     /* ams fileds */
     ams_exist_bits = 0;
@@ -499,6 +409,36 @@ bool MachineObject::is_bbl_filament(std::string tag_uid)
 
     return false;
 }
+
+std::string MachineObject::light_effect_str(LIGHT_EFFECT effect)
+{
+    switch (effect)
+    {
+    case LIGHT_EFFECT::LIGHT_EFFECT_ON:
+        return "on";
+    case LIGHT_EFFECT::LIGHT_EFFECT_OFF:
+        return "off";
+    case LIGHT_EFFECT::LIGHT_EFFECT_FLASHING:
+        return "flashing";
+    default:
+        return "unknown";
+    }
+    return "unknown";
+}
+
+MachineObject::LIGHT_EFFECT MachineObject::light_effect_parse(std::string effect_str)
+{
+    if (effect_str.compare("on") == 0)
+        return LIGHT_EFFECT::LIGHT_EFFECT_ON;
+    else if (effect_str.compare("off") == 0)
+        return LIGHT_EFFECT::LIGHT_EFFECT_OFF;
+    else if (effect_str.compare("flashing") == 0)
+        return LIGHT_EFFECT::LIGHT_EFFECT_FLASHING;
+    else
+        return LIGHT_EFFECT::LIGHT_EFFECT_UNKOWN;
+    return LIGHT_EFFECT::LIGHT_EFFECT_UNKOWN;
+}
+
 
 std::string MachineObject::get_firmware_type_str()
 {
@@ -926,262 +866,115 @@ int MachineObject::command_start_calibration()
     return this->publish_json(j.dump());
 }
 
-int MachineObject::_parse_login_report(std::string json_str, std::string fail_reason)
+void MachineObject::set_bind_status(std::string status)
+{
+    bind_user_name = status;
+}
+
+void MachineObject::set_connect_state(CONNECTION_STATE state)
+{
+    conn_state = state;
+}
+
+std::string MachineObject::get_bind_str()
+{
+    std::string default_result = "N/A";
+    if (bind_user_name.compare("null") == 0) {
+        return "Free";
+    }
+    else if (!bind_user_name.empty()) {
+        return bind_user_name;
+    }
+    return default_result;
+}
+
+bool MachineObject::can_print()
+{
+    if (print_status.compare("RUNNING") == 0) {
+        return false;
+    }
+    if (print_status.compare("IDLE") == 0 || print_status.compare("FINISH") == 0) {
+        return true;
+    }
+    return true;
+}
+
+bool MachineObject::can_resume()
+{
+    if (print_status.compare("PAUSE") == 0)
+        return true;
+    return false;
+}
+
+bool MachineObject::can_pause()
+{
+    if (print_status.compare("RUNNING") == 0)
+        return true;
+    return false;
+}
+
+bool MachineObject::can_abort()
+{
+    if (print_status.compare("PAUSE") == 0
+        || print_status.compare("RUNNING") == 0
+        || print_status.compare("PREPARE") == 0) {
+        return true;
+    }
+    return false;
+}
+
+bool MachineObject::is_in_printing()
+{
+    bool result = can_abort();
+    return result;
+}
+
+bool MachineObject::is_printing_finished()
+{
+    if (print_status.compare("FINISH") == 0
+        || print_status.compare("FAILED") == 0) {
+        return true;
+    }
+    return false;
+}
+
+void MachineObject::reset()
+{
+    BOOST_LOG_TRIVIAL(trace) << "dev_id=" << dev_id << " reset.";
+    last_update_time = std::chrono::system_clock::now();
+}
+
+void MachineObject::set_print_state(std::string status)
+{
+    print_status = status;
+}
+
+DeviceManager::DeviceManager(BBL::AccountManager& acc)
+    : acc_(acc)
 {
     try {
-        json j = json::parse(json_str);
-        if (j["login"]["command"].get<std::string>() == "login_report") {
-            std::string status      = j["login"]["status"].get<std::string>();
-            if (status == "SUCCESS") {
-                return 0;
-            } else if (status == "wait_auth") {
-                // continue to wait
-                return 1;
-            } else {
-                fail_reason = j["login"]["reason"].get<std::string>();
-                return -1;
-            }
-        }
+        m_device_check_alive = Slic3r::create_thread([this] { this->check_alive(); });
     }
-    catch(...) {
+    catch (std::exception& e) {
+        ;
     }
-    return -1;
 }
 
-
-
-int MachineObject::command_new_bind()
-{
-    int result = 0;
-
-    login_ticket = "";
-    result = local_connect();
-    if (result < 0) {
-        BOOST_LOG_TRIVIAL(trace) << "login_bind: local connect failed!";
-        return result;
-    }
-
-    std::string login_request = build_login_request();
-    result = local_client->publish(login_request);
-    if (result < 0) {
-        BOOST_LOG_TRIVIAL(trace) << "login_bind: send login request failed, str = " << login_request;
-        local_disconnect();
-        return result;
-    }
-
-    std::string json_str;
-    bool timeout = false;
-    int recv_count = 0;
-    while (!timeout) {
-        result = local_client->recv(json_str);
-        if (!json_str.empty() && result >= 0) {
-            try {
-                BOOST_LOG_TRIVIAL(trace) << "login_bind: json_str = " << json_str;
-                json j = json::parse(json_str);
-                if (j.contains("login") && !j["login"].is_null()) {
-                    if (j["login"]["command"].get<std::string>() == "login_report") {
-                        login_ticket       = j["login"]["ticket"].get<std::string>();
-                        std::string status = j["login"]["status"].get<std::string>();
-                        if (status.compare("wait_auth") == 0 && !login_ticket.empty()) {
-                            break;
-                        }
-                    }
-                }
-            } catch (...) {
-                ;
-            }
-        }
-        recv_count++;
-        if (recv_count > 10) {
-            timeout = true;
-        }
-    }
-
-    if (timeout || login_ticket.empty()) {
-        local_disconnect();
-        return -1;
-    }
-
-    unsigned int http_code = 0;
-    std::string http_body;
-
-    result = acc_.get_ticket(login_ticket, http_code, http_body);
-    if (result < 0) {
-        BOOST_LOG_TRIVIAL(trace) << "login_bind: http_code = " << http_code << ", http_body = " << http_body;
-        local_disconnect();
-        return -1;
-    }
-
-    result = acc_.post_ticket(login_ticket, http_code, http_body);
-    if (result < 0) {
-        BOOST_LOG_TRIVIAL(trace) << "login_bind: http_code = " << http_code << ", http_body = " << http_body;
-        local_disconnect();
-        return -1;
-    }
-
-    timeout = false;
-    recv_count = 0;
-    while (!timeout) {
-        boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
-        result = local_client->recv(json_str);
-        if (result >= 0) {
-            BOOST_LOG_TRIVIAL(trace) << "login_bind: json_str = " << json_str;
-            std::string fail_reason;
-            result = _parse_login_report(json_str, fail_reason);
-            if (result < 0) {
-                break;
-            } else if (result == 0) {
-                break;
-            } else if (result == 1) {
-                ;// continue
-            }
-        }
-        recv_count++;
-        if (recv_count > 20) { timeout = true; }
-    }
-    if (timeout) {
-        local_disconnect();
-        return -1;
-    }
-
-    local_disconnect();
-    return 0;
-}
-
-std::string MachineObject::build_login_request()
-{
-    json j;
-    j["login"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["login"]["command"]     = "login";
-    j["login"]["wifi"]        = acc_.user_region_server.wifi_code;
-    j["login"]["tutk"]        = acc_.user_region_server.tutk_server_host;
-    j["login"]["iot"]         = acc_.get_host();
-    j["login"]["apix"]        = acc_.user_region_server.api_servier_host;
-    j["login"]["emqx"]        = acc_.get_emqx_server_host();
-    j["login"]["base_domain"] = acc_.user_region_server.base_domain;
-    j["login"]["environment"] = acc_.user_region_server.environment;
-    return j.dump();
-}
-
-
-int MachineObject::command_unbind()
-{
-    std::string user_id = acc_.get_user_id();
-    if (user_id.empty()) {
-        return -1;
-    }
-
-    json j;
-    j["bind"]["command"] = "unbind";
-    j["bind"]["dev_id"] = dev_id;
-    j["bind"]["user_id"] = user_id;
-    j["bind"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    return this->publish_json(j.dump());
-}
-
-
-void MachineObject::set_callbacks(SuccessFn sFn, FailedFn fFn, LostFn lFn)
+void MachineObject::set_callbacks(BBL::SuccessFn sFn, BBL::FailedFn fFn, BBL::LostFn lFn)
 {
     successFn = sFn;
     failedFn = fFn;
     lostFn = lFn;
 }
 
-int MachineObject::local_connect()
-{
-    int result = 0;
-    if (!check_valid_ip()) {
-        if (failedFn) { failedFn("Invalid IP!"); }
-        return -1;
-    }
-
-    local_client = new LocalClient();
-    if (!local_client)
-        return -1;
-
-    result = local_client->connect(dev_ip, LOCAL_COMMU_PORT);
-
-    return result;
-}
-
-int MachineObject::local_disconnect()
-{
-    int result = 0;
-    if (local_client)
-        result = local_client->disconnect();
-    return result;
-}
-
 int MachineObject::connect()
 {
-    if (!check_valid_ip()) {
-        if (failedFn) {
-            failedFn("Invalid IP!");
-        }
-        return -1;
-    }
-
-    try {
-        if (acc_.is_user_login()) {
-            if (mqtt_cli != nullptr) {
-                if (mqtt_cli->is_connected()) {
-                    if (successFn) {
-                        successFn("Already Connected!");
-                    }
-                } else {
-                    if (failedFn) {
-                        failedFn("Connecting state!");
-                        return -1;
-                    }
-                }
-                return 0;
-            }
-
-            /* lan mqtt connection */
-            std::string client_id = (boost::format("%1%:%2%") % acc_.get_user_id() % mqtt_uuid).str();
-            std::string report_topic = build_report_topic(dev_id);
-            mqtt_cli = new mqtt::async_client(dev_ip, client_id);
-            mqtt_cb = new machine_conn_callback(*mqtt_cli, mqtt_opt, this);
-            mqtt_cb->add_topics(report_topic);
-            mqtt_cli->set_callback(*mqtt_cb);
-            mqtt_cli->connect(mqtt_opt, this, *mqtt_cb);
-            return 0;
-        }
-    }
-    catch (std::exception& e) {
-        return -1;
-    }
-    return 0;
+    return acc_.local_connect_mqtt(dev_id, dev_ip);
 }
 
 int MachineObject::disconnect()
 {
-    if (mqtt_cli) {
-        try {
-            mqtt_cli->disable_callbacks();
-            mqtt_cli->disconnect()->wait_for(100);
-            delete mqtt_cb;
-            mqtt_cb = nullptr;
-        }
-        catch (std::exception& e) {
-
-        }
-        catch (...) {
-            ;
-        }
-        delete mqtt_cli;
-        mqtt_cli = NULL;
-    }
-    return 0;
-}
-
-int MachineObject::reconnect()
-{
-    if (conn_state == MachineObject::CONNECTION_STATE::STATE_CONNECTING)
-        return 0;
-    disconnect();
-    connect();
-    return 0;
+    return acc_.local_disconnect_mqtt();
 }
 
 bool MachineObject::is_connected()
@@ -1202,21 +995,7 @@ void MachineObject::set_online_state(bool on_off)
 
 int MachineObject::publish_json(std::string json_str, ResultFn resFn, int qos)
 {
-    if (mqtt_cli == nullptr)
-        conn_type = CONNECTION_TYPE::CONNECTION_WAN;
-    else
-        conn_type = CONNECTION_TYPE::CONNECTION_LAN;
-
-    mqtt::async_client* client = nullptr;
-    if (conn_type == CONNECTION_LAN) {
-        client = mqtt_cli;
-    }
-    else if (conn_type == CONNECTION_WAN) {
-        client = acc_.get_client();
-    }
-    else {
-        return -1;
-    }
+    mqtt::async_client* client = acc_.get_client();
 
     if (!client->is_connected()) {
         if (resFn) {
@@ -1258,7 +1037,9 @@ int MachineObject::parse_json(std::string payload)
                                 if (print_json.is_need_request()) {
                                     BOOST_LOG_TRIVIAL(trace) << "parse_json: need request pushall";
                                     // request new push
-                                    GUI::wxGetApp().CallAfter([this] { this->command_request_push_all(); });
+                                    GUI::wxGetApp().CallAfter([this] {
+                                        this->command_request_push_all();
+                                    });
                                     return -1;
                                 }
                             }
@@ -1337,6 +1118,14 @@ int MachineObject::parse_json(std::string payload)
                 subtask_name = jj["subtask_name"].get<std::string>();
             }
 
+            /* signals */
+            if (jj.contains("link_th_state"))
+                link_th = jj["link_th_state"].get<std::string>();
+            if (jj.contains("link_ams_state"))
+                link_ams = jj["link_ams_state"].get<std::string>();
+            if (jj.contains("wifi_signal"))
+                wifi_signal = jj["wifi_signal"].get<std::string>();
+
             /* cooling */
             if (jj.contains("cooling_fan_speed")) {
                 cooling_fan_speed = stoi(jj["cooling_fan_speed"].get<std::string>());
@@ -1361,6 +1150,26 @@ int MachineObject::parse_json(std::string payload)
             catch(...) {
                 ;
             }
+
+            /* printing */
+            if (jj.contains("mc_print_stage")) {
+                if (jj["mc_print_stage"].is_string())
+                    mc_print_stage = atoi(jj["mc_print_stage"].get<std::string>().c_str());
+                if (jj["mc_print_stage"].is_number())
+                    mc_print_stage = jj["mc_print_stage"].get<int>();
+            }
+            if (jj.contains("mc_print_error_code")) {
+                if (jj["mc_print_error_code"].is_string())
+                    mc_print_error_code = atoi(jj["mc_print_error_code"].get<std::string>().c_str());
+                if (jj["mc_print_error_code"].is_number())
+                    mc_print_error_code = jj["mc_print_error_code"].get<int>();
+                
+            }
+            if (jj.contains("mc_print_line_number")) {
+                if (jj["mc_print_line_number"].is_string() && !jj["mc_print_line_number"].is_null())
+                    mc_print_line_number = atoi(jj["mc_print_line_number"].get<std::string>().c_str());
+            }
+
 
             /* parse speed */
             try {
@@ -1536,6 +1345,10 @@ int MachineObject::parse_json(std::string payload)
                 boost::optional<std::string> progress           = print.get_optional<std::string>("progress");
                 boost::optional<std::string> gcode_state        = print.get_optional<std::string>("gcode_state");
 
+                if (gcode_state.has_value()) {
+                    this->set_print_state(gcode_state.value());
+                }
+
                 /* task */
                 boost::optional<std::string> project_id         = print.get_optional<std::string>("project_id");
                 boost::optional<std::string> profile_id         = print.get_optional<std::string>("profile_id");
@@ -1551,25 +1364,10 @@ int MachineObject::parse_json(std::string payload)
 
                 if (query_user) {
                     /* sync project and profile info */
-                    if (project_id.has_value() && !project_id.value().empty() && (project_id.value().compare("0") != 0)
-                        && profile_id.has_value() && !profile_id.value().empty() && (profile_id.value().compare("0") != 0)
-                        )
+                    if (project_id.has_value() && profile_id.has_value() && subtask_id.has_value())
                     {
-                        update_profile(project_id.value(), profile_id.value());
-                    }
-
-                    /* sync task info */
-                    if (task_id.has_value() && !task_id.value().empty() && (task_id.value().compare("0") != 0))
-                    {
-                        update_task(task_id.value());
-                    }
-
-                    /* valid subtask */
-                    if (subtask_id.has_value() && !subtask_id.value().empty()) {
-                        if (subtask_id.value().compare("0") != 0) {
-                            update_subtask(subtask_id.value());
-                        }
                         obj_subtask_id = subtask_id.value();
+                        update_slice_info(project_id.value(), profile_id.value(), subtask_id.value());
                     }
 
                     BBLSubTask* curr_task = get_subtask();
@@ -1592,39 +1390,7 @@ int MachineObject::parse_json(std::string payload)
                         if (subtask_id.has_value()) {
                             curr_task->task_id = subtask_id.value();
                         }
-                        if (gcode_file.has_value()) {
-                            if (curr_task == temptask_) {
-                                curr_task->task_name = gcode_file.value();
-                            }
-                        }
                     }
-                }
-
-
-                /* printing */
-                boost::optional<int> mc_print_stage_str        = print.get_optional<int>("mc_print_stage");
-                boost::optional<int> mc_print_error_code_str   = print.get_optional<int>("mc_print_error_code");
-                boost::optional<int> mc_print_line_number_str  = print.get_optional<int>("mc_print_line_number");
-                if (mc_print_stage_str.has_value()) {
-                    mc_print_stage = mc_print_stage_str.value();
-                }
-                if (mc_print_error_code_str.has_value()) {
-                    mc_print_error_code = mc_print_error_code_str.value();
-                }
-                if (mc_print_line_number_str.has_value()) {
-                    mc_print_line_number = mc_print_line_number_str.value();
-                }
-
-                if (gcode_state.has_value()) {
-                    this->set_print_state(gcode_state.value());
-                }
-
-                /* signals */
-                boost::optional<std::string> link_th        = print.get_optional<std::string>("link_th_state");
-                boost::optional<std::string> link_ams       = print.get_optional<std::string>("link_ams_state");
-                boost::optional<std::string> signal         = print.get_optional<std::string>("wifi_signal");
-                if (signal.has_value()) {
-                    wifi_signal = signal.value();
                 }
 
                 /* ams */
@@ -1853,7 +1619,7 @@ int MachineObject::publish_gcode(std::string gcode_str)
     if (!acc_.is_user_login()) {
         return -1;
     }
-    Slic3r::AccountInfo* info = acc_.get_curr_user();
+    BBL::AccountInfo* info = acc_.get_curr_user();
     if (!info) return -1;
 
     json j;
@@ -1871,220 +1637,62 @@ std::string get_printer_dest_file(std::string file)
     return result + path.filename().string();
 }
 
-int MachineObject::send_print_task(BBLTask* task)
-{
-    if (conn_type == CONNECTION_WAN) {
-        send_wan_print_task(task);
-    }
-    else {
-        ;
-    }
-    return 0;
-}
-
-int MachineObject::send_wan_print_task(BBLTask* task)
-{
-    /* send json command */
-    json j;
-    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["print"]["command"] = "gcode_file";
-    j["print"]["project_id"] = task->task_project_id;
-    j["print"]["profile_id"] = task->task_profile_id;
-    j["print"]["url"] = task->task_url;
-    j["print"]["md5"] = task->task_url_md5;
-    j["print"]["task_id"] = task->task_id;
-    j["print"]["subtask_id"] = "0";
-
-    this->publish_json(j.dump(), nullptr, 1);
-    return 0;
-}
-
-
-int MachineObject::send_print_subtask(BBLSubTask *task, UploadedFn uploadedFn, UploadProgressFn proFn, ErrorFn errFn)
-{
-    if (conn_type == CONNECTION_LAN) {
-        send_lan_print_subtask(task, uploadedFn, proFn, errFn);
-    }
-    else if (conn_type == CONNECTION_WAN) {
-        send_wan_print_subtask(task, uploadedFn, proFn, errFn);
-    }
-    else {
-        ;
-    }
-    return 0;
-}
-
-int MachineObject::send_lan_print_subtask(BBLSubTask* task, UploadedFn uploadedFn, UploadProgressFn proFn, ErrorFn errFn)
-{
-    std::string src_file = task->task_file;
-    std::string dst_file = get_printer_dest_file(task->task_file);
-    std::string dst_file_str = dst_file;
-
-    if (!boost::filesystem::exists(src_file)) {
-        BOOST_LOG_TRIVIAL(trace) << "src_file=" << src_file << "is not exist";
-        return -1;
-    }
-
-    BOOST_LOG_TRIVIAL(trace) << "sftp upload dep_ip = " << dev_ip << ", src_file:" << src_file << ", dst_file:" << dst_file;
-    Sftp sftp = Sftp::upload(dev_ip, src_file, dst_file, "root", "root");
-
-    sftp.on_complete(
-        [this, src_file, dst_file_str, task, uploadedFn](std::string body) {
-            /* boost::filesystem::file_size not right */
-            if (uploadedFn) {
-                uploadedFn();
-            }
-
-            pt::ptree root, print;
-            if (boost::iends_with(src_file, ".3mf")) {
-                BOOST_LOG_TRIVIAL(trace) << "transform 3mf ok!";
-                print.put("sequence_id", MachineObject::m_sequence_id++);
-                print.put("command", "project_file");
-                print.put("param", task->task_gcode_in_3mf);
-                print.put("url", task->task_url);   /* 3mf or gcode */
-                print.put("md5", task->task_url_md5);
-                /* project */
-                print.put("project_id", "0");
-                print.put("profile_id", "0");
-                print.put("task_id", "0");
-                print.put("subtask_id", "0");
-                root.put_child("print", print);
-            }
-            else {
-                BOOST_LOG_TRIVIAL(trace) << "transform gcode ok!";
-                print.put("sequence_id", MachineObject::m_sequence_id++);
-                print.put("command", "gcode_file");
-                print.put("param", dst_file_str);
-                /* project */
-                root.put_child("print", print);
-            }
-            std::stringstream oss;
-            pt::write_json(oss, root, false);
-            std::string json_str = oss.str();
-            /* !!! remove '\' !!!! */
-            json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
-            this->publish_json(json_str);
-        })
-        .on_error([errFn, src_file](std::string error) {
-            if (errFn) {
-                errFn(error);
-            }
-            BOOST_LOG_TRIVIAL(trace) << boost::format("transform gcode %1% failed, error = %2%")
-                % src_file.c_str()
-                % error;
-        })
-        .on_progress([proFn](Slic3r::Sftp::Progress progress, bool& cancel) {
-            BOOST_LOG_TRIVIAL(trace) << " progress:" << progress.ulnow << "/" << progress.ultotal;
-            int percent = 0;
-            if (progress.ultotal != 0) {
-                percent = progress.ulnow * 100 / progress.ultotal;
-            }
-            if (proFn) {
-                proFn(percent);
-            }
-            })
-            .perform();
-
-            return 0;
-}
-
-int MachineObject::send_wan_print_subtask(BBLSubTask* task, UploadedFn uploadedFn, UploadProgressFn proFn, ErrorFn errFn)
-{
-    /* update subtask */
-    subtask_ = task;
-
-    if (task->task_url.empty()) {
-        BOOST_LOG_TRIVIAL(trace) << "task_url is empty!";
-        return -1;
-    }
-    if (!task->parent_task_) return -1;
-
-    json j;
-    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["print"]["command"]       = "project_file";
-    j["print"]["param"]         = task->task_gcode_in_3mf;
-    j["print"]["url"]           = task->task_url;
-    j["print"]["md5"]           = task->task_url_md5;
-    j["print"]["project_id"]    = task->parent_task_->task_project_id;
-    j["print"]["profile_id"]    = task->parent_task_->task_profile_id;
-    j["print"]["task_id"]       = task->parent_task_->task_id;
-    j["print"]["subtask_id"]    = task->task_id;
-    j["print"]["bed_leveling"]      = task->task_bed_leveling;
-    j["print"]["bed_type"]          = task->task_bed_type;
-    j["print"]["flow_cali"]         = task->task_flow_cali;
-    j["print"]["vibration_cali"]    = task->task_vibration_cali;
-
-    std::string json_str = j.dump();
-    json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
-    return this->publish_json(json_str, nullptr, 1);
-}
 
 BBLSubTask* MachineObject::get_subtask()
 {
-    if (subtask_) {
-        return subtask_;
-    }
-    else {
-        return temptask_;
-    }
+    return subtask_;
 }
 
-BBLSliceInfo* MachineObject::get_slice_info(std::string plate_idx)
+void MachineObject::update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id)
 {
-    if (!profile_)
-        return nullptr;
+    if (project_id.empty()
+        || profile_id.empty()
+        || subtask_id.empty()) return;
 
-    return profile_->get_slice_info(plate_idx);
-}
+    if (project_id.compare("0") == 0
+        || profile_id.compare("0") == 0
+        || subtask_id.compare("0") == 0) return;
 
-void MachineObject::update_profile(std::string project_id, std::string profile_id)
-{
-    if (project_id.empty() || profile_id.empty()) return;
+    
 
-    if (project_ && profile_) {
-        if (project_->project_id.compare(project_id) == 0 && 
-            profile_->profile_id.compare(profile_id) == 0) {
-            return;
-        }
+    if (project_id_ != project_id || profile_id_ != profile_id || slice_info == nullptr || subtask_id_ != subtask_id) {
+
+        project_id_ = project_id;
+        profile_id_ = profile_id;
+        subtask_id_ = subtask_id;
+
+        slice_info = new BBLSliceInfo();
+        auto get_slice_info_thread = boost::thread([this, project_id, profile_id, subtask_id] {
+                int plate_index = -1;
+                acc_.get_plate_index(subtask_id, plate_index);
+                if (plate_index >= 0) {
+                    std::string slice_json;
+                    acc_.get_slice_info(project_id, profile_id, plate_index, slice_json);
+                    //parse json
+                    json j = json::parse(slice_json);
+                    if (!j["prediction"].is_null())
+                        slice_info->prediction = j["prediction"].get<int>();
+                    if (!j["weight"].is_null())
+                        slice_info->weight = j["weight"].get<float>();
+                    if (!j["thumbnail"].is_null()) {
+                        slice_info->thumbnail_url = j["thumbnail"]["url"].get<std::string>();
+                    }
+                    if (!j["filaments"].is_null()) {
+                        for (auto filament : j["filaments"]) {
+                            FilamentInfo f;
+                            f.color = filament["color"].get<std::string>();
+                            f.type = filament["type"].get<std::string>();
+                            f.used_g = stof(filament["used_g"].get<std::string>());
+                            f.used_m = stof(filament["used_m"].get<std::string>());
+                            slice_info->filaments_info.push_back(f);
+                        }
+                    }
+                }
+            });
     }
-
-    /* create new project and profile */
-    project_ = new BBLProject();
-    project_->project_id = project_id;
-    profile_ = new BBLProfile(project_);
-    profile_->profile_id = profile_id;
-    acc_.get_profile(project_, profile_);
 }
 
-void MachineObject::update_task(std::string task_id)
-{
-    if (task_id.empty()) return;
-
-    if (task_) {
-        if (task_->task_id.compare(task_id) == 0) return;
-    }
-
-    /* create new task */
-    task_ = new BBLTask();
-    task_->task_id = task_id;
-    acc_.get_task(task_);
-}
-
-void MachineObject::update_subtask(std::string subtask_id)
-{
-    if (subtask_id.empty()) return;
-
-    if (subtask_ && subtask_->task_id.compare(subtask_id) == 0) {
-        return;
-    }
-
-    /* create a new subtask */
-    subtask_ = new BBLSubTask();
-    subtask_->task_id = subtask_id;
-    acc_.get_subtask(subtask_);
-}
-
-void MachineObject::request_unbind(ResultFn fn)
+void MachineObject::request_logout(ResultFn fn)
 {
     acc_.request_user_unbind(this->dev_id, fn);
 }
@@ -2159,104 +1767,6 @@ bool MachineObject::get_firmware_info()
     return true;
 }
 
-void MachineObject::set_bind_status(std::string status)
-{
-    bind_user_name = status;
-}
-
-void MachineObject::set_connect_state(CONNECTION_STATE state)
-{
-    conn_state = state;
-}
-
-std::string MachineObject::get_bind_str()
-{
-    std::string default_result = "N/A";
-    if (bind_user_name.compare("null") == 0) {
-        return "Free";
-    }
-    else if (!bind_user_name.empty()) {
-        return bind_user_name;
-    }
-    return default_result;
-}
-
-bool MachineObject::can_print()
-{
-    if (print_status.compare("RUNNING") == 0) {
-        return false;
-    }
-    if (print_status.compare("IDLE") == 0 || print_status.compare("FINISH") == 0) {
-        return true;
-    }
-    return true;
-}
-
-bool MachineObject::can_resume()
-{
-    if (print_status.compare("PAUSE") == 0)
-        return true;
-    return false;
-}
-
-bool MachineObject::can_pause()
-{
-    if (print_status.compare("RUNNING") == 0)
-        return true;
-    return false;
-}
-
-bool MachineObject::can_abort()
-{
-    if (print_status.compare("PAUSE") == 0
-        || print_status.compare("RUNNING") == 0
-        || print_status.compare("PREPARE") == 0) {
-        return true;
-    }
-    return false;
-}
-
-bool MachineObject::is_in_printing()
-{
-    bool result = can_abort();
-    return result;
-}
-
-bool MachineObject::is_printing_finished()
-{
-    if (print_status.compare("FINISH") == 0
-        || print_status.compare("FAILED") == 0) {
-        return true;
-    }
-    return false;
-}
-
-void MachineObject::reset()
-{
-    last_update_time = std::chrono::system_clock::now();
-}
-
-void MachineObject::set_print_state(std::string status)
-{
-    print_status = status;
-}
-
-std::string MachineObject::build_report_topic(std::string dev_id)
-{
-    return (boost::format("device/%1%/report") % dev_id).str();
-}
-
-DeviceManager::DeviceManager(AccountManager& acc)
-    : acc_(acc)
-{
-    try {
-        m_device_check_alive = Slic3r::create_thread([this] { this->check_alive(); });
-    }
-    catch (std::exception& e) {
-        ;
-    }
-}
-
 DeviceManager::~DeviceManager()
 {
     if (m_check_alive_quit) return;
@@ -2277,9 +1787,9 @@ void DeviceManager::on_machine_alive(std::string dev_name, std::string dev_id, s
             BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << obj->dev_ip << " to " << dev_ip;
             obj->dev_ip = dev_ip;
             /* ip changed reconnect mqtt */
-            if (obj->mqtt_cli) {
-                obj->reconnect();
-            }
+            if (obj->conn_state == MachineObject::CONNECTION_STATE::STATE_CONNECTING)
+            obj->disconnect();
+            obj->connect();
         }
         obj->wifi_signal = printer_signal;
         BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery:: Update Machine Info, printer_sn = " << dev_id << ", signal = " << printer_signal;
@@ -2299,10 +1809,7 @@ void DeviceManager::on_machine_alive(std::string dev_name, std::string dev_id, s
 
 void DeviceManager::disconnect_all()
 {
-    std::map<std::string, MachineObject*>::iterator it;
-    for (it = localMachineList.begin(); it != localMachineList.end(); it++) {
-        it->second->disconnect();
-    }
+    
 }
 
 void DeviceManager::query_bind_status()
@@ -2357,6 +1864,7 @@ MachineObject* DeviceManager::get_default()
 
 void DeviceManager::update_my_bind_list(std::string body)
 {
+    //TODO use key values
     std::set<std::string> new_list;
     try {
         json j = json::parse(body);
@@ -2382,24 +1890,18 @@ void DeviceManager::update_my_bind_list(std::string body)
 
                 if (!obj) continue;
 
+                if (!elem["dev_id"].is_null())
+                    obj->dev_id = elem["dev_id"].get<std::string>();
                 if (!elem["dev_name"].is_null())
                     obj->dev_name = elem["dev_name"].get<std::string>();
                 if (!elem["dev_online"].is_null())
                     obj->m_is_online = elem["dev_online"].get<bool>();
                 if (!elem["progress"].is_null())
                     obj->mc_print_percent = elem["progress"].get<int>();
-                if (!elem["task_name"].is_null())
-                    obj->iot_printing_taskname = elem["task_name"].get<std::string>();
-                if (!elem["task_id"].is_null())
-                    obj->iot_task_id = elem["task_id"].get<std::string>();
-                if (!elem["profile_id"].is_null())
-                    obj->iot_profile_id = elem["profile_id"].get<std::string>();
-                if (!elem["project_id"].is_null())
-                    obj->iot_project_id = elem["project_id"].get<std::string>();
-                if (!elem["task_status"].is_null())
-                    obj->iot_task_status = elem["task_status"].get<std::string>();
                 if (elem.contains("dev_model_name") && !elem["dev_model_name"].is_null())
                     obj->printer_type = MachineObject::parse_iot_printer_type(elem["dev_model_name"].get<std::string>());
+                if (!elem["task_status"].is_null())
+                    obj->print_status = elem["task_status"].get<std::string>();
                 if (elem.contains("dev_product_name") && !elem["dev_product_name"].is_null())
                     obj->product_name = elem["dev_product_name"].get<std::string>();
             }
@@ -2467,6 +1969,27 @@ std::map<std::string, MachineObject*> DeviceManager::get_user_machine_list()
     }
 
     return result;
+}
+
+void DeviceManager::load_last_machine()
+{
+    if (myBindMachineList.empty()) return;
+
+    else if (myBindMachineList.size() == 1) {
+        this->set_monitoring_machine(myBindMachineList.begin()->first);
+    } else {
+        std::string last_monitor_machine = acc_.get_default_machine();
+        bool found = false;
+        for (auto it = myBindMachineList.begin(); it != myBindMachineList.end(); it++) {
+            if (last_monitor_machine == it->first) {
+                acc_.set_monitor_machine(last_monitor_machine);
+                found = true;
+            }
+
+        }
+        if (!found)
+            this->set_monitoring_machine(myBindMachineList.begin()->first);
+    }
 }
 
 

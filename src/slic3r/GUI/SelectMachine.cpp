@@ -52,8 +52,7 @@ void MachineListModel::add_machine(MachineObject *obj, bool reset)
 {
     m_values[Col_MachineName].Add(from_u8(obj->dev_name));
     m_values[Col_MachineSN].Add(from_u8(obj->dev_id));
-    m_values[Col_MachinePrintingStatus].Add(from_u8(obj->iot_task_status));
-    m_values[Col_MachineTaskName].Add(from_u8(obj->iot_printing_taskname));
+    m_values[Col_MachinePrintingStatus].Add(from_u8(obj->print_status));
     m_values[Col_MachineIPAddress].Add(from_u8(obj->dev_ip));
     m_values[Col_MachineConnection].Add(obj->is_online() ? _L("Online") : _L("Offline"));
     if (reset) Reset(m_values[Col_MachineName].GetCount());
@@ -437,13 +436,14 @@ void SelectMachinePopup::OnDismiss()
 {
     m_dismiss = true;
 
+    if (m_refresh_timer) {
+        m_refresh_timer->Stop();
+        delete m_refresh_timer;
+        m_refresh_timer = nullptr;
+    }
+
     Slic3r::create_thread([this] {
         stop_ssdp();
-        if (m_refresh_timer) {
-            m_refresh_timer->Stop();
-            delete m_refresh_timer;
-            m_refresh_timer = nullptr;
-        }
         get_print_info_thread.interrupt();
         if (get_print_info_thread.joinable()) {
             get_print_info_thread.join();
@@ -511,7 +511,7 @@ void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
         MachineObjectPanel *op = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
         op->set_can_bind(true);
         //if (mobj->can_abort()) {op->set_printer_busy();} 
-        if (can_abort(mobj->iot_task_status)) {
+        if (can_abort(mobj->print_status)) {
             op->set_printer_busy();
         }
         else {op->set_printer_idle();}
@@ -541,7 +541,7 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
         if (!mobj->is_online()) {
             op->set_printer_offline();
         } else {
-            if (can_abort(mobj->iot_task_status)) {
+            if (can_abort(mobj->print_status)) {
                 op->set_printer_busy();
             } else {
                 op->set_printer_idle();
@@ -565,19 +565,19 @@ bool SelectMachinePopup::can_abort(std::string state)
 
 void SelectMachinePopup::start_ssdp()
 {
-    CommuBackend *backend = wxGetApp().getCommuBackend();
-    if (backend) {
-        backend->start();
-        backend->set_ssdp_discovery(true);
+    BBL::SsdpDiscovery *ssdp = wxGetApp().getSsdpDiscovery();
+    if (ssdp) {
+        ssdp->start();
+        ssdp->set_ssdp_discovery(true);
     }
 }
 
 void SelectMachinePopup::stop_ssdp()
 {
-    CommuBackend *backend = wxGetApp().getCommuBackend();
-    if (backend) {
-        backend->set_ssdp_discovery(false);
-        backend->stop();
+    BBL::SsdpDiscovery * ssdp = wxGetApp().getSsdpDiscovery();
+    if (ssdp) {
+        ssdp->set_ssdp_discovery(false);
+        ssdp->stop();
     }
 }
 
@@ -1053,7 +1053,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         return;
     }
 
-    Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
     // TODO check
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     auto it = dev->myBindMachineList.find(m_printer_last_select);
@@ -1212,7 +1212,7 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
 
 void SelectMachineDialog::on_timer(wxTimerEvent &event)
 {
-    Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
     if (c->is_user_login()) {
         if (this == NULL || this == nullptr) { return; }
         boost::thread get_print_info_thread = Slic3r::create_thread([this] {
@@ -1229,7 +1229,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
 void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 {
     update_err_msg(wxEmptyString);
-    Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::AccountManager *acc = Slic3r::GUI::wxGetApp().getAccountManager();
     if (event.GetString().empty()) { return; }
 
     auto dev_name = event.GetString().ToStdString();
@@ -1239,7 +1239,8 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
         if (m_list[i]->dev_name == dev_name && i == selection) {
             m_printer_last_select = m_list[i]->dev_id;
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  "for send task, current printer id =  "<< m_printer_last_select << std::endl;
-            c->default_machine = m_list[i]->dev_id;
+            DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+            dev->set_monitoring_machine(m_list[i]->dev_id);
             update_select_layout(m_list[i]->printer_type);
             break;
         }

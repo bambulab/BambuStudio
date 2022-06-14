@@ -1145,29 +1145,6 @@ void StatusPanel::update_tasklist_info()
 
     //BBS do not show tasklist
     return;
-    if (last_profile == nullptr) {
-        return;
-    }
-
-    show_task_list_info();
-
-    int idx = 0;
-    std::map<std::string, BBLSliceInfo *>::iterator it;
-    for (it = obj->profile_->slice_info.begin(); it != obj->profile_->slice_info.end(); it++) {
-        wxBoxSizer *m_item_top_sizer = new wxBoxSizer(wxHORIZONTAL);
-        SliceInfoPanel *panel = new SliceInfoPanel(this, m_bitmap_item_prediction, m_bitmap_item_cost, m_bitmap_item_print,
-                                    -1, wxDefaultPosition, wxDefaultSize, wxBORDER_SIMPLE);
-        slice_info_list.push_back(panel);
-        panel->update(it->second);
-        panel->Layout();
-        m_item_top_sizer->Add(panel, 0, wxEXPAND | wxALL, 0);
-
-        m_tasklist_info_sizer->Add(m_item_top_sizer, wxGBPosition(idx / 2, idx % 2), wxGBSpan(1, 1), wxALL, 0);
-        idx++;
-    }
-
-    m_tasklist_sizer->Add(m_tasklist_info_sizer, 0, wxALL, 10);
-    this->Layout();
 }
 
 
@@ -1177,7 +1154,7 @@ void StatusPanel::on_subtask_report(wxCommandEvent &event)
         if (!obj->subtask_) return;
 
         std::string last_report_url;
-        AccountManager::get_machine_last_report_url(obj->dev_id, last_report_url);
+        BBL::AccountManager::get_machine_last_report_url(obj->dev_id, last_report_url);
         if (last_report_url.empty()) {
             wxMessageBox("There is no need to fill a report!");
         } else {
@@ -1574,49 +1551,40 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
     // update subtask static info
     if (last_subtask != obj->subtask_) {
         BOOST_LOG_TRIVIAL(trace) << "monitor: change to sub task id = " << obj->subtask_->task_id;
-        // update subtask name
-        wxString subtask_text;
-        if (!obj->subtask_name.empty()) {
-#if !BBL_RELEASE_TO_PUBLIC
-            subtask_text = wxString::Format("%s(%s)", GUI::from_u8(obj->subtask_name), obj->subtask_->task_id);
-#else
-            subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
-#endif
-        } else {
-#if !BBL_RELEASE_TO_PUBLIC
-            subtask_text = wxString::Format("%s(%s)", GUI::from_u8(obj->subtask_->task_name), obj->subtask_->task_id);
-#else
-            subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_->task_name));
-#endif
-        }
-        m_staticText_subtask_value->SetLabelText(subtask_text);
         if (web_request.IsOk()) web_request.Cancel();
         m_start_loading_thumbnail = true;
     }
     last_subtask = obj->subtask_;
 
     if (m_start_loading_thumbnail) {
-        if (obj->profile_) {
-            std::map<std::string, BBLSliceInfo *>::iterator iter = obj->profile_->slice_info.find(obj->subtask_->task_partplate_idx);
-            if (iter != obj->profile_->slice_info.end()) {
-                m_request_url = wxString(iter->second->thumbnail_url);
-                if (!m_request_url.IsEmpty()) {
-                    wxImage                               img;
-                    std::map<wxString, wxImage>::iterator it = img_list.find(m_request_url);
-                    if (it != img_list.end()) {
-                        img                = it->second;
-                        wxImage resize_img = img.Scale(m_bitmap_thumbnail->GetSize().x, m_bitmap_thumbnail->GetSize().y);
-                        m_bitmap_thumbnail->SetBitmap(resize_img);
-                    } else {
-                        web_request = wxWebSession::GetDefault().CreateRequest(this, m_request_url);
-                        BOOST_LOG_TRIVIAL(trace) << "monitor: start reqeust thumbnail, url = " << m_request_url;
-                        web_request.Start();
-                        m_start_loading_thumbnail = false;
-                    }
+        if (obj->slice_info) {
+            m_request_url = wxString(obj->slice_info->thumbnail_url);
+            if (!m_request_url.IsEmpty()) {
+                wxImage                               img;
+                std::map<wxString, wxImage>::iterator it = img_list.find(m_request_url);
+                if (it != img_list.end()) {
+                    img                = it->second;
+                    wxImage resize_img = img.Scale(m_bitmap_thumbnail->GetSize().x, m_bitmap_thumbnail->GetSize().y);
+                    m_bitmap_thumbnail->SetBitmap(resize_img);
+                } else {
+                    web_request = wxWebSession::GetDefault().CreateRequest(this, m_request_url);
+                    BOOST_LOG_TRIVIAL(trace) << "monitor: start reqeust thumbnail, url = " << m_request_url;
+                    web_request.Start();
+                    m_start_loading_thumbnail = false;
                 }
             }
         }
     }
+
+    // update subtask name
+    wxString subtask_text;
+    if (!obj->subtask_name.empty()) {
+        subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
+    }
+    else {
+        subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_->task_name));
+    }
+    m_staticText_subtask_value->SetLabelText(subtask_text);
 
     m_gauge_progress->SetValue(obj->subtask_->task_progress);
     m_staticText_progress_percent->SetLabelText(wxString::Format("%d%%", obj->subtask_->task_progress));
@@ -1636,21 +1604,13 @@ void StatusPanel::update_sdcard_subtask(MachineObject *obj)
         m_load_sdcard_thumbnail = true;
     }
 
-    m_gauge_progress->SetValue(obj->temptask_->task_progress);
-    m_staticText_progress_percent->SetLabelText(wxString::Format("%d%%", obj->temptask_->task_progress));
+    m_gauge_progress->SetValue(obj->subtask_->task_progress);
+    m_staticText_progress_percent->SetLabelText(wxString::Format("%d%%", obj->subtask_->task_progress));
 }
 
 void StatusPanel::update_tasklist(MachineObject *obj)
 {
-    if (!obj || !obj->profile_) {
-        last_profile = nullptr;
-        return;
-    }
-
-    if (last_profile != obj->profile_ && !obj->profile_->slice_info.empty()) {
-        last_profile = obj->profile_;
-        update_tasklist_info();
-    }
+    ;
 }
 
 void StatusPanel::reset_printing_values()
@@ -1970,21 +1930,16 @@ void StatusPanel::on_lamp_switch(wxCommandEvent &event)
 void StatusPanel::on_thumbnail_enter(wxMouseEvent &event)
 {
     if (obj) {
-        if (!obj->profile_ || !obj->subtask_) return;
+        if (!obj->slice_info || !obj->subtask_) return;
         if (m_slice_info_popup && m_slice_info_popup->IsShown())
             return;
-        if (obj->profile_) {
-            std::map<std::string, BBLSliceInfo *>::iterator iter = obj->profile_->slice_info.find(obj->subtask_->task_partplate_idx);
-            if (iter != obj->profile_->slice_info.end()) {
-                if (iter->second) {
-                    m_slice_info_popup = std::make_shared<SliceInfoPopup>(this, m_bitmap_thumbnail->GetBitmap(), iter->second);
-                    wxWindow *ctrl     = (wxWindow *) event.GetEventObject();
-                    wxPoint   pos      = ctrl->ClientToScreen(wxPoint(0, 0));
-                    wxSize    sz       = ctrl->GetSize();
-                    m_slice_info_popup->Position(pos, wxSize(sz.x / 2, sz.y / 2));
-                    m_slice_info_popup->Popup();
-                }
-            }
+        if (obj->slice_info) {
+            m_slice_info_popup = std::make_shared<SliceInfoPopup>(this, m_bitmap_thumbnail->GetBitmap(), obj->slice_info);
+            wxWindow *ctrl     = (wxWindow *) event.GetEventObject();
+            wxPoint   pos      = ctrl->ClientToScreen(wxPoint(0, 0));
+            wxSize    sz       = ctrl->GetSize();
+            m_slice_info_popup->Position(pos, wxSize(sz.x / 2, sz.y / 2));
+            m_slice_info_popup->Popup();
         }
     }
 }

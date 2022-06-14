@@ -8,7 +8,7 @@
 #include "OpenGLManager.hpp"
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PresetBundle.hpp"
-#include "slic3r/GUI/CommuBackend.hpp"
+#include "slic3r/GUI/SsdpDiscovery.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/AccountManager.hpp"
 #include "slic3r/GUI/WebViewDialog.hpp"
@@ -41,7 +41,7 @@ class PresetBundle;
 class PresetUpdater;
 class ModelObject;
 class Model;
-class CommuBackend;
+class SsdpDiscovery;
 class DeviceManager;
 class AccountManager;
 
@@ -173,12 +173,12 @@ private:
 	//size_t m_instance_hash_int;
 
     //BBS
-    Slic3r::CommuBackend* m_backend;
+    BBL::SsdpDiscovery* m_ssdp;
     Slic3r::DeviceManager* m_device_manager;
-    Slic3r::AccountManager* m_account_manager;
-    VersionInfo     version_info;
-    boost::thread   m_sync_update_thread;
-    bool            enable_sync = true;
+    BBL::AccountManager* m_account_manager;
+    BBL::VersionInfo version_info;
+    boost::thread    m_sync_update_thread;
+    bool             enable_sync = true;
 
 public:
     bool            OnInit() override;
@@ -191,9 +191,9 @@ public:
 
     void show_message_box(std::string msg) { wxMessageBox(msg); }
     EAppMode get_app_mode() const { return m_app_mode; }
-    Slic3r::CommuBackend* getCommuBackend() { return m_backend; }
+    BBL::SsdpDiscovery* getSsdpDiscovery() { return m_ssdp; }
     Slic3r::DeviceManager* getDeviceManager() { return m_device_manager; }
-    Slic3r::AccountManager* getAccountManager() { return m_account_manager; }
+    BBL::AccountManager* getAccountManager() { return m_account_manager; }
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
@@ -273,7 +273,7 @@ public:
     void            request_login(bool show_user_info = false);
     bool            check_login();
     void            get_login_info();
-    void            change_user(AccountInfo* user_info);
+    void            change_user(BBL::AccountInfo* user_info);
     void            request_user_login(int online_login);
     std::string     handle_web_request(std::string cmd);
     void            request_model_download(std::string import_json);

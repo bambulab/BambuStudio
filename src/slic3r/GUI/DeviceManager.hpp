@@ -8,7 +8,7 @@
 #include <chrono>
 #include <boost/thread.hpp>
 #include "mqtt/async_client.h"
-#include "CommuBackend.hpp"
+#include "SsdpDiscovery.hpp"
 #include "AccountManager.hpp"
 #include "libslic3r/ProjectTask.hpp"
 #include "slic3r/Utils/json_diff.hpp"
@@ -16,9 +16,6 @@
 #define USE_LOCAL_SOCKET_BIND 0
 
 #define DISCONNECT_TIMEOUT      10000.f     // milliseconds
-
-#define LOCAL_COMMU_PORT        3000
-#define DEBUG_COMMU_PORT        5000
 
 #define FILAMENT_MAX_TEMP       300
 #define FILAMENT_DEF_TEMP       220
@@ -74,45 +71,7 @@ enum PrintingSpeedLevel {
 
 class AccountManager;
 
-class sub_action_listener : public virtual mqtt::iaction_listener
-{
-private:
-    std::string name_;
 
-    void on_failure(const mqtt::token& tok) override {
-        ;
-    }
-    void on_success(const mqtt::token& tok) override {
-        ;
-    }
-public:
-    sub_action_listener(const std::string& name) : name_(name) {}
-};
-
-class machine_conn_callback : public virtual mqtt::callback, public virtual mqtt::iaction_listener
-{
-private:
-    int nretry_;
-    mqtt::async_client& cli_;
-    mqtt::connect_options& connOpts_;
-    void* context_;
-    std::vector<std::string> sub_topics;
-
-    void connected(const std::string& cause) override;
-
-    void on_failure(const mqtt::token& tok) override;
-
-    void on_success(const mqtt::token& tok) override;
-
-    void connection_lost(const std::string& cause) override;
-
-    void message_arrived(mqtt::const_message_ptr msg) override;
-public:
-    machine_conn_callback(mqtt::async_client& cli, mqtt::connect_options& connOpts, void* context)
-        : nretry_(0), cli_(cli), connOpts_(connOpts), context_(context) {}
-
-    void add_topics(std::string topic) { sub_topics.push_back(topic); }
-};
 
 enum AmsRfidState {
     AMS_RFID_INIT,
@@ -287,16 +246,11 @@ public:
 class MachineObject
 {
 private:
-    AccountManager& acc_;
+    BBL::AccountManager& acc_;
 
     bool check_valid_ip();
 public:
-    typedef std::function<void(std::string topic, std::string payload)> MsgFn;
-    typedef std::function<void()> UploadedFn;
-    typedef std::function<void(int progress)> UploadProgressFn;
-    typedef std::function<void(std::string error)> ErrorFn;
-    typedef std::function<void(int result, std::string info)> ResultFn;
-
+    /* Enums */
     enum CONNECTION_TYPE {
         CONNECTION_DEFAULT = 0,
         CONNECTION_LAN = 1,
@@ -338,21 +292,27 @@ public:
         std::string sw_ver;
     };
 
+    /* static members and functions */
     static inline int m_sequence_id = 20000;
     static PRINTER_TYPE parse_printer_type(std::string type_str);
     static PRINTER_TYPE parse_iot_printer_type(std::string type_str);
     static PRINTER_TYPE parse_preset_printer_type(std::string type_str);
     static std::string get_preset_printer_model_name(PRINTER_TYPE printer_type);
+    static bool is_bbl_filament(std::string tag_uid);
 
-    std::string get_printer_type_string();
-    wxString get_printer_type_display_str();
+    typedef std::function<void()> UploadedFn;
+    typedef std::function<void(int progress)> UploadProgressFn;
+    typedef std::function<void(std::string error)> ErrorFn;
+    typedef std::function<void(int result, std::string info)> ResultFn;
 
-    MachineObject(AccountManager& acc, std::string name, std::string id, std::string ip);
     /* properties */
     std::string dev_name;
     std::string dev_ip;
     std::string dev_id;
     PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
+    std::string get_printer_type_string();
+    wxString get_printer_type_display_str();
+
     std::string product_name;       // set by iot service, get /user/print
 
     std::string bind_user_name;
@@ -362,7 +322,7 @@ public:
     bool m_is_online;
     std::chrono::system_clock::time_point   last_update_time;   /* last received print data from machine */
 
-    /* Ams Properties */
+    /* ams properties */
     std::map<std::string, Ams*> amsList;    // key: ams[id], start with 0
     long  ams_exist_bits;
     long  tray_exist_bits;
@@ -371,7 +331,6 @@ public:
     AmsStatusMain ams_status_main;
     int   ams_status_sub;
     int   ams_version;
-
     std::string m_ams_id;           // local ams  : "0" ~ "3"
     std::string m_tray_id;          // local tray id : "0" ~ "3"
     std::string m_tray_now;         // tray_now : "0" ~ "15" or "255"
@@ -385,8 +344,6 @@ public:
     AmsTray *get_ams_tray(std::string ams_id, std::string tray_id);
     // parse amsStatusMain and ams_status_sub
     void _parse_ams_status(int ams_status);
-    static bool is_bbl_filament(std::string tag_uid);
-    
 
     /* temperature */
     float  nozzle_temp;
@@ -404,16 +361,20 @@ public:
 
     /* signals */
     std::string wifi_signal;
+    std::string link_th;
+    std::string link_ams;
 
     /* lights */
     LIGHT_EFFECT chamber_light;
     LIGHT_EFFECT work_light;
+    std::string light_effect_str(LIGHT_EFFECT effect);
+    LIGHT_EFFECT light_effect_parse(std::string effect_str);
 
     /* upgrade */
     bool upgrade_force_upgrade { false };
     bool upgrade_new_version { false };
     bool upgrade_consistency_request;
-    int upgrade_display_state = 0;          // 0 : upgrade unavailable, 1: upgrade idle, 2: upgrading, 3: upgrade_finished
+    int upgrade_display_state = 0;           // 0 : upgrade unavailable, 1: upgrade idle, 2: upgrading, 3: upgrade_finished
     PrinterFirmwareType       firmware_type; // engineer|production
     std::string upgrade_progress;
     std::string upgrade_message;
@@ -450,14 +411,7 @@ public:
     int get_curr_stage_idx();
     bool is_in_calibration();
 
-    /* iot printing status */
-    std::string iot_printing_taskname;
-    std::string iot_task_id;
-    std::string iot_profile_id;
-    std::string iot_project_id;
-    std::string iot_task_status;
-    std::string subtask_name;
-
+    /* printing status */
     std::string print_status;   /* enum string: FINISH, RUNNING, PAUSE, INIT, FAILED */
     PrintingSpeedLevel printing_speed_lvl;
     int                printing_speed_mag;
@@ -469,36 +423,30 @@ public:
     /* mqtt connections */
     CONNECTION_TYPE conn_type;
     CONNECTION_STATE conn_state;
-    std::string mqtt_uuid;
-    int mqtt_uuid_bytes;
-    mqtt::async_client* mqtt_cli;
-    mqtt::connect_options mqtt_opt;
-    machine_conn_callback* mqtt_cb;
-    SuccessFn  successFn;
-    FailedFn failedFn;
-    LostFn lostFn;
+
+    /* machine mqtt apis */
+    void set_callbacks(BBL::SuccessFn sFn, BBL::FailedFn fFn, BBL::LostFn lFn);
+    int connect();
+    int disconnect();
+
+    BBL::SuccessFn  successFn;
+    BBL::FailedFn failedFn;
+    BBL::LostFn lostFn;
     json_diff print_json;
 
-
-    /* local communicate */
-    std::string login_ticket;
-    LocalClient *local_client { nullptr };  // client for bind progress
-    LocalClient *debug_client { nullptr };  // client for debug connections
-
-
-    /* Msg for display MsgFn */
-    MsgFn msg_send_fn;
-    MsgFn msg_recv_fn;
-
     /* Project Task and Sub Task */
-    BBLProject* project_;
-    BBLProfile* profile_;
-    BBLTask* task_;
+    std::string  project_id_;
+    std::string  profile_id_;
+    std::string  subtask_id_;
+    BBLSliceInfo* slice_info {nullptr};
+    int plate_index { -1 };
     BBLSubTask* subtask_;
-    BBLSubTask* temptask_;
     std::string obj_subtask_id;     // subtask_id == 0 for sdcard
+    std::string subtask_name;
     bool is_sdcard_printing();
     
+
+    MachineObject(BBL::AccountManager& acc, std::string name, std::string id, std::string ip);
     /* command commands */
     int command_get_version();
     int command_request_push_all();
@@ -517,7 +465,7 @@ public:
     int command_task_resume();
     int command_set_bed(int temp);
     int command_set_nozzle(int temp);
-
+    // ams controls
     int command_ams_switch(std::string tray_id, int old_temp = 210, int new_temp = 210);
     int command_ams_change_filament(int tray_id, int old_temp = 210, int new_temp = 210);
     int command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt);
@@ -525,31 +473,6 @@ public:
     int command_ams_filament_settings(int ams_id, int tray_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max);
     int command_ams_select_tray(std::string tray_id);
     int command_ams_refresh_rfid(std::string tray_id);
-
-    inline std::string light_effect_str(LIGHT_EFFECT effect) {
-        switch (effect)
-        {
-        case LIGHT_EFFECT::LIGHT_EFFECT_ON:
-            return "on";
-        case LIGHT_EFFECT_OFF:
-            return "off";
-        case LIGHT_EFFECT_FLASHING:
-            return "flashing";
-        default:
-            return "unknown";
-        }
-    }
-    inline LIGHT_EFFECT light_effect_parse(std::string effect_str) {
-        if (effect_str.compare("on") == 0)
-            return LIGHT_EFFECT_ON;
-        else if (effect_str.compare("off") == 0)
-            return LIGHT_EFFECT_OFF;
-        else if (effect_str.compare("flashing") == 0)
-            return LIGHT_EFFECT_FLASHING;
-        else
-            return LIGHT_EFFECT_UNKOWN;
-    }
-
     int command_set_chamber_light(LIGHT_EFFECT effect, int on_time = 500, int off_time = 500, int loops = 1, int interval = 1000);
     int command_set_work_light(LIGHT_EFFECT effect, int on_time = 500, int off_time = 500, int loops = 1, int interval = 1000);
 
@@ -561,52 +484,6 @@ public:
 
     // calibration printer
     int command_start_calibration();
-
-    // device bind and unbind
-    int command_unbind();
-
-    // new bind progress
-    int command_new_bind();
-    std::string build_login_request();
-    int _parse_login_report(std::string json_str, std::string fail_reason);
-
-    /* machine local client apis */
-    int local_connect();
-    int local_disconnect();
-
-    /* machine mqtt apis */
-    void set_callbacks(SuccessFn sFn, FailedFn fFn, LostFn lFn);
-    int connect();
-    int disconnect();
-    int reconnect();
-
-    bool is_connected();
-    void set_online_state(bool on_off);
-    bool is_online() { return m_is_online; }
-
-
-    void set_msg_send_fn(MsgFn fn) { msg_send_fn = std::move(fn); }
-    void set_msg_recv_fn(MsgFn fn) { msg_recv_fn = std::move(fn); }
-    int publish_json(std::string json_str, ResultFn resFn = nullptr, int qos = 0);
-    int parse_json(std::string payload);
-    int publish_gcode(std::string gcode_str);
-
-    int send_print_task(BBLTask* task);
-    int send_wan_print_task(BBLTask* task);
-
-    int send_print_subtask(BBLSubTask* task, UploadedFn cFn = nullptr, UploadProgressFn proFn = nullptr, ErrorFn errFn = nullptr);
-    int send_lan_print_subtask(BBLSubTask* task, UploadedFn cFn = nullptr, UploadProgressFn proFn = nullptr, ErrorFn errFn = nullptr);
-    int send_wan_print_subtask(BBLSubTask* task, UploadedFn cFn = nullptr, UploadProgressFn proFn = nullptr, ErrorFn errFn = nullptr);
-    BBLSubTask* get_subtask();
-    BBLSliceInfo* get_slice_info(std::string plate_idx);
-    void update_subtask(std::string subtask_id);
-    void update_task(std::string task_id);
-    void update_profile(std::string project_id, std::string profile_id);
-
-    /* iot operation apis */
-    void request_unbind(ResultFn fn);
-
-    bool get_firmware_info();
 
     /* common apis */
     inline bool is_local() { return !dev_ip.empty(); }
@@ -622,9 +499,31 @@ public:
     void reset();
 
     void set_print_state(std::string status);
-    
-    /* static apis */
-    static std::string build_report_topic(std::string dev_id);
+
+    bool is_connected();
+    void set_online_state(bool on_off);
+    bool is_online() { return m_is_online; }
+
+
+    /* Msg for display MsgFn */
+    typedef std::function<void(std::string topic, std::string payload)> MsgFn;
+    MsgFn msg_send_fn;
+    MsgFn msg_recv_fn;
+    void set_msg_send_fn(MsgFn fn) { msg_send_fn = std::move(fn); }
+    void set_msg_recv_fn(MsgFn fn) { msg_recv_fn = std::move(fn); }
+
+    int publish_json(std::string json_str, ResultFn resFn = nullptr, int qos = 0);
+    int parse_json(std::string payload);
+    int publish_gcode(std::string gcode_str);
+
+    BBLSubTask* get_subtask();
+    void update_subtask(std::string subtask_id);
+    void update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id);
+
+    /* iot operation apis */
+    void request_logout(ResultFn fn);
+
+    bool get_firmware_info();
 };
 
 class DeviceManager
@@ -634,10 +533,10 @@ private:
     bool m_check_alive_quit = false;
     const double ALIVE_TIMEOUT = 30.0;
     boost::thread m_device_check_alive;
-    AccountManager& acc_;
+    BBL::AccountManager& acc_;
 
 public:
-    DeviceManager(AccountManager& acc);
+    DeviceManager(BBL::AccountManager& acc);
     ~DeviceManager();
 
     std::mutex listMutex;
@@ -671,6 +570,7 @@ public:
     MachineObject* get_default();   /* return default machine */
     std::map<std::string, MachineObject*> get_all_machine_list();
     std::map<std::string, MachineObject*> get_user_machine_list();
+    void load_last_machine();
 
 
     void check_alive();

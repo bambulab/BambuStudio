@@ -10,7 +10,16 @@
 namespace Slic3r {
 namespace GUI {
 
-static wxString printjob_cancel_str = _L("print project cancelled.");
+static wxString creating_stage_str  = _L("Creating");
+static wxString uploading_stage_str = _L("Uploading");
+static wxString waiting_stage_str   = _L("Waiting");
+static wxString sending_stage_str   = _L("Sending");
+static wxString finish_stage_str    = _L("Finished");
+
+static wxString check_gcode_failed_str  = _L("Internal error, no gcode file to upload.");
+static wxString printjob_cancel_str = _L("Print job was cancelled.");
+
+
 static wxString failed_to_create_str = _L("Failed to create the print job. Please try agian.");
 static wxString failed_to_upload_str = _L("Failed to upload the print job. Please try agian.");
 static wxString timeout_to_upload_str = _L("Uploading print job timed out. Please try again.");
@@ -47,15 +56,14 @@ void PrintJob::on_success(std::function<void()> success)
 void PrintJob::process()
 {
     /* display info */
-    wxString msg = _L("Creating a print job...");
-    int curr_percent = 25;
+    wxString msg = creating_stage_str;
+    int curr_percent = 10;
     update_status(curr_percent, msg);
 
-    int res = -1;
+    int result = -1;
     unsigned int http_code;
     std::string http_body;
-    Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
-    Slic3r::DeviceManager* d  = Slic3r::GUI::wxGetApp().getDeviceManager();
+    BBL::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
 
     int total_plate_num = m_plater->get_partplate_list().get_plate_count();
 
@@ -68,7 +76,7 @@ void PrintJob::process()
 
     /* check gcode is valid */
     if (!plate->is_valid_gcode_file()) {
-        update_status(curr_percent, "Internal error, no gcode in 3mf file");
+        update_status(curr_percent, check_gcode_failed_str);
         return;
     }
 
@@ -77,178 +85,70 @@ void PrintJob::process()
         return;
     }
 
-    // save project, profile, task, subtask info to local, default_output_file as project name
     std::string project_name = wxGetApp().plater()->get_project_name().ToUTF8().data();
-    BBLProject* project = new BBLProject(project_name);
-    project->project_3mf_file = job_data._3mf_path.string();
-    project->project_path = fs::path(project->project_3mf_file);
-
-    /* select a profile, use default now */
-    BBLProfile *profile = new BBLProfile(project);
-    // set current print preset to profile_name
-    profile->profile_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
-
-    BOOST_LOG_TRIVIAL(trace) << "print_job: request project id";
-    res = c->request_project_profile_id(project, profile, http_code, http_body);
-
-    if (res == 0 && !project->project_id.empty()) {
-        BOOST_LOG_TRIVIAL(trace) << "print_job: get project id = " << project->project_id;
-    } else {
-        wxString error_msg = wxString::Format(_devL("\nreq_pro,err:code=%u,msg=%s"), http_code, http_body);
-        update_status(curr_percent, failed_to_create_str + error_msg);
-        BOOST_LOG_TRIVIAL(trace) << "print_job: request project id failed error_msg=" << error_msg.ToStdString();
-        return;
-    }
-
-    if (res == 0 && !profile->profile_id.empty() && !profile->upload_ticket.empty() && !profile->upload_url.empty()) {
-        BOOST_LOG_TRIVIAL(trace) << "print_job: get profile id = " << profile->profile_id;
-    } else {
-        wxString error_msg = wxString::Format(_devL("\nreq_pro,err:code=%u,msg=%s"), http_code, http_body);
-        update_status(curr_percent, failed_to_create_str + error_msg);
-        BOOST_LOG_TRIVIAL(trace) << "print_job: request project id failed error_msg=" << error_msg.ToStdString();
-        return;
-    }
-
-    if (was_canceled()) {
-        update_status(curr_percent, printjob_cancel_str);
-        return;
-    }
-
-
-    msg = _L("Uploading the print job...");
-    curr_percent = 25;
-    update_status(curr_percent, msg);
-
-    wxString cancel_str = printjob_cancel_str;
-
-    /* upload and poll */
-    BOOST_LOG_TRIVIAL(trace) << "print_job: start to uploading...";
-    // check file size
-    if (!Http::check_file_size(project->project_path)) {
-        msg = _L("The size of the uploaded file cannot exceed 1 GB.");
-        update_status(curr_percent, msg);
-        return;
-    }
-
-    res = c->upload_3mf_to_oss(profile, http_code, http_body,
-        [this, curr_percent, cancel_str, &msg](Http::Progress progress, bool &cancel) {
-            int percent = 0;
-            if (progress.ultotal != 0) {
-                percent = progress.ulnow * 100 / progress.ultotal;
-            }
-            if (was_canceled()) {
-                cancel = true;
-                update_status(percent, cancel_str);
-                return;
-            }
-            if (progress.upload_spd > 0.01f) {
-                double left_time = (progress.ultotal - progress.ulnow) / progress.upload_spd;
-                msg = wxString::Format(L("Uploading %d%%, remaining time %s"), percent, get_bbl_remain_time_dhms(left_time));
-                BOOST_LOG_TRIVIAL(trace) << "print_job: uploading " << percent << ", remaining time " << get_bbl_remain_time_dhms(left_time);
-            }
-            percent = curr_percent + percent * 50 / 100;
-            update_status(percent, msg);
-        });
-
-    if (was_canceled()) {
-        update_status(curr_percent, printjob_cancel_str);
-        return;
-    }
-
-    if (res < 0) {
-        if (res == RET_MD5_CHECK_FAILED) {
-            wxString error_msg = _L(" Failed to upload the print job. Check Md5 failed, please try agian.");
-            update_status(curr_percent, error_msg);
-            BOOST_LOG_TRIVIAL(trace) << "print_job: uploading is failed, check md5 failed";
-        } else {
-            wxString error_msg = wxString::Format(L("\nupload,err:code=%u,msg=%s"), http_code, http_body);
-            update_status(curr_percent, failed_to_upload_str + error_msg);
-            BOOST_LOG_TRIVIAL(trace) << "print_job: uploading is failed";
-        }
-        return;
-    }
-
-    msg          = _L("Wait for the job to be sent.");
-    curr_percent = 80;
-    update_status(curr_percent, msg);
-
-    /* put notifications */
-    res = c->put_notification(profile, project->project_path.filename().string(), http_code, http_body);
-    if (res < 0) {
-        wxString error_msg = wxString::Format(_devL("\nput_no,err:code=%u,msg=%s"), http_code, http_body);
-        update_status(curr_percent, failed_to_upload_str + error_msg);
-        return;
-    }
-
-    /* get notifications */
-    bool cancel = false;
-    int  timeout = c->calc_get_notification_timeout(project->project_path);
-    res = c->get_notification(profile, http_code, http_body,
-        [this]() {
-            return was_canceled();
-        }, timeout);
-
-    if (res == RET_POLLING_TIMEOUT) {
-        update_status(curr_percent, timeout_to_upload_str);
-        return;
-    } else if (res == RET_POLLING_CANEL) {
-        update_status(curr_percent, printjob_cancel_str);
-        BOOST_LOG_TRIVIAL(trace) << "print_job: subtask is canceled when uploading...";
-        return;
-    } else if (res < 0) {
-        wxString error_msg = wxString::Format(_devL("\nget_no,err:code=%u,msg=%s"), http_code, http_body);
-        update_status(curr_percent, failed_to_upload_str + error_msg);
-        return;
-    }
-
-    curr_percent = 95;
-    msg = _L("The print job has been sent to your printer.");
-    update_status(curr_percent, msg);
-
-
-    /* post task */
     int curr_plate_idx = 0;
     if (job_data.plate_idx >= 0)
         curr_plate_idx = job_data.plate_idx + 1;
     else if (job_data.plate_idx == PLATE_CURRENT_IDX)
         curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
-    else {
-        msg = wxString::Format(L("Invalid plate index %d"), job_data.plate_idx);
-        update_status(curr_percent, msg);
+
+    BBL::AccountManager::PrintParams params;
+    params.dev_id = m_dev_id;
+    params.project_name = wxGetApp().plater()->get_project_name().ToUTF8().data();
+    params.preset_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
+    params.filename = job_data._3mf_path.string();
+    params.plate_index = curr_plate_idx;
+    params.task_bed_leveling    = this->task_bed_leveling;
+    params.task_flow_cali       = this->task_flow_cali;
+    params.task_vibration_cali  = this->task_vibration_cali;
+    params.task_layer_inspect   = this->task_layer_inspect;
+    params.task_record_timelapse= this->task_record_timelapse;
+    
+
+    result = acc->start_print(params,
+        //update function
+        [this, &msg, &curr_percent](int stage, int code, std::string info) {
+            if (stage == BBL::SendingPrintJobStage::PrintingStageCreate) {
+                curr_percent = 25;
+                msg = creating_stage_str;
+            } else if (stage == BBL::SendingPrintJobStage::PrintingStageUpload) {
+                curr_percent = 30;
+                if (code == 0) {
+                    msg = wxString::Format("%s %s", uploading_stage_str, info);
+                } else {
+                    msg = uploading_stage_str;
+                }
+            } else if (stage == BBL::SendingPrintJobStage::PrintingStageWaiting) {
+                curr_percent = 50;
+                msg = waiting_stage_str;
+            } else if (stage == BBL::SendingPrintJobStage::PrintingStageSending) {
+                curr_percent = 90;
+                msg = sending_stage_str;
+            } else if (stage == BBL::SendingPrintJobStage::PrintingStageFinished) {
+                curr_percent = 100;
+                msg = finish_stage_str;
+            }
+            update_status(curr_percent, msg);
+        },
+        //cancel function
+        [this]() {
+            return was_canceled();
+        }
+    );
+
+    if (was_canceled()) {
+        update_status(curr_percent, printjob_cancel_str);
         return;
     }
 
-    BBLSubTask* subTask = new BBLSubTask();
-
-    //BBS hide bed choice
-    //subTask->task_bed_type = this->task_bed_type;
-    subTask->task_bed_leveling      = this->task_bed_leveling;
-    subTask->task_flow_cali         = this->task_flow_cali;
-    subTask->task_vibration_cali    = this->task_vibration_cali;
-    subTask->task_record_timelapse  = this->task_record_timelapse;
-    subTask->task_layer_inspect     = this->task_layer_inspect;
-    subTask->task_gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (curr_plate_idx)).str();
-    subTask->task_partplate_idx = std::to_string(curr_plate_idx);
-    subTask->task_printer_dev_id = m_dev_id;
-    if (project->project_name.empty())
-        subTask->task_name = wxString::Format(L("Plate %d"), curr_plate_idx).ToUTF8().data();
-    else
-        subTask->task_name = wxString::Format(L("%s"), from_u8(project->project_name), curr_plate_idx).ToUTF8().data();
-
-    res = c->post_task(project, profile, subTask, http_code, http_body);
-    if (res < 0) {
-        wxString error_msg = wxString::Format(_devL("\npos_task,err:code=%u,msg=%s"), http_code, http_body);
-        update_status(curr_percent, failed_to_sending_str + error_msg);
-        return;
+    if (result < 0) {
+        update_status(curr_percent, failed_to_upload_str);
     } else {
-        curr_percent = 100;
-        msg = _L("Start printing...");
-        update_status(curr_percent, msg);
+        wxCommandEvent* evt = new wxCommandEvent(m_print_job_completed_id);
+        evt->SetString(m_dev_id);
+        wxQueueEvent(m_plater, evt);
+        m_job_finished = true;
     }
-    wxCommandEvent *evt = new wxCommandEvent(m_print_job_completed_id);
-    evt->SetString(m_dev_id);
-    wxQueueEvent(m_plater, evt);
-    m_job_finished = true;
 }
 
 void PrintJob::finalize() {

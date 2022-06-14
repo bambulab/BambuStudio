@@ -167,7 +167,7 @@ class Plater: public wxPanel
 public:
     using fs_path = boost::filesystem::path;
 
-    Plater(wxWindow *parent, MainFrame *main_frame, AccountManager* acc);
+    Plater(wxWindow *parent, MainFrame *main_frame, BBL::AccountManager* acc);
     Plater(Plater &&) = delete;
     Plater(const Plater &) = delete;
     Plater &operator=(Plater &&) = delete;

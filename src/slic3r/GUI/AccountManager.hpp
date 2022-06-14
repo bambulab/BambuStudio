@@ -1,18 +1,19 @@
-#ifndef slic3r_AccountManager_hpp_
-#define slic3r_AccountManager_hpp_
+#ifndef __BBL_AccountManager_hpp__
+#define __BBL_AccountManager_hpp__
 
 #include <map>
 #include <vector>
 #include <string>
 #include <memory>
 #include "mqtt/async_client.h"
-#include "libslic3r/ProjectTask.hpp"
+#include "SsdpDiscovery.hpp"
+#include "NetworkProjectTask.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "nlohmann/json.hpp"
 
 using namespace nlohmann;
 
-#define BBL_CHECK_USER_REPORT
+//#define BBL_CHECK_USER_REPORT
 
 #define MY_MODEL_PUBLISH_URL_FORMAT     "/my/models/%1%/publish?project_id=%2%&profile_id=%3%&design_id="
 #define MY_PROFILE_PUBLISH_URL_FORMAT   "/my/profiles/%1%/publish?project_id=%2%&design_id=%3%"
@@ -26,17 +27,39 @@ using namespace nlohmann;
 
 #define MSG_SUCCESS                     "success"
 
-#define RET_POLLING_CANEL               -2
-#define RET_POLLING_TIMEOUT             -3
+#define RET_ERR_CANCEL                  -2
+#define RET_ERR_TIMEOUT                 -3
 #define RET_MD5_CHECK_FAILED            -4
+#define RET_ERR_OVERSIZE                -5
 
 #define AGENT_CONFIG_FILE               "BambuNetworkEngine.conf"
 #define TOKEN_MIN_EXPIRES_IN            30
 
+#define LOCAL_COMMU_PORT        3000
+#define DEBUG_COMMU_PORT        5000
+
 namespace pt = boost::property_tree;
 
 
-namespace Slic3r {
+namespace BBL {
+
+enum SendingPrintJobStage {
+    PrintingStageCreate     = 0,
+    PrintingStageUpload     = 1,
+    PrintingStageWaiting    = 2,
+    PrintingStageSending    = 3,
+    PrintingStageFinished   = 4,
+};
+
+enum BindJobStage {
+    LoginStageConnect           = 0,
+    LoginStageLogin             = 1,
+    LoginStageWaitForLogin      = 2,
+    LoginStageGetIdentify       = 3,
+    LoginStageWaitAuth          = 4,
+    LoginStageFinished          = 5,
+};
+
 
 class RegionServer
 {
@@ -99,6 +122,49 @@ public:
 
     void add_topics(std::string topic) { sub_topics.push_back(topic); }
 };
+
+
+
+class sub_action_listener : public virtual mqtt::iaction_listener
+{
+private:
+    std::string name_;
+
+    void on_failure(const mqtt::token& tok) override {
+        ;
+    }
+    void on_success(const mqtt::token& tok) override {
+        ;
+    }
+public:
+    sub_action_listener(const std::string& name) : name_(name) {}
+};
+
+class machine_conn_callback : public virtual mqtt::callback, public virtual mqtt::iaction_listener
+{
+private:
+    int nretry_;
+    mqtt::async_client& cli_;
+    mqtt::connect_options& connOpts_;
+    void* context_;
+    std::vector<std::string> sub_topics;
+
+    void connected(const std::string& cause) override;
+
+    void on_failure(const mqtt::token& tok) override;
+
+    void on_success(const mqtt::token& tok) override;
+
+    void connection_lost(const std::string& cause) override;
+
+    void message_arrived(mqtt::const_message_ptr msg) override;
+public:
+    machine_conn_callback(mqtt::async_client& cli, mqtt::connect_options& connOpts, void* context)
+        : nretry_(0), cli_(cli), connOpts_(connOpts), context_(context) {}
+
+    void add_topics(std::string topic) { sub_topics.push_back(topic); }
+};
+
 
 
 #define  VERSION_LEN    4
@@ -240,8 +306,9 @@ private:
     /* check valid of user or pwd */
     bool _check_valid(std::string user, std::string password);
 
-
     /* mqtt cloud client */
+    static inline int m_sequence_id = 50000;
+
     mqtt::async_client* mqtt_cli{ nullptr };
     cloud_conn_callback* mqtt_cb{ nullptr };
     mqtt::connect_options mqtt_opt;
@@ -251,6 +318,12 @@ private:
     std::map<std::string, bool> subscribe_module;
     void set_product_mqtt_opt();
     void set_engineering_mqtt_opt();
+
+    /* mqtt local client */
+    mqtt::async_client* mqtt_local_cli;
+    mqtt::connect_options mqtt_local_opt;
+    machine_conn_callback* mqtt_local_cb;
+
 
     int mqtt_uuid_bytes;
 public:
@@ -274,6 +347,8 @@ public:
     typedef std::function<void(unsigned http_code, std::string http_body)> OnHttpErrorFn;
     typedef std::function<std::string()>                GetCountryCodeFn;
     typedef std::function<void(std::string dev_id, std::string msg)> OnMessageFn;
+    typedef std::function<void(int status, int code, std::string msg)> OnUpdateStatusFn;
+    typedef std::function<bool()>                       WasCancelledFn;
 
     // ballbacks
     OnUserLoginFn           on_user_login_fn;
@@ -316,7 +391,7 @@ public:
     int load_user_info();
     int save_user_info();
 
-    /* mqtt apis */
+    /* cloud mqtt connections apis */
     mqtt::async_client* get_client() { return mqtt_cli; }
     bool is_mqtt_connected();
     int connect_mqtt(bool sync = false);
@@ -327,6 +402,11 @@ public:
 
     void set_monitor_machine(std::string dev_id);
     void load_last_machine();
+
+    /* local mqtt connections apis */
+    int local_connect_mqtt(std::string dev_id, std::string dev_ip);
+    int local_disconnect_mqtt();
+
 
     //control subscribe default machine
     void start_subscribe(std::string module = "");
@@ -348,10 +428,9 @@ public:
     int put_notification(BBLProfile* profile, std::string upload_filename, unsigned int &http_code, std::string &http_body);
 
     /* myBindList */
-    std::mutex listMutex;
-    std::vector<std::string> myBindMachineList;                 /* dev_id */
     std::string default_machine;                                /* default bind machine dev_id */
     std::string get_default_machine() { return default_machine; }
+    void set_default_machine(std::string dev_id);
 
     /* project struct */
     std::map<std::string, BBLProject*> myProjectList;
@@ -398,7 +477,9 @@ public:
     // get task info
     void get_task(BBLTask* &task);
     void get_subtask(BBLSubTask* &subtask);
+    void get_plate_index(std::string subtask_id, int &plate_index);
     void get_profile(BBLProject*& project, BBLProfile*& profile);
+    void get_slice_info(std::string project_id, std::string profile_id, int plate_index, std::string &slice_info_json);
 
     static void get_machine_last_report_url(std::string dev_id, std::string& last_url);
 
@@ -469,6 +550,31 @@ public:
     /* build webpage command */
     std::string build_login_cmd();
     std::string build_logout_cmd();
+
+    /* bind job */
+    int request_login_printer(std::string dev_ip, OnUpdateStatusFn update_fn);
+    std::string build_login_request();
+    int _parse_login_report(std::string json_str, std::string fail_reason);
+
+    /* print job*/
+    struct PrintParams {
+        std::string     dev_id;
+        std::string     task_name;
+        std::string     project_name;
+        std::string     preset_name;
+        std::string     filename;
+        int             plate_index;
+
+        /*user options */
+        bool            task_bed_leveling;      /* bed leveling of task */
+        bool            task_flow_cali;         /* flow calibration of task */
+        bool            task_vibration_cali;    /* vibration calibration of task */
+        bool            task_layer_inspect;     /* first layer inspection of task */
+        bool            task_record_timelapse;  /* record timelapse of task */
+
+    };
+    int start_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
+    
 };
 
 } // namespace Slic3r

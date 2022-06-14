@@ -11,6 +11,11 @@ wxDEFINE_EVENT(EVT_BIND_UPDATE_MESSAGE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_BIND_MACHINE_SUCCESS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_BIND_MACHINE_FAIL, wxCommandEvent);
 
+
+static wxString waiting_auth_str = _L("Waiting for login");
+static wxString login_failed_str = _L("Login failed");
+
+
 wxString get_login_fail_reason(std::string fail_reason)
 {
     if (fail_reason == "NO Regions")
@@ -27,8 +32,10 @@ wxString get_login_fail_reason(std::string fail_reason)
         return _L("Unknown Failure");
 }
 
-BindJob::BindJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id) : PlaterJob{std::move(pri), plater},
-    m_dev_id(dev_id)
+BindJob::BindJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id, std::string dev_ip)
+    : PlaterJob{std::move(pri), plater},
+    m_dev_id(dev_id),
+    m_dev_ip(dev_ip)
 {
     ;
 }
@@ -61,163 +68,51 @@ void BindJob::update_status(int st, const wxString &msg)
 void BindJob::process()
 {
     /* display info */
-    wxString msg = _L("begin to bind");
-    int curr_percent = 0;
+    wxString msg = waiting_auth_str;
+    int curr_percent = 5;
     update_status(curr_percent, msg);
 
-    int result = -1;
-    unsigned int http_code;
-    std::string http_body;
-    Slic3r::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
-    Slic3r::DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+    BBL::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
 
-    std::map<std::string, MachineObject *> list = dev_manager->get_all_machine_list();
-    std::map<std::string, MachineObject *>::iterator it   = list.find(m_dev_id);
-    if (it == list.end()) {
-        msg = wxString::Format("Can not find Printer SN = %s", m_dev_id);
-        update_status(curr_percent, msg);
-        post_event();
-        return;
-    }
-    MachineObject *obj = it->second;
-
-
-    curr_percent = 10;
-    update_status(curr_percent, "connecting printer");
-    result = obj->local_connect();
-    if (result < 0) {
-        BOOST_LOG_TRIVIAL(trace) << "login_bind: local connect failed!";
-        msg = wxString::Format("Connecting printer=%s(sn:%s), ip = %s failed!", obj->dev_name, m_dev_id, obj->dev_ip);
-        update_status(curr_percent, msg);
-        post_event();
-        return;
-    }
-
-
-    curr_percent = 20;
-    update_status(curr_percent, "sending login info");    
-    std::string login_request = obj->build_login_request();
-    result = obj->local_client->publish(login_request);
-    if (result < 0) {
-        BOOST_LOG_TRIVIAL(trace) << "login_bind: send login request failed, str = " << login_request;
-        obj->local_disconnect();
-        return;
-    }
-
-
-    curr_percent = 30;
-    update_status(curr_percent, "receiving login report");
-
-    std::string json_str;
-    std::string login_ticket;
-    bool        timeout    = false;
-    int         recv_count = 0;
-    while (!timeout) {
-        result = obj->local_client->recv(json_str);
-        if (!json_str.empty() && result >= 0) {
-            try {
-                BOOST_LOG_TRIVIAL(trace) << "login_bind: json_str = " << json_str;
-                json j = json::parse(json_str);
-                if (j.contains("login") && !j["login"].is_null()) {
-                    if (j["login"]["command"].get<std::string>() == "login_report") {
-                        std::string status;
-                        if (j["login"].contains("status"))
-                            status = j["login"]["status"].get<std::string>();
-                        if (j["login"].contains("ticket"))
-                            login_ticket = j["login"]["ticket"].get<std::string>();
-                        if (status.compare("wait_auth") == 0 && !login_ticket.empty()) {
-                            break;
-                        }
-                    }
-                }
-            } catch (...) {
-                ;
+    int result = acc->request_login_printer(m_dev_ip,
+        [this, &curr_percent, &msg](int stage, int code, std::string info) {
+            if (stage == BBL::BindJobStage::LoginStageConnect) {
+                curr_percent = 15;
+                msg = waiting_auth_str;
+            } else if (stage == BBL::BindJobStage::LoginStageLogin) {
+                curr_percent = 30;
+                msg = waiting_auth_str;
+            } else if (stage == BBL::BindJobStage::LoginStageWaitForLogin) {
+                curr_percent = 45;
+                msg = waiting_auth_str;
+            } else if (stage == BBL::BindJobStage::LoginStageGetIdentify) {
+                curr_percent = 60;
+                msg = waiting_auth_str;
+            } else if (stage == BBL::BindJobStage::LoginStageWaitAuth) {
+                curr_percent = 80;
+                msg = waiting_auth_str;
+            } else if (stage == BBL::BindJobStage::LoginStageFinished) {
+                curr_percent = 100;
+                msg = waiting_auth_str;
             }
-        }
-        recv_count++;
-        if (recv_count > 10) {
-            timeout = true;
-        }
-    }
-
-    if (timeout || login_ticket.empty()) {
-        BOOST_LOG_TRIVIAL(trace) << "login_bind: timeout to get ticket";
-        update_status(curr_percent, "get ticket failed");
-        post_event();
-        obj->local_disconnect();
-        return;
-    }
-
-    curr_percent = 40;
-    update_status(curr_percent, "ensure ticket");
-
-    result = acc->get_ticket(login_ticket, http_code, http_body);
-    if (result < 0) {
-        update_status(curr_percent, "get ticket api failed");
-        post_event();
-        BOOST_LOG_TRIVIAL(trace) << "login_bind: http_code = " << http_code << ", http_body = " << http_body;
-        obj->local_disconnect();
-        return;
-    }
-
-    result = acc->post_ticket(login_ticket, http_code, http_body);
-    if (result < 0) {
-        update_status(curr_percent, "post ticket failed");
-        post_event();
-        BOOST_LOG_TRIVIAL(trace) << "login_bind: http_code = " << http_code << ", http_body = " << http_body;
-        obj->local_disconnect();
-        return;
-    }
-
-
-    curr_percent = 60;
-    update_status(curr_percent, "wait for auth");
-    recv_count = 0;
-    while (!timeout) {
-        boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
-        result = obj->local_client->recv(json_str);
-        if (result >= 0) {
-            BOOST_LOG_TRIVIAL(trace) << "login_bind: json_str = " << json_str;
-            std::string fail_reason;
-            result = obj->_parse_login_report(json_str, fail_reason);
-            if (result < 0) {
-                wxString reason = get_login_fail_reason(fail_reason);
-                msg = wxString::Format("Bind Failed, reason = %s", reason);
-                update_status(curr_percent, msg);
-                post_event();
-                
-                BOOST_LOG_TRIVIAL(trace) << "login_bind: bind failed reason = " << fail_reason;
-                obj->local_disconnect();
-                return;
-            } else if (result == 0) {
-                break;
-            } else if (result == 1) {
-                ; // continue
+            if (code != 0) {
+                msg = wxString::Format("%s,code=%d,info=%s)", msg, code, info);
             }
+            update_status(curr_percent, msg);
         }
-        recv_count++;
-        if (recv_count > 20) { timeout = true; }
-    }
-    if (timeout) {
-        update_status(curr_percent, "timeout to received status");
-        BOOST_LOG_TRIVIAL(trace) << "login_bind: timeout to receive login_report";
-        obj->local_disconnect();
+    );
+
+    if (result < 0) {
         return;
     }
-
-    obj->local_disconnect();
-    curr_percent = 100;
 
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     dev->update_my_machine_list_info();
 
-    update_status(curr_percent, "Bind Success!");
     wxCommandEvent event(EVT_BIND_MACHINE_SUCCESS);
     event.SetEventObject(m_event_handle);
     wxPostEvent(m_event_handle, event);
-
     return;
-
 }
 
 void BindJob::finalize()

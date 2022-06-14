@@ -380,15 +380,15 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
 
     append_menu_item(accountMenu, wxID_ANY, _L("Login"), _L("Login with your Account"),
         [](wxCommandEvent&) { Slic3r::GUI::login(); }, "", nullptr, [this]() {
-            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+            BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
             return !account_manager->is_user_login();
         }, this);
     append_menu_item(accountMenu, wxID_ANY, _L("Logout"), _L("Logout"),
         [](wxCommandEvent&) {
-            Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
+            BBL::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
             account_manager->user_logout();
         }, "", nullptr, [this]() {
-            Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
+            BBL::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
             return account_manager->is_user_login();
         }, this);
     auto publish_model_and_profile = [this](wxCommandEvent&) {
@@ -405,7 +405,7 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
         bool publish_enable = part_plate_list.is_all_slice_results_ready_for_print();
         if (!publish_enable) return false;*/
 
-        Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
+        BBL::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
         return account_manager->can_publish();
     };
 
@@ -418,7 +418,7 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
         bool publish_enable = part_plate_list.is_all_slice_results_ready_for_print();
         if (!publish_enable) return false;*/
 
-        Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
+        BBL::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
         return account_manager->can_publish();
     };
 
@@ -438,7 +438,7 @@ void BBLTopbar::OnPublishClicked(wxAuiToolBarEvent& event)
 {
     if (GUI::wxGetApp().plater()->model().objects.empty()) return;
 
-    Slic3r::AccountManager *account_manager = GUI::wxGetApp().getAccountManager();
+    BBL::AccountManager *account_manager = GUI::wxGetApp().getAccountManager();
     if (!account_manager->can_publish()) return;
 
     wxGetApp().plater()->show_publish_dialog();

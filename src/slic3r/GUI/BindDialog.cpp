@@ -92,19 +92,19 @@ BindDialog::~BindDialog() {
 
 void BindDialog::on_start_ssdp(wxCommandEvent &event)
 {
-    CommuBackend *backend = wxGetApp().getCommuBackend();
-    if (backend) {
-        backend->start();
-        backend->set_ssdp_discovery(true);
+    BBL::SsdpDiscovery *ssdp = wxGetApp().getSsdpDiscovery();
+    if (ssdp) {
+        ssdp->start();
+        ssdp->set_ssdp_discovery(true);
     }
 }
 
 void BindDialog::on_stop_ssdp(wxCommandEvent &event)
 {
-    CommuBackend *backend = wxGetApp().getCommuBackend();
-    if (backend) {
-        backend->set_ssdp_discovery(false);
-        backend->stop();
+    BBL::SsdpDiscovery * ssdp = wxGetApp().getSsdpDiscovery();
+    if (ssdp) {
+        ssdp->set_ssdp_discovery(false);
+        ssdp->stop();
     }
 }
 
@@ -112,11 +112,13 @@ void BindDialog::on_bind_printer(wxCommandEvent &event)
 {
     int select = cb_machine_sn->GetSelection();
     std::string sn_str = printer_list_item[select].ToStdString();
+
     DeviceManager *dev_manager = wxGetApp().getDeviceManager();
     std::map<std::string, MachineObject*> list = dev_manager->get_all_machine_list();
     std::map<std::string, MachineObject *>::iterator it = list.find(sn_str);
+
     if (it != list.end()) {
-        m_bind_job = std::make_shared<BindJob>(m_status_bar, wxGetApp().plater(), it->second->dev_id);
+        m_bind_job = std::make_shared<BindJob>(m_status_bar, wxGetApp().plater(), it->second->dev_id, it->second->dev_ip);
         m_bind_job->start();
     }
 }
@@ -187,7 +189,7 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
      wxBoxSizer *m_sizer_right_h = new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer *m_sizer_right_v = new wxBoxSizer(wxVERTICAL);
 
-     Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
+     BBL::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
      m_user_name->SetLabelText(c->get_curr_user()->m_name);
     /* if (c->is_user_login()) {
          
@@ -357,11 +359,8 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
      //check dev_id
      if (m_machine_info->dev_id.empty()) return;
 
-     //check own
-     //if (!m_machine_info->bind_user_id.empty()) return;
-
      m_simplebook->SetSelection(0);
-     m_bind_job = std::make_shared<BindJob>(m_status_bar, wxGetApp().plater(), m_machine_info->dev_id);
+     m_bind_job = std::make_shared<BindJob>(m_status_bar, wxGetApp().plater(), m_machine_info->dev_id, m_machine_info->dev_ip);
      m_bind_job->set_event_handle(this);
      m_bind_job->start();
  }
@@ -427,7 +426,7 @@ UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
      wxBoxSizer *m_sizer_right_h = new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer *m_sizer_right_v = new wxBoxSizer(wxVERTICAL);
 
-     Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
+     BBL::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
      m_user_name->SetLabelText(c->get_curr_user()->m_name);
     /* if (c->is_user_login()) {
          
@@ -543,7 +542,7 @@ void UnBindMachineDilaog::on_cancel(wxCommandEvent &event)
 
 void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event) 
 {
-    Slic3r::AccountManager *account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::AccountManager *account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     if (!account_manager->is_user_login()) {
         m_status_text->SetLabelText(_L("Please log in first."));
         return;
@@ -555,8 +554,7 @@ void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event)
         return;
     }
 
-    m_machine_info->request_unbind([this](int result, std::string body) {
-       
+    account_manager->request_unbind(m_machine_info->dev_id, [this](int result, std::string body) {
         if (result == 0) {
             DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
             dev->update_my_machine_list_info();

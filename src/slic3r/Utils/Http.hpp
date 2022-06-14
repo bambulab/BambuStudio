@@ -1,5 +1,5 @@
-#ifndef slic3r_Http_hpp_
-#define slic3r_Http_hpp_
+#ifndef __Http_hpp__
+#define __Http_hpp__
 
 #include <memory>
 #include <string>
@@ -8,7 +8,7 @@
 
 #define MAX_SIZE_TO_FILE    3*1024
 
-namespace Slic3r {
+namespace BBL {
 
 
 /// Represetns a Http request

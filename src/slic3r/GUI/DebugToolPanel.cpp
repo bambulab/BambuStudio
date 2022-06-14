@@ -208,7 +208,8 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_panel_run_3mf->SetSizer( bSizer13 );
 	m_panel_run_3mf->Layout();
 	bSizer13->Fit( m_panel_run_3mf );
-	m_notebook1->AddPage( m_panel_run_3mf, _L("Run Slice  3mf"), false );
+	m_panel_run_3mf->Hide();
+	//m_notebook1->AddPage( m_panel_run_3mf, _L("Run Slice  3mf"), false );
 	m_panel_run_gcode = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer131;
 	bSizer131 = new wxBoxSizer( wxHORIZONTAL );

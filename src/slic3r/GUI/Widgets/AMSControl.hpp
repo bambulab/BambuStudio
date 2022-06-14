@@ -6,6 +6,7 @@
 #include "StepCtrl.hpp"
 #include "Button.hpp"
 #include "../DeviceManager.hpp"
+#include "slic3r/GUI/Event.hpp"
 #include <wx/simplebook.h>
 #include <wx/hyperlink.h>
 #include <wx/animate.h>

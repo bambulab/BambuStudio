@@ -259,7 +259,7 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
 
 void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
 {
-    Slic3r::AccountManager *account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::AccountManager *account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
 
     // BBS check user login status
     if (!account_manager->is_user_login()) {
@@ -279,8 +279,6 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
 
 void MonitorPanel::on_size(wxSizeEvent &event)
 {
-    // limit size
-    if (!wxGetApp().mainframe) return;
     Layout();
     Refresh();
 }
@@ -328,7 +326,7 @@ void MonitorPanel::on_size(wxSizeEvent &event)
 
 void MonitorPanel::update_all()
 {
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
 
     //BBS check user login status
@@ -354,6 +352,8 @@ void MonitorPanel::update_all()
     m_status_info_panel->m_media_play_ctrl->SetMachineObject(IsShown() ? obj : nullptr);
     //m_media_file_panel->SetMachineObject(obj);
 
+    update_status(obj);
+
     if (!obj) {
         show_status((int)MONITOR_NO_PRINTER);
         return;
@@ -366,8 +366,7 @@ void MonitorPanel::update_all()
     }
 
     show_status(MONITOR_NORMAL);
-
-    update_status(obj);
+    
 
     if (m_status_info_panel->IsShown()) {
         m_status_info_panel->update(obj);
@@ -390,25 +389,27 @@ bool MonitorPanel::Show(bool show)
     wxGetApp().mainframe->SetMinSize(wxGetApp().plater()->GetMinSize());
 #endif
     
-    Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::AccountManager *acc = Slic3r::GUI::wxGetApp().getAccountManager();
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (show) {
         m_refresh_timer->Stop();
         m_refresh_timer->SetOwner(this);
         m_refresh_timer->Start(REFRESH_INTERVAL);
         wxPostEvent(this, wxTimerEvent());
-        if (c)
-            c->start_subscribe("monitor");
 
         //set a default machine when obj is null
-        if (obj == nullptr && c) {
-            c->load_last_machine();
+        if (obj == nullptr && dev) {
+            dev->load_last_machine();
         }
+
+        if (acc)
+            acc->start_subscribe("monitor");
     }
     else {
         m_refresh_timer->Stop();
         m_status_info_panel->m_media_play_ctrl->SetMachineObject(nullptr);
-        if (c)
-            c->stop_subscribe("monitor");
+        if (acc)
+            acc->stop_subscribe("monitor");
     }
     return wxPanel::Show(show);
 }

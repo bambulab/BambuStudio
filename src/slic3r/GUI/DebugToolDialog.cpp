@@ -58,8 +58,15 @@ namespace pt = boost::property_tree;
 typedef pt::ptree JSON;
 
 
+
 namespace Slic3r {
 namespace GUI {
+
+static wxString creating_stage_str = _L("Creating");
+static wxString uploading_stage_str = _L("Uploading");
+static wxString waiting_stage_str = _L("Waiting");
+static wxString sending_stage_str = _L("Sending");
+static wxString finish_stage_str = _L("Finished");
 
 void GcodePrintJob::prepare()
 {
@@ -79,7 +86,7 @@ void GcodePrintJob::on_exception(const std::exception_ptr &eptr)
 void GcodePrintJob::process()
 {
     /* print current gcode */
-    Slic3r::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
 
 #ifdef BBL_CHECK_USER_REPORT
     int task_id = 0;
@@ -126,131 +133,50 @@ void GcodePrintJob::process()
         update_status(curr_percent, "create 3mf failed!");
         return;
     }
-    curr_percent = 5;
-    BBLProject* project = new BBLProject("gcode_project");
-    project->project_3mf_file = _3mf_file_str;
-    project->project_path = fs::path(project->project_3mf_file);
 
-    if (!fs::exists(project->project_path)) {
-        update_status(curr_percent, "prepare 3mf failed!");
-        return;
-    }
+    BBL::AccountManager::PrintParams params;
+    params.project_name = "gcode_project";
+    params.filename = _3mf_file_str;
+    params.plate_index = 1;
+    params.preset_name = "gcode_profile";
+    params.dev_id = m_obj->dev_id;
+    params.task_name = gcode_path.filename().string();
 
-    BBLProfile *profile   = new BBLProfile(project);
-    profile->profile_name = "gcode_profile";
 
-    /* request project id */
-    BOOST_LOG_TRIVIAL(trace) << "gcode_print_job: request project id";
-    res = acc->request_project_profile_id(project, profile, http_code, http_body);
-    if (res == 0 && !project->project_id.empty()) {
-        curr_percent = 10;
-        update_status(curr_percent, "request project id ok!");
-    } else {
-        wxString error_msg = wxString::Format(_L("req_project,err:code=%u,msg=%s"), http_code, http_body);
-        update_status(curr_percent, error_msg);
-        BOOST_LOG_TRIVIAL(trace) << "gcode_print_job: request project id failed! error_msg=" << error_msg.ToStdString();
-        return;
-    }
-
-    if (res == 0 && !profile->profile_id.empty()
-        && !profile->upload_ticket.empty()
-        && !profile->upload_url.empty()) {
-        update_status(curr_percent, "request profile id ok!");
-    }
-    else {
-        wxString error_msg = wxString::Format(_L("req_profile,err:code=%u,msg=%s"), http_code, http_body);
-        update_status(curr_percent, error_msg);
-        BOOST_LOG_TRIVIAL(trace) << "gcode_print_job: request profile id failed! error_msg=" << error_msg.ToStdString();
-        return;
-    }
-
-    /* upload and poll */
-    BOOST_LOG_TRIVIAL(trace) << "print_job: start to uploading...";
-    res = acc->upload_3mf_to_oss(profile, http_code, http_body,
-        [this](Http::Progress progress, bool &cancel) {
-            int percent = 0;
-            if (was_canceled()) {
-                cancel = true;
-                return;
+    res = acc->start_print(params,
+        [this, &curr_percent, &msg](int stage, int code, std::string info) {
+            if (stage == BBL::SendingPrintJobStage::PrintingStageCreate) {
+                curr_percent = 25;
+                msg = creating_stage_str;
             }
-            if (progress.ultotal != 0) {
-                percent = progress.ulnow / progress.ultotal;
+            else if (stage == BBL::SendingPrintJobStage::PrintingStageUpload) {
+                curr_percent = 30;
+                if (code == 0) {
+                    msg = wxString::Format("%s %s", uploading_stage_str, info);
+                }
+                else {
+                    msg = uploading_stage_str;
+                }
             }
-            percent = 10 + percent * 70 / 100;
-            update_status(percent, "3mf uploading...");
-        });
-
-    if (was_canceled()) {
-        update_status(curr_percent, "canceled");
-        return;
-    }
-
-    if (res < 0) {
-        wxString error_msg = wxString::Format(_L("upload,err:code=%u,msg=%s"), http_code, http_body);
-        update_status(curr_percent, error_msg);
-        BOOST_LOG_TRIVIAL(trace) << "gcode_print_job: upload 3mf failed! error_msg=" << error_msg.ToStdString();
-        return;
-    }
-
-    curr_percent = 85;
-    msg = "put notification";
-    update_status(curr_percent, msg);
-    /* put notifications */
-    acc->put_notification(profile, project->project_path.filename().string(), http_code, http_body);
-    if (res < 0) {
-        wxString msg = wxString::Format(_L("Service Error: code=%u, error=%s"), http_code, http_body);
-        update_status(curr_percent, msg);
-        return;
-    }
-
-    /* get notifications */
-    bool cancel = false;
-    res = acc->get_notification(profile, http_code, http_body,
+            else if (stage == BBL::SendingPrintJobStage::PrintingStageWaiting) {
+                curr_percent = 50;
+                msg = waiting_stage_str;
+            }
+            else if (stage == BBL::SendingPrintJobStage::PrintingStageSending) {
+                curr_percent = 90;
+                msg = sending_stage_str;
+            }
+            else if (stage == BBL::SendingPrintJobStage::PrintingStageFinished) {
+                curr_percent = 100;
+                msg = finish_stage_str;
+            }
+            update_status(curr_percent, msg);
+        },
         [this]() {
             return was_canceled();
         }
     );
 
-    if (res == RET_POLLING_TIMEOUT) {
-        msg = "Uploading printing task timed out. Please try again!";
-        update_status(curr_percent, msg);
-        return;
-    }
-    else if (res == RET_POLLING_CANEL) {
-        msg = "print project cancelled!";
-        update_status(curr_percent, msg);
-        BOOST_LOG_TRIVIAL(trace) << "print_job: subtask is canceled when uploading...";
-        return;
-    }
-    else if (res < 0) {
-        wxString error_msg = wxString::Format(_devL("get_no,err:code=%u,msg=%s"), http_code, http_body);
-        update_status(curr_percent, error_msg);
-        return;
-    }
-
-
-    /* post task */
-    BBLSubTask* subTask = new BBLSubTask();
-    subTask->task_path = _3mf_path;
-    subTask->task_name = gcode_path.filename().string();
-    subTask->task_gcode_in_3mf = dst_gcode_file_str;
-    subTask->task_partplate_idx = "1";
-    subTask->task_printer_dev_id = m_obj->dev_id;
-
-    if (project->project_name.empty())
-        subTask->task_name = wxString::Format(_L("Plate 1")).ToUTF8().data();
-    else
-        subTask->task_name = wxString::Format(_L("%s (Plate %d)"), from_u8(project->project_name), 1).ToUTF8().data();
-
-    res = acc->post_task(project, profile, subTask, http_code, http_body);
-    if (res < 0) {
-        wxString error_msg = wxString::Format(_L("pos_task,err:code=%u,msg=%s"), http_code, http_body);
-        update_status(curr_percent, _L("Failed to send printing task.") + error_msg);
-        return;
-    } else {
-        curr_percent = 100;
-        update_status(curr_percent, "send task ok!");
-    }
 }
 
 void GcodePrintJob::finalize() {
@@ -561,33 +487,6 @@ void DebugToolDialog::init()
 
     btn_bind->Hide();
     btn_unbind->Hide();
-
-    btn_unbind->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-            if (!account_manager->is_user_login()) {
-                std::string log = "Please login first!";
-                this->send_log_evt(log);
-            }
-
-            MachineObject* obj = dev_manager_.get_default();
-            if (!obj) {
-                this->send_log_evt("Invalid Printer! Please Select a Printer!");
-                return;
-            }
-
-            obj->request_unbind(
-            [this, obj](int result, std::string body) {
-                if (result == 0) {
-                    std::string log = "Unbind device=" + obj->dev_id + " ok!";
-                    send_log_evt(log);
-                    this->refresh_device_list();
-                }
-                else {
-                    std::string log = "Unbind device=" + obj->dev_id + " failed!";
-                    send_log_evt(log);
-                }
-            });
-        });
     btn_connect->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         MachineObject* obj = dev_manager_.get_default();
         if (!obj) {
@@ -639,7 +538,7 @@ void DebugToolDialog::init()
 
     btn_refresh_my_device->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
             cb_my_device_list->Disable();
-            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+            BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
             account_manager->request_bind_list(
                 [this](int result, std::string info) {
                     if (result == 0) {
@@ -750,105 +649,6 @@ void DebugToolDialog::init()
     cb_upgrade_firmware->SetEditable(false);
     cb_upgrade_mode->SetEditable(false);
 
-    btn_run_3mf->Bind(wxEVT_BUTTON,
-        [this](wxCommandEvent& evt) {
-            if (radio_btn_lan->GetValue()) {
-
-                if (_3mf_uploading) {
-                    this->send_log_evt("3mf is uploading...");
-                    return;
-                }
-                this->_3mf_uploading = true;
-                /* collection summary info */
-                wxString path = txt_3mf_filename->GetValue();
-
-                /* create a subtask */
-                BBLSubTask* task = new BBLSubTask();
-                task->task_file = txt_3mf_filename->GetValue().ToUTF8().data();
-                task->task_gcode_in_3mf = "Metadata/plate_1.gcode";
-                boost::filesystem::path dest_file(task->task_file);
-                task->task_url = "file:///data/" + dest_file.filename().string();
-
-                /* send print task */
-                MachineObject* obj = dev_manager_.get_default();
-                if (!obj) {
-                    this->send_log_evt("Invalid Printer! Please Select a Printer!");
-                    _3mf_uploading = false;
-                    return;
-                }
-
-                obj->send_print_subtask(task,
-                    [this]() {
-                        auto evt = new wxCommandEvent(EVT_WLAN_3MF_PROGRESS, this->GetId());
-                        evt->SetInt(100);
-                        _3mf_uploading = false;
-                        wxQueueEvent(this, evt);
-                    },
-                    [this](int progress) {
-                        auto evt = new wxCommandEvent(EVT_WLAN_3MF_PROGRESS, this->GetId());
-                        evt->SetInt(progress);
-                        wxQueueEvent(this, evt);
-                    },
-                    [this](std::string error) {
-                    _3mf_uploading = false;
-                    BOOST_LOG_TRIVIAL(trace) << "transform 3mf error=" << error;
-                    send_log_evt("trasform 3mf failed, error=" + error);
-                    });
-            }
-            else {
-                /* print current 3mf */
-                Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-
-                std::string gcode_file_str = txt_3mf_filename->GetValue().ToUTF8().data();
-                fs::path gcode_path(gcode_file_str);
-                fs::path _3mf_path(gcode_path);
-
-                std::string dst_gcode_file_str = gcode_path.filename().string();
-
-                /* zip gcode to 3mf */
-                std::string _3mf_file_str = _3mf_path.replace_extension("3mf").string();
-                mz_zip_archive archive;
-                mz_zip_zero_struct(&archive);
-                if (!open_zip_writer(&archive, _3mf_file_str)) {
-                    BOOST_LOG_TRIVIAL(trace) << "Unable to open the file";
-                    return;
-                }
-                mz_zip_writer_add_file(&archive, dst_gcode_file_str.c_str(), gcode_file_str.c_str(), "", 0, MZ_DEFAULT_LEVEL);
-                mz_zip_writer_finalize_archive(&archive);
-                close_zip_writer(&archive);
-
-                /* create subtask info */
-                BBLSubTask* subtask = new BBLSubTask();
-                subtask->task_id = "0";
-                subtask->task_path = _3mf_path;
-                subtask->task_name = gcode_path.filename().string();
-                subtask->task_gcode_in_3mf = gcode_path.filename().string();
-
-                /* send task */
-                DeviceManager* dev = wxGetApp().getDeviceManager();
-                MachineObject* obj = dev->get_default_machine();
-                if (obj) {
-                    obj->send_wan_print_subtask(subtask,
-                        [this, _3mf_file_str]() {
-                            auto evt = new wxCommandEvent(EVT_WLAN_3MF_PROGRESS, this->GetId());
-                            evt->SetInt(100);
-                            wxQueueEvent(this, evt);
-                            boost::filesystem::remove(_3mf_file_str);
-                        },
-                        [this](int progress) {
-                            auto evt = new wxCommandEvent(EVT_WLAN_3MF_PROGRESS, this->GetId());
-                            evt->SetInt(progress);
-                            wxQueueEvent(this, evt);
-                        },
-                            [this, _3mf_file_str](std::string info) {
-                            boost::filesystem::remove(_3mf_file_str);
-                            this->send_log_evt(info);
-                        }
-                        );
-                }
-            }
-        });
-
     btn_run_gcode->Bind(wxEVT_BUTTON,
         [this](wxCommandEvent& evt) {
             Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -870,26 +670,6 @@ void DebugToolDialog::init()
         txt_gcode_filename->SetValue(this->selectGcodeDialog->GetPath());
         this->SetFocus();
         });
-
-    btn_3mf_abort_print->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            pt::ptree root, print;
-            print.put("command", "stop");
-            print.put("param", "");
-            print.put("sequence_id", this->m_sequence_id++);
-            root.put_child("print", print);
-            std::stringstream oss;
-            pt::write_json(oss, root, false);
-            std::string json_str = oss.str();
-
-            int result = this->publish_json(json_str);
-            if (result != 0) {
-                this->log_info("publish_json failed");
-            } else {
-                auto et = new wxCommandEvent(EVT_PRINT_FINISH, this->GetId());
-                et->SetInt(0);
-                wxQueueEvent(this, et);
-            }
-        });
     
     btn_abort_print->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
             json j;
@@ -904,21 +684,6 @@ void DebugToolDialog::init()
                 auto et = new wxCommandEvent(EVT_PRINT_FINISH, this->GetId());
                 et->SetInt(0);
                 wxQueueEvent(this, et);
-            }
-        });
-    
-    btn_3mf_pause->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            pt::ptree root, print;
-            json j;
-            j["print"]["command"] = "pause";
-            j["print"]["param"] = "";
-            j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-
-            int result = this->publish_json(j.dump());
-            if (result != 0) {
-                this->log_info("publish_json failed");
-            } else {
-                this->send_log_evt("Pause Printing...");
             }
         });
 
@@ -937,24 +702,6 @@ void DebugToolDialog::init()
                 this->log_info("publish_json failed");
             } else {
                 this->send_log_evt("Pause Printing...");
-            }
-        });
-    
-    btn_3mf_resume->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            pt::ptree root, print;
-            print.put("command", "resume");
-            print.put("param", "");
-            print.put("sequence_id", this->m_sequence_id++);
-            root.put_child("print", print);
-            std::stringstream oss;
-            pt::write_json(oss, root, false);
-            std::string json_str = oss.str();
-
-            int result = this->publish_json(json_str);
-            if (result != 0) {
-                this->log_info("publish_json failed");
-            } else {
-                this->send_log_evt("Resume Printing...");
             }
         });
 
@@ -1331,7 +1078,6 @@ void DebugToolDialog::init_bind_handler()
         this->label_3mf_progress->SetLabelText(text);
         });
 
-    Bind(wxEVT_TIMER, &DebugToolDialog::on_timer, this);
     Bind(EVT_UPDATE_LIST, &DebugToolDialog::on_update_list, this);
     Bind(EVT_REFRESH_LIST, &DebugToolDialog::on_update_list, this);
     Bind(EVT_UPDATE_MYBIND_LIST, &DebugToolDialog::on_update_mybind_list, this);
@@ -1370,7 +1116,7 @@ void DebugToolDialog::on_update_list(SimpleEvent& evt)
     }
 
     /* dislay list */
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     std::string username = account_manager->get_user_name();
 
     if (!account_manager->is_user_login()) {
@@ -1416,7 +1162,7 @@ void DebugToolDialog::on_update_list(SimpleEvent& evt)
 
 void DebugToolDialog::on_update_mybind_list(SimpleEvent& evt)
 {
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     int select = -1;
     std::string last_my_bind_dev_id;
     if (last_wlan_device_selection < mybind_machine_list_items.size()) {
@@ -1454,7 +1200,7 @@ void DebugToolDialog::on_mqtt_failed(wxCommandEvent& evt)
     btn_refresh_device_list->Enable();
     cb_device_list->Enable();
     radio_btn_lan->SetValue(true);
-    CommuBackend* backend = wxGetApp().getCommuBackend();
+    BBL::SsdpDiscovery* backend = wxGetApp().getSsdpDiscovery();
     backend->set_ssdp_discovery(true);
 }
 
@@ -1467,7 +1213,7 @@ void DebugToolDialog::on_mqtt_lost(wxCommandEvent& evt)
     btn_refresh_device_list->Enable();
     cb_device_list->Enable();
     radio_btn_lan->SetValue(true);
-    CommuBackend* backend = wxGetApp().getCommuBackend();
+    BBL::SsdpDiscovery* backend = wxGetApp().getSsdpDiscovery();
     backend->set_ssdp_discovery(true);
 }
 
@@ -1478,7 +1224,7 @@ void DebugToolDialog::on_mqtt_connected(wxCommandEvent& evt)
     btn_refresh_device_list->Disable();
     cb_device_list->Disable();
     radio_btn_lan->SetValue(true);
-    CommuBackend* backend = wxGetApp().getCommuBackend();
+    BBL::SsdpDiscovery* backend = wxGetApp().getSsdpDiscovery();
     backend->set_ssdp_discovery(false);
 }
 
@@ -1489,7 +1235,7 @@ void DebugToolDialog::on_mqtt_disconnected(wxCommandEvent& evt)
     btn_refresh_device_list->Enable();
     cb_device_list->Enable();
     radio_btn_lan->SetValue(true);
-    CommuBackend* backend = wxGetApp().getCommuBackend();
+    BBL::SsdpDiscovery* backend = wxGetApp().getSsdpDiscovery();
     backend->set_ssdp_discovery(true);
 }
 
@@ -1593,8 +1339,8 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
 
 bool DebugToolDialog::Show(bool show)
 {
-    CommuBackend* backend = wxGetApp().getCommuBackend();
-    Slic3r::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::SsdpDiscovery* backend = wxGetApp().getSsdpDiscovery();
+    BBL::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
     if (show) {
         if (backend) {
             backend->start();
@@ -1626,7 +1372,7 @@ bool DebugToolDialog::Show(bool show)
 
 int DebugToolDialog::publish_json(std::string json_str)
 {
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     /* lan send json */
     if (radio_btn_lan->GetValue()) {
         std::string user_name = account_manager->get_user_name();
@@ -2068,7 +1814,7 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
 
 void DebugToolDialog::refresh_device_list()
 {
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     if (!account_manager->is_user_login()) {
         wxQueueEvent(this, new SimpleEvent(EVT_UPDATE_LIST));
         return;
@@ -2119,7 +1865,7 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
 
     int server_sel = m_radioBox_server->GetSelection();
     if (server_sel == 1) {
-        Slic3r::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
+        BBL::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
         if (!obj) {
             this->send_log_evt("Please Select a printer");
             return;
@@ -2200,7 +1946,7 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
                             % upgrade_mode_name[upgrade_mode]
                             % hardware_version
                             % obj->get_firmware_type_str()).str();
-        Http http = Http::get(url);
+        BBL::Http http = BBL::Http::get(url);
         http.auth_basic("slicer", "znFx94AAew8VVHv");
         http.on_complete([this](std::string body, unsigned) {
             try{
@@ -2257,7 +2003,7 @@ int DebugToolDialog::log_info(std::string line)
 
 int DebugToolDialog::publishGcode(std::string gcode)
 {
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     if (radio_btn_lan->GetValue()) {
         int result = 0;
         // can not publish gcode when logout
@@ -2265,7 +2011,7 @@ int DebugToolDialog::publishGcode(std::string gcode)
             this->log_info("Please login first!");
             return -1;
         }
-        Slic3r::AccountInfo *info = account_manager->get_curr_user();
+        BBL::AccountInfo *info = account_manager->get_curr_user();
         if (!info) {
             this->log_info("User info is invalid!");
             return -1;
@@ -2304,20 +2050,6 @@ int DebugToolDialog::publishGcode(std::string gcode)
         return obj->publish_gcode(gcode);
     }
     return 0;
-}
-
-void DebugToolDialog::on_timer(wxTimerEvent& event)
-{
-    //auto save custom_gcode
-    /*pt::ptree custom_gcode_root;
-    custom_gcode_root.put("custom_gcode_1", txt_custom_gcode1->GetValue().ToStdString());
-    custom_gcode_root.put("custom_gcode_2", txt_custom_gcode2->GetValue().ToStdString());
-    custom_gcode_root.put("custom_gcode_3", txt_custom_gcode3->GetValue().ToStdString());
-    custom_gcode_root.put("custom_gcode_4", txt_custom_gcode4->GetValue().ToStdString());
-    custom_gcode_root.put("custom_gcode_5", txt_custom_gcode5->GetValue().ToStdString());
-    custom_gcode_root.put("custom_gcode_6", txt_custom_gcode6->GetValue().ToStdString());
-    custom_gcode_root.put("custom_gcode_7", txt_custom_gcode7->GetValue().ToStdString());
-    pt::write_json("CustomGcode.json", custom_gcode_root);*/
 }
 
 void DebugToolDialog::on_select_device(wxCommandEvent& evt)
@@ -2360,7 +2092,7 @@ void DebugToolDialog::on_select_device(wxCommandEvent& evt)
 
 void DebugToolDialog::on_select_mybind_device(wxCommandEvent& evt)
 {
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     MachineObject* last_obj = dev_manager_.get_default_machine();
     if (last_obj) {
         last_obj->set_msg_recv_fn(nullptr);

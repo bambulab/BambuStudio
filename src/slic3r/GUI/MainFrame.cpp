@@ -2410,7 +2410,7 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
                     wxICON_INFORMATION);
 
     /* get setting list */
-    Slic3r::AccountManager* acc = wxGetApp().getAccountManager();
+    BBL::AccountManager* acc = wxGetApp().getAccountManager();
     switch ( dialog.ShowModal() )
     {
         case wxID_YES: {
