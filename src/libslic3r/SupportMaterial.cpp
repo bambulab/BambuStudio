@@ -1461,7 +1461,8 @@ struct SlicesMarginCache
 // BBS
 static const double length_thresh_well_supported = scale_(6);  // min: 6mm
 static const double area_thresh_well_supported = SQ(length_thresh_well_supported);  // min: 6x6=36mm^2
-static const double sharp_tail_xy_gap = 0.25f;
+static const double sharp_tail_xy_gap = 0.2f;
+static const double no_overlap_xy_gap = 0.2f;
 static const double sharp_tail_max_support_height = 8.f;
 
 // Tuple: overhang_polygons, contact_polygons, enforcer_polygons, no_interface_offset
@@ -3185,6 +3186,20 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
         tbb::blocked_range<size_t>(0, nonempty_layers.size()),
         [this, &object, &nonempty_layers, gap_extra_above, gap_extra_below, gap_xy_scaled](const tbb::blocked_range<size_t>& range) {
             size_t idx_object_layer_overlapping = size_t(-1);
+
+            auto is_layers_overlap = [](const MyLayer& support_layer, const Layer& object_layer, coordf_t bridging_height = 0.f) -> bool {
+                if (std::abs(support_layer.print_z - object_layer.print_z) < EPSILON)
+                    return true;
+
+                coordf_t object_lh = bridging_height > EPSILON ? bridging_height : object_layer.height;
+                if (support_layer.print_z < object_layer.print_z && support_layer.print_z > object_layer.print_z - object_lh)
+                    return true;
+
+                if (support_layer.print_z > object_layer.print_z && support_layer.bottom_z < object_layer.print_z - EPSILON)
+                    return true;
+
+                return false;
+            };
             for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                 MyLayer &support_layer = *nonempty_layers[idx_layer];
                 // BOOST_LOG_TRIVIAL(trace) << "Support generator - trim_support_layers_by_object - trimmming non-empty layer " << idx_layer << " of " << nonempty_layers.size();
@@ -3199,16 +3214,17 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                 size_t i = idx_object_layer_overlapping;
                 for (; i < object.layers().size(); ++ i) {
                     const Layer &object_layer = *object.layers()[i];
-                    // BBS: only with overlapped layer, do not consider vertical gap
-                    if (object_layer.bottom_z() > support_layer.print_z /* + gap_extra_above */ - EPSILON)
+                    if (object_layer.bottom_z() > support_layer.print_z + gap_extra_above - EPSILON)
                         break;
 
+                    bool is_overlap = is_layers_overlap(support_layer, object_layer);
                     for (const ExPolygon& expoly : object_layer.lslices) {
                         // BBS
-                        if (!intersection_ex({ expoly }, object_layer.sharp_tails).empty())
-                            polygons_append(polygons_trimming, offset({ expoly }, scale_(sharp_tail_xy_gap), SUPPORT_SURFACES_OFFSET_PARAMETERS));
-                        else
-                            polygons_append(polygons_trimming, offset({ expoly }, gap_xy_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+                        bool is_sharptail = !intersection_ex({ expoly }, object_layer.sharp_tails).empty();
+                        coordf_t trimming_offset = is_sharptail ? scale_(sharp_tail_xy_gap) :
+                                                   is_overlap ? gap_xy_scaled :
+                                                   scale_(no_overlap_xy_gap);
+                        polygons_append(polygons_trimming, offset({ expoly }, trimming_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
                     }
                 }
                 if (! m_slicing_params.soluble_interface && g_config_thick_bridges) {
@@ -3218,12 +3234,14 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                         bool some_region_overlaps = false;
                         for (LayerRegion *region : object_layer.regions()) {
                             coordf_t bridging_height = region->region().bridging_height_avg(*m_print_config);
-                            // BBS: only with overlapped layer, do not consider vertical gap
-                            if (object_layer.print_z - bridging_height > support_layer.print_z + /* gap_extra_above */ - EPSILON)
+                            if (object_layer.print_z - bridging_height > support_layer.print_z + gap_extra_above - EPSILON)
                                 break;
                             some_region_overlaps = true;
+
+                            bool is_overlap = is_layers_overlap(support_layer, object_layer, bridging_height);
+                            coordf_t trimming_offset = is_overlap ? gap_xy_scaled : scale_(no_overlap_xy_gap);
                             polygons_append(polygons_trimming, 
-                                offset(region->fill_surfaces.filter_by_type(stBottomBridge), gap_xy_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+                                offset(region->fill_surfaces.filter_by_type(stBottomBridge), trimming_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
                             if (region->region().config().detect_overhang_wall.value)
                                 // Add bridging perimeters.
                                 SupportMaterialInternal::collect_bridging_perimeter_areas(region->perimeters, gap_xy_scaled, polygons_trimming);
