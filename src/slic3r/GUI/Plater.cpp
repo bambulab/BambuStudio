@@ -2569,7 +2569,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 #endif // _WIN32
         const auto filename         = path.filename();
         int        progress_percent = static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size()));
-        const auto dlg_info         = _L("Loading file") + ": " + from_path((strategy & LoadStrategy::Restore) ? input_files[++i].filename() : filename);
+        const auto real_filename    = (strategy & LoadStrategy::Restore) ? input_files[++i].filename() : filename;
+        const auto dlg_info         = _L("Loading file") + ": " + from_path(real_filename);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": load file %1%") % filename;
         dlg_cont = dlg.Update(progress_percent, dlg_info);
         if (!dlg_cont) return empty_result;
@@ -2605,9 +2606,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     std::vector<Preset *>     project_presets;
                     // BBS: backup & restore
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, strategy, &plate_data, &project_presets, &is_bbs_3mf,
-                                                             &file_version, [this, &dlg, filename, progress_percent](int import_stage, int current, int total, bool &cancel) {
+                                                             &file_version, [this, &dlg, real_filename, progress_percent](int import_stage, int current, int total, bool &cancel) {
                                                                  bool     cont = true;
-                                                                 wxString msg  = wxString::Format(_L("Loading file: %s"), from_path(filename));
+                                                                 wxString msg  = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
                                                                  cont          = dlg.Update(progress_percent, msg);
                                                                  cancel        = !cont;
                                                              });
@@ -2668,7 +2669,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     //plate data
                     if (plate_data.size() > 0) {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", import 3mf UPDATE_GCODE_RESULT \n");
-                        wxString msg = wxString::Format(_L("Loading file: %s"), from_path(filename));
+                        wxString msg = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
                         dlg_cont     = dlg.Update(progress_percent, msg);
                         if (!dlg_cont) return empty_result;
 
@@ -2698,7 +2699,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                     if (load_config && !config_loaded.empty()) {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", import 3mf IMPORT_LOAD_CONFIG \n");
-                        wxString msg = wxString::Format(_L("Loading file: %s"), from_path(filename));
+                        wxString msg = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
                         dlg_cont     = dlg.Update(progress_percent, msg);
                         if (!dlg_cont) return empty_result;
 
@@ -2816,9 +2817,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 Semver                file_version;
                 model = Slic3r::Model::read_from_file(
                     path.string(), nullptr, nullptr, strategy, &plate_data, &project_presets, &is_xxx, &file_version, nullptr,
-                    [&dlg, filename, progress_percent](int import_stage, int current, int total, bool &cancel) {
+                    [&dlg, real_filename, progress_percent](int import_stage, int current, int total, bool &cancel) {
                         bool     cont = true;
-                        wxString msg  = wxString::Format("Loading file: %s", from_path(filename));
+                        wxString msg  = wxString::Format("Loading file: %s", from_path(real_filename));
                         cont          = dlg.Update(progress_percent, msg);
                         cancel        = !cont;
                     },
@@ -2944,7 +2945,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
             // BBS
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_LOAD_MODEL_OBJECTS \n");
-            wxString msg = wxString::Format("Loading file: %s", from_path(filename));
+            wxString msg = wxString::Format("Loading file: %s", from_path(real_filename));
             model_idx++;
             dlg_cont = dlg.Update(progress_percent, msg);
             if (!dlg_cont) return empty_result;
@@ -2969,7 +2970,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
 
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_LOAD_MODEL_OBJECTS \n");
-            wxString msg = wxString::Format(_L("Loading file: %s"), from_path(filename));
+            wxString msg = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
             dlg_cont     = dlg.Update(progress_percent, msg);
             if (!dlg_cont) return empty_result;
         } else {
@@ -2978,7 +2979,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 new_model->add_object(*model_object);
 
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_ADD_MODEL_OBJECTS \n");
-                wxString msg = wxString::Format(_L("Loading file: %s"), from_path(filename));
+                wxString msg = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
                 dlg_cont     = dlg.Update(progress_percent, msg);
                 if (!dlg_cont) return empty_result;
             }

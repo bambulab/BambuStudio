@@ -5718,7 +5718,7 @@ public:
             << "remove_backup " << model.get_backup_path() << ", " << removeAll;
         std::deque<Task>   canceled_tasks;
         boost::unique_lock lock(m_mutex);
-        if (removeAll) {
+        if (removeAll && model.is_need_backup()) {
             // running task may not be canceled
             for (auto & t : m_ui_tasks)
                 canceled_tasks.push_back(t);
@@ -5729,8 +5729,10 @@ public:
         }
         m_tasks.push_back({ RemoveBackup, model.id().id, model.get_backup_path(), nullptr, removeAll });
         ++m_task_seq;
-        m_other_changes = false;
-        m_other_changes_backup = false;
+        if (model.is_need_backup()) {
+            m_other_changes = false;
+            m_other_changes_backup = false;
+        }
         m_cond.notify_all();
         lock.unlock();
         for (auto& t : canceled_tasks) {
