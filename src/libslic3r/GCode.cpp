@@ -2454,7 +2454,24 @@ GCode::LayerResult GCode::process_layer(
                 unsigned int    interface_extruder = object.config().support_interface_filament.value - 1;
                 // Shall the support interface be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
                 bool            interface_dontcare = object.config().support_interface_filament.value == 0;
-                if (support_dontcare || interface_dontcare) {
+                // BBS: try to print support base with a filament other than interface filament
+                if (support_dontcare && !interface_dontcare) {
+                    unsigned int dontcare_extruder = first_extruder_id;
+                    for (unsigned int extruder_id : layer_tools.extruders) {
+                        if (print.config().filament_soluble.get_at(extruder_id))
+                            continue;
+
+                        if (extruder_id == interface_extruder)
+                            continue;
+
+                        dontcare_extruder = extruder_id;
+                        break;
+                    }
+
+                    if (support_dontcare)
+                        support_extruder = dontcare_extruder;
+                }
+                else if (support_dontcare || interface_dontcare) {
                     // Some support will be printed with "don't care" material, preferably non-soluble.
                     // Is the current extruder assigned a soluble filament?
                     unsigned int dontcare_extruder = first_extruder_id;
