@@ -13,6 +13,9 @@
         "280"
     ],
     "filament_max_volumetric_speed": [
-        "16"
+        "8"
+    ],
+    "compatible_printers": [
+      "Bambu Lab X1 Carbon 0.4 nozzle"
     ]
 }

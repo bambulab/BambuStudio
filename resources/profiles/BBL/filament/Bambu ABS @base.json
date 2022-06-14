@@ -6,7 +6,7 @@
     "instantiation": "false",
     "inherits": "fdm_filament_abs",
     "filament_flow_ratio": [
-        "0.95"
+        "0.93"
     ],
     "filament_vendor": [
         "Bambu Lab"
