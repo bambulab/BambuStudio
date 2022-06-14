@@ -80,7 +80,7 @@ void AppConfig::set_defaults()
             set_bool("associate_3mf", false);
         if (get("associate_stl").empty())
             set_bool("associate_stl", false);
-        if (get("associate_step").empty()) 
+        if (get("associate_step").empty())
             set_bool("associate_step", false);
 
 #endif // _WIN32
@@ -172,7 +172,7 @@ void AppConfig::set_defaults()
     if (get("developer_mode").empty())
         set_bool("developer_mode", false);
 
-    if (get("severity_level").empty()) 
+    if (get("severity_level").empty())
         set("severity_level", "trace");
 
     if (get("dump_video").empty())
@@ -204,8 +204,8 @@ void AppConfig::set_defaults()
         set_bool("show_daily_tips", true);
     }
 
-    if (get("show_home_page").empty()) { 
-        set_bool("show_home_page", true); 
+    if (get("show_home_page").empty()) {
+        set_bool("show_home_page", true);
     }
 
 
@@ -213,56 +213,56 @@ void AppConfig::set_defaults()
         set_bool("show_printable_box", true);
     }
 
-     if (get("units").empty()) { 
-          set("units", "0"); 
+     if (get("units").empty()) {
+          set("units", "0");
      }
 
-     if (get("user_sync_switch").empty()) { 
-         set_bool("user_sync_switch", false); 
+     if (get("user_sync_switch").empty()) {
+         set_bool("user_sync_switch", false);
      }
 
-     if (get("preset_sync_switch").empty()) { 
-         set_bool("preset_sync_switch", false); 
+     if (get("preset_sync_switch").empty()) {
+         set_bool("preset_sync_switch", false);
      }
 
-     if (get("preferences_sync_switch").empty()) { 
-         set_bool("preferences_sync_switch", false); 
+     if (get("preferences_sync_switch").empty()) {
+         set_bool("preferences_sync_switch", false);
      }
 
-     if (get("keyboard_supported").empty()) { 
-         set("keyboard_supported", std::string("none/alt/control/shift")); 
+     if (get("keyboard_supported").empty()) {
+         set("keyboard_supported", std::string("none/alt/control/shift"));
      }
 
-      if (get("mouse_supported").empty()) { 
-          set("mouse_supported", "mouse left/mouse middle/mouse right"); 
+      if (get("mouse_supported").empty()) {
+          set("mouse_supported", "mouse left/mouse middle/mouse right");
       }
 
-      if (get("rotate_view").empty()) { 
-          set("rotate_view", "none/mouse left"); 
+      if (get("rotate_view").empty()) {
+          set("rotate_view", "none/mouse left");
       }
 
-      if (get("move_view").empty()) { 
-          set("move_view", "none/mouse left"); 
+      if (get("move_view").empty()) {
+          set("move_view", "none/mouse left");
       }
 
-      if (get("zoom_view").empty()) { 
-          set("zoom_view", "none/mouse left"); 
+      if (get("zoom_view").empty()) {
+          set("zoom_view", "none/mouse left");
       }
 
-      if (get("precise_control").empty()) { 
-          set("precise_control", "none/mouse left"); 
+      if (get("precise_control").empty()) {
+          set("precise_control", "none/mouse left");
       }
 
-       if (get("mouse_wheel").empty()) { 
-           set("mouse_wheel", "0"); 
+       if (get("mouse_wheel").empty()) {
+           set("mouse_wheel", "0");
        }
 
-       if (get("backup_switch").empty()) { 
-            set_bool("backup_switch", false); 
+       if (get("backup_switch").empty()) {
+            set_bool("backup_switch", false);
        }
 
        if (get("backup_interval").empty()) {
-           set("backup_interval", "10"); 
+           set("backup_interval", "10");
        }
 
     if (get("iot_environment").empty()) {
@@ -335,23 +335,73 @@ std::string AppConfig::load()
     namespace pt = boost::property_tree;
     pt::ptree tree;
     boost::nowide::ifstream ifs;
-    bool                    recovered = false;
+    bool recovered = false;
+    std::string error_message;
 
     try {
         ifs.open(AppConfig::loading_path());
-        ifs >> j;
 
 #ifdef WIN32
+        std::stringstream input_stream;
+        input_stream << ifs.rdbuf();
+        std::string total_string = input_stream.str();
+        size_t last_pos = total_string.find_last_of('}');
+        std::string left_string = total_string.substr(0, last_pos+1);
+        //skip the "\n"
+        std::string right_string = total_string.substr(last_pos+2);
+
+        std::string md5_str = appconfig_md5_hash_line({left_string.data()});
         // Verify the checksum of the config file without taking just for debugging purpose.
-        if (!verify_config_file_checksum(ifs))
+        if (md5_str != right_string)
             BOOST_LOG_TRIVIAL(info) << "The configuration file " << AppConfig::loading_path() <<
             " has a wrong MD5 checksum or the checksum is missing. This may indicate a file corruption or a harmless user edit.";
+        j = json::parse(left_string);
+#else
+        ifs >> j;
 #endif
     }
     catch(nlohmann::detail::parse_error &err) {
-        BOOST_LOG_TRIVIAL(info) << "AppConfig: parse json error = " << err.what();
+#ifdef WIN32
+        // The configuration file is corrupted, try replacing it with the backup configuration.
+        ifs.close();
+        std::string backup_path = (boost::format("%1%.bak") % AppConfig::loading_path()).str();
+        if (boost::filesystem::exists(backup_path)) {
+            // Compute checksum of the configuration backup file and try to load configuration from it when the checksum is correct.
+            boost::nowide::ifstream backup_ifs(backup_path);
+            std::stringstream back_input_stream;
+            back_input_stream << backup_ifs.rdbuf();
+            std::string back_total_string = back_input_stream.str();
+            size_t back_last_pos = back_total_string.find_last_of('}');
+            std::string back_left_string = back_total_string.substr(0, back_last_pos+1);
+            std::string back_right_string = back_total_string.substr(back_last_pos+2);
+
+            std::string back_md5_str = appconfig_md5_hash_line({back_left_string.data()});
+            // Verify the checksum of the config file without taking just for debugging purpose.
+            if (back_md5_str != back_right_string) {
+                BOOST_LOG_TRIVIAL(error) << format("Both \"%1%\" and \"%2%\" are corrupted. It isn't possible to restore configuration from the backup.", AppConfig::loading_path(), backup_path);
+                backup_ifs.close();
+                boost::filesystem::remove(backup_path);
+            }
+            else if (std::string error_message; copy_file(backup_path, AppConfig::loading_path(), error_message, false) != SUCCESS) {
+                BOOST_LOG_TRIVIAL(error) << format("Configuration file \"%1%\" is corrupted. Failed to restore from backup \"%2%\": %3%", AppConfig::loading_path(), backup_path, error_message);
+                backup_ifs.close();
+                boost::filesystem::remove(backup_path);
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << format("Configuration file \"%1%\" was corrupted. It has been succesfully restored from the backup \"%2%\".", AppConfig::loading_path(), backup_path);
+                // Try parse configuration file after restore from backup.
+                j = json::parse(back_left_string);
+                recovered = true;
+            }
+        }
+        else
+#endif // WIN32
+            BOOST_LOG_TRIVIAL(info) << format("Failed to parse configuration file \"%1%\": %2%", AppConfig::loading_path(), err.what());
+
+        if (!recovered)
+            return err.what();
     }
-    
+
     try {
         for (auto it = j.begin(); it != j.end(); it++) {
             if (it.key() == MODELS_STR) {
@@ -409,8 +459,10 @@ std::string AppConfig::load()
                 }
             }
         }
-    } catch(...) {
-        ;
+    } catch(std::exception err) {
+        BOOST_LOG_TRIVIAL(info) << format("parse app config \"%1%\", error: %2%", AppConfig::loading_path(), err.what());
+
+        return err.what();
     }
 
     // Figure out if datadir has legacy presets
@@ -535,8 +587,15 @@ void AppConfig::save()
     boost::nowide::ofstream c;
     c.open(path_pid, std::ios::out | std::ios::trunc);
     c << std::setw(4) << j << std::endl;
+
+#ifdef WIN32
+    // WIN32 specific: The final "rename_file()" call is not safe in case of an application crash, there is no atomic "rename file" API
+    // provided by Windows (sic!). Therefore we save a MD5 checksum to be able to verify file corruption. In addition,
+    // we save the config file into a backup first before moving it to the final destination.
+    c << appconfig_md5_hash_line({j.dump(4)});
+#endif
+
     c.close();
-    // c << appconfig_md5_hash_line(config_str);
 
 #ifdef WIN32
     // Make a backup of the configuration file before copying it to the final destination.
@@ -613,7 +672,7 @@ std::string AppConfig::load()
         if (!recovered) {
             // Report the initial error of parsing BambuStudio.ini.
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
-            // ! But to avoid the use of _utf8 (related to use of wxWidgets) 
+            // ! But to avoid the use of _utf8 (related to use of wxWidgets)
             // we will rethrow this exception from the place of load() call, if returned value wouldn't be empty
             /*
             throw Slic3r::RuntimeError(
@@ -746,7 +805,7 @@ void AppConfig::save()
     c << appconfig_md5_hash_line(config_str);
 #endif
     c.close();
-    
+
 #ifdef WIN32
     // Make a backup of the configuration file before copying it to the final destination.
     std::string error_message;
@@ -883,7 +942,7 @@ void AppConfig::update_skein_dir(const std::string &dir)
 /*
 std::string AppConfig::get_last_output_dir(const std::string &alt) const
 {
-	
+
     const auto it = m_storage.find("");
     if (it != m_storage.end()) {
         const auto it2 = it->second.find("last_export_path");

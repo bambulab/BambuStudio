@@ -56,12 +56,10 @@ int GUI_Run(GUI_InitParams &params)
         return wxEntry(params.argc, params.argv);
     } catch (const Slic3r::Exception &ex) {
         BOOST_LOG_TRIVIAL(error) << ex.what() << std::endl;
-        show_error(nullptr, _L("Bambu Studio initialization failed"));
-        throw;
+        wxMessageBox(boost::nowide::widen(ex.what()), _L("Bambu Studio GUI initialization failed"), wxICON_STOP);
     } catch (const std::exception &ex) {
         BOOST_LOG_TRIVIAL(error) << ex.what() << std::endl;
-        show_error(nullptr, _L("Bambu Studio initialization failed"));
-        throw;
+        wxMessageBox(format_wxstr(_L("Fatal error, exception catched: %1%"), ex.what()), _L("Bambu Studio GUI initialization failed"), wxICON_STOP);
     }
     // error
     return 1;
