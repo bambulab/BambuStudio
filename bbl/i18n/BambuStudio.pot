@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-09 17:07+0800\n"
+"POT-Creation-Date: 2022-06-14 16:27+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1025,6 +1025,10 @@ msgstr ""
 msgid "Show wireframe"
 msgstr ""
 
+#, possible-boost-format
+msgid "%1%"
+msgstr ""
+
 msgid "Close"
 msgstr ""
 
@@ -1032,10 +1036,6 @@ msgid "Operation already cancelling. Please wait few seconds."
 msgstr ""
 
 msgid "Can't apply when proccess preview."
-msgstr ""
-
-#, possible-boost-format
-msgid "Process %1% / 100"
 msgstr ""
 
 msgid "Notice"
@@ -1603,19 +1603,13 @@ msgstr ""
 msgid "Outside"
 msgstr ""
 
-msgid "Auto brim"
+msgid "Auto"
 msgstr ""
 
-msgid "No brim"
+msgid "Manual"
 msgstr ""
 
-msgid "Outer brim only"
-msgstr ""
-
-msgid "Inner brim only"
-msgstr ""
-
-msgid "Outer and inner brim"
+msgid "No-brim"
 msgstr ""
 
 msgid " "
@@ -1744,10 +1738,10 @@ msgstr ""
 msgid "Preview"
 msgstr ""
 
-msgid "Debug"
+msgid "Project"
 msgstr ""
 
-msgid "Project"
+msgid "Debug"
 msgstr ""
 
 msgid "Slice"
@@ -2078,9 +2072,6 @@ msgstr ""
 msgid "Aux Cooling"
 msgstr ""
 
-msgid "X/Y Axis"
-msgstr ""
-
 msgid "Bed"
 msgstr ""
 
@@ -2379,6 +2370,12 @@ msgid "Bed type"
 msgstr ""
 
 msgid "Flushing volumes"
+msgstr ""
+
+msgid "Need to stop slicing first."
+msgstr ""
+
+msgid "Drop Files when slicing"
 msgstr ""
 
 msgid "Untitled"
@@ -3362,13 +3359,13 @@ msgstr ""
 msgid "Assembly Guide"
 msgstr ""
 
-msgid "License"
-msgstr ""
-
 msgid "Choose files"
 msgstr ""
 
 msgid "Model Name"
+msgstr ""
+
+msgid "License"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -4199,15 +4196,6 @@ msgid ""
 "and calculated automatically"
 msgstr ""
 
-msgid "Auto"
-msgstr ""
-
-msgid "Manual"
-msgstr ""
-
-msgid "No-brim"
-msgstr ""
-
 msgid "Brim-object gap"
 msgstr ""
 
@@ -4314,6 +4302,9 @@ msgid "Zig zag"
 msgstr ""
 
 msgid "Monotonic"
+msgstr ""
+
+msgid "Monotonic line"
 msgstr ""
 
 msgid "Bottom surface pattern"
@@ -4530,6 +4521,11 @@ msgid "Honeycomb"
 msgstr ""
 
 msgid "Adaptive Cubic"
+msgstr ""
+
+msgid ""
+"Acceleration of top surface infill. Using a lower value may improve top "
+"surface quality"
 msgstr ""
 
 msgid ""

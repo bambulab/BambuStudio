@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-09 17:07+0800\n"
+"POT-Creation-Date: 2022-06-14 16:27+0800\n"
 "PO-Revision-Date: 2022-05-17 15:42+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -261,7 +261,8 @@ msgid ""
 "Nozzle may be blocked when the temperature is out of recommended range.\n"
 "Please make sure whether to use the temperature to print.\n"
 "\n"
-msgstr "当温度超过建议的范围时，喷嘴可能会堵塞。\n"
+msgstr ""
+"当温度超过建议的范围时，喷嘴可能会堵塞。\n"
 "请确认是否使用该温度打印\n"
 "\n"
 
@@ -1071,6 +1072,10 @@ msgstr "%d 个三角形"
 msgid "Show wireframe"
 msgstr "显示线框"
 
+#, boost-format
+msgid "%1%"
+msgstr ""
+
 msgid "Close"
 msgstr "关闭"
 
@@ -1079,10 +1084,6 @@ msgstr "操作已在取消中，请等待片刻。"
 
 msgid "Can't apply when proccess preview."
 msgstr "处理预览的过程中无法应用。"
-
-#, boost-format
-msgid "Process %1% / 100"
-msgstr "处理 %1% / 100"
 
 msgid "Notice"
 msgstr "通知"
@@ -1649,20 +1650,14 @@ msgstr "不支持多个单元格的复制"
 msgid "Outside"
 msgstr "盘外"
 
-msgid "Auto brim"
-msgstr "自动brim"
+msgid "Auto"
+msgstr "自动"
 
-msgid "No brim"
-msgstr "无"
+msgid "Manual"
+msgstr "手动"
 
-msgid "Outer brim only"
-msgstr "仅外侧"
-
-msgid "Inner brim only"
-msgstr "仅内侧"
-
-msgid "Outer and inner brim"
-msgstr "内侧和外侧"
+msgid "No-brim"
+msgstr "无brim"
 
 msgid " "
 msgstr " "
@@ -1800,11 +1795,11 @@ msgstr "准备"
 msgid "Preview"
 msgstr "预览"
 
-msgid "Debug"
-msgstr "调试"
-
 msgid "Project"
 msgstr "项目"
+
+msgid "Debug"
+msgstr "调试"
 
 msgid "Slice"
 msgstr "切片"
@@ -2139,9 +2134,6 @@ msgstr "部件冷却"
 msgid "Aux Cooling"
 msgstr "辅助冷却"
 
-msgid "X/Y Axis"
-msgstr "X/Y 轴"
-
 msgid "Bed"
 msgstr "热床"
 
@@ -2439,6 +2431,12 @@ msgstr "热床类型"
 
 msgid "Flushing volumes"
 msgstr "冲刷体积"
+
+msgid "Need to stop slicing first."
+msgstr ""
+
+msgid "Drop Files when slicing"
+msgstr ""
 
 msgid "Untitled"
 msgstr "未命名"
@@ -3433,14 +3431,14 @@ msgstr "物料清单"
 msgid "Assembly Guide"
 msgstr "组装指南"
 
-msgid "License"
-msgstr "许可证"
-
 msgid "Choose files"
 msgstr "选择文件"
 
 msgid "Model Name"
 msgstr "模型名字"
+
+msgid "License"
+msgstr "许可证"
 
 #, c-format, boost-format
 msgid "%s Update"
@@ -4056,7 +4054,8 @@ msgid ""
 "Can not print multiple filaments which have large difference of temperature "
 "together. Otherwise, the extruder and nozzle may be blocked or damaged "
 "during printing"
-msgstr "不能将温度差异过大的材料一起打印。否则挤出机和喷嘴在打印中可能被堵塞或损坏"
+msgstr ""
+"不能将温度差异过大的材料一起打印。否则挤出机和喷嘴在打印中可能被堵塞或损坏"
 
 msgid "No extrusions under current settings."
 msgstr "根据当前设置，不会生成任何打印。"
@@ -4295,15 +4294,6 @@ msgstr ""
 "设置brim生成位置，包括模型往外的外侧,模型的孔的内侧和内外侧都生成。选择自动意"
 "味着brim的位置和宽度都会自动分析计算生成。"
 
-msgid "Auto"
-msgstr "自动"
-
-msgid "Manual"
-msgstr "手动"
-
-msgid "No-brim"
-msgstr "无brim"
-
 msgid "Brim-object gap"
 msgstr "Brim与模型的间隙"
 
@@ -4417,6 +4407,9 @@ msgstr "锯齿"
 
 msgid "Monotonic"
 msgstr "单调"
+
+msgid "Monotonic line"
+msgstr "单调线"
 
 msgid "Bottom surface pattern"
 msgstr "底面图案"
@@ -4642,6 +4635,11 @@ msgstr "蜂窝"
 
 msgid "Adaptive Cubic"
 msgstr "自适应立方体"
+
+msgid ""
+"Acceleration of top surface infill. Using a lower value may improve top "
+"surface quality"
+msgstr "顶面填充的加速度。使用较低值可能会改善顶面质量"
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
@@ -5669,6 +5667,28 @@ msgstr " 对象："
 #, boost-format
 msgid "Error at line %1%:\n"
 msgstr "错误在行%1%：\n"
+
+#, boost-format
+#~ msgid "Process %1% / 100"
+#~ msgstr "处理 %1% / 100"
+
+#~ msgid "Auto brim"
+#~ msgstr "自动brim"
+
+#~ msgid "No brim"
+#~ msgstr "无"
+
+#~ msgid "Outer brim only"
+#~ msgstr "仅外侧"
+
+#~ msgid "Inner brim only"
+#~ msgstr "仅内侧"
+
+#~ msgid "Outer and inner brim"
+#~ msgstr "内侧和外侧"
+
+#~ msgid "X/Y Axis"
+#~ msgstr "X/Y 轴"
 
 #~ msgid ""
 #~ "Nozzle may be blocked when the temperature is out of recommanded range.\n"

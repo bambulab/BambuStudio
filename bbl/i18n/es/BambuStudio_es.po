@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-09 17:07+0800\n"
+"POT-Creation-Date: 2022-06-14 16:27+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1025,6 +1025,10 @@ msgstr "%d triángulos"
 msgid "Show wireframe"
 msgstr "Mostrar estructura de red"
 
+#, boost-format
+msgid "%1%"
+msgstr ""
+
 msgid "Close"
 msgstr "Cerrar"
 
@@ -1033,10 +1037,6 @@ msgstr "Operación ya cancelada. Por favor, espere unos segundos."
 
 msgid "Can't apply when proccess preview."
 msgstr "No se puede aplicar cuando la vista previa del proceso."
-
-#, boost-format
-msgid "Process %1% / 100"
-msgstr "Proceso %1% / 100"
 
 msgid "Notice"
 msgstr "Date cuenta"
@@ -1605,20 +1605,14 @@ msgstr ""
 msgid "Outside"
 msgstr ""
 
-msgid "Auto brim"
+msgid "Auto"
 msgstr ""
 
-msgid "No brim"
-msgstr "Sin borde"
+msgid "Manual"
+msgstr ""
 
-msgid "Outer brim only"
-msgstr "Sólo el borde exterior"
-
-msgid "Inner brim only"
-msgstr "Sólo el borde interior"
-
-msgid "Outer and inner brim"
-msgstr "Borde interior y exterior"
+msgid "No-brim"
+msgstr ""
 
 msgid " "
 msgstr ""
@@ -1749,10 +1743,10 @@ msgstr ""
 msgid "Preview"
 msgstr "Previsualización"
 
-msgid "Debug"
+msgid "Project"
 msgstr ""
 
-msgid "Project"
+msgid "Debug"
 msgstr ""
 
 msgid "Slice"
@@ -2083,9 +2077,6 @@ msgstr ""
 msgid "Aux Cooling"
 msgstr ""
 
-msgid "X/Y Axis"
-msgstr ""
-
 msgid "Bed"
 msgstr "Base"
 
@@ -2384,6 +2375,12 @@ msgid "Bed type"
 msgstr ""
 
 msgid "Flushing volumes"
+msgstr ""
+
+msgid "Need to stop slicing first."
+msgstr ""
+
+msgid "Drop Files when slicing"
 msgstr ""
 
 msgid "Untitled"
@@ -3367,13 +3364,13 @@ msgstr ""
 msgid "Assembly Guide"
 msgstr ""
 
-msgid "License"
-msgstr ""
-
 msgid "Choose files"
 msgstr ""
 
 msgid "Model Name"
+msgstr ""
+
+msgid "License"
 msgstr ""
 
 #, c-format, boost-format
@@ -4206,15 +4203,6 @@ msgid ""
 "and calculated automatically"
 msgstr ""
 
-msgid "Auto"
-msgstr ""
-
-msgid "Manual"
-msgstr ""
-
-msgid "No-brim"
-msgstr ""
-
 msgid "Brim-object gap"
 msgstr ""
 
@@ -4322,6 +4310,9 @@ msgstr ""
 
 msgid "Monotonic"
 msgstr "Monotónico"
+
+msgid "Monotonic line"
+msgstr ""
 
 msgid "Bottom surface pattern"
 msgstr ""
@@ -4538,6 +4529,11 @@ msgstr "Panal de abeja"
 
 msgid "Adaptive Cubic"
 msgstr "Cúbico Adaptativo"
+
+msgid ""
+"Acceleration of top surface infill. Using a lower value may improve top "
+"surface quality"
+msgstr ""
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
@@ -5516,6 +5512,22 @@ msgstr ""
 #, boost-format
 msgid "Error at line %1%:\n"
 msgstr ""
+
+#, boost-format
+#~ msgid "Process %1% / 100"
+#~ msgstr "Proceso %1% / 100"
+
+#~ msgid "No brim"
+#~ msgstr "Sin borde"
+
+#~ msgid "Outer brim only"
+#~ msgstr "Sólo el borde exterior"
+
+#~ msgid "Inner brim only"
+#~ msgstr "Sólo el borde interior"
+
+#~ msgid "Outer and inner brim"
+#~ msgstr "Borde interior y exterior"
 
 #~ msgid "Load"
 #~ msgstr "Cargar"
