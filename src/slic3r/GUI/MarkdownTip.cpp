@@ -118,7 +118,7 @@ bool MarkdownTip::ShowTip(wxPoint pos, std::string const &tip, std::string const
         }
         else if (!_hide) {
             _hide = true;
-            _timer->Start(1000, true);
+            _timer->Start(300, true);
         }
         return false;
     }
