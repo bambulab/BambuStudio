@@ -66,6 +66,7 @@ private:
     boost::thread m_thread;
 
     int m_failed_retry = 0;
+    int m_failed_code = 0;
     wxDateTime m_next_retry;
 
     ::Button * m_button_play;

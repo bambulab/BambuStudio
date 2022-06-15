@@ -83,6 +83,7 @@ void MediaPlayCtrl::Play()
             if (m_last_state == MEDIASTATE_INITIALIZING) {
                 if (url.empty()) {
                     Stop();
+                    m_failed_code = 1;
                     SetStatus(_L("Initialize failed [%d]!"));
                 } else {
                     m_last_state = MEDIASTATE_LOADING;
@@ -125,7 +126,7 @@ void MediaPlayCtrl::TogglePlay()
 
 void MediaPlayCtrl::SetStatus(wxString const& msg2)
 {
-    auto msg = wxString::Format(msg2, m_media_ctrl->GetLastError());
+    auto msg = wxString::Format(msg2, m_failed_code);
     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::SetStatus: " << msg.ToUTF8().data();
     m_label_status->SetLabel(msg);
     //m_label_status->SetForegroundColour(!msg.EndsWith("!") ? 0x42AE00 : 0x3B65E9);
@@ -185,7 +186,9 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
     }
     if (last_state == MEDIASTATE_LOADING && state == wxMEDIASTATE_STOPPED) {
         wxSize size = m_media_ctrl->GetBestSize();
-        if (size.GetWidth() > 1000) {
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: size: " << size.x << "x" << size.y;
+        m_failed_code = m_media_ctrl->GetLastError();
+        if (size.GetWidth() > 1000 || (m_failed_retry > 1 && m_failed_code == 0)) {
             m_media_ctrl->Play();
             SetStatus(_L("Playing..."));
             m_failed_retry = 0;
