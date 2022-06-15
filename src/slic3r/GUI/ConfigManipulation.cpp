@@ -513,7 +513,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
                     "support_type","support_on_build_plate_only",
                     "support_object_xy_distance", "independent_support_layer_height"})
         toggle_field(el, have_support_material);
-    toggle_line("support_line_width", have_support_material);
     toggle_field("support_threshold_angle", have_support_material && (support_type == stNormalAuto || support_type == stTreeAuto || support_type==stHybridAuto));
     //toggle_field("support_closing_radius", have_support_material && support_style == smsSnug);
 
