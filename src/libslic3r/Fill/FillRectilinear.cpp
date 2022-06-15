@@ -3094,21 +3094,19 @@ void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, c
     ExtrusionEntityCollection *coll_nosort = new ExtrusionEntityCollection();
     coll_nosort->no_sort = this->no_sort();
 
-    ExPolygons rectilinear_areas, gapfill_areas;
-    //BBS: always use no overlap expolygons to avoid overflow in top surface
-    split_polygon_gap_fill(this->no_overlap_expolygons, params, rectilinear_areas, gapfill_areas);
-
     Polylines polylines_rectilinear;
     Surface rectilinear_surface{ *surface };
     FillParams params2 = params;
     params2.monotonic = true;
     params2.anchor_length_max = 0.0f;
 
-    for (const ExPolygon &rectilinear_area : rectilinear_areas) {
-        rectilinear_surface.expolygon = rectilinear_area, 0 - 0.5 * params.flow.scaled_spacing();
+    //BBS: always use no overlap expolygons to avoid overflow in top surface
+    for (const ExPolygon &rectilinear_area : this->no_overlap_expolygons) {
+        rectilinear_surface.expolygon = rectilinear_area;
         fill_surface_by_lines(&rectilinear_surface, params2, polylines_rectilinear);
     }
     ExPolygons unextruded_areas;
+    Flow new_flow = params.flow;
     if (!polylines_rectilinear.empty()) {
         // calculate actual flow from spacing (which might have been adjusted by the infill
         // pattern generator)
@@ -3120,7 +3118,7 @@ void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, c
             // been applied to f->spacing
         }
         else {
-            Flow new_flow = params.flow.with_spacing(this->spacing);
+            new_flow = params.flow.with_spacing(this->spacing);
             flow_mm3_per_mm = new_flow.mm3_per_mm();
             flow_width = new_flow.width();
         }
@@ -3129,17 +3127,16 @@ void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, c
                 coll_nosort->entities, std::move(polylines_rectilinear),
                 params.extrusion_role,
                 flow_mm3_per_mm, float(flow_width), params.flow.height());
-        unextruded_areas = diff_ex(rectilinear_areas, union_ex(coll_nosort->polygons_covered_by_spacing(10)));
+        unextruded_areas = diff_ex(this->no_overlap_expolygons, union_ex(coll_nosort->polygons_covered_by_spacing(10)));
     }
     else
-        unextruded_areas = rectilinear_areas;
+        unextruded_areas = this->no_overlap_expolygons;
 
     //gapfill
-    gapfill_areas.insert(gapfill_areas.end(), unextruded_areas.begin(), unextruded_areas.end());
-    gapfill_areas = union_ex(gapfill_areas);
+    ExPolygons gapfill_areas = union_ex(unextruded_areas);
     if (gapfill_areas.size() > 0 && params.density >= 1) {
-        double min = 0.4 * scale_(this->spacing) * (1 - INSET_OVERLAP_TOLERANCE);
-        double max = 2. * scale_(this->spacing);
+        double min = 0.4 * new_flow.scaled_spacing() * (1 - INSET_OVERLAP_TOLERANCE);
+        double max = 2. * new_flow.scaled_spacing();
         ExPolygons gaps_ex = diff_ex(
             offset2_ex(gapfill_areas, -float(min / 2), float(min / 2)),
             offset2_ex(gapfill_areas, -float(max / 2), float(max / 2)),
@@ -3163,21 +3160,6 @@ void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, c
     } else {
         delete coll_nosort;
     }
-}
-
-void FillMonotonicLineWGapFill::split_polygon_gap_fill(const ExPolygons& input, const FillParams& params, ExPolygons& rectilinear, ExPolygons& gapfill)
-{
-    // remove areas for gapfill
-    // factor=0.5 : remove area smaller than a spacing. factor=1 : max spacing for the gapfill (but not the width)
-    //choose between 2 to avoid dotted line  effect.
-    float factor1 = 0.99f;
-    float factor2 = 0.7f;
-    ExPolygons rectilinear_areas1 = offset2_ex(input, -params.flow.scaled_spacing() * factor1, params.flow.scaled_spacing() * factor1);
-    ExPolygons rectilinear_areas2 = offset2_ex(input, -params.flow.scaled_spacing() * factor2, params.flow.scaled_spacing() * factor2);
-    //choose the best one
-    rectilinear = rectilinear_areas1.size() <= rectilinear_areas2.size() + 1 || rectilinear_areas2.empty() ? rectilinear_areas1 : rectilinear_areas2;
-    //get gapfill
-    gapfill = diff_ex(input, rectilinear);
 }
 
 void FillMonotonicLineWGapFill::fill_surface_by_lines(const Surface* surface, const FillParams& params, Polylines& polylines_out)

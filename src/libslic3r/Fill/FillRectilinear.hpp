@@ -123,7 +123,6 @@ class FillMonotonicLineWGapFill : public Fill
 public:
     ~FillMonotonicLineWGapFill() override = default;
     void fill_surface_extrusion(const Surface *surface, const FillParams &params, ExtrusionEntitiesPtr &out) override;
-    static void split_polygon_gap_fill(const ExPolygons& input, const FillParams& params, ExPolygons& rectilinear, ExPolygons& gapfill);
 
 protected:
     Fill* clone() const override { return new FillMonotonicLineWGapFill(*this); };
