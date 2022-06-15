@@ -306,7 +306,7 @@ ExPolygon::medial_axis(double max_width, double min_width, ThickPolylines* polyl
             }
         }
     }
-    
+
     polylines->insert(polylines->end(), pp.begin(), pp.end());
 }
 

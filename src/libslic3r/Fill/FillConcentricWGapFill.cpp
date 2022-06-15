@@ -2,6 +2,7 @@
 #include "../ExPolygon.hpp"
 #include "../Surface.hpp"
 #include "../VariableWidth.hpp"
+#include "../ShortestPath.hpp"
 
 #include "FillConcentricWGapFill.hpp"
 
@@ -66,8 +67,19 @@ void FillConcentricWGapFill::fill_surface_extrusion(const Surface* surface, cons
                 offset2_ex(gaps, -float(min / 2), float(min / 2)),
                 offset2_ex(gaps, -float(max / 2), float(max / 2)),
                 ApplySafetyOffset::Yes);
+            //BBS: sort the gap_ex to avoid mess travel
+            Points ordering_points;
+            ordering_points.reserve(gaps_ex.size());
+            ExPolygons gaps_ex_sorted;
+            gaps_ex_sorted.reserve(gaps_ex.size());
+            for (const ExPolygon &ex : gaps_ex)
+                ordering_points.push_back(ex.contour.first_point());
+            std::vector<Points::size_type> order = chain_points(ordering_points);
+            for (size_t i : order)
+                gaps_ex_sorted.emplace_back(std::move(gaps_ex[i]));
+
             ThickPolylines polylines;
-            for (ExPolygon& ex : gaps_ex) {
+            for (ExPolygon& ex : gaps_ex_sorted) {
                 //BBS: medial axis algorithm can't handle duplicated points in expolygon.
                 //Use DP simplify to avoid duplicated points and accelerate medial-axis calculation as well.
                 ex.douglas_peucker(SCALED_RESOLUTION);
@@ -99,6 +111,7 @@ void FillConcentricWGapFill::fill_surface_extrusion(const Surface* surface, cons
         //BBS: collapse, be sure we don't gapfill where the perimeters are already touching each other (negative spacing).
         min = std::max(min, (double)Flow::rounded_rectangle_extrusion_width_from_spacing((float)EPSILON, (float)params.flow.height()));
         ExPolygons external_gaps_collapsed = offset2_ex(external_gaps, double(-min / 2), double(+min / 2));
+
         ThickPolylines polylines;
         for (ExPolygon& ex : external_gaps_collapsed) {
             //BBS: medial axis algorithm can't handle duplicated points in expolygon.

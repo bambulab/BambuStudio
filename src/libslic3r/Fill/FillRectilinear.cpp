@@ -3134,14 +3134,27 @@ void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, c
 
     //gapfill
     ExPolygons gapfill_areas = union_ex(unextruded_areas);
+    if (!this->no_overlap_expolygons.empty())
+            gapfill_areas = intersection_ex(gapfill_areas, this->no_overlap_expolygons);
     if (gapfill_areas.size() > 0 && params.density >= 1) {
         double min = 0.2 * new_flow.scaled_spacing() * (1 - INSET_OVERLAP_TOLERANCE);
         double max = 2. * new_flow.scaled_spacing();
         ExPolygons gaps_ex = diff_ex(
             opening_ex(gapfill_areas, float(min / 2.)),
             offset2_ex(gapfill_areas, -float(max / 2.), float(max / 2. + ClipperSafetyOffset)));
+        //BBS: sort the gap_ex to avoid mess travel
+        Points ordering_points;
+        ordering_points.reserve(gaps_ex.size());
+        ExPolygons gaps_ex_sorted;
+        gaps_ex_sorted.reserve(gaps_ex.size());
+        for (const ExPolygon &ex : gaps_ex)
+            ordering_points.push_back(ex.contour.first_point());
+        std::vector<Points::size_type> order = chain_points(ordering_points);
+        for (size_t i : order)
+            gaps_ex_sorted.emplace_back(std::move(gaps_ex[i]));
+
         ThickPolylines polylines;
-        for (ExPolygon& ex : gaps_ex) {
+        for (ExPolygon& ex : gaps_ex_sorted) {
             //BBS: Use DP simplify to avoid duplicated points and accelerate medial-axis calculation as well.
             ex.douglas_peucker(SCALED_RESOLUTION);
             ex.medial_axis(max, min, &polylines);
