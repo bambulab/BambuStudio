@@ -141,18 +141,24 @@ void StaticBox::doRender(wxDC& dc)
     wxSize size = GetSize();
     int states = state_handler.states();
     if (background_color2.count() == 0) {
-        if (border_width)
+        wxRect rc(0, 0, size.x, size.y);
+        if (border_width) {
+#ifdef __WXOSX__
+            int d = ceil(border_width / 2.0);
+            rc.Deflate(d, d);
+#endif
             dc.SetPen(wxPen(border_color.colorForStates(states), border_width));
-        else
+        } else {
             dc.SetPen(wxPen(background_color.colorForStates(states)));
+        }
         dc.SetBrush(wxBrush(background_color.colorForStates(states)));
         if (GetWindowStyle() & wxBORDER_NONE)
             dc.SetPen(wxPen(background_color.colorForStates(states)));
         if (radius == 0) {
-            dc.DrawRectangle(0, 0, size.x, size.y);
+            dc.DrawRectangle(rc);
         }
         else {
-            dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
+            dc.DrawRoundedRectangle(rc, radius);
         }
     }
     else {
