@@ -700,7 +700,7 @@ void AuxiliaryPanel::init_bitmap()
 
 void AuxiliaryPanel::init_tabpanel()
 {
-    auto        m_side_tools     = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(260), FromDIP(18)));
+    auto        m_side_tools     = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(220), FromDIP(18)));
     wxBoxSizer *sizer_side_tools = new wxBoxSizer(wxVERTICAL);
     sizer_side_tools->Add(m_side_tools, 1, wxEXPAND, 0);
     m_tabpanel = new Tabbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizer_side_tools, wxNB_LEFT | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);

@@ -8,15 +8,15 @@
 namespace Slic3r { namespace GUI {
 	SideTools::SideTools(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
-    wxPanel::Create(parent, id, pos, wxSize(0, FromDIP(55)));
+    wxPanel::Create(parent, id, pos, wxSize(0, FromDIP(50)));
     Bind(wxEVT_PAINT, &SideTools::OnPaint, this);
 
     SetBackgroundColour(*wxWHITE);
 
-    m_printing_img = create_scaled_bitmap("monitor_printer", nullptr, 24);
+    m_printing_img = create_scaled_bitmap("printer", nullptr, 16);
     m_arrow_img    = create_scaled_bitmap("monitor_arrow", nullptr, 14);
 
-    m_none_printing_img = create_scaled_bitmap("monitor_none_printer", nullptr, 24);
+    m_none_printing_img = create_scaled_bitmap("tab_monitor_active", nullptr, 24);
     m_none_arrow_img    = create_scaled_bitmap("monitor_none_arrow", nullptr, 14);
     m_none_add_img      = create_scaled_bitmap("monitor_none_add", nullptr, 14);
 
@@ -89,7 +89,7 @@ void SideTools::render(wxDC &dc)
 
 void SideTools::doRender(wxDC &dc)
 {
-    auto   left = FromDIP(25);
+    auto   left = FromDIP(15);
     wxSize size = GetSize();
     
     //if (m_none_printer) {
@@ -121,18 +121,18 @@ void SideTools::doRender(wxDC &dc)
     } else {
         dc.DrawBitmap(m_printing_img, left, (size.y - m_printing_img.GetSize().y) / 2);
 
-        left += (m_printing_img.GetSize().x + FromDIP(12));
+        left += (m_printing_img.GetSize().x + FromDIP(5));
         dc.DrawBitmap(m_arrow_img, left, (size.y - m_arrow_img.GetSize().y) / 2);
 
-        left += (m_arrow_img.GetSize().x + FromDIP(7));
-        dc.SetFont(::Label::Body_16);
+        left += (m_arrow_img.GetSize().x + FromDIP(6));
+        dc.SetFont(::Label::Body_14);
         dc.SetBackgroundMode(wxTRANSPARENT);
         dc.SetTextForeground(SIDE_TOOLS_GREY900);
 
         auto sizet = dc.GetTextExtent(m_dev_name);
         dc.DrawText(m_dev_name, wxPoint(left, (size.y - sizet.y) / 2));
 
-        left = size.x - FromDIP(30) - m_wifi_none_img.GetSize().x;
+        left = size.x - FromDIP(18) - m_wifi_none_img.GetSize().x;
         if (m_wifi_type == WifiSignal::NONE) dc.DrawBitmap(m_wifi_none_img, left, (size.y - m_wifi_none_img.GetSize().y) / 2);
         if (m_wifi_type == WifiSignal::WEAK) dc.DrawBitmap(m_wifi_weak_img, left, (size.y - m_wifi_weak_img.GetSize().y) / 2);
         if (m_wifi_type == WifiSignal::MIDDLE) dc.DrawBitmap(m_wifi_middle_img, left, (size.y - m_wifi_middle_img.GetSize().y) / 2);

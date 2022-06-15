@@ -1213,7 +1213,6 @@ Description:AMSControl
 AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) : wxSimplebook(parent, wxID_ANY, pos, size)
 {
     SetBackgroundColour(*wxWHITE);
-
     // normal mode
     //Freeze();
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);

@@ -451,7 +451,9 @@ void SelectMachinePopup::OnDismiss()
     });
 }
 
-bool SelectMachinePopup::ProcessLeftDown(wxMouseEvent &event) { return wxPopupTransientWindow::ProcessLeftDown(event); }
+bool SelectMachinePopup::ProcessLeftDown(wxMouseEvent &event) {
+    return wxPopupTransientWindow::ProcessLeftDown(event);
+}
 
 bool SelectMachinePopup::Show(bool show) { return wxPopupTransientWindow::Show(show); }
 
@@ -534,7 +536,7 @@ void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
 
 void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
 {
-    Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     m_bind_machine_list.clear();
     m_bind_machine_list = dev->userMachineList;
 

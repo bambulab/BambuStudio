@@ -120,7 +120,7 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
         Slic3r::GUI::wxGetApp().GetMainTopWindow()->SetFocus();
     });
     text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
-    text_ctrl->SetFont(Label::Body_14);
+    text_ctrl->SetFont(Label::Body_13);
     text_ctrl->SetForegroundColour(text_color.colorForStates(StateColor::Normal));
     if (!normal_icon.IsEmpty()) { this->normal_icon = ScalableBitmap(this, normal_icon.ToStdString(), 16); }
     if (!actice_icon.IsEmpty()) { this->actice_icon = ScalableBitmap(this, actice_icon.ToStdString(), 16); }
@@ -215,7 +215,7 @@ void TempInput::Warning(bool warn, WarningType type)
                                             wxEmptyString, 
                                             wxDefaultPosition, wxDefaultSize,
                                             wxALIGN_CENTER_HORIZONTAL);
-            warning_text->SetFont(::Label::Body_13);
+            warning_text->SetFont(::Label::Body_12);
             warning_text->SetForegroundColour(wxColour(255, 111, 0));
             warning_text->Wrap(-1);
             sizer_text->Add(warning_text, 1, wxEXPAND | wxTOP | wxBOTTOM, 2);
@@ -230,7 +230,7 @@ void TempInput::Warning(bool warn, WarningType type)
         }
 
         wxPoint pos = this->ClientToScreen(wxPoint(2, 0));
-        pos.y += this->GetRect().height - (this->GetSize().y - this->text_ctrl->GetSize().y) / 2;
+        pos.y += this->GetRect().height - (this->GetSize().y - this->text_ctrl->GetSize().y) / 2 - 2;
         wdialog->SetPosition(pos);
 
         wxString warning_string;
@@ -355,7 +355,7 @@ void TempInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     left += 10;
 
     // separator
-    dc.SetFont(::Label::Body_13);
+    dc.SetFont(::Label::Body_12);
     auto sepSize = dc.GetMultiLineTextExtent(wxString("/"));
     left += sepSize.x;
 
@@ -438,7 +438,7 @@ void TempInput::render(wxDC &dc)
     }
 
     // separator
-    dc.SetFont(::Label::Body_14);
+    dc.SetFont(::Label::Body_12);
     auto sepSize = dc.GetMultiLineTextExtent(wxString("/"));
     dc.SetTextForeground(text_color.colorForStates(states));
     dc.SetTextBackground(background_color.colorForStates(states));
@@ -484,7 +484,7 @@ void TempInput::messureMiniSize()
     width += 10;
 
     // separator
-    dc.SetFont(::Label::Body_14);
+    dc.SetFont(::Label::Body_12);
     auto sepSize = dc.GetMultiLineTextExtent(wxString("/"));
     width += sepSize.x;
     height = sepSize.y > height ? sepSize.y : height;
@@ -538,7 +538,7 @@ void TempInput::messureSize()
     width += 10;
 
     // separator
-    dc.SetFont(::Label::Body_14);
+    dc.SetFont(::Label::Body_12);
     auto sepSize = dc.GetMultiLineTextExtent(wxString("/"));
     width += sepSize.x;
     height = sepSize.y > height ? sepSize.y : height;

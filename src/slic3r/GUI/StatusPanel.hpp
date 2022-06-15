@@ -15,6 +15,7 @@
 #include "wxMediaCtrl2.h"
 #include "MediaPlayCtrl.h"
 #include "AMSSetting.hpp"
+#include "Calibration.hpp"
 #include "AMSMaterialsSetting.hpp"
 #include "Widgets/SwitchButton.hpp"
 #include "Widgets/AxisCtrlButton.hpp"
@@ -59,6 +60,7 @@ protected:
     wxBitmap m_bitmap_extruder;
 
     /* title panel */
+    wxPanel *       media_ctrl_panel;
     wxPanel *       m_panel_monitoring_title;
     wxPanel *       m_panel_printing_title;
     wxPanel *       m_panel_control_title;
@@ -89,8 +91,6 @@ protected:
     int               m_switch_lamp_timeout{0};
     ImageSwitchButton *m_switch_speed;
 
-    wxStaticText *  m_staticText_temp_caption;
-
     /* TempInput */
     TempInput *     m_tempCtrl_nozzle;
     int             m_temp_nozzle_timeout {0};
@@ -103,25 +103,26 @@ protected:
     ImageSwitchButton *m_switch_printing_fan;
     int             m_switch_printing_fan_timeout{0};
 
+    float           m_fixed_aspect_ratio{1.8};
+
     AxisCtrlButton *m_bpButton_xy;
     //wxStaticText *  m_staticText_xy;
     Button *        m_bpButton_z_10;
     Button *        m_bpButton_z_1;
     Button *        m_bpButton_z_down_1;
     Button *        m_bpButton_z_down_10;
+    Button *        m_button_unload;
     wxStaticText *  m_staticText_z_tip;
     wxStaticText *  m_staticText_e;
     Button *        m_bpButton_e_10;
     Button *        m_bpButton_e_down_10;
     StaticLine *    m_temp_extruder_line;
-    StaticLine *    m_ams_staticline;
     wxBoxSizer*     m_ams_list;
     wxStaticText *  m_ams_debug;
     bool            m_show_ams_group{false};
     AMSControl*     m_ams_control;
     wxStaticBitmap *m_ams_extruder_img;
     wxStaticBitmap* m_bitmap_extruder_img;
-    wxStaticText *  m_staticText_ams_ctrl_caption;
     wxPanel *       m_panel_separator_right;
     wxPanel *       m_panel_separotor_bottom;
     wxGridBagSizer *m_tasklist_info_sizer{nullptr};
@@ -129,6 +130,7 @@ protected:
     wxBoxSizer *    m_tasklist_sizer;
     wxBoxSizer *    m_tasklist_caption_sizer;
     wxStaticText*   m_staticText_calibration_caption;
+    wxStaticText*   m_staticText_calibration_caption_top;
     wxStaticText*   m_calibration_text;
     Button*         m_calibration_btn;
     StepIndicator*  m_calibration_flow;
@@ -166,6 +168,8 @@ public:
 
     void init_bitmaps();
     wxBoxSizer *create_monitoring_page();
+    void        on_size(wxSizeEvent &event);
+    virtual void DoSetSize(int x, int y, int width, int height, int sizeFlags);
     wxBoxSizer *create_project_task_page(wxWindow *parent);
     wxBoxSizer *create_machine_control_page(wxWindow *parent);
 
@@ -177,7 +181,6 @@ public:
     wxBoxSizer *create_extruder_control(wxWindow *parent);
 
     wxBoxSizer *create_ams_group(wxWindow *parent);
-    wxBoxSizer *create_cali_group(wxWindow *parent);
 
     void show_ams_group(bool show = true);
 };
@@ -193,6 +196,7 @@ protected:
     std::shared_ptr<ImageTransientPopup> m_image_popup;
     std::vector<SliceInfoPanel *> slice_info_list;
     AMSSetting *m_ams_setting_dlg{nullptr};
+    CalibrationDialog*   calibration_dlg{nullptr};
     AMSMaterialsSetting *m_filament_setting_dlg{nullptr};
 
     wxString     m_request_url;
@@ -208,7 +212,7 @@ protected:
     std::map<wxString, wxImage> img_list; // key: url, value: wxBitmap png Image
     std::vector<Button *>       m_buttons;
     int last_status;
-
+    
     void init_scaled_buttons();
 
     void create_tasklist_info();
@@ -229,6 +233,7 @@ protected:
     void on_axis_ctrl_e_up_10(wxCommandEvent &event);
     void on_axis_ctrl_e_down_10(wxCommandEvent &event);
 
+	void on_start_unload(wxCommandEvent &event);
     /* temp control */
     void on_bed_temp_kill_focus(wxFocusEvent &event);
     void on_bed_temp_set_focus(wxFocusEvent &event);

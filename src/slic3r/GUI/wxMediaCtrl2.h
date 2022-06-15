@@ -49,6 +49,7 @@ public:
     void Load(wxURI url);
 
     int GetLastError() const { return m_error; }
+    wxSize GetBestSize() { return DoGetBestSize(); };
 
 protected:
 #ifdef __WIN32__

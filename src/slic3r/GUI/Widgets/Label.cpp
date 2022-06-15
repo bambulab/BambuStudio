@@ -23,12 +23,14 @@ wxFont Label::Head_24 = sysFont(24, true);
 wxFont Label::Head_20 = sysFont(20, true);
 wxFont Label::Head_18 = sysFont(18, true);
 wxFont Label::Head_16 = sysFont(16, true);
+wxFont Label::Head_15 = sysFont(15, true);
 wxFont Label::Head_14 = sysFont(14, true);
 wxFont Label::Head_13 = sysFont(13, true);
 wxFont Label::Head_12 = sysFont(12, true);
 wxFont Label::Head_10 = sysFont(10, true);
 
 wxFont Label::Body_16 = sysFont(16, false);
+wxFont Label::Body_15 = sysFont(15, false);
 wxFont Label::Body_14 = sysFont(14, false);
 wxFont Label::Body_13 = sysFont(13, false);
 wxFont Label::Body_12 = sysFont(12, false);

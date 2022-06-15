@@ -158,9 +158,9 @@ protected:
     void on_mouse_left_up(wxMouseEvent &evt);
 };
 
-#define SELECT_MACHINE_POPUP_SIZE wxSize(FromDIP(250), FromDIP(420))
-#define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(230), FromDIP(400))
-#define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(220), FromDIP(36))
+#define SELECT_MACHINE_POPUP_SIZE wxSize(FromDIP(220), FromDIP(420))
+#define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(210), FromDIP(400))
+#define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(200), FromDIP(36))
 #define SELECT_MACHINE_GREY900 wxColour(38, 46, 48)
 #define SELECT_MACHINE_GREY600 wxColour(144,144,144)
 #define SELECT_MACHINE_GREY400 wxColour(206, 206, 206)

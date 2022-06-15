@@ -688,6 +688,19 @@ void MainFrame::update_title()
     return;
 }
 
+void MainFrame::show_option(bool show) 
+{ 
+    if (!show) {
+        m_slice_btn->Hide();
+        m_print_btn->Hide();
+        m_print_option_btn->Hide();
+    } else {
+        m_slice_btn->Show();
+        m_print_btn->Show();
+        m_print_option_btn->Show();
+    }
+}
+
 void MainFrame::init_tabpanel()
 {
     // wxNB_NOPAGETHEME: Disable Windows Vista theme for the Notebook background. The theme performance is terrible on Windows 10
@@ -732,6 +745,28 @@ void MainFrame::init_tabpanel()
         }
         else {
             m_topbar->DisableUndoRedoItems();
+        }
+
+
+        switch (sel) {
+        case TabPosition::tpHome: 
+            show_option(false);
+            break;
+        case TabPosition::tp3DEditor: 
+            show_option(true);
+            break;
+        case TabPosition::tpPreview: 
+            show_option(true);
+            break;
+        case TabPosition::tpMonitor: 
+            show_option(false);
+            break;
+        case TabPosition::toDebugTool: 
+            show_option(false);
+            break;
+        default: 
+            show_option(false);
+            break;
         }
     });
 

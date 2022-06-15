@@ -165,6 +165,7 @@ void BindDialog::on_dpi_changed(const wxRect &suggested_rect)
 
      auto m_printer_img = new wxStaticBitmap(m_panel_left, wxID_ANY, create_scaled_bitmap("printer_thumbnail", nullptr, 96), wxDefaultPosition, wxSize(FromDIP(100), FromDIP(96)), 0);
      m_printer_name = new wxStaticText(m_panel_left, wxID_ANY, wxEmptyString);
+     m_printer_name->SetBackgroundColour(BIND_DIALOG_GREY200);
      m_printer_name->SetFont(::Label::Head_14);
      m_sizere_left_v->Add(m_printer_img, 0, wxALIGN_CENTER, 0);
      m_sizere_left_v->Add(0, 0, 0, wxTOP, 5);
@@ -404,6 +405,7 @@ UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
                                              0);
      m_printer_name     = new wxStaticText(m_panel_left, wxID_ANY, wxEmptyString);
      m_printer_name->SetFont(::Label::Head_14);
+     m_printer_name->SetBackgroundColour(BIND_DIALOG_GREY200);
      m_sizere_left_v->Add(m_printer_img, 0, wxALIGN_CENTER, 0);
      m_sizere_left_v->Add(0, 0, 0, wxTOP, 5);
      m_sizere_left_v->Add(m_printer_name, 0, wxALIGN_CENTER, 0);
