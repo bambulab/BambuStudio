@@ -2446,12 +2446,27 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Purging volumes");
     //def->tooltip = L("This matrix describes volumes (in cubic milimetres) required to purge the"
     //                 " new filament on the wipe tower for any given pair of tools.");
-
     // BBS: change 140.f => 280.f
     def->set_default_value(new ConfigOptionFloats {   0.f, 280.f, 280.f, 280.f,
                                                     280.f,   0.f, 280.f, 280.f,
                                                     280.f, 280.f,   0.f, 280.f,
                                                     280.f, 280.f, 280.f,   0.f });
+
+    def = this->add("extra_flush_volume", coInt);
+    def->label = L("Extra flush volume");
+    def->tooltip = L("");
+    def->sidetext = L("mm3");
+    def->mode = comDevelop;
+    def->min = 0;
+    def->set_default_value(new ConfigOptionInt(100));
+
+    def = this->add("flush_multiplier", coFloat);
+    def->label = L("Flush multiplier");
+    def->tooltip = L("");
+    def->sidetext = L("");
+    def->mode = comDevelop;
+    def->min = 0;
+    def->set_default_value(new ConfigOptionFloat(1.0));
 
     // BBS
     def = this->add("prime_volume", coFloat);

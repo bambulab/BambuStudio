@@ -368,6 +368,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/TCPConsole.hpp
     Utils/minilzo_extension.hpp
     Utils/minilzo_extension.cpp
+    Utils/ColorSpaceConvert.hpp
+    Utils/ColorSpaceConvert.cpp
 )
 
 if (APPLE)
