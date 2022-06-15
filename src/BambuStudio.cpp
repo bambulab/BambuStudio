@@ -151,6 +151,7 @@ int CLI::run(int argc, char **argv)
     PrinterTechnology printer_technology = get_printer_technology(m_config);
 
     bool							start_gui			= m_actions.empty();
+
     //BBS: remove GCodeViewer as seperate APP logic
     /*bool 							start_as_gcodeviewer =
 #ifdef _WIN32
@@ -165,6 +166,41 @@ int CLI::run(int argc, char **argv)
     //const ForwardCompatibilitySubstitutionRule   config_substitution_rule = m_config.option<ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>>("config_compatibility", true)->value;
     const ForwardCompatibilitySubstitutionRule   config_substitution_rule = ForwardCompatibilitySubstitutionRule::Enable;
     const std::vector<std::string>              &load_filaments		      = m_config.option<ConfigOptionStrings>("load_filaments", true)->values;
+
+    if (start_gui) {
+        BOOST_LOG_TRIVIAL(info) << "no action, start gui directly" << std::endl;
+#ifdef SLIC3R_GUI
+    /*#if !defined(_WIN32) && !defined(__APPLE__)
+        // likely some linux / unix system
+        const char *display = boost::nowide::getenv("DISPLAY");
+        // const char *wayland_display = boost::nowide::getenv("WAYLAND_DISPLAY");
+        //if (! ((display && *display) || (wayland_display && *wayland_display))) {
+        if (! (display && *display)) {
+            // DISPLAY not set.
+            boost::nowide::cerr << "DISPLAY not set, GUI mode not available." << std::endl << std::endl;
+            this->print_help(false);
+            // Indicate an error.
+            return 1;
+        }
+    #endif // some linux / unix system*/
+        Slic3r::GUI::GUI_InitParams params;
+        params.argc = argc;
+        params.argv = argv;
+        params.load_configs = load_configs;
+        params.extra_config = std::move(m_extra_config);
+        params.input_files  = std::move(m_input_files);
+        //BBS: remove GCodeViewer as seperate APP logic
+        //params.start_as_gcodeviewer = start_as_gcodeviewer;
+
+        BOOST_LOG_TRIVIAL(info) << "begin to launch BambuStudio GUI soon";
+        return Slic3r::GUI::GUI_Run(params);
+#else // SLIC3R_GUI
+        // No GUI support. Just print out a help.
+        this->print_help(false);
+        // If started without a parameter, consider it to be OK, otherwise report an error code (no action etc).
+        return (argc == 0) ? 0 : 1;
+#endif // SLIC3R_GUI
+    }
 
     BOOST_LOG_TRIVIAL(info) << "before load settings, file count="<< load_configs.size() << std::endl;
     // load config files supplied via --load
@@ -579,9 +615,11 @@ int CLI::run(int argc, char **argv)
         else if (opt_key == "convert_unit") {
             for (auto& model : m_models) {
                 if (model.looks_like_saved_in_meters()) {
+                    BOOST_LOG_TRIVIAL(info) << "convert from meter to millimeter\n";
                     model.convert_from_meters(true);
                 }
                 else if (model.looks_like_imperial_units()) {
+                    BOOST_LOG_TRIVIAL(info) << "convert from inch to millimeter\n";
                     model.convert_from_imperial_units(true);
                 }
             }
@@ -1392,40 +1430,6 @@ int CLI::run(int argc, char **argv)
 
         for (int i = 0; i < plate_bboxes.size(); i++)
             delete plate_bboxes[i];
-    }
-
-    if (start_gui) {
-#ifdef SLIC3R_GUI
-    #if !defined(_WIN32) && !defined(__APPLE__)
-        // likely some linux / unix system
-        const char *display = boost::nowide::getenv("DISPLAY");
-        // const char *wayland_display = boost::nowide::getenv("WAYLAND_DISPLAY");
-        //if (! ((display && *display) || (wayland_display && *wayland_display))) {
-        if (! (display && *display)) {
-            // DISPLAY not set.
-            boost::nowide::cerr << "DISPLAY not set, GUI mode not available." << std::endl << std::endl;
-            this->print_help(false);
-            // Indicate an error.
-            return 1;
-        }
-    #endif // some linux / unix system
-        Slic3r::GUI::GUI_InitParams params;
-        params.argc = argc;
-        params.argv = argv;
-        params.load_configs = load_configs;
-        params.extra_config = std::move(m_extra_config);
-        params.input_files  = std::move(m_input_files);
-        //BBS: remove GCodeViewer as seperate APP logic
-        //params.start_as_gcodeviewer = start_as_gcodeviewer;
-
-        BOOST_LOG_TRIVIAL(info) << "begin to launch BambuStudio GUI soon";
-        return Slic3r::GUI::GUI_Run(params);
-#else // SLIC3R_GUI
-        // No GUI support. Just print out a help.
-        this->print_help(false);
-        // If started without a parameter, consider it to be OK, otherwise report an error code (no action etc).
-        return (argc == 0) ? 0 : 1;
-#endif // SLIC3R_GUI
     }
 
     //BBS: release glfw

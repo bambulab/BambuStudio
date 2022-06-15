@@ -1234,7 +1234,7 @@ void GLCanvas3D::render(bool only_init)
         _render_sla_slices();
         _render_selection();
         _render_bed(!camera.is_looking_downward(), show_axes);
-        _render_platelist(!camera.is_looking_downward(), only_current, only_body, hover_id);
+        _render_platelist(!camera.is_looking_downward(), only_current, true, hover_id);
     }
     /* assemble render*/
     else if (m_canvas_type == ECanvasType::CanvasAssembleView) {

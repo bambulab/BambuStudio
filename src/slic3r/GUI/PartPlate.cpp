@@ -663,6 +663,46 @@ void PartPlate::render_icons(bool bottom, int hover_id) const
     }
 }
 
+void PartPlate::render_only_numbers(bool bottom) const
+{
+	GLShaderProgram* shader = wxGetApp().get_shader("printbed");
+	if (shader != nullptr) {
+		shader->start_using();
+		shader->set_uniform("transparent_background", bottom);
+		//shader->set_uniform("svg_source", boost::algorithm::iends_with(m_partplate_list->m_del_texture.get_source(), ".svg"));
+		shader->set_uniform("svg_source", 0);
+
+        //if (bottom)
+        //    glsafe(::glFrontFace(GL_CW));
+        glsafe(::glDepthMask(GL_FALSE));
+
+        GLint position_id = shader->get_attrib_location("v_position");
+        GLint tex_coords_id = shader->get_attrib_location("v_tex_coords");
+        if (position_id != -1) {
+            glsafe(::glEnableVertexAttribArray(position_id));
+        }
+        if (tex_coords_id != -1) {
+            glsafe(::glEnableVertexAttribArray(tex_coords_id));
+        }
+
+        if (m_plate_index >=0 && m_plate_index < MAX_PLATE_COUNT) {
+            render_icon_texture(position_id, tex_coords_id, m_plate_idx_icon, m_partplate_list->m_idx_textures[m_plate_index], m_plate_idx_vbo_id);
+        }
+
+        if (tex_coords_id != -1)
+            glsafe(::glDisableVertexAttribArray(tex_coords_id));
+
+        if (position_id != -1)
+            glsafe(::glDisableVertexAttribArray(position_id));
+
+        //if (bottom)
+        //    glsafe(::glFrontFace(GL_CCW));
+
+        glsafe(::glDepthMask(GL_TRUE));
+        shader->stop_using();
+    }
+}
+
 void PartPlate::render_rectangle_for_picking(const GeometryBuffer &buffer, const float* render_color) const
 {
 	unsigned int triangles_vcount = buffer.get_vertices_count();
@@ -1785,7 +1825,7 @@ void PartPlate::render(bool bottom, bool only_body, bool force_background_color,
 
 	render_grid(bottom);
 
-	if (!bottom && m_selected && !only_body)
+	if (!bottom && m_selected && !force_background_color)
 		render_logo(bottom);
 
 	render_height_limit(mode);
@@ -1817,6 +1857,9 @@ void PartPlate::render(bool bottom, bool only_body, bool force_background_color,
 				render_right_arrow(render_color, true);
 		}*/
 		render_icons(bottom, hover_id);
+	}
+	else if (!force_background_color){
+		render_only_numbers(bottom);
 	}
 	glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
 	glsafe(::glDisable(GL_BLEND));

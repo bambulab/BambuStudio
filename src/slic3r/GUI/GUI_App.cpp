@@ -943,35 +943,53 @@ void GUI_App::post_init()
     if (! this->initialized())
         throw Slic3r::RuntimeError("Calling post_init() while not yet initialized");
 
+    bool switch_to_3d = false;
+    if (!this->init_params->input_files.empty()) {
+        switch_to_3d = true;
+        mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+        plater_->select_view_3D("3D");
+        const std::vector<size_t> res = this->plater()->load_files(this->init_params->input_files);
+        if (!res.empty()) {
+            if (this->init_params->input_files.size() == 1) {
+                // Update application titlebar when opening a project file
+                const std::string& filename = this->init_params->input_files.front();
+                //BBS: remove amf logic as project
+                if (boost::algorithm::iends_with(filename, ".3mf"))
+                    this->plater()->set_project_filename(filename);
+            }
+        }
+    }
 #if BBL_HAS_FIRST_PAGE
-    BOOST_LOG_TRIVIAL(info) << "begin load_gl_resources";
-    mainframe->Freeze();
-    plater_->canvas3D()->enable_render(false);
-    mainframe->select_tab(size_t(MainFrame::tp3DEditor));
-    plater_->select_view_3D("3D");
-    //BBS init the opengl resource here
-    Size canvas_size = plater_->canvas3D()->get_canvas_size();
-    wxGetApp().imgui()->set_display_size(static_cast<float>(canvas_size.get_width()), static_cast<float>(canvas_size.get_height()));
-    BOOST_LOG_TRIVIAL(info) << "start to init opengl";
-    wxGetApp().init_opengl();
+    if (!switch_to_3d) {
+        BOOST_LOG_TRIVIAL(info) << "begin load_gl_resources";
+        mainframe->Freeze();
+        plater_->canvas3D()->enable_render(false);
+        mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+        plater_->select_view_3D("3D");
+        //BBS init the opengl resource here
+        Size canvas_size = plater_->canvas3D()->get_canvas_size();
+        wxGetApp().imgui()->set_display_size(static_cast<float>(canvas_size.get_width()), static_cast<float>(canvas_size.get_height()));
+        BOOST_LOG_TRIVIAL(info) << "start to init opengl";
+        wxGetApp().init_opengl();
 
-    BOOST_LOG_TRIVIAL(info) << "finished init opengl";
-    plater_->canvas3D()->init();
+        BOOST_LOG_TRIVIAL(info) << "finished init opengl";
+        plater_->canvas3D()->init();
 
-    BOOST_LOG_TRIVIAL(info) << "finished init canvas3D";
-    wxGetApp().imgui()->new_frame();
+        BOOST_LOG_TRIVIAL(info) << "finished init canvas3D";
+        wxGetApp().imgui()->new_frame();
 
-    BOOST_LOG_TRIVIAL(info) << "finished init imgui frame";
-    plater_->canvas3D()->enable_render(true);
-    BOOST_LOG_TRIVIAL(info) << "start to render a first frame for test";
+        BOOST_LOG_TRIVIAL(info) << "finished init imgui frame";
+        plater_->canvas3D()->enable_render(true);
+        BOOST_LOG_TRIVIAL(info) << "start to render a first frame for test";
 
-    plater_->canvas3D()->render(false);
-    BOOST_LOG_TRIVIAL(info) << "finished rendering a first frame for test";
-    if (is_editor())
-        mainframe->select_tab(size_t(0));
-    mainframe->Thaw();
-    plater_->trigger_restore_project(1);
-    BOOST_LOG_TRIVIAL(info) << "end load_gl_resources";
+        plater_->canvas3D()->render(false);
+        BOOST_LOG_TRIVIAL(info) << "finished rendering a first frame for test";
+        if (is_editor())
+            mainframe->select_tab(size_t(0));
+        mainframe->Thaw();
+        plater_->trigger_restore_project(1);
+        BOOST_LOG_TRIVIAL(info) << "end load_gl_resources";
+    }
 #endif
 
     //BBS: remove GCodeViewer as seperate APP logic

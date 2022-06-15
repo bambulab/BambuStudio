@@ -168,6 +168,7 @@ private:
     void render_right_arrow(const float* render_color, bool use_lighting) const;
     void render_icon_texture(int position_id, int tex_coords_id, const GeometryBuffer &buffer, GLTexture &texture, unsigned int &vbo_id) const;
     void render_icons(bool bottom, int hover_id = -1) const;
+    void render_only_numbers(bool bottom) const;
     void render_rectangle_for_picking(const GeometryBuffer &buffer, const float* render_color) const;
     void on_render_for_picking() const;
     std::array<float, 4> picking_color_component(int idx) const;
