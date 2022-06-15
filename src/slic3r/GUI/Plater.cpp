@@ -847,6 +847,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
     const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
 
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": enter, preset_type %1%")%preset_type;
     switch (preset_type) {
     case Preset::TYPE_FILAMENT:
     {
@@ -896,12 +897,16 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
     // Synchronize config.ini with the current selections.
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": exit.");
 }
 
 //BBS
 void Sidebar::update_presets_from_to(Slic3r::Preset::Type preset_type, std::string from, std::string to)
 {
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": enter, preset_type %1%, from %2% to %3%")%preset_type %from %to;
 
     switch (preset_type) {
     case Preset::TYPE_FILAMENT:
@@ -923,6 +928,8 @@ void Sidebar::update_presets_from_to(Slic3r::Preset::Type preset_type, std::stri
 
     // Synchronize config.ini with the current selections.
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": exit!");
 }
 
 void Sidebar::change_top_border_for_mode_sizer(bool increase_border)

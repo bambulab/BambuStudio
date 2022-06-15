@@ -531,7 +531,10 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &config, st
     std::string errors_cummulative;
     bool process_added = false, filament_added = false, machine_added = false;
 
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, substitution_rule %1%, preset toltal count %2%")%substitution_rule%my_presets.size();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" enter, substitution_rule %1%, preset toltal count %2%")%substitution_rule%my_presets.size();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" print's selected_idx %1%, selected_name %2%") %prints.get_selected_idx() %prints.get_selected_preset_name();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" filament's selected_idx %1%, selected_name %2%") %filaments.get_selected_idx() %filaments.get_selected_preset_name();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" printers's selected_idx %1%, selected_name %2%") %printers.get_selected_idx() %printers.get_selected_preset_name();
     std::map<std::string, std::map<std::string, std::string>>::iterator it;
     for (it = my_presets.begin(); it != my_presets.end(); it++) {
         std::string name = it->first;
@@ -565,7 +568,7 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &config, st
             errors_cummulative += err.what();
         }
     }
-    if (process_added) {
+    /*if (process_added) {
         this->prints.update_after_user_presets_loaded();
     }
     if (filament_added) {
@@ -573,16 +576,16 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &config, st
     }
     if (machine_added) {
         this->printers.update_after_user_presets_loaded();
-    }
+    }*/
 
     this->update_multi_material_filament_presets();
     this->update_compatible(PresetSelectCompatibleType::Never);
-    this->load_selections(config, PresetPreferences());
+    //this->load_selections(config, PresetPreferences());
 
     if (! errors_cummulative.empty())
         throw Slic3r::RuntimeError(errors_cummulative);
 
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, returned substitutions %1%")%substitutions.size();
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, process_added %1%, filament_added %2%, machine_added %3%")%process_added %filament_added %machine_added;
     return substitutions;
 }
 

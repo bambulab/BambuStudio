@@ -1466,20 +1466,26 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
         }
         else {
             //create a new one
-            Preset* preset = new Preset(m_type, name, false);
-            preset->is_system = false;
-            preset->loaded = true;
-            preset->config = new_config;
-            preset->updated_time = cloud_update_time;
-            preset->version = cloud_version.value();
-            preset->user_id = cloud_user_id;
-            preset->setting_id = cloud_setting_id;
-            preset->base_id = cloud_base_id;
-            preset->filament_id = cloud_filament_id;
-            m_presets.insert(iter, *preset);
-            //presets_loaded.emplace_back(*it->second);
+            Preset preset(m_type, name, false);
+            preset.is_system = false;
+            preset.loaded = true;
+            preset.config = new_config;
+            preset.updated_time = cloud_update_time;
+            preset.version = cloud_version.value();
+            preset.user_id = cloud_user_id;
+            preset.setting_id = cloud_setting_id;
+            preset.base_id = cloud_base_id;
+            preset.filament_id = cloud_filament_id;
+
+            size_t cur_index = iter - m_presets.begin();
+            m_presets.insert(iter, preset);
+            //m_presets.emplace_back (preset);
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", insert a new user preset %1%, type %2%, setting_id %3%, base_id %4%, sync_info %5% inherits %6%")
-               %preset->name %Preset::get_type_string(m_type) %preset->setting_id %preset->base_id %preset->sync_info %preset->inherits();
+               %preset.name %Preset::get_type_string(m_type) %preset.setting_id %preset.base_id %preset.sync_info %preset.inherits();
+            if (cur_index <= m_idx_selected) {
+                m_idx_selected ++;
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", increase m_idx_selected to %1%, due to user preset inserted")%m_idx_selected;
+            }
         }
     } catch (const std::runtime_error &err) {
         errors_cummulative += err.what();
@@ -1500,9 +1506,11 @@ void PresetCollection::update_after_user_presets_loaded()
 {
     lock();
     std::string     selected_name = get_selected_preset_name();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", before sort, type %1%, selected_idx %2%, selected_name %3%") %m_type %m_idx_selected %selected_name;
     std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
     this->select_preset_by_name(selected_name, false);
     unlock();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", after sort, type %1%, selected_idx %2%") %m_type %m_idx_selected;
 
     return;
 }
