@@ -281,6 +281,8 @@ public:
     Type get_post_tick_event_type() { return m_tick_change_event_type; }
 
     ExtrudersSequence m_extruders_sequence;
+    float m_scale = 1.0;
+    void set_scale(float scale = 1.0);
 protected:
     void correct_lower_value();
     void correct_higher_value();

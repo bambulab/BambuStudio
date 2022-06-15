@@ -376,6 +376,7 @@ private:
 		// set start of notification to now. Used by delayed notifications
 		void                   reset_timer() { m_notification_start = GLCanvas3D::timestamp_now(); m_state = EState::Shown; }
         void set_Multiline(bool Multi) { m_multiline = Multi; }
+
 	protected:
 		// Call after every size change
 		virtual void init();
@@ -819,7 +820,9 @@ private:
 			//{NotificationType::LoadingFailed, NotificationLevel::RegularNotificationLevel, 20,  _u8L("Loading of model has Failed") },
 			//{NotificationType::DeviceEjected, NotificationLevel::RegularNotificationLevel, 10,  _u8L("Removable device has been safely ejected")} // if we want changeble text (like here name of device), we need to do it as CustomNotification
 	};
-
+public:
+    void set_scale(float scale = 1.0);
+	 float m_scale = 1.0;
 };
 
 }//namespace GUI

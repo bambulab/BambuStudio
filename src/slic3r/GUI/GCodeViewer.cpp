@@ -750,6 +750,11 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished");
 }
 
+void GCodeViewer::set_scale(float scale)
+{
+    if(m_scale != scale)m_scale = scale;
+}
+
 void GCodeViewer::update_by_mode(ConfigOptionMode mode)
 {
     view_type_items.clear();
@@ -3917,7 +3922,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     //BBS: GUI refactor: move to the right
-    imgui.set_next_window_pos(float(canvas_width - right_margin), 0.0f, ImGuiCond_Always, 1.0f, 0.0f);
+    imgui.set_next_window_pos(float(canvas_width - right_margin * m_scale), 0.0f, ImGuiCond_Always, 1.0f, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(1.0f,1.0f,1.0f,0.6f));
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));

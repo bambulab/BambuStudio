@@ -5664,7 +5664,22 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 {
     // Don't update a toolbar scale, when we are on a Preview
     if (wxGetApp().plater()->is_preview_shown())
+    {
+  
+#if ENABLE_RETINA_GL
+        IMSlider *m_layers_slider = get_gcode_viewer().get_layers_slider();
+        IMSlider *m_moves_slider  = get_gcode_viewer().get_moves_slider();
+        const float sc = m_retina_helper->get_scale_factor();
+        m_layers_slider->set_scale(sc);
+        m_moves_slider->set_scale(sc);
+        m_gcode_viewer.set_scale(sc);
+
+        auto *m_notification = wxGetApp().plater()->get_notification_manager();
+        m_notification->set_scale(sc);
+
+#endif
         return;
+    }
 
     float scale = wxGetApp().toolbar_icon_scale();
     Size cnv_size = get_canvas_size();
@@ -6018,25 +6033,32 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar() const
     }
 
     // places the toolbar on the top_left corner of the 3d scene
+#if ENABLE_RETINA_GL
+    float f_scale  = m_retina_helper->get_scale_factor();
+#else
+    float f_scale  = 1.0;
+#endif
     Size cnv_size = get_canvas_size();
     auto canvas_w = float(cnv_size.get_width());
     auto canvas_h = float(cnv_size.get_height());
 
     bool is_hovered = false;
+    
+    m_sel_plate_toolbar.set_icon_size(80.0f * f_scale, 80.0f * f_scale);
 
-    m_sel_plate_toolbar.set_icon_size(80.0f, 80.0f);
     float button_width = m_sel_plate_toolbar.icon_width;
     float button_height = m_sel_plate_toolbar.icon_height;
-    float frame_padding = 1.0f;
-    float margin_size = 4.0f;
+
+    float frame_padding = 1.0f * f_scale;
+    float margin_size = 4.0f * f_scale;
     float button_margin = frame_padding;
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     int item_count = m_sel_plate_toolbar.m_items.size();
-    bool show_scroll = item_count * (button_height + frame_padding * 2.0f + button_margin) - button_margin + 22.0f > canvas_h ? true: false;
+    bool show_scroll = item_count * (button_height + frame_padding * 2.0f + button_margin) - button_margin + 22.0f * f_scale > canvas_h ? true: false;
     show_scroll = m_sel_plate_toolbar.is_display_scrollbar && show_scroll;
-    float window_height = std::min(item_count * (button_height + (frame_padding + margin_size) * 2.0f + button_margin) - button_margin + 28.0f, canvas_h);
-    float window_width = m_sel_plate_toolbar.icon_width + margin_size * 2 + (show_scroll ? 28.0f : 20.0f);
+    float window_height = std::min(item_count * (button_height + (frame_padding + margin_size) * 2.0f + button_margin) - button_margin + 28.0f * f_scale, canvas_h);
+    float window_width = m_sel_plate_toolbar.icon_width + margin_size * 2 + (show_scroll ? 28.0f * f_scale : 20.0f * f_scale);
 
     ImVec4 window_bg = ImVec4(0.82f, 0.82f, 0.82f, 0.5f);
     ImVec4 button_active = ImVec4(0.12f, 0.56f, 0.92, 1.0f);
@@ -6186,11 +6208,9 @@ void GLCanvas3D::_render_return_toolbar() const
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     imgui.set_next_window_pos(window_pos_x, window_pos_y, ImGuiCond_Always, 0, 0);
-    
 #ifdef __WINDOWS__
     imgui.set_next_window_size(window_width, window_height, ImGuiCond_Always);
 #endif
-    
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 18.0f);
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.149f, 0.180f, 0.188f, 0.3f));
@@ -6212,8 +6232,12 @@ void GLCanvas3D::_render_return_toolbar() const
     ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     ImVec2 margin = ImVec2(10.0f, 5.0f);
 
-    ImVec2 real_size = ImVec2(74.0f, 30.0f);
-    if (ImGui::ImageTextButton(real_size, "return", m_return_toolbar.get_return_texture_id(), ImVec2(20.0f, 20.0f), uv0, uv1, -1, bg_col, tint_col, margin)) {
+    float font_size = ImGui::GetFontSize();
+    ImVec2 real_size = ImVec2(font_size * 4, font_size * 1.7);
+    ImVec2 button_icon_size = ImVec2(font_size * 1.3, font_size * 1.3);
+
+
+    if (ImGui::ImageTextButton(real_size, "return", m_return_toolbar.get_return_texture_id(), button_icon_size, uv0, uv1, -1, bg_col, tint_col, margin)) {
         if (m_canvas != nullptr)
             wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
     }
@@ -6243,12 +6267,16 @@ void GLCanvas3D::_render_paint_toolbar() const
 {
     if (m_canvas_type != ECanvasType::CanvasAssembleView)
         return;
-
+#if ENABLE_RETINA_GL
+    float f_scale = m_retina_helper->get_scale_factor();
+#else
+    float f_scale = 1.0;
+#endif
     std::vector<std::string> colors = wxGetApp().plater()->get_extruder_colors_from_plater_config();
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     auto canvas_w = float(get_canvas_size().get_width());
     int extruder_num = colors.size();
-    int item_spacing = 8 * wxGetApp().toolbar_icon_scale();
+    int item_spacing = 8 * wxGetApp().toolbar_icon_scale() * f_scale;
     
     std::vector<std::string> filament_types;
    {
@@ -6264,7 +6292,7 @@ void GLCanvas3D::_render_paint_toolbar() const
        }
    }
     
-   #ifdef __WINDOWS__
+   #ifdef __APPLE__
    std::string  item_text   = (boost::format("%1% %2%") % (11) % filament_types[0]).str();
    const ImVec2 label_size  = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
    int          button_size = label_size.x + item_spacing;
@@ -6323,12 +6351,9 @@ void GLCanvas3D::_render_paint_toolbar() const
         //TODO use filament type from filament management, current use PLA by default
         std::string item_text = (boost::format("%1% %2%") % (i + 1) % filament_types[i]).str();
         const ImVec2 label_size = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
-        #ifdef __WINDOWS__
-         ImGui::SameLine(item_spacing + (button_size - label_size.x) / 2 + (button_size + item_spacing) * i);
-        #else
-         ImGui::SameLine(item_spacing + item_spacing / 2 + (button_size - label_size.x) / 2 + (button_size + item_spacing * 2) * i);
-        #endif
-       
+
+        ImGui::SameLine(item_spacing + (button_size - label_size.x) / 2 + (button_size + item_spacing) * i);
+
         Slic3r::GUI::BitmapCache::parse_color(colors[i], rgb);
         float gray = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
         if (gray < 80)

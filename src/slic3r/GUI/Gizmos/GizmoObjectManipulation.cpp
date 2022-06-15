@@ -481,9 +481,12 @@ bool GizmoObjectManipulation::reset_button(ImGuiWrapper *imgui_wrapper, float ca
     ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_RESET);
     ImTextureID hover_id  = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_RESET_HOVER);
 
+    float font_size = ImGui::GetFontSize();
+    ImVec2 button_size = ImVec2(font_size, font_size);
+
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
 
-    pressed = ImGui::ImageButton3(normal_id, hover_id, ImVec2(14.0f, 14.0f));
+    pressed = ImGui::ImageButton3(normal_id, hover_id, button_size);
 
     ImGui::PopStyleVar(1);
     return pressed;

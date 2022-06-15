@@ -1119,6 +1119,7 @@ void Sidebar::on_filaments_change(size_t num_filaments)
 
     p->m_panel_filament_title->Layout();
     p->m_panel_filament_title->Refresh();
+    update_ui_from_settings();
 }
 
 void Sidebar::on_bed_type_change(BedType bed_type)

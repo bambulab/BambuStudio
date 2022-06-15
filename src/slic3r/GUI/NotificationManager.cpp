@@ -1866,7 +1866,7 @@ void NotificationManager::render_notifications(GLCanvas3D &canvas, float overlay
 
 	for (const auto& notification : m_pop_notifications) {
 		if (notification->get_state() != PopNotification::EState::Hidden) {
-            notification->render(canvas, last_y, m_move_from_overlay && !m_in_preview, overlay_width, right_margin);
+            notification->render(canvas, last_y * m_scale, m_move_from_overlay && !m_in_preview, overlay_width, right_margin * m_scale);
 			if (notification->get_state() != PopNotification::EState::Finished)
 				last_y = notification->get_top() + GAP_WIDTH;
 		}
@@ -2255,6 +2255,10 @@ void NotificationManager::bbl_chose_sole_text_notification(NotificationType sTyp
 }
 
 
+void NotificationManager::set_scale(float scale)
+{
+	if(m_scale != scale)m_scale = scale;
+}
 
 
 }//namespace GUI
