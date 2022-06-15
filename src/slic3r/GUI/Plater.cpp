@@ -3783,10 +3783,11 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     if (invalidated != Print::APPLY_STATUS_UNCHANGED && was_running && ! this->background_process.running() &&
         (return_state & UPDATE_BACKGROUND_PROCESS_RESTART) == 0) {
         // The background processing was killed and it will not be restarted.
-        wxCommandEvent evt(EVT_PROCESS_COMPLETED);
-        evt.SetInt(-1);
         // Post the "canceled" callback message, so that it will be processed after any possible pending status bar update messages.
-        wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
+        SlicingProcessCompletedEvent evt(EVT_PROCESS_COMPLETED, 0,
+            SlicingProcessCompletedEvent::Cancelled, nullptr);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%, post an EVT_PROCESS_COMPLETED to main, status %2%")%__LINE__ %evt.status();
+        wxQueueEvent(q, evt.Clone());
     }
 
     if ((return_state & UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
@@ -4779,14 +4780,17 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
             }
         }
     }
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format("exit.");
 }
 
 void Plater::priv::on_slicing_completed(wxCommandEvent & evt)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": event_type %1%, string %2%") % evt.GetEventType() % evt.GetString();
     //BBS: add slice project logic
-    if (m_slice_all && (m_cur_slice_plate < (partplate_list.get_plate_count() - 1)))
+    if (m_slice_all && (m_cur_slice_plate < (partplate_list.get_plate_count() - 1))) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format("slicing all, finished plate %1%, will continue next.")%m_cur_slice_plate;
         return;
+    }
 
     if (view3D->is_dragging()) // updating scene now would interfere with the gizmo dragging
         delayed_scene_refresh = true;
@@ -4799,6 +4803,7 @@ void Plater::priv::on_slicing_completed(wxCommandEvent & evt)
         else
             this->update_sla_scene();
     }
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format("exit.");
 }
 
 void Plater::priv::on_export_began(wxCommandEvent& evt)
@@ -4889,11 +4894,12 @@ bool Plater::priv::warnings_dialog()
 //BBS: add project slice logic
 void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 {
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": enter, m_ignore_event %1%, status %2%")%m_ignore_event %evt.status();
     //BBS:ignore cancel event for some special case
     if (m_ignore_event)
     {
         m_ignore_event = false;
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":ignore this event %1%") % evt.status();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": ignore this event %1%") % evt.status();
         return;
     }
     //BBS: add project slice logic
@@ -4936,6 +4942,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         is_finished = true;
     }
     if (evt.cancelled()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", cancel event, status: %1%") % evt.status();
         this->notification_manager->set_slicing_progress_canceled(_utf8("Slicing Cancelled."));
         is_finished = true;
     }
@@ -5054,6 +5061,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             }
         }
     }
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", exit.");
 }
 
 void Plater::priv::on_action_add(SimpleEvent&)

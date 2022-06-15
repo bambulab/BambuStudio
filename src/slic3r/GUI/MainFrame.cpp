@@ -159,7 +159,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     if (wxGetApp().app_config->get("user_mode") == "develop") {
         wxGetApp().app_config->set("user_mode", "advanced");
      }
-    
+
     wxGetApp().app_config->set_bool("dump_video", false);
 
 
@@ -186,8 +186,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     panel_topbar->Layout();
     #endif
 
-    
-    
+
+
     wxAuiToolBar* toolbar = new wxAuiToolBar();
 /*
 #ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
@@ -307,7 +307,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
      sizer->Add(panel_topbar, 0, wxEXPAND);
     #endif // __WINDOWS__
 
-   
+
     sizer->Add(m_main_sizer, 1, wxEXPAND);
     SetSizerAndFit(sizer);
     // initialize layout from config
@@ -1201,8 +1201,10 @@ bool MainFrame::get_enable_slice_status()
     bool enable = true;
 
     bool on_slicing = m_plater->is_background_process_slicing();
-    if (on_slicing)
+    if (on_slicing) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": on slicing, return false directly!");
         return false;
+    }
 
     PartPlateList &part_plate_list = m_plater->get_partplate_list();
     PartPlate *current_plate = part_plate_list.get_curr_plate();

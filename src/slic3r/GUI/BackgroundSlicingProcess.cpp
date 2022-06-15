@@ -310,19 +310,21 @@ void BackgroundSlicingProcess::thread_proc()
 		m_print->finalize();
 		lck.lock();
 		m_state = m_print->canceled() ? STATE_CANCELED : STATE_FINISHED;
+		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": process finished, state %1%, print cancel_status %2%")%m_state %m_print->cancel_status();
 		if (m_print->cancel_status() != Print::CANCELED_INTERNAL) {
 			// Only post the canceled event, if canceled by user.
 			// Don't post the canceled event, if canceled from Print::apply().
 			SlicingProcessCompletedEvent evt(m_event_finished_id, 0,
 				(m_state == STATE_CANCELED) ? SlicingProcessCompletedEvent::Cancelled :
 				exception ? SlicingProcessCompletedEvent::Error : SlicingProcessCompletedEvent::Finished, exception);
-        	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
-        }
-	    m_print->restart();
+			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": send SlicingProcessCompletedEvent to main, status %1%")%evt.status();
+			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
+		}
+		m_print->restart();
 		lck.unlock();
 		// Let the UI thread wake up if it is waiting for the background task to finish.
-	    m_condition.notify_one();
-	    // Let the UI thread see the result.
+		m_condition.notify_one();
+		// Let the UI thread see the result.
 	}
 	m_state = STATE_EXITED;
 	lck.unlock();
@@ -410,8 +412,10 @@ void BackgroundSlicingProcess::call_process(std::exception_ptr &ex) throw()
 		// Canceled, this is all right.
 		assert(m_print->canceled());
 		ex = std::current_exception();
+		BOOST_LOG_TRIVIAL(error) <<__FUNCTION__ << ":got cancelled exception" << std::endl;
 	} catch (...) {
 		ex = std::current_exception();
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":got other exception" << std::endl;
 	}
 }
 
@@ -505,6 +509,7 @@ bool BackgroundSlicingProcess::start()
 // To be called on the UI thread.
 bool BackgroundSlicingProcess::stop()
 {
+	BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ", enter"<<std::endl;
 	// m_print->state_mutex() shall NOT be held. Unfortunately there is no interface to test for it.
 	std::unique_lock<std::mutex> lck(m_mutex);
 	if (m_state == STATE_INITIAL) {
@@ -526,6 +531,7 @@ bool BackgroundSlicingProcess::stop()
 		m_state = STATE_IDLE;
 		m_print->set_cancel_callback([](){});
 	}
+	BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ", exit"<<std::endl;
 //	m_export_path.clear();
 	return true;
 }
@@ -546,6 +552,7 @@ bool BackgroundSlicingProcess::reset()
 // This function shall not trigger any UI update through the wxWidgets event.
 void BackgroundSlicingProcess::stop_internal()
 {
+	BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ", enter"<<std::endl;
 	// m_print->state_mutex() shall be held. Unfortunately there is no interface to test for it.
 	if (m_state == STATE_IDLE)
 		// The worker thread is waiting on m_mutex/m_condition for wake up. The following lock of the mutex would block.
@@ -569,6 +576,7 @@ void BackgroundSlicingProcess::stop_internal()
 	// In the "Canceled" state. Reset the state to "Idle".
 	m_state = STATE_IDLE;
 	m_print->set_cancel_callback([](){});
+	BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ", exit"<<std::endl;
 }
 
 // Execute task from background thread on the UI thread. Returns true if processed, false if cancelled.

@@ -118,7 +118,7 @@ PartPlate::~PartPlate()
 void PartPlate::init()
 {
 	m_locked = false;
-	m_ready_for_slice = false;
+	m_ready_for_slice = true;
 	m_slice_result_valid = false;
 	m_slice_percent = 0.0f;
 	m_hover_id = -1;
@@ -1427,6 +1427,7 @@ int PartPlate::add_instance(int obj_id, int instance_id, bool move_position, Bou
 		m_ready_for_slice = true;
 	}
 
+	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1% , m_ready_for_slice changes to %2%") % m_plate_index %m_ready_for_slice;
 	return 0;
 }
 
@@ -1903,6 +1904,7 @@ void PartPlate::update_states()
 		}
 	}
 
+	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1% , m_ready_for_slice changes to %2%") % m_plate_index %m_ready_for_slice;
 	return;
 }
 
