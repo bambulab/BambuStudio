@@ -881,7 +881,7 @@ int CLI::run(int argc, char **argv)
             partplate_list.preprocess_exclude_areas(unselected);
 
             //Step-2:prepare the arrange params
-            arrange_cfg.allow_rotations  = false;
+            arrange_cfg.allow_rotations  = true;
             arrange_cfg.min_obj_distance = scaled(6.0);
             //BBS: add specific params
             arrange_cfg.is_seq_print = false;
@@ -920,7 +920,7 @@ int CLI::run(int argc, char **argv)
             arrangement::arrange(unprintable, {}, beds, arrange_cfg);
 
             //Step-4:postprocess by partplate list&&apply the result
-            int beds = 0;
+            int bed_idx_max = 0;
             //clear all the relations before apply the arrangement results
             partplate_list.clear();
 
@@ -929,11 +929,11 @@ int CLI::run(int argc, char **argv)
                 //BBS: partplate postprocess
                 partplate_list.postprocess_bed_index_for_selected(ap);
 
-                beds = std::max(ap.bed_idx, beds);
+                bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
                 boost::nowide::cout<< "after arrange: name=" << ap.name << boost::format(",bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) << "\n";
             }
             for (ArrangePolygon &ap : locked_aps) {
-                beds = std::max(ap.bed_idx, beds);
+                bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
 
                 partplate_list.postprocess_arrange_polygon(ap, false);
 
@@ -950,7 +950,7 @@ int CLI::run(int argc, char **argv)
 
             // Move the unprintable items to the last virtual bed.
             for (ArrangePolygon &ap : unprintable) {
-                ap.bed_idx += beds + 1;
+                ap.bed_idx += bed_idx_max + 1;
                 partplate_list.postprocess_arrange_polygon(ap, true);
 
                 ap.apply();

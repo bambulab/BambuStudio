@@ -57,7 +57,7 @@ namespace orientation {
 // management and spatial index structures for acceleration.
 class AutoOrienter {
 public:
-    OrientMesh* orient_mesh;
+    OrientMesh *orient_mesh = NULL;
     TriangleMesh* mesh;
     TriangleMesh mesh_convex_hull;
     Eigen::MatrixXf normals, normals_hull;
@@ -183,7 +183,8 @@ public:
             }
         }
 
-        BOOST_LOG_TRIVIAL(debug) <<orient_mesh->name<< ", count_apperance=" << count_apperance;
+        if (orient_mesh)
+            BOOST_LOG_TRIVIAL(debug) <<orient_mesh->name<< ", count_apperance=" << count_apperance;
 
         // get convex hull statistics
         {

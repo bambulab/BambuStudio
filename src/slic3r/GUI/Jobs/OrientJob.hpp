@@ -57,7 +57,7 @@ public:
         return om;
     }
 #endif
-    static orientation::OrientMesh get_orient_mesh(ModelInstance* instance, const Plater* plater);
+    static orientation::OrientMesh get_orient_mesh(ModelInstance* instance);
 };
 
 

@@ -44,7 +44,7 @@ void OrientJob::prepare_selection(std::vector<bool> obj_sel, bool only_one_plate
         for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
         {
             ModelInstance* mi = mo->instances[inst_idx];
-            OrientMesh&& om = get_orient_mesh(mi, m_plater);
+            OrientMesh&& om = get_orient_mesh(mi);
 
             bool locked = false;
             if (!only_one_plate) {
@@ -218,7 +218,7 @@ void OrientJob::finalize() {
     Job::finalize();
 }
 
-orientation::OrientMesh OrientJob::get_orient_mesh(ModelInstance* instance, const Plater* plater)
+orientation::OrientMesh OrientJob::get_orient_mesh(ModelInstance* instance)
 {
     using OrientMesh = orientation::OrientMesh;
     OrientMesh om;
@@ -232,7 +232,7 @@ orientation::OrientMesh OrientJob::get_orient_mesh(ModelInstance* instance, cons
         om.overhang_angle = config.opt_int("support_threshold_angle");
     }
 
-    om.setter = [instance, plater](const OrientMesh& p) {
+    om.setter = [instance](const OrientMesh& p) {
         instance->rotate(p.rotation_matrix);
         instance->get_object()->ensure_on_bed();
     };
