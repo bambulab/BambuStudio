@@ -333,18 +333,33 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     
     header_line_panel->Bind(wxEVT_PAINT, [this](wxPaintEvent&) {
         wxPaintDC dc(header_line_panel);
+        wxString from_text = _L("From");
+        wxString to_text = _L("To");
+        wxSize from_text_size = dc.GetTextExtent(from_text);
+        wxSize to_text_size = dc.GetTextExtent(to_text);
 
-        int x_pos = header_line_panel->GetPosition().x - FromDIP(15);
-        int y_pos = 17 * header_line_panel->GetSize().y / 40;
-        dc.DrawText(_(L("From")), x_pos, y_pos);
+        int base_y = (header_line_panel->GetSize().y - from_text_size.y - to_text_size.y) / 2;
+        int vol_width = ROW_BEG_PADDING + EDIT_BOXES_GAP / 2 + ICON_SIZE.x;
+        int base_x = (vol_width - from_text_size.x - to_text_size.x) / 2;
 
+        // draw from text
+        int x = base_x;
+        int y = base_y + to_text_size.y;
+        dc.DrawText(from_text, x, y);
+
+        // draw to text
+        x = base_x + from_text_size.x;
+        y = base_y;
+        dc.DrawText(to_text, x, y);
+
+        // draw a line
+        int p1_x = base_x + from_text_size.x - to_text_size.y;
+        int p1_y = base_y;
+        int p2_x = base_x + from_text_size.x + from_text_size.y;
+        int p2_y = base_y + from_text_size.y + to_text_size.y;
         dc.SetPen(wxPen(wxColour(172, 172, 172, 1)));
-        dc.DrawLine(x_pos + FromDIP(6), y_pos - FromDIP(6), x_pos + FromDIP(6 + 18), y_pos + FromDIP(-6 + 18));
-
-        x_pos = x_pos + FromDIP(20);
-        y_pos = 7 * header_line_panel->GetSize().y / 40;
-        dc.DrawText(_(L("To")), x_pos, y_pos);
-        });
+        dc.DrawLine(p1_x, p1_y, p2_x, p2_y);
+    });
 }
 
 
