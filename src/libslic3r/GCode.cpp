@@ -886,6 +886,13 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     // Remove the old g-code if it exists.
     boost::nowide::remove(path);
 
+    fs::path file_path(path);
+    fs::path folder = file_path.parent_path();
+    if (!fs::exists(folder)) {
+        fs::create_directory(folder);
+        BOOST_LOG_TRIVIAL(error) << "[WARNING]: the parent path " + folder.string() +" is not there, create it!" << std::endl;
+    }
+
     std::string path_tmp(path);
     path_tmp += ".tmp";
 
@@ -893,8 +900,6 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     GCodeOutputStream file(boost::nowide::fopen(path_tmp.c_str(), "wb"), m_processor);
     if (! file.is_open()) {
         BOOST_LOG_TRIVIAL(error) << std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n" << std::endl;
-        fs::path file_path(path);
-        fs::path folder = file_path.parent_path();
         if (!fs::exists(folder)) {
             //fs::create_directory(folder);
             BOOST_LOG_TRIVIAL(error) << "the parent path " + folder.string() +" is not there!!!" << std::endl;
@@ -1967,7 +1972,7 @@ void GCode::get_bed_temperature(const int extruder_id, const bool is_first_layer
     for (int bed_type = 0; bed_type < BedType::btCount; bed_type++) {
         std::string bed_temp_key = is_first_layer ? get_bed_temp_key((BedType)bed_type) : get_bed_temp_1st_layer_key((BedType)bed_type);
         const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(bed_temp_key);
-        
+
         temps_per_bed[bed_type] = bed_temp_opt->get_at(extruder_id);
         if (bed_type == m_config.curr_bed_type)
             default_temp = temps_per_bed[bed_type];
@@ -3296,7 +3301,7 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
     return gcode;
 }
 
-bool GCode::GCodeOutputStream::is_error() const 
+bool GCode::GCodeOutputStream::is_error() const
 {
     return ::ferror(this->f);
 }
@@ -3307,7 +3312,7 @@ void GCode::GCodeOutputStream::flush()
 }
 
 void GCode::GCodeOutputStream::close()
-{ 
+{
     if (this->f) {
         ::fclose(this->f);
         this->f = nullptr;
