@@ -1881,7 +1881,8 @@ namespace BBL {
                     url.append(url.empty() ? "?" : "&");
                     url.append("region=" + region);
                 }
-                callback(ttcode.empty() ? ttcode : "tutk:///" + ttcode + url);
+                if (ttcode == "null") ttcode.clear();
+                callback(ttcode.empty() ? ttcode : "bambu:///" + ttcode + url);
             })
             .on_error([this, callback](std::string body, std::string error,
                                         unsigned status) {
