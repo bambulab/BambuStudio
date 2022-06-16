@@ -5894,7 +5894,9 @@ private:
                         boost::filesystem::remove(t.path + "/lock.txt");
                         boost::filesystem::remove_all(t.path);
                         BOOST_LOG_TRIVIAL(info) << "process_ui_task: remove all of backup path " << t.path;
-                    } catch (...) {}
+                    } catch (std::exception &ex) {
+                        BOOST_LOG_TRIVIAL(error) << "process_ui_task: failed to remove backup path" << t.path << ": " << ex.what();
+                    }
                 }
                 break;
         }

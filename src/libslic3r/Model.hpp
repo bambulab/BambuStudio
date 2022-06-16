@@ -1337,6 +1337,7 @@ public:
 
     // BBS: backup
     std::string   get_backup_path();
+    std::string   get_backup_path(const std::string &sub_path);
     void          set_backup_path(const std::string &path);
     void          load_from(Model & model);
     bool          is_need_backup() { return need_backup;  }

@@ -1950,8 +1950,7 @@ void PartPlate::update_slice_context(BackgroundSlicingProcess & process)
 std::string PartPlate::get_tmp_gcode_path()
 {
     if (m_tmp_gcode_path.empty()) {
-        boost::filesystem::path temp_path(m_model->get_backup_path());
-        temp_path /= "Metadata";
+        boost::filesystem::path temp_path(m_model->get_backup_path("Metadata"));
         temp_path /= (boost::format(".%1%.%2%.gcode") % get_current_pid() %
                       GLOBAL_PLATE_INDEX++)
                          .str();

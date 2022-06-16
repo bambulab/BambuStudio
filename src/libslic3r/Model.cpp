@@ -730,7 +730,7 @@ end:
 // BBS: backup all in one dir
 std::string Model::get_auxiliary_file_temp_path()
 {
-    return get_backup_path() + "/Auxiliaries";
+    return get_backup_path("/Auxiliaries");
 }
 
 // BBS: backup dir
@@ -754,15 +754,36 @@ std::string Model::get_backup_path()
         }
     }
     boost::filesystem::path temp_path(backup_path);
-    if (!boost::filesystem::exists(temp_path))
-    {
-        boost::filesystem::create_directories(backup_path + "/3D/Objects/");
-        boost::filesystem::create_directories(backup_path + "/Metadata");
-        boost::filesystem::save_string_file(backup_path + "/lock.txt",
-            boost::lexical_cast<std::string>(get_current_pid()));
+    try {
+        if (!boost::filesystem::exists(temp_path))
+        {
+            BOOST_LOG_TRIVIAL(info) << "create /3D/Objects in " << temp_path;
+            boost::filesystem::create_directories(backup_path + "/3D/Objects");
+            BOOST_LOG_TRIVIAL(info) << "create /Metadata in " << temp_path;
+            boost::filesystem::create_directories(backup_path + "/Metadata");
+            BOOST_LOG_TRIVIAL(info) << "create /lock.txt in " << temp_path;
+            boost::filesystem::save_string_file(backup_path + "/lock.txt",
+                boost::lexical_cast<std::string>(get_current_pid()));
+        }
+    } catch (std::exception &ex) {
+        BOOST_LOG_TRIVIAL(error) << "Failed to create backup path" << temp_path << ": " << ex.what();
     }
 
     return backup_path;
+}
+
+std::string Model::get_backup_path(const std::string &sub_path)
+{
+    auto path = get_backup_path() + "/" + sub_path;
+    try {
+        if (!boost::filesystem::exists(path)) {
+            BOOST_LOG_TRIVIAL(info) << "create missing sub_path" << path;
+            boost::filesystem::create_directories(path);
+        }
+    } catch (std::exception &ex) {
+        BOOST_LOG_TRIVIAL(error) << "Failed to create missing sub_path" << path << ": " << ex.what();
+    }
+    return path;
 }
 
 void Model::set_backup_path(std::string const& path)
