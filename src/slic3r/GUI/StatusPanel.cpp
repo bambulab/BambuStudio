@@ -1019,6 +1019,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     // Connect Events
     m_bitmap_thumbnail->Connect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_enter), NULL, this);
     m_bitmap_thumbnail->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
+    m_project_task_panel->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
 
     m_button_report->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_report), NULL, this);
     m_button_pause_resume->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
@@ -1990,9 +1991,11 @@ void StatusPanel::on_thumbnail_enter(wxMouseEvent &event)
 
 void StatusPanel::on_thumbnail_leave(wxMouseEvent &event)
 {
-    //BBS do not auto dissmiss
-    //if (obj && m_slice_info_popup)
-        //m_slice_info_popup->Dismiss();
+    if (obj && m_slice_info_popup) {
+        if (!m_bitmap_thumbnail->GetRect().Contains(event.GetPosition())) {
+            m_slice_info_popup->Dismiss();
+        }
+    }
 }
 
 void StatusPanel::on_auto_leveling(wxCommandEvent &event)
