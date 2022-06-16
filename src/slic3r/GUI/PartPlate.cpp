@@ -1999,6 +1999,7 @@ int PartPlate::load_thumbnail_data(std::string filename)
 	wxImage img;
 	if (boost::algorithm::iends_with(filename, ".png")) {
 		result = img.LoadFile(wxString::FromUTF8(filename.c_str()), wxBITMAP_TYPE_PNG);
+		img = img.Mirror(false);
 	}
 	if (result) {
 		thumbnail_data.set(img.GetWidth(), img.GetHeight());

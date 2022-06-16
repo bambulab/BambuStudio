@@ -6630,15 +6630,11 @@ wxString Plater::get_project_name()
 
 void Plater::update_platplate_thumbnails()
 {
-    for (int i = 0; i < get_partplate_list().get_plate_count(); i++)
-    {
+    for (int i = 0; i < get_partplate_list().get_plate_count(); i++) {
         PartPlate* plate = get_partplate_list().get_plate(i);
-        if (!plate->empty()) {
-            ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i};
+        ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i};
+        if (!plate->is_valid_gcode_file()) {
             get_current_canvas3D()->render_thumbnail(plate->thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params, Camera::EType::Ortho);
-        } else {
-            // make thumbnail_data invalid
-            plate->thumbnail_data.reset();
         }
     }
 }
