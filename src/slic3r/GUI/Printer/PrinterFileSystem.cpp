@@ -95,7 +95,7 @@ void PrinterFileSystem::DownloadFile(int index, std::string const &path, Callbac
         std::ofstream ofs(path);
         boost::uuids::detail::md5 boost_md5;
         // receive data
-        int result = fs->RecvData([&ofs, &prog, &boost_md5, callback](Tutk_Sample& sample) {
+        int result = fs->RecvData([&ofs, &prog, &boost_md5, callback](Bambu_Sample& sample) {
             ofs.write((char const *) sample.buffer, sample.size);
             boost_md5.process_bytes(sample.buffer, sample.size);
             prog.size += sample.size;
@@ -156,7 +156,7 @@ void PrinterFileSystem::LockFiles(int start, int count, Callback<Thumbnail> cons
         // receive data
         int n = 0;
         wxString mimetype = resp.get_optional<std::string>("mimetype").get_value_or("image/jpeg");
-        int result = fs->RecvData([names, &n, &list, start, end, this, mimetype, callback](Tutk_Sample& sample) {
+        int result = fs->RecvData([names, &n, &list, start, end, this, mimetype, callback](Bambu_Sample& sample) {
             wxMemoryInputStream mis(sample.buffer, sample.size);
             wxImage image(mis, mimetype);
             PostCallback<Thumbnail>([name = names[n], callback] (int result, Thumbnail list) {
@@ -208,7 +208,7 @@ void PrinterFileSystem::SendRequest(int type, pt::ptree const &req, callback_t c
     std::ostringstream oss;
     pt::write_json(oss, root);
     auto msg = oss.str();
-    int  result = Tutk_SendMessage(&session, PRINTER_REQ, msg.c_str(), msg.length());
+    int  result = Bambu_SendMessage(&session, PRINTER_REQ, msg.c_str(), msg.length());
     if (result != 0) {
         callback(ERROR_PIPE, pt::ptree());
         return;
@@ -221,12 +221,12 @@ void PrinterFileSystem::RecvMessageThread()
     std::string url = this->url; // copy
     if (url.empty())
         return;
-    Tutk_Open(&session, url.c_str()); // sync
+    Bambu_Open(&session, url.c_str()); // sync
     int ctrl;
     char buf[4096];
     int len = sizeof(buf);
     while (!stop) {
-        int n = Tutk_RecvMessage(&session, &ctrl, buf, &len);
+        int n = Bambu_RecvMessage(&session, &ctrl, buf, &len);
         if (n >= 0) {
             pt::ptree root;
             std::istringstream iss(std::string(buf, n));
@@ -257,27 +257,27 @@ void PrinterFileSystem::RecvMessageThread()
                 }
             }
             c(n, resp);
-        } else if (n == Tutk_would_block) {
+        } else if (n == Bambu_would_block) {
             boost::this_thread::sleep(boost::posix_time::seconds(1));
             continue;
         }
     }
 }
 
-int PrinterFileSystem::RecvData(std::function<int(Tutk_Sample& sample)> const & callback)
+int PrinterFileSystem::RecvData(std::function<int(Bambu_Sample& sample)> const & callback)
 {
     int result = 0;
     while (true) {
-        Tutk_Sample sample;
-        result = Tutk_ReadSample(&session, &sample);
-        if (result == Tutk_success) {
+        Bambu_Sample sample;
+        result = Bambu_ReadSample(&session, &sample);
+        if (result == Bambu_success) {
             result = callback(sample);
             if (result == 1)
                 continue;
-        } else if (result == Tutk_would_block) {
+        } else if (result == Bambu_would_block) {
             boost::this_thread::sleep(boost::posix_time::seconds(1));
             continue;
-        } else if (result == Tutk_stream_end) {
+        } else if (result == Bambu_stream_end) {
             result = 0;
         } else {
             result = ERROR_PIPE;

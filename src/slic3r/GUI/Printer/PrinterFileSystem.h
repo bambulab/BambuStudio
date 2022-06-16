@@ -1,7 +1,7 @@
 #ifndef slic3r_GUI_PrinterFileSystem_h_
 #define slic3r_GUI_PrinterFileSystem_h_
 
-#include "Tutk.h"
+#include "BambuTunnel.h"
 
 #include <wx/event.h>
 
@@ -149,7 +149,7 @@ private:
 
     void RecvMessageThread();
 
-    int RecvData(std::function<int(Tutk_Sample & sample)> const & callback);
+    int RecvData(std::function<int(Bambu_Sample & sample)> const & callback);
 
     template <typename T>
     void PostCallback(Callback<T> const& callback, int result, T const& resp)
@@ -179,7 +179,7 @@ private:
 
 private:
     std::string url;
-    Tutk_Session session;
+    Bambu_Session session;
     size_t sequence;
     std::deque<callback_t> callbacks;
     bool stop = false;

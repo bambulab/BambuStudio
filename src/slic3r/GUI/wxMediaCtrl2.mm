@@ -1,5 +1,5 @@
 //
-//  TutkPlayer.m
+//  wxMediaCtrl2.m
 //  BambuStudio
 //
 //  Created by cmguo on 2021/12/7.
@@ -10,7 +10,7 @@
 #include <boost/log/trivial.hpp>
 
 #import <Foundation/Foundation.h>
-#import <TutkPlayer/TutkPlayer.h>
+#import <BambuPlayer/BambuPlayer.h>
 
 static void tutk_log(void const * ctx, int level, char const * msg)
 {
@@ -38,7 +38,7 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent, wxSize const & size)
     imageView.layer.backgroundColor = color;
     CGColorRelease(color);
     imageView.wantsLayer = YES;
-    TutkPlayer * player = [[TutkPlayer alloc] initWithImageView: imageView];
+    BambuPlayer * player = [[BambuPlayer alloc] initWithImageView: imageView];
     [player setLogger: tutk_log withContext: &m_error];
     m_player = player;
     m_state = wxMEDIASTATE_STOPPED;
@@ -46,7 +46,7 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent, wxSize const & size)
 
 void wxMediaCtrl2::Load(wxURI url)
 {
-    TutkPlayer * player = (TutkPlayer *) m_player;
+    BambuPlayer * player = (BambuPlayer *) m_player;
     [player close];
     [player open: url.BuildURI().Mid(8).ToUTF8()];
     m_error = 0;
@@ -56,7 +56,7 @@ void wxMediaCtrl2::Load(wxURI url)
 
 void wxMediaCtrl2::Play()
 {
-    TutkPlayer * player2 = (TutkPlayer *) m_player;
+    BambuPlayer * player2 = (BambuPlayer *) m_player;
     [player2 play];
     if (m_state != wxMEDIASTATE_PLAYING) {
         m_state = wxMEDIASTATE_PLAYING;
@@ -67,7 +67,7 @@ void wxMediaCtrl2::Play()
 
 void wxMediaCtrl2::Stop()
 {
-    TutkPlayer * player2 = (TutkPlayer *) m_player;
+    BambuPlayer * player2 = (BambuPlayer *) m_player;
     [player2 stop];
     if (m_state != wxMEDIASTATE_STOPPED) {
         m_state = wxMEDIASTATE_STOPPED;
@@ -83,7 +83,7 @@ wxMediaState wxMediaCtrl2::GetState() const
 
 wxSize wxMediaCtrl2::DoGetBestSize() const
 {
-    TutkPlayer * player2 = (TutkPlayer *) m_player;
+    BambuPlayer * player2 = (BambuPlayer *) m_player;
     NSSize size = [player2 videoSize];
     return {(int) size.width, (int) size.height};
 }
