@@ -3726,7 +3726,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             Export3mfProgressFn proFn,
             const std::vector<ThumbnailData*>& calibration_data,
             const std::vector<PlateBBoxData*>& id_bboxes,
-            BBLProject* project = nullptr);
+            BBLProject* project = nullptr,
+            int export_plate_idx = -1);
 
         bool _add_file_to_archive(mz_zip_archive& archive, const std::string & path_in_zip, const std::string & file_path);
 
@@ -3739,7 +3740,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                                                 std::string const &             from    = {},
                                                 std::vector<std::string> const &targets = {},
                                                 std::vector<std::string> const &types   = {},
-                                                PackingTemporaryData            data    = PackingTemporaryData()) const;
+                                                PackingTemporaryData            data    = PackingTemporaryData(),
+                                                int export_plate_idx = -1) const;
         bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data, Export3mfProgressFn proFn = nullptr, BBLProject* project = nullptr) const;
         bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int object_id, ModelObject const & object, unsigned int backup_id, VolumeToObjectIDMap& volumes_objectID) const;
         //BBS: change volume to seperate objects
@@ -3754,7 +3756,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool _add_project_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config, Model& model);
         //BBS: add project embedded preset files
         bool _add_project_embedded_presets_to_archive(mz_zip_archive& archive, Model& model, std::vector<Preset*> project_presets);
-        bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const IdToObjectDataMap &objects_data);
+        bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const IdToObjectDataMap &objects_data, int export_plate_idx = -1);
         bool _add_slice_info_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list);
         bool _add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, Export3mfProgressFn proFn = nullptr);
         bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config);
@@ -3792,7 +3794,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         boost::filesystem::remove(filename + ".tmp", ec);
 
         bool result = _save_model_to_file(filename + ".tmp", *store_params.model, store_params.plate_data_list, store_params.project_presets, store_params.config,
-            store_params.thumbnail_data, store_params.proFn, store_params.calibration_thumbnail_data, store_params.id_bboxes, store_params.project);
+            store_params.thumbnail_data, store_params.proFn, store_params.calibration_thumbnail_data, store_params.id_bboxes, store_params.project, store_params.export_plate_idx);
         if (result) {
             boost::filesystem::rename(filename + ".tmp", filename, ec);
             if (!(store_params.strategy & SaveStrategy::Silence))
@@ -3838,7 +3840,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         Export3mfProgressFn proFn,
         const std::vector<ThumbnailData*>& calibration_data,
         const std::vector<PlateBBoxData*>& id_bboxes,
-        BBLProject* project)
+        BBLProject* project,
+        int export_plate_idx)
     {
         PackingTemporaryData temp_data;
 
@@ -4091,7 +4094,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // This file contains all the attributes of all ModelObjects and their ModelVolumes (names, parameter overrides).
         // As there is just a single Indexed Triangle Set data stored per ModelObject, offsets of volumes into their respective Indexed Triangle Set data
         // is stored here as well.
-        if (!_add_model_config_file_to_archive(archive, model, plate_data_list, objects_data)) {
+        if (!_add_model_config_file_to_archive(archive, model, plate_data_list, objects_data, export_plate_idx)) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", _add_model_config_file_to_archive failed\n");
             return false;
         }
@@ -4135,7 +4138,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // Adds relationships file ("_rels/.rels").
         // The content of this file is the same for each BambuStudio 3mf.
         // The relationshis file contains a reference to the geometry file "3D/3dmodel.model", the name was chosen to be compatible with CURA.
-        if (!_add_relationships_file_to_archive(archive, {}, {}, {}, temp_data)) {
+        if (!_add_relationships_file_to_archive(archive, {}, {}, {}, temp_data, export_plate_idx)) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", _add_relationships_file_to_archive failed\n");
             return false;
         }
@@ -4261,7 +4264,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     }
 
     bool _BBS_3MF_Exporter::_add_relationships_file_to_archive(
-        mz_zip_archive &archive, std::string const &from, std::vector<std::string> const &targets, std::vector<std::string> const &types, PackingTemporaryData data) const
+        mz_zip_archive &archive, std::string const &from, std::vector<std::string> const &targets, std::vector<std::string> const &types, PackingTemporaryData data, int export_plate_idx) const
     {
         std::stringstream stream;
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -4270,8 +4273,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             stream << " <Relationship Target=\"/" << MODEL_FILE << "\" Id=\"rel-1\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\"/>\n";
 
             if (data._3mf_thumbnail.empty()) {
-                stream << " <Relationship Target=\"/" << THUMBNAIL_FILE
-                       << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\"/>\n";
+                if (export_plate_idx < 0) {
+                    stream << " <Relationship Target=\"/" << THUMBNAIL_FILE
+                           << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\"/>\n";
+                } else {
+                    std::string thumbnail_file_str = (boost::format("Metadata/plate_%1%.png") % (export_plate_idx + 1)).str();
+                    stream << " <Relationship Target=\"/" << thumbnail_file_str
+                        << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\"/>\n";
+                }
             } else {
                 stream << " <Relationship Target=\"/" << data._3mf_thumbnail
                        << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\"/>\n";
@@ -5191,7 +5200,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
-    bool _BBS_3MF_Exporter::_add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const IdToObjectDataMap &objects_data)
+    bool _BBS_3MF_Exporter::_add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const IdToObjectDataMap &objects_data, int export_plate_idx)
     {
         std::stringstream stream;
         // Store mesh transformation in full precision, as the volumes are stored transformed and they need to be transformed back
@@ -5352,7 +5361,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
         }
         // write model rels
-        _add_relationships_file_to_archive(archive, BBS_MODEL_CONFIG_RELS_FILE, gcode_paths, {"http://schemas.bambulab.com/package/2021/gcode"});
+        _add_relationships_file_to_archive(archive, BBS_MODEL_CONFIG_RELS_FILE, gcode_paths, {"http://schemas.bambulab.com/package/2021/gcode"}, Slic3r::PackingTemporaryData(), export_plate_idx);
 
         //BBS: store assemble related info
         stream << "  <" << ASSEMBLE_TAG << ">\n";

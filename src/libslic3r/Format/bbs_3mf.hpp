@@ -178,6 +178,7 @@ struct StoreParams
     const char* path;
     Model* model = nullptr;
     PlateDataPtrs plate_data_list;
+    int export_plate_idx = -1;
     std::vector<Preset*> project_presets;
     DynamicPrintConfig* config;
     std::vector<ThumbnailData*> thumbnail_data;

@@ -8026,6 +8026,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     store_params.path  = path_u8.c_str();
     store_params.model = &p->model;
     store_params.plate_data_list = plate_data_list;
+    store_params.export_plate_idx = export_plate_idx;
     store_params.project_presets = project_presets;
     store_params.config = export_config ? &cfg : nullptr;
     store_params.thumbnail_data = thumbnails;
