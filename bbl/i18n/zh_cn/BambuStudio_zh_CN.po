@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-14 16:27+0800\n"
+"POT-Creation-Date: 2022-06-17 18:12+0800\n"
 "PO-Revision-Date: 2022-05-17 15:42+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1224,8 +1224,12 @@ msgstr "正在加载G-code文件"
 msgid "Select a G-code file:"
 msgstr "选择一个G-code文件："
 
-msgid "Bambu Studio initialization failed"
-msgstr "Bambu Studio初始化失败"
+msgid "Bambu Studio GUI initialization failed"
+msgstr "Bambu Studio图形界面初始化失败"
+
+#, boost-format
+msgid "Fatal error, exception catched: %1%"
+msgstr "致命错误，捕获到异常：%1%"
 
 msgid "Quality"
 msgstr "质量"
@@ -1729,10 +1733,6 @@ msgstr ""
 
 msgid "Arranging..."
 msgstr "自动摆放中..."
-
-#, c-format, boost-format
-msgid "Object %s has zero size and can't be arranged."
-msgstr "对象%s的尺寸为0，无法被自动摆放。"
 
 msgid ""
 "Arrange failed. Found some exceptions when processing object geometries."
@@ -2432,12 +2432,6 @@ msgstr "热床类型"
 msgid "Flushing volumes"
 msgstr "冲刷体积"
 
-msgid "Need to stop slicing first."
-msgstr ""
-
-msgid "Drop Files when slicing"
-msgstr ""
-
 msgid "Untitled"
 msgstr "未命名"
 
@@ -2561,22 +2555,6 @@ msgstr "创建新项目"
 msgid "Load project"
 msgstr "加载项目"
 
-msgid "Importing Model"
-msgstr "正在导入模型"
-
-msgid "prepare 3mf file..."
-msgstr "正在准备3mf文件..."
-
-msgid "Import project failed, Please try again!"
-msgstr "加载项目失败，请重试！"
-
-msgid "downloading project ..."
-msgstr "项目下载中..."
-
-#, c-format, boost-format
-msgid "Project downloaded %d%%"
-msgstr "项目已下载%d%%"
-
 msgid "The selected file"
 msgstr "已选择的文件"
 
@@ -2621,52 +2599,6 @@ msgstr "G-code文件另存为："
 
 msgid "Save Sliced file as:"
 msgstr "切片文件另存为："
-
-msgid "Failed to publish your project. Please try agian!"
-msgstr "项目发布失败。请重试！"
-
-msgid "preparing, export 3mf failed!"
-msgstr "正在准备中，导出 3mf 失败！"
-
-msgid "Preparing to upload your project..."
-msgstr "正在准备上传项目..."
-
-#, c-format, boost-format
-msgid "get_des,err:code=%u,msg=%s"
-msgstr ""
-
-#, c-format, boost-format
-msgid "req_proj,err:code=%u,msg=%s"
-msgstr ""
-
-#, c-format, boost-format
-msgid "req_prof,err:code=%u,msg=%s"
-msgstr ""
-
-msgid "Uploading..."
-msgstr "上传中"
-
-#, c-format, boost-format
-msgid "Uploading %d%%, remaining time %s"
-msgstr ""
-
-msgid "Upload has been canceled."
-msgstr "上传已被取消。"
-
-msgid "Publishing..."
-msgstr ""
-
-msgid "Failed to publish. Please try again!"
-msgstr "发布失败，请重试！"
-
-msgid "Uploading is timed out. Please try again!"
-msgstr "上传已超时，请重试！"
-
-msgid "Internal error."
-msgstr "内部错误。"
-
-msgid "Design id is empty."
-msgstr "获取设计id失败。"
 
 msgid ""
 "Print By Object: \n"
@@ -3034,6 +2966,9 @@ msgstr "请先填写报告。"
 
 msgid "Exporting 3mf..."
 msgstr "正在导出3mf..."
+
+msgid "Internal error."
+msgstr "内部错误。"
 
 msgid "Exporting 3mf failed, please slice again."
 msgstr "导出3mf失败，请重新切片。"
@@ -3765,20 +3700,28 @@ msgstr "需要在配置更新之前检查没有保存的参数修改。"
 msgid "Configuration package updated to "
 msgstr "配置包已更新到"
 
-msgid "Unable to get system certificate."
-msgstr "无法获取系统证书。"
-
-#, boost-format
-msgid "use system SSL certificate: %1%"
-msgstr "使用系统的SSL证书：%1%"
-
-msgid "CURL initialization failed. See the log for additional details."
-msgstr "CURL初始化失败。查看日志以获取详细信息。"
-
 msgid "Open G-code file:"
 msgstr "打开G-code文件："
 
-msgid "print project cancelled."
+msgid "Creating"
+msgstr "正在创建"
+
+msgid "Uploading"
+msgstr "正在上传"
+
+msgid "Waiting"
+msgstr "等待中"
+
+msgid "Sending"
+msgstr "发送中"
+
+msgid "Finished"
+msgstr "完成"
+
+msgid "Internal error, no gcode file to upload."
+msgstr "内部错误，没有可上传的gcode文件"
+
+msgid "Print job was cancelled."
 msgstr "打印任务已取消。"
 
 msgid "Failed to create the print job. Please try agian."
@@ -3795,45 +3738,6 @@ msgstr "无法发送打印任务，请重试。"
 
 msgid "Sending print task timed out. Please try again."
 msgstr "发送打印任务超时，请重试。"
-
-msgid "Creating a print job..."
-msgstr "创建打印任务..."
-
-msgid "Uploading the print job..."
-msgstr "上传打印任务..."
-
-msgid "The size of the uploaded file cannot exceed 1 GB."
-msgstr ""
-
-msgid " Failed to upload the print job. Check Md5 failed, please try agian."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"\n"
-"upload,err:code=%u,msg=%s"
-msgstr ""
-
-msgid "Wait for the job to be sent."
-msgstr "等待任务发送完成。"
-
-msgid "The print job has been sent to your printer."
-msgstr "打印任务已发送至打印机。"
-
-#, c-format, boost-format
-msgid "Invalid plate index %d"
-msgstr "无效的盘索引 %d"
-
-#, c-format, boost-format
-msgid "Plate %d"
-msgstr "盘 %d"
-
-#, c-format, boost-format
-msgid "%s"
-msgstr ""
-
-msgid "Start printing..."
-msgstr "开始打印..."
 
 msgid ""
 "One object has empty initial layer and can't be printed. Please Cut the "
@@ -5581,6 +5485,12 @@ msgstr "摆放选项"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "摆放选项：0-关闭，1-开启，其他-自动"
 
+msgid "Convert Unit"
+msgstr "转换单位"
+
+msgid "Convert the units of model"
+msgstr "转换模型的单位"
+
 msgid "Orient the model"
 msgstr "旋转模型"
 
@@ -5668,7 +5578,115 @@ msgstr " 对象："
 msgid "Error at line %1%:\n"
 msgstr "错误在行%1%：\n"
 
-#, boost-format
+#, c-format, boost-format
+msgid "Support: generate toolpath at layer %d"
+msgstr "支撑：正在生成层%d的走线路径"
+
+msgid "Support: detect overhangs"
+msgstr "支撑：正在检测悬空面"
+
+msgid "Support: generate contact points"
+msgstr "支撑：正在生成接触点"
+
+msgid "Support: propagate branches"
+msgstr "支撑：正在生长树枝"
+
+msgid "Support: draw polygons"
+msgstr "支撑：正在生成多边形"
+
+msgid "Support: generate toolpath"
+msgstr "支撑：正在生成走线路径"
+
+#, c-format, boost-format
+msgid "Support: generate polygons at layer %d"
+msgstr "支撑：正在生成层%d的多边形"
+
+#, c-format, boost-format
+msgid "Support: fix holes at layer %d"
+msgstr "支撑：正在修补层%d的空洞"
+
+#, c-format, boost-format
+msgid "Support: propagate branches at layer %d"
+msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Bambu Studio initialization failed"
+#~ msgstr "Bambu Studio初始化失败"
+
+#~ msgid "Object %s has zero size and can't be arranged."
+#~ msgstr "对象%s的尺寸为0，无法被自动摆放。"
+
+#~ msgid "Importing Model"
+#~ msgstr "正在导入模型"
+
+#~ msgid "prepare 3mf file..."
+#~ msgstr "正在准备3mf文件..."
+
+#~ msgid "Import project failed, Please try again!"
+#~ msgstr "加载项目失败，请重试！"
+
+#~ msgid "downloading project ..."
+#~ msgstr "项目下载中..."
+
+#~ msgid "Project downloaded %d%%"
+#~ msgstr "项目已下载%d%%"
+
+#~ msgid "Failed to publish your project. Please try agian!"
+#~ msgstr "项目发布失败。请重试！"
+
+#~ msgid "preparing, export 3mf failed!"
+#~ msgstr "正在准备中，导出 3mf 失败！"
+
+#~ msgid "Preparing to upload your project..."
+#~ msgstr "正在准备上传项目..."
+
+#~ msgid "Uploading..."
+#~ msgstr "上传中"
+
+#~ msgid "Upload has been canceled."
+#~ msgstr "上传已被取消。"
+
+#~ msgid "Failed to publish. Please try again!"
+#~ msgstr "发布失败，请重试！"
+
+#~ msgid "Uploading is timed out. Please try again!"
+#~ msgstr "上传已超时，请重试！"
+
+#~ msgid "Design id is empty."
+#~ msgstr "获取设计id失败。"
+
+#~ msgid "Unable to get system certificate."
+#~ msgstr "无法获取系统证书。"
+
+#~ msgid "use system SSL certificate: %1%"
+#~ msgstr "使用系统的SSL证书：%1%"
+
+#~ msgid "CURL initialization failed. See the log for additional details."
+#~ msgstr "CURL初始化失败。查看日志以获取详细信息。"
+
+#~ msgid "print project cancelled."
+#~ msgstr "打印任务已取消。"
+
+#~ msgid "Creating a print job..."
+#~ msgstr "创建打印任务..."
+
+#~ msgid "Uploading the print job..."
+#~ msgstr "上传打印任务..."
+
+#~ msgid "Wait for the job to be sent."
+#~ msgstr "等待任务发送完成。"
+
+#~ msgid "The print job has been sent to your printer."
+#~ msgstr "打印任务已发送至打印机。"
+
+#~ msgid "Invalid plate index %d"
+#~ msgstr "无效的盘索引 %d"
+
+#~ msgid "Plate %d"
+#~ msgstr "盘 %d"
+
+#~ msgid "Start printing..."
+#~ msgstr "开始打印..."
+
 #~ msgid "Process %1% / 100"
 #~ msgstr "处理 %1% / 100"
 
@@ -5698,7 +5716,6 @@ msgstr "错误在行%1%：\n"
 #~ "当温度超出推荐范围时，喷嘴可能堵塞。\n"
 #~ "请检查是否使用该温度打印。\n"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Recommanded nozzle temperature of this filament type is [%d, %d] degree "
 #~ "centigrade"
@@ -5722,7 +5739,6 @@ msgstr "错误在行%1%：\n"
 #~ msgid "Use BBL private temperature gcode instead of standard M140/M190"
 #~ msgstr "使用BBL自定义的私有温度控制G代码替代标准的M140/M190。"
 
-#, boost-format
 #~ msgid ""
 #~ "Processing model '%1%' with more than 1M triangles could be slow. It is "
 #~ "highly recommended to reduce the amount of triangles."
@@ -5841,7 +5857,6 @@ msgstr "错误在行%1%：\n"
 #~ msgid "Gizmo/Supports/Gizmo Color/Painting:Position of regulated section"
 #~ msgstr "调节剖面位置"
 
-#, boost-format
 #~ msgid "Unhandled exception: %1%"
 #~ msgstr "未处理的异常：%1%"
 
@@ -5854,7 +5869,6 @@ msgstr "错误在行%1%：\n"
 #~ msgid "Objects being edited are not visible."
 #~ msgstr "正在编辑的对象是不可见的。"
 
-#, c-format, boost-format
 #~ msgid "%d%% uploaded..."
 #~ msgstr "已上传 %d%%"
 
@@ -5870,7 +5884,6 @@ msgstr "错误在行%1%：\n"
 #~ msgid "Eject drive"
 #~ msgstr "弹出设备"
 
-#, boost-format
 #~ msgid "Triangles: %1%, "
 #~ msgstr "三角形数： %1%, "
 

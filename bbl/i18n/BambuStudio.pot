@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-14 16:27+0800\n"
+"POT-Creation-Date: 2022-06-17 18:12+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1172,7 +1172,11 @@ msgstr ""
 msgid "Select a G-code file:"
 msgstr ""
 
-msgid "Bambu Studio initialization failed"
+msgid "Bambu Studio GUI initialization failed"
+msgstr ""
+
+#, possible-boost-format
+msgid "Fatal error, exception catched: %1%"
 msgstr ""
 
 msgid "Quality"
@@ -1677,10 +1681,6 @@ msgid ""
 msgstr ""
 
 msgid "Arranging..."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Object %s has zero size and can't be arranged."
 msgstr ""
 
 msgid ""
@@ -2372,12 +2372,6 @@ msgstr ""
 msgid "Flushing volumes"
 msgstr ""
 
-msgid "Need to stop slicing first."
-msgstr ""
-
-msgid "Drop Files when slicing"
-msgstr ""
-
 msgid "Untitled"
 msgstr ""
 
@@ -2501,22 +2495,6 @@ msgstr ""
 msgid "Load project"
 msgstr ""
 
-msgid "Importing Model"
-msgstr ""
-
-msgid "prepare 3mf file..."
-msgstr ""
-
-msgid "Import project failed, Please try again!"
-msgstr ""
-
-msgid "downloading project ..."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Project downloaded %d%%"
-msgstr ""
-
 msgid "The selected file"
 msgstr ""
 
@@ -2560,52 +2538,6 @@ msgid "Save G-code file as:"
 msgstr ""
 
 msgid "Save Sliced file as:"
-msgstr ""
-
-msgid "Failed to publish your project. Please try agian!"
-msgstr ""
-
-msgid "preparing, export 3mf failed!"
-msgstr ""
-
-msgid "Preparing to upload your project..."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "get_des,err:code=%u,msg=%s"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "req_proj,err:code=%u,msg=%s"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "req_prof,err:code=%u,msg=%s"
-msgstr ""
-
-msgid "Uploading..."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Uploading %d%%, remaining time %s"
-msgstr ""
-
-msgid "Upload has been canceled."
-msgstr ""
-
-msgid "Publishing..."
-msgstr ""
-
-msgid "Failed to publish. Please try again!"
-msgstr ""
-
-msgid "Uploading is timed out. Please try again!"
-msgstr ""
-
-msgid "Internal error."
-msgstr ""
-
-msgid "Design id is empty."
 msgstr ""
 
 msgid ""
@@ -2971,6 +2903,9 @@ msgid "Please fill report first."
 msgstr ""
 
 msgid "Exporting 3mf..."
+msgstr ""
+
+msgid "Internal error."
 msgstr ""
 
 msgid "Exporting 3mf failed, please slice again."
@@ -3687,20 +3622,28 @@ msgstr ""
 msgid "Configuration package updated to "
 msgstr ""
 
-msgid "Unable to get system certificate."
-msgstr ""
-
-#, possible-boost-format
-msgid "use system SSL certificate: %1%"
-msgstr ""
-
-msgid "CURL initialization failed. See the log for additional details."
-msgstr ""
-
 msgid "Open G-code file:"
 msgstr ""
 
-msgid "print project cancelled."
+msgid "Creating"
+msgstr ""
+
+msgid "Uploading"
+msgstr ""
+
+msgid "Waiting"
+msgstr ""
+
+msgid "Sending"
+msgstr ""
+
+msgid "Finished"
+msgstr ""
+
+msgid "Internal error, no gcode file to upload."
+msgstr ""
+
+msgid "Print job was cancelled."
 msgstr ""
 
 msgid "Failed to create the print job. Please try agian."
@@ -3716,45 +3659,6 @@ msgid "Failed to send the print job. Please try again."
 msgstr ""
 
 msgid "Sending print task timed out. Please try again."
-msgstr ""
-
-msgid "Creating a print job..."
-msgstr ""
-
-msgid "Uploading the print job..."
-msgstr ""
-
-msgid "The size of the uploaded file cannot exceed 1 GB."
-msgstr ""
-
-msgid " Failed to upload the print job. Check Md5 failed, please try agian."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid ""
-"\n"
-"upload,err:code=%u,msg=%s"
-msgstr ""
-
-msgid "Wait for the job to be sent."
-msgstr ""
-
-msgid "The print job has been sent to your printer."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Invalid plate index %d"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Plate %d"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "%s"
-msgstr ""
-
-msgid "Start printing..."
 msgstr ""
 
 msgid ""
@@ -5421,6 +5325,12 @@ msgstr ""
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr ""
 
+msgid "Convert Unit"
+msgstr ""
+
+msgid "Convert the units of model"
+msgstr ""
+
 msgid "Orient the model"
 msgstr ""
 
@@ -5502,4 +5412,35 @@ msgstr ""
 
 #, possible-boost-format
 msgid "Error at line %1%:\n"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Support: generate toolpath at layer %d"
+msgstr ""
+
+msgid "Support: detect overhangs"
+msgstr ""
+
+msgid "Support: generate contact points"
+msgstr ""
+
+msgid "Support: propagate branches"
+msgstr ""
+
+msgid "Support: draw polygons"
+msgstr ""
+
+msgid "Support: generate toolpath"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Support: generate polygons at layer %d"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Support: fix holes at layer %d"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Support: propagate branches at layer %d"
 msgstr ""

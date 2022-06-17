@@ -1534,7 +1534,7 @@ void TreeSupport::generate_toolpaths()
                 if (m_object->print()->canceled())
                     break;
 
-                m_object->print()->set_status(70, (boost::format(_L("Support: generate toolpath at layer %s")) % layer_id).str());
+                m_object->print()->set_status(70, (boost::format(_L("Support: generate toolpath at layer %d")) % layer_id).str());
 
                 TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_id);
                 Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
@@ -2102,7 +2102,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                     ts_layer->lslices_bboxes.emplace_back(get_extents(expoly));
                 ts_layer->backup_untyped_slices();
 
-                m_object->print()->set_status(65, (boost::format( _L("Support: generate polygons at layer %s")) % layer_nr).str());
+                m_object->print()->set_status(65, (boost::format( _L("Support: generate polygons at layer %d")) % layer_nr).str());
 
                 // join roof segments
                 double contact_dist_scaled = scale_(m_slicing_params.gap_support_object);
@@ -2211,7 +2211,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
         std::map<const Polygon *, Point> holeFarPoints;
         for (int layer_nr = m_object->layer_count()-1; layer_nr >0; layer_nr--) {
             if (print->canceled()) break;
-            m_object->print()->set_status(66, (boost::format(_L("Support: fix holes at layer %s")) % layer_nr).str());
+            m_object->print()->set_status(66, (boost::format(_L("Support: fix holes at layer %d")) % layer_nr).str());
 
             const std::vector<Node *> &curr_layer_nodes = contact_nodes[layer_nr];
             TreeSupportLayer *         ts_layer         = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
@@ -2347,7 +2347,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
         const Layer* ts_layer = m_object->get_tree_support_layer(layer_nr);
         if (layer_contact_nodes.empty())
             continue;
-        m_object->print()->set_status(60, (boost::format(_L("Support: propagate branches at layer %s")) % layer_nr).str());
+        m_object->print()->set_status(60, (boost::format(_L("Support: propagate branches at layer %d")) % layer_nr).str());
 
         for (Node* p_node : layer_contact_nodes)
         {
