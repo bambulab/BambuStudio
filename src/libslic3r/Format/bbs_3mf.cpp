@@ -2448,7 +2448,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     need_replace = (m_curr_object->id != backup_id);
                     m_curr_object->id = backup_id;
                 }
-                if (need_replace) {
+                //if (need_replace)
+                {
                     for (int index = 0; index < m_curr_object->components.size(); index++)
                     {
                         int temp_id = (index + 1) << 16 | backup_id;
