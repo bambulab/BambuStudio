@@ -6393,6 +6393,10 @@ void GLCanvas3D::_render_assemble_info() const
         return;
     }
 
+    if (m_selection.is_empty()) {
+        return;
+    }
+
     ImGuiWrapper* imgui = wxGetApp().imgui();
     auto canvas_w = float(get_canvas_size().get_width());
     auto canvas_h = float(get_canvas_size().get_height());
@@ -6414,20 +6418,11 @@ void GLCanvas3D::_render_assemble_info() const
     ImGui::PushFont(font);
     ImGui::PopFont();
     imgui->set_next_window_pos(canvas_w - window_width, 0.0f, ImGuiCond_Always, 0, 0);
-    //imgui->set_next_window_size(window_width, window_height, ImGuiCond_Always);
     ImGuiWrapper::push_toolbar_style();
     imgui->begin(_L("Assembly Info"), ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
     font->Scale = origScale;
     ImGui::PushFont(font);
     ImGui::PopFont();
-
-    double merged_size0 = volumes_bounding_box().size()(0);
-    double merged_size1 = volumes_bounding_box().size()(1);
-    double merged_size2 = volumes_bounding_box().size()(2);
-    ImGui::Text(_L("Total Volume:").ToUTF8()); ImGui::SameLine(caption_max);
-    ImGui::Text("%.2f", merged_size0 * merged_size1 * merged_size2);
-    ImGui::Text(_L("Total Size:").ToUTF8()); ImGui::SameLine(caption_max);
-    ImGui::Text("%.2f x %.2f x %.2f", merged_size0, merged_size1, merged_size2);
 
     double size0 = m_selection.get_bounding_box().size()(0);
     double size1 = m_selection.get_bounding_box().size()(1);
