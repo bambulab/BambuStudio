@@ -2320,7 +2320,7 @@ void PrintObject::remove_bridges_from_contacts(
             // since we're dealing with bridges, we can't assume width is larger than spacing,
             // so we take the largest value and also apply safety offset to be ensure no gaps
             // are left in between
-        Flow bridge_flow = layerm->flow(frPerimeter, true);
+        Flow bridge_flow = layerm->bridging_flow(frPerimeter, g_config_thick_bridges);
         float w = float(std::max(bridge_flow.scaled_width(), bridge_flow.scaled_spacing()));
         for (Polyline& polyline : overhang_perimeters)
             if (polyline.is_straight()) {

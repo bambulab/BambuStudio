@@ -100,7 +100,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
     
     g.layer_id              = (int)this->layer()->id();
     g.ext_perimeter_flow    = this->flow(frExternalPerimeter);
-    g.overhang_flow         = this->bridging_flow(frPerimeter);
+    g.overhang_flow         = this->bridging_flow(frPerimeter, g_config_thick_bridges);
     g.solid_infill_flow     = this->flow(frSolidInfill);
     
     g.process();
@@ -285,7 +285,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                 // would get merged into a single one while they need different directions
                 // also, supply the original expolygon instead of the grown one, because in case
                 // of very thin (but still working) anchors, the grown expolygon would go beyond them
-                BridgeDetector bd(initial, lower_layer->lslices, this->bridging_flow(frInfill).scaled_width());
+                BridgeDetector bd(initial, lower_layer->lslices, this->bridging_flow(frInfill, g_config_thick_bridges).scaled_width());
                 #ifdef SLIC3R_DEBUG
                 printf("Processing bridge at layer %zu:\n", this->layer()->id());
                 #endif
