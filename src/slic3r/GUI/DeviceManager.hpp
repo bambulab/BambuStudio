@@ -482,6 +482,8 @@ public:
     // calibration printer
     int command_start_calibration();
 
+    int command_unload_filament();
+
     /* common apis */
     inline bool is_local() { return !dev_ip.empty(); }
     void set_bind_status(std::string status);

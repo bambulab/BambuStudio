@@ -861,6 +861,16 @@ int MachineObject::command_start_calibration()
     return this->publish_json(j.dump());
 }
 
+int MachineObject::command_unload_filament()
+{
+    // fixed gcode file
+    json j;
+    j["print"]["command"] = "gcode_file";
+    j["print"]["param"] = "/usr/etc/print/filament_unload.gcode";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    return this->publish_json(j.dump());
+}
+
 void MachineObject::set_bind_status(std::string status)
 {
     bind_user_name = status;
