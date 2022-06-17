@@ -305,6 +305,7 @@ public:
     typedef std::function<void(std::string error)> ErrorFn;
     typedef std::function<void(int result, std::string info)> ResultFn;
 
+
     /* properties */
     std::string dev_name;
     std::string dev_ip;
@@ -425,13 +426,9 @@ public:
     CONNECTION_STATE conn_state;
 
     /* machine mqtt apis */
-    void set_callbacks(BBL::SuccessFn sFn, BBL::FailedFn fFn, BBL::LostFn lFn);
     int connect();
     int disconnect();
 
-    BBL::SuccessFn  successFn;
-    BBL::FailedFn failedFn;
-    BBL::LostFn lostFn;
     json_diff print_json;
 
     /* Project Task and Sub Task */
@@ -507,17 +504,12 @@ public:
 
     /* Msg for display MsgFn */
     typedef std::function<void(std::string topic, std::string payload)> MsgFn;
-    MsgFn msg_send_fn;
-    MsgFn msg_recv_fn;
-    void set_msg_send_fn(MsgFn fn) { msg_send_fn = std::move(fn); }
-    void set_msg_recv_fn(MsgFn fn) { msg_recv_fn = std::move(fn); }
-
-    int publish_json(std::string json_str, ResultFn resFn = nullptr, int qos = 0);
+    int publish_json(std::string json_str, int qos = 0);
+    int local_publish_json(std::string json_str, int qos = 0);
     int parse_json(std::string payload);
     int publish_gcode(std::string gcode_str);
 
     BBLSubTask* get_subtask();
-    void update_subtask(std::string subtask_id);
     void update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id);
 
     /* iot operation apis */
@@ -546,19 +538,10 @@ public:
     std::map<std::string, MachineObject*> myBindMachineList;    /* dev_id -> MachineObject* */
     
     
-    MachineObject* get_default_machine() {
-        std::string dev_id = acc_.get_default_machine();
-        if (dev_id.empty()) return nullptr;
-
-        auto it = myBindMachineList.find(dev_id);
-        if (it == myBindMachineList.end()) return nullptr;
-        return it->second;
-    }
-
+    MachineObject* get_default_machine();
+    MachineObject* get_local_machine(std::string dev_id);
     void set_monitoring_machine(std::string dev_id);
-
     void update_my_bind_list(std::string body);
-
     void update_my_machine_list_info();
 
     /* create machine or update machine properties */

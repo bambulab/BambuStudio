@@ -1142,6 +1142,11 @@ GUI_App::GUI_App()
                 });
 #endif
             }
+
+            if (mainframe && mainframe->m_debug_tool_dlg) {
+                if (mainframe->m_debug_tool_dlg->IsShown())
+                    mainframe->m_debug_tool_dlg->message_arrived(dev_id, msg);
+            }
         }
     });
 

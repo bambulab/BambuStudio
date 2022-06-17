@@ -356,7 +356,6 @@ void DeviceSearchDialog::update_list()
     wxDECLARE_EVENT(EVT_MQTT_SUCCESS, wxCommandEvent);
     wxDECLARE_EVENT(EVT_MQTT_FAILED, wxCommandEvent);
     wxDECLARE_EVENT(EVT_MQTT_LOST, wxCommandEvent);
-    wxDECLARE_EVENT(EVT_PRINT_FINISH, wxCommandEvent);
     wxDECLARE_EVENT(EVT_MESSAGE_ARRIVED, wxCommandEvent);
     wxDECLARE_EVENT(EVT_MESSAGE_SENT, wxCommandEvent);
     wxDECLARE_EVENT(EVT_LOG_INFO, wxCommandEvent);
@@ -372,7 +371,6 @@ void DeviceSearchDialog::update_list()
     wxDEFINE_EVENT(EVT_MQTT_SUCCESS, wxCommandEvent);
     wxDEFINE_EVENT(EVT_MQTT_FAILED, wxCommandEvent);
     wxDEFINE_EVENT(EVT_MQTT_LOST, wxCommandEvent);
-    wxDEFINE_EVENT(EVT_PRINT_FINISH, wxCommandEvent);
     wxDEFINE_EVENT(EVT_MESSAGE_ARRIVED, wxCommandEvent);
     wxDEFINE_EVENT(EVT_MESSAGE_SENT, wxCommandEvent);
     wxDEFINE_EVENT(EVT_LOG_INFO, wxCommandEvent);
@@ -487,35 +485,54 @@ void DebugToolDialog::init()
 
     btn_bind->Hide();
     btn_unbind->Hide();
+
     btn_connect->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         MachineObject* obj = dev_manager_.get_default();
         if (!obj) {
             this->send_log_evt("Invalid Printer! Please Select a Printer!");
             return;
         }
+
+        BBL::AccountManager* acc = wxGetApp().getAccountManager();
+        acc->set_on_local_connect_fn(
+            [this, obj](int state, std::string dev_id, std::string msg){
+                if (state == BBL::ConnectStatus::ConnectStatusOk) {
+                    obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_CONNECTED);
+                    this->send_log_evt("Connected to Printer=" + dev_id);
+                    auto evt = new wxCommandEvent(EVT_MQTT_CONNECTED, this->GetId());
+                    evt->SetString(msg);
+                    wxQueueEvent(this, evt);
+                } else if (state == BBL::ConnectStatus::ConnectStatusFailed) {
+                    obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
+                    auto evt = new wxCommandEvent(EVT_MQTT_FAILED, this->GetId());
+                    evt->SetString(msg);
+                    wxQueueEvent(this, evt);
+                } else if (state == BBL::ConnectStatus::ConnectStatusLost) {
+                    obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
+                    auto evt = new wxCommandEvent(EVT_MQTT_LOST, this->GetId());
+                    evt->SetString(msg);
+                    wxQueueEvent(this, evt);
+                }
+            }
+        );
+
+        acc->set_on_local_message_fn(
+            [this](std::string dev_id, std::string msg) {
+                DeviceManager* dev = wxGetApp().getDeviceManager();
+                MachineObject* obj = dev->get_local_machine(dev_id);
+                if (obj) {
+                    obj->parse_json(msg);
+                }
+
+                this->mqtt_msg_queue.push(msg);
+                auto evt = new wxCommandEvent(EVT_MESSAGE_ARRIVED, this->GetId());
+                evt->SetString(dev_id);
+                wxQueueEvent(this, evt);
+            }
+        );
+
         std::string info = "MQTT connecting dev_id=" + obj->dev_id;
         this->send_log_evt(info);
-
-        obj->set_callbacks(
-            //success
-            [this, obj](std::string name) {
-                this->send_log_evt("Connected to Printer=" + obj->dev_id);
-                auto evt = new wxCommandEvent(EVT_MQTT_CONNECTED, this->GetId());
-                evt->SetString(name);
-                wxQueueEvent(this, evt);
-            },
-            //failed
-            [this](std::string name) {
-                auto evt = new wxCommandEvent(EVT_MQTT_FAILED, this->GetId());
-                evt->SetString(name);
-                wxQueueEvent(this, evt);
-            },
-            //lost
-            [this](std::string name) {
-                auto evt = new wxCommandEvent(EVT_MQTT_LOST, this->GetId());
-                evt->SetString(name);
-                wxQueueEvent(this, evt);
-            });
         obj->connect();
     });
     btn_disconnect->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
@@ -537,15 +554,9 @@ void DebugToolDialog::init()
     cb_my_device_list->Bind(wxEVT_COMBOBOX, &DebugToolDialog::on_select_mybind_device, this);
 
     btn_refresh_my_device->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            cb_my_device_list->Disable();
-            BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-            account_manager->request_bind_list(
-                [this](int result, std::string info) {
-                    if (result == 0) {
-                        wxQueueEvent(this, new SimpleEvent(EVT_UPDATE_MYBIND_LIST));
-                    }
-                }
-            );
+            DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+            dev->update_my_machine_list_info();
+            wxQueueEvent(this, new SimpleEvent(EVT_UPDATE_MYBIND_LIST));
         });
 
     btn_get_version->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
@@ -573,6 +584,8 @@ void DebugToolDialog::init()
         }
 
         int idx = cb_upgrade_firmware->GetSelection();
+        if (idx >= upgrade_img_list.size() || idx < 0) return;
+
         std::string version = upgrade_img_list[idx].version;
         std::string dst_url = upgrade_img_list[idx].url;
         std::string module_name = get_curr_module_name();
@@ -678,13 +691,6 @@ void DebugToolDialog::init()
             j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
             int result = this->publish_json(j.dump());
-            if (result != 0) {
-                this->log_info("publish_json failed");
-            } else {
-                auto et = new wxCommandEvent(EVT_PRINT_FINISH, this->GetId());
-                et->SetInt(0);
-                wxQueueEvent(this, et);
-            }
         });
 
     btn_pause->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
@@ -852,6 +858,10 @@ void DebugToolDialog::init()
                 wxMessageBox("Please Disconnected First!");
             }
         });
+
+    radio_btn_wan->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent& evt) {
+            ;
+    });
 
     m_radioBox_chamber_light->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent& evt) {
             MachineObject* obj = dev_manager_.get_default();
@@ -1085,7 +1095,6 @@ void DebugToolDialog::init_bind_handler()
     Bind(EVT_MQTT_DISCONNECTED, &DebugToolDialog::on_mqtt_disconnected, this);
     Bind(EVT_MQTT_FAILED, &DebugToolDialog::on_mqtt_failed, this);
     Bind(EVT_MQTT_LOST, &DebugToolDialog::on_mqtt_lost, this);
-    Bind(EVT_PRINT_FINISH, &DebugToolDialog::on_print_end, this);
     Bind(EVT_MESSAGE_ARRIVED, &DebugToolDialog::on_message_arrived, this);
     Bind(EVT_MESSAGE_SENT, &DebugToolDialog::on_message_sent, this);
     Bind(EVT_LOG_INFO, &DebugToolDialog::on_log_info, this);
@@ -1213,8 +1222,8 @@ void DebugToolDialog::on_mqtt_lost(wxCommandEvent& evt)
     btn_refresh_device_list->Enable();
     cb_device_list->Enable();
     radio_btn_lan->SetValue(true);
-    BBL::SsdpDiscovery* backend = wxGetApp().getSsdpDiscovery();
-    backend->set_ssdp_discovery(true);
+    BBL::SsdpDiscovery* ssdp = wxGetApp().getSsdpDiscovery();
+    ssdp->set_ssdp_discovery(true);
 }
 
 void DebugToolDialog::on_mqtt_connected(wxCommandEvent& evt)
@@ -1240,17 +1249,23 @@ void DebugToolDialog::on_mqtt_disconnected(wxCommandEvent& evt)
 }
 
 
-void DebugToolDialog::on_print_end(wxCommandEvent& evt)
-{
-    ;
-}
-
 void DebugToolDialog::get_version() {
 
     json j;
     j["info"]["sequence_id"] = std::to_string(this->m_sequence_id++);
     j["info"]["command"] = "get_version";
     this->publish_json(j.dump());
+}
+
+void DebugToolDialog::message_arrived(std::string dev_id, std::string msg)
+{
+    if (!radio_btn_lan->GetValue()) {
+        DeviceManager* dev = wxGetApp().getDeviceManager();
+        this->mqtt_msg_queue_cloud.push(msg);
+        auto evt = new wxCommandEvent(EVT_MESSAGE_ARRIVED, this->GetId());
+        evt->SetString(dev_id);
+        wxQueueEvent(this, evt);
+    }
 }
 
 void DebugToolDialog::jump_to_printer(wxString selected)
@@ -1384,14 +1399,12 @@ int DebugToolDialog::publish_json(std::string json_str)
             this->send_log_evt("Invalid Printer! Please Select a Printer!");
             return -1;
         }
+        obj->local_publish_json(json_str);
 
-        obj->publish_json(json_str,
-            [this](int result, std::string info) {
-                if (result < 0) {
-                    this->send_log_evt(info);
-                }
-            }
-        );
+        auto evt = new wxCommandEvent(EVT_MESSAGE_SENT, this->GetId());
+        std::string send_msg = "dev_id=" + obj->dev_id + ", send msg=" + json_str;
+        evt->SetString(send_msg);
+        wxQueueEvent(this, evt);
     }
     else {
         MachineObject* obj = dev_manager_.get_default_machine();
@@ -1399,13 +1412,11 @@ int DebugToolDialog::publish_json(std::string json_str)
             this->send_log_evt("Invalid Printer! Please Select a Printer!");
             return -1;
         }
-
-        obj->publish_json(json_str,
-            [this](int result, std::string info) {
-                if (result < 0) {
-                    this->send_log_evt(info);
-                }
-            });
+        auto evt = new wxCommandEvent(EVT_MESSAGE_SENT, this->GetId());
+        std::string send_msg = "dev_id=" + obj->dev_id + ", send msg=" + json_str;
+        evt->SetString(send_msg);
+        wxQueueEvent(this, evt);
+        obj->publish_json(json_str);
     }
 
     return 0;
@@ -1470,9 +1481,13 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
     wxString subtask_id = "N/A";
     if (obj->subtask_) {
         subtask_id = wxString::Format("%s", obj->subtask_->task_id);
+        
     }
-    m_staticText_subtask_id->SetLabelText(subtask_id);
 
+    wxString mc_percent_text = wxString::Format("%d", obj->mc_print_percent);
+    label_print_progress_val->SetLabelText(mc_percent_text);
+    m_staticText_subtask_id->SetLabelText(subtask_id);
+    
 
     /* upgrade */
     if (obj->upgrade_new_version) {
@@ -1497,7 +1512,18 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
     label_upgrade_status_val->SetLabelText(obj->upgrade_status);
     label_upgrade_progress_val->SetLabelText(obj->upgrade_progress);
     label_upgrade_message_val->SetLabelText(obj->upgrade_message);
+    wxString nozzle_temp_text = wxString::Format("%.2f/%.2f", obj->nozzle_temp, obj->nozzle_temp_target);
+    label_hot_end_temp_val->SetLabelText(nozzle_temp_text);
+    wxString bed_temp_text = wxString::Format("%.2f/%2.f", obj->bed_temp, obj->bed_temp_target);
+    label_bed_end_temp_val->SetLabelText(bed_temp_text);
 
+
+    m_staticText_upgrade_module_value->SetLabelText(obj->upgrade_module);
+    label_upgrade_status_val->SetLabelText(obj->upgrade_status);
+    label_upgrade_progress_val->SetLabelText(obj->upgrade_progress);
+    label_upgrade_message_val->SetLabelText(obj->upgrade_message);
+    label_wifi_signal_val->SetLabelText(obj->wifi_signal);
+    label_force_upgrade_val->SetLabelText(obj->upgrade_force_upgrade ? "True": "False");
 
     std::string json_str;
     if (radio_btn_lan->GetValue()) {
@@ -1529,160 +1555,6 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
             /* Update labels */
             boost::optional<std::string> command = print.get_optional<std::string>("command");
             if (command.has_value() &&  command.value_or("").compare("push_status") == 0) {
-                boost::optional<std::string> sequence_id = print.get_optional<std::string>("sequence_id");
-                boost::optional<std::string> nozzle_temp = print.get_optional<std::string>("nozzle_temp");
-                boost::optional<std::string> nozzle_temp_target = print.get_optional<std::string>("nozzle_target_temp");
-                boost::optional<std::string> bed_temp = print.get_optional<std::string>("bed_temp");
-                boost::optional<std::string> bed_temp_target = print.get_optional<std::string>("bed_target_temp");
-
-
-                boost::optional<std::string> force_upgrade = print.get_optional<std::string>("force_upgrade");
-                if (force_upgrade.has_value()) {
-                    label_force_upgrade_val->SetLabelText(force_upgrade.value());
-                }
-
-                boost::optional<std::string> gcode_start_time = print.get_optional<std::string>("gcode_start_time");
-                boost::optional<std::string> gcode_duration = print.get_optional<std::string>("gcode_duration");
-                boost::optional<std::string> gcode_file = print.get_optional<std::string>("gcode_file");
-                boost::optional<std::string> nozzle_temp_raw = print.get_optional<std::string>("nozzle_temp_raw");
-                boost::optional<std::string> nozzle_temp_target_raw = print.get_optional<std::string>("nozzle_target_temp_raw");
-                boost::optional<std::string> bed_temp_raw = print.get_optional<std::string>("bed_temp_raw");
-                boost::optional<std::string> bed_temp_target_raw = print.get_optional<std::string>("bed_target_temp_raw");
-                std::string nozzle_temp_str = "na";
-                std::string nozzle_target_temp_str = "na";
-                std::string bed_temp_str = "na";
-                std::string bed_temp_target_str = "na";
-                if (nozzle_temp_raw.has_value()) {
-                    try {
-                        int nozzle_temp_int = std::stoi(nozzle_temp_raw.value());
-                        float temp_float = (float)nozzle_temp_int;
-                        temp_float = temp_float / 32.0f;
-                        std::stringstream tempBuf;
-                        tempBuf.precision(2);
-                        tempBuf.setf(std::ios::fixed);
-                        tempBuf << temp_float;
-                        nozzle_temp_str = tempBuf.str();
-                    }
-                    catch (std::exception& e) {
-                        ;
-                    }
-                }
-                if (nozzle_temp_target_raw.has_value()) {
-                    try {
-                        int temp_int = std::stoi(nozzle_temp_target_raw.value());
-                        float temp_float = (float)temp_int;
-                        temp_float = temp_float / 32.0f;
-                        std::stringstream tempBuf;
-                        tempBuf.precision(2);
-                        tempBuf.setf(std::ios::fixed);
-                        tempBuf << temp_float;
-                        nozzle_target_temp_str = tempBuf.str();
-                    }
-                    catch (std::exception& e) {
-                        ;
-                    }
-                }
-
-                if (bed_temp_raw.has_value()) {
-                    try {
-                        int temp_int = std::stoi(bed_temp_raw.value());
-                        float temp_float = (float)temp_int;
-                        temp_float = temp_float / 32.0f;
-                        std::stringstream tempBuf;
-                        tempBuf.precision(2);
-                        tempBuf.setf(std::ios::fixed);
-                        tempBuf << temp_float;
-                        bed_temp_str = tempBuf.str();
-                    }
-                    catch (...) {
-                        ;
-                    }
-                }
-
-                if (bed_temp_target_raw.has_value()) {
-                    try {
-                        int temp_int = std::stoi(bed_temp_target_raw.value());
-                        float temp_float = (float)temp_int;
-                        temp_float = temp_float / 32.0f;
-                        std::stringstream tempBuf;
-                        tempBuf.precision(2);
-                        tempBuf.setf(std::ios::fixed);
-                        tempBuf << temp_float;
-                        bed_temp_target_str = tempBuf.str();
-                    }
-                    catch (...) {
-                        ;
-                    }
-                }
-
-                if (nozzle_temp_raw.has_value() && nozzle_temp_target_raw.has_value()) {
-                    label_hot_end_temp_val->SetLabelText(nozzle_temp_str + "/" + nozzle_target_temp_str);
-                }
-                else {
-                    if (nozzle_temp.has_value() && nozzle_temp_target.has_value()) {
-                        label_hot_end_temp_val->SetLabelText(nozzle_temp.value() + "/" + nozzle_temp_target.value());
-                    }
-                }
-
-                if (bed_temp_raw.has_value() && bed_temp_target_raw.has_value()) {
-                    label_bed_end_temp_val->SetLabelText(bed_temp_str + "/" + bed_temp_target_str);
-                }
-                else {
-                    if (bed_temp.has_value() && bed_temp_target.has_value()) {
-                        label_bed_end_temp_val->SetLabelText(bed_temp.value() + "/" + bed_temp_target.value());
-                    }
-                }
-
-                boost::optional<std::string> progress = print.get_optional<std::string>("progress");
-                if (progress.has_value()) {
-                    label_print_progress_val->SetLabelText(progress.value());
-                    /* parse progress*/
-                    int progress_int = 0;
-                    int before_progress = progress.value().find_last_of(' ');
-                    int after_progress = progress.value().find_last_of('%');
-                    if (after_progress >= 0) {
-                        if (after_progress > before_progress) {
-                            std::string prog_str = progress.value().substr(before_progress, after_progress - before_progress);
-                            try {
-                                progress_int = stoi(prog_str);
-                            }
-                            catch (std::exception& e) {
-                                ;
-                            }
-                            catch (...) {
-                                ;
-                            }
-                        }
-                    } else {
-                        if (progress.value().compare("100") == 0) {
-                            progress_int = 100;
-                        }
-                        else {
-                            progress_int = 99;
-                        }
-                    }
-
-                    if ((last_progress != progress_int) && (last_progress < progress_int) && progress_int == 100) {
-                        auto et = new wxCommandEvent(EVT_PRINT_FINISH, this->GetId());
-                        et->SetInt(0);
-                        wxQueueEvent(this, et);
-                    }
-                    last_progress = progress_int;
-
-                    /*parse filename, update summary */
-                    try {
-                        if (before_progress > 0) {
-                            std::string filename = progress.value().substr(0, before_progress);
-                        }
-                    }
-                    catch (std::exception& e) {
-                        ;
-                    }
-                    catch (...) {
-                        ;
-                    }
-                }
-
                 boost::optional<std::string> link_th = print.get_optional<std::string>("link_th_state");
                 std::string link_th_str = "na";
                 if (link_th.has_value()) {
@@ -1699,7 +1571,6 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
                     catch (...) {
                         ;
                     }
-
                     label_wifi_link_th_val->SetLabelText(link_th_str);
                 }
 
@@ -1722,86 +1593,22 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
 
                     label_wifi_link_ams_val->SetLabelText(link_ams_str);
                 }
-
-                boost::optional<std::string> wifi_signal = print.get_optional<std::string>("wifi_signal");
-                if (wifi_signal.has_value()) {
-                    label_wifi_signal_val->SetLabelText(wifi_signal.value());
-                }
-
                 return;
-            }
-            else if (command.has_value() && command.value().compare("gcode_line") == 0) {
-            boost::optional<std::string> sequence_id = print.get_optional<std::string>("sequence_id");
-            }
-            else if (command.has_value() && command.value().compare("gcode_file") == 0) {
-            boost::optional<std::string> sequence_id = print.get_optional<std::string>("sequence_id");
-            }
-            else if (command.has_value() && command.value().compare("get_version") == 0) {
-            if (root.get_child_optional("sw_ver") != boost::none) {
-                pt::ptree version = root.get_child("sw_ver");
-                try {
-                    std::stringstream oss;
-                    pt::write_json(oss, version, false);
-                    std::string json_str = oss.str();
-                }
-                catch (std::exception& e) {
-                    ;
-                }
-                catch (...) {
-                    ;
-                }
-            }
             }
             this->log_info("received ack msg = " + json_str);
             return;
         }
         else if (root.get_child_optional("info") != boost::none) {
-            pt::ptree info = root.get_child("info");
-            /* Update labels */
-            boost::optional<std::string> command = info.get_optional<std::string>("command");
-            if (command.has_value() && command.value().compare("get_version") == 0) {
-                if (info.get_child_optional("sw_ver") != boost::none) {
-                    pt::ptree version = info.get_child("sw_ver");
-                    try {
-                        std::stringstream oss;
-                        pt::write_json(oss, version, false);
-                        std::string version_str = oss.str();
-                    }
-                    catch (std::exception& e) {
-                        ;
-                    }
-                    catch (...) {
-                        ;
-                    }
-                }
-            }
             this->log_info("received ack msg = " + json_str);
             return;
         }
         else if (root.get_child_optional("upgrade") != boost::none) {
-            pt::ptree upgrade = root.get_child("upgrade");
-            boost::optional<std::string> upgrade_module = upgrade.get_optional<std::string>("module");
-            if (upgrade_module.has_value()) {
-                m_staticText_upgrade_module_value->SetLabelText(upgrade_module.value());
-            }
-            boost::optional<std::string> upgrade_status = upgrade.get_optional<std::string>("status");
-            if (upgrade_status.has_value()) {
-                label_upgrade_status_val->SetLabelText(upgrade_status.value());
-            }
-            boost::optional<std::string> upgrade_progress = upgrade.get_optional<std::string>("progress");
-            if (upgrade_progress.has_value()) {
-                label_upgrade_progress_val->SetLabelText(upgrade_progress.value());
-            }
-            boost::optional<std::string> upgrade_message = upgrade.get_optional<std::string>("message");
-            if (upgrade_message.has_value()) {
-                label_upgrade_message_val->SetLabelText(upgrade_message.value());
-            }
             return;
         }
         else if (root.get_child_optional("system") != boost::none) {
             return;
         }
-        this->log_info("json=" + json_str);
+        this->log_info("dev_id=" + evt.GetString().ToStdString() + ", json=" + json_str);
     }
     catch (std::exception& e) {
         std::string info = "parsing report msg error, json_str=" + json_str;
@@ -1853,8 +1660,6 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
         hardware_version = "v6";
     } else if (cb_upgrade_version->GetCurrentSelection() == 3) {
         hardware_version = "v5";
-    } else if (cb_upgrade_version->GetCurrentSelection() == 4) {
-        hardware_version = "v4";
     } else {
         hardware_version = "v7";
     }
@@ -2055,11 +1860,6 @@ int DebugToolDialog::publishGcode(std::string gcode)
 void DebugToolDialog::on_select_device(wxCommandEvent& evt)
 {
     MachineObject* last_obj = dev_manager_.get_default();
-    if (last_obj) {
-        last_obj->set_msg_recv_fn(nullptr);
-        last_obj->set_msg_send_fn(nullptr);
-    }
-
     //machine_list_items
     int selection = evt.GetSelection();
     if (selection < machine_list_items.size()) {
@@ -2072,31 +1872,14 @@ void DebugToolDialog::on_select_device(wxCommandEvent& evt)
     else {
         BOOST_LOG_TRIVIAL(error) << "selection=" << selection << ", list items size=" << machine_list_items.size();
     }
-
-    MachineObject* obj = dev_manager_.get_default();
-    if (!obj) return;
-
-    obj->set_msg_recv_fn([this](std::string topic, std::string payload) {
-        mqtt_msg_queue.push(payload);
-        auto evt = new wxCommandEvent(EVT_MESSAGE_ARRIVED, this->GetId());
-        evt->SetString(payload);
-        wxQueueEvent(this, evt);
-        });
-    obj->set_msg_send_fn([this](std::string topic, std::string payload) {
-        auto evt = new wxCommandEvent(EVT_MESSAGE_SENT, this->GetId());
-        std::string send_msg = "send topic=" + topic + ", msg=" + payload;
-        evt->SetString(send_msg);
-        wxQueueEvent(this, evt);
-        });
 }
 
 void DebugToolDialog::on_select_mybind_device(wxCommandEvent& evt)
 {
-    BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
     MachineObject* last_obj = dev_manager_.get_default_machine();
     if (last_obj) {
-        last_obj->set_msg_recv_fn(nullptr);
-        last_obj->set_msg_send_fn(nullptr);
+        acc->set_on_local_message_fn(nullptr);
     }
 
     //machine_list_items
@@ -2110,23 +1893,6 @@ void DebugToolDialog::on_select_mybind_device(wxCommandEvent& evt)
     else {
         BOOST_LOG_TRIVIAL(error) << "selection=" << selection << ", list items size=" << mybind_machine_list_items.size();
     }
-
-    MachineObject* obj = dev_manager_.get_default_machine();
-    if (!obj) return;
-
-    obj->set_msg_recv_fn([this](std::string topic, std::string payload) {
-            mqtt_msg_queue_cloud.push(payload);
-            auto evt = new wxCommandEvent(EVT_MESSAGE_ARRIVED, this->GetId());
-            evt->SetString(payload);
-            wxQueueEvent(this, evt);
-        });
-
-    obj->set_msg_send_fn([this](std::string topic, std::string payload) {
-        auto evt = new wxCommandEvent(EVT_MESSAGE_SENT, this->GetId());
-        std::string send_msg = "send topic=" + topic + ", msg=" + payload;
-        evt->SetString(send_msg);
-        wxQueueEvent(this, evt);
-        });
 }
 
 

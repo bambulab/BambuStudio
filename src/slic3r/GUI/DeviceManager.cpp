@@ -252,8 +252,6 @@ std::string MachineObject::get_printer_type_string()
 
 MachineObject::MachineObject(BBL::AccountManager& acc, std::string name, std::string id, std::string ip)
     :acc_(acc),
-    msg_send_fn(nullptr),
-    msg_recv_fn(nullptr),
     dev_name(name),
     dev_id(id),
     dev_ip(ip),
@@ -261,10 +259,7 @@ MachineObject::MachineObject(BBL::AccountManager& acc, std::string name, std::st
     subtask_(nullptr),
     slice_info(nullptr),
     is_alive(false),
-    m_is_online(false),
-    successFn(nullptr),
-    failedFn(nullptr),
-    lostFn(nullptr)
+    m_is_online(false)
 {
     /* create a dummy task to store info */
     subtask_ = new BBLSubTask(nullptr);
@@ -638,7 +633,7 @@ int MachineObject::command_task_abort()
     j["print"]["param"] = "";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    return this->publish_json(j.dump(), nullptr, 1);
+    return this->publish_json(j.dump(), 1);
 }
 
 int MachineObject::command_task_pause()
@@ -648,7 +643,7 @@ int MachineObject::command_task_pause()
     j["print"]["param"] = "";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    return this->publish_json(j.dump(), nullptr, 1);
+    return this->publish_json(j.dump(), 1);
 }
 
 int MachineObject::command_task_resume()
@@ -658,7 +653,7 @@ int MachineObject::command_task_resume()
     j["print"]["param"] = "";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    return this->publish_json(j.dump(), nullptr, 1);
+    return this->publish_json(j.dump(), 1);
 }
 
 int MachineObject::command_set_bed(int temp)
@@ -960,13 +955,6 @@ DeviceManager::DeviceManager(BBL::AccountManager& acc)
     }
 }
 
-void MachineObject::set_callbacks(BBL::SuccessFn sFn, BBL::FailedFn fFn, BBL::LostFn lFn)
-{
-    successFn = sFn;
-    failedFn = fFn;
-    lostFn = lFn;
-}
-
 int MachineObject::connect()
 {
     return acc_.local_connect_mqtt(dev_id, dev_ip);
@@ -993,14 +981,11 @@ void MachineObject::set_online_state(bool on_off)
     m_is_online = on_off;
 }
 
-int MachineObject::publish_json(std::string json_str, ResultFn resFn, int qos)
+int MachineObject::publish_json(std::string json_str, int qos)
 {
     mqtt::async_client* client = acc_.get_client();
 
     if (!client->is_connected()) {
-        if (resFn) {
-            resFn(-1, "Not connected now");
-        }
         return -1;
     }
 
@@ -1009,11 +994,12 @@ int MachineObject::publish_json(std::string json_str, ResultFn resFn, int qos)
     BOOST_LOG_TRIVIAL(trace) << "publish_json topic=" << topic << ", payload=" << json_str;
     auto msg = mqtt::message::create(topic, json_str, qos, false);
     client->publish(msg);
-    if (msg_send_fn) {
-        msg_send_fn(topic, json_str);
-    }
-
     return 0;
+}
+
+int MachineObject::local_publish_json(std::string json_str, int qos)
+{
+    return acc_.local_send_message(dev_id, json_str, qos);
 }
 
 int MachineObject::parse_json(std::string payload)
@@ -1606,10 +1592,6 @@ int MachineObject::parse_json(std::string payload)
     catch (...) {
         BOOST_LOG_TRIVIAL(trace) << "parse_json failed! dev_id=" << this->dev_id <<", payload = " << payload;
     }
-
-    if (msg_recv_fn) {
-        msg_recv_fn(dev_id, payload);
-    }
     return 0;
 }
 
@@ -1921,6 +1903,24 @@ void DeviceManager::update_my_bind_list(std::string body)
     catch (std::exception& e) {
         ;
     }
+}
+
+MachineObject* DeviceManager::get_default_machine() {
+    std::string dev_id = acc_.get_default_machine();
+    if (dev_id.empty()) return nullptr;
+
+    auto it = myBindMachineList.find(dev_id);
+    if (it == myBindMachineList.end()) return nullptr;
+    return it->second;
+}
+
+MachineObject* DeviceManager::get_local_machine(std::string dev_id)
+{
+    if (dev_id.empty()) return nullptr;
+
+    auto it = localMachineList.find(dev_id);
+    if (it == localMachineList.end()) return nullptr;
+    return it->second;
 }
 
 void DeviceManager::set_monitoring_machine(std::string dev_id)

@@ -53,6 +53,15 @@ void split_string(std::string s, std::vector<std::string>& v) {
     v.push_back(t);
 }
 
+// topic_str = device/device_id/report
+std::string get_dev_id_from_topic(std::string topic_str)
+{
+    std::vector<std::string> params;
+    boost::split(params, topic_str, boost::is_any_of("/"));
+    if (params.size() <= 2) return "";
+    return params[1];
+}
+
 static bool bbl_calc_md5(std::string& filename, std::string& md5_out)
 {
     unsigned char digest[16];
@@ -82,14 +91,7 @@ namespace BBL {
         AccountManager *manager = (AccountManager *) context_;
         for (int i = 0; i < tok.get_topics()->size(); i++) {
             BOOST_LOG_TRIVIAL(trace) << "subscribe topic:" << (*tok.get_topics())[i].c_str() << " success";
-            std::string topic_str = (*tok.get_topics())[i];
-            // topic_str = device/device_id/report
-            std::vector<std::string> params;
-            boost::split(params, topic_str, boost::is_any_of("/"));
-            // BBS device, dev_id, report at least 3 params
-            /* params[1] is dev id, topic is : device/[dev_id]/report */
-            if (params.size() <= 2) return;
-            std::string dev_id = params[1];
+            std::string dev_id = get_dev_id_from_topic((*tok.get_topics())[i]);
              if (manager) {
                  if (manager->on_printer_connected_fn) {
                      manager->on_printer_connected_fn(dev_id);
@@ -153,86 +155,106 @@ namespace BBL {
         }
     }
 
+    void sub_action_listener::on_failure(const mqtt::token& tok) {
+        for (int i = 0; i < tok.get_topics()->size(); i++) {
+            BOOST_LOG_TRIVIAL(trace) << "local subscribe topic:" << (*tok.get_topics())[i].c_str() << " failed";
+        }
+        BOOST_LOG_TRIVIAL(trace) << "local subscribe return code: " << tok.get_return_code();
+        BOOST_LOG_TRIVIAL(trace) << "local subscribe reason code: " << tok.get_reason_code();
+    }
+
+    void sub_action_listener::on_success(const mqtt::token& tok) {
+        for (int i = 0; i < tok.get_topics()->size(); i++) {
+            BOOST_LOG_TRIVIAL(trace) << "subscribe topic:" << (*tok.get_topics())[i].c_str() << " success";
+            std::string dev_id = get_dev_id_from_topic((*tok.get_topics())[i]);
+        }
+
+        BOOST_LOG_TRIVIAL(trace) << "subscribe return code: " << tok.get_return_code();
+        BOOST_LOG_TRIVIAL(trace) << "subscribe reason code: " << tok.get_reason_code();
+    }
 
 
-    void machine_conn_callback::connected(const std::string& cause)
+    void local_conn_callback::connected(const std::string& cause)
     {
         BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connected!";
-        /* subscribe current device reqeust and report */
-        
-        /*try {
-            MachineObject* obj = (MachineObject*)context_;
-            if (obj && obj->successFn) {
-                obj->successFn(cli_.get_client_id());
-            }
-            for (int i = 0; i < sub_topics.size(); i++) {
-                sub_action_listener* sub_listener = new sub_action_listener("LanSubscriber_" + sub_topics[i]);
-                cli_.subscribe(sub_topics[i], 0, nullptr, *sub_listener);
-            }
-
-            if (obj) {
-                obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_CONNECTED);
+        try {
+            AccountManager* acc = (AccountManager*)context_;
+            if (acc) {
+                if (acc->on_local_connect_fn) {
+                    std::string dev_id = get_dev_id_from_topic(sub_topics[0]);
+                    acc->on_local_connect_fn(ConnectStatus::ConnectStatusOk, dev_id, cause);
+                }
+                for (int i = 0; i < sub_topics.size(); i++) {
+                    sub_action_listener* sub_listener = new sub_action_listener("LanSubscriber_" + sub_topics[i]);
+                    cli_.subscribe(sub_topics[i], 0, nullptr, *sub_listener);
+                }
             }
         }
         catch (mqtt::exception& e) {
             BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connected, exception=" << e.what();
-        }*/
+        }
     }
 
-    void machine_conn_callback::on_failure(const mqtt::token& tok)
+    void local_conn_callback::on_failure(const mqtt::token& tok)
     {
         BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::on_failure, Connection(mqtt) failed! retry=" << nretry_;
-        //MachineObject* obj = (MachineObject*)context_;
-        //if (obj) {
-        //    /* mqtt connect failed tips */
-        //    if (obj->failedFn) {
-        //        obj->failedFn(cli_.get_client_id());
-        //    }
-        //    obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
-        //}
+        try {
+            AccountManager* acc = (AccountManager*)context_;
+            if (acc) {
+                if (acc->on_local_connect_fn) {
+                    acc->on_local_connect_fn(ConnectStatus::ConnectStatusFailed, 0, "");
+                }
+            }
+        }
+        catch (mqtt::exception& e) {
+            BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connected, exception=" << e.what();
+        }
     }
 
-    void machine_conn_callback::on_success(const mqtt::token& tok)
+    void local_conn_callback::on_success(const mqtt::token& tok)
     {
         BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::on_success, Connection(mqtt) OK!";
-        /*MachineObject* obj = (MachineObject*)context_;
-        if (obj) {
-            obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_CONNECTED);
-        }*/
+        try {
+            ;
+        }
+        catch (mqtt::exception& e) {
+            BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connected, exception=" << e.what();
+        }
     }
 
-    void machine_conn_callback::connection_lost(const std::string& cause) {
+    void local_conn_callback::connection_lost(const std::string& cause) {
         BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connection_lost!, cause =" << cause;
-        /*MachineObject* obj = (MachineObject*)context_;
-        if (obj) {
-            if (obj->lostFn) {
-                obj->lostFn(cli_.get_client_id());
+        try {
+            AccountManager* acc = (AccountManager*)context_;
+            if (acc) {
+                if (acc->on_local_connect_fn) {
+                    std::string dev_id = get_dev_id_from_topic(sub_topics[0]);
+                    acc->on_local_connect_fn(ConnectStatus::ConnectStatusLost, dev_id, cause);
+                }
             }
-            obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
-        }*/
+        }
+        catch (mqtt::exception& e) {
+            BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connected, exception=" << e.what();
+        }
         ++nretry_;
     }
 
-    void machine_conn_callback::message_arrived(mqtt::const_message_ptr msg)
+    void local_conn_callback::message_arrived(mqtt::const_message_ptr msg)
     {
-
-        /*MachineObject* obj = (MachineObject*)context_;
-
-        std::string json_str;
-        if (obj) {
-            try {
-                json_str = msg->get_payload_str();
-                BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << json_str;
+        BOOST_LOG_TRIVIAL(trace) << "local message topic:" << msg->get_topic() << ", payload=" << msg->get_payload_str();
+        try {
+            AccountManager* acc = (AccountManager*)context_;
+            if (acc) {
+                if (acc->on_local_message_fn) {
+                    std::string dev_id = get_dev_id_from_topic(msg->get_topic());
+                    acc->on_local_message_fn(dev_id, msg->get_payload_str());
+                }
             }
-            catch (...) {
-                ;
-            }
-            if (json_str.empty()) return;
-            obj->parse_json(json_str);
-        }*/
+        }
+        catch (mqtt::exception& e) {
+            BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connected, exception=" << e.what();
+        }
     }
-
-
 
     std::string VersionInfo::convert_full_version(std::string short_version)
     {
@@ -632,6 +654,20 @@ namespace BBL {
         }
     }
 
+    int AccountManager::local_send_message(std::string dev_id, std::string json_str, int qos)
+    {
+        if (!mqtt_local_cli || !mqtt_local_cli->is_connected()) { 
+            return -1;
+        }
+
+        std::string topic = (boost::format("device/%1%/request") % dev_id).str();
+        json_str += '\0';
+        BOOST_LOG_TRIVIAL(trace) << "local send message topic=" << topic << ", payload=" << json_str;
+        auto msg = mqtt::message::create(topic, json_str, qos, false);
+        mqtt_local_cli->publish(msg);
+        return 0;
+    }
+
     void AccountManager::set_monitor_machine(std::string dev_id)
     {
         
@@ -690,9 +726,9 @@ namespace BBL {
             std::string client_id = (boost::format("%1%:%2%") % get_user_id() % mqtt_uuid).str();
             std::string report_topic = (boost::format("device/%1%/report") % dev_id).str();
             mqtt_local_cli = new mqtt::async_client(dev_ip, client_id);
-            mqtt_local_cb = new machine_conn_callback(*mqtt_local_cli, mqtt_local_opt, this);
+            mqtt_local_cb = new local_conn_callback(*mqtt_local_cli, mqtt_local_opt, this);
             mqtt_local_cb->add_topics(report_topic);
-            mqtt_local_cli->set_callback(*mqtt_cb);
+            mqtt_local_cli->set_callback(*mqtt_local_cb);
             mqtt_local_cli->connect(mqtt_local_opt, this, *mqtt_local_cb);
         } catch (...) {
             ;

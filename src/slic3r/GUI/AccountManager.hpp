@@ -60,6 +60,11 @@ enum BindJobStage {
     LoginStageFinished          = 5,
 };
 
+enum ConnectStatus {
+    ConnectStatusOk = 0,
+    ConnectStatusFailed = 1,
+    ConnectStatusLost = 2,
+};
 
 class RegionServer
 {
@@ -73,10 +78,6 @@ public:
     std::string base_domain;
     std::string environment;
 };
-
-typedef std::function<void(std::string name)> SuccessFn;
-typedef std::function<void(std::string name)> FailedFn;
-typedef std::function<void(std::string name)> LostFn;
 
 class AccountManager;
 
@@ -130,17 +131,14 @@ class sub_action_listener : public virtual mqtt::iaction_listener
 private:
     std::string name_;
 
-    void on_failure(const mqtt::token& tok) override {
-        ;
-    }
-    void on_success(const mqtt::token& tok) override {
-        ;
-    }
+    void on_failure(const mqtt::token& tok) override;
+    void on_success(const mqtt::token& tok) override;
+        
 public:
     sub_action_listener(const std::string& name) : name_(name) {}
 };
 
-class machine_conn_callback : public virtual mqtt::callback, public virtual mqtt::iaction_listener
+class local_conn_callback : public virtual mqtt::callback, public virtual mqtt::iaction_listener
 {
 private:
     int nretry_;
@@ -159,7 +157,7 @@ private:
 
     void message_arrived(mqtt::const_message_ptr msg) override;
 public:
-    machine_conn_callback(mqtt::async_client& cli, mqtt::connect_options& connOpts, void* context)
+    local_conn_callback(mqtt::async_client& cli, mqtt::connect_options& connOpts, void* context)
         : nretry_(0), cli_(cli), connOpts_(connOpts), context_(context) {}
 
     void add_topics(std::string topic) { sub_topics.push_back(topic); }
@@ -322,7 +320,7 @@ private:
     /* mqtt local client */
     mqtt::async_client* mqtt_local_cli;
     mqtt::connect_options mqtt_local_opt;
-    machine_conn_callback* mqtt_local_cb;
+    local_conn_callback* mqtt_local_cb;
 
 
     int mqtt_uuid_bytes;
@@ -350,6 +348,8 @@ public:
     typedef std::function<void(int status, int code, std::string msg)> OnUpdateStatusFn;
     typedef std::function<bool()>                       WasCancelledFn;
 
+    typedef std::function<void(int status, std::string dev_id, std::string msg)> OnLOcalConnectFn;
+
     // ballbacks
     OnUserLoginFn           on_user_login_fn;
     OnPrinterConnectedFn    on_printer_connected_fn;
@@ -357,6 +357,8 @@ public:
     OnHttpErrorFn           on_http_error_fn;
     GetCountryCodeFn        get_country_code_fn;
     OnMessageFn             on_message_fn;
+    OnLOcalConnectFn        on_local_connect_fn;
+    OnMessageFn             on_local_message_fn;
 
     void set_on_user_login_fn(OnUserLoginFn fn) { on_user_login_fn  = fn; }
     void set_on_printer_connected_fn(OnPrinterConnectedFn fn) { on_printer_connected_fn = fn; }
@@ -364,6 +366,8 @@ public:
     void set_on_http_error_fn(OnHttpErrorFn fn) { on_http_error_fn = fn; }
     void set_get_country_code_fn(GetCountryCodeFn fn) { get_country_code_fn  = fn; }
     void set_on_message_fn(OnMessageFn fn) { on_message_fn  = fn; }
+    void set_on_local_connect_fn(OnLOcalConnectFn fn) { on_local_connect_fn = fn; }
+    void set_on_local_message_fn(OnMessageFn fn) { on_local_message_fn = fn; }
 
     /* bambu stdio agent config */
     json config_json;
@@ -400,8 +404,9 @@ public:
     void add_subscribe(std::string dev_id);
     void del_subscribe(std::string dev_id);
 
+    int local_send_message(std::string dev_id, std::string json_str, int qos = 0);
+
     void set_monitor_machine(std::string dev_id);
-    void load_last_machine();
 
     /* local mqtt connections apis */
     int local_connect_mqtt(std::string dev_id, std::string dev_ip);

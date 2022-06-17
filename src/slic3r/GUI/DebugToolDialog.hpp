@@ -149,11 +149,11 @@ public:
             void on_mqtt_lost(wxCommandEvent& evt);
             void on_mqtt_connected(wxCommandEvent& evt);
             void on_mqtt_disconnected(wxCommandEvent& evt);
-            void on_print_end(wxCommandEvent& evt);
             void on_message_arrived(wxCommandEvent& evt);
             void on_message_sent(wxCommandEvent& evt);
             void on_log_info(wxCommandEvent& evt);
             void get_version();
+            void message_arrived(std::string dev_id, std::string msg);
 
             wxArrayString device_list_items;
             void jump_to_printer(wxString selected);
