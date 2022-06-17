@@ -2741,7 +2741,11 @@ void TreeSupport::adjust_layer_heights(std::vector<std::vector<Node*>>& contact_
                 print_z += step;
             }
             else {
-                curr_layer_nodes.clear();
+                // can't clear curr_layer_nodes, or the model will have empty layers
+                for (Node* node : curr_layer_nodes) {
+                    node->print_z = 0.0;
+                    node->height  = 0.0;
+                }
             }
         }
     }
