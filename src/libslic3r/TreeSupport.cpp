@@ -2162,6 +2162,16 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 for (auto &area : ts_layer->roof_areas) area_groups.emplace_back(&area, TreeSupportLayer::RoofType);
                 for (auto &area : ts_layer->floor_areas) area_groups.emplace_back(&area, TreeSupportLayer::FloorType);
                 for (auto &area : ts_layer->roof_1st_layer) area_groups.emplace_back(&area, TreeSupportLayer::Roof1stLayer);
+
+                for (auto &area_group : area_groups) {
+                    auto expoly = area_group.first;
+                    expoly->holes.erase(std::remove_if(expoly->holes.begin(), expoly->holes.end(),
+                                                       [](auto &hole) {
+                                                           auto bbox_size = get_extents(hole).size();
+                                                           return bbox_size[0] < scale_(2) && bbox_size[1] < scale_(2);
+                                                       }),
+                                        expoly->holes.end());
+                }
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
                 draw_contours_and_nodes_to_svg(layer_nr, base_areas, roof_areas, roof_1st_layer, {}, {}, "circles", { "base","roof","roof1st" });
 #endif
@@ -2172,8 +2182,9 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
         // move the holes to contour so they can be well supported
 
         // check if poly's contour intersects with expoly's contour
-        auto intersects_contour = [](Polygon poly, ExPolygon expoly, Point& pt_on_poly, Point& pt_on_expoly, float dist_thresh = 0.01) {
+        auto intersects_contour = [](Polygon poly, ExPolygon expoly, Point &pt_on_poly, Point &pt_on_expoly, Point &pt_far_on_poly, float dist_thresh = 0.01) {
             float min_dist = std::numeric_limits<float>::max();
+            float max_dist = 0;
             for (auto from : poly.points) {
                 for (int i = 0; i < expoly.num_contours(); i++) {
                     const Point *candidate = expoly.contour_or_hole(i).closest_point(from);
@@ -2183,6 +2194,10 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                         pt_on_poly   = from;
                         pt_on_expoly = *candidate;
                     }
+                    if (dist2 > max_dist) {
+                        max_dist       = dist2;
+                        pt_far_on_poly = from;
+                    }
                     if (dist2 < dist_thresh) { 
                         return true;
                     }
@@ -2191,6 +2206,9 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
             return false;
         };
 
+        std::map<const Polygon *, int> holeDepth;
+        std::map<const Polygon *, Point> holeDiretions;
+        std::map<const Polygon *, Point> holeFarPoints;
         for (int layer_nr = m_object->layer_count()-1; layer_nr >0; layer_nr--) {
             if (print->canceled()) break;
             m_object->print()->set_status(66, (boost::format(_L("Support: fix holes at layer %s")) % layer_nr).str());
@@ -2218,18 +2236,31 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                     for (auto & area_group_lower: area_groups_lower) {
                         if (area_group.second == 1 || area_group.second == 2) continue;
                         auto &base_area_lower = *area_group_lower.first;
-                        Point pt_on_poly, pt_on_expoly;
+                        Point pt_on_poly, pt_on_expoly, pt_far_on_poly;
                         // if a hole doesn't intersect with lower layer's contours, add a hole to lower layer and move it slightly to the contour
-                        if (base_area_lower.contour.contains(hole.points.front()) && !intersects_contour(hole, base_area_lower, pt_on_poly, pt_on_expoly)) {
+                        if (base_area_lower.contour.contains(hole.points.front()) && !intersects_contour(hole, base_area_lower, pt_on_poly, pt_on_expoly, pt_far_on_poly)) {
                             Polygon hole_lower = hole;
                             Point   direction  = normal(pt_on_expoly - pt_on_poly, line_width_scaled/2);
                             hole_lower.translate(direction);
                             // note to expand a hole, we need to do negative offset
                             auto hole_expanded = offset(hole_lower, -line_width_scaled / 4, ClipperLib::JoinType::jtSquare);
-                            if (!hole_expanded.empty())
-                                append(base_area_lower.holes, hole_expanded);
-                            else
+                            if (!hole_expanded.empty()) {
+                                base_area_lower.holes.push_back(std::move(hole_expanded[0]));
+                                holeDepth.insert({&base_area_lower.holes.back(), 15});
+                                holeDiretions.insert({&base_area_lower.holes.back(), direction});
+                                holeFarPoints.insert({&base_area_lower.holes.back(), pt_far_on_poly});
+                            }
+                            break;
+                        } else if (holeDepth.find(&hole) != holeDepth.end() && holeDepth[&hole] > 0 && base_area_lower.contour.contains(holeFarPoints[&hole])) {
+                            Polygon hole_lower = hole;
+                            hole_lower.translate(holeDiretions[&hole]);
+                            Point farPoint = holeFarPoints[&hole] + holeDiretions[&hole];
+                            {
                                 base_area_lower.holes.push_back(std::move(hole_lower));
+                                holeDepth.insert({&base_area_lower.holes.back(), holeDepth[&hole]-1});
+                                holeDiretions.insert({&base_area_lower.holes.back(), holeDiretions[&hole]});
+                                holeFarPoints.insert({&base_area_lower.holes.back(), farPoint});
+                            }
                             break;
                         }
                     }
