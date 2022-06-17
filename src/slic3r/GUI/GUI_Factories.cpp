@@ -652,7 +652,7 @@ void MenuFactory::append_menu_item_fix_through_netfabb(wxMenu* menu)
 
     /*wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Fix model"), "",
         [](wxCommandEvent&) { obj_list()->fix_through_netfabb(); }, "", menu,
-        []() {return plater()->can_fix_through_netfabb(); }, plater());
+        []() {return plater()->can_fix_through_netfabb(); }, m_parent);
 
     return menu_item;*/
 #endif
@@ -1034,8 +1034,8 @@ void MenuFactory::create_plate_menu()
         }, "", nullptr, []() {
             PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
             assert(plate);
-            return plate->get_objects().empty();
-        }, plater());
+            return !plate->get_objects().empty();
+        }, m_parent);
 
     // delete objects on current plate
     append_menu_item(menu, wxID_ANY, _L("Delete All"), _L("delete all objects on current plate"),
@@ -1044,8 +1044,8 @@ void MenuFactory::create_plate_menu()
         }, "", nullptr, []() {
             PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
             assert(plate);
-            return plate->get_objects().empty();
-        }, plater());
+            return !plate->get_objects().empty();
+        }, m_parent);
 
     // arrange objects on current plate
     append_menu_item(menu, wxID_ANY, _L("Arrange"), _L("arrange current plate"),
@@ -1054,7 +1054,11 @@ void MenuFactory::create_plate_menu()
             assert(plate);
             plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
             plater()->arrange();
-        }, "", nullptr, []() {return true; }, plater());
+        }, "", nullptr,
+        []() {
+            return !plater()->get_partplate_list().get_selected_plate()->get_objects().empty();
+        },
+        m_parent);
 
     // orient objects on current plate
     append_menu_item(menu, wxID_ANY, _L("Auto Rotate"), _L("auto rotate current plate"),
@@ -1064,7 +1068,10 @@ void MenuFactory::create_plate_menu()
             //BBS TODO call auto rotate for current plate
             plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
             plater()->orient();
-        }, "", nullptr, []() {return true; }, plater());
+        }, "", nullptr,
+        []() {
+            return !plater()->get_partplate_list().get_selected_plate()->get_objects().empty();
+        }, m_parent);
 
     // delete current plate
 #ifdef __WINDOWS__
