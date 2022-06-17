@@ -2013,12 +2013,10 @@ void TabPrintModel::build()
     init_options_list();
 
     auto page = add_options_page(L("Frequent"), "empty");
-        auto optgroup = page->new_optgroup(L("Quality"));
+        auto optgroup = page->new_optgroup(L(""));
             optgroup->append_single_option_line("layer_height");
-        optgroup = page->new_optgroup(L("Strength"));
             optgroup->append_single_option_line("sparse_infill_density");
             optgroup->append_single_option_line("wall_loops");
-        optgroup = page->new_optgroup(L("Support"));
             optgroup->append_single_option_line("enable_support");
     m_pages.pop_back();
     m_pages.insert(m_pages.begin(), page);

@@ -465,8 +465,12 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
             stl->SetFont(wxGetApp().normal_font());
             stl->SetForegroundColour("#6B6B6B");
             sizer = new wxBoxSizer(wxVERTICAL);
-			sizer->Add(stl, 0, wxEXPAND);
-			sizer->AddSpacer(8);
+            if (title.IsEmpty()) {
+                stl->Hide();
+            } else {
+			    sizer->Add(stl, 0, wxEXPAND);
+			    sizer->AddSpacer(8);
+            }
 			this->stb = stl;
 		}
 
