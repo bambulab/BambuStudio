@@ -8,6 +8,8 @@
 #include "Slicing.hpp"
 #include "MinimumSpanningTree.hpp"
 #include "tbb/concurrent_unordered_map.h"
+#include "Flow.hpp"
+#include "PrintConfig.hpp"
 
 #ifndef SQ
 #define SQ(x) ((x)*(x))
@@ -311,6 +313,33 @@ public:
         }
     };
 
+    struct SupportParams
+    {
+        Flow first_layer_flow;
+        Flow support_material_flow;
+        Flow support_material_interface_flow;
+        Flow support_material_bottom_interface_flow;
+        // Is merging of regions allowed? Could the interface & base support regions be printed with the same extruder?
+        bool can_merge_support_regions;
+
+        coordf_t support_layer_height_min;
+        //	coordf_t	support_layer_height_max;
+
+        coordf_t gap_xy;
+
+        float    base_angle;
+        float    interface_angle;
+        coordf_t interface_spacing;
+        coordf_t interface_density;
+        coordf_t support_spacing;
+        coordf_t support_density;
+
+        InfillPattern base_fill_pattern;
+        InfillPattern interface_fill_pattern;
+        InfillPattern contact_fill_pattern;
+        bool          with_sheath;
+    };
+
     float           total_overhang_area;
     float           max_overhang_area;
     size_t          total_overhang_layer_cnt;
@@ -324,7 +353,10 @@ private:
      */
     TreeSupportData* m_ts_data;
     PrintObject    *m_object;
-    SlicingParameters m_slicing_params;
+    const PrintObjectConfig *m_object_config;
+    SlicingParameters        m_slicing_params;
+    // Various precomputed support parameters to be shared with external functions.
+    SupportParams   m_support_params;
     size_t          m_raft_layers;
     size_t          m_highest_overhang_layer;
     std::vector<std::vector<MinimumSpanningTree>> m_spanning_trees;

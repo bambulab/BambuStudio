@@ -658,9 +658,19 @@ static Point bounding_box_middle(const BoundingBox &bbox)
 }
 
 TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_params)
-    : m_object(&object), m_slicing_params(slicing_params)
+    : m_object(&object), m_slicing_params(slicing_params), m_object_config(&object.config())
 {
     m_raft_layers = slicing_params.base_raft_layers + slicing_params.interface_raft_layers;
+        
+    SupportMaterialPattern support_pattern  = m_object_config->support_base_pattern;
+    m_support_params.base_fill_pattern      = support_pattern == smpHoneycomb                                         ? ipHoneycomb :
+                                              m_support_params.support_density > 0.95 || m_support_params.with_sheath ? ipRectilinear :
+                                                                                                                        ipSupportBase;
+    m_support_params.interface_fill_pattern = (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
+    m_support_params.contact_fill_pattern   = (m_object_config->support_interface_pattern == smipAuto && m_slicing_params.soluble_interface) ||
+                                                    m_object_config->support_interface_pattern == smipConcentric ?
+                                                  ipConcentric :
+                                                  (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
 }
 
 #define SUPPORT_SURFACES_OFFSET_PARAMETERS ClipperLib::jtSquare, 0.
@@ -1295,8 +1305,6 @@ static inline std::vector<BoundingBox> fill_expolygons_generate_paths(
     ExtrusionRole           role,
     const Flow             &flow)
 {
-    BoundingBox bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
-    filler->set_bounding_box(bbox_object);
     std::vector<BoundingBox> fill_boxes;
     for (ExPolygon& expoly : expolygons) {
         auto box = fill_expolygon_generate_paths(dst, std::move(expoly), filler, fill_params, role, flow);
@@ -1521,6 +1529,7 @@ void TreeSupport::generate_toolpaths()
             filler_interface, fill_params, erSupportMaterialInterface, support_flow);
     }
 
+    BoundingBox bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
     auto obj_size = m_object->size();
     bool obj_is_vertical = obj_size.x() < obj_size.y();
     int num_layers_to_change_infill_direction = int(HEIGHT_TO_SWITCH_INFILL_DIRECTION / object_config.layer_height.value);  // change direction every 30mm
@@ -1538,7 +1547,11 @@ void TreeSupport::generate_toolpaths()
 
                 TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_id);
                 Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
-                Fill* filler_interface = Fill::new_from_type(ipRectilinear);
+                std::unique_ptr<Fill> filler_interface = std::unique_ptr<Fill>(Fill::new_from_type(m_support_params.contact_fill_pattern));
+                std::unique_ptr<Fill> filler_support   = std::unique_ptr<Fill>(Fill::new_from_type(m_support_params.base_fill_pattern));
+                filler_interface->set_bounding_box(bbox_object);
+                filler_support->set_bounding_box(bbox_object);
+
                 filler_interface->angle = Geometry::deg2rad(object_config.support_angle.value + 90.);//(1 - obj_is_vertical) * M_PI_2;//((1-obj_is_vertical) + int(layer_id / num_layers_to_change_infill_direction)) * M_PI_2;;//layer_id % 2 ? 0 : M_PI_2;
 
                 for (auto& area_group : ts_layer->area_groups) {
@@ -1566,37 +1579,35 @@ void TreeSupport::generate_toolpaths()
                         fill_params.density = interface_density;
                         // Note: spacing means the separation between two lines as if they are tightly extruded
                         filler_interface->spacing = m_support_material_interface_flow.spacing();
-                        fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys), filler_interface, fill_params, erSupportMaterial,
+                        fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys), filler_interface.get(), fill_params, erSupportMaterial,
                                                        m_support_material_interface_flow);                        
                     } else if (area_group.second == TreeSupportLayer::FloorType) {
                         // floor_areas
                         fill_params.density = bottom_interface_density;
                         filler_interface->spacing = m_support_material_interface_flow.spacing();
                         fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys),
-                            filler_interface, fill_params, erSupportMaterialInterface, m_support_material_interface_flow);
+                            filler_interface.get(), fill_params, erSupportMaterialInterface, m_support_material_interface_flow);
                     } else if (area_group.second == TreeSupportLayer::RoofType) {
                         // roof_areas
                         fill_params.density = interface_density;
                         filler_interface->spacing = m_support_material_interface_flow.spacing();
-                        if (contact_loops) {
+                        /*if (contact_loops) {
                             make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object->print(), poly,
                                 std::numeric_limits<size_t>::max(), m_support_material_interface_flow, true);
                         }
-                        else {
+                        else*/ {
                             fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys),
-                                filler_interface, fill_params, erSupportMaterialInterface, m_support_material_interface_flow);
+                                filler_interface.get(), fill_params, erSupportMaterialInterface, m_support_material_interface_flow);
                         }
                     }
                     else {
                         // base_areas
-                        auto filler_type = ipRectilinear;//ipRectilinear,ipGyroid
-                        Fill* filler_support = Fill::new_from_type(filler_type);
                         filler_support->spacing = m_support_material_flow.spacing();
                         ExtrusionRole role;
                         Flow flow = (layer_id == 0 && m_raft_layers == 0) ? m_object->print()->brim_flow() :
-                            (filler_type == ipRectilinear && (layer_id % num_layers_to_change_infill_direction == 0) ? support_transition_flow(m_object) : support_flow);
+                            (m_support_params.base_fill_pattern == ipRectilinear && (layer_id % num_layers_to_change_infill_direction == 0) ? support_transition_flow(m_object) : support_flow);
                         if (with_infill && layer_id > 0) {
-                            if (filler_type == ipRectilinear) {
+                            if (m_support_params.base_fill_pattern == ipRectilinear) {
                                 role = erSupportMaterial;// layer_id% num_layers_to_change_infill_direction == 0 ? erSupportTransition : erSupportMaterial;
                                 filler_support->angle = Geometry::deg2rad(object_config.support_angle.value);// obj_is_vertical* M_PI_2;// (obj_is_vertical + int(layer_id / num_layers_to_change_infill_direction))* M_PI_2;
                             }
@@ -1613,13 +1624,13 @@ void TreeSupport::generate_toolpaths()
                             // allow infill-only mode if support is thick enough
                             else if (offset(poly, -scale_(support_spacing * 1.5)).empty() == false)
                             {
-                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object->print(), poly, wall_count, flow, role, filler_support, support_density);
+                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object->print(), poly, wall_count, flow, role, filler_support.get(), support_density);
                             }
                             else { // otherwise must draw 1 wall
-                                if(filler_type==ipRectilinear)
-                                    make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object->print(), poly, 1, flow, role, filler_support, support_density);
-                                else
-                                    make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object->print(), poly, 1, flow, false);
+                                //if (m_support_params.base_fill_pattern == ipRectilinear)
+                                    make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object->print(), poly, 1, flow, role, filler_support.get(), support_density);
+                                //else
+                                //    make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object->print(), poly, 1, flow, false);
                             }
                         }
                         else
