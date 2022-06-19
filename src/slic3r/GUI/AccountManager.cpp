@@ -33,6 +33,20 @@ static std::string encode_path(const char* src)
 #endif /* WIN32 */
 }
 
+inline std::string get_transform_string(int bytes)
+{
+    float ms = (float)bytes / 1024.0f / 1024.0f;
+    float ks = (float)bytes / 1024.0f;
+    char buffer[32];
+    if (ms > 0)
+        ::sprintf(buffer, "%.1fM", ms);
+    else if (ks > 0)
+        ::sprintf(buffer, "%.1fK", ks);
+    else
+        ::sprintf(buffer, "%.1fK", ks);
+    return buffer;
+}
+
 inline bool is_valid_property(json &j, std::string prop)
 {
     return j.contains(prop) && !j[prop].is_null();
@@ -447,17 +461,17 @@ namespace BBL {
 
     void AccountManager::set_product_mqtt_opt()
     {
-        std::string trust_store = resources_dir + "/cert/slicer_base64.cer";
+        std::string trust_store = cert_dir + "/" + cert_name;
         mqtt_ssl_opt.set_trust_store(trust_store);
         mqtt_opt.set_ssl(mqtt_ssl_opt);
     }
 
     void AccountManager::set_engineering_mqtt_opt()
     {
-        mqtt_ssl_opt.ca_path(resources_dir + "/cert");
-        std::string key_store = resources_dir + "/cert/slicer.crt";
-        std::string trust_store = resources_dir + "/cert/slicer_chain.crt";
-        std::string private_key = resources_dir + "/cert/slicer_pri.pem";
+        mqtt_ssl_opt.ca_path(cert_dir);
+        std::string key_store = cert_dir + "/slicer.crt";
+        std::string trust_store = cert_dir + "/slicer_chain.crt";
+        std::string private_key = cert_dir + "/slicer_pri.pem";
         mqtt_ssl_opt.set_key_store(key_store);
         mqtt_ssl_opt.set_trust_store(trust_store);
         mqtt_ssl_opt.set_private_key(private_key);
@@ -2906,7 +2920,7 @@ namespace BBL {
         return j.dump(-1, ' ', false, json::error_handler_t::ignore);
     }
 
-    int AccountManager::request_login_printer(std::string dev_ip, OnUpdateStatusFn update_fn)
+    int AccountManager::start_bind(std::string dev_ip, OnUpdateStatusFn update_fn)
     {
         int result = 0;
         unsigned int http_code;
@@ -3137,8 +3151,8 @@ int AccountManager::start_print(PrintParams params, OnUpdateStatusFn update_fn, 
                 cancel = true;
                 return;
             }
-            
-            msg = (boost::format("%1%/%2%") % progress.ulnow % progress.ultotal).str();
+
+            msg = (boost::format("%1%/%2%") % get_transform_string(progress.ulnow) % get_transform_string(progress.ultotal)).str();
             if (update_fn) update_fn(PrintingStageUpload, 0, msg);
         });
 

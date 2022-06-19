@@ -419,7 +419,7 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
     
     get_print_info_thread = Slic3r::create_thread([this] {
         DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-        dev->update_my_machine_list_info();
+        dev->update_user_machine_list_info();
         
         if (!was_dismiss()) {
             wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
@@ -483,7 +483,7 @@ wxWindow *SelectMachinePopup::create_title_panel(wxString text)
 void SelectMachinePopup::on_timer(wxTimerEvent &event)
 {
     DeviceManager *dev_manager = wxGetApp().getDeviceManager();
-    auto all_machine_list        = dev_manager->get_all_machine_list();
+    auto all_machine_list        = dev_manager->get_local_machine_list();
     m_free_machine_list.clear();
     m_free_machine_list = all_machine_list;
     
@@ -536,7 +536,7 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
 {
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     m_bind_machine_list.clear();
-    m_bind_machine_list = dev->myBindMachineList;
+    m_bind_machine_list = dev->userMachineList;
 
     m_scrolledWindow->Freeze();
     for (auto &elem : m_bind_machine_list) {
@@ -1059,22 +1059,21 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     }
 
     BBL::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
-    // TODO check
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    auto it = dev->myBindMachineList.find(m_printer_last_select);
-    if (it == dev->myBindMachineList.end()) {
+    MachineObject* obj_ = dev->get_user_machine(m_printer_last_select);
+    if (obj_ == nullptr) {
         update_err_msg(_L("Please select a printer first."));
         return;
     }
 
     // check printing status
-    /*if (!it->second->can_print()) {
+    /*if (!obj_->can_print()) {
         update_err_msg(_L("Current printer is busy. Please select another one."));
         return;
     }*/
 
     // check upgrading status
-    if (it->second->upgrade_display_state == MachineObject::UpgradingDisplayState::UpgradingInProgress) {
+    if (obj_->upgrade_display_state == MachineObject::UpgradingDisplayState::UpgradingInProgress) {
         update_err_msg(_L("The printer is being updated. Please try again after the update."));
         return;
     }
@@ -1175,7 +1174,7 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
 
     std::vector<std::string> machine_list;
 
-    std::map<std::string, MachineObject *> my_bind_machine_list = dev->myBindMachineList;
+    std::map<std::string, MachineObject *> my_bind_machine_list = dev->userMachineList;
     // same machine only appear once
     for (auto it = my_bind_machine_list.begin(); it != my_bind_machine_list.end(); it++) {
         if (it->second && it->second->is_online()) {
@@ -1222,7 +1221,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         if (this == NULL || this == nullptr) { return; }
         boost::thread get_print_info_thread = Slic3r::create_thread([this] {
             DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-            dev->update_my_machine_list_info();
+            dev->update_user_machine_list_info();
 
             wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
             event.SetEventObject(this);

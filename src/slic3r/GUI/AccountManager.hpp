@@ -372,15 +372,19 @@ public:
     /* bambu stdio agent config */
     json config_json;
     std::string config_dir;
-    std::string resources_dir;
+    std::string cert_dir;
+    std::string cert_name;
     void set_config_dir(std::string dir) {
         BOOST_LOG_TRIVIAL(trace) << "Agent: set_config_dir = " << dir;
         config_dir = dir;
     }
-    void set_resource_dir(std::string dir) {
-        BOOST_LOG_TRIVIAL(trace) << "Agent: set_resource_dir = " << dir;
-        resources_dir = dir;
+
+    void set_cert_dir_name(std::string dir, std::string name) {
+        BOOST_LOG_TRIVIAL(trace) << "Agent: set_cert_dir_name,dir=" << dir << ",name=" << name;
+        cert_dir = dir;
+        cert_name = name;
     }
+
     int save_config();
     int load_config();
     std::string get_config(std::string section, std::string key);
@@ -557,7 +561,7 @@ public:
     std::string build_logout_cmd();
 
     /* bind job */
-    int request_login_printer(std::string dev_ip, OnUpdateStatusFn update_fn);
+    int start_bind(std::string dev_ip, OnUpdateStatusFn update_fn);
     std::string build_login_request();
     int _parse_login_report(std::string json_str, std::string fail_reason);
 

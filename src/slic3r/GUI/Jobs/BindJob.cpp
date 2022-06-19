@@ -69,12 +69,10 @@ void BindJob::process()
 {
     /* display info */
     wxString msg = waiting_auth_str;
-    int curr_percent = 5;
-    update_status(curr_percent, msg);
+    int curr_percent = 0;
 
     BBL::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
-
-    int result = acc->request_login_printer(m_dev_ip,
+    int result = acc->start_bind(m_dev_ip,
         [this, &curr_percent, &msg](int stage, int code, std::string info) {
             if (stage == BBL::BindJobStage::LoginStageConnect) {
                 curr_percent = 15;
@@ -107,7 +105,7 @@ void BindJob::process()
     }
 
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    dev->update_my_machine_list_info();
+    dev->update_user_machine_list_info();
 
     wxCommandEvent event(EVT_BIND_MACHINE_SUCCESS);
     event.SetEventObject(m_event_handle);

@@ -1107,11 +1107,11 @@ GUI_App::GUI_App()
 
     m_account_manager->set_on_printer_connected_fn([this](std::string dev_id) {
         GUI::wxGetApp().CallAfter([this, dev_id] {
-            /* request_pushing_print */
-            std::map<std::string, MachineObject*>::iterator it = m_device_manager->myBindMachineList.find(dev_id);
-            if (it != m_device_manager->myBindMachineList.end()) {
-                it->second->command_request_push_all();
-                it->second->command_get_version();
+            /* request_pushing */
+            MachineObject* obj = m_device_manager->get_user_machine(dev_id);
+            if (obj) {
+                obj->command_request_push_all();
+                obj->command_get_version();
             }
         });
     });
@@ -1128,17 +1128,15 @@ GUI_App::GUI_App()
     });
 
     m_account_manager->set_on_message_fn([this](std::string dev_id, std::string msg) {
-        /* params[1] is dev id, topic is : device/[dev_id]/report */
-        std::map<std::string, MachineObject*>::iterator it = m_device_manager->myBindMachineList.find(dev_id);
-        if (it == m_device_manager->myBindMachineList.end()) return;
-        if (it->second) {
-            it->second->parse_json(msg);
-
+        MachineObject* obj = m_device_manager->get_user_machine(dev_id);
+        if (obj) {
+            obj->parse_json(msg);
+        
 #if !BBL_RELEASE_TO_PUBLIC
-            if (it->second->is_ams_need_update) {
+            if (obj->is_ams_need_update) {
                 CallAfter([this, dev_id] {
-                    std::map<std::string, MachineObject*>::iterator it = m_device_manager->myBindMachineList.find(dev_id);
-                    GUI::wxGetApp().sidebar().load_ams_list(it->second->amsList);
+                    MachineObject* obj_ = m_device_manager->get_user_machine(dev_id);
+                    GUI::wxGetApp().sidebar().load_ams_list(obj_->amsList);
                 });
 #endif
             }
@@ -1241,7 +1239,7 @@ void GUI_App::init_app_config()
             //BBS set config dir
             m_account_manager->set_config_dir(data_dir);
             //BBS set cert dir
-            m_account_manager->set_resource_dir(resources_dir());
+            m_account_manager->set_cert_dir_name(resources_dir() + "/cert", "slicer_base64.cer");
         #else
             // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
             // https://github.com/Bambu3d/BambuStudio/issues/2911
@@ -2477,7 +2475,7 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
 
     // get machine list
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    dev->update_my_machine_list_info();
+    dev->update_user_machine_list_info();
 
     GUI::wxGetApp().preset_bundle->update_user_presets_directory(user_id);
     if (online_login)

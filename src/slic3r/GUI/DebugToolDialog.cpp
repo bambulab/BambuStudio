@@ -321,7 +321,7 @@ void DeviceSearchDialog::update_list()
 
     Slic3r::DeviceManager* dm = Slic3r::GUI::wxGetApp().getDeviceManager();
 
-    std::map<std::string ,MachineObject*> list = dm->get_all_machine_list();
+    std::map<std::string ,MachineObject*> list = dm->get_local_machine_list();
 
     std::map<std::string, MachineObject*>::iterator it;
     
@@ -555,7 +555,7 @@ void DebugToolDialog::init()
 
     btn_refresh_my_device->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
             DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-            dev->update_my_machine_list_info();
+            dev->update_user_machine_list_info();
             wxQueueEvent(this, new SimpleEvent(EVT_UPDATE_MYBIND_LIST));
         });
 
@@ -1133,7 +1133,7 @@ void DebugToolDialog::on_update_list(SimpleEvent& evt)
         return;
     }
 
-    std::map<std::string, MachineObject*> list = dev_manager_.get_all_machine_list();
+    std::map<std::string, MachineObject*> list = dev_manager_.get_local_machine_list();
     std::vector<MachineObject*> display_list;
 
     // coconut: sort the device list by: 1) own device first, then free, then others; 2) small dev_id (MAC address) (or may be dev_ip?)
@@ -1179,7 +1179,7 @@ void DebugToolDialog::on_update_mybind_list(SimpleEvent& evt)
     }
     
     DeviceManager* dev = wxGetApp().getDeviceManager();
-    std::map<std::string, MachineObject*> list = dev->myBindMachineList;
+    std::map<std::string, MachineObject*> list = dev->userMachineList;
     std::map<std::string, MachineObject*>::iterator iter;
     mybind_machine_list_items.clear();
     wxArrayString new_items;

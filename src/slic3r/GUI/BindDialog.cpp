@@ -114,7 +114,7 @@ void BindDialog::on_bind_printer(wxCommandEvent &event)
     std::string sn_str = printer_list_item[select].ToStdString();
 
     DeviceManager *dev_manager = wxGetApp().getDeviceManager();
-    std::map<std::string, MachineObject*> list = dev_manager->get_all_machine_list();
+    std::map<std::string, MachineObject*> list = dev_manager->get_local_machine_list();
     std::map<std::string, MachineObject *>::iterator it = list.find(sn_str);
 
     if (it != list.end()) {
@@ -127,7 +127,7 @@ void BindDialog::on_refresh(wxCommandEvent &event)
 {
     printer_list_item.clear();
     DeviceManager *dev_manager = wxGetApp().getDeviceManager();
-    std::map<std::string, MachineObject*> list = dev_manager->get_all_machine_list();
+    std::map<std::string, MachineObject*> list = dev_manager->get_local_machine_list();
 
     for (auto it = list.begin(); it != list.end(); it++) {
         printer_list_item.push_back(it->second->dev_id);
@@ -557,7 +557,7 @@ void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event)
     account_manager->request_unbind(m_machine_info->dev_id, [this](int result, std::string body) {
         if (result == 0) {
             DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-            dev->update_my_machine_list_info();
+            dev->update_user_machine_list_info();
 
             m_status_text->SetLabelText(_L("Log out successful."));
             m_button_unbind->Hide();

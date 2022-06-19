@@ -534,17 +534,17 @@ public:
     ~DeviceManager();
 
     std::mutex listMutex;
+    std::string local_default_machine;                          /* dev_id */
     std::map<std::string, MachineObject*> localMachineList;     /* dev_id -> MachineObject* */
-    std::string local_default_machine;    /* dev_id */
-
-    std::map<std::string, MachineObject*> myBindMachineList;    /* dev_id -> MachineObject* */
+    std::map<std::string, MachineObject*> userMachineList;      /* dev_id -> MachineObject* */
     
     
     MachineObject* get_default_machine();
     MachineObject* get_local_machine(std::string dev_id);
+    MachineObject* get_user_machine(std::string dev_id);
+    std::string get_first_online_user_machine();
     void set_monitoring_machine(std::string dev_id);
-    void update_my_bind_list(std::string body);
-    void update_my_machine_list_info();
+    void update_user_machine_list_info();
 
     /* create machine or update machine properties */
     void on_machine_alive(std::string dev_name, std::string dev_id, std::string dev_ip, std::string printer_type_str = "", std::string printer_signal = "");
@@ -552,9 +552,9 @@ public:
     void disconnect_all();
     void query_bind_status();
 
-    MachineObject* get_default();   /* return default machine */
-    std::map<std::string, MachineObject*> get_all_machine_list();
-    std::map<std::string, MachineObject*> get_user_machine_list();
+    MachineObject* get_default();
+    // get alive machine
+    std::map<std::string, MachineObject*> get_local_machine_list();
     void load_last_machine();
 
 

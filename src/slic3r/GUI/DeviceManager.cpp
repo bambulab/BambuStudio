@@ -1819,8 +1819,6 @@ void DeviceManager::query_bind_status()
 
     try {
         json j = json::parse(http_body);
-
-        std::map<std::string, MachineObject*> list = get_all_machine_list();
         if (j.contains("bind_list")) {
 
             for (auto& item : j["bind_list"]) {
@@ -1854,73 +1852,12 @@ MachineObject* DeviceManager::get_default()
     return nullptr;
 }
 
-void DeviceManager::update_my_bind_list(std::string body)
-{
-    //TODO use key values
-    std::set<std::string> new_list;
-    try {
-        json j = json::parse(body);
-        if (j.contains("devices") && !j["devices"].is_null()) {
-            for (auto& elem : j["devices"]) {
-                MachineObject* obj = nullptr;
-                std::string dev_id;
-                if (!elem["dev_id"].is_null()) {
-                    dev_id = elem["dev_id"].get<std::string>();
-                    new_list.insert(dev_id);
-                }
-                std::map<std::string, MachineObject*>::iterator iter = myBindMachineList.find(dev_id);
-                if (iter != myBindMachineList.end()) {
-                    /* update field */
-                    obj = iter->second;
-                    obj->dev_id = dev_id;
-                }
-                else {
-                    obj = new MachineObject(acc_, "", "", "");
-                    obj->set_bind_status(acc_.get_user_name());
-                    myBindMachineList.insert(std::make_pair(dev_id, obj));
-                }
-
-                if (!obj) continue;
-
-                if (!elem["dev_id"].is_null())
-                    obj->dev_id = elem["dev_id"].get<std::string>();
-                if (!elem["dev_name"].is_null())
-                    obj->dev_name = elem["dev_name"].get<std::string>();
-                if (!elem["dev_online"].is_null())
-                    obj->m_is_online = elem["dev_online"].get<bool>();
-                if (!elem["progress"].is_null())
-                    obj->mc_print_percent = elem["progress"].get<int>();
-                if (elem.contains("dev_model_name") && !elem["dev_model_name"].is_null())
-                    obj->printer_type = MachineObject::parse_iot_printer_type(elem["dev_model_name"].get<std::string>());
-                if (!elem["task_status"].is_null())
-                    obj->print_status = elem["task_status"].get<std::string>();
-                if (elem.contains("dev_product_name") && !elem["dev_product_name"].is_null())
-                    obj->product_name = elem["dev_product_name"].get<std::string>();
-            }
-
-            //remove MachineObject from myBindMachineList
-            std::map<std::string, MachineObject*>::iterator iterat;
-            for (iterat = myBindMachineList.begin(); iterat != myBindMachineList.end(); ) {
-                if (new_list.find(iterat->first) == new_list.end()) {
-                    iterat = myBindMachineList.erase(iterat);
-                }
-                else {
-                    iterat++;
-                }
-            }
-        }
-    }
-    catch (std::exception& e) {
-        ;
-    }
-}
-
 MachineObject* DeviceManager::get_default_machine() {
     std::string dev_id = acc_.get_default_machine();
     if (dev_id.empty()) return nullptr;
-
-    auto it = myBindMachineList.find(dev_id);
-    if (it == myBindMachineList.end()) return nullptr;
+    
+    auto it = userMachineList.find(dev_id);
+    if (it == userMachineList.end()) return nullptr;
     return it->second;
 }
 
@@ -1933,27 +1870,98 @@ MachineObject* DeviceManager::get_local_machine(std::string dev_id)
     return it->second;
 }
 
+MachineObject* DeviceManager::get_user_machine(std::string dev_id)
+{
+    std::map<std::string, MachineObject*>::iterator it = userMachineList.find(dev_id);
+    if (it == userMachineList.end()) return nullptr;
+    return it->second;
+}
+
+std::string DeviceManager::get_first_online_user_machine() {
+    for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
+        if (it->second && it->second->is_online()) {
+            return it->second->dev_id;
+        }
+    }
+    return "";
+}
+
 void DeviceManager::set_monitoring_machine(std::string dev_id)
 {
     acc_.set_monitor_machine(dev_id);
-    std::map<std::string, MachineObject *>::iterator it = myBindMachineList.find(dev_id);
-    if (it != myBindMachineList.end()) {
+
+    std::map<std::string, MachineObject *>::iterator it = userMachineList.find(dev_id);
+    if (it != userMachineList.end()) {
         it->second->reset();
     }
 }
 
-void DeviceManager::update_my_machine_list_info()
+void DeviceManager::update_user_machine_list_info()
 {
+    
     unsigned int http_code;
-    std::string http_body;
-    int result = acc_.get_print_info(http_code, http_body);
+    std::string body;
+    int result = acc_.get_print_info(http_code, body);
     if (result == 0) {
-        update_my_bind_list(http_body);
+        std::set<std::string> new_list;
+        try {
+            json j = json::parse(body);
+            if (j.contains("devices") && !j["devices"].is_null()) {
+                for (auto& elem : j["devices"]) {
+                    MachineObject* obj = nullptr;
+                    std::string dev_id;
+                    if (!elem["dev_id"].is_null()) {
+                        dev_id = elem["dev_id"].get<std::string>();
+                        new_list.insert(dev_id);
+                    }
+                    std::map<std::string, MachineObject*>::iterator iter = userMachineList.find(dev_id);
+                    if (iter != userMachineList.end()) {
+                        /* update field */
+                        obj = iter->second;
+                        obj->dev_id = dev_id;
+                    }
+                    else {
+                        obj = new MachineObject(acc_, "", "", "");
+                        obj->set_bind_status(acc_.get_user_name());
+                        userMachineList.insert(std::make_pair(dev_id, obj));
+                    }
+
+                    if (!obj) continue;
+
+                    if (!elem["dev_id"].is_null())
+                        obj->dev_id = elem["dev_id"].get<std::string>();
+                    if (!elem["dev_name"].is_null())
+                        obj->dev_name = elem["dev_name"].get<std::string>();
+                    if (!elem["dev_online"].is_null())
+                        obj->m_is_online = elem["dev_online"].get<bool>();
+                    if (elem.contains("dev_model_name") && !elem["dev_model_name"].is_null())
+                        obj->printer_type = MachineObject::parse_iot_printer_type(elem["dev_model_name"].get<std::string>());
+                    if (!elem["task_status"].is_null())
+                        obj->print_status = elem["task_status"].get<std::string>();
+                    if (elem.contains("dev_product_name") && !elem["dev_product_name"].is_null())
+                        obj->product_name = elem["dev_product_name"].get<std::string>();
+                }
+
+                //remove MachineObject from userMachineList
+                std::map<std::string, MachineObject*>::iterator iterat;
+                for (iterat = userMachineList.begin(); iterat != userMachineList.end(); ) {
+                    if (new_list.find(iterat->first) == new_list.end()) {
+                        iterat = userMachineList.erase(iterat);
+                    }
+                    else {
+                        iterat++;
+                    }
+                }
+            }
+        }
+        catch (std::exception& e) {
+            ;
+        }
     }
 }
 
 
-std::map<std::string ,MachineObject*> DeviceManager::get_all_machine_list()
+std::map<std::string ,MachineObject*> DeviceManager::get_local_machine_list()
 {
     std::map<std::string, MachineObject*> result;
     std::map<std::string, MachineObject*>::iterator it;
@@ -1967,30 +1975,16 @@ std::map<std::string ,MachineObject*> DeviceManager::get_all_machine_list()
     return result;
 }
 
-std::map<std::string, MachineObject*> DeviceManager::get_user_machine_list()
-{
-    std::map<std::string, MachineObject*> result;
-    std::map<std::string, MachineObject*>::iterator it;
-
-    for (it = localMachineList.begin(); it != localMachineList.end(); it++) {
-        if (it->second->is_alive && it->second->bind_user_name.compare(acc_.get_user_name()) == 0 && !it->second->bind_user_name.empty()) {
-            result.insert(std::make_pair(it->first, it->second));
-        }
-    }
-
-    return result;
-}
-
 void DeviceManager::load_last_machine()
 {
-    if (myBindMachineList.empty()) return;
+    if (userMachineList.empty()) return;
 
-    else if (myBindMachineList.size() == 1) {
-        this->set_monitoring_machine(myBindMachineList.begin()->first);
+    else if (userMachineList.size() == 1) {
+        this->set_monitoring_machine(userMachineList.begin()->first);
     } else {
         std::string last_monitor_machine = acc_.get_default_machine();
         bool found = false;
-        for (auto it = myBindMachineList.begin(); it != myBindMachineList.end(); it++) {
+        for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
             if (last_monitor_machine == it->first) {
                 acc_.set_monitor_machine(last_monitor_machine);
                 found = true;
@@ -1998,7 +1992,7 @@ void DeviceManager::load_last_machine()
 
         }
         if (!found)
-            this->set_monitoring_machine(myBindMachineList.begin()->first);
+            this->set_monitoring_machine(userMachineList.begin()->first);
     }
 }
 

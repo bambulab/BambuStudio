@@ -418,14 +418,12 @@ void MonitorPanel::update_side_panel()
 {
     Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     auto is_next_machine = false;
-    for (auto it = dev->myBindMachineList.begin(); it != dev->myBindMachineList.end(); it++) {
-        if (it->second && it->second->is_online()) {
-            wxCommandEvent *event = new wxCommandEvent(wxEVT_COMMAND_CHOICE_SELECTED);
-            event->SetString(it->second->dev_id);
-            wxQueueEvent(this, event);
-            is_next_machine = true;
-            return;
-        }
+    if (!dev->get_first_online_user_machine().empty()) {
+        wxCommandEvent* event = new wxCommandEvent(wxEVT_COMMAND_CHOICE_SELECTED);
+        event->SetString(dev->get_first_online_user_machine());
+        wxQueueEvent(this, event);
+        is_next_machine = true;
+        return;
     }
 
     if (!is_next_machine) { m_side_tools->set_none_printer_mode(); }

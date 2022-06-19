@@ -25,7 +25,7 @@ public:
     bool is_started() { return m_started; }
 
     void set_ssdp_discovery(bool discovery) {
-        set_keep_sending(discovery);
+        keep_sending = discovery;
     }    
 
 private:
@@ -49,6 +49,8 @@ private:
     long long current_time;
     void ssdp_thread();
 #endif
+
+    void parse_sdp_message(const char* rece_buff, unsigned int recv_size);
 public:
     typedef std::function<void(std::string dev_name, std::string dev_id, std::string dev_ip, std::string dev_type, std::string dev_signal)> OnMachineAliveFn;
 
@@ -58,9 +60,8 @@ public:
     SsdpDiscovery();
     void start();
     void stop();
+
     void on_sdp_alive(std::string dev_id, std::string dev_ip);
-    void parse_sdp_message(const char *rece_buff, unsigned int recv_size);
-    void set_keep_sending(bool sending) { keep_sending = sending; }
 };
 
 
