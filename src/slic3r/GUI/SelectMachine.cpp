@@ -1068,10 +1068,10 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     }
 
     // check printing status
-    if (!it->second->can_print()) {
+    /*if (!it->second->can_print()) {
         update_err_msg(_L("Current printer is busy. Please select another one."));
         return;
-    }
+    }*/
 
     // check upgrading status
     if (it->second->upgrade_display_state == MachineObject::UpgradingDisplayState::UpgradingInProgress) {
