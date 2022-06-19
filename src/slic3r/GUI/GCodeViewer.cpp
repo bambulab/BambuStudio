@@ -579,30 +579,30 @@ void GCodeViewer::SequentialView::render(float legend_height, int canvas_width, 
 }
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
-    { 0.90f, 0.70f, 0.70f, 1.0f }, // erNone
-    { 0.76f, 0.91f, 0.42f, 1.0f }, // erPerimeter
-    { 0.00f, 0.67f, 0.41f, 1.0f }, // erExternalPerimeter
-    { 0.89f, 0.24f, 0.19f, 1.0f }, // erOverhangPerimeter
-    { 0.00f, 0.41f, 0.33f, 1.0f }, // erInternalInfill
-    { 0.00f, 0.04f, 0.55f, 1.0f }, // erSolidInfill
-    { 0.16f, 0.49f, 0.88f, 1.0f }, // erTopSolidInfill
-    { 0.40f, 0.36f, 0.78f, 1.0f }, // erBottomSurface
-    { 0.30f, 0.50f, 0.73f, 1.0f }, // erIroning
-    { 0.87f, 0.09f, 0.51f, 1.0f }, // erBridgeInfill
-    { 1.00f, 1.00f, 1.00f, 1.0f }, // erGapFill
-    { 1.00f, 0.77f, 0.34f, 1.0f }, // erSkirt
-    { 1.00f, 0.63f, 0.41f, 1.0f }, // erBrim
-    { 1.00f, 0.42f, 0.00f, 1.0f }, // erSupportMaterial
-    { 0.65f, 0.00f, 0.39f, 1.0f }, // erSupportMaterialInterface
-    { 0.89f, 0.24f, 0.19f, 1.0f }, // erSupportTransition
-    { 0.00f, 0.58f, 0.51f, 1.0f }, // erWipeTower
-    { 0.96f, 0.47f, 0.77f, 1.0f }  // erCustom
+    { 0.90f, 0.70f, 0.70f, 1.0f },   // erNone
+    { 1.00f, 0.90f, 0.30f, 1.0f },   // erPerimeter
+    { 1.00f, 0.49f, 0.22f, 1.0f },   // erExternalPerimeter
+    { 0.12f, 0.12f, 1.00f, 1.0f },   // erOverhangPerimeter
+    { 0.69f, 0.19f, 0.16f, 1.0f },   // erInternalInfill
+    { 0.59f, 0.33f, 0.80f, 1.0f },   // erSolidInfill
+    { 0.94f, 0.25f, 0.25f, 1.0f },   // erTopSolidInfill
+    { 0.40f, 0.36f, 0.78f, 1.0f },   // erBottomSurface
+    { 1.00f, 0.55f, 0.41f, 1.0f },   // erIroning
+    { 0.30f, 0.50f, 0.73f, 1.0f },   // erBridgeInfill
+    { 1.00f, 1.00f, 1.00f, 1.0f },   // erGapFill
+    { 0.00f, 0.53f, 0.43f, 1.0f },   // erSkirt
+    { 0.00f, 0.23f, 0.43f, 1.0f },   // erBrim
+    { 0.00f, 1.00f, 0.00f, 1.0f },   // erSupportMaterial
+    { 0.00f, 0.50f, 0.00f, 1.0f },   // erSupportMaterialInterface
+    { 0.00f, 0.25f, 0.00f, 1.0f },   // erSupportTransition
+    { 0.70f, 0.89f, 0.67f, 1.0f },   // erWipeTower
+    { 0.37f, 0.82f, 0.58f, 1.0f }    // erCustom
 }};
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Options_Colors {{
-    { 0.62f,  0.11f,  0.59f,  1.0f },   // Retractions
-    { 0.58f,  0.47f,  0.37f,  1.0f },   // Unretractions
-    { 1.00f,  1.00f,  1.00f,  1.0f },   // Seams
+    { 0.803f, 0.135f, 0.839f, 1.0f },   // Retractions
+    { 0.287f, 0.679f, 0.810f, 1.0f },   // Unretractions
+    { 0.900f, 0.900f, 0.900f, 1.0f },   // Seams
     { 0.758f, 0.744f, 0.389f, 1.0f },   // ToolChanges
     { 0.856f, 0.582f, 0.546f, 1.0f },   // ColorChanges
     { 0.322f, 0.942f, 0.512f, 1.0f },   // PausePrints
@@ -610,8 +610,8 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Options_Colors {{
 }};
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Travel_Colors {{
-    { 0.48f,  0.19f,  0.25f,  1.0f },  // Move
-    { 0.00f,  0.54f,  0.59f,  1.0f },  // Extrude
+    { 0.219f, 0.282f, 0.609f, 1.0f }, // Move
+    { 0.112f, 0.422f, 0.103f, 1.0f }, // Extrude
     { 0.505f, 0.064f, 0.028f, 1.0f }  // Retract
 }};
 
@@ -645,7 +645,7 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors{{
 //}};
 
 
-const GCodeViewer::Color GCodeViewer::Wipe_Color    = { 0.45f, 0.76f, 0.84f, 1.0f };
+const GCodeViewer::Color GCodeViewer::Wipe_Color = { 1.0f, 1.0f, 0.0f, 1.0f };
 const GCodeViewer::Color GCodeViewer::Neutral_Color = { 0.25f, 0.25f, 0.25f, 1.0f };
 
 GCodeViewer::GCodeViewer()
