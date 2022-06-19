@@ -1904,6 +1904,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 const Print* print = m_process->fff_print();
                 float brim_width = print->wipe_tower_data(filaments_count).brim_width;
                 Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(w, v);
+
                 const float margin = 15.f;
                 BoundingBoxf3 plate_bbox = wxGetApp().plater()->get_partplate_list().get_plate(plate_id)->get_bounding_box();
                 coordf_t plate_bbox_y_max_local_coord = plate_bbox.max(1) - plate_origin(1);

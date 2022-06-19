@@ -1656,7 +1656,8 @@ void Print::_make_wipe_tower()
 
     // Initialize the wipe tower.
     // BBS: in BBL machine, wipe tower is only use to prime extruder. So just use a global wipe volume.
-    WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_config.prime_volume, m_wipe_tower_data.tool_ordering.first_extruder());
+    WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_config.prime_volume, m_wipe_tower_data.tool_ordering.first_extruder(),
+        m_wipe_tower_data.tool_ordering.empty() ? 0.f : m_wipe_tower_data.tool_ordering.back().print_z);
 
     //wipe_tower.set_retract();
     //wipe_tower.set_zhop();

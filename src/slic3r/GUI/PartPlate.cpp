@@ -1085,10 +1085,6 @@ Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double wipe_volu
 	if (plate_extruders.empty())
 		return wipe_tower_size;
 
-	double depth = wipe_volume * (plate_extruders.size() - 1) / (layer_height * w);
-	if (depth > EPSILON)
-		wipe_tower_size(1) = std::max((double)WipeTower::min_wipe_tower_depth, depth);
-
 	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
 		if (!contain_instance_totally(obj_idx, 0))
 			continue;
@@ -1097,6 +1093,43 @@ Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double wipe_volu
 		max_height = std::max(bbox.size().z(), max_height);
 	}
 	wipe_tower_size(2) = max_height;
+
+	double depth = wipe_volume * (plate_extruders.size() - 1) / (layer_height * w);
+	if (depth > EPSILON) {
+		float min_wipe_tower_depth = 0.f;
+		auto iter = WipeTower::min_depth_per_height.begin();
+		while (iter != WipeTower::min_depth_per_height.end()) {
+			auto curr_height_to_depth = *iter;
+
+			// This is the case that wipe tower height is lower than the first min_depth_to_height member.
+			if (curr_height_to_depth.first >= max_height) {
+				min_wipe_tower_depth = curr_height_to_depth.second;
+				break;
+			}
+
+			iter++;
+
+			// If curr_height_to_depth is the last member, use its min_depth.
+			if (iter == WipeTower::min_depth_per_height.end()) {
+				min_wipe_tower_depth = curr_height_to_depth.second;
+				break;
+			}
+
+			// If wipe tower height is between the current and next member, set the min_depth as linear interpolation between them
+			auto next_height_to_depth = *iter;
+			if (next_height_to_depth.first > max_height) {
+				float height_base = curr_height_to_depth.first;
+				float height_diff = next_height_to_depth.first - curr_height_to_depth.first;
+				float min_depth_base = curr_height_to_depth.second;
+				float depth_diff = next_height_to_depth.second - curr_height_to_depth.second;
+
+				min_wipe_tower_depth = min_depth_base + (max_height - curr_height_to_depth.first) / height_diff * depth_diff;
+				break;
+			}
+		}
+		depth = std::max((double)min_wipe_tower_depth, depth);
+	}
+	wipe_tower_size(1) = depth;
 	return wipe_tower_size;
 }
 
