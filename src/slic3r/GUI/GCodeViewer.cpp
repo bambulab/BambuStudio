@@ -1465,9 +1465,9 @@ void GCodeViewer::render_calibration_thumbnail(ThumbnailData& thumbnail_data, un
     m_layers_z_range = {0, 0};
     // BBS exclude feature types
     m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags & ~(1 << erSkirt);
-    m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags & ~(1 << erWipeTower);
     m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags & ~(1 << erCustom);
     // BBS include feature types
+    m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erWipeTower);
     m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erPerimeter);
     m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erExternalPerimeter);
     m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erOverhangPerimeter);
