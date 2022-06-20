@@ -8,33 +8,48 @@
 #include <boost/thread.hpp>
 #include <boost/enable_shared_from_this.hpp>
 
+#include "nlohmann/json_fwd.hpp"
+using nlohmann::json;
+
 #include <functional>
 #include <deque>
 
-namespace pt = boost::property_tree;
-
+wxDECLARE_EVENT(EVT_READY, wxCommandEvent);
+wxDECLARE_EVENT(EVT_MODE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_FILE_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_THUMBNAIL, wxCommandEvent);
+wxDECLARE_EVENT(EVT_DOWNLOAD, wxCommandEvent);
 
 class PrinterFileSystem : public wxEvtHandler, public boost::enable_shared_from_this<PrinterFileSystem>
 {
-    static const int PRINTER_REQ = 0x1000;
-    static const int PRINTER_RESP   = 0x1001;
+    static const int CTRL_TYPE     = 0x3001;
 
-    static const int FILE_LIST_ALL = 1;
-    static const int FILE_DELETE  = 2;
-    static const int FILE_DOWNLOAD  = 3;
-    static const int FILE_THUMBNAIL = 4;
+    enum {
+        LIST_INFO       = 0x0001,
+        THUMBNAIL       = 0x0002,
+        FILE_DEL        = 0x0003,
+        FILE_DOWNLOAD   = 0X0004,
+        NOTIFY_FIRST    = 0x0100, 
+        LIST_CHANGE_NOTIFY = 0x0100,
+        LIST_RESYNC_NOTIFY = 0x0101,
+    };
 
-    static const int ERROR_PIPE  = -1;
-    static const int ERROR_CONT  = 1; // continue
-    static const int ERROR_ITEM  = 2;
-    static const int ERROR_JSON  = 100;
-    static const int ERROR_SIZE  = 101;
-    static const int ERROR_MD5   = 102;
+    enum {
+        SUCCESS             = 0,
+        CONTINUE            = 1,
+        ERROR_JSON          = 2,
+        ERROR_PIPE          = 3,
+        FILE_NO_EXIST       = 10,
+        FILE_NAME_INVALID   = 11,
+        FILE_SIZE_ERR       = 12,
+        FILE_OPEN_ERR       = 13,
+        FILE_READ_ERR       = 14,
+        FILE_CHECK_ERR      = 15,
+    };
 
 
 public:
-    PrinterFileSystem(std::string const & url, void * logger);
+    PrinterFileSystem(std::string const & url);
 
     ~PrinterFileSystem();
 
@@ -47,18 +62,30 @@ public:
 
     void SetGroupMode(GroupMode mode);
 
-    int EnterSubGroup(int index);
+    size_t EnterSubGroup(size_t index);
 
     GroupMode GetGroupMode() const { return mode; }
 
     template<typename T> using Callback = std::function<void(int, T)>;
 
+    enum Flags {
+        FF_SELECT = 1,
+        FF_THUMNAIL = 2,    // Thumbnail ready
+        FF_DOWNLOAD = 4,    // Request download
+        FF_DELETED = 8,     // Request delete
+    };
+
     struct File
     {
         std::string name;
-        wxInt64     time;
-        wxInt64     size;
+        boost::uint32_t time = 0;
+        boost::uint64_t size = 0;
         wxBitmap    thumbnail;
+        int         flags = false;
+        int         progress = -1; // -1: waiting
+
+        bool IsSelect() const { return flags & FF_SELECT; }
+        bool IsDownload() const { return flags & FF_DOWNLOAD; }
 
         friend bool operator<(File const & l, File const & r) { return l.time > r.time; }
     };
@@ -69,7 +96,6 @@ public:
 
     struct Thumbnail
     {
-        int         index;
         std::string name;
         wxBitmap    thumbnail;
     };
@@ -80,72 +106,99 @@ public:
         wxInt64 total;
     };
 
-    void ListAllFiles(Callback<Void> const &callback);
+    void ListAllFiles();
 
-    void DeleteFile(int index, Callback<Void> const &callback);
+    void DeleteFiles(size_t index);
 
-    void DownloadFile(int index, std::string const & path, Callback<Progress> const &callback);
+    void DownloadFiles(size_t index, std::string const &path);
 
-    int GetCount() const;
+    size_t GetCount() const;
 
-    int GetIndexAtTime(wxInt64 time);
+    size_t GetIndexAtTime(boost::uint32_t time);
 
-    void LockFiles(int start, int count, Callback<Thumbnail> const &callback);
+    void ToggleSelect(size_t index);
+    
+    void SelectAll(bool select);
 
-    File const & GetFile(int index);
+    void SetFocusRange(size_t start, size_t count);
 
-    void UnlockFiles(int start, int count);
+    File const &GetFile(size_t index);
+
+    int GetLastError() const { return last_error; }
 
 private:
-    template<typename T> using Translator = std::function<int(pt::ptree const & resp, T &)>;
+    void BuildGroups();
 
-    template<typename T, typename MT> using Applier = std::function<int(MT &&, T &)>;
+    void DeleteFilesContinue();
 
-    typedef std::function<void(int, pt::ptree const & resp)> callback_t;
+    void DownloadNextFile(std::string const &path);
 
-    template <typename T, typename MT = T>
-    struct NullApplier
-    {
-        T operator()(MT const &) { return T(); }
-    };
+    void UpdateFocusThumbnail();
+
+    void FileRemoved(size_t index, std::string const &name);
+
+    size_t FindFile(size_t index, std::string const &name);
+
+    void SendChangedEvent(wxEventType type, size_t index = (size_t)-1, std::string const &str = {}, long extra = 0);
+
+    static void DumpLog(Bambu_Session *session, int level, Bambu_Message const *msg);
+
+private:
+    template<typename T> using Translator = std::function<int(json const &, T &, unsigned char const *)>;
+
+    typedef std::function<void(int, json const & resp)> callback_t;
+
+    typedef std::function<void(int, json const &resp, unsigned char const *data)> callback_t2;
 
     template <typename T>
-    struct NullApplier<T, T>
+    void SendRequest(int type, json const& req, Translator<T> const& translator, Callback<T> const& callback)
     {
-        T const & operator()(T const & t) { return t; }
-    };
-
-    template <typename T, typename MT = T>
-    void SendRequest(int type, pt::ptree const& req, Translator<MT> const& translator, Applier<T, MT> const& applier, Callback<T> const& callback)
-    {
-        auto c = [translator, applier, callback, thiz = shared_from_this()](int result, pt::ptree const& resp)
+        auto c = [translator, callback, thiz = shared_from_this()](int result, json const &resp, unsigned char const *data)
         {
-            MT mt;
-            if (result == 0 || result == ERROR_CONT) {
+            T t;
+            if (result == 0 || result == CONTINUE) {
                 try {
-                    int n = (translator != nullptr) ? translator(resp, mt) : 0;
+                    int n  = (translator != nullptr) ? translator(resp, t, data) : 0;
                     result = n == 0 ? result : n;
                 }
                 catch (...) {
                     result = ERROR_JSON;
                 }
             }
-            // TODO: clear this callback if not continue
-            if (applier) {
-                thiz->PostCallback<MT>([callback, applier, thiz](int result, MT mt) {
-                    T t;
-                    if (result == 0 || result == ERROR_CONT)
-                        result = applier(std::move(mt), t);
-                    callback(result, t);
-                }, result, mt);
-            } else {
-                thiz->PostCallback<T>(callback, result, NullApplier<T, MT>()(mt));
-            }
+            thiz->PostCallback<T>(callback, result, t);
         };
         SendRequest(type, req, c);
     }
 
-    void SendRequest(int type, pt::ptree const &req, callback_t const & callback);
+    template<typename T> using Applier = std::function<void(T const &)>;
+
+    template<typename T>
+    void InstallNotify(int type, Translator<T> const& translator, Applier<T> const& applier)
+    {
+        auto c = [translator, applier, thiz = shared_from_this()](int result, json const &resp, unsigned char const *data)
+        {
+            T t;
+            if (result == 0 || result == CONTINUE) {
+                try {
+                    int n  = (translator != nullptr) ? translator(resp, t, data) : 0;
+                    result = n == 0 ? result : n;
+                }
+                catch (...) {
+                    result = ERROR_JSON;
+                }
+            }
+            if (result == 0 && applier) {
+                thiz->PostCallback<T>([applier](int, T const & t) {
+                    applier(t);
+                }, 0, t);
+            }
+        };
+        InstallNotify(type, c);
+    }
+
+    void SendRequest(int type, json const &req, callback_t2 const & callback);
+
+    void InstallNotify(int type, callback_t2 const &callback);
 
     void RecvMessageThread();
 
@@ -159,33 +212,31 @@ private:
 
     void PostCallback(std::function<void(void)> const & callback);
 
-    PrinterFileSystem(PrinterFileSystem *parent);
-
-private:
-    void BuildGroups();
-
-    void FileRemoved(int index, std::string const & name);
-
-    void SendChangedEvent();
-
 protected:
     GroupMode mode = G_NONE;
     FileList files;
-    std::vector<int> group_year;
-    std::vector<int> group_month;
+    std::vector<size_t> group_year;
+    std::vector<size_t> group_month;
 
 private:
-    std::vector<int> thumbnail_requests;
+    size_t lock_start = 0;
+    size_t lock_end   = 0;
+    int task_flags = 0;
 
 private:
+    struct Session : Bambu_Session
+    {
+        PrinterFileSystem * owner;
+    };
     std::string url;
-    Bambu_Session session;
-    size_t sequence;
-    std::deque<callback_t> callbacks;
+    Session session;
+    boost::uint32_t sequence = 0;
+    std::deque<callback_t2> callbacks;
+    std::deque<callback_t2> notifies;
     bool stop = false;
     boost::thread recv_thread;
     boost::mutex mutex;
-    wxEvtHandler * event_handler;
+    int last_error = 0;
 };
 
 #endif // !slic3r_GUI_PrinterFileSystem_h_

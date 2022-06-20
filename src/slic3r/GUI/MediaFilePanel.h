@@ -46,7 +46,7 @@ private:
     ::Label     *m_switch_label = nullptr;
     ::SwitchButton * m_switch_button = nullptr;
 
-    MachineObject * m_machine = nullptr;
+    std::string m_machine;
     ImageGrid * m_image_grid = nullptr;
 
     int m_last_mode = 0;

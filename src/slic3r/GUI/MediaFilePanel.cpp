@@ -22,7 +22,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_tab_button_year = new ::Button(m_tab_panel, _L("Year"), "", wxBORDER_NONE);
     m_tab_button_month = new ::Button(m_tab_panel, _L("Month"), "", wxBORDER_NONE);
     m_tab_button_all = new ::Button(m_tab_panel, _L("All Files"), "", wxBORDER_NONE);
-    m_switch_label = new ::Label(::Label::Body_14, _L("Record Switch"), this);
+    m_switch_label = new ::Label(::Label::Body_14, _L("Batch Operation"), this);
     m_switch_button = new ::SwitchButton(this);
 
     m_image_grid = new ImageGrid(this);
@@ -65,7 +65,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
 
     m_switch_button->Bind(wxEVT_TOGGLEBUTTON, [this](auto& e) {
         e.Skip();
-        auto fs = m_image_grid->GetFileSystem();
+        m_image_grid->SetSelecting(m_switch_button->GetValue());
     });
     wxCommandEvent e(wxEVT_CHECKBOX);
     auto b = m_tab_button_all;
@@ -75,15 +75,44 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
 
 void MediaFilePanel::SetMachineObject(MachineObject* obj)
 {
-    if (obj == m_machine)
+    std::string machine = obj ? obj->dev_id : "";
+    if (machine == m_machine)
         return;
-    m_machine = obj;
+    m_machine = machine;
     auto fs = m_image_grid->GetFileSystem();
-    if (fs) fs->Unbind(EVT_FILE_CHANGED, &MediaFilePanel::fileChanged, this);
-    fs = m_machine ? boost::shared_ptr<PrinterFileSystem>(new PrinterFileSystem("", nullptr)) : nullptr;
-    m_image_grid->SetFileSystem(fs);
-    if (fs) fs->Bind(EVT_FILE_CHANGED, &MediaFilePanel::fileChanged, this);
-    wxCommandEvent e(EVT_FILE_CHANGED);
+    if (fs) fs->Unbind(EVT_MODE_CHANGED, &MediaFilePanel::fileChanged, this);
+    m_image_grid->SetFileSystem(nullptr);
+    if (!m_machine.empty()) {
+        wxGetApp().getAccountManager()->get_camera_url(m_machine, [this, machine](std::string url) {
+            BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
+            CallAfter([this, url, machine] {
+                if (machine != m_machine)
+                    return;
+                // m_url = url;
+                if (url.empty()) {
+                    m_image_grid->SetStatus(_L("Initialize failed [%d]!"));
+                } else {
+                    boost::shared_ptr<PrinterFileSystem> fs(new PrinterFileSystem(url));
+                    m_image_grid->SetFileSystem(fs);
+                    m_image_grid->SetStatus(_L("Connecting..."));
+                    fs->Bind(EVT_READY, [this, fs](auto &e) {
+                        if (m_image_grid->GetFileSystem() != fs) // canceled
+                            return;
+                        if (e.GetInt()) {
+                            // failed
+                            m_image_grid->SetStatus(_L("Connect failed [%d]!"));
+                        } else {
+                            m_image_grid->SetStatus(_L("Loading file list..."));
+                            fs->Bind(EVT_MODE_CHANGED, &MediaFilePanel::fileChanged, this);
+                            fs->ListAllFiles();
+                        }
+                    });
+                }
+            });
+        });
+        m_image_grid->SetStatus(_L("Initializing..."));
+    }
+    wxCommandEvent e(EVT_MODE_CHANGED);
     fileChanged(e);
 }
 
@@ -103,6 +132,8 @@ void MediaFilePanel::fileChanged(wxCommandEvent& e1)
 {
     e1.Skip();
     auto fs = m_image_grid->GetFileSystem();
+    if (fs)
+        m_image_grid->SetStatus(fs->GetCount() ? L"" : _L("No files"));
     auto mode = fs ? fs->GetGroupMode() : 0;
     if (m_last_mode == mode)
         return;

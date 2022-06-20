@@ -3,25 +3,35 @@
 
 #include <boost/algorithm/hex.hpp>
 #include <boost/uuid/detail/md5.hpp>
+
+#include "nlohmann/json.hpp"
+
 #include <cstring>
 
-wxDEFINE_EVENT(EVT_FILE_CALLBACK, wxCommandEvent);
+wxDEFINE_EVENT(EVT_READY, wxCommandEvent);
+wxDEFINE_EVENT(EVT_MODE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_FILE_CHANGED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_THUMBNAIL, wxCommandEvent);
+wxDEFINE_EVENT(EVT_DOWNLOAD, wxCommandEvent);
+
+wxDEFINE_EVENT(EVT_FILE_CALLBACK, wxCommandEvent);
 
 static wxBitmap default_thumbnail;
 
-PrinterFileSystem::PrinterFileSystem(std::string const &url, void *logger)
-    : url(url), recv_thread(&PrinterFileSystem::RecvMessageThread, this)
+PrinterFileSystem::PrinterFileSystem(std::string const &url)
+    : url(url)
+    , recv_thread(&PrinterFileSystem::RecvMessageThread, this)
 {
     if (!default_thumbnail.IsOk())
         default_thumbnail= wxImage(Slic3r::encode_path(Slic3r::var("live_stream_default.png").c_str()));
-    session.logger = logger;
-    auto time = wxDateTime::Now();
-    for (int i = 0; i < 240; ++i) {
-        files.push_back({"", time.GetTicks(), 0, default_thumbnail});
-        time.Add(wxDateSpan::Days(-1));
-    }
-    BuildGroups();
+    session.owner = this;
+    session.logger = &PrinterFileSystem::DumpLog;
+    //auto time = wxDateTime::Now();
+    //for (int i = 0; i < 240; ++i) {
+    //    files.push_back({"", time.GetTicks(), 0, default_thumbnail, false, i - 130});
+    //    time.Add(wxDateSpan::Days(-1));
+    //}
+    //BuildGroups();
 }
 
 PrinterFileSystem::~PrinterFileSystem()
@@ -33,107 +43,103 @@ PrinterFileSystem::~PrinterFileSystem()
 void PrinterFileSystem::SetGroupMode(GroupMode mode)
 {
     this->mode = mode;
-    SendChangedEvent();
+    SendChangedEvent(EVT_MODE_CHANGED);
 }
 
-int PrinterFileSystem::EnterSubGroup(int index)
+size_t PrinterFileSystem::EnterSubGroup(size_t index)
 {
     if (mode == G_NONE)
         return index;
     index = mode == G_YEAR ? group_year[index] : group_month[index];
     mode = (GroupMode)(mode - 1);
-    SendChangedEvent();
+    SendChangedEvent(EVT_MODE_CHANGED);
     return index;
 }
 
-void PrinterFileSystem::ListAllFiles(PrinterFileSystem::Callback<Void> const &callback)
+void PrinterFileSystem::ListAllFiles()
 {
-    pt::ptree req;
-    SendRequest<Void, FileList>(FILE_LIST_ALL, req, [this](pt::ptree const& resp, FileList & list) {
-        pt::ptree files = resp.get_child("files");
-        for (auto& pair : files) {
-            auto & file = pair.second;
-            File f = {file.get_optional<std::string>("name").get(), file.get_optional<wxInt64>("time").get(), file.get_optional<wxInt64>("size").get()};
-            list.push_back(f);
+    json req;
+    req["notify"] = "DETAIL";
+    SendRequest<FileList>(LIST_INFO, req, [this](json const& resp, FileList & list, auto) {
+        json files = resp["file_lists"];
+        for (auto& f : files) {
+            std::string name = f["name"];
+            boost::uint32_t time = 0; // f["time"];
+            boost::uint64_t size = f["size"];
+            File ff = {name, time, size, default_thumbnail};
+            list.push_back(ff);
         }
         return 0;
-    }, [this](FileList && list, Void &) {
+    }, [this](int result, FileList const & list) {
         files = std::move(list);
         BuildGroups();
-        SendChangedEvent();
+        SendChangedEvent(EVT_FILE_CHANGED);
+        SetFocusRange(0, files.size());
         return 0;
-    }, callback);
+    });
 }
 
-void PrinterFileSystem::DeleteFile(int index, Callback<PrinterFileSystem::Void> const &callback)
+void PrinterFileSystem::DeleteFiles(size_t index)
 {
-    if (index < 0 || index >= files.size() || files[index].name.empty()) {
-        PostCallback(callback, ERROR_ITEM, Void());
-        return;
+    if (index == size_t(-1)) {
+        size_t n = 0;
+        for (size_t i = 0; i < files.size(); ++i) {
+            auto &file = files[i];
+            if ((file.flags & FF_SELECT) != 0 && (file.flags & FF_DELETED) == 0) {
+                file.flags |= FF_DELETED;
+                ++n;
+            }
+            if (n == 0) return;
+        }
+    } else {
+        if (index >= files.size())
+            return;
+        auto &file = files[index];
+        if ((file.flags & FF_DELETED) != 0)
+            return;
+        file.flags |= FF_DELETED;
     }
-    auto name = files[index].name;
-    SendRequest<Void, Void>(FILE_DELETE, pt::ptree(name), nullptr, [index, name, this](Void &&, Void &) {
-        // TODO: 
-        FileRemoved(index, name);
-        SendChangedEvent();
-        return 0;
-    }, callback);
+    if ((task_flags & FF_DELETED) == 0)
+        DeleteFilesContinue();
 }
 
-void PrinterFileSystem::DownloadFile(int index, std::string const &path, Callback<Progress> const &callback)
+void PrinterFileSystem::DownloadFiles(size_t index, std::string const &path)
 {
-    if (index < 0 || index >= files.size() || files[index].name.empty()) {
-        PostCallback(callback, ERROR_ITEM, Progress());
-        return;
+    if (index == (size_t) -1) {
+        size_t n = 0;
+        for (size_t i = 0; i < files.size(); ++i) {
+            auto &file = files[i];
+            if ((file.flags & FF_SELECT) == 0) continue;
+            if ((file.flags & FF_DOWNLOAD) != 0 && file.progress >= 0) continue;
+            file.flags |= FF_DOWNLOAD;
+            file.progress = -1;
+            ++n;
+        }
+        if (n == 0) return;
+    } else {
+        if (index >= files.size())
+            return;
+        auto &file = files[index];
+        if ((file.flags & FF_DOWNLOAD) != 0 && file.progress >= 0)
+            return;
+        file.flags |= FF_DOWNLOAD;
+        file.progress = -1;
     }
-    boost::shared_ptr<PrinterFileSystem> fs(new PrinterFileSystem(this));
-    fs->SendRequest<Progress, Progress>(FILE_DOWNLOAD, pt::ptree(files[index].name), [fs, path, callback](pt::ptree const &resp, Progress & prog) {
-        // in work thread, continue recv
-        prog.size = 0;
-        prog.total = resp.get_optional<int>("total").get();
-        std::string md5 = resp.get_optional<std::string>("md5").get();
-        std::ofstream ofs(path);
-        boost::uuids::detail::md5 boost_md5;
-        // receive data
-        int result = fs->RecvData([&ofs, &prog, &boost_md5, callback](Bambu_Sample& sample) {
-            ofs.write((char const *) sample.buffer, sample.size);
-            boost_md5.process_bytes(sample.buffer, sample.size);
-            prog.size += sample.size;
-            callback(ERROR_CONT, prog);
-            return ERROR_CONT;
-        });
-        // check size and md5
-        if (prog.size == prog.total) {
-            boost::uuids::detail::md5::digest_type digest;
-            boost_md5.get_digest(digest);
-            std::string str_md5;
-            const auto char_digest = reinterpret_cast<const char*>(&digest);
-            boost::algorithm::hex(char_digest,char_digest+sizeof(boost::uuids::detail::md5::digest_type), std::back_inserter(str_md5));
-            if (!boost::iequals(str_md5, md5))
-                result = ERROR_MD5;
-        } else {
-            result = ERROR_SIZE;
-        }
-        if (result != 0) {
-            ofs.close();
-            boost::system::error_code ec;
-            boost::filesystem::remove(path, ec);
-        }
-        return result;
-    }, nullptr, callback);
+    if ((task_flags & FF_DOWNLOAD) == 0)
+        DownloadNextFile(path);
 }
 
-int PrinterFileSystem::GetCount() const
+size_t PrinterFileSystem::GetCount() const
 {
     if (mode == G_NONE)
         return files.size();
     return mode == G_YEAR ? group_year.size() : group_month.size();
 }
 
-int PrinterFileSystem::GetIndexAtTime(wxInt64 time)
+size_t PrinterFileSystem::GetIndexAtTime(boost::uint32_t time)
 {
     auto iter = std::upper_bound(files.begin(), files.end(), File{"", time});
-    int n = std::distance(files.begin(), iter) - 1;
+    size_t n = std::distance(files.begin(), iter) - 1;
     if (mode == G_NONE) {
         return n;
     }
@@ -142,126 +148,35 @@ int PrinterFileSystem::GetIndexAtTime(wxInt64 time)
     return std::distance(group.begin(), iter2) - 1;
 }
 
-void PrinterFileSystem::LockFiles(int start, int count, Callback<Thumbnail> const& callback)
+void PrinterFileSystem::ToggleSelect(size_t index)
 {
-    //boost::shared_ptr<PrinterFileSystem> file(new PrinterFileSystem(this));
-    boost::shared_ptr<PrinterFileSystem> fs(shared_from_this());
-    std::vector<std::string> names;
-    pt::ptree req;
-    for (auto & name : names)
-        req.put("", name);
-    int end = start + count;
-    fs->SendRequest<Thumbnail, Thumbnail>(FILE_THUMBNAIL, req, [this, fs, names, start, end, callback](pt::ptree const &resp, Thumbnail & list) {
-        // in work thread, continue recv
-        // receive data
-        int n = 0;
-        wxString mimetype = resp.get_optional<std::string>("mimetype").get_value_or("image/jpeg");
-        int result = fs->RecvData([names, &n, &list, start, end, this, mimetype, callback](Bambu_Sample& sample) {
-            wxMemoryInputStream mis(sample.buffer, sample.size);
-            wxImage image(mis, mimetype);
-            PostCallback<Thumbnail>([name = names[n], callback] (int result, Thumbnail list) {
-                //auto iter = std::find_if(files.begin(), files.end(), [name = names[n]] (File & f) { return f.name == name; });
-                //if (iter != files.end()) {
-                //    iter->thumbnail = image;
-                //    Thumbnail list;
-                //    list.start = std::distance(files.begin(), iter);
-                //    list.thumbnails.push_back(*iter);
-                //}
-                //int start2 = start;
-                //int end2 = end;
-                //if (start2 >= files.size()) {
-                //    end2 -= start - files.size();
-                //    start2 = files.size();
-                //}
-                //if (end2 >= files.size())
-                //    end2 = files.size();
-                //list.start = start2;
-                //std::copy(files.begin() + start2, files.begin() + end2, std::back_inserter(list.thumbnails));
-                callback(result, list);
-            }, ERROR_CONT, list);
-            return ++n == names.size() ? 0 : ERROR_CONT;
-        });
-        return result;
-    }, nullptr, callback);
+    if (index < files.size()) files[index].flags ^= FF_SELECT;
 }
 
-PrinterFileSystem::File const & PrinterFileSystem::GetFile(int index)
+void PrinterFileSystem::SelectAll(bool select)
+{
+    if (select)
+        for (auto &f : files) f.flags |= FF_SELECT;
+    else
+        for (auto &f : files) f.flags &= ~FF_SELECT;
+}
+
+void PrinterFileSystem::SetFocusRange(size_t start, size_t count)
+{
+    if (lock_start == start && lock_end == start + count)
+        return;
+    lock_start = start;
+    lock_end = start + count;
+    UpdateFocusThumbnail();
+}
+
+PrinterFileSystem::File const &PrinterFileSystem::GetFile(size_t index)
 {
     if (mode == G_NONE)
         return files[index];
     if (mode == G_YEAR)
         index = group_year[index];
     return files[group_month[index]];
-}
-
-void PrinterFileSystem::UnlockFiles(int start, int count)
-{
-}
-
-void PrinterFileSystem::SendRequest(int type, pt::ptree const &req, callback_t const & callback)
-{
-    boost::unique_lock l(mutex);
-    pt::ptree root;
-    root.put("type", type);
-    root.put("req", (sequence + callbacks.size()));
-    root.put_child("data", req);
-    std::ostringstream oss;
-    pt::write_json(oss, root);
-    auto msg = oss.str();
-    int  result = Bambu_SendMessage(&session, PRINTER_REQ, msg.c_str(), msg.length());
-    if (result != 0) {
-        callback(ERROR_PIPE, pt::ptree());
-        return;
-    }
-    callbacks.push_back(callback);
-}
-
-void PrinterFileSystem::RecvMessageThread()
-{
-    std::string url = this->url; // copy
-    if (url.empty())
-        return;
-    Bambu_Open(&session, url.c_str()); // sync
-    int ctrl;
-    char buf[4096];
-    int len = sizeof(buf);
-    while (!stop) {
-        int n = Bambu_RecvMessage(&session, &ctrl, buf, &len);
-        if (n >= 0) {
-            pt::ptree root;
-            std::istringstream iss(std::string(buf, n));
-            int seq = -1;
-            pt::ptree resp;
-            try {
-                pt::read_json(iss, root);
-                n = root.get_optional<int>("result").get();
-                seq = root.get_optional<int>("seq").get();
-                resp = root.get_child("data");
-            }
-            catch (...) {
-                n = ERROR_JSON;
-            }
-            seq -= sequence;
-            if (seq < 0 || seq >= callbacks.size())
-                continue;
-            auto c = callbacks[seq];
-            if (c == nullptr)
-                continue;
-            if (n != ERROR_CONT) {
-                boost::unique_lock l(mutex);
-                if (seq == 0) {
-                    callbacks.pop_front();
-                    ++sequence;
-                } else {
-                    callbacks[seq] = callback_t();
-                }
-            }
-            c(n, resp);
-        } else if (n == Bambu_would_block) {
-            boost::this_thread::sleep(boost::posix_time::seconds(1));
-            continue;
-        }
-    }
 }
 
 int PrinterFileSystem::RecvData(std::function<int(Bambu_Sample& sample)> const & callback)
@@ -287,17 +202,6 @@ int PrinterFileSystem::RecvData(std::function<int(Bambu_Sample& sample)> const &
     return result;
 }
 
-void PrinterFileSystem::PostCallback(std::function<void(void)> const& callback)
-{
-    wxCommandEvent *e = new wxCommandEvent(EVT_FILE_CALLBACK);
-    wxQueueEvent(event_handler, e);
-}
-
-PrinterFileSystem::PrinterFileSystem(PrinterFileSystem *parent)
-    : PrinterFileSystem(parent->url, parent->session.logger)
-{
-}
-
 void PrinterFileSystem::BuildGroups()
 {
     if (files.empty())
@@ -305,7 +209,7 @@ void PrinterFileSystem::BuildGroups()
     wxDateTime t = wxDateTime((time_t) files.front().time);
     group_year.push_back(0);
     group_month.push_back(0);
-    for (int i = 0; i < files.size(); ++i) {
+    for (size_t i = 0; i < files.size(); ++i) {
         wxDateTime s = wxDateTime((time_t) files[i].time);
         if (s.GetYear() != t.GetYear()) {
             group_year.push_back(group_month.size());
@@ -317,24 +221,180 @@ void PrinterFileSystem::BuildGroups()
     }
 }
 
-void PrinterFileSystem::SendChangedEvent()
+void PrinterFileSystem::DeleteFilesContinue()
 {
-    wxCommandEvent event(EVT_FILE_CHANGED);
-    event.SetEventObject(this);
-    ProcessEvent(event);
+    std::vector<size_t> indexes;
+    std::vector<std::string> names;
+    for (size_t i = 0; i < files.size(); ++i)
+        if ((files[i].flags & FF_SELECT) && !files[i].name.empty()) {
+            indexes.push_back(i);
+            names.push_back(files[i].name);
+        }
+    task_flags &= ~FF_DELETED;
+    if (names.empty())
+        return;
+    json req;
+    json arr;
+    for (auto &name : names) arr.push_back(name);
+    req["delete"] = arr;
+    task_flags |= FF_DELETED;
+    SendRequest<Void>(
+        FILE_DEL, req, nullptr, 
+        [indexes, names, this](int, Void const &) {
+            // TODO:
+            for (size_t i = indexes.size() - 1; i >= 0; --i)
+                FileRemoved(indexes[i], names[i]);
+            SendChangedEvent(EVT_FILE_CHANGED);
+            DeleteFilesContinue();
+        });
 }
 
-void PrinterFileSystem::FileRemoved(int index, std::string const & name)
+void PrinterFileSystem::DownloadNextFile(std::string const &path)
+{
+    size_t index = size_t(-1);
+    for (size_t i = 0; i < files.size(); ++i) {
+        if ((files[i].flags & FF_DOWNLOAD) != 0 && files[i].progress == -1) {
+            index = i;
+            break;
+        }
+    }
+    task_flags &= ~FF_DOWNLOAD;
+    if (index >= files.size())
+        return;
+    json req;
+    req["file"] = files[index].name;
+    files[index].progress = 0;
+    SendChangedEvent(EVT_DOWNLOAD, index, files[index].name);
+    struct Download
+    {
+        int                       index;
+        std::string               name;
+        std::string               path;
+        std::ofstream             ofs;
+        boost::uuids::detail::md5 boost_md5;
+    };
+    std::shared_ptr<Download> download(new Download);
+    download->index = index;
+    download->name  = files[index].name;
+    download->path  = path;
+    task_flags |= FF_DOWNLOAD;
+    SendRequest<Progress>(
+        FILE_DOWNLOAD, req,
+        [this, download](json const &resp, Progress &prog, unsigned char const *data) -> int {
+            // in work thread, continue recv
+            size_t size = resp["size"];
+            prog.size   = resp["offset"];
+            prog.total  = resp["total"];
+            if (prog.size == 0) { download->ofs.open(download->path + "/" + download->name, std::ios::binary); }
+            // receive data
+            download->ofs.write((char const *) data, size);
+            download->boost_md5.process_bytes(data, size);
+            prog.size += size;
+            if (prog.size < prog.total) { return CONTINUE; }
+            download->ofs.close();
+            int         result = 0;
+            std::string md5    = resp["file_md5"];
+            // check size and md5
+            if (prog.size == prog.total) {
+                boost::uuids::detail::md5::digest_type digest;
+                download->boost_md5.get_digest(digest);
+                for (int i = 0; i < 4; ++i) digest[i] = boost::endian::endian_reverse(digest[i]);
+                std::string str_md5;
+                const auto  char_digest = reinterpret_cast<const char *>(&digest[0]);
+                boost::algorithm::hex(char_digest, char_digest + sizeof(digest), std::back_inserter(str_md5));
+                if (!boost::iequals(str_md5, md5)) result = FILE_CHECK_ERR;
+            } else {
+                result = FILE_SIZE_ERR;
+            }
+            if (result != 0) {
+                boost::system::error_code ec;
+                boost::filesystem::remove(download->path, ec);
+            }
+            return result;
+        },
+        [this, download](int result, Progress const &data) {
+            if (download->index >= 0)
+                download->index = FindFile(download->index, download->name);
+            if (download->index >= 0) {
+                int progress = data.size * 100 / data.total;
+                if (result > CONTINUE)
+                    progress = -2;
+                if (files[download->index].progress != progress) {
+                    files[download->index].progress = progress;
+                    SendChangedEvent(EVT_DOWNLOAD, download->index, files[download->index].name, data.size);
+                }
+            }
+            if (result != CONTINUE) DownloadNextFile(download->path);
+        });
+}
+
+void PrinterFileSystem::UpdateFocusThumbnail()
+{
+    task_flags &= ~FF_THUMNAIL;
+    if (lock_start >= files.size() || lock_start >= lock_end)
+        return;
+    size_t start = lock_start;
+    size_t end   = std::min(lock_end, files.size());
+    std::vector<std::string> names;
+    for (; start < end; ++start) {
+        if ((files[start].flags & FF_THUMNAIL) == 0) {
+            names.push_back(files[start].name);
+            if (names.size() >= 5)
+                break;
+        }
+    }
+    if (names.empty())
+        return;
+    json req;
+    json arr;
+    for (auto &name : names) arr.push_back(name);
+    req["files"] = arr;
+    task_flags |= FF_THUMNAIL;
+    SendRequest<Thumbnail>(
+        THUMBNAIL, req,
+        [this](json const &resp, Thumbnail &thumb, unsigned char const *data) -> int {
+            // in work thread, continue recv
+            // receive data
+            wxString            mimetype  = resp["mimetype"];
+            auto                thumbnail = resp["thumbnail"];
+            auto                size      = resp["size"];
+            wxMemoryInputStream mis(data, size);
+            wxImage             image(mis, mimetype);
+            thumb.name      = thumbnail;
+            thumb.thumbnail = image;
+            return 0;
+        },
+        [this](int result, Thumbnail const &thumb) {
+            auto n = thumb.name.find_last_of('.');
+            auto name = n == std::string::npos ? thumb.name : thumb.name.substr(0, n);
+            auto iter = std::find_if(files.begin(), files.end(), [&name](auto &f) { return boost::algorithm::starts_with(f.name, name); });
+            if (iter != files.end()) {
+                iter->thumbnail = thumb.thumbnail;
+                iter->flags |= FF_THUMNAIL;
+                int index = iter - files.begin();
+                SendChangedEvent(EVT_THUMBNAIL, index, thumb.name);
+            }
+            if (result != CONTINUE)
+                UpdateFocusThumbnail();
+        });
+}
+
+size_t PrinterFileSystem::FindFile(size_t index, std::string const &name)
 {
     if (index >= files.size() || files[index].name != name) {
-        auto iter = std::find_if(files.begin(), files.end(), [name] (File & f) { return f.name == name; });
-        if (iter == files.end())
-            return;
+        auto iter = std::find_if(files.begin(), files.end(), [name](File &f) { return f.name == name; });
+        if (iter == files.end()) return -1;
         index = std::distance(files.begin(), iter);
     }
-    auto removeFromGroup = [](std::vector<int> & group, int index, int total) {
+    return index;
+}
+
+void PrinterFileSystem::FileRemoved(size_t index, std::string const &name)
+{
+    index = FindFile(index, name);
+    auto removeFromGroup = [](std::vector<size_t> &group, size_t index, int total) {
         for (auto iter = group.begin(); iter != group.end(); ++iter) {
-            int index2 = -1;
+            size_t index2 = -1;
             if (*iter < index) continue;
             if (*iter == index) {
                 auto iter2 = iter + 1;
@@ -348,14 +408,175 @@ void PrinterFileSystem::FileRemoved(int index, std::string const & name)
             }
             return index2;
         }
-        return -1;
+        return size_t(-1);
     };
-    int index2 = removeFromGroup(group_month, index, files.size());
-    if (index2 >= 0) {
+    size_t index2 = removeFromGroup(group_month, index, files.size());
+    if (index2 < group_month.size()) {
         int index3 = removeFromGroup(group_year, index, group_month.size());
-        if (index3 >= 0)
+        if (index3 < group_year.size())
             group_year.erase(group_year.begin() + index3);
         group_month.erase(group_month.begin() + index2);
     }
     files.erase(files.begin() + index);
 }
+
+struct CallbackEvent : wxCommandEvent
+{
+    CallbackEvent(std::function<void(void)> const &callback) : wxCommandEvent(EVT_FILE_CALLBACK), callback(callback) {}
+    ~CallbackEvent(){ callback(); }
+    std::function<void(void)> const callback;
+};
+
+void PrinterFileSystem::PostCallback(std::function<void(void)> const& callback)
+{
+    wxCommandEvent *e = new CallbackEvent(callback);
+    wxQueueEvent(this, e);
+}
+
+void PrinterFileSystem::SendChangedEvent(wxEventType type, size_t index, std::string const &str, long extra)
+{
+    wxCommandEvent event(type);
+    event.SetEventObject(this);
+    event.SetInt(index);
+    if (!str.empty())
+        event.SetString(wxString::FromUTF8(str.c_str()));
+    event.SetExtraLong(extra);
+    ProcessEvent(event);
+}
+
+void PrinterFileSystem::DumpLog(Bambu_Session *session, int level, Bambu_Message const *msg)
+{
+    if (level == 1) {
+        wxString msg2(msg);
+        if (msg2.EndsWith("]")) {
+            auto n = msg2.find_last_of('[');
+            if (n != wxString::npos) {
+                long val   = 0;
+                PrinterFileSystem *thiz = ((Session *) session)->owner;
+                if (msg2.SubString(n + 1, msg2.Length() - 2).ToLong(&val))
+                    thiz->last_error = val;
+            }
+        }
+    }
+    BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem: " << msg;
+    Bambu_FreeLogMsg(msg);
+}
+
+void PrinterFileSystem::SendRequest(int type, json const &req, callback_t2 const & callback)
+{
+    boost::unique_lock l(mutex);
+    json root;
+    root["cmdtype"] = type;
+    root["sequence"] = sequence + callbacks.size();
+    root["req"] = req;
+    std::ostringstream oss;
+    oss << root;
+    auto msg = oss.str();
+    //OutputDebugStringA(msg.c_str());
+    //OutputDebugStringA("\n");
+    BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::SendRequest: " << type << " msg: " << msg;
+    int result = Bambu_SendMessage(&session, CTRL_TYPE, msg.c_str(), msg.length());
+    if (result != 0) {
+        callback(ERROR_PIPE, json(), nullptr);
+        return;
+    }
+    callbacks.push_back(callback);
+}
+
+void PrinterFileSystem::InstallNotify(int type, callback_t2 const &callback)
+{
+    type -= NOTIFY_FIRST;
+    if (notifies.size() <= size_t(type)) notifies.resize(type + 1);
+    notifies[type] = callback;
+}
+
+void PrinterFileSystem::RecvMessageThread()
+{
+    std::string url = this->url; // copy
+    int ret = Bambu_Open(&session, url.c_str() + 9); // skip bambu:/// sync
+    if (ret == 0) ret = Bambu_StartStream(&session);
+    wxCommandEvent event(EVT_READY);
+    event.SetInt(ret);
+    event.SetEventObject(this);
+    wxPostEvent(this, event);
+    if (ret != 0)
+        return;
+    Bambu_Sample sample;
+    while (!stop) {
+        int n = Bambu_ReadSample(&session, &sample);
+        if (n != 0) {
+            if (n == Bambu_would_block) {
+                boost::this_thread::sleep(boost::posix_time::milliseconds(callbacks.empty() ? 1000 : 20));
+                continue;
+            }
+            json r;
+            while (!callbacks.empty()) {
+                auto c = callbacks.front();
+                callbacks.pop_front();
+                ++sequence;
+                if (c) c(n, r, nullptr);
+            }
+            // TODO: reopen
+            return;
+        }
+        unsigned char const *end = sample.buffer + sample.size;
+        unsigned char const *json_end = (unsigned char const *) memchr(sample.buffer, '\n', sample.size);
+        while (json_end && json_end + 3 < end && json_end[1] != '\n')
+            json_end = (unsigned char const *) memchr(json_end + 2, '\n', end - json_end - 2);
+        if (json_end) json_end += 2;
+        else json_end = end;
+        std::string msg((char const *) sample.buffer, json_end - sample.buffer);
+        json root;
+        //OutputDebugStringA(msg.c_str());
+        //OutputDebugStringA("\n");
+        std::istringstream iss(msg);
+        int cmd = 0;
+        int seq = -1;
+        int result = 0;
+        json resp;
+        try {
+            iss >> root;
+            if (!root["result"].is_null()) {
+                result = root["result"];
+                seq = root["sequence"];
+                resp = root["reply"];
+            } else {
+                // maybe notify
+                cmd  = root["cmdtype"];
+                seq = root["sequence"];
+                resp = root["notify"];
+            }
+        }
+        catch (...) {
+            result = ERROR_JSON;
+            continue;
+        }
+        if (cmd > 0) {
+            if (cmd < NOTIFY_FIRST) continue;
+            cmd -= NOTIFY_FIRST;
+            if (size_t(cmd) >= notifies.size()) continue;
+            auto n = notifies[cmd];
+            n(result, resp, json_end);
+        } else {
+            seq -= sequence;
+            if (size_t(seq) >= callbacks.size())
+                continue;
+            auto c = callbacks[seq];
+            if (c == nullptr)
+                continue;
+            if (result != CONTINUE) {
+                boost::unique_lock l(mutex);
+                callbacks[seq] = callback_t2();
+                if (seq == 0) {
+                    while (!callbacks.empty() && callbacks.front() == nullptr) {
+                        callbacks.pop_front();
+                        ++sequence;
+                    }
+                }
+            }
+            c(result, resp, json_end);
+        }
+    } // while
+    Bambu_Close(&session);
+}
+

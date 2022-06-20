@@ -54,6 +54,8 @@ public:
 
     wxColour colorForStates(int states);
 
+    int colorIndexForStates(int states);
+
     bool setColorForStates(wxColour const & color, int states);
 
 private:

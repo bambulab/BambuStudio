@@ -11,6 +11,9 @@
 #include <wx/window.h>
 #include <boost/shared_ptr.hpp>
 
+#include "Widgets/StateColor.hpp"
+#include "wxExtensions.hpp"
+
 class Button;
 class Label;
 
@@ -29,19 +32,27 @@ public:
 
     void SetFileSystem(boost::shared_ptr<PrinterFileSystem> file_sys);
 
+    void SetStatus(wxString const &msg);
+
     boost::shared_ptr<PrinterFileSystem> GetFileSystem() { return m_file_sys; }
 
     void SetGroupMode(int mode);
+
+    void SetSelecting(bool selecting);
 
 public:
     void Rescale();
 
 protected:
-    void Select(int index);
+    void Select(size_t index);
+
+    void DoAction(size_t index, int action);
 
     void UpdateFileSystem();
 
     void UpdateLayout();
+
+    std::pair<int, size_t> HitTest(wxPoint const &pt);
 
 protected:
 
@@ -49,7 +60,15 @@ protected:
 
     void paintEvent(wxPaintEvent& evt);
 
+    size_t firstItem(wxSize const &size, wxPoint &off);
+
+    wxBitmap createAlphaBitmap(wxSize size, wxColour color, int alpha1, int alpha2);
+
     void render(wxDC& dc);
+
+    void renderButtons(wxDC &dc, wxStringList const &texts, wxRect const &rect, size_t hit);
+
+    void renderText(wxDC &dc, wxString const & text, wxRect const & rect, int state);
 
     // some useful events
     void mouseMoved(wxMouseEvent& event);
@@ -64,11 +83,33 @@ protected:
 
 private:
     boost::shared_ptr<PrinterFileSystem> m_file_sys;
+    wxString m_status_msg;
+
+    std::string m_save_path;
+
+    ScalableBitmap m_checked_icon;
+    ScalableBitmap m_unchecked_icon;
+    StateColor m_buttonBackgroundColor;
+    StateColor m_buttonTextColor;
 
     bool m_hovered = false;
     bool m_pressed = false;
+
     wxTimer m_timer;
-    wxBitmap m_mask;
+    wxBitmap   m_mask;
+    wxBitmap   m_buttons_background;
+    wxBitmap   m_button_background;
+
+    bool m_selecting = false;
+
+    enum HitType {
+        HIT_NONE,
+        HIT_ITEM,
+        HIT_HOVER, // implicit HTI_ITEM
+        HIT_MODE
+    };
+    int     m_hit_type = HIT_NONE;
+    size_t  m_hit_item = size_t(-1);
 
     int m_row_offset = 0; // 1/4 row height
     int m_row_count = 0; // 1/4 row height

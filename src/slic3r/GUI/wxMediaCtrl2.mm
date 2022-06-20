@@ -12,7 +12,7 @@
 #import <Foundation/Foundation.h>
 #import <BambuPlayer/BambuPlayer.h>
 
-static void tutk_log(void const * ctx, int level, char const * msg)
+static void bambu_log(void const * ctx, int level, char const * msg)
 {
     if (level == 1) {
         wxString msg2(msg);
@@ -39,7 +39,7 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent, wxSize const & size)
     CGColorRelease(color);
     imageView.wantsLayer = YES;
     BambuPlayer * player = [[BambuPlayer alloc] initWithImageView: imageView];
-    [player setLogger: tutk_log withContext: &m_error];
+    [player setLogger: bambu_log withContext: &m_error];
     m_player = player;
     m_state = wxMEDIASTATE_STOPPED;
 }

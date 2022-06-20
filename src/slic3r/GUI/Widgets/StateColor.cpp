@@ -56,6 +56,17 @@ wxColour StateColor::colorForStates(int states)
     return wxColour(0, 0, 0, 0);
 }
 
+int StateColor::colorIndexForStates(int states)
+{
+    for (int i = 0; i < statesList_.size(); ++i) {
+        int s   = statesList_[i];
+        int on  = s & 0xffff;
+        int off = s >> 16;
+        if ((on & states) == on && (off & ~states) == off) { return i; }
+    }
+    return -1;
+}
+
 bool StateColor::setColorForStates(wxColour const &color, int states)
 {
     for (int i = 0; i < statesList_.size(); ++i) {
