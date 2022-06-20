@@ -522,7 +522,9 @@ void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
             op->set_printer_busy();
         }
         else {op->set_printer_idle();}
-        op->update_machine_info(elem.second);
+
+        mobj->dev_name = from_u8(mobj->dev_name).ToStdString();
+        op->update_machine_info(mobj);
         m_sizer_other_devices->Add(op, 0, wxEXPAND, 0);
 
         MachinePanel *mpanel = new MachinePanel();
@@ -554,9 +556,11 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
                 op->set_printer_idle();
             }
         }
-        op->update_machine_info(elem.second);
-        // op->Bind(wxEVT_LEFT_UP, &SelectMachinePopup::OnLeftUp, this);
+        mobj->dev_name = from_u8(mobj->dev_name).ToStdString();
+        op->update_machine_info(mobj);
         m_sizer_my_devices->Add(op, 0, wxEXPAND, 0);
+        // op->Bind(wxEVT_LEFT_UP, &SelectMachinePopup::OnLeftUp, this);
+        
     }
 
     Layout();
