@@ -768,6 +768,7 @@ void MainFrame::init_tabpanel()
             show_option(false);
             break;
         }
+        Layout();
     });
 
     if (wxGetApp().is_editor()) {

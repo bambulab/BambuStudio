@@ -761,6 +761,12 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     select_layer_inspect = create_item_checkbox(_L("First Layer Inspection"), this, _L("First Layer Inspection"), "layer_inspect");
     select_record    = create_item_checkbox(_L("Record Timelapse"), this, _L("Record Timelapse"), "time_lapse");
 
+    select_bed->Show(false);
+    select_vibration->Show(false);
+    select_flow->Show(false);
+    select_layer_inspect->Show(false);
+    select_record->Show(false);
+
     m_sizer_select->Add(select_bed);
     m_sizer_select->Add(select_vibration);
     m_sizer_select->Add(select_flow);
