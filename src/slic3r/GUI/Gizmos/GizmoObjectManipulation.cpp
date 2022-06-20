@@ -700,7 +700,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
         if (reset_button(imgui_wrapper, caption_max, unit_size, space_size, end_text_size)) { reset_rotation_value(); }
     } else {
         ImGui::SameLine(caption_max + 3 * unit_size + 5 * space_size + end_text_size);
-        ImGui::InvisibleButton("", ImVec2(14.0f, 14.0f));
+        ImGui::InvisibleButton("", ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()));
     }
 
     // send focus to m_glcanvas
@@ -809,7 +809,7 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
             reset_scale_value();
     } else {
         ImGui::SameLine(caption_max + 3 * unit_size + 5 * space_size + end_text_size);
-        ImGui::InvisibleButton("", ImVec2(14.0f, 14.0f));
+        ImGui::InvisibleButton("", ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()));
     }
 
 
