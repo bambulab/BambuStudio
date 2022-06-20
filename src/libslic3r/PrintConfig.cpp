@@ -1604,6 +1604,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats { 0.4 });
 
+    def = this->add("nozzle_volume", coFloat);
+    def->label = L("Nozzle volume");
+    def->tooltip = L("Volume of nozzle between the cutter and the end of nozzle");
+    def->sidetext = L("mm³");
+    def->mode = comDevelop;
+    def->readonly = true;
+    def->set_default_value(new ConfigOptionFloat { 120 });
+
     def = this->add("reduce_infill_retraction", coBool);
     def->label = L("Reduce infill retraction");
     def->tooltip = L("Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen");

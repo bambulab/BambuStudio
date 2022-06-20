@@ -2677,6 +2677,7 @@ void TabPrinter::build_fff()
         //});
 
         optgroup->append_single_option_line("printable_height");
+        optgroup->append_single_option_line("nozzle_volume");
         // BBS
 #if 0
         //optgroup->append_single_option_line("z_offset");

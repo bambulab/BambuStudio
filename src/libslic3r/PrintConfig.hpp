@@ -845,6 +845,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloats,             filament_colour_new))
     // BBS: not in any preset, calculated before slicing
     ((ConfigOptionBool,               has_prime_tower))
+    ((ConfigOptionFloat,              nozzle_volume))
+
 )
 
 // This object is mapped to Perl as Slic3r::Config::Full.
