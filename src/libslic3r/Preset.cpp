@@ -717,7 +717,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "silent_mode",
     // BBS
     "scan_first_layer", "spaghetti_detector", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode",
-    "nozzle_type", "can_switch_nozzle_type", "auxiliary_fan", "can_add_auxiliary_fan", "nozzle_volume"
+    "nozzle_type", "auxiliary_fan", "nozzle_volume"
 };
 
 static std::vector<std::string> s_Preset_sla_print_options {

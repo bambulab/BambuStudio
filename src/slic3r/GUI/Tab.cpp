@@ -3313,11 +3313,6 @@ void TabPrinter::toggle_options()
     if (!m_active_page || m_presets->get_edited_preset().printer_technology() == ptSLA)
         return;
 
-    if (m_active_page->title() == "Basic information") {
-        toggle_line("nozzle_type", m_config->opt_bool("can_switch_nozzle_type"));
-        toggle_line("auxiliary_fan", m_config->opt_bool("can_add_auxiliary_fan"));
-    }
-
     bool have_multiple_extruders = m_extruders_count > 1;
     if (m_active_page->title() == "Custom G-code") {
         toggle_option("change_filament_gcode", have_multiple_extruders);

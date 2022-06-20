@@ -1181,20 +1181,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("can_switch_nozzle_type", coBool);
-    //def->label = L("Can switch nozzle type");
-    //def->tooltip = L("Whether user can switch nozzle type for this machine. "
-    //                 "This option decides whether show nozzle_type option on UI");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(false));
-
-    def = this->add("can_add_auxiliary_fan", coBool);
-    //def->label = L("Can add auxiliary fan");
-    //def->tooltip = L("Whether user can add auxiliary fan for this machine. "
-    //                 "This option decides whether show auxiliary_fan option on UI");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(false));
-
     def = this->add("nozzle_type", coEnum);
     def->label = L("Nozzle type");
     def->tooltip = L("The metallic material of nozzle. This determines the abrasive resistance of nozzle, and "
@@ -3363,7 +3349,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "small_perimeter_speed", "max_volumetric_speed", "max_print_speed",
         "support_bottom_z_distance", "support_closing_radius", "slicing_mode", "slice_closing_radius",
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
-        "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer"
+        "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
+        "can_switch_nozzle_type", "can_add_auxiliary_fan"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {

@@ -4381,7 +4381,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         }
         // BBL XX is placeholder
         offsets = calculate_offsets(labels, times, {_u8L("Filament N XX"), longest_used_filament_string, longest_used_filament_g_string, _u8L("Display")}, icon_size);
-        append_headers({_u8L("Color Print"), _u8L("Comsumption"), "", "", _u8L("Display")}, offsets);
+        append_headers({ _u8L("Color Print"), _u8L("Comsumption"), "", "", _u8L("Display") }, offsets);
         break;
     }
     default: { break; }
@@ -4552,6 +4552,19 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         for (auto item : options_items)
             append_option_item(item,offsets);
 
+        //BBS display filament change times
+        if (m_print_statistics.total_filamentchanges > 0) {
+            std::string filament_change_str = _u8L("Filament change times");
+            float max_len = 10.0f + ImGui::GetStyle().ItemSpacing.x;
+            max_len += ImGui::CalcTextSize(filament_change_str.c_str()).x;
+
+            //BBS display filament change times
+            imgui.text(filament_change_str + ":");
+            ImGui::SameLine(max_len);
+            char temp_buf[64];
+            ::sprintf(temp_buf, "  %d", m_print_statistics.total_filamentchanges);
+            imgui.text(temp_buf);
+        }
         break;
     }
     default: { break; }

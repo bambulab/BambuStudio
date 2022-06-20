@@ -24,8 +24,6 @@
   "spaghetti_detector": "1",
   "machine_load_filament_time": "17",
   "machine_unload_filament_time": "16",
-  "can_switch_nozzle_type": "1",
   "nozzle_type": "stainless_steel",
-  "can_add_auxiliary_fan": "1",
   "auxiliary_fan": "0"
 }

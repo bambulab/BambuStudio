@@ -3604,6 +3604,11 @@ void GCodeProcessor::process_T(const std::string_view command)
                     process_filaments(CustomGCode::ToolChange);
                     m_extruder_id = id;
                     m_cp_color.current = m_extruder_colors[id];
+                    //BBS: increase filament change times
+                    m_result.lock();
+                    m_result.print_statistics.total_filamentchanges++;
+                    m_result.unlock();
+
                     // Specific to the MK3 MMU2:
                     // The initial value of extruder_unloaded is set to true indicating
                     // that the filament is parked in the MMU2 unit and there is nothing to be unloaded yet.

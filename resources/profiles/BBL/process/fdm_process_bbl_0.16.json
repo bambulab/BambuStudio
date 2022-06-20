@@ -9,7 +9,7 @@
     "top_shell_layers": "5",
     "bridge_flow": "1",
     "initial_layer_speed": "50",
-    "initial_layer_infill_speed": "120",
+    "initial_layer_infill_speed": "105",
     "outer_wall_speed": "200",
     "inner_wall_speed": "300",
     "sparse_infill_speed": "330",

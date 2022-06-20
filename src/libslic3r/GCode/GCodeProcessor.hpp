@@ -63,6 +63,7 @@ namespace Slic3r {
         std::map<ExtrusionRole, std::pair<double, double>>  used_filaments_per_role;
 
         std::array<Mode, static_cast<size_t>(ETimeMode::Count)> modes;
+        unsigned int                                        total_filamentchanges;
 
         PrintEstimatedStatistics() { reset(); }
 
@@ -73,6 +74,7 @@ namespace Slic3r {
             volumes_per_color_change.clear();
             volumes_per_extruder.clear();
             used_filaments_per_role.clear();
+            total_filamentchanges = 0;
         }
     };
 

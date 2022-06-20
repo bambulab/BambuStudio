@@ -747,9 +747,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              machine_pause_gcode))
     //BBS
     ((ConfigOptionEnum<NozzleType>,    nozzle_type))
-    ((ConfigOptionBool,                can_switch_nozzle_type))
     ((ConfigOptionBool,                auxiliary_fan))
-    ((ConfigOptionBool,                can_add_auxiliary_fan))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.
