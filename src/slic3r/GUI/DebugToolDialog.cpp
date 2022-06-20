@@ -41,7 +41,6 @@
 #include "NotificationManager.hpp"
 #include "libslic3r/Time.hpp"
 #include "slic3r/Utils/Http.hpp"
-#include "slic3r/Utils/Sftp.hpp"
 #include "wxExtensions.hpp"
 #include "libslic3r/PlaceholderParser.hpp"
 #include "libslic3r/Print.hpp"

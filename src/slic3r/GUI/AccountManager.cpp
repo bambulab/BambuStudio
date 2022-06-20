@@ -453,9 +453,20 @@ namespace BBL {
 
     AccountManager::~AccountManager()
     {
+        on_user_login_fn = nullptr;
+        on_printer_connected_fn = nullptr;
+        on_server_connected_fn = nullptr;
+        on_http_error_fn = nullptr;
+        get_country_code_fn = nullptr;
+        on_message_fn = nullptr;
+        on_local_connect_fn = nullptr;
+        on_local_message_fn = nullptr;
+
         save_config();
-        if (mqtt_cli->is_connected())
-            mqtt_cli->disconnect();
+        if (mqtt_cli) {
+            if (mqtt_cli->is_connected())
+                mqtt_cli->disconnect();
+        }
         Http::disable_log();
     }
 
@@ -912,6 +923,7 @@ namespace BBL {
             auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_update_time);
             if (diff.count() > timeout * 1000) {
                 has_timeout = true;
+                break;
             }
             boost::this_thread::sleep_for(boost::chrono::milliseconds(POLL_NOTIFICATION_INTERVAL * 1000));
         }

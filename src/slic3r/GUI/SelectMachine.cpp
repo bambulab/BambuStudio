@@ -498,11 +498,6 @@ void SelectMachinePopup::on_timer(wxTimerEvent &event)
     wxCommandEvent bind_event(EVT_REQUEST_BIND_LIST);
     bind_event.SetEventObject(this);
     wxPostEvent(this, bind_event);
-
-    // only update once
-    if (m_refresh_timer) {
-        m_refresh_timer->Stop();
-    }
 }
 
 void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
@@ -1239,6 +1234,11 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
             event.SetEventObject(this);
             wxPostEvent(this, event);
         });
+    }
+
+    // only update once
+    if (m_refresh_timer) {
+        m_refresh_timer->Stop();
     }
 }
 

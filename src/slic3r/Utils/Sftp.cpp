@@ -19,15 +19,10 @@
 #include <openssl/x509.h>
 #endif
 
-#include <libslic3r/libslic3r.h>
-#include <libslic3r/Utils.hpp>
-#include <slic3r/GUI/I18N.hpp>
-#include <slic3r/GUI/format.hpp>
-
 namespace fs = boost::filesystem;
 
 
-namespace Slic3r {
+namespace BBL {
 
 
 // Private
@@ -70,26 +65,21 @@ struct CurlGlobalInit
             }
 
             if (!bundle)
-                message = _u8L("Could not detect system SSL certificate store. "
+                message = "Could not detect system SSL certificate store. "
                     "BambuStudio will be unable to establish secure "
-                    "network connections.");
+                    "network connections.";
             else
-                message = Slic3r::GUI::format(
-                    _L("BambuStudio detected system SSL certificate store in: %1%"),
-                    bundle);
+                message = (boost::format("BambuStudio detected system SSL certificate store in: %1%") % bundle).str();
 
-            message += "\n" + Slic3r::GUI::format(
-                _L("To specify the system certificate store manually, please "
+            message += "\n" + (boost::format("To specify the system certificate store manually, please "
                     "set the %1% environment variable to the correct CA bundle "
-                    "and restart the application."),
-                SSL_CA_FILE);
+                    "and restart the application.") % SSL_CA_FILE).str();
         }
 
 #endif // OPENSSL_CERT_OVERRIDE
 
         if (CURLcode ec = ::curl_global_init(CURL_GLOBAL_DEFAULT)) {
-            message += _u8L("CURL init has failed. BambuStudio will be unable to establish "
-                "network connections. See logs for additional details.");
+            message += "CURL init has failed. BambuStudio will be unable to establish network connections. See logs for additional details.";
 
             BOOST_LOG_TRIVIAL(error) << ::curl_easy_strerror(ec);
         }
@@ -105,7 +95,7 @@ struct Sftp::priv
 {
     enum {
         DEFAULT_TIMEOUT_CONNECT = 10,
-        DEFAULT_SIZE_LIMIT = 5 * 1024 * 1024,
+        DEFAULT_SIZE_LIMIT = 200 * 1024 * 1024,
     };
 
     ::CURL* curl;
@@ -148,7 +138,7 @@ Sftp::priv::priv(const std::string& url)
     Sftp::tls_global_init();
 
     if (curl == nullptr) {
-        throw Slic3r::RuntimeError(std::string("Could not construct Curl object"));
+        return;
     }
 
     std::string full_url = url;

@@ -7,7 +7,7 @@
 #include <boost/filesystem/path.hpp>
 
 
-namespace Slic3r {
+namespace BBL {
 
 class Sftp : public std::enable_shared_from_this<Sftp> {
 
