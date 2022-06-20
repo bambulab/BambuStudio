@@ -2458,6 +2458,8 @@ void ObjectList::merge(bool to_multipart_object)
                 {
                     new_volume->config.assign_config(volume->config);
                 }
+
+                new_volume->mmu_segmentation_facets.assign(std::move(volume->mmu_segmentation_facets));
             }
             new_object->sort_volumes(true);
 
