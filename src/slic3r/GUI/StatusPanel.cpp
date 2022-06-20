@@ -597,6 +597,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     wxWindowID frame_id = wxWindow::NewControlId();
     m_tempCtrl_frame    = new TempInput(parent, frame_id, TEMP_BLANK_STR, TEMP_BLANK_STR, wxString("monitor_frame_temp"), wxString("monitor_frame_temp"), wxDefaultPosition,
                                      wxDefaultSize, wxALIGN_CENTER | wxBORDER_NONE);
+    m_tempCtrl_frame->SetReadOnly(true);
     m_tempCtrl_frame->SetMinSize(TEMP_CTRL_MIN_SIZE);
     m_tempCtrl_frame->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
     m_tempCtrl_frame->SetBorderColor(StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Focused),

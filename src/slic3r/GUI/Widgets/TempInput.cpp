@@ -66,6 +66,7 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
         if (wdialog != nullptr) { wdialog->Dismiss(); }
     });
     text_ctrl->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
+        if (m_read_only) {SetCursor(wxCURSOR_ARROW);}
         e.SetId(GetId());
         ProcessEventLocally(e);
     });
@@ -120,6 +121,13 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
         Slic3r::GUI::wxGetApp().GetMainTopWindow()->SetFocus();
     });
     text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
+    text_ctrl->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
+        if (m_read_only) { 
+            return;
+        } else {
+            e.Skip();
+        }
+    });
     text_ctrl->SetFont(Label::Body_13);
     text_ctrl->SetForegroundColour(text_color.colorForStates(StateColor::Normal));
     if (!normal_icon.IsEmpty()) { this->normal_icon = ScalableBitmap(this, normal_icon.ToStdString(), 16); }

@@ -12,6 +12,7 @@ class TempInput : public wxWindow
     bool   hover;
     double radius;
 
+    bool           m_read_only{false};
     wxSize         labelSize;
     ScalableBitmap normal_icon;
     ScalableBitmap actice_icon;
@@ -33,7 +34,6 @@ class TempInput : public wxWindow
     int              padding_left    = 0;
     static const int TempInputWidth  = 200;
     static const int TempInputHeight = 50;
-
 public:
     enum WarningType {
         WARNING_TOO_HIGH,
@@ -82,6 +82,8 @@ public:
     void Warning(bool warn, WarningType type = WARNING_UNKNOWN);
     void SetIconActive();
     void SetIconNormal();
+
+   void SetReadOnly(bool ro) { m_read_only = ro; }
 
     void SetMaxTemp(int temp);
     void SetMinTemp(int temp);
