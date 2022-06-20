@@ -34,6 +34,7 @@ struct FilamentInfo
     std::string color;
     float       used_m;
     float       used_g;
+    int         tray_id;
 };
 
 class BBLSliceInfo {

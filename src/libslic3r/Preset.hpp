@@ -488,7 +488,11 @@ public:
     const Preset&   get_selected_preset() const { return m_presets[m_idx_selected]; }
     size_t          get_selected_idx()    const { return m_idx_selected; }
     // Returns the name of the selected preset, or an empty string if no preset is selected.
-    std::string     get_selected_preset_name() const { return (m_idx_selected == size_t(-1)) ? std::string() : this->get_selected_preset().name; }
+    std::string     get_selected_preset_name() const {
+        if (m_idx_selected == size_t(-1) || m_idx_selected >= m_presets.size())
+            return std::string();
+        return this->get_selected_preset().name;
+    }
     // For the current edited preset, return the parent preset if there is one.
     // If there is no parent preset, nullptr is returned.
     // The parent preset may be a system preset or a user preset, which will be

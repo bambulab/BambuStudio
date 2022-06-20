@@ -484,11 +484,12 @@ wxWindow *SelectMachinePopup::create_title_panel(wxString text)
 
 void SelectMachinePopup::on_timer(wxTimerEvent &event)
 {
-    DeviceManager *dev_manager = wxGetApp().getDeviceManager();
-    auto all_machine_list        = dev_manager->get_local_machine_list();
+    DeviceManager *dev = wxGetApp().getDeviceManager();
+    auto all_machine_list = dev->get_local_machine_list();
+
     m_free_machine_list.clear();
-    m_free_machine_list = all_machine_list;
-    
+    m_free_machine_list = all_machine_list;    
+
     /*for (auto& elem : all_machine_list) {
         MachineObject* dev = elem.second;
         if (dev->get_bind_str() == "Free") {
@@ -1137,6 +1138,25 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         m_checkbox_list["time_lapse"]->GetValue(),
         m_checkbox_list["layer_inspect"]->GetValue());
 
+    if (!m_ams_mapping_result.empty()) {
+        json j = json::array();
+        PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+        int k = 0;
+        for (int i = 0; i < preset_bundle->filament_presets.size(); i++) {
+            if (k < m_filaments.size()) {
+                if (i == m_filaments[k].id) {
+                    j.push_back(m_ams_mapping_result[k].tray_id);
+                    k++;
+                } else {
+                    j.push_back(-1);
+                }
+            } else {
+                j.push_back(-1);
+            }
+        }
+        m_print_job->task_ams_mapping = j.dump();
+    }
+
     m_print_job->on_success([this]() { finish_mode(); });
 
     m_status_bar->set_cancel_callback_fina([this]() {
@@ -1223,27 +1243,27 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
 
 void SelectMachineDialog::on_timer(wxTimerEvent &event)
 {
-    BBL::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
-    if (c->is_user_login()) {
-        if (this == NULL || this == nullptr) { return; }
-        boost::thread get_print_info_thread = Slic3r::create_thread([this] {
-            DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-            dev->update_user_machine_list_info();
+    DeviceManager* dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
 
-            wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
-            event.SetEventObject(this);
-            wxPostEvent(this, event);
-        });
-    }
-
-    // only update once
-    if (m_refresh_timer) {
-        m_refresh_timer->Stop();
+    MachineObject* obj_ = dev_manager->get_user_machine(m_printer_last_select);
+    if (obj_) {
+        if (!obj_->amsList.empty()) {
+            if (m_ams_mapping_result.empty()) {
+                obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result);
+                wxString mapping_text = "ams mapping result=";
+                for (auto f = m_ams_mapping_result.begin(); f != m_ams_mapping_result.end(); f++) {
+                    BOOST_LOG_TRIVIAL(trace) << "ams_mapping f id = " << f->id << ", tray_id = "<< f->tray_id <<", color = " << f->color << ", type = " << f->type;
+                    mapping_text += wxString::Format("F%d:AMS%d, ", f->id, f->tray_id);
+                }
+                update_err_msg(mapping_text);
+            }
+        }
     }
 }
 
 void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 {
+    m_ams_mapping_result.clear();
     update_err_msg(wxEmptyString);
     BBL::AccountManager *acc = Slic3r::GUI::wxGetApp().getAccountManager();
     if (event.GetString().empty()) { return; }
@@ -1286,6 +1306,25 @@ wxImage *SelectMachineDialog::LoadImageFromBlob(const unsigned char *data, int s
 
 bool SelectMachineDialog::Show(bool show)
 {
+    BBL::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
+    if (acc) {
+        if (show)
+            acc->start_subscribe("send_print");
+        else
+            acc->stop_subscribe("send_print");
+    }
+
+    if (acc->is_user_login()) {
+        boost::thread get_print_info_thread = Slic3r::create_thread([this] {
+            DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+            dev->update_user_machine_list_info();
+
+            wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
+            event.SetEventObject(this);
+            wxPostEvent(this, event);
+            });
+    }
+
     // thumbmail
     Freeze();
     sizer_thumbnail->Clear();
@@ -1337,6 +1376,7 @@ bool SelectMachineDialog::Show(bool show)
 
     m_sizer_material->Clear();
     m_materialList.clear();
+    m_filaments.clear();
 
     for (auto i = 0; i < extruders.size(); i++) {
         auto          extruder = extruders[i] - 1;
@@ -1388,6 +1428,13 @@ bool SelectMachineDialog::Show(bool show)
         material_item->item     = item;
         m_materialList[i]       = material_item;
         m_sizer_material->Add(item, 0, wxLEFT | wxRIGHT, FromDIP(5));
+
+        // build for ams mapping
+        FilamentInfo info;
+        info.id    = extruder;
+        info.type  = materials[i];
+        info.color = colour_rgb.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+        m_filaments.push_back(info);
     }
 
     m_sizer_material->Layout();
@@ -1424,7 +1471,6 @@ bool SelectMachineDialog::Show(bool show)
 
     if (show) {
         m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
-        wxPostEvent(this, wxTimerEvent());
     } else {
         m_refresh_timer->Stop();
     }

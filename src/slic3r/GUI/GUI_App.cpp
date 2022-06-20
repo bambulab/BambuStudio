@@ -1164,6 +1164,11 @@ GUI_App::~GUI_App()
     if (m_sync_update_thread.joinable())
         m_sync_update_thread.join();
 
+    if (m_account_manager) {
+        delete m_account_manager;
+        m_account_manager = nullptr;
+    }
+
     if (app_config != nullptr)
         delete app_config;
 

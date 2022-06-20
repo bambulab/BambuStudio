@@ -103,6 +103,7 @@ void PrintJob::process()
     params.task_vibration_cali  = this->task_vibration_cali;
     params.task_layer_inspect   = this->task_layer_inspect;
     params.task_record_timelapse= this->task_record_timelapse;
+    params.ams_mapping          = this->task_ams_mapping;
     
 
     result = acc->start_print(params,

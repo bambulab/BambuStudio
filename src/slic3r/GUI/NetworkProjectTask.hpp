@@ -33,6 +33,7 @@ struct FilamentInfo
     std::string color;
     float       used_m;
     float       used_g;
+    int         tray_id;
 };
 
 class BBLSliceInfo {
@@ -137,6 +138,7 @@ public:
     bool            task_vibration_cali; /* vibration calibration of task */
     bool            task_layer_inspect {true}; /* first layer inspection of task */
     bool            task_record_timelapse; /* record timelapse of task */
+    std::string     task_ams_mapping;   /* ams mapping */
 
     // task of plate info
     std::string     task_prediction;    /* prediction printing time of plate, unit seconds */

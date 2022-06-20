@@ -350,14 +350,14 @@ public:
     typedef std::function<void(int status, std::string dev_id, std::string msg)> OnLOcalConnectFn;
 
     // ballbacks
-    OnUserLoginFn           on_user_login_fn;
-    OnPrinterConnectedFn    on_printer_connected_fn;
-    OnServerConnectedFn     on_server_connected_fn;
-    OnHttpErrorFn           on_http_error_fn;
-    GetCountryCodeFn        get_country_code_fn;
-    OnMessageFn             on_message_fn;
-    OnLOcalConnectFn        on_local_connect_fn;
-    OnMessageFn             on_local_message_fn;
+    OnUserLoginFn           on_user_login_fn{ nullptr };
+    OnPrinterConnectedFn    on_printer_connected_fn{ nullptr };
+    OnServerConnectedFn     on_server_connected_fn{ nullptr };
+    OnHttpErrorFn           on_http_error_fn{ nullptr };
+    GetCountryCodeFn        get_country_code_fn{ nullptr };
+    OnMessageFn             on_message_fn{ nullptr };
+    OnLOcalConnectFn        on_local_connect_fn{ nullptr };
+    OnMessageFn             on_local_message_fn{ nullptr };
 
     void set_on_user_login_fn(OnUserLoginFn fn) { on_user_login_fn  = fn; }
     void set_on_printer_connected_fn(OnPrinterConnectedFn fn) { on_printer_connected_fn = fn; }
@@ -572,6 +572,7 @@ public:
         std::string     preset_name;
         std::string     filename;
         int             plate_index;
+        std::string     ams_mapping;
 
         /*user options */
         bool            task_bed_leveling;      /* bed leveling of task */

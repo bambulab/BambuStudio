@@ -249,6 +249,8 @@ private:
 
 protected:
     MaterialHash  m_materialList;
+    std::vector<FilamentInfo> m_filaments;
+    std::vector<FilamentInfo> m_ams_mapping_result;
     Plater *      m_plater{nullptr};
     wxPanel *     m_line_top{nullptr};
     wxPanel *     m_image{nullptr};

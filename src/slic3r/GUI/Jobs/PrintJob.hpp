@@ -43,6 +43,7 @@ public:
     bool        task_vibration_cali;
     bool        task_record_timelapse;
     bool        task_layer_inspect;
+    std::string task_ams_mapping;
 
     void set_print_config(std::string bed_type, bool bed_leveling, bool flow_cali, bool vabration_cali, bool record_timelapse, bool layer_inspect) 
     {

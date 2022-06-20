@@ -4,6 +4,7 @@
 #include "libslic3r/Thread.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/Sftp.hpp"
+#include "slic3r/Utils/ColorSpaceConvert.hpp"
 
 #include "GUI_App.hpp"
 #include "libslic3r/PlaceholderParser.hpp"
@@ -120,6 +121,11 @@ void AmsTray::update_color_from_str(std::string color)
 
     wx_color = "#" + wxString::FromUTF8(color);
     this->color = color;
+}
+
+wxColour AmsTray::get_color()
+{
+    return AmsTray::decode_color(color);
 }
 
 bool HMSItem::parse_hms_info(unsigned attr, unsigned code)
@@ -390,6 +396,263 @@ void MachineObject::_parse_ams_status(int ams_status)
     }
 
     BOOST_LOG_TRIVIAL(trace) << "ams_debug: main = " << ams_status_main_int << ", sub = " << ams_status_sub;
+}
+
+static float calc_color_distance(wxColour c1, wxColour c2)
+{
+    float lab[2][3];
+    RGB2Lab(c1.Red(), c1.Green(), c1.Blue(), &lab[0][0], &lab[0][1], &lab[0][2]);
+    RGB2Lab(c2.Red(), c2.Green(), c2.Blue(), &lab[1][0], &lab[1][1], &lab[1][2]);
+
+    return DeltaE76(lab[0][0], lab[0][1], lab[0][2], lab[1][0], lab[1][1], lab[1][2]);
+}
+
+/* use common colors to calc a threshold */
+static float calc_threshold()
+{
+    //common colors from https://www.ebaomonthly.com/window/photo/lesson/colorList.htm
+
+    const int common_color_num = 32;
+    wxColour colors[common_color_num] = {
+        wxColour(255, 0, 0),
+        wxColour(255, 36, 0),
+        wxColour(255, 77, 0),
+        wxColour(255, 165, 0),
+        wxColour(255, 191, 0),
+        wxColour(255, 215, 0),
+        wxColour(255, 255, 0),
+        wxColour(204, 255, 0),
+        wxColour(102, 255, 0),
+        wxColour(0, 255, 0),
+
+        wxColour(0, 255, 255),
+        wxColour(0, 127, 255),
+        wxColour(0, 0, 255),
+        wxColour(127, 255, 212),
+        wxColour(224, 255, 255),
+        wxColour(240, 248, 245),
+        wxColour(48, 213, 200),
+        wxColour(100, 149, 237),
+        wxColour(0, 51, 153),
+        wxColour(65, 105, 225),
+
+        wxColour(0, 51, 102),
+        wxColour(42, 82, 190),
+        wxColour(0, 71, 171),
+        wxColour(30, 144, 255),
+        wxColour(0, 47, 167),
+        wxColour(0, 0, 128),
+        wxColour(94, 134, 193),
+        wxColour(204, 204, 255),
+        wxColour(8, 37, 103),
+        wxColour(139, 0, 255),
+
+        wxColour(227, 38, 54),
+        wxColour(255, 0, 255)
+    };
+
+    float min_val = INT_MAX;
+    int a = -1;
+    int b = -1;
+    for (int i = 0; i < common_color_num; i++) {
+        for (int j = i+1; j < common_color_num; j++) {
+            float distance = calc_color_distance(colors[i], colors[j]);
+            if (min_val > distance) {
+                min_val = distance;
+                a = i;
+                b = j;
+            }
+        }
+    }
+    BOOST_LOG_TRIVIAL(trace) << "min_distance = " << min_val << ", a = " << a << ", b = " << b;
+
+    return min_val;
+}
+
+int MachineObject::ams_color_mapping(std::vector<wxColour> colors, std::vector<int> exclude_id, std::map<int, wxColour> &result)
+{
+    if (colors.empty())
+        return -1;
+
+    if (amsList.empty())
+        return -1;
+
+    // calc threshold
+    //float MAPPING_COLOR_THRESHOLD = calc_threshold();
+
+    // tray_index : tray_color
+    std::map<int, wxColour> tray_colors;
+
+    for (auto ams = amsList.begin(); ams != amsList.end(); ams++) {
+        for (auto tray = ams->second->trayList.begin(); tray != ams->second->trayList.end(); tray++) {
+            int ams_id = atoi(ams->first.c_str());
+            int tray_id = atoi(tray->first.c_str());
+            int tray_index = ams_id * 4 + tray_id;
+            // skip exclude id
+            for (int i = 0; i < exclude_id.size(); i++) {
+                if (tray_index == exclude_id[i])
+                    continue;
+            }
+            // push
+            if (!tray->second->color.empty()) {
+                wxColour color = tray->second->get_color();
+                tray_colors.emplace(std::make_pair(tray_index, color));
+            }
+        }
+    }
+
+    // calc distance map
+    struct DisValue {
+        int  tray_id;
+        float distance;
+        bool  is_same_color;
+    };
+    std:;vector<std::vector<DisValue>> distance_map;
+    for (int i = 0; i < colors.size(); i++) {
+        std::vector<DisValue> rol;
+        for (auto tray = tray_colors.begin(); tray != tray_colors.end(); tray++) {
+                DisValue val;
+                val.tray_id = tray->first;
+                val.distance = calc_color_distance(colors[i], tray->second);
+                // use threshold
+                //val.is_same_color = val.distance < MAPPING_COLOR_THRESHOLD;
+                rol.push_back(val);
+        }
+        distance_map.push_back(rol);
+    }
+
+    // mapping algorithm
+    for (int k = 0; k < distance_map.size(); k++) {
+        std::set<int> picked;
+        float min_val = INT_MAX;
+        int picked_idx = -1;
+        for (int i = 0; i < distance_map.size(); i++) {
+            for (int j = 0; j < distance_map[i].size(); j++) {
+                if (picked.find(j) != picked.end() && distance_map[i][j].is_same_color) {
+                    min_val = std::min(min_val, distance_map[i][j].distance);
+                    picked_idx = j;
+                }
+            }
+        }
+        if (picked_idx < 0) {
+            result.emplace(-1, wxColour(0, 0, 0));
+        } else {
+            auto tray = tray_colors.find(distance_map[k][picked_idx].tray_id);
+            if (tray != tray_colors.end())
+                result.emplace(tray->first, tray->second);
+            else
+                result.emplace(-1, wxColour(0, 0, 0));
+            picked.insert(picked_idx);
+        }
+    }
+
+    return 0;
+}
+
+int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo>& result, std::vector<int> exclude_id)
+{
+    if (filaments.empty())
+        return -1;
+
+    // calc threshold
+    float MAPPING_COLOR_THRESHOLD = calc_threshold();
+
+    // tray_index : tray_color
+    std::map<int, FilamentInfo> tray_filaments;
+
+    for (auto ams = amsList.begin(); ams != amsList.end(); ams++) {
+        for (auto tray = ams->second->trayList.begin(); tray != ams->second->trayList.end(); tray++) {
+            int ams_id = atoi(ams->first.c_str());
+            int tray_id = atoi(tray->first.c_str());
+            int tray_index = ams_id * 4 + tray_id;
+            // skip exclude id
+            for (int i = 0; i < exclude_id.size(); i++) {
+                if (tray_index == exclude_id[i])
+                    continue;
+            }
+            // push
+            if (!tray->second->color.empty()) {
+                FilamentInfo info;
+                info.color = tray->second->color;
+                info.type = tray->second->type;
+                tray_filaments.emplace(std::make_pair(tray_index, info));
+            }
+        }
+    }
+
+    // calc distance map
+    struct DisValue {
+        int  tray_id;
+        float distance;
+        bool  is_same_color = true;
+        bool  is_type_match = true;
+    };
+    std:; vector<std::vector<DisValue>> distance_map;
+    for (int i = 0; i < filaments.size(); i++) {
+        std::vector<DisValue> rol;
+        for (auto tray = tray_filaments.begin(); tray != tray_filaments.end(); tray++) {
+            DisValue val;
+            val.tray_id = tray->first;
+            wxColour c = wxColour(filaments[i].color);
+            val.distance = calc_color_distance(c, AmsTray::decode_color(tray->second.color));
+            //val.is_same_color = val.distance < MAPPING_COLOR_THRESHOLD;
+            if (filaments[i].type != tray->second.type) {
+                val.is_type_match = false;
+            } else {
+                val.is_type_match = true;
+            }
+            rol.push_back(val);
+        }
+        distance_map.push_back(rol);
+    }
+
+    // mapping algorithm
+    for (int i = 0; i < filaments.size(); i++) {
+        FilamentInfo info;
+        info.id = filaments[i].id;
+        info.tray_id = -1;
+        result.push_back(info);
+    }
+    std::set<int> picked_src;
+    std::set<int> picked_tar;
+    for (int k = 0; k < distance_map.size(); k++) {
+        float min_val = INT_MAX;
+        int picked_src_idx = -1;
+        int picked_tar_idx = -1;
+        for (int i = 0; i < distance_map.size(); i++) {
+            if (picked_src.find(i) != picked_src.end())
+                continue;
+            for (int j = 0; j < distance_map[i].size(); j++) {
+                if (picked_tar.find(j) == picked_tar.end()
+                    && distance_map[i][j].is_same_color
+                    && distance_map[i][j].is_type_match) {
+                    if (min_val > distance_map[i][j].distance) {
+                        min_val = distance_map[i][j].distance;
+                        picked_src_idx = i;
+                        picked_tar_idx = j;
+                    }
+                }
+            }
+        }
+        if (picked_src_idx >= 0 && picked_tar_idx >= 0) {
+            auto tray = tray_filaments.find(distance_map[k][picked_tar_idx].tray_id);
+            if (tray != tray_filaments.end()) {
+                result[picked_src_idx].tray_id = picked_tar_idx;
+                result[picked_src_idx].color = tray->second.color;
+                result[picked_src_idx].type = tray->second.type;
+                BOOST_LOG_TRIVIAL(trace) << "tray_id = " << tray->first << ", distance = " << distance_map[k][picked_tar_idx].distance;
+            }
+            else {
+                FilamentInfo info;
+                info.tray_id = -1;
+                
+            }
+            picked_tar.insert(picked_tar_idx);
+            picked_src.insert(picked_src_idx);
+        }
+    }
+
+    return 0;
 }
 
 bool MachineObject::is_bbl_filament(std::string tag_uid)

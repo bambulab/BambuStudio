@@ -159,6 +159,7 @@ public:
     AmsRfidState    rfid_state;
 
     void update_color_from_str(std::string color);
+    wxColour get_color();
 };
 
 
@@ -345,6 +346,10 @@ public:
     AmsTray *get_ams_tray(std::string ams_id, std::string tray_id);
     // parse amsStatusMain and ams_status_sub
     void _parse_ams_status(int ams_status);
+
+    int ams_color_mapping(std::vector<wxColour> colors, std::vector<int> exclude_id, std::map<int, wxColour> &result);
+    int ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<int> exclude_id = std::vector<int>());
+
 
     /* temperature */
     float  nozzle_temp;

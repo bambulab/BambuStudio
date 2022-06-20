@@ -464,8 +464,17 @@ namespace BBL {
 
         save_config();
         if (mqtt_cli) {
-            if (mqtt_cli->is_connected())
+            if (mqtt_cli->is_connected()) {
+                mqtt_cli->disable_callbacks();
                 mqtt_cli->disconnect();
+            }
+        }
+
+        if (mqtt_local_cli) {
+            if (mqtt_local_cli->is_connected()) {
+                mqtt_local_cli->disable_callbacks();
+                mqtt_local_cli->disconnect();
+            }
         }
         Http::disable_log();
     }
@@ -1197,6 +1206,10 @@ namespace BBL {
         j["flowCali"] = task->task_flow_cali;
         j["vibrationCali"] = task->task_vibration_cali;
         j["layerInspect"] = task->task_layer_inspect;
+        if (!task->task_ams_mapping.empty()) {
+            json mapping = json::parse(task->task_ams_mapping);
+            j["ams_mapping"] = mapping;
+        }
         return j.dump();
     }
 
@@ -2885,7 +2898,10 @@ namespace BBL {
         bool was_cancelled = false;
         std::string msg;
 
-        if (update_fn) update_fn(LoginStageConnect, 0, "connecting");
+        if (update_fn) {
+            msg = "connecting";
+            update_fn(LoginStageConnect, 0, msg);
+        }
 
         BBL::LocalClient* local_client = new BBL::LocalClient();
         if (!local_client) {
@@ -3175,6 +3191,7 @@ int AccountManager::start_print(PrintParams params, OnUpdateStatusFn update_fn, 
     subTask->task_gcode_in_3mf      = (boost::format("Metadata/plate_%1%.gcode") % (params.plate_index)).str();
     subTask->task_partplate_idx     = std::to_string(params.plate_index);
     subTask->task_printer_dev_id    = params.dev_id;
+    subTask->task_ams_mapping       = params.ams_mapping;
     if (project->project_name.empty())
         subTask->task_name = (boost::format("Plate %1%") % params.plate_index).str();
     else
