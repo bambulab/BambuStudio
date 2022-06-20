@@ -50,7 +50,7 @@
         "0"
     ],
     "fan_max_speed": [
-        "30"
+        "80"
     ],
     "fan_min_speed": [
         "30"
@@ -59,7 +59,7 @@
         "25%"
     ],
     "overhang_fan_speed": [
-        "60"
+        "80"
     ],
     "nozzle_temperature": [
         "270"

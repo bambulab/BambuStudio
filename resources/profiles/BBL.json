@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.00.06.01",
+    "version": "01.00.06.02",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -158,14 +158,6 @@
             "sub_path": "filament/Bambu PC @base.json"
         },
         {
-            "name": "Kexcelled K5 PLA @base",
-            "sub_path": "filament/Kexcelled K5 PLA @base.json"
-        },
-        {
-            "name": "Kexcelled K6 PLA @base",
-            "sub_path": "filament/Kexcelled K6 PLA @base.json"
-        },
-        {
             "name": "PolyTerra PLA @base",
             "sub_path": "filament/PolyTerra PLA @base.json"
         },
@@ -260,22 +252,6 @@
         {
             "name": "Bambu PC @BBL X1C",
             "sub_path": "filament/Bambu PC @BBL X1C.json"
-        },
-        {
-            "name": "Kexcelled K5 PLA @BBL X1C",
-            "sub_path": "filament/Kexcelled K5 PLA @BBL X1C.json"
-        },
-        {
-            "name": "Kexcelled K5 PLA @BBL X1",
-            "sub_path": "filament/Kexcelled K5 PLA @BBL X1.json"
-        },
-        {
-            "name": "Kexcelled K6 PLA @BBL X1C",
-            "sub_path": "filament/Kexcelled K6 PLA @BBL X1C.json"
-        },
-        {
-            "name": "Kexcelled K6 PLA @BBL X1",
-            "sub_path": "filament/Kexcelled K6 PLA @BBL X1.json"
         },
         {
             "name": "PolyLite PLA @BBL X1C",
