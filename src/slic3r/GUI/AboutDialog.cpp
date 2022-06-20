@@ -6,6 +6,7 @@
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
 #include "format.hpp"
+#include "Widgets/Button.hpp"
 
 #include <wx/clipbrd.h>
 
@@ -215,6 +216,9 @@ AboutDialog::AboutDialog()
     wxColour bgr_clr = wxGetApp().get_window_default_clr();//wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 	SetBackgroundColour(bgr_clr);
 
+    std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
     wxPanel *m_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(430), FromDIP(237)), wxTAB_TRAVERSAL);
 
     wxBoxSizer *panel_versizer = new wxBoxSizer(wxVERTICAL);
@@ -223,7 +227,6 @@ AboutDialog::AboutDialog()
     m_panel->SetSizer(panel_versizer);
 
     wxBoxSizer *ver_sizer = new wxBoxSizer(wxVERTICAL);
-    ver_sizer->SetMinSize(wxSize(FromDIP(-1), FromDIP(155)));
 
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_panel, 1, wxEXPAND | wxALL, 0);
@@ -256,9 +259,9 @@ AboutDialog::AboutDialog()
     }
 
     wxStaticText *html_text = new wxStaticText(this, wxID_ANY, "Copyright(C) 2022-2032 Bambu Lab", wxDefaultPosition, wxDefaultSize);
-    ver_sizer->Add(0, 0, 1, wxEXPAND, FromDIP(5));
+    ver_sizer->Add(0, 0, 0, wxTOP, FromDIP(38));
     html_text->SetForegroundColour(wxColour(107, 107, 107));
-    ver_sizer->Add(html_text, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
+    ver_sizer->Add(html_text, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
     // text
     m_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_NEVER /*NEVER*/);
@@ -278,10 +281,28 @@ AboutDialog::AboutDialog()
               "</html>")
             ).str());
           m_html->SetPage(text);
-          ver_sizer->Add(m_html, 0, wxEXPAND, FromDIP(5));
-          ver_sizer->Add(0, 0, 1, wxEXPAND, FromDIP(5));
+          ver_sizer->Add(m_html, 0, wxEXPAND, 0);
           m_html->Bind(wxEVT_HTML_LINK_CLICKED, &AboutDialog::onLinkClicked, this);
       }
+    //Add "Portions copyright" button
+    Button* button_portions = new Button(this,_L("Portions copyright"));
+    StateColor report_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+                         std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
+                         std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    button_portions->SetBackgroundColor(report_bg);
+    StateColor report_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+    button_portions->SetBorderColor(report_bd);
+    StateColor report_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+    button_portions->SetTextColor(report_text);
+    button_portions->SetFont(Label::Body_12);
+    button_portions->SetCornerRadius(FromDIP(12));
+    button_portions->SetMinSize(wxSize(FromDIP(120), FromDIP(24)));
+
+    ver_sizer->Add( 0, 0, 0, wxTOP, FromDIP(22));
+    ver_sizer->Add(button_portions, 0, wxALIGN_CENTER_HORIZONTAL|wxALL,0);
+    ver_sizer->Add( 0, 0, 0, wxTOP, FromDIP(38));
+    button_portions->Bind(wxEVT_BUTTON, &AboutDialog::onCopyrightBtn, this);
+
     m_panel->Layout();
 	SetSizer(main_sizer);
 	main_sizer->SetSizeHints(this);
