@@ -122,6 +122,9 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
     });
 
     combobox->Bind(wxEVT_COMBOBOX, [this, param, vlist, combobox](wxCommandEvent &e) {
+        if (combobox->GetSelection() == m_current_language_selected)
+            return;
+        
         if (e.GetString().mb_str() != app_config->get(param)) {
             {
                 // the dialog needs to be destroyed before the call to switch_language()
