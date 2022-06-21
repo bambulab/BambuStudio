@@ -1635,7 +1635,9 @@ void MainFrame::init_menubar_as_editor()
         //BBS
 #ifdef __WINDOWS__
         append_menu_item(fileMenu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots/* + "\tCtrl+I"*/, _L("Load a model"),
-            [this](wxCommandEvent&) { if (m_plater) { m_plater->add_model(); } }, "menu_import", nullptr,
+            [this](wxCommandEvent&) { if (m_plater) {
+            m_plater->add_model();     
+        } }, "menu_import", nullptr,
             [this](){return can_open_project(); }, this);
 #else
         append_menu_item(fileMenu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots/* + "\tCtrl+I"*/, _L("Load a model"),

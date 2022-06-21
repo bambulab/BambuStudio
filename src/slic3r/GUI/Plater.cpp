@@ -151,7 +151,7 @@ wxDEFINE_EVENT(EVT_PUBLISH,                         wxCommandEvent);
 wxDEFINE_EVENT(EVT_RESTORE_PROJECT,                 wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_FINISHED,                  wxCommandEvent);
 //BBS: repair model
-wxDEFINE_EVENT(EVT_REPAIR_MODEL,                  wxCommandEvent);
+wxDEFINE_EVENT(EVT_REPAIR_MODEL,                    wxCommandEvent);
 
 
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
@@ -2574,6 +2574,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
     int answer_convert_from_meters          = wxOK_DEFAULT;
     int answer_convert_from_imperial_units  = wxOK_DEFAULT;
+    int tolal_model_count                   = 0;
 
     for (size_t i = 0; i < input_files.size(); ++i) {
 #ifdef _WIN32
@@ -2594,10 +2595,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
         dlg.Fit();
 
-        const bool type_3mf     = std::regex_match(path.string(), pattern_3mf);
-        //const bool type_zip_amf = !type_3mf && std::regex_match(path.string(), pattern_zip_amf);
+        const bool type_3mf = std::regex_match(path.string(), pattern_3mf);
+        // const bool type_zip_amf = !type_3mf && std::regex_match(path.string(), pattern_zip_amf);
         const bool type_any_amf = !type_3mf && std::regex_match(path.string(), pattern_any_amf);
-        //const bool type_prusa   = std::regex_match(path.string(), pattern_prusa);
+        // const bool type_prusa   = std::regex_match(path.string(), pattern_prusa);
 
         Slic3r::Model model;
         // BBS: add auxiliary files related logic
@@ -2623,23 +2624,25 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     std::vector<Preset *>     project_presets;
                     // BBS: backup & restore
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, strategy, &plate_data, &project_presets, &is_bbs_3mf,
-                                                             &file_version, [this, &dlg, real_filename, progress_percent](int import_stage, int current, int total, bool &cancel) {
+                                                             &file_version,
+                                                             [this, &dlg, real_filename, progress_percent](int import_stage, int current, int total, bool &cancel) {
                                                                  bool     cont = true;
                                                                  wxString msg  = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
                                                                  cont          = dlg.Update(progress_percent, msg);
                                                                  cancel        = !cont;
                                                              });
 
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate_data.size %1%, project_preset.size %2%, is_bbs_3mf %3%, file_version %4% \n")
-                        %plate_data.size() % project_presets.size() %is_bbs_3mf %file_version.to_string();
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__
+                                            << boost::format(", plate_data.size %1%, project_preset.size %2%, is_bbs_3mf %3%, file_version %4% \n") % plate_data.size() %
+                                                   project_presets.size() % is_bbs_3mf % file_version.to_string();
 
                     // BBS: version check
                     Semver app_version = *(Semver::parse(SLIC3R_VERSION));
                     if (load_config && (file_version.maj() != app_version.maj())) {
                         // version mismatch, only load geometries
-                        load_config      = false;
+                        load_config = false;
                         if (!load_model) {
-                            //only load config case, return directly
+                            // only load config case, return directly
                             show_info(q, _L("The Config is not compatible and can not be loaded."), _L("Incompatible 3mf"));
                             return empty_result;
                         }
@@ -2654,15 +2657,14 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             // Is there any modifier or advanced config data?
                             for (ModelVolume *model_volume : model_object->volumes) model_volume->config.reset();
                         }
-                    }
-                    else if (load_config && (file_version > app_version)) {
+                    } else if (load_config && (file_version > app_version)) {
                         if (config_substitutions.unrecogized_keys.size() > 0) {
-                            wxString text= wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:\n"), file_version.to_string(),
-                                std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
-                            bool first = true;
-                            //std::string context = into_u8(text);
+                            wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:\n"),
+                                                             file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
+                            bool     first = true;
+                            // std::string context = into_u8(text);
                             wxString context = text;
-                            for (auto& key: config_substitutions.unrecogized_keys) {
+                            for (auto &key : config_substitutions.unrecogized_keys) {
                                 context += "  -";
                                 context += key;
                                 context += ";\n";
@@ -2670,12 +2672,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             }
                             wxString append = _L("You'd better upgrade your software.\n");
                             context += "\n\n";
-                            //context += into_u8(append);
+                            // context += into_u8(append);
                             context += append;
                             show_info(q, context, _L("Newer 3mf version"));
                         }
-                    }
-                    else if (!load_config) {
+                    } else if (!load_config) {
                         for (ModelObject *model_object : model.objects) {
                             model_object->config.reset();
                             // Is there any modifier or advanced config data?
@@ -2683,7 +2684,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         }
                     }
 
-                    //plate data
+                    // plate data
                     if (plate_data.size() > 0) {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", import 3mf UPDATE_GCODE_RESULT \n");
                         wxString msg = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
@@ -2730,9 +2731,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (!config_substitutions.empty()) show_substitutions_info(config_substitutions.substitutions, filename.string());
 
                     this->model.custom_gcode_per_print_z = model.custom_gcode_per_print_z;
-                    //BBS
+                    // BBS
                     this->model.design_info = model.design_info;
-                    this->model.model_info = model.model_info;
+                    this->model.model_info  = model.model_info;
                 }
 
                 if (load_config) {
@@ -2817,9 +2818,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             // when for extruder colors are used filament colors
                             q->on_filaments_change(preset_bundle->filament_presets.size());
 
-                            ConfigOption* bed_type_opt = preset_bundle->project_config.option("curr_bed_type");
-                            if (bed_type_opt != nullptr)
-                                q->on_bed_type_change((BedType)bed_type_opt->getInt());
+                            ConfigOption *bed_type_opt = preset_bundle->project_config.option("curr_bed_type");
+                            if (bed_type_opt != nullptr) q->on_bed_type_change((BedType) bed_type_opt->getInt());
                             is_project_file = true;
                         }
                     }
@@ -2846,8 +2846,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                                    _L("Attention!"));
                     });
 
-                if (type_any_amf && is_xxx)
-                    imperial_units = true;
+                if (type_any_amf && is_xxx) imperial_units = true;
 
                 for (auto obj : model.objects)
                     if (obj->name.empty()) obj->name = fs::path(obj->input_file).filename().string();
@@ -2896,19 +2895,20 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     convert_from_imperial_units(model, false);
                 else if (model.looks_like_saved_in_meters()) {
                     // BBS do not handle look like in meters
-                    MessageDialog dlg(q,  format_wxstr(_L("The object from file %s is too small, and maybe in meters or inches.\n Do you want to scale to millimeters?"), from_path(filename)),
-                            _L("Object too small"), wxICON_QUESTION | wxYES_NO);
-                    int answer = dlg.ShowModal();
-                    if (answer == wxID_YES)
-                        model.convert_from_meters(true);
-                }
-                else if (model.looks_like_imperial_units()) {
+                    MessageDialog dlg(q,
+                                      format_wxstr(_L("The object from file %s is too small, and maybe in meters or inches.\n Do you want to scale to millimeters?"),
+                                                   from_path(filename)),
+                                      _L("Object too small"), wxICON_QUESTION | wxYES_NO);
+                    int           answer = dlg.ShowModal();
+                    if (answer == wxID_YES) model.convert_from_meters(true);
+                } else if (model.looks_like_imperial_units()) {
                     // BBS do not handle look like in meters
-                    MessageDialog dlg(q,  format_wxstr(_L("The object from file %s is too small, and maybe in meters or inches.\n Do you want to scale to millimeters?"), from_path(filename)),
-                            _L("Object too small"), wxICON_QUESTION | wxYES_NO);
-                    int answer = dlg.ShowModal();
-                    if (answer == wxID_YES)
-                        convert_from_imperial_units(model, true);
+                    MessageDialog dlg(q,
+                                      format_wxstr(_L("The object from file %s is too small, and maybe in meters or inches.\n Do you want to scale to millimeters?"),
+                                                   from_path(filename)),
+                                      _L("Object too small"), wxICON_QUESTION | wxYES_NO);
+                    int           answer = dlg.ShowModal();
+                    if (answer == wxID_YES) convert_from_imperial_units(model, true);
                 }
                 // else if (model.looks_like_imperial_units()) {
                 // BBS do not handle look like in imperial
@@ -2969,6 +2969,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
             model_object->ensure_on_bed(is_project_file);
         }
+
+        tolal_model_count += model_idx;
 
         if (one_by_one) {
             // BBS: add load_old_project logic
@@ -3085,6 +3087,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     GLGizmoSimplify::add_simplify_suggestion_notification(
         obj_idxs, model.objects, *notification_manager);
 
+
+    if (tolal_model_count <= 0) {
+        dlg.Hide();
+        MessageDialog msg(wxGetApp().mainframe, _L("The current file does not import any models."), _L("Warning"), wxYES | wxICON_WARNING);
+        if (msg.ShowModal() == wxID_YES) {}
+    }
     return obj_idxs;
 }
 
