@@ -6206,15 +6206,18 @@ void GLCanvas3D::_render_return_toolbar() const
     if (!m_return_toolbar.is_enabled())
         return;
 
+    float font_size = ImGui::GetFontSize();
+    ImVec2 real_size = ImVec2(font_size * 4, font_size * 1.7);
+    ImVec2 button_icon_size = ImVec2(font_size * 1.3, font_size * 1.3);
+
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
     Size cnv_size = get_canvas_size();
     auto canvas_w = float(cnv_size.get_width());
     auto canvas_h = float(cnv_size.get_height());
-    float window_width = 120.0f;
-    float window_height = 60.0f;
+    float window_width = real_size.x + button_icon_size.x + imgui.scaled(2.0f);
+    float window_height = button_icon_size.y + imgui.scaled(2.0f);
     float window_pos_x = 30.0f;
     float window_pos_y = 14.0f;
-
-    ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     imgui.set_next_window_pos(window_pos_x, window_pos_y, ImGuiCond_Always, 0, 0);
 #ifdef __WINDOWS__
@@ -6240,11 +6243,6 @@ void GLCanvas3D::_render_return_toolbar() const
     ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
     ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     ImVec2 margin = ImVec2(10.0f, 5.0f);
-
-    float font_size = ImGui::GetFontSize();
-    ImVec2 real_size = ImVec2(font_size * 4, font_size * 1.7);
-    ImVec2 button_icon_size = ImVec2(font_size * 1.3, font_size * 1.3);
-
 
     if (ImGui::ImageTextButton(real_size, "return", m_return_toolbar.get_return_texture_id(), button_icon_size, uv0, uv1, -1, bg_col, tint_col, margin)) {
         if (m_canvas != nullptr)
