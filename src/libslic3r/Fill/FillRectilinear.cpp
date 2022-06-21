@@ -3135,12 +3135,11 @@ void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, c
     //gapfill
     ExPolygons gapfill_areas = union_ex(unextruded_areas);
     if (gapfill_areas.size() > 0 && params.density >= 1) {
-        double min = 0.4 * new_flow.scaled_spacing() * (1 - INSET_OVERLAP_TOLERANCE);
+        double min = 0.2 * new_flow.scaled_spacing() * (1 - INSET_OVERLAP_TOLERANCE);
         double max = 2. * new_flow.scaled_spacing();
         ExPolygons gaps_ex = diff_ex(
-            offset2_ex(gapfill_areas, -float(min / 2), float(min / 2)),
-            offset2_ex(gapfill_areas, -float(max / 2), float(max / 2)),
-            ApplySafetyOffset::Yes);
+            opening_ex(gapfill_areas, float(min / 2.)),
+            offset2_ex(gapfill_areas, -float(max / 2.), float(max / 2. + ClipperSafetyOffset)));
         ThickPolylines polylines;
         for (ExPolygon& ex : gaps_ex) {
             //BBS: Use DP simplify to avoid duplicated points and accelerate medial-axis calculation as well.
