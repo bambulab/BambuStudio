@@ -690,14 +690,21 @@ void MainFrame::update_title()
 
 void MainFrame::show_option(bool show) 
 { 
-    if (!show) {
-        m_slice_btn->Hide();
-        m_print_btn->Hide();
-        m_print_option_btn->Hide();
+    if (!this) { return; }
+    if (!show) { 
+        if (m_slice_btn->IsShown()) {
+            m_slice_btn->Hide();
+            m_print_btn->Hide();
+            m_print_option_btn->Hide();
+            Layout();
+        }
     } else {
-        m_slice_btn->Show();
-        m_print_btn->Show();
-        m_print_option_btn->Show();
+        if (!m_slice_btn->IsShown()) {
+            m_slice_btn->Show();
+            m_print_btn->Show();
+            m_print_option_btn->Show();
+            Layout();
+        }
     }
 }
 
@@ -748,27 +755,26 @@ void MainFrame::init_tabpanel()
         }
 
 
-        switch (sel) {
-        case TabPosition::tpHome: 
+        /*switch (sel) {
+        case TabPosition::tpHome:
             show_option(false);
             break;
-        case TabPosition::tp3DEditor: 
+        case TabPosition::tp3DEditor:
             show_option(true);
             break;
-        case TabPosition::tpPreview: 
+        case TabPosition::tpPreview:
             show_option(true);
             break;
-        case TabPosition::tpMonitor: 
+        case TabPosition::tpMonitor:
             show_option(false);
             break;
-        case TabPosition::toDebugTool: 
+        case TabPosition::toDebugTool:
             show_option(false);
             break;
-        default: 
+        default:
             show_option(false);
             break;
-        }
-        Layout();
+        }*/
     });
 
     if (wxGetApp().is_editor()) {

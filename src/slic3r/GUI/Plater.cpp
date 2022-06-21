@@ -6281,6 +6281,12 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame, BBL::AccountManager* acc
     // Initialization performed in the private c-tor
 }
 
+bool Plater::Show(bool show) 
+{ 
+    wxGetApp().mainframe->show_option(show);
+    return wxPanel::Show(show);
+}
+
 bool Plater::is_project_dirty() const { return p->is_project_dirty(); }
 bool Plater::is_presets_dirty() const { return p->is_presets_dirty(); }
 void Plater::update_project_dirty_from_presets() { p->update_project_dirty_from_presets(); }
