@@ -64,6 +64,7 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::FoldButtonIcon         , "im_fold"                       },
     {ImGui::UnfoldButtonIcon       , "im_unfold"                     },
     {ImGui::GcodePauseIcon         , "im_gcode_pause"                },
+    {ImGui::SphereButtonIcon       , "toolbar_modifier_sphere"                },
 
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {

@@ -135,8 +135,7 @@ void GLGizmoPainterBase::render_cursor() const
         if (m_cursor_type == TriangleSelector::SPHERE)
             render_cursor_sphere(trafo_matrices[m_rr.mesh_id]);
         else if (m_cursor_type == TriangleSelector::CIRCLE)
-            //render_cursor_circle();
-            render_cursor_sphere(trafo_matrices[m_rr.mesh_id]);
+            render_cursor_circle();
         else if (m_cursor_type == TriangleSelector::HEIGHT_RANGE)
             render_cursor_height_range(trafo_matrices[m_rr.mesh_id]);
     }
@@ -160,9 +159,15 @@ void GLGizmoPainterBase::render_cursor_circle() const
     center = center * inv_zoom;
 
     glsafe(::glLineWidth(1.5f));
+
     // BBS
-    const std::array<float, 4> color = this->get_cursor_hover_color();
-    glsafe(::glColor4fv(color.data()));
+    std::array<float, 4> render_color = this->get_cursor_hover_color();
+    if (m_button_down == Button::Left)
+        render_color = this->get_cursor_sphere_left_button_color();
+    else if (m_button_down == Button::Right)
+        render_color = this->get_cursor_sphere_right_button_color();
+    glsafe(::glColor4fv(render_color.data()));
+
     glsafe(::glDisable(GL_DEPTH_TEST));
 
     glsafe(::glPushMatrix());
