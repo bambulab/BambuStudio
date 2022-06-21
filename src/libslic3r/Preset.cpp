@@ -1151,9 +1151,9 @@ void PresetCollection::load_project_embedded_presets(std::vector<Preset*>& proje
             }
             else {
                 // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
-                //preset->config = default_preset.config;
-                BOOST_LOG_TRIVIAL(error) << boost::format("can not find parent for config %1%!")%preset->file;
-                continue;
+                preset->config = default_preset.config;
+                BOOST_LOG_TRIVIAL(warning) << boost::format("can not find parent for config %1%!")%preset->file;
+                //continue;
             }
             preset->config.apply(std::move(config));
             Preset::normalize(preset->config);

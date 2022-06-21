@@ -8612,6 +8612,8 @@ void Plater::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_area, co
 
 void Plater::force_filament_colors_update()
 {
+//BBS: filament_color logic has been moved out of filament setting
+#if 0
     bool update_scheduled = false;
     DynamicPrintConfig* config = p->config;
     const std::vector<std::string> filament_presets = wxGetApp().preset_bundle->filament_presets;
@@ -8638,6 +8640,7 @@ void Plater::force_filament_colors_update()
 
     if (p->main_frame->is_loaded())
         this->p->schedule_background_process();
+#endif
 }
 
 void Plater::force_print_bed_update()
