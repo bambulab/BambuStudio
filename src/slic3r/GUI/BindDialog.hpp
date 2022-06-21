@@ -34,37 +34,6 @@
 #define BIND_DIALOG_BUTTON_PANEL_SIZE wxSize(FromDIP(450), FromDIP(30))
 
 namespace Slic3r { namespace GUI {
-class BindDialog : public DPIDialog
-{
-private:
-    wxArrayString printer_list_item;
-
-protected:
-    wxButton *    btn_start_ssdp;
-    wxButton *    btn_stop_ssdp;
-    wxStaticText *text_sn;
-    wxButton *    btn_refresh;
-    wxComboBox *  cb_machine_sn;
-    wxStaticText *text_result;
-    wxButton *    btn_bind;
-    wxButton *    btn_unbind;
-    Plater *      m_plater{nullptr};
-
-    std::shared_ptr<BindJob>      m_bind_job;
-    std::shared_ptr<BBLStatusBar> m_status_bar;
-
-    void on_start_ssdp(wxCommandEvent &event);
-    void on_stop_ssdp(wxCommandEvent &event);
-    void on_bind_printer(wxCommandEvent &event);
-    void on_refresh(wxCommandEvent &event);
-
-public:
-    BindDialog(Plater *plater = nullptr);
-
-    ~BindDialog();
-
-    void on_dpi_changed(const wxRect &suggested_rect) override;
-};
 
 struct MemoryStruct
 {

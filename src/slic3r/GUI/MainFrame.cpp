@@ -1493,26 +1493,11 @@ static wxMenu* generate_help_menu()
         [](wxCommandEvent&) { wxGetApp().keyboard_shortcuts(); });
     // Show Beginner's Tutorial
     append_menu_item(helpMenu, wxID_ANY,_L("Beginner's Tutorial"),_L("Beginner's Tutorial"),[](wxCommandEvent &) {wxGetApp().ShowUserGuide();});
-    // Show DailyTip
-    append_menu_check_item(
-        helpMenu, wxID_ANY, _L("Show daily tips"), _L("Show daily tips"), [](wxCommandEvent &evt) {
-            wxGetApp().app_config->set_bool("show_daily_tips", evt.GetInt() == 1); }, nullptr,
-        []() { return true; }, []() { return wxGetApp().app_config->get("show_daily_tips").compare("true") == 0; }, nullptr);
-    // Show OnlyFilamentChoose
-    append_menu_item(helpMenu, wxID_ANY, _L("Choose Filaments"), _L("Choose Filaments"), [](wxCommandEvent &) { wxGetApp().ShowOnlyFilament(); });
 
     helpMenu->AppendSeparator();
     // Open Config Folder
     append_menu_item(helpMenu, wxID_ANY, _L("Show Configuration Folder"), _L("Show Configuration Folder"),
         [](wxCommandEvent&) { Slic3r::GUI::desktop_open_datadir_folder(); });
-
-#if !BBL_RELEASE_TO_PUBLIC
-    append_menu_item(helpMenu, wxID_ANY, _L("Bind Dialog"), _L("Bind Dialog"),
-        [](wxCommandEvent&) {
-            BindDialog dialog(wxGetApp().plater());
-            dialog.ShowModal();
-        });
-#endif
 
     // Report a bug
     //append_menu_item(helpMenu, wxID_ANY, _L("Report Bug(TODO)"), _L("Report a bug of BambuStudio"),
