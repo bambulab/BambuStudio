@@ -48,7 +48,7 @@ void wxMediaCtrl2::Load(wxURI url)
 {
     BambuPlayer * player = (BambuPlayer *) m_player;
     [player close];
-    [player open: url.BuildURI().Mid(8).ToUTF8()];
+    [player open: url.BuildURI().Mid(9).ToUTF8()];
     m_error = 0;
     wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
     wxPostEvent(this, event);
