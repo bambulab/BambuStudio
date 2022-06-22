@@ -53,13 +53,19 @@ CopyrightsDialog::CopyrightsDialog()
 	this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif
 
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+    wxStaticLine *staticline1 = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+
 	auto sizer = new wxBoxSizer(wxVERTICAL);
-    
+    sizer->Add( staticline1, 0, wxEXPAND | wxALL, 5 );
+
     fill_entries();
 
     m_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, 
                               wxSize(40 * em_unit(), 20 * em_unit()), wxHW_SCROLLBAR_AUTO);
-
+    m_html->SetMinSize(wxSize(FromDIP(870),FromDIP(520)));
     wxFont font = get_default_font(this);
     const int fs = font.GetPointSize();
     const int fs2 = static_cast<int>(1.2f*fs);
@@ -72,12 +78,6 @@ CopyrightsDialog::CopyrightsDialog()
     sizer->Add(m_html, 1, wxEXPAND | wxALL, 15);
     m_html->Bind(wxEVT_HTML_LINK_CLICKED, &CopyrightsDialog::onLinkClicked, this);
 
-    wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxCLOSE);
-    wxGetApp().UpdateDlgDarkUI(this, true);
-    this->SetEscapeId(wxID_CLOSE);
-    this->Bind(wxEVT_BUTTON, &CopyrightsDialog::onCloseDialog, this, wxID_CLOSE);
-    sizer->Add(buttons, 0, wxEXPAND | wxRIGHT | wxBOTTOM, 3);
-
     SetSizer(sizer);
     sizer->SetSizeHints(this);
     
@@ -86,46 +86,39 @@ CopyrightsDialog::CopyrightsDialog()
 void CopyrightsDialog::fill_entries()
 {
     m_entries = {
-        { "wxWidgets"       , "2019 wxWidgets"                              , "https://www.wxwidgets.org/" },
-        { "OpenGL"          , "1997-2019 The Khronos™ Group Inc"            , "https://www.opengl.org/" },
-        { "GNU gettext"     , "1998, 2019 Free Software Foundation, Inc."   , "https://www.gnu.org/software/gettext/" },
-        { "PoEdit"          , "2019 Václav Slavík"                          , "https://poedit.net/" },
-        { "ImGUI"           , "2014-2019 Omar Cornut"                       , "https://github.com/ocornut/imgui" },
-        { "Eigen"           , ""                                            , "http://eigen.tuxfamily.org" },
-        { "ADMesh"          , "1995, 1996  Anthony D. Martin; "
-                              "2015, ADMesh contributors"                   , "https://admesh.readthedocs.io/en/latest/" },
-        { "Anti-Grain Geometry"
-                            , "2002-2005 Maxim Shemanarev (McSeem)"         , "http://antigrain.com" },
-        { "Boost"           , "1998-2005 Beman Dawes, David Abrahams; "
-                              "2004 - 2007 Rene Rivera"                     , "https://www.boost.org/" },
-        { "Clipper"         , "2010-2015 Angus Johnson "                    , "http://www.angusj.com " },
-        { "GLEW (The OpenGL Extension Wrangler Library)", 
-                              "2002 - 2007, Milan Ikits; "
-                              "2002 - 2007, Marcelo E.Magallon; "
-                              "2002, Lev Povalahev"                         , "http://glew.sourceforge.net/" },
-        { "Libigl"          , "2013 Alec Jacobson and others"               , "https://libigl.github.io/" },
-        { "Qhull"           , "1993-2015 C.B.Barber Arlington and "
-                              "University of Minnesota"                     , "http://qhull.org/" },
-        { "SemVer"          , "2015-2017 Tomas Aparicio"                    , "https://semver.org/" },
-        { "Nanosvg"         , "2013-14 Mikko Mononen"                       , "https://github.com/memononen/nanosvg" },
-        { "Miniz"           , "2013-2014 RAD Game Tools and Valve Software; "
-                              "2010-2014 Rich Geldreich and Tenacious Software LLC"
-                                                                            , "https://github.com/richgel999/miniz" },
-        { "Expat"           , "1998-2000 Thai Open Source Software Center Ltd and Clark Cooper"
-                              "2001-2016 Expat maintainers"                 , "http://www.libexpat.org/" },
-        { "AVRDUDE"         , "2018  Free Software Foundation, Inc."        , "http://savannah.nongnu.org/projects/avrdude" },
-        { "Shinyprofiler"   , "2007-2010 Aidin Abedi"                       , "http://code.google.com/p/shinyprofiler/" },
-        { "Real-Time DXT1/DXT5 C compression library"   
-                                    , "Based on original by fabian \"ryg\" giesen v1.04. "
-                              "Custom version, modified by Yann Collet"     , "https://github.com/Cyan4973/RygsDXTc" },
-        { "Icons for STL and GCODE files."
-                            , "Akira Yasuda"                                , "http://3dp0.com/icons-for-stl-and-gcode/" },
-        { "AppImage packaging for Linux using AppImageKit"
-                            , "2004-2019 Simon Peter and contributors"      , "https://appimage.org/" },
-        { "lib_fts"
-                            , "Forrest Smith"                               , "https://www.forrestthewoods.com/" },
-        { "fast_float"
-                            , "Daniel Lemire, João Paulo Magalhaes and contributors", "https://github.com/fastfloat/fast_float" }
+        { "Admesh",                                         "",      "https://admesh.readthedocs.io/" },
+        { "Anti-Grain Geometry",                            "",      "http://antigrain.com" },
+        { "Boost",                                          "",      "http://www.boost.org" },
+        { "Cereal",                                         "",      "http://uscilab.github.io/cereal" },
+        { "CGAL",                                           "",      "https://www.cgal.org" },
+        { "Clipper",                                        "",      "http://www.angusj.co" },
+        { "libcurl",                                        "",      "https://curl.se/libcurl" },
+        { "Eigen3",                                         "",      "http://eigen.tuxfamily.org" },
+        { "Expat",                                          "",      "http://www.libexpat.org" },
+        { "fast_float",                                     "",      "https://github.com/fastfloat/fast_float" },
+        { "GLEW (The OpenGL Extension Wrangler Library)",   "",      "http://glew.sourceforge.net" },
+        { "GLFW",                                           "",      "https://www.glfw.org" },
+        { "GNU gettext",                                    "",      "https://www.gnu.org/software/gettext" },
+        { "ImGUI",                                          "",      "https://github.com/ocornut/imgui" },
+        { "Libigl",                                         "",      "https://libigl.github.io" },
+        { "libnest2d",                                      "",      "https://github.com/tamasmeszaros/libnest2d" },
+        { "lib_fts",                                        "",      "https://www.forrestthewoods.com" },
+        { "Mesa 3D",                                        "",      "https://mesa3d.org" },
+        { "Miniz",                                          "",      "https://github.com/richgel999/miniz" },
+        { "Nanosvg",                                        "",      "https://github.com/memononen/nanosvg" },
+        { "nlohmann/json",                                  "",      "https://json.nlohmann.me" },
+        { "Qhull",                                          "",      "http://qhull.org" },
+        { "Open Cascade",                                   "",      "https://www.opencascade.com" },
+        { "OpenGL",                                         "",      "https://www.opengl.org" },
+        { "PoEdit",                                         "",      "https://poedit.net" },
+        { "PrusaSlicer",                                    "",      "https://www.prusa3d.com" },
+        { "Real-Time DXT1/DXT5 C compression library",      "",      "https://github.com/Cyan4973/RygsDXTc" },
+        { "SemVer",                                         "",      "https://semver.org" },
+        { "Shinyprofiler",                                  "",      "https://code.google.com/p/shinyprofiler" },
+        { "TBB",                                            "",      "https://www.intel.cn/content/www/cn/zh/developer/tools/oneapi/onetbb.html" },
+        { "wxWidgets",                                      "",      "https://www.wxwidgets.org" },
+        { "zlib",                                           "",      "http://zlib.net" },
+
     };
 }
 
@@ -138,29 +131,36 @@ wxString CopyrightsDialog::get_html_text()
     const auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
 
     const wxString copyright_str = _(L("Copyright")) + "&copy; ";
-    // TRN "Slic3r _is licensed under the_ License"
-    const wxString header_str = _(L("License agreements of all following programs (libraries) are part of application license agreement"));
 
     wxString text = wxString::Format(
         "<html>"
             "<body bgcolor= %s link= %s>"
             "<font color=%s>"
-                "<font size=\"5\">%s.</font>"
+                "<font size=\"5\">%s</font><br/>"
+                "<font size=\"5\">%s</font>"
+                "<a href=\"%s\">%s.</a><br/>"
+                "<font size=\"5\">%s.</font><br/>"
                 "<br /><br />"
-                "<font size=\"3\">"
-        , bgr_clr_str, text_clr_str
-        , text_clr_str
-        , header_str);
+                "<font size=\"5\">%s</font><br/>"
+                "<font size=\"5\">%s:</font><br/>"
+                "<br />"
+                "<font size=\"3\">",
+         bgr_clr_str, text_clr_str, text_clr_str,
+        _L("License"),
+        _L("BambuStudio is licensed under "),
+        "https://www.gnu.org/licenses/agpl-3.0.html",_L("GNU Affero General Public License, version 3"),
+        _L("BambuStudio is based on PrusaSlicer by Prusa Research, which is from Slic3r by Alessandro Ranellucci and the RepRap community"), 
+        _L("Libraries"),
+        _L("This software uses open source components whose copyright and other proprietary rights belong to their respective owners"));
 
     for (auto& entry : m_entries) {
         text += wxString::Format(
                     "<a href=\"%s\">%s</a><br/>"
                     , entry.link, entry.lib_name);
 
-        if (!entry.copyright.empty())
-            text += format_wxstr(
+         text += format_wxstr(
                     "%1% %2%<br/><br/>"
-                    , copyright_str, entry.copyright);
+                    , copyright_str, entry.link);
     }
 
     text += wxString(
