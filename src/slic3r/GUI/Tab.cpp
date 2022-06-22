@@ -1849,6 +1849,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("prime_volume");
         optgroup->append_single_option_line("prime_tower_brim_width");
 
+        optgroup = page->new_optgroup(L("Flush options"));
+        optgroup->append_single_option_line("flush_into_infill");
+
         optgroup = page->new_optgroup(L("Special mode"));
         optgroup->append_single_option_line("print_sequence");
         optgroup->append_single_option_line("spiral_mode");

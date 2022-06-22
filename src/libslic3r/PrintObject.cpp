@@ -768,8 +768,8 @@ bool PrintObject::invalidate_state_by_config_options(
 //BBS
 #if 0
         } else if (
-               opt_key == "wipe_into_infill"
-            || opt_key == "wipe_into_objects") {
+               opt_key == "flush_into_infill"
+            || opt_key == "flush_into_objects") {
             invalidated |= m_print->invalidate_step(psWipeTower);
             invalidated |= m_print->invalidate_step(psGCodeExport);
 #endif
@@ -810,7 +810,7 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
     }
 
     // Wipe tower depends on the ordering of extruders, which in turn depends on everything.
-    // It also decides about what the wipe_into_infill / wipe_into_object features will do,
+    // It also decides about what the flush_into_infill / wipe_into_object features will do,
     // and that too depends on many of the settings.
     invalidated |= m_print->invalidate_step(psWipeTower);
     // Invalidate G-code export in any case.

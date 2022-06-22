@@ -58,7 +58,7 @@ static SettingsFactory::Bundle FREQ_SETTINGS_BUNDLE_FFF =
                                     "support_base_pattern", "support_on_build_plate_only",
                                     "support_base_pattern_spacing" } }
     //BBS
-    //{ L("Wipe options")         , { "wipe_into_infill", "wipe_into_objects" } }
+    //{ L("Wipe options")         , { "flush_into_infill", "flush_into_objects" } }
 };
 
 // pt_SLA

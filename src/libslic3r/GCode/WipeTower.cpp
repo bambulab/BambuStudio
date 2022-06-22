@@ -501,7 +501,8 @@ private:
 WipeTower::ToolChangeResult WipeTower::construct_tcr(WipeTowerWriter& writer,
                                                      bool priming,
                                                      size_t old_tool,
-                                                     bool is_finish) const
+                                                     bool is_finish,
+                                                     float purge_volume) const
 {
     ToolChangeResult result;
     result.priming      = priming;
@@ -516,6 +517,8 @@ WipeTower::ToolChangeResult WipeTower::construct_tcr(WipeTowerWriter& writer,
     result.extrusions   = std::move(writer.extrusions());
     result.wipe_path    = std::move(writer.wipe_path());
     result.is_finish_first = is_finish;
+    // BBS
+    result.purge_volume = purge_volume;
     return result;
 }
 
@@ -660,6 +663,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
 
     float wipe_depth = 0.f;
 	float wipe_length = 0.f;
+    float purge_volume = 0.f;
 	
 	// Finds this toolchange info
 	if (tool != (unsigned int)(-1))
@@ -668,6 +672,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
 			if ( b.new_tool == tool ) {
                 wipe_length = b.wipe_length;
                 wipe_depth = b.required_depth;
+                purge_volume = b.purge_volume;
 				break;
 			}
 	}
@@ -743,7 +748,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
     if (m_current_tool < m_used_filament_length.size())
         m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
-   return construct_tcr(writer, false, old_tool);
+    return construct_tcr(writer, false, old_tool, false, purge_volume);
 }
 
 
@@ -1207,12 +1212,12 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter)
         if (m_current_tool < m_used_filament_length.size())
             m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
-    return construct_tcr(writer, false, old_tool, true);
+    return construct_tcr(writer, false, old_tool, true, 0.f);
 }
 
 // Appends a toolchange into m_plan and calculates neccessary depth of the corresponding box
 void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool,
-                                unsigned int new_tool, float wipe_volume)
+                                unsigned int new_tool, float wipe_volume, float purge_volume)
 {
 	assert(m_plan.empty() || m_plan.back().z <= z_par + WT_EPSILON);	// refuses to add a layer below the last one
 
@@ -1251,7 +1256,7 @@ void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned in
     depth += std::ceil(length_to_extrude / width) * m_perimeter_width;
     //depth *= m_extra_spacing;
 
-    m_plan.back().tool_changes.push_back(WipeTowerInfo::ToolChange(old_tool, new_tool, depth, 0.f, 0.f, wipe_volume));
+    m_plan.back().tool_changes.push_back(WipeTowerInfo::ToolChange(old_tool, new_tool, depth, 0.f, 0.f, wipe_volume, length_to_extrude, purge_volume));
 #endif
 }
 
@@ -1408,6 +1413,9 @@ static WipeTower::ToolChangeResult merge_tcr(WipeTower::ToolChangeResult& first,
     out.wipe_path = second.wipe_path;
     out.initial_tool = first.initial_tool;
     out.new_tool = second.new_tool;
+
+    // BBS
+    out.purge_volume += second.purge_volume;
     return out;
 }
 

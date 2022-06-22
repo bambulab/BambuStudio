@@ -179,8 +179,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             //|| opt_key == "wipe_tower_bridging"
             || opt_key == "wipe_tower_no_sparse_layers"
             || opt_key == "flush_volumes_matrix"
-            // BBS
             || opt_key == "prime_volume"
+            || opt_key == "flush_into_infill"
             || opt_key == "initial_layer_infill_speed"
             || opt_key == "travel_speed"
             || opt_key == "travel_speed_z"
@@ -1602,12 +1602,10 @@ void Print::_make_wipe_tower()
 
     // BBS
     const unsigned int number_of_extruders = (unsigned int)(sqrt(flush_matrix.size()) + EPSILON);
-#if 0
     // Extract purging volumes for each extruder pair:
     std::vector<std::vector<float>> wipe_volumes;
     for (unsigned int i = 0; i<number_of_extruders; ++i)
         wipe_volumes.push_back(std::vector<float>(flush_matrix.begin()+i*number_of_extruders, flush_matrix.begin()+(i+1)*number_of_extruders));
-#endif
 
     // Let the ToolOrdering class know there will be initial priming extrusions at the start of the print.
     // BBS: priming logic is removed, so don't consider it in tool ordering
@@ -1683,19 +1681,20 @@ void Print::_make_wipe_tower()
                 // BBS: priming logic is removed, so no need to do toolchange for first extruder
                 if (/*(first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back()) || */extruder_id != current_extruder_id) {
                     // BBS: in BBL machine, wipe tower is only use to prime extruder. So just use a global wipe volume.
-                    float volume_to_wipe = m_config.prime_volume;
+                    float volume_to_purge = wipe_volumes[current_extruder_id][extruder_id];
+#if 0
                     // Not all of that can be used for infill purging:
                     volume_to_wipe -= (float)m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
-
+#endif
                     // try to assign some infills/objects for the wiping:
-                    volume_to_wipe = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, current_extruder_id, extruder_id, volume_to_wipe);
-
+                    volume_to_purge = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, current_extruder_id, extruder_id, volume_to_purge);
+#if 0
                     // add back the minimal amount toforce on the wipe tower:
                     volume_to_wipe += (float)m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
-
+#endif
                     // request a toolchange at the wipe tower with at least volume_to_wipe purging amount
                     wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height,
-                                               current_extruder_id, extruder_id, volume_to_wipe);
+                                               current_extruder_id, extruder_id, m_config.prime_volume, volume_to_purge);
                     current_extruder_id = extruder_id;
                 }
             }

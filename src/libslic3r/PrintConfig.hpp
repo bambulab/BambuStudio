@@ -597,8 +597,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               support_object_xy_distance))
     ((ConfigOptionFloat,               xy_hole_compensation))
     ((ConfigOptionFloat,               xy_contour_compensation))
-    //BBS
-    //((ConfigOptionBool,                wipe_into_objects))
+    ((ConfigOptionBool,                flush_into_objects))
+    // BBS
+    ((ConfigOptionBool,                flush_into_infill))
     // BBS
     ((ConfigOptionFloat,              tree_support_branch_distance))
     ((ConfigOptionFloat,              tree_support_branch_diameter))
@@ -657,8 +658,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                  top_shell_layers))
     ((ConfigOptionFloat,                top_shell_thickness))
     ((ConfigOptionFloat,                top_surface_speed))
-    //BBS
-    //((ConfigOptionBool,                 wipe_into_infill))
     //BBS
     ((ConfigOptionBool,                 enable_overhang_speed))
     ((ConfigOptionFloat,                overhang_1_4_speed))

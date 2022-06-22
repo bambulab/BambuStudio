@@ -2508,23 +2508,23 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->min = 0.;
     def->set_default_value(new ConfigOptionFloat(3.));
-//BBS
-    //def = this->add("wipe_into_infill", coBool);
-    //def->category = L("Wipe options");
-    //def->label = L("Wipe into this object's infill");
-    //def->tooltip = L("Purging after toolchange will be done inside this object's infills. "
-    //                 "This lowers the amount of waste but may result in longer print time "
-    //                 " due to additional travel moves.");
-    //def->set_default_value(new ConfigOptionBool(false));
 
-    //def = this->add("wipe_into_objects", coBool);
-    //def->category = L("Wipe options");
-    //def->label = L("Wipe into this object");
-    //def->tooltip = L("Object will be used to purge the nozzle after a toolchange to save material "
-    //                 "that would otherwise end up in the wipe tower and decrease print time. "
-    //                 "Colours of the objects will be mixed as a result.");
-    //def->set_default_value(new ConfigOptionBool(false));
+    def = this->add("flush_into_infill", coBool);
+    def->category = L("Flush options");
+    def->label = L("Flush into objects' infill");
+    def->tooltip = L("Purging after filament change will be done inside objects' infills. "
+                     "This may lower the amount of waste");
+    def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("flush_into_objects", coBool);
+    def->category = L("Flush options");
+    def->label = L("Flush into this object");
+    def->tooltip = L("Object will be used to purge the nozzle after a toolchange to save material "
+                     "that would otherwise end up in the wipe tower and decrease print time. "
+                     "Colours of the objects will be mixed as a result");
+    def->set_default_value(new ConfigOptionBool(false));
+
+    //BBS
     //def = this->add("wipe_tower_bridging", coFloat);
     //def->label = L("Maximal bridging distance");
     //def->tooltip = L("Maximal distance between supports on sparse infill sections.");

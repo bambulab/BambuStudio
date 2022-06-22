@@ -75,6 +75,8 @@ namespace Slic3r {
 #define L(s) (s)
 #define _(s) Slic3r::I18N::translate(s)
 
+static const float g_min_purge_volume = 100.f;
+
 bool GCode::gcode_label_objects = false;
 
 // Only add a newline in case the current G-code does not end with a newline.
@@ -335,14 +337,9 @@ bool GCode::gcode_label_objects = false;
                 int new_filament_temp = full_config.nozzle_temperature.get_at(new_extruder_id);
                 Vec3d nozzle_pos = gcode_writer.get_position();
 
-                std::vector<float> flush_matrix(cast<float>(full_config.flush_volumes_matrix.values));
-                const unsigned int number_of_extruders = (unsigned int)(sqrt(flush_matrix.size()) + EPSILON);
-                assert(previous_extruder_id < number_of_extruders);
-                assert(new_extruder_id < number_of_extruders);
-
-                float wipe_volume = flush_matrix[previous_extruder_id * number_of_extruders + new_extruder_id];
+                float purge_volume = std::max(tcr.purge_volume, g_min_purge_volume);
                 float filament_area = float((M_PI / 4.f) * pow(full_config.filament_diameter.get_at(new_extruder_id), 2));
-                float wipe_length = wipe_volume / filament_area;
+                float purge_length = purge_volume / filament_area;
 
                 config.set_key_value("max_layer_z", new ConfigOptionFloat(gcodegen.m_max_layer_z));
                 config.set_key_value("relative_e_axis", new ConfigOptionBool(RELATIVE_E_AXIS));
@@ -359,8 +356,8 @@ bool GCode::gcode_label_objects = false;
                 config.set_key_value("x_after_toolchange", new ConfigOptionFloat(start_pos(0)));
                 config.set_key_value("y_after_toolchange", new ConfigOptionFloat(start_pos(1)));
                 config.set_key_value("z_after_toolchange", new ConfigOptionFloat(nozzle_pos(2)));
-                config.set_key_value("first_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
-                config.set_key_value("second_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
+                config.set_key_value("first_flush_volume", new ConfigOptionFloat(purge_length / 2.f));
+                config.set_key_value("second_flush_volume", new ConfigOptionFloat(purge_length / 2.f));
             }
             toolchange_gcode_str = gcodegen.placeholder_parser_process("change_filament_gcode", change_filament_gcode, new_extruder_id, &config);
             check_add_eol(toolchange_gcode_str);
@@ -2838,7 +2835,7 @@ GCode::LayerResult GCode::process_layer(
                 for (ObjectByExtruder::Island &island : instance_to_print.object_by_extruder.islands) {
                     const auto& by_region_specific = is_anything_overridden ? island.by_region_per_copy(by_region_per_copy_cache, static_cast<unsigned int>(instance_to_print.instance_id), extruder_id, print_wipe_extrusions != 0) : island.by_region;
                     //BBS: add brim by obj by extruder
-                    if (this->m_objsWithBrim.find(instance_to_print.print_object.id()) != this->m_objsWithBrim.end()) {
+                    if (this->m_objsWithBrim.find(instance_to_print.print_object.id()) != this->m_objsWithBrim.end() && !print_wipe_extrusions) {
                         this->set_origin(0., 0.);
                         m_avoid_crossing_perimeters.use_external_mp();
                         for (const ExtrusionEntity* ee : print.m_brimMap.at(instance_to_print.print_object.id()).entities) {

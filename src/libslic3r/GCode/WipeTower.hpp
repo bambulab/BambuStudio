@@ -67,6 +67,9 @@ public:
         // an extra retraction-unretraction pair.
         std::vector<Vec2f> wipe_path;
 
+		// BBS
+        float purge_volume = 0.f;
+
         // Initial tool
         int initial_tool;
 
@@ -128,7 +131,8 @@ public:
     ToolChangeResult construct_tcr(WipeTowerWriter& writer,
                                    bool priming,
                                    size_t old_tool,
-                                   bool is_finish = false) const;
+                                   bool is_finish,
+                                   float purge_volume) const;
 
 	// x			-- x coordinates of wipe tower in mm ( left bottom corner )
 	// y			-- y coordinates of wipe tower in mm ( left bottom corner )
@@ -143,7 +147,7 @@ public:
 
 	// Appends into internal structure m_plan containing info about the future wipe tower
 	// to be used before building begins. The entries must be added ordered in z.
-    void plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, float wipe_volume = 0.f);
+	void plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, float wipe_volume = 0.f, float prime_volume = 0.f);
 
 	// Iterates through prepared m_plan, generates ToolChangeResults and appends them to "result"
 	void generate(std::vector<std::vector<ToolChangeResult>> &result);
@@ -361,8 +365,10 @@ private:
             float first_wipe_line;
             float wipe_volume;
 			float wipe_length;
-            ToolChange(size_t old, size_t newtool, float depth=0.f, float ramming_depth=0.f, float fwl=0.f, float wv=0.f, float wl = 0)
-				: old_tool{ old }, new_tool{ newtool }, required_depth{ depth }, ramming_depth{ ramming_depth }, first_wipe_line{ fwl }, wipe_volume{ wv }, wipe_length{ wl } {}
+			// BBS
+			float purge_volume;
+            ToolChange(size_t old, size_t newtool, float depth=0.f, float ramming_depth=0.f, float fwl=0.f, float wv=0.f, float wl = 0, float pv = 0)
+				: old_tool{ old }, new_tool{ newtool }, required_depth{ depth }, ramming_depth{ ramming_depth }, first_wipe_line{ fwl }, wipe_volume{ wv }, wipe_length{ wl }, purge_volume{ pv } {}
 		};
 		float z;		// z position of the layer
 		float height;	// layer height
