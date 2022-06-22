@@ -430,7 +430,7 @@ void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event)
         return;
     }
 
-    account_manager->request_unbind(m_machine_info->dev_id, [this](int result, std::string body) {
+    account_manager->request_user_unbind(m_machine_info->dev_id, [this](int result, std::string body) {
         if (result == 0) {
             DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
             dev->update_user_machine_list_info();

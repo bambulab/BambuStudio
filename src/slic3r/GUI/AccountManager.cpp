@@ -1067,6 +1067,7 @@ namespace BBL {
 
         json j;
         j["dev_id"] = device_id;
+        j["force"] = false;
         std::string json_str = j.dump();
 
         Http http = Http::del(url);
@@ -1074,63 +1075,12 @@ namespace BBL {
             .header("Authorization", get_token_str())
             .header("Content-Type", "application/json")
             .set_del_body(json_str)
-            .on_complete([&, device_id, fn](std::string body, unsigned) {
-            std::stringstream ss(body);
-            pt::ptree root;
-            pt::read_json(ss, root);
-            boost::optional<std::string> message = root.get_optional<std::string>("message");
-            boost::optional<std::string> user_ca = root.get_optional<std::string>("user_ca");
-            boost::optional<std::string> devs_ca = root.get_optional<std::string>("devs_ca");
-            if (message.has_value()) {
-                if (message.value().compare("success") == 0) {
-                    BOOST_LOG_TRIVIAL(trace) << "Unind Device " << device_id << " OK!";
-                    if (fn) {
-                        fn(0, body);
-                    }
-                    return;
-                }
-                // already unbind, status is free
-                else if (message.value().compare("free") == 0) {
-                    if (fn) {
-                        fn(0, body);
-                    }
-                    return;
-                }
-            }
-            if (fn) {
-                std::string info = (boost::format("Unind Device %1% Failed! error=%2%") % device_id % body).str();
-                fn(-1, info);
-            }
-
-            BOOST_LOG_TRIVIAL(trace) << "Unind Device " << device_id << " Failed! status = " << message.value();
-                }).on_error([&, device_id, fn](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(trace) << "Unbind Device " << device_id << " Failed!";
-                    if (fn) {
-                        std::string info = "Unbind device=" + device_id + "failed! error=" + body;
-                        fn(-1, info);
-                    }
-                    }).perform();
-                    return 0;
-    }
-
-    int AccountManager::request_unbind(std::string device_id, ResultFn fn)
-    {
-        Http http = Http::del(_get_bind_url(device_id));
-        http.header("accept", "application/json")
-            .header("Authorization", get_token_str())
-            .on_complete([&, device_id, fn](std::string body, unsigned) {
+            .on_complete([&, fn](std::string body, unsigned status) {
                 try {
                     json j = json::parse(body);
                     if (j.contains("message")) {
                         if (j["message"].get<std::string>() == MSG_SUCCESS) {
-                            BOOST_LOG_TRIVIAL(trace) << "Unind Device " << device_id << " OK!";
-                            if (fn) {
-                                fn(0, body);
-                            }
-                        } else if (j["message"].get<std::string>() == "free") {
-                            if (fn) {
-                                fn(0, body);
-                            }
+                            fn(0, "");
                         }
                     }
                 } catch (...) {
@@ -1139,11 +1089,10 @@ namespace BBL {
             }).on_error([&, device_id, fn](std::string body, std::string error, unsigned status) {
                 BOOST_LOG_TRIVIAL(trace) << "Unbind Device " << device_id << " Failed!";
                 if (fn) {
-                    std::string info = "Unbind device=" + device_id + "failed! error=" + body;
-                    fn(-1, info);
+                    fn(-1, "");
                 }
             }).perform();
-            return 0;
+        return 0;
     }
 
     int AccountManager::request_bind_list(ResultFn fn)
@@ -2881,11 +2830,6 @@ namespace BBL {
         }
     }
 
-    std::string AccountManager::_get_bind_url(std::string device_id)
-    {
-        return (boost::format("%1%/iot-service/api/user/%2%/bind") % host % device_id).str();
-    }
-
     std::string AccountManager::_get_slicer_info_url()
     {
         return (boost::format("%1%/iot-service/api/slicer/resource") % host).str();
@@ -2939,7 +2883,7 @@ namespace BBL {
         unsigned int http_code;
         std::string  http_body;
         bool was_cancelled = false;
-        std::string msg = 0;
+        std::string msg;
 
         if (update_fn) update_fn(LoginStageConnect, 0, "connecting");
 

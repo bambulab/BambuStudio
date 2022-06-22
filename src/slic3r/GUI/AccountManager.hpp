@@ -286,7 +286,6 @@ private:
     std::string _get_slicer_info_url();
 
     /* bind */
-    std::string _get_bind_url(std::string device_id);
     std::string _get_bind_list_url();
     std::string _get_qeury_bind_list_url(std::vector<std::string> device_id_list);
 
@@ -424,7 +423,7 @@ public:
     /* user login register apis */
     bool is_user_login();
     int user_logout();
-    int request_user_unbind(std::string device_id, ResultFn fn);
+    
     void clean_user_data();
     void user_check_report(int* query_task_id, bool* printable);
 
@@ -449,7 +448,7 @@ public:
 
     /* bind apis */
     int query_bind_status(std::vector<std::string> device_list, unsigned int &http_code, std::string &http_body);
-    int request_unbind(std::string device_id, ResultFn fn);
+    int request_user_unbind(std::string device_id, ResultFn fn);
     int request_bind_list(ResultFn fn = nullptr);
 
     /* device apis */
