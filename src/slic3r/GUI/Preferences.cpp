@@ -453,7 +453,7 @@ void PreferencesDialog::create()
     m_backup_interval_time = app_config->get("backup_interval");
 
     // set icon for dialog
-    std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     this->SetSizeHints(wxDefaultSize, wxDefaultSize);
