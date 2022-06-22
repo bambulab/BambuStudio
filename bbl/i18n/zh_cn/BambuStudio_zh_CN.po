@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-17 18:12+0800\n"
+"POT-Creation-Date: 2022-06-22 11:16+0800\n"
 "PO-Revision-Date: 2022-05-17 15:42+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -756,6 +756,9 @@ msgstr "选择盘"
 msgid "Assembly Return"
 msgstr "退出装配体视图"
 
+msgid "return"
+msgstr "返回"
+
 msgid "Paint Toolbar"
 msgstr "上色工具条"
 
@@ -767,9 +770,6 @@ msgstr "总体积："
 
 msgid "Assembly Info"
 msgstr "装配体信息"
-
-msgid "Total Size:"
-msgstr "总尺寸："
 
 msgid "Volume:"
 msgstr "体积："
@@ -1828,17 +1828,8 @@ msgstr "显示快捷键列表"
 msgid "Beginner's Tutorial"
 msgstr "新手引导"
 
-msgid "Show daily tips"
-msgstr "显示每日小贴士"
-
-msgid "Choose Filaments"
-msgstr "选择耗材丝"
-
 msgid "Show Configuration Folder"
 msgstr "打开配置文件夹"
-
-msgid "Bind Dialog"
-msgstr "绑定对话框"
 
 msgid "Check for Update"
 msgstr "检查新版本"
@@ -2119,8 +2110,8 @@ msgstr "0%"
 msgid "Machine Control"
 msgstr "打印机控制"
 
-msgid "Temperature and Axis Control"
-msgstr "温度和轴移动控制"
+msgid "Start Calibration"
+msgstr ""
 
 msgid "100%"
 msgstr "100%"
@@ -2138,31 +2129,6 @@ msgid "Bed"
 msgstr "热床"
 
 msgid "Debug Info"
-msgstr ""
-
-msgid "Calibration"
-msgstr ""
-
-msgid "Calibration program"
-msgstr ""
-
-msgid ""
-"Calibration program detects the status of your device systematically to "
-"minimise deviation. It keeps the device at its the best performance"
-msgstr ""
-
-msgid "Preparation before calibration"
-msgstr ""
-
-msgid ""
-"Before calibration, please make sure a filament is loaded and its nozzle "
-"temperature and bed temperature is set in Feeding lab."
-msgstr ""
-
-msgid "Calibration Flow"
-msgstr ""
-
-msgid "Start Calibration"
 msgstr ""
 
 msgid "Printing List"
@@ -2503,6 +2469,9 @@ msgstr "将这些文件加载为一个多零件对象？\n"
 
 msgid "Object with multiple parts was detected"
 msgstr "检测到多零件对象"
+
+msgid "The current file does not import any models."
+msgstr ""
 
 msgid "Export STL file:"
 msgstr "导出 STL 文件："
@@ -2955,9 +2924,6 @@ msgstr "发送完成"
 msgid "Please select a printer first."
 msgstr "请先选择一台打印机。"
 
-msgid "Current printer is busy. Please select another one."
-msgstr "当前打印机正忙，请选择另一台打印机。"
-
 msgid "The printer is being updated. Please try again after the update."
 msgstr "打印机正在更新。 请更新后重试。"
 
@@ -2976,14 +2942,14 @@ msgstr "导出3mf失败，请重新切片。"
 msgid "No printer available"
 msgstr "没有可用的打印机"
 
-msgid "Confirm"
-msgstr "确定"
-
 msgid "Log in printer"
 msgstr "登录打印机"
 
 msgid "Would you like to log in this printer with current account?"
 msgstr "你想使用当前账号登录这台打印机吗?"
+
+msgid "Confirm"
+msgstr "确定"
 
 msgid "Log in successful."
 msgstr "登录成功。"
@@ -3114,13 +3080,13 @@ msgid "Nozzle temperature when printing"
 msgstr "打印时的喷嘴温度"
 
 msgid "Cool plate"
-msgstr ""
+msgstr "低温打印热床"
 
 msgid "Bed temperature when cool plate is installed"
 msgstr ""
 
 msgid "Engineering plate"
-msgstr ""
+msgstr "工程材料热床"
 
 msgid "Bed temperature when engineering plate is installed"
 msgstr ""
@@ -3426,6 +3392,9 @@ msgstr "没有可用的更新。"
 
 msgid "The configuration is up to date."
 msgstr "当前配置已经是最新版本。"
+
+msgid "Calc"
+msgstr ""
 
 msgid "Flushing volumes for filament change"
 msgstr "耗材丝更换时的冲刷体积"
@@ -4913,6 +4882,12 @@ msgstr "喷嘴直径"
 msgid "Diameter of nozzle"
 msgstr "喷嘴直径"
 
+msgid "Nozzle volume"
+msgstr ""
+
+msgid "Volume of nozzle between the cutter and the end of nozzle"
+msgstr ""
+
 msgid "Reduce infill retraction"
 msgstr "减小填充回抽"
 
@@ -5409,6 +5384,15 @@ msgstr "切换耗材丝时，打印擦拭塔来让准配好喷嘴里材料。"
 msgid "Purging volumes"
 msgstr "冲刷体积"
 
+msgid "Extra flush volume"
+msgstr ""
+
+msgid "mm3"
+msgstr ""
+
+msgid "Flush multiplier"
+msgstr ""
+
 msgid "Prime volume"
 msgstr "清理量"
 
@@ -5608,6 +5592,24 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Total Size:"
+#~ msgstr "总尺寸："
+
+#~ msgid "Show daily tips"
+#~ msgstr "显示每日小贴士"
+
+#~ msgid "Choose Filaments"
+#~ msgstr "选择耗材丝"
+
+#~ msgid "Bind Dialog"
+#~ msgstr "绑定对话框"
+
+#~ msgid "Temperature and Axis Control"
+#~ msgstr "温度和轴移动控制"
+
+#~ msgid "Current printer is busy. Please select another one."
+#~ msgstr "当前打印机正忙，请选择另一台打印机。"
 
 #~ msgid "Bambu Studio initialization failed"
 #~ msgstr "Bambu Studio初始化失败"
@@ -7021,19 +7023,19 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ msgid "Support material"
 #~ msgstr "支撑材料"
 
-#~ msgid "Portions copyright"
-#~ msgstr "部分版权"
+msgid "Portions copyright"
+msgstr "部分版权"
 
-#~ msgid "Copyright"
-#~ msgstr "版权"
+msgid "Copyright"
+msgstr "版权"
 
-#~ msgid ""
-#~ "License agreements of all following programs (libraries) are part of "
-#~ "application license agreement"
-#~ msgstr "所有以下程序(库)的许可协议是应用程序许可协议的一部分"
+msgid ""
+"License agreements of all following programs (libraries) are part of "
+"application license agreement"
+msgstr "所有以下程序(库)的许可协议是应用程序许可协议的一部分"
 
-#~ msgid "About %s"
-#~ msgstr "关于 %s"
+msgid "About %s"
+msgstr "关于 %s"
 
 #~ msgid "is licensed under the"
 #~ msgstr "根据"

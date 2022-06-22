@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-17 18:12+0800\n"
+"POT-Creation-Date: 2022-06-22 11:16+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -722,6 +722,9 @@ msgstr ""
 msgid "Assembly Return"
 msgstr ""
 
+msgid "return"
+msgstr ""
+
 msgid "Paint Toolbar"
 msgstr ""
 
@@ -732,9 +735,6 @@ msgid "Total Volume:"
 msgstr ""
 
 msgid "Assembly Info"
-msgstr ""
-
-msgid "Total Size:"
 msgstr ""
 
 msgid "Volume:"
@@ -1801,16 +1801,7 @@ msgstr ""
 msgid "Beginner's Tutorial"
 msgstr ""
 
-msgid "Show daily tips"
-msgstr ""
-
-msgid "Choose Filaments"
-msgstr ""
-
 msgid "Show Configuration Folder"
-msgstr ""
-
-msgid "Bind Dialog"
 msgstr ""
 
 msgid "Check for Update"
@@ -2087,8 +2078,8 @@ msgstr ""
 msgid "Machine Control"
 msgstr "Machine control"
 
-msgid "Temperature and Axis Control"
-msgstr "Temperature and axis control"
+msgid "Start Calibration"
+msgstr ""
 
 msgid "100%"
 msgstr ""
@@ -2106,31 +2097,6 @@ msgid "Bed"
 msgstr ""
 
 msgid "Debug Info"
-msgstr ""
-
-msgid "Calibration"
-msgstr ""
-
-msgid "Calibration program"
-msgstr ""
-
-msgid ""
-"Calibration program detects the status of your device systematically to "
-"minimise deviation. It keeps the device at its the best performance"
-msgstr ""
-
-msgid "Preparation before calibration"
-msgstr ""
-
-msgid ""
-"Before calibration, please make sure a filament is loaded and its nozzle "
-"temperature and bed temperature is set in Feeding lab."
-msgstr ""
-
-msgid "Calibration Flow"
-msgstr ""
-
-msgid "Start Calibration"
 msgstr ""
 
 msgid "Printing List"
@@ -2479,6 +2445,9 @@ msgstr ""
 
 msgid "Object with multiple parts was detected"
 msgstr "An object with multiple parts was detected"
+
+msgid "The current file does not import any models."
+msgstr ""
 
 msgid "Export STL file:"
 msgstr ""
@@ -2946,9 +2915,6 @@ msgstr "Send complete"
 msgid "Please select a printer first."
 msgstr ""
 
-msgid "Current printer is busy. Please select another one."
-msgstr ""
-
 msgid "The printer is being updated. Please try again after the update."
 msgstr ""
 
@@ -2967,13 +2933,13 @@ msgstr ""
 msgid "No printer available"
 msgstr ""
 
-msgid "Confirm"
-msgstr ""
-
 msgid "Log in printer"
 msgstr ""
 
 msgid "Would you like to log in this printer with current account?"
+msgstr ""
+
+msgid "Confirm"
 msgstr ""
 
 msgid "Log in successful."
@@ -3409,6 +3375,9 @@ msgid "No updates available."
 msgstr ""
 
 msgid "The configuration is up to date."
+msgstr ""
+
+msgid "Calc"
 msgstr ""
 
 msgid "Flushing volumes for filament change"
@@ -4948,6 +4917,12 @@ msgstr ""
 msgid "Diameter of nozzle"
 msgstr "The diameter of the nozzle"
 
+msgid "Nozzle volume"
+msgstr ""
+
+msgid "Volume of nozzle between the cutter and the end of nozzle"
+msgstr ""
+
 msgid "Reduce infill retraction"
 msgstr ""
 
@@ -5477,6 +5452,15 @@ msgstr ""
 msgid "Purging volumes"
 msgstr ""
 
+msgid "Extra flush volume"
+msgstr ""
+
+msgid "mm3"
+msgstr ""
+
+msgid "Flush multiplier"
+msgstr ""
+
 msgid "Prime volume"
 msgstr ""
 
@@ -5678,6 +5662,9 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid "Temperature and Axis Control"
+#~ msgstr "Temperature and axis control"
 
 #~ msgid "prepare 3mf file..."
 #~ msgstr "Prepare 3mf file…"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-17 18:12+0800\n"
+"POT-Creation-Date: 2022-06-22 11:16+0800\n"
 "PO-Revision-Date: 2021-02-03 14:06+0100\n"
 "Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -718,6 +718,9 @@ msgstr ""
 msgid "Assembly Return"
 msgstr ""
 
+msgid "return"
+msgstr ""
+
 msgid "Paint Toolbar"
 msgstr ""
 
@@ -728,9 +731,6 @@ msgid "Total Volume:"
 msgstr ""
 
 msgid "Assembly Info"
-msgstr ""
-
-msgid "Total Size:"
 msgstr ""
 
 msgid "Volume:"
@@ -1784,16 +1784,7 @@ msgstr "Показать список сочетаний клавиш"
 msgid "Beginner's Tutorial"
 msgstr ""
 
-msgid "Show daily tips"
-msgstr ""
-
-msgid "Choose Filaments"
-msgstr ""
-
 msgid "Show Configuration Folder"
-msgstr ""
-
-msgid "Bind Dialog"
 msgstr ""
 
 msgid "Check for Update"
@@ -2070,7 +2061,7 @@ msgstr ""
 msgid "Machine Control"
 msgstr ""
 
-msgid "Temperature and Axis Control"
+msgid "Start Calibration"
 msgstr ""
 
 msgid "100%"
@@ -2089,31 +2080,6 @@ msgid "Bed"
 msgstr "Стол"
 
 msgid "Debug Info"
-msgstr ""
-
-msgid "Calibration"
-msgstr ""
-
-msgid "Calibration program"
-msgstr ""
-
-msgid ""
-"Calibration program detects the status of your device systematically to "
-"minimise deviation. It keeps the device at its the best performance"
-msgstr ""
-
-msgid "Preparation before calibration"
-msgstr ""
-
-msgid ""
-"Before calibration, please make sure a filament is loaded and its nozzle "
-"temperature and bed temperature is set in Feeding lab."
-msgstr ""
-
-msgid "Calibration Flow"
-msgstr ""
-
-msgid "Start Calibration"
 msgstr ""
 
 msgid "Printing List"
@@ -2457,6 +2423,9 @@ msgid "Load these files as a single object with multiple parts?\n"
 msgstr ""
 
 msgid "Object with multiple parts was detected"
+msgstr ""
+
+msgid "The current file does not import any models."
 msgstr ""
 
 msgid "Export STL file:"
@@ -2908,9 +2877,6 @@ msgstr ""
 msgid "Please select a printer first."
 msgstr ""
 
-msgid "Current printer is busy. Please select another one."
-msgstr ""
-
 msgid "The printer is being updated. Please try again after the update."
 msgstr ""
 
@@ -2929,13 +2895,13 @@ msgstr ""
 msgid "No printer available"
 msgstr ""
 
-msgid "Confirm"
-msgstr ""
-
 msgid "Log in printer"
 msgstr ""
 
 msgid "Would you like to log in this printer with current account?"
+msgstr ""
+
+msgid "Confirm"
 msgstr ""
 
 msgid "Log in successful."
@@ -3368,6 +3334,9 @@ msgid "No updates available."
 msgstr ""
 
 msgid "The configuration is up to date."
+msgstr ""
+
+msgid "Calc"
 msgstr ""
 
 msgid "Flushing volumes for filament change"
@@ -4807,6 +4776,12 @@ msgstr "Диаметр сопла"
 msgid "Diameter of nozzle"
 msgstr ""
 
+msgid "Nozzle volume"
+msgstr ""
+
+msgid "Volume of nozzle between the cutter and the end of nozzle"
+msgstr ""
+
 msgid "Reduce infill retraction"
 msgstr ""
 
@@ -5272,6 +5247,15 @@ msgstr ""
 
 msgid "Purging volumes"
 msgstr "Объём очистки"
+
+msgid "Extra flush volume"
+msgstr ""
+
+msgid "mm3"
+msgstr ""
+
+msgid "Flush multiplier"
+msgstr ""
 
 msgid "Prime volume"
 msgstr ""
@@ -9624,8 +9608,8 @@ msgstr ""
 #~ msgstr "Обнаружены расширенные данные"
 
 #~ msgid ""
-#~ "You can't to add the object(s) from %s because of one or some of them is"
-#~ "(are) multi-part"
+#~ "You can't to add the object(s) from %s because of one or some of them "
+#~ "is(are) multi-part"
 #~ msgstr ""
 #~ "Вы не можете добавить модель(и) из %s, потому что одна или несколько из "
 #~ "них являются составными (состоят из нескольких частей)"
@@ -11681,8 +11665,8 @@ msgstr ""
 #~ "default extruder and bed temperature are reset using non-wait command; "
 #~ "however if M104, M109, M140 or M190 are detected in this custom code, "
 #~ "Slic3r will not add temperature commands. Note that you can use "
-#~ "placeholder variables for all Slic3r settings, so you can put a \"M109 S"
-#~ "[first_layer_temperature]\" command wherever you want."
+#~ "placeholder variables for all Slic3r settings, so you can put a \"M109 "
+#~ "S[first_layer_temperature]\" command wherever you want."
 #~ msgstr ""
 #~ "Этот код вставляется между моделями при включении последовательной "
 #~ "печати. По умолчанию экструдер и температура стола сбрасываются с помощью "
@@ -12346,8 +12330,8 @@ msgstr ""
 #~ msgid ""
 #~ "This experimental setting uses outputs the E values in cubic millimeters "
 #~ "instead of linear millimeters. If your firmware doesn't already know "
-#~ "filament diameter(s), you can put commands like 'M200 D"
-#~ "[filament_diameter_0] T0' in your start G-code in order to turn "
+#~ "filament diameter(s), you can put commands like 'M200 "
+#~ "D[filament_diameter_0] T0' in your start G-code in order to turn "
 #~ "volumetric mode on and use the filament diameter associated to the "
 #~ "filament selected in Slic3r. This is only supported in recent Marlin."
 #~ msgstr ""
@@ -12801,8 +12785,8 @@ msgstr ""
 
 #~ msgid "Note: some shortcuts work in (non)editing mode only."
 #~ msgstr ""
-#~ "Примечание: некоторые сочетания клавиш работают только в режиме (не)"
-#~ "редактирования."
+#~ "Примечание: некоторые сочетания клавиш работают только в режиме "
+#~ "(не)редактирования."
 
 #~ msgid "Left click"
 #~ msgstr "Левая кнопка мыши"
@@ -13239,10 +13223,10 @@ msgstr ""
 #~ "time. As of now only the Prusa i3 MK3 firmware recognizes M73. Also the "
 #~ "i3 MK3 firmware supports M73 Qxx Sxx for the silent mode."
 #~ msgstr ""
-#~ "Добавляет команду М73 P[процентов напечатано в нормальном режиме] R"
-#~ "[оставшееся время в секундах в нормальном режиме] с интервалом в 1 минуту "
-#~ "в G-код, чтобы прошивка отображала оставшееся время печати. На данный "
-#~ "момент только прошивка Prusa i3 MK3 распознает команду M73. Также "
+#~ "Добавляет команду М73 P[процентов напечатано в нормальном режиме] "
+#~ "R[оставшееся время в секундах в нормальном режиме] с интервалом в 1 "
+#~ "минуту в G-код, чтобы прошивка отображала оставшееся время печати. На "
+#~ "данный момент только прошивка Prusa i3 MK3 распознает команду M73. Также "
 #~ "прошивка i3 MK3 поддерживает команду M73 Qxx Sxx для тихого режима печати."
 
 #~ msgid ""
@@ -14212,8 +14196,8 @@ msgstr ""
 #~ "Этот пользовательский код вставляется перед каждой сменой инструмента. Вы "
 #~ "можете использовать шаблонные переменные для всех параметров PrusaSlicer "
 #~ "в том числе {previous_extruder} и {next_extruder}. При включении команды "
-#~ "смены инструмента, которая заменяет правильный экструдер (например T"
-#~ "{next_extruder}), PrusaSlicer не будет запускать никакие другие подобные "
+#~ "смены инструмента, которая заменяет правильный экструдер (например "
+#~ "T{next_extruder}), PrusaSlicer не будет запускать никакие другие подобные "
 #~ "команды. Таким образом, можно создавать собственные сценарии поведения до "
 #~ "и после смены инструмента.???"
 
