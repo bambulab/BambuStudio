@@ -118,7 +118,7 @@ void ConfigManipulation::check_bed_temperature_difference(int bed_type, DynamicP
         int vitrification = config->opt_int("temperature_vitrification", 0);
         const ConfigOptionInts* bed_temp_1st_layer_opt = config->option<ConfigOptionInts>(get_bed_temp_1st_layer_key((BedType)bed_type));
         const ConfigOptionInts* bed_temp_opt = config->option<ConfigOptionInts>(get_bed_temp_key((BedType)bed_type));
-        
+
         if (bed_temp_1st_layer_opt != nullptr && bed_temp_opt != nullptr) {
             int first_layer_bed_temp = bed_temp_1st_layer_opt->get_at(0);
             int bed_temp = bed_temp_opt->get_at(0);
@@ -250,7 +250,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
 
     if (config->opt_bool("spiral_mode") &&
-        ! (config->opt_int("wall_loops") == 1 && 
+        ! (config->opt_int("wall_loops") == 1 &&
            config->opt_int("top_shell_layers") == 0 &&
            sparse_infill_density == 0 &&
            ! config->opt_bool("enable_support") &&
@@ -275,7 +275,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
             new_conf.set_key_value("enable_support", new ConfigOptionBool(false));
             new_conf.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
-            new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));            
+            new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
             sparse_infill_density = 0;
             support = false;
         }
@@ -381,7 +381,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             auto it_pattern = std::find(fill_pattern_def->enum_values.begin(), fill_pattern_def->enum_values.end(), sparse_infill_pattern);
             assert(it_pattern != fill_pattern_def->enum_values.end());
             if (it_pattern != fill_pattern_def->enum_values.end()) {
-                wxString msg_text = GUI::format_wxstr(_L("%1% infill pattern doesn't support 100%% density."), 
+                wxString msg_text = GUI::format_wxstr(_L("%1% infill pattern doesn't support 100%% density."),
                     _(fill_pattern_def->enum_labels[it_pattern - fill_pattern_def->enum_values.begin()]));
                 if (is_global_config)
                     msg_text += "\n" + _L("Switch to zig-zag pattern?\n"
@@ -506,7 +506,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     bool have_support_soluble = have_support_material && config->opt_float("support_top_z_distance") == 0;
     auto support_style = config->opt_enum<SupportMaterialStyle>("support_style");
     for (auto el : { "support_style", "support_base_pattern",
-                    "support_base_pattern_spacing", "support_angle", 
+                    "support_base_pattern_spacing", "support_angle",
                     "support_interface_pattern", "support_interface_top_layers", "support_interface_bottom_layers",
                     "bridge_no_support", "support_top_z_distance",
                      //BBS: add more support params to dependent of enable_support

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-22 11:16+0800\n"
+"POT-Creation-Date: 2022-06-22 17:14+0800\n"
 "PO-Revision-Date: 2022-05-17 15:42+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -401,16 +401,16 @@ msgstr ""
 "否 - 自动重置为非100%填充密度\n"
 
 msgid "The bed is auto leveling"
-msgstr ""
+msgstr "热床正在自动调平"
 
 msgid "The hot bed is preheating"
-msgstr ""
+msgstr "热床正在预加热"
 
 msgid "Frequncy sweeping"
-msgstr ""
+msgstr "机器正在进行扫频"
 
 msgid "Change the filament"
-msgstr ""
+msgstr "更改材料"
 
 msgid "Pause(M400)"
 msgstr "暂停（M400）"
@@ -419,16 +419,16 @@ msgid "Pause(Lack of filament)"
 msgstr "缺料暂停"
 
 msgid "The nozzle is preheating"
-msgstr ""
+msgstr "喷头正在预加热"
 
 msgid "Extruder compensation scanning"
-msgstr ""
+msgstr "正在进行挤出补偿扫描"
 
 msgid "Bed surface scanning"
-msgstr ""
+msgstr "正在进行热床表面扫描"
 
 msgid "First layer scanning"
-msgstr ""
+msgstr "正在进行首层扫描"
 
 msgid "Bed surface is auto identifying"
 msgstr ""
@@ -1006,7 +1006,7 @@ msgid "Rotation:"
 msgstr "旋转："
 
 msgid "Height:"
-msgstr ""
+msgstr "高度："
 
 msgid "Keep upper part"
 msgstr "保留上半部分"
@@ -1074,7 +1074,7 @@ msgstr "显示线框"
 
 #, boost-format
 msgid "%1%"
-msgstr ""
+msgstr "%1%"
 
 msgid "Close"
 msgstr "关闭"
@@ -1174,7 +1174,7 @@ msgid "New version of Bambu Studio"
 msgstr "新版本的Bambu Studio"
 
 msgid "The Bambu Studio needs an upgrade"
-msgstr ""
+msgstr "Bambu Studio需要进行升级"
 
 msgid "Loading user presets..."
 msgstr "正在加载用户预设..."
@@ -1334,10 +1334,10 @@ msgid "Fix model"
 msgstr "修复模型"
 
 msgid "Fix model through cloud"
-msgstr ""
+msgstr "通过云端修复模型"
 
 msgid "Fix model locally"
-msgstr ""
+msgstr "本地修复模型"
 
 msgid "Export as STL"
 msgstr "导出为 STL"
@@ -1519,7 +1519,7 @@ msgstr[0] "%1$d个错误被修复"
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold edge."
 msgid_plural "Error: %1$d non-manifold edges."
-msgstr[0] ""
+msgstr[0] "错误: %1$d 非流形边."
 
 msgid "Remaining errors"
 msgstr "剩余错误"
@@ -1527,7 +1527,7 @@ msgstr "剩余错误"
 #, c-format, boost-format
 msgid "%1$d non-manifold edge"
 msgid_plural "%1$d non-manifold edges"
-msgstr[0] ""
+msgstr[0] "%1$d 非流形边"
 
 msgid "Right click the icon to fix model object"
 msgstr "右键点击此图标可修复模型对象"
@@ -1563,7 +1563,7 @@ msgid "Generic"
 msgstr "通用"
 
 msgid "Add Modifier"
-msgstr ""
+msgstr "添加修改器"
 
 msgid "Deleting the last solid part is not allowed."
 msgstr "不允许删除对象的最后一个实体零件。"
@@ -2111,7 +2111,7 @@ msgid "Machine Control"
 msgstr "打印机控制"
 
 msgid "Start Calibration"
-msgstr ""
+msgstr "开始校准"
 
 msgid "100%"
 msgstr "100%"
@@ -2129,13 +2129,13 @@ msgid "Bed"
 msgstr "热床"
 
 msgid "Debug Info"
-msgstr ""
+msgstr "调试信息"
 
 msgid "Printing List"
 msgstr "项目切片"
 
 msgid "Calibrating"
-msgstr ""
+msgstr "校准中"
 
 msgid "Resume"
 msgstr "继续"
@@ -2277,7 +2277,7 @@ msgid "Export ok."
 msgstr "导出成功."
 
 msgid " (Repair)"
-msgstr ""
+msgstr "（修复）"
 
 msgid "WARNING:"
 msgstr "警告："
@@ -2460,9 +2460,11 @@ msgid ""
 "The object from file %s is too small, and maybe in meters or inches.\n"
 " Do you want to scale to millimeters?"
 msgstr ""
+"文件 %s 中对象的尺寸似乎是以米或者英寸为单位定义的。\n"
+"BambuStudio的内部单位为毫米。是否要转换成毫米？"
 
 msgid "Object too small"
-msgstr ""
+msgstr "对象尺寸过小"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "将这些文件加载为一个多零件对象？\n"
@@ -2586,7 +2588,7 @@ msgid "Send to printer"
 msgstr "发送到打印机"
 
 msgid "Custom supports and color painting were removed before repairing."
-msgstr ""
+msgstr "自定义的支撑和涂色在模型修复之前将被清除。"
 
 msgid "Invalid number"
 msgstr "无效数字"
@@ -2613,7 +2615,7 @@ msgstr "体积： %1% 毫米³\n"
 
 #, boost-format
 msgid "Triangles: %1%\n"
-msgstr ""
+msgstr "三角形：%1%\n"
 
 msgid "Chinese (Simplified)"
 msgstr "中文(简体)"
@@ -3587,7 +3589,7 @@ msgid "Select the object/part and mouse click to change the name"
 msgstr "选中对象、零件，双击零件名可修改名称"
 
 msgid "Objects List"
-msgstr ""
+msgstr "对象列表"
 
 msgid "Vertical slider - Move active thumb Up"
 msgstr "垂直滑动条 - 向上移动一层"
@@ -4046,7 +4048,7 @@ msgid "Other layers"
 msgstr "其它层"
 
 msgid "bed temperature for layers except the initial one"
-msgstr ""
+msgstr "除了首层之外的热床温度"
 
 msgid "°C"
 msgstr "°C"
@@ -7023,19 +7025,19 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ msgid "Support material"
 #~ msgstr "支撑材料"
 
-msgid "Portions copyright"
-msgstr "部分版权"
+#~ msgid "Portions copyright"
+#~ msgstr "部分版权"
 
-msgid "Copyright"
-msgstr "版权"
+#~ msgid "Copyright"
+#~ msgstr "版权"
 
-msgid ""
-"License agreements of all following programs (libraries) are part of "
-"application license agreement"
-msgstr "所有以下程序(库)的许可协议是应用程序许可协议的一部分"
+#~ msgid ""
+#~ "License agreements of all following programs (libraries) are part of "
+#~ "application license agreement"
+#~ msgstr "所有以下程序(库)的许可协议是应用程序许可协议的一部分"
 
-msgid "About %s"
-msgstr "关于 %s"
+#~ msgid "About %s"
+#~ msgstr "关于 %s"
 
 #~ msgid "is licensed under the"
 #~ msgstr "根据"

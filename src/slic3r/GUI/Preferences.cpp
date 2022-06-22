@@ -598,7 +598,7 @@ void PreferencesDialog::create_general_page()
     auto title_general_settings = create_item_title(_L("General settings"), page, _L("General settings"));
 
     // bbs supported languages
-    wxLanguage supported_languages[]{wxLANGUAGE_ENGLISH, wxLANGUAGE_CHINESE_SIMPLIFIED};
+    wxLanguage supported_languages[]{wxLANGUAGE_ENGLISH, wxLANGUAGE_CHINESE_SIMPLIFIED, wxLANGUAGE_SPANISH };
 
 
     auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
