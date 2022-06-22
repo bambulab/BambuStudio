@@ -275,7 +275,7 @@ void StatusBasePanel::on_size(wxSizeEvent &event)
 void StatusBasePanel::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
-    float aspect_ratio = 3;
+    float aspect_ratio = 3.4;
     auto  size         = this->GetSize();
     float new_height   = float(size.x) / aspect_ratio;
 

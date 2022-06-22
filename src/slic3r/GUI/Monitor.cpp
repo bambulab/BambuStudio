@@ -259,21 +259,30 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
 
 void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
 {
-    BBL::AccountManager *account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    auto mouse_pos = ClientToScreen(event.GetPosition());
+    wxPoint rect = m_side_tools->ClientToScreen(wxPoint(0, 0));
 
-    // BBS check user login status
-    if (!account_manager->is_user_login()) {
-        // tips to login
-        return;
-    }
+    if (mouse_pos.x >  rect.x 
+        && mouse_pos.x <  rect.x + m_side_tools->GetSize().GetWidth()
+        && mouse_pos.y >  rect.y
+        && mouse_pos.y <  rect.y + m_side_tools->GetSize().GetHeight())
+    {
+        BBL::AccountManager *account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
 
-    /* query print info */
-    SelectMachinePopup *m_select_machine = new SelectMachinePopup(this);
+        // BBS check user login status
+        if (!account_manager->is_user_login()) {
+            // tips to login
+            return;
+        }
 
-    wxPoint pos = m_side_tools->ClientToScreen(wxPoint(0, 0));
-    pos.y += m_side_tools->GetRect().height;
-    m_select_machine->Position(pos, wxSize(0, 0));
-    m_select_machine->Popup();
+        /* query print info */
+        SelectMachinePopup *m_select_machine = new SelectMachinePopup(this);
+
+        wxPoint pos = m_side_tools->ClientToScreen(wxPoint(0, 0));
+        pos.y += m_side_tools->GetRect().height;
+        m_select_machine->Position(pos, wxSize(0, 0));
+        m_select_machine->Popup();
+    } 
 }
 
 
