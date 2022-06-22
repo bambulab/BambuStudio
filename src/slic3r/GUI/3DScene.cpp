@@ -429,6 +429,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
 {
     color = { r, g, b, a };
     set_render_color(color);
+    mmuseg_ts = 0;
 }
 
 void GLVolume::set_color(const std::array<float, 4>& rgba)
