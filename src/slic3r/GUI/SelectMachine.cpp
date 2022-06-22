@@ -136,7 +136,6 @@ void MachineObjectPanel::show_unbind_dialog()
 
 void MachineObjectPanel::show_bind_dialog()
 {
-    // if (m_info->can_abort()) return;
     BindMachineDilaog dlg;
     dlg.update_machine_info(m_info);
     switch (dlg.ShowModal()) {
@@ -149,6 +148,28 @@ void MachineObjectPanel::show_bind_dialog()
     }
 
     default:;
+    }
+}
+
+void MachineObjectPanel::show_enter_accesscode_dialog()
+{
+    wxString pwd = wxGetPasswordFromUser("Enter Access Code:",
+        "Access Code entry dialog",
+        wxEmptyString,
+        this);
+    if (!pwd.empty())
+    {
+        wxMessageBox(wxString::Format("Your access code is '%s'", pwd),
+            "Got Access Code", wxOK | wxICON_INFORMATION, this);
+    }
+
+    std::string pwd_str = pwd.ToStdString();
+
+    // save to app_config
+    if (m_info) {
+        m_info->access_code = pwd_str;
+        // update config
+        get_app_config()->set("access_code", m_info->dev_id, pwd_str);
     }
 }
 
@@ -321,7 +342,13 @@ void MachineObjectPanel::on_mouse_left_down(wxMouseEvent &evt)
     
     /* set monitor page to current device */
     if (m_state_can_bind) {
-        show_bind_dialog();
+        if (m_info->connection_type() != "lan") {
+            show_bind_dialog();
+        } else {
+            show_enter_accesscode_dialog();
+        }
+        
+        wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
     } else {
         auto left   = GetSize().x - m_unbind_img.GetSize().x - 15;
         auto right  = left + m_unbind_img.GetSize().x;
@@ -417,16 +444,21 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
     m_refresh_timer->SetOwner(this);
     m_refresh_timer->Start(MACHINE_LIST_REFRESH_INTERVAL);
     
-    get_print_info_thread = Slic3r::create_thread([this] {
-        DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-        dev->update_user_machine_list_info();
+    BBL::AccountManager* acc = wxGetApp().getAccountManager();
+
+    if (acc->is_user_login()) {
+        get_print_info_thread = new boost::thread(Slic3r::create_thread([this] {
+                DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+                dev->update_user_machine_list_info();
         
-        if (!was_dismiss()) {
-            wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
-            event.SetEventObject(this);
-            wxPostEvent(this, event);
-        }
-    });
+                if (!was_dismiss()) {
+                    wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
+                    event.SetEventObject(this);
+                    wxPostEvent(this, event);
+                }
+            })
+        );
+    }
     
     wxPostEvent(this, wxTimerEvent());
     wxPopupTransientWindow::Popup();
@@ -444,9 +476,11 @@ void SelectMachinePopup::OnDismiss()
 
     Slic3r::create_thread([this] {
         stop_ssdp();
-        get_print_info_thread.interrupt();
-        if (get_print_info_thread.joinable()) {
-            get_print_info_thread.join();
+        if (get_print_info_thread) {
+            get_print_info_thread->interrupt();
+            if (get_print_info_thread->joinable()) {
+                get_print_info_thread->join();
+            }
         }
     });
 }
@@ -485,17 +519,16 @@ wxWindow *SelectMachinePopup::create_title_panel(wxString text)
 void SelectMachinePopup::on_timer(wxTimerEvent &event)
 {
     DeviceManager *dev = wxGetApp().getDeviceManager();
-    auto all_machine_list = dev->get_local_machine_list();
+    auto local_machine_list = dev->get_local_machine_list();
 
     m_free_machine_list.clear();
-    m_free_machine_list = all_machine_list;    
 
-    /*for (auto& elem : all_machine_list) {
+    for (auto& elem : local_machine_list) {
         MachineObject* dev = elem.second;
-        if (dev->get_bind_str() == "Free") {
-            this->m_free_machine_list[elem.first] = elem.second;
+        if (elem.second->is_avaliable()) {
+            m_free_machine_list[elem.first] = elem.second;
         }
-    }*/
+    }
     wxCommandEvent bind_event(EVT_REQUEST_BIND_LIST);
     bind_event.SetEventObject(this);
     wxPostEvent(this, bind_event);
@@ -513,7 +546,6 @@ void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
         MachineObject *     mobj = elem.second;
         MachineObjectPanel *op = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
         op->set_can_bind(true);
-        //if (mobj->can_abort()) {op->set_printer_busy();} 
         if (can_abort(mobj->print_status)) {
             op->set_printer_busy();
         }
@@ -536,7 +568,7 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
 {
     Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     m_bind_machine_list.clear();
-    m_bind_machine_list = dev->userMachineList;
+    m_bind_machine_list = dev->get_my_machine_list();
 
     m_scrolledWindow->Freeze();
     for (auto &elem : m_bind_machine_list) {
@@ -1068,7 +1100,10 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
 
     BBL::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    MachineObject* obj_ = dev->get_user_machine(m_printer_last_select);
+
+    MachineObject* obj_ = dev->get_selected_machine();
+    assert(obj_->dev_id == m_printer_last_select);
+
     if (obj_ == nullptr) {
         update_err_msg(_L("Please select a printer first."));
         return;
@@ -1128,6 +1163,8 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     }
 
     m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, m_printer_last_select);
+    m_print_job->m_dev_ip = obj_->dev_ip;
+    m_print_job->m_access_code = obj_->access_code;
 
     m_print_job->set_print_config(
         // MachineBedTypeString[m_comboBox_bed->GetSelection()],
@@ -1200,10 +1237,11 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
     m_comboBox_printer->Clear();
 
     std::vector<std::string> machine_list;
-
-    std::map<std::string, MachineObject *> my_bind_machine_list = dev->userMachineList;
+    std::map<std::string, MachineObject*> option_list;
+    
+    option_list = dev->get_my_machine_list();
     // same machine only appear once
-    for (auto it = my_bind_machine_list.begin(); it != my_bind_machine_list.end(); it++) {
+    for (auto it = option_list.begin(); it != option_list.end(); it++) {
         if (it->second && it->second->is_online()) {
             machine_list.push_back(it->second->dev_name);
         }
@@ -1211,7 +1249,7 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
     
     machine_list = sort_string(machine_list);
     for (auto tt = machine_list.begin(); tt != machine_list.end(); tt++) {
-        for (auto it = my_bind_machine_list.begin(); it != my_bind_machine_list.end(); it++) {
+        for (auto it = option_list.begin(); it != option_list.end(); it++) {
             if (it->second->dev_name == *tt) {
                 m_list.push_back(it->second);
                 m_comboBox_printer->Append(from_u8(it->second->dev_name));
@@ -1245,19 +1283,43 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
 {
     DeviceManager* dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
 
-    MachineObject* obj_ = dev_manager->get_user_machine(m_printer_last_select);
-    if (obj_) {
-        if (!obj_->amsList.empty()) {
-            if (m_ams_mapping_result.empty()) {
-                obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result);
-                wxString mapping_text = "ams mapping result=";
-                for (auto f = m_ams_mapping_result.begin(); f != m_ams_mapping_result.end(); f++) {
-                    BOOST_LOG_TRIVIAL(trace) << "ams_mapping f id = " << f->id << ", tray_id = "<< f->tray_id <<", color = " << f->color << ", type = " << f->type;
-                    mapping_text += wxString::Format("F%d:AMS%d, ", f->id, f->tray_id);
-                }
-                update_err_msg(mapping_text);
+    MachineObject* obj_ = dev_manager->get_selected_machine();
+    if (!obj_) return;
+    
+    // ams mapping
+    if (!obj_->amsList.empty()) {
+        if (m_ams_mapping_result.empty()) {
+            obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result);
+            wxString mapping_text = "ams mapping result=";
+            for (auto f = m_ams_mapping_result.begin(); f != m_ams_mapping_result.end(); f++) {
+                BOOST_LOG_TRIVIAL(trace) << "ams_mapping f id = " << f->id << ", tray_id = "<< f->tray_id <<", color = " << f->color << ", type = " << f->type;
+                mapping_text += wxString::Format("F%d:AMS%d, ", f->id, f->tray_id);
             }
+            update_err_msg(mapping_text);
         }
+    }
+    
+    if (obj_->connection_type() != "lan") {
+        BBL::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
+        if (c->is_user_login()) {
+            if (this == NULL || this == nullptr) { return; }
+            boost::thread get_print_info_thread = Slic3r::create_thread([this] {
+                DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+                dev->update_user_machine_list_info();
+
+                wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
+                event.SetEventObject(this);
+                wxPostEvent(this, event);
+                });
+        }
+        // only update once
+        if (m_refresh_timer) {
+            m_refresh_timer->Stop();
+        }
+    } else {
+        wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
+        event.SetEventObject(this);
+        wxPostEvent(this, event);
     }
 }
 
@@ -1273,10 +1335,10 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 
     for (int i = 0; i < m_list.size(); i++) {
         if (m_list[i]->dev_name == dev_name && i == selection) {
+            DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
             m_printer_last_select = m_list[i]->dev_id;
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  "for send task, current printer id =  "<< m_printer_last_select << std::endl;
-            DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-            dev->set_monitoring_machine(m_list[i]->dev_id);
+            dev->set_selected_machine(m_printer_last_select);
             update_select_layout(m_list[i]->printer_type);
             break;
         }
@@ -1312,17 +1374,29 @@ bool SelectMachineDialog::Show(bool show)
             acc->start_subscribe("send_print");
         else
             acc->stop_subscribe("send_print");
+
+        if (acc->is_user_login()) {
+            boost::thread get_print_info_thread = Slic3r::create_thread([this] {
+                DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+                dev->update_user_machine_list_info();
+
+                wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
+                event.SetEventObject(this);
+                wxPostEvent(this, event);
+                });
+        }
     }
 
-    if (acc->is_user_login()) {
-        boost::thread get_print_info_thread = Slic3r::create_thread([this] {
-            DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-            dev->update_user_machine_list_info();
-
-            wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
-            event.SetEventObject(this);
-            wxPostEvent(this, event);
-            });
+    BBL::SsdpDiscovery* ssdp = wxGetApp().getSsdpDiscovery();
+    if (ssdp) {
+        if (show) {
+            ssdp->start();
+            ssdp->set_ssdp_discovery(true);
+        }
+        else {
+            ssdp->set_ssdp_discovery(false);
+            ssdp->stop();
+        }
     }
 
     // thumbmail
@@ -1474,7 +1548,6 @@ bool SelectMachineDialog::Show(bool show)
     } else {
         m_refresh_timer->Stop();
     }
-
     Thaw();
     return DPIDialog::Show(show);
 }

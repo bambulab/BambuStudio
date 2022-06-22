@@ -184,8 +184,9 @@ size_t Sftp::priv::file_read_cb(char* buffer, size_t size, size_t nitems, void* 
     catch (const std::exception&) {
         return CURL_READFUNC_ABORT;
     }
-
-    return stream->gcount();
+    
+    size_t retcode = stream->gcount();
+    return retcode;
 }
 
 int Sftp::priv::xfercb(void* userp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
@@ -225,7 +226,7 @@ void Sftp::priv::set_src_path(const std::string src_path)
         boost::system::error_code ec;
         boost::uintmax_t filesize = file_size(path, ec);
         if (!ec) {
-            uploadFile = std::make_unique<fs::ifstream>(path);
+            uploadFile = std::make_unique<fs::ifstream>(path, std::ios::in | std::ios::binary);
             ::curl_easy_setopt(curl, CURLOPT_READDATA, (void*)(uploadFile.get()));
             ::curl_easy_setopt(curl, CURLOPT_INFILESIZE, filesize);
         }
@@ -312,7 +313,7 @@ Sftp& Sftp::on_progress(ProgressFn fn)
 
 Sftp Sftp::upload(std::string url, std::string src_path, std::string dst_path, std::string user, std::string password)
 {
-    std::string url_str = (boost::format("sftp://%1%:%2%@%3%") % user % password % url).str();
+    std::string url_str = (boost::format("ftp://%1%:%2%@%3%") % user % password % url).str();
     std::string full_url = url_str + dst_path;
     
     Sftp sftp(std::move(full_url));

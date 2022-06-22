@@ -152,6 +152,7 @@ public:
             void on_message_arrived(wxCommandEvent& evt);
             void on_message_sent(wxCommandEvent& evt);
             void on_log_info(wxCommandEvent& evt);
+            void on_local_connected(int state, std::string dev_id, std::string msg);
             void get_version();
             void message_arrived(std::string dev_id, std::string msg);
 

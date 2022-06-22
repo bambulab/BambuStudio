@@ -248,7 +248,7 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
  void MonitorPanel::on_select_printer(wxCommandEvent& event)
 {
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    dev->set_monitoring_machine(event.GetString().ToStdString());
+    dev->set_selected_machine(event.GetString().ToStdString());
 
     set_default();
     update_all();
@@ -267,14 +267,6 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
         && mouse_pos.y >  rect.y
         && mouse_pos.y <  rect.y + m_side_tools->GetSize().GetHeight())
     {
-        BBL::AccountManager *account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-
-        // BBS check user login status
-        if (!account_manager->is_user_login()) {
-            // tips to login
-            return;
-        }
-
         /* query print info */
         SelectMachinePopup *m_select_machine = new SelectMachinePopup(this);
 
@@ -338,20 +330,25 @@ void MonitorPanel::update_all()
     BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
 
+    obj = dev->get_selected_machine();
+
     //BBS check user login status
-    if (!account_manager->is_user_login()) {
+    /*if (!account_manager->is_user_login()) {
         show_status((int)MONITOR_NO_PRINTER);
         return;
+    }*/
+
+    //BBS check mqtt connections if user is login
+    if (account_manager->is_user_login()) {
+        // check mqtt connection and reconnect if disconnected
+        try {
+            account_manager->check_mqtt_connection();
+        }
+        catch (...) {
+            ;
+        }
     }
 
-    // check mqtt connection and reconnect if disconnected
-    try {
-        account_manager->check_mqtt_connection();
-    } catch (...) {
-        ;
-    }
-
-    obj = dev->get_default_machine();
     m_status_info_panel->obj = obj;
 
 #if !BBL_RELEASE_TO_PUBLIC
@@ -369,7 +366,11 @@ void MonitorPanel::update_all()
     }
 
     if (!obj->is_connected()) {
-        int server_status = account_manager->is_mqtt_connected() ? 0 : (int)MONITOR_DISCONNECTED_SERVER;
+        int server_status = 0;
+        // only disconnected server in cloud mode
+        if (obj->connection_type() != "lan") {
+            server_status = account_manager->is_mqtt_connected() ? 0 : (int)MONITOR_DISCONNECTED_SERVER;
+        }
         show_status((int) MONITOR_DISCONNECTED + server_status);
         return;
     }

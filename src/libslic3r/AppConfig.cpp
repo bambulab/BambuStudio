@@ -208,62 +208,61 @@ void AppConfig::set_defaults()
         set_bool("show_home_page", true);
     }
 
-
     if (get("show_printable_box").empty()) {
         set_bool("show_printable_box", true);
     }
 
-     if (get("units").empty()) {
-          set("units", "0");
-     }
+    if (get("units").empty()) {
+         set("units", "0");
+    }
 
-     if (get("user_sync_switch").empty()) {
-         set_bool("user_sync_switch", false);
-     }
+    if (get("user_sync_switch").empty()) {
+        set_bool("user_sync_switch", false);
+    }
 
-     if (get("preset_sync_switch").empty()) {
-         set_bool("preset_sync_switch", false);
-     }
+    if (get("preset_sync_switch").empty()) {
+        set_bool("preset_sync_switch", false);
+    }
 
-     if (get("preferences_sync_switch").empty()) {
-         set_bool("preferences_sync_switch", false);
-     }
+    if (get("preferences_sync_switch").empty()) {
+        set_bool("preferences_sync_switch", false);
+    }
 
-     if (get("keyboard_supported").empty()) {
-         set("keyboard_supported", std::string("none/alt/control/shift"));
-     }
+    if (get("keyboard_supported").empty()) {
+        set("keyboard_supported", std::string("none/alt/control/shift"));
+    }
 
-      if (get("mouse_supported").empty()) {
-          set("mouse_supported", "mouse left/mouse middle/mouse right");
-      }
+    if (get("mouse_supported").empty()) {
+        set("mouse_supported", "mouse left/mouse middle/mouse right");
+    }
 
-      if (get("rotate_view").empty()) {
-          set("rotate_view", "none/mouse left");
-      }
+    if (get("rotate_view").empty()) {
+        set("rotate_view", "none/mouse left");
+    }
 
-      if (get("move_view").empty()) {
-          set("move_view", "none/mouse left");
-      }
+    if (get("move_view").empty()) {
+        set("move_view", "none/mouse left");
+    }
 
-      if (get("zoom_view").empty()) {
-          set("zoom_view", "none/mouse left");
-      }
+    if (get("zoom_view").empty()) {
+        set("zoom_view", "none/mouse left");
+    }
 
-      if (get("precise_control").empty()) {
-          set("precise_control", "none/mouse left");
-      }
+    if (get("precise_control").empty()) {
+        set("precise_control", "none/mouse left");
+    }
 
-       if (get("mouse_wheel").empty()) {
-           set("mouse_wheel", "0");
-       }
+    if (get("mouse_wheel").empty()) {
+        set("mouse_wheel", "0");
+    }
 
-       if (get("backup_switch").empty()) {
-            set_bool("backup_switch", false);
-       }
+    if (get("backup_switch").empty()) {
+        set_bool("backup_switch", false);
+    }
 
-       if (get("backup_interval").empty()) {
-           set("backup_interval", "10");
-       }
+    if (get("backup_interval").empty()) {
+        set("backup_interval", "10");
+    }
 
     if (get("iot_environment").empty()) {
         set("iot_environment", "1");

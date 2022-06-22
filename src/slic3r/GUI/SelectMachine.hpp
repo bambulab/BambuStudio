@@ -135,7 +135,7 @@ public:
 
 	void show_unbind_dialog();
     void show_bind_dialog();
-    // void update_machine_info(MachineObject* obj);
+    void show_enter_accesscode_dialog();
  
     void set_printer_idle();
     void set_printer_busy();
@@ -203,7 +203,7 @@ private:
     wxWindow *                        m_panel_body{nullptr};
     wxTimer *                         m_refresh_timer{nullptr};
     MachinePanelHash                  m_list_Machine_panel;
-    boost::thread                     get_print_info_thread;
+    boost::thread*                    get_print_info_thread {nullptr};
     bool                              m_dismiss { false };
 
     std::map<std::string, MachineObject*> m_bind_machine_list; 

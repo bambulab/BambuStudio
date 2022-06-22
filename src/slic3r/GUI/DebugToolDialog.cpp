@@ -486,56 +486,18 @@ void DebugToolDialog::init()
     btn_unbind->Hide();
 
     btn_connect->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-        MachineObject* obj = dev_manager_.get_default();
+        MachineObject* obj = dev_manager_.get_local_selected_machine();
         if (!obj) {
             this->send_log_evt("Invalid Printer! Please Select a Printer!");
             return;
         }
-
-        BBL::AccountManager* acc = wxGetApp().getAccountManager();
-        acc->set_on_local_connect_fn(
-            [this, obj](int state, std::string dev_id, std::string msg){
-                if (state == BBL::ConnectStatus::ConnectStatusOk) {
-                    obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_CONNECTED);
-                    this->send_log_evt("Connected to Printer=" + dev_id);
-                    auto evt = new wxCommandEvent(EVT_MQTT_CONNECTED, this->GetId());
-                    evt->SetString(msg);
-                    wxQueueEvent(this, evt);
-                } else if (state == BBL::ConnectStatus::ConnectStatusFailed) {
-                    obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
-                    auto evt = new wxCommandEvent(EVT_MQTT_FAILED, this->GetId());
-                    evt->SetString(msg);
-                    wxQueueEvent(this, evt);
-                } else if (state == BBL::ConnectStatus::ConnectStatusLost) {
-                    obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
-                    auto evt = new wxCommandEvent(EVT_MQTT_LOST, this->GetId());
-                    evt->SetString(msg);
-                    wxQueueEvent(this, evt);
-                }
-            }
-        );
-
-        acc->set_on_local_message_fn(
-            [this](std::string dev_id, std::string msg) {
-                DeviceManager* dev = wxGetApp().getDeviceManager();
-                MachineObject* obj = dev->get_local_machine(dev_id);
-                if (obj) {
-                    obj->parse_json(msg);
-                }
-
-                this->mqtt_msg_queue.push(msg);
-                auto evt = new wxCommandEvent(EVT_MESSAGE_ARRIVED, this->GetId());
-                evt->SetString(dev_id);
-                wxQueueEvent(this, evt);
-            }
-        );
 
         std::string info = "MQTT connecting dev_id=" + obj->dev_id;
         this->send_log_evt(info);
         obj->connect();
     });
     btn_disconnect->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            MachineObject* obj = dev_manager_.get_default();
+            MachineObject* obj = dev_manager_.get_local_selected_machine();
             if (!obj) {
                 this->send_log_evt("Invalid Printer! Please Select a Printer!");
                 return;
@@ -664,7 +626,7 @@ void DebugToolDialog::init()
     btn_run_gcode->Bind(wxEVT_BUTTON,
         [this](wxCommandEvent& evt) {
             Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-            MachineObject* obj = device_manager->get_default();
+            MachineObject* obj = device_manager->get_local_selected_machine();
             GcodePrintJob* m_print_job = new GcodePrintJob(m_status_bar, txt_gcode_filename->GetValue().ToUTF8().data(), obj);
             m_print_job->start();
         });
@@ -863,7 +825,7 @@ void DebugToolDialog::init()
     });
 
     m_radioBox_chamber_light->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent& evt) {
-            MachineObject* obj = dev_manager_.get_default();
+            MachineObject* obj = dev_manager_.get_local_selected_machine();
             if (!obj) {
                 this->send_log_evt("Invalid Printer! Please Select a Printer!");
                 return;
@@ -877,7 +839,7 @@ void DebugToolDialog::init()
         });
 
     m_radioBox_work_light->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent& evt) {
-            MachineObject* obj = dev_manager_.get_default();
+            MachineObject* obj = dev_manager_.get_local_selected_machine();
             if (!obj) {
                 this->send_log_evt("Invalid Printer! Please Select a Printer!");
                 return;
@@ -1259,12 +1221,13 @@ void DebugToolDialog::get_version() {
 void DebugToolDialog::message_arrived(std::string dev_id, std::string msg)
 {
     if (!radio_btn_lan->GetValue()) {
-        DeviceManager* dev = wxGetApp().getDeviceManager();
         this->mqtt_msg_queue_cloud.push(msg);
-        auto evt = new wxCommandEvent(EVT_MESSAGE_ARRIVED, this->GetId());
-        evt->SetString(dev_id);
-        wxQueueEvent(this, evt);
+    } else {
+        this->mqtt_msg_queue.push(msg);
     }
+    auto evt = new wxCommandEvent(EVT_MESSAGE_ARRIVED, this->GetId());
+    evt->SetString(dev_id);
+    wxQueueEvent(this, evt);
 }
 
 void DebugToolDialog::jump_to_printer(wxString selected)
@@ -1393,7 +1356,7 @@ int DebugToolDialog::publish_json(std::string json_str)
         std::transform(user_name.begin(), user_name.end(), user_name.begin(),
             [](unsigned char c) { return std::tolower(c); });
 
-        MachineObject* obj = dev_manager_.get_default();
+        MachineObject* obj = dev_manager_.get_local_selected_machine();
         if (!obj) {
             this->send_log_evt("Invalid Printer! Please Select a Printer!");
             return -1;
@@ -1427,6 +1390,30 @@ void DebugToolDialog::on_message_sent(wxCommandEvent& evt)
     this->log_info(evt.GetString().ToStdString());
 }
 
+void DebugToolDialog::on_local_connected(int state, std::string dev_id, std::string msg)
+{
+    MachineObject* obj = dev_manager_.get_local_selected_machine();
+    if (state == BBL::ConnectStatus::ConnectStatusOk) {
+        obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_CONNECTED);
+        this->send_log_evt("Connected to Printer=" + dev_id);
+        auto evt = new wxCommandEvent(EVT_MQTT_CONNECTED, this->GetId());
+        evt->SetString(msg);
+        wxQueueEvent(this, evt);
+    }
+    else if (state == BBL::ConnectStatus::ConnectStatusFailed) {
+        obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
+        auto evt = new wxCommandEvent(EVT_MQTT_FAILED, this->GetId());
+        evt->SetString(msg);
+        wxQueueEvent(this, evt);
+    }
+    else if (state == BBL::ConnectStatus::ConnectStatusLost) {
+        obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
+        auto evt = new wxCommandEvent(EVT_MQTT_LOST, this->GetId());
+        evt->SetString(msg);
+        wxQueueEvent(this, evt);
+    }
+}
+
 void DebugToolDialog::on_log_info(wxCommandEvent& evt)
 {
     this->log_info(evt.GetString().ToStdString());
@@ -1437,7 +1424,7 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
 {
     MachineObject *obj = nullptr;
     if (radio_btn_lan->GetValue()) {
-        obj = dev_manager_.get_default();
+        obj = dev_manager_.get_local_selected_machine();
     } else {
         obj = dev_manager_.get_default_machine();
     }
@@ -1663,7 +1650,7 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
         hardware_version = "v7";
     }
 
-    MachineObject *obj        = dev_manager_.get_default();
+    MachineObject *obj        = dev_manager_.get_local_selected_machine();
     if (!obj)
         return;
 
@@ -1823,7 +1810,7 @@ int DebugToolDialog::publishGcode(std::string gcode)
 
 #ifdef __CHECK_BIND_USER__
         /* compare with bind user */
-        MachineObject *obj = dev_manager_.get_default();
+        MachineObject *obj = dev_manager_.get_local_selected_machine();
         if (!obj) return -1;
         if (obj->bind_user_id.empty()) return -1;
         if (obj->bind_user_id.compare(account_manager->get_curr_user()->get_user_id()) != 0) {
@@ -1858,12 +1845,12 @@ int DebugToolDialog::publishGcode(std::string gcode)
 
 void DebugToolDialog::on_select_device(wxCommandEvent& evt)
 {
-    MachineObject* last_obj = dev_manager_.get_default();
+    MachineObject* last_obj = dev_manager_.get_local_selected_machine();
     //machine_list_items
     int selection = evt.GetSelection();
     if (selection < machine_list_items.size()) {
-        dev_manager_.local_default_machine = machine_list_items[selection];
-        send_log_evt("Select Printer=" + dev_manager_.local_default_machine);
+        dev_manager_.local_selected_machine = machine_list_items[selection];
+        send_log_evt("Select Printer=" + dev_manager_.local_selected_machine);
 
         /* update widget values */
         last_device_selection = selection;
@@ -1875,12 +1862,6 @@ void DebugToolDialog::on_select_device(wxCommandEvent& evt)
 
 void DebugToolDialog::on_select_mybind_device(wxCommandEvent& evt)
 {
-    BBL::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
-    MachineObject* last_obj = dev_manager_.get_default_machine();
-    if (last_obj) {
-        acc->set_on_local_message_fn(nullptr);
-    }
-
     //machine_list_items
     int selection = evt.GetSelection();
     if (selection < mybind_machine_list_items.size()) {

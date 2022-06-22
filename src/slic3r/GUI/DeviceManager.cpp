@@ -261,10 +261,8 @@ MachineObject::MachineObject(BBL::AccountManager& acc, std::string name, std::st
     dev_name(name),
     dev_id(id),
     dev_ip(ip),
-    conn_type(CONNECTION_LAN),
     subtask_(nullptr),
     slice_info(nullptr),
-    is_alive(false),
     m_is_online(false)
 {
     /* create a dummy task to store info */
@@ -1230,7 +1228,10 @@ DeviceManager::DeviceManager(BBL::AccountManager& acc)
 
 int MachineObject::connect()
 {
-    return acc_.local_connect_mqtt(dev_id, dev_ip);
+    // do not use password to connect mqtt
+    std::string username;
+    std::string password;
+    return acc_.local_connect_mqtt(dev_id, dev_ip, username, password);
 }
 
 int MachineObject::disconnect()
@@ -1255,6 +1256,15 @@ void MachineObject::set_online_state(bool on_off)
 }
 
 int MachineObject::publish_json(std::string json_str, int qos)
+{
+    if (dev_connection_type != "lan") {
+        return cloud_publish_json(json_str, qos);
+    } else {
+        return cloud_publish_json(json_str, qos);
+    }
+}
+
+int MachineObject::cloud_publish_json(std::string json_str, int qos)
 {
     mqtt::async_client* client = acc_.get_client();
 
@@ -2029,36 +2039,60 @@ DeviceManager::~DeviceManager()
     m_device_check_alive.try_join_for(boost::chrono::milliseconds(200));
 }
 
-void DeviceManager::on_machine_alive(std::string dev_name, std::string dev_id, std::string dev_ip, std::string printer_type_str, std::string printer_signal)
-{
-    std::lock_guard<std::mutex> lock(listMutex);
-    MachineObject* obj;
-    std::map<std::string, MachineObject*>::iterator it = localMachineList.find(dev_id);
-    if (it != localMachineList.end()) {
-        // update properties
-        /* ip changed */
-        obj = it->second;
-        if (obj->dev_ip.compare(dev_ip) != 0 && !obj->dev_ip.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << obj->dev_ip << " to " << dev_ip;
-            obj->dev_ip = dev_ip;
-            /* ip changed reconnect mqtt */
-            if (obj->conn_state == MachineObject::CONNECTION_STATE::STATE_CONNECTING)
-            obj->disconnect();
-            obj->connect();
-        }
-        obj->wifi_signal = printer_signal;
-        BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery:: Update Machine Info, printer_sn = " << dev_id << ", signal = " << printer_signal;
-        obj->last_alive = Slic3r::Utils::get_current_time_utc();
-        obj->is_alive = true;
-    }
-    else {
-        /* insert a new machine */
-        obj = new MachineObject(acc_, dev_name, dev_id, dev_ip);
-        obj->printer_type = MachineObject::parse_printer_type(printer_type_str);
-        obj->wifi_signal = printer_signal;
-        localMachineList.insert(std::make_pair(dev_id, obj));
 
-        BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery::New Machine, ip = " << dev_ip << ", printer_name= " << dev_name << ", printer_type = " << printer_type_str << ", signal = " << printer_signal;
+void DeviceManager::on_machine_alive(std::string json_str)
+{
+    try {
+        BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery:: json_str " << json_str;
+        json j = json::parse(json_str);
+        std::string dev_name        = j["dev_name"].get<std::string>();
+        std::string dev_id          = j["dev_id"].get<std::string>();
+        std::string dev_ip          = j["dev_ip"].get<std::string>();
+        std::string printer_type_str= j["dev_type"].get<std::string>();
+        std::string printer_signal  = j["dev_signal"].get<std::string>();
+        std::string connect_type    = j["connect_type"].get<std::string>();
+        std::string bind_state      = j["bind_state"].get<std::string>();
+
+        std::lock_guard<std::mutex> lock(listMutex);
+        MachineObject* obj;
+        std::map<std::string, MachineObject*>::iterator it = localMachineList.find(dev_id);
+        if (it != localMachineList.end()) {
+            // update properties
+            /* ip changed */
+            obj = it->second;
+            if (obj->dev_ip.compare(dev_ip) != 0 && !obj->dev_ip.empty()) {
+                BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << obj->dev_ip << " to " << dev_ip;
+                obj->dev_ip = dev_ip;
+                /* ip changed reconnect mqtt */
+                if (obj->conn_state == MachineObject::CONNECTION_STATE::STATE_CONNECTING)
+                obj->disconnect();
+                obj->connect();
+            }
+            obj->wifi_signal = printer_signal;
+            obj->dev_connection_type = connect_type;
+            obj->bind_state = bind_state;
+            BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery:: Update Machine Info, printer_sn = " << dev_id << ", signal = " << printer_signal;
+            obj->last_alive = Slic3r::Utils::get_current_time_utc();
+            obj->m_is_online = true;
+        }
+        else {
+            /* insert a new machine */
+            obj = new MachineObject(acc_, dev_name, dev_id, dev_ip);
+            obj->printer_type = MachineObject::parse_printer_type(printer_type_str);
+            obj->wifi_signal = printer_signal;
+            obj->dev_connection_type = connect_type;
+            obj->bind_state     = bind_state;
+
+            //load access code
+            obj->access_code = Slic3r::GUI::wxGetApp().app_config->get("access_code", dev_id);
+            localMachineList.insert(std::make_pair(dev_id, obj));
+            
+
+            BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery::New Machine, ip = " << dev_ip << ", printer_name= " << dev_name << ", printer_type = " << printer_type_str << ", signal = " << printer_signal;
+        }
+    }
+    catch (...) {
+        ;
     }
 }
 
@@ -2101,18 +2135,9 @@ void DeviceManager::query_bind_status()
     }
 }
 
-MachineObject* DeviceManager::get_default()
+MachineObject* DeviceManager::get_local_selected_machine()
 {
-    if (local_default_machine.empty())
-        return nullptr;
-
-    /* find in local list */
-    std::map<std::string, MachineObject*>::iterator it = localMachineList.find(local_default_machine);
-    if (it != localMachineList.end()) {
-        return it->second;
-    }
-
-    return nullptr;
+    return get_local_machine(local_selected_machine);
 }
 
 MachineObject* DeviceManager::get_default_machine() {
@@ -2135,9 +2160,61 @@ MachineObject* DeviceManager::get_local_machine(std::string dev_id)
 
 MachineObject* DeviceManager::get_user_machine(std::string dev_id)
 {
+    if (!acc_.is_user_login()) {
+        return nullptr;
+    }
     std::map<std::string, MachineObject*>::iterator it = userMachineList.find(dev_id);
     if (it == userMachineList.end()) return nullptr;
     return it->second;
+}
+
+void DeviceManager::set_selected_machine(std::string dev_id)
+{
+    auto my_machine_list = get_my_machine_list();
+    auto it = my_machine_list.find(dev_id);
+    if (it != my_machine_list.end()) {
+        if (it->second->connection_type() != "lan" && !it->second->connection_type().empty()) {
+            acc_.set_monitor_machine(dev_id);
+            set_monitoring_machine(dev_id);
+            it->second->reset();
+        } else {
+            acc_.local_disconnect_mqtt();
+            it->second->reset();
+            it->second->connect();
+        }
+    }
+    selected_machine = dev_id;
+}
+
+MachineObject* DeviceManager::get_selected_machine()
+{
+    if (selected_machine.empty()) return nullptr;
+    
+    MachineObject* obj = get_user_machine(selected_machine);
+    if (obj)
+        return obj;
+
+    // return local machine has access code
+    auto it = localMachineList.find(selected_machine);
+    if (it != localMachineList.end()) {
+        if (it->second->has_access_right())
+            return it->second;
+    }
+    return nullptr;
+}
+
+std::map<std::string, MachineObject*> DeviceManager::get_my_machine_list()
+{
+    std::map<std::string, MachineObject*> result = userMachineList;
+
+    for (auto it = localMachineList.begin(); it != localMachineList.end(); it++) {
+        if (it->second->has_access_right()) {
+            if (result.find(it->first) == result.end()) {
+                result.emplace(std::make_pair(it->first, it->second));
+            }
+        }
+    }
+    return result;
 }
 
 std::string DeviceManager::get_first_online_user_machine() {
@@ -2152,16 +2229,15 @@ std::string DeviceManager::get_first_online_user_machine() {
 void DeviceManager::set_monitoring_machine(std::string dev_id)
 {
     acc_.set_monitor_machine(dev_id);
-
     std::map<std::string, MachineObject *>::iterator it = userMachineList.find(dev_id);
     if (it != userMachineList.end()) {
         it->second->reset();
-    }
+    }   
 }
 
 void DeviceManager::update_user_machine_list_info()
 {
-    
+    BOOST_LOG_TRIVIAL(trace) << "update_user_machine_list_info";
     unsigned int http_code;
     std::string body;
     int result = acc_.get_print_info(http_code, body);
@@ -2230,7 +2306,7 @@ std::map<std::string ,MachineObject*> DeviceManager::get_local_machine_list()
     std::map<std::string, MachineObject*>::iterator it;
 
     for (it = localMachineList.begin(); it != localMachineList.end(); it++) {
-        if (it->second->is_alive) {
+        if (it->second->m_is_online) {
             result.insert(std::make_pair(it->first, it->second));
         }
     }
@@ -2269,7 +2345,7 @@ void DeviceManager::check_alive()
         for (it = localMachineList.begin(); it != localMachineList.end(); it++) {
             seconds = difftime(curr, it->second->last_alive);
             if (seconds > ALIVE_TIMEOUT) {
-                it->second->is_alive = false;
+                it->second->m_is_online = false;
                 if (it->second->conn_state != MachineObject::CONNECTION_STATE::STATE_DISCONNECTED) {
                     it->second->conn_state = MachineObject::CONNECTION_STATE::STATE_DISCONNECTED;
                     BOOST_LOG_TRIVIAL(trace) << "device id = " << it->first << " is offline!";

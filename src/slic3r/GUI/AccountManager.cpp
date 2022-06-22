@@ -508,11 +508,10 @@ namespace BBL {
         if (!boost::filesystem::exists(log_folder)) {
             boost::filesystem::create_directory(log_folder);
         }
-//#if !BBL_RELEASE_TO_PUBLIC
+
         auto http_log_path = ( log_folder / buf.str()).make_preferred();
         std::string log_filename = encode_path(http_log_path.string().c_str());
         Http::enable_log(log_filename.c_str());
-//#endif
         Http::register_global_handler(
             [this](std::string body, std::string error, unsigned int status) {
                 if (on_http_error_fn)
@@ -740,13 +739,8 @@ namespace BBL {
     }
    
 
-    int AccountManager::local_connect_mqtt(std::string dev_id, std::string dev_ip)
+    int AccountManager::local_connect_mqtt(std::string dev_id, std::string dev_ip, std::string username, std::string password)
     {
-        if (!is_user_login()) {
-            BOOST_LOG_TRIVIAL(trace) << "local_connect_mqtt: need login";
-            return -1;
-        }
-
         /* lan mqtt connection */
         // get a new mqtt_uuid
         boost::uuids::uuid uuid = boost::uuids::random_generator()();
@@ -756,8 +750,13 @@ namespace BBL {
             mqtt_local_opt = mqtt::connect_options_builder().clean_session().finalize();
             mqtt_local_opt.set_automatic_reconnect(3, 10);
             mqtt_local_opt.set_max_inflight(1000);
-        
-            std::string client_id = (boost::format("%1%:%2%") % get_user_id() % mqtt_uuid).str();
+
+            if (!username.empty() || !password.empty()) {
+                mqtt_opt.set_user_name(username);
+                mqtt_opt.set_password(password);
+            }
+
+            std::string client_id = (boost::format("%1%:%2%") % "studio_client_id" % mqtt_uuid).str();
             std::string report_topic = (boost::format("device/%1%/report") % dev_id).str();
             mqtt_local_cli = new mqtt::async_client(dev_ip, client_id);
             mqtt_local_cb = new local_conn_callback(*mqtt_local_cli, mqtt_local_opt, this);
@@ -776,7 +775,7 @@ namespace BBL {
         if (mqtt_local_cli) {
             try {
                 mqtt_local_cli->disable_callbacks();
-                mqtt_local_cli->disconnect()->wait_for(100);
+                mqtt_local_cli->disconnect();
                 delete mqtt_local_cb;
                 mqtt_local_cb = nullptr;
             }
@@ -930,6 +929,8 @@ namespace BBL {
             BOOST_LOG_TRIVIAL(trace) << "get notification, retry = " << retry;
             std::chrono::system_clock::time_point last_update_time = std::chrono::system_clock::now();
             auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_update_time);
+
+            /* timeout */
             if (diff.count() > timeout * 1000) {
                 has_timeout = true;
                 break;
@@ -1897,7 +1898,13 @@ namespace BBL {
         return result;
     }
 
-    //void AccountManager::get_slice_info()
+    void AccountManager::set_curr_user(AccountInfo* user_info)
+    {
+        if (m_curr_user)
+            delete m_curr_user;
+        m_curr_user = user_info;
+        save_user_info();
+    }
 
     void AccountManager::get_profile(BBLProject*& project, BBLProfile*& profile)
     {
@@ -3072,7 +3079,6 @@ int AccountManager::start_print(PrintParams params, OnUpdateStatusFn update_fn, 
     int res = 0;
     unsigned http_code = 0;
     std::string http_body;
-    int curr_percent = 0;
     std::string msg;
 
     // Create Printing Job
@@ -3115,11 +3121,7 @@ int AccountManager::start_print(PrintParams params, OnUpdateStatusFn update_fn, 
     }
 
     res = this->upload_3mf_to_oss(profile, http_code, http_body,
-        [this, curr_percent, cancel_fn, update_fn, &msg](Http::Progress progress, bool& cancel) {
-            int percent = 0;
-            if (progress.ultotal != 0) {
-                percent = progress.ulnow * 100 / progress.ultotal;
-            }
+        [this, cancel_fn, update_fn, &msg](Http::Progress progress, bool& cancel) {
             if (cancel_fn && cancel_fn()) {
                 cancel = true;
                 return;
@@ -3203,6 +3205,90 @@ int AccountManager::start_print(PrintParams params, OnUpdateStatusFn update_fn, 
         return -1;
     }
     
+    if (update_fn) update_fn(PrintingStageSending, 0, "");
+    return 0;
+}
+
+int AccountManager::start_local_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
+{
+    int res = 0;
+    unsigned http_code = 0;
+    std::string http_body;
+    std::string msg;
+
+    // Create Printing Job
+    if (update_fn) update_fn(PrintingStageCreate, 0, "");
+
+    // Uploading 3mf File
+    if (update_fn) update_fn(PrintingStageUpload, 0, "");
+    BOOST_LOG_TRIVIAL(trace) << "local_print_job: start to uploading...";
+
+    fs::path file_path = fs::path(params.filename);
+    if (!Http::check_file_size(file_path)) {
+        if (update_fn) update_fn(PrintingStageUpload, RET_ERR_OVERSIZE, "The size of the uploaded file cannot exceed 1 GB.");
+        return -1;
+    }
+
+    std::string src_file = params.filename;
+    std::string dst_file = "/local_print.gcode.3mf";
+    std::string dev_ip = params.dev_ip;
+    Sftp sftp = Sftp::upload(dev_ip, src_file, dst_file, params.username, params.password);
+    sftp.on_complete(
+        [this, &res](std::string body) {
+            res = 0;
+        })
+        .on_progress(
+            [this, cancel_fn, update_fn, &msg](Sftp::Progress progress, bool& cancel) {
+                if (cancel_fn && cancel_fn()) {
+                    cancel = true;
+                    return;
+                }
+                msg = (boost::format("%1%/%2%") % get_transform_string(progress.ulnow) % get_transform_string(progress.ultotal)).str();
+                if (update_fn) update_fn(PrintingStageUpload, 0, msg);
+            }
+        ).on_error(
+            [this, &res, &msg](std::string error) {
+                msg = error;
+                res = -1;
+            }
+        ).perform_sync();
+
+    if (res < 0) {
+        BOOST_LOG_TRIVIAL(trace) << "print_job: uploading failed, check md5 failed";
+        msg = "upload failed";
+        if (update_fn) update_fn(PrintingStageUpload, -1, msg);
+        return -1;
+    }
+
+    // mqtt print
+    if (update_fn) update_fn(PrintingStageWaiting, 0, "");
+    json j;
+    j["print"]["command"] = "project_file";
+    j["print"]["sequence_id"] = std::to_string(AccountManager::m_sequence_id++);
+    j["print"]["param"] = (boost::format("Metadata/plate_%1%.gcode") % params.plate_index).str();
+    j["print"]["project_id"] = "0";
+    j["print"]["profile_id"] = "0";
+    j["print"]["task_id"] = "0";
+    j["print"]["subtask_id"] = "0";
+    j["print"]["subtask_name"] = params.project_name;
+    //TODO fixed prefix
+    j["print"]["url"] = "file:///userdata" + dst_file;
+    //TODO calc md5
+    j["print"]["md5"] = "";
+    j["print"]["keystore_xml"] = "";
+
+    j["print"]["timelapse"] = params.task_record_timelapse;
+    j["print"]["bed_type"] = "auto";
+    j["print"]["bed_leveling"] = params.task_bed_leveling;
+    j["print"]["flow_cali"] = params.task_flow_cali;
+    j["print"]["vibration_cali"] = params.task_vibration_cali;
+    j["print"]["layer_inspect"] = params.task_layer_inspect;
+
+    std::string topic = (boost::format("device/%1%/request") % params.dev_id).str();
+    std::string json_str = j.dump();
+    auto mqtt_msg = mqtt::message::create(topic, json_str, 1, false);
+    mqtt_local_cli->publish(mqtt_msg);
+
     if (update_fn) update_fn(PrintingStageSending, 0, "");
     return 0;
 }

@@ -37,6 +37,8 @@ public:
     PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id = "");
 
 
+    std::string m_dev_ip;
+    std::string m_access_code;
     std::string task_bed_type;
     bool        task_bed_leveling;
     bool        task_flow_cali;
@@ -44,6 +46,7 @@ public:
     bool        task_record_timelapse;
     bool        task_layer_inspect;
     std::string task_ams_mapping;
+    std::string connection_type;
 
     void set_print_config(std::string bed_type, bool bed_leveling, bool flow_cali, bool vabration_cali, bool record_timelapse, bool layer_inspect) 
     {
@@ -70,4 +73,4 @@ public:
 
 }} // namespace Slic3r::GUI
 
-#endif // ARRANGEJOB_HPP
+#endif

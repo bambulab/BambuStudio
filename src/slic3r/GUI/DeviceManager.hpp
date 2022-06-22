@@ -7,7 +7,6 @@
 #include <memory>
 #include <chrono>
 #include <boost/thread.hpp>
-#include "mqtt/async_client.h"
 #include "SsdpDiscovery.hpp"
 #include "AccountManager.hpp"
 #include "libslic3r/ProjectTask.hpp"
@@ -251,13 +250,6 @@ private:
 
     bool check_valid_ip();
 public:
-    /* Enums */
-    enum CONNECTION_TYPE {
-        CONNECTION_DEFAULT = 0,
-        CONNECTION_LAN = 1,
-        CONNECTION_WAN = 2,
-    };
-
     enum CONNECTION_STATE {
         STATE_DISCONNECTED = 0,
         STATE_CONNECTING = 1,
@@ -311,6 +303,10 @@ public:
     std::string dev_name;
     std::string dev_ip;
     std::string dev_id;
+    std::string access_code;
+    std::string dev_connection_type;    /* lan | cloud */
+    std::string connection_type() { return dev_connection_type; }
+    bool has_access_right() { return !access_code.empty(); }
     PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string get_printer_type_string();
     wxString get_printer_type_display_str();
@@ -319,7 +315,8 @@ public:
 
     std::string bind_user_name;
     std::string bind_user_id;
-    bool is_alive;          /* local alive */
+    std::string bind_state;     /* free | occupied */
+    bool is_avaliable() { return bind_state == "free" || bind_state.empty(); }
     time_t last_alive;
     bool m_is_online;
     std::chrono::system_clock::time_point   last_update_time;   /* last received print data from machine */
@@ -427,7 +424,6 @@ public:
     std::vector<HMSItem>    hms_list;
 
     /* mqtt connections */
-    CONNECTION_TYPE conn_type;
     CONNECTION_STATE conn_state;
 
     /* machine mqtt apis */
@@ -512,6 +508,7 @@ public:
     /* Msg for display MsgFn */
     typedef std::function<void(std::string topic, std::string payload)> MsgFn;
     int publish_json(std::string json_str, int qos = 0);
+    int cloud_publish_json(std::string json_str, int qos = 0);
     int local_publish_json(std::string json_str, int qos = 0);
     int parse_json(std::string payload);
     int publish_gcode(std::string gcode_str);
@@ -539,29 +536,35 @@ public:
     ~DeviceManager();
 
     std::mutex listMutex;
-    std::string local_default_machine;                          /* dev_id */
-    std::map<std::string, MachineObject*> localMachineList;     /* dev_id -> MachineObject* */
-    std::map<std::string, MachineObject*> userMachineList;      /* dev_id -> MachineObject* */
-    
+    std::string selected_machine;                               /* dev_id */
+    std::string local_selected_machine;                         /* dev_id */
+    std::map<std::string, MachineObject*> localMachineList;     /* dev_id -> MachineObject*, localMachine SSDP   */
+    std::map<std::string, MachineObject*> userMachineList;      /* dev_id -> MachineObject*  cloudMachine of User */
     
     MachineObject* get_default_machine();
+    MachineObject* get_local_selected_machine();
     MachineObject* get_local_machine(std::string dev_id);
     MachineObject* get_user_machine(std::string dev_id);
+
+    void set_selected_machine(std::string dev_id);
+    MachineObject* get_selected_machine();
+
+    /* return machine has access code and user machine if login*/
+    std::map<std::string, MachineObject*> get_my_machine_list();
     std::string get_first_online_user_machine();
     void set_monitoring_machine(std::string dev_id);
     void update_user_machine_list_info();
 
     /* create machine or update machine properties */
-    void on_machine_alive(std::string dev_name, std::string dev_id, std::string dev_ip, std::string printer_type_str = "", std::string printer_signal = "");
+    void on_machine_alive(std::string json_str);
+
     /* disconnect all machine connections */
     void disconnect_all();
     void query_bind_status();
 
-    MachineObject* get_default();
     // get alive machine
     std::map<std::string, MachineObject*> get_local_machine_list();
     void load_last_machine();
-
 
     void check_alive();
 };

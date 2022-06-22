@@ -1092,10 +1092,10 @@ GUI_App::GUI_App()
     m_ssdp = new BBL::SsdpDiscovery();
     m_device_manager = new Slic3r::DeviceManager(*m_account_manager);
 
-    m_ssdp->set_on_machine_alive_fn(
-        [this](std::string dev_name, std::string dev_id, std::string dev_ip, std::string dev_type, std::string dev_signal) {
+    m_ssdp->set_on_msg_fn(
+        [this](std::string json_str) {
             if (m_device_manager) {
-                m_device_manager->on_machine_alive(dev_name, dev_id, dev_ip, dev_type, dev_signal);
+                m_device_manager->on_machine_alive(json_str);
             }
         }
     );
@@ -1127,7 +1127,7 @@ GUI_App::GUI_App()
             this->handle_http_error(status, body);
     });
 
-    m_account_manager->set_on_message_fn([this](std::string dev_id, std::string msg) {
+    auto message_arrive_fn = [this](std::string dev_id, std::string msg) {
         MachineObject* obj = m_device_manager->get_user_machine(dev_id);
         if (obj) {
             obj->parse_json(msg);
@@ -1144,7 +1144,39 @@ GUI_App::GUI_App()
                     mainframe->m_debug_tool_dlg->message_arrived(dev_id, msg);
             }
         }
-    });
+    };
+
+    m_account_manager->set_on_message_fn(message_arrive_fn);
+
+    auto lan_message_arrive_fn = [this](std::string dev_id, std::string msg) {
+        MachineObject* obj = m_device_manager->get_local_machine(dev_id);
+        if (obj) {
+            obj->parse_json(msg);
+
+#if !BBL_RELEASE_TO_PUBLIC
+            if (obj->is_ams_need_update) {
+                CallAfter([this, dev_id] {
+                    MachineObject* obj_ = m_device_manager->get_local_machine(dev_id);
+                    GUI::wxGetApp().sidebar().load_ams_list(obj_->amsList);
+                    });
+            }
+#endif
+            if (mainframe && mainframe->m_debug_tool_dlg) {
+                if (mainframe->m_debug_tool_dlg->IsShown())
+                    mainframe->m_debug_tool_dlg->message_arrived(dev_id, msg);
+            }
+        }
+    };
+    m_account_manager->set_on_local_message_fn(lan_message_arrive_fn);
+
+    
+    m_account_manager->set_on_local_connect_fn(
+        [this](int state, std::string dev_id, std::string msg) {
+            if (mainframe->m_debug_tool_dlg) {
+                mainframe->m_debug_tool_dlg->on_local_connected(state, dev_id, msg);
+            }
+        }
+    );
 
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
 	this->init_app_config();

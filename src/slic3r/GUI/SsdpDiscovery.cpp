@@ -3,16 +3,9 @@
 #include <algorithm>
 #include <sstream>
 #include <exception>
-#include <boost/format.hpp>
-#include <boost/bind.hpp>
 #include <boost/log/trivial.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/algorithm/string/predicate.hpp>
 #include "Ssdp.hpp"
+#include "nlohmann/json.hpp"
 
 #include <thread>
 #include <mutex>
@@ -23,7 +16,7 @@
 #define SDP_LOCATION_STR    "LOCATION:"
 #define SDP_USN_STR         "USN:"
 
-namespace pt = boost::property_tree;
+using namespace nlohmann;
 
 #if defined(__WINDOWS__)
 SOCKET ssdp_sock_list[MAX_SOCKET_NUM];
@@ -63,15 +56,15 @@ namespace BBL {
             if (strncmp(packet.st, SDP_BBL_DEVICE, strlen(SDP_BBL_DEVICE)) == 0) {
                 try {
                     // set printer name to local ip by default
+                    json j;
                     std::string printer_name = packet.printer_name;
                     std::string printer_type = packet.printer_type;
                     std::string printer_signal = packet.printer_signal;
                     std::string printer_ip = std::string(packet.location);
                     std::string printer_dev_id = std::string(packet.usn);
-                    //TODO
                     /*Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
                     if (device_manager) {
-                        device_manager->on_machine_alive(printer_name, printer_dev_id, printer_ip, printer_type, printer_signal);
+                        device_manager->on_machine_alive(j.dump());
                     }*/
                 }
                 catch (std::exception& e) {
@@ -85,9 +78,6 @@ namespace BBL {
                 BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery: mismatch packet.st = " << packet.st;
             }
         }
-        else {
-            BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery: lssdp_packet_parser error = " << result;
-        }
     }
 
     void SsdpDiscovery::parse_sdp_message(const char *rece_buff, unsigned int recv_size)
@@ -98,14 +88,16 @@ namespace BBL {
         if (result >= 0) {
             if (strncmp(packet.st, SDP_BBL_DEVICE, strlen(SDP_BBL_DEVICE)) == 0) {
                 try {
-                    // set printer name to local ip by default
-                    std::string printer_name = packet.printer_name;
-                    std::string printer_type = packet.printer_type;
-                    std::string printer_signal = packet.printer_signal;
-                    std::string printer_ip = std::string(packet.location);
-                    std::string printer_dev_id = std::string(packet.usn);
-                    if (alive_fn) {
-                        alive_fn(printer_name, printer_dev_id, printer_ip, printer_type, printer_signal);
+                    json j;
+                    j["dev_name"]       = packet.printer_name;
+                    j["dev_type"]       = packet.printer_type;
+                    j["dev_signal"]     = packet.printer_signal;
+                    j["dev_ip"]         = std::string(packet.location);
+                    j["dev_id"]         = std::string(packet.usn);
+                    j["connect_type"]   = packet.connect_type;
+                    j["bind_state"]     = packet.bind_state;
+                    if (on_msg_fn) {
+                        on_msg_fn(j.dump());
                     }
                 }
                 catch (std::exception& e) {
@@ -118,9 +110,6 @@ namespace BBL {
             else {
                 BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery: mismatch packet.st = " << packet.st;
             }
-        }
-        else {
-            BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery: lssdp_packet_parser error = " << result;
         }
     }
 

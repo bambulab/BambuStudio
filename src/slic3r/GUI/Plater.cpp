@@ -5198,8 +5198,10 @@ void Plater::priv::on_action_print_plate(SimpleEvent&)
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print plate event\n" ;
     }
 
-    //BBS check login status
-    if (!wxGetApp().check_login()) return;
+    //do not check login for lan printing
+    ////BBS check login status
+    //if (!wxGetApp().check_login()) return;
+    
 
     //BBS
     if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);

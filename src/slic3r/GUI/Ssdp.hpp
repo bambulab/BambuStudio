@@ -42,11 +42,11 @@ struct lssdp_packet {
     char            location[LSSDP_LOCATION_LEN];   // Location
 
     /* Additional SSDP Header Fields */
-    char            sm_id[LSSDP_FIELD_LEN];
-    char            device_type[LSSDP_FIELD_LEN];
     char            printer_type[LSSDP_FIELD_LEN];
     char            printer_name[LSSDP_FIELD_LEN];
     char            printer_signal[LSSDP_FIELD_LEN];
+    char            connect_type[LSSDP_FIELD_LEN];
+    char            bind_state[LSSDP_FIELD_LEN];
     long long       update_time;
 };
 

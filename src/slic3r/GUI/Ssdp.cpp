@@ -25,10 +25,6 @@ int lssdp_packet_parser(const char* data, size_t data_len, lssdp_packet* packet)
         return LSSDP_PARSE_INVALID;
     }
 
-    if (data_len != strlen(data)) {
-        return LSSDP_PARSE_INVALID;
-    }
-
     if (packet == NULL) {
         return LSSDP_PARSE_INVALID;
     }
@@ -44,7 +40,6 @@ int lssdp_packet_parser(const char* data, size_t data_len, lssdp_packet* packet)
     }
     else if ((i = strlen(Global.HEADER_RESPONSE)) < data_len && memcmp(data, Global.HEADER_RESPONSE, i) == 0) {
         strcpy(packet->method, Global.RESPONSE);
-        return LSSDP_PARSE_COMMAND;
     }
     else {
         return -1;
@@ -162,17 +157,15 @@ int parse_field_line(const char* data, size_t start, size_t end, lssdp_packet* p
         return 0;
     }
 
-    if (field_len == strlen("sm_id") && strncmp(field, "sm_id", field_len) == 0) {
-        memcpy(packet->sm_id, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
+    if (field_len == strlen("DevConnect.bambu.com") && strncmp(field, "DevConnect.bambu.com", field_len) == 0) {
+        memcpy(packet->connect_type, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
         return 0;
     }
 
-    if (field_len == strlen("dev_type") && strncmp(field, "dev_type", field_len) == 0) {
-        memcpy(packet->device_type, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
+    if (field_len == strlen("DevBind.bambu.com") && strncmp(field, "DevBind.bambu.com", field_len) == 0) {
+        memcpy(packet->bind_state, value, value_len < LSSDP_FIELD_LEN ? value_len : LSSDP_FIELD_LEN - 1);
         return 0;
     }
-
-    // the field is not in the struct packet
     return 0;
 }
 
@@ -1001,10 +994,6 @@ int lssdp_socket_read(lssdp_ctx * lssdp) {
     // RESPONSE, NOTIFY: add to neighbor_list
     neighbor_list_add(lssdp, packet);
 
-    if (lssdp->debug) {
-        lssdp_info("RECV <- %-8s   %-28s  %s\n", packet.method, packet.location, packet.sm_id);
-    }
-
 end:
     // invoke packet received callback
     if (lssdp->packet_received_callback != NULL) {
@@ -1106,8 +1095,6 @@ int lssdp_send_notify(lssdp_ctx * lssdp) {
             "NT:%s\r\n"
             "NTS:ssdp:alive\r\n"
             "USN:%s\r\n"
-            "SM_ID:%s\r\n"
-            "DEV_TYPE:%s\r\n"
             "\r\n",
             Global.HEADER_NOTIFY,                       // HEADER
             Global.ADDR_MULTICAST, lssdp->port,         // HOST
@@ -1115,9 +1102,7 @@ int lssdp_send_notify(lssdp_ctx * lssdp) {
             strlen(domain) > 0 ? domain : interface->ip,
             lssdp->header.location.suffix,
             lssdp->header.search_target,                // NT (Notify Type)
-            lssdp->header.unique_service_name,          // USN
-            lssdp->header.sm_id,                        // SM_ID    (addtional field)
-            lssdp->header.device_type                   // DEV_TYPE (addtional field)
+            lssdp->header.unique_service_name           // USN
         );
 
         // send NOTIFY
@@ -1164,7 +1149,7 @@ int lssdp_neighbor_check_timeout(lssdp_ctx * lssdp) {
         }
 
         is_changed = true;
-        lssdp_warn("remove timeout SSDP neighbor: %s (%s) (%ldms)\n", nbr->sm_id, nbr->location, pass_time);
+        lssdp_warn("remove timeout SSDP neighbor:(%s) (%ldms)\n",nbr->location, pass_time);
 
         if (prev == NULL) {
             // it's first neighbor in list
@@ -1308,17 +1293,13 @@ static int lssdp_send_response(lssdp_ctx * lssdp, struct sockaddr_in address) {
         "SERVER:OS/version product/version\r\n"
         "ST:%s\r\n"
         "USN:%s\r\n"
-        "SM_ID:%s\r\n"
-        "DEV_TYPE:%s\r\n"
         "\r\n",
         Global.HEADER_RESPONSE,                     // HEADER
         lssdp->header.location.prefix,              // LOCATION
         strlen(domain) > 0 ? domain : interface->ip,
         lssdp->header.location.suffix,
         lssdp->header.search_target,                // ST (Search Target)
-        lssdp->header.unique_service_name,          // USN
-        lssdp->header.sm_id,                        // SM_ID    (addtional field)
-        lssdp->header.device_type                   // DEV_TYPE (addtional field)
+        lssdp->header.unique_service_name           // USN
     );
 
     // 3. set port to address
@@ -1388,20 +1369,6 @@ static int neighbor_list_add(lssdp_ctx * lssdp, const lssdp_packet packet) {
             is_changed = true;
         }
 
-        // sm_id
-        if (strcmp(nbr->sm_id, packet.sm_id) != 0) {
-            lssdp_debug("neighbor sm_id is changed. (%s -> %s)\n", nbr->sm_id, packet.sm_id);
-            memcpy(nbr->sm_id, packet.sm_id, LSSDP_FIELD_LEN);
-            is_changed = true;
-        }
-
-        // device type
-        if (strcmp(nbr->device_type, packet.device_type) != 0) {
-            lssdp_debug("neighbor device_type is changed. (%s -> %s)\n", nbr->device_type, packet.device_type);
-            memcpy(nbr->device_type, packet.device_type, LSSDP_FIELD_LEN);
-            is_changed = true;
-        }
-
         // update_time
         nbr->update_time = packet.update_time;
         // invoke neighbor list changed callback
@@ -1424,8 +1391,6 @@ static int neighbor_list_add(lssdp_ctx * lssdp, const lssdp_packet packet) {
 
     // 2. setup neighbor
     memcpy(nbr->usn,         packet.usn,         LSSDP_FIELD_LEN);
-    memcpy(nbr->sm_id,       packet.sm_id,       LSSDP_FIELD_LEN);
-    memcpy(nbr->device_type, packet.device_type, LSSDP_FIELD_LEN);
     memcpy(nbr->location,    packet.location,    LSSDP_LOCATION_LEN);
     nbr->update_time = packet.update_time;
     nbr->next = NULL;

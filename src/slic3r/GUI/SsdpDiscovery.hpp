@@ -51,11 +51,11 @@ private:
 #endif
 
     void parse_sdp_message(const char* rece_buff, unsigned int recv_size);
-public:
-    typedef std::function<void(std::string dev_name, std::string dev_id, std::string dev_ip, std::string dev_type, std::string dev_signal)> OnMachineAliveFn;
+public:    
+    typedef std::function<void (std::string dev_info_json_str)> OnMsgArrivedFn;
 
-    OnMachineAliveFn alive_fn;
-    void set_on_machine_alive_fn(OnMachineAliveFn fn) { alive_fn  = fn; }
+    OnMsgArrivedFn on_msg_fn { nullptr };
+    void set_on_msg_fn(OnMsgArrivedFn fn) { on_msg_fn  = fn; }
 
     SsdpDiscovery();
     void start();

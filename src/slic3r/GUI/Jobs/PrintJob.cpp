@@ -104,38 +104,54 @@ void PrintJob::process()
     params.task_layer_inspect   = this->task_layer_inspect;
     params.task_record_timelapse= this->task_record_timelapse;
     params.ams_mapping          = this->task_ams_mapping;
+    params.connection_type      = this->connection_type;
     
 
-    result = acc->start_print(params,
-        //update function
-        [this, &msg, &curr_percent](int stage, int code, std::string info) {
-            if (stage == BBL::SendingPrintJobStage::PrintingStageCreate) {
-                curr_percent = 25;
-                msg = creating_stage_str;
-            } else if (stage == BBL::SendingPrintJobStage::PrintingStageUpload) {
-                curr_percent = 30;
-                if (code == 0) {
-                    msg = wxString::Format("%s %s", uploading_stage_str, info);
-                } else {
-                    msg = uploading_stage_str;
-                }
-            } else if (stage == BBL::SendingPrintJobStage::PrintingStageWaiting) {
-                curr_percent = 50;
-                msg = waiting_stage_str;
-            } else if (stage == BBL::SendingPrintJobStage::PrintingStageSending) {
-                curr_percent = 90;
-                msg = sending_stage_str;
-            } else if (stage == BBL::SendingPrintJobStage::PrintingStageFinished) {
-                curr_percent = 100;
-                msg = finish_stage_str;
-            }
-            update_status(curr_percent, msg);
-        },
-        //cancel function
-        [this]() {
-            return was_canceled();
-        }
-    );
+    // local print access
+    params.dev_ip = m_dev_ip;
+    params.username = "root";
+    params.password = m_access_code;
+
+    auto update_fn = [this, &msg, &curr_percent](int stage, int code, std::string info) {
+                        if (stage == BBL::SendingPrintJobStage::PrintingStageCreate) {
+                            curr_percent = 25;
+                            msg = creating_stage_str;
+                        }
+                        else if (stage == BBL::SendingPrintJobStage::PrintingStageUpload) {
+                            curr_percent = 30;
+                            if (code == 0) {
+                                msg = wxString::Format("%s %s", uploading_stage_str, info);
+                            }
+                            else {
+                                msg = uploading_stage_str;
+                            }
+                        }
+                        else if (stage == BBL::SendingPrintJobStage::PrintingStageWaiting) {
+                            curr_percent = 50;
+                            msg = waiting_stage_str;
+                        }
+                        else if (stage == BBL::SendingPrintJobStage::PrintingStageSending) {
+                            curr_percent = 90;
+                            msg = sending_stage_str;
+                        }
+                        else if (stage == BBL::SendingPrintJobStage::PrintingStageFinished) {
+                            curr_percent = 100;
+                            msg = finish_stage_str;
+                        }
+                        this->update_status(curr_percent, msg);
+                    };
+
+    if (params.connection_type != "lan") {
+        result = acc->start_print(params, update_fn,
+            [this]() {
+                return was_canceled();
+            });
+    } else {
+        result = acc->start_local_print(params, update_fn,
+            [this]() {
+                return was_canceled();
+            });
+    }
 
     if (was_canceled()) {
         update_status(curr_percent, printjob_cancel_str);

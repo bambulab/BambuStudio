@@ -9,6 +9,7 @@
 #include "SsdpDiscovery.hpp"
 #include "NetworkProjectTask.hpp"
 #include "slic3r/Utils/Http.hpp"
+#include "slic3r/Utils/Sftp.hpp"
 #include "nlohmann/json.hpp"
 
 using namespace nlohmann;
@@ -317,9 +318,9 @@ private:
     void set_engineering_mqtt_opt();
 
     /* mqtt local client */
-    mqtt::async_client* mqtt_local_cli;
+    mqtt::async_client* mqtt_local_cli { nullptr};
     mqtt::connect_options mqtt_local_opt;
-    local_conn_callback* mqtt_local_cb;
+    local_conn_callback* mqtt_local_cb { nullptr};
 
 
     int mqtt_uuid_bytes;
@@ -412,9 +413,8 @@ public:
     void set_monitor_machine(std::string dev_id);
 
     /* local mqtt connections apis */
-    int local_connect_mqtt(std::string dev_id, std::string dev_ip);
+    int local_connect_mqtt(std::string dev_id, std::string dev_ip, std::string username = "", std::string password = "");
     int local_disconnect_mqtt();
-
 
     //control subscribe default machine
     void start_subscribe(std::string module = "");
@@ -535,12 +535,7 @@ public:
     /* common apis */
     AccountInfo* get_curr_user() { return m_curr_user; }
     AccountInfo* user() { return m_curr_user; }
-    void        set_curr_user(AccountInfo *user_info) {
-        if (m_curr_user)
-            delete m_curr_user;
-        m_curr_user = user_info;
-        save_user_info();
-    }
+    void set_curr_user(AccountInfo *user_info);
 
     std::string get_user_name();
     std::string get_nick_name();
@@ -566,6 +561,7 @@ public:
 
     /* print job*/
     struct PrintParams {
+        /* basic info */
         std::string     dev_id;
         std::string     task_name;
         std::string     project_name;
@@ -573,6 +569,12 @@ public:
         std::string     filename;
         int             plate_index;
         std::string     ams_mapping;
+        std::string     connection_type;
+
+        /* access options */
+        std::string     dev_ip;
+        std::string     username;
+        std::string     password;
 
         /*user options */
         bool            task_bed_leveling;      /* bed leveling of task */
@@ -583,9 +585,11 @@ public:
 
     };
     int start_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
+
+    int start_local_print(PrintParams, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
     
 };
 
-} // namespace Slic3r
+}
 
-#endif //  slic3r_DeviceManager_hpp_
+#endif
