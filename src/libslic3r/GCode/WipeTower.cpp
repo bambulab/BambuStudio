@@ -1184,9 +1184,11 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter)
             writer.rectangle(box);
         }
 
-        // Save actual brim width to be later passed to the Print object, which will use it
-        // for skirt calculation and pass it to GLCanvas for precise preview box
-        m_wipe_tower_brim_width_real = wt_box.ld.x() - box.ld.x() + spacing / 2.f;
+        if (first_layer) {
+            // Save actual brim width to be later passed to the Print object, which will use it
+            // for skirt calculation and pass it to GLCanvas for precise preview box
+            m_wipe_tower_brim_width_real = wt_box.ld.x() - box.ld.x() + spacing / 2.f;
+        }
         wt_box = box;
     }
 

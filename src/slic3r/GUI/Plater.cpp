@@ -5429,7 +5429,8 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
     PlateBBoxData bboxdata;
     std::vector<BBoxData>& id_bboxes = bboxdata.bbox_objs;
     BoundingBoxf bbox_all;
-    bboxdata.is_seq_print = (this->background_process.m_fff_print->config().print_sequence == PrintSequence::ByObject);
+    auto                   print = this->background_process.m_fff_print;
+    bboxdata.is_seq_print = (print->config().print_sequence == PrintSequence::ByObject);
     //PrintObjectPtrs objects;
     //if (this->printer_technology == ptFFF) {
     //    objects = this->background_process.m_fff_print->objects().vector();
@@ -5437,13 +5438,13 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
     //else {
     //    objects = this->background_process.m_sla_print->objects();
     //}
-    auto objects = this->background_process.m_fff_print->objects();
+    auto objects = print->objects();
     auto orig = this->partplate_list.get_curr_plate()->get_origin();
     Vec2d orig2d = { orig[0], orig[1] };
 
+    BBoxData data;
     for (auto obj : objects)
     {
-        BBoxData data;
         auto bb_scaled = obj->get_first_layer_bbox(data.area, data.layer_height, data.name);
         auto bb = unscaled(bb_scaled);
         bb.min -= orig2d;
@@ -5452,8 +5453,23 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
         data.area *= (SCALING_FACTOR * SCALING_FACTOR); // unscale area
         data.id = obj->id().id;
         data.bbox = { bb.min.x(),bb.min.y(),bb.max.x(),bb.max.y() };
-        id_bboxes.emplace_back(std::move(data));
+        id_bboxes.emplace_back(data);
     }
+
+    // add wipe tower bounding box
+    if (print->has_wipe_tower()) {
+        auto   wt_corners = print->first_layer_wipe_tower_corners();
+        BoundingBox bb_scaled  = {wt_corners[0], wt_corners[2]};
+        auto        bb         = unscaled(bb_scaled);
+        bb.min -= orig2d;
+        bb.max -= orig2d;
+        bbox_all.merge(bb);
+        data.name = "wipe_tower";
+        data.id   = partplate_list.get_curr_plate()->get_index() + 1000;
+        data.bbox = {bb.min.x(), bb.min.y(), bb.max.x(), bb.max.y()};
+        id_bboxes.emplace_back(data);
+    }
+
     bboxdata.bbox_all = { bbox_all.min.x(),bbox_all.min.y(),bbox_all.max.x(),bbox_all.max.y() };
     return bboxdata;
 }

@@ -679,6 +679,9 @@ public:
     //BBS
     static StringObjectException sequential_print_clearance_valid(const Print &print, Polygons *polygons = nullptr, std::vector<std::pair<Polygon, float>>* height_polygons = nullptr);
 
+    // Return 4 wipe tower corners in the world coordinates (shifted and rotated), including the wipe tower brim.
+    std::vector<Point>  first_layer_wipe_tower_corners() const;
+
 protected:
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
@@ -695,8 +698,6 @@ private:
 
     // Islands of objects and their supports extruded at the 1st layer.
     Polygons            first_layer_islands() const;
-    // Return 4 wipe tower corners in the world coordinates (shifted and rotated), including the wipe tower brim.
-    std::vector<Point>  first_layer_wipe_tower_corners() const;
 
     PrintConfig                             m_config;
     PrintObjectConfig                       m_default_object_config;
