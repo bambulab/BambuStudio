@@ -2731,6 +2731,9 @@ void TreeSupport::adjust_layer_heights(std::vector<std::vector<Node*>>& contact_
     const size_t bot_intf_layers = config.support_interface_bottom_layers.value;
     const size_t top_intf_layers = config.support_interface_top_layers.value;
 
+    // if already using max layer height, no need to adjust
+    if (layer_height == max_layer_height) return;
+
     extremes.push_back(0);
     for (Node* node : contact_nodes[0]) {
         node->print_z = m_object->get_layer(0)->print_z;
