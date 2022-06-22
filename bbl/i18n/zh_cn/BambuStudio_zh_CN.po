@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-22 17:14+0800\n"
+"POT-Creation-Date: 2022-06-22 19:16+0800\n"
 "PO-Revision-Date: 2022-05-17 15:42+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -646,6 +646,9 @@ msgstr "挤出机"
 
 msgid "Filament 1"
 msgstr "耗材丝 1"
+
+msgid "Filament change times"
+msgstr "耗材更换次数"
 
 msgid "Color change"
 msgstr "颜色更换"
