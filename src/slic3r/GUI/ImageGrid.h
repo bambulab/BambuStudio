@@ -52,6 +52,8 @@ protected:
 
     void UpdateLayout();
 
+    void UpdateFocusRange();
+
     std::pair<int, size_t> HitTest(wxPoint const &pt);
 
 protected:

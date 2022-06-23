@@ -169,15 +169,21 @@ void ImageGrid::UpdateLayout()
     }
     if (!m_mask.IsOk() || m_mask.GetSize() != mask_size)
         m_mask = createAlphaBitmap(mask_size, 0x6f6f6f, 255, 0);
+    UpdateFocusRange();
+    Refresh();
+}
+
+void Slic3r::GUI::ImageGrid::UpdateFocusRange()
+{
+    wxSize  size = GetClientSize();
     wxPoint off;
-    int index = firstItem(size, off);
-    int count = m_col_count;
+    int     index = firstItem(size, off);
+    int     count = m_col_count;
     while (off.y < size.y) {
         count += m_col_count;
         off.y += m_cell_size.y;
     }
     m_file_sys->SetFocusRange(index, count);
-    Refresh();
 }
 
 std::pair<int, size_t> Slic3r::GUI::ImageGrid::HitTest(wxPoint const &pt)
@@ -280,7 +286,8 @@ void ImageGrid::mouseWheelMoved(wxMouseEvent &event)
     int off = m_row_offset + delta;
     if (off >= 0 && off < m_row_count) {
         m_row_offset = off;
-        m_timer.StartOnce(4000);
+        m_timer.StartOnce(4000); // Show position bar
+        UpdateFocusRange();
         Refresh();
     }
 }
@@ -289,7 +296,8 @@ void Slic3r::GUI::ImageGrid::changedEvent(wxCommandEvent& evt)
 {
     evt.Skip();
     BOOST_LOG_TRIVIAL(info) << "ImageGrid::changedEvent: " << evt.GetEventType() << " index: " << evt.GetInt() << " name: " << evt.GetString() << " extra: " << evt.GetExtraLong();
-    if (evt.GetEventType() == EVT_MODE_CHANGED)
+    if (evt.GetEventType() == EVT_MODE_CHANGED
+        || evt.GetEventType() == EVT_FILE_CHANGED)
         UpdateFileSystem();
     else
         Refresh();
@@ -319,22 +327,14 @@ wxBitmap Slic3r::GUI::ImageGrid::createAlphaBitmap(wxSize size, wxColour color, 
 {
     wxImage image(size);
     image.InitAlpha();
-    unsigned char *rgb   = image.GetData();
     unsigned char *alpha = image.GetAlpha();
-    rgb[0] = color.Red();
-    rgb[1] = color.Green();
-    rgb[2] = color.Blue();
-    int n = 3, N = size.GetWidth() * size.GetHeight() * 3;
-    while (n * 2 < N) {
-        memcpy(rgb + n, rgb, n);
-        n *= 2;
-    }
-    memcpy(rgb + n, rgb, N - n);
+    image.SetRGB(wxRect({0, 0}, size), color.Red(), color.Green(), color.Blue());
     int d = alpha2 - alpha1;
     if (d == 0)
         memset(alpha, alpha1, size.GetWidth() * size.GetHeight());
     else
-        for (int i = 0; i < size.GetHeight(); ++i) { memset(alpha + i * size.GetWidth(), alpha1 + i * d / size.GetHeight(), size.GetWidth()); }
+        for (int i = 0; i < size.GetHeight(); ++i)
+            memset(alpha + i * size.GetWidth(), alpha1 + i * d / size.GetHeight(), size.GetWidth());
     return wxBitmap(std::move(image));
 }
 

@@ -16,6 +16,7 @@ class Button;
 class SwitchButton;
 class Label;
 class StaticBox;
+class PrinterFileSystem;
 
 namespace Slic3r {
 
@@ -37,6 +38,8 @@ public:
 
 private:
     void fileChanged(wxCommandEvent & e);
+
+    void fetchUrl(boost::weak_ptr<PrinterFileSystem> fs);
 
 private:
     ::StaticBox *m_tab_panel = nullptr;

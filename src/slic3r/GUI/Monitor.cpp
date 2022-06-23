@@ -187,6 +187,7 @@ MonitorPanel::~MonitorPanel()
     //m_status_add_machine_panel = new AddMachinePanel(m_tabpanel);
     m_status_info_panel        = new StatusPanel(m_tabpanel);
     m_media_file_panel         = new MediaFilePanel(m_tabpanel);
+    m_media_file_panel->Hide();
     m_upgrade_panel            = new UpgradePanel(m_tabpanel);
     m_hms_panel                = new HMSPanel(m_tabpanel);
 

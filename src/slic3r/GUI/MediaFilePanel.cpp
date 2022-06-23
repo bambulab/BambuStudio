@@ -71,6 +71,11 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     auto b = m_tab_button_all;
     e.SetEventObject(b);
     b->GetEventHandler()->ProcessEvent(e);
+
+    Bind(wxEVT_SHOW, [this](auto &e) { 
+        auto fs = m_image_grid->GetFileSystem();
+        if (fs) e.IsShown() ? fs->Start() : fs->Stop();
+    });
 }
 
 void MediaFilePanel::SetMachineObject(MachineObject* obj)
@@ -80,37 +85,32 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         return;
     m_machine = machine;
     auto fs = m_image_grid->GetFileSystem();
-    if (fs) fs->Unbind(EVT_MODE_CHANGED, &MediaFilePanel::fileChanged, this);
-    m_image_grid->SetFileSystem(nullptr);
+    if (fs) {
+        m_image_grid->SetFileSystem(nullptr);
+        fs->Unbind(EVT_MODE_CHANGED, &MediaFilePanel::fileChanged, this);
+        fs->Stop(true);
+    }
     if (!m_machine.empty()) {
-        wxGetApp().getAccountManager()->get_camera_url(m_machine, [this, machine](std::string url) {
-            BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
-            CallAfter([this, url, machine] {
-                if (machine != m_machine)
-                    return;
-                // m_url = url;
-                if (url.empty()) {
-                    m_image_grid->SetStatus(_L("Initialize failed [%d]!"));
-                } else {
-                    boost::shared_ptr<PrinterFileSystem> fs(new PrinterFileSystem(url));
-                    m_image_grid->SetFileSystem(fs);
-                    m_image_grid->SetStatus(_L("Connecting..."));
-                    fs->Bind(EVT_READY, [this, fs](auto &e) {
-                        if (m_image_grid->GetFileSystem() != fs) // canceled
-                            return;
-                        if (e.GetInt()) {
-                            // failed
-                            m_image_grid->SetStatus(_L("Connect failed [%d]!"));
-                        } else {
-                            m_image_grid->SetStatus(_L("Loading file list..."));
-                            fs->Bind(EVT_MODE_CHANGED, &MediaFilePanel::fileChanged, this);
-                            fs->ListAllFiles();
-                        }
-                    });
-                }
-            });
+        boost::shared_ptr<PrinterFileSystem> fs(new PrinterFileSystem);
+        m_image_grid->SetFileSystem(fs);
+        fs->Bind(EVT_MODE_CHANGED, &MediaFilePanel::fileChanged, this);
+        fs->Bind(EVT_STATUS_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto &e) {
+            boost::shared_ptr fs(wfs);
+            if (m_image_grid->GetFileSystem() != fs) // canceled
+                return;
+            wxString msg;
+            switch (e.GetInt()) {
+            case PrinterFileSystem::Initializing: msg = _L("Initializing..."); fetchUrl(boost::weak_ptr(fs)); break;
+            case PrinterFileSystem::Connecting: msg = _L("Connecting..."); break;
+            case PrinterFileSystem::Failed: msg = _L("Connect failed [%d]!"); break;
+            case PrinterFileSystem::ListSyncing: msg = _L("Loading file list..."); break;
+            }
+            if (fs->GetCount() == 0)
+                m_image_grid->SetStatus(msg);
+            else
+                (void) 0; // TODO: show dialog
         });
-        m_image_grid->SetStatus(_L("Initializing..."));
+        if (IsShown()) fs->Start();
     }
     wxCommandEvent e(EVT_MODE_CHANGED);
     fileChanged(e);
@@ -146,6 +146,18 @@ void MediaFilePanel::fileChanged(wxCommandEvent& e1)
     e.SetEventObject(b);
     b->GetEventHandler()->ProcessEvent(e);
     m_last_mode = mode;
+}
+
+void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
+{
+    wxGetApp().getAccountManager()->get_camera_url(m_machine, [this, wfs](std::string url) {
+        BOOST_LOG_TRIVIAL(info) << "MediaFilePanel::fetchUrl: camera_url: " << url;
+        CallAfter([this, url, wfs] {
+            boost::shared_ptr fs(wfs);
+            if (fs != m_image_grid->GetFileSystem()) return;
+            fs->SetUrl(url);
+        });
+    });
 }
 
 MediaFileFrame::MediaFileFrame(wxWindow* parent)

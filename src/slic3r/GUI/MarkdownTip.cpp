@@ -112,7 +112,7 @@ bool MarkdownTip::ShowTip(wxPoint pos, std::string const &tip, std::string const
         }
         else if (!_hide) {
             _hide = true;
-            _timer->Start(300, true);
+            _timer->StartOnce(300);
         }
         return false;
     }
@@ -141,7 +141,7 @@ bool MarkdownTip::ShowTip(wxPoint pos, std::string const &tip, std::string const
             pos.y = size.y - this->GetSize().y;
         this->SetPosition(pos);
         _hide = false;
-        _timer->Start(500, true);
+        _timer->StartOnce(500);
     }
     return true;
 }
@@ -264,7 +264,7 @@ void MarkdownTip::OnTimer(wxTimerEvent& event)
     if (_hide) {
         wxPoint pos = ScreenToClient(wxGetMousePosition());
         if (GetClientRect().Contains(pos)) {
-            _timer->Start();
+            _timer->StartOnce();
             return;
         }
         this->Hide();

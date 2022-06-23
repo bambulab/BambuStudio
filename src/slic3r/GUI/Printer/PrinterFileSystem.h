@@ -14,7 +14,7 @@ using nlohmann::json;
 #include <functional>
 #include <deque>
 
-wxDECLARE_EVENT(EVT_READY, wxCommandEvent);
+wxDECLARE_EVENT(EVT_STATUS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_MODE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_FILE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_THUMBNAIL, wxCommandEvent);
@@ -49,7 +49,7 @@ class PrinterFileSystem : public wxEvtHandler, public boost::enable_shared_from_
 
 
 public:
-    PrinterFileSystem(std::string const & url);
+    PrinterFileSystem();
 
     ~PrinterFileSystem();
 
@@ -64,7 +64,7 @@ public:
 
     size_t EnterSubGroup(size_t index);
 
-    GroupMode GetGroupMode() const { return mode; }
+    GroupMode GetGroupMode() const { return m_group_mode; }
 
     template<typename T> using Callback = std::function<void(int, T)>;
 
@@ -78,10 +78,10 @@ public:
     struct File
     {
         std::string name;
-        boost::uint32_t time = 0;
+        time_t time = 0;
         boost::uint64_t size = 0;
         wxBitmap    thumbnail;
-        int         flags = false;
+        int         flags = 0;
         int         progress = -1; // -1: waiting
 
         bool IsSelect() const { return flags & FF_SELECT; }
@@ -124,7 +124,22 @@ public:
 
     File const &GetFile(size_t index);
 
-    int GetLastError() const { return last_error; }
+    enum Status {
+        Initializing,
+        Connecting, 
+        ListSyncing,
+        ListReady,
+        Failed,
+    };
+    
+    Status GetStatus() const { return m_status; }
+    int GetLastError() const { return m_last_error; }
+
+    void Start();
+
+    void SetUrl(std::string const & url);
+
+    void Stop(bool quit = false);
 
 private:
     void BuildGroups();
@@ -202,6 +217,10 @@ private:
 
     void RecvMessageThread();
 
+    void HandleResponse(boost::unique_lock<boost::mutex> &l, Bambu_Sample const &sample);
+
+    void Reconnect(boost::unique_lock<boost::mutex> & l, int result);
+
     int RecvData(std::function<int(Bambu_Sample & sample)> const & callback);
 
     template <typename T>
@@ -213,30 +232,32 @@ private:
     void PostCallback(std::function<void(void)> const & callback);
 
 protected:
-    GroupMode mode = G_NONE;
-    FileList files;
-    std::vector<size_t> group_year;
-    std::vector<size_t> group_month;
+    GroupMode m_group_mode = G_NONE;
+    FileList m_file_list;
+    std::vector<size_t> m_group_year;
+    std::vector<size_t> m_group_month;
 
 private:
-    size_t lock_start = 0;
-    size_t lock_end   = 0;
-    int task_flags = 0;
+    size_t m_lock_start = 0;
+    size_t m_lock_end   = 0;
+    int m_task_flags = 0;
 
 private:
     struct Session : Bambu_Session
     {
         PrinterFileSystem * owner;
     };
-    std::string url;
-    Session session;
-    boost::uint32_t sequence = 0;
-    std::deque<callback_t2> callbacks;
-    std::deque<callback_t2> notifies;
-    bool stop = false;
-    boost::thread recv_thread;
-    boost::mutex mutex;
-    int last_error = 0;
+    Session m_session;
+    boost::uint32_t m_sequence = 0;
+    std::deque<std::string> m_messages;
+    std::deque<callback_t2> m_callbacks;
+    std::deque<callback_t2> m_notifies;
+    bool m_stopped = true;
+    boost::thread m_recv_thread;
+    boost::mutex m_mutex;
+    boost::condition_variable m_cond;
+    Status m_status;
+    int m_last_error = 0;
 };
 
 #endif // !slic3r_GUI_PrinterFileSystem_h_
