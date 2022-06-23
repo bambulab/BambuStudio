@@ -159,8 +159,8 @@ wxString CopyrightsDialog::get_html_text()
                     , entry.link, entry.lib_name);
 
          text += format_wxstr(
-                    "%1% %2%<br/><br/>"
-                    , copyright_str, entry.link);
+                    "%s<br/><br/>"
+                    , entry.link);
     }
 
     text += wxString(
