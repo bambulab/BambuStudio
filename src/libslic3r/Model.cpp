@@ -1877,6 +1877,8 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
 
             if (is_multi_volume_object) {
                 // BBS: volume geometry not changed, so we can keep the color paint facets
+                if (new_vol->mmu_segmentation_facets.timestamp() == volume->mmu_segmentation_facets.timestamp())
+                    new_vol->mmu_segmentation_facets.reset(); // BBS: let next assign take effect
                 new_vol->mmu_segmentation_facets.assign(volume->mmu_segmentation_facets);
             }
 
