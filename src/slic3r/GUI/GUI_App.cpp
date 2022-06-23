@@ -1132,13 +1132,11 @@ GUI_App::GUI_App()
         if (obj) {
             obj->parse_json(msg);
         
-#if !BBL_RELEASE_TO_PUBLIC
             if (obj->is_ams_need_update) {
                 CallAfter([this, dev_id] {
                     MachineObject* obj_ = m_device_manager->get_user_machine(dev_id);
                     GUI::wxGetApp().sidebar().load_ams_list(obj_->amsList);
                 });
-#endif
             }
 
             if (mainframe && mainframe->m_debug_tool_dlg) {

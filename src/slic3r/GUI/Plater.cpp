@@ -1133,18 +1133,20 @@ void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
     std::vector<DynamicPrintConfig> filament_ams_list;
     for (auto ams : list) {
         for (auto tray : ams.second->trayList) {
+            if (tray.second->setting_id.empty())
+                continue;
             DynamicPrintConfig ams;
             auto & filaments = wxGetApp().preset_bundle->filaments.get_presets();
             auto iter = std::find_if(filaments.begin(), filaments.end(),
-                [&tray](auto &f) { return f.setting_id == tray.second->setting_id; });
+                [&tray](auto &f) { return f.filament_id == tray.second->setting_id; });
             if (iter != filaments.end()) {
                 ams.set_key_value("filament_settings_id", new ConfigOptionStrings{iter->name});
             } else {
-                std::shared_ptr<Preset *> preset(new Preset*(new Preset(Preset::TYPE_FILAMENT, {})));
+                /* std::shared_ptr<std::map<std::string, std::string>> preset(new std::map<std::string, std::string>);
                 (*preset)->setting_id = tray.second->setting_id;
                 ams.set_key_value("filament_settings_id", new ConfigOptionStrings{tray.second->setting_id});
                 //TODO: comment it currently
-                /*wxGetApp().getAccountManager()->get_setting(*preset, [preset] {
+                wxGetApp().getAccountManager()->get_setting(tray.second->setting_id, *preset, [preset] {
                     wxGetApp().CallAfter([preset] {
                         if ((*preset)->name.empty())
                             return;
@@ -1161,6 +1163,7 @@ void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
                         }
                     });
                 });*/
+                continue;
             }
             ams.set_key_value("filament_colour", new ConfigOptionStrings{"#" + tray.second->color});
             filament_ams_list.emplace_back(std::move(ams));

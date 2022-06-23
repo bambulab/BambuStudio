@@ -380,7 +380,12 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
             auto color = f.opt_string("filament_colour", 0u);
             wxColour clr(color);
             wxImage img(16, 16);
-            img.SetRGB(wxRect({0, 0}, img.GetSize()), clr.Red(), clr.Green(), clr.Blue());
+            if (clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224) {
+                img.SetRGB(wxRect({0, 0}, img.GetSize()), 128, 128, 128);
+                img.SetRGB(wxRect({1, 1}, img.GetSize() - wxSize{2, 2}), clr.Red(), clr.Green(), clr.Blue());
+            } else {
+                img.SetRGB(wxRect({0, 0}, img.GetSize()), clr.Red(), clr.Green(), clr.Blue());
+            }
             int item_id = Append(get_preset_name(*preset), img);
             //validate_selection(id->value == selected); // can not select
         }
