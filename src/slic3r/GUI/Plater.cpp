@@ -7544,11 +7544,13 @@ void Plater::convert_unit(ConversionType conv_type)
     wxBusyCursor wait;
 
     ModelObjectPtrs objects;
+    std::reverse(obj_idxs.begin(), obj_idxs.end());
     for (int obj_idx : obj_idxs) {
         ModelObject *object = p->model.objects[obj_idx];
         object->convert_units(objects, conv_type, volume_idxs);
         remove(obj_idx);
     }
+    std::reverse(objects.begin(), objects.end());
     p->load_model_objects(objects);
 
     Selection& selection = p->view3D->get_canvas3d()->get_selection();
