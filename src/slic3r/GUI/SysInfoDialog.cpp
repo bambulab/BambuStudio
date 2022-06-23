@@ -25,7 +25,7 @@
 	#include <psapi.h>
 #endif /* _WIN32 */
 
-namespace Slic3r { 
+namespace Slic3r {
 namespace GUI {
 
 std::string get_main_info(bool format_as_html)
@@ -37,13 +37,13 @@ std::string get_main_info(bool format_as_html)
     std::string line_end = format_as_html ? "<br>" : "\n";
 
     if (!format_as_html)
-        out << b_start << (wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME) << b_end << line_end;
+        out << b_start << (wxGetApp().is_editor() ? SLIC3R_APP_FULL_NAME : GCODEVIEWER_APP_NAME) << b_end << line_end;
     out << b_start << "Version:   "             << b_end << SLIC3R_VERSION << line_end;
     out << b_start << "Build:     " << b_end << (wxGetApp().is_editor() ? SLIC3R_BUILD_ID : GCODEVIEWER_BUILD_ID) << line_end;
     out << line_end;
     out << b_start << "Operating System:    "   << b_end << wxPlatformInfo::Get().GetOperatingSystemFamilyName() << line_end;
     out << b_start << "System Architecture: "   << b_end << wxPlatformInfo::Get().GetArchName() << line_end;
-    out << b_start << 
+    out << b_start <<
 #if defined _WIN32
         "Windows Version:     "
 #else
@@ -81,7 +81,7 @@ std::string get_mem_info(bool format_as_html)
 }
 
 SysInfoDialog::SysInfoDialog()
-    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, (wxGetApp().is_editor() ? wxString(SLIC3R_APP_NAME) : wxString(GCODEVIEWER_APP_NAME)) + " - " + _L("System Information"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, (wxGetApp().is_editor() ? wxString(SLIC3R_APP_FULL_NAME) : wxString(GCODEVIEWER_APP_NAME)) + " - " + _L("System Information"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	wxColour bgr_clr = wxGetApp().get_window_default_clr();//wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 	SetBackgroundColour(bgr_clr);
@@ -97,13 +97,13 @@ SysInfoDialog::SysInfoDialog()
     m_logo_bmp = ScalableBitmap(this, wxGetApp().logo_name(), 192);
     m_logo = new wxStaticBitmap(this, wxID_ANY, m_logo_bmp.bmp());
 	hsizer->Add(m_logo, 0, wxALIGN_CENTER_VERTICAL);
-    
+
     wxBoxSizer* vsizer = new wxBoxSizer(wxVERTICAL);
     hsizer->Add(vsizer, 1, wxEXPAND|wxLEFT, 20);
 
     // title
     {
-        wxStaticText* title = new wxStaticText(this, wxID_ANY, wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME, wxDefaultPosition, wxDefaultSize);
+        wxStaticText* title = new wxStaticText(this, wxID_ANY, wxGetApp().is_editor() ? SLIC3R_APP_FULL_NAME : GCODEVIEWER_APP_NAME, wxDefaultPosition, wxDefaultSize);
         wxFont title_font = wxGetApp().bold_font();
         title_font.SetFamily(wxFONTFAMILY_ROMAN);
         title_font.SetPointSize(22);
@@ -176,7 +176,7 @@ SysInfoDialog::SysInfoDialog()
     main_sizer->Add(buttons, 0, wxEXPAND | wxRIGHT | wxBOTTOM, 3);
 
     wxGetApp().UpdateDlgDarkUI(this, true);
-    
+
 //     this->Bind(wxEVT_LEFT_DOWN, &SysInfoDialog::onCloseDialog, this);
 //     logo->Bind(wxEVT_LEFT_DOWN, &SysInfoDialog::onCloseDialog, this);
 

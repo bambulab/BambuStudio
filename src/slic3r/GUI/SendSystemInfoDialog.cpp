@@ -193,7 +193,7 @@ static bool should_dialog_be_shown()
         return false;
 
     // We might want to check that the internet connection is ready so we don't open the dialog
-    // if it cannot really send any data. Using a dummy HTTP GET request led 
+    // if it cannot really send any data. Using a dummy HTTP GET request led
     // It might also trigger security softwares, which would look bad and would lead to questions
     // about what PS is doing. We better use some less intrusive way of checking the connection.
 
@@ -298,7 +298,7 @@ static std::string get_unique_id()
     if (GetAdaptersInfo(AdapterInfo, &dwBufLen) == ERROR_BUFFER_OVERFLOW) {
         free(AdapterInfo);
         AdapterInfo = (IP_ADAPTER_INFO*)malloc(dwBufLen);
-    }    
+    }
     if (GetAdaptersInfo(AdapterInfo, &dwBufLen) == NO_ERROR) {
         const IP_ADAPTER_INFO* pAdapterInfo = AdapterInfo;
         std::vector<std::vector<unsigned char>> macs;
@@ -560,7 +560,7 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     : m_system_info_json{generate_system_info_json()},
     /*GUI::DPIDialog(parent, wxID_ANY, _L("Send system info"), wxDefaultPosition, wxDefaultSize,
            wxDEFAULT_DIALOG_STYLE)*/
-    GUI::DPIDialog(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 
+    GUI::DPIDialog(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
         wxDEFAULT_DIALOG_STYLE)
 {
     const int em = GUI::wxGetApp().em_unit();
@@ -578,7 +578,7 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
         if (semver.prerelease()) {
             is_beta = std::string{ semver.prerelease() }.find("beta") != std::string::npos;
         }
-        app_name = std::string(SLIC3R_APP_NAME) + " " + std::to_string(semver.maj())
+        app_name = std::string(SLIC3R_APP_FULL_NAME) + " " + std::to_string(semver.maj())
                                + "." + std::to_string(semver.min()) + " "
                                + (is_alpha ? "Alpha" : is_beta ? "Beta" : "");
     }

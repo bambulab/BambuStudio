@@ -10,7 +10,7 @@
 
 #include <wx/clipbrd.h>
 
-namespace Slic3r { 
+namespace Slic3r {
 namespace GUI {
 
 AboutDialogLogo::AboutDialogLogo(wxWindow* parent)
@@ -19,7 +19,7 @@ AboutDialogLogo::AboutDialogLogo(wxWindow* parent)
     this->SetBackgroundColour(*wxWHITE);
     this->logo = wxBitmap(from_u8(Slic3r::var("BambuStudio_192px.png")), wxBITMAP_TYPE_PNG);
     this->SetMinSize(this->logo.GetSize());
-    
+
     this->Bind(wxEVT_PAINT, &AboutDialogLogo::onRepaint, this);
 }
 
@@ -42,7 +42,7 @@ void AboutDialogLogo::onRepaint(wxEvent &event)
 // -----------------------------------------
 CopyrightsDialog::CopyrightsDialog()
     : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, from_u8((boost::format("%1% - %2%")
-        % (wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME)
+        % (wxGetApp().is_editor() ? SLIC3R_APP_FULL_NAME : GCODEVIEWER_APP_NAME)
         % _utf8(L("Portions copyright"))).str()),
         wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
@@ -63,7 +63,7 @@ CopyrightsDialog::CopyrightsDialog()
 
     fill_entries();
 
-    m_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, 
+    m_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition,
                               wxSize(40 * em_unit(), 20 * em_unit()), wxHW_SCROLLBAR_AUTO);
     m_html->SetMinSize(wxSize(FromDIP(870),FromDIP(520)));
     wxFont font = get_default_font(this);
@@ -72,7 +72,7 @@ CopyrightsDialog::CopyrightsDialog()
     int size[] = { fs, fs, fs, fs, fs2, fs2, fs2 };
 
     m_html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
-    m_html->SetBorders(2);        
+    m_html->SetBorders(2);
     m_html->SetPage(get_html_text());
 
     sizer->Add(m_html, 1, wxEXPAND | wxALL, 15);
@@ -80,7 +80,7 @@ CopyrightsDialog::CopyrightsDialog()
 
     SetSizer(sizer);
     sizer->SetSizeHints(this);
-    
+
 }
 
 void CopyrightsDialog::fill_entries()
@@ -147,20 +147,20 @@ wxString CopyrightsDialog::get_html_text()
                 "<font size=\"3\">",
          bgr_clr_str, text_clr_str, text_clr_str,
         _L("License"),
-        _L("BambuStudio is licensed under "),
+        _L("Bambu Studio is licensed under "),
         "https://www.gnu.org/licenses/agpl-3.0.html",_L("GNU Affero General Public License, version 3"),
-        _L("BambuStudio is based on PrusaSlicer by Prusa Research, which is from Slic3r by Alessandro Ranellucci and the RepRap community"), 
+        _L("Bambu Studio is based on PrusaSlicer by Prusa Research, which is from Slic3r by Alessandro Ranellucci and the RepRap community"),
         _L("Libraries"),
         _L("This software uses open source components whose copyright and other proprietary rights belong to their respective owners"));
 
     for (auto& entry : m_entries) {
-        text += wxString::Format(
-                    "<a href=\"%s\">%s</a><br/>"
-                    , entry.link, entry.lib_name);
+        text += format_wxstr(
+                    "%s<br/>"
+                    , entry.lib_name);
 
-         text += format_wxstr(
-                    "%s<br/><br/>"
-                    , entry.link);
+         text += wxString::Format(
+                    "<a href=\"%s\">%s</a><br/><br/>"
+                    , entry.link, entry.link);
     }
 
     text += wxString(
@@ -231,7 +231,7 @@ AboutDialog::AboutDialog()
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_panel, 1, wxEXPAND | wxALL, 0);
     main_sizer->Add(ver_sizer, 0, wxEXPAND | wxALL, 0);
-    
+
     // logo
     m_logo_bitmap = ScalableBitmap(this, "BambuStudio_about", 240);
     m_logo = new wxStaticBitmap(this, wxID_ANY, m_logo_bitmap.bmp(), wxDefaultPosition,wxDefaultSize, 0);
@@ -258,7 +258,7 @@ AboutDialog::AboutDialog()
         vesizer->Add(0, 0, 1, wxEXPAND, FromDIP(5));
     }
 
-    wxStaticText *html_text = new wxStaticText(this, wxID_ANY, "Copyright(C) 2022-2032 Bambu Lab", wxDefaultPosition, wxDefaultSize);
+    wxStaticText *html_text = new wxStaticText(this, wxID_ANY, "Copyright(C) 2021-2022 Bambu Lab", wxDefaultPosition, wxDefaultSize);
     ver_sizer->Add(0, 0, 0, wxTOP, FromDIP(38));
     html_text->SetForegroundColour(wxColour(107, 107, 107));
     ver_sizer->Add(html_text, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);

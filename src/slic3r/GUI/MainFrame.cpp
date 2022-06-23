@@ -688,10 +688,10 @@ void MainFrame::update_title()
     return;
 }
 
-void MainFrame::show_option(bool show) 
-{ 
+void MainFrame::show_option(bool show)
+{
     if (!this) { return; }
-    if (!show) { 
+    if (!show) {
         if (m_slice_btn->IsShown()) {
             m_slice_btn->Hide();
             m_print_btn->Hide();
@@ -1518,7 +1518,7 @@ static wxMenu* generate_help_menu()
             return true;
         });
     // About
-    wxString about_title = wxString::Format(_L("&About %s"), SLIC3R_APP_NAME);
+    wxString about_title = wxString::Format(_L("&About %s"), SLIC3R_APP_FULL_NAME);
     append_menu_item(helpMenu, wxID_ANY, about_title, about_title,
             [](wxCommandEvent&) { Slic3r::GUI::about(); });
     return helpMenu;
@@ -1642,7 +1642,7 @@ void MainFrame::init_menubar_as_editor()
 #ifdef __WINDOWS__
         append_menu_item(fileMenu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots/* + "\tCtrl+I"*/, _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) {
-            m_plater->add_model();     
+            m_plater->add_model();
         } }, "menu_import", nullptr,
             [this](){return can_open_project(); }, this);
 #else
