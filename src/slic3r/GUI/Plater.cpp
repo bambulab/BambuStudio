@@ -5565,6 +5565,7 @@ void Plater::get_print_job_data(PrintPrepareData* data)
     if (data) {
         data->plate_idx = p->m_print_job_data.plate_idx;
         data->_3mf_path = p->m_print_job_data._3mf_path;
+        data->_3mf_config_path = p->m_print_job_data._3mf_config_path;
     }
 }
 int Plater::get_print_finished_event()
@@ -8380,6 +8381,39 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
 #endif
 
     result = export_3mf(p->m_print_job_data._3mf_path, strategy, plate_idx, proFn);
+
+    return result;
+}
+
+int Plater::export_config_3mf(int plate_idx, Export3mfProgressFn proFn)
+{
+    int result = 0;
+    /* generate 3mf */
+    if (plate_idx == PLATE_CURRENT_IDX) {
+        p->m_print_job_data.plate_idx = get_partplate_list().get_curr_plate_index();
+    }
+    else {
+        p->m_print_job_data.plate_idx = plate_idx;
+    }
+
+    PartPlate* plate = get_partplate_list().get_curr_plate();
+    try {
+        p->m_print_job_data._3mf_config_path = fs::path(plate->get_temp_config_3mf_path());
+    }
+    catch (std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << "generate 3mf path failed";
+        return -1;
+    }
+
+    SaveStrategy strategy = SaveStrategy::Silence | SaveStrategy::SkipModel;
+#if !BBL_RELEASE_TO_PUBLIC
+    //only save model in QA environment
+    std::string sel = get_app_config()->get("iot_environment");
+    if (sel == ENV_QAT_HOST)
+        strategy = SaveStrategy::Silence | SaveStrategy::SplitModel;
+#endif
+
+    result = export_3mf(p->m_print_job_data._3mf_config_path, strategy, plate_idx, proFn);
 
     return result;
 }

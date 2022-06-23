@@ -97,6 +97,7 @@ void PrintJob::process()
     params.project_name = wxGetApp().plater()->get_project_name().ToUTF8().data();
     params.preset_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
     params.filename = job_data._3mf_path.string();
+    params.config_filename = job_data._3mf_config_path.string();
     params.plate_index = curr_plate_idx;
     params.task_bed_leveling    = this->task_bed_leveling;
     params.task_flow_cali       = this->task_flow_cali;
@@ -105,7 +106,6 @@ void PrintJob::process()
     params.task_record_timelapse= this->task_record_timelapse;
     params.ams_mapping          = this->task_ams_mapping;
     params.connection_type      = this->connection_type;
-    
 
     // local print access
     params.dev_ip = m_dev_ip;
@@ -141,16 +141,29 @@ void PrintJob::process()
                         this->update_status(curr_percent, msg);
                     };
 
+    auto cancel_fn = [this]() {
+            return was_canceled();
+        };
+
     if (params.connection_type != "lan") {
-        result = acc->start_print(params, update_fn,
-            [this]() {
-                return was_canceled();
-            });
+        result = acc->start_print(params, update_fn, cancel_fn);
+        // no access code
+        //if (params.password.empty()) {
+        //    result = acc->start_print(params, update_fn, cancel_fn);
+        //} else {
+        //    // try to send local with record
+        //    result = acc->start_local_print_with_record(params, update_fn, cancel_fn);
+        //    if (result < 0) {
+        //        // try to send with cloud
+        //        result = acc->start_print(params, update_fn, cancel_fn);
+        //        if (result < 0) {
+        //            // try to send local only
+        //            result = acc->start_local_print(params, update_fn, cancel_fn);
+        //        }
+        //    }
+        //}
     } else {
-        result = acc->start_local_print(params, update_fn,
-            [this]() {
-                return was_canceled();
-            });
+        result = acc->start_local_print(params, update_fn, cancel_fn);
     }
 
     if (was_canceled()) {

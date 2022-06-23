@@ -15,6 +15,7 @@ class PrintPrepareData
 public:
     int             plate_idx;
     fs::path        _3mf_path;
+    fs::path        _3mf_config_path;
     PrintPrepareData() {
         plate_idx = 0;
     }

@@ -13,7 +13,6 @@
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-//#include <boost/nowide/iostream.hpp>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Polygon.hpp"
@@ -1985,11 +1984,22 @@ std::string PartPlate::get_tmp_gcode_path()
     if (m_tmp_gcode_path.empty()) {
         boost::filesystem::path temp_path(m_model->get_backup_path("Metadata"));
         temp_path /= (boost::format(".%1%.%2%.gcode") % get_current_pid() %
-                      GLOBAL_PLATE_INDEX++)
-                         .str();
+                      GLOBAL_PLATE_INDEX++).str();
         m_tmp_gcode_path = temp_path.string();
     }
     return m_tmp_gcode_path;
+}
+
+std::string PartPlate::get_temp_config_3mf_path()
+{
+	if (m_temp_config_3mf_path.empty()) {
+		boost::filesystem::path temp_path(m_model->get_backup_path("Metadata"));
+		temp_path /= (boost::format(".%1%.%2%_config.3mf") % get_current_pid() %
+			GLOBAL_PLATE_INDEX++).str();
+		m_temp_config_3mf_path = temp_path.string();
+
+	}
+	return m_temp_config_3mf_path;
 }
 
 // load gcode from file

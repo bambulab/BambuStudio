@@ -216,7 +216,7 @@ namespace BBL {
             AccountManager* acc = (AccountManager*)context_;
             if (acc) {
                 if (acc->on_local_connect_fn) {
-                    acc->on_local_connect_fn(ConnectStatus::ConnectStatusFailed, 0, "");
+                    acc->on_local_connect_fn(ConnectStatus::ConnectStatusFailed, 0, std::string(""));
                 }
             }
         }
@@ -466,14 +466,14 @@ namespace BBL {
         if (mqtt_cli) {
             if (mqtt_cli->is_connected()) {
                 mqtt_cli->disable_callbacks();
-                mqtt_cli->disconnect();
+                mqtt_cli->disconnect()->wait();
             }
         }
 
         if (mqtt_local_cli) {
             if (mqtt_local_cli->is_connected()) {
                 mqtt_local_cli->disable_callbacks();
-                mqtt_local_cli->disconnect();
+                mqtt_local_cli->disconnect()->wait();
             }
         }
         Http::disable_log();
@@ -525,7 +525,7 @@ namespace BBL {
         m_curr_user = AccountInfo::load_from_json(config_json);
         if (this->is_user_login()) {
             if (on_user_login_fn) {
-                on_user_login_fn(0);
+                on_user_login_fn(0, true);
             }
         }
         return 0;
@@ -742,6 +742,7 @@ namespace BBL {
     int AccountManager::local_connect_mqtt(std::string dev_id, std::string dev_ip, std::string username, std::string password)
     {
         /* lan mqtt connection */
+        BOOST_LOG_TRIVIAL(trace) << "local_connect_mqtt: dev_id = " << dev_id << ", dev_ip = " << dev_ip;
         // get a new mqtt_uuid
         boost::uuids::uuid uuid = boost::uuids::random_generator()();
         mqtt_uuid = to_string(uuid).substr(0, 4);
@@ -1211,6 +1212,7 @@ namespace BBL {
             json mapping = json::parse(task->task_ams_mapping);
             j["amsMapping"] = mapping;
         }
+        j["mode"] = task->task_mode;
         return j.dump();
     }
 
@@ -1401,6 +1403,36 @@ namespace BBL {
         return result;
     }
 
+    int AccountManager::patch_project(BBLProject* project, std::string patch_body, unsigned int& http_code, std::string& http_body)
+    {
+        int result = -1;
+        std::string url = (boost::format("%1%/iot-service/api/user/project/%2%") % host % project->project_id).str();
+
+        Http http = Http::patch(url);
+        http.header("Authorization", get_token_str())
+            .header("Content-Type", "application/json")
+            .set_post_body(patch_body)
+            .on_complete(
+                [this, &result](std::string body, unsigned int status) {
+                    try {
+                        json j = json::parse(body);
+                        if (j.contains("message"))
+                            if (j["message"].get<std::string>() == MSG_SUCCESS)
+                                result = 0;
+                    } catch(...) {
+                        ;
+                    }
+                }
+            ).on_error(
+                [this, &http_code, &http_body, &result](std::string body, std::string error, unsigned status) {
+                    http_code = status;
+                    http_body = body;
+                    result = -1;
+                }
+            ).perform_sync();
+        return result;
+    }
+
     int AccountManager::request_profile_id(BBLProfile* profile, unsigned int &http_code, std::string  &http_body)
     {
         int result = -1;
@@ -1502,6 +1534,58 @@ namespace BBL {
         return result;
     }
 
+    int AccountManager::upload_file_to_oss(std::string upload_url, fs::path file, std::string md5_str, unsigned int &http_code, std::string &http_body, Http::ProgressFn proFn)
+    {
+        int result = RET_ERR_CANCEL;
+        if (!fs::exists(file)) {
+            BOOST_LOG_TRIVIAL(trace) << "file is not exists!";
+            return -1;
+        }
+
+        if (md5_str.empty()) {
+            std::string md5_str;
+            std::string full_filename = file.generic_string();
+            bbl_calc_md5(full_filename, md5_str);
+            BOOST_LOG_TRIVIAL(trace) << "print_job: upload_3mf md5 = " << md5_str;
+        }
+
+        // reset values
+        http_code = 0;
+        http_body = "";
+        Http http_put = Http::put2(upload_url);
+
+        http_put.set_put_body(file)
+            .on_complete(
+                [this, &result, &http_code, &http_body](std::string body, unsigned int status) {
+                    result = 0;
+                    http_code = status;
+                    http_body = body;
+                }
+            )
+            .on_progress(proFn)
+                    .on_header_callback([this, &result, &md5_str](std::string headers) {
+                    if (headers.empty()) return;
+                    int tag_pos = headers.find("ETag:");
+                    if (tag_pos > 0) {
+                        size_t start_pos = headers.find("\"", tag_pos);
+                        std::string md5_in_header = headers.substr(start_pos + 1, 32);
+                        if (md5_in_header.compare(md5_str) != 0 && !md5_str.empty()) {
+                            result = RET_MD5_CHECK_FAILED;
+                        }
+                        BOOST_LOG_TRIVIAL(trace) << "print_job: found Etag = " << md5_in_header;
+                    }
+                        })
+            .on_error(
+                [this, &result, &http_code, &http_body](std::string body, std::string error, unsigned status) {
+                    http_code = status;
+                    http_body = body;
+                    result = -1;
+                }
+            );
+        http_put.perform_sync();
+        return result;
+    }
+
     int AccountManager::get_design_info(std::string model_id, std::string& design_id, unsigned int& http_code, std::string& http_body)
     {
         http_code = 0;
@@ -1540,6 +1624,44 @@ namespace BBL {
                 }
             )
             .perform_sync();
+        return result;
+    }
+
+    int AccountManager::get_user_upload(std::vector<std::string> files, std::vector<std::string>& urls)
+    {
+        int result = -1;
+        std::string params;
+        for (int i = 0; i < files.size(); i++) {
+            params += "models=" + files[i];
+            if (i != files.size() -1)
+                params += "&";
+        }
+
+         std::string url = (boost::format("%1%/iot-service/api/user/upload?%2%") % host % params).str();
+         Http http = Http::get(url);
+         http.header("accept", "application/json")
+             .header("Authorization", get_token_str())
+             .on_complete(
+                 [this, &result, &urls](std::string body, unsigned status) {
+                     try {
+                         json j = json::parse(body);
+                         if (is_valid_property(j, "message")) {
+                             if (j["message"] == MSG_SUCCESS) {
+                                 for (json::iterator it = j["urls"].begin(); it != j["urls"].end(); it++) {
+                                     urls.push_back((*it)["url"]);
+                                 }
+                                 result = 0;
+                             }
+                         }
+                     }
+                     catch (...) {
+                         ;
+                     }
+                 })
+            .perform_sync();
+
+        if (files.size() != urls.size())
+            result = -1;
         return result;
     }
 
@@ -2283,7 +2405,7 @@ namespace BBL {
             .header("Content-Type", "application/json")
             .set_post_body(post_body_str)
             .on_complete(
-                [this, task, &result, &http_code, &http_body](std::string body, unsigned status) {
+                [this, &result, &http_code, &http_body](std::string body, unsigned status) {
                     http_code = status;
                     http_body = body;
                     if (http_code == 200)
@@ -3085,8 +3207,8 @@ int AccountManager::start_print(PrintParams params, OnUpdateStatusFn update_fn, 
     if (update_fn) update_fn(PrintingStageCreate, 0, "");
 
     BBLProject* project = new BBLProject(params.project_name);
-    project->project_3mf_file = params.filename;
-    project->project_path = fs::path(params.filename);
+    project->project_3mf_file = params.config_filename;
+    project->project_path = fs::path(params.config_filename);
 
     BBLProfile* profile = new BBLProfile(project);
     profile->profile_name = params.preset_name;
@@ -3179,12 +3301,68 @@ int AccountManager::start_print(PrintParams params, OnUpdateStatusFn update_fn, 
         return -1;
     }
 
+    /* upload 3mf to oss */
+    std::string file_3mf_url = (boost::format("%1%_%2%_%3%.3mf") % project->project_model_id % profile->profile_id % params.plate_index).str();
+    std::vector<std::string> files;
+    std::vector<std::string> urls;
+    files.push_back(file_3mf_url);
+    res = this->get_user_upload(files, urls);
+    if (res < 0 || urls.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "get_user_upload failed";
+        return -1;
+    }
+
+
+    // calc md5
+    std::string md5_str;
+    fs::path upload_file = fs::path(params.filename);
+    std::string full_filename = upload_file.generic_string();
+    bbl_calc_md5(full_filename, md5_str);
+    BOOST_LOG_TRIVIAL(trace) << "print_job: upload_3mf(withgcode) md5 = " << md5_str;
+
+    // update to
+    res = this->upload_file_to_oss(urls[0], upload_file, md5_str, http_code, http_body,
+        [this, cancel_fn, update_fn, &msg](Http::Progress progress, bool& cancel) {
+            if (cancel_fn && cancel_fn()) {
+                cancel = true;
+                return;
+            }
+
+            msg = (boost::format("%1%/%2%") % get_transform_string(progress.ulnow) % get_transform_string(progress.ultotal)).str();
+            if (update_fn) update_fn(PrintingStageUpload, 0, msg);
+        });
+
+    if (cancel_fn && cancel_fn()) {
+        return -1;
+    }
+
+    if (res < 0) {
+        BOOST_LOG_TRIVIAL(info) << "print_job: upload_file_to_oss failed";
+        return -1;
+    }
+
+    json j, j_file;
+    json j_url = json::array();
+    j["profile_id"] = profile->profile_id;
+    j_file["plate_idx"] = params.plate_index;
+    j_file["url"] = urls[0];
+    j_file["md5"] = md5_str;
+    j_url.push_back(j_file);
+    j["profile_print_3mf"] = j_url;
+
+    res = this->patch_project(project, j.dump(), http_code, http_body);
+    if (res < 0) {
+        BOOST_LOG_TRIVIAL(info) << "patch project failed";
+        return -1;
+    }
+
     /* post task */
     if (update_fn) update_fn(PrintingStageSending, 0, "");
 
     BBLSubTask* subTask = new BBLSubTask();
 
     //BBS hide bed choice
+    subTask->task_mode              = "cloud_file";
     subTask->task_bed_leveling      = params.task_bed_leveling;
     subTask->task_flow_cali         = params.task_flow_cali;
     subTask->task_vibration_cali    = params.task_vibration_cali;
@@ -3194,6 +3372,7 @@ int AccountManager::start_print(PrintParams params, OnUpdateStatusFn update_fn, 
     subTask->task_partplate_idx     = std::to_string(params.plate_index);
     subTask->task_printer_dev_id    = params.dev_id;
     subTask->task_ams_mapping       = params.ams_mapping;
+    subTask->task_mode              = "cloud_file";
     if (project->project_name.empty())
         subTask->task_name = (boost::format("Plate %1%") % params.plate_index).str();
     else
@@ -3205,6 +3384,176 @@ int AccountManager::start_print(PrintParams params, OnUpdateStatusFn update_fn, 
         return -1;
     }
     
+    if (update_fn) update_fn(PrintingStageSending, 0, "");
+    return 0;
+}
+
+int AccountManager::start_local_print_with_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
+{
+    int res = 0;
+    unsigned http_code = 0;
+    std::string http_body;
+    std::string msg;
+
+    // Create Printing Job
+    if (update_fn) update_fn(PrintingStageCreate, 0, "");
+
+    BBLProject* project = new BBLProject(params.project_name);
+    project->project_3mf_file = params.config_filename;
+    project->project_path = fs::path(params.config_filename);
+
+    BBLProfile* profile = new BBLProfile(project);
+    profile->profile_name = params.preset_name;
+
+    BOOST_LOG_TRIVIAL(trace) << "print_job: request project id";
+    res = request_project_profile_id(project, profile, http_code, http_body);
+
+    if (res < 0 || project->project_id.empty()
+        || profile->profile_id.empty()
+        || profile->upload_ticket.empty()
+        || profile->upload_url.empty()) {
+        update_fn(PrintingStageCreate, http_code, http_body);
+        BOOST_LOG_TRIVIAL(trace) << "print_job: request project id failed. code = " << http_code << ", http_body = " << http_body;
+        return -1;
+    }
+
+    BOOST_LOG_TRIVIAL(trace) << "print_job: get project id = " << project->project_id;
+    BOOST_LOG_TRIVIAL(trace) << "print_job: get profile id = " << profile->profile_id;
+
+    if (cancel_fn && cancel_fn()) {
+        return -1;
+    }
+
+    // Uploading 3mf File
+    if (update_fn) update_fn(PrintingStageUpload, 0, "");
+
+    BOOST_LOG_TRIVIAL(trace) << "print_job: start to uploading...";
+    // check file size
+    if (!Http::check_file_size(project->project_path)) {
+        if (update_fn) update_fn(PrintingStageUpload, RET_ERR_OVERSIZE, "The size of the uploaded file cannot exceed 1 GB.");
+        return -1;
+    }
+
+    res = this->upload_3mf_to_oss(profile, http_code, http_body,
+        [this, cancel_fn, update_fn, &msg](Http::Progress progress, bool& cancel) {
+            if (cancel_fn && cancel_fn()) {
+                cancel = true;
+                return;
+            }
+
+            msg = (boost::format("%1%/%2%") % get_transform_string(progress.ulnow) % get_transform_string(progress.ultotal)).str();
+            if (update_fn) update_fn(PrintingStageUpload, 0, msg);
+        });
+
+    if (cancel_fn && cancel_fn()) {
+        return -1;
+    }
+
+    if (res < 0) {
+        if (res == RET_MD5_CHECK_FAILED) {
+            msg = "check md5 failed.";
+            if (update_fn) update_fn(PrintingStageUpload, RET_MD5_CHECK_FAILED, msg);
+            BOOST_LOG_TRIVIAL(trace) << "print_job: uploading failed, check md5 failed";
+        }
+        else {
+            if (update_fn) update_fn(PrintingStageUpload, http_code, http_body);
+            BOOST_LOG_TRIVIAL(trace) << "print_job: uploading is failed";
+        }
+        return -1;
+    }
+
+
+    if (update_fn) update_fn(PrintingStageWaiting, 0, "");
+
+    /* put notifications */
+    res = this->put_notification(profile, project->project_path.filename().string(), http_code, http_body);
+    if (res < 0) {
+        if (update_fn) update_fn(PrintingStageWaiting, http_code, http_body);
+        return -1;
+    }
+
+    /* get notifications */
+    bool cancel = false;
+    int  timeout = this->calc_get_notification_timeout(project->project_path);
+    res = this->get_notification(profile, http_code, http_body,
+        [this, cancel_fn]() {
+            if (cancel_fn)
+                return cancel_fn();
+            return false;
+        }, timeout);
+
+    if (res < 0) {
+        if (res == RET_ERR_CANCEL) {
+            if (update_fn) update_fn(PrintingStageWaiting, RET_ERR_CANCEL, "");
+        }
+        else if (res == RET_ERR_TIMEOUT) {
+            if (update_fn) update_fn(PrintingStageWaiting, RET_ERR_TIMEOUT, "");
+        }
+        else {
+            if (update_fn) update_fn(PrintingStageWaiting, http_code, http_body);
+        }
+        return -1;
+    }
+
+    /* post task */
+    if (update_fn) update_fn(PrintingStageSending, 0, "");
+
+    /* sftp uploading */
+    std::string src_file = params.filename;
+    std::string dst_file = "/local_print.gcode.3mf";
+    std::string dev_ip = params.dev_ip;
+    Sftp sftp = Sftp::upload(dev_ip, src_file, dst_file, params.username, params.password);
+    sftp.on_complete(
+        [this, &res](std::string body) {
+            res = 0;
+        })
+        .on_progress(
+            [this, cancel_fn, update_fn, &msg](Sftp::Progress progress, bool& cancel) {
+                if (cancel_fn && cancel_fn()) {
+                    cancel = true;
+                    return;
+                }
+                msg = (boost::format("%1%/%2%") % get_transform_string(progress.ulnow) % get_transform_string(progress.ultotal)).str();
+                if (update_fn) update_fn(PrintingStageUpload, 0, msg);
+            }
+        ).on_error(
+            [this, &res, &msg](std::string error) {
+                msg = error;
+                res = -1;
+            }
+        ).perform_sync();
+
+    if (res < 0) {
+        BOOST_LOG_TRIVIAL(trace) << "print_job: uploading failed, check md5 failed";
+        msg = "upload failed";
+        if (update_fn) update_fn(PrintingStageUpload, -1, msg);
+        return -1;
+    }
+
+    BBLSubTask* subTask = new BBLSubTask();
+
+    //BBS hide bed choice
+    subTask->task_bed_leveling = params.task_bed_leveling;
+    subTask->task_flow_cali = params.task_flow_cali;
+    subTask->task_vibration_cali = params.task_vibration_cali;
+    subTask->task_record_timelapse = params.task_record_timelapse;
+    subTask->task_layer_inspect = params.task_layer_inspect;
+    subTask->task_gcode_in_3mf = (boost::format("Metadata/plate_%1%.gcode") % (params.plate_index)).str();
+    subTask->task_partplate_idx = std::to_string(params.plate_index);
+    subTask->task_printer_dev_id = params.dev_id;
+    subTask->task_ams_mapping = params.ams_mapping;
+    subTask->task_mode = "lan_file";
+    if (project->project_name.empty())
+        subTask->task_name = (boost::format("Plate %1%") % params.plate_index).str();
+    else
+        subTask->task_name = params.project_name;
+
+    res = this->post_task(project, profile, subTask, http_code, http_body);
+    if (res < 0) {
+        if (update_fn) update_fn(PrintingStageSending, http_code, http_body);
+        return -1;
+    }
+
     if (update_fn) update_fn(PrintingStageSending, 0, "");
     return 0;
 }
@@ -3260,6 +3609,13 @@ int AccountManager::start_local_print(PrintParams params, OnUpdateStatusFn updat
         return -1;
     }
 
+    // calc md5
+    std::string md5_str;
+    fs::path upload_file = fs::path(params.filename);
+    std::string full_filename = upload_file.generic_string();
+    bbl_calc_md5(full_filename, md5_str);
+    BOOST_LOG_TRIVIAL(trace) << "print_job: upload_3mf(withgcode) md5 = " << md5_str;
+
     // mqtt print
     if (update_fn) update_fn(PrintingStageWaiting, 0, "");
     json j;
@@ -3273,10 +3629,7 @@ int AccountManager::start_local_print(PrintParams params, OnUpdateStatusFn updat
     j["print"]["subtask_name"] = params.project_name;
     //TODO fixed prefix
     j["print"]["url"] = "file:///userdata" + dst_file;
-    //TODO calc md5
-    j["print"]["md5"] = "";
-    j["print"]["keystore_xml"] = "";
-
+    j["print"]["md5"] = md5_str;
     j["print"]["timelapse"] = params.task_record_timelapse;
     j["print"]["bed_type"] = "auto";
     j["print"]["bed_leveling"] = params.task_bed_leveling;

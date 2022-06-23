@@ -2064,9 +2064,10 @@ void DeviceManager::on_machine_alive(std::string json_str)
                 BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << obj->dev_ip << " to " << dev_ip;
                 obj->dev_ip = dev_ip;
                 /* ip changed reconnect mqtt */
-                if (obj->conn_state == MachineObject::CONNECTION_STATE::STATE_CONNECTING)
-                obj->disconnect();
-                obj->connect();
+                if (obj->conn_state == MachineObject::CONNECTION_STATE::STATE_CONNECTING) {
+                    obj->disconnect();
+                    obj->connect();
+                }
             }
             obj->wifi_signal = printer_signal;
             obj->dev_connection_type = connect_type;
@@ -2168,12 +2169,24 @@ MachineObject* DeviceManager::get_user_machine(std::string dev_id)
     return it->second;
 }
 
+void DeviceManager::clear_user_machine_list()
+{
+    // clean access code
+    for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
+        Slic3r::GUI::wxGetApp().app_config->set("access_code", it->second->dev_id, "");
+    }
+
+    // clean selected machine
+
+    userMachineList.clear();
+}
+
 void DeviceManager::set_selected_machine(std::string dev_id)
 {
     auto my_machine_list = get_my_machine_list();
     auto it = my_machine_list.find(dev_id);
     if (it != my_machine_list.end()) {
-        if (it->second->connection_type() != "lan" && !it->second->connection_type().empty()) {
+        if (it->second->connection_type() != "lan" || it->second->connection_type().empty()) {
             acc_.set_monitor_machine(dev_id);
             set_monitoring_machine(dev_id);
             it->second->reset();
@@ -2279,6 +2292,11 @@ void DeviceManager::update_user_machine_list_info()
                         obj->print_status = elem["task_status"].get<std::string>();
                     if (elem.contains("dev_product_name") && !elem["dev_product_name"].is_null())
                         obj->product_name = elem["dev_product_name"].get<std::string>();
+                    if (elem.contains("dev_access_code") && !elem["dev_access_code"].is_null()) {
+                        obj->access_code = elem["dev_access_code"].get<std::string>();
+                        //save my access code
+                        Slic3r::GUI::wxGetApp().app_config->set("access_code", obj->dev_id, obj->access_code);
+                    }
                 }
 
                 //remove MachineObject from userMachineList

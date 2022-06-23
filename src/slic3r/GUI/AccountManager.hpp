@@ -339,7 +339,7 @@ public:
     typedef std::function<bool()> CancelFn;
 
     //define callbacks
-    typedef std::function<void(int online_login)>       OnUserLoginFn;
+    typedef std::function<void(int online_login, bool login)> OnUserLoginFn;
     typedef std::function<void(std::string topic_str)>  OnPrinterConnectedFn;
     typedef std::function<void()>                       OnServerConnectedFn;
     typedef std::function<void(unsigned http_code, std::string http_body)> OnHttpErrorFn;
@@ -464,6 +464,9 @@ public:
     // POST /api/user/project
     int request_project_id(BBLProject* project, unsigned int &http_code, std::string &http_body);
 
+    // PATCH /api/user/project
+    int patch_project(BBLProject* project, std::string patch_body, unsigned int &http_code, std::string &http_body);
+
     // POST /api/user/project/{project_id}
     int request_profile_id(BBLProfile* profile, unsigned int &http_code, std::string &http_body);
 
@@ -473,8 +476,13 @@ public:
     // PUT alibaba oss
     int upload_3mf_to_oss(BBLProfile* profile, unsigned int &http_code, std::string & http_body, Http::ProgressFn proFn = nullptr);
 
+    int upload_file_to_oss(std::string upload_url, fs::path file, std::string md5_str, unsigned int& http_code, std::string& http_body, Http::ProgressFn proFn = nullptr);
+
     // upload_3mf_to_oss + put_notification + get_notification
     //int upload_3mf(BBLProfile* profile, unsigned int &http_code, std::string &http_body, Http::ProgressFn proFn = nullptr);
+
+    // GET /user/upload
+    int get_user_upload(std::vector<std::string> files, std::vector<std::string>& urls);
 
     // GET /api/user/profile/{profile_id}
     int get_profile_3mf(BBLProfile* profile, unsigned int &http_code, std::string http_body);
@@ -567,6 +575,7 @@ public:
         std::string     project_name;
         std::string     preset_name;
         std::string     filename;
+        std::string     config_filename;
         int             plate_index;
         std::string     ams_mapping;
         std::string     connection_type;
@@ -585,6 +594,8 @@ public:
 
     };
     int start_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
+
+    int start_local_print_with_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
 
     int start_local_print(PrintParams, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
     

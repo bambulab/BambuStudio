@@ -1162,6 +1162,15 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         return;
     }
 
+    // export config 3mf if needed
+    if (obj_->connection_type() != "lan") {
+        result = m_plater->export_config_3mf(m_print_plate_idx);
+        if (result < 0) {
+            BOOST_LOG_TRIVIAL(trace) << "export_config_3mf failed, result = " << result;
+            return;
+        }
+    }
+
     m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, m_printer_last_select);
     m_print_job->m_dev_ip = obj_->dev_ip;
     m_print_job->m_access_code = obj_->access_code;
@@ -1259,6 +1268,7 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
     }
 
     if (m_list.size() > 0) {
+        // select a default machine
         if (m_printer_last_select.empty()) {
             m_printer_last_select = m_list[0]->dev_id;
             update_select_layout(m_list[0]->printer_type);
@@ -1275,6 +1285,7 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
         m_comboBox_printer->SetTextLabel("");
         update_err_msg(_L("No printer available"));
     }
+    dev->set_selected_machine(m_printer_last_select);
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  "for send task, current printer id =  "<< m_printer_last_select << std::endl;
 }

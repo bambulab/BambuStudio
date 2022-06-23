@@ -98,8 +98,9 @@ private:
     GCodeProcessorResult *m_gcode_result;
     int m_print_index;
 
-    std::string m_tmp_gcode_path; //use a temp path to store the gcode
-    std::string m_gcode_path_from_3mf; //use a path to store the gcode loaded from 3mf
+    std::string m_tmp_gcode_path;       //use a temp path to store the gcode
+    std::string m_temp_config_3mf_path; //use a temp path to store the config 3mf
+    std::string m_gcode_path_from_3mf;  //use a path to store the gcode loaded from 3mf
 
     friend class PartPlateList;
 
@@ -360,7 +361,8 @@ public:
     Print* fff_print() { return m_print; }
     //return the slice result
     GCodeProcessorResult* get_slice_result() { return m_gcode_result; }
-    std::string             get_tmp_gcode_path();
+    std::string           get_tmp_gcode_path();
+    std::string           get_temp_config_3mf_path();
     //this API should only be used for command line usage
     void set_tmp_gcode_path(std::string new_path)
     {

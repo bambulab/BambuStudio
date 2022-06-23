@@ -1101,7 +1101,7 @@ GUI_App::GUI_App()
     );
 
     //set callbacks
-    m_account_manager->set_on_user_login_fn([this](int online_login) {
+    m_account_manager->set_on_user_login_fn([this](int online_login, bool login) {
         GUI::wxGetApp().request_user_login(online_login);
     });
 

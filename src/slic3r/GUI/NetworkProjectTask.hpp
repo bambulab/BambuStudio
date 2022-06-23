@@ -122,6 +122,7 @@ public:
     std::string     task_project_id;    /* project id */
     std::string     task_profile_id;    /* profile id*/
     std::string     task_name;          /* task name, generally filename as task name */
+    std::string     task_mode;          /* task mode, */
     std::string     task_file;          /* local full file path of 3mf or gcode */
     fs::path        task_path;          /* local path of 3mf or gcode */
     std::string     task_gcode_in_3mf;  /* gcode in 3mf */

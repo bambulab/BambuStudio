@@ -545,6 +545,7 @@ public:
     MachineObject* get_local_selected_machine();
     MachineObject* get_local_machine(std::string dev_id);
     MachineObject* get_user_machine(std::string dev_id);
+    void clear_user_machine_list();
 
     void set_selected_machine(std::string dev_id);
     MachineObject* get_selected_machine();
