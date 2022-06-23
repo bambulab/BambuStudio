@@ -4532,7 +4532,8 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     }
 
     BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: plate_idx %1% volumes size %2%, shader %3%") % plate_idx % visible_volumes.size() %shader;
-    BoundingBoxf3 volumes_box = plate_build_volume;
+    //BoundingBoxf3 volumes_box = plate_build_volume;
+    BoundingBoxf3 volumes_box;
     volumes_box.min.z() = 0;
     volumes_box.max.z() = 0;
     if (!visible_volumes.empty()) {
@@ -4540,6 +4541,15 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
             volumes_box.merge(vol->transformed_bounding_box());
         }
     }
+    double width = volumes_box.max.x() - volumes_box.min.x();
+    double depth = volumes_box.max.y() - volumes_box.min.y();
+    double height = volumes_box.max.z() - volumes_box.min.z();
+    volumes_box.max.x() = volumes_box.max.x() + width * 0.25f;
+    volumes_box.min.x() = volumes_box.min.x() - width * 0.25f;
+    volumes_box.max.y() = volumes_box.max.y() + depth * 0.25f;
+    volumes_box.min.y() = volumes_box.min.y() - depth * 0.25f;
+    volumes_box.max.z() = volumes_box.max.z() + height * 0.25f;
+    volumes_box.min.z() = volumes_box.min.z() - height * 0.25f;
 
     Camera camera;
     camera.set_type(camera_type);
@@ -4552,7 +4562,10 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     //plate_box.min.z() = 0.0;
     //plate_box.max.z() = 0.0;
     camera.zoom_to_box(volumes_box);
-    camera.select_view("topfront");
+    const Vec3d& target = camera.get_target();
+    double distance = camera.get_distance();
+    //camera.select_view("topfront");
+    camera.look_at(target - 0.707 * distance * Vec3d::UnitY() + 0.3 * distance * Vec3d::UnitZ(), target, Vec3d::UnitY() + Vec3d::UnitZ());
     camera.apply_view_matrix();
 
     camera.apply_projection(plate_build_volume);
@@ -4567,8 +4580,8 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         return;
     }
 
-    if (thumbnail_params.transparent_background)
-        glsafe(::glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
+    //if (thumbnail_params.transparent_background)
+    glsafe(::glClearColor(0.906f, 0.906f, 0.906f, 1.0f));
 
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -4603,11 +4616,12 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    plate->render( false, true, true);
+    //don't render plate in thumbnail
+    //plate->render( false, true, true);
 
     // restore background color
-    if (thumbnail_params.transparent_background)
-        glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
+    //if (thumbnail_params.transparent_background)
+    //    glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
     BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: finished");
 }
 
@@ -5674,7 +5688,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     // Don't update a toolbar scale, when we are on a Preview
     if (wxGetApp().plater()->is_preview_shown())
     {
-  
+
 #if ENABLE_RETINA_GL
         IMSlider *m_layers_slider = get_gcode_viewer().get_layers_slider();
         IMSlider *m_moves_slider  = get_gcode_viewer().get_moves_slider();
@@ -6052,7 +6066,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar() const
     auto canvas_h = float(cnv_size.get_height());
 
     bool is_hovered = false;
-    
+
     m_sel_plate_toolbar.set_icon_size(80.0f * f_scale, 80.0f * f_scale);
 
     float button_width = m_sel_plate_toolbar.icon_width;
@@ -6284,7 +6298,7 @@ void GLCanvas3D::_render_paint_toolbar() const
     auto canvas_w = float(get_canvas_size().get_width());
     int extruder_num = colors.size();
     int item_spacing = 8 * wxGetApp().toolbar_icon_scale() * f_scale;
-    
+
     std::vector<std::string> filament_types;
    {
        auto preset_bundle = wxGetApp().preset_bundle;
@@ -6298,7 +6312,7 @@ void GLCanvas3D::_render_paint_toolbar() const
            }
        }
    }
-    
+
    #ifdef __APPLE__
    std::string  item_text   = (boost::format("%1% %2%") % (11) % filament_types[0]).str();
    const ImVec2 label_size  = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
@@ -6324,7 +6338,7 @@ void GLCanvas3D::_render_paint_toolbar() const
                 ImGui::SameLine((button_size - label_size.x) / 2 + (button_size + item_spacing) * i);
             #else
             ImGui::SameLine();
-            #endif     
+            #endif
         }
             //ImGui::SameLine();
         ImGui::PushID(i);
