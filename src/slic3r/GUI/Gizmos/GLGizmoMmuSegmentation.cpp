@@ -194,6 +194,9 @@ void GLGizmoMmuSegmentation::render_triangles(const Selection &selection) const
     shader->set_uniform("slope.actived", m_parent.is_using_slope());
     ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
 
+    //BBS: to improve the random white pixel issue
+    glsafe(::glDisable(GL_CULL_FACE));
+
     const ModelObject *mo      = m_c->selection_info()->model_object();
     int                mesh_id = -1;
     for (const ModelVolume *mv : mo->volumes) {
