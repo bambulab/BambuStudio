@@ -2442,12 +2442,18 @@ static inline PrintObjectSupportMaterial::MyLayer* detect_bottom_contacts(
                 // A top layer has been found, which is close to the new bottom layer.
                 coordf_t diff = layer_new.print_z - top_contacts[top_idx]->print_z;
                 assert(std::abs(diff) <= support_params.support_layer_height_min + EPSILON);
-                if (diff > 0.) {
-                    // The top contact layer is below this layer. Make the bridging layer thinner to align with the existing top layer.
-                    assert(diff < layer_new.height + EPSILON);
-                    assert(layer_new.height - diff >= support_params.support_layer_height_min - EPSILON);
-                    layer_new.print_z = top_contacts[top_idx]->print_z;
-                    layer_new.height -= diff;
+                if (diff > 0.F) {
+                    if (layer_new.height - diff > support_params.support_layer_height_min) {
+                        // The top contact layer is below this layer. Make the bridging layer thinner to align with the existing top layer.
+                        assert(diff < layer_new.height + EPSILON);
+                        assert(layer_new.height - diff >= support_params.support_layer_height_min - EPSILON);
+                        layer_new.print_z = top_contacts[top_idx]->print_z;
+                        layer_new.height -= diff;
+                    }
+                    else {
+                        // BBS: The trimmed layer height is smaller than support_layer_height_min. Walk to the next top contact layer.
+                        continue;
+                    }
                 }
                 else {
                     // The top contact layer is above this layer. One may either make this layer thicker or thinner.
