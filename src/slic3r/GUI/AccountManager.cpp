@@ -1208,7 +1208,7 @@ namespace BBL {
         j["layerInspect"] = task->task_layer_inspect;
         if (!task->task_ams_mapping.empty()) {
             json mapping = json::parse(task->task_ams_mapping);
-            j["ams_mapping"] = mapping;
+            j["amsMapping"] = mapping;
         }
         return j.dump();
     }
