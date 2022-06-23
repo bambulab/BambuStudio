@@ -28,6 +28,7 @@
 #include <wx/numformatter.h>
 
 #include "slic3r/Utils/FixModelByWin10.hpp"
+#include "libslic3r/Format/bbs_3mf.hpp"
 
 #ifdef __WXMSW__
 #include "wx/uiaction.h"
@@ -2412,6 +2413,8 @@ void ObjectList::merge(bool to_multipart_object)
         ModelObject* new_object = model->add_object();
         new_object->name = _u8L("Assembly");
         ModelConfig &config = new_object->config;
+
+        Slic3r::SaveObjectGaurd gaurd(*new_object);
 
         for (int obj_idx : obj_idxs) {
             ModelObject* object = (*m_objects)[obj_idx];
