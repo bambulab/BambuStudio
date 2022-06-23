@@ -92,8 +92,8 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
 
 #if !BBL_RELEASE_TO_PUBLIC
     if (flags & wxRESET) {
-        Button* calc_btn = new Button(this, _L("Calc"));
-        calc_btn->SetMinSize(BTN_SIZE);
+        Button* calc_btn = new Button(this, _L("Auto-Calc"));
+        calc_btn->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
         calc_btn->SetCornerRadius(12);
         calc_btn->SetBackgroundColor(ok_btn_bg);
         calc_btn->SetBorderColor(ok_btn_bd);
@@ -206,7 +206,7 @@ void WipingPanel::create_panels(wxWindow* parent, const int num) {
 // This panel contains all control widgets for both simple and advanced mode (these reside in separate sizers)
 WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours, wxButton* widget_button,
     int extra_flush_volume, float flush_multiplier)
-: wxPanel(parent,wxID_ANY, wxDefaultPosition, wxDefaultSize/*,wxBORDER_RAISED*/)
+: wxPanel(parent,wxID_ANY, wxDefaultPosition, wxDefaultSize/*,wxBORDER_RAISED*/), m_extra_flush_volume(extra_flush_volume)
 {
     // BBS: toggle button is removed
     //m_widget_button = widget_button;    // pointer to the button in parent dialog
@@ -309,10 +309,6 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         wxStaticText* extra_flush_title = new wxStaticText(m_page_advanced, wxID_ANY, "Extra volume");
         param_sizer->Add(extra_flush_title);
         param_sizer->AddSpacer(FromDIP(5));
-        m_extra_flush_ebox = new wxTextCtrl(m_page_advanced, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(50), -1));
-        m_extra_flush_ebox->SetValue(std::to_string(extra_flush_volume));
-        param_sizer->Add(m_extra_flush_ebox);
-        param_sizer->AddSpacer(FromDIP(15));
 
         wxStaticText* flush_multiplier_title = new wxStaticText(m_page_advanced, wxID_ANY, "Flush multiplier");
         param_sizer->Add(flush_multiplier_title);
@@ -424,22 +420,48 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     });
 }
 
+float DeltaHSV_BBS(float h1, float s1, float v1, float h2, float s2, float v2)
+{
+    float h1_rad = h1 / 180.f * M_PI;
+    float h2_rad = h2 / 180.f * M_PI;
+
+    float dx = std::cos(h1_rad) * s1 * v1 - cos(h2_rad) * s2 * v2;
+    float dy = std::sin(h1_rad) * s1 * v1 - sin(h2_rad) * s2 * v2;
+    float dxy = std::sqrt(dx * dx + dy * dy);
+    // Limit the max distance is the distance between red, green, blue color.
+    // The value is 0.866 * 2.0.
+    if (dxy > 0.7 * 2.f) {
+        dx *= 0.7 / dxy;
+        dy *= 0.7 / dxy;
+    }
+
+    float dz = v2 - v1;
+    return std::sqrt(dx * dx + dy * dy + dz * dz);
+}
+
+static float get_luminance(float r, float g, float b)
+{
+    return r * 0.35 + g * 0.5 + b * 0.15;
+}
+
 int WipingPanel::calc_flushing_volume(const wxColour& from, const wxColour& to)
 {
-    float from_cie_L, from_cie_a, from_cie_b;
-    float to_cie_L, to_cie_a, to_cie_b;
+    float from_hsv_h, from_hsv_s, from_hsv_v;
+    float to_hsv_h, to_hsv_s, to_hsv_v;
 
-    RGB2Lab((float)from.Red() / 255.f, (float)from.Green() / 255.f, (float)from.Blue() / 255.f, &from_cie_L, &from_cie_a, &from_cie_b);
-    RGB2Lab((float)to.Red() / 255.f, (float)to.Green() / 255.f, (float)to.Blue() / 255.f, &to_cie_L, &to_cie_a, &to_cie_b);
+    // Calculate color distance in HSV color space
+    RGB2HSV((float)from.Red() / 255.f, (float)from.Green() / 255.f, (float)from.Blue() / 255.f, &from_hsv_h, &from_hsv_s, &from_hsv_v);
+    RGB2HSV((float)to.Red() / 255.f, (float)to.Green() / 255.f, (float)to.Blue() / 255.f, &to_hsv_h, &to_hsv_s, &to_hsv_v);
+    float distance = DeltaHSV_BBS(from_hsv_h, from_hsv_s, from_hsv_v, to_hsv_h, to_hsv_s, to_hsv_v);
 
-    float delta_e = DeltaE76(from_cie_L, from_cie_a, from_cie_b, to_cie_L, to_cie_a, to_cie_b);
-    if (delta_e < 6.5)
-        return 0;
+    // Consider dest color's luminance
+    float to_lumi = get_luminance((float)to.Red() / 255.f, (float)to.Green() / 255.f, (float)to.Blue() / 255.f);
+    float lumi_factor = to_lumi * 3.2f + 0.8f;
 
-    auto [to_y, to_u, to_v] = rgb_to_yuv(to.Red(), to.Green(), to.Blue());
-    int extra_flush_volume = std::atoi(m_extra_flush_ebox->GetValue().c_str());
+    // Get user input flushing multiplier
     float flush_multiplier = std::atof(m_flush_multiplier_ebox->GetValue().c_str());
-    return (int)((0.5 + 0.5 * to_y / 255.0) * 40.0 * flush_multiplier * std::sqrt(delta_e) + extra_flush_volume);
+
+    return 125.f * lumi_factor * flush_multiplier * distance + m_extra_flush_volume;
 }
 
 void WipingPanel::calc_flushing_volumes()

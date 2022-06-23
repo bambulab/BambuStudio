@@ -39,7 +39,6 @@ static std::vector<std::string> s_project_options {
     "wipe_tower_rotation_angle",
     "curr_bed_type",
 #if !BBL_RELEASE_TO_PUBLIC
-    "extra_flush_volume",
     "flush_multiplier",
 #endif
 };

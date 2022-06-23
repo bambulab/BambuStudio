@@ -568,10 +568,11 @@ Sidebar::Sidebar(Plater *parent)
     m_flushing_volume_btn->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)
         {
             auto& project_config = wxGetApp().preset_bundle->project_config;
+            auto& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
             const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
             const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
-            ConfigOption* extra_flush_volume_opt = project_config.option("extra_flush_volume");
-            int extra_flush_volume = extra_flush_volume_opt ? extra_flush_volume_opt->getInt() : 0;
+            ConfigOption* extra_flush_volume_opt = printer_config.option("nozzle_volume");
+            int extra_flush_volume = extra_flush_volume_opt ? (int)extra_flush_volume_opt->getFloat() : 0;
             ConfigOption* flush_multi_opt = project_config.option("flush_multiplier");
             float flush_multiplier = flush_multi_opt ? flush_multi_opt->getFloat() : 1.f;
 
@@ -585,7 +586,6 @@ Sidebar::Sidebar(Plater *parent)
                 (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
                 (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values = std::vector<double>(extruders.begin(), extruders.end());
 #if !BBL_RELEASE_TO_PUBLIC
-                (project_config.option<ConfigOptionInt>("extra_flush_volume"))->set(new ConfigOptionInt(dlg.get_extra_flush_volume()));
                 (project_config.option<ConfigOptionFloat>("flush_multiplier"))->set(new ConfigOptionFloat(dlg.get_flush_multiplier()));
 #endif
 

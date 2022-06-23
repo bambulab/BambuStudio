@@ -18,14 +18,6 @@ public:
     void calc_flushing_volumes();
 
 #if !BBL_RELEASE_TO_PUBLIC
-    int get_extra_flush_volume()
-    {
-        if (m_extra_flush_ebox == nullptr)
-            return 0;
-
-        return std::atoi(m_extra_flush_ebox->GetValue().c_str());
-    }
-
     float get_flush_multiplier()
     {
         if (m_flush_multiplier_ebox == nullptr)
@@ -55,8 +47,8 @@ private:
     wxGridSizer* m_gridsizer_advanced = nullptr;
     wxButton* m_widget_button     = nullptr;
 
-    wxTextCtrl* m_extra_flush_ebox = nullptr;
     wxTextCtrl* m_flush_multiplier_ebox = nullptr;
+    float m_extra_flush_volume = 0;
 };
 
 
@@ -73,14 +65,6 @@ public:
     wxBoxSizer* create_btn_sizer(long flags);
 
 #if !BBL_RELEASE_TO_PUBLIC
-    int get_extra_flush_volume()
-    {
-        if (m_panel_wiping == nullptr)
-            return 0;
-
-        return m_panel_wiping->get_extra_flush_volume();
-    }
-
     float get_flush_multiplier()
     {
         if (m_panel_wiping == nullptr)
