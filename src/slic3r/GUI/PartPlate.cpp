@@ -2040,7 +2040,9 @@ int PartPlate::load_thumbnail_data(std::string filename)
 		thumbnail_data.set(img.GetWidth(), img.GetHeight());
 		for (int i = 0; i < img.GetWidth() * img.GetHeight(); i++) {
 			memcpy(&thumbnail_data.pixels[4 * i], (unsigned char*)(img.GetData() + 3 * i), 3);
-			thumbnail_data.pixels[4 * i + 3] = *(unsigned char*)(img.GetAlpha() + i);
+			if (img.HasAlpha()) {
+				thumbnail_data.pixels[4 * i + 3] = *(unsigned char*)(img.GetAlpha() + i);
+			}
 		}
 	} else {
 		return -1;
@@ -2057,7 +2059,9 @@ int PartPlate::load_pattern_thumbnail_data(std::string filename)
 		cali_thumbnail_data.set(img.GetWidth(), img.GetHeight());
 		for (int i = 0; i < img.GetWidth() * img.GetHeight(); i++) {
 			memcpy(&thumbnail_data.pixels[4 * i], (unsigned char*)(img.GetData() + 3 * i), 3);
-			thumbnail_data.pixels[4 * i + 3] = *(unsigned char*)(img.GetAlpha() + i);
+			if (img.HasAlpha()) {
+				thumbnail_data.pixels[4 * i + 3] = *(unsigned char*)(img.GetAlpha() + i);
+			}
 		}
 	}
 	else {
