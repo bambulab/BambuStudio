@@ -54,12 +54,14 @@ body
 #Content
 {
 	height: 76%;
-	padding: 5mm 10mm;	
+	padding: 20px 40px;
+	overflow-x: hidden;
 	overflow-y:hidden;
 	text-align: left;
 	font-size: 14px;
 	line-height: 22px;
 	color: #464646;
+	position: relative;
 }
 
 #Content div

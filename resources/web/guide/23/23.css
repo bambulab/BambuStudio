@@ -46,15 +46,19 @@ input
 #ItemBlockArea
 {
 	display:flex;
-	width: 100%;
-	overflow-x: auto;
-	flex-wrap: wrap;
+	overflow-x:auto;
+	flex-wrap:wrap;
 	flex-direction: column;
 	justify-content:flex-start;
 	align-items: flex-start;
 	align-content:flex-start;
 	line-height: 32px;
-	height: 400px;
+	position: absolute;
+	top: 156px;
+	bottom: 0px;
+	left: 50px;
+	right: 50px;
+	padding: 6px 0px;
 }
 
 .MItem
