@@ -388,15 +388,6 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(10,3));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(10,0));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.15f, 0.18f, 0.19f, 1.00f));
-    m_imgui->disabled_begin(is_cancelling);
-    if (m_imgui->bbl_button(_L("Close"))) {
-        close();
-    }
-    else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_cancelling)
-        ImGui::SetTooltip("%s", _u8L("Operation already cancelling. Please wait few seconds.").c_str());
-    m_imgui->disabled_end(); // state cancelling
-
-    ImGui::SameLine();
 
     m_imgui->disabled_begin(is_worker_running || ! is_result_ready);
     if (m_imgui->bbl_button(_L("Apply"))) {
@@ -405,8 +396,18 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_worker_running) {
         ImGui::SetTooltip("%s", _u8L("Can't apply when proccess preview.").c_str());
     }
-
     m_imgui->disabled_end(); // state !settings
+
+    ImGui::SameLine();
+
+    m_imgui->disabled_begin(is_cancelling);
+    if (m_imgui->bbl_button(_L("Cancel"))) {
+        close();
+    }
+    else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_cancelling)
+        ImGui::SetTooltip("%s", _u8L("Operation already cancelling. Please wait few seconds.").c_str());
+    m_imgui->disabled_end(); // state cancelling
+
     ImGui::PopStyleVar(3);
     ImGui::PopStyleColor(1);
 
