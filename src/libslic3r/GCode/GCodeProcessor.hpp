@@ -60,6 +60,8 @@ namespace Slic3r {
 
         std::vector<double>                                 volumes_per_color_change;
         std::map<size_t, double>                            volumes_per_extruder;
+        //BBS: the flush amount of every filament
+        std::map<size_t, double>                            flush_per_filament;
         std::map<ExtrusionRole, std::pair<double, double>>  used_filaments_per_role;
 
         std::array<Mode, static_cast<size_t>(ETimeMode::Count)> modes;
@@ -73,6 +75,7 @@ namespace Slic3r {
             }
             volumes_per_color_change.clear();
             volumes_per_extruder.clear();
+            flush_per_filament.clear();
             used_filaments_per_role.clear();
             total_filamentchanges = 0;
         }
@@ -181,6 +184,8 @@ namespace Slic3r {
     class GCodeProcessor
     {
         static const std::vector<std::string> Reserved_Tags;
+        static const std::string Flush_Start_Tag;
+        static const std::string Flush_End_Tag;
 
     public:
         enum class ETags : unsigned char
@@ -402,6 +407,9 @@ namespace Slic3r {
             double tool_change_cache;
             std::map<size_t, double> volumes_per_extruder;
 
+            //BBS: the flush amount of every filament
+            std::map<size_t, double> flush_per_filament;
+
             double role_cache;
             std::map<ExtrusionRole, std::pair<double, double>> filaments_per_role;
 
@@ -411,6 +419,7 @@ namespace Slic3r {
 
             void process_color_change_cache();
             void process_extruder_cache(GCodeProcessor* processor);
+            void update_flush_per_filament(size_t extrude_id, float flush_length);
             void process_role_cache(GCodeProcessor* processor);
             void process_caches(GCodeProcessor* processor);
 
@@ -552,12 +561,15 @@ namespace Slic3r {
         EPositioningType m_e_local_positioning_type;
         std::vector<Vec3f> m_extruder_offsets;
         GCodeFlavor m_flavor;
+        float       m_nozzle_volume;
 
         AxisCoords m_start_position; // mm
         AxisCoords m_end_position; // mm
         AxisCoords m_origin; // mm
         CachedPosition m_cached_position;
         bool m_wiping;
+        bool m_flushing;
+        float m_remaining_volume;
 
         //BBS: x, y offset for gcode generated
         double          m_x_offset{ 0 };
@@ -578,6 +590,7 @@ namespace Slic3r {
         float m_fan_speed; // percentage
         ExtrusionRole m_extrusion_role;
         unsigned char m_extruder_id;
+        unsigned char m_last_extruder_id;
         ExtruderColors m_extruder_colors;
         ExtruderTemps m_extruder_temps;
         float m_extruded_last_z;

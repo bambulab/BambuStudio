@@ -55,6 +55,9 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER"
 };
 
+const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
+const std::string GCodeProcessor::Flush_End_Tag = " FLUSH_END";
+
 const float GCodeProcessor::Wipe_Width = 0.05f;
 const float GCodeProcessor::Wipe_Height = 0.05f;
 
@@ -666,6 +669,8 @@ void GCodeProcessor::UsedFilaments::reset()
     tool_change_cache = 0.0f;
     volumes_per_extruder.clear();
 
+    flush_per_filament.clear();
+
     role_cache = 0.0f;
     filaments_per_role.clear();
 }
@@ -695,6 +700,14 @@ void GCodeProcessor::UsedFilaments::process_extruder_cache(GCodeProcessor* proce
             volumes_per_extruder[active_extruder_id] = tool_change_cache;
         tool_change_cache = 0.0f;
     }
+}
+
+void GCodeProcessor::UsedFilaments::update_flush_per_filament(size_t extrude_id, float flush_volume)
+{
+    if (flush_per_filament.find(extrude_id) != flush_per_filament.end())
+        flush_per_filament[extrude_id] += flush_volume;
+    else
+        flush_per_filament[extrude_id] = flush_volume;
 }
 
 void GCodeProcessor::UsedFilaments::process_role_cache(GCodeProcessor* processor)
@@ -912,6 +925,11 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
 void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
 {
     m_parser.apply_config(config);
+
+    //BBS
+    const ConfigOptionFloat* nozzle_volume = config.option<ConfigOptionFloat>("nozzle_volume");
+    if (nozzle_volume != nullptr)
+        m_nozzle_volume = nozzle_volume->value;
 
     const ConfigOptionEnum<GCodeFlavor>* gcode_flavor = config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor");
     if (gcode_flavor != nullptr)
@@ -1138,12 +1156,15 @@ void GCodeProcessor::reset()
     m_e_local_positioning_type = EPositioningType::Absolute;
     m_extruder_offsets = std::vector<Vec3f>(MIN_EXTRUDERS_COUNT, Vec3f::Zero());
     m_flavor = gcfRepRapSprinter;
+    m_nozzle_volume = 0.f;
 
     m_start_position = { 0.0f, 0.0f, 0.0f, 0.0f };
     m_end_position = { 0.0f, 0.0f, 0.0f, 0.0f };
     m_origin = { 0.0f, 0.0f, 0.0f, 0.0f };
     m_cached_position.reset();
     m_wiping = false;
+    m_flushing = false;
+    m_remaining_volume = 0.f;
     // BBS: arc move related data
     m_move_path_type = EMovePathType::Noop_move;
     m_arc_center = Vec3f::Zero();
@@ -1160,6 +1181,7 @@ void GCodeProcessor::reset()
 
     m_extrusion_role = erNone;
     m_extruder_id = 0;
+    m_last_extruder_id = 0;
     m_extruder_colors.resize(MIN_EXTRUDERS_COUNT);
     for (size_t i = 0; i < MIN_EXTRUDERS_COUNT; ++i) {
         m_extruder_colors[i] = static_cast<unsigned char>(i);
@@ -1779,6 +1801,18 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
     // wipe end tag
     if (boost::starts_with(comment, reserved_tag(ETags::Wipe_End))) {
         m_wiping = false;
+        return;
+    }
+
+    //BBS: flush start tag
+    if (boost::starts_with(comment, GCodeProcessor::Flush_Start_Tag)) {
+        m_flushing = true;
+        return;
+    }
+
+    //BBS: flush end tag
+    if (boost::starts_with(comment, GCodeProcessor::Flush_End_Tag)) {
+        m_flushing = false;
         return;
     }
 
@@ -2498,6 +2532,19 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_width_compare.update(m_width, m_extrusion_role);
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+    }
+    else if (type == EMoveType::Unretract && m_flushing) {
+        float volume_flushed_filament = area_filament_cross_section * delta_pos[E];
+        if (m_remaining_volume > volume_flushed_filament)
+        {
+            m_used_filaments.update_flush_per_filament(m_last_extruder_id, volume_flushed_filament);
+            m_remaining_volume -= volume_flushed_filament;
+        }
+        else {
+            m_used_filaments.update_flush_per_filament(m_last_extruder_id, m_remaining_volume);
+            m_used_filaments.update_flush_per_filament(m_extruder_id, volume_flushed_filament - m_remaining_volume);
+            m_remaining_volume = 0.f;
+        }
     }
 
     // time estimate section
@@ -3600,7 +3647,7 @@ void GCodeProcessor::process_T(const std::string_view command)
                 if (id >= m_result.extruders_count)
                     BOOST_LOG_TRIVIAL(error) << "Invalid T command (" << command << ").";
                 else {
-                    unsigned char old_extruder_id = m_extruder_id;
+                    m_last_extruder_id = m_extruder_id;
                     process_filaments(CustomGCode::ToolChange);
                     m_extruder_id = id;
                     m_cp_color.current = m_extruder_colors[id];
@@ -3612,7 +3659,7 @@ void GCodeProcessor::process_T(const std::string_view command)
                     // Specific to the MK3 MMU2:
                     // The initial value of extruder_unloaded is set to true indicating
                     // that the filament is parked in the MMU2 unit and there is nothing to be unloaded yet.
-                    float extra_time = get_filament_unload_time(static_cast<size_t>(old_extruder_id));
+                    float extra_time = get_filament_unload_time(static_cast<size_t>(m_last_extruder_id));
                     m_time_processor.extruder_unloaded = false;
                     extra_time += get_filament_load_time(static_cast<size_t>(m_extruder_id));
                     simulate_st_synchronize(extra_time);
@@ -3818,8 +3865,11 @@ void GCodeProcessor::process_filaments(CustomGCode::Type code)
     if (code == CustomGCode::ColorChange)
         m_used_filaments.process_color_change_cache();
 
-    if (code == CustomGCode::ToolChange)
+    if (code == CustomGCode::ToolChange) {
         m_used_filaments.process_extruder_cache(this);
+        //BBS: reset remaining filament
+        m_remaining_volume = m_nozzle_volume;
+    }
 }
 
 void GCodeProcessor::simulate_st_synchronize(float additional_time)
@@ -3848,6 +3898,7 @@ void GCodeProcessor::update_estimated_times_stats()
 
     m_result.print_statistics.volumes_per_color_change  = m_used_filaments.volumes_per_color_change;
     m_result.print_statistics.volumes_per_extruder      = m_used_filaments.volumes_per_extruder;
+    m_result.print_statistics.flush_per_filament      = m_used_filaments.flush_per_filament;
     m_result.print_statistics.used_filaments_per_role   = m_used_filaments.filaments_per_role;
 }
 

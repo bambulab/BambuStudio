@@ -1596,7 +1596,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm³");
     def->mode = comDevelop;
     def->readonly = true;
-    def->set_default_value(new ConfigOptionFloat { 120 });
+    def->set_default_value(new ConfigOptionFloat { 118 });
 
     def = this->add("reduce_infill_retraction", coBool);
     def->label = L("Reduce infill retraction");

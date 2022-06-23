@@ -4271,6 +4271,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     std::vector<float> percents;
     std::vector<double> used_filaments_m;
     std::vector<double> used_filaments_g;
+
     float max_percent = 0.0f;
 
     if (m_view_type == EViewType::FeatureType) {
@@ -4556,16 +4557,42 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
         //BBS display filament change times
         if (m_print_statistics.total_filamentchanges > 0) {
+            //BBS: calculate total flushed filaments data
+            double total_flushed_filament_m = 0.0;
+            double total_flushed_filament_g = 0.0;
+            for (size_t extruder_id : m_extruder_ids) {
+                if (m_print_statistics.flush_per_filament.find(extruder_id) == m_print_statistics.flush_per_filament.end())
+                    continue;
+                double volume = m_print_statistics.flush_per_filament.at(extruder_id);
+
+                auto [used_filament_m, used_filament_g] = get_used_filament_from_volume(volume, extruder_id);
+                total_flushed_filament_m += used_filament_m;
+                total_flushed_filament_g += used_filament_g;
+            }
+
+            std::string flushed_filament_str = _u8L("Flushed filament");
             std::string filament_change_str = _u8L("Filament change times");
             float max_len = 10.0f + ImGui::GetStyle().ItemSpacing.x;
-            max_len += ImGui::CalcTextSize(filament_change_str.c_str()).x;
-
+            max_len += std::max(ImGui::CalcTextSize(filament_change_str.c_str()).x, ImGui::CalcTextSize(flushed_filament_str.c_str()).x);
+            //BBS: display total flushed filament
+            {
+                imgui.text(flushed_filament_str + ":");
+                ImGui::SameLine(max_len);
+                char buf[64];
+                ::sprintf(buf, "%.2f m", total_flushed_filament_m);
+                imgui.text(buf);
+                ImGui::SameLine();
+                ::sprintf(buf, "  %.2f g", total_flushed_filament_g);
+                imgui.text(buf);
+            }
             //BBS display filament change times
-            imgui.text(filament_change_str + ":");
-            ImGui::SameLine(max_len);
-            char temp_buf[64];
-            ::sprintf(temp_buf, "  %d", m_print_statistics.total_filamentchanges);
-            imgui.text(temp_buf);
+            {
+                imgui.text(filament_change_str + ":");
+                ImGui::SameLine(max_len);
+                char temp_buf[64];
+                ::sprintf(temp_buf, "  %d", m_print_statistics.total_filamentchanges);
+                imgui.text(temp_buf);
+            }
         }
         break;
     }
