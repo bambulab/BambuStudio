@@ -277,6 +277,15 @@ void ArrangeJob::prepare_wipe_tower()
                 plates_have_wipe_tower[bedid] = true;
             }
 
+        // if wipe tower is not init yet (no wipe tower in any plate before arrangement)
+        if (wipe_tower_ap.poly.empty()) {
+            auto &print                       = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+            wipe_tower_ap.poly.contour.points = print.first_layer_wipe_tower_corners(false);
+            wipe_tower_ap.name                = "WipeTower";
+            wipe_tower_ap.is_virt_object      = true;
+            wipe_tower_ap.is_wipe_tower       = true;
+        }
+
         for (int bedid = 0; bedid < MAX_NUM_PLATES; bedid++) {
             if (!plates_have_wipe_tower[bedid]) {
                 wipe_tower_ap.bed_idx = bedid;

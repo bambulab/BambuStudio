@@ -680,7 +680,7 @@ public:
     static StringObjectException sequential_print_clearance_valid(const Print &print, Polygons *polygons = nullptr, std::vector<std::pair<Polygon, float>>* height_polygons = nullptr);
 
     // Return 4 wipe tower corners in the world coordinates (shifted and rotated), including the wipe tower brim.
-    std::vector<Point>  first_layer_wipe_tower_corners() const;
+    std::vector<Point>  first_layer_wipe_tower_corners(bool check_wipe_tower_existance=true) const;
 
 protected:
     // Invalidates the step, and its depending steps in Print.
