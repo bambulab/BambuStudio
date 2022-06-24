@@ -5436,6 +5436,7 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
     BoundingBoxf bbox_all;
     auto                   print = this->background_process.m_fff_print;
     bboxdata.is_seq_print = (print->config().print_sequence == PrintSequence::ByObject);
+    bboxdata.first_extruder = print->get_tool_ordering().first_extruder();
     //PrintObjectPtrs objects;
     //if (this->printer_technology == ptFFF) {
     //    objects = this->background_process.m_fff_print->objects().vector();
