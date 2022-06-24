@@ -210,7 +210,13 @@ namespace client
         ~expr() { this->reset(); }
 
         expr &operator=(const expr &rhs) 
-        { 
+        {
+            //BBS: avoid memory leak when call operator= directly before call reset()
+            if (this->type == TYPE_STRING && this->data.s) {
+                delete this->data.s;
+                this->data.s = nullptr;
+            }
+
             this->type      = rhs.type;
             this->it_range  = rhs.it_range;
             if (rhs.type == TYPE_STRING) 
@@ -230,9 +236,12 @@ namespace client
         }
 
         void                reset()   
-        { 
-            if (this->type == TYPE_STRING) 
-                delete data.s;
+        {
+            //BBS
+            if (this->type == TYPE_STRING && this->data.s) {
+                delete this->data.s;
+                this->data.s = nullptr;
+            }
             this->type = TYPE_EMPTY;
         }
 

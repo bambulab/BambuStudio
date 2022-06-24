@@ -753,7 +753,12 @@ void PrintObject::slice_volumes()
 
     // Clear old LayerRegions, allocate for new PrintRegions.
     for (Layer* layer : m_layers) {
-        layer->m_regions.clear();
+        //BBS: should delete all LayerRegionPtr to avoid memory leak
+        while (!layer->m_regions.empty()) {
+            if (layer->m_regions.back())
+                delete layer->m_regions.back();
+            layer->m_regions.pop_back();
+        }
         layer->m_regions.reserve(m_shared_regions->all_regions.size());
         for (const std::unique_ptr<PrintRegion> &pr : m_shared_regions->all_regions)
             layer->m_regions.emplace_back(new LayerRegion(layer, pr.get()));
