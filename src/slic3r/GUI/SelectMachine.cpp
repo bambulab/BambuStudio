@@ -1549,6 +1549,9 @@ bool SelectMachineDialog::Show(bool show)
         m_refresh_timer->Stop();
     }
     Thaw();
+    if (show) {
+        CenterOnParent();
+    }
     return DPIDialog::Show(show);
 }
 
