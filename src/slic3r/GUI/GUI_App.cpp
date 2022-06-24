@@ -2554,9 +2554,8 @@ void GUI_App::check_new_version(bool show_tips)
 #ifdef __LINUX__
     platform = "linux";
 #endif
-    std::string query_params = (boost::format("?name=slicer&&version=%1%&&platform=%2%&&guide_version=%3%")
+    std::string query_params = (boost::format("?name=slicer&version=%1%&guide_version=%2%")
         % BBL::VersionInfo::convert_full_version(SLIC3R_VERSION)
-        % platform
         % BBL::VersionInfo::convert_full_version("0.0.0.1")
         ).str();
     std::string url = m_account_manager->get_slicer_info_url() + query_params;
