@@ -35,13 +35,16 @@ wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *paren
     m_title->Wrap(-1);
     m_title->SetToolTip(tooltip);
 
-    auto m_line = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(DESIGN_TAB_PAGE_SIZE.x, 1), wxTAB_TRAVERSAL);
+    auto m_line = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_line->SetBackgroundColour(DESIGN_GRAY400_COLOR);
 
     m_sizer_title->Add(m_title, 0, wxALIGN_CENTER | wxALL, 3);
-    m_sizer_title->Add(0, 0, 0, wxEXPAND | wxLEFT, 9);
-    m_sizer_title->Add(m_line, 1, wxALIGN_CENTER_VERTICAL | wxALL | wxLEFT, 0);
-    m_sizer_title->Add( 0, 0, 0, wxEXPAND|wxLEFT, 80 );
+    m_sizer_title->Add(0, 0, 0,  wxLEFT, 9);
+    //m_sizer_title->Add(m_line, 0, wxEXPAND, 0);
+    wxBoxSizer *sizer_line = new wxBoxSizer(wxVERTICAL);
+    sizer_line->Add( m_line, 0, wxEXPAND, 0 );
+    m_sizer_title->Add( sizer_line, 1, wxALIGN_CENTER, 0 );
+    //m_sizer_title->Add( 0, 0, 0, wxEXPAND|wxLEFT, 80 );
 
     return m_sizer_title;
 }
@@ -270,6 +273,7 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
     input_title->Wrap(-1);
 
     auto input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    input->GetTextCtrl()->SetFont(::Label::Body_13);
     input->GetTextCtrl()->SetValue(app_config->get(param));
 
     auto second_title = new wxStaticText(parent, wxID_ANY, _L("Second"), wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
@@ -294,7 +298,6 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
         m_backup_interval_time = input->GetTextCtrl()->GetValue();
         app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
         app_config->save();
-        m_simplebook->SetFocus();
         e.Skip();
     });
 
@@ -417,7 +420,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
 
 wxWindow *PreferencesDialog ::create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, int groupid, std::string param)
 {
-    wxWindow *item = new wxWindow(parent, wxID_ANY, wxDefaultPosition, wxSize(m_simplebook->GetSize().GetWidth() - 126, 30));
+    wxWindow *item = new wxWindow(parent, wxID_ANY, wxDefaultPosition, wxSize(this->GetSize().GetWidth() - 126, 24));
     item->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 
     RadioBox *radiobox = new RadioBox(item);
@@ -442,8 +445,7 @@ wxWindow *PreferencesDialog ::create_item_radiobox(wxString title, wxWindow *par
 PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &pos, const wxSize &size, long style)
     : DPIDialog(parent, id, _L("Preferences"), pos, size, style)
 {
-    SetBackgroundColour(DESIGN_SELECTOR_SELECTED_COLOR);
-    SetFont(wxGetApp().normal_font());
+    SetBackgroundColour(*wxWHITE);
     create();
 }
 
@@ -455,59 +457,27 @@ void PreferencesDialog::create()
     // set icon for dialog
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+    SetSizeHints(wxDefaultSize, wxDefaultSize);
 
-    this->SetSizeHints(wxDefaultSize, wxDefaultSize);
-    this->SetBackgroundColour(DESIGN_SELECTOR_SELECTED_COLOR);
+    m_sizer_body = new wxBoxSizer(wxVERTICAL);
 
-    m_sizer_top = new wxBoxSizer(wxVERTICAL);
-
-    auto m_top_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    auto m_top_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(DESIGN_RESOUTION_PREFERENCES.x, 1), wxTAB_TRAVERSAL);
     m_top_line->SetBackgroundColour(DESIGN_GRAY400_COLOR);
 
-    m_sizer_top->Add(m_top_line, 0, wxEXPAND, 0);
-    m_sizer_body = new wxBoxSizer(wxHORIZONTAL);
+    m_sizer_body->Add(m_top_line, 0, wxEXPAND, 0);
 
-    m_panel_selects = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-    m_panel_selects->SetBackgroundColour(DESIGN_SELECTOR_NOMORE_COLOR);
-    m_sizer_left = new wxBoxSizer(wxVERTICAL);
-
-    m_sizer_left->Add(0, 0, 0, wxEXPAND | wxTOP, 20);
-
-    m_sizer_left->Add(create_tab_button(0, _L("General")), 0, wxEXPAND, 0);
-    m_sizer_left->Add(create_tab_button(1, _L("GUI")), 0, wxEXPAND, 0);
-    m_sizer_left->Add(create_tab_button(2, _L("Sync")), 0, wxEXPAND, 0);
-#if !BBL_RELEASE_TO_PUBLIC
-    m_sizer_left->Add(create_tab_button(3, _L("Shortcuts")), 0, wxEXPAND, 0);
-    m_sizer_left->Add(create_tab_button(4, _L("Debug")), 0, wxEXPAND, 0);
-#endif
-
-    m_panel_selects->SetSizer(m_sizer_left);
-    m_panel_selects->Layout();
-    m_sizer_left->Fit(m_panel_selects);
-    m_sizer_body->Add(m_panel_selects, 0, wxEXPAND, 0);
-    //m_sizer_body->Add(m_sizer_left, 0, wxEXPAND, 0);
-
-    m_sizer_right = new wxBoxSizer(wxHORIZONTAL);
-
-    m_sizer_right->Add(0, 0, 0, wxEXPAND | wxLEFT, 38);
-
-    m_simplebook = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, DESIGN_TAB_PAGE_SIZE, 0);
-
-    m_sizer_right->Add(m_simplebook, 1, wxEXPAND, 0);
-    m_sizer_body->Add(m_sizer_right, 1, wxEXPAND, 0);
-    m_sizer_top->Add(m_sizer_body, 1, wxEXPAND, 0);
-
-    create_general_page();
-    create_gui_page();
-    create_sync_page();
-#if !BBL_RELEASE_TO_PUBLIC
-    create_shortcuts_page();
-    create_debug_page();
-#endif
-
-    Bind(EVT_PREFERENCES_SELECT_TAB, &PreferencesDialog::OnSelectTabel, this);
-
-    SetSizer(m_sizer_top);
+    auto general_page = create_general_page();
+    auto debug_page   = create_debug_page();
+    
+    /* create_gui_page();
+     create_sync_page();
+     create_shortcuts_page();*/
+     
+     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(28));
+    m_sizer_body->Add(general_page, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(38));
+    m_sizer_body->Add(debug_page, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(38));
+    m_sizer_body->Add(0, 0, 0, wxBOTTOM, FromDIP(28));
+    SetSizer(m_sizer_body);
     Layout();
     Fit();
     CenterOnParent();
@@ -519,52 +489,7 @@ void PreferencesDialog::create()
     wxPostEvent(this, event);
 }
 
-// void PreferencesDialog::ShowModal()
-//{
-//    this->Show();
-//}
-
 PreferencesDialog::~PreferencesDialog() { m_hash_selector.clear(); }
-
-wxWindow *PreferencesDialog::create_tab_button(int id, wxString text)
-{
-    auto tab_button = new wxWindow(m_panel_selects, wxID_ANY, wxDefaultPosition, wxSize(125, 28), wxTAB_TRAVERSAL);
-    tab_button->SetBackgroundColour(DESIGN_SELECTOR_NOMORE_COLOR);
-
-    wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
-
-    sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, 36);
-
-    auto stext = new wxStaticText(tab_button, wxID_ANY, text, wxDefaultPosition, wxDefaultSize, 0);
-    stext->SetFont(::Label::Body_13);
-    stext->SetForegroundColour(DESIGN_GRAY900_COLOR);
-    stext->Wrap(-1);
-    sizer->Add(stext, 1, wxALIGN_CENTER, 0);
-
-    tab_button->Bind(wxEVT_LEFT_DOWN, [this, id](auto &e) {
-        auto event = wxCommandEvent(EVT_PREFERENCES_SELECT_TAB);
-        event.SetInt(id);
-        event.SetEventObject(this);
-        wxPostEvent(this, event);
-    });
-
-    stext->Bind(wxEVT_LEFT_DOWN, [this, id](wxMouseEvent &e) {
-        auto event = wxCommandEvent(EVT_PREFERENCES_SELECT_TAB);
-        event.SetInt(id);
-        event.SetEventObject(this);
-        wxPostEvent(this, event);
-    });
-
-    Selector *sel                 = new Selector;
-    sel->m_index                  = id;
-    sel->m_tab_button             = tab_button;
-    sel->m_tab_text               = stext;
-    m_hash_selector[sel->m_index] = sel;
-
-    tab_button->SetSizer(sizer);
-    tab_button->Layout();
-    return tab_button;
-}
 
 void PreferencesDialog::on_dpi_changed(const wxRect &suggested_rect) { this->Refresh(); }
 
@@ -589,10 +514,10 @@ void PreferencesDialog::Split(const std::string &src, const std::string &separat
     dest.push_back(substring);
 }
 
-void PreferencesDialog::create_general_page()
+wxWindow* PreferencesDialog::create_general_page()
 {
-    auto page = new wxWindow(m_simplebook, wxID_ANY);
-    page->SetBackgroundColour(DESIGN_SELECTOR_SELECTED_COLOR);
+    auto page = new wxWindow(this, wxID_ANY);
+    page->SetBackgroundColour(*wxWHITE);
     wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
 
     auto title_general_settings = create_item_title(_L("General settings"), page, _L("General settings"));
@@ -623,6 +548,11 @@ void PreferencesDialog::create_general_page()
     std::vector<wxString> Units         = {_L("Metric"), _L("Imperial")};
     auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "units", Units);
 
+
+    auto title_sync_settings = create_item_title(_L("User sync"), page, _L("User sync"));
+    auto item_user_sync        = create_item_checkbox(_L("auto sync user presets (printer/materials/craft)"), page, _L("User sync"), 50, "preset_sync_switch");
+
+
     auto title_associate_file = create_item_title(_L("Associate files to BambuStudio"), page, _L("Associate files to BambuStudio"));
 
     // associate file
@@ -639,28 +569,30 @@ void PreferencesDialog::create_general_page()
     auto item_backup  = create_item_checkbox(_L("Auto-Backup"), page,_L("Auto-Backup"), 50, "backup_switch");
     auto item_backup_interval = create_item_backup_input(_L("Backup interval"), page, _L("Backup interval"), "backup_interval");
 
-    sizer_page->Add(title_general_settings, 0, wxTOP, 26);
-    sizer_page->Add(item_language, 0, wxTOP, 8);
-    sizer_page->Add(item_currency, 0, wxTOP, 8);
-    sizer_page->Add(title_associate_file, 0, wxTOP, 20);
-    sizer_page->Add(item_associate_3mf, 0, wxTOP, 6);
-    sizer_page->Add(item_associate_stl, 0, wxTOP, 6);
-    sizer_page->Add(item_associate_step, 0, wxTOP, 6);
-    sizer_page->Add(title_backup, 0, wxTOP, 20);
-    sizer_page->Add(item_backup, 0, wxTOP,8);
-    sizer_page->Add(item_backup_interval, 0, wxTOP,8);
+    sizer_page->Add(title_general_settings, 0, wxEXPAND, 0);
+    sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(title_sync_settings, 0, wxTOP | wxEXPAND, FromDIP(20));
+    sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(title_associate_file, 0, wxTOP| wxEXPAND, FromDIP(20));
+    sizer_page->Add(item_associate_3mf, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_associate_stl, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_associate_step, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(title_backup, 0, wxTOP| wxEXPAND, FromDIP(20));
+    sizer_page->Add(item_backup, 0, wxTOP,FromDIP(3));
+    sizer_page->Add(item_backup_interval, 0, wxTOP,FromDIP(3));
+    //sizer_page->Add(0, 0, 0, wxTOP, 26);
 
 
     page->SetSizer(sizer_page);
     page->Layout();
     sizer_page->Fit(page);
-    m_simplebook->AddPage(page, wxEmptyString, false);
+    return page;
 }
 
 void PreferencesDialog::create_gui_page()
 {
-    auto page = new wxWindow(m_simplebook, wxID_ANY);
-    page->SetBackgroundColour(DESIGN_SELECTOR_SELECTED_COLOR);
+    auto page = new wxWindow(this, wxID_ANY);
     wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
 
     auto title_index_and_tip = create_item_title(_L("Home page and daily tips"), page, _L("Home page and daily tips"));
@@ -674,13 +606,11 @@ void PreferencesDialog::create_gui_page()
     page->SetSizer(sizer_page);
     page->Layout();
     sizer_page->Fit(page);
-    m_simplebook->AddPage(page, wxEmptyString, false);
 }
 
 void PreferencesDialog::create_sync_page()
 {
-    auto page = new wxWindow(m_simplebook, wxID_ANY);
-    page->SetBackgroundColour(DESIGN_SELECTOR_SELECTED_COLOR);
+    auto page = new wxWindow(this, wxID_ANY);
     wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
 
      auto title_sync_settingy   = create_item_title(_L("Sync settings"), page, _L("Sync settings"));
@@ -696,13 +626,11 @@ void PreferencesDialog::create_sync_page()
     page->SetSizer(sizer_page);
     page->Layout();
     sizer_page->Fit(page);
-    m_simplebook->AddPage(page, wxEmptyString, false);
 }
 
 void PreferencesDialog::create_shortcuts_page()
 {
-    auto page = new wxWindow(m_simplebook, wxID_ANY);
-    page->SetBackgroundColour(DESIGN_SELECTOR_SELECTED_COLOR);
+    auto page = new wxWindow(this, wxID_ANY);
     wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
 
     auto title_view_control = create_item_title(_L("View control settings"), page, _L("View control settings"));
@@ -731,13 +659,10 @@ void PreferencesDialog::create_shortcuts_page()
     page->SetSizer(sizer_page);
     page->Layout();
     sizer_page->Fit(page);
-    m_simplebook->AddPage(page, wxEmptyString, false);
 }
 
-void PreferencesDialog::create_debug_page()
+wxBoxSizer* PreferencesDialog::create_debug_page()
 {
-    auto page = new wxWindow(m_simplebook, wxID_ANY);
-    page->SetBackgroundColour(DESIGN_SELECTOR_SELECTED_COLOR);
     wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
 
     m_developer_mode_def  = app_config->get("developer_mode");
@@ -747,17 +672,19 @@ void PreferencesDialog::create_debug_page()
 
     wxBoxSizer *bSizer = new wxBoxSizer(wxVERTICAL);
 
-    auto title_develop_mode   = create_item_title(_L("Develop mode"), page, _L("Develop mode"));
-    auto item_develop_mode    = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
-    auto item_dump_video      = create_item_checkbox(_L("Dump video"), page, _L("Dump video"), 50, "dump_video");
+    auto title_develop_mode   = create_item_title(_L("Develop mode"), this, _L("Develop mode"));
+    auto item_develop_mode    = create_item_checkbox(_L("Develop mode"), this, _L("Develop mode"), 50, "developer_mode");
+    auto item_dump_video      = create_item_checkbox(_L("Dump video"), this, _L("Dump video"), 50, "dump_video");
 
+    auto title_log_level   = create_item_title(_L("Log Level"), this, _L("Log Level"));
     auto log_level_list  = std::vector<wxString>{_L("fatal"), _L("error"), _L("warning"), _L("info"), _L("debug"), _L("trace")};
-    auto loglevel_combox = create_item_loglevel_combobox(_L("Log Level"), page, _L("Log Level"), log_level_list);
+    auto loglevel_combox = create_item_loglevel_combobox(_L("Log Level"), this, _L("Log Level"), log_level_list);
 
-    auto radio1 = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), page, wxEmptyString, 50, 1, "dev_host");
-    auto radio2 = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), page, wxEmptyString, 50, 1, "qa_host");
-    auto radio3 = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"), page, wxEmptyString, 50, 1, "pre_host");
-    auto radio4 = create_item_radiobox(_L("Product host"), page, wxEmptyString, 50, 1, "product_host");
+    auto title_host   = create_item_title(_L("Host Setting"), this, _L("Host Setting"));
+    auto radio1 = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), this, wxEmptyString, 50, 1, "dev_host");
+    auto radio2 = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), this, wxEmptyString, 50, 1, "qa_host");
+    auto radio3 = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"), this, wxEmptyString, 50, 1, "pre_host");
+    auto radio4 = create_item_radiobox(_L("Product host"), this, wxEmptyString, 50, 1, "product_host");
 
     if (m_iot_environment_def == ENV_DEV_HOST) {
         on_select_radio("dev_host");
@@ -769,7 +696,7 @@ void PreferencesDialog::create_debug_page()
         on_select_radio("product_host");
     }
 
-    wxButton *debug_button = new wxButton(page, wxID_ANY, _L("debug save button"), wxDefaultPosition, wxDefaultSize, 0);
+    wxButton *debug_button = new wxButton(this, wxID_ANY, _L("debug save button"), wxDefaultPosition, wxDefaultSize, 0);
     debug_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         // success message box
         MessageDialog dialog(this, _L("save debug settings"), _L("DEBUG settings have saved successfully!"), wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
@@ -852,19 +779,18 @@ void PreferencesDialog::create_debug_page()
     });
 
 
-    bSizer->Add(title_develop_mode, 0, wxTOP, 20);
-    bSizer->Add(item_develop_mode, 0, wxTOP, 20);
-    bSizer->Add(item_dump_video, 0, wxTOP, 20);
-    bSizer->Add(loglevel_combox, 0, wxTOP, 20);
-    bSizer->Add(radio1, 0, wxTOP, 20);
-    bSizer->Add(radio2, 0, wxTOP, 5);
-    bSizer->Add(radio3, 0, wxTOP, 5);
-    bSizer->Add(radio4, 0, wxTOP, 5);
-    bSizer->Add(debug_button, 0, wxALL, 50);
-
-    page->SetSizer(bSizer);
-    bSizer->Fit(page);
-    m_simplebook->AddPage(page, wxEmptyString, false);
+    bSizer->Add(title_develop_mode, 0, wxTOP | wxEXPAND, FromDIP(20));
+    bSizer->Add(item_develop_mode, 0, wxTOP,FromDIP(3));
+    bSizer->Add(item_dump_video, 0, wxTOP, FromDIP(3));
+    bSizer->Add(title_log_level, 0, wxTOP| wxEXPAND, FromDIP(20));
+    bSizer->Add(loglevel_combox, 0, wxTOP, FromDIP(3));
+    bSizer->Add(title_host, 0, wxTOP| wxEXPAND, FromDIP(20));
+    bSizer->Add(radio1, 0, wxTOP, FromDIP(3));
+    bSizer->Add(radio2, 0, wxTOP, FromDIP(3));
+    bSizer->Add(radio3, 0, wxTOP, FromDIP(3));
+    bSizer->Add(radio4, 0, wxTOP, FromDIP(3));
+    bSizer->Add(debug_button, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(15));
+    return bSizer;
 }
 
 void PreferencesDialog::on_select_radio(std::string param)
@@ -919,29 +845,5 @@ void PreferencesDialog::OnSelectRadio(wxMouseEvent &event)
     }
 }
 
-void PreferencesDialog::OnSelectTabel(wxCommandEvent &event)
-{
-    auto                   id = event.GetInt();
-    SelectorHash::iterator i  = m_hash_selector.begin();
-    while (i != m_hash_selector.end()) {
-        Selector *sel = i->second;
-        if (id == sel->m_index) {
-            sel->m_tab_button->SetBackgroundColour(DESIGN_SELECTOR_SELECTED_COLOR);
-            sel->m_tab_text->SetBackgroundColour(DESIGN_SELECTOR_SELECTED_COLOR);
-            sel->m_tab_text->SetFont(::Label::Head_13);
-            sel->m_tab_button->Refresh();
-            sel->m_tab_text->Refresh();
-
-            m_simplebook->SetSelection(id);
-        } else {
-            sel->m_tab_button->SetBackgroundColour(DESIGN_SELECTOR_NOMORE_COLOR);
-            sel->m_tab_text->SetBackgroundColour(DESIGN_SELECTOR_NOMORE_COLOR);
-            sel->m_tab_text->SetFont(::Label::Body_13);
-            sel->m_tab_button->Refresh();
-            sel->m_tab_text->Refresh();
-        }
-        i++;
-    }
-}
 
 }} // namespace Slic3r::GUI

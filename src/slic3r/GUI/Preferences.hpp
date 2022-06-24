@@ -16,6 +16,12 @@
 
 namespace Slic3r { namespace GUI {
 
+
+#define DESIGN_SELECTOR_NOMORE_COLOR wxColour(248, 248, 248)
+#define DESIGN_GRAY900_COLOR wxColour(38, 46, 48)
+#define DESIGN_GRAY800_COLOR wxColour(50, 58, 61)
+#define DESIGN_GRAY400_COLOR wxColour(166, 169, 170)
+
 class Selector
 {
 public:
@@ -35,21 +41,17 @@ public:
     bool      m_selected = false;
 };
 WX_DECLARE_LIST(RadioSelector, RadioSelectorList);
+class CheckBox;
+class TextInput;
 
-#define DESIGN_RESOUTION_PREFERENCES wxSize(618, 520)
-#define DESIGN_SELECTOR_NOMORE_COLOR wxColour(248, 248, 248)
-#define DESIGN_SELECTOR_SELECTED_COLOR wxColour(255, 255, 255)
-#define DESIGN_GRAY900_COLOR wxColour(38, 46, 48)
-#define DESIGN_GRAY800_COLOR wxColour(50, 58, 61)
-#define DESIGN_GRAY400_COLOR wxColour(166, 169, 170)
-#define DESIGN_TAB_PAGE_SIZE wxSize(FromDIP(460), FromDIP(470))
+
+
+#define DESIGN_RESOUTION_PREFERENCES wxSize(FromDIP(540), -1)
 #define DESIGN_TITLE_SIZE wxSize(FromDIP(100), -1)
 #define DESIGN_COMBOBOX_SIZE wxSize(FromDIP(140), -1)
 #define DESIGN_LARGE_COMBOBOX_SIZE wxSize(FromDIP(160), -1)
 #define DESIGN_INPUT_SIZE wxSize(FromDIP(100), -1)
 
-class CheckBox;
-class TextInput;
 
 class PreferencesDialog : public DPIDialog
 {
@@ -57,13 +59,7 @@ private:
     AppConfig *app_config;
 
 protected:
-    wxBoxSizer *  m_sizer_top;
     wxBoxSizer *  m_sizer_body;
-    wxBoxSizer *  m_sizer_left;
-    wxBoxSizer *  m_sizer_right;
-    wxSimplebook *m_simplebook;
-
-    wxPanel *m_panel_selects;
 
     // bool								m_settings_layout_changed {false};
     bool m_seq_top_layer_only_changed{false};
@@ -79,7 +75,7 @@ public:
                       wxWindowID      id    = wxID_ANY,
                       const wxString &title = wxT(""),
                       const wxPoint & pos   = wxDefaultPosition,
-                      const wxSize &  size  = DESIGN_RESOUTION_PREFERENCES,
+                      const wxSize &  size  = wxDefaultSize,
                       long            style = wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX);
 
     ~PreferencesDialog();
@@ -115,11 +111,11 @@ public:
     wxBoxSizer *create_item_switch(wxString title, wxWindow *parent, wxString tooltip, std::string param);
     wxWindow *  create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, int groupid, std::string param);
 
-    void create_general_page();
+    wxWindow* create_general_page();
     void create_gui_page();
     void create_sync_page();
     void create_shortcuts_page();
-    void create_debug_page();
+    wxBoxSizer* create_debug_page();
 
     void     on_select_radio(std::string param);
     wxString get_select_radio(int groupid);
