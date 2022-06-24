@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-22 19:16+0800\n"
+"POT-Creation-Date: 2022-06-24 16:34+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -684,6 +684,9 @@ msgstr "Extrusor"
 msgid "Filament 1"
 msgstr "Filamento 1"
 
+msgid "Flushed filament"
+msgstr ""
+
 msgid "Filament change times"
 msgstr ""
 
@@ -1123,14 +1126,11 @@ msgstr "Mostrar estructura de red"
 msgid "%1%"
 msgstr ""
 
-msgid "Close"
-msgstr "Cerrar"
+msgid "Can't apply when proccess preview."
+msgstr "No se puede aplicar cuando la vista previa del proceso."
 
 msgid "Operation already cancelling. Please wait few seconds."
 msgstr "Operación ya cancelada. Por favor, espere unos segundos."
-
-msgid "Can't apply when proccess preview."
-msgstr "No se puede aplicar cuando la vista previa del proceso."
 
 msgid "Notice"
 msgstr "Date cuenta"
@@ -2170,6 +2170,9 @@ msgstr "Opciones:"
 msgid "Swap Y/Z axes"
 msgstr "Intercambiar los ejes Y/Z"
 
+msgid "Close"
+msgstr "Cerrar"
+
 msgid "Monitoring"
 msgstr "Monitorizando"
 
@@ -2290,6 +2293,38 @@ msgstr "Descargar"
 
 msgid "Skip"
 msgstr "Saltar"
+
+msgid "Portions copyright"
+msgstr "Porciones del copyright"
+
+msgid "Copyright"
+msgstr "Copyright"
+
+msgid "License"
+msgstr "Licencia"
+
+msgid "Bambu Studio is licensed under "
+msgstr ""
+
+msgid "GNU Affero General Public License, version 3"
+msgstr "GNU Affero General Public License, versión 3"
+
+msgid ""
+"Bambu Studio is based on PrusaSlicer by Prusa Research, which is from Slic3r "
+"by Alessandro Ranellucci and the RepRap community"
+msgstr ""
+
+msgid "Libraries"
+msgstr ""
+
+msgid ""
+"This software uses open source components whose copyright and other "
+"proprietary rights belong to their respective owners"
+msgstr ""
+
+#, c-format, boost-format
+msgid "About %s"
+msgstr "Acerca de %s"
 
 msgid "3D Mouse disconnected."
 msgstr "Ratón 3D desconectado."
@@ -3152,6 +3187,9 @@ msgstr "Otros"
 msgid "Prime tower"
 msgstr "Torre Principal"
 
+msgid "Flush options"
+msgstr ""
+
 msgid "Special mode"
 msgstr "Modo especial"
 
@@ -3483,9 +3521,6 @@ msgstr "Elija los archivos"
 
 msgid "Model Name"
 msgstr "Nombre del modelo"
-
-msgid "License"
-msgstr "Licencia"
 
 #, c-format, boost-format
 msgid "%s Update"
@@ -5772,6 +5807,23 @@ msgstr "Ancho"
 msgid "Width of prime tower"
 msgstr "Anchura de la torre principal"
 
+msgid "Flush into objects' infill"
+msgstr ""
+
+msgid ""
+"Purging after filament change will be done inside objects' infills. This may "
+"lower the amount of waste"
+msgstr ""
+
+msgid "Flush into this object"
+msgstr ""
+
+msgid ""
+"Object will be used to purge the nozzle after a toolchange to save material "
+"that would otherwise end up in the wipe tower and decrease print time. "
+"Colours of the objects will be mixed as a result"
+msgstr ""
+
 msgid "X-Y hole compensation"
 msgstr "Compensación de huecos X-Y"
 
@@ -6613,12 +6665,6 @@ msgstr ""
 #~ msgid "Support material"
 #~ msgstr "Material de soporte"
 
-#~ msgid "Portions copyright"
-#~ msgstr "Porciones del copyright"
-
-#~ msgid "Copyright"
-#~ msgstr "Copyright"
-
 #~ msgid ""
 #~ "License agreements of all following programs (libraries) are part of "
 #~ "application license agreement"
@@ -6626,14 +6672,8 @@ msgstr ""
 #~ "Los acuerdos de licencia de todos los programas (bibliotecas) siguientes "
 #~ "forman parte del acuerdo de licencia de la aplicación"
 
-#~ msgid "About %s"
-#~ msgstr "Acerca de %s"
-
 #~ msgid "is licensed under the"
 #~ msgstr "está licenciado bajo el/los"
-
-#~ msgid "GNU Affero General Public License, version 3"
-#~ msgstr "GNU Affero General Public License, versión 3"
 
 #~ msgid ""
 #~ "Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, "

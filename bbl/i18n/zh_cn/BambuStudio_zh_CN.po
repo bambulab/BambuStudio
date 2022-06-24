@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-22 19:16+0800\n"
+"POT-Creation-Date: 2022-06-24 16:34+0800\n"
 "PO-Revision-Date: 2022-05-17 15:42+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -647,8 +647,11 @@ msgstr "挤出机"
 msgid "Filament 1"
 msgstr "耗材丝 1"
 
+msgid "Flushed filament"
+msgstr "换料冲刷消耗"
+
 msgid "Filament change times"
-msgstr "耗材更换次数"
+msgstr "换料次数"
 
 msgid "Color change"
 msgstr "颜色更换"
@@ -1079,14 +1082,11 @@ msgstr "显示线框"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Close"
-msgstr "关闭"
+msgid "Can't apply when proccess preview."
+msgstr "处理预览的过程中无法应用。"
 
 msgid "Operation already cancelling. Please wait few seconds."
 msgstr "操作已在取消中，请等待片刻。"
-
-msgid "Can't apply when proccess preview."
-msgstr "处理预览的过程中无法应用。"
 
 msgid "Notice"
 msgstr "通知"
@@ -2092,6 +2092,9 @@ msgstr "选项："
 msgid "Swap Y/Z axes"
 msgstr "交换Y/Z轴"
 
+msgid "Close"
+msgstr "关闭"
+
 msgid "Monitoring"
 msgstr "实时视频"
 
@@ -2211,6 +2214,40 @@ msgstr "下载"
 
 msgid "Skip"
 msgstr "跳过"
+
+msgid "Portions copyright"
+msgstr "部分版权"
+
+msgid "Copyright"
+msgstr "版权"
+
+msgid "License"
+msgstr "许可证"
+
+msgid "Bambu Studio is licensed under "
+msgstr "Bambu Studio是在"
+
+msgid "GNU Affero General Public License, version 3"
+msgstr "GNU Affero 通用公共许可证，版本 3下授权的"
+
+msgid ""
+"Bambu Studio is based on PrusaSlicer by Prusa Research, which is from Slic3r "
+"by Alessandro Ranellucci and the RepRap community"
+msgstr ""
+"Bambu Studio是基于Prusa Research的PrusaSlicer开发的，而PrusaSlicer是基于来自Alessandro Ranellucci和RepRap社区的Slic3r开发的"
+
+msgid "Libraries"
+msgstr "库"
+
+msgid ""
+"This software uses open source components whose copyright and other "
+"proprietary rights belong to their respective owners"
+msgstr ""
+"本软件使用开源组件，其版权和其他所有权属于各自的所有者"
+
+#, c-format, boost-format
+msgid "About %s"
+msgstr "关于 %s"
 
 msgid "3D Mouse disconnected."
 msgstr "3D鼠标断连。"
@@ -3032,6 +3069,9 @@ msgstr "其他"
 msgid "Prime tower"
 msgstr "擦拭塔"
 
+msgid "Flush options"
+msgstr ""
+
 msgid "Special mode"
 msgstr "特殊模式"
 
@@ -3342,9 +3382,6 @@ msgstr "选择文件"
 
 msgid "Model Name"
 msgstr "模型名字"
-
-msgid "License"
-msgstr "许可证"
 
 #, c-format, boost-format
 msgid "%s Update"
@@ -5410,6 +5447,23 @@ msgstr "宽度"
 msgid "Width of prime tower"
 msgstr "擦拭塔宽度"
 
+msgid "Flush into objects' infill"
+msgstr ""
+
+msgid ""
+"Purging after filament change will be done inside objects' infills. This may "
+"lower the amount of waste"
+msgstr ""
+
+msgid "Flush into this object"
+msgstr ""
+
+msgid ""
+"Object will be used to purge the nozzle after a toolchange to save material "
+"that would otherwise end up in the wipe tower and decrease print time. "
+"Colours of the objects will be mixed as a result"
+msgstr ""
+
 msgid "X-Y hole compensation"
 msgstr "X-Y 孔洞尺寸补偿"
 
@@ -7028,25 +7082,13 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ msgid "Support material"
 #~ msgstr "支撑材料"
 
-#~ msgid "Portions copyright"
-#~ msgstr "部分版权"
-
-#~ msgid "Copyright"
-#~ msgstr "版权"
-
 #~ msgid ""
 #~ "License agreements of all following programs (libraries) are part of "
 #~ "application license agreement"
 #~ msgstr "所有以下程序(库)的许可协议是应用程序许可协议的一部分"
 
-#~ msgid "About %s"
-#~ msgstr "关于 %s"
-
 #~ msgid "is licensed under the"
 #~ msgstr "根据"
-
-#~ msgid "GNU Affero General Public License, version 3"
-#~ msgstr "GNU Affero 通用公共许可证，版本 3"
 
 #~ msgid ""
 #~ "Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, "

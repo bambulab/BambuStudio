@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-22 19:16+0800\n"
+"POT-Creation-Date: 2022-06-24 16:34+0800\n"
 "PO-Revision-Date: 2022-03-12 17:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com> , patched traditional "
 "chinese by Cheng-Hsien Ho <taksito@gmail.com>\n"
@@ -606,6 +606,9 @@ msgstr "擠出頭"
 msgid "Filament 1"
 msgstr ""
 
+msgid "Flushed filament"
+msgstr ""
+
 msgid "Filament change times"
 msgstr ""
 
@@ -1034,13 +1037,10 @@ msgstr ""
 msgid "%1%"
 msgstr ""
 
-msgid "Close"
-msgstr "關閉"
-
-msgid "Operation already cancelling. Please wait few seconds."
+msgid "Can't apply when proccess preview."
 msgstr ""
 
-msgid "Can't apply when proccess preview."
+msgid "Operation already cancelling. Please wait few seconds."
 msgstr ""
 
 msgid "Notice"
@@ -2027,6 +2027,9 @@ msgstr ""
 msgid "Swap Y/Z axes"
 msgstr ""
 
+msgid "Close"
+msgstr "關閉"
+
 msgid "Monitoring"
 msgstr ""
 
@@ -2145,6 +2148,38 @@ msgid "Download"
 msgstr ""
 
 msgid "Skip"
+msgstr ""
+
+msgid "Portions copyright"
+msgstr ""
+
+msgid "Copyright"
+msgstr ""
+
+msgid "License"
+msgstr ""
+
+msgid "Bambu Studio is licensed under "
+msgstr ""
+
+msgid "GNU Affero General Public License, version 3"
+msgstr ""
+
+msgid ""
+"Bambu Studio is based on PrusaSlicer by Prusa Research, which is from Slic3r "
+"by Alessandro Ranellucci and the RepRap community"
+msgstr ""
+
+msgid "Libraries"
+msgstr ""
+
+msgid ""
+"This software uses open source components whose copyright and other "
+"proprietary rights belong to their respective owners"
+msgstr ""
+
+#, c-format, boost-format
+msgid "About %s"
 msgstr ""
 
 msgid "3D Mouse disconnected."
@@ -2961,6 +2996,9 @@ msgstr ""
 msgid "Prime tower"
 msgstr ""
 
+msgid "Flush options"
+msgstr ""
+
 msgid "Special mode"
 msgstr ""
 
@@ -3260,9 +3298,6 @@ msgid "Choose files"
 msgstr ""
 
 msgid "Model Name"
-msgstr ""
-
-msgid "License"
 msgstr ""
 
 #, c-format, boost-format
@@ -5245,6 +5280,23 @@ msgid "Width"
 msgstr ""
 
 msgid "Width of prime tower"
+msgstr ""
+
+msgid "Flush into objects' infill"
+msgstr ""
+
+msgid ""
+"Purging after filament change will be done inside objects' infills. This may "
+"lower the amount of waste"
+msgstr ""
+
+msgid "Flush into this object"
+msgstr ""
+
+msgid ""
+"Object will be used to purge the nozzle after a toolchange to save material "
+"that would otherwise end up in the wipe tower and decrease print time. "
+"Colours of the objects will be mixed as a result"
 msgstr ""
 
 msgid "X-Y hole compensation"
