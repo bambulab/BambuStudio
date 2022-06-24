@@ -29,7 +29,7 @@
         "3"
     ],
     "fan_cooling_layer_time": [
-        "20"
+        "35"
     ],
     "filament_max_volumetric_speed": [
         "28.6"
@@ -47,13 +47,13 @@
         "260"
     ],
     "reduce_fan_stop_start_freq": [
-        "0"
+        "1"
     ],
     "fan_max_speed": [
         "80"
     ],
     "fan_min_speed": [
-        "30"
+        "10"
     ],
     "overhang_fan_threshold": [
         "25%"
