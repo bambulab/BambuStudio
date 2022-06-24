@@ -106,7 +106,7 @@ protected:
 
     //enable_select_firmware only in debug mode
     bool enable_select_firmware = false;
-    bool m_initialized = false;
+    bool m_need_update = false;
 
 public:
     UpgradePanel(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);

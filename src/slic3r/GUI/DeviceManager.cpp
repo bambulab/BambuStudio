@@ -1962,74 +1962,89 @@ void MachineObject::request_logout(ResultFn fn)
     acc_.request_user_unbind(this->dev_id, fn);
 }
 
-bool MachineObject::get_firmware_info()
+void MachineObject::get_firmware_info()
 {
-    int          result = 0;
-    unsigned int http_code;
-    std::string  http_body;
-    result = acc_.get_machine_version(dev_id, http_code, http_body);
-    if (result < 0) {
-        // get upgrade list failed
-        return false;
-    }
-    try {
-        json j = json::parse(http_body);
-        if (j.contains("devices") && !j["devices"].is_null()) {
-            firmware_list.clear();
-            for (json::iterator it = j["devices"].begin(); it != j["devices"].end(); it++) {
-                if ((*it)["dev_id"].get<std::string>() == this->dev_id) {
-                    try {
-                        json firmware = (*it)["firmware"];
-                        for (json::iterator firmware_it = firmware.begin(); firmware_it != firmware.end(); firmware_it++) {
-                            FirmwareInfo item;
-                            item.version     = (*firmware_it)["version"].get<std::string>();
-                            item.url         = (*firmware_it)["url"].get<std::string>();
-                            if ((*firmware_it).contains("description"))
-                                item.description = (*firmware_it)["description"].get<std::string>();
-                            item.module_type = "ota";
-                            int name_start   = item.url.find_last_of('/') + 1;
-                            if (name_start > 0) {
-                                item.name = item.url.substr(name_start, item.url.length() - name_start);
-                                firmware_list.push_back(item);
-                            } else {
-                                BOOST_LOG_TRIVIAL(trace) << "skip";
-                            }
-                        }
-                    } catch (...) {}
-                    try {
-                        if ((*it).contains("ams")) {
-                            json ams_list = (*it)["ams"];
-                            if (ams_list.size() > 0) {
-                                auto ams_front    = ams_list.front();
-                                json firmware_ams = (ams_front)["firmware"];
-                                for (json::iterator ams_it = firmware_ams.begin(); ams_it != firmware_ams.end(); ams_it++) {
+    m_firmware_valid = false;
+    boost::thread update_info_thread = Slic3r::create_thread(
+        [&] {
+            int          result = 0;
+            unsigned int http_code;
+            std::string  http_body;
+            result = acc_.get_machine_version(dev_id, http_code, http_body);
+            if (result < 0) {
+                // get upgrade list failed
+                return;
+            }
+            try {
+                json j = json::parse(http_body);
+                if (j.contains("devices") && !j["devices"].is_null()) {
+                    firmware_list.clear();
+                    for (json::iterator it = j["devices"].begin(); it != j["devices"].end(); it++) {
+                        if ((*it)["dev_id"].get<std::string>() == this->dev_id) {
+                            try {
+                                json firmware = (*it)["firmware"];
+                                for (json::iterator firmware_it = firmware.begin(); firmware_it != firmware.end(); firmware_it++) {
                                     FirmwareInfo item;
-                                    item.version   = (*ams_it)["version"].get<std::string>();
-                                    item.url       = (*ams_it)["url"].get<std::string>();
-                                    if ((*ams_it).contains("description"))
-                                        item.description = (*ams_it)["description"].get<std::string>();
-                                    item.module_type = "ams";
+                                    item.version = (*firmware_it)["version"].get<std::string>();
+                                    item.url = (*firmware_it)["url"].get<std::string>();
+                                    if ((*firmware_it).contains("description"))
+                                        item.description = (*firmware_it)["description"].get<std::string>();
+                                    item.module_type = "ota";
                                     int name_start = item.url.find_last_of('/') + 1;
                                     if (name_start > 0) {
                                         item.name = item.url.substr(name_start, item.url.length() - name_start);
                                         firmware_list.push_back(item);
-                                    } else {
+                                    }
+                                    else {
                                         BOOST_LOG_TRIVIAL(trace) << "skip";
                                     }
                                 }
                             }
+                            catch (...) {}
+                            try {
+                                if ((*it).contains("ams")) {
+                                    json ams_list = (*it)["ams"];
+                                    if (ams_list.size() > 0) {
+                                        auto ams_front = ams_list.front();
+                                        json firmware_ams = (ams_front)["firmware"];
+                                        for (json::iterator ams_it = firmware_ams.begin(); ams_it != firmware_ams.end(); ams_it++) {
+                                            FirmwareInfo item;
+                                            item.version = (*ams_it)["version"].get<std::string>();
+                                            item.url = (*ams_it)["url"].get<std::string>();
+                                            if ((*ams_it).contains("description"))
+                                                item.description = (*ams_it)["description"].get<std::string>();
+                                            item.module_type = "ams";
+                                            int name_start = item.url.find_last_of('/') + 1;
+                                            if (name_start > 0) {
+                                                item.name = item.url.substr(name_start, item.url.length() - name_start);
+                                                firmware_list.push_back(item);
+                                            }
+                                            else {
+                                                BOOST_LOG_TRIVIAL(trace) << "skip";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            catch (...) {
+                                ;
+                            }
                         }
-                    } catch (...) {
-                        ;
                     }
                 }
             }
+            catch (...) {
+                return;
+            }
+            m_firmware_valid = true;
         }
-    }
-    catch(...) {
-        return false;
-    }
-    return true;
+    );
+    return;
+}
+
+bool MachineObject::is_firmware_info_valid()
+{
+    return m_firmware_valid;
 }
 
 DeviceManager::~DeviceManager()

@@ -519,7 +519,9 @@ public:
     /* iot operation apis */
     void request_logout(ResultFn fn);
 
-    bool get_firmware_info();
+    bool m_firmware_valid { false };
+    void get_firmware_info();
+    bool is_firmware_info_valid();
 };
 
 class DeviceManager

@@ -541,18 +541,8 @@ void UpgradePanel::refresh_version_and_firmware(MachineObject* obj)
     BOOST_LOG_TRIVIAL(trace) << "refresh version";
     if (obj) {
         m_obj->command_get_version();
-        boost::thread update_info_thread = Slic3r::create_thread([this] {
-            m_obj->get_firmware_info();
-            int count = 0;
-            while (count < 100) {
-                if (!m_obj->module_vers.empty()) break;
-                boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
-                count++;
-            }
-            if (count == 100)
-                BOOST_LOG_TRIVIAL(trace) << "get_firmware_info timeout";
-            m_initialized = true;
-        });
+        m_obj->get_firmware_info();
+        m_need_update = true;
     }
 }
 
@@ -564,12 +554,13 @@ void UpgradePanel::update(MachineObject *obj)
     }
 
     Freeze();
-    // init after imitialized
-    if (m_initialized) {
-        clean_push_upgrade_panel();
-        m_push_upgrade_panel = new MachineInfoPanel(m_scrolledWindow);
-        m_machine_list_sizer->Add(m_push_upgrade_panel, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, FromDIP(8));
-        m_initialized = false;
+    if (m_obj && m_need_update) {
+        if (m_obj->is_firmware_info_valid()) {
+            clean_push_upgrade_panel();
+            m_push_upgrade_panel = new MachineInfoPanel(m_scrolledWindow);
+            m_machine_list_sizer->Add(m_push_upgrade_panel, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, FromDIP(8));
+            m_need_update = false;
+        }
     }
 
     //update panels
