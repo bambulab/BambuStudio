@@ -5771,7 +5771,7 @@ void GLCanvas3D::_render_overlays()
     glsafe(::glLoadIdentity());
     // ensure that the textures are renderered inside the frustrum
     const Camera& camera = wxGetApp().plater()->get_camera();
-    glsafe(::glTranslated(0.0, 0.0, -(camera.get_near_z() + 0.005)));
+    glsafe(::glTranslated(0.0, 0.0, -(camera.get_near_z() + 0.05)));
     // ensure that the overlay fits the frustrum near z plane
     double gui_scale = camera.get_gui_scale();
     glsafe(::glScaled(gui_scale, gui_scale, 1.0));
