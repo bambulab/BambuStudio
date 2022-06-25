@@ -640,6 +640,8 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
 GLCanvas3D::~GLCanvas3D()
 {
     reset_volumes();
+
+    m_sel_plate_toolbar.del_all_item();
 }
 
 void GLCanvas3D::post_event(wxEvent &&event)

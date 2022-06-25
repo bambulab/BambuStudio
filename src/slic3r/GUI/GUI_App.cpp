@@ -1131,7 +1131,7 @@ GUI_App::GUI_App()
         MachineObject* obj = m_device_manager->get_user_machine(dev_id);
         if (obj) {
             obj->parse_json(msg);
-        
+
             if (obj->is_ams_need_update) {
                 CallAfter([this, dev_id] {
                     MachineObject* obj_ = m_device_manager->get_user_machine(dev_id);
@@ -1169,7 +1169,7 @@ GUI_App::GUI_App()
     };
     m_account_manager->set_on_local_message_fn(lan_message_arrive_fn);
 
-    
+
     m_account_manager->set_on_local_connect_fn(
         [this](int state, std::string dev_id, std::string msg) {
             if (mainframe->m_debug_tool_dlg) {
@@ -1193,6 +1193,16 @@ GUI_App::~GUI_App()
     enable_sync = false;
     if (m_sync_update_thread.joinable())
         m_sync_update_thread.join();
+
+    if (m_ssdp) {
+        delete m_ssdp;
+        m_ssdp = nullptr;
+    }
+
+    if (m_device_manager) {
+        delete m_device_manager;
+        m_device_manager = nullptr;
+    }
 
     if (m_account_manager) {
         delete m_account_manager;

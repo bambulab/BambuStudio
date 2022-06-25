@@ -188,7 +188,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
 
 
-    wxAuiToolBar* toolbar = new wxAuiToolBar();
+    //wxAuiToolBar* toolbar = new wxAuiToolBar();
 /*
 #ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
     this->SetFont(this->normal_font());

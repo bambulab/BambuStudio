@@ -657,8 +657,8 @@ Sidebar::Sidebar(Plater *parent)
     p->m_panel_filament_content = new wxPanel( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
     p->m_panel_filament_content->SetBackgroundColour( wxColour( 255, 255, 255 ) );
 
-    wxBoxSizer* bSizer_filament_content;
-    bSizer_filament_content = new wxBoxSizer( wxHORIZONTAL );
+    //wxBoxSizer* bSizer_filament_content;
+    //bSizer_filament_content = new wxBoxSizer( wxHORIZONTAL );
 
     // BBS:  filament double columns
     p->sizer_filaments = new wxBoxSizer(wxHORIZONTAL);
@@ -696,7 +696,7 @@ Sidebar::Sidebar(Plater *parent)
     p->combos_filament[0]->set_filament_idx(0);
     p->sizer_filaments->GetItem((size_t)0)->GetSizer()->Add(combo_and_btn_sizer, 1, wxEXPAND);
 
-    bSizer_filament_content->Add(p->sizer_filaments, 1, wxALIGN_CENTER | wxALL);
+    //bSizer_filament_content->Add(p->sizer_filaments, 1, wxALIGN_CENTER | wxALL);
     p->m_panel_filament_content->SetSizer(p->sizer_filaments);
     p->m_panel_filament_content->Layout();
     scrolled_sizer->Add(p->m_panel_filament_content, 0, wxTOP | wxEXPAND, FromDIP(5));
@@ -5201,7 +5201,7 @@ void Plater::priv::on_action_print_plate(SimpleEvent&)
     //do not check login for lan printing
     ////BBS check login status
     //if (!wxGetApp().check_login()) return;
-    
+
 
     //BBS
     if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);
@@ -6303,8 +6303,8 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame, BBL::AccountManager* acc
     // Initialization performed in the private c-tor
 }
 
-bool Plater::Show(bool show) 
-{ 
+bool Plater::Show(bool show)
+{
     wxGetApp().mainframe->show_option(show);
     return wxPanel::Show(show);
 }

@@ -768,7 +768,7 @@ private:
 
 public:
     GCodeViewer();
-    ~GCodeViewer() { reset(); }
+    ~GCodeViewer();
 
     float m_scale = 1.0;
     void set_scale(float scale = 1.0);

@@ -185,7 +185,7 @@ void MachineObjectPanel::set_printer_busy()
     Refresh();
 }
 
-void MachineObjectPanel::set_printer_offline() 
+void MachineObjectPanel::set_printer_offline()
 {
     m_state = PrinterState::OFFLINE;
     Refresh();
@@ -339,7 +339,7 @@ void MachineObjectPanel::on_mouse_left_down(wxMouseEvent &evt)
     auto bottom = (GetSize().y - m_unbind_img.GetSize().y) / 2 + m_unbind_img.GetSize().y;
     if ((evt.GetPosition().x >= left && evt.GetPosition().x <= right) && evt.GetPosition().y >= top && evt.GetPosition().y <= bottom) { m_select_unbind = true; }
     Refresh();
-    
+
     /* set monitor page to current device */
     if (m_state_can_bind) {
         if (m_info->connection_type() != "lan") {
@@ -347,7 +347,7 @@ void MachineObjectPanel::on_mouse_left_down(wxMouseEvent &evt)
         } else {
             show_enter_accesscode_dialog();
         }
-        
+
         wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
     } else {
         auto left   = GetSize().x - m_unbind_img.GetSize().x - 15;
@@ -368,7 +368,7 @@ void MachineObjectPanel::on_mouse_left_down(wxMouseEvent &evt)
             wxGetApp().mainframe->SetFocus();
         }
     }
-    
+
     evt.Skip();
 }
 
@@ -443,14 +443,14 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
     m_refresh_timer->Stop();
     m_refresh_timer->SetOwner(this);
     m_refresh_timer->Start(MACHINE_LIST_REFRESH_INTERVAL);
-    
+
     BBL::AccountManager* acc = wxGetApp().getAccountManager();
 
     if (acc->is_user_login()) {
         get_print_info_thread = new boost::thread(Slic3r::create_thread([this] {
                 DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
                 dev->update_user_machine_list_info();
-        
+
                 if (!was_dismiss()) {
                     wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
                     event.SetEventObject(this);
@@ -459,7 +459,7 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
             })
         );
     }
-    
+
     wxPostEvent(this, wxTimerEvent());
     wxPopupTransientWindow::Popup();
 }
@@ -588,7 +588,7 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
         op->update_machine_info(mobj);
         m_sizer_my_devices->Add(op, 0, wxEXPAND, 0);
         // op->Bind(wxEVT_LEFT_UP, &SelectMachinePopup::OnLeftUp, this);
-        
+
     }
 
     Layout();
@@ -1247,7 +1247,7 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
 
     std::vector<std::string> machine_list;
     std::map<std::string, MachineObject*> option_list;
-    
+
     option_list = dev->get_my_machine_list();
     // same machine only appear once
     for (auto it = option_list.begin(); it != option_list.end(); it++) {
@@ -1255,7 +1255,7 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
             machine_list.push_back(it->second->dev_name);
         }
     }
-    
+
     machine_list = sort_string(machine_list);
     for (auto tt = machine_list.begin(); tt != machine_list.end(); tt++) {
         for (auto it = option_list.begin(); it != option_list.end(); it++) {
@@ -1296,7 +1296,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
 
     MachineObject* obj_ = dev_manager->get_selected_machine();
     if (!obj_) return;
-    
+
     // ams mapping
     if (!obj_->amsList.empty()) {
         if (m_ams_mapping_result.empty()) {
@@ -1309,7 +1309,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
             update_err_msg(mapping_text);
         }
     }
-    
+
     if (obj_->connection_type() != "lan") {
         BBL::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
         if (c->is_user_login()) {
@@ -1413,7 +1413,8 @@ bool SelectMachineDialog::Show(bool show)
     // thumbmail
     Freeze();
     sizer_thumbnail->Clear();
-    ThumbnailData *data = wxGetApp().plater()->get_thumbnail()[m_plater->get_partplate_list().get_curr_plate_index()];
+    std::vector<ThumbnailData *> data_list = wxGetApp().plater()->get_thumbnail();
+    ThumbnailData *data = data_list[m_plater->get_partplate_list().get_curr_plate_index()];
     wxImage        image(data->width, data->height);
     image.InitAlpha();
 
@@ -1425,6 +1426,12 @@ bool SelectMachineDialog::Show(bool show)
             image.SetAlpha((int) c, (int) r, px[3]);
         }
     }
+    for (int index = 0; index < data_list.size(); index++)
+    {
+        if (data_list[index])
+            delete data_list[index];
+    }
+    data_list.clear();
 
     auto bitmap       = new wxBitmap(image);
     auto staticbitmap = new wxStaticBitmap(m_image, wxID_ANY, *bitmap, wxDefaultPosition, wxDefaultSize);

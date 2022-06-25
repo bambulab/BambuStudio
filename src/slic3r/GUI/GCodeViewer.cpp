@@ -658,6 +658,19 @@ GCodeViewer::GCodeViewer()
 //    m_sequential_view.skip_invisible_moves = true;
 }
 
+GCodeViewer::~GCodeViewer()
+{
+    reset();
+    if (m_moves_slider) {
+        delete m_moves_slider;
+        m_moves_slider = nullptr;
+    }
+    if (m_layers_slider) {
+        delete m_layers_slider;
+        m_layers_slider = nullptr;
+    }
+}
+
 void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
 {
     if (m_gl_data_initialized)
