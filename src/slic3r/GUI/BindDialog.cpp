@@ -65,7 +65,7 @@ namespace GUI {
      wxBoxSizer *m_sizer_right_v = new wxBoxSizer(wxVERTICAL);
 
      BBL::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
-     m_user_name->SetLabelText(c->get_curr_user()->m_name);
+     m_user_name->SetLabelText(wxString::FromUTF8(c->get_curr_user()->m_name));
     /* if (c->is_user_login()) {
          
      }*/

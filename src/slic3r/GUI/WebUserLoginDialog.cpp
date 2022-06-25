@@ -255,11 +255,9 @@ void ZUserLogin::OnFullScreenChanged(wxWebViewEvent &evt)
 
 void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
 {
-    wxString strInput = evt.GetString();
-    //wxLogMessage(wxString("LoginCB: ") + strInput);
-
+    std::string str_input = evt.GetString().mb_str(wxConvUTF8);
     try {
-        json     j        = json::parse(strInput);
+        json     j        = json::parse(str_input);
 
         wxString strCmd = j["command"];
 
@@ -289,7 +287,8 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
             Close();
         } 
     } catch (std::exception &e) {
-        //wxMessageBox(e.what(), "json error", wxICON_WARNING);
+        wxMessageBox(e.what(), "parse json failed", wxICON_WARNING);
+        Close();
     }
 }
 
