@@ -48,9 +48,11 @@ void wxMediaCtrl2::Load(wxURI url)
 {
     BambuPlayer * player = (BambuPlayer *) m_player;
     [player close];
-    [player open: url.BuildURI().Mid(9).ToUTF8()];
+    [player open: url.BuildURI().ToUTF8()];
     m_error = 0;
     wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
+    event.SetId(GetId());
+    event.SetEventObject(this);
     wxPostEvent(this, event);
 }
 
@@ -61,6 +63,8 @@ void wxMediaCtrl2::Play()
     if (m_state != wxMEDIASTATE_PLAYING) {
         m_state = wxMEDIASTATE_PLAYING;
         wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
+        event.SetId(GetId());
+        event.SetEventObject(this);
         wxPostEvent(this, event);
     }
 }
@@ -68,10 +72,12 @@ void wxMediaCtrl2::Play()
 void wxMediaCtrl2::Stop()
 {
     BambuPlayer * player2 = (BambuPlayer *) m_player;
-    [player2 stop];
+    [player2 close];
     if (m_state != wxMEDIASTATE_STOPPED) {
         m_state = wxMEDIASTATE_STOPPED;
         wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
+        event.SetId(GetId());
+        event.SetEventObject(this);
         wxPostEvent(this, event);
     }
 }
