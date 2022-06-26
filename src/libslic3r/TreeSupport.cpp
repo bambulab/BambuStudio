@@ -285,6 +285,9 @@ static void draw_layer_mst
 }
 #endif
 
+// Move point from inside polygon if distance>0, outside if distance<0.
+// Special case: distance=0 means find the nearest point of from on the polygon contour.
+// The max move distance should not excceed max_move_distance.
 static unsigned int move_inside_expoly(const ExPolygon &polygon, Point& from, double distance = 0, double max_move_distance = std::numeric_limits<double>::max())
 {
     //TODO: This is copied from the moveInside of Polygons.
@@ -2836,14 +2839,8 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
     const size_t z_distance_top_layers = round_up_divide(scale_(z_distance_top), scale_(layer_height)) + 1; //Support must always be 1 layer below overhang.
 
     const size_t support_roof_layers = config.support_interface_top_layers.value + 1; // BBS: add a normal support layer below interface
-    coordf_t half_overhang_distance = 0.;
-    if (config.support_threshold_angle.value < EPSILON) {
-        half_overhang_distance = tan(30. * M_PI / 180.0) * layer_height / 2;
-    }
-    else {
-        half_overhang_distance = tan((double)config.support_threshold_angle.value * M_PI / 180.0) * layer_height / 2;
-    }
-    half_overhang_distance = scale_(half_overhang_distance);
+    coordf_t  thresh_angle           = config.support_threshold_angle.value < EPSILON ? 30.f : config.support_threshold_angle.value;
+    coordf_t  half_overhang_distance = scale_(tan(thresh_angle * M_PI / 180.0) * layer_height / 2);
 
     m_highest_overhang_layer = 0;
     // fix bug of generating support for very thin objects
@@ -2883,11 +2880,15 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
             {
                 if (overhang_bounds.contains(candidate))
                 {
-                    // BBS: move_inside_expoly shouldn't be used, as it moves point to boundary and the inside is not  well supported!
-                    //constexpr coordf_t distance_inside = 0; //Move point towards the border of the polygon if it is closer than half the overhang distance: Catch points that fall between overhang areas on constant surfaces.
-                    //move_inside_expoly(overhang_part, candidate, distance_inside, half_overhang_distance);
-                    constexpr bool border_is_inside = true;
-                    if (is_inside_ex(overhang_part, candidate))
+                    // BBS: move_inside_expoly shouldn't be used if candidate is already inside, as it moves point to boundary and the inside is not well supported!
+                    bool               is_inside       = is_inside_ex(overhang_part, candidate);
+                    if (!is_inside) {
+                        constexpr coordf_t distance_inside = 0; // Move point towards the border of the polygon if it is closer than half the overhang distance: Catch points that
+                                                                // fall between overhang areas on constant surfaces.
+                        move_inside_expoly(overhang_part, candidate, distance_inside, half_overhang_distance);
+                        is_inside = is_inside_ex(overhang_part, candidate);
+                    }
+                    if (is_inside)
                     {
                         // collision radius has to be 0 or the supports are too few at curved slopes
                         //if (!is_inside_ex(m_ts_data->get_collision(0, layer_nr), candidate))
