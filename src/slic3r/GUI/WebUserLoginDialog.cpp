@@ -255,7 +255,7 @@ void ZUserLogin::OnFullScreenChanged(wxWebViewEvent &evt)
 
 void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
 {
-    std::string str_input = evt.GetString().mb_str(wxConvUTF8);
+    wxString str_input = evt.GetString();
     try {
         json     j        = json::parse(str_input);
 
