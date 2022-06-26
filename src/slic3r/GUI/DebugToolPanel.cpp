@@ -32,8 +32,8 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_staticText_lan->Wrap( -1 );
 	bSizer_lan->Add( m_staticText_lan, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	cb_device_list = new wxComboBox( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 400,-1 ), 0, NULL, 0 );
-	cb_device_list->SetMinSize( wxSize( 400,-1 ) );
+	cb_device_list = new wxComboBox( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(400), -1), 0, NULL, 0 );
+	cb_device_list->SetMinSize( wxSize(FromDIP(400), -1));
 
 	bSizer_lan->Add( cb_device_list, 0, wxALL, 5 );
 
@@ -72,8 +72,8 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_staticText_wan->Wrap( -1 );
 	bSizer_wan->Add( m_staticText_wan, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	cb_my_device_list = new wxComboBox( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 300,-1 ), 0, NULL, 0 );
-	cb_my_device_list->SetMinSize( wxSize( 400,-1 ) );
+	cb_my_device_list = new wxComboBox( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(300),-1 ), 0, NULL, 0 );
+	cb_my_device_list->SetMinSize( wxSize(FromDIP(400),-1 ) );
 
 	bSizer_wan->Add( cb_my_device_list, 0, wxALL, 5 );
 
@@ -148,12 +148,12 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	label_3mf_filename = new wxStaticText(m_panel_run_3mf, wxID_ANY, _L("3mf File:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
 	label_3mf_filename->Wrap( -1 );
-	label_3mf_filename->SetMinSize( wxSize( 100,-1 ) );
+	label_3mf_filename->SetMinSize( wxSize(FromDIP(100), -1));
 
 	bSizer14->Add( label_3mf_filename, 0, wxALIGN_CENTER|wxALL, 5 );
 
 	txt_3mf_filename = new wxTextCtrl( m_panel_run_3mf, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	txt_3mf_filename->SetMinSize( wxSize( 300,-1 ) );
+	txt_3mf_filename->SetMinSize( wxSize(FromDIP(300), -1));
 
 	bSizer14->Add( txt_3mf_filename, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -168,7 +168,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	label_upload_progress = new wxStaticText( m_panel_run_3mf, wxID_ANY, wxT("3mf Upload:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
 	label_upload_progress->Wrap( -1 );
-	label_upload_progress->SetMinSize( wxSize( 100,-1 ) );
+	label_upload_progress->SetMinSize( wxSize(FromDIP(100),-1 ) );
 
 	bSizer15->Add( label_upload_progress, 0, wxALL, 5 );
 
@@ -222,12 +222,12 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	label_gcode_filename = new wxStaticText( m_panel_run_gcode, wxID_ANY, _L("Gcode File:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
 	label_gcode_filename->Wrap( -1 );
-	label_gcode_filename->SetMinSize( wxSize( 100,-1 ) );
+	label_gcode_filename->SetMinSize( wxSize(FromDIP(100),-1 ) );
 
 	bSizer141->Add( label_gcode_filename, 0, wxALIGN_CENTER|wxALL, 5 );
 
 	txt_gcode_filename = new wxTextCtrl( m_panel_run_gcode, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	txt_gcode_filename->SetMinSize( wxSize( 300,-1 ) );
+	txt_gcode_filename->SetMinSize( wxSize(FromDIP(300), -1));
 
 	bSizer141->Add( txt_gcode_filename, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -726,6 +726,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	cb_upgrade_module->Append( wxT("TH") );
 	cb_upgrade_module->Append( wxT("AMS") );
 	cb_upgrade_module->Append( wxT("OTA") );
+	cb_upgrade_module->Append(wxT("esp32"));
 	cb_upgrade_module->SetSelection( 0 );
 	cb_upgrade_module->SetMinSize( wxSize( 100,-1 ) );
 
@@ -786,7 +787,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	bSizer35->Add( m_staticText57, 0, wxALIGN_CENTER|wxALL, 5 );
 
 	cb_upgrade_firmware = new wxComboBox( m_panel_upgrade, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, NULL, 0 );
-	cb_upgrade_firmware->SetMinSize( wxSize( 400,-1 ) );
+	cb_upgrade_firmware->SetMinSize( wxSize( FromDIP(400), -1 ));
 
 	bSizer35->Add( cb_upgrade_firmware, 0, wxALL, 5 );
 
@@ -818,7 +819,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	wxBoxSizer* bSizer341;
 	bSizer341 = new wxBoxSizer( wxHORIZONTAL );
 
-	bSizer341->SetMinSize( wxSize( 120,-1 ) );
+	bSizer341->SetMinSize( wxSize(FromDIP(120), -1));
 	m_staticText_new_version = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxSize( -1,-1 ), 0 );
 	m_staticText_new_version->Wrap( -1 );
 	bSizer341->Add( m_staticText_new_version, 0, wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT|wxALL, 5 );

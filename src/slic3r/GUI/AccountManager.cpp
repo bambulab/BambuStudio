@@ -216,7 +216,8 @@ namespace BBL {
             AccountManager* acc = (AccountManager*)context_;
             if (acc) {
                 if (acc->on_local_connect_fn) {
-                    acc->on_local_connect_fn(ConnectStatus::ConnectStatusFailed, 0, std::string(""));
+                    std::string dev_id = get_dev_id_from_topic(sub_topics[0]);
+                    acc->on_local_connect_fn(ConnectStatus::ConnectStatusFailed, dev_id, "");
                 }
             }
         }
@@ -751,6 +752,7 @@ namespace BBL {
             mqtt_local_opt = mqtt::connect_options_builder().clean_session().finalize();
             mqtt_local_opt.set_automatic_reconnect(3, 10);
             mqtt_local_opt.set_max_inflight(1000);
+            mqtt_local_opt.set_connect_timeout(5);
 
             if (!username.empty() || !password.empty()) {
                 mqtt_opt.set_user_name(username);
@@ -763,6 +765,7 @@ namespace BBL {
             mqtt_local_cb = new local_conn_callback(*mqtt_local_cli, mqtt_local_opt, this);
             mqtt_local_cb->add_topics(report_topic);
             mqtt_local_cli->set_callback(*mqtt_local_cb);
+            
             mqtt_local_cli->connect(mqtt_local_opt, this, *mqtt_local_cb);
         } catch (...) {
             ;

@@ -331,7 +331,7 @@ void DeviceSearchDialog::update_list()
     for (it = list.begin(); it != list.end(); it++) {
         if (it->second) {
             if (boost::contains(it->second->dev_ip, search_line)) {
-                wxString info = wxString::Format("%-16s(%s)[bind:%s]", it->second->dev_ip, it->second->dev_id, it->second->get_bind_str());
+                wxString info = DebugToolDialog::get_machine_display_item(it->second);
                 found.push_back(info);
             }
         }
@@ -1111,11 +1111,12 @@ void DebugToolDialog::on_update_list(SimpleEvent& evt)
         });
 
     std::vector<MachineObject*>::iterator iter;
-    machine_list_items.clear();
 
+    machine_list_items.clear();
     device_list_items.clear();
+
     for (iter = display_list.begin(); iter != display_list.end(); iter++) {
-        wxString text = get_machine_display_item(*iter);
+        wxString text = DebugToolDialog::get_machine_display_item(*iter);
         if (!last_dev_id.empty() && (*iter)->dev_id.compare(last_dev_id) == 0) {
             select = device_list_items.size();
         }
@@ -1247,14 +1248,6 @@ void DebugToolDialog::jump_to_printer(wxString selected)
 
     if (found) {
         cb_device_list->Select(selected_idx);
-        wxCommandEvent* event = new wxCommandEvent(wxEVT_COMBOBOX, cb_device_list->GetId());
-        event->SetInt(selected_idx);
-        wxQueueEvent(cb_device_list, event);
-    }
-    else {
-        cb_device_list->Clear();
-        cb_device_list->Append(selected);
-        cb_device_list->Select(0);
         wxCommandEvent* event = new wxCommandEvent(wxEVT_COMBOBOX, cb_device_list->GetId());
         event->SetInt(selected_idx);
         wxQueueEvent(cb_device_list, event);
@@ -1397,19 +1390,19 @@ void DebugToolDialog::on_local_connected(int state, std::string dev_id, std::str
         obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_CONNECTED);
         this->send_log_evt("Connected to Printer=" + dev_id);
         auto evt = new wxCommandEvent(EVT_MQTT_CONNECTED, this->GetId());
-        evt->SetString(msg);
+        evt->SetString(dev_id);
         wxQueueEvent(this, evt);
     }
     else if (state == BBL::ConnectStatus::ConnectStatusFailed) {
         obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
         auto evt = new wxCommandEvent(EVT_MQTT_FAILED, this->GetId());
-        evt->SetString(msg);
+        evt->SetString(dev_id);
         wxQueueEvent(this, evt);
     }
     else if (state == BBL::ConnectStatus::ConnectStatusLost) {
         obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
         auto evt = new wxCommandEvent(EVT_MQTT_LOST, this->GetId());
-        evt->SetString(msg);
+        evt->SetString(dev_id);
         wxQueueEvent(this, evt);
     }
 }
@@ -1850,8 +1843,11 @@ void DebugToolDialog::on_select_device(wxCommandEvent& evt)
     int selection = evt.GetSelection();
     if (selection < machine_list_items.size()) {
         dev_manager_.local_selected_machine = machine_list_items[selection];
-        send_log_evt("Select Printer=" + dev_manager_.local_selected_machine);
-
+        MachineObject* obj = dev_manager_.get_local_machine(dev_manager_.local_selected_machine);
+        if (obj) {
+            std::string msg = (boost::format("Select printer=%1%,ip=%2%,sn=%3%") %obj->dev_name % obj->dev_ip % obj->dev_id).str();
+            send_log_evt(msg);
+        }
         /* update widget values */
         last_device_selection = selection;
     }
