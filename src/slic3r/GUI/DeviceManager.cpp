@@ -1287,6 +1287,9 @@ int MachineObject::local_publish_json(std::string json_str, int qos)
 
 int MachineObject::parse_json(std::string payload)
 {
+    /* update last received time */
+    last_update_time = std::chrono::system_clock::now();
+
     try {
         bool restored_json = false;
         json j;
@@ -1326,9 +1329,6 @@ int MachineObject::parse_json(std::string payload)
 
 
         if (j.contains(JSON_CMD_PRINT)) {
-            /* update last received time */
-            last_update_time = std::chrono::system_clock::now();
-
             json jj = j[JSON_CMD_PRINT];
             if (jj.contains(JSON_MC_REMAIN_TIME)) {
                 if (jj[JSON_MC_REMAIN_TIME].is_string())
