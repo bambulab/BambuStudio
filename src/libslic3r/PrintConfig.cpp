@@ -2508,6 +2508,13 @@ void PrintConfigDef::init_fff_params()
                      "This may lower the amount of waste");
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("flush_into_support", coBool);
+    def->category = L("Flush options");
+    def->label = L("Flush into objects' support");
+    def->tooltip = L("Purging after filament change will be done inside objects' infills. "
+        "This may lower the amount of waste");
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("flush_into_objects", coBool);
     def->category = L("Flush options");
     def->label = L("Flush into this object");

@@ -532,6 +532,31 @@ Layer* PrintObject::add_layer(int id, coordf_t height, coordf_t print_z, coordf_
     return m_layers.back();
 }
 
+// BBS
+const TreeSupportLayer* PrintObject::get_tree_support_layer_at_printz(coordf_t print_z, coordf_t epsilon) const
+{
+    coordf_t limit = print_z - epsilon;
+    auto it = Slic3r::lower_bound_by_predicate(m_tree_support_layers.begin(), m_tree_support_layers.end(), [limit](const TreeSupportLayer* layer) { return layer->print_z < limit; });
+    return (it == m_tree_support_layers.end() || (*it)->print_z > print_z + epsilon) ? nullptr : *it;
+}
+
+TreeSupportLayer* PrintObject::get_tree_support_layer_at_printz(coordf_t print_z, coordf_t epsilon)
+{
+    return const_cast<TreeSupportLayer*>(std::as_const(*this).get_tree_support_layer_at_printz(print_z, epsilon));
+}
+
+const SupportLayer* PrintObject::get_support_layer_at_printz(coordf_t print_z, coordf_t epsilon) const
+{
+    coordf_t limit = print_z - epsilon;
+    auto it = Slic3r::lower_bound_by_predicate(m_support_layers.begin(), m_support_layers.end(), [limit](const SupportLayer* layer) { return layer->print_z < limit; });
+    return (it == m_support_layers.end() || (*it)->print_z > print_z + epsilon) ? nullptr : *it;
+}
+
+SupportLayer* PrintObject::get_support_layer_at_printz(coordf_t print_z, coordf_t epsilon)
+{
+    return const_cast<SupportLayer*>(std::as_const(*this).get_support_layer_at_printz(print_z, epsilon));
+}
+
 void PrintObject::clear_tree_support_layers()
 {
     for (TreeSupportLayer* l : m_tree_support_layers)
@@ -757,14 +782,12 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "internal_solid_infill_speed"
             || opt_key == "top_surface_speed") {
             invalidated |= m_print->invalidate_step(psGCodeExport);
-//BBS
-#if 0
         } else if (
                opt_key == "flush_into_infill"
-            || opt_key == "flush_into_objects") {
+            || opt_key == "flush_into_objects"
+            || opt_key == "flush_into_support") {
             invalidated |= m_print->invalidate_step(psWipeTower);
             invalidated |= m_print->invalidate_step(psGCodeExport);
-#endif
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             this->invalidate_all_steps();
@@ -802,7 +825,7 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
     }
 
     // Wipe tower depends on the ordering of extruders, which in turn depends on everything.
-    // It also decides about what the flush_into_infill / wipe_into_object features will do,
+    // It also decides about what the flush_into_infill / wipe_into_object / flush_into_support features will do,
     // and that too depends on many of the settings.
     invalidated |= m_print->invalidate_step(psWipeTower);
     // Invalidate G-code export in any case.

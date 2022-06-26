@@ -1851,6 +1851,8 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Flush options"));
         optgroup->append_single_option_line("flush_into_infill");
+        optgroup->append_single_option_line("flush_into_objects");
+        optgroup->append_single_option_line("flush_into_support");
 
         optgroup = page->new_optgroup(L("Special mode"));
         optgroup->append_single_option_line("print_sequence");

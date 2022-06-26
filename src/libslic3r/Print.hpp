@@ -332,6 +332,8 @@ public:
 
     // BBS
     TreeSupportLayer* get_tree_support_layer(int idx) { return m_tree_support_layers[idx]; }
+    const TreeSupportLayer* get_tree_support_layer_at_printz(coordf_t print_z, coordf_t epsilon) const;
+    TreeSupportLayer* get_tree_support_layer_at_printz(coordf_t print_z, coordf_t epsilon);
     TreeSupportLayer* add_tree_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
     void  clear_tree_support_layers();
     size_t tree_support_layer_count() const { return m_tree_support_layers.size(); }
@@ -340,6 +342,8 @@ public:
     size_t          support_layer_count() const { return m_support_layers.size(); }
     void            clear_support_layers();
     SupportLayer*   get_support_layer(int idx) { return m_support_layers[idx]; }
+    const SupportLayer* get_support_layer_at_printz(coordf_t print_z, coordf_t epsilon) const;
+    SupportLayer*   get_support_layer_at_printz(coordf_t print_z, coordf_t epsilon);
     SupportLayer*   add_support_layer(int id, int interface_id, coordf_t height, coordf_t print_z);
     SupportLayerPtrs::iterator insert_support_layer(SupportLayerPtrs::iterator pos, size_t id, size_t interface_id, coordf_t height, coordf_t print_z, coordf_t slice_z);
     void            delete_support_layer(int idx);

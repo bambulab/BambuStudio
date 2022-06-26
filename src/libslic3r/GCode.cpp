@@ -337,7 +337,7 @@ bool GCode::gcode_label_objects = false;
                 int new_filament_temp = full_config.nozzle_temperature.get_at(new_extruder_id);
                 Vec3d nozzle_pos = gcode_writer.get_position();
 
-                float purge_volume = std::max(tcr.purge_volume, g_min_purge_volume);
+                float purge_volume = tcr.purge_volume < EPSILON ? 0 : std::max(tcr.purge_volume, g_min_purge_volume);
                 float filament_area = float((M_PI / 4.f) * pow(full_config.filament_diameter.get_at(new_extruder_id), 2));
                 float purge_length = purge_volume / filament_area;
 
@@ -2489,6 +2489,23 @@ GCode::LayerResult GCode::process_layer(
                 // Shall the support interface be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
                 bool            interface_dontcare = object.config().support_interface_filament.value == 0;
                 // BBS: try to print support base with a filament other than interface filament
+                WipingExtrusions& wiping_extrusions = const_cast<LayerTools&>(layer_tools).wiping_extrusions();
+                if (support_dontcare) {
+                    int extruder_override = wiping_extrusions.get_support_extruder_overrides(&object);
+                    if (extruder_override >= 0) {
+                        support_extruder = extruder_override;
+                        support_dontcare = false;
+                    }
+                }
+
+                if (interface_dontcare) {
+                    int extruder_override = wiping_extrusions.get_support_interface_extruder_overrides(&object);
+                    if (extruder_override >= 0) {
+                        interface_extruder = extruder_override;
+                        interface_dontcare = false;
+                    }
+                }
+
                 if (support_dontcare && !interface_dontcare) {
                     unsigned int dontcare_extruder = first_extruder_id;
                     for (unsigned int extruder_id : layer_tools.extruders) {
@@ -2567,6 +2584,7 @@ GCode::LayerResult GCode::process_layer(
                                 break;
                             }
                     }
+
                     if (support_dontcare)
                         support_extruder = dontcare_extruder;
                     if (interface_dontcare)
@@ -2803,7 +2821,20 @@ GCode::LayerResult GCode::process_layer(
                     m_avoid_crossing_perimeters.use_external_mp_once();
                 m_last_obj_copy = this_object_copy;
                 this->set_origin(unscale(offset));
-                if (instance_to_print.object_by_extruder.support != nullptr && !print_wipe_extrusions) {
+                if (instance_to_print.object_by_extruder.support != nullptr) {
+                    // BBS
+                    bool keep_support = false;
+                    bool keep_support_interface = false;
+                    WipingExtrusions& wiping_extrusions = const_cast<LayerTools&>(layer_tools).wiping_extrusions();
+                    if (print_wipe_extrusions) {
+                        keep_support = wiping_extrusions.is_support_overridden(layer.object());
+                        keep_support_interface = wiping_extrusions.get_support_extruder_overrides(layer.object());
+                    }
+                    else {
+                        keep_support = !wiping_extrusions.is_support_overridden(layer.object());
+                        keep_support_interface = !wiping_extrusions.get_support_extruder_overrides(layer.object());
+                    }
+
                     if (layers[instance_to_print.layer_id].support_layer) {
                         m_layer = layers[instance_to_print.layer_id].support_layer;
                     }
@@ -2818,7 +2849,7 @@ GCode::LayerResult GCode::process_layer(
                         instance_to_print.object_by_extruder.support->chained_path_from(m_last_pos, instance_to_print.object_by_extruder.support_extrusion_role));
 #else
                     //BBS: print supports' brims first
-                    if (this->m_objSupportsWithBrim.find(instance_to_print.print_object.id()) != this->m_objSupportsWithBrim.end()) {
+                    if (this->m_objSupportsWithBrim.find(instance_to_print.print_object.id()) != this->m_objSupportsWithBrim.end() && !print_wipe_extrusions) {
                         this->set_origin(0., 0.);
                         m_avoid_crossing_perimeters.use_external_mp();
                         for (const ExtrusionEntity* ee : print.m_supportBrimMap.at(instance_to_print.print_object.id()).entities) {
@@ -2837,7 +2868,18 @@ GCode::LayerResult GCode::process_layer(
                     m_last_obj_copy = this_object_copy;
                     this->set_origin(unscale(offset));
                     ExtrusionEntityCollection support_eec;
-                    support_eec.entities = filter_by_extrusion_role(instance_to_print.object_by_extruder.support->entities, instance_to_print.object_by_extruder.support_extrusion_role);
+
+                    // BBS
+                    if (keep_support && keep_support_interface) {
+                        support_eec.entities = filter_by_extrusion_role(instance_to_print.object_by_extruder.support->entities, instance_to_print.object_by_extruder.support_extrusion_role);
+                    }
+                    else if (keep_support) {
+                        support_eec.entities = filter_by_extrusion_role(instance_to_print.object_by_extruder.support->entities, erSupportMaterial);
+                    }
+                    else if (keep_support_interface) {
+                        support_eec.entities = filter_by_extrusion_role(instance_to_print.object_by_extruder.support->entities, erSupportMaterialInterface);
+                    }
+
                     for (auto& ptr : support_eec.entities)
                         ptr = ptr->clone();
                     gcode += this->extrude_support(support_eec);
