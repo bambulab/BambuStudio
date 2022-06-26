@@ -225,14 +225,18 @@ static void draw_contours_and_nodes_to_svg
     bbox.max.x() = std::max(bbox.max.x(), (coord_t)scale_(10));
     bbox.max.y() = std::max(bbox.max.y(), (coord_t)scale_(10));
 
-    SVG svg(get_svg_filename(std::to_string(layer_nr), name_prefix), bbox);
+    SVG svg;
+    if(layer_nr>=0)
+        svg.open(get_svg_filename(std::to_string(layer_nr), name_prefix), bbox);
+    else
+        svg.open(name_prefix, bbox);
     if (!svg.is_opened())        return;
 
     // draw grid
     svg.draw_grid(bbox, "gray", coord_t(scale_(0.05)));
 
     // draw overhang areas
-    svg.draw(union_ex(overhangs), colors[0]);
+    svg.draw_outline(union_ex(overhangs), colors[0]);
     svg.draw_outline(union_ex(overhangs_after_offset), colors[1]);
     svg.draw_outline(outlines_below, colors[2]);
 
@@ -2073,9 +2077,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                                                        }),
                                         expoly->holes.end());
                 }
-#ifdef SUPPORT_TREE_DEBUG_TO_SVG
-                draw_contours_and_nodes_to_svg(layer_nr, base_areas, roof_areas, roof_1st_layer, {}, {}, "circles", { "base","roof","roof1st" });
-#endif
+
             }
         });
 
@@ -2107,9 +2109,8 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
             return false;
         };
 
-        std::map<const Polygon *, int> holeDepth;
-        std::map<const Polygon *, Point> holeDiretions;
-        std::map<const Polygon *, Point> holeFarPoints;
+        // polygon pointer: depth, direction, farPoint
+        std::map<const Polygon *, std::tuple<int,Point,Point> > holePropagationInfos;
         for (int layer_nr = m_object->layer_count()-1; layer_nr >0; layer_nr--) {
             if (print->canceled()) break;
             m_object->print()->set_status(66, (boost::format(_L("Support: fix holes at layer %d")) % layer_nr).str());
@@ -2130,12 +2131,12 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
             auto & area_groups_lower = m_object->get_tree_support_layer(layer_nr_lower + m_raft_layers)->area_groups;
 
             for (const auto& area_group:ts_layer->area_groups){
-                if (area_group.second == 1 || area_group.second == 2) continue;
-                const auto base_area = area_group.first;
-                for (const auto &hole : base_area->holes) {
+                if (area_group.second != TreeSupportLayer::BaseType ) continue;
+                const auto area = area_group.first;
+                for (const auto &hole : area->holes) {
                     // auto hole_bbox = get_extents(hole).polygon();
                     for (auto & area_group_lower: area_groups_lower) {
-                        if (area_group.second == 1 || area_group.second == 2) continue;
+                        if (area_group.second != TreeSupportLayer::BaseType) continue;
                         auto &base_area_lower = *area_group_lower.first;
                         Point pt_on_poly, pt_on_expoly, pt_far_on_poly;
                         // if a hole doesn't intersect with lower layer's contours, add a hole to lower layer and move it slightly to the contour
@@ -2147,26 +2148,64 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                             auto hole_expanded = offset(hole_lower, -line_width_scaled / 4, ClipperLib::JoinType::jtSquare);
                             if (!hole_expanded.empty()) {
                                 base_area_lower.holes.push_back(std::move(hole_expanded[0]));
-                                holeDepth.insert({&base_area_lower.holes.back(), 15});
-                                holeDiretions.insert({&base_area_lower.holes.back(), direction});
-                                holeFarPoints.insert({&base_area_lower.holes.back(), pt_far_on_poly});
+                                holePropagationInfos.insert({ &base_area_lower.holes.back(), {25,direction,pt_far_on_poly} });
                             }
                             break;
-                        } else if (holeDepth.find(&hole) != holeDepth.end() && holeDepth[&hole] > 0 && base_area_lower.contour.contains(holeFarPoints[&hole])) {
+                        } else if (holePropagationInfos.find(&hole) != holePropagationInfos.end() && std::get<0>(holePropagationInfos[&hole]) > 0 && base_area_lower.contour.contains(std::get<2>(holePropagationInfos[&hole]))) {
                             Polygon hole_lower = hole;
-                            hole_lower.translate(holeDiretions[&hole]);
-                            Point farPoint = holeFarPoints[&hole] + holeDiretions[&hole];
-                            {
-                                base_area_lower.holes.push_back(std::move(hole_lower));
-                                holeDepth.insert({&base_area_lower.holes.back(), holeDepth[&hole]-1});
-                                holeDiretions.insert({&base_area_lower.holes.back(), holeDiretions[&hole]});
-                                holeFarPoints.insert({&base_area_lower.holes.back(), farPoint});
+                            auto&& direction = std::get<1>(holePropagationInfos[&hole]);
+                            hole_lower.translate(direction);
+                            // note to shrink a hole, we need to do positive offset
+                            auto hole_expanded = offset(hole_lower, line_width_scaled / 2, ClipperLib::JoinType::jtSquare);
+                            Point farPoint = std::get<2>(holePropagationInfos[&hole]) + direction * 2;
+                            if (!hole_expanded.empty()) {
+                                base_area_lower.holes.push_back(std::move(hole_expanded[0]));
+                                holePropagationInfos.insert({ &base_area_lower.holes.back(), {std::get<0>(holePropagationInfos[&hole]) - 1, direction, farPoint} });
                             }
                             break;
                         }
                     }
+                    {
+                        //if roof1 interface is inside a hole, need to expand the interface
+                        for (auto& roof1 : ts_layer->roof_1st_layer) {
+                            if (hole.contains(roof1.contour.points.front()) && hole.contains(roof1.contour.bounding_box().center())) {
+                                Polygon hole_reoriented = hole;
+                                if(roof1.contour.is_counter_clockwise())
+                                    hole_reoriented.make_counter_clockwise();
+                                else if(roof1.contour.is_clockwise())
+                                    hole_reoriented.make_clockwise();
+                                auto tmp = union_({ roof1.contour }, { hole_reoriented });
+                                if (!tmp.empty()) roof1.contour = tmp[0];
+
+                                // make sure roof1 and roof won't intersect
+                                // Note: We can't replace roof1 directly, as we have recorded its address. 
+                                //       So instead we need to replace its members one by one.
+                                auto tmp1 = diff_ex(roof1, ts_layer->roof_areas);
+                                if (!tmp1.empty()) {
+                                    roof1.contour = std::move(tmp1[0].contour);
+                                    roof1.holes = std::move(tmp1[0].holes);
+                                }
+                                break;
+                            }
+                        }
+                    }
                 }
             }
+            
+
+        }
+#endif
+
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
+        for (int layer_nr = m_object->layer_count() - 1; layer_nr > 0; layer_nr--) {
+            TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
+            ExPolygons& base_areas = ts_layer->base_areas;
+            ExPolygons& roof_areas = ts_layer->roof_areas;
+            ExPolygons& roof_1st_layer = ts_layer->roof_1st_layer;
+            ExPolygons& floor_areas = ts_layer->floor_areas;
+            if (base_areas.empty() && roof_areas.empty() && roof_1st_layer.empty()) continue;
+            char fname[10]; sprintf(fname, "%d_%.2f", layer_nr, ts_layer->print_z);
+            draw_contours_and_nodes_to_svg(-1, base_areas, roof_areas, roof_1st_layer, {}, {}, get_svg_filename(fname, "circles"), {"base", "roof", "roof1st"});
         }
 #endif
 
