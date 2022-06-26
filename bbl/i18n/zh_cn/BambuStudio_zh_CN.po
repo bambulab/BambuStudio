@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-24 16:34+0800\n"
+"POT-Creation-Date: 2022-06-26 13:37+0800\n"
 "PO-Revision-Date: 2022-05-17 15:42+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2114,7 +2114,7 @@ msgid "0%"
 msgstr "0%"
 
 msgid "Machine Control"
-msgstr "打印机控制"
+msgstr "控制"
 
 msgid "Start Calibration"
 msgstr "开始校准"
@@ -2168,10 +2168,10 @@ msgid "Status"
 msgstr "设备状态"
 
 msgid "Media"
-msgstr "录像"
+msgstr "视频文件"
 
 msgid "Update"
-msgstr "升级"
+msgstr "固件更新"
 
 msgid "HMS"
 msgstr ""
@@ -2234,7 +2234,8 @@ msgid ""
 "Bambu Studio is based on PrusaSlicer by Prusa Research, which is from Slic3r "
 "by Alessandro Ranellucci and the RepRap community"
 msgstr ""
-"Bambu Studio是基于Prusa Research的PrusaSlicer开发的，而PrusaSlicer是基于来自Alessandro Ranellucci和RepRap社区的Slic3r开发的"
+"Bambu Studio是基于Prusa Research的PrusaSlicer开发的，而PrusaSlicer是基于来自"
+"Alessandro Ranellucci和RepRap社区的Slic3r开发的"
 
 msgid "Libraries"
 msgstr "库"
@@ -2242,8 +2243,7 @@ msgstr "库"
 msgid ""
 "This software uses open source components whose copyright and other "
 "proprietary rights belong to their respective owners"
-msgstr ""
-"本软件使用开源组件，其版权和其他所有权属于各自的所有者"
+msgstr "本软件使用开源组件，其版权和其他所有权属于各自的所有者"
 
 #, c-format, boost-format
 msgid "About %s"
@@ -3283,8 +3283,8 @@ msgstr "旧值"
 msgid "New Value"
 msgstr "新值"
 
-msgid "Keep"
-msgstr "保持"
+msgid "Transfer"
+msgstr "迁移"
 
 msgid "Don't save"
 msgstr "不保存"
@@ -3435,7 +3435,7 @@ msgstr "没有可用的更新。"
 msgid "The configuration is up to date."
 msgstr "当前配置已经是最新版本。"
 
-msgid "Calc"
+msgid "Auto-Calc"
 msgstr ""
 
 msgid "Flushing volumes for filament change"
@@ -5426,12 +5426,6 @@ msgstr "切换耗材丝时，打印擦拭塔来让准配好喷嘴里材料。"
 msgid "Purging volumes"
 msgstr "冲刷体积"
 
-msgid "Extra flush volume"
-msgstr ""
-
-msgid "mm3"
-msgstr ""
-
 msgid "Flush multiplier"
 msgstr ""
 
@@ -5651,6 +5645,9 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Keep"
+#~ msgstr "保持"
 
 #~ msgid "Total Size:"
 #~ msgstr "总尺寸："
@@ -6260,9 +6257,6 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ msgstr ""
 #~ "检测悬空相对于线宽的百分比，并应用不同的速度打印。100%%的悬空将使用桥接速"
 #~ "度"
-
-#~ msgid "Transfer"
-#~ msgstr "迁移"
 
 #~ msgid "print project cancelled"
 #~ msgstr "打印项目取消"

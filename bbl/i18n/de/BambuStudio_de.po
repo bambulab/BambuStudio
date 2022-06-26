@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-24 16:34+0800\n"
+"POT-Creation-Date: 2022-06-26 13:37+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3223,8 +3223,8 @@ msgstr "Alter Wert"
 msgid "New Value"
 msgstr "Neuer Wert"
 
-msgid "Keep"
-msgstr "Behalten"
+msgid "Transfer"
+msgstr "Transfer"
 
 msgid "Don't save"
 msgstr "Nicht sichern"
@@ -3367,7 +3367,7 @@ msgstr ""
 msgid "The configuration is up to date."
 msgstr ""
 
-msgid "Calc"
+msgid "Auto-Calc"
 msgstr ""
 
 msgid "Flushing volumes for filament change"
@@ -5280,12 +5280,6 @@ msgstr ""
 msgid "Purging volumes"
 msgstr "Reinigungsvolumen"
 
-msgid "Extra flush volume"
-msgstr ""
-
-msgid "mm3"
-msgstr ""
-
 msgid "Flush multiplier"
 msgstr ""
 
@@ -5496,6 +5490,9 @@ msgstr ""
 msgid "Support: propagate branches at layer %d"
 msgstr ""
 
+#~ msgid "Keep"
+#~ msgstr "Behalten"
+
 #~ msgid "Process %1% / 100"
 #~ msgstr "Bearbeite %1% / 100"
 
@@ -5584,9 +5581,6 @@ msgstr ""
 
 #~ msgid "Merged"
 #~ msgstr "Zusammengeführt"
-
-#~ msgid "Transfer"
-#~ msgstr "Transfer"
 
 #~ msgid "Upgrade"
 #~ msgstr "Aktualisieren"

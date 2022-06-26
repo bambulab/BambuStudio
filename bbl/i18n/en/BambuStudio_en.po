@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-24 16:34+0800\n"
+"POT-Creation-Date: 2022-06-26 13:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3266,7 +3266,7 @@ msgstr "Old value"
 msgid "New Value"
 msgstr "New value"
 
-msgid "Keep"
+msgid "Transfer"
 msgstr ""
 
 msgid "Don't save"
@@ -3415,7 +3415,7 @@ msgstr ""
 msgid "The configuration is up to date."
 msgstr ""
 
-msgid "Calc"
+msgid "Auto-Calc"
 msgstr ""
 
 msgid "Flushing volumes for filament change"
@@ -5488,12 +5488,6 @@ msgstr ""
 "switching to a new material."
 
 msgid "Purging volumes"
-msgstr ""
-
-msgid "Extra flush volume"
-msgstr ""
-
-msgid "mm3"
 msgstr ""
 
 msgid "Flush multiplier"

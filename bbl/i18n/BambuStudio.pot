@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-24 16:34+0800\n"
+"POT-Creation-Date: 2022-06-26 13:37+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3213,7 +3213,7 @@ msgstr ""
 msgid "New Value"
 msgstr ""
 
-msgid "Keep"
+msgid "Transfer"
 msgstr ""
 
 msgid "Don't save"
@@ -3357,7 +3357,7 @@ msgstr ""
 msgid "The configuration is up to date."
 msgstr ""
 
-msgid "Calc"
+msgid "Auto-Calc"
 msgstr ""
 
 msgid "Flushing volumes for filament change"
@@ -5266,12 +5266,6 @@ msgid ""
 msgstr ""
 
 msgid "Purging volumes"
-msgstr ""
-
-msgid "Extra flush volume"
-msgstr ""
-
-msgid "mm3"
 msgstr ""
 
 msgid "Flush multiplier"

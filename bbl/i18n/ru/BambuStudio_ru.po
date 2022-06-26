@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-24 16:34+0800\n"
+"POT-Creation-Date: 2022-06-26 13:37+0800\n"
 "PO-Revision-Date: 2021-02-03 14:06+0100\n"
 "Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -3230,8 +3230,8 @@ msgstr "Старое значение"
 msgid "New Value"
 msgstr "Новое значение"
 
-msgid "Keep"
-msgstr ""
+msgid "Transfer"
+msgstr "Перенести"
 
 msgid "Don't save"
 msgstr ""
@@ -3374,7 +3374,7 @@ msgstr ""
 msgid "The configuration is up to date."
 msgstr ""
 
-msgid "Calc"
+msgid "Auto-Calc"
 msgstr ""
 
 msgid "Flushing volumes for filament change"
@@ -5286,12 +5286,6 @@ msgstr ""
 msgid "Purging volumes"
 msgstr "Объём очистки"
 
-msgid "Extra flush volume"
-msgstr ""
-
-msgid "mm3"
-msgstr ""
-
 msgid "Flush multiplier"
 msgstr ""
 
@@ -5566,9 +5560,6 @@ msgstr ""
 
 #~ msgid "Merged"
 #~ msgstr "Объединённые"
-
-#~ msgid "Transfer"
-#~ msgstr "Перенести"
 
 #~ msgid "Upgrade"
 #~ msgstr "Обновить"
