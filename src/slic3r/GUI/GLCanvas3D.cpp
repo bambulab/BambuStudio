@@ -4501,7 +4501,12 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     int plate_idx = thumbnail_params.plate_id;
     PartPlate* plate = partplate_list.get_plate(plate_idx);
     BoundingBoxf3 plate_build_volume = plate->get_build_volume();
-    plate_build_volume.min(2) = -Slic3r::BuildVolume::BedEpsilon;
+    plate_build_volume.min(0) -= Slic3r::BuildVolume::SceneEpsilon;
+    plate_build_volume.min(1) -= Slic3r::BuildVolume::SceneEpsilon;
+    plate_build_volume.min(2) -= Slic3r::BuildVolume::SceneEpsilon;
+    plate_build_volume.max(0) += Slic3r::BuildVolume::SceneEpsilon;
+    plate_build_volume.max(1) += Slic3r::BuildVolume::SceneEpsilon;
+    plate_build_volume.max(2) += Slic3r::BuildVolume::SceneEpsilon;
     /*if (m_config != nullptr) {
         double h = m_config->opt_float("printable_height");
         plate_build_volume.min(2) = std::min(plate_build_volume.min(2), -h);
