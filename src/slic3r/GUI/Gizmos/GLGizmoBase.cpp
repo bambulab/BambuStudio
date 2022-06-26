@@ -235,6 +235,32 @@ bool GLGizmoBase::update_items_state()
     return res;
 };
 
+bool GLGizmoBase::GizmoImguiBegin(const std::string &name, int flags)
+{
+    return m_imgui->begin(name, flags);
+}
+
+void GLGizmoBase::GizmoImguiEnd()
+{
+    last_input_window_width = ImGui::GetWindowWidth();
+    m_imgui->end();
+}
+
+void GLGizmoBase::GizmoImguiSetNextWIndowPos(float x, float y, int flag, float pivot_x, float pivot_y)
+{
+    if (abs(last_input_window_width) > 0.01f) {
+        if (x + last_input_window_width > m_parent.get_canvas_size().get_width()) {
+            if (last_input_window_width > m_parent.get_canvas_size().get_width()) {
+                x = 0;
+            } else {
+                x = m_parent.get_canvas_size().get_width() - last_input_window_width;
+            }
+        }
+    }
+
+    m_imgui->set_next_window_pos(x, y, flag, pivot_x, pivot_y);
+}
+
 std::array<float, 4> GLGizmoBase::picking_color_component(unsigned int id) const
 {
     static const float INV_255 = 1.0f / 255.0f;

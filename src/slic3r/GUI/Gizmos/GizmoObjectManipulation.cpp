@@ -518,6 +518,14 @@ bool GizmoObjectManipulation::reset_button(ImGuiWrapper *imgui_wrapper, float ca
 void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
 {
     // BBS: GUI refactor: move gizmo to the right
+    if (abs(last_move_input_window_width) > 0.01f) {
+        if (x + last_move_input_window_width > m_glcanvas.get_canvas_size().get_width()) {
+            if (last_move_input_window_width > m_glcanvas.get_canvas_size().get_width())
+                x = 0;
+            else
+                x = m_glcanvas.get_canvas_size().get_width() - last_move_input_window_width;
+        }
+    }
 #if BBS_TOOLBAR_ON_TOP
     imgui_wrapper->set_next_window_pos(x, y, ImGuiCond_Always, 0.f, 0.0f);
 #else
@@ -608,7 +616,7 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     if (!focued_on_text) m_glcanvas.handle_sidebar_focus_event("", false);
 
     m_last_active_item = current_active_id;
-
+    last_move_input_window_width = ImGui::GetWindowWidth();
     imgui_wrapper->end();
     ImGui::PopStyleVar(1);
     ImGuiWrapper::pop_toolbar_style();
@@ -617,6 +625,14 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
 void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
 {
     // BBS: GUI refactor: move gizmo to the right
+    if (abs(last_rotate_input_window_width) > 0.01f) {
+        if (x + last_rotate_input_window_width > m_glcanvas.get_canvas_size().get_width()) {
+            if (last_rotate_input_window_width > m_glcanvas.get_canvas_size().get_width())
+                x = 0;
+            else
+                x = m_glcanvas.get_canvas_size().get_width() - last_rotate_input_window_width;
+        }
+    }
 #if BBS_TOOLBAR_ON_TOP
     imgui_wrapper->set_next_window_pos(x, y, ImGuiCond_Always, 0.f, 0.0f);
 #else
@@ -716,7 +732,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     if (!focued_on_text) m_glcanvas.handle_sidebar_focus_event("", false);
 
     m_last_active_item = current_active_id;
-
+    last_rotate_input_window_width = ImGui::GetWindowWidth();
     imgui_wrapper->end();
 
     // BBS
@@ -727,6 +743,14 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
 void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
 {
     //BBS: GUI refactor: move gizmo to the right
+    if (abs(last_scale_input_window_width) > 0.01f) {
+        if (x + last_scale_input_window_width > m_glcanvas.get_canvas_size().get_width()) {
+            if (last_scale_input_window_width > m_glcanvas.get_canvas_size().get_width())
+                x = 0;
+            else
+                x = m_glcanvas.get_canvas_size().get_width() - last_scale_input_window_width;
+        }
+    }
 #if BBS_TOOLBAR_ON_TOP
     imgui_wrapper->set_next_window_pos(x, y, ImGuiCond_Always, 0.f, 0.0f);
 #else
@@ -901,6 +925,7 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
 
     m_last_active_item = current_active_id;
 
+    last_scale_input_window_width = ImGui::GetWindowWidth();
     imgui_wrapper->end();
 
     //BBS

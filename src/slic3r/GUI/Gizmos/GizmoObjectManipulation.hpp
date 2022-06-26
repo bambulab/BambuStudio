@@ -14,7 +14,7 @@ namespace GUI {
 class Selection;
 class GLCanvas3D;
 
-class GizmoObjectManipulation 
+class GizmoObjectManipulation
 {
 public:
     static const double in_to_mm;
@@ -85,6 +85,11 @@ public:
     bool            m_show_clear_rotation { false };
     bool            m_show_clear_scale { false };
     bool            m_show_drop_to_bed { false };
+
+protected:
+    float last_move_input_window_width = 0.0f;
+    float last_rotate_input_window_width = 0.0f;
+    float last_scale_input_window_width = 0.0f;
 
 public:
     GizmoObjectManipulation(GLCanvas3D& glcanvas);

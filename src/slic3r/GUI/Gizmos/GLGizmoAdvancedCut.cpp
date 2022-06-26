@@ -412,9 +412,11 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
         unit_size = vec_max + ImGui::GetStyle().FramePadding.x * 2.0f;
     }
 
-    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
+    GizmoImguiSetNextWIndowPos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
+    
     ImGuiWrapper::push_toolbar_style();
-    m_imgui->begin(_L("Cut"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+
+    GizmoImguiBegin(on_get_name(), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
     ImGui::PushItemWidth(caption_size);
     ImGui::Dummy(ImVec2(caption_size, -1));
@@ -528,7 +530,7 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
     ImGui::SameLine();
     const bool reset_clicked = m_imgui->button(_L("Reset"));
     if (reset_clicked) { reset_all(); }
-    m_imgui->end();
+    GizmoImguiEnd();
     ImGuiWrapper::pop_toolbar_style();
 
     // Perform cut
