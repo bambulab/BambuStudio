@@ -416,7 +416,7 @@ wxBEGIN_EVENT_TABLE(SelectMachinePopup, wxPopupTransientWindow) EVT_MOUSE_EVENTS
     m_sizxer_scrolledWindow->Add(other_title, 0, wxEXPAND, 0);
     m_sizxer_scrolledWindow->Add(m_sizer_other_devices, 0, wxEXPAND, 0);
 
-    m_sizer_body->Add(m_scrolledWindow, 1, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 10);
+    m_sizer_body->Add(m_scrolledWindow, 1, wxEXPAND |wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
     m_panel_body->SetSizer(m_sizer_body);
     m_panel_body->Layout();
     m_sizer_main->Add(m_panel_body, 0, wxALL | wxEXPAND, 1);
