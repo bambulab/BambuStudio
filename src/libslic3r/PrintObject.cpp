@@ -539,7 +539,7 @@ void PrintObject::clear_tree_support_layers()
     m_tree_support_layers.clear();
 }
 
-TreeSupportData* PrintObject::alloc_tree_support_preview_cache()
+std::shared_ptr<TreeSupportData> PrintObject::alloc_tree_support_preview_cache()
 {
     if (m_tree_support_preview_cache == nullptr) {
         const coordf_t layer_height = m_config.layer_height.value;
@@ -549,18 +549,10 @@ TreeSupportData* PrintObject::alloc_tree_support_preview_cache()
             = (angle < M_PI / 2) ? (coordf_t)(tan(angle) * layer_height) : std::numeric_limits<coordf_t>::max();
         const coordf_t radius_sample_resolution = g_config_tree_support_collision_resolution;
 
-        m_tree_support_preview_cache = new TreeSupportData(*this, xy_distance, max_move_distance, radius_sample_resolution);
+        m_tree_support_preview_cache = std::make_shared<TreeSupportData>(*this, xy_distance, max_move_distance, radius_sample_resolution);
     }
 
     return m_tree_support_preview_cache;
-}
-
-void PrintObject::free_tree_support_preview_cache()
-{
-    if (m_tree_support_preview_cache) {
-        delete m_tree_support_preview_cache;
-        m_tree_support_preview_cache = nullptr;
-    }
 }
 
 TreeSupportLayer* PrintObject::add_tree_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z)

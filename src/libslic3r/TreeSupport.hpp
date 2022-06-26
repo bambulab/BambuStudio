@@ -351,7 +351,7 @@ private:
      * Lazily computes volumes as needed.
      *  \warning This class is NOT currently thread-safe and should not be accessed in OpenMP blocks
      */
-    TreeSupportData* m_ts_data;
+    std::shared_ptr<TreeSupportData> m_ts_data;
     PrintObject    *m_object;
     const PrintObjectConfig *m_object_config;
     SlicingParameters        m_slicing_params;

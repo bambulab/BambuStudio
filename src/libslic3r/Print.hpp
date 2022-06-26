@@ -335,8 +335,7 @@ public:
     TreeSupportLayer* add_tree_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
     void  clear_tree_support_layers();
     size_t tree_support_layer_count() const { return m_tree_support_layers.size(); }
-    TreeSupportData* alloc_tree_support_preview_cache();
-    void free_tree_support_preview_cache();
+    std::shared_ptr<TreeSupportData> alloc_tree_support_preview_cache();
 
     size_t          support_layer_count() const { return m_support_layers.size(); }
     void            clear_support_layers();
@@ -455,7 +454,7 @@ private:
     SupportLayerPtrs                        m_support_layers;
     // BBS
     TreeSupportLayerPtrs                    m_tree_support_layers;
-    TreeSupportData                         * m_tree_support_preview_cache;
+    std::shared_ptr<TreeSupportData>        m_tree_support_preview_cache;
 
     // this is set to true when LayerRegion->slices is split in top/internal/bottom
     // so that next call to make_perimeters() performs a union() before computing loops
