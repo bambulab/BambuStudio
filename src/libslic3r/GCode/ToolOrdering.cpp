@@ -16,7 +16,6 @@
 
 #include <libslic3r.h>
 
-
 namespace Slic3r {
 
 const static bool g_wipe_into_objects = false;
@@ -859,7 +858,7 @@ bool WipingExtrusions::is_support_overriddable(const ExtrusionRole role, const P
     if (role == erMixed) {
         return object.config().support_filament == 0 || object.config().support_interface_filament == 0;
     }
-    else if (role == erSupportMaterial) {
+    else if (role == erSupportMaterial || role == erSupportTransition) {
         return object.config().support_filament == 0;
     }
     else if (role == erSupportMaterialInterface) {
