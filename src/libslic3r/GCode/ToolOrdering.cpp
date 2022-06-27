@@ -965,26 +965,32 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
                     if (this_support_layer == nullptr && this_tree_support_layer == nullptr)
                         break;
 
-                    bool support_override = object_config.support_filament == 0;
-                    bool support_intf_override = object_config.support_interface_filament == 0;
-                    if (!support_override && !support_intf_override)
+                    bool support_overriddable = object_config.support_filament == 0;
+                    bool support_intf_overriddable = object_config.support_interface_filament == 0;
+                    if (!support_overriddable && !support_intf_overriddable)
                         break;
 
-                    if (support_override && !is_support_overridden(object))
-                        set_support_extruder_override(object, copy, new_extruder, num_of_copies);
-
-                    if (support_intf_override && !is_support_interface_overridden(object))
-                        set_support_interface_extruder_override(object, copy, new_extruder, num_of_copies);
-
                     auto& entities = this_support_layer != nullptr ? this_support_layer->support_fills.entities : this_tree_support_layer->support_fills.entities;
-                    for (const ExtrusionEntity* ee : entities) {
-                        if (ee->role() == erSupportMaterial && support_override)
-                            volume_to_wipe -= ee->total_volume();
-                        else if (ee->role() == erSupportMaterialInterface && support_intf_override)
-                            volume_to_wipe -= ee->total_volume();
+                    if (support_overriddable && !is_support_overridden(object)) {
+                        set_support_extruder_override(object, copy, new_extruder, num_of_copies);
+                        for (const ExtrusionEntity* ee : entities) {
+                            if (ee->role() == erSupportMaterial || ee->role() == erSupportTransition)
+                                volume_to_wipe -= ee->total_volume();
 
-                        if (volume_to_wipe <= 0.f)
-                            return 0.f;
+                            if (volume_to_wipe <= 0.f)
+                                return 0.f;
+                        }
+                    }
+
+                    if (support_intf_overriddable && !is_support_interface_overridden(object)) {
+                        set_support_interface_extruder_override(object, copy, new_extruder, num_of_copies);
+                        for (const ExtrusionEntity* ee : entities) {
+                            if (ee->role() == erSupportMaterialInterface)
+                                volume_to_wipe -= ee->total_volume();
+
+                            if (volume_to_wipe <= 0.f)
+                                return 0.f;
+                        }
                     }
                 } while (0);
             }
