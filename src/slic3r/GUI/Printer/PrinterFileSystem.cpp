@@ -220,6 +220,7 @@ int PrinterFileSystem::RecvData(std::function<int(Bambu_Sample& sample)> const &
 void PrinterFileSystem::Start()
 {
     boost::unique_lock l(m_mutex);
+    if (!m_stopped) return;
     m_stopped = false;
     m_cond.notify_all();
 }
@@ -234,6 +235,7 @@ void PrinterFileSystem::SetUrl(std::string const &url)
 void PrinterFileSystem::Stop(bool quit)
 {
     boost::unique_lock l(m_mutex);
+    if (m_stopped) return;
     m_stopped = true;
     if (quit) {
         m_session.owner = nullptr;

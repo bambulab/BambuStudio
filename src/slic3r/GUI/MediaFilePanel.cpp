@@ -15,6 +15,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     : wxPanel(parent, wxID_ANY)
 {
     SetBackgroundColour(0xEEEEEE);
+    Hide();
 
     m_tab_panel = new ::StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_tab_panel->SetCornerRadius(5);
@@ -72,10 +73,13 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     e.SetEventObject(b);
     b->GetEventHandler()->ProcessEvent(e);
 
-    Bind(wxEVT_SHOW, [this](auto &e) { 
-        auto fs = m_image_grid->GetFileSystem();
-        if (fs) e.IsShown() ? fs->Start() : fs->Stop();
-    });
+    auto onShowHide = [this](auto &e) {
+        if (m_isBeingDeleted) return;
+        auto fs = m_image_grid ? m_image_grid->GetFileSystem() : nullptr;
+        if (fs) e.IsShown() && IsShown() ? fs->Start() : fs->Stop();
+    };
+    Bind(wxEVT_SHOW, onShowHide);
+    parent->GetParent()->Bind(wxEVT_SHOW, onShowHide);
 }
 
 void MediaFilePanel::SetMachineObject(MachineObject* obj)
