@@ -1839,7 +1839,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("nearest");
     def->enum_values.push_back("aligned");
     def->enum_values.push_back("back");
-    def->enum_labels.push_back(L("Smart"));
+    def->enum_labels.push_back(L("Nearest"));
     def->enum_labels.push_back(L("Aligned"));
     def->enum_labels.push_back(L("Back"));
     def->mode = comSimple;
