@@ -2538,7 +2538,11 @@ public:
 
 void GLCanvas3D::on_key(wxKeyEvent& evt)
 {
-    static TranslationProcessor translationProcessor(
+    static GLCanvas3D const * thiz = nullptr;
+    static TranslationProcessor translationProcessor(nullptr, nullptr);
+    if (thiz != this) {
+        thiz = this;
+        translationProcessor = TranslationProcessor(
         [this]() {
             do_move(L("Tool Move"));
             m_gizmos.update_data();
@@ -2569,7 +2573,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
             m_selection.stop_dragging();
             m_dirty = true;
         }
-    );
+    );}
 
     const int keyCode = evt.GetKeyCode();
 
