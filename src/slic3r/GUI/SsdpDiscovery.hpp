@@ -50,18 +50,16 @@ private:
     void ssdp_thread();
 #endif
 
-    void parse_sdp_message(const char* rece_buff, unsigned int recv_size);
-public:    
+public:
     typedef std::function<void (std::string dev_info_json_str)> OnMsgArrivedFn;
 
     OnMsgArrivedFn on_msg_fn { nullptr };
     void set_on_msg_fn(OnMsgArrivedFn fn) { on_msg_fn  = fn; }
+    void parse_sdp_message(const char* rece_buff, unsigned int recv_size);
 
     SsdpDiscovery();
     void start();
     void stop();
-
-    void on_sdp_alive(std::string dev_id, std::string dev_ip);
 };
 
 

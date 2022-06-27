@@ -115,6 +115,11 @@ typedef struct lssdp_nbr {
     char            location    [LSSDP_LOCATION_LEN];       // URL or IP(:Port)
 
     /* Additional SSDP Header Fields */
+    char            printer_type[LSSDP_FIELD_LEN];
+    char            printer_name[LSSDP_FIELD_LEN];
+    char            printer_signal[LSSDP_FIELD_LEN];
+    char            connect_type[LSSDP_FIELD_LEN];
+    char            bind_state[LSSDP_FIELD_LEN];
     char            sm_id       [LSSDP_FIELD_LEN];
     char            device_type [LSSDP_FIELD_LEN];
     long long       update_time;
@@ -156,10 +161,6 @@ typedef struct lssdp_ctx {
             char    domain              [LSSDP_FIELD_LEN];  // if domain is empty, using Interface IP as default
             char    suffix              [LSSDP_FIELD_LEN];  // URI or Port: "/index.html" or ":80"
         } location;
-
-        /* Additional SSDP Header Fields */
-        char        sm_id       [LSSDP_FIELD_LEN];
-        char        device_type [LSSDP_FIELD_LEN];
     } header;
 
     /* Callback Function */

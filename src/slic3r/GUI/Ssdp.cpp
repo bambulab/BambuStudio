@@ -961,9 +961,11 @@ int lssdp_socket_read(lssdp_ctx * lssdp) {
     // parse SSDP packet to struct
     lssdp_packet packet = {};
     if (lssdp_packet_parser(buffer, recv_len, &packet) != 0) {
+        // invoke packet received callback
         if (lssdp->packet_received_callback != NULL) {
             lssdp->packet_received_callback(lssdp, buffer, recv_len);
         }
+
         return 0;
     }
 
@@ -1392,6 +1394,11 @@ static int neighbor_list_add(lssdp_ctx * lssdp, const lssdp_packet packet) {
     // 2. setup neighbor
     memcpy(nbr->usn,         packet.usn,         LSSDP_FIELD_LEN);
     memcpy(nbr->location,    packet.location,    LSSDP_LOCATION_LEN);
+    memcpy(nbr->printer_type, packet.printer_type, LSSDP_FIELD_LEN);
+    memcpy(nbr->printer_name, packet.printer_name, LSSDP_FIELD_LEN);
+    memcpy(nbr->printer_signal, packet.printer_signal, LSSDP_FIELD_LEN);
+    memcpy(nbr->connect_type, packet.connect_type, LSSDP_FIELD_LEN);
+    memcpy(nbr->bind_state, packet.bind_state, LSSDP_FIELD_LEN);
     nbr->update_time = packet.update_time;
     nbr->next = NULL;
 

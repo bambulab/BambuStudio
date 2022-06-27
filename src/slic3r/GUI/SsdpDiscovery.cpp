@@ -24,62 +24,6 @@ SOCKET broadcast_sock_list[MAX_SOCKET_NUM];
 #endif
 
 namespace BBL {
-
-    void SsdpDiscovery::on_sdp_alive(std::string dev_id, std::string dev_ip)
-    {
-        if (dev_ip.empty()) return;
-
-        try {
-            // Insert a new device or not
-            //TODO
-            //Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-            //if (device_manager) {
-            //    //TODO get dev_name, use dev_ip instead
-            //    device_manager->on_machine_alive(dev_ip, dev_id, dev_ip);
-            //}
-            return;
-        }
-        catch (std::exception& e) {
-            BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::on_sdp_alive, exception=" << e.what();
-        }
-        catch (...) {
-            BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::on_sdp_alive, exception!";
-        }
-    }
-
-    static void on_parse_sdp_message(const char* rece_buff, unsigned int recv_size)
-    {
-        lssdp_packet packet;
-        memset(&packet, 0, sizeof(packet));
-        int result = lssdp_packet_parser(rece_buff, recv_size, &packet);
-        if (result >= 0) {
-            if (strncmp(packet.st, SDP_BBL_DEVICE, strlen(SDP_BBL_DEVICE)) == 0) {
-                try {
-                    // set printer name to local ip by default
-                    json j;
-                    std::string printer_name = packet.printer_name;
-                    std::string printer_type = packet.printer_type;
-                    std::string printer_signal = packet.printer_signal;
-                    std::string printer_ip = std::string(packet.location);
-                    std::string printer_dev_id = std::string(packet.usn);
-                    /*Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-                    if (device_manager) {
-                        device_manager->on_machine_alive(j.dump());
-                    }*/
-                }
-                catch (std::exception& e) {
-                    BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::parse_sdp_message, exception=" << e.what();
-                }
-                catch (...) {
-                    BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::parse_sdp_message, exception!";
-                }
-            }
-            else {
-                BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery: mismatch packet.st = " << packet.st;
-            }
-        }
-    }
-
     void SsdpDiscovery::parse_sdp_message(const char *rece_buff, unsigned int recv_size)
     {
         lssdp_packet packet;
@@ -167,33 +111,14 @@ namespace BBL {
     }
 #elif defined(__APPLE__)
 
-    int show_neighbor_list(lssdp_ctx * lssdp)
+    int show_neighbor_list(lssdp_ctx* lssdp)
     {
         int i = 0;
-        lssdp_nbr * nbr;
-        SsdpDiscovery* discovery = (SsdpDiscovery*)lssdp->context;
+        lssdp_nbr* nbr;
         for (nbr = lssdp->neighbor_list; nbr != NULL; nbr = nbr->next) {
-            discovery->on_sdp_alive(nbr->usn, nbr->location);
-            BOOST_LOG_TRIVIAL(trace) << "ip = " << nbr->location << "name=" << nbr->usn;
+            if (lssdp->debug)
+                BOOST_LOG_TRIVIAL(trace) << "ssdp list " << i++ <<": ip = " << nbr->location << ", name=" << nbr->usn;
         }
-        return 0;
-    }
-
-    int show_interface_list_and_rebind_socket(lssdp_ctx * lssdp)
-    {
-        // 1. show interface list
-        BOOST_LOG_TRIVIAL(trace) << "Network Interface List number=" <<  lssdp->interface_num;
-        size_t i;
-        for (i = 0; i < lssdp->interface_num; i++) {
-            BOOST_LOG_TRIVIAL(trace) << "interface " << i + 1 << ": " << lssdp->interface[i].name << ": " << lssdp->interface[i].ip;
-        }
-
-        // 2. re-bind SSDP socket
-        if (lssdp_socket_create(lssdp) != 0) {
-            BOOST_LOG_TRIVIAL(trace) << "SSDP create socket failed";
-            return -1;
-        }
-
         return 0;
     }
 
@@ -234,12 +159,47 @@ namespace BBL {
         }
     }
 
-    static int on_packet_received(struct lssdp_ctx* lssdp, const char* packet, size_t packet_len)
+    static int on_packet_received(struct lssdp_ctx* lssdp, const char* recv_buff, size_t recv_size)
     {
-        BOOST_LOG_TRIVIAL(trace) << "ssdp_mac: on_packet_received, packet = " << packet << ", size = " << packet_len;
-        on_parse_sdp_message(packet, packet_len);
+        BOOST_LOG_TRIVIAL(trace) << "ssdp_mac: on_packet_received, packet = " << recv_buff << ", size = " << recv_size;
+        SsdpDiscovery* discovery = (SsdpDiscovery*)lssdp->context;
+        if (!discovery)
+            return -1;
+        discovery->parse_sdp_message(recv_buff, recv_size);
         return 0;
     }
+    
+    static int show_interface_list_and_rebind_socket(lssdp_ctx * lssdp) {
+        // 1. show interface list
+        BOOST_LOG_TRIVIAL(trace) << "Network Interface List: " << lssdp->interface_num;
+        size_t i;
+        for (i = 0; i < lssdp->interface_num; i++) {
+            printf("%zu. %-6s: %s\n",
+                i + 1,
+                lssdp->interface[i].name,
+                lssdp->interface[i].ip
+            );
+        }
+        printf("%s\n", i == 0 ? "Empty" : "");
+
+        // 2. re-bind SSDP socket
+        if (lssdp_socket_create(lssdp) != 0) {
+            BOOST_LOG_TRIVIAL(trace) << "SSDP create socket failed";
+            return -1;
+        }
+
+        return 0;
+    }
+
+    void log_callback(const char* file, const char *tag, int level, int line, const char *func, const char* message)
+    {
+        std::string level_name = "DEBUG";
+        if (level == LSSDP_LOG_INFO)   level_name = "INFO";
+        if (level == LSSDP_LOG_WARN)   level_name = "WARN";
+        if (level == LSSDP_LOG_ERROR)  level_name = "ERROR";
+        BOOST_LOG_TRIVIAL(trace) << "level=" <<level_name << "]" << tag << ", " << message;
+    }
+
 #endif
 
 
@@ -250,19 +210,18 @@ namespace BBL {
         /* init windows socket */
         bbl_init_socket();
 #elif defined(__APPLE__)
+        lssdp.debug = false;
         lssdp.context = this;
-        lssdp.port = 1990;
+        lssdp.port = 2021;
         lssdp.neighbor_timeout = 150000;
         strcpy(lssdp.header.search_target, "urn:bambulab-com:device:3dprinter:1");
         strcpy(lssdp.header.unique_service_name ,"slicer_service_name");
-        strcpy(lssdp.header.sm_id, "slicer_sm_id");
-        strcpy(lssdp.header.device_type, "DEV_TYPE_SLICER");
         strcpy(lssdp.header.location.suffix, ":5678");
         lssdp.neighbor_list_changed_callback = show_neighbor_list;
         lssdp.network_interface_changed_callback = show_interface_list_and_rebind_socket;
-        // BBS: fix crash
         lssdp.neighbor_list = NULL;
         lssdp.packet_received_callback = on_packet_received;
+        //lssdp_set_log_callback(log_callback);
 #endif
         keep_sending = false;
     }
@@ -272,6 +231,8 @@ namespace BBL {
         if (!m_started) {
             m_started = true;
         }
+
+        BOOST_LOG_TRIVIAL(trace) << "start_ssdp";
 
         sdp_quit = false;
 #if defined(__WINDOWS__)
@@ -306,6 +267,8 @@ namespace BBL {
     {
         if (m_started)
             m_started = false;
+
+        BOOST_LOG_TRIVIAL(trace) << "stop_ssdp";
         sdp_quit = true;
 #if defined(__WINDOWS__)
         for (int i = 0; i < card_number; i++) {
