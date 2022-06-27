@@ -273,6 +273,7 @@ protected:
     wxGauge *     m_sending_gauge{nullptr};
     Button *      m_cancel{nullptr};
     wxPanel *     m_panel_prepare{nullptr};
+    Button *      m_button_refresh{nullptr};
     Button *      m_button_ensure{nullptr};
     wxPanel *     m_panel_finish{nullptr};
     wxSimplebook *m_simplebook{nullptr};
@@ -334,6 +335,7 @@ protected:
     void                     update_printer_combobox(wxCommandEvent &event);
     void                     on_cancel(wxCloseEvent &event);
     void                     on_ok(wxCommandEvent &event);
+    void                     on_refresh(wxCommandEvent &event);
     void                     on_print_job_cancel(wxCommandEvent &evt);
     std::vector<std::string> sort_string(std::vector<std::string> strArray);
     void                     on_timer(wxTimerEvent &event);

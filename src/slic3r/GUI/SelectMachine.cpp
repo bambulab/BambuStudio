@@ -730,7 +730,20 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_comboBox_printer = new ::ComboBox(this, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
     m_comboBox_printer->Bind(wxEVT_COMBOBOX, &SelectMachineDialog::on_selection_changed, this);
 
-    m_sizer_printer->Add(m_comboBox_printer, 1, wxEXPAND | wxRIGHT, FromDIP(30));
+    m_sizer_printer->Add(m_comboBox_printer, 1, wxEXPAND | wxRIGHT, FromDIP(5));
+
+    m_button_refresh = new Button(this, _L("Refresh"));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    m_button_refresh->SetBackgroundColor(btn_bg_green);
+    m_button_refresh->SetBorderColor(wxColour(0, 174, 66));
+    m_button_refresh->SetTextColor(wxColour(255, 255, 255));
+    m_button_refresh->SetSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
+    m_button_refresh->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
+    m_button_refresh->SetCornerRadius(FromDIP(12));
+    m_button_refresh->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_refresh, this);
+    m_sizer_printer->Add(m_button_refresh, 0, wxALL | wxLEFT, FromDIP(5));
+
+
     m_sizer_main->Add(m_sizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
 
     m_panel_warn             = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -849,8 +862,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_prepare->Add(0, 0, 1, wxTOP, FromDIP(22));
     m_sizer_pcont->Add(0, 0, 1, wxEXPAND, 0);
     m_button_ensure = new Button(m_panel_prepare, _L("Send"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     m_button_ensure->SetBackgroundColor(btn_bg_green);
     m_button_ensure->SetBorderColor(wxColour(0, 174, 66));
     m_button_ensure->SetTextColor(wxColour(255, 255, 255));
@@ -1215,6 +1226,39 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     m_print_job->start();
 }
 
+void SelectMachineDialog::on_refresh(wxCommandEvent &event) 
+{
+    m_comboBox_printer->Disable();
+    m_button_refresh->Disable();
+    auto disable_colour = wxColour(144, 144, 144);
+    m_button_refresh->SetBackgroundColor(disable_colour);
+    m_button_refresh->SetBorderColor(disable_colour);
+
+    //update
+    DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+    MachineObject *obj_ = dev_manager->get_selected_machine();
+    if (!obj_) return;
+
+    if (obj_->connection_type() != "lan") {
+        BBL::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
+        if (c->is_user_login()) {
+            if (this == NULL || this == nullptr) { return; }
+            boost::thread get_print_info_thread = Slic3r::create_thread([this] {
+                DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+                dev->update_user_machine_list_info();
+
+                wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
+                event.SetEventObject(this);
+                wxPostEvent(this, event);
+            });
+        }
+    } else {
+        wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
+        event.SetEventObject(this);
+        wxPostEvent(this, event);
+    }
+}
+
 void SelectMachineDialog::on_print_job_cancel(wxCommandEvent &evt)
 {
     if (m_print_job->is_running()) { m_print_job->join(5 * 1000); }
@@ -1287,6 +1331,15 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
     }
     dev->set_selected_machine(m_printer_last_select);
 
+     // adjust button
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    m_button_refresh->Enable();
+    m_button_refresh->SetBackgroundColor(btn_bg_green);
+    m_button_refresh->SetBorderColor(wxColour(0, 174, 66));
+
+    //adjust combox
+    m_comboBox_printer->Enable();
+
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  "for send task, current printer id =  "<< m_printer_last_select << std::endl;
 }
 
@@ -1308,29 +1361,6 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
             }
             update_err_msg(mapping_text);
         }
-    }
-
-    if (obj_->connection_type() != "lan") {
-        BBL::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
-        if (c->is_user_login()) {
-            if (this == NULL || this == nullptr) { return; }
-            boost::thread get_print_info_thread = Slic3r::create_thread([this] {
-                DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-                dev->update_user_machine_list_info();
-
-                wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
-                event.SetEventObject(this);
-                wxPostEvent(this, event);
-                });
-        }
-        // only update once
-        if (m_refresh_timer) {
-            m_refresh_timer->Stop();
-        }
-    } else {
-        wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
-        event.SetEventObject(this);
-        wxPostEvent(this, event);
     }
 }
 
@@ -1358,6 +1388,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 
 void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
+    m_button_refresh->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_status_bar->msw_rescale();
     Fit();
@@ -1379,6 +1410,16 @@ wxImage *SelectMachineDialog::LoadImageFromBlob(const unsigned char *data, int s
 
 bool SelectMachineDialog::Show(bool show)
 {
+    //adjust button
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    m_button_refresh->Enable();
+    m_button_refresh->SetBackgroundColor(btn_bg_green);
+    m_button_refresh->SetBorderColor(wxColour(0, 174, 66));
+
+    //adjust combox
+    m_comboBox_printer->Enable();
+
+
     BBL::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
     if (acc) {
         if (show)
