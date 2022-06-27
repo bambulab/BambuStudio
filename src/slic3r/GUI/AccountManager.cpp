@@ -3251,9 +3251,6 @@ int AccountManager::start_print(PrintParams params, OnUpdateStatusFn update_fn, 
                 cancel = true;
                 return;
             }
-
-            msg = (boost::format("%1%/%2%") % get_transform_string(progress.ulnow) % get_transform_string(progress.ultotal)).str();
-            if (update_fn) update_fn(PrintingStageUpload, 0, msg);
         });
 
     if (cancel_fn && cancel_fn()) {
@@ -3273,13 +3270,10 @@ int AccountManager::start_print(PrintParams params, OnUpdateStatusFn update_fn, 
         return -1;
     }
 
-
-    if (update_fn) update_fn(PrintingStageWaiting, 0, "");
-
     /* put notifications */
     res = this->put_notification(profile, project->project_path.filename().string(), http_code, http_body);
     if (res < 0) {
-        if (update_fn) update_fn(PrintingStageWaiting, http_code, http_body);
+        if (update_fn) update_fn(PrintingStageUpload, http_code, http_body);
         return -1;
     }
 
@@ -3295,11 +3289,11 @@ int AccountManager::start_print(PrintParams params, OnUpdateStatusFn update_fn, 
 
     if (res < 0) {
         if (res == RET_ERR_CANCEL) {
-            if (update_fn) update_fn(PrintingStageWaiting, RET_ERR_CANCEL, "");
+            if (update_fn) update_fn(PrintingStageUpload, RET_ERR_CANCEL, "");
         } else if (res == RET_ERR_TIMEOUT) {
-            if (update_fn) update_fn(PrintingStageWaiting, RET_ERR_TIMEOUT, "");
+            if (update_fn) update_fn(PrintingStageUpload, RET_ERR_TIMEOUT, "");
         } else {
-            if (update_fn) update_fn(PrintingStageWaiting, http_code, http_body);
+            if (update_fn) update_fn(PrintingStageUpload, http_code, http_body);
         }
         return -1;
     }
