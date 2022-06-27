@@ -130,7 +130,22 @@ void SideTools::doRender(wxDC &dc)
         dc.SetTextForeground(SIDE_TOOLS_GREY900);
 
         auto sizet = dc.GetTextExtent(m_dev_name);
-        dc.DrawText(m_dev_name, wxPoint(left, (size.y - sizet.y) / 2));
+
+        auto        text_end = size.x - m_wifi_none_img.GetSize().x - 15;
+        std::string finally_name = m_dev_name.ToStdString();
+        if (sizet.x > (text_end - left)) {
+            auto limit_width = text_end - left - dc.GetTextExtent("...").x - 15;
+            for (auto i = 0; i < m_dev_name.length(); i++) {
+                auto curr_width = dc.GetTextExtent(m_dev_name.substr(0, i));
+                if (curr_width.x >= limit_width) {
+                    finally_name = (m_dev_name.substr(0, i) + wxString("...")).ToStdString();
+                    break;
+                }
+            }
+        }
+
+
+        dc.DrawText(finally_name, wxPoint(left, (size.y - sizet.y) / 2));
 
         left = size.x - FromDIP(18) - m_wifi_none_img.GetSize().x;
         if (m_wifi_type == WifiSignal::NONE) dc.DrawBitmap(m_wifi_none_img, left, (size.y - m_wifi_none_img.GetSize().y) / 2);

@@ -323,8 +323,8 @@ void MonitorPanel::on_size(wxSizeEvent &event)
     if (!obj) return;
 
     /* Update Device Info */
-    wxString machine_name_text = wxString::Format("%s", from_u8(obj->dev_name));
-    m_side_tools->set_current_printer_name(machine_name_text);
+    //wxString machine_name_text = wxString::Format("%s", from_u8(obj->dev_name));
+    m_side_tools->set_current_printer_name(obj->dev_name);
 
     /*
     wxString printing_status_text = wxString::Format("%s", obj->print_status);
