@@ -11,10 +11,6 @@
 #include <wx/toolbar.h>
 #include <wx/textdlg.h>
 
-#ifdef __WIN32__
-#include "WebView2.h"
-#include "wx/private/jsscriptwrapper.h"
-#endif
 #include <slic3r/GUI/Widgets/WebView.hpp>
 
 namespace Slic3r {
@@ -616,31 +612,9 @@ void WebViewPanel::RunScript(const wxString& javascript)
     // the "Run Script" dialog box, it is shown there for convenient updating.
     m_javascript = javascript;
 
-    if (wxGetApp().get_mode() == comDevelop)
-        wxLogMessage("Running JavaScript:\n%s\n", javascript);
-
     if (!m_browser) return;
 
-    wxString result;
-    try {
-#ifdef __WIN32__
-        ICoreWebView2 *   webView = (ICoreWebView2 *) m_browser->GetNativeBackend();
-        int               count   = 0;
-        wxJSScriptWrapper wrapJS(javascript, &count);
-        webView->ExecuteScript(wrapJS.GetWrappedCode(), NULL);
-#else
-        if (m_browser->RunScript(javascript, &result)) {
-            if (wxGetApp().get_mode() == comDevelop)
-                wxLogMessage("RunScript() returned \"%s\"", result);
-        } else {
-            if (wxGetApp().get_mode() == comDevelop)
-                wxLogWarning("RunScript() failed");
-        }
-#endif
-    }
-    catch (std::exception& e) {
-        ;
-    }
+    WebView::RunScript(m_browser, javascript);
 }
 
 void WebViewPanel::OnRunScriptString(wxCommandEvent& WXUNUSED(evt))

@@ -7,12 +7,6 @@
 #include "libslic3r/Utils.hpp"
 #include "I18N.hpp"
 
-#include "wx/private/jsscriptwrapper.h"
-
-#ifdef __WIN32__
-#include "WebView2.h"
-#endif
-
 namespace fs = boost::filesystem;
 
 namespace Slic3r { namespace GUI {
@@ -217,16 +211,7 @@ std::string MarkdownTip::LoadTip(std::string const &tip, std::string const &tool
 
 void MarkdownTip::RunScript(std::string const& script)
 {
-#ifdef __WIN32__
-    ICoreWebView2* webView = (ICoreWebView2*)_tipView->GetNativeBackend();
-    int count = 0;
-    wxJSScriptWrapper wrapJS(script, &count);
-    webView->ExecuteScript(wrapJS.GetWrappedCode(), NULL);
-#else
-#ifndef __linux__
-    _tipView->RunScript(script);
-#endif
-#endif
+    WebView::RunScript(_tipView, script);
 }
 
 wxWebView* MarkdownTip::CreateTipView(wxWindow* parent)

@@ -219,16 +219,7 @@ void DailytipFrame::RunScript(const wxString &javascript)
 
     if (!m_browser) return;
 
-    wxString result;
-    try {
-        if (m_browser->RunScript(javascript, &result)) {
-            // wxLogMessage("RunScript() returned \"%s\"", result);
-        } else {
-            // wxLogWarning("RunScript() failed");
-        }
-    } catch (std::exception &e) {
-        // wxMessageBox(e.what(), "", MB_OK);
-    }
+    WebView::RunScript(m_browser, javascript);
 }
 
 #if wxUSE_WEBVIEW_IE

@@ -6,6 +6,10 @@
 #include <wx/msw/webview_edge.h>
 #include <wx/uri.h>
 
+#ifdef __WIN32__
+#include "../WebView2.h"
+#include "wx/private/jsscriptwrapper.h"
+#endif
 
 class FakeWebView : public wxWebView
 {
@@ -92,4 +96,26 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
         webView = new FakeWebView;
     }
     return webView;
+}
+
+bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
+{
+    if (Slic3r::GUI::wxGetApp().get_mode() == Slic3r::comDevelop)
+        wxLogMessage("Running JavaScript:\n%s\n", javascript);
+
+    try {
+#ifdef __WIN32__
+        ICoreWebView2 *   webView2 = (ICoreWebView2 *) webView->GetNativeBackend();
+        if (webView2 == nullptr)
+            return false;
+        int               count   = 0;
+        wxJSScriptWrapper wrapJS(javascript, &count);
+        return webView2->ExecuteScript(wrapJS.GetWrappedCode(), NULL) == 0;
+#else
+        wxString result;
+        return webView->RunScript(javascript, &result);
+#endif
+    } catch (std::exception &e) {
+        return false;
+    }
 }
