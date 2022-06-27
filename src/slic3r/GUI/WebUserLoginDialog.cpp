@@ -235,8 +235,7 @@ void ZUserLogin::OnNewWindow(wxWebViewEvent &evt)
 
     // If we handle new window events then just load them in this window as we
     // are a single window browser
-    // if (m_tools_handle_new_window->IsChecked())
-    //    m_browser->LoadURL(evt.GetURL());
+    m_browser->LoadURL(evt.GetURL());
 
     UpdateState();
 }
