@@ -8,9 +8,8 @@
 #include "mqtt/async_client.h"
 #include "SsdpDiscovery.hpp"
 #include "NetworkProjectTask.hpp"
-#include "slic3r/BambuNetworkDefine.hpp"
-#include "slic3r/Http.hpp"
-#include "slic3r/Utils/Sftp.hpp"
+#include "bambu_networking.hpp"
+
 #include "nlohmann/json.hpp"
 
 using namespace nlohmann;
@@ -113,7 +112,7 @@ private:
 
     void on_failure(const mqtt::token& tok) override;
     void on_success(const mqtt::token& tok) override;
-        
+
 public:
     sub_action_listener(const std::string& name) : name_(name) {}
 };
@@ -204,8 +203,8 @@ private:
     std::string json_request_body_post_project(BBLProject* project);
     std::string json_request_body_post_profile(BBLProfile* profile);
     std::string json_request_body_post_subtask(BBLProject* project, BBLProfile* profile, BBLSubTask* task);
-    std::string json_request_body_post_setting(std::string name, bool is_system, std::map<std::string, std::string>& values_map);
-    std::string json_request_body_put_setting(std::string name, std::map<std::string, std::string>& values_map);
+    std::string json_request_body_post_setting(std::string name, bool is_system, std::map<std::string, std::string>* values_map);
+    std::string json_request_body_put_setting(std::string name, std::map<std::string, std::string>* values_map);
     std::string json_request_poll_3mf_gather(BBLSubTask* task);
     std::string json_request_poll_3mf_gather_model_only();
 
@@ -264,7 +263,7 @@ public:
     void set_on_local_connect_fn(OnLocalConnectedFn fn) { on_local_connect_fn = fn; }
     void set_on_local_message_fn(OnMessageFn fn) { on_local_message_fn = fn; }
 
-    
+
     json config_json;
     std::string config_dir;
     std::string cert_dir;
@@ -319,13 +318,13 @@ public:
     /* user login register apis */
     bool is_user_login();
     int user_logout();
-    
+
     void clean_user_data();
-    void user_check_report(int &query_task_id, bool &printable);
+    void user_check_report(int* query_task_id, bool* printable);
 
     // GET /api/user/notification
     /* return: -1 : failed, 1 : success, -2: cancelled, -3: timeout */
-    int get_notification(BBLProfile *profile, unsigned int &http_code, std::string &http_body, CancelFn cancel_fn = nullptr, int timeout = POLL_NOTIFICATION_TIMEOUT);
+    int get_notification(BBLProfile *profile, unsigned int& http_code, std::string& http_body, CancelFn cancel_fn = nullptr, int timeout = POLL_NOTIFICATION_TIMEOUT);
     int calc_get_notification_timeout(boost::filesystem::path &file);
 
     // PUT /api/user/notification
@@ -339,13 +338,12 @@ public:
     std::string selected_machine;
     std::string get_selected_machine() { return selected_machine; }
     void set_selected_machine(std::string dev_id);
-    
+
 
     /* project struct */
     std::map<std::string, BBLProject*> myProjectList;
     std::map<std::string, std::map<std::string, std::string>> m_system_presets;      // key is setting_id
     std::map<std::string, std::map<std::string, std::string>> m_my_presets;      // key is setting_id
-    std::vector<std::string> need_delete_presets;   // store setting ids of preset
 
     /* bind apis */
     int query_bind_status(std::vector<std::string> device_list, unsigned int &http_code, std::string &http_body);
@@ -424,8 +422,8 @@ public:
     /* preset settings api */
     int get_setting_list(std::string bundle_version, bool system_only = false, ProgressFn pro_fn = nullptr);
     void get_setting(std::string name, std::map<std::string, std::string>& values_map, std::function<void(void)> callback = {});
-    std::string request_setting_id(std::string name, std::map<std::string, std::string>& values_map, unsigned int& http_code);
-    int put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>& values_map, unsigned int& http_code);
+    std::string request_setting_id(std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code);
+    int put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code);
     int del_setting(std::string setting_id, unsigned int& http_code);
 
     void parse_setting(pt::ptree node, std::string type, std::string attr);
@@ -436,7 +434,7 @@ public:
                         std::function<void(std::string)> callback);
     std::string get_tutk_region();
 
-    int get_machine_version(std::string dev_id, unsigned &http_code, std::string &http_body);
+    int get_machine_version(std::string dev_id, unsigned& http_code, std::string& http_body);
 
     /* slicer resources apis */
     std::string get_slicer_info_url() { return _get_slicer_info_url(); }
@@ -469,7 +467,7 @@ public:
     std::string build_login_request(std::string timezone);
     int _parse_login_report(std::string json_str, std::string &fail_reason);
 
-    
+
     int start_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
 
     int start_local_print_with_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
@@ -477,7 +475,6 @@ public:
     int start_local_print(PrintParams, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
 
     int create_cloud_task_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string &project_id, std::string &profile_id);
-    
 };
 
 }

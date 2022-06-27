@@ -114,6 +114,7 @@
 #endif
 
 using namespace std::literals;
+namespace pt = boost::property_tree;
 
 namespace Slic3r {
 namespace GUI {
@@ -1114,13 +1115,13 @@ GUI_App::GUI_App()
 	//, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {
     //TODO
-    bool load_agent_dll = true;
-    if (load_agent_dll)
-        m_agent = new BBL::BambuNetworkAgent();
+    int load_agent_dll = Slic3r::NetworkAgent::initialize_network_module();
+    if (!load_agent_dll)
+        m_agent = new Slic3r::NetworkAgent();
 
     m_device_manager = new Slic3r::DeviceManager(m_agent);
 
-    
+
     if (m_agent) {
         m_agent->set_on_ssdp_msg_fn(
             [this](std::string json_str) {
@@ -1377,6 +1378,7 @@ void GUI_App::init_http_extra_header()
     extra_headers.insert(std::make_pair("X-BBL-OS-Version", os_version));
     extra_headers.insert(std::make_pair("X-BBL-Device-ID", app_config->get("slicer_uuid")));
     extra_headers.insert(std::make_pair("X-BBL-Language", convert_studio_language_to_api(app_config->get("language"))));
+
     if (m_agent)
         m_agent->set_extra_http_header(extra_headers);
 }
@@ -1431,7 +1433,6 @@ bool GUI_App::on_init_inner()
     CBaseException::set_log_folder(data_dir());
 #endif
 
-
     //BBS start http log
     if (m_agent) {
         m_agent->init_log();
@@ -1456,12 +1457,11 @@ bool GUI_App::on_init_inner()
 //    wxSystemOptions::SetOption("msw.notebook.themed-background", 0);
 
 //     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", wxVERSION_STRING, wxVERSION;
-
-
-    if (is_editor()) {        
+    if (is_editor()) {
         std::string msg = Slic3r::Http::tls_global_init();
         std::string ssl_cert_store = app_config->get("tls_accepted_cert_store_location");
         bool ssl_accept = app_config->get("tls_cert_store_accepted") == "yes" && ssl_cert_store == Slic3r::Http::tls_system_cert_store();
+
         if (!msg.empty() && !ssl_accept) {
             RichMessageDialog
                 dlg(nullptr,
@@ -1616,7 +1616,7 @@ bool GUI_App::on_init_inner()
     if (m_agent) {
         std::string country_code = app_config->get_country_code();
         m_agent->set_country_code(country_code);
-        m_agent->load_config();
+        m_agent->start();
     }
 
     //BBS if load user preset failed
@@ -1631,7 +1631,7 @@ bool GUI_App::on_init_inner()
             show_error(nullptr, ex.what());
         }
     //}
-    // 
+    //
     if (app_config->get("sync_user_preset") == "true") {
         //BBS loading user preset
         BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
@@ -2382,7 +2382,7 @@ int GUI_App::request_user_unbind(std::string dev_id)
 {
     int result = -1;
     if (m_agent) {
-        return m_agent->start_unbind(dev_id);
+        return m_agent->unbind(dev_id);
     }
     return result;
 }
@@ -2580,7 +2580,7 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
     if (!m_agent) { return; }
 
     int online_login = evt.GetInt();
-    std::string user_id = m_agent->user_id();
+    std::string user_id = m_agent->get_user_id();
     BOOST_LOG_TRIVIAL(info) << "set_preset: set preset_folder = " << user_id;
     GUI::wxGetApp().app_config->set("preset_folder", user_id);
     m_agent->connect_server();
@@ -2640,6 +2640,7 @@ void GUI_App::check_new_version(bool show_tips)
 
     std::string url = m_agent->get_studio_info_url() + query_params;
     Slic3r::Http http = Slic3r::Http::get(url);
+
     http.header("accept", "application/json")
         .timeout_max(10)
         .on_complete([this, show_tips](std::string body, unsigned) {
@@ -2704,8 +2705,10 @@ void GUI_App::no_new_version()
 void GUI_App::reload_settings()
 {
     if (preset_bundle && m_agent) {
-        preset_bundle->load_user_presets(*app_config, m_agent->get_user_presets(), ForwardCompatibilitySubstitutionRule::Enable);
-        preset_bundle->save_user_presets(*app_config, m_agent->get_delete_cache_presets());
+        std::map<std::string, std::map<std::string, std::string>> user_presets;
+        m_agent->get_user_presets(&user_presets);
+        preset_bundle->load_user_presets(*app_config, user_presets, ForwardCompatibilitySubstitutionRule::Enable);
+        preset_bundle->save_user_presets(*app_config, get_delete_cache_presets());
     }
 }
 
@@ -2731,7 +2734,7 @@ void GUI_App::sync_preset(Preset* preset)
         std::map<std::string, std::string> values_map;
         int ret = preset_bundle->get_differed_values_to_update(*preset, values_map);
         if (!ret) {
-            std::string new_setting_id = m_agent->request_setting_id(preset->name, values_map, http_code);
+            std::string new_setting_id = m_agent->request_setting_id(preset->name, &values_map, &http_code);
             if (!new_setting_id.empty()) {
                 preset->setting_id = new_setting_id;
                 result = 0;
@@ -2757,7 +2760,7 @@ void GUI_App::sync_preset(Preset* preset)
         std::map<std::string, std::string> values_map;
         int ret = preset_bundle->get_differed_values_to_update(*preset, values_map);
         if (!ret) {
-            std::string new_setting_id = m_agent->request_setting_id(preset->name, values_map, http_code);
+            std::string new_setting_id = m_agent->request_setting_id(preset->name, &values_map, &http_code);
             if (!new_setting_id.empty()) {
                 preset->setting_id = new_setting_id;
                 result = 0;
@@ -2788,7 +2791,7 @@ void GUI_App::sync_preset(Preset* preset)
                     result = 0;
                 }
                 else
-                    result = m_agent->put_setting(preset->setting_id, preset->name, values_map, http_code);
+                    result = m_agent->put_setting(preset->setting_id, preset->name, &values_map, &http_code);
             }
             else {
                 BOOST_LOG_TRIVIAL(trace) << "[sync_preset]update: can not generate differed key-values, we need to skip this preset "<< preset->name;
@@ -2879,11 +2882,11 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         unsigned int http_code = 200;
 
                         /* get list witch need to be deleted*/
-                        std::vector<string> delete_cache_presets = m_agent->get_delete_cache_presets();
+                        std::vector<string>& delete_cache_presets = get_delete_cache_presets();
                         for (auto it = delete_cache_presets.begin(); it != delete_cache_presets.end();) {
                             if ((*it).empty()) continue;
                             std::string del_setting_id = *it;
-                            int result = m_agent->del_setting(del_setting_id);
+                            int result = m_agent->delete_setting(del_setting_id);
                             if (result == 0) {
                                 it = delete_cache_presets.erase(it);
                                 BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: delete success! setting id = " << del_setting_id;
@@ -3689,6 +3692,16 @@ void GUI_App::load_current_presets(bool active_preset_combox/*= false*/, bool ch
 		if (tab->supports_printer_technology(printer_technology)) {
             tab->rebuild_page_tree();
         }
+}
+
+std::vector<std::string>& GUI_App::get_delete_cache_presets()
+{
+    return need_delete_presets;
+}
+
+void GUI_App::delete_preset_from_cloud(std::string setting_id)
+{
+    need_delete_presets.push_back(setting_id);
 }
 
 bool GUI_App::OnExceptionInMainLoop()

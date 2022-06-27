@@ -5,14 +5,12 @@
 #include <vector>
 #include <ctime>
 #include <memory>
-#include <wx/string.h>
-#include <wx/event.h>
 #include <boost/optional.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/thread.hpp>
 #include <boost/log/trivial.hpp>
-#include "slic3r/GUI/Ssdp.hpp"
-#include "slic3r/BambuNetworkDefine.hpp"
+#include "Ssdp.hpp"
+#include "bambu_networking.hpp"
 
 namespace pt = boost::property_tree;
 
@@ -27,7 +25,7 @@ public:
 
     void set_ssdp_discovery(bool discovery) {
         keep_sending = discovery;
-    }    
+    }
 
 private:
     bool sdp_quit = false;
@@ -40,7 +38,7 @@ private:
     boost::thread   send_thread_list[MAX_CARD_NUMBER];
     boost::thread   recv_broadcast_thread_list[MAX_CARD_NUMBER];
 
-#if defined(__WINDOWS__)
+#if defined(_WIN32)
     int send_msg(int card_no);
     void recv_sdp_msg(int card_no);
     void recv_broadcast_msg(int card_no);
@@ -67,7 +65,7 @@ public:
 
 #define MAX_PROTOCAL_MSG_LENGTH     1024
 
-#if defined(__WINDOWS__)
+#if defined(_WIN32)
 class LocalClient
 {
 private:

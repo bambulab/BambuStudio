@@ -2451,7 +2451,7 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
                     wxICON_INFORMATION);
 
     /* get setting list */
-    BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
+    NetworkAgent* agent = wxGetApp().getAgent();
     switch ( dialog.ShowModal() )
     {
         case wxID_YES: {

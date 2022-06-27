@@ -7,7 +7,6 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 
-#include "slic3r/Utils/Http.hpp"
 #include "Search.hpp"
 #include "OG_CustomCtrl.hpp"
 
@@ -3766,9 +3765,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
             current_preset.sync_info = "delete";
             if (!current_preset.setting_id.empty()) {
                 BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
-                BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
-                if (agent)
-                    agent->delete_preset(current_preset.setting_id);
+                wxGetApp().delete_preset_from_cloud(current_preset.setting_id);
             }
             BOOST_LOG_TRIVIAL(info) << boost::format("will delete current preset...");
             m_presets->delete_current_preset();
@@ -4227,7 +4224,7 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
     else {
         new_preset->sync_info = "create";
         if (wxGetApp().is_user_login())
-            new_preset->user_id = wxGetApp().getAgent()->user_id();
+            new_preset->user_id = wxGetApp().getAgent()->get_user_id();
         BOOST_LOG_TRIVIAL(info) << "sync_preset: create preset = " << new_preset->name;
     }
     new_preset->save_info();
@@ -4379,10 +4376,7 @@ void Tab::delete_preset()
     current_preset.sync_info = "delete";
     if (!current_preset.setting_id.empty()) {
         BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
-        BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
-        if (agent) {
-            agent->delete_preset(current_preset.setting_id);
-        }
+        wxGetApp().delete_preset_from_cloud(current_preset.setting_id);
     }
 
     // Select will handle of the preset dependencies, of saving & closing the depending profiles, and

@@ -1273,6 +1273,26 @@ void PartPlate::set_print(PrintBase* print, GCodeResult* result, int index)
 	return;
 }
 
+std::string PartPlate::get_gcode_filename()
+{
+	if (is_slice_result_valid() && get_slice_result()) {
+		return m_gcode_result->filename;
+	}
+	return "";
+}
+
+bool PartPlate::is_valid_gcode_file()
+{
+	if (get_gcode_filename().empty())
+		return false;
+	boost::filesystem::path gcode_file(m_gcode_result->filename);
+	if (!boost::filesystem::exists(gcode_file)) {
+		BOOST_LOG_TRIVIAL(info) << "invalid gcode file, file is missing, file = " << m_gcode_result->filename;
+		return false;
+	}
+	return true;
+}
+
 ModelInstance* PartPlate::get_instance(int obj_id, int instance_id)
 {
 	if (!contain_instance(obj_id, instance_id))

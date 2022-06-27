@@ -8,9 +8,15 @@
 #include <memory>
 #include <stdarg.h>
 
-#if defined(__WINDOWS__)
-#include <Windows.h>
+#if defined(_WIN32)
+    #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+    #endif
+    #ifndef NOMINMAX
+        #define NOMINMAX
+    #endif
 #include <WinSock2.h>
+#include <Windows.h>
 #include <iphlpapi.h>
 #include <ws2tcpip.h>
 #else
@@ -71,7 +77,7 @@ int trim_spaces(const char* string, size_t* start, size_t* end);
 int lssdp_packet_parser(const char* data, size_t data_len, lssdp_packet* packet);
 int parse_field_line(const char* data, size_t start, size_t end, lssdp_packet* packet);
 
-#if defined(__WINDOWS__)
+#if defined(_WIN32)
 
 #if(_WIN32_WINNT < 0x0600)
 typedef short sa_family_t;

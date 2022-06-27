@@ -90,7 +90,7 @@ public:
 	// specifically, this is supported with OpenSSL and NOT supported with Windows and OS X native certificate store.
 	// See also ca_file_supported().
 	Http& ca_file(const std::string &filename);
-	
+
 	// Add a HTTP multipart form field
 	Http& form_add(const std::string &name, const std::string &contents);
 	// Add a HTTP multipart form file data contents, `name` is the name of the part
@@ -105,7 +105,7 @@ public:
 	Http& form_add_file(const std::string &name, const boost::filesystem::path &path, const std::string &filename);
 
 #ifdef WIN32
-	// Tells libcurl to ignore certificate revocation checks in case of missing or offline distribution points for those SSL backends where such behavior is present. 
+	// Tells libcurl to ignore certificate revocation checks in case of missing or offline distribution points for those SSL backends where such behavior is present.
 	// This option is only supported for Schannel (the native Windows SSL library).
 	Http& ssl_revoke_best_effort(bool set);
 #endif // WIN32

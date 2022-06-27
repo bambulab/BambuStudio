@@ -1,7 +1,7 @@
 #ifndef __BAMBU_NETWORK_AGENT_HPP__
 #define __BAMBU_NETWORK_AGENT_HPP__
 
-#include "BambuNetworkDefine.hpp"
+#include "bambu_networking.hpp"
 
 namespace BBL {
 
@@ -64,28 +64,26 @@ public:
     // print
     int start_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
     int start_local_print_with_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
-    int start_local_print(PrintParams, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
+    int start_local_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
 
     // presets
-    std::map<std::string, std::map<std::string, std::string>>& get_user_presets();
+    void get_user_presets(std::map<std::string, std::map<std::string, std::string>>* user_presets);
 
-    std::string request_setting_id(std::string name, std::map<std::string, std::string>& values_map, unsigned int& http_code);
-    int put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>& values_map, unsigned int& http_code);
+    std::string request_setting_id(std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code);
+    int put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code);
     int get_setting_list(std::string bundle_version, ProgressFn pro_fn = nullptr);
-    std::vector<std::string>& get_delete_cache_presets();
-    void delete_preset(std::string setting_id);
-    int del_setting(std::string setting_id);
+    int delete_setting(std::string setting_id);
 
     // iot
     std::string get_studio_info_url();
     void set_extra_http_header(std::map<std::string, std::string> extra_headers);
 
-    void check_user_task_report(int &task_id, bool &printable);
-    int get_user_print_info(unsigned int &http_code, std::string &http_body);
-    int get_printer_firmware(std::string dev_id, unsigned &http_code, std::string &http_body);
-    void get_task_plate_index(std::string task_id, int &plate_index);
-    void get_slice_info(std::string project_id, std::string profile_id, int plate_index, std::string &slice_json);
-    int query_bind_status(std::vector<std::string> query_list, unsigned int &http_code, std::string &http_body);
+    void check_user_task_report(int* task_id, bool* printable);
+    int get_user_print_info(unsigned int* http_code, std::string* http_body);
+    int get_printer_firmware(std::string dev_id, unsigned* http_code, std::string* http_body);
+    void get_task_plate_index(std::string task_id, int* plate_index);
+    void get_slice_info(std::string project_id, std::string profile_id, int plate_index, std::string* slice_json);
+    int query_bind_status(std::vector<std::string> query_list, unsigned int* http_code, std::string* http_body);
     int modify_printer_name(std::string dev_id, std::string dev_name);
 
     // camera

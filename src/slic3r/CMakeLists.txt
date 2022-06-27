@@ -6,10 +6,6 @@ include(PrecompiledHeader)
 set(SLIC3R_GUI_SOURCES
     pchheader.cpp
     pchheader.hpp
-    BambuNetworkAgent.hpp
-    BambuNetworkAgent.cpp
-    Http.cpp
-    Http.hpp
     GUI/Printer/PrinterFileSystem.cpp
     GUI/Printer/PrinterFileSystem.h
     GUI/Widgets/AxisCtrlButton.cpp
@@ -329,10 +325,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/ProjectDirtyStateManager.cpp
     GUI/DesktopIntegrationDialog.cpp
     GUI/DesktopIntegrationDialog.hpp
-    GUI/SsdpDiscovery.cpp
-    GUI/SsdpDiscovery.hpp
-    GUI/Ssdp.cpp
-    GUI/Ssdp.hpp
     GUI/DebugToolPanel.cpp
     GUI/DebugToolPanel.h
     GUI/DebugToolDialog.cpp
@@ -341,10 +333,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/PublishDialog.hpp
     GUI/BindDialog.cpp
     GUI/BindDialog.hpp
-    GUI/AccountManager.hpp
-    GUI/AccountManager.cpp
-    GUI/NetworkProjectTask.hpp
-    GUI/NetworkProjectTask.cpp
     GUI/SelectMachine.hpp
     GUI/SelectMachine.cpp
     GUI/AmsMappingPopup.hpp
@@ -357,8 +345,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/KBShortcutsDialog.cpp
     Utils/Http.cpp
     Utils/Http.hpp
-    Utils/Sftp.cpp
-    Utils/Sftp.hpp
     Utils/FixModelByWin10.cpp
     Utils/FixModelByWin10.hpp
     Utils/Bonjour.cpp
@@ -378,6 +364,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/minilzo_extension.cpp
     Utils/ColorSpaceConvert.hpp
     Utils/ColorSpaceConvert.cpp
+    Utils/NetworkAgent.cpp
+    Utils/NetworkAgent.hpp
 )
 
 if (APPLE)
@@ -408,8 +396,10 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 
 encoding_check(libslic3r_gui)
 
-target_link_libraries(libslic3r_gui libslic3r cereal imgui minilzo GLEW::GLEW OpenGL::GL hidapi libcurl
-${wxWidgets_LIBRARIES} eclipse-paho-mqtt-c::paho-mqtt3as-static paho-mqttpp3::paho-mqttpp3-static glfw)
+target_include_directories(libslic3r_gui PUBLIC ${BambuNetworking_INCLUDE_DIR})
+
+target_link_libraries(libslic3r_gui libslic3r cereal imgui minilzo GLEW::GLEW OpenGL::GL hidapi libcurl OpenSSL::SSL OpenSSL::Crypto
+${wxWidgets_LIBRARIES} glfw)
 
 if (MSVC)
     target_link_libraries(libslic3r_gui Setupapi.lib)

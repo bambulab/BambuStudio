@@ -50,13 +50,13 @@ void BindJob::on_exception(const std::exception_ptr &eptr)
     }
 }
 
-void BindJob::on_success(std::function<void()> success) 
-{ 
+void BindJob::on_success(std::function<void()> success)
+{
     m_success_fun = success;
 }
 
 void BindJob::update_status(int st, const wxString &msg)
-{ 
+{
     GUI::Job::update_status(st, msg);
     //post_event(wxCommandEvent(EVT_BIND_UPDATE_MESSAGE), msg);
     wxCommandEvent event(EVT_BIND_UPDATE_MESSAGE);
@@ -71,7 +71,7 @@ void BindJob::process()
     wxString msg = waiting_auth_str;
     int curr_percent = 0;
 
-    BBL::BambuNetworkAgent* m_agent = wxGetApp().getAgent();
+    NetworkAgent* m_agent = wxGetApp().getAgent();
     if (!m_agent) { return; }
 
     // get timezone
@@ -79,7 +79,7 @@ void BindJob::process()
     long offset = tz.GetOffset();
     std::string timezone = get_timezone_utc_hm(offset);
 
-    int result = m_agent->start_bind(m_dev_ip, timezone,
+    int result = m_agent->bind(m_dev_ip, timezone,
         [this, &curr_percent, &msg](int stage, int code, std::string info) {
             if (stage == BBL::BindJobStage::LoginStageConnect) {
                 curr_percent = 15;
@@ -107,7 +107,7 @@ void BindJob::process()
         }
     );
 
-    if (result < 0) { 
+    if (result < 0) {
         post_fail_event();
         return;
     }
@@ -128,12 +128,12 @@ void BindJob::finalize()
     Job::finalize();
 }
 
-void BindJob::set_event_handle(wxWindow *hanle) 
-{ 
+void BindJob::set_event_handle(wxWindow *hanle)
+{
     m_event_handle = hanle;
 }
 
-void BindJob::post_fail_event() 
+void BindJob::post_fail_event()
 {
     wxCommandEvent event(EVT_BIND_MACHINE_FAIL);
     event.SetEventObject(m_event_handle);

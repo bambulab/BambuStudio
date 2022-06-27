@@ -75,8 +75,8 @@ void MediaPlayCtrl::Play()
     m_button_play->SetIcon("media_stop");
     SetStatus(_L("Initializing..."));
 
-    
-    BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
+
+    NetworkAgent* agent = wxGetApp().getAgent();
     if (agent) {
             agent->get_camera_url(m_machine, [this](std::string url) {
             BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;

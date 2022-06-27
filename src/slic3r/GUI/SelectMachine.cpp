@@ -358,7 +358,9 @@ void MachineObjectPanel::on_mouse_left_down(wxMouseEvent &evt)
     auto right  = left + m_unbind_img.GetSize().x;
     auto top    = (GetSize().y - m_unbind_img.GetSize().y) / 2;
     auto bottom = (GetSize().y - m_unbind_img.GetSize().y) / 2 + m_unbind_img.GetSize().y;
+
     if ((evt.GetPosition().x >= left && evt.GetPosition().x <= right) && evt.GetPosition().y >= top && evt.GetPosition().y <= bottom) { m_select_unbind = true; }
+
     Refresh();
     evt.Skip();
 }
@@ -1187,11 +1189,11 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
 
 #if !BBL_RELEASE_TO_PUBLIC
 #ifdef BBL_CHECK_USER_REPORT
-    int                     task_id   = 0;
-    bool                    printable = true;
-    BBL::BambuNetworkAgent *agent     = Slic3r::GUI::wxGetApp().getAgent();
+    int  task_id   = 0;
+    bool printable = true;
+    NetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
     if (agent) {
-        agent->user_check_report(&task_id, &printable);
+        agent->check_user_task_report(&task_id, &printable);
         if (task_id != 0 && !printable) {
             update_err_msg(_L("Please fill report first."));
             std::string report_url = (boost::format("https://autotest.bambu-lab.com/slicerAddReport?task_id=%1%&token=%2%") % task_id % c->get_curr_user()->m_autotest_token).str();
@@ -1303,7 +1305,7 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
 {
     for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
         if (m_ams_mapping_result[i].id == m_current_filament_id) {
-            m_ams_mapping_result[i].tray_id = evt.GetInt(); 
+            m_ams_mapping_result[i].tray_id = evt.GetInt();
         }
     }
 
@@ -1445,7 +1447,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
 
     if (!has_read_done_info) {
         timeout_count++;
-       
+
     } else {
         timeout_count = 0;
 
@@ -1487,16 +1489,16 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
 
                         if (f->id == id) {
                             //auto ams_colour = wxColour(wxAtoi(colours_arr[0]), wxAtoi(colours_arr[1]), wxAtoi(colours_arr[2]));
-                            
+
 
                             wxString ams_id = "-";
                             wxColour ams_col = wxColour(0xEE, 0xEE, 0xEE);
 
-                            if (f->tray_id > 0) { 
+                            if (f->tray_id > 0) {
                                 ams_id = wxString::Format("%02d", f->tray_id);
                             }
 
-                            if (!f->color.empty()) { 
+                            if (!f->color.empty()) {
                                 ams_col = AmsTray::decode_color(f->color);
                             }
 
@@ -1509,7 +1511,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
                 }
 
                 wxString tips = _L("The mapping of \"Consumable wire List =>AMS slot\" has been automatically established.\n");
-                //tips += _L("If you need to modify, click the specific consumable wire above to manually set the MAPPED AMS slot."); 
+                //tips += _L("If you need to modify, click the specific consumable wire above to manually set the MAPPED AMS slot.");
                 update_warn_msg(tips);
             }
         }
@@ -1613,7 +1615,7 @@ wxImage *SelectMachineDialog::LoadImageFromBlob(const unsigned char *data, int s
     return NULL;
 }
 
-void SelectMachineDialog::set_default() 
+void SelectMachineDialog::set_default()
 {
     // adjust refresh button
     Enable_Refresh_Button(true);
@@ -1772,11 +1774,11 @@ void SelectMachineDialog::set_default()
 bool SelectMachineDialog::Show(bool show)
 {
     // TODO set default value when show this dialog
-    if (show) { 
+    if (show) {
         set_default();
     }
 
-    BBL::BambuNetworkAgent *agent = Slic3r::GUI::wxGetApp().getAgent();
+    NetworkAgent *agent = Slic3r::GUI::wxGetApp().getAgent();
     if (agent) {
         if (show)
             agent->start_subscribe("send_print");
@@ -1840,7 +1842,7 @@ EditDevNameDialog::EditDevNameDialog(Plater *plater /*= nullptr*/)
     m_static_valid->SetForegroundColour(wxColour(255, 111, 0));
     m_sizer_main->Add(m_static_valid, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP | wxLEFT | wxRIGHT, FromDIP(10));
 
-     
+
     m_button_confirm = new Button(this, _L("Confirm"));
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     m_button_confirm->SetBackgroundColor(btn_bg_green);

@@ -218,11 +218,7 @@ else()
     #list(APPEND _dep_list "dep_libigl")
 endif()
 
-if (MSVC)
-    list(APPEND _dep_list "dep_OCCT")
-elseif (APPLE)
-    list(APPEND _dep_list "dep_OCCT")
-endif()
+list(APPEND _dep_list "dep_OCCT")
 
 add_custom_target(deps ALL DEPENDS ${_dep_list})
 

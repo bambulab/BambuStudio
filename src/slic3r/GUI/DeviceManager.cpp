@@ -2,8 +2,6 @@
 #include "DeviceManager.hpp"
 #include "libslic3r/Time.hpp"
 #include "libslic3r/Thread.hpp"
-#include "slic3r/Utils/Http.hpp"
-#include "slic3r/Utils/Sftp.hpp"
 #include "slic3r/Utils/ColorSpaceConvert.hpp"
 
 #include "GUI_App.hpp"
@@ -23,6 +21,8 @@
 #include <boost/uuid/uuid_io.hpp>
 
 using namespace nlohmann;
+
+namespace pt = boost::property_tree;
 
 // json command const string
 const std::string JSON_CMD_PRINT = "print";
@@ -277,7 +277,7 @@ std::string MachineObject::get_printer_type_string()
     return "3DPrinter";
 }
 
-MachineObject::MachineObject(BBL::BambuNetworkAgent* agent, std::string name, std::string id, std::string ip)
+MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip)
     :dev_name(name),
     dev_id(id),
     dev_ip(ip),
@@ -397,7 +397,7 @@ AmsTray *MachineObject::get_curr_tray()
 {
     Ams* curr_ams = get_curr_Ams();
     if (!curr_ams) return nullptr;
-    
+
     auto it = curr_ams->trayList.find(m_tray_now);
     if (it != curr_ams->trayList.end())
         return it->second;
@@ -784,7 +784,7 @@ std::string MachineObject::get_firmware_type_str()
         return "engineer";
     else if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION)
         return "product";
-    
+
     // return engineer by default;
     return "engineer";
 }
@@ -1542,7 +1542,7 @@ int MachineObject::parse_json(std::string payload)
                     mc_print_error_code = atoi(jj["mc_print_error_code"].get<std::string>().c_str());
                 if (jj["mc_print_error_code"].is_number())
                     mc_print_error_code = jj["mc_print_error_code"].get<int>();
-                
+
             }
             if (jj.contains("mc_print_line_number")) {
                 if (jj["mc_print_line_number"].is_string() && !jj["mc_print_line_number"].is_null())
@@ -1764,7 +1764,7 @@ int MachineObject::parse_json(std::string payload)
                 //do not query when this machine is not current user
                 if (Slic3r::GUI::wxGetApp().is_user_login()) {
                     /* parse plate_idx */
-                    if (!bind_user_id.empty() && bind_user_id.compare(Slic3r::GUI::wxGetApp().getAgent()->user_id()) != 0)
+                    if (!bind_user_id.empty() && bind_user_id.compare(Slic3r::GUI::wxGetApp().getAgent()->get_user_id()) != 0)
                         query_user = false;
                 }
 
@@ -1848,7 +1848,7 @@ int MachineObject::parse_json(std::string payload)
 
                         if (tray_now_str.has_value()) {
                             this->_parse_tray_now(tray_now_str.value());
-                            
+
                         }
                         if (tray_tar_str.has_value())
                             m_tray_tar = tray_tar_str.value();
@@ -2044,7 +2044,7 @@ int MachineObject::publish_gcode(std::string gcode_str)
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
     if (m_agent)
-        j["print"]["user_id"] = m_agent->user_id();
+        j["print"]["user_id"] = m_agent->get_user_id();
     return publish_json(j.dump());
 }
 
@@ -2075,14 +2075,16 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
         slice_info = new BBLSliceInfo();
         auto get_slice_info_thread = boost::thread([this, project_id, profile_id, subtask_id, plate_idx] {
                 int plate_index = -1;
+
                 if (plate_idx >= 0) {
                     plate_index = plate_idx;
                 } else {
-                    m_agent->get_task_plate_index(subtask_id, plate_index);
+                    m_agent->get_task_plate_index(subtask_id, &plate_index);
                 }
+
                 if (plate_index >= 0) {
                     std::string slice_json;
-                    m_agent->get_slice_info(project_id, profile_id, plate_index, slice_json);
+                    m_agent->get_slice_info(project_id, profile_id, plate_index, &slice_json);
                     //parse json
                     json j = json::parse(slice_json);
                     if (!j["prediction"].is_null())
@@ -2116,7 +2118,7 @@ void MachineObject::get_firmware_info()
             int          result = 0;
             unsigned int http_code;
             std::string  http_body;
-            result = m_agent->get_printer_firmware(dev_id, http_code, http_body);
+            result = m_agent->get_printer_firmware(dev_id, &http_code, &http_body);
             if (result < 0) {
                 // get upgrade list failed
                 return;
@@ -2193,7 +2195,7 @@ bool MachineObject::is_firmware_info_valid()
     return m_firmware_valid;
 }
 
-DeviceManager::DeviceManager(BBL::BambuNetworkAgent* agent)
+DeviceManager::DeviceManager(NetworkAgent* agent)
 {
     m_agent = agent;
     try {
@@ -2280,7 +2282,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
             //load access code
             obj->access_code = Slic3r::GUI::wxGetApp().app_config->get("access_code", dev_id);
             localMachineList.insert(std::make_pair(dev_id, obj));
-            
+
 
             BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery::New Machine, ip = " << dev_ip << ", printer_name= " << dev_name << ", printer_type = " << printer_type_str << ", signal = " << printer_signal;
         }
@@ -2292,7 +2294,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
 
 void DeviceManager::disconnect_all()
 {
-    
+
 }
 
 int DeviceManager::query_bind_status(std::string &msg)
@@ -2311,7 +2313,7 @@ int DeviceManager::query_bind_status(std::string &msg)
 
     unsigned int http_code;
     std::string http_body;
-    int result = m_agent->query_bind_status(query_list, http_code, http_body);
+    int result = m_agent->query_bind_status(query_list, &http_code, &http_body);
 
     if (result < 0) {
         msg = (boost::format("code=%1%,body=%2") % http_code % http_body).str();
@@ -2347,9 +2349,9 @@ MachineObject* DeviceManager::get_local_selected_machine()
 
 MachineObject* DeviceManager::get_default_machine() {
 
-    std::string dev_id = m_agent->user_selected_machine();
+    std::string dev_id = m_agent->get_user_selected_machine();
     if (dev_id.empty()) return nullptr;
-    
+
     auto it = userMachineList.find(dev_id);
     if (it == userMachineList.end()) return nullptr;
     return it->second;
@@ -2421,7 +2423,7 @@ bool DeviceManager::set_selected_machine(std::string dev_id)
 MachineObject* DeviceManager::get_selected_machine()
 {
     if (selected_machine.empty()) return nullptr;
-    
+
     MachineObject* obj = get_user_machine(selected_machine);
     if (obj)
         return obj;
@@ -2459,7 +2461,7 @@ std::string DeviceManager::get_first_online_user_machine() {
     return "";
 }
 
-void DeviceManager::modify_device_name(std::string dev_id, std::string dev_name) 
+void DeviceManager::modify_device_name(std::string dev_id, std::string dev_name)
 {
     BOOST_LOG_TRIVIAL(trace) << "modify_device_name";
     if (m_agent) {
@@ -2477,7 +2479,7 @@ void DeviceManager::update_user_machine_list_info()
     BOOST_LOG_TRIVIAL(trace) << "update_user_machine_list_info";
     unsigned int http_code;
     std::string body;
-    int result = m_agent->get_user_print_info(http_code, body);
+    int result = m_agent->get_user_print_info(&http_code, &body);
     if (result == 0) {
         std::set<std::string> new_list;
         try {
@@ -2498,7 +2500,7 @@ void DeviceManager::update_user_machine_list_info()
                     }
                     else {
                         obj = new MachineObject(m_agent, "", "", "");
-                        obj->set_bind_status(m_agent->user_name());
+                        obj->set_bind_status(m_agent->get_user_name());
                         userMachineList.insert(std::make_pair(dev_id, obj));
                     }
 
@@ -2553,7 +2555,7 @@ std::map<std::string ,MachineObject*> DeviceManager::get_local_machine_list()
             result.insert(std::make_pair(it->first, it->second));
         }
     }
-    
+
     return result;
 }
 
@@ -2564,7 +2566,7 @@ void DeviceManager::load_last_machine()
     else if (userMachineList.size() == 1) {
         this->set_selected_machine(userMachineList.begin()->first);
     } else {
-        std::string last_monitor_machine = m_agent->user_selected_machine();
+        std::string last_monitor_machine = m_agent->get_user_selected_machine();
         bool found = false;
         for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
             if (last_monitor_machine == it->first) {

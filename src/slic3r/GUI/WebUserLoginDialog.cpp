@@ -53,7 +53,7 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
 {
     // Url
     AppConfig * config   = wxGetApp().app_config;
-    BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
+    NetworkAgent* agent = wxGetApp().getAgent();
     if (!agent) return;
     std::string host_url = agent->get_bambulab_host();
     TargetUrl = host_url + "/sign-in";
@@ -204,7 +204,7 @@ void ZUserLogin::OnDocumentLoaded(wxWebViewEvent &evt)
 {
     // Only notify if the document is the main frame, not a subframe
     wxString tmpUrl = evt.GetURL();
-    BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
+    NetworkAgent* agent = wxGetApp().getAgent();
     std::string strHost = agent->get_bambulab_host();
 
     if ( tmpUrl.Contains(strHost) ) {

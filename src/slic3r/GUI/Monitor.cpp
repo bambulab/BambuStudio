@@ -1,7 +1,6 @@
 #include "Tab.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
-#include "slic3r/Utils/Http.hpp"
 
 #include <wx/app.h>
 #include <wx/button.h>
@@ -173,7 +172,7 @@ MonitorPanel::~MonitorPanel()
     warning_panel->SetSizer(sizer_boxh);
     warning_panel->Layout();*/
 
-    
+
 
 
     sizer_side_tools->Add(m_connection_info, 0, wxEXPAND, 0);
@@ -253,7 +252,7 @@ void MonitorPanel::msw_rescale()
     m_connection_info->SetSize(wxSize(FromDIP(220), FromDIP(25)));
     m_connection_info->SetMinSize(wxSize(FromDIP(220), FromDIP(25)));
     m_connection_info->SetMaxSize(wxSize(FromDIP(220), FromDIP(25)));
-    
+
     Layout();
     Refresh();
 }
@@ -304,7 +303,7 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
     auto mouse_pos = ClientToScreen(event.GetPosition());
     wxPoint rect = m_side_tools->ClientToScreen(wxPoint(0, 0));
 
-    if (mouse_pos.x >  rect.x 
+    if (mouse_pos.x >  rect.x
         && mouse_pos.x <  rect.x + m_side_tools->GetSize().GetWidth()
         && mouse_pos.y >  rect.y
         && mouse_pos.y <  rect.y + m_side_tools->GetSize().GetHeight())
@@ -316,7 +315,7 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
         pos.y += m_side_tools->GetRect().height;
         m_select_machine->Position(pos, wxSize(0, 0));
         m_select_machine->Popup();
-    } 
+    }
 }
 
 
@@ -368,7 +367,7 @@ void MonitorPanel::on_size(wxSizeEvent &event)
 
 void MonitorPanel::update_all()
 {
-    BBL::BambuNetworkAgent* m_agent = wxGetApp().getAgent();
+    NetworkAgent* m_agent = wxGetApp().getAgent();
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
 
     obj = dev->get_selected_machine();
@@ -377,7 +376,7 @@ void MonitorPanel::update_all()
     if (wxGetApp().is_user_login()) {
         // check mqtt connection and reconnect if disconnected
         try {
-            m_agent->check_server_connection();
+            m_agent->refresh_connection();
         }
         catch (...) {
             ;
@@ -423,7 +422,7 @@ void MonitorPanel::update_all()
     }
 
     show_status(MONITOR_NORMAL);
-    
+
 
     if (m_status_info_panel->IsShown()) {
         m_status_info_panel->update(obj);
@@ -445,9 +444,8 @@ bool MonitorPanel::Show(bool show)
 #ifdef __APPLE__
     wxGetApp().mainframe->SetMinSize(wxGetApp().plater()->GetMinSize());
 #endif
-    
-    
-    BBL::BambuNetworkAgent* m_agent = wxGetApp().getAgent();
+
+    NetworkAgent* m_agent = wxGetApp().getAgent();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (show) {
         m_refresh_timer->Stop();
@@ -472,7 +470,7 @@ bool MonitorPanel::Show(bool show)
     return wxPanel::Show(show);
 }
 
-void MonitorPanel::update_side_panel() 
+void MonitorPanel::update_side_panel()
 {
     Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     auto is_next_machine = false;
@@ -503,8 +501,8 @@ void MonitorPanel::show_status(int status)
         else
             m_connection_info->SetLabel(_L("Failed to connect to the printer"));
         m_connection_info->Show();
-    }else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) { 
-        m_connection_info->Hide(); 
+    }else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) {
+        m_connection_info->Hide();
     }
 
     Freeze();

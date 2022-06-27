@@ -18,7 +18,7 @@
 
 using namespace nlohmann;
 
-#if defined(__WINDOWS__)
+#if defined(_WIN32)
 SOCKET ssdp_sock_list[MAX_SOCKET_NUM];
 SOCKET broadcast_sock_list[MAX_SOCKET_NUM];
 #endif
@@ -57,7 +57,7 @@ namespace BBL {
         }
     }
 
-#if defined(__WINDOWS__)
+#if defined(_WIN32)
     int SsdpDiscovery::send_msg(int card_no)
     {
         int count = 0;
@@ -207,8 +207,8 @@ namespace BBL {
 
     SsdpDiscovery::SsdpDiscovery()
     {
-        
-#if defined(__WINDOWS__)
+
+#if defined(_WIN32)
         /* init windows socket */
         bbl_init_socket();
 #elif defined(__APPLE__)
@@ -237,7 +237,7 @@ namespace BBL {
         BOOST_LOG_TRIVIAL(trace) << "start_ssdp";
 
         sdp_quit = false;
-#if defined(__WINDOWS__)
+#if defined(_WIN32)
         /* create thread to recv ssdp message */
         card_number  = bbl_init_multi_socket(ssdp_sock_list, MAX_SOCKET_NUM);
         card_number = bbl_init_broadcast_socket(broadcast_sock_list, MAX_SOCKET_NUM);
@@ -273,7 +273,7 @@ namespace BBL {
 
         BOOST_LOG_TRIVIAL(trace) << "stop_ssdp";
         sdp_quit = true;
-#if defined(__WINDOWS__)
+#if defined(_WIN32)
         for (int i = 0; i < card_number; i++) {
             closesocket(ssdp_sock_list[i]);
             closesocket(broadcast_sock_list[i]);
@@ -355,7 +355,7 @@ namespace BBL {
         return 1;
     }
 
-#if defined(__WINDOWS__)
+#if defined(_WIN32)
     int LocalClient::connect(std::string server_ip, int port)
     {
         // init win socket
@@ -389,7 +389,7 @@ namespace BBL {
 
         int recvTimeout = 2 * 1000;
         setsockopt(ConnectSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&recvTimeout, sizeof(int));
-        
+
         iResult = ::connect(ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
         if (iResult == SOCKET_ERROR) {
             BOOST_LOG_TRIVIAL(trace) << "login_bind: connect failed!";

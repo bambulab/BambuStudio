@@ -12,6 +12,8 @@
 
 #include <slic3r/GUI/Widgets/WebView.hpp>
 
+namespace pt = boost::property_tree;
+
 namespace Slic3r {
 namespace GUI {
     wxDECLARE_EVENT(EVT_RESPONSE_MESSAGE, wxCommandEvent);
@@ -393,7 +395,7 @@ void WebViewPanel::OnClose(wxCloseEvent& evt)
     this->Hide();
 }
 
-void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event) { 
+void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event) {
     Slic3r::GUI::wxGetApp().get_login_info();
 }
 
@@ -410,7 +412,7 @@ void WebViewPanel::SendRecentList(wxString const &sequence_id)
     RunScript(wxString::Format("window.postMessage(%s)", oss.str()));
 }
 
-void WebViewPanel::SendLoginInfo() 
+void WebViewPanel::SendLoginInfo()
 {
     if (wxGetApp().getAgent()) {
         std::string login_info = wxGetApp().getAgent()->build_login_info();

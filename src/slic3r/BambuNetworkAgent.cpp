@@ -2,22 +2,10 @@
 #define __BAMBU_NETWORK_AGENT_CPP__
 
 #include "BambuNetworkAgent.hpp"
-#include "GUI/AccountManager.hpp"
-#include "GUI/SsdpDiscovery.hpp"
-
-//BBS: iot preset type strings
-#define IOT_PRINTER_TYPE_STRING     "printer"
-#define IOT_FILAMENT_STRING         "filament"
-#define IOT_PRINT_TYPE_STRING       "print"
-
-#define IOT_JSON_KEY_VERSION            "version"
-#define IOT_JSON_KEY_NAME               "name"
-#define IOT_JSON_KEY_TYPE               "type"
-#define IOT_JSON_KEY_UPDATE_TIME        "updated_time"
-#define IOT_JSON_KEY_BASE_ID            "base_id"
-#define IOT_JSON_KEY_SETTING_ID         "setting_id"
-#define IOT_JSON_KEY_FILAMENT_ID        "filament_id"
-#define IOT_JSON_KEY_USER_ID            "user_id"
+#include "Http.hpp"
+#include "Sftp.hpp"
+#include "AccountManager.hpp"
+#include "SsdpDiscovery.hpp"
 
 namespace BBL {
 
@@ -312,48 +300,38 @@ int BambuNetworkAgent::start_local_print(PrintParams params, OnUpdateStatusFn up
     return acc->start_local_print(params, update_fn, cancel_fn);
 }
 
-std::map<std::string, std::map<std::string, std::string>>& BambuNetworkAgent::get_user_presets()
+void BambuNetworkAgent::get_user_presets(std::map<std::string, std::map<std::string, std::string>>* user_presets)
 {
     AccountManager* acc = (AccountManager*)context;
-    return acc->m_my_presets;
+    *user_presets = acc->m_my_presets;
+
+    return;
 }
 
-std::string BambuNetworkAgent::request_setting_id(std::string name, std::map<std::string, std::string>& values_map, unsigned int& http_code)
+std::string BambuNetworkAgent::request_setting_id(std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code)
 {
     AccountManager* acc = (AccountManager*)context;
     return acc->request_setting_id(name, values_map, http_code);
 }
 
-int BambuNetworkAgent::put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>& values_map, unsigned int& http_code)
+int BambuNetworkAgent::put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code)
 {
     AccountManager* acc = (AccountManager*)context;
     return acc->put_setting(setting_id, name, values_map, http_code);
 }
 
- int BambuNetworkAgent::get_setting_list(std::string bundle_version, ProgressFn pro_fn)
+int BambuNetworkAgent::get_setting_list(std::string bundle_version, ProgressFn pro_fn)
 {
     AccountManager* acc = (AccountManager*)context;
     return acc->get_setting_list(bundle_version, false, pro_fn);
 }
 
-std::vector<std::string>& BambuNetworkAgent::get_delete_cache_presets()
+int BambuNetworkAgent::delete_setting(std::string setting_id)
 {
     AccountManager* acc = (AccountManager*)context;
-    return acc->need_delete_presets;
+    unsigned http_code;
+    return acc->del_setting(setting_id, http_code);
 }
-
-void BambuNetworkAgent::delete_preset(std::string setting_id)
-{
-    AccountManager* acc = (AccountManager*)context;
-    acc->need_delete_presets.push_back(setting_id);
-}
-
- int BambuNetworkAgent::del_setting(std::string setting_id)
- {
-     AccountManager* acc = (AccountManager*)context;
-     unsigned http_code;
-     return acc->del_setting(setting_id, http_code);
- }
 
 std::string BambuNetworkAgent::get_studio_info_url()
 {
@@ -366,40 +344,40 @@ void BambuNetworkAgent::set_extra_http_header(std::map<std::string, std::string>
     Http::set_extra_headers(extra_headers);
 }
 
-void BambuNetworkAgent::check_user_task_report(int& task_id, bool& printable)
+void BambuNetworkAgent::check_user_task_report(int* task_id, bool* printable)
 {
     AccountManager* acc = (AccountManager*)context;
     acc->user_check_report(task_id, printable);
 }
 
-int BambuNetworkAgent::get_user_print_info(unsigned int& http_code, std::string& http_body)
+int BambuNetworkAgent::get_user_print_info(unsigned int* http_code, std::string* http_body)
 {
     AccountManager* acc = (AccountManager*)context;
-    return acc->get_print_info(http_code, http_body);
+    return acc->get_print_info(*http_code, *http_body);
 }
 
-int BambuNetworkAgent::get_printer_firmware(std::string dev_id, unsigned& http_code, std::string& http_body)
+int BambuNetworkAgent::get_printer_firmware(std::string dev_id, unsigned* http_code, std::string* http_body)
 {
     AccountManager* acc = (AccountManager*)context;
-    return acc->get_machine_version(dev_id, http_code, http_body);
+    return acc->get_machine_version(dev_id, *http_code, *http_body);
 }
 
-void BambuNetworkAgent::get_task_plate_index(std::string task_id, int& plate_index)
+void BambuNetworkAgent::get_task_plate_index(std::string task_id, int* plate_index)
 {
     AccountManager* acc = (AccountManager*)context;
-    acc->get_plate_index(task_id, plate_index);
+    acc->get_plate_index(task_id, *plate_index);
 }
 
-void BambuNetworkAgent::get_slice_info(std::string project_id, std::string profile_id, int plate_index, std::string& slice_json)
+void BambuNetworkAgent::get_slice_info(std::string project_id, std::string profile_id, int plate_index, std::string* slice_json)
 {
     AccountManager* acc = (AccountManager*)context;
-    acc->get_slice_info(project_id, profile_id, plate_index, slice_json);
+    acc->get_slice_info(project_id, profile_id, plate_index, *slice_json);
 }
 
-int BambuNetworkAgent::query_bind_status(std::vector<std::string> query_list, unsigned int& http_code, std::string& http_body)
+int BambuNetworkAgent::query_bind_status(std::vector<std::string> query_list, unsigned int* http_code, std::string* http_body)
 {
     AccountManager* acc = (AccountManager*)context;
-    return acc->query_bind_status(query_list, http_code, http_body);
+    return acc->query_bind_status(query_list, *http_code, *http_body);
 }
 
 int BambuNetworkAgent::modify_printer_name(std::string dev_id, std::string dev_name)

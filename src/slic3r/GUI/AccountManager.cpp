@@ -1,6 +1,6 @@
-#include "AccountManager.hpp"
 #include <thread>
 #include <mutex>
+#include <algorithm>
 #include <boost/thread.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string.hpp>
@@ -12,7 +12,11 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/nowide/convert.hpp>
 #include <openssl/md5.h>
+#include "Http.hpp"
+#include "Sftp.hpp"
+#include "AccountManager.hpp"
 
 
 static std::string encode_path(const char* src)
@@ -163,7 +167,7 @@ namespace BBL {
             BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << msg->get_payload_str();
 
             if (manager->on_message_fn)
-                manager->on_message_fn(params[1], msg->get_payload_str());   
+                manager->on_message_fn(params[1], msg->get_payload_str());
         }
     }
 
@@ -692,7 +696,7 @@ namespace BBL {
 
     int AccountManager::local_send_message(std::string dev_id, std::string json_str, int qos)
     {
-        if (!mqtt_local_cli || !mqtt_local_cli->is_connected()) { 
+        if (!mqtt_local_cli || !mqtt_local_cli->is_connected()) {
             return -1;
         }
 
@@ -743,7 +747,7 @@ namespace BBL {
         selected_machine = dev_id;
         save_config();
     }
-   
+
 
     int AccountManager::local_connect_mqtt(std::string dev_id, std::string dev_ip, std::string username, std::string password)
     {
@@ -911,10 +915,10 @@ namespace BBL {
         myProjectList.clear();
     }
 
-    void AccountManager::user_check_report(int &query_task_id, bool &printable)
+    void AccountManager::user_check_report(int* query_task_id, bool* printable)
     {
         if (!m_curr_user) {
-            printable = false;
+            *printable = false;
             return;
         }
 
@@ -922,11 +926,11 @@ namespace BBL {
         std::string url = (boost::format("http://192.168.0.12:8000/api/user_last_task_report?user_id=%1%") % user_id).str();
         Http http = Http::get(url);
         http.auth_basic("slicer", "znFx94AAew8VVHv");
-        http.on_complete([this, &printable, &query_task_id](std::string body, unsigned status) {
+        http.on_complete([this, printable, query_task_id](std::string body, unsigned status) {
             try {
                 json j = json::parse(body);
-                query_task_id = j["task_id"].get<int>();
-                printable = j["print_flag"].get<bool>();
+                *query_task_id = j["task_id"].get<int>();
+                *printable = j["print_flag"].get<bool>();
             }
             catch (...) {
                 ;
@@ -1277,13 +1281,13 @@ namespace BBL {
         return j.dump();
     }
 
-    std::string AccountManager::json_request_body_post_setting(std::string name, bool is_system, std::map<std::string, std::string>& values_map)
+    std::string AccountManager::json_request_body_post_setting(std::string name, bool is_system, std::map<std::string, std::string>* values_map)
     {
         json j, setting_node;
 
         j["public"] = is_system ? true : false;
         j["name"] = name;
-        for (auto it = values_map.begin(); it != values_map.end(); it++) {
+        for (auto it = values_map->begin(); it != values_map->end(); it++) {
             if (boost::iequals(it->first,IOT_JSON_KEY_VERSION)) {
                 j[IOT_JSON_KEY_VERSION] = it->second;
             }
@@ -1309,12 +1313,12 @@ namespace BBL {
         return j.dump();
     }
 
-    std::string AccountManager::json_request_body_put_setting(std::string name, std::map<std::string, std::string>& values_map)
+    std::string AccountManager::json_request_body_put_setting(std::string name, std::map<std::string, std::string>* values_map)
     {
         json j, setting_node;
 
         j["name"] = name;
-         for (auto it = values_map.begin(); it != values_map.end(); it++) {
+         for (auto it = values_map->begin(); it != values_map->end(); it++) {
             if (boost::iequals(it->first,IOT_JSON_KEY_VERSION)) {
                 j[IOT_JSON_KEY_VERSION] = it->second;
             }
@@ -2838,7 +2842,7 @@ namespace BBL {
             http.perform();
     }
 
-    std::string AccountManager::request_setting_id(std::string name, std::map<std::string, std::string>& values_map, unsigned int& http_code)
+    std::string AccountManager::request_setting_id(std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code)
     {
         std::string url = (boost::format("%1%/iot-service/api/slicer/setting") % host).str();
 
@@ -2852,9 +2856,9 @@ namespace BBL {
             .header("Content-Type", "application/json")
             .set_post_body(request_str)
             .on_complete(
-                [this, &new_setting_id, &http_code](std::string body, unsigned int code) {
+                [this, &new_setting_id, http_code](std::string body, unsigned int code) {
                     BOOST_LOG_TRIVIAL(trace) << "request setting id, body=" << body;
-                    http_code = code;
+                    *http_code = code;
                     std::stringstream ss(body);
                     pt::ptree root;
                     pt::read_json(ss, root);
@@ -2870,15 +2874,15 @@ namespace BBL {
                         }
                     }
                 })
-            .on_error([this, &http_code](std::string body, std::string error, unsigned code) {
-                    http_code = code;
+            .on_error([this, http_code](std::string body, std::string error, unsigned code) {
+                    *http_code = code;
                     BOOST_LOG_TRIVIAL(trace) << "error = " << error << ", body = " << body << ", code = " << code;
                 }
             ).perform_sync();
         return new_setting_id;
     }
 
-    int AccountManager::put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>& values_map, unsigned int& http_code)
+    int AccountManager::put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code)
     {
         int result = -1;
         int* result_ptr = &result;
@@ -2890,8 +2894,8 @@ namespace BBL {
             .header("Content-Type", "application/json")
             .set_post_body(request_body)
             .on_complete(
-                [this, result_ptr, &http_code](std::string body, unsigned int code) {
-                    http_code = code;
+                [this, result_ptr, http_code](std::string body, unsigned int code) {
+                    *http_code = code;
                     std::stringstream ss(body);
                     pt::ptree root;
                     pt::read_json(ss, root);
@@ -2904,8 +2908,8 @@ namespace BBL {
                         }
                     }
                 })
-            .on_error([this, &http_code](std::string body, std::string error, unsigned code) {
-                    http_code = code;
+            .on_error([this, http_code](std::string body, std::string error, unsigned code) {
+                    *http_code = code;
                     BOOST_LOG_TRIVIAL(trace) << "error = " << error << ", body = " << body << ", code = " << code;
                 }
         ).perform_sync();
@@ -3024,7 +3028,7 @@ namespace BBL {
     std::string AccountManager::get_token_str(bool only_token)
     {
         if (m_curr_user) {
-            if (m_curr_user->get_refresh_expires_in() - std::time(nullptr) > TOKEN_MIN_EXPIRES_IN) { 
+            if (m_curr_user->get_refresh_expires_in() - std::time(nullptr) > TOKEN_MIN_EXPIRES_IN) {
                 if (m_curr_user->get_expires_in() - std::time(nullptr) < TOKEN_MIN_EXPIRES_IN) {// need to update accessToken
                     if (request_refreshtoken(m_curr_user->get_refresh_token()) == -1) { // failed to acquire new accessToken
                         return "";
@@ -3154,7 +3158,7 @@ namespace BBL {
             return -1;
         }
 
-        
+
         if (update_fn) update_fn(LoginStageLogin, 0, "");
 
         std::string login_request = this->build_login_request(timezone);
@@ -3260,7 +3264,7 @@ namespace BBL {
         }
 
         local_client->disconnect();
-        
+
         if (update_fn) update_fn(LoginStageFinished, 0, "");
         return 0;
     }
@@ -3495,7 +3499,7 @@ int AccountManager::start_print(PrintParams params, OnUpdateStatusFn update_fn, 
         delete project;
     if (subTask)
         delete subTask;
-    
+
     if (update_fn) update_fn(PrintingStageSending, 0, "");
     return 0;
 }
@@ -3678,7 +3682,7 @@ int AccountManager::start_local_print(PrintParams params, OnUpdateStatusFn updat
     std::string json_str = j.dump();
     auto mqtt_msg = mqtt::message::create(topic, json_str, 1, false);
     mqtt_local_cli->publish(mqtt_msg);
-    
+
     if (update_fn) update_fn(PrintingStageSending, 0, "");
     return 0;
 }

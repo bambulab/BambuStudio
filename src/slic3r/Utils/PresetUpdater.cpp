@@ -473,7 +473,7 @@ void PresetUpdater::priv::sync_resources(std::map<std::string, Resource> &resour
 {
     std::map<std::string, Resource>    resource_list;
 
-    BBL::BambuNetworkAgent* m_agent = GUI::wxGetApp().getAgent();
+    NetworkAgent* m_agent = GUI::wxGetApp().getAgent();
     if (!m_agent) {
         BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: can not get account manager";
         return;
@@ -614,7 +614,7 @@ void PresetUpdater::priv::sync_config(const VendorMap vendors)
 
 	if (!enabled_config_update) { return; }
 
-    BBL::BambuNetworkAgent* agent = GUI::wxGetApp().getAgent();
+    NetworkAgent* agent = GUI::wxGetApp().getAgent();
     if (!agent) {
         BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: can not get account manager";
         return;
@@ -643,7 +643,7 @@ void PresetUpdater::priv::sync_config(const VendorMap vendors)
     std::string url = agent->get_studio_info_url();
     url += query_params;
     Slic3r::Http http = Slic3r::Http::get(url);
-	http.on_complete(
+    http.on_complete(
         [this, &vendor_list, &vendor_descriptions, vendors](std::string body, unsigned) {
             try {
                 BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]::body=" << body;

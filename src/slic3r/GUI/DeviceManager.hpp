@@ -7,10 +7,9 @@
 #include <memory>
 #include <chrono>
 #include <boost/thread.hpp>
-#include "SsdpDiscovery.hpp"
 #include "libslic3r/ProjectTask.hpp"
 #include "slic3r/Utils/json_diff.hpp"
-#include "slic3r/BambuNetworkAgent.hpp"
+#include "slic3r/Utils/NetworkAgent.hpp"
 
 #define USE_LOCAL_SOCKET_BIND 0
 
@@ -28,11 +27,6 @@ inline int correct_filament_temperature(int filament_temp)
 }
 
 wxString get_stage_string(int stage);
-
-
-namespace BBL {
-class BambuNetworkAgent;
-}
 
 
 namespace Slic3r {
@@ -73,7 +67,7 @@ enum PrintingSpeedLevel {
     SPEED_LEVEL_COUNT
 };
 
-class BambuNetworkAgent;
+class NetworkAgent;
 
 
 enum AmsRfidState {
@@ -246,11 +240,11 @@ public:
 #define UpgradePrinting         -4
 
 
-   
+
 class MachineObject
 {
 private:
-    BBL::BambuNetworkAgent* m_agent { nullptr };
+    NetworkAgent* m_agent { nullptr };
 
     bool check_valid_ip();
 public:
@@ -455,9 +449,9 @@ public:
     std::string obj_subtask_id;     // subtask_id == 0 for sdcard
     std::string subtask_name;
     bool is_sdcard_printing();
-    
 
-    MachineObject(BBL::BambuNetworkAgent* agent, std::string name, std::string id, std::string ip);
+
+    MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip);
     ~MachineObject();
     /* command commands */
     int command_get_version();
@@ -547,10 +541,10 @@ private:
     bool m_check_alive_quit = false;
     const double ALIVE_TIMEOUT = 30.0;
     boost::thread m_device_check_alive;
-    BBL::BambuNetworkAgent* m_agent { nullptr };
+    NetworkAgent* m_agent { nullptr };
 
 public:
-    DeviceManager(BBL::BambuNetworkAgent* agent = nullptr);
+    DeviceManager(NetworkAgent* agent = nullptr);
     ~DeviceManager();
 
     std::mutex listMutex;
@@ -558,7 +552,7 @@ public:
     std::string local_selected_machine;                         /* dev_id */
     std::map<std::string, MachineObject*> localMachineList;     /* dev_id -> MachineObject*, localMachine SSDP   */
     std::map<std::string, MachineObject*> userMachineList;      /* dev_id -> MachineObject*  cloudMachine of User */
-    
+
     MachineObject* get_default_machine();
     MachineObject* get_local_selected_machine();
     MachineObject* get_local_machine(std::string dev_id);

@@ -8,9 +8,8 @@
 #include "OpenGLManager.hpp"
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PresetBundle.hpp"
-#include "slic3r/GUI/SsdpDiscovery.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
-#include "slic3r/BambuNetworkAgent.hpp"
+#include "slic3r/Utils/NetworkAgent.hpp"
 #include "slic3r/GUI/WebViewDialog.hpp"
 
 #include <wx/app.h>
@@ -34,9 +33,6 @@ class wxBookCtrlBase;
 class Notebook;
 struct wxLanguageInfo;
 
-namespace BBL {
-    class BambuNetworkAgent;
-}
 
 namespace Slic3r {
 
@@ -45,8 +41,8 @@ class PresetBundle;
 class PresetUpdater;
 class ModelObject;
 class Model;
-class SsdpDiscovery;
 class DeviceManager;
+class NetworkAgent;
 
 namespace GUI{
 
@@ -246,7 +242,8 @@ private:
     //BBS
     bool m_is_closing {false};
     Slic3r::DeviceManager* m_device_manager;
-    BBL::BambuNetworkAgent* m_agent { nullptr };
+    NetworkAgent* m_agent { nullptr };
+    std::vector<std::string> need_delete_presets;   // store setting ids of preset
 
     VersionInfo version_info;
 
@@ -265,7 +262,7 @@ public:
     void show_message_box(std::string msg) { wxMessageBox(msg); }
     EAppMode get_app_mode() const { return m_app_mode; }
     Slic3r::DeviceManager* getDeviceManager() { return m_device_manager; }
-    BBL::BambuNetworkAgent* getAgent() { return m_agent; }
+    NetworkAgent* getAgent() { return m_agent; }
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
@@ -400,6 +397,8 @@ public:
     bool            checked_tab(Tab* tab);
     //BBS: add preset combox re-active logic
     void            load_current_presets(bool active_preset_combox = false, bool check_printer_presets = true);
+    std::vector<std::string>& get_delete_cache_presets();
+    void            delete_preset_from_cloud(std::string setting_id);
 
     wxString        current_language_code() const { return m_wxLocale->GetCanonicalName(); }
 	// Translate the language code to a code, for which Bambu Research maintains translations. Defaults to "en_US".

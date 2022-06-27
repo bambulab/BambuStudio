@@ -1143,7 +1143,7 @@ void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
                 (*preset)->setting_id = tray.second->setting_id;
                 ams.set_key_value("filament_settings_id", new ConfigOptionStrings{tray.second->setting_id});
                 //TODO: comment it currently
-                BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
+                NetworkAgent* agent = wxGetApp().getAgent();
                 if (agent) {
                     agent->get_setting(tray.second->setting_id, *preset, [preset] {
                         wxGetApp().CallAfter([preset] {
@@ -8093,8 +8093,8 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
             // set designInfo before export and reset after export
             if (wxGetApp().is_user_login()) {
                 p->model.design_info                 = std::make_shared<ModelDesignInfo>();
-                p->model.design_info->Designer       = wxGetApp().getAgent()->user_nickanme();
-                p->model.design_info->DesignerUserId = wxGetApp().getAgent()->user_id();
+                p->model.design_info->Designer       = wxGetApp().getAgent()->get_user_nickanme();
+                p->model.design_info->DesignerUserId = wxGetApp().getAgent()->get_user_id();
                 BOOST_LOG_TRIVIAL(trace) << "design_info prepare, designer = " << p->model.design_info->Designer;
                 BOOST_LOG_TRIVIAL(trace) << "design_info prepare, designer_user_id = " << p->model.design_info->DesignerUserId;
             }

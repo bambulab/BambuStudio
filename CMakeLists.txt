@@ -399,19 +399,22 @@ find_package(TBB REQUIRED)
 # The Intel TBB library will use the std::exception_ptr feature of C++11.
 # add_definitions(-DTBB_USE_CAPTURED_EXCEPTION=0)
 
-
+find_package(OpenSSL REQUIRED)
 find_package(CURL REQUIRED)
 
 add_library(libcurl INTERFACE)
 target_link_libraries(libcurl INTERFACE CURL::libcurl)
 
+find_package(ZLIB REQUIRED)
+target_link_libraries(libcurl INTERFACE ZLIB::ZLIB)
+
 # Fixing curl's cmake config script bugs
 if (NOT WIN32)
     # Required by libcurl
-    find_package(ZLIB REQUIRED)
-    target_link_libraries(libcurl INTERFACE ZLIB::ZLIB)
-    find_package(Libssh2 REQUIRED)
-    target_link_libraries(libcurl INTERFACE Libssh2::libssh2)
+    #find_package(ZLIB REQUIRED)
+    #target_link_libraries(libcurl INTERFACE ZLIB::ZLIB)
+    #find_package(Libssh2 REQUIRED)
+    #target_link_libraries(libcurl INTERFACE Libssh2::libssh2)
 else()
     target_link_libraries(libcurl INTERFACE crypt32)
 endif()
@@ -531,8 +534,8 @@ endforeach()
 
 find_package(NLopt 1.4 REQUIRED)
 
-find_package(eclipse-paho-mqtt-c REQUIRED)
-find_package(paho-mqttpp3 REQUIRED)
+find_package(BambuNetworking REQUIRED)
+
 
 if(SLIC3R_STATIC)
     set(OPENVDB_USE_STATIC_LIBS ON)
@@ -576,6 +579,7 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
             ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win${_bits}/libmpfr-4.dll
             ${TOP_LEVEL_PROJECT_DIR}/deps/WebView2/lib/win${_bits}/WebView2Loader.dll
             ${CMAKE_PREFIX_PATH}/bin/BambuSource.dll
+            ${CMAKE_PREFIX_PATH}/bin/bambu_networking.dll
         DESTINATION ${_out_dir})
 
     file(COPY ${CMAKE_PREFIX_PATH}/bin/occt/TKBO.dll
@@ -609,6 +613,7 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
     set(${output_dlls}
         ${_out_dir}/libgmp-10.dll
         ${_out_dir}/libmpfr-4.dll
+        ${_out_dir}/bambu_networking.dll
         ${_out_dir}/WebView2Loader.dll
         ${_out_dir}/BambuSource.dll
 

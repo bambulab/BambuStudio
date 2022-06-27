@@ -48,8 +48,8 @@ void PrintJob::on_exception(const std::exception_ptr &eptr)
     }
 }
 
-void PrintJob::on_success(std::function<void()> success) 
-{ 
+void PrintJob::on_success(std::function<void()> success)
+{
     m_success_fun = success;
 }
 
@@ -148,7 +148,7 @@ void PrintJob::process()
             return was_canceled();
         };
 
-    BBL::BambuNetworkAgent* m_agent = wxGetApp().getAgent();
+    NetworkAgent* m_agent = wxGetApp().getAgent();
 
     if (params.connection_type != "lan") {
         if (!params.password.empty() && !params.dev_ip.empty()) {

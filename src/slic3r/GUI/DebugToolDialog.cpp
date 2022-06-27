@@ -85,12 +85,12 @@ void GcodePrintJob::on_exception(const std::exception_ptr &eptr)
 void GcodePrintJob::process()
 {
     /* print current gcode */
-    BBL::BambuNetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
+    NetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
 
 #ifdef BBL_CHECK_USER_REPORT
     int task_id = 0;
     bool printable = true;
-    agent->check_user_task_report(task_id, printable);
+    agent->check_user_task_report(&task_id, &printable);
     if (task_id!=0 && !printable) {
         update_status(0, _L("Please fill report first."));
         std::string report_url = (boost::format("https://autotest.bambu-lab.com/slicerAddReport?task_id=%1%&token=%2%")
@@ -205,7 +205,7 @@ void DeviceSearchListModel::update_info(std::vector<wxString> list)
 }
 
 
-wxString DeviceSearchListModel::GetColumnType(unsigned int col) const 
+wxString DeviceSearchListModel::GetColumnType(unsigned int col) const
 {
     return "string";
 }
@@ -323,7 +323,7 @@ void DeviceSearchDialog::update_list()
     std::map<std::string ,MachineObject*> list = dm->get_local_machine_list();
 
     std::map<std::string, MachineObject*>::iterator it;
-    
+
     std::vector<wxString> found;
 
     std::string search_line = into_u8(m_textCtrl_search_line->GetValue());
@@ -644,7 +644,7 @@ void DebugToolDialog::init()
         txt_gcode_filename->SetValue(this->selectGcodeDialog->GetPath());
         this->SetFocus();
         });
-    
+
     btn_abort_print->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
             json j;
             j["print"]["command"] = "stop";
@@ -809,7 +809,7 @@ void DebugToolDialog::init()
                 this->send_log_evt("Resume AMS...");
             }
         });
-    
+
 
     m_bpButton_search->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
             if (btn_connect->IsEnabled()) {
@@ -919,87 +919,87 @@ void DebugToolDialog::init_bind()
     btn_set_x_pos_10_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 X10.0 F3000 \n");
         });
-    
+
     btn_set_x_neg_0_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 X-0.1 F3000 \n");
         });
-    
+
     btn_set_x_neg_1_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 X-1.0 F3000 \n");
         });
-    
+
     btn_set_x_neg_10_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 X-10.0 F3000 \n");
         });
-    
+
     btn_set_y_pos_0_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Y0.1 F3000 \n");
         });
-    
+
     btn_set_y_pos_1_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Y1.0 F3000 \n");
         });
-    
+
     btn_set_y_pos_10_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Y10.0 F3000 \n");
         });
-    
+
     btn_set_y_neg_0_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Y-0.1 F3000 \n");
         });
-    
+
     btn_set_y_neg_1_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Y-1.0 F3000 \n");
         });
-    
+
     btn_set_y_neg_10_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Y-10.0 F3000 \n");
         });
-    
+
     btn_set_z_pos_0_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Z0.1 F900 \n");
         });
-    
+
     btn_set_z_pos_1_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Z1.0 F900 \n");
         });
-    
+
     btn_set_z_pos_10_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Z10.0 F900 \n");
         });
-    
+
     btn_set_z_neg_0_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Z-0.1 F900 \n");
         });
-    
+
     btn_set_z_neg_1_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Z-1.0 F900 \n");
         });
-    
+
     btn_set_z_neg_10_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Z-10.0 F900 \n");
         });
-    
+
     btn_set_e_pos_0_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("M83 \nG0 E0.1 F300 \n");
         });
-    
+
     btn_set_e_pos_1_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("M83 \nG0 E1.0 F300 \n");
         });
-    
+
     btn_set_e_pos_10_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("M83 \nG0 E10.0 F300 \n");
         });
-    
+
     btn_set_e_neg_0_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("M83 \nG0 E-0.1 F300 \n");
         });
-    
+
     btn_set_e_neg_1_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("M83 \nG0 E-1.0 F300 \n");
         });
-    
+
     btn_set_e_neg_10_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("M83 \nG0 E-10.0 F300 \n");
         });
@@ -1068,7 +1068,7 @@ std::string DebugToolDialog::get_curr_module_name()
         return upgrade_module_name[upgrade_module];
     }
     if (m_radioBox_server->GetSelection() == 1) {
-        if (cb_upgrade_module->GetCurrentSelection() == 0) 
+        if (cb_upgrade_module->GetCurrentSelection() == 0)
             return "ota";
         if (cb_upgrade_module->GetCurrentSelection() == 1)
             return "ams";
@@ -1091,8 +1091,8 @@ void DebugToolDialog::on_update_list(SimpleEvent& evt)
     }
 
     /* dislay list */
-    BBL::BambuNetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
-    std::string username = agent->user_name();
+    NetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
+    std::string username = agent->get_user_name();
 
     std::map<std::string, MachineObject*> list = dev_manager_.get_local_machine_list();
     std::vector<MachineObject*> display_list;
@@ -1138,7 +1138,7 @@ void DebugToolDialog::on_update_mybind_list(SimpleEvent& evt)
     if (last_wlan_device_selection < mybind_machine_list_items.size()) {
         last_my_bind_dev_id = mybind_machine_list_items[last_wlan_device_selection];
     }
-    
+
     DeviceManager* dev = wxGetApp().getDeviceManager();
     std::map<std::string, MachineObject*> list = dev->userMachineList;
     std::map<std::string, MachineObject*>::iterator iter;
@@ -1300,7 +1300,7 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
 
 bool DebugToolDialog::Show(bool show)
 {
-    BBL::BambuNetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
+    NetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
     if (show) {
         if (agent) {
             agent->start_discovery(true, true);
@@ -1437,13 +1437,13 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
     wxString subtask_id = "N/A";
     if (obj->subtask_) {
         subtask_id = wxString::Format("%s", obj->subtask_->task_id);
-        
+
     }
 
     wxString mc_percent_text = wxString::Format("%d", obj->mc_print_percent);
     label_print_progress_val->SetLabelText(mc_percent_text);
     m_staticText_subtask_id->SetLabelText(subtask_id);
-    
+
 
     /* upgrade */
     if (obj->upgrade_new_version) {
@@ -1501,7 +1501,7 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
         std::stringstream ss(json_str);
         pt::ptree root;
         pt::read_json(ss, root);
-        
+
         if (root.empty()) {
             return;
         }
@@ -1626,8 +1626,8 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
 
         unsigned int http_code;
         std::string http_body;
-        BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
-        result = agent->get_printer_firmware(obj->dev_id, http_code, http_body);
+        NetworkAgent* agent = wxGetApp().getAgent();
+        result = agent->get_printer_firmware(obj->dev_id, &http_code, &http_body);
         if (result < 0) {
             std::string error = (boost::format("get upgrade list failed! code = %1%, body = %2%") % http_code % http_body).str();
             this->send_log_evt(error);
@@ -1675,7 +1675,7 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
                                             } else {
                                                 BOOST_LOG_TRIVIAL(trace) << "skip";
                                             }
-                                        }    
+                                        }
                                     }
                                 }
                             }
@@ -1703,6 +1703,7 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
                             % upgrade_mode_name[upgrade_mode]
                             % hardware_version
                             % obj->get_firmware_type_str()).str();
+
         Slic3r::Http http = Slic3r::Http::get(url);
         http.auth_basic("slicer", "znFx94AAew8VVHv");
         http.on_complete([this](std::string body, unsigned) {
@@ -1742,7 +1743,7 @@ int DebugToolDialog::log_info(std::string line)
     std::stringstream buf;
     buf << std::put_time(now_time, "%a %b %d %H:%M:%S");
     std::string info = buf.str() + ":" + line + "\n";
- 
+
     try {
         // display
         txt_string_info->AppendText(wxString(info));
@@ -1775,7 +1776,7 @@ int DebugToolDialog::publishGcode(std::string gcode)
 
         if (!obj) return -1;
         if (obj->bind_user_id.empty()) return -1;
-        if (obj->bind_user_id.compare(wxGetApp().getAgent()->user_id()) != 0) {
+        if (obj->bind_user_id.compare(wxGetApp().getAgent()->get_user_id()) != 0) {
             std::string log = "Please Bind dev=" + obj->dev_id + " first!";
             this->send_log_evt(log);
             return -1;
@@ -1785,7 +1786,7 @@ int DebugToolDialog::publishGcode(std::string gcode)
         print.put("command", "gcode_line");
         print.put("param", gcode);
         print.put("sequence_id", this->m_sequence_id++);
-        print.put("user_id", wxGetApp().getAgent()->user_id());
+        print.put("user_id", wxGetApp().getAgent()->get_user_id());
         root.put_child("print", print);
         std::stringstream oss;
         pt::write_json(oss, root, false);

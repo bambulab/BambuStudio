@@ -221,23 +221,9 @@ public:
     void set_print(PrintBase *print, GCodeResult* result = nullptr, int index = -1);
 
     //get gcode filename
-    std::string get_gcode_filename() {
-        if (is_slice_result_valid() && get_slice_result()) {
-            return m_gcode_result->filename;
-        }
-        return "";
-    }
+    std::string get_gcode_filename();
 
-    bool is_valid_gcode_file() {
-        if (get_gcode_filename().empty())
-            return false;
-        boost::filesystem::path gcode_file(m_gcode_result->filename);
-        if (!boost::filesystem::exists(gcode_file)) {
-            BOOST_LOG_TRIVIAL(info) << "invalid gcode file, file is missing, file = " << m_gcode_result->filename;
-            return false;
-        }
-        return true;
-    }
+    bool is_valid_gcode_file();
 
     //get the plate's center point origin
     Vec3d get_center_origin();

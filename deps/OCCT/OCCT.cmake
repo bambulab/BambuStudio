@@ -1,9 +1,7 @@
-if(BUILD_SHARED_LIBS)
-    set(_build_shared ON)
-    set(_build_static OFF)
+if(WIN32)
+    set(library_build_type "Shared")
 else()
-    set(_build_shared OFF)
-    set(_build_static ON)
+    set(library_build_type "Static")
 endif()
 
 bambustudio_add_cmake_project(OCCT
@@ -13,7 +11,7 @@ bambustudio_add_cmake_project(OCCT
     PATCH_COMMAND git apply --directory deps/build/dep_OCCT-prefix/src/dep_OCCT --verbose --ignore-space-change --whitespace=fix ${CMAKE_CURRENT_LIST_DIR}/0001-OCCT-fix.patch
     #DEPENDS dep_Boost
     CMAKE_ARGS
-        -DBUILD_SHARED_LIBS=${_build_shared} 
+        -DBUILD_LIBRARY_TYPE=${library_build_type}
         -DUSE_TK=OFF
         -DUSE_TBB=OFF
         -DUSE_FREETYPE=OFF

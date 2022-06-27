@@ -67,7 +67,7 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
 
     std::vector<wxString>::iterator iter;
     for (iter = vlist.begin(); iter != vlist.end(); iter++) { combobox->Append(*iter); }
-    
+
 
     auto index = app_config->get(param);
     if (!index.empty()) { combobox->SetSelection(atoi(index.c_str())); }
@@ -105,7 +105,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
     for (size_t i = 0; i < vlist.size(); ++i) {
         auto language_name = vlist[i]->Description;
 
-        if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CHINESE_SIMPLIFIED)) { 
+        if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CHINESE_SIMPLIFIED)) {
             //language_name = _L(vlist[i]->Description);
             //language_name = _L("Chinese (Simplified)");
             language_name = wxString::FromUTF8("\xe4\xb8\xad\xe6\x96\x87\x28\xe7\xae\x80\xe4\xbd\x93\xe4\xb8\xad\xe6\x96\x87\x29");
@@ -115,16 +115,16 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
             language_name = wxString::FromUTF8("\x45\x73\x70\x61\xc3\xb1\x6f\x6c");
         }
 
-        if (app_config->get(param) == vlist[i]->CanonicalName) { 
+        if (app_config->get(param) == vlist[i]->CanonicalName) {
             m_current_language_selected = i;
         }
         combobox->Append(language_name);
     }
-    combobox->SetSelection(m_current_language_selected); 
+    combobox->SetSelection(m_current_language_selected);
 
     m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
 
-    combobox->Bind(wxEVT_LEFT_DOWN, [this, combobox](wxMouseEvent &e) { 
+    combobox->Bind(wxEVT_LEFT_DOWN, [this, combobox](wxMouseEvent &e) {
         m_current_language_selected = combobox->GetSelection();
         e.Skip();
     });
@@ -132,7 +132,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
     combobox->Bind(wxEVT_COMBOBOX, [this, param, vlist, combobox](wxCommandEvent &e) {
         if (combobox->GetSelection() == m_current_language_selected)
             return;
-        
+
         if (e.GetString().mb_str() != app_config->get(param)) {
             {
                 // the dialog needs to be destroyed before the call to switch_language()
@@ -227,7 +227,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
             combobox->SetSelection(current_region);
             return;
         } else {
-            BBL::BambuNetworkAgent *agent  = wxGetApp().getAgent();
+            NetworkAgent *agent  = wxGetApp().getAgent();
             AppConfig *             config = GUI::wxGetApp().app_config;
             if (agent) agent->set_country_code(area);
             wxGetApp().request_user_logout();
@@ -381,7 +381,7 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
         e.Skip();
     });
 
-    if (app_config->get("backup_switch") == "true") { 
+    if (app_config->get("backup_switch") == "true") {
         input->Enable(true);
     } else {
         input->Enable(false);
@@ -443,7 +443,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent &e) {
         app_config->set_bool(param, checkbox->GetValue());
         app_config->save();
-        
+
          // backup
         if (param == "backup_switch") {
             bool pbool = app_config->get("backup_switch") == "true" ? true : false;
@@ -551,11 +551,11 @@ void PreferencesDialog::create()
 
     auto general_page = create_general_page();
     auto debug_page   = create_debug_page();
-    
+
     /* create_gui_page();
      create_sync_page();
      create_shortcuts_page();*/
-     
+
      m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(28));
     m_sizer_body->Add(general_page, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(38));
     m_sizer_body->Add(debug_page, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(38));
@@ -622,7 +622,7 @@ wxWindow* PreferencesDialog::create_general_page()
         if (langinfo == nullptr) continue;
 
         for (auto si = 0; si < sizeof(supported_languages); si++) {
-            if (langinfo == wxLocale::GetLanguageInfo(supported_languages[si])) { 
+            if (langinfo == wxLocale::GetLanguageInfo(supported_languages[si])) {
                 language_infos.emplace_back(langinfo);
             }
         }
@@ -827,7 +827,7 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
             iot_environment_map["product_host"] = ENV_PRODUCT_HOST;
 
             if (iot_environment_map[param] != m_iot_environment_def) {
-                BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
+                NetworkAgent* agent = wxGetApp().getAgent();
                 if (param == "dev_host") {
                     app_config->set("iot_environment", ENV_DEV_HOST);
                 }
@@ -841,7 +841,7 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
                     app_config->set("iot_environment", ENV_PRODUCT_HOST);
                 }
 
-                
+
 
                 AppConfig* config = GUI::wxGetApp().app_config;
                 std::string country_code = config->get_country_code();

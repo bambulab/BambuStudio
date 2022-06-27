@@ -154,7 +154,7 @@ void MediaFilePanel::fileChanged(wxCommandEvent& e1)
 
 void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
 {
-    BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
+    NetworkAgent* agent = wxGetApp().getAgent();
     if (agent) {
         agent->get_camera_url(m_machine,
             [this, wfs](std::string url) {

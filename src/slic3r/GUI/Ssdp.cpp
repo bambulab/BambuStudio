@@ -170,7 +170,7 @@ int parse_field_line(const char* data, size_t start, size_t end, lssdp_packet* p
 }
 
 
-#if defined(__WINDOWS__)
+#if defined(_WIN32)
 
 int bbl_init_socket()
 {

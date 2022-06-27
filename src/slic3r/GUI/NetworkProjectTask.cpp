@@ -3,6 +3,7 @@
 #include <mutex>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/log/trivial.hpp>
 #include "nlohmann/json.hpp"
 
 using namespace nlohmann;

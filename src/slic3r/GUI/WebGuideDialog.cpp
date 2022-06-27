@@ -339,7 +339,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             if (m_Region != oldregion) {
                 AppConfig* config = GUI::wxGetApp().app_config;
                 std::string country_code = config->get_country_code();
-                BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
+                NetworkAgent* agent = wxGetApp().getAgent();
                 if (agent) {
                     agent->set_country_code(country_code);
                     if (wxGetApp().is_user_login()) {

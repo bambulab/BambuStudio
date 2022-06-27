@@ -1,3 +1,4 @@
+#include "bambu_networking.hpp"
 #include "Http.hpp"
 
 #include <cstdlib>
@@ -97,16 +98,16 @@ static void dump(const char *text,
 {
   size_t i;
   size_t c;
- 
+
   unsigned int width = 0x10;
- 
+
   if(nohex)
     /* without the hex output, we can fit more on screen */
     width = 0x40;
- 
+
   fprintf(stream, "%s, %10.10lu bytes (0x%8.8lx)\n",
           text, (unsigned long)size, (unsigned long)size);
- 
+
   for(i = 0; i<size; i += width) {
     if(!nohex) {
       /* hex not disabled, show it */
@@ -116,7 +117,7 @@ static void dump(const char *text,
         else
           fputs("   ", stream);
     }
- 
+
     for(c = 0; (c < width) && (i + c < size); c++) {
       /* check for 0D0A; if found, skip past and start a new line of output */
       if(nohex && (i + c + 1 < size) && ptr[i + c] == 0x0D &&
@@ -147,7 +148,7 @@ static int log_trace(CURL *handle, curl_infotype type,
 
 	const char *text;
 	(void)handle; /* prevent compiler warning */
- 
+
 	switch(type) {
 		case CURLINFO_TEXT:
 		default: /* in case a new one is introduced to shock us */
@@ -173,7 +174,7 @@ static int log_trace(CURL *handle, curl_infotype type,
 	if (size > MAX_SIZE_TO_FILE) {
 		return 0;
 	}
- 
+
 	dump(text, g_http_log_file, (unsigned char *)data, size, 1);
 	return 0;
 }
@@ -250,7 +251,7 @@ Http::priv::priv(const std::string &url)
     Http::tls_global_init();
 
 	if (curl == nullptr) {
-		throw Slic3r::RuntimeError(std::string("Could not construct Curl object"));
+		throw std::runtime_error(std::string("Could not construct Curl object"));
 	}
 
 	::curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, log_trace);
@@ -258,7 +259,7 @@ Http::priv::priv(const std::string &url)
 	set_timeout_connect(DEFAULT_TIMEOUT_CONNECT);
     set_timeout_max(DEFAULT_TIMEOUT_MAX);
 	::curl_easy_setopt(curl, CURLOPT_URL, url.c_str());   // curl makes a copy internally
-	::curl_easy_setopt(curl, CURLOPT_USERAGENT, SLIC3R_APP_NAME "/" SLIC3R_VERSION);
+	::curl_easy_setopt(curl, CURLOPT_USERAGENT, BAMBU_NETWORK_AGENT_NAME "/" BAMBU_NETWORK_AGENT_VERSION);
 	::curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error_buffer.front());
 
 	::curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
@@ -691,7 +692,7 @@ Http& Http::form_add_file(const std::string &name, const fs::path &path, const s
 }
 
 #ifdef WIN32
-// Tells libcurl to ignore certificate revocation checks in case of missing or offline distribution points for those SSL backends where such behavior is present. 
+// Tells libcurl to ignore certificate revocation checks in case of missing or offline distribution points for those SSL backends where such behavior is present.
 // This option is only supported for Schannel (the native Windows SSL library).
 Http& Http::ssl_revoke_best_effort(bool set)
 {

@@ -9,6 +9,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(_wx_toolkit "-DwxBUILD_TOOLKIT=gtk${_gtk_ver}")
 endif()
 
+if (MSVC)
+    set(_wx_edge "-DwxUSE_WEBVIEW_EDGE=ON")
+else ()
+    set(_wx_edge "-DwxUSE_WEBVIEW_EDGE=OFF")
+endif ()
+
 bambustudio_add_cmake_project(wxWidgets
     GIT_REPOSITORY "https://github.com/wxWidgets/wxWidgets"
     GIT_TAG ${_wx_git_tag}
@@ -26,9 +32,7 @@ bambustudio_add_cmake_project(wxWidgets
         -DwxUSE_UNICODE=ON
         -DwxUSE_OPENGL=ON
         -DwxUSE_WEBVIEW=ON
-if (MSVC)
-        -DwxUSE_WEBVIEW_EDGE=ON
-endif ()
+        ${_wx_edge}
         -DwxUSE_WEBVIEW_IE=OFF
         -DwxUSE_REGEX=builtin
         -DwxUSE_LIBXPM=builtin
