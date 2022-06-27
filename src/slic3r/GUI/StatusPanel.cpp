@@ -185,24 +185,8 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_staticText_monitoring->SetForegroundColour(PAGE_TITLE_FONT_COL);
     bSizer_monitoring_title->Add(m_staticText_monitoring, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, PAGE_TITLE_LEFT_MARGIN);
 
-    m_connection_info = new Button(m_panel_monitoring_title, "");
-    m_connection_info->SetBackgroundColor(WARNING_INFO_BG_COL);
-    m_connection_info->SetBorderColor(WARNING_INFO_BG_COL);
-    m_connection_info->SetTextColor(*wxWHITE);
-    m_connection_info->SetFont(PAGE_TITLE_FONT);
-    m_connection_info->SetCornerRadius(FromDIP(8));
-    m_connection_info->SetSize(wxSize(-1, FromDIP(16)));
-    m_connection_info->SetMinSize(wxSize(-1, FromDIP(16)));
-    m_connection_info->SetMaxSize(wxSize(-1, FromDIP(16)));
-#ifdef __WINDOWS__
-    m_connection_info->SetPaddingSize(wxSize(FromDIP(11), 0));
-#endif // __WINDOWS__
-
-    m_connection_info->Hide();
 
     bSizer_monitoring_title->Add(FromDIP(13), 0, 0, 0);
-    bSizer_monitoring_title->Add(m_connection_info, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 0);
-
     bSizer_monitoring_title->AddStretchSpacer();
 
     m_staticText_timelapse = new wxStaticText(m_panel_monitoring_title, wxID_ANY, _L("Timelapse"), wxDefaultPosition, wxDefaultSize, 0);
@@ -1860,11 +1844,11 @@ void StatusPanel::show_status(int status)
     last_status = status;
 
     if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)) {
-        if ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER))
-            m_connection_info->SetLabel(_L("Failed to connect to the server"));
-        else
-            m_connection_info->SetLabel(_L("Failed to connect to the printer"));
-        m_connection_info->Show();
+        /* if ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER))
+             m_connection_info->SetLabel(_L("Failed to connect to the server"));
+         else
+             m_connection_info->SetLabel(_L("Failed to connect to the printer"));
+         m_connection_info->Show();*/
         m_panel_monitoring_title->Layout();
         m_button_report->Enable(false);
         m_button_pause_resume->Enable(false);
@@ -1892,7 +1876,7 @@ void StatusPanel::show_status(int status)
 #endif
 
     } else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) {
-        m_connection_info->Hide();
+        //m_connection_info->Hide();
         m_panel_monitoring_title->Layout();
         m_button_report->Enable();
         m_button_pause_resume->Enable();
@@ -1938,14 +1922,6 @@ void StatusPanel::msw_rescale()
 
     for (Button *btn : m_buttons) { btn->Rescale(); }
     init_scaled_buttons();
-
-    m_connection_info->SetCornerRadius(FromDIP(8));
-    m_connection_info->SetSize(wxSize(-1, FromDIP(16)));
-    m_connection_info->SetMinSize(wxSize(-1, FromDIP(16)));
-    m_connection_info->SetMaxSize(wxSize(-1, FromDIP(16)));
-#ifdef __WINDOWS__
-    m_connection_info->SetPaddingSize(wxSize(FromDIP(11), 0));
-#endif // __WINDOWS__
 
     m_gauge_progress->Rescale();
 

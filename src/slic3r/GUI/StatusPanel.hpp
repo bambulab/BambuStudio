@@ -66,7 +66,6 @@ protected:
     wxPanel *       m_panel_control_title;
 
     wxStaticText *  m_staticText_monitoring;
-    Button       *  m_connection_info;
     wxStaticText *  m_staticText_timelapse;
     SwitchButton *  m_bmToggleBtn_timelapse;
 

@@ -81,6 +81,7 @@ private:
     MediaFilePanel*     m_media_file_panel;
     UpgradePanel*       m_upgrade_panel;
     HMSPanel*           m_hms_panel;
+    Button *            m_connection_info{nullptr};
 
 	/* side tools */
     SideTools*      m_side_tools{nullptr};

@@ -147,6 +147,36 @@ MonitorPanel::~MonitorPanel()
 {
     m_side_tools = new SideTools(this, wxID_ANY);
     wxBoxSizer* sizer_side_tools = new wxBoxSizer(wxVERTICAL);
+
+   /* auto warning_panel = new wxPanel(this, wxID_ANY);
+    warning_panel->SetBackgroundColour(wxColour(255, 111, 0));
+    warning_panel->SetSize(wxSize(FromDIP(220), FromDIP(25)));
+    warning_panel->SetMinSize(wxSize(FromDIP(220), FromDIP(25)));
+    warning_panel->SetMaxSize(wxSize(FromDIP(220), FromDIP(25)));
+    sizer_side_tools->Add(warning_panel, 0, wxEXPAND, 0);
+
+    wxBoxSizer *sizer_boxh = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *sizer_boxv = new wxBoxSizer(wxHORIZONTAL);*/
+
+    m_connection_info = new Button(this, "Failed to connect to the printer");
+    m_connection_info->SetBackgroundColor(wxColour(255, 111, 0));
+    m_connection_info->SetBorderColor(wxColour(255, 111, 0));
+    m_connection_info->SetTextColor(*wxWHITE);
+    m_connection_info->SetFont(::Label::Body_13);
+    m_connection_info->SetCornerRadius(0);
+    m_connection_info->SetSize(wxSize(FromDIP(220), FromDIP(25)));
+    m_connection_info->SetMinSize(wxSize(FromDIP(220), FromDIP(25)));
+    m_connection_info->SetMaxSize(wxSize(FromDIP(220), FromDIP(25)));
+    m_connection_info->Hide();
+    /*sizer_boxv->Add(m_connection_info, 0, wxALIGN_CENTER, 0);
+    sizer_boxh->Add(sizer_boxv, 1, wxALIGN_CENTER, 0);
+    warning_panel->SetSizer(sizer_boxh);
+    warning_panel->Layout();*/
+
+    
+
+
+    sizer_side_tools->Add(m_connection_info, 0, wxEXPAND, 0);
     sizer_side_tools->Add(m_side_tools, 1, wxEXPAND, 0);
     m_tabpanel             = new Tabbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizer_side_tools, wxNB_LEFT | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
     m_tabpanel->SetBackgroundColour(*wxWHITE);
@@ -168,7 +198,6 @@ MonitorPanel::~MonitorPanel()
 #endif
 
     m_initialized = true;
-
     show_status((int)MonitorStatus::MONITOR_NO_PRINTER);
 }
 
@@ -218,6 +247,11 @@ void MonitorPanel::msw_rescale()
     m_upgrade_panel->msw_rescale();
     m_hms_panel->msw_rescale();
 #endif
+
+    m_connection_info->SetCornerRadius(0);
+    m_connection_info->SetSize(wxSize(FromDIP(220), FromDIP(25)));
+    m_connection_info->SetMinSize(wxSize(FromDIP(220), FromDIP(25)));
+    m_connection_info->SetMaxSize(wxSize(FromDIP(220), FromDIP(25)));
     
     Layout();
     Refresh();
@@ -448,6 +482,16 @@ void MonitorPanel::show_status(int status)
     last_status = status;
 
     BOOST_LOG_TRIVIAL(trace) << "monitor: show_status = " << status;
+
+    if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)) {
+        if ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER))
+            m_connection_info->SetLabel(_L("Failed to connect to the server"));
+        else
+            m_connection_info->SetLabel(_L("Failed to connect to the printer"));
+        m_connection_info->Show();
+    }else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) { 
+        m_connection_info->Hide(); 
+    }
 
     Freeze();
     if ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0) {
