@@ -1484,22 +1484,22 @@ std::string AMSControl::GetCurentAms() { return m_current_ams; }
 
 std::string AMSControl::GetCurrentCan(std::string amsid)
 {
-    /* std::string current_can;
-     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
-         AmsCansWindow *ams = m_ams_cans_list[i];
-         if (ams->amsCans->m_info.ams_id == amsid) {
-             current_can = ams->amsCans->GetCurrentCan();
-             return current_can;
-         }
-     }
-     return current_can;*/
-    std::string current_can_id = "";
+    std::string current_can;
+    for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
+        AmsCansWindow *ams = m_ams_cans_list[i];
+        if (ams->amsCans->m_info.ams_id == amsid) {
+            current_can = ams->amsCans->GetCurrentCan();
+            return current_can;
+        }
+    }
+    return current_can;
+    /*std::string current_can_id = "";
     for (auto i = 0; i < m_ams_info.size(); i++) {
-        if (m_ams_info[i].ams_id == m_current_ams) { 
+        if (m_ams_info[i].ams_id == m_current_ams) {
             current_can_id =  m_ams_info[i].current_can_id;
         }
     }
-    return current_can_id;
+    return current_can_id;*/
 }
 
 wxColour AMSControl::GetCanColour(std::string amsid, std::string canid) 
@@ -1533,9 +1533,10 @@ void AMSControl::SetActionState(AMSAction action)
         m_button_extruder_feed->Disable();
         m_button_extruder_back->Disable();
         break;
-    case Slic3r::GUI::AMSAction::AMS_ACTION_NORMAL: break;
+    case Slic3r::GUI::AMSAction::AMS_ACTION_NORMAL:
         m_button_extruder_feed->Enable();
         m_button_extruder_back->Enable();
+        break;
     default: break;
     }
 }

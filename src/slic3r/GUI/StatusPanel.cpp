@@ -1302,12 +1302,14 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     // update load/unload enable state
     // printing
-    if (obj->can_abort() || obj->can_resume()) {
-        if (obj->ams_status_main == AMS_STATUS_MAIN_IDLE) {
-            m_ams_control->SetActionState(AMSAction::AMS_ACTION_NORMAL);
+    if (obj->ams_status_main != AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+        if (obj->m_tray_now == "255") {
+            m_ams_control->SetActionState(AMSAction::AMS_ACTION_LOAD);
         } else {
-            m_ams_control->SetActionState(AMSAction::AMS_ACTION_PRINTING);
+            m_ams_control->SetActionState(AMSAction::AMS_ACTION_NORMAL);
         }
+    } else {
+        m_ams_control->SetActionState(AMSAction::AMS_ACTION_PRINTING);
     }
 }
 

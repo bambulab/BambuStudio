@@ -6878,7 +6878,8 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     auto fstring       = wxString("");
     auto bstring       = wxString("");
 
-    auto file_name = from_u8(filename);
+    //auto file_name = from_u8(filename.c_str());
+    auto file_name = wxString(filename);
     for (int x = 0; x < file_name.length(); x++) {
         current_width += m_fname_s->GetTextExtent(file_name[x]).GetWidth();
         cut_index = x;

@@ -1611,7 +1611,7 @@ int MachineObject::parse_json(std::string payload)
             }
         } catch (...) {}
 
-        std::stringstream ss(payload);
+        std::stringstream ss(j.dump());
         pt::ptree root;
         pt::read_json(ss, root);
         if (root.empty()) {
