@@ -478,6 +478,11 @@ namespace BBL {
             }
         }
         Http::disable_log();
+
+        if (m_curr_user != NULL) {
+            delete m_curr_user;
+            m_curr_user = nullptr;
+        }
     }
 
     void AccountManager::set_product_mqtt_opt()

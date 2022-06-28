@@ -63,8 +63,8 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
     m_networkOk = false;
 
     std::string strlang = config->get("language");
-    if (strlang != "") { 
-        replace_str(strlang, "_", "-"); 
+    if (strlang != "") {
+        replace_str(strlang, "_", "-");
         TargetUrl = host_url + "/" + strlang + "/sign-in";
     }
 
@@ -74,16 +74,12 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
 
     // set the frame icon
 
-    wxBoxSizer *topsizer = new wxBoxSizer(wxVERTICAL);
-
     // Create the webview
     m_browser = WebView::CreateWebView(this, TargetUrl);
     if (m_browser == nullptr) {
         wxLogError("Could not init m_browser");
         return;
     }
-
-    topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
     // Log backend information
     // wxLogMessage(wxWebView::GetBackendVersionInfo().ToString());
@@ -106,34 +102,34 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
     // Bind(wxEVT_CLOSE_WINDOW, &ZUserLogin::OnClose, this);
 
     // UI
-    SetTitle( _L("Login"));    
+    SetTitle( _L("Login"));
     // Set a more sensible size for web browsing
-    wxSize pSize = FromDIP(wxSize(630, 820));
+    wxSize pSize = FromDIP(wxSize(650, 840));
     SetSize(pSize);
 
     //CenterOnParent();
     int screenheight = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y, NULL);
     int screenwidth  = wxSystemSettings::GetMetric(wxSYS_SCREEN_X, NULL);
     int MaxY         = (screenheight - pSize.y) > 0 ? (screenheight - pSize.y) / 2 : 0;
-    
+
     this->SetPosition(wxPoint((screenwidth - pSize.x) / 2, MaxY));
 
     //Param
     m_AutotestToken = "";
 }
 
-ZUserLogin::~ZUserLogin() { 
-    if (m_timer != NULL) { 
+ZUserLogin::~ZUserLogin() {
+    if (m_timer != NULL) {
         m_timer->Stop();
         delete m_timer;
         m_timer = NULL;
     }
 }
 
-void ZUserLogin::OnTimer(wxTimerEvent &event) { 
-    m_timer->Stop();    
+void ZUserLogin::OnTimer(wxTimerEvent &event) {
+    m_timer->Stop();
 
-    if (m_networkOk == false) 
+    if (m_networkOk == false)
     {
         ShowErrorPage();
     }
@@ -260,8 +256,8 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
 
         wxString strCmd = j["command"];
 
-        if (strCmd == "autotest_token") 
-        { 
+        if (strCmd == "autotest_token")
+        {
             m_AutotestToken = j["data"]["token"];
         }
         if (strCmd == "user_login") {
@@ -277,14 +273,14 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
             //Save User Info
             BBL::AccountInfo* pNewAcc = new BBL::AccountInfo(strAccount, strUserID, strName, strAvatar, BBL::AccountInfo::LoginStatus::STATUS_LOGIN, strRefreshToken, refreshExpiresIn, strToken, expiresIn, m_AutotestToken);
 
-            BOOST_LOG_TRIVIAL(trace) << "get access_token = " << strToken;
-            BOOST_LOG_TRIVIAL(trace) << "get access_token_expires_in = " << std::to_string(expiresIn);
-            BOOST_LOG_TRIVIAL(trace) << "get refresh_token = " << strRefreshToken;
-            BOOST_LOG_TRIVIAL(trace) << "get access_token_expires_in = " << std::to_string(refreshExpiresIn);
+            //BOOST_LOG_TRIVIAL(trace) << "get access_token = " << strToken;
+            //BOOST_LOG_TRIVIAL(trace) << "get access_token_expires_in = " << std::to_string(expiresIn);
+            //BOOST_LOG_TRIVIAL(trace) << "get refresh_token = " << strRefreshToken;
+            //BOOST_LOG_TRIVIAL(trace) << "get access_token_expires_in = " << std::to_string(refreshExpiresIn);
             wxGetApp().change_user(pNewAcc);
 
             Close();
-        } 
+        }
     } catch (std::exception &e) {
         wxMessageBox(e.what(), "parse json failed", wxICON_WARNING);
         Close();
@@ -380,7 +376,7 @@ void ZUserLogin::OnScriptResponseMessage(wxCommandEvent &WXUNUSED(evt))
 }
 
 
-bool ZUserLogin::IsNetworkOK() 
+bool ZUserLogin::IsNetworkOK()
 {
     BBL::Http http = BBL::Http::get("https://www.baidu.com");
     http.header("accept", "application/json")
@@ -388,7 +384,7 @@ bool ZUserLogin::IsNetworkOK()
         .timeout_max(5)
         .on_complete([this](std::string body, unsigned) { m_networkOk = true;
         })
-        .on_error([&](std::string body, std::string error, unsigned status) { 
+        .on_error([&](std::string body, std::string error, unsigned status) {
             m_networkOk = false;
         })
         .perform_sync();
