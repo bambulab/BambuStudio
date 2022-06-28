@@ -55,7 +55,7 @@ struct MsgDialog : DPIDialog
 	MsgDialog(const MsgDialog &) = delete;
 	MsgDialog &operator=(MsgDialog &&) = delete;
 	MsgDialog &operator=(const MsgDialog &) = delete;
-	virtual ~MsgDialog() = default;
+	virtual ~MsgDialog();
 
 	virtual void on_dpi_changed(const wxRect &suggested_rect);
 	void SetButtonLabel(wxWindowID btn_id, const wxString& label, bool set_focus = false);

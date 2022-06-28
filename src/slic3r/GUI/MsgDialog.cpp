@@ -66,7 +66,12 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 	SetSizerAndFit(main_sizer);
 }
 
- void MsgDialog::on_dpi_changed(const wxRect &suggested_rect) 
+ MsgDialog::~MsgDialog()
+{
+    for (auto mb : m_buttons) { delete mb.second->buttondata ; delete mb.second; }
+}
+
+void MsgDialog::on_dpi_changed(const wxRect &suggested_rect) 
  {
      if (m_buttons.size() > 0) {
          MsgButtonsHash::iterator i = m_buttons.begin();

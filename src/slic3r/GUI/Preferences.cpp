@@ -489,7 +489,11 @@ void PreferencesDialog::create()
     wxPostEvent(this, event);
 }
 
-PreferencesDialog::~PreferencesDialog() { m_hash_selector.clear(); }
+PreferencesDialog::~PreferencesDialog()
+{
+    m_radio_group.DeleteContents(true);
+    m_hash_selector.clear();
+}
 
 void PreferencesDialog::on_dpi_changed(const wxRect &suggested_rect) { this->Refresh(); }
 
@@ -663,7 +667,7 @@ void PreferencesDialog::create_shortcuts_page()
 
 wxBoxSizer* PreferencesDialog::create_debug_page()
 {
-    wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
+    //wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
 
     m_developer_mode_def  = app_config->get("developer_mode");
     m_dump_video_def      = app_config->get("dump_video");
