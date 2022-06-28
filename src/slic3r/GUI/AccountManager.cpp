@@ -623,6 +623,11 @@ namespace BBL {
                 delete mqtt_cli;
                 mqtt_cli = nullptr;
             }
+
+            if (mqtt_cb) {
+                delete mqtt_cb;
+                mqtt_cb = nullptr;
+            }
         } catch(...) {
             ;
         }
@@ -640,6 +645,8 @@ namespace BBL {
                     return;
                 }
                 mqtt_opt.set_password(password);
+                if (!mqtt_cb)
+                    mqtt_cb = new cloud_conn_callback(*mqtt_cli, mqtt_opt, this);
                 mqtt_cli->connect(mqtt_opt, this, *mqtt_cb);
                 BOOST_LOG_TRIVIAL(trace) << "check_mqtt_connection: reconnecting";
             } catch(const mqtt::exception& exc) {
@@ -3380,6 +3387,13 @@ int AccountManager::start_print(PrintParams params, OnUpdateStatusFn update_fn, 
         if (update_fn) update_fn(PrintingStageSending, http_code, http_body);
         return -1;
     }
+
+    if (profile)
+        delete profile;
+    if (project)
+        delete project;
+    if (subTask)
+        delete subTask;
     
     if (update_fn) update_fn(PrintingStageSending, 0, "");
     return 0;
@@ -3551,6 +3565,13 @@ int AccountManager::start_local_print_with_record(PrintParams params, OnUpdateSt
         return -1;
     }
 
+    if (profile)
+        delete profile;
+    if (project)
+        delete project;
+    if (subTask)
+        delete subTask;
+
     if (update_fn) update_fn(PrintingStageSending, 0, "");
     return 0;
 }
@@ -3638,7 +3659,7 @@ int AccountManager::start_local_print(PrintParams params, OnUpdateStatusFn updat
     std::string json_str = j.dump();
     auto mqtt_msg = mqtt::message::create(topic, json_str, 1, false);
     mqtt_local_cli->publish(mqtt_msg);
-
+    
     if (update_fn) update_fn(PrintingStageSending, 0, "");
     return 0;
 }

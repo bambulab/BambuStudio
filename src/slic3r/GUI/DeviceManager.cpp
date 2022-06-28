@@ -308,6 +308,30 @@ MachineObject::MachineObject(BBL::AccountManager& acc, std::string name, std::st
     printing_speed_lvl   = PrintingSpeedLevel::SPEED_LEVEL_INVALID;
 }
 
+MachineObject::~MachineObject()
+{
+    if (subtask_) {
+        delete subtask_;
+        subtask_ = nullptr;
+    }
+
+    if (slice_info) {
+        delete slice_info;
+        slice_info = nullptr;
+    }
+
+    for (auto it = amsList.begin(); it != amsList.end(); it++) {
+        for (auto tray_it = it->second->trayList.begin(); tray_it != it->second->trayList.end(); tray_it++) {
+            if (tray_it->second) {
+                delete tray_it->second;
+                tray_it->second = nullptr;
+            }
+        }
+        it->second->trayList.clear();
+    }
+    amsList.clear();
+}
+
 bool MachineObject::check_valid_ip()
 {
     if (dev_ip.empty()) {
@@ -2052,6 +2076,22 @@ DeviceManager::~DeviceManager()
     if (m_check_alive_quit) return;
     m_check_alive_quit = true;
     m_device_check_alive.try_join_for(boost::chrono::milliseconds(200));
+
+    for (auto it = localMachineList.begin(); it != localMachineList.end(); it++) {
+        if (it->second) {
+            delete it->second;
+            it->second = nullptr;
+        }
+    }
+    localMachineList.clear();
+
+    for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
+        if (it->second) {
+            delete it->second;
+            it->second = nullptr;
+        }
+    }
+    userMachineList.clear();
 }
 
 

@@ -445,6 +445,7 @@ public:
     
 
     MachineObject(BBL::AccountManager& acc, std::string name, std::string id, std::string ip);
+    ~MachineObject();
     /* command commands */
     int command_get_version();
     int command_request_push_all();
