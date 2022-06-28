@@ -540,8 +540,8 @@ void UpgradePanel::refresh_version_and_firmware(MachineObject* obj)
 {
     BOOST_LOG_TRIVIAL(trace) << "refresh version";
     if (obj) {
-        m_obj->command_get_version();
-        m_obj->get_firmware_info();
+        obj->command_get_version();
+        obj->get_firmware_info();
         m_need_update = true;
     }
 }

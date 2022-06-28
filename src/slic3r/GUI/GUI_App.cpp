@@ -1128,46 +1128,41 @@ GUI_App::GUI_App()
     });
 
     auto message_arrive_fn = [this](std::string dev_id, std::string msg) {
-        MachineObject* obj = m_device_manager->get_user_machine(dev_id);
-        if (obj) {
-            obj->parse_json(msg);
+        CallAfter([this, dev_id, msg] {
+            MachineObject* obj = this->m_device_manager->get_user_machine(dev_id);
+            if (obj) {
+                obj->parse_json(msg);
 
-            if (obj->is_ams_need_update) {
-                CallAfter([this, dev_id] {
-                    MachineObject* obj_ = m_device_manager->get_user_machine(dev_id);
-                    GUI::wxGetApp().sidebar().load_ams_list(obj_->amsList);
-                });
-            }
-
-            CallAfter([dev_id, msg]{
+                if (obj->is_ams_need_update) {
+                    GUI::wxGetApp().sidebar().load_ams_list(obj->amsList);
+                }
                 if (wxGetApp().mainframe && wxGetApp().mainframe->m_debug_tool_dlg) {
                     if (wxGetApp().mainframe->m_debug_tool_dlg->IsShown())
                         wxGetApp().mainframe->m_debug_tool_dlg->message_arrived(dev_id, msg);
                 }
-            });
-        }
+            }
+        });
     };
 
     m_account_manager->set_on_message_fn(message_arrive_fn);
 
     auto lan_message_arrive_fn = [this](std::string dev_id, std::string msg) {
-        MachineObject* obj = m_device_manager->get_local_machine(dev_id);
-        if (obj) {
-            obj->parse_json(msg);
+        CallAfter([this, dev_id, msg] {
+            MachineObject* obj = m_device_manager->get_local_machine(dev_id);
+            if (obj) {
+                obj->parse_json(msg);
 
-#if !BBL_RELEASE_TO_PUBLIC
-            if (obj->is_ams_need_update) {
-                CallAfter([this, dev_id] {
-                    MachineObject* obj_ = m_device_manager->get_local_machine(dev_id);
-                    GUI::wxGetApp().sidebar().load_ams_list(obj_->amsList);
-                    });
+    #if !BBL_RELEASE_TO_PUBLIC
+                if (obj->is_ams_need_update) {
+                    GUI::wxGetApp().sidebar().load_ams_list(obj->amsList);
+                }
+    #endif
+                if (mainframe && mainframe->m_debug_tool_dlg) {
+                    if (mainframe->m_debug_tool_dlg->IsShown())
+                        mainframe->m_debug_tool_dlg->message_arrived(dev_id, msg);
+                }
             }
-#endif
-            if (mainframe && mainframe->m_debug_tool_dlg) {
-                if (mainframe->m_debug_tool_dlg->IsShown())
-                    mainframe->m_debug_tool_dlg->message_arrived(dev_id, msg);
-            }
-        }
+        });
     };
     m_account_manager->set_on_local_message_fn(lan_message_arrive_fn);
 
