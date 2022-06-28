@@ -2228,8 +2228,10 @@ void DeviceManager::clear_user_machine_list()
     userMachineList.clear();
 }
 
-void DeviceManager::set_selected_machine(std::string dev_id)
+bool DeviceManager::set_selected_machine(std::string dev_id)
 {
+    if (selected_machine == dev_id)
+        return false;
     auto my_machine_list = get_my_machine_list();
     auto it = my_machine_list.find(dev_id);
     if (it != my_machine_list.end()) {
@@ -2244,6 +2246,7 @@ void DeviceManager::set_selected_machine(std::string dev_id)
         }
     }
     selected_machine = dev_id;
+    return true;
 }
 
 MachineObject* DeviceManager::get_selected_machine()

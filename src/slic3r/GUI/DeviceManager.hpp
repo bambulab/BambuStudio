@@ -550,7 +550,7 @@ public:
     MachineObject* get_user_machine(std::string dev_id);
     void clear_user_machine_list();
 
-    void set_selected_machine(std::string dev_id);
+    bool set_selected_machine(std::string dev_id);
     MachineObject* get_selected_machine();
 
     /* return machine has access code and user machine if login*/

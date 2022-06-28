@@ -282,10 +282,15 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
  void MonitorPanel::on_select_printer(wxCommandEvent& event)
 {
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    dev->set_selected_machine(event.GetString().ToStdString());
+    if (!dev->set_selected_machine(event.GetString().ToStdString()))
+        return;
 
     set_default();
     update_all();
+
+    MachineObject *obj_ = dev->get_selected_machine();
+    if (obj_)
+        GUI::wxGetApp().sidebar().load_ams_list(obj_->amsList);
 
     Layout();
     Refresh();

@@ -1167,7 +1167,7 @@ void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
                 });*/
                 continue;
             }
-            ams.set_key_value("filament_colour", new ConfigOptionStrings{"#" + tray.second->color});
+            ams.set_key_value("filament_colour", new ConfigOptionStrings{"#" + tray.second->color.substr(0, 6)});
             filament_ams_list.emplace_back(std::move(ams));
         }
     }
