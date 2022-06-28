@@ -1468,27 +1468,24 @@ bool SelectMachineDialog::Show(bool show)
     // thumbmail
     Freeze();
     sizer_thumbnail->Clear();
-    std::vector<ThumbnailData *> data_list = wxGetApp().plater()->get_thumbnail();
-    ThumbnailData *data = data_list[m_plater->get_partplate_list().get_curr_plate_index()];
-    wxImage        image(data->width, data->height);
-    image.InitAlpha();
-
-    for (unsigned int r = 0; r < data->height; ++r) {
-        unsigned int rr = (data->height - 1 - r) * data->width;
-        for (unsigned int c = 0; c < data->width; ++c) {
-            unsigned char *px = (unsigned char *) data->pixels.data() + 4 * (rr + c);
-            image.SetRGB((int) c, (int) r, px[0], px[1], px[2]);
-            image.SetAlpha((int) c, (int) r, px[3]);
+    wxBitmap* bitmap = nullptr;
+    ThumbnailData &data = m_plater->get_partplate_list().get_curr_plate()->thumbnail_data;
+    if (data.is_valid()) {
+        wxImage        image(data.width, data.height);
+        image.InitAlpha();
+        for (unsigned int r = 0; r < data.height; ++r) {
+            unsigned int rr = (data.height - 1 - r) * data.width;
+            for (unsigned int c = 0; c < data.width; ++c) {
+                unsigned char *px = (unsigned char *) data.pixels.data() + 4 * (rr + c);
+                image.SetRGB((int) c, (int) r, px[0], px[1], px[2]);
+                image.SetAlpha((int) c, (int) r, px[3]);
+            }
         }
+        image = image.Rescale(FromDIP(256), FromDIP(256));
+        bitmap = new wxBitmap(image);
+    } else {
+        bitmap = new wxBitmap(FromDIP(256), FromDIP(256), 0);
     }
-    for (int index = 0; index < data_list.size(); index++)
-    {
-        if (data_list[index])
-            delete data_list[index];
-    }
-    data_list.clear();
-
-    auto bitmap       = new wxBitmap(image);
     auto staticbitmap = new wxStaticBitmap(m_image, wxID_ANY, *bitmap, wxDefaultPosition, wxDefaultSize);
     sizer_thumbnail->Add(staticbitmap, 0, wxEXPAND, 0);
     sizer_thumbnail->Layout();
@@ -1577,11 +1574,13 @@ bool SelectMachineDialog::Show(bool show)
         m_sizer_material->Add(item, 0, wxLEFT | wxRIGHT, FromDIP(5));
 
         // build for ams mapping
-        FilamentInfo info;
-        info.id    = extruder;
-        info.type  = materials[i];
-        info.color = colour_rgb.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
-        m_filaments.push_back(info);
+        if (extruder < materials.size()) {
+            FilamentInfo info;
+            info.id = extruder;
+            info.type  = materials[extruder];
+            info.color = colour_rgb.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+            m_filaments.push_back(info);
+        }
     }
 
     m_sizer_material->Layout();
