@@ -372,11 +372,14 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
     if (!m_preset_bundle->filament_ams_list.empty()) {
         set_label_marker(Append(separator(L("AMS filaments")), wxNullBitmap));
         m_first_ams_filament = GetCount();
+        auto &filaments      = m_collection->get_presets();
         for (auto &f : m_preset_bundle->filament_ams_list) {
-            std::string name   = f.opt_string("filament_settings_id", 0u);
-            auto preset = m_collection->find_preset(name);
-            if (!preset) continue;
-            preset->is_visible = true;
+            std::string setting_id = f.opt_string("filament_settings_id", 0u);
+            auto iter = std::find_if(filaments.begin(), filaments.end(),
+                [&setting_id](auto &f) { return f.is_compatible && f.filament_id == setting_id; });
+            if (iter == filaments.end())
+                continue;
+            const_cast<Preset&>(*iter).is_visible = true;
             auto color = f.opt_string("filament_colour", 0u);
             wxColour clr(color);
             wxImage img(16, 16);
@@ -386,7 +389,7 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
             } else {
                 img.SetRGB(wxRect({0, 0}, img.GetSize()), clr.Red(), clr.Green(), clr.Blue());
             }
-            int item_id = Append(get_preset_name(*preset), img);
+            int item_id = Append(get_preset_name(*iter), img);
             //validate_selection(id->value == selected); // can not select
         }
         m_last_ams_filament = GetCount();

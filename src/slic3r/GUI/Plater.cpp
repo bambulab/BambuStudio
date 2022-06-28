@@ -1140,7 +1140,7 @@ void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
             auto iter = std::find_if(filaments.begin(), filaments.end(),
                 [&tray](auto &f) { return f.filament_id == tray.second->setting_id; });
             if (iter != filaments.end()) {
-                ams.set_key_value("filament_settings_id", new ConfigOptionStrings{iter->name});
+                ams.set_key_value("filament_settings_id", new ConfigOptionStrings{tray.second->setting_id});
             } else {
                 /* std::shared_ptr<std::map<std::string, std::string>> preset(new std::map<std::string, std::string>);
                 (*preset)->setting_id = tray.second->setting_id;

@@ -215,9 +215,9 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     m_number_of_extruders = (int)(sqrt(matrix.size())+0.001);
 
     for (const std::string& color : extruder_colours) {
-        unsigned char rgb[3];
-        Slic3r::GUI::BitmapCache::parse_color(color, rgb);
-        m_colours.push_back(wxColor(rgb[0], rgb[1], rgb[2]));
+        //unsigned char rgb[3];
+        //Slic3r::GUI::BitmapCache::parse_color(color, rgb);
+        m_colours.push_back(wxColor(color));
     }
 
     // Create two switched panels with their own sizers
