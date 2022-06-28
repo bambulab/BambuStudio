@@ -446,7 +446,7 @@ void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::
     }
 }
 
-void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
+void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, const bool is_global_config)
 {
     bool have_perimeters = config->opt_int("wall_loops") > 0;
     for (auto el : { "detect_thin_wall", "detect_overhang_wall",
@@ -570,6 +570,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     toggle_line("overhang_2_4_speed", has_overhang_speed);
     toggle_line("overhang_3_4_speed", has_overhang_speed);
     toggle_line("overhang_4_4_speed", has_overhang_speed);
+
+    toggle_line("flush_into_objects", !is_global_config);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

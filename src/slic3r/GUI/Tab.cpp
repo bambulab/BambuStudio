@@ -1926,7 +1926,7 @@ void TabPrint::toggle_options()
 {
     if (!m_active_page) return;
 
-    m_config_manipulation.toggle_print_fff_options(m_config);
+    m_config_manipulation.toggle_print_fff_options(m_config, m_type < Preset::TYPE_COUNT);
 }
 
 void TabPrint::update()
