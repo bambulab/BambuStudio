@@ -2298,6 +2298,28 @@ void DeviceManager::set_monitoring_machine(std::string dev_id)
     }   
 }
 
+void DeviceManager::modify_device_name(std::string dev_id, std::string dev_name) 
+{
+    BOOST_LOG_TRIVIAL(trace) << "modify_device_name";
+    unsigned int http_code;
+    std::string  body;
+    int          result = acc_.modify_device_name(dev_id, dev_name, http_code, body);
+    if (result == 0) {
+        std::set<std::string> new_list;
+        try {
+            json j = json::parse(body);
+            if (j.contains("message") && !j["message"].is_null()) {
+               auto result = j["message"].get<std::string>();
+                if (result == "success") { 
+                    update_user_machine_list_info();
+                }
+            }
+        } catch (std::exception &e) {
+            ;
+        }
+    }
+}
+
 void DeviceManager::update_user_machine_list_info()
 {
     BOOST_LOG_TRIVIAL(trace) << "update_user_machine_list_info";

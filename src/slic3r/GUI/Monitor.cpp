@@ -323,13 +323,55 @@ void MonitorPanel::on_size(wxSizeEvent &event)
     Refresh();
 }
 
+bool MonitorPanel::is_str_utf8(const char *str)
+{
+    unsigned int  nBytes    = 0;
+    unsigned char chr       = *str;
+    bool          bAllAscii = true;
+    for (unsigned int i = 0; str[i] != '\0'; ++i) {
+        chr = *(str + i);
+        if (nBytes == 0 && (chr & 0x80) != 0) { bAllAscii = false; }
+        if (nBytes == 0) {
+            if (chr >= 0x80) {
+                if (chr >= 0xFC && chr <= 0xFD) {
+                    nBytes = 6;
+                } else if (chr >= 0xF8) {
+                    nBytes = 5;
+                } else if (chr >= 0xF0) {
+                    nBytes = 4;
+                } else if (chr >= 0xE0) {
+                    nBytes = 3;
+                } else if (chr >= 0xC0) {
+                    nBytes = 2;
+                } else {
+                    return false;
+                }
+                nBytes--;
+            }
+        } else {
+            if ((chr & 0xC0) != 0x80) { return false; }
+            nBytes--;
+        }
+    }
+    if (nBytes != 0) { return false; }
+    if (bAllAscii) {
+        return true;
+    }
+    return true;
+}
+
  void MonitorPanel::update_status(MachineObject* obj)
 {
     if (!obj) return;
 
     /* Update Device Info */
-    //wxString machine_name_text = wxString::Format("%s", from_u8(obj->dev_name));
-    m_side_tools->set_current_printer_name(obj->dev_name);
+    wxString machine_name_text;
+    if (is_str_utf8(obj->dev_name.c_str())) {
+        machine_name_text = from_u8(obj->dev_name);
+    } else {
+        machine_name_text = obj->dev_name;
+    }
+    m_side_tools->set_current_printer_name(machine_name_text);
 
     /*
     wxString printing_status_text = wxString::Format("%s", obj->print_status);
@@ -395,7 +437,7 @@ void MonitorPanel::update_all()
 #endif
 
     m_status_info_panel->m_media_play_ctrl->SetMachineObject(IsShown() ? obj : nullptr);
-    m_media_file_panel->SetMachineObject(obj);
+    //m_media_file_panel->SetMachineObject(obj);
 
     update_status(obj);
 

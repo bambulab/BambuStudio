@@ -106,6 +106,7 @@ private:
     wxBitmap    m_printing_img;
     wxBitmap    m_owner_img;
     wxBitmap    m_unbind_img;
+    wxBitmap    m_edit_name_img;
     wxBitmap    m_select_unbind_img;
     /*wxBitmap    m_wifi_none_img;
     wxBitmap    m_wifi_weak_img;
@@ -346,6 +347,22 @@ protected:
 
 wxDECLARE_EVENT(EVT_FINISHED_UPDATE_MACHINE_LIST, wxCommandEvent);
 wxDECLARE_EVENT(EVT_REQUEST_BIND_LIST, wxCommandEvent);
+
+class EditDevNameDialog : public DPIDialog
+{
+public:
+    EditDevNameDialog(Plater *plater = nullptr);
+    ~EditDevNameDialog();
+
+    void set_machine_obj(MachineObject *obj);
+    void on_dpi_changed(const wxRect &suggested_rect) override;
+    void on_edit_name(wxCommandEvent &e);
+
+    MachineObject *m_info;
+    wxStaticText* m_static_valid {nullptr};
+    ::TextInput* m_textCtr   {nullptr};
+    Button* m_button_confirm {nullptr};
+};
 
 }} // namespace Slic3r::GUI
 

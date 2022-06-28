@@ -123,6 +123,7 @@ public:
     void on_printer_clicked(wxMouseEvent& event);
     void on_size(wxSizeEvent &event);
 
+	bool is_str_utf8(const char *str);
     /* update apis */
     void update_status(MachineObject* obj);
     //void update_ams(MachineObject* obj);

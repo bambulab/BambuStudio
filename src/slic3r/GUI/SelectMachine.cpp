@@ -98,6 +98,7 @@ MachineObjectPanel::MachineObjectPanel(wxWindow *parent, wxWindowID id, const wx
     m_owner_img    = create_scaled_bitmap("machine_object_owner", nullptr, 10);
 
     m_unbind_img        = create_scaled_bitmap("unbind", nullptr, 18);
+    m_edit_name_img        = create_scaled_bitmap("edit_button", nullptr, 18);
     m_select_unbind_img = create_scaled_bitmap("unbind_selected", nullptr, 18);
     /*m_wifi_none_img     = create_scaled_bitmap("monitor_signal_no", nullptr, 18);
     m_wifi_weak_img     = create_scaled_bitmap("monitor_signal_weak", nullptr, 18);
@@ -270,7 +271,7 @@ void MachineObjectPanel::doRender(wxDC &dc)
     //dc.DrawCircle(left, size.y / 2, 3);
     dc.DrawBitmap(dwbitmap, wxPoint(left, (size.y - dwbitmap.GetSize().y) / 2));
 
-    left += dwbitmap.GetSize().x + 11;
+    left += dwbitmap.GetSize().x + 8;
     dc.SetFont(Label::Body_14);
     dc.SetBackgroundMode(wxTRANSPARENT);
     dc.SetTextForeground(SELECT_MACHINE_GREY900);
@@ -291,8 +292,14 @@ void MachineObjectPanel::doRender(wxDC &dc)
 
     dc.DrawText(finally_name, wxPoint(left, (size.y - sizet.y) / 2));
 
-    left = size.x - m_unbind_img.GetSize().x - 15;
+
+    
     if (m_showunbind) {
+
+        left = size.x - m_unbind_img.GetSize().x - 10 - m_edit_name_img.GetSize().x - 6;
+        dc.DrawBitmap(m_edit_name_img, left, (size.y - m_edit_name_img.GetSize().y) / 2);
+
+        left = size.x - m_unbind_img.GetSize().x - 10;
         if (!m_select_unbind) {
             dc.DrawBitmap(m_unbind_img, left, (size.y - m_unbind_img.GetSize().y) / 2);
         } else {
@@ -347,14 +354,31 @@ void MachineObjectPanel::on_mouse_leave(wxMouseEvent &evt)
 
 void MachineObjectPanel::on_mouse_left_down(wxMouseEvent &evt)
 {
-    auto left   = GetSize().x - m_unbind_img.GetSize().x - 15;
+    auto left   = GetSize().x - m_unbind_img.GetSize().x - 10;
     auto right  = left + m_unbind_img.GetSize().x;
     auto top    = (GetSize().y - m_unbind_img.GetSize().y) / 2;
     auto bottom = (GetSize().y - m_unbind_img.GetSize().y) / 2 + m_unbind_img.GetSize().y;
-    if ((evt.GetPosition().x >= left && evt.GetPosition().x <= right) && evt.GetPosition().y >= top && evt.GetPosition().y <= bottom) { m_select_unbind = true; }
+    if ((evt.GetPosition().x >= left && evt.GetPosition().x <= right) && evt.GetPosition().y >= top && evt.GetPosition().y <= bottom) {
+        m_select_unbind = true; 
+    }
     Refresh();
+    evt.Skip();
+}
 
-    /* set monitor page to current device */
+void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
+{
+    //edit
+    auto edit_left   = GetSize().x - m_unbind_img.GetSize().x - 10 - m_edit_name_img.GetSize().x - 6;
+    auto edit_right  = edit_left + m_edit_name_img.GetSize().x;
+    auto edit_top    = (GetSize().y - m_edit_name_img.GetSize().y) / 2;
+    auto edit_bottom = (GetSize().y - m_edit_name_img.GetSize().y) / 2 + m_edit_name_img.GetSize().y;
+    if ((evt.GetPosition().x >= edit_left && evt.GetPosition().x <= edit_right) && evt.GetPosition().y >= edit_top && evt.GetPosition().y <= edit_bottom) { 
+        EditDevNameDialog dlg;
+        dlg.set_machine_obj(m_info);
+        dlg.ShowModal();
+    }
+
+
     if (m_state_can_bind) {
         if (m_info->connection_type() != "lan") {
             show_bind_dialog();
@@ -364,15 +388,15 @@ void MachineObjectPanel::on_mouse_left_down(wxMouseEvent &evt)
 
         wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
     } else {
-        auto left   = GetSize().x - m_unbind_img.GetSize().x - 15;
+        auto left   = GetSize().x - m_unbind_img.GetSize().x - 10;
         auto right  = left + m_unbind_img.GetSize().x;
         auto top    = (GetSize().y - m_unbind_img.GetSize().y) / 2;
         auto bottom = (GetSize().y - m_unbind_img.GetSize().y) / 2 + m_unbind_img.GetSize().y;
 
-        left -= 20;
+       /* left -= 20;
         right += 50;
         top -= 20;
-        bottom += 20;
+        bottom += 20;*/
 
         if ((evt.GetPosition().x >= left && evt.GetPosition().x <= right) && evt.GetPosition().y >= top && evt.GetPosition().y <= bottom) {
             show_unbind_dialog();
@@ -382,12 +406,6 @@ void MachineObjectPanel::on_mouse_left_down(wxMouseEvent &evt)
             wxGetApp().mainframe->SetFocus();
         }
     }
-
-    evt.Skip();
-}
-
-void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
-{
     evt.Skip();
 }
 
@@ -1631,4 +1649,117 @@ SelectMachineDialog::~SelectMachineDialog()
 { /* m_button_ensure->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(SelectMachineDialog::on_ok), NULL, this); */
 }
 
-}} // namespace Slic3r::GUI
+ EditDevNameDialog::EditDevNameDialog(Plater *plater /*= nullptr*/) 
+     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Modifying the device name"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxCLOSE_BOX)
+ {
+     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+     SetBackgroundColour(*wxWHITE);
+     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
+     auto        m_line_top   = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
+     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
+     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(38));
+     m_textCtr= new ::TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(260), FromDIP(40)), wxTE_PROCESS_ENTER);
+     m_textCtr->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(22)));
+     m_textCtr->SetMinSize(wxSize(FromDIP(260), FromDIP(40)));
+     m_sizer_main->Add(m_textCtr, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, FromDIP(40));
+
+     m_static_valid = new wxStaticText(this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0);
+     m_static_valid->Wrap(-1);
+     m_static_valid->SetFont(::Label::Body_13);
+     m_static_valid->SetForegroundColour(wxColour(255,111,0));
+     m_sizer_main->Add(m_static_valid, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP | wxLEFT |wxRIGHT, FromDIP(10));
+
+     
+     m_button_confirm = new Button(this, _L("Confirm"));
+     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+     m_button_confirm->SetBackgroundColor(btn_bg_green);
+     m_button_confirm->SetBorderColor(wxColour(0, 174, 66));
+     m_button_confirm->SetTextColor(wxColour(255, 255, 255));
+     m_button_confirm->SetSize(wxSize(FromDIP(72), FromDIP(24)));
+     m_button_confirm->SetMinSize(wxSize(FromDIP(72), FromDIP(24)));
+     m_button_confirm->SetCornerRadius(FromDIP(12));
+     m_button_confirm->Bind(wxEVT_BUTTON, &EditDevNameDialog::on_edit_name, this);
+
+     m_sizer_main->Add(m_button_confirm, 0, wxALIGN_CENTER_HORIZONTAL|wxTOP, FromDIP(10));
+     m_sizer_main->Add(0, 0, 0, wxBOTTOM, FromDIP(38));
+
+     SetSizer(m_sizer_main);
+     Layout();
+     Fit();
+     Centre(wxBOTH);
+ }
+
+ EditDevNameDialog::~EditDevNameDialog() 
+ {
+ }
+
+void EditDevNameDialog::set_machine_obj(MachineObject *obj) 
+{
+    m_info = obj;
+    m_textCtr->GetTextCtrl()->SetValue(m_info->dev_name);
+}
+
+ void EditDevNameDialog::on_dpi_changed(const wxRect &suggested_rect) 
+{
+    m_button_confirm->SetSize(wxSize(FromDIP(72), FromDIP(24)));
+    m_button_confirm->SetMinSize(wxSize(FromDIP(72), FromDIP(24)));
+}
+
+void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
+{
+    m_static_valid->SetLabel(wxEmptyString);
+    auto        m_valid_type = Valid;
+    wxString    info_line;
+    auto new_dev_name = m_textCtr->GetTextCtrl()->GetValue();
+
+    const char *unusable_symbols = "@~.<>[]:/\\|?*\"";
+    const std::string unusable_suffix = PresetCollection::get_suffix_modified();
+
+
+    for (size_t i = 0; i < std::strlen(unusable_symbols); i++) {
+        if (new_dev_name.find_first_of(unusable_symbols[i]) != std::string::npos) {
+            info_line    = _L("Name is invalid;") + _L("illegal characters:") + " " + unusable_symbols;
+            m_valid_type = NoValid;
+            break;
+        }
+    }
+
+    if (m_valid_type == Valid && new_dev_name.find(unusable_suffix) != std::string::npos) {
+        info_line    = _L("Name is invalid;") + _L("illegal suffix:") + "\n\t" + from_u8(PresetCollection::get_suffix_modified());
+        m_valid_type = NoValid;
+    }
+
+    if (m_valid_type == Valid && new_dev_name.empty()) {
+        info_line    = _L("The name is not allowed to be empty.");
+        m_valid_type = NoValid;
+    }
+
+    if (m_valid_type == Valid && new_dev_name.find_first_of(' ') == 0) {
+        info_line    = _L("The name is not allowed to start with space character.");
+        m_valid_type = NoValid;
+    }
+
+    if (m_valid_type == Valid && new_dev_name.find_last_of(' ') == new_dev_name.length() - 1) {
+        info_line    = _L("The name is not allowed to end with space character.");
+        m_valid_type = NoValid;
+    }
+
+    if (m_valid_type == NoValid) { 
+        m_static_valid->SetLabel(info_line);
+        Layout();
+    }
+
+    if (m_valid_type == Valid) {
+        m_static_valid->SetLabel(wxEmptyString);
+        DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+        auto           utf8_str = new_dev_name.ToUTF8();
+        auto name = std::string(utf8_str.data(), utf8_str.length());
+        dev->modify_device_name(m_info->dev_id, name);
+        DPIDialog::EndModal(wxID_CLOSE);
+    }
+}
+
+ }} // namespace Slic3r::GUI

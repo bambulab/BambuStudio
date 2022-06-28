@@ -557,6 +557,7 @@ public:
     std::map<std::string, MachineObject*> get_my_machine_list();
     std::string get_first_online_user_machine();
     void set_monitoring_machine(std::string dev_id);
+    void modify_device_name(std::string dev_id, std::string dev_name);
     void update_user_machine_list_info();
 
     /* create machine or update machine properties */
