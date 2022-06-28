@@ -1139,10 +1139,12 @@ GUI_App::GUI_App()
                 });
             }
 
-            if (mainframe && mainframe->m_debug_tool_dlg) {
-                if (mainframe->m_debug_tool_dlg->IsShown())
-                    mainframe->m_debug_tool_dlg->message_arrived(dev_id, msg);
-            }
+            CallAfter([dev_id, msg]{
+                if (wxGetApp().mainframe && wxGetApp().mainframe->m_debug_tool_dlg) {
+                    if (wxGetApp().mainframe->m_debug_tool_dlg->IsShown())
+                        wxGetApp().mainframe->m_debug_tool_dlg->message_arrived(dev_id, msg);
+                }
+            });
         }
     };
 

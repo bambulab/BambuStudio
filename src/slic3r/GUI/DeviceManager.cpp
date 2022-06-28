@@ -577,7 +577,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
         return -1;
 
     // calc threshold
-    float MAPPING_COLOR_THRESHOLD = calc_threshold();
+    //float MAPPING_COLOR_THRESHOLD = calc_threshold();
 
     // tray_index : tray_color
     std::map<int, FilamentInfo> tray_filaments;
@@ -597,6 +597,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                 FilamentInfo info;
                 info.color = tray->second->color;
                 info.type = tray->second->type;
+                info.id = tray_index;
                 tray_filaments.emplace(std::make_pair(tray_index, info));
             }
         }
@@ -659,7 +660,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
         if (picked_src_idx >= 0 && picked_tar_idx >= 0) {
             auto tray = tray_filaments.find(distance_map[k][picked_tar_idx].tray_id);
             if (tray != tray_filaments.end()) {
-                result[picked_src_idx].tray_id = picked_tar_idx;
+                result[picked_src_idx].tray_id = tray->first;
                 result[picked_src_idx].color = tray->second.color;
                 result[picked_src_idx].type = tray->second.type;
                 BOOST_LOG_TRIVIAL(trace) << "tray_id = " << tray->first << ", distance = " << distance_map[k][picked_tar_idx].distance;
@@ -667,7 +668,6 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
             else {
                 FilamentInfo info;
                 info.tray_id = -1;
-                
             }
             picked_tar.insert(picked_tar_idx);
             picked_src.insert(picked_src_idx);
@@ -1918,14 +1918,6 @@ int MachineObject::publish_gcode(std::string gcode_str)
     j["print"]["user_id"] = info->get_user_id();
     return publish_json(j.dump());
 }
-
-std::string get_printer_dest_file(std::string file)
-{
-    std::string result = "/data/";
-    boost::filesystem::path path(file);
-    return result + path.filename().string();
-}
-
 
 BBLSubTask* MachineObject::get_subtask()
 {
