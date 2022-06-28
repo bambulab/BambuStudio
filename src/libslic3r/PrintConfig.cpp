@@ -2505,22 +2505,22 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Flush options");
     def->label = L("Flush into objects' infill");
     def->tooltip = L("Purging after filament change will be done inside objects' infills. "
-                     "This may lower the amount of waste");
+        "This may lower the amount of waste and decrease the print time. "
+        "If the walls are printed with transparent filament, the mixed color infill will be seen outside");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("flush_into_support", coBool);
     def->category = L("Flush options");
     def->label = L("Flush into objects' support");
-    def->tooltip = L("Purging after filament change will be done inside objects' infills. "
-        "This may lower the amount of waste");
+    def->tooltip = L("Purging after filament change will be done inside objects' support. "
+        "This may lower the amount of waste and decrease the print time");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("flush_into_objects", coBool);
     def->category = L("Flush options");
     def->label = L("Flush into this object");
-    def->tooltip = L("Object will be used to purge the nozzle after a toolchange to save material "
-                     "that would otherwise end up in the wipe tower and decrease print time. "
-                     "Colours of the objects will be mixed as a result");
+    def->tooltip = L("This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. "
+        "Colours of the objects will be mixed as a result");
     def->set_default_value(new ConfigOptionBool(false));
 
     //BBS

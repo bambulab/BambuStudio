@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-26 13:37+0800\n"
-"PO-Revision-Date: 2022-05-17 15:42+0800\n"
+"POT-Creation-Date: 2022-06-28 20:47+0800\n"
+"PO-Revision-Date: 2022-06-28 20:53+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -2158,12 +2158,6 @@ msgstr "运动"
 msgid "Ludicrous"
 msgstr "狂暴"
 
-msgid "Failed to connect to the server"
-msgstr "无法连接服务器"
-
-msgid "Failed to connect to the printer"
-msgstr "无法连接打印机"
-
 msgid "Status"
 msgstr "设备状态"
 
@@ -2175,6 +2169,12 @@ msgstr "固件更新"
 
 msgid "HMS"
 msgstr ""
+
+msgid "Failed to connect to the server"
+msgstr "无法连接服务器"
+
+msgid "Failed to connect to the printer"
+msgstr "无法连接打印机"
 
 msgid "OK"
 msgstr "确认"
@@ -2372,7 +2372,7 @@ msgid "Bottom"
 msgstr "底部"
 
 msgid "Switch to per-object setting mode to edit modifier settings."
-msgstr ""
+msgstr "切换到对象模式以编辑修改器的设置。"
 
 msgid "Don't show again"
 msgstr "不再显示"
@@ -2678,18 +2678,6 @@ msgstr "正在为应用程序切换语言"
 msgid "Second"
 msgstr "秒"
 
-msgid "General"
-msgstr "常规"
-
-msgid "GUI"
-msgstr "界面"
-
-msgid "Sync"
-msgstr "同步"
-
-msgid "Shortcuts"
-msgstr "快捷键"
-
 msgid "General settings"
 msgstr "常规设置"
 
@@ -2701,6 +2689,12 @@ msgstr "英制"
 
 msgid "Units"
 msgstr "单位"
+
+msgid "User sync"
+msgstr "用户同步"
+
+msgid "auto sync user presets (printer/materials/craft)"
+msgstr ""
 
 msgid "Associate files to BambuStudio"
 msgstr "Bambu Studio文件关联"
@@ -2741,9 +2735,6 @@ msgstr "启动时显示主页"
 msgid "Sync settings"
 msgstr "同步设置"
 
-msgid "User sync"
-msgstr "用户同步"
-
 msgid "Preset sync"
 msgstr "配置同步"
 
@@ -2774,6 +2765,9 @@ msgstr "开发者模式"
 msgid "Dump video"
 msgstr "下载视频"
 
+msgid "Log Level"
+msgstr ""
+
 msgid "fatal"
 msgstr ""
 
@@ -2792,7 +2786,7 @@ msgstr ""
 msgid "trace"
 msgstr ""
 
-msgid "Log Level"
+msgid "Host Setting"
 msgstr ""
 
 msgid "DEV host: api-dev.bambu-lab.com/v1"
@@ -2942,6 +2936,9 @@ msgstr "高温打印热床"
 msgid "Send print job to"
 msgstr "发送打印任务至"
 
+msgid "Refresh"
+msgstr ""
+
 msgid "Bed Leveling"
 msgstr "热床调平"
 
@@ -3070,7 +3067,7 @@ msgid "Prime tower"
 msgstr "擦拭塔"
 
 msgid "Flush options"
-msgstr ""
+msgstr "换料冲刷选项"
 
 msgid "Special mode"
 msgstr "特殊模式"
@@ -3128,19 +3125,19 @@ msgid "Cool plate"
 msgstr "低温打印热床"
 
 msgid "Bed temperature when cool plate is installed"
-msgstr ""
+msgstr "安装低温打印热床时的热床温度"
 
 msgid "Engineering plate"
 msgstr "工程材料热床"
 
 msgid "Bed temperature when engineering plate is installed"
-msgstr ""
+msgstr "安装工程材料热床时的热床温度"
 
 msgid "High Temp Plate"
 msgstr "高温打印热床"
 
 msgid "Bed temperature when high temperature plate is installed"
-msgstr ""
+msgstr "安装高温打印热床时的热床温度"
 
 msgid "Volumetric speed limitation"
 msgstr "体积速度限制"
@@ -3352,6 +3349,9 @@ msgstr ""
 msgid "Extruders count"
 msgstr "挤出机数量"
 
+msgid "General"
+msgstr "常规"
+
 msgid "Capabilities"
 msgstr "能力"
 
@@ -3436,7 +3436,7 @@ msgid "The configuration is up to date."
 msgstr "当前配置已经是最新版本。"
 
 msgid "Auto-Calc"
-msgstr ""
+msgstr "自动计算"
 
 msgid "Flushing volumes for filament change"
 msgstr "耗材丝更换时的冲刷体积"
@@ -4925,10 +4925,10 @@ msgid "Diameter of nozzle"
 msgstr "喷嘴直径"
 
 msgid "Nozzle volume"
-msgstr ""
+msgstr "喷嘴内腔体积"
 
 msgid "Volume of nozzle between the cutter and the end of nozzle"
-msgstr ""
+msgstr "从切刀位置到喷嘴尖端的内腔体积"
 
 msgid "Reduce infill retraction"
 msgstr "减小填充回抽"
@@ -5075,8 +5075,8 @@ msgstr "接缝位置"
 msgid "The start position to print each part of outer wall"
 msgstr "开始打印外墙的位置"
 
-msgid "Smart"
-msgstr "自动"
+msgid "Nearest"
+msgstr "最近"
 
 msgid "Aligned"
 msgstr "对齐"
@@ -5427,7 +5427,7 @@ msgid "Purging volumes"
 msgstr "冲刷体积"
 
 msgid "Flush multiplier"
-msgstr ""
+msgstr "冲刷乘数"
 
 msgid "Prime volume"
 msgstr "清理量"
@@ -5442,21 +5442,37 @@ msgid "Width of prime tower"
 msgstr "擦拭塔宽度"
 
 msgid "Flush into objects' infill"
-msgstr ""
+msgstr "冲刷到对象的填充"
 
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
-"lower the amount of waste"
+"lower the amount of waste and decrease the print time. If the walls are "
+"printed with transparent filament, the mixed color infill will be seen "
+"outside"
 msgstr ""
+"换料后的过渡料会被用来打印对象的填充。这样可以减少材料浪费和缩短打印时间，但"
+"是如果对象的内外墙是采用透明材料打印的，则可以从模型外观上看到内部的混色过渡"
+"料"
 
-msgid "Flush into this object"
-msgstr ""
+msgid "Flush into objects' support"
+msgstr "冲刷到对象的支撑"
 
 msgid ""
-"Object will be used to purge the nozzle after a toolchange to save material "
-"that would otherwise end up in the wipe tower and decrease print time. "
-"Colours of the objects will be mixed as a result"
+"Purging after filament change will be done inside objects' support. This may "
+"lower the amount of waste and decrease the print time"
 msgstr ""
+"换料后的过渡料会被用来打印对象的支撑。这样可以减少材料浪费以及缩短打印时间"
+
+msgid "Flush into this object"
+msgstr "冲刷到这个对象"
+
+msgid ""
+"This object will be used to purge the nozzle after a filament change to save "
+"filament and decrease the print time. Colours of the objects will be mixed "
+"as a result"
+msgstr ""
+"换料后的过渡料会被用来打印这个对象。这样可以减少材料浪费和缩短打印时间，但是"
+"这个对象的外观会是混色的"
 
 msgid "X-Y hole compensation"
 msgstr "X-Y 孔洞尺寸补偿"
@@ -5645,6 +5661,23 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid ""
+#~ "Purging after filament change will be done inside objects' infills. This "
+#~ "may lower the amount of waste"
+#~ msgstr "换料后的过渡料将被挤出到对象的填充中。这样可以减少材料的浪费"
+
+#~ msgid "GUI"
+#~ msgstr "界面"
+
+#~ msgid "Sync"
+#~ msgstr "同步"
+
+#~ msgid "Shortcuts"
+#~ msgstr "快捷键"
+
+#~ msgid "Smart"
+#~ msgstr "自动"
 
 #~ msgid "Keep"
 #~ msgstr "保持"

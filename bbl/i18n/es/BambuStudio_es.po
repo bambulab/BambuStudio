@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-26 13:37+0800\n"
+"POT-Creation-Date: 2022-06-28 20:47+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2237,12 +2237,6 @@ msgstr "Deportivo"
 msgid "Ludicrous"
 msgstr "Lúdico"
 
-msgid "Failed to connect to the server"
-msgstr "No se ha podido conectar con el servidor"
-
-msgid "Failed to connect to the printer"
-msgstr "No se ha podido conectar a la impresora"
-
 msgid "Status"
 msgstr "Estado"
 
@@ -2254,6 +2248,12 @@ msgstr "Actualizar"
 
 msgid "HMS"
 msgstr "HMS"
+
+msgid "Failed to connect to the server"
+msgstr "No se ha podido conectar con el servidor"
+
+msgid "Failed to connect to the printer"
+msgstr "No se ha podido conectar a la impresora"
 
 msgid "OK"
 msgstr "OK"
@@ -2782,18 +2782,6 @@ msgstr "Cambiar el idioma de la aplicación"
 msgid "Second"
 msgstr "Segundo"
 
-msgid "General"
-msgstr "General"
-
-msgid "GUI"
-msgstr "GUÍA"
-
-msgid "Sync"
-msgstr "Sincronización"
-
-msgid "Shortcuts"
-msgstr "Atajos"
-
 msgid "General settings"
 msgstr "Ajustes generales"
 
@@ -2805,6 +2793,12 @@ msgstr "Imperial"
 
 msgid "Units"
 msgstr "Unidades"
+
+msgid "User sync"
+msgstr "Sincronización del usuario"
+
+msgid "auto sync user presets (printer/materials/craft)"
+msgstr ""
 
 msgid "Associate files to BambuStudio"
 msgstr "Asociar archivos a BambuStudio"
@@ -2851,9 +2845,6 @@ msgstr "Mostrar la página de inicio en el arranque"
 msgid "Sync settings"
 msgstr "Ajustes de sincronización"
 
-msgid "User sync"
-msgstr "Sincronización del usuario"
-
 msgid "Preset sync"
 msgstr "Sincronización preestablecida"
 
@@ -2884,6 +2875,9 @@ msgstr "Modo de desarrollo"
 msgid "Dump video"
 msgstr "Volcar vídeo"
 
+msgid "Log Level"
+msgstr "Nivel de registro"
+
 msgid "fatal"
 msgstr "fatal"
 
@@ -2902,8 +2896,8 @@ msgstr "depurar"
 msgid "trace"
 msgstr "traza"
 
-msgid "Log Level"
-msgstr "Nivel de registro"
+msgid "Host Setting"
+msgstr ""
 
 msgid "DEV host: api-dev.bambu-lab.com/v1"
 msgstr "DEV host: api-dev.bambu-lab.com/v1"
@@ -3053,6 +3047,9 @@ msgstr "Placa de alta temperatura Bambu"
 
 msgid "Send print job to"
 msgstr "Enviar el trabajo de impresión a"
+
+msgid "Refresh"
+msgstr ""
 
 msgid "Bed Leveling"
 msgstr "Nivelación de la cama"
@@ -3490,6 +3487,9 @@ msgstr ""
 
 msgid "Extruders count"
 msgstr "Contador de extrusores"
+
+msgid "General"
+msgstr "General"
 
 msgid "Capabilities"
 msgstr "Capacidades"
@@ -5391,8 +5391,8 @@ msgstr "Posición de la costura"
 msgid "The start position to print each part of outer wall"
 msgstr "La posición inicial para imprimir cada parte de la pared exterior"
 
-msgid "Smart"
-msgstr "Inteligente"
+msgid "Nearest"
+msgstr "Más cercano"
 
 msgid "Aligned"
 msgstr "Alineado"
@@ -5806,16 +5806,26 @@ msgstr ""
 
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
-"lower the amount of waste"
+"lower the amount of waste and decrease the print time. If the walls are "
+"printed with transparent filament, the mixed color infill will be seen "
+"outside"
+msgstr ""
+
+msgid "Flush into objects' support"
+msgstr ""
+
+msgid ""
+"Purging after filament change will be done inside objects' support. This may "
+"lower the amount of waste and decrease the print time"
 msgstr ""
 
 msgid "Flush into this object"
 msgstr ""
 
 msgid ""
-"Object will be used to purge the nozzle after a toolchange to save material "
-"that would otherwise end up in the wipe tower and decrease print time. "
-"Colours of the objects will be mixed as a result"
+"This object will be used to purge the nozzle after a filament change to save "
+"filament and decrease the print time. Colours of the objects will be mixed "
+"as a result"
 msgstr ""
 
 msgid "X-Y hole compensation"
@@ -6017,6 +6027,18 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid "GUI"
+#~ msgstr "GUÍA"
+
+#~ msgid "Sync"
+#~ msgstr "Sincronización"
+
+#~ msgid "Shortcuts"
+#~ msgstr "Atajos"
+
+#~ msgid "Smart"
+#~ msgstr "Inteligente"
 
 #~ msgid "Keep"
 #~ msgstr "Mantener"
@@ -10445,9 +10467,6 @@ msgstr ""
 
 #~ msgid "Position of perimeters starting points."
 #~ msgstr "Posición de los puntos de inicio del perímetro."
-
-#~ msgid "Nearest"
-#~ msgstr "Más cercano"
 
 #~ msgid "Display width"
 #~ msgstr "Anchura de la pantalla"

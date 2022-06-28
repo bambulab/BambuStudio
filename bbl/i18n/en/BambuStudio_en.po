@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-26 13:37+0800\n"
+"POT-Creation-Date: 2022-06-28 20:47+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2126,12 +2126,6 @@ msgstr ""
 msgid "Ludicrous"
 msgstr ""
 
-msgid "Failed to connect to the server"
-msgstr ""
-
-msgid "Failed to connect to the printer"
-msgstr ""
-
 msgid "Status"
 msgstr ""
 
@@ -2142,6 +2136,12 @@ msgid "Update"
 msgstr ""
 
 msgid "HMS"
+msgstr ""
+
+msgid "Failed to connect to the server"
+msgstr ""
+
+msgid "Failed to connect to the printer"
 msgstr ""
 
 msgid "OK"
@@ -2652,18 +2652,6 @@ msgstr ""
 msgid "Second"
 msgstr ""
 
-msgid "General"
-msgstr ""
-
-msgid "GUI"
-msgstr ""
-
-msgid "Sync"
-msgstr ""
-
-msgid "Shortcuts"
-msgstr ""
-
 msgid "General settings"
 msgstr ""
 
@@ -2674,6 +2662,13 @@ msgid "Imperial"
 msgstr ""
 
 msgid "Units"
+msgstr ""
+
+# [Yifan] Will be removed
+msgid "User sync"
+msgstr ""
+
+msgid "auto sync user presets (printer/materials/craft)"
 msgstr ""
 
 msgid "Associate files to BambuStudio"
@@ -2721,10 +2716,6 @@ msgstr ""
 msgid "Sync settings"
 msgstr ""
 
-# [Yifan] Will be removed
-msgid "User sync"
-msgstr ""
-
 # [Yifan] It is a setting name in Preference Menu.
 # Is it better to use “Preset synchronization”?
 # [Cory] I like “Sync,” but depending on how the setting is toggled, it might make sense to say “Sync Presets”
@@ -2761,6 +2752,9 @@ msgstr "Developer mode"
 msgid "Dump video"
 msgstr ""
 
+msgid "Log Level"
+msgstr ""
+
 msgid "fatal"
 msgstr ""
 
@@ -2779,7 +2773,7 @@ msgstr ""
 msgid "trace"
 msgstr ""
 
-msgid "Log Level"
+msgid "Host Setting"
 msgstr ""
 
 msgid "DEV host: api-dev.bambu-lab.com/v1"
@@ -2927,6 +2921,9 @@ msgid "Bamabu High Temperature Plate"
 msgstr ""
 
 msgid "Send print job to"
+msgstr ""
+
+msgid "Refresh"
 msgstr ""
 
 msgid "Bed Leveling"
@@ -3327,6 +3324,9 @@ msgid ""
 msgstr ""
 
 msgid "Extruders count"
+msgstr ""
+
+msgid "General"
 msgstr ""
 
 msgid "Capabilities"
@@ -5119,7 +5119,7 @@ msgstr ""
 msgid "The start position to print each part of outer wall"
 msgstr "This is the starting position for each part of the outer wall."
 
-msgid "Smart"
+msgid "Nearest"
 msgstr ""
 
 msgid "Aligned"
@@ -5510,16 +5510,26 @@ msgstr ""
 
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
-"lower the amount of waste"
+"lower the amount of waste and decrease the print time. If the walls are "
+"printed with transparent filament, the mixed color infill will be seen "
+"outside"
+msgstr ""
+
+msgid "Flush into objects' support"
+msgstr ""
+
+msgid ""
+"Purging after filament change will be done inside objects' support. This may "
+"lower the amount of waste and decrease the print time"
 msgstr ""
 
 msgid "Flush into this object"
 msgstr ""
 
 msgid ""
-"Object will be used to purge the nozzle after a toolchange to save material "
-"that would otherwise end up in the wipe tower and decrease print time. "
-"Colours of the objects will be mixed as a result"
+"This object will be used to purge the nozzle after a filament change to save "
+"filament and decrease the print time. Colours of the objects will be mixed "
+"as a result"
 msgstr ""
 
 msgid "X-Y hole compensation"

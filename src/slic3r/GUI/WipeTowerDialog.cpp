@@ -306,10 +306,6 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         wxBoxSizer* param_sizer = new wxBoxSizer(wxHORIZONTAL);
         param_sizer->AddSpacer(FromDIP(15));
        
-        wxStaticText* extra_flush_title = new wxStaticText(m_page_advanced, wxID_ANY, "Extra volume");
-        param_sizer->Add(extra_flush_title);
-        param_sizer->AddSpacer(FromDIP(5));
-
         wxStaticText* flush_multiplier_title = new wxStaticText(m_page_advanced, wxID_ANY, "Flush multiplier");
         param_sizer->Add(flush_multiplier_title);
         param_sizer->AddSpacer(FromDIP(5));

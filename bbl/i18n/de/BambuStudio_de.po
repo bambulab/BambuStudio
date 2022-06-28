@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-26 13:37+0800\n"
+"POT-Creation-Date: 2022-06-28 20:47+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2105,12 +2105,6 @@ msgstr ""
 msgid "Ludicrous"
 msgstr ""
 
-msgid "Failed to connect to the server"
-msgstr ""
-
-msgid "Failed to connect to the printer"
-msgstr ""
-
 msgid "Status"
 msgstr "Status"
 
@@ -2121,6 +2115,12 @@ msgid "Update"
 msgstr ""
 
 msgid "HMS"
+msgstr ""
+
+msgid "Failed to connect to the server"
+msgstr ""
+
+msgid "Failed to connect to the printer"
 msgstr ""
 
 msgid "OK"
@@ -2621,18 +2621,6 @@ msgstr ""
 msgid "Second"
 msgstr ""
 
-msgid "General"
-msgstr "Allgemein"
-
-msgid "GUI"
-msgstr "GUI"
-
-msgid "Sync"
-msgstr ""
-
-msgid "Shortcuts"
-msgstr ""
-
 msgid "General settings"
 msgstr ""
 
@@ -2643,6 +2631,12 @@ msgid "Imperial"
 msgstr ""
 
 msgid "Units"
+msgstr ""
+
+msgid "User sync"
+msgstr ""
+
+msgid "auto sync user presets (printer/materials/craft)"
 msgstr ""
 
 msgid "Associate files to BambuStudio"
@@ -2684,9 +2678,6 @@ msgstr ""
 msgid "Sync settings"
 msgstr ""
 
-msgid "User sync"
-msgstr ""
-
 msgid "Preset sync"
 msgstr ""
 
@@ -2717,6 +2708,9 @@ msgstr ""
 msgid "Dump video"
 msgstr ""
 
+msgid "Log Level"
+msgstr ""
+
 msgid "fatal"
 msgstr ""
 
@@ -2735,7 +2729,7 @@ msgstr ""
 msgid "trace"
 msgstr ""
 
-msgid "Log Level"
+msgid "Host Setting"
 msgstr ""
 
 msgid "DEV host: api-dev.bambu-lab.com/v1"
@@ -2884,6 +2878,9 @@ msgid "Bamabu High Temperature Plate"
 msgstr ""
 
 msgid "Send print job to"
+msgstr ""
+
+msgid "Refresh"
 msgstr ""
 
 msgid "Bed Leveling"
@@ -3285,6 +3282,9 @@ msgstr ""
 
 msgid "Extruders count"
 msgstr "Extruder Anzahl"
+
+msgid "General"
+msgstr "Allgemein"
 
 msgid "Capabilities"
 msgstr "Fähigkeiten"
@@ -4949,8 +4949,8 @@ msgstr "Nahtposition"
 msgid "The start position to print each part of outer wall"
 msgstr ""
 
-msgid "Smart"
-msgstr ""
+msgid "Nearest"
+msgstr "Nächste"
 
 msgid "Aligned"
 msgstr "Ausgerichtet"
@@ -5300,16 +5300,26 @@ msgstr ""
 
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
-"lower the amount of waste"
+"lower the amount of waste and decrease the print time. If the walls are "
+"printed with transparent filament, the mixed color infill will be seen "
+"outside"
+msgstr ""
+
+msgid "Flush into objects' support"
+msgstr ""
+
+msgid ""
+"Purging after filament change will be done inside objects' support. This may "
+"lower the amount of waste and decrease the print time"
 msgstr ""
 
 msgid "Flush into this object"
 msgstr ""
 
 msgid ""
-"Object will be used to purge the nozzle after a toolchange to save material "
-"that would otherwise end up in the wipe tower and decrease print time. "
-"Colours of the objects will be mixed as a result"
+"This object will be used to purge the nozzle after a filament change to save "
+"filament and decrease the print time. Colours of the objects will be mixed "
+"as a result"
 msgstr ""
 
 msgid "X-Y hole compensation"
@@ -5489,6 +5499,9 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid "GUI"
+#~ msgstr "GUI"
 
 #~ msgid "Keep"
 #~ msgstr "Behalten"
@@ -9662,9 +9675,6 @@ msgstr ""
 
 #~ msgid "Position of perimeters starting points."
 #~ msgstr "Position des Startpunktes des Umfangs."
-
-#~ msgid "Nearest"
-#~ msgstr "Nächste"
 
 #~ msgid "Display width"
 #~ msgstr "Displaybreite"
