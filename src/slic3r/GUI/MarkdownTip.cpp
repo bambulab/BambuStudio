@@ -94,10 +94,10 @@ void MarkdownTip::LoadStyle()
         ph /= "tooltip/styled.html";
         _data_dir = false;
     }
-    auto url = encode_path(ph.string().c_str());
+    auto url = ph.string();
     std::replace(url.begin(), url.end(), '\\', '/');
     url = "file:///" + url;
-    _tipView->LoadURL(url);
+    _tipView->LoadURL(from_u8(url));
     _lastTip.clear();
 }
 
@@ -155,7 +155,7 @@ std::string MarkdownTip::LoadTip(std::string const &tip, std::string const &tool
         if (!_language.empty()) {
             ph = data_dir();
             ph /= "resources/tooltip/" + _language +  "/" + tip + ".md";
-            file = encode_path(ph.string().c_str());
+            file = from_u8(ph.string());
             if (wxFile::Exists(file) && f.Open(file)) {
                 std::string content(f.Length(), 0);
                 f.Read(&content[0], content.size());
@@ -164,7 +164,7 @@ std::string MarkdownTip::LoadTip(std::string const &tip, std::string const &tool
         }
         ph = data_dir();
         ph /= "resources/tooltip/common/" + tip + ".md";
-        file = encode_path(ph.string().c_str());
+        file = from_u8(ph.string());
         if (wxFile::Exists(file) && f.Open(file)) {
             std::string content(f.Length(), 0);
             f.Read(&content[0], content.size());
@@ -191,7 +191,7 @@ std::string MarkdownTip::LoadTip(std::string const &tip, std::string const &tool
     */
     ph = resources_dir();
     ph /= "tooltip/" + _language + "/" + tip + ".md";
-    file = encode_path(ph.string().c_str());
+    file = from_u8(ph.string());
     if (wxFile::Exists(file) && f.Open(file)) {
         std::string content(f.Length(), 0);
         f.Read(&content[0], content.size());
@@ -199,7 +199,7 @@ std::string MarkdownTip::LoadTip(std::string const &tip, std::string const &tool
     }
     ph = resources_dir();
     ph /= "tooltip/" + tip + ".md";
-    file = encode_path(ph.string().c_str());
+    file = from_u8(ph.string());
     if (wxFile::Exists(file) && f.Open(file)) {
         std::string content(f.Length(), 0);
         f.Read(&content[0], content.size());

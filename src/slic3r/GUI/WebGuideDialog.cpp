@@ -117,37 +117,37 @@ void GuideFrame::load_url(wxString &url)
 wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
 {
     //wxLogMessage("GUIDE: webpage_1  %s", (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string().c_str() );
-    wxString TargetUrl = encode_path( (boost::filesystem::path(resources_dir()) / "web/guide/1/index.html").make_preferred().string().c_str() );
+    wxString TargetUrl = from_u8( (boost::filesystem::path(resources_dir()) / "web/guide/1/index.html").make_preferred().string() );
     //wxLogMessage("GUIDE: webpage_2  %s", TargetUrl.mb_str());
 
     if (startpage == BBL_WELCOME){
         SetTitle(_L("Setup Wizard"));
-        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web/guide/1/index.html").make_preferred().string().c_str());
+        TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/1/index.html").make_preferred().string());
     } else if (startpage == BBL_REGION) {
         SetTitle(_L("Setup Wizard"));
-        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web/guide/11/index.html").make_preferred().string().c_str());
+        TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/11/index.html").make_preferred().string());
     } else if (startpage == BBL_MODELS) {
         SetTitle(_L("Setup Wizard"));
-        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web/guide/21/index.html").make_preferred().string().c_str());
+        TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/21/index.html").make_preferred().string());
     } else if (startpage == BBL_FILAMENTS) {
         SetTitle(_L("Setup Wizard"));
 
         int nSize = m_ProfileJson["model"].size();
 
         if (nSize>0)
-            TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web/guide/22/index.html").make_preferred().string().c_str());
+            TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/22/index.html").make_preferred().string());
         else
-            TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web/guide/21/index.html").make_preferred().string().c_str());
+            TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/21/index.html").make_preferred().string());
     } else if (startpage == BBL_FILAMENT_ONLY) {
         SetTitle(_L("Filaments Selection"));
-        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web/guide/23/index.html").make_preferred().string().c_str());
+        TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/23/index.html").make_preferred().string());
     } else if (startpage == BBL_MODELS_ONLY) {
         SetTitle(_L("Printer Selection"));
-        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web/guide/24/index.html").make_preferred().string().c_str());
+        TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/24/index.html").make_preferred().string());
     }
     else {
         SetTitle(_L("Setup Wizard"));
-        TargetUrl = encode_path((boost::filesystem::path(resources_dir()) / "web/guide/21/index.html").make_preferred().string().c_str());
+        TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/21/index.html").make_preferred().string());
     }
 
     std::string strlang = wxGetApp().app_config->get("language");
@@ -848,7 +848,6 @@ int GuideFrame::LoadProfile()
         m_ProfileJson["process"]  = json::array();
 
         LoadProfileFamily(PresetBundle::BBL_BUNDLE, bbl_bundle_path.string());
-        //LoadProfileFamily(PresetBundle::BBL_BUNDLE, encode_path("D:\\Download\\红提.DESKTOP-2JJN86E\\resources\\profiles\\BBL.json"));
 
         const auto enabled_filaments = wxGetApp().app_config->has_section(AppConfig::SECTION_FILAMENTS) ? wxGetApp().app_config->get_section(AppConfig::SECTION_FILAMENTS) : std::map<std::string, std::string>();
         m_appconfig_new.set_vendors(*wxGetApp().app_config);
@@ -957,8 +956,6 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
             std::string s1 = OneModel["model"];
             std::string s2 = OneModel["sub_path"];
 
-            //wxString ModelFilePath = wxString::Format("%s%c%s%c%s", strFolder, boost::filesystem::path::preferred_separator, strVendor, boost::filesystem::path::preferred_separator,s2);
-            //std::string mpath=encode_path(ModelFilePath.mb_str());
             boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
             std::string sub_file = sub_path.string();
 

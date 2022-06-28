@@ -398,7 +398,7 @@ bool ZUserLogin::IsNetworkOK()
 
 bool  ZUserLogin::ShowErrorPage()
 {
-    wxString ErrortUrl = encode_path((boost::filesystem::path(resources_dir()) / "web\\login\\error.html").make_preferred().string().c_str());
+    wxString ErrortUrl = from_u8((boost::filesystem::path(resources_dir()) / "web\\login\\error.html").make_preferred().string());
     load_url(ErrortUrl);
 
     return true;

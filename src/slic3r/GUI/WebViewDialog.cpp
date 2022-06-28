@@ -30,10 +30,10 @@ namespace GUI {
 WebViewPanel::WebViewPanel(wxWindow *parent)
         : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
-    wxString url = encode_path(wxString::Format("file://%s/web/homepage/index.html",resources_dir()).c_str());
-     std::string strlang = wxGetApp().app_config->get("language");
+    wxString url = wxString::Format("file://%s/web/homepage/index.html", from_u8(resources_dir()));
+    std::string strlang = wxGetApp().app_config->get("language");
     if (strlang != "")
-        url = encode_path(wxString::Format("file://%s/web/homepage/index.html?lang=%s", resources_dir(), strlang).c_str());
+        url = wxString::Format("file://%s/web/homepage/index.html?lang=%s", from_u8(resources_dir()), strlang);
     m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION);
 
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
