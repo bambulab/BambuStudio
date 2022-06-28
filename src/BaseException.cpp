@@ -10,6 +10,7 @@
 
 static std::string g_log_folder;
 static std::atomic<int> g_crash_log_count = 0;
+static std::mutex g_dump_mutex;
 
 CBaseException::CBaseException(HANDLE hProcess, WORD wPID, LPCTSTR lpSymbolPath, PEXCEPTION_POINTERS pEp):
 	CStackWalker(hProcess, wPID, lpSymbolPath)
@@ -252,8 +253,10 @@ LONG WINAPI CBaseException::UnhandledExceptionFilter(PEXCEPTION_POINTERS pExcept
 		//BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": got an ExceptionCode %1%, skip it!") % pExceptionInfo->ExceptionRecord->ExceptionCode;
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
+    g_dump_mutex.lock();
 	CBaseException base(GetCurrentProcess(), GetCurrentProcessId(), NULL, pExceptionInfo);
 	base.ShowExceptionInformation();
+    g_dump_mutex.unlock();
 
 	return EXCEPTION_CONTINUE_SEARCH;
 }
