@@ -123,6 +123,37 @@ int OG_CustomCtrl::get_height(const Line& line)
     return 0;
 }
 
+static wxSize split_lines(wxDC &dc, int width, const wxString &text, wxString &multiline_text)
+{
+    if (width > 0 && dc.GetTextExtent(text).x > width) {
+        multiline_text = text;
+        size_t start   = 0;
+        do {
+            size_t idx = size_t(-1);
+            for (size_t i = start; i < multiline_text.Len(); i++) {
+                if (multiline_text[i] == ' ') {
+                    if (dc.GetTextExtent(multiline_text.SubString(start, i)).x < width)
+                        idx = i;
+                    else {
+                        if (idx != size_t(-1))
+                            multiline_text[start = idx] = '\n';
+                        else
+                            multiline_text[start = i] = '\n';
+                        ++start;
+                        break;
+                    }
+                }
+            }
+
+            if (idx != size_t(-1)) {
+                multiline_text[idx] = '\n';
+                start = idx + 1;
+            }
+        } while (dc.GetTextExtent(multiline_text.Mid(start)).x > width);
+    }
+    return dc.GetMultiLineTextExtent(multiline_text.IsEmpty() ? text : multiline_text);
+}
+
 wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 {
     // BBS: new layout
@@ -145,33 +176,15 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
         }
     };
 
-    auto add_label_width = [&h_pos, this](CtrlLine &ctrl_line, Option &opt, int sublabel_width, bool is_multioption_line) {
-        ConfigOptionDef option = opt.opt;
-        // add label if any
-        if (is_multioption_line && !option.label.empty()) {
-            //!            To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
-            auto label = (option.label == L_CONTEXT("Top", "Layers") || option.label == L_CONTEXT("Bottom", "Layers")) ?
-                _CTX(option.label, "Layers") : _(option.label);
-            // BBS
-            //label += ":";
-            wxCoord label_w, label_h;
-#ifdef __WXMSW__
-            // when we use 2 monitors with different DPIs, GetTextExtent() return value for the primary display
-            // so, use dc.GetMultiLineTextExtent on Windows 
-            wxClientDC dc(this);
-            dc.SetFont(m_font);
-            dc.GetMultiLineTextExtent(label, &label_w, &label_h);
-#else
-            GetTextExtent(label, &label_w, &label_h, 0, 0, &m_font);
-#endif //__WXMSW__
-            if (sublabel_width > 0) {
-                if (label_w > sublabel_width)
-                    label_h = label_h * 2;
-                label_w = sublabel_width;
-            }
-            h_pos += label_w + 8 + m_h_gap;
-            if (ctrl_line.height < label_h) ctrl_line.height = label_h;
-        }                
+    auto add_label_width = [&h_pos, this](CtrlLine &ctrl_line, wxString const & label, int label_width) {
+        wxClientDC dc(this);
+        dc.SetFont(m_font);
+        wxString multiline_text;
+        auto size = split_lines(dc, label_width, label, multiline_text);
+        if (label_width > 0) size.x = label_width;
+        h_pos += size.x + m_h_gap;
+        if (ctrl_line.height < size.y)
+            ctrl_line.height = size.y;
     };
 
     auto add_buttons_width = [&h_pos, this] (int blinking_button_width) {
@@ -205,7 +218,7 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 
             wxString label = line.label;
             if (opt_group->label_width != 0)
-                h_pos += opt_group->label_width * m_em_unit + m_h_gap;
+                add_label_width(ctrl_line, label, opt_group->label_width * m_em_unit);
 
             int blinking_button_width = m_bmp_blinking_sz.GetWidth() + m_h_gap;
 
@@ -241,8 +254,20 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                 Field* field = opt_group->get_field(opt.opt_id);
                 correct_line_height(ctrl_line.height, field->getWindow());
 
-                if (!opt_group->option_label_at_right) // BBS: position option label at right
-                    add_label_width(ctrl_line, opt, opt_group->sublabel_width * m_em_unit, is_multioption_line);
+                if (!opt_group->option_label_at_right) { // BBS: position option label at right
+                    ConfigOptionDef option = opt.opt;
+                    // add label if any
+                    if (is_multioption_line && !option.label.empty()) {
+                        //!            To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
+                        auto label = (option.label == L_CONTEXT("Top", "Layers") || option.label == L_CONTEXT("Bottom", "Layers")) ? _CTX(option.label, "Layers") :
+                                                                                                                                     _(option.label);
+                        // BBS
+                        // label += ":";
+                        add_label_width(ctrl_line, label, opt_group->sublabel_width * m_em_unit);
+                        h_pos += 8;
+                    }
+
+                }
 
                 if (field == field_in) {
                     correct_horiz_pos(h_pos, field);
@@ -774,9 +799,9 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
                 break;
             }
         }
-        is_url_string = !suppress_hyperlinks && !og_line.label_path.empty();
+        //is_url_string = !suppress_hyperlinks && !og_line.label_path.empty();
         // BBS
-        h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label /* + ":" */, text_clr, ctrl->opt_group->label_width * ctrl->m_em_unit, is_url_string);
+        h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label /* + ":" */, text_clr, ctrl->opt_group->label_width * ctrl->m_em_unit, true);
     }
 
     // If there's a widget, build it and set result to the correct position.
@@ -850,11 +875,11 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
             //if (!ctrl->opt_group->option_label_at_right) // BBS
                 //label += ":";
 
-            if (is_url_string)
-                is_url_string = false;
-            else if(opt == option_set.front())
-                is_url_string = !suppress_hyperlinks && !og_line.label_path.empty();
-            h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label, field ? (field->blink() ? &blink_color : field->label_color()) : nullptr, ctrl->opt_group->sublabel_width * ctrl->m_em_unit, is_url_string);
+            //if (is_url_string)
+            //    is_url_string = false;
+            //else if(opt == option_set.front())
+            //    is_url_string = !suppress_hyperlinks && !og_line.label_path.empty();
+            h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label, field ? (field->blink() ? &blink_color : field->label_color()) : nullptr, ctrl->opt_group->sublabel_width * ctrl->m_em_unit);
             h_pos += 8;
         }
 
@@ -889,59 +914,32 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
     }
 }
 
-wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxString& text, const wxColour* color, int width, bool is_url/* = false*/)
+wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxString& text, const wxColour* color, int width, bool is_main/* = false*/)
 {
     wxString multiline_text;
-    if (width > 0 && dc.GetTextExtent(text).x > width) {
-        multiline_text = text;
-
-        size_t idx = size_t(-1);
-        for (size_t i = 0; i < multiline_text.Len(); i++)
-        {
-            if (multiline_text[i] == ' ')
-            {
-                if (dc.GetTextExtent(multiline_text.SubString(0, i)).x < width)
-                    idx = i;
-                else {
-                    if (idx != size_t(-1))
-                        multiline_text[idx] = '\n';
-                    else
-                        multiline_text[i] = '\n';
-                    break;
-                }
-            }
-        }
-
-        if (idx != size_t(-1))
-            multiline_text[idx] = '\n';
-    }
+    auto size = split_lines(dc, width, text, multiline_text);
 
     if (!text.IsEmpty()) {
         const wxString& out_text = multiline_text.IsEmpty() ? text : multiline_text;
-        wxCoord text_width, text_height;
-        dc.GetMultiLineTextExtent(out_text, &text_width, &text_height);
 
-        if (ctrl->opt_group->split_multi_line) { // BBS
+        if (ctrl->opt_group->split_multi_line && !is_main) { // BBS
             const std::vector<Option> &option_set = og_line.get_options();
-            if (option_set.size() > 1)
-                pos.y = pos.y + lround((height / option_set.size() - text_height) / 2);
-            else
-                pos.y = pos.y + lround((height - text_height) / 2);
+            pos.y = pos.y + lround((height / option_set.size() - size.y) / 2);
         } else {
-            pos.y = pos.y + lround((height - text_height) / 2);
+            pos.y = pos.y + lround((height - size.y) / 2);
         }
         if (width > 0)
-            rect_label = wxRect(pos, wxSize(text_width, text_height));
+            rect_label = wxRect(pos, wxSize(size.x, size.y));
 
         wxColour old_clr = dc.GetTextForeground();
         wxFont old_font = dc.GetFont();
-        if (is_focused && is_url)
-        // temporary workaround for the OSX because of strange Bold font behavior on BigSerf
-#ifdef __APPLE__
-            dc.SetFont(old_font.Underlined());
-#else
-            dc.SetFont(old_font.Bold().Underlined());
-#endif            
+//        if (is_focused && is_url)
+//        // temporary workaround for the OSX because of strange Bold font behavior on BigSerf
+//#ifdef __APPLE__
+//            dc.SetFont(old_font.Underlined());
+//#else
+//            dc.SetFont(old_font.Bold().Underlined());
+//#endif            
         dc.SetTextForeground(color ? *color :
 #ifdef _WIN32
             wxGetApp().get_label_clr_default());
@@ -953,7 +951,7 @@ wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxStr
         dc.SetFont(old_font);
 
         if (width < 1)
-            width = text_width;
+            width = size.x;
     }
 
     return pos.x + width + ctrl->m_h_gap;
