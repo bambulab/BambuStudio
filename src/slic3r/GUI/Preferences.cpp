@@ -107,7 +107,12 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
 
         if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CHINESE_SIMPLIFIED)) { 
             //language_name = _L(vlist[i]->Description);
-            language_name = _L("Chinese (Simplified)");
+            //language_name = _L("Chinese (Simplified)");
+            language_name = wxString::FromUTF8("\xe4\xb8\xad\xe6\x96\x87\x28\xe7\xae\x80\xe4\xbd\x93\xe4\xb8\xad\xe6\x96\x87\x29");
+        }
+
+        if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_SPANISH)) {
+            language_name = wxString::FromUTF8("\x45\x73\x70\x61\xc3\xb1\x6f\x6c");
         }
 
         if (app_config->get(param) == vlist[i]->CanonicalName) { 
