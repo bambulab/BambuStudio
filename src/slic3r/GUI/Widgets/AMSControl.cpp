@@ -290,7 +290,7 @@ void AMSextruderImage::doRender(wxDC &dc)
     auto size = GetSize();
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(m_colour);
-    dc.DrawRectangle(0, 0, size.x, size.y);
+    dc.DrawRectangle(0, 0, size.x, size.y - FromDIP(5));
     dc.DrawBitmap(m_ams_extruder, wxPoint( (size.x - m_ams_extruder.GetSize().x) / 2, (size.y - m_ams_extruder.GetSize().y) / 2 ));
 }
 
