@@ -21,6 +21,7 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/GUI/GUI.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/UpdateDialogs.hpp"
 #include "slic3r/GUI/ConfigWizard.hpp"
@@ -276,8 +277,8 @@ bool PresetUpdater::priv::get_file(const std::string &url, const fs::path &targe
 		target_path.string(),
 		tmp_path.string());
 
-    BBL::Http::get(url)
-        .on_progress([](BBL::Http::Progress, bool &cancel) {
+    Slic3r::Http::get(url)
+        .on_progress([](Slic3r::Http::Progress, bool &cancel) {
 			if (cancel) { cancel = true; }
 		})
 		.on_error([&](std::string body, std::string error, unsigned http_status) {
@@ -472,8 +473,8 @@ void PresetUpdater::priv::sync_resources(std::map<std::string, Resource> &resour
 {
     std::map<std::string, Resource>    resource_list;
 
-    BBL::AccountManager *account_manager = GUI::wxGetApp().getAccountManager();
-    if (!account_manager) {
+    BBL::BambuNetworkAgent* m_agent = GUI::wxGetApp().getAgent();
+    if (!m_agent) {
         BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: can not get account manager";
         return;
     }
@@ -493,13 +494,9 @@ void PresetUpdater::priv::sync_resources(std::map<std::string, Resource> &resour
         first = false;
     }
 
-    std::string url = account_manager->get_slicer_info_url();
+    std::string url = m_agent->get_studio_info_url();
     url += query_params;
-    BBL::Http http = BBL::Http::get(url);
-    /*http.header("accept", "application/json")
-        .header("client-type", "slicer")
-        .header("os-type", "windows")
-        .header("client-version", SLIC3R_VERSION)*/
+    Slic3r::Http http = Slic3r::Http::get(url);
     http.on_complete([this, &resource_list, resources](std::string body, unsigned) {
             try {
                 BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: request_resources, body=" << body;
@@ -617,8 +614,8 @@ void PresetUpdater::priv::sync_config(const VendorMap vendors)
 
 	if (!enabled_config_update) { return; }
 
-    BBL::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
-    if (!account_manager) {
+    BBL::BambuNetworkAgent* agent = GUI::wxGetApp().getAgent();
+    if (!agent) {
         BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: can not get account manager";
         return;
     }
@@ -636,25 +633,20 @@ void PresetUpdater::priv::sync_config(const VendorMap vendors)
 
         std::string query_vendor = (boost::format("slicer/settings/%1%=%2%")
             % vendor_name
-            % BBL::VersionInfo::convert_full_version(SLIC3R_VERSION)
+            % GUI::VersionInfo::convert_full_version(SLIC3R_VERSION)
             ).str();
         if (!first)
             query_params += "&";
         query_params += query_vendor;
     }
 
-    std::string url = account_manager->get_slicer_info_url();
-    //std::string url = (boost::format("%1%/iot-service/api/slicer/resource") % DEV_HOST_URL).str();
+    std::string url = agent->get_studio_info_url();
     url += query_params;
-    BBL::Http http = BBL::Http::get(url);
-    /*http.header("accept", "application/json")
-        .header("client-type", "slicer")
-        .header("os-type", "windows")
-        .header("client-version", SLIC3R_VERSION)*/
+    Slic3r::Http http = Slic3r::Http::get(url);
 	http.on_complete(
         [this, &vendor_list, &vendor_descriptions, vendors](std::string body, unsigned) {
             try {
-                BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: AccountManager::request_project_id, body=" << body;
+                BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]::body=" << body;
 
                 json j = json::parse(body);
                 std::string message = j["message"].get<std::string>();

@@ -63,7 +63,6 @@ void PrintJob::process()
     int result = -1;
     unsigned int http_code;
     std::string http_body;
-    BBL::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
 
     int total_plate_num = m_plater->get_partplate_list().get_plate_count();
 
@@ -92,7 +91,7 @@ void PrintJob::process()
     else if (job_data.plate_idx == PLATE_CURRENT_IDX)
         curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
 
-    BBL::AccountManager::PrintParams params;
+    BBL::PrintParams params;
     params.dev_id = m_dev_id;
     params.project_name = wxGetApp().plater()->get_project_name().ToUTF8().data();
     params.preset_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
@@ -145,8 +144,10 @@ void PrintJob::process()
             return was_canceled();
         };
 
+    BBL::BambuNetworkAgent* m_agent = wxGetApp().getAgent();
+
     if (params.connection_type != "lan") {
-        result = acc->start_print(params, update_fn, cancel_fn);
+        result = m_agent->start_print(params, update_fn, cancel_fn);
         // no access code
         //if (params.password.empty()) {
         //    result = acc->start_print(params, update_fn, cancel_fn);
@@ -163,7 +164,7 @@ void PrintJob::process()
         //    }
         //}
     } else {
-        result = acc->start_local_print(params, update_fn, cancel_fn);
+        result = m_agent->start_local_print(params, update_fn, cancel_fn);
     }
 
     if (was_canceled()) {

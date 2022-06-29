@@ -5,7 +5,6 @@
 #include "GUI_App.hpp"
 #include "GUI.hpp"
 #include "wxExtensions.hpp"
-#include "AccountManager.hpp"
 #include "Plater.hpp"
 #include "MainFrame.hpp"
 #include "WebViewDialog.hpp"
@@ -22,7 +21,6 @@ enum CUSTOM_ID
     ID_TOP_FILE_MENU,
     ID_TOP_DROPDOWN_MENU,
     ID_TITLE,
-    ID_ACCOUNT,
     ID_MODEL_STORE,
     ID_PUBLISH,
     ID_TOOL_BAR = 3200,
@@ -262,11 +260,6 @@ void BBLTopbar::Init(wxFrame* parent)
     /*wxBitmap model_store_bitmap = create_scaled_bitmap("topbar_store", nullptr, TOPBAR_ICON_SIZE);
     m_model_store_item = this->AddTool(ID_MODEL_STORE, "", model_store_bitmap);
     this->AddSpacer(12);
-
-    wxBitmap account_bitmap = create_scaled_bitmap("topbar_account", nullptr, TOPBAR_ICON_SIZE);
-    m_account_item = this->AddTool(ID_ACCOUNT, "", account_bitmap);
-
-    this->AddSpacer(12);
     */
 
     //this->AddSeparator();
@@ -315,7 +308,6 @@ void BBLTopbar::Init(wxFrame* parent)
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnSaveProject, this, wxID_SAVE);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnRedo, this, wxID_REDO);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnUndo, this, wxID_UNDO);
-    //this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnAccountClicked, this, ID_ACCOUNT);
     //this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnModelStoreClicked, this, ID_MODEL_STORE);
     //this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnPublishClicked, this, ID_PUBLISH);
 }
@@ -374,61 +366,6 @@ void BBLTopbar::SaveNormalRect()
     m_normalRect = m_frame->GetRect();
 }
 
-void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
-{
-    auto accountMenu = new wxMenu();
-
-    append_menu_item(accountMenu, wxID_ANY, _L("Login"), _L("Login with your Account"),
-        [](wxCommandEvent&) { Slic3r::GUI::login(); }, "", nullptr, [this]() {
-            BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-            return !account_manager->is_user_login();
-        }, this);
-    append_menu_item(accountMenu, wxID_ANY, _L("Logout"), _L("Logout"),
-        [](wxCommandEvent&) {
-            BBL::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
-            account_manager->user_logout();
-        }, "", nullptr, [this]() {
-            BBL::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
-            return account_manager->is_user_login();
-        }, this);
-    auto publish_model_and_profile = [this](wxCommandEvent&) {
-        if (wxGetApp().check_login()) {
-            wxGetApp().plater()->show_publish_dialog();
-        }
-    };
-
-    auto cond_publish_model = [this]() {
-        if (GUI::wxGetApp().plater()->model().objects.empty()) return false;
-
-        //BBS check gcode validation
-        /*GUI::PartPlateList& part_plate_list = GUI::wxGetApp().plater()->get_partplate_list();
-        bool publish_enable = part_plate_list.is_all_slice_results_ready_for_print();
-        if (!publish_enable) return false;*/
-
-        BBL::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
-        return account_manager->can_publish();
-    };
-
-    auto cond_publish_profile = [this]() {
-        bool result = true;
-        if (GUI::wxGetApp().plater()->model().objects.empty()) return false;
-
-        //BBS check gcode validation
-        /*GUI::PartPlateList& part_plate_list = GUI::wxGetApp().plater()->get_partplate_list();
-        bool publish_enable = part_plate_list.is_all_slice_results_ready_for_print();
-        if (!publish_enable) return false;*/
-
-        BBL::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
-        return account_manager->can_publish();
-    };
-
-    append_menu_item(accountMenu, wxID_ANY, _L("Publish Model/Profile"), _L("Please slice all plates before upload"),
-        publish_model_and_profile, "", nullptr, cond_publish_model, this);
-
-    wxRect rect = this->GetToolRect(m_account_item->GetId());
-    this->PopupMenu(accountMenu, rect.x, rect.y + this->GetSize().GetHeight() - 5);
-}
-
 void BBLTopbar::OnModelStoreClicked(wxAuiToolBarEvent& event)
 {
     //GUI::wxGetApp().load_url(wxString(wxGetApp().app_config->get_web_host_url() + MODEL_STORE_URL));
@@ -438,8 +375,7 @@ void BBLTopbar::OnPublishClicked(wxAuiToolBarEvent& event)
 {
     if (GUI::wxGetApp().plater()->model().objects.empty()) return;
 
-    BBL::AccountManager *account_manager = GUI::wxGetApp().getAccountManager();
-    if (!account_manager->can_publish()) return;
+    if (!wxGetApp().is_user_login()) return;
 
     wxGetApp().plater()->show_publish_dialog();
 }
@@ -521,9 +457,6 @@ void BBLTopbar::Rescale() {
 
     /*item = this->FindTool(ID_MODEL_STORE);
     item->SetBitmap(create_scaled_bitmap("topbar_store", nullptr, TOPBAR_ICON_SIZE));
-
-    item = this->FindTool(ID_ACCOUNT);
-    item->SetBitmap(create_scaled_bitmap("topbar_account", nullptr, TOPBAR_ICON_SIZE));
     */
 
     item = this->FindTool(wxID_ICONIZE_FRAME);

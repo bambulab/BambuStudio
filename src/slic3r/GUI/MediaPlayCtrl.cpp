@@ -74,31 +74,34 @@ void MediaPlayCtrl::Play()
     m_last_state = MEDIASTATE_INITIALIZING;
     m_button_play->SetIcon("media_stop");
     SetStatus(_L("Initializing..."));
-    wxGetApp()
-        .getAccountManager()
-        ->get_camera_url(m_machine, [this](std::string url) {
-        BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
-        CallAfter([this, url] {
-            m_url = url;
-            if (m_last_state == MEDIASTATE_INITIALIZING) {
-                if (url.empty()) {
-                    Stop();
-                    m_failed_code = 1;
-                    SetStatus(_L("Initialize failed [%d]!"));
-                } else {
-                    m_last_state = MEDIASTATE_LOADING;
-                    SetStatus(_L("Loading..."));
-                    if (wxGetApp().app_config->get("dump_video") == "true") {
-                        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl dump video to " << boost::filesystem::current_path();
-                        m_url = m_url + "&dump=video.h264";
+
+    
+    BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
+    if (agent) {
+            agent->get_camera_url(m_machine, [this](std::string url) {
+            BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
+            CallAfter([this, url] {
+                m_url = url;
+                if (m_last_state == MEDIASTATE_INITIALIZING) {
+                    if (url.empty()) {
+                        Stop();
+                        m_failed_code = 1;
+                        SetStatus(_L("Initialize failed [%d]!"));
+                    } else {
+                        m_last_state = MEDIASTATE_LOADING;
+                        SetStatus(_L("Loading..."));
+                        if (wxGetApp().app_config->get("dump_video") == "true") {
+                            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl dump video to " << boost::filesystem::current_path();
+                            m_url = m_url + "&dump=video.h264";
+                        }
+                        boost::unique_lock lock(m_mutex);
+                        m_tasks.push_back(m_url);
+                        m_cond.notify_all();
                     }
-                    boost::unique_lock lock(m_mutex);
-                    m_tasks.push_back(m_url);
-                    m_cond.notify_all();
                 }
-            }
+            });
         });
-    });
+    }
 }
 
 void MediaPlayCtrl::Stop()

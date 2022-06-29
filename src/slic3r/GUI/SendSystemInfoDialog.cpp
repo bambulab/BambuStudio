@@ -727,7 +727,7 @@ bool SendSystemInfoDialog::send_info(wxString& message)
     } result; // No synchronization needed, UI thread reads only after worker is joined.
 
     auto send = [&job_done, &result](const std::string& data) {
-        BBL::Http http = BBL::Http::post(SEND_SYSTEM_INFO_URL);
+        Slic3r::Http http = Slic3r::Http::post(SEND_SYSTEM_INFO_URL);
         http.header("Content-Type", "application/json")
             .timeout_max(6) // seconds
             .set_post_body(data)
@@ -741,7 +741,7 @@ bool SendSystemInfoDialog::send_info(wxString& message)
                 //BOOST_LOG_TRIVIAL(error) << "Sending system info failed! STATUS: " << status;
                 BOOST_LOG_TRIVIAL(error) << "" << status;
             })
-            .on_progress([&job_done, &result](BBL::Http::Progress, bool &cancel) {
+            .on_progress([&job_done, &result](Slic3r::Http::Progress, bool &cancel) {
                 if (job_done) // UI thread wants us to cancel.
                     cancel = true;
                 if (cancel)

@@ -21,7 +21,6 @@
 #include "GUI_App.hpp"
 #include "GUI_AuxiliaryList.hpp"
 #include "Jobs/PrintJob.hpp"
-#include "AccountManager.hpp"
 #include "libslic3r/Model.hpp"
 
 class wxButton;
@@ -167,7 +166,7 @@ class Plater: public wxPanel
 public:
     using fs_path = boost::filesystem::path;
 
-    Plater(wxWindow *parent, MainFrame *main_frame, BBL::AccountManager* acc);
+    Plater(wxWindow *parent, MainFrame *main_frame);
     Plater(Plater &&) = delete;
     Plater(const Plater &) = delete;
     Plater &operator=(Plater &&) = delete;

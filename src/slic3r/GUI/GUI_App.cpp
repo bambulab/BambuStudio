@@ -56,6 +56,7 @@
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/Process.hpp"
 #include "../Utils/MacDarkMode.hpp"
+#include "../Utils/Http.hpp"
 #include "slic3r/Config/Snapshot.hpp"
 #include "Preferences.hpp"
 #include "Tab.hpp"
@@ -119,6 +120,30 @@ namespace GUI {
 
 class MainFrame;
 
+
+std::string VersionInfo::convert_full_version(std::string short_version)
+{
+    std::string result = "";
+    std::vector<std::string> items;
+    boost::split(items, short_version, boost::is_any_of("."));
+    if (items.size() == VERSION_LEN) {
+        for (int i = 0; i < VERSION_LEN; i++) {
+            std::stringstream ss;
+            ss << std::setw(2) << std::setfill('0') << items[i];
+            result += ss.str();
+            if (i != VERSION_LEN - 1)
+                result += ".";
+        }
+        return result;
+    }
+    return result;
+}
+
+std::string VersionInfo::convert_short_version(std::string full_version)
+{
+    full_version.erase(std::remove(full_version.begin(), full_version.end(), '0'), full_version.end());
+    return full_version;
+}
 
 static std::string convert_studio_language_to_api(std::string lang_code)
 {
@@ -1087,94 +1112,99 @@ GUI_App::GUI_App()
     , m_imgui(new ImGuiWrapper())
 	//, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 	//, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
-    , m_account_manager(new BBL::AccountManager())
 {
-    m_ssdp = new BBL::SsdpDiscovery();
-    m_device_manager = new Slic3r::DeviceManager(*m_account_manager);
+    //TODO
+    bool load_agent_dll = true;
+    if (load_agent_dll)
+        m_agent = new BBL::BambuNetworkAgent();
 
-    m_ssdp->set_on_msg_fn(
-        [this](std::string json_str) {
-            if (m_device_manager) {
-                m_device_manager->on_machine_alive(json_str);
+    m_device_manager = new Slic3r::DeviceManager(m_agent);
+
+    
+    if (m_agent) {
+        m_agent->set_on_ssdp_msg_fn(
+            [this](std::string json_str) {
+                if (m_device_manager) {
+                    m_device_manager->on_machine_alive(json_str);
+                }
             }
-        }
-    );
+        );
 
-    //set callbacks
-    m_account_manager->set_on_user_login_fn([this](int online_login, bool login) {
-        GUI::wxGetApp().request_user_login(online_login);
-    });
-
-    m_account_manager->set_on_printer_connected_fn([this](std::string dev_id) {
-        GUI::wxGetApp().CallAfter([this, dev_id] {
-            /* request_pushing */
-            MachineObject* obj = m_device_manager->get_user_machine(dev_id);
-            if (obj) {
-                obj->command_request_push_all();
-                obj->command_get_version();
-            }
+        //set callbacks
+        m_agent->set_on_user_login_fn([this](int online_login, bool login) {
+            GUI::wxGetApp().request_user_login(online_login);
         });
-    });
 
-    m_account_manager->set_get_country_code_fn([this](){
-            if (app_config)
-                return app_config->get_country_code();
-            return std::string();
-        }
-    );
-
-    m_account_manager->set_on_http_error_fn([this](unsigned int status, std::string body) {
-            this->handle_http_error(status, body);
-    });
-
-    auto message_arrive_fn = [this](std::string dev_id, std::string msg) {
-        CallAfter([this, dev_id, msg] {
-            MachineObject* obj = this->m_device_manager->get_user_machine(dev_id);
-            if (obj) {
-                obj->parse_json(msg);
-
-                MachineObject *obj_ = m_device_manager->get_selected_machine();
-                if (obj == obj_ && obj->is_ams_need_update && wxGetApp().mainframe) {
-                    wxGetApp().sidebar().load_ams_list(obj->amsList);
+        m_agent->set_on_printer_connected_fn([this](std::string dev_id) {
+            GUI::wxGetApp().CallAfter([this, dev_id] {
+                /* request_pushing */
+                MachineObject* obj = m_device_manager->get_user_machine(dev_id);
+                if (obj) {
+                    obj->command_request_push_all();
+                    obj->command_get_version();
                 }
-                if (wxGetApp().mainframe && wxGetApp().mainframe->m_debug_tool_dlg) {
-                    if (wxGetApp().mainframe->m_debug_tool_dlg->IsShown())
-                        wxGetApp().mainframe->m_debug_tool_dlg->message_arrived(dev_id, msg);
-                }
-            }
+            });
         });
-    };
 
-    m_account_manager->set_on_message_fn(message_arrive_fn);
-
-    auto lan_message_arrive_fn = [this](std::string dev_id, std::string msg) {
-        CallAfter([this, dev_id, msg] {
-            MachineObject* obj = m_device_manager->get_local_machine(dev_id);
-            if (obj) {
-                obj->parse_json(msg);
-
-    #if !BBL_RELEASE_TO_PUBLIC
-                if (obj->is_ams_need_update) {
-                    GUI::wxGetApp().sidebar().load_ams_list(obj->amsList);
-                }
-    #endif
-                if (mainframe && mainframe->m_debug_tool_dlg) {
-                    if (mainframe->m_debug_tool_dlg->IsShown())
-                        mainframe->m_debug_tool_dlg->message_arrived(dev_id, msg);
-                }
+        m_agent->set_get_country_code_fn([this](){
+                if (app_config)
+                    return app_config->get_country_code();
+                return std::string();
             }
+        );
+
+        m_agent->set_on_http_error_fn([this](unsigned int status, std::string body) {
+                this->handle_http_error(status, body);
         });
-    };
-    m_account_manager->set_on_local_message_fn(lan_message_arrive_fn);
+
+        auto message_arrive_fn = [this](std::string dev_id, std::string msg) {
+            CallAfter([this, dev_id, msg] {
+                MachineObject* obj = this->m_device_manager->get_user_machine(dev_id);
+                if (obj) {
+                    obj->parse_json(msg);
+
+                    if (obj->is_ams_need_update) {
+                        GUI::wxGetApp().sidebar().load_ams_list(obj->amsList);
+                    }
+                    if (wxGetApp().mainframe && wxGetApp().mainframe->m_debug_tool_dlg) {
+                        if (wxGetApp().mainframe->m_debug_tool_dlg->IsShown())
+                            wxGetApp().mainframe->m_debug_tool_dlg->message_arrived(dev_id, msg);
+                    }
+                }
+            });
+        };
+
+        m_agent->set_on_message_fn(message_arrive_fn);
+
+        auto lan_message_arrive_fn = [this](std::string dev_id, std::string msg) {
+            CallAfter([this, dev_id, msg] {
+                MachineObject* obj = m_device_manager->get_local_machine(dev_id);
+                if (obj) {
+                    obj->parse_json(msg);
+
+        #if !BBL_RELEASE_TO_PUBLIC
+                    if (obj->is_ams_need_update) {
+                        GUI::wxGetApp().sidebar().load_ams_list(obj->amsList);
+                    }
+        #endif
+                    if (mainframe && mainframe->m_debug_tool_dlg) {
+                        if (mainframe->m_debug_tool_dlg->IsShown())
+                            mainframe->m_debug_tool_dlg->message_arrived(dev_id, msg);
+                    }
+                }
+            });
+        };
+        m_agent->set_on_local_message_fn(lan_message_arrive_fn);
 
 
-    m_account_manager->set_on_local_connect_fn(
-        [this](int state, std::string dev_id, std::string msg) {
-            if (mainframe->m_debug_tool_dlg) {
-                mainframe->m_debug_tool_dlg->on_local_connected(state, dev_id, msg);
+        m_agent->set_on_local_connect_fn(
+            [this](int state, std::string dev_id, std::string msg) {
+                if (mainframe->m_debug_tool_dlg) {
+                    mainframe->m_debug_tool_dlg->on_local_connected(state, dev_id, msg);
+                }
             }
-        }
-    );
+        );
+    }
 
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
 	this->init_app_config();
@@ -1192,19 +1222,14 @@ GUI_App::~GUI_App()
     if (m_sync_update_thread.joinable())
         m_sync_update_thread.join();
 
-    if (m_ssdp) {
-        delete m_ssdp;
-        m_ssdp = nullptr;
-    }
-
     if (m_device_manager) {
         delete m_device_manager;
         m_device_manager = nullptr;
     }
 
-    if (m_account_manager) {
-        delete m_account_manager;
-        m_account_manager = nullptr;
+    if (m_agent) {
+        delete m_agent;
+        m_agent = nullptr;
     }
 
     if (app_config != nullptr)
@@ -1280,9 +1305,12 @@ void GUI_App::init_app_config()
             set_data_dir(data_dir);
 
             //BBS set config dir
-            m_account_manager->set_config_dir(data_dir);
+            if (m_agent) {
+                m_agent->set_config_dir(data_dir);
+            }
             //BBS set cert dir
-            m_account_manager->set_cert_dir_name(resources_dir() + "/cert", "slicer_base64.cer");
+            if (m_agent)
+                m_agent->set_cert_file(resources_dir() + "/cert", "slicer_base64.cer");
         #else
             // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
             // https://github.com/Bambu3d/BambuStudio/issues/2911
@@ -1333,7 +1361,7 @@ void GUI_App::init_http_extra_header()
 {
     std::map<std::string, std::string> extra_headers;
     extra_headers.insert(std::make_pair("X-BBL-Client-Type", "slicer"));
-    extra_headers.insert(std::make_pair("X-BBL-Client-Version", BBL::VersionInfo::convert_full_version(SLIC3R_VERSION)));
+    extra_headers.insert(std::make_pair("X-BBL-Client-Version", VersionInfo::convert_full_version(SLIC3R_VERSION)));
 #if defined(__WINDOWS__)
     extra_headers.insert(std::make_pair("X-BBL-OS-Type", "windows"));
 #elif defined(__APPLE__)
@@ -1347,7 +1375,8 @@ void GUI_App::init_http_extra_header()
     extra_headers.insert(std::make_pair("X-BBL-OS-Version", os_version));
     extra_headers.insert(std::make_pair("X-BBL-Device-ID", app_config->get("slicer_uuid")));
     extra_headers.insert(std::make_pair("X-BBL-Language", convert_studio_language_to_api(app_config->get("language"))));
-    BBL::Http::set_extra_headers(extra_headers);
+    if (m_agent)
+        m_agent->set_extra_http_header(extra_headers);
 }
 
 /*void GUI_App::init_single_instance_checker(const std::string &name, const std::string &path)
@@ -1402,7 +1431,9 @@ bool GUI_App::on_init_inner()
 
 
     //BBS start http log
-    m_account_manager->init_log();
+    if (m_agent) {
+        m_agent->init_log();
+    }
 
     // Verify resources path
     const wxString resources_dir = from_u8(Slic3r::resources_dir());
@@ -1425,11 +1456,10 @@ bool GUI_App::on_init_inner()
 //     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", wxVERSION_STRING, wxVERSION;
 
 
-    if (is_editor()) {
-        std::string msg = BBL::Http::tls_global_init();
+    if (is_editor()) {        
+        std::string msg = Slic3r::Http::tls_global_init();
         std::string ssl_cert_store = app_config->get("tls_accepted_cert_store_location");
-        bool ssl_accept = app_config->get("tls_cert_store_accepted") == "yes" && ssl_cert_store == BBL::Http::tls_system_cert_store();
-
+        bool ssl_accept = app_config->get("tls_cert_store_accepted") == "yes" && ssl_cert_store == Slic3r::Http::tls_system_cert_store();
         if (!msg.empty() && !ssl_accept) {
             RichMessageDialog
                 dlg(nullptr,
@@ -1441,7 +1471,7 @@ bool GUI_App::on_init_inner()
             app_config->set("tls_cert_store_accepted",
                 dlg.IsCheckBoxChecked() ? "yes" : "no");
             app_config->set("tls_accepted_cert_store_location",
-                dlg.IsCheckBoxChecked() ? BBL::Http::tls_system_cert_store() : "");
+                dlg.IsCheckBoxChecked() ? Slic3r::Http::tls_system_cert_store() : "");
         }
     }
 
@@ -1581,11 +1611,11 @@ bool GUI_App::on_init_inner()
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(true);
 
-    //BBS init account_manager
-    m_account_manager->load_config();
-    std::string country_code = app_config->get_country_code();
-    m_account_manager->update_country_code(country_code);
-    m_account_manager->load_user_info();
+    if (m_agent) {
+        std::string country_code = app_config->get_country_code();
+        m_agent->set_country_code(country_code);
+        m_agent->load_config();
+    }
 
     //BBS if load user preset failed
     //if (loaded_preset_result != 0) {
@@ -1603,19 +1633,19 @@ bool GUI_App::on_init_inner()
     BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
     scrn->SetText(_L("Loading user presets..."));
     int loaded_preset_result = -1;
-    if (m_account_manager->is_user_login()) {
-        // get setting list, update setting list
-        std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
-        loaded_preset_result = m_account_manager->get_setting_list(
-            version,
-            [this](std::string body, std::string error, unsigned http_status) {
-                BOOST_LOG_TRIVIAL(trace) << "load my settings failed! body = " << body;
-            });
-        GUI::wxGetApp().reload_settings();
+
+    if (m_agent) {
+        if (m_agent->is_user_login()) {
+            // get setting list, update setting list
+            std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
+            loaded_preset_result = m_agent->get_setting_list(version);
+            GUI::wxGetApp().reload_settings();
+        }
+        BOOST_LOG_TRIVIAL(info) << "start_sync_service...";
+        //BBS
+        start_sync_service();
     }
-    BOOST_LOG_TRIVIAL(info) << "start_sync_service...";
-    //BBS
-    start_sync_service();
+    
 
 #ifdef WIN32
 #if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
@@ -2083,7 +2113,6 @@ void GUI_App::system_info()
 
 void GUI_App::keyboard_shortcuts()
 {
-    //BBS TODO add shortcut dialog
     KBShortcutsDialog dlg;
     dlg.ShowModal();
 }
@@ -2299,47 +2328,57 @@ void GUI_App::request_login(bool show_user_info)
 
 void GUI_App::get_login_info()
 {
-    if (m_account_manager->is_user_login()) {
-        std::string login_cmd = m_account_manager->build_login_cmd();
-        wxString strJS = wxString::Format("window.postMessage(%s)", login_cmd);
-        GUI::wxGetApp().run_script(strJS);
+    if (m_agent) {
+        if (m_agent->is_user_login()) {
+            std::string login_cmd = m_agent->build_login_cmd();
+            wxString strJS = wxString::Format("window.postMessage(%s)", login_cmd);
+            GUI::wxGetApp().run_script(strJS);
+        }
+        else {
+            m_agent->user_logout();
+            std::string logout_cmd = m_agent->build_logout_cmd();
+            wxString strJS = wxString::Format("window.postMessage(%s)", logout_cmd);
+            GUI::wxGetApp().run_script(strJS);
+        }
     }
-    else {
-        m_account_manager->user_logout();
-        std::string logout_cmd = m_account_manager->build_logout_cmd();
-        wxString strJS = wxString::Format("window.postMessage(%s)", logout_cmd);
-        GUI::wxGetApp().run_script(strJS);
+}
+
+bool GUI_App::is_user_login()
+{
+    if (m_agent) {
+        return m_agent->is_user_login();
     }
+    return false;
 }
 
 
 bool GUI_App::check_login()
 {
     bool result = false;
-    if (m_account_manager) {
-        result = m_account_manager->is_user_login();
+    if (m_agent) {
+        result = m_agent->is_user_login();
     }
+
     if (!result) {
         ShowUserLogin();
     }
     return result;
 }
 
-void GUI_App::change_user(BBL::AccountInfo* user_info)
-{
-    m_account_manager->set_curr_user(user_info);
-
-    if (m_account_manager->is_user_login())
-    {
-        request_user_login(1);
-    }
-}
-
-void  GUI_App::request_user_login(int online_login)
+void GUI_App::request_user_login(int online_login)
 {
     auto evt = new wxCommandEvent(EVT_USER_LOGIN);
     evt->SetInt(online_login);
     wxQueueEvent(this, evt);
+}
+
+int GUI_App::request_user_unbind(std::string dev_id)
+{
+    int result = -1;
+    if (m_agent) {
+        return m_agent->start_unbind(dev_id);
+    }
+    return result;
 }
 
 std::string GUI_App::handle_web_request(std::string cmd)
@@ -2400,7 +2439,9 @@ std::string GUI_App::handle_web_request(std::string cmd)
             }
             else if (command_str.compare("homepage_logout") == 0) {
                 CallAfter([this] {
-                    m_account_manager->user_logout();
+                    if (m_agent) {
+                        m_agent->user_logout();
+                    }
                 });
             }
             else if (command_str.compare("homepage_newproject") == 0) {
@@ -2441,6 +2482,29 @@ std::string GUI_App::handle_web_request(std::string cmd)
         return "";
     }
     return "";
+}
+
+void GUI_App::handle_script_message(std::string msg)
+{
+    try {
+        json j = json::parse(msg);
+        if (j.contains("command")) {
+            wxString cmd = j["command"];
+            if (cmd == "user_login") {
+                if (m_agent) {
+                    m_agent->change_user(j.dump());
+                    /* delete old user settings */
+                    m_device_manager->clean_user_info();
+                    if (m_agent->is_user_login()) {
+                        request_user_login(1);
+                    }
+                }
+            }
+        }
+    }
+    catch (...) {
+        ;
+    }
 }
 
 void GUI_App::request_model_download(std::string import_json)
@@ -2495,11 +2559,13 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
 {
     int status = evt.GetInt();
     if (status == 401) {
-        if (m_account_manager->is_user_login()) {
-            // move to GUI
-            m_account_manager->user_logout();
-            wxString msg = wxString::Format(_L("Login information expired. Please login again."));
-            wxMessageBox(msg);
+        if (m_agent) {
+            if (m_agent->is_user_login()) {
+                // move to GUI
+                m_agent->user_logout();
+                wxString msg = wxString::Format(_L("Login information expired. Please login again."));
+                wxMessageBox(msg);
+            }
         }
     } else if (status == 403) {
         ;
@@ -2510,11 +2576,13 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
 
 void GUI_App::on_user_login(wxCommandEvent &evt)
 {
+    if (!m_agent) { return; }
+
     int online_login = evt.GetInt();
-    std::string user_id = m_account_manager->get_curr_user()->get_user_id();
+    std::string user_id = m_agent->user_id();
     BOOST_LOG_TRIVIAL(info) << "set_preset: set preset_folder = " << user_id;
     GUI::wxGetApp().app_config->set("preset_folder", user_id);
-    m_account_manager->connect_mqtt();
+    m_agent->connect_server();
 
     // get machine list
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -2551,6 +2619,8 @@ void GUI_App::check_update(bool show_tips)
 
 void GUI_App::check_new_version(bool show_tips)
 {
+    if (!m_agent) return;
+
     std::string platform = "windows";
 
 #ifdef __WINDOWS__
@@ -2563,18 +2633,19 @@ void GUI_App::check_new_version(bool show_tips)
     platform = "linux";
 #endif
     std::string query_params = (boost::format("?name=slicer&version=%1%&guide_version=%2%")
-        % BBL::VersionInfo::convert_full_version(SLIC3R_VERSION)
-        % BBL::VersionInfo::convert_full_version("0.0.0.1")
+        % VersionInfo::convert_full_version(SLIC3R_VERSION)
+        % VersionInfo::convert_full_version("0.0.0.1")
         ).str();
-    std::string url = m_account_manager->get_slicer_info_url() + query_params;
-    BBL::Http http = BBL::Http::get(url);
+
+    std::string url = m_agent->get_studio_info_url() + query_params;
+    Slic3r::Http http = Slic3r::Http::get(url);
     http.header("accept", "application/json")
         .timeout_max(10)
         .on_complete([this, show_tips](std::string body, unsigned) {
         try {
             json j = json::parse(body);
             if (j.contains("message")) {
-                if (j["message"].get<std::string>() == MSG_SUCCESS) {
+                if (j["message"].get<std::string>() == "success") {
                     if (j.contains("software")) {
                         if (j["software"].empty() && show_tips) {
                             this->no_new_version();
@@ -2631,16 +2702,16 @@ void GUI_App::no_new_version()
 
 void GUI_App::reload_settings()
 {
-    if (preset_bundle && m_account_manager) {
-        preset_bundle->load_user_presets(*app_config, m_account_manager->m_my_presets, ForwardCompatibilitySubstitutionRule::Enable);
-        preset_bundle->save_user_presets(*app_config, m_account_manager->need_delete_presets);
+    if (preset_bundle && m_agent) {
+        preset_bundle->load_user_presets(*app_config, m_agent->get_user_presets(), ForwardCompatibilitySubstitutionRule::Enable);
+        preset_bundle->save_user_presets(*app_config, m_agent->get_delete_cache_presets());
     }
 }
 
 //BBS reload when login
 void GUI_App::reload_user_presets()
 {
-    if (preset_bundle && m_account_manager) {
+    if (preset_bundle && m_agent) {
         preset_bundle->remove_users_preset(*app_config);
         mainframe->update_presets_ui();
     }
@@ -2658,7 +2729,7 @@ void GUI_App::sync_preset(Preset* preset)
         std::map<std::string, std::string> values_map;
         int ret = preset_bundle->get_differed_values_to_update(*preset, values_map);
         if (!ret) {
-            std::string new_setting_id = m_account_manager->request_setting_id(preset->name, values_map, http_code);
+            std::string new_setting_id = m_agent->request_setting_id(preset->name, values_map, http_code);
             if (!new_setting_id.empty()) {
                 preset->setting_id = new_setting_id;
                 result = 0;
@@ -2683,7 +2754,7 @@ void GUI_App::sync_preset(Preset* preset)
         std::map<std::string, std::string> values_map;
         int ret = preset_bundle->get_differed_values_to_update(*preset, values_map);
         if (!ret) {
-            std::string new_setting_id = m_account_manager->request_setting_id(preset->name, values_map, http_code);
+            std::string new_setting_id = m_agent->request_setting_id(preset->name, values_map, http_code);
             if (!new_setting_id.empty()) {
                 preset->setting_id = new_setting_id;
                 result = 0;
@@ -2713,7 +2784,7 @@ void GUI_App::sync_preset(Preset* preset)
                     result = 0;
                 }
                 else
-                    result = m_account_manager->put_setting(preset->setting_id, preset->name, values_map, http_code);
+                    result = m_agent->put_setting(preset->setting_id, preset->name, values_map, http_code);
             }
             else {
                 BOOST_LOG_TRIVIAL(trace) << "[sync_preset]update: can not generate differed key-values, we need to skip this preset "<< preset->name;
@@ -2753,44 +2824,49 @@ void GUI_App::start_sync_service()
             while (enable_sync) {
                 count++;
                 boost::this_thread::sleep_for(boost::chrono::milliseconds(2000));
-                if (!m_account_manager->is_user_login()) {
-                    continue;
-                }
-                //sync preset
-                if (!preset_bundle) continue;
-
-                sync_count = preset_bundle->prints.get_user_presets(presets_to_sync);
-                if (sync_count > 0) {
-                    for (Preset& preset: presets_to_sync) {
-                        sync_preset(&preset);
+                if (m_agent) {
+                    if (!m_agent->is_user_login()) {
+                        continue;
                     }
-                }
+                    //sync preset
+                    if (!preset_bundle) continue;
 
-                sync_count = preset_bundle->filaments.get_user_presets(presets_to_sync);
-                if (sync_count > 0) {
-                    for (Preset& preset: presets_to_sync) {
-                        sync_preset(&preset);
+                    sync_count = preset_bundle->prints.get_user_presets(presets_to_sync);
+                    if (sync_count > 0) {
+                        for (Preset& preset: presets_to_sync) {
+                            sync_preset(&preset);
+                        }
                     }
-                }
 
-                sync_count = preset_bundle->printers.get_user_presets(presets_to_sync);
-                if (sync_count > 0) {
-                    for (Preset& preset: presets_to_sync) {
-                        sync_preset(&preset);
+                    sync_count = preset_bundle->filaments.get_user_presets(presets_to_sync);
+                    if (sync_count > 0) {
+                        for (Preset& preset: presets_to_sync) {
+                            sync_preset(&preset);
+                        }
                     }
-                }
 
-                unsigned int http_code = 200;
-                for (auto it = m_account_manager->need_delete_presets.begin(); it != m_account_manager->need_delete_presets.end();) {
-                    if ((*it).empty()) continue;
-                    std::string del_setting_id = *it;
-                    int result = m_account_manager->del_setting(del_setting_id, http_code);
-                    if (result == 0) {
-                        it = m_account_manager->need_delete_presets.erase(it);
-                        BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: delete success! setting id = " << del_setting_id;
+                    sync_count = preset_bundle->printers.get_user_presets(presets_to_sync);
+                    if (sync_count > 0) {
+                        for (Preset& preset: presets_to_sync) {
+                            sync_preset(&preset);
+                        }
                     }
-                    else
-                        it++;
+
+                    unsigned int http_code = 200;
+
+                    /* get list witch need to be deleted*/
+                    std::vector<string> delete_cache_presets = m_agent->get_delete_cache_presets();
+                    for (auto it = delete_cache_presets.begin(); it != delete_cache_presets.end();) {
+                        if ((*it).empty()) continue;
+                        std::string del_setting_id = *it;
+                        int result = m_agent->del_setting(del_setting_id);
+                        if (result == 0) {
+                            it = delete_cache_presets.erase(it);
+                            BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: delete success! setting id = " << del_setting_id;
+                        }
+                        else
+                            it++;
+                    }
                 }
             }
         });

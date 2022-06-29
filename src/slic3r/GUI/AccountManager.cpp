@@ -1,5 +1,4 @@
 #include "AccountManager.hpp"
-#include "BambuNetworkAgent.hpp"
 #include <thread>
 #include <mutex>
 #include <boost/thread.hpp>
@@ -98,7 +97,6 @@ static bool bbl_calc_md5(std::string& filename, std::string& md5_out)
 }
 
 namespace BBL {
-
 
     void action_listener::on_success(const mqtt::token& tok) {
         // re sucscribe the monitoring printer
@@ -271,30 +269,6 @@ namespace BBL {
         }
     }
 
-    std::string VersionInfo::convert_full_version(std::string short_version)
-    {
-        std::string result = "";
-        std::vector<std::string> items;
-        boost::split(items, short_version, boost::is_any_of("."));
-        if (items.size() == VERSION_LEN) {
-            for (int i = 0; i < VERSION_LEN; i++) {
-                std::stringstream ss;
-                ss << std::setw(2) << std::setfill('0') << items[i];
-                result += ss.str();
-                if (i != VERSION_LEN - 1)
-                    result += ".";
-            }
-            return result;
-        }
-        return result;
-    }
-
-    std::string VersionInfo::convert_short_version(std::string full_version)
-    {
-        full_version.erase(std::remove(full_version.begin(), full_version.end(), '0'), full_version.end());
-        return full_version;
-    }
-
 
     AccountInfo::AccountInfo(std::string account, std::string user_id, AccountInfo::LoginStatus status)
     {
@@ -419,7 +393,7 @@ namespace BBL {
             if (json_file.is_open()) {
                 json_file >> config_json;
                 if (config_json.contains("last_monitor_machine"))
-                    this->default_machine = config_json["last_monitor_machine"];
+                    this->selected_machine = config_json["last_monitor_machine"];
                 return 0;
             }
         }
@@ -700,6 +674,22 @@ namespace BBL {
         }
     }
 
+    int AccountManager::send_message(std::string dev_id, std::string json_str, int qos)
+    {
+        if (!mqtt_cli)
+            return -1;
+
+        if (!mqtt_cli->is_connected())
+            return -1;
+
+        std::string topic = (boost::format("device/%1%/request") % dev_id).str();
+        json_str += '\0';
+        BOOST_LOG_TRIVIAL(trace) << "publish_json topic=" << topic << ", payload=" << json_str;
+        auto msg = mqtt::message::create(topic, json_str, qos, false);
+        mqtt_cli->publish(msg);
+        return 0;
+    }
+
     int AccountManager::local_send_message(std::string dev_id, std::string json_str, int qos)
     {
         if (!mqtt_local_cli || !mqtt_local_cli->is_connected()) { 
@@ -716,10 +706,11 @@ namespace BBL {
 
     void AccountManager::set_monitor_machine(std::string dev_id)
     {
-        
         BOOST_LOG_TRIVIAL(trace) << "set monitor machine = " << dev_id;
-        std::string old_dev_id = this->default_machine;
 
+        if (selected_machine == dev_id) return;
+
+        std::string old_dev_id = this->selected_machine;
         if (dev_id.empty()) {
             return;
         }
@@ -731,7 +722,7 @@ namespace BBL {
 
         // store last_monitor_printer
         config_json["last_monitor_machine"] = dev_id;
-        this->default_machine = dev_id;
+        this->selected_machine = dev_id;
 
         //unsubscribe old machine
         if (!old_dev_id.empty() && old_dev_id.compare(dev_id) != 0) {
@@ -744,10 +735,12 @@ namespace BBL {
         }
     }
 
-    void AccountManager::set_default_machine(std::string dev_id)
+    void AccountManager::set_selected_machine(std::string dev_id)
     {
+        this->set_monitor_machine(dev_id);
+
         config_json["last_monitor_machine"] = dev_id;
-        default_machine = dev_id;
+        selected_machine = dev_id;
         save_config();
     }
    
@@ -810,9 +803,9 @@ namespace BBL {
 
     void AccountManager::start_subscribe(std::string module)
     {
-        BOOST_LOG_TRIVIAL(trace) << "start_subscribe, machine=" << default_machine << ", module = " << module;
-        if (!default_machine.empty())
-            this->add_subscribe(default_machine);
+        BOOST_LOG_TRIVIAL(trace) << "start_subscribe, machine=" << selected_machine << ", module = " << module;
+        if (!selected_machine.empty())
+            this->add_subscribe(selected_machine);
 
         if (!module.empty() && subscribe_module.find(module) == subscribe_module.end()) {
             subscribe_module.emplace(std::make_pair(module, true));
@@ -822,14 +815,14 @@ namespace BBL {
 
     void AccountManager::stop_subscribe(std::string module)
     {
-        BOOST_LOG_TRIVIAL(trace) << "stop_subscribe, machine=" << default_machine << ", module = " << module;
+        BOOST_LOG_TRIVIAL(trace) << "stop_subscribe, machine=" << selected_machine << ", module = " << module;
         if (!module.empty() && subscribe_module.find(module) != subscribe_module.end())
             subscribe_module.erase(module);
         else
             return;
         if (subscribe_module.empty()) {
-            if (!default_machine.empty()) {
-                this->del_subscribe(default_machine);
+            if (!selected_machine.empty()) {
+                this->del_subscribe(selected_machine);
             }
             m_is_subscribing = false;
         } else {
@@ -859,14 +852,14 @@ namespace BBL {
 
     void AccountManager::clean_user_data()
     {
-        set_default_machine("");
+        set_selected_machine("");
         myProjectList.clear();
     }
 
-    void AccountManager::user_check_report(int* query_task_id, bool* printable)
+    void AccountManager::user_check_report(int &query_task_id, bool &printable)
     {
         if (!m_curr_user) {
-            *printable = false;
+            printable = false;
             return;
         }
 
@@ -874,11 +867,11 @@ namespace BBL {
         std::string url = (boost::format("http://192.168.0.12:8000/api/user_last_task_report?user_id=%1%") % user_id).str();
         Http http = Http::get(url);
         http.auth_basic("slicer", "znFx94AAew8VVHv");
-        http.on_complete([this, printable, query_task_id](std::string body, unsigned status) {
+        http.on_complete([this, &printable, &query_task_id](std::string body, unsigned status) {
             try {
                 json j = json::parse(body);
-                *query_task_id = j["task_id"].get<int>();
-                *printable = j["print_flag"].get<bool>();
+                query_task_id = j["task_id"].get<int>();
+                printable = j["print_flag"].get<bool>();
             }
             catch (...) {
                 ;
@@ -1087,8 +1080,9 @@ namespace BBL {
         return 0;
     }
 
-    int AccountManager::request_user_unbind(std::string device_id, ResultFn fn)
+    int AccountManager::request_user_unbind(std::string device_id)
     {
+        int result = -1;
         std::string url = (boost::format("%1%/iot-service/api/user/bind") % host).str();
 
         json j;
@@ -1101,24 +1095,21 @@ namespace BBL {
             .header("Authorization", get_token_str())
             .header("Content-Type", "application/json")
             .set_del_body(json_str)
-            .on_complete([&, fn](std::string body, unsigned status) {
+            .on_complete([&result](std::string body, unsigned status) {
                 try {
                     json j = json::parse(body);
                     if (j.contains("message")) {
                         if (j["message"].get<std::string>() == MSG_SUCCESS) {
-                            fn(0, "");
+                            result = 0;
                         }
                     }
                 } catch (...) {
                     ;
                 }
-            }).on_error([&, device_id, fn](std::string body, std::string error, unsigned status) {
-                BOOST_LOG_TRIVIAL(trace) << "Unbind Device " << device_id << " Failed!";
-                if (fn) {
-                    fn(-1, "");
-                }
-            }).perform();
-        return 0;
+            }).on_error([](std::string body, std::string error, unsigned status) {
+                ;
+            }).perform_sync();
+        return result;
     }
 
     int AccountManager::request_bind_list(ResultFn fn)
@@ -2037,10 +2028,43 @@ namespace BBL {
 
     void AccountManager::set_curr_user(AccountInfo* user_info)
     {
+        /* delete old user settings */
+        set_selected_machine("");
         if (m_curr_user)
             delete m_curr_user;
+
         m_curr_user = user_info;
         save_user_info();
+    }
+
+    void AccountManager::set_curr_user(std::string user_info)
+    {
+        try {
+            json j = json::parse(user_info);
+            std::string strToken = j["data"]["token"];
+            // the message from web component is defined as {string:string}, so there string to ll first.
+            long long expiresIn = std::stoll(j["data"]["expires_in"].get<std::string>()) + std::time(nullptr);
+            std::string strRefreshToken = j["data"]["refresh_token"];
+            long long refreshExpiresIn = std::stoll(j["data"]["refresh_expires_in"].get<std::string>()) + std::time(nullptr);
+            std::string strUserID = j["data"]["user"]["uid"];
+            std::string strAccount = j["data"]["user"]["account"];
+            std::string strAvatar = j["data"]["user"]["avatar"];
+            std::string strName = j["data"]["user"]["name"];
+            std::string autotest_token;
+            if (j["data"].contains("autotest_token"))
+                autotest_token = j["data"]["autotest_token"];
+
+            //Save User Info
+            BBL::AccountInfo* new_user = new BBL::AccountInfo(strAccount, strUserID, strName, strAvatar, BBL::AccountInfo::LoginStatus::STATUS_LOGIN, strRefreshToken, refreshExpiresIn, strToken, expiresIn, autotest_token);
+
+            BOOST_LOG_TRIVIAL(trace) << "get access_token = " << strToken;
+            BOOST_LOG_TRIVIAL(trace) << "get access_token_expires_in = " << std::to_string(expiresIn);
+            BOOST_LOG_TRIVIAL(trace) << "get refresh_token = " << strRefreshToken;
+            BOOST_LOG_TRIVIAL(trace) << "get access_token_expires_in = " << std::to_string(refreshExpiresIn);
+            set_curr_user(new_user);
+        } catch (...) {
+            ;
+        }
     }
 
     void AccountManager::get_profile(BBLProject*& project, BBLProfile*& profile)
@@ -2610,7 +2634,7 @@ namespace BBL {
     }
 
     //BBS sync preset bundle when login
-    int AccountManager::get_setting_list(std::string bundle_version, Http::ErrorFn errFn)
+    int AccountManager::get_setting_list(std::string bundle_version)
     {
         m_my_presets.clear();
         m_system_presets.clear();
@@ -2676,7 +2700,7 @@ namespace BBL {
                         }
                         }
                     }
-        ).on_error(errFn)
+        )
         .perform_sync();
 
         std::map<std::string, std::map<std::string, std::string>>::iterator it;

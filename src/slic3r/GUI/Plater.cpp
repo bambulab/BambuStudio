@@ -1148,23 +1148,27 @@ void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
                 (*preset)->setting_id = tray.second->setting_id;
                 ams.set_key_value("filament_settings_id", new ConfigOptionStrings{tray.second->setting_id});
                 //TODO: comment it currently
-                wxGetApp().getAccountManager()->get_setting(tray.second->setting_id, *preset, [preset] {
-                    wxGetApp().CallAfter([preset] {
-                        if ((*preset)->name.empty())
-                            return;
-                        PresetsConfigSubstitutions substitutions;
-                        wxGetApp().preset_bundle->filaments.load_user_presets({{(*preset)->name, *preset}},
-                                PRESET_FILAMENT_NAME, substitutions, ForwardCompatibilitySubstitutionRule::Enable);
-                        auto & ams_list = wxGetApp().preset_bundle->filament_ams_list;
-                        for (auto& ams : ams_list) {
-                            if (ams.opt_string("filament_settings_id", 0u) == (*preset)->setting_id) {
-                                ams.set_key_value("filament_settings_id", new ConfigOptionStrings{(*preset)->name});
-                                for (auto c : wxGetApp().sidebar().combos_filament()) c->update();
-                                break;
+                BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
+                if (agent) {
+                    agent->get_setting(tray.second->setting_id, *preset, [preset] {
+                        wxGetApp().CallAfter([preset] {
+                            if ((*preset)->name.empty())
+                                return;
+                            PresetsConfigSubstitutions substitutions;
+                            wxGetApp().preset_bundle->filaments.load_user_presets({{(*preset)->name, *preset}},
+                                    PRESET_FILAMENT_NAME, substitutions, ForwardCompatibilitySubstitutionRule::Enable);
+                            auto & ams_list = wxGetApp().preset_bundle->filament_ams_list;
+                            for (auto& ams : ams_list) {
+                                if (ams.opt_string("filament_settings_id", 0u) == (*preset)->setting_id) {
+                                    ams.set_key_value("filament_settings_id", new ConfigOptionStrings{(*preset)->name});
+                                    for (auto c : wxGetApp().sidebar().combos_filament()) c->update();
+                                    break;
+                                }
                             }
-                        }
+                        });
                     });
-                });*/
+                }
+                */
                 continue;
             }
             ams.set_key_value("filament_colour", new ConfigOptionStrings{"#" + tray.second->color.substr(0, 6)});
@@ -1403,7 +1407,6 @@ struct Plater::priv
     // PIMPL back pointer ("Q-Pointer")
     Plater *q;
     MainFrame *main_frame;
-    BBL::AccountManager* acc_;
 
     MenuFactory menus;
 
@@ -1537,7 +1540,7 @@ struct Plater::priv
     static const std::regex pattern_any_amf;
     static const std::regex pattern_prusa;
 
-    priv(Plater *q, MainFrame *main_frame, BBL::AccountManager* acc);
+    priv(Plater *q, MainFrame *main_frame);
     ~priv();
 
     bool is_project_dirty() const { return dirty_state.is_dirty(); }
@@ -1900,10 +1903,9 @@ const std::regex Plater::priv::pattern_zip_amf(".*[.]zip[.]amf", std::regex::ica
 const std::regex Plater::priv::pattern_any_amf(".*[.](amf|amf[.]xml|zip[.]amf)", std::regex::icase);
 const std::regex Plater::priv::pattern_prusa(".*bbl", std::regex::icase);
 
-Plater::priv::priv(Plater *q, MainFrame *main_frame, BBL::AccountManager* acc)
+Plater::priv::priv(Plater *q, MainFrame *main_frame)
     : q(q)
     , main_frame(main_frame)
-    , acc_(acc)
     //BBS: add bed_exclude_area
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "printable_area", "bed_exclude_area", "print_sequence",
@@ -6299,9 +6301,9 @@ void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& lab
 
 // Plater / Public
 
-Plater::Plater(wxWindow *parent, MainFrame *main_frame, BBL::AccountManager* acc)
+Plater::Plater(wxWindow *parent, MainFrame *main_frame)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxGetApp().get_min_size())
-    , p(new priv(this, main_frame, acc))
+    , p(new priv(this, main_frame))
 {
     // Initialization performed in the private c-tor
 }
@@ -8088,12 +8090,12 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     }
     if (!has_design_info) {
         // add Designed Info
-        if (p->model.design_info == nullptr && p->acc_) {
+        if (p->model.design_info == nullptr) {
             // set designInfo before export and reset after export
-            if (p->acc_->is_user_login()) {
+            if (wxGetApp().is_user_login()) {
                 p->model.design_info                 = std::make_shared<ModelDesignInfo>();
-                p->model.design_info->Designer       = p->acc_->get_nick_name();
-                p->model.design_info->DesignerUserId = p->acc_->get_user_id();
+                p->model.design_info->Designer       = wxGetApp().getAgent()->user_nickanme();
+                p->model.design_info->DesignerUserId = wxGetApp().getAgent()->user_id();
                 BOOST_LOG_TRIVIAL(trace) << "design_info prepare, designer = " << p->model.design_info->Designer;
                 BOOST_LOG_TRIVIAL(trace) << "design_info prepare, designer_user_id = " << p->model.design_info->DesignerUserId;
             }
@@ -8403,7 +8405,7 @@ int Plater::export_config_3mf(int plate_idx, Export3mfProgressFn proFn)
 void Plater::print_job_finished(wxCommandEvent &evt)
 {
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    dev->set_monitoring_machine(evt.GetString().ToStdString());
+    dev->set_selected_machine(evt.GetString().ToStdString());
 
     p->hide_select_machine_dlg();
     p->main_frame->request_select_tab(MainFrame::TabPosition::tpMonitor);

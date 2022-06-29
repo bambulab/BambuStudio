@@ -154,14 +154,18 @@ void MediaFilePanel::fileChanged(wxCommandEvent& e1)
 
 void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
 {
-    wxGetApp().getAccountManager()->get_camera_url(m_machine, [this, wfs](std::string url) {
-        BOOST_LOG_TRIVIAL(info) << "MediaFilePanel::fetchUrl: camera_url: " << url;
-        CallAfter([this, url, wfs] {
-            boost::shared_ptr fs(wfs);
-            if (fs != m_image_grid->GetFileSystem()) return;
-            fs->SetUrl(url);
+    BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
+    if (agent) {
+        agent->get_camera_url(m_machine,
+            [this, wfs](std::string url) {
+            BOOST_LOG_TRIVIAL(info) << "MediaFilePanel::fetchUrl: camera_url: " << url;
+            CallAfter([this, url, wfs] {
+                boost::shared_ptr fs(wfs);
+                if (fs != m_image_grid->GetFileSystem()) return;
+                fs->SetUrl(url);
+            });
         });
-    });
+    }
 }
 
 MediaFileFrame::MediaFileFrame(wxWindow* parent)

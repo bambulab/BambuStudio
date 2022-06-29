@@ -8,7 +8,8 @@
 #include "mqtt/async_client.h"
 #include "SsdpDiscovery.hpp"
 #include "NetworkProjectTask.hpp"
-#include "slic3r/Utils/Http.hpp"
+#include "slic3r/BambuNetworkDefine.hpp"
+#include "slic3r/Http.hpp"
 #include "slic3r/Utils/Sftp.hpp"
 #include "nlohmann/json.hpp"
 
@@ -44,28 +45,6 @@ namespace pt = boost::property_tree;
 
 namespace BBL {
 
-enum SendingPrintJobStage {
-    PrintingStageCreate     = 0,
-    PrintingStageUpload     = 1,
-    PrintingStageWaiting    = 2,
-    PrintingStageSending    = 3,
-    PrintingStageFinished   = 4,
-};
-
-enum BindJobStage {
-    LoginStageConnect           = 0,
-    LoginStageLogin             = 1,
-    LoginStageWaitForLogin      = 2,
-    LoginStageGetIdentify       = 3,
-    LoginStageWaitAuth          = 4,
-    LoginStageFinished          = 5,
-};
-
-enum ConnectStatus {
-    ConnectStatusOk = 0,
-    ConnectStatusFailed = 1,
-    ConnectStatusLost = 2,
-};
 
 class RegionServer
 {
@@ -164,76 +143,6 @@ public:
     void add_topics(std::string topic) { sub_topics.push_back(topic); }
 };
 
-
-
-#define  VERSION_LEN    4
-class VersionInfo
-{
-public:
-    std::string version_str;
-    std::string version_name;
-    std::string description;
-    std::string url;
-    bool        force_upgrade { false };
-    int      ver_items[VERSION_LEN];  // AA.BB.CC.DD
-    VersionInfo() {
-        for (int i = 0; i < VERSION_LEN; i++) {
-            ver_items[i] = 0;
-        }
-        force_upgrade = false;
-    }
-
-    void parse_version_str(std::string str) {
-        version_str = str;
-        std::vector<std::string> items;
-        boost::split(items, str, boost::is_any_of("."));
-        if (items.size() == VERSION_LEN) {
-            try{
-                for (int i = 0; i < VERSION_LEN; i++) {
-                    ver_items[i] = stoi(items[i]);
-                }
-            }
-            catch (...) {
-                ;
-            }
-        }
-    }
-    static std::string convert_full_version(std::string short_version);
-    static std::string convert_short_version(std::string full_version);
-    static std::string get_full_version() {
-        return convert_full_version(SLIC3R_VERSION);
-    }
-
-    /* return > 0, need update */
-    int compare(std::string ver_str) {
-        if (version_str.empty()) return -1;
-
-        int      ver_target[VERSION_LEN];
-        std::vector<std::string> items;
-        boost::split(items, ver_str, boost::is_any_of("."));
-        if (items.size() == VERSION_LEN) {
-            try{
-                for (int i = 0; i < VERSION_LEN; i++) {
-                    ver_target[i] = stoi(items[i]);
-                    if (ver_target[i] < ver_items[i]) {
-                        return 1;
-                    }
-                    else if (ver_target[i] == ver_items[i]) {
-                        continue;
-                    }
-                    else {
-                        return -1;
-                    }
-                }
-            }
-            catch (...) {
-                return -1;
-            }
-        }
-        return -1;
-    }
-};
-
 class AccountInfo {
 public:
     enum LoginStatus
@@ -322,7 +231,6 @@ private:
     mqtt::connect_options mqtt_local_opt;
     local_conn_callback* mqtt_local_cb { nullptr};
 
-
     int mqtt_uuid_bytes;
 public:
     std::string MQTT_HOST = "ssl://47.100.225.51:8883";
@@ -333,23 +241,6 @@ public:
     std::string get_emqx_server_host();
     std::string get_official_server_host();
 
-    typedef std::function<void(int progress)> ProgressFn;
-    typedef std::function<void(int retcode, std::string info)> LoginFn;
-    typedef std::function<void(int result, std::string info)> ResultFn;
-    typedef std::function<bool()> CancelFn;
-
-    //define callbacks
-    typedef std::function<void(int online_login, bool login)> OnUserLoginFn;
-    typedef std::function<void(std::string topic_str)>  OnPrinterConnectedFn;
-    typedef std::function<void()>                       OnServerConnectedFn;
-    typedef std::function<void(unsigned http_code, std::string http_body)> OnHttpErrorFn;
-    typedef std::function<std::string()>                GetCountryCodeFn;
-    typedef std::function<void(std::string dev_id, std::string msg)> OnMessageFn;
-    typedef std::function<void(int status, int code, std::string msg)> OnUpdateStatusFn;
-    typedef std::function<bool()>                       WasCancelledFn;
-
-    typedef std::function<void(int status, std::string dev_id, std::string msg)> OnLOcalConnectFn;
-
     // ballbacks
     OnUserLoginFn           on_user_login_fn{ nullptr };
     OnPrinterConnectedFn    on_printer_connected_fn{ nullptr };
@@ -357,28 +248,24 @@ public:
     OnHttpErrorFn           on_http_error_fn{ nullptr };
     GetCountryCodeFn        get_country_code_fn{ nullptr };
     OnMessageFn             on_message_fn{ nullptr };
-    OnLOcalConnectFn        on_local_connect_fn{ nullptr };
+    OnLocalConnectedFn      on_local_connect_fn{ nullptr };
     OnMessageFn             on_local_message_fn{ nullptr };
 
-    void set_on_user_login_fn(OnUserLoginFn fn) { on_user_login_fn  = fn; }
+    void set_on_user_login_fn(OnUserLoginFn fn) { on_user_login_fn = fn; }
     void set_on_printer_connected_fn(OnPrinterConnectedFn fn) { on_printer_connected_fn = fn; }
     void set_on_server_connected_fn(OnServerConnectedFn fn) { on_server_connected_fn = fn; }
     void set_on_http_error_fn(OnHttpErrorFn fn) { on_http_error_fn = fn; }
-    void set_get_country_code_fn(GetCountryCodeFn fn) { get_country_code_fn  = fn; }
-    void set_on_message_fn(OnMessageFn fn) { on_message_fn  = fn; }
-    void set_on_local_connect_fn(OnLOcalConnectFn fn) { on_local_connect_fn = fn; }
+    void set_get_country_code_fn(GetCountryCodeFn fn) { get_country_code_fn = fn; }
+    void set_on_message_fn(OnMessageFn fn) { on_message_fn = fn; }
+    void set_on_local_connect_fn(OnLocalConnectedFn fn) { on_local_connect_fn = fn; }
     void set_on_local_message_fn(OnMessageFn fn) { on_local_message_fn = fn; }
 
-    /* bambu stdio agent config */
+    
     json config_json;
     std::string config_dir;
     std::string cert_dir;
     std::string cert_name;
-    void set_config_dir(std::string dir) {
-        BOOST_LOG_TRIVIAL(trace) << "Agent: set_config_dir = " << dir;
-        config_dir = dir;
-    }
-
+    void set_config_dir(std::string dir) {config_dir = dir; }
     void set_cert_dir_name(std::string dir, std::string name) {
         BOOST_LOG_TRIVIAL(trace) << "Agent: set_cert_dir_name,dir=" << dir << ",name=" << name;
         cert_dir = dir;
@@ -407,6 +294,7 @@ public:
     void check_mqtt_connection();
     void add_subscribe(std::string dev_id);
     void del_subscribe(std::string dev_id);
+    int send_message(std::string dev_id, std::string json_str, int qos = 0);
 
     int local_send_message(std::string dev_id, std::string json_str, int qos = 0);
 
@@ -425,7 +313,7 @@ public:
     int user_logout();
     
     void clean_user_data();
-    void user_check_report(int* query_task_id, bool* printable);
+    void user_check_report(int &query_task_id, bool &printable);
 
     // GET /api/user/notification
     /* return: -1 : failed, 1 : success, -2: cancelled, -3: timeout */
@@ -435,10 +323,15 @@ public:
     // PUT /api/user/notification
     int put_notification(BBLProfile* profile, std::string upload_filename, unsigned int &http_code, std::string &http_body);
 
-    /* myBindList */
-    std::string default_machine;                                /* default bind machine dev_id */
-    std::string get_default_machine() { return default_machine; }
-    void set_default_machine(std::string dev_id);
+    ///* myBindList */
+    //std::string default_machine;                                /* default bind machine dev_id */
+    //std::string get_default_machine() { return default_machine; }
+    //void set_default_machine(std::string dev_id);
+
+    std::string selected_machine;
+    std::string get_selected_machine() { return selected_machine; }
+    void set_selected_machine(std::string dev_id);
+    
 
     /* project struct */
     std::map<std::string, BBLProject*> myProjectList;
@@ -448,7 +341,7 @@ public:
 
     /* bind apis */
     int query_bind_status(std::vector<std::string> device_list, unsigned int &http_code, std::string &http_body);
-    int request_user_unbind(std::string device_id, ResultFn fn);
+    int request_user_unbind(std::string device_id);
     int request_bind_list(ResultFn fn = nullptr);
 
     /* device apis */
@@ -521,7 +414,7 @@ public:
     bool can_publish();
 
     /* preset settings api */
-    int get_setting_list(std::string bundle_version, Http::ErrorFn errFn = nullptr);
+    int get_setting_list(std::string bundle_version);
     void get_setting(std::string name, std::map<std::string, std::string>& values_map, std::function<void(void)> callback = {});
     std::string request_setting_id(std::string name, std::map<std::string, std::string>& values_map, unsigned int& http_code);
     int put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>& values_map, unsigned int& http_code);
@@ -544,6 +437,7 @@ public:
     AccountInfo* get_curr_user() { return m_curr_user; }
     AccountInfo* user() { return m_curr_user; }
     void set_curr_user(AccountInfo *user_info);
+    void set_curr_user(std::string user_info);
 
     std::string get_user_name();
     std::string get_nick_name();
@@ -567,32 +461,7 @@ public:
     std::string build_login_request();
     int _parse_login_report(std::string json_str, std::string fail_reason);
 
-    /* print job*/
-    struct PrintParams {
-        /* basic info */
-        std::string     dev_id;
-        std::string     task_name;
-        std::string     project_name;
-        std::string     preset_name;
-        std::string     filename;
-        std::string     config_filename;
-        int             plate_index;
-        std::string     ams_mapping;
-        std::string     connection_type;
-
-        /* access options */
-        std::string     dev_ip;
-        std::string     username;
-        std::string     password;
-
-        /*user options */
-        bool            task_bed_leveling;      /* bed leveling of task */
-        bool            task_flow_cali;         /* flow calibration of task */
-        bool            task_vibration_cali;    /* vibration calibration of task */
-        bool            task_layer_inspect;     /* first layer inspection of task */
-        bool            task_record_timelapse;  /* record timelapse of task */
-
-    };
+    
     int start_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
 
     int start_local_print_with_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);

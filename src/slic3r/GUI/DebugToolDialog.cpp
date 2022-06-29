@@ -85,12 +85,12 @@ void GcodePrintJob::on_exception(const std::exception_ptr &eptr)
 void GcodePrintJob::process()
 {
     /* print current gcode */
-    BBL::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::BambuNetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
 
 #ifdef BBL_CHECK_USER_REPORT
     int task_id = 0;
     bool printable = true;
-    acc->user_check_report(&task_id, &printable);
+    agent->check_user_task_report(task_id, printable);
     if (task_id!=0 && !printable) {
         update_status(0, _L("Please fill report first."));
         std::string report_url = (boost::format("https://autotest.bambu-lab.com/slicerAddReport?task_id=%1%&token=%2%")
@@ -133,7 +133,7 @@ void GcodePrintJob::process()
         return;
     }
 
-    BBL::AccountManager::PrintParams params;
+    BBL::PrintParams params;
     params.project_name = "gcode_project";
     params.filename = _3mf_file_str;
     params.plate_index = 1;
@@ -142,7 +142,7 @@ void GcodePrintJob::process()
     params.task_name = gcode_path.filename().string();
 
 
-    res = acc->start_print(params,
+    res = agent->start_print(params,
         [this, &curr_percent, &msg](int stage, int code, std::string info) {
             if (stage == BBL::SendingPrintJobStage::PrintingStageCreate) {
                 curr_percent = 25;
@@ -1085,14 +1085,14 @@ void DebugToolDialog::on_update_list(SimpleEvent& evt)
         BOOST_LOG_TRIVIAL(trace) << "last_dev_id = " << last_dev_id;
     }
 
-    /* dislay list */
-    BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    std::string username = account_manager->get_user_name();
-
-    if (!account_manager->is_user_login()) {
+    if (!wxGetApp().is_user_login()) {
         wxGetApp().request_login();
         return;
     }
+
+    /* dislay list */
+    BBL::BambuNetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
+    std::string username = agent->user_name();
 
     std::map<std::string, MachineObject*> list = dev_manager_.get_local_machine_list();
     std::vector<MachineObject*> display_list;
@@ -1133,7 +1133,6 @@ void DebugToolDialog::on_update_list(SimpleEvent& evt)
 
 void DebugToolDialog::on_update_mybind_list(SimpleEvent& evt)
 {
-    BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     int select = -1;
     std::string last_my_bind_dev_id;
     if (last_wlan_device_selection < mybind_machine_list_items.size()) {
@@ -1147,7 +1146,7 @@ void DebugToolDialog::on_update_mybind_list(SimpleEvent& evt)
     wxArrayString new_items;
     for (iter = list.begin(); iter != list.end(); iter++) {
         wxString online_status = iter->second->is_online() ? _L("Online") : _L("Offline");
-        wxString text = wxString::Format("%s(%s)[%s]", iter->second->dev_name, iter->second->dev_id, online_status);
+        wxString text = wxString::Format("%s(%s)[%s]", from_u8(iter->second->dev_name), iter->second->dev_id, online_status);
         if (!last_my_bind_dev_id.empty() && iter->second->dev_id.compare(last_my_bind_dev_id) == 0) {
             select = new_items.size();
         }
@@ -1171,8 +1170,6 @@ void DebugToolDialog::on_mqtt_failed(wxCommandEvent& evt)
     btn_refresh_device_list->Enable();
     cb_device_list->Enable();
     radio_btn_lan->SetValue(true);
-    BBL::SsdpDiscovery* backend = wxGetApp().getSsdpDiscovery();
-    backend->set_ssdp_discovery(true);
 }
 
 void DebugToolDialog::on_mqtt_lost(wxCommandEvent& evt)
@@ -1184,8 +1181,6 @@ void DebugToolDialog::on_mqtt_lost(wxCommandEvent& evt)
     btn_refresh_device_list->Enable();
     cb_device_list->Enable();
     radio_btn_lan->SetValue(true);
-    BBL::SsdpDiscovery* ssdp = wxGetApp().getSsdpDiscovery();
-    ssdp->set_ssdp_discovery(true);
 }
 
 void DebugToolDialog::on_mqtt_connected(wxCommandEvent& evt)
@@ -1195,8 +1190,6 @@ void DebugToolDialog::on_mqtt_connected(wxCommandEvent& evt)
     btn_refresh_device_list->Disable();
     cb_device_list->Disable();
     radio_btn_lan->SetValue(true);
-    BBL::SsdpDiscovery* backend = wxGetApp().getSsdpDiscovery();
-    backend->set_ssdp_discovery(false);
 }
 
 void DebugToolDialog::on_mqtt_disconnected(wxCommandEvent& evt)
@@ -1206,8 +1199,6 @@ void DebugToolDialog::on_mqtt_disconnected(wxCommandEvent& evt)
     btn_refresh_device_list->Enable();
     cb_device_list->Enable();
     radio_btn_lan->SetValue(true);
-    BBL::SsdpDiscovery* backend = wxGetApp().getSsdpDiscovery();
-    backend->set_ssdp_discovery(true);
 }
 
 
@@ -1309,31 +1300,22 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
 
 bool DebugToolDialog::Show(bool show)
 {
-    BBL::SsdpDiscovery* backend = wxGetApp().getSsdpDiscovery();
-    BBL::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::BambuNetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
     if (show) {
-        if (backend) {
-            backend->start();
-            if (btn_connect->IsEnabled()) {
-                backend->set_ssdp_discovery(true);
-            }
+        if (agent) {
+            agent->start_discovery(true, true);
+            agent->start_subscribe("debug");
         }
         m_timer->Stop();
         m_timer->SetOwner(this);
         m_timer->Start(10000);
-
-        if (c)
-            c->start_subscribe("debug");
     }
     else {
-        if (backend) {
-            backend->stop();
-            backend->set_ssdp_discovery(false);
+        if (agent) {
+            agent->start_discovery(false, false);
+            agent->stop_subscribe("debug");
         }
         m_timer->Stop();
-
-        if (c)
-            c->stop_subscribe("debug");
     }
 
     return wxPanel::Show(show);
@@ -1342,13 +1324,8 @@ bool DebugToolDialog::Show(bool show)
 
 int DebugToolDialog::publish_json(std::string json_str)
 {
-    BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     /* lan send json */
     if (radio_btn_lan->GetValue()) {
-        std::string user_name = account_manager->get_user_name();
-        std::transform(user_name.begin(), user_name.end(), user_name.begin(),
-            [](unsigned char c) { return std::tolower(c); });
-
         MachineObject* obj = dev_manager_.get_local_selected_machine();
         if (!obj) {
             this->send_log_evt("Invalid Printer! Please Select a Printer!");
@@ -1600,8 +1577,7 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
 
 void DebugToolDialog::refresh_device_list()
 {
-    BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    if (!account_manager->is_user_login()) {
+    if (!wxGetApp().is_user_login()) {
         wxQueueEvent(this, new SimpleEvent(EVT_UPDATE_LIST));
         return;
     }
@@ -1615,7 +1591,7 @@ wxString DebugToolDialog::get_machine_display_item(MachineObject* obj)
     if (obj->dev_name.empty())
         return wxString::Format("%-16s(%s)[bind:%s]", obj->dev_ip, obj->dev_id, obj->get_bind_str());
     else
-        return wxString::Format("%-16s(%s)[bind:%s]", obj->dev_ip, obj->dev_name, obj->get_bind_str());
+        return wxString::Format("%-16s(%s)[bind:%s]", obj->dev_ip, from_u8(obj->dev_name), obj->get_bind_str());
 }
 
 void DebugToolDialog::refresh_firmware_list(bool show_error)
@@ -1649,15 +1625,16 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
 
     int server_sel = m_radioBox_server->GetSelection();
     if (server_sel == 1) {
-        BBL::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
         if (!obj) {
             this->send_log_evt("Please Select a printer");
             return;
         }
         int result = 0;
+
         unsigned int http_code;
         std::string http_body;
-        result = acc->get_machine_version(obj->dev_id, http_code, http_body);
+        BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
+        result = agent->get_printer_firmware(obj->dev_id, http_code, http_body);
         if (result < 0) {
             std::string error = (boost::format("get upgrade list failed! code = %1%, body = %2%") % http_code % http_body).str();
             this->send_log_evt(error);
@@ -1730,7 +1707,7 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
                             % upgrade_mode_name[upgrade_mode]
                             % hardware_version
                             % obj->get_firmware_type_str()).str();
-        BBL::Http http = BBL::Http::get(url);
+        Slic3r::Http http = Slic3r::Http::get(url);
         http.auth_basic("slicer", "znFx94AAew8VVHv");
         http.on_complete([this](std::string body, unsigned) {
             try{
@@ -1787,37 +1764,32 @@ int DebugToolDialog::log_info(std::string line)
 
 int DebugToolDialog::publishGcode(std::string gcode)
 {
-    BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     if (radio_btn_lan->GetValue()) {
         int result = 0;
+
         // can not publish gcode when logout
-        if (!account_manager->is_user_login()) {
+        if (!wxGetApp().is_user_login()) {
             this->log_info("Please login first!");
-            return -1;
-        }
-        BBL::AccountInfo *info = account_manager->get_curr_user();
-        if (!info) {
-            this->log_info("User info is invalid!");
             return -1;
         }
 
 #ifdef __CHECK_BIND_USER__
         /* compare with bind user */
         MachineObject *obj = dev_manager_.get_local_selected_machine();
+
         if (!obj) return -1;
         if (obj->bind_user_id.empty()) return -1;
-        if (obj->bind_user_id.compare(account_manager->get_curr_user()->get_user_id()) != 0) {
+        if (obj->bind_user_id.compare(wxGetApp().getAgent()->user_id()) != 0) {
             std::string log = "Please Bind dev=" + obj->dev_id + " first!";
             this->send_log_evt(log);
             return -1;
         }
 #endif
-
         pt::ptree root, print;
         print.put("command", "gcode_line");
         print.put("param", gcode);
         print.put("sequence_id", this->m_sequence_id++);
-        print.put("user_id", info->get_user_id());
+        print.put("user_id", wxGetApp().getAgent()->user_id());
         root.put_child("print", print);
         std::stringstream oss;
         pt::write_json(oss, root, false);
@@ -1861,7 +1833,7 @@ void DebugToolDialog::on_select_mybind_device(wxCommandEvent& evt)
     //machine_list_items
     int selection = evt.GetSelection();
     if (selection < mybind_machine_list_items.size()) {
-        dev_manager_.set_monitoring_machine(mybind_machine_list_items[selection]);
+        dev_manager_.set_selected_machine(mybind_machine_list_items[selection]);
         send_log_evt("Select Printer=" + mybind_machine_list_items[selection]);
         /* update widget values */
         last_wlan_device_selection = selection;

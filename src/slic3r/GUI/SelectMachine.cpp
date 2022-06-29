@@ -471,14 +471,12 @@ wxBEGIN_EVENT_TABLE(SelectMachinePopup, wxPopupTransientWindow) EVT_MOUSE_EVENTS
 
 void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
 {
-    start_ssdp();
+    start_ssdp(true);
     m_refresh_timer->Stop();
     m_refresh_timer->SetOwner(this);
     m_refresh_timer->Start(MACHINE_LIST_REFRESH_INTERVAL);
 
-    BBL::AccountManager* acc = wxGetApp().getAccountManager();
-
-    if (acc->is_user_login()) {
+    if (wxGetApp().is_user_login()) {
         get_print_info_thread = new boost::thread(Slic3r::create_thread([this] {
                 DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
                 dev->update_user_machine_list_info();
@@ -507,7 +505,7 @@ void SelectMachinePopup::OnDismiss()
     }
 
     Slic3r::create_thread([this] {
-        stop_ssdp();
+        start_ssdp(false);
         if (get_print_info_thread) {
             get_print_info_thread->interrupt();
             if (get_print_info_thread->joinable()) {
@@ -634,21 +632,10 @@ bool SelectMachinePopup::can_abort(std::string state)
     return false;
 }
 
-void SelectMachinePopup::start_ssdp()
+void SelectMachinePopup::start_ssdp(bool start)
 {
-    BBL::SsdpDiscovery *ssdp = wxGetApp().getSsdpDiscovery();
-    if (ssdp) {
-        ssdp->start();
-        ssdp->set_ssdp_discovery(true);
-    }
-}
-
-void SelectMachinePopup::stop_ssdp()
-{
-    BBL::SsdpDiscovery * ssdp = wxGetApp().getSsdpDiscovery();
-    if (ssdp) {
-        ssdp->set_ssdp_discovery(false);
-        ssdp->stop();
+    if (wxGetApp().getAgent()) {
+        wxGetApp().getAgent()->start_discovery(start, start);
     }
 }
 
@@ -1141,7 +1128,6 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         return;
     }
 
-    BBL::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
 
     MachineObject* obj_ = dev->get_selected_machine();
@@ -1170,12 +1156,15 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
 #ifdef BBL_CHECK_USER_REPORT
     int  task_id   = 0;
     bool printable = true;
-    c->user_check_report(&task_id, &printable);
-    if (task_id != 0 && !printable) {
-        update_err_msg(_L("Please fill report first."));
-        std::string report_url = (boost::format("https://autotest.bambu-lab.com/slicerAddReport?task_id=%1%&token=%2%") % task_id % c->get_curr_user()->m_autotest_token).str();
-        wxLaunchDefaultBrowser(report_url);
-        return;
+    BBL::BambuNetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
+    if (agent) {
+        agent->user_check_report(&task_id, &printable);
+        if (task_id != 0 && !printable) {
+            update_err_msg(_L("Please fill report first."));
+            std::string report_url = (boost::format("https://autotest.bambu-lab.com/slicerAddReport?task_id=%1%&token=%2%") % task_id % c->get_curr_user()->m_autotest_token).str();
+            wxLaunchDefaultBrowser(report_url);
+            return;
+        }
     }
 #endif
 #endif
@@ -1266,29 +1255,18 @@ void SelectMachineDialog::on_refresh(wxCommandEvent &event)
     m_button_refresh->SetBackgroundColor(disable_colour);
     m_button_refresh->SetBorderColor(disable_colour);
 
-    //update
-    DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-    MachineObject *obj_ = dev_manager->get_selected_machine();
-    if (!obj_) return;
+    if (wxGetApp().is_user_login()) {
+        if (this == NULL || this == nullptr) { return; }
+        boost::thread get_print_info_thread = Slic3r::create_thread([this] {
+            DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+            dev->update_user_machine_list_info();
 
-    if (obj_->connection_type() != "lan") {
-        BBL::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
-        if (c->is_user_login()) {
-            if (this == NULL || this == nullptr) { return; }
-            boost::thread get_print_info_thread = Slic3r::create_thread([this] {
-                DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-                dev->update_user_machine_list_info();
-
-                wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
-                event.SetEventObject(this);
-                wxPostEvent(this, event);
-            });
-        }
-    } else {
-        wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
-        event.SetEventObject(this);
-        wxPostEvent(this, event);
+            wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
+            event.SetEventObject(this);
+            wxPostEvent(this, event);
+        });
     }
+    
 }
 
 void SelectMachineDialog::on_print_job_cancel(wxCommandEvent &evt)
@@ -1400,7 +1378,6 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 {
     m_ams_mapping_result.clear();
     update_err_msg(wxEmptyString);
-    BBL::AccountManager *acc = Slic3r::GUI::wxGetApp().getAccountManager();
     if (event.GetString().empty()) { return; }
 
     auto dev_name = event.GetString().ToStdString();
@@ -1451,15 +1428,14 @@ bool SelectMachineDialog::Show(bool show)
     //adjust combox
     m_comboBox_printer->Enable();
 
-
-    BBL::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
-    if (acc) {
+    BBL::BambuNetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
+    if (agent) {
         if (show)
-            acc->start_subscribe("send_print");
+            agent->start_subscribe("send_print");
         else
-            acc->stop_subscribe("send_print");
+            agent->stop_subscribe("send_print");
 
-        if (acc->is_user_login()) {
+        if (agent->is_user_login()) {
             boost::thread get_print_info_thread = Slic3r::create_thread([this] {
                 DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
                 dev->update_user_machine_list_info();
@@ -1469,17 +1445,12 @@ bool SelectMachineDialog::Show(bool show)
                 wxPostEvent(this, event);
                 });
         }
-    }
 
-    BBL::SsdpDiscovery* ssdp = wxGetApp().getSsdpDiscovery();
-    if (ssdp) {
         if (show) {
-            ssdp->start();
-            ssdp->set_ssdp_discovery(true);
+            agent->start_discovery(true, true);
         }
         else {
-            ssdp->set_ssdp_discovery(false);
-            ssdp->stop();
+            agent->start_discovery(false, false);
         }
     }
 

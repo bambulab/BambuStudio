@@ -6,7 +6,6 @@
 #include "libslic3r/AppConfig.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
-#include "slic3r/GUI/AccountManager.hpp"
 #include "libslic3r_version.h"
 
 #include <wx/sizer.h>
@@ -340,10 +339,13 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             if (m_Region != oldregion) {
                 AppConfig* config = GUI::wxGetApp().app_config;
                 std::string country_code = config->get_country_code();
-                wxGetApp().getAccountManager()->update_country_code(country_code);
-                if (wxGetApp().getAccountManager()->is_user_login()) {
-                    bLogin = true;
-                    wxGetApp().getAccountManager()->user_logout();
+                BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
+                if (agent) {
+                    agent->set_country_code(country_code);
+                    if (wxGetApp().is_user_login()) {
+                        bLogin = true;
+                        agent->user_logout();
+                    }
                 }
             }
 

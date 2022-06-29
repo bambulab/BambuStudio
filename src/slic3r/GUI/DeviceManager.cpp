@@ -256,15 +256,16 @@ std::string MachineObject::get_printer_type_string()
     return "3DPrinter";
 }
 
-MachineObject::MachineObject(BBL::AccountManager& acc, std::string name, std::string id, std::string ip)
-    :acc_(acc),
-    dev_name(name),
+MachineObject::MachineObject(BBL::BambuNetworkAgent* agent, std::string name, std::string id, std::string ip)
+    :dev_name(name),
     dev_id(id),
     dev_ip(ip),
     subtask_(nullptr),
     slice_info(nullptr),
     m_is_online(false)
 {
+    m_agent = agent;
+
     /* create a dummy task to store info */
     subtask_ = new BBLSubTask(nullptr);
 
@@ -610,7 +611,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
         bool  is_same_color = true;
         bool  is_type_match = true;
     };
-    std:; vector<std::vector<DisValue>> distance_map;
+    std::vector<std::vector<DisValue>> distance_map;
     for (int i = 0; i < filaments.size(); i++) {
         std::vector<DisValue> rol;
         for (auto tray = tray_filaments.begin(); tray != tray_filaments.end(); tray++) {
@@ -1239,28 +1240,23 @@ void MachineObject::set_print_state(std::string status)
     print_status = status;
 }
 
-DeviceManager::DeviceManager(BBL::AccountManager& acc)
-    : acc_(acc)
-{
-    try {
-        m_device_check_alive = Slic3r::create_thread([this] { this->check_alive(); });
-    }
-    catch (std::exception& e) {
-        ;
-    }
-}
-
 int MachineObject::connect()
 {
-    // do not use password to connect mqtt
+    //TODO do not use password to connect mqtt now
     std::string username;
     std::string password;
-    return acc_.local_connect_mqtt(dev_id, dev_ip, username, password);
+    if (m_agent) {
+        return m_agent->connect_printer(dev_id, dev_ip, username, password);
+    }
+    return -1;
 }
 
 int MachineObject::disconnect()
 {
-    return acc_.local_disconnect_mqtt();
+    if (m_agent) {
+        return m_agent->disconnect_printer();
+    }
+    return -1;
 }
 
 bool MachineObject::is_connected()
@@ -1290,23 +1286,20 @@ int MachineObject::publish_json(std::string json_str, int qos)
 
 int MachineObject::cloud_publish_json(std::string json_str, int qos)
 {
-    mqtt::async_client* client = acc_.get_client();
+    int result = -1;
+    if (m_agent)
+        result = m_agent->send_message(dev_id, json_str, qos);
 
-    if (!client->is_connected()) {
-        return -1;
-    }
-
-    std::string topic = (boost::format("device/%1%/request") % dev_id).str();
-    json_str += '\0';
-    BOOST_LOG_TRIVIAL(trace) << "publish_json topic=" << topic << ", payload=" << json_str;
-    auto msg = mqtt::message::create(topic, json_str, qos, false);
-    client->publish(msg);
-    return 0;
+    return result;
 }
 
 int MachineObject::local_publish_json(std::string json_str, int qos)
 {
-    return acc_.local_send_message(dev_id, json_str, qos);
+    int result = -1;
+    if (m_agent) {
+        result = m_agent->send_message_to_printer(dev_id, json_str, qos);
+    }
+    return result;
 }
 
 int MachineObject::parse_json(std::string payload)
@@ -1650,8 +1643,9 @@ int MachineObject::parse_json(std::string payload)
 
                 // can query users info
                 bool query_user = true;
-                if (acc_.get_curr_user() && is_local()) {
-                    if (!bind_user_id.empty() && bind_user_id.compare(acc_.get_curr_user()->get_user_id()) != 0)
+                //do not query when this machine is not current user
+                if (Slic3r::GUI::wxGetApp().is_user_login()) {
+                    if (!bind_user_id.empty() && bind_user_id.compare(Slic3r::GUI::wxGetApp().getAgent()->user_id()) != 0)
                         query_user = false;
                 }
 
@@ -1904,18 +1898,13 @@ int MachineObject::parse_json(std::string payload)
 
 int MachineObject::publish_gcode(std::string gcode_str)
 {
-    //can not publish gcode when logout
-    if (!acc_.is_user_login()) {
-        return -1;
-    }
-    BBL::AccountInfo* info = acc_.get_curr_user();
-    if (!info) return -1;
-
     json j;
     j["print"]["command"] = "gcode_line";
     j["print"]["param"] = gcode_str;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["print"]["user_id"] = info->get_user_id();
+
+    if (m_agent)
+        j["print"]["user_id"] = m_agent->user_id();
     return publish_json(j.dump());
 }
 
@@ -1934,7 +1923,7 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
         || profile_id.compare("0") == 0
         || subtask_id.compare("0") == 0) return;
 
-    
+    if (!m_agent) return;
 
     if (project_id_ != project_id || profile_id_ != profile_id || slice_info == nullptr || subtask_id_ != subtask_id) {
 
@@ -1945,10 +1934,10 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
         slice_info = new BBLSliceInfo();
         auto get_slice_info_thread = boost::thread([this, project_id, profile_id, subtask_id] {
                 int plate_index = -1;
-                acc_.get_plate_index(subtask_id, plate_index);
+                m_agent->get_task_plate_index(subtask_id, plate_index);
                 if (plate_index >= 0) {
                     std::string slice_json;
-                    acc_.get_slice_info(project_id, profile_id, plate_index, slice_json);
+                    m_agent->get_slice_info(project_id, profile_id, plate_index, slice_json);
                     //parse json
                     json j = json::parse(slice_json);
                     if (!j["prediction"].is_null())
@@ -1973,11 +1962,6 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
     }
 }
 
-void MachineObject::request_logout(ResultFn fn)
-{
-    acc_.request_user_unbind(this->dev_id, fn);
-}
-
 void MachineObject::get_firmware_info()
 {
     m_firmware_valid = false;
@@ -1986,7 +1970,7 @@ void MachineObject::get_firmware_info()
             int          result = 0;
             unsigned int http_code;
             std::string  http_body;
-            result = acc_.get_machine_version(dev_id, http_code, http_body);
+            result = m_agent->get_printer_firmware(dev_id, http_code, http_body);
             if (result < 0) {
                 // get upgrade list failed
                 return;
@@ -2063,6 +2047,17 @@ bool MachineObject::is_firmware_info_valid()
     return m_firmware_valid;
 }
 
+DeviceManager::DeviceManager(BBL::BambuNetworkAgent* agent)
+{
+    m_agent = agent;
+    try {
+        m_device_check_alive = Slic3r::create_thread([this] { this->check_alive(); });
+    }
+    catch (std::exception& e) {
+        ;
+    }
+}
+
 DeviceManager::~DeviceManager()
 {
     if (m_check_alive_quit) return;
@@ -2125,7 +2120,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
         }
         else {
             /* insert a new machine */
-            obj = new MachineObject(acc_, dev_name, dev_id, dev_ip);
+            obj = new MachineObject(m_agent, dev_name, dev_id, dev_ip);
             obj->printer_type = MachineObject::parse_printer_type(printer_type_str);
             obj->wifi_signal = printer_signal;
             obj->dev_connection_type = connect_type;
@@ -2151,6 +2146,9 @@ void DeviceManager::disconnect_all()
 
 void DeviceManager::query_bind_status()
 {
+    if (!m_agent)
+        return;
+
     std::lock_guard<std::mutex> lock(listMutex);
     std::map<std::string, MachineObject*>::iterator it;
     std::vector<std::string> query_list;
@@ -2160,7 +2158,7 @@ void DeviceManager::query_bind_status()
 
     unsigned int http_code;
     std::string http_body;
-    int result = acc_.query_bind_status(query_list, http_code, http_body);
+    int result = m_agent->query_bind_status(query_list, http_code, http_body);
 
     try {
         json j = json::parse(http_body);
@@ -2189,7 +2187,8 @@ MachineObject* DeviceManager::get_local_selected_machine()
 }
 
 MachineObject* DeviceManager::get_default_machine() {
-    std::string dev_id = acc_.get_default_machine();
+
+    std::string dev_id = m_agent->user_selected_machine();
     if (dev_id.empty()) return nullptr;
     
     auto it = userMachineList.find(dev_id);
@@ -2200,7 +2199,6 @@ MachineObject* DeviceManager::get_default_machine() {
 MachineObject* DeviceManager::get_local_machine(std::string dev_id)
 {
     if (dev_id.empty()) return nullptr;
-
     auto it = localMachineList.find(dev_id);
     if (it == localMachineList.end()) return nullptr;
     return it->second;
@@ -2208,23 +2206,31 @@ MachineObject* DeviceManager::get_local_machine(std::string dev_id)
 
 MachineObject* DeviceManager::get_user_machine(std::string dev_id)
 {
-    if (!acc_.is_user_login()) {
+    if (!Slic3r::GUI::wxGetApp().is_user_login())
         return nullptr;
-    }
+
     std::map<std::string, MachineObject*>::iterator it = userMachineList.find(dev_id);
     if (it == userMachineList.end()) return nullptr;
     return it->second;
 }
 
-void DeviceManager::clear_user_machine_list()
+void DeviceManager::clean_user_info()
 {
+    // reset selected_machine
+    selected_machine = "";
+
     // clean access code
     for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
         Slic3r::GUI::wxGetApp().app_config->set("access_code", it->second->dev_id, "");
     }
 
-    // clean selected machine
-
+    // clean user list
+    for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
+        if (it->second) {
+            delete it->second;
+            it->second = nullptr;
+        }
+    }
     userMachineList.clear();
 }
 
@@ -2236,11 +2242,10 @@ bool DeviceManager::set_selected_machine(std::string dev_id)
     auto it = my_machine_list.find(dev_id);
     if (it != my_machine_list.end()) {
         if (it->second->connection_type() != "lan" || it->second->connection_type().empty()) {
-            acc_.set_monitor_machine(dev_id);
-            set_monitoring_machine(dev_id);
+            m_agent->set_user_selected_machine(dev_id);
             it->second->reset();
         } else {
-            acc_.local_disconnect_mqtt();
+            m_agent->disconnect_printer();
             it->second->reset();
             it->second->connect();
         }
@@ -2289,43 +2294,25 @@ std::string DeviceManager::get_first_online_user_machine() {
     return "";
 }
 
-void DeviceManager::set_monitoring_machine(std::string dev_id)
-{
-    acc_.set_monitor_machine(dev_id);
-    std::map<std::string, MachineObject *>::iterator it = userMachineList.find(dev_id);
-    if (it != userMachineList.end()) {
-        it->second->reset();
-    }   
-}
-
 void DeviceManager::modify_device_name(std::string dev_id, std::string dev_name) 
 {
     BOOST_LOG_TRIVIAL(trace) << "modify_device_name";
-    unsigned int http_code;
-    std::string  body;
-    int          result = acc_.modify_device_name(dev_id, dev_name, http_code, body);
-    if (result == 0) {
-        std::set<std::string> new_list;
-        try {
-            json j = json::parse(body);
-            if (j.contains("message") && !j["message"].is_null()) {
-               auto result = j["message"].get<std::string>();
-                if (result == "success") { 
-                    update_user_machine_list_info();
-                }
-            }
-        } catch (std::exception &e) {
-            ;
+    if (m_agent) {
+        int result = m_agent->modify_printer_name(dev_id, dev_name);
+        if (result == 0) {
+            update_user_machine_list_info();
         }
     }
 }
 
 void DeviceManager::update_user_machine_list_info()
 {
+    if (!m_agent) return;
+
     BOOST_LOG_TRIVIAL(trace) << "update_user_machine_list_info";
     unsigned int http_code;
     std::string body;
-    int result = acc_.get_print_info(http_code, body);
+    int result = m_agent->get_user_print_info(http_code, body);
     if (result == 0) {
         std::set<std::string> new_list;
         try {
@@ -2345,8 +2332,8 @@ void DeviceManager::update_user_machine_list_info()
                         obj->dev_id = dev_id;
                     }
                     else {
-                        obj = new MachineObject(acc_, "", "", "");
-                        obj->set_bind_status(acc_.get_user_name());
+                        obj = new MachineObject(m_agent, "", "", "");
+                        obj->set_bind_status(m_agent->user_name());
                         userMachineList.insert(std::make_pair(dev_id, obj));
                     }
 
@@ -2409,19 +2396,18 @@ void DeviceManager::load_last_machine()
     if (userMachineList.empty()) return;
 
     else if (userMachineList.size() == 1) {
-        this->set_monitoring_machine(userMachineList.begin()->first);
+        this->set_selected_machine(userMachineList.begin()->first);
     } else {
-        std::string last_monitor_machine = acc_.get_default_machine();
+        std::string last_monitor_machine = m_agent->user_selected_machine();
         bool found = false;
         for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
             if (last_monitor_machine == it->first) {
-                acc_.set_monitor_machine(last_monitor_machine);
+                this->set_selected_machine(last_monitor_machine);
                 found = true;
             }
-
         }
         if (!found)
-            this->set_monitoring_machine(userMachineList.begin()->first);
+            this->set_selected_machine(userMachineList.begin()->first);
     }
 }
 

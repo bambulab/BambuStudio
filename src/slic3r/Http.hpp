@@ -8,7 +8,8 @@
 
 #define MAX_SIZE_TO_FILE    3*1024
 
-namespace Slic3r {
+namespace BBL {
+
 
 /// Represetns a Http request
 class Http : public std::enable_shared_from_this<Http> {
@@ -64,6 +65,17 @@ public:
 	//BBS
 	static Http put2(std::string url);
 	static Http patch(std::string url);
+	//BBS save log to a file
+	static bool enable_log(std::string filename);
+	static bool disable_log();
+
+	static bool check_file_size(boost::filesystem::path file);
+
+	//BBS set global header for each http request
+	static void set_extra_headers(std::map<std::string, std::string> headers);
+
+	//BBS register handler for error status code
+	static void register_global_handler(ErrorFn g_err_fn);
 
 	~Http();
 

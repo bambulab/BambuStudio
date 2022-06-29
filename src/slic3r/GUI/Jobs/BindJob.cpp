@@ -71,8 +71,10 @@ void BindJob::process()
     wxString msg = waiting_auth_str;
     int curr_percent = 0;
 
-    BBL::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
-    int result = acc->start_bind(m_dev_ip,
+    BBL::BambuNetworkAgent* m_agent = wxGetApp().getAgent();
+    if (!m_agent) { return; }
+
+    int result = m_agent->start_bind(m_dev_ip,
         [this, &curr_percent, &msg](int stage, int code, std::string info) {
             if (stage == BBL::BindJobStage::LoginStageConnect) {
                 curr_percent = 15;

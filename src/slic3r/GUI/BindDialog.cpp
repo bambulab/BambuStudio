@@ -64,22 +64,10 @@ namespace GUI {
      wxBoxSizer *m_sizer_right_h = new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer *m_sizer_right_v = new wxBoxSizer(wxVERTICAL);
 
-     BBL::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
-     m_user_name->SetLabelText(from_u8(c->get_curr_user()->m_name));
-    /* if (c->is_user_login()) {
-         
-     }*/
 
-     m_avatar = new wxStaticBitmap(m_panel_right, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(60), FromDIP(60)), 0);
-
-     wxWebRequest request = wxWebSession::GetDefault().CreateRequest(this, c->get_curr_user()->m_avatar);
-     if (!request.IsOk()) {
-         // todo request fail
-     }
-
-     Bind(wxEVT_WEBREQUEST_STATE, [this](wxWebRequestEvent &evt) {
+     Bind(wxEVT_WEBREQUEST_STATE, [this](wxWebRequestEvent& evt) {
          switch (evt.GetState()) {
-         // Request completed
+             // Request completed
          case wxWebRequest::State_Completed: {
              wxImage avatar_stream = *evt.GetResponse().GetStream();
              if (avatar_stream.IsOk()) {
@@ -91,14 +79,26 @@ namespace GUI {
              }
              break;
          }
-         // Request failed
+                                           // Request failed
          case wxWebRequest::State_Failed: {
              break;
          }
          }
-     });
-     // Start the request
-     request.Start();
+    });
+
+     if (wxGetApp().is_user_login()) {     
+        wxString username_text = from_u8(wxGetApp().getAgent()->user_nickanme());
+        m_user_name->SetLabelText(username_text);
+
+         m_avatar = new wxStaticBitmap(m_panel_right, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(60), FromDIP(60)), 0);
+
+         wxWebRequest request = wxWebSession::GetDefault().CreateRequest(this, wxGetApp().getAgent()->user_avatar());
+         if (!request.IsOk()) {
+             // todo request fail
+         }
+         // Start the request
+         request.Start();
+     }
 
      m_sizer_right_v->Add(m_avatar, 0, wxALIGN_CENTER, 0);
      m_sizer_right_v->Add(0, 0, 0, wxTOP, 7);
@@ -302,18 +302,19 @@ UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
      wxBoxSizer *m_sizer_right_h = new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer *m_sizer_right_v = new wxBoxSizer(wxVERTICAL);
 
-     BBL::AccountManager *c = Slic3r::GUI::wxGetApp().getAccountManager();
-     m_user_name->SetLabelText(from_u8(c->get_curr_user()->m_name));
-    /* if (c->is_user_login()) {
-         
-     }*/
-    
      m_avatar = new wxStaticBitmap(m_panel_right, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(60), FromDIP(60)), 0);
-
-     wxWebRequest request = wxWebSession::GetDefault().CreateRequest(this, c->get_curr_user()->m_avatar);
-     if (!request.IsOk()) {
-         // todo request fail
+     
+     if (wxGetApp().is_user_login()) {
+         wxString username_text = from_u8(wxGetApp().getAgent()->user_name());
+         m_user_name->SetLabelText(username_text);
+         wxString avatar_url = wxGetApp().getAgent()->user_avatar();
+         wxWebRequest request = wxWebSession::GetDefault().CreateRequest(this, avatar_url);
+         if (!request.IsOk()) {
+             // todo request fail
+         }
+         request.Start();
      }
+     
 
      Bind(wxEVT_WEBREQUEST_STATE, [this](wxWebRequestEvent &evt) {
          switch (evt.GetState()) {
@@ -335,8 +336,7 @@ UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
          }
          }
      });
-     // Start the request
-     request.Start();
+     
 
 
      m_sizer_right_v->Add(m_avatar, 0, wxALIGN_CENTER, 0);
@@ -418,32 +418,29 @@ void UnBindMachineDilaog::on_cancel(wxCommandEvent &event)
 
 void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event) 
 {
-    BBL::AccountManager *account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    if (!account_manager->is_user_login()) {
+    if (!wxGetApp().is_user_login()) {
         m_status_text->SetLabelText(_L("Please log in first."));
         return;
     }
-
 
     if (!m_machine_info) {
         m_status_text->SetLabelText(_L("There was a problem connecting to the printer. Please try again."));
         return;
     }
+    
+    int result = wxGetApp().request_user_unbind(m_machine_info->dev_id);
+    if (result == 0) {
+        DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+        dev->update_user_machine_list_info();
 
-    account_manager->request_user_unbind(m_machine_info->dev_id, [this](int result, std::string body) {
-        if (result == 0) {
-            DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-            dev->update_user_machine_list_info();
-
-            m_status_text->SetLabelText(_L("Log out successful."));
-            m_button_unbind->Hide();
-        } else {
-            m_status_text->SetLabelText(_L("Failed to log out."));
-            return;
-        }
-    });
-
-    //m_status_text->SetLabelText(_L("Log out failed."));
+        m_status_text->SetLabelText(_L("Log out successful."));
+        m_button_unbind->Hide();
+    }
+    else {
+        m_status_text->SetLabelText(_L("Failed to log out."));
+        return;
+    }
+    
 }
 
  void UnBindMachineDilaog::on_dpi_changed(const wxRect &suggested_rect) 

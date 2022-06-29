@@ -789,7 +789,7 @@ void MainFrame::init_tabpanel()
         m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
     }
 
-    m_plater = new Plater(this, this, wxGetApp().getAccountManager());
+    m_plater = new Plater(this, this);
     m_plater->Hide();
 
     wxGetApp().plater_ = m_plater;
@@ -2439,13 +2439,15 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
                     wxICON_INFORMATION);
 
     /* get setting list */
-    BBL::AccountManager* acc = wxGetApp().getAccountManager();
+    BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
     switch ( dialog.ShowModal() )
     {
         case wxID_YES: {
             std::string version = wxGetApp().preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
-            acc->get_setting_list(version);
-            GUI::wxGetApp().reload_settings();
+            if (agent) {
+                agent->get_setting_list(version);
+                GUI::wxGetApp().reload_settings();
+            }
             break;
         }
         case wxID_NO:

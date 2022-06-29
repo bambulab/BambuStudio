@@ -138,7 +138,6 @@ protected:
     wxPanel *       m_project_task_panel;
 
     // Virtual event handlers, override them in your derived class
-    virtual void on_subtask_report(wxCommandEvent &event) { event.Skip(); }
     virtual void on_subtask_pause_resume(wxCommandEvent &event) { event.Skip(); }
     virtual void on_subtask_abort(wxCommandEvent &event) { event.Skip(); }
     virtual void on_lamp_switch(wxCommandEvent &event) { event.Skip(); }

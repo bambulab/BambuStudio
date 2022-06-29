@@ -3,7 +3,6 @@
 #include "I18N.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
-#include "slic3r/GUI/AccountManager.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "libslic3r_version.h"
 
@@ -413,15 +412,11 @@ void WebViewPanel::SendRecentList(wxString const &sequence_id)
 
 void WebViewPanel::SendLoginInfo() 
 {
-    json m_Res              = json::object();
-    m_Res["command"]        = "studio_userlogin";
-    m_Res["sequence_id"]    = "10001";
-    m_Res["data"]           = json::object();
-    m_Res["data"]["avatar"] = wxGetApp().getAccountManager()->get_curr_user()->m_avatar;
-    m_Res["data"]["name"]   = wxGetApp().getAccountManager()->get_curr_user()->m_name;
-
-    wxString strJS = wxString::Format("window.postMessage(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
-    RunScript(strJS);
+    if (wxGetApp().getAgent()) {
+        std::string login_info = wxGetApp().getAgent()->build_login_info();
+        wxString strJS = wxString::Format("window.postMessage(%s)", login_info);
+        RunScript(strJS);
+    }
 }
 
 void WebViewPanel::update_mode()

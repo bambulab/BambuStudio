@@ -375,7 +375,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     StateColor report_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
     m_button_report->SetTextColor(report_text);
     m_button_report->SetFont(Label::Body_10);
-    //bSizer_task_btn->Add(m_button_report, 0, wxALL, FromDIP(5));
+    m_button_report->Hide();
     m_sizer_progressbar->Add(m_button_report, 0, wxALL, FromDIP(5));
 
     m_button_pause_resume = new Button(m_panel_progress, _L("Pause"));
@@ -890,7 +890,6 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_bitmap_thumbnail->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
     m_project_task_panel->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
 
-    m_button_report->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_report), NULL, this);
     m_button_pause_resume->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
     m_tempCtrl_bed->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_kill_focus), NULL, this);
@@ -924,7 +923,6 @@ StatusPanel::~StatusPanel()
     // Disconnect Events
     m_bitmap_thumbnail->Disconnect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_enter), NULL, this);
     m_bitmap_thumbnail->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
-    m_button_report->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_report), NULL, this);
     m_button_pause_resume->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
     m_tempCtrl_bed->Disconnect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_kill_focus), NULL, this);
@@ -1014,22 +1012,6 @@ void StatusPanel::update_tasklist_info()
 
     // BBS do not show tasklist
     return;
-}
-
-
-void StatusPanel::on_subtask_report(wxCommandEvent &event)
-{
-    if (obj) {
-        if (!obj->subtask_) return;
-
-        std::string last_report_url;
-        BBL::AccountManager::get_machine_last_report_url(obj->dev_id, last_report_url);
-        if (last_report_url.empty()) {
-            wxMessageBox("There is no need to fill a report!");
-        } else {
-            wxLaunchDefaultBrowser(last_report_url);
-        }
-    }
 }
 
 void StatusPanel::on_subtask_pause_resume(wxCommandEvent &event)

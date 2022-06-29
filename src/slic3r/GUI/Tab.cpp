@@ -3768,10 +3768,11 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
             //BBS delete preset
             Preset &current_preset = m_presets->get_selected_preset();
             current_preset.sync_info = "delete";
-            BBL::AccountManager* acc = wxGetApp().getAccountManager();
             if (!current_preset.setting_id.empty()) {
                 BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
-                acc->need_delete_presets.push_back(current_preset.setting_id);
+                BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
+                if (agent)
+                    agent->delete_preset(current_preset.setting_id);
             }
             BOOST_LOG_TRIVIAL(info) << boost::format("will delete current preset...");
             m_presets->delete_current_preset();
@@ -4222,7 +4223,6 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
         return;
     }
 
-    BBL::AccountManager* acc = wxGetApp().getAccountManager();
     // set sync_info for sync service
     if (exist_preset) {
         new_preset->sync_info = "update";
@@ -4230,8 +4230,8 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
     }
     else {
         new_preset->sync_info = "create";
-        if (acc->is_user_login())
-            new_preset->user_id = acc->get_curr_user()->get_user_id();
+        if (wxGetApp().is_user_login())
+            new_preset->user_id = wxGetApp().getAgent()->user_id();
         BOOST_LOG_TRIVIAL(info) << "sync_preset: create preset = " << new_preset->name;
     }
     new_preset->save_info();
@@ -4380,12 +4380,14 @@ void Tab::delete_preset()
 
     //BBS delete preset
     //will delete in select_preset
-    /*AccountManager* acc = wxGetApp().getAccountManager();
     current_preset.sync_info = "delete";
     if (!current_preset.setting_id.empty()) {
         BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
-        acc->need_delete_presets.push_back(current_preset.setting_id);
-    }*/
+        BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
+        if (agent) {
+            agent->delete_preset(current_preset.setting_id);
+        }
+    }
 
     // Select will handle of the preset dependencies, of saving & closing the depending profiles, and
     // finally of deleting the preset.

@@ -12,6 +12,7 @@
 #include <boost/thread.hpp>
 #include <boost/log/trivial.hpp>
 #include "slic3r/GUI/Ssdp.hpp"
+#include "slic3r/BambuNetworkDefine.hpp"
 
 namespace pt = boost::property_tree;
 
@@ -51,15 +52,14 @@ private:
 #endif
 
 public:
-    typedef std::function<void (std::string dev_info_json_str)> OnMsgArrivedFn;
 
     OnMsgArrivedFn on_msg_fn { nullptr };
     void set_on_msg_fn(OnMsgArrivedFn fn) { on_msg_fn  = fn; }
     void parse_sdp_message(const char* rece_buff, unsigned int recv_size);
 
     SsdpDiscovery();
-    void start();
-    void stop();
+    bool start();
+    bool stop();
 };
 
 

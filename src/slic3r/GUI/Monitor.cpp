@@ -408,22 +408,16 @@ bool MonitorPanel::is_str_utf8(const char *str)
 
 void MonitorPanel::update_all()
 {
-    BBL::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    BBL::BambuNetworkAgent* m_agent = wxGetApp().getAgent();
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
 
     obj = dev->get_selected_machine();
 
-    //BBS check user login status
-    /*if (!account_manager->is_user_login()) {
-        show_status((int)MONITOR_NO_PRINTER);
-        return;
-    }*/
-
     //BBS check mqtt connections if user is login
-    if (account_manager->is_user_login()) {
+    if (wxGetApp().is_user_login()) {
         // check mqtt connection and reconnect if disconnected
         try {
-            account_manager->check_mqtt_connection();
+            m_agent->check_server_connection();
         }
         catch (...) {
             ;
@@ -450,7 +444,9 @@ void MonitorPanel::update_all()
         int server_status = 0;
         // only disconnected server in cloud mode
         if (obj->connection_type() != "lan") {
-            server_status = account_manager->is_mqtt_connected() ? 0 : (int)MONITOR_DISCONNECTED_SERVER;
+            if (m_agent) {
+                server_status = m_agent->is_server_connected() ? 0 : (int)MONITOR_DISCONNECTED_SERVER;
+            }
         }
         show_status((int) MONITOR_DISCONNECTED + server_status);
         return;
@@ -480,7 +476,8 @@ bool MonitorPanel::Show(bool show)
     wxGetApp().mainframe->SetMinSize(wxGetApp().plater()->GetMinSize());
 #endif
     
-    BBL::AccountManager *acc = Slic3r::GUI::wxGetApp().getAccountManager();
+    
+    BBL::BambuNetworkAgent* m_agent = wxGetApp().getAgent();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (show) {
         m_refresh_timer->Stop();
@@ -493,14 +490,14 @@ bool MonitorPanel::Show(bool show)
             dev->load_last_machine();
         }
 
-        if (acc)
-            acc->start_subscribe("monitor");
+        if (m_agent)
+            m_agent->start_subscribe("monitor");
     }
     else {
         m_refresh_timer->Stop();
         m_status_info_panel->m_media_play_ctrl->SetMachineObject(nullptr);
-        if (acc)
-            acc->stop_subscribe("monitor");
+        if (m_agent)
+            m_agent->stop_subscribe("monitor");
     }
     return wxPanel::Show(show);
 }
@@ -543,7 +540,7 @@ void MonitorPanel::show_status(int status)
     Freeze();
     if ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0) {
         set_default();
-        //m_side_tools->set_none_printer_mode();
+        m_side_tools->set_none_printer_mode();
         m_status_info_panel->show_status(status);
         //m_tabpanel->RemovePage(0);
         //m_tabpanel->InsertNewPage(0, m_status_info_panel, _L("Status"), "", true);

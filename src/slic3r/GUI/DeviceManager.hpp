@@ -8,9 +8,9 @@
 #include <chrono>
 #include <boost/thread.hpp>
 #include "SsdpDiscovery.hpp"
-#include "AccountManager.hpp"
 #include "libslic3r/ProjectTask.hpp"
 #include "slic3r/Utils/json_diff.hpp"
+#include "slic3r/BambuNetworkAgent.hpp"
 
 #define USE_LOCAL_SOCKET_BIND 0
 
@@ -28,6 +28,11 @@ inline int correct_filament_temperature(int filament_temp)
 }
 
 wxString get_stage_string(int stage);
+
+
+namespace BBL {
+class BambuNetworkAgent;
+}
 
 
 namespace Slic3r {
@@ -68,8 +73,7 @@ enum PrintingSpeedLevel {
     SPEED_LEVEL_COUNT
 };
 
-class AccountManager;
-
+class BambuNetworkAgent;
 
 
 enum AmsRfidState {
@@ -246,7 +250,7 @@ public:
 class MachineObject
 {
 private:
-    BBL::AccountManager& acc_;
+    BBL::BambuNetworkAgent* m_agent { nullptr };
 
     bool check_valid_ip();
 public:
@@ -444,7 +448,7 @@ public:
     bool is_sdcard_printing();
     
 
-    MachineObject(BBL::AccountManager& acc, std::string name, std::string id, std::string ip);
+    MachineObject(BBL::BambuNetworkAgent* agent, std::string name, std::string id, std::string ip);
     ~MachineObject();
     /* command commands */
     int command_get_version();
@@ -517,9 +521,6 @@ public:
     BBLSubTask* get_subtask();
     void update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id);
 
-    /* iot operation apis */
-    void request_logout(ResultFn fn);
-
     bool m_firmware_valid { false };
     void get_firmware_info();
     bool is_firmware_info_valid();
@@ -532,10 +533,10 @@ private:
     bool m_check_alive_quit = false;
     const double ALIVE_TIMEOUT = 30.0;
     boost::thread m_device_check_alive;
-    BBL::AccountManager& acc_;
+    BBL::BambuNetworkAgent* m_agent { nullptr };
 
 public:
-    DeviceManager(BBL::AccountManager& acc);
+    DeviceManager(BBL::BambuNetworkAgent* agent = nullptr);
     ~DeviceManager();
 
     std::mutex listMutex;
@@ -548,7 +549,7 @@ public:
     MachineObject* get_local_selected_machine();
     MachineObject* get_local_machine(std::string dev_id);
     MachineObject* get_user_machine(std::string dev_id);
-    void clear_user_machine_list();
+    void clean_user_info();
 
     bool set_selected_machine(std::string dev_id);
     MachineObject* get_selected_machine();
@@ -556,7 +557,6 @@ public:
     /* return machine has access code and user machine if login*/
     std::map<std::string, MachineObject*> get_my_machine_list();
     std::string get_first_online_user_machine();
-    void set_monitoring_machine(std::string dev_id);
     void modify_device_name(std::string dev_id, std::string dev_name);
     void update_user_machine_list_info();
 

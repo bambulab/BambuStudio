@@ -5,7 +5,6 @@
 #include "libslic3r/AppConfig.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
-#include "slic3r/GUI/AccountManager.hpp"
 #include "libslic3r_version.h"
 
 #include <wx/sizer.h>
@@ -54,12 +53,10 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
 {
     // Url
     AppConfig * config   = wxGetApp().app_config;
-    BBL::AccountManager* acc = wxGetApp().getAccountManager();
-    std::string host_url = acc->get_official_server_host();
+    BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
+    if (!agent) return;
+    std::string host_url = agent->get_bambulab_host();
     TargetUrl = host_url + "/sign-in";
-    // wxString TargetUrl = "https://portal-dev.bambu-lab.com/sign-in";
-    // wxString TargetUrl = "https://ab3f-103-167-134-129.ngrok.io";
-
     m_networkOk = false;
 
     std::string strlang = config->get("language");
@@ -207,8 +204,8 @@ void ZUserLogin::OnDocumentLoaded(wxWebViewEvent &evt)
 {
     // Only notify if the document is the main frame, not a subframe
     wxString tmpUrl = evt.GetURL();
-    BBL::AccountManager *acc  = wxGetApp().getAccountManager();
-    std::string strHost  = acc->get_official_server_host();
+    BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
+    std::string strHost = agent->get_bambulab_host();
 
     if ( tmpUrl.Contains(strHost) ) {
         m_networkOk = true;
@@ -261,24 +258,8 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
             m_AutotestToken = j["data"]["token"];
         }
         if (strCmd == "user_login") {
-            std::string strToken = j["data"]["token"];
-            // the message from web component is defined as {string:string}, so there string to ll first.
-            long long expiresIn = stoll(j["data"]["expires_in"].get<string>()) + std::time(nullptr);
-            std::string strRefreshToken = j["data"]["refresh_token"];
-            long long refreshExpiresIn = stoll(j["data"]["refresh_expires_in"].get<string>()) + std::time(nullptr);
-            std::string strUserID       = j["data"]["user"]["uid"];
-            std::string strAccount      = j["data"]["user"]["account"];
-            std::string strAvatar       = j["data"]["user"]["avatar"];
-            std::string strName         = j["data"]["user"]["name"];
-            //Save User Info
-            BBL::AccountInfo* pNewAcc = new BBL::AccountInfo(strAccount, strUserID, strName, strAvatar, BBL::AccountInfo::LoginStatus::STATUS_LOGIN, strRefreshToken, refreshExpiresIn, strToken, expiresIn, m_AutotestToken);
-
-            //BOOST_LOG_TRIVIAL(trace) << "get access_token = " << strToken;
-            //BOOST_LOG_TRIVIAL(trace) << "get access_token_expires_in = " << std::to_string(expiresIn);
-            //BOOST_LOG_TRIVIAL(trace) << "get refresh_token = " << strRefreshToken;
-            //BOOST_LOG_TRIVIAL(trace) << "get access_token_expires_in = " << std::to_string(refreshExpiresIn);
-            wxGetApp().change_user(pNewAcc);
-
+            j["data"]["autotest_token"] = m_AutotestToken;
+            wxGetApp().handle_script_message(j.dump());
             Close();
         }
     } catch (std::exception &e) {
@@ -373,23 +354,6 @@ void ZUserLogin::OnScriptResponseMessage(wxCommandEvent &WXUNUSED(evt))
 
     // RunScript("This is a message to Web!");
     // RunScript("postMessage(\"AABBCCDD\");");
-}
-
-
-bool ZUserLogin::IsNetworkOK()
-{
-    BBL::Http http = BBL::Http::get("https://www.baidu.com");
-    http.header("accept", "application/json")
-        .timeout_connect(5)
-        .timeout_max(5)
-        .on_complete([this](std::string body, unsigned) { m_networkOk = true;
-        })
-        .on_error([&](std::string body, std::string error, unsigned status) {
-            m_networkOk = false;
-        })
-        .perform_sync();
-
-    return m_networkOk;
 }
 
 bool  ZUserLogin::ShowErrorPage()

@@ -33,7 +33,6 @@ public:
     void OnSaveProject(wxAuiToolBarEvent& event);
     void OnUndo(wxAuiToolBarEvent& event);
     void OnRedo(wxAuiToolBarEvent& event);
-    void OnAccountClicked(wxAuiToolBarEvent& event);
     void OnModelStoreClicked(wxAuiToolBarEvent& event);
     void OnPublishClicked(wxAuiToolBarEvent &event);
     void OnRestore();

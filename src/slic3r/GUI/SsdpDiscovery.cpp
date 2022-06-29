@@ -226,7 +226,7 @@ namespace BBL {
         keep_sending = false;
     }
 
-    void SsdpDiscovery::start()
+    bool SsdpDiscovery::start()
     {
         if (!m_started) {
             m_started = true;
@@ -261,9 +261,10 @@ namespace BBL {
             BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::start_discover(), exception=" << e.what();
         }
 #endif
+        return true;
     }
 
-    void SsdpDiscovery::stop()
+    bool SsdpDiscovery::stop()
     {
         if (m_started)
             m_started = false;
@@ -280,7 +281,7 @@ namespace BBL {
             BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::stop_discover(), join thread " << i;
         }
 #endif
-        return;
+        return true;
     }
 
 

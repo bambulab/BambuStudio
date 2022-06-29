@@ -58,7 +58,6 @@ public:
     void RunScript(const wxString &javascript);
 
     bool m_networkOk;
-    bool IsNetworkOK();
     bool ShowErrorPage();
 
     bool run();

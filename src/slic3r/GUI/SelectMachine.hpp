@@ -192,8 +192,7 @@ public:
 
     void update_machine_list(wxCommandEvent &event);
     bool can_abort(std::string state);
-    void start_ssdp();
-	void stop_ssdp();
+    void start_ssdp(bool on_off);
     bool was_dismiss() { return m_dismiss; }
 
 private:

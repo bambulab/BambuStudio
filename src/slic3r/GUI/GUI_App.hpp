@@ -10,7 +10,7 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/GUI/SsdpDiscovery.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
-#include "slic3r/GUI/AccountManager.hpp"
+#include "slic3r/BambuNetworkAgent.hpp"
 #include "slic3r/GUI/WebViewDialog.hpp"
 
 #include <wx/app.h>
@@ -34,6 +34,10 @@ class wxBookCtrlBase;
 class Notebook;
 struct wxLanguageInfo;
 
+namespace BBL {
+    class BambuNetworkAgent;
+}
+
 namespace Slic3r {
 
 class AppConfig;
@@ -43,7 +47,6 @@ class ModelObject;
 class Model;
 class SsdpDiscovery;
 class DeviceManager;
-class AccountManager;
 
 namespace GUI{
 
@@ -58,7 +61,6 @@ class ParamsPanel;
 class NotificationManager;
 struct GUI_InitParams;
 class ParamsDialog;
-
 
 
 enum FileType
@@ -115,6 +117,75 @@ static wxString dots("...", wxConvUTF8);
 #if wxUSE_MARKUP && wxCHECK_VERSION(3, 1, 1)
     #define SUPPORTS_MARKUP
 #endif
+
+
+#define  VERSION_LEN    4
+class VersionInfo
+{
+public:
+    std::string version_str;
+    std::string version_name;
+    std::string description;
+    std::string url;
+    bool        force_upgrade{ false };
+    int      ver_items[VERSION_LEN];  // AA.BB.CC.DD
+    VersionInfo() {
+        for (int i = 0; i < VERSION_LEN; i++) {
+            ver_items[i] = 0;
+        }
+        force_upgrade = false;
+    }
+
+    void parse_version_str(std::string str) {
+        version_str = str;
+        std::vector<std::string> items;
+        boost::split(items, str, boost::is_any_of("."));
+        if (items.size() == VERSION_LEN) {
+            try {
+                for (int i = 0; i < VERSION_LEN; i++) {
+                    ver_items[i] = stoi(items[i]);
+                }
+            }
+            catch (...) {
+                ;
+            }
+        }
+    }
+    static std::string convert_full_version(std::string short_version);
+    static std::string convert_short_version(std::string full_version);
+    static std::string get_full_version() {
+        return convert_full_version(SLIC3R_VERSION);
+    }
+
+    /* return > 0, need update */
+    int compare(std::string ver_str) {
+        if (version_str.empty()) return -1;
+
+        int      ver_target[VERSION_LEN];
+        std::vector<std::string> items;
+        boost::split(items, ver_str, boost::is_any_of("."));
+        if (items.size() == VERSION_LEN) {
+            try {
+                for (int i = 0; i < VERSION_LEN; i++) {
+                    ver_target[i] = stoi(items[i]);
+                    if (ver_target[i] < ver_items[i]) {
+                        return 1;
+                    }
+                    else if (ver_target[i] == ver_items[i]) {
+                        continue;
+                    }
+                    else {
+                        return -1;
+                    }
+                }
+            }
+            catch (...) {
+                return -1;
+            }
+        }
+        return -1;
+    }
+};
 
 class GUI_App : public wxApp
 {
@@ -173,10 +244,11 @@ private:
 	//size_t m_instance_hash_int;
 
     //BBS
-    BBL::SsdpDiscovery* m_ssdp;
     Slic3r::DeviceManager* m_device_manager;
-    BBL::AccountManager* m_account_manager;
-    BBL::VersionInfo version_info;
+    BBL::BambuNetworkAgent* m_agent { nullptr };
+
+    VersionInfo version_info;
+
     boost::thread    m_sync_update_thread;
     bool             enable_sync = true;
 
@@ -191,9 +263,8 @@ public:
 
     void show_message_box(std::string msg) { wxMessageBox(msg); }
     EAppMode get_app_mode() const { return m_app_mode; }
-    BBL::SsdpDiscovery* getSsdpDiscovery() { return m_ssdp; }
     Slic3r::DeviceManager* getDeviceManager() { return m_device_manager; }
-    BBL::AccountManager* getAccountManager() { return m_account_manager; }
+    BBL::BambuNetworkAgent* getAgent() { return m_agent; }
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
@@ -273,9 +344,12 @@ public:
     void            request_login(bool show_user_info = false);
     bool            check_login();
     void            get_login_info();
-    void            change_user(BBL::AccountInfo* user_info);
+    bool            is_user_login();
+
     void            request_user_login(int online_login);
+    int             request_user_unbind(std::string dev_id);
     std::string     handle_web_request(std::string cmd);
+    void            handle_script_message(std::string msg);
     void            request_model_download(std::string import_json);
     void            download_project(std::string project_id);
     void            request_project_download(std::string project_id);

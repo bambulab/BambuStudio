@@ -274,10 +274,12 @@ void SavePresetDialog::Item::accept()
         auto    it               = m_presets->find_preset(m_preset_name, false);
         Preset &current_preset   = *it;
         current_preset.sync_info = "delete";
-        BBL::AccountManager *acc      = wxGetApp().getAccountManager();
         if (!current_preset.setting_id.empty()) {
             BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
-            acc->need_delete_presets.push_back(current_preset.setting_id);
+            BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
+            if (agent) {
+                agent->delete_preset(current_preset.setting_id);
+            }
         }
         m_presets->delete_preset(m_preset_name);
     }

@@ -746,7 +746,7 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
             iot_environment_map["product_host"] = ENV_PRODUCT_HOST;
 
             if (iot_environment_map[param] != m_iot_environment_def) {
-                BBL::AccountManager *manager = wxGetApp().getAccountManager();
+                BBL::BambuNetworkAgent* agent = wxGetApp().getAgent();
                 if (param == "dev_host") {
                     app_config->set("iot_environment", ENV_DEV_HOST);
                 }
@@ -759,11 +759,15 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
                 else if (param == "product_host") {
                     app_config->set("iot_environment", ENV_PRODUCT_HOST);
                 }
-                manager->user_logout();
+
+                
 
                 AppConfig* config = GUI::wxGetApp().app_config;
                 std::string country_code = config->get_country_code();
-                manager->update_country_code(country_code);
+                if (agent) {
+                    agent->user_logout();
+                    agent->set_country_code(country_code);
+                }
                 wxMessageBox(_L("Swith cloud environment, Please login again!"));
             }
 

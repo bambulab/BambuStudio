@@ -6,6 +6,10 @@ include(PrecompiledHeader)
 set(SLIC3R_GUI_SOURCES
     pchheader.cpp
     pchheader.hpp
+    BambuNetworkAgent.hpp
+    BambuNetworkAgent.cpp
+    Http.cpp
+    Http.hpp
     GUI/Printer/PrinterFileSystem.cpp
     GUI/Printer/PrinterFileSystem.h
     GUI/Widgets/AxisCtrlButton.cpp
