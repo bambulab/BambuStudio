@@ -51,7 +51,7 @@ public:
     ~SideTools();
 
     void set_none_printer_mode();
-    void set_current_printer_name(wxString dev_name);
+    void set_current_printer_name(std::string dev_name);
     void set_current_printer_sigin(WifiSignal sign);;
     void msw_rescale();
 

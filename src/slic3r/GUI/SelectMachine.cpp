@@ -233,7 +233,7 @@ void MachineObjectPanel::set_can_bind(bool canbind) { m_state_can_bind = canbind
 void MachineObjectPanel::OnPaint(wxPaintEvent &event)
 {
     wxPaintDC dc(this);
-    render(dc);
+    doRender(dc);
 }
 
 void MachineObjectPanel::render(wxDC &dc)
@@ -272,19 +272,21 @@ void MachineObjectPanel::doRender(wxDC &dc)
     dc.DrawBitmap(dwbitmap, wxPoint(left, (size.y - dwbitmap.GetSize().y) / 2));
 
     left += dwbitmap.GetSize().x + 8;
-    dc.SetFont(Label::Body_14);
+    dc.SetFont(Label::Body_13);
     dc.SetBackgroundMode(wxTRANSPARENT);
     dc.SetTextForeground(SELECT_MACHINE_GREY900);
-    auto sizet = dc.GetTextExtent(m_info->dev_name);
 
-    auto text_end = size.x - m_unbind_img.GetSize().x - 15;
-    std::string finally_name = m_info->dev_name;
+
+    auto dev_name = from_u8(m_info->dev_name).ToStdString();
+    auto sizet = dc.GetTextExtent(dev_name);
+    auto text_end = size.x - m_unbind_img.GetSize().x - 30;
+    std::string finally_name =dev_name;
     if (sizet.x > (text_end - left)) {
         auto limit_width = text_end - left - dc.GetTextExtent("...").x - 15;
-        for (auto i = 0; i < m_info->dev_name.length(); i++) {
-            auto curr_width = dc.GetTextExtent(m_info->dev_name.substr(0, i));
+        for (auto i = 0; i <dev_name.length(); i++) {
+            auto curr_width = dc.GetTextExtent(dev_name.substr(0, i));
             if (curr_width.x >= limit_width) {
-                finally_name = m_info->dev_name.substr(0, i) + "...";
+                finally_name =dev_name.substr(0, i) + "...";
                 break;
             }
         }
@@ -296,10 +298,10 @@ void MachineObjectPanel::doRender(wxDC &dc)
     
     if (m_showunbind) {
 
-        left = size.x - m_unbind_img.GetSize().x - 10 - m_edit_name_img.GetSize().x - 6;
+        left = size.x - m_unbind_img.GetSize().x - 6 - m_edit_name_img.GetSize().x - 6;
         dc.DrawBitmap(m_edit_name_img, left, (size.y - m_edit_name_img.GetSize().y) / 2);
 
-        left = size.x - m_unbind_img.GetSize().x - 10;
+        left = size.x - m_unbind_img.GetSize().x - 6;
         if (!m_select_unbind) {
             dc.DrawBitmap(m_unbind_img, left, (size.y - m_unbind_img.GetSize().y) / 2);
         } else {
@@ -354,7 +356,7 @@ void MachineObjectPanel::on_mouse_leave(wxMouseEvent &evt)
 
 void MachineObjectPanel::on_mouse_left_down(wxMouseEvent &evt)
 {
-    auto left   = GetSize().x - m_unbind_img.GetSize().x - 10;
+    auto left   = GetSize().x - m_unbind_img.GetSize().x - 6;
     auto right  = left + m_unbind_img.GetSize().x;
     auto top    = (GetSize().y - m_unbind_img.GetSize().y) / 2;
     auto bottom = (GetSize().y - m_unbind_img.GetSize().y) / 2 + m_unbind_img.GetSize().y;
@@ -368,7 +370,7 @@ void MachineObjectPanel::on_mouse_left_down(wxMouseEvent &evt)
 void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
 {
     //edit
-    auto edit_left   = GetSize().x - m_unbind_img.GetSize().x - 10 - m_edit_name_img.GetSize().x - 6;
+    auto edit_left   = GetSize().x - m_unbind_img.GetSize().x - 6 - m_edit_name_img.GetSize().x - 6;
     auto edit_right  = edit_left + m_edit_name_img.GetSize().x;
     auto edit_top    = (GetSize().y - m_edit_name_img.GetSize().y) / 2;
     auto edit_bottom = (GetSize().y - m_edit_name_img.GetSize().y) / 2 + m_edit_name_img.GetSize().y;
@@ -388,7 +390,7 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
 
         wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
     } else {
-        auto left   = GetSize().x - m_unbind_img.GetSize().x - 10;
+        auto left   = GetSize().x - m_unbind_img.GetSize().x - 6;
         auto right  = left + m_unbind_img.GetSize().x;
         auto top    = (GetSize().y - m_unbind_img.GetSize().y) / 2;
         auto bottom = (GetSize().y - m_unbind_img.GetSize().y) / 2 + m_unbind_img.GetSize().y;
@@ -581,7 +583,6 @@ void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
         }
         else {op->set_printer_idle();}
 
-        mobj->dev_name = from_u8(mobj->dev_name).ToStdString();
         op->update_machine_info(mobj);
         m_sizer_other_devices->Add(op, 0, wxEXPAND, 0);
 
@@ -614,7 +615,7 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
                 op->set_printer_idle();
             }
         }
-        mobj->dev_name = from_u8(mobj->dev_name).ToStdString();
+
         op->update_machine_info(mobj);
         m_sizer_my_devices->Add(op, 0, wxEXPAND, 0);
         // op->Bind(wxEVT_LEFT_UP, &SelectMachinePopup::OnLeftUp, this);
@@ -1670,7 +1671,7 @@ SelectMachineDialog::~SelectMachineDialog()
 void EditDevNameDialog::set_machine_obj(MachineObject *obj) 
 {
     m_info = obj;
-    m_textCtr->GetTextCtrl()->SetValue(m_info->dev_name);
+    m_textCtr->GetTextCtrl()->SetValue(from_u8(m_info->dev_name));
 }
 
  void EditDevNameDialog::on_dpi_changed(const wxRect &suggested_rect) 
