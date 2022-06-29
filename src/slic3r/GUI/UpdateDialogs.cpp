@@ -19,6 +19,7 @@
 #include "I18N.hpp"
 #include "ConfigWizard.hpp"
 #include "wxExtensions.hpp"
+#include "MainFrame.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -93,72 +94,153 @@ bool MsgUpdateSlic3r::disable_version_check() const
 
 // MsgUpdateConfig
 
-MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_before_wizard/* = false*/) :
-	MsgDialog(nullptr, force_before_wizard ? _L("Configuration update") : _L("Configuration update"), 
-					   force_before_wizard ? _L("A new version is available") : 
-											 _L("A new version is available"), wxICON_ERROR)
+MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_before_wizard /* = false*/)
+    : DPIDialog(wxGetApp().mainframe, wxID_ANY, _L("Configuration update"), wxDefaultPosition, wxDefaultSize, wxCAPTION)
 {
-	auto *text = new wxStaticText(this, wxID_ANY, _(L(
-		"A new configuration package available, Do you want to install it?"
-	)));
-	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
-	content_sizer->Add(text);
-	content_sizer->AddSpacer(VERT_SPACING);
+	auto  title = force_before_wizard ? _L("Configuration update") : _L("Configuration update");
+	SetTitle(title);
+
+	std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+    SetBackgroundColour(*wxWHITE);
+    wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
+    auto        m_line_top   = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
+    m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
+    m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(30));
+
+    wxBoxSizer *m_sizer_body = new wxBoxSizer(wxHORIZONTAL);
+
+    m_sizer_body->Add(0, 0, 0, wxLEFT, FromDIP(38));
+
+    auto sm    = create_scaled_bitmap("BambuStudio", nullptr, 70);
+    auto brand = new wxStaticBitmap(this, wxID_ANY, sm, wxDefaultPosition, wxSize(FromDIP(70), FromDIP(70)));
+
+    m_sizer_body->Add(brand, 0, wxALL, 0);
+
+    m_sizer_body->Add(0, 0, 0, wxRIGHT, FromDIP(25));
+
+    wxBoxSizer *m_sizer_right = new wxBoxSizer(wxVERTICAL);
+
+
+    auto m_text_up_info = new wxStaticText(this, wxID_ANY, _L("A new configuration package available, Do you want to install it?"), wxDefaultPosition, wxDefaultSize, 0);
+    m_text_up_info->SetFont(::Label::Head_14);
+    m_text_up_info->SetForegroundColour(wxColour(0x26, 0x2E, 0x30));
+    m_text_up_info->Wrap(-1);
+    m_sizer_right->Add(m_text_up_info, 0, 0, 0);
+
+    m_sizer_right->Add(0, 0, 1, wxTOP, FromDIP(15));
+
+    auto m_scrollwindw_release_note = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(560), FromDIP(430)));
+    m_scrollwindw_release_note->SetScrollRate(5, 5);
+    m_scrollwindw_release_note->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
+    m_scrollwindw_release_note->SetMaxSize(wxSize(FromDIP(540), FromDIP(410)));
+
+	auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
+    sizer_button->Add(0, 0, 1, wxEXPAND, 5);
+
+
+	 StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+
+    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+
+  
+	auto m_butto_ok = new Button(this, _L("OK"));
+    m_butto_ok->SetBackgroundColor(btn_bg_green);
+    m_butto_ok->SetBorderColor(*wxWHITE);
+    m_butto_ok->SetTextColor(*wxWHITE);
+    m_butto_ok->SetFont(Label::Body_12);
+    m_butto_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_butto_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+
+
+    auto m_button_cancel = new Button(this, _L("Cancel"));
+    m_button_cancel->SetBackgroundColor(*wxWHITE);
+    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
+    m_button_cancel->SetFont(Label::Body_12);
+    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+
+
+    sizer_button->Add(m_butto_ok, 0, wxALL, 5);
+    sizer_button->Add(m_button_cancel, 0, wxALL, 5);
+
+	m_sizer_right->Add(m_scrollwindw_release_note, 0, wxEXPAND | wxRIGHT, FromDIP(20));
+    m_sizer_right->Add(sizer_button, 0, wxEXPAND | wxRIGHT, FromDIP(20));
+
+    
+    m_sizer_body->Add(m_sizer_right, 1, wxBOTTOM | wxEXPAND, FromDIP(30));
+    m_sizer_main->Add(m_sizer_body, 0, wxEXPAND, 0);
+
+	wxBoxSizer *content_sizer             = new wxBoxSizer(wxVERTICAL);
+
+   
+
+
 
 	const auto lang_code = wxGetApp().current_language_code_safe().ToStdString();
 
-	auto *versions = new wxBoxSizer(wxVERTICAL);
-	//BBS: use changelog string instead of url
-	wxTextCtrl* changelog_textctrl = nullptr;
-	for (const auto &update : updates) {
-		auto *flex = new wxFlexGridSizer(2, 0, VERT_SPACING);
+    auto *versions = new wxBoxSizer(wxVERTICAL);
+    // BBS: use changelog string instead of url
+    wxStaticText *changelog_textctrl = new wxStaticText(m_scrollwindw_release_note, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(560), -1));
 
-		auto *text_vendor = new wxStaticText(this, wxID_ANY, update.vendor);
-		text_vendor->SetFont(boldfont);
-		flex->Add(text_vendor);
-		flex->Add(new wxStaticText(this, wxID_ANY, update.version.to_string()));
 
-		//BBS: use changelog string instead of url
-		if (! update.comment.empty()) {
-			flex->Add(new wxStaticText(this, wxID_ANY, _(L("Description:"))), 0, wxALIGN_RIGHT);
-			auto *update_comment = new wxStaticText(this, wxID_ANY, from_u8(update.comment));
-			update_comment->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
-			flex->Add(update_comment);
-		}
+    for (const auto &update : updates) {
+        auto *flex = new wxFlexGridSizer(2, 0, FromDIP(15));
 
-		versions->Add(flex);
+        auto *text_vendor = new wxStaticText(m_scrollwindw_release_note, wxID_ANY, update.vendor);
+        text_vendor->SetFont(::Label::Body_13);
+        flex->Add(text_vendor);
+        flex->Add(new wxStaticText(m_scrollwindw_release_note, wxID_ANY, update.version.to_string()));
 
-        //BBS: use changelog string instead of url
-		if (! update.change_log.empty()) {
-			if (!changelog_textctrl)
-				changelog_textctrl = new wxTextCtrl(this, wxID_ANY, from_u8(update.change_log), wxDefaultPosition,  wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxHSCROLL);
-			else
-				changelog_textctrl->AppendText(from_u8(update.change_log));
-		}
-        //if (! update.changelog_url.empty() && update.version.prerelease() == nullptr) {
-        //    auto *line = new wxBoxSizer(wxHORIZONTAL);
-        //    auto changelog_url = (boost::format(update.changelog_url) % lang_code).str();
-        //    line->AddSpacer(3*VERT_SPACING);
-        //    line->Add(new wxHyperlinkCtrl(this, wxID_ANY, _(L("Open changelog page")), changelog_url));
-        //    versions->Add(line);
-        //}
-	}
+        // BBS: use changelog string instead of url
+        if (!update.comment.empty()) {
+            flex->Add(new wxStaticText(m_scrollwindw_release_note, wxID_ANY, _(L("Description:"))), 0, wxALIGN_RIGHT);
+            auto *update_comment = new wxStaticText(m_scrollwindw_release_note, wxID_ANY, from_u8(update.comment));
+            update_comment->Wrap(FromDIP(242) * wxGetApp().em_unit());
+            flex->Add(update_comment);
+        }
+
+        versions->Add(flex);
+
+		
+
+        // BBS: use changelog string instead of url
+
+			//auto change_log = new wxStaticText(m_scrollwindw_release_note, wxID_ANY, from_u8(update.change_log), wxDefaultPosition, wxDefaultSize); 
+			changelog_textctrl->SetLabel(changelog_textctrl->GetLabel() + wxString::Format("%s\n", from_u8(update.change_log)));
+    }
 
 	content_sizer->Add(versions);
-	//BBS: use changelog string instead of url
-	//content_sizer->AddSpacer(2*VERT_SPACING);
-	if (changelog_textctrl)
-		content_sizer->Add(changelog_textctrl, 1, wxEXPAND);
 
-	add_button(wxID_OK, true, force_before_wizard ? _L("YES") : _L("YES"));
-	if (force_before_wizard) {
-		auto* btn = add_button(wxID_CLOSE, false, _L("NO"));
-		btn->Bind(wxEVT_BUTTON, [this](const wxCommandEvent&) { EndModal(wxID_CLOSE); });
-	}
-	add_button(wxID_CANCEL);
+	
 
-	finalize();
+    ////BBS: use changelog string instead of url
+    if (changelog_textctrl) 
+		content_sizer->Add(changelog_textctrl, 1, wxEXPAND | wxTOP, FromDIP(30));
+
+
+	m_butto_ok->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) { EndModal(wxID_OK); });
+	m_button_cancel->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) { EndModal(wxID_CLOSE); });
+
+
+    m_scrollwindw_release_note->SetSizer(content_sizer);
+    m_scrollwindw_release_note->Layout();
+
+
+    SetSizer(m_sizer_main);
+    Layout();
+    m_sizer_main->Fit(this);
+
+    Centre(wxBOTH);
 }
+
+void MsgUpdateConfig::on_dpi_changed(const wxRect &suggested_rect) {}
+
 
 MsgUpdateConfig::~MsgUpdateConfig() {}
 

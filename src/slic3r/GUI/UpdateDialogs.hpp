@@ -38,7 +38,7 @@ private:
 
 
 // Confirmation dialog informing about configuration update. Lists updated bundles & their versions.
-class MsgUpdateConfig : public MsgDialog
+class MsgUpdateConfig : public DPIDialog
 {
 public:
 	struct Update
@@ -59,11 +59,12 @@ public:
 	};
 
 	// force_before_wizard - indicates that check of updated is forced before ConfigWizard opening
-	MsgUpdateConfig(const std::vector<Update> &updates, bool force_before_wizard = false);
-	MsgUpdateConfig(MsgUpdateConfig &&) = delete;
-	MsgUpdateConfig(const MsgUpdateConfig &) = delete;
-	MsgUpdateConfig &operator=(MsgUpdateConfig &&) = delete;
-	MsgUpdateConfig &operator=(const MsgUpdateConfig &) = delete;
+    MsgUpdateConfig(const std::vector<Update> &updates, bool force_before_wizard = false);
+    void on_dpi_changed(const wxRect &suggested_rect);
+    // MsgUpdateConfig(MsgUpdateConfig &&)      = delete;
+    //MsgUpdateConfig(const MsgUpdateConfig &) = delete;
+    //MsgUpdateConfig &operator=(MsgUpdateConfig &&) = delete;
+    //MsgUpdateConfig &operator=(const MsgUpdateConfig &) = delete;
 	~MsgUpdateConfig();
 };
 
