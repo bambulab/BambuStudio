@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-28 20:47+0800\n"
+"POT-Creation-Date: 2022-06-30 18:02+0800\n"
 "PO-Revision-Date: 2022-03-12 17:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com> , patched traditional "
 "chinese by Cheng-Hsien Ho <taksito@gmail.com>\n"
@@ -75,21 +75,6 @@ msgid ""
 msgstr ""
 
 msgid "File"
-msgstr ""
-
-msgid "Login"
-msgstr ""
-
-msgid "Login with your Account"
-msgstr ""
-
-msgid "Logout"
-msgstr ""
-
-msgid "Publish Model/Profile"
-msgstr ""
-
-msgid "Please slice all plates before upload"
 msgstr ""
 
 msgid "Slice all plate to obtain time and filament estimation"
@@ -2586,9 +2571,6 @@ msgstr ""
 msgid "Triangles: %1%\n"
 msgstr ""
 
-msgid "Chinese (Simplified)"
-msgstr ""
-
 msgid "Switching the language requires application restart.\n"
 msgstr ""
 
@@ -2910,13 +2892,16 @@ msgstr ""
 msgid "No printer available"
 msgstr ""
 
+msgid "Modifying the device name"
+msgstr ""
+
+msgid "Confirm"
+msgstr ""
+
 msgid "Log in printer"
 msgstr ""
 
 msgid "Would you like to log in this printer with current account?"
-msgstr ""
-
-msgid "Confirm"
 msgstr ""
 
 msgid "Log in successful."
@@ -3372,6 +3357,9 @@ msgid "From"
 msgstr ""
 
 msgid "To"
+msgstr ""
+
+msgid "Login"
 msgstr ""
 
 msgid "Setup Wizard"

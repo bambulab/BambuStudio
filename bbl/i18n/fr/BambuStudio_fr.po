@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-28 20:47+0800\n"
+"POT-Creation-Date: 2022-06-30 18:02+0800\n"
 "Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -64,21 +64,6 @@ msgid ""
 msgstr ""
 
 msgid "File"
-msgstr ""
-
-msgid "Login"
-msgstr ""
-
-msgid "Login with your Account"
-msgstr ""
-
-msgid "Logout"
-msgstr ""
-
-msgid "Publish Model/Profile"
-msgstr ""
-
-msgid "Please slice all plates before upload"
 msgstr ""
 
 msgid "Slice all plate to obtain time and filament estimation"
@@ -2597,9 +2582,6 @@ msgstr ""
 msgid "Triangles: %1%\n"
 msgstr ""
 
-msgid "Chinese (Simplified)"
-msgstr ""
-
 msgid "Switching the language requires application restart.\n"
 msgstr ""
 
@@ -2921,13 +2903,16 @@ msgstr ""
 msgid "No printer available"
 msgstr ""
 
+msgid "Modifying the device name"
+msgstr ""
+
+msgid "Confirm"
+msgstr ""
+
 msgid "Log in printer"
 msgstr ""
 
 msgid "Would you like to log in this printer with current account?"
-msgstr ""
-
-msgid "Confirm"
 msgstr ""
 
 msgid "Log in successful."
@@ -3385,6 +3370,9 @@ msgid "From"
 msgstr "De"
 
 msgid "To"
+msgstr ""
+
+msgid "Login"
 msgstr ""
 
 msgid "Setup Wizard"

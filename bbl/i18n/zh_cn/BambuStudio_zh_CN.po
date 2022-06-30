@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-28 20:47+0800\n"
+"POT-Creation-Date: 2022-06-30 18:02+0800\n"
 "PO-Revision-Date: 2022-06-28 20:53+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -73,21 +73,6 @@ msgstr "选择1个AMS槽位，然后点击加载/卸载按钮以自动加载/卸
 
 msgid "File"
 msgstr "文件"
-
-msgid "Login"
-msgstr "登录"
-
-msgid "Login with your Account"
-msgstr "使用您的账号登录"
-
-msgid "Logout"
-msgstr "登出"
-
-msgid "Publish Model/Profile"
-msgstr "发布模型/配置"
-
-msgid "Please slice all plates before upload"
-msgstr "请在上传之前将所有盘切片"
 
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr "正在切片以获取切片信息和预估打印时间"
@@ -2657,9 +2642,6 @@ msgstr "体积： %1% 毫米³\n"
 msgid "Triangles: %1%\n"
 msgstr "三角形：%1%\n"
 
-msgid "Chinese (Simplified)"
-msgstr "中文(简体)"
-
 msgid "Switching the language requires application restart.\n"
 msgstr "切换语言要求重启应用程序。\n"
 
@@ -2981,14 +2963,17 @@ msgstr "导出3mf失败，请重新切片。"
 msgid "No printer available"
 msgstr "没有可用的打印机"
 
+msgid "Modifying the device name"
+msgstr ""
+
+msgid "Confirm"
+msgstr "确定"
+
 msgid "Log in printer"
 msgstr "登录打印机"
 
 msgid "Would you like to log in this printer with current account?"
 msgstr "你想使用当前账号登录这台打印机吗?"
-
-msgid "Confirm"
-msgstr "确定"
 
 msgid "Log in successful."
 msgstr "登录成功。"
@@ -3458,6 +3443,9 @@ msgstr "从"
 
 msgid "To"
 msgstr "到"
+
+msgid "Login"
+msgstr "登录"
 
 msgid "Setup Wizard"
 msgstr "安装向导"
@@ -5661,6 +5649,21 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Login with your Account"
+#~ msgstr "使用您的账号登录"
+
+#~ msgid "Logout"
+#~ msgstr "登出"
+
+#~ msgid "Publish Model/Profile"
+#~ msgstr "发布模型/配置"
+
+#~ msgid "Please slice all plates before upload"
+#~ msgstr "请在上传之前将所有盘切片"
+
+#~ msgid "Chinese (Simplified)"
+#~ msgstr "中文(简体)"
 
 #~ msgid ""
 #~ "Purging after filament change will be done inside objects' infills. This "

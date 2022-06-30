@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-28 20:47+0800\n"
+"POT-Creation-Date: 2022-06-30 18:02+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -75,21 +75,6 @@ msgstr ""
 
 msgid "File"
 msgstr "Archivo"
-
-msgid "Login"
-msgstr "Inicio de sesión"
-
-msgid "Login with your Account"
-msgstr "Acceda con su cuenta"
-
-msgid "Logout"
-msgstr "Cierre de sesión"
-
-msgid "Publish Model/Profile"
-msgstr "Publicar Modelo/Perfil"
-
-msgid "Please slice all plates before upload"
-msgstr "Por favor, rebane todas las piezas antes de subirlas"
 
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr ""
@@ -799,7 +784,7 @@ msgid "Assembly Return"
 msgstr "Volver a montar"
 
 msgid "return"
-msgstr ""
+msgstr "volver"
 
 msgid "Paint Toolbar"
 msgstr "Barra de herramientas de pintura"
@@ -1124,7 +1109,7 @@ msgstr "Mostrar estructura de red"
 
 #, boost-format
 msgid "%1%"
-msgstr ""
+msgstr "%1%"
 
 msgid "Can't apply when proccess preview."
 msgstr "No se puede aplicar cuando la vista previa del proceso."
@@ -1283,7 +1268,7 @@ msgid "Select a G-code file:"
 msgstr "Seleccione un archivo de código G:"
 
 msgid "Bambu Studio GUI initialization failed"
-msgstr ""
+msgstr "Ha fallado la inicialización de la interfaz gráfica de Bambu Studio"
 
 #, boost-format
 msgid "Fatal error, exception catched: %1%"
@@ -2608,7 +2593,7 @@ msgid "Object with multiple parts was detected"
 msgstr "Se ha detectado un objeto con varias partes"
 
 msgid "The current file does not import any models."
-msgstr ""
+msgstr "El archivo actual no importó ningún modelo."
 
 msgid "Export STL file:"
 msgstr "Exportar archivo STL:"
@@ -2757,10 +2742,7 @@ msgstr "Volumen: %1% mm³\n"
 
 #, boost-format
 msgid "Triangles: %1%\n"
-msgstr "Triángulos: %1%\n"
-
-msgid "Chinese (Simplified)"
-msgstr "Chino (simplificado)"
+msgstr " Triángulos: %1%\n"
 
 msgid "Switching the language requires application restart.\n"
 msgstr "El cambio de idioma requiere el reinicio de la aplicación.\n"
@@ -3095,14 +3077,17 @@ msgstr "La exportación de 3mf ha fallado, por favor, vuelva a cortar."
 msgid "No printer available"
 msgstr "No hay impresora disponible"
 
+msgid "Modifying the device name"
+msgstr ""
+
+msgid "Confirm"
+msgstr "Confirmar"
+
 msgid "Log in printer"
 msgstr "Iniciar sesión en la impresora"
 
 msgid "Would you like to log in this printer with current account?"
 msgstr "¿Desea iniciar sesión en esta impresora con la cuenta actual?"
-
-msgid "Confirm"
-msgstr "Confirmar"
 
 msgid "Log in successful."
 msgstr "Inicio de sesión con éxito."
@@ -3598,6 +3583,9 @@ msgstr "Desde"
 msgid "To"
 msgstr "A"
 
+msgid "Login"
+msgstr "Inicio de sesión"
+
 msgid "Setup Wizard"
 msgstr "Asistente de configuración"
 
@@ -3864,25 +3852,25 @@ msgid "Open G-code file:"
 msgstr "Abrir archivo código G:"
 
 msgid "Creating"
-msgstr ""
+msgstr "Creando"
 
 msgid "Uploading"
 msgstr "Subiendo"
 
 msgid "Waiting"
-msgstr ""
+msgstr "Esperando"
 
 msgid "Sending"
-msgstr ""
+msgstr "Enviando"
 
 msgid "Finished"
 msgstr "Terminado"
 
 msgid "Internal error, no gcode file to upload."
-msgstr ""
+msgstr "Error interno, no hay archivo gcode para cargar."
 
 msgid "Print job was cancelled."
-msgstr ""
+msgstr "La impresión fue cancelada"
 
 msgid "Failed to create the print job. Please try agian."
 msgstr ""
@@ -4389,7 +4377,7 @@ msgstr ""
 "de material para el puente, para mejorar el hundimiento"
 
 msgid "Slow down for overhang"
-msgstr "Disminución de la velocidad para el voladizo"
+msgstr "Disminución de velocidad de voladizo"
 
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr ""
@@ -4416,6 +4404,9 @@ msgid ""
 "holes or both. Auto means both the brim position and brim width is analysed "
 "and calculated automatically"
 msgstr ""
+"Esto controla la posición del borde, incluyendo el lado exterior de los "
+"modelos, el lado interior de los huecos o ambos. Auto significa que tanto la "
+"posición como la anchura del borde se analizan y calculan automáticamente"
 
 msgid "Brim-object gap"
 msgstr "Espacio borde-objeto"
@@ -4542,8 +4533,9 @@ msgstr "Zig zag"
 msgid "Monotonic"
 msgstr "Monotónico"
 
+# Monotonic line, I suppose you mean a continuous line, in which case in English it would be translated as "Linea continua", another translation would be to say that the line is monotonous, that is, repetitive, in which case, the translation would be "Linea repetitiva", but I think what you are referring to and what comes closest is "Linea continua". 
 msgid "Monotonic line"
-msgstr ""
+msgstr "Linea continua"
 
 msgid "Bottom surface pattern"
 msgstr "Patrón de la superficie inferior"
@@ -4806,6 +4798,8 @@ msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
 msgstr ""
+"Aceleración del relleno de la superficie superior. El uso de un valor más "
+"bajo puede mejorar la calidad de la superficie superior"
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
@@ -5220,10 +5214,10 @@ msgid "Diameter of nozzle"
 msgstr "Diámetro de la boquilla"
 
 msgid "Nozzle volume"
-msgstr ""
+msgstr "Tamaño de la boquilla"
 
 msgid "Volume of nozzle between the cutter and the end of nozzle"
-msgstr ""
+msgstr "Espacio de la boquilla entre el cortador y el extremo de la boquilla"
 
 msgid "Reduce infill retraction"
 msgstr "Reducir la retracción del relleno"
@@ -5787,7 +5781,7 @@ msgid "Purging volumes"
 msgstr "Volúmenes de purga"
 
 msgid "Flush multiplier"
-msgstr ""
+msgstr "Multiplicador de flujo"
 
 msgid "Prime volume"
 msgstr "Volumen principal"
@@ -5900,10 +5894,10 @@ msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Opciones de posicionamiento: 0-desactivar, 1-activar, otras-auto"
 
 msgid "Convert Unit"
-msgstr ""
+msgstr "Convertir Unidad"
 
 msgid "Convert the units of model"
-msgstr ""
+msgstr "Convertir las unidades del modelo"
 
 msgid "Orient the model"
 msgstr "Orientar el modelo"
@@ -5999,34 +5993,49 @@ msgstr "Error en la línea %1%:\n"
 
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
-msgstr ""
+msgstr "Soporte: generar trayectoria en la capa %d"
 
 msgid "Support: detect overhangs"
-msgstr ""
+msgstr "Soporte: detectar voladizos"
 
 msgid "Support: generate contact points"
-msgstr ""
+msgstr "Soporte: generar puntos de contacto"
 
 msgid "Support: propagate branches"
-msgstr ""
+msgstr "Soporte: propagación de ramas"
 
 msgid "Support: draw polygons"
-msgstr ""
+msgstr "Soporte: dibujar polígonos"
 
 msgid "Support: generate toolpath"
-msgstr ""
+msgstr "Soporte: herramienta de generación de trayectoria"
 
 #, c-format, boost-format
 msgid "Support: generate polygons at layer %d"
-msgstr ""
+msgstr "Soporte: generar polígonos en la capa %d"
 
 #, c-format, boost-format
 msgid "Support: fix holes at layer %d"
-msgstr ""
+msgstr "Soporte: arreglar huecos en la capa %d"
 
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
-msgstr ""
+msgstr "Soporte: propagar ramas en la capa %d"
+
+#~ msgid "Login with your Account"
+#~ msgstr "Acceda con su cuenta"
+
+#~ msgid "Logout"
+#~ msgstr "Cierre de sesión"
+
+#~ msgid "Publish Model/Profile"
+#~ msgstr "Publicar Modelo/Perfil"
+
+#~ msgid "Please slice all plates before upload"
+#~ msgstr "Por favor, rebane todas las piezas antes de subirlas"
+
+#~ msgid "Chinese (Simplified)"
+#~ msgstr "Chino (simplificado)"
 
 #~ msgid "GUI"
 #~ msgstr "GUÍA"
@@ -6037,11 +6046,21 @@ msgstr ""
 #~ msgid "Shortcuts"
 #~ msgstr "Atajos"
 
+#~ msgid "Keep"
+#~ msgstr "Mantener"
+
+# It is an abbreviation, in Spanish it can mean the same as in English, calculator, calculate, calculus etc, so it stays the same as it is.
+#~ msgid "Calc"
+#~ msgstr "Calc"
+
 #~ msgid "Smart"
 #~ msgstr "Inteligente"
 
-#~ msgid "Keep"
-#~ msgstr "Mantener"
+#~ msgid "Extra flush volume"
+#~ msgstr "Cantidad de flujo adicional"
+
+#~ msgid "mm3"
+#~ msgstr "mm3"
 
 #~ msgid "Total Size:"
 #~ msgstr "Tamaño total:"
