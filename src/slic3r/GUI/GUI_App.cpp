@@ -980,7 +980,7 @@ void GUI_App::post_init()
                 const std::string& filename = this->init_params->input_files.front();
                 //BBS: remove amf logic as project
                 if (boost::algorithm::iends_with(filename, ".3mf"))
-                    this->plater()->set_project_filename(filename);
+                    this->plater()->set_project_filename(from_u8(filename));
             }
         }
     }
