@@ -1604,21 +1604,9 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
         this->send_log_evt(log);
         return;
     }
-    UPGRADE_MODULE upgrade_module = (UPGRADE_MODULE)cb_upgrade_module->GetCurrentSelection();
-    UPGRADE_MODE upgrade_mode = (UPGRADE_MODE)cb_upgrade_mode->GetCurrentSelection();
-    std::string hardware_version;
-    if (cb_upgrade_version->GetCurrentSelection() == 0) {
-        hardware_version = "v8";
-    } else if (cb_upgrade_version->GetCurrentSelection() == 1) {
-        hardware_version = "v7";
-    } else if (cb_upgrade_version->GetCurrentSelection() == 2) {
-        hardware_version = "v6";
-    } else if (cb_upgrade_version->GetCurrentSelection() == 3) {
-        hardware_version = "v5";
-    } else {
-        hardware_version = "v7";
-    }
-
+    UPGRADE_MODULE upgrade_module   = (UPGRADE_MODULE)cb_upgrade_module->GetCurrentSelection();
+    UPGRADE_MODE upgrade_mode       = (UPGRADE_MODE)cb_upgrade_mode->GetCurrentSelection();
+    std::string hardware_version    =  (boost::format("v%1%") % (8-cb_upgrade_version->GetCurrentSelection())).str();
     MachineObject *obj        = dev_manager_.get_local_selected_machine();
     if (!obj)
         return;
