@@ -58,8 +58,10 @@ DropDown::DropDown(wxWindow *             parent,
 
 void DropDown::Invalidate(bool clear)
 {
-    if (clear)
+    if (clear) {
         selection = hover_item = -1;
+        offset = wxPoint();
+    }
     assert(selection < (int) texts.size());
     need_sync = true;
 }
