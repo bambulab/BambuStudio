@@ -1697,7 +1697,7 @@ std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> TriangleSelector:
     return out.data;
 }
 
-void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data, bool needs_reset)
+void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data, bool needs_reset, EnforcerBlockerType max_ebt)
 {
     if (needs_reset)
         reset(); // dump any current state
@@ -1739,6 +1739,11 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
             bool is_split = num_of_children != 0;
             // Only valid if not is_split. Value of the second nibble was subtracted by 3, so it is added back.
             auto state = is_split ? EnforcerBlockerType::NONE : EnforcerBlockerType((code & 0b1100) == 0b1100 ? next_nibble() + 3 : code >> 2);
+
+            // BBS
+            if (state > max_ebt)
+                state = EnforcerBlockerType::NONE;
+
             // Only valid if is_split.
             int special_side = code >> 2;
 

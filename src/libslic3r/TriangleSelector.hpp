@@ -274,7 +274,7 @@ public:
     std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> serialize() const;
 
     // Load serialized data. Assumes that correct mesh is loaded.
-    void deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data, bool needs_reset = true);
+    void deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>>& data, bool needs_reset = true, EnforcerBlockerType max_ebt = (EnforcerBlockerType)std::numeric_limits<int8_t>::max());
 
     // For all triangles, remove the flag indicating that the triangle was selected by seed fill.
     void seed_fill_unselect_all_triangles();

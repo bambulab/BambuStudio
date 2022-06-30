@@ -634,6 +634,7 @@ Sidebar::Sidebar(Plater *parent)
         if (p->editing_filament >= filament_count) {
             p->editing_filament = 0;
         }
+
         wxGetApp().preset_bundle->set_num_filaments(filament_count);
         wxGetApp().plater()->on_filaments_change(filament_count);
         wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
@@ -8500,6 +8501,12 @@ void Plater::on_filaments_change(size_t num_filaments)
     update_filament_colors_in_full_config();
     sidebar().on_filaments_change(num_filaments);
     sidebar().obj_list()->update_objects_list_filament_column(num_filaments);
+
+    for (ModelObject* mo : wxGetApp().model().objects) {
+        for (ModelVolume* mv : mo->volumes) {
+            mv->update_extruder_count(num_filaments);
+        }
+    }
 }
 
 void Plater::on_bed_type_change(BedType bed_type)

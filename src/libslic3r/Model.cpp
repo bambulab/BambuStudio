@@ -2409,6 +2409,16 @@ std::vector<int> ModelVolume::get_extruders() const
     return volume_extruders;
 }
 
+void ModelVolume::update_extruder_count(size_t extruder_count)
+{
+    std::vector<int> used_extruders = get_extruders();
+    for (int extruder_id : used_extruders) {
+        if (extruder_id > extruder_count) {
+            mmu_segmentation_facets.set_enforcer_block_type_limit(*this, (EnforcerBlockerType)extruder_count);
+        }
+    }
+}
+
 void ModelVolume::center_geometry_after_creation(bool update_source_offset)
 {
     Vec3d shift = this->mesh().bounding_box().center();
@@ -2968,6 +2978,13 @@ void FacetsAnnotation::get_facets(const ModelVolume& mv, std::vector<indexed_tri
     TriangleSelector selector(mv.mesh());
     selector.deserialize(m_data, false);
     selector.get_facets(facets_per_type);
+}
+
+void FacetsAnnotation::set_enforcer_block_type_limit(const ModelVolume& mv, EnforcerBlockerType max_type)
+{
+    TriangleSelector selector(mv.mesh());
+    selector.deserialize(m_data, false, max_type);
+    this->set(selector);
 }
 
 indexed_triangle_set FacetsAnnotation::get_facets_strict(const ModelVolume& mv, EnforcerBlockerType type) const
