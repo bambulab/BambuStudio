@@ -459,7 +459,7 @@ public:
     /* bind job */
     int start_bind(std::string dev_ip, OnUpdateStatusFn update_fn);
     std::string build_login_request();
-    int _parse_login_report(std::string json_str, std::string fail_reason);
+    int _parse_login_report(std::string json_str, std::string &fail_reason);
 
     
     int start_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);

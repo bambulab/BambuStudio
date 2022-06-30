@@ -28,6 +28,7 @@ private:
     bool            m_hover{false};
     bool            m_click{false};
     bool            m_none_printer{true};
+    int             last_printer_signal = 0;
 
     wxBitmap        m_printing_img;
     wxBitmap        m_arrow_img;
@@ -52,7 +53,7 @@ public:
 
     void set_none_printer_mode();
     void set_current_printer_name(std::string dev_name);
-    void set_current_printer_sigin(WifiSignal sign);;
+    void set_current_printer_signal(WifiSignal sign);;
     void msw_rescale();
 
 protected:

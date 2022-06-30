@@ -347,6 +347,7 @@ public:
     bool            is_user_login();
 
     void            request_user_login(int online_login);
+    void            request_user_logout();
     int             request_user_unbind(std::string dev_id);
     std::string     handle_web_request(std::string cmd);
     void            handle_script_message(std::string msg);
@@ -365,7 +366,7 @@ public:
     void            enter_force_upgrade();
     void            no_new_version();
     void            reload_settings();
-    void            reload_user_presets();
+    void            remove_user_presets();
     void            sync_preset(Preset* preset);
     void            start_sync_service();
 

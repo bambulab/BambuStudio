@@ -145,7 +145,7 @@ static wxIcon main_frame_icon(GUI_App::EAppMode app_mode)
 #define BORDERLESS_FRAME_STYLE (wxRESIZE_BORDER)
 #endif
 
-wxDEFINE_EVENT(EVT_SELECT_DEFAULT_PRESET,     SimpleEvent);
+wxDEFINE_EVENT(EVT_SYNC_CLOUD_PRESET,     SimpleEvent);
 
 MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_STYLE, "mainframe")
@@ -289,7 +289,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         TabPosition pos = (TabPosition)evt.GetInt();
         m_tabpanel->SetSelection(pos);
     });
-    Bind(EVT_SELECT_DEFAULT_PRESET, &MainFrame::on_select_default_preset, this);
+    Bind(EVT_SYNC_CLOUD_PRESET, &MainFrame::on_select_default_preset, this);
 
     // set default tooltip timer in msec
     // SetAutoPop supposedly accepts long integers but some bug doesn't allow for larger values
@@ -2419,10 +2419,22 @@ void MainFrame::update_ui_from_settings()
 }
 
 
-void MainFrame::update_presets_ui()
+void MainFrame::show_sync_dialog()
 {
-    SimpleEvent* evt = new SimpleEvent(EVT_SELECT_DEFAULT_PRESET);
+    SimpleEvent* evt = new SimpleEvent(EVT_SYNC_CLOUD_PRESET);
     wxQueueEvent(this, evt);
+}
+
+void MainFrame::update_side_preset_ui()
+{
+    // select last preset
+    for (auto tab : wxGetApp().tabs_list) {
+        tab->update_tab_ui();
+    }
+
+    //BBS: update the preset
+    m_plater->sidebar().update_presets(Preset::TYPE_PRINTER);
+    m_plater->sidebar().update_presets(Preset::TYPE_FILAMENT);
 }
 
 void MainFrame::on_select_default_preset(SimpleEvent& evt)
@@ -2456,13 +2468,7 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
             break;
     }
 
-    // select last preset
-    for (auto tab : wxGetApp().tabs_list) {
-        tab->update_tab_ui();
-    }
-
-    //BBS: update the preset
-    m_plater->sidebar().update_presets(Preset::TYPE_FILAMENT);
+    update_side_preset_ui();
 }
 
 std::string MainFrame::get_base_name(const wxString &full_name, const char *extension) const

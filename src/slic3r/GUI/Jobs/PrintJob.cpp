@@ -147,22 +147,25 @@ void PrintJob::process()
     BBL::BambuNetworkAgent* m_agent = wxGetApp().getAgent();
 
     if (params.connection_type != "lan") {
-        result = m_agent->start_print(params, update_fn, cancel_fn);
-        // no access code
-        //if (params.password.empty()) {
-        //    result = acc->start_print(params, update_fn, cancel_fn);
-        //} else {
-        //    // try to send local with record
-        //    result = acc->start_local_print_with_record(params, update_fn, cancel_fn);
-        //    if (result < 0) {
-        //        // try to send with cloud
-        //        result = acc->start_print(params, update_fn, cancel_fn);
-        //        if (result < 0) {
-        //            // try to send local only
-        //            result = acc->start_local_print(params, update_fn, cancel_fn);
-        //        }
-        //    }
-        //}
+        if (!params.password.empty() && !params.dev_ip.empty()) {
+            // try to send local with record
+            BOOST_LOG_TRIVIAL(trace) << "try to start local print with record";
+            this->update_status(curr_percent, _L("Try to upload project over lan"));
+            result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn);
+            if (result < 0) {
+                // try to send with cloud
+                BOOST_LOG_TRIVIAL(trace) << "try to send with cloud";
+                this->update_status(curr_percent, _L("Try to send project over cloud"));
+                result = m_agent->start_print(params, update_fn, cancel_fn);
+                if (result < 0) {
+                    this->update_status(curr_percent, _L("Try to send project over lan"));
+                    BOOST_LOG_TRIVIAL(trace) << "try to send loal print";
+                    result = m_agent->start_local_print(params, update_fn, cancel_fn);
+                }
+            }
+        } else {
+            result = m_agent->start_print(params, update_fn, cancel_fn);
+        }
     } else {
         result = m_agent->start_local_print(params, update_fn, cancel_fn);
     }

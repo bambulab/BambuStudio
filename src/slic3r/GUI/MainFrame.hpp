@@ -249,7 +249,8 @@ public:
 
     void        update_ui_from_settings();
     //BBS
-    void        update_presets_ui();
+    void        show_sync_dialog();
+    void        update_side_preset_ui();
     void        on_select_default_preset(SimpleEvent& evt);
 
     bool        is_loaded() const { return m_loaded; }

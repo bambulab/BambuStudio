@@ -337,29 +337,29 @@ void MonitorPanel::on_size(wxSizeEvent &event)
 
     // update wifi signal image
     int wifi_signal_val = 0;
-    if (!obj->wifi_signal.empty() && boost::ends_with(obj->wifi_signal, "dBm")) {
-        try {
-            wifi_signal_val = std::stoi(obj->wifi_signal.substr(0, obj->wifi_signal.size() - 3));
-        }
-        catch (...) {
-            ;
-        }
-
-        if (last_wifi_signal != wifi_signal_val) {
+    if (!obj->is_online()) {
+        m_side_tools->set_current_printer_signal(WifiSignal::NONE);
+    } else {
+        if (!obj->wifi_signal.empty() && boost::ends_with(obj->wifi_signal, "dBm")) {
+            try {
+                wifi_signal_val = std::stoi(obj->wifi_signal.substr(0, obj->wifi_signal.size() - 3));
+            }
+            catch (...) {
+                ;
+            }
             if (wifi_signal_val > -45) {
-                m_side_tools->set_current_printer_sigin(WifiSignal::STRONG);
+                m_side_tools->set_current_printer_signal(WifiSignal::STRONG);
             }
             else if (wifi_signal_val <= -45 && wifi_signal_val >= -60) {
-                m_side_tools->set_current_printer_sigin(WifiSignal::MIDDLE);
+                m_side_tools->set_current_printer_signal(WifiSignal::MIDDLE);
             }
             else {
-                m_side_tools->set_current_printer_sigin(WifiSignal::WEAK);
+                m_side_tools->set_current_printer_signal(WifiSignal::WEAK);
             }
         }
-        last_wifi_signal = wifi_signal_val;
-    }
-    else {
-        m_side_tools->set_current_printer_sigin(WifiSignal::WEAK);
+        else {
+            m_side_tools->set_current_printer_signal(WifiSignal::MIDDLE);
+        }
     }
 }
 
@@ -498,6 +498,7 @@ void MonitorPanel::show_status(int status)
     if ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0) {
         set_default();
         m_side_tools->set_none_printer_mode();
+        m_connection_info->Hide();
         m_status_info_panel->show_status(status);
         //m_tabpanel->RemovePage(0);
         //m_tabpanel->InsertNewPage(0, m_status_info_panel, _L("Status"), "", true);
@@ -509,8 +510,9 @@ void MonitorPanel::show_status(int status)
         ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0) ||
         ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
         ) {
-        if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0))
-            m_side_tools->set_current_printer_sigin(WifiSignal::NONE);
+        if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)) {
+            m_side_tools->set_current_printer_signal(WifiSignal::NONE);
+        }
 
         m_status_info_panel->show_status(status);
         //m_tabpanel->RemovePage(0);

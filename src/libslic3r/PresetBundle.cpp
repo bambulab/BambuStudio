@@ -701,35 +701,85 @@ bool PresetBundle::validate_printers(const std::string &name, DynamicPrintConfig
 
 void PresetBundle::remove_users_preset(AppConfig& config)
 {
+    std::string preset_folder_user_id = config.get("preset_folder");
+    std::string printer_selected_preset_name = printers.get_selected_preset().name;
+    bool need_reset_printer_preset = false;
+    for (auto it = printers.begin(); it != printers.end();) {
+        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(preset_folder_user_id) == 0) {
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":printers erase %1%, type %2%， user_id %3%") % it->name % Preset::get_type_string(it->type) % it->user_id;
+            if (it->name == printer_selected_preset_name)
+                need_reset_printer_preset = true;
+            it = printers.erase(it);
+        }
+        else {
+            it++;
+        }
+    }
+
+    if (need_reset_printer_preset) {
+        std::string default_printer_model = BBL_DEFAULT_PRINTER_MODEL;
+        std::string default_printer_name;
+        for (auto it = printers.begin(); it != printers.end(); it++) {
+            if (it->config.has("printer_model")) {
+                if (it->config.opt_string("printer_model") == default_printer_model) {
+                    default_printer_name = it->name;
+                    break;
+                }
+            }
+        }
+        printers.select_preset_by_name(default_printer_name, true);
+    } else {
+        printers.select_preset_by_name(printer_selected_preset_name, true);
+    }
+    
+    std::string selected_print_name = prints.get_selected_preset().name;
+    bool need_reset_print_preset = false;
     // remove preset if user_id is not current user
     for (auto it = prints.begin(); it != prints.end();) {
-        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(config.get("preset_folder")) != 0) {
+        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(preset_folder_user_id) == 0) {
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":prints erase %1%, type %2%， user_id %3%")%it->name %Preset::get_type_string(it->type) %it->user_id;
+            if (it->name == selected_print_name)
+                need_reset_print_preset = true;
             it = prints.erase(it);
         }
         else {
             it++;
         }
     }
+    if (need_reset_print_preset && printers.get_selected_preset().config.has("default_print_profile")) {
+        std::string default_print_profile_name = printers.get_selected_preset().config.opt_string("default_print_profile");
+        prints.select_preset_by_name(default_print_profile_name, true);
+    } else {
+        prints.select_preset_by_name(selected_print_name, true);
+    }
 
+    std::string selected_filament_name = filaments.get_selected_preset().name;
+    bool need_reset_filament_preset = false;
     for (auto it = filaments.begin(); it != filaments.end();) {
-        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(config.get("preset_folder")) != 0) {
+        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(preset_folder_user_id) == 0) {
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":filaments erase %1%, type %2%， user_id %3%")%it->name %Preset::get_type_string(it->type) %it->user_id;
+            if (it->name == selected_filament_name)
+                need_reset_filament_preset = true;
             it = filaments.erase(it);
         }
         else {
             it++;
         }
     }
+    if (need_reset_filament_preset && printers.get_selected_preset().config.has("default_filament_profile")) {
+        const std::vector<std::string>& prefered_filament_profiles = printers.get_selected_preset().config.option<ConfigOptionStrings>("default_filament_profile")->values;
+        if (prefered_filament_profiles.size() > 0)
+            filaments.select_preset_by_name(prefered_filament_profiles[0], true);
+    } else {
+        filaments.select_preset_by_name(selected_filament_name, true);
+    }
 
-    for (auto it = printers.begin(); it != printers.end();) {
-        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(config.get("preset_folder")) != 0) {
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":printers erase %1%, type %2%， user_id %3%")%it->name %Preset::get_type_string(it->type) %it->user_id;
-            it = printers.erase(it);
-        }
-        else {
-            it++;
-        }
+    /* set selected preset */
+    for (size_t i = 0; i < filament_presets.size(); ++i)
+    {
+        auto preset = this->filaments.find_preset(filament_presets[i]);
+        if (preset == nullptr)
+            filament_presets[i] = filaments.get_selected_preset_name();
     }
 }
 

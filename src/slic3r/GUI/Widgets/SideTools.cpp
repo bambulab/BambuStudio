@@ -48,8 +48,11 @@ void SideTools::set_current_printer_name(std::string dev_name)
      Refresh();
 }
 
-void SideTools::set_current_printer_sigin(WifiSignal sign) 
+void SideTools::set_current_printer_signal(WifiSignal sign) 
 {
+     if (last_printer_signal == sign) return;
+    
+     last_printer_signal = sign;
      m_none_printer = false;
      m_wifi_type    = sign;
      Refresh();

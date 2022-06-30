@@ -63,8 +63,10 @@ namespace BBL {
         int count = 0;
         while (!sdp_quit) {
             try {
-                if (keep_sending && (count % 100) == 0)
+                if (keep_sending && (count % 100) == 0) {
+                    BOOST_LOG_TRIVIAL(trace) << "send ssdp msg to card_no=" << card_no;
                     bbl_send_ssdp_msg(broadcast_sock_list[card_no]);
+                }
                 count++;
                 boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
             } catch(...) {

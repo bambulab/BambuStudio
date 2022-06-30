@@ -2703,9 +2703,14 @@ namespace BBL {
         )
         .perform_sync();
 
-        std::map<std::string, std::map<std::string, std::string>>::iterator it;
-        for (it = m_my_presets.begin(); it != m_my_presets.end(); it++) {
+
+        int i = 0;
+        const int MAX_PRESET_LOAD = 50;
+        for (auto it = m_my_presets.begin(); it != m_my_presets.end(); it++) {
             get_setting(it->first, it->second);
+            i++;
+            if (i > MAX_PRESET_LOAD)
+                return 0;
         }
         return 0;
     }
@@ -3210,7 +3215,7 @@ std::string AccountManager::build_login_request() {
     return j.dump();
 }
 
-int AccountManager::_parse_login_report(std::string json_str, std::string fail_reason)
+int AccountManager::_parse_login_report(std::string json_str, std::string &fail_reason)
 {
     try {
         json j = json::parse(json_str);

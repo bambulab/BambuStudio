@@ -2372,6 +2372,16 @@ void GUI_App::request_user_login(int online_login)
     wxQueueEvent(this, evt);
 }
 
+void GUI_App::request_user_logout()
+{
+    if (m_agent) {
+        m_agent->user_logout();
+        /* delete old user settings */
+        m_device_manager->clean_user_info();
+        GUI::wxGetApp().remove_user_presets();
+    }
+}
+
 int GUI_App::request_user_unbind(std::string dev_id)
 {
     int result = -1;
@@ -2439,9 +2449,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
             }
             else if (command_str.compare("homepage_logout") == 0) {
                 CallAfter([this] {
-                    if (m_agent) {
-                        m_agent->user_logout();
-                    }
+                    wxGetApp().request_user_logout();
                 });
             }
             else if (command_str.compare("homepage_newproject") == 0) {
@@ -2493,8 +2501,6 @@ void GUI_App::handle_script_message(std::string msg)
             if (cmd == "user_login") {
                 if (m_agent) {
                     m_agent->change_user(j.dump());
-                    /* delete old user settings */
-                    m_device_manager->clean_user_info();
                     if (m_agent->is_user_login()) {
                         request_user_login(1);
                     }
@@ -2561,8 +2567,7 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
     if (status == 401) {
         if (m_agent) {
             if (m_agent->is_user_login()) {
-                // move to GUI
-                m_agent->user_logout();
+                this->request_user_logout();
                 wxString msg = wxString::Format(_L("Login information expired. Please login again."));
                 wxMessageBox(msg);
             }
@@ -2590,7 +2595,7 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
 
     GUI::wxGetApp().preset_bundle->update_user_presets_directory(user_id);
     if (online_login)
-        GUI::wxGetApp().reload_user_presets();
+        GUI::wxGetApp().mainframe->show_sync_dialog();
 }
 
 void GUI_App::check_update(bool show_tips)
@@ -2709,11 +2714,12 @@ void GUI_App::reload_settings()
 }
 
 //BBS reload when login
-void GUI_App::reload_user_presets()
+void GUI_App::remove_user_presets()
 {
     if (preset_bundle && m_agent) {
         preset_bundle->remove_users_preset(*app_config);
-        mainframe->update_presets_ui();
+        //update ui
+        mainframe->update_side_preset_ui();
     }
 }
 
