@@ -65,7 +65,7 @@ static wxColour TEXT_LIGHT_FONT_COL  = wxColour(107, 107, 107);
 #define MISC_BUTTON_SIZE (wxSize(FromDIP(68), FromDIP(55)))
 #define TEMP_CTRL_MIN_SIZE (wxSize(FromDIP(122), FromDIP(52)))
 #define AXIS_MIN_SIZE (wxSize(FromDIP(220), FromDIP(220)))
-#define EXTRUDER_IMAGE_SIZE (wxSize(FromDIP(48), FromDIP(96)))
+#define EXTRUDER_IMAGE_SIZE (wxSize(FromDIP(48), FromDIP(76)))
 
 StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
     : wxScrolledWindow(parent, id, pos, size, wxHSCROLL | wxVSCROLL)
@@ -124,7 +124,6 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
 
     m_machine_ctrl_panel = new wxPanel(this);
     m_machine_ctrl_panel->SetBackgroundColour(*wxWHITE);
-    // m_machine_ctrl_panel->SetBackgroundColour(wxColour(	255,192,203));
     m_machine_ctrl_panel->SetDoubleBuffered(true);
     auto m_machine_control = create_machine_control_page(m_machine_ctrl_panel);
     m_machine_ctrl_panel->SetSizer(m_machine_control);
@@ -166,7 +165,7 @@ void StatusBasePanel::init_bitmaps()
     m_bitmap_speed           = create_scaled_bitmap("monitor_speed", nullptr, 24);
     m_thumbnail_placeholder  = create_scaled_bitmap("monitor_placeholder", nullptr, 120);
     m_thumbnail_sdcard       = create_scaled_bitmap("monitor_sdcard_thumbnail", nullptr, 120);
-    m_bitmap_extruder        = *cache.load_png("monitor_extruder", FromDIP(48), FromDIP(96), false, false);
+    m_bitmap_extruder        = *cache.load_png("monitor_extruder", FromDIP(28), FromDIP(70), false, false);
 }
 
 wxBoxSizer *StatusBasePanel::create_monitoring_page()
@@ -437,9 +436,10 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     //fgSizer_task->Add(0, 0, 0, wxEXPAND, FromDIP(5));
 
     wxPanel* panel_button_block = new wxPanel(penel_bottons, wxID_ANY);
-    panel_button_block->SetMinSize(wxSize(TASK_BUTTON_SIZE.x * 3 + FromDIP(5) * 6, -1));
-    panel_button_block->SetMinSize(wxSize(TASK_BUTTON_SIZE.x * 3 + FromDIP(5) * 6, -1));
-    panel_button_block->SetSize(wxSize(TASK_BUTTON_SIZE.x * 3 + FromDIP(5) * 6, -1));
+    panel_button_block->SetMinSize(wxSize(TASK_BUTTON_SIZE.x * 2 + FromDIP(5) * 4, -1));
+    panel_button_block->SetMinSize(wxSize(TASK_BUTTON_SIZE.x * 2 + FromDIP(5) * 4, -1));
+    panel_button_block->SetSize(wxSize(TASK_BUTTON_SIZE.x * 2 + FromDIP(5) * 2, -1));
+    panel_button_block->SetBackgroundColour(*wxWHITE);
 
     bSizer_text->Add(m_staticText_progress_percent, 0, wxALIGN_CENTER | wxALL, 0);
     bSizer_text->Add(0, 0, 1, wxEXPAND, 0);
@@ -520,9 +520,13 @@ wxBoxSizer *StatusBasePanel::create_temp_axis_group(wxWindow *parent)
 {
     auto        sizer         = new wxBoxSizer(wxVERTICAL);
     auto        box           = new RoundedRectangle(parent, wxColour(0xEE, 0xEE, 0xEE), wxDefaultPosition, wxSize(FromDIP(510), -1), 5, 1);
+
+    box->SetMinSize(wxSize(FromDIP(530), -1));
+    box->SetMaxSize(wxSize(FromDIP(530), -1));
+
     wxBoxSizer *content_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *m_temp_ctrl   = create_temp_control(box);
-    content_sizer->Add(m_temp_ctrl, 0, wxEXPAND | wxALL, 3);
+    content_sizer->Add(m_temp_ctrl, 0, wxEXPAND | wxALL, FromDIP(5));
 
     m_temp_extruder_line = new StaticLine(box, true);
     m_temp_extruder_line->SetLineColour(STATIC_BOX_LINE_COL);
@@ -530,13 +534,15 @@ wxBoxSizer *StatusBasePanel::create_temp_axis_group(wxWindow *parent)
     content_sizer->Add(FromDIP(9), 0, 0, wxEXPAND, 1);
 
     auto m_axis_sizer = create_axis_control(box);
-    content_sizer->Add(m_axis_sizer, 0, wxEXPAND | wxALL, 0);
+    content_sizer->Add(m_axis_sizer, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
 
     wxBoxSizer *bed_sizer = create_bed_control(box);
-    content_sizer->Add(bed_sizer, 0, wxEXPAND | wxALL, FromDIP(9));
+    content_sizer->Add(bed_sizer, 0, wxEXPAND | wxLEFT | wxTOP| wxBOTTOM, FromDIP(12));
+
+    content_sizer->Add(0, 0, 0, wxLEFT, FromDIP(12));
 
     wxBoxSizer *extruder_sizer = create_extruder_control(box);
-    content_sizer->Add(extruder_sizer, 0, wxEXPAND | wxTOP | wxBOTTOM | wxRIGHT, FromDIP(9));
+    content_sizer->Add(extruder_sizer, 0, wxEXPAND  | wxTOP | wxBOTTOM, FromDIP(12));
 
     box->SetSizer(content_sizer);
     sizer->Add(box, 0, wxEXPAND | wxALL, FromDIP(9));
@@ -705,7 +711,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
 
     bSizer_z_ctrl->Add(m_bpButton_z_10, 0, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
-    m_bpButton_z_1 = new Button(parent, wxString("1"), "monitor_bed_up", 0, FromDIP(15));
+    m_bpButton_z_1 = new Button(parent, wxString(" 1"), "monitor_bed_up", 0, FromDIP(15));
     m_bpButton_z_1->SetFont(::Label::Body_13);
     m_bpButton_z_1->SetBackgroundColor(z_1_ctrl_bg);
     m_bpButton_z_1->SetBorderColor(z_1_ctrl_bd);
@@ -716,7 +722,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
 
     bSizer_z_ctrl->Add(0, FromDIP(6), 0, wxEXPAND, 0);
 
-    m_bpButton_z_down_1 = new Button(parent, wxString("1"), "monitor_bed_down", 0, FromDIP(15));
+    m_bpButton_z_down_1 = new Button(parent, wxString(" 1"), "monitor_bed_down", 0, FromDIP(15));
     m_bpButton_z_down_1->SetFont(::Label::Body_13);
     m_bpButton_z_down_1->SetBackgroundColor(z_1_ctrl_bg);
     m_bpButton_z_down_1->SetBorderColor(z_1_ctrl_bd);
@@ -734,7 +740,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
 
     bSizer_z_ctrl->Add(m_bpButton_z_down_10, 0, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
-    bSizer_z_ctrl->Add(0, FromDIP(6), 0, wxEXPAND, 0);
+    bSizer_z_ctrl->Add(0, FromDIP(16), 0, wxEXPAND, 0);
 
     m_staticText_z_tip = new wxStaticText(parent, wxID_ANY, _L("Bed"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_z_tip->SetFont(::Label::Body_13);
@@ -751,7 +757,7 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
 
     StateColor e_ctrl_bg(std::pair<wxColour, int>(BUTTON_PRESS_COL, StateColor::Pressed), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
     StateColor e_ctrl_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
-    m_bpButton_e_10 = new Button(parent, "", "monitor_extruder_up", 0, FromDIP(24));
+    m_bpButton_e_10 = new Button(parent, "", "monitor_extruder_up", 0, FromDIP(22));
     m_bpButton_e_10->SetBackgroundColor(e_ctrl_bg);
     m_bpButton_e_10->SetBorderColor(e_ctrl_bd);
     m_bpButton_e_10->SetMinSize(wxSize(FromDIP(40), FromDIP(40)));
@@ -765,7 +771,7 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
 
     bSizer_e_ctrl->Add(m_bitmap_extruder_img, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     bSizer_e_ctrl->Add(0, FromDIP(7), 0, 0, 0);
-    m_bpButton_e_down_10 = new Button(parent, "", "monitor_extruder_down", 0, FromDIP(24));
+    m_bpButton_e_down_10 = new Button(parent, "", "monitor_extruder_down", 0, FromDIP(22));
     m_bpButton_e_down_10->SetBackgroundColor(e_ctrl_bg);
     m_bpButton_e_down_10->SetBorderColor(e_ctrl_bd);
     m_bpButton_e_down_10->SetMinSize(wxSize(FromDIP(40), FromDIP(40)));
@@ -1061,9 +1067,16 @@ void StatusPanel::update(MachineObject *obj)
     update_subtask(obj);
     m_project_task_panel->Thaw();
 
-    m_machine_ctrl_panel->Freeze();
-    update_temp_ctrl(obj);
 
+    m_machine_ctrl_panel->Freeze();
+
+    if (obj->is_in_printing() && !obj->can_resume())
+        show_printing_status(false, true);
+    else
+        show_printing_status();
+
+
+    update_temp_ctrl(obj);
     update_misc_ctrl(obj);
 
     // BBS hide tasklist info
@@ -1085,6 +1098,56 @@ void StatusPanel::update(MachineObject *obj)
    
 
     m_machine_ctrl_panel->Thaw();
+}
+
+void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
+{
+    if (!ctrl_area) {
+        m_bpButton_xy->Enable(false);
+        m_bpButton_z_10->Enable(false);
+        m_bpButton_z_1->Enable(false);
+        m_bpButton_z_down_1->Enable(false);
+        m_bpButton_z_down_10->Enable(false);
+        m_bpButton_e_10->Enable(false);
+        m_bpButton_e_down_10->Enable(false);
+        m_staticText_z_tip->SetForegroundColour(DISCONNECT_TEXT_COL);
+        m_staticText_e->SetForegroundColour(DISCONNECT_TEXT_COL);
+        m_button_unload->Enable(false);
+    } else {
+        m_switch_speed->Enable();
+        m_switch_lamp->Enable();
+        m_switch_nozzle_fan->Enable();
+        m_switch_printing_fan->Enable();
+        m_bpButton_xy->Enable();
+        m_text_tasklist_caption->SetForegroundColour(GROUP_TITLE_FONT_COL);
+        m_bpButton_z_10->Enable();
+        m_bpButton_z_1->Enable();
+        m_bpButton_z_down_1->Enable();
+        m_bpButton_z_down_10->Enable();
+        m_bpButton_e_10->Enable();
+        m_bpButton_e_down_10->Enable();
+        m_staticText_z_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
+        m_staticText_e->SetForegroundColour(TEXT_LIGHT_FONT_COL);
+        m_button_unload->Enable();
+    }
+
+    if (!temp_area) {
+        m_tempCtrl_nozzle->Enable(false);
+        m_tempCtrl_bed->Enable(false);
+        m_tempCtrl_frame->Enable(false);
+        m_switch_speed->Enable(false);
+        m_switch_lamp->Enable(false);
+        m_switch_nozzle_fan->Enable(false);
+        m_switch_printing_fan->Enable(false);
+    } else {
+        m_tempCtrl_nozzle->Enable();
+        m_tempCtrl_bed->Enable();
+        m_tempCtrl_frame->Enable();
+        m_switch_speed->Enable();
+        m_switch_lamp->Enable();
+        m_switch_nozzle_fan->Enable();
+        m_switch_printing_fan->Enable();
+    }
 }
 
 void StatusPanel::update_temp_ctrl(MachineObject *obj)
@@ -1871,23 +1934,7 @@ void StatusPanel::show_status(int status)
         m_button_pause_resume->Enable(false);
         m_button_abort->Enable(false);
         m_text_tasklist_caption->SetForegroundColour(DISCONNECT_TEXT_COL);
-        m_tempCtrl_nozzle->Enable(false);
-        m_tempCtrl_bed->Enable(false);
-        m_tempCtrl_frame->Enable(false);
-        m_switch_speed->Enable(false);
-        m_switch_lamp->Enable(false);
-        m_switch_nozzle_fan->Enable(false);
-        m_switch_printing_fan->Enable(false);
-        m_bpButton_xy->Enable(false);
-        // m_staticText_xy->SetForegroundColour(DISCONNECT_TEXT_COL);
-        m_bpButton_z_10->Enable(false);
-        m_bpButton_z_1->Enable(false);
-        m_bpButton_z_down_1->Enable(false);
-        m_bpButton_z_down_10->Enable(false);
-        m_bpButton_e_10->Enable(false);
-        m_bpButton_e_down_10->Enable(false);
-        m_staticText_z_tip->SetForegroundColour(DISCONNECT_TEXT_COL);
-        m_staticText_e->SetForegroundColour(DISCONNECT_TEXT_COL);
+        show_printing_status(false, false);
 #if !BBL_RELEASE_TO_PUBLIC
         m_ams_control->Enable(false);
 #endif
@@ -1898,21 +1945,8 @@ void StatusPanel::show_status(int status)
         m_button_report->Enable();
         m_button_pause_resume->Enable();
         m_button_abort->Enable();
-        m_switch_speed->Enable();
-        m_switch_lamp->Enable();
-        m_switch_nozzle_fan->Enable();
-        m_switch_printing_fan->Enable();
-        m_bpButton_xy->Enable();
-        m_text_tasklist_caption->SetForegroundColour(GROUP_TITLE_FONT_COL);
-        m_bpButton_z_10->Enable();
-        m_bpButton_z_1->Enable();
-        m_bpButton_z_down_1->Enable();
-        m_bpButton_z_down_10->Enable();
-        m_bpButton_e_10->Enable();
-        m_bpButton_e_down_10->Enable();
-        // m_staticText_xy->SetForegroundColour(TEXT_LIGHT_FONT_COL);
-        m_staticText_z_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
-        m_staticText_e->SetForegroundColour(TEXT_LIGHT_FONT_COL);
+        show_printing_status();
+        
 #if !BBL_RELEASE_TO_PUBLIC
         m_ams_control->Enable();
 #endif

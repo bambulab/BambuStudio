@@ -20,13 +20,13 @@ END_EVENT_TABLE()
 
 TempInput::TempInput()
     : state_handler(this)
-    , border_color(std::make_pair(0xDBDBDB, (int) StateColor::Disabled),
+    , border_color(std::make_pair(*wxWHITE, (int) StateColor::Disabled),
                    std::make_pair(0x00AE42, (int) StateColor::Focused),
                    std::make_pair(0x00AE42, (int) StateColor::Hovered),
                    std::make_pair(*wxWHITE, (int) StateColor::Normal))
-    , label_color(std::make_pair(0x323A3D, (int) StateColor::Normal))
-    , text_color(std::make_pair(0x6B6B6B, (int) StateColor::Disabled), std::make_pair(0x6B6B6B, (int) StateColor::Normal))
-    , background_color(std::make_pair(0xF0F0F0, (int) StateColor::Disabled),
+    , label_color(std::make_pair(wxColour(0xAC,0xAC,0xAC), (int) StateColor::Disabled),std::make_pair(0x323A3D, (int) StateColor::Normal))
+    , text_color(std::make_pair(wxColour(0xAC,0xAC,0xAC), (int) StateColor::Disabled), std::make_pair(0x6B6B6B, (int) StateColor::Normal))
+    , background_color(std::make_pair(*wxWHITE, (int) StateColor::Disabled),
                        std::make_pair(*wxWHITE, (int) StateColor::Normal))
 {
     hover  = false;
@@ -317,7 +317,7 @@ void TempInput::Rescale()
 
 bool TempInput::Enable(bool enable)
 {
-    bool result = text_ctrl->Enable(enable) && wxWindow::Enable(enable);
+    bool result = wxWindow::Enable(enable);
     if (result) {
         wxCommandEvent e(EVT_ENABLE_CHANGED);
         e.SetEventObject(this);

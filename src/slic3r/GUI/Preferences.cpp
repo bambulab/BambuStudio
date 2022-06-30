@@ -172,6 +172,74 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
     return m_sizer_combox;
 }
 
+wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist)
+{
+    wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
+    m_sizer_combox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
+
+    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
+    combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    combo_title->SetFont(::Label::Body_13);
+    combo_title->SetToolTip(tooltip);
+    combo_title->Wrap(-1);
+    m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER | wxALL, 3);
+
+    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    combobox->SetFont(::Label::Body_13);
+    combobox->GetDropDown().SetFont(::Label::Body_13);
+    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
+
+    std::vector<wxString>::iterator iter;
+    for (iter = vlist.begin(); iter != vlist.end(); iter++) { combobox->Append(*iter); }
+
+    AppConfig * config       = GUI::wxGetApp().app_config;
+
+    int         current_region = 0;
+    std::string country_code   = config->get_region();
+    country_code               = "Europe";
+    auto index                 = 0;
+    for (auto i = 0; i < vlist.size(); i++) {
+        if (vlist[i] == country_code) {
+            combobox->SetSelection(index);
+            current_region = index;
+        }
+    }
+
+    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, combobox, current_region](wxCommandEvent &e) {
+        auto region = e.GetString();
+        auto area   = "";
+        if (region == "CHN" || region == "China")
+            area = "CN";
+        else if (region == "USA")
+            area = "US";
+        else if (region == "Asia-Pacific")
+            area = "Others";
+        else if (region == "Europe")
+            area = "US";
+        else if (region == "North America")
+            area = "US";
+        else
+            area = "Others";
+
+        MessageDialog msg_wingow(nullptr, _L("Switching the region requires login again.\n") + "\n" + _L("Do you want to continue?"), L("Region selection"),
+                                 wxICON_QUESTION | wxOK | wxCANCEL);
+        if (msg_wingow.ShowModal() == wxID_CANCEL) {
+            combobox->SetSelection(current_region);
+            return;
+        } else {
+            BBL::BambuNetworkAgent *agent  = wxGetApp().getAgent();
+            AppConfig *             config = GUI::wxGetApp().app_config;
+            if (agent) agent->set_country_code(area);
+            wxGetApp().request_user_logout();
+            EndModal(wxID_CANCEL);
+        }
+
+        e.Skip();
+    });
+
+    return m_sizer_combox;
+}
+
 wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist)
 {
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
@@ -539,7 +607,7 @@ wxWindow* PreferencesDialog::create_general_page()
     page->SetBackgroundColour(*wxWHITE);
     wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
 
-    auto title_general_settings = create_item_title(_L("General settings"), page, _L("General settings"));
+    auto title_general_settings = create_item_title(_L("General Settings"), page, _L("General Settings"));
 
     // bbs supported languages
     wxLanguage supported_languages[]{wxLANGUAGE_ENGLISH, wxLANGUAGE_CHINESE_SIMPLIFIED, wxLANGUAGE_SPANISH };
@@ -564,12 +632,14 @@ wxWindow* PreferencesDialog::create_general_page()
     std::sort(language_infos.begin(), language_infos.end(), [](const wxLanguageInfo *l, const wxLanguageInfo *r) { return l->Description < r->Description; });
     auto item_language = create_item_language_combobox(_L("Language"), page, _L("Language"), 50, "language", language_infos);
 
+    std::vector<wxString> Regions         = {_L("Asia-Pacific"), _L("China"), _L("Europe"), _L("North America"), _L("Others")};
+    auto                  item_region= create_item_region_combobox(_L("Login Region"), page, _L("Login Region"), Regions);
+
     std::vector<wxString> Units         = {_L("Metric"), _L("Imperial")};
     auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "units", Units);
 
-
-    auto title_sync_settings = create_item_title(_L("User sync"), page, _L("User sync"));
-    auto item_user_sync        = create_item_checkbox(_L("auto sync user presets (printer/filament/process)"), page, _L("User sync"), 50, "sync_user_preset");
+    auto title_sync_settings = create_item_title(_L("User sync"), page, _L("User Sync"));
+    auto item_user_sync        = create_item_checkbox(_L("auto sync user presets (printer/materials/craft)"), page, _L("User Sync"), 50, "preset_sync_switch");
 
 
     auto title_associate_file = create_item_title(_L("Associate files to BambuStudio"), page, _L("Associate files to BambuStudio"));
@@ -590,6 +660,7 @@ wxWindow* PreferencesDialog::create_general_page()
 
     sizer_page->Add(title_general_settings, 0, wxEXPAND, 0);
     sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_region, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_sync_settings, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));
@@ -775,7 +846,7 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
                 AppConfig* config = GUI::wxGetApp().app_config;
                 std::string country_code = config->get_country_code();
                 if (agent) {
-                    agent->user_logout();
+                    wxGetApp().request_user_logout();
                     agent->set_country_code(country_code);
                 }
                 wxMessageBox(_L("Swith cloud environment, Please login again!"));
