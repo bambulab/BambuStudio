@@ -484,6 +484,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
+    def = this->add("only_one_wall_top", coBool);
+    def->label = L("Only one wall on top surfaces");
+    def->category = L("Quality");
+    def->tooltip = L("Use only one wall on flat top surface, to give more space to the top infill pattern");
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("enable_overhang_speed", coBool);
     def->label = L("Slow down for overhang");
     def->category = L("Speed");

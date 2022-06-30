@@ -629,6 +629,7 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posSupportMaterial);
         } else if (
                opt_key == "wall_loops"
+            || opt_key == "only_one_wall_top"
             || opt_key == "initial_layer_line_width"
             || opt_key == "inner_wall_line_width"
             || opt_key == "infill_wall_overlap") {
