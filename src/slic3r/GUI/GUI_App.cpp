@@ -2742,7 +2742,8 @@ void GUI_App::sync_preset(Preset* preset)
             }
             else {
                 BOOST_LOG_TRIVIAL(trace) << "[sync_preset]init: request_setting_id failed, http code "<<http_code;
-                if (http_code == 409) {
+                // do not post new preset this time if http code >= 400
+                if (http_code >= 400) {
                     result = 0;
                     updated_info = "hold";
                 }
@@ -2767,7 +2768,8 @@ void GUI_App::sync_preset(Preset* preset)
             }
             else {
                 BOOST_LOG_TRIVIAL(trace) << "[sync_preset]create: request_setting_id failed, http code "<<http_code;
-                if (http_code == 409) {
+                // do not post new preset this time if http code >= 400
+                if (http_code >= 400) {
                     result = 0;
                     updated_info = "hold";
                 }
