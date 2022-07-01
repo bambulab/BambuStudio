@@ -276,7 +276,9 @@ void StatusBasePanel::DoSetSize(int x, int y, int width, int height, int sizeFla
 
         m_media_ctrl->SetSize(wxSize(local_size.x, new_height));
         m_media_ctrl->SetMinSize(wxSize(local_size.x, new_height));
-        //m_media_ctrl->SetMaxSize(wxSize(local_size.x,new_height));
+#ifdef __WIN32__ // fix video jitter
+        m_media_ctrl->SetMaxSize(wxSize(local_size.x,new_height));
+#endif
 
     /*    m_media_play_ctrl->SetSize(wxSize(local_size.x, FromDIP(40)));
         m_media_play_ctrl->SetMinSize(wxSize(local_size.x, FromDIP(40)));
