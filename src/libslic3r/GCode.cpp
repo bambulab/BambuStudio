@@ -76,6 +76,8 @@ namespace Slic3r {
 #define _(s) Slic3r::I18N::translate(s)
 
 static const float g_min_purge_volume = 100.f;
+static const float g_purge_volume_one_time = 135.f;
+static const int g_max_flush_count = 4;
 
 bool GCode::gcode_label_objects = false;
 
@@ -358,6 +360,22 @@ bool GCode::gcode_label_objects = false;
                 config.set_key_value("z_after_toolchange", new ConfigOptionFloat(nozzle_pos(2)));
                 config.set_key_value("first_flush_volume", new ConfigOptionFloat(purge_length / 2.f));
                 config.set_key_value("second_flush_volume", new ConfigOptionFloat(purge_length / 2.f));
+
+                //int flush_count = std::min(g_max_flush_count, (int)std::round(purge_volume / g_purge_volume_one_time));
+                int flush_count = 4;
+                float flush_unit = purge_length / flush_count;
+                int flush_idx = 0;
+                for (; flush_idx < flush_count; flush_idx++) {
+                    char key_value[64] = { 0 };
+                    snprintf(key_value, sizeof(key_value), "flush_length_%d", flush_idx + 1);
+                    config.set_key_value(key_value, new ConfigOptionFloat(flush_unit));
+                }
+
+                for (; flush_idx < g_max_flush_count; flush_idx++) {
+                    char key_value[64] = { 0 };
+                    snprintf(key_value, sizeof(key_value), "flush_length_%d", flush_idx + 1);
+                    config.set_key_value(key_value, new ConfigOptionFloat(0.f));
+                }
             }
             toolchange_gcode_str = gcodegen.placeholder_parser_process("change_filament_gcode", change_filament_gcode, new_extruder_id, &config);
             check_add_eol(toolchange_gcode_str);
@@ -3920,6 +3938,21 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     dyn_config.set_key_value("z_after_toolchange", new ConfigOptionFloat(nozzle_pos(2)));
     dyn_config.set_key_value("first_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
     dyn_config.set_key_value("second_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
+
+    int flush_count = std::min(g_max_flush_count, (int)std::round(wipe_volume / g_purge_volume_one_time));
+    float flush_unit = wipe_length / flush_count;
+    int flush_idx = 0;
+    for (; flush_idx < flush_count; flush_idx++) {
+        char key_value[64] = { 0 };
+        snprintf(key_value, sizeof(key_value), "flush_length_%d", flush_idx + 1);
+        dyn_config.set_key_value(key_value, new ConfigOptionFloat(flush_unit));
+    }
+
+    for (; flush_idx < g_max_flush_count; flush_idx++) {
+        char key_value[64] = { 0 };
+        snprintf(key_value, sizeof(key_value), "flush_length_%d", flush_idx + 1);
+        dyn_config.set_key_value(key_value, new ConfigOptionFloat(0.f));
+    }
 
     // Process the custom change_filament_gcode.
     const std::string& change_filament_gcode = m_config.change_filament_gcode.value;

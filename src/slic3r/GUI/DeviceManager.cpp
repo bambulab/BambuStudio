@@ -1053,9 +1053,10 @@ int MachineObject::command_ams_switch(std::string tray_id, int old_temp, int new
     dyn_config.set_key_value("x_after_toolchange", new ConfigOptionFloat(50.));
     dyn_config.set_key_value("y_after_toolchange", new ConfigOptionFloat(50.));
     dyn_config.set_key_value("z_after_toolchange", new ConfigOptionFloat(10.));
-    dyn_config.set_key_value("first_flush_volume", new ConfigOptionFloat(5.f));
-    dyn_config.set_key_value("second_flush_volume", new ConfigOptionFloat(5.f));
-
+    dyn_config.set_key_value("flush_length_1", new ConfigOptionFloat(5.f));
+    dyn_config.set_key_value("flush_length_2", new ConfigOptionFloat(5.f));
+    dyn_config.set_key_value("flush_length_3", new ConfigOptionFloat(0.f));
+    dyn_config.set_key_value("flush_length_4", new ConfigOptionFloat(0.f));
     try {
         std::string parsed_command = m_placeholder_parser.process(print_config.change_filament_gcode.value, tray_id_int, &dyn_config, &m_placeholder_parser_context);
         // config xyz coordinate mode
