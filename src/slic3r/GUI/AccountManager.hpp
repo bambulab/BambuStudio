@@ -457,8 +457,8 @@ public:
     std::string build_logout_cmd();
 
     /* bind job */
-    int start_bind(std::string dev_ip, OnUpdateStatusFn update_fn);
-    std::string build_login_request();
+    int start_bind(std::string dev_ip, std::string timezone, OnUpdateStatusFn update_fn);
+    std::string build_login_request(std::string timezone);
     int _parse_login_report(std::string json_str, std::string &fail_reason);
 
     

@@ -54,7 +54,7 @@ public:
     std::string build_login_cmd();
     std::string build_logout_cmd();
     std::string build_login_info();
-    int start_bind(std::string dev_ip, OnUpdateStatusFn update_fn);
+    int start_bind(std::string dev_ip, std::string timezone, OnUpdateStatusFn update_fn);
     int start_unbind(std::string dev_id);
     std::string get_bambulab_host();
 

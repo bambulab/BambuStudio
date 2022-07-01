@@ -74,7 +74,12 @@ void BindJob::process()
     BBL::BambuNetworkAgent* m_agent = wxGetApp().getAgent();
     if (!m_agent) { return; }
 
-    int result = m_agent->start_bind(m_dev_ip,
+    // get timezone
+    wxDateTime::TimeZone tz(wxDateTime::Local);
+    long offset = tz.GetOffset();
+    std::string timezone = get_timezone_utc_hm(offset);
+
+    int result = m_agent->start_bind(m_dev_ip, timezone,
         [this, &curr_percent, &msg](int stage, int code, std::string info) {
             if (stage == BBL::BindJobStage::LoginStageConnect) {
                 curr_percent = 15;

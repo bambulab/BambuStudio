@@ -422,6 +422,24 @@ inline std::string get_bbl_time_dhms(float time_in_secs)
     return buffer;
 }
 
+inline std::string get_timezone_utc_hm(long second)
+{
+    bool pos = true;
+    if (second < 0) {
+        pos = false;
+        second = -second;
+    }
+
+    int hours = (int)(second / 3600.0f);
+    second -= (float)hours * 3600.0f;
+    int minutes = (int)(second / 60.0f);
+    second -= (float)minutes * 60.0f;
+
+    char buffer[64];
+    ::sprintf(buffer, "UTC%s%02d:%02d", pos ? "+" : "-", hours, minutes);
+    return buffer;
+}
+
 inline std::string get_time_dhm(float time_in_secs)
 {
     int days = (int)(time_in_secs / 86400.0f);

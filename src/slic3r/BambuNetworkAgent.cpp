@@ -263,10 +263,10 @@ std::string BambuNetworkAgent::build_login_info()
     return j.dump(-1, ' ', false, json::error_handler_t::ignore);
 }
 
-int BambuNetworkAgent::start_bind(std::string dev_ip, OnUpdateStatusFn update_fn)
+int BambuNetworkAgent::start_bind(std::string dev_ip, std::string timezone, OnUpdateStatusFn update_fn)
 {
     AccountManager* acc = (AccountManager*)context;
-    return acc->start_bind(dev_ip, update_fn);
+    return acc->start_bind(dev_ip, timezone, update_fn);
 }
 
 int BambuNetworkAgent::start_unbind(std::string dev_id)

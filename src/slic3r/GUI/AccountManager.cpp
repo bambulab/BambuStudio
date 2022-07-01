@@ -3063,7 +3063,7 @@ namespace BBL {
         return j.dump(-1, ' ', false, json::error_handler_t::ignore);
     }
 
-    int AccountManager::start_bind(std::string dev_ip, OnUpdateStatusFn update_fn)
+    int AccountManager::start_bind(std::string dev_ip, std::string timezone, OnUpdateStatusFn update_fn)
     {
         int result = 0;
         unsigned int http_code;
@@ -3092,7 +3092,7 @@ namespace BBL {
         
         if (update_fn) update_fn(LoginStageLogin, 0, "");
 
-        std::string login_request = this->build_login_request();
+        std::string login_request = this->build_login_request(timezone);
         result = local_client->publish(login_request);
         if (result < 0) {
             BOOST_LOG_TRIVIAL(trace) << "login_bind: send login request failed, str = " << login_request;
@@ -3201,7 +3201,8 @@ namespace BBL {
     }
 
 
-std::string AccountManager::build_login_request() {
+std::string AccountManager::build_login_request(std::string timezone)
+{
     json j;
     j["login"]["sequence_id"] = std::to_string(AccountManager::m_sequence_id++);
     j["login"]["command"]     = "login";
@@ -3212,6 +3213,7 @@ std::string AccountManager::build_login_request() {
     j["login"]["emqx"]        = get_emqx_server_host();
     j["login"]["base_domain"] = user_region_server.base_domain;
     j["login"]["environment"] = user_region_server.environment;
+    j["login"]["timezone"] = timezone;
     return j.dump();
 }
 
