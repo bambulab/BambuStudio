@@ -2261,7 +2261,7 @@ static void validate_custom_gcode_cb(Tab* tab, ConfigOptionsGroupShp opt_group, 
 void TabFilament::add_filament_overrides_page()
 {
     //BBS
-    PageShp page = add_options_page(L("Filament Retraction"), "empty");
+    PageShp page = add_options_page(L("Filament Overrides"), "empty");
     ConfigOptionsGroupShp optgroup = page->new_optgroup(L("Retraction"));
 
     auto append_single_option_line = [optgroup, this](const std::string& opt_key, int opt_index)
@@ -2270,26 +2270,24 @@ void TabFilament::add_filament_overrides_page()
         //BBS
         line = optgroup->create_single_option_line(optgroup->get_option(opt_key));
 
-        //BBS: filament_retract serial parameter is shown on page directly,
-        //and isn't controlled by check box
-        //line.near_label_widget = [this, optgroup, opt_key, opt_index](wxWindow* parent) {
-        //    wxCheckBox* check_box = new wxCheckBox(parent, wxID_ANY, "");
+        line.near_label_widget = [this, optgroup, opt_key, opt_index](wxWindow* parent) {
+            wxCheckBox* check_box = new wxCheckBox(parent, wxID_ANY, "");
 
-        //    check_box->Bind(wxEVT_CHECKBOX, [optgroup, opt_key, opt_index](wxCommandEvent& evt) {
-        //        const bool is_checked = evt.IsChecked();
-        //        Field* field = optgroup->get_fieldc(opt_key, opt_index);
-        //        if (field != nullptr) {
-        //            field->toggle(is_checked);
-        //            if (is_checked)
-        //                field->set_last_meaningful_value();
-        //            else
-        //                field->set_na_value();
-        //        }
-        //    }, check_box->GetId());
+            check_box->Bind(wxEVT_CHECKBOX, [optgroup, opt_key, opt_index](wxCommandEvent& evt) {
+                const bool is_checked = evt.IsChecked();
+                Field* field = optgroup->get_fieldc(opt_key, opt_index);
+                if (field != nullptr) {
+                    field->toggle(is_checked);
+                    if (is_checked)
+                        field->set_last_meaningful_value();
+                    else
+                        field->set_na_value();
+                }
+            }, check_box->GetId());
 
-        //    m_overrides_options[opt_key] = check_box;
-        //    return check_box;
-        //};
+            m_overrides_options[opt_key] = check_box;
+            return check_box;
+        };
 
         optgroup->append_line(line);
     };
@@ -2311,12 +2309,9 @@ void TabFilament::add_filament_overrides_page()
         append_single_option_line(opt_key, extruder_idx);
 }
 
-//BBS: this function is useless new. Because filament_retract serial parameter is shown on page directly,
-//and isn't controlled by check box
 void TabFilament::update_filament_overrides_page()
 {
-    //BBS
-    if (!m_active_page || m_active_page->title() != "Filament Retraction")
+    if (!m_active_page || m_active_page->title() != "Filament Overrides")
         return;
 
     //BBS: GUI refactor
@@ -2334,7 +2329,7 @@ void TabFilament::update_filament_overrides_page()
                                             "filament_z_hop",
                                             "filament_retraction_speed",
                                             "filament_deretraction_speed",
-                                            "filament_retract_restart_extra",
+                                            //"filament_retract_restart_extra",
                                             "filament_retraction_minimum_travel",
                                             "filament_retract_when_changing_layer",
                                             "filament_wipe",
@@ -2585,9 +2580,8 @@ void TabFilament::toggle_options()
             toggle_option(el, has_enable_overhang_bridge_fan);
     }
 
-    //BBS: filament_retract serial parameter is shown on page directly without being controlled by check box
-    //if (m_active_page->title() == "Filament Retraction")
-        //update_filament_overrides_page();
+    if (m_active_page->title() == "Filament Overrides")
+        update_filament_overrides_page();
 }
 
 void TabFilament::update()

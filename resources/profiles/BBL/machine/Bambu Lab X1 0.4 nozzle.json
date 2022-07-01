@@ -6,6 +6,9 @@
   "instantiation": "true",
   "inherits": "fdm_bbl_3dp_001_common",
   "printer_model": "Bambu Lab X1",
+  "default_filament_profile": [
+      "Bambu PLA Basic @BBL X1"
+  ],
   "default_print_profile": "0.20mm Standard @BBL X1C",
   "nozzle_diameter": [
       "0.4"

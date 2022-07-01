@@ -1752,7 +1752,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Travel distance threshold");
     def->tooltip = L("Only trigger retraction when the travel distance is longer than this threshold");
     def->sidetext = L("mm");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 2. });
 
     def = this->add("retract_before_wipe", coPercents);
@@ -1765,7 +1765,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("retract_when_changing_layer", coBools);
     def->label = L("Retract when change layer");
     def->tooltip = L("Force a retraction when changes layer");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools { false });
 
     def = this->add("retraction_length", coFloats);
@@ -1774,8 +1774,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Some amount of material in extruder is pulled back to avoid ooze during long travel. "
                      "Set zero to disable retraction");
     def->sidetext = L("mm");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 0.5 });
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionFloats { 0.8 });
 
     def = this->add("retract_length_toolchange", coFloats);
     def->label = L("Length");
@@ -1794,7 +1794,7 @@ void PrintConfigDef::init_fff_params()
                      "It prevents nozzle from hitting the print when travel move. "
                      "Using spiral line to lift z can prevent stringing");
     def->sidetext = L("mm");
-    def->mode = comDevelop;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloats { 0.4 });
 
     def = this->add("retract_restart_extra", coFloats);
@@ -1820,15 +1820,15 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Retraction Speed");
     def->tooltip = L("Speed of retractions");
     def->sidetext = L("mm/s");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 40. });
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 30. });
 
     def = this->add("deretraction_speed", coFloats);
     def->label = L("Deretraction Speed");
     def->full_label = L("Deretraction Speed");
     def->tooltip = L("Speed for reloading filament into extruder. Zero means same speed with retraction");
     def->sidetext = L("mm/s");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0. });
 
     def = this->add("seam_position", coEnum);
@@ -2410,15 +2410,15 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Wipe while retracting");
     def->tooltip = L("Move nozzle along the last extrusion path when retracting to clean leaked material on nozzle. "
                      "This can minimize blob when print new part after travel");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools { false });
 
     def = this->add("wipe_distance", coFloats);
     def->label = L("Wipe Distance");
     def->tooltip = L("Discribe how long the nozzle will move along the last path when retracting");
     def->sidetext = L("mm");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 5. });
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 2. });
 
     def = this->add("enable_prime_tower", coBool);
     def->label = L("Enable");

@@ -52,7 +52,7 @@
         "0"
     ],
     "filament_deretraction_speed": [
-        "30"
+        "nil"
     ],
     "filament_diameter": [
         "1.75"
@@ -64,25 +64,25 @@
         "15"
     ],
     "filament_retraction_minimum_travel": [
-        "1"
+        "nil"
     ],
     "filament_retract_before_wipe": [
-        "70%"
+        "nil"
     ],
     "filament_retract_when_changing_layer": [
-        "1"
+        "nil"
     ],
     "filament_retraction_length": [
-        "0.8"
+        "nil"
     ],
     "filament_z_hop": [
-        "0.4"
+        "nil"
     ],
     "filament_retract_restart_extra": [
-        "0"
+        "nil"
     ],
     "filament_retraction_speed": [
-        "30"
+        "nil"
     ],
     "filament_settings_id": [
         ""
@@ -97,10 +97,10 @@
         "Generic"
     ],
     "filament_wipe": [
-        "1"
+        "nil"
     ],
     "filament_wipe_distance": [
-        "2"
+        "nil"
     ],
     "bed_type": [
         "Cool Plate"
