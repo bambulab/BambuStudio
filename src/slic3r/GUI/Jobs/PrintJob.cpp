@@ -108,7 +108,7 @@ void PrintJob::process()
 
     // local print access
     params.dev_ip = m_dev_ip;
-    params.username = "root";
+    params.username = "bblp";
     params.password = m_access_code;
 
     auto update_fn = [this, &msg, &curr_percent](int stage, int code, std::string info) {
@@ -127,6 +127,10 @@ void PrintJob::process()
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageWaiting) {
                             curr_percent = 50;
+                            msg = waiting_stage_str;
+                        }
+                        else  if (stage == BBL::SendingPrintJobStage::PrintingStageRecord) {
+                            curr_percent = 70;
                             msg = waiting_stage_str;
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageSending) {
@@ -157,11 +161,6 @@ void PrintJob::process()
                 BOOST_LOG_TRIVIAL(trace) << "try to send with cloud";
                 this->update_status(curr_percent, _L("Try to send project over cloud"));
                 result = m_agent->start_print(params, update_fn, cancel_fn);
-                if (result < 0) {
-                    this->update_status(curr_percent, _L("Try to send project over lan"));
-                    BOOST_LOG_TRIVIAL(trace) << "try to send loal print";
-                    result = m_agent->start_local_print(params, update_fn, cancel_fn);
-                }
             }
         } else {
             result = m_agent->start_print(params, update_fn, cancel_fn);

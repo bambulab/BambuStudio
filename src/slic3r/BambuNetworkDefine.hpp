@@ -44,7 +44,8 @@ enum SendingPrintJobStage {
     PrintingStageUpload = 1,
     PrintingStageWaiting = 2,
     PrintingStageSending = 3,
-    PrintingStageFinished = 4,
+    PrintingStageRecord = 4,
+    PrintingStageFinished = 5,
 };
 
 enum BindJobStage {

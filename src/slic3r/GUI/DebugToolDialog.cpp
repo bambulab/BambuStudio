@@ -1582,8 +1582,13 @@ void DebugToolDialog::refresh_device_list()
         return;
     }
 
-    dev_manager_.query_bind_status();
-    wxQueueEvent(this, new SimpleEvent(EVT_UPDATE_LIST));
+    std::string msg;
+    int result = dev_manager_.query_bind_status(msg);
+    if (result < 0) {
+        this->send_log_evt(msg);
+    } else {
+        wxQueueEvent(this, new SimpleEvent(EVT_UPDATE_LIST));
+    }
 }
 
 wxString DebugToolDialog::get_machine_display_item(MachineObject* obj)
@@ -1607,12 +1612,12 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
     UPGRADE_MODULE upgrade_module   = (UPGRADE_MODULE)cb_upgrade_module->GetCurrentSelection();
     UPGRADE_MODE upgrade_mode       = (UPGRADE_MODE)cb_upgrade_mode->GetCurrentSelection();
     std::string hardware_version    =  (boost::format("v%1%") % (8-cb_upgrade_version->GetCurrentSelection())).str();
-    MachineObject *obj        = dev_manager_.get_local_selected_machine();
-    if (!obj)
-        return;
 
     int server_sel = m_radioBox_server->GetSelection();
     if (server_sel == 1) {
+        MachineObject* obj = dev_manager_.get_local_selected_machine();
+        if (!obj)
+            return;
         if (!obj) {
             this->send_log_evt("Please Select a printer");
             return;
@@ -1689,6 +1694,9 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
         }
     }
     else if (server_sel == 0) {
+        MachineObject* obj = dev_manager_.get_selected_machine();
+        if (!obj)
+            return;
         std::string url = (boost::format("%1%?module_name=%2%&build_type=%3%&hardware_version=%4%&firmware_type=%5%")
                             % UPGRADE_URL
                             % upgrade_post_url[upgrade_module]

@@ -90,6 +90,23 @@ public:
 		}
 	}
 
+	void			    set_str(const std::string& section, const std::string& key, const std::string& value)
+	{
+#ifndef NDEBUG
+		{
+			std::string key_trimmed = key;
+			boost::trim_all(key_trimmed);
+			assert(key_trimmed == key);
+			assert(!key_trimmed.empty());
+		}
+#endif // NDEBUG
+		std::string& old = m_storage[section][key];
+		if (old != value) {
+			old = value;
+			m_dirty = true;
+		}
+	}
+
 	void				set(const std::string& section, const std::string &key, bool value)
 	{
 		if (value){

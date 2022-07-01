@@ -1381,8 +1381,8 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
         BOOST_LOG_TRIVIAL(trace) << "monitor: change to sub task id = " << obj->subtask_->task_id;
         if (web_request.IsOk()) web_request.Cancel();
         m_start_loading_thumbnail = true;
+        last_subtask = obj->subtask_;
     }
-    last_subtask = obj->subtask_;
 
     if (m_start_loading_thumbnail) {
         if (obj->slice_info) {

@@ -519,7 +519,7 @@ public:
     int publish_gcode(std::string gcode_str);
 
     BBLSubTask* get_subtask();
-    void update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id);
+    void update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id, int plate_idx);
 
     bool m_firmware_valid { false };
     void get_firmware_info();
@@ -565,7 +565,7 @@ public:
 
     /* disconnect all machine connections */
     void disconnect_all();
-    void query_bind_status();
+    int query_bind_status(std::string &msg);
 
     // get alive machine
     std::map<std::string, MachineObject*> get_local_machine_list();

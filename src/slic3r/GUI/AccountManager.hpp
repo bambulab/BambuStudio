@@ -143,6 +143,7 @@ public:
     void add_topics(std::string topic) { sub_topics.push_back(topic); }
 };
 
+
 class AccountInfo {
 public:
     enum LoginStatus
@@ -231,6 +232,9 @@ private:
     mqtt::connect_options mqtt_local_opt;
     local_conn_callback* mqtt_local_cb { nullptr};
 
+
+    mqtt::async_client* print_mqtt_cli { nullptr };
+    mqtt::connect_options print_mqtt_opt;
     int mqtt_uuid_bytes;
 public:
     std::string MQTT_HOST = "ssl://47.100.225.51:8883";
@@ -303,6 +307,10 @@ public:
     /* local mqtt connections apis */
     int local_connect_mqtt(std::string dev_id, std::string dev_ip, std::string username = "", std::string password = "");
     int local_disconnect_mqtt();
+
+    /* print mqtt connections apis */
+    int print_connect_mqtt(std::string dev_id, std::string dev_ip, std::string username = "", std::string password = "");
+    int print_disconnect_mqtt();
 
     //control subscribe default machine
     void start_subscribe(std::string module = "");
@@ -467,6 +475,8 @@ public:
     int start_local_print_with_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
 
     int start_local_print(PrintParams, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
+
+    int create_cloud_task_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string &project_id, std::string &profile_id);
     
 };
 

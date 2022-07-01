@@ -841,7 +841,7 @@ PrintingSpeedLevel MachineObject::_parse_printing_speed_lvl(int lvl)
 
 bool MachineObject::is_sdcard_printing()
 {
-    if (can_abort() && obj_subtask_id.compare("0") == 0)
+    if (can_abort() && obj_subtask_id.compare("0") == 0 && profile_id_ == "0" && project_id_ == "0")
         return true;
     else
         return false;
@@ -1645,16 +1645,32 @@ int MachineObject::parse_json(std::string payload)
                 bool query_user = true;
                 //do not query when this machine is not current user
                 if (Slic3r::GUI::wxGetApp().is_user_login()) {
+                    /* parse plate_idx */
                     if (!bind_user_id.empty() && bind_user_id.compare(Slic3r::GUI::wxGetApp().getAgent()->user_id()) != 0)
                         query_user = false;
                 }
 
                 if (query_user) {
                     /* sync project and profile info */
-                    if (project_id.has_value() && profile_id.has_value() && subtask_id.has_value())
+                    if (project_id.has_value() && profile_id.has_value() && subtask_id.has_value() && gcode_file.has_value())
                     {
                         obj_subtask_id = subtask_id.value();
-                        update_slice_info(project_id.value(), profile_id.value(), subtask_id.value());
+                        int plate_index = -1;
+                        /* parse local plate_index from task */
+                        if (obj_subtask_id.compare("0") == 0 && profile_id.value().compare("0") != 0) {
+                            std::string gcode_str = gcode_file.value();
+                            int idx_start = gcode_str.find_last_of("_") + 1;
+                            int idx_end = gcode_str.find_last_of(".");
+                            if (idx_start > 0 && idx_end > idx_start) {
+                                try {
+                                    plate_index = atoi(gcode_str.substr(idx_start, idx_end - idx_start).c_str());
+                                }
+                                catch(...) {
+                                    ;
+                                }
+                            }
+                        }
+                        update_slice_info(project_id.value(), profile_id.value(), subtask_id.value(), plate_index);
                     }
 
                     BBLSubTask* curr_task = get_subtask();
@@ -1913,28 +1929,33 @@ BBLSubTask* MachineObject::get_subtask()
     return subtask_;
 }
 
-void MachineObject::update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id)
+void MachineObject::update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id, int plate_idx)
 {
-    if (project_id.empty()
-        || profile_id.empty()
-        || subtask_id.empty()) return;
-
-    if (project_id.compare("0") == 0
-        || profile_id.compare("0") == 0
-        || subtask_id.compare("0") == 0) return;
-
     if (!m_agent) return;
 
     if (project_id_ != project_id || profile_id_ != profile_id || slice_info == nullptr || subtask_id_ != subtask_id) {
-
         project_id_ = project_id;
         profile_id_ = profile_id;
         subtask_id_ = subtask_id;
 
+        if (project_id.empty()
+            || profile_id.empty()
+            || subtask_id.empty()) {
+            return;
+        }
+
+        if (project_id.compare("0") == 0
+            || profile_id.compare("0") == 0) return;
+
+        BOOST_LOG_TRIVIAL(trace) << "slice_info: start";
         slice_info = new BBLSliceInfo();
-        auto get_slice_info_thread = boost::thread([this, project_id, profile_id, subtask_id] {
+        auto get_slice_info_thread = boost::thread([this, project_id, profile_id, subtask_id, plate_idx] {
                 int plate_index = -1;
-                m_agent->get_task_plate_index(subtask_id, plate_index);
+                if (plate_idx >= 0) {
+                    plate_index = plate_idx;
+                } else {
+                    m_agent->get_task_plate_index(subtask_id, plate_index);
+                }
                 if (plate_index >= 0) {
                     std::string slice_json;
                     m_agent->get_slice_info(project_id, profile_id, plate_index, slice_json);
@@ -1946,6 +1967,7 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                         slice_info->weight = j["weight"].get<float>();
                     if (!j["thumbnail"].is_null()) {
                         slice_info->thumbnail_url = j["thumbnail"]["url"].get<std::string>();
+                        BOOST_LOG_TRIVIAL(trace) << "slice_info: thumbnail url=" << slice_info->thumbnail_url;
                     }
                     if (!j["filaments"].is_null()) {
                         for (auto filament : j["filaments"]) {
@@ -2097,7 +2119,16 @@ void DeviceManager::on_machine_alive(std::string json_str)
 
         std::lock_guard<std::mutex> lock(listMutex);
         MachineObject* obj;
-        std::map<std::string, MachineObject*>::iterator it = localMachineList.find(dev_id);
+
+        /* update userMachineList info */
+        auto it = userMachineList.find(dev_id);
+        if (it != userMachineList.end()) {
+            it->second->dev_ip = dev_ip;
+            it->second->bind_state = bind_state;
+        }
+
+        /* update localMachineList */
+        it = localMachineList.find(dev_id);
         if (it != localMachineList.end()) {
             // update properties
             /* ip changed */
@@ -2140,10 +2171,12 @@ void DeviceManager::disconnect_all()
     
 }
 
-void DeviceManager::query_bind_status()
+int DeviceManager::query_bind_status(std::string &msg)
 {
-    if (!m_agent)
-        return;
+    if (!m_agent) {
+        msg = "";
+        return -1;
+    }
 
     std::lock_guard<std::mutex> lock(listMutex);
     std::map<std::string, MachineObject*>::iterator it;
@@ -2156,25 +2189,31 @@ void DeviceManager::query_bind_status()
     std::string http_body;
     int result = m_agent->query_bind_status(query_list, http_code, http_body);
 
-    try {
-        json j = json::parse(http_body);
-        if (j.contains("bind_list")) {
+    if (result < 0) {
+        msg = (boost::format("code=%1%,body=%2") % http_code % http_body).str();
+    } else {
+        msg = "";
+        try {
+            json j = json::parse(http_body);
+            if (j.contains("bind_list")) {
 
-            for (auto& item : j["bind_list"]) {
-                auto it = localMachineList.find(item["dev_id"].get<std::string>());
-                if (it != localMachineList.end()) {
-                    if (!item["user_id"].is_null())
-                        it->second->bind_user_id = item["user_id"].get<std::string>();
-                    if (!item["user_name"].is_null())
-                        it->second->bind_user_name = item["user_name"].get<std::string>();
-                    else
-                        it->second->bind_user_name = "Free";
+                for (auto& item : j["bind_list"]) {
+                    auto it = localMachineList.find(item["dev_id"].get<std::string>());
+                    if (it != localMachineList.end()) {
+                        if (!item["user_id"].is_null())
+                            it->second->bind_user_id = item["user_id"].get<std::string>();
+                        if (!item["user_name"].is_null())
+                            it->second->bind_user_name = item["user_name"].get<std::string>();
+                        else
+                            it->second->bind_user_name = "Free";
+                    }
                 }
             }
+        } catch(...) {
+            ;
         }
-    } catch(...) {
-        ;
     }
+    return result;
 }
 
 MachineObject* DeviceManager::get_local_selected_machine()
@@ -2217,7 +2256,7 @@ void DeviceManager::clean_user_info()
 
     // clean access code
     for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
-        Slic3r::GUI::wxGetApp().app_config->set("access_code", it->second->dev_id, "");
+        Slic3r::GUI::wxGetApp().app_config->set_str("access_code", it->second->dev_id, "");
     }
 
     // clean user list
@@ -2232,18 +2271,21 @@ void DeviceManager::clean_user_info()
 
 bool DeviceManager::set_selected_machine(std::string dev_id)
 {
-    if (selected_machine == dev_id)
-        return false;
     auto my_machine_list = get_my_machine_list();
     auto it = my_machine_list.find(dev_id);
     if (it != my_machine_list.end()) {
-        if (it->second->connection_type() != "lan" || it->second->connection_type().empty()) {
-            m_agent->set_user_selected_machine(dev_id);
+        if (selected_machine == dev_id) {
             it->second->reset();
+            return true;
         } else {
-            m_agent->disconnect_printer();
-            it->second->reset();
-            it->second->connect();
+            if (it->second->connection_type() != "lan" || it->second->connection_type().empty()) {
+                m_agent->set_user_selected_machine(dev_id);
+                it->second->reset();
+            } else {
+                m_agent->disconnect_printer();
+                it->second->reset();
+                it->second->connect();
+            }
         }
     }
     selected_machine = dev_id;
@@ -2349,6 +2391,7 @@ void DeviceManager::update_user_machine_list_info()
                         obj->product_name = elem["dev_product_name"].get<std::string>();
                     if (elem.contains("dev_access_code") && !elem["dev_access_code"].is_null()) {
                         obj->access_code = elem["dev_access_code"].get<std::string>();
+                        obj->access_code.erase(std::remove(obj->access_code.begin(), obj->access_code.end(), '\n'), obj->access_code.end());
                         //save my access code
                         Slic3r::GUI::wxGetApp().app_config->set("access_code", obj->dev_id, obj->access_code);
                     }

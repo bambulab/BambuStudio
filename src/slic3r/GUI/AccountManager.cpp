@@ -751,7 +751,7 @@ namespace BBL {
         BOOST_LOG_TRIVIAL(trace) << "local_connect_mqtt: dev_id = " << dev_id << ", dev_ip = " << dev_ip;
         // get a new mqtt_uuid
         boost::uuids::uuid uuid = boost::uuids::random_generator()();
-        mqtt_uuid = to_string(uuid).substr(0, 4);
+        std::string uuid_str = to_string(uuid).substr(0, 4);
 
         try {
             mqtt_local_opt = mqtt::connect_options_builder().clean_session().finalize();
@@ -760,17 +760,16 @@ namespace BBL {
             mqtt_local_opt.set_connect_timeout(5);
 
             if (!username.empty() || !password.empty()) {
-                mqtt_opt.set_user_name(username);
-                mqtt_opt.set_password(password);
+                mqtt_local_opt.set_user_name(username);
+                mqtt_local_opt.set_password(password);
             }
 
-            std::string client_id = (boost::format("%1%:%2%") % "studio_client_id" % mqtt_uuid).str();
+            std::string client_id = (boost::format("%1%:%2%") % "studio_client_id" % uuid_str).str();
             std::string report_topic = (boost::format("device/%1%/report") % dev_id).str();
             mqtt_local_cli = new mqtt::async_client(dev_ip, client_id);
             mqtt_local_cb = new local_conn_callback(*mqtt_local_cli, mqtt_local_opt, this);
             mqtt_local_cb->add_topics(report_topic);
             mqtt_local_cli->set_callback(*mqtt_local_cb);
-            
             mqtt_local_cli->connect(mqtt_local_opt, this, *mqtt_local_cb);
         } catch (...) {
             ;
@@ -798,6 +797,62 @@ namespace BBL {
             mqtt_local_cli = NULL;
         }
         return 0;
+    }
+
+    int AccountManager::print_connect_mqtt(std::string dev_id, std::string dev_ip, std::string username, std::string password)
+    {
+        /* print mqtt connection */
+        bool result = false;
+        BOOST_LOG_TRIVIAL(trace) << "print_connect_mqtt: dev_id = " << dev_id << ", dev_ip = " << dev_ip;
+        // get a new mqtt_uuid
+        boost::uuids::uuid uuid = boost::uuids::random_generator()();
+        std::string uuid_str = to_string(uuid).substr(0, 4);
+
+        try {
+            print_mqtt_opt = mqtt::connect_options_builder().clean_session().finalize();
+            print_mqtt_opt.set_automatic_reconnect(3, 10);
+            print_mqtt_opt.set_max_inflight(1000);
+            print_mqtt_opt.set_connect_timeout(10);
+
+            if (!username.empty() || !password.empty()) {
+                print_mqtt_opt.set_user_name(username);
+                print_mqtt_opt.set_password(password);
+            }
+
+            std::string client_id = (boost::format("%1%:%2%") % "studio_client_id" % uuid_str).str();
+            const std::string report_topic = (boost::format("device/%1%/report") % dev_id).str();
+            print_mqtt_cli = new mqtt::async_client(dev_ip, client_id);
+            result =  print_mqtt_cli->connect(print_mqtt_opt)->wait_for(10 * 1000);
+        }
+        catch (...) {
+            ;
+        }
+        if (result) {
+            BOOST_LOG_TRIVIAL(trace) << "print_connect_mqtt: connected to dev_id=" << dev_id << ", dev_ip = " << dev_ip;
+        }
+        return result ? 0 : -1;
+    }
+
+    int AccountManager::print_disconnect_mqtt()
+    {
+        bool result = false;
+        BOOST_LOG_TRIVIAL(trace) << "print_connect_mqtt: disconnected";
+        if (print_mqtt_cli) {
+            try {
+                print_mqtt_cli->disable_callbacks();
+                result = print_mqtt_cli->disconnect()->wait_for(5 * 1000);
+            }
+            catch (std::exception& e) {
+
+            }
+            catch (...) {
+                ;
+            }
+            delete print_mqtt_cli;
+            print_mqtt_cli = NULL;
+        }
+
+        return result ? 0 : -1;
     }
 
 
@@ -3266,7 +3321,7 @@ int AccountManager::start_print(PrintParams params, OnUpdateStatusFn update_fn, 
         || profile->profile_id.empty()
         || profile->upload_ticket.empty()
         || profile->upload_url.empty()) {
-        update_fn(PrintingStageCreate, http_code, http_body);
+        if (update_fn) update_fn(PrintingStageCreate, http_code, http_body);
         BOOST_LOG_TRIVIAL(trace) << "print_job: request project id failed. code = " << http_code << ", http_body = " << http_body;
         return -1;
     }
@@ -3437,114 +3492,15 @@ int AccountManager::start_print(PrintParams params, OnUpdateStatusFn update_fn, 
 
 int AccountManager::start_local_print_with_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
 {
+    /* try to connect mqtt */
+    int result = print_connect_mqtt(params.dev_id, params.dev_ip, "", "");
+    if (result < 0) {
+        BOOST_LOG_TRIVIAL(trace) << "print_connect_mqtt result = " << result;
+        return result;
+    }
+
     int res = 0;
-    unsigned http_code = 0;
-    std::string http_body;
     std::string msg;
-
-    // Create Printing Job
-    if (update_fn) update_fn(PrintingStageCreate, 0, "");
-
-    BBLProject* project = new BBLProject(params.project_name);
-    project->project_3mf_file = params.config_filename;
-    project->project_path = fs::path(params.config_filename);
-
-    BBLProfile* profile = new BBLProfile(project);
-    profile->profile_name = params.preset_name;
-
-    BOOST_LOG_TRIVIAL(trace) << "print_job: request project id";
-    res = request_project_profile_id(project, profile, http_code, http_body);
-
-    if (res < 0 || project->project_id.empty()
-        || profile->profile_id.empty()
-        || profile->upload_ticket.empty()
-        || profile->upload_url.empty()) {
-        update_fn(PrintingStageCreate, http_code, http_body);
-        BOOST_LOG_TRIVIAL(trace) << "print_job: request project id failed. code = " << http_code << ", http_body = " << http_body;
-        return -1;
-    }
-
-    BOOST_LOG_TRIVIAL(trace) << "print_job: get project id = " << project->project_id;
-    BOOST_LOG_TRIVIAL(trace) << "print_job: get profile id = " << profile->profile_id;
-
-    if (cancel_fn && cancel_fn()) {
-        return -1;
-    }
-
-    // Uploading 3mf File
-    if (update_fn) update_fn(PrintingStageUpload, 0, "");
-
-    BOOST_LOG_TRIVIAL(trace) << "print_job: start to uploading...";
-    // check file size
-    if (!Http::check_file_size(project->project_path)) {
-        if (update_fn) update_fn(PrintingStageUpload, RET_ERR_OVERSIZE, "The size of the uploaded file cannot exceed 1 GB.");
-        return -1;
-    }
-
-    res = this->upload_3mf_to_oss(profile, http_code, http_body,
-        [this, cancel_fn, update_fn, &msg](Http::Progress progress, bool& cancel) {
-            if (cancel_fn && cancel_fn()) {
-                cancel = true;
-                return;
-            }
-
-            msg = (boost::format("%1%/%2%") % get_transform_string(progress.ulnow) % get_transform_string(progress.ultotal)).str();
-            if (update_fn) update_fn(PrintingStageUpload, 0, msg);
-        });
-
-    if (cancel_fn && cancel_fn()) {
-        return -1;
-    }
-
-    if (res < 0) {
-        if (res == RET_MD5_CHECK_FAILED) {
-            msg = "check md5 failed.";
-            if (update_fn) update_fn(PrintingStageUpload, RET_MD5_CHECK_FAILED, msg);
-            BOOST_LOG_TRIVIAL(trace) << "print_job: uploading failed, check md5 failed";
-        }
-        else {
-            if (update_fn) update_fn(PrintingStageUpload, http_code, http_body);
-            BOOST_LOG_TRIVIAL(trace) << "print_job: uploading is failed";
-        }
-        return -1;
-    }
-
-
-    if (update_fn) update_fn(PrintingStageWaiting, 0, "");
-
-    /* put notifications */
-    res = this->put_notification(profile, project->project_path.filename().string(), http_code, http_body);
-    if (res < 0) {
-        if (update_fn) update_fn(PrintingStageWaiting, http_code, http_body);
-        return -1;
-    }
-
-    /* get notifications */
-    bool cancel = false;
-    int  timeout = this->calc_get_notification_timeout(project->project_path);
-    res = this->get_notification(profile, http_code, http_body,
-        [this, cancel_fn]() {
-            if (cancel_fn)
-                return cancel_fn();
-            return false;
-        }, timeout);
-
-    if (res < 0) {
-        if (res == RET_ERR_CANCEL) {
-            if (update_fn) update_fn(PrintingStageWaiting, RET_ERR_CANCEL, "");
-        }
-        else if (res == RET_ERR_TIMEOUT) {
-            if (update_fn) update_fn(PrintingStageWaiting, RET_ERR_TIMEOUT, "");
-        }
-        else {
-            if (update_fn) update_fn(PrintingStageWaiting, http_code, http_body);
-        }
-        return -1;
-    }
-
-    /* post task */
-    if (update_fn) update_fn(PrintingStageSending, 0, "");
-
     /* sftp uploading */
     std::string src_file = params.filename;
     std::string dst_file = "/local_print.gcode.3mf";
@@ -3568,47 +3524,63 @@ int AccountManager::start_local_print_with_record(PrintParams params, OnUpdateSt
                 msg = error;
                 res = -1;
             }
-        ).perform_sync();
+            ).perform_sync();
 
     if (res < 0) {
+        print_disconnect_mqtt();
         BOOST_LOG_TRIVIAL(trace) << "print_job: uploading failed, check md5 failed";
         msg = "upload failed";
         if (update_fn) update_fn(PrintingStageUpload, -1, msg);
         return -1;
     }
 
-    BBLSubTask* subTask = new BBLSubTask();
+    /* send a mqtt msg */
+    // calc md5
+    std::string md5_str;
+    fs::path upload_file = fs::path(params.filename);
+    std::string full_filename = upload_file.generic_string();
+    bbl_calc_md5(full_filename, md5_str);
+    BOOST_LOG_TRIVIAL(trace) << "print_job: upload_3mf(withgcode) md5 = " << md5_str;
 
-    //BBS hide bed choice
-    subTask->task_bed_leveling = params.task_bed_leveling;
-    subTask->task_flow_cali = params.task_flow_cali;
-    subTask->task_vibration_cali = params.task_vibration_cali;
-    subTask->task_record_timelapse = params.task_record_timelapse;
-    subTask->task_layer_inspect = params.task_layer_inspect;
-    subTask->task_gcode_in_3mf = (boost::format("Metadata/plate_%1%.gcode") % (params.plate_index)).str();
-    subTask->task_partplate_idx = std::to_string(params.plate_index);
-    subTask->task_printer_dev_id = params.dev_id;
-    subTask->task_ams_mapping = params.ams_mapping;
-    subTask->task_mode = "lan_file";
-    if (project->project_name.empty())
-        subTask->task_name = (boost::format("Plate %1%") % params.plate_index).str();
-    else
-        subTask->task_name = params.project_name;
-
-    res = this->post_task(project, profile, subTask, http_code, http_body);
+    std::string project_id = "0";
+    std::string profile_id = "0";
+    res = create_cloud_task_record(params, update_fn, cancel_fn, project_id, profile_id);
     if (res < 0) {
-        if (update_fn) update_fn(PrintingStageSending, http_code, http_body);
+        BOOST_LOG_TRIVIAL(trace) << "print_job: uploading failed, check md5 failed";
+    }
+
+    if (cancel_fn()) {
+        print_disconnect_mqtt();
         return -1;
     }
 
-    if (profile)
-        delete profile;
-    if (project)
-        delete project;
-    if (subTask)
-        delete subTask;
-
     if (update_fn) update_fn(PrintingStageSending, 0, "");
+
+    json j;
+    j["print"]["command"] = "project_file";
+    j["print"]["sequence_id"] = std::to_string(AccountManager::m_sequence_id++);
+    j["print"]["param"] = (boost::format("Metadata/plate_%1%.gcode") % params.plate_index).str();
+    j["print"]["project_id"] = project_id;
+    j["print"]["profile_id"] = profile_id;
+    j["print"]["task_id"] = "0";
+    j["print"]["subtask_id"] = "0";
+    j["print"]["subtask_name"] = params.project_name;
+    j["print"]["file"] = dst_file;
+    j["print"]["url"] = "file:///mnt/sdcard" + dst_file;
+    j["print"]["md5"] = md5_str;
+    j["print"]["timelapse"] = params.task_record_timelapse;
+    j["print"]["bed_type"] = "auto";
+    j["print"]["bed_leveling"] = params.task_bed_leveling;
+    j["print"]["flow_cali"] = params.task_flow_cali;
+    j["print"]["vibration_cali"] = params.task_vibration_cali;
+    j["print"]["layer_inspect"] = params.task_layer_inspect;
+
+    std::string topic = (boost::format("device/%1%/request") % params.dev_id).str();
+    std::string json_str = j.dump();
+    auto mqtt_msg = mqtt::message::create(topic, json_str, 1, false);
+    print_mqtt_cli->publish(mqtt_msg)->wait_for(10* 1000);
+
+    print_disconnect_mqtt();
     return 0;
 }
 
@@ -3682,7 +3654,8 @@ int AccountManager::start_local_print(PrintParams params, OnUpdateStatusFn updat
     j["print"]["subtask_id"] = "0";
     j["print"]["subtask_name"] = params.project_name;
     //TODO fixed prefix
-    j["print"]["url"] = "file:///userdata" + dst_file;
+    j["print"]["file"] = dst_file;
+    j["print"]["url"] = "file:///mnt/sdcard" + dst_file;
     j["print"]["md5"] = md5_str;
     j["print"]["timelapse"] = params.task_record_timelapse;
     j["print"]["bed_type"] = "auto";
@@ -3697,6 +3670,211 @@ int AccountManager::start_local_print(PrintParams params, OnUpdateStatusFn updat
     mqtt_local_cli->publish(mqtt_msg);
     
     if (update_fn) update_fn(PrintingStageSending, 0, "");
+    return 0;
+}
+
+int AccountManager::create_cloud_task_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string &project_id, std::string &profile_id)
+{
+    /* create record */
+    int res = -1;
+    std::string msg;
+    unsigned http_code = 0;
+    std::string http_body;
+
+    // Create Printing Job
+    if (update_fn) update_fn(PrintingStageRecord, 0, "");
+
+
+    BBLProject* project = new BBLProject(params.project_name);
+    project->project_3mf_file = params.config_filename;
+    project->project_path = fs::path(params.config_filename);
+
+    BBLProfile* profile = new BBLProfile(project);
+    profile->profile_name = params.preset_name;
+
+    BOOST_LOG_TRIVIAL(trace) << "print_job: request project id";
+    res = request_project_profile_id(project, profile, http_code, http_body);
+
+    if (res < 0 || project->project_id.empty()
+        || profile->profile_id.empty()
+        || profile->upload_ticket.empty()
+        || profile->upload_url.empty()) {
+        if (update_fn)  update_fn(PrintingStageRecord, http_code, http_body);
+        BOOST_LOG_TRIVIAL(trace) << "print_job: request project id failed. code = " << http_code << ", http_body = " << http_body;
+        return -1;
+    }
+
+    BOOST_LOG_TRIVIAL(trace) << "print_job: get project id = " << project->project_id;
+    BOOST_LOG_TRIVIAL(trace) << "print_job: get profile id = " << profile->profile_id;
+
+    if (cancel_fn && cancel_fn()) {
+        return -1;
+    }
+
+    // Uploading 3mf File
+    if (update_fn) update_fn(PrintingStageRecord, 0, "");
+
+    BOOST_LOG_TRIVIAL(trace) << "print_job: start to uploading...";
+    // check file size
+    if (!Http::check_file_size(project->project_path)) {
+        if (update_fn) update_fn(PrintingStageRecord, RET_ERR_OVERSIZE, "The size of the uploaded file cannot exceed 1 GB.");
+        BOOST_LOG_TRIVIAL(trace) << "print_job: over size";
+        return -1;
+    }
+
+    res = this->upload_3mf_to_oss(profile, http_code, http_body,
+        [this, cancel_fn, update_fn, &msg](Http::Progress progress, bool& cancel) {
+            if (cancel_fn && cancel_fn()) {
+                cancel = true;
+                return;
+            }
+        });
+
+    if (cancel_fn && cancel_fn()) {
+        return -1;
+    }
+
+    if (res < 0) {
+        if (res == RET_MD5_CHECK_FAILED) {
+            msg = "check md5 failed.";
+            if (update_fn) update_fn(PrintingStageRecord, RET_MD5_CHECK_FAILED, msg);
+            BOOST_LOG_TRIVIAL(trace) << "print_job: uploading failed, check md5 failed";
+        }
+        else {
+            if (update_fn) update_fn(PrintingStageRecord, http_code, http_body);
+            BOOST_LOG_TRIVIAL(trace) << "print_job: uploading is failed";
+        }
+        return -1;
+    }
+
+    /* put notifications */
+    res = this->put_notification(profile, project->project_path.filename().string(), http_code, http_body);
+    if (res < 0) {
+        if (update_fn) update_fn(PrintingStageRecord, http_code, http_body);
+        BOOST_LOG_TRIVIAL(trace) << "print_job: put notification error, res = " <<res;
+        return -1;
+    }
+
+    /* get notifications */
+    bool cancel = false;
+    int  timeout = this->calc_get_notification_timeout(project->project_path);
+    res = this->get_notification(profile, http_code, http_body,
+        [this, cancel_fn]() {
+            if (cancel_fn)
+                return cancel_fn();
+            return false;
+        }, timeout);
+
+    if (res < 0) {
+        if (res == RET_ERR_CANCEL) {
+            if (update_fn) update_fn(PrintingStageRecord, RET_ERR_CANCEL, "");
+            BOOST_LOG_TRIVIAL(trace) << "print_job: get notification cancel";
+        }
+        else if (res == RET_ERR_TIMEOUT) {
+            if (update_fn) update_fn(PrintingStageRecord, RET_ERR_TIMEOUT, "");
+            BOOST_LOG_TRIVIAL(trace) << "print_job: get notification timeout";
+        }
+        else {
+            if (update_fn) update_fn(PrintingStageRecord, http_code, http_body);
+            BOOST_LOG_TRIVIAL(trace) << "print_job: get notification error, res = " << res;
+        }
+        return -1;
+    }
+
+    /* upload 3mf to oss */
+    std::string file_3mf_url = (boost::format("%1%_%2%_%3%.3mf") % project->project_model_id % profile->profile_id % params.plate_index).str();
+    std::vector<std::string> files;
+    std::vector<std::string> urls;
+    files.push_back(file_3mf_url);
+    res = this->get_user_upload(files, urls);
+    if (res < 0 || urls.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "get_user_upload failed";
+        return -1;
+    }
+
+
+    // calc md5
+    std::string md5_str;
+    fs::path upload_file = fs::path(params.filename);
+    std::string full_filename = upload_file.generic_string();
+    bbl_calc_md5(full_filename, md5_str);
+    BOOST_LOG_TRIVIAL(trace) << "print_job: upload_3mf(withgcode) md5 = " << md5_str;
+
+    // update to
+    res = this->upload_file_to_oss(urls[0], upload_file, md5_str, http_code, http_body,
+        [this, cancel_fn, update_fn, &msg](Http::Progress progress, bool& cancel) {
+            if (cancel_fn && cancel_fn()) {
+                cancel = true;
+                return;
+            }
+
+            msg = (boost::format("%1%/%2%") % get_transform_string(progress.ulnow) % get_transform_string(progress.ultotal)).str();
+            if (update_fn) update_fn(PrintingStageRecord, 0, msg);
+        });
+
+    if (cancel_fn && cancel_fn()) {
+        return -1;
+    }
+
+    if (res < 0) {
+        BOOST_LOG_TRIVIAL(info) << "print_job: upload_file_to_oss failed";
+        return -1;
+    }
+
+    json j, j_file;
+    json j_url = json::array();
+    j["profile_id"] = profile->profile_id;
+    j_file["plate_idx"] = params.plate_index;
+    j_file["url"] = urls[0];
+    j_file["md5"] = md5_str;
+    j_url.push_back(j_file);
+    j["profile_print_3mf"] = j_url;
+
+    res = this->patch_project(project, j.dump(), http_code, http_body);
+    if (res < 0) {
+        BOOST_LOG_TRIVIAL(info) << "print_job: patch project failed";
+        return -1;
+    }
+
+    // return project_id and profile_id
+    project_id = project->project_id;
+    profile_id = profile->profile_id;
+
+    /* post task */
+    if (update_fn) update_fn(PrintingStageRecord, 0, "");
+    BBLSubTask* subTask = new BBLSubTask();
+
+    //BBS hide bed choice
+    subTask->task_bed_leveling = params.task_bed_leveling;
+    subTask->task_flow_cali = params.task_flow_cali;
+    subTask->task_vibration_cali = params.task_vibration_cali;
+    subTask->task_record_timelapse = params.task_record_timelapse;
+    subTask->task_layer_inspect = params.task_layer_inspect;
+    subTask->task_gcode_in_3mf = (boost::format("Metadata/plate_%1%.gcode") % (params.plate_index)).str();
+    subTask->task_partplate_idx = std::to_string(params.plate_index);
+    subTask->task_printer_dev_id = params.dev_id;
+    subTask->task_ams_mapping = params.ams_mapping;
+    subTask->task_mode = "lan_file";
+    if (project->project_name.empty())
+        subTask->task_name = (boost::format("Plate %1%") % params.plate_index).str();
+    else
+        subTask->task_name = params.project_name;
+
+    res = this->post_task(project, profile, subTask, http_code, http_body);
+    if (res < 0) {
+        if (update_fn) update_fn(PrintingStageRecord, http_code, http_body);
+        BOOST_LOG_TRIVIAL(trace) << "print_job: post my task error, result = " << res;
+        return -1;
+    }
+
+    if (profile)
+        delete profile;
+    if (project)
+        delete project;
+    if (subTask)
+        delete subTask;
+    if (update_fn) update_fn(PrintingStageRecord, 0, "");
+
     return 0;
 }
 

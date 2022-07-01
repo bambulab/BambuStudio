@@ -170,7 +170,7 @@ void MachineObjectPanel::show_enter_accesscode_dialog()
     if (m_info) {
         m_info->access_code = pwd_str;
         // update config
-        get_app_config()->set("access_code", m_info->dev_id, pwd_str);
+        get_app_config()->set_str("access_code", m_info->dev_id, pwd_str);
     }
 }
 
@@ -1381,11 +1381,10 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     update_err_msg(wxEmptyString);
     if (event.GetString().empty()) { return; }
 
-    auto dev_name = event.GetString().ToStdString();
     auto selection = event.GetSelection();
 
     for (int i = 0; i < m_list.size(); i++) {
-        if (m_list[i]->dev_name == dev_name && i == selection) {
+        if (i == selection) {
             DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
             m_printer_last_select = m_list[i]->dev_id;
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  "for send task, current printer id =  "<< m_printer_last_select << std::endl;
