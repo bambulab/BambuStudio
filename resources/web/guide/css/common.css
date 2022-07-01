@@ -62,6 +62,8 @@ body
 	line-height: 22px;
 	color: #464646;
 	position: relative;
+	display:flex;
+	flex-direction: column;		
 }
 
 #Content div

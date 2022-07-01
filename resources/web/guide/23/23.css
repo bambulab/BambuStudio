@@ -45,6 +45,7 @@ input
 
 #ItemBlockArea
 {
+	flex: 1;
 	display:flex;
 	overflow-x:auto;
 	flex-wrap:wrap;
@@ -53,12 +54,6 @@ input
 	align-items: flex-start;
 	align-content:flex-start;
 	line-height: 32px;
-	position: absolute;
-	top: 156px;
-	bottom: 0px;
-	left: 50px;
-	right: 50px;
-	padding: 6px 0px;
 }
 
 .MItem

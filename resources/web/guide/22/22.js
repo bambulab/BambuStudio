@@ -66,27 +66,45 @@ function SortUI()
 	}
 	
 	//machine
-	let HtmlMachine='';
+//	let HtmlMachine='';
+//	
+//	let nMachine=m_ProfileItem['machine'].length;
+//	for(let n=0;n<nMachine;n++)
+//	{
+//		let OneMachine=m_ProfileItem['machine'][n];
+//		
+//		let sName=OneMachine['name'];
+//		let sModel=OneMachine['model'];
+//	
+//		if( ModelList.in_array(sModel) )
+//		{
+//			HtmlMachine+='<div><input type="checkbox" mode="'+sModel+'" onChange="MachineClick()" />'+sName+'</div>';
+//		}
+//	}
+//	
+//	$('#MachineList .CValues').append(HtmlMachine);	
+//	$('#MachineList .CValues input').prop("checked",true);
+//	if(nMachine<=1)
+//	{
+//		$('#MachineList').hide();
+//	}
 	
-	let nMachine=m_ProfileItem['machine'].length;
-	for(let n=0;n<nMachine;n++)
+	//machine
+	let HtmlMode='';
+	nMode=ModelList.length;
+	for(let n=0;n<nMode;n++)
 	{
-		let OneMachine=m_ProfileItem['machine'][n];
-		
-		let sName=OneMachine['name'];
-		let sModel=OneMachine['model'];
-	
-		if( ModelList.in_array(sModel) )
-			HtmlMachine+='<div><input type="checkbox" mode="'+sModel+'" onChange="MachineClick()" />'+sName+'</div>';
+		let sModel=ModelList[n];	
+
+		HtmlMode+='<div><input type="checkbox" mode="'+sModel+'" onChange="MachineClick()" />'+sModel+'</div>';
 	}
 	
-	$('#MachineList .CValues').append(HtmlMachine);	
+	$('#MachineList .CValues').append(HtmlMode);	
 	$('#MachineList .CValues input').prop("checked",true);
-	if(nMachine<=1)
+	if(nMode<=1)
 	{
 		$('#MachineList').hide();
 	}
-	
 	
 	//Filament
 	let HtmlFilament='';

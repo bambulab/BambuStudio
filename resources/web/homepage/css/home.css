@@ -7,7 +7,7 @@
 }
 
 html, body {
-    height: 100%;
+	height: 100%;
 	width: 100%;
     margin: 0px;
     padding: 0px;
@@ -138,14 +138,16 @@ body
 #RightBoard
 {
 	width: 100%;
-	overflow-y: hidden;
+	height: 100%;
+	overflow-y:auto;
 }
 
 #ContentBoard
 {
-	height: 100%;
 	overflow-y:hidden;
 	padding: 0px 40px;
+	display: flex;
+	flex-direction: column;
 }
 
 #MenuArea
@@ -206,6 +208,9 @@ body
 #RecentFileArea
 {
 	margin-top: 10px;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
 }
 
 #RecentTitle
@@ -215,8 +220,11 @@ body
 
 #FileList
 {
+	flex: 1;
 	display: flex;
 	flex-wrap: wrap;
+	align-content: flex-start;
+	overflow-y: auto;
 }
 
 .FileItem
