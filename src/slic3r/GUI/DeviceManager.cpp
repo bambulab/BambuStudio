@@ -2106,10 +2106,6 @@ void DeviceManager::on_machine_alive(std::string json_str)
                 BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << obj->dev_ip << " to " << dev_ip;
                 obj->dev_ip = dev_ip;
                 /* ip changed reconnect mqtt */
-                if (obj->conn_state == MachineObject::CONNECTION_STATE::STATE_CONNECTING) {
-                    obj->disconnect();
-                    obj->connect();
-                }
             }
             obj->wifi_signal = printer_signal;
             obj->dev_connection_type = connect_type;
