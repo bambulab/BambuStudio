@@ -2461,7 +2461,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm³");
     def->min = 0;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloat(23.));
+    def->set_default_value(new ConfigOptionFloat(30.));
 
     def = this->add("wipe_tower_x", coFloats);
     //def->label = L("Position X");

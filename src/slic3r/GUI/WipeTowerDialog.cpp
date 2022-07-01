@@ -42,6 +42,8 @@ static void update_ui(wxWindow* window)
 #define style wxSP_ARROW_KEYS
 #endif
 
+static const float g_max_flush_volume = 720.f;
+
 wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
 {
     auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -90,7 +92,6 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
         std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
     );
 
-#if !BBL_RELEASE_TO_PUBLIC
     if (flags & wxRESET) {
         Button* calc_btn = new Button(this, _L("Auto-Calc"));
         calc_btn->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
@@ -102,7 +103,7 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
         calc_btn->SetId(wxID_RESET);
         btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
     }
-#endif
+
     if (flags & wxOK) {
         Button* ok_btn = new Button(this, _L("OK"));
         ok_btn->SetMinSize(BTN_SIZE);
@@ -425,10 +426,10 @@ float DeltaHSV_BBS(float h1, float s1, float v1, float h2, float s2, float v2)
     float dy = std::sin(h1_rad) * s1 * v1 - sin(h2_rad) * s2 * v2;
     float dxy = std::sqrt(dx * dx + dy * dy);
     // Limit the max distance is the distance between red, green, blue color.
-    // The value is 0.866 * 2.0.
-    if (dxy > 0.7 * 2.f) {
-        dx *= 0.7 / dxy;
-        dy *= 0.7 / dxy;
+    // The value is 0.6 * 2.0.
+    if (dxy > 0.6 * 2.f) {
+        dx *= 0.6 / dxy;
+        dy *= 0.6 / dxy;
     }
 
     float dz = v2 - v1;
@@ -437,7 +438,7 @@ float DeltaHSV_BBS(float h1, float s1, float v1, float h2, float s2, float v2)
 
 static float get_luminance(float r, float g, float b)
 {
-    return r * 0.35 + g * 0.5 + b * 0.15;
+    return r * 0.3 + g * 0.6 + b * 0.1;
 }
 
 int WipingPanel::calc_flushing_volume(const wxColour& from, const wxColour& to)
@@ -450,14 +451,25 @@ int WipingPanel::calc_flushing_volume(const wxColour& from, const wxColour& to)
     RGB2HSV((float)to.Red() / 255.f, (float)to.Green() / 255.f, (float)to.Blue() / 255.f, &to_hsv_h, &to_hsv_s, &to_hsv_v);
     float distance = DeltaHSV_BBS(from_hsv_h, from_hsv_s, from_hsv_v, to_hsv_h, to_hsv_s, to_hsv_v);
 
-    // Consider dest color's luminance
+    // 1. Color difference is more obvious if the dest color has high luminance
+    // 2. Color difference is more obvious if the source color has low luminance
+    // TODO: for lumi factor, consider source lumi is higher than dest lumi
+    float from_lumi = get_luminance((float)from.Red() / 255.f, (float)from.Green() / 255.f, (float)from.Blue() / 255.f);
     float to_lumi = get_luminance((float)to.Red() / 255.f, (float)to.Green() / 255.f, (float)to.Blue() / 255.f);
-    float lumi_factor = to_lumi * 3.2f + 0.8f;
+    float lumi_factor = std::pow(to_lumi, 1.25f) * 3.6f + 0.6f;
+    float lumi_extra = 0.f;
+    if (to_lumi > from_lumi) {
+        lumi_extra = std::pow(1.f - from_lumi, 1.1f) * (to_lumi - from_lumi) * 1.2f;
+    }
+    lumi_factor = lumi_factor + lumi_extra;
 
     // Get user input flushing multiplier
     float flush_multiplier = std::atof(m_flush_multiplier_ebox->GetValue().c_str());
+    float flush_volume = (125.f * lumi_factor * distance + m_extra_flush_volume) * flush_multiplier;
 
-    return 125.f * lumi_factor * flush_multiplier * distance + m_extra_flush_volume;
+    // limit the max flush volume
+    flush_volume = std::min(flush_volume, g_max_flush_volume);
+    return flush_volume;
 }
 
 void WipingPanel::calc_flushing_volumes()

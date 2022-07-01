@@ -64,7 +64,6 @@ public:
 
     wxBoxSizer* create_btn_sizer(long flags);
 
-#if !BBL_RELEASE_TO_PUBLIC
     float get_flush_multiplier()
     {
         if (m_panel_wiping == nullptr)
@@ -72,7 +71,6 @@ public:
 
         return m_panel_wiping->get_flush_multiplier();
     }
-#endif
 
 private:
     WipingPanel*  m_panel_wiping  = nullptr;
