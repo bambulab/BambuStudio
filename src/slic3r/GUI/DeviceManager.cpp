@@ -434,6 +434,42 @@ void MachineObject::_parse_ams_status(int ams_status)
     BOOST_LOG_TRIVIAL(trace) << "ams_debug: main = " << ams_status_main_int << ", sub = " << ams_status_sub;
 }
 
+bool MachineObject::check_ams_version()
+{
+    bool need_upgrade = false;
+    if (has_ams()) {
+        // compare ota version and ams version
+        auto ota_ver_it = module_vers.find("ota");
+        if (ota_ver_it != module_vers.end()) {
+            if (!MachineObject::is_compatible_ams_version("ota", ota_ver_it->second.sw_ver)) {
+                need_upgrade = true;
+            }
+        }
+        for (int i = 0; i < 4; i++) {
+            std::string ams_id = (boost::format("ams/%1%") % i).str();
+            auto ams_ver_it = module_vers.find(ams_id);
+            if (ams_ver_it != module_vers.end()) {
+                if (!MachineObject::is_compatible_ams_version("ams", ams_ver_it->second.sw_ver)) {
+                    need_upgrade = true;
+                }
+            }
+        }
+    }
+    return need_upgrade;
+}
+
+bool MachineObject::is_compatible_ams_version(std::string module, std::string version)
+{
+    if (module == "ota") {
+        //TODO
+        return true;
+    } else if (module == "ams") {
+        //TODO
+        return true;
+    }
+    return true;
+}
+
 static float calc_color_distance(wxColour c1, wxColour c2)
 {
     float lab[2][3];
@@ -1246,6 +1282,7 @@ void MachineObject::reset()
 {
     BOOST_LOG_TRIVIAL(trace) << "dev_id=" << dev_id << " reset.";
     last_update_time = std::chrono::system_clock::now();
+    m_push_count = 0;
 }
 
 void MachineObject::set_print_state(std::string status)
@@ -1286,6 +1323,16 @@ bool MachineObject::is_connected()
 void MachineObject::set_online_state(bool on_off)
 {
     m_is_online = on_off;
+}
+
+bool MachineObject::is_info_ready()
+{
+    if (module_vers.empty())
+        return false;
+
+    if (m_push_count > 0)
+        return true;
+    return false;
 }
 
 int MachineObject::publish_json(std::string json_str, int qos)
@@ -1631,6 +1678,7 @@ int MachineObject::parse_json(std::string payload)
             if (!command.has_value()) return 0;
             // push_status
             if (command.value().compare("push_status") == 0) {
+                m_push_count++;
                 /* upgrade */
                 boost::optional<std::string> force_upgrade      = print.get_optional<std::string>("force_upgrade");
                 if (force_upgrade.has_value()) {
@@ -2281,6 +2329,8 @@ void DeviceManager::clean_user_info()
     }
     userMachineList.clear();
 }
+
+
 
 bool DeviceManager::set_selected_machine(std::string dev_id)
 {

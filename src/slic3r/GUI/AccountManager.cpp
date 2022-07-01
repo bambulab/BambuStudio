@@ -122,9 +122,6 @@ namespace BBL {
         // re sucscribe the monitoring printer
         AccountManager* manager = (AccountManager*)context_;
         if (manager) {
-            /* subscribe the selected machine */
-            manager->add_subscribe(manager->get_selected_machine());
-
             if (manager->on_server_connected_fn)
                 manager->on_server_connected_fn();
         }

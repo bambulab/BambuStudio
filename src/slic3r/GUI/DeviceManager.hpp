@@ -347,6 +347,9 @@ public:
     AmsTray *get_ams_tray(std::string ams_id, std::string tray_id);
     // parse amsStatusMain and ams_status_sub
     void _parse_ams_status(int ams_status);
+    bool has_ams() { return ams_exist_bits != 0; }
+    bool check_ams_version();
+    static bool is_compatible_ams_version(std::string module, std::string version);
 
     int ams_color_mapping(std::vector<wxColour> colors, std::vector<int> exclude_id, std::map<int, wxColour> &result);
     int ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<int> exclude_id = std::vector<int>());
@@ -412,6 +415,7 @@ public:
 
     std::vector<int> stage_list_info;
     int stage_curr = 0;
+    int m_push_count = 0;
 
     wxString get_curr_stage();
     // return curr stage index of stage list
@@ -508,6 +512,7 @@ public:
     bool is_connected();
     void set_online_state(bool on_off);
     bool is_online() { return m_is_online; }
+    bool is_info_ready();
 
 
     /* Msg for display MsgFn */

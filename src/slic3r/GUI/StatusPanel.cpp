@@ -1821,6 +1821,10 @@ void StatusPanel::set_default()
     reset_printing_values();
     m_button_pause_resume->Enable(false);
     m_button_abort->Enable(false);
+    m_tempCtrl_nozzle->Enable(true);
+    m_tempCtrl_frame->Enable(true);
+    m_tempCtrl_bed->Enable(true);
+    m_ams_control->Hide();
     clean_tasklist_info();
 }
 

@@ -103,6 +103,7 @@ private:
     wxTimer* m_refresh_timer;
     int last_status;
     bool m_initialized { false };
+    bool has_popup_ams_check_dlg { false };
 
 public:
     MonitorPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);

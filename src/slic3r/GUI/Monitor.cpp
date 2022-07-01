@@ -205,6 +205,7 @@ void MonitorPanel::set_default()
 {
     obj = nullptr;
     /* set default value */
+    has_popup_ams_check_dlg = false;
 
     /* reset status panel*/
     m_status_info_panel->set_default();
@@ -281,6 +282,8 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
 
  void MonitorPanel::on_select_printer(wxCommandEvent& event)
 {
+    has_popup_ams_check_dlg = false;
+
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev->set_selected_machine(event.GetString().ToStdString()))
         return;
@@ -397,6 +400,16 @@ void MonitorPanel::update_all()
         return;
     }
 
+    if (obj->check_ams_version()) {
+        if (!has_popup_ams_check_dlg) {
+            has_popup_ams_check_dlg = true;
+            MessageDialog msg_dlg(nullptr, _L("Please upgrade your printer first"), "", wxAPPLY | wxOK);
+            if (msg_dlg.ShowModal() == wxOK) {
+                return;
+            }
+        }
+    }
+
     if (!obj->is_connected()) {
         int server_status = 0;
         // only disconnected server in cloud mode
@@ -500,10 +513,6 @@ void MonitorPanel::show_status(int status)
         m_side_tools->set_none_printer_mode();
         m_connection_info->Hide();
         m_status_info_panel->show_status(status);
-        //m_tabpanel->RemovePage(0);
-        //m_tabpanel->InsertNewPage(0, m_status_info_panel, _L("Status"), "", true);
-        //m_tabpanel->InsertNewPage(0, m_status_add_machine_panel, _L("Status"), "", true);
-        //m_tabpanel->SetSelection(0);
         m_tabpanel->Refresh();
         m_tabpanel->Layout();
     } else if (((status & (int)MonitorStatus::MONITOR_NORMAL) != 0) ||
@@ -515,9 +524,6 @@ void MonitorPanel::show_status(int status)
         }
 
         m_status_info_panel->show_status(status);
-        //m_tabpanel->RemovePage(0);
-        //m_tabpanel->InsertNewPage(0, m_status_info_panel, _L("Status"), "", true);
-        //m_tabpanel->SetSelection(0);
         m_tabpanel->Refresh();
         m_tabpanel->Layout();
     }

@@ -23,6 +23,7 @@
 #include <wx/artprov.h>
 #include <wx/wrapsizer.h>
 
+#include "AmsMappingPopup.hpp"
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 #include "DeviceManager.hpp"
@@ -48,8 +49,8 @@ enum PrinterState {
 class Material
 {
 public:
-    int       id;
-    wxWindow *item;
+    int             id;
+    MaterialItem    *item;
 };
 
 WX_DECLARE_HASH_MAP(int, Material *, wxIntegerHash, wxIntegerEqual, MaterialHash);
@@ -258,6 +259,10 @@ protected:
     wxStaticText *m_stext_weight{nullptr};
     wxPanel *     m__line_materia{nullptr};
     wxStaticText *m_stext_printer_title{nullptr};
+
+    wxStaticText *m_text_load_ams_data{nullptr};
+    wxStaticText *m_error_load_ams_data{nullptr};
+
     ::ComboBox *  m_comboBox_printer{nullptr};
     ::ComboBox *  m_comboBox_bed{nullptr};
     wxPanel *     m_panel_warn{nullptr};
@@ -279,9 +284,12 @@ protected:
     wxSimplebook *m_simplebook{nullptr};
     wxStaticText *m_statictext_finish{nullptr};
 
+    StateColor btn_bg_enable;
+    int         m_current_filament_id;
+
     wxGridSizer *m_sizer_select;
     wxBoxSizer * sizer_thumbnail;
-    wxWrapSizer *m_sizer_material;
+    wxGridSizer *m_sizer_material;
     wxBoxSizer * m_sizer_main;
     wxBoxSizer * m_sizer_bottom;
 
@@ -327,6 +335,9 @@ protected:
     // Button* m_button_ensure;
     bool m_need_disable_btn_ensure{false};
 
+    bool                         has_read_done_info { false };
+    int                          timeout_count = 0;
+
     wxTimer *m_refresh_timer;
 
     std::shared_ptr<PrintJob> m_print_job;
@@ -336,10 +347,13 @@ protected:
     void                     on_cancel(wxCloseEvent &event);
     void                     on_ok(wxCommandEvent &event);
     void                     on_refresh(wxCommandEvent &event);
+    void                     on_set_finish_mapping(wxCommandEvent &evt);
     void                     on_print_job_cancel(wxCommandEvent &evt);
     std::vector<std::string> sort_string(std::vector<std::string> strArray);
     void                     on_timer(wxTimerEvent &event);
     void                     on_selection_changed(wxCommandEvent &event);
+    void                     Enable_Refresh_Button(bool en);
+    void                     Enable_Send_Button(bool en);
     void                     on_dpi_changed(const wxRect &suggested_rect) override;
     wxImage *                LoadImageFromBlob(const unsigned char *data, int size);
 };

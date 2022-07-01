@@ -71,7 +71,7 @@ bool AMSinfo::parse_ams_info(Ams *ams)
             }
         } else {
             info.can_id         = i;
-            info.material_state = AMSCanType::AMS_CAN_TYPE_NONE;
+            info.material_state = AMSCanType::AMS_CAN_TYPE_EMPTY;
         }
         cans.push_back(info);
     }
