@@ -448,11 +448,11 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                 for (size_t i = 0; i < convex_hulls_other.size(); ++i) {
                     if (! intersection(convex_hulls_other[i], convex_hull).empty()) {
                         if (single_object_exception.string.empty()) {
-                            single_object_exception.string = (boost::format(L("%1% is too close to others, there will be collisions when printing.")) %instance.model_instance->get_object()->name).str();
+                            single_object_exception.string = (boost::format(L("%1% is too close to others, and collisions may be caused.")) %instance.model_instance->get_object()->name).str();
                             single_object_exception.object = instance.model_instance->get_object();
                         }
                         else {
-                            single_object_exception.string += (boost::format(L("\n%1% is too close to others, there will be collisions when printing.")) %instance.model_instance->get_object()->name).str();
+                            single_object_exception.string += "\n"+(boost::format(L("%1% is too close to others, and collisions may be caused.")) %instance.model_instance->get_object()->name).str();
                             single_object_exception.object = nullptr;
                         }
 
@@ -570,11 +570,11 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
             //return {, inst->model_instance->get_object()};
             for (auto& iter: too_tall_instances) {
                 if (single_object_exception.string.empty()) {
-                    single_object_exception.string = (boost::format(L("%1% is too tall, there will be collisions when printing.")) %iter.first->model_instance->get_object()->name).str();
+                    single_object_exception.string = (boost::format(L("%1% is too tall, and collisions will be caused.")) %iter.first->model_instance->get_object()->name).str();
                     single_object_exception.object = iter.first->model_instance->get_object();
                 }
                 else {
-                    single_object_exception.string += (boost::format(L("\n%1% is too tall, there will be collisions when printing.")) %iter.first->model_instance->get_object()->name).str();
+                    single_object_exception.string += "\n" + (boost::format(L("%1% is too tall, and collisions will be caused.")) %iter.first->model_instance->get_object()->name).str();
                     single_object_exception.object = nullptr;
                 }
                 if (height_polygons)
@@ -675,14 +675,14 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     convex_hulls_temp.push_back(wipe_tower_convex_hull);
     if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
         if (warning) {
-            warning->string += L("Prime Tower") + L(" is too close to others, there will be collisions when printing.\n");
+            warning->string += L("Prime Tower") + L(" is too close to others, and collisions may be caused.\n");
         }
     }
     if (!intersection(exclude_polys, convex_hulls_temp).empty()) {
         /*if (warning) {
             warning->string += L("Prime Tower is too close to exclusion area, there will be collisions when printing.\n");
         }*/
-        return {L("Prime Tower") + L(" is too close to exclusion area, there will be collisions when printing.\n")};
+        return {L("Prime Tower") + L(" is too close to exclusion area, and collisions will be caused.\n")};
     }
 
     return {};

@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-30 18:02+0800\n"
+"POT-Creation-Date: 2022-07-02 00:14+0800\n"
 "Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3016,8 +3016,8 @@ msgstr[1] ""
 msgid "Reserved keywords found"
 msgstr ""
 
-msgid "Filament Retraction"
-msgstr ""
+msgid "Filament Overrides"
+msgstr "Réglages dérogatoires du Filament"
 
 msgid "Retraction"
 msgstr "Rétraction"
@@ -3664,6 +3664,15 @@ msgstr ""
 msgid "Sending print task timed out. Please try again."
 msgstr ""
 
+msgid "Try to upload project over lan"
+msgstr ""
+
+msgid "Try to send project over cloud"
+msgstr ""
+
+msgid "Try to send project over lan"
+msgstr ""
+
 msgid ""
 "One object has empty initial layer and can't be printed. Please Cut the "
 "bottom or enable supports."
@@ -3842,23 +3851,11 @@ msgid ""
 msgstr ""
 
 #, boost-format
-msgid "%1% is too close to others, there will be collisions when printing."
+msgid "%1% is too close to others, and collisions may be caused."
 msgstr ""
 
 #, boost-format
-msgid ""
-"\n"
-"%1% is too close to others, there will be collisions when printing."
-msgstr ""
-
-#, boost-format
-msgid "%1% is too tall, there will be collisions when printing."
-msgstr ""
-
-#, boost-format
-msgid ""
-"\n"
-"%1% is too tall, there will be collisions when printing."
+msgid "%1% is too tall, and collisions will be caused."
 msgstr ""
 
 msgid " is too close to others, there will be collisions when printing.\n"
@@ -3869,6 +3866,12 @@ msgid ""
 msgstr ""
 
 msgid "Prime Tower"
+msgstr ""
+
+msgid " is too close to others, and collisions may be caused.\n"
+msgstr ""
+
+msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr ""
 
 msgid ""
@@ -16198,9 +16201,6 @@ msgstr ""
 
 #~ msgid "Overlap"
 #~ msgstr "Chevauchement"
-
-#~ msgid "Filament Overrides"
-#~ msgstr "Réglages dérogatoires du Filament"
 
 #~ msgid "Filament properties"
 #~ msgstr "Propriétés du filament"

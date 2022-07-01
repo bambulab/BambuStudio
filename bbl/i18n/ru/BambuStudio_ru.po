@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-30 18:02+0800\n"
+"POT-Creation-Date: 2022-07-02 00:14+0800\n"
 "PO-Revision-Date: 2021-02-03 14:06+0100\n"
 "Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -3026,8 +3026,8 @@ msgstr[2] ""
 msgid "Reserved keywords found"
 msgstr ""
 
-msgid "Filament Retraction"
-msgstr ""
+msgid "Filament Overrides"
+msgstr "Переопределение парам. прутка"
 
 msgid "Retraction"
 msgstr "Ретракт (втягивание)"
@@ -3674,6 +3674,15 @@ msgstr ""
 msgid "Sending print task timed out. Please try again."
 msgstr ""
 
+msgid "Try to upload project over lan"
+msgstr ""
+
+msgid "Try to send project over cloud"
+msgstr ""
+
+msgid "Try to send project over lan"
+msgstr ""
+
 msgid ""
 "One object has empty initial layer and can't be printed. Please Cut the "
 "bottom or enable supports."
@@ -3852,23 +3861,11 @@ msgid ""
 msgstr ""
 
 #, boost-format
-msgid "%1% is too close to others, there will be collisions when printing."
+msgid "%1% is too close to others, and collisions may be caused."
 msgstr ""
 
 #, boost-format
-msgid ""
-"\n"
-"%1% is too close to others, there will be collisions when printing."
-msgstr ""
-
-#, boost-format
-msgid "%1% is too tall, there will be collisions when printing."
-msgstr ""
-
-#, boost-format
-msgid ""
-"\n"
-"%1% is too tall, there will be collisions when printing."
+msgid "%1% is too tall, and collisions will be caused."
 msgstr ""
 
 msgid " is too close to others, there will be collisions when printing.\n"
@@ -3879,6 +3876,12 @@ msgid ""
 msgstr ""
 
 msgid "Prime Tower"
+msgstr ""
+
+msgid " is too close to others, and collisions may be caused.\n"
+msgstr ""
+
+msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr ""
 
 msgid ""
@@ -13589,9 +13592,6 @@ msgstr ""
 
 #~ msgid "Overlap"
 #~ msgstr "Перекрытие"
-
-#~ msgid "Filament Overrides"
-#~ msgstr "Переопределение парам. прутка"
 
 #~ msgid "Filament properties"
 #~ msgstr "Настройки прутка"

@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-30 18:02+0800\n"
+"POT-Creation-Date: 2022-07-02 00:14+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3202,8 +3202,8 @@ msgstr[1] ""
 msgid "Reserved keywords found"
 msgstr "Palabras clave utilizadas y encontradas"
 
-msgid "Filament Retraction"
-msgstr "Retracción del filamento"
+msgid "Filament Overrides"
+msgstr "Anulaciones de filamentos"
 
 msgid "Retraction"
 msgstr "Retracción"
@@ -3896,6 +3896,15 @@ msgstr ""
 "El envío de la tarea de impresión se ha agotado. Por favor, inténtelo de "
 "nuevo."
 
+msgid "Try to upload project over lan"
+msgstr ""
+
+msgid "Try to send project over cloud"
+msgstr ""
+
+msgid "Try to send project over lan"
+msgstr ""
+
 msgid ""
 "One object has empty initial layer and can't be printed. Please Cut the "
 "bottom or enable supports."
@@ -4088,28 +4097,12 @@ msgstr ""
 "%1% está demasiado cerca del área de exclusión, habrá colisiones al imprimir."
 
 #, boost-format
-msgid "%1% is too close to others, there will be collisions when printing."
-msgstr "%1% está demasiado cerca de otros, habrá colisiones al imprimir."
-
-#, boost-format
-msgid ""
-"\n"
-"%1% is too close to others, there will be collisions when printing."
+msgid "%1% is too close to others, and collisions may be caused."
 msgstr ""
-"\n"
-"%1% está demasiado cerca de otros, habrá colisiones al imprimir."
 
 #, boost-format
-msgid "%1% is too tall, there will be collisions when printing."
-msgstr "%1% es demasiado alto, habrá colisiones al imprimir."
-
-#, boost-format
-msgid ""
-"\n"
-"%1% is too tall, there will be collisions when printing."
+msgid "%1% is too tall, and collisions will be caused."
 msgstr ""
-"\n"
-"%1% es demasiado alto, habrá colisiones al imprimir."
 
 msgid " is too close to others, there will be collisions when printing.\n"
 msgstr " está demasiado cerca de otros, habrá colisiones al imprimir.\n"
@@ -4121,6 +4114,12 @@ msgstr ""
 
 msgid "Prime Tower"
 msgstr "Torre principal"
+
+msgid " is too close to others, and collisions may be caused.\n"
+msgstr ""
+
+msgid " is too close to exclusion area, and collisions will be caused.\n"
+msgstr ""
 
 msgid ""
 "Can not print multiple filaments which have large difference of temperature "
@@ -6021,6 +6020,33 @@ msgstr "Soporte: arreglar huecos en la capa %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Soporte: propagar ramas en la capa %d"
+
+#~ msgid "Filament Retraction"
+#~ msgstr "Retracción del filamento"
+
+#, boost-format
+#~ msgid "%1% is too close to others, there will be collisions when printing."
+#~ msgstr "%1% está demasiado cerca de otros, habrá colisiones al imprimir."
+
+#, boost-format
+#~ msgid ""
+#~ "\n"
+#~ "%1% is too close to others, there will be collisions when printing."
+#~ msgstr ""
+#~ "\n"
+#~ "%1% está demasiado cerca de otros, habrá colisiones al imprimir."
+
+#, boost-format
+#~ msgid "%1% is too tall, there will be collisions when printing."
+#~ msgstr "%1% es demasiado alto, habrá colisiones al imprimir."
+
+#, boost-format
+#~ msgid ""
+#~ "\n"
+#~ "%1% is too tall, there will be collisions when printing."
+#~ msgstr ""
+#~ "\n"
+#~ "%1% es demasiado alto, habrá colisiones al imprimir."
 
 #~ msgid "Login with your Account"
 #~ msgstr "Acceda con su cuenta"
@@ -16938,9 +16964,6 @@ msgstr "Soporte: propagar ramas en la capa %d"
 
 #~ msgid "Overlap"
 #~ msgstr "Superposición"
-
-#~ msgid "Filament Overrides"
-#~ msgstr "Anulaciones de filamentos"
 
 #~ msgid "Filament properties"
 #~ msgstr "Propiedades del filamento"

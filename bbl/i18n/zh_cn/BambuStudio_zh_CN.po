@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-30 18:02+0800\n"
-"PO-Revision-Date: 2022-06-28 20:53+0800\n"
+"POT-Creation-Date: 2022-07-02 00:14+0800\n"
+"PO-Revision-Date: 2022-07-02 00:21+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -419,7 +419,7 @@ msgid "Bed surface is auto identifying"
 msgstr ""
 
 msgid "In the calibration of extrinsic parameters"
-msgstr "轮廓仪外参标定中..."
+msgstr "轮廓仪外参标定中"
 
 msgid "The tool head is homing"
 msgstr ""
@@ -1715,9 +1715,7 @@ msgstr "没有可摆盘的对象被选中。"
 msgid ""
 "This plate is locked,\n"
 "We can not do auto-arrange on this plate."
-msgstr ""
-"该盘处于锁定状态，\n"
-"无法对其进行自动摆盘"
+msgstr "该盘处于锁定状态，无法对其进行自动摆盘。"
 
 msgid "Arranging..."
 msgstr "自动摆放中..."
@@ -2441,7 +2439,7 @@ msgid "Loading file: %s"
 msgstr "加载文件：%s"
 
 msgid "The Config is not compatible and can not be loaded."
-msgstr "该配置不兼容，无法被加载"
+msgstr "该配置不兼容，无法被加载。"
 
 msgid "Incompatible 3mf"
 msgstr "不兼容的3mf"
@@ -2652,7 +2650,7 @@ msgid "Language selection"
 msgstr "语言选择"
 
 msgid "Switching application language while some presets are modified."
-msgstr "在切换应用语言之前发现某些参数预设有更改"
+msgstr "在切换应用语言之前发现某些参数预设有更改。"
 
 msgid "Changing application language"
 msgstr "正在为应用程序切换语言"
@@ -3079,8 +3077,8 @@ msgstr[0] ""
 msgid "Reserved keywords found"
 msgstr "检测到保留的关键字"
 
-msgid "Filament Retraction"
-msgstr "材料回抽"
+msgid "Filament Overrides"
+msgstr ""
 
 msgid "Retraction"
 msgstr "回抽"
@@ -3348,7 +3346,7 @@ msgstr "封面"
 
 #, boost-format
 msgid "The name \"%1%\" already exists."
-msgstr "名字\"%1%\"已经存在"
+msgstr "名字\"%1%\"已经存在。"
 
 msgid "Designer"
 msgstr "设计师"
@@ -3738,6 +3736,15 @@ msgstr "无法发送打印任务，请重试。"
 msgid "Sending print task timed out. Please try again."
 msgstr "发送打印任务超时，请重试。"
 
+msgid "Try to upload project over lan"
+msgstr "尝试通过局域网上传项目"
+
+msgid "Try to send project over cloud"
+msgstr "尝试通过云服务发送项目"
+
+msgid "Try to send project over lan"
+msgstr "尝试通过局域网发送项目"
+
 msgid ""
 "One object has empty initial layer and can't be printed. Please Cut the "
 "bottom or enable supports."
@@ -3920,28 +3927,12 @@ msgstr ""
 "%1%离不可打印区域太近，会造成打印时出现碰撞。"
 
 #, boost-format
-msgid "%1% is too close to others, there will be collisions when printing."
-msgstr "%1%离其它对象太近，会造成打印时出现碰撞。"
+msgid "%1% is too close to others, and collisions may be caused."
+msgstr "%1%离其它对象太近，可能会发生碰撞。"
 
 #, boost-format
-msgid ""
-"\n"
-"%1% is too close to others, there will be collisions when printing."
-msgstr ""
-"\n"
-"%1%离其它对象太近，会造成打印时出现碰撞。"
-
-#, boost-format
-msgid "%1% is too tall, there will be collisions when printing."
-msgstr "%1%的高度过高，会造成打印时出现碰撞。"
-
-#, boost-format
-msgid ""
-"\n"
-"%1% is too tall, there will be collisions when printing."
-msgstr ""
-"\n"
-"%1%的高度过高，会造成打印时出现碰撞。"
+msgid "%1% is too tall, and collisions will be caused."
+msgstr "%1%太高，会发生碰撞。"
 
 msgid " is too close to others, there will be collisions when printing.\n"
 msgstr "离其它对象太近，会造成打印时出现碰撞。\n"
@@ -3952,6 +3943,12 @@ msgstr "离不可打印区域太近，会造成打印时出现碰撞。\n"
 
 msgid "Prime Tower"
 msgstr "擦拭塔"
+
+msgid " is too close to others, and collisions may be caused.\n"
+msgstr "离其它对象太近，可能会发生碰撞。\n"
+
+msgid " is too close to exclusion area, and collisions will be caused.\n"
+msgstr "离不可打印区域太近，会发生碰撞。\n"
 
 msgid ""
 "Can not print multiple filaments which have large difference of temperature "
@@ -5649,6 +5646,33 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Filament Retraction"
+#~ msgstr "材料回抽"
+
+#, boost-format
+#~ msgid "%1% is too close to others, there will be collisions when printing."
+#~ msgstr "%1%离其它对象太近，会造成打印时出现碰撞。"
+
+#, boost-format
+#~ msgid ""
+#~ "\n"
+#~ "%1% is too close to others, there will be collisions when printing."
+#~ msgstr ""
+#~ "\n"
+#~ "%1%离其它对象太近，会造成打印时出现碰撞。"
+
+#, boost-format
+#~ msgid "%1% is too tall, there will be collisions when printing."
+#~ msgstr "%1%的高度过高，会造成打印时出现碰撞。"
+
+#, boost-format
+#~ msgid ""
+#~ "\n"
+#~ "%1% is too tall, there will be collisions when printing."
+#~ msgstr ""
+#~ "\n"
+#~ "%1%的高度过高，会造成打印时出现碰撞。"
 
 #~ msgid "Login with your Account"
 #~ msgstr "使用您的账号登录"
