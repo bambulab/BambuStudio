@@ -157,8 +157,13 @@ void SVG::draw(const Polygon &polygon, std::string fill)
 
 void SVG::draw(const Polygons &polygons, std::string fill)
 {
-    for (Polygons::const_iterator it = polygons.begin(); it != polygons.end(); ++it)
-        this->draw(*it, fill);
+    for (Polygons::const_iterator it = polygons.begin(); it != polygons.end(); ++it) {
+        // BBS
+        if (it->is_counter_clockwise())
+            this->draw(*it, fill);
+        else
+            this->draw(*it, "white");
+    }
 }
 
 void SVG::draw(const Polyline &polyline, std::string stroke, coordf_t stroke_width)

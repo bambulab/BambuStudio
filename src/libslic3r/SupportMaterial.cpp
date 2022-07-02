@@ -328,6 +328,22 @@ static Polygons contours_simplified(const Vec2i &grid_size, const double pixel_s
 }
 #endif // SUPPORT_USE_AGG_RASTERIZER
 
+static  std::string get_svg_filename(std::string layer_nr_or_z, std::string tag = "bbl_ts")
+{
+    static bool rand_init = false;
+
+    if (!rand_init) {
+        srand(time(NULL));
+        rand_init = true;
+    }
+
+    int rand_num = rand() % 1000000;
+    //makedir("./SVG");
+    std::string prefix = "./SVG/";
+    std::string suffix = ".svg";
+    return prefix + tag + "_" + layer_nr_or_z /*+ "_" + std::to_string(rand_num)*/ + suffix;
+}
+
 PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object, const SlicingParameters &slicing_params) :
     m_object                (object),
     m_print_config          (&object->print()->config()),
@@ -1659,7 +1675,8 @@ static inline Polygons detect_overhangs(
         } // for each layer.region
     }
 
-    return union_(overhang_polygons);
+    // BBS: hotfix to make sure ccw polygon is before cw polygon
+    return to_polygons(union_ex(overhang_polygons));
 }
 
 // Tuple: overhang_polygons, contact_polygons, enforcer_polygons, no_interface_offset
@@ -2143,24 +2160,6 @@ static void add_overhang(std::vector<OverhangCluster>& clusters, Polygon* overha
         clusters.emplace_back(overhang, layer_nr, offset_scaled);
     }
 };
-
-static  bool is_contour_ccw_test = false;
-
-static  std::string get_svg_filename(std::string layer_nr_or_z, std::string tag = "bbl_ts")
-{
-    static bool rand_init = false;
-
-    if (!rand_init) {
-        srand(time(NULL));
-        rand_init = true;
-    }
-
-    int rand_num = rand() % 1000000;
-    //makedir("./SVG");
-    std::string prefix = "./SVG/";
-    std::string suffix = ".svg";
-    return prefix + tag + "_" + layer_nr_or_z /*+ "_" + std::to_string(rand_num)*/ + suffix;
-}
 
 // Generate top contact layers supporting overhangs.
 // For a soluble interface material synchronize the layer heights with the object, otherwise leave the layer height undefined.
