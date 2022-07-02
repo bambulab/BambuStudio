@@ -74,14 +74,16 @@ struct PlateBBoxData
     std::vector<int>      filament_ids; // filament id used in curr plate
     std::vector<std::string> filament_colors;
     bool is_seq_print = false;
-    int first_extruder;
+    int first_extruder = 0;
+    float nozzle_diameter = 0.4;
 
     void to_json(nlohmann::json& j) const{
         j = nlohmann::json{ {"bbox_all",bbox_all} };
         j["filament_ids"] = filament_ids;
         j["filament_colors"] = filament_colors;
         j["is_seq_print"]    = is_seq_print;
-        j["first_extruder"]  = first_extruder;
+        j["first_extruder"] = first_extruder;
+        j["nozzle_diameter"]  = nozzle_diameter;
         for (const auto& bbox : bbox_objs) {
             nlohmann::json j_bbox;
             bbox.to_json(j_bbox);
@@ -94,6 +96,7 @@ struct PlateBBoxData
         j.at("filament_colors").get_to(filament_colors);
         j.at("is_seq_print").get_to(is_seq_print);
         j.at("first_extruder").get_to(first_extruder);
+        j.at("nozzle_diameter").get_to(nozzle_diameter);
         for (auto& bbox_j : j.at("bbox_objects")) {
             BBoxData bbox_data;
             bbox_data.from_json(bbox_j);

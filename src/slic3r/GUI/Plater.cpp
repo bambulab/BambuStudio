@@ -5436,6 +5436,10 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
     auto                   print = this->background_process.m_fff_print;
     bboxdata.is_seq_print = (print->config().print_sequence == PrintSequence::ByObject);
     bboxdata.first_extruder = print->get_tool_ordering().first_extruder();
+    // get nozzle diameter
+    auto opt_nozzle_diameters = print->config().option<ConfigOptionFloats>("nozzle_diameter");
+    if (opt_nozzle_diameters != nullptr)
+        bboxdata.nozzle_diameter = float(opt_nozzle_diameters->get_at(bboxdata.first_extruder));
     //PrintObjectPtrs objects;
     //if (this->printer_technology == ptFFF) {
     //    objects = this->background_process.m_fff_print->objects().vector();
