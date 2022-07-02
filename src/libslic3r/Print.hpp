@@ -287,6 +287,14 @@ public:
     // BBS
     TreeSupportLayerPtrs&        tree_support_layers() { return m_tree_support_layers; }
 
+    template<typename PolysType>
+    static void remove_bridges_from_contacts(
+        const Layer* lower_layer,
+        const Layer* current_layer,
+        float extrusion_width,
+        PolysType* overhang_regions,
+        float max_bridge_length = scale_(10));
+
     // Bounding box is used to align the object infill patterns, and to calculate attractor for the rear seam.
     // The bounding box may not be quite snug.
     BoundingBox                  bounding_box() const   { return BoundingBox(Point(- m_size.x() / 2, - m_size.y() / 2), Point(m_size.x() / 2, m_size.y() / 2)); }

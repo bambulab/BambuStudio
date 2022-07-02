@@ -676,87 +676,8 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
                                                   (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
 }
 
+
 #define SUPPORT_SURFACES_OFFSET_PARAMETERS ClipperLib::jtSquare, 0.
-static ExPolygons remove_bridges_from_contacts(
-    const Layer* lower_layer,
-    const Layer* current_layer,
-    float extrusion_width,
-    ExPolygons& overhang_regions,
-    float max_bridge_length=scale_(10))
-{
-    // Extrusion width accounts for the roundings of the extrudates.
-    // It is the maximum widh of the extrudate.
-    float fw = extrusion_width;
-    Lines overhang_perimeters = to_lines(overhang_regions);
-    auto layer_regions = current_layer->regions();
-    Polygons lower_layer_polygons = to_polygons(lower_layer->lslices);
-
-    ExPolygons all_bridges;
-    for (LayerRegion* layerm : layer_regions)
-    {
-        Polygons bridges;
-        // Surface supporting this layer, expanded by 0.5 * nozzle_diameter, as we consider this kind of overhang to be sufficiently supported.
-        Polygons lower_grown_slices = offset(lower_layer_polygons,
-            //FIXME to mimic the decision in the perimeter generator, we should use half the external perimeter width.
-            0.5f * fw, SUPPORT_SURFACES_OFFSET_PARAMETERS);
-        Polylines overhang_perimeters = diff_pl(layerm->perimeters.as_polylines(), lower_grown_slices);
-        // only consider straight overhangs
-            // only consider overhangs having endpoints inside layer's slices
-            // convert bridging polylines into polygons by inflating them with their thickness
-            // since we're dealing with bridges, we can't assume width is larger than spacing,
-            // so we take the largest value and also apply safety offset to be ensure no gaps
-            // are left in between
-        Flow bridge_flow = layerm->flow(frPerimeter, true);
-        float w = float(std::max(bridge_flow.scaled_width(), bridge_flow.scaled_spacing()));
-        for (Polyline& polyline : overhang_perimeters)
-            if (polyline.is_straight()) {
-                // This is a bridge
-                polyline.extend_start(fw);
-                polyline.extend_end(fw);
-                // Is the straight perimeter segment supported at both sides?
-                Point pts[2] = { polyline.first_point(), polyline.last_point() };
-                bool  supported[2] = { false, false };
-                for (size_t i = 0; i < lower_layer->lslices.size() && !(supported[0] && supported[1]); ++i)
-                    for (int j = 0; j < 2; ++j)
-                        if (!supported[j] && lower_layer->lslices_bboxes[i].contains(pts[j]) && lower_layer->lslices[i].contains(pts[j]))
-                            supported[j] = true;
-                if (supported[0] && supported[1]) {
-                    Polylines lines;
-                    if (polyline.length() > max_bridge_length+10) {
-                        // equally divide the polyline
-                        float len = polyline.length() / ceil(polyline.length() / max_bridge_length);
-                        lines = polyline.equally_spaced_lines(len);
-                    for (auto& line : lines) {
-                        line.clip_start(fw);
-                        line.clip_end(fw);
-                    }
-                    }
-                    else
-                        lines.push_back(polyline);
-                    // Offset a polyline into a thick line.
-                    polygons_append(bridges, offset(lines, 0.5f * w + 10.f));
-                }
-            }
-        bridges = union_(bridges);
-
-        // remove the entire bridges and only support the unsupported edges
-        //FIXME the brided regions are already collected as layerm->bridged. Use it?
-        for (const Surface& surface : layerm->fill_surfaces.surfaces)
-            if (surface.surface_type == stBottomBridge && surface.bridge_angle != -1)
-                polygons_append(bridges, surface.expolygon);
-        //FIXME add the gap filled areas. Extrude the gaps with a bridge flow?
-        // Remove the unsupported ends of the bridges from the bridged areas.
-        //FIXME add supports at regular intervals to support long bridges!
-#define SUPPORT_MATERIAL_MARGIN 1.5
-        bridges = diff(bridges,
-            // Offset unsupported edges into polygons.
-            offset(layerm->unsupported_bridge_edges, scale_(SUPPORT_MATERIAL_MARGIN), SUPPORT_SURFACES_OFFSET_PARAMETERS));
-
-        append(all_bridges, to_expolygons(bridges));
-    }
-    return all_bridges;
-}
-
 void TreeSupport::detect_object_overhangs()
 {
     // overhangs are already detected
@@ -773,14 +694,14 @@ void TreeSupport::detect_object_overhangs()
     const coordf_t radius_sample_resolution = m_ts_data->m_radius_sample_resolution;
     const coordf_t extrusion_width = config.line_width.value;
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
-    const bool bridge_no_support = config.bridge_no_support.value;
+    const coordf_t max_bridge_length = scale_(config.max_bridge_length.value);
+    const bool bridge_no_support = max_bridge_length > 0;// config.bridge_no_support.value;
     const int enforce_support_layers = config.enforce_support_layers.value;
     const double area_thresh_well_supported = SQ(scale_(6));  // min: 6x6=36mm^2
     const double length_thresh_well_supported = scale_(6);  // min: 6mm
     static const double sharp_tail_max_support_height = 8.f;
     // a region is considered well supported if the number of layers below it exceeds this threshold
     const int thresh_layers_below = 10 / config.layer_height;
-    const coordf_t max_bridge_length = scale_(20);
     double obj_height = m_object->size().z();
     bool is_auto = (stype == stTreeAuto || stype == stHybridAuto);
 
@@ -875,7 +796,6 @@ void TreeSupport::detect_object_overhangs()
     };
 
     has_sharp_tail = false;
-    std::map<int, ExPolygons> all_bridges;
     if (std::set<SupportType>{stTreeAuto, stHybridAuto, stTree}.count(stype))// == stTreeAuto || stype == stHybridAuto || stype == stTree)
     {
         double threshold_rad = (config.support_threshold_angle.value < EPSILON ? 30 : config.support_threshold_angle.value+1) * M_PI / 180.;
@@ -1037,8 +957,7 @@ void TreeSupport::detect_object_overhangs()
 
 
             if (bridge_no_support && overhang_areas.size()>0) {
-                auto bridge = remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, overhang_areas, max_bridge_length);
-                all_bridges.emplace(layer_nr, bridge);
+                m_object->remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, &overhang_areas, max_bridge_length);
             }
 
             TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
@@ -1195,13 +1114,6 @@ void TreeSupport::detect_object_overhangs()
             break;
 
         TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
-
-        if (!all_bridges.empty()) {
-            auto it = all_bridges.find(layer_nr);
-            if (it != all_bridges.end()) {
-                ts_layer->overhang_areas = diff_ex(ts_layer->overhang_areas, it->second);
-            }
-        }
 
         if (layer_nr < blockers.size()) {
             Polygons& blocker = blockers[layer_nr];

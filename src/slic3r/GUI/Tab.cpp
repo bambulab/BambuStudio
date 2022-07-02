@@ -1828,7 +1828,8 @@ void TabPrint::build()
         //optgroup->append_single_option_line("support_interface_loop_pattern");
 
         optgroup->append_single_option_line("support_object_xy_distance");
-        optgroup->append_single_option_line("bridge_no_support");
+        //optgroup->append_single_option_line("bridge_no_support");
+        optgroup->append_single_option_line("max_bridge_length");
         //optgroup->append_single_option_line("independent_support_layer_height");
 
     page = add_options_page(L("Others"), "advanced");
