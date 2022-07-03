@@ -2455,14 +2455,13 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
     switch ( dialog.ShowModal() )
     {
         case wxID_YES: {
-            std::string version = wxGetApp().preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
-            if (agent) {
-                agent->get_setting_list(version);
-                GUI::wxGetApp().reload_settings();
-            }
+            wxGetApp().app_config->set_bool("sync_user_preset", true);
+            wxGetApp().start_sync_user_preset();
             break;
         }
         case wxID_NO:
+            wxGetApp().app_config->set_bool("sync_user_preset", false);
+            wxGetApp().stop_sync_user_preset();
             break;
         default:
             break;

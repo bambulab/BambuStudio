@@ -250,7 +250,7 @@ private:
     VersionInfo version_info;
 
     boost::thread    m_sync_update_thread;
-    bool             enable_sync = true;
+    bool             enable_sync = false;
 
 public:
     bool            OnInit() override;
@@ -368,7 +368,8 @@ public:
     void            reload_settings();
     void            remove_user_presets();
     void            sync_preset(Preset* preset);
-    void            start_sync_service();
+    void            start_sync_user_preset();
+    void            stop_sync_user_preset();
 
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 

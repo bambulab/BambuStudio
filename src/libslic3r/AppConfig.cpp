@@ -216,16 +216,8 @@ void AppConfig::set_defaults()
          set("units", "0");
     }
 
-    if (get("user_sync_switch").empty()) {
-        set_bool("user_sync_switch", false);
-    }
-
-    if (get("preset_sync_switch").empty()) {
-        set_bool("preset_sync_switch", false);
-    }
-
-    if (get("preferences_sync_switch").empty()) {
-        set_bool("preferences_sync_switch", false);
+    if (get("sync_user_preset").empty()) {
+        set_bool("sync_user_preset", false);
     }
 
     if (get("keyboard_supported").empty()) {

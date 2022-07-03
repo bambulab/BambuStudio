@@ -1218,9 +1218,7 @@ GUI_App::GUI_App()
 
 GUI_App::~GUI_App()
 {
-    enable_sync = false;
-    if (m_sync_update_thread.joinable())
-        m_sync_update_thread.join();
+    stop_sync_user_preset();
 
     if (m_device_manager) {
         delete m_device_manager;
@@ -1629,23 +1627,15 @@ bool GUI_App::on_init_inner()
             show_error(nullptr, ex.what());
         }
     //}
-    //BBS loading user preset
-    BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
-    scrn->SetText(_L("Loading user presets..."));
-    int loaded_preset_result = -1;
-
-    if (m_agent) {
-        if (m_agent->is_user_login()) {
-            // get setting list, update setting list
-            std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
-            loaded_preset_result = m_agent->get_setting_list(version);
-            GUI::wxGetApp().reload_settings();
+    // 
+    if (app_config->get("sync_user_preset") == "true") {
+        //BBS loading user preset
+        BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
+        scrn->SetText(_L("Loading user presets..."));
+        if (m_agent) {
+            start_sync_user_preset();
         }
-        BOOST_LOG_TRIVIAL(info) << "start_sync_service...";
-        //BBS
-        start_sync_service();
     }
-    
 
 #ifdef WIN32
 #if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
@@ -2822,8 +2812,21 @@ void GUI_App::sync_preset(Preset* preset)
     }
 }
 
-void GUI_App::start_sync_service()
+void GUI_App::start_sync_user_preset()
 {
+    // has already start sync
+    if (enable_sync)
+        return;
+
+    if (m_agent->is_user_login()) {
+        // get setting list, update setting list
+        std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
+        m_agent->get_setting_list(version);
+        GUI::wxGetApp().reload_settings();
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "start_sync_service...";
+    //BBS
     enable_sync = true;
     m_sync_update_thread = Slic3r::create_thread(
         [this] {
@@ -2841,21 +2844,21 @@ void GUI_App::start_sync_service()
 
                     sync_count = preset_bundle->prints.get_user_presets(presets_to_sync);
                     if (sync_count > 0) {
-                        for (Preset& preset: presets_to_sync) {
+                        for (Preset& preset : presets_to_sync) {
                             sync_preset(&preset);
                         }
                     }
 
                     sync_count = preset_bundle->filaments.get_user_presets(presets_to_sync);
                     if (sync_count > 0) {
-                        for (Preset& preset: presets_to_sync) {
+                        for (Preset& preset : presets_to_sync) {
                             sync_preset(&preset);
                         }
                     }
 
                     sync_count = preset_bundle->printers.get_user_presets(presets_to_sync);
                     if (sync_count > 0) {
-                        for (Preset& preset: presets_to_sync) {
+                        for (Preset& preset : presets_to_sync) {
                             sync_preset(&preset);
                         }
                     }
@@ -2878,6 +2881,16 @@ void GUI_App::start_sync_service()
                 }
             }
         });
+}
+
+void GUI_App::stop_sync_user_preset()
+{
+    if (!enable_sync)
+        return;
+
+    enable_sync = false;
+    if (m_sync_update_thread.joinable())
+        m_sync_update_thread.join();
 }
 
 bool GUI_App::switch_language()

@@ -382,6 +382,15 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             if (m_backup_interval_textinput != nullptr) { m_backup_interval_textinput->Enable(pbool); }
         }
 
+        if (param == "sync_user_preset") {
+            bool sync = app_config->get("sync_user_preset") == "true" ? true : false;
+            if (sync) {
+                wxGetApp().start_sync_user_preset();
+            } else {
+                wxGetApp().stop_sync_user_preset();
+            }
+        }
+
         #ifdef __WXMSW__
         if (param == "associate_3mf") {
              bool pbool = app_config->get("associate_3mf") == "true" ? true : false;
@@ -418,6 +427,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     //// for debug mode
     if (param == "developer_mode") { m_developer_mode_ckeckbox = checkbox; }
     if (param == "dump_video") { m_dump_video_ckeckbox = checkbox; }
+
 
     checkbox->SetToolTip(tooltip);
     return m_sizer_checkbox;
@@ -559,7 +569,7 @@ wxWindow* PreferencesDialog::create_general_page()
 
 
     auto title_sync_settings = create_item_title(_L("User sync"), page, _L("User sync"));
-    auto item_user_sync        = create_item_checkbox(_L("auto sync user presets (printer/materials/craft)"), page, _L("User sync"), 50, "preset_sync_switch");
+    auto item_user_sync        = create_item_checkbox(_L("auto sync user presets (printer/filament/process)"), page, _L("User sync"), 50, "sync_user_preset");
 
 
     auto title_associate_file = create_item_title(_L("Associate files to BambuStudio"), page, _L("Associate files to BambuStudio"));

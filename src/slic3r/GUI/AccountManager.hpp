@@ -422,7 +422,7 @@ public:
     bool can_publish();
 
     /* preset settings api */
-    int get_setting_list(std::string bundle_version);
+    int get_setting_list(std::string bundle_version, bool system_only = false);
     void get_setting(std::string name, std::map<std::string, std::string>& values_map, std::function<void(void)> callback = {});
     std::string request_setting_id(std::string name, std::map<std::string, std::string>& values_map, unsigned int& http_code);
     int put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>& values_map, unsigned int& http_code);

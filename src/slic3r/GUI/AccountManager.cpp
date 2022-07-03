@@ -2689,7 +2689,7 @@ namespace BBL {
     }
 
     //BBS sync preset bundle when login
-    int AccountManager::get_setting_list(std::string bundle_version)
+    int AccountManager::get_setting_list(std::string bundle_version, bool system_only)
     {
         m_my_presets.clear();
         m_system_presets.clear();
@@ -2701,7 +2701,7 @@ namespace BBL {
             .header("accept", "application/json")
             .header("Authorization", get_token_str())
             .on_complete(
-                [this](std::string body, unsigned) {
+                [this, system_only](std::string body, unsigned) {
                     std::stringstream ss(body);
                     pt::ptree root;
                     pt::read_json(ss, root);
@@ -2716,12 +2716,14 @@ namespace BBL {
                                     parse_setting(setting_item->second, IOT_PRINTER_TYPE_STRING, "public");
                                 }
                             }
-                            if (printer_node.get_child_optional("private") != boost::none) {
+                            if (!system_only) {
+                                if (printer_node.get_child_optional("private") != boost::none) {
                                     pt::ptree private_node = printer_node.get_child("private");
                                     for (auto setting_item = private_node.begin(); setting_item != private_node.end(); ++setting_item) {
                                         parse_setting(setting_item->second, IOT_PRINTER_TYPE_STRING, "private");
                                     }
                                 }
+                            }
                         }
                         if (root.get_child_optional(IOT_FILAMENT_STRING) != boost::none) {
                             pt::ptree filament_node = root.get_child(IOT_FILAMENT_STRING);
@@ -2731,10 +2733,12 @@ namespace BBL {
                                     parse_setting(setting_item->second, IOT_FILAMENT_STRING, "public");
                                 }
                             }
-                            if (filament_node.get_child_optional("private") != boost::none) {
-                                pt::ptree private_node = filament_node.get_child("private");
-                                for (auto setting_item = private_node.begin(); setting_item != private_node.end(); ++setting_item) {
-                                    parse_setting(setting_item->second, IOT_FILAMENT_STRING, "private");
+                            if (!system_only) {
+                                if (filament_node.get_child_optional("private") != boost::none) {
+                                    pt::ptree private_node = filament_node.get_child("private");
+                                    for (auto setting_item = private_node.begin(); setting_item != private_node.end(); ++setting_item) {
+                                        parse_setting(setting_item->second, IOT_FILAMENT_STRING, "private");
+                                    }
                                 }
                             }
                         }
@@ -2746,21 +2750,23 @@ namespace BBL {
                                     parse_setting(setting_item->second, IOT_PRINT_TYPE_STRING, "public");
                                 }
                             }
-                            if (print_node.get_child_optional("private") != boost::none) {
-                                pt::ptree private_node = print_node.get_child("private");
-                                for (auto setting_item = private_node.begin(); setting_item != private_node.end(); ++setting_item) {
-                                    parse_setting(setting_item->second, IOT_PRINT_TYPE_STRING, "private");
+
+                            if (!system_only) {
+                                if (print_node.get_child_optional("private") != boost::none) {
+                                    pt::ptree private_node = print_node.get_child("private");
+                                    for (auto setting_item = private_node.begin(); setting_item != private_node.end(); ++setting_item) {
+                                        parse_setting(setting_item->second, IOT_PRINT_TYPE_STRING, "private");
+                                    }
                                 }
                             }
                         }
-                        }
                     }
+                }
         )
         .perform_sync();
 
-
         int i = 0;
-        const int MAX_PRESET_LOAD = 50;
+        const int MAX_PRESET_LOAD = 100;
         for (auto it = m_my_presets.begin(); it != m_my_presets.end(); it++) {
             get_setting(it->first, it->second);
             i++;
