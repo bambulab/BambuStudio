@@ -61,6 +61,7 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::TriangleButtonIcon     , "Triangle_paint"                },
     {ImGui::FillButtonIcon         , "fill_paint"                    },
     {ImGui::HeightRangeIcon        , "height_range"                  },
+    {ImGui::FragmentFilterIcon     , "fragment_filter"               },
     {ImGui::FoldButtonIcon         , "im_fold"                       },
     {ImGui::UnfoldButtonIcon       , "im_unfold"                     },
     {ImGui::GcodePauseIcon         , "im_gcode_pause"                },

@@ -5,19 +5,6 @@
 
 namespace Slic3r::GUI {
 
-#if 0
-struct TrianglePatch {
-    std::vector<int> triangle_indices;
-    std::vector<int> facet_indices;
-    EnforcerBlockerType type = EnforcerBlockerType::NONE;
-    std::set<EnforcerBlockerType> neighbor_types;
-    // if area is larger than TinyPatchAreaMax, stop accumulate left triangle areas to improve performance
-    float area = 0.f;
-
-    bool tiny_patch() const;
-};
-#endif
-
 class GLMmSegmentationGizmo3DScene
 {
 public:
@@ -134,6 +121,7 @@ private:
     void update_model_object() override;
     //BBS: add logic to distinguish the first_time_update and later_update
     void update_from_model_object(bool first_update = false) override;
+    void tool_changed(wchar_t old_tool, wchar_t new_tool);
 
     void on_opening() override;
     void on_shutdown() override;

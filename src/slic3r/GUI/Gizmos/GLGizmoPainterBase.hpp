@@ -116,10 +116,10 @@ struct TrianglePatch {
     std::vector<int> facet_indices;
     EnforcerBlockerType type = EnforcerBlockerType::NONE;
     std::set<EnforcerBlockerType> neighbor_types;
-    // if area is larger than TinyPatchAreaMax, stop accumulate left triangle areas to improve performance
+    // if area is larger than FragmentAreaMax, stop accumulate left triangle areas to improve performance
     float area = 0.f;
 
-    bool tiny_patch() const;
+    bool is_fragment() const;
 };
 
 class TriangleSelectorPatch : public TriangleSelectorGUI {
@@ -132,17 +132,19 @@ public:
     // to be already set.
     void render(ImGuiWrapper* imgui) override;
     // TriangleSelector.m_triangles => m_gizmo_scene.triangle_patches
-    void update_triangle_patches();
+    void update_triangles_per_type();
     // m_gizmo_scene.triangle_patches => TriangleSelector.m_triangles
     void update_selector_triangles();
+    void update_triangles_per_patch();
 
     void set_ebt_colors(const std::vector<std::array<float, 4>> ebt_colors) { m_ebt_colors = ebt_colors; }
+    void set_filter_state(bool is_filter_state);
 
-    constexpr static float TinyPatchAreaMin = 0.f;
-    constexpr static float TinyPatchAreaMax = 5.f;
+    constexpr static float FragmentAreaMin = 0.f;
+    constexpr static float FragmentAreaMax = 5.f;
 
     // BBS: fix me
-    static float tiny_patch_area;
+    static float fragment_area;
 
 protected:
     // Release the geometry data, release OpenGL VBOs.
@@ -184,6 +186,8 @@ protected:
     std::vector<unsigned int>   m_triangle_indices_VBO_ids;
 
     std::vector<std::array<float, 4>> m_ebt_colors;
+
+    bool                        m_filter_state = false;
 
 private:
     void update_render_data();
@@ -259,7 +263,9 @@ protected:
     enum class ToolType {
         BRUSH,
         BUCKET_FILL,
-        SMART_FILL
+        SMART_FILL,
+        // BBS
+        FRAGMENT_FILTER,
     };
 
     struct ProjectedMousePosition

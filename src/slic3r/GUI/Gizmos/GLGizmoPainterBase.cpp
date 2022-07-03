@@ -1034,12 +1034,12 @@ void TriangleSelectorGUI::update_render_data()
 }
 
 // BBS
-bool TrianglePatch::tiny_patch() const
+bool TrianglePatch::is_fragment() const
 {
-    return this->area < TriangleSelectorPatch::tiny_patch_area;
+    return this->area < TriangleSelectorPatch::fragment_area;
 }
 
-float TriangleSelectorPatch::tiny_patch_area = TriangleSelectorPatch::TinyPatchAreaMin;
+float TriangleSelectorPatch::fragment_area = TriangleSelectorPatch::FragmentAreaMin;
 
 void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
 {
@@ -1055,7 +1055,7 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
         if (this->has_VBOs(buffer_idx)) {
             const TrianglePatch& patch = m_triangle_patches[buffer_idx];
             std::array<float, 4> color;
-            if (patch.tiny_patch() && !patch.neighbor_types.empty()) {
+            if (patch.is_fragment() && !patch.neighbor_types.empty()) {
                 size_t color_idx = (size_t)*patch.neighbor_types.begin();
                 color = m_ebt_colors[color_idx];
                 color[3] = 0.85;
@@ -1086,7 +1086,39 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
     m_update_render_data = false;
 }
 
-void TriangleSelectorPatch::update_triangle_patches()
+void TriangleSelectorPatch::update_triangles_per_type()
+{
+    m_triangle_patches.resize((int)EnforcerBlockerType::ExtruderMax);
+    for (int i = 0; i < m_triangle_patches.size(); i++) {
+        auto& patch = m_triangle_patches[i];
+        patch.type = (EnforcerBlockerType)i;
+        patch.triangle_indices.reserve(m_triangles.size() / 3);
+    }
+
+    for (auto& triangle : m_triangles) {
+        if (!triangle.valid() || triangle.is_split())
+            continue;
+
+        int state = (int)triangle.get_state();
+        auto& patch = m_triangle_patches[state];
+        patch.triangle_indices.insert(patch.triangle_indices.end(), triangle.verts_idxs.begin(), triangle.verts_idxs.end());
+    }
+}
+
+void TriangleSelectorPatch::update_selector_triangles()
+{
+    for (TrianglePatch& patch : m_triangle_patches) {
+        if (!patch.is_fragment() || patch.neighbor_types.empty())
+            continue;
+
+        EnforcerBlockerType type = *patch.neighbor_types.begin();
+        for (int facet_idx : patch.facet_indices) {
+            m_triangles[facet_idx].set_state(type);
+        }
+    }
+}
+
+void TriangleSelectorPatch::update_triangles_per_patch()
 {
     auto [neighbors, neighbors_propagated] = this->precompute_all_neighbors();
     std::vector<bool>  visited(m_triangles.size(), false);
@@ -1107,7 +1139,7 @@ void TriangleSelectorPatch::update_triangle_patches()
         return touching_triangles;
     };
 
-    auto calc_patch_area = [this](const TrianglePatch& patch, float max_limit_area) {
+    auto calc_fragment_area = [this](const TrianglePatch& patch, float max_limit_area) {
         double total_area = 0.f;
         const std::vector<int>& ti = patch.triangle_indices;
         for (int i = 0; i < ti.size() / 3; i++) {
@@ -1166,23 +1198,21 @@ void TriangleSelectorPatch::update_triangle_patches()
             visited[current_facet] = true;
         }
 
-        patch.area = calc_patch_area(patch, TinyPatchAreaMax);
+        patch.area = calc_fragment_area(patch, FragmentAreaMax);
         patch.type = start_facet_state;
         m_triangle_patches.emplace_back(std::move(patch));
-    }
+     }
 }
 
-void TriangleSelectorPatch::update_selector_triangles()
+void TriangleSelectorPatch::set_filter_state(bool is_filter_state)
 {
-    for (TrianglePatch& patch : m_triangle_patches) {
-        if (!patch.tiny_patch() || patch.neighbor_types.empty())
-            continue;
-
-        EnforcerBlockerType type = *patch.neighbor_types.begin();
-        for (int facet_idx : patch.facet_indices) {
-            m_triangles[facet_idx].set_state(type);
-        }
+    if (!m_filter_state && is_filter_state) {
+        m_filter_state = is_filter_state;
+        this->release_geometry();
+        update_render_data();
     }
+
+    m_filter_state = is_filter_state;
 }
 
 void TriangleSelectorPatch::update_render_data()
@@ -1198,7 +1228,10 @@ void TriangleSelectorPatch::update_render_data()
         }
         this->finalize_vertices();
 
-        update_triangle_patches();
+        if (m_filter_state)
+            update_triangles_per_patch();
+        else
+            update_triangles_per_type();
         this->finalize_triangle_indices();
 
         m_paint_changed = false;

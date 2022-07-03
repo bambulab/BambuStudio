@@ -28,6 +28,7 @@ public:
         POINTER,
         // BBS
         HEIGHT_RANGE,
+        FRAGMENT_FILTER,
     };
 
     struct ClippingPlane

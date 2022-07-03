@@ -88,8 +88,8 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["remove"]                = _L("Erase painting");
     m_desc["remove_all"]            = _L("Erase all painting");
     m_desc["highlight_by_angle"]    = _L("Highlight overhang areas") + ": ";
-    m_desc["tiny_patch_filter"]     = _L("Tiny patch filter");
-    m_desc["filter_tiny"]           = _L("Filter tiny patch");
+    m_desc["fragment_filter"]       = _L("Fragment filter");
+    m_desc["perform_filter"]        = _L("Perform");
     m_desc["brush_size"]            = _L("Set pen size");
     m_desc["brush_size_caption"]    = _L("Ctrl + Mouse wheel") + ": ";
     m_desc["tool_type"]             = _L("Tool type");
@@ -209,10 +209,10 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
     const float clipping_slider_left    = m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f);
     const float cursor_slider_left      = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.5f);
-    const float tiny_filter_slider_left = m_imgui->calc_text_size(m_desc.at("tiny_patch_filter")).x + m_imgui->scaled(1.5f);
+    const float fragment_filter_slider_left = m_imgui->calc_text_size(m_desc.at("fragment_filter")).x + m_imgui->scaled(1.5f);
     const float highlight_slider_left   = m_imgui->calc_text_size(m_desc.at("highlight_by_angle")).x + m_imgui->scaled(1.5f);
     const float remove_btn_width        = m_imgui->calc_text_size(m_desc.at("remove_all")).x + m_imgui->scaled(1.5f);
-    const float filter_btn_width        = m_imgui->calc_text_size(m_desc.at("filter_tiny")).x + m_imgui->scaled(1.5f);
+    const float filter_btn_width        = m_imgui->calc_text_size(m_desc.at("perform_filter")).x + m_imgui->scaled(1.5f);
     const float buttons_width           = remove_btn_width + filter_btn_width + m_imgui->scaled(1.5f);
     const float empty_button_width      = m_imgui->calc_button_size("").x;
 
@@ -229,7 +229,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     total_text_max += caption_max + m_imgui->scaled(1.f);
     caption_max += m_imgui->scaled(1.f);
 
-    const float sliders_left_width = std::max(std::max(cursor_slider_left, clipping_slider_left), std::max(highlight_slider_left, tiny_filter_slider_left));
+    const float sliders_left_width = std::max(std::max(cursor_slider_left, clipping_slider_left), std::max(highlight_slider_left, fragment_filter_slider_left));
     const float slider_icon_width  = m_imgui->get_slider_icon_size().x;
     float       window_width       = minimal_slider_width + sliders_left_width + slider_icon_width;
 
@@ -348,15 +348,15 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     ImGui::BBLDragFloat("##angle_threshold_deg_input", &m_highlight_by_angle_threshold_deg, 0.05f, 0.0f, 0.0f, "%.2f");
 
     ImGui::Separator();
-    m_imgui->text(m_desc["tiny_patch_filter"] + ":");
+    m_imgui->text(m_desc["fragment_filter"] + ":");
     ImGui::SameLine(sliders_left_width);
     ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
     format_str = std::string("%.2f") + I18N::translate_utf8("", "Triangle patch area threshold,"
                                                                 "triangle patch will be merged to neighbor if its area is less than threshold");
-    m_imgui->bbl_slider_float_style("##tiny_patch_area", &TriangleSelectorPatch::tiny_patch_area, TriangleSelectorPatch::TinyPatchAreaMin,TriangleSelectorPatch::TinyPatchAreaMax, format_str.data(), 1.0f, true);
+    m_imgui->bbl_slider_float_style("##fragment_area", &TriangleSelectorPatch::fragment_area, TriangleSelectorPatch::FragmentAreaMin,TriangleSelectorPatch::FragmentAreaMax, format_str.data(), 1.0f, true);
     ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
-    ImGui::BBLDragFloat("##tiny_patch_area_input", &TriangleSelectorPatch::tiny_patch_area, 0.05f, 0.0f, 0.0f, "%.2f");
+    ImGui::BBLDragFloat("##fragment_area_input", &TriangleSelectorPatch::fragment_area, 0.05f, 0.0f, 0.0f, "%.2f");
     
     ImGui::Separator();
     ImGui::AlignTextToFramePadding();
@@ -379,7 +379,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     show_tooltip_information(caption_max, x, get_cur_y);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 5.0f));
     ImGui::SameLine();
-    if (m_imgui->button(m_desc.at("filter_tiny"))) {
+    if (m_imgui->button(m_desc.at("perform_filter"))) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection", UndoRedo::SnapshotType::GizmoAction);
 
         for (int i = 0; i < m_triangle_selectors.size(); i++) {
