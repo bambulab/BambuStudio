@@ -163,10 +163,10 @@ public:
 
         private:
 
-            enum UPGRADE_MODULE { MODULE_RK = 0, MODULE_MC = 1, MODULE_TH = 2, MODULE_AMS = 3, MODULE_OTA = 4, MODULE_ESP32 = 5, MODULE_MAX };
+            enum UPGRADE_MODULE { MODULE_RK = 0, MODULE_MC = 1, MODULE_TH = 2, MODULE_AMS = 3, MODULE_OTA = 4, MODULE_ESP32 = 5, MODULE_AHB = 6, MODULE_MAX };
             enum UPGRADE_MODE { MODE_DAILYBUILD = 0, MODE_RELEASE = 1, MODE_DEBUG = 2, MODE_WIP = 3, MODE_MAX};
-            std::string upgrade_post_url[MODULE_MAX] = { "rk", "mc", "th", "ams", "ota", "esp32"};
-            std::string upgrade_module_name[MODULE_MAX] = { "rk1126", "mc", "th", "ams", "ota", "esp32"};
+            std::string upgrade_post_url[MODULE_MAX] = { "rk", "mc", "th", "ams", "ota", "esp32", "ahb"};
+            std::string upgrade_module_name[MODULE_MAX] = { "rk1126", "mc", "th", "ams", "ota", "esp32", "ahb"};
             std::string upgrade_mode_name[MODE_MAX] = { "dailybuild", "release", "debug", "wip" };
             int last_upgrade_module_sel;
             int last_upgrade_mode_sel;

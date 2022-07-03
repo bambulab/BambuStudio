@@ -727,6 +727,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	cb_upgrade_module->Append( wxT("AMS") );
 	cb_upgrade_module->Append( wxT("OTA") );
 	cb_upgrade_module->Append(wxT("esp32"));
+	cb_upgrade_module->Append(wxT("ahb"));
 	cb_upgrade_module->SetSelection( 0 );
 	cb_upgrade_module->SetMinSize( wxSize( 100,-1 ) );
 
