@@ -33,7 +33,7 @@ const std::string JSON_MC_REMAIN_TIME   = "mc_remaining_time";
 const std::string JSON_MC_PERCENT = "mc_percent";
 const std::string JSON_MC_PRINT_SUB_STAGE = "mc_print_sub_stage";
 
-const int PRINTING_STAGE_COUNT = 15;
+const int PRINTING_STAGE_COUNT = 20;
 std::string PRINTING_STAGE_STR[PRINTING_STAGE_COUNT] = {
     "printing",
     "bed_leveling",
@@ -49,7 +49,12 @@ std::string PRINTING_STAGE_STR[PRINTING_STAGE_COUNT] = {
     "be_surface_typt_idetification",
     "scanner_extrinsic_para_cali",
     "toohead_homing",
-    "nozzle_tip_cleaning"
+    "nozzle_tip_cleaning",
+    "extruder_temp_protect_cali",
+    "user_pause",
+    "toolhead_shell_off_pause",
+    "scanner_laser_para_cali",
+    "extruder_absolute_flow_cali"
     };
 
 wxString get_stage_string(int stage)
@@ -88,6 +93,14 @@ wxString get_stage_string(int stage)
         return _L("Nozzle cleaning");
     case 15:
         return _L("In the calibration of temperature protection");
+    case 16:
+        return _L("Pause(user)");
+    case 17:
+        return _L("Pause(toolhead shell off)");
+    case 18:
+        return _L("In the calibration of laser scanner");
+    case 19:
+        return _L("In the calibration of extrusion flow");
     default:
         ;
     }
