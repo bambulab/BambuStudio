@@ -2308,7 +2308,11 @@ void cut_mesh
         return;
     }
 
-    if (plane_normal(2) < 0.0) {
+    // BBS
+    if (std::abs(plane_normal(2)) < EPSILON) {
+        // keep the side on the normal direction
+    }
+    else if (plane_normal(2) < 0.0) {
         std::reverse(plane_points.begin(), plane_points.end());
     }
     plane_normal = calc_plane_normal(plane_points);
