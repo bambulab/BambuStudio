@@ -204,7 +204,8 @@ protected:
 
     bool bed_temp_input    = false;
     bool nozzle_temp_input = false;
-    int speed = 1; // 0 - 3
+    int speed_lvl = 1; // 0 - 3
+    int speed_lvl_timeout {0};
     boost::posix_time::ptime speed_dismiss_time;
 
     std::map<wxString, wxImage> img_list; // key: url, value: wxBitmap png Image

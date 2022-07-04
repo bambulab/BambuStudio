@@ -1150,8 +1150,14 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         m_switch_lamp->SetLabels(label, label);*/
     }
 
-    wxString text_speed = wxString::Format("%d%%", obj->printing_speed_mag);
-    m_switch_speed->SetLabel(text_speed);
+    if (speed_lvl_timeout > 0)
+        speed_lvl_timeout--;
+    else {
+        // update speed
+        this->speed_lvl = obj->printing_speed_lvl;
+        wxString text_speed = wxString::Format("%d%%", obj->printing_speed_mag);
+        m_switch_speed->SetLabels(text_speed, text_speed);
+    }
 }
 
 void StatusPanel::update_ams(MachineObject *obj)
@@ -1678,15 +1684,28 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
     popUp->SetSizer(sizer);
     auto em = em_unit(this);
     popUp->SetSize(em * 36, em * 8);
-    step->AppendItem(_L("Silent Mode"), "60%");
-    step->AppendItem(_L("Standard"), "100%");
-    step->AppendItem(_L("Sport"), "140%");
-    step->AppendItem(_L("Ludicrous"), "180%");
-    step->SelectItem(speed);
+
+    step->AppendItem(_L("Silent Mode"), "");
+    step->AppendItem(_L("Standard"), "");
+    step->AppendItem(_L("Sport"), "");
+    step->AppendItem(_L("Ludicrous"), "");
+    
+    // default speed lvl
+    int selected_item = 1;
+    if (obj) {
+        int speed_lvl_idx = obj->printing_speed_lvl - 1;
+        if (speed_lvl_idx >= 0 && speed_lvl_idx < 4) {
+            selected_item = speed_lvl_idx;
+        }
+    }
+    step->SelectItem(selected_item);
+    
     step->Bind(EVT_STEP_CHANGED, [this](auto &e) {
-        PrintingSpeedLevel lvl = (PrintingSpeedLevel) e.GetInt();
-        this->speed            = e.GetInt();
-        if (obj) obj->command_set_printing_speed(lvl);
+        this->speed_lvl        = e.GetInt() + 1;
+        if (obj) {
+            this-> speed_lvl_timeout = COMMAND_TIMEOUT;
+            obj->command_set_printing_speed((PrintingSpeedLevel)this->speed_lvl);
+        }
     });
     popUp->Bind(wxEVT_SHOW, [this](auto &e) {
         if (!e.IsShown()) {
@@ -1818,6 +1837,14 @@ void StatusPanel::set_default()
     obj                  = nullptr;
     last_subtask         = nullptr;
     last_tray_exist_bits = -1;
+    speed_lvl         = 1;
+    speed_lvl_timeout = 0;
+    m_switch_lamp_timeout = 0;
+    m_temp_nozzle_timeout = 0;
+    m_temp_bed_timeout = 0;
+    m_switch_nozzle_fan_timeout = 0;
+    m_switch_printing_fan_timeout = 0;
+
     reset_printing_values();
     m_button_pause_resume->Enable(false);
     m_button_abort->Enable(false);

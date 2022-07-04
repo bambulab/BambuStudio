@@ -392,6 +392,7 @@ public:
     std::string upgrade_module;
     std::string ams_new_version_number;
     std::string ota_new_version_number;
+    std::string ahb_new_version_number;
     std::map<std::string, ModuleVersionInfo> module_vers;
     int upgrade_err_code = 0;
     std::vector<FirmwareInfo> firmware_list;
@@ -425,8 +426,12 @@ public:
     /* printing status */
     std::string print_status;   /* enum string: FINISH, RUNNING, PAUSE, INIT, FAILED */
     PrintingSpeedLevel printing_speed_lvl;
-    int                printing_speed_mag;
+    int                printing_speed_mag = 100;
     PrintingSpeedLevel _parse_printing_speed_lvl(int lvl);
+
+    /* camera */
+    bool camera_recording { false };
+    bool camera_timelapse { false };
 
     /* HMS */
     std::vector<HMSItem>    hms_list;
@@ -493,6 +498,10 @@ public:
     int command_start_calibration();
 
     int command_unload_filament();
+
+    // camera control
+    int command_ipcam_record(bool on_off);
+    int command_ipcam_timelapse(bool on_off);
 
     /* common apis */
     inline bool is_local() { return !dev_ip.empty(); }

@@ -1206,6 +1206,26 @@ int MachineObject::command_unload_filament()
     return this->publish_json(j.dump());
 }
 
+
+int MachineObject::command_ipcam_record(bool on_off)
+{
+    json j;
+    j["camera"]["command"] = "ipcam_record_set";
+    j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["camera"]["control"] = on_off ? "enable" : "disable";
+    return this->publish_json(j.dump());
+}
+
+int MachineObject::command_ipcam_timelapse(bool on_off)
+{
+    json j;
+    j["camera"]["command"] = "ipcam_timelapse";
+    j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["camera"]["control"] = on_off ? "enable" : "disable";
+    return this->publish_json(j.dump());
+}
+
+
 void MachineObject::set_bind_status(std::string status)
 {
     bind_user_name = status;
@@ -1283,6 +1303,9 @@ void MachineObject::reset()
     BOOST_LOG_TRIVIAL(trace) << "dev_id=" << dev_id << " reset.";
     last_update_time = std::chrono::system_clock::now();
     m_push_count = 0;
+    camera_recording = false;
+    camera_timelapse = false;
+    printing_speed_mag = 100;
 }
 
 void MachineObject::set_print_state(std::string status)
@@ -1364,6 +1387,8 @@ int MachineObject::local_publish_json(std::string json_str, int qos)
 
 int MachineObject::parse_json(std::string payload)
 {
+    std::chrono::system_clock::time_point clock_start = std::chrono::system_clock::now();
+
     /* update last received time */
     last_update_time = std::chrono::system_clock::now();
 
@@ -1520,7 +1545,6 @@ int MachineObject::parse_json(std::string payload)
             /* parse speed */
             try {
                 if (jj.contains("spd_lvl")) {
-
                     printing_speed_lvl = (PrintingSpeedLevel)jj["spd_lvl"].get<int>();
                 }
                 if (jj.contains("spd_mag")) {
@@ -1586,6 +1610,8 @@ int MachineObject::parse_json(std::string payload)
                         ams_new_version_number = jj["upgrade_state"]["ams_new_version_number"].get<std::string>();
                     if (jj["upgrade_state"].contains("ota_new_version_number"))
                         ota_new_version_number = jj["upgrade_state"]["ota_new_version_number"].get<std::string>();
+                    if (jj["upgrade_state"].contains("ahb_new_version_number"))
+                        ahb_new_version_number = jj["upgrade_state"]["ahb_new_version_number"].get<std::string>();
                     if (jj["upgrade_state"].contains("module"))
                         upgrade_module = jj["upgrade_state"]["module"].get<std::string>();
                     if (jj["upgrade_state"].contains("message"))
@@ -1625,6 +1651,29 @@ int MachineObject::parse_json(std::string payload)
                 ;
             }
 
+            // parse camera info
+            try {
+                if (jj.contains("ipcam")) {
+                    if (jj["ipcam"].contains("ipcam_record")) {
+                        if (jj["ipcam"]["ipcam_record"].get<std::string>() == "enable") {
+                            camera_recording = true;
+                        } else {
+                            camera_recording = false;
+                        }
+                    }
+                    if (jj["ipcam"].contains("timelapse")) {
+                        if (jj["ipcam"]["ipcam_record"].get<std::string>() == "enable") {
+                            camera_timelapse = true;
+                        } else {
+                            camera_timelapse = false;
+                        }
+                    }
+                }
+            } catch (...) {
+                ;
+            }
+
+            // parse hms msg
             try {
                 hms_list.clear();
                 if (jj.contains("hms")) {
@@ -1969,6 +2018,12 @@ int MachineObject::parse_json(std::string payload)
     }
     catch (...) {
         BOOST_LOG_TRIVIAL(trace) << "parse_json failed! dev_id=" << this->dev_id <<", payload = " << payload;
+    }
+
+    std::chrono::system_clock::time_point clock_stop = std::chrono::system_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(clock_stop - clock_start);
+    if (diff.count() > 10.0f) {
+        BOOST_LOG_TRIVIAL(trace) << "parse_json timeout = " << diff.count();
     }
     return 0;
 }
