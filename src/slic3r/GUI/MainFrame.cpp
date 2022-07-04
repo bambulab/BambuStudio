@@ -2371,7 +2371,7 @@ void MainFrame::get_recent_projects(boost::property_tree::wptree &tree)
         boost::system::error_code ec;
         std::time_t t = boost::filesystem::last_write_time(proj, ec);
         if (!ec) {
-            std::wstring time = wxDateTime(t).Format().ToStdWstring();
+            std::wstring time = wxDateTime(t).FormatISOCombined(' ').ToStdWstring();
             item.put(L"time", time);
             auto thumbnail = m_recent_projects.GetThumbnailUrl(i);
             if (!thumbnail.empty()) item.put(L"image", thumbnail);
