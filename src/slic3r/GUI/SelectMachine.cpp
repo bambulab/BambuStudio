@@ -1209,8 +1209,12 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
 
     m_print_job->set_print_config(
         // MachineBedTypeString[m_comboBox_bed->GetSelection()],
-        MachineBedTypeString[0], m_checkbox_list["bed_leveling"]->GetValue(), m_checkbox_list["flow_cali"]->GetValue(), m_checkbox_list["vibration_cali"]->GetValue(),
-        m_checkbox_list["time_lapse"]->GetValue(), m_checkbox_list["layer_inspect"]->GetValue());
+        MachineBedTypeString[0],
+        m_checkbox_list["bed_leveling"]->GetValue(),
+        m_checkbox_list["flow_cali"]->GetValue(),
+        m_checkbox_list["vibration_cali"]->GetValue(),
+        false,
+        m_checkbox_list["layer_inspect"]->GetValue());
 
     if (!m_ams_mapping_result.empty()) {
         json          j             = json::array();
