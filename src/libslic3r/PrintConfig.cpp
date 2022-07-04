@@ -2523,7 +2523,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Flush into objects' support");
     def->tooltip = L("Purging after filament change will be done inside objects' support. "
         "This may lower the amount of waste and decrease the print time");
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("flush_into_objects", coBool);
     def->category = L("Flush options");
