@@ -219,9 +219,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             fuzzified = loop.polygon;
             fuzzy_polygon(fuzzified, scaled<float>(perimeter_generator.config->fuzzy_skin_thickness.value), scaled<float>(perimeter_generator.config->fuzzy_skin_point_distance.value));
         }
-        if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers
-            && ! ((perimeter_generator.object_config->enable_support || perimeter_generator.object_config->enforce_support_layers > 0) && 
-                  perimeter_generator.object_config->support_top_z_distance.value == 0)) {
+        if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers) {
             // get non 100% overhang paths by intersecting this loop with the grown lower slices
             Polylines remain_polines;
             for (auto it = lower_polygons_series->begin();
@@ -253,15 +251,29 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // outside the grown lower slices (thus where the distance between
             // the loop centerline and original lower slices is >= half nozzle diameter
             if (remain_polines.size() != 0) {
-                extrusion_paths_append(
+                if (!((perimeter_generator.object_config->enable_support || perimeter_generator.object_config->enforce_support_layers > 0)
+                    && perimeter_generator.object_config->support_top_z_distance.value == 0)) {
+                    extrusion_paths_append(
+                        paths,
+                        std::move(remain_polines),
+                        overhang_sampling_number - 1,
+                        int(0),
+                        erOverhangPerimeter,
+                        perimeter_generator.mm3_per_mm_overhang(),
+                        perimeter_generator.overhang_flow.width(),
+                        perimeter_generator.overhang_flow.height());
+                } else {
+                    extrusion_paths_append(
                     paths,
                     std::move(remain_polines),
                     overhang_sampling_number - 1,
                     int(0),
-                    erOverhangPerimeter,
-                    perimeter_generator.mm3_per_mm_overhang(),
-                    perimeter_generator.overhang_flow.width(),
-                    perimeter_generator.overhang_flow.height());
+                    role,
+                    extrusion_mm3_per_mm,
+                    extrusion_width,
+                    (float)perimeter_generator.layer_height);
+                }
+
             }
             
             // Reapply the nearest point search for starting point.
