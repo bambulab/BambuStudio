@@ -1420,15 +1420,12 @@ void StatusPanel::update_subtask(MachineObject *obj)
     std::string left_time;
     wxString    left_time_text = NA_STR;
 
-    // valid gcode percent / left time
-    if (obj->mc_print_percent != 0) {
-        try {
-            left_time = get_bbl_monitor_time_dhm(obj->mc_left_time);
-        } catch (...) {
-            ;
-        }
-        if (!left_time.empty()) left_time_text = wxString::Format("-%s", left_time);
+    try {
+        left_time = get_bbl_monitor_time_dhm(obj->mc_left_time);
+    } catch (...) {
+        ;
     }
+    if (!left_time.empty()) left_time_text = wxString::Format("-%s", left_time);
 
     // update current subtask progress
     m_staticText_progress_left->SetLabelText(left_time_text);

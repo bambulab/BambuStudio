@@ -108,6 +108,7 @@ MachineObjectPanel::MachineObjectPanel(wxWindow *parent, wxWindowID id, const wx
     m_printer_statue_offline = create_scaled_bitmap("printer_statue_offline", nullptr, 15);
     m_printer_statue_busy    = create_scaled_bitmap("printer_statue_busy", nullptr, 15);
     m_printer_statue_idle    = create_scaled_bitmap("printer_statue_idle", nullptr, 15);
+    m_printer_in_lan         = create_scaled_bitmap("printer_in_lan", nullptr, 16);
 
     this->Bind(wxEVT_ENTER_WINDOW, &MachineObjectPanel::on_mouse_enter, this);
     this->Bind(wxEVT_LEAVE_WINDOW, &MachineObjectPanel::on_mouse_leave, this);
@@ -185,6 +186,13 @@ void MachineObjectPanel::set_printer_offline()
     Refresh();
 }
 
+void MachineObjectPanel::set_printer_in_lan()
+{
+    m_state = PrinterState::IN_LAN;
+    Refresh();
+}
+
+
 void MachineObjectPanel::set_printer_unbind()
 {
     m_showunbind = true;
@@ -260,6 +268,7 @@ void MachineObjectPanel::doRender(wxDC &dc)
     if (m_state == PrinterState::IDLE) { dwbitmap = m_printer_statue_idle; }
     if (m_state == PrinterState::BUSY) { dwbitmap = m_printer_statue_busy; }
     if (m_state == PrinterState::OFFLINE) { dwbitmap = m_printer_statue_offline; }
+    if (m_state == PrinterState::IN_LAN) { dwbitmap = m_printer_in_lan; }
 
     // dc.DrawCircle(left, size.y / 2, 3);
     dc.DrawBitmap(dwbitmap, wxPoint(left, (size.y - dwbitmap.GetSize().y) / 2));
@@ -539,8 +548,22 @@ void SelectMachinePopup::on_timer(wxTimerEvent &event)
 
     for (auto &elem : local_machine_list) {
         MachineObject *dev = elem.second;
-        if (elem.second->is_avaliable()) { m_free_machine_list[elem.first] = elem.second; }
+        if (elem.second->is_avaliable()) {
+            if (wxGetApp().getAgent()) {
+                if (wxGetApp().getAgent()->is_user_login()) {
+                    if (!elem.second->bind_user_name.empty() && elem.second->bind_user_name != "Free") {
+                        continue;
+                    }
+                }
+            }
+            m_free_machine_list[elem.first] = elem.second;
+        }
     }
+
+    /* update other devices */
+    //std::string msg;
+    //dev->query_bind_status(msg);
+
     wxCommandEvent bind_event(EVT_REQUEST_BIND_LIST);
     bind_event.SetEventObject(this);
     wxPostEvent(this, bind_event);
@@ -548,6 +571,7 @@ void SelectMachinePopup::on_timer(wxTimerEvent &event)
 
 void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
 {
+    this->Freeze();
     for (auto i = 0; i < m_list_Machine_panel.GetCount(); i++) {
         MachinePanel *mpanel = m_list_Machine_panel[i];
         mpanel->mPanel->Destroy();
@@ -558,11 +582,8 @@ void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
         MachineObject *     mobj = elem.second;
         MachineObjectPanel *op   = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
         op->set_can_bind(true);
-        if (can_abort(mobj->print_status)) {
-            op->set_printer_busy();
-        } else {
-            op->set_printer_idle();
-        }
+        // set lan printer
+        op->set_printer_in_lan();
 
         op->update_machine_info(mobj);
         m_sizer_other_devices->Add(op, 0, wxEXPAND, 0);
@@ -574,6 +595,7 @@ void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
     }
     Layout();
     Fit();
+    this->Thaw();
 }
 
 void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
@@ -587,13 +609,18 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
         MachineObject *     mobj = elem.second;
         MachineObjectPanel *op   = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
         op->set_can_bind(false);
-        if (!mobj->is_online()) {
-            op->set_printer_offline();
+        //set in lan
+        if (mobj->is_in_lan_printer()) {
+            op->set_printer_in_lan();
         } else {
-            if (can_abort(mobj->print_status)) {
-                op->set_printer_busy();
+            if (!mobj->is_online()) {
+                op->set_printer_offline();
             } else {
-                op->set_printer_idle();
+                if (can_abort(mobj->print_status)) {
+                    op->set_printer_busy();
+                } else {
+                    op->set_printer_idle();
+                }
             }
         }
 
@@ -1335,7 +1362,9 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
     option_list = dev->get_my_machine_list();
     // same machine only appear once
     for (auto it = option_list.begin(); it != option_list.end(); it++) {
-        if (it->second && it->second->is_online()) { machine_list.push_back(it->second->dev_name); }
+        if (it->second && it->second->is_online()) {
+            machine_list.push_back(it->second->dev_name);
+        }
     }
 
     machine_list = sort_string(machine_list);
@@ -1343,7 +1372,11 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
         for (auto it = option_list.begin(); it != option_list.end(); it++) {
             if (it->second->dev_name == *tt) {
                 m_list.push_back(it->second);
-                m_comboBox_printer->Append(from_u8(it->second->dev_name));
+                wxString dev_name_text = from_u8(it->second->dev_name);
+                if (it->second->is_in_lan_printer()) {
+                    dev_name_text += "(LAN)";
+                }
+                m_comboBox_printer->Append(dev_name_text);
                 break;
             }
         }

@@ -258,6 +258,14 @@ wxString MachineObject::get_printer_type_display_str()
     return _L("Unknown");
 }
 
+bool MachineObject::is_in_lan_printer()
+{
+    bool result = false;
+    if (connection_type() == "lan")
+        return true;
+    return result;
+}
+
 std::string MachineObject::get_printer_type_string()
 {
     if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_P1)
@@ -2433,6 +2441,7 @@ std::map<std::string, MachineObject*> DeviceManager::get_my_machine_list()
 
     for (auto it = localMachineList.begin(); it != localMachineList.end(); it++) {
         if (it->second->has_access_right()) {
+            // remove redundant in userMachineList
             if (result.find(it->first) == result.end()) {
                 result.emplace(std::make_pair(it->first, it->second));
             }

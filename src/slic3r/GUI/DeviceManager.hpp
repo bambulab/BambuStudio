@@ -302,7 +302,6 @@ public:
     typedef std::function<void(std::string error)> ErrorFn;
     typedef std::function<void(int result, std::string info)> ResultFn;
 
-
     /* properties */
     std::string dev_name;
     std::string dev_ip;
@@ -311,6 +310,7 @@ public:
     std::string dev_connection_type;    /* lan | cloud */
     std::string connection_type() { return dev_connection_type; }
     bool has_access_right() { return !access_code.empty(); }
+    bool is_in_lan_printer();
     PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string get_printer_type_string();
     wxString get_printer_type_display_str();

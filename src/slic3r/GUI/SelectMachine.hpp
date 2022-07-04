@@ -43,7 +43,8 @@ namespace Slic3r { namespace GUI {
 enum PrinterState {
     OFFLINE,
     IDLE,
-    BUSY
+    BUSY,
+    IN_LAN,
 };
 
 class Material
@@ -117,6 +118,7 @@ private:
     wxBitmap m_printer_statue_offline;
     wxBitmap m_printer_statue_busy;
     wxBitmap m_printer_statue_idle;
+    wxBitmap m_printer_in_lan;
 
     wxStaticBitmap *m_unbindimg;
     MachineObject *m_info;
@@ -142,6 +144,7 @@ public:
     void set_printer_idle();
     void set_printer_busy();
     void set_printer_offline();
+    void set_printer_in_lan();
 
     void set_printer_unbind();
     void set_printer_wifi();
