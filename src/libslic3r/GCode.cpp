@@ -1628,6 +1628,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
             // and export G-code into file.
             this->process_layers(print, tool_ordering, collect_layers_to_print(object), *print_object_instance_sequential_active - object.instances().data(), file, prime_extruder);
+            //BBS: close powerlost recovery
+            {
+                if (m_second_layer_things_done) {
+                    file.write("; close powerlost recovery\n");
+                    file.write("M1003 S0\n");
+                }
+            }
 #ifdef HAS_PRESSURE_EQUALIZER
             if (m_pressure_equalizer)
                 file.write(m_pressure_equalizer->process("", true));
@@ -1692,6 +1699,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
         // and export G-code into file.
         this->process_layers(print, tool_ordering, print_object_instances_ordering, layers_to_print, file);
+        //BBS: close powerlost recovery
+        {
+            if (m_second_layer_things_done) {
+                file.write("; close powerlost recovery\n");
+                file.write("M1003 S0\n");
+            }
+        }
 #ifdef HAS_PRESSURE_EQUALIZER
         if (m_pressure_equalizer)
             file.write(m_pressure_equalizer->process("", true));
@@ -2431,6 +2445,12 @@ GCode::LayerResult GCode::process_layer(
     }
 
     if (! first_layer && ! m_second_layer_things_done) {
+        //BBS: open powerlost recovery
+        {
+            gcode += "; open powerlost recovery\n";
+            gcode += "M1003 S1\n";
+        }
+
         //BBS:  reset acceleration at sencond layer
         if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
             double acceleration = m_config.default_acceleration.value;
