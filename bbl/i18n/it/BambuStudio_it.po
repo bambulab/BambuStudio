@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-04 14:18+0800\n"
+"POT-Creation-Date: 2022-07-04 20:55+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2124,6 +2124,9 @@ msgstr ""
 msgid "HMS"
 msgstr ""
 
+msgid "Please upgrade your printer first"
+msgstr ""
+
 msgid "Failed to connect to the server"
 msgstr ""
 
@@ -2883,6 +2886,9 @@ msgstr ""
 msgid "Send print job to"
 msgstr ""
 
+msgid "Reading printer information..."
+msgstr ""
+
 msgid "Refresh"
 msgstr ""
 
@@ -2896,9 +2902,6 @@ msgid "Flow Calibration"
 msgstr ""
 
 msgid "First Layer Inspection"
-msgstr ""
-
-msgid "Record Timelapse"
 msgstr ""
 
 msgid "Send"
@@ -2926,6 +2929,12 @@ msgid "Exporting 3mf failed, please slice again."
 msgstr ""
 
 msgid "No printer available"
+msgstr ""
+
+msgid "Reading printer info timed out"
+msgstr ""
+
+msgid "Cannot send the print task when the upgrade is in progress"
 msgstr ""
 
 msgid "Modifying the device name"
@@ -3071,19 +3080,25 @@ msgstr ""
 msgid "Cool plate"
 msgstr ""
 
-msgid "Bed temperature when cool plate is installed"
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Cool Plate"
 msgstr ""
 
 msgid "Engineering plate"
 msgstr ""
 
-msgid "Bed temperature when engineering plate is installed"
+msgid ""
+"Bed temperature when engineering plate is installed. Value 0 means the "
+"filament does not support to print on the Engineering Plate"
 msgstr ""
 
 msgid "High Temp Plate"
 msgstr ""
 
-msgid "Bed temperature when high temperature plate is installed"
+msgid ""
+"Bed temperature when high temperature plate is installed. Value 0 means the "
+"filament does not support to print on the High Temp Plate"
 msgstr ""
 
 msgid "Volumetric speed limitation"
@@ -4016,7 +4031,9 @@ msgstr ""
 msgid "Other layers"
 msgstr "Altri layer"
 
-msgid "bed temperature for layers except the initial one"
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the Cool Plate"
 msgstr ""
 
 msgid "°C"
@@ -4025,13 +4042,35 @@ msgstr "°C"
 msgid "Bed temperature"
 msgstr "Temperatura piano"
 
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the Engineering Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the High Temp Plate"
+msgstr ""
+
 msgid "Initial layer"
 msgstr ""
 
 msgid "Initial layer bed temperature"
 msgstr ""
 
-msgid "Bed temperature of the initial layer"
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Cool Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Engineering Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the High Temp Plate"
 msgstr ""
 
 msgid "Bed types supported by the printer"

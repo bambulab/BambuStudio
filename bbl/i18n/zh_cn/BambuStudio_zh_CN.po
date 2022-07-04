@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-04 14:18+0800\n"
-"PO-Revision-Date: 2022-07-04 13:02+0800\n"
+"POT-Creation-Date: 2022-07-04 20:55+0800\n"
+"PO-Revision-Date: 2022-07-04 20:59+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -2180,6 +2180,9 @@ msgstr "固件更新"
 msgid "HMS"
 msgstr ""
 
+msgid "Please upgrade your printer first"
+msgstr ""
+
 msgid "Failed to connect to the server"
 msgstr "无法连接服务器"
 
@@ -2943,6 +2946,9 @@ msgstr "高温打印热床"
 msgid "Send print job to"
 msgstr "发送打印任务至"
 
+msgid "Reading printer information..."
+msgstr ""
+
 msgid "Refresh"
 msgstr ""
 
@@ -2957,9 +2963,6 @@ msgstr "流量校准"
 
 msgid "First Layer Inspection"
 msgstr "首层扫描"
-
-msgid "Record Timelapse"
-msgstr "录制Timelapse"
 
 msgid "Send"
 msgstr "发送"
@@ -2987,6 +2990,12 @@ msgstr "导出3mf失败，请重新切片。"
 
 msgid "No printer available"
 msgstr "没有可用的打印机"
+
+msgid "Reading printer info timed out"
+msgstr ""
+
+msgid "Cannot send the print task when the upgrade is in progress"
+msgstr ""
 
 msgid "Modifying the device name"
 msgstr ""
@@ -3134,20 +3143,26 @@ msgstr "打印时的喷嘴温度"
 msgid "Cool plate"
 msgstr "低温打印热床"
 
-msgid "Bed temperature when cool plate is installed"
-msgstr "安装低温打印热床时的热床温度"
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Cool Plate"
+msgstr "安装低温打印热床时的热床温度。0值表示这个耗材丝不支持低温打印热床"
 
 msgid "Engineering plate"
 msgstr "工程材料热床"
 
-msgid "Bed temperature when engineering plate is installed"
-msgstr "安装工程材料热床时的热床温度"
+msgid ""
+"Bed temperature when engineering plate is installed. Value 0 means the "
+"filament does not support to print on the Engineering Plate"
+msgstr "安装工程材料热床时的热床温度。0值表示这个耗材丝不支持工程材料热床"
 
 msgid "High Temp Plate"
 msgstr "高温打印热床"
 
-msgid "Bed temperature when high temperature plate is installed"
-msgstr "安装高温打印热床时的热床温度"
+msgid ""
+"Bed temperature when high temperature plate is installed. Value 0 means the "
+"filament does not support to print on the High Temp Plate"
+msgstr "安装高温打印热床时的热床温度。0值表示这个耗材丝不支持高温打印热床"
 
 msgid "Volumetric speed limitation"
 msgstr "体积速度限制"
@@ -4096,8 +4111,10 @@ msgstr "避免跨越外墙时的最大绕行距离。如果绕行距离大于这
 msgid "Other layers"
 msgstr "其它层"
 
-msgid "bed temperature for layers except the initial one"
-msgstr "除了首层之外的热床温度"
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the Cool Plate"
+msgstr "非首层热床温度。0值表示这个耗材丝不支持低温打印热床"
 
 msgid "°C"
 msgstr "°C"
@@ -4105,14 +4122,36 @@ msgstr "°C"
 msgid "Bed temperature"
 msgstr "床温"
 
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the Engineering Plate"
+msgstr "非首层热床温度。0值表示这个耗材丝不支持工程材料热床"
+
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the High Temp Plate"
+msgstr "非首层热床温度。0值表示这个耗材丝不支持高温打印热床"
+
 msgid "Initial layer"
 msgstr "首层"
 
 msgid "Initial layer bed temperature"
 msgstr "首层床温"
 
-msgid "Bed temperature of the initial layer"
-msgstr "首层床温"
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Cool Plate"
+msgstr "首层热床温度。0值表示这个耗材丝不支持低温打印热床"
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Engineering Plate"
+msgstr "首层热床温度。0值表示这个耗材丝不支持工程材料热床"
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the High Temp Plate"
+msgstr "首层热床温度。0值表示这个耗材丝不支持高温打印热床"
 
 msgid "Bed types supported by the printer"
 msgstr "打印机所支持的热床类型"
@@ -5679,6 +5718,24 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Bed temperature when cool plate is installed"
+#~ msgstr "安装低温打印热床时的热床温度"
+
+#~ msgid "Bed temperature when engineering plate is installed"
+#~ msgstr "安装工程材料热床时的热床温度"
+
+#~ msgid "Bed temperature when high temperature plate is installed"
+#~ msgstr "安装高温打印热床时的热床温度"
+
+#~ msgid "Record Timelapse"
+#~ msgstr "录制Timelapse"
+
+#~ msgid "bed temperature for layers except the initial one"
+#~ msgstr "除了首层之外的热床温度"
+
+#~ msgid "Bed temperature of the initial layer"
+#~ msgstr "首层床温"
 
 #~ msgid "Tiny patch filter"
 #~ msgstr "碎片过滤器"

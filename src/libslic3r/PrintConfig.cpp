@@ -337,7 +337,8 @@ void PrintConfigDef::init_fff_params()
     // BBS
     def = this->add("cool_plate_temp", coInts);
     def->label = L("Other layers");
-    def->tooltip = L("bed temperature for layers except the initial one");
+    def->tooltip = L("Bed temperature for layers except the initial one. "
+        "Value 0 means the filament does not support to print on the Cool Plate");
     def->sidetext = L("°C");
     def->full_label = L("Bed temperature");
     def->min = 0;
@@ -346,7 +347,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("eng_plate_temp", coInts);
     def->label = L("Other layers");
-    def->tooltip = L("bed temperature for layers except the initial one");
+    def->tooltip = L("Bed temperature for layers except the initial one. "
+        "Value 0 means the filament does not support to print on the Engineering Plate");
     def->sidetext = L("°C");
     def->full_label = L("Bed temperature");
     def->min = 0;
@@ -355,7 +357,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("hot_plate_temp", coInts);
     def->label = L("Other layers");
-    def->tooltip = L("bed temperature for layers except the initial one");
+    def->tooltip = L("Bed temperature for layers except the initial one. "
+        "Value 0 means the filament does not support to print on the High Temp Plate");
     def->sidetext = L("°C");
     def->full_label = L("Bed temperature");
     def->min = 0;
@@ -365,7 +368,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("cool_plate_temp_initial_layer", coInts);
     def->label = L("Initial layer");
     def->full_label = L("Initial layer bed temperature");
-    def->tooltip = L("Bed temperature of the initial layer");
+    def->tooltip = L("Bed temperature of the initial layer. "
+        "Value 0 means the filament does not support to print on the Cool Plate");
     def->sidetext = L("°C");
     def->max = 0;
     def->max = 120;
@@ -374,7 +378,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("eng_plate_temp_initial_layer", coInts);
     def->label = L("Initial layer");
     def->full_label = L("Initial layer bed temperature");
-    def->tooltip = L("Bed temperature of the initial layer");
+    def->tooltip = L("Bed temperature of the initial layer. "
+        "Value 0 means the filament does not support to print on the Engineering Plate");
     def->sidetext = L("°C");
     def->max = 0;
     def->max = 120;
@@ -383,7 +388,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("hot_plate_temp_initial_layer", coInts);
     def->label = L("Initial layer");
     def->full_label = L("Initial layer bed temperature");
-    def->tooltip = L("Bed temperature of the initial layer");
+    def->tooltip = L("Bed temperature of the initial layer. "
+        "Value 0 means the filament does not support to print on the High Temp Plate");
     def->sidetext = L("°C");
     def->max = 0;
     def->max = 120;
