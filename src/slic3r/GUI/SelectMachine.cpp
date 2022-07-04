@@ -356,17 +356,6 @@ void MachineObjectPanel::on_mouse_left_down(wxMouseEvent &evt)
 
 void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
 {
-    // edit
-    auto edit_left   = GetSize().x - m_unbind_img.GetSize().x - 6 - m_edit_name_img.GetSize().x - 6;
-    auto edit_right  = edit_left + m_edit_name_img.GetSize().x;
-    auto edit_top    = (GetSize().y - m_edit_name_img.GetSize().y) / 2;
-    auto edit_bottom = (GetSize().y - m_edit_name_img.GetSize().y) / 2 + m_edit_name_img.GetSize().y;
-    if ((evt.GetPosition().x >= edit_left && evt.GetPosition().x <= edit_right) && evt.GetPosition().y >= edit_top && evt.GetPosition().y <= edit_bottom) {
-        EditDevNameDialog dlg;
-        dlg.set_machine_obj(m_info);
-        dlg.ShowModal();
-    }
-
     if (m_state_can_bind) {
         if (m_info->connection_type() != "lan") {
             show_bind_dialog();
@@ -376,6 +365,19 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
 
         wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
     } else {
+        // edit
+        auto edit_left   = GetSize().x - m_unbind_img.GetSize().x - 6 - m_edit_name_img.GetSize().x - 6;
+        auto edit_right  = edit_left + m_edit_name_img.GetSize().x;
+        auto edit_top    = (GetSize().y - m_edit_name_img.GetSize().y) / 2;
+        auto edit_bottom = (GetSize().y - m_edit_name_img.GetSize().y) / 2 + m_edit_name_img.GetSize().y;
+        if ((evt.GetPosition().x >= edit_left && evt.GetPosition().x <= edit_right) && evt.GetPosition().y >= edit_top && evt.GetPosition().y <= edit_bottom) {
+            EditDevNameDialog dlg;
+            dlg.set_machine_obj(m_info);
+            dlg.ShowModal();
+        }
+
+
+        //unbind
         auto left   = GetSize().x - m_unbind_img.GetSize().x - 6;
         auto right  = left + m_unbind_img.GetSize().x;
         auto top    = (GetSize().y - m_unbind_img.GetSize().y) / 2;

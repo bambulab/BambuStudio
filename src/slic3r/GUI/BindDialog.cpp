@@ -173,6 +173,7 @@ namespace GUI {
      Centre(wxBOTH);
 
      Bind(wxEVT_SHOW, &BindMachineDilaog::on_show, this);
+
      m_button_bind->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDilaog::on_bind_printer), NULL, this);
      m_button_cancel->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDilaog::on_cancel), NULL, this);
      this->Connect(EVT_BIND_MACHINE_FAIL, wxCommandEventHandler(BindMachineDilaog::on_bind_fail), NULL, this);
@@ -211,7 +212,8 @@ namespace GUI {
 
  void BindMachineDilaog::on_bind_fail(wxCommandEvent &event) 
  { 
-     m_simplebook->SetSelection(1);
+    m_status_text->SetLabel(_L("Would you like to log in this printer with current account?"));
+    m_simplebook->SetSelection(1);
  }
 
  void BindMachineDilaog::on_update_message(wxCommandEvent &event)

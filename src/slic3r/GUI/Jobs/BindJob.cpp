@@ -107,7 +107,8 @@ void BindJob::process()
         }
     );
 
-    if (result < 0) {
+    if (result < 0) { 
+        post_fail_event();
         return;
     }
 
@@ -132,7 +133,7 @@ void BindJob::set_event_handle(wxWindow *hanle)
     m_event_handle = hanle;
 }
 
-void BindJob::post_event() 
+void BindJob::post_fail_event() 
 {
     wxCommandEvent event(EVT_BIND_MACHINE_FAIL);
     event.SetEventObject(m_event_handle);
