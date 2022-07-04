@@ -508,7 +508,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     else if (m_current_tool == ImGui::FragmentFilterIcon) {
         m_tool_type = ToolType::FRAGMENT_FILTER;
         m_cursor_type = TriangleSelector::CursorType::POINTER;
-
+        ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc["fragment_area"] + ":");
         ImGui::SameLine(sliders_left_width);
         ImGui::PushItemWidth(window_width - sliders_left_width - slider_width_times * slider_icon_width);
@@ -519,9 +519,9 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         ImGui::BBLDragFloat("##fragment_area_input", &TriangleSelectorPatch::fragment_area, 0.05f, 0.0f, 0.0f, "%.2f");
     }
 
-    ImGui::Separator();
-
     if (m_current_tool != ImGui::FragmentFilterIcon) {
+        ImGui::Separator();
+
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("clipping_of_view"));
 

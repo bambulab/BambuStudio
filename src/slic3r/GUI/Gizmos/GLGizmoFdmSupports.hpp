@@ -48,6 +48,7 @@ private:
     void update_model_object() override;
     //BBS: add logic to distinguish the first_time_update and later_update
     void update_from_model_object(bool first_update) override;
+    void tool_changed(wchar_t old_tool, wchar_t new_tool);
 
     void on_opening() override;
     void on_shutdown() override;

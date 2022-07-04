@@ -90,6 +90,7 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["highlight_by_angle"]    = _L("Highlight overhang areas") + ": ";
     m_desc["fragment_filter"]       = _L("Fragment filter");
     m_desc["perform_filter"]        = _L("Perform");
+    m_desc["fragment_area"]         = _L("Fragment area");
     m_desc["brush_size"]            = _L("Set pen size");
     m_desc["brush_size_caption"]    = _L("Ctrl + Mouse wheel") + ": ";
     m_desc["tool_type"]             = _L("Tool type");
@@ -189,6 +190,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         return;
 
     // BBS
+    wchar_t old_tool = m_current_tool;
+
     int support_threshold_angle = get_selection_support_threshold_angle();
     // when support painting tool is on, reset highlight threshold angle
     if (m_support_threshold_angle == -1) {
@@ -232,6 +235,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     const float sliders_left_width = std::max(std::max(cursor_slider_left, clipping_slider_left), std::max(highlight_slider_left, fragment_filter_slider_left));
     const float slider_icon_width  = m_imgui->get_slider_icon_size().x;
     float       window_width       = minimal_slider_width + sliders_left_width + slider_icon_width;
+    const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 
     window_width = std::max(window_width, total_text_max);
     window_width = std::max(window_width, buttons_width);
@@ -241,14 +245,15 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("tool_type"));
-    std::array<wchar_t, 3> paint_icons = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon,ImGui::FillButtonIcon };
-    for (int i = 0; i < paint_icons.size(); i++) {
+    std::array<wchar_t, 4> tool_icons = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon, ImGui::FillButtonIcon, ImGui::FragmentFilterIcon };
+    std::array<wxString, 4> tool_tips = { _L("Circle"), _L("Sphere"), _L("Fill"), _L("Fragment Filter") };
+    for (int i = 0; i < tool_icons.size(); i++) {
         std::string  str_label = std::string("##");
-        std::wstring btn_name = paint_icons[i] + boost::nowide::widen(str_label);
+        std::wstring btn_name = tool_icons[i] + boost::nowide::widen(str_label);
 
         if (i != 0) ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(1.3f));
 
-        if (m_current_tool == paint_icons[i]) {
+        if (m_current_tool == tool_icons[i]) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.81f, 0.81f, 0.81f, 1.0f)); // r, g, b, a
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.81f, 0.81f, 0.81f, 1.0f));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.81f, 0.81f, 0.81f, 1.0f));
@@ -256,16 +261,25 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
         bool btn_clicked = ImGui::Button(into_u8(btn_name).c_str());
         ImGui::PopStyleVar(1);
-        if (m_current_tool == paint_icons[i])ImGui::PopStyleColor(3);
+        if (m_current_tool == tool_icons[i])ImGui::PopStyleColor(3);
 
-        if (btn_clicked && m_current_tool != paint_icons[i]) {
-            m_current_tool = paint_icons[i];
+        if (btn_clicked && m_current_tool != tool_icons[i]) {
+            m_current_tool = tool_icons[i];
             for (auto& triangle_selector : m_triangle_selectors) {
                 triangle_selector->seed_fill_unselect_all_triangles();
                 triangle_selector->request_update_render_data();
             }
         }
+
+        if (ImGui::IsItemHovered()) {
+            m_imgui->tooltip(tool_tips[i], max_tooltip_width);
+        }
     }
+
+    if (m_current_tool != old_tool)
+        this->tool_changed(old_tool, m_current_tool);
+
+    ImGui::NewLine();
 
     if (m_current_tool == ImGui::CircleButtonIcon) {
         m_cursor_type = TriangleSelector::CursorType::CIRCLE;
@@ -291,7 +305,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
         ImGui::PushItemWidth(1.5 * slider_icon_width);
         ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
-    }else if (m_current_tool == ImGui::FillButtonIcon) {
+    } else if (m_current_tool == ImGui::FillButtonIcon) {
         m_cursor_type = TriangleSelector::CursorType::POINTER;
         m_tool_type = ToolType::SMART_FILL;
 
@@ -308,6 +322,19 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
         ImGui::PushItemWidth(1.5 * slider_icon_width);
         ImGui::BBLDragFloat("##smart_fill_angle_input", &m_smart_fill_angle, 0.05f, 0.0f, 0.0f, "%.2f");
+    } else if (m_current_tool == ImGui::FragmentFilterIcon) {
+        m_tool_type = ToolType::FRAGMENT_FILTER;
+        m_cursor_type = TriangleSelector::CursorType::POINTER;
+
+        ImGui::AlignTextToFramePadding();
+        m_imgui->text(m_desc["fragment_area"] + ":");
+        ImGui::SameLine(sliders_left_width);
+        ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
+        std::string format_str = std::string("%.2f") + I18N::translate_utf8("", "Triangle patch area threshold,""triangle patch will be merged to neighbor if its area is less than threshold");
+        m_imgui->bbl_slider_float_style("##fragment_area", &TriangleSelectorPatch::fragment_area, TriangleSelectorPatch::FragmentAreaMin, TriangleSelectorPatch::FragmentAreaMax, format_str.data(), 1.0f, true);
+        ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
+        ImGui::PushItemWidth(1.5 * slider_icon_width);
+        ImGui::BBLDragFloat("##fragment_area_input", &TriangleSelectorPatch::fragment_area, 0.05f, 0.0f, 0.0f, "%.2f");
     }
 
     float position_before_text_y = ImGui::GetCursorPos().y;
@@ -346,32 +373,23 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
     ImGui::BBLDragFloat("##angle_threshold_deg_input", &m_highlight_by_angle_threshold_deg, 0.05f, 0.0f, 0.0f, "%.2f");
-
-    ImGui::Separator();
-    m_imgui->text(m_desc["fragment_filter"] + ":");
-    ImGui::SameLine(sliders_left_width);
-    ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
-    format_str = std::string("%.2f") + I18N::translate_utf8("", "Triangle patch area threshold,"
-                                                                "triangle patch will be merged to neighbor if its area is less than threshold");
-    m_imgui->bbl_slider_float_style("##fragment_area", &TriangleSelectorPatch::fragment_area, TriangleSelectorPatch::FragmentAreaMin,TriangleSelectorPatch::FragmentAreaMax, format_str.data(), 1.0f, true);
-    ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
-    ImGui::PushItemWidth(1.5 * slider_icon_width);
-    ImGui::BBLDragFloat("##fragment_area_input", &TriangleSelectorPatch::fragment_area, 0.05f, 0.0f, 0.0f, "%.2f");
     
-    ImGui::Separator();
-    ImGui::AlignTextToFramePadding();
-    m_imgui->text(m_desc.at("clipping_of_view"));
+    if (m_current_tool != ImGui::FragmentFilterIcon) {
+        ImGui::Separator();
+        ImGui::AlignTextToFramePadding();
+        m_imgui->text(m_desc.at("clipping_of_view"));
 
-    auto clp_dist = float(m_c->object_clipper()->get_position());
-    ImGui::SameLine(sliders_left_width);
-    ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
-    bool b_bbl_slider_float = m_imgui->bbl_slider_float_style("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true);
+        auto clp_dist = float(m_c->object_clipper()->get_position());
+        ImGui::SameLine(sliders_left_width);
+        ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
+        bool b_bbl_slider_float = m_imgui->bbl_slider_float_style("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true);
 
-    ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
-    ImGui::PushItemWidth(1.5 * slider_icon_width);
-    bool b_drag_input = ImGui::BBLDragFloat("##clp_dist_input", &clp_dist, 0.05f, 0.0f, 0.0f, "%.2f");
+        ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
+        ImGui::PushItemWidth(1.5 * slider_icon_width);
+        bool b_drag_input = ImGui::BBLDragFloat("##clp_dist_input", &clp_dist, 0.05f, 0.0f, 0.0f, "%.2f");
 
-    if (b_bbl_slider_float || b_drag_input) m_c->object_clipper()->set_position(clp_dist, true);
+        if (b_bbl_slider_float || b_drag_input) m_c->object_clipper()->set_position(clp_dist, true);
+    }
 
     ImGui::Separator();
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
@@ -413,6 +431,18 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     // BBS
     ImGuiWrapper::pop_toolbar_style();
+}
+
+void GLGizmoFdmSupports::tool_changed(wchar_t old_tool, wchar_t new_tool)
+{
+    if ((old_tool == ImGui::FragmentFilterIcon && new_tool == ImGui::FragmentFilterIcon) ||
+        (old_tool != ImGui::FragmentFilterIcon && new_tool != ImGui::FragmentFilterIcon))
+        return;
+
+    for (auto& selector_ptr : m_triangle_selectors) {
+        TriangleSelectorPatch* tsp = dynamic_cast<TriangleSelectorPatch*>(selector_ptr.get());
+        tsp->set_filter_state(new_tool == ImGui::FragmentFilterIcon);
+    }
 }
 
 void GLGizmoFdmSupports::show_tooltip_information(float caption_max, float x, float y)
