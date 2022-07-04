@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-02 00:14+0800\n"
+"POT-Creation-Date: 2022-07-04 12:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -400,6 +400,18 @@ msgstr ""
 msgid "In the calibration of temperature protection"
 msgstr ""
 
+msgid "Pause(user)"
+msgstr ""
+
+msgid "Pause(toolhead shell off)"
+msgstr ""
+
+msgid "In the calibration of laser scanner"
+msgstr ""
+
+msgid "In the calibration of extrusion flow"
+msgstr ""
+
 msgid "MC"
 msgstr ""
 
@@ -783,10 +795,13 @@ msgstr ""
 msgid "Highlight overhang areas"
 msgstr ""
 
-msgid "Tiny patch filter"
+msgid "Fragment filter"
 msgstr ""
 
-msgid "Filter tiny patch"
+msgid "Perform"
+msgstr ""
+
+msgid "Fragment area"
 msgstr ""
 
 msgid "Set pen size"
@@ -802,6 +817,18 @@ msgid "Smart fill angle"
 msgstr ""
 
 msgid "Auto support threshold angle: "
+msgstr ""
+
+msgid "Circle"
+msgstr ""
+
+msgid "Sphere"
+msgstr ""
+
+msgid "Fill"
+msgstr ""
+
+msgid "Fragment Filter"
 msgstr ""
 
 msgid "Highlight faces according to overhang angle."
@@ -846,13 +873,10 @@ msgstr ""
 msgid "Clear all"
 msgstr ""
 
-msgid "Circle"
-msgstr ""
-
-msgid "Sphere"
-msgstr ""
-
 msgid "Triangles"
+msgstr ""
+
+msgid "Filaments"
 msgstr ""
 
 msgid "Brush"
@@ -868,6 +892,12 @@ msgid "Height range"
 msgstr ""
 
 msgid "Shortcut Key "
+msgstr ""
+
+msgid "Triangle"
+msgstr ""
+
+msgid "Height Range"
 msgstr ""
 
 msgid "Remove painted color"
@@ -1655,9 +1685,6 @@ msgid "Plate"
 msgstr ""
 
 msgid "Module"
-msgstr ""
-
-msgid "Filaments"
 msgstr ""
 
 msgid "Brim"
@@ -2650,7 +2677,7 @@ msgstr ""
 msgid "User sync"
 msgstr ""
 
-msgid "auto sync user presets (printer/materials/craft)"
+msgid "auto sync user presets (printer/filament/process)"
 msgstr ""
 
 msgid "Associate files to BambuStudio"
@@ -3720,9 +3747,6 @@ msgstr ""
 msgid "Try to send project over cloud"
 msgstr ""
 
-msgid "Try to send project over lan"
-msgstr ""
-
 msgid ""
 "One object has empty initial layer and can't be printed. Please Cut the "
 "bottom or enable supports."
@@ -4273,6 +4297,15 @@ msgstr ""
 "This disables supporting bridge areas, which can make support very large. "
 "Bridges can usually be printed directly without support if they are not very "
 "long."
+
+msgid "Max bridge length"
+msgstr ""
+
+msgid ""
+"Max ength of bridges that don't need support. Set it to 0 if you want all "
+"bridges to be supported, and set it to a very large value if you don't want "
+"any bridges to be supported."
+msgstr ""
 
 msgid "End G-code"
 msgstr ""

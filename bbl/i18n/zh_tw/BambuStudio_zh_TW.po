@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-02 00:14+0800\n"
+"POT-Creation-Date: 2022-07-04 12:56+0800\n"
 "PO-Revision-Date: 2022-03-12 17:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com> , patched traditional "
 "chinese by Cheng-Hsien Ho <taksito@gmail.com>\n"
@@ -392,6 +392,18 @@ msgstr ""
 msgid "In the calibration of temperature protection"
 msgstr ""
 
+msgid "Pause(user)"
+msgstr ""
+
+msgid "Pause(toolhead shell off)"
+msgstr ""
+
+msgid "In the calibration of laser scanner"
+msgstr ""
+
+msgid "In the calibration of extrusion flow"
+msgstr ""
+
 msgid "MC"
 msgstr ""
 
@@ -773,10 +785,13 @@ msgstr ""
 msgid "Highlight overhang areas"
 msgstr ""
 
-msgid "Tiny patch filter"
+msgid "Fragment filter"
 msgstr ""
 
-msgid "Filter tiny patch"
+msgid "Perform"
+msgstr ""
+
+msgid "Fragment area"
 msgstr ""
 
 msgid "Set pen size"
@@ -792,6 +807,18 @@ msgid "Smart fill angle"
 msgstr ""
 
 msgid "Auto support threshold angle: "
+msgstr ""
+
+msgid "Circle"
+msgstr ""
+
+msgid "Sphere"
+msgstr "球"
+
+msgid "Fill"
+msgstr ""
+
+msgid "Fragment Filter"
 msgstr ""
 
 msgid "Highlight faces according to overhang angle."
@@ -836,14 +863,11 @@ msgstr ""
 msgid "Clear all"
 msgstr ""
 
-msgid "Circle"
-msgstr ""
-
-msgid "Sphere"
-msgstr "球"
-
 msgid "Triangles"
 msgstr "三角形"
+
+msgid "Filaments"
+msgstr ""
 
 msgid "Brush"
 msgstr ""
@@ -858,6 +882,12 @@ msgid "Height range"
 msgstr ""
 
 msgid "Shortcut Key "
+msgstr ""
+
+msgid "Triangle"
+msgstr ""
+
+msgid "Height Range"
 msgstr ""
 
 msgid "Remove painted color"
@@ -1629,9 +1659,6 @@ msgid "Plate"
 msgstr ""
 
 msgid "Module"
-msgstr ""
-
-msgid "Filaments"
 msgstr ""
 
 msgid "Brim"
@@ -2604,7 +2631,7 @@ msgstr ""
 msgid "User sync"
 msgstr ""
 
-msgid "auto sync user presets (printer/materials/craft)"
+msgid "auto sync user presets (printer/filament/process)"
 msgstr ""
 
 msgid "Associate files to BambuStudio"
@@ -3655,9 +3682,6 @@ msgstr ""
 msgid "Try to send project over cloud"
 msgstr ""
 
-msgid "Try to send project over lan"
-msgstr ""
-
 msgid ""
 "One object has empty initial layer and can't be printed. Please Cut the "
 "bottom or enable supports."
@@ -4173,6 +4197,15 @@ msgstr ""
 msgid ""
 "Don't support the whole bridge area which make support very large. Bridge "
 "usually can be printing directly without support if not very long"
+msgstr ""
+
+msgid "Max bridge length"
+msgstr ""
+
+msgid ""
+"Max ength of bridges that don't need support. Set it to 0 if you want all "
+"bridges to be supported, and set it to a very large value if you don't want "
+"any bridges to be supported."
 msgstr ""
 
 msgid "End G-code"

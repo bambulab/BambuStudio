@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-02 00:14+0800\n"
-"PO-Revision-Date: 2022-07-02 00:21+0800\n"
+"POT-Creation-Date: 2022-07-04 12:56+0800\n"
+"PO-Revision-Date: 2022-07-04 13:02+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -430,6 +430,18 @@ msgstr ""
 msgid "In the calibration of temperature protection"
 msgstr "挤出头温度保护标定"
 
+msgid "Pause(user)"
+msgstr ""
+
+msgid "Pause(toolhead shell off)"
+msgstr ""
+
+msgid "In the calibration of laser scanner"
+msgstr ""
+
+msgid "In the calibration of extrusion flow"
+msgstr ""
+
 msgid "MC"
 msgstr ""
 
@@ -817,11 +829,14 @@ msgstr "擦除所有绘制"
 msgid "Highlight overhang areas"
 msgstr "高亮悬空区域"
 
-msgid "Tiny patch filter"
+msgid "Fragment filter"
 msgstr "碎片过滤器"
 
-msgid "Filter tiny patch"
-msgstr "滤除碎片"
+msgid "Perform"
+msgstr "执行"
+
+msgid "Fragment area"
+msgstr "碎片面积阈值"
 
 msgid "Set pen size"
 msgstr "设置画笔大小"
@@ -837,6 +852,18 @@ msgstr "智能填充角度"
 
 msgid "Auto support threshold angle: "
 msgstr "自动支撑角度阈值："
+
+msgid "Circle"
+msgstr "圆"
+
+msgid "Sphere"
+msgstr "球"
+
+msgid "Fill"
+msgstr "填充"
+
+msgid "Fragment Filter"
+msgstr "碎片过滤器"
 
 msgid "Highlight faces according to overhang angle."
 msgstr "根据当前设置的悬空角度来高亮片面。"
@@ -881,14 +908,11 @@ msgstr "边沿检测"
 msgid "Clear all"
 msgstr "清除所有"
 
-msgid "Circle"
-msgstr "圆"
-
-msgid "Sphere"
-msgstr "球"
-
 msgid "Triangles"
 msgstr "三角形"
+
+msgid "Filaments"
+msgstr "耗材丝"
 
 msgid "Brush"
 msgstr "画刷"
@@ -904,6 +928,12 @@ msgstr "高度范围"
 
 msgid "Shortcut Key "
 msgstr "快捷键 "
+
+msgid "Triangle"
+msgstr "三角形"
+
+msgid "Height Range"
+msgstr "高度范围"
 
 msgid "Remove painted color"
 msgstr "移除已绘制的颜色"
@@ -1680,9 +1710,6 @@ msgstr "盘"
 
 msgid "Module"
 msgstr "模块"
-
-msgid "Filaments"
-msgstr "耗材丝"
 
 msgid "Brim"
 msgstr "Brim"
@@ -2673,7 +2700,7 @@ msgstr "单位"
 msgid "User sync"
 msgstr "用户同步"
 
-msgid "auto sync user presets (printer/materials/craft)"
+msgid "auto sync user presets (printer/filament/process)"
 msgstr ""
 
 msgid "Associate files to BambuStudio"
@@ -3742,9 +3769,6 @@ msgstr "尝试通过局域网上传项目"
 msgid "Try to send project over cloud"
 msgstr "尝试通过云服务发送项目"
 
-msgid "Try to send project over lan"
-msgstr "尝试通过局域网发送项目"
-
 msgid ""
 "One object has empty initial layer and can't be printed. Please Cut the "
 "bottom or enable supports."
@@ -4283,6 +4307,15 @@ msgid ""
 msgstr ""
 "不对整个桥接面进行支撑，否则支撑体会很大。不是很长的桥接通常可以无支撑直接打"
 "印。"
+
+msgid "Max bridge length"
+msgstr ""
+
+msgid ""
+"Max ength of bridges that don't need support. Set it to 0 if you want all "
+"bridges to be supported, and set it to a very large value if you don't want "
+"any bridges to be supported."
+msgstr ""
 
 msgid "End G-code"
 msgstr "结尾G-code"
@@ -5646,6 +5679,15 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Tiny patch filter"
+#~ msgstr "碎片过滤器"
+
+#~ msgid "Filter tiny patch"
+#~ msgstr "滤除碎片"
+
+#~ msgid "Try to send project over lan"
+#~ msgstr "尝试通过局域网发送项目"
 
 #~ msgid "Filament Retraction"
 #~ msgstr "材料回抽"
