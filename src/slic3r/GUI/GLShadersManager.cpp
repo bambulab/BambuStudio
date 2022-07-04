@@ -36,6 +36,8 @@ std::pair<bool, std::string> GLShadersManager::init()
 
     // used to render bed axes and model, selection hints, gcode sequential view marker model, preview shells, options in gcode preview
    valid &= append_shader("gouraud_light", { gouraud_light_vs, gouraud_light_fs });
+   // used to render first layer for calibration
+   valid &= append_shader("cali", { cali_vs, cali_fs});
     // used to render printbed
     valid &= append_shader("printbed", { printbed_vs, printbed_fs });
     // used to render options in gcode preview

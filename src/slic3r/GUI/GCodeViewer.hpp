@@ -705,6 +705,7 @@ public:
         VolumetricRate,
         Tool,
         ColorPrint,
+        FilamentId,
         Count
     };
 

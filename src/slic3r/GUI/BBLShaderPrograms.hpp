@@ -217,6 +217,26 @@ const std::string gouraud_light_vs =
 "}\r\n"
 ;
 
+const std::string cali_fs =
+"#version 110\r\n"
+"\r\n"
+"uniform vec4 uniform_color;\r\n"
+"\r\n"
+"void main()\r\n"
+"{\r\n"
+"    gl_FragColor = uniform_color;\r\n"
+"}\r\n"
+;
+
+const std::string cali_vs =
+"#version 110\r\n"
+"\r\n"
+"void main()\r\n"
+"{\r\n"
+"    gl_Position = ftransform();\r\n"
+"}\r\n"
+;
+
 const std::string gouraud_light_instanced_fs =
 "#version 110\r\n"
 "\r\n"

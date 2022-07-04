@@ -791,6 +791,9 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
         view_type_items_str.push_back(get_view_type_string(view_type_items[i]));
     }
 
+    // BBS for first layer inspection
+    view_type_items.push_back(EViewType::FilamentId);
+
     options_items.push_back(EMoveType::Travel);
     options_items.push_back(EMoveType::Seam);
     if (mode == ConfigOptionMode::comDevelop) {
@@ -1157,16 +1160,15 @@ static void debug_calibration_output_thumbnail(const ThumbnailData& thumbnail_da
 #endif
 
 void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, OpenGLManager& opengl_manager)
-{
+{    
     int plate_idx = thumbnail_params.plate_id;
     PartPlate* plate = partplate_list.get_plate(plate_idx);
     BoundingBoxf3 plate_box = plate->get_bounding_box(false);
     plate_box.min.z() = 0.0;
     plate_box.max.z() = 0.0;
-    Vec3d center = plate_box.center();
+    Vec3d center = plate_box.center(); 
 
 #if 1
-    std::array<float, 4> light_intensity = { 0.75f, 0.75f, 0.75f, 0.75f };
     Camera camera;
     camera.apply_viewport(0,0,thumbnail_data.width, thumbnail_data.height);
     camera.set_scene_box(plate_box);
@@ -1286,19 +1288,19 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
         if (!buffer.visible || !buffer.has_data())
             continue;
 
-        GLShaderProgram* shader = opengl_manager.get_shader(buffer.shader.c_str());
+        GLShaderProgram* shader = opengl_manager.get_shader("cali");
         if (shader != nullptr) {
             shader->start_using();
 
             if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::InstancedModel) {
-                shader->set_uniform("emission_factor", 0.25f);
+                //shader->set_uniform("emission_factor", 0.25f);
                 render_as_instanced_model(buffer, *shader);
-                shader->set_uniform("emission_factor", 0.0f);
+                //shader->set_uniform("emission_factor", 0.0f);
             }
             else if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::BatchedModel) {
-                shader->set_uniform("emission_factor", 0.25f);
+                //shader->set_uniform("emission_factor", 0.25f);
                 render_as_batched_model(buffer, *shader);
-                shader->set_uniform("emission_factor", 0.0f);
+                //shader->set_uniform("emission_factor", 0.0f);
             }
             else {
                 switch (buffer.render_primitive_type) {
@@ -1317,7 +1319,7 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
                     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
                     glsafe(::glVertexPointer(buffer.vertices.position_size_floats(), GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
                     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-                    bool has_normals = buffer.vertices.normal_size_floats() > 0;
+                    bool has_normals = false;// buffer.vertices.normal_size_floats() > 0;
                     if (has_normals) {
                         glsafe(::glNormalPointer(GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
                         glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
@@ -1353,6 +1355,7 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
     }
 #endif
     BOOST_LOG_TRIVIAL(info) << boost::format("render_calibration_thumbnail: exit");
+
 }
 
 void GCodeViewer::_render_calibration_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, OpenGLManager& opengl_manager)
@@ -1465,14 +1468,14 @@ void GCodeViewer::render_calibration_thumbnail(ThumbnailData& thumbnail_data, un
     int       last_view_type_sel = m_view_type_sel;
     EViewType last_view_type     = m_view_type;
     unsigned int last_role_visibility_flags = m_extrusions.role_visibility_flags;
-    // set color scheme to Line Type
+    // set color scheme to FilamentId
     for (int i = 0; i < view_type_items.size(); i++) {
-        if (view_type_items[i] == EViewType::ColorPrint) {
+        if (view_type_items[i] == EViewType::FilamentId) {
             m_view_type_sel = i;
             break;
         }
     }
-    set_view_type(EViewType::ColorPrint, false);
+    set_view_type(EViewType::FilamentId, false);
     // set m_layers_z_range to 0, 0
     std::array<unsigned int, 2> tmp_layers_z_range = m_layers_z_range;
     m_layers_z_range = {0, 0};
@@ -3063,7 +3066,12 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
                 color = { 0.5f, 0.5f, 0.5f, 1.0f };
             else
                 color = m_tools.m_tool_colors[path.cp_color_id];
-
+            break;
+        }
+        case EViewType::FilamentId: {
+            float id = float(path.extruder_id)/256;
+            float role = float(path.role) / 256;
+            color      = {id, role, id, 1.0f};
             break;
         }
         default: { color = { 1.0f, 1.0f, 1.0f, 1.0f }; break; }
