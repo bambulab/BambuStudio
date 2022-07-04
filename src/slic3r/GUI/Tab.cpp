@@ -2262,7 +2262,7 @@ static void validate_custom_gcode_cb(Tab* tab, ConfigOptionsGroupShp opt_group, 
 void TabFilament::add_filament_overrides_page()
 {
     //BBS
-    PageShp page = add_options_page(L("Filament Overrides"), "empty");
+    PageShp page = add_options_page(L("Setting Overrides"), "empty");
     ConfigOptionsGroupShp optgroup = page->new_optgroup(L("Retraction"));
 
     auto append_single_option_line = [optgroup, this](const std::string& opt_key, int opt_index)
@@ -2312,7 +2312,7 @@ void TabFilament::add_filament_overrides_page()
 
 void TabFilament::update_filament_overrides_page()
 {
-    if (!m_active_page || m_active_page->title() != "Filament Overrides")
+    if (!m_active_page || m_active_page->title() != "Setting Overrides")
         return;
 
     //BBS: GUI refactor
@@ -2581,7 +2581,7 @@ void TabFilament::toggle_options()
             toggle_option(el, has_enable_overhang_bridge_fan);
     }
 
-    if (m_active_page->title() == "Filament Overrides")
+    if (m_active_page->title() == "Setting Overrides")
         update_filament_overrides_page();
 }
 

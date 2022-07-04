@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-04 12:56+0800\n"
+"POT-Creation-Date: 2022-07-04 14:18+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3229,8 +3229,8 @@ msgstr[1] ""
 msgid "Reserved keywords found"
 msgstr "Palabras clave utilizadas y encontradas"
 
-msgid "Filament Overrides"
-msgstr "Anulaciones de filamentos"
+msgid "Setting Overrides"
+msgstr ""
 
 msgid "Retraction"
 msgstr "Retracción"
@@ -6053,6 +6053,9 @@ msgstr "Soporte: arreglar huecos en la capa %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Soporte: propagar ramas en la capa %d"
+
+#~ msgid "Filament Overrides"
+#~ msgstr "Anulaciones de filamentos"
 
 #~ msgid "Tiny patch filter"
 #~ msgstr "Filtro de parche pequeño"

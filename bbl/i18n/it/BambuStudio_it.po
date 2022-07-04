@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-04 12:56+0800\n"
+"POT-Creation-Date: 2022-07-04 14:18+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3041,8 +3041,8 @@ msgstr[1] ""
 msgid "Reserved keywords found"
 msgstr ""
 
-msgid "Filament Overrides"
-msgstr "Sovrascrittura filamento"
+msgid "Setting Overrides"
+msgstr ""
 
 msgid "Retraction"
 msgstr "Retrazione"
@@ -5518,6 +5518,9 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid "Filament Overrides"
+#~ msgstr "Sovrascrittura filamento"
 
 #~ msgid "GUI"
 #~ msgstr "GUI"
