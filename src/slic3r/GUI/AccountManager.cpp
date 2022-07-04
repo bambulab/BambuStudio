@@ -2689,7 +2689,7 @@ namespace BBL {
     }
 
     //BBS sync preset bundle when login
-    int AccountManager::get_setting_list(std::string bundle_version, bool system_only)
+    int AccountManager::get_setting_list(std::string bundle_version, bool system_only, ProgressFn pro_fn)
     {
         m_my_presets.clear();
         m_system_presets.clear();
@@ -2768,6 +2768,10 @@ namespace BBL {
         int i = 0;
         const int MAX_PRESET_LOAD = 100;
         for (auto it = m_my_presets.begin(); it != m_my_presets.end(); it++) {
+            if (pro_fn) {
+                int percent = i * 100 / m_my_presets.size();
+                pro_fn(percent);
+            }
             get_setting(it->first, it->second);
             i++;
             if (i > MAX_PRESET_LOAD)

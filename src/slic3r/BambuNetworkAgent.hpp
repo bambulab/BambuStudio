@@ -71,7 +71,7 @@ public:
 
     std::string request_setting_id(std::string name, std::map<std::string, std::string>& values_map, unsigned int& http_code);
     int put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>& values_map, unsigned int& http_code);
-    int get_setting_list(std::string bundle_version);
+    int get_setting_list(std::string bundle_version, ProgressFn pro_fn = nullptr);
     std::vector<std::string>& get_delete_cache_presets();
     void delete_preset(std::string setting_id);
     int del_setting(std::string setting_id);

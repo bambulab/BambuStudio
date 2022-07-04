@@ -330,10 +330,10 @@ int BambuNetworkAgent::put_setting(std::string setting_id, std::string name, std
     return acc->put_setting(setting_id, name, values_map, http_code);
 }
 
- int BambuNetworkAgent::get_setting_list(std::string bundle_version)
+ int BambuNetworkAgent::get_setting_list(std::string bundle_version, ProgressFn pro_fn)
 {
     AccountManager* acc = (AccountManager*)context;
-    return acc->get_setting_list(bundle_version);
+    return acc->get_setting_list(bundle_version, false, pro_fn);
 }
 
 std::vector<std::string>& BambuNetworkAgent::get_delete_cache_presets()

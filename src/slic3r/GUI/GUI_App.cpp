@@ -2369,6 +2369,7 @@ void GUI_App::request_user_logout()
         /* delete old user settings */
         m_device_manager->clean_user_info();
         GUI::wxGetApp().remove_user_presets();
+        GUI::wxGetApp().stop_sync_user_preset();
     }
 }
 
@@ -2812,7 +2813,7 @@ void GUI_App::sync_preset(Preset* preset)
     }
 }
 
-void GUI_App::start_sync_user_preset()
+void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 {
     // has already start sync
     if (enable_sync)
@@ -2821,7 +2822,14 @@ void GUI_App::start_sync_user_preset()
     if (m_agent->is_user_login()) {
         // get setting list, update setting list
         std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
-        m_agent->get_setting_list(version);
+        if (with_progress_dlg) {
+            ProgressDialog dlg(_L("Loading"), "", 100, this->mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL);
+            m_agent->get_setting_list(version, [this, &dlg](int percent){
+                    dlg.Update(percent, _L("Loading user preset"));
+                });
+        } else {
+            m_agent->get_setting_list(version);
+        }
         GUI::wxGetApp().reload_settings();
     }
 
@@ -2834,50 +2842,53 @@ void GUI_App::start_sync_user_preset()
             std::vector<Preset> presets_to_sync;
             while (enable_sync) {
                 count++;
-                boost::this_thread::sleep_for(boost::chrono::milliseconds(2000));
-                if (m_agent) {
-                    if (!m_agent->is_user_login()) {
-                        continue;
-                    }
-                    //sync preset
-                    if (!preset_bundle) continue;
+                if (count % 20 == 0) {
+                    if (m_agent) {
+                        if (!m_agent->is_user_login()) {
+                            continue;
+                        }
+                        //sync preset
+                        if (!preset_bundle) continue;
 
-                    sync_count = preset_bundle->prints.get_user_presets(presets_to_sync);
-                    if (sync_count > 0) {
-                        for (Preset& preset : presets_to_sync) {
-                            sync_preset(&preset);
+                        sync_count = preset_bundle->prints.get_user_presets(presets_to_sync);
+                        if (sync_count > 0) {
+                            for (Preset& preset : presets_to_sync) {
+                                sync_preset(&preset);
+                            }
+                        }
+
+                        sync_count = preset_bundle->filaments.get_user_presets(presets_to_sync);
+                        if (sync_count > 0) {
+                            for (Preset& preset : presets_to_sync) {
+                                sync_preset(&preset);
+                            }
+                        }
+
+                        sync_count = preset_bundle->printers.get_user_presets(presets_to_sync);
+                        if (sync_count > 0) {
+                            for (Preset& preset : presets_to_sync) {
+                                sync_preset(&preset);
+                            }
+                        }
+
+                        unsigned int http_code = 200;
+
+                        /* get list witch need to be deleted*/
+                        std::vector<string> delete_cache_presets = m_agent->get_delete_cache_presets();
+                        for (auto it = delete_cache_presets.begin(); it != delete_cache_presets.end();) {
+                            if ((*it).empty()) continue;
+                            std::string del_setting_id = *it;
+                            int result = m_agent->del_setting(del_setting_id);
+                            if (result == 0) {
+                                it = delete_cache_presets.erase(it);
+                                BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: delete success! setting id = " << del_setting_id;
+                            }
+                            else
+                                it++;
                         }
                     }
-
-                    sync_count = preset_bundle->filaments.get_user_presets(presets_to_sync);
-                    if (sync_count > 0) {
-                        for (Preset& preset : presets_to_sync) {
-                            sync_preset(&preset);
-                        }
-                    }
-
-                    sync_count = preset_bundle->printers.get_user_presets(presets_to_sync);
-                    if (sync_count > 0) {
-                        for (Preset& preset : presets_to_sync) {
-                            sync_preset(&preset);
-                        }
-                    }
-
-                    unsigned int http_code = 200;
-
-                    /* get list witch need to be deleted*/
-                    std::vector<string> delete_cache_presets = m_agent->get_delete_cache_presets();
-                    for (auto it = delete_cache_presets.begin(); it != delete_cache_presets.end();) {
-                        if ((*it).empty()) continue;
-                        std::string del_setting_id = *it;
-                        int result = m_agent->del_setting(del_setting_id);
-                        if (result == 0) {
-                            it = delete_cache_presets.erase(it);
-                            BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: delete success! setting id = " << del_setting_id;
-                        }
-                        else
-                            it++;
-                    }
+                } else {
+                    boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
                 }
             }
         });
