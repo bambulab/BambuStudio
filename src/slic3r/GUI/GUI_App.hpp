@@ -244,6 +244,7 @@ private:
 	//size_t m_instance_hash_int;
 
     //BBS
+    bool m_is_closing {false};
     Slic3r::DeviceManager* m_device_manager;
     BBL::BambuNetworkAgent* m_agent { nullptr };
 

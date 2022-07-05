@@ -1178,6 +1178,10 @@ GUI_App::GUI_App()
 
         auto lan_message_arrive_fn = [this](std::string dev_id, std::string msg) {
             CallAfter([this, dev_id, msg] {
+                if (m_is_closing) {
+                    return;
+                }
+
                 MachineObject* obj = m_device_manager->get_local_machine(dev_id);
                 if (obj) {
                     obj->parse_json(msg);
@@ -2255,6 +2259,7 @@ void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_max
     const std::string name = into_u8(window->GetName());
 
     window->Bind(wxEVT_CLOSE_WINDOW, [=](wxCloseEvent &event) {
+        m_is_closing = true;
         window_pos_save(window, "main");
         event.Skip();
     });
