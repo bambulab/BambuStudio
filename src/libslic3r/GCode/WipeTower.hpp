@@ -229,6 +229,8 @@ public:
     struct FilamentParameters {
         std::string 	    material = "PLA";
         bool                is_soluble = false;
+        // BBS
+        bool                is_support = false;
         int  			    nozzle_temperature = 0;
         int  			    nozzle_temperature_initial_layer = 0;
         // BBS: remove useless config
@@ -388,9 +390,10 @@ private:
     // Stores information about used filament length per extruder:
     std::vector<float> m_used_filament_length;
 
+    // BBS: consider both soluable and support properties
     // Return index of first toolchange that switches to non-soluble extruder
     // ot -1 if there is no such toolchange.
-    int first_toolchange_to_nonsoluble(
+    int first_toolchange_to_nonsoluble_nonsupport(
             const std::vector<WipeTowerInfo::ToolChange>& tool_changes) const;
 
 	void toolchange_Unload(

@@ -598,6 +598,8 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
 
     m_filpar[idx].material = config.filament_type.get_at(idx);
     m_filpar[idx].is_soluble = config.filament_soluble.get_at(idx);
+    // BBS
+    m_filpar[idx].is_support = config.filament_is_support.get_at(idx);
     m_filpar[idx].nozzle_temperature = config.nozzle_temperature.get_at(idx);
     m_filpar[idx].nozzle_temperature_initial_layer = config.nozzle_temperature_initial_layer.get_at(idx);
 
@@ -1365,7 +1367,8 @@ void WipeTower::save_on_last_wipe()
             continue;
 
         // Which toolchange will finish_layer extrusions be subtracted from?
-        int idx = first_toolchange_to_nonsoluble(m_layer_info->tool_changes);
+        // BBS: consider both soluable and support properties
+        int idx = first_toolchange_to_nonsoluble_nonsupport(m_layer_info->tool_changes);
 
         for (int i=0; i<int(m_layer_info->tool_changes.size()); ++i) {
             auto& toolchange = m_layer_info->tool_changes[i];
@@ -1387,13 +1390,14 @@ void WipeTower::save_on_last_wipe()
 }
 
 
-// Return index of first toolchange that switches to non-soluble extruder
+// BBS: consider both soluable and support properties
+// Return index of first toolchange that switches to non-soluble and non-support extruder
 // ot -1 if there is no such toolchange.
-int WipeTower::first_toolchange_to_nonsoluble(
+int WipeTower::first_toolchange_to_nonsoluble_nonsupport(
         const std::vector<WipeTowerInfo::ToolChange>& tool_changes) const
 {
     for (size_t idx=0; idx<tool_changes.size(); ++idx)
-        if (! m_filpar[tool_changes[idx].new_tool].is_soluble)
+        if (! m_filpar[tool_changes[idx].new_tool].is_soluble && ! m_filpar[tool_changes[idx].new_tool].is_support)
             return idx;
     return -1;
 }
@@ -1467,7 +1471,8 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
             m_y_shift = align_round(m_y_shift, dy);
         }
 
-        int idx = first_toolchange_to_nonsoluble(layer.tool_changes);
+        // BBS: consider both soluable and support properties
+        int idx = first_toolchange_to_nonsoluble_nonsupport (layer.tool_changes);
         ToolChangeResult finish_layer_tcr;
 
         if (idx == -1) {
