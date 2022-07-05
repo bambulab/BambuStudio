@@ -1619,11 +1619,18 @@ wxImage *SelectMachineDialog::LoadImageFromBlob(const unsigned char *data, int s
 
 void SelectMachineDialog::set_default()
 {
+
+    //clear combobox
+    m_list.clear();
+    m_comboBox_printer->Clear();
+    m_printer_last_select = "";
+    m_comboBox_printer->SetValue(wxEmptyString);
+    m_comboBox_printer->Enable();
+
+
     // adjust refresh button
     Enable_Refresh_Button(true);
 
-    // adjust combox
-    m_comboBox_printer->Enable();
 
     // thumbmail
     Freeze();
