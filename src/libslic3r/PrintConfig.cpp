@@ -959,6 +959,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBools { false });
 
+    def = this->add("filament_is_support", coBools);
+    def->label = L("Support material");
+    def->tooltip = L("Support material is commonly used to print support and support interface");
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBools { false });
+
     // BBS
     def = this->add("temperature_vitrification", coInts);
     def->label = L("Temperature of vitrificaiton");

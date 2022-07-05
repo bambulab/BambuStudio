@@ -31,6 +31,9 @@
     "filament_soluble": [
         "1"
     ],
+    "filament_is_support": [
+        "1"
+    ],
     "filament_type": [
         "PVA"
     ],
