@@ -4,6 +4,7 @@
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "libslic3r/Thread.hpp"
+#include "ReleaseNote.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -172,11 +173,20 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
 
     m_main_right_sizer->Add(m_upgrading_sizer, 0, wxEXPAND, 0);
 
-    m_staticText_release_note = new wxStaticText(this, wxID_ANY, _L("Relase Note"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_release_note->Wrap(-1);
-    m_staticText_release_note->SetForegroundColour(wxColour(31, 142, 234));
+    wxBoxSizer *sizer_release_note = new wxBoxSizer(wxVERTICAL);
 
-    m_main_right_sizer->Add(m_staticText_release_note, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 0);
+
+    m_staticText_release_note = new wxStaticText(this, wxID_ANY, _L("Release Note"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_release_note->Wrap(-1);
+    m_staticText_release_note->SetForegroundColour(wxColour(0x1F,0x8E,0xEA));
+
+    auto line_release_note = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    line_release_note->SetBackgroundColour(wxColour(0x1F, 0x8E, 0xEA));
+
+    sizer_release_note->Add(m_staticText_release_note, 0, wxALL, 0);
+    sizer_release_note->Add(line_release_note, 1, wxEXPAND | wxALL, 0);
+
+    m_main_right_sizer->Add(sizer_release_note, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 0);
 
     m_main_right_sizer->Add(0, 0, 1, wxEXPAND, 0);
 
@@ -191,6 +201,8 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     m_upgrade_retry_img->Bind(wxEVT_LEFT_UP, [this](auto &e) {
         upgrade_firmware_internal();
         });
+
+    m_staticText_release_note->Bind(wxEVT_LEFT_DOWN, &MachineInfoPanel::on_show_release_note, this);
     m_button_upgrade_firmware->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MachineInfoPanel::on_upgrade_firmware), NULL, this);
 }
 
@@ -500,6 +512,42 @@ void MachineInfoPanel::on_upgrade_firmware(wxCommandEvent &event)
 {
     if (m_obj)
         m_obj->command_upgrade_confirm();
+}
+
+void MachineInfoPanel::on_show_release_note(wxMouseEvent &event) 
+{
+    DeviceManager *dev = wxGetApp().getDeviceManager();
+    if (!dev) return;
+
+
+    std::string next_version_release_note = "";
+    std::string now_version_release_note  = "";
+    std::string version_number            = "";
+
+    for (auto iter : m_obj->firmware_list) {
+        if (iter.version == m_obj->ota_new_version_number) {
+            version_number            = m_obj->ota_new_version_number;
+            next_version_release_note = iter.description;
+        }
+        if (iter.version == m_obj->get_ota_version()) { 
+            version_number           = m_obj->get_ota_version();
+            now_version_release_note = iter.description;
+        }
+    }
+
+    ReleaseNoteDialog dlg;
+
+    if (!next_version_release_note.empty()) { 
+        dlg.update_release_note(next_version_release_note, version_number);
+        dlg.ShowModal();
+        return;
+    }
+
+    if (!now_version_release_note.empty()) {
+        dlg.update_release_note(now_version_release_note, version_number);
+        dlg.ShowModal();
+        return;
+    }
 }
 
 UpgradePanel::UpgradePanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)

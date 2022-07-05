@@ -57,6 +57,7 @@ protected:
 
     void upgrade_firmware_internal();
     void on_upgrade_firmware(wxCommandEvent &event);
+    void on_show_release_note(wxMouseEvent &event);
 
 public:
     MachineInfoPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString);

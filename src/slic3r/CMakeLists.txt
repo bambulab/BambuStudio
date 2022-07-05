@@ -339,6 +339,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/SelectMachine.cpp
     GUI/AmsMappingPopup.hpp
     GUI/AmsMappingPopup.cpp
+    GUI/ReleaseNote.hpp
+    GUI/ReleaseNote.cpp
     GUI/Calibration.hpp
     GUI/Calibration.cpp
     Utils/json_diff.hpp

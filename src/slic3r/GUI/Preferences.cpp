@@ -195,13 +195,11 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
     AppConfig * config       = GUI::wxGetApp().app_config;
 
     int         current_region = 0;
-    std::string country_code   = config->get_region();
-    country_code               = "Europe";
-    auto index                 = 0;
+    std::string country_code   = config->get("region");
     for (auto i = 0; i < vlist.size(); i++) {
-        if (vlist[i] == country_code) {
-            combobox->SetSelection(index);
-            current_region = index;
+        if (vlist[i].ToStdString() == country_code) {
+            combobox->SetSelection(i);
+            current_region = i;
         }
     }
 
