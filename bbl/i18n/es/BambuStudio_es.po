@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-04 20:55+0800\n"
+"POT-Creation-Date: 2022-07-05 22:04+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1276,6 +1276,12 @@ msgstr "Los datos de acceso han caducado. Por favor, inicie sesión de nuevo."
 msgid "This is the newest version."
 msgstr "Esta es la versión más reciente."
 
+msgid "Loading"
+msgstr "Cargando"
+
+msgid "Loading user preset"
+msgstr ""
+
 msgid "Switching application language"
 msgstr "Cambio de idioma de la aplicación"
 
@@ -1634,9 +1640,6 @@ msgstr "Haga clic en el icono para editar la pintura de apoyo del objeto"
 msgid "Click the icon to edit color painting of the object"
 msgstr "Haga clic en el icono para editar la pintura de color del objeto"
 
-msgid "Loading"
-msgstr "Cargando"
-
 msgid "Loading file"
 msgstr "Cargando archivo"
 
@@ -1888,6 +1891,9 @@ msgstr "Preparar"
 msgid "Preview"
 msgstr "Previsualización"
 
+msgid "Device"
+msgstr ""
+
 msgid "Project"
 msgstr "Proyecto"
 
@@ -2124,13 +2130,8 @@ msgid ""
 "Contains the following information:\n"
 "1. The Process presets\n"
 "2. The Filament presets\n"
-"3. The Machine presets\n"
+"3. The Printer presets\n"
 msgstr ""
-"¿Quieres sincronizar tus datos personales desde la Nube Bambu? \n"
-"Contiene la siguiente información:\n"
-"1. Los preajustes del proceso\n"
-"2. Los preajustes del filamento\n"
-"3. Los preajustes de la máquina\n"
 
 msgid "Synchronization"
 msgstr "Sincronización"
@@ -2203,8 +2204,8 @@ msgstr "Detener"
 msgid "0%"
 msgstr "0%"
 
-msgid "Machine Control"
-msgstr "Control de Máquinas"
+msgid "Control"
+msgstr ""
 
 msgid "Start Calibration"
 msgstr "Iniciar Calibración"
@@ -2622,8 +2623,8 @@ msgstr "¿Cargar estos archivos como un objeto único con múltiples partes?\n"
 msgid "Object with multiple parts was detected"
 msgstr "Se ha detectado un objeto con varias partes"
 
-msgid "The current file does not import any models."
-msgstr "El archivo actual no importó ningún modelo."
+msgid "The file does not contain any geometry data."
+msgstr ""
 
 msgid "Export STL file:"
 msgstr "Exportar archivo STL:"
@@ -2791,11 +2792,35 @@ msgstr ""
 msgid "Changing application language"
 msgstr "Cambiar el idioma de la aplicación"
 
+msgid "Changing the region will log out your account.\n"
+msgstr ""
+
+msgid "Region selection"
+msgstr ""
+
 msgid "Second"
 msgstr "Segundo"
 
-msgid "General settings"
-msgstr "Ajustes generales"
+msgid "General Settings"
+msgstr ""
+
+msgid "Asia-Pacific"
+msgstr ""
+
+msgid "China"
+msgstr ""
+
+msgid "Europe"
+msgstr ""
+
+msgid "North America"
+msgstr ""
+
+msgid "Others"
+msgstr "Otros"
+
+msgid "Login Region"
+msgstr ""
 
 msgid "Metric"
 msgstr "Métrico"
@@ -2809,7 +2834,10 @@ msgstr "Unidades"
 msgid "User sync"
 msgstr "Sincronización del usuario"
 
-msgid "auto sync user presets (printer/filament/process)"
+msgid "User Sync"
+msgstr ""
+
+msgid "auto sync user presets (printer/materials/craft)"
 msgstr ""
 
 msgid "Associate files to BambuStudio"
@@ -3113,6 +3141,11 @@ msgstr ""
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr ""
 
+msgid ""
+"The mapping of \"Consumable wire List =>AMS slot\" has been automatically "
+"established.\n"
+msgstr ""
+
 msgid "Modifying the device name"
 msgstr ""
 
@@ -3198,9 +3231,6 @@ msgstr "Aceleración"
 
 msgid "Support filament"
 msgstr "Filamento de soporte"
-
-msgid "Others"
-msgstr "Otros"
 
 msgid "Prime tower"
 msgstr "Torre Principal"
@@ -4575,7 +4605,7 @@ msgid "Max bridge length"
 msgstr "Distancia máxima de puentes"
 
 msgid ""
-"Max ength of bridges that don't need support. Set it to 0 if you want all "
+"Max length of bridges that don't need support. Set it to 0 if you want all "
 "bridges to be supported, and set it to a very large value if you don't want "
 "any bridges to be supported."
 msgstr ""
@@ -4796,6 +4826,13 @@ msgid ""
 msgstr ""
 "El material soluble se utiliza habitualmente para imprimir el soporte y la "
 "interfaz de soporte"
+
+msgid "Support material"
+msgstr "Material de soporte"
+
+msgid ""
+"Support material is commonly used to print support and support interface"
+msgstr ""
 
 msgid "Temperature of vitrificaiton"
 msgstr "Temperatura de vitrificación"
@@ -6093,6 +6130,28 @@ msgstr "Soporte: arreglar huecos en la capa %d"
 msgid "Support: propagate branches at layer %d"
 msgstr "Soporte: propagar ramas en la capa %d"
 
+#~ msgid "The current file does not import any models."
+#~ msgstr "El archivo actual no importó ningún modelo."
+
+#~ msgid ""
+#~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
+#~ "Contains the following information:\n"
+#~ "1. The Process presets\n"
+#~ "2. The Filament presets\n"
+#~ "3. The Machine presets\n"
+#~ msgstr ""
+#~ "¿Quieres sincronizar tus datos personales desde la Nube Bambu? \n"
+#~ "Contiene la siguiente información:\n"
+#~ "1. Los preajustes del proceso\n"
+#~ "2. Los preajustes del filamento\n"
+#~ "3. Los preajustes de la máquina\n"
+
+#~ msgid "Machine Control"
+#~ msgstr "Control de Máquinas"
+
+#~ msgid "General settings"
+#~ msgstr "Ajustes generales"
+
 #~ msgid "Bed temperature when cool plate is installed"
 #~ msgstr ""
 #~ "Temperatura de la cama cuando la placa de refrigeración está instalada"
@@ -6823,9 +6882,6 @@ msgstr "Soporte: propagar ramas en la capa %d"
 
 #~ msgid "Ignores facets facing away from the camera."
 #~ msgstr "Ignora los lados que no están mirando hacia la cámara."
-
-#~ msgid "Support material"
-#~ msgstr "Material de soporte"
 
 #~ msgid ""
 #~ "License agreements of all following programs (libraries) are part of "

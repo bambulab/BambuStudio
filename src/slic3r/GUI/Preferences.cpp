@@ -221,7 +221,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
         else
             area = "Others";
 
-        MessageDialog msg_wingow(nullptr, _L("Switching the region requires login again.\n") + "\n" + _L("Do you want to continue?"), L("Region selection"),
+        MessageDialog msg_wingow(nullptr, _L("Changing the region will log out your account.\n") + "\n" + _L("Do you want to continue?"), L("Region selection"),
                                  wxICON_QUESTION | wxOK | wxCANCEL);
         if (msg_wingow.ShowModal() == wxID_CANCEL) {
             combobox->SetSelection(current_region);

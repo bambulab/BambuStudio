@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-04 20:55+0800\n"
-"PO-Revision-Date: 2022-07-04 20:59+0800\n"
+"POT-Creation-Date: 2022-07-05 22:04+0800\n"
+"PO-Revision-Date: 2022-07-05 22:05+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -1221,6 +1221,12 @@ msgstr "登录信息过期。请重新登录。"
 msgid "This is the newest version."
 msgstr "已经是最新版本。"
 
+msgid "Loading"
+msgstr "载入中"
+
+msgid "Loading user preset"
+msgstr ""
+
 msgid "Switching application language"
 msgstr "切换应用程序语言"
 
@@ -1568,9 +1574,6 @@ msgstr "点击这个图标可编辑这个对象的支撑绘制"
 msgid "Click the icon to edit color painting of the object"
 msgstr "点击这个图标可编辑这个对象的颜色绘制"
 
-msgid "Loading"
-msgstr "载入中"
-
 msgid "Loading file"
 msgstr "载入文件中"
 
@@ -1808,6 +1811,9 @@ msgstr "准备"
 msgid "Preview"
 msgstr "预览"
 
+msgid "Device"
+msgstr "设备"
+
 msgid "Project"
 msgstr "项目"
 
@@ -2044,12 +2050,12 @@ msgid ""
 "Contains the following information:\n"
 "1. The Process presets\n"
 "2. The Filament presets\n"
-"3. The Machine presets\n"
+"3. The Printer presets\n"
 msgstr ""
-"想从Bambu 云同步你的个人数据吗?\n"
-"包含如下信息:\n"
+"是否从Bambu云同步您的个人数据？\n"
+"包含以下信息：\n"
 "1. 工艺预设\n"
-"2. 打印丝预设\n"
+"2. 耗材丝预设\n"
 "3. 打印机预设\n"
 
 msgid "Synchronization"
@@ -2123,7 +2129,7 @@ msgstr "停止"
 msgid "0%"
 msgstr "0%"
 
-msgid "Machine Control"
+msgid "Control"
 msgstr "控制"
 
 msgid "Start Calibration"
@@ -2525,7 +2531,7 @@ msgstr "将这些文件加载为一个多零件对象？\n"
 msgid "Object with multiple parts was detected"
 msgstr "检测到多零件对象"
 
-msgid "The current file does not import any models."
+msgid "The file does not contain any geometry data."
 msgstr ""
 
 msgid "Export STL file:"
@@ -2685,11 +2691,35 @@ msgstr "在切换应用语言之前发现某些参数预设有更改。"
 msgid "Changing application language"
 msgstr "正在为应用程序切换语言"
 
+msgid "Changing the region will log out your account.\n"
+msgstr "修改区域会自动登出您的账号。\n"
+
+msgid "Region selection"
+msgstr "区域选择"
+
 msgid "Second"
 msgstr "秒"
 
-msgid "General settings"
-msgstr "常规设置"
+msgid "General Settings"
+msgstr "通用设置"
+
+msgid "Asia-Pacific"
+msgstr "亚太"
+
+msgid "China"
+msgstr "中国"
+
+msgid "Europe"
+msgstr "欧洲"
+
+msgid "North America"
+msgstr "北美"
+
+msgid "Others"
+msgstr "其他"
+
+msgid "Login Region"
+msgstr "登录区域"
 
 msgid "Metric"
 msgstr "公制"
@@ -2703,7 +2733,10 @@ msgstr "单位"
 msgid "User sync"
 msgstr "用户同步"
 
-msgid "auto sync user presets (printer/filament/process)"
+msgid "User Sync"
+msgstr ""
+
+msgid "auto sync user presets (printer/materials/craft)"
 msgstr ""
 
 msgid "Associate files to BambuStudio"
@@ -2947,10 +2980,10 @@ msgid "Send print job to"
 msgstr "发送打印任务至"
 
 msgid "Reading printer information..."
-msgstr ""
+msgstr "正在读取打印机信息"
 
 msgid "Refresh"
-msgstr ""
+msgstr "刷新"
 
 msgid "Bed Leveling"
 msgstr "热床调平"
@@ -2992,9 +3025,14 @@ msgid "No printer available"
 msgstr "没有可用的打印机"
 
 msgid "Reading printer info timed out"
-msgstr ""
+msgstr "读取打印机信息超时"
 
 msgid "Cannot send the print task when the upgrade is in progress"
+msgstr ""
+
+msgid ""
+"The mapping of \"Consumable wire List =>AMS slot\" has been automatically "
+"established.\n"
 msgstr ""
 
 msgid "Modifying the device name"
@@ -3078,9 +3116,6 @@ msgstr "加速度"
 
 msgid "Support filament"
 msgstr "支撑耗材"
-
-msgid "Others"
-msgstr "其他"
 
 msgid "Prime tower"
 msgstr "擦拭塔"
@@ -4348,13 +4383,15 @@ msgstr ""
 "印。"
 
 msgid "Max bridge length"
-msgstr ""
+msgstr "最大桥接长度"
 
 msgid ""
-"Max ength of bridges that don't need support. Set it to 0 if you want all "
+"Max length of bridges that don't need support. Set it to 0 if you want all "
 "bridges to be supported, and set it to a very large value if you don't want "
 "any bridges to be supported."
 msgstr ""
+"不需要支撑的桥接的最大长度。如果希望支持所有桥接，请将其设置为0；如果不希望支"
+"持任何桥接，请将其设置为非常大的值。"
 
 msgid "End G-code"
 msgstr "结尾G-code"
@@ -4545,6 +4582,13 @@ msgstr "可溶性材料"
 msgid ""
 "Soluble material is commonly used to print support and support interface"
 msgstr "可溶性材料通常用于打印支撑和支撑面"
+
+msgid "Support material"
+msgstr "支撑材料"
+
+msgid ""
+"Support material is commonly used to print support and support interface"
+msgstr "支撑材料通常用于打印支撑体和支撑接触面"
 
 msgid "Temperature of vitrificaiton"
 msgstr "软化温度"
@@ -5718,6 +5762,25 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid ""
+#~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
+#~ "Contains the following information:\n"
+#~ "1. The Process presets\n"
+#~ "2. The Filament presets\n"
+#~ "3. The Machine presets\n"
+#~ msgstr ""
+#~ "想从Bambu 云同步你的个人数据吗?\n"
+#~ "包含如下信息:\n"
+#~ "1. 工艺预设\n"
+#~ "2. 打印丝预设\n"
+#~ "3. 打印机预设\n"
+
+#~ msgid "Machine Control"
+#~ msgstr "控制"
+
+#~ msgid "General settings"
+#~ msgstr "常规设置"
 
 #~ msgid "Bed temperature when cool plate is installed"
 #~ msgstr "安装低温打印热床时的热床温度"
@@ -7231,9 +7294,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "Ignores facets facing away from the camera."
 #~ msgstr "忽略背对相机视角的面片。"
-
-#~ msgid "Support material"
-#~ msgstr "支撑材料"
 
 #~ msgid ""
 #~ "License agreements of all following programs (libraries) are part of "

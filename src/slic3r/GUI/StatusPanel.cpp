@@ -485,7 +485,7 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     m_panel_control_title->SetBackgroundColour(STATUS_TITLE_BG);
 
     wxBoxSizer *bSizer_control_title = new wxBoxSizer(wxHORIZONTAL);
-    m_staticText_control             = new wxStaticText(m_panel_control_title, wxID_ANY, _L("Machine Control"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    m_staticText_control             = new wxStaticText(m_panel_control_title, wxID_ANY, _L("Control"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
     m_staticText_control->Wrap(-1);
     m_staticText_control->SetFont(PAGE_TITLE_FONT);
     m_staticText_control->SetForegroundColour(PAGE_TITLE_FONT_COL);

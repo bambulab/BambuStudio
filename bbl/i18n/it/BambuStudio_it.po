@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-04 20:55+0800\n"
+"POT-Creation-Date: 2022-07-05 22:04+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1170,6 +1170,12 @@ msgstr ""
 msgid "This is the newest version."
 msgstr ""
 
+msgid "Loading"
+msgstr "Caricamento"
+
+msgid "Loading user preset"
+msgstr ""
+
 msgid "Switching application language"
 msgstr ""
 
@@ -1520,9 +1526,6 @@ msgstr ""
 msgid "Click the icon to edit color painting of the object"
 msgstr ""
 
-msgid "Loading"
-msgstr "Caricamento"
-
 msgid "Loading file"
 msgstr "Caricamento file"
 
@@ -1756,6 +1759,9 @@ msgstr ""
 
 msgid "Preview"
 msgstr "Anteprima"
+
+msgid "Device"
+msgstr ""
 
 msgid "Project"
 msgstr ""
@@ -1993,7 +1999,7 @@ msgid ""
 "Contains the following information:\n"
 "1. The Process presets\n"
 "2. The Filament presets\n"
-"3. The Machine presets\n"
+"3. The Printer presets\n"
 msgstr ""
 
 msgid "Synchronization"
@@ -2067,7 +2073,7 @@ msgstr ""
 msgid "0%"
 msgstr ""
 
-msgid "Machine Control"
+msgid "Control"
 msgstr ""
 
 msgid "Start Calibration"
@@ -2467,7 +2473,7 @@ msgstr ""
 msgid "Object with multiple parts was detected"
 msgstr ""
 
-msgid "The current file does not import any models."
+msgid "The file does not contain any geometry data."
 msgstr ""
 
 msgid "Export STL file:"
@@ -2625,10 +2631,34 @@ msgstr ""
 msgid "Changing application language"
 msgstr ""
 
+msgid "Changing the region will log out your account.\n"
+msgstr ""
+
+msgid "Region selection"
+msgstr ""
+
 msgid "Second"
 msgstr ""
 
-msgid "General settings"
+msgid "General Settings"
+msgstr ""
+
+msgid "Asia-Pacific"
+msgstr ""
+
+msgid "China"
+msgstr ""
+
+msgid "Europe"
+msgstr ""
+
+msgid "North America"
+msgstr ""
+
+msgid "Others"
+msgstr ""
+
+msgid "Login Region"
 msgstr ""
 
 msgid "Metric"
@@ -2643,7 +2673,10 @@ msgstr ""
 msgid "User sync"
 msgstr ""
 
-msgid "auto sync user presets (printer/filament/process)"
+msgid "User Sync"
+msgstr ""
+
+msgid "auto sync user presets (printer/materials/craft)"
 msgstr ""
 
 msgid "Associate files to BambuStudio"
@@ -2937,6 +2970,11 @@ msgstr ""
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr ""
 
+msgid ""
+"The mapping of \"Consumable wire List =>AMS slot\" has been automatically "
+"established.\n"
+msgstr ""
+
 msgid "Modifying the device name"
 msgstr ""
 
@@ -3015,9 +3053,6 @@ msgid "Acceleration"
 msgstr ""
 
 msgid "Support filament"
-msgstr ""
-
-msgid "Others"
 msgstr ""
 
 msgid "Prime tower"
@@ -4254,7 +4289,7 @@ msgid "Max bridge length"
 msgstr "Lunghezza massima Bridge"
 
 msgid ""
-"Max ength of bridges that don't need support. Set it to 0 if you want all "
+"Max length of bridges that don't need support. Set it to 0 if you want all "
 "bridges to be supported, and set it to a very large value if you don't want "
 "any bridges to be supported."
 msgstr ""
@@ -4438,6 +4473,13 @@ msgstr "Materiale solubile"
 
 msgid ""
 "Soluble material is commonly used to print support and support interface"
+msgstr ""
+
+msgid "Support material"
+msgstr "Materiale di supporto"
+
+msgid ""
+"Support material is commonly used to print support and support interface"
 msgstr ""
 
 msgid "Temperature of vitrificaiton"
@@ -5979,9 +6021,6 @@ msgstr ""
 
 #~ msgid "Ignores facets facing away from the camera."
 #~ msgstr "Ignora le facet rivolte verso l'esterno."
-
-#~ msgid "Support material"
-#~ msgstr "Materiale di supporto"
 
 #~ msgid ""
 #~ "License agreements of all following programs (libraries) are part of "

@@ -798,7 +798,7 @@ void MainFrame::init_tabpanel()
 
         //BBS add pages
     m_monitor = new MonitorPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    m_tabpanel->AddPage(m_monitor, _L("Printer"), std::string("tab_monitor_active"), std::string("tab_monitor_active"));
+    m_tabpanel->AddPage(m_monitor, _L("Device"), std::string("tab_monitor_active"), std::string("tab_monitor_active"));
 
     m_auxiliary = new AuxiliaryPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_tabpanel->AddPage(m_auxiliary, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"));
@@ -2444,7 +2444,7 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
                         "Contains the following information:\n"
                         "1. The Process presets\n"
                         "2. The Filament presets\n"
-                        "3. The Machine presets\n"),
+                        "3. The Printer presets\n"),
                     _L("Synchronization"),
                     wxCENTER |
                     wxYES_DEFAULT | wxYES_NO |

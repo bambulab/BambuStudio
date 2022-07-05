@@ -3092,7 +3092,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
     if (tolal_model_count <= 0) {
         dlg.Hide();
-        MessageDialog msg(wxGetApp().mainframe, _L("The current file does not import any models."), _L("Warning"), wxYES | wxICON_WARNING);
+        MessageDialog msg(wxGetApp().mainframe, _L("The file does not contain any geometry data."), _L("Warning"), wxYES | wxICON_WARNING);
         if (msg.ShowModal() == wxID_YES) {}
     }
     return obj_idxs;

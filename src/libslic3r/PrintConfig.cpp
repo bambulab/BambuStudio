@@ -685,7 +685,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("max_bridge_length", coFloat);
     def->label = L("Max bridge length");
     def->category = L("Support");
-    def->tooltip = L("Max ength of bridges that don't need support. Set it to 0 if you want all bridges to be supported, and set it to a very large value if you don't want any bridges to be supported.");
+    def->tooltip = L("Max length of bridges that don't need support. Set it to 0 if you want all bridges to be supported, and set it to a very large value if you don't want any bridges to be supported.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
