@@ -3,6 +3,11 @@
 
 function OnInit()
 {	
+	//-----Test-----
+    //$("#Login1").hide();
+	//$("#UserName").text("ZZZZZZZZ");
+	//$("#Login2").css("display","flex");
+	
     TranslatePage();
 
 	SendMsg_GetLoginInfo();
@@ -66,7 +71,9 @@ function SetLoginInfo( strAvatar, strName )
 	
 	$("#UserAvatarIcon").prop("src",strAvatar);
 	$("#UserName").text(strName);
+	
 	$("#Login2").show();
+	$("#Login2").css("display","flex");
 }
 
 function SetUserOffline()
