@@ -140,32 +140,28 @@ void AMSSetting::create()
 
     m_sizer_img->Add(0, 0, 0, wxTOP, 18);
 
-    wxBoxSizer *m_sizer_ams_img_tip = new wxBoxSizer(wxVERTICAL);
+   /* wxBoxSizer *m_sizer_ams_img_tip = new wxBoxSizer(wxVERTICAL);
+     m_tip_ams_img = new wxStaticText(m_panel_img, wxID_ANY, _L("Click the automatic calibration button to enter the AMS initialization setup program"), wxDefaultPosition,
+                                      wxDefaultSize, 0);
+     m_tip_ams_img->SetFont(::Label::Body_13);
+     m_tip_ams_img->SetForegroundColour(AMS_SETTING_GREY700);
+     m_tip_ams_img->Wrap(AMS_SETTING_BODY_WIDTH);
+     m_sizer_ams_img_tip->Add(m_tip_ams_img, 0, wxALIGN_CENTER, 0);
 
-    m_tip_ams_img = new wxStaticText(m_panel_img, wxID_ANY, _L("Click the automatic calibration button to enter the AMS initialization setup program"), wxDefaultPosition,
-                                     wxDefaultSize, 0);
-    m_tip_ams_img->SetFont(::Label::Body_13);
-    m_tip_ams_img->SetForegroundColour(AMS_SETTING_GREY700);
-    m_tip_ams_img->Wrap(AMS_SETTING_BODY_WIDTH);
-    m_sizer_ams_img_tip->Add(m_tip_ams_img, 0, wxALIGN_CENTER, 0);
+     m_button_auto_demarcate = new Button(m_panel_img, _L("Auto Calibration"));
+     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+     m_button_auto_demarcate->SetBackgroundColor(btn_bg_green);
+     m_button_auto_demarcate->SetBorderColor(wxColour(0, 174, 66));
+     m_button_auto_demarcate->SetTextColor(AMS_SETTING_GREY200);
+     m_button_auto_demarcate->SetMinSize(AMS_SETTING_BUTTON_SIZE);
+     m_button_auto_demarcate->SetCornerRadius(12);
+     m_button_auto_demarcate->Bind(wxEVT_LEFT_DOWN, &AMSSetting::on_select_ok, this);
 
-    m_sizer_img->Add(m_sizer_ams_img_tip, 1, wxALIGN_CENTER, 0);
-
-    m_sizer_img->Add(0, 0, 0, wxTOP, 12);
-
-    m_button_auto_demarcate = new Button(m_panel_img, _L("Auto Calibration"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
-    m_button_auto_demarcate->SetBackgroundColor(btn_bg_green);
-    m_button_auto_demarcate->SetBorderColor(wxColour(0, 174, 66));
-    m_button_auto_demarcate->SetTextColor(AMS_SETTING_GREY200);
-    m_button_auto_demarcate->SetMinSize(AMS_SETTING_BUTTON_SIZE);
-    m_button_auto_demarcate->SetCornerRadius(12);
-    m_button_auto_demarcate->Bind(wxEVT_LEFT_DOWN, &AMSSetting::on_select_ok, this);
-
-    m_sizer_img->Add(m_button_auto_demarcate, 0, wxALIGN_CENTER, 0);
-
-    m_sizer_img->Add(0, 0, 0, wxBOTTOM, 17);
+     m_sizer_img->Add(m_sizer_ams_img_tip, 1, wxALIGN_CENTER, 0);
+     m_sizer_img->Add(0, 0, 0, wxTOP, 12);
+     m_sizer_img->Add(m_button_auto_demarcate, 0, wxALIGN_CENTER, 0);
+     m_sizer_img->Add(0, 0, 0, wxBOTTOM, 17);*/
 
     m_panel_img->SetSizer(m_sizer_img);
     m_panel_img->Layout();
