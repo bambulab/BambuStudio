@@ -224,7 +224,7 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     media_ctrl_panel->SetSizer(bSizer_monitoring);
     media_ctrl_panel->Layout();
 
-    sizer->Add(media_ctrl_panel, 1, wxEXPAND | wxALL, 0);
+    sizer->Add(media_ctrl_panel, 1, wxEXPAND | wxALL, 1);
     return sizer;
 }
 
@@ -258,6 +258,7 @@ void StatusBasePanel::on_size(wxSizeEvent &event)
 void StatusBasePanel::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
+    if (sizeFlags & wxSIZE_USE_EXISTING) return;
     float aspect_ratio = 3.4;
     auto  size         = this->GetSize();
     float new_height   = float(size.x) / aspect_ratio;
