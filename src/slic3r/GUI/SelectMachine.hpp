@@ -265,6 +265,7 @@ protected:
 
     wxStaticText *m_text_load_ams_data{nullptr};
     wxStaticText *m_error_load_ams_data{nullptr};
+    wxStaticBitmap* m_staticbitmap {nullptr};
 
     ::ComboBox *  m_comboBox_printer{nullptr};
     ::ComboBox *  m_comboBox_bed{nullptr};

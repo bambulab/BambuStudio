@@ -710,6 +710,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_image->SetBackgroundColour(m_colour_def_color);
 
     sizer_thumbnail = new wxBoxSizer(wxVERTICAL);
+    m_staticbitmap = new wxStaticBitmap(m_image, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize);
+    sizer_thumbnail->Add(m_staticbitmap, 0, wxEXPAND, 0);
     m_image->SetSizer(sizer_thumbnail);
     m_image->Layout();
 
@@ -1625,8 +1627,7 @@ void SelectMachineDialog::set_default()
 
     // thumbmail
     Freeze();
-    sizer_thumbnail->Clear();
-    wxBitmap *     bitmap = nullptr;
+    wxBitmap bitmap;
     ThumbnailData &data   = m_plater->get_partplate_list().get_curr_plate()->thumbnail_data;
     if (data.is_valid()) {
         wxImage image(data.width, data.height);
@@ -1640,12 +1641,11 @@ void SelectMachineDialog::set_default()
             }
         }
         image  = image.Rescale(FromDIP(256), FromDIP(256));
-        bitmap = new wxBitmap(image);
+        bitmap = wxBitmap(image);
     } else {
-        bitmap = new wxBitmap(FromDIP(256), FromDIP(256), 0);
+        bitmap = wxBitmap(wxSize(FromDIP(256), FromDIP(256)), 0);
     }
-    auto staticbitmap = new wxStaticBitmap(m_image, wxID_ANY, *bitmap, wxDefaultPosition, wxDefaultSize);
-    sizer_thumbnail->Add(staticbitmap, 0, wxEXPAND, 0);
+    m_staticbitmap->SetBitmap(bitmap);
     sizer_thumbnail->Layout();
 
     std::vector<std::string> materials;
