@@ -36,6 +36,9 @@ StaticBox::StaticBox(wxWindow* parent,
 bool StaticBox::Create(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
 {
     wxWindow::Create(parent, id, pos, size, style);
+#ifdef __WXMSW__
+    SetBackgroundStyle(wxBG_STYLE_PAINT);
+#endif
     state_handler.attach({&border_color, &background_color, &background_color2});
     state_handler.update_binds();
     SetBackgroundColour(GetParentBackgroundColor(parent));
@@ -95,7 +98,7 @@ wxColor StaticBox::GetParentBackgroundColor(wxWindow* parent)
 void StaticBox::eraseEvent(wxEraseEvent& evt)
 {
     // for transparent background, but not work
-#ifdef __WIN32__
+#ifdef __WXMSW__
     wxDC *dc = evt.GetDC();
     wxSize size = GetSize();
     wxClientDC dc2(GetParent());
@@ -122,8 +125,9 @@ void StaticBox::render(wxDC& dc)
     wxMemoryDC memdc;
     wxBitmap bmp(size.x, size.y);
     memdc.SelectObject(bmp);
-    memdc.Blit({0, 0}, size, &dc, {0, 0});
-
+    //memdc.Blit({0, 0}, size, &dc, {0, 0});
+    memdc.SetBackground(wxBrush(GetBackgroundColour()));
+    memdc.Clear();
     {
         wxGCDC dc2(memdc);
         doRender(dc2);
