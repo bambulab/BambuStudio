@@ -349,13 +349,14 @@ protected:
     void                     on_refresh(wxCommandEvent &event);
     void                     on_set_finish_mapping(wxCommandEvent &evt);
     void                     on_print_job_cancel(wxCommandEvent &evt);
-    std::vector<std::string> sort_string(std::vector<std::string> strArray);
+    void                     set_default();
     void                     on_timer(wxTimerEvent &event);
     void                     on_selection_changed(wxCommandEvent &event);
     void                     Enable_Refresh_Button(bool en);
     void                     Enable_Send_Button(bool en);
     void                     on_dpi_changed(const wxRect &suggested_rect) override;
     wxImage *                LoadImageFromBlob(const unsigned char *data, int size);
+    std::vector<std::string> sort_string(std::vector<std::string> strArray);
 };
 
 wxDECLARE_EVENT(EVT_FINISHED_UPDATE_MACHINE_LIST, wxCommandEvent);

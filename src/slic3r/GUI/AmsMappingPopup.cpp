@@ -174,9 +174,9 @@ void MaterialItem::doRender(wxDC &dc)
  AmsMapingPopup::AmsMapingPopup(wxWindow *parent) 
     :wxPopupTransientWindow(parent, wxBORDER_NONE)
  {
-     SetSize(wxSize(FromDIP(208), -1));
-     SetMinSize(wxSize(FromDIP(208), -1));
-     SetMaxSize(wxSize(FromDIP(208), -1));
+     SetSize(wxSize(FromDIP(220), -1));
+     SetMinSize(wxSize(FromDIP(220), -1));
+     SetMaxSize(wxSize(FromDIP(220), -1));
      Bind(wxEVT_PAINT, &AmsMapingPopup::paintEvent, this);
      SetBackgroundColour(*wxWHITE);
 
@@ -248,7 +248,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
         auto number = new wxStaticText(this, wxID_ANY, wxString::Format("%d",tray_data[i].id), wxDefaultPosition, wxDefaultSize, 0);
         number->SetFont(::Label::Body_13);
         number->Wrap(-1);
-        sizer_mapping_item->Add(number, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+        
 
         // set button
         Button *m_filament_name = new Button(this, "", wxEmptyString);
@@ -259,31 +259,29 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
         m_filament_name->SetFont(::Label::Body_12);
 
         if (tray_data[i].type == NORMAL) {
-            if (true) {
-                m_filament_name->SetLabel(tray_data[i].name);
+            m_filament_name->SetLabel(tray_data[i].name);
 
-                auto material_name_colour = tray_data[i].colour.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26,0x2E,0x30);
-                m_filament_name->SetTextColor(material_name_colour);
-                m_filament_name->SetBackgroundColor(tray_data[i].colour);
+            auto material_name_colour = tray_data[i].colour.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
+            m_filament_name->SetTextColor(material_name_colour);
+            m_filament_name->SetBackgroundColor(tray_data[i].colour);
 
-                if (tray_data[i].colour ==  *wxWHITE) {
-                    m_filament_name->SetBorderColor(wxColour(0xAC, 0xAC, 0xAC));
-                } else {
-                    m_filament_name->SetBorderColor(tray_data[i].colour);
-                }
-
-                number->SetForegroundColour(wxColour(0X6B, 0X6B, 0X6B));
-
-                m_filament_name->Bind(wxEVT_BUTTON, [this, tray_data,i](wxCommandEvent &e) {
-                    wxCommandEvent event(EVT_SET_FINISH_MAPPING);
-                    event.SetInt(tray_data[i].id);
-                    wxString param = wxString::Format("%d|%d|%d|%s",tray_data[i].colour.Red(),tray_data[i].colour.Green(),tray_data[i].colour.Blue(),tray_data[i].name);
-                    event.SetString(param);
-                    event.SetEventObject(this->GetParent());
-                    wxPostEvent(this->GetParent(), event);
-                    Dismiss();
-                });
+            if (tray_data[i].colour == *wxWHITE) {
+                m_filament_name->SetBorderColor(wxColour(0xAC, 0xAC, 0xAC));
+            } else {
+                m_filament_name->SetBorderColor(tray_data[i].colour);
             }
+
+            number->SetForegroundColour(wxColour(0X6B, 0X6B, 0X6B));
+
+            m_filament_name->Bind(wxEVT_BUTTON, [this, tray_data, i](wxCommandEvent &e) {
+                wxCommandEvent event(EVT_SET_FINISH_MAPPING);
+                event.SetInt(tray_data[i].id);
+                wxString param = wxString::Format("%d|%d|%d|%02d", tray_data[i].colour.Red(), tray_data[i].colour.Green(), tray_data[i].colour.Blue(), tray_data[i].id + 1);
+                event.SetString(param);
+                event.SetEventObject(this->GetParent());
+                wxPostEvent(this->GetParent(), event);
+                Dismiss();
+            });
         }
         
 
@@ -299,16 +297,27 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
         // third party
         if (tray_data[i].type == THIRD) {
             m_filament_name->SetLabel("?");
-            m_filament_name->SetTextColor(wxColour(0xCE, 0xCE, 0xCE));
-            m_filament_name->SetBackgroundColor(wxColour(0xEE, 0xEE, 0xEE));
-            m_filament_name->SetBorderColor(wxColour(0xEE, 0xEE, 0xEE));
+            m_filament_name->SetTextColor(*wxWHITE);
+            m_filament_name->SetBackgroundColor(wxColour(0x6B, 0x6B, 0x6B));
+            m_filament_name->SetBorderColor(wxColour(0x6B, 0x6B, 0x6B));
             number->SetForegroundColour(wxColour(0XCE, 0XCE, 0XCE));
+
+             m_filament_name->Bind(wxEVT_BUTTON, [this, tray_data, i](wxCommandEvent &e) {
+                wxCommandEvent event(EVT_SET_FINISH_MAPPING);
+                event.SetInt(tray_data[i].id);
+                wxString param = wxString::Format("%d|%d|%d|%02d", 0x6B, 0x6B, 0x6B, tray_data[i].id + 1);
+                event.SetString(param);
+                event.SetEventObject(this->GetParent());
+                wxPostEvent(this->GetParent(), event);
+                Dismiss();
+            });
         }
 
-        sizer_mapping_item->Add(m_filament_name, 1, wxALIGN_CENTER_HORIZONTAL, 0);
-        sizer_mapping_list->Add(sizer_mapping_item, 0, wxALL, FromDIP(6));
+        sizer_mapping_item->Add(number, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+        sizer_mapping_item->Add(m_filament_name, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+        sizer_mapping_list->Add(sizer_mapping_item, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(5));
     }
-    m_sizer_main->Add(sizer_mapping_list, 0, wxALL, FromDIP(6));
+    m_sizer_main->Add(sizer_mapping_list, 0, wxALIGN_CENTER_HORIZONTAL, 0);
 }
 
 void AmsMapingPopup::OnDismiss()

@@ -713,12 +713,16 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_text_load_ams_data->SetFont(::Label::Body_13);
     m_text_load_ams_data->SetForegroundColour(wxColour(0x6B, 0x6B, 0x6B));
 
-    m_error_load_ams_data = new wxStaticText(this, wxID_ANY, wxEmptyString);
+    m_error_load_ams_data = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
     m_error_load_ams_data->SetFont(::Label::Body_13);
     m_error_load_ams_data->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
+   /* m_error_load_ams_data->SetSize(wxSize(FromDIP(400), -1));
+    m_error_load_ams_data->SetMinSize(wxSize(FromDIP(400), -1));
+    m_error_load_ams_data->SetMaxSize(wxSize(FromDIP(400), -1));
+    m_error_load_ams_data->Wrap(FromDIP(400));*/
 
-    m_sizer_main->Add(m_text_load_ams_data, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(5));
-    m_sizer_main->Add(m_error_load_ams_data, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(5));
+    m_sizer_main->Add(m_text_load_ams_data, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_main->Add(m_error_load_ams_data, 0, wxALIGN_CENTER_HORIZONTAL, 0);
 
     m_text_load_ams_data->Hide();
     m_error_load_ams_data->Hide();
@@ -931,13 +935,11 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     Bind(EVT_PRINT_JOB_CANCEL, &SelectMachineDialog::on_print_job_cancel, this);
     Bind(EVT_SET_FINISH_MAPPING, &SelectMachineDialog::on_set_finish_mapping, this);
 
-    // sending_mode();
     SetSizer(m_sizer_main);
     Layout();
     Fit();
     Thaw();
 
-    // init_model();
     prepare_mode();
     init_bind();
     init_timer();
@@ -1019,6 +1021,7 @@ void SelectMachineDialog::prepare_mode()
     m_panel_warn->Hide();
     m_panel_err->Hide();
     m_simplebook->SetSelection(0);
+    Layout();
     Fit();
 }
 
@@ -1027,6 +1030,7 @@ void SelectMachineDialog::sending_mode()
     m_panel_warn->Hide();
     m_panel_err->Hide();
     m_simplebook->SetSelection(1);
+    Layout();
     Fit();
 }
 
@@ -1035,6 +1039,7 @@ void SelectMachineDialog::finish_mode()
     m_panel_warn->Hide();
     m_panel_err->Hide();
     m_simplebook->SetSelection(2);
+    Layout();
     Fit();
 }
 
@@ -1054,6 +1059,8 @@ void SelectMachineDialog::update_warn_msg(wxString msg)
             Fit();
         }
     }
+    m_error_load_ams_data->SetMinSize(wxSize(FromDIP(400), -1));
+    m_error_load_ams_data->Wrap(FromDIP(400));
 }
 
 void SelectMachineDialog::update_err_msg(wxString msg)
@@ -1091,7 +1098,6 @@ void SelectMachineDialog::init_model()
 void SelectMachineDialog::init_bind()
 {
     Bind(wxEVT_TIMER, &SelectMachineDialog::on_timer, this);
-    // m_dataViewListCtrl_machines->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, &SelectMachineDialog::on_selection_changed, this);
 }
 
 void SelectMachineDialog::init_timer()
@@ -1392,7 +1398,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         return;
     }
 
-     if (timeout_count > 10 * 1000 / LIST_REFRESH_INTERVAL) {
+     if (timeout_count > 10 * 1000) {
         /* timeout display timeout info */
         // TODO
         // display info and disable print, retry
@@ -1435,12 +1441,43 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         if (obj_->has_ams()) {
             if (m_ams_mapping_result.empty()) {
                 obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result);
-                wxString mapping_text = "ams mapping result=";
+                //wxString mapping_text = "ams mapping result=";
                 for (auto f = m_ams_mapping_result.begin(); f != m_ams_mapping_result.end(); f++) {
                     BOOST_LOG_TRIVIAL(trace) << "ams_mapping f id = " << f->id << ", tray_id = " << f->tray_id << ", color = " << f->color << ", type = " << f->type;
-                    mapping_text += wxString::Format("F%d:AMS%d, ", f->id, f->tray_id);
+                    //mapping_text += wxString::Format("F%d:AMS%d, ", f->id, f->tray_id);
+
+                    MaterialHash::iterator iter = m_materialList.begin();
+                    while (iter != m_materialList.end()) {
+                        int           id   = iter->first;
+                        Material *    item = iter->second;
+                        MaterialItem *m    = item->item;
+
+                        if (f->id == id) {
+                            //auto ams_colour = wxColour(wxAtoi(colours_arr[0]), wxAtoi(colours_arr[1]), wxAtoi(colours_arr[2]));
+                            
+
+                            wxString ams_id = "-";
+                            wxColour ams_col = wxColour(0xEE, 0xEE, 0xEE);
+
+                            if (f->tray_id > 0) { 
+                                ams_id = wxString::Format("%02d", f->tray_id);
+                            }
+
+                            if (!f->color.empty()) { 
+                                ams_col = AmsTray::decode_color(f->color);
+                            }
+
+                            m->set_ams_info(ams_col, ams_id);
+                            break;
+                        }
+
+                        iter++;
+                    }
                 }
-                // update_warn_msg(mapping_text);
+
+                wxString tips = _L("The mapping of \"Consumable wire List =>AMS slot\" has been automatically established.\n");
+                //tips += _L("If you need to modify, click the specific consumable wire above to manually set the MAPPED AMS slot."); 
+                update_warn_msg(tips);
             }
         }
 
@@ -1479,6 +1516,17 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
             update_select_layout(m_list[i]->printer_type);
             break;
         }
+    }
+
+    MaterialHash::iterator iter = m_materialList.begin();
+    while (iter != m_materialList.end()) {
+        int           id   = iter->first;
+        Material *    item = iter->second;
+        MaterialItem *m    = item->item;
+        wxString ams_id  = "-";
+        wxColour ams_col = wxColour(0xEE, 0xEE, 0xEE);
+        m->set_ams_info(ams_col, ams_id);
+        iter++;
     }
 }
 
@@ -1532,41 +1580,13 @@ wxImage *SelectMachineDialog::LoadImageFromBlob(const unsigned char *data, int s
     return NULL;
 }
 
-bool SelectMachineDialog::Show(bool show)
+void SelectMachineDialog::set_default() 
 {
-    // TODO set default value when show this dialog
-    // set_default();
-
     // adjust refresh button
     Enable_Refresh_Button(true);
 
     // adjust combox
     m_comboBox_printer->Enable();
-
-    BBL::BambuNetworkAgent *agent = Slic3r::GUI::wxGetApp().getAgent();
-    if (agent) {
-        if (show)
-            agent->start_subscribe("send_print");
-        else
-            agent->stop_subscribe("send_print");
-
-        if (agent->is_user_login()) {
-            boost::thread get_print_info_thread = Slic3r::create_thread([this] {
-                DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-                dev->update_user_machine_list_info();
-
-                wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
-                event.SetEventObject(this);
-                wxPostEvent(this, event);
-            });
-        }
-
-        if (show) {
-            agent->start_discovery(true, true);
-        } else {
-            agent->start_discovery(false, false);
-        }
-    }
 
     // thumbmail
     Freeze();
@@ -1608,8 +1628,7 @@ bool SelectMachineDialog::Show(bool show)
     }
 
     // material info
-    auto extruders = m_plater->get_partplate_list().get_curr_plate()->get_extruders();
-    // auto materials      = wxGetApp().preset_bundle->filament_presets;
+    auto        extruders = m_plater->get_partplate_list().get_curr_plate()->get_extruders();
     BitmapCache bmcache;
 
     MaterialHash::iterator iter = m_materialList.begin();
@@ -1631,8 +1650,8 @@ bool SelectMachineDialog::Show(bool show)
         unsigned char rgb[3];
         bmcache.parse_color(colour, rgb);
 
-        auto colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2]);
-        MaterialItem *item = new MaterialItem(this, colour_rgb, _L(materials[extruder]));
+        auto          colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2]);
+        MaterialItem *item       = new MaterialItem(this, colour_rgb, _L(materials[extruder]));
         m_sizer_material->Add(item, 0, wxLEFT | wxRIGHT, FromDIP(5));
 
         // item->Layout();
@@ -1715,7 +1734,39 @@ bool SelectMachineDialog::Show(bool show)
     m_checkbox_list["layer_inspect"]->SetValue(true);
 
     prepare_mode();
-    // sending_mode();
+}
+
+bool SelectMachineDialog::Show(bool show)
+{
+    // TODO set default value when show this dialog
+    if (show) { 
+        set_default();
+    }
+
+    BBL::BambuNetworkAgent *agent = Slic3r::GUI::wxGetApp().getAgent();
+    if (agent) {
+        if (show)
+            agent->start_subscribe("send_print");
+        else
+            agent->stop_subscribe("send_print");
+
+        if (agent->is_user_login()) {
+            boost::thread get_print_info_thread = Slic3r::create_thread([this] {
+                DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+                dev->update_user_machine_list_info();
+
+                wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
+                event.SetEventObject(this);
+                wxPostEvent(this, event);
+            });
+        }
+
+        if (show) {
+            agent->start_discovery(true, true);
+        } else {
+            agent->start_discovery(false, false);
+        }
+    }
 
     if (show) {
         m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
