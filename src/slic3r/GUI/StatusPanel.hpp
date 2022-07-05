@@ -5,6 +5,7 @@
 #include "DeviceManager.hpp"
 #include "MonitorPage.hpp"
 #include "SliceInfoPanel.hpp"
+#include "CameraPopup.hpp"
 #include "GUI.hpp"
 #include <wx/panel.h>
 #include <wx/bitmap.h>
@@ -58,6 +59,7 @@ protected:
     wxBitmap m_bitmap_fan_on;
     wxBitmap m_bitmap_fan_off;
     wxBitmap m_bitmap_extruder;
+    wxBitmap m_bitmap_camera;
 
     /* title panel */
     wxPanel *       media_ctrl_panel;
@@ -67,7 +69,9 @@ protected:
 
     wxStaticText *  m_staticText_monitoring;
     wxStaticText *  m_staticText_timelapse;
+    wxStaticBitmap* m_bitmap_camera_img;
     SwitchButton *  m_bmToggleBtn_timelapse;
+
 
     wxMediaCtrl2 *  m_media_ctrl;
     MediaPlayCtrl * m_media_play_ctrl;
@@ -192,6 +196,7 @@ private:
 protected:
     std::shared_ptr<SliceInfoPopup> m_slice_info_popup;
     std::shared_ptr<ImageTransientPopup> m_image_popup;
+    std::shared_ptr<CameraPopup> m_camera_popup;
     std::vector<SliceInfoPanel *> slice_info_list;
     AMSSetting *m_ams_setting_dlg{nullptr};
     CalibrationDialog*   calibration_dlg{nullptr};
@@ -255,6 +260,8 @@ protected:
     void on_nozzle_fan_switch(wxCommandEvent &event);
     void on_thumbnail_enter(wxMouseEvent &event);
     void on_thumbnail_leave(wxMouseEvent &event);
+    void on_camera_enter(wxMouseEvent& event);
+    void on_camera_leave(wxMouseEvent& event);
     void on_auto_leveling(wxCommandEvent &event);
     void on_xyz_abs(wxCommandEvent &event);
 

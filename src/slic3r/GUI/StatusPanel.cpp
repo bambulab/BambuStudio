@@ -165,7 +165,9 @@ void StatusBasePanel::init_bitmaps()
     m_bitmap_speed           = create_scaled_bitmap("monitor_speed", nullptr, 24);
     m_thumbnail_placeholder  = create_scaled_bitmap("monitor_placeholder", nullptr, 120);
     m_thumbnail_sdcard       = create_scaled_bitmap("monitor_sdcard_thumbnail", nullptr, 120);
+    m_bitmap_camera          = create_scaled_bitmap("monitor_camera", nullptr, 18);
     m_bitmap_extruder        = *cache.load_png("monitor_extruder", FromDIP(28), FromDIP(70), false, false);
+    
 }
 
 wxBoxSizer *StatusBasePanel::create_monitoring_page()
@@ -197,6 +199,10 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_bmToggleBtn_timelapse->SetMinSize(SWITCH_BUTTON_SIZE);
     m_bmToggleBtn_timelapse->Hide();
     bSizer_monitoring_title->Add(m_bmToggleBtn_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    
+    m_bitmap_camera_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, m_bitmap_camera , wxDefaultPosition, wxSize(FromDIP(32), FromDIP(18)), 0);
+    m_bitmap_camera_img->SetMinSize(wxSize(FromDIP(32), FromDIP(18)));
+    bSizer_monitoring_title->Add(m_bitmap_camera_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     bSizer_monitoring_title->Add(FromDIP(13), 0, 0);
 
     m_panel_monitoring_title->SetSizer(bSizer_monitoring_title);
@@ -897,6 +903,8 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     // Connect Events
     m_bitmap_thumbnail->Connect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_enter), NULL, this);
     m_bitmap_thumbnail->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
+    m_bitmap_camera_img->Connect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
+    //m_bitmap_camera_img->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_camera_leave), NULL, this);
     m_project_task_panel->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
 
     m_button_pause_resume->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
@@ -932,6 +940,8 @@ StatusPanel::~StatusPanel()
     // Disconnect Events
     m_bitmap_thumbnail->Disconnect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_enter), NULL, this);
     m_bitmap_thumbnail->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
+    m_bitmap_camera_img->Disconnect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
+    //m_bitmap_camera_img->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_camera_leave), NULL, this);
     m_button_pause_resume->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
     m_tempCtrl_bed->Disconnect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_kill_focus), NULL, this);
@@ -1447,6 +1457,7 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
 
     // update subtask static info
     if (last_subtask != obj->subtask_) {
+        reset_printing_values();
         BOOST_LOG_TRIVIAL(trace) << "monitor: change to sub task id = " << obj->subtask_->task_id;
         if (web_request.IsOk()) web_request.Cancel();
         m_start_loading_thumbnail = true;
@@ -1856,6 +1867,25 @@ void StatusPanel::on_thumbnail_leave(wxMouseEvent &event)
     }
 }
 
+void StatusPanel::on_camera_enter(wxMouseEvent& event)
+{
+    if (obj) {
+        m_camera_popup = std::make_shared<CameraPopup>(this, obj);
+        wxWindow* ctrl = (wxWindow*)event.GetEventObject();
+        wxPoint   pos = ctrl->ClientToScreen(wxPoint(0, 0));
+        wxSize    sz = ctrl->GetSize();
+        m_camera_popup->Position(pos, wxSize(sz.x, sz.y));
+        m_camera_popup->Popup();
+    }
+}
+
+void StatusPanel::on_camera_leave(wxMouseEvent& event)
+{
+    if (obj && m_camera_popup) {
+        m_camera_popup->Dismiss();
+    }
+}
+
 void StatusPanel::on_auto_leveling(wxCommandEvent &event)
 {
     if (obj) obj->command_auto_leveling();
@@ -1978,6 +2008,9 @@ void StatusPanel::msw_rescale()
         slice_info_list[i]->SetImages(m_bitmap_item_prediction, m_bitmap_item_cost, m_bitmap_item_print);
         slice_info_list[i]->msw_rescale();
     }
+
+    m_bitmap_camera_img->SetBitmap(m_bitmap_camera);
+    m_bitmap_camera_img->SetMinSize(wxSize(FromDIP(32), FromDIP(18)));
 
     m_bpButton_xy->Rescale();
     m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE);

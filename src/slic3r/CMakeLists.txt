@@ -216,6 +216,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/StatusPanel.hpp
     GUI/SliceInfoPanel.cpp
     GUI/SliceInfoPanel.hpp
+    GUI/CameraPopup.cpp
+    GUI/CameraPopup.hpp
     GUI/Monitor.cpp
     GUI/Monitor.hpp
     GUI/WebViewDialog.cpp

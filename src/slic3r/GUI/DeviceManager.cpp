@@ -1670,7 +1670,7 @@ int MachineObject::parse_json(std::string payload)
                         }
                     }
                     if (jj["ipcam"].contains("timelapse")) {
-                        if (jj["ipcam"]["ipcam_record"].get<std::string>() == "enable") {
+                        if (jj["ipcam"]["timelapse"].get<std::string>() == "enable") {
                             camera_timelapse = true;
                         } else {
                             camera_timelapse = false;
@@ -1716,6 +1716,24 @@ int MachineObject::parse_json(std::string payload)
                         if ((*it).contains("hw_ver"))
                             ver_info.hw_ver = (*it)["hw_ver"].get<std::string>();
                         module_vers.emplace(ver_info.name, ver_info);
+                    }
+                }
+            }
+        } catch (...) {}
+
+        try {
+            if (j.contains("camera")) {
+                if (j["camera"].contains("command")) {
+                    if (j["camera"]["command"].get<std::string>() == "ipcam_timelapse") {
+                        if (j["camera"]["control"].get<std::string>() == "enable")
+                            this->camera_timelapse = true;
+                        if (j["camera"]["control"].get<std::string>() == "disable")
+                            this->camera_timelapse = false;
+                    } else if (j["camera"]["command"].get<std::string>() == "ipcam_record_set") {
+                        if (j["camera"]["control"].get<std::string>() == "enable")
+                            this->camera_recording = true;
+                        if (j["camera"]["control"].get<std::string>() == "disable")
+                            this->camera_recording = false;
                     }
                 }
             }
@@ -1913,9 +1931,6 @@ int MachineObject::parse_json(std::string payload)
                                 boost::optional<std::string> nozzle_temp_max   = tray->second.get_optional<std::string>("nozzle_temp_max");
                                 boost::optional<std::string> nozzle_temp_min   = tray->second.get_optional<std::string>("nozzle_temp_min");
 
-                                boost::optional<std::string> hot_end_temp_max   = tray->second.get_optional<std::string>("hot_end_temp_max");
-                                boost::optional<std::string> hot_end_temp_limit = tray->second.get_optional<std::string>("hot_end_temp_limit");
-
                                 boost::optional<std::string> xcam_info          = tray->second.get_optional<std::string>("xcam_info");
                                 boost::optional<std::string> tray_uuid          = tray->second.get_optional<std::string>("tray_uuid");
 
@@ -1948,12 +1963,8 @@ int MachineObject::parse_json(std::string payload)
                                     curr_tray->bed_temp      = bed_temp.has_value() ? bed_temp.value() : "";
                                     if (nozzle_temp_max.has_value())
                                         curr_tray->nozzle_temp_max = nozzle_temp_max.value();
-                                    if (hot_end_temp_max.has_value())
-                                        curr_tray->nozzle_temp_max = nozzle_temp_max.value();
                                     if (nozzle_temp_min.has_value())
                                         curr_tray->nozzle_temp_min = nozzle_temp_min.value();
-                                    if (hot_end_temp_limit.has_value())
-                                        curr_tray->nozzle_temp_min = hot_end_temp_limit.value();
                                     curr_tray->xcam_info          = xcam_info.has_value() ? xcam_info.value() : "";
                                     curr_tray->uuid               = tray_uuid.has_value() ? tray_uuid.value() : "";
                                     auto color = tray_color.has_value() ? tray_color.value() : "";
