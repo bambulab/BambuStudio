@@ -786,14 +786,7 @@ void AuxiliaryPanel::on_import_file(wxCommandEvent &event)
 
     if (file_model == s_default_folders[MODEL_PICTURE]) {
         //wildcard = wxT("JPEG files (*.jpeg)|*.jpeg|BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif|PNG files (*.png)|*.png|JPG files (*.jpg)|*.jpg");
-
-        #ifdef __APPLE__
-        wildcard = wxT("files (*.png;*.bmp)|*.png;*.bmp");
-        #else
         wildcard = wxT("files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp");
-        #endif
-
-        
     } 
 
     if (file_model == s_default_folders[OTHERS]) {  wildcard = wxT("TXT files (*.txt)|*.txt"); }
