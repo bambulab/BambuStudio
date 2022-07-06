@@ -586,6 +586,12 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
             ${CMAKE_PREFIX_PATH}/bin/bambu_networking.dll
         DESTINATION ${_out_dir})
 
+    if (${config} STREQUAL "Debug")
+        file(COPY ${CMAKE_PREFIX_PATH}/bin/Debug/bambu_networking.dll DESTINATION ${_out_dir})
+    else ()
+        file(COPY ${CMAKE_PREFIX_PATH}/bin/bambu_networking.dll DESTINATION ${_out_dir})
+    endif ()
+
     file(COPY ${CMAKE_PREFIX_PATH}/bin/occt/TKBO.dll
             ${CMAKE_PREFIX_PATH}/bin/occt/TKBRep.dll
             ${CMAKE_PREFIX_PATH}/bin/occt/TKCAF.dll
