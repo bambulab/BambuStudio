@@ -1277,6 +1277,8 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
     dyn_config.set_key_value("x_after_toolchange", new ConfigOptionFloat(50.));
     dyn_config.set_key_value("y_after_toolchange", new ConfigOptionFloat(50.));
     dyn_config.set_key_value("z_after_toolchange", new ConfigOptionFloat(10.));
+    dyn_config.set_key_value("first_flush_volume", new ConfigOptionFloat(5.f));
+    dyn_config.set_key_value("second_flush_volume", new ConfigOptionFloat(5.f));
     dyn_config.set_key_value("flush_length_1", new ConfigOptionFloat(5.f));
     dyn_config.set_key_value("flush_length_2", new ConfigOptionFloat(5.f));
     dyn_config.set_key_value("flush_length_3", new ConfigOptionFloat(0.f));

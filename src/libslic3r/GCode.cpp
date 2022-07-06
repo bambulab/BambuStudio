@@ -361,8 +361,7 @@ bool GCode::gcode_label_objects = false;
                 config.set_key_value("first_flush_volume", new ConfigOptionFloat(purge_length / 2.f));
                 config.set_key_value("second_flush_volume", new ConfigOptionFloat(purge_length / 2.f));
 
-                //int flush_count = std::min(g_max_flush_count, (int)std::round(purge_volume / g_purge_volume_one_time));
-                int flush_count = 4;
+                int flush_count = std::min(g_max_flush_count, (int)std::round(purge_volume / g_purge_volume_one_time));
                 float flush_unit = purge_length / flush_count;
                 int flush_idx = 0;
                 for (; flush_idx < flush_count; flush_idx++) {

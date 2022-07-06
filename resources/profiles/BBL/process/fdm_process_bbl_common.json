@@ -96,7 +96,7 @@
     "travel_speed": "400",
     "enable_prime_tower": "1",
     "wipe_tower_no_sparse_layers": "0",
-    "prime_tower_width": "30",
+    "prime_tower_width": "35",
     "xy_hole_compensation": "0",
     "xy_contour_compensation": "0"
 }

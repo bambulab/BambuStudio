@@ -42,7 +42,7 @@ static void update_ui(wxWindow* window)
 #define style wxSP_ARROW_KEYS
 #endif
 
-static const float g_max_flush_volume = 720.f;
+static const float g_max_flush_volume = 750.f;
 
 wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
 {
@@ -453,14 +453,14 @@ int WipingPanel::calc_flushing_volume(const wxColour& from, const wxColour& to)
 
     // 1. Color difference is more obvious if the dest color has high luminance
     // 2. Color difference is more obvious if the source color has low luminance
-    // TODO: for lumi factor, consider source lumi is higher than dest lumi
     float from_lumi = get_luminance((float)from.Red() / 255.f, (float)from.Green() / 255.f, (float)from.Blue() / 255.f);
     float to_lumi = get_luminance((float)to.Red() / 255.f, (float)to.Green() / 255.f, (float)to.Blue() / 255.f);
-    float lumi_factor = std::pow(to_lumi, 1.25f) * 3.6f + 0.6f;
+    float lumi_factor = to_lumi * 2.9f + 0.6f;
     float lumi_extra = 0.f;
     if (to_lumi > from_lumi) {
-        lumi_extra = std::pow(1.f - from_lumi, 1.1f) * (to_lumi - from_lumi) * 1.2f;
+        lumi_extra = std::pow(1.f - from_lumi, 1.5f) * (to_lumi - from_lumi) * 3.f;
     }
+
     lumi_factor = lumi_factor + lumi_extra;
 
     // Get user input flushing multiplier

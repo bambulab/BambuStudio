@@ -2482,7 +2482,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm³");
     def->min = 0;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloat(30.));
+    def->set_default_value(new ConfigOptionFloat(45.));
 
     def = this->add("wipe_tower_x", coFloats);
     //def->label = L("Position X");
@@ -2505,7 +2505,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Width of prime tower");
     def->sidetext = L("mm");
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloat(25.));
+    def->set_default_value(new ConfigOptionFloat(35.));
 
     def = this->add("wipe_tower_rotation_angle", coFloat);
     //def->label = L("Wipe tower rotation angle");
