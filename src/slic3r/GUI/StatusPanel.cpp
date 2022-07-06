@@ -1481,12 +1481,8 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
 
     // update subtask name
     wxString subtask_text;
-    if (!obj->subtask_name.empty()) {
-        subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
-    }
-    else {
-        subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_->task_name));
-    }
+    subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
+    
     m_staticText_subtask_value->SetLabelText(subtask_text);
 
     m_gauge_progress->SetValue(obj->subtask_->task_progress);
@@ -1497,10 +1493,8 @@ void StatusPanel::update_sdcard_subtask(MachineObject *obj)
 {
     if (!obj) return;
 
-    if (!obj->subtask_name.empty()) {
-        wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
-        m_staticText_subtask_value->SetLabelText(subtask_text);
-    }
+    wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
+    m_staticText_subtask_value->SetLabelText(subtask_text);
 
     if (!m_load_sdcard_thumbnail) {
         m_bitmap_thumbnail->SetBitmap(m_thumbnail_sdcard);

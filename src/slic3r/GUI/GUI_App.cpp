@@ -1204,6 +1204,15 @@ GUI_App::GUI_App()
 
         m_agent->set_on_local_connect_fn(
             [this](int state, std::string dev_id, std::string msg) {
+                /* request_pushing */
+                MachineObject* obj = m_device_manager->get_my_machine(dev_id);
+                if (obj) {
+                    if (obj->is_lan_mode_printer()) {
+                        obj->command_request_push_all();
+                        obj->command_get_version();
+                    }
+                }
+
                 if (mainframe->m_debug_tool_dlg) {
                     mainframe->m_debug_tool_dlg->on_local_connected(state, dev_id, msg);
                 }

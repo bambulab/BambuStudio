@@ -11,6 +11,7 @@
 #include "Widgets/ProgressDialog.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
+#include "ConnectPrinter.hpp"
 
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
@@ -23,8 +24,8 @@
 
 namespace Slic3r { namespace GUI {
 
-wxDEFINE_EVENT(EVT_FINISHED_UPDATE_MACHINE_LIST, wxCommandEvent);
-wxDEFINE_EVENT(EVT_REQUEST_BIND_LIST, wxCommandEvent);
+wxDEFINE_EVENT(EVT_UPDATE_USER_MACHINE_LIST, wxCommandEvent);
+wxDEFINE_EVENT(EVT_UPDATE_OTHER_MACHINE_LIST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_JOB_CANCEL, wxCommandEvent);
 
 #define INITIAL_NUMBER_OF_MACHINES 0
@@ -93,21 +94,14 @@ MachineObjectPanel::MachineObjectPanel(wxWindow *parent, wxWindowID id, const wx
 
     SetBackgroundColour(*wxWHITE);
 
-    // ams_placeholder_img = create_scaled_bitmap("machine_object_ams", nullptr, 27);
-    m_printing_img = create_scaled_bitmap("machine_object_printing", nullptr, 12);
-    m_owner_img    = create_scaled_bitmap("machine_object_owner", nullptr, 10);
-
     m_unbind_img        = create_scaled_bitmap("unbind", nullptr, 18);
     m_edit_name_img     = create_scaled_bitmap("edit_button", nullptr, 18);
     m_select_unbind_img = create_scaled_bitmap("unbind_selected", nullptr, 18);
-    /*m_wifi_none_img     = create_scaled_bitmap("monitor_signal_no", nullptr, 18);
-    m_wifi_weak_img     = create_scaled_bitmap("monitor_signal_weak", nullptr, 18);
-    m_wifi_middle_img   = create_scaled_bitmap("monitor_signal_middle", nullptr, 18);
-    m_wifi_strong_img   = create_scaled_bitmap("monitor_signal_strong", nullptr, 18);*/
 
-    m_printer_statue_offline = create_scaled_bitmap("printer_statue_offline", nullptr, 15);
-    m_printer_statue_busy    = create_scaled_bitmap("printer_statue_busy", nullptr, 15);
-    m_printer_statue_idle    = create_scaled_bitmap("printer_statue_idle", nullptr, 15);
+    m_printer_status_offline = create_scaled_bitmap("printer_status_offline", nullptr, 16);
+    m_printer_status_busy    = create_scaled_bitmap("printer_status_busy", nullptr, 16);
+    m_printer_status_idle    = create_scaled_bitmap("printer_status_idle", nullptr, 16);
+    m_printer_status_lock    = create_scaled_bitmap("printer_status_lock", nullptr, 16);
     m_printer_in_lan         = create_scaled_bitmap("printer_in_lan", nullptr, 16);
 
     this->Bind(wxEVT_ENTER_WINDOW, &MachineObjectPanel::on_mouse_enter, this);
@@ -138,98 +132,46 @@ void MachineObjectPanel::show_unbind_dialog()
 
 void MachineObjectPanel::show_bind_dialog()
 {
-    BindMachineDilaog dlg;
-    dlg.update_machine_info(m_info);
-    switch (dlg.ShowModal()) {
-    case wxID_YES: {
-        break;
-    }
-
-    case wxID_NO: {
-        break;
-    }
-
-    default:;
-    }
-}
-
-void MachineObjectPanel::show_enter_accesscode_dialog()
-{
-    wxString pwd = wxGetPasswordFromUser("Enter Access Code:", "Access Code entry dialog", wxEmptyString, this);
-    if (!pwd.empty()) { wxMessageBox(wxString::Format("Your access code is '%s'", pwd), "Got Access Code", wxOK | wxICON_INFORMATION, this); }
-
-    std::string pwd_str = pwd.ToStdString();
-
-    // save to app_config
-    if (m_info) {
-        m_info->access_code = pwd_str;
-        // update config
-        get_app_config()->set_str("access_code", m_info->dev_id, pwd_str);
-    }
-}
-
-void MachineObjectPanel::set_printer_idle()
-{
-    m_state = PrinterState::IDLE;
-    Refresh();
-}
-
-void MachineObjectPanel::set_printer_busy()
-{
-    m_state = PrinterState::BUSY;
-    Refresh();
-}
-
-void MachineObjectPanel::set_printer_offline()
-{
-    m_state = PrinterState::OFFLINE;
-    Refresh();
-}
-
-void MachineObjectPanel::set_printer_in_lan()
-{
-    m_state = PrinterState::IN_LAN;
-    Refresh();
-}
-
-
-void MachineObjectPanel::set_printer_unbind()
-{
-    m_showunbind = true;
-    Refresh();
-}
-
-// bbs 0-nowifi 1-weak 2-middle 3-strong
-void MachineObjectPanel::set_printer_wifi()
-{
-    m_showunbind         = false;
-    auto wifi_signal     = m_info->wifi_signal;
-    int  wifi_signal_val = 0;
-    if (!wifi_signal.empty() && boost::ends_with(wifi_signal, "dBm")) {
-        try {
-            wifi_signal_val = std::stoi(wifi_signal.substr(0, wifi_signal.size() - 3));
-        } catch (...) {
-            ;
+    if (wxGetApp().is_user_login()) {
+        BindMachineDilaog dlg;
+        dlg.update_machine_info(m_info);
+        switch (dlg.ShowModal()) {
+        case wxID_YES: {
+            break;
         }
 
-        if (m_last_wifi_signal != wifi_signal_val) {
-            if (wifi_signal_val > -45) {
-                m_wifi_type = 3;
-            } else if (wifi_signal_val <= -45 && wifi_signal_val >= -60) {
-                m_wifi_type = 2;
-            } else {
-                m_wifi_type = 1;
-            }
+        case wxID_NO: {
+            break;
         }
-        m_last_wifi_signal = wifi_signal_val;
-    } else {
-        m_wifi_type = 1;
+
+        default:;
+        }
+    }
+}
+
+void MachineObjectPanel::set_printer_state(PrinterState state) 
+{ 
+    if (m_state == PrinterState::IN_LAN || m_state == PrinterState::LOCK) {
+        show_printer_bind(false, PrinterBindState::NONE);
+        show_edit_printer_name(false);
     }
 
+    m_state = state; 
     Refresh();
 }
 
-void MachineObjectPanel::set_can_bind(bool canbind) { m_state_can_bind = canbind; }
+void MachineObjectPanel::show_edit_printer_name(bool show) 
+{
+    m_show_edit = show;
+    Refresh();
+}
+
+void MachineObjectPanel::show_printer_bind(bool show, PrinterBindState state)
+{
+    m_show_bind   = show;
+    m_bind_state  = state;
+    Refresh();
+}
 
 void MachineObjectPanel::OnPaint(wxPaintEvent &event)
 {
@@ -264,10 +206,11 @@ void MachineObjectPanel::doRender(wxDC &dc)
     wxSize size = GetSize();
     dc.SetPen(*wxTRANSPARENT_PEN);
 
-    auto dwbitmap = m_printer_statue_offline;
-    if (m_state == PrinterState::IDLE) { dwbitmap = m_printer_statue_idle; }
-    if (m_state == PrinterState::BUSY) { dwbitmap = m_printer_statue_busy; }
-    if (m_state == PrinterState::OFFLINE) { dwbitmap = m_printer_statue_offline; }
+    auto dwbitmap = m_printer_status_offline;
+    if (m_state == PrinterState::IDLE) { dwbitmap = m_printer_status_idle; }
+    if (m_state == PrinterState::BUSY) { dwbitmap = m_printer_status_busy; }
+    if (m_state == PrinterState::OFFLINE) { dwbitmap = m_printer_status_offline; }
+    if (m_state == PrinterState::LOCK) { dwbitmap = m_printer_status_lock; }
     if (m_state == PrinterState::IN_LAN) { dwbitmap = m_printer_in_lan; }
 
     // dc.DrawCircle(left, size.y / 2, 3);
@@ -277,8 +220,10 @@ void MachineObjectPanel::doRender(wxDC &dc)
     dc.SetFont(Label::Body_13);
     dc.SetBackgroundMode(wxTRANSPARENT);
     dc.SetTextForeground(SELECT_MACHINE_GREY900);
-
-    auto        dev_name     = from_u8(m_info->dev_name).ToStdString();
+    std::string dev_name;
+    if (m_info) {
+        dev_name = from_u8(m_info->dev_name).ToStdString();
+    }
     auto        sizet        = dc.GetTextExtent(dev_name);
     auto        text_end     = size.x - m_unbind_img.GetSize().x - 30;
     std::string finally_name = dev_name;
@@ -295,28 +240,21 @@ void MachineObjectPanel::doRender(wxDC &dc)
 
     dc.DrawText(finally_name, wxPoint(left, (size.y - sizet.y) / 2));
 
-    if (m_showunbind) {
-        left = size.x - m_unbind_img.GetSize().x - 6 - m_edit_name_img.GetSize().x - 6;
-        dc.DrawBitmap(m_edit_name_img, left, (size.y - m_edit_name_img.GetSize().y) / 2);
-
-        left = size.x - m_unbind_img.GetSize().x - 6;
-        if (!m_select_unbind) {
-            dc.DrawBitmap(m_unbind_img, left, (size.y - m_unbind_img.GetSize().y) / 2);
-        } else {
-            dc.DrawBitmap(m_select_unbind_img, left, (size.y - m_unbind_img.GetSize().y) / 2);
-        }
-
-    } else {
-        /*if (m_wifi_type == 0) dc.DrawBitmap(m_wifi_none_img, left, (size.y - m_unbind_img.GetSize().y) / 2);
-        if (m_wifi_type == 1) dc.DrawBitmap(m_wifi_weak_img, left, (size.y - m_unbind_img.GetSize().y) / 2);
-        if (m_wifi_type == 2) dc.DrawBitmap(m_wifi_middle_img, left, (size.y - m_unbind_img.GetSize().y) / 2);
-        if (m_wifi_type == 3) dc.DrawBitmap(m_wifi_strong_img, left, (size.y - m_unbind_img.GetSize().y) / 2);*/
-    }
-
     if (m_hover) {
         dc.SetPen(SELECT_MACHINE_BRAND);
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRectangle(0, 0, size.x, size.y);
+
+        if (m_show_bind) {
+            if (m_bind_state == ALLOW_UNBIND) { 
+                left = size.x - m_unbind_img.GetSize().x - 6;
+                dc.DrawBitmap(m_select_unbind_img, left, (size.y - m_unbind_img.GetSize().y) / 2); } 
+        }
+
+        if (m_show_edit) {
+            left = size.x - m_unbind_img.GetSize().x - 6 - m_edit_name_img.GetSize().x - 6;
+            dc.DrawBitmap(m_edit_name_img, left, (size.y - m_edit_name_img.GetSize().y) / 2);
+        }
     }
 }
 
@@ -324,31 +262,18 @@ void MachineObjectPanel::update_machine_info(/*std::string dev_id, wxString dev_
 {
     m_info = info;
     // m_info->can_abort() ? set_printer_busy() : set_printer_idle();
-
-    set_printer_wifi();
     Refresh();
 }
 
 void MachineObjectPanel::on_mouse_enter(wxMouseEvent &evt)
 {
     m_hover = true;
-    /* if (!m_info->can_abort()) {
-         set_printer_unbind();
-     } else {
-         set_printer_wifi();
-     }*/
-    if (!m_state_can_bind) {
-        set_printer_unbind();
-    } else {
-        set_printer_wifi();
-    }
     Refresh();
 }
 
 void MachineObjectPanel::on_mouse_leave(wxMouseEvent &evt)
 {
     m_hover = false;
-    set_printer_wifi();
     Refresh();
 }
 
@@ -359,7 +284,8 @@ void MachineObjectPanel::on_mouse_left_down(wxMouseEvent &evt)
     auto top    = (GetSize().y - m_unbind_img.GetSize().y) / 2;
     auto bottom = (GetSize().y - m_unbind_img.GetSize().y) / 2 + m_unbind_img.GetSize().y;
 
-    if ((evt.GetPosition().x >= left && evt.GetPosition().x <= right) && evt.GetPosition().y >= top && evt.GetPosition().y <= bottom) { m_select_unbind = true; }
+    if ((evt.GetPosition().x >= left && evt.GetPosition().x <= right) && evt.GetPosition().y >= top && evt.GetPosition().y <= bottom) {
+    }
 
     Refresh();
     evt.Skip();
@@ -367,16 +293,7 @@ void MachineObjectPanel::on_mouse_left_down(wxMouseEvent &evt)
 
 void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
 {
-    if (m_state_can_bind) {
-        if (m_info->connection_type() != "lan") {
-            show_bind_dialog();
-        } else {
-            show_enter_accesscode_dialog();
-        }
-
-        wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
-    } else {
-        // edit
+    if (m_show_edit) {
         auto edit_left   = GetSize().x - m_unbind_img.GetSize().x - 6 - m_edit_name_img.GetSize().x - 6;
         auto edit_right  = edit_left + m_edit_name_img.GetSize().x;
         auto edit_top    = (GetSize().y - m_edit_name_img.GetSize().y) / 2;
@@ -385,29 +302,32 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
             EditDevNameDialog dlg;
             dlg.set_machine_obj(m_info);
             dlg.ShowModal();
+            return;
         }
+    }
 
-
-        //unbind
+    if (m_show_bind) {
         auto left   = GetSize().x - m_unbind_img.GetSize().x - 6;
         auto right  = left + m_unbind_img.GetSize().x;
         auto top    = (GetSize().y - m_unbind_img.GetSize().y) / 2;
         auto bottom = (GetSize().y - m_unbind_img.GetSize().y) / 2 + m_unbind_img.GetSize().y;
 
-        /* left -= 20;
-         right += 50;
-         top -= 20;
-         bottom += 20;*/
-
         if ((evt.GetPosition().x >= left && evt.GetPosition().x <= right) && evt.GetPosition().y >= top && evt.GetPosition().y <= bottom) {
-            show_unbind_dialog();
+            if (m_bind_state == PrinterBindState::ALLOW_UNBIND) { 
+                if (m_state == PrinterState::IN_LAN) {
+                    m_info->access_code = "";
+                    wxGetApp().app_config->set_str("access_code", m_info->dev_id, "");
+                    //clean device
+                } else {
+                    show_unbind_dialog(); 
+                }
+            }
         } else {
-            m_select_unbind = false;
             wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
             wxGetApp().mainframe->SetFocus();
         }
+        return;
     }
-    evt.Skip();
 }
 
 wxIMPLEMENT_CLASS(SelectMachinePopup, wxPopupTransientWindow);
@@ -464,8 +384,8 @@ wxBEGIN_EVENT_TABLE(SelectMachinePopup, wxPopupTransientWindow) EVT_MOUSE_EVENTS
     //#endif
 
     m_refresh_timer = new wxTimer();
-    Bind(EVT_FINISHED_UPDATE_MACHINE_LIST, &SelectMachinePopup::update_machine_list, this);
-    Bind(EVT_REQUEST_BIND_LIST, &SelectMachinePopup::update_other_devices, this);
+    Bind(EVT_UPDATE_USER_MACHINE_LIST, &SelectMachinePopup::update_machine_list, this);
+    Bind(EVT_UPDATE_OTHER_MACHINE_LIST, &SelectMachinePopup::update_other_devices, this);
     Bind(wxEVT_TIMER, &SelectMachinePopup::on_timer, this);
 }
 
@@ -482,7 +402,7 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
             dev->update_user_machine_list_info();
 
             if (!was_dismiss()) {
-                wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
+                wxCommandEvent event(EVT_UPDATE_USER_MACHINE_LIST);
                 event.SetEventObject(this);
                 wxPostEvent(this, event);
             }
@@ -543,36 +463,20 @@ wxWindow *SelectMachinePopup::create_title_panel(wxString text)
 
 void SelectMachinePopup::on_timer(wxTimerEvent &event)
 {
-    DeviceManager *dev                = wxGetApp().getDeviceManager();
-    auto           local_machine_list = dev->get_local_machine_list();
+    wxCommandEvent user_event(EVT_UPDATE_USER_MACHINE_LIST);
+    user_event.SetEventObject(this);
+    wxPostEvent(this, user_event);
 
-    m_free_machine_list.clear();
-
-    for (auto &elem : local_machine_list) {
-        MachineObject *dev = elem.second;
-        if (elem.second->is_avaliable()) {
-            if (wxGetApp().getAgent()) {
-                if (wxGetApp().getAgent()->is_user_login()) {
-                    if (!elem.second->bind_user_name.empty() && elem.second->bind_user_name != "Free") {
-                        continue;
-                    }
-                }
-            }
-            m_free_machine_list[elem.first] = elem.second;
-        }
-    }
-
-    /* update other devices */
-    //std::string msg;
-    //dev->query_bind_status(msg);
-
-    wxCommandEvent bind_event(EVT_REQUEST_BIND_LIST);
-    bind_event.SetEventObject(this);
-    wxPostEvent(this, bind_event);
+    wxCommandEvent other_event(EVT_UPDATE_OTHER_MACHINE_LIST);
+    other_event.SetEventObject(this);
+    wxPostEvent(this, other_event);
 }
 
 void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
 {
+    DeviceManager* dev = wxGetApp().getDeviceManager();
+    m_free_machine_list = dev->get_local_machine_list();
+
     this->Freeze();
     for (auto i = 0; i < m_list_Machine_panel.GetCount(); i++) {
         MachinePanel *mpanel = m_list_Machine_panel[i];
@@ -582,12 +486,50 @@ void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
     m_list_Machine_panel.clear();
     for (auto &elem : m_free_machine_list) {
         MachineObject *     mobj = elem.second;
-        MachineObjectPanel *op   = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
-        op->set_can_bind(true);
-        // set lan printer
-        op->set_printer_in_lan();
+        /* do not show printer bind state is empty */
+        if (!mobj->is_avaliable()) continue;
 
+        if (!wxGetApp().is_user_login() && !mobj->is_lan_mode_printer())
+            continue;
+
+        /* do not show printer in my list */
+        auto it = m_bind_machine_list.find(mobj->dev_id);
+        if (it != m_bind_machine_list.end())
+            continue;
+        
+        MachineObjectPanel *op   = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
         op->update_machine_info(mobj);
+        op->Bind(wxEVT_LEFT_DOWN, [this, op, mobj](auto &e){
+                if (mobj->is_lan_mode_printer()) {
+                    if (!mobj->has_access_right()) {
+                        ConnectPrinterDialog dlg(this, wxID_ANY, _L("Input access code"));
+                        dlg.set_machine_object(mobj);
+                        dlg.ShowModal();
+                    } else {
+                        ;
+                    }
+                } else {
+                    op->show_bind_dialog();
+                }
+                wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
+            }
+        );
+
+        if (mobj->is_lan_mode_printer()) {
+            if (mobj->has_access_right()) {
+                op->set_printer_state(PrinterState::IN_LAN);
+            } else {
+                op->set_printer_state(PrinterState::LOCK);
+            }
+        } else {
+            op->show_edit_printer_name(false);
+            op->show_printer_bind(true, PrinterBindState::ALLOW_BIND);
+            if (mobj->can_abort()) {
+                op->set_printer_state(PrinterState::BUSY);
+            } else {
+                op->set_printer_state(IDLE);
+            }
+        }
         m_sizer_other_devices->Add(op, 0, wxEXPAND, 0);
 
         MachinePanel *mpanel = new MachinePanel();
@@ -607,39 +549,66 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
     m_bind_machine_list = dev->get_my_machine_list();
 
     m_scrolledWindow->Freeze();
+    for (auto i = 0; i < m_user_list_machine_panel.GetCount(); i++) {
+        MachinePanel* mpanel = m_user_list_machine_panel[i];
+        mpanel->mPanel->Destroy();
+    }
+    m_user_list_machine_panel.clear();
+
     for (auto &elem : m_bind_machine_list) {
         MachineObject *     mobj = elem.second;
         MachineObjectPanel *op   = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
-        op->set_can_bind(false);
+        op->update_machine_info(mobj);
         //set in lan
-        if (mobj->is_in_lan_printer()) {
-            op->set_printer_in_lan();
+        if (mobj->is_lan_mode_printer()) {
+            if (!mobj->is_online()) {
+                continue;
+            } else {
+                if (mobj->has_access_right() && mobj->is_avaliable()) {
+                    op->set_printer_state(PrinterState::IN_LAN);
+                    op->show_printer_bind(true, PrinterBindState::ALLOW_UNBIND);
+                } else {
+                    op->set_printer_state(PrinterState::LOCK);
+                }
+            }
         } else {
             if (!mobj->is_online()) {
-                op->set_printer_offline();
+                op->set_printer_state(PrinterState::OFFLINE);
             } else {
-                if (can_abort(mobj->print_status)) {
-                    op->set_printer_busy();
+                op->show_edit_printer_name(true);
+                op->show_printer_bind(true, PrinterBindState::ALLOW_UNBIND);
+                if (mobj->can_abort()) {
+                    op->set_printer_state(PrinterState::BUSY);
                 } else {
-                    op->set_printer_idle();
+                    op->set_printer_state(PrinterState::IDLE);
                 }
             }
         }
 
-        op->update_machine_info(mobj);
+        op->Bind(wxEVT_LEFT_DOWN, [this, op, mobj](auto& e) {
+            if (mobj->is_lan_mode_printer()) {
+                if (mobj->has_access_right() && mobj->is_avaliable()) {
+                    //Connect printer
+                    mobj->connect();
+                } else {
+                    ConnectPrinterDialog dlg(this, wxID_ANY, _L("Input access code"));
+                    dlg.set_machine_object(mobj);
+                    dlg.ShowModal();
+                }
+            }
+            wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
+            }
+        );
         m_sizer_my_devices->Add(op, 0, wxEXPAND, 0);
-        // op->Bind(wxEVT_LEFT_UP, &SelectMachinePopup::OnLeftUp, this);
+        MachinePanel* mpanel = new MachinePanel();
+        mpanel->mIndex = wxEmptyString;
+        mpanel->mPanel = op;
+        m_user_list_machine_panel.Add(mpanel);
     }
 
     Layout();
     Fit();
     m_scrolledWindow->Thaw();
-}
-
-bool SelectMachinePopup::can_abort(std::string state)
-{
-    if (state.compare("PAUSE") == 0 || state.compare("RUNNING") == 0 || state.compare("PREPARE") == 0) { return true; }
-    return false;
 }
 
 void SelectMachinePopup::start_ssdp(bool start)
@@ -962,7 +931,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(12));
 
     // bind
-    Bind(EVT_FINISHED_UPDATE_MACHINE_LIST, &SelectMachineDialog::update_printer_combobox, this);
+    Bind(EVT_UPDATE_USER_MACHINE_LIST, &SelectMachineDialog::update_printer_combobox, this);
     Bind(EVT_PRINT_JOB_CANCEL, &SelectMachineDialog::on_print_job_cancel, this);
     Bind(EVT_SET_FINISH_MAPPING, &SelectMachineDialog::on_set_finish_mapping, this);
 
@@ -1243,6 +1212,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     m_print_job                = std::make_shared<PrintJob>(m_status_bar, m_plater, m_printer_last_select);
     m_print_job->m_dev_ip      = obj_->dev_ip;
     m_print_job->m_access_code = obj_->access_code;
+    m_print_job->connection_type = obj_->connection_type();
 
     m_print_job->set_print_config(
         // MachineBedTypeString[m_comboBox_bed->GetSelection()],
@@ -1296,10 +1266,14 @@ void SelectMachineDialog::on_refresh(wxCommandEvent &event)
             DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
             dev->update_user_machine_list_info();
 
-            wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
+            wxCommandEvent event(EVT_UPDATE_USER_MACHINE_LIST);
             event.SetEventObject(this);
             wxPostEvent(this, event);
         });
+    } else {
+        wxCommandEvent event(EVT_UPDATE_USER_MACHINE_LIST);
+        event.SetEventObject(this);
+        wxPostEvent(this, event);
     }
 }
 
@@ -1377,7 +1351,7 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
             if (it->second->dev_name == *tt) {
                 m_list.push_back(it->second);
                 wxString dev_name_text = from_u8(it->second->dev_name);
-                if (it->second->is_in_lan_printer()) {
+                if (it->second->is_lan_mode_printer()) {
                     dev_name_text += "(LAN)";
                 }
                 m_comboBox_printer->Append(dev_name_text);
@@ -1807,7 +1781,7 @@ bool SelectMachineDialog::Show(bool show)
                 DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
                 dev->update_user_machine_list_info();
 
-                wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
+                wxCommandEvent event(EVT_UPDATE_USER_MACHINE_LIST);
                 event.SetEventObject(this);
                 wxPostEvent(this, event);
             });

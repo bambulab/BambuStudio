@@ -250,7 +250,13 @@ wxString MachineObject::get_printer_type_display_str()
     return _L("Unknown");
 }
 
-bool MachineObject::is_in_lan_printer()
+void MachineObject::set_access_code(std::string code)
+{
+    this->access_code = code;
+    GUI::wxGetApp().app_config->set_str("access_code", dev_id, code);
+}
+
+bool MachineObject::is_lan_mode_printer()
 {
     bool result = false;
     if (connection_type() == "lan")
@@ -1236,11 +1242,6 @@ void MachineObject::set_bind_status(std::string status)
     bind_user_name = status;
 }
 
-void MachineObject::set_connect_state(CONNECTION_STATE state)
-{
-    conn_state = state;
-}
-
 std::string MachineObject::get_bind_str()
 {
     std::string default_result = "N/A";
@@ -1365,8 +1366,8 @@ bool MachineObject::is_info_ready()
 
 int MachineObject::publish_json(std::string json_str, int qos)
 {
-    if (dev_connection_type != "lan") {
-        return cloud_publish_json(json_str, qos);
+    if (is_lan_mode_printer()) {
+        return local_publish_json(json_str, qos);
     } else {
         return cloud_publish_json(json_str, qos);
     }
@@ -1393,6 +1394,7 @@ int MachineObject::local_publish_json(std::string json_str, int qos)
 int MachineObject::parse_json(std::string payload)
 {
     std::chrono::system_clock::time_point clock_start = std::chrono::system_clock::now();
+    this->set_online_state(true);
 
     /* update last received time */
     last_update_time = std::chrono::system_clock::now();
@@ -2415,6 +2417,16 @@ MachineObject* DeviceManager::get_user_machine(std::string dev_id)
     return it->second;
 }
 
+MachineObject* DeviceManager::get_my_machine(std::string dev_id)
+{
+    auto list = get_my_machine_list();
+    auto it = list.find(dev_id);
+    if (it != list.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+
 void DeviceManager::clean_user_info()
 {
     // reset selected_machine
@@ -2422,7 +2434,7 @@ void DeviceManager::clean_user_info()
 
     // clean access code
     for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
-        Slic3r::GUI::wxGetApp().app_config->set_str("access_code", it->second->dev_id, "");
+        it->second->set_access_code("");
     }
 
     // clean user list
@@ -2481,7 +2493,7 @@ std::map<std::string, MachineObject*> DeviceManager::get_my_machine_list()
     std::map<std::string, MachineObject*> result = userMachineList;
 
     for (auto it = localMachineList.begin(); it != localMachineList.end(); it++) {
-        if (it->second->has_access_right()) {
+        if (it->second->has_access_right() && it->second->is_avaliable() && it->second->is_lan_mode_printer()) {
             // remove redundant in userMachineList
             if (result.find(it->first) == result.end()) {
                 result.emplace(std::make_pair(it->first, it->second));
@@ -2558,10 +2570,9 @@ void DeviceManager::update_user_machine_list_info()
                     if (elem.contains("dev_product_name") && !elem["dev_product_name"].is_null())
                         obj->product_name = elem["dev_product_name"].get<std::string>();
                     if (elem.contains("dev_access_code") && !elem["dev_access_code"].is_null()) {
-                        obj->access_code = elem["dev_access_code"].get<std::string>();
-                        obj->access_code.erase(std::remove(obj->access_code.begin(), obj->access_code.end(), '\n'), obj->access_code.end());
-                        //save my access code
-                        Slic3r::GUI::wxGetApp().app_config->set("access_code", obj->dev_id, obj->access_code);
+                        std::string acc_code = elem["dev_access_code"].get<std::string>();
+                        acc_code.erase(std::remove(acc_code.begin(), acc_code.end(), '\n'), acc_code.end());
+                        obj->set_access_code(acc_code);
                     }
                 }
 
@@ -2628,11 +2639,9 @@ void DeviceManager::check_alive()
         for (it = localMachineList.begin(); it != localMachineList.end(); it++) {
             seconds = difftime(curr, it->second->last_alive);
             if (seconds > ALIVE_TIMEOUT) {
-                it->second->m_is_online = false;
-                if (it->second->conn_state != MachineObject::CONNECTION_STATE::STATE_DISCONNECTED) {
-                    it->second->conn_state = MachineObject::CONNECTION_STATE::STATE_DISCONNECTED;
+                if ( it->second->m_is_online)
                     BOOST_LOG_TRIVIAL(trace) << "device id = " << it->first << " is offline!";
-                }
+                it->second->m_is_online = false;
             }
         }
         boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));

@@ -248,11 +248,6 @@ private:
 
     bool check_valid_ip();
 public:
-    enum CONNECTION_STATE {
-        STATE_DISCONNECTED = 0,
-        STATE_CONNECTING = 1,
-        STATE_CONNECTED = 2,
-    };
 
     enum LIGHT_EFFECT {
         LIGHT_EFFECT_ON,
@@ -304,7 +299,8 @@ public:
     std::string dev_connection_type;    /* lan | cloud */
     std::string connection_type() { return dev_connection_type; }
     bool has_access_right() { return !access_code.empty(); }
-    bool is_in_lan_printer();
+    void set_access_code(std::string code);
+    bool is_lan_mode_printer();
     PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string get_printer_type_string();
     wxString get_printer_type_display_str();
@@ -314,7 +310,7 @@ public:
     std::string bind_user_name;
     std::string bind_user_id;
     std::string bind_state;     /* free | occupied */
-    bool is_avaliable() { return bind_state == "free" || bind_state.empty(); }
+    bool is_avaliable() { return bind_state == "free"; }
     time_t last_alive;
     bool m_is_online;
     std::chrono::system_clock::time_point   last_update_time;   /* last received print data from machine */
@@ -432,9 +428,6 @@ public:
     /* HMS */
     std::vector<HMSItem>    hms_list;
 
-    /* mqtt connections */
-    CONNECTION_STATE conn_state;
-
     /* machine mqtt apis */
     int connect();
     int disconnect();
@@ -502,7 +495,6 @@ public:
     /* common apis */
     inline bool is_local() { return !dev_ip.empty(); }
     void set_bind_status(std::string status);
-    void set_connect_state(CONNECTION_STATE state);
     std::string get_bind_str();
     bool can_print();
     bool can_resume();
@@ -559,6 +551,7 @@ public:
     MachineObject* get_local_selected_machine();
     MachineObject* get_local_machine(std::string dev_id);
     MachineObject* get_user_machine(std::string dev_id);
+    MachineObject* get_my_machine(std::string dev_id);
     void clean_user_info();
 
     bool set_selected_machine(std::string dev_id);

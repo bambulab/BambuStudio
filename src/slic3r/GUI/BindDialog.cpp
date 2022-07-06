@@ -430,6 +430,7 @@ void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event)
         return;
     }
 
+    m_machine_info->set_access_code("");
     int result = wxGetApp().request_user_unbind(m_machine_info->dev_id);
     if (result == 0) {
         DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();

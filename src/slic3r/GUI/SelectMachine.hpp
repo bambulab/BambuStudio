@@ -44,7 +44,14 @@ enum PrinterState {
     OFFLINE,
     IDLE,
     BUSY,
-    IN_LAN,
+    LOCK,
+    IN_LAN
+};
+
+enum PrinterBindState {
+    NONE,
+    ALLOW_BIND,
+    ALLOW_UNBIND
 };
 
 class Material
@@ -98,29 +105,24 @@ private:
 class MachineObjectPanel : public wxPanel
 {
 private:
-    int         m_last_wifi_signal;
-    int         m_wifi_type;
-    bool        m_state_can_bind{false};
-    bool        m_select_unbind{false};
-    bool        m_showunbind{false};
+    bool        m_show_edit{false};
+    bool        m_show_bind{false};
     bool        m_hover {false};
-    PrinterState   m_state;
-    wxBitmap    m_printing_img;
-    wxBitmap    m_owner_img;
+
+
+    PrinterBindState   m_bind_state;
+    PrinterState       m_state;
+
     wxBitmap    m_unbind_img;
     wxBitmap    m_edit_name_img;
     wxBitmap    m_select_unbind_img;
-    /*wxBitmap    m_wifi_none_img;
-    wxBitmap    m_wifi_weak_img;
-    wxBitmap    m_wifi_middle_img;
-    wxBitmap    m_wifi_strong_img;*/
 
-    wxBitmap m_printer_statue_offline;
-    wxBitmap m_printer_statue_busy;
-    wxBitmap m_printer_statue_idle;
+    wxBitmap m_printer_status_offline;
+    wxBitmap m_printer_status_busy;
+    wxBitmap m_printer_status_idle;
+    wxBitmap m_printer_status_lock;
     wxBitmap m_printer_in_lan;
 
-    wxStaticBitmap *m_unbindimg;
     MachineObject *m_info;
 
 protected:
@@ -139,19 +141,14 @@ public:
 
 	void show_unbind_dialog();
     void show_bind_dialog();
-    void show_enter_accesscode_dialog();
  
-    void set_printer_idle();
-    void set_printer_busy();
-    void set_printer_offline();
-    void set_printer_in_lan();
+    void set_printer_state(PrinterState state);
+    //void set_can_bind(bool canbind);
 
-    void set_printer_unbind();
-    void set_printer_wifi();
+    void show_printer_bind(bool show, PrinterBindState state);
+    void show_edit_printer_name(bool show);
 
-    void set_can_bind(bool canbind);
-
-    void update_machine_info(/*std::string dev_id, wxString dev_name, int progress, wxString owner*/ MachineObject *info);
+    void update_machine_info(MachineObject *info);
 
 protected:
     void OnPaint(wxPaintEvent &event);
@@ -195,7 +192,6 @@ public:
     virtual bool Show(bool show = true) wxOVERRIDE;
 
     void update_machine_list(wxCommandEvent &event);
-    bool can_abort(std::string state);
     void start_ssdp(bool on_off);
     bool was_dismiss() { return m_dismiss; }
 
@@ -206,6 +202,7 @@ private:
     wxScrolledWindow *                m_scrolledWindow{nullptr};
     wxWindow *                        m_panel_body{nullptr};
     wxTimer *                         m_refresh_timer{nullptr};
+    MachinePanelHash                  m_user_list_machine_panel;
     MachinePanelHash                  m_list_Machine_panel;
     boost::thread*                    get_print_info_thread {nullptr};
     bool                              m_dismiss { false };
@@ -219,7 +216,6 @@ private:
     void OnSize(wxSizeEvent &event);
     void OnSetFocus(wxFocusEvent &event);
     void OnKillFocus(wxFocusEvent &event);
-    void OnButton(wxCommandEvent &event);
     void on_timer(wxTimerEvent &event);
 
 	void      update_other_devices(wxCommandEvent &event);
@@ -376,7 +372,7 @@ public:
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void on_edit_name(wxCommandEvent &e);
 
-    MachineObject *m_info;
+    MachineObject *m_info {nullptr};
     wxStaticText* m_static_valid {nullptr};
     ::TextInput* m_textCtr   {nullptr};
     Button* m_button_confirm {nullptr};

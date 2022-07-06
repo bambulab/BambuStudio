@@ -1367,22 +1367,18 @@ void DebugToolDialog::on_message_sent(wxCommandEvent& evt)
 
 void DebugToolDialog::on_local_connected(int state, std::string dev_id, std::string msg)
 {
-    MachineObject* obj = dev_manager_.get_local_selected_machine();
     if (state == BBL::ConnectStatus::ConnectStatusOk) {
-        obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_CONNECTED);
         this->send_log_evt("Connected to Printer=" + dev_id);
         auto evt = new wxCommandEvent(EVT_MQTT_CONNECTED, this->GetId());
         evt->SetString(dev_id);
         wxQueueEvent(this, evt);
     }
     else if (state == BBL::ConnectStatus::ConnectStatusFailed) {
-        obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
         auto evt = new wxCommandEvent(EVT_MQTT_FAILED, this->GetId());
         evt->SetString(dev_id);
         wxQueueEvent(this, evt);
     }
     else if (state == BBL::ConnectStatus::ConnectStatusLost) {
-        obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
         auto evt = new wxCommandEvent(EVT_MQTT_LOST, this->GetId());
         evt->SetString(dev_id);
         wxQueueEvent(this, evt);

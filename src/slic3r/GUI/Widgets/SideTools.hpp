@@ -23,7 +23,7 @@ namespace Slic3r { namespace GUI {
 class SideTools : public wxPanel
 {
 private:
-    WifiSignal      m_wifi_type{NONE};
+    WifiSignal      m_wifi_type{WifiSignal::NONE};
     wxString        m_dev_name;
     bool            m_hover{false};
     bool            m_click{false};

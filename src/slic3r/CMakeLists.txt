@@ -264,6 +264,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/ASCIIFolding.hpp
     GUI/ConfigWizard.cpp
     GUI/ConfigWizard.hpp
+    GUI/ConnectPrinter.cpp
+    GUI/ConnectPrinter.hpp
     GUI/ConfigWizard_private.hpp
     GUI/MsgDialog.cpp
     GUI/MsgDialog.hpp
