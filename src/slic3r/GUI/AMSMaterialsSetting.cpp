@@ -272,6 +272,7 @@ void AMSMaterialsSetting::on_select_ok(wxMouseEvent &event)
     wxColour color = m_colourPicker1->GetColour();
     char col_buf[10];
     sprintf(col_buf, "%02X%02X%02XFF", (int) color.Red(), (int) color.Green(), (int) color.Blue());
+    ams_filament_id = "";
 
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
@@ -402,6 +403,7 @@ void AMSMaterialsSetting::Popup(bool show, bool third, wxString filament, wxColo
 
 void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 {
+    m_filament_type = "";
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {

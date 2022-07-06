@@ -157,6 +157,8 @@ public:
 
     void update_color_from_str(std::string color);
     wxColour get_color();
+
+    bool is_tray_info_ready();
 };
 
 
@@ -341,7 +343,6 @@ public:
     bool check_ams_version();
     static bool is_compatible_ams_version(std::string module, std::string version);
 
-    int ams_color_mapping(std::vector<wxColour> colors, std::vector<int> exclude_id, std::map<int, wxColour> &result);
     int ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<int> exclude_id = std::vector<int>());
 
 

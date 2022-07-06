@@ -133,6 +133,17 @@ wxColour AmsTray::get_color()
     return AmsTray::decode_color(color);
 }
 
+bool AmsTray::is_tray_info_ready()
+{
+    if (color.empty())
+        return false;
+    if (setting_id.empty())
+        return false;
+    if (type.empty())
+        return false;
+    return true;
+}
+
 bool HMSItem::parse_hms_info(unsigned attr, unsigned code)
 {
     bool result = true;
@@ -547,93 +558,10 @@ static float calc_threshold()
     return min_val;
 }
 
-int MachineObject::ams_color_mapping(std::vector<wxColour> colors, std::vector<int> exclude_id, std::map<int, wxColour> &result)
-{
-    if (colors.empty())
-        return -1;
-
-    if (amsList.empty())
-        return -1;
-
-    // calc threshold
-    //float MAPPING_COLOR_THRESHOLD = calc_threshold();
-
-    // tray_index : tray_color
-    std::map<int, wxColour> tray_colors;
-
-    for (auto ams = amsList.begin(); ams != amsList.end(); ams++) {
-        for (auto tray = ams->second->trayList.begin(); tray != ams->second->trayList.end(); tray++) {
-            int ams_id = atoi(ams->first.c_str());
-            int tray_id = atoi(tray->first.c_str());
-            int tray_index = ams_id * 4 + tray_id;
-            // skip exclude id
-            for (int i = 0; i < exclude_id.size(); i++) {
-                if (tray_index == exclude_id[i])
-                    continue;
-            }
-            // push
-            if (!tray->second->color.empty()) {
-                wxColour color = tray->second->get_color();
-                tray_colors.emplace(std::make_pair(tray_index, color));
-            }
-        }
-    }
-
-    // calc distance map
-    struct DisValue {
-        int  tray_id;
-        float distance;
-        bool  is_same_color;
-    };
-    std:;vector<std::vector<DisValue>> distance_map;
-    for (int i = 0; i < colors.size(); i++) {
-        std::vector<DisValue> rol;
-        for (auto tray = tray_colors.begin(); tray != tray_colors.end(); tray++) {
-                DisValue val;
-                val.tray_id = tray->first;
-                val.distance = calc_color_distance(colors[i], tray->second);
-                // use threshold
-                //val.is_same_color = val.distance < MAPPING_COLOR_THRESHOLD;
-                rol.push_back(val);
-        }
-        distance_map.push_back(rol);
-    }
-
-    // mapping algorithm
-    for (int k = 0; k < distance_map.size(); k++) {
-        std::set<int> picked;
-        float min_val = INT_MAX;
-        int picked_idx = -1;
-        for (int i = 0; i < distance_map.size(); i++) {
-            for (int j = 0; j < distance_map[i].size(); j++) {
-                if (picked.find(j) != picked.end() && distance_map[i][j].is_same_color) {
-                    min_val = std::min(min_val, distance_map[i][j].distance);
-                    picked_idx = j;
-                }
-            }
-        }
-        if (picked_idx < 0) {
-            result.emplace(-1, wxColour(0, 0, 0));
-        } else {
-            auto tray = tray_colors.find(distance_map[k][picked_idx].tray_id);
-            if (tray != tray_colors.end())
-                result.emplace(tray->first, tray->second);
-            else
-                result.emplace(-1, wxColour(0, 0, 0));
-            picked.insert(picked_idx);
-        }
-    }
-
-    return 0;
-}
-
 int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo>& result, std::vector<int> exclude_id)
 {
     if (filaments.empty())
         return -1;
-
-    // calc threshold
-    //float MAPPING_COLOR_THRESHOLD = calc_threshold();
 
     // tray_index : tray_color
     std::map<int, FilamentInfo> tray_filaments;
@@ -649,7 +577,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                     continue;
             }
             // push
-            if (!tray->second->color.empty()) {
+            if (tray->second->is_tray_info_ready()) {
                 FilamentInfo info;
                 info.color = tray->second->color;
                 info.type = tray->second->type;
@@ -728,6 +656,21 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
             picked_tar.insert(picked_tar_idx);
             picked_src.insert(picked_src_idx);
         }
+    }
+
+    bool valid_ams_mapping_result = true;
+    for (int i = 0; i < result.size(); i++) {
+        if (result[i].tray_id == -1) {
+            valid_ams_mapping_result = false;
+            break;
+        }
+    }
+
+    if (!valid_ams_mapping_result) {
+        for (int i = 0; i < result.size(); i++) {
+            result[i].tray_id = -1;
+        }
+        return -1;
     }
 
     return 0;

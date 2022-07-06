@@ -709,7 +709,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_material = new wxGridSizer(0, 6, 0, 0);
     m_sizer_main->Add(m_sizer_material, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(80));
 
-    m_text_load_ams_data = new wxStaticText(this, wxID_ANY, _L("Reading printer information..."));
+    m_text_load_ams_data = new wxStaticText(this, wxID_ANY, wxEmptyString);
     m_text_load_ams_data->SetFont(::Label::Body_13);
     m_text_load_ams_data->SetForegroundColour(wxColour(0x6B, 0x6B, 0x6B));
 
@@ -798,7 +798,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_main->Add(m_line_bed, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
 
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
+    m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(14));
 
     // BBS hide bed choice
     // wxBoxSizer *m_sizer_bed = new wxBoxSizer(wxHORIZONTAL);
@@ -928,7 +928,10 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_simplebook->AddPage(m_panel_finish, wxEmptyString, false);
 
     m_sizer_main->Add(m_sizer_bottom, 0, wxALIGN_CENTER_HORIZONTAL);
-    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(12));
+
+    auto block_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(300), FromDIP(15)));
+    block_panel->SetMinSize(wxSize(FromDIP(300), FromDIP(15)));
+    m_sizer_main->Add(block_panel, 1, wxEXPAND, 0);
 
     // bind
     Bind(EVT_UPDATE_USER_MACHINE_LIST, &SelectMachineDialog::update_printer_combobox, this);
@@ -1043,6 +1046,68 @@ void SelectMachineDialog::finish_mode()
     Fit();
 }
 
+bool SelectMachineDialog::check_ams_mapping_result(std::string &mapping_array_str)
+{
+    if (m_ams_mapping_result.empty())
+        return false;
+    
+    bool valid_mapping_result = true;
+    int invalid_count = 0;
+    for (int i = 0; i < m_ams_mapping_result.size(); i++) {
+        if (m_ams_mapping_result[i].tray_id == -1) {
+            valid_mapping_result = false;
+            invalid_count++;
+        }
+    }
+
+    if (invalid_count == m_ams_mapping_result.size()) {
+        ;
+    } else {
+        if (!valid_mapping_result) {
+            wxString tips = _L("Plese select the filament in ams");
+            update_info_msg(tips);
+            Enable_Send_Button(false);
+            return false;
+        } else {
+            json          j = json::array();
+            for (int i = 0; i < m_filaments.size(); i++) {
+                int tray_id = -1;
+                for (int k = 0; k < m_ams_mapping_result.size(); k++) {
+                    if (m_ams_mapping_result[k].id == m_filaments[i].id) {
+                        tray_id = m_ams_mapping_result[k].tray_id;
+                    }
+                }
+                assert(tray_id != -1);
+                j.push_back(tray_id);
+            }
+            update_info_msg("");
+            Enable_Send_Button(true);
+            mapping_array_str = j.dump();
+        }
+    }
+    return true;
+}
+
+void SelectMachineDialog::update_info_msg(wxString msg)
+{
+    if (msg.empty()) {
+        m_text_load_ams_data->SetLabel(wxEmptyString);
+        m_text_load_ams_data->Hide();
+        Layout();
+        Fit();
+    } else {
+        update_warn_msg(wxEmptyString);
+        if (m_text_load_ams_data->GetLabel() != msg) {
+            m_text_load_ams_data->SetLabel(msg);
+            m_error_load_ams_data->SetMinSize(wxSize(FromDIP(400), -1));
+            m_error_load_ams_data->Wrap(FromDIP(400));
+            m_text_load_ams_data->Show();
+            Layout();
+            Fit();
+        }
+    }
+}
+
 void SelectMachineDialog::update_warn_msg(wxString msg)
 {
     if (msg.empty()) {
@@ -1051,16 +1116,16 @@ void SelectMachineDialog::update_warn_msg(wxString msg)
         Layout();
         Fit();
     } else {
-        m_text_load_ams_data->Hide();
+        update_info_msg(wxEmptyString);
         if (m_error_load_ams_data->GetLabel() != msg) {
             m_error_load_ams_data->SetLabel(msg);
+            m_error_load_ams_data->SetMinSize(wxSize(FromDIP(400), -1));
+            m_error_load_ams_data->Wrap(FromDIP(400));
             m_error_load_ams_data->Show();
             Layout();
             Fit();
         }
     }
-    m_error_load_ams_data->SetMinSize(wxSize(FromDIP(400), -1));
-    m_error_load_ams_data->Wrap(FromDIP(400));
 }
 
 void SelectMachineDialog::update_err_msg(wxString msg)
@@ -1073,6 +1138,7 @@ void SelectMachineDialog::update_err_msg(wxString msg)
         m_panel_err->Show();
     }
     Layout();
+    Fit();
 }
 
 void SelectMachineDialog::init_model()
@@ -1182,6 +1248,13 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     m_status_bar->reset();
     m_status_bar->set_prog_block();
 
+
+    // check ams_mapping_result
+    std::string ams_mapping_array;
+    if (!check_ams_mapping_result(ams_mapping_array))
+        return;
+
+
     result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool &cancel) {
         bool     cancelled = false;
         wxString msg       = _L("Exporting 3mf...");
@@ -1213,6 +1286,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     m_print_job->m_dev_ip      = obj_->dev_ip;
     m_print_job->m_access_code = obj_->access_code;
     m_print_job->connection_type = obj_->connection_type();
+    m_print_job->task_ams_mapping = ams_mapping_array;
 
     m_print_job->set_print_config(
         // MachineBedTypeString[m_comboBox_bed->GetSelection()],
@@ -1222,25 +1296,6 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         m_checkbox_list["vibration_cali"]->GetValue(),
         false,
         m_checkbox_list["layer_inspect"]->GetValue());
-
-    if (!m_ams_mapping_result.empty()) {
-        json          j             = json::array();
-        PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-        int           k             = 0;
-        for (int i = 0; i < preset_bundle->filament_presets.size(); i++) {
-            if (k < m_filaments.size()) {
-                if (i == m_filaments[k].id) {
-                    j.push_back(m_ams_mapping_result[k].tray_id);
-                    k++;
-                } else {
-                    j.push_back(-1);
-                }
-            } else {
-                j.push_back(-1);
-            }
-        }
-        m_print_job->task_ams_mapping = j.dump();
-    }
 
     m_print_job->on_success([this]() { finish_mode(); });
 
@@ -1301,6 +1356,12 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
             }
             iter++;
         }
+    }
+
+    // check ams mapping result
+    std::string result_array;
+    if (!check_ams_mapping_result(result_array)) {
+        //disable send button
     }
 }
 
@@ -1409,9 +1470,8 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         return;
     }
 
-     if (timeout_count > 10 * 1000) {
+    if (timeout_count > 15 * 1000 / LIST_REFRESH_INTERVAL) {
         /* timeout display timeout info */
-        // display info and disable print, retry
         wxString tips_text = _L("Reading printer info timed out");
         update_warn_msg(tips_text);
         if (m_button_ensure->IsEnabled()) Enable_Send_Button(false);
@@ -1462,49 +1522,72 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         // ams mapping
         if (obj_->has_ams()) {
             if (m_ams_mapping_result.empty()) {
-                obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result);
-                //wxString mapping_text = "ams mapping result=";
-                for (auto f = m_ams_mapping_result.begin(); f != m_ams_mapping_result.end(); f++) {
-                    BOOST_LOG_TRIVIAL(trace) << "ams_mapping f id = " << f->id << ", tray_id = " << f->tray_id << ", color = " << f->color << ", type = " << f->type;
-                    //mapping_text += wxString::Format("F%d:AMS%d, ", f->id, f->tray_id);
+                // try color and type mapping
+                int result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result);
+                if (result == 0) {
+                    for (auto f = m_ams_mapping_result.begin(); f != m_ams_mapping_result.end(); f++) {
+                        BOOST_LOG_TRIVIAL(trace) << "ams_mapping f id = " << f->id << ", tray_id = " << f->tray_id << ", color = " << f->color << ", type = " << f->type;
+                        //mapping_text += wxString::Format("F%d:AMS%d, ", f->id, f->tray_id);
 
-                    MaterialHash::iterator iter = m_materialList.begin();
-                    while (iter != m_materialList.end()) {
-                        int           id   = iter->first;
-                        Material *    item = iter->second;
-                        MaterialItem *m    = item->item;
+                        MaterialHash::iterator iter = m_materialList.begin();
+                        while (iter != m_materialList.end()) {
+                            int           id   = iter->second->id;
+                            Material *    item = iter->second;
+                            MaterialItem *m    = item->item;
 
-                        if (f->id == id) {
-                            //auto ams_colour = wxColour(wxAtoi(colours_arr[0]), wxAtoi(colours_arr[1]), wxAtoi(colours_arr[2]));
+                            if (f->id == id) {
+                                //auto ams_colour = wxColour(wxAtoi(colours_arr[0]), wxAtoi(colours_arr[1]), wxAtoi(colours_arr[2]));
+                                wxString ams_id = "-";
+                                wxColour ams_col = wxColour(0xEE, 0xEE, 0xEE);
 
+                                if (f->tray_id > 0) {
+                                    ams_id = wxString::Format("%02d", f->tray_id+1);
+                                }
 
-                            wxString ams_id = "-";
-                            wxColour ams_col = wxColour(0xEE, 0xEE, 0xEE);
+                                if (!f->color.empty()) {
+                                    ams_col = AmsTray::decode_color(f->color);
+                                }
 
-                            if (f->tray_id > 0) {
-                                ams_id = wxString::Format("%02d", f->tray_id);
+                                m->set_ams_info(ams_col, ams_id);
+                                break;
                             }
-
-                            if (!f->color.empty()) {
-                                ams_col = AmsTray::decode_color(f->color);
-                            }
-
-                            m->set_ams_info(ams_col, ams_id);
-                            break;
+                            iter++;
                         }
-
-                        iter++;
+                    }
+                } else {
+                    // tray to order mapping
+                    result = 0;
+                    for (int i = 0; i < m_filaments.size(); i++) {
+                        //set
+                        if (m_filaments[i].id >= 0 && m_filaments[i].id < m_ams_mapping_result.size()) {
+                            m_ams_mapping_result[m_filaments[i].id].tray_id = i;
+                            std::string ams_id = std::to_string(i / 4);
+                            std::string tray_id = std::to_string( i % 4);
+                            AmsTray* tray = obj_->get_ams_tray(ams_id, tray_id);
+                            if (tray == nullptr) {
+                                result = -1;
+                                break;
+                            }
+                            if (m_filaments[i].type != tray->type) {
+                                result = -1;
+                                break;
+                            }
+                        }
                     }
                 }
-
-                wxString tips = _L("The mapping of \"Consumable wire List =>AMS slot\" has been automatically established.\n");
-                //tips += _L("If you need to modify, click the specific consumable wire above to manually set the MAPPED AMS slot.");
-                update_warn_msg(tips);
+                if (result == 0) {
+                    wxString tips = _L("The mapping relationship of \" consumable wire list = > ams slot \" has been automatically established.");
+                    tips += _L("If you need to modify, you can click the specific consumable wire above to manually set the mapped AMS slot.");
+                    update_info_msg(tips);
+                } else {
+                    for (int i = 0; i < m_ams_mapping_result.size(); i++) {
+                        m_ams_mapping_result[i].tray_id = -1;
+                    }
+                }
             }
+            std::string mapping_array;
+            check_ams_mapping_result(mapping_array);
         }
-
-        m_text_load_ams_data->Hide();
-        if (!m_button_ensure->IsEnabled()) Enable_Send_Button(true);
     }
 }
 
@@ -1516,12 +1599,12 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     m_ams_mapping_result.clear();
     // display info and disable print button
     // reading printer info
-    m_text_load_ams_data->Show();
+    
     Enable_Send_Button(false);
 
+    update_info_msg("Reading printer information...");
     update_err_msg(wxEmptyString);
     update_warn_msg(wxEmptyString);
-    m_text_load_ams_data->Show();
 
     if (event.GetString().empty()) { return; }
 
@@ -1682,7 +1765,7 @@ void SelectMachineDialog::set_default()
 
         // item->Layout();
 
-        item->Bind(wxEVT_LEFT_UP, [this, item](wxMouseEvent &e) {
+        item->Bind(wxEVT_LEFT_UP, [this, item, materials](wxMouseEvent &e) {
             auto    mouse_pos = ClientToScreen(e.GetPosition());
             wxPoint rect      = item->ClientToScreen(wxPoint(0, 0));
 
@@ -1697,6 +1780,7 @@ void SelectMachineDialog::set_default()
 
             if (obj_ && obj_->has_ams()) {
                 mapping->update_ams_data(obj_->amsList);
+                mapping->update_materials_list(materials);
                 mapping->Popup();
             }
             e.Skip();

@@ -307,10 +307,13 @@ public:
     void      update_select_layout(PRINTER_TYPE type);
     void      prepare_mode();
     void      sending_mode();
+    void      update_info_msg(wxString msg);
     void      update_warn_msg(wxString msg);
     void      update_err_msg(wxString msg);
     void      finish_mode();
+    bool      check_ams_mapping_result(std::string &mapping_array_str);
 
+	
     void prepare(int print_plate_idx)
     {
         m_print_plate_idx = print_plate_idx;

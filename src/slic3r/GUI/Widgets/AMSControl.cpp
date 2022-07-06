@@ -11,6 +11,8 @@ namespace Slic3r { namespace GUI {
 static const int LOAD_STEP_COUNT   = 5;
 static const int UNLOAD_STEP_COUNT = 3;
 
+static const wxColour AMS_TRAY_DEFAULT_COL = wxColour(255, 255, 255);
+
 static wxString FILAMENT_LOAD_STEP_STRING[LOAD_STEP_COUNT] = {
     _L("Heat the nozzle to target \ntemperature"), 
     _L("Cut filament"), 
@@ -60,19 +62,27 @@ bool AMSinfo::parse_ams_info(Ams *ams)
         Caninfo info;
         // tray is exists
         if (it != ams->trayList.end() && it->second->is_exists) {
-            info.can_id        = it->second->id;
-            info.material_name = it->second->type;
-            if (!it->second->color.empty()) {
-                info.material_colour = AmsTray::decode_color(it->second->color);
-            } else {
-                // set to white by default
-                info.material_colour = wxColour(255, 255, 255);
-            }
+            if (it->second->is_tray_info_ready()) {
+                info.can_id        = it->second->id;
+                info.material_name = it->second->type;
+                if (!it->second->color.empty()) {
+                    info.material_colour = AmsTray::decode_color(it->second->color);
+                } else {
+                    // set to white by default
+                    info.material_colour = AMS_TRAY_DEFAULT_COL;
+                }
 
-            if (MachineObject::is_bbl_filament(it->second->tag_uid)) {
-                info.material_state = AMSCanType::AMS_CAN_TYPE_BRAND;
+                if (MachineObject::is_bbl_filament(it->second->tag_uid)) {
+                    info.material_state = AMSCanType::AMS_CAN_TYPE_BRAND;
+                } else {
+                    info.material_state = AMSCanType::AMS_CAN_TYPE_THIRDBRAND;
+                }
             } else {
+                info.can_id = it->second->id;
+                info.material_name = "";
+                info.material_colour = AMS_TRAY_DEFAULT_COL;
                 info.material_state = AMSCanType::AMS_CAN_TYPE_THIRDBRAND;
+                wxColour(255, 255, 255);
             }
         } else {
             info.can_id         = i;
