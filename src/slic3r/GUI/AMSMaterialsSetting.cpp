@@ -17,6 +17,7 @@ void AMSMaterialsSetting::create()
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
 
     m_panel_body                 = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_BODY_WIDTH, -1), wxTAB_TRAVERSAL);
+    m_panel_body->SetBackgroundColour(*wxWHITE);
     wxBoxSizer *m_sizer_filament = new wxBoxSizer(wxHORIZONTAL);
 
     m_title_filament = new wxStaticText(m_panel_body, wxID_ANY, _L("Filament"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
@@ -72,22 +73,39 @@ void AMSMaterialsSetting::create()
 
     wxBoxSizer *sizer_other           = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizer_tempinput       = new wxBoxSizer(wxHORIZONTAL);
-    m_input_nozzle_min  = new ::TextInput(m_panel_body, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE,
-                                    wxTE_CENTRE | wxTE_PROCESS_ENTER);
-    m_input_nozzle_min->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-    auto bitmap_min_degree = new wxStaticBitmap(m_panel_body, -1, create_scaled_bitmap("degree", nullptr, 16), wxDefaultPosition, wxDefaultSize);
+   
 
     m_input_nozzle_max = new ::TextInput(m_panel_body, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE,
         wxTE_CENTRE | wxTE_PROCESS_ENTER);
     m_input_nozzle_max->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    m_input_nozzle_max->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
     auto bitmap_max_degree = new wxStaticBitmap(m_panel_body, -1, create_scaled_bitmap("degree", nullptr, 16), wxDefaultPosition, wxDefaultSize);
 
-    sizer_tempinput->Add(m_input_nozzle_min, 1, wxALIGN_CENTER, 0);
+    m_input_nozzle_min = new ::TextInput(m_panel_body, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE,
+                                         wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
+    m_input_nozzle_min->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    auto bitmap_min_degree = new wxStaticBitmap(m_panel_body, -1, create_scaled_bitmap("degree", nullptr, 16), wxDefaultPosition, wxDefaultSize);
+
+    sizer_tempinput->Add(m_input_nozzle_max, 1, wxALIGN_CENTER, 0);
     sizer_tempinput->Add(bitmap_min_degree, 0, wxALIGN_CENTER, 0);
     sizer_tempinput->Add(FromDIP(10), 0, wxEXPAND, 0);
-    sizer_tempinput->Add(m_input_nozzle_max, 1, wxALIGN_CENTER, 0);
+    sizer_tempinput->Add(m_input_nozzle_min, 1, wxALIGN_CENTER, 0);
     sizer_tempinput->Add(bitmap_max_degree, 0, wxALIGN_CENTER, 0);
 
+    wxBoxSizer *sizer_temp_txt    = new wxBoxSizer(wxHORIZONTAL);
+    auto   m_title_max = new wxStaticText(m_panel_body, wxID_ANY, _L("max"), wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE);
+    m_title_max->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
+    m_title_max->SetFont(::Label::Body_13);
+    auto   m_title_min = new wxStaticText(m_panel_body, wxID_ANY, _L("min"), wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE);
+    m_title_min->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
+    m_title_min->SetFont(::Label::Body_13);
+    sizer_temp_txt->Add(m_title_max, 1, wxALIGN_CENTER, 0);
+    sizer_temp_txt->Add(FromDIP(10), 0, wxEXPAND, 0);
+    sizer_temp_txt->Add(m_title_min, 1, wxALIGN_CENTER|wxRIGHT, FromDIP(16));
+
+
+    sizer_other->Add(sizer_temp_txt, 0, wxALIGN_CENTER, 0);
     sizer_other->Add(sizer_tempinput, 0, wxALIGN_CENTER, 0);
 
     m_sizer_temperature->Add(sizer_other, 0, wxALL | wxALIGN_CENTER, 0);
@@ -285,6 +303,17 @@ void AMSMaterialsSetting::Dismiss()
     //Destroy();
     //wxPopupTransientWindow::Dismiss();
     
+}
+
+bool AMSMaterialsSetting::Show(bool show) 
+{ 
+    if (show) {
+        m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
+        m_button_cancel->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
+        m_input_nozzle_max->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
+        m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
+    }
+    return wxPopupTransientWindow::Show(show); 
 }
 
 void AMSMaterialsSetting::Popup(bool show, bool third, wxString filament, wxColour colour, wxString sn, wxString tep)

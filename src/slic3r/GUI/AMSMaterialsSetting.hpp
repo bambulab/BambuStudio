@@ -20,10 +20,10 @@
 #define AMS_MATERIALS_SETTING_GREY300 wxColour(174,174,174)
 #define AMS_MATERIALS_SETTING_GREY200 wxColour(248, 248, 248)
 #define AMS_MATERIALS_SETTING_BODY_WIDTH FromDIP(340)
-#define AMS_MATERIALS_SETTING_LABEL_WIDTH FromDIP(100)
-#define AMS_MATERIALS_SETTING_COMBOX_WIDTH wxSize(FromDIP(240), FromDIP(30))
-#define AMS_MATERIALS_SETTING_BUTTON_SIZE wxSize(FromDIP(90), FromDIP(30))
-#define AMS_MATERIALS_SETTING_INPUT_SIZE wxSize(FromDIP(90), FromDIP(30))
+#define AMS_MATERIALS_SETTING_LABEL_WIDTH FromDIP(80)
+#define AMS_MATERIALS_SETTING_COMBOX_WIDTH wxSize(FromDIP(250), FromDIP(30))
+#define AMS_MATERIALS_SETTING_BUTTON_SIZE wxSize(FromDIP(90), FromDIP(24))
+#define AMS_MATERIALS_SETTING_INPUT_SIZE wxSize(FromDIP(90), FromDIP(24))
 
 namespace Slic3r { namespace GUI {
 
@@ -39,7 +39,8 @@ public:
     void input_max_finish();
     void on_select_cancel(wxMouseEvent &event);
     void Dismiss() override;
-    void Popup(bool show,  bool third = true, wxString filament = wxEmptyString, wxColour colour = *wxWHITE, wxString sn = wxEmptyString, wxString tep = wxEmptyString);
+    bool Show(bool show) override;
+    void Popup(bool show, bool third = true, wxString filament = wxEmptyString, wxColour colour = *wxWHITE, wxString sn = wxEmptyString, wxString tep = wxEmptyString);
 
 	void on_select_ok(wxMouseEvent &event);
     void set_color(wxColour color);
