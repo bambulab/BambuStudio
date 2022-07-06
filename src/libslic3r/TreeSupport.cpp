@@ -584,7 +584,7 @@ Point projection_onto_ex(const ExPolygons& polygons, Point from)
     profiler.tic();
     Point projected_pt;
     double min_dist = std::numeric_limits<double>::max();
-#if 0
+
     for (auto poly : polygons) {
         for (int i = 0; i < poly.num_contours(); i++) {
             Point p = from.projection_onto(poly.contour_or_hole(i));
@@ -595,32 +595,7 @@ Point projection_onto_ex(const ExPolygons& polygons, Point from)
             }
         }
     }
-#else
-    // simplified method: first find the nearest vertex, then project onto the 2 lines of the vertex
-    Point nearest = find_closest_ex(from, polygons);
-    for (auto poly : polygons) {
-        for (int i = 0; i < poly.num_contours(); i++) {
-            auto& points = poly.contour_or_hole(i).points;
-            int nPoints = points.size();
-            for (int i = 0; i < nPoints;i++) {
-                if (points[i] == nearest) {
-                    Point p = from.projection_onto(Line(nearest, points[(i - 1 + nPoints) % nPoints]));
-                    double dist = (from - p).cast<double>().squaredNorm();
-                    if (dist < min_dist) {
-                        projected_pt = p;
-                        min_dist = dist;
-                    }
-                    p = from.projection_onto(Line(nearest, points[(i + 1 + nPoints) % nPoints]));
-                    dist = (from - p).cast<double>().squaredNorm();
-                    if (dist < min_dist) {
-                        projected_pt = p;
-                        min_dist = dist;
-                    }
-                }
-            }
-        }
-    }
-#endif
+
     profiler.stage_add(STAGE_projection_onto_ex, true);
     return projected_pt;
 }
