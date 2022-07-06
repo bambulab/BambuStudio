@@ -239,7 +239,7 @@ void GizmoObjectManipulation::update_reset_buttons_visibility()
             min_z = get_volume_min_z(volume);
         }
         m_show_clear_rotation = !rotation.isApprox(Vec3d::Zero());
-        m_show_clear_scale = !scale.isApprox(Vec3d::Ones());
+        m_show_clear_scale = !scale.isApprox(Vec3d::Ones(), EPSILON);
         m_show_drop_to_bed = (std::abs(min_z) > EPSILON);
     }
 }
