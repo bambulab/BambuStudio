@@ -401,12 +401,14 @@ public:
     std::map<int, ModuleVersionInfo> get_ams_version();
 
     /* printing */
+    std::string print_type;
     int     mc_print_stage;
     int     mc_print_sub_stage;
     int     mc_print_error_code;
     int     mc_print_line_number;
     int     mc_print_percent;       /* left print progess in percent */
     int     mc_left_time;           /* left time in seconds */
+    bool    is_system_printing();
 
     std::vector<int> stage_list_info;
     int stage_curr = 0;
@@ -472,7 +474,7 @@ public:
     int command_set_bed(int temp);
     int command_set_nozzle(int temp);
     // ams controls
-    int command_ams_switch(std::string tray_id, int old_temp = 210, int new_temp = 210);
+    int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
     int command_ams_change_filament(int tray_id, int old_temp = 210, int new_temp = 210);
     int command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt);
     int command_ams_calibrate(int ams_id);

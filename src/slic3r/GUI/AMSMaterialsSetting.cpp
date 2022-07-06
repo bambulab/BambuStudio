@@ -310,6 +310,7 @@ void AMSMaterialsSetting::Popup(bool show, bool third, wxString filament, wxColo
     if (show) {
         PresetBundle* preset_bundle = wxGetApp().preset_bundle;
         if (preset_bundle) {
+            BOOST_LOG_TRIVIAL(trace) << "system_preset_bundle filament number=" << preset_bundle->filaments.size();
             for (auto filament_it = preset_bundle->filaments.begin(); filament_it != preset_bundle->filaments.end(); filament_it++) {
                 // filter by system preset
                 if (!filament_it->is_system) continue;

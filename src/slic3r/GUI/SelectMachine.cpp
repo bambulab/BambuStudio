@@ -1437,7 +1437,6 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
 
      if (timeout_count > 10 * 1000) {
         /* timeout display timeout info */
-        // TODO
         // display info and disable print, retry
         wxString tips_text = _L("Reading printer info timed out");
         update_warn_msg(tips_text);
@@ -1456,7 +1455,6 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         // printer with ams
         if (obj_->check_ams_version()) {
             /* display upgrade info, can not print */
-            // TODO
             // display info and disable print
             wxString tips_text = _L("Please upgrade your printer first");
             update_warn_msg(tips_text);
@@ -1466,9 +1464,22 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
 
         if (obj_->is_in_upgrading()) {
             /* upgrading can not print */
-            // TODO
             // display info and disable print
             wxString tips_text = _L("Cannot send the print task when the upgrade is in progress");
+            update_warn_msg(tips_text);
+            if (m_button_ensure->IsEnabled()) Enable_Send_Button(false);
+            return;
+        }
+
+        if (obj_->is_system_printing()) {
+            wxString tips_text = _L("Current printer is busy");
+            update_warn_msg(tips_text);
+            if (m_button_ensure->IsEnabled()) Enable_Send_Button(false);
+            return;
+        }
+
+        if (obj_->is_in_printing()) {
+            wxString tips_text = _L("Current printer is printing now");
             update_warn_msg(tips_text);
             if (m_button_ensure->IsEnabled()) Enable_Send_Button(false);
             return;
@@ -1529,7 +1540,6 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     timeout_count      = 0;
     has_read_done_info = false;
     m_ams_mapping_result.clear();
-    // TODO
     // display info and disable print button
     // reading printer info
     m_text_load_ams_data->Show();
@@ -1823,7 +1833,8 @@ bool SelectMachineDialog::Show(bool show)
 }
 
 SelectMachineDialog::~SelectMachineDialog()
-{ /* m_button_ensure->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(SelectMachineDialog::on_ok), NULL, this); */
+{
+    ;
 }
 
 EditDevNameDialog::EditDevNameDialog(Plater *plater /*= nullptr*/)

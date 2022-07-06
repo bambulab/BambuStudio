@@ -130,7 +130,6 @@ public:
     std::string     task_update_time;   /* time updated by cloud */
     std::string     task_start_time;    /* start time */
     std::string     task_end_time;      /* end time */
-    std::string     task_duration;      /* duration created by machine, unit seconds */
     std::string     task_thumbnail_url; /* url of task thumbnail */
     /* user options */
     std::string     task_bed_type;      /* bed_type of task, enum "auto" "pe", "pc", "pei" */

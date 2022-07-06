@@ -1277,11 +1277,6 @@ void StatusPanel::update_ams(MachineObject *obj)
         }
     }
 
-    // Ams Debug Info
-    wxString text_debug = wxString::Format("tray_now: %s, main: %d, sub: %d, rfid: %x, valid: %x", obj->m_tray_now, obj->ams_status_main, obj->ams_status_sub,
-                                           obj->tray_read_done_bits, obj->tray_is_bbl_bits);
-    m_ams_debug->SetLabelText(text_debug);
-
     if (!obj->is_ams_unload()) {
         ; // TODO set filament step to load
     } else {
@@ -1398,6 +1393,15 @@ void StatusPanel::update_subtask(MachineObject *obj)
 {
     if (!obj) return;
 
+    if (obj->is_system_printing()) {
+        reset_printing_values();
+    }
+
+    if (!obj->print_status.empty() && obj->print_status.compare("FAILED") == 0) {
+        reset_printing_values();
+        return;
+    }
+
     // update button enable status
     if (obj->can_abort()) {
         m_button_abort->Enable();
@@ -1413,11 +1417,6 @@ void StatusPanel::update_subtask(MachineObject *obj)
             m_button_pause_resume->SetLabel(_L("Pause"));
     } else {
         m_button_pause_resume->Enable(false);
-    }
-
-    if (!obj->print_status.empty() && obj->print_status.compare("FAILED") == 0) {
-        reset_printing_values();
-        return;
     }
 
     if (obj->is_sdcard_printing()) {
@@ -1523,11 +1522,13 @@ void StatusPanel::update_tasklist(MachineObject *obj)
 
 void StatusPanel::reset_printing_values()
 {
+    m_button_pause_resume->Enable(false);
+    m_button_abort->Enable(false);
     m_gauge_progress->SetValue(0);
     m_staticText_subtask_value->SetLabelText("N/A");
     m_printing_stage_value->SetLabelText("");
     m_staticText_progress_left->SetLabelText("N/A");
-    m_staticText_progress_percent->SetLabelText("0%");
+    m_staticText_progress_percent->SetLabelText("N/A");
     m_bitmap_thumbnail->SetBitmap(m_thumbnail_placeholder);
     m_start_loading_thumbnail = false;
     m_load_sdcard_thumbnail   = false;
@@ -1640,15 +1641,18 @@ void StatusPanel::on_ams_load(SimpleEvent &event)
             } catch (...) {
                 ;
             }
-            obj->command_ams_switch(tray_it->second->id, old_temp, new_temp);
-        } else
-            obj->command_ams_switch(tray_it->second->id, -1, -1);
+            int tray_index = atoi(curr_ams_id.c_str()) * 4 + atoi(tray_it->second->id.c_str());
+            obj->command_ams_switch(tray_index, old_temp, new_temp);
+        } else {
+            int tray_index = atoi(curr_ams_id.c_str()) * 4 + atoi(tray_it->second->id.c_str());
+            obj->command_ams_switch(tray_index, -1, -1);
+        }
     }
 }
 
 void StatusPanel::on_ams_unload(SimpleEvent &event)
 {
-    if (obj) { obj->command_ams_switch("255"); }
+    if (obj) { obj->command_ams_switch(255); }
 }
 
 void StatusPanel::on_ams_setting_click(SimpleEvent &event)
@@ -1845,6 +1849,11 @@ void StatusPanel::on_thumbnail_enter(wxMouseEvent &event)
 {
     if (obj) {
         if (!obj->slice_info || !obj->subtask_) return;
+        /* do not popup when print status is failed */
+        if (obj->print_status.compare("FAILED") == 0) {
+            return;
+        }
+
         if (m_slice_info_popup && m_slice_info_popup->IsShown())
             return;
         if (obj->slice_info) {
@@ -1937,8 +1946,6 @@ void StatusPanel::set_default()
     m_switch_printing_fan_timeout = 0;
 
     reset_printing_values();
-    m_button_pause_resume->Enable(false);
-    m_button_abort->Enable(false);
     m_tempCtrl_nozzle->Enable(true);
     m_tempCtrl_frame->Enable(true);
     m_tempCtrl_bed->Enable(true);

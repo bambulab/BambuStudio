@@ -24,14 +24,6 @@ using namespace nlohmann;
 
 namespace pt = boost::property_tree;
 
-// json command const string
-const std::string JSON_CMD_PRINT = "print";
-const std::string JSON_CMD_SYSTEM = "system";
-
-// json key const string
-const std::string JSON_MC_REMAIN_TIME   = "mc_remaining_time";
-const std::string JSON_MC_PERCENT = "mc_percent";
-const std::string JSON_MC_PRINT_SUB_STAGE = "mc_print_sub_stage";
 
 const int PRINTING_STAGE_COUNT = 20;
 std::string PRINTING_STAGE_STR[PRINTING_STAGE_COUNT] = {
@@ -856,6 +848,13 @@ std::map<int, MachineObject::ModuleVersionInfo> MachineObject::get_ams_version()
     return result;
 }
 
+bool MachineObject::is_system_printing()
+{
+    if (print_type == "system")
+        return true;
+    return false;
+}
+
 wxString MachineObject::get_curr_stage()
 {
     if (stage_list_info.empty()) {
@@ -1011,18 +1010,13 @@ int MachineObject::command_set_nozzle(int temp)
     return this->publish_gcode(gcode_str);
 }
 
-int MachineObject::command_ams_switch(std::string tray_id, int old_temp, int new_temp)
+int MachineObject::command_ams_switch(int tray_index, int old_temp, int new_temp)
 {
-    BOOST_LOG_TRIVIAL(trace) << "ams_switch to " << tray_id << " with temp: " << old_temp << ", " << new_temp;
+    BOOST_LOG_TRIVIAL(trace) << "ams_switch to " << tray_index << " with temp: " << old_temp << ", " << new_temp;
     if (old_temp < 0) old_temp = FILAMENT_DEF_TEMP;
     if (new_temp < 0) new_temp = FILAMENT_DEF_TEMP;
-    int tray_id_int = 0;
-    try {
-        tray_id_int = atoi(tray_id.c_str());
-    }catch(...){
-        return -1;
-    }
-    //TODO get print_config.change_filament_gcode from iot-service, get dyn_config from iot-service?
+    int tray_id_int = tray_index;
+
     std::string gcode = "";
     Slic3r::Print &   print = Slic3r::GUI::wxGetApp().plater()->get_partplate_list().get_current_fff_print();
     const PrintConfig &print_config = print.config();
@@ -1406,7 +1400,7 @@ int MachineObject::parse_json(std::string payload)
         json j;
         json j_pre = json::parse(payload);
 
-        if (j_pre.contains(JSON_CMD_PRINT)) {
+        if (j_pre.contains("print")) {
             if (j_pre["print"].contains("command")) {
                 if (j_pre["print"]["command"].get<std::string>() == "push_status") {
                     if (j_pre["print"].contains("msg")) {
@@ -1438,24 +1432,28 @@ int MachineObject::parse_json(std::string payload)
             j = json::parse(payload);
         }
 
+        BOOST_LOG_TRIVIAL(trace) << "parse_json: dev_id=" << dev_id << ", playload=" << j.dump(4);
 
-        if (j.contains(JSON_CMD_PRINT)) {
-            json jj = j[JSON_CMD_PRINT];
-            if (jj.contains(JSON_MC_REMAIN_TIME)) {
-                if (jj[JSON_MC_REMAIN_TIME].is_string())
-                    mc_left_time = stoi(j[JSON_CMD_PRINT][JSON_MC_REMAIN_TIME].get<std::string>()) * 60;
-                else if (jj[JSON_MC_REMAIN_TIME].is_number_integer())
-                    mc_left_time = j[JSON_CMD_PRINT][JSON_MC_REMAIN_TIME].get<int>() * 60;
+        if (j.contains("print")) {
+            json jj = j["print"];
+            if (jj.contains("print_type")) {
+                print_type = jj["print_type"].get<std::string>();
             }
-            if (jj.contains(JSON_MC_PERCENT)) {
-                if (jj[JSON_MC_PERCENT].is_string())
-                    mc_print_percent = stoi(j[JSON_CMD_PRINT][JSON_MC_PERCENT].get<std::string>());
-                else if (jj[JSON_MC_PERCENT].is_number_integer())
-                    mc_print_percent = j[JSON_CMD_PRINT][JSON_MC_PERCENT].get<int>();
+            if (jj.contains("mc_remaining_time")) {
+                if (jj["mc_remaining_time"].is_string())
+                    mc_left_time = stoi(j["print"]["mc_remaining_time"].get<std::string>()) * 60;
+                else if (jj["mc_remaining_time"].is_number_integer())
+                    mc_left_time = j["print"]["mc_remaining_time"].get<int>() * 60;
             }
-            if (jj.contains(JSON_MC_PRINT_SUB_STAGE)) {
-                if (jj[JSON_MC_PRINT_SUB_STAGE].is_number_integer())
-                    mc_print_sub_stage = j[JSON_CMD_PRINT][JSON_MC_PRINT_SUB_STAGE].get<int>();
+            if (jj.contains("mc_percent")) {
+                if (jj["mc_percent"].is_string())
+                    mc_print_percent = stoi(j["print"]["mc_percent"].get<std::string>());
+                else if (jj["mc_percent"].is_number_integer())
+                    mc_print_percent = j["print"]["mc_percent"].get<int>();
+            }
+            if (jj.contains("mc_print_sub_stage")) {
+                if (jj["mc_print_sub_stage"].is_number_integer())
+                    mc_print_sub_stage = j["print"]["mc_print_sub_stage"].get<int>();
             }
 
             /* temperature */
@@ -1660,6 +1658,37 @@ int MachineObject::parse_json(std::string payload)
                 ;
             }
 
+            // parse ams ack command
+            try {
+                if (jj.contains("command")) {
+                    if (jj["command"].get<std::string>() == "ams_filament_setting") {
+                        if (jj["ams_id"].is_number()) {
+                            int ams_id = jj["ams_id"].get<int>();
+                            auto ams_it = amsList.find(std::to_string(ams_id));
+                            if (ams_it != amsList.end()) {
+                                int tray_id = jj["tray_id"].get<int>() - ams_id * 4;
+                                auto tray_it = ams_it->second->trayList.find(std::to_string(tray_id));
+                                if (tray_it != ams_it->second->trayList.end()) {
+                                    BOOST_LOG_TRIVIAL(trace) << "ams_filament_setting, parse tray info";
+                                    tray_it->second->nozzle_temp_max = std::to_string(jj["nozzle_temp_max"].get<int>());
+                                    tray_it->second->nozzle_temp_min = std::to_string(jj["nozzle_temp_min"].get<int>());
+                                    tray_it->second->type = jj["tray_type"].get<std::string>();
+                                    tray_it->second->color = jj["tray_color"].get<std::string>();
+                                    tray_it->second->setting_id = jj["tray_info_idx"].get<std::string>();
+                                } else {
+                                    BOOST_LOG_TRIVIAL(warning) << "ams_filament_setting, can not find in trayList, tray_id=" << tray_id;
+                                }
+                            } else {
+                                BOOST_LOG_TRIVIAL(warning) << "ams_filament_setting, can not find in amsList, ams_id=" << ams_id;
+                            }
+                        }
+                    }
+                }
+            } catch (...) {
+                ;
+            }
+
+
             // parse camera info
             try {
                 if (jj.contains("ipcam")) {
@@ -1763,7 +1792,6 @@ int MachineObject::parse_json(std::string payload)
 
                 /* gcode */
                 boost::optional<std::string> gcode_start_time   = print.get_optional<std::string>("gcode_start_time");
-                boost::optional<std::string> gcode_duration     = print.get_optional<std::string>("gcode_duration");
                 boost::optional<std::string> gcode_file         = print.get_optional<std::string>("gcode_file");
                 boost::optional<std::string> progress           = print.get_optional<std::string>("progress");
                 boost::optional<std::string> gcode_state        = print.get_optional<std::string>("gcode_state");
@@ -1820,8 +1848,6 @@ int MachineObject::parse_json(std::string payload)
 
                         if (gcode_start_time.has_value())
                             curr_task->task_start_time = gcode_start_time.value();
-                        if (gcode_duration.has_value())
-                            curr_task->task_duration = gcode_duration.value();
 
                         if (gcode_state.has_value())
                             curr_task->printing_status = gcode_state.value();
@@ -2407,10 +2433,9 @@ void DeviceManager::clean_user_info()
     userMachineList.clear();
 }
 
-
-
 bool DeviceManager::set_selected_machine(std::string dev_id)
 {
+    BOOST_LOG_TRIVIAL(trace) << "set_selected_machine=" << dev_id;
     auto my_machine_list = get_my_machine_list();
     auto it = my_machine_list.find(dev_id);
     if (it != my_machine_list.end()) {
