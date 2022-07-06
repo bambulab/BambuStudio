@@ -281,7 +281,7 @@ void StepIndicator::doRender(wxDC &dc)
             auto tip = tips[i];
             if (tip.IsEmpty()) tip.append(1, wchar_t(L'0' + i + 1));
             wxSize sz = dc.GetTextExtent(tip);
-            dc.DrawText(tip, circleX - sz.x / 2 + 1, circleY - sz.y / 2 + 1);
+            dc.DrawText(tip, circleX - sz.x / 2, circleY - sz.y / 2 + 1);
         }
         circleY += itemWidth;
     }

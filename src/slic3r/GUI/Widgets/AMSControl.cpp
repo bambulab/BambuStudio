@@ -8,11 +8,16 @@
 
 namespace Slic3r { namespace GUI {
 
-static const int LOAD_STEP_COUNT   = 4;
+static const int LOAD_STEP_COUNT   = 5;
 static const int UNLOAD_STEP_COUNT = 3;
 
-static wxString FILAMENT_LOAD_STEP_STRING[LOAD_STEP_COUNT] = {_L("Heat the nozzle to target \ntemperature"), _L("Cut filament"), _L("Pull back current filament"),
-                                                              _L("Push new filament \ninto extruder")};
+static wxString FILAMENT_LOAD_STEP_STRING[LOAD_STEP_COUNT] = {
+    _L("Heat the nozzle to target \ntemperature"), 
+    _L("Cut filament"), 
+    _L("Pull back current filament"),
+    _L("Push new filament \ninto extruder"),
+    _L("Purge old filament"),
+};
 
 static wxString FILAMENT_UNLOAD_STEP_STRING[UNLOAD_STEP_COUNT] = {_L("Heat the nozzle to target \ntemperature"), _L("Cut filament"), _L("Pull back current filament")};
 
@@ -923,6 +928,7 @@ void AMSItem::doRender(wxDC &dc)
         left += m_space;
     }
 
+    m_show_humidity = false;
     if (m_show_humidity) {
         left = 4 * AMS_ITEM_CUBE_SIZE.x + 6 * m_space;
         dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 1));
@@ -1726,11 +1732,11 @@ void AMSControl::SwitchAms(std::string ams_id)
         AmsItems *item = m_ams_item_list[i];
         if (item->amsItem->m_amsinfo.ams_id == ams_id) {
             item->amsItem->OnSelected();
-            item->amsItem->ShowHumidity();
+            //item->amsItem->ShowHumidity();
             m_current_senect = ams_id;
         } else {
             item->amsItem->UnSelected();
-            item->amsItem->HideHumidity();
+            //item->amsItem->HideHumidity();
         }
         m_sizer_top->Layout();
         // m_panel_top->Fit();

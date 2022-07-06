@@ -798,7 +798,7 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
     m_button_unload->SetTextColor(abort_text);
     m_button_unload->SetFont(Label::Body_10);
     m_button_unload->SetMinSize(TASK_BUTTON_SIZE);
-    m_button_unload->SetCornerRadius(FromDIP(12));
+    m_button_unload->SetCornerRadius(FromDIP(5));
     bSizer_e_ctrl->Add(0, 0, 1, wxEXPAND, 0);
     bSizer_e_ctrl->Add(m_button_unload, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(5));
 
@@ -1321,7 +1321,7 @@ void StatusPanel::update_ams(MachineObject *obj)
             else
                 m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
         } else if (obj->ams_status_sub == 0x07) {
-            m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT);
+            m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT);
             m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
         } else {
             m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
@@ -1331,11 +1331,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
     } else {
         m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE);
-        if (!obj->is_ams_unload()) {
-            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
-        } else {
-            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-        }
+        m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
     }
 
     if (m_ams_control->GetCurentAms() != obj->m_ams_id) {
