@@ -1051,6 +1051,8 @@ int MachineObject::command_ams_switch(int tray_index, int old_temp, int new_temp
     dyn_config.set_key_value("flush_length_2", new ConfigOptionFloat(5.f));
     dyn_config.set_key_value("flush_length_3", new ConfigOptionFloat(0.f));
     dyn_config.set_key_value("flush_length_4", new ConfigOptionFloat(0.f));
+    dyn_config.set_key_value("old_filament_e_feedrate", new ConfigOptionInt(100));
+    dyn_config.set_key_value("new_filament_e_feedrate", new ConfigOptionInt(100));
     try {
         std::string parsed_command = m_placeholder_parser.process(print_config.change_filament_gcode.value, tray_id_int, &dyn_config, &m_placeholder_parser_context);
         // config xyz coordinate mode

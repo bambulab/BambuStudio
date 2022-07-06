@@ -1283,6 +1283,8 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
     dyn_config.set_key_value("flush_length_2", new ConfigOptionFloat(5.f));
     dyn_config.set_key_value("flush_length_3", new ConfigOptionFloat(0.f));
     dyn_config.set_key_value("flush_length_4", new ConfigOptionFloat(0.f));
+    dyn_config.set_key_value("old_filament_e_feedrate", new ConfigOptionInt(200));
+    dyn_config.set_key_value("new_filament_e_feedrate", new ConfigOptionInt(200));
     try {
         std::string parsed_command = m_placeholder_parser.process(print_config.change_filament_gcode.value, std::stoi(t.c_str()), &dyn_config, &m_placeholder_parser_context);
         // config xyz coordinate mode

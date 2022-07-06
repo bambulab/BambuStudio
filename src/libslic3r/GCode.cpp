@@ -343,6 +343,9 @@ bool GCode::gcode_label_objects = false;
                 float filament_area = float((M_PI / 4.f) * pow(full_config.filament_diameter.get_at(new_extruder_id), 2));
                 float purge_length = purge_volume / filament_area;
 
+                int old_filament_e_feedrate = gcode_writer.extruder() != nullptr ? (int)(60.0 * full_config.filament_max_volumetric_speed.get_at(previous_extruder_id) / filament_area) : 200;
+                int new_filament_e_feedrate = (int)(60.0 * full_config.filament_max_volumetric_speed.get_at(new_extruder_id) / filament_area);
+
                 config.set_key_value("max_layer_z", new ConfigOptionFloat(gcodegen.m_max_layer_z));
                 config.set_key_value("relative_e_axis", new ConfigOptionBool(RELATIVE_E_AXIS));
                 config.set_key_value("toolchange_count", new ConfigOptionInt((int)gcodegen.m_toolchange_count));
@@ -360,6 +363,8 @@ bool GCode::gcode_label_objects = false;
                 config.set_key_value("z_after_toolchange", new ConfigOptionFloat(nozzle_pos(2)));
                 config.set_key_value("first_flush_volume", new ConfigOptionFloat(purge_length / 2.f));
                 config.set_key_value("second_flush_volume", new ConfigOptionFloat(purge_length / 2.f));
+                config.set_key_value("old_filament_e_feedrate", new ConfigOptionInt(old_filament_e_feedrate));
+                config.set_key_value("new_filament_e_feedrate", new ConfigOptionInt(new_filament_e_feedrate));
 
                 int flush_count = std::min(g_max_flush_count, (int)std::round(purge_volume / g_purge_volume_one_time));
                 float flush_unit = purge_length / flush_count;
@@ -3892,7 +3897,9 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     int new_filament_temp = m_config.nozzle_temperature.get_at(extruder_id);
     Vec3d nozzle_pos = m_writer.get_position();
     float old_retract_length, old_retract_length_toolchange, wipe_volume;
-    int old_filament_temp;
+    int old_filament_temp, old_filament_e_feedrate;
+
+    float filament_area = float((M_PI / 4.f) * pow(m_config.filament_diameter.get_at(extruder_id), 2));
 
     if (m_writer.extruder() != nullptr) {
         std::vector<float> flush_matrix(cast<float>(m_config.flush_volumes_matrix.values));
@@ -3905,15 +3912,17 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         old_retract_length_toolchange = m_config.retract_length_toolchange.get_at(previous_extruder_id);
         old_filament_temp = m_config.nozzle_temperature.get_at(previous_extruder_id);
         wipe_volume = flush_matrix[previous_extruder_id * number_of_extruders + extruder_id];
+        old_filament_e_feedrate = (int)(60.0 * m_config.filament_max_volumetric_speed.get_at(previous_extruder_id) / filament_area);
     }
     else {
         old_retract_length = 0.f;
         old_retract_length_toolchange = 0.f;
         old_filament_temp = 0;
         wipe_volume = 0.f;
+        old_filament_e_feedrate = 200;
     }
-    float filament_area = float((M_PI / 4.f) * pow(m_config.filament_diameter.get_at(extruder_id), 2));
     float wipe_length = wipe_volume / filament_area;
+    int new_filament_e_feedrate = (int)(60.0 * m_config.filament_max_volumetric_speed.get_at(extruder_id) / filament_area);
 
     DynamicConfig dyn_config;
     dyn_config.set_key_value("previous_extruder", new ConfigOptionInt((int)(m_writer.extruder() != nullptr ? m_writer.extruder()->id() : -1)));
@@ -3937,6 +3946,8 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     dyn_config.set_key_value("z_after_toolchange", new ConfigOptionFloat(nozzle_pos(2)));
     dyn_config.set_key_value("first_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
     dyn_config.set_key_value("second_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
+    dyn_config.set_key_value("old_filament_e_feedrate", new ConfigOptionInt(old_filament_e_feedrate));
+    dyn_config.set_key_value("new_filament_e_feedrate", new ConfigOptionInt(new_filament_e_feedrate));
 
     int flush_count = std::min(g_max_flush_count, (int)std::round(wipe_volume / g_purge_volume_one_time));
     float flush_unit = wipe_length / flush_count;
