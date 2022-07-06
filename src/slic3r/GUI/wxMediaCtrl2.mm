@@ -12,6 +12,11 @@
 #import <Foundation/Foundation.h>
 #import <BambuPlayer/BambuPlayer.h>
 
+#include <stdlib.h>
+#include <dlfcn.h>
+
+#define BAMBU_DYNAMIC
+
 static void bambu_log(void const * ctx, int level, char const * msg)
 {
     if (level == 1) {
@@ -38,18 +43,26 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent, wxSize const & size)
     imageView.layer.backgroundColor = color;
     CGColorRelease(color);
     imageView.wantsLayer = YES;
-    BambuPlayer * player = [[BambuPlayer alloc] initWithImageView: imageView];
+    auto module = dlopen("libBambuPlayerDyLib.dylib", RTLD_LAZY);
+    Class cls = (__bridge Class) dlsym(module, "OBJC_CLASS_$_BambuPlayer");
+    if (cls == nullptr) {
+        m_error = -2;
+        return;
+    }
+    BambuPlayer * player = [cls alloc];
+    [player initWithImageView: imageView];
     [player setLogger: bambu_log withContext: &m_error];
     m_player = player;
-    m_state = wxMEDIASTATE_STOPPED;
 }
 
 void wxMediaCtrl2::Load(wxURI url)
 {
     BambuPlayer * player = (BambuPlayer *) m_player;
-    [player close];
-    [player open: url.BuildURI().ToUTF8()];
-    m_error = 0;
+    if (player) {
+        [player close];
+        [player open: url.BuildURI().ToUTF8()];
+        m_error = 0;
+    }
     wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
     event.SetId(GetId());
     event.SetEventObject(this);
@@ -90,8 +103,12 @@ wxMediaState wxMediaCtrl2::GetState() const
 wxSize wxMediaCtrl2::DoGetBestSize() const
 {
     BambuPlayer * player2 = (BambuPlayer *) m_player;
-    NSSize size = [player2 videoSize];
-    return {(int) size.width, (int) size.height};
+    if (player2) {
+        NSSize size = [player2 videoSize];
+        return {(int) size.width, (int) size.height};
+    } else {
+        return {0, 0};
+    }
 }
 
 

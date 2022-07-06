@@ -18,11 +18,18 @@ wxDEFINE_EVENT(EVT_FILE_CALLBACK, wxCommandEvent);
 
 static wxBitmap default_thumbnail;
 
+struct StaticBambuLib : BambuLib {
+    StaticBambuLib();
+    static int Fake_Bambu_Open(Bambu_Session * session, char const* uid) { return -2; }
+};
+
 PrinterFileSystem::PrinterFileSystem()
     : m_recv_thread(&PrinterFileSystem::RecvMessageThread, this)
 {
+    static StaticBambuLib lib;
+    static_cast<BambuLib&>(*this) = lib;
     if (!default_thumbnail.IsOk())
-        default_thumbnail= wxImage(Slic3r::encode_path(Slic3r::var("live_stream_default.png").c_str()));
+        default_thumbnail = wxImage(Slic3r::encode_path(Slic3r::var("live_stream_default.png").c_str()));
     m_session.owner = this;
     //auto time = wxDateTime::Now();
     //for (int i = 0; i < 240; ++i) {
@@ -495,7 +502,7 @@ void PrinterFileSystem::SendChangedEvent(wxEventType type, size_t index, std::st
 void PrinterFileSystem::DumpLog(Bambu_Session *session, int level, Bambu_Message const *msg)
 {
     BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem: " << msg;
-    Bambu_FreeLogMsg(msg);
+    static_cast<Session*>(session)->owner->Bambu_FreeLogMsg(msg);
 }
 
 void PrinterFileSystem::SendRequest(int type, json const &req, callback_t2 const & callback)
@@ -675,4 +682,65 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
     m_status = Status::ListSyncing;
     SendChangedEvent(EVT_STATUS_CHANGED, m_status);
     PostCallback([this] { ListAllFiles(); });
+}
+
+
+#include <stdlib.h>
+#if defined(_MSC_VER) || defined(_WIN32)
+#include <Windows.h>
+#else
+#include <dlfcn.h>
+#endif
+
+#if defined(_MSC_VER) || defined(_WIN32)
+static HMODULE module = NULL;
+#else
+static void* module = NULL;
+#endif
+
+static void* get_function(const char* name)
+{
+    void* function = nullptr;
+
+    if (!module)
+        return function;
+
+#if defined(_MSC_VER) || defined(_WIN32)
+    function = GetProcAddress(module, name);
+#else
+    function = dlsym(module, name);
+#endif
+
+    if (!function) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", can not find function %1%") % name;
+    }
+    return function;
+}
+
+#define GET_FUNC(x) x = reinterpret_cast<decltype(x)>(get_function(#x))
+
+StaticBambuLib::StaticBambuLib()
+{
+    //first load the library
+#if defined(_MSC_VER) || defined(_WIN32)
+    module = LoadLibrary(L"BambuSource.dll");
+#elif defined(__WXMAC__)
+    module = dlopen("libBambuPlayerDyLib.dylib", RTLD_LAZY);
+#else
+    module = dlopen("libBambuTunnel.so", RTLD_LAZY);
+#endif
+
+    if (!module) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", can not Load Library";
+    }
+    
+    GET_FUNC(Bambu_Open);
+    GET_FUNC(Bambu_StartStream);
+    GET_FUNC(Bambu_SendMessage);
+    GET_FUNC(Bambu_ReadSample);
+    GET_FUNC(Bambu_Close);
+    GET_FUNC(Bambu_FreeLogMsg);
+    
+    if (!Bambu_Open)
+        Bambu_Open = Fake_Bambu_Open;
 }

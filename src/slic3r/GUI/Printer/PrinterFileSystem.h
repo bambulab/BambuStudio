@@ -1,6 +1,7 @@
 #ifndef slic3r_GUI_PrinterFileSystem_h_
 #define slic3r_GUI_PrinterFileSystem_h_
 
+#define BAMBU_DYNAMIC
 #include "BambuTunnel.h"
 
 #include <wx/event.h>
@@ -20,7 +21,7 @@ wxDECLARE_EVENT(EVT_FILE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_THUMBNAIL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_DOWNLOAD, wxCommandEvent);
 
-class PrinterFileSystem : public wxEvtHandler, public boost::enable_shared_from_this<PrinterFileSystem>
+class PrinterFileSystem : public wxEvtHandler, public boost::enable_shared_from_this<PrinterFileSystem>, BambuLib
 {
     static const int CTRL_TYPE     = 0x3001;
 

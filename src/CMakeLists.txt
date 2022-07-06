@@ -143,14 +143,10 @@ target_link_libraries(BambuStudio libslic3r_gui)
         # Generate debug symbols even in release mode.
         target_link_options(BambuStudio PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
         target_link_libraries(BambuStudio user32.lib Setupapi.lib)
-        find_library(BAMBU_LIB NAMES BambuSource)
-        target_link_libraries(BambuStudio ${BAMBU_LIB})
     elseif (MINGW)
         target_link_libraries(BambuStudio ws2_32 uxtheme setupapi)
     elseif (APPLE)
         target_link_libraries(BambuStudio "-framework OpenGL")
-        target_link_libraries(BambuStudio "-ljson-c")
-        target_link_libraries(BambuStudio "-lBambuPlayerLib")
     else ()
         target_link_libraries(BambuStudio -ldl)
     endif ()
@@ -258,15 +254,23 @@ else ()
     if (XCODE)
         # Because of Debug/Release/etc. configurations (similar to MSVC) the slic3r binary is located in an extra level
         set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/resources")
-    elseif (CMAKE_MACOSX_BUNDLE)
-        set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/BambuStudio.app/Contents/Resources")
+        set(BIN_CONF_DIR "Debug")
+    else ()
+        set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/../resources")
+    endif ()
+    if (CMAKE_MACOSX_BUNDLE)
+        set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/${BIN_CONF_DIR}/BambuStudio.app/Contents/Resources")
         set(MACOSX_BUNDLE_ICON_FILE Icon.icns)
         set(MACOSX_BUNDLE_BUNDLE_NAME "Bambu Studio")
         set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${SLIC3R_VERSION})
         set(MACOSX_BUNDLE_COPYRIGHT "Copyright(C) 2022-2032 Bambu Lab")
-    else ()
-        set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/../resources")
-    endif ()
+        add_custom_command(TARGET BambuStudio
+            POST_BUILD COMMAND 
+            ${CMAKE_INSTALL_NAME_TOOL} 
+            -delete_rpath "${CMAKE_PREFIX_PATH}/lib"
+            -add_rpath "@executable_path/../Frameworks/"
+            $<TARGET_FILE:BambuStudio>)
+    endif()
     add_custom_command(TARGET BambuStudio POST_BUILD
         COMMAND ln -sfn "${SLIC3R_RESOURCES_DIR}" "${BIN_RESOURCES_DIR}"
         COMMENT "Symlinking the resources directory into the build tree"
@@ -298,7 +302,13 @@ else ()
     install(TARGETS BambuStudio RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR})
 
     if (APPLE)
-        install(FILES  ${CMAKE_PREFIX_PATH}/lib/libbambu_networking.dylib DESTINATION "${CMAKE_INSTALL_BINDIR}/../Library")
+        if (CMAKE_MACOSX_BUNDLE)
+            install(FILES  ${CMAKE_PREFIX_PATH}/lib/libbambu_networking.dylib DESTINATION "${CMAKE_INSTALL_BINDIR}/BambuStudio.app/Contents/Frameworks")
+            install(FILES  ${CMAKE_PREFIX_PATH}/lib/libBambuPlayerDyLib.dylib DESTINATION "${CMAKE_INSTALL_BINDIR}/BambuStudio.app/Contents/Frameworks")
+	else ()
+            install(FILES  ${CMAKE_PREFIX_PATH}/lib/libbambu_networking.dylib DESTINATION "${CMAKE_INSTALL_BINDIR}/../Library")
+            install(FILES  ${CMAKE_PREFIX_PATH}/lib/libBambuPlayerDyLib.dylib DESTINATION "${CMAKE_INSTALL_BINDIR}/../Library")
+        endif()
     else ()
         install(FILES  ${CMAKE_PREFIX_PATH}/lib/libbambu_networking.so DESTINATION "${CMAKE_INSTALL_BINDIR}")
     endif ()

@@ -34,8 +34,8 @@ protected:
     wxSize DoGetBestSize() const override;
     
 private:
-    void * m_player;
-    wxMediaState m_state;
+    void * m_player = nullptr;
+    wxMediaState m_state = wxMEDIASTATE_STOPPED;
     int m_error = 0;
 };
 
