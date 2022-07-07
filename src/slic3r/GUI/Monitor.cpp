@@ -242,9 +242,9 @@ void MonitorPanel::msw_rescale()
     m_tabpanel->Rescale();
     //m_status_add_machine_panel->msw_rescale();
     m_status_info_panel->msw_rescale();
+    m_upgrade_panel->msw_rescale();
 #if !BBL_RELEASE_TO_PUBLIC
     m_media_file_panel->Rescale();
-    m_upgrade_panel->msw_rescale();
     m_hms_panel->msw_rescale();
 #endif
 

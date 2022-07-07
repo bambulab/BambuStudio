@@ -31,7 +31,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
 
     wxBoxSizer *m_ota_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_printer_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(200, 200), 0);
+    m_printer_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)), 0);
     m_printer_img->SetBitmap(create_scaled_bitmap("monitor_upgrade_printer", nullptr, 200));
     m_ota_sizer->Add(m_printer_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
 
@@ -47,39 +47,39 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     m_staticText_model_id = new wxStaticText(this, wxID_ANY, _L("Model:"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_model_id->Wrap(-1);
     m_staticText_model_id->SetFont(Label::Head_14);
-    m_ota_info_sizer->Add(m_staticText_model_id, 0, wxALIGN_RIGHT | wxALL, 5);
+    m_ota_info_sizer->Add(m_staticText_model_id, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));
 
     m_staticText_model_id_val = new wxStaticText(this, wxID_ANY, "-", wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_model_id_val->Wrap(-1);
-    m_ota_info_sizer->Add(m_staticText_model_id_val, 0, wxALL | wxEXPAND, 5);
+    m_ota_info_sizer->Add(m_staticText_model_id_val, 0, wxALL | wxEXPAND, FromDIP(5));
 
     m_staticText_sn = new wxStaticText(this, wxID_ANY, _L("Serial:"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_sn->Wrap(-1);
     m_staticText_sn->SetFont(Label::Head_14);
-    m_ota_info_sizer->Add(m_staticText_sn, 0, wxALIGN_RIGHT | wxALL | wxEXPAND, 5);
+    m_ota_info_sizer->Add(m_staticText_sn, 0, wxALIGN_RIGHT | wxALL | wxEXPAND, FromDIP(5));
 
     m_staticText_sn_val = new wxStaticText(this, wxID_ANY, "-", wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_sn_val->Wrap(-1);
-    m_ota_info_sizer->Add(m_staticText_sn_val, 0, wxALL | wxEXPAND, 5);
+    m_ota_info_sizer->Add(m_staticText_sn_val, 0, wxALL | wxEXPAND, FromDIP(5));
 
     wxBoxSizer *m_ota_ver_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_ota_ver_sizer->Add(0, 0, 1, wxEXPAND, 0);
 
-    m_ota_new_version_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(5, 5), 0);
+    m_ota_new_version_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(5), FromDIP(5)), 0);
     m_ota_new_version_img->SetBitmap(upgrade_green_icon);
-    m_ota_ver_sizer->Add(m_ota_new_version_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    m_ota_ver_sizer->Add(m_ota_new_version_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     m_staticText_ver = new wxStaticText(this, wxID_ANY, _L("Version:"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_ver->Wrap(-1);
     m_staticText_ver->SetFont(Label::Head_14);
-    m_ota_ver_sizer->Add(m_staticText_ver, 0, wxALIGN_RIGHT | wxALL, 5);
+    m_ota_ver_sizer->Add(m_staticText_ver, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));
 
     m_ota_info_sizer->Add(m_ota_ver_sizer, 0, wxEXPAND, 0);
 
     m_staticText_ver_val = new wxStaticText(this, wxID_ANY, "-", wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_ver_val->Wrap(-1);
-    m_ota_info_sizer->Add(m_staticText_ver_val, 0, wxALL | wxEXPAND, 5);
+    m_ota_info_sizer->Add(m_staticText_ver_val, 0, wxALL | wxEXPAND, FromDIP(5));
 
     m_ota_content_sizer->Add(m_ota_info_sizer, 0, wxEXPAND, 0);
 
@@ -92,32 +92,30 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     m_staticline = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
     m_staticline->SetBackgroundColour(wxColour(206,206,206));
     m_staticline->Show(false);
-    m_main_left_sizer->Add(m_staticline, 0, wxEXPAND | wxLEFT, 40);
+    m_main_left_sizer->Add(m_staticline, 0, wxEXPAND | wxLEFT, FromDIP(40));
 
     m_ams_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_ams_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(200, 200), 0);
+    m_ams_img   = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)), 0);
     m_ams_img->SetBitmap(create_scaled_bitmap("monitor_upgrade_ams", nullptr, 200));
-    m_ams_sizer->Add(m_ams_img, 0, wxALIGN_TOP | wxALL, 5);
+    m_ams_sizer->Add(m_ams_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
 
-    wxBoxSizer *m_ams_content_sizer;
-    m_ams_content_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *m_ams_content_sizer = new wxBoxSizer(wxVERTICAL);
+    m_ams_content_sizer->Add(0, 40, 0, wxEXPAND, FromDIP(5));
+    m_ams_info_sizer = new wxGridSizer(0, 2, FromDIP(30), FromDIP(30));
 
-    m_ams_content_sizer->Add(0, 20, 0, wxEXPAND, 5);
 
-    wxGridSizer *m_ams_info_sizer = new wxGridSizer(0, 2, 0, 0);
+    for (auto i = 0; i < 4; i++) {
+        auto amspanel = new AmsPanel(this, wxID_ANY);
+        m_ams_info_sizer->Add(amspanel, 1, wxEXPAND, 5);
+        amspanel->Hide();
 
-    wxFlexGridSizer *m_ams0_sizer = create_ams_sizer();
+        AmsPanelItem *item = new AmsPanelItem();
+        item->id           = i;
+        item->item         = amspanel;
+        m_amspanel_list[i] = item;
+    }
 
-    m_ams_info_sizer->Add(m_ams0_sizer, 1, wxEXPAND, 5);
-
-    wxFlexGridSizer *m_ams1_sizer;
-    m_ams1_sizer = new wxFlexGridSizer(0, 2, 0, 0);
-    m_ams1_sizer->SetFlexibleDirection(wxBOTH);
-    m_ams1_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
-
-    m_ams_info_sizer->Add(m_ams1_sizer, 1, wxEXPAND, 5);
-
-    m_ams_content_sizer->Add(m_ams_info_sizer, 1, wxEXPAND, 0);
+    m_ams_content_sizer->Add(m_ams_info_sizer, 0, wxEXPAND, 0);
 
     m_ams_sizer->Add(m_ams_content_sizer, 1, wxEXPAND, 0);
 
@@ -130,9 +128,9 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
 
     wxBoxSizer *m_main_right_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_main_right_sizer->SetMinSize(wxSize(137, -1));
+    m_main_right_sizer->SetMinSize(wxSize(FromDIP(137), -1));
 
-    m_main_right_sizer->Add(0, 50, 0, wxEXPAND, 5);
+    m_main_right_sizer->Add(0, FromDIP(50), 0, wxEXPAND, FromDIP(5));
 
     m_button_upgrade_firmware = new Button(this, _L("Upgrade firmware"));
     StateColor btn_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
@@ -146,11 +144,11 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     m_button_upgrade_firmware->SetFont(Label::Body_10);
     m_button_upgrade_firmware->SetMinSize(wxSize(FromDIP(-1), FromDIP(24)));
     m_button_upgrade_firmware->SetCornerRadius(FromDIP(12));
-    m_main_right_sizer->Add(m_button_upgrade_firmware, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
+    m_main_right_sizer->Add(m_button_upgrade_firmware, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(5));
 
     m_staticText_upgrading_info = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_upgrading_info->Wrap(-1);
-    m_main_right_sizer->Add(m_staticText_upgrading_info, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
+    m_main_right_sizer->Add(m_staticText_upgrading_info, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(5));
 
     m_upgrading_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -158,16 +156,16 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
 
     m_upgrade_progress = new ProgressBar(this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize);
     m_upgrade_progress->SetValue(0);
-    m_upgrade_progress->SetSize(wxSize(54, 14));
-    m_upgrade_progress->SetMinSize(wxSize(54, 14));
-    m_upgrading_sizer->Add(m_upgrade_progress, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    m_upgrade_progress->SetSize(wxSize(FromDIP(54), FromDIP(14)));
+    m_upgrade_progress->SetMinSize(wxSize(FromDIP(54), FromDIP(14)));
+    m_upgrading_sizer->Add(m_upgrade_progress, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     m_staticText_upgrading_percent = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_upgrading_percent->Wrap(-1);
-    m_upgrading_sizer->Add(m_staticText_upgrading_percent, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    m_upgrading_sizer->Add(m_staticText_upgrading_percent, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     m_upgrade_retry_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    m_upgrading_sizer->Add(m_upgrade_retry_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    m_upgrading_sizer->Add(m_upgrade_retry_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     m_upgrading_sizer->Add(0, 0, 1, wxEXPAND, 0);
 
@@ -206,6 +204,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     m_button_upgrade_firmware->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MachineInfoPanel::on_upgrade_firmware), NULL, this);
 }
 
+
 wxPanel *MachineInfoPanel::create_caption_panel(wxWindow *parent)
 {
     auto caption_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -216,13 +215,13 @@ wxPanel *MachineInfoPanel::create_caption_panel(wxWindow *parent)
 
     m_caption_sizer->Add(17, 0, 0, wxEXPAND, 0);
 
-    m_upgrade_status_img = new wxStaticBitmap(caption_panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(5, 5), 0);
+    m_upgrade_status_img = new wxStaticBitmap(caption_panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(5), FromDIP(5)), 0);
     m_upgrade_status_img->SetBitmap(upgrade_gray_icon);
-    m_caption_sizer->Add(m_upgrade_status_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    m_caption_sizer->Add(m_upgrade_status_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     m_caption_text = new wxStaticText(caption_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
     m_caption_text->Wrap(-1);
-    m_caption_sizer->Add(m_caption_text, 1, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    m_caption_sizer->Add(m_caption_text, 1, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     caption_panel->SetSizer(m_caption_sizer);
     caption_panel->Layout();
@@ -231,53 +230,20 @@ wxPanel *MachineInfoPanel::create_caption_panel(wxWindow *parent)
     return caption_panel;
 }
 
-wxFlexGridSizer* MachineInfoPanel::create_ams_sizer()
+void MachineInfoPanel::msw_rescale() 
 {
-    auto ams_sizer = new wxFlexGridSizer(0, 2, 0, 0);
-    ams_sizer->AddGrowableCol(1);
-    ams_sizer->SetFlexibleDirection(wxHORIZONTAL);
-    ams_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+    if (m_ams_img) { m_ams_img->SetBitmap(create_scaled_bitmap("monitor_upgrade_ams", nullptr, 200)); }
+    if (m_printer_img) { m_printer_img->SetBitmap(create_scaled_bitmap("monitor_upgrade_printer", nullptr, 200)); }
+   
+    m_ams_img->SetSize(wxSize(FromDIP(200), FromDIP(200))); 
+    m_ams_img->SetMinSize(wxSize(FromDIP(200), FromDIP(200))); 
 
-    m_staticText_ams = new wxStaticText(this, wxID_ANY, _L("AMS"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_ams->SetFont(Label::Head_14);
-    m_staticText_ams->Wrap(-1);
-    ams_sizer->Add(m_staticText_ams, 0, wxALIGN_RIGHT | wxALL, 5);
+    m_printer_img->SetSize(wxSize(FromDIP(200), FromDIP(200))); 
+    m_printer_img->SetMinSize(wxSize(FromDIP(200), FromDIP(200))); 
 
-    ams_sizer->Add(0, 0, 1, wxEXPAND, 5);
-
-    m_staticText_ams_sn = new wxStaticText(this, wxID_ANY, _L("Serial:"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_ams_sn->Wrap(-1);
-    m_staticText_ams_sn->SetFont(Label::Head_14);
-    ams_sizer->Add(m_staticText_ams_sn, 0, wxALIGN_RIGHT | wxALL, 5);
-
-    m_staticText_ams_sn_val = new wxStaticText(this, wxID_ANY, "-", wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_ams_sn_val->Wrap(-1);
-    ams_sizer->Add(m_staticText_ams_sn_val, 0, wxALL | wxEXPAND, 5);
-
-    wxBoxSizer *m_ams_ver_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-    m_ams_ver_sizer->Add(0, 0, 1, wxEXPAND, 0);
-
-    m_ams_new_version_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(5, 5), 0);
-    m_ams_new_version_img->SetBitmap(upgrade_green_icon);
-    //m_ams_new_version_img->Hide();
-    m_ams_ver_sizer->Add(m_ams_new_version_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-
-    m_staticText_ams_ver = new wxStaticText(this, wxID_ANY, _L("Version:"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_ams_ver->Wrap(-1);
-    m_staticText_ams_ver->SetFont(Label::Head_14);
-    m_ams_ver_sizer->Add(m_staticText_ams_ver, 0, wxALIGN_RIGHT | wxALL, 5);
-
-    ams_sizer->Add(m_ams_ver_sizer, 1, wxEXPAND, 5);
-
-    m_staticText_ams_ver_val = new wxStaticText(this, wxID_ANY, "-", wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_ams_ver_val->Wrap(-1);
-    ams_sizer->Add(m_staticText_ams_ver_val, 0, wxALL | wxEXPAND, 5);
-
-    ams_sizer->Add(0, 0, 1, wxEXPAND, 0);
-    return ams_sizer;
+    m_button_upgrade_firmware->SetSize(wxSize(FromDIP(-1), FromDIP(24))); 
+    m_button_upgrade_firmware->SetMinSize(wxSize(FromDIP(-1), FromDIP(24))); 
 }
-
 
 void MachineInfoPanel::init_bitmaps()
 {
@@ -356,7 +322,7 @@ void MachineInfoPanel::update_version_text(MachineObject* obj)
 {
     if (obj->upgrade_display_state == (int)MachineObject::UpgradingDisplayState::UpgradingInProgress) {
         m_staticText_ver_val->SetLabelText("-");
-        m_staticText_ams_ver_val->SetLabelText("-");
+        //m_staticText_ams_ver_val->SetLabelText("-");
         m_ota_new_version_img->Hide();
     } else {
         // update version text
@@ -390,33 +356,58 @@ void MachineInfoPanel::update_ams(MachineObject *obj)
     if (obj->ams_exist_bits != 0) {
         show_ams(true);
         std::map<int, MachineObject::ModuleVersionInfo> ver_list = obj->get_ams_version();
-        
-        for (int i = 0; i < 1; i++) {
+
+        AmsPanelHash::iterator iter = m_amspanel_list.begin();
+        while (iter != m_amspanel_list.end()) {
+            int           id       = iter->first;
+            AmsPanelItem *item     = iter->second;
+            AmsPanel*      amspanel = item->item;
+            amspanel->Hide();
+            iter++;
+        }
+
+        for (int i = 0; i < obj->amsList.size(); i++) {
+            wxString ams_name;
+            wxString ams_sn;
+            wxString ams_ver;
+
+            AmsPanelHash::iterator iter     = m_amspanel_list.find(i);
+            bool                   NotFound = (iter == m_amspanel_list.end());
+            if (NotFound) return;
+            AmsPanelItem *item     = iter->second;
+            AmsPanel *    amspanel = item->item;
+            amspanel->Show();
+
+
             auto it = ver_list.find(i);
             if (it == ver_list.end()) {
                 // hide this ams
             } else {
                 // update ams img
                 wxString ams_text = wxString::Format("AMS%s", std::to_string(i+1));
-                m_staticText_ams->SetLabelText(ams_text);
+                ams_name = ams_text;
                 if (obj->upgrade_new_version
                     && !obj->ams_new_version_number.empty()
                     && obj->ams_new_version_number.compare(it->second.sw_ver) != 0) { 
-                    m_ams_new_version_img->Show();
+                    amspanel->m_ams_new_version_img->Show();
                     wxString ver_text = wxString::Format("%s->%s", it->second.sw_ver, obj->ams_new_version_number);
-                    m_staticText_ams_ver_val->SetLabelText(ver_text);
+                    ams_ver = ver_text;
                 } else {
-                    m_ams_new_version_img->Show(false);
+                    amspanel->m_ams_new_version_img->Hide();
                     wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Lastest version"));
-                    m_staticText_ams_ver_val->SetLabelText(ver_text);
+                    ams_ver = ver_text;
                 }
                 // update ams sn
                 if (it->second.sn.empty()) {
-                    m_staticText_ams_sn_val->SetLabelText("-");
+                    ams_sn = "-";
                 } else {
                     wxString sn_text = it->second.sn;
-                    m_staticText_ams_sn_val->SetLabelText(sn_text.MakeUpper());
+                    ams_sn = sn_text.MakeUpper();
                 }
+
+                amspanel->m_staticText_ams->SetLabelText(ams_text);
+                amspanel->m_staticText_ams_sn_val->SetLabelText(ams_sn);
+                amspanel->m_staticText_ams_ver_val->SetLabelText(ams_ver);
             }
         }
     } else {
@@ -489,6 +480,7 @@ void MachineInfoPanel::show_status(int status)
 void MachineInfoPanel::show_ams(bool show, bool force_update)
 {
     if (m_last_ams_show != show || force_update) {
+        m_ams_img->Show(show);
         m_ams_sizer->Show(show);
         m_staticline->Show(show);
         BOOST_LOG_TRIVIAL(trace) << "upgrade: show_ams = " << show;
@@ -576,6 +568,11 @@ UpgradePanel::~UpgradePanel()
 
 }
 
+void UpgradePanel::msw_rescale() 
+{ 
+    m_push_upgrade_panel->msw_rescale();
+}
+
 void UpgradePanel::clean_push_upgrade_panel()
 {
     if (m_push_upgrade_panel) {
@@ -635,6 +632,66 @@ bool UpgradePanel::Show(bool show)
     }
     return wxPanel::Show(show);
 }
+
+ AmsPanel::AmsPanel(wxWindow *      parent,
+                   wxWindowID      id /*= wxID_ANY*/,
+                   const wxPoint & pos /*= wxDefaultPosition*/,
+                   const wxSize &  size /*= wxDefaultSize*/,
+                   long            style /*= wxTAB_TRAVERSAL*/,
+                   const wxString &name /*= wxEmptyString*/)
+    : wxPanel(parent,id,pos,size,style)
+{
+     auto upgrade_green_icon = create_scaled_bitmap("monitor_upgrade_online", nullptr, 5);
+
+     auto ams_sizer = new wxFlexGridSizer(0, 2, 0, 0);
+     ams_sizer->AddGrowableCol(1);
+     ams_sizer->SetFlexibleDirection(wxHORIZONTAL);
+     ams_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+
+     m_staticText_ams = new wxStaticText(this, wxID_ANY, "-", wxDefaultPosition, wxDefaultSize, 0);
+     m_staticText_ams->SetFont(Label::Head_14);
+     m_staticText_ams->Wrap(-1);
+
+     auto m_staticText_ams_sn = new wxStaticText(this, wxID_ANY, _L("Serial:"), wxDefaultPosition, wxDefaultSize, 0);
+     m_staticText_ams_sn->Wrap(-1);
+     m_staticText_ams_sn->SetFont(Label::Head_14);
+
+     m_staticText_ams_sn_val = new wxStaticText(this, wxID_ANY, "-", wxDefaultPosition, wxDefaultSize, 0);
+     m_staticText_ams_sn_val->Wrap(-1);
+
+     wxBoxSizer *m_ams_ver_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+     m_ams_ver_sizer->Add(0, 0, 1, wxEXPAND, 0);
+
+     m_ams_new_version_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(5), FromDIP(5)), 0);
+     m_ams_new_version_img->SetBitmap(upgrade_green_icon);
+     m_ams_ver_sizer->Add(m_ams_new_version_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+     m_ams_new_version_img->Hide();
+
+     auto m_staticText_ams_ver = new wxStaticText(this, wxID_ANY, _L("Version:"), wxDefaultPosition, wxDefaultSize, 0);
+     m_staticText_ams_ver->Wrap(-1);
+     m_staticText_ams_ver->SetFont(Label::Head_14);
+     m_ams_ver_sizer->Add(m_staticText_ams_ver, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));
+
+     m_staticText_ams_ver_val = new wxStaticText(this, wxID_ANY, "-", wxDefaultPosition, wxDefaultSize, 0);
+     m_staticText_ams_ver_val->Wrap(-1);
+
+     ams_sizer->Add(m_staticText_ams, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));
+     ams_sizer->Add(0, 0, 1, wxEXPAND, 5);
+     ams_sizer->Add(m_staticText_ams_sn, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));
+     ams_sizer->Add(m_staticText_ams_sn_val, 0, wxALL | wxEXPAND, FromDIP(5));
+     ams_sizer->Add(m_ams_ver_sizer, 1, wxEXPAND, 5);
+     ams_sizer->Add(m_staticText_ams_ver_val, 0, wxALL | wxEXPAND, FromDIP(5));
+     ams_sizer->Add(0, 0, 1, wxEXPAND, 0);
+
+     SetSizer(ams_sizer);
+     Layout();
+ }
+
+ AmsPanel::~AmsPanel() 
+ {
+
+ }
 
 }
 }

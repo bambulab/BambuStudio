@@ -11,6 +11,33 @@
 namespace Slic3r {
 namespace GUI {
 
+class AmsPanel : public wxPanel
+{
+public:
+    wxStaticText *m_staticText_ams;
+    wxStaticText *m_staticText_ams_sn_val;
+    wxStaticText *m_staticText_ams_ver_val;
+    wxStaticBitmap *m_ams_new_version_img;
+
+    AmsPanel(wxWindow *      parent,
+                     wxWindowID      id    = wxID_ANY,
+                     const wxPoint & pos   = wxDefaultPosition,
+                     const wxSize &  size  = wxDefaultSize,
+                     long            style = wxTAB_TRAVERSAL,
+                     const wxString &name  = wxEmptyString);
+    ~AmsPanel();
+};
+
+class AmsPanelItem
+{
+public:
+    int       id;
+    AmsPanel *item;
+};
+
+WX_DECLARE_HASH_MAP(int, AmsPanelItem *, wxIntegerHash, wxIntegerEqual, AmsPanelHash);
+
+
 class MachineInfoPanel : public wxPanel
 {
 protected:
@@ -28,15 +55,11 @@ protected:
     wxStaticLine *  m_staticline;
     wxStaticBitmap *m_ams_img;
 
+    wxGridSizer *   m_ams_info_sizer;
+
     /* ams info */
     bool           m_last_ams_show = true;
     wxBoxSizer*    m_ams_sizer;
-    wxStaticText*  m_staticText_ams;
-    wxStaticText*  m_staticText_ams_sn;
-    wxStaticText * m_staticText_ams_sn_val;
-    wxStaticBitmap* m_ams_new_version_img;
-    wxStaticText*  m_staticText_ams_ver;
-    wxStaticText*  m_staticText_ams_ver_val;
 
     /* upgrade widgets */
     wxBoxSizer*     m_upgrading_sizer;
@@ -48,7 +71,7 @@ protected:
     Button *        m_button_upgrade_firmware;
 
     wxPanel* create_caption_panel(wxWindow *parent);
-    wxFlexGridSizer* create_ams_sizer();
+    AmsPanelHash     m_amspanel_list;
 
     wxBitmap upgrade_gray_icon;
     wxBitmap upgrade_green_icon;
@@ -69,8 +92,7 @@ public:
         return m_button_upgrade_firmware;
     }
 
-    void msw_rescale() {}
-
+    void msw_rescale();
     void update(MachineObject *obj);
     void update_version_text(MachineObject *obj);
     void update_ams(MachineObject *obj);
@@ -113,7 +135,7 @@ public:
     UpgradePanel(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~UpgradePanel();
     void clean_push_upgrade_panel();
-    void msw_rescale() {}
+    void msw_rescale();
     bool Show(bool show = true) override;
 
     void refresh_version_and_firmware(MachineObject* obj);

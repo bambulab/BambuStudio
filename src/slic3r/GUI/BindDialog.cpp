@@ -437,6 +437,7 @@ void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event)
         dev->update_user_machine_list_info();
 
         m_status_text->SetLabelText(_L("Log out successful."));
+        m_button_cancel->SetLabel(_L("Close"));
         m_button_unbind->Hide();
     }
     else {
