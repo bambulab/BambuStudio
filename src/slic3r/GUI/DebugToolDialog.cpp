@@ -1498,7 +1498,9 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
     }
 
     try {
-        BOOST_LOG_TRIVIAL(trace) << "on_message_arrived: json_str=" << json_str;
+        json j = json::parse(json_str);
+
+        BOOST_LOG_TRIVIAL(trace) << "on_message_arrived: json_str=" << j.dump(4);
         std::stringstream ss(json_str);
         pt::ptree root;
         pt::read_json(ss, root);
@@ -1552,11 +1554,11 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
                 }
                 return;
             }
-            this->log_info("received ack msg = " + json_str);
+            this->log_info("received ack msg = " + j.dump(4));
             return;
         }
         else if (root.get_child_optional("info") != boost::none) {
-            this->log_info("received ack msg = " + json_str);
+            this->log_info("received ack msg = " + j.dump(4));
             return;
         }
         else if (root.get_child_optional("upgrade") != boost::none) {
@@ -1565,7 +1567,7 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
         else if (root.get_child_optional("system") != boost::none) {
             return;
         }
-        this->log_info("dev_id=" + evt.GetString().ToStdString() + ", json=" + json_str);
+        this->log_info("dev_id=" + evt.GetString().ToStdString() + ", json=" + j.dump(4));
     }
     catch (std::exception& e) {
         std::string info = "parsing report msg error, json_str=" + json_str;
