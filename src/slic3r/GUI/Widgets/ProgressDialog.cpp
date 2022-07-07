@@ -774,17 +774,27 @@ void ProgressDialog::DoSetSize(int x, int y, int width, int height, int sizeFlag
 void ProgressDialog::DisableOtherWindows()
 {
     if (HasPDFlag(wxPD_APP_MODAL)) {
+#if defined(__WXOSX__)
+        if (m_parentTop) m_parentTop->Disable();
+        m_winDisabler = NULL;
+#else
         m_winDisabler = new wxWindowDisabler(this);
+#endif
     } else {
         if (m_parentTop) m_parentTop->Disable();
         m_winDisabler = NULL;
     }
+
 }
 
 void ProgressDialog::ReenableOtherWindows()
 {
     if (HasPDFlag(wxPD_APP_MODAL)) {
+#if defined(__WXOSX__)
+        if (m_parentTop) m_parentTop->Enable();
+#else
         wxDELETE(m_winDisabler);
+#endif
     } else {
         if (m_parentTop) m_parentTop->Enable();
     }
