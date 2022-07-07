@@ -1697,7 +1697,7 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
         }
     }
     else if (server_sel == 0) {
-        MachineObject* obj = dev_manager_.get_selected_machine();
+        MachineObject* obj = dev_manager_.get_local_selected_machine();
         if (!obj)
             return;
         std::string url = (boost::format("%1%?module_name=%2%&build_type=%3%&hardware_version=%4%&firmware_type=%5%")
