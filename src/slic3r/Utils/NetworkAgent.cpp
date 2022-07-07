@@ -116,6 +116,10 @@ int NetworkAgent::initialize_network_module()
     library = resource_dir + "/../Library/"+ std::string("lib") + BAMBU_NETWORK_LIBRARY + ".dylib";
     printf("loading network module at %s\n", library.c_str());
     netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
+    if (!netwoking_module) {
+        library = std::string("lib") + BAMBU_NETWORK_LIBRARY + ".dylib";
+        netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
+    }
     printf("after dlopen, network_module is %p\n", netwoking_module);
 #else
     library = std::string("lib") + BAMBU_NETWORK_LIBRARY + ".so";
