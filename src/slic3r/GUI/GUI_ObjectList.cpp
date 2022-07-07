@@ -1871,7 +1871,7 @@ static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf
     const double side = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.1);
 
     indexed_triangle_set mesh;
-    if (type_name == "Cube")
+    if (type_name == "Cube" || type_name == "Timelapse Wipe Tower")
         // Sitting on the print bed, left front front corner at (0, 0).
         mesh = its_make_cube(side, side, side);
     else if (type_name == "Cylinder")
@@ -2023,13 +2023,24 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
     new_object->invalidate_bounding_box();
     new_object->translate(-bb.center());
 
-    // BBS: find an empty cell to put the copied object
-    auto start_point = wxGetApp().plater()->build_volume().bounding_volume2d().center();
-    auto empty_cell = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({ start_point(0), start_point(1) });
+    if (name == "Timelapse Wipe Tower") {
+        new_object->instances[0]->set_offset( Vec3d(80.0, 230.0, -new_object->origin_translation.z()) );
+        new_object->is_timelapse_wipe_tower = true;
+        auto   curr_plate    = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+        int    last_extruder = 0;
+        double max_height = curr_plate->estimate_timelapse_wipe_tower_height(&last_extruder);
+        new_object->scale(1, 1, max_height / new_object->bounding_box().size()[2]);
 
-    new_object->instances[0]->set_offset(center ?
-        to_3d(Vec2d(empty_cell(0),empty_cell(1)), -new_object->origin_translation.z()) :
-        bb.center());
+        new_object->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+        new_object->config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
+        new_object->config.set("extruder", last_extruder);
+    } else {
+        // BBS: find an empty cell to put the copied object
+        auto start_point = wxGetApp().plater()->build_volume().bounding_volume2d().center();
+        auto empty_cell  = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)});
+
+        new_object->instances[0]->set_offset(center ? to_3d(Vec2d(empty_cell(0), empty_cell(1)), -new_object->origin_translation.z()) : bb.center());
+    }
 
     new_object->ensure_on_bed();
 
@@ -2721,9 +2732,15 @@ bool ObjectList::can_merge_to_multipart_object() const
         return false;
 
     // should be selected just objects
-    for (wxDataViewItem item : sels)
+    for (wxDataViewItem item : sels) {
         if (!(m_objects_model->GetItemType(item) & (itObject | itInstance)))
             return false;
+
+        // BBS: do not support to merge timelapse wipe tower with other objects 
+        ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(item.GetID());
+        if (node != nullptr && node->IsTimelapseWipeTower())
+            return false;
+    }
 
     return true;
 }

@@ -1884,6 +1884,26 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 				volume->set_sla_shift_z(shift_zs[volume->object_idx()]);
     }
 
+    // BBS: update Timelapse Wipe Tower according to max height
+    for (unsigned int obj_idx = 0; obj_idx < (unsigned int) m_model->objects.size(); ++obj_idx) {
+        ModelObject* model_object = m_model->objects[obj_idx];
+        if (model_object->is_timelapse_wipe_tower) {
+            for (GLVolume* volume : m_volumes.volumes) {
+                if (volume->composite_id.object_id == obj_idx) {
+                    auto  curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+                    Vec3d wipe_tower_size = curr_plate->estimate_wipe_tower_size(10, 10);
+                    double max_height = curr_plate->estimate_timelapse_wipe_tower_height();
+                    float z_factor = max_height / model_object->raw_mesh_bounding_box().size()[2];
+                    volume->set_instance_scaling_factor(Vec3d(1.0, 1.0, z_factor));
+                    volume->is_timelapse_wipe_tower = true;
+                }
+            }
+
+            ensure_on_bed(obj_idx, false);
+            break;
+        }
+    }
+
     // BBS
     if (printer_technology == ptFFF && m_config->has("filament_colour") && (m_canvas_type != ECanvasType::CanvasAssembleView)) {
         // Should the wipe tower be visualized ?

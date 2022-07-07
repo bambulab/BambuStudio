@@ -1132,6 +1132,24 @@ Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double wipe_volu
 	return wipe_tower_size;
 }
 
+double PartPlate::estimate_timelapse_wipe_tower_height(int* extruder_id) const {
+	double max_height = 0;
+	int    last_extruder = 0;
+
+	// auto  m_model    = wxGetApp().plater()->get_obj
+	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
+		if (!contain_instance_totally(obj_idx, 0)) continue;
+		if (m_model->objects[obj_idx]->is_timelapse_wipe_tower) continue;
+
+		BoundingBoxf3 bbox = m_model->objects[obj_idx]->bounding_box();
+		max_height = std::max(bbox.size().z(), max_height);
+		last_extruder = m_model->objects[obj_idx]->config.opt_int("extruder");
+	}
+	if (extruder_id)
+		*extruder_id = last_extruder;
+	return max_height;
+}
+
 bool PartPlate::operator<(PartPlate& plate) const
 {
 	int index = plate.get_index();

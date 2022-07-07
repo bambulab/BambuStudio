@@ -459,6 +459,13 @@ wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType ty
             [type, item](wxCommandEvent&) { obj_list()->load_generic_subobject(item, type); }, "", menu);
     }
 
+    // BBS: only add timelapse tower item for plate
+    if (type == ModelVolumeType::INVALID) {
+        auto item = L("Timelapse Wipe Tower");
+        append_menu_item(sub_menu, wxID_ANY, _(item), "",
+            [type, item](wxCommandEvent&) { obj_list()->load_generic_subobject(item, type); }, "", menu);
+    }
+
     return sub_menu;
 }
 

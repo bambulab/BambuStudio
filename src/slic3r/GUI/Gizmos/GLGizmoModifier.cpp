@@ -22,7 +22,8 @@ const std::vector<std::pair<std::string, std::string>> GLGizmoModifier::MODIFIER
     {L("Cube"),     "toolbar_modifier_cube.svg" },
     {L("Cylinder"), "toolbar_modifier_cylinder.svg" },
     {L("Sphere"),   "toolbar_modifier_sphere.svg" },
-    {L("Cone"),     "toolbar_modifier_cone.svg" }
+    {L("Cone"),     "toolbar_modifier_cone.svg" },
+    {L("Timelapse Wipe Tower"), "toolbar_modifier_cube.svg"},
 };
 
 GLGizmoModifier::GLGizmoModifier(GLCanvas3D &parent, const std::string &icon_filename, unsigned int sprite_id)

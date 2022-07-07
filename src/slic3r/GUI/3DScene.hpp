@@ -372,7 +372,8 @@ public:
 	    // Wheter or not this volume has been generated from a modifier
 	    bool                is_modifier : 1;
 	    // Wheter or not this volume has been generated from the wipe tower
-	    bool                is_wipe_tower : 1;
+        bool                is_wipe_tower : 1;
+        bool                is_timelapse_wipe_tower : 1;
 	    // Wheter or not this volume has been generated from an extrusion path
 	    bool                is_extrusion_path : 1;
 	    // Wheter or not to always render this volume using its own alpha

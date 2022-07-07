@@ -237,6 +237,7 @@ public:
 
     Vec3d get_origin() { return m_origin; }
     Vec3d estimate_wipe_tower_size(const double w, const double wipe_volume) const;
+    double estimate_timelapse_wipe_tower_height(int* extruder_id=NULL) const;
     std::vector<int> get_extruders() const;
 
     /* instance related operations*/
