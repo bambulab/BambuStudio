@@ -246,6 +246,9 @@ wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned width, 
         image.GetWidth() == 0 || image.GetHeight() == 0)
         return nullptr;
 
+    if (height == 0 && width == 0)
+        height = image.GetHeight();
+
     if (height != 0 && unsigned(image.GetHeight()) != height)
         width   = unsigned(0.5f + float(image.GetWidth()) * height / image.GetHeight());
     else if (width != 0 && unsigned(image.GetWidth()) != width)
@@ -327,6 +330,9 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
     NSVGimage *image =  nsvgParseFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(), "px", 96.0f, replaces);
     if (image == nullptr)
         return nullptr;
+
+    if (target_height == 0 && target_width == 0)
+        target_height = image->height;
 
     target_height != 0 ? target_height *= m_scale : target_width *= m_scale;
 

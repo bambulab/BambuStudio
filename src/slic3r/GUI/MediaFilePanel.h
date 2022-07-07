@@ -9,6 +9,7 @@
 #define MediaFilePanel_h
 
 #include "GUI_Utils.hpp"
+#include "wxExtensions.hpp"
 
 #include <wx/frame.h>
 
@@ -42,12 +43,24 @@ private:
     void fetchUrl(boost::weak_ptr<PrinterFileSystem> fs);
 
 private:
-    ::StaticBox *m_tab_panel = nullptr;
-    ::Button    *m_tab_button_year = nullptr;
-    ::Button    *m_tab_button_month = nullptr;
-    ::Button    *m_tab_button_all = nullptr;
+    ScalableBitmap m_bmp_loading;
+    ScalableBitmap m_bmp_failed;
+    ScalableBitmap m_bmp_empty;
+
+    ::StaticBox *m_time_panel = nullptr;
+    ::Button    *m_button_year = nullptr;
+    ::Button    *m_button_month = nullptr;
+    ::Button    *m_button_all = nullptr;
     ::Label     *m_switch_label = nullptr;
-    ::SwitchButton * m_switch_button = nullptr;
+
+    ::StaticBox *   m_type_panel    = nullptr;
+    ::Button *      m_button_video   = nullptr;
+    ::Button *      m_button_timelapse  = nullptr;
+
+    ::StaticBox *m_manage_panel        = nullptr;
+    ::Button *   m_button_delete     = nullptr;
+    ::Button *m_button_download = nullptr;
+    ::Button *m_button_management = nullptr;
 
     std::string m_machine;
     ImageGrid * m_image_grid = nullptr;

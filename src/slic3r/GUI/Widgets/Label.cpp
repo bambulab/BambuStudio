@@ -1,7 +1,7 @@
 #include "Label.hpp"
 #include "StaticBox.hpp"
 
-static wxFont sysFont(int size, bool bold)
+wxFont Label::sysFont(int size, bool bold)
 {
 #ifdef __linux__
     return wxFont{};
@@ -19,22 +19,22 @@ static wxFont sysFont(int size, bool bold)
     }
     return font;
 }
-wxFont Label::Head_24 = sysFont(24, true);
-wxFont Label::Head_20 = sysFont(20, true);
-wxFont Label::Head_18 = sysFont(18, true);
-wxFont Label::Head_16 = sysFont(16, true);
-wxFont Label::Head_15 = sysFont(15, true);
-wxFont Label::Head_14 = sysFont(14, true);
-wxFont Label::Head_13 = sysFont(13, true);
-wxFont Label::Head_12 = sysFont(12, true);
-wxFont Label::Head_10 = sysFont(10, true);
+wxFont Label::Head_24 = Label::sysFont(24, true);
+wxFont Label::Head_20 = Label::sysFont(20, true);
+wxFont Label::Head_18 = Label::sysFont(18, true);
+wxFont Label::Head_16 = Label::sysFont(16, true);
+wxFont Label::Head_15 = Label::sysFont(15, true);
+wxFont Label::Head_14 = Label::sysFont(14, true);
+wxFont Label::Head_13 = Label::sysFont(13, true);
+wxFont Label::Head_12 = Label::sysFont(12, true);
+wxFont Label::Head_10 = Label::sysFont(10, true);
 
-wxFont Label::Body_16 = sysFont(16, false);
-wxFont Label::Body_15 = sysFont(15, false);
-wxFont Label::Body_14 = sysFont(14, false);
-wxFont Label::Body_13 = sysFont(13, false);
-wxFont Label::Body_12 = sysFont(12, false);
-wxFont Label::Body_10 = sysFont(10, false);
+wxFont Label::Body_16 = Label::sysFont(16, false);
+wxFont Label::Body_15 = Label::sysFont(15, false);
+wxFont Label::Body_14 = Label::sysFont(14, false);
+wxFont Label::Body_13 = Label::sysFont(13, false);
+wxFont Label::Body_12 = Label::sysFont(12, false);
+wxFont Label::Body_10 = Label::sysFont(10, false);
 
 Label::Label(wxString const &text, wxWindow *parent) : Label(Body_16, text, parent) {}
 

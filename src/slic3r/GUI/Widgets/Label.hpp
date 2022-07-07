@@ -29,6 +29,8 @@ public:
     static wxFont Body_13;
 	static wxFont Body_12;
 	static wxFont Body_10;
+
+    static wxFont sysFont(int size, bool bold = false);
 };
 
 #endif // !slic3r_GUI_Label_hpp_

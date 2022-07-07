@@ -19,7 +19,6 @@ END_EVENT_TABLE()
 StaticBox::StaticBox()
     : state_handler(this)
     , border_color(0x303A3C)
-    , background_color(*wxWHITE)
     , radius(8)
 {
 }
@@ -81,14 +80,16 @@ void StaticBox::SetBackgroundColor2(StateColor const &color)
 wxColor StaticBox::GetParentBackgroundColor(wxWindow* parent)
 {
     if (auto box = dynamic_cast<StaticBox*>(parent)) {
-        if (box->background_color2.count() == 0)
-            return box->background_color.defaultColor();
-        auto s = box->background_color.defaultColor();
-        auto e = box->background_color2.defaultColor();
-        int r = (s.Red() + e.Red()) / 2;
-        int g = (s.Green() + e.Green()) / 2;
-        int b = (s.Blue() + e.Blue()) / 2;
-        return wxColor(r, g, b);
+        if (box->background_color.count() > 0) {
+            if (box->background_color2.count() == 0)
+                return box->background_color.defaultColor();
+            auto s = box->background_color.defaultColor();
+            auto e = box->background_color2.defaultColor();
+            int r = (s.Red() + e.Red()) / 2;
+            int g = (s.Green() + e.Green()) / 2;
+            int b = (s.Blue() + e.Blue()) / 2;
+            return wxColor(r, g, b);
+        }
     }
     if (parent)
         return parent->GetBackgroundColour();
@@ -145,24 +146,26 @@ void StaticBox::doRender(wxDC& dc)
     wxSize size = GetSize();
     int states = state_handler.states();
     if (background_color2.count() == 0) {
-        wxRect rc(0, 0, size.x, size.y);
-        if (border_width) {
+        if ((border_width && border_color.count() > 0) || background_color.count() > 0) {
+            wxRect rc(0, 0, size.x, size.y);
+            if (border_width && border_color.count() > 0) {
 #ifdef __WXOSX__
-            int d = ceil(border_width / 2.0);
-            rc.Deflate(d, d);
+                int d = ceil(border_width / 2.0);
+                rc.Deflate(d, d);
 #endif
-            dc.SetPen(wxPen(border_color.colorForStates(states), border_width));
-        } else {
-            dc.SetPen(wxPen(background_color.colorForStates(states)));
-        }
-        dc.SetBrush(wxBrush(background_color.colorForStates(states)));
-        if (GetWindowStyle() & wxBORDER_NONE)
-            dc.SetPen(wxPen(background_color.colorForStates(states)));
-        if (radius == 0) {
-            dc.DrawRectangle(rc);
-        }
-        else {
-            dc.DrawRoundedRectangle(rc, radius);
+                dc.SetPen(wxPen(border_color.colorForStates(states), border_width));
+            } else {
+                dc.SetPen(wxPen(background_color.colorForStates(states)));
+            }
+            dc.SetBrush(wxBrush(background_color.colorForStates(states)));
+            if (GetWindowStyle() & wxBORDER_NONE)
+                dc.SetPen(wxPen(background_color.colorForStates(states)));
+            if (radius == 0) {
+                dc.DrawRectangle(rc);
+            }
+            else {
+                dc.DrawRoundedRectangle(rc, radius);
+            }
         }
     }
     else {

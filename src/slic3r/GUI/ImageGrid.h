@@ -32,13 +32,19 @@ public:
 
     void SetFileSystem(boost::shared_ptr<PrinterFileSystem> file_sys);
 
-    void SetStatus(wxString const &msg);
+    void SetStatus(wxBitmap const & icon, wxString const &msg);
 
     boost::shared_ptr<PrinterFileSystem> GetFileSystem() { return m_file_sys; }
+
+    void SetFileType(int type);
 
     void SetGroupMode(int mode);
 
     void SetSelecting(bool selecting);
+
+    bool IsSelecting() { return m_selecting; }
+
+    void DoActionOnSelection(int action);
 
 public:
     void Rescale();
@@ -66,7 +72,9 @@ protected:
 
     wxBitmap createAlphaBitmap(wxSize size, wxColour color, int alpha1, int alpha2);
 
-    void render(wxDC& dc);
+    wxBitmap createCircleBitmap(wxSize size, int borderWidth, int percent, wxColour fillColor, wxColour borderColor = wxTransparentColour);
+
+    void render(wxDC &dc);
 
     void renderButtons(wxDC &dc, wxStringList const &texts, wxRect const &rect, size_t hit);
 
@@ -85,6 +93,7 @@ protected:
 
 private:
     boost::shared_ptr<PrinterFileSystem> m_file_sys;
+    wxBitmap m_status_icon;
     wxString m_status_msg;
 
     std::string m_save_path;
@@ -100,15 +109,18 @@ private:
     wxTimer m_timer;
     wxBitmap   m_mask;
     wxBitmap   m_buttons_background;
-    wxBitmap   m_button_background;
+    // wxBitmap   m_button_background;
+    wxBitmap   m_progress_background;
+    int m_background_progress = 0;
 
     bool m_selecting = false;
 
     enum HitType {
         HIT_NONE,
         HIT_ITEM,
-        HIT_HOVER, // implicit HTI_ITEM
-        HIT_MODE
+        HIT_ACTION, // implicit HTI_ITEM
+        HIT_MODE,
+        HIT_STATUS
     };
     int     m_hit_type = HIT_NONE;
     size_t  m_hit_item = size_t(-1);

@@ -55,15 +55,24 @@ public:
     ~PrinterFileSystem();
 
 public:
+    enum FileType {
+        F_TIMELAPSE,
+        F_VIDEO,
+    };
+
     enum GroupMode {
-        G_NONE, 
+        G_NONE,
         G_MONTH,
         G_YEAR,
     };
 
+    void SetFileType(FileType type);
+
     void SetGroupMode(GroupMode mode);
 
     size_t EnterSubGroup(size_t index);
+
+    GroupMode GetFileType() const { return m_group_mode; }
 
     GroupMode GetGroupMode() const { return m_group_mode; }
 
@@ -138,7 +147,9 @@ public:
 
     void Start();
 
-    void SetUrl(std::string const & url);
+    void Retry();
+
+    void SetUrl(std::string const &url);
 
     void Stop(bool quit = false);
 
@@ -233,8 +244,10 @@ private:
     void PostCallback(std::function<void(void)> const & callback);
 
 protected:
+    FileType m_file_type = F_TIMELAPSE;
     GroupMode m_group_mode = G_NONE;
     FileList m_file_list;
+    FileList m_file_list2;
     std::vector<size_t> m_group_year;
     std::vector<size_t> m_group_month;
 
