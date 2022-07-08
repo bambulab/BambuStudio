@@ -1587,7 +1587,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (this->m_objsWithBrim.empty() && this->m_objSupportsWithBrim.empty()) m_brim_done = true;
 
     //BBS: open spaghetti detector
-    if (print.config().spaghetti_detector.value)
+    // if (print.config().spaghetti_detector.value)
         file.write("M981 S1 P20000 ;open spaghetti detector\n");
 
     // Do all objects for each layer.
@@ -1744,8 +1744,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     //BBS: make sure the additional fan is closed when end
     file.write(m_writer.set_additional_fan(0));
     //BBS: close spaghetti detector
-    if (print.config().spaghetti_detector.value)
-        file.write("M981 S0 P20000 ; close spaghetti detector\n");
+    //Note: M981 is also used to tell xcam the last layer is finished, so we need always send it even if spaghetti option is disabled.
+    //if (print.config().spaghetti_detector.value)
+    file.write("M981 S0 P20000 ; close spaghetti detector\n");
 
     // adds tag for processor
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());

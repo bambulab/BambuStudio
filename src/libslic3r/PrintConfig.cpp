@@ -1196,11 +1196,11 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
     //BBS
-    def = this->add("spaghetti_detector", coBool);
-    def->label = L("Enable spaghetti detector");
-    def->tooltip = L("Enable the camera on printer to check spaghetti");
-    def->mode = comSimple;
-    def->set_default_value(new ConfigOptionBool(false));
+    // def = this->add("spaghetti_detector", coBool);
+    // def->label = L("Enable spaghetti detector");
+    // def->tooltip = L("Enable the camera on printer to check spaghetti");
+    // def->mode = comSimple;
+    // def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("nozzle_type", coEnum);
     def->label = L("Nozzle type");
@@ -3370,7 +3370,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "support_bottom_z_distance", "support_closing_radius", "slicing_mode", "slice_closing_radius",
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
-        "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume"
+        "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {

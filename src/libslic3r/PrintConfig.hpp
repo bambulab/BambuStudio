@@ -722,7 +722,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              filament_minimal_purge_on_wipe_tower))
     // BBS
     ((ConfigOptionBool,                scan_first_layer))
-    ((ConfigOptionBool,                spaghetti_detector))
+    // ((ConfigOptionBool,                spaghetti_detector))
     ((ConfigOptionBool,                gcode_add_line_number))
     ((ConfigOptionBool,                bbl_bed_temperature_gcode))
     ((ConfigOptionEnum<GCodeFlavor>,   gcode_flavor))

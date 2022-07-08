@@ -717,7 +717,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "default_print_profile", "inherits",
     "silent_mode",
     // BBS
-    "scan_first_layer", "spaghetti_detector", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode",
+    "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode",
     "nozzle_type", "auxiliary_fan", "nozzle_volume"
 };
 

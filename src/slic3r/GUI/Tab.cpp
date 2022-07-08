@@ -2777,7 +2777,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"));
         optgroup->append_single_option_line("gcode_flavor");
         optgroup->append_single_option_line("scan_first_layer");
-        optgroup->append_single_option_line("spaghetti_detector");
+        // optgroup->append_single_option_line("spaghetti_detector");
         optgroup->append_single_option_line("machine_load_filament_time");
         optgroup->append_single_option_line("machine_unload_filament_time");
 
