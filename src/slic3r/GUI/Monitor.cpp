@@ -384,22 +384,23 @@ void MonitorPanel::update_all()
     }
 
     m_status_info_panel->obj = obj;
+    
 
 #if !BBL_RELEASE_TO_PUBLIC
     m_upgrade_panel->update(obj);
 #endif
 
+    
     m_status_info_panel->m_media_play_ctrl->SetMachineObject(IsShown() ? obj : nullptr);
     m_media_file_panel->SetMachineObject(obj);
-
     update_status(obj);
-
+    
     if (!obj) {
         show_status((int)MONITOR_NO_PRINTER);
         return;
     }
 
-    if (obj->check_ams_version()) {
+   /* if (obj->check_ams_version()) {
         if (!has_popup_ams_check_dlg) {
             has_popup_ams_check_dlg = true;
             MessageDialog msg_dlg(nullptr, _L("Please upgrade your printer first"), "", wxAPPLY | wxOK);
@@ -407,7 +408,7 @@ void MonitorPanel::update_all()
                 return;
             }
         }
-    }
+    }*/
 
     if (!obj->is_connected()) {
         int server_status = 0;

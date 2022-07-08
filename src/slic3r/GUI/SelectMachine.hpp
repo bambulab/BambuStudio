@@ -308,6 +308,7 @@ public:
     void      prepare_mode();
     void      sending_mode();
     void      update_info_msg(wxString msg);
+    void      stripWhiteSpace(std::string &str);
     void      update_warn_msg(wxString msg);
     void      update_err_msg(wxString msg);
     void      finish_mode();

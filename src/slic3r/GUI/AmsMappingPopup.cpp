@@ -196,16 +196,23 @@ void AmsMapingPopup::update_materials_list(std::vector<std::string> list)
     m_materials_list = list;
 }
 
+void AmsMapingPopup::set_tag_texture(std::string texture) 
+{ 
+    m_tag_material = texture;
+}
+
+
 bool AmsMapingPopup::is_match_material(int id, std::string material)
 {
-    auto mismatch = false;
-    for (auto i = 0; i < m_materials_list.size(); i++) 
-    {
-        if (i == id) { 
-            mismatch = m_materials_list[i] == material?true:false;
-        }
-    }
-    return mismatch;
+    /* auto mismatch = false;
+     for (auto i = 0; i < m_materials_list.size(); i++)
+     {
+         if (i == id) {
+             mismatch = m_materials_list[i] == material?true:false;
+         }
+     }
+     return mismatch;*/
+    return m_tag_material == material ? true : false;
 }
 
 
@@ -290,7 +297,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
             }
 
             m_filament_name->Bind(wxEVT_BUTTON, [this, tray_data, i](wxCommandEvent &e) {
-                if (!is_match_material(i, tray_data[i].name)) return;
+                if (!is_match_material(tray_data[i].id, tray_data[i].name)) return;
                 wxCommandEvent event(EVT_SET_FINISH_MAPPING);
                 event.SetInt(tray_data[i].id);
                 wxString param = wxString::Format("%d|%d|%d|%02d", tray_data[i].colour.Red(), tray_data[i].colour.Green(), tray_data[i].colour.Blue(), tray_data[i].id + 1);
@@ -308,9 +315,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
             m_filament_name->SetTextColor(*wxWHITE);
             m_filament_name->SetBackgroundColor(wxColour(0x6B, 0x6B, 0x6B));
             m_filament_name->SetBorderColor(wxColour(0x6B, 0x6B, 0x6B));
-
             m_filament_name->Bind(wxEVT_BUTTON, [this, tray_data, i](wxCommandEvent &e) {
-                if (!is_match_material(i, tray_data[i].name)) return;
                 wxCommandEvent event(EVT_SET_FINISH_MAPPING);
                 event.SetInt(tray_data[i].id);
                 wxString param = wxString::Format("%d|%d|%d|%02d", 0x6B, 0x6B, 0x6B, tray_data[i].id + 1);
@@ -327,9 +332,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
             m_filament_name->SetTextColor(*wxWHITE);
             m_filament_name->SetBackgroundColor(wxColour(0x6B, 0x6B, 0x6B));
             m_filament_name->SetBorderColor(wxColour(0x6B, 0x6B, 0x6B));
-
              m_filament_name->Bind(wxEVT_BUTTON, [this, tray_data, i](wxCommandEvent &e) {
-                if (!is_match_material(i, tray_data[i].name)) return;
                 wxCommandEvent event(EVT_SET_FINISH_MAPPING);
                 event.SetInt(tray_data[i].id);
                 wxString param = wxString::Format("%d|%d|%d|%02d", 0x6B, 0x6B, 0x6B, tray_data[i].id + 1);

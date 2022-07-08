@@ -92,10 +92,12 @@ public:
     ~AmsMapingPopup() {};
 
     std::vector<std::string> m_materials_list;
+    std::string m_tag_material;
     wxBoxSizer *m_sizer_main;
 
     virtual void Popup(wxWindow *focus = NULL) wxOVERRIDE;
     void         update_materials_list(std::vector<std::string> list);
+    void         set_tag_texture(std::string texture);
     void         update_ams_data(std::map<std::string, Ams *> amsList);
     void         add_ams_mapping(std::vector<TrayData> tray_data);
     bool         is_match_material(int id, std::string material);

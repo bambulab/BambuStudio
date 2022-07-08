@@ -1061,7 +1061,9 @@ bool SelectMachineDialog::check_ams_mapping_result(std::string &mapping_array_st
     }
 
     if (invalid_count == m_ams_mapping_result.size()) {
-        ;
+        wxString tips = _L("Ams Mappling failed, please select filament");
+        update_info_msg(tips);
+        Enable_Send_Button(true);
     } else {
         if (!valid_mapping_result) {
             wxString tips = _L("Plese select the filament in ams");
@@ -1091,11 +1093,19 @@ bool SelectMachineDialog::check_ams_mapping_result(std::string &mapping_array_st
 void SelectMachineDialog::update_info_msg(wxString msg)
 {
     if (msg.empty()) {
-        m_text_load_ams_data->SetLabel(wxEmptyString);
-        m_text_load_ams_data->Hide();
-        Layout();
-        Fit();
+        if (m_text_load_ams_data->GetLabel() != msg) {
+            m_text_load_ams_data->SetLabel(wxEmptyString);
+            m_text_load_ams_data->Hide();
+            Layout();
+            Fit();
+        }
     } else {
+        auto str_new = msg.ToStdString();
+        stripWhiteSpace(str_new);
+        
+        auto str_old = m_text_load_ams_data->GetLabel().ToStdString();
+        stripWhiteSpace(str_old);
+
         update_warn_msg(wxEmptyString);
         if (m_text_load_ams_data->GetLabel() != msg) {
             m_text_load_ams_data->SetLabel(msg);
@@ -1104,6 +1114,32 @@ void SelectMachineDialog::update_info_msg(wxString msg)
             m_text_load_ams_data->Show();
             Layout();
             Fit();
+        }
+    }
+}
+
+void SelectMachineDialog::stripWhiteSpace(std::string &str)
+{
+    if (str == "") { return; }
+
+    string::iterator cur_it;
+    cur_it = str.begin();
+
+    while (cur_it != str.end()) {
+        if (((*cur_it) != '\t') && ((*cur_it) != ' ')) {
+            break;
+        } else {
+            cur_it = str.erase(cur_it);
+        }
+    }
+
+    cur_it = str.begin();
+
+    while (cur_it != str.end()) {
+        if ((*cur_it) == '\n') {
+            cur_it = str.erase(cur_it);
+        } else {
+            cur_it++;
         }
     }
 }
@@ -1466,7 +1502,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
     MachineObject *obj_        = dev_manager->get_selected_machine();
     if (!obj_) {
-        if (m_button_ensure->IsEnabled()) Enable_Send_Button(false);
+        Enable_Send_Button(false);
         return;
     }
 
@@ -1474,7 +1510,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         /* timeout display timeout info */
         wxString tips_text = _L("Reading printer info timed out");
         update_warn_msg(tips_text);
-        if (m_button_ensure->IsEnabled()) Enable_Send_Button(false);
+        Enable_Send_Button(false);
         return;
     }
 
@@ -1492,7 +1528,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
             // display info and disable print
             wxString tips_text = _L("Please upgrade your printer first");
             update_warn_msg(tips_text);
-            if (m_button_ensure->IsEnabled()) Enable_Send_Button(false);
+            Enable_Send_Button(false);
             return;
         }
 
@@ -1501,7 +1537,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
             // display info and disable print
             wxString tips_text = _L("Cannot send the print task when the upgrade is in progress");
             update_warn_msg(tips_text);
-            if (m_button_ensure->IsEnabled()) Enable_Send_Button(false);
+            Enable_Send_Button(false);
             return;
         }
 
@@ -1651,14 +1687,18 @@ void SelectMachineDialog::Enable_Refresh_Button(bool en)
 void SelectMachineDialog::Enable_Send_Button(bool en)
 {
     if (!en) {
-        m_button_ensure->Disable();
-        auto disable_colour = wxColour(144, 144, 144);
-        m_button_ensure->SetBackgroundColor(disable_colour);
-        m_button_ensure->SetBorderColor(disable_colour);
+        if (m_button_ensure->IsEnabled()) {
+            m_button_ensure->Disable();
+            auto disable_colour = wxColour(144, 144, 144);
+            m_button_ensure->SetBackgroundColor(disable_colour);
+            m_button_ensure->SetBorderColor(disable_colour);
+        }
     } else {
-        m_button_ensure->Enable();
-        m_button_ensure->SetBackgroundColor(btn_bg_enable);
-        m_button_ensure->SetBorderColor(btn_bg_enable);
+        if (!m_button_ensure->IsEnabled()) {
+            m_button_ensure->Enable();
+            m_button_ensure->SetBackgroundColor(btn_bg_enable);
+            m_button_ensure->SetBorderColor(btn_bg_enable);
+        }
     }
 }
 
@@ -1765,7 +1805,7 @@ void SelectMachineDialog::set_default()
 
         // item->Layout();
 
-        item->Bind(wxEVT_LEFT_UP, [this, item, materials](wxMouseEvent &e) {
+        item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {
             auto    mouse_pos = ClientToScreen(e.GetPosition());
             wxPoint rect      = item->ClientToScreen(wxPoint(0, 0));
 
@@ -1780,7 +1820,7 @@ void SelectMachineDialog::set_default()
 
             if (obj_ && obj_->has_ams()) {
                 mapping->update_ams_data(obj_->amsList);
-                mapping->update_materials_list(materials);
+                mapping->set_tag_texture(materials[extruder]);
                 mapping->Popup();
             }
             e.Skip();
