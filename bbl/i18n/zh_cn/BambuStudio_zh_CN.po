@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-05 22:04+0800\n"
-"PO-Revision-Date: 2022-07-05 22:05+0800\n"
+"POT-Creation-Date: 2022-07-08 16:04+0800\n"
+"PO-Revision-Date: 2022-07-08 17:25+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -15,7 +15,976 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 3.1\n"
+
+msgid "Supports Painting"
+msgstr "支撑绘制"
+
+msgid "Section view"
+msgstr "剖面视图"
+
+msgid "Pen size"
+msgstr "画笔尺寸"
+
+msgid "Left mouse button"
+msgstr "鼠标左键"
+
+msgid "Enforce supports"
+msgstr "强制支撑"
+
+msgid "Right mouse button"
+msgstr "鼠标右键"
+
+msgid "Block supports"
+msgstr "屏蔽支撑"
+
+msgid "Shift + Left mouse button"
+msgstr "Shift + 鼠标左键"
+
+msgid "Erase painting"
+msgstr "擦除绘制"
+
+msgid "Erase all painting"
+msgstr "擦除所有绘制"
+
+msgid "Highlight overhang areas"
+msgstr "高亮悬空区域"
+
+msgid "Fragment filter"
+msgstr "碎片过滤器"
+
+msgid "Perform"
+msgstr "执行"
+
+msgid "Fragment area"
+msgstr "碎片面积阈值"
+
+msgid "Set pen size"
+msgstr "设置画笔大小"
+
+msgid "Ctrl + Mouse wheel"
+msgstr "Ctrl + 鼠标滚轮"
+
+msgid "Tool type"
+msgstr "工具类型"
+
+msgid "Smart fill angle"
+msgstr "智能填充角度"
+
+msgid "Auto support threshold angle: "
+msgstr "自动支撑角度阈值："
+
+msgid "Circle"
+msgstr "圆"
+
+msgid "Sphere"
+msgstr "球"
+
+msgid "Fill"
+msgstr "填充"
+
+msgid "Fragment Filter"
+msgstr "碎片过滤器"
+
+msgid "Highlight faces according to overhang angle."
+msgstr "根据当前设置的悬空角度来高亮片面。"
+
+msgid "No auto support"
+msgstr "无自动支撑"
+
+msgid "Support Generated"
+msgstr "已生成支撑"
+
+msgid "Lay on face"
+msgstr "选择底面"
+
+#, boost-format
+msgid ""
+"Filament count exceeds the maximum number that painting tool supports. only "
+"the first %1% filaments will be available in painting tool."
+msgstr ""
+"耗材丝数量超过涂色工具支持的最大值，仅前%1%个耗材丝可在涂色工具中使用。"
+
+msgid "Color Painting"
+msgstr "涂色"
+
+msgid "Pen shape"
+msgstr "画笔形状"
+
+msgid "Paint"
+msgstr "绘制"
+
+msgid "Erase"
+msgstr "擦除"
+
+msgid "Key 1~9"
+msgstr "按键 1~9"
+
+msgid "Choose filament"
+msgstr "选择耗材丝"
+
+msgid "Edge detection"
+msgstr "边沿检测"
+
+msgid "Clear all"
+msgstr "清除所有"
+
+msgid "Triangles"
+msgstr "三角形"
+
+msgid "Filaments"
+msgstr "耗材丝"
+
+msgid "Brush"
+msgstr "画刷"
+
+msgid "Smart fill"
+msgstr "智能填充"
+
+msgid "Bucket fill"
+msgstr "批量填充"
+
+msgid "Height range"
+msgstr "高度范围"
+
+msgid "Shortcut Key "
+msgstr "快捷键 "
+
+msgid "Triangle"
+msgstr "三角形"
+
+msgid "Height Range"
+msgstr "高度范围"
+
+msgid "Remove painted color"
+msgstr "移除已绘制的颜色"
+
+#, boost-format
+msgid "Painted using: Filament %1%"
+msgstr "绘制使用：耗材丝%1%"
+
+msgid "Move"
+msgstr "移动"
+
+msgid "Rotate"
+msgstr "旋转"
+
+msgid "Optimize orientation"
+msgstr "优化朝向"
+
+msgid "Apply"
+msgstr "应用"
+
+msgid "Scale"
+msgstr "缩放"
+
+msgid "Error: Please close all toolbar menus first"
+msgstr "错误：请先关闭所有工具栏菜单"
+
+msgid "Tool-Lay on Face"
+msgstr "工具-选择底面"
+
+msgid "in"
+msgstr "在"
+
+msgid "mm"
+msgstr "mm"
+
+msgid "Position"
+msgstr "位置"
+
+msgid "Rotation"
+msgstr "旋转"
+
+msgid "Scale ratios"
+msgstr "缩放比例"
+
+msgid "Object Operations"
+msgstr "对象操作"
+
+msgid "Volume Operations"
+msgstr "零件操作"
+
+msgid "Translate"
+msgstr "平移"
+
+msgid "Group Operations"
+msgstr "组操作"
+
+msgid "Set Position"
+msgstr "设置位置"
+
+msgid "Set Orientation"
+msgstr "设置方向"
+
+msgid "Set Scale"
+msgstr "设置缩放"
+
+msgid "Reset Position"
+msgstr "重置位置"
+
+msgid "Reset Rotation"
+msgstr "重置旋转"
+
+msgid "World coordinates"
+msgstr "世界坐标"
+
+msgid "°"
+msgstr "°"
+
+msgid "Position:"
+msgstr "位置："
+
+msgid "%"
+msgstr "%"
+
+msgid "Size"
+msgstr "大小"
+
+msgid "uniform scale"
+msgstr "等比例缩放"
+
+msgid "Cut"
+msgstr "剪切"
+
+msgid "Movement:"
+msgstr "移动："
+
+msgid "Rotation:"
+msgstr "旋转："
+
+msgid "Height:"
+msgstr "高度："
+
+msgid "Keep upper part"
+msgstr "保留上半部分"
+
+msgid "Keep lower part"
+msgstr "保留下半部分"
+
+msgid "Cut to parts"
+msgstr "切割为零件"
+
+msgid "Auto Segment"
+msgstr "自动分割"
+
+msgid "Perform cut"
+msgstr "执行切割"
+
+msgid "Reset"
+msgstr "重置"
+
+msgid "Mesh name"
+msgstr "Mesh名"
+
+msgid "Detail level"
+msgstr "细节等级"
+
+msgid "Decimate ratio"
+msgstr "简化率"
+
+#, boost-format
+msgid ""
+"Processing model '%1%' with more than 1M triangles could be slow. It is "
+"highly recommended to simplify the model."
+msgstr "处理超出1M个三角形面片的模型“%1%”可能会很慢。强烈建议简化模型。"
+
+msgid "Simplify model"
+msgstr "简化模型"
+
+msgid "Simplify"
+msgstr "简化"
+
+msgid "Simplification is currently only allowed when a single part is selected"
+msgstr "仅支持对单个零件做简化"
+
+msgid "Error"
+msgstr "错误"
+
+msgid "Extra high"
+msgstr "非常高"
+
+msgid "High"
+msgstr "高"
+
+msgid "Medium"
+msgstr "中"
+
+msgid "Low"
+msgstr "低"
+
+msgid "Extra low"
+msgstr "非常低"
+
+#, c-format, boost-format
+msgid "%d triangles"
+msgstr "%d 个三角形"
+
+msgid "Show wireframe"
+msgstr "显示线框"
+
+#, boost-format
+msgid "%1%"
+msgstr "%1%"
+
+msgid "Can't apply when proccess preview."
+msgstr "处理预览的过程中无法应用。"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Operation already cancelling. Please wait few seconds."
+msgstr "操作已在取消中，请等待片刻。"
+
+msgid "Face recognition"
+msgstr ""
+
+msgid "Perform Recognition"
+msgstr ""
+
+msgid "Cube"
+msgstr "立方体"
+
+msgid "Cylinder"
+msgstr "圆柱体"
+
+msgid "Cone"
+msgstr "锥体"
+
+msgid "Add Modifier"
+msgstr "添加修改器"
+
+msgid "Notice"
+msgstr "通知"
+
+msgid "Warning"
+msgstr "警告"
+
+msgid "Undefined"
+msgstr "未定义"
+
+#, boost-format
+msgid "%1% was replaced with %2%"
+msgstr "%1%已被%2%替换"
+
+msgid "The configuration may be generated by a newer version of BambuStudio."
+msgstr "此配置可能由新版本的Bambu Studio生成。"
+
+msgid "Some values have been replaced. Please check them:"
+msgstr "部分数值已被替换，请检查："
+
+msgid "Process"
+msgstr "工艺"
+
+msgid "Filament"
+msgstr "耗材丝"
+
+msgid "Machine"
+msgstr "打印机"
+
+msgid "Configuration package was loaded, but some values were not recognized."
+msgstr "配置包已被加载，但部分数值未被识别。"
+
+#, boost-format
+msgid ""
+"Configuration file \"%1%\" was loaded, but some values were not recognized."
+msgstr "配置文件“%1%”已被加载，但部分数值未被识别。"
+
+msgid "V"
+msgstr "V"
+
+msgid "Version"
+msgstr "版本"
+
+msgid ""
+"BambuStudio will terminate because of running out of memory.It may be a bug. "
+"It will be appreciated if you report the issue to our team."
+msgstr ""
+"系统内存耗尽，Bambu Studio即将终止运行。这可能是个缺陷，希望您可以报告此问"
+"题，我们将非常感激。"
+
+msgid "Fatal error"
+msgstr "致命错误"
+
+msgid ""
+"BambuStudio will terminate because of a localization error. It will be "
+"appreciated if you report the specific scenario this issue happened."
+msgstr ""
+"遇到本地化错误，Bambu Studio即将终止运行。希望您可以报告发生此问题的具体场"
+"景，我们将非常感激。"
+
+msgid "Critical error"
+msgstr "严重错误"
+
+#, boost-format
+msgid "BambuStudio got an unhandled exception: %1%"
+msgstr "Bambu Studio捕捉到一个未处理的异常：%1%"
+
+msgid ""
+"BambuStudio configuration file may be corrupted and is not abled to be "
+"parsed.Please delete the file and try again."
+msgstr ""
+"Bambu Studio配置文件可能已损坏而无法解析。请删除此文件并重新启动BambuStudio。"
+
+#, c-format, boost-format
+msgid ""
+"%s\n"
+"Do you want to continue?"
+msgstr "%s 是否继续？"
+
+msgid "Remember my choice"
+msgstr "记住我的选择"
+
+msgid "Loading configuration"
+msgstr "正在加载配置"
+
+#, c-format, boost-format
+msgid "Click to download new version in default browser: %s"
+msgstr "在默认浏览器中点击下载最新版本: %s"
+
+msgid "New version of Bambu Studio"
+msgstr "新版本的Bambu Studio"
+
+msgid "The Bambu Studio needs an upgrade"
+msgstr "Bambu Studio需要进行升级"
+
+msgid "Loading user presets..."
+msgstr "正在加载用户预设..."
+
+msgid "Rebuild"
+msgstr "重新构建"
+
+msgid "Loading current presets"
+msgstr "加载当前预设"
+
+msgid "Loading a mode view"
+msgstr "加载模式视图"
+
+msgid "Choose one file (3mf):"
+msgstr "选择一个文件（3mf）："
+
+msgid "Choose one or more files (3mf/step/stl/obj/amf):"
+msgstr "选择一个或多个文件（3mf/step/stl/obj/amf）："
+
+msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
+msgstr "选择一个文件（gcode/.gco/.g/.ngc/ngc）："
+
+msgid "Login information expired. Please login again."
+msgstr "登录信息过期。请重新登录。"
+
+msgid "This is the newest version."
+msgstr "已经是最新版本。"
+
+msgid "Info"
+msgstr "信息"
+
+msgid "Loading"
+msgstr "载入中"
+
+msgid "Loading user preset"
+msgstr "正在加载用户预设"
+
+msgid "Switching application language"
+msgstr "切换应用程序语言"
+
+msgid "Select the language"
+msgstr "选择语言"
+
+msgid "Language"
+msgstr "语言"
+
+msgid "*"
+msgstr "*"
+
+msgid "G-code files can not be loaded with models together!"
+msgstr "G-code文件不能和模型一起加载"
+
+msgid "G-code loading"
+msgstr "正在加载G-code文件"
+
+msgid "Select a G-code file:"
+msgstr "选择一个G-code文件："
+
+msgid "Bambu Studio GUI initialization failed"
+msgstr "Bambu Studio图形界面初始化失败"
+
+#, boost-format
+msgid "Fatal error, exception catched: %1%"
+msgstr "致命错误，捕获到异常：%1%"
+
+msgid "Quality"
+msgstr "质量"
+
+msgid "Shell"
+msgstr "外壳"
+
+msgid "Infill"
+msgstr "填充"
+
+msgid "Support"
+msgstr "支撑"
+
+msgid "Speed"
+msgstr "速度"
+
+msgid "Strength"
+msgstr "强度"
+
+msgid "Top Solid Layers"
+msgstr "顶部实心层"
+
+msgid "Top Minimum Shell Thickness"
+msgstr "顶部外壳最小厚度"
+
+msgid "Bottom Solid Layers"
+msgstr "底部实心层"
+
+msgid "Bottom Minimum Shell Thickness"
+msgstr "底部外壳最小厚度"
+
+msgid "Ironing"
+msgstr "熨烫"
+
+msgid "Fuzzy Skin"
+msgstr "绒毛表面"
+
+msgid "Extruders"
+msgstr "挤出机"
+
+msgid "Extrusion Width"
+msgstr "挤出宽度"
+
+msgid "Wipe options"
+msgstr "擦除选项"
+
+msgid "Bed adhension"
+msgstr "热床粘接"
+
+msgid "Advanced"
+msgstr "高级"
+
+msgid "Add part"
+msgstr "添加部件"
+
+msgid "Add negative part"
+msgstr "添加负零件"
+
+msgid "Add modifier"
+msgstr "添加修改器"
+
+msgid "Add support blocker"
+msgstr "添加支撑屏蔽"
+
+msgid "Add support enforcer"
+msgstr "添加支撑生成器"
+
+msgid "Select settings"
+msgstr "选择设置"
+
+msgid "Delete"
+msgstr "删除"
+
+msgid "Delete the selected object"
+msgstr "删除所选对象"
+
+msgid "Load..."
+msgstr "加载..."
+
+msgid "Add settings"
+msgstr "添加设置"
+
+msgid "Change type"
+msgstr "更改类型"
+
+msgid "Set as an individual object"
+msgstr "设置为独立对象"
+
+msgid "Set as individual objects"
+msgstr "设置为独立对象"
+
+msgid "Printable"
+msgstr "可打印的"
+
+msgid "Rename"
+msgstr "重命名"
+
+msgid "Fix model"
+msgstr "修复模型"
+
+msgid "Fix model through cloud"
+msgstr "通过云端修复模型"
+
+msgid "Fix model locally"
+msgstr "本地修复模型"
+
+msgid "Export as STL"
+msgstr "导出为 STL"
+
+msgid "Reload item"
+msgstr "重新加载所选项"
+
+msgid "Reload items"
+msgstr "重新加载所选项"
+
+msgid "Change filament"
+msgstr "更换耗材丝"
+
+msgid "Set filament for selected items"
+msgstr "设置所选项的耗材丝"
+
+msgid "Default"
+msgstr "默认"
+
+#, c-format, boost-format
+msgid "Filament %d"
+msgstr "耗材丝%d"
+
+msgid "active"
+msgstr "活动的"
+
+msgid "Scale to build volume"
+msgstr "缩放到构建空间大小"
+
+msgid "Scale an object to fit the build volume"
+msgstr "缩放对象以适应构建空间大小"
+
+msgid "Convert from inch"
+msgstr "从英寸转换"
+
+msgid "Restore to inch"
+msgstr "恢复到英寸"
+
+msgid "Convert from meter"
+msgstr "从米转换"
+
+msgid "Restore to meter"
+msgstr "恢复到米"
+
+msgid "Assemble"
+msgstr "组合"
+
+msgid "Assemble the selected objects to an object with multiple parts"
+msgstr "组合所选对象为一个多零件对象"
+
+msgid "Assemble the selected objects to an object with single part"
+msgstr "组合所选对象为一个单零件对象"
+
+msgid "Assemble the selected parts to a single part"
+msgstr "组合所选零件为单个零件"
+
+msgid "Along X axis"
+msgstr "沿 X 轴"
+
+msgid "Mirror along the X axis"
+msgstr "沿X轴镜像"
+
+msgid "Along Y axis"
+msgstr "沿 Y 轴"
+
+msgid "Mirror along the Y axis"
+msgstr "沿Y轴镜像"
+
+msgid "Along Z axis"
+msgstr "沿 Z 轴"
+
+msgid "Mirror along the Z axis"
+msgstr "沿Z轴镜像"
+
+msgid "Mirror"
+msgstr "镜像"
+
+msgid "Mirror object"
+msgstr "镜像对象"
+
+msgid "Add Primitive"
+msgstr "添加标准模型"
+
+msgid "To objects"
+msgstr "拆分到对象"
+
+msgid "Split the selected object into multiple objects"
+msgstr "拆分所选对象为多个对象"
+
+msgid "To parts"
+msgstr "到零件"
+
+msgid "Split the selected object into multiple parts"
+msgstr "拆分所选对象为多个零件"
+
+msgid "Split"
+msgstr "拆分"
+
+msgid "Split the selected object"
+msgstr "拆分所选对象"
+
+msgid "Auto orientation"
+msgstr "自动朝向"
+
+msgid "Auto orient the object to improve print quality."
+msgstr "自动调整对象朝向以提高打印质量。"
+
+msgid "Split the selected object into mutiple objects"
+msgstr "拆分所选对象为多个对象"
+
+msgid "Split the selected object into mutiple parts"
+msgstr "拆分所选对象为多个零件"
+
+msgid "Select All"
+msgstr "全选"
+
+msgid "select all objects on current plate"
+msgstr "全选当前盘对象"
+
+msgid "Delete All"
+msgstr "删除所有"
+
+msgid "delete all objects on current plate"
+msgstr "删除当前盘所有对象"
+
+msgid "Arrange"
+msgstr "自动摆放"
+
+msgid "arrange current plate"
+msgstr "在当前盘执行自动摆放"
+
+msgid "Auto Rotate"
+msgstr "自动朝向"
+
+msgid "auto rotate current plate"
+msgstr "在当前盘执行自动朝向"
+
+msgid "Remove the selected plate"
+msgstr "删除所选盘"
+
+msgid "Clone"
+msgstr "克隆"
+
+msgid "Reduce Triangles"
+msgstr "简化三角形"
+
+msgid "Per object edit"
+msgstr "编辑单个对象"
+
+msgid "Edit print parameters for a single object"
+msgstr "编辑单个对象的打印参数"
+
+msgid "Change Filament"
+msgstr "更换耗材丝"
+
+msgid "Set Filament for selected items"
+msgstr "设置所选项的耗材丝"
+
+msgid "current"
+msgstr "当前"
+
+msgid "Set Unprintable"
+msgstr "设置不可打印"
+
+msgid "Set Printable"
+msgstr "设置可打印"
+
+msgid "Unlock"
+msgstr "解锁"
+
+msgid "Lock"
+msgstr "锁定"
+
+msgid "Name"
+msgstr "名称"
+
+#, c-format, boost-format
+msgid "%1$d error repaired"
+msgid_plural "%1$d errors repaired"
+msgstr[0] "%1$d个错误被修复"
+
+#, c-format, boost-format
+msgid "Error: %1$d non-manifold edge."
+msgid_plural "Error: %1$d non-manifold edges."
+msgstr[0] "错误: %1$d 非流形边."
+
+msgid "Remaining errors"
+msgstr "剩余错误"
+
+#, c-format, boost-format
+msgid "%1$d non-manifold edge"
+msgid_plural "%1$d non-manifold edges"
+msgstr[0] "%1$d 非流形边"
+
+msgid "Right click the icon to fix model object"
+msgstr "右键点击此图标可修复模型对象"
+
+msgid "Right button click the icon to drop the object settings"
+msgstr "右键点击此图标以舍弃对象的设置"
+
+msgid "Click the icon to reset all settings of the object"
+msgstr "点击此图标可重置对象的所有设置"
+
+msgid "Right button click the icon to drop the object printable property"
+msgstr "右键点击此图标以舍弃对象的可打印属性"
+
+msgid "Click the icon to toggle printable property of the object"
+msgstr "点击此图标可切换这个对象的可打印属性"
+
+msgid "Click the icon to edit support painting of the object"
+msgstr "点击这个图标可编辑这个对象的支撑绘制"
+
+msgid "Click the icon to edit color painting of the object"
+msgstr "点击这个图标可编辑这个对象的颜色绘制"
+
+msgid "Loading file"
+msgstr "载入文件中"
+
+msgid "Error!"
+msgstr "错误！"
+
+msgid "Generic"
+msgstr "通用"
+
+msgid "Deleting the last solid part is not allowed."
+msgstr "不允许删除对象的最后一个实体零件。"
+
+msgid "The target object contains only one part and can not be splited."
+msgstr "目标对象仅包含一个零件，无法被拆分。"
+
+msgid "Assembly"
+msgstr "组合体"
+
+msgid "Object"
+msgstr "对象"
+
+msgid "Part"
+msgstr "零件"
+
+msgid "Layer"
+msgstr "层"
+
+msgid "Selection conflicts"
+msgstr "选择冲突"
+
+msgid ""
+"If first selected item is an object, the second one should also be object."
+msgstr "如果第一个选择的是对象，那么第二个选择的也必须是对象。"
+
+msgid ""
+"If first selected item is a part, the second one should be part in the same "
+"object."
+msgstr "如果第一个选择的是零件，那么第二个选择的也必须是同一个对象中的零件。"
+
+msgid "The type of the last solid object part is not to be changed."
+msgstr "不允许修改对象中最后一个实体零件的类型。"
+
+msgid "Negative Part"
+msgstr "负零件"
+
+msgid "Modifier"
+msgstr "修改器  Modifier"
+
+msgid "Support Blocker"
+msgstr "支撑去除器"
+
+msgid "Support Enforcer"
+msgstr "支撑添加器"
+
+msgid "Type:"
+msgstr "类型："
+
+msgid "Choose part type"
+msgstr "选择零件类型"
+
+msgid "Enter new name"
+msgstr "输入新名称"
+
+msgid "Renaming"
+msgstr "重命名"
+
+msgid "Repairing model object"
+msgstr "修复模型对象"
+
+msgid "Following model object has been repaired"
+msgid_plural "Following model objects have been repaired"
+msgstr[0] "以下模型对象已被修复"
+
+msgid "Failed to repair folowing model object"
+msgid_plural "Failed to repair folowing model objects"
+msgstr[0] "以下模型对象修复失败"
+
+msgid "Repairing was canceled"
+msgstr "修复被取消"
+
+msgid "Repair finished"
+msgstr "修复已完成"
+
+msgid "Additional process preset"
+msgstr "附加工艺预设"
+
+msgid "Remove parameter"
+msgstr "删除参数"
+
+msgid "one cell can only be copied to one or multiple cells in the same column"
+msgstr "一个单元格仅能被复制到同一列的一个或多个单元格"
+
+msgid "multiple cells copy is not supported"
+msgstr "不支持多个单元格的复制"
+
+msgid "Outside"
+msgstr "盘外"
+
+msgid "Auto"
+msgstr "自动"
+
+msgid "Manual"
+msgstr "手动"
+
+msgid "No-brim"
+msgstr "无brim"
+
+msgid " "
+msgstr " "
+
+msgid "Layer height"
+msgstr "层高"
+
+msgid "Wall loops"
+msgstr "墙层数"
+
+msgid "Infill density(%)"
+msgstr "填充密度(%)"
+
+msgid "Auto Brim"
+msgstr "自动Brim"
+
+msgid "Inner wall speed"
+msgstr "内墙速度"
+
+msgid "Per Object Setting"
+msgstr "对象设置"
+
+msgid "Reset All"
+msgstr "重置所有"
+
+msgid "Plate"
+msgstr "盘"
+
+msgid "Module"
+msgstr "模块"
+
+msgid "Brim"
+msgstr "Brim"
+
+msgid "Object/Part Setting"
+msgstr "对象/零件设置"
+
+msgid "Reset parameter"
+msgstr "重置参数"
+
+msgid "Multicolor Print"
+msgstr "多色打印"
+
+msgid "Line Type"
+msgstr "走线类型"
+
+msgid "No printer"
+msgstr "无打印机"
 
 msgid ""
 "Heat the nozzle to target \n"
@@ -33,8 +1002,11 @@ msgid ""
 "into extruder"
 msgstr "送出新的耗材丝到挤出机"
 
-msgid "?"
+msgid "Purge old filament"
 msgstr ""
+
+msgid "?"
+msgstr "?"
 
 msgid "Empty"
 msgstr "空"
@@ -71,41 +1043,233 @@ msgid ""
 "load or unload filiament."
 msgstr "选择1个AMS槽位，然后点击加载/卸载按钮以自动加载/卸载耗材丝。"
 
+msgid "Edit"
+msgstr "编辑"
+
+msgid ""
+"All the selected objects are on the locked plate,\n"
+"We can not do auto-arrange on these objects."
+msgstr ""
+"所有选中的对象都处于被锁定的盘上，\n"
+"无法对这些对象做自动摆盘。"
+
+msgid "No arrangable objects are selected."
+msgstr "没有可摆盘的对象被选中。"
+
+msgid ""
+"This plate is locked,\n"
+"We can not do auto-arrange on this plate."
+msgstr "该盘处于锁定状态，无法对其进行自动摆盘。"
+
+msgid "Arranging..."
+msgstr "自动摆放中..."
+
+msgid ""
+"Arrange failed. Found some exceptions when processing object geometries."
+msgstr "自动摆放失败，处理对象几何数据时遇到异常。"
+
+msgid "Arranging canceled."
+msgstr "已取消自动摆放。"
+
+msgid ""
+"Arranging is done but there are unpacked items. Reduce spacing and try again."
+msgstr "已完成自动摆放，但是有未被摆到盘内的项，可在减小间距后重试。"
+
+msgid "Arranging done."
+msgstr "已完成自动摆放。"
+
+#, c-format, boost-format
+msgid ""
+"Arrangement ignored the following objects which can't fit into a single "
+"bed:\n"
+"%s"
+msgstr ""
+"自动摆放会忽略以下无法放入单盘的零件：\n"
+"%s"
+
+msgid ""
+"All the selected objects are on the locked plate,\n"
+"We can not do auto-orient on these objects."
+msgstr ""
+"所有选中的对象都处于被锁定的盘上，\n"
+"无法对这些对象做自动朝向。"
+
+msgid ""
+"This plate is locked,\n"
+"We can not do auto-orient on this plate."
+msgstr ""
+"该盘处于锁定状态，\n"
+"无法对其进行自动朝向。"
+
+msgid "Orienting..."
+msgstr "自动朝向中..."
+
+msgid "Error! Unable to create thread!"
+msgstr "发生错误，无法创建线程。"
+
+msgid "Exception"
+msgstr "异常"
+
+msgid "Waiting for login"
+msgstr "正在登录中"
+
+msgid "Login failed"
+msgstr "登录设备失败"
+
+msgid "The region parameter is incorrrect"
+msgstr "区域设置不正确"
+
+msgid "Failure of printer login"
+msgstr "登录设备失败"
+
+msgid "Failed to get ticket"
+msgstr ""
+
+msgid "User authorization timeout"
+msgstr ""
+
+msgid "Failure of bind"
+msgstr ""
+
+msgid "Unknown Failure"
+msgstr "发生错误"
+
+msgid "Creating"
+msgstr "正在创建"
+
+msgid "Uploading"
+msgstr "正在上传"
+
+msgid "Waiting"
+msgstr "等待中"
+
+msgid "Sending"
+msgstr "发送中"
+
+msgid "Finished"
+msgstr "完成"
+
+msgid "Internal error, no gcode file to upload."
+msgstr "内部错误，没有可上传的gcode文件"
+
+msgid "Print job was cancelled."
+msgstr "打印任务已取消。"
+
+msgid "Failed to create the print job. Please try agian."
+msgstr "无法创建打印任务，请重试。"
+
+msgid "Failed to upload the print job. Please try agian."
+msgstr "未能上传打印任务，请重试。"
+
+msgid "Uploading print job timed out. Please try again."
+msgstr "上传打印任务超时，请重试。"
+
+msgid "Failed to send the print job. Please try again."
+msgstr "无法发送打印任务，请重试。"
+
+msgid "Sending print task timed out. Please try again."
+msgstr "发送打印任务超时，请重试。"
+
+msgid "Try to upload project over lan"
+msgstr "尝试通过局域网上传项目"
+
+msgid "Try to send project over cloud"
+msgstr "尝试通过云服务发送项目"
+
+msgid "Portions copyright"
+msgstr "部分版权"
+
+msgid "Copyright"
+msgstr "版权"
+
+msgid "License"
+msgstr "许可证"
+
+msgid "Bambu Studio is licensed under "
+msgstr "Bambu Studio是在"
+
+msgid "GNU Affero General Public License, version 3"
+msgstr "GNU Affero 通用公共许可证，版本 3下授权的"
+
+msgid ""
+"Bambu Studio is based on PrusaSlicer by Prusa Research, which is from Slic3r "
+"by Alessandro Ranellucci and the RepRap community"
+msgstr ""
+"Bambu Studio是基于Prusa Research的PrusaSlicer开发的，而PrusaSlicer是基于来自"
+"Alessandro Ranellucci和RepRap社区的Slic3r开发的"
+
+msgid "Libraries"
+msgstr "库"
+
+msgid ""
+"This software uses open source components whose copyright and other "
+"proprietary rights belong to their respective owners"
+msgstr "本软件使用开源组件，其版权和其他所有权属于各自的所有者"
+
+#, c-format, boost-format
+msgid "About %s"
+msgstr "关于 %s"
+
+msgid "Colour"
+msgstr ""
+
+msgid "SN"
+msgstr ""
+
+msgid ""
+"Nozzle\n"
+"Temperature"
+msgstr "挤出头温度"
+
+msgid "max"
+msgstr "最大"
+
+msgid "min"
+msgstr "最小"
+
+#, boost-format
+msgid "The input value should be greater than %1% and less than %2%"
+msgstr "输入的范围在 %1% 和 %2% 之间"
+
+msgid "Confirm"
+msgstr "确定"
+
+msgid ""
+"AMS automatically reads volume information when new material is inserted"
+msgstr ""
+
+msgid ""
+"When a new BBL reel is inserted, AMS will automatically read the reel "
+"information.  It takes about 20 seconds"
+msgstr ""
+
+msgid ""
+"Note: In the printing process, if a new consumable is inserted, AMS will not "
+"automatically read the information of consumable, but wait for the end of "
+"printing to read "
+msgstr ""
+
+msgid ""
+"When inserting a new reel, AMS will not automatically read the reel "
+"information and reserve an empty reel information for you to manually enter "
+msgstr ""
+
+msgid "AMS automatically reads consumable information when it is turned on"
+msgstr ""
+
+msgid ""
+"AMS will automatically read the inserted consumables information every time "
+"it is powered on.  It takes about a minute"
+msgstr ""
+
+msgid ""
+"At each startup, AMS will not automatically read the inserted consumables "
+"information, and will continue to use the volume information recorded before "
+"the last shutdown"
+msgstr ""
+
 msgid "File"
 msgstr "文件"
-
-msgid "Slice all plate to obtain time and filament estimation"
-msgstr "正在切片以获取切片信息和预估打印时间"
-
-msgid "Packing project data into 3mf file"
-msgstr "正在打包数据到3mf文件"
-
-msgid "Uploading 3mf"
-msgstr "正在上传3mf"
-
-msgid "Jump to model publish web page"
-msgstr "跳转到发布页面"
-
-msgid "Note: The preparation may takes several minutes. Please be patiant."
-msgstr "提示：发布前需要一些准备时间，请耐心等待。"
-
-msgid "Publish"
-msgstr "发布"
-
-msgid "Cancel"
-msgstr "取消"
-
-msgid "Publish was cancelled"
-msgstr "发布已取消"
-
-msgid "Slicing Plate 1"
-msgstr "正在切片盘 1"
-
-msgid "Packing data to 3mf"
-msgstr "打包数据到3mf"
-
-msgid "Jump to webpage"
-msgstr "跳转到网页"
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -159,9 +1323,6 @@ msgstr ""
 msgid "Succeed to export G-code to %1%"
 msgstr "成功导出G-code至 %1%"
 
-msgid "Size"
-msgstr "大小"
-
 msgid "Origin"
 msgstr "原点"
 
@@ -175,9 +1336,6 @@ msgid ""
 "Distance of the 0,0 G-code coordinate from the front left corner of the "
 "rectangle."
 msgstr "G-code 0,0 坐标相对于矩形框左前角的距离。"
-
-msgid "mm"
-msgstr "mm"
 
 msgid ""
 "Diameter of the print bed. It is assumed that origin (0,0) is located in the "
@@ -204,9 +1362,6 @@ msgstr "设置"
 
 msgid "Texture"
 msgstr "纹理"
-
-msgid "Load..."
-msgstr "加载..."
 
 msgid "Remove"
 msgstr "移除"
@@ -449,7 +1604,7 @@ msgid "MainBoard"
 msgstr ""
 
 msgid "AMS"
-msgstr ""
+msgstr "AMS"
 
 msgid "TH"
 msgstr ""
@@ -468,9 +1623,6 @@ msgstr ""
 
 msgid "Common"
 msgstr ""
-
-msgid "Info"
-msgstr "信息"
 
 msgid "Update successful."
 msgstr "更新成功。"
@@ -518,17 +1670,11 @@ msgstr ""
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "无效格式，应该是\"%1%\"这种数组格式"
 
-msgid "Line Type"
-msgstr "走线类型"
-
 msgid "Layer Height"
 msgstr "层高"
 
 msgid "Line Width"
 msgstr "线宽"
-
-msgid "Speed"
-msgstr "速度"
 
 msgid "Fan Speed"
 msgstr "风扇速度"
@@ -541,9 +1687,6 @@ msgstr "流量"
 
 msgid "Tool"
 msgstr "工具"
-
-msgid "Filament"
-msgstr "耗材丝"
 
 msgid "Extruder position"
 msgstr "挤出机位置"
@@ -711,9 +1854,6 @@ msgstr "优化接触面面积"
 msgid "Orient"
 msgstr "调整朝向"
 
-msgid "Reset"
-msgstr "重置"
-
 msgid "Arrange options"
 msgstr "自动摆放选项"
 
@@ -728,9 +1868,6 @@ msgstr "允许同一盘中包含多种材料"
 
 msgid "Avoid extrusion calibration region"
 msgstr "避开挤出标定区域"
-
-msgid "Arrange"
-msgstr "自动摆放"
 
 msgid "Add"
 msgstr "添加"
@@ -796,1005 +1933,67 @@ msgstr ""
 "检测到有对象放置在盘的边界。\n"
 "请把它整体移动到盘内或盘外以解决此问题。"
 
-msgid "Supports Painting"
-msgstr "支撑绘制"
-
-msgid "Section view"
-msgstr "剖面视图"
-
-msgid "Pen size"
-msgstr "画笔尺寸"
-
-msgid "Left mouse button"
-msgstr "鼠标左键"
-
-msgid "Enforce supports"
-msgstr "强制支撑"
-
-msgid "Right mouse button"
-msgstr "鼠标右键"
-
-msgid "Block supports"
-msgstr "屏蔽支撑"
-
-msgid "Shift + Left mouse button"
-msgstr "Shift + 鼠标左键"
-
-msgid "Erase painting"
-msgstr "擦除绘制"
-
-msgid "Erase all painting"
-msgstr "擦除所有绘制"
-
-msgid "Highlight overhang areas"
-msgstr "高亮悬空区域"
-
-msgid "Fragment filter"
-msgstr "碎片过滤器"
-
-msgid "Perform"
-msgstr "执行"
-
-msgid "Fragment area"
-msgstr "碎片面积阈值"
-
-msgid "Set pen size"
-msgstr "设置画笔大小"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + 鼠标滚轮"
-
-msgid "Tool type"
-msgstr "工具类型"
-
-msgid "Smart fill angle"
-msgstr "智能填充角度"
-
-msgid "Auto support threshold angle: "
-msgstr "自动支撑角度阈值："
-
-msgid "Circle"
-msgstr "圆"
-
-msgid "Sphere"
-msgstr "球"
-
-msgid "Fill"
-msgstr "填充"
-
-msgid "Fragment Filter"
-msgstr "碎片过滤器"
-
-msgid "Highlight faces according to overhang angle."
-msgstr "根据当前设置的悬空角度来高亮片面。"
-
-msgid "No auto support"
-msgstr "无自动支撑"
-
-msgid "Support Generated"
-msgstr "已生成支撑"
-
-msgid "Lay on face"
-msgstr "选择底面"
-
-#, boost-format
-msgid ""
-"Filament count exceeds the maximum number that painting tool supports. only "
-"the first %1% filaments will be available in painting tool."
-msgstr ""
-"耗材丝数量超过涂色工具支持的最大值，仅前%1%个耗材丝可在涂色工具中使用。"
-
-msgid "Color Painting"
-msgstr "涂色"
-
-msgid "Pen shape"
-msgstr "画笔形状"
-
-msgid "Paint"
-msgstr "绘制"
-
-msgid "Erase"
-msgstr "擦除"
-
-msgid "Key 1~9"
-msgstr "按键 1~9"
-
-msgid "Choose filament"
-msgstr "选择耗材丝"
-
-msgid "Edge detection"
-msgstr "边沿检测"
-
-msgid "Clear all"
-msgstr "清除所有"
-
-msgid "Triangles"
-msgstr "三角形"
-
-msgid "Filaments"
-msgstr "耗材丝"
-
-msgid "Brush"
-msgstr "画刷"
-
-msgid "Smart fill"
-msgstr "智能填充"
-
-msgid "Bucket fill"
-msgstr "批量填充"
-
-msgid "Height range"
-msgstr "高度范围"
-
-msgid "Shortcut Key "
-msgstr "快捷键 "
-
-msgid "Triangle"
-msgstr "三角形"
-
-msgid "Height Range"
-msgstr "高度范围"
-
-msgid "Remove painted color"
-msgstr "移除已绘制的颜色"
-
-#, boost-format
-msgid "Painted using: Filament %1%"
-msgstr "绘制使用：耗材丝%1%"
-
-msgid "Move"
-msgstr "移动"
-
-msgid "Rotate"
-msgstr "旋转"
-
-msgid "Optimize orientation"
-msgstr "优化朝向"
-
-msgid "Apply"
-msgstr "应用"
-
-msgid "Scale"
-msgstr "缩放"
-
-msgid "Error: Please close all toolbar menus first"
-msgstr "错误：请先关闭所有工具栏菜单"
-
-msgid "Tool-Lay on Face"
-msgstr "工具-选择底面"
-
-msgid "in"
-msgstr "在"
-
-msgid "Position"
-msgstr "位置"
-
-msgid "Rotation"
-msgstr "旋转"
-
-msgid "Scale ratios"
-msgstr "缩放比例"
-
-msgid "Object Operations"
-msgstr "对象操作"
-
-msgid "Volume Operations"
-msgstr "零件操作"
-
-msgid "Translate"
-msgstr "平移"
-
-msgid "Group Operations"
-msgstr "组操作"
-
-msgid "Set Position"
-msgstr "设置位置"
-
-msgid "Set Orientation"
-msgstr "设置方向"
-
-msgid "Set Scale"
-msgstr "设置缩放"
-
-msgid "Reset Position"
-msgstr "重置位置"
-
-msgid "Reset Rotation"
-msgstr "重置旋转"
-
-msgid "World coordinates"
-msgstr "世界坐标"
-
-msgid "°"
-msgstr "°"
-
-msgid "Position:"
-msgstr "位置："
-
-msgid "%"
-msgstr "%"
-
-msgid "uniform scale"
-msgstr "等比例缩放"
-
-msgid "Cut"
-msgstr "剪切"
-
-msgid "Movement:"
-msgstr "移动："
-
-msgid "Rotation:"
-msgstr "旋转："
-
-msgid "Height:"
-msgstr "高度："
-
-msgid "Keep upper part"
-msgstr "保留上半部分"
-
-msgid "Keep lower part"
-msgstr "保留下半部分"
-
-msgid "Cut to parts"
-msgstr "切割为零件"
-
-msgid "Auto Segment"
-msgstr "自动分割"
-
-msgid "Perform cut"
-msgstr "执行切割"
-
-msgid "Mesh name"
-msgstr "Mesh名"
-
-msgid "Detail level"
-msgstr "细节等级"
-
-msgid "Decimate ratio"
-msgstr "简化率"
-
-#, boost-format
-msgid ""
-"Processing model '%1%' with more than 1M triangles could be slow. It is "
-"highly recommended to simplify the model."
-msgstr "处理超出1M个三角形面片的模型“%1%”可能会很慢。强烈建议简化模型。"
-
-msgid "Simplify model"
-msgstr "简化模型"
-
-msgid "Simplify"
-msgstr "简化"
-
-msgid "Simplification is currently only allowed when a single part is selected"
-msgstr "仅支持对单个零件做简化"
-
-msgid "Error"
-msgstr "错误"
-
-msgid "Extra high"
-msgstr "非常高"
-
-msgid "High"
-msgstr "高"
-
-msgid "Medium"
-msgstr "中"
-
-msgid "Low"
-msgstr "低"
-
-msgid "Extra low"
-msgstr "非常低"
-
-#, c-format, boost-format
-msgid "%d triangles"
-msgstr "%d 个三角形"
-
-msgid "Show wireframe"
-msgstr "显示线框"
-
-#, boost-format
-msgid "%1%"
-msgstr "%1%"
-
-msgid "Can't apply when proccess preview."
-msgstr "处理预览的过程中无法应用。"
-
-msgid "Operation already cancelling. Please wait few seconds."
-msgstr "操作已在取消中，请等待片刻。"
-
-msgid "Notice"
-msgstr "通知"
-
-msgid "Warning"
-msgstr "警告"
-
-msgid "Undefined"
-msgstr "未定义"
-
-#, boost-format
-msgid "%1% was replaced with %2%"
-msgstr "%1%已被%2%替换"
-
-msgid "The configuration may be generated by a newer version of BambuStudio."
-msgstr "此配置可能由新版本的Bambu Studio生成。"
-
-msgid "Some values have been replaced. Please check them:"
-msgstr "部分数值已被替换，请检查："
-
-msgid "Process"
-msgstr "工艺"
-
-msgid "Machine"
-msgstr "打印机"
-
-msgid "Configuration package was loaded, but some values were not recognized."
-msgstr "配置包已被加载，但部分数值未被识别。"
-
-#, boost-format
-msgid ""
-"Configuration file \"%1%\" was loaded, but some values were not recognized."
-msgstr "配置文件“%1%”已被加载，但部分数值未被识别。"
-
-msgid "V"
-msgstr "V"
-
-msgid "Version"
-msgstr "版本"
-
-msgid ""
-"BambuStudio will terminate because of running out of memory.It may be a bug. "
-"It will be appreciated if you report the issue to our team."
-msgstr ""
-"系统内存耗尽，Bambu Studio即将终止运行。这可能是个缺陷，希望您可以报告此问"
-"题，我们将非常感激。"
-
-msgid "Fatal error"
-msgstr "致命错误"
-
-msgid ""
-"BambuStudio will terminate because of a localization error. It will be "
-"appreciated if you report the specific scenario this issue happened."
-msgstr ""
-"遇到本地化错误，Bambu Studio即将终止运行。希望您可以报告发生此问题的具体场"
-"景，我们将非常感激。"
-
-msgid "Critical error"
-msgstr "严重错误"
-
-#, boost-format
-msgid "BambuStudio got an unhandled exception: %1%"
-msgstr "Bambu Studio捕捉到一个未处理的异常：%1%"
-
-msgid ""
-"BambuStudio configuration file may be corrupted and is not abled to be "
-"parsed.Please delete the file and try again."
-msgstr ""
-"Bambu Studio配置文件可能已损坏而无法解析。请删除此文件并重新启动BambuStudio。"
-
-#, c-format, boost-format
-msgid ""
-"%s\n"
-"Do you want to continue?"
-msgstr "%s 是否继续？"
-
-msgid "Remember my choice"
-msgstr "记住我的选择"
-
-msgid "Loading configuration"
-msgstr "正在加载配置"
-
-#, c-format, boost-format
-msgid "Click to download new version in default browser: %s"
-msgstr "在默认浏览器中点击下载最新版本: %s"
-
-msgid "New version of Bambu Studio"
-msgstr "新版本的Bambu Studio"
-
-msgid "The Bambu Studio needs an upgrade"
-msgstr "Bambu Studio需要进行升级"
-
-msgid "Loading user presets..."
-msgstr "正在加载用户预设..."
-
-msgid "Rebuild"
-msgstr "重新构建"
-
-msgid "Loading current presets"
-msgstr "加载当前预设"
-
-msgid "Loading a mode view"
-msgstr "加载模式视图"
-
-msgid "Choose one file (3mf):"
-msgstr "选择一个文件（3mf）："
-
-msgid "Choose one or more files (3mf/step/stl/obj/amf):"
-msgstr "选择一个或多个文件（3mf/step/stl/obj/amf）："
-
-msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
-msgstr "选择一个文件（gcode/.gco/.g/.ngc/ngc）："
-
-msgid "Login information expired. Please login again."
-msgstr "登录信息过期。请重新登录。"
-
-msgid "This is the newest version."
-msgstr "已经是最新版本。"
-
-msgid "Loading"
-msgstr "载入中"
-
-msgid "Loading user preset"
+msgid "Calibration"
 msgstr ""
 
-msgid "Switching application language"
-msgstr "切换应用程序语言"
-
-msgid "Select the language"
-msgstr "选择语言"
-
-msgid "Language"
-msgstr "语言"
-
-msgid "*"
-msgstr "*"
-
-msgid "G-code files can not be loaded with models together!"
-msgstr "G-code文件不能和模型一起加载"
-
-msgid "G-code loading"
-msgstr "正在加载G-code文件"
-
-msgid "Select a G-code file:"
-msgstr "选择一个G-code文件："
-
-msgid "Bambu Studio GUI initialization failed"
-msgstr "Bambu Studio图形界面初始化失败"
-
-#, boost-format
-msgid "Fatal error, exception catched: %1%"
-msgstr "致命错误，捕获到异常：%1%"
-
-msgid "Quality"
-msgstr "质量"
-
-msgid "Shell"
-msgstr "外壳"
-
-msgid "Infill"
-msgstr "填充"
-
-msgid "Support"
-msgstr "支撑"
-
-msgid "Strength"
-msgstr "强度"
-
-msgid "Top Solid Layers"
-msgstr "顶部实心层"
-
-msgid "Top Minimum Shell Thickness"
-msgstr "顶部外壳最小厚度"
-
-msgid "Bottom Solid Layers"
-msgstr "底部实心层"
-
-msgid "Bottom Minimum Shell Thickness"
-msgstr "底部外壳最小厚度"
-
-msgid "Ironing"
-msgstr "熨烫"
-
-msgid "Fuzzy Skin"
-msgstr "绒毛表面"
-
-msgid "Extruders"
-msgstr "挤出机"
-
-msgid "Extrusion Width"
-msgstr "挤出宽度"
-
-msgid "Wipe options"
-msgstr "擦除选项"
-
-msgid "Bed adhension"
-msgstr "热床粘接"
-
-msgid "Advanced"
-msgstr "高级"
-
-msgid "Add part"
-msgstr "添加部件"
-
-msgid "Add negative part"
-msgstr "添加负零件"
-
-msgid "Add modifier"
-msgstr "添加修改器"
-
-msgid "Add support blocker"
-msgstr "添加支撑屏蔽"
-
-msgid "Add support enforcer"
-msgstr "添加支撑生成器"
-
-msgid "Select settings"
-msgstr "选择设置"
-
-msgid "Delete"
-msgstr "删除"
-
-msgid "Delete the selected object"
-msgstr "删除所选对象"
-
-msgid "Cube"
-msgstr "立方体"
-
-msgid "Cylinder"
-msgstr "圆柱体"
-
-msgid "Cone"
-msgstr "锥体"
-
-msgid "Add settings"
-msgstr "添加设置"
-
-msgid "Change type"
-msgstr "更改类型"
-
-msgid "Set as an individual object"
-msgstr "设置为独立对象"
-
-msgid "Set as individual objects"
-msgstr "设置为独立对象"
-
-msgid "Printable"
-msgstr "可打印的"
-
-msgid "Rename"
-msgstr "重命名"
-
-msgid "Fix model"
-msgstr "修复模型"
-
-msgid "Fix model through cloud"
-msgstr "通过云端修复模型"
-
-msgid "Fix model locally"
-msgstr "本地修复模型"
-
-msgid "Export as STL"
-msgstr "导出为 STL"
-
-msgid "Reload item"
-msgstr "重新加载所选项"
-
-msgid "Reload items"
-msgstr "重新加载所选项"
-
-msgid "Change filament"
-msgstr "更换耗材丝"
-
-msgid "Set filament for selected items"
-msgstr "设置所选项的耗材丝"
-
-msgid "Default"
-msgstr "默认"
-
-#, c-format, boost-format
-msgid "Filament %d"
-msgstr "耗材丝%d"
-
-msgid "active"
-msgstr "活动的"
-
-msgid "Scale to build volume"
-msgstr "缩放到构建空间大小"
-
-msgid "Scale an object to fit the build volume"
-msgstr "缩放对象以适应构建空间大小"
-
-msgid "Convert from inch"
-msgstr "从英寸转换"
-
-msgid "Restore to inch"
-msgstr "恢复到英寸"
-
-msgid "Convert from meter"
-msgstr "从米转换"
-
-msgid "Restore to meter"
-msgstr "恢复到米"
-
-msgid "Assemble"
-msgstr "组合"
-
-msgid "Assemble the selected objects to an object with multiple parts"
-msgstr "组合所选对象为一个多零件对象"
-
-msgid "Assemble the selected objects to an object with single part"
-msgstr "组合所选对象为一个单零件对象"
-
-msgid "Assemble the selected parts to a single part"
-msgstr "组合所选零件为单个零件"
-
-msgid "Along X axis"
-msgstr "沿 X 轴"
-
-msgid "Mirror along the X axis"
-msgstr "沿X轴镜像"
-
-msgid "Along Y axis"
-msgstr "沿 Y 轴"
-
-msgid "Mirror along the Y axis"
-msgstr "沿Y轴镜像"
-
-msgid "Along Z axis"
-msgstr "沿 Z 轴"
-
-msgid "Mirror along the Z axis"
-msgstr "沿Z轴镜像"
-
-msgid "Mirror"
-msgstr "镜像"
-
-msgid "Mirror object"
-msgstr "镜像对象"
-
-msgid "Add Primitive"
-msgstr "添加标准模型"
-
-msgid "To objects"
-msgstr "拆分到对象"
-
-msgid "Split the selected object into multiple objects"
-msgstr "拆分所选对象为多个对象"
-
-msgid "To parts"
-msgstr "到零件"
-
-msgid "Split the selected object into multiple parts"
-msgstr "拆分所选对象为多个零件"
-
-msgid "Split"
-msgstr "拆分"
-
-msgid "Split the selected object"
-msgstr "拆分所选对象"
-
-msgid "Auto orientation"
-msgstr "自动朝向"
-
-msgid "Auto orient the object to improve print quality."
-msgstr "自动调整对象朝向以提高打印质量。"
-
-msgid "Split the selected object into mutiple objects"
-msgstr "拆分所选对象为多个对象"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "拆分所选对象为多个零件"
-
-msgid "Select All"
-msgstr "全选"
-
-msgid "select all objects on current plate"
-msgstr "全选当前盘对象"
-
-msgid "Delete All"
-msgstr "删除所有"
-
-msgid "delete all objects on current plate"
-msgstr "删除当前盘所有对象"
-
-msgid "arrange current plate"
-msgstr "在当前盘执行自动摆放"
-
-msgid "Auto Rotate"
-msgstr "自动朝向"
-
-msgid "auto rotate current plate"
-msgstr "在当前盘执行自动朝向"
-
-msgid "Remove the selected plate"
-msgstr "删除所选盘"
-
-msgid "Clone"
-msgstr "克隆"
-
-msgid "Reduce Triangles"
-msgstr "简化三角形"
-
-msgid "Per object edit"
-msgstr "编辑单个对象"
-
-msgid "Edit print parameters for a single object"
-msgstr "编辑单个对象的打印参数"
-
-msgid "Change Filament"
-msgstr "更换耗材丝"
-
-msgid "Set Filament for selected items"
-msgstr "设置所选项的耗材丝"
-
-msgid "current"
-msgstr "当前"
-
-msgid "Set Unprintable"
-msgstr "设置不可打印"
-
-msgid "Set Printable"
-msgstr "设置可打印"
-
-msgid "Unlock"
-msgstr "解锁"
-
-msgid "Lock"
-msgstr "锁定"
-
-msgid "Name"
-msgstr "名称"
-
-#, c-format, boost-format
-msgid "%1$d error repaired"
-msgid_plural "%1$d errors repaired"
-msgstr[0] "%1$d个错误被修复"
-
-#, c-format, boost-format
-msgid "Error: %1$d non-manifold edge."
-msgid_plural "Error: %1$d non-manifold edges."
-msgstr[0] "错误: %1$d 非流形边."
-
-msgid "Remaining errors"
-msgstr "剩余错误"
-
-#, c-format, boost-format
-msgid "%1$d non-manifold edge"
-msgid_plural "%1$d non-manifold edges"
-msgstr[0] "%1$d 非流形边"
-
-msgid "Right click the icon to fix model object"
-msgstr "右键点击此图标可修复模型对象"
-
-msgid "Right button click the icon to drop the object settings"
-msgstr "右键点击此图标以舍弃对象的设置"
-
-msgid "Click the icon to reset all settings of the object"
-msgstr "点击此图标可重置对象的所有设置"
-
-msgid "Right button click the icon to drop the object printable property"
-msgstr "右键点击此图标以舍弃对象的可打印属性"
-
-msgid "Click the icon to toggle printable property of the object"
-msgstr "点击此图标可切换这个对象的可打印属性"
-
-msgid "Click the icon to edit support painting of the object"
-msgstr "点击这个图标可编辑这个对象的支撑绘制"
-
-msgid "Click the icon to edit color painting of the object"
-msgstr "点击这个图标可编辑这个对象的颜色绘制"
-
-msgid "Loading file"
-msgstr "载入文件中"
-
-msgid "Error!"
-msgstr "错误！"
-
-msgid "Generic"
-msgstr "通用"
-
-msgid "Add Modifier"
-msgstr "添加修改器"
-
-msgid "Deleting the last solid part is not allowed."
-msgstr "不允许删除对象的最后一个实体零件。"
-
-msgid "The target object contains only one part and can not be splited."
-msgstr "目标对象仅包含一个零件，无法被拆分。"
-
-msgid "Assembly"
-msgstr "组合体"
-
-msgid "Object"
-msgstr "对象"
-
-msgid "Part"
-msgstr "零件"
-
-msgid "Layer"
-msgstr "层"
-
-msgid "Selection conflicts"
-msgstr "选择冲突"
-
-msgid ""
-"If first selected item is an object, the second one should also be object."
-msgstr "如果第一个选择的是对象，那么第二个选择的也必须是对象。"
-
-msgid ""
-"If first selected item is a part, the second one should be part in the same "
-"object."
-msgstr "如果第一个选择的是零件，那么第二个选择的也必须是同一个对象中的零件。"
-
-msgid "The type of the last solid object part is not to be changed."
-msgstr "不允许修改对象中最后一个实体零件的类型。"
-
-msgid "Negative Part"
-msgstr "负零件"
-
-msgid "Modifier"
-msgstr "修改器  Modifier"
-
-msgid "Support Blocker"
-msgstr "支撑去除器"
-
-msgid "Support Enforcer"
-msgstr "支撑添加器"
-
-msgid "Type:"
-msgstr "类型："
-
-msgid "Choose part type"
-msgstr "选择零件类型"
-
-msgid "Enter new name"
-msgstr "输入新名称"
-
-msgid "Renaming"
-msgstr "重命名"
-
-msgid "Repairing model object"
-msgstr "修复模型对象"
-
-msgid "Following model object has been repaired"
-msgid_plural "Following model objects have been repaired"
-msgstr[0] "以下模型对象已被修复"
-
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
-msgstr[0] "以下模型对象修复失败"
-
-msgid "Repairing was canceled"
-msgstr "修复被取消"
-
-msgid "Repair finished"
-msgstr "修复已完成"
-
-msgid "Additional process preset"
-msgstr "附加工艺预设"
-
-msgid "Remove parameter"
-msgstr "删除参数"
-
-msgid "one cell can only be copied to one or multiple cells in the same column"
-msgstr "一个单元格仅能被复制到同一列的一个或多个单元格"
-
-msgid "multiple cells copy is not supported"
-msgstr "不支持多个单元格的复制"
-
-msgid "Outside"
-msgstr "盘外"
-
-msgid "Auto"
-msgstr "自动"
-
-msgid "Manual"
-msgstr "手动"
-
-msgid "No-brim"
-msgstr "无brim"
-
-msgid " "
-msgstr " "
-
-msgid "Layer height"
-msgstr "层高"
-
-msgid "Wall loops"
-msgstr "墙层数"
-
-msgid "Infill density(%)"
-msgstr "填充密度(%)"
-
-msgid "Auto Brim"
-msgstr "自动Brim"
-
-msgid "Inner wall speed"
-msgstr "内墙速度"
-
-msgid "Per Object Setting"
-msgstr "对象设置"
-
-msgid "Reset All"
-msgstr "重置所有"
-
-msgid "Plate"
-msgstr "盘"
-
-msgid "Module"
-msgstr "模块"
-
-msgid "Brim"
-msgstr "Brim"
-
-msgid "Object/Part Setting"
-msgstr "对象/零件设置"
-
-msgid "Reset parameter"
-msgstr "重置参数"
-
-msgid "Multicolor Print"
-msgstr "多色打印"
-
-msgid "No printer"
-msgstr "无打印机"
-
-msgid "Edit"
-msgstr "编辑"
-
-msgid ""
-"All the selected objects are on the locked plate,\n"
-"We can not do auto-arrange on these objects."
+msgid "Calibration program"
 msgstr ""
-"所有选中的对象都处于被锁定的盘上，\n"
-"无法对这些对象做自动摆盘。"
-
-msgid "No arrangable objects are selected."
-msgstr "没有可摆盘的对象被选中。"
 
 msgid ""
-"This plate is locked,\n"
-"We can not do auto-arrange on this plate."
-msgstr "该盘处于锁定状态，无法对其进行自动摆盘。"
-
-msgid "Arranging..."
-msgstr "自动摆放中..."
-
-msgid ""
-"Arrange failed. Found some exceptions when processing object geometries."
-msgstr "自动摆放失败，处理对象几何数据时遇到异常。"
-
-msgid "Arranging canceled."
-msgstr "已取消自动摆放。"
-
-msgid ""
-"Arranging is done but there are unpacked items. Reduce spacing and try again."
-msgstr "已完成自动摆放，但是有未被摆到盘内的项，可在减小间距后重试。"
-
-msgid "Arranging done."
-msgstr "已完成自动摆放。"
-
-#, c-format, boost-format
-msgid ""
-"Arrangement ignored the following objects which can't fit into a single "
-"bed:\n"
-"%s"
+"Calibration program detects the status of your device systematically to "
+"minimise deviation. It keeps the device at its the best performance"
 msgstr ""
-"自动摆放会忽略以下无法放入单盘的零件：\n"
-"%s"
+
+msgid "Preparation before calibration"
+msgstr ""
 
 msgid ""
-"All the selected objects are on the locked plate,\n"
-"We can not do auto-orient on these objects."
+"Before calibration, please make sure a filament is loaded and its nozzle "
+"temperature and bed temperature is set in Feeding lab."
 msgstr ""
-"所有选中的对象都处于被锁定的盘上，\n"
-"无法对这些对象做自动朝向。"
+
+msgid "Calibration Flow"
+msgstr ""
+
+msgid "Start Calibration"
+msgstr "开始校准"
+
+msgid "Calibrating"
+msgstr "校准中"
+
+msgid "Timelapse"
+msgstr "延时摄影"
+
+msgid "Recording"
+msgstr ""
+
+msgid "ConnectPrinter(LAN)"
+msgstr "连接打印机（局域网）"
+
+msgid "Please input the printer access code:"
+msgstr "请输入打印机访问码："
 
 msgid ""
-"This plate is locked,\n"
-"We can not do auto-orient on this plate."
+"You can find it in \"Settings > Network > Connection code\"\n"
+"on the printer, as shown in the figure:"
 msgstr ""
-"该盘处于锁定状态，\n"
-"无法对其进行自动朝向。"
+"你可以在打印机“设置->网络->连接->访问码\"\n"
+"查看，如下图所示："
 
-msgid "Orienting..."
-msgstr "自动朝向中..."
+msgid "Please fill report first."
+msgstr "请先填写报告。"
 
-msgid "Error! Unable to create thread!"
-msgstr "发生错误，无法创建线程。"
+msgid "Unable to create zip file"
+msgstr "无法创建zip压缩文件"
 
-msgid "Exception"
-msgstr "异常"
+msgid "Enter a search term"
+msgstr "输入搜索内容"
+
+msgid "Online"
+msgstr "在线"
+
+msgid "Offline"
+msgstr "离线"
 
 msgid "Application is closing"
 msgstr "正在关闭应用程序"
@@ -2114,9 +2313,6 @@ msgstr "关闭"
 msgid "Monitoring"
 msgstr "实时视频"
 
-msgid "Timelapse"
-msgstr "延时摄影"
-
 msgid "Printing Progress"
 msgstr "打印进度"
 
@@ -2131,9 +2327,6 @@ msgstr "0%"
 
 msgid "Control"
 msgstr "控制"
-
-msgid "Start Calibration"
-msgstr "开始校准"
 
 msgid "100%"
 msgstr "100%"
@@ -2155,9 +2348,6 @@ msgstr "调试信息"
 
 msgid "Printing List"
 msgstr "项目切片"
-
-msgid "Calibrating"
-msgstr "校准中"
 
 msgid "Resume"
 msgstr "继续"
@@ -2184,9 +2374,6 @@ msgid "Update"
 msgstr "固件更新"
 
 msgid "HMS"
-msgstr ""
-
-msgid "Please upgrade your printer first"
 msgstr ""
 
 msgid "Failed to connect to the server"
@@ -2233,40 +2420,6 @@ msgstr "下载"
 
 msgid "Skip"
 msgstr "跳过"
-
-msgid "Portions copyright"
-msgstr "部分版权"
-
-msgid "Copyright"
-msgstr "版权"
-
-msgid "License"
-msgstr "许可证"
-
-msgid "Bambu Studio is licensed under "
-msgstr "Bambu Studio是在"
-
-msgid "GNU Affero General Public License, version 3"
-msgstr "GNU Affero 通用公共许可证，版本 3下授权的"
-
-msgid ""
-"Bambu Studio is based on PrusaSlicer by Prusa Research, which is from Slic3r "
-"by Alessandro Ranellucci and the RepRap community"
-msgstr ""
-"Bambu Studio是基于Prusa Research的PrusaSlicer开发的，而PrusaSlicer是基于来自"
-"Alessandro Ranellucci和RepRap社区的Slic3r开发的"
-
-msgid "Libraries"
-msgstr "库"
-
-msgid ""
-"This software uses open source components whose copyright and other "
-"proprietary rights belong to their respective owners"
-msgstr "本软件使用开源组件，其版权和其他所有权属于各自的所有者"
-
-#, c-format, boost-format
-msgid "About %s"
-msgstr "关于 %s"
 
 msgid "3D Mouse disconnected."
 msgstr "3D鼠标断连。"
@@ -2842,13 +2995,13 @@ msgid "PRE host: api-pre.bambu-lab.com/v1"
 msgstr ""
 
 msgid "Product host"
-msgstr ""
+msgstr "正式环境"
 
 msgid "debug save button"
-msgstr ""
+msgstr "保存"
 
 msgid "save debug settings"
-msgstr ""
+msgstr "保存调试设置"
 
 msgid "DEBUG settings have saved successfully!"
 msgstr "DEBUG模式生效!"
@@ -2879,6 +3032,36 @@ msgstr "编辑预设"
 
 msgid "Project-inside presets"
 msgstr "项目预设"
+
+msgid "Slice all plate to obtain time and filament estimation"
+msgstr "正在切片以获取切片信息和预估打印时间"
+
+msgid "Packing project data into 3mf file"
+msgstr "正在打包数据到3mf文件"
+
+msgid "Uploading 3mf"
+msgstr "正在上传3mf"
+
+msgid "Jump to model publish web page"
+msgstr "跳转到发布页面"
+
+msgid "Note: The preparation may takes several minutes. Please be patiant."
+msgstr "提示：发布前需要一些准备时间，请耐心等待。"
+
+msgid "Publish"
+msgstr "发布"
+
+msgid "Publish was cancelled"
+msgstr "发布已取消"
+
+msgid "Slicing Plate 1"
+msgstr "正在切片盘 1"
+
+msgid "Packing data to 3mf"
+msgstr "打包数据到3mf"
+
+msgid "Jump to webpage"
+msgstr "跳转到网页"
 
 #, c-format, boost-format
 msgid "Save %s as"
@@ -2955,17 +3138,14 @@ msgstr "为“%1%”，添加“%2%”为一个新预设"
 msgid "Simply switch to \"%1%\""
 msgstr "直接切换到“%1%”"
 
-msgid "Online"
-msgstr "在线"
-
-msgid "Offline"
-msgstr "离线"
-
 msgid "My Device"
 msgstr "我的设备"
 
 msgid "Other Device"
 msgstr "其他设备"
+
+msgid "Input access code"
+msgstr "输入访问码"
 
 msgid "Bambu Cool Plate"
 msgstr "低温打印热床"
@@ -2978,9 +3158,6 @@ msgstr "高温打印热床"
 
 msgid "Send print job to"
 msgstr "发送打印任务至"
-
-msgid "Reading printer information..."
-msgstr "正在读取打印机信息"
 
 msgid "Refresh"
 msgstr "刷新"
@@ -3003,14 +3180,17 @@ msgstr "发送"
 msgid "send completed"
 msgstr "发送完成"
 
+msgid "Ams Mappling failed, please select filament"
+msgstr "AMS 映射失败，请手动选择打印丝"
+
+msgid "Plese select the filament in ams"
+msgstr "请手动选择打印丝"
+
 msgid "Please select a printer first."
 msgstr "请先选择一台打印机。"
 
 msgid "The printer is being updated. Please try again after the update."
 msgstr "打印机正在更新。 请更新后重试。"
-
-msgid "Please fill report first."
-msgstr "请先填写报告。"
 
 msgid "Exporting 3mf..."
 msgstr "正在导出3mf..."
@@ -3027,19 +3207,30 @@ msgstr "没有可用的打印机"
 msgid "Reading printer info timed out"
 msgstr "读取打印机信息超时"
 
+msgid "Please upgrade your printer first"
+msgstr "请先升级打印机固件"
+
 msgid "Cannot send the print task when the upgrade is in progress"
+msgstr "设备升级中，无法发送打印任务"
+
+msgid "Current printer is busy"
+msgstr "当前打印机正忙"
+
+msgid "Current printer is printing now"
+msgstr "当前打印机正在打印中"
+
+msgid ""
+"The mapping relationship of \" consumable wire list = > ams slot \" has been "
+"automatically established."
 msgstr ""
 
 msgid ""
-"The mapping of \"Consumable wire List =>AMS slot\" has been automatically "
-"established.\n"
+"If you need to modify, you can click the specific consumable wire above to "
+"manually set the mapped AMS slot."
 msgstr ""
 
 msgid "Modifying the device name"
-msgstr ""
-
-msgid "Confirm"
-msgstr "确定"
+msgstr "修改打印机名称"
 
 msgid "Log in printer"
 msgstr "登录打印机"
@@ -3776,48 +3967,6 @@ msgstr "配置包已更新到"
 
 msgid "Open G-code file:"
 msgstr "打开G-code文件："
-
-msgid "Creating"
-msgstr "正在创建"
-
-msgid "Uploading"
-msgstr "正在上传"
-
-msgid "Waiting"
-msgstr "等待中"
-
-msgid "Sending"
-msgstr "发送中"
-
-msgid "Finished"
-msgstr "完成"
-
-msgid "Internal error, no gcode file to upload."
-msgstr "内部错误，没有可上传的gcode文件"
-
-msgid "Print job was cancelled."
-msgstr "打印任务已取消。"
-
-msgid "Failed to create the print job. Please try agian."
-msgstr "无法创建打印任务，请重试。"
-
-msgid "Failed to upload the print job. Please try agian."
-msgstr "未能上传打印任务，请重试。"
-
-msgid "Uploading print job timed out. Please try again."
-msgstr "上传打印任务超时，请重试。"
-
-msgid "Failed to send the print job. Please try again."
-msgstr "无法发送打印任务，请重试。"
-
-msgid "Sending print task timed out. Please try again."
-msgstr "发送打印任务超时，请重试。"
-
-msgid "Try to upload project over lan"
-msgstr "尝试通过局域网上传项目"
-
-msgid "Try to send project over cloud"
-msgstr "尝试通过云服务发送项目"
 
 msgid ""
 "One object has empty initial layer and can't be printed. Please Cut the "
@@ -5763,6 +5912,9 @@ msgstr "支撑：正在修补层%d的空洞"
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
 
+#~ msgid "Reading printer information..."
+#~ msgstr "正在读取打印机信息"
+
 #~ msgid ""
 #~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
 #~ "Contains the following information:\n"
@@ -5812,11 +5964,9 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ msgid "Filament Retraction"
 #~ msgstr "材料回抽"
 
-#, boost-format
 #~ msgid "%1% is too close to others, there will be collisions when printing."
 #~ msgstr "%1%离其它对象太近，会造成打印时出现碰撞。"
 
-#, boost-format
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to others, there will be collisions when printing."
@@ -5824,11 +5974,9 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ "\n"
 #~ "%1%离其它对象太近，会造成打印时出现碰撞。"
 
-#, boost-format
 #~ msgid "%1% is too tall, there will be collisions when printing."
 #~ msgstr "%1%的高度过高，会造成打印时出现碰撞。"
 
-#, boost-format
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too tall, there will be collisions when printing."
@@ -8213,9 +8361,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "Delete physical printer"
 #~ msgstr "删除打印机"
-
-#~ msgid "Enter a search term"
-#~ msgstr "输入搜索内容"
 
 #~ msgid "Fialment Change - Purging volume adjustment"
 #~ msgstr "材料更换 - 冲刷体积调整"

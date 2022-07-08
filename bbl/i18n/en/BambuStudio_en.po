@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-05 22:04+0800\n"
+"POT-Creation-Date: 2022-07-08 16:04+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -12,6 +12,985 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.0.1\n"
+
+msgid "Supports Painting"
+msgstr "Support painting"
+
+msgid "Section view"
+msgstr ""
+
+msgid "Pen size"
+msgstr ""
+
+msgid "Left mouse button"
+msgstr ""
+
+msgid "Enforce supports"
+msgstr ""
+
+msgid "Right mouse button"
+msgstr ""
+
+msgid "Block supports"
+msgstr ""
+
+msgid "Shift + Left mouse button"
+msgstr ""
+
+msgid "Erase painting"
+msgstr ""
+
+msgid "Erase all painting"
+msgstr ""
+
+msgid "Highlight overhang areas"
+msgstr ""
+
+msgid "Fragment filter"
+msgstr ""
+
+msgid "Perform"
+msgstr ""
+
+msgid "Fragment area"
+msgstr ""
+
+msgid "Set pen size"
+msgstr ""
+
+msgid "Ctrl + Mouse wheel"
+msgstr ""
+
+msgid "Tool type"
+msgstr ""
+
+msgid "Smart fill angle"
+msgstr ""
+
+msgid "Auto support threshold angle: "
+msgstr ""
+
+msgid "Circle"
+msgstr ""
+
+msgid "Sphere"
+msgstr ""
+
+msgid "Fill"
+msgstr ""
+
+msgid "Fragment Filter"
+msgstr ""
+
+msgid "Highlight faces according to overhang angle."
+msgstr ""
+
+msgid "No auto support"
+msgstr ""
+
+msgid "Support Generated"
+msgstr "Support generated"
+
+msgid "Lay on face"
+msgstr ""
+
+#, boost-format
+msgid ""
+"Filament count exceeds the maximum number that painting tool supports. only "
+"the first %1% filaments will be available in painting tool."
+msgstr ""
+
+msgid "Color Painting"
+msgstr "Color painting"
+
+msgid "Pen shape"
+msgstr ""
+
+msgid "Paint"
+msgstr ""
+
+msgid "Erase"
+msgstr ""
+
+msgid "Key 1~9"
+msgstr ""
+
+msgid "Choose filament"
+msgstr ""
+
+msgid "Edge detection"
+msgstr ""
+
+msgid "Clear all"
+msgstr ""
+
+msgid "Triangles"
+msgstr ""
+
+msgid "Filaments"
+msgstr ""
+
+msgid "Brush"
+msgstr ""
+
+msgid "Smart fill"
+msgstr ""
+
+msgid "Bucket fill"
+msgstr ""
+
+msgid "Height range"
+msgstr ""
+
+msgid "Shortcut Key "
+msgstr ""
+
+msgid "Triangle"
+msgstr ""
+
+msgid "Height Range"
+msgstr ""
+
+msgid "Remove painted color"
+msgstr ""
+
+#, boost-format
+msgid "Painted using: Filament %1%"
+msgstr ""
+
+msgid "Move"
+msgstr ""
+
+msgid "Rotate"
+msgstr ""
+
+msgid "Optimize orientation"
+msgstr ""
+
+msgid "Apply"
+msgstr ""
+
+msgid "Scale"
+msgstr ""
+
+msgid "Error: Please close all toolbar menus first"
+msgstr ""
+
+msgid "Tool-Lay on Face"
+msgstr ""
+
+msgid "in"
+msgstr ""
+
+msgid "mm"
+msgstr ""
+
+msgid "Position"
+msgstr ""
+
+msgid "Rotation"
+msgstr ""
+
+msgid "Scale ratios"
+msgstr ""
+
+msgid "Object Operations"
+msgstr "Object operations"
+
+msgid "Volume Operations"
+msgstr "Volume operations"
+
+msgid "Translate"
+msgstr ""
+
+msgid "Group Operations"
+msgstr "Group operations"
+
+msgid "Set Position"
+msgstr "Set position"
+
+msgid "Set Orientation"
+msgstr "Set orientation"
+
+msgid "Set Scale"
+msgstr "Set scale"
+
+msgid "Reset Position"
+msgstr "Reset position"
+
+msgid "Reset Rotation"
+msgstr "Reset rotation"
+
+msgid "World coordinates"
+msgstr ""
+
+msgid "°"
+msgstr ""
+
+msgid "Position:"
+msgstr ""
+
+msgid "%"
+msgstr ""
+
+msgid "Size"
+msgstr ""
+
+msgid "uniform scale"
+msgstr "Uniform scale"
+
+msgid "Cut"
+msgstr ""
+
+msgid "Movement:"
+msgstr ""
+
+msgid "Rotation:"
+msgstr ""
+
+msgid "Height:"
+msgstr ""
+
+msgid "Keep upper part"
+msgstr ""
+
+msgid "Keep lower part"
+msgstr ""
+
+msgid "Cut to parts"
+msgstr ""
+
+msgid "Auto Segment"
+msgstr ""
+
+msgid "Perform cut"
+msgstr ""
+
+msgid "Reset"
+msgstr ""
+
+msgid "Mesh name"
+msgstr ""
+
+msgid "Detail level"
+msgstr ""
+
+msgid "Decimate ratio"
+msgstr ""
+
+#, boost-format
+msgid ""
+"Processing model '%1%' with more than 1M triangles could be slow. It is "
+"highly recommended to simplify the model."
+msgstr ""
+
+msgid "Simplify model"
+msgstr ""
+
+msgid "Simplify"
+msgstr ""
+
+msgid "Simplification is currently only allowed when a single part is selected"
+msgstr ""
+
+msgid "Error"
+msgstr ""
+
+msgid "Extra high"
+msgstr ""
+
+msgid "High"
+msgstr ""
+
+msgid "Medium"
+msgstr ""
+
+msgid "Low"
+msgstr ""
+
+msgid "Extra low"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d triangles"
+msgstr ""
+
+msgid "Show wireframe"
+msgstr ""
+
+#, boost-format
+msgid "%1%"
+msgstr ""
+
+msgid "Can't apply when proccess preview."
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Operation already cancelling. Please wait few seconds."
+msgstr ""
+
+msgid "Face recognition"
+msgstr ""
+
+msgid "Perform Recognition"
+msgstr ""
+
+msgid "Cube"
+msgstr ""
+
+msgid "Cylinder"
+msgstr ""
+
+msgid "Cone"
+msgstr ""
+
+msgid "Add Modifier"
+msgstr ""
+
+msgid "Notice"
+msgstr ""
+
+msgid "Warning"
+msgstr ""
+
+msgid "Undefined"
+msgstr ""
+
+#, boost-format
+msgid "%1% was replaced with %2%"
+msgstr ""
+
+msgid "The configuration may be generated by a newer version of BambuStudio."
+msgstr ""
+"The configuration may have been generated by a newer version of Bambu Studio."
+
+msgid "Some values have been replaced. Please check them:"
+msgstr ""
+
+msgid "Process"
+msgstr ""
+
+msgid "Filament"
+msgstr ""
+
+msgid "Machine"
+msgstr ""
+
+msgid "Configuration package was loaded, but some values were not recognized."
+msgstr ""
+"The configuration package was loaded, but some values were not recognized."
+
+#, boost-format
+msgid ""
+"Configuration file \"%1%\" was loaded, but some values were not recognized."
+msgstr ""
+"The configuration file “%1%” was loaded, but some values were not recognized."
+
+msgid "V"
+msgstr ""
+
+msgid "Version"
+msgstr ""
+
+msgid ""
+"BambuStudio will terminate because of running out of memory.It may be a bug. "
+"It will be appreciated if you report the issue to our team."
+msgstr ""
+"Bambu Studio has run out of memory and will close. This may be a bug. Please "
+"report this issue to our team."
+
+msgid "Fatal error"
+msgstr ""
+
+msgid ""
+"BambuStudio will terminate because of a localization error. It will be "
+"appreciated if you report the specific scenario this issue happened."
+msgstr "A localization error has occurred, and Bambu Studio will close. "
+
+msgid "Critical error"
+msgstr ""
+
+#, boost-format
+msgid "BambuStudio got an unhandled exception: %1%"
+msgstr ""
+
+msgid ""
+"BambuStudio configuration file may be corrupted and is not abled to be "
+"parsed.Please delete the file and try again."
+msgstr ""
+"Bambu Studio configuration file may be corrupted and is not abled to be "
+"parsed. Please delete the file and try again."
+
+#, c-format, boost-format
+msgid ""
+"%s\n"
+"Do you want to continue?"
+msgstr ""
+
+msgid "Remember my choice"
+msgstr ""
+
+msgid "Loading configuration"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Click to download new version in default browser: %s"
+msgstr ""
+
+msgid "New version of Bambu Studio"
+msgstr ""
+
+msgid "The Bambu Studio needs an upgrade"
+msgstr ""
+
+msgid "Loading user presets..."
+msgstr ""
+
+msgid "Rebuild"
+msgstr ""
+
+msgid "Loading current presets"
+msgstr ""
+
+msgid "Loading a mode view"
+msgstr ""
+
+msgid "Choose one file (3mf):"
+msgstr ""
+
+msgid "Choose one or more files (3mf/step/stl/obj/amf):"
+msgstr ""
+
+msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
+msgstr "Choose one file (.gcode/.gco/.g/.ngc/ngc):"
+
+msgid "Login information expired. Please login again."
+msgstr ""
+
+msgid "This is the newest version."
+msgstr ""
+
+msgid "Info"
+msgstr ""
+
+msgid "Loading"
+msgstr ""
+
+msgid "Loading user preset"
+msgstr ""
+
+msgid "Switching application language"
+msgstr ""
+
+msgid "Select the language"
+msgstr ""
+
+msgid "Language"
+msgstr ""
+
+msgid "*"
+msgstr ""
+
+msgid "G-code files can not be loaded with models together!"
+msgstr "G-code files and models cannot be loaded together!"
+
+msgid "G-code loading"
+msgstr ""
+
+msgid "Select a G-code file:"
+msgstr ""
+
+msgid "Bambu Studio GUI initialization failed"
+msgstr ""
+
+#, boost-format
+msgid "Fatal error, exception catched: %1%"
+msgstr ""
+
+msgid "Quality"
+msgstr ""
+
+msgid "Shell"
+msgstr ""
+
+msgid "Infill"
+msgstr ""
+
+msgid "Support"
+msgstr ""
+
+msgid "Speed"
+msgstr ""
+
+msgid "Strength"
+msgstr ""
+
+msgid "Top Solid Layers"
+msgstr "Top solid layers"
+
+msgid "Top Minimum Shell Thickness"
+msgstr "Top minimum shell thickness"
+
+msgid "Bottom Solid Layers"
+msgstr "Bottom solid layers"
+
+msgid "Bottom Minimum Shell Thickness"
+msgstr "Bottom minimum shell thickness"
+
+msgid "Ironing"
+msgstr ""
+
+msgid "Fuzzy Skin"
+msgstr "Fuzzy skin"
+
+msgid "Extruders"
+msgstr ""
+
+msgid "Extrusion Width"
+msgstr "Extrusion width"
+
+msgid "Wipe options"
+msgstr ""
+
+msgid "Bed adhension"
+msgstr ""
+
+msgid "Advanced"
+msgstr ""
+
+msgid "Add part"
+msgstr "Add Part"
+
+msgid "Add negative part"
+msgstr "Add Negative Part"
+
+msgid "Add modifier"
+msgstr "Add Modifier"
+
+msgid "Add support blocker"
+msgstr "Add Support Blocker"
+
+msgid "Add support enforcer"
+msgstr "Add Support Enforcer"
+
+msgid "Select settings"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Delete the selected object"
+msgstr ""
+
+msgid "Load..."
+msgstr ""
+
+msgid "Add settings"
+msgstr "Add Settings"
+
+msgid "Change type"
+msgstr "Change Type"
+
+msgid "Set as an individual object"
+msgstr "Set as An Individual Object"
+
+msgid "Set as individual objects"
+msgstr "Set as Individual Objects"
+
+msgid "Printable"
+msgstr ""
+
+msgid "Rename"
+msgstr ""
+
+msgid "Fix model"
+msgstr "Fix Model"
+
+msgid "Fix model through cloud"
+msgstr ""
+
+msgid "Fix model locally"
+msgstr ""
+
+msgid "Export as STL"
+msgstr ""
+
+msgid "Reload item"
+msgstr ""
+
+msgid "Reload items"
+msgstr ""
+
+msgid "Change filament"
+msgstr ""
+
+msgid "Set filament for selected items"
+msgstr ""
+
+msgid "Default"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %d"
+msgstr ""
+
+msgid "active"
+msgstr ""
+
+msgid "Scale to build volume"
+msgstr ""
+
+msgid "Scale an object to fit the build volume"
+msgstr ""
+
+msgid "Convert from inch"
+msgstr "Convert from Inch"
+
+msgid "Restore to inch"
+msgstr "Restore to Inch"
+
+msgid "Convert from meter"
+msgstr "Convert from Meter"
+
+msgid "Restore to meter"
+msgstr "Restore to Meter"
+
+msgid "Assemble"
+msgstr ""
+
+msgid "Assemble the selected objects to an object with multiple parts"
+msgstr ""
+
+msgid "Assemble the selected objects to an object with single part"
+msgstr ""
+
+msgid "Assemble the selected parts to a single part"
+msgstr ""
+
+msgid "Along X axis"
+msgstr "Along X Axis"
+
+msgid "Mirror along the X axis"
+msgstr "Mirror along the X Axis"
+
+msgid "Along Y axis"
+msgstr "Along Y Axis"
+
+msgid "Mirror along the Y axis"
+msgstr "Mirror along the Y Axis"
+
+msgid "Along Z axis"
+msgstr "Along Z Axis"
+
+msgid "Mirror along the Z axis"
+msgstr "Mirror along the Z Axis"
+
+msgid "Mirror"
+msgstr ""
+
+msgid "Mirror object"
+msgstr ""
+
+msgid "Add Primitive"
+msgstr ""
+
+msgid "To objects"
+msgstr "To Objects"
+
+msgid "Split the selected object into multiple objects"
+msgstr ""
+
+msgid "To parts"
+msgstr "To Parts"
+
+msgid "Split the selected object into multiple parts"
+msgstr ""
+
+msgid "Split"
+msgstr ""
+
+msgid "Split the selected object"
+msgstr ""
+
+msgid "Auto orientation"
+msgstr ""
+
+msgid "Auto orient the object to improve print quality."
+msgstr ""
+
+msgid "Split the selected object into mutiple objects"
+msgstr ""
+
+msgid "Split the selected object into mutiple parts"
+msgstr ""
+
+msgid "Select All"
+msgstr ""
+
+msgid "select all objects on current plate"
+msgstr "Select all objects on current plate"
+
+msgid "Delete All"
+msgstr ""
+
+msgid "delete all objects on current plate"
+msgstr "Delete all objects on current plate"
+
+msgid "Arrange"
+msgstr ""
+
+msgid "arrange current plate"
+msgstr "Arrange current plate"
+
+msgid "Auto Rotate"
+msgstr ""
+
+msgid "auto rotate current plate"
+msgstr "Auto rotate current plate"
+
+msgid "Remove the selected plate"
+msgstr ""
+
+msgid "Clone"
+msgstr ""
+
+msgid "Reduce Triangles"
+msgstr ""
+
+msgid "Per object edit"
+msgstr "Per Object Edit"
+
+msgid "Edit print parameters for a single object"
+msgstr ""
+
+msgid "Change Filament"
+msgstr ""
+
+msgid "Set Filament for selected items"
+msgstr ""
+
+msgid "current"
+msgstr ""
+
+msgid "Set Unprintable"
+msgstr ""
+
+msgid "Set Printable"
+msgstr ""
+
+msgid "Unlock"
+msgstr ""
+
+msgid "Lock"
+msgstr ""
+
+msgid "Name"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%1$d error repaired"
+msgid_plural "%1$d errors repaired"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, boost-format
+msgid "Error: %1$d non-manifold edge."
+msgid_plural "Error: %1$d non-manifold edges."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Remaining errors"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%1$d non-manifold edge"
+msgid_plural "%1$d non-manifold edges"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Right click the icon to fix model object"
+msgstr ""
+
+msgid "Right button click the icon to drop the object settings"
+msgstr ""
+
+msgid "Click the icon to reset all settings of the object"
+msgstr ""
+
+msgid "Right button click the icon to drop the object printable property"
+msgstr ""
+
+msgid "Click the icon to toggle printable property of the object"
+msgstr ""
+
+msgid "Click the icon to edit support painting of the object"
+msgstr ""
+
+msgid "Click the icon to edit color painting of the object"
+msgstr ""
+
+msgid "Loading file"
+msgstr ""
+
+msgid "Error!"
+msgstr ""
+
+msgid "Generic"
+msgstr ""
+
+msgid "Deleting the last solid part is not allowed."
+msgstr ""
+
+msgid "The target object contains only one part and can not be splited."
+msgstr "The target object contains only one part and can not be split."
+
+msgid "Assembly"
+msgstr ""
+
+msgid "Object"
+msgstr ""
+
+msgid "Part"
+msgstr ""
+
+msgid "Layer"
+msgstr ""
+
+msgid "Selection conflicts"
+msgstr ""
+
+msgid ""
+"If first selected item is an object, the second one should also be object."
+msgstr ""
+"If first selected item is an object, the second one should also be an object."
+
+msgid ""
+"If first selected item is a part, the second one should be part in the same "
+"object."
+msgstr ""
+"If first selected item is a part, the second one should be a part in the "
+"same object."
+
+msgid "The type of the last solid object part is not to be changed."
+msgstr "The type of the last solid object part cannot be changed."
+
+msgid "Negative Part"
+msgstr ""
+
+msgid "Modifier"
+msgstr ""
+
+msgid "Support Blocker"
+msgstr ""
+
+msgid "Support Enforcer"
+msgstr ""
+
+msgid "Type:"
+msgstr ""
+
+msgid "Choose part type"
+msgstr ""
+
+msgid "Enter new name"
+msgstr ""
+
+msgid "Renaming"
+msgstr ""
+
+msgid "Repairing model object"
+msgstr ""
+
+msgid "Following model object has been repaired"
+msgid_plural "Following model objects have been repaired"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Failed to repair folowing model object"
+msgid_plural "Failed to repair folowing model objects"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Repairing was canceled"
+msgstr ""
+
+msgid "Repair finished"
+msgstr ""
+
+msgid "Additional process preset"
+msgstr ""
+
+msgid "Remove parameter"
+msgstr ""
+
+msgid "one cell can only be copied to one or multiple cells in the same column"
+msgstr ""
+"One cell can only be copied to one or multiple cells in the same column."
+
+msgid "multiple cells copy is not supported"
+msgstr "Copying multiple cells is not supported."
+
+msgid "Outside"
+msgstr ""
+
+msgid "Auto"
+msgstr ""
+
+msgid "Manual"
+msgstr ""
+
+msgid "No-brim"
+msgstr ""
+
+msgid " "
+msgstr ""
+
+msgid "Layer height"
+msgstr ""
+
+msgid "Wall loops"
+msgstr ""
+
+msgid "Infill density(%)"
+msgstr ""
+
+msgid "Auto Brim"
+msgstr ""
+
+msgid "Inner wall speed"
+msgstr ""
+
+msgid "Per Object Setting"
+msgstr "Per object setting"
+
+msgid "Reset All"
+msgstr ""
+
+msgid "Plate"
+msgstr ""
+
+msgid "Module"
+msgstr ""
+
+msgid "Brim"
+msgstr ""
+
+msgid "Object/Part Setting"
+msgstr "Object/part setting"
+
+msgid "Reset parameter"
+msgstr ""
+
+msgid "Multicolor Print"
+msgstr ""
+
+msgid "Line Type"
+msgstr "Line type"
+
+msgid "No printer"
+msgstr ""
 
 msgid ""
 "Heat the nozzle to target \n"
@@ -27,6 +1006,9 @@ msgstr ""
 msgid ""
 "Push new filament \n"
 "into extruder"
+msgstr ""
+
+msgid "Purge old filament"
 msgstr ""
 
 msgid "?"
@@ -67,40 +1049,229 @@ msgid ""
 "load or unload filiament."
 msgstr ""
 
+msgid "Edit"
+msgstr ""
+
+msgid ""
+"All the selected objects are on the locked plate,\n"
+"We can not do auto-arrange on these objects."
+msgstr ""
+"All the selected objects are on a locked plate.\n"
+"Cannot auto-arrange these objects."
+
+msgid "No arrangable objects are selected."
+msgstr ""
+
+msgid ""
+"This plate is locked,\n"
+"We can not do auto-arrange on this plate."
+msgstr ""
+
+msgid "Arranging..."
+msgstr ""
+
+msgid ""
+"Arrange failed. Found some exceptions when processing object geometries."
+msgstr ""
+
+msgid "Arranging canceled."
+msgstr ""
+
+# [Cory] I think this works as an explanation, but I want to see if you think it’s clear enough.
+# [Yifan] “spacing” is a setting value for “Arrange tool”. So I suggest to keep it.
+# [Cory] Got it; sounds good!
+msgid ""
+"Arranging is done but there are unpacked items. Reduce spacing and try again."
+msgstr ""
+"Arranging complete, but some items were not able to be arranged. Reduce "
+"spacing and try again."
+
+msgid "Arranging done."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Arrangement ignored the following objects which can't fit into a single "
+"bed:\n"
+"%s"
+msgstr ""
+
+msgid ""
+"All the selected objects are on the locked plate,\n"
+"We can not do auto-orient on these objects."
+msgstr ""
+
+msgid ""
+"This plate is locked,\n"
+"We can not do auto-orient on this plate."
+msgstr ""
+
+msgid "Orienting..."
+msgstr ""
+
+msgid "Error! Unable to create thread!"
+msgstr "Error. Unable to create thread."
+
+msgid "Exception"
+msgstr ""
+
+msgid "Waiting for login"
+msgstr ""
+
+msgid "Login failed"
+msgstr ""
+
+msgid "The region parameter is incorrrect"
+msgstr ""
+
+msgid "Failure of printer login"
+msgstr ""
+
+msgid "Failed to get ticket"
+msgstr ""
+
+msgid "User authorization timeout"
+msgstr ""
+
+msgid "Failure of bind"
+msgstr ""
+
+msgid "Unknown Failure"
+msgstr ""
+
+msgid "Creating"
+msgstr ""
+
+msgid "Uploading"
+msgstr ""
+
+msgid "Waiting"
+msgstr ""
+
+msgid "Sending"
+msgstr ""
+
+msgid "Finished"
+msgstr ""
+
+msgid "Internal error, no gcode file to upload."
+msgstr ""
+
+msgid "Print job was cancelled."
+msgstr ""
+
+msgid "Failed to create the print job. Please try agian."
+msgstr ""
+
+msgid "Failed to upload the print job. Please try agian."
+msgstr ""
+
+msgid "Uploading print job timed out. Please try again."
+msgstr ""
+
+msgid "Failed to send the print job. Please try again."
+msgstr ""
+
+msgid "Sending print task timed out. Please try again."
+msgstr ""
+
+msgid "Try to upload project over lan"
+msgstr ""
+
+msgid "Try to send project over cloud"
+msgstr ""
+
+msgid "Portions copyright"
+msgstr ""
+
+msgid "Copyright"
+msgstr ""
+
+msgid "License"
+msgstr ""
+
+msgid "Bambu Studio is licensed under "
+msgstr ""
+
+msgid "GNU Affero General Public License, version 3"
+msgstr ""
+
+msgid ""
+"Bambu Studio is based on PrusaSlicer by Prusa Research, which is from Slic3r "
+"by Alessandro Ranellucci and the RepRap community"
+msgstr ""
+
+msgid "Libraries"
+msgstr ""
+
+msgid ""
+"This software uses open source components whose copyright and other "
+"proprietary rights belong to their respective owners"
+msgstr ""
+
+#, c-format, boost-format
+msgid "About %s"
+msgstr ""
+
+msgid "Colour"
+msgstr ""
+
+msgid "SN"
+msgstr ""
+
+msgid ""
+"Nozzle\n"
+"Temperature"
+msgstr ""
+
+msgid "max"
+msgstr ""
+
+msgid "min"
+msgstr ""
+
+#, boost-format
+msgid "The input value should be greater than %1% and less than %2%"
+msgstr ""
+
+msgid "Confirm"
+msgstr ""
+
+msgid ""
+"AMS automatically reads volume information when new material is inserted"
+msgstr ""
+
+msgid ""
+"When a new BBL reel is inserted, AMS will automatically read the reel "
+"information.  It takes about 20 seconds"
+msgstr ""
+
+msgid ""
+"Note: In the printing process, if a new consumable is inserted, AMS will not "
+"automatically read the information of consumable, but wait for the end of "
+"printing to read "
+msgstr ""
+
+msgid ""
+"When inserting a new reel, AMS will not automatically read the reel "
+"information and reserve an empty reel information for you to manually enter "
+msgstr ""
+
+msgid "AMS automatically reads consumable information when it is turned on"
+msgstr ""
+
+msgid ""
+"AMS will automatically read the inserted consumables information every time "
+"it is powered on.  It takes about a minute"
+msgstr ""
+
+msgid ""
+"At each startup, AMS will not automatically read the inserted consumables "
+"information, and will continue to use the volume information recorded before "
+"the last shutdown"
+msgstr ""
+
 msgid "File"
-msgstr ""
-
-msgid "Slice all plate to obtain time and filament estimation"
-msgstr ""
-
-msgid "Packing project data into 3mf file"
-msgstr ""
-
-msgid "Uploading 3mf"
-msgstr ""
-
-msgid "Jump to model publish web page"
-msgstr ""
-
-msgid "Note: The preparation may takes several minutes. Please be patiant."
-msgstr ""
-
-msgid "Publish"
-msgstr ""
-
-msgid "Cancel"
-msgstr ""
-
-msgid "Publish was cancelled"
-msgstr ""
-
-msgid "Slicing Plate 1"
-msgstr ""
-
-msgid "Packing data to 3mf"
-msgstr ""
-
-msgid "Jump to webpage"
 msgstr ""
 
 msgid ""
@@ -154,9 +1325,6 @@ msgstr ""
 msgid "Succeed to export G-code to %1%"
 msgstr "Success! G-code exported to %1%"
 
-msgid "Size"
-msgstr ""
-
 msgid "Origin"
 msgstr ""
 
@@ -169,9 +1337,6 @@ msgstr ""
 msgid ""
 "Distance of the 0,0 G-code coordinate from the front left corner of the "
 "rectangle."
-msgstr ""
-
-msgid "mm"
 msgstr ""
 
 msgid ""
@@ -198,9 +1363,6 @@ msgid "Settings"
 msgstr ""
 
 msgid "Texture"
-msgstr ""
-
-msgid "Load..."
 msgstr ""
 
 msgid "Remove"
@@ -439,9 +1601,6 @@ msgstr ""
 msgid "Common"
 msgstr ""
 
-msgid "Info"
-msgstr ""
-
 msgid "Update successful."
 msgstr ""
 
@@ -485,16 +1644,10 @@ msgstr ""
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr ""
 
-msgid "Line Type"
-msgstr "Line type"
-
 msgid "Layer Height"
 msgstr ""
 
 msgid "Line Width"
-msgstr ""
-
-msgid "Speed"
 msgstr ""
 
 msgid "Fan Speed"
@@ -507,9 +1660,6 @@ msgid "Flow"
 msgstr ""
 
 msgid "Tool"
-msgstr ""
-
-msgid "Filament"
 msgstr ""
 
 msgid "Extruder position"
@@ -677,9 +1827,6 @@ msgstr ""
 msgid "Orient"
 msgstr ""
 
-msgid "Reset"
-msgstr ""
-
 msgid "Arrange options"
 msgstr ""
 
@@ -693,9 +1840,6 @@ msgid "Allow multiple materials on same plate"
 msgstr ""
 
 msgid "Avoid extrusion calibration region"
-msgstr ""
-
-msgid "Arrange"
 msgstr ""
 
 msgid "Add"
@@ -762,1013 +1906,64 @@ msgstr ""
 "An object is laid over the edge of the plate.\n"
 "Please solve the problem by moving it totally on or off the plate."
 
-msgid "Supports Painting"
-msgstr "Support painting"
-
-msgid "Section view"
-msgstr ""
-
-msgid "Pen size"
-msgstr ""
-
-msgid "Left mouse button"
-msgstr ""
-
-msgid "Enforce supports"
-msgstr ""
-
-msgid "Right mouse button"
-msgstr ""
-
-msgid "Block supports"
-msgstr ""
-
-msgid "Shift + Left mouse button"
-msgstr ""
-
-msgid "Erase painting"
-msgstr ""
-
-msgid "Erase all painting"
-msgstr ""
-
-msgid "Highlight overhang areas"
-msgstr ""
-
-msgid "Fragment filter"
-msgstr ""
-
-msgid "Perform"
-msgstr ""
-
-msgid "Fragment area"
-msgstr ""
-
-msgid "Set pen size"
-msgstr ""
-
-msgid "Ctrl + Mouse wheel"
-msgstr ""
-
-msgid "Tool type"
-msgstr ""
-
-msgid "Smart fill angle"
-msgstr ""
-
-msgid "Auto support threshold angle: "
-msgstr ""
-
-msgid "Circle"
-msgstr ""
-
-msgid "Sphere"
-msgstr ""
-
-msgid "Fill"
-msgstr ""
-
-msgid "Fragment Filter"
-msgstr ""
-
-msgid "Highlight faces according to overhang angle."
-msgstr ""
-
-msgid "No auto support"
-msgstr ""
-
-msgid "Support Generated"
-msgstr "Support generated"
-
-msgid "Lay on face"
-msgstr ""
-
-#, boost-format
-msgid ""
-"Filament count exceeds the maximum number that painting tool supports. only "
-"the first %1% filaments will be available in painting tool."
-msgstr ""
-
-msgid "Color Painting"
-msgstr "Color painting"
-
-msgid "Pen shape"
-msgstr ""
-
-msgid "Paint"
-msgstr ""
-
-msgid "Erase"
-msgstr ""
-
-msgid "Key 1~9"
-msgstr ""
-
-msgid "Choose filament"
-msgstr ""
-
-msgid "Edge detection"
-msgstr ""
-
-msgid "Clear all"
-msgstr ""
-
-msgid "Triangles"
-msgstr ""
-
-msgid "Filaments"
-msgstr ""
-
-msgid "Brush"
-msgstr ""
-
-msgid "Smart fill"
-msgstr ""
-
-msgid "Bucket fill"
-msgstr ""
-
-msgid "Height range"
-msgstr ""
-
-msgid "Shortcut Key "
-msgstr ""
-
-msgid "Triangle"
-msgstr ""
-
-msgid "Height Range"
-msgstr ""
-
-msgid "Remove painted color"
-msgstr ""
-
-#, boost-format
-msgid "Painted using: Filament %1%"
-msgstr ""
-
-msgid "Move"
-msgstr ""
-
-msgid "Rotate"
-msgstr ""
-
-msgid "Optimize orientation"
-msgstr ""
-
-msgid "Apply"
-msgstr ""
-
-msgid "Scale"
-msgstr ""
-
-msgid "Error: Please close all toolbar menus first"
-msgstr ""
-
-msgid "Tool-Lay on Face"
-msgstr ""
-
-msgid "in"
-msgstr ""
-
-msgid "Position"
-msgstr ""
-
-msgid "Rotation"
-msgstr ""
-
-msgid "Scale ratios"
-msgstr ""
-
-msgid "Object Operations"
-msgstr "Object operations"
-
-msgid "Volume Operations"
-msgstr "Volume operations"
-
-msgid "Translate"
-msgstr ""
-
-msgid "Group Operations"
-msgstr "Group operations"
-
-msgid "Set Position"
-msgstr "Set position"
-
-msgid "Set Orientation"
-msgstr "Set orientation"
-
-msgid "Set Scale"
-msgstr "Set scale"
-
-msgid "Reset Position"
-msgstr "Reset position"
-
-msgid "Reset Rotation"
-msgstr "Reset rotation"
-
-msgid "World coordinates"
-msgstr ""
-
-msgid "°"
-msgstr ""
-
-msgid "Position:"
-msgstr ""
-
-msgid "%"
-msgstr ""
-
-msgid "uniform scale"
-msgstr "Uniform scale"
-
-msgid "Cut"
-msgstr ""
-
-msgid "Movement:"
-msgstr ""
-
-msgid "Rotation:"
-msgstr ""
-
-msgid "Height:"
-msgstr ""
-
-msgid "Keep upper part"
-msgstr ""
-
-msgid "Keep lower part"
-msgstr ""
-
-msgid "Cut to parts"
-msgstr ""
-
-msgid "Auto Segment"
-msgstr ""
-
-msgid "Perform cut"
-msgstr ""
-
-msgid "Mesh name"
-msgstr ""
-
-msgid "Detail level"
-msgstr ""
-
-msgid "Decimate ratio"
-msgstr ""
-
-#, boost-format
-msgid ""
-"Processing model '%1%' with more than 1M triangles could be slow. It is "
-"highly recommended to simplify the model."
-msgstr ""
-
-msgid "Simplify model"
-msgstr ""
-
-msgid "Simplify"
-msgstr ""
-
-msgid "Simplification is currently only allowed when a single part is selected"
-msgstr ""
-
-msgid "Error"
-msgstr ""
-
-msgid "Extra high"
-msgstr ""
-
-msgid "High"
-msgstr ""
-
-msgid "Medium"
-msgstr ""
-
-msgid "Low"
-msgstr ""
-
-msgid "Extra low"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d triangles"
-msgstr ""
-
-msgid "Show wireframe"
-msgstr ""
-
-#, boost-format
-msgid "%1%"
-msgstr ""
-
-msgid "Can't apply when proccess preview."
-msgstr ""
-
-msgid "Operation already cancelling. Please wait few seconds."
-msgstr ""
-
-msgid "Notice"
-msgstr ""
-
-msgid "Warning"
-msgstr ""
-
-msgid "Undefined"
-msgstr ""
-
-#, boost-format
-msgid "%1% was replaced with %2%"
-msgstr ""
-
-msgid "The configuration may be generated by a newer version of BambuStudio."
-msgstr ""
-"The configuration may have been generated by a newer version of Bambu Studio."
-
-msgid "Some values have been replaced. Please check them:"
-msgstr ""
-
-msgid "Process"
-msgstr ""
-
-msgid "Machine"
-msgstr ""
-
-msgid "Configuration package was loaded, but some values were not recognized."
-msgstr ""
-"The configuration package was loaded, but some values were not recognized."
-
-#, boost-format
-msgid ""
-"Configuration file \"%1%\" was loaded, but some values were not recognized."
-msgstr ""
-"The configuration file “%1%” was loaded, but some values were not recognized."
-
-msgid "V"
+msgid "Calibration"
 msgstr ""
 
-msgid "Version"
+msgid "Calibration program"
 msgstr ""
 
 msgid ""
-"BambuStudio will terminate because of running out of memory.It may be a bug. "
-"It will be appreciated if you report the issue to our team."
+"Calibration program detects the status of your device systematically to "
+"minimise deviation. It keeps the device at its the best performance"
 msgstr ""
-"Bambu Studio has run out of memory and will close. This may be a bug. Please "
-"report this issue to our team."
 
-msgid "Fatal error"
+msgid "Preparation before calibration"
 msgstr ""
 
 msgid ""
-"BambuStudio will terminate because of a localization error. It will be "
-"appreciated if you report the specific scenario this issue happened."
-msgstr "A localization error has occurred, and Bambu Studio will close. "
-
-msgid "Critical error"
+"Before calibration, please make sure a filament is loaded and its nozzle "
+"temperature and bed temperature is set in Feeding lab."
 msgstr ""
 
-#, boost-format
-msgid "BambuStudio got an unhandled exception: %1%"
+msgid "Calibration Flow"
+msgstr ""
+
+msgid "Start Calibration"
+msgstr ""
+
+msgid "Calibrating"
+msgstr ""
+
+msgid "Timelapse"
+msgstr ""
+
+msgid "Recording"
+msgstr ""
+
+msgid "ConnectPrinter(LAN)"
+msgstr ""
+
+msgid "Please input the printer access code:"
 msgstr ""
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not abled to be "
-"parsed.Please delete the file and try again."
+"You can find it in \"Settings > Network > Connection code\"\n"
+"on the printer, as shown in the figure:"
 msgstr ""
-"Bambu Studio configuration file may be corrupted and is not abled to be "
-"parsed. Please delete the file and try again."
 
-#, c-format, boost-format
-msgid ""
-"%s\n"
-"Do you want to continue?"
+msgid "Please fill report first."
 msgstr ""
 
-msgid "Remember my choice"
+msgid "Unable to create zip file"
 msgstr ""
 
-msgid "Loading configuration"
+msgid "Enter a search term"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Click to download new version in default browser: %s"
+msgid "Online"
 msgstr ""
 
-msgid "New version of Bambu Studio"
-msgstr ""
-
-msgid "The Bambu Studio needs an upgrade"
-msgstr ""
-
-msgid "Loading user presets..."
-msgstr ""
-
-msgid "Rebuild"
-msgstr ""
-
-msgid "Loading current presets"
-msgstr ""
-
-msgid "Loading a mode view"
-msgstr ""
-
-msgid "Choose one file (3mf):"
-msgstr ""
-
-msgid "Choose one or more files (3mf/step/stl/obj/amf):"
-msgstr ""
-
-msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
-msgstr "Choose one file (.gcode/.gco/.g/.ngc/ngc):"
-
-msgid "Login information expired. Please login again."
-msgstr ""
-
-msgid "This is the newest version."
-msgstr ""
-
-msgid "Loading"
-msgstr ""
-
-msgid "Loading user preset"
-msgstr ""
-
-msgid "Switching application language"
-msgstr ""
-
-msgid "Select the language"
-msgstr ""
-
-msgid "Language"
-msgstr ""
-
-msgid "*"
-msgstr ""
-
-msgid "G-code files can not be loaded with models together!"
-msgstr "G-code files and models cannot be loaded together!"
-
-msgid "G-code loading"
-msgstr ""
-
-msgid "Select a G-code file:"
-msgstr ""
-
-msgid "Bambu Studio GUI initialization failed"
-msgstr ""
-
-#, boost-format
-msgid "Fatal error, exception catched: %1%"
-msgstr ""
-
-msgid "Quality"
-msgstr ""
-
-msgid "Shell"
-msgstr ""
-
-msgid "Infill"
-msgstr ""
-
-msgid "Support"
-msgstr ""
-
-msgid "Strength"
-msgstr ""
-
-msgid "Top Solid Layers"
-msgstr "Top solid layers"
-
-msgid "Top Minimum Shell Thickness"
-msgstr "Top minimum shell thickness"
-
-msgid "Bottom Solid Layers"
-msgstr "Bottom solid layers"
-
-msgid "Bottom Minimum Shell Thickness"
-msgstr "Bottom minimum shell thickness"
-
-msgid "Ironing"
-msgstr ""
-
-msgid "Fuzzy Skin"
-msgstr "Fuzzy skin"
-
-msgid "Extruders"
-msgstr ""
-
-msgid "Extrusion Width"
-msgstr "Extrusion width"
-
-msgid "Wipe options"
-msgstr ""
-
-msgid "Bed adhension"
-msgstr ""
-
-msgid "Advanced"
-msgstr ""
-
-msgid "Add part"
-msgstr "Add Part"
-
-msgid "Add negative part"
-msgstr "Add Negative Part"
-
-msgid "Add modifier"
-msgstr "Add Modifier"
-
-msgid "Add support blocker"
-msgstr "Add Support Blocker"
-
-msgid "Add support enforcer"
-msgstr "Add Support Enforcer"
-
-msgid "Select settings"
-msgstr ""
-
-msgid "Delete"
-msgstr ""
-
-msgid "Delete the selected object"
-msgstr ""
-
-msgid "Cube"
-msgstr ""
-
-msgid "Cylinder"
-msgstr ""
-
-msgid "Cone"
-msgstr ""
-
-msgid "Add settings"
-msgstr "Add Settings"
-
-msgid "Change type"
-msgstr "Change Type"
-
-msgid "Set as an individual object"
-msgstr "Set as An Individual Object"
-
-msgid "Set as individual objects"
-msgstr "Set as Individual Objects"
-
-msgid "Printable"
-msgstr ""
-
-msgid "Rename"
-msgstr ""
-
-msgid "Fix model"
-msgstr "Fix Model"
-
-msgid "Fix model through cloud"
-msgstr ""
-
-msgid "Fix model locally"
-msgstr ""
-
-msgid "Export as STL"
-msgstr ""
-
-msgid "Reload item"
-msgstr ""
-
-msgid "Reload items"
-msgstr ""
-
-msgid "Change filament"
-msgstr ""
-
-msgid "Set filament for selected items"
-msgstr ""
-
-msgid "Default"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Filament %d"
-msgstr ""
-
-msgid "active"
-msgstr ""
-
-msgid "Scale to build volume"
-msgstr ""
-
-msgid "Scale an object to fit the build volume"
-msgstr ""
-
-msgid "Convert from inch"
-msgstr "Convert from Inch"
-
-msgid "Restore to inch"
-msgstr "Restore to Inch"
-
-msgid "Convert from meter"
-msgstr "Convert from Meter"
-
-msgid "Restore to meter"
-msgstr "Restore to Meter"
-
-msgid "Assemble"
-msgstr ""
-
-msgid "Assemble the selected objects to an object with multiple parts"
-msgstr ""
-
-msgid "Assemble the selected objects to an object with single part"
-msgstr ""
-
-msgid "Assemble the selected parts to a single part"
-msgstr ""
-
-msgid "Along X axis"
-msgstr "Along X Axis"
-
-msgid "Mirror along the X axis"
-msgstr "Mirror along the X Axis"
-
-msgid "Along Y axis"
-msgstr "Along Y Axis"
-
-msgid "Mirror along the Y axis"
-msgstr "Mirror along the Y Axis"
-
-msgid "Along Z axis"
-msgstr "Along Z Axis"
-
-msgid "Mirror along the Z axis"
-msgstr "Mirror along the Z Axis"
-
-msgid "Mirror"
-msgstr ""
-
-msgid "Mirror object"
-msgstr ""
-
-msgid "Add Primitive"
-msgstr ""
-
-msgid "To objects"
-msgstr "To Objects"
-
-msgid "Split the selected object into multiple objects"
-msgstr ""
-
-msgid "To parts"
-msgstr "To Parts"
-
-msgid "Split the selected object into multiple parts"
-msgstr ""
-
-msgid "Split"
-msgstr ""
-
-msgid "Split the selected object"
-msgstr ""
-
-msgid "Auto orientation"
-msgstr ""
-
-msgid "Auto orient the object to improve print quality."
-msgstr ""
-
-msgid "Split the selected object into mutiple objects"
-msgstr ""
-
-msgid "Split the selected object into mutiple parts"
-msgstr ""
-
-msgid "Select All"
-msgstr ""
-
-msgid "select all objects on current plate"
-msgstr "Select all objects on current plate"
-
-msgid "Delete All"
-msgstr ""
-
-msgid "delete all objects on current plate"
-msgstr "Delete all objects on current plate"
-
-msgid "arrange current plate"
-msgstr "Arrange current plate"
-
-msgid "Auto Rotate"
-msgstr ""
-
-msgid "auto rotate current plate"
-msgstr "Auto rotate current plate"
-
-msgid "Remove the selected plate"
-msgstr ""
-
-msgid "Clone"
-msgstr ""
-
-msgid "Reduce Triangles"
-msgstr ""
-
-msgid "Per object edit"
-msgstr "Per Object Edit"
-
-msgid "Edit print parameters for a single object"
-msgstr ""
-
-msgid "Change Filament"
-msgstr ""
-
-msgid "Set Filament for selected items"
-msgstr ""
-
-msgid "current"
-msgstr ""
-
-msgid "Set Unprintable"
-msgstr ""
-
-msgid "Set Printable"
-msgstr ""
-
-msgid "Unlock"
-msgstr ""
-
-msgid "Lock"
-msgstr ""
-
-msgid "Name"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%1$d error repaired"
-msgid_plural "%1$d errors repaired"
-msgstr[0] ""
-msgstr[1] ""
-
-#, c-format, boost-format
-msgid "Error: %1$d non-manifold edge."
-msgid_plural "Error: %1$d non-manifold edges."
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Remaining errors"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%1$d non-manifold edge"
-msgid_plural "%1$d non-manifold edges"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Right click the icon to fix model object"
-msgstr ""
-
-msgid "Right button click the icon to drop the object settings"
-msgstr ""
-
-msgid "Click the icon to reset all settings of the object"
-msgstr ""
-
-msgid "Right button click the icon to drop the object printable property"
-msgstr ""
-
-msgid "Click the icon to toggle printable property of the object"
-msgstr ""
-
-msgid "Click the icon to edit support painting of the object"
-msgstr ""
-
-msgid "Click the icon to edit color painting of the object"
-msgstr ""
-
-msgid "Loading file"
-msgstr ""
-
-msgid "Error!"
-msgstr ""
-
-msgid "Generic"
-msgstr ""
-
-msgid "Add Modifier"
-msgstr ""
-
-msgid "Deleting the last solid part is not allowed."
-msgstr ""
-
-msgid "The target object contains only one part and can not be splited."
-msgstr "The target object contains only one part and can not be split."
-
-msgid "Assembly"
-msgstr ""
-
-msgid "Object"
-msgstr ""
-
-msgid "Part"
-msgstr ""
-
-msgid "Layer"
-msgstr ""
-
-msgid "Selection conflicts"
-msgstr ""
-
-msgid ""
-"If first selected item is an object, the second one should also be object."
-msgstr ""
-"If first selected item is an object, the second one should also be an object."
-
-msgid ""
-"If first selected item is a part, the second one should be part in the same "
-"object."
-msgstr ""
-"If first selected item is a part, the second one should be a part in the "
-"same object."
-
-msgid "The type of the last solid object part is not to be changed."
-msgstr "The type of the last solid object part cannot be changed."
-
-msgid "Negative Part"
-msgstr ""
-
-msgid "Modifier"
-msgstr ""
-
-msgid "Support Blocker"
-msgstr ""
-
-msgid "Support Enforcer"
-msgstr ""
-
-msgid "Type:"
-msgstr ""
-
-msgid "Choose part type"
-msgstr ""
-
-msgid "Enter new name"
-msgstr ""
-
-msgid "Renaming"
-msgstr ""
-
-msgid "Repairing model object"
-msgstr ""
-
-msgid "Following model object has been repaired"
-msgid_plural "Following model objects have been repaired"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Repairing was canceled"
-msgstr ""
-
-msgid "Repair finished"
-msgstr ""
-
-msgid "Additional process preset"
-msgstr ""
-
-msgid "Remove parameter"
-msgstr ""
-
-msgid "one cell can only be copied to one or multiple cells in the same column"
-msgstr ""
-"One cell can only be copied to one or multiple cells in the same column."
-
-msgid "multiple cells copy is not supported"
-msgstr "Copying multiple cells is not supported."
-
-msgid "Outside"
-msgstr ""
-
-msgid "Auto"
-msgstr ""
-
-msgid "Manual"
-msgstr ""
-
-msgid "No-brim"
-msgstr ""
-
-msgid " "
-msgstr ""
-
-msgid "Layer height"
-msgstr ""
-
-msgid "Wall loops"
-msgstr ""
-
-msgid "Infill density(%)"
-msgstr ""
-
-msgid "Auto Brim"
-msgstr ""
-
-msgid "Inner wall speed"
-msgstr ""
-
-msgid "Per Object Setting"
-msgstr "Per object setting"
-
-msgid "Reset All"
-msgstr ""
-
-msgid "Plate"
-msgstr ""
-
-msgid "Module"
-msgstr ""
-
-msgid "Brim"
-msgstr ""
-
-msgid "Object/Part Setting"
-msgstr "Object/part setting"
-
-msgid "Reset parameter"
-msgstr ""
-
-msgid "Multicolor Print"
-msgstr ""
-
-msgid "No printer"
-msgstr ""
-
-msgid "Edit"
-msgstr ""
-
-msgid ""
-"All the selected objects are on the locked plate,\n"
-"We can not do auto-arrange on these objects."
-msgstr ""
-"All the selected objects are on a locked plate.\n"
-"Cannot auto-arrange these objects."
-
-msgid "No arrangable objects are selected."
-msgstr ""
-
-msgid ""
-"This plate is locked,\n"
-"We can not do auto-arrange on this plate."
-msgstr ""
-
-msgid "Arranging..."
-msgstr ""
-
-msgid ""
-"Arrange failed. Found some exceptions when processing object geometries."
-msgstr ""
-
-msgid "Arranging canceled."
-msgstr ""
-
-# [Cory] I think this works as an explanation, but I want to see if you think it’s clear enough.
-# [Yifan] “spacing” is a setting value for “Arrange tool”. So I suggest to keep it.
-# [Cory] Got it; sounds good!
-msgid ""
-"Arranging is done but there are unpacked items. Reduce spacing and try again."
-msgstr ""
-"Arranging complete, but some items were not able to be arranged. Reduce "
-"spacing and try again."
-
-msgid "Arranging done."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"Arrangement ignored the following objects which can't fit into a single "
-"bed:\n"
-"%s"
-msgstr ""
-
-msgid ""
-"All the selected objects are on the locked plate,\n"
-"We can not do auto-orient on these objects."
-msgstr ""
-
-msgid ""
-"This plate is locked,\n"
-"We can not do auto-orient on this plate."
-msgstr ""
-
-msgid "Orienting..."
-msgstr ""
-
-msgid "Error! Unable to create thread!"
-msgstr "Error. Unable to create thread."
-
-msgid "Exception"
+msgid "Offline"
 msgstr ""
 
 msgid "Application is closing"
@@ -2084,9 +2279,6 @@ msgstr ""
 msgid "Monitoring"
 msgstr ""
 
-msgid "Timelapse"
-msgstr ""
-
 msgid "Printing Progress"
 msgstr "Printing progress"
 
@@ -2100,9 +2292,6 @@ msgid "0%"
 msgstr ""
 
 msgid "Control"
-msgstr ""
-
-msgid "Start Calibration"
 msgstr ""
 
 msgid "100%"
@@ -2125,9 +2314,6 @@ msgstr ""
 
 msgid "Printing List"
 msgstr "Printing list"
-
-msgid "Calibrating"
-msgstr ""
 
 msgid "Resume"
 msgstr ""
@@ -2154,9 +2340,6 @@ msgid "Update"
 msgstr ""
 
 msgid "HMS"
-msgstr ""
-
-msgid "Please upgrade your printer first"
 msgstr ""
 
 msgid "Failed to connect to the server"
@@ -2202,38 +2385,6 @@ msgid "Download"
 msgstr ""
 
 msgid "Skip"
-msgstr ""
-
-msgid "Portions copyright"
-msgstr ""
-
-msgid "Copyright"
-msgstr ""
-
-msgid "License"
-msgstr ""
-
-msgid "Bambu Studio is licensed under "
-msgstr ""
-
-msgid "GNU Affero General Public License, version 3"
-msgstr ""
-
-msgid ""
-"Bambu Studio is based on PrusaSlicer by Prusa Research, which is from Slic3r "
-"by Alessandro Ranellucci and the RepRap community"
-msgstr ""
-
-msgid "Libraries"
-msgstr ""
-
-msgid ""
-"This software uses open source components whose copyright and other "
-"proprietary rights belong to their respective owners"
-msgstr ""
-
-#, c-format, boost-format
-msgid "About %s"
 msgstr ""
 
 msgid "3D Mouse disconnected."
@@ -2869,6 +3020,36 @@ msgstr ""
 msgid "Project-inside presets"
 msgstr ""
 
+msgid "Slice all plate to obtain time and filament estimation"
+msgstr ""
+
+msgid "Packing project data into 3mf file"
+msgstr ""
+
+msgid "Uploading 3mf"
+msgstr ""
+
+msgid "Jump to model publish web page"
+msgstr ""
+
+msgid "Note: The preparation may takes several minutes. Please be patiant."
+msgstr ""
+
+msgid "Publish"
+msgstr ""
+
+msgid "Publish was cancelled"
+msgstr ""
+
+msgid "Slicing Plate 1"
+msgstr ""
+
+msgid "Packing data to 3mf"
+msgstr ""
+
+msgid "Jump to webpage"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Save %s as"
 msgstr ""
@@ -2944,16 +3125,13 @@ msgstr ""
 msgid "Simply switch to \"%1%\""
 msgstr ""
 
-msgid "Online"
-msgstr ""
-
-msgid "Offline"
-msgstr ""
-
 msgid "My Device"
 msgstr ""
 
 msgid "Other Device"
+msgstr ""
+
+msgid "Input access code"
 msgstr ""
 
 msgid "Bambu Cool Plate"
@@ -2966,9 +3144,6 @@ msgid "Bamabu High Temperature Plate"
 msgstr ""
 
 msgid "Send print job to"
-msgstr ""
-
-msgid "Reading printer information..."
 msgstr ""
 
 msgid "Refresh"
@@ -2992,13 +3167,16 @@ msgstr ""
 msgid "send completed"
 msgstr "Send complete"
 
+msgid "Ams Mappling failed, please select filament"
+msgstr ""
+
+msgid "Plese select the filament in ams"
+msgstr ""
+
 msgid "Please select a printer first."
 msgstr ""
 
 msgid "The printer is being updated. Please try again after the update."
-msgstr ""
-
-msgid "Please fill report first."
 msgstr ""
 
 msgid "Exporting 3mf..."
@@ -3016,18 +3194,29 @@ msgstr ""
 msgid "Reading printer info timed out"
 msgstr ""
 
+msgid "Please upgrade your printer first"
+msgstr ""
+
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr ""
 
+msgid "Current printer is busy"
+msgstr ""
+
+msgid "Current printer is printing now"
+msgstr ""
+
 msgid ""
-"The mapping of \"Consumable wire List =>AMS slot\" has been automatically "
-"established.\n"
+"The mapping relationship of \" consumable wire list = > ams slot \" has been "
+"automatically established."
+msgstr ""
+
+msgid ""
+"If you need to modify, you can click the specific consumable wire above to "
+"manually set the mapped AMS slot."
 msgstr ""
 
 msgid "Modifying the device name"
-msgstr ""
-
-msgid "Confirm"
 msgstr ""
 
 msgid "Log in printer"
@@ -3753,48 +3942,6 @@ msgid "Configuration package updated to "
 msgstr ""
 
 msgid "Open G-code file:"
-msgstr ""
-
-msgid "Creating"
-msgstr ""
-
-msgid "Uploading"
-msgstr ""
-
-msgid "Waiting"
-msgstr ""
-
-msgid "Sending"
-msgstr ""
-
-msgid "Finished"
-msgstr ""
-
-msgid "Internal error, no gcode file to upload."
-msgstr ""
-
-msgid "Print job was cancelled."
-msgstr ""
-
-msgid "Failed to create the print job. Please try agian."
-msgstr ""
-
-msgid "Failed to upload the print job. Please try agian."
-msgstr ""
-
-msgid "Uploading print job timed out. Please try again."
-msgstr ""
-
-msgid "Failed to send the print job. Please try again."
-msgstr ""
-
-msgid "Sending print task timed out. Please try again."
-msgstr ""
-
-msgid "Try to upload project over lan"
-msgstr ""
-
-msgid "Try to send project over cloud"
 msgstr ""
 
 msgid ""
