@@ -42,7 +42,9 @@ static void update_ui(wxWindow* window)
 #define style wxSP_ARROW_KEYS
 #endif
 
-static const float g_max_flush_volume = 750.f;
+static const int g_max_flush_volume = 750.f;
+static const int g_min_flush_volume_from_support = 420.f;
+static const int g_flush_volume_to_support = 230;
 
 wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
 {
@@ -417,28 +419,30 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     });
 }
 
-float DeltaHSV_BBS(float h1, float s1, float v1, float h2, float s2, float v2)
+static float to_radians(float degree)
 {
-    float h1_rad = h1 / 180.f * M_PI;
-    float h2_rad = h2 / 180.f * M_PI;
+    return degree / 180.f * M_PI;
+}
+
+float DeltaHS_BBS(float h1, float s1, float v1, float h2, float s2, float v2)
+{
+    float h1_rad = to_radians(h1);
+    float h2_rad = to_radians(h2);
 
     float dx = std::cos(h1_rad) * s1 * v1 - cos(h2_rad) * s2 * v2;
     float dy = std::sin(h1_rad) * s1 * v1 - sin(h2_rad) * s2 * v2;
     float dxy = std::sqrt(dx * dx + dy * dy);
-    // Limit the max distance is the distance between red, green, blue color.
-    // The value is 0.6 * 2.0.
-    if (dxy > 0.6 * 2.f) {
-        dx *= 0.6 / dxy;
-        dy *= 0.6 / dxy;
-    }
-
-    float dz = v2 - v1;
-    return std::sqrt(dx * dx + dy * dy + dz * dz);
+    return std::min(1.2f, dxy);
 }
 
 static float get_luminance(float r, float g, float b)
 {
-    return r * 0.3 + g * 0.6 + b * 0.1;
+    return r * 0.3 + g * 0.59 + b * 0.11;
+}
+
+static float calc_triangle_3rd_edge(float edge_a, float edge_b, float degree_ab)
+{
+    return std::sqrt(edge_a * edge_a + edge_b * edge_b - 2 * edge_a * edge_b * std::cos(to_radians(degree_ab)));
 }
 
 int WipingPanel::calc_flushing_volume(const wxColour& from, const wxColour& to)
@@ -449,40 +453,73 @@ int WipingPanel::calc_flushing_volume(const wxColour& from, const wxColour& to)
     // Calculate color distance in HSV color space
     RGB2HSV((float)from.Red() / 255.f, (float)from.Green() / 255.f, (float)from.Blue() / 255.f, &from_hsv_h, &from_hsv_s, &from_hsv_v);
     RGB2HSV((float)to.Red() / 255.f, (float)to.Green() / 255.f, (float)to.Blue() / 255.f, &to_hsv_h, &to_hsv_s, &to_hsv_v);
-    float distance = DeltaHSV_BBS(from_hsv_h, from_hsv_s, from_hsv_v, to_hsv_h, to_hsv_s, to_hsv_v);
+    float hs_dist = DeltaHS_BBS(from_hsv_h, from_hsv_s, from_hsv_v, to_hsv_h, to_hsv_s, to_hsv_v);
 
     // 1. Color difference is more obvious if the dest color has high luminance
     // 2. Color difference is more obvious if the source color has low luminance
     float from_lumi = get_luminance((float)from.Red() / 255.f, (float)from.Green() / 255.f, (float)from.Blue() / 255.f);
     float to_lumi = get_luminance((float)to.Red() / 255.f, (float)to.Green() / 255.f, (float)to.Blue() / 255.f);
-    float lumi_factor = to_lumi * 2.9f + 0.6f;
-    float lumi_extra = 0.f;
-    if (to_lumi > from_lumi) {
-        lumi_extra = std::pow(1.f - from_lumi, 1.5f) * (to_lumi - from_lumi) * 3.f;
+    float lumi_flush = 0.f;
+    if (to_lumi >= from_lumi) {
+        lumi_flush = std::pow(to_lumi - from_lumi, 0.7f) * 560.f;
     }
+    else {
+        lumi_flush = (from_lumi - to_lumi) * 80.f;
 
-    lumi_factor = lumi_factor + lumi_extra;
+        float inter_hsv_v = 0.67 * to_hsv_v + 0.33 * from_hsv_v;
+        hs_dist = std::min(inter_hsv_v, hs_dist);
+    }
+    float hs_flush = 230.f * hs_dist;
 
-    // Get user input flushing multiplier
+    float flush_volume = calc_triangle_3rd_edge(hs_flush, lumi_flush, 120.f);
+    flush_volume = std::max(flush_volume, 60.f);
+
     float flush_multiplier = std::atof(m_flush_multiplier_ebox->GetValue().c_str());
-    float flush_volume = (125.f * lumi_factor * distance + m_extra_flush_volume) * flush_multiplier;
-
-    // limit the max flush volume
-    flush_volume = std::min(flush_volume, g_max_flush_volume);
-    return flush_volume;
+    flush_volume = (flush_volume + m_extra_flush_volume) * flush_multiplier;
+    return std::min((int)flush_volume, g_max_flush_volume);
 }
 
 void WipingPanel::calc_flushing_volumes()
 {
+    auto is_support_filament = [](int extruder_id) -> bool {
+        auto& filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
+        auto& filaments = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
+
+        if (extruder_id >= filament_presets.size())
+            return false;
+
+        Slic3r::Preset* filament = filaments.find_preset(filament_presets[extruder_id]);
+        if (filament == nullptr)
+            return false;
+
+        Slic3r::ConfigOptionBools* support_option = dynamic_cast<Slic3r::ConfigOptionBools*>(filament->config.option("filament_is_support"));
+        if (support_option == nullptr)
+            return false;
+
+        return support_option->get_at(0);
+    };
+
     for (int from_idx = 0; from_idx < m_colours.size(); from_idx++) {
         const wxColour& from = m_colours[from_idx];
+        bool is_from_support = is_support_filament(from_idx);
         for (int to_idx = 0; to_idx < m_colours.size(); to_idx++) {
+            bool is_to_support = is_support_filament(to_idx);
             if (from_idx == to_idx) {
                 edit_boxes[to_idx][from_idx]->SetValue(std::to_string(0));
             }
             else {
-                const wxColour& to = m_colours[to_idx];
-                int flushing_volume = calc_flushing_volume(from, to);
+                int flushing_volume = 0;
+                if (is_to_support) {
+                    flushing_volume = g_flush_volume_to_support;
+                }
+                else {
+                    const wxColour& to = m_colours[to_idx];
+                    flushing_volume = calc_flushing_volume(from, to);
+                    if (is_from_support) {
+                        flushing_volume = std::max(g_min_flush_volume_from_support, flushing_volume);
+                    }
+                }
+
                 edit_boxes[to_idx][from_idx]->SetValue(std::to_string(flushing_volume));
             }
         }
