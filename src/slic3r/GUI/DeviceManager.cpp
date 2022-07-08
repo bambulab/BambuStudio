@@ -1225,9 +1225,14 @@ bool MachineObject::can_pause()
 
 bool MachineObject::can_abort()
 {
-    if (print_status.compare("PAUSE") == 0
-        || print_status.compare("RUNNING") == 0
-        || print_status.compare("PREPARE") == 0) {
+    return MachineObject::is_in_printing_status(print_status);
+}
+
+bool MachineObject::is_in_printing_status(std::string status)
+{
+    if (status.compare("PAUSE") == 0
+        || status.compare("RUNNING") == 0
+        || status.compare("PREPARE") == 0) {
         return true;
     }
     return false;
@@ -1235,8 +1240,13 @@ bool MachineObject::can_abort()
 
 bool MachineObject::is_in_printing()
 {
-    bool result = can_abort();
-    return result;
+    /* use print_status if print_status is valid */
+    if (!print_status.empty())
+        return MachineObject::is_in_printing_status(print_status);
+    else {
+        return MachineObject::is_in_printing_status(iot_print_status);
+    }
+    return false;
 }
 
 bool MachineObject::is_printing_finished()
@@ -1256,6 +1266,9 @@ void MachineObject::reset()
     camera_recording = false;
     camera_timelapse = false;
     printing_speed_mag = 100;
+    iot_print_status = "";
+    print_status = "";
+
 }
 
 void MachineObject::set_print_state(std::string status)
@@ -2515,7 +2528,7 @@ void DeviceManager::update_user_machine_list_info()
                     if (elem.contains("dev_model_name") && !elem["dev_model_name"].is_null())
                         obj->printer_type = MachineObject::parse_iot_printer_type(elem["dev_model_name"].get<std::string>());
                     if (!elem["task_status"].is_null())
-                        obj->print_status = elem["task_status"].get<std::string>();
+                        obj->iot_print_status = elem["task_status"].get<std::string>();
                     if (elem.contains("dev_product_name") && !elem["dev_product_name"].is_null())
                         obj->product_name = elem["dev_product_name"].get<std::string>();
                     if (elem.contains("dev_access_code") && !elem["dev_access_code"].is_null()) {

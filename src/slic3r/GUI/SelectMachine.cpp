@@ -114,7 +114,6 @@ MachineObjectPanel::~MachineObjectPanel() {}
 
 void MachineObjectPanel::show_unbind_dialog()
 {
-    // if (m_info->can_abort()) return;
     UnBindMachineDilaog dlg;
     dlg.update_machine_info(m_info);
     switch (dlg.ShowModal()) {
@@ -524,7 +523,7 @@ void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
         } else {
             op->show_edit_printer_name(false);
             op->show_printer_bind(true, PrinterBindState::ALLOW_BIND);
-            if (mobj->can_abort()) {
+            if (mobj->is_in_printing()) {
                 op->set_printer_state(PrinterState::BUSY);
             } else {
                 op->set_printer_state(IDLE);
@@ -577,7 +576,7 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
             } else {
                 op->show_edit_printer_name(true);
                 op->show_printer_bind(true, PrinterBindState::ALLOW_UNBIND);
-                if (mobj->can_abort()) {
+                if (mobj->is_in_printing()) {
                     op->set_printer_state(PrinterState::BUSY);
                 } else {
                     op->set_printer_state(PrinterState::IDLE);

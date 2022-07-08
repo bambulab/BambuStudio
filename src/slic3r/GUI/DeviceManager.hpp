@@ -418,7 +418,8 @@ public:
     bool is_in_calibration();
 
     /* printing status */
-    std::string print_status;   /* enum string: FINISH, RUNNING, PAUSE, INIT, FAILED */
+    std::string print_status;      /* enum string: FINISH, RUNNING, PAUSE, INIT, FAILED */
+    std::string iot_print_status;  /* iot */
     PrintingSpeedLevel printing_speed_lvl;
     int                printing_speed_mag = 100;
     PrintingSpeedLevel _parse_printing_speed_lvl(int lvl);
@@ -505,6 +506,7 @@ public:
     bool is_in_printing();
     bool is_printing_finished();
     void reset();
+    static bool is_in_printing_status(std::string status);
 
     void set_print_state(std::string status);
 
