@@ -340,7 +340,8 @@ public:
     // parse amsStatusMain and ams_status_sub
     void _parse_ams_status(int ams_status);
     bool has_ams() { return ams_exist_bits != 0; }
-    bool check_ams_version();
+    bool is_need_upgrade();
+    
     static bool is_compatible_ams_version(std::string module, std::string version);
 
     int ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<int> exclude_id = std::vector<int>());

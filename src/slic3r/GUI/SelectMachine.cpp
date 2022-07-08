@@ -1072,17 +1072,16 @@ bool SelectMachineDialog::check_ams_mapping_result(std::string &mapping_array_st
             return false;
         } else {
             json          j = json::array();
-            for (int i = 0; i < m_filaments.size(); i++) {
+            for (int i = 0; i < wxGetApp().preset_bundle->filament_presets.size(); i++) {
                 int tray_id = -1;
                 for (int k = 0; k < m_ams_mapping_result.size(); k++) {
-                    if (m_ams_mapping_result[k].id == m_filaments[i].id) {
+                    if (m_ams_mapping_result[k].id == i) {
                         tray_id = m_ams_mapping_result[k].tray_id;
                     }
                 }
-                assert(tray_id != -1);
                 j.push_back(tray_id);
             }
-            update_info_msg("");
+            update_info_msg(wxEmptyString);
             Enable_Send_Button(true);
             mapping_array_str = j.dump();
         }
@@ -1093,12 +1092,10 @@ bool SelectMachineDialog::check_ams_mapping_result(std::string &mapping_array_st
 void SelectMachineDialog::update_info_msg(wxString msg)
 {
     if (msg.empty()) {
-        if (m_text_load_ams_data->GetLabel() != msg) {
-            m_text_load_ams_data->SetLabel(wxEmptyString);
-            m_text_load_ams_data->Hide();
-            Layout();
-            Fit();
-        }
+        m_text_load_ams_data->SetLabel(wxEmptyString);
+        m_text_load_ams_data->Hide();
+        Layout();
+        Fit();
     } else {
         auto str_new = msg.ToStdString();
         stripWhiteSpace(str_new);
@@ -1106,40 +1103,17 @@ void SelectMachineDialog::update_info_msg(wxString msg)
         auto str_old = m_text_load_ams_data->GetLabel().ToStdString();
         stripWhiteSpace(str_old);
 
-        update_warn_msg(wxEmptyString);
-        if (m_text_load_ams_data->GetLabel() != msg) {
-            m_text_load_ams_data->SetLabel(msg);
-            m_error_load_ams_data->SetMinSize(wxSize(FromDIP(400), -1));
-            m_error_load_ams_data->Wrap(FromDIP(400));
-            m_text_load_ams_data->Show();
-            Layout();
-            Fit();
-        }
-    }
-}
-
-void SelectMachineDialog::stripWhiteSpace(std::string &str)
-{
-    if (str == "") { return; }
-
-    string::iterator cur_it;
-    cur_it = str.begin();
-
-    while (cur_it != str.end()) {
-        if (((*cur_it) != '\t') && ((*cur_it) != ' ')) {
-            break;
-        } else {
-            cur_it = str.erase(cur_it);
-        }
-    }
-
-    cur_it = str.begin();
-
-    while (cur_it != str.end()) {
-        if ((*cur_it) == '\n') {
-            cur_it = str.erase(cur_it);
-        } else {
-            cur_it++;
+        if (str_new != str_old) {
+            update_warn_msg(wxEmptyString);
+            if (m_text_load_ams_data->GetLabel() != msg) {
+                m_text_load_ams_data->SetLabel(msg);
+                m_text_load_ams_data->SetMaxSize(wxSize(FromDIP(400), -1));
+                m_text_load_ams_data->SetMinSize(wxSize(FromDIP(400), -1));
+                m_text_load_ams_data->Wrap(FromDIP(400));
+                m_text_load_ams_data->Show();
+                Layout();
+                Fit();
+            }
         }
     }
 }
@@ -1147,19 +1121,30 @@ void SelectMachineDialog::stripWhiteSpace(std::string &str)
 void SelectMachineDialog::update_warn_msg(wxString msg)
 {
     if (msg.empty()) {
-        m_error_load_ams_data->SetLabel(wxEmptyString);
-        m_error_load_ams_data->Hide();
-        Layout();
-        Fit();
-    } else {
-        update_info_msg(wxEmptyString);
-        if (m_error_load_ams_data->GetLabel() != msg) {
-            m_error_load_ams_data->SetLabel(msg);
-            m_error_load_ams_data->SetMinSize(wxSize(FromDIP(400), -1));
-            m_error_load_ams_data->Wrap(FromDIP(400));
-            m_error_load_ams_data->Show();
+        if (m_error_load_ams_data->GetLabel().empty()) {
+            m_error_load_ams_data->SetLabel(wxEmptyString);
+            m_error_load_ams_data->Hide();
             Layout();
             Fit();
+        }
+    } else {
+        auto str_new = msg.ToStdString();
+        stripWhiteSpace(str_new);
+
+        auto str_old = m_error_load_ams_data->GetLabel().ToStdString();
+        stripWhiteSpace(str_old);
+
+        if (str_new != str_old) {
+            update_info_msg(wxEmptyString);
+            if (m_error_load_ams_data->GetLabel() != msg) {
+                m_error_load_ams_data->SetLabel(msg);
+                m_error_load_ams_data->SetMinSize(wxSize(FromDIP(400), -1));
+                m_error_load_ams_data->SetMaxSize(wxSize(FromDIP(400), -1));
+                m_error_load_ams_data->Wrap(FromDIP(400));
+                m_error_load_ams_data->Show();
+                Layout();
+                Fit();
+            }
         }
     }
 }
@@ -1175,6 +1160,22 @@ void SelectMachineDialog::update_err_msg(wxString msg)
     }
     Layout();
     Fit();
+}
+
+void SelectMachineDialog::stripWhiteSpace(std::string &str)
+{
+    if (str == "") { return; }
+
+    string::iterator cur_it;
+    cur_it = str.begin();
+
+    while (cur_it != str.end()) {
+        if ((*cur_it) == '\n' || (*cur_it) == ' ') {
+            cur_it = str.erase(cur_it);
+        } else {
+            cur_it++;
+        }
+    }
 }
 
 void SelectMachineDialog::init_model()
@@ -1383,10 +1384,9 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
     if (colours_arr.size() == 4) {
         MaterialHash::iterator iter = m_materialList.begin();
         while (iter != m_materialList.end()) {
-            int           id   = iter->first;
-            Material *    item = iter->second;
-            MaterialItem *m    = item->item;
-            if (id == m_current_filament_id) {
+            Material*        item = iter->second;
+            MaterialItem *m  = item->item;
+            if (item->id == m_current_filament_id) {
                 auto ams_colour = wxColour(wxAtoi(colours_arr[0]),wxAtoi(colours_arr[1]),wxAtoi(colours_arr[2]));
                 m->set_ams_info(ams_colour, colours_arr[3]);
             }
@@ -1510,20 +1510,20 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         /* timeout display timeout info */
         wxString tips_text = _L("Reading printer info timed out");
         update_warn_msg(tips_text);
-        Enable_Send_Button(false);
+        Enable_Send_Button(true);
         return;
     }
 
-    if (obj_->is_info_ready()) { has_read_done_info = true; }
+    if (obj_->is_info_ready()) { 
+        has_read_done_info = true;
+    }
 
     if (!has_read_done_info) {
         timeout_count++;
-
     } else {
         timeout_count = 0;
-
         // printer with ams
-        if (obj_->check_ams_version()) {
+        if (obj_->is_need_upgrade()) {
             /* display upgrade info, can not print */
             // display info and disable print
             wxString tips_text = _L("Please upgrade your printer first");
@@ -1623,6 +1623,9 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
             }
             std::string mapping_array;
             check_ams_mapping_result(mapping_array);
+        } else {
+            update_info_msg(wxEmptyString);
+            Enable_Send_Button(true);
         }
     }
 }

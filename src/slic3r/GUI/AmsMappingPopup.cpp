@@ -204,14 +204,6 @@ void AmsMapingPopup::set_tag_texture(std::string texture)
 
 bool AmsMapingPopup::is_match_material(int id, std::string material)
 {
-    /* auto mismatch = false;
-     for (auto i = 0; i < m_materials_list.size(); i++)
-     {
-         if (i == id) {
-             mismatch = m_materials_list[i] == material?true:false;
-         }
-     }
-     return mismatch;*/
     return m_tag_material == material ? true : false;
 }
 

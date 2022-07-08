@@ -137,10 +137,10 @@ bool AmsTray::is_tray_info_ready()
 {
     if (color.empty())
         return false;
-    if (setting_id.empty())
-        return false;
     if (type.empty())
         return false;
+    //if (setting_id.empty())
+        //return false;
     return true;
 }
 
@@ -451,28 +451,29 @@ void MachineObject::_parse_ams_status(int ams_status)
     BOOST_LOG_TRIVIAL(trace) << "ams_debug: main = " << ams_status_main_int << ", sub = " << ams_status_sub;
 }
 
-bool MachineObject::check_ams_version()
+bool MachineObject::is_need_upgrade()
 {
-    bool need_upgrade = false;
-    if (has_ams()) {
-        // compare ota version and ams version
-        auto ota_ver_it = module_vers.find("ota");
-        if (ota_ver_it != module_vers.end()) {
-            if (!MachineObject::is_compatible_ams_version("ota", ota_ver_it->second.sw_ver)) {
-                need_upgrade = true;
-            }
-        }
-        for (int i = 0; i < 4; i++) {
-            std::string ams_id = (boost::format("ams/%1%") % i).str();
-            auto ams_ver_it = module_vers.find(ams_id);
-            if (ams_ver_it != module_vers.end()) {
-                if (!MachineObject::is_compatible_ams_version("ams", ams_ver_it->second.sw_ver)) {
-                    need_upgrade = true;
-                }
-            }
-        }
-    }
-    return need_upgrade;
+    return false;
+    //bool need_upgrade = false;
+    //if (has_ams()) {
+    //    // compare ota version and ams version
+    //    auto ota_ver_it = module_vers.find("ota");
+    //    if (ota_ver_it != module_vers.end()) {
+    //        if (!MachineObject::is_compatible_ams_version("ota", ota_ver_it->second.sw_ver)) {
+    //            need_upgrade = true;
+    //        }
+    //    }
+    //    for (int i = 0; i < 4; i++) {
+    //        std::string ams_id = (boost::format("ams/%1%") % i).str();
+    //        auto ams_ver_it = module_vers.find(ams_id);
+    //        if (ams_ver_it != module_vers.end()) {
+    //            if (!MachineObject::is_compatible_ams_version("ams", ams_ver_it->second.sw_ver)) {
+    //                need_upgrade = true;
+    //            }
+    //        }
+    //    }
+    //}
+    //return need_upgrade;
 }
 
 bool MachineObject::is_compatible_ams_version(std::string module, std::string version)
@@ -2070,25 +2071,30 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                 if (plate_index >= 0) {
                     std::string slice_json;
                     m_agent->get_slice_info(project_id, profile_id, plate_index, &slice_json);
+                    if (slice_json.empty()) return;
                     //parse json
-                    json j = json::parse(slice_json);
-                    if (!j["prediction"].is_null())
-                        slice_info->prediction = j["prediction"].get<int>();
-                    if (!j["weight"].is_null())
-                        slice_info->weight = j["weight"].get<float>();
-                    if (!j["thumbnail"].is_null()) {
-                        slice_info->thumbnail_url = j["thumbnail"]["url"].get<std::string>();
-                        BOOST_LOG_TRIVIAL(trace) << "slice_info: thumbnail url=" << slice_info->thumbnail_url;
-                    }
-                    if (!j["filaments"].is_null()) {
-                        for (auto filament : j["filaments"]) {
-                            FilamentInfo f;
-                            f.color = filament["color"].get<std::string>();
-                            f.type = filament["type"].get<std::string>();
-                            f.used_g = stof(filament["used_g"].get<std::string>());
-                            f.used_m = stof(filament["used_m"].get<std::string>());
-                            slice_info->filaments_info.push_back(f);
+                    try {
+                        json j = json::parse(slice_json);
+                        if (!j["prediction"].is_null())
+                            slice_info->prediction = j["prediction"].get<int>();
+                        if (!j["weight"].is_null())
+                            slice_info->weight = j["weight"].get<float>();
+                        if (!j["thumbnail"].is_null()) {
+                            slice_info->thumbnail_url = j["thumbnail"]["url"].get<std::string>();
+                            BOOST_LOG_TRIVIAL(trace) << "slice_info: thumbnail url=" << slice_info->thumbnail_url;
                         }
+                        if (!j["filaments"].is_null()) {
+                            for (auto filament : j["filaments"]) {
+                                FilamentInfo f;
+                                f.color = filament["color"].get<std::string>();
+                                f.type = filament["type"].get<std::string>();
+                                f.used_g = stof(filament["used_g"].get<std::string>());
+                                f.used_m = stof(filament["used_m"].get<std::string>());
+                                slice_info->filaments_info.push_back(f);
+                            }
+                        }
+                    } catch(...) {
+                        ;
                     }
                 }
             });

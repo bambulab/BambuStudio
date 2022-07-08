@@ -400,7 +400,9 @@ void MonitorPanel::update_all()
         return;
     }
 
-   /* if (obj->check_ams_version()) {
+
+
+    if (obj->is_need_upgrade()) {
         if (!has_popup_ams_check_dlg) {
             has_popup_ams_check_dlg = true;
             MessageDialog msg_dlg(nullptr, _L("Please upgrade your printer first"), "", wxAPPLY | wxOK);
@@ -408,7 +410,7 @@ void MonitorPanel::update_all()
                 return;
             }
         }
-    }*/
+    }
 
     if (!obj->is_connected()) {
         int server_status = 0;
