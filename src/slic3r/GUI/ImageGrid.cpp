@@ -4,6 +4,8 @@
 #include "Widgets/Label.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
+#include "GUI.hpp"
+
 #include <wx/dcgraph.h>
 
 
@@ -136,11 +138,26 @@ void Slic3r::GUI::ImageGrid::DoAction(size_t index, int action)
     if (action == 0) {
         m_file_sys->DeleteFiles(index);
     } else {
-        if (m_save_path.empty()) {
-            wxDirDialog dlg(NULL, _L("Choose save directory"), "", wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
-            if (dlg.ShowModal() == wxID_CANCEL)
+        if (index >= 0) {
+            auto &file = m_file_sys->GetFile(index);
+            if (file.IsDownload() && file.progress >= -1) {
+                if (file.progress >= 100) {
+#ifdef __WXMSW__
+                    wxExecute("cmd /c start " + from_u8(m_save_path + "\\" + file.name), wxEXEC_HIDE_CONSOLE);
+#else
+                    wxShell("open " + m_save_path + "/" + file.name);
+#endif
+                } else {
+                    m_file_sys->DownloadCancel(index);
+                }
                 return;
-            m_save_path = dlg.GetPath().ToUTF8().data();
+            }
+            if (m_save_path.empty()) {
+                wxDirDialog dlg(NULL, _L("Choose save directory"), "", wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+                if (dlg.ShowModal() == wxID_CANCEL)
+                    return;
+                m_save_path = dlg.GetPath().ToUTF8().data();
+            }
         }
         m_file_sys->DownloadFiles(index, m_save_path);
     }
@@ -245,6 +262,10 @@ void ImageGrid::mouseMoved(wxMouseEvent& event)
     if (hit != std::make_pair(m_hit_type, m_hit_item)) {
         m_hit_type = hit.first;
         m_hit_item = hit.second;
+        if (hit.first == HIT_ITEM)
+            SetToolTip(m_file_sys->GetFile(hit.second).name);
+        else
+            SetToolTip({});
         Refresh();
     }
 }
@@ -436,6 +457,7 @@ void ImageGrid::render(wxDC& dc)
         end = (index + m_col_count) < m_file_sys->GetCount() ? index + m_col_count : m_file_sys->GetCount();
         while (index < end) {
             auto & file = m_file_sys->GetFile(index);
+            // Draw thumbnail
             if (file.thumbnail.IsOk()) {
                 float hs = (float) m_image_size.GetWidth() / file.thumbnail.GetWidth();
                 float vs = (float) m_image_size.GetHeight() / file.thumbnail.GetHeight();
@@ -445,57 +467,62 @@ void ImageGrid::render(wxDC& dc)
                 if (m_file_sys->GetGroupMode() != PrinterFileSystem::G_NONE) {
                     dc.DrawBitmap(m_mask, pt);
                 }
-                // Draw checked icon
-                if (m_selecting)
-                    dc.DrawBitmap(file.IsSelect() ? m_checked_icon.bmp() : m_unchecked_icon.bmp(), 
-                        pt + wxPoint{10, m_image_size.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
-                // can' handle alpha
-                // dc.GradientFillLinear({pt.x, pt.y, m_image_size.GetWidth(), 60}, wxColour(0x6F, 0x6F, 0x6F, 0x99), wxColour(0x6F, 0x6F, 0x6F, 0), wxBOTTOM);
-                if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
-                    // Draw download progress
-                    if (file.IsDownload()) {
-                        if (file.progress == -1) {
-                            dc.DrawText(_L("Waiting"), pt + wxPoint{24, m_image_size.GetHeight() - 36});
-                        } else if (file.progress < 0) {
-                            dc.DrawText(_L("Failed"), pt + wxPoint{24, m_image_size.GetHeight() - 36});
-                        } else if (file.progress >= 100) {
-                            dc.DrawText(_L("Finished"), pt + wxPoint{24, m_image_size.GetHeight() - 36});
-                        } else {
-                            if (file.progress != m_background_progress) {
-                                auto em               = em_unit(this);
-                                wxSize size_p{8 * em, 8 * em};
-                                m_background_progress = file.progress;
-                                m_progress_background = createCircleBitmap(size_p, em, m_background_progress, wxTransparentColour, *wxWHITE);
-                            }
-                            auto pos = (m_image_size - m_progress_background.GetSize()) / 2;
-                            dc.DrawBitmap(m_progress_background, pt + wxPoint{pos.x, pos.y});
-                            // draw progress text
-                            auto p = wxString::Format("%d", m_background_progress);
-                            dc.SetFont(Label::sysFont(30));
-                            wxSize s1 = dc.GetTextExtent(p);
-                            dc.SetFont(Label::sysFont(20));
-                            wxSize s2 = dc.GetTextExtent(L"%");
-                            wxRect rt = wxRect(0, 0, s1.x + s2.x, s1.y).CenterIn(wxRect(pt, m_image_size));
-                            dc.SetTextForeground(*wxWHITE);
-                            dc.SetFont(Label::sysFont(30));
-                            dc.DrawText(p, rt.GetTopLeft());
-                            dc.SetFont(Label::sysFont(20));
-                            dc.DrawText(L"%", rt.GetTopLeft() + wxSize{s1.x, s1.y - s2.y});
-                            dc.SetFont(GetFont());
-                        }
-                    }
-                    // Draw buttons on hovered item
-                    else if (hit_image == index) {
-                        wxRect rect{pt.x, pt.y + m_image_size.y - m_buttons_background.GetHeight(), m_image_size.GetWidth(), m_buttons_background.GetHeight()};
-                        renderButtons(dc, {_L("Delete"), (wxChar const*)_L("Download"), nullptr}, rect, m_hit_type == HIT_ACTION ? m_hit_item & 1 : -1);
-                    }
-                } else {
-                    auto date = wxDateTime((time_t) file.time).Format(_L(formats[m_file_sys->GetGroupMode()]));
-                    dc.DrawText(date, pt + wxPoint{24, 16});
-                }
-                // Draw colume spacing at right
-                dc.DrawRectangle({pt.x + m_image_size.GetWidth(), pt.y, m_cell_size.GetWidth() - m_image_size.GetWidth(), m_image_size.GetHeight()});
             }
+            // Draw checked icon
+            if (m_selecting)
+                dc.DrawBitmap(file.IsSelect() ? m_checked_icon.bmp() : m_unchecked_icon.bmp(), 
+                    pt + wxPoint{10, m_image_size.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
+            // can' handle alpha
+            // dc.GradientFillLinear({pt.x, pt.y, m_image_size.GetWidth(), 60}, wxColour(0x6F, 0x6F, 0x6F, 0x99), wxColour(0x6F, 0x6F, 0x6F, 0), wxBOTTOM);
+            if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
+                wxString secondAction = _L("Download");
+                // Draw download progress
+                if (file.IsDownload()) {
+                    if (file.progress == -1) {
+                        secondAction = _L("Cancel");
+                        dc.DrawText(_L("Waiting"), pt + wxPoint{24, m_image_size.GetHeight() - 36});
+                    } else if (file.progress < 0) {
+                        secondAction = _L("Retry");
+                        dc.DrawText(_L("Failed"), pt + wxPoint{24, m_image_size.GetHeight() - 36});
+                    } else if (file.progress >= 100) {
+                        secondAction = _L("Open");
+                        dc.DrawText(_L("Finished"), pt + wxPoint{24, m_image_size.GetHeight() - 36});
+                    } else {
+                        secondAction = _L("Cancel");
+                        if (file.progress != m_background_progress) {
+                            auto em               = em_unit(this);
+                            wxSize size_p{8 * em, 8 * em};
+                            m_background_progress = file.progress;
+                            m_progress_background = createCircleBitmap(size_p, em, m_background_progress, wxTransparentColour, *wxWHITE);
+                        }
+                        auto pos = (m_image_size - m_progress_background.GetSize()) / 2;
+                        dc.DrawBitmap(m_progress_background, pt + wxPoint{pos.x, pos.y});
+                        // draw progress text
+                        auto p = wxString::Format("%d", m_background_progress);
+                        dc.SetFont(Label::sysFont(30));
+                        wxSize s1 = dc.GetTextExtent(p);
+                        dc.SetFont(Label::sysFont(20));
+                        wxSize s2 = dc.GetTextExtent(L"%");
+                        wxRect rt = wxRect(0, 0, s1.x + s2.x, s1.y).CenterIn(wxRect(pt, m_image_size));
+                        dc.SetTextForeground(*wxWHITE);
+                        dc.SetFont(Label::sysFont(30));
+                        dc.DrawText(p, rt.GetTopLeft());
+                        dc.SetFont(Label::sysFont(20));
+                        dc.DrawText(L"%", rt.GetTopLeft() + wxSize{s1.x, s1.y - s2.y});
+                        dc.SetFont(GetFont());
+                    }
+                }
+                // Draw buttons on hovered item
+                if (hit_image == index) {
+                    wxRect rect{pt.x, pt.y + m_image_size.y - m_buttons_background.GetHeight(), m_image_size.GetWidth(), m_buttons_background.GetHeight()};
+                    renderButtons(dc, {_L("Delete"), (wxChar const*)secondAction, nullptr}, rect, m_hit_type == HIT_ACTION ? m_hit_item & 1 : -1);
+                }
+            } else {
+                auto date = wxDateTime((time_t) file.time).Format(_L(formats[m_file_sys->GetGroupMode()]));
+                dc.DrawText(date, pt + wxPoint{24, 16});
+            }
+            // Draw colume spacing at right
+            dc.DrawRectangle({pt.x + m_image_size.GetWidth(), pt.y, m_cell_size.GetWidth() - m_image_size.GetWidth(), m_image_size.GetHeight()});
             ++index;
             pt.x += m_cell_size.GetWidth();
         }

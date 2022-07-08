@@ -74,6 +74,7 @@ size_t PrinterFileSystem::EnterSubGroup(size_t index)
 void PrinterFileSystem::ListAllFiles()
 {
     json req;
+    req["type"] = m_file_type == F_VIDEO ? "video" : "timelapse";
     req["notify"] = "DETAIL";
     SendRequest<FileList>(LIST_INFO, req, [this](json const& resp, FileList & list, auto) {
         json files = resp["file_lists"];
@@ -162,6 +163,16 @@ void PrinterFileSystem::DownloadFiles(size_t index, std::string const &path)
     }
     if ((m_task_flags & FF_DOWNLOAD) == 0)
         DownloadNextFile(path);
+}
+
+void PrinterFileSystem::DownloadCancel(size_t index)
+{
+    if (index == (size_t) -1) return;
+    if (index >= m_file_list.size()) return;
+    auto &file = m_file_list[index];
+    if ((file.flags & FF_DOWNLOAD) == 0) return;
+    if (file.progress >= 0)
+        CancelRequest(m_download_seq);
 }
 
 size_t PrinterFileSystem::GetCount() const
@@ -340,7 +351,7 @@ void PrinterFileSystem::DownloadNextFile(std::string const &path)
         int                       index;
         std::string               name;
         std::string               path;
-        std::ofstream             ofs;
+        boost::filesystem::ofstream ofs;
         boost::uuids::detail::md5 boost_md5;
     };
     std::shared_ptr<Download> download(new Download);
@@ -348,14 +359,17 @@ void PrinterFileSystem::DownloadNextFile(std::string const &path)
     download->name  = m_file_list[index].name;
     download->path  = path;
     m_task_flags |= FF_DOWNLOAD;
-    SendRequest<Progress>(
+    m_download_seq = SendRequest<Progress>(
         FILE_DOWNLOAD, req,
         [this, download](json const &resp, Progress &prog, unsigned char const *data) -> int {
             // in work thread, continue recv
             size_t size = resp["size"];
             prog.size   = resp["offset"];
             prog.total  = resp["total"];
-            if (prog.size == 0) { download->ofs.open(download->path + "/" + download->name, std::ios::binary); }
+            if (prog.size == 0) {
+                download->ofs.open(download->path + "/" + download->name, std::ios::binary);
+                if (!download->ofs) return FILE_OPEN_ERR;
+            }
             // receive data
             download->ofs.write((char const *) data, size);
             download->boost_md5.process_bytes(data, size);
@@ -389,8 +403,11 @@ void PrinterFileSystem::DownloadNextFile(std::string const &path)
                 int progress = data.size * 100 / data.total;
                 if (result > CONTINUE)
                     progress = -2;
-                if (m_file_list[download->index].progress != progress) {
-                    m_file_list[download->index].progress = progress;
+                auto & file = m_file_list[download->index];
+                if (result == ERROR_CANCEL)
+                    file.flags &= ~FF_DOWNLOAD;
+                else if (file.progress != progress) {
+                    file.progress = progress;
                     SendChangedEvent(EVT_DOWNLOAD, download->index, m_file_list[download->index].name, data.size);
                 }
             }
@@ -523,16 +540,17 @@ void PrinterFileSystem::DumpLog(Bambu_Session *session, int level, Bambu_Message
     StaticBambuLib::get().Bambu_FreeLogMsg(msg);
 }
 
-void PrinterFileSystem::SendRequest(int type, json const &req, callback_t2 const & callback)
+boost::uint32_t PrinterFileSystem::SendRequest(int type, json const &req, callback_t2 const &callback)
 {
     if (m_session.gSID < 0) {
         boost::unique_lock l(m_mutex);
         m_cond.notify_all();
-        return;
+        return 0;
     }
+    boost::uint32_t seq = m_sequence + m_callbacks.size();
     json root;
     root["cmdtype"] = type;
-    root["sequence"] = m_sequence + m_callbacks.size();
+    root["sequence"] = seq;
     root["req"] = req;
     std::ostringstream oss;
     oss << root;
@@ -544,6 +562,7 @@ void PrinterFileSystem::SendRequest(int type, json const &req, callback_t2 const
     m_messages.push_back(msg);
     m_callbacks.push_back(callback);
     m_cond.notify_all();
+    return seq;
 }
 
 void PrinterFileSystem::InstallNotify(int type, callback_t2 const &callback)
@@ -551,6 +570,35 @@ void PrinterFileSystem::InstallNotify(int type, callback_t2 const &callback)
     type -= NOTIFY_FIRST;
     if (m_notifies.size() <= size_t(type)) m_notifies.resize(type + 1);
     m_notifies[type] = callback;
+}
+
+void PrinterFileSystem::CancelRequest(boost::uint32_t seq)
+{
+    json req;
+    json arr;
+    arr.push_back(seq);
+    req["tasks"] = arr;
+    SendRequest(TASK_CANCEL, req, [this](int result, json const &resp, unsigned char const *) {
+        if (result != 0) return;
+        json tasks = resp["tasks"];
+        std::deque<callback_t2> callbacks;
+        boost::unique_lock      l(m_mutex);
+        for (auto &f : tasks) {
+            boost::uint32_t seq = f;
+            seq -= m_sequence;
+            if (size_t(seq) >= m_callbacks.size()) continue;
+            auto & c = m_callbacks[seq];
+            if (c == nullptr) continue;
+            callbacks.push_back(c);
+            m_callbacks[seq] = callback_t2();
+        }
+        while (!m_callbacks.empty() && m_callbacks.front() == nullptr) {
+            m_callbacks.pop_front();
+            ++m_sequence;
+        }
+        l.unlock();
+        for (auto &c : callbacks) c(ERROR_CANCEL, json(), nullptr);
+    });
 }
 
 void PrinterFileSystem::RecvMessageThread()
@@ -581,14 +629,12 @@ void PrinterFileSystem::RecvMessageThread()
         }
         l.unlock();
         int n = Bambu_ReadSample(&m_session, &sample);
+        l.lock();
         if (n == 0) {
             HandleResponse(l, sample);
-            l.lock();
         } else if (n == Bambu_would_block) {
-            l.lock();
             m_cond.timed_wait(l, boost::posix_time::milliseconds(m_messages.empty() && m_callbacks.empty() ? 1000 : 20));
         } else {
-            l.lock();
             Reconnect(l, n);
         }
     } // while
@@ -633,7 +679,9 @@ void PrinterFileSystem::HandleResponse(boost::unique_lock<boost::mutex> &l, Bamb
         cmd -= NOTIFY_FIRST;
         if (size_t(cmd) >= m_notifies.size()) return;
         auto n = m_notifies[cmd];
+        l.unlock();
         n(result, resp, json_end);
+        l.lock();
     } else {
         seq -= m_sequence;
         if (size_t(seq) >= m_callbacks.size()) return;
@@ -648,7 +696,9 @@ void PrinterFileSystem::HandleResponse(boost::unique_lock<boost::mutex> &l, Bamb
                 }
             }
         }
+        l.unlock();
         c(result, resp, json_end);
+        l.lock();
     }
 }
 

@@ -33,6 +33,7 @@ class PrinterFileSystem : public wxEvtHandler, public boost::enable_shared_from_
         NOTIFY_FIRST    = 0x0100, 
         LIST_CHANGE_NOTIFY = 0x0100,
         LIST_RESYNC_NOTIFY = 0x0101,
+        TASK_CANCEL     = 0x1000
     };
 
     enum {
@@ -40,6 +41,7 @@ class PrinterFileSystem : public wxEvtHandler, public boost::enable_shared_from_
         CONTINUE            = 1,
         ERROR_JSON          = 2,
         ERROR_PIPE          = 3,
+        ERROR_CANCEL        = 4,
         FILE_NO_EXIST       = 10,
         FILE_NAME_INVALID   = 11,
         FILE_SIZE_ERR       = 12,
@@ -122,6 +124,8 @@ public:
 
     void DownloadFiles(size_t index, std::string const &path);
 
+    void DownloadCancel(size_t index);
+
     size_t GetCount() const;
 
     size_t GetIndexAtTime(boost::uint32_t time);
@@ -178,7 +182,7 @@ private:
     typedef std::function<void(int, json const &resp, unsigned char const *data)> callback_t2;
 
     template <typename T>
-    void SendRequest(int type, json const& req, Translator<T> const& translator, Callback<T> const& callback)
+    boost::uint32_t SendRequest(int type, json const& req, Translator<T> const& translator, Callback<T> const& callback)
     {
         auto c = [translator, callback, thiz = shared_from_this()](int result, json const &resp, unsigned char const *data)
         {
@@ -194,7 +198,7 @@ private:
             }
             thiz->PostCallback<T>(callback, result, t);
         };
-        SendRequest(type, req, c);
+        return SendRequest(type, req, c);
     }
 
     template<typename T> using Applier = std::function<void(T const &)>;
@@ -223,9 +227,11 @@ private:
         InstallNotify(type, c);
     }
 
-    void SendRequest(int type, json const &req, callback_t2 const & callback);
+    boost::uint32_t SendRequest(int type, json const &req, callback_t2 const &callback);
 
     void InstallNotify(int type, callback_t2 const &callback);
+
+    void CancelRequest(boost::uint32_t seq);
 
     void RecvMessageThread();
 
@@ -263,6 +269,7 @@ private:
     };
     Session m_session;
     boost::uint32_t m_sequence = 0;
+    boost::uint32_t m_download_seq = 0;
     std::deque<std::string> m_messages;
     std::deque<callback_t2> m_callbacks;
     std::deque<callback_t2> m_notifies;
