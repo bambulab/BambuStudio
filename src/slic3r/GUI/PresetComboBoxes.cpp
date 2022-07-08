@@ -243,7 +243,7 @@ static std::string suffix(Preset* preset)
 
 wxColor PresetComboBox::different_color(wxColor const &clr)
 {
-    if (clr.GetLuminance() < 0.5) return *wxWHITE;
+    if (clr.GetLuminance() < 0.51) return *wxWHITE;
     return *wxBLACK;
 }
 

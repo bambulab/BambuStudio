@@ -512,7 +512,7 @@ std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
                 dc.DrawRectangle(0, 0, icon_width, icon_height);
             }
             auto size = dc.GetTextExtent(wxString(label));
-            dc.SetTextForeground(clr.GetLuminance() < 0.5 ? *wxWHITE : *wxBLACK);
+            dc.SetTextForeground(clr.GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);
             dc.DrawText(label, (icon_width - size.x) / 2, (icon_height - size.y) / 2);
             dc.SelectObject(wxNullBitmap);
         }

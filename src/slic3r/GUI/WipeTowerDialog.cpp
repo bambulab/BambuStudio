@@ -186,7 +186,7 @@ void WipingPanel::create_panels(wxWindow* parent, const int num) {
         icon->SetBackgroundColour(m_colours[i]);
         //auto icon_style = icon->GetWindowStyle() & ~(wxBORDER_NONE | wxBORDER_SIMPLE);
         //icon->SetWindowStyle(m_colours[i].Red() > 224 && m_colours[i].Blue() > 224 && m_colours[i].Green() > 224 ? (icon_style | wxBORDER_SIMPLE) : (icon_style | wxBORDER_NONE));
-        auto label_clr = m_colours[i].GetLuminance() < 0.5 ? *wxWHITE : *wxBLACK;
+        auto label_clr = m_colours[i].GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK;
         icon->SetForegroundColour(label_clr);
         icon->SetCanFocus(false);
 
@@ -284,7 +284,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         icon->SetBackgroundColour(m_colours[i]);
         //auto icon_style = icon->GetWindowStyle() & ~(wxBORDER_NONE | wxBORDER_SIMPLE);
         //icon->SetWindowStyle(m_colours[i].Red() > 224 && m_colours[i].Blue() > 224 && m_colours[i].Green() > 224 ? (icon_style | wxBORDER_SIMPLE) : (icon_style | wxBORDER_NONE));
-        auto label_clr = m_colours[i].GetLuminance() < 0.5  ? *wxWHITE : *wxBLACK;
+        auto label_clr = m_colours[i].GetLuminance() < 0.51  ? *wxWHITE : *wxBLACK;
         icon->SetForegroundColour(label_clr);
         icon->SetCanFocus(false);
 
