@@ -264,12 +264,6 @@ else ()
         set(MACOSX_BUNDLE_BUNDLE_NAME "Bambu Studio")
         set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${SLIC3R_VERSION})
         set(MACOSX_BUNDLE_COPYRIGHT "Copyright(C) 2022-2032 Bambu Lab")
-        add_custom_command(TARGET BambuStudio
-            POST_BUILD COMMAND 
-            ${CMAKE_INSTALL_NAME_TOOL} 
-            -delete_rpath "${CMAKE_PREFIX_PATH}/lib"
-            -add_rpath "@executable_path/../Frameworks/"
-            $<TARGET_FILE:BambuStudio>)
     endif()
     add_custom_command(TARGET BambuStudio POST_BUILD
         COMMAND ln -sfn "${SLIC3R_RESOURCES_DIR}" "${BIN_RESOURCES_DIR}"

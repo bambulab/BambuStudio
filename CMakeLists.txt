@@ -42,6 +42,7 @@ set(SLIC3R_GTK "2" CACHE STRING "GTK version to use with wxWidgets on Linux")
 
 set(IS_CROSS_COMPILE FALSE)
 
+
 if (APPLE)
     set(CMAKE_FIND_FRAMEWORK LAST)
     set(CMAKE_FIND_APPBUNDLE LAST)
@@ -49,6 +50,9 @@ if (APPLE)
     if (CMAKE_OSX_ARCHITECTURES AND _arch_idx LESS 0)
         set(IS_CROSS_COMPILE TRUE)
     endif ()
+    if (CMAKE_MACOSX_BUNDLE)
+        set(CMAKE_INSTALL_RPATH @executable_path/../Frameworks)
+    endif()
 endif ()
 
 # Proposal for C++ unit tests and sandboxes
