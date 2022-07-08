@@ -42,6 +42,13 @@ struct VolumeSlices
     std::vector<ExPolygons> slices;
 };
 
+struct groupedVolumeSlices
+{
+    int                     groupId = -1;
+    std::vector<ObjectID>   volume_ids;
+    ExPolygons              slices;
+};
+
 namespace FillAdaptive {
     struct Octree;
     struct OctreeDeleter;
@@ -307,6 +314,7 @@ public:
     // BBS
     void generate_support_preview();
     const std::vector<VolumeSlices>& firstLayerObjSlice() const { return firstLayerObjSliceByVolume; }
+    const std::vector<groupedVolumeSlices>& firstLayerObjGroups() const { return firstLayerObjSliceByGroups; }
 
     bool                         has_brim() const       {
         return ((this->config().brim_type != btNoBrim && this->config().brim_width.value > 0.) || this->config().brim_type == btAutoBrim)
@@ -472,7 +480,7 @@ private:
     // so that next call to make_perimeters() performs a union() before computing loops
     bool                    				m_typed_slices = false;
     std::vector < VolumeSlices >            firstLayerObjSliceByVolume;
-
+    std::vector<groupedVolumeSlices>        firstLayerObjSliceByGroups;
     // BBS: per object skirt
     ExtrusionEntityCollection               m_skirt;
 

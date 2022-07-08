@@ -736,6 +736,100 @@ static inline void apply_mm_segmentation(PrintObject &print_object, ThrowOnCance
         });
 }
 
+//BBS: justify whether a volume is connected to another one
+bool doesVolumeIntersect(VolumeSlices& vs1, VolumeSlices& vs2)
+{
+    if (vs1.volume_id == vs2.volume_id) return true;
+    if (vs1.slices.size() != vs1.slices.size()) return false;
+
+    double offsetValue = 0.4 / SCALING_FACTOR;
+    for (int i = 0; i != vs1.slices.size(); ++i) {
+        auto eps1 = offset_ex(vs1.slices[i], offsetValue);
+        auto eps2 = offset_ex(vs2.slices[i], offsetValue);
+
+        if (!intersection_ex(eps1, eps2).empty()) return true;
+    }
+    return false;
+}
+
+//BBS: grouping the volumes of an object according to their connection relationship
+bool groupingVolumes(std::vector<VolumeSlices>& objSliceByVolume, std::vector<groupedVolumeSlices>& groups)
+{
+    int existGroups = 0;
+    std::vector<int> groupIndex(objSliceByVolume.size(), -1);
+
+    for (int i = 0; i != objSliceByVolume.size(); ++i) {
+        if (groupIndex[i] < 0) {
+            groupIndex[i] = i;
+            ++existGroups;
+        }
+        for (int j = i + 1; j != objSliceByVolume.size(); ++j) {
+            if (doesVolumeIntersect(objSliceByVolume[i], objSliceByVolume[j])) {
+                if (groupIndex[j] < 0) groupIndex[j] = i;
+                if (groupIndex[j] != groupIndex[i]) {
+                    int retain = std::min(groupIndex[i], groupIndex[j]);
+                    int cover = std::max(groupIndex[i], groupIndex[j]);
+                    for (int k = 0; k != objSliceByVolume.size(); ++k) {
+                        if (groupIndex[k] == cover) groupIndex[k] = retain;
+                    }
+                    --existGroups;
+                }
+            }
+
+        }
+    }
+
+    std::vector<int> groupVector{};
+    for (int gi : groupIndex) {
+        bool exist = false;
+        for (int gv : groupVector) {
+            if (gv == gi) {
+                exist = true;
+                break;
+            }
+        }
+        if (!exist) groupVector.push_back(gi);
+    }
+
+    if (groupVector.size() != existGroups);
+
+
+    // group volumes and their slices according to the grouping Vector
+    groups.clear();
+
+    for (int gv : groupVector) {
+        groupedVolumeSlices gvs;
+        gvs.groupId = gv;
+        for (int i = 0; i != objSliceByVolume.size(); ++i) {
+            if (groupIndex[i] == gv) {
+                gvs.volume_ids.push_back(objSliceByVolume[i].volume_id);
+                append(gvs.slices, objSliceByVolume[i].slices.front());
+            }
+        }
+
+        // the slices of a group should be unioned
+        double offsetValue = 0.4 / SCALING_FACTOR;
+        gvs.slices = offset_ex(union_ex(offset_ex(gvs.slices, offsetValue)), -offsetValue);
+        double resolution = 0.0125 / SCALING_FACTOR;
+        for (ExPolygon& poly_ex : gvs.slices)
+            poly_ex.douglas_peucker(resolution);
+
+        groups.push_back(gvs);
+    }
+    return true;
+}
+
+//BBS: filter the members of "objSliceByVolume" such that only "model_part" are included
+std::vector<VolumeSlices> findPartVolumes(const std::vector<VolumeSlices>& objSliceByVolume, ModelVolumePtrs model_volumes) {
+    std::vector<VolumeSlices> outPut;
+    for (const auto& vs : objSliceByVolume) {
+        for (const auto& mv : model_volumes) {
+            if (vs.volume_id == mv->id() && mv->is_model_part()) outPut.push_back(vs);
+        }
+    }
+    return outPut;
+}
+
 // 1) Decides Z positions of the layers,
 // 2) Initializes layers and their regions
 // 3) Slices the object meshes
@@ -770,10 +864,21 @@ void PrintObject::slice_volumes()
             print->config(), this->config(), this->trafo_centered(),
             this->model_object()->volumes, m_shared_regions->layer_ranges, {slice_zs.front()}, throw_on_cancel_callback);
     }
-    std::vector<std::vector<ExPolygons>> region_slices = slices_to_regions(this->model_object()->volumes, *m_shared_regions, slice_zs,
-        slice_volumes_inner(
+
+    std::vector<VolumeSlices> objSliceByVolume;
+    if (!slice_zs.empty()) {
+        objSliceByVolume = slice_volumes_inner(
             print->config(), this->config(), this->trafo_centered(),
-            this->model_object()->volumes, m_shared_regions->layer_ranges, slice_zs, throw_on_cancel_callback),
+            this->model_object()->volumes, m_shared_regions->layer_ranges, slice_zs, throw_on_cancel_callback);
+    }
+
+    //BBS: "model_part" volumes are grouded according to their connections
+    std::vector<VolumeSlices> objSliceByVolumeParts = findPartVolumes(objSliceByVolume, this->model_object()->volumes);
+    groupingVolumes(objSliceByVolumeParts, firstLayerObjSliceByGroups);
+
+
+    std::vector<std::vector<ExPolygons>> region_slices = slices_to_regions(this->model_object()->volumes, *m_shared_regions, slice_zs,
+        std::move(objSliceByVolume),
         PrintObject::clip_multipart_objects,
         throw_on_cancel_callback);
 
