@@ -1231,7 +1231,7 @@ static inline double compute_edge_length(const MMU_Graph &graph, const size_t st
     used_arcs[start_arc_idx]                = true;
     const MMU_Graph::Arc *arc               = &graph.arcs[start_arc_idx];
     size_t                idx               = start_idx;
-    double                line_total_length = (graph.nodes[arc->to_idx].point - graph.nodes[idx].point).norm();;
+    double                line_total_length = (graph.nodes[arc->to_idx].point - graph.nodes[idx].point).norm();
     while (graph.nodes[arc->to_idx].arc_idxs.size() == 2) {
         bool found = false;
         for (const size_t &arc_idx : graph.nodes[arc->to_idx].arc_idxs) {
@@ -1718,50 +1718,6 @@ static bool has_layer_only_one_color(const std::vector<std::vector<ColoredLine>>
     return true;
 }
 
-// Remove nearly duplicate points. If a distance between two points is less than point_eps
-// and if the angle between its surrounding lines is less than max_angle, the point will be removed.
-void remove_duplicates_points(MutablePolygon& polygon, double point_eps, double max_angle)
-{
-    if (polygon.size() >= 3) {
-        auto eps2 = point_eps * point_eps;
-        auto begin = polygon.begin();
-        auto it = begin;
-        for (++it; it != begin;) {
-            auto prev = it.prev();
-            auto next = (it.next() == polygon.end() ? begin : it.next());
-            if ((*it - *prev).cast<double>().squaredNorm() < eps2) {
-                Vec2i64 vector1 = (*it - *prev).cast<int64_t>();
-                Vec2i64 vector2 = (*next - *prev).cast<int64_t>();
-                if (double angle = atan2(cross2(vector1, vector2), vector1.dot(vector2)); angle < max_angle) {
-                    it = it.remove();
-                    continue;
-                }
-            }
-            ++it;
-        }
-    }
-}
-
-// Remove nearly duplicate points. If a distance between two points is less than point_eps
-// and if the angle between its surrounding lines is less than max_angle, the point will be removed.
-inline ExPolygons remove_duplicates_points(ExPolygons expolygons, double point_eps, double max_angle)
-{
-    MutablePolygon mp;
-    for (ExPolygon& expolygon : expolygons) {
-        mp.assign(expolygon.contour, expolygon.contour.size() * 2);
-        remove_duplicates_points(mp, point_eps, max_angle);
-        mp.polygon(expolygon.contour);
-        for (Polygon& hole : expolygon.holes) {
-            mp.assign(hole, hole.size() * 2);
-            remove_duplicates_points(mp, point_eps, max_angle);
-            mp.polygon(hole);
-        }
-        expolygon.holes.erase(std::remove_if(expolygon.holes.begin(), expolygon.holes.end(), [](const auto& p) { return p.empty(); }), expolygon.holes.end());
-    }
-    expolygons.erase(std::remove_if(expolygons.begin(), expolygons.end(), [](const auto& p) { return p.empty(); }), expolygons.end());
-    return expolygons;
-}
-
 std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(const PrintObject &print_object, const std::function<void()> &throw_on_cancel_callback)
 {
     const size_t                          num_extruders = print_object.print()->config().filament_colour.size();
@@ -1797,7 +1753,7 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
             // Such close points sometimes caused that the Voronoi diagram has self-intersecting edges around these vertices.
             // This consequently leads to issues with the extraction of colored segments by function extract_colored_segments.
             // Calling expolygons_simplify fixed these issues.
-            input_expolygons[layer_idx] = remove_duplicates_points(expolygons_simplify(offset_ex(ex_polygons, -10.f * float(SCALED_EPSILON)), 5 * SCALED_EPSILON), scaled<double>(0.01), PI / 6);
+            input_expolygons[layer_idx] = remove_duplicates(expolygons_simplify(offset_ex(ex_polygons, -10.f * float(SCALED_EPSILON)), 5 * SCALED_EPSILON), scaled<coord_t>(0.01), PI / 6);
 
 #ifdef MMU_SEGMENTATION_DEBUG_INPUT
             {
@@ -1883,19 +1839,28 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
                                 line_end_f = facet[1] + t2 * (facet[2] - facet[1]);
                             }
 
-                            Point line_start(scale_(line_start_f.x()), scale_(line_start_f.y()));
-                            Point line_end(scale_(line_end_f.x()), scale_(line_end_f.y()));
-                            line_start -= print_object.center_offset();
-                            line_end   -= print_object.center_offset();
+                            Line line_to_test(Point(scale_(line_start_f.x()), scale_(line_start_f.y())),
+                                              Point(scale_(line_end_f.x()), scale_(line_end_f.y())));
+                            line_to_test.translate(-print_object.center_offset());
+
+                            // BoundingBoxes for EdgeGrids are computed from printable regions. It is possible that the painted line (line_to_test) could
+                            // be outside EdgeGrid's BoundingBox, for example, when the negative volume is used on the painted area (GH #7618).
+                            // To ensure that the painted line is always inside EdgeGrid's BoundingBox, it is clipped by EdgeGrid's BoundingBox in cases
+                            // when any of the endpoints of the line are outside the EdgeGrid's BoundingBox.
+                            if (const BoundingBox &edge_grid_bbox = edge_grids[layer_idx].bbox(); !edge_grid_bbox.contains(line_to_test.a) || !edge_grid_bbox.contains(line_to_test.b)) {
+                                // If the painted line (line_to_test) is entirely outside EdgeGrid's BoundingBox, skip this painted line.
+                                if (!edge_grid_bbox.overlap(BoundingBox(Points{line_to_test.a, line_to_test.b})) ||
+                                    !line_to_test.clip_with_bbox(edge_grid_bbox))
+                                    continue;
+                            }
 
                             size_t mutex_idx = layer_idx & 0x3F;
                             assert(mutex_idx < painted_lines_mutex.size());
 
                             PaintedLineVisitor visitor(edge_grids[layer_idx], painted_lines[layer_idx], painted_lines_mutex[mutex_idx], 16);
-                            visitor.line_to_test.a = line_start;
-                            visitor.line_to_test.b = line_end;
-                            visitor.color          = int(extruder_idx);
-                            edge_grids[layer_idx].visit_cells_intersecting_line(line_start, line_end, visitor);
+                            visitor.line_to_test = line_to_test;
+                            visitor.color        = int(extruder_idx);
+                            edge_grids[layer_idx].visit_cells_intersecting_line(line_to_test.a, line_to_test.b, visitor);
                         }
                     }
                 }); // end of parallel_for

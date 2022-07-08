@@ -37,6 +37,33 @@ void remove_duplicates(MutablePolygon &polygon, double eps)
     }
 }
 
+void remove_duplicates(MutablePolygon& polygon, coord_t scaled_eps, const double max_angle)
+{
+    if (polygon.size() >= 3) {
+        auto cos_max_angle_2 = Slic3r::sqr<double>(cos(max_angle));
+        auto scaled_eps_sqr = Slic3r::sqr<int64_t>(scaled_eps);
+        auto begin = polygon.begin();
+        auto it = begin;
+        for (++it; it != begin;) {
+            auto    prev = it.prev();
+            auto    next = it.next();
+            Vec2i64 v1 = (*it - *prev).cast<int64_t>();
+            int64_t v1_sqr_norm = v1.squaredNorm();
+            if (v1_sqr_norm < scaled_eps_sqr) {
+                if (Vec2i64 v2 = (*next - *prev).cast<int64_t>();
+                    Slic3r::sqr<double>(double(v1.dot(v2))) > cos_max_angle_2 * double(v1_sqr_norm) * double(v2.squaredNorm())) {
+                    it = it.remove();
+                    continue;
+                }
+            }
+            it = next;
+        }
+    }
+
+    if (polygon.size() < 3)
+        polygon.clear();
+}
+
 // Adapted from Cura ConstPolygonRef::smooth_corner_complex() by Tim Kuipers.
 // A concave corner at it1 with position p1 has been removed by the caller between it0 and it2, where |p2 - p0| < shortcut_length.
 // Now try to close a concave crack by walking left from it0 and right from it2 as long as the new clipping edge is smaller than shortcut_length
