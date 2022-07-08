@@ -44,7 +44,7 @@ CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
     m_switch_timelapse = new SwitchButton(m_panel);
     if (obj)
         m_switch_timelapse->SetValue(obj->camera_timelapse);
-    m_text_recording = new wxStaticText(m_panel, wxID_ANY, _L("Recording"));
+    m_text_recording = new wxStaticText(m_panel, wxID_ANY, _L("Monitoring Recording"));
     m_text_recording->Wrap(-1);
     m_text_recording->SetFont(TEXT_FONT);
     m_text_recording->SetForegroundColour(TEXT_COL);

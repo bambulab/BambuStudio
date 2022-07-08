@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-09 22:28+0800\n"
+"POT-Creation-Date: 2022-07-10 18:30+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 3.1\n"
 
 msgid "Supports Painting"
 msgstr "Support painting"
@@ -344,6 +344,9 @@ msgid "Cylinder"
 msgstr ""
 
 msgid "Cone"
+msgstr ""
+
+msgid "Timelapse Wipe Tower"
 msgstr ""
 
 msgid "Add Modifier"
@@ -1017,8 +1020,8 @@ msgstr ""
 msgid "Load Filament"
 msgstr "Load"
 
-msgid "Unload"
-msgstr ""
+msgid "Unload Filament"
+msgstr "Unload"
 
 msgid "Tips"
 msgstr ""
@@ -1914,7 +1917,7 @@ msgstr ""
 msgid "Timelapse"
 msgstr ""
 
-msgid "Recording"
+msgid "Monitoring Recording"
 msgstr ""
 
 msgid "ConnectPrinter(LAN)"
@@ -2299,6 +2302,9 @@ msgid "Aux Cooling"
 msgstr ""
 
 msgid "Bed"
+msgstr ""
+
+msgid "Unload"
 msgstr ""
 
 msgid "Debug Info"
@@ -2856,10 +2862,10 @@ msgstr ""
 msgid "User sync"
 msgstr ""
 
-msgid "User Sync"
+msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
 
-msgid "auto sync user presets (printer/materials/craft)"
+msgid "User Sync"
 msgstr ""
 
 msgid "Associate files to BambuStudio"
@@ -3178,7 +3184,13 @@ msgstr ""
 msgid "Preparing print job"
 msgstr ""
 
-msgid "Reading printer info timed out"
+msgid "Not connected to the server, connecting"
+msgstr ""
+
+msgid "Synchronizing device information time out"
+msgstr ""
+
+msgid "Synchronizing device information"
 msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
@@ -3199,9 +3211,6 @@ msgstr ""
 msgid ""
 "Filaments to AMS slots mappings have been established. You can click a "
 "filament above to change its mapping AMS slot"
-msgstr ""
-
-msgid "Synchronizing device information"
 msgstr ""
 
 msgid "Modifying the device name"
@@ -3581,7 +3590,7 @@ msgstr ""
 msgid "The name \"%1%\" already exists."
 msgstr ""
 
-msgid "Designer"
+msgid "Basic Info"
 msgstr ""
 
 msgid "Pictures"
@@ -3594,6 +3603,9 @@ msgid "Assembly Guide"
 msgstr ""
 
 msgid "Choose files"
+msgstr ""
+
+msgid "Designer"
 msgstr ""
 
 msgid "Model Name"

@@ -818,8 +818,8 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
     m_button_unload->SetBorderColor(abort_bd);
     StateColor abort_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
     m_button_unload->SetTextColor(abort_text);
-    m_button_unload->SetFont(Label::Body_10);
-    m_button_unload->SetMinSize(TASK_BUTTON_SIZE);
+    m_button_unload->SetFont(Label::Body_13);
+    m_button_unload->SetMinSize(wxSize(FromDIP(54), FromDIP(24)));
     m_button_unload->SetCornerRadius(FromDIP(5));
     bSizer_e_ctrl->Add(0, 0, 1, wxEXPAND, 0);
     bSizer_e_ctrl->Add(m_button_unload, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(5));
@@ -1213,7 +1213,7 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         if (!bed_temp_input) { m_tempCtrl_bed->SetTagTemp((int) obj->bed_temp_target); }
     }
 
-    if (abs(obj->bed_temp - obj->bed_temp_target) >= TEMP_THRESHOLD_VAL) {
+    if ((obj->bed_temp_target - obj->bed_temp) >= TEMP_THRESHOLD_VAL) {
         m_tempCtrl_bed->SetIconActive();
     } else {
         m_tempCtrl_bed->SetIconNormal();
@@ -1227,7 +1227,7 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         if (!nozzle_temp_input) { m_tempCtrl_nozzle->SetTagTemp((int) obj->nozzle_temp_target); }
     }
 
-    if (abs(obj->nozzle_temp - obj->nozzle_temp_target) >= TEMP_THRESHOLD_VAL) {
+    if ((obj->nozzle_temp_target - obj->nozzle_temp) >= TEMP_THRESHOLD_VAL) {
         m_tempCtrl_nozzle->SetIconActive();
     } else {
         m_tempCtrl_nozzle->SetIconNormal();
@@ -1240,6 +1240,12 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
 void StatusPanel::update_misc_ctrl(MachineObject *obj)
 {
     if (!obj) return;
+
+    if (obj->has_ams()) {
+        m_button_unload->Hide();
+    } else {
+        m_button_unload->Show();
+    }
 
     // nozzle fan
     if (m_switch_nozzle_fan_timeout > 0)

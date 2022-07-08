@@ -1338,14 +1338,14 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_extruder_feed->SetBackgroundColor(btn_bg_green);
     m_button_extruder_feed->SetBorderColor(btn_bd_green);
     m_button_extruder_feed->SetTextColor(btn_text_green);
-    m_button_extruder_feed->SetFont(Label::Body_10);
+    m_button_extruder_feed->SetFont(Label::Body_13);
     m_sizer_left_bottom->Add(m_button_extruder_feed, 0, wxTOP, FromDIP(20));
     m_sizer_left_bottom->Add(0, 0, 0, wxALL | wxLEFT, FromDIP(10));
 
-    m_button_extruder_back = new Button(amswin, _L("Unload"));
+    m_button_extruder_back = new Button(amswin, _L("Unload Filament"));
     m_button_extruder_back->SetBackgroundColor(btn_bg_white);
     m_button_extruder_back->SetBorderColor(btn_bd_white);
-    m_button_extruder_back->SetFont(Label::Body_10);
+    m_button_extruder_back->SetFont(Label::Body_13);
     m_sizer_left_bottom->Add(m_button_extruder_back, 0, wxTOP, FromDIP(20));
 
     m_sizer_left->Add(m_sizer_left_bottom, 0, wxEXPAND, 0);
@@ -1390,7 +1390,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_ams_setting = new Button(amswin, _L("AMS Settings"));
     m_button_ams_setting->SetBackgroundColor(btn_bg_white);
     m_button_ams_setting->SetBorderColor(btn_bd_white);
-    m_button_ams_setting->SetFont(Label::Body_10);
+    m_button_ams_setting->SetFont(Label::Body_13);
     m_sizer_right_bottom->Add(m_button_ams_setting, 0, wxTOP, 20);
     m_sizer_right->Add(m_sizer_right_bottom, 0, wxEXPAND, 5);
     m_sizer_bottom->Add(m_sizer_right, 0, wxEXPAND, 5);

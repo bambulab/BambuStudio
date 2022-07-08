@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-09 22:28+0800\n"
+"POT-Creation-Date: 2022-07-10 18:30+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -342,6 +342,9 @@ msgid "Cylinder"
 msgstr "Cilindro"
 
 msgid "Cone"
+msgstr ""
+
+msgid "Timelapse Wipe Tower"
 msgstr ""
 
 msgid "Add Modifier"
@@ -1006,7 +1009,7 @@ msgstr ""
 msgid "Load Filament"
 msgstr ""
 
-msgid "Unload"
+msgid "Unload Filament"
 msgstr ""
 
 msgid "Tips"
@@ -1888,7 +1891,7 @@ msgstr ""
 msgid "Timelapse"
 msgstr ""
 
-msgid "Recording"
+msgid "Monitoring Recording"
 msgstr ""
 
 msgid "ConnectPrinter(LAN)"
@@ -2274,6 +2277,9 @@ msgstr ""
 
 msgid "Bed"
 msgstr "Piano"
+
+msgid "Unload"
+msgstr ""
 
 msgid "Debug Info"
 msgstr ""
@@ -2819,10 +2825,10 @@ msgstr ""
 msgid "User sync"
 msgstr ""
 
-msgid "User Sync"
+msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
 
-msgid "auto sync user presets (printer/materials/craft)"
+msgid "User Sync"
 msgstr ""
 
 msgid "Associate files to BambuStudio"
@@ -3129,7 +3135,13 @@ msgstr ""
 msgid "Preparing print job"
 msgstr ""
 
-msgid "Reading printer info timed out"
+msgid "Not connected to the server, connecting"
+msgstr ""
+
+msgid "Synchronizing device information time out"
+msgstr ""
+
+msgid "Synchronizing device information"
 msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
@@ -3150,9 +3162,6 @@ msgstr ""
 msgid ""
 "Filaments to AMS slots mappings have been established. You can click a "
 "filament above to change its mapping AMS slot"
-msgstr ""
-
-msgid "Synchronizing device information"
 msgstr ""
 
 msgid "Modifying the device name"
@@ -3532,7 +3541,7 @@ msgstr ""
 msgid "The name \"%1%\" already exists."
 msgstr ""
 
-msgid "Designer"
+msgid "Basic Info"
 msgstr ""
 
 msgid "Pictures"
@@ -3545,6 +3554,9 @@ msgid "Assembly Guide"
 msgstr ""
 
 msgid "Choose files"
+msgstr ""
+
+msgid "Designer"
 msgstr ""
 
 msgid "Model Name"

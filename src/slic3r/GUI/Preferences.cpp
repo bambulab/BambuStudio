@@ -644,9 +644,8 @@ wxWindow* PreferencesDialog::create_general_page()
     std::vector<wxString> Units         = {_L("Metric"), _L("Imperial")};
     auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "units", Units);
 
-    auto title_sync_settings = create_item_title(_L("User sync"), page, _L("User Sync"));
-    auto item_user_sync        = create_item_checkbox(_L("auto sync user presets (printer/materials/craft)"), page, _L("User Sync"), 50, "preset_sync_switch");
-
+    auto title_sync_settings = create_item_title(_L("User sync"), page, _L("User sync"));
+    auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("User Sync"), 50, "sync_user_preset");
 
     auto title_associate_file = create_item_title(_L("Associate files to BambuStudio"), page, _L("Associate files to BambuStudio"));
 

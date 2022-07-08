@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-09 22:28+0800\n"
-"PO-Revision-Date: 2022-07-09 22:26+0800\n"
+"POT-Creation-Date: 2022-07-10 18:30+0800\n"
+"PO-Revision-Date: 2022-07-10 18:40+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -350,6 +350,9 @@ msgstr "圆柱体"
 
 msgid "Cone"
 msgstr "锥体"
+
+msgid "Timelapse Wipe Tower"
+msgstr ""
 
 msgid "Add Modifier"
 msgstr "添加修改器"
@@ -1011,8 +1014,8 @@ msgstr "点击铅笔图标编辑耗材丝。"
 msgid "Load Filament"
 msgstr "进料"
 
-msgid "Unload"
-msgstr "下料"
+msgid "Unload Filament"
+msgstr "退料"
 
 msgid "Tips"
 msgstr "提示"
@@ -1035,7 +1038,7 @@ msgstr "取消校准"
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filiament."
-msgstr "选择1个AMS槽位，然后点击加载/卸载按钮以自动加载/卸载耗材丝。"
+msgstr "选择1个AMS槽位，然后点击进料/退料按钮以自动进料/退料。"
 
 msgid "Edit"
 msgstr "编辑"
@@ -1941,8 +1944,8 @@ msgstr "校准中"
 msgid "Timelapse"
 msgstr "延时摄影"
 
-msgid "Recording"
-msgstr ""
+msgid "Monitoring Recording"
+msgstr "监控录像"
 
 msgid "ConnectPrinter(LAN)"
 msgstr "连接打印机（局域网）"
@@ -2334,6 +2337,9 @@ msgstr "辅助冷却"
 
 msgid "Bed"
 msgstr "热床"
+
+msgid "Unload"
+msgstr "退料"
 
 msgid "Debug Info"
 msgstr "调试信息"
@@ -2881,10 +2887,10 @@ msgstr "单位"
 msgid "User sync"
 msgstr "用户同步"
 
-msgid "User Sync"
+msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
 
-msgid "auto sync user presets (printer/materials/craft)"
+msgid "User Sync"
 msgstr ""
 
 msgid "Associate files to BambuStudio"
@@ -3191,8 +3197,14 @@ msgstr "打印机正在更新固件，请在更新完成后发送"
 msgid "Preparing print job"
 msgstr "正在准备打印任务"
 
-msgid "Reading printer info timed out"
-msgstr "读取打印机信息超时"
+msgid "Not connected to the server, connecting"
+msgstr ""
+
+msgid "Synchronizing device information time out"
+msgstr ""
+
+msgid "Synchronizing device information"
+msgstr "正在同步设备信息"
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "设备升级中，无法发送打印任务"
@@ -3215,9 +3227,6 @@ msgid ""
 msgstr ""
 "已自动建立 \"耗材丝列表=>AMS槽位\" 的映射关系。 可点击上方具体的耗材丝手动设"
 "置其所对应的AMS槽位"
-
-msgid "Synchronizing device information"
-msgstr "正在同步设备信息"
 
 msgid "Modifying the device name"
 msgstr "修改打印机名称"
@@ -3606,8 +3615,8 @@ msgstr "封面"
 msgid "The name \"%1%\" already exists."
 msgstr "名字\"%1%\"已经存在。"
 
-msgid "Designer"
-msgstr "设计师"
+msgid "Basic Info"
+msgstr ""
 
 msgid "Pictures"
 msgstr "图片"
@@ -3620,6 +3629,9 @@ msgstr "组装指南"
 
 msgid "Choose files"
 msgstr "选择文件"
+
+msgid "Designer"
+msgstr "设计师"
 
 msgid "Model Name"
 msgstr "模型名字"
@@ -5895,6 +5907,9 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Reading printer info timed out"
+#~ msgstr "读取打印机信息超时"
 
 #~ msgid "Per Object Setting"
 #~ msgstr "对象设置"
