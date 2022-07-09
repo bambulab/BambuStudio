@@ -651,6 +651,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     line_sizer          = new wxBoxSizer(wxHORIZONTAL);
     m_switch_nozzle_fan = new ImageSwitchButton(parent, m_bitmap_fan_on, m_bitmap_fan_off, wxBORDER_NONE);
     m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_SIZE);
+    m_switch_nozzle_fan->SetValue(false);
     m_switch_nozzle_fan->SetLabels(_L("Part Cooling"), _L("Part Cooling"));
     m_switch_nozzle_fan->SetPadding(FromDIP(3));
     m_switch_nozzle_fan->SetFont(SWITCH_FONT);
@@ -662,9 +663,9 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     line_sizer->Add(line, 0, wxEXPAND | wxTOP | wxBOTTOM, 4);
 
     m_switch_printing_fan = new ImageSwitchButton(parent, m_bitmap_fan_on, m_bitmap_fan_off, wxBORDER_NONE);
-    m_switch_printing_fan->SetValue(true);
+    m_switch_printing_fan->SetValue(false);
     m_switch_printing_fan->SetMinSize(MISC_BUTTON_SIZE);
-    m_switch_nozzle_fan->SetPadding(FromDIP(3));
+    m_switch_printing_fan->SetPadding(FromDIP(3));
     m_switch_printing_fan->SetFont(SWITCH_FONT);
     m_switch_printing_fan->SetLabels(_L("Aux Cooling"), _L("Aux Cooling"));
     m_switch_printing_fan->SetTextColor(
@@ -675,6 +676,27 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     sizer->Add(line_sizer, 0, wxEXPAND, FromDIP(5));
 
     return sizer;
+}
+
+void StatusBasePanel::reset_temp_misc_control()
+{
+    // reset temp string
+    m_tempCtrl_nozzle->SetLabel(TEMP_BLANK_STR);
+    m_tempCtrl_nozzle->GetTextCtrl()->SetLabel(TEMP_BLANK_STR);
+    m_tempCtrl_bed->SetLabel(TEMP_BLANK_STR);
+    m_tempCtrl_bed->GetTextCtrl()->SetLabel(TEMP_BLANK_STR);
+    m_tempCtrl_frame->SetLabel(TEMP_BLANK_STR);
+    m_tempCtrl_frame->GetTextCtrl()->SetLabel(TEMP_BLANK_STR);
+
+    m_tempCtrl_nozzle->Enable(true);
+    m_tempCtrl_frame->Enable(true);
+    m_tempCtrl_bed->Enable(true);
+
+    // reset misc control
+    m_switch_speed->SetLabels(_L("100%"), _L("100%"));
+    m_switch_lamp->SetLabels(_L("Lamp"), _L("Lamp"));
+    m_switch_nozzle_fan->SetValue(false);
+    m_switch_printing_fan->SetValue(false);
 }
 
 wxBoxSizer *StatusBasePanel::create_axis_control(wxWindow *parent)
@@ -1944,9 +1966,8 @@ void StatusPanel::set_default()
     m_switch_printing_fan_timeout = 0;
 
     reset_printing_values();
-    m_tempCtrl_nozzle->Enable(true);
-    m_tempCtrl_frame->Enable(true);
-    m_tempCtrl_bed->Enable(true);
+
+    reset_temp_misc_control();
     m_ams_control->Hide();
     clean_tasklist_info();
 }
@@ -1957,32 +1978,10 @@ void StatusPanel::show_status(int status)
     last_status = status;
 
     if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)) {
-        /* if ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER))
-             m_connection_info->SetLabel(_L("Failed to connect to the server"));
-         else
-             m_connection_info->SetLabel(_L("Failed to connect to the printer"));
-         m_connection_info->Show();*/
-        m_panel_monitoring_title->Layout();
-        m_button_report->Enable(false);
-        m_button_pause_resume->Enable(false);
-        m_button_abort->Enable(false);
         m_text_tasklist_caption->SetForegroundColour(DISCONNECT_TEXT_COL);
         show_printing_status(false, false);
-#if !BBL_RELEASE_TO_PUBLIC
-        m_ams_control->Enable(false);
-#endif
-
     } else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) {
-        //m_connection_info->Hide();
-        m_panel_monitoring_title->Layout();
-        m_button_report->Enable();
-        m_button_pause_resume->Enable();
-        m_button_abort->Enable();
-        show_printing_status();
-        
-#if !BBL_RELEASE_TO_PUBLIC
-        m_ams_control->Enable();
-#endif
+        show_printing_status(true, true);
     }
 }
 

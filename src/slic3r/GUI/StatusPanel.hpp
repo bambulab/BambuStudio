@@ -182,6 +182,8 @@ public:
     wxBoxSizer *create_bed_control(wxWindow *parent);
     wxBoxSizer *create_extruder_control(wxWindow *parent);
 
+    void reset_temp_misc_control();
+
     wxBoxSizer *create_ams_group(wxWindow *parent);
 
     void show_ams_group(bool show = true);

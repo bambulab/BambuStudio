@@ -519,12 +519,14 @@ void MonitorPanel::show_status(int status)
         m_status_info_panel->show_status(status);
         m_tabpanel->Refresh();
         m_tabpanel->Layout();
+        set_default();
     } else if (((status & (int)MonitorStatus::MONITOR_NORMAL) != 0) ||
         ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0) ||
         ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
         ) {
         if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)) {
             m_side_tools->set_current_printer_signal(WifiSignal::NONE);
+            set_default();
         }
 
         m_status_info_panel->show_status(status);
