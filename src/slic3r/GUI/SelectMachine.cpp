@@ -699,25 +699,22 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_material = new wxGridSizer(0, 6, 0, 0);
     m_sizer_main->Add(m_sizer_material, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(80));
 
-    m_text_load_ams_data = new wxStaticText(this, wxID_ANY, wxEmptyString);
+    m_text_load_ams_data = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
     m_text_load_ams_data->SetFont(::Label::Body_13);
     m_text_load_ams_data->SetForegroundColour(wxColour(0x6B, 0x6B, 0x6B));
 
     m_error_load_ams_data = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
     m_error_load_ams_data->SetFont(::Label::Body_13);
     m_error_load_ams_data->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
-   /* m_error_load_ams_data->SetSize(wxSize(FromDIP(400), -1));
-    m_error_load_ams_data->SetMinSize(wxSize(FromDIP(400), -1));
-    m_error_load_ams_data->SetMaxSize(wxSize(FromDIP(400), -1));
-    m_error_load_ams_data->Wrap(FromDIP(400));*/
 
-    m_sizer_main->Add(m_text_load_ams_data, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_sizer_main->Add(m_error_load_ams_data, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-
+   
     m_text_load_ams_data->Hide();
     m_error_load_ams_data->Hide();
 
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(18));
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
+    m_sizer_main->Add(m_text_load_ams_data, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_main->Add(m_error_load_ams_data, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
 
     m__line_materia = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m__line_materia->SetForegroundColour(wxColour(238, 238, 238));
@@ -742,9 +739,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_comboBox_printer->Bind(wxEVT_COMBOBOX, &SelectMachineDialog::on_selection_changed, this);
 
     m_sizer_printer->Add(m_comboBox_printer, 1, wxEXPAND | wxRIGHT, FromDIP(5));
-
-    btn_bg_enable = StateColor(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal),
-                               std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled));
+    btn_bg_enable = StateColor(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
     m_button_refresh = new Button(this, _L("Refresh"));
     m_button_refresh->SetBackgroundColor(btn_bg_enable);
@@ -881,7 +877,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_button_ensure->SetCornerRadius(FromDIP(12));
 
     m_button_ensure->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_ok, this);
-    m_sizer_pcont->Add(m_button_ensure, 0, wxEXPAND | wxRIGHT, 0);
+    m_sizer_pcont->Add(m_button_ensure, 0, wxEXPAND | wxBOTTOM, FromDIP(10));
     m_sizer_prepare->Add(m_sizer_pcont, 0, wxEXPAND, 0);
     m_panel_prepare->SetSizer(m_sizer_prepare);
     m_panel_prepare->Layout();
@@ -918,10 +914,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_simplebook->AddPage(m_panel_finish, wxEmptyString, false);
 
     m_sizer_main->Add(m_sizer_bottom, 0, wxALIGN_CENTER_HORIZONTAL);
-
-    auto block_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(300), FromDIP(15)));
-    block_panel->SetMinSize(wxSize(FromDIP(300), FromDIP(15)));
-    m_sizer_main->Add(block_panel, 1, wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxEXPAND|wxTOP, FromDIP(15));
 
     // bind
     Bind(EVT_UPDATE_USER_MACHINE_LIST, &SelectMachineDialog::update_printer_combobox, this);
@@ -1082,11 +1075,15 @@ bool SelectMachineDialog::check_ams_mapping_result(std::string &mapping_array_st
 void SelectMachineDialog::update_info_msg(wxString msg)
 {
     if (msg.empty()) {
-        m_text_load_ams_data->SetLabel(wxEmptyString);
-        m_text_load_ams_data->Hide();
-        Layout();
-        Fit();
+        if (!m_text_load_ams_data->GetLabel().empty()) {
+            m_text_load_ams_data->SetLabel(wxEmptyString);
+            m_text_load_ams_data->Hide();
+            Layout();
+            Fit();
+        }
     } else {
+        update_warn_msg(wxEmptyString);
+
         auto str_new = msg.ToStdString();
         stripWhiteSpace(str_new);
         
@@ -1094,7 +1091,6 @@ void SelectMachineDialog::update_info_msg(wxString msg)
         stripWhiteSpace(str_old);
 
         if (str_new != str_old) {
-            update_warn_msg(wxEmptyString);
             if (m_text_load_ams_data->GetLabel() != msg) {
                 m_text_load_ams_data->SetLabel(msg);
                 m_text_load_ams_data->SetMaxSize(wxSize(FromDIP(400), -1));
@@ -1111,13 +1107,15 @@ void SelectMachineDialog::update_info_msg(wxString msg)
 void SelectMachineDialog::update_warn_msg(wxString msg)
 {
     if (msg.empty()) {
-        if (m_error_load_ams_data->GetLabel().empty()) {
+        if (!m_error_load_ams_data->GetLabel().empty()) {
             m_error_load_ams_data->SetLabel(wxEmptyString);
             m_error_load_ams_data->Hide();
             Layout();
             Fit();
         }
     } else {
+        update_info_msg(wxEmptyString);
+
         auto str_new = msg.ToStdString();
         stripWhiteSpace(str_new);
 
@@ -1125,7 +1123,6 @@ void SelectMachineDialog::update_warn_msg(wxString msg)
         stripWhiteSpace(str_old);
 
         if (str_new != str_old) {
-            update_info_msg(wxEmptyString);
             if (m_error_load_ams_data->GetLabel() != msg) {
                 m_error_load_ams_data->SetLabel(msg);
                 m_error_load_ams_data->SetMinSize(wxSize(FromDIP(400), -1));
@@ -1330,6 +1327,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
 
 void SelectMachineDialog::on_refresh(wxCommandEvent &event)
 {
+    m_is_refreshing = true;
     m_comboBox_printer->Disable();
     Enable_Refresh_Button(false);
     Enable_Send_Button(false);
@@ -1467,13 +1465,13 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
     dev->set_selected_machine(m_printer_last_select);
 
     // adjust button
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     m_button_refresh->Enable();
-    m_button_refresh->SetBackgroundColor(btn_bg_green);
+    m_button_refresh->SetBackgroundColor(btn_bg_enable);
     m_button_refresh->SetBorderColor(wxColour(0, 174, 66));
 
     // adjust combox
     m_comboBox_printer->Enable();
+    m_is_refreshing = false;
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << m_printer_last_select << std::endl;
 }
@@ -1506,7 +1504,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         /* timeout display timeout info */
         wxString tips_text = _L("Synchronizing device information time out");
         update_warn_msg(tips_text);
-        Enable_Send_Button(true);
+        if (!m_is_refreshing) { Enable_Send_Button(true);}
         return;
     }
 
@@ -1534,14 +1532,14 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         if (obj_->is_system_printing()) {
             wxString tips_text = _L("The printer is executing instructions. Please restart printing after it ends");
             update_warn_msg(tips_text);
-            if (m_button_ensure->IsEnabled()) Enable_Send_Button(false);
+            Enable_Send_Button(false);
             return;
         }
 
         if (obj_->is_in_printing()) {
             wxString tips_text = _L("The printer is busy on other print job");
             update_warn_msg(tips_text);
-            if (m_button_ensure->IsEnabled()) Enable_Send_Button(false);
+            Enable_Send_Button(false);
             return;
         }
 
@@ -1673,14 +1671,17 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 void SelectMachineDialog::Enable_Refresh_Button(bool en)
 {
     if (!en) {
-        m_button_refresh->Disable();
-        auto disable_colour = wxColour(144, 144, 144);
-        m_button_refresh->SetBackgroundColor(disable_colour);
-        m_button_refresh->SetBorderColor(disable_colour);
+        if (m_button_refresh->IsEnabled()) {
+            m_button_refresh->Disable();
+            m_button_refresh->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+            m_button_refresh->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+        }
     } else {
-        m_button_refresh->Enable();
-        m_button_refresh->SetBackgroundColor(btn_bg_enable);
-        m_button_refresh->SetBorderColor(btn_bg_enable);
+        if (!m_button_refresh->IsEnabled()) {
+            m_button_refresh->Enable();
+            m_button_refresh->SetBackgroundColor(btn_bg_enable);
+            m_button_refresh->SetBorderColor(btn_bg_enable);
+        }
     }
 }
 
@@ -1689,9 +1690,8 @@ void SelectMachineDialog::Enable_Send_Button(bool en)
     if (!en) {
         if (m_button_ensure->IsEnabled()) {
             m_button_ensure->Disable();
-            auto disable_colour = wxColour(144, 144, 144);
-            m_button_ensure->SetBackgroundColor(disable_colour);
-            m_button_ensure->SetBorderColor(disable_colour);
+            m_button_ensure->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+            m_button_ensure->SetBorderColor(wxColour(0x90, 0x90, 0x90));
         }
     } else {
         if (!m_button_ensure->IsEnabled()) {
@@ -1737,6 +1737,7 @@ void SelectMachineDialog::set_default()
 
     // adjust refresh button
     Enable_Refresh_Button(true);
+    m_is_refreshing = false;
 
 
     // thumbmail

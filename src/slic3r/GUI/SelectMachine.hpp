@@ -284,7 +284,8 @@ protected:
     wxStaticText *m_statictext_finish{nullptr};
 
     StateColor btn_bg_enable;
-    int         m_current_filament_id;
+    int        m_current_filament_id;
+    bool       m_is_refreshing{false};
 
     wxGridSizer *m_sizer_select;
     wxBoxSizer * sizer_thumbnail;

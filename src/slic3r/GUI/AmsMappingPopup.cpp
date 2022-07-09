@@ -261,7 +261,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
         wxBoxSizer *sizer_mapping_item   = new wxBoxSizer(wxVERTICAL);
 
         // set number
-        auto number = new wxStaticText(this, wxID_ANY, wxString::Format("%d",tray_data[i].id), wxDefaultPosition, wxDefaultSize, 0);
+        auto number = new wxStaticText(this, wxID_ANY, wxString::Format("%02d",tray_data[i].id + 1), wxDefaultPosition, wxDefaultSize, 0);
         number->SetFont(::Label::Body_13);
         number->SetForegroundColour(wxColour(0X6B, 0X6B, 0X6B));
         number->Wrap(-1);
