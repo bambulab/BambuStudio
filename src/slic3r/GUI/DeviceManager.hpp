@@ -440,6 +440,7 @@ public:
     /* Project Task and Sub Task */
     std::string  project_id_;
     std::string  profile_id_;
+    std::string  task_id_;
     std::string  subtask_id_;
     BBLSliceInfo* slice_info {nullptr};
     int plate_index { -1 };

@@ -224,7 +224,6 @@ protected:
     void show_task_list_info(bool show = true);
     void update_tasklist_info();
 
-    void on_subtask_report(wxCommandEvent &event);
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
 
@@ -275,7 +274,6 @@ protected:
     void update_subtask(MachineObject *obj);
     void update_cloud_subtask(MachineObject *obj);
     void update_sdcard_subtask(MachineObject *obj);
-    void update_tasklist(MachineObject* obj);
     void update_temp_ctrl(MachineObject *obj);
     void update_misc_ctrl(MachineObject *obj);
     void update_ams(MachineObject* obj);
@@ -283,6 +281,7 @@ protected:
 
     void reset_printing_values();
     void on_webrequest_state(wxWebRequestEvent &evt);
+    bool is_task_changed(MachineObject* obj);
 
 public:
     StatusPanel(wxWindow *      parent,
@@ -295,7 +294,8 @@ public:
 
     MachineObject *obj {nullptr};
     BBLSubTask *   last_subtask{nullptr};
-    BBLProfile *   last_profile{nullptr};
+    std::string    last_profile_id;
+    std::string    last_task_id;
     long           last_tray_exist_bits { -1 };
     long           last_ams_exist_bits { -1 };
     long           last_tray_is_bbl_bits{ -1 };

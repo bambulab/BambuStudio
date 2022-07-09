@@ -1070,6 +1070,23 @@ void StatusPanel::on_webrequest_state(wxWebRequestEvent &evt)
     }
 }
 
+bool StatusPanel::is_task_changed(MachineObject* obj)
+{
+    if (!obj)
+        return false;
+
+    if (last_subtask != obj->subtask_
+        || last_profile_id != obj->profile_id_
+        || last_task_id != obj->task_id_
+        ) {
+        last_subtask = obj->subtask_;
+        last_profile_id = obj->profile_id_;
+        last_task_id = obj->task_id_;
+        return true;
+    }
+    return false;
+}
+
 void StatusPanel::update(MachineObject *obj)
 {
     if (!obj) return;
@@ -1389,11 +1406,9 @@ void StatusPanel::update_subtask(MachineObject *obj)
 {
     if (!obj) return;
 
-    if (obj->is_system_printing()) {
-        reset_printing_values();
-    }
-
-    if (!obj->print_status.empty() && obj->print_status.compare("FAILED") == 0) {
+    if (!obj->is_in_printing()
+        || obj->is_system_printing()
+        ) {
         reset_printing_values();
         return;
     }
@@ -1450,13 +1465,11 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
     if (!obj) return;
     if (!obj->subtask_) return;
 
-    // update subtask static info
-    if (last_subtask != obj->subtask_) {
+    if (is_task_changed(obj)) {
         reset_printing_values();
         BOOST_LOG_TRIVIAL(trace) << "monitor: change to sub task id = " << obj->subtask_->task_id;
         if (web_request.IsOk()) web_request.Cancel();
         m_start_loading_thumbnail = true;
-        last_subtask = obj->subtask_;
     }
 
     if (m_start_loading_thumbnail) {
@@ -1503,11 +1516,6 @@ void StatusPanel::update_sdcard_subtask(MachineObject *obj)
 
     m_gauge_progress->SetValue(obj->subtask_->task_progress);
     m_staticText_progress_percent->SetLabelText(wxString::Format("%d%%", obj->subtask_->task_progress));
-}
-
-void StatusPanel::update_tasklist(MachineObject *obj)
-{
-    ;
 }
 
 void StatusPanel::reset_printing_values()

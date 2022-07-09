@@ -1458,6 +1458,11 @@ int MachineObject::parse_json(std::string payload)
                     if (jj.contains("gcode_state")) {
                         this->set_print_state(jj["gcode_state"].get<std::string>());
                     }
+
+                    if (jj.contains("task_id")) {
+                        this->task_id_ = jj["task_id"].get<std::string>();
+                    }
+
                     if (jj.contains("project_id") 
                         && jj.contains("profile_id")
                         && jj.contains("subtask_id")
