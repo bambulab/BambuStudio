@@ -459,6 +459,8 @@ bool MonitorPanel::Show(bool show)
         //set a default machine when obj is null
         if (obj == nullptr && dev) {
             dev->load_last_machine();
+        } else {
+            obj->reset_update_time();
         }
 
         if (m_agent)

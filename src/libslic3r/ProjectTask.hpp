@@ -107,7 +107,6 @@ public:
         task_partplate_idx  = obj.task_partplate_idx;
         task_printer_dev_id = obj.task_printer_dev_id;
         task_create_time    = obj.task_create_time;
-        task_update_time    = obj.task_update_time;
         task_url            = obj.task_url;
         task_url_md5        = obj.task_url_md5;
         task_gcode_in_3mf   = obj.task_gcode_in_3mf;
@@ -127,9 +126,6 @@ public:
     fs::path        task_path;          /* local path of 3mf or gcode */
     std::string     task_gcode_in_3mf;  /* gcode in 3mf */
     std::string     task_create_time;   /* time created by cloud */
-    std::string     task_update_time;   /* time updated by cloud */
-    std::string     task_start_time;    /* start time */
-    std::string     task_end_time;      /* end time */
     std::string     task_thumbnail_url; /* url of task thumbnail */
     /* user options */
     std::string     task_bed_type;      /* bed_type of task, enum "auto" "pe", "pc", "pei" */
@@ -140,7 +136,6 @@ public:
     bool            task_record_timelapse; /* record timelapse of task */
 
     // task of plate info
-    std::string     task_prediction;    /* prediction printing time of plate, unit seconds */
     std::string     task_weight;        /* weight create by slicer */
     float           task_weightF;       /* weight in task */
     BBLSliceInfo    slice_info;         /* slice info of subtask */
@@ -173,7 +168,6 @@ public:
     std::string                 task_id;
     std::string                 task_name;
     std::string                 task_create_time;
-    std::string                 task_update_time;
     TaskStatus                  task_status;
     std::wstring                task_file;          /* local task file */
     std::string                 task_url;           /* cloud task url */

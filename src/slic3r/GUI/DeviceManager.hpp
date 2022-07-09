@@ -319,13 +319,13 @@ public:
 
     /* ams properties */
     std::map<std::string, Ams*> amsList;    // key: ams[id], start with 0
-    long  ams_exist_bits;
-    long  tray_exist_bits;
-    long  tray_is_bbl_bits; // valid bits
-    long  tray_read_done_bits;
+    long  ams_exist_bits = 0;
+    long  tray_exist_bits = 0;
+    long  tray_is_bbl_bits = 0;
+    long  tray_read_done_bits = 0;
     AmsStatusMain ams_status_main;
     int   ams_status_sub;
-    int   ams_version;
+    int   ams_version = 0;
     std::string m_ams_id;           // local ams  : "0" ~ "3"
     std::string m_tray_id;          // local tray id : "0" ~ "3"
     std::string m_tray_now;         // tray_now : "0" ~ "15" or "255"
@@ -443,6 +443,7 @@ public:
     std::string  subtask_id_;
     BBLSliceInfo* slice_info {nullptr};
     int plate_index { -1 };
+    std::string m_gcode_file;
     BBLSubTask* subtask_;
     std::string obj_subtask_id;     // subtask_id == 0 for sdcard
     std::string subtask_name;
@@ -505,6 +506,7 @@ public:
     bool can_abort();
     bool is_in_printing();
     bool is_printing_finished();
+    void reset_update_time();
     void reset();
     static bool is_in_printing_status(std::string status);
 

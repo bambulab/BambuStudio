@@ -296,9 +296,6 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
 {
     m_agent = agent;
 
-    /* create a dummy task to store info */
-    subtask_ = new BBLSubTask(nullptr);
-
     reset();
 
     /* temprature fields */
@@ -1258,9 +1255,15 @@ bool MachineObject::is_printing_finished()
     return false;
 }
 
+void MachineObject::reset_update_time()
+{
+    BOOST_LOG_TRIVIAL(trace) << "reset reset_update_time, dev_id =" << dev_id;
+    last_update_time = std::chrono::system_clock::now();
+}
+
 void MachineObject::reset()
 {
-    BOOST_LOG_TRIVIAL(trace) << "dev_id=" << dev_id << " reset.";
+    BOOST_LOG_TRIVIAL(trace) << "reset dev_id=" << dev_id;
     last_update_time = std::chrono::system_clock::now();
     m_push_count = 0;
     camera_recording = false;
@@ -1268,6 +1271,8 @@ void MachineObject::reset()
     printing_speed_mag = 100;
     iot_print_status = "";
     print_status = "";
+
+    subtask_ = nullptr;
 
 }
 
@@ -1364,6 +1369,8 @@ int MachineObject::parse_json(std::string payload)
         if (j_pre.contains("print")) {
             if (j_pre["print"].contains("command")) {
                 if (j_pre["print"]["command"].get<std::string>() == "push_status") {
+                    m_push_count++;
+
                     if (j_pre["print"].contains("msg")) {
                         if (j_pre["print"]["msg"].get<int>() == 0) {           //all message
                             print_json.diff2all_base_reset(j_pre);
@@ -1397,301 +1404,519 @@ int MachineObject::parse_json(std::string payload)
 
         if (j.contains("print")) {
             json jj = j["print"];
-            if (jj.contains("print_type")) {
-                print_type = jj["print_type"].get<std::string>();
-            }
-            if (jj.contains("mc_remaining_time")) {
-                if (jj["mc_remaining_time"].is_string())
-                    mc_left_time = stoi(j["print"]["mc_remaining_time"].get<std::string>()) * 60;
-                else if (jj["mc_remaining_time"].is_number_integer())
-                    mc_left_time = j["print"]["mc_remaining_time"].get<int>() * 60;
-            }
-            if (jj.contains("mc_percent")) {
-                if (jj["mc_percent"].is_string())
-                    mc_print_percent = stoi(j["print"]["mc_percent"].get<std::string>());
-                else if (jj["mc_percent"].is_number_integer())
-                    mc_print_percent = j["print"]["mc_percent"].get<int>();
-            }
-            if (jj.contains("mc_print_sub_stage")) {
-                if (jj["mc_print_sub_stage"].is_number_integer())
-                    mc_print_sub_stage = j["print"]["mc_print_sub_stage"].get<int>();
-            }
+            if (jj.contains("command")) {
+                if (jj["command"].get<std::string>() == "push_status") {
 
-            /* temperature */
-            if (jj.contains("bed_temper")) {
-                if (jj["bed_temper"].is_number()) {
-                    bed_temp = jj["bed_temper"].get<float>();
-                }
-            }
-            if (jj.contains("bed_target_temper")) {
-                if (jj["bed_target_temper"].is_number()) {
-                    bed_temp_target = jj["bed_target_temper"].get<float>();
-                }
-            }
-            if (jj.contains("frame_temper")) {
-                if (jj["frame_temper"].is_number()) {
-                    frame_temp = jj["frame_temper"].get<float>();
-                }
-            }
-            if (jj.contains("nozzle_temper")) {
-                if (jj["nozzle_temper"].is_number()) {
-                    nozzle_temp = jj["nozzle_temper"].get<float>();
-                }
-            }
-            if (jj.contains("nozzle_target_temper")) {
-                if (jj["nozzle_target_temper"].is_number()) {
-                    nozzle_temp_target = jj["nozzle_target_temper"].get<float>();
-                }
-            }
-            if (jj.contains("chamber_temper")) {
-                if (jj["chamber_temper"].is_number()) {
-                    chamber_temp = jj["chamber_temper"].get<float>();
-                }
-            }
+#pragma region printing
+                    if (jj.contains("print_type")) {
+                        print_type = jj["print_type"].get<std::string>();
+                    }
+                    if (jj.contains("mc_remaining_time")) {
+                        if (jj["mc_remaining_time"].is_string())
+                            mc_left_time = stoi(j["print"]["mc_remaining_time"].get<std::string>()) * 60;
+                        else if (jj["mc_remaining_time"].is_number_integer())
+                            mc_left_time = j["print"]["mc_remaining_time"].get<int>() * 60;
+                    }
+                    if (jj.contains("mc_percent")) {
+                        if (jj["mc_percent"].is_string())
+                            mc_print_percent = stoi(j["print"]["mc_percent"].get<std::string>());
+                        else if (jj["mc_percent"].is_number_integer())
+                            mc_print_percent = j["print"]["mc_percent"].get<int>();
+                    }
+                    if (jj.contains("mc_print_sub_stage")) {
+                        if (jj["mc_print_sub_stage"].is_number_integer())
+                            mc_print_sub_stage = j["print"]["mc_print_sub_stage"].get<int>();
+                    }
+                    /* printing */
+                    if (jj.contains("mc_print_stage")) {
+                        if (jj["mc_print_stage"].is_string())
+                            mc_print_stage = atoi(jj["mc_print_stage"].get<std::string>().c_str());
+                        if (jj["mc_print_stage"].is_number())
+                            mc_print_stage = jj["mc_print_stage"].get<int>();
+                    }
+                    if (jj.contains("mc_print_error_code")) {
+                        if (jj["mc_print_error_code"].is_string())
+                            mc_print_error_code = atoi(jj["mc_print_error_code"].get<std::string>().c_str());
+                        if (jj["mc_print_error_code"].is_number())
+                            mc_print_error_code = jj["mc_print_error_code"].get<int>();
 
-            if (jj.contains("printer_type")) {
-                printer_type = parse_printer_type(jj["printer_type"].get<std::string>());
-            }
+                    }
+                    if (jj.contains("mc_print_line_number")) {
+                        if (jj["mc_print_line_number"].is_string() && !jj["mc_print_line_number"].is_null())
+                            mc_print_line_number = atoi(jj["mc_print_line_number"].get<std::string>().c_str());
+                    }
+#pragma endregion
 
-            if (jj.contains("subtask_name")) {
-                subtask_name = jj["subtask_name"].get<std::string>();
-            }
+#pragma region print_task
+                    if (jj.contains("printer_type")) {
+                        printer_type = parse_printer_type(jj["printer_type"].get<std::string>());
+                    }
 
-            /* signals */
-            if (jj.contains("link_th_state"))
-                link_th = jj["link_th_state"].get<std::string>();
-            if (jj.contains("link_ams_state"))
-                link_ams = jj["link_ams_state"].get<std::string>();
-            if (jj.contains("wifi_signal"))
-                wifi_signal = jj["wifi_signal"].get<std::string>();
+                    if (jj.contains("subtask_name")) {
+                        subtask_name = jj["subtask_name"].get<std::string>();
+                    }
+                    if (jj.contains("gcode_state")) {
+                        this->set_print_state(jj["gcode_state"].get<std::string>());
+                    }
+                    if (jj.contains("project_id") 
+                        && jj.contains("profile_id")
+                        && jj.contains("subtask_id")
+                        ){
+                        obj_subtask_id = jj["subtask_id"].get<std::string>();
 
-            /* cooling */
-            if (jj.contains("cooling_fan_speed")) {
-                cooling_fan_speed = stoi(jj["cooling_fan_speed"].get<std::string>());
-            }
-            if (jj.contains("big_fan1_speed")) {
-                big_fan1_speed = stoi(jj["big_fan1_speed"].get<std::string>());
-            }
-            if (jj.contains("big_fan2_speed")) {
-                big_fan2_speed = stoi(jj["big_fan2_speed"].get<std::string>());
-            }
-            if (jj.contains("heatbreak_fan_speed")) {
-                heatbreak_fan_speed = stoi(jj["heatbreak_fan_speed"].get<std::string>());
-            }
+                        int plate_index = -1;
+                        /* parse local plate_index from task */
+                        if (obj_subtask_id.compare("0") == 0 && jj["profile_id"].get<std::string>() != "0") {
+                            if (jj.contains("gcode_file")) {
+                                m_gcode_file = jj["gcode_file"].get<std::string>();
+                                int idx_start = m_gcode_file.find_last_of("_") + 1;
+                                int idx_end = m_gcode_file.find_last_of(".");
+                                if (idx_start > 0 && idx_end > idx_start) {
+                                    try {
+                                        plate_index = atoi(m_gcode_file.substr(idx_start, idx_end - idx_start).c_str());
+                                    }
+                                    catch (...) {
+                                        ;
+                                    }
+                                }
+                            }
+                        }
+                        update_slice_info(jj["project_id"].get<std::string>(), jj["profile_id"].get<std::string>(), jj["subtask_id"].get<std::string>(), plate_index);
+                        BBLSubTask* curr_task = get_subtask();
+                        if (curr_task) {
+                            curr_task->task_progress = mc_print_percent;
+                            curr_task->printing_status = print_status;
+                            curr_task->task_id = jj["subtask_id"].get<std::string>();
+                            
+                        }
+                    }
+#pragma endregion
+                    
+#pragma region status
+                    /* temperature */
+                    if (jj.contains("bed_temper")) {
+                        if (jj["bed_temper"].is_number()) {
+                            bed_temp = jj["bed_temper"].get<float>();
+                        }
+                    }
+                    if (jj.contains("bed_target_temper")) {
+                        if (jj["bed_target_temper"].is_number()) {
+                            bed_temp_target = jj["bed_target_temper"].get<float>();
+                        }
+                    }
+                    if (jj.contains("frame_temper")) {
+                        if (jj["frame_temper"].is_number()) {
+                            frame_temp = jj["frame_temper"].get<float>();
+                        }
+                    }
+                    if (jj.contains("nozzle_temper")) {
+                        if (jj["nozzle_temper"].is_number()) {
+                            nozzle_temp = jj["nozzle_temper"].get<float>();
+                        }
+                    }
+                    if (jj.contains("nozzle_target_temper")) {
+                        if (jj["nozzle_target_temper"].is_number()) {
+                            nozzle_temp_target = jj["nozzle_target_temper"].get<float>();
+                        }
+                    }
+                    if (jj.contains("chamber_temper")) {
+                        if (jj["chamber_temper"].is_number()) {
+                            chamber_temp = jj["chamber_temper"].get<float>();
+                        }
+                    }
+                    /* signals */
+                    if (jj.contains("link_th_state"))
+                        link_th = jj["link_th_state"].get<std::string>();
+                    if (jj.contains("link_ams_state"))
+                        link_ams = jj["link_ams_state"].get<std::string>();
+                    if (jj.contains("wifi_signal"))
+                        wifi_signal = jj["wifi_signal"].get<std::string>();
 
-            /* ams status */
-            try {
-                if (jj.contains("ams_status")) {
-                    int ams_status = jj["ams_status"].get<int>();
-                    this->_parse_ams_status(ams_status);
-                }
-            }
-            catch(...) {
-                ;
-            }
+                    /* cooling */
+                    if (jj.contains("cooling_fan_speed")) {
+                        cooling_fan_speed = stoi(jj["cooling_fan_speed"].get<std::string>());
+                    }
+                    if (jj.contains("big_fan1_speed")) {
+                        big_fan1_speed = stoi(jj["big_fan1_speed"].get<std::string>());
+                    }
+                    if (jj.contains("big_fan2_speed")) {
+                        big_fan2_speed = stoi(jj["big_fan2_speed"].get<std::string>());
+                    }
+                    if (jj.contains("heatbreak_fan_speed")) {
+                        heatbreak_fan_speed = stoi(jj["heatbreak_fan_speed"].get<std::string>());
+                    }
+                    /* parse speed */
+                    try {
+                        if (jj.contains("spd_lvl")) {
+                            printing_speed_lvl = (PrintingSpeedLevel)jj["spd_lvl"].get<int>();
+                        }
+                        if (jj.contains("spd_mag")) {
+                            printing_speed_mag = jj["spd_mag"].get<int>();
+                        }
+                    }
+                    catch (...) {
+                        ;
+                    }
 
-            /* printing */
-            if (jj.contains("mc_print_stage")) {
-                if (jj["mc_print_stage"].is_string())
-                    mc_print_stage = atoi(jj["mc_print_stage"].get<std::string>().c_str());
-                if (jj["mc_print_stage"].is_number())
-                    mc_print_stage = jj["mc_print_stage"].get<int>();
-            }
-            if (jj.contains("mc_print_error_code")) {
-                if (jj["mc_print_error_code"].is_string())
-                    mc_print_error_code = atoi(jj["mc_print_error_code"].get<std::string>().c_str());
-                if (jj["mc_print_error_code"].is_number())
-                    mc_print_error_code = jj["mc_print_error_code"].get<int>();
+                    try {
+                        if (jj.contains("stg")) {
+                            stage_list_info.clear();
+                            if (jj["stg"].is_array()) {
+                                for (auto it = jj["stg"].begin(); it != jj["stg"].end(); it++) {
+                                    for (auto kv = (*it).begin(); kv != (*it).end(); kv++) {
+                                        stage_list_info.push_back(kv.value().get<int>());
+                                    }
+                                }
+                            }
+                        }
+                        if (jj.contains("stg_cur")) {
+                            stage_curr = jj["stg_cur"].get<int>();
+                        }
+                    }
+                    catch (...) {
+                        ;
+                    }
 
-            }
-            if (jj.contains("mc_print_line_number")) {
-                if (jj["mc_print_line_number"].is_string() && !jj["mc_print_line_number"].is_null())
-                    mc_print_line_number = atoi(jj["mc_print_line_number"].get<std::string>().c_str());
-            }
+                    /* get fimware type */
+                    try {
+                        if (jj.contains("lifecycle")) {
+                            if (jj["lifecycle"].get<std::string>() == "engineer")
+                                firmware_type = PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER;
+                            else if (jj["lifecycle"].get<std::string>() == "product")
+                                firmware_type = PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION;
+                        }
+                    }
+                    catch (...) {
+                        ;
+                    }
 
-
-            /* parse speed */
-            try {
-                if (jj.contains("spd_lvl")) {
-                    printing_speed_lvl = (PrintingSpeedLevel)jj["spd_lvl"].get<int>();
-                }
-                if (jj.contains("spd_mag")) {
-                    printing_speed_mag = jj["spd_mag"].get<int>();
-                }
-            }
-            catch(...) {
-                ;
-            }
-
-            try {
-                if (jj.contains("stg")) {
-                    stage_list_info.clear();
-                    if (jj["stg"].is_array()) {
-                        for (auto it = jj["stg"].begin(); it != jj["stg"].end(); it++) {
-                            for (auto kv = (*it).begin(); kv != (*it).end(); kv++) {
-                                stage_list_info.push_back(kv.value().get<int>());
+                    try {
+                        if (jj.contains("lights_report") && jj["lights_report"].is_array()) {
+                            for (auto it = jj["lights_report"].begin(); it != jj["lights_report"].end(); it++) {
+                                if ((*it)["node"].get<std::string>().compare("chamber_light") == 0)
+                                    chamber_light = light_effect_parse((*it)["mode"].get<std::string>());
+                                if ((*it)["node"].get<std::string>().compare("work_light") == 0)
+                                    work_light = light_effect_parse((*it)["mode"].get<std::string>());
                             }
                         }
                     }
-                }
-                if (jj.contains("stg_cur")) {
-                    stage_curr = jj["stg_cur"].get<int>();
-                }
-            } catch(...) {
-                ;
-            }
-
-            /* get fimware type */
-            try {
-                if (jj.contains("lifecycle")) {
-                    if (jj["lifecycle"].get<std::string>() == "engineer")
-                        firmware_type = PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER;
-                    else if (jj["lifecycle"].get<std::string>() == "product")
-                        firmware_type = PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION;
-                }
-            } catch(...) {
-                ;
-            }
-
-            try {
-                if (jj.contains("lights_report") && jj["lights_report"].is_array()) {
-                    for (auto it = jj["lights_report"].begin(); it != jj["lights_report"].end(); it++) {
-                        if ((*it)["node"].get<std::string>().compare("chamber_light") == 0)
-                            chamber_light = light_effect_parse((*it)["mode"].get<std::string>());
-                        if ((*it)["node"].get<std::string>().compare("work_light") == 0)
-                            work_light = light_effect_parse((*it)["mode"].get<std::string>());
+                    catch (...) {
+                        ;
                     }
-                }
-            } catch (...) {
-                ;
-            }
-
-            try {
-                if (jj.contains("upgrade_state")) {
-                    if (jj["upgrade_state"].contains("status"))
-                        upgrade_status = jj["upgrade_state"]["status"].get<std::string>();
-                    if (jj["upgrade_state"].contains("progress")) {
-                        upgrade_progress = jj["upgrade_state"]["progress"].get<std::string>();
-                    } if (jj["upgrade_state"].contains("new_version_state"))
-                        upgrade_new_version = jj["upgrade_state"]["new_version_state"].get<int>() == 1 ? true : false;
-                    if (jj["upgrade_state"].contains("ams_new_version_number"))
-                        ams_new_version_number = jj["upgrade_state"]["ams_new_version_number"].get<std::string>();
-                    if (jj["upgrade_state"].contains("ota_new_version_number"))
-                        ota_new_version_number = jj["upgrade_state"]["ota_new_version_number"].get<std::string>();
-                    if (jj["upgrade_state"].contains("ahb_new_version_number"))
-                        ahb_new_version_number = jj["upgrade_state"]["ahb_new_version_number"].get<std::string>();
-                    if (jj["upgrade_state"].contains("module"))
-                        upgrade_module = jj["upgrade_state"]["module"].get<std::string>();
-                    if (jj["upgrade_state"].contains("message"))
-                        upgrade_message = jj["upgrade_state"]["message"].get<std::string>();
-                    if (jj["upgrade_state"].contains("consistency_request"))
-                        upgrade_consistency_request = jj["upgrade_state"]["consistency_request"].get<bool>();
-                    if (jj["upgrade_state"].contains("force_upgrade"))
-                        upgrade_force_upgrade = jj["upgrade_state"]["force_upgrade"].get<bool>();
-                    if (jj["upgrade_state"].contains("err_code"))
-                        upgrade_err_code = jj["upgrade_state"]["err_code"].get<int>();
-                    if (jj["upgrade_state"].contains("dis_state"))
-                        upgrade_display_state = jj["upgrade_state"]["dis_state"].get<int>();
-                    else {
-                        //BBS compatibility with old version
-                        if (upgrade_status == "DOWNLOADING"
-                            || upgrade_status == "FLASHING"
-                            || upgrade_status == "UPGRADE_REQUEST"
-                            || upgrade_status == "PRE_FLASH_START"
-                            || upgrade_status == "PRE_FLASH_SUCCESS") {
-                            upgrade_display_state = (int) UpgradingDisplayState::UpgradingInProgress;
-                        } else if (upgrade_status == "UPGRADE_SUCCESS"
+#pragma endregion
+                    
+#pragma region upgrade
+                    try {
+                        if (jj.contains("upgrade_state")) {
+                            if (jj["upgrade_state"].contains("status"))
+                                upgrade_status = jj["upgrade_state"]["status"].get<std::string>();
+                            if (jj["upgrade_state"].contains("progress")) {
+                                upgrade_progress = jj["upgrade_state"]["progress"].get<std::string>();
+                            } if (jj["upgrade_state"].contains("new_version_state"))
+                                upgrade_new_version = jj["upgrade_state"]["new_version_state"].get<int>() == 1 ? true : false;
+                            if (jj["upgrade_state"].contains("ams_new_version_number"))
+                                ams_new_version_number = jj["upgrade_state"]["ams_new_version_number"].get<std::string>();
+                            if (jj["upgrade_state"].contains("ota_new_version_number"))
+                                ota_new_version_number = jj["upgrade_state"]["ota_new_version_number"].get<std::string>();
+                            if (jj["upgrade_state"].contains("ahb_new_version_number"))
+                                ahb_new_version_number = jj["upgrade_state"]["ahb_new_version_number"].get<std::string>();
+                            if (jj["upgrade_state"].contains("module"))
+                                upgrade_module = jj["upgrade_state"]["module"].get<std::string>();
+                            if (jj["upgrade_state"].contains("message"))
+                                upgrade_message = jj["upgrade_state"]["message"].get<std::string>();
+                            if (jj["upgrade_state"].contains("consistency_request"))
+                                upgrade_consistency_request = jj["upgrade_state"]["consistency_request"].get<bool>();
+                            if (jj["upgrade_state"].contains("force_upgrade"))
+                                upgrade_force_upgrade = jj["upgrade_state"]["force_upgrade"].get<bool>();
+                            if (jj["upgrade_state"].contains("err_code"))
+                                upgrade_err_code = jj["upgrade_state"]["err_code"].get<int>();
+                            if (jj["upgrade_state"].contains("dis_state"))
+                                upgrade_display_state = jj["upgrade_state"]["dis_state"].get<int>();
+                            else {
+                                //BBS compatibility with old version
+                                if (upgrade_status == "DOWNLOADING"
+                                    || upgrade_status == "FLASHING"
+                                    || upgrade_status == "UPGRADE_REQUEST"
+                                    || upgrade_status == "PRE_FLASH_START"
+                                    || upgrade_status == "PRE_FLASH_SUCCESS") {
+                                    upgrade_display_state = (int)UpgradingDisplayState::UpgradingInProgress;
+                                }
+                                else if (upgrade_status == "UPGRADE_SUCCESS"
                                     || upgrade_status == "DOWNLOAD_FAIL"
                                     || upgrade_status == "FLASH_FAIL"
                                     || upgrade_status == "PRE_FLASH_FAIL"
                                     || upgrade_status == "UPGRADE_FAIL") {
-                            upgrade_display_state = (int) UpgradingDisplayState::UpgradingFinished;
-                        } else {
-                            if (upgrade_new_version) {
-                                upgrade_display_state = (int) UpgradingDisplayState::UpgradingAvaliable;
-                            } else {
-                                upgrade_display_state = (int) UpgradingDisplayState::UpgradingUnavaliable;
-                            }
-                        }
-                    }
-                }
-            } catch (...) {
-                ;
-            }
-
-            // parse ams ack command
-            try {
-                if (jj.contains("command")) {
-                    if (jj["command"].get<std::string>() == "ams_filament_setting") {
-                        if (jj["ams_id"].is_number()) {
-                            int ams_id = jj["ams_id"].get<int>();
-                            auto ams_it = amsList.find(std::to_string(ams_id));
-                            if (ams_it != amsList.end()) {
-                                int tray_id = jj["tray_id"].get<int>() - ams_id * 4;
-                                auto tray_it = ams_it->second->trayList.find(std::to_string(tray_id));
-                                if (tray_it != ams_it->second->trayList.end()) {
-                                    BOOST_LOG_TRIVIAL(trace) << "ams_filament_setting, parse tray info";
-                                    tray_it->second->nozzle_temp_max = std::to_string(jj["nozzle_temp_max"].get<int>());
-                                    tray_it->second->nozzle_temp_min = std::to_string(jj["nozzle_temp_min"].get<int>());
-                                    tray_it->second->type = jj["tray_type"].get<std::string>();
-                                    tray_it->second->color = jj["tray_color"].get<std::string>();
-                                    tray_it->second->setting_id = jj["tray_info_idx"].get<std::string>();
-                                } else {
-                                    BOOST_LOG_TRIVIAL(warning) << "ams_filament_setting, can not find in trayList, tray_id=" << tray_id;
+                                    upgrade_display_state = (int)UpgradingDisplayState::UpgradingFinished;
                                 }
+                                else {
+                                    if (upgrade_new_version) {
+                                        upgrade_display_state = (int)UpgradingDisplayState::UpgradingAvaliable;
+                                    }
+                                    else {
+                                        upgrade_display_state = (int)UpgradingDisplayState::UpgradingUnavaliable;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (...) {
+                        ;
+                    }
+#pragma endregion
+
+#pragma region  camera
+                    // parse camera info
+                    try {
+                        if (jj.contains("ipcam")) {
+                            if (jj["ipcam"].contains("ipcam_record")) {
+                                if (jj["ipcam"]["ipcam_record"].get<std::string>() == "enable") {
+                                    camera_recording = true;
+                                }
+                                else {
+                                    camera_recording = false;
+                                }
+                            }
+                            if (jj["ipcam"].contains("timelapse")) {
+                                if (jj["ipcam"]["timelapse"].get<std::string>() == "enable") {
+                                    camera_timelapse = true;
+                                }
+                                else {
+                                    camera_timelapse = false;
+                                }
+                            }
+                        }
+                    }
+                    catch (...) {
+                        ;
+                    }
+#pragma endregion            
+
+#pragma region hms
+                    // parse hms msg
+                    try {
+                        hms_list.clear();
+                        if (jj.contains("hms")) {
+                            if (jj["hms"].is_array()) {
+                                for (auto it = jj["hms"].begin(); it != jj["hms"].end(); it++) {
+                                    HMSItem item;
+                                    if ((*it).contains("attr") && (*it).contains("code")) {
+                                        unsigned attr = (*it)["attr"].get<unsigned>();
+                                        unsigned code = (*it)["code"].get<unsigned>();
+                                        item.parse_hms_info(attr, code);
+                                    }
+                                    hms_list.push_back(item);
+                                }
+                            }
+                        }
+                    }
+                    catch (...) {
+                        ;
+                    }
+#pragma endregion
+
+
+#pragma region push_ams
+                    /* ams status */
+                    try {
+                        if (jj.contains("ams_status")) {
+                            int ams_status = jj["ams_status"].get<int>();
+                            this->_parse_ams_status(ams_status);
+                        }
+                    }
+                    catch (...) {
+                        ;
+                    }
+
+                    if (jj.contains("ams")) {
+                        if (jj["ams"].contains("ams")) {
+                            long int last_ams_exist_bits = ams_exist_bits;
+                            long int last_tray_exist_bits = tray_exist_bits;
+                            long int last_is_bbl_bits = tray_is_bbl_bits;
+                            long int last_read_done_bits = tray_read_done_bits;
+                            long int last_ams_version = ams_version;
+                            if (jj["ams"].contains("ams_exist_bits")) {
+                                ams_exist_bits = stol(jj["ams"]["ams_exist_bits"].get<std::string>(), nullptr, 16);
+                            }
+                            if (jj["ams"].contains("tray_exist_bits")) {
+                                tray_exist_bits = stol(jj["ams"]["tray_exist_bits"].get<std::string>(), nullptr, 16);
+                            }
+                            if (jj["ams"].contains("tray_read_done_bits")) {
+                                tray_read_done_bits = stol(jj["ams"]["tray_read_done_bits"].get<std::string>(), nullptr, 16);
+                            }
+                            if (jj["ams"].contains("tray_is_bbl_bits")) {
+                                tray_is_bbl_bits = stol(jj["ams"]["tray_is_bbl_bits"].get<std::string>(), nullptr, 16);
+                            }
+                            if (jj["ams"].contains("version")) {
+                                if (jj["ams"]["version"].is_number())
+                                    ams_version = jj["ams"]["version"].get<int>();
+                            }
+                            if (jj["ams"].contains("tray_now")) {
+                                this->_parse_tray_now(jj["ams"]["tray_now"].get<std::string>());
+                            }
+                            if (jj["ams"].contains("tray_tar")) {
+                                m_tray_tar = jj["ams"]["tray_tar"].get<std::string>();
+                            }
+
+                            if (ams_exist_bits != last_ams_exist_bits
+                                || last_tray_exist_bits != last_tray_exist_bits
+                                || tray_is_bbl_bits != last_is_bbl_bits
+                                || tray_read_done_bits != last_read_done_bits
+                                || last_ams_version != ams_version) {
+                                is_ams_need_update = true;
+                            }
+                            else {
+                                is_ams_need_update = false;
+                            }
+
+                            json j_ams = jj["ams"]["ams"];
+                            std::set<std::string> ams_id_set;
+                            for (auto it = amsList.begin(); it != amsList.end(); it++) {
+                                ams_id_set.insert(it->first);
+                            }
+                            for (auto it = j_ams.begin(); it != j_ams.end(); it++) {
+                                if (!it->contains("id")) continue;
+                                std::string ams_id = (*it)["id"].get<std::string>();
+                                ams_id_set.erase(ams_id);
+                                Ams* curr_ams = nullptr;
+                                auto ams_it = amsList.find(ams_id);
+                                if (ams_it == amsList.end()) {
+                                    Ams* new_ams = new Ams(ams_id);
+                                    try {
+                                        if (!ams_id.empty()) {
+                                            int ams_id_int = atoi(ams_id.c_str());
+                                            new_ams->is_exists = (ams_exist_bits & (1 << ams_id_int)) != 0 ? true : false;
+                                        }
+                                    }
+                                    catch (...) {
+                                        ;
+                                    }
+                                    amsList.insert(std::make_pair(ams_id, new_ams));
+                                    // new ams added event
+                                    curr_ams = new_ams;
+                                } else {
+                                    curr_ams = ams_it->second;
+                                }
+                                if (!curr_ams) continue;
+
+                                if (it->contains("tray")) {
+                                    std::set<std::string> tray_id_set;
+                                    for (auto it = curr_ams->trayList.begin(); it != curr_ams->trayList.end(); it++) {
+                                        tray_id_set.insert(it->first);
+                                    }
+                                    for (auto tray_it = (*it)["tray"].begin(); tray_it != (*it)["tray"].end(); tray_it++) {
+                                        if (!tray_it->contains("id")) continue;
+                                        std::string tray_id = (*tray_it)["id"].get<std::string>();
+                                        tray_id_set.erase(tray_id);
+                                        // compare tray_list
+                                        AmsTray* curr_tray = nullptr;
+                                        auto tray_iter = curr_ams->trayList.find(tray_id);
+                                        if (tray_iter == curr_ams->trayList.end()) {
+                                            AmsTray* new_tray = new AmsTray(tray_id);
+                                            curr_ams->trayList.insert(std::make_pair(tray_id, new_tray));
+                                            curr_tray = new_tray;
+                                        }
+                                        else {
+                                            curr_tray = tray_iter->second;
+                                        }
+                                        if (!curr_tray) continue;
+                                        curr_tray->id = (*tray_it)["id"].get<std::string>();
+                                        if (tray_it->contains("tag_uid"))
+                                            curr_tray->tag_uid          = (*tray_it)["tag_uid"].get<std::string>();
+                                        if (tray_it->contains("tray_info_idx"))
+                                            curr_tray->setting_id       = (*tray_it)["tray_info_idx"].get<std::string>();
+                                        if (tray_it->contains("tray_type"))
+                                            curr_tray->type             = (*tray_it)["tray_type"].get<std::string>();
+                                        if (tray_it->contains("tray_sub_brands"))
+                                            curr_tray->sub_brands       = (*tray_it)["tray_sub_brands"].get<std::string>();
+                                        if (tray_it->contains("tray_weight"))
+                                            curr_tray->weight           = (*tray_it)["tray_weight"].get<std::string>();
+                                        if (tray_it->contains("tray_diameter"))
+                                            curr_tray->diameter         = (*tray_it)["tray_diameter"].get<std::string>();
+                                        if (tray_it->contains("tray_temp"))
+                                            curr_tray->temp             = (*tray_it)["tray_temp"].get<std::string>();
+                                        if (tray_it->contains("tray_time"))
+                                            curr_tray->time             = (*tray_it)["tray_time"].get<std::string>();
+                                        if (tray_it->contains("bed_temp_type"))
+                                            curr_tray->bed_temp_type    = (*tray_it)["bed_temp_type"].get<std::string>();
+                                        if (tray_it->contains("bed_temp"))
+                                            curr_tray->bed_temp         = (*tray_it)["bed_temp"].get<std::string>();
+                                        if (tray_it->contains("nozzle_temp_max"))
+                                            curr_tray->nozzle_temp_max = (*tray_it)["nozzle_temp_max"].get<std::string>();
+                                        if (tray_it->contains("nozzle_temp_min"))
+                                            curr_tray->nozzle_temp_min = (*tray_it)["nozzle_temp_min"].get<std::string>();
+                                        if (tray_it->contains("xcam_info"))
+                                            curr_tray->xcam_info = (*tray_it)["xcam_info"].get<std::string>();
+                                        if (tray_it->contains("tray_uuid"))
+                                            curr_tray->uuid = (*tray_it)["tray_uuid"].get<std::string>();
+                                        if (tray_it->contains("tray_color")) {
+                                            auto color = (*tray_it)["tray_color"].get<std::string>();
+                                            curr_tray->update_color_from_str(color);
+                                        }
+                                        try {
+                                            if (!ams_id.empty() && !curr_tray->id.empty()) {
+                                                int ams_id_int = atoi(ams_id.c_str());
+                                                int tray_id_int = atoi(curr_tray->id.c_str());
+                                                curr_tray->is_exists = (tray_exist_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0 ? true : false;
+                                            }
+                                        }
+                                        catch (...) {
+                                        }
+                                    }
+                                    // remove not in trayList
+                                    for (auto tray_it = tray_id_set.begin(); tray_it != tray_id_set.end(); tray_it++) {
+                                        std::string tray_id = *tray_it;
+                                        auto tray = curr_ams->trayList.find(tray_id);
+                                        if (tray != curr_ams->trayList.end()) {
+                                            curr_ams->trayList.erase(tray_id);
+                                            BOOST_LOG_TRIVIAL(trace) << "parse_json: remove ams_id=" << ams_id << ", tray_id=" << tray_id;
+                                        }
+                                    }
+                                }
+                            }
+                            // remove not in amsList
+                            for (auto it = ams_id_set.begin(); it != ams_id_set.end(); it++) {
+                                std::string ams_id = *it;
+                                auto ams = amsList.find(ams_id);
+                                if (ams != amsList.end()) {
+                                    BOOST_LOG_TRIVIAL(trace) << "parse_json: remove ams_id=" << ams_id;
+                                    amsList.erase(ams_id);
+                                }
+                            }
+                        }
+                    }
+#pragma endregion
+
+
+
+                } else if (jj["command"].get<std::string>() == "gcode_line") {
+                    //ack of gcode_line
+                } else if (jj["command"].get<std::string>() == "project_file") {
+                    //ack of project file
+                } else if (jj["command"].get<std::string>() == "ams_filament_setting") {
+                    if (jj["ams_id"].is_number()) {
+                        int ams_id = jj["ams_id"].get<int>();
+                        auto ams_it = amsList.find(std::to_string(ams_id));
+                        if (ams_it != amsList.end()) {
+                            int tray_id = jj["tray_id"].get<int>() - ams_id * 4;
+                            auto tray_it = ams_it->second->trayList.find(std::to_string(tray_id));
+                            if (tray_it != ams_it->second->trayList.end()) {
+                                BOOST_LOG_TRIVIAL(trace) << "ams_filament_setting, parse tray info";
+                                tray_it->second->nozzle_temp_max = std::to_string(jj["nozzle_temp_max"].get<int>());
+                                tray_it->second->nozzle_temp_min = std::to_string(jj["nozzle_temp_min"].get<int>());
+                                tray_it->second->type = jj["tray_type"].get<std::string>();
+                                tray_it->second->color = jj["tray_color"].get<std::string>();
+                                tray_it->second->setting_id = jj["tray_info_idx"].get<std::string>();
                             } else {
-                                BOOST_LOG_TRIVIAL(warning) << "ams_filament_setting, can not find in amsList, ams_id=" << ams_id;
+                                BOOST_LOG_TRIVIAL(warning) << "ams_filament_setting, can not find in trayList, tray_id=" << tray_id;
                             }
-                        }
-                    }
-                }
-            } catch (...) {
-                ;
-            }
-
-
-            // parse camera info
-            try {
-                if (jj.contains("ipcam")) {
-                    if (jj["ipcam"].contains("ipcam_record")) {
-                        if (jj["ipcam"]["ipcam_record"].get<std::string>() == "enable") {
-                            camera_recording = true;
                         } else {
-                            camera_recording = false;
-                        }
-                    }
-                    if (jj["ipcam"].contains("timelapse")) {
-                        if (jj["ipcam"]["timelapse"].get<std::string>() == "enable") {
-                            camera_timelapse = true;
-                        } else {
-                            camera_timelapse = false;
+                            BOOST_LOG_TRIVIAL(warning) << "ams_filament_setting, can not find in amsList, ams_id=" << ams_id;
                         }
                     }
                 }
-            } catch (...) {
-                ;
-            }
-
-            // parse hms msg
-            try {
-                hms_list.clear();
-                if (jj.contains("hms")) {
-                    if (jj["hms"].is_array()) {
-                        for (auto it = jj["hms"].begin(); it != jj["hms"].end(); it++) {
-                            HMSItem item;
-                            if ((*it).contains("attr") && (*it).contains("code")) {
-                                unsigned attr = (*it)["attr"].get<unsigned>();
-                                unsigned code = (*it)["code"].get<unsigned>();
-                                item.parse_hms_info(attr, code);
-                            }
-                            hms_list.push_back(item);
-                        }
-                    }
-                }
-            } catch (...) {
-                ;
             }
         }
+
         try {
             if (j.contains("info")) {
                 if (j["info"].contains("command") && j["info"]["command"].get<std::string>() == "get_version") {
@@ -1730,298 +1955,19 @@ int MachineObject::parse_json(std::string payload)
             }
         } catch (...) {}
 
-        std::stringstream ss(j.dump());
-        pt::ptree root;
-        pt::read_json(ss, root);
-        if (root.empty()) {
-            BOOST_LOG_TRIVIAL(trace) << "parse_json failed! dev_id = " << this->dev_id << ", payload = " << payload;
-            return -1;
-        }
-        // print command
-        if (root.get_child_optional("print") != boost::none) {
-            pt::ptree print = root.get_child("print");
-            boost::optional<std::string> command = print.get_optional<std::string>("command");
-            if (!command.has_value()) return 0;
-            // push_status
-            if (command.value().compare("push_status") == 0) {
-                m_push_count++;
-                /* upgrade */
-                boost::optional<std::string> force_upgrade      = print.get_optional<std::string>("force_upgrade");
-                if (force_upgrade.has_value()) {
-                    this->upgrade_force_upgrade = force_upgrade.value().compare("true") == 0 ? true : false;
-                }
 
-                /* gcode */
-                boost::optional<std::string> gcode_start_time   = print.get_optional<std::string>("gcode_start_time");
-                boost::optional<std::string> gcode_file         = print.get_optional<std::string>("gcode_file");
-                boost::optional<std::string> progress           = print.get_optional<std::string>("progress");
-                boost::optional<std::string> gcode_state        = print.get_optional<std::string>("gcode_state");
-
-                if (gcode_state.has_value()) {
-                    this->set_print_state(gcode_state.value());
-                }
-
-                /* task */
-                boost::optional<std::string> project_id         = print.get_optional<std::string>("project_id");
-                boost::optional<std::string> profile_id         = print.get_optional<std::string>("profile_id");
-                boost::optional<std::string> task_id            = print.get_optional<std::string>("task_id");
-                boost::optional<std::string> subtask_id         = print.get_optional<std::string>("subtask_id");
-
-                // can query users info
-                bool query_user = true;
-                //do not query when this machine is not current user
-                if (Slic3r::GUI::wxGetApp().is_user_login()) {
-                    /* parse plate_idx */
-                    if (!bind_user_id.empty() && bind_user_id.compare(Slic3r::GUI::wxGetApp().getAgent()->get_user_id()) != 0)
-                        query_user = false;
-                }
-
-                if (query_user) {
-                    /* sync project and profile info */
-                    if (project_id.has_value() && profile_id.has_value() && subtask_id.has_value() && gcode_file.has_value())
-                    {
-                        obj_subtask_id = subtask_id.value();
-                        int plate_index = -1;
-                        /* parse local plate_index from task */
-                        if (obj_subtask_id.compare("0") == 0 && profile_id.value().compare("0") != 0) {
-                            std::string gcode_str = gcode_file.value();
-                            int idx_start = gcode_str.find_last_of("_") + 1;
-                            int idx_end = gcode_str.find_last_of(".");
-                            if (idx_start > 0 && idx_end > idx_start) {
-                                try {
-                                    plate_index = atoi(gcode_str.substr(idx_start, idx_end - idx_start).c_str());
-                                }
-                                catch(...) {
-                                    ;
-                                }
-                            }
-                        }
-                        update_slice_info(project_id.value(), profile_id.value(), subtask_id.value(), plate_index);
-                    }
-
-                    BBLSubTask* curr_task = get_subtask();
-
-                    if (curr_task) {
-                        if (mc_left_time == 0 && mc_print_percent == 0)
-                            curr_task->task_progress = stoi(progress.has_value() ? progress.value() : "0");
-                        else
-                            curr_task->task_progress = mc_print_percent;
-
-                        if (gcode_start_time.has_value())
-                            curr_task->task_start_time = gcode_start_time.value();
-
-                        if (gcode_state.has_value())
-                            curr_task->printing_status = gcode_state.value();
-
-                        // update default subtask fields
-                        if (subtask_id.has_value()) {
-                            curr_task->task_id = subtask_id.value();
-                        }
-                    }
-                }
-
-                /* ams */
-                try {
-                    auto ams = print.get_child_optional("ams");
-                    if (ams != boost::none && ams.value().get_child_optional("ams").has_value()) {
-                        auto &print = ams.value();
-                        // reconnect amsList.clear();
-
-                        // for ams changed event
-                        boost::optional<std::string> ams_exist_bits_str     = print.get_optional<std::string>("ams_exist_bits");
-                        boost::optional<std::string> tray_exist_bits_str    = print.get_optional<std::string>("tray_exist_bits");
-                        boost::optional<std::string> tray_read_done_bits_str= print.get_optional<std::string>("tray_read_done_bits");
-                        boost::optional<std::string> tray_is_bbl_bits_str   = print.get_optional<std::string>("tray_is_bbl_bits");
-                        boost::optional<std::string> tray_now_str           = print.get_optional<std::string>("tray_now");
-                        boost::optional<std::string> tray_tar_str           = print.get_optional<std::string>("tray_tar");
-                        boost::optional<int> ams_version_int                = print.get_optional<int>("version");
-
-                        long int last_ams_exist_bits = ams_exist_bits;
-                        long int last_tray_exist_bits = tray_exist_bits;
-                        long int last_is_bbl_bits     = tray_is_bbl_bits;
-                        long int last_read_done_bits  = tray_read_done_bits;
-                        long int last_ams_version     = ams_version;
-                        if (ams_exist_bits_str.has_value())
-                            ams_exist_bits = stol(ams_exist_bits_str.value(), nullptr, 16);
-                        if (tray_exist_bits_str.has_value())
-                            tray_exist_bits = stol(tray_exist_bits_str.value(), nullptr, 16);
-                        if (tray_is_bbl_bits_str.has_value())
-                            tray_is_bbl_bits = stol(tray_is_bbl_bits_str.value(), nullptr, 16);
-                        if (tray_read_done_bits_str.has_value())
-                            tray_read_done_bits = stol(tray_read_done_bits_str.value(), nullptr, 16);
-                        if (ams_version_int.has_value())
-                            ams_version = ams_version_int.value();
-
-                        if (tray_now_str.has_value()) {
-                            this->_parse_tray_now(tray_now_str.value());
-
-                        }
-                        if (tray_tar_str.has_value())
-                            m_tray_tar = tray_tar_str.value();
-
-                        if (ams_exist_bits != last_ams_exist_bits
-                            || last_tray_exist_bits != last_tray_exist_bits
-                            || tray_is_bbl_bits != last_is_bbl_bits
-                            || tray_read_done_bits != last_read_done_bits
-                            || last_ams_version != ams_version) {
-                            is_ams_need_update = true;
-                        }
-                        else {
-                            is_ams_need_update = false;
-                        }
-
-                        pt::ptree ams_list = print.get_child("ams");
-                        // compare ams_list
-                        for (auto ams = ams_list.begin(); ams != ams_list.end(); ++ams) {
-                            std::string ams_id = ams->second.get_optional<std::string>("id").value();
-                            if (ams_id.empty()) continue;
-
-                            Ams* curr_ams = nullptr;
-                            std::map<std::string, Ams*>::iterator it = amsList.find(ams_id);
-                            if (it == amsList.end()) {
-                                // check valid id
-                                Ams* new_ams = new Ams(ams_id);
-                                try {
-                                    if (!ams_id.empty()) {
-                                        int ams_id_int       = atoi(ams_id.c_str());
-                                        new_ams->is_exists   = (ams_exist_bits & (1 << ams_id_int)) != 0 ? true : false;
-                                    }
-                                } catch (...) {
-                                    ;
-                                }
-                                amsList.insert(std::make_pair(ams_id, new_ams));
-                                // new ams added event
-                                curr_ams = new_ams;
-                            }
-                            else {
-                                curr_ams = it->second;
-                            }
-
-                            if (!curr_ams) continue;
-
-                            if (!ams->second.get_child_optional("tray").has_value()) continue;
-
-                            pt::ptree tray_list = ams->second.get_child("tray");
-                            for (auto tray = tray_list.begin(); tray != tray_list.end(); ++tray) {
-                                std::string tray_id     = tray->second.get_optional<std::string>("id").value();
-                                boost::optional<std::string> id                 = tray->second.get_optional<std::string>("id");
-                                boost::optional<std::string> tag_uid            = tray->second.get_optional<std::string>("tag_uid");
-                                boost::optional<std::string> tray_info_idx      = tray->second.get_optional<std::string>("tray_info_idx");
-                                boost::optional<std::string> tray_type          = tray->second.get_optional<std::string>("tray_type");
-                                boost::optional<std::string> tray_sub_brands    = tray->second.get_optional<std::string>("tray_sub_brands");
-                                boost::optional<std::string> tray_color         = tray->second.get_optional<std::string>("tray_color");
-                                boost::optional<std::string> tray_weight        = tray->second.get_optional<std::string>("tray_weight");
-                                boost::optional<std::string> tray_diameter      = tray->second.get_optional<std::string>("tray_diameter");
-                                boost::optional<std::string> tray_temp          = tray->second.get_optional<std::string>("tray_temp");
-                                boost::optional<std::string> tray_time          = tray->second.get_optional<std::string>("tray_time");
-                                boost::optional<std::string> bed_temp_type      = tray->second.get_optional<std::string>("bed_temp_type");
-                                boost::optional<std::string> bed_temp           = tray->second.get_optional<std::string>("bed_temp");
-                                boost::optional<std::string> nozzle_temp_max   = tray->second.get_optional<std::string>("nozzle_temp_max");
-                                boost::optional<std::string> nozzle_temp_min   = tray->second.get_optional<std::string>("nozzle_temp_min");
-
-                                boost::optional<std::string> xcam_info          = tray->second.get_optional<std::string>("xcam_info");
-                                boost::optional<std::string> tray_uuid          = tray->second.get_optional<std::string>("tray_uuid");
-
-                                if (tray_id.empty()) continue;
-
-                                // compare tray_list
-                                AmsTray* curr_tray = nullptr;
-                                std::map<std::string, AmsTray*>::iterator tray_it = curr_ams->trayList.find(tray_id);
-                                if (tray_it == curr_ams->trayList.end()) {
-                                    AmsTray* new_tray = new AmsTray(tray_id);
-                                    curr_ams->trayList.insert(std::make_pair(tray_id, new_tray));
-                                    curr_tray = new_tray;
-                                }
-                                else {
-                                    curr_tray = tray_it->second;
-                                }
-
-                                // update properties
-                                if (curr_tray) {
-                                    curr_tray->id           = id.has_value() ? id.value() : "";
-                                    curr_tray->tag_uid      = tag_uid.has_value() ? tag_uid.value() : "";
-                                    curr_tray->setting_id   = tray_info_idx.has_value() ? tray_info_idx.value() : "";
-                                    curr_tray->type         = tray_type.has_value() ? tray_type.value() : "";
-                                    curr_tray->sub_brands   = tray_sub_brands.has_value() ? tray_sub_brands.value() : "";
-                                    curr_tray->weight       = tray_weight.has_value() ? tray_weight.value() : "";
-                                    curr_tray->diameter     = tray_diameter.has_value() ? tray_diameter.value() : "";
-                                    curr_tray->temp         = tray_temp.has_value() ? tray_temp.value() : "";
-                                    curr_tray->time         = tray_time.has_value() ? tray_time.value() : "";
-                                    curr_tray->bed_temp_type = bed_temp_type.has_value() ? bed_temp_type.value() : "";
-                                    curr_tray->bed_temp      = bed_temp.has_value() ? bed_temp.value() : "";
-                                    if (nozzle_temp_max.has_value())
-                                        curr_tray->nozzle_temp_max = nozzle_temp_max.value();
-                                    if (nozzle_temp_min.has_value())
-                                        curr_tray->nozzle_temp_min = nozzle_temp_min.value();
-                                    curr_tray->xcam_info          = xcam_info.has_value() ? xcam_info.value() : "";
-                                    curr_tray->uuid               = tray_uuid.has_value() ? tray_uuid.value() : "";
-                                    auto color = tray_color.has_value() ? tray_color.value() : "";
-                                    curr_tray->update_color_from_str(color);
-                                    try {
-                                        if (!ams_id.empty() && !curr_tray->id.empty()) {
-                                            int ams_id_int = atoi(ams_id.c_str());
-                                            int tray_id_int = atoi(curr_tray->id.c_str());
-                                            curr_tray->is_exists = (tray_exist_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0 ? true : false;
-                                        }
-                                    } catch(...) {
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (...) {
-                    ;
-                }
-            }
-            // ack of gcode_line
-            else if (command.value().compare("gcode_line") == 0) {
-                boost::optional<std::string> sequence_id = print.get_optional<std::string>("sequence_id");
-            }
-            else if (command.value().compare("project_file") == 0) {
-                boost::optional<std::string> sequence_id = print.get_optional<std::string>("sequence_id");
-                BOOST_LOG_TRIVIAL(trace) << "ack of project_file " << payload;
-            }
-        }
         // event info
-        else if (root.get_child_optional("event") != boost::none) {
-            pt::ptree event_node = root.get_child("event");
-            boost::optional<std::string> event_str = event_node.get_optional<std::string>("event");
-            if (event_str.has_value()) {
-                if (event_str.value().compare("client.disconnected") == 0) {
-                    set_online_state(true);
+        try {
+            if (j.contains("event")) {
+                if (j["event"].contains("event")) {
+                    if (j["event"]["event"].get<std::string>() == "client.disconnected")
+                        set_online_state(false);
+                    else if (j["event"]["event"].get<std::string>() == "client.connected")
+                        set_online_state(true);
                 }
-                else if (event_str.value().compare("client.connected") == 0) {
-                    set_online_state(false);
-                }
-                else {
-                    ;
-                }
-            }
-            /* fields: client_id, username, peername, proto_name, proto_ver, connected_at, timestamp, etc */
-            BOOST_LOG_TRIVIAL(trace) << "parse_json, event dev_id = " << this->dev_id << ", payload = " << payload;
-        }
-        else if (root.get_child_optional("system") != boost::none) {
-            pt::ptree system = root.get_child("system");
-            try {
-                if (system.get_child_optional("lights") != boost::none) {
-                    pt::ptree light_list = system.get_child("lights");
-                    for (auto light_node = light_list.begin(); light_node != light_list.end(); ++light_node) {
-                        boost::optional<std::string> led_node = light_node->second.get_optional<std::string>("node");
-                        boost::optional<std::string> led_mode = light_node->second.get_optional<std::string>("mode");
-                        if (led_node.has_value() && led_mode.has_value()) {
-                            if (led_node.value().compare("chamber_light") == 0)
-                                chamber_light = light_effect_parse(led_mode.value());
-                            else if (led_node.value().compare("work_light") == 0)
-                                work_light = light_effect_parse(led_mode.value());
-                        }
-                    }
-                }
-            }
-            catch (...) {
-                ;
             }
         }
+        catch (...)  {}
     }
     catch (...) {
         BOOST_LOG_TRIVIAL(trace) << "parse_json failed! dev_id=" << this->dev_id <<", payload = " << payload;
@@ -2049,6 +1995,8 @@ int MachineObject::publish_gcode(std::string gcode_str)
 
 BBLSubTask* MachineObject::get_subtask()
 {
+    if (!subtask_)
+        subtask_ = new BBLSubTask(nullptr);
     return subtask_;
 }
 

@@ -159,9 +159,6 @@ namespace Slic3r {
                     boost::optional<std::string> subtask_printer = subtask->second.get_optional<std::string>("printer");
                     if (subtask_printer.has_value()) new_subtask->task_printer_dev_id = subtask_printer.value();
 
-                    boost::optional<std::string> subtask_prediction = subtask->second.get_optional<std::string>("prediction");
-                    if (subtask_prediction.has_value()) new_subtask->task_prediction = subtask_prediction.value();
-
                     boost::optional<std::string> subtask_weight = subtask->second.get_optional<std::string>("weight");
                     if (subtask_weight.has_value()) new_subtask->task_weight = subtask_weight.value();
                     subtasks.push_back(new_subtask);
