@@ -33,6 +33,8 @@ wxDEFINE_EVENT(EVT_UNBIND_MACHINE, wxCommandEvent);
 #define LIST_REFRESH_INTERVAL 200
 #define MACHINE_LIST_REFRESH_INTERVAL 2000
 
+static wxString task_canceled_text = _L("Task canceled");
+
 MachineListModel::MachineListModel() : wxDataViewVirtualListModel(INITIAL_NUMBER_OF_MACHINES) { ; }
 
 void MachineListModel::display_machines(std::map<std::string, MachineObject *> list)
@@ -1049,12 +1051,12 @@ bool SelectMachineDialog::check_ams_mapping_result(std::string &mapping_array_st
     }
 
     if (invalid_count == m_ams_mapping_result.size()) {
-        wxString tips = _L("Ams Mappling failed, please select filament");
+        wxString tips = _L("Please click each filament above to specify its mapping AMS slot before sending the print job");
         update_info_msg(tips);
         Enable_Send_Button(true);
     } else {
         if (!valid_mapping_result) {
-            wxString tips = _L("Plese select the filament in ams");
+            wxString tips = _L("Please click each filament above to specify its mapping AMS slot before sending the print job");
             update_info_msg(tips);
             Enable_Send_Button(false);
             return false;
@@ -1218,7 +1220,6 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
 {
     update_err_msg(wxEmptyString);
     int result = 0;
-    m_status_bar->set_status_text("Exporting 3mf was cancelled.");
 
     if (m_printer_last_select.empty()) {
         update_err_msg(_L("Please select a printer first."));
@@ -1235,15 +1236,9 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         return;
     }
 
-    // check printing status
-    /*if (!obj_->can_print()) {
-        update_err_msg(_L("Current printer is busy. Please select another one."));
-        return;
-    }*/
-
     // check upgrading status
     if (obj_->upgrade_display_state == MachineObject::UpgradingDisplayState::UpgradingInProgress) {
-        update_err_msg(_L("The printer is being updated. Please try again after the update."));
+        update_err_msg(_L("The printer is updating firmware. Please send it after the update is completed"));
         return;
     }
 
@@ -1273,7 +1268,6 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     m_status_bar->reset();
     m_status_bar->set_prog_block();
 
-
     // check ams_mapping_result
     std::string ams_mapping_array;
     if (!check_ams_mapping_result(ams_mapping_array))
@@ -1282,19 +1276,19 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
 
     result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool &cancel) {
         bool     cancelled = false;
-        wxString msg       = _L("Exporting 3mf...");
-        m_status_bar->update_status(msg, cancelled, 15, true);
+        wxString msg       = _L("Preparing print job");
+        m_status_bar->update_status(msg, cancelled, 10, true);
         m_export_3mf_cancel = cancel = cancelled;
     });
 
     if (result < 0) {
-        wxString msg = _L("Internal error.") + _devL(" ") + _L("Exporting 3mf failed, please slice again.");
+        wxString msg = _L("Abnormal print file data. Please slice again");
         m_status_bar->set_status_text(msg);
         return;
     }
 
     if (m_export_3mf_cancel) {
-        m_status_bar->set_status_text("Exporting 3mf was cancelled");
+        m_status_bar->set_status_text(task_canceled_text);
         return;
     }
 
@@ -1468,7 +1462,7 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
         m_printer_last_select = "";
         update_select_layout(PRINTER_TYPE::PRINTER_3DPrinter_UKNOWN);
         m_comboBox_printer->SetTextLabel("");
-        update_err_msg(_L("No printer available"));
+        update_err_msg(wxEmptyString);
     }
     dev->set_selected_machine(m_printer_last_select);
 
@@ -1510,15 +1504,6 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         timeout_count++;
     } else {
         timeout_count = 0;
-        // printer with ams
-        if (obj_->is_need_upgrade()) {
-            /* display upgrade info, can not print */
-            // display info and disable print
-            wxString tips_text = _L("Please upgrade your printer first");
-            update_warn_msg(tips_text);
-            Enable_Send_Button(false);
-            return;
-        }
 
         if (obj_->is_in_upgrading()) {
             /* upgrading can not print */
@@ -1530,14 +1515,14 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         }
 
         if (obj_->is_system_printing()) {
-            wxString tips_text = _L("Current printer is busy");
+            wxString tips_text = _L("The printer is executing instructions. Please restart printing after it ends");
             update_warn_msg(tips_text);
             if (m_button_ensure->IsEnabled()) Enable_Send_Button(false);
             return;
         }
 
         if (obj_->is_in_printing()) {
-            wxString tips_text = _L("Current printer is printing now");
+            wxString tips_text = _L("The printer is busy on other print job");
             update_warn_msg(tips_text);
             if (m_button_ensure->IsEnabled()) Enable_Send_Button(false);
             return;
@@ -1545,13 +1530,22 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
 
         // ams mapping
         if (obj_->has_ams()) {
+            // check ams and ota version to support ams mapping
+            if (obj_->is_need_upgrade()) {
+                /* display upgrade info, can not print */
+                // display info and disable print
+                wxString tips_text = _L("The firmware versions of printer and AMS are too low.Please update to the latest version before sending the print job");
+                update_warn_msg(tips_text);
+                Enable_Send_Button(false);
+                return;
+            }
+
             if (m_ams_mapping_result.empty()) {
                 // try color and type mapping
                 int result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result);
                 if (result == 0) {
                     for (auto f = m_ams_mapping_result.begin(); f != m_ams_mapping_result.end(); f++) {
                         BOOST_LOG_TRIVIAL(trace) << "ams_mapping f id = " << f->id << ", tray_id = " << f->tray_id << ", color = " << f->color << ", type = " << f->type;
-                        //mapping_text += wxString::Format("F%d:AMS%d, ", f->id, f->tray_id);
 
                         MaterialHash::iterator iter = m_materialList.begin();
                         while (iter != m_materialList.end()) {
@@ -1560,7 +1554,6 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
                             MaterialItem *m    = item->item;
 
                             if (f->id == id) {
-                                //auto ams_colour = wxColour(wxAtoi(colours_arr[0]), wxAtoi(colours_arr[1]), wxAtoi(colours_arr[2]));
                                 wxString ams_id = "-";
                                 wxColour ams_col = wxColour(0xEE, 0xEE, 0xEE);
 
@@ -1600,8 +1593,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
                     }
                 }
                 if (result == 0) {
-                    wxString tips = _L("The mapping relationship of \" consumable wire list = > ams slot \" has been automatically established.");
-                    tips += _L("If you need to modify, you can click the specific consumable wire above to manually set the mapped AMS slot.");
+                    wxString tips = _L("Filaments to AMS slots mappings have been established. You can click a filament above to change its mapping AMS slot");
                     update_info_msg(tips);
                 } else {
                     for (int i = 0; i < m_ams_mapping_result.size(); i++) {
@@ -1629,7 +1621,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     
     Enable_Send_Button(false);
 
-    update_info_msg("Reading printer information...");
+    update_info_msg(_L("Synchronizing device information"));
     update_err_msg(wxEmptyString);
     update_warn_msg(wxEmptyString);
 

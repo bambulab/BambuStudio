@@ -12,7 +12,7 @@ wxDEFINE_EVENT(EVT_BIND_MACHINE_SUCCESS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_BIND_MACHINE_FAIL, wxCommandEvent);
 
 
-static wxString waiting_auth_str = _L("Waiting for login");
+static wxString waiting_auth_str = _L("Logging in");
 static wxString login_failed_str = _L("Login failed");
 
 

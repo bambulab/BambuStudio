@@ -10,21 +10,10 @@
 namespace Slic3r {
 namespace GUI {
 
-static wxString creating_stage_str  = _L("Creating");
-static wxString uploading_stage_str = _L("Uploading");
-static wxString waiting_stage_str   = _L("Waiting");
-static wxString sending_stage_str   = _L("Sending");
-static wxString finish_stage_str    = _L("Finished");
-
-static wxString check_gcode_failed_str  = _L("Internal error, no gcode file to upload.");
-static wxString printjob_cancel_str = _L("Print job was cancelled.");
-
-
-static wxString failed_to_create_str = _L("Failed to create the print job. Please try agian.");
-static wxString failed_to_upload_str = _L("Failed to upload the print job. Please try agian.");
-static wxString timeout_to_upload_str = _L("Uploading print job timed out. Please try again.");
-static wxString failed_to_sending_str = _L("Failed to send the print job. Please try again.");
-static wxString timeout_to_sending_str = _L("Sending print task timed out. Please try again.");
+static wxString check_gcode_failed_str  = _L("Abnormal print file data. Please slice again");
+static wxString printjob_cancel_str = _L("Task canceled");
+static wxString timeout_to_upload_str = _L("Upload task timed out. Please check the network problem and try again");
+static wxString failed_in_cloud_service_str = _L("Cloud service connection failed. Please try again.");
 
 PrintJob::PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater* plater, std::string dev_id)
 : PlaterJob{ std::move(pri), plater },
@@ -56,9 +45,9 @@ void PrintJob::on_success(std::function<void()> success)
 void PrintJob::process()
 {
     /* display info */
-    wxString msg = creating_stage_str;
+    wxString msg;
     int curr_percent = 10;
-    update_status(curr_percent, msg);
+    update_status(curr_percent, wxEmptyString);
 
     int result = -1;
     unsigned int http_code;
@@ -112,36 +101,31 @@ void PrintJob::process()
     params.password = m_access_code;
 
     auto update_fn = [this, &msg, &curr_percent](int stage, int code, std::string info) {
+                        wxString tips = msg;
                         if (stage == BBL::SendingPrintJobStage::PrintingStageCreate) {
                             curr_percent = 25;
-                            msg = creating_stage_str;
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageUpload) {
                             curr_percent = 30;
                             if (code == 0) {
-                                msg = wxString::Format("%s %s", uploading_stage_str, info);
-                            }
-                            else {
-                                msg = uploading_stage_str;
+                                tips = wxString::Format("%s(%s)", msg, info);
                             }
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageWaiting) {
                             curr_percent = 50;
-                            msg = waiting_stage_str;
                         }
                         else  if (stage == BBL::SendingPrintJobStage::PrintingStageRecord) {
                             curr_percent = 70;
-                            msg = waiting_stage_str;
+                            tips = _L("Sending print configuration");
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageSending) {
                             curr_percent = 90;
-                            msg = sending_stage_str;
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageFinished) {
                             curr_percent = 100;
-                            msg = finish_stage_str;
+                            tips = wxString::Format(_L("Successfully sent.Will automatically jump to the device page in %s s"), info);
                         }
-                        this->update_status(curr_percent, msg);
+                        this->update_status(curr_percent, tips);
                     };
 
     auto cancel_fn = [this]() {
@@ -154,12 +138,12 @@ void PrintJob::process()
         if (!params.password.empty() && !params.dev_ip.empty()) {
             // try to send local with record
             BOOST_LOG_TRIVIAL(trace) << "try to start local print with record";
-            this->update_status(curr_percent, _L("Try to upload project over lan"));
+            this->update_status(curr_percent, _L("Sending print job over LAN"));
             result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn);
             if (result < 0) {
                 // try to send with cloud
                 BOOST_LOG_TRIVIAL(trace) << "try to send with cloud";
-                this->update_status(curr_percent, _L("Try to send project over cloud"));
+                this->update_status(curr_percent, _L("Sending print job through cloud service"));
                 result = m_agent->start_print(params, update_fn, cancel_fn);
             }
         } else {
@@ -175,7 +159,7 @@ void PrintJob::process()
     }
 
     if (result < 0) {
-        update_status(curr_percent, failed_to_upload_str);
+        update_status(curr_percent, failed_in_cloud_service_str);
     } else {
         wxCommandEvent* evt = new wxCommandEvent(m_print_job_completed_id);
         evt->SetString(m_dev_id);

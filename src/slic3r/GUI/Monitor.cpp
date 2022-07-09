@@ -457,8 +457,9 @@ bool MonitorPanel::Show(bool show)
         wxPostEvent(this, wxTimerEvent());
 
         //set a default machine when obj is null
-        if (obj == nullptr && dev) {
-            dev->load_last_machine();
+        if (obj == nullptr) {
+            if (dev)
+                dev->load_last_machine();
         } else {
             obj->reset_update_time();
         }

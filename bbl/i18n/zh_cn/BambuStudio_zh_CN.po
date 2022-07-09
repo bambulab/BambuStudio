@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-09 14:50+0800\n"
-"PO-Revision-Date: 2022-07-08 17:25+0800\n"
+"POT-Creation-Date: 2022-07-09 22:28+0800\n"
+"PO-Revision-Date: 2022-07-09 22:26+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -956,12 +956,6 @@ msgstr "自动Brim"
 msgid "Inner wall speed"
 msgstr "内墙速度"
 
-msgid "Per Object Setting"
-msgstr "对象设置"
-
-msgid "Reset All"
-msgstr "重置所有"
-
 msgid "Plate"
 msgstr "盘"
 
@@ -1110,11 +1104,11 @@ msgstr "发生错误，无法创建线程。"
 msgid "Exception"
 msgstr "异常"
 
-msgid "Waiting for login"
-msgstr "正在登录中"
+msgid "Logging in"
+msgstr "登录中"
 
 msgid "Login failed"
-msgstr "登录设备失败"
+msgstr "登录失败"
 
 msgid "The region parameter is incorrrect"
 msgstr "区域设置不正确"
@@ -1134,47 +1128,30 @@ msgstr ""
 msgid "Unknown Failure"
 msgstr "发生错误"
 
-msgid "Creating"
-msgstr "正在创建"
+msgid "Abnormal print file data. Please slice again"
+msgstr "打印文件数据异常，请重新切片"
 
-msgid "Uploading"
-msgstr "正在上传"
+msgid "Task canceled"
+msgstr ""
 
-msgid "Waiting"
-msgstr "等待中"
+msgid "Upload task timed out. Please check the network problem and try again"
+msgstr ""
 
-msgid "Sending"
-msgstr "发送中"
+msgid "Cloud service connection failed. Please try again."
+msgstr ""
 
-msgid "Finished"
-msgstr "完成"
+msgid "Sending print configuration"
+msgstr "正在发送打印配置"
 
-msgid "Internal error, no gcode file to upload."
-msgstr "内部错误，没有可上传的gcode文件"
+#, c-format, boost-format
+msgid "Successfully sent.Will automatically jump to the device page in %s s"
+msgstr "已发送完成，即将自动跳转到设备页面 (%s 秒）"
 
-msgid "Print job was cancelled."
-msgstr "打印任务已取消。"
+msgid "Sending print job over LAN"
+msgstr "正在通过局域网发送打印任务"
 
-msgid "Failed to create the print job. Please try agian."
-msgstr "无法创建打印任务，请重试。"
-
-msgid "Failed to upload the print job. Please try agian."
-msgstr "未能上传打印任务，请重试。"
-
-msgid "Uploading print job timed out. Please try again."
-msgstr "上传打印任务超时，请重试。"
-
-msgid "Failed to send the print job. Please try again."
-msgstr "无法发送打印任务，请重试。"
-
-msgid "Sending print task timed out. Please try again."
-msgstr "发送打印任务超时，请重试。"
-
-msgid "Try to upload project over lan"
-msgstr "尝试通过局域网上传项目"
-
-msgid "Try to send project over cloud"
-msgstr "尝试通过云服务发送项目"
+msgid "Sending print job through cloud service"
+msgstr "正在通过云端服务发送打印任务"
 
 msgid "Portions copyright"
 msgstr "部分版权"
@@ -1980,6 +1957,21 @@ msgstr ""
 "你可以在打印机“设置->网络->连接->访问码\"\n"
 "查看，如下图所示："
 
+msgid "Creating"
+msgstr "正在创建"
+
+msgid "Uploading"
+msgstr "正在上传"
+
+msgid "Waiting"
+msgstr "等待中"
+
+msgid "Sending"
+msgstr "发送中"
+
+msgid "Finished"
+msgstr "完成"
+
 msgid "Please fill report first."
 msgstr "请先填写报告。"
 
@@ -2375,6 +2367,9 @@ msgstr "固件更新"
 
 msgid "HMS"
 msgstr ""
+
+msgid "Please upgrade your printer first"
+msgstr "请先升级打印机固件"
 
 msgid "Failed to connect to the server"
 msgstr "无法连接服务器"
@@ -3180,54 +3175,49 @@ msgstr "发送"
 msgid "send completed"
 msgstr "发送完成"
 
-msgid "Ams Mappling failed, please select filament"
-msgstr "AMS 映射失败，请手动选择打印丝"
-
-msgid "Plese select the filament in ams"
-msgstr "请手动选择打印丝"
+msgid ""
+"Please click each filament above to specify its mapping AMS slot before "
+"sending the print job"
+msgstr ""
 
 msgid "Please select a printer first."
 msgstr "请先选择一台打印机。"
 
-msgid "The printer is being updated. Please try again after the update."
-msgstr "打印机正在更新。 请更新后重试。"
+msgid ""
+"The printer is updating firmware. Please send it after the update is "
+"completed"
+msgstr "打印机正在更新固件，请在更新完成后发送"
 
-msgid "Exporting 3mf..."
-msgstr "正在导出3mf..."
-
-msgid "Internal error."
-msgstr "内部错误。"
-
-msgid "Exporting 3mf failed, please slice again."
-msgstr "导出3mf失败，请重新切片。"
-
-msgid "No printer available"
-msgstr "没有可用的打印机"
+msgid "Preparing print job"
+msgstr "正在准备打印任务"
 
 msgid "Reading printer info timed out"
 msgstr "读取打印机信息超时"
 
-msgid "Please upgrade your printer first"
-msgstr "请先升级打印机固件"
-
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "设备升级中，无法发送打印任务"
 
-msgid "Current printer is busy"
-msgstr "当前打印机正忙"
+msgid ""
+"The printer is executing instructions. Please restart printing after it ends"
+msgstr "打印机正在执行指令，请在其结束后重新发起打印"
 
-msgid "Current printer is printing now"
-msgstr "当前打印机正在打印中"
+msgid "The printer is busy on other print job"
+msgstr "打印机正在执行其他打印任务"
 
 msgid ""
-"The mapping relationship of \" consumable wire list = > ams slot \" has been "
-"automatically established."
-msgstr ""
+"The firmware versions of printer and AMS are too low.Please update to the "
+"latest version before sending the print job"
+msgstr "打印机和AMS固件版本过低，请更新到最新版本方可发送打印"
 
 msgid ""
-"If you need to modify, you can click the specific consumable wire above to "
-"manually set the mapped AMS slot."
+"Filaments to AMS slots mappings have been established. You can click a "
+"filament above to change its mapping AMS slot"
 msgstr ""
+"已自动建立 \"耗材丝列表=>AMS槽位\" 的映射关系。 可点击上方具体的耗材丝手动设"
+"置其所对应的AMS槽位"
+
+msgid "Synchronizing device information"
+msgstr "正在同步设备信息"
 
 msgid "Modifying the device name"
 msgstr "修改打印机名称"
@@ -3649,12 +3639,6 @@ msgstr "新的配置包可用，您需要安装吗？"
 
 msgid "Description:"
 msgstr "描述："
-
-msgid "YES"
-msgstr "是"
-
-msgid "NO"
-msgstr "否"
 
 msgid "Configuration incompatible"
 msgstr "配置不兼容"
@@ -5911,6 +5895,75 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Per Object Setting"
+#~ msgstr "对象设置"
+
+#~ msgid "Reset All"
+#~ msgstr "重置所有"
+
+#~ msgid "Waiting for login"
+#~ msgstr "正在登录中"
+
+#~ msgid "Internal error, no gcode file to upload."
+#~ msgstr "内部错误，没有可上传的gcode文件"
+
+#~ msgid "Print job was cancelled."
+#~ msgstr "打印任务已取消。"
+
+#~ msgid "Failed to create the print job. Please try agian."
+#~ msgstr "无法创建打印任务，请重试。"
+
+#~ msgid "Failed to upload the print job. Please try agian."
+#~ msgstr "未能上传打印任务，请重试。"
+
+#~ msgid "Uploading print job timed out. Please try again."
+#~ msgstr "上传打印任务超时，请重试。"
+
+#~ msgid "Failed to send the print job. Please try again."
+#~ msgstr "无法发送打印任务，请重试。"
+
+#~ msgid "Sending print task timed out. Please try again."
+#~ msgstr "发送打印任务超时，请重试。"
+
+#~ msgid "Try to upload project over lan"
+#~ msgstr "尝试通过局域网上传项目"
+
+#~ msgid "Try to send project over cloud"
+#~ msgstr "尝试通过云服务发送项目"
+
+#~ msgid "Ams Mappling failed, please select filament"
+#~ msgstr "AMS 映射失败，请手动选择打印丝"
+
+#~ msgid "Plese select the filament in ams"
+#~ msgstr "请手动选择打印丝"
+
+#~ msgid "The printer is being updated. Please try again after the update."
+#~ msgstr "打印机正在更新。 请更新后重试。"
+
+#~ msgid "Exporting 3mf..."
+#~ msgstr "正在导出3mf..."
+
+#~ msgid "Internal error."
+#~ msgstr "内部错误。"
+
+#~ msgid "Exporting 3mf failed, please slice again."
+#~ msgstr "导出3mf失败，请重新切片。"
+
+#~ msgid "No printer available"
+#~ msgstr "没有可用的打印机"
+
+#~ msgid "Current printer is busy"
+#~ msgstr "当前打印机正忙"
+
+#~ msgid "Current printer is printing now"
+#~ msgstr "当前打印机正在打印中"
+
+#~ msgid "YES"
+#~ msgstr "是"
+
+#~ msgid "NO"
+#~ msgstr "否"
 
 #~ msgid "Reading printer information..."
 #~ msgstr "正在读取打印机信息"
