@@ -1,50 +1,46 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-07-09 14:50+0800\n"
-"PO-Revision-Date: \n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Language: sv\n"
+"X-Source-Language: C\n"
 
 msgid "Supports Painting"
-msgstr "Support painting"
+msgstr "Färgläggning av Support"
 
 msgid "Section view"
-msgstr ""
+msgstr "Sektionsvy"
 
 msgid "Pen size"
-msgstr ""
+msgstr "Penn storlek"
 
 msgid "Left mouse button"
-msgstr ""
+msgstr "Vänster musknapp"
 
 msgid "Enforce supports"
-msgstr ""
+msgstr "Tvinga support"
 
 msgid "Right mouse button"
-msgstr ""
+msgstr "Höger musknapp"
 
 msgid "Block supports"
-msgstr ""
+msgstr "Blockera support"
 
 msgid "Shift + Left mouse button"
-msgstr ""
+msgstr "Shift + Vänster musknapp"
 
 msgid "Erase painting"
-msgstr ""
+msgstr "Radera färgläggning"
 
 msgid "Erase all painting"
-msgstr ""
+msgstr "Radera all färgläggning"
 
 msgid "Highlight overhang areas"
-msgstr ""
+msgstr "Markera områden med överhäng"
 
 msgid "Fragment filter"
 msgstr ""
@@ -56,25 +52,25 @@ msgid "Fragment area"
 msgstr ""
 
 msgid "Set pen size"
-msgstr ""
+msgstr "Välj penn storlek"
 
 msgid "Ctrl + Mouse wheel"
-msgstr ""
+msgstr "Ctrl + Mushjul"
 
 msgid "Tool type"
-msgstr ""
+msgstr "Verktygs typ"
 
 msgid "Smart fill angle"
-msgstr ""
+msgstr "Smart fyllningsvinkel"
 
 msgid "Auto support threshold angle: "
-msgstr ""
+msgstr "Automatisk support tröskelsvinkel: "
 
 msgid "Circle"
-msgstr ""
+msgstr "Cirkel"
 
 msgid "Sphere"
-msgstr ""
+msgstr "Sfär"
 
 msgid "Fill"
 msgstr ""
@@ -83,67 +79,70 @@ msgid "Fragment Filter"
 msgstr ""
 
 msgid "Highlight faces according to overhang angle."
-msgstr ""
+msgstr "Markera ytor enligt överhängs vinkeln."
 
 msgid "No auto support"
-msgstr ""
+msgstr "Ingen auto support"
 
 msgid "Support Generated"
-msgstr "Support generated"
+msgstr "Support skapad"
 
 msgid "Lay on face"
-msgstr ""
+msgstr "Lägg på yta"
 
 #, boost-format
 msgid ""
 "Filament count exceeds the maximum number that painting tool supports. only "
 "the first %1% filaments will be available in painting tool."
 msgstr ""
+"Filamentåtgången överstiger det maximala antalet som målningsverktyget "
+"stöder, bara det första %1% filamentet kommeratt vara tillgängligt i "
+"färgläggnings verktyget."
 
 msgid "Color Painting"
-msgstr "Color painting"
+msgstr "Färgläggning"
 
 msgid "Pen shape"
-msgstr ""
+msgstr "Penn form"
 
 msgid "Paint"
-msgstr ""
+msgstr "Färglägga"
 
 msgid "Erase"
-msgstr ""
+msgstr "Radera"
 
 msgid "Key 1~9"
-msgstr ""
+msgstr "Nyckel 1~9"
 
 msgid "Choose filament"
-msgstr ""
+msgstr "Välj filament"
 
 msgid "Edge detection"
-msgstr ""
+msgstr "Kant detektering"
 
 msgid "Clear all"
-msgstr ""
+msgstr "Rensa allt"
 
 msgid "Triangles"
-msgstr ""
+msgstr "Trianglar"
 
 msgid "Filaments"
-msgstr ""
+msgstr "Filamenter"
 
 msgid "Brush"
-msgstr ""
+msgstr "Pensel"
 
 msgid "Smart fill"
-msgstr ""
+msgstr "Smart fyllnad"
 
 msgid "Bucket fill"
-msgstr ""
+msgstr "Hinkfyllning"
 
 msgid "Height range"
-msgstr ""
+msgstr "Höjd intervall"
 
 msgid "Shortcut Key "
-msgstr ""
+msgstr "Snabbkommando "
 
 msgid "Triangle"
 msgstr ""
@@ -152,184 +151,187 @@ msgid "Height Range"
 msgstr ""
 
 msgid "Remove painted color"
-msgstr ""
+msgstr "Ta bort färgläggning"
 
 #, boost-format
 msgid "Painted using: Filament %1%"
-msgstr ""
+msgstr "Färgläggning använder: Filament %1%"
 
 msgid "Move"
-msgstr ""
+msgstr "Flytta"
 
 msgid "Rotate"
-msgstr ""
+msgstr "Rotera"
 
 msgid "Optimize orientation"
-msgstr ""
+msgstr "Optimisera placering"
 
 msgid "Apply"
-msgstr ""
+msgstr "Applicera"
 
 msgid "Scale"
-msgstr ""
+msgstr "Skala"
 
 msgid "Error: Please close all toolbar menus first"
-msgstr ""
+msgstr "FEL: Stäng alla verktygsmenyer först"
 
 msgid "Tool-Lay on Face"
-msgstr ""
+msgstr "Ytplacerings verktyg"
 
 msgid "in"
-msgstr ""
+msgstr "i"
 
 msgid "mm"
-msgstr ""
+msgstr "mm"
 
 msgid "Position"
-msgstr ""
+msgstr "Position"
 
 msgid "Rotation"
-msgstr ""
+msgstr "Rotation"
 
 msgid "Scale ratios"
-msgstr ""
+msgstr "Skalnings förhållande"
 
 msgid "Object Operations"
-msgstr "Object operations"
+msgstr "Objekt Åtgärder"
 
 msgid "Volume Operations"
-msgstr "Volume operations"
+msgstr "Volym Åtgärder"
 
 msgid "Translate"
-msgstr ""
+msgstr "Översätt"
 
 msgid "Group Operations"
-msgstr "Group operations"
+msgstr "Grupp Åtgärder"
 
 msgid "Set Position"
-msgstr "Set position"
+msgstr "Ställ in Position"
 
 msgid "Set Orientation"
-msgstr "Set orientation"
+msgstr "Ställ in Orientering"
 
 msgid "Set Scale"
-msgstr "Set scale"
+msgstr "Ställ in Skala"
 
 msgid "Reset Position"
-msgstr "Reset position"
+msgstr "Återställ Position"
 
 msgid "Reset Rotation"
-msgstr "Reset rotation"
+msgstr "Återställ Rotation"
 
 msgid "World coordinates"
-msgstr ""
+msgstr "Världskoordinater"
 
 msgid "°"
-msgstr ""
+msgstr "°"
 
 msgid "Position:"
-msgstr ""
+msgstr "Position:"
 
 msgid "%"
-msgstr ""
+msgstr "%"
 
 msgid "Size"
-msgstr ""
+msgstr "Storlek"
 
 msgid "uniform scale"
-msgstr "Uniform scale"
+msgstr "enhetlig skala"
 
 msgid "Cut"
-msgstr ""
+msgstr "Beskär"
 
 msgid "Movement:"
-msgstr ""
+msgstr "Rörelse:"
 
 msgid "Rotation:"
-msgstr ""
+msgstr "Rotation:"
 
 msgid "Height:"
-msgstr ""
+msgstr "Höjd:"
 
 msgid "Keep upper part"
-msgstr ""
+msgstr "Behåll övre del"
 
 msgid "Keep lower part"
-msgstr ""
+msgstr "Behåll lägre del"
 
 msgid "Cut to parts"
-msgstr ""
+msgstr "Beskär till delar"
 
 msgid "Auto Segment"
-msgstr ""
+msgstr "Automatisk Segment"
 
 msgid "Perform cut"
-msgstr ""
+msgstr "Utför beskärning"
 
 msgid "Reset"
-msgstr ""
+msgstr "Återställ"
 
 msgid "Mesh name"
-msgstr ""
+msgstr "Mesh namn"
 
 msgid "Detail level"
-msgstr ""
+msgstr "Detaljnivå"
 
 msgid "Decimate ratio"
-msgstr ""
+msgstr "Decimera förhållandet"
 
 #, boost-format
 msgid ""
 "Processing model '%1%' with more than 1M triangles could be slow. It is "
 "highly recommended to simplify the model."
 msgstr ""
+"Processar modell '%1%' med mer än 1M trianglar kan ta lång tid. Det "
+"rekommenderas att förenkla modellen."
 
 msgid "Simplify model"
-msgstr ""
+msgstr "Förenkla modellen"
 
 msgid "Simplify"
-msgstr ""
+msgstr "Förenkla"
 
 msgid "Simplification is currently only allowed when a single part is selected"
 msgstr ""
+"Förenkling är för tillfället endast accepterat när en  enkel del är vald"
 
 msgid "Error"
-msgstr ""
+msgstr "FEL"
 
 msgid "Extra high"
-msgstr ""
+msgstr "Extra hög"
 
 msgid "High"
-msgstr ""
+msgstr "Hög"
 
 msgid "Medium"
-msgstr ""
+msgstr "Medel"
 
 msgid "Low"
-msgstr ""
+msgstr "Låg"
 
 msgid "Extra low"
-msgstr ""
+msgstr "Extra låg"
 
 #, c-format, boost-format
 msgid "%d triangles"
-msgstr ""
+msgstr "%d trianglar"
 
 msgid "Show wireframe"
-msgstr ""
+msgstr "Visa trådram"
 
 #, boost-format
 msgid "%1%"
 msgstr ""
 
 msgid "Can't apply when proccess preview."
-msgstr ""
+msgstr "Kan inte tillämpas när processen förhandsgranskas."
 
 msgid "Cancel"
-msgstr ""
+msgstr "Avbryt"
 
 msgid "Operation already cancelling. Please wait few seconds."
-msgstr ""
+msgstr "Åtgärden avbryts redan. Vänligen vänta."
 
 msgid "Face recognition"
 msgstr ""
@@ -338,169 +340,171 @@ msgid "Perform Recognition"
 msgstr ""
 
 msgid "Cube"
-msgstr ""
+msgstr "Kub"
 
 msgid "Cylinder"
-msgstr ""
+msgstr "Cylinder"
 
 msgid "Cone"
-msgstr ""
+msgstr "Kon"
 
 msgid "Add Modifier"
-msgstr ""
+msgstr "Lägg till Modifierare"
 
 msgid "Notice"
-msgstr ""
+msgstr "Iakttag"
 
 msgid "Warning"
-msgstr ""
+msgstr "Varning"
 
 msgid "Undefined"
-msgstr ""
+msgstr "Oidentifierad"
 
 #, boost-format
 msgid "%1% was replaced with %2%"
-msgstr ""
+msgstr "%1% ersättes med %2%"
 
 msgid "The configuration may be generated by a newer version of BambuStudio."
-msgstr ""
-"The configuration may have been generated by a newer version of Bambu Studio."
+msgstr "Konfigurationen kan skapas av en nyare version av Bambu Studio."
 
 msgid "Some values have been replaced. Please check them:"
-msgstr ""
+msgstr "Några värde har ersatts. Kontrollera dem:"
 
 msgid "Process"
-msgstr ""
+msgstr "Bearbeta"
 
 msgid "Filament"
-msgstr ""
+msgstr "Filament"
 
 msgid "Machine"
-msgstr ""
+msgstr "Maskin"
 
 msgid "Configuration package was loaded, but some values were not recognized."
-msgstr ""
-"The configuration package was loaded, but some values were not recognized."
+msgstr "Konfigurations paketet har laddats, men vissa värden känns inte igen."
 
 #, boost-format
 msgid ""
 "Configuration file \"%1%\" was loaded, but some values were not recognized."
 msgstr ""
-"The configuration file “%1%” was loaded, but some values were not recognized."
+"Konfigurations fil “%1%” har laddats, men vissa värden känns inte igen."
 
 msgid "V"
-msgstr ""
+msgstr "V"
 
 msgid "Version"
-msgstr ""
+msgstr "Version"
 
 msgid ""
 "BambuStudio will terminate because of running out of memory.It may be a bug. "
 "It will be appreciated if you report the issue to our team."
 msgstr ""
-"Bambu Studio has run out of memory and will close. This may be a bug. Please "
-"report this issue to our team."
+"Bambu Studio har slut på minne och kommer att stängas. Det kan vara en bug. "
+"Rapportera problemet till Bambu Lab Teamet."
 
 msgid "Fatal error"
-msgstr ""
+msgstr "Allvarligt fel"
 
 msgid ""
 "BambuStudio will terminate because of a localization error. It will be "
 "appreciated if you report the specific scenario this issue happened."
-msgstr "A localization error has occurred, and Bambu Studio will close. "
+msgstr ""
+"Ett lokaliserings fel uppstod, Bambu Studio stängs ner. Rapportera till "
+"Bambu Lab Teamet."
 
 msgid "Critical error"
-msgstr ""
+msgstr "Kritiskt fel"
 
 #, boost-format
 msgid "BambuStudio got an unhandled exception: %1%"
-msgstr ""
+msgstr "Bambu Studio har ett ohanterat undantag: %1%"
 
 msgid ""
 "BambuStudio configuration file may be corrupted and is not abled to be "
 "parsed.Please delete the file and try again."
 msgstr ""
-"Bambu Studio configuration file may be corrupted and is not abled to be "
-"parsed. Please delete the file and try again."
+"Konfigurationsfilen för Bambu Studio kan vara skadad och går inte att "
+"avläsa. Radera filen och försök igen."
 
 #, c-format, boost-format
 msgid ""
 "%s\n"
 "Do you want to continue?"
 msgstr ""
+"%s\n"
+"Vill du fortsätta?"
 
 msgid "Remember my choice"
-msgstr ""
+msgstr "Kom ihåg mina val"
 
 msgid "Loading configuration"
-msgstr ""
+msgstr "Konfigurationen laddas"
 
 #, c-format, boost-format
 msgid "Click to download new version in default browser: %s"
-msgstr ""
+msgstr "Tryck på ladda ner ny version ifrån standard webbläsaren: %s"
 
 msgid "New version of Bambu Studio"
-msgstr ""
+msgstr "Ny version av Bambu Studio"
 
 msgid "The Bambu Studio needs an upgrade"
-msgstr ""
+msgstr "Bambu Studio behöver uppdateras"
 
 msgid "Loading user presets..."
-msgstr ""
+msgstr "Laddar användar inställningarna..."
 
 msgid "Rebuild"
-msgstr ""
+msgstr "Återskapa"
 
 msgid "Loading current presets"
-msgstr ""
+msgstr "Laddar nuvarande inställningar"
 
 msgid "Loading a mode view"
-msgstr ""
+msgstr "Laddar modell vy"
 
 msgid "Choose one file (3mf):"
-msgstr ""
+msgstr "Välj en fil (3mf):"
 
 msgid "Choose one or more files (3mf/step/stl/obj/amf):"
-msgstr ""
+msgstr "Välj en eller flera filer (3mf/step/stl/obj/amf):"
 
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
-msgstr "Choose one file (.gcode/.gco/.g/.ngc/ngc):"
+msgstr "Välj en fil (.gcode/.gco/.g/.ngc/ngc):"
 
 msgid "Login information expired. Please login again."
-msgstr ""
+msgstr "Inloggningsinformationen har löpt ut. Logga in igen."
 
 msgid "This is the newest version."
-msgstr ""
+msgstr "Det är den senaste versionen."
 
 msgid "Info"
-msgstr ""
+msgstr "Info"
 
 msgid "Loading"
-msgstr ""
+msgstr "Laddar"
 
 msgid "Loading user preset"
 msgstr ""
 
 msgid "Switching application language"
-msgstr ""
+msgstr "Byt applikationsspråk"
 
 msgid "Select the language"
-msgstr ""
+msgstr "Välj språk"
 
 msgid "Language"
-msgstr ""
+msgstr "Språk"
 
 msgid "*"
-msgstr ""
+msgstr "*"
 
 msgid "G-code files can not be loaded with models together!"
-msgstr "G-code files and models cannot be loaded together!"
+msgstr "G-kod filer och modeller kan inte laddas tillsammans!!"
 
 msgid "G-code loading"
-msgstr ""
+msgstr "Laddar G-kod"
 
 msgid "Select a G-code file:"
-msgstr ""
+msgstr "Välj en G-kod fil:"
 
 msgid "Bambu Studio GUI initialization failed"
 msgstr ""
@@ -510,584 +514,600 @@ msgid "Fatal error, exception catched: %1%"
 msgstr ""
 
 msgid "Quality"
-msgstr ""
+msgstr "Kvalitet"
 
 msgid "Shell"
-msgstr ""
+msgstr "Skal"
 
 msgid "Infill"
-msgstr ""
+msgstr "Ifyllnad"
 
 msgid "Support"
-msgstr ""
+msgstr "Support"
 
 msgid "Speed"
-msgstr ""
+msgstr "Hastighet"
 
 msgid "Strength"
-msgstr ""
+msgstr "Styrka"
 
 msgid "Top Solid Layers"
-msgstr "Top solid layers"
+msgstr "Massiva Top Lager"
 
 msgid "Top Minimum Shell Thickness"
-msgstr "Top minimum shell thickness"
+msgstr "Minsta Top Skal Tjocklek"
 
 msgid "Bottom Solid Layers"
-msgstr "Bottom solid layers"
+msgstr "Massiva Botten Lager"
 
 msgid "Bottom Minimum Shell Thickness"
-msgstr "Bottom minimum shell thickness"
+msgstr "Minsta Botten Skal Tjocklek"
 
 msgid "Ironing"
-msgstr ""
+msgstr "Strykning"
 
 msgid "Fuzzy Skin"
-msgstr "Fuzzy skin"
+msgstr "Ojämn Yta"
 
 msgid "Extruders"
-msgstr ""
+msgstr "Extruders"
 
 msgid "Extrusion Width"
-msgstr "Extrusion width"
+msgstr "Extruderings Bredd"
 
 msgid "Wipe options"
-msgstr ""
+msgstr "Avstryknings val"
 
 msgid "Bed adhension"
-msgstr ""
+msgstr "Byggplattans vidhäftningsförmåga"
 
 msgid "Advanced"
-msgstr ""
+msgstr "Avancerat"
 
 msgid "Add part"
-msgstr "Add Part"
+msgstr "Lägg till del"
 
 msgid "Add negative part"
-msgstr "Add Negative Part"
+msgstr "Lägg till negativ del"
 
 msgid "Add modifier"
-msgstr "Add Modifier"
+msgstr "Lägg till modifierare"
 
 msgid "Add support blocker"
-msgstr "Add Support Blocker"
+msgstr "Lägg till support blockerare"
 
 msgid "Add support enforcer"
-msgstr "Add Support Enforcer"
+msgstr "Lägg till support förstärkning"
 
 msgid "Select settings"
-msgstr ""
+msgstr "Välj inställningar"
 
 msgid "Delete"
-msgstr ""
+msgstr "Radera"
 
 msgid "Delete the selected object"
-msgstr ""
+msgstr "Radera det valda objektet"
 
 msgid "Load..."
-msgstr ""
+msgstr "Ladda..."
 
 msgid "Add settings"
-msgstr "Add Settings"
+msgstr "Lägg till inställning"
 
 msgid "Change type"
-msgstr "Change Type"
+msgstr "Ändra typ"
 
 msgid "Set as an individual object"
-msgstr "Set as An Individual Object"
+msgstr "Ställ in som ett enskilt objekt"
 
 msgid "Set as individual objects"
-msgstr "Set as Individual Objects"
+msgstr "Ställ in som enskilda objekt"
 
 msgid "Printable"
-msgstr ""
+msgstr "Utskriftsbar"
 
 msgid "Rename"
-msgstr ""
+msgstr "Döp om"
 
 msgid "Fix model"
-msgstr "Fix Model"
+msgstr "Fixa modell"
 
 msgid "Fix model through cloud"
-msgstr ""
+msgstr "Fixa modell genom molnet"
 
 msgid "Fix model locally"
-msgstr ""
+msgstr "Fixa modell lokalt"
 
 msgid "Export as STL"
-msgstr ""
+msgstr "Exportera som STL"
 
 msgid "Reload item"
-msgstr ""
+msgstr "Ladda om objektet"
 
 msgid "Reload items"
-msgstr ""
+msgstr "Ladda om objekten"
 
 msgid "Change filament"
-msgstr ""
+msgstr "Byta filament"
 
 msgid "Set filament for selected items"
-msgstr ""
+msgstr "Välj filament för valda objekt"
 
 msgid "Default"
-msgstr ""
+msgstr "Standard"
 
 #, c-format, boost-format
 msgid "Filament %d"
-msgstr ""
+msgstr "Filament %d"
 
 msgid "active"
-msgstr ""
+msgstr "aktiv"
 
 msgid "Scale to build volume"
-msgstr ""
+msgstr "Skala till bygg volymen"
 
 msgid "Scale an object to fit the build volume"
-msgstr ""
+msgstr "Anpassa skalning av ett objekt till byggvolymen"
 
 msgid "Convert from inch"
-msgstr "Convert from Inch"
+msgstr "Konvertera ifrån inch"
 
 msgid "Restore to inch"
-msgstr "Restore to Inch"
+msgstr "Återställ till inch"
 
 msgid "Convert from meter"
-msgstr "Convert from Meter"
+msgstr "Konvertera ifrån meter"
 
 msgid "Restore to meter"
-msgstr "Restore to Meter"
+msgstr "Återställ till meter"
 
 msgid "Assemble"
-msgstr ""
+msgstr "Montera"
 
 msgid "Assemble the selected objects to an object with multiple parts"
-msgstr ""
+msgstr "Montera de valda objekten till ett objekt med multipla delar"
 
 msgid "Assemble the selected objects to an object with single part"
-msgstr ""
+msgstr "Montera de valda objekten till ett objekt med en enda del"
 
 msgid "Assemble the selected parts to a single part"
-msgstr ""
+msgstr "Montera den valda delen till en enda del"
 
 msgid "Along X axis"
-msgstr "Along X Axis"
+msgstr "Längs med X Axis"
 
 msgid "Mirror along the X axis"
-msgstr "Mirror along the X Axis"
+msgstr "Spegelvänd längs med X Axis"
 
 msgid "Along Y axis"
-msgstr "Along Y Axis"
+msgstr "Längs med Y Axis"
 
 msgid "Mirror along the Y axis"
-msgstr "Mirror along the Y Axis"
+msgstr "Spegelvänd längs med Y Axis"
 
 msgid "Along Z axis"
-msgstr "Along Z Axis"
+msgstr "Längs med Z Axis"
 
 msgid "Mirror along the Z axis"
-msgstr "Mirror along the Z Axis"
+msgstr "Spegelvänd längs med Z Axis"
 
 msgid "Mirror"
-msgstr ""
+msgstr "Spegelvänd"
 
 msgid "Mirror object"
-msgstr ""
+msgstr "Spegelvänd objektet"
 
 msgid "Add Primitive"
-msgstr ""
+msgstr "Lägg till Primitiv"
 
 msgid "To objects"
-msgstr "To Objects"
+msgstr "Till objekten"
 
 msgid "Split the selected object into multiple objects"
-msgstr ""
+msgstr "Dela det valda objektet till multipla objekt"
 
 msgid "To parts"
-msgstr "To Parts"
+msgstr "Till delarna"
 
 msgid "Split the selected object into multiple parts"
-msgstr ""
+msgstr "Dela det valda objektet till multipla delar"
 
 msgid "Split"
-msgstr ""
+msgstr "Dela"
 
 msgid "Split the selected object"
-msgstr ""
+msgstr "Dela det valda objektet"
 
 msgid "Auto orientation"
-msgstr ""
+msgstr "Auto placera"
 
 msgid "Auto orient the object to improve print quality."
-msgstr ""
+msgstr "Auto placera objektet för att förbättra utskriftskvaliteten."
 
 msgid "Split the selected object into mutiple objects"
-msgstr ""
+msgstr "Dela det valda objektet till multipla objekt"
 
 msgid "Split the selected object into mutiple parts"
-msgstr ""
+msgstr "Dela det valda objektet till multipla delar"
 
 msgid "Select All"
-msgstr ""
+msgstr "Välj Alla"
 
 msgid "select all objects on current plate"
-msgstr "Select all objects on current plate"
+msgstr "Välj alla objekt på plattan"
 
 msgid "Delete All"
-msgstr ""
+msgstr "Radera Allt"
 
 msgid "delete all objects on current plate"
-msgstr "Delete all objects on current plate"
+msgstr "Radera alla objekt på plattan"
 
 msgid "Arrange"
-msgstr ""
+msgstr "Arrangera"
 
 msgid "arrange current plate"
-msgstr "Arrange current plate"
+msgstr "Arrangera plattan"
 
 msgid "Auto Rotate"
-msgstr ""
+msgstr "Auto Rotera"
 
 msgid "auto rotate current plate"
-msgstr "Auto rotate current plate"
+msgstr "auto rotera plattan"
 
 msgid "Remove the selected plate"
-msgstr ""
+msgstr "Radera den valda plattan"
 
 msgid "Clone"
-msgstr ""
+msgstr "Klona"
 
 msgid "Reduce Triangles"
-msgstr ""
+msgstr "Reducera Trianglar"
 
 msgid "Per object edit"
-msgstr "Per Object Edit"
+msgstr "Redigera per objekt"
 
 msgid "Edit print parameters for a single object"
-msgstr ""
+msgstr "Redigera utskriftsinställningar för ett enda objekt"
 
 msgid "Change Filament"
-msgstr ""
+msgstr "Byta Filament"
 
 msgid "Set Filament for selected items"
-msgstr ""
+msgstr "Välj Filament för valda delar"
 
 msgid "current"
-msgstr ""
+msgstr "nuvarande"
 
 msgid "Set Unprintable"
-msgstr ""
+msgstr "Ange ej utskrivbar"
 
 msgid "Set Printable"
-msgstr ""
+msgstr "Ange utskrivbar"
 
 msgid "Unlock"
-msgstr ""
+msgstr "Lås upp"
 
 msgid "Lock"
-msgstr ""
+msgstr "Lås"
 
 msgid "Name"
-msgstr ""
+msgstr "Namn"
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid "%1$d error repaired"
 msgid_plural "%1$d errors repaired"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%1$d fel åtgärdat@%1$d felen åtgärdade"
+msgstr[1] "%1$d fel åtgärdat@%1$d felen åtgärdade"
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid "Error: %1$d non-manifold edge."
 msgid_plural "Error: %1$d non-manifold edges."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Fel: %1$d inte mångfaldig kant.@Fel: %1$d inte mångfaldiga kanter."
+msgstr[1] "Fel: %1$d inte mångfaldig kant.@Fel: %1$d inte mångfaldiga kanter."
 
 msgid "Remaining errors"
-msgstr ""
+msgstr "Kvarstående fel"
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid "%1$d non-manifold edge"
 msgid_plural "%1$d non-manifold edges"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%1$d inte mångfaldig kant@%1$d inte mångfaldiga kanter"
+msgstr[1] "%1$d inte mångfaldig kant@%1$d inte mångfaldiga kanter"
 
 msgid "Right click the icon to fix model object"
-msgstr ""
+msgstr "Höger klicka på ikonen för att reparera modell objektet"
 
 msgid "Right button click the icon to drop the object settings"
-msgstr ""
+msgstr "Höger klicka på ikonen för att släppa objekts inställningarna"
 
 msgid "Click the icon to reset all settings of the object"
-msgstr ""
+msgstr "Klicka på ikonen för att återställa alla objekts inställningar"
 
 msgid "Right button click the icon to drop the object printable property"
-msgstr ""
+msgstr "Höger klicka på ikonen för att släppa objektets utskrifts egenskaper"
 
 msgid "Click the icon to toggle printable property of the object"
-msgstr ""
+msgstr "Klicka på ikonen för att bläddra igenom utskriftens egenskaper"
 
 msgid "Click the icon to edit support painting of the object"
-msgstr ""
+msgstr "Klicka på ikonen för att redigera support färgläggningen av objektet"
 
 msgid "Click the icon to edit color painting of the object"
-msgstr ""
+msgstr "Klicka på ikonen för att redigera färgläggningen av objektet"
 
 msgid "Loading file"
-msgstr ""
+msgstr "Laddar fil"
 
 msgid "Error!"
-msgstr ""
+msgstr "Fel!"
 
 msgid "Generic"
-msgstr ""
+msgstr "Allmän"
 
 msgid "Deleting the last solid part is not allowed."
-msgstr ""
+msgstr "Ej tillåtet att radera den senaste fasta delen."
 
 msgid "The target object contains only one part and can not be splited."
-msgstr "The target object contains only one part and can not be split."
+msgstr "Det valda objektet innehåller endast en del och kan inte delas."
 
 msgid "Assembly"
-msgstr ""
+msgstr "Montering"
 
 msgid "Object"
-msgstr ""
+msgstr "Objekt"
 
 msgid "Part"
-msgstr ""
+msgstr "Del"
 
 msgid "Layer"
-msgstr ""
+msgstr "Lager"
 
 msgid "Selection conflicts"
-msgstr ""
+msgstr "Urvalskonflikt"
 
 msgid ""
 "If first selected item is an object, the second one should also be object."
 msgstr ""
-"If first selected item is an object, the second one should also be an object."
+"Om den första valda delen är ett objekt, så bör även den andra vara ett "
+"objekt."
 
 msgid ""
 "If first selected item is a part, the second one should be part in the same "
 "object."
 msgstr ""
-"If first selected item is a part, the second one should be a part in the "
-"same object."
+"Om den första valda delen är en del, så bör den andra delen tillhöra samma "
+"objekt."
 
 msgid "The type of the last solid object part is not to be changed."
-msgstr "The type of the last solid object part cannot be changed."
+msgstr "Den sista fasta objekts delen ska inte ändras."
 
 msgid "Negative Part"
-msgstr ""
+msgstr "Negativ Del"
 
 msgid "Modifier"
-msgstr ""
+msgstr "Modifierare"
 
 msgid "Support Blocker"
-msgstr ""
+msgstr "Support Blockerare"
 
 msgid "Support Enforcer"
-msgstr ""
+msgstr "Support Förstärkare"
 
 msgid "Type:"
-msgstr ""
+msgstr "Typ:"
 
 msgid "Choose part type"
-msgstr ""
+msgstr "Välj en del typ"
 
 msgid "Enter new name"
-msgstr ""
+msgstr "Skriv in nytt namn"
 
 msgid "Renaming"
-msgstr ""
+msgstr "Byter namn"
 
 msgid "Repairing model object"
-msgstr ""
+msgstr "Reparerar modell objektet"
 
+#, fuzzy
 msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
 msgstr[0] ""
+"Följande modellobjekt har reparerats@Följande modellobjekt har reparerats"
 msgstr[1] ""
+"Följande modellobjekt har reparerats@Följande modellobjekt har reparerats"
 
+#, fuzzy
 msgid "Failed to repair folowing model object"
 msgid_plural "Failed to repair folowing model objects"
 msgstr[0] ""
+"Reparationen av följande modellobjekt misslyckades@Reparation av de följande "
+"modellobjekten misslyckades"
 msgstr[1] ""
+"Reparationen av följande modellobjekt misslyckades@Reparation av de följande "
+"modellobjekten misslyckades"
 
 msgid "Repairing was canceled"
-msgstr ""
+msgstr "Reparation avbruten"
 
 msgid "Repair finished"
-msgstr ""
+msgstr "Reparation klar"
 
 msgid "Additional process preset"
-msgstr ""
+msgstr "Ytterligare process inställning"
 
 msgid "Remove parameter"
-msgstr ""
+msgstr "Ta bort parameter"
 
 msgid "one cell can only be copied to one or multiple cells in the same column"
 msgstr ""
-"One cell can only be copied to one or multiple cells in the same column."
+"En cell kan endast kopieras till en eller flertalet celler i samma kolumn"
 
 msgid "multiple cells copy is not supported"
-msgstr "Copying multiple cells is not supported."
+msgstr "Kopiering av flertalet celler stöds ej"
 
 msgid "Outside"
-msgstr ""
+msgstr "Utsida"
 
 msgid "Auto"
-msgstr ""
+msgstr "Auto"
 
 msgid "Manual"
-msgstr ""
+msgstr "Manuell"
 
 msgid "No-brim"
-msgstr ""
+msgstr "Ingen Brim"
 
 msgid " "
 msgstr ""
 
 msgid "Layer height"
-msgstr ""
+msgstr "Lager höjd"
 
 msgid "Wall loops"
-msgstr ""
+msgstr "Antal väggar"
 
 msgid "Infill density(%)"
-msgstr ""
+msgstr "Ifyllnads densitet(%)"
 
 msgid "Auto Brim"
-msgstr ""
+msgstr "Auto Brim"
 
 msgid "Inner wall speed"
-msgstr ""
+msgstr "Inre vägg hastighet"
 
 msgid "Per Object Setting"
-msgstr "Per object setting"
+msgstr "Per Objekt Inställningar"
 
 msgid "Reset All"
-msgstr ""
+msgstr "Återställ Alla"
 
 msgid "Plate"
-msgstr ""
+msgstr "Platta"
 
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 msgid "Brim"
-msgstr ""
+msgstr "Brim"
 
 msgid "Object/Part Setting"
-msgstr "Object/part setting"
+msgstr "Objekt/Del Inställningar"
 
 msgid "Reset parameter"
-msgstr ""
+msgstr "Återställ parameter"
 
 msgid "Multicolor Print"
-msgstr ""
+msgstr "Multifärgs Utskrift"
 
 msgid "Line Type"
-msgstr "Line type"
+msgstr "Linje typ"
 
 msgid "No printer"
-msgstr ""
+msgstr "Ingen skrivare"
 
 msgid ""
 "Heat the nozzle to target \n"
 "temperature"
 msgstr ""
+"Värm nozzel till vald \n"
+"temperatur"
 
 msgid "Cut filament"
-msgstr ""
+msgstr "Skär filament"
 
 msgid "Pull back current filament"
-msgstr ""
+msgstr "Reversera nuvarande filament"
 
 msgid ""
 "Push new filament \n"
 "into extruder"
 msgstr ""
+"Mata nytt filament\n"
+"till extrudern"
 
 msgid "Purge old filament"
 msgstr ""
 
 msgid "?"
-msgstr ""
+msgstr "?"
 
 msgid "Empty"
-msgstr ""
+msgstr "Tom"
 
 msgid "Click the pencil icon to edit the filament."
-msgstr ""
+msgstr "Tryck på penn ikonen för att editera filament."
 
 msgid "Load Filament"
-msgstr "Load"
+msgstr "Ladda Filament"
 
 msgid "Unload"
-msgstr ""
+msgstr "Mata ut"
 
 msgid "Tips"
-msgstr ""
+msgstr "Tips"
 
 msgid "AMS Settings"
-msgstr ""
+msgstr "AMS Inställningar"
 
 msgid "Calibrating AMS..."
-msgstr ""
+msgstr "Kalibrerar AMS..."
 
 msgid "A problem occured during calibration. Click to view the solution."
-msgstr ""
+msgstr "Ett problem uppstod vid kalibrering. Tryck för att se åtgärd."
 
 msgid "Calibrate again"
-msgstr ""
+msgstr "Kalibrera igen"
 
 msgid "Cancel calibration"
-msgstr ""
+msgstr "Avbryt kalibrering"
 
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filiament."
 msgstr ""
+"Välj ett AMS fack tryck sedan \"Ladda eller \"Mata ur\" knappen för att "
+"automatiskt mata eller mata ut filament."
 
 msgid "Edit"
-msgstr ""
+msgstr "Redigera"
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-arrange on these objects."
 msgstr ""
-"All the selected objects are on a locked plate.\n"
-"Cannot auto-arrange these objects."
+"Alla valda objekt är på den låsta plattan,\n"
+"det går inte att auto-placera dessa objekten."
 
 msgid "No arrangable objects are selected."
-msgstr ""
+msgstr "Inga placerbara objekt är valda."
 
 msgid ""
 "This plate is locked,\n"
 "We can not do auto-arrange on this plate."
 msgstr ""
+"Denna plattan är låst,\n"
+"det går inte att auto-placera på denna plattan."
 
 msgid "Arranging..."
-msgstr ""
+msgstr "Placerar..."
 
 msgid ""
 "Arrange failed. Found some exceptions when processing object geometries."
 msgstr ""
+"Placering misslyckades. Avvikelser hittades när objektets geometri "
+"bearbetades."
 
 msgid "Arranging canceled."
-msgstr ""
+msgstr "Placering avbruten."
 
-# [Cory] I think this works as an explanation, but I want to see if you think it’s clear enough.
-# [Yifan] “spacing” is a setting value for “Arrange tool”. So I suggest to keep it.
-# [Cory] Got it; sounds good!
 msgid ""
 "Arranging is done but there are unpacked items. Reduce spacing and try again."
 msgstr ""
-"Arranging complete, but some items were not able to be arranged. Reduce "
-"spacing and try again."
+"Placering klar, några objekt kan inte placeras. Minska avståndet emellan "
+"dessa och försök igen."
 
 msgid "Arranging done."
-msgstr ""
+msgstr "Placering klar."
 
 #, c-format, boost-format
 msgid ""
@@ -1095,25 +1115,31 @@ msgid ""
 "bed:\n"
 "%s"
 msgstr ""
+"Följande objekt har inte placerats då de inte får plats på plattan:\n"
+"%s"
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-orient on these objects."
 msgstr ""
+"Alla valda objekt är på den låsta plattan,\n"
+"det går inte att auto-placera dessa objekten."
 
 msgid ""
 "This plate is locked,\n"
 "We can not do auto-orient on this plate."
 msgstr ""
+"Denna plattan är låst,\n"
+"det går inte att auto-placera på denna plattan."
 
 msgid "Orienting..."
-msgstr ""
+msgstr "Placerar..."
 
 msgid "Error! Unable to create thread!"
-msgstr "Error. Unable to create thread."
+msgstr "Fel! Det går inte att skapa tråden!"
 
 msgid "Exception"
-msgstr ""
+msgstr "Undantag"
 
 msgid "Waiting for login"
 msgstr ""
@@ -1161,19 +1187,19 @@ msgid "Print job was cancelled."
 msgstr ""
 
 msgid "Failed to create the print job. Please try agian."
-msgstr ""
+msgstr "Misslyckades att skapa utskrift. Försök igen."
 
 msgid "Failed to upload the print job. Please try agian."
-msgstr ""
+msgstr "Uppladdning av utskrift misslyckades. Försök igen."
 
 msgid "Uploading print job timed out. Please try again."
-msgstr ""
+msgstr "Uppladdning av utskrift avbröts. Försök igen."
 
 msgid "Failed to send the print job. Please try again."
-msgstr ""
+msgstr "Misslyckades att skicka utskrift. Försök igen."
 
 msgid "Sending print task timed out. Please try again."
-msgstr ""
+msgstr "Skickande av utskrift avbröts. Försök igen."
 
 msgid "Try to upload project over lan"
 msgstr ""
@@ -1188,7 +1214,7 @@ msgid "Copyright"
 msgstr ""
 
 msgid "License"
-msgstr ""
+msgstr "License"
 
 msgid "Bambu Studio is licensed under "
 msgstr ""
@@ -1235,7 +1261,7 @@ msgid "The input value should be greater than %1% and less than %2%"
 msgstr ""
 
 msgid "Confirm"
-msgstr ""
+msgstr "Acceptera"
 
 msgid ""
 "AMS automatically reads volume information when new material is inserted"
@@ -1272,47 +1298,45 @@ msgid ""
 msgstr ""
 
 msgid "File"
-msgstr ""
+msgstr "Fil"
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
 "program"
-msgstr ""
-"A error occurred. The system may have run out of memory, or a bug may have "
-"occurred."
+msgstr "Ett fel uppstod. För lite system minne eller en bugg i programmet"
 
 msgid "Please save project and restart the program. "
-msgstr "Please save your project and restart the application."
+msgstr "Spara projekt och starta om programmet. "
 
 msgid "Processing G-Code from Previous file..."
-msgstr "Processing G-Code from previous file…"
+msgstr "Processera G-Code från Föregående fil…"
 
 msgid "Slicing complete"
-msgstr ""
+msgstr "Beredning komplett"
 
 msgid "Access violation"
-msgstr ""
+msgstr "Åtkomstfel"
 
 msgid "Illegal instruction"
-msgstr ""
+msgstr "Ogiltligt kommando"
 
 msgid "Divide by zero"
-msgstr ""
+msgstr "Dela med noll"
 
 msgid "Overflow"
-msgstr ""
+msgstr "Överflöde"
 
 msgid "Underflow"
-msgstr ""
+msgstr "Underflöde"
 
 msgid "Floating reserved operand"
-msgstr ""
+msgstr "Floating reserved operand"
 
 msgid "Stack overflow"
-msgstr ""
+msgstr "Lagra överflöde"
 
 msgid "Unknown error when export G-code."
-msgstr "Unknown error with G-code export"
+msgstr "Okänt fel vid exportering av G-code."
 
 #, boost-format
 msgid ""
@@ -1320,97 +1344,109 @@ msgid ""
 "Error message: %1%.\n"
 "Source file %2%."
 msgstr ""
+"Misslyckades att spara gcode fil.\n"
+"Felmeddelande: %1%.\n"
+"Source file %2%."
 
 #, boost-format
 msgid "Succeed to export G-code to %1%"
-msgstr "Success! G-code exported to %1%"
+msgstr "Success! G-code exporterades till %1%"
 
 msgid "Origin"
-msgstr ""
+msgstr "Ursprung"
 
 msgid "Diameter"
-msgstr ""
+msgstr "Diameter"
 
 msgid "Size in X and Y of the rectangular plate."
-msgstr ""
+msgstr "X & Y storlek av den rektangulära plattan."
 
 msgid ""
 "Distance of the 0,0 G-code coordinate from the front left corner of the "
 "rectangle."
 msgstr ""
+"Avståndet av  0,0 G-code koordineras ifrån främre vänstra hörnet av "
+"rektangeln."
 
 msgid ""
 "Diameter of the print bed. It is assumed that origin (0,0) is located in the "
 "center."
 msgstr ""
+"Diametern av byggplattan. Det utgår ifrån (0,0) är lokaliserad i centrum."
 
 msgid "Rectangular"
-msgstr ""
+msgstr "Rektangulär"
 
 msgid "Circular"
-msgstr ""
+msgstr "Cirkulär"
 
 msgid "Custom"
-msgstr ""
+msgstr "Custom"
 
 msgid "Shape"
-msgstr ""
+msgstr "Form"
 
 msgid "Load shape from STL..."
-msgstr ""
+msgstr "Ladda form ifrån STL..."
 
 msgid "Settings"
-msgstr ""
+msgstr "Inställningar"
 
 msgid "Texture"
-msgstr ""
+msgstr "Textur"
 
 msgid "Remove"
-msgstr ""
+msgstr "Ta bort"
 
 msgid "Not found:"
-msgstr ""
+msgstr "Ej funnen:"
 
 msgid "Model"
-msgstr ""
+msgstr "Model"
 
 msgid "Choose an STL file to import bed shape from:"
-msgstr ""
+msgstr "Välj en STL fil för att importera bygglattans form ifrån:"
 
 msgid "Invalid file format."
-msgstr ""
+msgstr "Ogiltligt fil-format."
 
 msgid "Error! Invalid model"
-msgstr "Error: invalid model"
+msgstr "Fel! Ogiltlig model"
 
 msgid "The selected file contains no geometry."
-msgstr ""
+msgstr "Den valda filen saknar geometri."
 
 msgid ""
 "The selected file contains several disjoint areas. This is not supported."
 msgstr ""
-"The selected file contains several disjointed areas. This is not supported."
+"Den valda filen innehåller flera osammanhängande område. Denna fil stöds "
+"inte."
 
 msgid "Choose a file to import bed texture from (PNG/SVG):"
-msgstr ""
+msgstr "Välj fil att importera byggplattans textur från (PNG/SVG):"
 
 msgid "Choose an STL file to import bed model from:"
-msgstr ""
+msgstr "Välj  en STL fil att importera byggplattans model från:"
 
 msgid "Bed Shape"
-msgstr ""
+msgstr "Byggplattans Form"
 
 msgid ""
 "Nozzle may be blocked when the temperature is out of recommended range.\n"
 "Please make sure whether to use the temperature to print.\n"
 "\n"
 msgstr ""
+"Nozzeln kan blockeras när temperaturen är utanför rekommenderad intervall.\n"
+"Säkerställ om temperaturen ska användas vid utskrift.\n"
+"\n"
 
 #, c-format, boost-format
 msgid ""
 "Recommended nozzle temperature of this filament type is [%d, %d] degree "
 "centigrade"
 msgstr ""
+"Rekommenderad nozzel temperatur med denna filament typ är [%d, %d] grader "
+"celius"
 
 #, c-format, boost-format
 msgid ""
@@ -1418,41 +1454,47 @@ msgid ""
 "layer for more than %d degree centigrade.\n"
 "This may cause model broken free from build plate during printing"
 msgstr ""
+"Byggplattans temperatur för andra lager är mindre än temperaturen för första "
+"lager med mer än %d grader celsius.\n"
+"Detta kan medföra att utskriften släpper ifrån byggplattan under utskriften"
 
 msgid ""
 "Bed temperature is higher than vitrification temperature of this filament.\n"
 "This may cause nozzle blocked and printing failure"
 msgstr ""
+"Byggplattans temperatur överstiger kristalliserings temperaturen av detta "
+"filament.\n"
+"Detta kan orsaka att nozzeln blockeras och utskriften misslyckas"
 
 msgid ""
 "Too small layer height.\n"
 "Reset to 0.2"
 msgstr ""
-"Layer height too small\n"
-"It has been reset to 0.2"
+"För liten lagerhöjd.\n"
+"Den har återställts till 0.2"
 
 msgid ""
 "Too large layer height.\n"
 "Reset to 0.2"
 msgstr ""
-"Layer height too large\n"
-"It has been reset to 0.2"
+"För stor lagerhöjd.\n"
+"Den har återställts till 0.2"
 
 msgid ""
 "Too small ironing spacing.\n"
 "Reset to 0.1"
 msgstr ""
-"Ironing spacing too small\n"
-"Reset to 0.1"
+"För litet avstånd för strykning.\n"
+"Återställ till 0.1"
 
 msgid ""
 "Zero initial layer height is invalid.\n"
 "\n"
 "The first layer height will be reset to 0.2."
 msgstr ""
-"Zero first layer height is invalid.\n"
+"Noll som första lagerhöjd är ogiltligt.\n"
 "\n"
-"The first layer height will be reset to 0.2."
+"Första lagerhöjden återställs till 0.2."
 
 msgid ""
 "This setting is only used for model size tunning with small value in some "
@@ -1462,6 +1504,12 @@ msgid ""
 "\n"
 "The value will be reset to 0."
 msgstr ""
+"Den här inställningen används endast för optimering av modellstorlek med "
+"litet värde i vissa fall.\n"
+"Till exempel när modellstorleken har små fel och svåra att montera.\n"
+"För justering av stor storlek, använd modellskalnings funktionen.\n"
+"\n"
+"Värdet kommer att återställas till 0."
 
 msgid ""
 "Too large elefant foot compensation is unreasonable.\n"
@@ -1470,17 +1518,27 @@ msgid ""
 "\n"
 "The value will be reset to 0."
 msgstr ""
+"För stor elefantfots kompensation är orimlig.\n"
+"Om det finns en elefantfotseffekt, kontrollera andra inställningar.\n"
+"Till exempel, byggytans temperatur kan vara för hög.\n"
+"\n"
+"Värdet kommer att återställas till 0."
 
 msgid ""
 "Spiral mode only works when wall loops is 1, \n"
 "support is disabled, top shell layers is 0 and sparse infill density is 0\n"
 msgstr ""
+"Spiral läge fungerar bara när vägg antalet är 1,\n"
+"support är inaktiverad, top lager är 0 och låg ifyllnads densitet är 0\n"
 
 msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings and enable spiral mode automatically\n"
 "No  - Give up using spiral mode this time"
 msgstr ""
+"Ändra dessa inställningar automatiskt? \n"
+"JA -Ändra dessa inställningar och möjliggör Spiral läge automatiskt\n"
+"NEJ  -Avbryt Spiral läge denna gång"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -1489,6 +1547,11 @@ msgid ""
 "YES - Keep Prime Tower\n"
 "NO  - Keep Adaptive Layer Height and Independent Support Layer Height"
 msgstr ""
+"Prime torn fungerar inte med Adaptiv Lagerhöjd eller när Oberoende Lagerhöjd "
+"på Support är aktiverad.\n"
+"Vilken ska behållas?\n"
+"JA - Behåll Prime Torn\n"
+"NEJ  - Behåll Adaptiv Lagerhöjd och Oberoende Lagerhöjd på Support"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height is on.\n"
@@ -1496,6 +1559,10 @@ msgid ""
 "YES - Keep Prime Tower\n"
 "NO  - Keep Adaptive Layer Height"
 msgstr ""
+"Prime Torn fungerar inte med Adaptiv Lagerhöjd aktiverad.\n"
+"Vilken ska behållas?\n"
+"JA - Behåll Prime Torn\n"
+"NEJ  - Behåll Adaptiv Lagerhöjd"
 
 msgid ""
 "Prime tower does not work when Independent Support Layer Height is on.\n"
@@ -1503,64 +1570,68 @@ msgid ""
 "YES - Keep Prime Tower\n"
 "NO  - Keep Independent Support Layer Height"
 msgstr ""
+"Prime Torn fungerar inte med  Oberoende Lagerhöjd på support är aktiverad.\n"
+"Vilken ska behållas?\n"
+"JA - Behåll Prime Torn\n"
+"NEJ  - Behåll Oberoende Lagerhöjd på support"
 
 #, boost-format
 msgid "%1% infill pattern doesn't support 100%% density."
-msgstr ""
+msgstr "%1% ifyllnads mönster stöds ej 100%% densitet."
 
 msgid ""
 "Switch to zig-zag pattern?\n"
 "Yes - switch to zig-zag pattern automaticlly\n"
 "No  - reset density to default non 100% value automaticlly\n"
 msgstr ""
-"Switch to zig-zag pattern?\n"
-"Yes - Switch to zig-zag pattern automatically\n"
-"No  - Reset density to default non-100% value automatically\n"
+"Ändra till Zig-Zag mönster?\n"
+"JA - Byta till Zig-Zag mönster automatiskt\n"
+"NEJ  - Återställ densiteten till standard inte 100% värdet automatiskt\n"
 
 msgid "The bed is auto leveling"
-msgstr ""
+msgstr "Byggplattan auto justeras"
 
 msgid "The hot bed is preheating"
-msgstr ""
+msgstr "Byggplattan förvärms"
 
 msgid "Frequncy sweeping"
-msgstr ""
+msgstr "Frekvens svepning"
 
 msgid "Change the filament"
-msgstr ""
+msgstr "Byta filament"
 
 msgid "Pause(M400)"
-msgstr ""
+msgstr "Paus(M400)"
 
 msgid "Pause(Lack of filament)"
-msgstr ""
+msgstr "Paus(Filament saknas)"
 
 msgid "The nozzle is preheating"
-msgstr ""
+msgstr "Nozzeln förvärms"
 
 msgid "Extruder compensation scanning"
-msgstr ""
+msgstr "Extruder skanning"
 
 msgid "Bed surface scanning"
-msgstr ""
+msgstr "Skanning av byggplattan"
 
 msgid "First layer scanning"
-msgstr ""
+msgstr "Första lager skanning"
 
 msgid "Bed surface is auto identifying"
-msgstr ""
+msgstr "Byggplattan auto identifieras"
 
 msgid "In the calibration of extrinsic parameters"
-msgstr ""
+msgstr "Kalibrering av yttre parametrar"
 
 msgid "The tool head is homing"
-msgstr ""
+msgstr "Nollställning av verktygshuvudet"
 
 msgid "Nozzle cleaning"
-msgstr ""
+msgstr "Nozzel rengöring"
 
 msgid "In the calibration of temperature protection"
-msgstr ""
+msgstr "Kalibrering av temperaturskydd"
 
 msgid "Pause(user)"
 msgstr ""
@@ -1575,63 +1646,63 @@ msgid "In the calibration of extrusion flow"
 msgstr ""
 
 msgid "MC"
-msgstr ""
+msgstr "MC"
 
 msgid "MainBoard"
-msgstr ""
+msgstr "Moderkort"
 
 msgid "AMS"
-msgstr ""
+msgstr "AMS"
 
 msgid "TH"
-msgstr ""
+msgstr "TH"
 
 msgid "XCam"
-msgstr ""
+msgstr "X Kamera"
 
 msgid "Unknown"
-msgstr ""
+msgstr "Okänd"
 
 msgid "Fatal"
-msgstr ""
+msgstr "Allvarligt"
 
 msgid "Serious"
-msgstr ""
+msgstr "Allvarlig"
 
 msgid "Common"
-msgstr ""
+msgstr "Vanlig"
 
 msgid "Update successful."
-msgstr ""
+msgstr "Uppdateringen lyckades."
 
 msgid "Downloading failed."
-msgstr ""
+msgstr "Nedladdning misslyckad."
 
 msgid "Verification failed."
-msgstr ""
+msgstr "Verifikation misslyckade."
 
 msgid "Update failed."
-msgstr ""
+msgstr "Uppdatering misslyckades."
 
 msgid "N/A"
-msgstr ""
+msgstr "N/A"
 
 #, c-format, boost-format
 msgid "%s can't be percentage"
-msgstr "%s can’t be a percentage"
+msgstr "%s kan inte vara procent"
 
 msgid "Invalid numeric."
-msgstr ""
+msgstr "Ogiltig siffra."
 
 #, c-format, boost-format
 msgid "Value %s is out of range, continue?"
-msgstr ""
+msgstr "Värdet %s är utanför intervallet, fortsätta?"
 
 msgid "Parameter validation"
-msgstr ""
+msgstr "Parameter validering"
 
 msgid "Value is out of range."
-msgstr ""
+msgstr "Värdet är utanför intervallet."
 
 #, c-format, boost-format
 msgid ""
@@ -1639,127 +1710,130 @@ msgid ""
 "YES for %s%%, \n"
 "NO for %s %s."
 msgstr ""
+"Det är %s%% eller %s %s?\n"
+"JA för %s%%, \n"
+"NEJ för %s %s."
 
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
-msgstr ""
+msgstr "Ogiltligt format. Förväntat vector format: \"%1%\""
 
 msgid "Layer Height"
-msgstr ""
+msgstr "Lagerhöjd"
 
 msgid "Line Width"
-msgstr ""
+msgstr "Linjebredd"
 
 msgid "Fan Speed"
-msgstr ""
+msgstr "Fläkt Hastighet"
 
 msgid "Temperature"
-msgstr ""
+msgstr "Temperatur"
 
 msgid "Flow"
-msgstr ""
+msgstr "Flöde"
 
 msgid "Tool"
-msgstr ""
+msgstr "Verktyg"
 
 msgid "Extruder position"
-msgstr ""
+msgstr "Extruder position"
 
 msgid "Loading G-codes"
-msgstr ""
+msgstr "Laddar G-koder"
 
 msgid "Generating geometry vertex data"
-msgstr ""
+msgstr "Genererar geometrisk vertex data"
 
 msgid "Generating geometry index data"
-msgstr ""
+msgstr "Genererar geometrisk index data"
 
 msgid "up to"
-msgstr ""
+msgstr "upp till"
 
 msgid "above"
-msgstr ""
+msgstr "över"
 
 msgid "from"
-msgstr ""
+msgstr "från"
 
 msgid "to"
-msgstr ""
+msgstr "till"
 
 msgid "Color Scheme"
-msgstr "Color scheme"
+msgstr "Färgschema"
 
 msgid "Percent"
-msgstr ""
+msgstr "Procent"
 
 msgid "Time"
-msgstr ""
+msgstr "Tid"
 
 msgid "Display"
-msgstr ""
+msgstr "Visa"
 
 msgid "Line type"
-msgstr ""
+msgstr "Linje typ"
 
 msgid "Layer Height (mm)"
-msgstr "Layer height (mm)"
+msgstr "Lagerhöjd (mm)"
 
 msgid "Line Width (mm)"
-msgstr "Line width (mm)"
+msgstr "Linje Bredd (mm)"
 
 msgid "Speed (mm/s)"
-msgstr ""
+msgstr "Hastighet (mm/s)"
 
 msgid "Fan Speed (%)"
-msgstr "Fan speed (%)"
+msgstr "Fläkt hastighet (%)"
 
 msgid "Temperature (°C)"
-msgstr ""
+msgstr "Temperatur (°C)"
 
 msgid "Volumetric flow rate (mm³/s)"
-msgstr ""
+msgstr "Volymetrisk flödeshastighet (mm³/s)"
 
 msgid "Used filament"
-msgstr ""
+msgstr "Använt filament"
 
 msgid "Filament N XX"
-msgstr ""
+msgstr "Filament N XX"
 
 msgid "Color Print"
-msgstr "Color print"
+msgstr "Färg Utskrift"
 
 msgid "Comsumption"
-msgstr "Consumption"
+msgstr "Konsumtion"
 
 msgid "Travel"
-msgstr ""
+msgstr "Flytta"
 
 msgid "Seams"
-msgstr ""
+msgstr "Sömmar"
 
 msgid "Retract"
-msgstr ""
+msgstr "Reversera"
 
 msgid "Unretract"
-msgstr ""
+msgstr "Reversera Ej"
 
 msgid "Filament Changes"
-msgstr "Filament changes"
+msgstr "Filament byten"
 
 msgid "Wipe"
-msgstr ""
+msgstr "Torka"
 
 msgid "Options"
-msgstr ""
+msgstr "Val"
 
 msgid "travel"
-msgstr "Travel"
+msgstr "flytta"
 
 msgid "Extruder"
-msgstr ""
+msgstr "Extruder"
 
 msgid "Filament 1"
-msgstr ""
+msgstr "Filament 1"
 
 msgid "Flushed filament"
 msgstr ""
@@ -1768,174 +1842,178 @@ msgid "Filament change times"
 msgstr ""
 
 msgid "Color change"
-msgstr ""
+msgstr "Färg byte"
 
 msgid "Print"
-msgstr ""
+msgstr "Skriv ut"
 
 msgid "Pause"
-msgstr ""
+msgstr "Paus"
 
 msgid "Printer"
-msgstr ""
+msgstr "Printer"
 
 msgid "Print settings"
-msgstr ""
+msgstr "Utskrifts inställningar"
 
 msgid "Total Estimation"
-msgstr "Total estimation"
+msgstr "Total Uppskattning"
 
 msgid "Normal mode"
-msgstr ""
+msgstr "Normalt läge"
 
 msgid "Prepare time"
-msgstr ""
+msgstr "Förbered tid"
 
 msgid "Model printing time"
-msgstr ""
+msgstr "Utskriftstid för modellen"
 
 msgid "Total"
-msgstr ""
+msgstr "Total"
 
 msgid "Switch to silent mode"
-msgstr ""
+msgstr "Ändra till tyst läge"
 
 msgid "Switch to normal mode"
-msgstr ""
+msgstr "Ändra till normal läge"
 
 msgid "Sequence"
-msgstr ""
+msgstr "Sekvens"
 
 msgid "Mirror Object"
-msgstr "Mirror object"
+msgstr "Spegelvänd Objektet"
 
 msgid "Tool Move"
-msgstr "Tool move"
+msgstr "Verktygs Förflyttning"
 
 msgid "Move Object"
-msgstr "Move object"
+msgstr "Flytta Objektet"
 
 msgid "Auto Orientation options"
-msgstr "Auto orientation options"
+msgstr "Auto Placerings val"
 
 msgid "Enable rotation"
-msgstr ""
+msgstr "Aktivera rotation"
 
 msgid "Optimize support interface area"
-msgstr ""
+msgstr "Optimisera support områdets gränssnitts yta"
 
 msgid "Orient"
-msgstr ""
+msgstr "Placera"
 
 msgid "Arrange options"
-msgstr ""
+msgstr "Arrangera val"
 
 msgid "Spacing"
-msgstr ""
+msgstr "Mellanrum"
 
 msgid "Auto rotate for arrangement"
-msgstr ""
+msgstr "Auto rotera  för arrangemang"
 
 msgid "Allow multiple materials on same plate"
-msgstr ""
+msgstr "Tillåt multipla material på samma byggplatta"
 
 msgid "Avoid extrusion calibration region"
-msgstr ""
+msgstr "Undvik kalibrerings området"
 
 msgid "Add"
-msgstr ""
+msgstr "Lägg till"
 
 msgid "Add plate"
-msgstr ""
+msgstr "Lägg till byggplata"
 
 msgid "Auto orient"
-msgstr ""
+msgstr "Auto placera"
 
 msgid "Auto arrange"
-msgstr ""
+msgstr "Auto arrangera"
 
 msgid "Split to objects"
-msgstr ""
+msgstr "Dela upp till objekt"
 
 msgid "Split to parts"
-msgstr ""
+msgstr "Dela upp i delar"
 
 msgid "Assembly View"
-msgstr ""
+msgstr "Monterings vy"
 
 msgid "Select Plate"
-msgstr ""
+msgstr "Välj Byggplatta"
 
 msgid "Assembly Return"
-msgstr ""
+msgstr "Monterings retur"
 
 msgid "return"
 msgstr ""
 
 msgid "Paint Toolbar"
-msgstr ""
+msgstr "Färgläggningsverktyg"
 
 msgid "Explosion Ratio"
-msgstr ""
+msgstr "Explosions Förhållande"
 
 msgid "Total Volume:"
-msgstr ""
+msgstr "Total Volym:"
 
 msgid "Assembly Info"
-msgstr ""
+msgstr "Monterings Info"
 
 msgid "Volume:"
-msgstr ""
+msgstr "Volym:"
 
 msgid "Size:"
-msgstr ""
+msgstr "Storlek:"
 
 msgid "An object is layed over the boundary of plate."
-msgstr ""
+msgstr "Ett objekt är placerad över byggplattans begränsningar."
 
 msgid "A G-code path goes beyond the boundary of plate."
-msgstr ""
+msgstr "En G-kod väg passerar över byggplattans begränsningar."
 
 msgid "Only the object being edit is visible."
-msgstr ""
+msgstr "Bara objektet som editeras är synligt."
 
 msgid ""
 "An object is layed over the boundary of plate.\n"
 "Please solve the problem by moving it totally inside or outside plate."
 msgstr ""
-"An object is laid over the edge of the plate.\n"
-"Please solve the problem by moving it totally on or off the plate."
+"Ett objekt är placerad över byggplattans begränsningar.\n"
+"Flytta objektet så det är helt inom eller utom byggplattans begränsningar."
 
 msgid "Calibration"
-msgstr ""
+msgstr "Kalibrering"
 
 msgid "Calibration program"
-msgstr ""
+msgstr "Kalibrerings program"
 
 msgid ""
 "Calibration program detects the status of your device systematically to "
 "minimise deviation. It keeps the device at its the best performance"
 msgstr ""
+"Kalibrerings programmet känner av statusen på enheten systematiskt för att "
+"minimera avvikelser. Detta uppehåller enhetens prestanda"
 
 msgid "Preparation before calibration"
-msgstr ""
+msgstr "Förbereder kalibrering"
 
 msgid ""
 "Before calibration, please make sure a filament is loaded and its nozzle "
 "temperature and bed temperature is set in Feeding lab."
 msgstr ""
+"Innan kalibrering, säkerställ att filament är laddat och att nozzel samt "
+"byggplattans temperatur är vald i matnings facket."
 
 msgid "Calibration Flow"
-msgstr ""
+msgstr "Kalibrerings Flöde"
 
 msgid "Start Calibration"
-msgstr ""
+msgstr "Starta Kalibrering"
 
 msgid "Calibrating"
-msgstr ""
+msgstr "Kalibrerar"
 
 msgid "Timelapse"
-msgstr ""
+msgstr "Timelapse"
 
 msgid "Recording"
 msgstr ""
@@ -1952,7 +2030,7 @@ msgid ""
 msgstr ""
 
 msgid "Please fill report first."
-msgstr ""
+msgstr "Fyll i rapporten först."
 
 msgid "Unable to create zip file"
 msgstr ""
@@ -1961,259 +2039,259 @@ msgid "Enter a search term"
 msgstr ""
 
 msgid "Online"
-msgstr ""
+msgstr "Online"
 
 msgid "Offline"
-msgstr ""
+msgstr "Offline"
 
 msgid "Application is closing"
-msgstr "Closing application"
+msgstr "Begäran avslutas"
 
 msgid "Closing Application while some presets are modified."
-msgstr ""
+msgstr "Stänger Begäran medans vissa inställningar ändrats."
 
 msgid "Logging"
-msgstr ""
+msgstr "Loggar"
 
 msgid "Prepare"
-msgstr ""
+msgstr "Förbered"
 
 msgid "Preview"
-msgstr ""
+msgstr "Förvisning"
 
 msgid "Device"
 msgstr ""
 
 msgid "Project"
-msgstr ""
+msgstr "Projekt"
 
 msgid "Debug"
-msgstr ""
+msgstr "Felsök"
 
 msgid "Slice"
-msgstr ""
+msgstr "Bered"
 
 msgid "Slice all"
-msgstr ""
+msgstr "Bered allt"
 
 msgid "Slice plate"
-msgstr ""
+msgstr "Bered plattan"
 
 msgid "Print all"
-msgstr ""
+msgstr "Skriv ut allt"
 
 msgid "Export sliced file"
-msgstr "Export Sliced File"
+msgstr "Exportera beredd fil"
 
 msgid "Export Sliced File"
-msgstr ""
+msgstr "Exportera Beredd fil"
 
 msgid "Keyboard Shortcuts"
-msgstr ""
+msgstr "Kortkommando"
 
 msgid "Show the list of the keyboard shortcuts"
-msgstr ""
+msgstr "Visa lista över kortkommandon"
 
 msgid "Beginner's Tutorial"
-msgstr ""
+msgstr "Handledning för nybörjare"
 
 msgid "Show Configuration Folder"
-msgstr ""
+msgstr "Visa Konfigurations Mapp"
 
 msgid "Check for Update"
-msgstr ""
+msgstr "Sök efter Uppdatering"
 
 #, c-format, boost-format
 msgid "&About %s"
-msgstr ""
+msgstr "&Om %s"
 
 msgid "Default View"
-msgstr ""
+msgstr "Standard Vy"
 
 #. TRN To be shown in the main menu View->Top
 msgid "Top"
-msgstr ""
+msgstr "Top"
 
 msgid "Top View"
-msgstr ""
+msgstr "Vy Top"
 
 #. TRN To be shown in the main menu View->Bottom
 msgid "Bottom"
-msgstr ""
+msgstr "Botten"
 
 msgid "Bottom View"
-msgstr ""
+msgstr "Vy Botten"
 
 msgid "Front"
-msgstr ""
+msgstr "Framifrån"
 
 msgid "Front View"
-msgstr ""
+msgstr "Vy Framifrån"
 
 msgid "Rear"
-msgstr ""
+msgstr "Bakom"
 
 msgid "Rear View"
-msgstr ""
+msgstr "Vy Bakifrån"
 
 msgid "Left"
-msgstr ""
+msgstr "Vänster"
 
 msgid "Left View"
-msgstr ""
+msgstr "Vy Vänster"
 
 msgid "Right"
-msgstr ""
+msgstr "Höger"
 
 msgid "Right View"
-msgstr ""
+msgstr "Vy Höger"
 
 msgid "New Project"
-msgstr ""
+msgstr "Nytt Pojekt"
 
 msgid "Start a new project"
-msgstr ""
+msgstr "Skapa nytt projekt"
 
 msgid "Open Project"
-msgstr ""
+msgstr "Öppna Projekt"
 
 msgid "Open a project file"
-msgstr ""
+msgstr "Öppna en projekt fil"
 
 msgid "Recent projects"
-msgstr "Recent Projects"
+msgstr "Senaste projekten"
 
 msgid "The project is no longer available."
-msgstr ""
+msgstr "Detta projekt är inte tillgängligt."
 
 msgid "Save Project"
-msgstr ""
+msgstr "Spara Projekt"
 
 msgid "Save current project to file"
-msgstr ""
+msgstr "Spara nuvarande projekt till fil"
 
 msgid "Save Project as"
-msgstr ""
+msgstr "Spara Projekt som"
 
 msgid "Save current project as"
-msgstr ""
+msgstr "Spara nuvarande projekt som"
 
 msgid "Import 3MF/STL/STEP/OBJ/AMF"
-msgstr ""
+msgstr "Importera 3MF/STL/STEP/OBJ/AMF"
 
 msgid "Load a model"
-msgstr ""
+msgstr "Ladda modell"
 
 msgid "Export all objects as STL"
-msgstr "Export All Object as STL"
+msgstr "Exportera Alla Objekt som STL"
 
 msgid "Export current Sliced file"
-msgstr ""
+msgstr "Exportera nuvarande Beredda fil"
 
 msgid "Export"
-msgstr ""
+msgstr "Exportera"
 
 msgid "Quit"
-msgstr ""
+msgstr "Avsluta"
 
 msgid "Undo"
-msgstr ""
+msgstr "Ångra"
 
 msgid "Redo"
-msgstr ""
+msgstr "Gör om"
 
 msgid "Cut selection to clipboard"
-msgstr ""
+msgstr "Klipp ut markeringen till urklipp"
 
 msgid "Copy"
-msgstr ""
+msgstr "Kopiera"
 
 msgid "Copy selection to clipboard"
-msgstr ""
+msgstr "Kopiera markeringen till urklipp"
 
 msgid "Paste"
-msgstr ""
+msgstr "Klistra in"
 
 msgid "Paste clipboard"
-msgstr ""
+msgstr "Klistra in urklipp"
 
 msgid "Delete selected"
-msgstr "Delete Selected"
+msgstr "Radera vald"
 
 msgid "Deletes the current selection"
-msgstr ""
+msgstr "Radera vald markering"
 
 msgid "Delete all"
-msgstr "Delete All"
+msgstr "Radera allt"
 
 msgid "Deletes all objects"
-msgstr ""
+msgstr "Radera alla objekt"
 
 msgid "Clone selected"
-msgstr "Clone Selected"
+msgstr "Kopia vald"
 
 msgid "Clone copies of selections"
-msgstr ""
+msgstr "Kopiera markeringen"
 
 msgid "Select all"
-msgstr "Select All"
+msgstr "Välj allt"
 
 msgid "Selects all objects"
-msgstr ""
+msgstr "Välj alla objekt"
 
 msgid "Deselect all"
-msgstr "Deselect All"
+msgstr "Avmarkera allt"
 
 msgid "Deselects all objects"
-msgstr ""
+msgstr "Avmarkera alla objekt"
 
 msgid "Show Model Mesh(TODO)"
-msgstr ""
+msgstr "Visa Modell Mesh(TODO)"
 
 msgid "Display triangles of models"
-msgstr ""
+msgstr "Visa trianglar från modellerna"
 
 msgid "Show Model Shadow(TODO)"
-msgstr ""
+msgstr "Visa Modell Skuggor(TODO)"
 
 msgid "Display shadow of objects"
-msgstr ""
+msgstr "Visa skuggor från objektet"
 
 msgid "Show Printable Box(TODO)"
-msgstr ""
+msgstr "Visa Utskriftbar Box(TODO)"
 
 msgid "Display printable box"
-msgstr ""
+msgstr "Visa utskriftbar box"
 
 msgid "Use Perspective View"
-msgstr ""
+msgstr "Använd Perspektiv Vy"
 
 msgid "Use Orthogonal View"
-msgstr ""
+msgstr "Använd Ortogonal Vy"
 
 msgid "Show Edges(TODO)"
-msgstr ""
+msgstr "Visa Kanter(TODO)"
 
 msgid "Show Edges"
-msgstr ""
+msgstr "Visa Kanter"
 
 msgid "Preferences"
-msgstr ""
+msgstr "Inställningar"
 
 msgid "View"
-msgstr ""
+msgstr "Vy"
 
 msgid "Help"
-msgstr ""
+msgstr "Hjälp"
 
 msgid "Save configuration as:"
-msgstr ""
+msgstr "Spara konfigurationen som:"
 
 msgid "File is missing"
-msgstr ""
+msgstr "Filen saknas"
 
 msgid "Filament Settings"
-msgstr "Filament settings"
+msgstr "Filament Inställningar"
 
 msgid ""
 "Do you want to synchronize your personal data from Bambu Cloud? \n"
@@ -2224,599 +2302,602 @@ msgid ""
 msgstr ""
 
 msgid "Synchronization"
-msgstr ""
+msgstr "Synkronisering"
 
 msgid "Initialize failed (No Device)!"
-msgstr "Initialization failed (No Device)!"
+msgstr "Start misslyckad (Ingen Enhet)!"
 
 msgid "Initializing..."
-msgstr ""
+msgstr "Startar..."
 
 #, c-format, boost-format
 msgid "Initialize failed [%d]!"
-msgstr "Initalization failed [%d]!"
+msgstr "Start misslyckad [%d]!"
 
 msgid "Loading..."
-msgstr ""
+msgstr "Laddar..."
 
 msgid "Stopped."
-msgstr ""
+msgstr "Avbruten."
 
 msgid "Playing..."
-msgstr ""
+msgstr "Spelar..."
 
 #, c-format, boost-format
 msgid "Load failed [%d]!"
-msgstr "Loading failed [%d]!"
+msgstr "Laddning misslyckad [%d]!"
 
 msgid "3Dconnexion settings"
-msgstr ""
+msgstr "3Dconnexion inställningar"
 
 msgid "Device:"
-msgstr ""
+msgstr "Enhet:"
 
 msgid "Speed:"
-msgstr ""
+msgstr "Hastighet:"
 
 msgid "Translation"
-msgstr ""
+msgstr "Översättning"
 
 msgid "Zoom"
-msgstr ""
+msgstr "Zoom"
 
 msgid "Deadzone:"
-msgstr ""
+msgstr "Upphör:"
 
 msgid "Options:"
-msgstr ""
+msgstr "Val:"
 
 msgid "Swap Y/Z axes"
-msgstr ""
+msgstr "Byta Y/Z axes"
 
 msgid "Close"
-msgstr ""
+msgstr "Stäng"
 
 msgid "Monitoring"
-msgstr ""
+msgstr "Övervakar"
 
 msgid "Printing Progress"
-msgstr "Printing progress"
+msgstr "Utskriftsförlopp"
 
 msgid "Report"
-msgstr ""
+msgstr "Rapportera"
 
 msgid "Stop"
-msgstr ""
+msgstr "Stopp"
 
 msgid "0%"
-msgstr ""
+msgstr "0%"
 
 msgid "Control"
 msgstr ""
 
 msgid "100%"
-msgstr ""
+msgstr "100%"
 
 msgid "Lamp"
-msgstr ""
+msgstr "Lampa"
 
 msgid "Part Cooling"
-msgstr ""
+msgstr "Del Kylning"
 
 msgid "Aux Cooling"
-msgstr ""
+msgstr "Extra Kylning"
 
 msgid "Bed"
-msgstr ""
+msgstr "Byggplattan"
 
 msgid "Debug Info"
-msgstr ""
+msgstr "Felsöknings Information"
 
 msgid "Printing List"
-msgstr "Printing list"
+msgstr "Utskrifts Lista"
 
 msgid "Resume"
-msgstr ""
+msgstr "Återuppta"
 
 msgid "Silent Mode"
-msgstr ""
+msgstr "Tyst Läge"
 
 msgid "Standard"
-msgstr ""
+msgstr "Standard"
 
 msgid "Sport"
-msgstr ""
+msgstr "Sport"
 
 msgid "Ludicrous"
-msgstr ""
+msgstr "Galet"
 
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
 msgid "Media"
-msgstr ""
+msgstr "Media"
 
 msgid "Update"
-msgstr ""
+msgstr "Uppdatera"
 
 msgid "HMS"
-msgstr ""
+msgstr "HMS"
 
 msgid "Failed to connect to the server"
-msgstr ""
+msgstr "Uppkoppling till servern misslyckades"
 
 msgid "Failed to connect to the printer"
-msgstr ""
+msgstr "Uppkoppling till printern misslyckades"
 
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 msgid "Yes"
-msgstr ""
+msgstr "Ja"
 
 msgid "No"
-msgstr ""
+msgstr "Nej"
 
 #, c-format, boost-format
 msgid "%s error"
-msgstr ""
+msgstr "%s fel"
 
 #, c-format, boost-format
 msgid "%s has encountered an error"
-msgstr ""
+msgstr "%s har stött på ett fel"
 
 #, c-format, boost-format
 msgid "%s warning"
-msgstr ""
+msgstr "%s varning"
 
 #, c-format, boost-format
 msgid "%s has a warning"
-msgstr ""
+msgstr "%s har en varning"
 
 #, c-format, boost-format
 msgid "%s info"
-msgstr ""
+msgstr "%s info"
 
 #, c-format, boost-format
 msgid "%s information"
-msgstr ""
+msgstr "%s information"
 
 msgid "Download"
-msgstr ""
+msgstr "Ladda ner"
 
 msgid "Skip"
-msgstr ""
+msgstr "Hoppa över"
 
 msgid "3D Mouse disconnected."
-msgstr ""
+msgstr "3D mus bortkopplad."
 
 msgid "Configuration can update now."
-msgstr "A new configuration is available. Update now?"
+msgstr "Ny konfiguration upptäckt! Uppdatera nu?"
 
 msgid "Detail."
-msgstr "More"
+msgstr "Detalj."
 
 msgid "Integration was successful."
-msgstr ""
+msgstr "Integrationen lyckades."
 
 msgid "Integration failed."
-msgstr ""
+msgstr "Integrationen misslyckades."
 
 msgid "Undo integration was successful."
-msgstr ""
+msgstr "Återställande av integrationen lyckades."
 
 msgid "Undo integration failed."
-msgstr ""
+msgstr "Återställande av integrationen misslyckades."
 
 msgid "Exporting."
-msgstr "Exporting"
+msgstr "Exporterar."
 
 msgid "Software has New version."
-msgstr "An update is available!"
+msgstr "En uppdatering finns tillgänglig."
 
 msgid "Goto download page."
-msgstr "Go to download page"
+msgstr "Besök nedladdnings sidan."
 
 msgid "More"
-msgstr ""
+msgstr "Mer"
 
 msgid "Open Folder."
-msgstr ""
+msgstr "Öppna Mapp."
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid "%1$d Object has custom supports."
 msgid_plural "%1$d Objects have custom supports."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%1$d Objektet har custom support.@%1$d Objekten har custom support."
+msgstr[1] "%1$d Objektet har custom support.@%1$d Objekten har custom support."
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid "%1$d Object has color painting."
 msgid_plural "%1$d Objects have color painting."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%1$d Objektet har färgläggning.@%1$d Objekten har färgläggning."
+msgstr[1] "%1$d Objektet har färgläggning.@%1$d Objekten har färgläggning."
 
 msgid "Slice ok."
-msgstr "Slice complete"
+msgstr "Beredning klar."
 
 msgid "Export G-Code."
-msgstr "Export to G-code"
+msgstr "Exportera G-kod."
 
-# We’ve got to check on this one
-# [Yifan] This is used as hypertext at the end a popup message.
-# Hypertext is displayed with underline and can be clicked with left mouse button.
-# [Cory] Got it!  I took out the period
 msgid "Export."
-msgstr "Export"
+msgstr "Exportera."
 
 msgid "Jump to"
-msgstr ""
+msgstr "Hoppa till"
 
 msgid "Error:"
-msgstr ""
+msgstr "Fel:"
 
 msgid "Warning:"
-msgstr ""
+msgstr "Varning:"
 
 msgid "Export ok."
-msgstr ""
+msgstr "Exportering OK."
 
 msgid " (Repair)"
-msgstr ""
+msgstr " (Reparera)"
 
 msgid "WARNING:"
-msgstr ""
+msgstr "VARNING:"
 
 msgid "Your model needs support ! Please make support material enable."
-msgstr ""
+msgstr "Modellen behöver support ! Aktivera support inställningarna."
 
 msgid "Gcode path overlap"
-msgstr "G-code path overlap"
+msgstr "G-kodens rutt överlappar"
 
 msgid "Support painting"
-msgstr ""
+msgstr "Support färgläggning"
 
 msgid "Color painting"
-msgstr ""
+msgstr "Färgläggning"
 
 msgid "Layers"
-msgstr ""
+msgstr "Lager"
 
 msgid "Range"
-msgstr ""
+msgstr "Räckvidd"
 
 msgid "default"
-msgstr ""
+msgstr "standard"
 
 msgid ""
 "The application cannot run normally because OpenGL version is lower than "
 "2.0.\n"
 msgstr ""
-"The application cannot run normally because your OpenGL version is lower "
-"than 2.0.\n"
+"Begäran kan inte köras normalt för att OpenGL version är lägre än 2.0.\n"
 
 msgid "Please upgrade your graphics card driver."
-msgstr ""
+msgstr "Uppdatera grafikkortets drivrutiner."
 
 msgid "Unsupported OpenGL version"
-msgstr ""
+msgstr "OpenGL version stöttas ej"
 
 #, c-format, boost-format
 msgid ""
 "Unable to load shaders:\n"
 "%s"
 msgstr ""
+"Kan inte ladda skuggor:\n"
+"%s"
 
 msgid "Error loading shaders"
-msgstr ""
+msgstr "Fel vid laddning av skuggor"
 
 msgctxt "Layers"
 msgid "Top"
-msgstr ""
+msgstr "Topplager"
 
 msgctxt "Layers"
 msgid "Bottom"
-msgstr ""
+msgstr "Bottenlager"
 
 msgid "Switch to per-object setting mode to edit modifier settings."
-msgstr ""
+msgstr "Ändra till per objekt inställningsläge till redigerings inställningar."
 
 msgid "Don't show again"
-msgstr ""
+msgstr "Visa inte igen"
 
 msgid "Global"
-msgstr ""
+msgstr "Global"
 
 msgid "Objects"
-msgstr ""
+msgstr "Objekten"
 
 msgid "Advance"
-msgstr "Advanced"
+msgstr "Avancerat"
 
 msgid "Compare presets"
-msgstr ""
+msgstr "Jämför inställningar"
 
 msgid "View all object's settings"
-msgstr ""
+msgstr "Se alla objektens inställningar"
 
 msgid "Filament settings"
-msgstr ""
+msgstr "Filament inställningar"
 
 msgid "Printer settings"
-msgstr ""
+msgstr "Skrivarens inställningar"
 
 #, boost-format
 msgid " plate %1%:"
-msgstr ""
+msgstr " platta %1%:"
 
 msgid "Invalid name, the following characters are not allowed:"
-msgstr ""
+msgstr "Ogiltligt namn, följande tecken är inte tillåtna:"
 
 msgid "Sliced Info"
-msgstr ""
+msgstr "Berednings Info"
 
 msgid "Used Filament (m)"
-msgstr ""
+msgstr "Filament Åtgång (m)"
 
 msgid "Used Filament (mm³)"
-msgstr ""
+msgstr "Filament Åtgång (mm³)"
 
 msgid "Used Filament (g)"
-msgstr ""
+msgstr "Filament Åtgång (g)"
 
 msgid "Used Materials"
-msgstr ""
+msgstr "Material Åtgång"
 
 msgid "Cost"
-msgstr ""
+msgstr "Kostnad"
 
 msgid "Estimated time"
-msgstr ""
+msgstr "Uppskattad tid"
 
 msgid "Filament changes"
-msgstr ""
+msgstr "Filament byten"
 
 msgid "Click to edit preset"
-msgstr ""
+msgstr "Tryck för att redigera inställningar"
 
 msgid "Bed type"
-msgstr ""
+msgstr "Typ av byggplatta"
 
 msgid "Flushing volumes"
-msgstr ""
+msgstr "Rensnings volymer"
 
 msgid "Untitled"
-msgstr ""
+msgstr "Ej namngiven"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
-msgstr ""
+msgstr "Spara ändringarna till \"%1%\"?"
 
 msgid "Previous unsaved project detected, do you want to restore it?"
-msgstr ""
+msgstr "Tidigare osparat projekt upptäckt, återställa det?"
 
 msgid "Restore"
-msgstr ""
+msgstr "Återställ"
 
 #, c-format, boost-format
 msgid "Loading file: %s"
-msgstr ""
+msgstr "Laddar fil: %s"
 
 msgid "The Config is not compatible and can not be loaded."
-msgstr "The configuration is not compatible; it cannot be loaded!"
+msgstr "Ej kompatibel konfiguration; kan inte laddas."
 
 msgid "Incompatible 3mf"
-msgstr ""
+msgstr "Ej kompatibel 3mf"
 
 msgid "the 3mf is not compatible, load geometry data only!"
-msgstr "The 3mf is not compatible, loading geometry data only!"
+msgstr "3mf ej kompatibel, laddar endast geometrin !"
 
 #, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Found following keys "
 "unrecognized:\n"
 msgstr ""
+"3mf's version %s är nyare än %s's version %s, Följande nycklar känns inte "
+"igen:\n"
 
 msgid "You'd better upgrade your software.\n"
-msgstr ""
+msgstr "Uppdatera mjukvaran.\n"
 
 msgid "Newer 3mf version"
-msgstr ""
+msgstr "Nyare 3mf version"
 
 msgid "Name of components inside step file is not UTF8 format!"
-msgstr "Component name(s) inside step file not in UTF8 format!"
+msgstr "Komponent namnet i step filen är inte UTF8 format!"
 
 msgid "The name may show garbage characters!"
-msgstr "Because of unsupported text encoding, garbage characters may appear!"
+msgstr "På grund av textkodning som inte stöds så kan skräptecken visas!"
 
 msgid "Attention!"
-msgstr ""
+msgstr "Observera!"
 
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr ""
+"Laddning av fil misslyckades \"%1%\". En ogiltlig konfiguration hittades."
 
 msgid "Objects with zero volume removed"
-msgstr ""
+msgstr "Objekt utan volym raderade"
 
 msgid "The volume of the object is zero"
-msgstr ""
+msgstr "Objektet är utan volym"
 
 #, c-format, boost-format
 msgid ""
 "The object from file %s is too small, and maybe in meters or inches.\n"
 " Do you want to scale to millimeters?"
 msgstr ""
+"Objektets fil %s är för litet, det är kanske i meter eller inches.\n"
+"Skala om till millimeter?"
 
 msgid "Object too small"
-msgstr ""
+msgstr "För litet objekt"
 
 msgid "Load these files as a single object with multiple parts?\n"
-msgstr ""
+msgstr "Ladda dessa filer som ett enkelt objekt med multipla delar?\n"
 
 msgid "Object with multiple parts was detected"
-msgstr "An object with multiple parts was detected"
+msgstr "Ett objekt med multipla delar har upptäckts"
 
 msgid "The file does not contain any geometry data."
 msgstr ""
 
 msgid "Export STL file:"
-msgstr ""
+msgstr "Exportera STL-fil:"
 
 msgid "Save file as:"
-msgstr "Save file as"
+msgstr "Spara fil som:"
 
 msgid "The selected object couldn't be split."
-msgstr ""
+msgstr "Det valda objektet kan inte delas."
 
 msgid "Another export job is running."
-msgstr ""
+msgstr "En annan exportering pågår."
 
 msgid "Please select a file"
-msgstr ""
+msgstr "Välj en fil"
 
 msgid "Slicing"
-msgstr ""
+msgstr "Bereder"
 
 msgid "There are warnings after slicing models:"
-msgstr ""
+msgstr "Varningar efter beredning:"
 
 msgid "warnings"
-msgstr ""
+msgstr "varningar"
 
 msgid "Invalid data"
-msgstr ""
+msgstr "Ogiltlig data"
 
 #, c-format, boost-format
 msgid "Slicing Plate %d"
-msgstr ""
+msgstr "Bereder plattan %d"
 
 msgid "Please resolve the slicing errors and publish again."
-msgstr ""
+msgstr "Lös berednings felen och publicera igen."
 
 msgid "Some presets are modified."
-msgstr ""
+msgstr "Några inställningar har ändrats."
 
 msgid "You can keep the modified presets to the new project or discard them"
-msgstr "You can keep the modified presets for the new project or discard them"
+msgstr ""
+"Fortsätt med redigerings inställningarna till nytt projekt eller avfärda dem"
 
 msgid ""
 "You can keep the modifield presets to the new project, discard or save "
 "changes as new presets."
 msgstr ""
-"You can keep the modified presets for the new project, discard, or save "
-"changes as new presets."
+"Fortsätt med redigerings inställningarna till nytt projekt, avfärda dem "
+"eller spara som ny inställning."
 
 msgid "Creating a new project"
-msgstr ""
+msgstr "Skapar nytt projekt"
 
 msgid "Load project"
-msgstr ""
+msgstr "Ladda projekt"
 
 msgid "The selected file"
-msgstr ""
+msgstr "Den valda filen"
 
 msgid "does not contain valid gcode."
-msgstr "Does not contain valid G-code."
+msgstr "Innehåller ingen giltlig G-kod."
 
 msgid "Error occurs while loading G-code file"
-msgstr "An Error has occurred while loading the G-code file."
+msgstr "Fel uppstod vid laddningen av G-kod"
 
 msgid "Drop project file"
-msgstr ""
+msgstr "Släpp projekt filen"
 
 msgid "Please select an action"
-msgstr ""
+msgstr "Välj en åtgärd"
 
 msgid "Open as project"
-msgstr ""
+msgstr "Öppna som projekt"
 
 msgid "Import geometry only"
-msgstr ""
+msgstr "Importera endast geometrin"
 
 msgid "Only one G-code file can be opened at the same time."
-msgstr "Only one G-code file can be opened at a time."
+msgstr "Endast en G-kod kan öppnas åt gången."
 
 msgid "All objects will be removed, continue?"
-msgstr ""
+msgstr "Alla objekt kommer att raderas, fortsätta?"
 
 msgid "The current project has unsaved changes, save it before continue?"
-msgstr ""
-"The current project has unsaved changes. Would you like to save before "
-"continuing?"
+msgstr "Nuvarande projekt har ej sparade ändringar, spara innan du går vidare?"
 
 msgid "Save"
-msgstr ""
+msgstr "Spara"
 
 msgid "Number of copies:"
-msgstr ""
+msgstr "Antal kopior:"
 
 msgid "Copies of the selected object"
-msgstr ""
+msgstr "Kopior av det valda objektet"
 
 msgid "Save G-code file as:"
-msgstr ""
+msgstr "Spara G-kod som:"
 
 msgid "Save Sliced file as:"
-msgstr ""
+msgstr "Spara beredningen som:"
 
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
 msgstr ""
+"Skriv ut per Objekt:\n"
+"Rekommenderar att auto-placering för att undvika kollisioner under utskrift."
 
 msgid "Export G-code"
-msgstr ""
+msgstr "Exportera G-kod"
 
 msgid "Send G-code"
-msgstr ""
+msgstr "Skicka G-kod"
 
 msgid "Send to printer"
-msgstr ""
+msgstr "Skicka till skrivare"
 
 msgid "Custom supports and color painting were removed before repairing."
-msgstr ""
+msgstr "Custom support och färgläggning raderades innan reparation."
 
 msgid "Invalid number"
-msgstr ""
+msgstr "Ogiltligt nummer"
 
 #, boost-format
 msgid "Part name: %1%\n"
-msgstr ""
+msgstr "Delens namn: %1%\n"
 
 #, boost-format
 msgid "Object name: %1%\n"
-msgstr ""
+msgstr "Objektets namn: %1%\n"
 
 #, boost-format
 msgid "Size: %1% x %2% x %3% in\n"
-msgstr ""
+msgstr "Storlek: %1% x %2% x %3% in\n"
 
 #, boost-format
 msgid "Size: %1% x %2% x %3% mm\n"
-msgstr ""
+msgstr "Storlek: %1% x %2% x %3% mm\n"
 
 #, boost-format
 msgid "Volume: %1% mm³\n"
-msgstr ""
+msgstr "Volym: %1% mm³\n"
 
 #, boost-format
 msgid "Triangles: %1%\n"
-msgstr ""
+msgstr "Trianglar: %1%\n"
 
 msgid "Switching the language requires application restart.\n"
-msgstr "Switching languages requires the application to restart.\n"
+msgstr "Byte av språk krävs för omstart.\n"
 
 msgid "Do you want to continue?"
-msgstr ""
+msgstr "Fortsätta?"
 
 msgid "Language selection"
-msgstr ""
+msgstr "Språkval"
 
 msgid "Switching application language while some presets are modified."
-msgstr ""
+msgstr "Byter språk medans inställningarna ändras."
 
 msgid "Changing application language"
-msgstr ""
+msgstr "Byter språk"
 
 msgid "Changing the region will log out your account.\n"
 msgstr ""
@@ -2825,7 +2906,7 @@ msgid "Region selection"
 msgstr ""
 
 msgid "Second"
-msgstr ""
+msgstr "Andra"
 
 msgid "General Settings"
 msgstr ""
@@ -2843,23 +2924,22 @@ msgid "North America"
 msgstr ""
 
 msgid "Others"
-msgstr ""
+msgstr "Andra"
 
 msgid "Login Region"
 msgstr ""
 
 msgid "Metric"
-msgstr ""
+msgstr "Metrisk"
 
 msgid "Imperial"
-msgstr ""
+msgstr "Brittisk standard"
 
 msgid "Units"
-msgstr ""
+msgstr "Enheter"
 
-# [Yifan] Will be removed
 msgid "User sync"
-msgstr ""
+msgstr "Användar synkronisering"
 
 msgid "User Sync"
 msgstr ""
@@ -2868,304 +2948,295 @@ msgid "auto sync user presets (printer/materials/craft)"
 msgstr ""
 
 msgid "Associate files to BambuStudio"
-msgstr "Associate files to Bambu Studio"
+msgstr "Associerade filer till Bambu Studio"
 
 msgid "Associate .3mf files to BambuStudio"
-msgstr "Associate .3mf files to Bambu Studio"
+msgstr "Associerade .3mf files till Bambu Studio"
 
 msgid "If enabled, sets BambuStudio as default application to open .3mf files"
-msgstr ""
-"If enabled, sets Bambu Studio as the default application to open .3mf files"
+msgstr "Om aktiverad, väljs Bambu Studio som standard att öppna .3mf filer"
 
 msgid "Associate .stl files to BambuStudio"
-msgstr "Associate .stl files to Bambu Studio"
+msgstr "Associerade .stl filer till Bambu Studio"
 
 msgid "If enabled, sets BambuStudio as default application to open .stl files"
-msgstr ""
-"If enabled, sets Bambu Studio as the default application to open .stl files"
+msgstr "Om aktiverad, väljs Bambu Studio som standard att öppna .stl filer"
 
 msgid "Associate .step files to BambuStudio"
-msgstr "Associate .step files to Bambu Studio"
+msgstr "Associerade .step files till Bambu Studio"
 
 msgid "If enabled, sets BambuStudio as default application to open .step files"
-msgstr ""
-"If enabled, sets Bambu Studio as the default application to open .step files"
+msgstr "Om aktiverad, väljs Bambu Studio som standard att öppna .step filer"
 
 msgid "Backup"
-msgstr ""
+msgstr "Säkerhetskopiering"
 
 msgid "Auto-Backup"
-msgstr ""
+msgstr "Auto Säkerhetskopiera"
 
 msgid "Backup interval"
-msgstr ""
+msgstr "Säkerhetskopierings intervall"
 
 msgid "Home page and daily tips"
-msgstr ""
+msgstr "Hemsida och dagliga förslag"
 
 msgid "Show home page on startup"
-msgstr ""
+msgstr "Visa hemsida vid uppstart"
 
-# [Yifan] It is a setting name in Preference Menu.
-# Is it better to use “Synchronization settings”?
-# [Cory] I think “Sync” is probably more common than “Synchronization,” actually.  I don’t think we need to change anything.
 msgid "Sync settings"
-msgstr ""
+msgstr "Sync inställningar"
 
-# [Yifan] It is a setting name in Preference Menu.
-# Is it better to use “Preset synchronization”?
-# [Cory] I like “Sync,” but depending on how the setting is toggled, it might make sense to say “Sync Presets”
 msgid "Preset sync"
-msgstr ""
+msgstr "Förinställd synkronisering"
 
-# [Yifan] It is a setting name in Preference Menu.
-# Is it better to use “Preference synchronization”?
-# [Cory] Same as with presets, it might make sense to say “Sync Preferences”
 msgid "Preferences sync"
-msgstr ""
+msgstr "Synkronisera inställningar"
 
 msgid "View control settings"
-msgstr ""
+msgstr "Kontroll inställningar"
 
 msgid "Rotate of view"
-msgstr "Rotate View"
+msgstr "Rotera vy"
 
 msgid "Move of view"
-msgstr "Pan View"
+msgstr "Panoreringsvy"
 
 msgid "Zoom of view"
-msgstr "Zoom View"
+msgstr "Zoomvy"
 
 msgid "Other"
-msgstr ""
+msgstr "Andra"
 
 msgid "Mouse wheel reverses when zooming"
-msgstr "Reverse Scroll Direction while Zooming"
+msgstr "Reversera mushjulet för att zooma"
 
 msgid "Develop mode"
-msgstr "Developer mode"
+msgstr "Utvecklingsläge"
 
 msgid "Dump video"
-msgstr ""
+msgstr "Lämna video"
 
 msgid "Log Level"
-msgstr ""
+msgstr "Logg Nivå"
 
 msgid "fatal"
-msgstr ""
+msgstr "allvarlig"
 
 msgid "error"
-msgstr ""
+msgstr "fel"
 
 msgid "warning"
-msgstr ""
+msgstr "varning"
 
 msgid "info"
-msgstr ""
+msgstr "info"
 
 msgid "debug"
-msgstr ""
+msgstr "felsök"
 
 msgid "trace"
-msgstr ""
+msgstr "spåra"
 
 msgid "Host Setting"
 msgstr ""
 
 msgid "DEV host: api-dev.bambu-lab.com/v1"
-msgstr ""
+msgstr "DEV host: api-dev.bambu-lab.com/v1"
 
 msgid "QA  host: api-qa.bambu-lab.com/v1"
-msgstr ""
+msgstr "QA  host: api-qa.bambu-lab.com/v1"
 
 msgid "PRE host: api-pre.bambu-lab.com/v1"
-msgstr ""
+msgstr "PRE host: api-pre.bambu-lab.com/v1"
 
 msgid "Product host"
-msgstr ""
+msgstr "Produktvärd"
 
 msgid "debug save button"
-msgstr "Debug save button"
+msgstr "Spar knappen för felsökning"
 
 msgid "save debug settings"
-msgstr ""
+msgstr "spara felsöknings knappen"
 
 msgid "DEBUG settings have saved successfully!"
-msgstr "Debug settings have been saved successfully!"
+msgstr "FELSÖKNINGS inställningarna har sparats!"
 
 msgid "Swith cloud environment, Please login again!"
-msgstr ""
+msgstr "Byte av moln miljö, Logga in igen!"
 
 msgid "System presets"
-msgstr ""
+msgstr "Systemets förinställningar"
 
 msgid "User presets"
-msgstr ""
+msgstr "Användarens förinställningar"
 
 msgid "Incompatible presets"
-msgstr ""
+msgstr "Ej giltliga förinställningar"
 
 msgid "AMS filaments"
-msgstr ""
+msgstr "AMS-filament"
 
 msgid "Click to pick filament color"
-msgstr ""
+msgstr "Tryck för att välja filament färg"
 
 msgid "Add/Remove presets"
-msgstr ""
+msgstr "Lägg till/Ta bort förinställningar"
 
 msgid "Edit preset"
-msgstr ""
+msgstr "Redigera förinställningar"
 
 msgid "Project-inside presets"
-msgstr ""
+msgstr "Projekt förinställningar"
 
 msgid "Slice all plate to obtain time and filament estimation"
-msgstr ""
+msgstr "Bered alla plattor för att mottaga tid och filament uppskattning"
 
 msgid "Packing project data into 3mf file"
-msgstr ""
+msgstr "Packa projekt data till 3mf fil"
 
 msgid "Uploading 3mf"
-msgstr ""
+msgstr "Laddar upp 3mf"
 
 msgid "Jump to model publish web page"
-msgstr ""
+msgstr "Växla till modell publicerings hemsidan"
 
 msgid "Note: The preparation may takes several minutes. Please be patiant."
-msgstr ""
+msgstr "Notera: Förberedelserna kan ta flera minuter. Vänligen vänta."
 
 msgid "Publish"
-msgstr ""
+msgstr "Publicera"
 
 msgid "Publish was cancelled"
-msgstr ""
+msgstr "Publiceringen avbröts"
 
 msgid "Slicing Plate 1"
-msgstr ""
+msgstr "Beredningsplatta 1"
 
 msgid "Packing data to 3mf"
-msgstr ""
+msgstr "Packar data till 3mf"
 
 msgid "Jump to webpage"
-msgstr ""
+msgstr "Växla till hemsidan"
 
 #, c-format, boost-format
 msgid "Save %s as"
-msgstr ""
+msgstr "Spara %s som"
 
 msgid "User Preset"
-msgstr ""
+msgstr "Användar förinställning"
 
 msgid "Project Inside Preset"
-msgstr ""
+msgstr "Projekt förinställning"
 
 msgid "Name is invalid;"
-msgstr ""
+msgstr "Namnet är ogiltligt;"
 
 msgid "illegal characters:"
-msgstr "Illegal characters:"
+msgstr "Ogiltliga tecken:"
 
 msgid "illegal suffix:"
-msgstr "Illegal suffix:"
+msgstr "Ogiltlig ändelse:"
 
 msgid "Name is unavailable."
-msgstr ""
+msgstr "Namnet ej tillgängligt."
 
 msgid "Overwrite a system profile is not allowed"
-msgstr "Overwriting a system profile is not allowed."
+msgstr "Ej tillåtet att skriva över system profilen"
 
 #, boost-format
 msgid "Preset \"%1%\" already exists."
-msgstr ""
+msgstr "Förinställning \"%1%\" finns redan."
 
 #, boost-format
 msgid "Preset \"%1%\" already exists and is incompatible with current printer."
 msgstr ""
+"Förinställning \"%1%\" finns redan och fungerar inte med nuvarande skrivare."
 
 msgid "Please note that saving action will replace this preset"
-msgstr "Please note that saving will overwrite the current preset."
+msgstr ""
+"Observera att om du sparar kommer den aktuella förinställningen att skrivas "
+"över"
 
 msgid "The name is not allowed to be empty."
-msgstr "The name field is not allowed to be empty."
+msgstr "Namn fältet får inte vara tomt."
 
 msgid "The name is not allowed to start with space character."
-msgstr ""
+msgstr "Namnet får inte börja med mellanrum."
 
 msgid "The name is not allowed to end with space character."
-msgstr ""
+msgstr "Namnet får inte avslutas med mellanrum."
 
 msgid "The name cannot be the same as a preset alias name."
-msgstr ""
+msgstr "Namnet får inte vara samma som förinställt namn."
 
 msgid "Save preset"
-msgstr ""
+msgstr "Spara förinställning"
 
 msgctxt "PresetName"
 msgid "Copy"
-msgstr ""
+msgstr "Kopiera"
 
 #, boost-format
 msgid "Printer \"%1%\" is selected with preset \"%2%\""
-msgstr ""
+msgstr "Skrivare \"%1%\" är vald med förinställning \"%2%\""
 
 #, boost-format
 msgid "Please choose an action with \"%1%\" preset after saving."
-msgstr ""
+msgstr "Välj en åtgärd med \"%1%\" förinställning efter det sparats."
 
 #, boost-format
 msgid "For \"%1%\", change \"%2%\" to \"%3%\" "
-msgstr ""
+msgstr "För \"%1%\", byta \"%2%\" till \"%3%\" "
 
 #, boost-format
 msgid "For \"%1%\", add \"%2%\" as a new preset"
-msgstr ""
+msgstr "För \"%1%\", lägg till \"%2%\" som ny förinställning"
 
 #, boost-format
 msgid "Simply switch to \"%1%\""
-msgstr ""
+msgstr "Byta till \"%1%\""
 
 msgid "My Device"
-msgstr ""
+msgstr "Min Enhet"
 
 msgid "Other Device"
-msgstr ""
+msgstr "Andra Enheter"
 
 msgid "Input access code"
 msgstr ""
 
 msgid "Bambu Cool Plate"
-msgstr ""
+msgstr "Bambu Cool Plate"
 
 msgid "Bamabu Engineering Plate"
-msgstr ""
+msgstr "Bamabu Engineering Plate"
 
 msgid "Bamabu High Temperature Plate"
-msgstr ""
+msgstr "Bamabu High Temperature Plate"
 
 msgid "Send print job to"
-msgstr ""
+msgstr "Skicka utskriftsjobb till"
 
 msgid "Refresh"
 msgstr ""
 
 msgid "Bed Leveling"
-msgstr "Bed leveling"
+msgstr "Justering av Byggplattan"
 
 msgid "Vibration Calibration"
-msgstr "Vibration calibration"
+msgstr "Vibrations Kalibrering"
 
 msgid "Flow Calibration"
-msgstr "Flow calibration"
+msgstr "Flödes Kalibrering"
 
 msgid "First Layer Inspection"
-msgstr ""
+msgstr "Första Lager Inspektion"
 
 msgid "Send"
-msgstr ""
+msgstr "Skicka"
 
 msgid "send completed"
-msgstr "Send complete"
+msgstr "Skicka komplett"
 
 msgid "Ams Mappling failed, please select filament"
 msgstr ""
@@ -3174,22 +3245,22 @@ msgid "Plese select the filament in ams"
 msgstr ""
 
 msgid "Please select a printer first."
-msgstr ""
+msgstr "Välj en skrivare först."
 
 msgid "The printer is being updated. Please try again after the update."
-msgstr ""
+msgstr "Skrivaren uppdateras. Försök igen efter uppdateringen."
 
 msgid "Exporting 3mf..."
-msgstr ""
+msgstr "Exporterar 3mf..."
 
 msgid "Internal error."
-msgstr ""
+msgstr "Internt fel."
 
 msgid "Exporting 3mf failed, please slice again."
-msgstr ""
+msgstr "Exporten 3mf misslyckades, bered igen."
 
 msgid "No printer available"
-msgstr ""
+msgstr "Ingen skrivare tillgänglig"
 
 msgid "Reading printer info timed out"
 msgstr ""
@@ -3220,95 +3291,98 @@ msgid "Modifying the device name"
 msgstr ""
 
 msgid "Log in printer"
-msgstr ""
+msgstr "Logga in skrivare"
 
 msgid "Would you like to log in this printer with current account?"
-msgstr ""
+msgstr "Logga in skrivaren till nuvarande konto?"
 
 msgid "Log in successful."
-msgstr ""
+msgstr "Inloggningen lyckades."
 
 msgid "Log out printer"
-msgstr ""
+msgstr "Logga ut skrivaren"
 
 msgid "Would you like to log out the printer?"
-msgstr ""
+msgstr "Logga ut skrivaren?"
 
 msgid "Please log in first."
-msgstr ""
+msgstr "Logga in först."
 
 msgid "There was a problem connecting to the printer. Please try again."
-msgstr ""
+msgstr "Problem uppstod vid sammankoppling till skrivaren. Försök igen."
 
 msgid "Log out successful."
-msgstr ""
+msgstr "Utloggning lyckades."
 
 msgid "Failed to log out."
-msgstr ""
+msgstr "Utloggning misslyckades."
 
 #. TRN "Save current Settings"
 #, c-format, boost-format
 msgid "Save current %s"
-msgstr ""
+msgstr "Spara nuvarande %s"
 
 msgid "Delete this preset"
-msgstr ""
+msgstr "Radera denna förinställning"
 
 msgid "Line width"
-msgstr ""
+msgstr "Linjebredd"
 
 msgid "Seam"
-msgstr ""
+msgstr "Söm"
 
 msgid "Precision"
-msgstr ""
+msgstr "Precision"
 
 msgid "Walls"
-msgstr ""
+msgstr "Väggar"
 
 msgid "Top/bottom shells"
-msgstr ""
+msgstr "Topp/botten skal"
 
 msgid "Initial layer speed"
-msgstr "First layer speed"
+msgstr "Hastighet på första lager"
 
 msgid "Other layers speed"
-msgstr ""
+msgstr "Hastighet på övriga lager"
 
 msgid "Overhang speed"
-msgstr ""
+msgstr "Hastighet vid överhäng"
 
 msgid ""
 "This is the speed for various overhang degrees. Overhang degrees are "
 "expressed as a percentage of line width. 0 speed means no slowing down for "
 "the overhang degree range and wall speed is used"
 msgstr ""
+"Detta är hastigheten för varierande överhängs grader. Överhängs graderna "
+"uttrycks som en procent av linjebredden. Hastigheten 0 betyder att den inte "
+"minskar för överhängs gradernas område och hastigheten för väggarna används"
 
 msgid "Travel speed"
-msgstr ""
+msgstr "Förflyttnings hastighet"
 
 msgid "Acceleration"
-msgstr ""
+msgstr "Acceleration"
 
 msgid "Support filament"
-msgstr ""
+msgstr "Support filament"
 
 msgid "Prime tower"
-msgstr ""
+msgstr "Prime torn"
 
 msgid "Flush options"
 msgstr ""
 
 msgid "Special mode"
-msgstr ""
+msgstr "Special läge"
 
 msgid "Output file"
-msgstr ""
+msgstr "Utdatafil"
 
 msgid "Frequent"
-msgstr ""
+msgstr "Återkommande"
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
 "Following line %s contains reserved keywords.\n"
 "Please remove it, or will beat G-code visualization and printing time "
@@ -3318,40 +3392,52 @@ msgid_plural ""
 "Please remove them, or will beat G-code visualization and printing time "
 "estimation."
 msgstr[0] ""
+"Följande linje %s innehåller reserverade nyckelord.\n"
+"Radera den, annars påverkas G-kodens visualisering och den uppskattade "
+"utskriftstiden.@Följande linjer %s innehåller reserverade nyckelord.\n"
+"Radera dem, annars påverkas G-kodens visualisering och den uppskattade "
+"utskriftstiden."
 msgstr[1] ""
+"Följande linje %s innehåller reserverade nyckelord.\n"
+"Radera den, annars påverkas G-kodens visualisering och den uppskattade "
+"utskriftstiden.@Följande linjer %s innehåller reserverade nyckelord.\n"
+"Radera dem, annars påverkas G-kodens visualisering och den uppskattade "
+"utskriftstiden."
 
 msgid "Reserved keywords found"
-msgstr ""
+msgstr "Hittade reserverade nyckelord"
 
 msgid "Setting Overrides"
 msgstr ""
 
 msgid "Retraction"
-msgstr ""
+msgstr "Reduktion"
 
 msgid "Basic information"
-msgstr ""
+msgstr "Allmän information"
 
 msgid "Recommended nozzle temperature"
-msgstr ""
+msgstr "Rekommenderad nozzel temperatur"
 
 msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr ""
+"Rekommenderat nozzel temperaturs område för detta filament. 0 betyder inte "
+"fastställt"
 
 msgid "Recommended temperature range"
-msgstr ""
+msgstr "Rekommenderat nozzel temperaturs område"
 
 msgid "Print temperature"
-msgstr ""
+msgstr "Utskrifts temperatur"
 
 msgid "Nozzle"
-msgstr ""
+msgstr "Nozzel"
 
 msgid "Nozzle temperature when printing"
-msgstr ""
+msgstr "Nozzel temperatur vid utskrift"
 
 msgid "Cool plate"
-msgstr ""
+msgstr "Kall platta"
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -3359,7 +3445,7 @@ msgid ""
 msgstr ""
 
 msgid "Engineering plate"
-msgstr ""
+msgstr "Engineering plate"
 
 msgid ""
 "Bed temperature when engineering plate is installed. Value 0 means the "
@@ -3367,7 +3453,7 @@ msgid ""
 msgstr ""
 
 msgid "High Temp Plate"
-msgstr ""
+msgstr "High Temp Plate"
 
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
@@ -3375,19 +3461,19 @@ msgid ""
 msgstr ""
 
 msgid "Volumetric speed limitation"
-msgstr ""
+msgstr "Volumetrisk hastighets begränsning"
 
 msgid "Cooling"
-msgstr ""
+msgstr "Kylning"
 
 msgid "Cooling for specific layer"
-msgstr ""
+msgstr "Kylning för valda lager"
 
 msgid "Part cooling fan"
-msgstr ""
+msgstr "Del kylningsfläkten"
 
 msgid "Min fan speed threshold"
-msgstr ""
+msgstr "Min fläkt hastighets gräns"
 
 msgid ""
 "Part cooling fan speed will start to run at min speed when the estimated "
@@ -3395,733 +3481,767 @@ msgid ""
 "shorter than threshold, fan speed is interpolated between the minimum and "
 "maximum fan speed according to layer printing time"
 msgstr ""
+"Del kylfläktens hastigheten kommer att börja gå med min hastighet när den "
+"beräknade lagringstiden inte är längre än lagringstiden i inställningarna."
+"När lager tiden är kortare än gräns värdet, ställer fläkthastigheten sig "
+"mellan lägsta och högsta fläkthastighet enligt lagrets utskriftstid"
 
 msgid "Max fan speed threshold"
-msgstr ""
+msgstr "Max fläkt hastighets gräns"
 
 msgid ""
 "Part cooling fan speed will be max when the estimated layer time is shorter "
 "than the setting value"
 msgstr ""
+"Del kylfläktens hastighet kommer att vara max när den beräknade "
+"lagringstiden är kortare än inställningsvärdet"
 
 msgid "Auxiliary part cooling fan"
-msgstr ""
+msgstr "Extra del kylnings fläkt"
 
 msgid "Filament start G-code"
-msgstr ""
+msgstr "Filament start G-kod"
 
 msgid "Filament end G-code"
-msgstr ""
+msgstr "Filament stop G-kod"
 
 msgid "Printable space"
-msgstr ""
+msgstr "Utskriftsbar yta"
 
 msgid "Accessory"
-msgstr ""
+msgstr "Tillbehör"
 
 msgid "Machine gcode"
-msgstr "Machine G-code"
+msgstr "Maskin G-kod"
 
 msgid "Machine start G-code"
-msgstr ""
+msgstr "Maskin start G-kod"
 
 msgid "Machine end G-code"
-msgstr ""
+msgstr "Maskin stop G-kod"
 
 msgid "Before layer change G-code"
-msgstr ""
+msgstr "Före lagerskifte G-kod"
 
 msgid "Layer change G-code"
-msgstr ""
+msgstr "Lagerskifte G-kod"
 
 msgid "Change filament G-code"
-msgstr ""
+msgstr "Byta filament G-kod"
 
 msgid "Pause G-code"
-msgstr ""
+msgstr "Paus G-kod"
 
 msgid "Motion ability"
-msgstr ""
+msgstr "Rörelseförmåga"
 
 msgid "Normal"
-msgstr ""
+msgstr "Normal"
 
 msgid "Silent"
-msgstr ""
+msgstr "Tyst"
 
 msgid "Speed limitation"
-msgstr ""
+msgstr "Hastighets begränsning"
 
 msgid "Acceleration limitation"
-msgstr ""
+msgstr "Accelerations begränsning"
 
 msgid "Jerk limitation"
-msgstr ""
+msgstr "Jerk begränsning"
 
 msgid "Layer height limits"
-msgstr ""
+msgstr "Lagerhöjds begränsning"
 
 msgid "Retraction when switching material"
-msgstr ""
+msgstr "Reduktion vid material byte"
 
 msgid "Detached"
-msgstr ""
+msgstr "Fristående"
 
+#, fuzzy
 msgid "Following preset will be deleted too."
 msgid_plural "Following presets will be deleted too."
 msgstr[0] ""
+"Följande förinställning raderas också.@Följande förinställningar raderas "
+"också."
 msgstr[1] ""
+"Följande förinställning raderas också.@Följande förinställningar raderas "
+"också."
 
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
-msgstr ""
+msgstr "Välja %1% den valda förinställningen?"
 
 #. TRN  Remove/Delete
 #, boost-format
 msgid "%1% Preset"
-msgstr ""
+msgstr "%1% Förinställning"
 
 msgid "All"
-msgstr ""
+msgstr "Allt"
 
 msgid "Set"
-msgstr ""
+msgstr "Välj"
 
 msgid "Custom G-code"
-msgstr ""
+msgstr "Custom G-kod"
 
 msgid "Click to reset current value and attach to the global value."
 msgstr ""
+"Klicka för att återställa aktuellt värde och koppla till det övergripande "
+"värdet."
 
 msgid "Click to drop current modify and reset to saved value."
 msgstr ""
+"Klicka för att släppa aktuell modifiering och återställa till sparat värde."
 
 msgid "Process Settings"
-msgstr ""
+msgstr "Processinställningar"
 
 msgid "Undef"
-msgstr "Undefined"
+msgstr "Oidentifierad"
 
 msgid "Unsaved Changes"
-msgstr "unsaved changes"
+msgstr "Ej sparade ändringar"
 
 msgid "Discard or Keep changes"
-msgstr ""
+msgstr "Överge eller Behåll ändringar"
 
 msgid "Old Value"
-msgstr "Old value"
+msgstr "Gammalt värde"
 
 msgid "New Value"
-msgstr "New value"
+msgstr "Nytt värde"
 
 msgid "Transfer"
 msgstr ""
 
 msgid "Don't save"
-msgstr ""
+msgstr "Spara inte"
 
 msgid "Discard"
-msgstr ""
+msgstr "Överge"
 
 msgid "Click the right mouse button to display the full text."
-msgstr ""
+msgstr "Högerklicka för att se hela texten."
 
 msgid "All changes will not be saved"
-msgstr "No changes will be saved."
+msgstr "Ändringarna sparas ej"
 
 msgid "All changes will be discarded."
-msgstr ""
+msgstr "Alla ändringar överges."
 
 msgid "Save the selected options."
-msgstr ""
+msgstr "Spara de valda alternativen."
 
 msgid "Keep the selected options."
-msgstr ""
+msgstr "Behåll de valda alternativen."
 
 msgid "Transfer the selected options to the newly selected preset."
-msgstr ""
+msgstr "Överför de valda alternativen till den nyligen valda förinställningen."
 
 #, boost-format
 msgid ""
 "Save the selected options to preset \n"
 "\"%1%\"."
 msgstr ""
+"Spara de valda alternativen för förinställning \n"
+"\"%1%\"."
 
 #, boost-format
 msgid ""
 "Transfer the selected options to the newly selected preset \n"
 "\"%1%\"."
 msgstr ""
+"Överför de valda alternativen till den nyligen valda förinställningen \n"
+"\"%1%\"."
 
 #, boost-format
 msgid "Preset \"%1%\" contains the following unsaved changes:"
-msgstr ""
+msgstr "Förinställningen \"%1%\" innehåller följande osparade ändringar:"
 
 #, boost-format
 msgid ""
 "Preset \"%1%\" is not compatible with the new printer profile and it "
 "contains the following unsaved changes:"
 msgstr ""
+"Förinställningen \"%1%\" är inte kompatibel med den nya skrivarens profil "
+"och innehåller följande osparade ändringar:"
 
 #, boost-format
 msgid ""
 "Preset \"%1%\" is not compatible with the new process profile and it "
 "contains the following unsaved changes:"
 msgstr ""
+"Förinställningen \"%1%\" är inte kompatibel med den nya process profilen och "
+"innehåller följande osparade ändringar:"
 
 msgid ""
 "You have changed some preset settings. \n"
 "Would you like to keep these changed settings after switching preset?"
 msgstr ""
+"Förinställningarna har ändrats. \n"
+"Behålla dessa ändrade inställningar efter byte av förinställningar?"
 
 msgid "Extruders count"
-msgstr ""
+msgstr "Extruder kalkylering"
 
 msgid "General"
-msgstr ""
+msgstr "Allmän"
 
 msgid "Capabilities"
-msgstr ""
+msgstr "Förmågor"
 
 msgid "Set as cover"
-msgstr ""
+msgstr "Ställ in som skydd"
 
 msgid "Cover"
-msgstr ""
+msgstr "Skydd"
 
 #, boost-format
 msgid "The name \"%1%\" already exists."
-msgstr ""
+msgstr "Namnet \"%1%\" finns redan."
 
 msgid "Designer"
-msgstr ""
+msgstr "Designer"
 
 msgid "Pictures"
-msgstr ""
+msgstr "Bilder"
 
 msgid "Bill of Materials"
-msgstr ""
+msgstr "Materialförteckning"
 
 msgid "Assembly Guide"
-msgstr ""
+msgstr "Monterings Guide"
 
 msgid "Choose files"
-msgstr ""
+msgstr "Välj filer"
 
 msgid "Model Name"
-msgstr ""
+msgstr "Modell Namn"
 
 #, c-format, boost-format
 msgid "%s Update"
-msgstr ""
+msgstr "%s Uppdatering"
 
 msgid "A new version is available"
-msgstr ""
+msgstr "En ny version är tillgänglig"
 
 msgid "Configuration update"
-msgstr ""
+msgstr "Konfigurerings uppdatering"
 
 msgid "A new configuration package available, Do you want to install it?"
-msgstr "A new configuration package available. Do you want to install it?"
+msgstr "Ett nytt konfigurations paket finns tillgängligt, Installera?"
 
 msgid "Description:"
-msgstr ""
+msgstr "Förklaring:"
 
 msgid "YES"
-msgstr ""
+msgstr "JA"
 
 msgid "NO"
-msgstr ""
+msgstr "NEJ"
 
 msgid "Configuration incompatible"
-msgstr ""
+msgstr "Ej kompatibel konfiguration"
 
 msgid "the configuration package is incompatible with current application."
-msgstr ""
+msgstr "konfigurations paketet är ej kompatibel med nuvarande applicering."
 
 #, c-format, boost-format
 msgid ""
 "The configuration package is incompatible with current application.\n"
 "%s will update the configuration package, Otherwise it won't be able to start"
 msgstr ""
-"The configuration package is incompatible with current application.\n"
-"%s will update the configuration package. Otherwise, it won’t be able to "
-"start."
+"Konfigurations paketet är ej kompatibel med nuvarande applicering.\n"
+"%s uppdaterar konfigurations paketet för att möjliggöra start"
 
 #, c-format, boost-format
 msgid "Exit %s"
-msgstr ""
+msgstr "Exit %s"
 
 msgid "the Configuration package is incompatible with current APP."
 msgstr ""
-"The configuration package is incompatible with the current version of Bambu "
+"konfigurations paketet är ej kompatibel med nuvarande version av Bambu "
 "Studio."
 
 msgid "Configuration updates"
-msgstr ""
+msgstr "Konfigurationen uppdateras"
 
 msgid "No updates available."
-msgstr ""
+msgstr "Inga uppdateringar tillgängliga."
 
 msgid "The configuration is up to date."
-msgstr ""
+msgstr "Konfigurationen är aktuell."
 
 msgid "Auto-Calc"
 msgstr ""
 
 msgid "Flushing volumes for filament change"
-msgstr ""
+msgstr "Rensnings volym för filament byte"
 
 msgid "Flushing volume (mm³) for each filament pair."
-msgstr ""
+msgstr "Rensnings volym (mm³) för varje filament."
 
 msgid "unloaded"
-msgstr ""
+msgstr "utmatad"
 
 msgid "loaded"
-msgstr ""
+msgstr "laddad"
 
 msgid "Filament #"
-msgstr ""
+msgstr "Filament #"
 
 msgid "From"
-msgstr ""
+msgstr "Från"
 
 msgid "To"
-msgstr ""
+msgstr "Till"
 
 msgid "Login"
-msgstr ""
+msgstr "Logga in"
 
 msgid "Setup Wizard"
-msgstr ""
+msgstr "Installationsguide"
 
 msgid "Filaments Selection"
-msgstr "Filaments selection"
+msgstr "Filament Val"
 
 msgid "Printer Selection"
-msgstr ""
+msgstr "Skrivar Val"
 
 msgid "The configuration package is changed in previous Config Guide"
-msgstr ""
+msgstr "Konfigurations paketet är ändrat i föregående  Kofigurations Guide"
 
 msgid "Configuration package changed"
-msgstr ""
+msgstr "Konfigurations paketet är ändrat"
 
 msgid "Toolbar"
-msgstr ""
+msgstr "Verktygsfält"
 
 msgid "Objects list"
-msgstr ""
+msgstr "Objektlista"
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
-msgstr ""
+msgstr "Importera geometri data från STL/STEP/3MF/OBJ/AMF filer."
 
 msgid "Select all objects"
-msgstr ""
+msgstr "Välj alla objekt"
 
 msgid "Copy to clipboard"
-msgstr ""
+msgstr "Kopiera till urklipp"
 
 msgid "Paste from clipboard"
-msgstr ""
+msgstr "Klistra in ifrån urklipp"
 
 msgid "Camera view - Default"
-msgstr ""
+msgstr "Kamera vy - Standard"
 
 msgid "Camera view - Top"
-msgstr ""
+msgstr "Kamera vy - Topp"
 
 msgid "Camera view - Bottom"
-msgstr ""
+msgstr "Kamera vy - Botten"
 
 msgid "Camera view - Front"
-msgstr ""
+msgstr "Kamera vy - Fram"
 
 msgid "Camera view - Behind"
-msgstr ""
+msgstr "Kamera vy - Bakom"
 
 msgid "Camera Angle - Left side"
-msgstr ""
+msgstr "Kamera vy - Vänster sida"
 
 msgid "Camera Angle - Right side"
-msgstr ""
+msgstr "Kamera vy - Höger sida"
 
 msgid "keyboard 1-9: set filament for object/part"
-msgstr ""
+msgstr "tangentbord 1-9: fastställer filament för objekt/del"
 
 msgid "Show keyboard shortcuts list"
-msgstr ""
+msgstr "Visa tangentbordets genvägs lista"
 
 msgid "Global shortcuts"
-msgstr ""
+msgstr "Övergripande genvägar"
 
 msgid "Arrange all objects"
-msgstr ""
+msgstr "Ordna alla objekt"
 
 msgid "Arrange objects on selected plates"
-msgstr ""
+msgstr "Ordna alla objekt på vald platta"
 
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
 "all objects in the project."
 msgstr ""
+"Auto placera valda objekt eller alla objekt. Om det finns valda objekt så "
+"placeras endast dem. Alternativt så placeras alla objekt i projektet."
 
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
 "all objects in the current disk."
 msgstr ""
+"Auto placera valda objekt eller alla objekt. Om det finns valda objekt så "
+"placeras endast dem. Alternativt så placeras alla objekt på nuvarande disk."
 
 msgid "Select multiple objects"
-msgstr ""
+msgstr "Välj flera objekt"
 
 msgid "Select objects by rectangle"
-msgstr ""
+msgstr "Välj objekt efter rektangel"
 
 msgid "Arrow Up"
-msgstr ""
+msgstr "Pil Upp"
 
 msgid "Move selection 10 mm in positive Y direction"
-msgstr ""
+msgstr "Flytta markeringen 10mm i positiv Y riktning"
 
 msgid "Arrow Down"
-msgstr ""
+msgstr "Pil Ner"
 
 msgid "Move selection 10 mm in negative Y direction"
-msgstr ""
+msgstr "Flytta markeringen 10mm i negativ Y riktning"
 
 msgid "Arrow Left"
-msgstr ""
+msgstr "Pil Vänster"
 
 msgid "Move selection 10 mm in negative X direction"
-msgstr ""
+msgstr "Flytta markeringen 10mm i negativ X riktning"
 
 msgid "Arrow Right"
-msgstr ""
+msgstr "Pil Höger"
 
 msgid "Move selection 10 mm in positive X direction"
-msgstr ""
+msgstr "Flytta markeringen 10mm i positiv X riktning"
 
 msgid "Shift + Any arrow"
-msgstr ""
+msgstr "Shift + Valfri pil"
 
 msgid "Movement step set to 1 mm"
-msgstr ""
+msgstr "Rörelse steg är vald till 1mm"
 
 msgid "Ctrl + Any arrow"
-msgstr ""
+msgstr "CTRL + Valfri pil"
 
 msgid "Movement in camera space"
-msgstr ""
+msgstr "Rörelse i kamera område"
 
 msgid "Collapse/Expand the sidebar"
-msgstr ""
+msgstr "Dölj/Visa meny"
 
 msgid "Render statistics debugging box"
-msgstr ""
+msgstr "Renderings statistikens felsökningsbox"
 
 msgid "Plater"
-msgstr ""
+msgstr "Plätering/Förgyllning"
 
 msgid "Move: press to snap by 1mm"
-msgstr ""
+msgstr "Flytta: tryck för att låsa med 1mm"
 
 msgid "Support/Color Painting: adjust pen radius"
-msgstr ""
+msgstr "Support/Färgläggning: justera penn radie"
 
 msgid "Alt + Mouse wheel"
-msgstr ""
+msgstr "ALT + Mushjul"
 
 msgid "Support/Color Painting: adjust section position"
-msgstr ""
+msgstr "Support/Färgläggning:justera sektions positionen"
 
 msgid "Gizmo"
-msgstr ""
+msgstr "Gizmo"
 
 msgid "Set extruder number for the objects and parts"
-msgstr ""
+msgstr "Välj extruder nummer för objekten och delarna"
 
 msgid "Delete objects, parts, modifiers  "
-msgstr ""
+msgstr "Radera objekten, delarna och anpassningar  "
 
 msgid "Space"
-msgstr ""
+msgstr "Space"
 
 msgid "Select the object/part and press space to change the name"
-msgstr ""
+msgstr "Välj objektet/delen och tryck space för att ändra namnet"
 
 msgid "Mouse click"
-msgstr ""
+msgstr "Mus klick"
 
 msgid "Select the object/part and mouse click to change the name"
-msgstr ""
+msgstr "Välj objektet/delen och mus klicka för att ändra namnet"
 
 msgid "Objects List"
-msgstr ""
+msgstr "Objekts lista"
 
 msgid "Vertical slider - Move active thumb Up"
-msgstr ""
+msgstr "Vertikal reglage - Flytta aktivt tryck Upp"
 
 msgid "Vertical slider - Move active thumb Down"
-msgstr ""
+msgstr "Vertikal reglage - Flytta aktivt tryck Ner"
 
 msgid "Horizontal slider - Move active thumb Left"
-msgstr ""
+msgstr "Horisontell reglage - Flytta aktivt tryck Vänster"
 
 msgid "Horizontal slider - Move active thumb Right"
-msgstr ""
+msgstr "Horisontell reglage - Flytta aktivt tryck Höger"
 
 msgid "On/Off one layer mode of the vertical slider"
-msgstr ""
+msgstr "På/Av 1 lager läge för det vertikala reglaget"
 
 msgid "Move slider 5x faster"
-msgstr ""
+msgstr "Flytta reglage 5x snabbare"
 
 msgid "Shift + Mouse wheel"
-msgstr ""
+msgstr "Shift + Mushjul"
 
 msgid "Saving objects into the 3mf failed."
-msgstr ""
+msgstr "Sparande av objektet till 3mf misslyckades."
 
 msgid "Only Windows 10 is supported."
-msgstr ""
+msgstr "Endast Windows 10 stöds."
 
 msgid "Failed to initialize the WinRT library."
-msgstr ""
+msgstr "Start av WinRT biblioteket misslyckades."
 
 msgid "Exporting objects"
-msgstr ""
+msgstr "Exporterar objekten"
 
 msgid "Failed loading objects."
-msgstr ""
+msgstr "Misslyckades att ladda objekten."
 
 msgid "Repairing object by Windows service"
-msgstr ""
+msgstr "Reparerar objekt med Windows service"
 
 msgid "Repair failed."
-msgstr ""
+msgstr "Reparation misslyckades."
 
 msgid "Loading repaired objects"
-msgstr ""
+msgstr "Laddar de reparerade objekten"
 
 msgid "Exporting 3mf file failed"
-msgstr ""
+msgstr "Export av 3mf filen misslyckades"
 
 msgid "Import 3mf file failed"
-msgstr ""
+msgstr "Importen av 3mf filen misslyckades"
 
 msgid "Repaired 3mf file does not contain any object"
-msgstr "The repaired 3mf file does not contain any objects."
+msgstr "Den reparerade 3mf filen innehåller inga objekt"
 
 msgid "Repaired 3mf file contains more than one object"
-msgstr "The repaired 3mf file contains more than one object."
+msgstr "Den reparerade 3mf filen innehåller mer än ett objekt"
 
 msgid "Repaired 3mf file does not contain any volume"
-msgstr "The repaired 3mf file does not contain any volume."
+msgstr "Den reparerade 3mf filen innehåller ingen volym"
 
 msgid "Repaired 3mf file contains more than one volume"
-msgstr "The repaired 3mf file contains more than one volume."
+msgstr "Den reparerade 3mf filen innehåller mer än en volym"
 
 msgid "Repair canceled"
-msgstr ""
+msgstr "Reparation avbruten"
 
 #, boost-format
 msgid "Copying of file %1% to %2% failed: %3%"
-msgstr ""
+msgstr "Kopierar fil %1% till %2% misslyckade: %3%"
 
 #, boost-format
 msgid "Copying directory %1% to %2% failed: %3%"
-msgstr ""
+msgstr "Kopierar katalog %1% till %2% misslyckade: %3%"
 
 msgid "Need to check the unsaved changes before configuration updates."
-msgstr "Please check the unsaved changes before updating the configuration."
+msgstr "Kontrollera ej sparade ändringar innan konfigureringen uppdateras."
 
 msgid "Configuration package updated to "
-msgstr ""
+msgstr "Konfigurations paket uppdaterat till "
 
 msgid "Open G-code file:"
-msgstr ""
+msgstr "Öppna G-kod fil:"
 
 msgid ""
 "One object has empty initial layer and can't be printed. Please Cut the "
 "bottom or enable supports."
 msgstr ""
+"Ett objekt har ett tomt första lager och kan inte skrivas ut.Skär ut botten "
+"eller aktivera support."
 
 #, boost-format
 msgid "Object can't be printed for empty layer between %1% and %2%."
-msgstr "The object has empty layers between %1% and %2% and can’t be printed."
+msgstr "Ett objekt har tomma lager mellan %1% och %2% utskrift ej möjlig."
 
 #, boost-format
 msgid "Object: %1%"
-msgstr ""
+msgstr "Objekt: %1%"
 
 msgid ""
 "Maybe parts of the object at these height are too thin, or the object has "
 "faulty mesh"
 msgstr ""
-"Parts of the object at these heights may be too thin or the object may have "
-"a faulty mesh."
+"Delar av objektet på dessa höjder är för tunna eller så har objektet en "
+"felaktig mesh"
 
 msgid ""
 "Failed to generate gcode for invalid custom G-code.\n"
 "\n"
 msgstr ""
+"Misslyckades att skapa G-kod för ogiltlig custom G-kod.\n"
+"\n"
 
 msgid "Please check the custom G-code or use the default custom G-code."
-msgstr ""
+msgstr "Kontrollera custom G-kod elleranvänd standard custom G-kod."
 
 msgid "No object can be printed. Maybe too small"
-msgstr "No object can be printed. It may be too small."
+msgstr "Inget objekt kan skrivas ut. Det kan vara för litet"
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
-msgstr ""
+msgstr "Skapar G-kod: lager %1%"
 
 msgid "Inner wall"
-msgstr ""
+msgstr "Inre vägg"
 
 msgid "Outer wall"
-msgstr ""
+msgstr "Yttre vägg"
 
 msgid "Overhang wall"
-msgstr ""
+msgstr "Överhängs vägg"
 
 msgid "Sparse infill"
-msgstr ""
+msgstr "Sparsam ifyllnad"
 
 msgid "Internal solid infill"
-msgstr ""
+msgstr "Invändig solid fyllnad"
 
 msgid "Top surface"
-msgstr ""
+msgstr "Topp yta"
 
 msgid "Bottom surface"
-msgstr ""
+msgstr "Botten yta"
 
 msgid "Bridge"
-msgstr ""
+msgstr "Bridge/bro"
 
 msgid "Gap infill"
-msgstr ""
+msgstr "Mellanrums ifyllnad"
 
 msgid "Support interface"
-msgstr ""
+msgstr "Support kontaktyta"
 
 msgid "Support transition"
-msgstr ""
+msgstr "Support övergång"
 
 msgid "Multiple"
-msgstr ""
+msgstr "Flertalet"
 
 #, boost-format
 msgid "Failed to calculate line width of %1%. Can not get value of \"%2%\" "
-msgstr "Failed to calculate line width of %1%. Cannot get value of “%2%” "
+msgstr ""
+"Misslyckades att kalkylera linjebredden av %1%. Kan inte få värdet av “%2%” "
 
 msgid "undefined error"
-msgstr ""
+msgstr "Oidentifierat fel"
 
 msgid "too many files"
-msgstr ""
+msgstr "för många filer"
 
 msgid "file too large"
-msgstr ""
+msgstr "filen är för stor"
 
 msgid "unsupported method"
-msgstr ""
+msgstr "metoden stöds inte"
 
 msgid "unsupported encryption"
-msgstr ""
+msgstr "avkodningen stöds inte"
 
 msgid "unsupported feature"
-msgstr ""
+msgstr "fuktionen stöds inte"
 
 msgid "failed finding central directory"
-msgstr ""
+msgstr "centrala katalogen hittades ej"
 
 msgid "not a ZIP archive"
-msgstr ""
+msgstr "inte ett ZIP arkiv"
 
 msgid "invalid header or corrupted"
-msgstr ""
+msgstr "ogiltig rubrik eller skadad"
 
 msgid "unsupported multidisk"
-msgstr "Saving to RAID is not supported."
+msgstr "Spara till RAID stöds ej"
 
 msgid "decompression failed"
-msgstr ""
+msgstr "dekompression misslyckad"
 
 msgid "compression failed"
-msgstr ""
+msgstr "kompression misslyckad"
 
 msgid "unexpected decompressed size"
-msgstr ""
+msgstr "ej förväntad dekompressions storlek"
 
 msgid "CRC check failed"
-msgstr ""
+msgstr "CRC kontroll misslyckad"
 
 msgid "unsupported central directory size"
-msgstr ""
+msgstr "centrala katalogens storlek stöds ej"
 
 msgid "allocation failed"
-msgstr ""
+msgstr "tilldelning misslyckad"
 
 msgid "file open failed"
-msgstr ""
+msgstr "öppen fil misslyckad"
 
 msgid "file create failed"
-msgstr ""
+msgstr "skapande av fil misslyckad"
 
 msgid "file write failed"
-msgstr ""
+msgstr "filskrivning misslyckad"
 
 msgid "file read failed"
-msgstr ""
+msgstr "filläsning misslyckad"
 
 msgid "file close failed"
-msgstr ""
+msgstr "filavslutning misslyckad"
 
 msgid "file seek failed"
-msgstr ""
+msgstr "filsökning misslyckad"
 
 msgid "file stat failed"
-msgstr ""
+msgstr "filstatistik misslyckad"
 
 msgid "invalid parameter"
-msgstr ""
+msgstr "ogiltig parameter"
 
 msgid "invalid filename"
-msgstr ""
+msgstr "ogiltligt filnamn"
 
 msgid "buffer too small"
-msgstr ""
+msgstr "bufferten för liten"
 
 msgid "internal error"
-msgstr ""
+msgstr "internt fel"
 
 msgid "file not found"
-msgstr ""
+msgstr "filen hittades inte"
 
 msgid "archive too large"
-msgstr ""
+msgstr "för stort arkiv"
 
 msgid "validation failed"
-msgstr ""
+msgstr "validering misslyckad"
 
 msgid "write callback failed"
-msgstr ""
+msgstr "skriv återuppringning misslyckad"
 
 #, boost-format
 msgid ""
 "%1% is too close to exclusion area, there will be collisions when printing."
-msgstr ""
+msgstr "%1% för tätt inpå den isolerade ytan, utskriften kolliderar."
 
 #, boost-format
 msgid ""
 "\n"
 "%1% is too close to exclusion area, there will be collisions when printing."
 msgstr ""
+"\n"
+"%1% för tätt inpå den isolerade ytan, utskriften kolliderar."
 
 #, boost-format
 msgid "%1% is too close to others, and collisions may be caused."
@@ -4132,14 +4252,14 @@ msgid "%1% is too tall, and collisions will be caused."
 msgstr ""
 
 msgid " is too close to others, there will be collisions when printing.\n"
-msgstr ""
+msgstr " för tätt inpå andra, utskriften kolliderar.\n"
 
 msgid ""
 " is too close to exclusion area, there will be collisions when printing.\n"
-msgstr ""
+msgstr " för tätt inpå den isolerade ytan, utskriften kolliderar.\n"
 
 msgid "Prime Tower"
-msgstr ""
+msgstr "Prime Torn"
 
 msgid " is too close to others, and collisions may be caused.\n"
 msgstr ""
@@ -4152,139 +4272,138 @@ msgid ""
 "together. Otherwise, the extruder and nozzle may be blocked or damaged "
 "during printing"
 msgstr ""
+"Multipla filament som har större temperatur skillnader kan inte skrivas ut "
+"tillsammans. Extruder och nozzel kan blockeras eller skadas under utskrift"
 
 msgid "No extrusions under current settings."
-msgstr ""
+msgstr "Nuvarande inställning har ingen extrudering."
 
 msgid ""
 "Please select \"By object\" print sequence to print multiple objects in "
 "spiral vase mode."
 msgstr ""
+"Kontrollera \"Per objekt\" utskrifts sekvens för att skriva ut multipla "
+"objekt i Vase läge."
 
 msgid ""
 "The spiral vase mode does not work when an object contains more than one "
 "materials."
 msgstr ""
-"Spiral vase mode does not work when an object contains more than one "
-"material."
+"Spiral Vase läge fungerar inte när objektet innehåller mer än ett material."
 
 msgid "The prime tower is not supported in \"By object\" print."
-msgstr "A prime tower is not supported in “By object” print."
+msgstr "Ett Prime Torn stöds inte i \"Per objekt\" utskrift."
 
 msgid ""
 "The prime tower is not supported when adaptive layer height is on. It "
 "requires that all objects have the same layer height."
 msgstr ""
-"A prime tower is not supported when adaptive layer height is on. It requires "
-"that all objects have the same layer height."
+"Ett Prime Torn stöds inte med adaptiv lagerhöjd är aktiverad. Det kräver att "
+"samtliga objekt har samma lagerhöjd."
 
 msgid "The prime tower requires \"support gap\" to be multiple of layer height"
 msgstr ""
-"A prime tower requires any “support gap” to be a multiple of layer height."
+"Ett Prime Torn kräver att \"mellanrums ifyllnaden\" är av multipla lager "
+"höjder"
 
 msgid "The prime tower requires that all objects have the same layer heights"
-msgstr "A prime tower requires that all objects have the same layer height."
+msgstr "Ett Prime Torn kräver att alla objekt har samma lagerhöjd"
 
 msgid ""
 "The prime tower requires that all objects are printed over the same number "
 "of raft layers"
 msgstr ""
-"A prime tower requires that all objects are printed over the same number of "
-"raft layers."
+"Ett Prime Torn kräver att alla objekt skrivs ut med samma antal Raft lager"
 
 msgid ""
 "The prime tower requires that all objects are sliced with the same layer "
 "heights."
-msgstr ""
-"A prime tower requires that all objects are sliced with the same layer "
-"height."
+msgstr "Ett Prime Torn kräver att alla object är beredda med samma lagerhöjd."
 
 msgid "Too small line width"
-msgstr ""
+msgstr "För liten linjebredd"
 
 msgid "Too large line width"
-msgstr ""
+msgstr "För stor linjebredd"
 
 msgid ""
 "The prime tower requires that support has the same layer height with object."
-msgstr ""
-"A prime tower requires that support has the same layer height as the object."
+msgstr "Ett Prime Torn kräver att  support har samma lagerhöjd som objektet."
 
 msgid ""
 "Support enforcers are used but support is not enabled. Please enable support."
 msgstr ""
+"Tvingande support används men support är inte aktiverad. Aktivera support."
 
 msgid "Layer height cannot exceed nozzle diameter"
-msgstr "Layer height cannot exceed nozzle diameter."
+msgstr "Lagerhöjden kan inte överstiga nozzel diametern"
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s.\n"
-msgstr ""
+msgstr "Plattan %d: %s stöds ej av filament %s.\n"
 
 msgid "Generating skirt & brim"
-msgstr ""
+msgstr "Skapar Skirt & Brim"
 
 msgid "Exporting G-code"
-msgstr ""
+msgstr "Exporterar G-kod"
 
 msgid "Generating G-code"
-msgstr ""
+msgstr "Skapar G-kod"
 
 msgid "Failed processing of the filename_format template."
-msgstr "Processing of the filename_format template failed."
+msgstr "Skapande av filnamn_format template misslyckades."
 
 msgid "Printable area"
-msgstr ""
+msgstr "Utskriftsbar yta"
 
 msgid "Bed exclude area"
-msgstr "Excluded bed area"
+msgstr "Utesluten yta av byggplattan"
 
 msgid "Elephant foot compensation"
-msgstr ""
+msgstr "Elefant fots kompensation"
 
 msgid ""
 "Shrink the initial layer on build plate to compensate for elephant foot "
 "effect"
 msgstr ""
-"This shrinks the first layer on the build plate to compensate for elephant "
-"foot effect."
+"Minska första lager på byggplattan för att kompensera elefant fots effekten"
 
 msgid ""
 "Slicing height for each layer. Smaller layer height means more accurate and "
 "more printing time"
 msgstr ""
-"This is the height for each layer. Smaller layer heights give greater "
-"accuracy but longer printing time."
+"Lagerhöjd för varje lager. Mindre lagerhöjd ger mer exakt tolerans men ökar "
+"även utskriftstiden"
 
 msgid "Printable height"
-msgstr ""
+msgstr "Utskriftsbar höjd"
 
 msgid "Maximum printable height which is limited by mechanism of printer"
-msgstr ""
-"This is the maximum printable height which is limited by printer mechanisms."
+msgstr "Maximala utskriftshöjd begränsas av skrivarens mekanism"
 
 msgid "Printer preset names"
-msgstr ""
+msgstr "Namn på förinställda skrivare"
 
 msgid "Avoid crossing wall when travel"
-msgstr "Avoid walls when traveling"
+msgstr "Undvik väggar vid förflyttning"
 
 msgid "Detour and avoid to travel across wall which may cause blob on surface"
 msgstr ""
-"Detour to avoid traveling across walls, which may cause blobs on the surface"
+"Undvik väggar vid förflyttning, för att undvika att filament droppar på ytan"
 
 msgid "Max travel detour distance"
-msgstr ""
+msgstr "Max undvikande förflyttnings avstånd"
 
 msgid ""
 "Maximum detour distance for avoiding crossing wall. Don't detour if the "
 "detour distance is large than this value"
 msgstr ""
-"Maximum detour distance for avoiding travel across walls. If the distance is "
-"larger than this value, there will be no detour."
+"Max undvikande förflyttnings avstånd för att undvika väggar. Om avståndet "
+"överstiger detta värde, kommer ingen undvikande förflyttning att ske"
 
 msgid "Other layers"
-msgstr ""
+msgstr "Andra lager"
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
@@ -4292,10 +4411,10 @@ msgid ""
 msgstr ""
 
 msgid "°C"
-msgstr ""
+msgstr "°C"
 
 msgid "Bed temperature"
-msgstr ""
+msgstr "Byggplattans temperatur"
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
@@ -4308,10 +4427,10 @@ msgid ""
 msgstr ""
 
 msgid "Initial layer"
-msgstr "First layer"
+msgstr "Första lager"
 
 msgid "Initial layer bed temperature"
-msgstr "First layer bed temperature"
+msgstr "Byggplattans första lager temperatur"
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
@@ -4329,28 +4448,31 @@ msgid ""
 msgstr ""
 
 msgid "Bed types supported by the printer"
-msgstr ""
+msgstr "Byggplattans typ stöds av skrivaren"
 
 msgid "Cool Plate"
-msgstr ""
+msgstr "Cool Plate"
 
 msgid "Engineering Plate"
-msgstr ""
+msgstr "Engineering Plate"
 
 msgid "This G-code is inserted at every layer change before lifting z"
-msgstr "This G-code is inserted at every layer change before lifting z."
+msgstr "Denna G-kod används för varje lager innan Z axis lyfts"
 
 msgid "Bottom shell layers"
-msgstr ""
+msgstr "Botten skal lager"
 
 msgid ""
 "This is the number of solid layers of bottom shell, including the bottom "
 "surface layer. When the thickness calculated by this value is thinner than "
 "bottom shell thickness, the bottom shell layers will be increased"
 msgstr ""
+"Antal solida lager av bottenskalet, detta inkluderar botten lager. När "
+"tjockleken beräknas av detta värde som är tunnare än bottenskalets tjocklek, "
+"så kommer bottenskalets lagerantal att öka"
 
 msgid "Bottom shell thickness"
-msgstr ""
+msgstr "Bottenskals tjocklek"
 
 msgid ""
 "The number of bottom solid layers is increased when slicing if the thickness "
@@ -4359,111 +4481,122 @@ msgid ""
 "is disabled and thickness of bottom shell is absolutely determained by "
 "bottom shell layers"
 msgstr ""
+"Antal solida botten lager ökar om tjockleken beräknas om bottenskals lager "
+"är tunnare än detta värde. Detta kan undvikas genom att ha tunnare väggar "
+"när lagerhöjden är liten. 0 betyder att denna inställningen är inaktiverad "
+"och bottenskalets tjocklek är styrd av bottenskalets lager"
 
 msgid "Force cooling for overhang and bridge"
-msgstr ""
+msgstr "Tvinga kylning av överhäng och bridge/bryggor"
 
 msgid ""
 "Enable this option to optimize part cooling fan speed for overhang and "
 "bridge to get better cooling"
 msgstr ""
+"Aktivera detta val för att optimisera del kylningens hastighet för överhäng "
+"och bridge/bryggor"
 
 msgid "Fan speed for overhang"
-msgstr ""
+msgstr "Fläkthastighet för överhäng"
 
 msgid ""
 "Force part cooling fan to be this speed when printing bridge or overhang "
 "wall which has large overhang degree. Forcing cooling for overhang and "
 "bridge can get better quality for these part"
 msgstr ""
+"Tvinga del kylningsfläkten att hålla denna hastighet när utskrift av bridge/"
+"bryggor eller överhäng som är större än överhängs graderna skrivs ut. "
+"Tvingande kylning för överhäng och bridge/bryggor kan ge bättre kvalitet på "
+"dessa delar"
 
 msgid "Cooling overhang threshold"
-msgstr ""
+msgstr "Överhängs kylningens tröskel"
 
 msgid ""
 "Force cooling fan to be specific speed when overhang degree of printed part "
 "exceeds this value. Expressed as percentage which indicides how much width "
 "of the line without support from lower layer"
 msgstr ""
+"Tvinga kylfläktens hastighet när överhängsgraderna överstiger detta värde. "
+"Uttryckt i procent som indikerar linjebredden utan stöd från lägre lager"
 
 msgid "Bridge flow"
-msgstr ""
+msgstr "Bridge/Brygg flöde"
 
 msgid ""
 "Decrease this value slightly(for example 0.9) to reduce the amount of "
 "material for bridge, to improve sag"
 msgstr ""
-"Decrease this value slightly(for example 0.9) to reduce the amount of "
-"material for bridges, to avoid sagging."
+"Minska detta värde något (tex 0.9) för att minska material åtgång för "
+"bridges/bryggor, detta för att förbättra kvaliteten"
 
 msgid "Slow down for overhang"
-msgstr ""
+msgstr "Sakta ner vid överhäng"
 
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr ""
+"Aktivera detta val för att sänka hastigheten för olika överhängs grader"
 
 msgid "mm/s"
-msgstr ""
+msgstr "mm/s"
 
 msgid "Speed of bridge and completely overhang wall"
-msgstr "This is the speed for bridges and 100% overhang walls."
+msgstr "Hastighet för bridges/bryggor och hela överhängs väggar"
 
 msgid "Brim width"
-msgstr ""
+msgstr "Brim bredd"
 
 msgid "Distance from model to the outermost brim line"
-msgstr "This is the distance from the model to the outermost brim line."
+msgstr "Avståndet från modellen till yttersta brim linjen"
 
 msgid "Brim type"
-msgstr ""
+msgstr "Brim typ"
 
 msgid ""
 "This controls brim position including outer side of models, inner side of "
 "holes or both. Auto means both the brim position and brim width is analysed "
 "and calculated automatically"
 msgstr ""
-"This controls brim position including outer side of models, inner side of "
-"holes or both. Auto means both the brim position and brim width are analyzed "
-"and calculated automatically."
+"Detta kontrollerar brim positionen inklusive yttre sidorna av modellen, "
+"insidan av hål eller bägge. Auto betyder att brim positionen och brim "
+"bredden är analyserad och beräknas automatiskt"
 
 msgid "Brim-object gap"
-msgstr ""
+msgstr "Avstånd mellan brim och modell"
 
 msgid ""
 "A gap between innermost brim line and object can make brim be removed more "
 "easily"
 msgstr ""
-"This creates a gap between the innermost brim line and the object and can "
-"make the brim easier to remove."
+"Mellanrum mellan innersta brim linjen och objektet kan underlätta vid "
+"borttagande av brim"
 
 msgid "Compatible machine"
-msgstr ""
+msgstr "Kompatibel maskin"
 
 msgid "Compatible machine condition"
-msgstr ""
+msgstr "Kompatibel maskin status"
 
 msgid "Compatible process profiles"
-msgstr ""
+msgstr "Kompatibla process profiler"
 
 msgid "Compatible process profiles condition"
-msgstr ""
+msgstr "Kompatibla process profilers status"
 
 msgid "Print sequence"
-msgstr ""
+msgstr "Utskrifts sekvens"
 
 msgid "Print sequence, layer by layer or object by object"
-msgstr ""
-"This determines the print sequence, allowing you to print layer-by-layer or "
-"object-by-object."
+msgstr "Utskrifts sekvens, lager för lager eller objekt för objekt"
 
 msgid "By layer"
-msgstr ""
+msgstr "Per lager"
 
 msgid "By object"
-msgstr ""
+msgstr "Per objekt"
 
 msgid "Slow printing down for better layer cooling"
-msgstr ""
+msgstr "Sakta ner utskrift för bättre kylning av lager"
 
 msgid ""
 "Enable this option to slow printing speed down to make the final layer time "
@@ -4471,53 +4604,59 @@ msgid ""
 "that layer can be cooled for longer time. This can improve the cooling "
 "quality for needle and small details"
 msgstr ""
+"Aktivera detta val för att sänka utskifts hastigheten för att göra den sista "
+"lager tiden inte kortare än lager tidströskeln \"Max fläkthastighets tröskel"
+"\", detta så att lager kan kylas under en längre tid. Detta kan förbättra "
+"kylnings kvaliteten för små detaljer"
 
 msgid "Normal printing"
-msgstr ""
+msgstr "Normal utskrift"
 
 msgid ""
 "The default acceleration of both normal printing and travel except initial "
 "layer"
 msgstr ""
-"This is the default acceleration for both normal printing and travel after "
-"the first layer."
+"Standard acceleration för både normal utskrift och förflyttning förrutom "
+"första lager"
 
 msgid "mm/s²"
-msgstr ""
+msgstr "mm/s²"
 
 msgid "Default filament profile"
-msgstr ""
+msgstr "Standard filament profil"
 
 msgid "Default filament profile when switch to this machine profile"
-msgstr "Default filament profile when switching to this machine profile"
+msgstr "Standard filament profil vid byte till denna maskinens profil"
 
 msgid "Default process profile"
-msgstr ""
+msgstr "Standard process profil"
 
 msgid "Default process profile when switch to this machine profile"
-msgstr "Default process profile when switching to this machine profile"
+msgstr "Standard process profil vid byte till denna maskinens profil"
 
 msgid "No cooling for the first"
-msgstr ""
+msgstr "Ingen kylning vid första"
 
 msgid ""
 "Close all cooling fan for the first certain layers. Cooling fan of the first "
 "layer used to be closed to get better build plate adhesion"
 msgstr ""
+"Stoppa alla kylfläktar vid det första valda lager. Kylfläkten ska vara "
+"stängd vid första lager för att förbättra fästet på byggplattan"
 
 msgid "layers"
-msgstr ""
+msgstr "lager"
 
 msgid "Don't support bridges"
-msgstr ""
+msgstr "Ingen support vid bridges/bryggor"
 
 msgid ""
 "Don't support the whole bridge area which make support very large. Bridge "
 "usually can be printing directly without support if not very long"
 msgstr ""
-"This disables supporting bridge areas, which can make support very large. "
-"Bridges can usually be printed directly without support if they are not very "
-"long."
+"Detta inaktiverar support vid bridges/bryggor för att minska mängden av "
+"support. Bridges/Bryggor kan vanligtvis skrivas ut utan support om de inte "
+"är för långa avstånd"
 
 msgid "Max bridge length"
 msgstr ""
@@ -4529,99 +4668,100 @@ msgid ""
 msgstr ""
 
 msgid "End G-code"
-msgstr ""
+msgstr "Slut G-kod"
 
 msgid "End G-code when finish the whole printing"
-msgstr "Add end G-Code when finishing the entire print."
+msgstr "Lägg till slut G-kod när utskriften har avslutas"
 
 msgid "End G-code when finish the printing of this filament"
-msgstr "Add end G-code when finishing the printing of this filament."
+msgstr "Lägg till slut G-kod när utskriften har avslutas med detta filament"
 
 msgid "Top surface pattern"
-msgstr ""
+msgstr "Topp ytans mönster"
 
 msgid "Line pattern of top surface infill"
-msgstr "This is the line pattern for top surface infill."
+msgstr "Linjemönster för topp ytans ifyllnad"
 
 msgid "Concentric"
-msgstr ""
+msgstr "Koncentrisk"
 
 msgid "Zig zag"
-msgstr ""
+msgstr "Zig zag"
 
 msgid "Monotonic"
-msgstr ""
+msgstr "Monoton"
 
 msgid "Monotonic line"
 msgstr ""
 
 msgid "Bottom surface pattern"
-msgstr ""
+msgstr "Botten ytans mönster"
 
 msgid "Line pattern of bottom surface infill, not bridge infill"
-msgstr ""
-"This is the line pattern of bottom surface infill, but not bridge infill."
+msgstr "Botten ytans ifyllnads linjemönster, inte bridge/brygg ifyllnad"
 
 msgid "Line width of outer wall"
-msgstr ""
+msgstr "Linjebredd på yttre vägg"
 
 msgid ""
 "Speed of outer wall which is outermost and visible. It's used to be slower "
 "than inner wall speed to get better quality."
 msgstr ""
+"Hastigheten på yttre vägg som är mest synlig. Denna bör vara långsammare än "
+"hastigheten på inner vägg för att uppnå bättre kvalitet."
 
 msgid "Order of inner wall/outer wall/infil"
-msgstr "Order of inner wall/outer wall/infill"
+msgstr "Ordning på inre vägg/yttre vägg/ifyllnad"
 
 msgid "Print sequence of inner wall, outer wall and infill. "
-msgstr "This is the print sequence of inner walls, outer walls, and infill."
+msgstr "Utskriftsordning på inre vägg, yttre vägg och ifyllnad. "
 
 msgid "inner/outer/infill"
-msgstr ""
+msgstr "inre/yttre/ifyllnad"
 
 msgid "outer/inner/infill"
-msgstr ""
+msgstr "yttre/inre/ifyllnad"
 
 msgid "infill/inner/outer"
-msgstr ""
+msgstr "ifyllnad/inre/yttre"
 
 msgid "infill/outer/inner"
-msgstr ""
+msgstr "ifyllnad/yttre/inre"
 
 msgid "Height to rod"
-msgstr ""
+msgstr "Höjd till axel"
 
 msgid ""
 "Height of the clearance cylinder around extruder. Used as input of auto-"
 "arrange to avoid collision when print object by object"
 msgstr ""
-"Height of the clearance cylinder around extruder: used as input for auto-"
-"arranging to avoid collisions when printing object by object"
+"Höjden på fritt cylinder område runt extrudern: Används som input för auto-"
+"placering för att undvika kollision när man skriver ut objekt för objekt"
 
 msgid "Height to lid"
-msgstr ""
+msgstr "Höjd till locket"
 
 msgid "Radius"
-msgstr ""
+msgstr "Radie"
 
 msgid ""
 "Clearance radius around extruder. Used as input of auto-arrange to avoid "
 "collision when print object by object"
 msgstr ""
-"Clearance radius around extruder: used as input for auto-arranging to avoid "
-"collisions when printing object by object"
+"Fri radie område runt extrudern: Används som input för auto-placering för "
+"att undvika kollision när man skriver ut objekt för objekt"
 
 msgid "Extruder Color"
-msgstr ""
+msgstr "Extruder Färg"
 
 msgid "Only used as a visual help on UI"
-msgstr ""
+msgstr "Används endast som visuell hjälp på UI"
 
 msgid "Extruder offset"
-msgstr ""
+msgstr "Extruder offset"
 
 msgid "Flow ratio"
-msgstr ""
+msgstr "Flödesförhållande"
 
 msgid ""
 "The material may have volumetric change after switching between molten state "
@@ -4630,104 +4770,111 @@ msgid ""
 "and 1.05. Maybe you can tune this value to get nice flat surface when there "
 "has slight overflow or underflow"
 msgstr ""
-"The material may have volumetric change after switching between molten and "
-"crystalline states. This setting changes all extrusion flow of this filament "
-"in G-code proportionally. The recommended value range is between 0.95 and "
-"1.05. You may be able to tune this value to get a nice flat surface if there "
-"is slight overflow or underflow."
+"Materialets volym kan ha ändrats efter byte mellan smält och kristalliserat "
+"tillstånd.Denna inställning ändrar alla inställningar för extruderings "
+"flödet för detta filament proportionellt i G-koden. Det rekommenderade "
+"värdet är mellan 0.95 och 1.05. Du kan finjustera detta värde för att få en "
+"fin flat yta när visst överflöde eller underflöde finns"
 
 msgid "Default line width if some line width is set to be zero"
-msgstr "Default line width for line widths set to 0"
+msgstr "Standard linjebredd för linjebredder är satt till 0"
 
 msgid "Keep fan always on"
-msgstr ""
+msgstr "Behåll alltid fläkten på"
 
 msgid ""
 "If enable this setting, part cooling fan will never be stoped and will run "
 "at least at minimum speed to reduce the frequency of starting and stoping"
 msgstr ""
+"Om den här inställningen aktiveras, kommer en del kylfläkten aldrig stoppas "
+"och den kommer att åtminstone gå på lägsta hastighet för att minska "
+"frekvensen av start och stopp"
 
 msgid "Layer time"
-msgstr ""
+msgstr "Lager tid"
 
 msgid ""
 "Part cooling fan will be enabled for layers of which estimated time is "
 "shorter than this value. Fan speed is interpolated between the minimum and "
 "maximum fan speeds according to layer printing time"
 msgstr ""
+"Del kylfläkten kommer att aktiveras för lager vars beräknade tid är kortare "
+"än detta värde. Fläkthastigheten interpoleras mellan den lägsta och högsta "
+"fläkthastigheten enligt utskriftstiden för lager"
 
 msgid "s"
-msgstr ""
+msgstr "s"
 
 msgid "Color"
-msgstr ""
+msgstr "Färg"
 
 msgid "Max volumetric speed"
-msgstr ""
+msgstr "Max volymetrisk hastighet"
 
 msgid ""
 "This setting stands for how much volume of filament can be melted and "
 "extruded per second. Printing speed is limited by max volumetric speed, in "
 "case of too high and unreasonable speed setting. Zero means no limit"
 msgstr ""
-"This setting stands for the volume of filament that can be melted and "
-"extruded per second. Printing speed is limited by max volumetric speed in "
-"case of too high and unreasonable speed setting. 0 means no limit."
+"Denna inställning står för volymen av filament som kan smältas och "
+"extruderas per sekund. Utskriftshastigheten begränsas av max volymetrisk "
+"hastighet vid för hög och orimlig hastighetsinställning. 0 betyder ingen "
+"gräns"
 
 msgid "mm³/s"
-msgstr ""
+msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
-msgstr ""
+msgstr "Minimal purge på wipe torn"
 
 msgid "mm³"
-msgstr ""
+msgstr "mm³"
 
 msgid "Filament load time"
-msgstr ""
+msgstr "Inmatningstid för filament"
 
 msgid "Time to load new filament when switch filament. For statistics only"
 msgstr ""
-"Time to load new filament when switching filament, for statistical purposes "
-"only."
+"Ladda nytt filament vid byte av filament, endast för statistiska ändamål"
 
 msgid "Filament unload time"
-msgstr ""
+msgstr "Utmatningstid för filament"
 
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr ""
-"Time to unload old filament when switching filament, for statistical "
-"purposes only."
+"Ladda ur gammalt filament vid byte av filament, endast för statistiska "
+"ändamål"
 
 msgid ""
 "Filament diameter is used to calculate extrusion in gcode, so it's important "
 "and should be accurate"
 msgstr ""
-"Filament diameter is used to calculate extrusion in G-code, so it is "
-"important and should be accurate"
+"Filament diametern används för att beräkna extruderingen i G-kod, viktigt "
+"att detta är rätt"
 
 msgid "Density"
-msgstr ""
+msgstr "Densitet"
 
 msgid "Filament density. For statistics only"
-msgstr "Filament density, for statistical purposes only."
+msgstr "Filament densitet, endast för statistiska ändamål"
 
 msgid "g/cm³"
-msgstr ""
+msgstr "g/cm³"
 
 msgid "Type"
-msgstr ""
+msgstr "Typ"
 
 msgid "The material type of filament"
-msgstr "Filament material."
+msgstr "Filament material"
 
 msgid "Soluble material"
-msgstr ""
+msgstr "Lösligt material"
 
 msgid ""
 "Soluble material is commonly used to print support and support interface"
 msgstr ""
-"Soluble material is commonly used to print support and support interfaces"
+"Lösligt material används vanligtvis som utskrifts support och supportets "
+"gränsyta"
 
 msgid "Support material"
 msgstr ""
@@ -4737,72 +4884,71 @@ msgid ""
 msgstr ""
 
 msgid "Temperature of vitrificaiton"
-msgstr ""
+msgstr "Kristalliserings temperatur"
 
 msgid ""
 "Material becomes soft at this temperature. Thus the heatbed cannot be hotter "
 "than this tempature"
 msgstr ""
-"Material becomes soft at this temperature. Thus, the heat bed cannot be "
-"hotter than this temperature."
+"Materialet mjuknar vid denna temperatur. Därför får inte byggplattan vara "
+"varmare än denna temperatur"
 
 msgid "Price"
-msgstr ""
+msgstr "Pris"
 
 msgid "Filament price. For statistics only"
-msgstr "Filament price, for statistical purposes only."
+msgstr "Filament pris, endast för statistiska ändamål"
 
 msgid "money/kg"
-msgstr ""
+msgstr "pris/kg"
 
 msgid "(Undefined)"
-msgstr ""
+msgstr "(Oidentifierad)"
 
 msgid "Infill direction"
-msgstr ""
+msgstr "Ifyllnads riktning"
 
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
 "of line"
 msgstr ""
-"This is the angle for sparse infill pattern, which controls the start or "
-"main direction of lines."
+"Vinkeln för sparsam ifyllnads mönster, som styr start- eller huvudriktningen "
+"för linjer"
 
 msgid "Sparse infill density"
-msgstr ""
+msgstr "Sparsam ifyllnads densitet"
 
-#, c-format
+#, fuzzy, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr ""
-"This is the density of internal sparse infill. 100% means that the object "
-"will be solid throughout."
+"Densiteten av ifyllnad. 100% betyder att objektet blir solid rakt igenom"
 
 msgid "Sparse infill pattern"
-msgstr ""
+msgstr "Sparsam ifyllnads mönster"
 
 msgid "Line pattern for internal sparse infill"
-msgstr "This is the line pattern for internal sparse infill."
+msgstr "Linjemönster för sparsam ifyllnad"
 
 msgid "Grid"
-msgstr ""
+msgstr "Grid"
 
 msgid "Line"
-msgstr ""
+msgstr "Linje"
 
 msgid "Cubic"
-msgstr ""
+msgstr "Cubic"
 
 msgid "Tri-hexagon"
-msgstr ""
+msgstr "Tri-hexagon"
 
 msgid "Gyroid"
-msgstr ""
+msgstr "Gyroid"
 
 msgid "Honeycomb"
-msgstr ""
+msgstr "Honeycomb"
 
 msgid "Adaptive Cubic"
-msgstr ""
+msgstr "Adaptiv Cubic"
 
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
@@ -4813,24 +4959,24 @@ msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
 "adhensive"
 msgstr ""
-"This is the printing acceleration for the first layer. Using limited "
-"acceleration can improve build plate adhesion."
+"Utskrifts acceleration för första lager. Ett lägre värde kan förbättra "
+"objektets fäste på byggplattan"
 
 msgid "Line width of initial layer"
-msgstr ""
+msgstr "Linjebredd för första lager"
 
 msgid "Initial layer height"
-msgstr "First layer height"
+msgstr "Första lagerhöjd"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
 "can improve build plate adhension"
 msgstr ""
-"This is the height of the first layer. Making the first layer hight higher "
-"can improve build plate adhesion."
+"Första lagerhöjd. Högre första lager kan förbättra objektets fäste på "
+"byggplattan"
 
 msgid "Adaptive layer height"
-msgstr ""
+msgstr "Adaptiv lagerhöjd"
 
 msgid ""
 "Enabling this option means the height of every layer except the first will "
@@ -4839,373 +4985,382 @@ msgid ""
 "Note that this option only takes effect if no prime tower is generated in "
 "current plate."
 msgstr ""
-"Enabling this option means that the height of each layer after the first "
-"will be automatically calculated according to the slope of the model’s "
-"surface.\n"
-"Please not that this option only takes effect if there is no prime tower "
-"generated on the current plate."
+"Aktivera detta alternativet så innebär det att höjden på varje lager efter "
+"det första kommer att beräknas automatiskt enligt lutningen på modellens "
+"yta.\n"
+"Observera att detta alternativ endast träder i kraft om det inte finns något "
+"prime torn genererat på den aktuella plattan."
 
 msgid "Speed of initial layer except the solid infill part"
 msgstr ""
-"This is the speed for the first layer except for solid infill sections."
+"Hastigheten för det första lagret förutom för solida ifyllnads sektioner"
 
 msgid "Initial layer infill"
-msgstr "First layer infill"
+msgstr "Första lager ifyllnad"
 
 msgid "Speed of solid infill part of initial layer"
-msgstr "This is the speed for solid infill parts of the first layer."
+msgstr "Hastigheten för fasta ifyllnadsdelar av det första lagret"
 
 msgid "Initial layer nozzle temperature"
-msgstr "First layer nozzle temperature"
+msgstr "Nozzel temperatur för första lager"
 
 msgid "Nozzle temperature to print initial layer when using this filament"
-msgstr "Nozzle temperature to print first layer when using this filament"
+msgstr "Nozzel temperatur för första lager med detta filament"
 
 msgid "Full fan speed at layer"
-msgstr ""
+msgstr "Full fläkthastighet vid lager"
 
 msgid ""
 "Randomly jitter while printing the wall, so that the surface has a rough "
 "look. This setting controls the fuzzy position"
 msgstr ""
-"This setting makes the toolhead randomly jitter while printing walls so that "
-"the surface has a rough look. This setting controls the fuzzy position."
+"Inställningen gör att verktygshuvudet skakar slumpmässigt vid utskrift av "
+"väggar så att ytan får ett strävt utseende. Denna inställning styr fuzzy "
+"position"
 
 msgid "None"
-msgstr ""
+msgstr "Ingen"
 
 msgid "All walls"
-msgstr ""
+msgstr "Alla väggar"
 
 msgid "Fuzzy skin thickness"
-msgstr ""
+msgstr "Fuzzy skin tjocklek"
 
 msgid ""
 "The width within which to jitter. It's adversed to be below outer wall line "
 "width"
 msgstr ""
-"The width of jittering: it’s recommended to keep this lower than the outer "
-"wall line width."
+"Bredd på skakning: Det rekommenderas att hålla denna lägre än den yttre "
+"vägglinjens bredd"
 
 msgid "Fuzzy skin point distance"
-msgstr ""
+msgstr "Fuzzy skin punktavstånd"
 
 msgid ""
 "The average diatance between the random points introducded on each line "
 "segment"
 msgstr ""
+"Den genomsnittliga distansen mellan de slumpmässiga punkter som införts på "
+"varje linjesegment"
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
 "printed more slowly"
 msgstr ""
-"This is the speed for gap infill. Gaps usually have irregular line width and "
-"should be printed more slowly."
+"Hastigheten för fyllning av mellanrum. Mellanrum har vanligtvis oregelbunden "
+"linjebredd och bör skrivas ut långsammare"
 
 msgid "Arc fitting"
-msgstr ""
+msgstr "Arc passning"
 
 msgid ""
 "Enable this to get a G-code file which has G2 and G3 moves. And the fitting "
 "tolerance is same with resolution"
 msgstr ""
-"Enable this to get a G-code file with G2 and G3 moves. The fitting tolerance "
-"is the same as the resolution."
+"Aktivera detta för att få en G-kod med G2 och G3 drag. Passnings toleransen "
+"är densamma som upplösningen"
 
 msgid "Add line number"
-msgstr ""
+msgstr "Lägg till rad nummer"
 
 msgid "Enable this to add line number(Nx) at the beginning of each G-Code line"
 msgstr ""
-"Enable this to add line number(Nx) at the beginning of each G-Code line."
+"Aktivera detta för att lägga till rad nummer(Nx) i början av varje G-kod rad"
 
 msgid "Scan first layer"
-msgstr ""
+msgstr "Skanna första lager"
 
 msgid ""
 "Enable this to enable the camera on printer to check the quality of first "
 "layer"
 msgstr ""
-"Enable this to allow the camera on the printer to check the quality of the "
-"first layer."
+"Aktivera detta för att låta kameran i skrivaren kontrollera kvaliteten på "
+"det första lager"
 
 msgid "Enable spaghetti detector"
-msgstr ""
+msgstr "Aktivera spaghetti detektor"
 
-# Do we want a more technical term for spaghetti in the explanation?
-# [Yifan] “Spaghetti” is generally used in 3D print videos and papers. We have not found other technical term for this yet.
-# [Cory] Gotcha; that’s what I figured.  It’s the general term I’ve seen everywhere too, it just doesn’t sound as technical, haha.
 msgid "Enable the camera on printer to check spaghetti"
-msgstr "Enable this to allow the camera on the printer to watch for spaghetti."
+msgstr ""
+"Aktivera detta för att låta kameran i skrivaren titta efter spagetti fenomen"
 
 msgid "Nozzle type"
-msgstr ""
+msgstr "Nozzel typ"
 
 msgid ""
 "The metallic material of nozzle. This determines the abrasive resistance of "
 "nozzle, and what kind of filament can be printed"
 msgstr ""
+"Nozzelns metalliska material avgör munstyckets nötningsbeständighet och "
+"vilken typ av filament som kan skrivas ut"
 
 msgid "Hardened steel"
-msgstr ""
+msgstr "Härdat stål"
 
 msgid "Stainless steel"
-msgstr ""
+msgstr "Rostfritt stål"
 
 msgid "Brass"
-msgstr ""
+msgstr "Mässing"
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
-msgstr ""
+msgstr "Aktivera detta val om maskinen har extra kylfläkt"
 
 msgid "G-code flavor"
-msgstr ""
+msgstr "G-kod smak"
 
 msgid "What kind of gcode the printer is compatible with"
-msgstr "What kind of G-code the printer is compatible with."
+msgstr "Vilken typ av G-kod är skrivaren kompatibel med"
 
 msgid "Infill combination"
-msgstr ""
+msgstr "Ifyllnads kombination"
 
 msgid ""
 "Automatically Combine sparse infill of several layers to print together to "
 "reduce time. Wall is still printed with original layer height."
 msgstr ""
-"Automatically combine sparse infill of several layers to print together in "
-"order to reduce time. Walls are still printed with original layer height."
+"Automatiskt kombinera sparsam ifyllnad av flera lager att skrivas ut "
+"tillsammans för att minska tiden. Väggar skrivs fortfarande ut med vald "
+"lagerhöjd."
 
 msgid "Filament to print internal sparse infill."
-msgstr "This is the filament for printing internal sparse infill."
+msgstr "Filamentet är avsett för sparsam ifyllnad."
 
 msgid "Line width of internal sparse infill"
-msgstr ""
+msgstr "Linjebredd för sparsam ifyllnad"
 
 msgid "Infill/Wall overlap"
-msgstr "Infill/wall overlap"
+msgstr "Ifyllnad/Vägg överlapp"
 
 msgid ""
 "Infill area is enlarged slightly to overlap with wall for better bonding. "
 "The percentage value is relative to line width of sparse infill"
 msgstr ""
-"This allows the infill area to be enlarged slightly to overlap with walls "
-"for better bonding. The percentage value is relative to line width of sparse "
-"infill."
+"Detta gör att ifyllnads området kan förstoras något för att överlappa "
+"väggarna för bättre vidhäftning.Det procentuella värdet är i förhållande "
+"till linjebredden för sparsam ifyllnad"
 
 msgid "Speed of internal sparse infill"
-msgstr "This is the speed for internal sparse infill."
+msgstr "Hastighet för sparsam ifyllnad"
 
 msgid "Ironing Type"
-msgstr "Ironing type"
+msgstr "Stryknings typ"
 
 msgid ""
 "Ironing is using small flow to print on same height of surface again to make "
 "flat surface more smooth. This setting controls which layer being ironed"
 msgstr ""
-"Ironing uses a small flow to print at the same height of a surface to make "
-"flat surfaces smoother. This setting controls which layers are being ironed."
+"Strykning använder ett litet flöde för att skriva ut på samma höjd av en yta "
+"för att göra plana ytor jämnare. Inställningen kontrollerar vilket lager som "
+"ska strykas"
 
 msgid "No ironing"
-msgstr ""
+msgstr "Ingen strykning"
 
 msgid "Top surfaces"
-msgstr "All top surfaces"
+msgstr "Top ytor"
 
 msgid "Topmost surface"
-msgstr "Topmost surface only"
+msgstr "Endast högsta ytan"
 
 msgid "All solid layer"
-msgstr "All solid layers"
+msgstr "Alla solida lager"
 
 msgid "Ironing flow"
-msgstr ""
+msgstr "Strykningsflöde"
 
 msgid ""
 "The amount of material to extrude during ironing. Relative to flow of normal "
 "layer height. Too high value results in overextrusion on the surface"
 msgstr ""
-"This is the amount of material to be extruded during ironing. It is relative "
-"to the flow of normal layer height. Too high a value will result in "
-"overextrusion on the surface."
+"Denna mängd av material kommer att extruderas under strykningen. Den är "
+"relativ till flödet av normal lagerhöjd. För högt värde resulterar i över "
+"extrudering på ytan"
 
 msgid "Ironing line spacing"
-msgstr ""
+msgstr "Strykning linjens mellanrum"
 
 msgid "The distance between the lines of ironing"
-msgstr "This is the distance between the lines used for ironing."
+msgstr "Avståndet mellan linjerna när strykning utförs"
 
 msgid "Ironing speed"
-msgstr ""
+msgstr "Stryknings hastighet"
 
 msgid "Print speed of ironing lines"
-msgstr "This is the print speed for ironing lines."
+msgstr "Utskrifts hastighet för strykning"
 
 msgid "This gcode part is inserted at every layer change after lift z"
-msgstr "This G-code is inserted at every layer change after lift z."
+msgstr "Denna G-kod infogas vid varje lagerbyte efter lyft av Z axis"
 
 msgid "Supports silent mode"
-msgstr "Silent Mode"
+msgstr "Tyst läge"
 
-# Is this a user-toggled setting for them to turn on silent mode?
-# [Yifan] Yes. But for now, this setting is invisible to user.
-# [Cory] Got it!  For now, I’ll leave the comment on this, so we can come back to it if this setting becomes visible.
 msgid ""
 "Whether the machine supports silent mode in which machine use lower "
 "acceleration to print"
 msgstr ""
+"Om maskinen stöder tyst läge där maskinen använder lägre acceleration för "
+"att skriva ut"
 
 msgid "Maximum speed X"
-msgstr ""
+msgstr "Max hastighet X"
 
 msgid "Maximum speed Y"
-msgstr ""
+msgstr "Max hastighet Y"
 
 msgid "Maximum speed Z"
-msgstr ""
+msgstr "Max hastighet Z"
 
 msgid "Maximum speed E"
-msgstr ""
+msgstr "Max hastighet E"
 
 msgid "Machine limits"
-msgstr ""
+msgstr "Maskin begränsningar"
 
 msgid "Maximum X speed"
-msgstr ""
+msgstr "Max X hastighet"
 
 msgid "Maximum Y speed"
-msgstr ""
+msgstr "Max Y hastighet"
 
 msgid "Maximum Z speed"
-msgstr ""
+msgstr "Max Z hastighet"
 
 msgid "Maximum E speed"
-msgstr ""
+msgstr "Max E hastighet"
 
 msgid "Maximum acceleration X"
-msgstr ""
+msgstr "Max acceleration X"
 
 msgid "Maximum acceleration Y"
-msgstr ""
+msgstr "Max acceleration Y"
 
 msgid "Maximum acceleration Z"
-msgstr ""
+msgstr "Max acceleration Z"
 
 msgid "Maximum acceleration E"
-msgstr ""
+msgstr "Max acceleration E"
 
 msgid "Maximum acceleration of the X axis"
-msgstr ""
+msgstr "Max acceleration på X-axis"
 
 msgid "Maximum acceleration of the Y axis"
-msgstr ""
+msgstr "Max acceleration på Y-axis"
 
 msgid "Maximum acceleration of the Z axis"
-msgstr ""
+msgstr "Max acceleration på Z-axis"
 
 msgid "Maximum acceleration of the E axis"
-msgstr ""
+msgstr "Max acceleration på E-axis"
 
 msgid "Maximum jerk X"
-msgstr ""
+msgstr "Max jerk X"
 
 msgid "Maximum jerk Y"
-msgstr ""
+msgstr "Max jerk Y"
 
 msgid "Maximum jerk Z"
-msgstr ""
+msgstr "Max jerk Z"
 
 msgid "Maximum jerk E"
-msgstr ""
+msgstr "Max jerk E"
 
 msgid "Maximum jerk of the X axis"
-msgstr ""
+msgstr "Max jerk på X-axis"
 
 msgid "Maximum jerk of the Y axis"
-msgstr ""
+msgstr "Max jerk på Y-axis"
 
 msgid "Maximum jerk of the Z axis"
-msgstr ""
+msgstr "Max jerk på Z-axis"
 
 msgid "Maximum jerk of the E axis"
-msgstr ""
+msgstr "Max jerk på E-axis"
 
 msgid "Minimum speed for extruding"
-msgstr ""
+msgstr "Min hastighet för extrudering"
 
 msgid "Minimum speed for extruding (M205 S)"
-msgstr ""
+msgstr "Min hastighet för extrudering (M205 S)"
 
 msgid "Minimum travel speed"
-msgstr ""
+msgstr "Min förflyttnings hastighet"
 
 msgid "Minimum travel speed (M205 T)"
-msgstr ""
+msgstr "Min förflyttnings hastighet (M205 T)"
 
 msgid "Maximum acceleration for extruding"
-msgstr ""
+msgstr "Max acceleration för extrudering"
 
 msgid "Maximum acceleration for extruding (M204 P)"
-msgstr ""
+msgstr "Max acceleration för extrudering (M204 P)"
 
 msgid "Maximum acceleration for retracting"
-msgstr ""
+msgstr "Max acceleration för retraktion"
 
 msgid "Maximum acceleration for retracting (M204 R)"
-msgstr ""
+msgstr "Max acceleration för retraktion (M204 R)"
 
 msgid "Maximum acceleration for travel"
-msgstr ""
+msgstr "Max acceleration för förflyttning"
 
 msgid "Maximum acceleration for travel (M204 T)"
-msgstr ""
+msgstr "Max acceleration för förflyttning (M204 T)"
 
 msgid "Fan speed"
-msgstr ""
+msgstr "Fläkt hastighet"
 
 msgid ""
 "Part cooling fan speed may be increased when auto cooling is enabled. This "
 "is the maximum speed limitation of part cooling fan"
 msgstr ""
+"Del kylfläktens hastighet kan ökas när automatisk kylning är aktiverad. "
+"Detta är max hastighets begränsning för en del kylfläkt"
 
 msgid "Max"
-msgstr ""
+msgstr "Max"
 
 msgid ""
 "The largest printable layer height for extruder. Used tp limits the maximum "
 "layer hight when enable adaptive layer height"
 msgstr ""
-"The highest printable layer height for the extruder: this is used to limit "
-"the maximum layer height when adaptive layer height is enabled."
+"Högsta utskrivbara lagerhöjd för extrudern: detta används för att begränsa "
+"den maximala lagerhöjden när adaptiv lagerhöjd är aktiverad"
 
 msgid "Minimum speed for part cooling fan"
-msgstr ""
+msgstr "Min hastighet för del kylfläkten"
 
 msgid ""
 "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
 "during printing except the first several layers which is defined by no "
 "cooling layers"
 msgstr ""
+"Hastigheten på extra del kylfläkten. Extra fläkten kommer att köras med "
+"denna hastighet under utskrift förutom de lager som definieras som inga kyl "
+"lager"
 
 msgid "Min"
-msgstr ""
+msgstr "Min"
 
 msgid ""
 "The lowest printable layer height for extruder. Used tp limits the minimum "
 "layer hight when enable adaptive layer height"
 msgstr ""
+"Den lägsta utskrivbara lagerhöjden för extrudering. Används tp begränsas den "
+"lägsta lagerhöjden när adaptiv lagerhöjd aktiveras"
 
-# We might want to think about a guideline for when to use abbreviated terms (Min, Max, etc) and when to use full terms.  I think the usage here is fine, I just wanted to bring it up.
-# [Yifan] I agree. To make it simple, I suggest use Min and Max.
 msgid "Min print speed"
-msgstr ""
+msgstr "Min utskrifts hastighet"
 
 msgid "The minimum printing speed when slow down for cooling"
-msgstr "The minimum printing speed when slowing down for cooling."
+msgstr "Min utskrifts hastighet vid nedsänkning för kylning"
 
 msgid "Nozzle diameter"
-msgstr ""
+msgstr "Nozzel diameter"
 
 msgid "Diameter of nozzle"
-msgstr "The diameter of the nozzle"
+msgstr "Diametern på nozzeln"
 
 msgid "Nozzle volume"
 msgstr ""
@@ -5214,493 +5369,507 @@ msgid "Volume of nozzle between the cutter and the end of nozzle"
 msgstr ""
 
 msgid "Reduce infill retraction"
-msgstr ""
+msgstr "Minska ifyllnads retraktionen"
 
 msgid ""
 "Don't retract when the travel is in infill area absolutely. That means the "
 "oozing can't been seen"
 msgstr ""
-"This disables retraction when travel is entirely within an infill area and "
-"oozing can’t be seen."
+"Detta inaktiverar retraktion när rörelsen är helt inom ett ifyllnads området "
+"och det inte kan läcka filament"
 
 msgid "Enable"
-msgstr ""
+msgstr "Aktivera"
 
 msgid "Filename format"
-msgstr ""
+msgstr "Filnamns format"
 
 msgid "User can self-define the project file name when export"
-msgstr "Users can decide project file names when exporting."
+msgstr "Användaren kan bestämma projekt namn när den ska exporteras"
 
 msgid "Detect overhang wall"
-msgstr ""
+msgstr "Upptäck överhängs vägg"
 
 #, c-format, boost-format
 msgid ""
 "Detect the overhang percentage relative to line width and use different "
 "speed to print. For 100%% overhang, bridge speed is used."
 msgstr ""
+"Upptäck överhängs procenten i förhållande till linjebredden och använd olika "
+"hastigheter för att skriva ut. Vid 100%% överhäng, bridge/brygg hastighet "
+"användas."
 
 msgid "Line width of inner wall"
-msgstr ""
+msgstr "Linjebredd för inre vägg"
 
 msgid "Speed of inner wall"
-msgstr "This is the speed for inner walls."
+msgstr "Hastighet för inre vägg"
 
 msgid "Number of walls of every layer"
-msgstr "This is the number of walls per layer."
+msgstr "Antal väggar för varje lager"
 
 msgid "Raft contact Z distance"
-msgstr ""
+msgstr "Raft kontakt Z avstånd"
 
 msgid "Z gap between object and raft. Ignored for soluble interface"
 msgstr ""
-"This is the Z gap between an object and a raft. It is ignored for soluble "
-"interfaces."
+"Där finns Z mellanrum mellan ett objekt och en raft. Detta ignoreras för "
+"lösliga gränssnitt"
 
 msgid "Raft expansion"
-msgstr ""
+msgstr "Raft expansion"
 
 msgid "Expand all raft layers in XY plane"
-msgstr "This expands all raft layers in XY plane."
+msgstr "Öka alla raft lager i XY planet"
 
 msgid "Initial layer density"
-msgstr "First layer density"
+msgstr "Första lager densitet"
 
 msgid "Density of the first raft or support layer"
-msgstr "This is the density of the first raft or support layer."
+msgstr "Densiteten av första raft eller support lager"
 
 msgid "Initial layer expansion"
-msgstr "First layer expansion"
+msgstr "Första lager expansion"
 
 msgid "Expand the first raft or support layer to improve bed plate adhesion"
-msgstr "This expands the first raft or support layer to improve bed adhesion."
+msgstr ""
+"Öka första raft eller support lager för att förbättra fäste emot byggplattan"
 
 msgid "Raft layers"
-msgstr ""
+msgstr "Raft lager"
 
 msgid ""
 "Object will be raised by this number of support layers. Use this function to "
 "avoid wrapping when print ABS"
 msgstr ""
-"Object will be raised by this number of support layers. Use this function to "
-"avoid warping when printing ABS."
+"Objekt kommer att höjas med detta antal support lager. Använd denna funktion "
+"för att undvika warping vid utskrift av ABS"
 
 msgid "Resolution"
-msgstr ""
+msgstr "Upplösning"
 
 msgid ""
 "G-code path is genereated after simplifing the contour of model to avoid too "
 "much points and gcode lines in gcode file. Smaller value means higher "
 "resolution and more time to slice"
 msgstr ""
-"The G-code path is generated after simplifying the contour of models to "
-"avoid too many points and G-code lines. Smaller values mean higher "
-"resolution and more time required to slice."
+"G-kods vägen genereras efter förenkling av modellens konturer för att "
+"undvika för många punkter och G-kod linjer. Mindre värden betyder högre "
+"upplösning och mer tid krävs för att bereda"
 
 msgid "Travel distance threshold"
-msgstr ""
+msgstr "Förflyttningsavståndets gräns"
 
 msgid ""
 "Only trigger retraction when the travel distance is longer than this "
 "threshold"
 msgstr ""
-"Only trigger retraction when the travel distance is longer than this "
-"threshold."
+"Aktivera endast retraktion när förflyttnings sträckan är längre än denna "
+"gräns"
 
 msgid "Retract amount before wipe"
-msgstr ""
+msgstr "Retraktions mängd innan wipe"
 
 msgid ""
 "The length of fast retraction before wipe, relative to retraction length"
 msgstr ""
-"This is the length of fast retraction before a wipe, relative to retraction "
-"length."
+"Detta är längden av snabb retraktion före en wipe, i förhållande till "
+"retraktions längden"
 
 msgid "Retract when change layer"
-msgstr "Retract on layer change"
+msgstr "Retraktera vid lager byte"
 
 msgid "Force a retraction when changes layer"
-msgstr "This forces a retraction on layer changes."
+msgstr "Tvinga retraktion vid lager byte"
 
 msgid "Length"
-msgstr ""
+msgstr "Längd"
 
 msgid "Retraction Length"
-msgstr ""
+msgstr "Retraktions längd"
 
 msgid ""
 "Some amount of material in extruder is pulled back to avoid ooze during long "
 "travel. Set zero to disable retraction"
 msgstr ""
-"Some amount of the material in the extruder is pulled back to avoid oozing "
-"during long travel. Set to 0 to disable retraction."
+"En del av materialet i extrudern dras tillbaka för att undvika dropp under "
+"långa förflyttningar. Sätt på 0 för att inaktivera retraktion"
 
 msgid "Z hop when retract"
-msgstr "Z hop when retracting"
+msgstr "Z hopp vid retraktion"
 
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
 "clearance between nozzle and the print. It prevents nozzle from hitting the "
 "print when travel move. Using spiral line to lift z can prevent stringing"
 msgstr ""
-"Whenever there is a retraction, the nozzle is lifted a little to create "
-"clearance between the nozzle and the print. This prevents the nozzle from "
-"hitting the print when traveling more. Using spiral lines to lift z can "
-"prevent stringing."
+"När det är en retraktion lyfts nozzel en aning för att skapa ett spel mellan "
+"nozzel och utskriften. Detta förhindrar att nozzel träffar utskriften när "
+"den förflyttas. Att använda spirallinjer för att lyfta z kan förhindra "
+"strängning"
 
 msgid "Retraction Speed"
-msgstr "Retraction speed"
+msgstr "Retraktions hastighet"
 
 msgid "Speed of retractions"
-msgstr "This is the speed for retraction."
+msgstr "Hastighet för retraktion"
 
 msgid "Deretraction Speed"
-msgstr "Deretraction speed"
+msgstr "Åter retraktions hastighet"
 
 msgid ""
 "Speed for reloading filament into extruder. Zero means same speed with "
 "retraction"
 msgstr ""
-"The speed for reloading filament into the extruder after a retraction; "
-"setting this to 0 means that it will be the same speed as the retraction."
+"Laddnings hastighet för filamentet in i extrudern efter en retraktion; om du "
+"ställer in detta till 0 betyder det att det blir samma hastighet som "
+"retraktionen"
 
 msgid "Seam position"
-msgstr ""
+msgstr "Söm position"
 
 msgid "The start position to print each part of outer wall"
-msgstr "This is the starting position for each part of the outer wall."
+msgstr "Utskriftens start position för varje del av yttre väggen"
 
 msgid "Nearest"
 msgstr ""
 
 msgid "Aligned"
-msgstr ""
+msgstr "Linjerad"
 
 msgid "Back"
-msgstr ""
+msgstr "Tillbaka"
 
 msgid "Skirt distance"
-msgstr ""
+msgstr "Skirt avstånd"
 
 msgid "Distance from skirt to brim or object"
-msgstr "This is the distance from the skirt to the brim or the object."
+msgstr "Avståndet ifrån skirt till brim eller objektet"
 
 msgid "Skirt loops"
-msgstr ""
+msgstr "Skirt varv"
 
 msgid "Number of loops for the skirt. Zero means disabling skirt"
-msgstr ""
-"This is the number of loops for the skirt. 0 means the skirt is disabled."
+msgstr "Antal skirt varv. 0 betyder att skirt är inaktiverad"
 
 msgid ""
 "The printing speed in exported gcode will be slowed down, when the estimated "
 "layer time is shorter than this value, to get better cooling for these layers"
 msgstr ""
-"The printing speed in exported G-code will be slowed down when the estimated "
-"layer time is shorter than this value in order to get better cooling for "
-"these layers."
+"Utskriftshastigheten i exporterad G-kod kommer att saktas ner när den "
+"beräknade lager tiden är kortare än detta värde för att få bättre kylning "
+"för dessa lager"
 
 msgid "Minimum sparse infill threshold"
-msgstr ""
+msgstr "Min sparsam ifyllnads gräns"
 
 msgid ""
 "Sparse infill area which is smaller than threshold value is replaced by "
 "internal solid infill"
 msgstr ""
-"Sparse infill areas which are smaller than this threshold value are replaced "
-"by internal solid infill."
+"Sparsam ifyllnads ytor som är mindre än detta gränsvärde ersätts med inre "
+"solid ifyllnad"
 
 msgid "mm²"
-msgstr ""
+msgstr "mm²"
 
 msgid "Line width of internal solid infill"
-msgstr ""
+msgstr "Linjebredd med inre solid ifyllnad"
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
-msgstr ""
-"This is the speed for internal solid infill, but not the top or bottom "
-"surface."
+msgstr "Hastighet för inre solid ifyllnad, förrutom topp och botten ytorna"
 
 msgid "Spiral mode"
-msgstr ""
+msgstr "Spiral läge"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
 "model into a single walled print with solid bottom layers. The final "
 "generated model has no seam"
 msgstr ""
-"This enables spiraling, which smooths out the Z moves of the outer contour "
-"and turns a solid model into a single walled print with solid bottom layers. "
-"The final generated model has no seam."
+"Möjliggör spiral bildning, vilket jämnar ut Z-rörelserna på den yttre "
+"konturen och förvandlar en solid modell till en enkelväggig utskrift med "
+"solida bottenlager. Den slutgiltligt genererade modellen har ingen söm"
 
 msgid "Temperature variation"
-msgstr ""
+msgstr "Temperatur variation"
 
 msgid "Start G-code"
-msgstr ""
+msgstr "Starta G-kod"
 
 msgid "Start G-code when start the whole printing"
-msgstr "Start G-code when starting a print"
+msgstr "Starta G-kod när utskrift startar"
 
 msgid "Start G-code when start the printing of this filament"
-msgstr "Start G-code when starting printing with this filament"
+msgstr "Starta G-kod när utskrift startar med detta filament"
 
 msgid "Enable support"
-msgstr ""
+msgstr "Aktivera support"
 
 msgid "Enable support generation."
-msgstr "This enables support generation."
+msgstr "Aktivera support generering."
 
 msgid ""
 "normal(auto) and tree(auto) is used to generate support automatically. If "
 "normal or tree is selected, only support enforcers are generated"
 msgstr ""
-"normal(auto), hybrid(auto) and tree(auto) are used to generate support "
-"automatically. If normal or tree is selected, only support enforcers are "
-"generated."
+"normal(auto), hybrid(auto) och tree(auto) används för att skapa support "
+"automatiskt. Om normal eller tree är vald, kommer endast tvingande support "
+"skapas"
 
 msgid "normal(auto)"
-msgstr ""
+msgstr "normal(auto)"
 
 msgid "tree(auto)"
-msgstr ""
+msgstr "tree(auto)"
 
 msgid "hybrid(auto)"
-msgstr ""
+msgstr "hybrid(auto)"
 
 msgid "normal"
-msgstr ""
+msgstr "normal"
 
 msgid "tree"
-msgstr ""
+msgstr "tree"
 
 msgid "Support/object xy distance"
-msgstr ""
+msgstr "Support/objekt xy distans"
 
 msgid "XY separation between an object and its support"
-msgstr "This controls the XY separation between an object and its support."
+msgstr "XY avstånd mellan objektet och support"
 
 msgid "Pattern angle"
-msgstr ""
+msgstr "Mönster vinkel"
 
 msgid "Use this setting to rotate the support pattern on the horizontal plane."
 msgstr ""
+"Använd den här inställningen för att rotera support mönstret i "
+"horisontalplanet."
 
 msgid "On build plate only"
-msgstr ""
+msgstr "Endast på byggplattan"
 
 msgid "Don't create support on model surface, only on build plate"
-msgstr "This setting only generates supports that begin on the build plate."
+msgstr "Inställningen skapar bara support som utgår ifrån byggplattan"
 
 msgid "Top Z distance"
-msgstr ""
+msgstr "Topp Z-distans"
 
 msgid "The z gap between the top support interface and object"
 msgstr ""
-"This determines the Z gap between the top support interface and the object."
+"Detta bestämmer Z-avståndet mellan det övre support gränssnittet och objektet"
 
 msgid ""
 "Filament to print support and skirt. 0 means no specific filament for "
 "support and current filament is used"
 msgstr ""
+"Filament för att skriva ut support och skirt med. 0 betyder inget speciellt "
+"filament för support och nuvarande filament används"
 
 msgid "Line width of support"
-msgstr ""
+msgstr "Linjebredd för support"
 
 msgid "Interface use loop pattern"
-msgstr "Loop pattern interface"
+msgstr "Loop mönstrets gränssnitt"
 
 msgid ""
 "Cover the top contact layer of the supports with loops. Disabled by default."
 msgstr ""
-"This covers the top contact layer of the supports with loops. It is disabled "
-"by default."
+"Täcker den övre kontaktytan av support med öglor. Den är inaktiverad som "
+"standard."
 
 msgid ""
 "Filament to print support interface. 0 means no specific filament for "
 "support interface and current filament is used"
 msgstr ""
+"Support filament för utskrift. 0 betyder att inget specifikt filament för "
+"support gränssnitt och nuvarande filament används"
 
 msgid "Top interface layers"
-msgstr ""
+msgstr "Översta gränssnitts lager"
 
 msgid "Number of top interface layers"
-msgstr "This is the number of top interface layers."
+msgstr "Antal topp gränssnitts lager"
 
 msgid "Bottom interface layers"
-msgstr ""
+msgstr "Botten gränssnitts lager"
 
 msgid "Top interface spacing"
-msgstr ""
+msgstr "Topp gränssnitts avstånd"
 
 msgid "Spacing of interface lines. Zero means solid interface"
-msgstr "This is the spacing of interface lines. 0 means solid interface."
+msgstr "Avstånd mellan gränssnitts linjer. 0 betyder solid gränssnitt"
 
 msgid "Bottom interface spacing"
-msgstr ""
+msgstr "Botten gränssnitts mellanrum"
 
 msgid "Spacing of bottom interface lines. Zero means solid interface"
 msgstr ""
-"This is the spacing of bottom interface lines. 0 means solid interface."
+"Mellanrummet på botten gränssnittets linjer. 0 betyder solid gränssnitt"
 
 msgid "Speed of support interface"
-msgstr "This is the speed for support interfaces."
+msgstr "Support gränssnittets hastighet"
 
 msgid "Base pattern"
-msgstr ""
+msgstr "Botten mönster"
 
 msgid "Line pattern of support"
-msgstr "This is the line pattern for support."
+msgstr "Supportens linje mönster"
 
 msgid "Rectilinear"
-msgstr ""
+msgstr "Räta linjer"
 
 msgid "Rectilinear grid"
-msgstr ""
+msgstr "Rät linjärt nät"
 
 msgid "Interface pattern"
-msgstr ""
+msgstr "Gränssnitts mönster"
 
 msgid ""
 "Line pattern of support interface. Default pattern for non-soluble support "
 "interface is Rectilinear, while default pattern for soluble support "
 "interface is Concentric"
 msgstr ""
-"This is the line pattern for support interface. The default pattern for non-"
-"soluble support interface is Rectilinear while the default pattern for "
-"soluble support interface is Concentric."
+"Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
+"(material) support gränssnittet är Räta medan standardmönstret för "
+"lösligt(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
-msgstr ""
+msgstr "Basens mönster mellanrum"
 
 msgid "Spacing between support lines"
-msgstr "This determines the spacing between support lines."
+msgstr "Mellanrum mellan support linjer"
 
 msgid "Speed of support"
-msgstr "This is the speed for support."
+msgstr "Support hastighet"
 
 msgid "Style"
-msgstr ""
+msgstr "Stil"
 
 msgid "Snug"
-msgstr ""
+msgstr "Tight"
 
 msgid "Independent support layer height"
-msgstr ""
+msgstr "Oberoende support lagerhöjd"
 
 msgid ""
 "Support layer uses layer height independent with object layer. This is to "
 "support custom support gap,but may cause extra filament switches if support "
 "is specified as different extruder with object"
 msgstr ""
-"The support layer uses layer height independent of object layers. This is to "
-"support custom support gaps, but may cause extra filament switches if "
-"support is specified as a different extruder from the object."
+"Support lager använder lagerhöjd oberoende av objekt lager. Detta för att "
+"stöda custom support mellanrum, detta kan orsaka extra filament byten om "
+"support (materialet) är vald som en annan extruder än objektets"
 
 msgid "Threshold angle"
-msgstr ""
+msgstr "Gräns vinkel"
 
 msgid ""
 "Support will be generated for overhangs whose slope angle is below the "
 "threshold."
-msgstr ""
-"Support will be generated for overhangs whose slope angle is below this "
-"threshold."
+msgstr "Support skapas för överhäng vars sluttning är under denna gräns."
 
 msgid "Tree support branch angle"
-msgstr ""
+msgstr "Tree support grenarnas vinkel"
 
 msgid ""
 "This setting determines the maximum overhang angle that t he branches of "
 "tree support allowed to make.If the angle is increased, the branches can be "
 "printed more horizontally, allowing them to reach farther."
 msgstr ""
-"This setting determines the maximum overhang angle that the branches of tree "
-"support are allowed to make. If the angle is increased, the branches can be "
-"printed more horizontally, allowing them to reach farther."
+"Inställningen bestämmer max överhängs vinkel som grenarna i tree support "
+"tillåts att ha. Om vinkeln ökas, kan grenarna skrivas ut mer horisontellt "
+"och nå längre."
 
 msgid "Tree support branch distance"
-msgstr ""
+msgstr "Tree support grenarnas avstånd"
 
 msgid ""
 "This setting determines the distance between neighboring tree support nodes."
 msgstr ""
+"Inställningen bestämmer avståndet mellan närliggande tree support punkter."
 
 msgid "Tree support branch diameter"
-msgstr ""
+msgstr "Tree support grenarnas diameter"
 
 msgid "This setting determines the initial diameter of support nodes."
-msgstr ""
+msgstr "Inställningen bestämmer inledande diameter på support punkterna."
 
 msgid "Tree support wall loops"
-msgstr ""
+msgstr "Tree support vägg varv"
 
 msgid "This setting specify the count of walls around tree support"
-msgstr "This setting specifies the wall count around tree support."
+msgstr "Inställningen bestämmer antal väggar runt tree support"
 
 msgid "Tree support with infill"
-msgstr ""
+msgstr "Tree support med ifyllnad"
 
 msgid ""
 "This setting specifies whether to add infill inside large hollows of tree "
 "support"
 msgstr ""
-"This setting specifies whether to add infill inside large hollows of tree "
-"support."
+"Inställningen bestämmer om det ska läggas till ifyllnad i stora hålrum av "
+"tree support"
 
 msgid "Nozzle temperature for layers after the initial one"
-msgstr "Nozzle temperature after the first layer"
+msgstr "Nozzel temperatur efter första lager"
 
 msgid "Nozzle temperature"
-msgstr ""
+msgstr "Nozzel temperatur"
 
 msgid "Bed temperature difference"
-msgstr ""
+msgstr "Byggplattans temperatur skillnad"
 
 msgid ""
 "Do not recommand bed temperature of other layer to be lower than initial "
 "layer for more than this threshold. Too low bed temperature of other layer "
 "may cause the model broken free from build plate"
 msgstr ""
+"Byggplattans temperatur rekommenderas inte att vara lägre än första lagrets "
+"temperatur. För låg temperatur på byggplattan kan orsaka att objektet "
+"släpper ifrån byggplattan"
 
 msgid "Detect thin wall"
-msgstr "Detect thin walls"
+msgstr "Upptäck tunna väggar"
 
 msgid ""
 "Detect thin wall which can't contain two line width. And use single line to "
 "print. Maybe printed not very well, because it's not closed loop"
 msgstr ""
-"This detects thin walls which can’t contain two lines and uses a single line "
-"to print. It may not print as well because it’s not a closed loop."
+"Upptäck tunna väggar som inte kan ha två linjer och använder en linje för "
+"att skrivas ut. Utskrifts kvaliteten begränsas efter som det inte är en "
+"sluten slinga"
 
 msgid ""
 "This gcode is inserted when change filament, including T command to trigger "
 "tool change"
 msgstr ""
-"This G-code is inserted when filament is changed, including T commands to "
-"trigger tool change."
+"G-koden sätts in vid filament byte, inklusive T kommando som aktiverar "
+"verktygs byte"
 
 msgid "Line width for top surfaces"
-msgstr ""
+msgstr "Linjebredd för topp ytor"
 
 msgid "Speed of top surface infill which is solid"
-msgstr "This is the speed for solid top surface infill."
+msgstr "Hastighet för solida topp ytors ifyllnad"
 
 msgid "Top shell layers"
-msgstr ""
+msgstr "Övre skal lager"
 
 msgid ""
 "This is the number of solid layers of top shell, including the top surface "
 "layer. When the thickness calculated by this value is thinner than top shell "
 "thickness, the top shell layers will be increased"
 msgstr ""
+"Antal solida topp lager på topp skal, inkluderar topp ytans lager. När "
+"tjockleken kalkyleras av detta värde och det är tunnare än topp skalets "
+"tjocklek, kommer toppskalets lager att öka"
 
 msgid "Top solid layers"
-msgstr ""
+msgstr "Solida topp lager"
 
 msgid "Top shell thickness"
-msgstr ""
+msgstr "Övre skalets tjocklek"
 
 msgid ""
 "The number of top solid layers is increased when slicing if the thickness "
@@ -5709,53 +5878,57 @@ msgid ""
 "is disabled and thickness of top shell is absolutely determained by top "
 "shell layers"
 msgstr ""
+"Antal solida övre lager ökas när tjockleken kalkyleras och övre skalet är "
+"tunnare än detta värde. Detta kan undvika att ha för tunt skal när "
+"lagerhöjden är liten. 0 betyder att den här inställningen är inaktiverad och "
+"tjockleken på det övre skalet bestäms av de övre skal lagerna"
 
 msgid "Speed of travel which is faster and without extrusion"
-msgstr "This is the speed at which traveling is done."
+msgstr "Förflyttnings hastighet"
 
 msgid "Wipe while retracting"
-msgstr ""
+msgstr "Avskrapa medans retraktering"
 
 msgid ""
 "Move nozzle along the last extrusion path when retracting to clean leaked "
 "material on nozzle. This can minimize blob when print new part after travel"
 msgstr ""
-"This moves the nozzle along the last extrusion path when retracting to clean "
-"any leaked material on the nozzle. This can minimize blobs when printing a "
-"new part after traveling."
+"Detta flyttarnozzeln längs den sista extruderingsbanan när det retrakterar "
+"för att rengöra eventuellt läckt material på nozzeln. Detta kan minimera "
+"blobbar när du skriver ut en ny del efter förflyttning"
 
 msgid "Wipe Distance"
-msgstr "Wipe distance"
+msgstr "Avskrapnings avstånd"
 
 msgid ""
 "Discribe how long the nozzle will move along the last path when retracting"
 msgstr ""
-"This describes how long the nozzle will move along the last path while "
-"retracting."
+"Detta beskriver hur länge nozzeln kommer att röra sig längs den sista banan "
+"medan den retrakterar"
 
 msgid ""
 "Print a tower to prime material in nozzle after switching to a new material."
 msgstr ""
-"This option enables printing a tower to prime material in the nozzle after "
-"switching to a new material."
+"Detta alternativ gör det möjligt att skriva ut ett torn för att pressa ut "
+"(prime) material i nozzeln efter byte till ett nytt material."
 
 msgid "Purging volumes"
-msgstr ""
+msgstr "Rensnings volym"
 
 msgid "Flush multiplier"
 msgstr ""
 
 msgid "Prime volume"
-msgstr ""
+msgstr "Prime volym (volymen av ut pressat material)"
 
 msgid "The volume of material to prime extruder on tower."
-msgstr "This is the volume of material to prime the extruder on the tower."
+msgstr "Material volymen att (pressa ut) genom extrudern på tornet."
 
 msgid "Width"
-msgstr ""
+msgstr "Bredd"
 
 msgid "Width of prime tower"
-msgstr "This is the width of prime towers."
+msgstr "Prime tornets bredd"
 
 msgid "Flush into objects' infill"
 msgstr ""
@@ -5785,20 +5958,20 @@ msgid ""
 msgstr ""
 
 msgid "X-Y hole compensation"
-msgstr ""
+msgstr "X-Y håls kompensation"
 
 msgid ""
 "Holes of object will be grown or shrunk in XY plane by the configured value. "
 "Positive value makes holes bigger. Negative value makes holes smaller. This "
 "function is used to adjust size slightly when the object has assembling issue"
 msgstr ""
-"Holes in objects will be grown or shrunk in the XY plane by the set value. "
-"Positive values make holes bigger and negative values make holes smaller. "
-"This function is used to adjust size slightly when objects have assembly "
-"issues."
+"Objektets hål kommer att krympa eller öka i XY planet med valt värde. "
+"Positivt värde ökar och negativt värde minskar hålets storlek. Denna "
+"funktion används för att justera storleken något när det finns monterings "
+"svårigheter"
 
 msgid "X-Y contour compensation"
-msgstr ""
+msgstr "X-Y kontur kompenstation"
 
 msgid ""
 "Contour of object will be grown or shrunk in XY plane by the configured "
@@ -5806,53 +5979,53 @@ msgid ""
 "smaller. This function is used to adjust size slightly when the object has "
 "assembling issue"
 msgstr ""
-"The contour of objects will be grown or shrunk in the XY plane by the set "
-"value. Positive values make contours bigger, and negative values make "
-"contours smaller. This function is used to adjust sizes slightly when "
-"objects have assembly issues."
+"Objektets kontur kommer att krympa eller öka i XY planet med konfigurerat "
+"värde. Positivt värde ökar och negativt värde minskar konturens storlek. "
+"Denna funktion används för att justera storleken något när det finns "
+"monterings svårigheter"
 
 msgid "Detect narrow internal solid infill"
-msgstr ""
+msgstr "Upptäck tight inre solid ifyllnad"
 
 msgid ""
 "This option will auto detect narrow internal solid infill area. If enabled, "
 "concentric pattern will be used for the area to speed printing up. "
 "Otherwise, rectilinear pattern is used defaultly."
 msgstr ""
-"This option will auto-detect narrow internal solid infill areas. If enabled, "
-"the concentric pattern will be used for the area to speed up printing. "
-"Otherwise, the rectilinear pattern will be used by default."
+"Detta val kommer att auto upptäcka tight inre solid ifyllnads område. Om "
+"aktiverat kommer det koncentriska mönstret att användas för området för att "
+"påskynda utskriften. Annars kommer mönstret med räta linjer att användas som "
+"standard."
 
 msgid "Export 3MF"
-msgstr "Export 3mf"
+msgstr "Exportera 3mf"
 
 msgid "Export project as 3MF."
-msgstr "This exports the project as a 3mf."
+msgstr "Exportera projekt som3mf."
 
 msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
-msgstr ""
+msgstr "Bered plattorna: 0-alla plattor, i-platta i, andra-ogiltiga"
 
-#, fuzzy
 msgid "Show command help."
-msgstr "This shows command help."
+msgstr "Visa kommandohjälp."
 
 msgid "Output Model Info"
-msgstr ""
+msgstr "Mata ut modell information"
 
 msgid "Output the model's information."
-msgstr "This outputs the model’s information."
+msgstr "Mata ut modellens information."
 
 msgid "Export Settings"
-msgstr ""
+msgstr "Exportera inställningar"
 
 msgid "Export settings to a file."
-msgstr "This exports settings to a file."
+msgstr "Exportera inställningar till en fil."
 
 msgid "Arrange Options"
-msgstr ""
+msgstr "Placera Val"
 
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
-msgstr ""
+msgstr "Placera val: 0-inaktivera, 1-aktivera, andra-auto"
 
 msgid "Convert Unit"
 msgstr ""
@@ -5861,87 +6034,92 @@ msgid "Convert the units of model"
 msgstr ""
 
 msgid "Orient the model"
-msgstr ""
+msgstr "Orientera modellen"
 
 msgid "Repair"
-msgstr ""
+msgstr "Reparera"
 
 msgid "Repair the model's meshes if it is non-manifold mesh"
-msgstr "Repair the model’s meshes if they are non-manifold."
+msgstr "Reparera modellens mesh om den inte är mångfaldig"
 
 msgid "Scale the model by a float factor"
-msgstr ""
+msgstr "Skala modellen med en plus faktor"
 
 msgid "Load General Settings"
-msgstr ""
+msgstr "Ladda allmänna inställningar"
 
 msgid "Load process/machine settings from the specified file"
-msgstr ""
+msgstr "Ladda process/maskin inställningar ifrån vald fil"
 
 msgid "Load Filament Settings"
-msgstr ""
+msgstr "Ladda filament inställningar"
 
 msgid "Load filament settings from the specified file list"
-msgstr ""
+msgstr "Ladda filament inställningar ifrån vald fil"
 
 msgid "Output directory"
-msgstr ""
+msgstr "Mata ut katalog"
 
 msgid "Output directory for the exported files."
-msgstr "This is the output directory for exported files."
+msgstr "Mata ut katalogen för exporterade filer."
 
 msgid "Debug level"
-msgstr ""
+msgstr "Felsökningsnivå"
 
 msgid ""
 "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
 "trace\n"
 msgstr ""
+"Välj felsöknings nivå. 0:allvarlig, 1:fel, 2:varning, 3:info, 4:felsök, 5:"
+"spåra\n"
 
 msgid "Error in zip archive"
-msgstr ""
+msgstr "Fel i zip arkiv"
 
 msgid "Generating walls"
-msgstr ""
+msgstr "Skapa väggar"
 
 msgid "Generating infill regions"
-msgstr ""
+msgstr "Skapa ifyllnads område"
 
 msgid "Generating infill toolpath"
-msgstr ""
+msgstr "Skapa ifyllnadens verktygsbana"
 
 msgid "Generating support"
-msgstr ""
+msgstr "Skapa support"
 
 msgid "Checking support necessity"
-msgstr ""
+msgstr "Kontrollera supportens nödvändighet"
 
 #, c-format, boost-format
 msgid ""
 "It seems object %s needs support to print. Please enable support generation."
 msgstr ""
+"Objekt verkar %s behöva support för att skrivas ut. Aktivera support valen."
 
 msgid "Optimizing toolpath"
-msgstr ""
+msgstr "Optimerar verktygsbanan"
 
 msgid "Empty layers around bottom are replaced by nearest normal layers."
-msgstr ""
+msgstr "Tomma lager runt botten ersätts med närmast normala lager."
 
 msgid ""
 "The model has overlapping or self-intersecting facets. I tried to repair it, "
 "however you might want to check the results or repair the input file and "
 "retry."
 msgstr ""
+"Modellen har överlappande eller självkorsande aspekter.Reparation utförd, "
+"men kontrollera resultaten eller reparera indatafilen och försöka igen."
 
 msgid "Slicing mesh"
-msgstr ""
+msgstr "Bereder mesh"
 
 msgid " Object:"
-msgstr ""
+msgstr " Objekt:"
 
 #, boost-format
 msgid "Error at line %1%:\n"
-msgstr ""
+msgstr "Fel i linje %1%:\n"
 
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
@@ -5974,32 +6152,277 @@ msgstr ""
 msgid "Support: propagate branches at layer %d"
 msgstr ""
 
+#~ msgid "Login with your Account"
+#~ msgstr "Logga in med ditt Konto"
+
+#~ msgid "Logout"
+#~ msgstr "Logga ut"
+
+#~ msgid "Publish Model/Profile"
+#~ msgstr "Publicera Model/Profil"
+
+#~ msgid "Please slice all plates before upload"
+#~ msgstr "Bered alla plattor innan uppladdning"
+
+#~ msgid "Total Size:"
+#~ msgstr "Total Storlek:"
+
+#~ msgid "Tiny patch filter"
+#~ msgstr "Litet patch filter"
+
+#~ msgid "Filter tiny patch"
+#~ msgstr "Filtrera små patch"
+
+#, qt-format
+#~ msgid "Process %1% / 100"
+#~ msgstr "Process %1% / 100"
+
+#~ msgid "Bambu Studio initialization failed"
+#~ msgstr "Uppstart av Bambu Studio misslyckades"
+
+#~ msgid "Object %s has zero size and can't be arranged."
+#~ msgstr "Objeketet %s har storlek noll och kan inte placeras."
+
+#~ msgid "Show daily tips"
+#~ msgstr "Visa dagliga tips"
+
+#~ msgid "Choose Filaments"
+#~ msgstr "Välj Filament"
+
+#~ msgid "Bind Dialog"
+#~ msgstr "Tvinga Dialog"
+
+#~ msgid ""
+#~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
+#~ "Contains the following information:\n"
+#~ "1. The Process presets\n"
+#~ "2. The Filament presets\n"
+#~ "3. The Machine presets\n"
+#~ msgstr ""
+#~ "Vill du synkronisera dina inställningar ifrån Bambu Molnet? \n"
+#~ "Innehåller följande:\n"
+#~ "1. Process inställningar\n"
+#~ "2. Filament inställningar\n"
+#~ "3. Maskin inställningar\n"
+
 #~ msgid "Machine Control"
-#~ msgstr "Machine control"
-
-#~ msgid "Record Timelapse"
-#~ msgstr "Record timelapse"
-
-#~ msgid "Bed temperature of the initial layer"
-#~ msgstr "Bed temperature for the first layer"
+#~ msgstr "Maskin kontroll"
 
 #~ msgid "Temperature and Axis Control"
-#~ msgstr "Temperature and axis control"
+#~ msgstr "Temperatur och Axis Kontroll"
+
+#~ msgid "Model:"
+#~ msgstr "Modell:"
+
+#~ msgid "Serial:"
+#~ msgstr "Serienummer:"
+
+#~ msgid "Version:"
+#~ msgstr "Version:"
+
+#~ msgid "Upgrade firmware"
+#~ msgstr "Uppdatera firmware"
+
+#~ msgid "Relase Note"
+#~ msgstr "Relase Note"
+
+#~ msgid "Printing"
+#~ msgstr "Skriver ut"
+
+#~ msgid "Idle"
+#~ msgstr "Inaktiv"
+
+#~ msgid "Lastest version"
+#~ msgstr "Senaste version"
+
+#~ msgid "Upgrading"
+#~ msgstr "Uppdatera"
+
+#~ msgid "Upgrading success"
+#~ msgstr "Uppdateringen lyckades"
+
+#~ msgid "Upgrading failed"
+#~ msgstr "Uppdateringen misslyckades"
+
+#~ msgid "Need to stop slicing first."
+#~ msgstr "Beredningen måste avslutas först."
+
+#~ msgid "Drop Files when slicing"
+#~ msgstr "Släpp filer när du bereder"
+
+#~ msgid "Importing Model"
+#~ msgstr "Importerar Modell"
 
 #~ msgid "prepare 3mf file..."
-#~ msgstr "Prepare 3mf file…"
+#~ msgstr "Förbered 3mf file…"
+
+#~ msgid "Import project failed, Please try again!"
+#~ msgstr "Import av projektet misslyckades, Försök igen!"
 
 #~ msgid "downloading project ..."
-#~ msgstr "Downloading project …"
+#~ msgstr "Laddar ner projekt …"
+
+#~ msgid "Project downloaded %d%%"
+#~ msgstr "Nedladdat projekt %d%%"
+
+#~ msgid "Failed to publish your project. Please try agian!"
+#~ msgstr "Publicering av projektet misslyckades. Försök igen!"
 
 #~ msgid "preparing, export 3mf failed!"
-#~ msgstr "Preparing, export to 3mf failed!"
+#~ msgstr "Förbereder, exporten till 3mf misslyckades!"
+
+#~ msgid "Preparing to upload your project..."
+#~ msgstr "Förbereder uppladdning av projektet..."
+
+#~ msgid "get_des,err:code=%u,msg=%s"
+#~ msgstr "get_des,err:code=%u,msg=%s"
+
+#~ msgid "req_proj,err:code=%u,msg=%s"
+#~ msgstr "req_proj,err:code=%u,msg=%s"
+
+#~ msgid "req_prof,err:code=%u,msg=%s"
+#~ msgstr "req_prof,err:code=%u,msg=%s"
+
+#~ msgid "Uploading..."
+#~ msgstr "Laddar upp..."
+
+#~ msgid "Uploading %d%%, remaining time %s"
+#~ msgstr "Laddar upp %d%%, kvarstående tid %s"
 
 #~ msgid "Upload has been canceled."
-#~ msgstr "Uploading has been canceled."
+#~ msgstr "Uppladdningen avbröts."
+
+#~ msgid "Publishing..."
+#~ msgstr "Publicerar..."
+
+#~ msgid "Failed to publish. Please try again!"
+#~ msgstr "Publiceringen misslyckades. Försök igen!"
 
 #~ msgid "Uploading is timed out. Please try again!"
-#~ msgstr "Uploading has timed out. Please try again!"
+#~ msgstr "Uppladdningen har gått ut. Försök igen!"
+
+#~ msgid "Design id is empty."
+#~ msgstr "Design id är tom."
+
+#~ msgid "Chinese (Simplified)"
+#~ msgstr "Kinesiska (Förenklad)"
+
+#~ msgid "GUI"
+#~ msgstr "GUI"
+
+#~ msgid "Sync"
+#~ msgstr "Sync"
+
+#~ msgid "Shortcuts"
+#~ msgstr "Genvägar"
+
+#~ msgid "General settings"
+#~ msgstr "Almänna inställningar"
+
+#~ msgid "Record Timelapse"
+#~ msgstr "Spela in Timelapse"
+
+#~ msgid "Current printer is busy. Please select another one."
+#~ msgstr "Nuvarande skrivare upptagen. Välj en annan."
+
+#~ msgid "Filament Retraction"
+#~ msgstr "Filament Reduktion"
+
+#~ msgid "Bed temperature when cool plate is installed"
+#~ msgstr "Byggplattans temperatur när Cool plate används"
+
+#~ msgid "Bed temperature when engineering plate is installed"
+#~ msgstr "Byggplattans temperatur när Engineering plate används"
+
+#~ msgid "Bed temperature when high temperature plate is installed"
+#~ msgstr "Byggplattans temperatur när High Temp Plate används"
+
+#~ msgid "Keep"
+#~ msgstr "Behåll"
+
+#~ msgid "Unable to get system certificate."
+#~ msgstr "Det gick inte att få systemcertifikat."
+
+#, qt-format
+#~ msgid "use system SSL certificate: %1%"
+#~ msgstr "använd system SSL certifikat: %1%"
+
+#~ msgid "CURL initialization failed. See the log for additional details."
+#~ msgstr "Start av CURL misslyckades. Kontrollera loggen för mer information."
+
+#~ msgid "print project cancelled."
+#~ msgstr "utskrifts projektet avbröts."
+
+#~ msgid "Creating a print job..."
+#~ msgstr "Skapar utskrift..."
+
+#~ msgid "Uploading the print job..."
+#~ msgstr "Laddar upp utskrift..."
+
+#~ msgid "The size of the uploaded file cannot exceed 1 GB."
+#~ msgstr "Storleken på den uppladdade filen får inte överstiga 1GB."
+
+#~ msgid " Failed to upload the print job. Check Md5 failed, please try agian."
+#~ msgstr ""
+#~ " Misslyckades att ladda upp utskrift. Kontrollera Md5 felet, försök igen."
+
+#~ msgid ""
+#~ "\n"
+#~ "upload,err:code=%u,msg=%s"
+#~ msgstr ""
+#~ "\n"
+#~ "ladda upp,err:code=%u,msg=%s"
+
+#~ msgid "Wait for the job to be sent."
+#~ msgstr "Vänta på att utskrift har skickats."
+
+#~ msgid "The print job has been sent to your printer."
+#~ msgstr "Utskrift har skickats till skrivaren."
+
+#~ msgid "Invalid plate index %d"
+#~ msgstr "Ogilltlig platta index %d"
+
+#~ msgid "Plate %d"
+#~ msgstr "Platta %d"
+
+#~ msgid "%s"
+#~ msgstr "%s"
+
+#~ msgid "Start printing..."
+#~ msgstr "Startar utskrift..."
+
+#, qt-format
+#~ msgid "%1% is too close to others, there will be collisions when printing."
+#~ msgstr "%1% för tätt inpå andra, utskriften kolliderar."
+
+#, qt-format
+#~ msgid ""
+#~ "\n"
+#~ "%1% is too close to others, there will be collisions when printing."
+#~ msgstr ""
+#~ "\n"
+#~ "%1% för tätt inpå andra, utskriften kolliderar."
+
+#, qt-format
+#~ msgid "%1% is too tall, there will be collisions when printing."
+#~ msgstr "%1% för hög, utskriften kolliderar."
+
+#, qt-format
+#~ msgid ""
+#~ "\n"
+#~ "%1% is too tall, there will be collisions when printing."
+#~ msgstr ""
+#~ "\n"
+#~ "%1% för hög, utskriften kolliderar."
+
+#~ msgid "bed temperature for layers except the initial one"
+#~ msgstr "byggplattans temperatur förrutom första lager"
+
+#~ msgid "Bed temperature of the initial layer"
+#~ msgstr "Byggplattans temperatur för första lager"
+
+#~ msgid "Smart"
+#~ msgstr "Smart"
 
 #~ msgid "X/Y Axis"
 #~ msgstr "X/Y axis"
@@ -6025,28 +6448,6 @@ msgstr ""
 #~ msgid "Fan speed when printing bridge and overhang wall"
 #~ msgstr "Fan speed when printing bridges and overhang walls."
 
-# I need a little more context to update this one
-# [Yifan] It the explanation for setting “cooling overhang threshold”. It controls when the coolin fan should be on.
-# The setting is ususally used for filament like ABS which disables the cooling fan by default.
-# I will explian overhang concept first.
-# overhang 0%:
-# ____     upper layer
-# ____     lower layer
-# overhang 25%:
-# ____    upper layer
-#  ____   lower layer
-# overhang 50%:
-# ____      upper layer
-#    ____   lower layer
-# overhang 75%
-# ____        upper layer
-#      ____   lower layer
-# overhang 100%
-# ____          upper layer
-#        ____   lower layer
-# [Cory] I think I get it.  Please check for accuracy to confirm.
-# [Yifan] Maybe we can replace overhang_fan_speed with “Overhang fan speed”, which is a setting name.
-# [Cory] Got it!  I think I assumed that it was some sort of set value with the underlining.  Updated.
 #~ msgid ""
 #~ "Force cooling fan speed to be overhang_fan_speed when overhang degree of "
 #~ "printed part exceeds this value. Expressed as percentage which indicides "
@@ -6159,12 +6560,6 @@ msgstr ""
 #~ "This is used to set line width for top surfaces. It’s relative to nozzle "
 #~ "diameter if expressed as a percentage."
 
-# please check for accuracy
-# C-See if I can make this more concise/less complex
-# Maybe: This is the number of solid layers of top shell, including the surface layer.  When the thickness calculated by this is thinner than the top shell thickness, additional top shell layers will be added when slicing.
-# [Yifan] “top shell thickness” is a setting name. Maybe it can be expressed as the following.
-# This is the number of solid layers of top shell, including the surface layer.  When the thickness calculated by this is thinner than “Top shell thickness”, additional top shell layers will be added when slicing.
-# [Cory] Updated a bit with the feedback here, and I updated the title of “Top Shell Thickness” to add Title Casing so that it’s in the explanation here and in the name of that item.
 #~ msgid ""
 #~ "The number of solid layers of top shell, including top surface layer. "
 #~ "When the thickness calculated by this value is thinner than top shell "
@@ -6324,6 +6719,7 @@ msgstr ""
 #~ "This determines the XY separation between an object and its support. It’s "
 #~ "relative to outer wall line width if expressed as a percentage."
 
+#, qt-format
 #~ msgid ""
 #~ "Failed to save gcode file\n"
 #~ "Error message: %1%"
@@ -6370,12 +6766,6 @@ msgstr ""
 #~ "This determines the z gap between the bottom support interface and the "
 #~ "object."
 
-# I need a little clarification on what this does
-# [Yifan] It is a setting which creates a single shell around the supports to makes them sturdier.
-# [Cory] Does support wall make sense, or does that conflict with other terminology?
-# [Yifan] I agree. It behaves much like a wall around infill. Could you give some suggestions?
-# Note: word “shell” has also been used in other place.
-# [Cory] I think “Support Wall” is good, but if you want to stress that it makes the support more sturdy, you could call it “Support Fortification Wall”
 #~ msgid "Wall around the support"
 #~ msgstr "Support Wall"
 
