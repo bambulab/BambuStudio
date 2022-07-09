@@ -139,7 +139,6 @@ public:
                        const wxString &name  = wxEmptyString);
     ~MachineObjectPanel();
 
-	void show_unbind_dialog();
     void show_bind_dialog();
  
     void set_printer_state(PrinterState state);

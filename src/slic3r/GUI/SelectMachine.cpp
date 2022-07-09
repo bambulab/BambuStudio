@@ -27,6 +27,7 @@ namespace Slic3r { namespace GUI {
 wxDEFINE_EVENT(EVT_UPDATE_USER_MACHINE_LIST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_OTHER_MACHINE_LIST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_JOB_CANCEL, wxCommandEvent);
+wxDEFINE_EVENT(EVT_UNBIND_MACHINE, wxCommandEvent);
 
 #define INITIAL_NUMBER_OF_MACHINES 0
 #define LIST_REFRESH_INTERVAL 200
@@ -112,23 +113,6 @@ MachineObjectPanel::MachineObjectPanel(wxWindow *parent, wxWindowID id, const wx
 
 MachineObjectPanel::~MachineObjectPanel() {}
 
-void MachineObjectPanel::show_unbind_dialog()
-{
-    UnBindMachineDilaog dlg;
-    dlg.update_machine_info(m_info);
-    switch (dlg.ShowModal()) {
-    case wxID_YES: {
-        break;
-    }
-
-    case wxID_NO: {
-        break;
-    }
-
-    default:;
-    }
-}
-
 void MachineObjectPanel::show_bind_dialog()
 {
     if (wxGetApp().is_user_login()) {
@@ -149,12 +133,7 @@ void MachineObjectPanel::show_bind_dialog()
 }
 
 void MachineObjectPanel::set_printer_state(PrinterState state) 
-{ 
-    if (m_state == PrinterState::IN_LAN || m_state == PrinterState::LOCK) {
-        show_printer_bind(false, PrinterBindState::NONE);
-        show_edit_printer_name(false);
-    }
-
+{
     m_state = state; 
     Refresh();
 }
@@ -312,15 +291,9 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
         auto bottom = (GetSize().y - m_unbind_img.GetSize().y) / 2 + m_unbind_img.GetSize().y;
 
         if ((evt.GetPosition().x >= left && evt.GetPosition().x <= right) && evt.GetPosition().y >= top && evt.GetPosition().y <= bottom) {
-            if (m_bind_state == PrinterBindState::ALLOW_UNBIND) { 
-                if (m_state == PrinterState::IN_LAN) {
-                    m_info->access_code = "";
-                    wxGetApp().app_config->set_str("access_code", m_info->dev_id, "");
-                    //clean device
-                } else {
-                    show_unbind_dialog(); 
-                }
-            }
+            wxCommandEvent event(EVT_UNBIND_MACHINE, GetId());
+            event.SetEventObject(this);
+            GetEventHandler()->ProcessEvent(event);
         } else {
             wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
             wxGetApp().mainframe->SetFocus();
@@ -498,6 +471,7 @@ void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
         
         MachineObjectPanel *op   = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
         op->update_machine_info(mobj);
+
         op->Bind(wxEVT_LEFT_DOWN, [this, op, mobj](auto &e){
                 if (mobj->is_lan_mode_printer()) {
                     if (!mobj->has_access_right()) {
@@ -517,6 +491,10 @@ void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
         if (mobj->is_lan_mode_printer()) {
             if (mobj->has_access_right()) {
                 op->set_printer_state(PrinterState::IN_LAN);
+
+                op->Bind(EVT_UNBIND_MACHINE, [this, mobj](wxCommandEvent& e) {
+                    mobj->set_access_code("");
+                });
             } else {
                 op->set_printer_state(PrinterState::LOCK);
             }
@@ -563,6 +541,8 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
             if (!mobj->is_online()) {
                 continue;
             } else {
+                op->show_printer_bind(false, PrinterBindState::NONE);
+                op->show_edit_printer_name(false);
                 if (mobj->has_access_right() && mobj->is_avaliable()) {
                     op->set_printer_state(PrinterState::IN_LAN);
                     op->show_printer_bind(true, PrinterBindState::ALLOW_UNBIND);
@@ -571,6 +551,15 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
                 }
             }
         } else {
+            op->show_printer_bind(true, PrinterBindState::ALLOW_UNBIND);
+            op->Bind(EVT_UNBIND_MACHINE, [this, mobj, dev](wxCommandEvent &e) {
+                // show_unbind_dialog
+                UnBindMachineDilaog dlg;
+                dlg.update_machine_info(mobj);
+                dlg.ShowModal();
+                dev->set_selected_machine("");
+            });
+
             if (!mobj->is_online()) {
                 op->set_printer_state(PrinterState::OFFLINE);
             } else {
