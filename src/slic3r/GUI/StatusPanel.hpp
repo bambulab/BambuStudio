@@ -170,8 +170,6 @@ public:
 
     void init_bitmaps();
     wxBoxSizer *create_monitoring_page();
-    void        on_size(wxSizeEvent &event);
-    virtual void DoSetSize(int x, int y, int width, int height, int sizeFlags);
     wxBoxSizer *create_project_task_page(wxWindow *parent);
     wxBoxSizer *create_machine_control_page(wxWindow *parent);
 

@@ -60,6 +60,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     if (m_last_state != MEDIASTATE_IDLE)
         Stop();
     //Play();
+    SetStatus("");
 }
 
 void MediaPlayCtrl::Play()
@@ -188,7 +189,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
         return;
     }
     if (last_state == MEDIASTATE_LOADING && state == wxMEDIASTATE_STOPPED) {
-        wxSize size = m_media_ctrl->GetBestSize();
+        wxSize size = m_media_ctrl->GetVideoSize();
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: size: " << size.x << "x" << size.y;
         m_failed_code = m_media_ctrl->GetLastError();
         if (size.GetWidth() > 1000) {
@@ -207,3 +208,22 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
 }
 
 }}
+
+void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
+{
+    wxWindow::DoSetSize(x, y, width, height, sizeFlags);
+    if (sizeFlags & wxSIZE_USE_EXISTING) return;
+    wxSize size = GetVideoSize();
+    if (size.GetWidth() <= 0)
+        size = wxSize{16, 9};
+    int maxHeight = (width * size.GetHeight() + size.GetHeight() - 1) / size.GetWidth();
+    if (maxHeight != GetMaxHeight()) {
+        BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl2::DoSetSize: width: " << width << ", height: " << height << ", maxHeight: " << maxHeight;
+        SetMaxSize({-1, maxHeight});
+        Slic3r::GUI::wxGetApp().CallAfter([this] {
+            GetParent()->Layout();
+            GetParent()->Refresh();
+        });
+    }
+}
+

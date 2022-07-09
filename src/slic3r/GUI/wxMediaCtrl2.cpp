@@ -14,6 +14,16 @@ void wxMediaCtrl2::Load(wxURI url)
     wxMediaCtrl::Load(url);
 }
 
+wxSize wxMediaCtrl2::GetVideoSize() const
+{
+    return wxMediaCtrl::DoGetBestSize();
+}
+
+wxSize wxMediaCtrl2::DoGetBestSize() const
+{
+    return {-1, -1};
+}
+
 #ifdef __WIN32__
 
 WXLRESULT wxMediaCtrl2::MSWWindowProc(WXUINT   nMsg,

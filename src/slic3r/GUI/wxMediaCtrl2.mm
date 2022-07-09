@@ -100,7 +100,7 @@ wxMediaState wxMediaCtrl2::GetState() const
     return m_state;
 }
 
-wxSize wxMediaCtrl2::DoGetBestSize() const
+wxSize wxMediaCtrl2::GetVideoSize() const
 {
     BambuPlayer * player2 = (BambuPlayer *) m_player;
     if (player2) {
@@ -110,7 +110,6 @@ wxSize wxMediaCtrl2::DoGetBestSize() const
         return {0, 0};
     }
 }
-
 
 /* textColor for NSButton */
 

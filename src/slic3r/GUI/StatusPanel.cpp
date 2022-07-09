@@ -94,12 +94,13 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
     wxBoxSizer *bSizer_left = new wxBoxSizer(wxVERTICAL);
 
     auto m_monitoring_sizer = create_monitoring_page();
-    bSizer_left->Add(m_monitoring_sizer, 0, wxEXPAND | wxALL, 0);
+    bSizer_left->Add(m_monitoring_sizer, 1, wxEXPAND | wxALL, 0);
 
     auto m_panel_separotor1 = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_panel_separotor1->SetBackgroundColour(STATUS_PANEL_BG);
     m_panel_separotor1->SetMinSize(wxSize(-1, PAGE_SPACING));
-    bSizer_left->Add(m_panel_separotor1, 0, wxEXPAND, 0);
+    m_panel_separotor1->SetMaxSize(wxSize(-1, PAGE_SPACING));
+    m_monitoring_sizer->Add(m_panel_separotor1, 0, wxEXPAND, 0);
 
     m_project_task_panel = new wxPanel(this);
     m_project_task_panel->SetBackgroundColour(*wxWHITE);
@@ -107,12 +108,12 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
     m_project_task_panel->SetSizer(m_project_task_sizer);
     m_project_task_panel->Layout();
     m_project_task_sizer->Fit(m_project_task_panel);
-    bSizer_left->Add(m_project_task_panel, 0, wxALL | wxEXPAND, 0);
+    m_monitoring_sizer->Add(m_project_task_panel, 0, wxALL | wxEXPAND , 0);
 
-    auto m_panel_separotor2 = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    m_panel_separotor2->SetBackgroundColour(STATUS_PANEL_BG);
-    m_panel_separotor2->SetMinSize(wxSize(-1, PAGE_SPACING));
-    bSizer_left->Add(m_panel_separotor2, 1, wxEXPAND, 0);
+//    auto m_panel_separotor2 = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+//    m_panel_separotor2->SetBackgroundColour(STATUS_PANEL_BG);
+//    m_panel_separotor2->SetMinSize(wxSize(-1, PAGE_SPACING));
+//    bSizer_left->Add(m_panel_separotor2, 1, wxEXPAND, 0);
 
     bSizer_status_below->Add(bSizer_left, 1, wxALL | wxEXPAND, 0);
 
@@ -210,87 +211,26 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     bSizer_monitoring_title->Fit(m_panel_monitoring_title);
     sizer->Add(m_panel_monitoring_title, 0, wxEXPAND | wxALL, 0);
 
-    media_ctrl_panel              = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, -1));
-    media_ctrl_panel->SetBackgroundColour(*wxBLACK);
-    wxBoxSizer *bSizer_monitoring = new wxBoxSizer(wxVERTICAL);
+//    media_ctrl_panel              = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+//    media_ctrl_panel->SetBackgroundColour(*wxBLACK);
+//    wxBoxSizer *bSizer_monitoring = new wxBoxSizer(wxVERTICAL);
 #ifdef __WXMAC__
-    m_media_ctrl = new wxMediaCtrl2(media_ctrl_panel, wxSize(16, 9));
+    m_media_ctrl = new wxMediaCtrl2(this, wxDefaultSize);
 #else
     m_media_ctrl = new wxMediaCtrl2();
-    m_media_ctrl->Create(media_ctrl_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(PAGE_MIN_WIDTH, FromDIP(288)), wxMEDIACTRLPLAYERCONTROLS_NONE);
+    m_media_ctrl->Create(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(PAGE_MIN_WIDTH, FromDIP(288)), wxMEDIACTRLPLAYERCONTROLS_NONE);
+#endif
     m_media_ctrl->SetMinSize(wxSize(PAGE_MIN_WIDTH, FromDIP(288)));
-#endif
 
-    Bind(wxEVT_SIZE, &StatusBasePanel::on_size, this);
+    m_media_play_ctrl = new MediaPlayCtrl(this, m_media_ctrl, wxDefaultPosition, wxSize(-1, FromDIP(40)));
 
-    m_media_play_ctrl = new MediaPlayCtrl(media_ctrl_panel, m_media_ctrl, wxDefaultPosition, wxSize(-1, FromDIP(40)));
-
-    bSizer_monitoring->Add(m_media_ctrl, 0, wxEXPAND | wxALIGN_CENTER_HORIZONTAL | wxALL, 0);
-    bSizer_monitoring->Add(m_media_play_ctrl, 1, wxEXPAND | wxALIGN_CENTER_HORIZONTAL | wxALL, 0);
-    media_ctrl_panel->SetSizer(bSizer_monitoring);
-    media_ctrl_panel->Layout();
-
-    sizer->Add(media_ctrl_panel, 1, wxEXPAND | wxALL, 1);
+    sizer->Add(m_media_ctrl, 1, wxEXPAND | wxALIGN_CENTER_HORIZONTAL | wxALL, 0);
+    sizer->Add(m_media_play_ctrl, 0, wxEXPAND | wxALIGN_CENTER_HORIZONTAL | wxALL, 0);
+//    media_ctrl_panel->SetSizer(bSizer_monitoring);
+//    media_ctrl_panel->Layout();
+//
+//    sizer->Add(media_ctrl_panel, 1, wxEXPAND | wxALL, 1);
     return sizer;
-}
-
-void StatusBasePanel::on_size(wxSizeEvent &event)
-{
-  /* float aspect_ratio = 2.0;
-    auto  size         = event.GetSize();
-    float new_height   = float(size.x) / aspect_ratio;
-
-    if (m_media_ctrl->GetSize().GetWidth() != size.GetWidth()) {
-        auto local_size = wxSize(0, 0);
-        local_size = wxSize{int(new_height * m_fixed_aspect_ratio), int(new_height)};
-
-        if (local_size.GetWidth() < PAGE_MIN_WIDTH) {
-            local_size.SetWidth(PAGE_MIN_WIDTH);
-            new_height = float(PAGE_MIN_WIDTH) / m_fixed_aspect_ratio;
-            local_size.SetHeight(new_height);
-        }
-
-        m_media_ctrl->SetSize(local_size);
-        m_media_ctrl->SetMinSize(local_size);
-        m_media_ctrl->SetMaxSize(local_size);
-
-        media_ctrl_panel->SetSize(wxSize{local_size.GetWidth(), local_size.GetHeight() + FromDIP(40)});
-        media_ctrl_panel->SetMinSize(wxSize{local_size.GetWidth(), local_size.GetHeight() + FromDIP(40)});
-        media_ctrl_panel->SetMaxSize(wxSize{local_size.GetWidth(), local_size.GetHeight() + FromDIP(40)});
-    }
-    Layout();*/
-}
-
-void StatusBasePanel::DoSetSize(int x, int y, int width, int height, int sizeFlags)
-{
-    wxWindow::DoSetSize(x, y, width, height, sizeFlags);
-    if (sizeFlags & wxSIZE_USE_EXISTING) return;
-    float aspect_ratio = 3.4;
-    auto  size         = this->GetSize();
-    float new_height   = float(size.x) / aspect_ratio;
-
-    if (m_media_ctrl->GetSize().GetWidth() != size.GetWidth()) {
-
-        auto local_size = wxSize{int(new_height * m_fixed_aspect_ratio), int(new_height)};
-
-        if (local_size.GetWidth() < PAGE_MIN_WIDTH) {
-            local_size.SetWidth(PAGE_MIN_WIDTH);
-            new_height = float(PAGE_MIN_WIDTH) / m_fixed_aspect_ratio;
-            local_size.SetHeight(new_height);
-        }
-
-
-        m_media_ctrl->SetSize(wxSize(local_size.x, new_height));
-        m_media_ctrl->SetMinSize(wxSize(local_size.x, new_height));
-#ifdef __WIN32__ // fix video jitter
-        m_media_ctrl->SetMaxSize(wxSize(local_size.x,new_height));
-#endif
-
-    /*    m_media_play_ctrl->SetSize(wxSize(local_size.x, FromDIP(40)));
-        m_media_play_ctrl->SetMinSize(wxSize(local_size.x, FromDIP(40)));
-        m_media_play_ctrl->SetMaxSize(wxSize(local_size.x, FromDIP(40)));*/
-    }
-    Layout();
 }
 
 wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)

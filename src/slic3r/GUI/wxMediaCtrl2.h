@@ -26,13 +26,15 @@ public:
     
     wxMediaState GetState() const;
     
+    wxSize GetVideoSize() const;
+    
     int GetLastError() const { return m_error; }
 
     static constexpr wxMediaState MEDIASTATE_BUFFERING = (wxMediaState) 6;
 
 protected:
-    wxSize DoGetBestSize() const override;
-    
+    void DoSetSize(int x, int y, int width, int height, int sizeFlags) override;
+
 private:
     void * m_player = nullptr;
     wxMediaState m_state = wxMEDIASTATE_STOPPED;
@@ -49,9 +51,14 @@ public:
     void Load(wxURI url);
 
     int GetLastError() const { return m_error; }
-    wxSize GetBestSize() { return DoGetBestSize(); };
+    
+    wxSize GetVideoSize() const;
 
 protected:
+    wxSize DoGetBestSize() const override;
+    
+    void DoSetSize(int x, int y, int width, int height, int sizeFlags) override;
+
 #ifdef __WIN32__
     WXLRESULT MSWWindowProc(WXUINT   nMsg,
                             WXWPARAM wParam,
