@@ -8040,7 +8040,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
 
     //BBS: add bbs 3mf logic
     PlateDataPtrs plate_data_list;
-    p->partplate_list.store_to_3mf_structure(plate_data_list, strategy & SaveStrategy::WithGcode, export_plate_idx);
+    p->partplate_list.store_to_3mf_structure(plate_data_list, (strategy & SaveStrategy::WithGcode || strategy & SaveStrategy::WithSliceInfo), export_plate_idx);
 
     // BBS: backup
     PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
@@ -8394,7 +8394,7 @@ int Plater::export_config_3mf(int plate_idx, Export3mfProgressFn proFn)
         return -1;
     }
 
-    SaveStrategy strategy = SaveStrategy::Silence | SaveStrategy::SkipModel;
+    SaveStrategy strategy = SaveStrategy::Silence | SaveStrategy::SkipModel | SaveStrategy::WithSliceInfo;
     result = export_3mf(p->m_print_job_data._3mf_config_path, strategy, plate_idx, proFn);
 
     return result;

@@ -3957,7 +3957,7 @@ int PartPlateList::rebuild_plates_after_arrangement(bool recycle_plates)
 	return ret;
 }
 
-int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool with_gcode, int plate_idx)
+int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool with_slice_info, int plate_idx)
 {
 	int ret = 0;
 
@@ -3976,10 +3976,10 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 				plate_data_item->objects_and_instances.emplace_back(it->first, it->second);
 		}
 
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<boost::format(": plate %1%, gcode_filename=%2%, with_gcode=%3%, slice_valid %4%")
-			%i %m_plate_list[i]->m_gcode_result->filename %with_gcode %m_plate_list[i]->is_slice_result_valid();
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<boost::format(": plate %1%, gcode_filename=%2%, with_slice_info=%3%, slice_valid %4%")
+			%i %m_plate_list[i]->m_gcode_result->filename % with_slice_info %m_plate_list[i]->is_slice_result_valid();
 
-		if (with_gcode) {
+		if (with_slice_info) {
             if (m_plate_list[i]->get_slice_result() && m_plate_list[i]->is_slice_result_valid()) {
                 // BBS only include current palte_idx
                 if (plate_idx == i || plate_idx == -1) {

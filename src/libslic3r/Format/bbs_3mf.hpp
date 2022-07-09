@@ -91,6 +91,7 @@ enum class SaveStrategy
     Silence             = 1 << 5,
     SkipStatic          = 1 << 6,
     SkipModel           = 1 << 7,
+    WithSliceInfo       = 1 << 8,
 
     SplitModel = 0x1000 | ProductionExt,
     Encrypted  = SecureContentExt | SplitModel,

@@ -626,7 +626,7 @@ public:
     /* load/store releted functions, with_gcode = true and plate_idx = -1, export all gcode
     * if with_gcode = true and specify plate_idx, export plate_idx gcode only
     */
-    int store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool with_gcode = true, int plate_idx = -1);
+    int store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool with_slice_info = true, int plate_idx = -1);
     int load_from_3mf_structure(PlateDataPtrs& plate_data_list);
     //load gcode files
     int load_gcode_files();
