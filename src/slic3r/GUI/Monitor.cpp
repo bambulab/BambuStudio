@@ -400,9 +400,7 @@ void MonitorPanel::update_all()
         return;
     }
 
-
-
-    if (obj->is_need_upgrade()) {
+    if (obj->has_ams() && obj->is_need_upgrade_for_ams()) {
         if (!has_popup_ams_check_dlg) {
             has_popup_ams_check_dlg = true;
             MessageDialog msg_dlg(nullptr, _L("Please upgrade your printer first"), "", wxAPPLY | wxOK);
@@ -456,12 +454,14 @@ bool MonitorPanel::Show(bool show)
         m_refresh_timer->Start(REFRESH_INTERVAL);
         wxPostEvent(this, wxTimerEvent());
 
-        //set a default machine when obj is null
-        if (obj == nullptr) {
-            if (dev)
+        if (dev) {
+            //set a default machine when obj is null
+            obj = dev->get_selected_machine();
+            if (obj == nullptr) {
                 dev->load_last_machine();
-        } else {
-            obj->reset_update_time();
+            } else {
+                obj->reset_update_time();
+            }
         }
 
         if (m_agent)

@@ -448,41 +448,41 @@ void MachineObject::_parse_ams_status(int ams_status)
     BOOST_LOG_TRIVIAL(trace) << "ams_debug: main = " << ams_status_main_int << ", sub = " << ams_status_sub;
 }
 
-bool MachineObject::is_need_upgrade()
+bool MachineObject::is_need_upgrade_for_ams()
 {
-    return false;
-    //bool need_upgrade = false;
-    //if (has_ams()) {
-    //    // compare ota version and ams version
-    //    auto ota_ver_it = module_vers.find("ota");
-    //    if (ota_ver_it != module_vers.end()) {
-    //        if (!MachineObject::is_compatible_ams_version("ota", ota_ver_it->second.sw_ver)) {
-    //            need_upgrade = true;
-    //        }
-    //    }
-    //    for (int i = 0; i < 4; i++) {
-    //        std::string ams_id = (boost::format("ams/%1%") % i).str();
-    //        auto ams_ver_it = module_vers.find(ams_id);
-    //        if (ams_ver_it != module_vers.end()) {
-    //            if (!MachineObject::is_compatible_ams_version("ams", ams_ver_it->second.sw_ver)) {
-    //                need_upgrade = true;
-    //            }
-    //        }
-    //    }
-    //}
-    //return need_upgrade;
+    bool need_upgrade = false;
+    if (has_ams()) {
+        // compare ota version and ams version
+        auto ota_ver_it = module_vers.find("ota");
+        if (ota_ver_it != module_vers.end()) {
+            if (!MachineObject::is_compatible_ams_version("ota", ota_ver_it->second.sw_ver)) {
+                need_upgrade = true;
+            }
+        }
+        for (int i = 0; i < 4; i++) {
+            std::string ams_id = (boost::format("ams/%1%") % i).str();
+            auto ams_ver_it = module_vers.find(ams_id);
+            if (ams_ver_it != module_vers.end()) {
+                if (!MachineObject::is_compatible_ams_version("ams", ams_ver_it->second.sw_ver)) {
+                    need_upgrade = true;
+                }
+            }
+        }
+    }
+    return need_upgrade;
 }
 
 bool MachineObject::is_compatible_ams_version(std::string module, std::string version)
 {
+    bool result = true;
     if (module == "ota") {
-        //TODO
-        return true;
+        if (version.compare("00.01.04.03") < 0)
+            return false;
     } else if (module == "ams") {
-        //TODO
-        return true;
+        if (version.compare("00.00.04.10") < 0)
+            return false;
     }
-    return true;
+    return result;
 }
 
 static float calc_color_distance(wxColour c1, wxColour c2)
@@ -2529,7 +2529,7 @@ void DeviceManager::load_last_machine()
     if (userMachineList.empty()) return;
 
     else if (userMachineList.size() == 1) {
-        this->set_selected_machine(userMachineList.begin()->first);
+        this->set_selected_machine(userMachineList.begin()->second->dev_id);
     } else {
         std::string last_monitor_machine = m_agent->get_user_selected_machine();
         bool found = false;
@@ -2540,7 +2540,7 @@ void DeviceManager::load_last_machine()
             }
         }
         if (!found)
-            this->set_selected_machine(userMachineList.begin()->first);
+            this->set_selected_machine(userMachineList.begin()->second->dev_id);
     }
 }
 

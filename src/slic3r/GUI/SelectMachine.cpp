@@ -1531,7 +1531,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         // ams mapping
         if (obj_->has_ams()) {
             // check ams and ota version to support ams mapping
-            if (obj_->is_need_upgrade()) {
+            if (obj_->is_need_upgrade_for_ams()) {
                 /* display upgrade info, can not print */
                 // display info and disable print
                 wxString tips_text = _L("The firmware versions of printer and AMS are too low.Please update to the latest version before sending the print job");

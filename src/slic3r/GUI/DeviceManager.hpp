@@ -340,7 +340,7 @@ public:
     // parse amsStatusMain and ams_status_sub
     void _parse_ams_status(int ams_status);
     bool has_ams() { return ams_exist_bits != 0; }
-    bool is_need_upgrade();
+    bool is_need_upgrade_for_ams();
     
     static bool is_compatible_ams_version(std::string module, std::string version);
 
