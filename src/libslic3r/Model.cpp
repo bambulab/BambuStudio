@@ -2415,6 +2415,7 @@ void ModelVolume::update_extruder_count(size_t extruder_count)
     for (int extruder_id : used_extruders) {
         if (extruder_id > extruder_count) {
             mmu_segmentation_facets.set_enforcer_block_type_limit(*this, (EnforcerBlockerType)extruder_count);
+            break;
         }
     }
 }

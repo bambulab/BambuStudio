@@ -635,6 +635,10 @@ void GLGizmoMmuSegmentation::init_model_triangle_selectors()
     if(m_extruders_colors.empty())
         return;
 
+    // BBS: Don't continue when model object is null
+    if (mo == nullptr)
+        return;
+
     for (const ModelVolume *mv : mo->volumes) {
         if (!mv->is_model_part())
             continue;

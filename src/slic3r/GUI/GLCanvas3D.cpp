@@ -1631,6 +1631,20 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     }
     std::sort(model_volume_state.begin(), model_volume_state.end(), model_volume_state_lower);
     std::sort(aux_volume_state.begin(), aux_volume_state.end(), model_volume_state_lower);
+
+    // BBS: normalize painting data with current filament count
+    for (unsigned int obj_idx = 0; obj_idx < (unsigned int)m_model->objects.size(); ++obj_idx) {
+        const ModelObject& model_object = *m_model->objects[obj_idx];
+        for (int volume_idx = 0; volume_idx < (int)model_object.volumes.size(); ++volume_idx) {
+            ModelVolume& model_volume = *model_object.volumes[volume_idx];
+            if (!model_volume.is_model_part())
+                continue;
+
+            unsigned int filaments_count = (unsigned int)dynamic_cast<const ConfigOptionStrings*>(m_config->option("filament_colour"))->values.size();
+            model_volume.update_extruder_count(filaments_count);
+        }
+    }
+
     // Release all ModelVolume based GLVolumes not found in the current Model. Find the GLVolume of a hollowed mesh.
     for (size_t volume_id = 0; volume_id < m_volumes.volumes.size(); ++volume_id) {
         GLVolume* volume = m_volumes.volumes[volume_id];
