@@ -1114,7 +1114,6 @@ GUI_App::GUI_App()
 	//, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 	//, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {
-    //TODO
     int load_agent_dll = Slic3r::NetworkAgent::initialize_network_module();
     if (!load_agent_dll)
         m_agent = new Slic3r::NetworkAgent();
@@ -1136,8 +1135,17 @@ GUI_App::GUI_App()
             GUI::wxGetApp().request_user_login(online_login);
         });
 
+        m_agent->set_on_server_connected_fn([this]() {
+            GUI::wxGetApp().CallAfter([this] {
+                m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
+            });
+        });
+
         m_agent->set_on_printer_connected_fn([this](std::string dev_id) {
             GUI::wxGetApp().CallAfter([this, dev_id] {
+                if (m_is_closing) {
+                    return;
+                }
                 /* request_pushing */
                 MachineObject* obj = m_device_manager->get_user_machine(dev_id);
                 if (obj) {
@@ -1160,6 +1168,9 @@ GUI_App::GUI_App()
 
         auto message_arrive_fn = [this](std::string dev_id, std::string msg) {
             CallAfter([this, dev_id, msg] {
+                if (m_is_closing) {
+                    return;
+                }
                 MachineObject* obj = this->m_device_manager->get_user_machine(dev_id);
                 if (obj) {
                     obj->parse_json(msg);
@@ -1204,18 +1215,23 @@ GUI_App::GUI_App()
 
         m_agent->set_on_local_connect_fn(
             [this](int state, std::string dev_id, std::string msg) {
-                /* request_pushing */
-                MachineObject* obj = m_device_manager->get_my_machine(dev_id);
-                if (obj) {
-                    if (obj->is_lan_mode_printer()) {
-                        obj->command_request_push_all();
-                        obj->command_get_version();
+                CallAfter([this, state, dev_id, msg] {
+                    if (m_is_closing) {
+                        return;
                     }
-                }
+                    /* request_pushing */
+                    MachineObject* obj = m_device_manager->get_my_machine(dev_id);
+                    if (obj) {
+                        if (obj->is_lan_mode_printer()) {
+                            obj->command_request_push_all();
+                            obj->command_get_version();
+                        }
+                    }
 
-                if (mainframe->m_debug_tool_dlg) {
-                    mainframe->m_debug_tool_dlg->on_local_connected(state, dev_id, msg);
-                }
+                    if (mainframe->m_debug_tool_dlg) {
+                        mainframe->m_debug_tool_dlg->on_local_connected(state, dev_id, msg);
+                    }
+                });
             }
         );
     }

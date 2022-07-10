@@ -1365,12 +1365,13 @@ int MachineObject::parse_json(std::string payload)
         bool restored_json = false;
         json j;
         json j_pre = json::parse(payload);
+        if (j_pre.empty())
+            return 0;
 
         if (j_pre.contains("print")) {
             if (j_pre["print"].contains("command")) {
                 if (j_pre["print"]["command"].get<std::string>() == "push_status") {
                     m_push_count++;
-
                     if (j_pre["print"].contains("msg")) {
                         if (j_pre["print"]["msg"].get<int>() == 0) {           //all message
                             print_json.diff2all_base_reset(j_pre);
@@ -1378,11 +1379,11 @@ int MachineObject::parse_json(std::string payload)
                             if (print_json.diff2all(j_pre, j) == 0) {
                                 restored_json = true;
                             } else {
-                                BOOST_LOG_TRIVIAL(trace) << "restore failed!";
+                                BOOST_LOG_TRIVIAL(trace) << "parse_json: restore failed!";
                                 if (print_json.is_need_request()) {
                                     BOOST_LOG_TRIVIAL(trace) << "parse_json: need request pushall";
                                     // request new push
-                                    GUI::wxGetApp().CallAfter([this] {
+                                    GUI::wxGetApp().CallAfter([this]{
                                         this->command_request_push_all();
                                     });
                                     return -1;

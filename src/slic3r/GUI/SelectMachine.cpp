@@ -1462,6 +1462,7 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
         m_comboBox_printer->SetTextLabel("");
         update_err_msg(wxEmptyString);
     }
+
     dev->set_selected_machine(m_printer_last_select);
 
     // adjust button
