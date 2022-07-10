@@ -1488,9 +1488,23 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         return;
     }
 
+    if (!obj_->is_lan_mode_printer()) {
+        NetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
+        if (agent) {
+            if (!agent->is_server_connected()) {
+                agent->refresh_connection();
+                wxString tips_text = _L("Not connected to the server, connecting");
+                update_warn_msg(tips_text);
+                Enable_Send_Button(true);
+                timeout_count = 0;
+                return;
+            }
+        }
+    }
+
     if (timeout_count > 15 * 1000 / LIST_REFRESH_INTERVAL) {
         /* timeout display timeout info */
-        wxString tips_text = _L("Reading printer info timed out");
+        wxString tips_text = _L("Synchronizing device information time out");
         update_warn_msg(tips_text);
         Enable_Send_Button(true);
         return;
@@ -1501,6 +1515,9 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     }
 
     if (!has_read_done_info) {
+        update_info_msg(_L("Synchronizing device information"));
+        update_warn_msg(wxEmptyString);
+        Enable_Send_Button(false);
         timeout_count++;
     } else {
         timeout_count = 0;
