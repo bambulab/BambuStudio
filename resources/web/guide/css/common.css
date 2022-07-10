@@ -96,6 +96,11 @@ body
 	margin-left: 10px;
 }
 
+.NormalBtn:hover
+{
+	background-color:#009638;
+}
+
 .GrayBtn
 {
 	padding: 3mm 9mm;
@@ -108,7 +113,30 @@ body
 	margin-left: 10px;	
 }
 
+.GrayBtn:hover
+{
+	background-color:#E8E8E8;
+}
+
 .SmallBtn
+{
+	padding: 2px 4mm;
+	font-size: 14px;
+	text-align: center;
+	background-color: #D9D9D9;
+	border-radius: 6px;
+	color: #000;
+	cursor: pointer;
+	display: inline-block;
+}
+
+.SmallBtn:hover
+{
+	background-color: #CCCCCC;
+}
+
+
+.SmallBtn_Green
 {
 	padding: 2px 4mm;
 	font-size: 14px;
@@ -118,6 +146,11 @@ body
 	color: #fff;
 	cursor: pointer;
 	display: inline-block;
+}
+
+.SmallBtn_Green:hover
+{
+	background-color: #009638;
 }
 
 /*---HyperLink---*/
