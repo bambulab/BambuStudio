@@ -1399,10 +1399,9 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     m_status_bar->reset();
     m_status_bar->set_prog_block();
 
-    // check ams_mapping_result
+    // get ams_mapping_result
     std::string ams_mapping_array;
-    if (!check_ams_mapping_result(ams_mapping_array))
-        return;
+    check_ams_mapping_result(ams_mapping_array);
 
     result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool &cancel) {
         bool     cancelled = false;

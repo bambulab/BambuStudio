@@ -100,15 +100,19 @@ void PrintJob::process()
     params.username = "bblp";
     params.password = m_access_code;
 
-    auto update_fn = [this, &msg, &curr_percent](int stage, int code, std::string info) {
-                        wxString tips = msg;
+    auto update_fn = [this, &params, &msg, &curr_percent](int stage, int code, std::string info) {
                         if (stage == BBL::SendingPrintJobStage::PrintingStageCreate) {
                             curr_percent = 25;
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageUpload) {
                             curr_percent = 30;
-                            if (code == 0) {
-                                tips = wxString::Format("%s(%s)", msg, info);
+                            if (code == 0 && !info.empty()) {
+                                if (params.connection_type == "lan") {
+                                    msg = _L("Sending print job over LAN");
+                                } else {
+                                    msg = _L("Sending print job through cloud service");
+                                }
+                                msg += wxString::Format("%s(%s)", msg, info);
                             }
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageWaiting) {
@@ -116,16 +120,16 @@ void PrintJob::process()
                         }
                         else  if (stage == BBL::SendingPrintJobStage::PrintingStageRecord) {
                             curr_percent = 70;
-                            tips = _L("Sending print configuration");
+                            msg = _L("Sending print configuration");
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageSending) {
                             curr_percent = 90;
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageFinished) {
                             curr_percent = 100;
-                            tips = wxString::Format(_L("Successfully sent.Will automatically jump to the device page in %s s"), info);
+                            msg = wxString::Format(_L("Successfully sent.Will automatically jump to the device page in %s s"), info);
                         }
-                        this->update_status(curr_percent, tips);
+                        this->update_status(curr_percent, msg);
                     };
 
     auto cancel_fn = [this]() {
