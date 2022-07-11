@@ -267,8 +267,8 @@ bool BitmapChoiceRenderer::Render(wxRect rect, wxDC* dc, int state)
         dc->DrawBitmap(icon, rect.x, rect.y + (rect.height - icon.GetHeight()) / 2);
 //        xoffset = icon.GetWidth() + 4;
 
-        if (rect.height==0)
-          rect.height= icon.GetHeight();
+        if (rect.height == 0)
+          rect.height = icon.GetHeight();
     }
 
 #ifdef _WIN32
@@ -287,7 +287,7 @@ wxSize BitmapChoiceRenderer::GetSize() const
 
     if (m_value.GetBitmap().IsOk()) {
         sz.x += m_value.GetBitmap().GetWidth() + 4;
-        sz.y = m_value.GetBitmap().GetHeight();
+        sz.y = m_value.GetBitmap().GetHeight() + 4;
     }
 
     return sz;
@@ -318,13 +318,24 @@ wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelR
 
     
 #ifndef _WIN32
-    c_editor->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt) {
+    c_editor->Bind(wxEVT_COMBOBOX, [this, c_editor](wxCommandEvent& evt) {
         // to avoid event propagation to other sidebar items
         evt.StopPropagation();
         // FinishEditing grabs new selection and triggers config update. We better call
         // it explicitly, automatic update on KILL_FOCUS didn't work on Linux.
+        c_editor->SetClientData(this);
         this->FinishEditing();
     });
+    c_editor->Bind(wxEVT_COMBOBOX_DROPDOWN, [this, c_editor](wxCommandEvent& evt) {
+        c_editor->SetClientData(this);
+        this->FinishEditing();
+    });
+    c_editor->Bind(wxEVT_KILL_FOCUS, [this, c_editor](wxFocusEvent& evt) {
+        if (!c_editor->GetDropDown().IsShown() && c_editor->GetClientData() == nullptr) { // TODO: Fix called twice
+            c_editor->SetClientData(this);
+            this->FinishEditing();
+        }
+    }, c_editor->GetId());
 #else
     // to avoid event propagation to other sidebar items
     c_editor->Bind(wxEVT_COMBOBOX, [](wxCommandEvent& evt) { evt.StopPropagation(); });
