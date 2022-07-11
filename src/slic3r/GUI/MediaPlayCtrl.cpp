@@ -191,7 +191,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
         wxSize size = m_media_ctrl->GetBestSize();
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: size: " << size.x << "x" << size.y;
         m_failed_code = m_media_ctrl->GetLastError();
-        if (size.GetWidth() > 1000 || (m_failed_retry > 1 && m_failed_code == 0)) {
+        if (size.GetWidth() > 1000) {
             m_media_ctrl->Play();
             SetStatus(_L("Playing..."));
             m_failed_retry = 0;
