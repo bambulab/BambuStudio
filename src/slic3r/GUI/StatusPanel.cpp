@@ -635,6 +635,7 @@ void StatusBasePanel::reset_temp_misc_control()
     // reset misc control
     m_switch_speed->SetLabels(_L("100%"), _L("100%"));
     m_switch_lamp->SetLabels(_L("Lamp"), _L("Lamp"));
+    m_switch_lamp->SetValue(false);
     m_switch_nozzle_fan->SetValue(false);
     m_switch_printing_fan->SetValue(false);
 }
