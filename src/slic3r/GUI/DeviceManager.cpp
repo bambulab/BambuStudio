@@ -823,13 +823,9 @@ int MachineObject::get_curr_stage_idx()
 
 bool MachineObject::is_in_calibration()
 {
-    BBLSubTask* curr_task = get_subtask();
-    if (curr_task) {
-        if (!curr_task->task_name.empty()
-            && boost::contains(curr_task->task_name, "auto_cali_for_user.gcode")
-            && stage_curr != 0) {
-            return true;
-        }
+    if (boost::contains(m_gcode_file, "auto_cali_for_user.gcode")
+        && stage_curr != 0) {
+        return true;
     }
     return false;
 }
@@ -1463,6 +1459,9 @@ int MachineObject::parse_json(std::string payload)
                     if (jj.contains("task_id")) {
                         this->task_id_ = jj["task_id"].get<std::string>();
                     }
+
+                    if (jj.contains("gcode_file"))
+                        this->m_gcode_file = jj["gcode_file"].get<std::string>();
 
                     if (jj.contains("project_id") 
                         && jj.contains("profile_id")
