@@ -45,6 +45,8 @@ public:
 	void on_select_ok(wxMouseEvent &event);
     void set_color(wxColour color);
 
+    void on_clr_picker(wxCommandEvent &event);
+
     MachineObject *obj{nullptr};
     int            ams_id { 0 };        /* 0 ~ 3 */
     int            tray_id { 0 };       /* 0 ~ 3 */
@@ -70,13 +72,13 @@ protected:
     wxStaticText *      m_title_filament;
     ComboBox *          m_comboBox_filament;
     wxStaticText *      m_title_colour;
-    wxColourPickerCtrl *m_colourPicker1;
+    wxButton *          m_clr_picker;
     wxStaticText *      m_title_temperature;
     wxStaticText *      m_label_other;
     TextInput *         m_input_nozzle_min;
     TextInput*          m_input_nozzle_max;
     Button *            m_button_confirm;
-    Button *            m_button_cancel;
+    wxColourData *      m_clrData;
 
 };
 

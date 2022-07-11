@@ -41,8 +41,12 @@ void AMSMaterialsSetting::create()
 
     m_sizer_colour->Add(0, 0, 0, wxEXPAND, 0);
 
-    m_colourPicker1 = new wxColourPickerCtrl(m_panel_body, wxID_ANY, *wxBLACK, wxDefaultPosition, wxDefaultSize, wxCLRP_DEFAULT_STYLE);
-    m_sizer_colour->Add(m_colourPicker1, 0, 0, 0);
+    m_clrData = new wxColourData();
+    m_clrData->SetChooseFull(true);
+    m_clrData->SetChooseAlpha(false);
+    m_clr_picker    = new wxButton(m_panel_body, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), wxBU_EXACTFIT | wxBORDER_NONE);
+    m_clr_picker->Bind(wxEVT_BUTTON, &AMSMaterialsSetting::on_clr_picker, this);
+    m_sizer_colour->Add(m_clr_picker, 0, 0, 0);
 
 
     m_panel_SN = new wxPanel(m_panel_body, wxID_ANY);
@@ -167,19 +171,10 @@ void AMSMaterialsSetting::create()
 
 
 
-    m_button_cancel = new Button(m_panel_body, _L("Cancel"));
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
                             std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
                             std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
     StateColor btn_bd_white(std::pair<wxColour, int>(*wxWHITE, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    m_button_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_cancel->SetBorderColor(btn_bd_white);
-    m_button_cancel->SetTextColor(wxColour(38, 46, 48));
-    m_button_cancel->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
-    m_button_cancel->SetCornerRadius(12);
-    m_button_cancel->Bind(wxEVT_LEFT_DOWN, &AMSMaterialsSetting::on_select_cancel, this);
-    m_sizer_button->Add(0, 0, 0, wxLEFT, 10);
-    m_sizer_button->Add(m_button_cancel, 0, wxALIGN_CENTER, 0);
 
     m_sizer_body->Add(m_sizer_filament, 0, wxEXPAND, 0);
     m_sizer_body->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(16));
@@ -253,11 +248,6 @@ void AMSMaterialsSetting::input_max_finish()
     Fit();
 }
 
-void AMSMaterialsSetting::on_select_cancel(wxMouseEvent &event)
-{
-    wxPopupTransientWindow::Dismiss();
-}
-
 void AMSMaterialsSetting::on_select_ok(wxMouseEvent &event)
 {
     wxString nozzle_temp_min  = m_input_nozzle_min->GetTextCtrl()->GetValue();
@@ -268,8 +258,7 @@ void AMSMaterialsSetting::on_select_ok(wxMouseEvent &event)
     long nozzle_temp_min_int, nozzle_temp_max_int;
     nozzle_temp_min.ToLong(&nozzle_temp_min_int);
     nozzle_temp_max.ToLong(&nozzle_temp_max_int);
-
-    wxColour color = m_colourPicker1->GetColour();
+    wxColour color = m_clrData->GetColour();
     char col_buf[10];
     sprintf(col_buf, "%02X%02X%02XFF", (int) color.Red(), (int) color.Green(), (int) color.Blue());
     ams_filament_id = "";
@@ -295,14 +284,36 @@ void AMSMaterialsSetting::on_select_ok(wxMouseEvent &event)
 
 void AMSMaterialsSetting::set_color(wxColour color)
 {
-    m_colourPicker1->SetColour(color);
+    m_clrData = new wxColourData();
+    m_clrData->SetColour(color);
+}
+
+static bool show_flag;
+void AMSMaterialsSetting::on_clr_picker(wxCommandEvent & event) {
+
+    auto clr_dialog = new wxColourDialog(this, m_clrData);
+    
+    clr_dialog->Bind(wxEVT_ACTIVATE, [this](wxActivateEvent &e) {
+        int a ;
+        });
+
+    show_flag = true;
+    if (clr_dialog->ShowModal() == wxID_OK) {
+        m_clrData = &(clr_dialog->GetColourData());
+        m_clr_picker->SetBackgroundColour(m_clrData->GetColour());
+    }
 }
 
 void AMSMaterialsSetting::Dismiss() 
 { 
-
-    //Destroy();
-    //wxPopupTransientWindow::Dismiss();
+    if (show_flag) 
+    {
+        show_flag = false;
+    }
+    else 
+    {
+    wxPopupTransientWindow::Dismiss();
+    }
     
 }
 
@@ -310,7 +321,6 @@ bool AMSMaterialsSetting::Show(bool show)
 { 
     if (show) {
         m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
-        m_button_cancel->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
         m_input_nozzle_max->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
         m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
     }
@@ -324,7 +334,7 @@ void AMSMaterialsSetting::Popup(bool show, bool third, wxString filament, wxColo
         m_comboBox_filament->SetValue(filament);
         m_sn_number->SetLabelText(sn);
         m_input_nozzle_min->GetTextCtrl()->SetValue(tep);
-        m_colourPicker1->SetColour(colour);
+        m_clrData->SetColour(colour);
         m_comboBox_filament->Disable();
         m_input_nozzle_min->Disable();
         wxPopupTransientWindow::Popup();
@@ -334,6 +344,8 @@ void AMSMaterialsSetting::Popup(bool show, bool third, wxString filament, wxColo
     m_panel_SN->Hide();
     Layout();
     Fit();
+
+    m_clr_picker->SetBackgroundColour(m_clrData->GetColour());
 
     int selection_idx = -1, idx = 0;
     wxArrayString filament_items;
