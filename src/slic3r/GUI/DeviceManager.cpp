@@ -450,6 +450,8 @@ void MachineObject::_parse_ams_status(int ams_status)
 
 bool MachineObject::is_need_upgrade_for_ams()
 {
+    if (Slic3r::GUI::wxGetApp().app_config->get("check_ams_version") == "0")
+        return false;
     bool need_upgrade = false;
     if (has_ams()) {
         // compare ota version and ams version
