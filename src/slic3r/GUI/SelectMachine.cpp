@@ -101,9 +101,9 @@ MachineObjectPanel::MachineObjectPanel(wxWindow *parent, wxWindowID id, const wx
     m_edit_name_img     = create_scaled_bitmap("edit_button", nullptr, 18);
     m_select_unbind_img = create_scaled_bitmap("unbind_selected", nullptr, 18);
 
-    m_printer_status_offline = create_scaled_bitmap("printer_status_offline", nullptr, 16);
-    m_printer_status_busy    = create_scaled_bitmap("printer_status_busy", nullptr, 16);
-    m_printer_status_idle    = create_scaled_bitmap("printer_status_idle", nullptr, 16);
+    m_printer_status_offline = create_scaled_bitmap("printer_status_offline", nullptr, 12);
+    m_printer_status_busy    = create_scaled_bitmap("printer_status_busy", nullptr, 12);
+    m_printer_status_idle    = create_scaled_bitmap("printer_status_idle", nullptr, 12);
     m_printer_status_lock    = create_scaled_bitmap("printer_status_lock", nullptr, 16);
     m_printer_in_lan         = create_scaled_bitmap("printer_in_lan", nullptr, 16);
 
