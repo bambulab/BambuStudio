@@ -143,6 +143,7 @@ class MainFrame : public DPIFrame
 
         virtual void AddFileToHistory(const wxString &file);
         virtual void RemoveFileFromHistory(size_t i);
+        size_t FindFileInHistory(const wxString &file);
 
         void LoadThumbnails();
     private:
@@ -293,6 +294,7 @@ public:
 
     void        add_to_recent_projects(const wxString& filename);
     void        get_recent_projects(boost::property_tree::wptree & tree);
+    void        open_recent_project(size_t file_id, wxString const & filename);
 
     void        technology_changed();
 

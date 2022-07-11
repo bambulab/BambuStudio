@@ -2570,7 +2570,7 @@ void GUI_App::request_open_project(std::string project_id)
     else if (boost::algorithm::starts_with(project_id, "http"))
         ;
     else
-        plater()->load_project(wxString::FromUTF8(project_id));
+        CallAfter([this, project_id] { mainframe->open_recent_project(-1, wxString::FromUTF8(project_id)); });
 }
 
 void GUI_App::handle_http_error(unsigned int status, std::string body)

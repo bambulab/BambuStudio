@@ -1578,29 +1578,7 @@ void MainFrame::init_menubar_as_editor()
         Bind(wxEVT_MENU, [this](wxCommandEvent& evt) {
             size_t file_id = evt.GetId() - wxID_FILE1;
             wxString filename = m_recent_projects.GetHistoryFile(file_id);
-            if (wxFileExists(filename)) {
-                wxGetApp().CallAfter([this, filename] {
-                    if (wxGetApp().can_load_project())
-                        m_plater->load_project(filename);
-                });
-            }
-            else
-            {
-                MessageDialog msg(this, _L("The project is no longer available."), _L("Error"), wxYES | wxYES_DEFAULT);
-                if (msg.ShowModal() == wxID_YES)
-                {
-                    m_recent_projects.RemoveFileFromHistory(file_id);
-                        std::vector<std::string> recent_projects;
-                        size_t count = m_recent_projects.GetCount();
-                        for (size_t i = 0; i < count; ++i)
-                        {
-                            recent_projects.push_back(into_u8(m_recent_projects.GetHistoryFile(i)));
-                        }
-                    wxGetApp().app_config->set_recent_projects(recent_projects);
-                    wxGetApp().app_config->save();
-                    m_webview->SendRecentList("");
-                }
-            }
+                open_recent_project(file_id, filename);
             }, wxID_FILE1, wxID_FILE9);
 
         std::vector<std::string> recent_projects = wxGetApp().app_config->get_recent_projects();
@@ -2348,6 +2326,11 @@ void MainFrame::FileHistory::RemoveFileFromHistory(size_t i)
     m_thumbnails.erase(m_thumbnails.begin() + i);
 }
 
+size_t MainFrame::FileHistory::FindFileInHistory(const wxString & file)
+{
+    return m_fileHistory.Index(file);
+}
+
 void MainFrame::FileHistory::LoadThumbnails()
 {
     tbb::parallel_for(tbb::blocked_range<size_t>(0, GetCount()), [this](tbb::blocked_range<size_t> range) {
@@ -2379,6 +2362,36 @@ void MainFrame::get_recent_projects(boost::property_tree::wptree &tree)
             item.put(L"time", _L("File is missing"));
         }
         tree.push_back({L"", item});
+    }
+}
+
+void MainFrame::open_recent_project(size_t file_id, wxString const & filename)
+{
+    if (file_id == size_t(-1)) {
+        file_id = m_recent_projects.FindFileInHistory(filename);
+    }
+    if (wxFileExists(filename)) {
+        wxGetApp().CallAfter([this, filename] {
+            if (wxGetApp().can_load_project())
+                m_plater->load_project(filename);
+        });
+    }
+    else
+    {
+        MessageDialog msg(this, _L("The project is no longer available."), _L("Error"), wxYES | wxYES_DEFAULT);
+        if (msg.ShowModal() == wxID_YES)
+        {
+            m_recent_projects.RemoveFileFromHistory(file_id);
+            std::vector<std::string> recent_projects;
+            size_t count = m_recent_projects.GetCount();
+            for (size_t i = 0; i < count; ++i)
+            {
+                recent_projects.push_back(into_u8(m_recent_projects.GetHistoryFile(i)));
+            }
+            wxGetApp().app_config->set_recent_projects(recent_projects);
+            wxGetApp().app_config->save();
+            m_webview->SendRecentList("");
+        }
     }
 }
 
