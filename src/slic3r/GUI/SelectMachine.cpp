@@ -506,6 +506,7 @@ void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
             if (mobj->is_in_printing()) {
                 op->set_printer_state(PrinterState::BUSY);
             } else {
+                op->SetToolTip(_L("Online"));
                 op->set_printer_state(IDLE);
             }
         }
@@ -548,6 +549,7 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
                 if (mobj->has_access_right() && mobj->is_avaliable()) {
                     op->set_printer_state(PrinterState::IN_LAN);
                     op->show_printer_bind(true, PrinterBindState::ALLOW_UNBIND);
+                    op->SetToolTip(_L("Online"));
                 } else {
                     op->set_printer_state(PrinterState::LOCK);
                 }
@@ -563,13 +565,16 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
             });
 
             if (!mobj->is_online()) {
+                op->SetToolTip(_L("Offline"));
                 op->set_printer_state(PrinterState::OFFLINE);
             } else {
                 op->show_edit_printer_name(true);
                 op->show_printer_bind(true, PrinterBindState::ALLOW_UNBIND);
                 if (mobj->is_in_printing()) {
+                    op->SetToolTip(_L("Busy"));
                     op->set_printer_state(PrinterState::BUSY);
                 } else {
+                    op->SetToolTip(_L("Online"));
                     op->set_printer_state(PrinterState::IDLE);
                 }
             }
