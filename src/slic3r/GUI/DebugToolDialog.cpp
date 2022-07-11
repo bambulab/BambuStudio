@@ -140,6 +140,7 @@ void GcodePrintJob::process()
     params.preset_name = "gcode_profile";
     params.dev_id = m_obj->dev_id;
     params.task_name = gcode_path.filename().string();
+    params.config_filename = _3mf_file_str;
 
 
     res = agent->start_print(params,
