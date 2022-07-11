@@ -26,6 +26,10 @@ namespace Slic3r { namespace GUI {
     m_wifi_middle_img   = create_scaled_bitmap("monitor_signal_middle", nullptr, 18);
     m_wifi_strong_img   = create_scaled_bitmap("monitor_signal_strong", nullptr, 18);
 
+    m_intetval_timer = new wxTimer();
+    m_intetval_timer->SetOwner(this);
+
+    this->Bind(wxEVT_TIMER, &SideTools::stop_interval, this);
     this->Bind(wxEVT_ENTER_WINDOW, &SideTools::on_mouse_enter, this);
     this->Bind(wxEVT_LEAVE_WINDOW, &SideTools::on_mouse_leave, this);
     this->Bind(wxEVT_LEFT_DOWN, &SideTools::on_mouse_left_down, this);
@@ -40,6 +44,9 @@ void SideTools::set_none_printer_mode()
     Refresh();
 }
 
+void SideTools::on_timer(wxTimerEvent &event)
+{
+}
 
 void SideTools::set_current_printer_name(std::string dev_name) 
 {
@@ -58,6 +65,23 @@ void SideTools::set_current_printer_signal(WifiSignal sign)
      Refresh();
 }
 
+void SideTools::start_interval() 
+{ 
+    m_intetval_timer->Start(SIDE_TOOL_CLICK_INTERVAL); 
+    m_is_in_interval = true;
+}
+
+void SideTools::stop_interval(wxTimerEvent& event)
+{
+    m_is_in_interval = false;
+    m_intetval_timer->Stop();
+}
+
+
+bool SideTools::is_in_interval() 
+{
+    return m_is_in_interval;
+}
 
 void SideTools::msw_rescale() 
 { 

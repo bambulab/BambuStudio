@@ -24,6 +24,8 @@
 
 namespace Slic3r { namespace GUI {
 
+wxDEFINE_EVENT(EVT_UPDATE_WINDOWS_POSITION, wxCommandEvent);
+wxDEFINE_EVENT(EVT_FINISHED_UPDATE_MACHINE_LIST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_USER_MACHINE_LIST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_OTHER_MACHINE_LIST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_JOB_CANCEL, wxCommandEvent);
@@ -360,6 +362,7 @@ wxBEGIN_EVENT_TABLE(SelectMachinePopup, wxPopupTransientWindow) EVT_MOUSE_EVENTS
     m_refresh_timer = new wxTimer();
     Bind(EVT_UPDATE_USER_MACHINE_LIST, &SelectMachinePopup::update_machine_list, this);
     Bind(EVT_UPDATE_OTHER_MACHINE_LIST, &SelectMachinePopup::update_other_devices, this);
+    Bind(EVT_UPDATE_WINDOWS_POSITION, &SelectMachinePopup::update_windows_position, this);
     Bind(wxEVT_TIMER, &SelectMachinePopup::on_timer, this);
 }
 
@@ -404,9 +407,15 @@ void SelectMachinePopup::OnDismiss()
             if (get_print_info_thread->joinable()) { get_print_info_thread->join(); }
         }
     });
+
+    wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
+    event.SetEventObject(this);
+    wxPostEvent(this, event);
 }
 
-bool SelectMachinePopup::ProcessLeftDown(wxMouseEvent &event) { return wxPopupTransientWindow::ProcessLeftDown(event); }
+bool SelectMachinePopup::ProcessLeftDown(wxMouseEvent &event) { 
+    return wxPopupTransientWindow::ProcessLeftDown(event); 
+}
 
 bool SelectMachinePopup::Show(bool show) { return wxPopupTransientWindow::Show(show); }
 
@@ -520,6 +529,10 @@ void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
     Layout();
     Fit();
     this->Thaw();
+}
+
+void SelectMachinePopup::update_windows_position(wxCommandEvent &event) {
+
 }
 
 void SelectMachinePopup::update_machine_list(wxCommandEvent &event)

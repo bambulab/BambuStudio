@@ -19,7 +19,10 @@ enum WifiSignal {
     STRONG,
 };
 
+#define SIDE_TOOL_CLICK_INTERVAL 200
+
 namespace Slic3r { namespace GUI {
+
 class SideTools : public wxPanel
 {
 private:
@@ -46,14 +49,20 @@ protected:
     wxBitmap        m_bitmap_type;
     wxStaticBitmap *m_bitmap_info;
     wxStaticBitmap *m_bitmap_bind;
+    wxTimer *       m_intetval_timer{nullptr};
+    bool            m_is_in_interval {false};
 
 public:
     SideTools(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     ~SideTools();
 
     void set_none_printer_mode();
+    void on_timer(wxTimerEvent &event);
     void set_current_printer_name(std::string dev_name);
     void set_current_printer_signal(WifiSignal sign);;
+    void start_interval();
+    void stop_interval(wxTimerEvent &event);
+    bool is_in_interval();
     void msw_rescale();
 
 protected:

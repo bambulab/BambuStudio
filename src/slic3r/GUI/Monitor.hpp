@@ -104,7 +104,7 @@ private:
     wxTimer* m_refresh_timer;
     int last_status;
     bool m_initialized { false };
-    bool has_popup_ams_check_dlg { false };
+    bool           has_popup_ams_check_dlg{false};
     MessageDialog* need_upgrade_dlg { nullptr };
 
 public:
@@ -123,7 +123,7 @@ public:
     void on_update_all(wxMouseEvent &event);
     void on_timer(wxTimerEvent& event);
     void on_select_printer(wxCommandEvent& event);
-    void on_printer_clicked(wxMouseEvent& event);
+    void on_printer_clicked(wxMouseEvent &event);
     void on_size(wxSizeEvent &event);
 
     /* update apis */

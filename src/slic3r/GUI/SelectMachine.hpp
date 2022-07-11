@@ -218,6 +218,7 @@ private:
     void on_timer(wxTimerEvent &event);
 
 	void      update_other_devices(wxCommandEvent &event);
+    void      update_windows_position(wxCommandEvent &event);
     wxWindow *create_title_panel(wxString text);
 
 private:
@@ -388,6 +389,8 @@ protected:
 
 wxDECLARE_EVENT(EVT_FINISHED_UPDATE_MACHINE_LIST, wxCommandEvent);
 wxDECLARE_EVENT(EVT_REQUEST_BIND_LIST, wxCommandEvent);
+wxDECLARE_EVENT(EVT_WILL_DISMISS_MACHINE_LIST, wxCommandEvent);
+wxDECLARE_EVENT(EVT_UPDATE_WINDOWS_POSITION, wxCommandEvent);
 
 class EditDevNameDialog : public DPIDialog
 {

@@ -111,7 +111,8 @@ AddMachinePanel::~AddMachinePanel() {
 
     init_timer();
 
-    m_side_tools->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
+    m_side_tools->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
+
     Bind(wxEVT_TIMER, &MonitorPanel::on_timer, this);
     Bind(wxEVT_SIZE, &MonitorPanel::on_size, this);
     Bind(wxEVT_COMMAND_CHOICE_SELECTED, &MonitorPanel::on_select_printer, this);
@@ -120,6 +121,7 @@ AddMachinePanel::~AddMachinePanel() {
 MonitorPanel::~MonitorPanel()
 {
     m_side_tools->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
+
     if (m_refresh_timer)
         m_refresh_timer->Stop();
 }
@@ -308,21 +310,17 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
     auto mouse_pos = ClientToScreen(event.GetPosition());
     wxPoint rect = m_side_tools->ClientToScreen(wxPoint(0, 0));
 
-    if (mouse_pos.x >  rect.x
-        && mouse_pos.x <  rect.x + m_side_tools->GetSize().GetWidth()
-        && mouse_pos.y >  rect.y
-        && mouse_pos.y <  rect.y + m_side_tools->GetSize().GetHeight())
-    {
-        /* query print info */
+    if (!m_side_tools->is_in_interval()) {
         SelectMachinePopup *m_select_machine = new SelectMachinePopup(this);
-
-        wxPoint pos = m_side_tools->ClientToScreen(wxPoint(0, 0));
+        wxPoint             pos              = m_side_tools->ClientToScreen(wxPoint(0, 0));
         pos.y += m_side_tools->GetRect().height;
         m_select_machine->Position(pos, wxSize(0, 0));
         m_select_machine->Popup();
+        m_select_machine->Bind(EVT_FINISHED_UPDATE_MACHINE_LIST, [this](wxCommandEvent &e) { 
+            m_side_tools->start_interval();
+        }); 
     }
 }
-
 
 void MonitorPanel::on_size(wxSizeEvent &event)
 {
