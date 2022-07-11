@@ -182,6 +182,8 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
 
 wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist)
 {
+    std::vector<wxString> local_regions = {"Asia-Pacific", "China", "Europe", "North America", "Others"};
+
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
 
@@ -203,16 +205,20 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
     AppConfig * config       = GUI::wxGetApp().app_config;
 
     int         current_region = 0;
-    std::string country_code   = config->get("region");
-    for (auto i = 0; i < vlist.size(); i++) {
-        if (vlist[i].ToStdString() == country_code) {
-            combobox->SetSelection(i);
-            current_region = i;
+    if (!config->get("region").empty()) {
+        std::string country_code = config->get("region");
+        for (auto i = 0; i < vlist.size(); i++) {
+            if (local_regions[i].ToStdString() == country_code) {
+                combobox->SetSelection(i);
+                current_region = i;
+            }
         }
     }
+    
+    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, combobox, current_region, local_regions](wxCommandEvent &e) {
+        auto region_index = e.GetSelection();
+        auto region       = local_regions[region_index];
 
-    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, combobox, current_region](wxCommandEvent &e) {
-        auto region = e.GetString();
         auto area   = "";
         if (region == "CHN" || region == "China")
             area = "CN";
@@ -235,7 +241,10 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
         } else {
             NetworkAgent *agent  = wxGetApp().getAgent();
             AppConfig *             config = GUI::wxGetApp().app_config;
-            if (agent) agent->set_country_code(area);
+            if (agent) { 
+                agent->set_country_code(area);
+                config->set("region", region.ToStdString());
+            }
             wxGetApp().request_user_logout();
             EndModal(wxID_CANCEL);
         }
