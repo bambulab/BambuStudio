@@ -1669,7 +1669,7 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection)
     m_ams_info = info;
     for (auto i = 0; i < m_ams_item_list.GetCount(); i++) {
         AmsItems *item = m_ams_item_list[i];
-        if (i < info.size()) {
+        if (i < info.size() && info.size() > 1) {
             item->amsItem->Update(m_ams_info[i]);
             item->amsItem->Open();
         } else {
