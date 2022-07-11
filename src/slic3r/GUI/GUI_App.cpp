@@ -2604,7 +2604,7 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
                 int code = j["code"].get<int>();
                 std::string error = j["IOT_ERROR_VERSION_LIMITED"].get<std::string>();
                 if (code == 15) {
-                    MessageDialog msg_dlg(nullptr, _L("Please upgrade your Bambu Studio first"), "", wxAPPLY | wxOK);
+                    MessageDialog msg_dlg(nullptr, _L("The version of Bambu studio is too low and needs to be updated to the latest version before it can be used normally"), "", wxAPPLY | wxOK);
                     if (msg_dlg.ShowModal() == wxOK) {
                         return;
                     }
@@ -2872,10 +2872,16 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
         // get setting list, update setting list
         std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
         if (with_progress_dlg) {
-            ProgressDialog dlg(_L("Loading"), "", 100, this->mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL);
-            m_agent->get_setting_list(version, [this, &dlg](int percent){
-                    dlg.Update(percent, _L("Loading user preset"));
-                });
+            ProgressDialog dlg(_L("Loading"), "", 100, this->mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
+            m_agent->get_setting_list(version,
+                            [this, &dlg](int percent){
+                                dlg.Update(percent, _L("Loading user preset"));
+                            },
+                            [this, &dlg]() {
+                                dlg.GetValue();
+                                bool cont = dlg.Update(dlg.GetValue(), _L("Loading user preset"));
+                                return !cont;
+                            });
         } else {
             m_agent->get_setting_list(version);
         }

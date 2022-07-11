@@ -8492,20 +8492,19 @@ bool Plater::search_string_getter(int idx, const char** label, const char** tool
     return false;
 }
 
-// BBS
+// BBS.
 void Plater::on_filaments_change(size_t num_filaments)
 {
-    // BBS: normalize painting data with current filament count
+    // only update elements in plater
+    update_filament_colors_in_full_config();
+    sidebar().on_filaments_change(num_filaments);
+    sidebar().obj_list()->update_objects_list_filament_column(num_filaments);
+
     for (ModelObject* mo : wxGetApp().model().objects) {
         for (ModelVolume* mv : mo->volumes) {
             mv->update_extruder_count(num_filaments);
         }
     }
-
-    // only update elements in plater
-    update_filament_colors_in_full_config();
-    sidebar().on_filaments_change(num_filaments);
-    sidebar().obj_list()->update_objects_list_filament_column(num_filaments);
 }
 
 void Plater::on_bed_type_change(BedType bed_type)

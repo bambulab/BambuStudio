@@ -242,7 +242,8 @@ enum PrintDialogStatus {
     PrintStatusInSystemPrinting,
     PrintStatusInPrinting,
     PrintStatusAmsMappingSuccess,
-    PrintStatusAmsMappingFailed,
+    PrintStatusAmsMappingInvalid,
+    PrintStatusAmsMappingValid,
     PrintStatusRefreshingMachineList,
     PrintStatusSending,
     PrintStatusSendingCanceled,
@@ -335,7 +336,7 @@ public:
     void      sending_mode();
     void      finish_mode();
     
-    void      do_ams_mapping(MachineObject* obj_);
+    bool      do_ams_mapping(MachineObject* obj_);
     bool      check_ams_mapping_result(std::string &mapping_array_str);
     void      prepare(int print_plate_idx);
 

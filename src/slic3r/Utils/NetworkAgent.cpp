@@ -690,11 +690,11 @@ int NetworkAgent::put_setting(std::string setting_id, std::string name, std::map
     return ret;
 }
 
-int NetworkAgent::get_setting_list(std::string bundle_version, ProgressFn pro_fn)
+int NetworkAgent::get_setting_list(std::string bundle_version, ProgressFn pro_fn, WasCancelledFn cancel_fn)
 {
     int ret = 0;
     if (network_agent && get_setting_list_ptr) {
-        ret = get_setting_list_ptr(network_agent, bundle_version, pro_fn);
+        ret = get_setting_list_ptr(network_agent, bundle_version, pro_fn, cancel_fn);
         if (ret)
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, bundle_version=%3%")%network_agent %ret %bundle_version ;
     }

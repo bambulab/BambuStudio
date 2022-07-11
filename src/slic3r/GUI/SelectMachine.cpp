@@ -1099,7 +1099,7 @@ void SelectMachineDialog::finish_mode()
     Fit();
 }
 
-void SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
+bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
 {
     // try color and type mapping
     int result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result);
@@ -1160,7 +1160,7 @@ void SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
         }
     }
     std::string mapping_array;
-    ams_mapping_valid = check_ams_mapping_result(mapping_array);
+    return check_ams_mapping_result(mapping_array);
 }
 
 bool SelectMachineDialog::check_ams_mapping_result(std::string &mapping_array_str)
@@ -1250,7 +1250,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status)
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusConnectingServer) {
-        wxString msg_text = _L("Not connected to the server, connecting");
+        wxString msg_text = _L("Connecting to server");
         update_print_status_msg(msg_text, true);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
@@ -1293,9 +1293,13 @@ void SelectMachineDialog::show_status(PrintDialogStatus status)
         update_print_status_msg(msg_text, true);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
-    } else if (status == PrintDialogStatus::PrintStatusAmsMappingFailed) {
+    } else if (status == PrintDialogStatus::PrintStatusAmsMappingInvalid) {
         wxString msg_text = _L("Please click each filament above to specify its mapping AMS slot before sending the print job");
         update_print_status_msg(msg_text, true);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusAmsMappingValid) {
+        update_print_status_msg(wxEmptyString, false);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusRefreshingMachineList) {
@@ -1577,6 +1581,10 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
         }
     }
 
+    MachineObject* obj = dev->get_selected_machine();
+    if (obj) {
+        m_printer_last_select = obj->dev_id;
+    }
     if (m_list.size() > 0) {
         // select a default machine
         if (m_printer_last_select.empty()) {
@@ -1708,16 +1716,18 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
 
     // do ams mapping if no ams result
     if (m_ams_mapping_result.empty()) {
-        do_ams_mapping(obj_);
+        if (do_ams_mapping(obj_)) {
+            show_status(PrintDialogStatus::PrintStatusAmsMappingSuccess);
+            return;
+        }
     }
 
+    std::string ams_array;
+    ams_mapping_valid = check_ams_mapping_result(ams_array);
     if (ams_mapping_valid) {
-        show_status(PrintDialogStatus::PrintStatusAmsMappingSuccess);
-        return;
-    }
-    else {
-        show_status(PrintDialogStatus::PrintStatusAmsMappingFailed);
-        return;
+        show_status(PrintDialogStatus::PrintStatusAmsMappingValid);
+    } else {
+        show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
     }
 }
 

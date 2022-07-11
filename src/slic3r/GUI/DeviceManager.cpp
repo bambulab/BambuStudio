@@ -481,6 +481,9 @@ bool MachineObject::is_compatible_ams_version(std::string module, std::string ve
         if (version.compare("00.01.04.03") < 0)
             return false;
     } else if (module == "ams") {
+        // omit ams version is empty
+        if (version.empty())
+            return true;
         if (version.compare("00.00.04.10") < 0)
             return false;
     }

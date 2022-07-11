@@ -54,7 +54,7 @@ typedef int (*func_start_local_print)(void *agent, PrintParams params, OnUpdateS
 typedef int (*func_get_user_presets)(void *agent, std::map<std::string, std::map<std::string, std::string>>* user_presets);
 typedef std::string (*func_request_setting_id)(void *agent, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code);
 typedef int (*func_put_setting)(void *agent, std::string setting_id, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code);
-typedef int (*func_get_setting_list)(void *agent, std::string bundle_version, ProgressFn pro_fn);
+typedef int (*func_get_setting_list)(void *agent, std::string bundle_version, ProgressFn pro_fn, WasCancelledFn cancel_fn);
 typedef int (*func_delete_setting)(void *agent, std::string setting_id);
 typedef std::string (*func_get_studio_info_url)(void *agent);
 typedef int (*func_set_extra_http_header)(void *agent, std::map<std::string, std::string> extra_headers);
@@ -124,7 +124,7 @@ public:
     int get_user_presets(std::map<std::string, std::map<std::string, std::string>>* user_presets);
     std::string request_setting_id(std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code);
     int put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code);
-    int get_setting_list(std::string bundle_version, ProgressFn pro_fn = nullptr);
+    int get_setting_list(std::string bundle_version, ProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
     int delete_setting(std::string setting_id);
     std::string get_studio_info_url();
     int set_extra_http_header(std::map<std::string, std::string> extra_headers);
