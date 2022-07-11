@@ -48,9 +48,10 @@ constexpr double miscalculation = scale_(scale_(1));   // equal to 1 mm2
 //static const float TOP_MARGIN     =  3.0f;
 static const float LEFT_MARGIN    = 13.0f + 100.0f;  // avoid thumbnail toolbar
 static const float SLIDER_LENGTH  = 680.0f;
+static const float  TEXT_WIDTH_DUMMY = 63.0f;
 static const ImVec2 ONE_LAYER_OFFSET  = ImVec2(41.0f, 44.0f);
 static const ImVec2 HORIZONTAL_SLIDER_SIZE = ImVec2(764.0f, 90.0f);//764 = 680 + handle_dummy_width * 2 + text_right_dummy
-static const ImVec2 VERTICAL_SLIDER_SIZE = ImVec2(120.0f, 748.0f);//748 = 680 + text_dummy_height * 2
+static const ImVec2 VERTICAL_SLIDER_SIZE = ImVec2(105.0f, 748.0f);//748 = 680 + text_dummy_height * 2
 
     int m_tick_value = -1;
     ImVec4 m_tick_rect;
@@ -716,19 +717,17 @@ bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int 
     if (window->SkipItems)
         return false;
 
-    ImGui::SetWindowFontScale(1.0f / scale);
-
     ImGuiContext& context = *GImGui;
     const ImGuiID id = window->GetID(str_id);
 
     const ImRect draw_region(pos, pos + size);
     ImGui::ItemSize(draw_region);
 
-    float groove_y = 8.0f * m_scale;
-    float bottom_dummy = 44.0f * m_scale;
-    float handle_dummy_width = 17.0f * m_scale;
-    float text_right_dummy = 50.0f * m_scale;
-    float handle_radius = 14.0f * m_scale;
+    float groove_y = 8.0f;
+    float bottom_dummy = 44.0f;
+    float handle_dummy_width = 17.0f;
+    float text_right_dummy = 50.0f * scale;
+    float handle_radius = 14.0f;
 
     const ImU32 white_bg = IM_COL32(255, 255, 255, 255);
     const ImU32 handle_clr = IM_COL32(0, 174, 66, 255);
@@ -787,7 +786,6 @@ bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int 
     window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, white_bg);
     ImGui::RenderText(text_start + text_padding, std::to_string(*value).c_str());
 
-    ImGui::SetWindowFontScale(1.0f);
     return value_changed;
 }
 
@@ -916,7 +914,6 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
 bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower_value, std::string& higher_label, std::string& lower_label,int v_min, int v_max, const ImVec2& pos,const ImVec2& size, SelectedSlider& selection, bool one_layer_flag, float scale)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
-    ImGui::SetWindowFontScale(1.0f / scale);
     if (window->SkipItems)
         return false;
 
@@ -926,14 +923,14 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
     const ImRect draw_region(pos, pos + size);
     ImGui::ItemSize(draw_region);
 
-    float groove_x = 8.0f * m_scale;
-    float right_dummy = 24.0f * m_scale;
-    float text_dummy_height = 34.0f * m_scale;
+    float groove_x = 8.0f;
+    float right_dummy = 24.0f;
+    float text_dummy_height = 34.0f * scale;
 
-    float handle_radius = 14.0f * m_scale;
-    float line_offset = 9.0f * m_scale;
-    float one_handle_offset = 26.0f * m_scale;
-    float bar_width = 12.0f * m_scale;
+    float handle_radius = 14.0f;
+    float line_offset = 9.0f;
+    float one_handle_offset = 26.0f;
+    float bar_width = 12.0f;
 
     ImVec2 text_content_size;// = ImVec2(28.0f, text_dummy_height);
     ImVec2 text_padding;// = ImVec2(4.0f, 0.0f);
@@ -1218,8 +1215,6 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         ImGui::RenderText(text_start + text_padding, higher_label.c_str());
     }
 
-    ImGui::SetWindowFontScale(1.0f);
-
     return value_changed;
 }
 
@@ -1244,15 +1239,9 @@ bool IMSlider::render(int canvas_width, int canvas_height)
     float scale = (float) wxGetApp().em_unit() / 10.0f;
 
     if (is_horizontal()) {
-        // use maxium slider
-        //float  pos_x = std::max(float(canvas_width - MIN_RECT_SIZE.x - HORIZONTAL_SLIDER_SIZE.x), 0.0f);
-        //ImVec2 size  = ImVec2(std::min(HORIZONTAL_SLIDER_SIZE.x, canvas_width - MIN_RECT_SIZE.x), HORIZONTAL_SLIDER_SIZE.y);
-        //float  pos_x = LEFT_MARGIN;
-        //float  pos_y = std::max(float(canvas_height - HORIZONTAL_SLIDER_SIZE.y - BOTTOM_MARGIN), 0.0f);
-        //ImVec2 size  = ImVec2(std::max(0.0f, canvas_width - MIN_RECT_SIZE.x - LEFT_MARGIN), HORIZONTAL_SLIDER_SIZE.y);
-        float pos_x = std::max(LEFT_MARGIN * m_scale, 0.2f * canvas_width);
-        float pos_y = (canvas_height - HORIZONTAL_SLIDER_SIZE.y * m_scale);
-        ImVec2 size = ImVec2(canvas_width - 2 * pos_x, HORIZONTAL_SLIDER_SIZE.y * m_scale);
+        float  pos_x = std::max(LEFT_MARGIN, 0.2f * canvas_width);
+        float  pos_y = (canvas_height - HORIZONTAL_SLIDER_SIZE.y);
+        ImVec2 size  = ImVec2(canvas_width - 2 * pos_x, HORIZONTAL_SLIDER_SIZE.y);
         imgui.set_next_window_pos(pos_x, pos_y, ImGuiCond_Always);
         imgui.begin(std::string("moves_slider"), windows_flag);
         int value = GetHigherValue();
@@ -1262,15 +1251,9 @@ bool IMSlider::render(int canvas_width, int canvas_height)
         }
         imgui.end();
     } else {
-        //float  pos_x = std::max(float(canvas_width - VERTICAL_SLIDER_SIZE.x - RIGHT_MARGIN), 0.0f);
-        //float  pos_y = std::max(float(canvas_height - VERTICAL_SLIDER_SIZE.y - MIN_RECT_SIZE.y), 0.0f);
-        //ImVec2 size  = ImVec2(VERTICAL_SLIDER_SIZE.x, std::min(VERTICAL_SLIDER_SIZE.y, canvas_height - MIN_RECT_SIZE.y));
-        // use maxium slider
-        //float pos_y = TOP_MARGIN;
-        //ImVec2 size = ImVec2(VERTICAL_SLIDER_SIZE.x, std::max(0.0f, canvas_height - MIN_RECT_SIZE.y - TOP_MARGIN));
-        float pos_x = canvas_width - VERTICAL_SLIDER_SIZE.x * m_scale;
-        float pos_y = std::max(ONE_LAYER_OFFSET.y * m_scale, 0.15f * canvas_height - (VERTICAL_SLIDER_SIZE.y - SLIDER_LENGTH) * m_scale);
-        ImVec2 size = ImVec2(VERTICAL_SLIDER_SIZE.x * m_scale, canvas_height - 2 * pos_y);
+        float  pos_x = canvas_width - (VERTICAL_SLIDER_SIZE.x + TEXT_WIDTH_DUMMY * scale - TEXT_WIDTH_DUMMY);
+        float pos_y = std::max(ONE_LAYER_OFFSET.y, 0.15f * canvas_height - (VERTICAL_SLIDER_SIZE.y - SLIDER_LENGTH) * scale);
+        ImVec2 size = ImVec2(VERTICAL_SLIDER_SIZE.x + TEXT_WIDTH_DUMMY * scale - TEXT_WIDTH_DUMMY, canvas_height - 2 * pos_y);
         imgui.set_next_window_pos(pos_x, pos_y, ImGuiCond_Always);
         imgui.begin(std::string("laysers_slider"), windows_flag);
 
@@ -1292,10 +1275,10 @@ bool IMSlider::render(int canvas_width, int canvas_height)
         }
 
         ImGui::Spacing();
-        ImGui::SameLine(VERTICAL_SLIDER_SIZE.x* m_scale - ONE_LAYER_OFFSET.x * m_scale);
+        ImGui::SameLine((VERTICAL_SLIDER_SIZE.x - ONE_LAYER_OFFSET.x) * scale);
         ImTextureID normal_id = is_one_layer() ? m_one_layer_on_id : m_one_layer_off_id;
         ImTextureID hover_id  = is_one_layer() ? m_one_layer_on_hover_id : m_one_layer_off_hover_id;
-        if (ImGui::ImageButton3(normal_id, hover_id, ImVec2(28 * m_scale, 28 * m_scale))) {
+        if (ImGui::ImageButton3(normal_id, hover_id, ImVec2(28 /* scale*/, 28 /* scale*/))) {
             switch_one_layer_mode();
         }
 

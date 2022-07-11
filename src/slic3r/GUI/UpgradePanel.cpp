@@ -570,7 +570,8 @@ UpgradePanel::~UpgradePanel()
 
 void UpgradePanel::msw_rescale() 
 { 
-    m_push_upgrade_panel->msw_rescale();
+    if (m_push_upgrade_panel)
+        m_push_upgrade_panel->msw_rescale();
 }
 
 void UpgradePanel::clean_push_upgrade_panel()
