@@ -279,7 +279,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     if (m_current_tool != old_tool)
         this->tool_changed(old_tool, m_current_tool);
 
-    ImGui::NewLine();
+    ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
 
     if (m_current_tool == ImGui::CircleButtonIcon) {
         m_cursor_type = TriangleSelector::CursorType::CIRCLE;

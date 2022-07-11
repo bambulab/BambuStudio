@@ -419,7 +419,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             ImGui::TextColored(ImVec4(0.0f, 0.0f, 0.0f, 1.0f), item_text.c_str());
     }
 
-    ImGui::NewLine();
+    //ImGui::NewLine();
+    ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
 
     m_imgui->text(m_desc.at("tool_type"));
 
@@ -454,7 +455,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         }
     }
 
-    ImGui::NewLine();
+    ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
 
     if (m_current_tool != old_tool)
         this->tool_changed(old_tool, m_current_tool);

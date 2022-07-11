@@ -4962,9 +4962,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             default: { assert(false); break; }
             }
         }
-
-        imgui.title(time_title + ":");
-
+        ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
+        imgui.title(time_title);
         std::string filament_str = _u8L("Filament");
         std::string prepare_str = _u8L("Prepare time");
         std::string print_str = _u8L("Model printing time");
@@ -5035,7 +5034,6 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         default : { assert(false); break; }
         }
     }
-
     legend_height = ImGui::GetCurrentWindow()->Size.y;
 
     imgui.end();
