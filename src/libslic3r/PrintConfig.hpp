@@ -849,6 +849,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     // BBS: not in any preset, calculated before slicing
     ((ConfigOptionBool,               has_prime_tower))
     ((ConfigOptionFloat,              nozzle_volume))
+    ((ConfigOptionBool,               timelapse_no_toolhead))
 
 )
 

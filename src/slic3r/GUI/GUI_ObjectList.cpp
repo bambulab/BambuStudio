@@ -1899,6 +1899,10 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
         load_shape_object(type_name);
         return;
     }
+    else if (type == ModelVolumeType::TIMELAPSE_WIPE_TOWER) {
+        load_shape_object(type_name, true);
+        return;
+    }
 
     const int obj_idx = get_selected_obj_idx();
     if (obj_idx < 0)
@@ -1978,7 +1982,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     }
 }
 
-void ObjectList::load_shape_object(const std::string& type_name)
+void ObjectList::load_shape_object(const std::string &type_name, bool is_timelapse_wt)
 {
     const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
     //assert(selection.get_object_idx() == -1); // Add nothing is something is selected on 3DScene
@@ -1995,11 +1999,11 @@ void ObjectList::load_shape_object(const std::string& type_name)
     BoundingBoxf3 bb;
     TriangleMesh mesh = create_mesh(type_name, bb);
     // BBS: remove "Shape" prefix
-    load_mesh_object(mesh, _(type_name));
+    load_mesh_object(mesh, _(type_name), true, is_timelapse_wt);
     wxGetApp().mainframe->update_title();
 }
 
-void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center)
+void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center, bool is_timelapse_wt)
 {
     // Add mesh to model as a new object
     Model& model = wxGetApp().plater()->model();
@@ -2012,7 +2016,7 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
     auto bb = mesh.bounding_box();
     ModelObject* new_object = model.add_object();
     new_object->name = into_u8(name);
-    new_object->add_instance(); // each object should have at list one instance
+    new_object->add_instance(); // each object should have at least one instance
 
     ModelVolume* new_volume = new_object->add_volume(mesh);
     new_object->sort_volumes(true);
@@ -2023,17 +2027,17 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
     new_object->invalidate_bounding_box();
     new_object->translate(-bb.center());
 
-    if (name == "Timelapse Wipe Tower") {
+    if (is_timelapse_wt) {
         new_object->instances[0]->set_offset( Vec3d(80.0, 230.0, -new_object->origin_translation.z()) );
         new_object->is_timelapse_wipe_tower = true;
         auto   curr_plate    = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-        int    last_extruder = 0;
-        double max_height = curr_plate->estimate_timelapse_wipe_tower_height(&last_extruder);
+        int    highest_extruder = 0;
+        double max_height = curr_plate->estimate_timelapse_wipe_tower_height(&highest_extruder);
         new_object->scale(1, 1, max_height / new_object->bounding_box().size()[2]);
 
         new_object->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
         new_object->config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
-        new_object->config.set("extruder", last_extruder);
+        new_object->config.set("extruder", highest_extruder);
     } else {
         // BBS: find an empty cell to put the copied object
         auto start_point = wxGetApp().plater()->build_volume().bounding_volume2d().center();

@@ -238,6 +238,7 @@ enum class ModelVolumeType : int {
     PARAMETER_MODIFIER,
     SUPPORT_BLOCKER,
     SUPPORT_ENFORCER,
+    TIMELAPSE_WIPE_TOWER
 };
 
 enum class ModelObjectCutAttribute : int { KeepUpper, KeepLower, FlipLower, CutToParts };

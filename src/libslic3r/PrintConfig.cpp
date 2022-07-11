@@ -1972,6 +1972,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("timelapse_no_toolhead", coBool);
+    def->label = L("Timelapse without toolhead");
+    def->tooltip = L("Record timelapse video of printing without showing toolhead. In this mode "
+                    "the toolhead docks near the excess chute at each layer change, and then "
+                    "a snapshot is taken with the chamber camera. When printing finishes a timelapse "
+                    "video is composed of all the snapshots.");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("standby_temperature_delta", coInt);
     def->label = L("Temperature variation");
     //def->tooltip = L("Temperature difference to be applied when an extruder is not active. "

@@ -1132,9 +1132,10 @@ Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double wipe_volu
 	return wipe_tower_size;
 }
 
-double PartPlate::estimate_timelapse_wipe_tower_height(int* extruder_id) const {
+double PartPlate::estimate_timelapse_wipe_tower_height(int *highest_extruder_id) const
+{
 	double max_height = 0;
-	int    last_extruder = 0;
+	int    highest_extruder = 0;
 
 	// auto  m_model    = wxGetApp().plater()->get_obj
 	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
@@ -1142,11 +1143,12 @@ double PartPlate::estimate_timelapse_wipe_tower_height(int* extruder_id) const {
 		if (m_model->objects[obj_idx]->is_timelapse_wipe_tower) continue;
 
 		BoundingBoxf3 bbox = m_model->objects[obj_idx]->bounding_box();
-		max_height = std::max(bbox.size().z(), max_height);
-		last_extruder = m_model->objects[obj_idx]->config.opt_int("extruder");
+        if (bbox.size().z() > max_height) {
+            max_height    = bbox.size().z();
+            highest_extruder = m_model->objects[obj_idx]->config.opt_int("extruder");
+        }
 	}
-	if (extruder_id)
-		*extruder_id = last_extruder;
+    if (highest_extruder_id) *highest_extruder_id = highest_extruder;
 	return max_height;
 }
 
