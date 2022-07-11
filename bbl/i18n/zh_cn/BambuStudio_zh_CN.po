@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-11 15:11+0800\n"
+"POT-Creation-Date: 2022-07-11 16:24+0800\n"
 "PO-Revision-Date: 2022-07-10 18:40+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1143,18 +1143,18 @@ msgstr ""
 msgid "Cloud service connection failed. Please try again."
 msgstr ""
 
+msgid "Sending print job over LAN"
+msgstr "正在通过局域网发送打印任务"
+
+msgid "Sending print job through cloud service"
+msgstr "正在通过云端服务发送打印任务"
+
 msgid "Sending print configuration"
 msgstr "正在发送打印配置"
 
 #, c-format, boost-format
 msgid "Successfully sent.Will automatically jump to the device page in %s s"
 msgstr "已发送完成，即将自动跳转到设备页面 (%s 秒）"
-
-msgid "Sending print job over LAN"
-msgstr "正在通过局域网发送打印任务"
-
-msgid "Sending print job through cloud service"
-msgstr "正在通过云端服务发送打印任务"
 
 msgid "Portions copyright"
 msgstr "部分版权"
@@ -1930,7 +1930,8 @@ msgid ""
 "The calibration program detects the status of your device automatically to "
 "minimize deviation.\n"
 "It keeps the device performing optimally."
-msgstr "校准程序会自动检测设备以最小化设备误差。\n"
+msgstr ""
+"校准程序会自动检测设备以最小化设备误差。\n"
 "它可以让设备保持最佳性能。"
 
 msgid "Calibration Flow"
@@ -2108,9 +2109,6 @@ msgstr "打开项目文件"
 msgid "Recent projects"
 msgstr "最近的项目"
 
-msgid "The project is no longer available."
-msgstr "此项目不可用。"
-
 msgid "Save Project"
 msgstr "保存项目"
 
@@ -2236,6 +2234,9 @@ msgstr "预设另存为："
 
 msgid "File is missing"
 msgstr "文件丢失"
+
+msgid "The project is no longer available."
+msgstr "此项目不可用。"
 
 msgid "Filament Settings"
 msgstr "打印丝设置"
@@ -2909,8 +2910,8 @@ msgstr "使用Bambu Studio打开.stl文件"
 msgid "If enabled, sets BambuStudio as default application to open .stl files"
 msgstr "开启后，将缺省使用Bambu Studio打开.stl文件"
 
-msgid "Associate .step files to BambuStudio"
-msgstr "使用Bambu Studio打开.step文件"
+msgid "Associate .step/.stp files to BambuStudio"
+msgstr "使用Bambu Studio打开.step/.stp文件"
 
 msgid "If enabled, sets BambuStudio as default application to open .step files"
 msgstr "开启后，将缺省使用Bambu Studio打开.step文件"
@@ -3167,14 +3168,8 @@ msgstr "刷新"
 msgid "Bed Leveling"
 msgstr "热床调平"
 
-msgid "Vibration Calibration"
-msgstr "振动校准"
-
 msgid "Flow Calibration"
 msgstr "流量校准"
-
-msgid "First Layer Inspection"
-msgstr "首层扫描"
 
 msgid "Send"
 msgstr "发送"
@@ -3182,30 +3177,17 @@ msgstr "发送"
 msgid "send completed"
 msgstr "发送完成"
 
-msgid ""
-"Please click each filament above to specify its mapping AMS slot before "
-"sending the print job"
+msgid "No login account, only printers in LAN mode are displayed"
 msgstr ""
-
-msgid "Please select a printer first."
-msgstr "请先选择一台打印机。"
-
-msgid ""
-"The printer is updating firmware. Please send it after the update is "
-"completed"
-msgstr "打印机正在更新固件，请在更新完成后发送"
-
-msgid "Preparing print job"
-msgstr "正在准备打印任务"
 
 msgid "Not connected to the server, connecting"
 msgstr ""
 
-msgid "Synchronizing device information time out"
-msgstr ""
-
 msgid "Synchronizing device information"
 msgstr "正在同步设备信息"
+
+msgid "Synchronizing device information time out"
+msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "设备升级中，无法发送打印任务"
@@ -3228,6 +3210,14 @@ msgid ""
 msgstr ""
 "已自动建立 \"耗材丝列表=>AMS槽位\" 的映射关系。 可点击上方具体的耗材丝手动设"
 "置其所对应的AMS槽位"
+
+msgid ""
+"Please click each filament above to specify its mapping AMS slot before "
+"sending the print job"
+msgstr ""
+
+msgid "Preparing print job"
+msgstr "正在准备打印任务"
 
 msgid "Modifying the device name"
 msgstr "修改打印机名称"
@@ -4906,12 +4896,6 @@ msgid ""
 "layer"
 msgstr "开启这个设置将打开打印机上的摄像头用于检查首层打印质量。"
 
-msgid "Enable spaghetti detector"
-msgstr "炒面检测"
-
-msgid "Enable the camera on printer to check spaghetti"
-msgstr "开启打印机的摄像头检查是否发生炒面。"
-
 msgid "Nozzle type"
 msgstr "喷嘴类型"
 
@@ -5908,6 +5892,29 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Associate .step files to BambuStudio"
+#~ msgstr "使用Bambu Studio打开.step文件"
+
+#~ msgid "Vibration Calibration"
+#~ msgstr "振动校准"
+
+#~ msgid "First Layer Inspection"
+#~ msgstr "首层扫描"
+
+#~ msgid "Please select a printer first."
+#~ msgstr "请先选择一台打印机。"
+
+#~ msgid ""
+#~ "The printer is updating firmware. Please send it after the update is "
+#~ "completed"
+#~ msgstr "打印机正在更新固件，请在更新完成后发送"
+
+#~ msgid "Enable spaghetti detector"
+#~ msgstr "炒面检测"
+
+#~ msgid "Enable the camera on printer to check spaghetti"
+#~ msgstr "开启打印机的摄像头检查是否发生炒面。"
 
 #~ msgid ""
 #~ "The calibration program detects the status of your device automatically "

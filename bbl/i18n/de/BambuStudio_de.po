@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-11 15:11+0800\n"
+"POT-Creation-Date: 2022-07-11 16:24+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1189,17 +1189,17 @@ msgstr ""
 msgid "Cloud service connection failed. Please try again."
 msgstr ""
 
+msgid "Sending print job over LAN"
+msgstr ""
+
+msgid "Sending print job through cloud service"
+msgstr ""
+
 msgid "Sending print configuration"
 msgstr ""
 
 #, c-format, boost-format
 msgid "Successfully sent.Will automatically jump to the device page in %s s"
-msgstr ""
-
-msgid "Sending print job over LAN"
-msgstr ""
-
-msgid "Sending print job through cloud service"
 msgstr ""
 
 msgid "Portions copyright"
@@ -2177,9 +2177,6 @@ msgstr "Öffne eine Projektdatei"
 msgid "Recent projects"
 msgstr "Letzte Projekte"
 
-msgid "The project is no longer available."
-msgstr "Das Projekt ist nicht mehr verfügbar."
-
 msgid "Save Project"
 msgstr "Projekt speichern"
 
@@ -2305,6 +2302,9 @@ msgstr "Konfiguration speichern unter:"
 
 msgid "File is missing"
 msgstr "Datei fehlt"
+
+msgid "The project is no longer available."
+msgstr "Das Projekt ist nicht mehr verfügbar."
 
 msgid "Filament Settings"
 msgstr "Materialeinstellungen"
@@ -3003,8 +3003,8 @@ msgstr ""
 "Wenn aktiviert, wird BambuStudio als Standardanwendung zum Öffnen von .stl-"
 "Dateien festgelegt"
 
-msgid "Associate .step files to BambuStudio"
-msgstr "Zuordnen von .step-Dateien zu BambuStudio"
+msgid "Associate .step/.stp files to BambuStudio"
+msgstr ""
 
 msgid "If enabled, sets BambuStudio as default application to open .step files"
 msgstr ""
@@ -3271,14 +3271,8 @@ msgstr ""
 msgid "Bed Leveling"
 msgstr "Druckbettnivellierung"
 
-msgid "Vibration Calibration"
-msgstr "Vibrationskalibrierung"
-
 msgid "Flow Calibration"
 msgstr "Durchfluss-Kalibrierung"
-
-msgid "First Layer Inspection"
-msgstr "Inspektion der ersten Schicht"
 
 msgid "Send"
 msgstr "Senden"
@@ -3286,29 +3280,16 @@ msgstr "Senden"
 msgid "send completed"
 msgstr "senden abgeschlossen"
 
-msgid ""
-"Please click each filament above to specify its mapping AMS slot before "
-"sending the print job"
-msgstr ""
-
-msgid "Please select a printer first."
-msgstr "Bitte wählen Sie zunächst einen Drucker aus."
-
-msgid ""
-"The printer is updating firmware. Please send it after the update is "
-"completed"
-msgstr ""
-
-msgid "Preparing print job"
+msgid "No login account, only printers in LAN mode are displayed"
 msgstr ""
 
 msgid "Not connected to the server, connecting"
 msgstr ""
 
-msgid "Synchronizing device information time out"
+msgid "Synchronizing device information"
 msgstr ""
 
-msgid "Synchronizing device information"
+msgid "Synchronizing device information time out"
 msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
@@ -3329,6 +3310,14 @@ msgstr ""
 msgid ""
 "Filaments to AMS slots mappings have been established. You can click a "
 "filament above to change its mapping AMS slot"
+msgstr ""
+
+msgid ""
+"Please click each filament above to specify its mapping AMS slot before "
+"sending the print job"
+msgstr ""
+
+msgid "Preparing print job"
 msgstr ""
 
 msgid "Modifying the device name"
@@ -5167,12 +5156,6 @@ msgstr ""
 "Aktivieren Sie diese Option, um die Kamera am Drucker zu aktivieren und die "
 "Qualität der ersten Schicht zu prüfen"
 
-msgid "Enable spaghetti detector"
-msgstr "Spaghetti-Detektor einschalten"
-
-msgid "Enable the camera on printer to check spaghetti"
-msgstr "Aktivieren Sie die Kamera am Drucker, um Spaghetti zu überwachen"
-
 msgid "Nozzle type"
 msgstr "Druckdüsentyp"
 
@@ -6265,6 +6248,24 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid "Associate .step files to BambuStudio"
+#~ msgstr "Zuordnen von .step-Dateien zu BambuStudio"
+
+#~ msgid "Vibration Calibration"
+#~ msgstr "Vibrationskalibrierung"
+
+#~ msgid "First Layer Inspection"
+#~ msgstr "Inspektion der ersten Schicht"
+
+#~ msgid "Please select a printer first."
+#~ msgstr "Bitte wählen Sie zunächst einen Drucker aus."
+
+#~ msgid "Enable spaghetti detector"
+#~ msgstr "Spaghetti-Detektor einschalten"
+
+#~ msgid "Enable the camera on printer to check spaghetti"
+#~ msgstr "Aktivieren Sie die Kamera am Drucker, um Spaghetti zu überwachen"
 
 #~ msgid "Preparation before calibration"
 #~ msgstr "Vorbereitung der Kalibrierung"

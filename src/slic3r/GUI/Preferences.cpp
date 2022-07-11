@@ -108,7 +108,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CHINESE_SIMPLIFIED)) {
             //language_name = _L(vlist[i]->Description);
             //language_name = _L("Chinese (Simplified)");
-            language_name = wxString::FromUTF8("\xe4\xb8\xad\xe6\x96\x87\x28\xe7\xae\x80\xe4\xbd\x93\xe4\xb8\xad\xe6\x96\x87\x29");
+            language_name = wxString::FromUTF8("\xe4\xb8\xad\xe6\x96\x87\x28\xe7\xae\x80\xe4\xbd\x93\x29");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_SPANISH)) {
             language_name = wxString::FromUTF8("\x45\x73\x70\x61\xc3\xb1\x6f\x6c");
@@ -654,7 +654,7 @@ wxWindow* PreferencesDialog::create_general_page()
                                                         _L("If enabled, sets BambuStudio as default application to open .3mf files"), 50, "associate_3mf");
     auto item_associate_stl  = create_item_checkbox(_L("Associate .stl files to BambuStudio"), page,
                                                         _L("If enabled, sets BambuStudio as default application to open .stl files"), 50, "associate_stl");
-    auto item_associate_step = create_item_checkbox(_L("Associate .step files to BambuStudio"), page,
+    auto item_associate_step = create_item_checkbox(_L("Associate .step/.stp files to BambuStudio"), page,
                                                          _L("If enabled, sets BambuStudio as default application to open .step files"), 50, "associate_step");
 
 

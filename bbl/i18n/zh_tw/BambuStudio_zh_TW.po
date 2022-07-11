@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-11 15:11+0800\n"
+"POT-Creation-Date: 2022-07-11 16:24+0800\n"
 "PO-Revision-Date: 2022-03-12 17:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com> , patched traditional "
 "chinese by Cheng-Hsien Ho <taksito@gmail.com>\n"
@@ -1132,17 +1132,17 @@ msgstr ""
 msgid "Cloud service connection failed. Please try again."
 msgstr ""
 
+msgid "Sending print job over LAN"
+msgstr ""
+
+msgid "Sending print job through cloud service"
+msgstr ""
+
 msgid "Sending print configuration"
 msgstr ""
 
 #, c-format, boost-format
 msgid "Successfully sent.Will automatically jump to the device page in %s s"
-msgstr ""
-
-msgid "Sending print job over LAN"
-msgstr ""
-
-msgid "Sending print job through cloud service"
 msgstr ""
 
 msgid "Portions copyright"
@@ -2037,9 +2037,6 @@ msgstr ""
 msgid "Recent projects"
 msgstr ""
 
-msgid "The project is no longer available."
-msgstr ""
-
 msgid "Save Project"
 msgstr ""
 
@@ -2164,6 +2161,9 @@ msgid "Save configuration as:"
 msgstr ""
 
 msgid "File is missing"
+msgstr ""
+
+msgid "The project is no longer available."
 msgstr ""
 
 msgid "Filament Settings"
@@ -2829,7 +2829,7 @@ msgstr ""
 msgid "If enabled, sets BambuStudio as default application to open .stl files"
 msgstr ""
 
-msgid "Associate .step files to BambuStudio"
+msgid "Associate .step/.stp files to BambuStudio"
 msgstr ""
 
 msgid "If enabled, sets BambuStudio as default application to open .step files"
@@ -3087,13 +3087,7 @@ msgstr ""
 msgid "Bed Leveling"
 msgstr ""
 
-msgid "Vibration Calibration"
-msgstr ""
-
 msgid "Flow Calibration"
-msgstr ""
-
-msgid "First Layer Inspection"
 msgstr ""
 
 msgid "Send"
@@ -3102,29 +3096,16 @@ msgstr ""
 msgid "send completed"
 msgstr ""
 
-msgid ""
-"Please click each filament above to specify its mapping AMS slot before "
-"sending the print job"
-msgstr ""
-
-msgid "Please select a printer first."
-msgstr ""
-
-msgid ""
-"The printer is updating firmware. Please send it after the update is "
-"completed"
-msgstr ""
-
-msgid "Preparing print job"
+msgid "No login account, only printers in LAN mode are displayed"
 msgstr ""
 
 msgid "Not connected to the server, connecting"
 msgstr ""
 
-msgid "Synchronizing device information time out"
+msgid "Synchronizing device information"
 msgstr ""
 
-msgid "Synchronizing device information"
+msgid "Synchronizing device information time out"
 msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
@@ -3145,6 +3126,14 @@ msgstr ""
 msgid ""
 "Filaments to AMS slots mappings have been established. You can click a "
 "filament above to change its mapping AMS slot"
+msgstr ""
+
+msgid ""
+"Please click each filament above to specify its mapping AMS slot before "
+"sending the print job"
+msgstr ""
+
+msgid "Preparing print job"
 msgstr ""
 
 msgid "Modifying the device name"
@@ -4767,12 +4756,6 @@ msgstr ""
 msgid ""
 "Enable this to enable the camera on printer to check the quality of first "
 "layer"
-msgstr ""
-
-msgid "Enable spaghetti detector"
-msgstr ""
-
-msgid "Enable the camera on printer to check spaghetti"
 msgstr ""
 
 msgid "Nozzle type"
