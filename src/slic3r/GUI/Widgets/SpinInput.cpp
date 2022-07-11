@@ -199,6 +199,9 @@ void SpinInput::messureSize()
 {
     wxSize size = GetSize();
     wxSize textSize = text_ctrl->GetSize();
+#ifdef __WXOSX__
+    textSize.y -= 3; // TODO:
+#endif
     int h = textSize.y * 24 / 14;
     if (size.y < h) {
         size.y = h;

@@ -242,15 +242,15 @@ void TextInput::render(wxDC& dc)
 void TextInput::messureSize()
 {
     wxSize size = GetSize();
-    wxSize textSize = text_ctrl->GetSize();
     wxClientDC dc(this);
-    labelSize  = dc.GetMultiLineTextExtent(wxWindow::GetLabel());
-    bool   align_right    = GetWindowStyle() & wxRIGHT;
-    int    h        = textSize.y * 24 / 14;
+    labelSize = dc.GetTextExtent(wxWindow::GetLabel());
+    wxSize textSize = text_ctrl->GetSize();
+#ifdef __WXOSX__
+    textSize.y -= 3; // TODO:
+#endif
+    int h = textSize.y * 24 / 14;
     if (size.y < h) {
         size.y = h;
-    } else if (size.y > h) {
-        textSize.y = size.y * 14 / 24;
     }
     wxSize minSize = size;
     minSize.x = GetMinWidth();
