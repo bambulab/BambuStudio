@@ -5,7 +5,6 @@
 #include "../Jobs/RotoptimizeJob.hpp"
 //BBS: add size adjust related
 #include "GizmoObjectManipulation.hpp"
-#include "slic3r/GUI/3DBed.hpp"
 
 
 namespace Slic3r {
@@ -13,20 +12,15 @@ namespace GUI {
 
 class GLGizmoRotate : public GLGizmoBase
 {
+    static const float Offset;
+    static const unsigned int CircleResolution;
+    static const unsigned int AngleResolution;
     static const unsigned int ScaleStepsCount;
     static const float ScaleStepRad;
     static const unsigned int ScaleLongEvery;
-    //static const float ScaleLongTooth;
-    static const float MaxGrabberRadius;
+    static const float ScaleLongTooth;
     static const unsigned int SnapRegionsCount;
     static const float GrabberOffset;
-    static const float CircleOffset;
-    static const float GrabberRange;
-    static const float GrabberDepth;
-    static const float ArrowDepth;
-    static const float ArrowRange;
-    static const float ArrowDegree; //the minimum degree the arrow should has
-
 
 public:
     enum Axis : unsigned char
@@ -41,26 +35,12 @@ private:
     double m_angle;
 
     mutable Vec3d m_center;
-    mutable float m_circle_radius;
-    mutable float m_grabber_radius;
-    //mutable float m_reference_radius;
-    mutable GeometryBuffer m_filled_circle_buffer;
-    mutable GeometryBuffer m_background_circle_buffer_1;
-    mutable GeometryBuffer m_background_circle_buffer_2;
-    mutable bool m_fine_tuning;
-    mutable bool m_normal_up;
-    mutable float m_mouse_radius;
-    mutable float m_rotate_angle;
-    mutable Pointfs m_grabber_in_points;
-    mutable Pointfs m_grabber_out_points;
-    mutable Pointfs m_arrow_point_1;
-    mutable Pointfs m_arrow_point_2;
+    mutable float m_radius;
 
     mutable float m_snap_coarse_in_radius;
     mutable float m_snap_coarse_out_radius;
     mutable float m_snap_fine_in_radius;
-    mutable float m_snap_fine_out_short_radius;
-    mutable float m_snap_fine_out_long_radius;
+    mutable float m_snap_fine_out_radius;
 
 public:
     GLGizmoRotate(GLCanvas3D& parent, Axis axis);
@@ -71,11 +51,6 @@ public:
     void set_angle(double angle);
 
     std::string get_tooltip() const override;
-
-    static std::array<float, 4> CIRCLE_FILL_COLOR;
-    static std::array<float, 4> CIRCLE_BACK_COLOR;
-    static std::array<float, 4> LINE_COLOR;
-    static std::array<float, 4> LINE_HIGHLIGHTT_COLOR;
 
 protected:
     bool on_init() override;
@@ -93,15 +68,10 @@ private:
     void render_angle() const;
     void render_grabber(const BoundingBoxf3& box) const;
     void render_grabber_extension(const BoundingBoxf3& box, bool picking) const;
-    void render_arrow() const;
 
     void transform_to_local(const Selection& selection) const;
     // returns the intersection of the mouse ray with the plane perpendicular to the gizmo axis, in local coordinate
     Vec3d mouse_position_in_local_plane(const Linef3& mouse_ray, const Selection& selection) const;
-
-    void update_positions(const BoundingBoxf3& box);
-    void calc_left_arrow_points(const Vec3d& line_p1, const Vec3d& line_p2, Vec3d &arrow_p1, Vec3d &arrow_p2) const;
-    //void calc_right_arrow_points(const Vec3d& line_p1, const Vec3d& line_p2, Vec3d &arrow_p1, Vec3d &arrow_p2) const;
 };
 
 class GLGizmoRotate3D : public GLGizmoBase
@@ -109,7 +79,7 @@ class GLGizmoRotate3D : public GLGizmoBase
 // BBS: change to protected for subclass access
 protected:
     std::vector<GLGizmoRotate> m_gizmos;
-
+ 
     //BBS: add size adjust related
     GizmoObjectManipulation* m_object_manipulation;
 
