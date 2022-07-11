@@ -278,11 +278,11 @@ const std::vector<std::pair<std::string, std::string>> MenuFactory::ADD_VOLUME_M
 };
 #else
 const std::vector<std::pair<std::string, std::string>> MenuFactory::ADD_VOLUME_MENU_ITEMS = {
-        {L("Add part"),              "" },           // ~ModelVolumeType::MODEL_PART
-        {L("Add negative part"),     "" },       // ~ModelVolumeType::NEGATIVE_VOLUME
-        {L("Add modifier"),          ""},         // ~ModelVolumeType::PARAMETER_MODIFIER
-        {L("Add support blocker"),   ""},     // ~ModelVolumeType::SUPPORT_BLOCKER
-        {L("Add support enforcer"),  ""}     // ~ModelVolumeType::SUPPORT_ENFORCER
+        {L("Add part"),              "menu_add_part" },                 // ~ModelVolumeType::MODEL_PART
+        {L("Add negative part"),     "menu_add_negative" },         // ~ModelVolumeType::NEGATIVE_VOLUME
+        {L("Add modifier"),          "menu_add_modifier"},           // ~ModelVolumeType::PARAMETER_MODIFIER
+        {L("Add support blocker"),   "menu_support_blocker"},    // ~ModelVolumeType::SUPPORT_BLOCKER
+        {L("Add support enforcer"),  "menu_support_enforcer"}   // ~ModelVolumeType::SUPPORT_ENFORCER
 };
 
 #endif
