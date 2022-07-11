@@ -33,6 +33,7 @@ namespace Slic3r {
 
 enum PRINTER_TYPE {
     PRINTER_3DPrinter_UKNOWN,
+    PRINTER_3DPrinter_NONE,
     PRINTER_3DPrinter_X1_Carbon,    // BL-P001
     PRINTER_3DPrinter_X1,           // BL-P002
     PRINTER_3DPrinter_P1,           // BL-P003

@@ -228,6 +228,26 @@ private:
 #define SELECT_MACHINE_DIALOG_BUTTON_SIZE wxSize(FromDIP(68), FromDIP(24))
 #define SELECT_MACHINE_DIALOG_SIMBOOK_SIZE wxSize(FromDIP(350), FromDIP(70))
 
+
+enum PrintDialogStatus {
+    PrintStatusInit = 0,
+    PrintStatusNoUserLogin,
+    PrintStatusInvalidPrinter,
+    PrintStatusConnectingServer,
+    PrintStatusReading,
+    PrintStatusReadingFinished,
+    PrintStatusReadingTimeout,
+    PrintStatusInUpgrading,
+    PrintStatusNeedUpgradingAms,
+    PrintStatusInSystemPrinting,
+    PrintStatusInPrinting,
+    PrintStatusAmsMappingSuccess,
+    PrintStatusAmsMappingFailed,
+    PrintStatusRefreshingMachineList,
+    PrintStatusSending,
+    PrintStatusSendingCanceled,
+};
+
 class SelectMachineDialog : public DPIDialog
 {
 private:
@@ -237,8 +257,8 @@ private:
 
     int m_print_plate_idx;
 
-    int         m_bed_last_select{0};
     std::string m_printer_last_select;
+    PrintDialogStatus m_print_status;
 
     std::vector<wxString>               m_bedtype_list;
     std::map<std::string, ::CheckBox *> m_checkbox_list;
@@ -250,6 +270,7 @@ protected:
     MaterialHash  m_materialList;
     std::vector<FilamentInfo> m_filaments;
     std::vector<FilamentInfo> m_ams_mapping_result;
+    bool ams_mapping_valid { false };
     Plater *      m_plater{nullptr};
     wxPanel *     m_line_top{nullptr};
     wxPanel *     m_image{nullptr};
@@ -285,7 +306,6 @@ protected:
 
     StateColor btn_bg_enable;
     int        m_current_filament_id;
-    bool       m_is_refreshing{false};
 
     wxGridSizer *m_sizer_select;
     wxBoxSizer * sizer_thumbnail;
@@ -294,10 +314,16 @@ protected:
     wxBoxSizer * m_sizer_bottom;
 
     wxWindow *select_bed{nullptr};
-    wxWindow *select_vibration{nullptr};
+    //wxWindow *select_vibration{nullptr};
     wxWindow *select_flow{nullptr};
-    wxWindow *select_layer_inspect {nullptr};
-    wxWindow *select_record{nullptr};
+    //wxWindow *select_layer_inspect {nullptr};
+    //wxWindow *select_record{nullptr};
+
+    void      stripWhiteSpace(std::string& str);
+
+    void      update_info_msg(wxString msg);
+    void      update_warn_msg(wxString msg);
+    void      update_err_msg(wxString msg);
 
 public:
     SelectMachineDialog(Plater *plater = nullptr);
@@ -307,21 +333,17 @@ public:
     void      update_select_layout(PRINTER_TYPE type);
     void      prepare_mode();
     void      sending_mode();
-    void      update_info_msg(wxString msg);
-    void      stripWhiteSpace(std::string &str);
-    void      update_warn_msg(wxString msg);
-    void      update_err_msg(wxString msg);
     void      finish_mode();
+    
+    void      do_ams_mapping(MachineObject* obj_);
     bool      check_ams_mapping_result(std::string &mapping_array_str);
+    void      prepare(int print_plate_idx);
 
-	
-    void prepare(int print_plate_idx)
-    {
-        m_print_plate_idx = print_plate_idx;
-        reset();
-    }
+    void      update_print_status_msg(wxString msg, bool is_warning = false);
+    void      show_status(PrintDialogStatus status);
+    PrintDialogStatus  get_status() { return m_print_status; }
+
     bool Show(bool show);
-    void reset();
 
     /* model */
     wxObjectDataPtr<MachineListModel> machine_model;
@@ -336,11 +358,10 @@ protected:
     wxGauge *                    m_gauge_job_progress;
     wxPanel *                    m_panel_status;
     wxButton *                   m_button_cancel;
-    // Button* m_button_ensure;
-    bool m_need_disable_btn_ensure{false};
 
-    bool                         has_read_done_info { false };
     int                          timeout_count = 0;
+    bool                        is_timeout();
+    void                        reset_timeout();
 
     wxTimer *m_refresh_timer;
 
