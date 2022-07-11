@@ -1793,15 +1793,15 @@ void MainFrame::init_menubar_as_editor()
             viewMenu->Check(wxID_CAMERA_PERSPECTIVE + camera_id_base, true);
         else
             viewMenu->Check(wxID_CAMERA_ORTHOGONAL + camera_id_base, true);
-        viewMenu->AppendSeparator();
-        //BBS orthogonal view
-        append_menu_check_item(viewMenu, wxID_ANY, _L("Show Edges(TODO)"), _L("Show Edges"),
-            [this](wxCommandEvent& evt) {
-                wxGetApp().app_config->set("show_build_edges", evt.GetInt() == 1 ? "true" : "false");
-            }, nullptr, [this]() {return can_select(); }, [this]() {
-                std::string show_build_edges = wxGetApp().app_config->get("show_build_edges");
-                return show_build_edges.compare("true") == 0;
-            }, this);
+        //viewMenu->AppendSeparator();
+        ////BBS orthogonal view
+        //append_menu_check_item(viewMenu, wxID_ANY, _L("Show Edges(TODO)"), _L("Show Edges"),
+        //    [this](wxCommandEvent& evt) {
+        //        wxGetApp().app_config->set("show_build_edges", evt.GetInt() == 1 ? "true" : "false");
+        //    }, nullptr, [this]() {return can_select(); }, [this]() {
+        //        std::string show_build_edges = wxGetApp().app_config->get("show_build_edges");
+        //        return show_build_edges.compare("true") == 0;
+        //    }, this);
     }
 
     wxWindowID config_id_base = wxWindow::NewControlId(int(ConfigMenuCnt));
