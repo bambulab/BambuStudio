@@ -15,9 +15,15 @@ void AMSSetting::create()
     wxBoxSizer *m_sizer_main;
     m_sizer_main = new wxBoxSizer(wxVERTICAL);
 
+    auto m_static_ams_settings = new wxStaticText(this, wxID_ANY, _L("AMS Settings"), wxDefaultPosition, wxDefaultSize, 0);
+    m_static_ams_settings->SetFont(::Label::Head_14);
+    m_static_ams_settings->SetForegroundColour(AMS_SETTING_GREY800);
+    m_sizer_main->Add(m_static_ams_settings, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(24));
+
     m_panel_body = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, -1), wxTAB_TRAVERSAL);
     wxBoxSizer *m_sizerl_body;
     m_sizerl_body = new wxBoxSizer(wxVERTICAL);
+
 
     // checkbox area 1
     wxBoxSizer *m_sizer_Insert_material  = new wxBoxSizer(wxHORIZONTAL);
@@ -27,7 +33,7 @@ void AMSSetting::create()
 
     m_sizer_Insert_material->Add(0, 0, 0, wxLEFT, 12);
 
-    m_title_Insert_material_auto_read = new wxStaticText(m_panel_body, wxID_ANY, _L("AMS automatically reads volume information when new material is inserted"),
+    m_title_Insert_material_auto_read = new wxStaticText(m_panel_body, wxID_ANY, _L("Insertion update"),
                                                          wxDefaultPosition, wxDefaultSize, 0);
 
     m_title_Insert_material_auto_read->SetFont(::Label::Head_13);
@@ -45,21 +51,22 @@ void AMSSetting::create()
 
     // tip line1
     m_tip_Insert_material_line1 = new wxStaticText(m_panel_body, wxID_ANY,
-                                                   _L("When a new BBL reel is inserted, AMS will automatically read the reel information.  It takes about 20 seconds"),
+                                                   _L("The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."),
                                                    wxDefaultPosition, wxDefaultSize, 0);
     m_tip_Insert_material_line1->SetFont(::Label::Body_13);
     m_tip_Insert_material_line1->SetForegroundColour(AMS_SETTING_GREY700);
+    m_tip_Insert_material_line1->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
     m_tip_Insert_material_line1->Wrap(AMS_SETTING_BODY_WIDTH);
     m_tip_Insert_material_line1->Hide();
     m_sizer_Insert_material_tip_inline->Add(m_tip_Insert_material_line1, 0, wxEXPAND, 0);
 
     // tip line2
     m_tip_Insert_material_line2 = new wxStaticText(m_panel_body, wxID_ANY,
-                                                   _L("Note: In the printing process, if a new consumable is inserted, AMS will not automatically read the information of "
-                                                      "consumable, but wait for the end of printing to read "),
+                                                   _L("Note: if new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."),
                                                    wxDefaultPosition, wxDefaultSize, 0);
     m_tip_Insert_material_line2->SetFont(::Label::Body_13);
     m_tip_Insert_material_line2->SetForegroundColour(AMS_SETTING_GREY700);
+    m_tip_Insert_material_line2->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
     m_tip_Insert_material_line2->Wrap(AMS_SETTING_BODY_WIDTH);
     m_tip_Insert_material_line2->Hide();
     m_sizer_Insert_material_tip_inline->Add(m_tip_Insert_material_line2, 0, wxEXPAND | wxTOP, 8);
@@ -67,10 +74,11 @@ void AMSSetting::create()
     // tip line2
     m_tip_Insert_material_line3 =
         new wxStaticText(m_panel_body, wxID_ANY,
-                         _L("When inserting a new reel, AMS will not automatically read the reel information and reserve an empty reel information for you to manually enter "),
+                         _L("When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."),
                          wxDefaultPosition, wxDefaultSize, 0);
     m_tip_Insert_material_line3->SetFont(::Label::Body_13);
     m_tip_Insert_material_line3->SetForegroundColour(AMS_SETTING_GREY700);
+    m_tip_Insert_material_line3->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
     m_tip_Insert_material_line3->Wrap(AMS_SETTING_BODY_WIDTH);
     m_tip_Insert_material_line3->Hide();
     m_sizer_Insert_material_tip_inline->Add(m_tip_Insert_material_line3, 0, wxEXPAND, 0);
@@ -88,14 +96,14 @@ void AMSSetting::create()
 
     m_sizer_starting->Add(0, 0, 0, wxLEFT, 12);
 
-    m_title_starting_auto_read = new wxStaticText(m_panel_body, wxID_ANY, _L("AMS automatically reads consumable information when it is turned on"), wxDefaultPosition,
+    m_title_starting_auto_read = new wxStaticText(m_panel_body, wxID_ANY, _L("Power on update"), wxDefaultPosition,
                                                   wxDefaultSize, 0);
     m_title_starting_auto_read->SetFont(::Label::Head_13);
     m_title_starting_auto_read->SetForegroundColour(AMS_SETTING_GREY800);
     m_title_starting_auto_read->Wrap(AMS_SETTING_BODY_WIDTH);
-    m_sizer_starting->Add(m_title_starting_auto_read, 1, wxALL | wxEXPAND, 0);
+    m_sizer_starting->Add(m_title_starting_auto_read, 1, wxEXPAND, 0);
 
-    m_sizerl_body->Add(m_sizer_starting, 0, wxEXPAND, 0);
+    m_sizerl_body->Add(m_sizer_starting, 0, wxEXPAND|wxTOP, FromDIP(8));
 
     m_sizerl_body->Add(0, 0, 0, wxTOP, 8);
 
@@ -107,21 +115,22 @@ void AMSSetting::create()
     m_sizer_starting_tip_inline = new wxBoxSizer(wxVERTICAL);
 
     m_tip_starting_line1 = new wxStaticText(m_panel_body, wxID_ANY,
-                                            _L("AMS will automatically read the inserted consumables information every time it is powered on.  It takes about a minute"),
+                                            _L("The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."),
                                             wxDefaultPosition, wxDefaultSize, 0);
     m_tip_starting_line1->SetFont(::Label::Body_13);
     m_tip_starting_line1->SetForegroundColour(AMS_SETTING_GREY700);
+    m_tip_starting_line1->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
     m_tip_starting_line1->Wrap(AMS_SETTING_BODY_WIDTH);
     m_sizer_starting_tip_inline->Add(m_tip_starting_line1, 0, wxEXPAND, 0);
 
     m_tip_starting_line2 = new wxStaticText(m_panel_body, wxID_ANY,
-                                            _L("At each startup, AMS will not automatically read the inserted consumables information, and will continue to use the volume "
-                                               "information recorded before the last shutdown"),
+                                            _L("The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."),
                                             wxDefaultPosition, wxDefaultSize, 0);
     m_tip_starting_line2->SetFont(::Label::Body_13);
     m_tip_starting_line2->SetForegroundColour(AMS_SETTING_GREY700);
+    m_tip_starting_line2->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
     m_tip_starting_line2->Wrap(AMS_SETTING_BODY_WIDTH);
-    m_sizer_starting_tip_inline->Add(m_tip_starting_line2, 0, wxEXPAND, 0);
+    m_sizer_starting_tip_inline->Add(m_tip_starting_line2, 0, wxEXPAND,0);
 
     m_sizer_starting_tip->Add(m_sizer_starting_tip_inline, 1, wxALIGN_CENTER, 0);
 
@@ -166,12 +175,13 @@ void AMSSetting::create()
     m_panel_img->SetSizer(m_sizer_img);
     m_panel_img->Layout();
     m_sizer_img->Fit(m_panel_img);
-    m_sizerl_body->Add(m_panel_img, 1, wxEXPAND | wxALL, 5);
+    m_sizerl_body->Add(0,0,0,wxTOP, FromDIP(5));
+    m_sizerl_body->Add(m_panel_img, 1, wxEXPAND | wxALL, FromDIP(5));
 
     m_panel_body->SetSizer(m_sizerl_body);
     m_panel_body->Layout();
     m_sizerl_body->Fit(m_panel_body);
-    m_sizer_main->Add(m_panel_body, 1, wxALL | wxEXPAND, 24);
+    m_sizer_main->Add(m_panel_body, 1, wxALL | wxEXPAND, FromDIP(24));
 
     this->SetSizer(m_sizer_main);
     this->Layout();
