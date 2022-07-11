@@ -205,6 +205,11 @@ void MonitorPanel::set_default()
     obj = nullptr;
     /* set default value */
     has_popup_ams_check_dlg = false;
+    if (need_upgrade_dlg) {
+        need_upgrade_dlg->Close();
+        delete need_upgrade_dlg;
+        need_upgrade_dlg = nullptr;
+    }
 
     /* reset status panel*/
     m_status_info_panel->set_default();
@@ -401,10 +406,16 @@ void MonitorPanel::update_all()
     }
 
     if (obj->has_ams() && obj->is_need_upgrade_for_ams()) {
+        if (need_upgrade_dlg)
+            if (need_upgrade_dlg->IsShown())
+                return;
         if (!has_popup_ams_check_dlg) {
             has_popup_ams_check_dlg = true;
-            MessageDialog msg_dlg(nullptr, _L("Please upgrade your printer first"), "", wxAPPLY | wxOK);
-            if (msg_dlg.ShowModal() == wxOK) {
+            BOOST_LOG_TRIVIAL(trace) << "Monitor: popup ams check dlg";
+            need_upgrade_dlg = new MessageDialog(nullptr, _L("Please upgrade your printer first"), "", wxAPPLY | wxOK);
+            if (need_upgrade_dlg->ShowModal() == wxOK) {
+                delete need_upgrade_dlg;
+                need_upgrade_dlg = nullptr;
                 return;
             }
         }

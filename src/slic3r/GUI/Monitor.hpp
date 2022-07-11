@@ -40,6 +40,7 @@
 #include "Event.hpp"
 #include "libslic3r/ProjectTask.hpp"
 #include "wxExtensions.hpp"
+#include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/MonitorBasePanel.h"
 #include "slic3r/GUI/StatusPanel.hpp"
@@ -104,6 +105,7 @@ private:
     int last_status;
     bool m_initialized { false };
     bool has_popup_ams_check_dlg { false };
+    MessageDialog* need_upgrade_dlg { nullptr };
 
 public:
     MonitorPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);

@@ -2597,6 +2597,22 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
         ;
     } else if (status == 422) {
         ;
+    } else if (status == 424) {
+        try {
+            json j = json::parse(evt.GetString());
+            if (j.contains("code") && j.contains("error")) {
+                int code = j["code"].get<int>();
+                std::string error = j["IOT_ERROR_VERSION_LIMITED"].get<std::string>();
+                if (code == 15) {
+                    MessageDialog msg_dlg(nullptr, _L("Please upgrade your Bambu Studio first"), "", wxAPPLY | wxOK);
+                    if (msg_dlg.ShowModal() == wxOK) {
+                        return;
+                    }
+                }
+            } 
+        } catch (...) {
+            ;
+        }
     }
 }
 
