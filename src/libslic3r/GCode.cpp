@@ -3549,8 +3549,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             speed = m_config.get_abs_value("initial_layer_infill_speed");
         } else if (path.role() == erGapFill) {
             speed = m_config.get_abs_value("gap_infill_speed");
-        // BBS: enable slow down option for support. Because only tree speed calculate the curvature, so this
-        // only slow down tree support and normal support still use speed in config directly.
         }
         else if (path.role() == erSupportMaterial ||
                  path.role() == erSupportMaterialInterface) {

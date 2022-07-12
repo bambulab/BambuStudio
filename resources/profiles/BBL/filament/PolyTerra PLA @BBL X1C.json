@@ -6,7 +6,7 @@
     "instantiation": "true",
     "inherits": "PolyTerra PLA @base",
     "filament_max_volumetric_speed": [
-        "28.6"
+        "22"
     ],
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.4 nozzle"
