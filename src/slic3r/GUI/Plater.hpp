@@ -80,6 +80,7 @@ enum class ActionButtonType : int;
 wxDECLARE_EVENT(EVT_SLICING_UPDATE, Slic3r::SlicingStatusEvent);
 wxDECLARE_EVENT(EVT_PUBLISH,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_REPAIR_MODEL,        wxCommandEvent);
+wxDECLARE_EVENT(EVT_FILAMENT_COLOR_CHANGED,        wxCommandEvent);
 
 
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
@@ -226,7 +227,7 @@ public:
 
     // BBS
     wxString get_project_name();
-    void update_platplate_thumbnails();
+    void update_platplate_thumbnails(bool force_update = false);
     //BBS static functions that update extruder params and speed table
     static void setPrintSpeedTable(Slic3r::GlobalSpeedMap& printSpeedMap);
     static void setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extParas);
@@ -381,6 +382,7 @@ public:
     const GLCanvas3D * canvas3D() const;
     GLCanvas3D* get_current_canvas3D();
     GLCanvas3D* get_view3D_canvas3D();
+    GLCanvas3D* get_preview_canvas3D();
     GLCanvas3D* get_assmeble_canvas3D();
 
     void arrange();

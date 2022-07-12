@@ -152,6 +152,8 @@ wxDEFINE_EVENT(EVT_RESTORE_PROJECT,                 wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_FINISHED,                  wxCommandEvent);
 //BBS: repair model
 wxDEFINE_EVENT(EVT_REPAIR_MODEL,                    wxCommandEvent);
+wxDEFINE_EVENT(EVT_FILAMENT_COLOR_CHANGED,          wxCommandEvent);
+
 
 
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
@@ -1762,6 +1764,7 @@ struct Plater::priv
     void on_right_click(RBtnEvent&);
     //BBS: add model repair
     void on_repair_model(wxCommandEvent &event);
+    void on_filament_color_changed(wxCommandEvent &event);
     //BBS: add part plate related logic
     void on_plate_right_click(RBtnPlateEvent&);
     void on_plate_selected(SimpleEvent&);
@@ -1954,6 +1957,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(EVT_SLICING_UPDATE, &priv::on_slicing_update, this);
     this->q->Bind(EVT_PUBLISH, &priv::on_action_publish, this);
     this->q->Bind(EVT_REPAIR_MODEL, &priv::on_repair_model, this);
+    this->q->Bind(EVT_FILAMENT_COLOR_CHANGED, &priv::on_filament_color_changed, this);
 
     view3D = new View3D(q, bed, &model, config, &background_process);
     //BBS: use partplater's gcode
@@ -5315,6 +5319,12 @@ void Plater::priv::on_repair_model(wxCommandEvent &event)
     wxGetApp().obj_list()->fix_through_netfabb();
 }
 
+void Plater::priv::on_filament_color_changed(wxCommandEvent &event)
+{
+    q->update_platplate_thumbnails(true);
+    q->get_preview_canvas3D()->update_plate_thumbnails();
+}
+
 void Plater::priv::on_right_click(RBtnEvent& evt)
 {
     int obj_idx = get_selected_object_idx();
@@ -6691,13 +6701,13 @@ wxString Plater::get_project_name()
     return p->get_project_name();
 }
 
-void Plater::update_platplate_thumbnails()
+void Plater::update_platplate_thumbnails(bool force_update)
 {
     for (int i = 0; i < get_partplate_list().get_plate_count(); i++) {
         PartPlate* plate = get_partplate_list().get_plate(i);
         ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i};
-        if (!plate->is_valid_gcode_file()) {
-            get_current_canvas3D()->render_thumbnail(plate->thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params, Camera::EType::Ortho);
+        if (force_update || !plate->is_valid_gcode_file()) {
+            get_view3D_canvas3D()->render_thumbnail(plate->thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params, Camera::EType::Ortho);
         }
     }
 }
@@ -8082,7 +8092,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     store_params.project = &p->project;
     store_params.strategy = strategy | SaveStrategy::Zip64;
 
-    
+
     // get type and color for platedata
     auto* filament_color = dynamic_cast<const ConfigOptionStrings*>(cfg.option("filament_colour"));
 
@@ -8791,6 +8801,11 @@ const GLCanvas3D* Plater::canvas3D() const
 GLCanvas3D* Plater::get_view3D_canvas3D()
 {
     return p->view3D->get_canvas3d();
+}
+
+GLCanvas3D* Plater::get_preview_canvas3D()
+{
+    return p->preview->get_canvas3d();
 }
 
 GLCanvas3D* Plater::get_assmeble_canvas3D()

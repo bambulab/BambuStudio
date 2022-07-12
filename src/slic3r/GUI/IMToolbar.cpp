@@ -12,6 +12,13 @@
 
 namespace Slic3r {
 namespace GUI {
+IMToolbarItem::~IMToolbarItem()
+{
+    GLuint  id = (GLuint)(int64_t)texture_id;
+    if (id != 0)
+        glsafe(::glDeleteTextures(1, &id));
+}
+
 
 bool IMToolbarItem::generate_texture()
 {

@@ -27,7 +27,7 @@ public:
 
     bool selected{ false };
     float percent;
-    ImTextureID texture_id;
+    ImTextureID texture_id { 0 };
     GLTexture image_texture;
     SliceState slice_state;
 
@@ -36,6 +36,7 @@ public:
     unsigned int image_height;
 
     bool generate_texture();
+    ~IMToolbarItem();
 };
 
 class IMToolbar {

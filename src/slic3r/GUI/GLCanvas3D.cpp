@@ -1403,6 +1403,11 @@ void GLCanvas3D::remove_curr_plate_all()
     m_dirty = true;
 }
 
+void GLCanvas3D::update_plate_thumbnails()
+{
+    _update_imgui_select_plate_toolbar();
+}
+
 void GLCanvas3D::select_all()
 {
     m_selection.add_all();
@@ -4646,10 +4651,10 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
 
     for (GLVolume* vol : visible_volumes) {
         //BBS set render color for thumbnails
-        curr_color[0] = vol->render_color[0];
-        curr_color[1] = vol->render_color[1];
-        curr_color[2] = vol->render_color[2];
-        curr_color[3] = vol->render_color[3];
+        curr_color[0] = vol->color[0];
+        curr_color[1] = vol->color[1];
+        curr_color[2] = vol->color[2];
+        curr_color[3] = vol->color[3];
 
         shader->set_uniform("uniform_color", curr_color);
         //BBS set all volume to orange
