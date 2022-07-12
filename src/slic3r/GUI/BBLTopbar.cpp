@@ -483,35 +483,10 @@ void BBLTopbar::OnIconize(wxAuiToolBarEvent& event)
     m_frame->Iconize();
 }
 
-void BBLTopbar::OnRestore()
-{
-#ifdef __APPLE__
-    int screenheight = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y,NULL);
-    int screenwidth = wxSystemSettings::GetMetric(wxSYS_SCREEN_X,NULL);
-    auto cur_screen_size = wxSize{screenwidth, screenheight};
-    
-    if (m_size_unfull_on_macos == wxSize(-1,-1) || m_size_curr_screen != cur_screen_size){
-        m_size_curr_screen =cur_screen_size;
-        m_size_unfull_on_macos = cur_screen_size / 2;
-        m_size_unfull_on_macos.x += 200;
-    }
-    
-    if (m_pos_unfull_on_macos == wxPoint(-1,-1) || m_size_curr_screen != cur_screen_size){
-        m_pos_unfull_on_macos = wxPoint( (cur_screen_size.x - m_size_unfull_on_macos.x) /2 , (cur_screen_size.y - m_size_unfull_on_macos.y) /2 );
-    }
-    
-    m_frame->SetSize(m_size_unfull_on_macos);
-    m_frame->SetPosition(m_pos_unfull_on_macos);
-#else
-    m_frame->Restore();
-#endif
-}
-
 void BBLTopbar::OnFullScreen(wxAuiToolBarEvent& event)
 {
     if (m_frame->IsMaximized()) {
-        //m_frame->Restore();
-        OnRestore();
+        m_frame->Restore();
     }
     else {
         m_normalRect = m_frame->GetRect();
@@ -534,8 +509,7 @@ void BBLTopbar::OnMouseLeftDClock(wxMouseEvent& mouse)
     }
 
     if (m_frame->IsMaximized()) {
-        //m_frame->Restore();
-        OnRestore();
+        m_frame->Restore();
     }
     else {
         m_normalRect = m_frame->GetRect();
@@ -622,12 +596,10 @@ void BBLTopbar::OnMouseMotion(wxMouseEvent& event)
                 m_delta = mouse_pos - rect.GetLeftTop();
                 m_delta.x = m_delta.x * m_normalRect.width / rect.width;
                 m_delta.y = m_delta.y * m_normalRect.height / rect.height;
-                //m_frame->Restore();
-                OnRestore();
+                m_frame->Restore();
             }
         }
         m_frame->Move(mouse_pos - m_delta);
-        m_pos_unfull_on_macos = m_frame->GetPosition();
     }
     event.Skip();
 }

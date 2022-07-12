@@ -41,6 +41,7 @@
 #include "Preferences.hpp"
 #include "Widgets/ProgressDialog.hpp"
 #include "BindDialog.hpp"
+#include "../Utils/MacDarkMode.hpp"
 
 #include <fstream>
 #include <string_view>
@@ -154,6 +155,10 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     , m_settings_dialog(this)
     , diff_dialog(this)
 {
+#ifdef __WXOSX__
+    set_miniaturizable(GetHandle());
+#endif
+    
     //reset developer_mode to false  and user_mode to comAdvanced
     wxGetApp().app_config->set_bool("developer_mode", false);
     if (wxGetApp().app_config->get("user_mode") == "develop") {
