@@ -76,6 +76,10 @@ PresetComboBox::PresetComboBox(wxWindow* parent, Preset::Type preset_type, const
     m_em_unit(em_unit(this)),
     m_preset_bundle(preset_bundle ? preset_bundle : wxGetApp().preset_bundle)
 {
+#ifdef __WXMSW__
+    SetFont(Label::Body_13);
+#endif // __WXMSW__
+
     switch (m_type)
     {
     case Preset::TYPE_PRINT: {
