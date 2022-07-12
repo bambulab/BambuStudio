@@ -53,6 +53,7 @@ protected:
     wxBitmap m_bitmap_item_cost;
     wxBitmap m_bitmap_item_print;
     wxBitmap m_bitmap_speed;
+    wxBitmap m_bitmap_speed_active;
     wxBitmap m_bitmap_axis_home;
     wxBitmap m_bitmap_lamp_on;
     wxBitmap m_bitmap_lamp_off;

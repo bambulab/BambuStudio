@@ -164,6 +164,7 @@ void StatusBasePanel::init_bitmaps()
     m_bitmap_fan_on          = create_scaled_bitmap("monitor_fan_on", nullptr, 24);
     m_bitmap_fan_off         = create_scaled_bitmap("monitor_fan_off", nullptr, 24);
     m_bitmap_speed           = create_scaled_bitmap("monitor_speed", nullptr, 24);
+    m_bitmap_speed_active    = create_scaled_bitmap("monitor_speed_active", nullptr, 24);
     m_thumbnail_placeholder  = create_scaled_bitmap("monitor_placeholder", nullptr, 120);
     m_thumbnail_sdcard       = create_scaled_bitmap("monitor_sdcard_thumbnail", nullptr, 120);
     m_bitmap_camera          = create_scaled_bitmap("monitor_camera", nullptr, 18);
@@ -560,13 +561,13 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     wxBoxSizer *line_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     /* create speed control */
-    m_switch_speed = new ImageSwitchButton(parent, m_bitmap_speed, m_bitmap_speed, wxBORDER_NONE);
+    m_switch_speed = new ImageSwitchButton(parent, m_bitmap_speed_active, m_bitmap_speed, wxBORDER_NONE);
     m_switch_speed->SetLabels(_L("100%"), _L("100%"));
     m_switch_speed->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_speed->SetPadding(FromDIP(3));
     m_switch_speed->SetFont(Label::Head_13);
     m_switch_speed->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
-    // m_switch_speed->Hide();
+    m_switch_speed->SetValue(false);
 
     line_sizer->Add(m_switch_speed, 1, wxALIGN_CENTER | wxALL, 0);
 
@@ -634,6 +635,7 @@ void StatusBasePanel::reset_temp_misc_control()
 
     // reset misc control
     m_switch_speed->SetLabels(_L("100%"), _L("100%"));
+    m_switch_speed->SetValue(false);
     m_switch_lamp->SetLabels(_L("Lamp"), _L("Lamp"));
     m_switch_lamp->SetValue(false);
     m_switch_nozzle_fan->SetValue(false);
@@ -1102,6 +1104,7 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_staticText_z_tip->SetForegroundColour(DISCONNECT_TEXT_COL);
         m_staticText_e->SetForegroundColour(DISCONNECT_TEXT_COL);
         m_button_unload->Enable(false);
+        m_switch_speed->SetValue(false);
     } else {
         m_switch_speed->Enable();
         m_switch_lamp->Enable();
@@ -1118,6 +1121,7 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_staticText_z_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
         m_staticText_e->SetForegroundColour(TEXT_LIGHT_FONT_COL);
         m_button_unload->Enable();
+        m_switch_speed->SetValue(true);
     }
 
     if (!temp_area) {
@@ -1125,6 +1129,7 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_tempCtrl_bed->Enable(false);
         m_tempCtrl_frame->Enable(false);
         m_switch_speed->Enable(false);
+        m_switch_speed->SetValue(false);
         m_switch_lamp->Enable(false);
         m_switch_nozzle_fan->Enable(false);
         m_switch_printing_fan->Enable(false);
@@ -1133,6 +1138,7 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_tempCtrl_bed->Enable();
         m_tempCtrl_frame->Enable();
         m_switch_speed->Enable();
+        m_switch_speed->SetValue(true);
         m_switch_lamp->Enable();
         m_switch_nozzle_fan->Enable();
         m_switch_printing_fan->Enable();
