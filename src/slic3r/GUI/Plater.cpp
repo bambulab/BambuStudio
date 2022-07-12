@@ -5266,7 +5266,7 @@ void Plater::priv::on_action_export_sliced_file(SimpleEvent&)
 void Plater::priv::on_plate_selected(SimpleEvent&)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received plate selected event\n" ;
-    sidebar->obj_list()->on_plate_selected(partplate_list.get_curr_plate_index());
+    //sidebar->obj_list()->on_plate_selected(partplate_list.get_curr_plate_index());
 }
 
 void Plater::priv::on_action_request_model_id(wxCommandEvent& evt)
