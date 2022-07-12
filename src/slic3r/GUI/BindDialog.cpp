@@ -250,7 +250,8 @@ void BindMachineDilaog::on_dpi_changed(const wxRect &suggested_rect)
 
 void BindMachineDilaog::on_show(wxShowEvent &event)
 {
-    m_printer_name->SetLabelText(m_machine_info->get_printer_type_string());
+    //m_printer_name->SetLabelText(m_machine_info->get_printer_type_string());
+    m_printer_name->SetLabelText(from_u8(m_machine_info->dev_name));
     Layout();
 }
 
@@ -455,7 +456,8 @@ void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event)
 
 void UnBindMachineDilaog::on_show(wxShowEvent &event)
 {
-    m_printer_name->SetLabelText(m_machine_info->get_printer_type_string());
+    //m_printer_name->SetLabelText(m_machine_info->get_printer_type_string());
+    m_printer_name->SetLabelText(from_u8(m_machine_info->dev_name));
     Layout();
 }
 
