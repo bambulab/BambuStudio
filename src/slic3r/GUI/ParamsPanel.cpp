@@ -216,6 +216,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         //int width, height;
         // BBS: new layout
         m_mode_region = new SwitchButton(m_top_panel);
+        m_mode_region->SetMaxSize({em_unit(this) * 12, -1});
         m_mode_region->SetLabels(_L("Global"), _L("Objects"));
         //m_mode_region->GetSize(&width, &height);
         m_tips_arrow = new wxStaticBitmap(m_top_panel, wxID_ANY, m_tips_arrow_icon);
@@ -333,11 +334,11 @@ void ParamsPanel::create_layout()
         m_mode_sizer->Add( m_mode_view, 0, wxALIGN_CENTER );
         m_mode_sizer->AddSpacer(FromDIP(16));
         m_mode_sizer->Add( m_setting_btn, 0, wxALIGN_CENTER );
-        m_mode_sizer->AddSpacer(FromDIP(16));
 #if !BBL_RELEASE_TO_PUBLIC
-        m_mode_sizer->Add( m_compare_btn, 0, wxALIGN_CENTER );
         m_mode_sizer->AddSpacer(FromDIP(16));
+        m_mode_sizer->Add( m_compare_btn, 0, wxALIGN_CENTER );
 #endif
+        m_mode_sizer->AddSpacer(FromDIP(8));
         //m_mode_sizer->Add( m_search_btn, 0, wxALIGN_CENTER );
         //m_mode_sizer->AddSpacer(16);
         m_mode_sizer->SetMinSize(-1, FromDIP(30));

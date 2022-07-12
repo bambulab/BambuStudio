@@ -149,7 +149,7 @@ static wxSize split_lines(wxDC &dc, int width, const wxString &text, wxString &m
                 multiline_text[idx] = '\n';
                 start = idx + 1;
             }
-        } while (dc.GetTextExtent(multiline_text.Mid(start)).x > width);
+        } while (start > 0 && dc.GetTextExtent(multiline_text.Mid(start)).x > width);
     }
     return dc.GetMultiLineTextExtent(multiline_text.IsEmpty() ? text : multiline_text);
 }

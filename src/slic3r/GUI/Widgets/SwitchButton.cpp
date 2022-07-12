@@ -75,6 +75,11 @@ void SwitchButton::Rescale()
 			thumbSize.y += 2;
 			trackSize.x = thumbSize.x + size.x + 10;
 			trackSize.y = thumbSize.y + BS * 2;
+            auto maxWidth = GetMaxWidth();
+			if (trackSize.x > maxWidth) {
+                thumbSize.x -= (trackSize.x - maxWidth) / 2;
+                trackSize.x = maxWidth;
+			}
 		}
 		for (int i = 0; i < 2; ++i) {
 			wxMemoryDC memdc(&dc);
