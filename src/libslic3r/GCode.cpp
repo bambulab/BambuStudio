@@ -3561,8 +3561,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             throw Slic3r::InvalidArgument("Invalid speed");
         }
     }
-    //if (m_volumetric_speed != 0. && speed == 0)
-    //    speed = m_volumetric_speed / path.mm3_per_mm;
+    //BBS: if not set the speed, then use the filament_max_volumetric_speed directly
+    if (speed == 0)
+        speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm;
     if (this->on_first_layer()) {
         //BBS: for solid infill of initial layer, speed can be higher as long as
         //wall lines have be attached
