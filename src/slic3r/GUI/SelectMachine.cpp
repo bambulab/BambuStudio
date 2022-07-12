@@ -1424,6 +1424,9 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     m_print_job->m_access_code = obj_->access_code;
     m_print_job->connection_type = obj_->connection_type();
     m_print_job->task_ams_mapping = ams_mapping_array;
+    if (obj_->is_only_support_cloud_print()) {
+        m_print_job->cloud_print_only = true;
+    }
 
     m_print_job->set_print_config(
         MachineBedTypeString[0],

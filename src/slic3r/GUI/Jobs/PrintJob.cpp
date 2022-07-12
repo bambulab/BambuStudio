@@ -132,7 +132,7 @@ void PrintJob::process()
                                 } else {
                                     msg = sending_over_cloud_str;
                                 }
-                                msg += wxString::Format("%s(%s)", msg, info);
+                                msg += wxString::Format("(%s)", info);
                             }
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageWaiting) {
@@ -178,7 +178,7 @@ void PrintJob::process()
     NetworkAgent* m_agent = wxGetApp().getAgent();
 
     if (params.connection_type != "lan") {
-        if (!params.password.empty() && !params.dev_ip.empty()) {
+        if (!cloud_print_only && !params.password.empty() && !params.dev_ip.empty()) {
             // try to send local with record
             BOOST_LOG_TRIVIAL(trace) << "try to start local print with record";
             this->update_status(curr_percent, _L("Sending print job over LAN"));

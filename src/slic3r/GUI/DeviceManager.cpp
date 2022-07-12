@@ -478,6 +478,17 @@ bool MachineObject::is_need_upgrade_for_ams()
     return need_upgrade;
 }
 
+bool MachineObject::is_only_support_cloud_print()
+{
+    auto ap_ver_it = module_vers.find("rv1126");
+    if (ap_ver_it != module_vers.end()) {
+        if (ap_ver_it->second.sw_ver > "00.00.12.61") {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool MachineObject::is_compatible_ams_version(std::string module, std::string version)
 {
     bool result = true;
@@ -1132,7 +1143,7 @@ int MachineObject::command_ams_filament_settings(int ams_id, int tray_id, std::s
     j["print"]["command"] = "ams_filament_setting";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["ams_id"]      = ams_id;
-    j["print"]["tray_id"]     = ams_id * 4 + tray_id;
+    j["print"]["tray_id"]     = tray_id;
     j["print"]["tray_info_idx"] = setting_id;
     // format "FFFFFFFF"   RGBA
     j["print"]["tray_color"]    = tray_color;

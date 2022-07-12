@@ -83,22 +83,22 @@ void BindJob::process()
         [this, &curr_percent, &msg](int stage, int code, std::string info) {
             if (stage == BBL::BindJobStage::LoginStageConnect) {
                 curr_percent = 15;
-                msg = waiting_auth_str;
+                msg = _L("Logging in");
             } else if (stage == BBL::BindJobStage::LoginStageLogin) {
                 curr_percent = 30;
-                msg = waiting_auth_str;
+                msg = _L("Logging in");
             } else if (stage == BBL::BindJobStage::LoginStageWaitForLogin) {
                 curr_percent = 45;
-                msg = waiting_auth_str;
+                msg = _L("Logging in");
             } else if (stage == BBL::BindJobStage::LoginStageGetIdentify) {
                 curr_percent = 60;
-                msg = waiting_auth_str;
+                msg = _L("Logging in");
             } else if (stage == BBL::BindJobStage::LoginStageWaitAuth) {
                 curr_percent = 80;
-                msg = waiting_auth_str;
+                msg = _L("Logging in");
             } else if (stage == BBL::BindJobStage::LoginStageFinished) {
                 curr_percent = 100;
-                msg = waiting_auth_str;
+                msg = _L("Logging in");
             }
             if (code != 0) {
                 msg = login_failed_str + wxString::Format("(code=%d,info=%s)", code, info);
