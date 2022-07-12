@@ -69,8 +69,8 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
     for (iter = vlist.begin(); iter != vlist.end(); iter++) { combobox->Append(*iter); }
 
 
-    auto index = app_config->get(param);
-    if (!index.empty()) { combobox->SetSelection(atoi(index.c_str())); }
+    auto use_inch = app_config->get(param);
+    if (!use_inch.empty()) { combobox->SetSelection(atoi(use_inch.c_str())); }
 
     m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
 
@@ -651,7 +651,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto                  item_region= create_item_region_combobox(_L("Login Region"), page, _L("Login Region"), Regions);
 
     std::vector<wxString> Units         = {_L("Metric"), _L("Imperial")};
-    auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "units", Units);
+    auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "use_inches", Units);
 
     auto title_sync_settings = create_item_title(_L("User sync"), page, _L("User sync"));
     auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("User Sync"), 50, "sync_user_preset");

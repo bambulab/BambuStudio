@@ -118,8 +118,8 @@ void AppConfig::set_defaults()
             set("use_environment_map", false);
 #endif // ENABLE_ENVIRONMENT_MAP
 
-        if (get("use_inches").empty())
-            set_bool("use_inches", false);
+        if (get("use_inches").empty()) 
+            set("use_inches", "0");
     }
     else {
 #ifdef _WIN32
