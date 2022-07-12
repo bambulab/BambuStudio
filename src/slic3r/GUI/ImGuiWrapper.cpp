@@ -176,6 +176,7 @@ bool get_data_from_svg(const std::string &filename, unsigned int max_size_px, Th
 bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const ImS32 v_max, ImS32* out_value, ImRect* out_handle, ImGuiSliderFlags flags/* = 0*/, const int fixed_value/* = -1*/, const ImVec4& fixed_rect/* = ImRect()*/)
 {
     ImGuiContext& context = *GImGui;
+    ImGuiIO& io = ImGui::GetIO();
 
     const ImGuiAxis axis = (flags & ImGuiSliderFlags_Vertical) ? ImGuiAxis_Y : ImGuiAxis_X;
 
@@ -190,7 +191,21 @@ bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const 
     bool value_changed = false;
     // wheel behavior
     if (ImGui::ItemHoverable(region, id)) {
-        v_new = ImClamp(*out_value + (ImS32)(context.IO.MouseWheel), v_min, v_max);
+#ifdef __APPLE__
+        if (io.KeyShift) 
+            v_new = ImClamp(*out_value - 5 * (ImS32) (context.IO.MouseWheel), v_min, v_max);
+        else if (io.KeyCtrl)
+            v_new = ImClamp(*out_value + 5 * (ImS32) (context.IO.MouseWheel), v_min, v_max);
+        else {
+            v_new = ImClamp(*out_value + (ImS32) (context.IO.MouseWheel), v_min, v_max);
+        }
+#else
+        if (io.KeyCtrl || io.KeyShift)
+            v_new = ImClamp(*out_value + 5 * (ImS32) (context.IO.MouseWheel), v_min, v_max);
+        else {
+            v_new = ImClamp(*out_value + (ImS32) (context.IO.MouseWheel), v_min, v_max);
+        }
+#endif
     }
     // drag behavior
         if (context.ActiveId == id)

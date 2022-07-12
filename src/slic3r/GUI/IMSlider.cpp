@@ -1214,7 +1214,6 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         ImGui::RenderFrame(text_rect.Min, text_rect.Max, white_bg, false, 2.0f);
         ImGui::RenderText(text_start + text_padding, higher_label.c_str());
     }
-
     return value_changed;
 }
 

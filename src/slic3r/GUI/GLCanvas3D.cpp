@@ -2742,30 +2742,40 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     //case WXK_NUMPAD_PAGEDOWN: case WXK_PAGEDOWN: { do_rotate(-0.25 * M_PI); break; }
                     //default: { break; }
                     //}
-                }
-                else if (!m_gizmos.is_enabled()) {
+                } else if (!m_gizmos.is_enabled()) {
                     // DoubleSlider navigation in Preview
-                    if (keyCode == WXK_LEFT ||
-                        keyCode == WXK_RIGHT ||
-                        keyCode == WXK_UP ||
-                        keyCode == WXK_DOWN) {
-                        if (m_canvas_type == CanvasPreview) {
+                    if (m_canvas_type == CanvasPreview) {
+                        IMSlider *m_layers_slider = get_gcode_viewer().get_layers_slider();
+                        IMSlider *m_moves_slider  = get_gcode_viewer().get_moves_slider();
+                        if (evt.CmdDown() || evt.ShiftDown()) {
                             IMSlider *m_layers_slider = get_gcode_viewer().get_layers_slider();
                             IMSlider *m_moves_slider  = get_gcode_viewer().get_moves_slider();
                             if (keyCode == WXK_UP || keyCode == WXK_DOWN) {
-                                const int new_pos = keyCode == WXK_UP ? m_layers_slider->GetHigherValue() + 1 : m_layers_slider->GetHigherValue() - 1;
+                                const int new_pos = keyCode == WXK_UP ? m_layers_slider->GetHigherValue() + 5 : m_layers_slider->GetHigherValue() - 5;
                                 m_layers_slider->SetHigherValue(new_pos);
                                 if (m_layers_slider->is_one_layer()) m_layers_slider->SetLowerValue(m_layers_slider->GetHigherValue());
                                 // BBS set as dirty, update in render_gcode()
                                 m_layers_slider->set_as_dirty();
                             } else if (keyCode == WXK_LEFT || keyCode == WXK_RIGHT) {
-                                const int new_pos = keyCode == WXK_RIGHT ? m_moves_slider->GetHigherValue() + 1 : m_moves_slider->GetHigherValue() - 1;
+                                const int new_pos = keyCode == WXK_RIGHT ? m_moves_slider->GetHigherValue() + 5 : m_moves_slider->GetHigherValue() - 5;
                                 m_moves_slider->SetHigherValue(new_pos);
                                 // BBS set as dirty, update in render_gcode()
                                 m_moves_slider->set_as_dirty();
                             }
-                            m_dirty = true;
                         }
+                        else if (keyCode == WXK_UP || keyCode == WXK_DOWN) {
+                            const int new_pos = keyCode == WXK_UP ? m_layers_slider->GetHigherValue() + 1 : m_layers_slider->GetHigherValue() - 1;
+                            m_layers_slider->SetHigherValue(new_pos);
+                            if (m_layers_slider->is_one_layer()) m_layers_slider->SetLowerValue(m_layers_slider->GetHigherValue());
+                            // BBS set as dirty, update in render_gcode()
+                            m_layers_slider->set_as_dirty();
+                        } else if (keyCode == WXK_LEFT || keyCode == WXK_RIGHT) {
+                            const int new_pos = keyCode == WXK_RIGHT ? m_moves_slider->GetHigherValue() + 1 : m_moves_slider->GetHigherValue() - 1;
+                            m_moves_slider->SetHigherValue(new_pos);
+                            // BBS set as dirty, update in render_gcode()
+                            m_moves_slider->set_as_dirty();
+                        }
+                        m_dirty = true;
                     }
                 }
             }
