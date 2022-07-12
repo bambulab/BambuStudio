@@ -733,21 +733,23 @@ void MainFrame::init_tabpanel()
         //wxString page_text = m_tabpanel->GetPageText(sel);
         m_last_selected_tab = m_tabpanel->GetSelection();
         if (panel == m_plater) {
-            if (sel == tp3DEditor) {
+            if (m_with_3dEditor && (sel == tp3DEditor)) {
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
                 m_param_panel->OnActivate();
             }
-            else if (sel == tpPreview) {
+            else if ((m_with_3dEditor&&(sel == tpPreview))
+                || (!m_with_3dEditor&&(sel == tp3DEditor))){
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW));
+                m_param_panel->OnActivate();
             }
         }
-        else if (panel == m_param_panel)
-            m_param_panel->OnActivate();
+        //else if (panel == m_param_panel)
+        //    m_param_panel->OnActivate();
         else if (panel == m_monitor) {
             //monitor
         }
 
-        if (sel == tp3DEditor) {
+        if (m_with_3dEditor && (sel == tp3DEditor)) {
             m_topbar->EnableUndoRedoItems();
         }
         else {
@@ -2182,7 +2184,7 @@ void MainFrame::select_tab(wxPanel* panel)
 //BBS
 void MainFrame::jump_to_monitor(std::string dev_id)
 {
-    m_tabpanel->SetSelection(tpMonitor);
+    m_tabpanel->SetSelection(m_with_3dEditor? tpMonitor:(tpMonitor-1));
     ((MonitorPanel*)m_monitor)->select_machine(dev_id);
 }
 
@@ -2221,10 +2223,42 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
     select(false);
 }
 
+void MainFrame::enable_tab(size_t tab, bool enabled)
+{
+    if (tab != tp3DEditor)
+        //currently only support 3dEditor
+        return;
+
+    if ((enabled && m_with_3dEditor) || (!enabled && !m_with_3dEditor))
+        //already done
+        return;
+
+    Freeze();
+    if (enabled) {
+        int sel = m_tabpanel->GetSelection();
+        m_tabpanel->InsertPage(tab, m_plater, _L("Prepare"), std::string("tab_3d_active"), std::string("tab_3d_active"));
+        if (sel >= tab)
+            m_tabpanel->SetSelection(sel + 1);
+    }
+    else {
+        int sel = m_tabpanel->GetSelection();
+        m_tabpanel->RemovePage(tab);
+        if (sel >= tab)
+            m_tabpanel->SetSelection(sel - 1);
+    }
+    m_with_3dEditor = enabled;
+    m_plater->Show();
+    m_tabpanel->Show();
+    Thaw();
+}
+
 void MainFrame::request_select_tab(TabPosition pos)
 {
+    int position = pos;
+    if ((!m_with_3dEditor)&&(pos >= tpPreview))
+        position = (int)pos -1;
     wxCommandEvent* evt = new wxCommandEvent(EVT_SELECT_TAB);
-    evt->SetInt(pos);
+    evt->SetInt(position);
     wxQueueEvent(this, evt);
 }
 

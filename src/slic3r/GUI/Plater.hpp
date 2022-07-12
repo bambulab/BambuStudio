@@ -220,6 +220,10 @@ public:
     bool only_gcode_mode() { return m_only_gcode; }
     void set_only_gcode(bool only_gcode) { m_only_gcode = only_gcode; }
 
+    //BBS: add only gcode mode
+    bool using_exported_file() { return m_exported_file; }
+    void set_using_exported_file(bool exported_file) { m_exported_file = exported_file; }
+
     // BBS
     wxString get_project_name();
     void update_platplate_thumbnails();
@@ -639,6 +643,8 @@ private:
     wxString m_last_loaded_gcode;
     //BBS: add only gcode mode
     bool m_only_gcode { false };
+    bool m_exported_file { false };
+    int m_valid_plates_count { 0 };
 
     void suppress_snapshots();
     void allow_snapshots();

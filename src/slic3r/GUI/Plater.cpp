@@ -2461,6 +2461,10 @@ void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
 {
     if (name == "3D") {
         BOOST_LOG_TRIVIAL(info) << "select view3D";
+        if (q->only_gcode_mode() || q->using_exported_file()) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": can not goto preview page when loading gcode/exported_3mf");
+            return;
+        }
         set_current_panel(view3D, no_slice);
     }
     else if (name == "Preview") {
@@ -3023,24 +3027,33 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     if (new_model) delete new_model;
 
     //BBS: add gcode loading logic in the end
+    q->m_exported_file = false;
     if (load_model && load_config) {
         if (model.objects.empty()) {
             partplate_list.load_gcode_files();
-            PartPlate * first_plate = nullptr;
+            PartPlate * first_plate = nullptr, *cur_plate = nullptr;
             int plate_cnt = partplate_list.get_plate_count();
-            int index = 0;
+            int index = 0, first_plate_index = 0;
+            q->m_valid_plates_count = 0;
             for (index = 0; index < plate_cnt; index ++)
             {
-                first_plate = partplate_list.get_plate(index);
-                if (first_plate->is_slice_result_valid())
-                    break;
+                cur_plate = partplate_list.get_plate(index);
+                if (!first_plate && cur_plate->is_slice_result_valid()) {
+                    first_plate = cur_plate;
+                    first_plate_index = index;
+                }
+                if (cur_plate->is_slice_result_valid())
+                    q->m_valid_plates_count ++;
             }
-            if (first_plate->is_slice_result_valid()) {
+            if (first_plate&&first_plate->is_slice_result_valid()) {
+                q->m_exported_file = true;
                 //select plate 0 as default
-                q->select_plate(index);
+                q->select_plate(first_plate_index);
                 //set to 3d tab
                 q->select_view_3D("Preview");
                 wxGetApp().mainframe->select_tab(MainFrame::tpPreview);
+                wxTheApp->CallAfter([]() { wxGetApp().mainframe->enable_tab(MainFrame::tp3DEditor, false);});
+                notification_manager->bbl_show_plateinfo_notification(into_u8(_L("Preview only mode:\nThe loaded file contains gcode only.")));
             }
             else {
                 //set to 3d tab
@@ -4492,6 +4505,9 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
     //BBS: add the collapse logic
     if (current_panel == preview && q->only_gcode_mode()) {
         this->sidebar->collapse(true);
+        preview->get_canvas3d()->enable_select_plate_toolbar(false);
+    }
+    else if (current_panel == preview && q->using_exported_file() && (q->m_valid_plates_count <= 1)) {
         preview->get_canvas3d()->enable_select_plate_toolbar(false);
     }
     else {
@@ -6351,6 +6367,8 @@ int Plater::new_project(bool skip_confirm, bool silent)
 
     //BBS: add only gcode mode
     m_only_gcode = false;
+    m_exported_file = false;
+    wxGetApp().mainframe->enable_tab(MainFrame::tp3DEditor);
     get_notification_manager()->bbl_close_plateinfo_notification();
 
     if (!silent)
@@ -6413,6 +6431,8 @@ void Plater::load_project(wxString const& filename2,
 
     //BBS: add only gcode mode
     m_only_gcode = false;
+    m_exported_file = false;
+    wxGetApp().mainframe->enable_tab(MainFrame::tp3DEditor);
     get_notification_manager()->bbl_close_plateinfo_notification();
 
     wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
@@ -6448,8 +6468,10 @@ void Plater::load_project(wxString const& filename2,
 
     // BBS set default 3D view and direction after loading project
     //p->select_view_3D("3D");
-    p->select_view("topfront");
-    p->camera.requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
+    if (!m_exported_file) {
+        p->select_view("topfront");
+        p->camera.requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
+    }
 
     wxGetApp().app_config->update_last_backup_dir(model().get_backup_path());
     if (load_restore && !originfile.empty()) {

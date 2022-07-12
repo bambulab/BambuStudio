@@ -85,6 +85,7 @@ protected:
 class MainFrame : public DPIFrame
 {
     bool        m_loaded {false};
+    bool        m_with_3dEditor { true };
 
     wxString    m_qs_last_input_file = wxEmptyString;
     wxString    m_qs_last_output_file = wxEmptyString;
@@ -202,7 +203,8 @@ public:
         //tpSettings = 1,
         tpPreview = 2,
         tpMonitor = 3,
-        toDebugTool = 4,
+        tpProject = 4,
+        toDebugTool = 5,
     };
 
     //BBS: add slice&&print status update logic
@@ -278,6 +280,7 @@ public:
     // Select tab in m_tabpanel
     // When tab == -1, will be selected last selected tab
     //BBS: GUI refactor
+    void        enable_tab(size_t tab, bool enabled = true);
     void        select_tab(wxPanel* panel);
     void        select_tab(size_t tab = size_t(-1));
     void        request_select_tab(TabPosition pos);
