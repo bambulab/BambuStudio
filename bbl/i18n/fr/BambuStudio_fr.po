@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-11 16:24+0800\n"
+"POT-Creation-Date: 2022-07-12 09:41+0800\n"
 "Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -463,6 +463,11 @@ msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr ""
 
 msgid "Login information expired. Please login again."
+msgstr ""
+
+msgid ""
+"The version of Bambu studio is too low and needs to be updated to the latest "
+"version before it can be used normally"
 msgstr ""
 
 msgid "This is the newest version."
@@ -1133,6 +1138,17 @@ msgstr ""
 msgid "Cloud service connection failed. Please try again."
 msgstr ""
 
+msgid "Print file not found, please slice again"
+msgstr ""
+
+msgid ""
+"The print file exceeds the maximum allowable size (1GB). Please simplify the "
+"model and slice again"
+msgstr ""
+
+msgid "Failed uploading print file"
+msgstr ""
+
 msgid "Sending print job over LAN"
 msgstr ""
 
@@ -1474,52 +1490,52 @@ msgid ""
 "No  - reset density to default non 100% value automaticlly\n"
 msgstr ""
 
-msgid "The bed is auto leveling"
+msgid "Auto bed leveling"
 msgstr ""
 
-msgid "The hot bed is preheating"
+msgid "Heatbed preheating"
 msgstr ""
 
-msgid "Frequncy sweeping"
+msgid "Sweeping XY mech mode"
 msgstr ""
 
-msgid "Change the filament"
+msgid "Changing filament"
 msgstr ""
 
-msgid "Pause(M400)"
+msgid "M400 pause"
 msgstr ""
 
-msgid "Pause(Lack of filament)"
+msgid "Paused due to filament runout"
 msgstr ""
 
-msgid "The nozzle is preheating"
+msgid "Heating hotend"
 msgstr ""
 
-msgid "Extruder compensation scanning"
+msgid "Calibrating extrusion"
 msgstr ""
 
-msgid "Bed surface scanning"
+msgid "Scanning bed surface"
 msgstr ""
 
-msgid "First layer scanning"
+msgid "Inspecting first layer"
 msgstr ""
 
-msgid "Bed surface is auto identifying"
+msgid "Identifying build plate type"
 msgstr ""
 
-msgid "In the calibration of extrinsic parameters"
+msgid "Calibrating Micro Lidar"
 msgstr ""
 
-msgid "The tool head is homing"
+msgid "Homing toolhead"
 msgstr ""
 
-msgid "Nozzle cleaning"
+msgid "Cleaning nozzle tip"
 msgstr ""
 
-msgid "In the calibration of temperature protection"
+msgid "Checking extruder temperature"
 msgstr ""
 
-msgid "Pause(user)"
+msgid "User pause"
 msgstr ""
 
 msgid "Pause(toolhead shell off)"
@@ -1529,6 +1545,12 @@ msgid "In the calibration of laser scanner"
 msgstr ""
 
 msgid "In the calibration of extrusion flow"
+msgstr ""
+
+msgid "Pause(hotend temperature error)"
+msgstr ""
+
+msgid "Pause(heated bed temperature error)"
 msgstr ""
 
 msgid "MC"
@@ -2151,12 +2173,6 @@ msgstr ""
 msgid "Use Orthogonal View"
 msgstr ""
 
-msgid "Show Edges(TODO)"
-msgstr ""
-
-msgid "Show Edges"
-msgstr ""
-
 msgid "Preferences"
 msgstr "Préférences"
 
@@ -2284,7 +2300,7 @@ msgstr ""
 msgid "Resume"
 msgstr ""
 
-msgid "Silent Mode"
+msgid "Silent"
 msgstr ""
 
 msgid "Standard"
@@ -3080,6 +3096,9 @@ msgstr ""
 msgid "Input access code"
 msgstr ""
 
+msgid "Busy"
+msgstr ""
+
 msgid "Bambu Cool Plate"
 msgstr ""
 
@@ -3110,7 +3129,7 @@ msgstr ""
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr ""
 
-msgid "Not connected to the server, connecting"
+msgid "Connecting to server"
 msgstr ""
 
 msgid "Synchronizing device information"
@@ -3376,9 +3395,6 @@ msgstr ""
 
 msgid "Normal"
 msgstr "Normal"
-
-msgid "Silent"
-msgstr ""
 
 msgid "Speed limitation"
 msgstr ""
@@ -4297,6 +4313,14 @@ msgstr ""
 msgid ""
 "Decrease this value slightly(for example 0.9) to reduce the amount of "
 "material for bridge, to improve sag"
+msgstr ""
+
+msgid "Only one wall on top surfaces"
+msgstr ""
+
+msgid ""
+"Use only one wall on flat top surface, to give more space to the top infill "
+"pattern"
 msgstr ""
 
 msgid "Slow down for overhang"
@@ -10995,8 +11019,8 @@ msgstr ""
 #~ msgstr "Données avancées détectées"
 
 #~ msgid ""
-#~ "You can't to add the object(s) from %s because of one or some of them "
-#~ "is(are) multi-part"
+#~ "You can't to add the object(s) from %s because of one or some of them is"
+#~ "(are) multi-part"
 #~ msgstr ""
 #~ "Vous ne pouvez pas ajouter l'objet (les objets) depuis %s car l'un "
 #~ "d'entre eux est en plusieurs parties"
@@ -13700,8 +13724,8 @@ msgstr ""
 #~ "default extruder and bed temperature are reset using non-wait command; "
 #~ "however if M104, M109, M140 or M190 are detected in this custom code, "
 #~ "Slic3r will not add temperature commands. Note that you can use "
-#~ "placeholder variables for all Slic3r settings, so you can put a \"M109 "
-#~ "S[first_layer_temperature]\" command wherever you want."
+#~ "placeholder variables for all Slic3r settings, so you can put a \"M109 S"
+#~ "[first_layer_temperature]\" command wherever you want."
 #~ msgstr ""
 #~ "Ce code est inséré entre des objets lorsque vous utilisez l'impression "
 #~ "séquentielle. Par défaut la température de l'extrudeur et du plateau est "
@@ -13709,8 +13733,8 @@ msgstr ""
 #~ "commandes M104, M109, M140 ou M190 sont détectées dans ce code "
 #~ "personnalisé, Slic3r n'ajoutera pas de commandes de température. Notez "
 #~ "que vous pouvez utiliser des variables génériques pour tous les réglages "
-#~ "de Slic3r, donc vous pouvez entrer une commande "
-#~ "\"M109S[first_layer_temperature]\" où vous le souhaitez."
+#~ "de Slic3r, donc vous pouvez entrer une commande \"M109S"
+#~ "[first_layer_temperature]\" où vous le souhaitez."
 
 #~ msgid ""
 #~ "The number of bottom solid layers is increased above bottom_solid_layers "
@@ -14420,8 +14444,8 @@ msgstr ""
 #~ msgid ""
 #~ "This experimental setting uses outputs the E values in cubic millimeters "
 #~ "instead of linear millimeters. If your firmware doesn't already know "
-#~ "filament diameter(s), you can put commands like 'M200 "
-#~ "D[filament_diameter_0] T0' in your start G-code in order to turn "
+#~ "filament diameter(s), you can put commands like 'M200 D"
+#~ "[filament_diameter_0] T0' in your start G-code in order to turn "
 #~ "volumetric mode on and use the filament diameter associated to the "
 #~ "filament selected in Slic3r. This is only supported in recent Marlin."
 #~ msgstr ""
@@ -16038,8 +16062,8 @@ msgstr ""
 #~ "This custom code is inserted before every toolchange. Placeholder "
 #~ "variables for all PrusaSlicer settings as well as {toolchange_z}, "
 #~ "{previous_extruder} and {next_extruder} can be used. When a tool-changing "
-#~ "command which changes to the correct extruder is included (such as "
-#~ "T{next_extruder}), PrusaSlicer will emit no other such command. It is "
+#~ "command which changes to the correct extruder is included (such as T"
+#~ "{next_extruder}), PrusaSlicer will emit no other such command. It is "
 #~ "therefore possible to script custom behaviour both before and after the "
 #~ "toolchange."
 #~ msgstr ""

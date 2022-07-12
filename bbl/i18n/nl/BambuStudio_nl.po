@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-11 16:24+0800\n"
+"POT-Creation-Date: 2022-07-12 09:41+0800\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -479,6 +479,11 @@ msgstr "Kies een bestand (.gcode/.gco/.g/.ngc/ngc):"
 
 msgid "Login information expired. Please login again."
 msgstr "Uw inlog is verlopen. Log alstublieft opnieuw in."
+
+msgid ""
+"The version of Bambu studio is too low and needs to be updated to the latest "
+"version before it can be used normally"
+msgstr ""
 
 msgid "This is the newest version."
 msgstr "Dit is de nieuwste versie."
@@ -1191,6 +1196,17 @@ msgstr ""
 msgid "Cloud service connection failed. Please try again."
 msgstr ""
 
+msgid "Print file not found, please slice again"
+msgstr ""
+
+msgid ""
+"The print file exceeds the maximum allowable size (1GB). Please simplify the "
+"model and slice again"
+msgstr ""
+
+msgid "Failed uploading print file"
+msgstr ""
+
 msgid "Sending print job over LAN"
 msgstr ""
 
@@ -1593,52 +1609,52 @@ msgstr ""
 "Ja - Automatisch overschakelen naar zigzagpatroon\n"
 "Nee - Reset vulling automatisch naar de standaard niet-100% waarde\n"
 
-msgid "The bed is auto leveling"
-msgstr "Het printbed wordt automatisch afgesteld"
+msgid "Auto bed leveling"
+msgstr ""
 
-msgid "The hot bed is preheating"
-msgstr "Het printbed wordt opgewarmd"
+msgid "Heatbed preheating"
+msgstr ""
 
-msgid "Frequncy sweeping"
-msgstr "Frequentie scannen"
+msgid "Sweeping XY mech mode"
+msgstr ""
 
-msgid "Change the filament"
-msgstr "Wijzig het filament"
+msgid "Changing filament"
+msgstr ""
 
-msgid "Pause(M400)"
-msgstr "Pauze(M400)"
+msgid "M400 pause"
+msgstr ""
 
-msgid "Pause(Lack of filament)"
-msgstr "Pauze (het filament is op)"
+msgid "Paused due to filament runout"
+msgstr ""
 
-msgid "The nozzle is preheating"
-msgstr "De nozzle wordt opgewarmd"
+msgid "Heating hotend"
+msgstr ""
 
-msgid "Extruder compensation scanning"
-msgstr "De compensatie voor de extruder wordt gescand"
+msgid "Calibrating extrusion"
+msgstr ""
 
-msgid "Bed surface scanning"
-msgstr "Het printbed oppervlak wordt gescand"
+msgid "Scanning bed surface"
+msgstr ""
 
-msgid "First layer scanning"
-msgstr "De eerste laag wordt gescand"
+msgid "Inspecting first layer"
+msgstr ""
 
-msgid "Bed surface is auto identifying"
-msgstr "Het type printbed wordt automatisch geidentificeerd"
+msgid "Identifying build plate type"
+msgstr ""
 
-msgid "In the calibration of extrinsic parameters"
-msgstr "Bij de kalibratie van de extrinsieke parameters"
+msgid "Calibrating Micro Lidar"
+msgstr ""
 
-msgid "The tool head is homing"
-msgstr "De printkop beweegt naar de start positie"
+msgid "Homing toolhead"
+msgstr ""
 
-msgid "Nozzle cleaning"
-msgstr "De nozzle wordt schoongemaakt"
+msgid "Cleaning nozzle tip"
+msgstr ""
 
-msgid "In the calibration of temperature protection"
-msgstr "De temperatuurbeveiliging wordt gecalibreerd"
+msgid "Checking extruder temperature"
+msgstr ""
 
-msgid "Pause(user)"
+msgid "User pause"
 msgstr ""
 
 msgid "Pause(toolhead shell off)"
@@ -1648,6 +1664,12 @@ msgid "In the calibration of laser scanner"
 msgstr ""
 
 msgid "In the calibration of extrusion flow"
+msgstr ""
+
+msgid "Pause(hotend temperature error)"
+msgstr ""
+
+msgid "Pause(heated bed temperature error)"
 msgstr ""
 
 msgid "MC"
@@ -2276,12 +2298,6 @@ msgstr "Perspectiefweergave gebruiken"
 msgid "Use Orthogonal View"
 msgstr "Orthogonale weergave gebruiken"
 
-msgid "Show Edges(TODO)"
-msgstr "Toon randen (TODO)"
-
-msgid "Show Edges"
-msgstr "Toon randen"
-
 msgid "Preferences"
 msgstr "Voorkeuren"
 
@@ -2409,8 +2425,8 @@ msgstr "Print lijst"
 msgid "Resume"
 msgstr "Hervatten"
 
-msgid "Silent Mode"
-msgstr "Stille modus"
+msgid "Silent"
+msgstr "Stille"
 
 msgid "Standard"
 msgstr "Standaard"
@@ -3260,6 +3276,9 @@ msgstr "Ander apparaat"
 msgid "Input access code"
 msgstr ""
 
+msgid "Busy"
+msgstr ""
+
 msgid "Bambu Cool Plate"
 msgstr "Bambu Cool (koude) Plate"
 
@@ -3290,7 +3309,7 @@ msgstr "Versturen gelukt"
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr ""
 
-msgid "Not connected to the server, connecting"
+msgid "Connecting to server"
 msgstr ""
 
 msgid "Synchronizing device information"
@@ -3577,9 +3596,6 @@ msgstr "Bewegingsvermogen"
 
 msgid "Normal"
 msgstr "Normaal"
-
-msgid "Silent"
-msgstr "Stille"
 
 msgid "Speed limitation"
 msgstr "Snelheids limiet"
@@ -4600,6 +4616,14 @@ msgid ""
 msgstr ""
 "Verlaag deze waarde iets (bijvoorbeeld 0,9) om de hoeveelheid materiaal voor "
 "bruggen te verminderen, dit om doorzakken te voorkomen."
+
+msgid "Only one wall on top surfaces"
+msgstr ""
+
+msgid ""
+"Use only one wall on flat top surface, to give more space to the top infill "
+"pattern"
+msgstr ""
 
 msgid "Slow down for overhang"
 msgstr "Afremmen voor overhangende delen"
@@ -6277,6 +6301,60 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid "The bed is auto leveling"
+#~ msgstr "Het printbed wordt automatisch afgesteld"
+
+#~ msgid "The hot bed is preheating"
+#~ msgstr "Het printbed wordt opgewarmd"
+
+#~ msgid "Frequncy sweeping"
+#~ msgstr "Frequentie scannen"
+
+#~ msgid "Change the filament"
+#~ msgstr "Wijzig het filament"
+
+#~ msgid "Pause(M400)"
+#~ msgstr "Pauze(M400)"
+
+#~ msgid "Pause(Lack of filament)"
+#~ msgstr "Pauze (het filament is op)"
+
+#~ msgid "The nozzle is preheating"
+#~ msgstr "De nozzle wordt opgewarmd"
+
+#~ msgid "Extruder compensation scanning"
+#~ msgstr "De compensatie voor de extruder wordt gescand"
+
+#~ msgid "Bed surface scanning"
+#~ msgstr "Het printbed oppervlak wordt gescand"
+
+#~ msgid "First layer scanning"
+#~ msgstr "De eerste laag wordt gescand"
+
+#~ msgid "Bed surface is auto identifying"
+#~ msgstr "Het type printbed wordt automatisch geidentificeerd"
+
+#~ msgid "In the calibration of extrinsic parameters"
+#~ msgstr "Bij de kalibratie van de extrinsieke parameters"
+
+#~ msgid "The tool head is homing"
+#~ msgstr "De printkop beweegt naar de start positie"
+
+#~ msgid "Nozzle cleaning"
+#~ msgstr "De nozzle wordt schoongemaakt"
+
+#~ msgid "In the calibration of temperature protection"
+#~ msgstr "De temperatuurbeveiliging wordt gecalibreerd"
+
+#~ msgid "Silent Mode"
+#~ msgstr "Stille modus"
+
+#~ msgid "Show Edges(TODO)"
+#~ msgstr "Toon randen (TODO)"
+
+#~ msgid "Show Edges"
+#~ msgstr "Toon randen"
 
 #~ msgid "Associate .step files to BambuStudio"
 #~ msgstr "Koppel .step-bestanden aan BambuStudio"

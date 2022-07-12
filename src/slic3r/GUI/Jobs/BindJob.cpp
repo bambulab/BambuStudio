@@ -101,7 +101,7 @@ void BindJob::process()
                 msg = waiting_auth_str;
             }
             if (code != 0) {
-                msg = wxString::Format("%s,code=%d,info=%s)", msg, code, info);
+                msg = login_failed_str + wxString::Format("(code=%d,info=%s)", code, info);
             }
             update_status(curr_percent, msg);
         }

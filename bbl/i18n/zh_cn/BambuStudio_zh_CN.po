@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-11 16:24+0800\n"
-"PO-Revision-Date: 2022-07-10 18:40+0800\n"
+"POT-Creation-Date: 2022-07-12 09:41+0800\n"
+"PO-Revision-Date: 2022-07-12 09:50+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -474,6 +474,11 @@ msgstr "选择一个文件（gcode/.gco/.g/.ngc/ngc）："
 
 msgid "Login information expired. Please login again."
 msgstr "登录信息过期。请重新登录。"
+
+msgid ""
+"The version of Bambu studio is too low and needs to be updated to the latest "
+"version before it can be used normally"
+msgstr "Bambu Studio版本过低，需要更新到最新版本方可正常使用"
 
 msgid "This is the newest version."
 msgstr "已经是最新版本。"
@@ -1126,7 +1131,7 @@ msgid "User authorization timeout"
 msgstr ""
 
 msgid "Failure of bind"
-msgstr ""
+msgstr "设备登录失败"
 
 msgid "Unknown Failure"
 msgstr "发生错误"
@@ -1135,13 +1140,24 @@ msgid "Abnormal print file data. Please slice again"
 msgstr "打印文件数据异常，请重新切片"
 
 msgid "Task canceled"
-msgstr ""
+msgstr "任务已取消"
 
 msgid "Upload task timed out. Please check the network problem and try again"
-msgstr ""
+msgstr "上传任务超时，请排查网络问题后重试"
 
 msgid "Cloud service connection failed. Please try again."
-msgstr ""
+msgstr "云服务连接失败，请重试"
+
+msgid "Print file not found, please slice again"
+msgstr "未找到打印文件，请重新切片"
+
+msgid ""
+"The print file exceeds the maximum allowable size (1GB). Please simplify the "
+"model and slice again"
+msgstr "打印文件超过最大允许大小（1GB），请简化模型后重新切片"
+
+msgid "Failed uploading print file"
+msgstr "打印任务上传失败"
 
 msgid "Sending print job over LAN"
 msgstr "正在通过局域网发送打印任务"
@@ -1527,62 +1543,68 @@ msgstr ""
 "是 - 自动切换到锯齿图案\n"
 "否 - 自动重置为非100%填充密度\n"
 
-msgid "The bed is auto leveling"
-msgstr "热床正在自动调平"
+msgid "Auto bed leveling"
+msgstr "自动热床调平"
 
-msgid "The hot bed is preheating"
-msgstr "热床正在预加热"
+msgid "Heatbed preheating"
+msgstr "预加热热床"
 
-msgid "Frequncy sweeping"
-msgstr "机器正在进行扫频"
+msgid "Sweeping XY mech mode"
+msgstr "扫描XY轴机械模态"
 
-msgid "Change the filament"
-msgstr "更改材料"
+msgid "Changing filament"
+msgstr "换料"
 
-msgid "Pause(M400)"
-msgstr "暂停（M400）"
+msgid "M400 pause"
+msgstr "M400暂停"
 
-msgid "Pause(Lack of filament)"
-msgstr "缺料暂停"
+msgid "Paused due to filament runout"
+msgstr "断料暂停"
 
-msgid "The nozzle is preheating"
-msgstr "喷头正在预加热"
+msgid "Heating hotend"
+msgstr "加热热端"
 
-msgid "Extruder compensation scanning"
-msgstr "正在进行挤出补偿扫描"
+msgid "Calibrating extrusion"
+msgstr "标定挤出补偿"
 
-msgid "Bed surface scanning"
-msgstr "正在进行热床表面扫描"
+msgid "Scanning bed surface"
+msgstr "扫描热床"
 
-msgid "First layer scanning"
-msgstr "正在进行首层扫描"
+msgid "Inspecting first layer"
+msgstr "扫描首层"
 
-msgid "Bed surface is auto identifying"
-msgstr ""
+msgid "Identifying build plate type"
+msgstr "识别构建板类型"
 
-msgid "In the calibration of extrinsic parameters"
-msgstr "轮廓仪外参标定中"
+msgid "Calibrating Micro Lidar"
+msgstr "标定轮廓仪外参"
 
-msgid "The tool head is homing"
-msgstr ""
+msgid "Homing toolhead"
+msgstr "工具头回到起始点"
 
-msgid "Nozzle cleaning"
-msgstr ""
+msgid "Cleaning nozzle tip"
+msgstr "清理喷嘴头"
 
-msgid "In the calibration of temperature protection"
-msgstr "挤出头温度保护标定"
+msgid "Checking extruder temperature"
+msgstr "检查挤出温度"
 
-msgid "Pause(user)"
-msgstr ""
+msgid "User pause"
+msgstr "用户暂停"
 
 msgid "Pause(toolhead shell off)"
-msgstr ""
+msgstr "工具头前盖掉落暂停"
 
 msgid "In the calibration of laser scanner"
-msgstr ""
+msgstr "轮廓仪激光标定"
 
 msgid "In the calibration of extrusion flow"
-msgstr ""
+msgstr "挤出绝对流量标定"
+
+msgid "Pause(hotend temperature error)"
+msgstr "热端温控异常暂停"
+
+msgid "Pause(heated bed temperature error)"
+msgstr "热床温控异常暂停"
 
 msgid "MC"
 msgstr ""
@@ -2214,12 +2236,6 @@ msgstr "使用透视视角"
 msgid "Use Orthogonal View"
 msgstr "使用正交视角"
 
-msgid "Show Edges(TODO)"
-msgstr "显示模型边缘"
-
-msgid "Show Edges"
-msgstr "显示模型边缘"
-
 msgid "Preferences"
 msgstr "偏好设置"
 
@@ -2352,8 +2368,8 @@ msgstr "项目切片"
 msgid "Resume"
 msgstr "继续"
 
-msgid "Silent Mode"
-msgstr "静音模式"
+msgid "Silent"
+msgstr "静音"
 
 msgid "Standard"
 msgstr "标准"
@@ -2890,10 +2906,10 @@ msgid "User sync"
 msgstr "用户同步"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
-msgstr ""
+msgstr "同步用户预设（打印机/耗材丝/工艺）"
 
 msgid "User Sync"
-msgstr ""
+msgstr "用户同步"
 
 msgid "Associate files to BambuStudio"
 msgstr "Bambu Studio文件关联"
@@ -3150,6 +3166,9 @@ msgstr "其他设备"
 msgid "Input access code"
 msgstr "输入访问码"
 
+msgid "Busy"
+msgstr ""
+
 msgid "Bambu Cool Plate"
 msgstr "低温打印热床"
 
@@ -3178,16 +3197,16 @@ msgid "send completed"
 msgstr "发送完成"
 
 msgid "No login account, only printers in LAN mode are displayed"
-msgstr ""
+msgstr "未登录账号，仅显示局域网模式的打印机"
 
-msgid "Not connected to the server, connecting"
-msgstr ""
+msgid "Connecting to server"
+msgstr "正在连接服务器..."
 
 msgid "Synchronizing device information"
 msgstr "正在同步设备信息"
 
 msgid "Synchronizing device information time out"
-msgstr ""
+msgstr "同步设备信息超时，请重试"
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "设备升级中，无法发送打印任务"
@@ -3214,7 +3233,7 @@ msgstr ""
 msgid ""
 "Please click each filament above to specify its mapping AMS slot before "
 "sending the print job"
-msgstr ""
+msgstr "请在发送打印前点击上方各个耗材丝，指定其所对应的AMS槽位"
 
 msgid "Preparing print job"
 msgstr "正在准备打印任务"
@@ -3454,9 +3473,6 @@ msgstr "移动能力"
 msgid "Normal"
 msgstr "普通"
 
-msgid "Silent"
-msgstr "静音"
-
 msgid "Speed limitation"
 msgstr "速度限制"
 
@@ -3607,7 +3623,7 @@ msgid "The name \"%1%\" already exists."
 msgstr "名字\"%1%\"已经存在。"
 
 msgid "Basic Info"
-msgstr ""
+msgstr "基本信息"
 
 msgid "Pictures"
 msgstr "图片"
@@ -4398,6 +4414,14 @@ msgid ""
 "Decrease this value slightly(for example 0.9) to reduce the amount of "
 "material for bridge, to improve sag"
 msgstr "稍微减小这个数值（比如0.9）可以减小桥接的材料量，来改善下垂。"
+
+msgid "Only one wall on top surfaces"
+msgstr ""
+
+msgid ""
+"Use only one wall on flat top surface, to give more space to the top infill "
+"pattern"
+msgstr ""
 
 msgid "Slow down for overhang"
 msgstr "悬垂降速"
@@ -5892,6 +5916,57 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Pause(hotend temperature error"
+#~ msgstr "热端温控异常暂停"
+
+#~ msgid "Pause(heated bed temperature error"
+#~ msgstr "热床温控异常暂停"
+
+#~ msgid "The bed is auto leveling"
+#~ msgstr "热床正在自动调平"
+
+#~ msgid "The hot bed is preheating"
+#~ msgstr "热床正在预加热"
+
+#~ msgid "Frequncy sweeping"
+#~ msgstr "机器正在进行扫频"
+
+#~ msgid "Change the filament"
+#~ msgstr "更改材料"
+
+#~ msgid "Pause(M400)"
+#~ msgstr "暂停（M400）"
+
+#~ msgid "Pause(Lack of filament)"
+#~ msgstr "缺料暂停"
+
+#~ msgid "The nozzle is preheating"
+#~ msgstr "喷头正在预加热"
+
+#~ msgid "Extruder compensation scanning"
+#~ msgstr "正在进行挤出补偿扫描"
+
+#~ msgid "Bed surface scanning"
+#~ msgstr "正在进行热床表面扫描"
+
+#~ msgid "First layer scanning"
+#~ msgstr "正在进行首层扫描"
+
+#~ msgid "In the calibration of extrinsic parameters"
+#~ msgstr "轮廓仪外参标定中"
+
+#~ msgid "In the calibration of temperature protection"
+#~ msgstr "挤出头温度保护标定"
+
+#~ msgid "Silent Mode"
+#~ msgstr "静音模式"
+
+#~ msgid "Show Edges(TODO)"
+#~ msgstr "显示模型边缘"
+
+#~ msgid "Show Edges"
+#~ msgstr "显示模型边缘"
 
 #~ msgid "Associate .step files to BambuStudio"
 #~ msgstr "使用Bambu Studio打开.step文件"

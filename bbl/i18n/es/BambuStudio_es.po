@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-11 16:24+0800\n"
+"POT-Creation-Date: 2022-07-12 09:41+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -486,6 +486,11 @@ msgstr "Elija un archivo (gcode/.gco/.g/.ngc/ngc):"
 
 msgid "Login information expired. Please login again."
 msgstr "Los datos de acceso han caducado. Por favor, inicie sesión de nuevo."
+
+msgid ""
+"The version of Bambu studio is too low and needs to be updated to the latest "
+"version before it can be used normally"
+msgstr ""
 
 msgid "This is the newest version."
 msgstr "Esta es la versión más reciente."
@@ -1188,6 +1193,17 @@ msgstr ""
 msgid "Cloud service connection failed. Please try again."
 msgstr ""
 
+msgid "Print file not found, please slice again"
+msgstr ""
+
+msgid ""
+"The print file exceeds the maximum allowable size (1GB). Please simplify the "
+"model and slice again"
+msgstr ""
+
+msgid "Failed uploading print file"
+msgstr ""
+
 msgid "Sending print job over LAN"
 msgstr ""
 
@@ -1594,52 +1610,52 @@ msgstr ""
 "No - restablecer automáticamente la densidad al valor por defecto que no es "
 "del 100%.\n"
 
-msgid "The bed is auto leveling"
-msgstr "La cama es autonivelante"
+msgid "Auto bed leveling"
+msgstr ""
 
-msgid "The hot bed is preheating"
-msgstr "La cama caliente se está precalentando"
+msgid "Heatbed preheating"
+msgstr ""
 
-msgid "Frequncy sweeping"
-msgstr "Frecuencia de barrido"
+msgid "Sweeping XY mech mode"
+msgstr ""
 
-msgid "Change the filament"
-msgstr "Cambiar el filamento"
+msgid "Changing filament"
+msgstr ""
 
-msgid "Pause(M400)"
-msgstr "Pausa(M400)"
+msgid "M400 pause"
+msgstr ""
 
-msgid "Pause(Lack of filament)"
-msgstr "Pausa(Falta de filamento)"
+msgid "Paused due to filament runout"
+msgstr ""
 
-msgid "The nozzle is preheating"
-msgstr "La boquilla se está precalentando"
+msgid "Heating hotend"
+msgstr ""
 
-msgid "Extruder compensation scanning"
-msgstr "Escaneo de compensación del extrusor"
+msgid "Calibrating extrusion"
+msgstr ""
 
-msgid "Bed surface scanning"
-msgstr "Exploración de la superficie de la cama"
+msgid "Scanning bed surface"
+msgstr ""
 
-msgid "First layer scanning"
-msgstr "Escaneo de la primera capa"
+msgid "Inspecting first layer"
+msgstr ""
 
-msgid "Bed surface is auto identifying"
-msgstr "La superficie de la cama es autoidentificable"
+msgid "Identifying build plate type"
+msgstr ""
 
-msgid "In the calibration of extrinsic parameters"
-msgstr "En la calibración de los parámetros extrínsecos"
+msgid "Calibrating Micro Lidar"
+msgstr ""
 
-msgid "The tool head is homing"
-msgstr "El cabezal de la herramienta se orienta"
+msgid "Homing toolhead"
+msgstr ""
 
-msgid "Nozzle cleaning"
-msgstr "Limpieza de boquilla"
+msgid "Cleaning nozzle tip"
+msgstr ""
 
-msgid "In the calibration of temperature protection"
-msgstr "En la calibración de la protección de la temperatura"
+msgid "Checking extruder temperature"
+msgstr ""
 
-msgid "Pause(user)"
+msgid "User pause"
 msgstr ""
 
 msgid "Pause(toolhead shell off)"
@@ -1649,6 +1665,12 @@ msgid "In the calibration of laser scanner"
 msgstr ""
 
 msgid "In the calibration of extrusion flow"
+msgstr ""
+
+msgid "Pause(hotend temperature error)"
+msgstr ""
+
+msgid "Pause(heated bed temperature error)"
 msgstr ""
 
 msgid "MC"
@@ -2277,12 +2299,6 @@ msgstr "Utilizar vista en perspectiva"
 msgid "Use Orthogonal View"
 msgstr "Utilizar Vista Ortogonal"
 
-msgid "Show Edges(TODO)"
-msgstr "Mostrar bordes(TODO)"
-
-msgid "Show Edges"
-msgstr "Mostrar bordes"
-
 msgid "Preferences"
 msgstr "Preferencias"
 
@@ -2410,8 +2426,8 @@ msgstr "Imprimiendo Lista"
 msgid "Resume"
 msgstr "Reanudar"
 
-msgid "Silent Mode"
-msgstr "Modo Silencioso"
+msgid "Silent"
+msgstr "Silencio"
 
 msgid "Standard"
 msgstr "Estándar"
@@ -3247,6 +3263,9 @@ msgstr "Otro dispositivo"
 msgid "Input access code"
 msgstr ""
 
+msgid "Busy"
+msgstr ""
+
 msgid "Bambu Cool Plate"
 msgstr "Placa frío Bambu"
 
@@ -3277,7 +3296,7 @@ msgstr "envío completo"
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr ""
 
-msgid "Not connected to the server, connecting"
+msgid "Connecting to server"
 msgstr ""
 
 msgid "Synchronizing device information"
@@ -3565,9 +3584,6 @@ msgstr "Capacidad de movimiento"
 
 msgid "Normal"
 msgstr "Normal"
-
-msgid "Silent"
-msgstr "Silencio"
 
 msgid "Speed limitation"
 msgstr "Limitación de velocidad"
@@ -4578,6 +4594,14 @@ msgid ""
 msgstr ""
 "Disminuya este valor ligeramente (por ejemplo 0,9) para reducir la cantidad "
 "de material para el puente, para mejorar el hundimiento"
+
+msgid "Only one wall on top surfaces"
+msgstr ""
+
+msgid ""
+"Use only one wall on flat top surface, to give more space to the top infill "
+"pattern"
+msgstr ""
 
 msgid "Slow down for overhang"
 msgstr "Disminución de velocidad de voladizo"
@@ -6234,6 +6258,60 @@ msgstr "Soporte: arreglar huecos en la capa %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Soporte: propagar ramas en la capa %d"
+
+#~ msgid "The bed is auto leveling"
+#~ msgstr "La cama es autonivelante"
+
+#~ msgid "The hot bed is preheating"
+#~ msgstr "La cama caliente se está precalentando"
+
+#~ msgid "Frequncy sweeping"
+#~ msgstr "Frecuencia de barrido"
+
+#~ msgid "Change the filament"
+#~ msgstr "Cambiar el filamento"
+
+#~ msgid "Pause(M400)"
+#~ msgstr "Pausa(M400)"
+
+#~ msgid "Pause(Lack of filament)"
+#~ msgstr "Pausa(Falta de filamento)"
+
+#~ msgid "The nozzle is preheating"
+#~ msgstr "La boquilla se está precalentando"
+
+#~ msgid "Extruder compensation scanning"
+#~ msgstr "Escaneo de compensación del extrusor"
+
+#~ msgid "Bed surface scanning"
+#~ msgstr "Exploración de la superficie de la cama"
+
+#~ msgid "First layer scanning"
+#~ msgstr "Escaneo de la primera capa"
+
+#~ msgid "Bed surface is auto identifying"
+#~ msgstr "La superficie de la cama es autoidentificable"
+
+#~ msgid "In the calibration of extrinsic parameters"
+#~ msgstr "En la calibración de los parámetros extrínsecos"
+
+#~ msgid "The tool head is homing"
+#~ msgstr "El cabezal de la herramienta se orienta"
+
+#~ msgid "Nozzle cleaning"
+#~ msgstr "Limpieza de boquilla"
+
+#~ msgid "In the calibration of temperature protection"
+#~ msgstr "En la calibración de la protección de la temperatura"
+
+#~ msgid "Silent Mode"
+#~ msgstr "Modo Silencioso"
+
+#~ msgid "Show Edges(TODO)"
+#~ msgstr "Mostrar bordes(TODO)"
+
+#~ msgid "Show Edges"
+#~ msgstr "Mostrar bordes"
 
 #~ msgid "Associate .step files to BambuStudio"
 #~ msgstr "Asociar archivos .step a BambuStudio"
@@ -11817,8 +11895,8 @@ msgstr "Soporte: propagar ramas en la capa %d"
 #~ msgstr "Datos avanzados detectados"
 
 #~ msgid ""
-#~ "You can't to add the object(s) from %s because of one or some of them "
-#~ "is(are) multi-part"
+#~ "You can't to add the object(s) from %s because of one or some of them is"
+#~ "(are) multi-part"
 #~ msgstr ""
 #~ "No puede agregar el(los) objeto(s) desde % s porque uno o algunos de "
 #~ "ellos son de varias piezas"
@@ -14481,8 +14559,8 @@ msgstr "Soporte: propagar ramas en la capa %d"
 #~ "default extruder and bed temperature are reset using non-wait command; "
 #~ "however if M104, M109, M140 or M190 are detected in this custom code, "
 #~ "Slic3r will not add temperature commands. Note that you can use "
-#~ "placeholder variables for all Slic3r settings, so you can put a \"M109 "
-#~ "S[first_layer_temperature]\" command wherever you want."
+#~ "placeholder variables for all Slic3r settings, so you can put a \"M109 S"
+#~ "[first_layer_temperature]\" command wherever you want."
 #~ msgstr ""
 #~ "Este código se inserta entre los objetos cuando se utiliza la impresión "
 #~ "secuencial. Por defecto, el extrusor y la temperatura de la cama se "
@@ -15195,8 +15273,8 @@ msgstr "Soporte: propagar ramas en la capa %d"
 #~ msgid ""
 #~ "This experimental setting uses outputs the E values in cubic millimeters "
 #~ "instead of linear millimeters. If your firmware doesn't already know "
-#~ "filament diameter(s), you can put commands like 'M200 "
-#~ "D[filament_diameter_0] T0' in your start G-code in order to turn "
+#~ "filament diameter(s), you can put commands like 'M200 D"
+#~ "[filament_diameter_0] T0' in your start G-code in order to turn "
 #~ "volumetric mode on and use the filament diameter associated to the "
 #~ "filament selected in Slic3r. This is only supported in recent Marlin."
 #~ msgstr ""
@@ -15375,8 +15453,8 @@ msgstr "Soporte: propagar ramas en la capa %d"
 #~ "Detect unconnected parts in the given model(s) and split them into "
 #~ "separate objects."
 #~ msgstr ""
-#~ "Detectadas piezas desconectadas en el(los) modelo(s) dado(s) y "
-#~ "divídido(s) en objetos separados."
+#~ "Detectadas piezas desconectadas en el(los) modelo(s) dado(s) y divídido"
+#~ "(s) en objetos separados."
 
 #~ msgid "Scale to Fit"
 #~ msgstr "Escalar para Adaptarse"
@@ -16779,8 +16857,8 @@ msgstr "Soporte: propagar ramas en la capa %d"
 #~ "This custom code is inserted before every toolchange. Placeholder "
 #~ "variables for all PrusaSlicer settings as well as {toolchange_z}, "
 #~ "{previous_extruder} and {next_extruder} can be used. When a tool-changing "
-#~ "command which changes to the correct extruder is included (such as "
-#~ "T{next_extruder}), PrusaSlicer will emit no other such command. It is "
+#~ "command which changes to the correct extruder is included (such as T"
+#~ "{next_extruder}), PrusaSlicer will emit no other such command. It is "
 #~ "therefore possible to script custom behaviour both before and after the "
 #~ "toolchange."
 #~ msgstr ""

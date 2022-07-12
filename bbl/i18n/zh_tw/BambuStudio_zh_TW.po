@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-11 16:24+0800\n"
+"POT-Creation-Date: 2022-07-12 09:41+0800\n"
 "PO-Revision-Date: 2022-03-12 17:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com> , patched traditional "
 "chinese by Cheng-Hsien Ho <taksito@gmail.com>\n"
@@ -470,6 +470,11 @@ msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr ""
 
 msgid "Login information expired. Please login again."
+msgstr ""
+
+msgid ""
+"The version of Bambu studio is too low and needs to be updated to the latest "
+"version before it can be used normally"
 msgstr ""
 
 msgid "This is the newest version."
@@ -1132,6 +1137,17 @@ msgstr ""
 msgid "Cloud service connection failed. Please try again."
 msgstr ""
 
+msgid "Print file not found, please slice again"
+msgstr ""
+
+msgid ""
+"The print file exceeds the maximum allowable size (1GB). Please simplify the "
+"model and slice again"
+msgstr ""
+
+msgid "Failed uploading print file"
+msgstr ""
+
 msgid "Sending print job over LAN"
 msgstr ""
 
@@ -1465,52 +1481,52 @@ msgid ""
 "No  - reset density to default non 100% value automaticlly\n"
 msgstr ""
 
-msgid "The bed is auto leveling"
+msgid "Auto bed leveling"
 msgstr ""
 
-msgid "The hot bed is preheating"
+msgid "Heatbed preheating"
 msgstr ""
 
-msgid "Frequncy sweeping"
+msgid "Sweeping XY mech mode"
 msgstr ""
 
-msgid "Change the filament"
+msgid "Changing filament"
 msgstr ""
 
-msgid "Pause(M400)"
+msgid "M400 pause"
 msgstr ""
 
-msgid "Pause(Lack of filament)"
+msgid "Paused due to filament runout"
 msgstr ""
 
-msgid "The nozzle is preheating"
+msgid "Heating hotend"
 msgstr ""
 
-msgid "Extruder compensation scanning"
+msgid "Calibrating extrusion"
 msgstr ""
 
-msgid "Bed surface scanning"
+msgid "Scanning bed surface"
 msgstr ""
 
-msgid "First layer scanning"
+msgid "Inspecting first layer"
 msgstr ""
 
-msgid "Bed surface is auto identifying"
+msgid "Identifying build plate type"
 msgstr ""
 
-msgid "In the calibration of extrinsic parameters"
+msgid "Calibrating Micro Lidar"
 msgstr ""
 
-msgid "The tool head is homing"
+msgid "Homing toolhead"
 msgstr ""
 
-msgid "Nozzle cleaning"
+msgid "Cleaning nozzle tip"
 msgstr ""
 
-msgid "In the calibration of temperature protection"
+msgid "Checking extruder temperature"
 msgstr ""
 
-msgid "Pause(user)"
+msgid "User pause"
 msgstr ""
 
 msgid "Pause(toolhead shell off)"
@@ -1520,6 +1536,12 @@ msgid "In the calibration of laser scanner"
 msgstr ""
 
 msgid "In the calibration of extrusion flow"
+msgstr ""
+
+msgid "Pause(hotend temperature error)"
+msgstr ""
+
+msgid "Pause(heated bed temperature error)"
 msgstr ""
 
 msgid "MC"
@@ -2142,12 +2164,6 @@ msgstr ""
 msgid "Use Orthogonal View"
 msgstr ""
 
-msgid "Show Edges(TODO)"
-msgstr ""
-
-msgid "Show Edges"
-msgstr ""
-
 msgid "Preferences"
 msgstr ""
 
@@ -2275,7 +2291,7 @@ msgstr ""
 msgid "Resume"
 msgstr ""
 
-msgid "Silent Mode"
+msgid "Silent"
 msgstr ""
 
 msgid "Standard"
@@ -3069,6 +3085,9 @@ msgstr ""
 msgid "Input access code"
 msgstr ""
 
+msgid "Busy"
+msgstr ""
+
 msgid "Bambu Cool Plate"
 msgstr ""
 
@@ -3099,7 +3118,7 @@ msgstr ""
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr ""
 
-msgid "Not connected to the server, connecting"
+msgid "Connecting to server"
 msgstr ""
 
 msgid "Synchronizing device information"
@@ -3363,9 +3382,6 @@ msgid "Motion ability"
 msgstr ""
 
 msgid "Normal"
-msgstr ""
-
-msgid "Silent"
 msgstr ""
 
 msgid "Speed limitation"
@@ -4282,6 +4298,14 @@ msgstr ""
 msgid ""
 "Decrease this value slightly(for example 0.9) to reduce the amount of "
 "material for bridge, to improve sag"
+msgstr ""
+
+msgid "Only one wall on top surfaces"
+msgstr ""
+
+msgid ""
+"Use only one wall on flat top surface, to give more space to the top infill "
+"pattern"
 msgstr ""
 
 msgid "Slow down for overhang"

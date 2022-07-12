@@ -56,43 +56,47 @@ wxString get_stage_string(int stage)
         //return _L("Printing");
         return "";
     case 1:
-        return _L("The bed is auto leveling");
+        return _L("Auto bed leveling");
     case 2:
-        return _L("The hot bed is preheating");
+        return _L("Heatbed preheating");
     case 3:
-        return _L("Frequncy sweeping");
+        return _L("Sweeping XY mech mode");
     case 4:
-        return _L("Change the filament");
+        return _L("Changing filament");
     case 5:
-        return _L("Pause(M400)");
+        return _L("M400 pause");
     case 6:
-        return _L("Pause(Lack of filament)");
+        return _L("Paused due to filament runout");
     case 7:
-        return _L("The nozzle is preheating");
+        return _L("Heating hotend");
     case 8:
-        return _L("Extruder compensation scanning");
+        return _L("Calibrating extrusion");
     case 9:
-        return _L("Bed surface scanning");
+        return _L("Scanning bed surface");
     case 10:
-        return _L("First layer scanning");
+        return _L("Inspecting first layer");
     case 11:
-        return _L("Bed surface is auto identifying");
+        return _L("Identifying build plate type");
     case 12:
-        return _L("In the calibration of extrinsic parameters");
+        return _L("Calibrating Micro Lidar");
     case 13:
-        return _L("The tool head is homing");
+        return _L("Homing toolhead");
     case 14:
-        return _L("Nozzle cleaning");
+        return _L("Cleaning nozzle tip");
     case 15:
-        return _L("In the calibration of temperature protection");
+        return _L("Checking extruder temperature");
     case 16:
-        return _L("Pause(user)");
+        return _L("User pause");
     case 17:
         return _L("Pause(toolhead shell off)");
     case 18:
         return _L("In the calibration of laser scanner");
     case 19:
         return _L("In the calibration of extrusion flow");
+    case 20:
+        return _L("Pause(hotend temperature error)");
+    case 21:
+        return _L("Pause(heated bed temperature error)");
     default:
         ;
     }

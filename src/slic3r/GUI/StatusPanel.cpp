@@ -1728,7 +1728,7 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
     auto em = em_unit(this);
     popUp->SetSize(em * 36, em * 8);
 
-    step->AppendItem(_L("Silent Mode"), "");
+    step->AppendItem(_L("Silent"), "");
     step->AppendItem(_L("Standard"), "");
     step->AppendItem(_L("Sport"), "");
     step->AppendItem(_L("Ludicrous"), "");

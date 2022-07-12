@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-11 16:24+0800\n"
+"POT-Creation-Date: 2022-07-12 09:41+0800\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -475,6 +475,11 @@ msgstr "Välj en fil (.gcode/.gco/.g/.ngc/ngc):"
 
 msgid "Login information expired. Please login again."
 msgstr "Inloggningsinformationen har löpt ut. Logga in igen."
+
+msgid ""
+"The version of Bambu studio is too low and needs to be updated to the latest "
+"version before it can be used normally"
+msgstr ""
 
 msgid "This is the newest version."
 msgstr "Det är den senaste versionen."
@@ -1174,6 +1179,17 @@ msgstr ""
 msgid "Cloud service connection failed. Please try again."
 msgstr ""
 
+msgid "Print file not found, please slice again"
+msgstr ""
+
+msgid ""
+"The print file exceeds the maximum allowable size (1GB). Please simplify the "
+"model and slice again"
+msgstr ""
+
+msgid "Failed uploading print file"
+msgstr ""
+
 msgid "Sending print job over LAN"
 msgstr ""
 
@@ -1567,52 +1583,52 @@ msgstr ""
 "JA - Byta till Zig-Zag mönster automatiskt\n"
 "NEJ  - Återställ densiteten till standard inte 100% värdet automatiskt\n"
 
-msgid "The bed is auto leveling"
-msgstr "Byggplattan auto justeras"
+msgid "Auto bed leveling"
+msgstr ""
 
-msgid "The hot bed is preheating"
-msgstr "Byggplattan förvärms"
+msgid "Heatbed preheating"
+msgstr ""
 
-msgid "Frequncy sweeping"
-msgstr "Frekvens svepning"
+msgid "Sweeping XY mech mode"
+msgstr ""
 
-msgid "Change the filament"
-msgstr "Byta filament"
+msgid "Changing filament"
+msgstr ""
 
-msgid "Pause(M400)"
-msgstr "Paus(M400)"
+msgid "M400 pause"
+msgstr ""
 
-msgid "Pause(Lack of filament)"
-msgstr "Paus(Filament saknas)"
+msgid "Paused due to filament runout"
+msgstr ""
 
-msgid "The nozzle is preheating"
-msgstr "Nozzeln förvärms"
+msgid "Heating hotend"
+msgstr ""
 
-msgid "Extruder compensation scanning"
-msgstr "Extruder skanning"
+msgid "Calibrating extrusion"
+msgstr ""
 
-msgid "Bed surface scanning"
-msgstr "Skanning av byggplattan"
+msgid "Scanning bed surface"
+msgstr ""
 
-msgid "First layer scanning"
-msgstr "Första lager skanning"
+msgid "Inspecting first layer"
+msgstr ""
 
-msgid "Bed surface is auto identifying"
-msgstr "Byggplattan auto identifieras"
+msgid "Identifying build plate type"
+msgstr ""
 
-msgid "In the calibration of extrinsic parameters"
-msgstr "Kalibrering av yttre parametrar"
+msgid "Calibrating Micro Lidar"
+msgstr ""
 
-msgid "The tool head is homing"
-msgstr "Nollställning av verktygshuvudet"
+msgid "Homing toolhead"
+msgstr ""
 
-msgid "Nozzle cleaning"
-msgstr "Nozzel rengöring"
+msgid "Cleaning nozzle tip"
+msgstr ""
 
-msgid "In the calibration of temperature protection"
-msgstr "Kalibrering av temperaturskydd"
+msgid "Checking extruder temperature"
+msgstr ""
 
-msgid "Pause(user)"
+msgid "User pause"
 msgstr ""
 
 msgid "Pause(toolhead shell off)"
@@ -1622,6 +1638,12 @@ msgid "In the calibration of laser scanner"
 msgstr ""
 
 msgid "In the calibration of extrusion flow"
+msgstr ""
+
+msgid "Pause(hotend temperature error)"
+msgstr ""
+
+msgid "Pause(heated bed temperature error)"
 msgstr ""
 
 msgid "MC"
@@ -2249,12 +2271,6 @@ msgstr "Använd Perspektiv Vy"
 msgid "Use Orthogonal View"
 msgstr "Använd Ortogonal Vy"
 
-msgid "Show Edges(TODO)"
-msgstr "Visa Kanter(TODO)"
-
-msgid "Show Edges"
-msgstr "Visa Kanter"
-
 msgid "Preferences"
 msgstr "Inställningar"
 
@@ -2382,8 +2398,8 @@ msgstr "Utskrifts Lista"
 msgid "Resume"
 msgstr "Återuppta"
 
-msgid "Silent Mode"
-msgstr "Tyst Läge"
+msgid "Silent"
+msgstr "Tyst"
 
 msgid "Standard"
 msgstr "Standard"
@@ -3194,6 +3210,9 @@ msgstr "Andra Enheter"
 msgid "Input access code"
 msgstr ""
 
+msgid "Busy"
+msgstr ""
+
 msgid "Bambu Cool Plate"
 msgstr "Bambu Cool Plate"
 
@@ -3224,7 +3243,7 @@ msgstr "Skicka komplett"
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr ""
 
-msgid "Not connected to the server, connecting"
+msgid "Connecting to server"
 msgstr ""
 
 msgid "Synchronizing device information"
@@ -3511,9 +3530,6 @@ msgstr "Rörelseförmåga"
 
 msgid "Normal"
 msgstr "Normal"
-
-msgid "Silent"
-msgstr "Tyst"
 
 msgid "Speed limitation"
 msgstr "Hastighets begränsning"
@@ -4500,6 +4516,14 @@ msgid ""
 msgstr ""
 "Minska detta värde något (tex 0.9) för att minska material åtgång för "
 "bridges/bryggor, detta för att förbättra kvaliteten"
+
+msgid "Only one wall on top surfaces"
+msgstr ""
+
+msgid ""
+"Use only one wall on flat top surface, to give more space to the top infill "
+"pattern"
+msgstr ""
 
 msgid "Slow down for overhang"
 msgstr "Sakta ner vid överhäng"
@@ -5695,8 +5719,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för "
-"lösligt(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
+"(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"
@@ -6115,6 +6139,60 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid "The bed is auto leveling"
+#~ msgstr "Byggplattan auto justeras"
+
+#~ msgid "The hot bed is preheating"
+#~ msgstr "Byggplattan förvärms"
+
+#~ msgid "Frequncy sweeping"
+#~ msgstr "Frekvens svepning"
+
+#~ msgid "Change the filament"
+#~ msgstr "Byta filament"
+
+#~ msgid "Pause(M400)"
+#~ msgstr "Paus(M400)"
+
+#~ msgid "Pause(Lack of filament)"
+#~ msgstr "Paus(Filament saknas)"
+
+#~ msgid "The nozzle is preheating"
+#~ msgstr "Nozzeln förvärms"
+
+#~ msgid "Extruder compensation scanning"
+#~ msgstr "Extruder skanning"
+
+#~ msgid "Bed surface scanning"
+#~ msgstr "Skanning av byggplattan"
+
+#~ msgid "First layer scanning"
+#~ msgstr "Första lager skanning"
+
+#~ msgid "Bed surface is auto identifying"
+#~ msgstr "Byggplattan auto identifieras"
+
+#~ msgid "In the calibration of extrinsic parameters"
+#~ msgstr "Kalibrering av yttre parametrar"
+
+#~ msgid "The tool head is homing"
+#~ msgstr "Nollställning av verktygshuvudet"
+
+#~ msgid "Nozzle cleaning"
+#~ msgstr "Nozzel rengöring"
+
+#~ msgid "In the calibration of temperature protection"
+#~ msgstr "Kalibrering av temperaturskydd"
+
+#~ msgid "Silent Mode"
+#~ msgstr "Tyst Läge"
+
+#~ msgid "Show Edges(TODO)"
+#~ msgstr "Visa Kanter(TODO)"
+
+#~ msgid "Show Edges"
+#~ msgstr "Visa Kanter"
 
 #~ msgid "Associate .step files to BambuStudio"
 #~ msgstr "Associerade .step files till Bambu Studio"
