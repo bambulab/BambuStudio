@@ -518,8 +518,8 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
 
 wxWindow *PreferencesDialog ::create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, int groupid, std::string param)
 {
-    wxWindow *item = new wxWindow(parent, wxID_ANY, wxDefaultPosition, wxSize(this->GetSize().GetWidth() - 126, 24));
-    item->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+    wxWindow *item = new wxWindow(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(28)));
+    item->SetBackgroundColour(*wxWHITE);
 
     RadioBox *radiobox = new RadioBox(item);
     radiobox->SetPosition(wxPoint(padding_left, (item->GetSize().GetHeight() - radiobox->GetSize().GetHeight()) / 2));
@@ -893,10 +893,10 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
     bSizer->Add(title_log_level, 0, wxTOP| wxEXPAND, FromDIP(20));
     bSizer->Add(loglevel_combox, 0, wxTOP, FromDIP(3));
     bSizer->Add(title_host, 0, wxTOP| wxEXPAND, FromDIP(20));
-    bSizer->Add(radio1, 0, wxTOP, FromDIP(3));
-    bSizer->Add(radio2, 0, wxTOP, FromDIP(3));
-    bSizer->Add(radio3, 0, wxTOP, FromDIP(3));
-    bSizer->Add(radio4, 0, wxTOP, FromDIP(3));
+    bSizer->Add(radio1, 0, wxEXPAND | wxTOP, FromDIP(3));
+    bSizer->Add(radio2, 0, wxEXPAND | wxTOP, FromDIP(3));
+    bSizer->Add(radio3, 0, wxEXPAND | wxTOP, FromDIP(3));
+    bSizer->Add(radio4, 0, wxEXPAND | wxTOP, FromDIP(3));
     bSizer->Add(debug_button, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(15));
     return bSizer;
 }
