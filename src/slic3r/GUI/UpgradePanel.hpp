@@ -28,14 +28,8 @@ public:
     ~AmsPanel();
 };
 
-class AmsPanelItem
-{
-public:
-    int       id;
-    AmsPanel *item;
-};
 
-WX_DECLARE_HASH_MAP(int, AmsPanelItem *, wxIntegerHash, wxIntegerEqual, AmsPanelHash);
+WX_DEFINE_ARRAY(AmsPanel*, AmsPanelHash);
 
 
 class MachineInfoPanel : public wxPanel
@@ -55,6 +49,8 @@ protected:
     wxStaticLine *  m_staticline;
     wxStaticBitmap *m_ams_img;
 
+   
+
     wxGridSizer *   m_ams_info_sizer;
 
     /* ams info */
@@ -73,6 +69,8 @@ protected:
     wxPanel* create_caption_panel(wxWindow *parent);
     AmsPanelHash     m_amspanel_list;
 
+    wxBitmap m_img_monitor_ams;
+    wxBitmap m_img_printer;
     wxBitmap upgrade_gray_icon;
     wxBitmap upgrade_green_icon;
     wxBitmap upgrade_yellow_icon;
