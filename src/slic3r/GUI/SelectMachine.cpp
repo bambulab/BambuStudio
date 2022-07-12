@@ -1101,6 +1101,8 @@ void SelectMachineDialog::finish_mode()
 
 bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
 {
+    if (!obj_) return false;
+
     // try color and type mapping
     int result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result);
     if (result == 0) {
@@ -1114,15 +1116,20 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
                 MaterialItem* m = item->item;
 
                 if (f->id == id) {
-                    wxString ams_id = "-";
-                    wxColour ams_col = wxColour(0xEE, 0xEE, 0xEE);
+                    wxString ams_id;
+                    wxColour ams_col;
 
-                    if (f->tray_id > 0) {
+                    if (f->tray_id >= 0) {
                         ams_id = wxString::Format("%02d", f->tray_id + 1);
+                    } else {
+                        ams_id = "-";
                     }
 
                     if (!f->color.empty()) {
                         ams_col = AmsTray::decode_color(f->color);
+                    } else {
+                        // default color
+                        ams_col = wxColour(0x6B, 0x6B, 0x6B);
                     }
 
                     m->set_ams_info(ams_col, ams_id);
@@ -1132,38 +1139,11 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
             }
         }
     }
-    else {
-        // tray to order mapping
-        result = 0;
-        for (int i = 0; i < m_filaments.size(); i++) {
-            //set
-            if (m_filaments[i].id >= 0 && m_filaments[i].id < m_ams_mapping_result.size()) {
-                m_ams_mapping_result[m_filaments[i].id].tray_id = i;
-                std::string ams_id = std::to_string(i / 4);
-                std::string tray_id = std::to_string(i % 4);
-                AmsTray* tray = obj_->get_ams_tray(ams_id, tray_id);
-                if (tray == nullptr) {
-                    result = -1;
-                    break;
-                }
-                if (m_filaments[i].type != tray->type) {
-                    result = -1;
-                    break;
-                }
-            }
-        }
-    }
-    // reset mapping result if partial ams mapping result
-    if (result < 0) {
-        for (int i = 0; i < m_ams_mapping_result.size(); i++) {
-            m_ams_mapping_result[i].tray_id = -1;
-        }
-    }
-    std::string mapping_array;
-    return check_ams_mapping_result(mapping_array);
+
+    return obj_->is_valid_mapping_result(m_ams_mapping_result);
 }
 
-bool SelectMachineDialog::check_ams_mapping_result(std::string &mapping_array_str)
+bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str)
 {
     if (m_ams_mapping_result.empty())
         return false;
@@ -1410,7 +1390,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
 
     // get ams_mapping_result
     std::string ams_mapping_array;
-    check_ams_mapping_result(ams_mapping_array);
+    get_ams_mapping_result(ams_mapping_array);
 
     result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool &cancel) {
         bool     cancelled = false;
@@ -1509,12 +1489,6 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
             }
             iter++;
         }
-    }
-
-    // check ams mapping result
-    std::string result_array;
-    if (!check_ams_mapping_result(result_array)) {
-        //disable send button
     }
 }
 
@@ -1626,14 +1600,18 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
     } else {
         /* check cloud machine connections */
         if (!obj_->is_lan_mode_printer()) {
-            if (!agent->is_server_connected()) {
-                agent->refresh_connection();
-                show_status(PrintDialogStatus::PrintStatusConnectingServer);
-            } else {
-                show_status(PrintDialogStatus::PrintStatusReading);
+            if (!obj_->is_info_ready()) {
+                if (!agent->is_server_connected()) {
+                    agent->refresh_connection();
+                    show_status(PrintDialogStatus::PrintStatusConnectingServer);
+                } else {
+                    show_status(PrintDialogStatus::PrintStatusReading);
+                }
             }
         } else {
-            show_status(PrintDialogStatus::PrintStatusReading);
+            if (obj_->is_info_ready()) {
+                show_status(PrintDialogStatus::PrintStatusReading);
+            }
         }
     }
 
@@ -1716,18 +1694,18 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
 
     // do ams mapping if no ams result
     if (m_ams_mapping_result.empty()) {
-        if (do_ams_mapping(obj_)) {
-            show_status(PrintDialogStatus::PrintStatusAmsMappingSuccess);
-            return;
-        }
+        do_ams_mapping(obj_);
     }
 
-    std::string ams_array;
-    ams_mapping_valid = check_ams_mapping_result(ams_array);
-    if (ams_mapping_valid) {
-        show_status(PrintDialogStatus::PrintStatusAmsMappingValid);
+    if (m_ams_mapping_res) {
+        show_status(PrintDialogStatus::PrintStatusAmsMappingSuccess);
+        return;
     } else {
-        show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
+        if (obj_->is_valid_mapping_result(m_ams_mapping_result)) {
+            show_status(PrintDialogStatus::PrintStatusAmsMappingValid);
+        } else {
+            show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
+        }
     }
 }
 
@@ -1735,6 +1713,8 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 {
     /* reset timeout and reading printer info */
     timeout_count      = 0;
+    m_ams_mapping_res  = false;
+    ams_mapping_valid  = false;
     m_ams_mapping_result.clear();
     
     // reading printer info

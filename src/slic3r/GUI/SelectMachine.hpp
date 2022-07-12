@@ -270,7 +270,8 @@ private:
 protected:
     MaterialHash  m_materialList;
     std::vector<FilamentInfo> m_filaments;
-    std::vector<FilamentInfo> m_ams_mapping_result;
+    std::vector<FilamentInfo> m_ams_mapping_result;     /* ams mapping data  */
+    bool m_ams_mapping_res { false };                   /* ams mapping result */
     bool ams_mapping_valid { false };
     Plater *      m_plater{nullptr};
     wxPanel *     m_line_top{nullptr};
@@ -337,7 +338,7 @@ public:
     void      finish_mode();
     
     bool      do_ams_mapping(MachineObject* obj_);
-    bool      check_ams_mapping_result(std::string &mapping_array_str);
+    bool      get_ams_mapping_result(std::string &mapping_array_str);
     void      prepare(int print_plate_idx);
 
     void      update_print_status_msg(wxString msg, bool is_warning = false);

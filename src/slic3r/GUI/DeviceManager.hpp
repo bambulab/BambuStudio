@@ -14,6 +14,8 @@
 #define USE_LOCAL_SOCKET_BIND 0
 
 #define DISCONNECT_TIMEOUT      10000.f     // milliseconds
+#define PUSHINFO_TIMEOUT        15000.f     // milliseconds
+#define REQUEST_PUSH_MIN_TIME    3000.f     // milliseconds
 
 #define FILAMENT_MAX_TEMP       300
 #define FILAMENT_DEF_TEMP       220
@@ -316,7 +318,10 @@ public:
     bool is_avaliable() { return bind_state == "free"; }
     time_t last_alive;
     bool m_is_online;
+    int  parse_msg_count = 0;
     std::chrono::system_clock::time_point   last_update_time;   /* last received print data from machine */
+    std::chrono::system_clock::time_point   last_push_time;     /* last received print push from machine */
+    std::chrono::system_clock::time_point   last_request_push;  /* last received print push from machine */
 
     /* ams properties */
     std::map<std::string, Ams*> amsList;    // key: ams[id], start with 0
@@ -346,6 +351,8 @@ public:
     static bool is_compatible_ams_version(std::string module, std::string version);
 
     int ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<int> exclude_id = std::vector<int>());
+    bool is_valid_mapping_result(std::vector<FilamentInfo>& result);
+    void reset_mapping_result(std::vector<FilamentInfo>& result);
 
 
     /* temperature */

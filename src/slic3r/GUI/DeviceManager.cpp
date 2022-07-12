@@ -665,6 +665,67 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
         }
     }
 
+    //check ams mapping result
+    if (is_valid_mapping_result(result)) {
+        return 0;
+    }
+
+    try {
+        //ordering mapping
+        std::vector<FilamentInfo> tray_info_list;
+        for (auto it = amsList.begin(); it != amsList.end(); it++) {
+            for (int i = 0; i < 4; i++) {
+                FilamentInfo info;
+                auto tray_it = it->second->trayList.find(std::to_string(i));
+                if (tray_it != it->second->trayList.end()) {
+                    info.id = atoi(tray_it->first.c_str()) + atoi(it->first.c_str()) * 4;
+                    info.tray_id = atoi(tray_it->first.c_str()) + atoi(it->first.c_str()) * 4;
+                    info.color = tray_it->second->color;
+                    info.type  = tray_it->second->type;
+                } else {
+                    info.id = -1;
+                    info.tray_id = -1;
+                }
+                tray_info_list.push_back(info);
+            }
+        }
+
+        // try to use ordering ams mapping
+        bool order_mapping_result = true;
+        for (int i = 0; i < filaments.size(); i++) {
+            if (i >= tray_info_list.size()) {
+                order_mapping_result = false;
+                break;
+            }
+            if (tray_info_list[i].tray_id == -1) {
+                result[i].tray_id = tray_info_list[i].tray_id;
+            } else {
+                if (!tray_info_list[i].type.empty() && tray_info_list[i].type != filaments[i].type) {
+                    order_mapping_result = false;
+                    break;
+                } else {
+                    result[i].tray_id = tray_info_list[i].tray_id;
+                    result[i].color = tray_info_list[i].color;
+                    result[i].type = tray_info_list[i].type;
+                }
+            }
+        }
+
+        //check order mapping result
+        if (!is_valid_mapping_result(result)) {
+            reset_mapping_result(result);
+            return -1;
+        }
+    } catch(...) {
+        reset_mapping_result(result);
+        return -1;
+    }
+
+    return 0;
+}
+
+bool MachineObject::is_valid_mapping_result(std::vector<FilamentInfo>& result)
+{
     bool valid_ams_mapping_result = true;
     for (int i = 0; i < result.size(); i++) {
         if (result[i].tray_id == -1) {
@@ -672,15 +733,15 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
             break;
         }
     }
+    return valid_ams_mapping_result;
+}
 
-    if (!valid_ams_mapping_result) {
-        for (int i = 0; i < result.size(); i++) {
-            result[i].tray_id = -1;
-        }
-        return -1;
+
+void MachineObject::reset_mapping_result(std::vector<FilamentInfo>& result)
+{
+    for (int i = 0; i < result.size(); i++) {
+        result[i].tray_id = -1;
     }
-
-    return 0;
 }
 
 bool MachineObject::is_bbl_filament(std::string tag_uid)
@@ -865,7 +926,15 @@ int MachineObject::command_get_version()
 
 int MachineObject::command_request_push_all()
 {
-    BOOST_LOG_TRIVIAL(trace) << "command_request_push_all";
+    auto curr_time = std::chrono::system_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_request_push);
+    if (diff.count() < REQUEST_PUSH_MIN_TIME) {
+        BOOST_LOG_TRIVIAL(trace) << "command_request_push_all: send request too fast";
+        return -1;
+    } else {
+        BOOST_LOG_TRIVIAL(trace) << "command_request_push_all";
+        last_request_push = std::chrono::system_clock::now();
+    }
     json j;
     j["pushing"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["pushing"]["command"]     = "pushall";
@@ -1310,7 +1379,7 @@ bool MachineObject::is_connected()
     std::chrono::system_clock::time_point curr_time = std::chrono::system_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_update_time);
     if (diff.count() > DISCONNECT_TIMEOUT) {
-        BOOST_LOG_TRIVIAL(trace) << "machine_object: diff count = " << diff.count();
+        BOOST_LOG_TRIVIAL(trace) << "machine_object: dev_id=" << dev_id <<", diff count = " << diff.count();
         return false;
     }
     return true;
@@ -1326,8 +1395,11 @@ bool MachineObject::is_info_ready()
     if (module_vers.empty())
         return false;
 
-    if (m_push_count > 0)
+    std::chrono::system_clock::time_point curr_time = std::chrono::system_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::microseconds>(last_push_time - curr_time);
+    if (m_push_count > 0 && diff.count() < PUSHINFO_TIMEOUT) {
         return true;
+    }
     return false;
 }
 
@@ -1360,6 +1432,7 @@ int MachineObject::local_publish_json(std::string json_str, int qos)
 
 int MachineObject::parse_json(std::string payload)
 {
+    parse_msg_count++;
     std::chrono::system_clock::time_point clock_start = std::chrono::system_clock::now();
     this->set_online_state(true);
 
@@ -1384,9 +1457,9 @@ int MachineObject::parse_json(std::string payload)
                             if (print_json.diff2all(j_pre, j) == 0) {
                                 restored_json = true;
                             } else {
-                                BOOST_LOG_TRIVIAL(trace) << "parse_json: restore failed!";
+                                BOOST_LOG_TRIVIAL(trace) << "parse_json: restore failed! count = " << parse_msg_count;
                                 if (print_json.is_need_request()) {
-                                    BOOST_LOG_TRIVIAL(trace) << "parse_json: need request pushall";
+                                    BOOST_LOG_TRIVIAL(trace) << "parse_json: need request pushall, count = " << parse_msg_count;
                                     // request new push
                                     GUI::wxGetApp().CallAfter([this]{
                                         this->command_request_push_all();
@@ -1395,7 +1468,7 @@ int MachineObject::parse_json(std::string payload)
                                 }
                             }
                         } else {
-                            BOOST_LOG_TRIVIAL(warning) << "unsupported msg_type=" << j_pre["print"]["msg_type"].get<std::string>();
+                            BOOST_LOG_TRIVIAL(warning) << "unsupported msg_type=" << j_pre["print"]["msg"].get<std::string>();
                         }
                     }
                 }
@@ -1412,7 +1485,7 @@ int MachineObject::parse_json(std::string payload)
             json jj = j["print"];
             if (jj.contains("command")) {
                 if (jj["command"].get<std::string>() == "push_status") {
-
+                    last_push_time = std::chrono::system_clock::now();
 #pragma region printing
                     if (jj.contains("print_type")) {
                         print_type = jj["print_type"].get<std::string>();
@@ -2378,16 +2451,24 @@ bool DeviceManager::set_selected_machine(std::string dev_id)
     auto it = my_machine_list.find(dev_id);
     if (it != my_machine_list.end()) {
         if (selected_machine == dev_id) {
-            it->second->reset();
+            // only reset update time
+            it->second->reset_update_time();
             return true;
         } else {
-            if (it->second->connection_type() != "lan" || it->second->connection_type().empty()) {
-                m_agent->set_user_selected_machine(dev_id);
-                it->second->reset();
-            } else {
-                m_agent->disconnect_printer();
-                it->second->reset();
-                it->second->connect();
+            if (m_agent) {
+                if (it->second->connection_type() != "lan" || it->second->connection_type().empty()) {
+                    if (m_agent->get_user_selected_machine() != dev_id) {
+                        BOOST_LOG_TRIVIAL(trace) << "set_selected_machine: same dev_id = " << dev_id;
+                        m_agent->set_user_selected_machine(dev_id);
+                        it->second->reset();
+                    } else {
+                        it->second->reset_update_time();
+                    }
+                } else {
+                    m_agent->disconnect_printer();
+                    it->second->reset();
+                    it->second->connect();
+                }
             }
         }
     }
