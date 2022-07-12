@@ -46,8 +46,8 @@ public:
     void set_color(wxColour color);
 
     MachineObject *obj{nullptr};
-    int            ams_id { 0 };
-    int            tray_id { 0 };
+    int            ams_id { 0 };        /* 0 ~ 3 */
+    int            tray_id { 0 };       /* 0 ~ 3 */
 
     std::string    ams_filament_id;
 

@@ -108,6 +108,7 @@ void BindJob::process()
     );
 
     if (result < 0) {
+        BOOST_LOG_TRIVIAL(trace) << "login: result = " << result;
         post_fail_event();
         return;
     }

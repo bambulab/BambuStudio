@@ -3575,6 +3575,53 @@ std::string DynamicPrintConfig::validate()
     }
 }
 
+std::string DynamicPrintConfig::get_filament_type(int id)
+{
+    auto* filament_id = dynamic_cast<const ConfigOptionStrings*>(this->option("filament_id"));
+    auto* filament_type = dynamic_cast<const ConfigOptionStrings*>(this->option("filament_type"));
+    auto* filament_is_support = dynamic_cast<const ConfigOptionBools*>(this->option("filament_is_support"));
+
+    if (!filament_type)
+        return "";
+
+    if (!filament_is_support) {
+        if (filament_type) {
+            return filament_type->get_at(id);
+        }
+        else {
+            return "";
+        }
+    }
+    else {
+        bool is_support = filament_is_support ? filament_is_support->get_at(id) : false;
+        if (is_support) {
+            if (filament_id) {
+                if (filament_id->get_at(id) == "GFS00") {
+                    return "Support W";
+                }
+                else if (filament_id->get_at(id) == "GFS01") {
+                    return "Support G";
+                }
+                else {
+                    return filament_type->get_at(id) + "-Support";
+                }
+            }
+            else {
+                if (filament_type->get_at(id) == "PLA")
+                    return "Support W";
+                else if (filament_type->get_at(id) == "PA")
+                    return "Support G";
+                else
+                    return filament_type->get_at(id) + "-Support";
+            }
+        }
+        else {
+            return filament_type->get_at(id);
+        }
+    }
+    return "PLA";
+}
+
 //FIXME localize this function.
 std::string validate(const FullPrintConfig &cfg)
 {

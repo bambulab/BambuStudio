@@ -867,8 +867,11 @@ std::map<int, MachineObject::ModuleVersionInfo> MachineObject::get_ams_version()
 
 bool MachineObject::is_system_printing()
 {
-    if (print_type == "system")
+    if (is_in_calibration())
         return true;
+    //FIXME
+    //if (print_type == "system" && is_in_printing_status(print_status))
+        //return true;
     return false;
 }
 
@@ -1129,7 +1132,7 @@ int MachineObject::command_ams_filament_settings(int ams_id, int tray_id, std::s
     j["print"]["command"] = "ams_filament_setting";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["ams_id"]      = ams_id;
-    j["print"]["tray_id"]     = tray_id;
+    j["print"]["tray_id"]     = ams_id * 4 + tray_id;
     j["print"]["tray_info_idx"] = setting_id;
     // format "FFFFFFFF"   RGBA
     j["print"]["tray_color"]    = tray_color;
@@ -1909,10 +1912,17 @@ int MachineObject::parse_json(std::string payload)
                                         curr_tray->id = (*tray_it)["id"].get<std::string>();
                                         if (tray_it->contains("tag_uid"))
                                             curr_tray->tag_uid          = (*tray_it)["tag_uid"].get<std::string>();
-                                        if (tray_it->contains("tray_info_idx"))
+                                        if (tray_it->contains("tray_info_idx") && tray_it->contains("tray_type")) {
                                             curr_tray->setting_id       = (*tray_it)["tray_info_idx"].get<std::string>();
-                                        if (tray_it->contains("tray_type"))
-                                            curr_tray->type             = (*tray_it)["tray_type"].get<std::string>();
+                                            std::string type            = (*tray_it)["tray_type"].get<std::string>();
+                                            if (curr_tray->setting_id == "GFS00") {
+                                                curr_tray->type = "Support W";
+                                            } else if (curr_tray->setting_id == "GFS01") {
+                                                curr_tray->type = "Support G";
+                                            } else {
+                                                curr_tray->type = type;
+                                            }
+                                        }
                                         if (tray_it->contains("tray_sub_brands"))
                                             curr_tray->sub_brands       = (*tray_it)["tray_sub_brands"].get<std::string>();
                                         if (tray_it->contains("tray_weight"))

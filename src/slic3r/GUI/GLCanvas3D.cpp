@@ -6350,9 +6350,7 @@ void GLCanvas3D::_render_paint_toolbar() const
        for (auto filament_name : preset_bundle->filament_presets) {
            for (auto iter = preset_bundle->filaments.lbegin(); iter != preset_bundle->filaments.end(); iter++) {
                if (filament_name.compare(iter->name) == 0) {
-                   ConfigOption* opt = iter->config.option("filament_type");
-                   ConfigOptionStrings* opt_strs = dynamic_cast<ConfigOptionStrings*>(opt);
-                   filament_types.push_back(opt_strs->get_at(0));
+                   filament_types.push_back(iter->config.get_filament_type());
                }
            }
        }

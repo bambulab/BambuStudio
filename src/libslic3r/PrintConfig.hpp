@@ -323,6 +323,9 @@ public:
     // handle_legacy() is called internally by set_deserialize().
     void                handle_legacy(t_config_option_key &opt_key, std::string &value) const override
         { PrintConfigDef::handle_legacy(opt_key, value); }
+
+    //BBS special case Support G/ Support W
+    std::string get_filament_type(int id = 0);
 };
 
 void handle_legacy_sla(DynamicPrintConfig &config);

@@ -294,6 +294,9 @@ public:
     // Sort lexicographically by a preset name. The preset name shall be unique across a single PresetCollection.
     bool                operator<(const Preset &other) const { return this->name < other.name; }
 
+    // special for upport G and Support W
+    std::string get_filament_type();
+
     static const std::vector<std::string>&  print_options();
     static const std::vector<std::string>&  filament_options();
     // Printer options contain the nozzle options.

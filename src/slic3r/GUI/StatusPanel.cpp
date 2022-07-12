@@ -788,12 +788,11 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
     m_ams_debug->Hide();
 #endif
 
-#if !BBL_RELEASE_TO_PUBLIC
     m_ams_control = new AMSControl(box, wxID_ANY);
     m_ams_control->SetMinSize(m_ams_control->GetSize());
     m_ams_control->SetDoubleBuffered(true);
     sizer_box->Add(m_ams_control, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(10));
-#endif
+
     box->SetBackgroundColour(*wxWHITE);
     box->SetSizer(sizer_box);
     box->Layout();
@@ -817,10 +816,10 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
 
 void StatusBasePanel::show_ams_group(bool show)
 {
-#if !BBL_RELEASE_TO_PUBLIC
-    if (m_show_ams_group != show) { m_ams_control->Show(show); }
+    if (m_show_ams_group != show) {
+        m_ams_control->Show(show);
+    }
     m_show_ams_group = show;
-#endif
 }
 
 StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
@@ -1072,9 +1071,8 @@ void StatusPanel::update(MachineObject *obj)
 
     // BBS hide tasklist info
     // update_tasklist(obj);
-#if !BBL_RELEASE_TO_PUBLIC
     update_ams(obj);
-#endif
+
 
     update_cali(obj);
     if (obj) {
@@ -1911,6 +1909,7 @@ void StatusPanel::set_default()
     m_temp_bed_timeout = 0;
     m_switch_nozzle_fan_timeout = 0;
     m_switch_printing_fan_timeout = 0;
+    m_show_ams_group = false;
 
     reset_printing_values();
 

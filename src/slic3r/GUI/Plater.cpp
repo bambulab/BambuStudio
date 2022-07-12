@@ -8060,14 +8060,14 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     store_params.project = &p->project;
     store_params.strategy = strategy | SaveStrategy::Zip64;
 
+    
     // get type and color for platedata
-    auto* filament_types = dynamic_cast<const ConfigOptionStrings*>(cfg.option("filament_type"));
     auto* filament_color = dynamic_cast<const ConfigOptionStrings*>(cfg.option("filament_colour"));
 
     for (int i = 0; i < plate_data_list.size(); i++) {
         PlateData *plate_data = plate_data_list[i];
         for (auto it = plate_data->slice_flaments_info.begin(); it != plate_data->slice_flaments_info.end(); it++) {
-            it->type  = filament_types ? filament_types->get_at(it->id) : "PLA";
+            it->type  = cfg.get_filament_type(it->id);
             it->color = filament_color ? filament_color->get_at(it->id) : "#FFFFFF";
             // save filament info used in curr plate
             int index = p->partplate_list.get_curr_plate_index();

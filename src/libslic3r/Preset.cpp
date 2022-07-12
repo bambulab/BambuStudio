@@ -637,6 +637,11 @@ void Preset::set_visible_from_appconfig(const AppConfig &app_config)
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": name %1%, is_visible set to %2%")%name % is_visible;
 }
 
+std::string Preset::get_filament_type()
+{
+    return config.get_filament_type();
+}
+
 static std::vector<std::string> s_Preset_print_options {
     "layer_height", "initial_layer_print_height", "wall_loops", "spiral_mode",
     "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness",
