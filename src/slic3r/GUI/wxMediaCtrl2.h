@@ -16,13 +16,15 @@
 class wxMediaCtrl2 : public wxWindow
 {
 public:
-    wxMediaCtrl2(wxWindow * parent, wxSize const & size);
+    wxMediaCtrl2(wxWindow * parent);
     
     void Load(wxURI url);
     
     void Play();
     
     void Stop();
+
+    void SetIdleImage(wxString const & image);
     
     wxMediaState GetState() const;
     
@@ -46,9 +48,15 @@ private:
 class wxMediaCtrl2 : public wxMediaCtrl
 {
 public:
-    wxMediaCtrl2();
+    wxMediaCtrl2(wxWindow *parent);
 
     void Load(wxURI url);
+
+    void Play();
+
+    void Stop();
+
+    void SetIdleImage(wxString const & image);
 
     int GetLastError() const { return m_error; }
     
@@ -66,7 +74,8 @@ protected:
 #endif
 
 private:
-    int m_error = 0;
+    wxString m_idle_image;
+    int      m_error = 0;
 };
 
 #endif

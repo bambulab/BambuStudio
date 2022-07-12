@@ -34,8 +34,8 @@ static void bambu_log(void const * ctx, int level, char const * msg)
     BOOST_LOG_TRIVIAL(info) << msg;
 }
 
-wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent, wxSize const & size)
-    : wxWindow(parent, wxID_ANY, wxDefaultPosition, size)
+wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent)
+    : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
     NSView * imageView = (NSView *) GetHandle();
     imageView.layer = [[CALayer alloc] init];

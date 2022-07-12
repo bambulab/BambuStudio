@@ -215,12 +215,7 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
 //    media_ctrl_panel              = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
 //    media_ctrl_panel->SetBackgroundColour(*wxBLACK);
 //    wxBoxSizer *bSizer_monitoring = new wxBoxSizer(wxVERTICAL);
-#ifdef __WXMAC__
-    m_media_ctrl = new wxMediaCtrl2(this, wxDefaultSize);
-#else
-    m_media_ctrl = new wxMediaCtrl2();
-    m_media_ctrl->Create(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(PAGE_MIN_WIDTH, FromDIP(288)), wxMEDIACTRLPLAYERCONTROLS_NONE);
-#endif
+    m_media_ctrl = new wxMediaCtrl2(this);
     m_media_ctrl->SetMinSize(wxSize(PAGE_MIN_WIDTH, FromDIP(288)));
 
     m_media_play_ctrl = new MediaPlayCtrl(this, m_media_ctrl, wxDefaultPosition, wxSize(-1, FromDIP(40)));

@@ -1,6 +1,7 @@
 #include "wxMediaCtrl2.h"
 
-wxMediaCtrl2::wxMediaCtrl2()
+wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
+    : wxMediaCtrl(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxMEDIACTRLPLAYERCONTROLS_NONE)
 {
 }
 
@@ -14,9 +15,13 @@ void wxMediaCtrl2::Load(wxURI url)
     wxMediaCtrl::Load(url);
 }
 
+void wxMediaCtrl2::Play() { wxMediaCtrl::Play(); }
+
+void wxMediaCtrl2::Stop() { wxMediaCtrl::Stop(); }
+
 wxSize wxMediaCtrl2::GetVideoSize() const
 {
-    return wxMediaCtrl::DoGetBestSize();
+    return m_imp->GetVideoSize();
 }
 
 wxSize wxMediaCtrl2::DoGetBestSize() const
