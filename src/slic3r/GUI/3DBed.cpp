@@ -128,12 +128,12 @@ const float* GeometryBuffer::get_vertices_data() const
 
 const float Bed3D::Axes::DefaultStemRadius = 0.5f;
 const float Bed3D::Axes::DefaultStemLength = 25.0f;
-const float Bed3D::Axes::DefaultTipRadius  = 3.0f * Bed3D::Axes::DefaultStemRadius;
-const float Bed3D::Axes::DefaultTipLength  = 5.0f * Bed3D::Axes::DefaultStemRadius;
+const float Bed3D::Axes::DefaultTipRadius = 2.5f * Bed3D::Axes::DefaultStemRadius;
+const float Bed3D::Axes::DefaultTipLength = 5.0f;
 
-std::array<float, 4> Bed3D::AXIS_X_COLOR = decode_color_to_float_array("#F5333F");
-std::array<float, 4> Bed3D::AXIS_Y_COLOR = decode_color_to_float_array("#38D430");
-std::array<float, 4> Bed3D::AXIS_Z_COLOR = decode_color_to_float_array("#0097CE");
+std::array<float, 4> Bed3D::AXIS_X_COLOR = decode_color_to_float_array("#FF0000");
+std::array<float, 4> Bed3D::AXIS_Y_COLOR = decode_color_to_float_array("#00FF00");
+std::array<float, 4> Bed3D::AXIS_Z_COLOR = decode_color_to_float_array("#0000FF");
 
 void Bed3D::update_render_colors()
 {
@@ -279,7 +279,7 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
 
     // Set the origin and size for rendering the coordinate system axes.
     m_axes.set_origin({ 0.0, 0.0, static_cast<double>(GROUND_Z) });
-    m_axes.set_stem_length(40.0f);
+    m_axes.set_stem_length(0.1f * static_cast<float>(m_build_volume.bounding_volume().max_size()));
 
     // Let the calee to update the UI.
     return true;

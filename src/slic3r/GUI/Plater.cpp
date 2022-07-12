@@ -9593,8 +9593,10 @@ void Plater::show_object_info()
     if (vol)
         volume_val *= std::fabs(t.matrix().block(0, 0, 3, 3).determinant());
     volume_val = volume_val * pow(koef,3);
-    info_text += (boost::format(_utf8(L("Volume: %1% mm³\n"))) %volume_val).str();
-
+    if (imperial_units)
+        info_text += (boost::format(_utf8(L("Volume: %1% in³\n"))) %volume_val).str();
+    else
+        info_text += (boost::format(_utf8(L("Volume: %1% mm³\n"))) %volume_val).str();
     info_text += (boost::format(_utf8(L("Triangles: %1%\n"))) %face_count).str();
 
     wxString info_manifold;
