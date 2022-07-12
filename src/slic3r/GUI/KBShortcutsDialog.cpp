@@ -213,7 +213,7 @@ void KBShortcutsDialog::fill_shortcuts()
 
             {"Shift+R", L("Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the current disk.")},
 
-            {L("Ctrl + Mouse wheel"), L("Select multiple objects")},
+            {L("Ctrl + Left mouse button"), L("Select multiple objects")},
             {L("Shift + Left mouse button"), L("Select objects by rectangle")},
             {L("Arrow Up"), L("Move selection 10 mm in positive Y direction")},
             {L("Arrow Down"), L("Move selection 10 mm in negative Y direction")},
@@ -222,7 +222,6 @@ void KBShortcutsDialog::fill_shortcuts()
             {L("Shift + Any arrow"), L("Movement step set to 1 mm")},
             {L("Ctrl + Any arrow"), L("Movement in camera space")},
             {"Shift+Tab", L("Collapse/Expand the sidebar")},
-            {"Ctrl+Alt+space", L("Render statistics debugging box")},
         };
         m_full_shortcuts.push_back({ { _L("Plater"), "" }, plater_shortcuts });
 

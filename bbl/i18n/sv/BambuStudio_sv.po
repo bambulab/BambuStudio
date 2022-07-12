@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-12 09:41+0800\n"
+"POT-Creation-Date: 2022-07-12 16:25+0800\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -3874,6 +3874,9 @@ msgstr ""
 "Auto placera valda objekt eller alla objekt. Om det finns valda objekt så "
 "placeras endast dem. Alternativt så placeras alla objekt på nuvarande disk."
 
+msgid "Ctrl + Left mouse button"
+msgstr ""
+
 msgid "Select multiple objects"
 msgstr "Välj flera objekt"
 
@@ -3918,9 +3921,6 @@ msgstr "Rörelse i kamera område"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Dölj/Visa meny"
-
-msgid "Render statistics debugging box"
-msgstr "Renderings statistikens felsökningsbox"
 
 msgid "Plater"
 msgstr "Plätering/Förgyllning"
@@ -5719,8 +5719,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
-"(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för "
+"lösligt(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"
@@ -6139,6 +6139,9 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid "Render statistics debugging box"
+#~ msgstr "Renderings statistikens felsökningsbox"
 
 #~ msgid "The bed is auto leveling"
 #~ msgstr "Byggplattan auto justeras"

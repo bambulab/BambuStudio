@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-12 09:41+0800\n"
+"POT-Creation-Date: 2022-07-12 16:25+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3707,6 +3707,9 @@ msgid ""
 "all objects in the current disk."
 msgstr ""
 
+msgid "Ctrl + Left mouse button"
+msgstr ""
+
 msgid "Select multiple objects"
 msgstr ""
 
@@ -3750,9 +3753,6 @@ msgid "Movement in camera space"
 msgstr ""
 
 msgid "Collapse/Expand the sidebar"
-msgstr ""
-
-msgid "Render statistics debugging box"
 msgstr ""
 
 msgid "Plater"

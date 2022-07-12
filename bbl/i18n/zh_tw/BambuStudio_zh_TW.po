@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-12 09:41+0800\n"
+"POT-Creation-Date: 2022-07-12 16:25+0800\n"
 "PO-Revision-Date: 2022-03-12 17:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com> , patched traditional "
 "chinese by Cheng-Hsien Ho <taksito@gmail.com>\n"
@@ -3700,6 +3700,9 @@ msgid ""
 "all objects in the current disk."
 msgstr ""
 
+msgid "Ctrl + Left mouse button"
+msgstr ""
+
 msgid "Select multiple objects"
 msgstr ""
 
@@ -3743,9 +3746,6 @@ msgid "Movement in camera space"
 msgstr ""
 
 msgid "Collapse/Expand the sidebar"
-msgstr ""
-
-msgid "Render statistics debugging box"
 msgstr ""
 
 msgid "Plater"

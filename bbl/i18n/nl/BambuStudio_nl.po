@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-12 09:41+0800\n"
+"POT-Creation-Date: 2022-07-12 16:25+0800\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -3945,6 +3945,9 @@ msgstr ""
 "deze georiënteert. Anders worden alle objecten op de huidige schijf "
 "georiënteert."
 
+msgid "Ctrl + Left mouse button"
+msgstr ""
+
 msgid "Select multiple objects"
 msgstr "Selecteer meerdere objecten"
 
@@ -3989,9 +3992,6 @@ msgstr "Beweging in cameragebied"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "De menubalk in-/uitschuiven"
-
-msgid "Render statistics debugging box"
-msgstr "Foutopsporingsvenster voor renderstatistieken"
 
 msgid "Plater"
 msgstr "Plaat"
@@ -6301,6 +6301,9 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid "Render statistics debugging box"
+#~ msgstr "Foutopsporingsvenster voor renderstatistieken"
 
 #~ msgid "The bed is auto leveling"
 #~ msgstr "Het printbed wordt automatisch afgesteld"
