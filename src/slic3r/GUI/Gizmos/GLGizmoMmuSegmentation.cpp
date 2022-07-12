@@ -663,8 +663,9 @@ void GLGizmoMmuSegmentation::update_triangle_selectors_colors()
     for (int i = 0; i < m_triangle_selectors.size(); i++) {
         TriangleSelectorPatch* selector = dynamic_cast<TriangleSelectorPatch*>(m_triangle_selectors[i].get());
         int extruder_idx = m_volumes_extruder_idxs[i];
+        int extruder_color_idx = std::max(0, extruder_idx - 1);
         std::vector<std::array<float, 4>> ebt_colors;
-        ebt_colors.push_back(m_extruders_colors[extruder_idx]);
+        ebt_colors.push_back(m_extruders_colors[extruder_color_idx]);
         ebt_colors.insert(ebt_colors.end(), m_extruders_colors.begin(), m_extruders_colors.end());
         selector->set_ebt_colors(ebt_colors);
     }
