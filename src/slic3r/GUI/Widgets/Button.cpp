@@ -157,20 +157,26 @@ void Button::render(wxDC& dc)
         icon = active_icon;
     else
         icon = inactive_icon;
-
+    int padding = 5;
     if (icon.bmp().IsOk()) {
         if (szContent.y > 0) {
             //BBS norrow size between text and icon
-            szContent.x += 5;
+            szContent.x += padding;
         }
         szIcon = icon.bmp().GetSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y)
             szContent.y = szIcon.y;
+        if (szContent.x > size.x) {
+            int d = std::min(padding, szContent.x - size.x);
+            padding -= d;
+            szContent.x -= d;
+        }
     }
     // move to center
     wxRect rcContent = { {0, 0}, size };
     wxSize offset = (size - szContent) / 2;
+    if (offset.x < 0) offset.x = 0;
     rcContent.Deflate(offset.x, offset.y);
     // start draw
     wxPoint pt = rcContent.GetLeftTop();
@@ -178,11 +184,13 @@ void Button::render(wxDC& dc)
         pt.y += (rcContent.height - szIcon.y) / 2;
         dc.DrawBitmap(icon.bmp(), pt);
         //BBS norrow size between text and icon
-        pt.x += szIcon.x + 5;
+        pt.x += szIcon.x + padding;
         pt.y = rcContent.y;
     }
     auto text = GetLabel();
     if (!text.IsEmpty()) {
+        if (pt.x + textSize.x > size.x)
+            text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x);
         pt.y += (rcContent.height - textSize.y) / 2;
         dc.SetFont(GetFont());
         dc.SetTextForeground(text_color.colorForStates(states));

@@ -61,7 +61,7 @@ void TabCtrl::SelectItem(int item)
         b->GetEventHandler()->ProcessEvent(e);
     }
     sendTabCtrlEvent();
-    GetSizer()->Layout();
+    relayout();
     Refresh();
 }
 
@@ -198,10 +198,38 @@ void TabCtrl::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 
 void TabCtrl::relayout()
 {
-    int w = 10 + 10;
-    for (auto b : btns) w += b->GetSize().x + TAB_BUTTON_SPACE * 10;
-    int b = GetSize().x - w;
-    sizer->GetItem(sizer->GetItemCount() - 1)->SetMinSize({b > 0 ? b : 0, 0});
+    int offset = 10;
+    int item = sel + 1;
+    for (int i = 0; i < item; ++i)
+        offset += btns[i]->GetMinSize().x + TAB_BUTTON_SPACE * 10;
+    if (item < btns.size())
+        offset += btns[item]->GetMinSize().x + TAB_BUTTON_SPACE * 10;
+    int  width = GetSize().x;
+    auto sizer = GetSizer();
+    for (int i = 0; i < btns.size(); ++i) {
+        auto size = btns[i]->GetMinSize().x + TAB_BUTTON_SPACE * 10;
+        if (i < sel && offset > width) {
+            sizer->Show(i * 2 + 1, false);
+            sizer->Show(i * 2 + 2, false);
+            offset -= size;
+        } else if (i <= item) {
+            sizer->Show(i * 2 + 1, true);
+            sizer->Show(i * 2 + 2, true);
+        } else if (offset <= width) {
+            sizer->Show(i * 2 + 1, true);
+            sizer->Show(i * 2 + 2, true);
+            offset += size;
+            item = i;
+        } else {
+            sizer->Show(i * 2 + 1, false);
+            sizer->Show(i * 2 + 2, false);
+        }
+        sizer->GetItem(i * 2 + 2)->SetMinSize({0, 0});
+    }
+    if (item >= btns.size())
+        -- item;
+    int b = GetSize().x - offset - 10;
+    sizer->GetItem(item * 2 + 2)->SetMinSize({b > 0 ? b : 0, 0});
     sizer->Layout();
 }
 
