@@ -1318,7 +1318,7 @@ bool DebugToolDialog::Show(bool show)
     }
     else {
         if (agent) {
-            agent->start_discovery(false, false);
+            agent->start_discovery(true, false);
             agent->stop_subscribe("debug");
         }
         m_timer->Stop();

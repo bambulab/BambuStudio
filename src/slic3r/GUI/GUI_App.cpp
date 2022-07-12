@@ -1234,6 +1234,8 @@ GUI_App::GUI_App()
                 });
             }
         );
+
+        m_agent->start_discovery(true, false);
     }
 
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
@@ -1256,6 +1258,7 @@ GUI_App::~GUI_App()
     }
 
     if (m_agent) {
+        m_agent->start_discovery(false, false);
         delete m_agent;
         m_agent = nullptr;
     }

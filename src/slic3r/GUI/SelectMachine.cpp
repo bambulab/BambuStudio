@@ -608,7 +608,7 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
 
 void SelectMachinePopup::start_ssdp(bool start)
 {
-    if (wxGetApp().getAgent()) { wxGetApp().getAgent()->start_discovery(start, start); }
+    if (wxGetApp().getAgent()) { wxGetApp().getAgent()->start_discovery(true, start); }
 }
 
 void SelectMachinePopup::OnSize(wxSizeEvent &event) { event.Skip(); }
@@ -1991,7 +1991,7 @@ bool SelectMachineDialog::Show(bool show)
         if (show) {
             agent->start_discovery(true, true);
         } else {
-            agent->start_discovery(false, false);
+            agent->start_discovery(true, false);
         }
     }
 
