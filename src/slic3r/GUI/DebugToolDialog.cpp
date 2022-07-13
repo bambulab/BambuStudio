@@ -1698,6 +1698,7 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
         }
     }
     else if (server_sel == 0) {
+        std::string http_body;
         MachineObject* obj = dev_manager_.get_local_selected_machine();
         if (!obj)
             return;
@@ -1710,9 +1711,15 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
 
         Slic3r::Http http = Slic3r::Http::get(url);
         http.auth_basic("slicer", "znFx94AAew8VVHv");
-        http.on_complete([this](std::string body, unsigned) {
-            try{
-                json j = json::parse(body);
+        http.on_complete([this, &http_body](std::string body, unsigned) {
+                http_body = body;
+            }).on_error([this](std::string body, std::string error, unsigned status) {
+                this->send_log_evt("Get Upgrade List Failed! error=" + error);
+        }).perform_sync();
+
+        if (!http_body.empty()) {
+            try {
+                json j = json::parse(http_body);
                 for (json::iterator it = j.begin(); it != j.end(); ++it) {
                     UpgradeItem item;
                     item.name = (*it)["name"];
@@ -1727,9 +1734,7 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
             }
             cb_upgrade_firmware->Set(upgrade_file_list);
             cb_upgrade_firmware->Select(0);
-            }).on_error([this](std::string body, std::string error, unsigned status) {
-                this->send_log_evt("Get Upgrade List Failed! error=" + error);
-            }).perform();
+        }
     }
 }
 
