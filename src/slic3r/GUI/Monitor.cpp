@@ -192,8 +192,10 @@ MonitorPanel::~MonitorPanel()
     m_hms_panel                = new HMSPanel(m_tabpanel);
 
     m_tabpanel->AddPage(m_status_info_panel, _L("Status"), "", true);
-    m_tabpanel->AddPage(m_media_file_panel,  _L("Media"),  "", false);
-    m_tabpanel->AddPage(m_upgrade_panel,     _L("Update"), "", false);
+#if !BBL_RELEASE_TO_PUBLIC
+    m_tabpanel->AddPage(m_media_file_panel, _L("Media"), "", false);
+#endif
+    m_tabpanel->AddPage(m_upgrade_panel, _L("Update"), "", false);
 #if !BBL_RELEASE_TO_PUBLIC
     m_tabpanel->AddPage(m_hms_panel,         _L("HMS"),    "", false);
 #endif
@@ -393,7 +395,9 @@ void MonitorPanel::update_all()
 
     
     m_status_info_panel->m_media_play_ctrl->SetMachineObject(IsShown() ? obj : nullptr);
+#if !BBL_RELEASE_TO_PUBLIC
     m_media_file_panel->SetMachineObject(obj);
+#endif
     update_status(obj);
     
     if (!obj) {
