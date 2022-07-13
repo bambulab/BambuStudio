@@ -50,6 +50,8 @@ void PrinterFileSystem::SetFileType(FileType type)
     m_file_list.swap(m_file_list2);
     m_lock_start = m_lock_end = 0;
     SendChangedEvent(EVT_FILE_CHANGED);
+    m_status = Status::ListSyncing;
+    SendChangedEvent(EVT_STATUS_CHANGED, m_status);
     ListAllFiles();
 }
 
@@ -110,6 +112,7 @@ void PrinterFileSystem::ListAllFiles()
         }
         BuildGroups();
         m_status = Status::ListReady;
+        SendChangedEvent(EVT_STATUS_CHANGED, m_status);
         SendChangedEvent(EVT_FILE_CHANGED);
         return 0;
     });
