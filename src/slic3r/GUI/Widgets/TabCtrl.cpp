@@ -200,18 +200,20 @@ void TabCtrl::relayout()
 {
     int offset = 10;
     int item = sel + 1;
+    int first = 0;
     for (int i = 0; i < item; ++i)
-        offset += btns[i]->GetMinSize().x + TAB_BUTTON_SPACE * 10;
+        offset += btns[i]->GetMinSize().x + TAB_BUTTON_SPACE * 2;
     if (item < btns.size())
-        offset += btns[item]->GetMinSize().x + TAB_BUTTON_SPACE * 10;
+        offset += btns[item]->GetMinSize().x + TAB_BUTTON_SPACE * 2;
     int  width = GetSize().x;
     auto sizer = GetSizer();
     for (int i = 0; i < btns.size(); ++i) {
-        auto size = btns[i]->GetMinSize().x + TAB_BUTTON_SPACE * 10;
+        auto size = btns[i]->GetMinSize().x + TAB_BUTTON_SPACE * 2;
         if (i < sel && offset > width) {
             sizer->Show(i * 2 + 1, false);
             sizer->Show(i * 2 + 2, false);
             offset -= size;
+            first = i + 1;
         } else if (i <= item) {
             sizer->Show(i * 2 + 1, true);
             sizer->Show(i * 2 + 2, true);
@@ -228,7 +230,8 @@ void TabCtrl::relayout()
     }
     if (item >= btns.size())
         -- item;
-    int b = GetSize().x - offset - 10;
+    // Keep spacing 2 ~ 10 TAB_BUTTON_SPACE
+    int b = GetSize().x - offset - 10 - (item + 1 - first) * TAB_BUTTON_SPACE * 8;
     sizer->GetItem(item * 2 + 2)->SetMinSize({b > 0 ? b : 0, 0});
     sizer->Layout();
 }
