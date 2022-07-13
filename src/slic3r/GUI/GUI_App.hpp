@@ -401,7 +401,7 @@ public:
     void            delete_preset_from_cloud(std::string setting_id);
 
     wxString        current_language_code() const { return m_wxLocale->GetCanonicalName(); }
-	// Translate the language code to a code, for which Bambu Research maintains translations. Defaults to "en_US".
+	// Translate the language code to a code, for which Prusa Research maintains translations. Defaults to "en_US".
     wxString 		current_language_code_safe() const;
     bool            is_localized() const { return m_wxLocale->GetLocale() != "English"; }
 

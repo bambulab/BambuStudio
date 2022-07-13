@@ -1347,7 +1347,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     //BBS: write global config at the beginning of gcode file because printer need these config information
     // Append full config, delimited by two 'phony' configuration keys CONFIG_BLOCK_START and CONFIG_BLOCK_END.
-    // The delimiters are structured as configuration key / value pairs to be parsable by older versions of BambuStudio G-code viewer.
+    // The delimiters are structured as configuration key / value pairs to be parsable by older versions of PrusaSlicer G-code viewer.
     {
         file.write("; CONFIG_BLOCK_START\n");
         std::string full_config;

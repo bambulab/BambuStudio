@@ -86,10 +86,10 @@ namespace instance_check_internal
 
 #ifdef _WIN32
 
-	static HWND l_Bambu_slicer_hwnd;
+	static HWND l_bambu_studio_hwnd;
 	static BOOL CALLBACK EnumWindowsProc(_In_ HWND   hwnd, _In_ LPARAM lParam)
 	{
-		//checks for other instances of Bambuslicer, if found brings it to front and return false to stop enumeration and quit this instance
+		//checks for other instances of prusaslicer, if found brings it to front and return false to stop enumeration and quit this instance
 		//search is done by classname(wxWindowNR is wxwidgets thing, so probably not unique) and name in window upper panel
 		//other option would be do a mutex and check for its existence
 		//BOOST_LOG_TRIVIAL(error) << "ewp: version: " << l_version_wstring;
@@ -118,7 +118,7 @@ namespace instance_check_internal
 			if(my_instance_hash == other_instance_hash)
 			{
 				BOOST_LOG_TRIVIAL(debug) << "win enum - found correct instance";
-				l_Bambu_slicer_hwnd = hwnd;
+				l_bambu_studio_hwnd = hwnd;
 				ShowWindow(hwnd, SW_SHOWMAXIMIZED);
 				SetForegroundWindow(hwnd);
 				return false;
@@ -144,7 +144,7 @@ namespace instance_check_internal
 			data_to_send.dwData = 1;
 			data_to_send.cbData = sizeof(TCHAR) * (wcslen(*command_line_args.get()) + 1);
 			data_to_send.lpData = *command_line_args.get();
-			SendMessage(l_Bambu_slicer_hwnd, WM_COPYDATA, 0, (LPARAM)&data_to_send);
+			SendMessage(l_bambu_studio_hwnd, WM_COPYDATA, 0, (LPARAM)&data_to_send);
 			return true;  
 		}
 	    return false;
@@ -235,11 +235,11 @@ namespace instance_check_internal
 			DBusError 		err;
 			dbus_uint32_t 	serial = 0;
 			const char* sigval = message_text.c_str();
-			//std::string		interface_name = "com.Bambu3d.Bambuslicer.InstanceCheck";
+			//std::string		interface_name = "com.prusa3d.prusaslicer.InstanceCheck";
 			std::string		interface_name = "com.bbl.bambuslicer.InstanceCheck.Object" + version;
 			std::string   	method_name = "AnotherInstance";
-			//std::string		object_name = "/com/Bambu3d/Bambuslicer/InstanceCheck";
-			std::string		object_name = "/com/Bambu3d/Bambuslicer/InstanceCheck/Object" + version;
+			//std::string		object_name = "/com/prusa3d/prusaslicer/InstanceCheck";
+			std::string		object_name = "/com/BambuLab/BambuStudio/InstanceCheck/Object" + version;
 
 
 			// initialise the error value
@@ -576,7 +576,7 @@ namespace MessageHandlerDBusInternal
 	{
 		const char* interface_name = dbus_message_get_interface(message);
 	    const char* member_name    = dbus_message_get_member(message);
-	    std::string our_interface  = "com.Bambu3d.Bambuslicer.InstanceCheck.Object" + wxGetApp().get_instance_hash_string();
+	    std::string our_interface  = "com.BambuLab.BambuStudio.InstanceCheck.Object" + wxGetApp().get_instance_hash_string();
 	    BOOST_LOG_TRIVIAL(trace) << "DBus message received: interface: " << interface_name << ", member: " << member_name;
 	    if (0 == strcmp("org.freedesktop.DBus.Introspectable", interface_name) && 0 == strcmp("Introspect", member_name)) {		
 	        respond_to_introspect(connection, message);
@@ -596,8 +596,8 @@ void OtherInstanceMessageHandler::listen()
     int 				 name_req_val;
     DBusObjectPathVTable vtable;
     std::string 		 instance_hash  = wxGetApp().get_instance_hash_string();
-	std::string			 interface_name = "com.Bambu3d.Bambuslicer.InstanceCheck.Object" + instance_hash;
-    std::string			 object_name 	= "/com/Bambu3d/Bambuslicer/InstanceCheck/Object" + instance_hash;
+	std::string			 interface_name = "com.BambuLab.BambuStudio.InstanceCheck.Object" + instance_hash;
+    std::string			 object_name 	= "/com/BambuLab/BambuStudio/InstanceCheck/Object" + instance_hash;
 
     //BOOST_LOG_TRIVIAL(debug) << "init dbus listen " << interface_name << " " << object_name;
     dbus_error_init(&err);

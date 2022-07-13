@@ -87,9 +87,9 @@ public:
         //wxMenu *menu = new wxMenu;
         //BBS do not support multi instances in mac
         //if(wxGetApp().app_config->get("single_instance") == "0") {
-        //    // Only allow opening a new BambuStudio instance on OSX if "single_instance" is disabled,
+        //    // Only allow opening a new PrusaSlicer instance on OSX if "single_instance" is disabled,
         //    // as starting new instances would interfere with the locking mechanism of "single_instance" support.
-        //    append_menu_item(menu, wxID_ANY, _L("Open new instance"), _L("Open a new BambuStudio instance"),
+        //    append_menu_item(menu, wxID_ANY, _L("Open new instance"), _L("Open a new PrusaSlicer instance"),
         //    [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr);
         //}
         //append_menu_item(menu, wxID_ANY, _L("G-code Viewer") + dots, _L("Open G-code Viewer"),
@@ -103,7 +103,7 @@ public:
     GCodeViewerTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
     wxMenu *CreatePopupMenu() override {
         wxMenu *menu = new wxMenu;
-        append_menu_item(menu, wxID_ANY, _L("Open BambuStudio"), _L("Open a new BambuStudio"),
+        append_menu_item(menu, wxID_ANY, _L("Open PrusaSlicer"), _L("Open a new PrusaSlicer"),
             [](wxCommandEvent&) { start_new_slicer(nullptr, true); }, "", nullptr);
         //append_menu_item(menu, wxID_ANY, _L("G-code Viewer") + dots, _L("Open new G-code Viewer"),
         //    [](wxCommandEvent&) { start_new_gcodeviewer_open_file(); }, "", nullptr);
@@ -122,12 +122,12 @@ static wxIcon main_frame_icon(GUI_App::EAppMode app_mode)
         path.erase(path.begin() + len, path.end());
         //BBS: remove GCodeViewer as seperate APP logic
         /*if (app_mode == GUI_App::EAppMode::GCodeViewer) {
-            // Only in case the slicer was started with --gcodeviewer parameter try to load the icon from bambu-gcodeviewer.exe
+            // Only in case the slicer was started with --gcodeviewer parameter try to load the icon from prusa-gcodeviewer.exe
             // Otherwise load it from the exe.
-            for (const std::wstring_view exe_name : { std::wstring_view(L"bambu-studio.exe"), std::wstring_view(L"bambu-studio-console.exe") })
+            for (const std::wstring_view exe_name : { std::wstring_view(L"prusa-slicer.exe"), std::wstring_view(L"prusa-slicer-console.exe") })
                 if (boost::iends_with(path, exe_name)) {
                     path.erase(path.end() - exe_name.size(), path.end());
-                    path += L"bambu-gcodeviewer.exe";
+                    path += L"prusa-gcodeviewer.exe";
                     break;
                 }
         }*/
@@ -135,7 +135,6 @@ static wxIcon main_frame_icon(GUI_App::EAppMode app_mode)
     return wxIcon(path, wxBITMAP_TYPE_ICO);
 #else // _WIN32
     return wxIcon(Slic3r::var("BambuStudio_128px.png"), wxBITMAP_TYPE_PNG);
-    //return wxIcon(Slic3r::var(app_mode == GUI_App::EAppMode::Editor ? "BambuStudio_128px.png" : "BambuStudio-gcodeviewer_128px.png"), wxBITMAP_TYPE_PNG);
 #endif // _WIN32
 }
 
@@ -210,8 +209,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("BambuStudio-mac_128px.png"), wxBITMAP_TYPE_PNG), "BambuStudio");
         break;
     case GUI_App::EAppMode::GCodeViewer:
-        //m_taskbar_icon = std::make_unique<GCodeViewerTaskBarIcon>(wxTBI_DOCK);
-        //m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("BambuStudio-gcodeviewer-mac_128px.png"), wxBITMAP_TYPE_PNG), "G-code Viewer");
         break;
     }
 #endif // __APPLE__
@@ -1974,50 +1971,63 @@ void MainFrame::open_menubar_item(const wxString& menu_name,const wxString& item
 
 void MainFrame::init_menubar_as_gcodeviewer()
 {
-//BBS do not show gcode viewer mebu
-//    wxMenu* fileMenu = new wxMenu;
-//    {
-//        append_menu_item(fileMenu, wxID_ANY, _L("&Open G-code") + dots + "\tCtrl+O", _L("Open a G-code file"),
-//            [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->load_gcode(); }, "open", nullptr,
-//            [this]() {return m_plater != nullptr; }, this);
-//        fileMenu->AppendSeparator();
-//        append_menu_item(fileMenu, wxID_ANY, _L("Export &Toolpaths as OBJ") + dots, _L("Export toolpaths as OBJ"),
-//            [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->export_toolpaths_to_obj(); }, "export_plater", nullptr,
-//            [this]() {return can_export_toolpaths(); }, this);
-//        append_menu_item(fileMenu, wxID_ANY, _L("Open &BambuStudio") + dots, _L("Open BambuStudio"),
-//            [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr,
-//            []() {return true; }, this);
-//        fileMenu->AppendSeparator();
-//        append_menu_item(fileMenu, wxID_EXIT, _L("&Quit"), wxString::Format(_L("Quit %s"), SLIC3R_APP_NAME),
-//            [this](wxCommandEvent&) { Close(false); });
-//    }
-//
-//    // View menu
-//    wxMenu* viewMenu = nullptr;
-//    if (m_plater != nullptr) {
-//        viewMenu = new wxMenu();
-//        add_common_view_menu_items(viewMenu, this, std::bind(&MainFrame::can_change_view, this));
-//    }
-//
-//    // helpmenu
-//    auto helpMenu = generate_help_menu();
-//
-//    m_topbar->SetFileMenu(fileMenu);
-//    if (viewMenu != nullptr)
-//        m_topbar->AddDropDownSubMenu(viewMenu, _L("&View"));
-//    wxGetApp().add_config_menu(m_topbar->GetTopMenu());
-//    m_topbar->AddDropDownSubMenu(helpMenu, _L("&Help"));
-//
-//#ifdef __APPLE__
-//    // This fixes a bug on Mac OS where the quit command doesn't emit window close events
-//    // wx bug: https://trac.wxwidgets.org/ticket/18328
-//    wxMenu* apple_menu = m_menubar->OSXGetAppleMenu();
-//    if (apple_menu != nullptr) {
-//        apple_menu->Bind(wxEVT_MENU, [this](wxCommandEvent&) {
-//            Close();
-//            }, wxID_EXIT);
-//    }
-//#endif // __APPLE__
+    //BBS do not show gcode viewer mebu
+#if 0
+    wxMenu* fileMenu = new wxMenu;
+    {
+        append_menu_item(fileMenu, wxID_ANY, _L("&Open G-code") + dots + "\tCtrl+O", _L("Open a G-code file"),
+            [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->load_gcode(); }, "open", nullptr,
+            [this]() {return m_plater != nullptr; }, this);
+#ifdef __APPLE__
+        append_menu_item(fileMenu, wxID_ANY, _L("Re&load from Disk") + dots + "\tCtrl+Shift+R",
+            _L("Reload the plater from disk"), [this](wxCommandEvent&) { m_plater->reload_gcode_from_disk(); },
+            "", nullptr, [this]() { return !m_plater->get_last_loaded_gcode().empty(); }, this);
+#else
+        append_menu_item(fileMenu, wxID_ANY, _L("Re&load from Disk") + sep + "F5",
+            _L("Reload the plater from disk"), [this](wxCommandEvent&) { m_plater->reload_gcode_from_disk(); },
+            "", nullptr, [this]() { return !m_plater->get_last_loaded_gcode().empty(); }, this);
+#endif // __APPLE__
+        fileMenu->AppendSeparator();
+        append_menu_item(fileMenu, wxID_ANY, _L("Export &Toolpaths as OBJ") + dots, _L("Export toolpaths as OBJ"),
+            [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->export_toolpaths_to_obj(); }, "export_plater", nullptr,
+            [this]() {return can_export_toolpaths(); }, this);
+        append_menu_item(fileMenu, wxID_ANY, _L("Open &PrusaSlicer") + dots, _L("Open PrusaSlicer"),
+            [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr,
+            []() {return true; }, this);
+        fileMenu->AppendSeparator();
+        append_menu_item(fileMenu, wxID_EXIT, _L("&Quit"), wxString::Format(_L("Quit %s"), SLIC3R_APP_NAME),
+            [this](wxCommandEvent&) { Close(false); });
+    }
+
+    // View menu
+    wxMenu* viewMenu = nullptr;
+    if (m_plater != nullptr) {
+        viewMenu = new wxMenu();
+        add_common_view_menu_items(viewMenu, this, std::bind(&MainFrame::can_change_view, this));
+    }
+
+    // helpmenu
+    auto helpMenu = generate_help_menu();
+
+    m_menubar = new wxMenuBar();
+    m_menubar->Append(fileMenu, _L("&File"));
+    if (viewMenu != nullptr) m_menubar->Append(viewMenu, _L("&View"));
+    // Add additional menus from C++
+    wxGetApp().add_config_menu(m_menubar);
+    m_menubar->Append(helpMenu, _L("&Help"));
+    SetMenuBar(m_menubar);
+
+#ifdef __APPLE__
+    // This fixes a bug on Mac OS where the quit command doesn't emit window close events
+    // wx bug: https://trac.wxwidgets.org/ticket/18328
+    wxMenu* apple_menu = m_menubar->OSXGetAppleMenu();
+    if (apple_menu != nullptr) {
+        apple_menu->Bind(wxEVT_MENU, [this](wxCommandEvent&) {
+            Close();
+            }, wxID_EXIT);
+    }
+#endif // __APPLE__
+#endif
 }
 
 void MainFrame::update_menubar()

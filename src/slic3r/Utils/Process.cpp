@@ -60,10 +60,6 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 	boost::filesystem::path bin_path = into_path(wxStandardPaths::Get().GetExecutablePath());
 #if defined(__APPLE__)
 	{
-		// Maybe one day we will be able to run BambuGCodeViewer, but for now the Apple notarization 
-		// process refuses Apps with multiple binaries and Vojtech does not know any workaround.
-		// ((instance_type == NewSlicerInstanceType::Slicer) ? "BambuStudio" : "BambuGCodeViewer");
-		// Just run BambuStudio and give it a --gcodeviewer parameter.
 		bin_path = bin_path.parent_path() / "BambuStudio";
 		// On Apple the wxExecute fails, thus we use boost::process instead.
 		BOOST_LOG_TRIVIAL(info) << "Trying to spawn a new slicer \"" << bin_path.string() << "\"";
@@ -78,12 +74,6 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 			if (instance_type == NewSlicerInstanceType::Slicer && single_instance)
 				args.emplace_back("--single-instance");
 			boost::process::spawn(bin_path, args);
-		    // boost::process::spawn() sets SIGCHLD to SIGIGN for the child process, thus if a child BambuStudio spawns another
-		    // subprocess and the subrocess dies, the child BambuStudio will not receive information on end of subprocess
-		    // (posix waitpid() call will always fail).
-		    // https://jmmv.dev/2008/10/boostprocess-and-sigchld.html
-		    // The child instance of BambuStudio has to reset SIGCHLD to its default, so that posix waitpid() and similar continue to work.
-		    // See GH issue #5507
 		}
 		catch (const std::exception& ex) {
 			BOOST_LOG_TRIVIAL(error) << "Failed to spawn a new slicer \"" << bin_path.string() << "\": " << ex.what();

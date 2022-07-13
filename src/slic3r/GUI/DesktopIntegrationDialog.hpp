@@ -23,11 +23,11 @@ public:
 	static bool is_integrated();
 	// true if appimage
 	static bool integration_possible();
-	// Creates Desktop files and icons for both BambuStudio and GcodeViewer.
+	// Creates Desktop files and icons for both PrusaSlicer and GcodeViewer.
 	// Stores paths into App Config.
 	// Rewrites if files already existed.
 	static void perform_desktop_integration();
-	// Deletes Desktop files and icons for both BambuStudio and GcodeViewer at paths stored in App Config.
+	// Deletes Desktop files and icons for both PrusaSlicer and GcodeViewer at paths stored in App Config.
 	static void undo_desktop_intgration();
 private:
 

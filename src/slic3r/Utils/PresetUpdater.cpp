@@ -898,7 +898,7 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
 }
 
 // Generates a list of bundle updates that are to be performed.
-// Version of slic3r that was running the last time and which was read out from BambuStudio.ini is provided
+// Version of slic3r that was running the last time and which was read out from PrusaSlicer.ini is provided
 // as a parameter.
 //BBS: refine the Preset Updater logic
 Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version) const

@@ -629,7 +629,7 @@ bool static check_old_linux_datadir(const wxString& app_name) {
     // If we are on Linux and the datadir does not exist yet, look into the old
     // location where the datadir was before version 2.3. If we find it there,
     // tell the user that he might wanna migrate to the new location.
-    // (https://github.com/Bambu3d/BambuStudio/issues/2911)
+    // (https://github.com/prusa3d/PrusaSlicer/issues/2911)
     // To be precise, the datadir should exist, it is created when single instance
     // lock happens. Instead of checking for existence, check the contents.
 
@@ -668,10 +668,8 @@ bool static check_old_linux_datadir(const wxString& app_name) {
 static bool run_updater_win()
 {
     // find updater exe
-    boost::filesystem::path path_updater = boost::dll::program_location().parent_path() / "bambuslicer-updater.exe";
+    boost::filesystem::path path_updater = boost::dll::program_location().parent_path() / "prusaslicer-updater.exe";
     if (boost::filesystem::exists(path_updater)) {
-        // run updater. Original args: /silent -restartapp bambu-slicer.exe -startappfirst
-
         // Using quoted string as mentioned in CreateProcessW docs, silent execution parameter.
         std::wstring wcmd = L"\"" + path_updater.wstring() + L"\" /silent";
 
@@ -701,7 +699,7 @@ static bool run_updater_win()
             CloseHandle(pi.hThread);
             return true;
         } else {
-            BOOST_LOG_TRIVIAL(error) << "Failed to start bambuslicer-updater.exe with command " << wcmd;
+            BOOST_LOG_TRIVIAL(error) << "Failed to start prusaslicer-updater.exe with command " << wcmd;
         }
     }
     return false;
@@ -1084,7 +1082,7 @@ void GUI_App::post_init()
         #ifdef _WIN32
             // Run external updater on Windows if version check is enabled.
             if (this->preset_updater->version_check_enabled() && ! run_updater_win())
-                // "Bambuslicer-updater.exe" was not started, run our own update check.
+                // "prusaslicer-updater.exe" was not started, run our own update check.
         #endif // _WIN32
                 this->preset_updater->slic3r_update_notify();
 
@@ -1304,7 +1302,7 @@ bool GUI_App::init_opengl()
 #endif
 }
 
-// gets path to BambuStudio.ini, returns semver from first line comment
+// gets path to PrusaSlicer.ini, returns semver from first line comment
 static boost::optional<Semver> parse_semver_from_ini(std::string path)
 {
     std::ifstream stream(path);
@@ -1323,7 +1321,7 @@ static boost::optional<Semver> parse_semver_from_ini(std::string path)
 
 void GUI_App::init_app_config()
 {
-	// Profiles for the alpha are stored into the BambuStudio-alpha directory to not mix with the current release.
+	// Profiles for the alpha are stored into the PrusaSlicer-alpha directory to not mix with the current release.
     SetAppName(SLIC3R_APP_KEY);
 //	SetAppName(SLIC3R_APP_KEY "-alpha");
 //  SetAppName(SLIC3R_APP_KEY "-beta");
@@ -1352,7 +1350,7 @@ void GUI_App::init_app_config()
                 m_agent->set_cert_file(resources_dir() + "/cert", "slicer_base64.cer");
         #else
             // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
-            // https://github.com/Bambu3d/BambuStudio/issues/2911
+            // https://github.com/prusa3d/PrusaSlicer/issues/2911
             wxString dir;
             if (! wxGetEnv(wxS("XDG_CONFIG_HOME"), &dir) || dir.empty() )
                 dir = wxFileName::GetHomeDir() + wxS("/.config");
@@ -3141,10 +3139,10 @@ bool GUI_App::load_language(wxString language, bool initial)
     if (initial) {
     	// There is a static list of lookup path prefixes in wxWidgets. Add ours.
 	    wxFileTranslationsLoader::AddCatalogLookupPathPrefix(from_u8(localization_dir()));
-    	// Get the active language from BambuStudio.ini, or empty string if the key does not exist.
+    	// Get the active language from PrusaSlicer.ini, or empty string if the key does not exist.
         language = app_config->get("language");
         if (! language.empty())
-        	BOOST_LOG_TRIVIAL(trace) << boost::format("language provided by BambuStudio.ini: %1%") % language;
+        	BOOST_LOG_TRIVIAL(trace) << boost::format("language provided by PrusaSlicer.ini: %1%") % language;
         else {
             // Get the system language.
             const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
@@ -3177,7 +3175,7 @@ bool GUI_App::load_language(wxString language, bool initial)
                     wxLocale temp_locale;
                     // Set the current translation's language to default, otherwise GetBestTranslation() may not work (see the wxWidgets source code).
                     wxTranslations::Get()->SetLanguage(wxLANGUAGE_DEFAULT);
-                    // Let the wxFileTranslationsLoader enumerate all translation dictionaries for BambuStudio
+                    // Let the wxFileTranslationsLoader enumerate all translation dictionaries for PrusaSlicer
                     // and try to match them with the system specific "preferred languages".
                     // There seems to be a support for that on Windows and OSX, while on Linuxes the code just returns wxLocale::GetSystemLanguage().
                     // The last parameter gets added to the list of detected dictionaries. This is a workaround
@@ -3215,7 +3213,7 @@ bool GUI_App::load_language(wxString language, bool initial)
 	}
 
     if (language_info == nullptr) {
-        // BambuStudio does not support the Right to Left languages yet.
+        // PrusaSlicer does not support the Right to Left languages yet.
         if (m_language_info_system != nullptr && m_language_info_system->LayoutDirection != wxLayout_RightToLeft)
             language_info = m_language_info_system;
         if (m_language_info_best != nullptr && m_language_info_best->LayoutDirection != wxLayout_RightToLeft)
@@ -3257,14 +3255,14 @@ bool GUI_App::load_language(wxString language, bool initial)
 
     if (! wxLocale::IsAvailable(language_info->Language)) {
     	// Loading the language dictionary failed.
-    	wxString message = "Switching BambuStudio to language " + language_info->CanonicalName + " failed.";
+    	wxString message = "Switching Bambu Studio to language " + language_info->CanonicalName + " failed.";
 #if !defined(_WIN32) && !defined(__APPLE__)
         // likely some linux system
         message += "\nYou may need to reconfigure the missing locales, likely by running the \"locale-gen\" and \"dpkg-reconfigure locales\" commands.\n";
 #endif
         if (initial)
         	message + "\n\nApplication will close.";
-        wxMessageBox(message, "BambuStudio - Switching language failed", wxOK | wxICON_ERROR);
+        wxMessageBox(message, "Bambu Studio - Switching language failed", wxOK | wxICON_ERROR);
         if (initial)
 			std::exit(EXIT_FAILURE);
 		else
@@ -3782,7 +3780,7 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
         if (is_gcode_file(into_u8(filename)))
             ++ num_gcodes;
     if (fileNames.size() == num_gcodes) {
-        // Opening BambuStudio by drag & dropping a G-Code onto BambuStudio icon in Finder,
+        // Opening PrusaSlicer by drag & dropping a G-Code onto BambuStudio icon in Finder,
         // just G-codes were passed. Switch to G-code viewer mode.
         m_app_mode = EAppMode::GCodeViewer;
         unlock_lockfile(get_instance_hash_string() + ".lock", data_dir() + "/cache/");
@@ -3925,7 +3923,7 @@ int GUI_App::filaments_cnt() const
 
 wxString GUI_App::current_language_code_safe() const
 {
-	// Translate the language code to a code, for which Bambu Research maintains translations.
+	// Translate the language code to a code, for which Prusa Research maintains translations.
 	const std::map<wxString, wxString> mapping {
 		{ "cs", 	"cs_CZ", },
 		{ "sk", 	"cs_CZ", },

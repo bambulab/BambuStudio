@@ -598,26 +598,9 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     auto *topSizer = new wxBoxSizer(wxVERTICAL);
     auto *vsizer = new wxBoxSizer(wxVERTICAL);
 
-   /* wxString text0 = GUI::format_wxstr(_L("This is the first time you are running %1%. We would like to "
-           "ask you to send some of your system information to us. This will only "
-           "happen once and we will not ask you to do this again (only after you "
-           "upgrade to the next version)."), app_name );*/
     wxString text0  = GUI::format_wxstr(wxEmptyString, app_name);
-    /*wxString text1 = _L("If we know your hardware, operating system, etc., it will greatly help us "
-        "in development and prioritization, because we will be able to focus our effort more efficiently "
-        "and spend time on features that are needed the most.");*/
     wxString text1 = wxEmptyString;
-    //wxString label2 = _L("Is it safe?");
     wxString label2 = wxEmptyString;
-    //wxString text2 = GUI::format_wxstr(
-    //    _L("We do not send any personal information nor anything that would allow us "
-    //       "to identify you later. To detect duplicate entries, a unique number derived "
-    //       "from your system is sent, but the source information cannot be reconstructed. "
-    //       "Apart from that, only general data about your OS, hardware and OpenGL "
-    //       "installation are sent. BambuStudio is open source, if you want to "
-    //       "inspect the code actually performing the communication, see %1%."),
-    //       std::string("<i>") + filename + "</i>");
-
 
      wxString text2 = GUI::format_wxstr(wxEmptyString, std::string("<i>") + filename + "</i>");
 

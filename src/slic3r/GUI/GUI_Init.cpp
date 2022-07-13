@@ -26,12 +26,12 @@ namespace GUI {
 int GUI_Run(GUI_InitParams &params)
 {
 #if __APPLE__
-    // On OSX, we use boost::process::spawn() to launch new instances of BambuStudio from another BambuStudio.
-    // boost::process::spawn() sets SIGCHLD to SIGIGN for the child process, thus if a child BambuStudio spawns another
-    // subprocess and the subrocess dies, the child BambuStudio will not receive information on end of subprocess
+    // On OSX, we use boost::process::spawn() to launch new instances of PrusaSlicer from another PrusaSlicer.
+    // boost::process::spawn() sets SIGCHLD to SIGIGN for the child process, thus if a child PrusaSlicer spawns another
+    // subprocess and the subrocess dies, the child PrusaSlicer will not receive information on end of subprocess
     // (posix waitpid() call will always fail).
     // https://jmmv.dev/2008/10/boostprocess-and-sigchld.html
-    // The child instance of BambuStudio has to reset SIGCHLD to its default, so that posix waitpid() and similar continue to work.
+    // The child instance of PrusaSlicer has to reset SIGCHLD to its default, so that posix waitpid() and similar continue to work.
     // See GH issue #5507
     signal(SIGCHLD, SIG_DFL);
 #endif // __APPLE__

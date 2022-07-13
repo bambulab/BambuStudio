@@ -658,7 +658,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool m_load_restore;
         std::string m_backup_path;
         std::string m_origin_file;
-        // Semantic version of BambuStudio, that generated this 3MF.
+        // Semantic version of Bambu Studio, that generated this 3MF.
         boost::optional<Semver> m_bambuslicer_generator_version;
         unsigned int m_fdm_supports_painting_version = 0;
         unsigned int m_seam_painting_version         = 0;
@@ -2174,7 +2174,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 std::string         extra;
                 pt::ptree attr_tree = tree.find("<xmlattr>")->second;
                 if (attr_tree.find("type") == attr_tree.not_found()) {
-                    // It means that data was saved in old version (2.2.0 and older) of BambuStudio
+                    // It means that data was saved in old version (2.2.0 and older) of PrusaSlicer
                     // read old data ...
                     std::string gcode       = tree.get<std::string> ("<xmlattr>.gcode");
                     // ... and interpret them to the new data
@@ -2919,7 +2919,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             return false;
         }
 
-        // Added because of github #3435, currently not used by BambuStudio
+        // Added because of github #3435, currently not used by PrusaSlicer
         // int instances_count_id = bbs_get_attribute_value_int(attributes, num_attributes, INSTANCESCOUNT_ATTR);
 
         m_objects_metadata.insert({ object_id, ObjectMetadata() });
@@ -3523,13 +3523,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     for (int& tri_id : face)
                         tri_id -= min_id;
             }
-
-            /*if (m_bambuslicer_generator_version &&
-                *m_bambuslicer_generator_version >= *Semver::parse("2.4.0-alpha1") &&
-                *m_bambuslicer_generator_version < *Semver::parse("2.4.0-alpha3"))
-                // BambuStudio 2.4.0-alpha2 contained a bug, where all vertices of a single object were saved for each volume the object contained.
-                // Remove the vertices, that are not referenced by any face.
-                its_compactify_vertices(its, true);*/
 
             TriangleMesh triangle_mesh(std::move(its), volume_data.mesh_stats);
 
@@ -5212,7 +5205,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         for (const IdToObjectDataMap::value_type& obj_metadata : objects_data) {
             const ModelObject* obj = obj_metadata.second.object;
             if (obj != nullptr) {
-                // Output of instances count added because of github #3435, currently not used by BambuStudio
+                // Output of instances count added because of github #3435, currently not used by PrusaSlicer
                 //stream << "  <"  << OBJECT_TAG << " " << ID_ATTR << "=\"" << obj_metadata.first << "\" " << INSTANCESCOUNT_ATTR << "=\"" << obj->instances.size() << "\">\n";
                 if (m_skip_static)
                     stream << "  <"  << OBJECT_TAG << " " << ID_ATTR << "=\"" << obj_metadata.first << "\">\n";
@@ -5649,12 +5642,12 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, c
 }
 
 // Perform conversions based on the config values available.
-//FIXME provide a version of BambuStudio that stored the project file (3MF).
+//FIXME provide a version of PrusaSlicer that stored the project file (3MF).
 static void handle_legacy_project_loaded(unsigned int version_project_file, DynamicPrintConfig& config)
 {
     if (! config.has("brim_object_gap")) {
         if (auto *opt_elephant_foot   = config.option<ConfigOptionFloat>("elefant_foot_compensation", false); opt_elephant_foot) {
-            // Conversion from older BambuStudio which applied brim separation equal to elephant foot compensation.
+            // Conversion from older PrusaSlicer which applied brim separation equal to elephant foot compensation.
             auto *opt_brim_separation = config.option<ConfigOptionFloat>("brim_object_gap", true);
             opt_brim_separation->value = opt_elephant_foot->value;
         }

@@ -2802,8 +2802,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                             //    // show notification about temporarily installed presets
                             //    if (!names.empty()) {
-                            //        std::string notif_text = into_u8(_L_PLURAL("The preset below was temporarily installed on the active instance of BambuStudio",
-                            //                                                   "The presets below were temporarily installed on the active instance of BambuStudio",
+                            //        std::string notif_text = into_u8(_L_PLURAL("The preset below was temporarily installed on the active instance of PrusaSlicer",
+                            //                                                   "The presets below were temporarily installed on the active instance of PrusaSlicer",
                             //                                                   names.size())) + ":";
                             //        for (std::string& name : names)
                             //            notif_text += "\n - " + name;
@@ -2927,9 +2927,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 // if (answer_convert_from_imperial_units == wxOK_DEFAULT) {
                 //    RichMessageDialog dlg(q, format_wxstr(_L_PLURAL(
                 //        "The dimensions of the object from file %s seem to be defined in inches.\n"
-                //        "The internal unit of BambuStudio is a millimeter. Do you want to recalculate the dimensions of the object?",
+                //        "The internal unit of PrusaSlicer is a millimeter. Do you want to recalculate the dimensions of the object?",
                 //        "The dimensions of some objects from file %s seem to be defined in inches.\n"
-                //        "The internal unit of BambuStudio is a millimeter. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename))
+                //        "The internal unit of PrusaSlicer is a millimeter. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename))
                 //        + "\n", _L("The object is too small"), wxICON_QUESTION | wxYES_NO);
                 //    dlg.ShowCheckBox(_L("Apply to all the remaining small objects being loaded."));
                 //    int answer = dlg.ShowModal();
@@ -6271,7 +6271,7 @@ void Plater::priv::bring_instance_forward() const
         BOOST_LOG_TRIVIAL(debug) << "Couldnt bring instance forward - mainframe is null";
         return;
     }
-    BOOST_LOG_TRIVIAL(debug) << "bambuslicer window going forward";
+    BOOST_LOG_TRIVIAL(debug) << "Bambu Studio window going forward";
     //this code maximize app window on Fedora
     {
         main_frame->Iconize(false);
