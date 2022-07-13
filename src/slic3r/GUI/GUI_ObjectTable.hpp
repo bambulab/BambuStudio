@@ -234,22 +234,22 @@ public:
         col_printable             = 0,
         col_printable_reset       = 1,
         col_plate_index           = 2,
-        col_assemble_name         = 3,
-        col_name                  = 4,
-        col_filaments             = 5,
-        col_filaments_reset       = 6,
-        col_layer_height          = 7,
-        col_layer_height_reset    = 8,
-        col_wall_loops            = 9,
-        col_wall_loops_reset      = 10,
-        col_fill_density          = 11,
-        col_fill_density_reset    = 12,
-        col_enable_support        = 13,
-        col_enable_support_reset  = 14,
-        col_brim_type             = 15,
-        col_brim_type_reset       = 16,
-        col_speed_perimeter       = 17,
-        col_speed_perimeter_reset = 18,
+        //col_assemble_name         = 3,
+        col_name                  = 3,
+        col_filaments             = 4,
+        col_filaments_reset       = 5,
+        col_layer_height          = 6,
+        col_layer_height_reset    = 7,
+        col_wall_loops            = 8,
+        col_wall_loops_reset      = 9,
+        col_fill_density          = 10,
+        col_fill_density_reset    = 11,
+        col_enable_support        = 12,
+        col_enable_support_reset  = 13,
+        col_brim_type             = 14,
+        col_brim_type_reset       = 15,
+        col_speed_perimeter       = 16,
+        col_speed_perimeter_reset = 17,
         col_max
     };
 
@@ -259,8 +259,8 @@ public:
         int                         volume_id;
         GridRowType                 row_type;
         ConfigOptionString          plate_index;
-        ConfigOptionString          assemble_name;
-        ConfigOptionString          ori_assemble_name;
+        //ConfigOptionString          assemble_name;
+        //ConfigOptionString          ori_assemble_name;
         ConfigOptionString          name;
         ConfigOptionString          ori_name;
         ConfigOptionBool            printable;
@@ -294,8 +294,8 @@ public:
             {
                 case col_plate_index:
                     return plate_index;
-                case col_assemble_name:
-                    return assemble_name;
+            /*case col_assemble_name:
+                return assemble_name;*/
                 case col_name:
                     return name;
                 case col_printable:

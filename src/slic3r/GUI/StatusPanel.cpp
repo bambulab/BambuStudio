@@ -659,7 +659,16 @@ wxBoxSizer *StatusBasePanel::create_axis_control(wxWindow *parent)
 
 wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
 {
+    wxBoxSizer *sizer         = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *bSizer_z_ctrl = new wxBoxSizer(wxVERTICAL);
+    auto        panel         = new wxPanel(parent, wxID_ANY);
+    panel->SetBackgroundColour(*wxWHITE);
+
+    panel->SetSize(wxSize(FromDIP(52), -1));
+    panel->SetMinSize(wxSize(FromDIP(52), -1));
+    panel->SetMaxSize(wxSize(FromDIP(52), -1));
+
+
 
     StateColor z_10_ctrl_bg(std::pair<wxColour, int>(BUTTON_PRESS_COL, StateColor::Pressed), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
     StateColor z_10_ctrl_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
@@ -668,7 +677,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
     StateColor z_1_ctrl_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered), std::pair<wxColour, int>(BUTTON_NORMAL2_COL, StateColor::Normal));
 
     bSizer_z_ctrl->AddStretchSpacer();
-    m_bpButton_z_10 = new Button(parent, wxString("10"), "monitor_bed_up", 0, FromDIP(15));
+    m_bpButton_z_10 = new Button(panel, wxString("10"), "monitor_bed_up", 0, FromDIP(15));
     m_bpButton_z_10->SetFont(::Label::Body_13);
     m_bpButton_z_10->SetBackgroundColor(z_10_ctrl_bg);
     m_bpButton_z_10->SetBorderColor(z_10_ctrl_bd);
@@ -678,7 +687,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
 
     bSizer_z_ctrl->Add(m_bpButton_z_10, 0, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
-    m_bpButton_z_1 = new Button(parent, wxString(" 1"), "monitor_bed_up", 0, FromDIP(15));
+    m_bpButton_z_1 = new Button(panel, wxString(" 1"), "monitor_bed_up", 0, FromDIP(15));
     m_bpButton_z_1->SetFont(::Label::Body_13);
     m_bpButton_z_1->SetBackgroundColor(z_1_ctrl_bg);
     m_bpButton_z_1->SetBorderColor(z_1_ctrl_bd);
@@ -689,7 +698,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
 
     bSizer_z_ctrl->Add(0, FromDIP(6), 0, wxEXPAND, 0);
 
-    m_bpButton_z_down_1 = new Button(parent, wxString(" 1"), "monitor_bed_down", 0, FromDIP(15));
+    m_bpButton_z_down_1 = new Button(panel, wxString(" 1"), "monitor_bed_down", 0, FromDIP(15));
     m_bpButton_z_down_1->SetFont(::Label::Body_13);
     m_bpButton_z_down_1->SetBackgroundColor(z_1_ctrl_bg);
     m_bpButton_z_down_1->SetBorderColor(z_1_ctrl_bd);
@@ -698,7 +707,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
 
     bSizer_z_ctrl->Add(m_bpButton_z_down_1, 0, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
-    m_bpButton_z_down_10 = new Button(parent, wxString("10"), "monitor_bed_down", 0, FromDIP(15));
+    m_bpButton_z_down_10 = new Button(panel, wxString("10"), "monitor_bed_down", 0, FromDIP(15));
     m_bpButton_z_down_10->SetFont(::Label::Body_13);
     m_bpButton_z_down_10->SetBackgroundColor(z_10_ctrl_bg);
     m_bpButton_z_down_10->SetBorderColor(z_10_ctrl_bd);
@@ -709,22 +718,34 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
 
     bSizer_z_ctrl->Add(0, FromDIP(16), 0, wxEXPAND, 0);
 
-    m_staticText_z_tip = new wxStaticText(parent, wxID_ANY, _L("Bed"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_z_tip = new wxStaticText(panel, wxID_ANY, _L("Bed"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_z_tip->SetFont(::Label::Body_13);
     m_staticText_z_tip->Wrap(-1);
     m_staticText_z_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
     bSizer_z_ctrl->Add(m_staticText_z_tip, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
 
-    return bSizer_z_ctrl;
+    panel->SetSizer(bSizer_z_ctrl);
+    panel->Layout();
+    sizer->Add(panel, 1, wxEXPAND, 0);
+
+    return sizer;
 }
 
 wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
 {
+    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *bSizer_e_ctrl = new wxBoxSizer(wxVERTICAL);
+    auto        panel = new wxPanel(parent,wxID_ANY);
+    panel->SetBackgroundColour(*wxWHITE);
+
+
+    panel->SetSize(wxSize(FromDIP(52), -1));
+    panel->SetMinSize(wxSize(FromDIP(52), -1));
+    panel->SetMaxSize(wxSize(FromDIP(52), -1));
 
     StateColor e_ctrl_bg(std::pair<wxColour, int>(BUTTON_PRESS_COL, StateColor::Pressed), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
     StateColor e_ctrl_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
-    m_bpButton_e_10 = new Button(parent, "", "monitor_extruder_up", 0, FromDIP(22));
+    m_bpButton_e_10 = new Button(panel, "", "monitor_extruder_up", 0, FromDIP(22));
     m_bpButton_e_10->SetBackgroundColor(e_ctrl_bg);
     m_bpButton_e_10->SetBorderColor(e_ctrl_bd);
     m_bpButton_e_10->SetMinSize(wxSize(FromDIP(40), FromDIP(40)));
@@ -733,12 +754,12 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
     bSizer_e_ctrl->Add(m_bpButton_e_10, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     bSizer_e_ctrl->Add(0, FromDIP(7), 0, 0, 0);
 
-    m_bitmap_extruder_img = new wxStaticBitmap(parent, wxID_ANY, m_bitmap_extruder, wxDefaultPosition, wxDefaultSize, 0);
+    m_bitmap_extruder_img = new wxStaticBitmap(panel, wxID_ANY, m_bitmap_extruder, wxDefaultPosition, wxDefaultSize, 0);
     m_bitmap_extruder_img->SetMinSize(EXTRUDER_IMAGE_SIZE);
 
-    bSizer_e_ctrl->Add(m_bitmap_extruder_img, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    bSizer_e_ctrl->Add(m_bitmap_extruder_img, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP | wxBOTTOM, FromDIP(5));
     bSizer_e_ctrl->Add(0, FromDIP(7), 0, 0, 0);
-    m_bpButton_e_down_10 = new Button(parent, "", "monitor_extruder_down", 0, FromDIP(22));
+    m_bpButton_e_down_10 = new Button(panel, "", "monitor_extruder_down", 0, FromDIP(22));
     m_bpButton_e_down_10->SetBackgroundColor(e_ctrl_bg);
     m_bpButton_e_down_10->SetBorderColor(e_ctrl_bd);
     m_bpButton_e_down_10->SetMinSize(wxSize(FromDIP(40), FromDIP(40)));
@@ -746,7 +767,7 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
     bSizer_e_ctrl->Add(m_bpButton_e_down_10, 0, wxALIGN_CENTER_HORIZONTAL, 0);
 
 
-    m_button_unload = new Button(parent, _L("Unload"));
+    m_button_unload = new Button(panel, _L("Unload"));
 
     StateColor abort_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
                         std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
@@ -756,22 +777,26 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
     m_button_unload->SetBorderColor(abort_bd);
     StateColor abort_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
     m_button_unload->SetTextColor(abort_text);
-    m_button_unload->SetFont(Label::Body_13);
-    m_button_unload->SetMinSize(wxSize(FromDIP(54), FromDIP(24)));
-    m_button_unload->SetCornerRadius(FromDIP(5));
+    m_button_unload->SetFont(Label::Body_10);
+    m_button_unload->SetMinSize(wxSize(FromDIP(52), FromDIP(26)));
+    m_button_unload->SetCornerRadius(FromDIP(10));
     bSizer_e_ctrl->Add(0, 0, 1, wxEXPAND, 0);
-    bSizer_e_ctrl->Add(m_button_unload, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(5));
+    bSizer_e_ctrl->Add(m_button_unload, 0, wxALIGN_CENTER_HORIZONTAL| wxTOP|wxBOTTOM, FromDIP(5));
 
 
     bSizer_e_ctrl->Add(0, FromDIP(9), 0, wxEXPAND, 0);
 
-    m_staticText_e = new wxStaticText(parent, wxID_ANY, _L("Extruder"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_e = new wxStaticText(panel, wxID_ANY, _L("Extruder"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_e->SetFont(::Label::Body_13);
     m_staticText_e->Wrap(-1);
     m_staticText_e->SetForegroundColour(TEXT_LIGHT_FONT_COL);
     bSizer_e_ctrl->Add(m_staticText_e, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
 
-    return bSizer_e_ctrl;
+    panel->SetSizer(bSizer_e_ctrl);
+    panel->Layout();
+    sizer->Add(panel, 1, wxEXPAND, 0);
+
+    return sizer;
 }
 
 wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
@@ -930,8 +955,8 @@ void StatusPanel::init_scaled_buttons()
     m_button_pause_resume->SetCornerRadius(FromDIP(12));
     m_button_abort->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
     m_button_abort->SetCornerRadius(FromDIP(12));
-    m_button_unload->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
-    m_button_unload->SetCornerRadius(FromDIP(12));
+    m_button_unload->SetMinSize(wxSize(FromDIP(52), FromDIP(24)));
+    m_button_unload->SetCornerRadius(FromDIP(10));
     m_bpButton_z_10->SetMinSize(Z_BUTTON_SIZE);
     m_bpButton_z_10->SetCornerRadius(0);
     m_bpButton_z_1->SetMinSize(Z_BUTTON_SIZE);
@@ -1177,14 +1202,22 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     m_tempCtrl_frame->SetTagTemp(obj->chamber_temp);
 }
 
+void StatusPanel::show_unload_ctrl() 
+{ 
+    m_button_unload->Show(); 
+    m_button_unload->GetParent()->Layout();
+}
+
 void StatusPanel::update_misc_ctrl(MachineObject *obj)
 {
     if (!obj) return;
 
     if (obj->has_ams()) {
         m_button_unload->Hide();
+        m_button_unload->GetParent()->Layout();
     } else {
         m_button_unload->Show();
+        m_button_unload->GetParent()->Layout();
     }
 
     // nozzle fan
@@ -1233,12 +1266,14 @@ void StatusPanel::update_ams(MachineObject *obj)
         last_ams_version      = -1;
         m_ams_control->EnterNoneAMSMode();
         show_ams_group(false);
+        BOOST_LOG_TRIVIAL(trace) << "machine object" << obj->dev_name << " was disconnected, set show_ams_group is false";
         return;
     }
 
     if (obj->amsList.empty() || obj->ams_exist_bits == 0) {
         m_ams_control->EnterNoneAMSMode();
         show_ams_group(false);
+        BOOST_LOG_TRIVIAL(trace) << "machine object" << obj->dev_name << " ams nonexistent, set show_ams_group is false";
         return;
     } else {
         show_ams_group(true);
@@ -1250,7 +1285,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         }
         if (obj->ams_exist_bits != last_ams_exist_bits || obj->tray_exist_bits != last_tray_exist_bits || obj->tray_is_bbl_bits != last_tray_is_bbl_bits ||
             obj->tray_read_done_bits != last_read_done_bits || obj->ams_version != last_ams_version) {
-            m_ams_control->UpdateAms(ams_info, true);
+            m_ams_control->UpdateAms(ams_info, false);
             // select current ams
             //if (!obj->m_ams_id.empty()) m_ams_control->SwitchAms(obj->m_ams_id);
 
@@ -1270,57 +1305,66 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     std::string curr_ams_id = m_ams_control->GetCurentAms();
     std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
-    if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
-        // wait to heat hotend
-        if (obj->ams_status_sub == 0x02) {
-            m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE);
-            if (curr_ams_id == obj->m_ams_id) {
-                if (!obj->is_ams_unload()) {
-                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
-                } else {
-                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
-                }
-            }
-        } else if (obj->ams_status_sub == 0x03) {
-            m_ams_control->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT);
-            if (!obj->is_ams_unload())
-                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1);
-            else
-                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
-        } else if (obj->ams_status_sub == 0x04) {
-            m_ams_control->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT);
-            if (!obj->is_ams_unload())
-                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
-            else
-                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-        } else if (obj->ams_status_sub == 0x05) {
-            m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT);
-            if (!obj->is_ams_unload())
-                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
-            else
-                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-        } else if (obj->ams_status_sub == 0x06) {
-            m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT);
-            if (!obj->is_ams_unload())
-                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
-            else
-                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-        } else if (obj->ams_status_sub == 0x07) {
-            m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT);
-            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
-        } else {
-            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-        }
-    } else if (obj->ams_status_main == AMS_STATUS_MAIN_ASSIST) {
-        m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE);
-        m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
-    } else {
-        m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE);
-        m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
-    }
 
     if (m_ams_control->GetCurentAms() != obj->m_ams_id) {
         m_ams_control->SetAmsStep(curr_ams_id, curr_can_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    } else {
+        if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+            // wait to heat hotend
+            if (obj->ams_status_sub == 0x02) {
+                m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE);
+                if (curr_ams_id == obj->m_ams_id) {
+                    if (!obj->is_ams_unload()) {
+                        m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+                    } else {
+                        m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+                    }
+                }
+            } else if (obj->ams_status_sub == 0x03) {
+                m_ams_control->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT);
+                if (!obj->is_ams_unload())
+                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1);
+                else
+                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
+            } else if (obj->ams_status_sub == 0x04) {
+                m_ams_control->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT);
+                if (!obj->is_ams_unload())
+                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
+                else
+                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            } else if (obj->ams_status_sub == 0x05) {
+                m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT);
+                if (!obj->is_ams_unload())
+                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
+                else
+                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            } else if (obj->ams_status_sub == 0x06) {
+                m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT);
+                if (!obj->is_ams_unload())
+                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
+                else
+                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            } else if (obj->ams_status_sub == 0x07) {
+                m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT);
+                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
+            } else {
+                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            }
+        } else if (obj->ams_status_main == AMS_STATUS_MAIN_ASSIST) {
+            m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE);
+            if (obj->is_filament_move()) {
+                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
+            } else {
+                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            }
+        } else {
+            m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE);
+            if (obj->is_filament_move()) {
+                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
+            } else {
+                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            }
+        }
     }
 
     for (auto ams_it = obj->amsList.begin(); ams_it != obj->amsList.end(); ams_it++) {

@@ -275,6 +275,10 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
         m_filament_name->SetCornerRadius(5);
         m_filament_name->SetFont(::Label::Body_12);
 
+        if (m_filament_name->GetTextExtent(tray_data[i].name).x > FromDIP(38)) { 
+            m_filament_name->SetFont(::Label::Body_10);
+        }
+
         if (tray_data[i].type == NORMAL) {
             m_filament_name->SetLabel(tray_data[i].name);
 

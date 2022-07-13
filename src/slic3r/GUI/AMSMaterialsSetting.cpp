@@ -266,7 +266,7 @@ void AMSMaterialsSetting::on_select_ok(wxMouseEvent &event)
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
-            if (it->name.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
+            if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
                 ams_filament_id = it->filament_id;
             }
         }
@@ -434,7 +434,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
-            if (it->name.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
+            auto a = it->alias;
+            if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
                 // update if nozzle_temperature_range is found
                 ConfigOption* opt_min = it->config.option("nozzle_temperature_range_low");
                 if (opt_min) {

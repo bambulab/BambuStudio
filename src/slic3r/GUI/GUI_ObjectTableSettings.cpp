@@ -25,7 +25,7 @@ namespace GUI
 OTG_Settings::OTG_Settings(wxWindow* parent, const bool staticbox) :
     m_parent(parent)
 {
-    wxString title = staticbox ? " " : ""; // temporary workaround - #ys_FIXME
+    wxString title = ""; // temporary workaround - #ys_FIXME
     m_og = std::make_shared<ConfigOptionsGroup>(parent, title, (DynamicPrintConfig*)nullptr, true);
 }
 

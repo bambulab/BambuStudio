@@ -276,6 +276,7 @@ protected:
     void update_cloud_subtask(MachineObject *obj);
     void update_sdcard_subtask(MachineObject *obj);
     void update_temp_ctrl(MachineObject *obj);
+    void show_unload_ctrl();
     void update_misc_ctrl(MachineObject *obj);
     void update_ams(MachineObject* obj);
     void update_cali(MachineObject* obj);

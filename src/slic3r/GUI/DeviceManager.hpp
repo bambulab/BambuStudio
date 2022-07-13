@@ -337,6 +337,7 @@ public:
     std::string m_tray_now;         // tray_now : "0" ~ "15" or "255"
     std::string m_tray_tar;         // tray_tar : "0" ~ "15" or "255"
     void _parse_tray_now(std::string tray_now);
+    bool is_filament_move() { return atoi(m_tray_now.c_str()) == 255 ? false : true; };
     bool    is_ams_need_update;
 
     inline bool is_ams_unload() { return m_tray_tar.compare("255") == 0; }
@@ -348,6 +349,7 @@ public:
     bool has_ams() { return ams_exist_bits != 0; }
     bool is_need_upgrade_for_ams();
     bool is_only_support_cloud_print();
+
     
     static bool is_compatible_ams_version(std::string module, std::string version);
     

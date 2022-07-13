@@ -340,7 +340,7 @@ GridCellFilamentsRenderer *GridCellFilamentsRenderer::Clone() const
 // wxGridCellSupportEditor
 // ----------------------------------------------------------------------------
 // the default values for GetValue()
-wxString GridCellSupportEditor::ms_stringValues[2] = { wxT(""), wxT("1") };
+wxString GridCellSupportEditor::ms_stringValues[2] = { wxT(""), wxT("") };
 
 void GridCellSupportEditor::DoActivate(int row, int col, wxGrid* grid)
 {
@@ -1011,14 +1011,14 @@ wxString ObjectGridTable::GetValue (int row, int col)
         {
             case col_plate_index:
                 return "Plate";
-            case col_assemble_name:
-                return "Module";
+                /* case col_assemble_name:
+                     return "Module";*/
             case col_name:
                 return "Name";
             case col_printable:
                 return "Printable";
             case col_filaments:
-                return "Filaments";
+                return "Filament";
             case col_layer_height:
                 return "Layer height";
             case col_wall_loops:
@@ -1060,7 +1060,7 @@ wxString ObjectGridTable::GetValue (int row, int col)
     }
     else if (grid_col->type == coBool) {
         ConfigOptionBool& option_value = dynamic_cast<ConfigOptionBool&>(option);
-        return option_value.value?"1":"0";
+        return option_value.value?"-":"-";
     }
     else if (grid_col->type == coInt) {
         ConfigOptionInt& option_value = dynamic_cast<ConfigOptionInt&>(option);
@@ -1184,10 +1184,10 @@ void ObjectGridTable::update_value_to_object(Model* model, ObjectGridRow* grid_r
             name_ptr = &(object->name);
             name_value = grid_row->name.value;
         }
-        else if (col == col_assemble_name) {
+       /* else if (col == col_assemble_name) {
             name_ptr = &(object->module_name);
             name_value = grid_row->assemble_name.value;
-        }
+        }*/
         else if (col == col_printable) {
             object->printable = grid_row->printable.value;
             object->instances[0]->printable = object->printable;
@@ -1509,8 +1509,8 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     m_col_data.push_back(col);
 
     //second column for module name
-    col = new ObjectGridCol(coString, "assemble_name", ObjectGridTable::category_all, true, false, true, false, wxALIGN_CENTRE);
-    m_col_data.push_back(col);
+    /*col = new ObjectGridCol(coString, "assemble_name", ObjectGridTable::category_all, true, false, true, false, wxALIGN_CENTRE);
+    m_col_data.push_back(col);*/
 
     //3th column: for object/volume name
     col = new ObjectGridCol(coString, "name", ObjectGridTable::category_all, false, false, true, false, wxALIGN_CENTRE);
@@ -1621,8 +1621,8 @@ void ObjectGridTable::construct_object_configs(ObjectGrid *object_grid)
             object_grid->plate_index.value = ObjectGridTable::plate_outside;
         else
             object_grid->plate_index.value = /*std::string("Plate ") + */std::to_string(plate_index+1);
-        object_grid->assemble_name.value = object->module_name;
-        object_grid->ori_assemble_name = object_grid->assemble_name;
+       /* object_grid->assemble_name.value = object->module_name;
+        object_grid->ori_assemble_name = object_grid->assemble_name;*/
         object_grid->printable.value = object->instances[0]->printable;
         object_grid->ori_printable.value = object_grid->printable.value;
         //auto extruder_id_ptr = get_object_config_value<ConfigOptionInt>(filament_config, object_grid->config, m_col_data[col_filaments]->key);
@@ -1673,8 +1673,8 @@ void ObjectGridTable::construct_object_configs(ObjectGrid *object_grid)
                 volume_grid->plate_index.value = ObjectGridTable::plate_outside;
             else
                 volume_grid->plate_index.value = /*std::string("Plate ") +*/ std::to_string(plate_index+1);
-            volume_grid->assemble_name.value = object->module_name;
-            volume_grid->ori_assemble_name = volume_grid->assemble_name;
+           /* volume_grid->assemble_name.value = object->module_name;
+            volume_grid->ori_assemble_name = volume_grid->assemble_name;*/
             volume_grid->printable.value = object->instances[0]->printable;
             volume_grid->ori_printable.value = volume_grid->printable.value;
             //auto extruder_id_ptr = get_volume_config_value<ConfigOptionInt>(filament_config, object_grid->config, volume_grid->config, m_col_data[col_filaments]->key);
@@ -2055,28 +2055,28 @@ void ObjectGridTable::sort_by_col(int col)
             m_sort_col = col;
         }
     }
-    else if (col == col_assemble_name) {
-        if (m_sort_col == col) {
-            compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
-                //wxString string1 = GUI::from_u8(row1->assemble_name.value);
-                //wxString string2 = GUI::from_u8(row2->assemble_name.value);
-                //return (string1.compare(string2) <= 0);
-                return (row2->assemble_name.value.compare(row1->assemble_name.value) < 0);
-            };
-            sort_row_data(sort_func);
-            m_sort_col = -1;
-        }
-        else {
-            compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
-                //wxString string1 = GUI::from_u8(row1->assemble_name.value);
-                //wxString string2 = GUI::from_u8(row2->assemble_name.value);
-                //return (string1.compare(string2) <= 0);
-                return (row1->assemble_name.value.compare(row2->assemble_name.value) < 0);
-            };
-            sort_row_data(sort_func);
-            m_sort_col = col;
-        }
-    }
+    //else if (col == col_assemble_name) {
+    //    if (m_sort_col == col) {
+    //        compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
+    //            //wxString string1 = GUI::from_u8(row1->assemble_name.value);
+    //            //wxString string2 = GUI::from_u8(row2->assemble_name.value);
+    //            //return (string1.compare(string2) <= 0);
+    //            return (row2->assemble_name.value.compare(row1->assemble_name.value) < 0);
+    //        };
+    //        sort_row_data(sort_func);
+    //        m_sort_col = -1;
+    //    }
+    //    else {
+    //        compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
+    //            //wxString string1 = GUI::from_u8(row1->assemble_name.value);
+    //            //wxString string2 = GUI::from_u8(row2->assemble_name.value);
+    //            //return (string1.compare(string2) <= 0);
+    //            return (row1->assemble_name.value.compare(row2->assemble_name.value) < 0);
+    //        };
+    //        sort_row_data(sort_func);
+    //        m_sort_col = col;
+    //    }
+    //}
     else if (col == col_plate_index) {
         if (m_sort_col == col) {
             compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
@@ -2146,9 +2146,8 @@ bool ObjectGridTable::OnCellLeftClick(int row, int col, ConfigOptionType &type)
 
     if (row == 0) {
         sort_by_col(col);
-    }
-    else if (col >= col_assemble_name) {
-        ObjectGridRow* grid_row = m_grid_data[row - 1];
+    } else if (col >= col_name) {
+        ObjectGridRow *grid_row   = m_grid_data[row - 1];
         ObjectGridCol* grid_col = m_col_data[col];
         ObjectGridCol* grid_col_2 = m_col_data[col - 1];
 
@@ -2426,8 +2425,8 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
     m_side_window->SetFont(::Label::Body_12);
     m_object_settings = new ObjectTableSettings(m_side_window, m_object_grid_table);
     m_object_settings->Hide();
-    m_page_sizer->Add(m_page_top_sizer, 0, wxEXPAND | wxALIGN_CENTER_HORIZONTAL, 5);
-    m_page_sizer->Add(m_object_settings->get_sizer(), 1, wxEXPAND, 5);
+    m_page_sizer->Add(m_page_top_sizer, 0, wxEXPAND | wxALIGN_CENTER_HORIZONTAL, 0);
+    m_page_sizer->Add(m_object_settings->get_sizer(), 1, wxEXPAND | wxALL, 2 );
 
     auto m_line_left = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(1,-1), wxTAB_TRAVERSAL);
     m_line_left->SetBackgroundColour(wxColour(0xA6, 0xa9, 0xAA));
@@ -2520,9 +2519,9 @@ void ObjectTablePanel::load_data()
     m_object_grid->SetColLabelValue(ObjectGridTable::col_printable, L("Printable"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_printable_reset, "");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_plate_index, L("Plate"));
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_assemble_name, L("Module"));
+    /*m_object_grid->SetColLabelValue(ObjectGridTable::col_assemble_name, L("Module"));*/
     m_object_grid->SetColLabelValue(ObjectGridTable::col_name, L("Name"));
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments, L("Filaments"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments, L("Filament"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments_reset, "");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height, L("Layer height"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height_reset, "");
@@ -2560,7 +2559,7 @@ void ObjectTablePanel::load_data()
 #endif
     //merges
     m_object_grid->SetCellSize(0, ObjectGridTable::col_printable, 1, 2);
-    m_object_grid->SetCellSize(0, ObjectGridTable::col_assemble_name, 1, 1);
+    //m_object_grid->SetCellSize(0, ObjectGridTable::col_assemble_name, 1, 1);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_name, 1, 1);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_filaments, 1, 2);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_layer_height, 1, 2);
@@ -2848,7 +2847,8 @@ void ObjectTablePanel::resetAllValuesInSideWindow(int row, bool is_object, Model
 // ObjectTableDialog
 // ----------------------------------------------------------------------------
 ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model *modelObj, wxSize maxSize)
-    : GUI::DPIDialog(parent, wxID_ANY, _L("Object/Part Setting"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE),
+    : GUI::DPIDialog(parent, wxID_ANY, _L("Object/Part Setting"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
+    ,
     m_model(modelObj), m_plater(platerObj)
 {
 #ifdef __WINDOWS__
@@ -2860,6 +2860,7 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
 
     //m_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     SetBackgroundColour(*wxWHITE);
+    SetMinSize(wxSize(-1, FromDIP(480)));
 
     //m_static_title = new wxStaticText( m_panel, wxID_ANY, wxT("Totally Objects, Parts"), wxDefaultPosition, wxDefaultSize, 0 );
     //m_static_title->SetFont(Label::Head_12);
@@ -2917,7 +2918,7 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
     //this->Layout();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", created, this %1%, m_obj_panel %2%") %this % m_obj_panel;
 
-    m_main_sizer->Add(m_obj_panel, 1, wxEXPAND, 0);
+    m_main_sizer->Add(m_obj_panel, 1, wxEXPAND|wxTOP,2);
     SetSizer(m_main_sizer);
     Layout();
     Fit();

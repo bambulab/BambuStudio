@@ -430,6 +430,7 @@ void MonitorPanel::update_all()
             }
         }
         show_status((int) MONITOR_DISCONNECTED + server_status);
+        m_status_info_panel->show_unload_ctrl();
         return;
     }
 
