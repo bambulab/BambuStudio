@@ -1989,8 +1989,10 @@ void PartPlate::update_slice_result_valid_state(bool valid)
     m_slice_result_valid = valid;
     if (valid)
         m_slice_percent = 100.0f;
-    else
+    else {
         m_slice_percent = -1.0f;
+        thumbnail_data.reset();
+    }
 }
 
 //update current slice context into backgroud slicing process
