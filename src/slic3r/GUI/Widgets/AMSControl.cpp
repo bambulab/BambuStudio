@@ -425,7 +425,8 @@ void AMSLib::on_leave_window(wxMouseEvent &evt)
 void AMSLib::on_left_down(wxMouseEvent &evt)
 {
     //dc.DrawBitmap(temp_bitmap, (size.x - m_bitmap_editable.GetSize().x) / 2, ( size.y - FromDIP(10) - temp_bitmap.GetSize().y) );
-    if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE) {
+    if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE &&
+        m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND) {
         auto size   = GetSize();
         auto pos    = evt.GetPosition();
         auto left   = FromDIP(20);
@@ -463,27 +464,77 @@ void AMSLib::render(wxDC &dc)
 #else
     doRender(dc);
 #endif
+
+    // text
+    auto tmp_lib_colour  = m_info.material_colour;
+    auto temp_text_colour = AMS_CONTROL_GRAY800;
+
+    if (tmp_lib_colour.GetLuminance() < 0.5) {
+        temp_text_colour = AMS_CONTROL_WHITE_COLOUR;
+    } else {
+        temp_text_colour = AMS_CONTROL_GRAY800;
+    }
+
+    if (!wxWindow::IsEnabled()) {
+        temp_text_colour = AMS_CONTROL_DISABLE_TEXT_COLOUR;
+    }
+
+    dc.SetFont(::Label::Body_13);
+    dc.SetTextForeground(temp_text_colour);
+
+    auto libsize = GetSize();
+    if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND || m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND) {
+        if (m_info.material_name.empty()) {
+            auto tsize = dc.GetMultiLineTextExtent("?");
+            auto pot   = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 + FromDIP(3));
+            dc.DrawText(L("?"), pot);
+        } else {
+            auto tsize = dc.GetMultiLineTextExtent(m_info.material_name);
+
+            if (m_info.material_name.find(' ') != std::string::npos) {
+                dc.SetFont(::Label::Body_12);
+
+                auto line_top    = m_info.material_name.substr(0, m_info.material_name.find(' '));
+                auto line_bottom = m_info.material_name.substr(m_info.material_name.find(' '));
+
+                auto line_top_tsize    = dc.GetMultiLineTextExtent(line_top);
+                auto line_bottom_tsize = dc.GetMultiLineTextExtent(line_bottom);
+
+                auto pot_top = wxPoint((libsize.x - line_top_tsize.x) / 2, (libsize.y - line_top_tsize.y) / 2 - line_top_tsize.y + FromDIP(6));
+                dc.DrawText(line_top, pot_top);
+
+                auto pot_bottom = wxPoint((libsize.x - line_bottom_tsize.x) / 2, (libsize.y - line_bottom_tsize.y) / 2 + FromDIP(6));
+                dc.DrawText(line_bottom, pot_bottom);
+
+            } else {
+                auto pot = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 + FromDIP(3));
+                dc.DrawText(m_info.material_name, pot);
+            }
+        }
+    }
+
+    if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_EMPTY) {
+        auto tsize = dc.GetMultiLineTextExtent(_L("Empty"));
+        auto pot   = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 + FromDIP(3));
+        dc.DrawText(_L("Empty"), pot);
+    }
 }
 
 void AMSLib::doRender(wxDC &dc)
 {
     wxSize size             = GetSize();
     auto   tmp_lib_colour   = m_info.material_colour;
-    auto   temp_text_colour = AMS_CONTROL_GRAY800;
     auto   temp_bitmap      = m_bitmap_editable_lifht;
 
     if (tmp_lib_colour.GetLuminance() < 0.5) {
-        temp_text_colour = AMS_CONTROL_WHITE_COLOUR;
         temp_bitmap      = m_bitmap_editable_lifht;
     } else {
-        temp_text_colour = AMS_CONTROL_GRAY800;
         temp_bitmap      = m_bitmap_editable;
         
     }
 
     if (!wxWindow::IsEnabled()) {
         tmp_lib_colour   = AMS_CONTROL_DISABLE_COLOUR;
-        temp_text_colour = AMS_CONTROL_DISABLE_TEXT_COLOUR;
     }
 
     // selected
@@ -531,32 +582,10 @@ void AMSLib::doRender(wxDC &dc)
             dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(8), size.y - FromDIP(8), m_radius);
         }
     }
-
-    
-    // text
-    dc.SetFont(::Label::Body_13);
-    dc.SetTextForeground(temp_text_colour);
-
-    if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND) {
-        if (m_info.material_name.empty()) {
-            auto tsize = dc.GetMultiLineTextExtent(L("?"));
-            auto pot   = wxPoint((size.x - tsize.x) / 2, (size.y - tsize.y) / 2 + FromDIP(3));
-            dc.DrawText(L("?"), pot);
-        } else {
-            auto tsize = dc.GetMultiLineTextExtent(m_info.material_name);
-            auto pot   = wxPoint((size.x - tsize.x) / 2, (size.y - tsize.y) / 2 + FromDIP(3));
-            dc.DrawText(m_info.material_name, pot);
-        }
-    } 
-    
-    if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_EMPTY) {
-        auto tsize = dc.GetMultiLineTextExtent(_L("Empty"));
-        auto pot   = wxPoint((size.x - tsize.x) / 2, (size.y - tsize.y) / 2 + FromDIP(3));
-        dc.DrawText(_L("Empty"), pot);
-    }
     
     // edit icon
-    if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE) {
+    if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE
+        && m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND ) {
         dc.DrawBitmap(temp_bitmap, (size.x - m_bitmap_editable.GetSize().x) / 2, ( size.y - FromDIP(10) - temp_bitmap.GetSize().y) );
     }
 }
@@ -1391,6 +1420,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_ams_setting->SetBackgroundColor(btn_bg_white);
     m_button_ams_setting->SetBorderColor(btn_bd_white);
     m_button_ams_setting->SetFont(Label::Body_13);
+    m_button_ams_setting->Hide();
     m_sizer_right_bottom->Add(m_button_ams_setting, 0, wxTOP, 20);
     m_sizer_right->Add(m_sizer_right_bottom, 0, wxEXPAND, 5);
     m_sizer_bottom->Add(m_sizer_right, 0, wxEXPAND, 5);
