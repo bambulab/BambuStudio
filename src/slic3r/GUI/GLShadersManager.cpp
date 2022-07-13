@@ -1,6 +1,5 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Platform.hpp"
-#include "BBLShaderPrograms.hpp"
 #include "GLShadersManager.hpp"
 #include "3DScene.hpp"
 #include "GUI_App.hpp"
@@ -18,7 +17,7 @@ std::pair<bool, std::string> GLShadersManager::init()
 {
     std::string error;
 
-    auto append_shader = [this, &error](const std::string& name, const GLShaderProgram::ShaderFilenames& filenames, 
+    auto append_shader = [this, &error](const std::string& name, const GLShaderProgram::ShaderFilenames& filenames,
         const std::initializer_list<std::string_view> &defines = {}) {
         m_shaders.push_back(std::make_unique<GLShaderProgram>());
         if (!m_shaders.back()->init_from_files(name, filenames, defines)) {
@@ -35,26 +34,26 @@ std::pair<bool, std::string> GLShadersManager::init()
     bool valid = true;
 
     // used to render bed axes and model, selection hints, gcode sequential view marker model, preview shells, options in gcode preview
-   valid &= append_shader("gouraud_light", { gouraud_light_vs, gouraud_light_fs });
+   valid &= append_shader("gouraud_light", { "gouraud_light.vs", "gouraud_light.fs" });
    // used to render first layer for calibration
-   valid &= append_shader("cali", { cali_vs, cali_fs});
+   valid &= append_shader("cali", { "cali.vs", "cali.fs"});
     // used to render printbed
-    valid &= append_shader("printbed", { printbed_vs, printbed_fs });
+    valid &= append_shader("printbed", { "printbed.vs", "printbed.fs" });
     // used to render options in gcode preview
     if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 3))
-        valid &= append_shader("gouraud_light_instanced", { gouraud_light_instanced_vs, gouraud_light_instanced_fs });
+        valid &= append_shader("gouraud_light_instanced", { "gouraud_light_instanced.vs", "gouraud_light_instanced.fs" });
     // used to render extrusion and travel paths as lines in gcode preview
-    valid &= append_shader("toolpaths_lines", { toolpaths_lines_vs, toolpaths_lines_fs });
+    valid &= append_shader("toolpaths_lines", { "toolpaths_lines.vs", "toolpaths_lines.fs" });
     // used to render objects in 3d editor
-    valid &= append_shader("gouraud", { gouraud_vs, gouraud_fs }
+    valid &= append_shader("gouraud", { "gouraud.vs", "gouraud.fs" }
 #if ENABLE_ENVIRONMENT_MAP
         , { "ENABLE_ENVIRONMENT_MAP"sv }
 #endif // ENABLE_ENVIRONMENT_MAP
         );
     // used to render variable layers heights in 3d editor
-    valid &= append_shader("variable_layer_height", { variable_layer_height_vs, variable_layer_height_fs });
+    valid &= append_shader("variable_layer_height", { "variable_layer_height.vs", "variable_layer_height.fs" });
     // used to render highlight contour around selected triangles inside the multi-material gizmo
-    valid &= append_shader("mm_contour", { mm_contour_vs, mm_contour_fs });
+    valid &= append_shader("mm_contour", { "mm_contour.vs", "mm_contour.fs" });
     // Used to render painted triangles inside the multi-material gizmo. Triangle normals are computed inside fragment shader.
     // For Apple's on Arm CPU computed triangle normals inside fragment shader using dFdx and dFdy has the opposite direction.
     // Because of this, objects had darker colors inside the multi-material gizmo.
@@ -62,12 +61,12 @@ std::pair<bool, std::string> GLShadersManager::init()
     // Since macOS 12 (Monterey), this issue with the opposite direction on Apple's Arm CPU seems to be fixed, and computed
     // triangle normals inside fragment shader have the right direction.
     if (platform_flavor() == PlatformFlavor::OSXOnArm && wxPlatformInfo::Get().GetOSMajorVersion() < 12)
-        valid &= append_shader("mm_gouraud", {mm_gouraud_vs_os_arm, mm_gouraud_fs_os_arm});
+        valid &= append_shader("mm_gouraud", {"mm_gouraud.vs", "mm_gouraud.fs"}, {"FLIP_TRIANGLE_NORMALS"sv});
     else
-        valid &= append_shader("mm_gouraud", {mm_gouraud_vs, mm_gouraud_fs});
+        valid &= append_shader("mm_gouraud", {"mm_gouraud.vs", "mm_gouraud.fs"});
 
     //BBS: add shader for outline
-    valid &= append_shader("outline", { outline_vs, outline_fs });
+    valid &= append_shader("outline", { "outline.vs", "outline.fs" });
 
     return { valid, error };
 }
