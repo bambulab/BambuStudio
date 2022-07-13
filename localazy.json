@@ -16,28 +16,28 @@
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/en/BambuStudio_de.po",
-				"lang": "en"
+				"pattern": "bbl/i18n/de/BambuStudio_de.po",
+				"lang": "de"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/fr/BambuStudio_it.po",
-				"lang": "fr"
+				"pattern": "bbl/i18n/it/BambuStudio_it.po",
+				"lang": "it"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/en/BambuStudio_es.po",
-				"lang": "en"
+				"pattern": "bbl/i18n/es/BambuStudio_es.po",
+				"lang": "es"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/fr/BambuStudio_nl.po",
-				"lang": "fr"
+				"pattern": "bbl/i18n/nl/BambuStudio_nl.po",
+				"lang": "nl"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/en/BambuStudio_cn.po",
-				"lang": "cn"
+				"pattern": "bbl/i18n/zh_cn/BambuStudio_zh_CN.po",
+				"lang": "zh_cn"
 			}
 		]
 	},
