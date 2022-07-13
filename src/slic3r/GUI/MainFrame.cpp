@@ -241,7 +241,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 #endif // _WIN32
 
     // BBS
-    wxAcceleratorEntry entries[11];
+    wxAcceleratorEntry entries[13];
     int index = 0;
     entries[index++].Set(wxACCEL_CTRL, (int)'N', wxID_HIGHEST + wxID_NEW);
     entries[index++].Set(wxACCEL_CTRL, (int)'O', wxID_HIGHEST + wxID_OPEN);
@@ -255,6 +255,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     entries[index++].Set(wxACCEL_CTRL, (int)'Y', wxID_HIGHEST + wxID_REDO);
     entries[index++].Set(wxACCEL_CTRL, (int)'C', wxID_HIGHEST + wxID_COPY);
     entries[index++].Set(wxACCEL_CTRL, (int)'V', wxID_HIGHEST + wxID_PASTE);
+    entries[index++].Set(wxACCEL_CTRL, (int)'P', wxID_HIGHEST + wxID_PREFERENCES);
+    entries[index++].Set(wxACCEL_CTRL, (int)'I', wxID_HIGHEST + wxID_FILE6);
     wxAcceleratorTable accel(sizeof(entries) / sizeof(entries[0]), entries);
     SetAcceleratorTable(accel);
 
@@ -265,6 +267,13 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, wxID_HIGHEST + wxID_SAVEAS);
     //Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, wxID_HIGHEST + wxID_ADD);
     //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->remove_selected(); }, wxID_HIGHEST + wxID_DELETE);
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) {
+            if (!can_add_models())
+                return;
+            if (m_plater) {
+                m_plater->add_model();
+            }
+        }, wxID_HIGHEST + wxID_FILE6);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->select_all(); }, wxID_HIGHEST + wxID_SELECTALL);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->deselect_all(); }, wxID_HIGHEST + wxID_CANCEL);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) {
@@ -295,6 +304,20 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         m_tabpanel->SetSelection(pos);
     });
     Bind(EVT_SYNC_CLOUD_PRESET, &MainFrame::on_select_default_preset, this);
+
+    Bind(wxEVT_MENU,
+        [this](wxCommandEvent&)
+        {
+            PreferencesDialog dlg(this);
+            dlg.ShowModal();
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+            if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
+#else
+            if (dlg.seq_top_layer_only_changed())
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+                plater()->refresh_print();
+        }, wxID_HIGHEST + wxID_PREFERENCES);
+
 
     // set default tooltip timer in msec
     // SetAutoPop supposedly accepts long integers but some bug doesn't allow for larger values
@@ -943,6 +966,11 @@ bool MainFrame::can_start_new_project() const
 bool MainFrame::can_open_project() const
 {
     return (m_plater && !m_plater->is_background_process_slicing());
+}
+
+bool  MainFrame::can_add_models() const
+{
+    return (m_plater && !m_plater->is_background_process_slicing() && !m_plater->only_gcode_mode() && !m_plater->using_exported_file());
 }
 
 bool MainFrame::can_save() const
@@ -1625,15 +1653,15 @@ void MainFrame::init_menubar_as_editor()
 
         //BBS
 #ifdef __WINDOWS__
-        append_menu_item(fileMenu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots/* + "\tCtrl+I"*/, _L("Load a model"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots + "\tCtrl+I", _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) {
             m_plater->add_model();
         } }, "menu_import", nullptr,
-            [this](){return can_open_project(); }, this);
+            [this](){return can_add_models(); }, this);
 #else
-        append_menu_item(fileMenu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots/* + "\tCtrl+I"*/, _L("Load a model"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots + "\tCtrl+I", _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) { m_plater->add_model(); } }, "", nullptr,
-            [this](){return can_open_project(); }, this);
+            [this](){return can_add_models(); }, this);
 #endif
 
 
@@ -1816,7 +1844,7 @@ void MainFrame::init_menubar_as_editor()
     //auto config_wizard_name = _(ConfigWizard::name(true) + "(Debug)");
     //const auto config_wizard_tooltip = from_u8((boost::format(_utf8(L("Run %s"))) % config_wizard_name).str());
     //auto config_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuWizard + config_id_base, config_wizard_name, config_wizard_tooltip);
-    auto preference_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuPreferences + config_id_base, _L("Preferences"), "");
+    auto preference_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuPreferences + config_id_base, _L("Preferences") + "\tCtrl+P", "");
     //auto printer_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuPrinter + config_id_base, _L("Printer"), "");
     //auto language_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuLanguage + config_id_base, _L("Switch Language"), "");
     m_topbar->GetTopMenu()->Bind(wxEVT_MENU, [this, config_id_base](wxEvent& event) {

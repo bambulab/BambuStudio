@@ -108,6 +108,7 @@ class MainFrame : public DPIFrame
 
     bool can_start_new_project() const;
     bool can_open_project() const;
+    bool can_add_models() const;
     bool can_export_model() const;
     bool can_export_toolpaths() const;
     bool can_export_supports() const;

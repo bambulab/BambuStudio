@@ -105,7 +105,6 @@
 #include "BitmapCache.hpp"
 #include "AuxiliaryDialog.hpp"
 #include "ParamsDialog.hpp"
-#include "Tab.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/RadioBox.hpp"
@@ -1295,11 +1294,9 @@ void Sidebar::collapse(bool collapse)
     this->Show(!collapse);
     p->plater->Layout();
 
-#ifdef SUPPORT_COLLAPSED_SIDEBAR
     // save collapsing state to the AppConfig
-    if (wxGetApp().is_editor())
-        wxGetApp().app_config->set_bool("collapsed_sidebar", collapse);
-#endif
+    //if (wxGetApp().is_editor())
+    //    wxGetApp().app_config->set_bool("collapsed_sidebar", collapse);
 }
 
 #ifdef _MSW_DARK_MODE
@@ -2297,13 +2294,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     });*/
     //wxGetApp().other_instance_message_handler()->init(this->q);
 
-#ifdef SUPPORT_COLLAPSED_SIDEBAR
     // collapse sidebar according to saved value
-    if (wxGetApp().is_editor()) {
-        bool is_collapsed = wxGetApp().app_config->get("collapsed_sidebar") == "1";
-        sidebar->collapse(is_collapsed);
-    }
-#endif
+    //if (wxGetApp().is_editor()) {
+    //    bool is_collapsed = wxGetApp().app_config->get("collapsed_sidebar") == "1";
+    //    sidebar->collapse(is_collapsed);
+    //}
 }
 
 Plater::priv::~priv()
@@ -2502,6 +2497,8 @@ void Plater::priv::select_next_view_3D()
 
 void Plater::priv::collapse_sidebar(bool collapse)
 {
+    if (q->m_only_gcode && !collapse)
+        return;
     sidebar->collapse(collapse);
     notification_manager->set_sidebar_collapsed(collapse);
 }
@@ -4515,7 +4512,6 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
         preview->get_canvas3d()->enable_select_plate_toolbar(false);
     }
     else {
-        this->sidebar->collapse(false);
         preview->get_canvas3d()->enable_select_plate_toolbar(true);
     }
 
@@ -6376,6 +6372,8 @@ int Plater::new_project(bool skip_confirm, bool silent)
         return wxID_CANCEL;
 
     //BBS: add only gcode mode
+    bool previous_gcode = m_only_gcode;
+
     m_only_gcode = false;
     m_exported_file = false;
     wxGetApp().mainframe->enable_tab(MainFrame::tp3DEditor);
@@ -6409,6 +6407,8 @@ int Plater::new_project(bool skip_confirm, bool silent)
     p->select_view_3D("3D");
     p->select_view("topfront");
     p->camera.requires_zoom_to_bed = true;
+    if (previous_gcode)
+        collapse_sidebar(false);
 
     up_to_date(true, false);
     up_to_date(true, true);
@@ -6440,6 +6440,8 @@ void Plater::load_project(wxString const& filename2,
     }
 
     //BBS: add only gcode mode
+    bool previous_gcode = m_only_gcode;
+
     m_only_gcode = false;
     m_exported_file = false;
     wxGetApp().mainframe->enable_tab(MainFrame::tp3DEditor);
@@ -6482,6 +6484,8 @@ void Plater::load_project(wxString const& filename2,
         p->select_view("topfront");
         p->camera.requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
     }
+    if (previous_gcode)
+        collapse_sidebar(false);
 
     wxGetApp().app_config->update_last_backup_dir(model().get_backup_path());
     if (load_restore && !originfile.empty()) {
@@ -6648,6 +6652,8 @@ void Plater::load_gcode(const wxString& filename)
     wxGetApp().mainframe->select_tab(MainFrame::tpPreview);
     p->set_current_panel(p->preview, true);
     p->get_current_canvas3D()->render();
+    wxTheApp->CallAfter([]() { wxGetApp().mainframe->enable_tab(MainFrame::tp3DEditor, false);});
+    p->notification_manager->bbl_show_plateinfo_notification(into_u8(_L("Preview only mode for gcode file.")));
 
     current_print.apply(this->model(), wxGetApp().preset_bundle->full_config());
 
@@ -7143,6 +7149,14 @@ bool Plater::load_files(const wxArrayString& filenames)
     auto tmf_file   = std::vector<fs::path>{};
     auto other_file = std::vector<fs::path>{};
     auto res        = true;
+
+    if (this->m_only_gcode || this->m_exported_file) {
+        if ((loadfiles_type == LoadFilesType::SingleOther)
+            || (loadfiles_type == LoadFilesType::MultipleOther)) {
+            show_info(this, _L("Can not add models when in preview mode!"), _L("Add Models"));
+            return false;
+        }
+    }
 
     switch (loadfiles_type) {
     case LoadFilesType::Single3MF:

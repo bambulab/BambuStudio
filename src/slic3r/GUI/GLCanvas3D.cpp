@@ -2427,9 +2427,23 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         //}
         case '?': { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
         case 'A':
-        case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
+        case 'a':
+            {
+                if ((evt.GetModifiers() & shiftMask) != 0)
+                    post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE_PARTPLATE));
+                else
+                    post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE));
+                break;
+            }
         case 'r':
-        case 'R': { post_event(SimpleEvent(EVT_GLCANVAS_ORIENT)); break; }
+        case 'R':
+            {
+                if ((evt.GetModifiers() & shiftMask) != 0)
+                    post_event(SimpleEvent(EVT_GLCANVAS_ORIENT_PARTPLATE));
+                else
+                    post_event(SimpleEvent(EVT_GLCANVAS_ORIENT));
+                break;
+            }
         //case 'B':
         //case 'b': { zoom_to_bed(); break; }
 #if !BBL_RELEASE_TO_PUBLIC
@@ -2567,9 +2581,7 @@ public:
 
             if (apply) {
                 m_running = true;
-                //BBS: always move as camera space
-                //m_down_action(m_direction, evt.ShiftDown(), evt.CmdDown());
-                m_down_action(m_direction, evt.ShiftDown(), true);
+                m_down_action(m_direction, evt.ShiftDown(), evt.CmdDown());
             }
         }
     }
@@ -2630,14 +2642,6 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     m_dirty = true;
 #endif
                 }
-                else if (evt.ShiftDown() && keyCode == 'A') {
-                    post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE_PARTPLATE));
-                    m_dirty = true;
-                }
-                else if (evt.ShiftDown() && keyCode == 'R') {
-                    post_event(SimpleEvent(EVT_GLCANVAS_ORIENT_PARTPLATE));
-                    m_dirty = true;
-                }
                 else if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
                     // Enable switching between 3D and Preview with Tab
                     // m_canvas->HandleAsNavigationKey(evt);   // XXX: Doesn't work in some cases / on Linux
@@ -2645,7 +2649,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 }
                 else if (keyCode == WXK_TAB && evt.ShiftDown() && ! wxGetApp().is_gcode_viewer()) {
                     // Collapse side-panel with Shift+Tab
-                    //post_event(SimpleEvent(EVT_GLCANVAS_COLLAPSE_SIDEBAR));
+                    post_event(SimpleEvent(EVT_GLCANVAS_COLLAPSE_SIDEBAR));
                 }
                 else if (keyCode == WXK_SHIFT) {
                     translationProcessor.process(evt);
@@ -2698,14 +2702,30 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 // BBS: add select view logic
                 if (evt.ControlDown()) {
                     switch (keyCode) {
-                        case '0': { select_view("topfront"); break; }
-                        case '1': { select_view("top"); break; }
-                        case '2': { select_view("bottom"); break; }
-                        case '3': { select_view("front"); break; }
-                        case '4': { select_view("rear"); break; }
-                        case '5': { select_view("left"); break; }
-                        case '6': { select_view("right"); break; }
-                        case '7': { select_plate(); break; }
+                        case '0':
+                        case WXK_NUMPAD0: //0 on numpad
+                            { select_view("topfront"); break; }
+                        case '1':
+                        case WXK_NUMPAD1: //1 on numpad
+                            { select_view("top"); break; }
+                        case '2':
+                        case WXK_NUMPAD2: //2 on numpad
+                            { select_view("bottom"); break; }
+                        case '3':
+                        case WXK_NUMPAD3: //3 on numpad
+                            { select_view("front"); break; }
+                        case '4':
+                        case WXK_NUMPAD4: //4 on numpad
+                            { select_view("rear"); break; }
+                        case '5':
+                        case WXK_NUMPAD5: //5 on numpad
+                            { select_view("left"); break; }
+                        case '6':
+                        case WXK_NUMPAD6: //6 on numpad
+                            { select_view("right"); break; }
+                        case '7':
+                        case WXK_NUMPAD7: //7 on numpad
+                            { select_plate(); break; }
                         default: break;
                     }
                 }
