@@ -173,6 +173,7 @@ public:
     void                on_input_enter_model(wxCommandEvent &evt);
     void                on_select_license(wxCommandEvent& evt);
     void                update_info();
+    void                msw_rescale();
 };
 
 

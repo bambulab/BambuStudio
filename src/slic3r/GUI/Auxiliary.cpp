@@ -716,9 +716,8 @@ void AuxiliaryPanel::init_tabpanel()
     m_assembly_panel          = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::ASSEMBLY_GUIDE);
     m_others_panel            = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::OTHERS);
 
-    m_tabpanel->AddPage(m_designer_panel, _L("Basic Info"), "", true);
-
 #if !BBL_RELEASE_TO_PUBLIC
+    m_tabpanel->AddPage(m_designer_panel, _L("Basic Info"), "", true);
     m_tabpanel->AddPage(m_pictures_panel, _L("Pictures"), "", false);
 #else
     m_tabpanel->AddPage(m_pictures_panel, _L("Pictures"), "", true);
@@ -744,6 +743,9 @@ void AuxiliaryPanel::msw_rescale() {
     m_bill_of_materials_panel->msw_rescale();
     m_assembly_panel->msw_rescale();
     m_others_panel->msw_rescale();
+#if !BBL_RELEASE_TO_PUBLIC
+    m_designer_panel->msw_rescale();
+#endif
 }
 
 void AuxiliaryPanel::on_size(wxSizeEvent &event)
@@ -993,7 +995,7 @@ void AuxiliaryPanel::update_all_cover()
      m_sizer_designer->Add(m_text_designer, 0, wxALIGN_CENTER, 0);
 
      m_input_designer =  new ::TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(450), FromDIP(30)), wxTE_PROCESS_ENTER);
-     m_input_designer->GetTextCtrl()->SetFont(::Label::Body_13);
+     m_input_designer->GetTextCtrl()->SetFont(::Label::Body_14);
      m_input_designer->GetTextCtrl()->SetSize(wxSize(FromDIP(450), FromDIP(22)));
      m_sizer_designer->Add(m_input_designer, 0, wxALIGN_CENTER, 0);
 
@@ -1004,7 +1006,7 @@ void AuxiliaryPanel::update_all_cover()
      m_sizer_model_name->Add(m_text_model_name, 0, wxALIGN_CENTER, 0);
 
      m_imput_model_name =  new ::TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition,wxSize(FromDIP(450),FromDIP(30)), wxTE_PROCESS_ENTER);
-     m_imput_model_name->GetTextCtrl()->SetFont(::Label::Body_13);
+     m_imput_model_name->GetTextCtrl()->SetFont(::Label::Body_14);
      m_imput_model_name->GetTextCtrl()->SetSize(wxSize(FromDIP(450), FromDIP(22)));
      m_sizer_model_name->Add(m_imput_model_name, 0, wxALIGN_CENTER, 0);
 
@@ -1108,6 +1110,12 @@ void DesignerPanel::update_info()
     } else {
          m_imput_model_name->GetTextCtrl()->SetValue(wxEmptyString);
     }
+}
+
+void DesignerPanel::msw_rescale()
+{
+    m_input_designer->GetTextCtrl()->SetSize(wxSize(FromDIP(450), FromDIP(22)));
+    m_imput_model_name->GetTextCtrl()->SetSize(wxSize(FromDIP(450), FromDIP(22)));
 }
 
 }} // namespace Slic3r::GUI

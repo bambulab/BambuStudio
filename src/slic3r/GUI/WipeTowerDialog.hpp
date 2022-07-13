@@ -17,7 +17,6 @@ public:
     void create_panels(wxWindow* parent, const int num);
     void calc_flushing_volumes();
 
-#if !BBL_RELEASE_TO_PUBLIC
     float get_flush_multiplier()
     {
         if (m_flush_multiplier_ebox == nullptr)
@@ -25,7 +24,6 @@ public:
 
         return std::atof(m_flush_multiplier_ebox->GetValue().c_str());
     }
-#endif
 
 private:
     void fill_in_matrix();
