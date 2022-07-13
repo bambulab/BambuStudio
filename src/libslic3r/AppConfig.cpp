@@ -128,8 +128,8 @@ void AppConfig::set_defaults()
 #endif // _WIN32
     }
 
-    if (get("is_perspective").empty())
-        set_bool("is_perspective", true);
+    if (get("use_perspective_camera").empty())
+        set_bool("use_perspective_camera", true);
 
 #ifdef SUPPORT_FREE_CAMERA
     if (get("use_free_camera").empty())

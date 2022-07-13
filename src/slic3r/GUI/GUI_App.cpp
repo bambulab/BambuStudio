@@ -1545,8 +1545,8 @@ bool GUI_App::on_init_inner()
         // Detect position (display) to show the splash screen
         // Now this position is equal to the mainframe position
         wxPoint splashscreen_pos = wxDefaultPosition;
-        if (app_config->has("win_main")) {
-            auto metrics = WindowMetrics::deserialize(app_config->get("win_main"));
+        if (app_config->has("window_mainframe")) {
+            auto metrics = WindowMetrics::deserialize(app_config->get("window_mainframe"));
             if (metrics)
                 splashscreen_pos = metrics->get_rect().GetPosition();
         }
@@ -2294,11 +2294,11 @@ void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_max
 
     window->Bind(wxEVT_CLOSE_WINDOW, [=](wxCloseEvent &event) {
         m_is_closing = true;
-        window_pos_save(window, "main");
+        window_pos_save(window, "mainframe");
         event.Skip();
     });
 
-    if (window_pos_restore(window, "main", default_maximized)) {
+    if (window_pos_restore(window, "mainframe", default_maximized)) {
         on_window_geometry(window, [=]() {
             window_pos_sanitize(window);
         });
@@ -4078,7 +4078,7 @@ void GUI_App::gcode_thumbnails_debug()
 void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)
 {
     if (name.empty()) { return; }
-    const auto config_key = (boost::format("win_%1%") % name).str();
+    const auto config_key = (boost::format("window_%1%") % name).str();
 
     WindowMetrics metrics = WindowMetrics::from_window(window);
     app_config->set(config_key, metrics.serialize());
@@ -4088,7 +4088,7 @@ void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)
 bool GUI_App::window_pos_restore(wxTopLevelWindow* window, const std::string &name, bool default_maximized)
 {
     if (name.empty()) { return false; }
-    const auto config_key = (boost::format("win_%1%") % name).str();
+    const auto config_key = (boost::format("window_%1%") % name).str();
 
     if (! app_config->has(config_key)) {
         //window->Maximize(default_maximized);

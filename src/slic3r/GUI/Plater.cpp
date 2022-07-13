@@ -2180,8 +2180,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // updates camera type from .ini file
     camera.enable_update_config_on_type_change(true);
     // BBS set config
-    bool is_perspective = get_config("is_perspective").compare("true") == 0;
-    if (is_perspective) {
+    bool use_perspective_camera = get_config("use_perspective_camera").compare("true") == 0;
+    if (use_perspective_camera) {
         camera.set_type(Camera::EType::Perspective);
     } else {
         camera.set_type(Camera::EType::Ortho);
@@ -2442,8 +2442,8 @@ wxColour Plater::get_next_color_for_filament()
 
 void Plater::priv::apply_free_camera_correction(bool apply/* = true*/)
 {
-    bool is_perspective = get_config("is_perspective").compare("true") == 0;
-    if (is_perspective)
+    bool use_perspective_camera = get_config("use_perspective_camera").compare("true") == 0;
+    if (use_perspective_camera)
         camera.set_type(Camera::EType::Perspective);
     else
         camera.set_type(Camera::EType::Ortho);
