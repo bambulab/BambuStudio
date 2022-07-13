@@ -201,9 +201,10 @@ private:
     wxScrolledWindow *                m_scrolledWindow{nullptr};
     wxWindow *                        m_panel_body{nullptr};
     wxTimer *                         m_refresh_timer{nullptr};
-    MachinePanelHash                  m_user_list_machine_panel;
-    MachinePanelHash                  m_list_Machine_panel;
-    boost::thread*                    get_print_info_thread {nullptr};
+    std::vector<MachinePanel*>        m_user_list_machine_panel;
+    std::vector<MachinePanel*>        m_list_Machine_panel;
+    boost::thread*                    get_print_info_thread{ nullptr };
+    std::string                       m_print_info;
     bool                              m_dismiss { false };
 
     std::map<std::string, MachineObject*> m_bind_machine_list; 
@@ -217,8 +218,8 @@ private:
     void OnKillFocus(wxFocusEvent &event);
     void on_timer(wxTimerEvent &event);
 
-	void      update_other_devices(wxCommandEvent &event);
-    void      update_windows_position(wxCommandEvent &event);
+	void      update_other_devices();
+    void      update_user_devices();
     wxWindow *create_title_panel(wxString text);
 
 private:

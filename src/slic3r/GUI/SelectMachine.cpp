@@ -27,7 +27,6 @@ namespace Slic3r { namespace GUI {
 wxDEFINE_EVENT(EVT_UPDATE_WINDOWS_POSITION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_FINISHED_UPDATE_MACHINE_LIST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_USER_MACHINE_LIST, wxCommandEvent);
-wxDEFINE_EVENT(EVT_UPDATE_OTHER_MACHINE_LIST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_JOB_CANCEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UNBIND_MACHINE, wxCommandEvent);
 
@@ -192,13 +191,13 @@ void MachineObjectPanel::doRender(wxDC &dc)
     dc.SetFont(Label::Body_13);
     dc.SetBackgroundMode(wxTRANSPARENT);
     dc.SetTextForeground(SELECT_MACHINE_GREY900);
-    std::string dev_name;
+    wxString dev_name;
     if (m_info) {
-        dev_name = from_u8(m_info->dev_name).ToStdString();
+        dev_name = from_u8(m_info->dev_name);
     }
     auto        sizet        = dc.GetTextExtent(dev_name);
     auto        text_end     = size.x - m_unbind_img.GetSize().x - 30;
-    std::string finally_name = dev_name;
+    wxString finally_name =  dev_name;
     if (sizet.x > (text_end - left)) {
         auto limit_width = text_end - left - dc.GetTextExtent("...").x - 15;
         for (auto i = 0; i < dev_name.length(); i++) {
@@ -350,30 +349,37 @@ wxBEGIN_EVENT_TABLE(SelectMachinePopup, wxPopupTransientWindow) EVT_MOUSE_EVENTS
     //#endif
 
     m_refresh_timer = new wxTimer();
+    m_refresh_timer->SetOwner(this);
     Bind(EVT_UPDATE_USER_MACHINE_LIST, &SelectMachinePopup::update_machine_list, this);
-    Bind(EVT_UPDATE_OTHER_MACHINE_LIST, &SelectMachinePopup::update_other_devices, this);
-    Bind(EVT_UPDATE_WINDOWS_POSITION, &SelectMachinePopup::update_windows_position, this);
     Bind(wxEVT_TIMER, &SelectMachinePopup::on_timer, this);
 }
 
 void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
 {
+    BOOST_LOG_TRIVIAL(trace) << "get_print_info: start";
     start_ssdp(true);
-    m_refresh_timer->Stop();
-    m_refresh_timer->SetOwner(this);
-    m_refresh_timer->Start(MACHINE_LIST_REFRESH_INTERVAL);
+    if (m_refresh_timer) {
+        m_refresh_timer->Stop();
+        m_refresh_timer->Start(MACHINE_LIST_REFRESH_INTERVAL);
+    }
 
     if (wxGetApp().is_user_login()) {
-        get_print_info_thread = new boost::thread(Slic3r::create_thread([this] {
-            DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-            dev->update_user_machine_list_info();
-
-            if (!was_dismiss()) {
+        if (!get_print_info_thread) {
+            get_print_info_thread = new boost::thread(Slic3r::create_thread([&] {
+                NetworkAgent* agent = wxGetApp().getAgent();
+                unsigned int http_code;
+                std::string body;
+                int result = agent->get_user_print_info(&http_code, &body);
+                if (result == 0) {
+                    m_print_info = body;
+                } else {
+                    m_print_info = "";
+                }
                 wxCommandEvent event(EVT_UPDATE_USER_MACHINE_LIST);
                 event.SetEventObject(this);
                 wxPostEvent(this, event);
-            }
-        }));
+            }));
+        }
     }
 
     wxPostEvent(this, wxTimerEvent());
@@ -382,21 +388,20 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
 
 void SelectMachinePopup::OnDismiss()
 {
+    BOOST_LOG_TRIVIAL(trace) << "get_print_info: dismiss";
+    start_ssdp(false);
     m_dismiss = true;
 
     if (m_refresh_timer) {
         m_refresh_timer->Stop();
-        delete m_refresh_timer;
-        m_refresh_timer = nullptr;
     }
-
-    Slic3r::create_thread([this] {
-        start_ssdp(false);
-        if (get_print_info_thread) {
-            get_print_info_thread->interrupt();
-            if (get_print_info_thread->joinable()) { get_print_info_thread->join(); }
+    if (get_print_info_thread) {
+        if (get_print_info_thread->joinable()) {
+            get_print_info_thread->join();
+            delete get_print_info_thread;
+            get_print_info_thread = nullptr;
         }
-    });
+    }
 
     wxCommandEvent event(EVT_FINISHED_UPDATE_MACHINE_LIST);
     event.SetEventObject(this);
@@ -436,27 +441,21 @@ wxWindow *SelectMachinePopup::create_title_panel(wxString text)
 
 void SelectMachinePopup::on_timer(wxTimerEvent &event)
 {
+    BOOST_LOG_TRIVIAL(trace) << "SelectMachinePopup on_timer";
     wxCommandEvent user_event(EVT_UPDATE_USER_MACHINE_LIST);
     user_event.SetEventObject(this);
     wxPostEvent(this, user_event);
-
-    wxCommandEvent other_event(EVT_UPDATE_OTHER_MACHINE_LIST);
-    other_event.SetEventObject(this);
-    wxPostEvent(this, other_event);
 }
 
-void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
+void SelectMachinePopup::update_other_devices()
 {
     DeviceManager* dev = wxGetApp().getDeviceManager();
     m_free_machine_list = dev->get_local_machine_list();
 
+    BOOST_LOG_TRIVIAL(trace) << "SelectMachinePopup update_other_devices start";
     this->Freeze();
-    for (auto i = 0; i < m_list_Machine_panel.GetCount(); i++) {
-        MachinePanel *mpanel = m_list_Machine_panel[i];
-        mpanel->mPanel->Destroy();
-    }
-
-    m_list_Machine_panel.clear();
+    m_scrolledWindow->Freeze();
+    int i = 0;
     for (auto &elem : m_free_machine_list) {
         MachineObject *     mobj = elem.second;
         /* do not show printer bind state is empty */
@@ -470,7 +469,19 @@ void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
         if (it != m_bind_machine_list.end())
             continue;
         
-        MachineObjectPanel *op   = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
+        MachineObjectPanel* op = nullptr;
+        if (i < m_list_Machine_panel.size()) {
+            op = m_list_Machine_panel[i]->mPanel;
+        } else {
+            op = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
+            MachinePanel* mpanel = new MachinePanel();
+            mpanel->mIndex = wxString::Format("%d", i);
+            mpanel->mPanel = op;
+            m_list_Machine_panel.push_back(mpanel);
+            m_sizer_other_devices->Add(op, 0, wxEXPAND, 0);
+        }
+        i++;
+        
         op->update_machine_info(mobj);
 
         op->Bind(wxEVT_LEFT_DOWN, [this, op, mobj](auto &e){
@@ -512,78 +523,98 @@ void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
                 op->set_printer_state(IDLE);
             }
         }
-        m_sizer_other_devices->Add(op, 0, wxEXPAND, 0);
-
-        MachinePanel *mpanel = new MachinePanel();
-        mpanel->mIndex       = wxEmptyString;
-        mpanel->mPanel       = op;
-        m_list_Machine_panel.Add(mpanel);
     }
+
+    for (int j = i; j < m_list_Machine_panel.size(); j++) {
+        m_list_Machine_panel[j]->mPanel->Hide();
+    }
+    m_sizer_other_devices->Layout();
+    m_scrolledWindow->Layout();
+    m_scrolledWindow->Fit();
+    m_scrolledWindow->Thaw();
     Layout();
     Fit();
     this->Thaw();
+    BOOST_LOG_TRIVIAL(trace) << "SelectMachinePopup update_other_devices end";
 }
 
-void SelectMachinePopup::update_windows_position(wxCommandEvent &event) {
-
-}
-
-void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
+void SelectMachinePopup::update_user_devices()
 {
-    Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+
+    if (!m_print_info.empty()) {
+        dev->parse_user_print_info(m_print_info);
+        m_print_info = "";
+    }
+
     m_bind_machine_list.clear();
     m_bind_machine_list = dev->get_my_machine_list();
 
+    BOOST_LOG_TRIVIAL(trace) << "SelectMachinePopup update_machine_list start";
+    this->Freeze();
     m_scrolledWindow->Freeze();
-    for (auto i = 0; i < m_user_list_machine_panel.GetCount(); i++) {
-        MachinePanel* mpanel = m_user_list_machine_panel[i];
-        mpanel->mPanel->Destroy();
-    }
-    m_user_list_machine_panel.clear();
-
-    for (auto &elem : m_bind_machine_list) {
-        MachineObject *     mobj = elem.second;
-        MachineObjectPanel *op   = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
+    int i = 0;
+    for (auto& elem : m_bind_machine_list) {
+        MachineObject* mobj = elem.second;
+        MachineObjectPanel* op = nullptr;
+        if (i < m_user_list_machine_panel.size()) {
+            op = m_user_list_machine_panel[i]->mPanel;
+            op->Show();
+        }
+        else {
+            op = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
+            MachinePanel* mpanel = new MachinePanel();
+            mpanel->mIndex = wxString::Format("%d", i);
+            mpanel->mPanel = op;
+            m_user_list_machine_panel.push_back(mpanel);
+            m_sizer_my_devices->Add(op, 0, wxEXPAND, 0);
+        }
+        i++;
         op->update_machine_info(mobj);
         //set in lan
         if (mobj->is_lan_mode_printer()) {
             if (!mobj->is_online()) {
                 continue;
-            } else {
+            }
+            else {
                 op->show_printer_bind(false, PrinterBindState::NONE);
                 op->show_edit_printer_name(false);
                 if (mobj->has_access_right() && mobj->is_avaliable()) {
                     op->set_printer_state(PrinterState::IN_LAN);
                     op->show_printer_bind(true, PrinterBindState::ALLOW_UNBIND);
                     op->SetToolTip(_L("Online"));
-                } else {
+                }
+                else {
                     op->set_printer_state(PrinterState::LOCK);
                 }
             }
             op->Bind(EVT_UNBIND_MACHINE, [this, mobj](wxCommandEvent& e) {
                 mobj->set_access_code("");
-            });
-        } else {
+                });
+        }
+        else {
             op->show_printer_bind(true, PrinterBindState::ALLOW_UNBIND);
-            op->Bind(EVT_UNBIND_MACHINE, [this, mobj, dev](wxCommandEvent &e) {
+            op->Bind(EVT_UNBIND_MACHINE, [this, mobj, dev](wxCommandEvent& e) {
                 // show_unbind_dialog
                 UnBindMachineDilaog dlg;
                 dlg.update_machine_info(mobj);
                 if (dlg.ShowModal() == wxID_OK) {
                     dev->set_selected_machine("");
                 }
-            });
+                });
 
             if (!mobj->is_online()) {
                 op->SetToolTip(_L("Offline"));
                 op->set_printer_state(PrinterState::OFFLINE);
-            } else {
+            }
+            else {
                 op->show_edit_printer_name(true);
                 op->show_printer_bind(true, PrinterBindState::ALLOW_UNBIND);
                 if (mobj->is_in_printing()) {
                     op->SetToolTip(_L("Busy"));
                     op->set_printer_state(PrinterState::BUSY);
-                } else {
+                }
+                else {
                     op->SetToolTip(_L("Online"));
                     op->set_printer_state(PrinterState::IDLE);
                 }
@@ -595,7 +626,8 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
                 if (mobj->has_access_right() && mobj->is_avaliable()) {
                     //Connect printer
                     mobj->connect();
-                } else {
+                }
+                else {
                     ConnectPrinterDialog dlg(this, wxID_ANY, _L("Input access code"));
                     dlg.set_machine_object(mobj);
                     dlg.ShowModal();
@@ -604,21 +636,31 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
             //wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
             }
         );
-        m_sizer_my_devices->Add(op, 0, wxEXPAND, 0);
-        MachinePanel* mpanel = new MachinePanel();
-        mpanel->mIndex = wxEmptyString;
-        mpanel->mPanel = op;
-        m_user_list_machine_panel.Add(mpanel);
     }
 
+    for (int j = i; j < m_user_list_machine_panel.size(); j++) {
+        m_user_list_machine_panel[j]->mPanel->Hide();
+    }
+    //m_sizer_my_devices->Layout();
+    m_scrolledWindow->Layout();
+    m_scrolledWindow->Fit();
+    m_scrolledWindow->Thaw();
     Layout();
     Fit();
-    m_scrolledWindow->Thaw();
+    this->Thaw();
+}
+
+void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
+{
+    update_user_devices();
+    update_other_devices();
+    BOOST_LOG_TRIVIAL(trace) << "SelectMachinePopup update_machine_list end";
 }
 
 void SelectMachinePopup::start_ssdp(bool start)
 {
-    if (wxGetApp().getAgent()) { wxGetApp().getAgent()->start_discovery(true, start); }
+    return;
+    //if (wxGetApp().getAgent()) { wxGetApp().getAgent()->start_discovery(true, start); }
 }
 
 void SelectMachinePopup::OnSize(wxSizeEvent &event) { event.Skip(); }
@@ -2018,11 +2060,11 @@ bool SelectMachineDialog::Show(bool show)
             });
         }
 
-        if (show) {
+        /*if (show) {
             agent->start_discovery(true, true);
         } else {
             agent->start_discovery(true, false);
-        }
+        }*/
     }
 
     if (show) {

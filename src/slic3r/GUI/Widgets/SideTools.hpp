@@ -19,7 +19,7 @@ enum WifiSignal {
     STRONG,
 };
 
-#define SIDE_TOOL_CLICK_INTERVAL 200
+#define SIDE_TOOL_CLICK_INTERVAL 20
 
 namespace Slic3r { namespace GUI {
 

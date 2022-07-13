@@ -550,10 +550,6 @@ public:
 class DeviceManager
 {
 private:
-    std::mutex m_devicelist_mutex;
-    bool m_check_alive_quit = false;
-    const double ALIVE_TIMEOUT = 30.0;
-    boost::thread m_device_check_alive;
     NetworkAgent* m_agent { nullptr };
 
 public:
@@ -581,6 +577,7 @@ public:
     std::string get_first_online_user_machine();
     void modify_device_name(std::string dev_id, std::string dev_name);
     void update_user_machine_list_info();
+    void parse_user_print_info(std::string body);
 
     /* create machine or update machine properties */
     void on_machine_alive(std::string json_str);

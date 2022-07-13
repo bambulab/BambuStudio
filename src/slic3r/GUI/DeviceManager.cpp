@@ -2274,20 +2274,10 @@ bool MachineObject::is_firmware_info_valid()
 DeviceManager::DeviceManager(NetworkAgent* agent)
 {
     m_agent = agent;
-    try {
-        m_device_check_alive = Slic3r::create_thread([this] { this->check_alive(); });
-    }
-    catch (std::exception& e) {
-        ;
-    }
 }
 
 DeviceManager::~DeviceManager()
 {
-    if (m_check_alive_quit) return;
-    m_check_alive_quit = true;
-    m_device_check_alive.try_join_for(boost::chrono::milliseconds(200));
-
     for (auto it = localMachineList.begin(); it != localMachineList.end(); it++) {
         if (it->second) {
             delete it->second;
@@ -2309,7 +2299,7 @@ DeviceManager::~DeviceManager()
 void DeviceManager::on_machine_alive(std::string json_str)
 {
     try {
-        BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery:: json_str " << json_str;
+        BOOST_LOG_TRIVIAL(trace) << "DeviceManager::SsdpDiscovery, json" << json_str;
         json j = json::parse(json_str);
         std::string dev_name        = j["dev_name"].get<std::string>();
         std::string dev_id          = j["dev_id"].get<std::string>();
@@ -2319,7 +2309,6 @@ void DeviceManager::on_machine_alive(std::string json_str)
         std::string connect_type    = j["connect_type"].get<std::string>();
         std::string bind_state      = j["bind_state"].get<std::string>();
 
-        std::lock_guard<std::mutex> lock(listMutex);
         MachineObject* obj;
 
         /* update userMachineList info */
@@ -2383,7 +2372,7 @@ int DeviceManager::query_bind_status(std::string &msg)
         return -1;
     }
 
-    std::lock_guard<std::mutex> lock(listMutex);
+    BOOST_LOG_TRIVIAL(trace) << "DeviceManager::query_bind_status";
     std::map<std::string, MachineObject*>::iterator it;
     std::vector<std::string> query_list;
     for (it = localMachineList.begin(); it != localMachineList.end(); it++) {
@@ -2466,6 +2455,7 @@ MachineObject* DeviceManager::get_my_machine(std::string dev_id)
 
 void DeviceManager::clean_user_info()
 {
+    BOOST_LOG_TRIVIAL(trace) << "DeviceManager::clean_user_info";
     // reset selected_machine
     selected_machine = "";
 
@@ -2473,7 +2463,6 @@ void DeviceManager::clean_user_info()
     for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
         it->second->set_access_code("");
     }
-
     // clean user list
     for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
         if (it->second) {
@@ -2573,6 +2562,71 @@ void DeviceManager::modify_device_name(std::string dev_id, std::string dev_name)
     }
 }
 
+void DeviceManager::parse_user_print_info(std::string body)
+{
+    BOOST_LOG_TRIVIAL(trace) << "DeviceManager::parse_user_print_info";
+    std::lock_guard<std::mutex> lock(listMutex);
+    std::set<std::string> new_list;
+    try {
+        json j = json::parse(body);
+        if (j.contains("devices") && !j["devices"].is_null()) {
+            for (auto& elem : j["devices"]) {
+                MachineObject* obj = nullptr;
+                std::string dev_id;
+                if (!elem["dev_id"].is_null()) {
+                    dev_id = elem["dev_id"].get<std::string>();
+                    new_list.insert(dev_id);
+                }
+                std::map<std::string, MachineObject*>::iterator iter = userMachineList.find(dev_id);
+                if (iter != userMachineList.end()) {
+                    /* update field */
+                    obj = iter->second;
+                    obj->dev_id = dev_id;
+                }
+                else {
+                    obj = new MachineObject(m_agent, "", "", "");
+                    obj->set_bind_status(m_agent->get_user_name());
+                    userMachineList.insert(std::make_pair(dev_id, obj));
+                }
+
+                if (!obj) continue;
+
+                if (!elem["dev_id"].is_null())
+                    obj->dev_id = elem["dev_id"].get<std::string>();
+                if (!elem["dev_name"].is_null())
+                    obj->dev_name = elem["dev_name"].get<std::string>();
+                if (!elem["dev_online"].is_null())
+                    obj->m_is_online = elem["dev_online"].get<bool>();
+                if (elem.contains("dev_model_name") && !elem["dev_model_name"].is_null())
+                    obj->printer_type = MachineObject::parse_iot_printer_type(elem["dev_model_name"].get<std::string>());
+                if (!elem["task_status"].is_null())
+                    obj->iot_print_status = elem["task_status"].get<std::string>();
+                if (elem.contains("dev_product_name") && !elem["dev_product_name"].is_null())
+                    obj->product_name = elem["dev_product_name"].get<std::string>();
+                if (elem.contains("dev_access_code") && !elem["dev_access_code"].is_null()) {
+                    std::string acc_code = elem["dev_access_code"].get<std::string>();
+                    acc_code.erase(std::remove(acc_code.begin(), acc_code.end(), '\n'), acc_code.end());
+                    obj->set_access_code(acc_code);
+                }
+            }
+
+            //remove MachineObject from userMachineList
+            std::map<std::string, MachineObject*>::iterator iterat;
+            for (iterat = userMachineList.begin(); iterat != userMachineList.end(); ) {
+                if (new_list.find(iterat->first) == new_list.end()) {
+                    iterat = userMachineList.erase(iterat);
+                }
+                else {
+                    iterat++;
+                }
+            }
+        }
+    }
+    catch (std::exception& e) {
+        ;
+    }
+}
+
 void DeviceManager::update_user_machine_list_info()
 {
     if (!m_agent) return;
@@ -2582,65 +2636,7 @@ void DeviceManager::update_user_machine_list_info()
     std::string body;
     int result = m_agent->get_user_print_info(&http_code, &body);
     if (result == 0) {
-        std::set<std::string> new_list;
-        try {
-            json j = json::parse(body);
-            if (j.contains("devices") && !j["devices"].is_null()) {
-                for (auto& elem : j["devices"]) {
-                    MachineObject* obj = nullptr;
-                    std::string dev_id;
-                    if (!elem["dev_id"].is_null()) {
-                        dev_id = elem["dev_id"].get<std::string>();
-                        new_list.insert(dev_id);
-                    }
-                    std::map<std::string, MachineObject*>::iterator iter = userMachineList.find(dev_id);
-                    if (iter != userMachineList.end()) {
-                        /* update field */
-                        obj = iter->second;
-                        obj->dev_id = dev_id;
-                    }
-                    else {
-                        obj = new MachineObject(m_agent, "", "", "");
-                        obj->set_bind_status(m_agent->get_user_name());
-                        userMachineList.insert(std::make_pair(dev_id, obj));
-                    }
-
-                    if (!obj) continue;
-
-                    if (!elem["dev_id"].is_null())
-                        obj->dev_id = elem["dev_id"].get<std::string>();
-                    if (!elem["dev_name"].is_null())
-                        obj->dev_name = elem["dev_name"].get<std::string>();
-                    if (!elem["dev_online"].is_null())
-                        obj->m_is_online = elem["dev_online"].get<bool>();
-                    if (elem.contains("dev_model_name") && !elem["dev_model_name"].is_null())
-                        obj->printer_type = MachineObject::parse_iot_printer_type(elem["dev_model_name"].get<std::string>());
-                    if (!elem["task_status"].is_null())
-                        obj->iot_print_status = elem["task_status"].get<std::string>();
-                    if (elem.contains("dev_product_name") && !elem["dev_product_name"].is_null())
-                        obj->product_name = elem["dev_product_name"].get<std::string>();
-                    if (elem.contains("dev_access_code") && !elem["dev_access_code"].is_null()) {
-                        std::string acc_code = elem["dev_access_code"].get<std::string>();
-                        acc_code.erase(std::remove(acc_code.begin(), acc_code.end(), '\n'), acc_code.end());
-                        obj->set_access_code(acc_code);
-                    }
-                }
-
-                //remove MachineObject from userMachineList
-                std::map<std::string, MachineObject*>::iterator iterat;
-                for (iterat = userMachineList.begin(); iterat != userMachineList.end(); ) {
-                    if (new_list.find(iterat->first) == new_list.end()) {
-                        iterat = userMachineList.erase(iterat);
-                    }
-                    else {
-                        iterat++;
-                    }
-                }
-            }
-        }
-        catch (std::exception& e) {
-            ;
-        }
+        parse_user_print_info(body);
     }
 }
 
@@ -2676,25 +2672,6 @@ void DeviceManager::load_last_machine()
         }
         if (!found)
             this->set_selected_machine(userMachineList.begin()->second->dev_id);
-    }
-}
-
-
-void DeviceManager::check_alive()
-{
-    while (!m_check_alive_quit) {
-        time_t curr = Slic3r::Utils::get_current_time_utc();
-        double seconds;
-        std::map<std::string, MachineObject*>::iterator it;
-        for (it = localMachineList.begin(); it != localMachineList.end(); it++) {
-            seconds = difftime(curr, it->second->last_alive);
-            if (seconds > ALIVE_TIMEOUT) {
-                if ( it->second->m_is_online)
-                    BOOST_LOG_TRIVIAL(trace) << "device id = " << it->first << " is offline!";
-                it->second->m_is_online = false;
-            }
-        }
-        boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
     }
 }
 
