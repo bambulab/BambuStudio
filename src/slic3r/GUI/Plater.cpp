@@ -283,7 +283,9 @@ struct Sidebar::priv
     wxStaticLine* m_staticline1;
     StaticBox* m_panel_filament_title;
     wxStaticText* m_staticText_filament_settings;
-    wxBitmapButton* m_bpButton_add_filament;
+    ScalableButton *  m_bpButton_add_filament;
+    ScalableButton *  m_bpButton_del_filament;
+    ScalableButton *  m_bpButton_set_filament;
     wxPanel* m_panel_filament_content;
     wxScrolledWindow* m_scrolledWindow_filament_content;
     wxStaticLine* m_staticline2;
@@ -293,6 +295,7 @@ struct Sidebar::priv
     // BBS printer config
     StaticBox* m_panel_printer_title = nullptr;
     ScalableButton* m_printer_icon = nullptr;
+    ScalableButton* m_printer_setting = nullptr;
     wxStaticText* m_text_printer_settings = nullptr;
     wxPanel* m_panel_printer_content = nullptr;
 
@@ -453,8 +456,8 @@ Sidebar::Sidebar(Plater *parent)
         p->m_text_printer_settings->Wrap(-1);
         p->m_text_printer_settings->SetFont(Label::Body_14);
 
-        ScalableButton* select_btn = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "settings");
-        select_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+        p->m_printer_setting = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "settings");
+        p->m_printer_setting->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
             // p->editing_filament = -1;
             // wxGetApp().params_dialog()->Popup();
             // wxGetApp().get_tab(Preset::TYPE_FILAMENT)->restore_last_select_item();
@@ -465,7 +468,7 @@ Sidebar::Sidebar(Plater *parent)
         h_sizer_title->Add(p->m_printer_icon, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, em);
         h_sizer_title->Add(p->m_text_printer_settings, 0, wxALIGN_CENTER);
         h_sizer_title->AddStretchSpacer();
-        h_sizer_title->Add(select_btn, 0, wxALIGN_CENTER);
+        h_sizer_title->Add(p->m_printer_setting, 0, wxALIGN_CENTER);
         h_sizer_title->Add(15 * em / 10, 0, 0, 0, 0);
         h_sizer_title->SetMinSize(-1, 3 * em);
 
@@ -612,6 +615,7 @@ Sidebar::Sidebar(Plater *parent)
         wxGetApp().plater()->on_filaments_change(filament_count);
         wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     });
+    p->m_bpButton_add_filament = add_btn;
 
     bSizer39->Add(add_btn, 0, wxALIGN_CENTER|wxALL, FromDIP(5));
     bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
@@ -634,6 +638,7 @@ Sidebar::Sidebar(Plater *parent)
         wxGetApp().plater()->on_filaments_change(filament_count);
         wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     });
+    p->m_bpButton_del_filament = del_btn;
 
     bSizer39->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, FromDIP(5));
     bSizer39->Add(FromDIP(20), 0, 0, 0, 0);
@@ -645,6 +650,7 @@ Sidebar::Sidebar(Plater *parent)
         // wxGetApp().get_tab(Preset::TYPE_FILAMENT)->restore_last_select_item();
         wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
         });
+    p->m_bpButton_set_filament = set_btn;
 
     bSizer39->Add(set_btn, 0, wxALIGN_CENTER);
     bSizer39->Add(FromDIP(15), 0, 0, 0, 0);
@@ -954,6 +960,12 @@ void Sidebar::msw_rescale()
     p->m_panel_printer_title->GetSizer()->SetMinSize(-1, 3 * wxGetApp().em_unit());
     p->m_panel_filament_title->GetSizer()
         ->SetMinSize(-1, 3 * wxGetApp().em_unit());
+    p->m_printer_icon->msw_rescale();
+    p->m_printer_setting->msw_rescale();
+    p->m_filament_icon->msw_rescale();
+    p->m_bpButton_add_filament->msw_rescale();
+    p->m_bpButton_del_filament->msw_rescale();
+    p->m_bpButton_set_filament->msw_rescale();
     //BBS
     m_bed_type_list->Rescale();
     m_bed_type_list->SetMinSize({-1, 3 * wxGetApp().em_unit()});
@@ -968,7 +980,7 @@ void Sidebar::msw_rescale()
     //                                                            //p->combo_printer
     //                                                            } )
     //    combo->msw_rescale();
-
+    p->combo_printer->msw_rescale();
     for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->msw_rescale();
 

@@ -646,7 +646,7 @@ boost::any& TextCtrl::get_value()
 void TextCtrl::msw_rescale()
 {
     Field::msw_rescale();
-    auto size = wxSize(def_width() * m_em_unit, wxDefaultCoord);
+    auto size = wxSize(def_width_wider() * m_em_unit, wxDefaultCoord);
 
     if (m_opt.height >= 0)
         size.SetHeight(m_opt.height*m_em_unit);
@@ -661,7 +661,11 @@ void TextCtrl::msw_rescale()
             field->SetSize(size);
         else
             field->SetMinSize(size);
-        if (field != window) dynamic_cast<::TextInput *>(window)->Rescale();
+        if (field != window) {
+            window->SetSize(size);
+            window->SetMinSize(size);
+            dynamic_cast<::TextInput *>(window)->Rescale();
+        }
     }
 }
 
@@ -839,7 +843,7 @@ void SpinCtrl::BUILD() {
 	wxGetApp().UpdateDarkUI(temp);
 
     if (m_opt.height < 0 && parent_is_custom_ctrl)
-        opt_height = (double)temp->GetSize().GetHeight() / m_em_unit;
+        opt_height = (double)temp->GetTextCtrl()->GetSize().GetHeight() / m_em_unit;
 
     temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent &e)
 	{
@@ -950,10 +954,13 @@ void SpinCtrl::msw_rescale()
     Field::msw_rescale();
 
     SpinInput* field = dynamic_cast<SpinInput*>(window);
-    if (parent_is_custom_ctrl)
-        field->SetSize(wxSize(def_width() * m_em_unit, lround(opt_height * m_em_unit)));
-    else
-        field->SetMinSize(wxSize(def_width() * m_em_unit, int(1.9f*field->GetFont().GetPixelSize().y)));
+    if (parent_is_custom_ctrl) {
+        field->GetTextCtrl()->SetSize(wxSize(def_width_wider() * m_em_unit, lround(opt_height * m_em_unit)));
+    } else {
+        field->GetTextCtrl()->SetMinSize(wxSize(def_width_wider() * m_em_unit, int(1.9f * field->GetFont().GetPixelSize().y)));
+    }
+    field->SetSize(wxSize(def_width_wider() * m_em_unit, lround(opt_height * m_em_unit)));
+    field->Rescale();
 }
 
 #ifdef __WXOSX__
@@ -985,6 +992,8 @@ void Choice::BUILD() {
         temp = new choice_ctrl(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxCB_READONLY);
 #endif //__WXOSX__
     }
+    if (parent_is_custom_ctrl && m_opt.height < 0)
+        opt_height = (double) temp->GetTextCtrl()->GetSize().GetHeight() / m_em_unit;
 
     // BBS
     temp->SetTextLabel(m_opt.sidetext);
@@ -1323,7 +1332,7 @@ void Choice::msw_rescale()
 {
     Field::msw_rescale();
 
-    choice_ctrl* field = dynamic_cast<choice_ctrl*>(window);
+    auto* field = dynamic_cast<choice_ctrl*>(window)->GetTextCtrl();
 #ifdef UNDEFINED__WXOSX__ // BBS
     const wxString selection = field->GetValue();// field->GetString(index);
 
@@ -1359,17 +1368,20 @@ void Choice::msw_rescale()
         field->SetValue(selection) :
         field->SetSelection(idx);
 #else
-#ifdef _WIN32
-    field->Rescale();
-#endif
     auto size = wxSize(def_width_wider() * m_em_unit, wxDefaultCoord);
-    if (m_opt.height >= 0) size.SetHeight(m_opt.height * m_em_unit);
+    if (m_opt.height >= 0)
+        size.SetHeight(m_opt.height * m_em_unit);
+    else if (parent_is_custom_ctrl && opt_height > 0)
+        size.SetHeight(lround(opt_height * m_em_unit));
     if (m_opt.width >= 0) size.SetWidth(m_opt.width * m_em_unit);
 
     if (parent_is_custom_ctrl)
         field->SetSize(size);
     else
         field->SetMinSize(size);
+    window->SetSize(size);
+    window->SetMinSize(size);
+    dynamic_cast<choice_ctrl*>(window)->Rescale();
 #endif
 }
 

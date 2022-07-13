@@ -62,9 +62,8 @@ void SwitchButton::Rescale()
 		wxClientDC dc(this);
 		wxSize textSize[2];
 		{
-			wxMemoryDC memdc(&dc);
-			textSize[0] = memdc.GetTextExtent(labels[0]);
-			textSize[1] = memdc.GetTextExtent(labels[1]);
+			textSize[0] = dc.GetTextExtent(labels[0]);
+			textSize[1] = dc.GetTextExtent(labels[1]);
 		}
 		{
 			thumbSize = textSize[0];
@@ -87,20 +86,25 @@ void SwitchButton::Rescale()
 			memdc.SelectObject(bmp);
 			memdc.SetBackground(wxBrush(GetBackgroundColour()));
 			memdc.Clear();
-			{
+            memdc.SetFont(GetFont());
+			auto state = i == 0 ? StateColor::Enabled : (StateColor::Checked | StateColor::Enabled);
+            {
+#ifdef __WXMSW__
 				wxGCDC dc2(memdc);
-				auto state = i == 0 ? StateColor::Enabled : (StateColor::Checked | StateColor::Enabled);
+#else
+                wxDC &dc2(memdc);
+#endif
 				dc2.SetBrush(wxBrush(track_color.colorForStates(state)));
 				dc2.SetPen(wxPen(track_color.colorForStates(state)));
-				dc2.DrawRoundedRectangle(wxRect({0, 0}, trackSize), trackSize.y / 2);
+                dc2.DrawRoundedRectangle(wxRect({0, 0}, trackSize), trackSize.y / 2);
 				dc2.SetBrush(wxBrush(thumb_color.colorForStates(StateColor::Checked | StateColor::Enabled)));
 				dc2.SetPen(wxPen(thumb_color.colorForStates(StateColor::Checked | StateColor::Enabled)));
 				dc2.DrawRoundedRectangle(wxRect({ i == 0 ? BS : (trackSize.x - thumbSize.x - BS), BS}, thumbSize), thumbSize.y / 2);
-				dc2.SetTextForeground(text_color.colorForStates(state ^ StateColor::Checked));
-				dc2.DrawText(labels[0], {BS + (thumbSize.x - textSize[0].x) / 2, BS + (thumbSize.y - textSize[0].y) / 2});
-				dc2.SetTextForeground(text_color.colorForStates(state));
-				dc2.DrawText(labels[1], {trackSize.x - thumbSize.x - BS + (thumbSize.x - textSize[1].x) / 2, BS + (thumbSize.y - textSize[1].y) / 2});
 			}
+            memdc.SetTextForeground(text_color.colorForStates(state ^ StateColor::Checked));
+            memdc.DrawText(labels[0], {BS + (thumbSize.x - textSize[0].x) / 2, BS + (thumbSize.y - textSize[0].y) / 2});
+            memdc.SetTextForeground(text_color.colorForStates(state));
+            memdc.DrawText(labels[1], {trackSize.x - thumbSize.x - BS + (thumbSize.x - textSize[1].x) / 2, BS + (thumbSize.y - textSize[1].y) / 2});
 			memdc.SelectObject(wxNullBitmap);
 			(i == 0 ? m_off : m_on).bmp() = bmp;
 		}
