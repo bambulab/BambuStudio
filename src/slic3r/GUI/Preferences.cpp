@@ -114,13 +114,16 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
             language_name = wxString::FromUTF8("\x45\x73\x70\x61\xc3\xb1\x6f\x6c");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_GERMAN)) {
-            //
+            language_name = wxString::FromUTF8("Deutsch");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_SWEDISH)) {
-            //
+            language_name = wxString::FromUTF8("\x53\x76\x65\x6e\x73\x6b\x61"); //Svenska
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_DUTCH)) {
-            //
+            language_name = wxString::FromUTF8("Nederlands");
+        }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_FRENCH)) {
+            language_name = wxString::FromUTF8("\x46\x72\x61\x6E\xC3\xA7\x61\x69\x73");
         }
 
         if (app_config->get(param) == vlist[i]->CanonicalName) {
@@ -214,7 +217,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
             }
         }
     }
-    
+
     combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, combobox, current_region, local_regions](wxCommandEvent &e) {
         auto region_index = e.GetSelection();
         auto region       = local_regions[region_index];
@@ -241,7 +244,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
         } else {
             NetworkAgent *agent  = wxGetApp().getAgent();
             AppConfig *             config = GUI::wxGetApp().app_config;
-            if (agent) { 
+            if (agent) {
                 agent->set_country_code(area);
                 config->set("region", region.ToStdString());
             }
@@ -625,7 +628,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto title_general_settings = create_item_title(_L("General Settings"), page, _L("General Settings"));
 
     // bbs supported languages
-    wxLanguage supported_languages[]{wxLANGUAGE_ENGLISH,  wxLANGUAGE_CHINESE_SIMPLIFIED, wxLANGUAGE_GERMAN, wxLANGUAGE_SPANISH,  wxLANGUAGE_SWEDISH, wxLANGUAGE_DUTCH };
+    wxLanguage supported_languages[]{wxLANGUAGE_ENGLISH,  wxLANGUAGE_CHINESE_SIMPLIFIED, wxLANGUAGE_GERMAN, wxLANGUAGE_FRENCH, wxLANGUAGE_SPANISH,  wxLANGUAGE_SWEDISH, wxLANGUAGE_DUTCH };
 
 
     auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);

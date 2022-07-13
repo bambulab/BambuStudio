@@ -2618,7 +2618,7 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
                         return;
                     }
                 }
-            } 
+            }
         } catch (...) {
             ;
         }
@@ -3158,7 +3158,7 @@ bool GUI_App::load_language(wxString language, bool initial)
                         {"zh_TW", wxString::FromUTF8("\xE4\xB8\xAD\xE6\x96\x87\x28\xE7\xB9\x81\xE9\xAB\x94\x29")},
                         {"de", wxString::FromUTF8("Deutsch")},
                         {"nl", wxString::FromUTF8("Nederlands")},
-                        {"sv", wxString::FromUTF8("Svenska")},
+                        {"sv", wxString::FromUTF8("\x53\x76\x65\x6e\x73\x6b\x61")}, //Svenska
                         {"en", wxString::FromUTF8("English")},
                         {"es", wxString::FromUTF8("\x45\x73\x70\x61\xC3\xB1\x6F\x6C")},
                         {"fr", wxString::FromUTF8("\x46\x72\x61\x6E\xC3\xA7\x61\x69\x73")},
