@@ -395,7 +395,7 @@ void PerimeterGenerator::process()
         // detect how many perimeters must be generated for this island
         int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1;  // 0-indexed loops
         //BBS: force the topmost layer to be one wall
-        if (config->only_one_wall_top && loop_number > 0 && this->upper_slices == nullptr)
+        if (loop_number > 0 && this->upper_slices == nullptr)
             loop_number = 0;
 
         ExPolygons last        = union_ex(surface.expolygon.simplify_p(surface_simplify_resolution));

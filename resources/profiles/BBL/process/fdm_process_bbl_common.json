@@ -60,7 +60,7 @@
     "skirt_distance": "2",
     "skirt_height": "1",
     "skirt_loops": "0",
-    "minimum_sparse_infill_area": "8",
+    "minimum_sparse_infill_area": "15",
     "internal_solid_infill_line_width": "0.4",
     "internal_solid_infill_speed": "150",
     "spiral_mode": "0",
