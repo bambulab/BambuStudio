@@ -1405,6 +1405,13 @@ bool MachineObject::is_connected()
         BOOST_LOG_TRIVIAL(trace) << "machine_object: dev_id=" << dev_id <<", diff count = " << diff.count();
         return false;
     }
+
+    if (!is_lan_mode_printer()) {
+        NetworkAgent* m_agent = Slic3r::GUI::wxGetApp().getAgent();
+        if (m_agent) {
+            return m_agent->is_server_connected();
+        }
+    }
     return true;
 }
 

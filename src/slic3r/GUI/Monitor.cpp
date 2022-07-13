@@ -336,14 +336,9 @@ void MonitorPanel::on_size(wxSizeEvent &event)
     /* Update Device Info */
     m_side_tools->set_current_printer_name(obj->dev_name);
 
-    /*
-    wxString printing_status_text = wxString::Format("%s", obj->print_status);
-    m_staticText_capacity_val->SetLabelText(printing_status_text);
-    */
-
     // update wifi signal image
     int wifi_signal_val = 0;
-    if (!obj->is_online()) {
+    if (!obj->is_connected()) {
         m_side_tools->set_current_printer_signal(WifiSignal::NONE);
     } else {
         if (!obj->wifi_signal.empty() && boost::ends_with(obj->wifi_signal, "dBm")) {

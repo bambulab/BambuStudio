@@ -1905,6 +1905,7 @@ bool StatusPanel::is_stage_list_info_changed(MachineObject *obj)
 
 void StatusPanel::set_default()
 {
+    BOOST_LOG_TRIVIAL(trace) << "status_panel: set_default";
     obj                  = nullptr;
     last_subtask         = nullptr;
     last_tray_exist_bits = -1;
