@@ -28,6 +28,7 @@ class ScalableButton;
 class wxScrolledWindow;
 class wxString;
 class ComboBox;
+class Button;
 
 namespace Slic3r {
 
@@ -158,7 +159,6 @@ private:
     std::unique_ptr<priv> p;
 
     wxBoxSizer* m_scrolled_sizer = nullptr;
-    ScalableButton* m_flushing_volume_btn = nullptr;
     ComboBox* m_bed_type_list = nullptr;
 };
 

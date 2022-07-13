@@ -291,6 +291,7 @@ struct Sidebar::priv
     wxStaticLine* m_staticline2;
     wxPanel* m_panel_project_title;
     ScalableButton* m_filament_icon = nullptr;
+    ScalableButton * m_flushing_volume_btn = nullptr;
 
     // BBS printer config
     StaticBox* m_panel_printer_title = nullptr;
@@ -566,10 +567,11 @@ Sidebar::Sidebar(Plater *parent)
 
     // BBS
     // add wiping dialog
-    m_flushing_volume_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "", _L("Flushing volumes"));
+    p->m_flushing_volume_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "flush_volumes");
+    p->m_flushing_volume_btn->SetToolTip(_L("Flushing volumes"));
     //wiping_dialog_button->SetFont(wxGetApp().normal_font());
 
-    m_flushing_volume_btn->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)
+    p->m_flushing_volume_btn->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent &e)
         {
             auto& project_config = wxGetApp().preset_bundle->project_config;
             auto& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
@@ -597,8 +599,8 @@ Sidebar::Sidebar(Plater *parent)
                 wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
             }
         }));
-    bSizer39->Add(m_flushing_volume_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, em);
-    bSizer39->Hide(m_flushing_volume_btn);
+    bSizer39->Add(p->m_flushing_volume_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, em);
+    bSizer39->Hide(p->m_flushing_volume_btn);
 
     bSizer39->AddStretchSpacer(1);
 
@@ -966,6 +968,7 @@ void Sidebar::msw_rescale()
     p->m_bpButton_add_filament->msw_rescale();
     p->m_bpButton_del_filament->msw_rescale();
     p->m_bpButton_set_filament->msw_rescale();
+    p->m_flushing_volume_btn->msw_rescale();
     //BBS
     m_bed_type_list->Rescale();
     m_bed_type_list->SetMinSize({-1, 3 * wxGetApp().em_unit()});
@@ -1120,11 +1123,11 @@ void Sidebar::on_filaments_change(size_t num_filaments)
     remove_unused_filament_combos(num_filaments);
 
     auto sizer = p->m_panel_filament_title->GetSizer();
-    if (m_flushing_volume_btn != nullptr && sizer != nullptr) {
+    if (p->m_flushing_volume_btn != nullptr && sizer != nullptr) {
         if (num_filaments > 1)
-            sizer->Show(m_flushing_volume_btn);
+            sizer->Show(p->m_flushing_volume_btn);
         else
-            sizer->Hide(m_flushing_volume_btn);
+            sizer->Hide(p->m_flushing_volume_btn);
     }
 
     p->m_panel_filament_title->Layout();
