@@ -274,9 +274,9 @@ private:
     std::deque<callback_t2> m_callbacks;
     std::deque<callback_t2> m_notifies;
     bool m_stopped = true;
-    boost::thread m_recv_thread;
     boost::mutex m_mutex;
     boost::condition_variable m_cond;
+    boost::thread m_recv_thread;
     Status m_status;
     int m_last_error = 0;
 };
