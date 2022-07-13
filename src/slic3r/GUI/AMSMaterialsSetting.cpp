@@ -405,12 +405,20 @@ void AMSMaterialsSetting::Popup(bool show, bool third, wxString filament, wxColo
         m_comboBox_filament->Set(filament_items);
         if (selection_idx >= 0 && selection_idx < filament_items.size()) {
             m_comboBox_filament->SetSelection(selection_idx);
+            post_select_event();
         }
         else {
             m_comboBox_filament->SetSelection(selection_idx);
+            post_select_event();
         }
     }
     wxPopupTransientWindow::Popup();
+}
+
+void AMSMaterialsSetting::post_select_event() {
+    wxCommandEvent event(wxEVT_COMBOBOX);
+    event.SetEventObject(m_comboBox_filament);
+    wxPostEvent(m_comboBox_filament, event);
 }
 
 void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
@@ -443,7 +451,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
                     ConfigOptionStrings* opt_type_strs = dynamic_cast<ConfigOptionStrings*>(opt_type);
                     if (opt_type_strs) {
                         found_filament_type = true;
-                        m_filament_type = opt_type_strs->get_at(0);
+                        //m_filament_type = opt_type_strs->get_at(0);
+                        m_filament_type = it->config.get_filament_type();
                     }
                 }
                 if (!found_filament_type)

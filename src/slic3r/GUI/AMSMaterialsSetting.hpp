@@ -42,7 +42,8 @@ public:
     bool Show(bool show) override;
     void Popup(bool show, bool third = true, wxString filament = wxEmptyString, wxColour colour = *wxWHITE, wxString sn = wxEmptyString, wxString tep = wxEmptyString);
 
-	void on_select_ok(wxMouseEvent &event);
+	void post_select_event();
+    void on_select_ok(wxMouseEvent &event);
     void set_color(wxColour color);
 
     void on_clr_picker(wxCommandEvent &event);

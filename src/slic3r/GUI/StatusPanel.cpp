@@ -1252,7 +1252,7 @@ void StatusPanel::update_ams(MachineObject *obj)
             obj->tray_read_done_bits != last_read_done_bits || obj->ams_version != last_ams_version) {
             m_ams_control->UpdateAms(ams_info, true);
             // select current ams
-            if (!obj->m_ams_id.empty()) m_ams_control->SwitchAms(obj->m_ams_id);
+            //if (!obj->m_ams_id.empty()) m_ams_control->SwitchAms(obj->m_ams_id);
 
             last_tray_exist_bits  = obj->tray_exist_bits;
             last_ams_exist_bits   = obj->ams_exist_bits;
