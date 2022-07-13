@@ -601,7 +601,7 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
                     dlg.ShowModal();
                 }
             }
-            wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
+            //wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
             }
         );
         m_sizer_my_devices->Add(op, 0, wxEXPAND, 0);
