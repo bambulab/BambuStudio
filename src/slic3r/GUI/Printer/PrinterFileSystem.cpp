@@ -515,14 +515,15 @@ void PrinterFileSystem::FileRemoved(size_t index, std::string const &name)
 
 struct CallbackEvent : wxCommandEvent
 {
-    CallbackEvent(std::function<void(void)> const &callback) : wxCommandEvent(EVT_FILE_CALLBACK), callback(callback) {}
-    ~CallbackEvent(){ callback(); }
+    CallbackEvent(std::function<void(void)> const &callback, boost::weak_ptr<PrinterFileSystem> owner) : wxCommandEvent(EVT_FILE_CALLBACK), callback(callback), owner(owner) {}
+    ~CallbackEvent(){ if (!owner.expired()) callback(); }
     std::function<void(void)> const callback;
+    boost::weak_ptr<PrinterFileSystem> owner;
 };
 
 void PrinterFileSystem::PostCallback(std::function<void(void)> const& callback)
 {
-    wxCommandEvent *e = new CallbackEvent(callback);
+    wxCommandEvent *e = new CallbackEvent(callback, boost::weak_ptr(shared_from_this()));
     wxQueueEvent(this, e);
 }
 

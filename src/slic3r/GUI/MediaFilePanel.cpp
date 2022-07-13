@@ -246,7 +246,7 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
             BOOST_LOG_TRIVIAL(info) << "MediaFilePanel::fetchUrl: camera_url: " << url;
             CallAfter([this, url, wfs] {
                 boost::shared_ptr fs(wfs.lock());
-                if (fs != m_image_grid->GetFileSystem()) return;
+                if (!fs || fs != m_image_grid->GetFileSystem()) return;
                 fs->SetUrl(url);
             });
         });
