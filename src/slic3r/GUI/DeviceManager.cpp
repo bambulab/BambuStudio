@@ -268,7 +268,10 @@ wxString MachineObject::get_printer_type_display_str()
 void MachineObject::set_access_code(std::string code)
 {
     this->access_code = code;
-    GUI::wxGetApp().app_config->set_str("access_code", dev_id, code);
+    AppConfig *config = GUI::wxGetApp().app_config;
+    if (config) {
+        GUI::wxGetApp().app_config->set_str("access_code", dev_id, code);
+    }
 }
 
 bool MachineObject::is_lan_mode_printer()
@@ -454,8 +457,11 @@ void MachineObject::_parse_ams_status(int ams_status)
 
 bool MachineObject::is_need_upgrade_for_ams()
 {
-    if (Slic3r::GUI::wxGetApp().app_config->get("check_ams_version") == "0")
+    AppConfig* config = Slic3r::GUI::wxGetApp().app_config;
+    if (config) {
+        if (config->get("check_ams_version") == "0")
         return false;
+    }
     bool need_upgrade = false;
     if (has_ams()) {
         // compare ota version and ams version
@@ -1371,11 +1377,14 @@ void MachineObject::set_print_state(std::string status)
 
 int MachineObject::connect()
 {
-    //TODO do not use password to connect mqtt now
-    std::string username;
-    std::string password;
+    std::string username = "bblp";
+    std::string password = access_code;
     if (m_agent) {
-        return m_agent->connect_printer(dev_id, dev_ip, username, password);
+        try {
+            return m_agent->connect_printer(dev_id, dev_ip, username, password);
+        } catch (...) {
+            ;
+        }
     }
     return -1;
 }
@@ -2340,7 +2349,10 @@ void DeviceManager::on_machine_alive(std::string json_str)
             obj->bind_state     = bind_state;
 
             //load access code
-            obj->access_code = Slic3r::GUI::wxGetApp().app_config->get("access_code", dev_id);
+            AppConfig* config = Slic3r::GUI::wxGetApp().app_config;
+            if (config) {
+                obj->access_code = Slic3r::GUI::wxGetApp().app_config->get("access_code", dev_id);
+            }
             localMachineList.insert(std::make_pair(dev_id, obj));
 
 
@@ -2516,7 +2528,12 @@ MachineObject* DeviceManager::get_selected_machine()
 
 std::map<std::string, MachineObject*> DeviceManager::get_my_machine_list()
 {
-    std::map<std::string, MachineObject*> result = userMachineList;
+    std::map<std::string, MachineObject*> result;
+
+    for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
+        if (!it->second->is_lan_mode_printer())
+            result.insert(std::make_pair(it->first, it->second));
+    }
 
     for (auto it = localMachineList.begin(); it != localMachineList.end(); it++) {
         if (it->second->has_access_right() && it->second->is_avaliable() && it->second->is_lan_mode_printer()) {

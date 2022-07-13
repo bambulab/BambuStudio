@@ -1124,9 +1124,14 @@ GUI_App::GUI_App()
     if (m_agent) {
         m_agent->set_on_ssdp_msg_fn(
             [this](std::string json_str) {
-                if (m_device_manager) {
-                    m_device_manager->on_machine_alive(json_str);
-                }
+                GUI::wxGetApp().CallAfter([this, json_str] {
+                    if (m_is_closing) {
+                        return;
+                    }
+                    if (m_device_manager) {
+                        m_device_manager->on_machine_alive(json_str);
+                    }
+                });
             }
         );
 
@@ -1137,6 +1142,9 @@ GUI_App::GUI_App()
 
         m_agent->set_on_server_connected_fn([this]() {
             GUI::wxGetApp().CallAfter([this] {
+                if (m_is_closing) {
+                    return;
+                }
                 m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
             });
         });

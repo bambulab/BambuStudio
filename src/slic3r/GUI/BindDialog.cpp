@@ -223,7 +223,7 @@ namespace GUI {
 
  void BindMachineDilaog::on_bind_success(wxCommandEvent &event)
  {
-     EndModal(wxID_CANCEL);
+     EndModal(wxID_OK);
      MessageDialog msg_wingow(nullptr, _L("Log in successful."), "", wxAPPLY | wxOK);
      if (msg_wingow.ShowModal() == wxOK) { return; }
  }
@@ -445,7 +445,7 @@ void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event)
         m_status_text->SetLabelText(_L("Failed to log out."));
         return;
     }
-
+    EndModal(wxID_OK);
 }
 
  void UnBindMachineDilaog::on_dpi_changed(const wxRect &suggested_rect)

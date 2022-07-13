@@ -18,6 +18,7 @@ static wxString file_is_not_exists_str      = _L("Print file not found, please s
 static wxString file_over_size_str          = _L("The print file exceeds the maximum allowable size (1GB). Please simplify the model and slice again");
 static wxString print_canceled_str          = _L("Task canceled");
 static wxString upload_failed_str           = _L("Failed uploading print file");
+static wxString upload_login_failed_str     = _L("Wrong Access code");
 
 
 static wxString sending_over_lan_str = _L("Sending print job over LAN");
@@ -117,10 +118,10 @@ void PrintJob::process()
     auto update_fn = [this, &msg, &curr_percent](int stage, int code, std::string info) {
                         if (stage == BBL::SendingPrintJobStage::PrintingStageCreate) {
                             if (this->connection_type == "lan") {
-                                msg = sending_over_lan_str;
+                                msg = _L("Sending print job over LAN");
                             }
                             else {
-                                msg = sending_over_cloud_str;
+                                msg = _L("Sending print job through cloud service");
                             }
                             curr_percent = 25;
                         }
@@ -128,19 +129,19 @@ void PrintJob::process()
                             curr_percent = 30;
                             if (code == 0 && !info.empty()) {
                                 if (this->connection_type == "lan") {
-                                    msg = sending_over_lan_str;
+                                    msg = _L("Sending print job over LAN");
                                 } else {
-                                    msg = sending_over_cloud_str;
+                                    msg = _L("Sending print job through cloud service");
                                 }
                                 msg += wxString::Format("(%s)", info);
                             }
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageWaiting) {
                             if (this->connection_type == "lan") {
-                                msg = sending_over_lan_str;
+                                msg = _L("Sending print job over LAN");
                             }
                             else {
-                                msg = sending_over_cloud_str;
+                                msg = _L("Sending print job through cloud service");
                             }
                             curr_percent = 50;
                         }
@@ -150,10 +151,10 @@ void PrintJob::process()
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageSending) {
                             if (this->connection_type == "lan") {
-                                msg = sending_over_lan_str;
+                                msg = _L("Sending print job over LAN");
                             }
                             else {
-                                msg = sending_over_cloud_str;
+                                msg = _L("Sending print job through cloud service");
                             }
                             curr_percent = 90;
                         }
@@ -162,10 +163,10 @@ void PrintJob::process()
                             msg = wxString::Format(_L("Successfully sent.Will automatically jump to the device page in %s s"), info);
                         } else {
                             if (this->connection_type == "lan") {
-                                msg = sending_over_lan_str;
+                                msg = _L("Sending print job over LAN");
                             }
                             else {
-                                msg = sending_over_cloud_str;
+                                msg = _L("Sending print job through cloud service");
                             }
                         }
                         this->update_status(curr_percent, msg);
@@ -202,28 +203,23 @@ void PrintJob::process()
     }
 
     if (result < 0) {
-        if (result == BAMBU_NETWORK_ERR_FILE_NOT_EXIST) {
+        if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
+            update_status(curr_percent, upload_failed_str);
+        } if (result == BAMBU_NETWORK_ERR_FILE_NOT_EXIST) {
             update_status(curr_percent, file_is_not_exists_str);
-        }
-        else if (result == BAMBU_NETWORK_ERR_FILE_OVER_SIZE) {
+        } else if (result == BAMBU_NETWORK_ERR_FILE_OVER_SIZE) {
             update_status(curr_percent, file_over_size_str);
-        }
-        else if (result == BAMBU_NETWORK_ERR_CHECK_MD5_FAILED) {
+        } else if (result == BAMBU_NETWORK_ERR_CHECK_MD5_FAILED) {
             update_status(curr_percent, failed_in_cloud_service_str);
-        }
-        else if (result == BAMBU_NETWORK_ERR_INVALID_PARAMS) {
+        } else if (result == BAMBU_NETWORK_ERR_INVALID_PARAMS) {
             update_status(curr_percent, upload_failed_str);
-        }
-        else if (result == BAMBU_NETWORK_ERR_CANCELED) {
+        } else if (result == BAMBU_NETWORK_ERR_CANCELED) {
             update_status(curr_percent, print_canceled_str);
-        }
-        else if (result == BAMBU_NETWORK_ERR_TIMEOUT) {
+        } else if (result == BAMBU_NETWORK_ERR_TIMEOUT) {
             update_status(curr_percent, timeout_to_upload_str);
-        }
-        else if (result == BAMBU_NETWORK_ERR_INVALID_RESULT) {
+        } else if (result == BAMBU_NETWORK_ERR_INVALID_RESULT) {
             update_status(curr_percent, upload_failed_str);
-        }
-        else if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
+        } else if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
             update_status(curr_percent, upload_failed_str);
         } else {
             update_status(curr_percent, failed_in_cloud_service_str);

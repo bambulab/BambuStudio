@@ -205,6 +205,7 @@ MonitorPanel::~MonitorPanel()
 void MonitorPanel::set_default()
 {
     obj = nullptr;
+    last_conn_type = "undefined";
     /* set default value */
     has_popup_ams_check_dlg = false;
     if (need_upgrade_dlg) {
@@ -383,6 +384,12 @@ void MonitorPanel::update_all()
         }
         catch (...) {
             ;
+        }
+    }
+
+    if (obj) {
+        if (obj->connection_type() != last_conn_type) {
+            last_conn_type = obj->connection_type();
         }
     }
 

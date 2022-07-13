@@ -126,7 +126,6 @@ void ConnectPrinterDialog::set_machine_object(MachineObject* obj)
 void ConnectPrinterDialog::on_input_enter(wxCommandEvent& evt)
 {
     m_input_access_code = evt.GetString();
-    //TODO check invalid char
 }
 
 
@@ -136,7 +135,7 @@ void ConnectPrinterDialog::on_button_confirm(wxCommandEvent &event)
     if (m_obj) {
         m_obj->set_access_code(code.ToStdString());
     }
-    this->Close();
+    EndModal(wxID_OK);
 }
 
 void ConnectPrinterDialog::on_dpi_changed(const wxRect &suggested_rect)

@@ -136,7 +136,8 @@ public:
 	void update_side_panel();
     void show_status(int status);
 
-    MachineObject *obj;
+    MachineObject *obj { nullptr };
+    std::string last_conn_type = "undedefined";
 };
 
 } // GUI

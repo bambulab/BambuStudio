@@ -122,17 +122,7 @@ void MachineObjectPanel::show_bind_dialog()
     if (wxGetApp().is_user_login()) {
         BindMachineDilaog dlg;
         dlg.update_machine_info(m_info);
-        switch (dlg.ShowModal()) {
-        case wxID_YES: {
-            break;
-        }
-
-        case wxID_NO: {
-            break;
-        }
-
-        default:;
-        }
+        dlg.ShowModal();
     }
 }
 
@@ -484,28 +474,31 @@ void SelectMachinePopup::update_other_devices(wxCommandEvent &event)
         op->update_machine_info(mobj);
 
         op->Bind(wxEVT_LEFT_DOWN, [this, op, mobj](auto &e){
+                int dlg_result = wxID_CANCEL;
                 if (mobj->is_lan_mode_printer()) {
                     if (!mobj->has_access_right()) {
                         ConnectPrinterDialog dlg(this, wxID_ANY, _L("Input access code"));
                         dlg.set_machine_object(mobj);
-                        dlg.ShowModal();
+                        dlg_result = dlg.ShowModal();
                     } else {
                         ;
                     }
                 } else {
-                    op->show_bind_dialog();
+                    if (wxGetApp().is_user_login()) {
+                        BindMachineDilaog dlg;
+                        dlg.update_machine_info(mobj);
+                        dlg_result = dlg.ShowModal();
+                    }
                 }
-                wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
+                if (dlg_result == wxID_OK) {
+                    wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
+                }
             }
         );
 
         if (mobj->is_lan_mode_printer()) {
             if (mobj->has_access_right()) {
                 op->set_printer_state(PrinterState::IN_LAN);
-
-                op->Bind(EVT_UNBIND_MACHINE, [this, mobj](wxCommandEvent& e) {
-                    mobj->set_access_code("");
-                });
             } else {
                 op->set_printer_state(PrinterState::LOCK);
             }
@@ -567,14 +560,18 @@ void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
                     op->set_printer_state(PrinterState::LOCK);
                 }
             }
+            op->Bind(EVT_UNBIND_MACHINE, [this, mobj](wxCommandEvent& e) {
+                mobj->set_access_code("");
+            });
         } else {
             op->show_printer_bind(true, PrinterBindState::ALLOW_UNBIND);
             op->Bind(EVT_UNBIND_MACHINE, [this, mobj, dev](wxCommandEvent &e) {
                 // show_unbind_dialog
                 UnBindMachineDilaog dlg;
                 dlg.update_machine_info(mobj);
-                dlg.ShowModal();
-                dev->set_selected_machine("");
+                if (dlg.ShowModal() == wxID_OK) {
+                    dev->set_selected_machine("");
+                }
             });
 
             if (!mobj->is_online()) {
@@ -1549,6 +1546,17 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
     std::map<std::string, MachineObject *> option_list;
 
     option_list = dev->get_my_machine_list();
+
+    // local lan machine
+    /*std::map<std::string, MachineObject*> local_machine_list = dev->get_local_machine_list();
+    for (auto it = local_machine_list.begin(); it != local_machine_list.end(); it++) {
+        if (it->second->is_lan_mode_printer()) {
+            if (option_list.find(it->first) == option_list.end()) {
+                option_list.insert(std::make_pair(it->first, it->second));
+            }
+        }
+    }*/
+
     // same machine only appear once
     for (auto it = option_list.begin(); it != option_list.end(); it++) {
         if (it->second && it->second->is_online()) {
@@ -1732,7 +1740,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     m_ams_mapping_res  = false;
     ams_mapping_valid  = false;
     m_ams_mapping_result.clear();
-    
+
     // reading printer info
     show_status(PrintDialogStatus::PrintStatusReading);
 
@@ -1741,15 +1749,24 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     auto dev_name  = event.GetString().ToStdString();
     auto selection = event.GetSelection();
 
+    
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    MachineObject* obj = nullptr;
     for (int i = 0; i < m_list.size(); i++) {
         if (i == selection) {
-            DeviceManager *dev    = Slic3r::GUI::wxGetApp().getDeviceManager();
             m_printer_last_select = m_list[i]->dev_id;
+            obj = m_list[i];
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << m_printer_last_select << std::endl;
-            dev->set_selected_machine(m_printer_last_select);
-            update_select_layout(m_list[i]->printer_type);
             break;
         }
+    }
+
+    if (obj) {
+        dev->set_selected_machine(m_printer_last_select);
+        update_select_layout(obj->printer_type);
+    } else {
+        BOOST_LOG_TRIVIAL(error) << "on_selection_changed dev_id not found";
+        return;
     }
 
     MaterialHash::iterator iter = m_materialList.begin();
