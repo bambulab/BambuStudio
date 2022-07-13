@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-12 16:25+0800\n"
+"POT-Creation-Date: 2022-07-13 09:13+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1993,7 +1993,7 @@ msgstr ""
 msgid "Show the list of the keyboard shortcuts"
 msgstr ""
 
-msgid "Beginner's Tutorial"
+msgid "Setup Wizard"
 msgstr ""
 
 msgid "Show Configuration Folder"
@@ -2629,6 +2629,11 @@ msgstr ""
 msgid "Object with multiple parts was detected"
 msgstr ""
 
+msgid ""
+"Preview only mode:\n"
+"The loaded file contains gcode only."
+msgstr ""
+
 msgid "The file does not contain any geometry data."
 msgstr ""
 
@@ -2762,6 +2767,10 @@ msgstr ""
 
 #, possible-boost-format
 msgid "Size: %1% x %2% x %3% mm\n"
+msgstr ""
+
+#, possible-boost-format
+msgid "Volume: %1% in³\n"
 msgstr ""
 
 #, possible-boost-format
@@ -3608,6 +3617,9 @@ msgstr ""
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr ""
 
+msgid "Flush multiplier"
+msgstr ""
+
 msgid "unloaded"
 msgstr ""
 
@@ -3624,9 +3636,6 @@ msgid "To"
 msgstr ""
 
 msgid "Login"
-msgstr ""
-
-msgid "Setup Wizard"
 msgstr ""
 
 msgid "Filaments Selection"
@@ -5511,9 +5520,6 @@ msgid ""
 msgstr ""
 
 msgid "Purging volumes"
-msgstr ""
-
-msgid "Flush multiplier"
 msgstr ""
 
 msgid "Prime volume"

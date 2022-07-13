@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-12 16:25+0800\n"
+"POT-Creation-Date: 2022-07-13 09:13+0800\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -2124,8 +2124,8 @@ msgstr "Sneltoesten"
 msgid "Show the list of the keyboard shortcuts"
 msgstr "Toon lijst met sneltoetsen"
 
-msgid "Beginner's Tutorial"
-msgstr "Handleiding voor beginners"
+msgid "Setup Wizard"
+msgstr "Setup Wizard"
 
 msgid "Show Configuration Folder"
 msgstr "Toon de configuratie map"
@@ -2787,6 +2787,11 @@ msgstr ""
 msgid "Object with multiple parts was detected"
 msgstr "Er is een object met meerdere onderdelen gedetecteerd"
 
+msgid ""
+"Preview only mode:\n"
+"The loaded file contains gcode only."
+msgstr ""
+
 msgid "The file does not contain any geometry data."
 msgstr ""
 
@@ -2932,6 +2937,10 @@ msgstr "Maat: %1% x %2% x %3% in\n"
 #, boost-format
 msgid "Size: %1% x %2% x %3% mm\n"
 msgstr "Maat: %1% x %2% x %3% mm\n"
+
+#, boost-format
+msgid "Volume: %1% in³\n"
+msgstr ""
 
 #, boost-format
 msgid "Volume: %1% mm³\n"
@@ -3840,6 +3849,9 @@ msgstr "Volumes reinigen voor filament wijziging"
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Spoelvolume (mm³) voor elk filamentpaar."
 
+msgid "Flush multiplier"
+msgstr ""
+
 msgid "unloaded"
 msgstr "uitgeladen"
 
@@ -3857,9 +3869,6 @@ msgstr "Naar"
 
 msgid "Login"
 msgstr "Inloggen"
-
-msgid "Setup Wizard"
-msgstr "Setup Wizard"
 
 msgid "Filaments Selection"
 msgstr "Filaments selectie"
@@ -6059,9 +6068,6 @@ msgstr ""
 msgid "Purging volumes"
 msgstr "Volumes opschonen"
 
-msgid "Flush multiplier"
-msgstr ""
-
 msgid "Prime volume"
 msgstr "Prime volume"
 
@@ -6301,6 +6307,9 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid "Beginner's Tutorial"
+#~ msgstr "Handleiding voor beginners"
 
 #~ msgid "Render statistics debugging box"
 #~ msgstr "Foutopsporingsvenster voor renderstatistieken"

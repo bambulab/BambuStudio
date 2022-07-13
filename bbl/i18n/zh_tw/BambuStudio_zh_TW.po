@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-12 16:25+0800\n"
+"POT-Creation-Date: 2022-07-13 09:13+0800\n"
 "PO-Revision-Date: 2022-03-12 17:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com> , patched traditional "
 "chinese by Cheng-Hsien Ho <taksito@gmail.com>\n"
@@ -1990,7 +1990,7 @@ msgstr ""
 msgid "Show the list of the keyboard shortcuts"
 msgstr ""
 
-msgid "Beginner's Tutorial"
+msgid "Setup Wizard"
 msgstr ""
 
 msgid "Show Configuration Folder"
@@ -2624,6 +2624,11 @@ msgstr ""
 msgid "Object with multiple parts was detected"
 msgstr ""
 
+msgid ""
+"Preview only mode:\n"
+"The loaded file contains gcode only."
+msgstr ""
+
 msgid "The file does not contain any geometry data."
 msgstr ""
 
@@ -2757,6 +2762,10 @@ msgstr ""
 
 #, boost-format
 msgid "Size: %1% x %2% x %3% mm\n"
+msgstr ""
+
+#, boost-format
+msgid "Volume: %1% in³\n"
 msgstr ""
 
 #, boost-format
@@ -3601,6 +3610,9 @@ msgstr ""
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr ""
 
+msgid "Flush multiplier"
+msgstr ""
+
 msgid "unloaded"
 msgstr ""
 
@@ -3617,9 +3629,6 @@ msgid "To"
 msgstr ""
 
 msgid "Login"
-msgstr ""
-
-msgid "Setup Wizard"
 msgstr ""
 
 msgid "Filaments Selection"
@@ -5504,9 +5513,6 @@ msgid ""
 msgstr ""
 
 msgid "Purging volumes"
-msgstr ""
-
-msgid "Flush multiplier"
 msgstr ""
 
 msgid "Prime volume"

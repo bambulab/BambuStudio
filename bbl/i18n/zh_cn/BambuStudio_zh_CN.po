@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-12 16:25+0800\n"
-"PO-Revision-Date: 2022-07-12 19:14+0800\n"
+"POT-Creation-Date: 2022-07-13 09:13+0800\n"
+"PO-Revision-Date: 2022-07-13 09:15+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 3.1\n"
 
 msgid "Supports Painting"
 msgstr "支撑绘制"
@@ -2062,8 +2062,8 @@ msgstr "快捷键"
 msgid "Show the list of the keyboard shortcuts"
 msgstr "显示快捷键列表"
 
-msgid "Beginner's Tutorial"
-msgstr "新手引导"
+msgid "Setup Wizard"
+msgstr "配置向导"
 
 msgid "Show Configuration Folder"
 msgstr "打开配置文件夹"
@@ -2703,6 +2703,11 @@ msgstr "将这些文件加载为一个多零件对象？\n"
 msgid "Object with multiple parts was detected"
 msgstr "检测到多零件对象"
 
+msgid ""
+"Preview only mode:\n"
+"The loaded file contains gcode only."
+msgstr ""
+
 msgid "The file does not contain any geometry data."
 msgstr "此文件不包含任何几何数据。"
 
@@ -2839,6 +2844,10 @@ msgstr "大小：%1% x %2% x %3% 英寸\n"
 #, boost-format
 msgid "Size: %1% x %2% x %3% mm\n"
 msgstr "大小： %1% x %2% x %3% 毫米\n"
+
+#, boost-format
+msgid "Volume: %1% in³\n"
+msgstr ""
 
 #, boost-format
 msgid "Volume: %1% mm³\n"
@@ -3698,6 +3707,9 @@ msgstr "耗材丝更换时的冲刷体积"
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "在两个耗材丝间切换所需的冲刷量（mm³）"
 
+msgid "Flush multiplier"
+msgstr "冲刷量乘数"
+
 msgid "unloaded"
 msgstr "卸载"
 
@@ -3715,9 +3727,6 @@ msgstr "到"
 
 msgid "Login"
 msgstr "登录"
-
-msgid "Setup Wizard"
-msgstr "安装向导"
 
 msgid "Filaments Selection"
 msgstr "材料选择"
@@ -5682,9 +5691,6 @@ msgstr "切换耗材丝时，打印擦拭塔来让准配好喷嘴里材料。"
 msgid "Purging volumes"
 msgstr "冲刷体积"
 
-msgid "Flush multiplier"
-msgstr "冲刷乘数"
-
 msgid "Prime volume"
 msgstr "清理量"
 
@@ -5917,6 +5923,9 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Beginner's Tutorial"
+#~ msgstr "新手引导"
 
 #~ msgid "Render statistics debugging box"
 #~ msgstr "渲染统计数据调试框"

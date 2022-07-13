@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-12 16:25+0800\n"
+"POT-Creation-Date: 2022-07-13 09:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2023,7 +2023,7 @@ msgstr ""
 msgid "Show the list of the keyboard shortcuts"
 msgstr ""
 
-msgid "Beginner's Tutorial"
+msgid "Setup Wizard"
 msgstr ""
 
 msgid "Show Configuration Folder"
@@ -2665,6 +2665,11 @@ msgstr ""
 msgid "Object with multiple parts was detected"
 msgstr "An object with multiple parts was detected"
 
+msgid ""
+"Preview only mode:\n"
+"The loaded file contains gcode only."
+msgstr ""
+
 msgid "The file does not contain any geometry data."
 msgstr ""
 
@@ -2802,6 +2807,10 @@ msgstr ""
 
 #, boost-format
 msgid "Size: %1% x %2% x %3% mm\n"
+msgstr ""
+
+#, boost-format
+msgid "Volume: %1% in³\n"
 msgstr ""
 
 #, boost-format
@@ -3666,6 +3675,9 @@ msgstr ""
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr ""
 
+msgid "Flush multiplier"
+msgstr ""
+
 msgid "unloaded"
 msgstr ""
 
@@ -3682,9 +3694,6 @@ msgid "To"
 msgstr ""
 
 msgid "Login"
-msgstr ""
-
-msgid "Setup Wizard"
 msgstr ""
 
 msgid "Filaments Selection"
@@ -3758,18 +3767,18 @@ msgid ""
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
 "all objects in the project."
 msgstr ""
-"Auto orientates selected objects or all objects.\nIf there are selected "
-"objects, it just orientates the selected ones.Otherwise, it will orientates "
-"all objects in the project."
+"Auto orientates selected objects or all objects.\n"
+"If there are selected objects, it just orientates the selected ones."
+"Otherwise, it will orientates all objects in the project."
 
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
 "all objects in the current disk."
 msgstr ""
-"Auto orientates selected objects or all objects.\nIf there are selected "
-"objects, it just orientates the selected ones.Otherwise, it will orientates "
-"all objects in the current disk."
+"Auto orientates selected objects or all objects.\n"
+"If there are selected objects, it just orientates the selected ones."
+"Otherwise, it will orientates all objects in the current disk."
 
 msgid "Ctrl + Left mouse button"
 msgstr ""
@@ -5736,9 +5745,6 @@ msgstr ""
 "switching to a new material."
 
 msgid "Purging volumes"
-msgstr ""
-
-msgid "Flush multiplier"
 msgstr ""
 
 msgid "Prime volume"
