@@ -128,28 +128,26 @@ static wxSize split_lines(wxDC &dc, int width, const wxString &text, wxString &m
     if (width > 0 && dc.GetTextExtent(text).x > width) {
         multiline_text = text;
         size_t start   = 0;
-        do {
+        while (true) {
             size_t idx = size_t(-1);
             for (size_t i = start; i < multiline_text.Len(); i++) {
                 if (multiline_text[i] == ' ') {
                     if (dc.GetTextExtent(multiline_text.SubString(start, i)).x < width)
                         idx = i;
                     else {
-                        if (idx != size_t(-1))
-                            multiline_text[start = idx] = '\n';
-                        else
-                            multiline_text[start = i] = '\n';
-                        ++start;
+                        if (idx == size_t(-1))
+                            idx = i;
                         break;
                     }
                 }
             }
-
-            if (idx != size_t(-1)) {
-                multiline_text[idx] = '\n';
-                start = idx + 1;
-            }
-        } while (start > 0 && dc.GetTextExtent(multiline_text.Mid(start)).x > width);
+            if (idx == size_t(-1))
+                break;
+            multiline_text[idx] = '\n';
+            start = idx + 1;
+            if (dc.GetTextExtent(multiline_text.Mid(start)).x < width)
+                break;
+        }
     }
     return dc.GetMultiLineTextExtent(multiline_text.IsEmpty() ? text : multiline_text);
 }
