@@ -349,6 +349,8 @@ void AMSMaterialsSetting::Popup(bool show, bool third, wxString filament, wxColo
 
     int selection_idx = -1, idx = 0;
     wxArrayString filament_items;
+    std::set<std::string> filament_id_set;
+
     if (show) {
         PresetBundle* preset_bundle = wxGetApp().preset_bundle;
         if (preset_bundle) {
@@ -373,30 +375,35 @@ void AMSMaterialsSetting::Popup(bool show, bool third, wxString filament, wxColo
                     ConfigOptionStrings* printer_strs = dynamic_cast<ConfigOptionStrings*>(printer_opt);
                     for (auto printer_str : printer_strs->values) {
                         if (printer_it->name == printer_str) {
-                            // name matched
-                            filament_items.push_back(filament_it->name);
-                            if (filament_it->filament_id == ams_filament_id) {
-                                selection_idx = idx;
+                            if (filament_id_set.find(filament_it->filament_id) != filament_id_set.end()) {
+                                continue;
+                            } else {
+                                filament_id_set.insert(filament_it->filament_id);
+                                // name matched
+                                filament_items.push_back(filament_it->alias);
+                                if (filament_it->filament_id == ams_filament_id) {
+                                    selection_idx = idx;
 
-                                // update if nozzle_temperature_range is found
-                                ConfigOption* opt_min = filament_it->config.option("nozzle_temperature_range_low");
-                                if(opt_min) {
-                                    ConfigOptionInts* opt_min_ints = dynamic_cast<ConfigOptionInts*>(opt_min);
-                                    if (opt_min_ints) {
-                                        wxString text_nozzle_temp_min = wxString::Format("%d", opt_min_ints->get_at(0));
-                                        m_input_nozzle_min->GetTextCtrl()->SetValue(text_nozzle_temp_min);
+                                    // update if nozzle_temperature_range is found
+                                    ConfigOption* opt_min = filament_it->config.option("nozzle_temperature_range_low");
+                                    if(opt_min) {
+                                        ConfigOptionInts* opt_min_ints = dynamic_cast<ConfigOptionInts*>(opt_min);
+                                        if (opt_min_ints) {
+                                            wxString text_nozzle_temp_min = wxString::Format("%d", opt_min_ints->get_at(0));
+                                            m_input_nozzle_min->GetTextCtrl()->SetValue(text_nozzle_temp_min);
+                                        }
+                                    }
+                                    ConfigOption* opt_max = filament_it->config.option("nozzle_temperature_range_high");
+                                    if (opt_max) {
+                                        ConfigOptionInts* opt_max_ints = dynamic_cast<ConfigOptionInts*>(opt_max);
+                                        if (opt_max_ints) {
+                                            wxString text_nozzle_temp_max = wxString::Format("%d", opt_max_ints->get_at(0));
+                                            m_input_nozzle_max->GetTextCtrl()->SetValue(text_nozzle_temp_max);
+                                        }
                                     }
                                 }
-                                ConfigOption* opt_max = filament_it->config.option("nozzle_temperature_range_high");
-                                if (opt_max) {
-                                    ConfigOptionInts* opt_max_ints = dynamic_cast<ConfigOptionInts*>(opt_max);
-                                    if (opt_max_ints) {
-                                        wxString text_nozzle_temp_max = wxString::Format("%d", opt_max_ints->get_at(0));
-                                        m_input_nozzle_max->GetTextCtrl()->SetValue(text_nozzle_temp_max);
-                                    }
-                                }
+                                idx++;
                             }
-                            idx++;
                         }
                     }
                 }
