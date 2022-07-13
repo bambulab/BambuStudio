@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-13 09:13+0800\n"
-"PO-Revision-Date: 2022-07-13 09:15+0800\n"
+"POT-Creation-Date: 2022-07-13 21:48+0800\n"
+"PO-Revision-Date: 2022-07-13 21:50+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -1159,6 +1159,9 @@ msgstr "打印文件超过最大允许大小（1GB），请简化模型后重新
 msgid "Failed uploading print file"
 msgstr "打印任务上传失败"
 
+msgid "Wrong Access code"
+msgstr ""
+
 msgid "Sending print job over LAN"
 msgstr "正在通过局域网发送打印任务"
 
@@ -1588,22 +1591,22 @@ msgstr "清理喷嘴头"
 msgid "Checking extruder temperature"
 msgstr "检查挤出温度"
 
-msgid "User pause"
+msgid "Printing was paused by the user"
 msgstr "用户暂停"
 
-msgid "Pause(toolhead shell off)"
+msgid "Pause of front cover falling"
 msgstr "工具头前盖掉落暂停"
 
-msgid "In the calibration of laser scanner"
+msgid "Calibrating the micro lida"
 msgstr "轮廓仪激光标定"
 
-msgid "In the calibration of extrusion flow"
+msgid "Calibrating extrusion flow"
 msgstr "挤出绝对流量标定"
 
-msgid "Pause(hotend temperature error)"
+msgid "Paused due to nozzle temperature malfunction"
 msgstr "热端温控异常暂停"
 
-msgid "Pause(heated bed temperature error)"
+msgid "Paused due to heat bed temperature malfunction"
 msgstr "热床温控异常暂停"
 
 msgid "MC"
@@ -2245,6 +2248,46 @@ msgstr "视图"
 msgid "Help"
 msgstr "帮助"
 
+msgid "&Open G-code"
+msgstr "打开G-code"
+
+msgid "Open a G-code file"
+msgstr "打开G-code 文件"
+
+msgid "Re&load from Disk"
+msgstr ""
+
+msgid "Reload the plater from disk"
+msgstr ""
+
+msgid "Export &Toolpaths as OBJ"
+msgstr ""
+
+msgid "Export toolpaths as OBJ"
+msgstr ""
+
+msgid "Open &PrusaSlicer"
+msgstr ""
+
+msgid "Open PrusaSlicer"
+msgstr ""
+
+msgid "&Quit"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Quit %s"
+msgstr ""
+
+msgid "&File"
+msgstr ""
+
+msgid "&View"
+msgstr ""
+
+msgid "&Help"
+msgstr ""
+
 msgid "Save configuration as:"
 msgstr "预设另存为："
 
@@ -2762,6 +2805,9 @@ msgstr "创建新项目"
 msgid "Load project"
 msgstr "加载项目"
 
+msgid "Preview only mode for gcode file."
+msgstr ""
+
 msgid "The selected file"
 msgstr "已选择的文件"
 
@@ -2785,6 +2831,12 @@ msgstr "仅导入模型数据"
 
 msgid "Only one G-code file can be opened at the same time."
 msgstr "只能同时打开一个G-code文件。"
+
+msgid "Can not add models when in preview mode!"
+msgstr ""
+
+msgid "Add Models"
+msgstr ""
 
 msgid "All objects will be removed, continue?"
 msgstr "即将删除所有对象，是否继续？"
@@ -5924,6 +5976,24 @@ msgstr "支撑：正在修补层%d的空洞"
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
 
+#~ msgid "User pause"
+#~ msgstr "用户暂停"
+
+#~ msgid "Pause(toolhead shell off)"
+#~ msgstr "工具头前盖掉落暂停"
+
+#~ msgid "In the calibration of laser scanner"
+#~ msgstr "轮廓仪激光标定"
+
+#~ msgid "In the calibration of extrusion flow"
+#~ msgstr "挤出绝对流量标定"
+
+#~ msgid "Pause(hotend temperature error)"
+#~ msgstr "热端温控异常暂停"
+
+#~ msgid "Pause(heated bed temperature error)"
+#~ msgstr "热床温控异常暂停"
+
 #~ msgid "Beginner's Tutorial"
 #~ msgstr "新手引导"
 
@@ -7903,9 +7973,6 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ msgid "Gizmo SLA support points"
 #~ msgstr "SLA支撑点"
 
-#~ msgid "Open a G-code file"
-#~ msgstr "打开G-code 文件"
-
 #~ msgid "Show &Configuration Folder"
 #~ msgstr "打开配置文件夹"
 
@@ -7914,9 +7981,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "Report a bug of BambuStudio"
 #~ msgstr "报告BambuStudio的Bug"
-
-#~ msgid "&Open G-code"
-#~ msgstr "打开G-code"
 
 #~ msgid "Open BambuStudio"
 #~ msgstr "打开BambuStudio"

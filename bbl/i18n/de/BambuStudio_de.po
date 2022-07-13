@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-13 09:13+0800\n"
+"POT-Creation-Date: 2022-07-13 21:48+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1205,6 +1205,9 @@ msgstr ""
 msgid "Failed uploading print file"
 msgstr ""
 
+msgid "Wrong Access code"
+msgstr ""
+
 msgid "Sending print job over LAN"
 msgstr ""
 
@@ -1659,22 +1662,22 @@ msgstr ""
 msgid "Checking extruder temperature"
 msgstr ""
 
-msgid "User pause"
+msgid "Printing was paused by the user"
 msgstr ""
 
-msgid "Pause(toolhead shell off)"
+msgid "Pause of front cover falling"
 msgstr ""
 
-msgid "In the calibration of laser scanner"
+msgid "Calibrating the micro lida"
 msgstr ""
 
-msgid "In the calibration of extrusion flow"
+msgid "Calibrating extrusion flow"
 msgstr ""
 
-msgid "Pause(hotend temperature error)"
+msgid "Paused due to nozzle temperature malfunction"
 msgstr ""
 
-msgid "Pause(heated bed temperature error)"
+msgid "Paused due to heat bed temperature malfunction"
 msgstr ""
 
 msgid "MC"
@@ -2313,6 +2316,46 @@ msgstr "Ansicht"
 msgid "Help"
 msgstr "Hilfe"
 
+msgid "&Open G-code"
+msgstr "Öffne G-C&ode"
+
+msgid "Open a G-code file"
+msgstr "Öffne eine G-Code-Datei"
+
+msgid "Re&load from Disk"
+msgstr "Neu&laden von Festplatte"
+
+msgid "Reload the plater from disk"
+msgstr "Druckplatte neu von der Festplatte laden"
+
+msgid "Export &Toolpaths as OBJ"
+msgstr "Werkzeugwege als OBJ expor&tieren"
+
+msgid "Export toolpaths as OBJ"
+msgstr "Werkzeugweg als OBJ exportieren"
+
+msgid "Open &PrusaSlicer"
+msgstr "Öffne &PrusaSlicer"
+
+msgid "Open PrusaSlicer"
+msgstr "PrusaSlicer öffnen"
+
+msgid "&Quit"
+msgstr "&Beenden"
+
+#, c-format, boost-format
+msgid "Quit %s"
+msgstr "%s verlassen"
+
+msgid "&File"
+msgstr "&Datei"
+
+msgid "&View"
+msgstr "&Anzeige"
+
+msgid "&Help"
+msgstr "&Hilfe"
+
 msgid "Save configuration as:"
 msgstr "Konfiguration speichern unter:"
 
@@ -2844,6 +2887,9 @@ msgstr "Neues Projekt erstellen"
 msgid "Load project"
 msgstr "Projekt laden"
 
+msgid "Preview only mode for gcode file."
+msgstr ""
+
 msgid "The selected file"
 msgstr "Die gewählte Datei"
 
@@ -2867,6 +2913,12 @@ msgstr "Nur Geometrie importieren"
 
 msgid "Only one G-code file can be opened at the same time."
 msgstr "Es kann immer nur eine G-Code-Datei gleichzeitig geöffnet werden."
+
+msgid "Can not add models when in preview mode!"
+msgstr ""
+
+msgid "Add Models"
+msgstr ""
 
 msgid "All objects will be removed, continue?"
 msgstr "Alle Objekte werden entfernt, fortfahren?"
@@ -6978,9 +7030,6 @@ msgstr ""
 #~ msgid "&Export"
 #~ msgstr "&Export"
 
-#~ msgid "&Quit"
-#~ msgstr "&Beenden"
-
 #~ msgid "&Undo"
 #~ msgstr "&Undo"
 
@@ -7004,12 +7053,6 @@ msgstr ""
 
 #~ msgid "&Edit"
 #~ msgstr "&Bearbeiten"
-
-#~ msgid "&View"
-#~ msgstr "&Anzeige"
-
-#~ msgid "&Help"
-#~ msgstr "&Hilfe"
 
 #~ msgid "Select a gcode file:"
 #~ msgstr "Gcode Datei auswählen:"
@@ -7949,12 +7992,6 @@ msgstr ""
 #~ msgid "Set extruder number for the selected items"
 #~ msgstr "Extrudernummer für die ausgewählten Elemente einstellen"
 
-#~ msgid "Open a G-code file"
-#~ msgstr "Öffne eine G-Code-Datei"
-
-#~ msgid "Reload the plater from disk"
-#~ msgstr "Druckplatte neu von der Festplatte laden"
-
 #~ msgid "Show/Hide Legend and Estimated printing time"
 #~ msgstr "Legende und geschätzte Druckzeit anzeigen/verbergen"
 
@@ -8023,18 +8060,6 @@ msgstr ""
 
 #~ msgid "Show &Configuration Folder"
 #~ msgstr "Zeige &Konfigurationsordner"
-
-#~ msgid "&Open G-code"
-#~ msgstr "Öffne G-C&ode"
-
-#~ msgid "Export &Toolpaths as OBJ"
-#~ msgstr "Werkzeugwege als OBJ expor&tieren"
-
-#~ msgid "Export toolpaths as OBJ"
-#~ msgstr "Werkzeugweg als OBJ exportieren"
-
-#~ msgid "Quit %s"
-#~ msgstr "%s verlassen"
 
 #~ msgid "Export AMF file:"
 #~ msgstr "Exportiere AMF Datei:"
@@ -11581,9 +11606,6 @@ msgstr ""
 #~ msgid "Repeat last quick slice"
 #~ msgstr "Letzten Quick Slice wiederholen"
 
-#~ msgid "Re&load from Disk"
-#~ msgstr "Neu&laden von Festplatte"
-
 #~ msgid "Searc&h"
 #~ msgstr "Suc&hen"
 
@@ -11599,9 +11621,6 @@ msgstr ""
 
 #~ msgid "Do you want to proceed?"
 #~ msgstr "Wollen Sie fortfahren?"
-
-#~ msgid "&File"
-#~ msgstr "&Datei"
 
 #~ msgid "&Window"
 #~ msgstr "&Fenster"
@@ -16402,9 +16421,6 @@ msgstr ""
 #~ msgid "Open a new PrusaSlicer instance"
 #~ msgstr "Öffne eine neue PrusaSlicer-Instanz"
 
-#~ msgid "Open PrusaSlicer"
-#~ msgstr "PrusaSlicer öffnen"
-
 #~ msgid "PrusaSlicer is closing"
 #~ msgstr "PrusaSlicer schließt"
 
@@ -16415,9 +16431,6 @@ msgstr ""
 
 #~ msgid "Closing PrusaSlicer. Current project is modified."
 #~ msgstr "PrusaSlicer schließen. Das aktuelle Projekt wurde geändert."
-
-#~ msgid "Open &PrusaSlicer"
-#~ msgstr "Öffne &PrusaSlicer"
 
 #~ msgid ""
 #~ "PrusaSlicer requires OpenGL 2.0 capable graphics driver to run "

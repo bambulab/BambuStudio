@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-13 09:13+0800\n"
+"POT-Creation-Date: 2022-07-13 21:48+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1151,6 +1151,9 @@ msgstr ""
 msgid "Failed uploading print file"
 msgstr ""
 
+msgid "Wrong Access code"
+msgstr ""
+
 msgid "Sending print job over LAN"
 msgstr ""
 
@@ -1529,22 +1532,22 @@ msgstr ""
 msgid "Checking extruder temperature"
 msgstr ""
 
-msgid "User pause"
+msgid "Printing was paused by the user"
 msgstr ""
 
-msgid "Pause(toolhead shell off)"
+msgid "Pause of front cover falling"
 msgstr ""
 
-msgid "In the calibration of laser scanner"
+msgid "Calibrating the micro lida"
 msgstr ""
 
-msgid "In the calibration of extrusion flow"
+msgid "Calibrating extrusion flow"
 msgstr ""
 
-msgid "Pause(hotend temperature error)"
+msgid "Paused due to nozzle temperature malfunction"
 msgstr ""
 
-msgid "Pause(heated bed temperature error)"
+msgid "Paused due to heat bed temperature malfunction"
 msgstr ""
 
 msgid "MC"
@@ -2176,6 +2179,46 @@ msgstr ""
 msgid "Help"
 msgstr ""
 
+msgid "&Open G-code"
+msgstr ""
+
+msgid "Open a G-code file"
+msgstr ""
+
+msgid "Re&load from Disk"
+msgstr ""
+
+msgid "Reload the plater from disk"
+msgstr ""
+
+msgid "Export &Toolpaths as OBJ"
+msgstr ""
+
+msgid "Export toolpaths as OBJ"
+msgstr ""
+
+msgid "Open &PrusaSlicer"
+msgstr ""
+
+msgid "Open PrusaSlicer"
+msgstr ""
+
+msgid "&Quit"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Quit %s"
+msgstr ""
+
+msgid "&File"
+msgstr ""
+
+msgid "&View"
+msgstr ""
+
+msgid "&Help"
+msgstr ""
+
 msgid "Save configuration as:"
 msgstr ""
 
@@ -2688,6 +2731,9 @@ msgstr ""
 msgid "Load project"
 msgstr ""
 
+msgid "Preview only mode for gcode file."
+msgstr ""
+
 msgid "The selected file"
 msgstr ""
 
@@ -2710,6 +2756,12 @@ msgid "Import geometry only"
 msgstr ""
 
 msgid "Only one G-code file can be opened at the same time."
+msgstr ""
+
+msgid "Can not add models when in preview mode!"
+msgstr ""
+
+msgid "Add Models"
 msgstr ""
 
 msgid "All objects will be removed, continue?"

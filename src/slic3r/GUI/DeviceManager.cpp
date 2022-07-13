@@ -86,17 +86,17 @@ wxString get_stage_string(int stage)
     case 15:
         return _L("Checking extruder temperature");
     case 16:
-        return _L("User pause");
+        return _L("Printing was paused by the user");
     case 17:
-        return _L("Pause(toolhead shell off)");
+        return _L("Pause of front cover falling");
     case 18:
-        return _L("In the calibration of laser scanner");
+        return _L("Calibrating the micro lida");
     case 19:
-        return _L("In the calibration of extrusion flow");
+        return _L("Calibrating extrusion flow");
     case 20:
-        return _L("Pause(hotend temperature error)");
+        return _L("Paused due to nozzle temperature malfunction");
     case 21:
-        return _L("Pause(heated bed temperature error)");
+        return _L("Paused due to heat bed temperature malfunction");
     default:
         ;
     }

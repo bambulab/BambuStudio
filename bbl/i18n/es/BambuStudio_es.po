@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-13 09:13+0800\n"
+"POT-Creation-Date: 2022-07-13 21:48+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1204,6 +1204,9 @@ msgstr ""
 msgid "Failed uploading print file"
 msgstr ""
 
+msgid "Wrong Access code"
+msgstr ""
+
 msgid "Sending print job over LAN"
 msgstr ""
 
@@ -1655,22 +1658,22 @@ msgstr ""
 msgid "Checking extruder temperature"
 msgstr ""
 
-msgid "User pause"
+msgid "Printing was paused by the user"
 msgstr ""
 
-msgid "Pause(toolhead shell off)"
+msgid "Pause of front cover falling"
 msgstr ""
 
-msgid "In the calibration of laser scanner"
+msgid "Calibrating the micro lida"
 msgstr ""
 
-msgid "In the calibration of extrusion flow"
+msgid "Calibrating extrusion flow"
 msgstr ""
 
-msgid "Pause(hotend temperature error)"
+msgid "Paused due to nozzle temperature malfunction"
 msgstr ""
 
-msgid "Pause(heated bed temperature error)"
+msgid "Paused due to heat bed temperature malfunction"
 msgstr ""
 
 msgid "MC"
@@ -2308,6 +2311,46 @@ msgstr "Vista"
 msgid "Help"
 msgstr "Ayuda"
 
+msgid "&Open G-code"
+msgstr "Abrir código G (&O)"
+
+msgid "Open a G-code file"
+msgstr "Abrir un archivo código G"
+
+msgid "Re&load from Disk"
+msgstr "Re&cargar desde el Disco"
+
+msgid "Reload the plater from disk"
+msgstr "Cargar la base del disco"
+
+msgid "Export &Toolpaths as OBJ"
+msgstr "Exportar &Movimientos como OBJ"
+
+msgid "Export toolpaths as OBJ"
+msgstr "Exportar trayectorias de herramientas como OBJ"
+
+msgid "Open &PrusaSlicer"
+msgstr "Abrir &PrusaSlicer"
+
+msgid "Open PrusaSlicer"
+msgstr "Abrir PrusaSlicer"
+
+msgid "&Quit"
+msgstr "Sa&lir"
+
+#, c-format, boost-format
+msgid "Quit %s"
+msgstr "Cerrar %s"
+
+msgid "&File"
+msgstr "&Archivo"
+
+msgid "&View"
+msgstr "Ve&r"
+
+msgid "&Help"
+msgstr "Ayu&da"
+
 msgid "Save configuration as:"
 msgstr "Guardar la configuración como:"
 
@@ -2843,6 +2886,9 @@ msgstr "Creando un nuevo proyecto"
 msgid "Load project"
 msgstr "Carga de Proyecto"
 
+msgid "Preview only mode for gcode file."
+msgstr ""
+
 msgid "The selected file"
 msgstr "El archivo seleccionado"
 
@@ -2866,6 +2912,12 @@ msgstr "Importar geometría solo"
 
 msgid "Only one G-code file can be opened at the same time."
 msgstr "Sólo se puede abrir un archivo de código G al mismo tiempo."
+
+msgid "Can not add models when in preview mode!"
+msgstr ""
+
+msgid "Add Models"
+msgstr ""
 
 msgid "All objects will be removed, continue?"
 msgstr "Todos los objetos serán eliminados, deseas continuar?"
@@ -6983,9 +7035,6 @@ msgstr "Soporte: propagar ramas en la capa %d"
 #~ msgid "&Export"
 #~ msgstr "&Exportar"
 
-#~ msgid "&Quit"
-#~ msgstr "Sa&lir"
-
 #~ msgid "&Undo"
 #~ msgstr "Des&hacer"
 
@@ -7009,12 +7058,6 @@ msgstr "Soporte: propagar ramas en la capa %d"
 
 #~ msgid "&Edit"
 #~ msgstr "&Editar"
-
-#~ msgid "&View"
-#~ msgstr "Ve&r"
-
-#~ msgid "&Help"
-#~ msgstr "Ayu&da"
 
 #~ msgid "Select a gcode file:"
 #~ msgstr "Seleccione un archivo gcode:"
@@ -7955,12 +7998,6 @@ msgstr "Soporte: propagar ramas en la capa %d"
 #~ msgid "Set extruder number for the selected items"
 #~ msgstr "Establecer el número de extrusor para los elementos seleccionados"
 
-#~ msgid "Open a G-code file"
-#~ msgstr "Abrir un archivo código G"
-
-#~ msgid "Reload the plater from disk"
-#~ msgstr "Cargar la base del disco"
-
 #~ msgid "Show/Hide Legend and Estimated printing time"
 #~ msgstr "Mostrar/Ocultar Leyenda y Tiempo de impresión estimado"
 
@@ -8029,18 +8066,6 @@ msgstr "Soporte: propagar ramas en la capa %d"
 
 #~ msgid "Show &Configuration Folder"
 #~ msgstr "Mostrar carpeta &Configuración"
-
-#~ msgid "&Open G-code"
-#~ msgstr "Abrir código G (&O)"
-
-#~ msgid "Export &Toolpaths as OBJ"
-#~ msgstr "Exportar &Movimientos como OBJ"
-
-#~ msgid "Export toolpaths as OBJ"
-#~ msgstr "Exportar trayectorias de herramientas como OBJ"
-
-#~ msgid "Quit %s"
-#~ msgstr "Cerrar %s"
 
 #~ msgid "Export AMF file:"
 #~ msgstr "Exportar archivo AMF:"
@@ -11568,9 +11593,6 @@ msgstr "Soporte: propagar ramas en la capa %d"
 #~ msgid "Repeat last quick slice"
 #~ msgstr "Repetir el último laminado rápido"
 
-#~ msgid "Re&load from Disk"
-#~ msgstr "Re&cargar desde el Disco"
-
 #~ msgid "Searc&h"
 #~ msgstr "Busca&r"
 
@@ -11586,9 +11608,6 @@ msgstr "Soporte: propagar ramas en la capa %d"
 
 #~ msgid "Do you want to proceed?"
 #~ msgstr "¿Deseas continuar?"
-
-#~ msgid "&File"
-#~ msgstr "&Archivo"
 
 #~ msgid "&Window"
 #~ msgstr "&Ventana"
@@ -16316,9 +16335,6 @@ msgstr "Soporte: propagar ramas en la capa %d"
 #~ msgid "Open a new PrusaSlicer instance"
 #~ msgstr "Abrir instancia nueva de PrusaSlicer"
 
-#~ msgid "Open PrusaSlicer"
-#~ msgstr "Abrir PrusaSlicer"
-
 #~ msgid "PrusaSlicer is closing"
 #~ msgstr "PrusaSlicer se está cerrando"
 
@@ -16327,9 +16343,6 @@ msgstr "Soporte: propagar ramas en la capa %d"
 
 #~ msgid "Closing PrusaSlicer. Current project is modified."
 #~ msgstr "Cerrando PrusaSlicer. Se modifica el proyecto actual."
-
-#~ msgid "Open &PrusaSlicer"
-#~ msgstr "Abrir &PrusaSlicer"
 
 #~ msgid ""
 #~ "PrusaSlicer requires OpenGL 2.0 capable graphics driver to run "

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-13 09:13+0800\n"
+"POT-Creation-Date: 2022-07-13 21:48+0800\n"
 "PO-Revision-Date: 2021-02-03 14:06+0100\n"
 "Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -1159,6 +1159,9 @@ msgstr ""
 msgid "Failed uploading print file"
 msgstr ""
 
+msgid "Wrong Access code"
+msgstr ""
+
 msgid "Sending print job over LAN"
 msgstr ""
 
@@ -1542,22 +1545,22 @@ msgstr ""
 msgid "Checking extruder temperature"
 msgstr ""
 
-msgid "User pause"
+msgid "Printing was paused by the user"
 msgstr ""
 
-msgid "Pause(toolhead shell off)"
+msgid "Pause of front cover falling"
 msgstr ""
 
-msgid "In the calibration of laser scanner"
+msgid "Calibrating the micro lida"
 msgstr ""
 
-msgid "In the calibration of extrusion flow"
+msgid "Calibrating extrusion flow"
 msgstr ""
 
-msgid "Pause(hotend temperature error)"
+msgid "Paused due to nozzle temperature malfunction"
 msgstr ""
 
-msgid "Pause(heated bed temperature error)"
+msgid "Paused due to heat bed temperature malfunction"
 msgstr ""
 
 msgid "MC"
@@ -2189,6 +2192,46 @@ msgstr "Вид"
 msgid "Help"
 msgstr "Помощь"
 
+msgid "&Open G-code"
+msgstr "&Открыть G-код файл"
+
+msgid "Open a G-code file"
+msgstr "Выберите G-код файл"
+
+msgid "Re&load from Disk"
+msgstr "Пере&загрузить с диска"
+
+msgid "Reload the plater from disk"
+msgstr "Перезагрузить стол с диска"
+
+msgid "Export &Toolpaths as OBJ"
+msgstr "Экспорт траектории &инструмента в OBJ"
+
+msgid "Export toolpaths as OBJ"
+msgstr "Экспортировать траекторию инструмента в OBJ"
+
+msgid "Open &PrusaSlicer"
+msgstr "Открыть &PrusaSlicer"
+
+msgid "Open PrusaSlicer"
+msgstr "Открыть PrusaSlicer"
+
+msgid "&Quit"
+msgstr "&Выход"
+
+#, c-format, boost-format
+msgid "Quit %s"
+msgstr "Выйти из %s"
+
+msgid "&File"
+msgstr "&Файл"
+
+msgid "&View"
+msgstr "&Вид"
+
+msgid "&Help"
+msgstr "&Помощь"
+
 msgid "Save configuration as:"
 msgstr "Сохранить конфигурацию в файл как:"
 
@@ -2703,6 +2746,9 @@ msgstr ""
 msgid "Load project"
 msgstr ""
 
+msgid "Preview only mode for gcode file."
+msgstr ""
+
 msgid "The selected file"
 msgstr "В выбранном файле"
 
@@ -2725,6 +2771,12 @@ msgid "Import geometry only"
 msgstr "Импортировать только геометрию"
 
 msgid "Only one G-code file can be opened at the same time."
+msgstr ""
+
+msgid "Can not add models when in preview mode!"
+msgstr ""
+
+msgid "Add Models"
 msgstr ""
 
 msgid "All objects will be removed, continue?"
@@ -5982,9 +6034,6 @@ msgstr ""
 #~ msgid "&Export"
 #~ msgstr "&Экспорт"
 
-#~ msgid "&Quit"
-#~ msgstr "&Выход"
-
 #~ msgid "&Undo"
 #~ msgstr "&Отмена"
 
@@ -6008,12 +6057,6 @@ msgstr ""
 
 #~ msgid "&Edit"
 #~ msgstr "&Правка"
-
-#~ msgid "&View"
-#~ msgstr "&Вид"
-
-#~ msgid "&Help"
-#~ msgstr "&Помощь"
 
 #~ msgid "Select a gcode file:"
 #~ msgstr "Выбрать файл G-кода:"
@@ -6767,12 +6810,6 @@ msgstr ""
 #~ "The following shortcuts are applicable when the specified gizmo is active"
 #~ msgstr "Следующие сочетания клавиш применимы, когда активна выбранная гизмо"
 
-#~ msgid "Open a G-code file"
-#~ msgstr "Выберите G-код файл"
-
-#~ msgid "Reload the plater from disk"
-#~ msgstr "Перезагрузить стол с диска"
-
 #~ msgid "Show/Hide Legend and Estimated printing time"
 #~ msgstr "Показать/Скрыть условные обозначения/расчётное время печати"
 
@@ -6838,18 +6875,6 @@ msgstr ""
 
 #~ msgid "Show &Configuration Folder"
 #~ msgstr "Показать &конфигурационную папку"
-
-#~ msgid "&Open G-code"
-#~ msgstr "&Открыть G-код файл"
-
-#~ msgid "Export &Toolpaths as OBJ"
-#~ msgstr "Экспорт траектории &инструмента в OBJ"
-
-#~ msgid "Export toolpaths as OBJ"
-#~ msgstr "Экспортировать траекторию инструмента в OBJ"
-
-#~ msgid "Quit %s"
-#~ msgstr "Выйти из %s"
 
 #~ msgid "Export AMF file:"
 #~ msgstr "Экспорт в AMF файл:"
@@ -9659,9 +9684,6 @@ msgstr ""
 #~ msgid "Repeat last quick slice"
 #~ msgstr "Повтор последней быстрой нарезки"
 
-#~ msgid "Re&load from Disk"
-#~ msgstr "Пере&загрузить с диска"
-
 #~ msgid "Searc&h"
 #~ msgstr "&Поиск"
 
@@ -9677,9 +9699,6 @@ msgstr ""
 
 #~ msgid "Do you want to proceed?"
 #~ msgstr "Хотите продолжить?"
-
-#~ msgid "&File"
-#~ msgstr "&Файл"
 
 #~ msgid "&Window"
 #~ msgstr "&Окна"
@@ -13194,12 +13213,6 @@ msgstr ""
 
 #~ msgid "Open a new PrusaSlicer instance"
 #~ msgstr "Запустить новый экземпляр PrusaSlicer"
-
-#~ msgid "Open PrusaSlicer"
-#~ msgstr "Открыть PrusaSlicer"
-
-#~ msgid "Open &PrusaSlicer"
-#~ msgstr "Открыть &PrusaSlicer"
 
 #~ msgid ""
 #~ "PrusaSlicer requires OpenGL 2.0 capable graphics driver to run "
