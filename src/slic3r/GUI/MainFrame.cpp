@@ -1884,25 +1884,27 @@ void MainFrame::init_menubar_as_editor()
         }
         case ConfigMenuPreferences:
         {
-            PreferencesDialog dlg(this);
-            dlg.ShowModal();
+            wxGetApp().CallAfter([this] {
+                PreferencesDialog dlg(this);
+                dlg.ShowModal();
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-            if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
+                if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
 #else
-            if (dlg.seq_top_layer_only_changed())
+                if (dlg.seq_top_layer_only_changed())
 #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-                plater()->refresh_print();
+                    plater()->refresh_print();
 #if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
 #ifdef _WIN32
-            /*
-            if (wxGetApp().app_config()->get("associate_3mf") == "true")
-                wxGetApp().associate_3mf_files();
-            if (wxGetApp().app_config()->get("associate_stl") == "true")
-                wxGetApp().associate_stl_files();
-            /*if (wxGetApp().app_config()->get("associate_step") == "true")
-                wxGetApp().associate_step_files();*/
+                /*
+                if (wxGetApp().app_config()->get("associate_3mf") == "true")
+                    wxGetApp().associate_3mf_files();
+                if (wxGetApp().app_config()->get("associate_stl") == "true")
+                    wxGetApp().associate_stl_files();
+                /*if (wxGetApp().app_config()->get("associate_step") == "true")
+                    wxGetApp().associate_step_files();*/
 #endif // _WIN32
 #endif
+            });
             break;
         }
         default:
