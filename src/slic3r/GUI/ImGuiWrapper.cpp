@@ -190,7 +190,12 @@ bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const 
     ImS32 v_new = *out_value;
     bool value_changed = false;
     // wheel behavior
-    if (ImGui::ItemHoverable(region, id)) {
+    ImRect mouse_wheel_responsive_region;
+    if (axis == ImGuiAxis_X)
+        mouse_wheel_responsive_region = ImRect(region.Min - ImVec2(handle_sz.x / 2, 0), region.Max + ImVec2(handle_sz.x / 2, 0));
+    if (axis == ImGuiAxis_Y)
+        mouse_wheel_responsive_region = ImRect(region.Min - ImVec2(0, handle_sz.y), region.Max + ImVec2(0, handle_sz.y));
+    if (ImGui::ItemHoverable(mouse_wheel_responsive_region, id)) {
 #ifdef __APPLE__
         if (io.KeyShift) 
             v_new = ImClamp(*out_value - 5 * (ImS32) (context.IO.MouseWheel), v_min, v_max);
@@ -208,26 +213,25 @@ bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const 
 #endif
     }
     // drag behavior
-        if (context.ActiveId == id)
+    if (context.ActiveId == id)
+    {
+        float mouse_pos_ratio = 0.0f;
+        if (context.ActiveIdSource == ImGuiInputSource_Mouse)
         {
-            float mouse_pos_ratio = 0.0f;
-            if (context.ActiveIdSource == ImGuiInputSource_Mouse)
+            if (context.IO.MouseReleased[0])
             {
-                if (context.IO.MouseReleased[0])
-                {
-                    ImGui::ClearActiveID();
-                }
-                if (context.IO.MouseDown[0])
-                {
-                    const float mouse_abs_pos = context.IO.MousePos[axis];
-                    mouse_pos_ratio = (region_usable_sz > 0.0f) ? ImClamp((mouse_abs_pos - region_usable_pos_min) / region_usable_sz, 0.0f, 1.0f) : 0.0f;
-                    if (axis == ImGuiAxis_Y)
-                        mouse_pos_ratio = 1.0f - mouse_pos_ratio;
-                    v_new = v_min + (ImS32)(v_range * mouse_pos_ratio + 0.5f);
-
-                }
+                ImGui::ClearActiveID();
+            }
+            if (context.IO.MouseDown[0])
+            {
+                const float mouse_abs_pos = context.IO.MousePos[axis];
+                mouse_pos_ratio = (region_usable_sz > 0.0f) ? ImClamp((mouse_abs_pos - region_usable_pos_min) / region_usable_sz, 0.0f, 1.0f) : 0.0f;
+                if (axis == ImGuiAxis_Y)
+                    mouse_pos_ratio = 1.0f - mouse_pos_ratio;
+                v_new = v_min + (ImS32)(v_range * mouse_pos_ratio + 0.5f);
             }
         }
+    }
     // click in fixed_rect behavior
     if (ImGui::ItemHoverable(fixed_rect, id) && context.IO.MouseReleased[0])
     {
