@@ -430,41 +430,41 @@ void BBLTopbar::Rescale() {
     item->SetBitmap(create_scaled_bitmap("topbar_logo", nullptr, TOPBAR_ICON_SIZE));*/
 
     item = this->FindTool(ID_TOP_FILE_MENU);
-    item->SetBitmap(create_scaled_bitmap("topbar_file", nullptr, TOPBAR_ICON_SIZE));
+    item->SetBitmap(create_scaled_bitmap("topbar_file", this, TOPBAR_ICON_SIZE));
 
     item = this->FindTool(ID_TOP_DROPDOWN_MENU);
-    item->SetBitmap(create_scaled_bitmap("topbar_dropdown", nullptr, TOPBAR_ICON_SIZE));
+    item->SetBitmap(create_scaled_bitmap("topbar_dropdown", this, TOPBAR_ICON_SIZE));
 
     //item = this->FindTool(wxID_OPEN);
     //item->SetBitmap(create_scaled_bitmap("topbar_open", nullptr, TOPBAR_ICON_SIZE));
 
     item = this->FindTool(wxID_SAVE);
-    item->SetBitmap(create_scaled_bitmap("topbar_save", nullptr, TOPBAR_ICON_SIZE));
+    item->SetBitmap(create_scaled_bitmap("topbar_save", this, TOPBAR_ICON_SIZE));
 
     item = this->FindTool(wxID_UNDO);
-    item->SetBitmap(create_scaled_bitmap("topbar_undo", nullptr, TOPBAR_ICON_SIZE));
+    item->SetBitmap(create_scaled_bitmap("topbar_undo", this, TOPBAR_ICON_SIZE));
     item->SetDisabledBitmap(create_scaled_bitmap("topbar_undo_inactive", nullptr, TOPBAR_ICON_SIZE));
 
     item = this->FindTool(wxID_REDO);
-    item->SetBitmap(create_scaled_bitmap("topbar_redo", nullptr, TOPBAR_ICON_SIZE));
+    item->SetBitmap(create_scaled_bitmap("topbar_redo", this, TOPBAR_ICON_SIZE));
     item->SetDisabledBitmap(create_scaled_bitmap("topbar_redo_inactive", nullptr, TOPBAR_ICON_SIZE));
 
     item = this->FindTool(ID_TITLE);
 
     /*item = this->FindTool(ID_PUBLISH);
-    item->SetBitmap(create_scaled_bitmap("topbar_publish", nullptr, TOPBAR_ICON_SIZE));
+    item->SetBitmap(create_scaled_bitmap("topbar_publish", this, TOPBAR_ICON_SIZE));
     item->SetDisabledBitmap(create_scaled_bitmap("topbar_publish_disable", nullptr, TOPBAR_ICON_SIZE));*/
 
     /*item = this->FindTool(ID_MODEL_STORE);
-    item->SetBitmap(create_scaled_bitmap("topbar_store", nullptr, TOPBAR_ICON_SIZE));
+    item->SetBitmap(create_scaled_bitmap("topbar_store", this, TOPBAR_ICON_SIZE));
     */
 
     item = this->FindTool(wxID_ICONIZE_FRAME);
-    item->SetBitmap(create_scaled_bitmap("topbar_min", nullptr, TOPBAR_ICON_SIZE));
+    item->SetBitmap(create_scaled_bitmap("topbar_min", this, TOPBAR_ICON_SIZE));
 
     item = this->FindTool(wxID_MAXIMIZE_FRAME);
-    maximize_bitmap = create_scaled_bitmap("topbar_max", nullptr, TOPBAR_ICON_SIZE);
-    window_bitmap = create_scaled_bitmap("topbar_win", nullptr, TOPBAR_ICON_SIZE);
+    maximize_bitmap = create_scaled_bitmap("topbar_max", this, TOPBAR_ICON_SIZE);
+    window_bitmap   = create_scaled_bitmap("topbar_win", this, TOPBAR_ICON_SIZE);
     if (m_frame->IsMaximized()) {
         item->SetBitmap(window_bitmap);
     }
@@ -473,7 +473,7 @@ void BBLTopbar::Rescale() {
     }
 
     item = this->FindTool(wxID_CLOSE_FRAME);
-    item->SetBitmap(create_scaled_bitmap("topbar_close", nullptr, TOPBAR_ICON_SIZE));
+    item->SetBitmap(create_scaled_bitmap("topbar_close", this, TOPBAR_ICON_SIZE));
 
     Realize();
 }
