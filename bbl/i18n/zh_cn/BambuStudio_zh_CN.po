@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-13 22:58+0800\n"
+"POT-Creation-Date: 2022-07-14 17:34+0800\n"
 "PO-Revision-Date: 2022-07-13 21:50+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1498,6 +1498,13 @@ msgstr ""
 "自动调整这些设置？\n"
 "是 - 自动调整这些设置并开启旋转模式\n"
 "否 - 暂不使用旋转模式"
+
+msgid ""
+"When recording timelapse without toolhead, it is recommended to add a "
+"\"Timelapse Wipe Tower\" \n"
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\".\n"
+msgstr ""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -3862,11 +3869,17 @@ msgstr ""
 "自动调整选定零件/所有零件的方向,\n"
 "有选定零件时调整选定零件的朝向,没有选择零件时调整当前盘所有零件的朝向"
 
-msgid "Ctrl + Left mouse button"
-msgstr "Ctrl + 鼠标左键"
+msgid "⌘+Left mouse button"
+msgstr "⌘+鼠标左键"
 
 msgid "Select multiple objects"
 msgstr "选择多个对象"
+
+msgid "Ctrl+Left mouse button"
+msgstr "Ctrl+鼠标左键"
+
+msgid "Shift+Left mouse button"
+msgstr "Shift+鼠标左键"
 
 msgid "Select objects by rectangle"
 msgstr "框选多个零件"
@@ -3895,17 +3908,20 @@ msgstr "右箭头"
 msgid "Move selection 10 mm in positive X direction"
 msgstr "X方向移动 10mm"
 
-msgid "Shift + Any arrow"
-msgstr "Shift + 方向键"
+msgid "Shift+Any arrow"
+msgstr "Shift+方向键"
 
 msgid "Movement step set to 1 mm"
 msgstr "沿X、Y轴以1mm为步进移动对象"
 
-msgid "Ctrl + Any arrow"
-msgstr "Ctrl + 方向键"
+msgid "⌘+Any arrow"
+msgstr "⌘+方向键"
 
 msgid "Movement in camera space"
 msgstr "沿相机视角移动对象"
+
+msgid "Ctrl+Any arrow"
+msgstr "Ctrl+方向键"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "收起/展开 侧边栏"
@@ -3916,14 +3932,20 @@ msgstr "准备"
 msgid "Move: press to snap by 1mm"
 msgstr "移动：以1mm为步进移动"
 
+msgid "⌘+Mouse wheel"
+msgstr "⌘+鼠标滚轮"
+
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "支撑/颜色绘制：调节画笔半径"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + 鼠标滚轮"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "支撑/色彩绘制：调节剖面位置"
+
+msgid "Ctrl+Mouse wheel"
+msgstr "Ctrl+鼠标滚轮"
+
+msgid "Alt+Mouse wheel"
+msgstr "Alt+鼠标滚轮"
 
 msgid "Gizmo"
 msgstr ""
@@ -3941,7 +3963,7 @@ msgid "Select the object/part and press space to change the name"
 msgstr "选中对象、零件，按空格可修改名称"
 
 msgid "Mouse click"
-msgstr "双击鼠标"
+msgstr "鼠标点击"
 
 msgid "Select the object/part and mouse click to change the name"
 msgstr "选中对象、零件，双击零件名可修改名称"
@@ -3967,8 +3989,8 @@ msgstr "开启/关闭垂直滑动条的单层模式"
 msgid "Move slider 5x faster"
 msgstr "5倍速移动滑动条"
 
-msgid "Shift + Mouse wheel"
-msgstr "Shift + 鼠标滚轮"
+msgid "Shift+Mouse wheel"
+msgstr "Shift+鼠标滚轮"
 
 msgid "Saving objects into the 3mf failed."
 msgstr "保存对象到3mf失败。"
@@ -4050,6 +4072,9 @@ msgid ""
 "faulty mesh"
 msgstr "部分模型在这些高度可能过薄，或者模型存在面片错误"
 
+msgid "No object can be printed. Maybe too small"
+msgstr "没有可打印的对象。可能是因为尺寸过小。"
+
 msgid ""
 "Failed to generate gcode for invalid custom G-code.\n"
 "\n"
@@ -4059,9 +4084,6 @@ msgstr ""
 
 msgid "Please check the custom G-code or use the default custom G-code."
 msgstr "请检查自定义G-code，或者使用默认的。"
-
-msgid "No object can be printed. Maybe too small"
-msgstr "没有可打印的对象。可能是因为尺寸过小。"
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
@@ -5447,6 +5469,16 @@ msgstr ""
 "沿着对象的外轮廓螺旋上升，将实体模型转变为只有底面实心层和侧面单层墙壁的打"
 "印。最后生成的打印件没有接缝。"
 
+msgid "Timelapse without toolhead"
+msgstr ""
+
+msgid ""
+"Record timelapse video of printing without showing toolhead. In this mode "
+"the toolhead docks near the excess chute at each layer change, and then a "
+"snapshot is taken with the chamber camera. When printing finishes a "
+"timelapse video is composed of all the snapshots."
+msgstr ""
+
 msgid "Temperature variation"
 msgstr "软化温度"
 
@@ -5975,6 +6007,33 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+鼠标滚轮"
+
+#~ msgid "sdfsadf Any arrow"
+#~ msgstr "方向键"
+
+#~ msgid "Mouse wheel"
+#~ msgstr "鼠标滚轮"
+
+#~ msgid "Any arrow"
+#~ msgstr "方向键"
+
+#~ msgid "Ctrl + Left mouse button"
+#~ msgstr "Ctrl + 鼠标左键"
+
+#~ msgid "Shift + Any arrow"
+#~ msgstr "Shift + 方向键"
+
+#~ msgid "Ctrl + Any arrow"
+#~ msgstr "Ctrl + 方向键"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + 鼠标滚轮"
+
+#~ msgid "Shift + Mouse wheel"
+#~ msgstr "Shift + 鼠标滚轮"
 
 #~ msgid "User pause"
 #~ msgstr "用户暂停"

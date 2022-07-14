@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-13 22:58+0800\n"
+"POT-Creation-Date: 2022-07-14 17:34+0800\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -1054,7 +1054,7 @@ msgid "Click the pencil icon to edit the filament."
 msgstr "Klik op het potlood icoon om het filament aan te passen."
 
 msgid "Load Filament"
-msgstr "Filament laden"
+msgstr "Laden"
 
 msgid "Unload Filament"
 msgstr ""
@@ -1562,6 +1562,13 @@ msgstr ""
 "Wilt u de voorgestelde instellingen automatisch aanpassen? \n"
 "Ja - Pas de instellingen aan en zet de vaas modus automatisch aan\n"
 "Nee - Pas de vaas modus deze keer niet toe"
+
+msgid ""
+"When recording timelapse without toolhead, it is recommended to add a "
+"\"Timelapse Wipe Tower\" \n"
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\".\n"
+msgstr ""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -4006,11 +4013,17 @@ msgstr ""
 "deze georiënteert. Anders worden alle objecten op de huidige schijf "
 "georiënteert."
 
-msgid "Ctrl + Left mouse button"
+msgid "⌘+Left mouse button"
 msgstr ""
 
 msgid "Select multiple objects"
 msgstr "Selecteer meerdere objecten"
+
+msgid "Ctrl+Left mouse button"
+msgstr ""
+
+msgid "Shift+Left mouse button"
+msgstr ""
 
 msgid "Select objects by rectangle"
 msgstr "Objecten selecteren door rechthoek"
@@ -4039,17 +4052,20 @@ msgstr "Pijl naar rechts"
 msgid "Move selection 10 mm in positive X direction"
 msgstr "Verplaats de selectie 10mm in een positieve X richting"
 
-msgid "Shift + Any arrow"
-msgstr "Shift + willekeurige pijl"
+msgid "Shift+Any arrow"
+msgstr "Shift+willekeurige pijl"
 
 msgid "Movement step set to 1 mm"
 msgstr "Bewegingsinterval ingesteld op 1mm"
 
-msgid "Ctrl + Any arrow"
-msgstr "CTRL + willekeurige pijl"
+msgid "⌘+Any arrow"
+msgstr "⌘+willekeurige pijl"
 
 msgid "Movement in camera space"
 msgstr "Beweging in cameragebied"
+
+msgid "Ctrl+Any arrow"
+msgstr "CTRL+willekeurige pijl"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "De menubalk in-/uitschuiven"
@@ -4060,14 +4076,20 @@ msgstr "Plaat"
 msgid "Move: press to snap by 1mm"
 msgstr "Verplaatsen: druk om 1 mm te verplaatsen"
 
+msgid "⌘+Mouse wheel"
+msgstr "⌘+muiswiel"
+
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Ondersteuning(support)/kleur intekenen: pas de pen diameter aan"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + muiswiel"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Ondersteuning(support)/kleur intekenen: pas de sectie positie aan"
+
+msgid "Ctrl+Mouse wheel"
+msgstr "CTRL+muiswiel"
+
+msgid "Alt+Mouse wheel"
+msgstr "Alt+muiswiel"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -4114,8 +4136,8 @@ msgstr "On/Off one layer mode of the vertical slider"
 msgid "Move slider 5x faster"
 msgstr "Schuifregelaar 5x sneller verplaatsen"
 
-msgid "Shift + Mouse wheel"
-msgstr "Shift + muise wiel"
+msgid "Shift+Mouse wheel"
+msgstr ""
 
 msgid "Saving objects into the 3mf failed."
 msgstr "Het opslaan van de objecten naar het 3mf bestand is mislukt."
@@ -4204,6 +4226,10 @@ msgstr ""
 "Delen van het object op deze hoogts kunnen te dun zijn of het object kan een "
 "defect in de constructie hebben."
 
+msgid "No object can be printed. Maybe too small"
+msgstr ""
+"Er kunnen geen objecten geprint worden. Het kan zijn dat ze te klein zijn."
+
 msgid ""
 "Failed to generate gcode for invalid custom G-code.\n"
 "\n"
@@ -4213,10 +4239,6 @@ msgstr ""
 
 msgid "Please check the custom G-code or use the default custom G-code."
 msgstr "Controleer de aangepaste G-code of gebruik de standaard G-code."
-
-msgid "No object can be printed. Maybe too small"
-msgstr ""
-"Er kunnen geen objecten geprint worden. Het kan zijn dat ze te klein zijn."
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
@@ -5776,6 +5798,16 @@ msgstr ""
 "worden afgevlakt en een solide model wordt omgezet in een enkelwandige print "
 "met solide onderlagen. Het uiteindelijke gegenereerde model heeft geen naad."
 
+msgid "Timelapse without toolhead"
+msgstr ""
+
+msgid ""
+"Record timelapse video of printing without showing toolhead. In this mode "
+"the toolhead docks near the excess chute at each layer change, and then a "
+"snapshot is taken with the chamber camera. When printing finishes a "
+"timelapse video is composed of all the snapshots."
+msgstr ""
+
 msgid "Temperature variation"
 msgstr "Temperatuur variatie"
 
@@ -6359,6 +6391,18 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid "Shift + Any arrow"
+#~ msgstr "Shift + willekeurige pijl"
+
+#~ msgid "Ctrl + Any arrow"
+#~ msgstr "CTRL + willekeurige pijl"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + muiswiel"
+
+#~ msgid "Shift + Mouse wheel"
+#~ msgstr "Shift + muise wiel"
 
 #~ msgid "Beginner's Tutorial"
 #~ msgstr "Handleiding voor beginners"

@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-13 22:58+0800\n"
+"POT-Creation-Date: 2022-07-14 17:34+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1052,7 +1052,7 @@ msgid "Click the pencil icon to edit the filament."
 msgstr "Das Stift-Symbol drücken um das Material zu bearbeiten."
 
 msgid "Load Filament"
-msgstr "Material laden"
+msgstr "Laden"
 
 msgid "Unload Filament"
 msgstr ""
@@ -1566,6 +1566,13 @@ msgstr ""
 "Diese Einstellungen automatisch ändern? \n"
 "Ja - Diese Einstellungen ändern und den Spiralmodus automatisch aktivieren\n"
 "Nein - Verzichten Sie dieses Mal auf den Spiralmodus"
+
+msgid ""
+"When recording timelapse without toolhead, it is recommended to add a "
+"\"Timelapse Wipe Tower\" \n"
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\".\n"
+msgstr ""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -3999,11 +4006,17 @@ msgstr ""
 "ausgerichtet, andernfalls werden alle Objekte auf der aktuellen Druckplatte "
 "ausgerichtet."
 
-msgid "Ctrl + Left mouse button"
+msgid "⌘+Left mouse button"
 msgstr ""
 
 msgid "Select multiple objects"
 msgstr "Mehrere Objekte auswählen"
+
+msgid "Ctrl+Left mouse button"
+msgstr ""
+
+msgid "Shift+Left mouse button"
+msgstr ""
 
 msgid "Select objects by rectangle"
 msgstr "Objekte per Rechteck auswählen"
@@ -4032,17 +4045,20 @@ msgstr "Pfeil rechts"
 msgid "Move selection 10 mm in positive X direction"
 msgstr "Auswahl 10 mm in positiver X-Richtung verschieben"
 
-msgid "Shift + Any arrow"
-msgstr "Umschalttaste + beliebiger Pfeil"
+msgid "Shift+Any arrow"
+msgstr "Umschalttaste+beliebiger Pfeil"
 
 msgid "Movement step set to 1 mm"
 msgstr "Bewegungsschritt auf 1 mm eingestellt"
 
-msgid "Ctrl + Any arrow"
-msgstr "Strg + beliebiger Pfeil"
+msgid "⌘+Any arrow"
+msgstr "⌘+beliebiger Pfeil"
 
 msgid "Movement in camera space"
 msgstr "Bewegung im Kameraraum"
+
+msgid "Ctrl+Any arrow"
+msgstr "Strg+beliebiger Pfeil"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Seitenleiste zu-/ausklappen"
@@ -4053,14 +4069,20 @@ msgstr "Druckplatte"
 msgid "Move: press to snap by 1mm"
 msgstr "Verschieben: drücken, um um 1 mm zu verschieben"
 
+msgid "⌘+Mouse wheel"
+msgstr "⌘+Mausrad"
+
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Support/Farbmalen: Stiftradius einstellen"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + Mausrad"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Support/Farbmalerei: Position des Abschnitts anpassen"
+
+msgid "Ctrl+Mouse wheel"
+msgstr "Strg+Mausrad"
+
+msgid "Alt+Mouse wheel"
+msgstr "Alt+Mausrad"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -4108,8 +4130,8 @@ msgstr "Ein/Aus Einschichtmodus des vertikalen Schiebereglers"
 msgid "Move slider 5x faster"
 msgstr "Schieberegler 5x schneller bewegen"
 
-msgid "Shift + Mouse wheel"
-msgstr "Umschalttaste + Mausrad"
+msgid "Shift+Mouse wheel"
+msgstr "Umschalttaste+Mausrad"
 
 msgid "Saving objects into the 3mf failed."
 msgstr "Das Speichern von Objekten in der 3mf ist fehlgeschlagen."
@@ -4198,6 +4220,10 @@ msgstr ""
 "Vielleicht sind Teile des Objekts in dieser Höhe zu dünn, oder das Objekt "
 "hat ein fehlerhaftes Netz"
 
+msgid "No object can be printed. Maybe too small"
+msgstr ""
+"Es kann kein Objekt gedruckt werden. Vielleicht sind die Objekte zu klein"
+
 msgid ""
 "Failed to generate gcode for invalid custom G-code.\n"
 "\n"
@@ -4210,10 +4236,6 @@ msgid "Please check the custom G-code or use the default custom G-code."
 msgstr ""
 "Bitte überprüfen Sie den benutzerdefinierten G-Code oder verwenden Sie den "
 "standardmäßigen benutzerdefinierten G-Code."
-
-msgid "No object can be printed. Maybe too small"
-msgstr ""
-"Es kann kein Objekt gedruckt werden. Vielleicht sind die Objekte zu klein"
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
@@ -5753,6 +5775,16 @@ msgstr ""
 "Volumenmodell in einen einwandigen Druck mit soliden unteren Schichten. Das "
 "endgültig erzeugte Modell hat keine Naht"
 
+msgid "Timelapse without toolhead"
+msgstr ""
+
+msgid ""
+"Record timelapse video of printing without showing toolhead. In this mode "
+"the toolhead docks near the excess chute at each layer change, and then a "
+"snapshot is taken with the chamber camera. When printing finishes a "
+"timelapse video is composed of all the snapshots."
+msgstr ""
+
 msgid "Temperature variation"
 msgstr "Temperaturvariation"
 
@@ -6331,6 +6363,24 @@ msgstr ""
 msgid "Support: propagate branches at layer %d"
 msgstr ""
 
+#~ msgid "Mouse wheel"
+#~ msgstr "Mausrad"
+
+#~ msgid "Any arrow"
+#~ msgstr "Jeder Pfeil"
+
+#~ msgid "Shift + Any arrow"
+#~ msgstr "Umschalttaste + beliebiger Pfeil"
+
+#~ msgid "Ctrl + Any arrow"
+#~ msgstr "Strg + beliebiger Pfeil"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + Mausrad"
+
+#~ msgid "Shift + Mouse wheel"
+#~ msgstr "Umschalttaste + Mausrad"
+
 #~ msgid "Beginner's Tutorial"
 #~ msgstr "Einsteiger-Tutorial"
 
@@ -6786,12 +6836,6 @@ msgstr ""
 
 #~ msgid "Gizmo move: Press to snap by 1mm"
 #~ msgstr "Gizmo Bewegung: Drücken um um 1 mm zu Rasten"
-
-#~ msgid "Any arrow"
-#~ msgstr "Jeder Pfeil"
-
-#~ msgid "Mouse wheel"
-#~ msgstr "Mausrad"
 
 #~ msgid "Gizmos"
 #~ msgstr "Gizmos"

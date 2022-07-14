@@ -213,14 +213,24 @@ void KBShortcutsDialog::fill_shortcuts()
 
             {"Shift+R", L("Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the current disk.")},
 
-            {L("Ctrl + Left mouse button"), L("Select multiple objects")},
-            {L("Shift + Left mouse button"), L("Select objects by rectangle")},
+             #ifdef __APPLE__
+                {L("⌘+Left mouse button"), L("Select multiple objects")},
+            #else
+		        {L("Ctrl+Left mouse button"), L("Select multiple objects")},
+            #endif
+
+            {L("Shift+Left mouse button"), L("Select objects by rectangle")},
             {L("Arrow Up"), L("Move selection 10 mm in positive Y direction")},
             {L("Arrow Down"), L("Move selection 10 mm in negative Y direction")},
             {L("Arrow Left"), L("Move selection 10 mm in negative X direction")},
             {L("Arrow Right"), L("Move selection 10 mm in positive X direction")},
-            {L("Shift + Any arrow"), L("Movement step set to 1 mm")},
-            {L("Ctrl + Any arrow"), L("Movement in camera space")},
+            {L("Shift+Any arrow"), L("Movement step set to 1 mm")},
+
+            #ifdef __APPLE__
+                {L("⌘+Any arrow"), L("Movement in camera space")},
+            #else
+		        {L("Ctrl+Any arrow"), L("Movement in camera space")},
+            #endif
             {"Shift+Tab", L("Collapse/Expand the sidebar")},
         };
         m_full_shortcuts.push_back({ { _L("Plater"), "" }, plater_shortcuts });
@@ -228,8 +238,15 @@ void KBShortcutsDialog::fill_shortcuts()
         Shortcuts gizmos_shortcuts = {
             {"Esc", L("Deselect all")},
             {"Shift+", L("Move: press to snap by 1mm") },
-            {L("Ctrl + Mouse wheel"), L("Support/Color Painting: adjust pen radius")},
-            {L("Alt + Mouse wheel"), L("Support/Color Painting: adjust section position")},
+            #ifdef __APPLE__
+                {L("⌘+Mouse wheel"), L("Support/Color Painting: adjust pen radius")},
+                {L("⌘+Mouse wheel"), L("Support/Color Painting: adjust section position")},
+            #else
+		        {L("Ctrl+Mouse wheel"), L("Support/Color Painting: adjust pen radius")},
+                {L("Alt+Mouse wheel"), L("Support/Color Painting: adjust section position")},
+            #endif
+
+            
         };
         m_full_shortcuts.push_back({{_L("Gizmo"), ""}, gizmos_shortcuts});
 
@@ -256,10 +273,17 @@ void KBShortcutsDialog::fill_shortcuts()
         { L("Arrow Left"),  L("Horizontal slider - Move active thumb Left")},
         { L("Arrow Right"), L("Horizontal slider - Move active thumb Right")},
         { "L", L("On/Off one layer mode of the vertical slider")},
-        {L("Shift + Any arrow"), L("Move slider 5x faster")},
-        {L("Ctrl + Any arrow"), L("Move slider 5x faster")},
-        {L("Shift + Mouse wheel"), L("Move slider 5x faster")},
-        {L("Ctrl + Mouse wheel"), L("Move slider 5x faster")},
+        {L("Shift+Any arrow"), L("Move slider 5x faster")},
+        {L("Shift+Mouse wheel"), L("Move slider 5x faster")},
+        #ifdef __APPLE__
+            {L("⌘+Any arrow"), L("Move slider 5x faster")},
+            {L("⌘+Mouse wheel"), L("Move slider 5x faster")},
+        #else
+		    {L("Ctrl+Any arrow"), L("Move slider 5x faster")},
+		    {L("Ctrl+Mouse wheel"), L("Move slider 5x faster")},
+       #endif
+
+        
     };
     m_full_shortcuts.push_back({ { _L("Preview"), "" }, preview_shortcuts });
 }

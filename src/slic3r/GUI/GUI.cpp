@@ -80,7 +80,7 @@ const std::string& shortkey_ctrl_prefix()
 {
 	static const std::string str =
 #ifdef __APPLE__
-		"⌘"
+		"⌘+"
 #else
 		"Ctrl+"
 #endif
@@ -92,7 +92,7 @@ const std::string& shortkey_alt_prefix()
 {
 	static const std::string str =
 #ifdef __APPLE__
-		"⌥"
+		"⌥+"
 #else
 		"Alt+"
 #endif

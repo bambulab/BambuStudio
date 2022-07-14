@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-13 22:58+0800\n"
+"POT-Creation-Date: 2022-07-14 17:34+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1557,6 +1557,13 @@ msgstr ""
 "Change these settings automatically? \n"
 "Yes - Change these settings and enable spiral mode automatically\n"
 "No  - Give up using spiral mode this time"
+
+msgid ""
+"When recording timelapse without toolhead, it is recommended to add a "
+"\"Timelapse Wipe Tower\" \n"
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\".\n"
+msgstr ""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -3985,11 +3992,17 @@ msgstr ""
 "If there are selected objects, it just orientates the selected ones."
 "Otherwise, it will orientates all objects in the current disk."
 
-msgid "Ctrl + Left mouse button"
-msgstr "Ctrl + Left mouse button"
+msgid "⌘+Left mouse button"
+msgstr ""
 
 msgid "Select multiple objects"
 msgstr "Select multiple objects"
+
+msgid "Ctrl+Left mouse button"
+msgstr ""
+
+msgid "Shift+Left mouse button"
+msgstr ""
 
 msgid "Select objects by rectangle"
 msgstr "Select objects by rectangle"
@@ -4018,17 +4031,20 @@ msgstr "Arrow Right"
 msgid "Move selection 10 mm in positive X direction"
 msgstr "Move selection 10 mm in positive X direction"
 
-msgid "Shift + Any arrow"
-msgstr "Shift + Any arrow"
+msgid "Shift+Any arrow"
+msgstr ""
 
 msgid "Movement step set to 1 mm"
 msgstr "Movement step set to 1 mm"
 
-msgid "Ctrl + Any arrow"
-msgstr "Ctrl + Any arrow"
+msgid "⌘+Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Movement in camera space"
+
+msgid "Ctrl+Any arrow"
+msgstr ""
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Collapse/Expand the sidebar"
@@ -4039,14 +4055,20 @@ msgstr "Plater"
 msgid "Move: press to snap by 1mm"
 msgstr "Move: press to snap by 1mm"
 
+msgid "⌘+Mouse wheel"
+msgstr ""
+
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Support/Color Painting: adjust pen radius"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + Mouse wheel"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Support/Color Painting: adjust section position"
+
+msgid "Ctrl+Mouse wheel"
+msgstr ""
+
+msgid "Alt+Mouse wheel"
+msgstr ""
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -4090,8 +4112,8 @@ msgstr "On/Off one layer mode of the vertical slider"
 msgid "Move slider 5x faster"
 msgstr "Move slider 5x faster"
 
-msgid "Shift + Mouse wheel"
-msgstr "Shift + Mouse wheel"
+msgid "Shift+Mouse wheel"
+msgstr ""
 
 msgid "Saving objects into the 3mf failed."
 msgstr "Saving objects into the 3mf failed."
@@ -4177,6 +4199,9 @@ msgstr ""
 "Parts of the object at these heights may be too thin or the object may have "
 "a faulty mesh."
 
+msgid "No object can be printed. Maybe too small"
+msgstr "No object can be printed. It may be too small."
+
 msgid ""
 "Failed to generate gcode for invalid custom G-code.\n"
 "\n"
@@ -4186,9 +4211,6 @@ msgstr ""
 
 msgid "Please check the custom G-code or use the default custom G-code."
 msgstr "Please check the custom G-code or use the default custom G-code."
-
-msgid "No object can be printed. Maybe too small"
-msgstr "No object can be printed. It may be too small."
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
@@ -5722,6 +5744,16 @@ msgstr ""
 "and turns a solid model into a single walled print with solid bottom layers. "
 "The final generated model has no seam."
 
+msgid "Timelapse without toolhead"
+msgstr ""
+
+msgid ""
+"Record timelapse video of printing without showing toolhead. In this mode "
+"the toolhead docks near the excess chute at each layer change, and then a "
+"snapshot is taken with the chamber camera. When printing finishes a "
+"timelapse video is composed of all the snapshots."
+msgstr ""
+
 msgid "Temperature variation"
 msgstr "Temperature variation"
 
@@ -6290,6 +6322,21 @@ msgstr "Support: fix holes at layer %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
+
+#~ msgid "Ctrl + Left mouse button"
+#~ msgstr "Ctrl + Left mouse button"
+
+#~ msgid "Shift + Any arrow"
+#~ msgstr "Shift + Any arrow"
+
+#~ msgid "Ctrl + Any arrow"
+#~ msgstr "Ctrl + Any arrow"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + Mouse wheel"
+
+#~ msgid "Shift + Mouse wheel"
+#~ msgstr "Shift + Mouse wheel"
 
 #~ msgid "Associate .step files to BambuStudio"
 #~ msgstr "Associate .step files to Bambu Studio"

@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-13 22:58+0800\n"
+"POT-Creation-Date: 2022-07-14 17:34+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1457,6 +1457,13 @@ msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings and enable spiral mode automatically\n"
 "No  - Give up using spiral mode this time"
+msgstr ""
+
+msgid ""
+"When recording timelapse without toolhead, it is recommended to add a "
+"\"Timelapse Wipe Tower\" \n"
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\".\n"
 msgstr ""
 
 msgid ""
@@ -3772,10 +3779,16 @@ msgid ""
 "all objects in the current disk."
 msgstr ""
 
-msgid "Ctrl + Left mouse button"
+msgid "⌘+Left mouse button"
 msgstr ""
 
 msgid "Select multiple objects"
+msgstr ""
+
+msgid "Ctrl+Left mouse button"
+msgstr ""
+
+msgid "Shift+Left mouse button"
 msgstr ""
 
 msgid "Select objects by rectangle"
@@ -3805,17 +3818,20 @@ msgstr "Freccia Destra"
 msgid "Move selection 10 mm in positive X direction"
 msgstr "Sposta selezione 10 mm in direzione X positiva"
 
-msgid "Shift + Any arrow"
+msgid "Shift+Any arrow"
 msgstr ""
 
 msgid "Movement step set to 1 mm"
 msgstr "Passo movimento impostato a 1 mm"
 
-msgid "Ctrl + Any arrow"
+msgid "⌘+Any arrow"
 msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Movimento nello spazio della camera"
+
+msgid "Ctrl+Any arrow"
+msgstr ""
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Riduci/Espandi barra laterale"
@@ -3826,13 +3842,19 @@ msgstr "Piano"
 msgid "Move: press to snap by 1mm"
 msgstr ""
 
+msgid "⌘+Mouse wheel"
+msgstr ""
+
 msgid "Support/Color Painting: adjust pen radius"
 msgstr ""
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + Rotella del mouse"
-
 msgid "Support/Color Painting: adjust section position"
+msgstr ""
+
+msgid "Ctrl+Mouse wheel"
+msgstr ""
+
+msgid "Alt+Mouse wheel"
 msgstr ""
 
 msgid "Gizmo"
@@ -3878,7 +3900,7 @@ msgstr "On/Off modalità un layer del cursore di scorrimento verticale"
 msgid "Move slider 5x faster"
 msgstr ""
 
-msgid "Shift + Mouse wheel"
+msgid "Shift+Mouse wheel"
 msgstr ""
 
 msgid "Saving objects into the 3mf failed."
@@ -3961,15 +3983,15 @@ msgid ""
 "faulty mesh"
 msgstr ""
 
+msgid "No object can be printed. Maybe too small"
+msgstr ""
+
 msgid ""
 "Failed to generate gcode for invalid custom G-code.\n"
 "\n"
 msgstr ""
 
 msgid "Please check the custom G-code or use the default custom G-code."
-msgstr ""
-
-msgid "No object can be printed. Maybe too small"
 msgstr ""
 
 #, boost-format
@@ -5302,6 +5324,16 @@ msgid ""
 "generated model has no seam"
 msgstr ""
 
+msgid "Timelapse without toolhead"
+msgstr ""
+
+msgid ""
+"Record timelapse video of printing without showing toolhead. In this mode "
+"the toolhead docks near the excess chute at each layer change, and then a "
+"snapshot is taken with the chamber camera. When printing finishes a "
+"timelapse video is composed of all the snapshots."
+msgstr ""
+
 msgid "Temperature variation"
 msgstr "Variazione di temperatura"
 
@@ -5798,6 +5830,15 @@ msgstr ""
 msgid "Support: propagate branches at layer %d"
 msgstr ""
 
+#~ msgid "Mouse wheel"
+#~ msgstr "Rotella del mouse"
+
+#~ msgid "Any arrow"
+#~ msgstr "Qualunque freccia"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + Rotella del mouse"
+
 #~ msgid "Filament Overrides"
 #~ msgstr "Sovrascrittura filamento"
 
@@ -5838,12 +5879,6 @@ msgstr ""
 
 #~ msgid "Gizmo move: Press to snap by 1mm"
 #~ msgstr "Gizmo Sposta: Premere per scatti di 1mm"
-
-#~ msgid "Any arrow"
-#~ msgstr "Qualunque freccia"
-
-#~ msgid "Mouse wheel"
-#~ msgstr "Rotella del mouse"
 
 #~ msgid "Gizmos"
 #~ msgstr "Gizmo"
