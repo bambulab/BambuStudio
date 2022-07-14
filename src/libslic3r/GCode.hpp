@@ -307,6 +307,9 @@ private:
         // BBS
         const bool                               prime_extruder = false);
 
+    //BBS
+    void check_placeholder_parser_failed();
+
     void            set_last_pos(const Point &pos) { m_last_pos = pos; m_last_pos_defined = true; }
     bool            last_pos_defined() const { return m_last_pos_defined; }
     void            set_extruders(const std::vector<unsigned int> &extruder_ids);

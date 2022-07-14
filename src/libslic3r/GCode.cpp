@@ -959,15 +959,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     }
     file.close();
 
-    if (! m_placeholder_parser_failed_templates.empty()) {
-        // G-code export proceeded, but some of the PlaceholderParser substitutions failed.
-        //FIXME localize!
-        std::string msg = Slic3r::format(_(L("Failed to generate gcode for invalid custom G-code.\n\n")));
-        for (const auto &name_and_error : m_placeholder_parser_failed_templates)
-            msg += name_and_error.first + " " + name_and_error.second + "\n";
-        msg += Slic3r::format(_(L("Please check the custom G-code or use the default custom G-code.")));
-        throw Slic3r::PlaceholderParserError(msg);
-    }
+    check_placeholder_parser_failed();
 
     BOOST_LOG_TRIVIAL(debug) << "Start processing gcode, " << log_memory_info();
     // Post-process the G-code to update time stamps.
@@ -1798,6 +1790,19 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     print.throw_if_canceled();
 }
 
+//BBS
+void GCode::check_placeholder_parser_failed()
+{
+    if (! m_placeholder_parser_failed_templates.empty()) {
+        // G-code export proceeded, but some of the PlaceholderParser substitutions failed.
+        std::string msg = Slic3r::format(_(L("Failed to generate gcode for invalid custom G-code.\n\n")));
+        for (const auto &name_and_error : m_placeholder_parser_failed_templates)
+            msg += name_and_error.first + " " + name_and_error.second + "\n";
+        msg += Slic3r::format(_(L("Please check the custom G-code or use the default custom G-code.")));
+        throw Slic3r::PlaceholderParserError(msg);
+    }
+}
+
 // Process all layers of all objects (non-sequential mode) with a parallel pipeline:
 // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
 // and export G-code into file.
@@ -1821,6 +1826,8 @@ void GCode::process_layers(
                 print.set_status(80, Slic3r::format(_(L("Generating G-code: layer %1%")), std::to_string(layer_to_print_idx)));
                 if (m_wipe_tower && layer_tools.has_wipe_tower)
                     m_wipe_tower->next_layer();
+                //BBS
+                check_placeholder_parser_failed();
                 print.throw_if_canceled();
                 return this->process_layer(print, layer.second, layer_tools, &layer == &layers_to_print.back(), &print_object_instances_ordering, size_t(-1));
             }
@@ -1866,6 +1873,9 @@ void GCode::process_layers(
                 return {};
             } else {
                 LayerToPrint &layer = layers_to_print[layer_to_print_idx ++];
+                print.set_status(80, Slic3r::format(_(L("Generating G-code: layer %1%")), std::to_string(layer_to_print_idx)));
+                //BBS
+                check_placeholder_parser_failed();
                 print.throw_if_canceled();
                 return this->process_layer(print, { std::move(layer) }, tool_ordering.tools_for_layer(layer.print_z()), &layer == &layers_to_print.back(), nullptr, single_object_idx, prime_extruder);
             }
