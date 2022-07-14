@@ -12,7 +12,7 @@ var LangText={
         "t10":"Printer Selection",
 		"t11":"All",
 		"t12":"Clear all",
-		"t13":"mm nozzel",
+		"t13":"mm nozzle",
 		"t14":"Filament Selection",
 		"t15":"printer",
 		"t16":"Filament type",

@@ -65,7 +65,7 @@ function HandleModelList( pVal )
 '		<div class="SmallBtn_Green trans" tid="t11" onClick="SelectPrinterAll('+"\'"+strVendor+"\'"+')">all</div>'+
 '		<div class="SmallBtn trans" tid="t12" onClick="SelectPrinterNone('+"\'"+strVendor+"\'"+')">none</div>'+
 '	</div>'+
-'	<a>'+strVendor+'</a>	'+
+'	<a>Bambu Lab</a>'+
 '</div>'+
 '<div class="PrinterArea">	'+
 '</div>'+
