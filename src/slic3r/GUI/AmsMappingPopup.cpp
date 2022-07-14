@@ -274,13 +274,16 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
         m_filament_name->SetMaxSize(wxSize(FromDIP(38), FromDIP(20)));
         m_filament_name->SetCornerRadius(5);
         m_filament_name->SetFont(::Label::Body_12);
-
-        if (m_filament_name->GetTextExtent(tray_data[i].name).x > FromDIP(38)) { 
-            m_filament_name->SetFont(::Label::Body_10);
-        }
-
+      
         if (tray_data[i].type == NORMAL) {
-            m_filament_name->SetLabel(tray_data[i].name);
+
+            if (m_filament_name->GetTextExtent(tray_data[i].name).x > FromDIP(38)) {
+                m_filament_name->SetFont(::Label::Body_10);
+                auto name = tray_data[i].name.substr(0, 3) + "." + tray_data[i].name.substr(tray_data[i].name.length() - 1);
+                m_filament_name->SetLabel(name);
+            } else {
+                m_filament_name->SetLabel(tray_data[i].name);
+            }
 
             auto material_name_colour = tray_data[i].colour.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
             m_filament_name->SetTextColor(material_name_colour);
