@@ -1518,11 +1518,11 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
 void AMSControl::init_scaled_buttons()
 {
-    m_button_extruder_feed->SetMinSize(wxSize(FromDIP(54), FromDIP(24)));
+    m_button_extruder_feed->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_extruder_feed->SetCornerRadius(FromDIP(11));
-    m_button_extruder_back->SetMinSize(wxSize(FromDIP(54), FromDIP(24)));
+    m_button_extruder_back->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_extruder_back->SetCornerRadius(FromDIP(11));
-    m_button_ams_setting->SetMinSize(wxSize(FromDIP(88), FromDIP(33)));
+    m_button_ams_setting->SetMinSize(wxSize(-1, FromDIP(33)));
     m_button_ams_setting->SetCornerRadius(FromDIP(12));
 }
 
@@ -1651,9 +1651,9 @@ void AMSControl::StopRridLoading(wxString amsid, wxString canid)
 void AMSControl::msw_rescale()
 {
     m_extruder->msw_rescale();
-    m_button_extruder_back->SetMinSize(wxSize(FromDIP(54), FromDIP(24)));
-    m_button_extruder_feed->SetMinSize(wxSize(FromDIP(54), FromDIP(24)));
-    m_button_ams_setting->SetMinSize(wxSize(FromDIP(88), FromDIP(33)));
+    m_button_extruder_back->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_extruder_feed->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_ams_setting->SetMinSize(wxSize(-1, FromDIP(33)));
 
     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
         AmsCansWindow *cans = m_ams_cans_list[i];

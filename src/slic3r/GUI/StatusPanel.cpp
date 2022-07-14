@@ -61,6 +61,7 @@ static wxColour TEXT_LIGHT_FONT_COL  = wxColour(107, 107, 107);
 #define SWITCH_BUTTON_SIZE (wxSize(FromDIP(40), -1))
 #define TASK_THUMBNAIL_SIZE (wxSize(FromDIP(120), FromDIP(120)))
 #define TASK_BUTTON_SIZE (wxSize(FromDIP(48), FromDIP(24)))
+#define TASK_BUTTON_SIZE2 (wxSize(-1, FromDIP(24)))
 #define Z_BUTTON_SIZE (wxSize(FromDIP(52), FromDIP(52)))
 #define MISC_BUTTON_SIZE (wxSize(FromDIP(68), FromDIP(55)))
 #define TEMP_CTRL_MIN_SIZE (wxSize(FromDIP(122), FromDIP(52)))
@@ -313,7 +314,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
                          std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
                          std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
     m_button_report->SetBackgroundColor(report_bg);
-    m_button_report->SetMinSize(TASK_BUTTON_SIZE);
+    m_button_report->SetMinSize(TASK_BUTTON_SIZE2);
     StateColor report_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
     m_button_report->SetBorderColor(report_bd);
     StateColor report_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
@@ -333,7 +334,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     StateColor pause_resume_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled));
     m_button_pause_resume->SetTextColor(pause_resume_text);
     m_button_pause_resume->SetFont(Label::Body_10);
-    m_button_pause_resume->SetMinSize(TASK_BUTTON_SIZE);
+    m_button_pause_resume->SetMinSize(TASK_BUTTON_SIZE2);
     //bSizer_task_btn->Add(m_button_pause_resume, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));
     m_sizer_progressbar->Add(m_button_pause_resume, 0, wxALL, FromDIP(5));
 
@@ -348,7 +349,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     StateColor abort_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
     m_button_abort->SetTextColor(abort_text);
     m_button_abort->SetFont(Label::Body_10);
-    m_button_abort->SetMinSize(TASK_BUTTON_SIZE);
+    m_button_abort->SetMinSize(TASK_BUTTON_SIZE2);
     //bSizer_task_btn->Add(m_button_abort, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));
     m_sizer_progressbar->Add(m_button_abort, 0, wxALL, FromDIP(5));
 
@@ -435,7 +436,7 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     m_calibration_btn->SetBorderColor(btn_bd_green);
     m_calibration_btn->SetTextColor(*wxWHITE);
     m_calibration_btn->SetSize(wxSize(FromDIP(128), FromDIP(26)));
-    m_calibration_btn->SetMinSize(wxSize(FromDIP(128), FromDIP(26)));
+    m_calibration_btn->SetMinSize(wxSize(-1, FromDIP(26)));
 
     bSizer_control_title->Add(m_staticText_control, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, PAGE_TITLE_LEFT_MARGIN);
     bSizer_control_title->Add(0, 0, 1, wxEXPAND, 0);
@@ -778,7 +779,7 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
     StateColor abort_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
     m_button_unload->SetTextColor(abort_text);
     m_button_unload->SetFont(Label::Body_10);
-    m_button_unload->SetMinSize(wxSize(FromDIP(52), FromDIP(26)));
+    m_button_unload->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_unload->SetCornerRadius(FromDIP(10));
     bSizer_e_ctrl->Add(0, 0, 1, wxEXPAND, 0);
     bSizer_e_ctrl->Add(m_button_unload, 0, wxALIGN_CENTER_HORIZONTAL| wxTOP|wxBOTTOM, FromDIP(5));
@@ -855,6 +856,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_buttons.push_back(m_button_report);
     m_buttons.push_back(m_button_pause_resume);
     m_buttons.push_back(m_button_abort);
+    m_buttons.push_back(m_button_unload);
     m_buttons.push_back(m_bpButton_z_10);
     m_buttons.push_back(m_bpButton_z_1);
     m_buttons.push_back(m_bpButton_z_down_1);
@@ -955,7 +957,7 @@ void StatusPanel::init_scaled_buttons()
     m_button_pause_resume->SetCornerRadius(FromDIP(12));
     m_button_abort->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
     m_button_abort->SetCornerRadius(FromDIP(12));
-    m_button_unload->SetMinSize(wxSize(FromDIP(52), FromDIP(24)));
+    m_button_unload->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_unload->SetCornerRadius(FromDIP(10));
     m_bpButton_z_10->SetMinSize(Z_BUTTON_SIZE);
     m_bpButton_z_10->SetCornerRadius(0);
@@ -2039,7 +2041,8 @@ void StatusPanel::msw_rescale()
     m_ams_control->msw_rescale();
     // m_filament_step->Rescale();
 
-    m_calibration_btn->SetMinSize(wxSize(FromDIP(128), FromDIP(26)));
+    m_calibration_btn->SetMinSize(wxSize(-1, FromDIP(26)));
+    m_calibration_btn->Rescale();
 
     Layout();
     Refresh();
