@@ -1066,7 +1066,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     init_bind();
     init_timer();
-    CenterOnParent();
+     //CenterOnParent();
+    Centre(wxBOTH);
 }
 
 wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param)

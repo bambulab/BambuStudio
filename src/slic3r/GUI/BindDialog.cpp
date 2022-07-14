@@ -212,7 +212,7 @@ namespace GUI {
 
  void BindMachineDilaog::on_bind_fail(wxCommandEvent &event)
  {
-    m_status_text->SetLabel(_L("Would you like to log in this printer with current account?"));
+    //m_status_text->SetLabel(_L("Would you like to log in this printer with current account?"));
     m_simplebook->SetSelection(1);
  }
 
