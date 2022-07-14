@@ -159,9 +159,10 @@ void AMSMaterialsSetting::create()
     m_sizer_button->Add(0, 0, 1, wxEXPAND, 0);
 
     m_button_confirm = new Button(m_panel_body, _L("Confirm"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+    m_btn_bg_green   = StateColor(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
-    m_button_confirm->SetBackgroundColor(btn_bg_green);
+
+    m_button_confirm->SetBackgroundColor(m_btn_bg_green);
     m_button_confirm->SetBorderColor(wxColour(0, 174, 66));
     m_button_confirm->SetTextColor(AMS_MATERIALS_SETTING_GREY200);
     m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
@@ -246,6 +247,34 @@ void AMSMaterialsSetting::input_max_finish()
     }
     Layout();
     Fit();
+}
+
+void AMSMaterialsSetting::update()
+{
+    if (obj) {
+        if (obj->is_in_printing() || obj->can_resume()) {
+            enable_confirm_button(false);
+        } else {
+            enable_confirm_button(true);
+        }
+    }
+}
+
+void AMSMaterialsSetting::enable_confirm_button(bool en)
+{
+    if (!en) {
+        if (m_button_confirm->IsEnabled()) {
+            m_button_confirm->Disable();
+            m_button_confirm->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+            m_button_confirm->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+        }
+    } else {
+        if (!m_button_confirm->IsEnabled()) {
+            m_button_confirm->Enable();
+            m_button_confirm->SetBackgroundColor(m_btn_bg_green);
+            m_button_confirm->SetBorderColor(m_btn_bg_green);
+        }
+    }
 }
 
 void AMSMaterialsSetting::on_select_ok(wxMouseEvent &event)
@@ -436,7 +465,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
             auto a = it->alias;
             if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
-                // update if nozzle_temperature_range is found
+                // ) if nozzle_temperature_range is found
                 ConfigOption* opt_min = it->config.option("nozzle_temperature_range_low");
                 if (opt_min) {
                     ConfigOptionInts* opt_min_ints = dynamic_cast<ConfigOptionInts*>(opt_min);

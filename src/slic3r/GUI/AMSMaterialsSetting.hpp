@@ -37,6 +37,8 @@ public:
 	void paintEvent(wxPaintEvent &evt);
     void input_min_finish();
     void input_max_finish();
+    void update();
+    void enable_confirm_button(bool en);
     void on_select_cancel(wxMouseEvent &event);
     void Dismiss() override;
     bool Show(bool show) override;
@@ -66,6 +68,7 @@ protected:
     void on_select_filament(wxCommandEvent& evt);
 
 protected:
+    StateColor          m_btn_bg_green;
     wxPanel *           m_panel_SN;
     wxStaticText *      m_sn_number;
     wxStaticText *      warning_text;

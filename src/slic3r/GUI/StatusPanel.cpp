@@ -1277,6 +1277,8 @@ void StatusPanel::update_ams(MachineObject *obj)
         return;
     } else {
         show_ams_group(true);
+        if (m_filament_setting_dlg) m_filament_setting_dlg->update();
+
         std::vector<AMSinfo> ams_info;
         for (auto ams = obj->amsList.begin(); ams != obj->amsList.end(); ams++) {
             AMSinfo info;
