@@ -7244,10 +7244,15 @@ bool Plater::open_3mf_file(const fs::path &file_path)
 
     if (load_type == LoadType::Unknown) return false;
 
+    struct AllowSnapshots {
+        AllowSnapshots(Plater *plater) : m_plater(plater) { m_plater->allow_snapshots(); }
+        ~AllowSnapshots() { m_plater->suppress_snapshots(); }
+		Plater *m_plater;
+    };
     switch (load_type) {
         case LoadType::OpenProject: {
             // remove snapshot taken by load_files and add_file
-            undo();
+            AllowSnapshots as(this);
             if (wxGetApp().can_load_project())
                 load_project(from_path(file_path));
             break;
