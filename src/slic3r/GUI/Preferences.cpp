@@ -172,7 +172,8 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
 
                 wxGetApp().load_language(vlist[m_current_language_selected]->CanonicalName, false);
                 Close();
-                Reparent(nullptr);
+                // Reparent(nullptr);
+                GetParent()->RemoveChild(this);
                 wxGetApp().recreate_GUI(_L("Changing application language"));
             }
         }
