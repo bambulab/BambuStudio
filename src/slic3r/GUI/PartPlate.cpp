@@ -1993,7 +1993,6 @@ void PartPlate::update_slice_result_valid_state(bool valid)
         m_slice_percent = 100.0f;
     else {
         m_slice_percent = -1.0f;
-        thumbnail_data.reset();
     }
 }
 
@@ -3033,6 +3032,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 		//wipe tower updates
 		PartPlate* plate = m_plate_list[obj_id - 1000];
 		plate->update_slice_result_valid_state( false );
+		plate->thumbnail_data.reset();
 
 		return 0;
 	}
@@ -3060,9 +3060,11 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 			plate->update_instance_exclude_status(obj_id, instance_id, &boundingbox);
 			plate->update_states();
 			plate->update_slice_result_valid_state();
+			plate->thumbnail_data.reset();
 			return 0;
 		}
 		plate->update_slice_result_valid_state();
+		plate->thumbnail_data.reset();
 	}
 	else if (unprintable_plate.contain_instance(obj_id, instance_id))
 	{
@@ -3092,6 +3094,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 			//found a new plate, add it to plate
 			plate->add_instance(obj_id, instance_id, false, &boundingbox);
 			plate->update_slice_result_valid_state();
+			plate->thumbnail_data.reset();
 			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": add it to new plate %1%") % i;
 			return 0;
 		}
@@ -3126,6 +3129,7 @@ int PartPlateList::notify_instance_removed(int obj_id, int instance_id)
 		plate = m_plate_list[index];
 		plate->remove_instance(obj_id, instance_to_delete);
 		plate->update_slice_result_valid_state();
+		plate->thumbnail_data.reset();
 	}
 
 	if (unprintable_plate.contain_instance(obj_id, instance_to_delete))
