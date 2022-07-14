@@ -102,7 +102,6 @@ endif()
 # Create a slic3r executable
 # Process mainfests for various platforms.
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/msw/BambuStudio.rc.in ${CMAKE_CURRENT_BINARY_DIR}/BambuStudio.rc @ONLY)
-#configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/msw/BambuStudio-gcodeviewer.rc.in ${CMAKE_CURRENT_BINARY_DIR}/BambuStudio-gcodeviewer.rc @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/msw/BambuStudio.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/BambuStudio.manifest @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/osx/Info.plist.in ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
 if (WIN32)
@@ -172,26 +171,6 @@ if (WIN32)
     add_dependencies(BambuStudio_app_gui BambuStudio)
     set_target_properties(BambuStudio_app_gui PROPERTIES OUTPUT_NAME "bambu-studio")
     target_link_libraries(BambuStudio_app_gui PRIVATE boost_headeronly)
-
-    #add_executable(BambuStudio_app_console BambuStudio_app_msvc.cpp ${CMAKE_CURRENT_BINARY_DIR}/BambuStudio.rc)
-    # Generate debug symbols even in release mode.
-    #if (MSVC)
-    #    target_link_options(BambuStudio_app_console PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
-    #endif ()
-    #target_compile_definitions(BambuStudio_app_console PRIVATE -DSLIC3R_WRAPPER_CONSOLE)
-    #add_dependencies(BambuStudio_app_console BambuStudio)
-    #set_target_properties(BambuStudio_app_console PROPERTIES OUTPUT_NAME "bambu-studio-console")
-    #target_link_libraries(BambuStudio_app_console PRIVATE boost_headeronly)
-
-    #add_executable(BambuStudio_app_gcodeviewer WIN32 BambuStudio_app_msvc.cpp ${CMAKE_CURRENT_BINARY_DIR}/BambuStudio-gcodeviewer.rc)
-    # Generate debug symbols even in release mode.
-    #if (MSVC)
-    #    target_link_options(BambuStudio_app_gcodeviewer PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
-    #endif ()
-    #target_compile_definitions(BambuStudio_app_gcodeviewer PRIVATE -DSLIC3R_WRAPPER_NOCONSOLE -DSLIC3R_WRAPPER_GCODEVIEWER)
-    #add_dependencies(BambuStudio_app_gcodeviewer BambuStudio)
-    #set_target_properties(BambuStudio_app_gcodeviewer PROPERTIES OUTPUT_NAME "bambu-gcodeviewer")
-    #target_link_libraries(BambuStudio_app_gcodeviewer PRIVATE boost_headeronly)
 endif ()
 
 # Link the resources dir to where Slic3r GUI expects it
@@ -239,16 +218,11 @@ else ()
         # On OSX, the name of the binary matches the name of the Application.
         add_custom_command(TARGET BambuStudio POST_BUILD
             COMMAND ln -sf BambuStudio bambu-studio
-            #COMMAND ln -sf BambuStudio bambu-gcodeviewer
-            #COMMAND ln -sf BambuStudio BambuGCodeViewer
             WORKING_DIRECTORY "$<TARGET_FILE_DIR:BambuStudio>"
-            #COMMENT "Symlinking the G-code viewer to BambuStudio, symlinking to bambu-studio and bambu-gcodeviewer"
             VERBATIM)
     else ()
         add_custom_command(TARGET BambuStudio POST_BUILD
-            #COMMAND ln -sf bambu-studio bambu-gcodeviewer
             WORKING_DIRECTORY "$<TARGET_FILE_DIR:BambuStudio>"
-            #COMMENT "Symlinking the G-code viewer to BambuStudio"
             VERBATIM)
     endif ()
     if (XCODE)
@@ -288,8 +262,6 @@ if (WIN32)
     install(TARGETS BambuStudio RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
     if (MSVC)
         install(TARGETS BambuStudio_app_gui RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
-        #install(TARGETS BambuStudio_app_console RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
-        #install(TARGETS BambuStudio_app_gcodeviewer RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
     endif ()
     install(FILES ${output_dlls_${build_type}} DESTINATION "${CMAKE_INSTALL_PREFIX}")
 else ()
@@ -306,6 +278,4 @@ else ()
     else ()
         install(FILES  ${CMAKE_PREFIX_PATH}/lib/libbambu_networking.so DESTINATION "${CMAKE_INSTALL_BINDIR}")
     endif ()
-    # Install the symlink for gcodeviewer
-    #install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink bambu-studio bambu-gcodeviewer WORKING_DIRECTORY \$ENV{DESTDIR}/${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})")
 endif ()

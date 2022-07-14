@@ -427,7 +427,7 @@ std::vector<wxBitmap> MenuFactory::get_volume_bitmaps()
         if(!item.second.empty()){
             volume_bmps.push_back(create_scaled_bitmap(item.second));
         }
-    }  
+    }
     return volume_bmps;
 }
 
@@ -633,37 +633,16 @@ void MenuFactory::append_menu_item_rename(wxMenu* menu)
     menu->AppendSeparator();
 }
 
-void MenuFactory::append_menu_item_fix_through_netfabb(wxMenu* menu)
+wxMenuItem* MenuFactory::append_menu_item_fix_through_netfabb(wxMenu* menu)
 {
-    //BBS
     if (!is_windows10())
-        return;
+        return nullptr;
 
-#if BBL_RELEASE_TO_PUBLIC
     wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Fix model"), "",
         [](wxCommandEvent&) { obj_list()->fix_through_netfabb(); }, "", menu,
         []() {return plater()->can_fix_through_netfabb(); }, plater());
 
-    return;
-#else
-    wxMenu* repair_menu = new wxMenu();
-    if (!repair_menu)
-        return;
-
-    append_menu_item(repair_menu, wxID_ANY, _L("Fix model through cloud"), "",
-        [](wxCommandEvent&) { obj_list()->fix_through_netfabb(); }, "", menu);
-    append_menu_item(repair_menu, wxID_ANY, _L("Fix model locally"), "",
-        [](wxCommandEvent&) { obj_list()->fix_local(); }, "", menu);
-
-    append_submenu(menu, repair_menu, wxID_ANY, _L("Fix model"), "", "",
-        []() { return plater()->can_fix_through_netfabb(); }, m_parent);
-
-    /*wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Fix model"), "",
-        [](wxCommandEvent&) { obj_list()->fix_through_netfabb(); }, "", menu,
-        []() {return plater()->can_fix_through_netfabb(); }, m_parent);
-
-    return menu_item;*/
-#endif
+    return menu_item;
 }
 
 void MenuFactory::append_menu_item_export_stl(wxMenu* menu, bool is_mulity_menu)
@@ -1091,12 +1070,12 @@ void MenuFactory::create_plate_menu()
         [](wxCommandEvent&) { plater()->delete_plate(); }, "", nullptr,
         []() { return plater()->can_delete_plate(); }, m_parent);
 #endif
-    
+
 
     // add shapes
     menu->AppendSeparator();
     wxMenu* sub_menu = append_submenu_add_generic(menu, ModelVolumeType::INVALID);
-    
+
 #ifdef __WINDOWS__
     append_submenu(menu, sub_menu, wxID_ANY, _L("Add Primitive"), "", "menu_add_part",
         []() {return true; }, m_parent);
@@ -1104,7 +1083,7 @@ void MenuFactory::create_plate_menu()
     append_submenu(menu, sub_menu, wxID_ANY, _L("Add Primitive"), "", "",
         []() {return true; }, m_parent);
 #endif
-    
+
 
     return;
 }

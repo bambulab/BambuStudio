@@ -93,7 +93,7 @@ private:
     MenuWithSeparators m_plate_menu;
     MenuWithSeparators m_assemble_object_menu;
     MenuWithSeparators m_assemble_part_menu;
-
+   
 
     // Removed/Prepended Items according to the view mode
     std::array<wxMenuItem*, mtCount> items_increase;
@@ -120,7 +120,7 @@ private:
     wxMenuItem* append_menu_item_instance_to_object(wxMenu* menu);
     wxMenuItem* append_menu_item_printable(wxMenu* menu);
     void        append_menu_item_rename(wxMenu* menu);
-    void        append_menu_item_fix_through_netfabb(wxMenu* menu);
+    wxMenuItem* append_menu_item_fix_through_netfabb(wxMenu* menu);
     //wxMenuItem* append_menu_item_simplify(wxMenu* menu);
     void        append_menu_item_export_stl(wxMenu* menu, bool is_mulity_menu = false);
     void        append_menu_item_reload_from_disk(wxMenu* menu);

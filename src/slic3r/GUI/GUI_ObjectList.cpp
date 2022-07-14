@@ -225,7 +225,7 @@ ObjectList::ObjectList(wxWindow* parent) :
                 if (filaments_count() > 1 && i <= filaments_count())
                     this->set_extruder_for_selected_items(i);
             }, wxID_LAST+i);
-        
+
         m_accel = accel;
     }
 #else //__WXOSX__
@@ -2740,7 +2740,7 @@ bool ObjectList::can_merge_to_multipart_object() const
         if (!(m_objects_model->GetItemType(item) & (itObject | itInstance)))
             return false;
 
-        // BBS: do not support to merge timelapse wipe tower with other objects 
+        // BBS: do not support to merge timelapse wipe tower with other objects
         ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(item.GetID());
         if (node != nullptr && node->IsTimelapseWipeTower())
             return false;
@@ -4644,192 +4644,6 @@ void ObjectList::simplify()
     gizmos_mgr.open_gizmo(GLGizmosManager::EType::Simplify);
 }
 
-void ObjectList::fix_local()
-{
-    // Do not fix anything when a gizmo is open. There might be issues with updates
-    // and what is worse, the snapshot time would refer to the internal stack.
-    if (!wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::Undefined))
-        return;
-
-    //          model_name
-    std::vector<std::string>                           succes_models;
-    std::vector<std::pair<int, int>>                   success_ids;
-    //                   model_name     failing reason
-    std::vector<std::pair<std::string, std::string>>   failed_models;
-
-    std::vector<int> obj_idxs, vol_idxs;
-    get_selection_indexes(obj_idxs, vol_idxs);
-
-    std::vector<std::string> model_names;
-    int volume_count = 0;
-    // clear selections from the non-broken models if any exists
-    // and than fill names of models to repairing
-    if (vol_idxs.empty()) {
-        //for (int i = int(obj_idxs.size())-1; i >= 0; --i)
-        //        if (object(obj_idxs[i])->get_repaired_errors_count() == 0)
-        //            obj_idxs.erase(obj_idxs.begin()+i);
-
-        for (int obj_idx : obj_idxs) {
-            ModelObject* model_object = object(obj_idx);
-            model_names.push_back(model_object->name);
-        }
-    }
-    else {
-        ModelObject* obj = object(obj_idxs.front());
-        //for (int i = int(vol_idxs.size()) - 1; i >= 0; --i)
-        //    if (obj->get_repaired_errors_count(vol_idxs[i]) == 0)
-        //        vol_idxs.erase(vol_idxs.begin() + i);
-        for (int vol_idx : vol_idxs)
-            model_names.push_back(obj->volumes[vol_idx]->name);
-    }
-    volume_count = model_names.size();
-
-    auto plater = wxGetApp().plater();
-
-    std::mutex                      mutex;
-    std::condition_variable         condition;
-    std::unique_lock<std::mutex>    lock(mutex);
-    struct Progress {
-        std::string                 message;
-        int                         percent  = 0;
-        bool                        updated = false;
-    } progress;
-    bool                            canceled = false;
-    std::atomic<bool>               finished = false;
-    wxString                        msg_header;
-    bool                            success = true;
-
-    // Open a progress dialog.
-    ProgressDialog progress_dlg(_L("Repairing model object"), "", 100, find_toplevel_parent(plater),
-                                    wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
-    auto on_progress = [&mutex, &condition, volume_count, &progress](int volume_index, unsigned int prcnt, std::string msg) {
-        std::lock_guard<std::mutex> lk(mutex);
-        progress.message = msg;
-        progress.percent = (int)floor((float(prcnt) + float(volume_index) * 100.f) / float(volume_count));
-        progress.updated = true;
-        condition.notify_all();
-    };
-
-    auto fix_and_update_progress = [this, plater, model_names, on_progress, &canceled, &msg_header](const int obj_idx, const int vol_idx,
-                                          int model_idx,
-                                          std::vector<std::string>& succes_models,
-                                          std::vector<std::pair<int, int>>& success_ids,
-                                          std::vector<std::pair<std::string, std::string>>& failed_models)
-    {
-        const std::string& model_name = model_names[model_idx];
-        wxString msg = _L("Repairing model object");
-        if (model_names.size() == 1)
-            msg += ": " + from_u8(model_name) + "\n";
-        else {
-            msg += ":\n";
-            for (int i = 0; i < int(model_names.size()); ++i)
-                msg += (i == model_idx ? "-> " : "   ") + from_u8(model_names[i]) + "\n";
-            msg += "\n";
-        }
-        msg_header = msg;
-
-        plater->clear_before_change_mesh(obj_idx);
-        std::string res;
-        ModelObject* model_object = object(obj_idx);
-        int ret = model_object->repair(vol_idx, res, model_idx, canceled, on_progress);
-        if (ret) {
-            failed_models.push_back({ model_name, res });
-            return false;
-        }
-        else {
-            succes_models.push_back(model_name);
-            success_ids.push_back({obj_idx, vol_idx});
-
-            return true;
-        }
-    };
-
-    Plater::TakeSnapshot snapshot(plater, "Repairing locally");
-
-    auto worker_thread = boost::thread([ obj_idxs, vol_idxs, volume_count, on_progress, fix_and_update_progress, &success, &canceled, &finished, &succes_models, &success_ids, &failed_models]() {
-        try {
-            int model_idx{ 0 };
-            success = true;
-            if (vol_idxs.empty()) {
-                int vol_idx{ -1 };
-                for (int obj_idx : obj_idxs) {
-                    //if (object(obj_idx)->get_repaired_errors_count(vol_idx) == 0)
-                    //    continue;
-                    if (!fix_and_update_progress(obj_idx, vol_idx, model_idx, succes_models, success_ids, failed_models)) {
-                        success  = false;
-                        break;
-                    }
-                    model_idx++;
-                }
-            }
-            else {
-                int obj_idx{ obj_idxs.front() };
-                for (int vol_idx : vol_idxs) {
-                    if (!fix_and_update_progress(obj_idx, vol_idx, model_idx, succes_models, success_ids, failed_models)) {
-                        success  = false;
-                        break;
-                    }
-                    model_idx++;
-                }
-            }
-            on_progress(volume_count-1, 100, L("Repair finished"));
-            finished = true;
-        }
-        catch (std::exception &ex) {
-            success = false;
-            finished = true;
-            on_progress(volume_count-1, 100, ex.what());
-        }
-    });
-    while (! finished) {
-        condition.wait_for(lock, std::chrono::milliseconds(250), [&progress]{ return progress.updated; });
-        // decrease progress.percent value to avoid closing of the progress dialog
-        if (!progress_dlg.Update(progress.percent-1, msg_header + _(progress.message)))
-            canceled = true;
-        else
-            progress_dlg.Fit();
-        progress.updated = false;
-    }
-
-    if (canceled) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", cancelled by user");
-    } else if (success) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", successfully");
-    } else {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", failed");
-    }
-    worker_thread.join();
-
-    // Close the progress dialog
-    progress_dlg.Update(100, "");
-
-    // Show info notification
-    wxString msg;
-    wxString bullet_suf = "\n   - ";
-    if (!succes_models.empty()) {
-        msg = _L_PLURAL("Following model object has been repaired", "Following model objects have been repaired", succes_models.size()) + ":";
-        for (auto& model : succes_models)
-            msg += bullet_suf + from_u8(model);
-        msg += "\n\n";
-    }
-    if (!success_ids.empty()) {
-        for (auto& id : success_ids) {
-            plater->changed_mesh(id.first);
-
-            update_item_error_icon(id.first, id.second);
-            update_info_items(id.first);
-        }
-    }
-    if (!failed_models.empty()) {
-        msg += _L_PLURAL("Failed to repair folowing model object", "Failed to repair folowing model objects", failed_models.size()) + ":\n";
-        for (auto& model : failed_models)
-            msg += bullet_suf + from_u8(model.first) + ": " + _(model.second);
-    }
-    if (msg.IsEmpty())
-        msg = _L("Repairing was canceled");
-    plater->get_notification_manager()->push_notification(NotificationType::NetfabbFinished, NotificationManager::NotificationLevel::PrintInfoShortNotificationLevel, boost::nowide::narrow(msg));
-}
-
 void ObjectList::update_item_error_icon(const int obj_idx, const int vol_idx) const
 {
     auto obj = object(obj_idx);
@@ -4913,7 +4727,7 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
     }
 #endif //__WXMSW__
 }
-    
+
 void ObjectList::OnEditingDone(wxDataViewEvent &event)
 {
     if (event.GetColumn() != colName)
@@ -4923,7 +4737,7 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
 #if __WXOSX__
     SetAcceleratorTable(m_accel);
 #endif
-    
+
     if (renderer->WasCanceled())
 		wxTheApp->CallAfter([this]{ Plater::show_illegal_characters_warning(this); });
 

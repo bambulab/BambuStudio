@@ -7,10 +7,7 @@
 #include <libslic3r/TriangleMesh.hpp>
 #include <Eigen/Geometry>
 
-
 namespace Slic3r {
-
-typedef std::function<void(int percent, std::string msg)> mesh_status_update_func;
 
 namespace MeshBoolean {
 
@@ -21,7 +18,7 @@ EigenMesh triangle_mesh_to_eigen(const TriangleMesh &mesh);
 
 void minus(EigenMesh &A, const EigenMesh &B);
 void self_union(EigenMesh &A);
-
+    
 void minus(TriangleMesh& A, const TriangleMesh& B);
 void self_union(TriangleMesh& mesh);
 
@@ -44,7 +41,7 @@ inline std::unique_ptr<CGALMesh, CGALMeshDeleter> triangle_mesh_to_cgal(const Tr
 }
 
 TriangleMesh cgal_to_triangle_mesh(const CGALMesh &cgalmesh);
-
+    
 // Do boolean mesh difference with CGAL bypassing igl.
 void minus(TriangleMesh &A, const TriangleMesh &B);
 void plus(TriangleMesh &A, const TriangleMesh &B);
@@ -60,9 +57,6 @@ bool does_self_intersect(const CGALMesh &mesh);
 //BBS
 std::vector<TriangleMesh> segment(const TriangleMesh& src, double smoothing_alpha = 0.5, int segment_number = 5);
 TriangleMesh merge(std::vector<TriangleMesh> meshes);
-
-TriangleMesh repair(const TriangleMesh &src, std::string &repair_msg,
-    bool& user_cancel, mesh_status_update_func func);
 
 bool does_bound_a_volume(const CGALMesh &mesh);
 bool empty(const CGALMesh &mesh);

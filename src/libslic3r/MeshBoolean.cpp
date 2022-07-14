@@ -1,6 +1,5 @@
 #include "Exception.hpp"
 #include "MeshBoolean.hpp"
-#include "I18N.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/TryCatchSignal.hpp"
 #undef PI
@@ -14,11 +13,7 @@
 #include <CGAL/Exact_integer.h>
 #include <CGAL/Surface_mesh.h>
 #include <CGAL/Polygon_mesh_processing/orient_polygon_soup.h>
-#include <CGAL/Polygon_mesh_processing/orient_polygon_soup_extension.h>
-#include <CGAL/Polygon_mesh_processing/repair_polygon_soup.h>
 #include <CGAL/Polygon_mesh_processing/repair.h>
-//TODO: for self intersections later
-//#include <CGAL/Polygon_mesh_processing/repair_self_intersections.h>
 #include <CGAL/Polygon_mesh_processing/remesh.h>
 #include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
 #include <CGAL/Polygon_mesh_processing/orientation.h>
@@ -27,11 +22,6 @@
 #include <CGAL/property_map.h>
 #include <CGAL/boost/graph/copy_face_graph.h>
 #include <CGAL/boost/graph/Face_filtered_graph.h>
-
-#include <boost/log/trivial.hpp>
-
-// Mark string for localization and translate.
-#define L(s) Slic3r::I18N::translate(s)
 
 namespace Slic3r {
 namespace MeshBoolean {
@@ -42,17 +32,17 @@ using MapMatrixXiUnaligned = Eigen::Map<const Eigen::Matrix<int,   Eigen::Dynami
 TriangleMesh eigen_to_triangle_mesh(const EigenMesh &emesh)
 {
     auto &VC = emesh.first; auto &FC = emesh.second;
-
+    
     indexed_triangle_set its;
     its.vertices.reserve(size_t(VC.rows()));
     its.indices.reserve(size_t(FC.rows()));
-
+    
     for (Eigen::Index i = 0; i < VC.rows(); ++i)
         its.vertices.emplace_back(VC.row(i).cast<float>());
-
+    
     for (Eigen::Index i = 0; i < FC.rows(); ++i)
         its.indices.emplace_back(FC.row(i));
-
+    
     return TriangleMesh { std::move(its) };
 }
 
@@ -73,12 +63,12 @@ void minus(EigenMesh &A, const EigenMesh &B)
 {
     auto &[VA, FA] = A;
     auto &[VB, FB] = B;
-
+    
     Eigen::MatrixXd VC;
     Eigen::MatrixXi FC;
     igl::MeshBooleanType boolean_type(igl::MESH_BOOLEAN_TYPE_MINUS);
     igl::copyleft::cgal::mesh_boolean(VA, FA, VB, FB, boolean_type, VC, FC);
-
+    
     VA = std::move(VC); FA = std::move(FC);
 }
 
@@ -97,7 +87,7 @@ void self_union(EigenMesh &A)
 
     igl::MeshBooleanType boolean_type(igl::MESH_BOOLEAN_TYPE_UNION);
     igl::copyleft::cgal::mesh_boolean(V, F, Eigen::MatrixXd(), Eigen::MatrixXi(), boolean_type, VC, FC);
-
+    
     A = std::move(result);
 }
 
@@ -123,11 +113,6 @@ struct CGALMesh {
     CGALMesh() = default;
     CGALMesh(const _EpicMesh& _m) :m(_m) {}
 };
-
-typedef boost::graph_traits<_EpicMesh>::vertex_descriptor   vertex_descriptor;
-typedef boost::graph_traits<_EpicMesh>::halfedge_descriptor halfedge_descriptor;
-typedef boost::graph_traits<_EpicMesh>::face_descriptor     face_descriptor;
-
 
 // /////////////////////////////////////////////////////////////////////////////
 // Converions from and to CGAL mesh
@@ -160,59 +145,6 @@ template<class _Mesh> void triangle_mesh_to_cgal(const TriangleMesh& M, _Mesh& o
         CGALProc::orient_to_bound_a_volume(out);
     else
         throw Slic3r::RuntimeError("Mesh not watertight");
-}
-
-template<class _Mesh> void triangle_mesh_to_cgal_with_repair(const TriangleMesh& M, _Mesh& out, bool& oriented)
-{
-    //using Index3 = std::array<size_t, 3>;
-    using Index3 = std::vector<std::size_t>;
-
-    if (M.empty()) return;
-
-    std::vector<typename _Mesh::Point> points;
-    std::vector<Index3> indices;
-    points.reserve(M.its.vertices.size());
-    indices.reserve(M.its.indices.size());
-    for (auto& v : M.its.vertices) points.emplace_back(v.x(), v.y(), v.z());
-    for (auto& _f : M.its.indices) {
-        auto f = _f.cast<size_t>();
-        indices.emplace_back(Index3{ f(0), f(1), f(2) });
-    }
-
-    //basic repair, currently disabled
-    //CGALProc::repair_polygon_soup(points, indices, CGAL::parameters::all_default());
-    //following operations are the sequential calls in repair_polygon_soup, most of them have been done by admesh's stl functions
-    //CGALProc::merge_duplicate_points_in_polygon_soup(points, indices, CGAL::parameters::all_default());
-    //CGALProc::internal::simplify_polygons_in_polygon_soup(points, indices, traits);
-    //CGALProc::internal::split_pinched_polygons_in_polygon_soup(points, indices, traits);
-    //CGALProc::internal::remove_invalid_polygons_in_polygon_soup(points, indices);
-
-    //CGALProc::repair_polygon_soup(points, indices, CGAL::parameters::erase_all_duplicates(true));
-    CGALProc::merge_duplicate_polygons_in_polygon_soup(points, indices,
-        CGAL::parameters::require_same_orientation(false).erase_all_duplicates(true));
-    CGALProc::remove_isolated_points_in_polygon_soup(points, indices);
-    CGALProc::merge_duplicate_points_in_polygon_soup(points, indices, CGAL::parameters::all_default());
-
-    //CGALProc::duplicate_non_manifold_edges_in_polygon_soup(points, indices);
-    CGALProc::orient_polygon_soup(points, indices);
-    if (CGALProc::is_polygon_soup_a_polygon_mesh(indices)) {
-        CGALProc::polygon_soup_to_polygon_mesh(points, indices, out);
-    }
-    else {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":is not a valid polygon_mesh, points_x_3 %1%, faces_x_3 %2%")
-            %points.size() %indices.size();
-        throw Slic3r::RuntimeError("This Mesh Can not be fixed locally.");
-    }
-
-    // Number the faces because 'orient_to_bound_a_volume' needs a face <--> index map
-    unsigned index = 0;
-    for (auto face : out.faces())
-        face = CGAL::SM_Face_index(index++);
-
-    if (CGAL::is_closed(out)) {
-        CGALProc::orient_to_bound_a_volume(out);
-        oriented = true;
-    }
 }
 
 template<class _Mesh>
@@ -252,7 +184,7 @@ template<class _Mesh> TriangleMesh cgal_to_triangle_mesh(const _Mesh &cgalmesh)
     indexed_triangle_set its;
     its.vertices.reserve(cgalmesh.num_vertices());
     its.indices.reserve(cgalmesh.num_faces());
-
+    
     const auto &faces = cgalmesh.faces();
     const auto &vertices = cgalmesh.vertices();
     int vsize = int(vertices.size());
@@ -276,7 +208,7 @@ template<class _Mesh> TriangleMesh cgal_to_triangle_mesh(const _Mesh &cgalmesh)
         if (i == 3)
             its.indices.emplace_back(facet);
     }
-
+    
     return TriangleMesh(std::move(its));
 }
 
@@ -341,11 +273,6 @@ void minus(CGALMesh &A, CGALMesh &B) { _cgal_do(_cgal_diff, A, B); }
 void plus(CGALMesh &A, CGALMesh &B) { _cgal_do(_cgal_union, A, B); }
 void intersect(CGALMesh &A, CGALMesh &B) { _cgal_do(_cgal_intersection, A, B); }
 bool does_self_intersect(const CGALMesh &mesh) { return CGALProc::does_self_intersect(mesh.m); }
-bool is_watertight(const CGALMesh &mesh)
-{
-    return is_closed(mesh.m);
-}
-
 // BBS
 void segment(CGALMesh& src, std::vector<CGALMesh>& dst, double smoothing_alpha = 0.5, int segment_number=5)
 {
@@ -403,7 +330,7 @@ void segment(CGALMesh& src, std::vector<CGALMesh>& dst, double smoothing_alpha =
         //if (id > 2) {
         //    mesh_merged.join(out);
         //}
-        //else
+        //else 
         {
             dst.emplace_back(std::move(CGALMesh(out)));
         }
@@ -455,155 +382,6 @@ TriangleMesh merge(std::vector<TriangleMesh> meshes)
     return cgal_to_triangle_mesh(dst);
 }
 
-static bool is_small_hole(halfedge_descriptor h, _EpicMesh & mesh,
-                   double max_hole_diam, int max_num_hole_edges)
-{
-  int num_hole_edges = 0;
-  CGAL::Bbox_3 hole_bbox;
-  for (halfedge_descriptor hc : CGAL::halfedges_around_face(h, mesh))
-  {
-    const EpicKernel::Point_3& p = mesh.point(target(hc, mesh));
-    hole_bbox += p.bbox();
-    ++num_hole_edges;
-    // Exit early, to avoid unnecessary traversal of large holes
-    if (num_hole_edges > max_num_hole_edges) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", num_hole_edges %1% too large")%num_hole_edges;
-        return false;
-    }
-    double x_range = hole_bbox.xmax() - hole_bbox.xmin();
-    if (x_range > max_hole_diam) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", x_range %1% too large")%x_range;
-        return false;
-    }
-
-    double y_range = hole_bbox.ymax() - hole_bbox.ymin();
-    if (y_range > max_hole_diam) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", y_range %1% too large")%y_range;
-        return false;
-    }
-
-    double z_range = hole_bbox.zmax() - hole_bbox.zmin();
-    if (z_range > max_hole_diam) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", z_range %1% too large")%z_range;
-        return false;
-    }
-  }
-  return true;
-}
-
-//fill holes except small size and edges
-static int fill_hole(CGALMesh& cgal_mesh, int& hole_filled)
-{
-    double max_hole_diam = 250.f; //todo, not sure how large is suitable
-    int max_num_hole_edges = 200; //meshlab's default is 30, not enough for NASA1.stl
-    unsigned int nb_holes = 0;
-    std::vector<halfedge_descriptor> border_cycles;
-    int ret = 0;
-
-    CGALProc::extract_boundary_cycles(cgal_mesh.m, std::back_inserter(border_cycles));
-
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", found total %1% border cycles")%border_cycles.size();
-    for(halfedge_descriptor h : border_cycles)
-    {
-        /*if(max_hole_diam > 0 && max_num_hole_edges > 0 &&
-            !is_small_hole(h, cgal_mesh.m, max_hole_diam, max_num_hole_edges))
-        {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", skip this hole");
-            continue;
-        }*/
-        std::vector<face_descriptor>  patch_facets;
-        std::vector<vertex_descriptor> patch_vertices;
-        bool success = std::get<0>(CGALProc::triangulate_refine_and_fair_hole(cgal_mesh.m,
-                                     h,
-                                     std::back_inserter(patch_facets),
-                                     std::back_inserter(patch_vertices)));
-        if (!success)
-            ret = -1;
-        else
-            nb_holes ++;
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": hole count %1%, Number of facets %2%, vertices %3%, success %4%")
-            %nb_holes %patch_facets.size() %patch_vertices.size()%success;
-    }
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1% holes filled")%nb_holes;
-
-    hole_filled = nb_holes;
-    return ret;
-}
-
-TriangleMesh repair(const TriangleMesh& src, std::string& repair_msg, bool& user_cancel, mesh_status_update_func func)
-{
-    int ret = 0;
-    CGALMesh in_cgal_mesh;
-    bool oriented = false;
-
-    if (func)
-        func(5, L("Preparing mesh data..."));
-    //construct the cgal mesh with some basic repair operations
-    MeshBoolean::cgal::triangle_mesh_to_cgal_with_repair(src, in_cgal_mesh.m, oriented);
-    if (func)
-        func(20, L("Duplicate non-manifold vertices..."));
-    if (user_cancel)
-        throw Slic3r::RuntimeError("User cancelled");
-
-    //duplicate the non-manifold vertices
-    std::vector<std::vector<vertex_descriptor> > duplicated_vertices;
-    std::size_t new_vertices_nb = CGALProc::duplicate_non_manifold_vertices(in_cgal_mesh.m,
-                                     CGAL::parameters::output_iterator(std::back_inserter(duplicated_vertices)));
-    if (new_vertices_nb > 0) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", found %1% non_manifold_vertices, duplicated.")%new_vertices_nb;
-    }
-
-    if (func)
-        func(40, L("Filling holes..."));
-    if (user_cancel)
-        throw Slic3r::RuntimeError("User cancelled");
-
-    //fill hole
-    int hole_filled = 0;
-    ret = fill_hole(in_cgal_mesh, hole_filled);
-    if (ret) {
-        repair_msg += "\nFound errors when Filling holes.";
-    }
-    else {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", fill hole finished, filled %1% holes")%hole_filled;
-        //std::size_t count = CGALProc::stitch_borders(in_cgal_mesh.m);
-        //if (count > 0)
-        //    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", stitched %1% borders")%count;
-    }
-
-    //remove the self intersection
-    //it will also do: remove_degenerate_faces, duplicate_non_manifold_vertices
-    //TODO: the effect is not what we want, we need to check whether we should remove self intersection or not firstly
-    //if it is a must, we need to pick another algorithism
-    //CGALProc::experimental::remove_self_intersections(in_cgal_mesh.m, CGAL::parameters::preserve_genus(false));
-    //CGALProc::experimental::remove_self_intersections(in_cgal_mesh.m);
-
-    if (func)
-        func(80, L("Correcting orientation..."));
-    if (user_cancel)
-        throw Slic3r::RuntimeError("User cancelled");
-
-    if (CGAL::is_closed(in_cgal_mesh.m)) {
-        if (!oriented) {
-        // Number the faces because 'orient_to_bound_a_volume' needs a face <--> index map
-            //unsigned index = 0;
-            //for (auto face : in_cgal_mesh.m.faces())
-            //    face = CGAL::SM_Face_index(index++);
-            CGALProc::orient_to_bound_a_volume(in_cgal_mesh.m, CGALProc::parameters::do_orientation_tests(false));
-        }
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", after repair, it is a watertight mesh");
-    }
-    else {
-        //throw Slic3r::RuntimeError("Mesh not watertight");
-        //still not a watertight mesh
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", after repair, still not a watertight mesh");
-    }
-
-    if (func)
-        func(90, L("Generating meshes..."));
-    return std::move(cgal_to_triangle_mesh(in_cgal_mesh.m));
-}
-
 // /////////////////////////////////////////////////////////////////////////////
 // Now the public functions for TriangleMesh input:
 // /////////////////////////////////////////////////////////////////////////////
@@ -614,9 +392,9 @@ template<class Op> void _mesh_boolean_do(Op &&op, TriangleMesh &A, const Triangl
     CGALMesh meshB;
     triangle_mesh_to_cgal(A.its.vertices, A.its.indices, meshA.m);
     triangle_mesh_to_cgal(B.its.vertices, B.its.indices, meshB.m);
-
+    
     _cgal_do(op, meshA, meshB);
-
+    
     A = cgal_to_triangle_mesh(meshA.m);
 }
 

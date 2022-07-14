@@ -184,10 +184,10 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
 
     if (model.objects.empty())
         throw Slic3r::RuntimeError("The supplied file couldn't be read because it's empty");
-
+    
     for (ModelObject *o : model.objects)
         o->input_file = input_file;
-
+    
     if (options & LoadStrategy::AddDefaultInstances)
         model.add_default_instances();
 
@@ -245,14 +245,14 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
 
     //BBS
     //CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
-
+    
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_UPDATE_GCODE\n");
     if (proFn) {
         proFn(IMPORT_STAGE_UPDATE_GCODE, 0, 1, cb_cancel);
         if (cb_cancel)
             throw Slic3r::RuntimeError("Canceled");
     }
-
+    
     CustomGCode::check_mode_for_custom_gcode_per_print_z(model.custom_gcode_per_print_z);
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_CHECK_MODE_GCODE\n");
@@ -402,7 +402,7 @@ void Model::collect_reusable_objects(std::vector<ObjectBase*>& objects)
                        std::mem_fn(&ObjectBase::id));
         model_object->volumes.clear();
     }
-    // we never own these objects
+    // we never own these objects 
     this->objects.clear();
 }
 
@@ -577,7 +577,7 @@ void Model::convert_multipart_object(unsigned int max_extruders)
     assert(this->objects.size() >= 2);
     if (this->objects.size() < 2)
         return;
-
+    
     ModelObject* object = new ModelObject(this);
     object->input_file = this->objects.front()->input_file;
     object->name = boost::filesystem::path(this->objects.front()->input_file).stem().string();
@@ -587,7 +587,7 @@ void Model::convert_multipart_object(unsigned int max_extruders)
 
 	for (const ModelObject* o : this->objects)
     	for (const ModelVolume* v : o->volumes) {
-            // If there are more than one object, put all volumes together
+            // If there are more than one object, put all volumes together 
             // Each object may contain any number of volumes and instances
             // The volumes transformations are relative to the object containing them...
             Geometry::Transformation trafo_volume = v->get_transformation();
@@ -606,7 +606,7 @@ void Model::convert_multipart_object(unsigned int max_extruders)
             } else {
                 for (const ModelInstance* i : o->instances)
                     // ...so, transform everything to a common reference system (world)
-                	copy_volume(object->add_volume(*v))->set_transformation(i->get_transformation() * trafo_volume);
+                	copy_volume(object->add_volume(*v))->set_transformation(i->get_transformation() * trafo_volume);                    
             }
         }
 
@@ -1310,7 +1310,7 @@ Polygon ModelObject::convex_hull_2d(const Transform3d& trafo_instance) const
 
 void ModelObject::center_around_origin(bool include_modifiers)
 {
-    // calculate the displacements needed to
+    // calculate the displacements needed to 
     // center this object around the origin
     const BoundingBoxf3 bb = include_modifiers ? full_raw_mesh_bounding_box() : raw_mesh_bounding_box();
 
@@ -1462,8 +1462,8 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, ConversionType con
 
             // Perform conversion only if the target "imperial" state is different from the current one.
             // This check supports conversion of "mixed" set of volumes, each with different "imperial" state.
-            if (//vol->source.is_converted_from_inches != from_imperial &&
-                (volume_idxs.empty() ||
+            if (//vol->source.is_converted_from_inches != from_imperial && 
+                (volume_idxs.empty() || 
                  std::find(volume_idxs.begin(), volume_idxs.end(), vol_idx) != volume_idxs.end())) {
                 vol->scale_geometry_after_creation(koef);
                 vol->set_offset(Vec3d(koef, koef, koef).cwiseProduct(volume->get_offset()));
@@ -1584,7 +1584,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
             if (attributes.has(ModelObjectCutAttribute::KeepLower))
                 lower->add_volume(*volume);
         }
-        else if (! volume->mesh().empty()) {
+        else if (! volume->mesh().empty()) {            
             // Transform the mesh by the combined transformation matrix.
             // Flip the triangles in case the composite transformation is left handed.
 			TriangleMesh mesh(volume->mesh());
@@ -1730,7 +1730,7 @@ ModelObjectPtrs ModelObject::segment(size_t instance, unsigned int max_extruders
             // Modifiers are not cut, but we still need to add the instance transformation
             // to the modifier volume transformation to preserve their shape properly.
             volume->set_transformation(Geometry::Transformation(instance_matrix * volume_matrix));
-            upper->add_volume(*volume);
+            upper->add_volume(*volume); 
         }
         else if (!volume->mesh().empty()) {
             // Transform the mesh by the combined transformation matrix.
@@ -2171,7 +2171,7 @@ void ModelObject::print_info() const
     using namespace std;
     cout << fixed;
     boost::nowide::cout << "[" << boost::filesystem::path(this->input_file).filename().string() << "]" << endl;
-
+    
     TriangleMesh mesh = this->raw_mesh();
     BoundingBoxf3 bb = mesh.bounding_box();
     Vec3d size = bb.size();
@@ -2189,7 +2189,7 @@ void ModelObject::print_info() const
     cout << "manifold = "   << (mesh.stats().manifold() ? "yes" : "no") << endl;
     if (! mesh.stats().manifold())
         cout << "open_edges = " << mesh.stats().open_edges << endl;
-
+    
     if (mesh.stats().repaired()) {
         const RepairedMeshErrors& stats = mesh.stats().repaired_errors;
         if (stats.degenerate_facets > 0)
@@ -2263,83 +2263,6 @@ int ModelObject::get_repaired_errors_count(const int vol_idx /*= -1*/) const
             stats.facets_reversed + stats.backwards_edges;
 }
 
-int ModelObject::repair(const int vol_idx, std::string& repair_msg, int model_index, bool& user_cancel, model_repair_update_func update_func)
-{
-    int ret = 0;
-    int volume_index = 0, volume_count = 0;
-
-    mesh_status_update_func status_func = [&volume_index, &volume_count, model_index, update_func](int percent, std::string message){
-        if (update_func) {
-            int new_percent = (int)floor((float(percent) + float(volume_index) * 100.f) / float(volume_count));
-            update_func(model_index, new_percent, message);
-        }
-    };
-
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": enter, vol_idx %1%")% vol_idx;
-    if (vol_idx >= 0) {
-        ModelVolume* volume = volumes[vol_idx];
-        volume_count = 1;
-        try {
-            const TriangleMesh& mesh = volume->mesh();
-            TriangleMesh out_mesh = std::move(MeshBoolean::cgal::repair(mesh, repair_msg, user_cancel, status_func));
-
-            if (repair_msg.empty()) {
-                volume->set_mesh(std::move(out_mesh));
-                volume->calculate_convex_hull();
-                volume->set_new_unique_id();
-            }
-            else {
-                ret = -1;
-            }
-        }
-        catch (std::exception exception) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": repair model part %1% failed, exception %2%")
-                % volume->name % exception.what();
-            ret = -1;
-        }
-
-        return ret;
-    }
-
-    for (ModelVolume* volume : this->volumes)
-        // another used satistics value
-        if (volume->is_model_part())
-            volume_count ++;
-
-    for (ModelVolume* volume : this->volumes)
-    {
-        // another used satistics value
-        if (volume->is_model_part()) {
-            try {
-                std::string     error_msg;
-                const TriangleMesh& mesh = volume->mesh();
-                TriangleMesh out_mesh = std::move(MeshBoolean::cgal::repair(mesh, error_msg, user_cancel, status_func));
-
-                if (error_msg.empty()) {
-                    volume->set_mesh(std::move(out_mesh));
-                    volume->calculate_convex_hull();
-                    volume->set_new_unique_id();
-                }
-                else {
-                    repair_msg = error_msg;
-                    ret = -1;
-                }
-                volume_index++;
-            }
-            catch (std::exception exception) {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": repair model part %1% failed, exception %2%")
-                    % volume->name % exception.what();
-                ret = -1;
-            }
-            if (ret)
-                break;
-        }
-    }
-
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished, ret %1%, message %2%")%vol_idx %repair_msg;
-    return  ret;
-}
-
 void ModelVolume::set_material_id(t_model_material_id material_id)
 {
     m_material_id = material_id;
@@ -2349,7 +2272,7 @@ void ModelVolume::set_material_id(t_model_material_id material_id)
 }
 
 ModelMaterial* ModelVolume::material() const
-{
+{ 
     return this->object->get_model()->get_material(m_material_id);
 }
 
@@ -2831,7 +2754,7 @@ double Model::findMaxSpeed(const ModelObject* object) {
     if (objMaxSpeed <= 0) objMaxSpeed = 250.;
     return objMaxSpeed;
 }
-// max printing speed, difference in bed temperature and envirument temperature and bed adhension coefficients are considered
+// max printing speed, difference in bed temperature and envirument temperature and bed adhension coefficients are considered 
 double ModelInstance::get_auto_brim_width(double deltaT, double adhension) const
 {
     BoundingBoxf3 raw_bbox = object->raw_mesh_bounding_box();
@@ -2915,7 +2838,7 @@ double getTemperatureFromExtruder(const ModelVolumePtrs objectVolumes) {
 void ModelInstance::get_arrange_polygon(void* ap) const
 {
 //    static const double SIMPLIFY_TOLERANCE_MM = 0.1;
-
+    
     Vec3d rotation = get_rotation();
     rotation.z()   = 0.;
     Transform3d trafo_instance =
@@ -2928,7 +2851,7 @@ void ModelInstance::get_arrange_polygon(void* ap) const
 //        pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
 //        if (!pp.empty()) p = pp.front();
 //    }
-
+   
     arrangement::ArrangePolygon& ret = *(arrangement::ArrangePolygon*)ap;
     ret.poly.contour = std::move(p);
     ret.translation  = Vec2crd{scaled(get_offset(X)), scaled(get_offset(Y))};
@@ -3171,22 +3094,22 @@ bool model_property_changed(const ModelObject &model_object_old, const ModelObje
 
 bool model_custom_supports_data_changed(const ModelObject& mo, const ModelObject& mo_new)
 {
-    return model_property_changed(mo, mo_new,
-        [](const ModelVolumeType t) { return t == ModelVolumeType::MODEL_PART; },
+    return model_property_changed(mo, mo_new, 
+        [](const ModelVolumeType t) { return t == ModelVolumeType::MODEL_PART; }, 
         [](const ModelVolume &mv_old, const ModelVolume &mv_new){ return mv_old.supported_facets.timestamp_matches(mv_new.supported_facets); });
 }
 
 bool model_custom_seam_data_changed(const ModelObject& mo, const ModelObject& mo_new)
 {
-    return model_property_changed(mo, mo_new,
-        [](const ModelVolumeType t) { return t == ModelVolumeType::MODEL_PART; },
+    return model_property_changed(mo, mo_new, 
+        [](const ModelVolumeType t) { return t == ModelVolumeType::MODEL_PART; }, 
         [](const ModelVolume &mv_old, const ModelVolume &mv_new){ return mv_old.seam_facets.timestamp_matches(mv_new.seam_facets); });
 }
 
 bool model_mmu_segmentation_data_changed(const ModelObject& mo, const ModelObject& mo_new)
 {
-    return model_property_changed(mo, mo_new,
-        [](const ModelVolumeType t) { return t == ModelVolumeType::MODEL_PART; },
+    return model_property_changed(mo, mo_new, 
+        [](const ModelVolumeType t) { return t == ModelVolumeType::MODEL_PART; }, 
         [](const ModelVolume &mv_old, const ModelVolume &mv_new){ return mv_old.mmu_segmentation_facets.timestamp_matches(mv_new.mmu_segmentation_facets); });
 }
 
@@ -3220,7 +3143,7 @@ bool model_has_advanced_features(const Model &model)
 void check_model_ids_validity(const Model &model)
 {
     std::set<ObjectID> ids;
-    auto check = [&ids](ObjectID id) {
+    auto check = [&ids](ObjectID id) { 
         assert(id.valid());
         assert(ids.find(id) == ids.end());
         ids.insert(id);

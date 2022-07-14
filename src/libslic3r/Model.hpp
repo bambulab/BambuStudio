@@ -249,7 +249,6 @@ ENABLE_ENUM_BITMASK_OPERATORS(ModelObjectCutAttribute);
 // and possibly having multiple modifier volumes, each modifier volume with its set of parameters and materials.
 // Each ModelObject may be instantiated mutliple times, each instance having different placement on the print bed,
 // different rotation and different uniform scaling.
-typedef std::function<void(int volume_index, int percent, std::string msg)> model_repair_update_func;
 class ModelObject final : public ObjectBase
 {
 public:
@@ -404,7 +403,6 @@ public:
     TriangleMeshStats get_object_stl_stats() const;
     // Get count of errors in the mesh( or all object's meshes, if volume index isn't defined)
     int         get_repaired_errors_count(const int vol_idx = -1) const;
-    int         repair(const int vol_idx, std::string& repair_msg, int model_index, bool& user_cancel, model_repair_update_func func);
 
 private:
     friend class Model;
@@ -1247,7 +1245,7 @@ public:
         //BBS tips: clean design user id when set designer
         design_info->DesignerUserId = designer_user_id;
     }
-    
+
     // Extensions for color print
     CustomGCode::Info custom_gcode_per_print_z;
 
