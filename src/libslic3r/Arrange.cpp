@@ -512,15 +512,14 @@ public:
         
         if (progressind || on_packed)
             m_pck.progressIndicator(
-                [this, progressind, on_packed](unsigned rem) {
+                [this, progressind, on_packed](unsigned num_finished) {
                     int last_bed = m_pck.lastPackedBinId();
                     if (last_bed >= 0) {
                         Item& last_packed = m_pck.lastResult()[last_bed].back();
                         ArrangePolygon ap;
                         ap.bed_idx = last_packed.binId();
                         ap.priority = last_packed.priority();
-                        if (progressind)
-                            progressind(rem, "Arranging "+last_packed.name);
+                        if (progressind) progressind(num_finished, last_packed.name);
                         if (on_packed)
                             on_packed(ap);
                         BOOST_LOG_TRIVIAL(debug) << "arrange " + last_packed.name + " succeed!"
@@ -528,12 +527,12 @@ public:
                     }
                 });
 
-        if (progressind) {
-            m_pck.unfitIndicator([this, progressind](std::string name) {
-                progressind(100, name+" not fit!");
-                BOOST_LOG_TRIVIAL(debug) << "arrange not fit: " + name;
-                });
-        }
+        //if (progressind) {
+        //    m_pck.unfitIndicator([this, progressind](std::string name) {
+        //        progressind(100, name+" not fit!");
+        //        BOOST_LOG_TRIVIAL(debug) << "arrange not fit: " + name;
+        //        });
+        //}
 
         if (stopcond) m_pck.stopCondition(stopcond);
 

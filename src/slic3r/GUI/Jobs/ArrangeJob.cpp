@@ -378,8 +378,8 @@ void ArrangeJob::prepare_partplate() {
 //BBS: add partplate logic
 void ArrangeJob::prepare()
 {
-    wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing,
-        NotificationManager::NotificationLevel::RegularNotificationLevel, into_u8(_L("Arranging...")));
+    m_plater->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing,
+        NotificationManager::NotificationLevel::RegularNotificationLevel, _u8L("Arranging..."));
     m_plater->get_notification_manager()->bbl_close_plateinfo_notification();
 
     {
@@ -472,7 +472,7 @@ void ArrangeJob::check_unprintable()
             auto msg = (boost::format(
                 _utf8("Object %s has zero size and can't be arranged."))
                 % _utf8(it->name)).str();
-            wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
+            m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
                                 NotificationManager::NotificationLevel::WarningNotificationLevel, msg);
             it = m_selected.erase(it);
         }
@@ -558,10 +558,10 @@ void ArrangeJob::process()
 
     params.stopcondition = [this]() { return was_canceled(); };
 
-    auto count = unsigned(m_selected.size() + m_unprintable.size());
-    params.progressind = [this, count](unsigned st, std::string str="") {
-        st += m_unprintable.size();
-        if (st > 0) update_status(int(count - st), str);
+    auto count = unsigned(m_selected.size());// + m_unprintable.size());
+    params.progressind = [this, count](unsigned num_finished, std::string str="") {
+        if (num_finished >= 0 && num_finished <= count)
+            update_status(int(float(num_finished) / count * 100), _L("Arranging") + " "+str);
     };
 
     if(!params.is_seq_print)
@@ -597,10 +597,6 @@ void ArrangeJob::process()
                 << ", trans: " << item.translation.transpose();
     }
 
-    params.progressind = [this, count](unsigned num_finished, std::string str="") {
-        if (num_finished > 0) update_status(int(count - num_finished), str);
-    };
-
     arrangement::arrange(m_unprintable, {}, bedpts, params);
 
     // put unpackable items to m_unprintable so they goes outside
@@ -614,7 +610,7 @@ void ArrangeJob::process()
     }
 
     // finalize just here.
-    update_status(int(count),
+    update_status(100,
         was_canceled() ? _(L("Arranging canceled.")) :
         we_have_unpackable_items ? _(L("Arranging is done but there are unpacked items. Reduce spacing and try again.")) : _(L("Arranging done.")));
 }

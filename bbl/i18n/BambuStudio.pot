@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-14 17:34+0800\n"
+"POT-Creation-Date: 2022-07-14 20:17+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -967,9 +967,6 @@ msgstr ""
 msgid "Plate"
 msgstr ""
 
-msgid "Module"
-msgstr ""
-
 msgid "Brim"
 msgstr ""
 
@@ -1068,6 +1065,9 @@ msgid ""
 "Arrange failed. Found some exceptions when processing object geometries."
 msgstr ""
 
+msgid "Arranging"
+msgstr ""
+
 msgid "Arranging canceled."
 msgstr ""
 
@@ -1096,6 +1096,9 @@ msgid ""
 msgstr ""
 
 msgid "Orienting..."
+msgstr ""
+
+msgid "Orienting"
 msgstr ""
 
 msgid "Error! Unable to create thread!"
@@ -4766,6 +4769,9 @@ msgid "Honeycomb"
 msgstr ""
 
 msgid "Adaptive Cubic"
+msgstr ""
+
+msgid "Lightning"
 msgstr ""
 
 msgid ""

@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-14 17:34+0800\n"
+"POT-Creation-Date: 2022-07-14 20:17+0800\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -1004,9 +1004,6 @@ msgstr "Binnenste wand snelheid"
 msgid "Plate"
 msgstr "Printbed"
 
-msgid "Module"
-msgstr "Module"
-
 msgid "Brim"
 msgstr "Rand"
 
@@ -1115,6 +1112,9 @@ msgstr ""
 "Het rangschikken is mislukt. Er zijn enkele uitzonderingen gevonden tijdens "
 "het verwerken van het object."
 
+msgid "Arranging"
+msgstr ""
+
 msgid "Arranging canceled."
 msgstr "Rangschikken geannuleerd."
 
@@ -1153,6 +1153,9 @@ msgstr ""
 
 msgid "Orienting..."
 msgstr "Oriënteren "
+
+msgid "Orienting"
+msgstr ""
 
 msgid "Error! Unable to create thread!"
 msgstr "Fout! Kan geen thread maken!"
@@ -5145,6 +5148,9 @@ msgstr "Honinggraad"
 msgid "Adaptive Cubic"
 msgstr "Adaptief kubiek"
 
+msgid "Lightning"
+msgstr ""
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -6391,6 +6397,9 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid "Module"
+#~ msgstr "Module"
 
 #~ msgid "Shift + Any arrow"
 #~ msgstr "Shift + willekeurige pijl"

@@ -423,7 +423,7 @@ void _orient(OrientMeshs& meshs_,
     {
         for (size_t i = 0; i != meshs_.size(); ++i) {
             auto& mesh_ = meshs_[i];
-            progressfn(i, "Orienting " + std::to_string(i) + "-th item: " + mesh_.name);
+            progressfn(i, mesh_.name);
             //auto progressfn_i = [&](unsigned cnt) {progressfn(cnt, "Orienting " + mesh_.name); };
             AutoOrienter orienter(&mesh_, params, /*progressfn_i*/{}, stopfn);
             mesh_.orientation = orienter.process();
@@ -436,7 +436,7 @@ void _orient(OrientMeshs& meshs_,
         tbb::parallel_for(tbb::blocked_range<size_t>(0, meshs_.size()), [&meshs_, &params, progressfn, stopfn](const tbb::blocked_range<size_t>& range) {
             for (size_t i = range.begin(); i != range.end(); ++i) {
                 auto& mesh_ = meshs_[i];
-                progressfn(i, "Orienting " + std::to_string(i) + "-th item: " + mesh_.name);
+                progressfn(i, mesh_.name);
                 AutoOrienter orienter(&mesh_, params, {}, stopfn);
                 mesh_.orientation = orienter.process();
                 Geometry::rotation_from_two_vectors(mesh_.orientation, { 0,0,1 }, mesh_.axis, mesh_.angle, &mesh_.rotation_matrix);

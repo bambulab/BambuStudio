@@ -181,7 +181,7 @@ void OrientJob::process()
 
     params.progressind = [this, count](unsigned st, std::string orientstr) {
         st += m_unprintable.size();
-        if (st > 0) update_status(int(st/float(count)*100), orientstr);
+        if (st > 0) update_status(int(st / float(count) * 100), _L("Orienting") + " " + orientstr);
     };
 
     orientation::orient(m_selected, m_unselected, params);

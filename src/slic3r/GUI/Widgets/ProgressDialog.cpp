@@ -217,7 +217,7 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
     m_sizer_bottom->Add(0, 0, 1, wxEXPAND, 0);
 
     if (HasPDFlag(wxPD_CAN_ABORT)) {
-        m_button_cancel = new Button(this, _T("Cancel"));
+        m_button_cancel = new Button(this, _L("Cancel"));
         m_button_cancel->SetTextColor(PROGRESSDIALOG_GREY_700);
         m_button_cancel->SetMinSize(PROGRESSDIALOG_CANCEL_BUTTON_SIZE);
         m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {

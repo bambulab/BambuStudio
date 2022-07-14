@@ -85,18 +85,17 @@ public:
 
         std::sort(store_.begin(), store_.end(), sortfunc);
 
-        auto total = last-first;
-        auto makeProgress = [this, &total](Placer& placer, size_t bin_idx) {
+        int item_id = 0;
+        auto makeProgress = [this, &item_id](Placer &placer, size_t bin_idx) {
             packed_bins_[bin_idx] = placer.getItems();
             this->last_packed_bin_id_ = int(bin_idx);
-            this->progress_(static_cast<unsigned>(--total));
+            this->progress_(static_cast<unsigned>(item_id));
         };
 
         auto& cancelled = this->stopcond_;
         
         this->template remove_unpackable_items<Placer>(store_, bin, pconfig);
 
-        int item_id = 0;
         for (auto it = store_.begin(); it != store_.end() && !cancelled(); ++it) {
             // skip unpackable item
             if (it->get().binId() == BIN_ID_UNFIT)
@@ -132,8 +131,8 @@ public:
                     // item is not fit because we have tried all possible plates to find a good enough fit
                     if (bed_id_firstfit == MAX_NUM_PLATES) {
                         it->get().binId(BIN_ID_UNFIT);
-                        if (this->unfitindicator_)
-                            this->unfitindicator_(it->get().name + " bed_id_firstfit == MAX_NUM_PLATES" + ",best_score=" + std::to_string(best_score));
+                        //if (this->unfitindicator_)
+                        //    this->unfitindicator_(it->get().name + " bed_id_firstfit == MAX_NUM_PLATES" + ",best_score=" + std::to_string(best_score));
                         break;
                     }
                     else {
@@ -154,10 +153,10 @@ public:
                 }
 
                 if(!was_packed){
-                    if (this->unfitindicator_)
-                        this->unfitindicator_(it->get().name + " ,plate_id=" + std::to_string(j) + ",score=" + std::to_string(score)
-                            + ", score_all_plates=" + std::to_string(score_all_plates)
-                            + ", overfit=" + std::to_string(result.overfit()));
+                    //if (this->unfitindicator_)
+                    //    this->unfitindicator_(it->get().name + " ,plate_id=" + std::to_string(j) + ",score=" + std::to_string(score)
+                    //        + ", score_all_plates=" + std::to_string(score_all_plates)
+                    //        + ", overfit=" + std::to_string(result.overfit()));
 
                     placers.emplace_back(bin);
                     placers.back().plateID(placers.size() - 1);

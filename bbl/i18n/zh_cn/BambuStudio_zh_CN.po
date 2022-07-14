@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-14 17:34+0800\n"
+"POT-Creation-Date: 2022-07-14 20:17+0800\n"
 "PO-Revision-Date: 2022-07-13 21:50+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -967,9 +967,6 @@ msgstr "内墙速度"
 msgid "Plate"
 msgstr "盘"
 
-msgid "Module"
-msgstr "模块"
-
 msgid "Brim"
 msgstr "Brim"
 
@@ -1070,6 +1067,9 @@ msgid ""
 "Arrange failed. Found some exceptions when processing object geometries."
 msgstr "自动摆放失败，处理对象几何数据时遇到异常。"
 
+msgid "Arranging"
+msgstr "正在摆放"
+
 msgid "Arranging canceled."
 msgstr "已取消自动摆放。"
 
@@ -1105,6 +1105,9 @@ msgstr ""
 
 msgid "Orienting..."
 msgstr "自动朝向中..."
+
+msgid "Orienting"
+msgstr "自动朝向"
 
 msgid "Error! Unable to create thread!"
 msgstr "发生错误，无法创建线程。"
@@ -1505,6 +1508,8 @@ msgid ""
 "by right-click the empty position of build plate and choose \"Add Primitive"
 "\"->\"Timelapse Wipe Tower\".\n"
 msgstr ""
+"推荐在录制无工具头延时摄影时，添加一个\"延时摄影擦料塔\"：\n"
+"在构建板的空白位置点击鼠标右键，选择\"添加标准模型\"->\"延时摄影擦料塔\""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -4895,6 +4900,9 @@ msgstr "蜂窝"
 msgid "Adaptive Cubic"
 msgstr "自适应立方体"
 
+msgid "Lightning"
+msgstr ""
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -5470,7 +5478,7 @@ msgstr ""
 "印。最后生成的打印件没有接缝。"
 
 msgid "Timelapse without toolhead"
-msgstr ""
+msgstr "无工具头延时摄影"
 
 msgid ""
 "Record timelapse video of printing without showing toolhead. In this mode "
@@ -5478,6 +5486,9 @@ msgid ""
 "snapshot is taken with the chamber camera. When printing finishes a "
 "timelapse video is composed of all the snapshots."
 msgstr ""
+"录制无工具头延时摄影。在这种模式下，工具头会在每层切换时停靠在吐料槽附近，同"
+"时机箱摄像头会记录一张快照。当打印结束时，所有这些快照会组成一段延时摄影录"
+"像。"
 
 msgid "Temperature variation"
 msgstr "软化温度"
@@ -6007,6 +6018,15 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Arranging %1%"
+#~ msgstr "正在自动摆放%1%"
+
+#~ msgid "Orienting %1%"
+#~ msgstr "自动朝向%1%中..."
+
+#~ msgid "Module"
+#~ msgstr "模块"
 
 #~ msgid "⌥+Mouse wheel"
 #~ msgstr "⌥+鼠标滚轮"
@@ -7060,9 +7080,6 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ "Arranging is done but there are unpacked items! Reduce spacing and try "
 #~ "again!"
 #~ msgstr "已完成自动摆放，但是有未被摆到盘内的项，可在减小间距后重试。"
-
-#~ msgid "Orienting"
-#~ msgstr "自动朝向中..."
 
 #~ msgid "The Config is not compatible, can not load!"
 #~ msgstr "该配置不兼容，无法被加载"
