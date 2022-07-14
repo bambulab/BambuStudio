@@ -28,8 +28,8 @@
 #include "TopExp_Explorer.hxx"
 #include "BRep_Tool.hxx"
 
-const double STEP_TRANS_CHORD_ERROR = 0.002;
-const double STEP_TRANS_ANGLE_RES = 0.2;
+const double STEP_TRANS_CHORD_ERROR = 0.005;
+const double STEP_TRANS_ANGLE_RES = 1;
 
 const int LOAD_STEP_STAGE_READ_FILE          = 0;
 const int LOAD_STEP_STAGE_GET_SOLID          = 1;
@@ -273,7 +273,7 @@ bool load_step(const char *path, Model *model, ImportStepProgressFn proFn, StepI
             }
         }
 
-        BRepMesh_IncrementalMesh mesh(namedSolids[i].solid, STEP_TRANS_CHORD_ERROR, true, STEP_TRANS_ANGLE_RES, true);
+        BRepMesh_IncrementalMesh mesh(namedSolids[i].solid, STEP_TRANS_CHORD_ERROR, false, STEP_TRANS_ANGLE_RES, true);
         //BBS: calculate total number of the nodes and triangles
         int aNbNodes = 0;
         int aNbTriangles = 0;
