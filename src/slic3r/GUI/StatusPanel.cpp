@@ -1763,10 +1763,14 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
         speed_dismiss_time = now - boost::posix_time::seconds(1);
         return;
     }
+#if __WXOSX__
+    // MacOS has focus problem
+    wxPopupTransientWindow *popUp = new wxPopupTransientWindow(nullptr);
+#else
     wxPopupTransientWindow *popUp = new wxPopupTransientWindow(m_switch_speed);
-    popUp->SetBackgroundStyle(wxBG_STYLE_PAINT);
+#endif
+    popUp->SetBackgroundColour(0xeeeeee);
     StepCtrl *step = new StepCtrl(popUp, wxID_ANY);
-    step->SetBackgroundStyle(wxBG_STYLE_PAINT);
     wxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(step, 1, wxEXPAND, 0);
     popUp->SetSizer(sizer);
