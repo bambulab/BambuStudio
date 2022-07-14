@@ -2147,6 +2147,8 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
         auto get_slice_info_thread = boost::thread([this, project_id, profile_id, subtask_id, plate_idx] {
                 int plate_index = -1;
 
+                if (!m_agent) return;
+
                 if (plate_idx >= 0) {
                     plate_index = plate_idx;
                 } else {
@@ -2194,6 +2196,7 @@ void MachineObject::get_firmware_info()
             int          result = 0;
             unsigned int http_code;
             std::string  http_body;
+            if (!m_agent) return;
             result = m_agent->get_printer_firmware(dev_id, &http_code, &http_body);
             if (result < 0) {
                 // get upgrade list failed
@@ -2417,7 +2420,10 @@ MachineObject* DeviceManager::get_local_selected_machine()
 
 MachineObject* DeviceManager::get_default_machine() {
 
-    std::string dev_id = m_agent->get_user_selected_machine();
+    std::string dev_id;
+    if (m_agent) {
+        m_agent->get_user_selected_machine();
+    }
     if (dev_id.empty()) return nullptr;
 
     auto it = userMachineList.find(dev_id);
@@ -2585,7 +2591,9 @@ void DeviceManager::parse_user_print_info(std::string body)
                 }
                 else {
                     obj = new MachineObject(m_agent, "", "", "");
-                    obj->set_bind_status(m_agent->get_user_name());
+                    if (m_agent) {
+                        obj->set_bind_status(m_agent->get_user_name());
+                    }
                     userMachineList.insert(std::make_pair(dev_id, obj));
                 }
 
@@ -2662,16 +2670,18 @@ void DeviceManager::load_last_machine()
     else if (userMachineList.size() == 1) {
         this->set_selected_machine(userMachineList.begin()->second->dev_id);
     } else {
-        std::string last_monitor_machine = m_agent->get_user_selected_machine();
-        bool found = false;
-        for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
-            if (last_monitor_machine == it->first) {
-                this->set_selected_machine(last_monitor_machine);
-                found = true;
+        if (m_agent) {
+            std::string last_monitor_machine = m_agent->get_user_selected_machine();
+            bool found = false;
+            for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
+                if (last_monitor_machine == it->first) {
+                    this->set_selected_machine(last_monitor_machine);
+                    found = true;
+                }
             }
+            if (!found)
+                this->set_selected_machine(userMachineList.begin()->second->dev_id);
         }
-        if (!found)
-            this->set_selected_machine(userMachineList.begin()->second->dev_id);
     }
 }
 

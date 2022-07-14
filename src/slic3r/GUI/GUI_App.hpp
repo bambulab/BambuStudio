@@ -487,6 +487,7 @@ public:
 
 private:
     bool            on_init_inner();
+    void            init_networking_callbacks();
     void            init_app_config();
     //BBS set extra header for http request
     void            init_http_extra_header();

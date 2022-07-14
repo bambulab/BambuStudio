@@ -1091,6 +1091,10 @@ void GUI_App::post_init()
         });
     }
 
+    if(m_agent) {
+        m_agent->start_discovery(true, false);
+    }
+
     BOOST_LOG_TRIVIAL(info) << "finished post_init";
 //BBS: remove the single instance currently
 /*#ifdef _WIN32
@@ -1118,7 +1122,20 @@ GUI_App::GUI_App()
 
     m_device_manager = new Slic3r::DeviceManager(m_agent);
 
+    init_networking_callbacks();
 
+	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
+	this->init_app_config();
+
+    //BBS
+    this->init_http_extra_header();
+
+    Bind(EVT_HTTP_ERROR, &GUI_App::on_http_error, this);
+    Bind(EVT_USER_LOGIN, &GUI_App::on_user_login, this);
+}
+
+void GUI_App::init_networking_callbacks()
+{
     if (m_agent) {
         m_agent->set_on_ssdp_msg_fn(
             [this](std::string json_str) {
@@ -1129,14 +1146,14 @@ GUI_App::GUI_App()
                     if (m_device_manager) {
                         m_device_manager->on_machine_alive(json_str);
                     }
-                });
+                    });
             }
         );
 
         //set callbacks
         m_agent->set_on_user_login_fn([this](int online_login, bool login) {
             GUI::wxGetApp().request_user_login(online_login);
-        });
+            });
 
         m_agent->set_on_server_connected_fn([this]() {
             GUI::wxGetApp().CallAfter([this] {
@@ -1144,8 +1161,8 @@ GUI_App::GUI_App()
                     return;
                 }
                 m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
+                });
             });
-        });
 
         m_agent->set_on_printer_connected_fn([this](std::string dev_id) {
             GUI::wxGetApp().CallAfter([this, dev_id] {
@@ -1158,19 +1175,19 @@ GUI_App::GUI_App()
                     obj->command_request_push_all();
                     obj->command_get_version();
                 }
+                });
             });
-        });
 
-        m_agent->set_get_country_code_fn([this](){
-                if (app_config)
-                    return app_config->get_country_code();
-                return std::string();
+        m_agent->set_get_country_code_fn([this]() {
+            if (app_config)
+                return app_config->get_country_code();
+            return std::string();
             }
         );
 
         m_agent->set_on_http_error_fn([this](unsigned int status, std::string body) {
-                this->handle_http_error(status, body);
-        });
+            this->handle_http_error(status, body);
+            });
 
         auto message_arrive_fn = [this](std::string dev_id, std::string msg) {
             CallAfter([this, dev_id, msg] {
@@ -1189,7 +1206,7 @@ GUI_App::GUI_App()
                             wxGetApp().mainframe->m_debug_tool_dlg->message_arrived(dev_id, msg);
                     }
                 }
-            });
+                });
         };
 
         m_agent->set_on_message_fn(message_arrive_fn);
@@ -1204,17 +1221,17 @@ GUI_App::GUI_App()
                 if (obj) {
                     obj->parse_json(msg);
 
-        #if !BBL_RELEASE_TO_PUBLIC
+#if !BBL_RELEASE_TO_PUBLIC
                     if (obj->is_ams_need_update) {
                         GUI::wxGetApp().sidebar().load_ams_list(obj->amsList);
                     }
-        #endif
+#endif
                     if (mainframe && mainframe->m_debug_tool_dlg) {
                         if (mainframe->m_debug_tool_dlg->IsShown())
                             mainframe->m_debug_tool_dlg->message_arrived(dev_id, msg);
                     }
                 }
-            });
+                });
         };
         m_agent->set_on_local_message_fn(lan_message_arrive_fn);
 
@@ -1237,38 +1254,14 @@ GUI_App::GUI_App()
                     if (mainframe->m_debug_tool_dlg) {
                         mainframe->m_debug_tool_dlg->on_local_connected(state, dev_id, msg);
                     }
-                });
+                    });
             }
         );
-
-        m_agent->start_discovery(true, false);
     }
-
-	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
-	this->init_app_config();
-
-    //BBS
-    this->init_http_extra_header();
-
-    Bind(EVT_HTTP_ERROR, &GUI_App::on_http_error, this);
-    Bind(EVT_USER_LOGIN, &GUI_App::on_user_login, this);
 }
 
 GUI_App::~GUI_App()
 {
-    stop_sync_user_preset();
-
-    if (m_device_manager) {
-        delete m_device_manager;
-        m_device_manager = nullptr;
-    }
-
-    if (m_agent) {
-        m_agent->start_discovery(false, false);
-        delete m_agent;
-        m_agent = nullptr;
-    }
-
     if (app_config != nullptr)
         delete app_config;
 
@@ -2295,6 +2288,19 @@ void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_max
     window->Bind(wxEVT_CLOSE_WINDOW, [=](wxCloseEvent &event) {
         m_is_closing = true;
         window_pos_save(window, "mainframe");
+        //
+        stop_sync_user_preset();
+
+        if (m_device_manager) {
+            delete m_device_manager;
+            m_device_manager = nullptr;
+        }
+
+        if (m_agent) {
+            m_agent->start_discovery(false, false);
+            delete m_agent;
+            m_agent = nullptr;
+        }
         event.Skip();
     });
 
