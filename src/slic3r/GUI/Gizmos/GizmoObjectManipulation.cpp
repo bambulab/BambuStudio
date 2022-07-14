@@ -884,7 +884,7 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     //    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ",before_index="<<index <<boost::format(",scale %1%, buffered %2%, original_id %3%, new_id %4%\n") %
     //    this->m_new_scale[index] % m_buffered_scale[index] % m_last_active_item % current_active_id;
     int scale_sel = update(current_active_id, "scale", this->m_new_scale, m_buffered_scale);
-    if ((scale_sel >= 0) && uniform_scale) {
+    if ((scale_sel >= 0)) {
         // for (int index = 0; index < 3; index++)
         //    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ",after_index="<<index <<boost::format(",scale %1%, buffered %2%, original_id %3%, new_id %4%\n") %
         //    this->m_new_scale[index] % m_buffered_scale[index] % m_last_active_item % current_active_id;
@@ -894,7 +894,7 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
         }
     }
 
-    if ((size_sel >= 0) && uniform_scale) {
+    if ((size_sel >= 0)) {
         // for (int index = 0; index < 3; index++)
         //    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ",after_index="<<index <<boost::format(",scale %1%, buffered %2%, original_id %3%, new_id %4%\n") %
         //    this->m_new_scale[index] % m_buffered_scale[index] % m_last_active_item % current_active_id;
