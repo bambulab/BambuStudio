@@ -762,40 +762,7 @@ bool compSecondMoment(const ExPolygons& expolys, double& smExpolysX, double& smE
     return true;
 }
 
-// BBS: thermal length is calculated according to the material of a volume
-double getThermalLength(const ModelVolume* modelVolumePtr) {
-    double thermalLength = 200.;
-    auto aa = modelVolumePtr->extruder_id();
-    if (Model::extruderParamsMap.find(aa) != Model::extruderParamsMap.end()) {
-        if (Model::extruderParamsMap.at(aa).materialName == "ABS" ||
-            Model::extruderParamsMap.at(aa).materialName == "PA-CF" ||
-            Model::extruderParamsMap.at(aa).materialName == "PET-CF") {
-            thermalLength = 100;
-        }
-        if (Model::extruderParamsMap.at(aa).materialName == "PC") {
-            thermalLength = 40;
-        }
-        if (Model::extruderParamsMap.at(aa).materialName == "TPU") {
-            thermalLength = 1000;
-        }
 
-    }
-    return thermalLength;
-}
-
-// BBS: thermal length calculation for a group of volumes
-double getThermalLength(const std::vector<ModelVolume*> modelVolumePtrs)
-{
-    double thermalLength = 1250.;
-
-    for (const auto& modelVolumePtr : modelVolumePtrs) {
-        if (modelVolumePtr != nullptr) {
-            // the thermal length of a group is decided by the volume with shortest thermal length
-            thermalLength = std::min(thermalLength, getThermalLength(modelVolumePtr));
-        }
-    }
-    return thermalLength;
-}
 
 //BBS: config brimwidth by volumes
 double configBrimWidthByVolumes(double deltaT, double adhension, double maxSpeed, const ModelVolume* modelVolumePtr, const ExPolygons& expolys)
@@ -825,7 +792,7 @@ double configBrimWidthByVolumes(double deltaT, double adhension, double maxSpeed
     const double& bboxX = bbox2.size()(0);
     const double& bboxY = bbox2.size()(1);
     double thermalLength = sqrt(bboxX * bboxX + bboxY * bboxY) * SCALING_FACTOR;
-    double thermalLengthRef = getThermalLength(modelVolumePtr);
+    double thermalLengthRef = Model::getThermalLength(modelVolumePtr);
 
     double height_to_area = std::max(height / Ixx * (bbox2.size()(1) * SCALING_FACTOR), height / Iyy * (bbox2.size()(0) * SCALING_FACTOR));
     double brim_width = adhension * std::min(std::min(std::max(height_to_area * maxSpeed / 24, thermalLength * 8. / thermalLengthRef * std::min(height, 30.) / 30.), 18.), 1.5 * thermalLength);
@@ -846,8 +813,12 @@ double configBrimWidthByVolumeGroups(double adhension, double maxSpeed, const st
     BoundingBoxf3 mergedBbx;
     for (const auto& modelVolumePtr : modelVolumePtrs) {
         if (modelVolumePtr->is_model_part()) {
-            auto rawBoundingbox = modelVolumePtr->mesh().transformed_bounding_box(modelVolumePtr->get_matrix());
-            auto bbox = modelVolumePtr->get_object()->instances.front()->transform_bounding_box(rawBoundingbox);
+            Slic3r::Transform3d t;
+            if (modelVolumePtr->get_object()->instances.size() > 0)
+                t = modelVolumePtr->get_object()->instances.front()->get_matrix() * modelVolumePtr->get_matrix();
+            else
+                t = modelVolumePtr->get_matrix();
+            auto bbox = modelVolumePtr->mesh().transformed_bounding_box(t);
             mergedBbx.merge(bbox);
         }
     }
@@ -870,7 +841,7 @@ double configBrimWidthByVolumeGroups(double adhension, double maxSpeed, const st
     const double& bboxX = bbox2.size()(0);
     const double& bboxY = bbox2.size()(1);
     double thermalLength = sqrt(bboxX * bboxX + bboxY * bboxY) * SCALING_FACTOR;
-    double thermalLengthRef = getThermalLength(modelVolumePtrs);
+    double thermalLengthRef = Model::getThermalLength(modelVolumePtrs);
 
     double height_to_area = std::max(height / Ixx * (bbox2.size()(1) * SCALING_FACTOR), height / Iyy * (bbox2.size()(0) * SCALING_FACTOR));
     double brim_width = adhension * std::min(std::min(std::max(height_to_area * maxSpeed / 24, thermalLength * 8. / thermalLengthRef * std::min(height, 30.) / 30.), 18.), 1.5 * thermalLength);

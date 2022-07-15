@@ -740,23 +740,39 @@ static inline void apply_mm_segmentation(PrintObject &print_object, ThrowOnCance
 bool doesVolumeIntersect(VolumeSlices& vs1, VolumeSlices& vs2)
 {
     if (vs1.volume_id == vs2.volume_id) return true;
-    if (vs1.slices.size() != vs1.slices.size()) return false;
+    if (vs1.slices.size() != vs2.slices.size()) return false;
 
     double offsetValue = 0.4 / SCALING_FACTOR;
     for (int i = 0; i != vs1.slices.size(); ++i) {
-        auto eps1 = offset_ex(vs1.slices[i], offsetValue);
-        auto eps2 = offset_ex(vs2.slices[i], offsetValue);
 
-        if (!intersection_ex(eps1, eps2).empty()) return true;
+        if (vs1.slices[i].empty()) continue;
+        if (!vs2.slices[i].empty() && !intersection_ex(vs1.slices[i], vs2.slices[i]).empty()) return true;
+        if (i + 1 != vs2.slices.size() && !vs2.slices[i + 1].empty()) {
+            if (!intersection_ex(vs1.slices[i], vs2.slices[i + 1]).empty()) return true;
+        }
+        if (i - 1 >= 0 && !vs2.slices[i - 1].empty()) {
+            if (!intersection_ex(vs1.slices[i], vs2.slices[i - 1]).empty()) return true;
+        }
     }
     return false;
 }
 
 //BBS: grouping the volumes of an object according to their connection relationship
-bool groupingVolumes(std::vector<VolumeSlices>& objSliceByVolume, std::vector<groupedVolumeSlices>& groups)
+bool groupingVolumes(std::vector<VolumeSlices> objSliceByVolume, std::vector<groupedVolumeSlices>& groups)
 {
     int existGroups = 0;
     std::vector<int> groupIndex(objSliceByVolume.size(), -1);
+
+    double offsetValue = 0.4 / SCALING_FACTOR;
+    double resolution = 0.0125 / SCALING_FACTOR;
+
+    for (int i = 0; i != objSliceByVolume.size(); ++i) {
+        for (int j = 0; j != objSliceByVolume[i].slices.size(); ++j) {
+            objSliceByVolume[i].slices[j] = offset_ex(objSliceByVolume[i].slices[j], offsetValue);
+            for (ExPolygon& poly_ex : objSliceByVolume[i].slices[j])
+                poly_ex.douglas_peucker(resolution);
+        }
+    }
 
     for (int i = 0; i != objSliceByVolume.size(); ++i) {
         if (groupIndex[i] < 0) {
@@ -765,7 +781,7 @@ bool groupingVolumes(std::vector<VolumeSlices>& objSliceByVolume, std::vector<gr
         }
         for (int j = i + 1; j != objSliceByVolume.size(); ++j) {
             if (doesVolumeIntersect(objSliceByVolume[i], objSliceByVolume[j])) {
-                if (groupIndex[j] < 0) groupIndex[j] = i;
+                if (groupIndex[j] < 0) groupIndex[j] = groupIndex[i];
                 if (groupIndex[j] != groupIndex[i]) {
                     int retain = std::min(groupIndex[i], groupIndex[j]);
                     int cover = std::max(groupIndex[i], groupIndex[j]);
@@ -791,9 +807,6 @@ bool groupingVolumes(std::vector<VolumeSlices>& objSliceByVolume, std::vector<gr
         if (!exist) groupVector.push_back(gi);
     }
 
-    if (groupVector.size() != existGroups);
-
-
     // group volumes and their slices according to the grouping Vector
     groups.clear();
 
@@ -808,9 +821,7 @@ bool groupingVolumes(std::vector<VolumeSlices>& objSliceByVolume, std::vector<gr
         }
 
         // the slices of a group should be unioned
-        double offsetValue = 0.4 / SCALING_FACTOR;
-        gvs.slices = offset_ex(union_ex(offset_ex(gvs.slices, offsetValue)), -offsetValue);
-        double resolution = 0.0125 / SCALING_FACTOR;
+        gvs.slices = offset_ex(union_ex(gvs.slices), -offsetValue);       
         for (ExPolygon& poly_ex : gvs.slices)
             poly_ex.douglas_peucker(resolution);
 
