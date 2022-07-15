@@ -5505,15 +5505,18 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
     // add wipe tower bounding box
     if (print->has_wipe_tower()) {
         auto   wt_corners = print->first_layer_wipe_tower_corners();
-        BoundingBox bb_scaled  = {wt_corners[0], wt_corners[2]};
-        auto        bb         = unscaled(bb_scaled);
-        bb.min -= orig2d;
-        bb.max -= orig2d;
-        bbox_all.merge(bb);
-        data.name = "wipe_tower";
-        data.id   = partplate_list.get_curr_plate()->get_index() + 1000;
-        data.bbox = {bb.min.x(), bb.min.y(), bb.max.x(), bb.max.y()};
-        id_bboxes.emplace_back(data);
+        // when loading gcode.3mf, wipe tower info may not be correct
+        if (!wt_corners.empty()) {
+            BoundingBox bb_scaled = {wt_corners[0], wt_corners[2]};
+            auto        bb        = unscaled(bb_scaled);
+            bb.min -= orig2d;
+            bb.max -= orig2d;
+            bbox_all.merge(bb);
+            data.name = "wipe_tower";
+            data.id   = partplate_list.get_curr_plate()->get_index() + 1000;
+            data.bbox = {bb.min.x(), bb.min.y(), bb.max.x(), bb.max.y()};
+            id_bboxes.emplace_back(data);
+        }
     }
 
     bboxdata.bbox_all = { bbox_all.min.x(),bbox_all.min.y(),bbox_all.max.x(),bbox_all.max.y() };
