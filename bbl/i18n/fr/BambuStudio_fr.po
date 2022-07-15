@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-14 20:17+0800\n"
+"POT-Creation-Date: 2022-07-15 10:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -635,12 +635,6 @@ msgstr "Renommer"
 msgid "Fix model"
 msgstr "Fix Model"
 
-msgid "Fix model through cloud"
-msgstr "Correction du modèle via le cloud"
-
-msgid "Fix model locally"
-msgstr "Corriger le modèle localement"
-
 msgid "Export as STL"
 msgstr "Exporter en STL"
 
@@ -950,9 +944,6 @@ msgstr[1] ""
 
 msgid "Repairing was canceled"
 msgstr "La réparation a été annulée"
-
-msgid "Repair finished"
-msgstr "Réparation terminée"
 
 msgid "Additional process preset"
 msgstr "Préréglage de processus supplémentaire"
@@ -4146,6 +4137,9 @@ msgstr "Le fichier 3mf réparé ne contient aucun volume"
 msgid "Repaired 3mf file contains more than one volume"
 msgstr "Le fichier 3mf réparé contient plus d'un volume"
 
+msgid "Repair finished"
+msgstr "Réparation terminée"
+
 msgid "Repair canceled"
 msgstr "Réparation annulée"
 
@@ -5108,9 +5102,6 @@ msgstr "Rayon de miel"
 
 msgid "Adaptive Cubic"
 msgstr "Cubique adaptatif"
-
-msgid "Lightning"
-msgstr ""
 
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
@@ -6351,6 +6342,12 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid "Fix model through cloud"
+#~ msgstr "Correction du modèle via le cloud"
+
+#~ msgid "Fix model locally"
+#~ msgstr "Corriger le modèle localement"
 
 #~ msgid "Module"
 #~ msgstr "Module"

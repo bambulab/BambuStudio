@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-14 20:17+0800\n"
+"POT-Creation-Date: 2022-07-15 10:25+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -614,12 +614,6 @@ msgstr ""
 msgid "Fix model"
 msgstr ""
 
-msgid "Fix model through cloud"
-msgstr ""
-
-msgid "Fix model locally"
-msgstr ""
-
 msgid "Export as STL"
 msgstr ""
 
@@ -917,9 +911,6 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "Repairing was canceled"
-msgstr ""
-
-msgid "Repair finished"
 msgstr ""
 
 msgid "Additional process preset"
@@ -3943,6 +3934,9 @@ msgstr ""
 msgid "Repaired 3mf file contains more than one volume"
 msgstr ""
 
+msgid "Repair finished"
+msgstr ""
+
 msgid "Repair canceled"
 msgstr ""
 
@@ -4769,9 +4763,6 @@ msgid "Honeycomb"
 msgstr ""
 
 msgid "Adaptive Cubic"
-msgstr ""
-
-msgid "Lightning"
 msgstr ""
 
 msgid ""

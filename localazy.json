@@ -21,8 +21,8 @@
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/it/BambuStudio_it.po",
-				"lang": "it"
+				"pattern": "bbl/i18n/sv/BambuStudio_sv.po",
+				"lang": "sv"
 			},
 			{
 				"type": "po",

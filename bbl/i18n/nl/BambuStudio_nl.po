@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-14 20:17+0800\n"
+"POT-Creation-Date: 2022-07-15 10:25+0800\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -624,12 +624,6 @@ msgstr "Naam wijzigen"
 msgid "Fix model"
 msgstr "Repareer model"
 
-msgid "Fix model through cloud"
-msgstr "Repareer model in de cloud"
-
-msgid "Fix model locally"
-msgstr "Repareer model lokaal"
-
 msgid "Export as STL"
 msgstr "Exporteer als STL bestand"
 
@@ -953,9 +947,6 @@ msgstr[1] "Repareren van de volgende modellen is mislukt@"
 
 msgid "Repairing was canceled"
 msgstr "Repareren is geannuleerd"
-
-msgid "Repair finished"
-msgstr "Reperaren afgerond"
 
 msgid "Additional process preset"
 msgstr "Extra procesvoorinstelling"
@@ -4184,6 +4175,9 @@ msgstr "Het gereparereerde 3mf bestand bevat geen volume."
 msgid "Repaired 3mf file contains more than one volume"
 msgstr "Het gereparereerde 3mf bestand bevat meer dan 1 volume"
 
+msgid "Repair finished"
+msgstr "Reperaren afgerond"
+
 msgid "Repair canceled"
 msgstr "Repareren geannuleerd"
 
@@ -5147,9 +5141,6 @@ msgstr "Honinggraad"
 
 msgid "Adaptive Cubic"
 msgstr "Adaptief kubiek"
-
-msgid "Lightning"
-msgstr ""
 
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
@@ -6397,6 +6388,12 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid "Fix model through cloud"
+#~ msgstr "Repareer model in de cloud"
+
+#~ msgid "Fix model locally"
+#~ msgstr "Repareer model lokaal"
 
 #~ msgid "Module"
 #~ msgstr "Module"

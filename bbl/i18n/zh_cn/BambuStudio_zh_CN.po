@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-14 20:17+0800\n"
+"POT-Creation-Date: 2022-07-15 10:25+0800\n"
 "PO-Revision-Date: 2022-07-13 21:50+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -619,12 +619,6 @@ msgstr "重命名"
 msgid "Fix model"
 msgstr "修复模型"
 
-msgid "Fix model through cloud"
-msgstr "通过云端修复模型"
-
-msgid "Fix model locally"
-msgstr "本地修复模型"
-
 msgid "Export as STL"
 msgstr "导出为 STL"
 
@@ -918,9 +912,6 @@ msgstr[0] "以下模型对象修复失败"
 
 msgid "Repairing was canceled"
 msgstr "修复被取消"
-
-msgid "Repair finished"
-msgstr "修复已完成"
 
 msgid "Additional process preset"
 msgstr "附加工艺预设"
@@ -4039,6 +4030,9 @@ msgstr "修复的3mf文件不包含任何零件"
 msgid "Repaired 3mf file contains more than one volume"
 msgstr "已修复的3mf文件包含多个零件"
 
+msgid "Repair finished"
+msgstr "修复已完成"
+
 msgid "Repair canceled"
 msgstr "修复被取消"
 
@@ -4899,9 +4893,6 @@ msgstr "蜂窝"
 
 msgid "Adaptive Cubic"
 msgstr "自适应立方体"
-
-msgid "Lightning"
-msgstr ""
 
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
@@ -6018,6 +6009,12 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Fix model through cloud"
+#~ msgstr "通过云端修复模型"
+
+#~ msgid "Fix model locally"
+#~ msgstr "本地修复模型"
 
 #~ msgid "Arranging %1%"
 #~ msgstr "正在自动摆放%1%"
