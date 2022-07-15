@@ -457,31 +457,7 @@ void MachineObject::_parse_ams_status(int ams_status)
 
 bool MachineObject::is_need_upgrade_for_ams()
 {
-    AppConfig* config = Slic3r::GUI::wxGetApp().app_config;
-    if (config) {
-        if (config->get("check_ams_version") == "0")
-        return false;
-    }
-    bool need_upgrade = false;
-    if (has_ams()) {
-        // compare ota version and ams version
-        auto ota_ver_it = module_vers.find("ota");
-        if (ota_ver_it != module_vers.end()) {
-            if (!MachineObject::is_compatible_ams_version("ota", ota_ver_it->second.sw_ver)) {
-                need_upgrade = true;
-            }
-        }
-        for (int i = 0; i < 4; i++) {
-            std::string ams_id = (boost::format("ams/%1%") % i).str();
-            auto ams_ver_it = module_vers.find(ams_id);
-            if (ams_ver_it != module_vers.end()) {
-                if (!MachineObject::is_compatible_ams_version("ams", ams_ver_it->second.sw_ver)) {
-                    need_upgrade = true;
-                }
-            }
-        }
-    }
-    return need_upgrade;
+    return false;
 }
 
 bool MachineObject::is_only_support_cloud_print()
@@ -493,22 +469,6 @@ bool MachineObject::is_only_support_cloud_print()
         }
     }
     return true;
-}
-
-bool MachineObject::is_compatible_ams_version(std::string module, std::string version)
-{
-    bool result = true;
-    if (module == "ota") {
-        if (version.compare("00.01.04.03") < 0)
-            return false;
-    } else if (module == "ams") {
-        // omit ams version is empty
-        if (version.empty())
-            return true;
-        if (version.compare("00.00.04.10") < 0)
-            return false;
-    }
-    return result;
 }
 
 static float calc_color_distance(wxColour c1, wxColour c2)

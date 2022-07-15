@@ -1774,12 +1774,6 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         return;
     }
 
-    // check ams and ota version to support ams mapping
-    if (obj_->is_need_upgrade_for_ams()) {
-        show_status(PrintDialogStatus::PrintStatusNeedUpgradingAms);
-        return;
-    }
-
     // do ams mapping if no ams result
     if (m_ams_mapping_result.empty()) {
         do_ams_mapping(obj_);

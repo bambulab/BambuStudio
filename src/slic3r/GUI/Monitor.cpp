@@ -410,22 +410,6 @@ void MonitorPanel::update_all()
         return;
     }
 
-    if (obj->has_ams() && obj->is_need_upgrade_for_ams()) {
-        if (need_upgrade_dlg)
-            if (need_upgrade_dlg->IsShown())
-                return;
-        if (!has_popup_ams_check_dlg) {
-            has_popup_ams_check_dlg = true;
-            BOOST_LOG_TRIVIAL(trace) << "Monitor: popup ams check dlg";
-            need_upgrade_dlg = new MessageDialog(nullptr, _L("Please upgrade your printer first"), "", wxAPPLY | wxOK);
-            if (need_upgrade_dlg->ShowModal() == wxOK) {
-                delete need_upgrade_dlg;
-                need_upgrade_dlg = nullptr;
-                return;
-            }
-        }
-    }
-
     if (!obj->is_connected()) {
         int server_status = 0;
         // only disconnected server in cloud mode
