@@ -386,8 +386,6 @@ if (APPLE)
             GUI/wxMediaCtrl2.h
         )
     FIND_LIBRARY(DISKARBITRATION_LIBRARY DiskArbitration)
-
-    include_directories(../../deps/Tutk/mac/include)
 else ()
     list(APPEND SLIC3R_GUI_SOURCES
             GUI/wxMediaCtrl2.cpp
@@ -396,12 +394,11 @@ else ()
 endif ()
 
 add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
+target_include_directories(libslic3r_gui PRIVATE Utils)
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 
 encoding_check(libslic3r_gui)
-
-target_include_directories(libslic3r_gui PUBLIC ${BambuNetworking_INCLUDE_DIR})
 
 target_link_libraries(libslic3r_gui libslic3r cereal imgui minilzo GLEW::GLEW OpenGL::GL hidapi libcurl OpenSSL::SSL OpenSSL::Crypto
 ${wxWidgets_LIBRARIES} glfw)

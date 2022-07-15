@@ -542,8 +542,6 @@ endforeach()
 
 find_package(NLopt 1.4 REQUIRED)
 
-find_package(BambuNetworking REQUIRED)
-
 
 if(SLIC3R_STATIC)
     set(OPENVDB_USE_STATIC_LIBS ON)

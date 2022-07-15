@@ -191,7 +191,6 @@ include(JPEG/JPEG.cmake)
 include(TIFF/TIFF.cmake)
 include(wxWidgets/wxWidgets.cmake)
 include(OCCT/OCCT.cmake)
-include(BambuNetworking/BambuNetworking.cmake)
 
 set(_dep_list
     dep_Boost
