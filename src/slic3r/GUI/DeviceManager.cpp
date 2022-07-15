@@ -1692,7 +1692,7 @@ int MachineObject::parse_json(std::string payload)
                     // media
                     try {
                         if (jj.contains("sdcard")) {
-                            camera_has_sdcard = jj["scard"].get<bool>();
+                            camera_has_sdcard = jj["sdcard"].get<bool>();
                         } else {
                             //do not check sdcard if no sdcard field
                             camera_has_sdcard = true;
