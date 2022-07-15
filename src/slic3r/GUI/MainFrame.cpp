@@ -813,9 +813,6 @@ void MainFrame::init_tabpanel()
         case TabPosition::tpMonitor:
             show_option(false);
             break;
-        case TabPosition::toDebugTool:
-            show_option(false);
-            break;
         default:
             show_option(false);
             break;
@@ -847,11 +844,6 @@ void MainFrame::init_tabpanel()
 
     m_auxiliary = new AuxiliaryPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_tabpanel->AddPage(m_auxiliary, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"));
-
-#if !BBL_RELEASE_TO_PUBLIC
-    m_debug_tool_dlg = new DebugToolDialog(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    m_tabpanel->AddPage(m_debug_tool_dlg, _L("Debug"), "debugtool", "debugtool");
-#endif
 
     if (m_plater) {
         // load initial config

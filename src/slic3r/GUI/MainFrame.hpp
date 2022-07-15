@@ -21,7 +21,6 @@
 #include "Monitor.hpp"
 #include "Auxiliary.hpp"
 #include "UnsavedChangesDialog.hpp"
-#include "DebugToolDialog.hpp"
 #include "Widgets/SideButton.hpp"
 #include "Widgets/SideMenuPopup.hpp"
 
@@ -41,7 +40,6 @@ namespace GUI
 {
 
 class Tab;
-class DebugToolDialog;
 class Plater;
 class MainFrame;
 class ParamsDialog;
@@ -204,7 +202,6 @@ public:
         tpPreview = 2,
         tpMonitor = 3,
         tpProject = 4,
-        toDebugTool = 5,
     };
 
     //BBS: add slice&&print status update logic
@@ -311,7 +308,6 @@ public:
     //BBS: GUI refactor
     MonitorPanel*         m_monitor{ nullptr };
     AuxiliaryPanel*       m_auxiliary{ nullptr };
-    DebugToolDialog*      m_debug_tool_dlg{ nullptr };
     WebViewPanel*         m_webview { nullptr };
     wxLogWindow*          m_log_window { nullptr };
     // BBS
@@ -336,7 +332,6 @@ public:
     mutable bool          m_print_enable{ true };
     bool get_enable_slice_status();
     bool get_enable_print_status();
-    wxPanel* debug_panel() { return m_debug_tool_dlg; }
     //BBS
     void update_side_button_style();
     void update_slice_print_status(SlicePrintEventType event, bool can_slice = true, bool can_print = true);

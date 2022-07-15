@@ -332,10 +332,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/ProjectDirtyStateManager.cpp
     GUI/DesktopIntegrationDialog.cpp
     GUI/DesktopIntegrationDialog.hpp
-    GUI/DebugToolPanel.cpp
-    GUI/DebugToolPanel.h
-    GUI/DebugToolDialog.cpp
-    GUI/DebugToolDialog.hpp
     GUI/PublishDialog.cpp
     GUI/PublishDialog.hpp
     GUI/BindDialog.cpp

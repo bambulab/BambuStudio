@@ -1498,10 +1498,6 @@ void GUI_App::init_networking_callbacks()
                             }
                         }
                     }
-
-                    if (mainframe->m_debug_tool_dlg) {
-                        mainframe->m_debug_tool_dlg->on_local_connected(state, dev_id, msg);
-                    }
                     });
             }
         );
@@ -1521,10 +1517,6 @@ void GUI_App::init_networking_callbacks()
 
                     if (this->m_device_manager->get_selected_machine() == obj && obj->is_ams_need_update) {
                         GUI::wxGetApp().sidebar().load_ams_list(obj->amsList);
-                    }
-                    if (wxGetApp().mainframe && wxGetApp().mainframe->m_debug_tool_dlg) {
-                        if (wxGetApp().mainframe->m_debug_tool_dlg->IsShown())
-                            wxGetApp().mainframe->m_debug_tool_dlg->message_arrived(dev_id, msg);
                     }
                 }
             });
@@ -1551,10 +1543,6 @@ void GUI_App::init_networking_callbacks()
                         GUI::wxGetApp().sidebar().load_ams_list(obj->amsList);
                     }
 #endif
-                    if (mainframe && mainframe->m_debug_tool_dlg) {
-                        if (mainframe->m_debug_tool_dlg->IsShown())
-                            mainframe->m_debug_tool_dlg->message_arrived(dev_id, msg);
-                    }
                 }
                 });
         };
