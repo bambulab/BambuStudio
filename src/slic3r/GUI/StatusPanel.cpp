@@ -39,8 +39,8 @@ static const wxColour STAGE_TEXT_COL      = wxColour(0, 174, 66);
 static const wxColour GROUP_STATIC_LINE_COL = wxColour(206, 206, 206);
 
 /* font and foreground colors */
-static const wxFont PAGE_TITLE_FONT  = wxFont(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, 0, false, wxT("HarmonyOS Sans SC"));
-static const wxFont GROUP_TITLE_FONT = wxFont(13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, 0, false, wxT("HarmonyOS Sans SC"));
+static const wxFont PAGE_TITLE_FONT  = Label::Body_14;
+static const wxFont GROUP_TITLE_FONT = Label::sysFont(17);
 
 static wxColour PAGE_TITLE_FONT_COL  = wxColour(107, 107, 107);
 static wxColour GROUP_TITLE_FONT_COL = wxColour(172, 172, 172);
