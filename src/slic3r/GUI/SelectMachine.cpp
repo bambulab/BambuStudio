@@ -1166,6 +1166,18 @@ void SelectMachineDialog::update_priner_status_msg(wxString msg, bool is_warning
     }
 }
 
+void SelectMachineDialog::update_print_status_msg(wxString msg, bool is_warning, bool is_printer_msg)
+{
+    if (is_printer_msg) {
+        update_ams_status_msg(wxEmptyString, false);
+        update_priner_status_msg(msg, is_warning);
+    } else {
+        update_ams_status_msg(msg, is_warning);
+        update_priner_status_msg(wxEmptyString, false);
+    }
+}
+
+
 void SelectMachineDialog::show_status(PrintDialogStatus status)
 {
     BOOST_LOG_TRIVIAL(trace) << "select_machine_dialog: show_status = " << status;
@@ -1186,74 +1198,73 @@ void SelectMachineDialog::show_status(PrintDialogStatus status)
 
     // other
     if (status == PrintDialogStatus::PrintStatusInit) {
-        update_ams_status_msg(wxEmptyString, false);
+        update_print_status_msg(wxEmptyString, false, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNoUserLogin) {
         wxString msg_text = _L("No login account, only printers in LAN mode are displayed");
-        update_priner_status_msg(msg_text, false);
+        update_print_status_msg(msg_text, false, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     }else if (status == PrintDialogStatus::PrintStatusInvalidPrinter) {
-        update_ams_status_msg(wxEmptyString, true);
+        update_print_status_msg(wxEmptyString, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusConnectingServer) {
         wxString msg_text = _L("Connecting to server");
-        update_priner_status_msg(msg_text, true);
+        update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusReading) {
         wxString msg_text = _L("Synchronizing device information");
-        update_priner_status_msg(msg_text, false);
+        update_print_status_msg(msg_text, false, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusReadingFinished) {
-        update_ams_status_msg(wxEmptyString, false);
+        update_print_status_msg(wxEmptyString, false, true);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusReadingTimeout) {
         wxString msg_text = _L("Synchronizing device information time out");
-        update_priner_status_msg(msg_text, true);
+        update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusInUpgrading) {
         wxString msg_text = _L("Cannot send the print task when the upgrade is in progress");
-        update_priner_status_msg(msg_text, true);
+        update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusInSystemPrinting) {
         wxString msg_text = _L("The printer is executing instructions. Please restart printing after it ends");
-        update_priner_status_msg(msg_text, true);
+        update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusInPrinting) {
         wxString msg_text = _L("The printer is busy on other print job");
-        update_priner_status_msg(msg_text, true);
+        update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNeedUpgradingAms) {
         wxString msg_text = _L("The firmware versions of printer and AMS are too low.Please update to the latest version before sending the print job");
-        update_priner_status_msg(msg_text, true);
+        update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingSuccess){
         wxString msg_text = _L("Filaments to AMS slots mappings have been established. You can click a filament above to change its mapping AMS slot");
-        update_ams_status_msg(msg_text, true);
+        update_print_status_msg(msg_text, true, false);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingInvalid) {
         wxString msg_text = _L("Please click each filament above to specify its mapping AMS slot before sending the print job");
-        update_ams_status_msg(msg_text, true);
+        update_print_status_msg(msg_text, true, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingValid) {
-        update_ams_status_msg(wxEmptyString, false);
-        update_priner_status_msg(wxEmptyString, false);
+        update_print_status_msg(wxEmptyString, false, false);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusRefreshingMachineList) {
-        update_ams_status_msg(wxEmptyString, false);
+        update_print_status_msg(wxEmptyString, false, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusSending) {
@@ -1264,7 +1275,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status)
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNoSdcard) {
         wxString msg_text = _L("An SD card needs to be inserted before printing via LAN.");
-        update_print_status_msg(msg_text, true);
+        update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     }
