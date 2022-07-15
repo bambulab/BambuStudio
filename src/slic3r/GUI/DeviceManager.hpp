@@ -444,7 +444,7 @@ public:
     std::vector<HMSItem>    hms_list;
 
     /* machine mqtt apis */
-    int connect();
+    int connect(bool is_anonymous = false);
     int disconnect();
 
     json_diff print_json;

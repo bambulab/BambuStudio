@@ -1375,10 +1375,14 @@ void MachineObject::set_print_state(std::string status)
     print_status = status;
 }
 
-int MachineObject::connect()
+int MachineObject::connect(bool is_anonymous)
 {
-    std::string username = "bblp";
-    std::string password = access_code;
+    std::string username;
+    std::string password;
+    if (!is_anonymous) {
+        username = "bblp";
+        password = access_code;
+    }
     if (m_agent) {
         try {
             return m_agent->connect_printer(dev_id, dev_ip, username, password);

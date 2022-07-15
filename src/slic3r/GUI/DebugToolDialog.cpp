@@ -495,7 +495,7 @@ void DebugToolDialog::init()
 
         std::string info = "MQTT connecting dev_id=" + obj->dev_id;
         this->send_log_evt(info);
-        obj->connect();
+        obj->connect(true);
     });
     btn_disconnect->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
             MachineObject* obj = dev_manager_.get_local_selected_machine();
