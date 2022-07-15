@@ -214,13 +214,6 @@ void MonitorPanel::set_default()
 {
     obj = nullptr;
     last_conn_type = "undefined";
-    /* set default value */
-    has_popup_ams_check_dlg = false;
-    if (need_upgrade_dlg) {
-        need_upgrade_dlg->Close();
-        delete need_upgrade_dlg;
-        need_upgrade_dlg = nullptr;
-    }
 
     /* reset status panel*/
     m_status_info_panel->set_default();
@@ -297,8 +290,6 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
 
  void MonitorPanel::on_select_printer(wxCommandEvent& event)
 {
-    has_popup_ams_check_dlg = false;
-
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
 
