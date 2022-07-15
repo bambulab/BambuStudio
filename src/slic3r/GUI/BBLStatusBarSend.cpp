@@ -26,11 +26,11 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
 
-    m_status_text = new wxStaticText(m_self, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, 0);
+    m_status_text = new wxStaticText(m_self, wxID_ANY, L(""), wxDefaultPosition, wxSize(m_self->FromDIP(280), -1), 0);
     m_status_text->SetForegroundColour(wxColour(107, 107, 107));
     m_status_text->SetFont(::Label::Body_13);
-    m_status_text->Wrap(-1);
-    m_sizer_body->Add(m_status_text, 0, 0, 0);
+    m_status_text->Wrap(m_self->FromDIP(280));
+   
 
     m_prog = new wxGauge(m_self, wxID_ANY, 100, wxDefaultPosition, wxSize(-1, m_self->FromDIP(6)), wxGA_HORIZONTAL);
     m_prog->SetValue(0);
@@ -60,7 +60,9 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     m_sizer_bottom->Add(m_stext_percent, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 10);
 
     m_sizer_bottom->Add(m_cancelbutton, 0, wxALIGN_CENTER, 0);
-    m_sizer_body->Add(0, 0, 0, wxTOP, 5);
+
+    m_sizer_body->Add(m_status_text, 0, 0, 0);
+    m_sizer_body->Add(0, 0, 0, wxTOP, 1);
     m_sizer_body->Add(m_sizer_bottom, 1, wxEXPAND, 0);
 
     m_sizer->Add(m_sizer_body, 1, wxALIGN_CENTER, 0);
@@ -185,6 +187,9 @@ void BBLStatusBarSend::set_status_text(const wxString& txt)
     //auto txtss = "The printing project is being uploaded... 25%%";
     //m_status_text->SetLabelText(txtss);
     m_status_text->SetLabelText(txt);
+    m_status_text->SetSize(wxSize(m_self->FromDIP(280), -1));
+    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(280), -1));
+    m_status_text->Wrap(m_self->FromDIP(280));
 }
 
 void BBLStatusBarSend::set_percent_text(const wxString &txt)
