@@ -585,17 +585,7 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
     file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win${_bits}/libgmp-10.dll
             ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win${_bits}/libmpfr-4.dll
             ${TOP_LEVEL_PROJECT_DIR}/deps/WebView2/lib/win${_bits}/WebView2Loader.dll
-            ${CMAKE_PREFIX_PATH}/bin/BambuSource.dll
         DESTINATION ${_out_dir})
-
-    message ("copy bambu_networking of: ${config}")
-    if (${config} STREQUAL "Debug")
-        message ("from ${CMAKE_PREFIX_PATH}/bin/Debug/bambu_networking.dll to ${_out_dir}")
-        file(COPY ${CMAKE_PREFIX_PATH}/bin/Debug/bambu_networking.dll DESTINATION ${_out_dir})
-    else ()
-        message ("from ${CMAKE_PREFIX_PATH}/bin/bambu_networking.dll to ${_out_dir}")
-        file(COPY ${CMAKE_PREFIX_PATH}/bin/bambu_networking.dll DESTINATION ${_out_dir})
-    endif ()
 
     file(COPY ${CMAKE_PREFIX_PATH}/bin/occt/TKBO.dll
             ${CMAKE_PREFIX_PATH}/bin/occt/TKBRep.dll
@@ -628,9 +618,7 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
     set(${output_dlls}
         ${_out_dir}/libgmp-10.dll
         ${_out_dir}/libmpfr-4.dll
-        ${_out_dir}/bambu_networking.dll
         ${_out_dir}/WebView2Loader.dll
-        ${_out_dir}/BambuSource.dll
 
         ${_out_dir}/TKBO.dll
         ${_out_dir}/TKBRep.dll
