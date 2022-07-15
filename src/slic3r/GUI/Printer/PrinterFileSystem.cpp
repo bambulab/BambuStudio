@@ -799,9 +799,9 @@ StaticBambuLib &StaticBambuLib::get()
 #if defined(_MSC_VER) || defined(_WIN32)
     module = LoadLibrary(L"BambuSource.dll");
 #elif defined(__WXMAC__)
-    module = dlopen("libBambuPlayerDyLib.dylib", RTLD_LAZY);
+    module = dlopen("libBambuSource.dylib", RTLD_LAZY);
 #else
-    module = dlopen("libBambuTunnel.so", RTLD_LAZY);
+    module = dlopen("libBambuSource.so", RTLD_LAZY);
 #endif
 
     if (!module) {

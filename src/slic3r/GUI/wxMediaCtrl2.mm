@@ -43,7 +43,7 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent)
     imageView.layer.backgroundColor = color;
     CGColorRelease(color);
     imageView.wantsLayer = YES;
-    auto module = dlopen("libBambuPlayerDyLib.dylib", RTLD_LAZY);
+    auto module = dlopen("libBambuSource.dylib", RTLD_LAZY);
     Class cls = (__bridge Class) dlsym(module, "OBJC_CLASS_$_BambuPlayer");
     if (cls == nullptr) {
         m_error = -2;
