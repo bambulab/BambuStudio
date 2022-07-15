@@ -708,68 +708,6 @@ void SelectMachineDialog::stripWhiteSpace(std::string& str)
     }
 }
 
-void SelectMachineDialog::update_info_msg(wxString msg)
-{
-    if (msg.empty()) {
-        if (!m_text_load_ams_data->GetLabel().empty()) {
-            m_text_load_ams_data->SetLabel(wxEmptyString);
-            m_text_load_ams_data->Hide();
-            Layout();
-            Fit();
-        }
-    }
-    else {
-        auto str_new = msg.ToStdString();
-        stripWhiteSpace(str_new);
-
-        auto str_old = m_text_load_ams_data->GetLabel().ToStdString();
-        stripWhiteSpace(str_old);
-
-        if (str_new != str_old) {
-            if (m_text_load_ams_data->GetLabel() != msg) {
-                m_text_load_ams_data->SetLabel(msg);
-                m_text_load_ams_data->SetMaxSize(wxSize(FromDIP(400), -1));
-                m_text_load_ams_data->SetMinSize(wxSize(FromDIP(400), -1));
-                m_text_load_ams_data->Wrap(FromDIP(400));
-                m_text_load_ams_data->Show();
-                Layout();
-                Fit();
-            }
-        }
-    }
-}
-
-void SelectMachineDialog::update_warn_msg(wxString msg)
-{
-    if (msg.empty()) {
-        if (!m_error_load_ams_data->GetLabel().empty()) {
-            m_error_load_ams_data->SetLabel(wxEmptyString);
-            m_error_load_ams_data->Hide();
-            Layout();
-            Fit();
-        }
-    }
-    else {
-        auto str_new = msg.ToStdString();
-        stripWhiteSpace(str_new);
-
-        auto str_old = m_error_load_ams_data->GetLabel().ToStdString();
-        stripWhiteSpace(str_old);
-
-        if (str_new != str_old) {
-            if (m_error_load_ams_data->GetLabel() != msg) {
-                m_error_load_ams_data->SetLabel(msg);
-                m_error_load_ams_data->SetMinSize(wxSize(FromDIP(400), -1));
-                m_error_load_ams_data->SetMaxSize(wxSize(FromDIP(400), -1));
-                m_error_load_ams_data->Wrap(FromDIP(400));
-                m_error_load_ams_data->Show();
-                Layout();
-                Fit();
-            }
-        }
-    }
-}
-
 SelectMachineDialog::SelectMachineDialog(Plater *plater)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send print job to"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_plater(plater)
@@ -804,16 +742,20 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(22));
 
-    m_image = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    m_image->SetBackgroundColour(m_colour_def_color);
+    m_panel_image = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_panel_image->SetBackgroundColour(m_colour_def_color);
 
     sizer_thumbnail = new wxBoxSizer(wxVERTICAL);
-    m_staticbitmap = new wxStaticBitmap(m_image, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize);
-    sizer_thumbnail->Add(m_staticbitmap, 0, wxEXPAND, 0);
-    m_image->SetSizer(sizer_thumbnail);
-    m_image->Layout();
+    //m_staticbitmap  = new wxStaticBitmap(m_image, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize);
+    m_thumbnailPanel = new ThumbnailPanel(m_panel_image);
+    m_thumbnailPanel->SetSize(wxSize(FromDIP(256), FromDIP(256)));
+    m_thumbnailPanel->SetMinSize(wxSize(FromDIP(256), FromDIP(256)));
+    m_thumbnailPanel->SetMaxSize(wxSize(FromDIP(256), FromDIP(256)));
+    sizer_thumbnail->Add(m_thumbnailPanel, 0, wxEXPAND, 0);
+    m_panel_image->SetSizer(sizer_thumbnail);
+    m_panel_image->Layout();
 
-    m_sizer_main->Add(m_image, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT);
+    m_sizer_main->Add(m_panel_image, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT);
 
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
 
@@ -838,28 +780,19 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_material = new wxGridSizer(0, 6, 0, 0);
     m_sizer_main->Add(m_sizer_material, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(80));
 
-    m_text_load_ams_data = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
-    m_text_load_ams_data->SetFont(::Label::Body_13);
-    m_text_load_ams_data->SetForegroundColour(wxColour(0x6B, 0x6B, 0x6B));
-
-    m_error_load_ams_data = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
-    m_error_load_ams_data->SetFont(::Label::Body_13);
-    m_error_load_ams_data->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
-
-   
-    m_text_load_ams_data->Hide();
-    m_error_load_ams_data->Hide();
+    m_statictext_ams_msg = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
+    m_statictext_ams_msg->SetFont(::Label::Body_13);
+    m_statictext_ams_msg->Hide();
 
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
-    m_sizer_main->Add(m_text_load_ams_data, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_sizer_main->Add(m_error_load_ams_data, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_main->Add(m_statictext_ams_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
 
-    m__line_materia = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
-    m__line_materia->SetForegroundColour(wxColour(238, 238, 238));
-    m__line_materia->SetBackgroundColour(wxColour(238, 238, 238));
+    m_line_materia = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_line_materia->SetForegroundColour(wxColour(238, 238, 238));
+    m_line_materia->SetBackgroundColour(wxColour(238, 238, 238));
 
-    m_sizer_main->Add(m__line_materia, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
+    m_sizer_main->Add(m_line_materia, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
 
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
 
@@ -892,107 +825,33 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_printer->Add(m_button_refresh, 0, wxALL | wxLEFT, FromDIP(5));
 
     m_sizer_main->Add(m_sizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(5));
 
-    m_panel_warn             = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    wxBoxSizer *m_sizer_warn = new wxBoxSizer(wxHORIZONTAL);
 
-    m_sizer_warn->Add(0, 0, 1, wxEXPAND, FromDIP(5));
-
-    auto warimg = new wxStaticBitmap(m_panel_warn, wxID_ANY, create_scaled_bitmap("obj_warning", m_panel_warn, 15), wxDefaultPosition, wxSize(FromDIP(15), FromDIP(15)), 0);
-    m_sizer_warn->Add(warimg, 0, wxEXPAND, 0);
-
-    m_statictext_warn = new wxStaticText(m_panel_warn, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
-    m_statictext_warn->Wrap(-1);
-    m_statictext_warn->SetFont(::Label::Body_13);
-    m_statictext_warn->SetForegroundColour(wxColour(255, 111, 0));
-
-    m_sizer_warn->Add(m_statictext_warn, 0, wxALL | wxEXPAND, FromDIP(5));
-
-    m_sizer_warn->Add(0, 0, 1, wxEXPAND, FromDIP(5));
-
-    m_panel_warn->SetSizer(m_sizer_warn);
-    m_panel_warn->Layout();
-    m_sizer_warn->Fit(m_panel_warn);
-    m_sizer_main->Add(m_panel_warn, 0, wxEXPAND | wxTOP, FromDIP(2));
-
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
-
-    m_line_bed = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
-    m_line_bed->SetForegroundColour(wxColour(238, 238, 238));
-    m_line_bed->SetBackgroundColour(wxColour(238, 238, 238));
-
-    m_sizer_main->Add(m_line_bed, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
-
-    m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(14));
-
-    // BBS hide bed choice
-    // wxBoxSizer *m_sizer_bed = new wxBoxSizer(wxHORIZONTAL);
-    // m_staticText_bed_title = new wxStaticText(this, wxID_ANY, L("Bed style"), wxDefaultPosition, wxSize(-1, -1), 0);
-    // m_staticText_bed_title->SetFont(::Label::Head_14);
-    // m_staticText_bed_title->Wrap(-1);
-    // m_staticText_bed_title->SetForegroundColour(m_colour_bold_color);
-    // m_staticText_bed_title->SetBackgroundColour(m_colour_def_color);
-    // m_sizer_bed->Add(m_staticText_bed_title, 0, wxALL | wxEXPAND, 5);
-    // m_sizer_bed->Add(0, 0, 0, wxEXPAND | wxLEFT, 12);
-    // m_comboBox_bed = new ::ComboBox(this, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
-    // for (auto i = 0; i < m_bedtype_list.size(); i++) { m_comboBox_bed->Append(m_bedtype_list[i]); }
-    // m_sizer_bed->Add(m_comboBox_bed, 1, wxEXPAND | wxRIGHT, 30);
-    // m_sizer_main->Add(m_sizer_bed, 0, wxEXPAND | wxLEFT | wxRIGHT, 30);
-
-    m_sizer_select = new wxGridSizer(2, 2, 0, 0);
-
-    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(5));
+    m_statictext_printer_msg = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
+    m_statictext_printer_msg->SetFont(::Label::Body_13);
+    m_statictext_printer_msg->Hide();
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
+    m_sizer_main->Add(m_statictext_printer_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(20));
+    m_sizer_select = new wxGridSizer(1, 2, 0, 0);
     select_bed           = create_item_checkbox(_L("Bed Leveling"), this, _L("Bed Leveling"), "bed_leveling");
     select_flow          = create_item_checkbox(_L("Flow Calibration"), this, _L("Flow Calibration"), "flow_cali");
 
-    //select_vibration = create_item_checkbox(_L("Vibration Calibration"), this, _L("Vibration Calibration"), "vibration_cali");
-    //select_layer_inspect = create_item_checkbox(_L("First Layer Inspection"), this, _L("First Layer Inspection"), "layer_inspect");
 
     select_bed->Show(false);
     select_flow->Show(false);
-    //select_vibration->Show(false);
-    //select_layer_inspect->Show(false);
-    // select_record->Show(false);
 
     m_sizer_select->Add(select_bed);
     m_sizer_select->Add(select_flow);
-    //m_sizer_select->Add(select_vibration);
-    //m_sizer_select->Add(select_layer_inspect);
-    // m_sizer_select->Add(select_record);
+
     m_sizer_main->Add(m_sizer_select, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(40));
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(11));
 
-    // error msg
-    m_panel_err             = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    wxBoxSizer *m_sizer_err = new wxBoxSizer(wxHORIZONTAL);
-    m_sizer_err->Add(0, 0, 0, wxEXPAND, FromDIP(5));
-    m_panel_err->Hide();
-
-    auto errimg = new wxStaticBitmap(m_panel_err, wxID_ANY, create_scaled_bitmap("obj_warning", m_panel_warn, 30), wxDefaultPosition,
-                                     wxSize(wxGetApp().em_unit() * 3, wxGetApp().em_unit() * 3), 0);
-    m_sizer_err->Add(errimg, 0, wxEXPAND, 0);
-
-    m_statictext_err = new wxStaticText(m_panel_err, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
-    m_statictext_err->Wrap(-1);
-    m_statictext_err->SetForegroundColour(wxColour(255, 111, 0));
-
-    m_sizer_err->Add(m_statictext_err, 0, wxALL | wxEXPAND, FromDIP(5));
-    m_sizer_err->Add(0, 0, 1, wxEXPAND, FromDIP(5));
-
-    m_panel_err->SetSizer(m_sizer_err);
-    m_panel_err->Layout();
-    m_sizer_err->Fit(m_panel_err);
-    m_sizer_main->Add(m_panel_err, 0, wxEXPAND | wxLEFT, FromDIP(40));
-
-    // bottom  area
-    /*  m_panel_bottom = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, wxGetApp().em_unit() * 7), wxTAB_TRAVERSAL);
-      m_panel_bottom->SetMinSize(wxSize(-1, wxGetApp().em_unit() * 7));
-      m_panel_bottom->SetMaxSize(wxSize(-1, wxGetApp().em_unit() * 7));
-      m_panel_bottom->SetBackgroundColour(m_colour_def_color);*/
 
     // line schedule
     m_line_schedule = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_schedule->SetBackgroundColour(wxColour(238, 238, 238));
+    m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(12));
     m_sizer_main->Add(m_line_schedule, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(25));
 
     m_sizer_bottom = new wxBoxSizer(wxVERTICAL);
@@ -1036,7 +895,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     wxBoxSizer *m_sizer_finish_h = new wxBoxSizer(wxHORIZONTAL);
 
     auto imgsize      = FromDIP(25);
-    auto completedimg = new wxStaticBitmap(m_panel_finish, wxID_ANY, create_scaled_bitmap("completed", m_panel_warn, 25), wxDefaultPosition, wxSize(imgsize, imgsize), 0);
+    auto completedimg = new wxStaticBitmap(m_panel_finish, wxID_ANY, create_scaled_bitmap("completed", m_panel_finish, 25), wxDefaultPosition, wxSize(imgsize, imgsize), 0);
     m_sizer_finish_h->Add(completedimg, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
 
     m_statictext_finish = new wxStaticText(m_panel_finish, wxID_ANY, L("send completed"), wxDefaultPosition, wxDefaultSize, 0);
@@ -1132,23 +991,24 @@ void SelectMachineDialog::update_select_layout(PRINTER_TYPE type)
 
 void SelectMachineDialog::prepare_mode()
 {
-    m_panel_warn->Hide();
-    m_simplebook->SetSelection(0);
-    Layout();
-    Fit();
+    if (m_simplebook->GetSelection() != 0) {
+        m_simplebook->SetSelection(0);
+        Layout();
+        Fit();
+    } 
 }
 
 void SelectMachineDialog::sending_mode()
 {
-    m_panel_warn->Hide();
-    m_simplebook->SetSelection(1);
-    Layout();
-    Fit();
+    if (m_simplebook->GetSelection() != 1){
+        m_simplebook->SetSelection(1);
+        Layout();
+        Fit();
+    }
 }
 
 void SelectMachineDialog::finish_mode()
 {
-    m_panel_warn->Hide();
     m_simplebook->SetSelection(2);
     Layout();
     Fit();
@@ -1240,15 +1100,69 @@ void SelectMachineDialog::prepare(int print_plate_idx)
     m_print_plate_idx = print_plate_idx;
 }
 
-void SelectMachineDialog::update_print_status_msg(wxString msg, bool is_warning)
+void SelectMachineDialog::update_ams_status_msg(wxString msg, bool is_warning)
 {
-    //set style
-    if (is_warning) {
-        update_warn_msg(msg);
-        update_info_msg(wxEmptyString);
+    auto colour = is_warning ? wxColour(0xFF, 0x6F, 0x00):wxColour(0x6B, 0x6B, 0x6B);
+    m_statictext_ams_msg->SetForegroundColour(colour);
+
+    if (msg.empty()) {
+        if (!m_statictext_ams_msg->GetLabel().empty()) {
+            m_statictext_ams_msg->SetLabel(wxEmptyString);
+            m_statictext_ams_msg->Hide();
+            Layout();
+            Fit();
+        }
     } else {
-        update_warn_msg(wxEmptyString);
-        update_info_msg(msg);
+        auto str_new = msg.ToStdString();
+        stripWhiteSpace(str_new);
+
+        auto str_old = m_statictext_ams_msg->GetLabel().ToStdString();
+        stripWhiteSpace(str_old);
+
+        if (str_new != str_old) {
+            if (m_statictext_ams_msg->GetLabel() != msg) {
+                m_statictext_ams_msg->SetLabel(msg);
+                m_statictext_ams_msg->SetMinSize(wxSize(FromDIP(400), -1));
+                m_statictext_ams_msg->SetMaxSize(wxSize(FromDIP(400), -1));
+                m_statictext_ams_msg->Wrap(FromDIP(400));
+                m_statictext_ams_msg->Show();
+                Layout();
+                Fit();
+            }
+        }
+    }
+}
+
+void SelectMachineDialog::update_priner_status_msg(wxString msg, bool is_warning) 
+{
+    auto colour = is_warning ? wxColour(0xFF, 0x6F, 0x00) : wxColour(0x6B, 0x6B, 0x6B);
+    m_statictext_printer_msg->SetForegroundColour(colour);
+
+    if (msg.empty()) {
+        if (!m_statictext_printer_msg->GetLabel().empty()) {
+            m_statictext_printer_msg->SetLabel(wxEmptyString);
+            m_statictext_printer_msg->Hide();
+            Layout();
+            Fit();
+        }
+    } else {
+        auto str_new = msg.ToStdString();
+        stripWhiteSpace(str_new);
+
+        auto str_old = m_statictext_printer_msg->GetLabel().ToStdString();
+        stripWhiteSpace(str_old);
+
+        if (str_new != str_old) {
+            if (m_statictext_printer_msg->GetLabel() != msg) {
+                m_statictext_printer_msg->SetLabel(msg);
+                m_statictext_printer_msg->SetMinSize(wxSize(FromDIP(400), -1));
+                m_statictext_printer_msg->SetMaxSize(wxSize(FromDIP(400), -1));
+                m_statictext_printer_msg->Wrap(FromDIP(400));
+                m_statictext_printer_msg->Show();
+                Layout();
+                Fit();
+            }
+        }
     }
 }
 
@@ -1272,73 +1186,74 @@ void SelectMachineDialog::show_status(PrintDialogStatus status)
 
     // other
     if (status == PrintDialogStatus::PrintStatusInit) {
-        update_print_status_msg(wxEmptyString, false);
+        update_ams_status_msg(wxEmptyString, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNoUserLogin) {
         wxString msg_text = _L("No login account, only printers in LAN mode are displayed");
-        update_print_status_msg(msg_text, false);
+        update_priner_status_msg(msg_text, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     }else if (status == PrintDialogStatus::PrintStatusInvalidPrinter) {
-        update_print_status_msg(wxEmptyString, true);
+        update_ams_status_msg(wxEmptyString, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusConnectingServer) {
         wxString msg_text = _L("Connecting to server");
-        update_print_status_msg(msg_text, true);
+        update_priner_status_msg(msg_text, true);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusReading) {
         wxString msg_text = _L("Synchronizing device information");
-        update_print_status_msg(msg_text, false);
+        update_priner_status_msg(msg_text, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusReadingFinished) {
-        update_print_status_msg(wxEmptyString, false);
+        update_ams_status_msg(wxEmptyString, false);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusReadingTimeout) {
         wxString msg_text = _L("Synchronizing device information time out");
-        update_print_status_msg(msg_text, true);
+        update_priner_status_msg(msg_text, true);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusInUpgrading) {
         wxString msg_text = _L("Cannot send the print task when the upgrade is in progress");
-        update_print_status_msg(msg_text, true);
+        update_priner_status_msg(msg_text, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusInSystemPrinting) {
         wxString msg_text = _L("The printer is executing instructions. Please restart printing after it ends");
-        update_print_status_msg(msg_text, true);
+        update_priner_status_msg(msg_text, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusInPrinting) {
         wxString msg_text = _L("The printer is busy on other print job");
-        update_print_status_msg(msg_text, true);
+        update_priner_status_msg(msg_text, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNeedUpgradingAms) {
         wxString msg_text = _L("The firmware versions of printer and AMS are too low.Please update to the latest version before sending the print job");
-        update_print_status_msg(msg_text, true);
+        update_priner_status_msg(msg_text, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingSuccess){
         wxString msg_text = _L("Filaments to AMS slots mappings have been established. You can click a filament above to change its mapping AMS slot");
-        update_print_status_msg(msg_text, true);
+        update_ams_status_msg(msg_text, true);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingInvalid) {
         wxString msg_text = _L("Please click each filament above to specify its mapping AMS slot before sending the print job");
-        update_print_status_msg(msg_text, true);
+        update_ams_status_msg(msg_text, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingValid) {
-        update_print_status_msg(wxEmptyString, false);
+        update_ams_status_msg(wxEmptyString, false);
+        update_priner_status_msg(wxEmptyString, false);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusRefreshingMachineList) {
-        update_print_status_msg(wxEmptyString, false);
+        update_ams_status_msg(wxEmptyString, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusSending) {
@@ -1355,20 +1270,6 @@ void SelectMachineDialog::show_status(PrintDialogStatus status)
     }
 }
 
-void SelectMachineDialog::update_err_msg(wxString msg)
-{
-    /*
-    if (msg.empty()) {
-        m_statictext_err->SetLabel(wxEmptyString);
-        m_panel_err->Hide();
-    } else {
-        m_statictext_err->SetLabel(msg);
-        m_panel_err->Show();
-    }
-    Layout();
-    Fit();
-    */
-}
 
 void SelectMachineDialog::init_model()
 {
@@ -1921,8 +1822,7 @@ void SelectMachineDialog::set_default()
     m_checkbox_list["flow_cali"]->SetValue(true);
 
     // thumbmail
-    Freeze();
-    wxBitmap bitmap;
+    //wxBitmap bitmap;
     ThumbnailData &data   = m_plater->get_partplate_list().get_curr_plate()->thumbnail_data;
     if (data.is_valid()) {
         wxImage image(data.width, data.height);
@@ -1936,12 +1836,13 @@ void SelectMachineDialog::set_default()
             }
         }
         image  = image.Rescale(FromDIP(256), FromDIP(256));
-        bitmap = wxBitmap(image);
-    } else {
-        bitmap = wxBitmap(wxSize(FromDIP(256), FromDIP(256)), 0);
-    }
-    m_staticbitmap->SetBitmap(bitmap);
-    sizer_thumbnail->Layout();
+        m_thumbnailPanel->set_thumbnail(image);
+        //bitmap = wxBitmap(image);
+    } 
+
+    
+    //m_staticbitmap->SetBitmap(bitmap);
+    //sizer_thumbnail->Layout();
 
     std::vector<std::string> materials;
     {
@@ -2092,7 +1993,7 @@ bool SelectMachineDialog::Show(bool show)
     } else {
         m_refresh_timer->Stop();
     }
-    Thaw();
+
     if (show) { CenterOnParent(); }
 
     Layout();
@@ -2215,5 +2116,29 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
         DPIDialog::EndModal(wxID_CLOSE);
     }
 }
+
+ ThumbnailPanel::ThumbnailPanel(wxWindow *parent, wxWindowID winid, const wxPoint &pos, const wxSize &size) 
+     : wxPanel(parent, winid, pos, size)
+ {
+#ifdef __WINDOWS__
+     SetDoubleBuffered(true);
+#endif //__WINDOWS__
+
+     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
+     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+     m_staticbitmap    = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize);
+     sizer->Add(m_staticbitmap, 1, wxEXPAND|wxALL, 0);
+     SetSizer(sizer);
+     Layout();
+     Fit();
+ }
+
+ void ThumbnailPanel::set_thumbnail(wxImage img) 
+ { 
+     wxBitmap bitmap(img);
+     m_staticbitmap->SetBitmap(bitmap);
+ }
+
+ ThumbnailPanel::~ThumbnailPanel() {}
 
  }} // namespace Slic3r::GUI

@@ -178,6 +178,8 @@ public:
 
 WX_DEFINE_ARRAY(MachinePanel*, MachinePanelHash);
 
+class ThumbnailPanel;
+
 class SelectMachinePopup : public wxPopupTransientWindow
 {
 public:
@@ -278,30 +280,23 @@ protected:
     bool ams_mapping_valid { false };
     Plater *      m_plater{nullptr};
     wxPanel *     m_line_top{nullptr};
-    wxPanel *     m_image{nullptr};
+    wxPanel *     m_panel_image{nullptr};
     wxStaticText *m_stext_time{nullptr};
     wxStaticText *m_stext_weight{nullptr};
-    wxPanel *     m__line_materia{nullptr};
+    wxPanel *     m_line_materia{nullptr};
     wxStaticText *m_stext_printer_title{nullptr};
 
-    wxStaticText *m_text_load_ams_data{nullptr};
-    wxStaticText *m_error_load_ams_data{nullptr};
+    wxStaticText *m_statictext_ams_msg{nullptr};
+    wxStaticText * m_statictext_printer_msg{nullptr};
     wxStaticBitmap* m_staticbitmap {nullptr};
+    ThumbnailPanel *m_thumbnailPanel {nullptr};
 
     ::ComboBox *  m_comboBox_printer{nullptr};
     ::ComboBox *  m_comboBox_bed{nullptr};
-    wxPanel *     m_panel_warn{nullptr};
-    wxStaticText *m_statictext_warn{nullptr};
-    wxPanel *     m_line_bed{nullptr};
     wxStaticText *m_staticText_bed_title{nullptr};
     wxPanel *     m_line_schedule{nullptr};
-    wxPanel *     m_panel_err{nullptr};
-    wxStaticText *m_statictext_err{nullptr};
     wxPanel *     m_panel_sending{nullptr};
     wxStaticText *m_stext_sending{nullptr};
-    wxStaticText *m_stext_percent{nullptr};
-    wxGauge *     m_sending_gauge{nullptr};
-    Button *      m_cancel{nullptr};
     wxPanel *     m_panel_prepare{nullptr};
     Button *      m_button_refresh{nullptr};
     Button *      m_button_ensure{nullptr};
@@ -319,16 +314,12 @@ protected:
     wxBoxSizer * m_sizer_bottom;
 
     wxWindow *select_bed{nullptr};
-    //wxWindow *select_vibration{nullptr};
     wxWindow *select_flow{nullptr};
-    //wxWindow *select_layer_inspect {nullptr};
-    //wxWindow *select_record{nullptr};
 
-    void      stripWhiteSpace(std::string& str);
 
-    void      update_info_msg(wxString msg);
-    void      update_warn_msg(wxString msg);
-    void      update_err_msg(wxString msg);
+    void stripWhiteSpace(std::string& str);
+    void update_ams_status_msg(wxString msg, bool is_warning = false);
+    void update_priner_status_msg(wxString msg, bool is_warning = false);
 
 public:
     SelectMachineDialog(Plater *plater = nullptr);
@@ -343,8 +334,6 @@ public:
     bool      do_ams_mapping(MachineObject* obj_);
     bool      get_ams_mapping_result(std::string &mapping_array_str);
     void      prepare(int print_plate_idx);
-
-    void      update_print_status_msg(wxString msg, bool is_warning = false);
     void      show_status(PrintDialogStatus status);
     PrintDialogStatus  get_status() { return m_print_status; }
 
@@ -408,6 +397,24 @@ public:
     wxStaticText* m_static_valid {nullptr};
     ::TextInput* m_textCtr   {nullptr};
     Button* m_button_confirm {nullptr};
+};
+
+
+class ThumbnailPanel : public wxPanel
+{
+public:
+    wxBitmap *      m_bitmap{nullptr};
+    wxStaticBitmap *m_staticbitmap{nullptr};
+
+    ThumbnailPanel(wxWindow *      parent,
+                   wxWindowID      winid = wxID_ANY,
+                   const wxPoint & pos   = wxDefaultPosition,
+                   const wxSize &  size  = wxDefaultSize);
+    void OnPaint(wxPaintEvent &event);
+    void PaintBackground(wxDC &dc);
+    void OnEraseBackground(wxEraseEvent &event);
+    void set_thumbnail(wxImage img);
+    ~ThumbnailPanel();
 };
 
 }} // namespace Slic3r::GUI
