@@ -219,7 +219,6 @@ else()
 endif()
 
 list(APPEND _dep_list "dep_OCCT")
-list(APPEND _dep_list "dep_BambuNetworking")
 
 add_custom_target(deps ALL DEPENDS ${_dep_list})
 
