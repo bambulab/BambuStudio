@@ -1287,18 +1287,28 @@ void StatusPanel::update_ams(MachineObject *obj)
             info.ams_id = ams->first;
             if (ams->second->is_exists && info.parse_ams_info(ams->second)) ams_info.push_back(info);
         }
-        if (obj->ams_exist_bits != last_ams_exist_bits || obj->tray_exist_bits != last_tray_exist_bits || obj->tray_is_bbl_bits != last_tray_is_bbl_bits ||
-            obj->tray_read_done_bits != last_read_done_bits || obj->ams_version != last_ams_version) {
-            m_ams_control->UpdateAms(ams_info, false);
-            // select current ams
-            //if (!obj->m_ams_id.empty()) m_ams_control->SwitchAms(obj->m_ams_id);
+        //if (obj->ams_exist_bits != last_ams_exist_bits || obj->tray_exist_bits != last_tray_exist_bits || obj->tray_is_bbl_bits != last_tray_is_bbl_bits ||
+        //    obj->tray_read_done_bits != last_read_done_bits || obj->ams_version != last_ams_version) {
+        //    m_ams_control->UpdateAms(ams_info, false);
+        //    // select current ams
+        //    //if (!obj->m_ams_id.empty()) m_ams_control->SwitchAms(obj->m_ams_id);
 
-            last_tray_exist_bits  = obj->tray_exist_bits;
-            last_ams_exist_bits   = obj->ams_exist_bits;
-            last_tray_is_bbl_bits = obj->tray_is_bbl_bits;
-            last_read_done_bits   = obj->tray_read_done_bits;
-            last_ams_version      = obj->ams_version;
-        }
+        //    last_tray_exist_bits  = obj->tray_exist_bits;
+        //    last_ams_exist_bits   = obj->ams_exist_bits;
+        //    last_tray_is_bbl_bits = obj->tray_is_bbl_bits;
+        //    last_read_done_bits   = obj->tray_read_done_bits;
+        //    last_ams_version      = obj->ams_version;
+        //}
+       
+        // select current ams
+        // if (!obj->m_ams_id.empty()) m_ams_control->SwitchAms(obj->m_ams_id);
+
+        m_ams_control->UpdateAms(ams_info, false);
+        last_tray_exist_bits  = obj->tray_exist_bits;
+        last_ams_exist_bits   = obj->ams_exist_bits;
+        last_tray_is_bbl_bits = obj->tray_is_bbl_bits;
+        last_read_done_bits   = obj->tray_read_done_bits;
+        last_ams_version      = obj->ams_version;
     }
 
     if (!obj->is_ams_unload()) {

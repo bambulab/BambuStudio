@@ -1920,6 +1920,8 @@ int MachineObject::parse_json(std::string payload)
                                         curr_tray->id = (*tray_it)["id"].get<std::string>();
                                         if (tray_it->contains("tag_uid"))
                                             curr_tray->tag_uid          = (*tray_it)["tag_uid"].get<std::string>();
+                                        else
+                                            curr_tray->tag_uid = "0";
                                         if (tray_it->contains("tray_info_idx") && tray_it->contains("tray_type")) {
                                             curr_tray->setting_id       = (*tray_it)["tray_info_idx"].get<std::string>();
                                             std::string type            = (*tray_it)["tray_type"].get<std::string>();
@@ -1930,32 +1932,59 @@ int MachineObject::parse_json(std::string payload)
                                             } else {
                                                 curr_tray->type = type;
                                             }
+                                        } else {
+                                            curr_tray->setting_id = "";
+                                            curr_tray->type       = "";
                                         }
                                         if (tray_it->contains("tray_sub_brands"))
                                             curr_tray->sub_brands       = (*tray_it)["tray_sub_brands"].get<std::string>();
+                                        else
+                                            curr_tray->sub_brands = "";
                                         if (tray_it->contains("tray_weight"))
                                             curr_tray->weight           = (*tray_it)["tray_weight"].get<std::string>();
+                                        else
+                                            curr_tray->weight = "";
                                         if (tray_it->contains("tray_diameter"))
                                             curr_tray->diameter         = (*tray_it)["tray_diameter"].get<std::string>();
+                                        else
+                                            curr_tray->diameter = "";
                                         if (tray_it->contains("tray_temp"))
                                             curr_tray->temp             = (*tray_it)["tray_temp"].get<std::string>();
+                                        else
+                                            curr_tray->temp = "";
                                         if (tray_it->contains("tray_time"))
                                             curr_tray->time             = (*tray_it)["tray_time"].get<std::string>();
+                                        else
+                                            curr_tray->time = "";
                                         if (tray_it->contains("bed_temp_type"))
                                             curr_tray->bed_temp_type    = (*tray_it)["bed_temp_type"].get<std::string>();
+                                        else
+                                            curr_tray->bed_temp_type = "";
                                         if (tray_it->contains("bed_temp"))
                                             curr_tray->bed_temp         = (*tray_it)["bed_temp"].get<std::string>();
+                                        else
+                                            curr_tray->bed_temp = "";
                                         if (tray_it->contains("nozzle_temp_max"))
                                             curr_tray->nozzle_temp_max = (*tray_it)["nozzle_temp_max"].get<std::string>();
+                                        else
+                                            curr_tray->nozzle_temp_max = "";
                                         if (tray_it->contains("nozzle_temp_min"))
                                             curr_tray->nozzle_temp_min = (*tray_it)["nozzle_temp_min"].get<std::string>();
+                                        else
+                                            curr_tray->nozzle_temp_min = "";
                                         if (tray_it->contains("xcam_info"))
                                             curr_tray->xcam_info = (*tray_it)["xcam_info"].get<std::string>();
+                                        else
+                                            curr_tray->xcam_info = "";
                                         if (tray_it->contains("tray_uuid"))
                                             curr_tray->uuid = (*tray_it)["tray_uuid"].get<std::string>();
+                                        else
+                                            curr_tray->uuid = "0";
                                         if (tray_it->contains("tray_color")) {
                                             auto color = (*tray_it)["tray_color"].get<std::string>();
                                             curr_tray->update_color_from_str(color);
+                                        } else {
+                                            curr_tray->color = "";
                                         }
                                         try {
                                             if (!ams_id.empty() && !curr_tray->id.empty()) {

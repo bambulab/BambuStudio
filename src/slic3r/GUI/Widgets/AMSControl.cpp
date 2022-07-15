@@ -1138,13 +1138,6 @@ void AmsCans::SelectCan(std::string canid)
 
 void AmsCans::SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step)
 {
-    auto tag_can_index = -1;
-    for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
-        CanRoads *road = m_can_road_list[i];
-        if (canid == road->canRoad->m_info.can_id) { tag_can_index = road->canRoad->m_canindex; }
-    }
-
-    if (tag_can_index == -1) return;
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
         for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
@@ -1156,6 +1149,14 @@ void AmsCans::SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP s
 
         return;
     }
+
+    
+    auto tag_can_index = -1;
+    for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
+        CanRoads *road = m_can_road_list[i];
+        if (canid == road->canRoad->m_info.can_id) { tag_can_index = road->canRoad->m_canindex; }
+    }
+    if (tag_can_index == -1) return;
 
     // get colour
     auto tag_colour = *wxWHITE;
