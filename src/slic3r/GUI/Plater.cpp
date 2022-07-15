@@ -8474,6 +8474,7 @@ int Plater::export_config_3mf(int plate_idx, Export3mfProgressFn proFn)
 void Plater::print_job_finished(wxCommandEvent &evt)
 {
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
     dev->set_selected_machine(evt.GetString().ToStdString());
 
     p->hide_select_machine_dlg();

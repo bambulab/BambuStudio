@@ -320,6 +320,7 @@ void DeviceSearchDialog::update_list()
     search_list_model->Clear();
 
     Slic3r::DeviceManager* dm = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dm) return;
 
     std::map<std::string ,MachineObject*> list = dm->get_local_machine_list();
 
@@ -517,6 +518,7 @@ void DebugToolDialog::init()
 
     btn_refresh_my_device->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
             DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+            if (!dev) return;
             dev->update_user_machine_list_info();
             wxQueueEvent(this, new SimpleEvent(EVT_UPDATE_MYBIND_LIST));
         });
@@ -627,6 +629,7 @@ void DebugToolDialog::init()
     btn_run_gcode->Bind(wxEVT_BUTTON,
         [this](wxCommandEvent& evt) {
             Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+            if (!device_manager) return;
             MachineObject* obj = device_manager->get_local_selected_machine();
             GcodePrintJob* m_print_job = new GcodePrintJob(m_status_bar, txt_gcode_filename->GetValue().ToUTF8().data(), obj);
             m_print_job->start();
@@ -1141,6 +1144,7 @@ void DebugToolDialog::on_update_mybind_list(SimpleEvent& evt)
     }
 
     DeviceManager* dev = wxGetApp().getDeviceManager();
+    if (!dev) return;
     std::map<std::string, MachineObject*> list = dev->userMachineList;
     std::map<std::string, MachineObject*>::iterator iter;
     mybind_machine_list_items.clear();

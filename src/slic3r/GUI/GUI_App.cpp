@@ -2643,6 +2643,7 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
 
     // get machine list
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
     dev->update_user_machine_list_info();
 
     GUI::wxGetApp().preset_bundle->update_user_presets_directory(user_id);

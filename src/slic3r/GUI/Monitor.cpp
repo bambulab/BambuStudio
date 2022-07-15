@@ -300,6 +300,8 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
     has_popup_ams_check_dlg = false;
 
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+
     if (!dev->set_selected_machine(event.GetString().ToStdString()))
         return;
 
@@ -372,7 +374,8 @@ void MonitorPanel::update_all()
 {
     NetworkAgent* m_agent = wxGetApp().getAgent();
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-
+    if (!dev)
+        return;
     obj = dev->get_selected_machine();
 
     //BBS check mqtt connections if user is login
@@ -492,6 +495,8 @@ bool MonitorPanel::Show(bool show)
 void MonitorPanel::update_side_panel()
 {
     Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+
     auto is_next_machine = false;
     if (!dev->get_first_online_user_machine().empty()) {
         wxCommandEvent* event = new wxCommandEvent(wxEVT_COMMAND_CHOICE_SELECTED);

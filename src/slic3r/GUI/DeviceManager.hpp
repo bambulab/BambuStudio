@@ -439,6 +439,7 @@ public:
     /* camera */
     bool camera_recording { false };
     bool camera_timelapse { false };
+    bool camera_has_sdcard { false };
 
     /* HMS */
     std::vector<HMSItem>    hms_list;
@@ -461,6 +462,7 @@ public:
     std::string obj_subtask_id;     // subtask_id == 0 for sdcard
     std::string subtask_name;
     bool is_sdcard_printing();
+    bool has_sdcard();
 
 
     MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip);

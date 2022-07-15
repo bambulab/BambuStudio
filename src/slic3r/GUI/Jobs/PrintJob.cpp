@@ -119,8 +119,7 @@ void PrintJob::process()
                         if (stage == BBL::SendingPrintJobStage::PrintingStageCreate) {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending print job over LAN");
-                            }
-                            else {
+                            } else {
                                 msg = _L("Sending print job through cloud service");
                             }
                             curr_percent = 25;
@@ -139,8 +138,7 @@ void PrintJob::process()
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageWaiting) {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending print job over LAN");
-                            }
-                            else {
+                            } else {
                                 msg = _L("Sending print job through cloud service");
                             }
                             curr_percent = 50;
@@ -152,8 +150,7 @@ void PrintJob::process()
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageSending) {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending print job over LAN");
-                            }
-                            else {
+                            } else {
                                 msg = _L("Sending print job through cloud service");
                             }
                             curr_percent = 90;
@@ -164,8 +161,7 @@ void PrintJob::process()
                         } else {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending print job over LAN");
-                            }
-                            else {
+                            } else {
                                 msg = _L("Sending print job through cloud service");
                             }
                         }
@@ -179,22 +175,46 @@ void PrintJob::process()
     NetworkAgent* m_agent = wxGetApp().getAgent();
 
     if (params.connection_type != "lan") {
-        if (!cloud_print_only && !params.password.empty() && !params.dev_ip.empty()) {
+        if (!this->cloud_print_only
+            && !params.password.empty() 
+            && !params.dev_ip.empty()
+            && this->has_sdcard) {
             // try to send local with record
-            BOOST_LOG_TRIVIAL(trace) << "try to start local print with record";
+            BOOST_LOG_TRIVIAL(info) << "print_job: try to start local print with record";
             this->update_status(curr_percent, _L("Sending print job over LAN"));
             result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn);
             if (result < 0) {
                 // try to send with cloud
-                BOOST_LOG_TRIVIAL(trace) << "try to send with cloud";
+                BOOST_LOG_TRIVIAL(warning) << "print_job: try to send with cloud";
                 this->update_status(curr_percent, _L("Sending print job through cloud service"));
                 result = m_agent->start_print(params, update_fn, cancel_fn);
             }
         } else {
+            BOOST_LOG_TRIVIAL(info) << "print_job: send with cloud";
+            this->update_status(curr_percent, _L("Sending print job through cloud service"));
             result = m_agent->start_print(params, update_fn, cancel_fn);
+            if (result < 0) {
+                if (!params.password.empty() && !params.dev_ip.empty()) {
+                    //try to send with local only
+                    if (this->has_sdcard) {
+                        this->update_status(curr_percent, _L("Sending print job over LAN"));
+                        result = m_agent->start_local_print(params, update_fn, cancel_fn);
+                    } else {
+                        this->update_status(curr_percent, _L("Failed to connect to the cloud server connection. Please insert an SD card and resend the print job, which will transfer the print file via LAN. "));
+                        BOOST_LOG_TRIVIAL(error) << "print_job: failed, need sdcard";
+                        return;
+                    }
+                }
+            }
         }
     } else {
-        result = m_agent->start_local_print(params, update_fn, cancel_fn);
+        if (this->has_sdcard) {
+            this->update_status(curr_percent, _L("Sending print job over LAN"));
+            result = m_agent->start_local_print(params, update_fn, cancel_fn);
+        } else {
+            this->update_status(curr_percent, _L("An SD card needs to be inserted before printing via LAN."));
+            return;
+        }
     }
 
     if (was_canceled()) {
@@ -224,7 +244,9 @@ void PrintJob::process()
         } else {
             update_status(curr_percent, failed_in_cloud_service_str);
         }
+        BOOST_LOG_TRIVIAL(error) << "print_job: failed, result = " << result;
     } else {
+        BOOST_LOG_TRIVIAL(error) << "print_job: send ok.";
         wxCommandEvent* evt = new wxCommandEvent(m_print_job_completed_id);
         evt->SetString(m_dev_id);
         wxQueueEvent(m_plater, evt);

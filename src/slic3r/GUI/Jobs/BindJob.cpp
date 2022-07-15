@@ -114,6 +114,11 @@ void BindJob::process()
     }
 
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) {
+        BOOST_LOG_TRIVIAL(trace) << "login: dev is null";
+        post_fail_event();
+        return;
+    }
     dev->update_user_machine_list_info();
 
     wxCommandEvent event(EVT_BIND_MACHINE_SUCCESS);

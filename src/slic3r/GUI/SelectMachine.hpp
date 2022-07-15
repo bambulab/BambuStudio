@@ -249,6 +249,7 @@ enum PrintDialogStatus {
     PrintStatusRefreshingMachineList,
     PrintStatusSending,
     PrintStatusSendingCanceled,
+    PrintStatusNoSdcard,
 };
 
 class SelectMachineDialog : public DPIDialog

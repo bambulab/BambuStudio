@@ -49,6 +49,7 @@ public:
     std::string task_ams_mapping;
     std::string connection_type;
     bool        cloud_print_only { false };
+    bool        has_sdcard { false };
 
     void set_print_config(std::string bed_type, bool bed_leveling, bool flow_cali, bool vabration_cali, bool record_timelapse, bool layer_inspect) 
     {

@@ -936,6 +936,11 @@ bool MachineObject::is_sdcard_printing()
         return false;
 }
 
+bool MachineObject::has_sdcard()
+{
+    return camera_has_sdcard;
+}
+
 int MachineObject::command_get_version()
 {
     json j;
@@ -1719,6 +1724,18 @@ int MachineObject::parse_json(std::string payload)
                                 if ((*it)["node"].get<std::string>().compare("work_light") == 0)
                                     work_light = light_effect_parse((*it)["mode"].get<std::string>());
                             }
+                        }
+                    }
+                    catch (...) {
+                        ;
+                    }
+                    // media
+                    try {
+                        if (jj.contains("sdcard")) {
+                            camera_has_sdcard = jj["scard"].get<bool>();
+                        } else {
+                            //do not check sdcard if no sdcard field
+                            camera_has_sdcard = true;
                         }
                     }
                     catch (...) {

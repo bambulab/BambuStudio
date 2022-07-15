@@ -450,6 +450,7 @@ void SelectMachinePopup::on_timer(wxTimerEvent &event)
 void SelectMachinePopup::update_other_devices()
 {
     DeviceManager* dev = wxGetApp().getDeviceManager();
+    if (!dev) return;
     m_free_machine_list = dev->get_local_machine_list();
 
     BOOST_LOG_TRIVIAL(trace) << "SelectMachinePopup update_other_devices start";
@@ -541,6 +542,7 @@ void SelectMachinePopup::update_other_devices()
 void SelectMachinePopup::update_user_devices()
 {
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
 
     if (!m_print_info.empty()) {
         dev->parse_user_print_info(m_print_info);
@@ -1345,6 +1347,11 @@ void SelectMachineDialog::show_status(PrintDialogStatus status)
     } else if (status == PrintDialogStatus::PrintStatusSendingCanceled) {
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusNoSdcard) {
+        wxString msg_text = _L("An SD card needs to be inserted before printing via LAN.");
+        update_print_status_msg(msg_text, true);
+        Enable_Send_Button(true);
+        Enable_Refresh_Button(true);
     }
 }
 
@@ -1413,6 +1420,8 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     }
 
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+
     MachineObject *obj_ = dev->get_selected_machine();
     assert(obj_->dev_id == m_printer_last_select);
     if (obj_ == nullptr) {
@@ -1477,6 +1486,11 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     m_print_job->m_access_code = obj_->access_code;
     m_print_job->connection_type = obj_->connection_type();
     m_print_job->task_ams_mapping = ams_mapping_array;
+    
+    if (obj_->has_sdcard()) {
+        m_print_job->has_sdcard = obj_->has_sdcard();
+    }
+    
     if (obj_->is_only_support_cloud_print()) {
         m_print_job->cloud_print_only = true;
     }
@@ -1509,6 +1523,7 @@ void SelectMachineDialog::on_refresh(wxCommandEvent &event)
         if (this == NULL || this == nullptr) { return; }
         boost::thread get_print_info_thread = Slic3r::create_thread([this] {
             DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+            if (!dev) return;
             dev->update_user_machine_list_info();
 
             wxCommandEvent event(EVT_UPDATE_USER_MACHINE_LIST);
@@ -1580,6 +1595,7 @@ void  SelectMachineDialog::reset_timeout()
 void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
 {
     Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
 
     // clear machine list
     m_list.clear();
@@ -1677,7 +1693,11 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
             }
         } else {
             if (obj_->is_info_ready()) {
-                show_status(PrintDialogStatus::PrintStatusReading);
+                if (obj_->has_sdcard()) {
+                    show_status(PrintDialogStatus::PrintStatusReading);
+                } else {
+                    show_status(PrintDialogStatus::PrintStatusNoSdcard);
+                }
             }
         }
     }
@@ -1697,10 +1717,11 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     if (get_status() == PrintDialogStatus::PrintStatusSendingCanceled)
         return;
 
-
     NetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
-    DeviceManager* dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-    MachineObject* obj_ = dev_manager->get_selected_machine();
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!agent) return;
+    if (!dev) return;
+    MachineObject* obj_ = dev->get_selected_machine();
     if (!obj_) {
         if (agent) {
             if (agent->is_user_login()) {
@@ -1794,6 +1815,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 
     
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
     MachineObject* obj = nullptr;
     for (int i = 0; i < m_list.size(); i++) {
         if (i == selection) {
@@ -1979,6 +2001,7 @@ void SelectMachineDialog::set_default()
 
             // update ams data
             DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+            if (!dev_manager) return;
             MachineObject *obj_        = dev_manager->get_selected_machine();
 
             if (obj_ && obj_->has_ams()) {
@@ -2053,7 +2076,9 @@ bool SelectMachineDialog::Show(bool show)
         if (agent->is_user_login()) {
             boost::thread get_print_info_thread = Slic3r::create_thread([this] {
                 DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-                dev->update_user_machine_list_info();
+                if (dev) {
+                    dev->update_user_machine_list_info();
+                }
 
                 wxCommandEvent event(EVT_UPDATE_USER_MACHINE_LIST);
                 event.SetEventObject(this);
@@ -2188,9 +2213,11 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
     if (m_valid_type == Valid) {
         m_static_valid->SetLabel(wxEmptyString);
         DeviceManager *dev      = Slic3r::GUI::wxGetApp().getDeviceManager();
-        auto           utf8_str = new_dev_name.ToUTF8();
-        auto           name     = std::string(utf8_str.data(), utf8_str.length());
-        dev->modify_device_name(m_info->dev_id, name);
+        if (dev) {
+            auto           utf8_str = new_dev_name.ToUTF8();
+            auto           name     = std::string(utf8_str.data(), utf8_str.length());
+            dev->modify_device_name(m_info->dev_id, name);
+        }
         DPIDialog::EndModal(wxID_CLOSE);
     }
 }
