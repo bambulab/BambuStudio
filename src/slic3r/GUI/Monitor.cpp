@@ -193,16 +193,16 @@ MonitorPanel::~MonitorPanel()
 
     //m_status_add_machine_panel = new AddMachinePanel(m_tabpanel);
     m_status_info_panel        = new StatusPanel(m_tabpanel);
-    m_media_file_panel         = new MediaFilePanel(m_tabpanel);
-    m_upgrade_panel            = new UpgradePanel(m_tabpanel);
-    m_hms_panel                = new HMSPanel(m_tabpanel);
-
+    m_media_file_panel = new MediaFilePanel(m_tabpanel);
     m_tabpanel->AddPage(m_status_info_panel, _L("Status"), "", true);
+
 #if !BBL_RELEASE_TO_PUBLIC
     m_tabpanel->AddPage(m_media_file_panel, _L("Media"), "", false);
-#endif
+    
+    m_upgrade_panel = new UpgradePanel(m_tabpanel);
     m_tabpanel->AddPage(m_upgrade_panel, _L("Update"), "", false);
-#if !BBL_RELEASE_TO_PUBLIC
+
+    m_hms_panel = new HMSPanel(m_tabpanel);
     m_tabpanel->AddPage(m_hms_panel,         _L("HMS"),    "", false);
 #endif
 
@@ -252,8 +252,8 @@ void MonitorPanel::msw_rescale()
     //m_status_add_machine_panel->msw_rescale();
     m_status_info_panel->msw_rescale();
     m_media_file_panel->Rescale();
-    m_upgrade_panel->msw_rescale();
 #if !BBL_RELEASE_TO_PUBLIC
+    m_upgrade_panel->msw_rescale();
     m_hms_panel->msw_rescale();
 #endif
 
@@ -387,7 +387,10 @@ void MonitorPanel::update_all()
     }
 
     m_status_info_panel->obj = obj;
+
+#if !BBL_RELEASE_TO_PUBLIC
     m_upgrade_panel->update(obj);
+#endif
 
     
     m_status_info_panel->m_media_play_ctrl->SetMachineObject(IsShown() ? obj : nullptr);
@@ -425,10 +428,10 @@ void MonitorPanel::update_all()
     if (m_hms_panel->IsShown()) {
         m_hms_panel->update(obj);
     }
-#endif
     if (m_upgrade_panel->IsShown()) {
         m_upgrade_panel->update(obj);
     }
+#endif
 }
 
 bool MonitorPanel::Show(bool show)

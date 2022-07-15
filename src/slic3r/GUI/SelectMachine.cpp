@@ -1372,22 +1372,6 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << m_printer_last_select << std::endl;
-
-#if !BBL_RELEASE_TO_PUBLIC
-#ifdef BBL_CHECK_USER_REPORT
-    int  task_id   = 0;
-    bool printable = true;
-    NetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
-    if (agent) {
-        agent->check_user_task_report(&task_id, &printable);
-        if (task_id != 0 && !printable) {
-            std::string report_url = (boost::format("https://autotest.bambu-lab.com/slicerAddReport?task_id=%1%&token=%2%") % task_id % c->get_curr_user()->m_autotest_token).str();
-            wxLaunchDefaultBrowser(report_url);
-            return;
-        }
-    }
-#endif
-#endif
     show_status(PrintDialogStatus::PrintStatusSending);
 
     m_status_bar->reset();
