@@ -10,7 +10,7 @@
 #include <boost/log/trivial.hpp>
 
 #import <Foundation/Foundation.h>
-#import <BambuPlayer/BambuPlayer.h>
+#import "BambuPlayer/BambuPlayer.h"
 
 #include <stdlib.h>
 #include <dlfcn.h>
