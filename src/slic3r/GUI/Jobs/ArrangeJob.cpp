@@ -560,8 +560,8 @@ void ArrangeJob::process()
 
     auto count = unsigned(m_selected.size());// + m_unprintable.size());
     params.progressind = [this, count](unsigned num_finished, std::string str="") {
-        if (num_finished >= 0 && num_finished <= count)
-            update_status(int(float(num_finished) / count * 100), _L("Arranging") + " "+str);
+        // if (num_finished >= 0 && num_finished <= count)
+        //     update_status(int(float(num_finished) / count * 100), _L("Arranging") + " "+str);
     };
 
     if(!params.is_seq_print)
