@@ -3038,6 +3038,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // Grab keyboard focus for input in gizmo dialogs.
             m_canvas->SetFocus();
 
+        if (evt.LeftDown()) {
+            // Clear hover state in main toolbar
+            wxMouseEvent evt2 = evt;
+            evt2.SetEventType(wxEVT_MOTION);
+            evt2.SetLeftDown(false);
+            m_main_toolbar.on_mouse(evt2, *this);
+        }
+
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
 
