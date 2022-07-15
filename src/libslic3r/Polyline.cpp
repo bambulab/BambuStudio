@@ -86,7 +86,7 @@ void Polyline::clip_end(double distance)
                 this->points.back() = fitting_result.back().arc_data.end_point;
             else
                 //BBS: Failed to clip arc, then back to linear move
-                fitting_result.back().path_type == EMovePathType::Linear_move;
+                fitting_result.back().path_type = EMovePathType::Linear_move;
         }
         fitting_result.back().end_point_index = this->points.size() - 1;
     }
