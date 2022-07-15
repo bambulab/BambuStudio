@@ -137,7 +137,6 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     SetSizer(m_sizer_main);
     Layout();
     Fit();
-    Centre(wxBOTH);
 
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &evt) { Hide(); });
 
@@ -199,5 +198,11 @@ void CalibrationDialog::on_start_calibration(wxMouseEvent &event)
 }
 
 void CalibrationDialog::update_machine_obj(MachineObject *obj) { m_obj = obj; }
+
+bool CalibrationDialog::Show(bool show) 
+{
+    if (show) { CentreOnParent(); }
+    return DPIDialog::Show(show);
+}
 
 }} // namespace Slic3r::GUI
