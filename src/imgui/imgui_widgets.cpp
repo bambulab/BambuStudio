@@ -4117,7 +4117,7 @@ bool ImGui::BBLInputScalar(const char *label, ImGuiDataType data_type, void *p_d
 
     if (format == NULL) format = DataTypeGetInfo(data_type)->PrintFmt;
 
-    char buf[64];
+    char buf[16];
     DataTypeFormatString(buf, IM_ARRAYSIZE(buf), data_type, p_data, format);
 
     bool value_changed = false;

@@ -492,7 +492,7 @@ bool GizmoObjectManipulation::reset_button(ImGuiWrapper *imgui_wrapper, float ca
     return pressed;
 }
 
- float GizmoObjectManipulation::max_unit_size(int number, Vec3d vec1, Vec3d vec2)
+ float GizmoObjectManipulation::max_unit_size(int number, Vec3d &vec1, Vec3d &vec2,std::string str)
  {
      if (number <= 1) return -1;
      Vec3d vec[2] = {vec1, vec2};
@@ -510,6 +510,18 @@ bool GizmoObjectManipulation::reset_button(ImGuiWrapper *imgui_wrapper, float ca
              nuit_max[i]  = vec_max;
          }
          unit_size = std::max(nuit_max[i], unit_size);
+     }
+
+     for (int i = 0; i < 3; i++)
+     {
+         if (str == "scale") {
+             if (vec1[i] > 39062.46)vec1[i] = 39062.46;
+             if (vec2[i] > 9999.99)vec2[i] = 9999.99;
+         }
+         if (str == "move") {
+             if (vec1[i] > 9999.99)vec1[i] = 9999.99;
+             if (vec2[i] > 9999.99)vec2[i] = 9999.99;
+         }
      }
 
      return unit_size + 8.0;
@@ -566,7 +578,7 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     Vec3d display_position = m_buffered_position;
     // Rotation
     Vec3d rotation   = this->m_buffered_rotation;
-    float unit_size  = max_unit_size(2, display_position, rotation);
+    float unit_size  = max_unit_size(2, display_position, display_position, "move") + space_size;;
     int   index      = 1;
     int   index_unit = 1;
 
@@ -673,7 +685,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     Vec3d display_position = m_buffered_position;
     // Rotation
     Vec3d rotation   = this->m_buffered_rotation;
-    float unit_size  = max_unit_size(2, display_position, rotation);
+    float unit_size  = max_unit_size(2, rotation, rotation, "rotate") + space_size * 2;
     int   index      = 1;
     int   index_unit = 1;
 
@@ -787,7 +799,10 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
 
     Vec3d scale = m_buffered_scale;
     Vec3d display_size = m_buffered_size;
-    float unit_size = max_unit_size(2, scale, display_size);
+
+    Vec3d display_position = m_buffered_position;
+
+    float unit_size = max_unit_size(2, scale, display_size, "scale") + space_size;
     bool imperial_units = this->m_imperial_units;
 
     int index      = 2;
