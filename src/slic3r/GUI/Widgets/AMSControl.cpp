@@ -1431,6 +1431,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     amswin->SetSizer(m_sizer_body);
     amswin->Layout();
     amswin->Fit();
+    
     //Thaw();
 
     SetSize(amswin->GetSize());
@@ -1504,7 +1505,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_simplebook_calibration->AddPage(m_calibration_err_panel, wxEmptyString, false);
 
     AddPage(amswin, wxEmptyString, false);
-    AddPage(m_in_calibration_panel, wxEmptyString, false);
+    AddPage(m_simplebook_calibration, wxEmptyString, false);
 
     UpdateStepCtrl();
 
