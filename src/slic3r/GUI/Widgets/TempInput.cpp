@@ -88,16 +88,16 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
         if (!AllisNum(temp.ToStdString())) return;
         if (max_temp <= 0) return;
 
-        auto tempint = std::stoi(temp.ToStdString());
-        if ((tempint > max_temp || tempint < min_temp) && !warning_mode) {
-            if (tempint > max_temp)
-                Warning(true, WARNING_TOO_HIGH);
-            else if (tempint < min_temp)
-                Warning(true, WARNING_TOO_LOW);
-            return;
-        } else {
-            Warning(false);
-        }
+       /* auto tempint = std::stoi(temp.ToStdString());
+         if ((tempint > max_temp || tempint < min_temp) && !warning_mode) {
+             if (tempint > max_temp)
+                 Warning(true, WARNING_TOO_HIGH);
+             else if (tempint < min_temp)
+                 Warning(true, WARNING_TOO_LOW);
+             return;
+         } else {
+             Warning(false);
+         }*/
         SetFinish();
     });
     text_ctrl->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &e) {
@@ -428,11 +428,16 @@ void TempInput::render(wxDC &dc)
     auto text = wxWindow::GetLabel();
     dc.SetFont(::Label::Head_14);
     labelSize = dc.GetMultiLineTextExtent(wxWindow::GetLabel());
-    dc.SetTextForeground(label_color.colorForStates((int) StateColor::Normal));
-    if (!IsEnabled())
+    
+    if (!IsEnabled()) {
+        dc.SetTextForeground(background_color.colorForStates((int) StateColor::Disabled));
         dc.SetTextBackground(background_color.colorForStates((int) StateColor::Disabled));
-    else
+    } 
+    else {
+        dc.SetTextForeground(wxColour(0x32, 0x3A, 0x3D));
         dc.SetTextBackground(background_color.colorForStates((int) states));
+    }
+        
 
     if (!text.IsEmpty()) {
         wxSize textSize = text_ctrl->GetSize();
