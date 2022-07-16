@@ -2008,6 +2008,7 @@ bool SelectMachineDialog::Show(bool show)
     if (show) { CenterOnParent(); }
 
     Layout();
+    Fit();
     return DPIDialog::Show(show);
 }
 
