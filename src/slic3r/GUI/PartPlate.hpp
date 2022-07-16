@@ -96,6 +96,7 @@ private:
 
     Print *m_print; //Print reference, not own it, no need to serialize
     GCodeProcessorResult *m_gcode_result;
+    std::vector<FilamentInfo> slice_filaments_info;
     int m_print_index;
 
     std::string m_tmp_gcode_path;       //use a temp path to store the gcode

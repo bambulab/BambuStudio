@@ -1220,7 +1220,7 @@ int CLI::run(int argc, char **argv)
 
         for (int i = 0; i < plate_data_list.size(); i++) {
             PlateData *plate_data = plate_data_list[i];
-            for (auto it = plate_data->slice_flaments_info.begin(); it != plate_data->slice_flaments_info.end(); it++) {
+            for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++) {
                 it->type  = filament_types?filament_types->get_at(it->id):"PLA";
                 it->color = filament_color?filament_color->get_at(it->id):"#FFFFFF";
                 //it->filament_id = filament_id?filament_id->get_at(it->id):"unknown";

@@ -1017,6 +1017,15 @@ void PartPlate::release_opengl_resource()
 std::vector<int> PartPlate::get_extruders() const
 {
 	std::vector<int> plate_extruders;
+	// if gcode.3mf file
+	if (m_model->objects.empty()) {
+		for (int i = 0; i < slice_filaments_info.size(); i++) {
+			plate_extruders.push_back(slice_filaments_info[i].id + 1);
+		}
+		return plate_extruders;
+	}
+
+	// if 3mf file
 	const DynamicPrintConfig& glb_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
 	int glb_support_intf_extr = glb_config.opt_int("support_interface_filament");
 	int glb_support_extr = glb_config.opt_int("support_filament");
@@ -4095,18 +4104,20 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		gcode_result->print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time = atoi(plate_data_list[i]->gcode_prediction.c_str());
 		ps.total_weight = atof(plate_data_list[i]->gcode_weight.c_str());
 		ps.total_used_filament = 0.f;
-		for (auto filament_item: plate_data_list[i]->slice_flaments_info)
+		for (auto filament_item: plate_data_list[i]->slice_filaments_info)
 		{
 			ps.total_used_filament += filament_item.used_m;
 		}
 		ps.total_used_filament *= 1000; //koef
 		gcode_result->toolpath_outside = plate_data_list[i]->toolpath_outside;
+		m_plate_list[index]->slice_filaments_info = plate_data_list[i]->slice_filaments_info;
 
 		if (!plate_data_list[i]->thumbnail_file.empty()) {
 			if (boost::filesystem::exists(plate_data_list[i]->thumbnail_file)) {
 				m_plate_list[index]->load_thumbnail_data(plate_data_list[i]->thumbnail_file);
 			}
 		}
+
 		if (!plate_data_list[i]->pattern_file.empty()) {
 			if (boost::filesystem::exists(plate_data_list[i]->pattern_file)) {
 				//no need to load pattern data currently

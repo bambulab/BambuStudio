@@ -66,7 +66,7 @@ struct PlateData
     std::string     pattern_bbox_file;
     std::string     gcode_prediction;
     std::string     gcode_weight;
-    std::vector<FilamentInfo> slice_flaments_info;
+    std::vector<FilamentInfo> slice_filaments_info;
     bool            is_sliced_valid = false;
     bool            toolpath_outside {false};
 

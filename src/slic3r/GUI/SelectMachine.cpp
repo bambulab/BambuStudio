@@ -1919,31 +1919,32 @@ void SelectMachineDialog::set_default()
         bmcache.parse_color(colour, rgb);
 
         auto          colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2]);
-        if (extruder >= materials.size())
+        if (extruder >= materials.size() || extruder < 0)
             continue;
         MaterialItem *item       = new MaterialItem(this, colour_rgb, _L(materials[extruder]));
         m_sizer_material->Add(item, 0, wxLEFT | wxRIGHT, FromDIP(5));
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {
             auto    mouse_pos = ClientToScreen(e.GetPosition());
             wxPoint rect      = item->ClientToScreen(wxPoint(0, 0));
+            // update ams data
+            DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+            if (!dev_manager) return;
+            MachineObject *obj_        = dev_manager->get_selected_machine();
 
-        //    auto    mapping = new AmsMapingPopup(this);
-        //    wxPoint pos     = item->ClientToScreen(wxPoint(0, 0));
-        //    pos.y += item->GetRect().height;
-        //    mapping->Position(pos, wxSize(0, 0));
+            if (obj_->is_support_ams_mapping()) {
+                auto    mapping = new AmsMapingPopup(this);
+                wxPoint pos     = item->ClientToScreen(wxPoint(0, 0));
+                pos.y += item->GetRect().height;
+                mapping->Position(pos, wxSize(0, 0));
 
-        //    // update ams data
-        //    DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-        //    if (!dev_manager) return;
-        //    MachineObject *obj_        = dev_manager->get_selected_machine();
-
-        //    if (obj_ && obj_->has_ams()) {
-        //        mapping->update_ams_data(obj_->amsList);
-        //        mapping->set_tag_texture(materials[extruder]);
-        //        mapping->Popup();
-        //    }
-        //    e.Skip();
-        //});
+                if (obj_ && obj_->has_ams()) {
+                    mapping->update_ams_data(obj_->amsList);
+                    mapping->set_tag_texture(materials[extruder]);
+                    mapping->Popup();
+                }
+                e.Skip();
+            }
+        });
 
         item->Bind(wxEVT_LEFT_DOWN, [this, item, extruder](wxMouseEvent &e) {
             Freeze();
@@ -1968,7 +1969,7 @@ void SelectMachineDialog::set_default()
         m_materialList[i]       = material_item;
 
         // build for ams mapping
-        if (extruder < materials.size()) {
+        if (extruder < materials.size() && extruder >= 0) {
             FilamentInfo info;
             info.id    = extruder;
             info.type  = materials[extruder];
