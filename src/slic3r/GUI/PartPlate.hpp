@@ -207,6 +207,7 @@ public:
     static const int plate_thumbnail_height = 512;
 
     ThumbnailData cali_thumbnail_data;
+    PlateBBoxData cali_bboxes_data;
 
     //set the plate's index
     void set_index(int index);
@@ -361,6 +362,8 @@ public:
     int load_thumbnail_data(std::string filename);
     //load pattern thumbnail data from file
     int load_pattern_thumbnail_data(std::string filename);
+    //load pattern box data from file
+    int load_pattern_box_data(std::string filename);
 
     void print() const;
 

@@ -2109,9 +2109,9 @@ int PartPlate::load_pattern_thumbnail_data(std::string filename)
 	if (result) {
 		cali_thumbnail_data.set(img.GetWidth(), img.GetHeight());
 		for (int i = 0; i < img.GetWidth() * img.GetHeight(); i++) {
-			memcpy(&thumbnail_data.pixels[4 * i], (unsigned char*)(img.GetData() + 3 * i), 3);
+			memcpy(&cali_thumbnail_data.pixels[4 * i], (unsigned char*)(img.GetData() + 3 * i), 3);
 			if (img.HasAlpha()) {
-				thumbnail_data.pixels[4 * i + 3] = *(unsigned char*)(img.GetAlpha() + i);
+				cali_thumbnail_data.pixels[4 * i + 3] = *(unsigned char*)(img.GetAlpha() + i);
 			}
 		}
 	}
@@ -2121,6 +2121,24 @@ int PartPlate::load_pattern_thumbnail_data(std::string filename)
 	return 0;
 }
 
+//load pattern box data from file
+int PartPlate::load_pattern_box_data(std::string filename)
+{
+    try {
+        nlohmann::json j;
+        boost::nowide::ifstream ifs(filename);
+        ifs >> j;
+
+        PlateBBoxData bbox_data;
+        bbox_data.from_json(j);
+        cali_bboxes_data = bbox_data;
+        return 0;
+    }
+    catch(std::exception &ex) {
+        BOOST_LOG_TRIVIAL(trace) << boost::format("catch an exception %1%")%ex.what();
+        return -1;
+    }
+}
 
 void PartPlate::print() const
 {
@@ -4009,6 +4027,11 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
             if (m_plate_list[i]->get_slice_result() && m_plate_list[i]->is_slice_result_valid()) {
                 // BBS only include current palte_idx
                 if (plate_idx == i || plate_idx == -1) {
+                    //load calibration thumbnail
+                    if (m_plate_list[i]->cali_thumbnail_data.is_valid())
+                        plate_data_item->pattern_file = "valid_pattern";
+                    if (m_plate_list[i]->cali_bboxes_data.is_valid())
+                        plate_data_item->pattern_bbox_file = "valid_pattern_bbox";
                     plate_data_item->gcode_file       = m_plate_list[i]->m_gcode_result->filename;
                     plate_data_item->is_sliced_valid  = true;
                     plate_data_item->gcode_prediction = std::to_string(
@@ -4086,7 +4109,13 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		}
 		if (!plate_data_list[i]->pattern_file.empty()) {
 			if (boost::filesystem::exists(plate_data_list[i]->pattern_file)) {
-				m_plate_list[index]->load_pattern_thumbnail_data(plate_data_list[i]->pattern_file);
+				//no need to load pattern data currently
+				//m_plate_list[index]->load_pattern_thumbnail_data(plate_data_list[i]->pattern_file);
+			}
+		}
+		if (!plate_data_list[i]->pattern_bbox_file.empty()) {
+			if (boost::filesystem::exists(plate_data_list[i]->pattern_bbox_file)) {
+				m_plate_list[index]->load_pattern_box_data(plate_data_list[i]->pattern_bbox_file);
 			}
 		}
 

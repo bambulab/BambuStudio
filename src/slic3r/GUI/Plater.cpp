@@ -8090,8 +8090,10 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
             }
             thumbnails.push_back(thumbnail_data);
 
-            calibration_thumbnails.push_back(new ThumbnailData());
-            plate_bboxes.push_back(new PlateBBoxData());
+            ThumbnailData* calibration_data = &p->partplate_list.get_plate(i)->cali_thumbnail_data;
+            calibration_thumbnails.push_back(calibration_data);
+            PlateBBoxData* plate_bbox_data = &p->partplate_list.get_plate(i)->cali_bboxes_data;
+            plate_bboxes.push_back(plate_bbox_data);
         }
 
         if (p->partplate_list.get_curr_plate()->is_slice_result_valid()) {
@@ -8103,7 +8105,11 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
             const int thumbnail_width = 2560;
             const int thumbnail_height = 2560;
             p->generate_calibration_thumbnail(*calibration_data, thumbnail_width, thumbnail_height, calibration_params);
-            *plate_bboxes[index] = p->generate_first_layer_bbox();
+            if (using_exported_file()) {
+                //do nothing
+            }
+            else
+                *plate_bboxes[index] = p->generate_first_layer_bbox();
         }
     }
 
@@ -8199,11 +8205,10 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
 
     for (unsigned int i = 0; i < calibration_thumbnails.size(); i++)
     {
-        delete calibration_thumbnails[i];
+        //release the data here, as it will always be generated when export
+        calibration_thumbnails[i]->reset();
     }
-    for (int i = 0; i < plate_bboxes.size(); i++)
-        delete plate_bboxes[i];
-    thumbnails.clear();
+
     return 0;
 }
 

@@ -232,6 +232,7 @@ static constexpr const char* LOCK_ATTR = "locked";
 static constexpr const char* GCODE_FILE_ATTR = "gcode_file";
 static constexpr const char* THUMBNAIL_FILE_ATTR = "thumbnail_file";
 static constexpr const char* PATTERN_FILE_ATTR = "pattern_file";
+static constexpr const char* PATTERN_BBOX_FILE_ATTR = "pattern_bbox_file";
 static constexpr const char* OBJECT_ID_ATTR = "object_id";
 static constexpr const char* INSTANCEID_ATTR = "instance_id";
 static constexpr const char* PLATERID_ATTR = "plater_id";
@@ -1467,6 +1468,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->slice_flaments_info = it->second->slice_flaments_info;
             plate_data_list[it->first-1]->thumbnail_file = (m_load_restore || it->second->thumbnail_file.empty()) ? it->second->thumbnail_file : m_backup_path + "/" + it->second->thumbnail_file;
             plate_data_list[it->first-1]->pattern_file = (m_load_restore || it->second->pattern_file.empty()) ? it->second->pattern_file : m_backup_path + "/" + it->second->pattern_file;
+            plate_data_list[it->first-1]->pattern_bbox_file = (m_load_restore || it->second->pattern_bbox_file.empty()) ? it->second->pattern_bbox_file : m_backup_path + "/" + it->second->pattern_bbox_file;
             it++;
         }
 
@@ -3038,6 +3040,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             else if (key == PATTERN_FILE_ATTR)
             {
                 m_curr_plater->pattern_file = value;
+            }
+            else if (key == PATTERN_BBOX_FILE_ATTR)
+            {
+                m_curr_plater->pattern_bbox_file = value;
             }
             else if (key == INSTANCEID_ATTR)
             {
@@ -5327,9 +5333,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << THUMBNAIL_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << thumbnail_file_in_3mf << "\"/>\n";
                 }
 
-                if (plate_data->pattern_thumbnail.is_valid()) {
+                if (!plate_data->pattern_file.empty()) {
                     std::string pattern_file_in_3mf = (boost::format(PATTERN_FILE_FORMAT) % (plate_data->plate_index + 1)).str();
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PATTERN_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << pattern_file_in_3mf << "\"/>\n";
+                }
+                if (!plate_data->pattern_bbox_file.empty()) {
+                    std::string pattern_bbox_file_in_3mf = (boost::format(PATTERN_CONFIG_FILE_FORMAT) % (plate_data->plate_index + 1)).str();
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PATTERN_BBOX_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << pattern_bbox_file_in_3mf << "\"/>\n";
                 }
 
                 if (instance_size > 0)
