@@ -105,6 +105,7 @@ private:
 class MachineObjectPanel : public wxPanel
 {
 private:
+    bool        m_is_my_devices {false};
     bool        m_show_edit{false};
     bool        m_show_bind{false};
     bool        m_hover {false};
@@ -142,12 +143,11 @@ public:
     void show_bind_dialog();
  
     void set_printer_state(PrinterState state);
-    //void set_can_bind(bool canbind);
 
     void show_printer_bind(bool show, PrinterBindState state);
     void show_edit_printer_name(bool show);
 
-    void update_machine_info(MachineObject *info);
+    void update_machine_info(MachineObject *info, bool is_my_devices = false);
 
 protected:
     void OnPaint(wxPaintEvent &event);
@@ -155,12 +155,11 @@ protected:
     void doRender(wxDC &dc);
     void on_mouse_enter(wxMouseEvent &evt);
     void on_mouse_leave(wxMouseEvent &evt);
-    void on_mouse_left_down(wxMouseEvent &evt);
     void on_mouse_left_up(wxMouseEvent &evt);
 };
 
 #define SELECT_MACHINE_POPUP_SIZE wxSize(FromDIP(218), FromDIP(364))
-#define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(210), FromDIP(306))  
+#define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(214), FromDIP(360))  
 #define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(180), FromDIP(35))
 #define SELECT_MACHINE_GREY900 wxColour(38, 46, 48)
 #define SELECT_MACHINE_GREY600 wxColour(144,144,144)
@@ -176,7 +175,6 @@ public:
     MachineObjectPanel *mPanel;
 };
 
-WX_DEFINE_ARRAY(MachinePanel*, MachinePanelHash);
 
 class ThumbnailPanel;
 
@@ -204,7 +202,7 @@ private:
     wxWindow *                        m_panel_body{nullptr};
     wxTimer *                         m_refresh_timer{nullptr};
     std::vector<MachinePanel*>        m_user_list_machine_panel;
-    std::vector<MachinePanel*>        m_list_Machine_panel;
+    std::vector<MachinePanel*>        m_other_list_machine_panel;
     boost::thread*                    get_print_info_thread{ nullptr };
     std::string                       m_print_info;
     bool                              m_dismiss { false };
@@ -213,20 +211,13 @@ private:
     std::map<std::string, MachineObject*> m_free_machine_list;
 
 private:
-    void OnMouse(wxMouseEvent &event);
     void OnLeftUp(wxMouseEvent &event);
-    void OnSize(wxSizeEvent &event);
-    void OnSetFocus(wxFocusEvent &event);
-    void OnKillFocus(wxFocusEvent &event);
     void on_timer(wxTimerEvent &event);
 
 	void      update_other_devices();
     void      update_user_devices();
+    void      on_dissmiss_win(wxCommandEvent &event);
     wxWindow *create_title_panel(wxString text);
-
-private:
-    wxDECLARE_ABSTRACT_CLASS(SelectMachinePopup);
-    wxDECLARE_EVENT_TABLE();
 };
 
 #define SELECT_MACHINE_DIALOG_BUTTON_SIZE wxSize(FromDIP(68), FromDIP(24))
@@ -383,6 +374,11 @@ wxDECLARE_EVENT(EVT_FINISHED_UPDATE_MACHINE_LIST, wxCommandEvent);
 wxDECLARE_EVENT(EVT_REQUEST_BIND_LIST, wxCommandEvent);
 wxDECLARE_EVENT(EVT_WILL_DISMISS_MACHINE_LIST, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPDATE_WINDOWS_POSITION, wxCommandEvent);
+wxDECLARE_EVENT(EVT_DISSMISS_MACHINE_LIST, wxCommandEvent);
+wxDECLARE_EVENT(EVT_CONNECT_LAN_PRINT, wxCommandEvent);
+wxDECLARE_EVENT(EVT_EDIT_PRINT_NAME, wxCommandEvent);
+wxDECLARE_EVENT(EVT_UNBIND_MACHINE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_BIND_MACHINE, wxCommandEvent);
 
 class EditDevNameDialog : public DPIDialog
 {
