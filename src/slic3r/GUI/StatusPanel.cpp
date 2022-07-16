@@ -1428,46 +1428,14 @@ void StatusPanel::update_cali(MachineObject *obj)
     }
 }
 
-void StatusPanel::update_subtask(MachineObject *obj)
+void StatusPanel::update_left_time(int mc_left_time)
 {
-    if (!obj) return;
-
-    if (!obj->is_in_printing()
-        || obj->is_system_printing()
-        ) {
-        reset_printing_values();
-        return;
-    }
-
-    // update button enable status
-    if (obj->can_abort()) {
-        m_button_abort->Enable();
-    } else {
-        m_button_abort->Enable(false);
-    }
-
-    if (obj->can_pause() || obj->can_resume()) {
-        m_button_pause_resume->Enable();
-        if (obj->can_resume())
-            m_button_pause_resume->SetLabel(_L("Resume"));
-        else
-            m_button_pause_resume->SetLabel(_L("Pause"));
-    } else {
-        m_button_pause_resume->Enable(false);
-    }
-
-    if (obj->is_sdcard_printing()) {
-        update_sdcard_subtask(obj);
-    } else {
-        update_cloud_subtask(obj);
-    }
-
     // update gcode progress
     std::string left_time;
     wxString    left_time_text = NA_STR;
 
     try {
-        left_time = get_bbl_monitor_time_dhm(obj->mc_left_time);
+        left_time = get_bbl_monitor_time_dhm(mc_left_time);
     } catch (...) {
         ;
     }
@@ -1475,12 +1443,50 @@ void StatusPanel::update_subtask(MachineObject *obj)
 
     // update current subtask progress
     m_staticText_progress_left->SetLabelText(left_time_text);
+}
 
-    if (!obj->is_printing_finished()) {
-        // update printing stage
-        m_printing_stage_value->SetLabelText(obj->get_curr_stage());
+void StatusPanel::update_subtask(MachineObject *obj)
+{
+    if (!obj) return;
+
+    if (obj->is_system_printing()) {
+        reset_printing_values();
+    } else if (obj->is_in_printing()) {
+        if (obj->is_in_prepare()) {
+            m_button_abort->Enable(false);
+            m_button_pause_resume->Enable(false);
+            m_button_pause_resume->SetLabel(_L("Pause"));
+            wxString prepare_text = wxString::Format(_L("Preparing the print job"));
+            m_printing_stage_value->SetLabelText(prepare_text);
+            m_gauge_progress->SetValue(obj->gcode_file_prepare_percent);
+            m_staticText_progress_percent->SetLabelText(wxString::Format("%d%%", obj->gcode_file_prepare_percent));
+            m_staticText_progress_left->SetLabel(NA_STR);
+            m_staticText_progress_left->SetLabelText(NA_STR);
+            wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
+            m_staticText_subtask_value->SetLabelText(subtask_text);
+        } else {
+            if (obj->can_resume())
+                m_button_pause_resume->SetLabel(_L("Resume"));
+            else
+                m_button_pause_resume->SetLabel(_L("Pause"));
+            m_button_abort->Enable(true);
+            m_button_pause_resume->Enable(true);
+            // update printing stage
+            m_printing_stage_value->SetLabelText(obj->get_curr_stage());
+            update_left_time(obj->mc_left_time);
+            m_gauge_progress->SetValue(obj->subtask_->task_progress);
+            m_staticText_progress_percent->SetLabelText(wxString::Format("%d%%", obj->subtask_->task_progress));
+        }
+        wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
+        m_staticText_subtask_value->SetLabelText(subtask_text);
+        //update thumbnail
+        if (obj->is_sdcard_printing()) {
+            update_sdcard_subtask(obj);
+        } else {
+            update_cloud_subtask(obj);
+        }
     } else {
-        m_printing_stage_value->SetLabelText("");
+        reset_printing_values();
     }
 
     this->Layout();
@@ -1517,36 +1523,22 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
             }
         }
     }
-
-    // update subtask name
-    wxString subtask_text;
-    subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
-    
-    m_staticText_subtask_value->SetLabelText(subtask_text);
-
-    m_gauge_progress->SetValue(obj->subtask_->task_progress);
-    m_staticText_progress_percent->SetLabelText(wxString::Format("%d%%", obj->subtask_->task_progress));
 }
 
 void StatusPanel::update_sdcard_subtask(MachineObject *obj)
 {
     if (!obj) return;
 
-    wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
-    m_staticText_subtask_value->SetLabelText(subtask_text);
-
     if (!m_load_sdcard_thumbnail) {
         m_bitmap_thumbnail->SetBitmap(m_thumbnail_sdcard);
         m_load_sdcard_thumbnail = true;
     }
-
-    m_gauge_progress->SetValue(obj->subtask_->task_progress);
-    m_staticText_progress_percent->SetLabelText(wxString::Format("%d%%", obj->subtask_->task_progress));
 }
 
 void StatusPanel::reset_printing_values()
 {
     m_button_pause_resume->Enable(false);
+    m_button_pause_resume->SetLabel(_L("Pause"));
     m_button_abort->Enable(false);
     m_gauge_progress->SetValue(0);
     m_staticText_subtask_value->SetLabelText("N/A");

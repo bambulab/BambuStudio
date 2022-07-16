@@ -272,6 +272,7 @@ protected:
     /* update apis */
     void update(MachineObject* obj);
     void show_printing_status(bool ctrl_area = true, bool temp_area = true);
+    void update_left_time(int mc_left_time);
     void update_subtask(MachineObject *obj);
     void update_cloud_subtask(MachineObject *obj);
     void update_sdcard_subtask(MachineObject *obj);

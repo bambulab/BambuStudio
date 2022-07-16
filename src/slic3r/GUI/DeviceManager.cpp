@@ -844,7 +844,7 @@ std::map<int, MachineObject::ModuleVersionInfo> MachineObject::get_ams_version()
 
 bool MachineObject::is_system_printing()
 {
-    if (is_in_calibration())
+    if (is_in_calibration() && is_in_printing_status(print_status))
         return true;
     //FIXME
     //if (print_type == "system" && is_in_printing_status(print_status))
@@ -1305,6 +1305,11 @@ bool MachineObject::is_in_printing()
     return false;
 }
 
+bool MachineObject::is_in_prepare()
+{
+    return print_status == "PREPARE";
+}
+
 bool MachineObject::is_printing_finished()
 {
     if (print_status.compare("FINISH") == 0
@@ -1328,6 +1333,7 @@ void MachineObject::reset()
     camera_recording = false;
     camera_timelapse = false;
     printing_speed_mag = 100;
+    gcode_file_prepare_percent = 0;
     iot_print_status = "";
     print_status = "";
 
@@ -1543,7 +1549,14 @@ int MachineObject::parse_json(std::string payload)
 
                     if (jj.contains("gcode_file"))
                         this->m_gcode_file = jj["gcode_file"].get<std::string>();
-
+                    if (jj.contains("gcode_file_prepare_percent")) {
+                        std::string percent_str = jj["gcode_file_prepare_percent"].get<std::string>();
+                        if (!percent_str.empty()) {
+                            try{
+                                this->gcode_file_prepare_percent = atoi(percent_str.c_str());
+                            } catch(...) {}
+                        }
+                    }
                     if (jj.contains("project_id") 
                         && jj.contains("profile_id")
                         && jj.contains("subtask_id")

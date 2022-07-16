@@ -455,6 +455,7 @@ public:
     BBLSliceInfo* slice_info {nullptr};
     int plate_index { -1 };
     std::string m_gcode_file;
+    int gcode_file_prepare_percent = 0;
     BBLSubTask* subtask_;
     std::string obj_subtask_id;     // subtask_id == 0 for sdcard
     std::string subtask_name;
@@ -517,6 +518,7 @@ public:
     bool can_pause();
     bool can_abort();
     bool is_in_printing();
+    bool is_in_prepare();
     bool is_printing_finished();
     void reset_update_time();
     void reset();
