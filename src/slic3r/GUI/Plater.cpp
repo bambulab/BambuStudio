@@ -8440,7 +8440,7 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
 #if !BBL_RELEASE_TO_PUBLIC
     //only save model in QA environment
     std::string sel = get_app_config()->get("iot_environment");
-    if (sel == ENV_QAT_HOST)
+    if (sel == ENV_PRE_HOST)
         strategy = SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode;
 #endif
 
