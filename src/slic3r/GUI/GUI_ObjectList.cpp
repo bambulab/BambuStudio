@@ -2237,14 +2237,15 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
 
                 // update extruder color in ObjectList
                 wxDataViewItem obj_item = m_objects_model->GetItemById(obj_idx);
-                // BBS
-#if 0
                 if (obj_item) {
                     // BBS
+                    if (last_volume->config.has("extruder")) {
+                        int extruder_id = last_volume->config.opt_int("extruder");
+                        object->config.set("extruder", extruder_id);
+                    }
                     wxString extruder = object->config.has("extruder") ? wxString::Format("%d", object->config.extruder()) : _devL("1");
                     m_objects_model->SetExtruder(extruder, obj_item);
                 }
-#endif
                 // add settings to the object, if it has them
                 add_settings_item(obj_item, &object->config.get());
             }
