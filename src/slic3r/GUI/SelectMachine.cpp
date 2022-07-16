@@ -1697,6 +1697,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         }
         return;
     }
+
     reset_timeout();
     
     // reading done
@@ -1922,11 +1923,10 @@ void SelectMachineDialog::set_default()
         bmcache.parse_color(colour, rgb);
 
         auto          colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2]);
+        if (extruder >= materials.size())
+            continue;
         MaterialItem *item       = new MaterialItem(this, colour_rgb, _L(materials[extruder]));
         m_sizer_material->Add(item, 0, wxLEFT | wxRIGHT, FromDIP(5));
-
-        // item->Layout();
-
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {
             auto    mouse_pos = ClientToScreen(e.GetPosition());
             wxPoint rect      = item->ClientToScreen(wxPoint(0, 0));

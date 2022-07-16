@@ -1474,8 +1474,13 @@ void StatusPanel::update_subtask(MachineObject *obj)
             // update printing stage
             m_printing_stage_value->SetLabelText(obj->get_curr_stage());
             update_left_time(obj->mc_left_time);
-            m_gauge_progress->SetValue(obj->subtask_->task_progress);
-            m_staticText_progress_percent->SetLabelText(wxString::Format("%d%%", obj->subtask_->task_progress));
+            if (obj->subtask_) {
+                m_gauge_progress->SetValue(obj->subtask_->task_progress);
+                m_staticText_progress_percent->SetLabelText(wxString::Format("%d%%", obj->subtask_->task_progress));
+            } else {
+                m_gauge_progress->SetValue(0);
+                m_staticText_progress_percent->SetLabelText(NA_STR);
+            }
         }
         wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
         m_staticText_subtask_value->SetLabelText(subtask_text);
@@ -1541,10 +1546,10 @@ void StatusPanel::reset_printing_values()
     m_button_pause_resume->SetLabel(_L("Pause"));
     m_button_abort->Enable(false);
     m_gauge_progress->SetValue(0);
-    m_staticText_subtask_value->SetLabelText("N/A");
+    m_staticText_subtask_value->SetLabelText(NA_STR);
     m_printing_stage_value->SetLabelText("");
-    m_staticText_progress_left->SetLabelText("N/A");
-    m_staticText_progress_percent->SetLabelText("N/A");
+    m_staticText_progress_left->SetLabelText(NA_STR);
+    m_staticText_progress_percent->SetLabelText(NA_STR);
     m_bitmap_thumbnail->SetBitmap(m_thumbnail_placeholder);
     m_start_loading_thumbnail = false;
     m_load_sdcard_thumbnail   = false;

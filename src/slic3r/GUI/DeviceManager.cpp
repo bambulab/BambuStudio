@@ -1741,9 +1741,15 @@ int MachineObject::parse_json(std::string payload)
                                 upgrade_force_upgrade = jj["upgrade_state"]["force_upgrade"].get<bool>();
                             if (jj["upgrade_state"].contains("err_code"))
                                 upgrade_err_code = jj["upgrade_state"]["err_code"].get<int>();
-                            if (jj["upgrade_state"].contains("dis_state"))
+                            if (jj["upgrade_state"].contains("dis_state")) {
+                                if (upgrade_display_state != jj["upgrade_state"]["dis_state"].get<int>()
+                                    && jj["upgrade_state"]["dis_state"].get<int>() == 3) {
+                                    GUI::wxGetApp().CallAfter([this] {
+                                        this->command_get_version();
+                                    });
+                                }
                                 upgrade_display_state = jj["upgrade_state"]["dis_state"].get<int>();
-                            else {
+                            } else {
                                 //BBS compatibility with old version
                                 if (upgrade_status == "DOWNLOADING"
                                     || upgrade_status == "FLASHING"

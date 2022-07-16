@@ -436,6 +436,11 @@ void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event)
     if (result == 0) {
         DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
         if (!dev) return;
+        // clean local machine access code info
+        MachineObject* obj = dev->get_local_machine(m_machine_info->dev_id);
+        if (obj) {
+            obj->set_access_code("");
+        }
         dev->update_user_machine_list_info();
 
         m_status_text->SetLabelText(_L("Log out successful."));
