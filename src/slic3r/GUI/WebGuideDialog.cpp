@@ -926,6 +926,18 @@ int GuideFrame::LoadProfile()
     return 0;
 }
 
+void StringReplace(string &strBase, string strSrc, string strDes)
+{
+    string::size_type pos    = 0;
+    string::size_type srcLen = strSrc.size();
+    string::size_type desLen = strDes.size();
+    pos                      = strBase.find(strSrc, pos);
+    while ((pos != string::npos)) {
+        strBase.replace(pos, srcLen, strDes);
+        pos = strBase.find(strSrc, (pos + desLen));
+    }
+}
+
 
 int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath)
 {
@@ -968,7 +980,9 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
             //wxLogMessage("GUIDE: json_path2  loaded");
 
             OneModel["vendor"]          = strVendor;
-            OneModel["nozzle_diameter"] = pm["nozzle_diameter"];
+            std::string NozzleOpt = pm["nozzle_diameter"];
+            StringReplace(NozzleOpt, " ", "");
+            OneModel["nozzle_diameter"] = NozzleOpt;
             OneModel["materials"]       = pm["default_materials"];
 
             //wxString strCoverPath = wxString::Format("%s\\%s\\%s_cover.png", strFolder, strVendor, std::string(s1.mb_str()));

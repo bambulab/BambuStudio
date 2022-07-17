@@ -14,7 +14,7 @@ var LangText={
 		"t12":"Clear all",
 		"t13":"mm nozzle",
 		"t14":"Filament Selection",
-		"t15":"printer",
+		"t15":"Printer",
 		"t16":"Filament type",
 		"t17":"Vendor",
 		"t18":"error",
