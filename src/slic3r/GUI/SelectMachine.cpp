@@ -316,12 +316,13 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
 
 }
 
-SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
+SelectMachinePopup::SelectMachinePopup(wxWindow *parent) 
     : wxPopupTransientWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS), m_dismiss(false)
 {
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
+
 
     SetSize(SELECT_MACHINE_POPUP_SIZE);
     SetMinSize(SELECT_MACHINE_POPUP_SIZE);
@@ -741,8 +742,8 @@ void SelectMachineDialog::stripWhiteSpace(std::string& str)
 
 SelectMachineDialog::SelectMachineDialog(Plater *plater)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send print job to"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
-    , m_plater(plater)
-    , m_export_3mf_cancel(false)
+    , m_plater(plater), m_export_3mf_cancel(false)
+    , m_mapping_popup(AmsMapingPopup(this))
 {
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
@@ -851,7 +852,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_button_refresh->SetTextColor(*wxWHITE);
     m_button_refresh->SetSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_refresh->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
-    m_button_refresh->SetCornerRadius(FromDIP(12));
+    m_button_refresh->SetCornerRadius(FromDIP(10));
     m_button_refresh->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_refresh, this);
     m_sizer_printer->Add(m_button_refresh, 0, wxALL | wxLEFT, FromDIP(5));
 
@@ -904,7 +905,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_button_ensure->SetTextColor(*wxWHITE);
     m_button_ensure->SetSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
-    m_button_ensure->SetCornerRadius(FromDIP(12));
+    m_button_ensure->SetCornerRadius(FromDIP(10));
 
     m_button_ensure->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_ok, this);
     m_sizer_pcont->Add(m_button_ensure, 0, wxEXPAND | wxBOTTOM, FromDIP(10));
@@ -1817,7 +1818,9 @@ void SelectMachineDialog::Enable_Send_Button(bool en)
 void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
     m_button_refresh->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
+    m_button_refresh->SetCornerRadius(FromDIP(10));
     m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
+    m_button_ensure->SetCornerRadius(FromDIP(10));
     m_status_bar->msw_rescale();
     Fit();
     Refresh();
@@ -1923,30 +1926,8 @@ void SelectMachineDialog::set_default()
             continue;
         MaterialItem *item       = new MaterialItem(this, colour_rgb, _L(materials[extruder]));
         m_sizer_material->Add(item, 0, wxLEFT | wxRIGHT, FromDIP(5));
+
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {
-            auto    mouse_pos = ClientToScreen(e.GetPosition());
-            wxPoint rect      = item->ClientToScreen(wxPoint(0, 0));
-            // update ams data
-            DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-            if (!dev_manager) return;
-            MachineObject *obj_        = dev_manager->get_selected_machine();
-
-            if (obj_->is_support_ams_mapping()) {
-                auto    mapping = new AmsMapingPopup(this);
-                wxPoint pos     = item->ClientToScreen(wxPoint(0, 0));
-                pos.y += item->GetRect().height;
-                mapping->Position(pos, wxSize(0, 0));
-
-                if (obj_ && obj_->has_ams()) {
-                    mapping->update_ams_data(obj_->amsList);
-                    mapping->set_tag_texture(materials[extruder]);
-                    mapping->Popup();
-                }
-                e.Skip();
-            }
-        });
-
-        item->Bind(wxEVT_LEFT_DOWN, [this, item, extruder](wxMouseEvent &e) {
             Freeze();
             MaterialHash::iterator iter = m_materialList.begin();
             while (iter != m_materialList.end()) {
@@ -1960,7 +1941,27 @@ void SelectMachineDialog::set_default()
             m_current_filament_id = extruder;
             item->on_selected();
             Thaw();
-            e.Skip();
+        });
+
+        item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent &e) {
+            auto    mouse_pos = ClientToScreen(e.GetPosition());
+            wxPoint rect      = item->ClientToScreen(wxPoint(0, 0));
+            // update ams data
+            DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+            if (!dev_manager) return;
+            MachineObject *obj_ = dev_manager->get_selected_machine();
+
+            if (obj_ && obj_->is_support_ams_mapping()) {
+                wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
+                pos.y += item->GetRect().height;
+                m_mapping_popup.Position(pos, wxSize(0, 0));
+
+                if (obj_ && obj_->has_ams()) {
+                    m_mapping_popup.update_ams_data(obj_->amsList);
+                    m_mapping_popup.set_tag_texture(materials[extruder]);
+                    m_mapping_popup.Popup();
+                }
+            }
         });
 
         Material *material_item = new Material();

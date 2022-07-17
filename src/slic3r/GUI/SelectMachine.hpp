@@ -339,12 +339,13 @@ public:
 
 protected:
     std::vector<MachineObject *> m_list;
-    wxDataViewCtrl *             m_dataViewListCtrl_machines;
-    wxStaticText *               m_staticText_left;
-    wxHyperlinkCtrl *            m_hyperlink_add_machine;
-    wxGauge *                    m_gauge_job_progress;
-    wxPanel *                    m_panel_status;
-    wxButton *                   m_button_cancel;
+    wxDataViewCtrl *             m_dataViewListCtrl_machines{nullptr};
+    wxStaticText *               m_staticText_left{nullptr};
+    wxHyperlinkCtrl *            m_hyperlink_add_machine{nullptr};
+    wxGauge *                    m_gauge_job_progress{nullptr};
+    wxPanel *                    m_panel_status{nullptr};
+    wxButton *                   m_button_cancel{nullptr};
+    AmsMapingPopup               m_mapping_popup{nullptr};
 
     int                          timeout_count = 0;
     bool                        is_timeout();

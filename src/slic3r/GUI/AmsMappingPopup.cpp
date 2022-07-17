@@ -113,6 +113,14 @@ void MaterialItem::render(wxDC &dc)
      auto material_name_colour = m_material_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26,0x2E,0x30);
      dc.SetTextForeground(material_name_colour);
 
+
+     if (dc.GetTextExtent(m_material_name).x > GetSize().x) {
+         dc.SetFont(::Label::Body_10);
+         auto name       = m_material_name.substr(0, 3) + "." + m_material_name.substr(m_material_name.length() - 1);
+         m_material_name = name;
+     }
+
+
      auto material_txt_size = dc.GetTextExtent(m_material_name);
      dc.DrawText(m_material_name, wxPoint((MATERIAL_ITEM_SIZE.x - material_txt_size.x) / 2, FromDIP(3)));
 
@@ -186,10 +194,6 @@ void MaterialItem::doRender(wxDC &dc)
      Layout();
  }
 
-void AmsMapingPopup::Popup(wxWindow *focus /*= NULL*/)
-{
-    wxPopupTransientWindow::Popup();
-}
 
 void AmsMapingPopup::update_materials_list(std::vector<std::string> list) 
 { 
@@ -210,6 +214,11 @@ bool AmsMapingPopup::is_match_material(int id, std::string material)
 
 void AmsMapingPopup::update_ams_data(std::map<std::string, Ams*> amsList) 
 { 
+    if (m_amsmapping_sizer_list.size() > 0) {
+        for (wxBoxSizer *bz : m_amsmapping_sizer_list) { bz->Clear(true); }
+        m_amsmapping_sizer_list.clear();
+    }
+   
     std::map<std::string, Ams *>::iterator ams_iter;
 
     BOOST_LOG_TRIVIAL(trace) << "ams_mapping total count " << amsList.size();
@@ -254,9 +263,7 @@ void AmsMapingPopup::update_ams_data(std::map<std::string, Ams*> amsList)
 
 void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
 { 
-    wxBoxSizer *sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
-    
-
+    auto sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
     for (auto i = 0; i < tray_data.size(); i++) {
         wxBoxSizer *sizer_mapping_item   = new wxBoxSizer(wxVERTICAL);
 
@@ -342,17 +349,17 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
             });
         }
 
-
         sizer_mapping_item->Add(number, 0, wxALIGN_CENTER_HORIZONTAL, 0);
         sizer_mapping_item->Add(m_filament_name, 0, wxALIGN_CENTER_HORIZONTAL, 0);
         sizer_mapping_list->Add(sizer_mapping_item, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(5));
+        m_amsmapping_sizer_list.push_back(sizer_mapping_list);
     }
     m_sizer_main->Add(sizer_mapping_list, 0, wxALIGN_CENTER_HORIZONTAL, 0);
 }
 
 void AmsMapingPopup::OnDismiss()
 {
-    delete this;
+
 }
 
 bool AmsMapingPopup::ProcessLeftDown(wxMouseEvent &event) 
