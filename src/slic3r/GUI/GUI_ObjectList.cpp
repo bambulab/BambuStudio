@@ -264,6 +264,8 @@ ObjectList::ObjectList(wxWindow* parent) :
         // which seems to be working as of now.
         this->CallAfter([this](){ ensure_current_item_visible(); });
 #else
+        update_name_column_width();
+
         ensure_current_item_visible();
 #endif
         e.Skip();
@@ -768,17 +770,21 @@ void ObjectList::update_filament_colors()
 
 void ObjectList::update_name_column_width() const
 {
-    auto em = em_unit(const_cast<ObjectList*>(this));
-    int extra_width = 0;
+    wxSize client_size = this->GetClientSize();
+    bool p_vbar = this->GetParent()->HasScrollbar(wxVERTICAL);
+    bool p_hbar = this->GetParent()->HasScrollbar(wxHORIZONTAL);
 
+    auto em = em_unit(const_cast<ObjectList*>(this));
+    // BBS: walkaround for wxDataViewCtrl::HasScrollbar() does not return correct status
+    int others_width = 0;
     for (int cn = colName; cn < colCount; cn++) {
         if (cn != colName) {
-            if (GetColumn(cn)->IsHidden())
-                extra_width += m_columns_width[cn];
+            if (!GetColumn(cn)->IsHidden())
+                others_width += m_columns_width[cn];
         }
     }
 
-    GetColumn(colName)->SetWidth((m_columns_width[colName] + extra_width) * em);
+    GetColumn(colName)->SetWidth(client_size.x - (others_width)*em);
 }
 
 void ObjectList::set_filament_column_hidden(const bool hide) const

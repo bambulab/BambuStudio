@@ -301,7 +301,6 @@ struct Sidebar::priv
     wxPanel* m_panel_printer_content = nullptr;
 
     ObjectList          *m_object_list{ nullptr };
-    wxPanel             *m_object_panel;
     AuxiliaryDialog     *m_auxiliary_dialog{ nullptr };
     ObjectSettings      *object_settings{ nullptr };
 
@@ -335,10 +334,6 @@ Sidebar::priv::~priv()
 #if 0
     delete frequently_changed_parameters;
 #endif
-
-    // BBS
-    if (m_object_panel != nullptr)
-        delete m_object_panel;
 }
 
 void Sidebar::priv::show_preset_comboboxes()
@@ -724,14 +719,10 @@ Sidebar::Sidebar(Plater *parent)
 
     //add project content
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
-    p->m_object_panel = new wxPanel(p->scrolled);
-    p->m_object_list = new ObjectList(p->m_object_panel);
-    wxBoxSizer* object_sizer = new wxBoxSizer(wxVERTICAL);
-    object_sizer->Add(p->m_object_list, 1, wxEXPAND);
-    p->m_object_panel->SetSizer(object_sizer);
-    p->sizer_params->Add(p->m_object_panel, 1, wxEXPAND | wxTOP, 0);
+    p->m_object_list = new ObjectList(p->scrolled);
+    p->sizer_params->Add(p->m_object_list, 1, wxEXPAND | wxTOP, 0);
     scrolled_sizer->Add(p->sizer_params, 3, wxEXPAND | wxLEFT, 0);
-    p->m_object_panel->Hide();
+    p->m_object_list->Hide();
 
     p->m_auxiliary_dialog = new AuxiliaryDialog(this);
 
@@ -1336,7 +1327,7 @@ void Sidebar::update_ui_from_settings()
 
 bool Sidebar::show_object_list(bool show) const
 {
-    if (!p->m_object_panel->Show(show))
+    if (!p->m_object_list->Show(show))
         return false;
     p->scrolled->Layout();
     return true;
