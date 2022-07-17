@@ -936,7 +936,7 @@ void TreeSupport::detect_object_overhangs()
 
 
             if (bridge_no_support && overhang_areas.size()>0) {
-                m_object->remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, &overhang_areas, max_bridge_length);
+                m_object->remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, &overhang_areas, max_bridge_length, true);
             }
 
             TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);

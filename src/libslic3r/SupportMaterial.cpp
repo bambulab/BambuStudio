@@ -1339,7 +1339,7 @@ namespace SupportMaterialInternal {
         }
     }
 
-    static void remove_bridges_from_contactsxx(
+    static void remove_bridges_from_contacts(
         const PrintConfig   &print_config, 
         const Layer         &lower_layer,
         const Polygons      &lower_layer_polygons,
@@ -1667,7 +1667,7 @@ static inline Polygons detect_overhangs(
 
             if (bridge_no_support) {
                 //FIXME Expensive, potentially not precise enough. Misses gap fill extrusions, which bridge.
-                PrintObject::remove_bridges_from_contacts(&lower_layer, &layer, fw, &diff_polygons, max_bridge_length);
+                PrintObject::remove_bridges_from_contacts(&lower_layer, &layer, fw, &diff_polygons, max_bridge_length, false);
             }
 
             if (diff_polygons.empty() || offset(diff_polygons, -0.1 * fw).empty())

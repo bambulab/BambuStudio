@@ -2298,7 +2298,8 @@ void PrintObject::remove_bridges_from_contacts(
     const Layer* current_layer,
     float extrusion_width,
     PolysType* overhang_regions,
-    float max_bridge_length)
+    float max_bridge_length,
+    bool break_bridge)
 {
     // Extrusion width accounts for the roundings of the extrudates.
     // It is the maximum widh of the extrudate.
@@ -2339,14 +2340,16 @@ void PrintObject::remove_bridges_from_contacts(
                 if (supported[0] && supported[1]) {
                     Polylines lines;
                     if (polyline.length() > max_bridge_length + 10) {
-                        // equally divide the polyline
-                        float len = polyline.length() / ceil(polyline.length() / max_bridge_length);
-                        lines = polyline.equally_spaced_lines(len);
-                        for (auto& line : lines) {
-                            if (line.is_valid())
-                                line.clip_start(fw);
-                            if (line.is_valid())
-                                line.clip_end(fw);
+                        if (break_bridge) {
+                            // equally divide the polyline
+                            float len = polyline.length() / ceil(polyline.length() / max_bridge_length);
+                            lines = polyline.equally_spaced_lines(len);
+                            for (auto& line : lines) {
+                                if (line.is_valid())
+                                    line.clip_start(fw);
+                                if (line.is_valid())
+                                    line.clip_end(fw);
+                            }
                         }
                     }
                     else
@@ -2383,13 +2386,13 @@ template void PrintObject::remove_bridges_from_contacts<ExPolygons>(
     const Layer* current_layer,
     float extrusion_width,
     ExPolygons* overhang_regions,
-    float max_bridge_length);
+    float max_bridge_length, bool break_bridge);
 template void PrintObject::remove_bridges_from_contacts<Polygons>(
     const Layer* lower_layer,
     const Layer* current_layer,
     float extrusion_width,
     Polygons* overhang_regions,
-    float max_bridge_length);
+    float max_bridge_length, bool break_bridge);
 
 
 bool PrintObject::is_support_necessary()

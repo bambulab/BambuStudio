@@ -300,7 +300,8 @@ public:
         const Layer* current_layer,
         float extrusion_width,
         PolysType* overhang_regions,
-        float max_bridge_length = scale_(10));
+        float max_bridge_length = scale_(10),
+        bool break_bridge=false);
 
     // Bounding box is used to align the object infill patterns, and to calculate attractor for the rear seam.
     // The bounding box may not be quite snug.
