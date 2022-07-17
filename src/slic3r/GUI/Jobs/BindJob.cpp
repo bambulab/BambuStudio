@@ -99,6 +99,8 @@ void BindJob::process()
             } else if (stage == BBL::BindJobStage::LoginStageFinished) {
                 curr_percent = 100;
                 msg = _L("Logging in");
+            } else {
+                msg = _L("Logging in");
             }
             if (code != 0) {
                 msg = login_failed_str + wxString::Format("(code=%d,info=%s)", code, info);
