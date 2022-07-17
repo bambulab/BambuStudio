@@ -104,6 +104,7 @@ enum CameraMenuIDs {
     wxID_CAMERA_COUNT,
 };
 
+
 class Tab;
 class ConfigWizard;
 

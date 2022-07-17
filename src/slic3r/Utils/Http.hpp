@@ -10,6 +10,23 @@
 
 namespace Slic3r {
 
+enum HttpErrorCode
+{
+	HttpErrorResourcesNotFound	= 2,
+	HtttErrorNoDevice			= 3,
+	HttpErrorRequestLogin		= 4,
+	HttpErrorResourcesNotExists = 6,
+	HttpErrorMQTTError			= 7,
+	HttpErrorResourcesForbidden = 8,
+	HttpErrorInternalRequestError = 9,
+	HttpErrorInternalError		= 10,
+	HttpErrorFileFormatError	= 11,
+	HttpErrorResoucesConflict	= 12,
+	HttpErrorTimeout			= 13,
+	HttpErrorResourcesExhaust   = 14,
+	HttpErrorVersionLimited		= 15,
+};
+
 /// Represetns a Http request
 class Http : public std::enable_shared_from_this<Http> {
 private:

@@ -1129,9 +1129,6 @@ GUI_App::GUI_App()
 
     //BBS
     this->init_http_extra_header();
-
-    Bind(EVT_HTTP_ERROR, &GUI_App::on_http_error, this);
-    Bind(EVT_USER_LOGIN, &GUI_App::on_user_login, this);
 }
 
 void GUI_App::init_networking_callbacks()
@@ -1146,7 +1143,7 @@ void GUI_App::init_networking_callbacks()
                     if (m_device_manager) {
                         m_device_manager->on_machine_alive(json_str);
                     }
-                    });
+                });
             }
         );
 
@@ -1741,6 +1738,9 @@ bool GUI_App::on_init_inner()
 //#ifdef __APPLE__
 //    other_instance_message_handler()->bring_instance_forward();
 //#endif //__APPLE__
+
+    Bind(EVT_HTTP_ERROR, &GUI_App::on_http_error, this);
+    Bind(EVT_USER_LOGIN, &GUI_App::on_user_login, this);
 
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
@@ -2601,34 +2601,41 @@ void GUI_App::handle_http_error(unsigned int status, std::string body)
 void GUI_App::on_http_error(wxCommandEvent &evt)
 {
     int status = evt.GetInt();
+
+    int code = 0;
+    std::string error;
+    wxString result;
+    if (status >= 400 && status < 500) {
+        try {
+        json j = json::parse(evt.GetString());
+        if (j.contains("code"))
+            code = j["code"].get<int>();
+        if (j.contains("error"))
+            error = j["error"].get<std::string>();
+        }
+        catch (...) {}
+    }
+
+    // Version limit
+    if (code == HttpErrorVersionLimited) {
+        MessageDialog msg_dlg(nullptr, _L("The version of Bambu studio is too low and needs to be updated to the latest version before it can be used normally"), "", wxAPPLY | wxOK);
+        if (msg_dlg.ShowModal() == wxOK) {
+            return;
+        }
+    }
+
+    // request login
     if (status == 401) {
         if (m_agent) {
             if (m_agent->is_user_login()) {
                 this->request_user_logout();
-                wxString msg = wxString::Format(_L("Login information expired. Please login again."));
-                wxMessageBox(msg);
-            }
-        }
-    } else if (status == 403) {
-        ;
-    } else if (status == 422) {
-        ;
-    } else if (status == 424) {
-        try {
-            json j = json::parse(evt.GetString());
-            if (j.contains("code") && j.contains("error")) {
-                int code = j["code"].get<int>();
-                std::string error = j["IOT_ERROR_VERSION_LIMITED"].get<std::string>();
-                if (code == 15) {
-                    MessageDialog msg_dlg(nullptr, _L("The version of Bambu studio is too low and needs to be updated to the latest version before it can be used normally"), "", wxAPPLY | wxOK);
-                    if (msg_dlg.ShowModal() == wxOK) {
-                        return;
-                    }
+                MessageDialog msg_dlg(nullptr, _L("Login information expired. Please login again."), "", wxAPPLY | wxOK);
+                if (msg_dlg.ShowModal() == wxOK) {
+                    return;
                 }
             }
-        } catch (...) {
-            ;
         }
+        return;
     }
 }
 
@@ -2734,7 +2741,8 @@ void GUI_App::check_new_version(bool show_tips)
         }
             })
         .on_error([this](std::string body, std::string error, unsigned int status) {
-            BOOST_LOG_TRIVIAL(error) << "check new version" << body;
+            handle_http_error(status, body);
+            BOOST_LOG_TRIVIAL(error) << "check new version error" << body;
         }).perform();
 }
 
