@@ -317,6 +317,12 @@ set(lisbslic3r_sources
     SLA/ReprojectPointsOnMesh.hpp
 )
 
+if (APPLE)
+    list(APPEND lisbslic3r_sources
+			MacUtils.mm
+        )
+endif ()
+
 add_library(libslic3r STATIC ${lisbslic3r_sources} 
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
     ${OpenVDBUtils_SOURCES})
