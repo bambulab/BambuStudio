@@ -1392,40 +1392,60 @@ void StatusPanel::update_ams(MachineObject *obj)
         if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
             // wait to heat hotend
             if (obj->ams_status_sub == 0x02) {
-                m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE);
+                
                 if (curr_ams_id == obj->m_ams_id) {
                     if (!obj->is_ams_unload()) {
+                        m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, true);
                         m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
                     } else {
+                        m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, false);
                         m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
                     }
                 }
             } else if (obj->ams_status_sub == 0x03) {
-                m_ams_control->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT);
-                if (!obj->is_ams_unload())
+                if (!obj->is_ams_unload()) {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT, true);
                     m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1);
-                else
+                }
+                else {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT, false);
                     m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
+                }
+                    
             } else if (obj->ams_status_sub == 0x04) {
-                m_ams_control->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT);
-                if (!obj->is_ams_unload())
+                if (!obj->is_ams_unload()) {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, true);
                     m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
-                else
+                }   
+                else {
+                    //FilamentStep::STEP_PULL_CURR_FILAMENT);
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, false);
                     m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+                }
             } else if (obj->ams_status_sub == 0x05) {
-                m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT);
-                if (!obj->is_ams_unload())
+                if (!obj->is_ams_unload()) {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, true);
                     m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
-                else
+                } 
+                else {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, false);
                     m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+                }
             } else if (obj->ams_status_sub == 0x06) {
-                m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT);
-                if (!obj->is_ams_unload())
+                if (!obj->is_ams_unload()) {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, true);
                     m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
-                else
+                } else {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, false);
                     m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+                }
             } else if (obj->ams_status_sub == 0x07) {
-                m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT);
+                if (!obj->is_ams_unload()) { 
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT);
+                } else {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, false);
+                }
+                
                 m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
             } else {
                 m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
@@ -1438,7 +1458,7 @@ void StatusPanel::update_ams(MachineObject *obj)
                 m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
             }
         } else {
-            m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE);
+            m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE, false);
             if (obj->is_filament_move()) {
                 m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
             } else {

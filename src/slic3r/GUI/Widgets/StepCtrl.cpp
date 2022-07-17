@@ -253,7 +253,7 @@ void StepIndicator::doRender(wxDC &dc)
     int      firstPadding = std::max(0, firstLineSize.y / 2 - radius);
     int      lastPadding  = std::max(0, lastLineSize.y / 2 - radius);
 
-    wxRect rcBar = {radius - bar_width / 2, radius + firstPadding, bar_width, size.y - radius * 2 - firstPadding - lastPadding};
+    wxRect rcBar = {radius * 2 - bar_width / 2, radius * 2 + firstPadding, bar_width, size.y - radius * 6 - firstPadding - lastPadding};
     int    itemWidth = steps.size() == 1 ? size.y : rcBar.height / (steps.size() - 1);
 
     // Draw thin bar stick
@@ -261,8 +261,8 @@ void StepIndicator::doRender(wxDC &dc)
     dc.SetBrush(wxBrush(clr_bar.colorForStates(states)));
     dc.DrawRectangle(rcBar);
 
-    int circleX = radius;
-    int circleY = radius + firstPadding;
+    int circleX = radius * 2;
+    int circleY = radius * 3 + firstPadding;
     dc.SetPen(wxPen(clr_step.colorForStates(states)));
     dc.SetBrush(wxBrush(clr_step.colorForStates(states)));
     for (int i = 0; i < steps.size(); ++i) {
