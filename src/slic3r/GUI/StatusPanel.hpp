@@ -30,7 +30,7 @@
 
 class StepIndicator;
 
-#define COMMAND_TIMEOUT         2
+#define COMMAND_TIMEOUT         3
 
 namespace Slic3r {
 namespace GUI {

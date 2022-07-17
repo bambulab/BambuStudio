@@ -8,6 +8,7 @@
 #include "libslic3r/PlaceholderParser.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PrintConfig.hpp"
+#include "MsgDialog.hpp"
 #include "Plater.hpp"
 
 #include "nlohmann/json.hpp"
@@ -2113,8 +2114,19 @@ int MachineObject::parse_json(std::string payload)
 
                 } else if (jj["command"].get<std::string>() == "gcode_line") {
                     //ack of gcode_line
+                    BOOST_LOG_TRIVIAL(info) << "parse_json, ack of gcode_line = " << j.dump(4);
                 } else if (jj["command"].get<std::string>() == "project_file") {
                     //ack of project file
+                    BOOST_LOG_TRIVIAL(info) << "parse_json, ack of project_file = " << j.dump(4);
+                    std::string result;
+                    if (jj.contains("result")) {
+                        result = jj["result"].get<std::string>();
+                        if (result == "FAIL") {
+                            wxString text = _L("Failed to start printing job");
+                            Slic3r::GUI::MessageDialog msg_dlg(nullptr, text, "", wxAPPLY | wxOK);
+                            msg_dlg.ShowModal();
+                        }
+                    }
                 } else if (jj["command"].get<std::string>() == "ams_filament_setting") {
                     if (jj["ams_id"].is_number()) {
                         int ams_id = jj["ams_id"].get<int>();

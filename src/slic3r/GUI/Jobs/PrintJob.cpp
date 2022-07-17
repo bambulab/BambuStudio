@@ -60,12 +60,18 @@ wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
     if (status >= 400 && status < 500)
         try {
         json j = json::parse(body);
-        if (j.contains("code"))
-            code = j["code"].get<int>();
-        if (j.contains("error"))
-            error = j["error"].get<std::string>();
-        if (j.contains("message"))
-            message = j["message"].get<std::string>();
+        if (j.contains("code")) {
+            if (!j["code"].is_null())
+                code = j["code"].get<int>();
+        }
+        if (j.contains("error")) {
+            if (!j["error"].is_null())
+                error = j["error"].get<std::string>();
+        }
+        if (j.contains("message")) {
+            if (!j["message"].is_null())
+                message = j["message"].get<std::string>();
+        }
         switch (status) {
             ;
         }

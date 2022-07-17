@@ -1009,12 +1009,7 @@ std::string AppConfig::get_region()
 std::string AppConfig::get_country_code()
 {
     std::string region = get_region();
-    /* fix PRE environment when release to public */
-#if 0
-    this->set("iot_environment", "2");
-    return "ENV_CN_PRE";
-#else
-    //if (is_engineering_region()) { return region; }
+    if (is_engineering_region()) { return region; }
     if (region == "CHN" || region == "China")
         return "CN";
     else if (region == "USA")
@@ -1028,7 +1023,7 @@ std::string AppConfig::get_country_code()
     else
         return "Others";
     return "";
-#endif
+
 }
 
 bool AppConfig::is_engineering_region(){

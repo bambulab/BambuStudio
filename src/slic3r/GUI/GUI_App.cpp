@@ -1243,8 +1243,17 @@ void GUI_App::init_networking_callbacks()
                     MachineObject* obj = m_device_manager->get_my_machine(dev_id);
                     if (obj) {
                         if (obj->is_lan_mode_printer()) {
-                            obj->command_request_push_all();
-                            obj->command_get_version();
+                            if (state == ConnectStatus::ConnectStatusFailed) {
+                                obj->set_access_code("");
+                                wxString text = wxString::Format(_L("Connect %s[SN:%s] failed!"), from_u8(obj->dev_name), obj->dev_id);
+                                MessageDialog msg_dlg(nullptr, text, "", wxAPPLY | wxOK);
+                                if (msg_dlg.ShowModal() == wxOK) {
+                                    return;
+                                }
+                            } else {
+                                obj->command_request_push_all();
+                                obj->command_get_version();
+                            }
                         }
                     }
 
@@ -2608,10 +2617,13 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
     if (status >= 400 && status < 500) {
         try {
         json j = json::parse(evt.GetString());
-        if (j.contains("code"))
-            code = j["code"].get<int>();
+        if (j.contains("code")) {
+            if (!j["code"].is_null())
+                code = j["code"].get<int>();
+        }
         if (j.contains("error"))
-            error = j["error"].get<std::string>();
+            if (!j["error"].is_null())
+                error = j["error"].get<std::string>();
         }
         catch (...) {}
     }
