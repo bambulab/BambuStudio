@@ -461,6 +461,8 @@ public:
     std::string subtask_name;
     bool is_sdcard_printing();
     bool has_sdcard();
+    bool has_timelapse();
+    bool has_recording();
 
 
     MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip);

@@ -60,7 +60,13 @@ protected:
     wxBitmap m_bitmap_fan_on;
     wxBitmap m_bitmap_fan_off;
     wxBitmap m_bitmap_extruder;
+
     wxBitmap m_bitmap_camera;
+    wxBitmap m_bitmap_timelapse_on;
+    wxBitmap m_bitmap_timelapse_off;
+    wxBitmap m_bitmap_recording_on;
+    wxBitmap m_bitmap_recording_off;
+    wxBitmap m_bitmap_sdcard_state;
 
     /* title panel */
     wxPanel *       media_ctrl_panel;
@@ -70,8 +76,14 @@ protected:
 
     wxStaticText *  m_staticText_monitoring;
     wxStaticText *  m_staticText_timelapse;
-    wxStaticBitmap* m_bitmap_camera_img;
     SwitchButton *  m_bmToggleBtn_timelapse;
+
+    wxStaticBitmap *m_bitmap_camera_img;
+    wxStaticBitmap *m_bitmap_timelapse_off_img;
+    wxStaticBitmap *m_bitmap_timelapse_on_img;
+    wxStaticBitmap *m_bitmap_recording_off_img;
+    wxStaticBitmap *m_bitmap_recording_on_img;
+    wxStaticBitmap *m_bitmap_sdcard_img;
 
 
     wxMediaCtrl2 *  m_media_ctrl;
@@ -186,6 +198,7 @@ public:
     wxBoxSizer *create_ams_group(wxWindow *parent);
 
     void show_ams_group(bool show = true);
+    void upodate_camera_state(bool recording, bool timelapse, bool has_sdcard);
 };
 
 

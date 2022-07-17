@@ -961,6 +961,16 @@ bool MachineObject::has_sdcard()
     return camera_has_sdcard;
 }
 
+bool MachineObject::has_timelapse() 
+{ 
+    return camera_timelapse;
+}
+
+bool MachineObject::has_recording() 
+{
+    return camera_recording;
+}
+
 int MachineObject::command_get_version()
 {
     json j;
@@ -1768,7 +1778,7 @@ int MachineObject::parse_json(std::string payload)
                             camera_has_sdcard = jj["sdcard"].get<bool>();
                         } else {
                             //do not check sdcard if no sdcard field
-                            camera_has_sdcard = true;
+                            camera_has_sdcard = false;
                         }
                     }
                     catch (...) {
