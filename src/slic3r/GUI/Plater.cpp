@@ -4872,6 +4872,7 @@ void Plater::priv::on_export_began(wxCommandEvent& evt)
 
 void Plater::priv::on_export_finished(wxCommandEvent& evt)
 {
+#if 0
     //BBS: also export 3mf to the same directory for debugging
     std::string gcode_path_str(evt.GetString().ToUTF8().data());
     fs::path gcode_path(gcode_path_str);
@@ -4879,6 +4880,7 @@ void Plater::priv::on_export_finished(wxCommandEvent& evt)
     if (q) {
         q->export_3mf(gcode_path.replace_extension(".3mf"), SaveStrategy::Silence); // BBS: silence
     }
+#endif
 }
 
 void Plater::priv::on_slicing_began()
