@@ -523,7 +523,9 @@ void SelectMachinePopup::update_other_devices()
             if (mobj->is_lan_mode_printer()) {
                 ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
                 dlg.set_machine_object(mobj);
-                dlg.ShowModal();
+                if (dlg.ShowModal() == wxID_OK) {
+                    wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
+                }
             }
         });
 
@@ -638,7 +640,9 @@ void SelectMachinePopup::update_user_devices()
             if (mobj->is_lan_mode_printer()) {
                 ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
                 dlg.set_machine_object(mobj);
-                dlg.ShowModal();
+                if (dlg.ShowModal() == wxID_OK) {
+                    wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
+                }
             }
         });
 

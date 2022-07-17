@@ -441,17 +441,18 @@ void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event)
         if (obj) {
             obj->set_access_code("");
         }
-        dev->update_user_machine_list_info();
+        dev->erase_user_machine(m_machine_info->dev_id);
 
         m_status_text->SetLabelText(_L("Log out successful."));
         m_button_cancel->SetLabel(_L("Close"));
         m_button_unbind->Hide();
+        EndModal(wxID_OK);
     }
     else {
         m_status_text->SetLabelText(_L("Failed to log out."));
+        EndModal(wxID_CANCEL);
         return;
     }
-    EndModal(wxID_OK);
 }
 
  void UnBindMachineDilaog::on_dpi_changed(const wxRect &suggested_rect)

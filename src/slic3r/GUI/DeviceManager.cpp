@@ -2538,6 +2538,11 @@ MachineObject* DeviceManager::get_local_machine(std::string dev_id)
     return it->second;
 }
 
+void DeviceManager::erase_user_machine(std::string dev_id)
+{
+    userMachineList.erase(dev_id);
+}
+
 MachineObject* DeviceManager::get_user_machine(std::string dev_id)
 {
     if (!Slic3r::GUI::wxGetApp().is_user_login())

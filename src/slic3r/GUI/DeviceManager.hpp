@@ -570,6 +570,7 @@ public:
     MachineObject* get_local_machine(std::string dev_id);
     MachineObject* get_user_machine(std::string dev_id);
     MachineObject* get_my_machine(std::string dev_id);
+    void erase_user_machine(std::string dev_id);
     void clean_user_info();
 
     bool set_selected_machine(std::string dev_id);
