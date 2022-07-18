@@ -1483,18 +1483,19 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
         }
     }
 
-    auto colours = evt.GetString();
-    auto colours_arr = wxSplit(colours.ToStdString(), '|');
-    auto c = colours_arr[3];
+    auto selection_data = evt.GetString();
+    auto selection_data_arr = wxSplit(selection_data.ToStdString(), '|');
 
-    if (colours_arr.size() == 4) {
+    BOOST_LOG_TRIVIAL(trace) << "ams mapping selection result: id is " << selection_data_arr[3];
+
+    if (selection_data_arr.size() == 4) {
         MaterialHash::iterator iter = m_materialList.begin();
         while (iter != m_materialList.end()) {
             Material*        item = iter->second;
             MaterialItem *m  = item->item;
             if (item->id == m_current_filament_id) {
-                auto ams_colour = wxColour(wxAtoi(colours_arr[0]),wxAtoi(colours_arr[1]),wxAtoi(colours_arr[2]));
-                m->set_ams_info(ams_colour, colours_arr[3]);
+                auto ams_colour = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]));
+                m->set_ams_info(ams_colour, selection_data_arr[3]);
             }
             iter++;
         }
