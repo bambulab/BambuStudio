@@ -5913,7 +5913,8 @@ private:
                 break;
             case AddObject: {
                 {
-                    _BBS_3MF_Exporter e;
+                    CNumericLocalesSetter locales_setter;
+                    _BBS_3MF_Exporter     e;
                     e.save_object_mesh(t.path, *t.object, (int) t.id);
                     // response to delete cloned object
                 }
