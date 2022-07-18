@@ -2343,8 +2343,10 @@ void PrintObject::remove_bridges_from_contacts(
                         float len = polyline.length() / ceil(polyline.length() / max_bridge_length);
                         lines = polyline.equally_spaced_lines(len);
                         for (auto& line : lines) {
-                            line.clip_start(fw);
-                            line.clip_end(fw);
+                            if (line.is_valid())
+                                line.clip_start(fw);
+                            if (line.is_valid())
+                                line.clip_end(fw);
                         }
                     }
                     else
