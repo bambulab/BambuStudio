@@ -25,6 +25,8 @@ namespace GUI
 
 const double GizmoObjectManipulation::in_to_mm = 25.4;
 const double GizmoObjectManipulation::mm_to_in = 0.0393700787;
+const double GizmoObjectManipulation::oz_to_g = 28.34952;
+const double GizmoObjectManipulation::g_to_oz = 0.035274;
 
 // Helper function to be used by drop to bed button. Returns lowest point of this
 // volume in world coordinate system.
