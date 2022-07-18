@@ -937,8 +937,38 @@ bool MachineObject::is_in_calibration()
     if (boost::contains(m_gcode_file, "auto_cali_for_user.gcode")
         && stage_curr != 0) {
         return true;
+    } else {
+        // reset
+        if (stage_curr != 0) {
+            calibration_done = false;
+        }
     }
     return false;
+}
+
+bool MachineObject::is_calibration_done()
+{
+    return calibration_done;
+}
+
+bool MachineObject::is_calibration_running()
+{
+    if (is_in_calibration() && is_in_printing_status(print_status))
+        return true;
+    return false;
+}
+
+void MachineObject::parse_state_changed_event()
+{
+    // parse calibration done
+    if (last_mc_print_stage != mc_print_stage) {
+        if (mc_print_stage == 1 && boost::contains(m_gcode_file, "auto_cali_for_user.gcode")) {
+            calibration_done = true;
+        } else {
+            calibration_done = false;
+        }
+    }
+    last_mc_print_stage = mc_print_stage;
 }
 
 PrintingSpeedLevel MachineObject::_parse_printing_speed_lvl(int lvl)
@@ -1407,6 +1437,7 @@ void MachineObject::reset()
     gcode_file_prepare_percent = 0;
     iot_print_status = "";
     print_status = "";
+    last_mc_print_stage = -1;
 
     subtask_ = nullptr;
 
@@ -2203,6 +2234,8 @@ int MachineObject::parse_json(std::string payload)
             }
         }
         catch (...)  {}
+
+        parse_state_changed_event();
     }
     catch (...) {
         BOOST_LOG_TRIVIAL(trace) << "parse_json failed! dev_id=" << this->dev_id <<", payload = " << payload;

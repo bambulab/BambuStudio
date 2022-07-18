@@ -415,16 +415,22 @@ public:
     int     mc_print_line_number;
     int     mc_print_percent;       /* left print progess in percent */
     int     mc_left_time;           /* left time in seconds */
+    int     last_mc_print_stage;
     bool    is_system_printing();
 
     std::vector<int> stage_list_info;
     int stage_curr = 0;
     int m_push_count = 0;
+    bool calibration_done { false };
 
     wxString get_curr_stage();
     // return curr stage index of stage list
     int get_curr_stage_idx();
     bool is_in_calibration();
+    bool is_calibration_running();
+    bool is_calibration_done();
+
+    void parse_state_changed_event();
 
     /* printing status */
     std::string print_status;      /* enum string: FINISH, RUNNING, PAUSE, INIT, FAILED */

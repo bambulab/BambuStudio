@@ -1162,7 +1162,6 @@ void StatusPanel::update(MachineObject *obj)
     // update_tasklist(obj);
     update_ams(obj);
 
-
     update_cali(obj);
     if (obj) {
         if (calibration_dlg == nullptr) {
@@ -1503,16 +1502,22 @@ void StatusPanel::update_ams(MachineObject *obj)
 void StatusPanel::update_cali(MachineObject *obj)
 {
     if (!obj) return;
-    if (obj->is_in_printing()) {
-        m_calibration_btn->Disable();
-        return;
-    } else {
-        m_calibration_btn->Enable();
-        if (!obj->is_in_calibration()) {
-            m_calibration_btn->SetLabel(_L("Start Calibration"));
-        } else {
+
+    if (obj->is_in_calibration()) {
+        m_calibration_btn->SetLabel(_L("Calibrating"));
+        if (calibration_dlg && calibration_dlg->IsShown()) {
             m_calibration_btn->Disable();
-            m_calibration_btn->SetLabel(_L("Calibrating"));
+        } else {
+            m_calibration_btn->Enable();
+        }
+    } else {
+        // IDLE
+        m_calibration_btn->SetLabel(_L("Start Calibration"));
+        // disable in printing
+        if (obj->is_in_printing()) {
+            m_calibration_btn->Disable();
+        } else {
+            m_calibration_btn->Enable();
         }
     }
 }
@@ -2079,7 +2084,6 @@ void StatusPanel::set_default()
     m_switch_nozzle_fan_timeout = 0;
     m_switch_printing_fan_timeout = 0;
     m_show_ams_group = false;
-
     reset_printing_values();
 
     reset_temp_misc_control();
@@ -2096,8 +2100,10 @@ void StatusPanel::show_status(int status)
     if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)) {
         m_text_tasklist_caption->SetForegroundColour(DISCONNECT_TEXT_COL);
         show_printing_status(false, false);
+        m_calibration_btn->Disable();
     } else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) {
         show_printing_status(true, true);
+        m_calibration_btn->Disable();
     }
 }
 

@@ -160,39 +160,41 @@ void CalibrationDialog::on_dpi_changed(const wxRect &suggested_rect) {}
 void CalibrationDialog::update_cali(MachineObject *obj)
 {
     if (!obj) return;
-
-    // in printing
-    if (obj->is_in_printing()) {
-        m_calibration_flow->DeleteAllItems();
-        m_calibration_btn->Disable();
-        return;
-    } else {
-         m_calibration_btn->Enable();
-        if (!obj->is_in_calibration()) {
-            m_calibration_flow->DeleteAllItems();
-            m_calibration_btn->SetLabel(_L("Start Calibration"));
+    if (obj->is_in_calibration() || obj->is_calibration_done()) {
+        if (obj->is_calibration_done()) {
+            m_calibration_btn->Enable();
+            m_calibration_btn->SetLabel(_L("Completed"));
         } else {
+            // RUNNING && IDLE
             m_calibration_btn->Disable();
             m_calibration_btn->SetLabel(_L("Calibrating"));
-
-
-            auto size = wxSize(-1, obj->stage_list_info.size() * FromDIP(44));
-
-            if (m_calibration_flow->GetSize().y != size.y) {
-                m_calibration_flow->SetSize(size);
-                m_calibration_flow->SetMinSize(size);
-                m_calibration_flow->SetMaxSize(size);
-                Layout();
-            }
-
-            if (is_stage_list_info_changed(obj)) {
-                // change items if stage_list_info changed
-                m_calibration_flow->DeleteAllItems();
-                for (int i = 0; i < obj->stage_list_info.size(); i++) { m_calibration_flow->AppendItem(get_stage_string(obj->stage_list_info[i])); }
-            }
-            int index = obj->get_curr_stage_idx();
-            m_calibration_flow->SelectItem(index);
         }
+        auto size = wxSize(-1, obj->stage_list_info.size() * FromDIP(44));
+        if (m_calibration_flow->GetSize().y != size.y) {
+            m_calibration_flow->SetSize(size);
+            m_calibration_flow->SetMinSize(size);
+            m_calibration_flow->SetMaxSize(size);
+            Layout();
+        }
+        if (is_stage_list_info_changed(obj)) {
+            // change items if stage_list_info changed
+            m_calibration_flow->DeleteAllItems();
+            for (int i = 0; i < obj->stage_list_info.size(); i++) {
+                m_calibration_flow->AppendItem(get_stage_string(obj->stage_list_info[i]));
+            }
+        }
+        int index = obj->get_curr_stage_idx();
+        m_calibration_flow->SelectItem(index);
+    } else {
+        // IDLE
+        if (obj->is_in_printing()) {
+            m_calibration_btn->Disable();
+        }
+        else {
+            m_calibration_btn->Enable();
+        }
+        m_calibration_flow->DeleteAllItems();
+        m_calibration_btn->SetLabel(_L("Start Calibration"));
     }
 }
 
@@ -212,8 +214,14 @@ bool CalibrationDialog::is_stage_list_info_changed(MachineObject *obj)
 void CalibrationDialog::on_start_calibration(wxMouseEvent &event)
 {
     if (m_obj) {
-        BOOST_LOG_TRIVIAL(trace) << "on_start_calibration";
-        m_obj->command_start_calibration();
+        if (m_obj->is_calibration_done()) {
+            m_obj->calibration_done = false;
+            EndModal(wxID_CANCEL);
+            Close();
+        } else {
+            BOOST_LOG_TRIVIAL(info) << "on_start_calibration";
+            m_obj->command_start_calibration();
+        }
     }
 }
 
