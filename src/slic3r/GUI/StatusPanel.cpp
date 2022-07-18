@@ -2084,6 +2084,7 @@ void StatusPanel::set_default()
 
     reset_temp_misc_control();
     m_ams_control->Hide();
+    m_ams_control->Reset();
     clean_tasklist_info();
 }
 

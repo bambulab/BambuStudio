@@ -1691,6 +1691,13 @@ void AMSControl::CreateAms()
     Thaw();
 }
 
+void AMSControl::Reset() 
+{
+    m_current_ams = ""; 
+    m_current_senect = "";
+}
+
+
 void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection)
 {
     std::string curr_ams_id = GetCurentAms();
