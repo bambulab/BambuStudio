@@ -1485,15 +1485,18 @@ void StatusPanel::update_ams(MachineObject *obj)
     // update rfid button style
 
     // update load/unload enable state
-    // printing
-    if (obj->ams_status_main != AMS_STATUS_MAIN_FILAMENT_CHANGE) {
-        if (obj->m_tray_now == "255") {
-            m_ams_control->SetActionState(AMSAction::AMS_ACTION_LOAD);
-        } else {
-            m_ams_control->SetActionState(AMSAction::AMS_ACTION_NORMAL);
-        }
-    } else {
+    if (obj->is_in_printing() && !obj->can_resume()) {
         m_ams_control->SetActionState(AMSAction::AMS_ACTION_PRINTING);
+    } else {
+        if (obj->ams_status_main != AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+            if (obj->m_tray_now == "255") {
+                m_ams_control->SetActionState(AMSAction::AMS_ACTION_LOAD);
+            } else {
+                m_ams_control->SetActionState(AMSAction::AMS_ACTION_NORMAL);
+            }
+        } else {
+            m_ams_control->SetActionState(AMSAction::AMS_ACTION_PRINTING);
+        }
     }
 }
 
