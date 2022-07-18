@@ -26,7 +26,7 @@ TempInput::TempInput()
                    std::make_pair(*wxWHITE, (int) StateColor::Normal))
     , label_color(std::make_pair(wxColour(0xAC,0xAC,0xAC), (int) StateColor::Disabled),std::make_pair(0x323A3D, (int) StateColor::Normal))
     , text_color(std::make_pair(wxColour(0xAC,0xAC,0xAC), (int) StateColor::Disabled), std::make_pair(0x6B6B6B, (int) StateColor::Normal))
-    , background_color(std::make_pair(*wxWHITE, (int) StateColor::Disabled),
+    , background_color(std::make_pair(wxColour(0xAC, 0xAC, 0xAC), (int) StateColor::Disabled),
                        std::make_pair(*wxWHITE, (int) StateColor::Normal))
 {
     hover  = false;
@@ -439,16 +439,17 @@ void TempInput::render(wxDC &dc)
     }
         
 
-    if (!text.IsEmpty()) {
-        wxSize textSize = text_ctrl->GetSize();
-        if (align_right) {
-            if (pt.x + labelSize.x > size.x) text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x);
-            pt.y = (size.y - labelSize.y) / 2;
-        } else {
-            pt.y = (size.y - labelSize.y) / 2;
-        }
-        dc.DrawText(text, pt);
+    /*if (!text.IsEmpty()) {
+        
+    }*/
+    wxSize textSize = text_ctrl->GetSize();
+    if (align_right) {
+        if (pt.x + labelSize.x > size.x) text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x);
+        pt.y = (size.y - labelSize.y) / 2;
+    } else {
+        pt.y = (size.y - labelSize.y) / 2;
     }
+    dc.DrawText(text, pt);
 
     // separator
     dc.SetFont(::Label::Body_12);
