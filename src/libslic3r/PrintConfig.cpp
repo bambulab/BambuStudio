@@ -722,10 +722,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("zig-zag");
-#if !BBL_RELEASE_TO_PUBLIC
     def->enum_values.push_back("monotonic");
-#endif
-    //BBS: use monotonicline pattern to replace monotonic for top and bottom surface
     def->enum_values.push_back("monotonicline");
     //def->enum_values.push_back("alignedrectilinear");
     //def->enum_values.push_back("hilbertcurve");
@@ -733,9 +730,7 @@ void PrintConfigDef::init_fff_params()
     //def->enum_values.push_back("octagramspiral");
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Zig zag"));
-#if !BBL_RELEASE_TO_PUBLIC
     def->enum_labels.push_back(L("Monotonic"));
-#endif
     def->enum_labels.push_back(L("Monotonic line"));
     //def->enum_labels.push_back(L("Aligned Rectilinear"));
     //def->enum_labels.push_back(L("Hilbert Curve"));
@@ -3352,12 +3347,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         //But now these key-value must be absolute value.
         //Reset to default value by erasing these key to avoid parsing error.
         opt_key = "";
-    } else if (opt_key == "top_surface_pattern" || opt_key == "bottom_surface_pattern") {
-#if BBL_RELEASE_TO_PUBLIC
-        //BBS: replace monotonic pattern to be monotonicline for top and bottom surface
-        if (value == "monotonic")
-            value = "monotonicline";
-#endif
     } else if (opt_key == "filament_type" && value == "PA-CF") {
         value == "PA";
     } else if (opt_key == "inherits_cummulative") {
