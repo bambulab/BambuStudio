@@ -2984,6 +2984,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         }
 
         tolal_model_count += model_idx;
+        
 
         if (one_by_one) {
             // BBS: add load_old_project logic
@@ -3110,7 +3111,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         obj_idxs, model.objects, *notification_manager);
 
 
-    if (tolal_model_count <= 0) {
+    if (tolal_model_count <= 0 && !q->m_exported_file) {
         dlg.Hide();
         MessageDialog msg(wxGetApp().mainframe, _L("The file does not contain any geometry data."), _L("Warning"), wxYES | wxICON_WARNING);
         if (msg.ShowModal() == wxID_YES) {}
