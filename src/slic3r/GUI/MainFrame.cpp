@@ -178,17 +178,17 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     // Fonts were created by the DPIFrame constructor for the monitor, on which the window opened.
     wxGetApp().update_fonts(this);
 
-    #ifdef __WINDOWS__
-        m_topbar         = new BBLTopbar(this);
-    #else
+#ifdef __WINDOWS__
+    m_topbar         = new BBLTopbar(this);
+#else
     auto panel_topbar = new wxPanel(this, wxID_ANY);
     panel_topbar->SetBackgroundColour(wxColour(38, 46, 48));
     auto sizer_tobar = new wxBoxSizer(wxVERTICAL);
-    m_topbar         = new BBLTopbar(panel_topbar, this);
+    m_topbar         = new BBLTopbar(this);
     sizer_tobar->Add(m_topbar, 0, wxEXPAND);
     panel_topbar->SetSizer(sizer_tobar);
     panel_topbar->Layout();
-    #endif
+#endif
 
 
 
@@ -326,11 +326,11 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     // initialize layout
     m_main_sizer = new wxBoxSizer(wxVERTICAL);
     wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-    #ifdef __WINDOWS__
+#ifdef __WINDOWS__
      sizer->Add(m_topbar, 0, wxEXPAND);
-    #else
+#else
      sizer->Add(panel_topbar, 0, wxEXPAND);
-    #endif // __WINDOWS__
+#endif // __WINDOWS__
 
 
     sizer->Add(m_main_sizer, 1, wxEXPAND);
