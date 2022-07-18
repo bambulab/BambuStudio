@@ -205,7 +205,11 @@ void ButtonsListCtrl::RemovePage(size_t n)
     Button* btn = m_pageButtons[n];
     m_pageButtons.erase(m_pageButtons.begin() + n);
     m_buttons_sizer->Remove(n);
+#if __WXOSX__
+    RemoveChild(btn);
+#else
     btn->Reparent(nullptr);
+#endif
     btn->Destroy();
     m_sizer->Layout();
 }
