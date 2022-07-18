@@ -1151,6 +1151,8 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
                 GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
                 if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::FdmSupports)
                     gizmos_mgr.open_gizmo(GLGizmosManager::EType::FdmSupports);
+                else
+                    gizmos_mgr.reset_all_states();
             }
         }
         else if (col_num == colColorPaint) {
@@ -1159,6 +1161,8 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
                 GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
                 if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::MmuSegmentation)
                     gizmos_mgr.open_gizmo(GLGizmosManager::EType::MmuSegmentation);
+                else
+                    gizmos_mgr.reset_all_states();
             }
         }
         else if (col_num == colEditing) {
