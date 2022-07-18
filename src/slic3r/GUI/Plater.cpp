@@ -152,6 +152,9 @@ wxDEFINE_EVENT(EVT_PRINT_FINISHED,                  wxCommandEvent);
 //BBS: repair model
 wxDEFINE_EVENT(EVT_REPAIR_MODEL,                    wxCommandEvent);
 wxDEFINE_EVENT(EVT_FILAMENT_COLOR_CHANGED,          wxCommandEvent);
+wxDEFINE_EVENT(EVT_INSTALL_PLUGIN_NETWORKING,       wxCommandEvent);
+wxDEFINE_EVENT(EVT_INSTALL_PLUGIN_HINT,             wxCommandEvent);
+wxDEFINE_EVENT(EVT_PREVIEW_ONLY_MODE_HINT,          wxCommandEvent);
 
 
 
@@ -1768,6 +1771,9 @@ struct Plater::priv
     //BBS: add model repair
     void on_repair_model(wxCommandEvent &event);
     void on_filament_color_changed(wxCommandEvent &event);
+    void show_install_plugin_hint(wxCommandEvent &event);
+    void install_network_plugin(wxCommandEvent &event);
+    void show_preview_only_hint(wxCommandEvent &event);
     //BBS: add part plate related logic
     void on_plate_right_click(RBtnPlateEvent&);
     void on_plate_selected(SimpleEvent&);
@@ -1961,6 +1967,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(EVT_PUBLISH, &priv::on_action_publish, this);
     this->q->Bind(EVT_REPAIR_MODEL, &priv::on_repair_model, this);
     this->q->Bind(EVT_FILAMENT_COLOR_CHANGED, &priv::on_filament_color_changed, this);
+    this->q->Bind(EVT_INSTALL_PLUGIN_NETWORKING, &priv::install_network_plugin, this);
+    this->q->Bind(EVT_INSTALL_PLUGIN_HINT, &priv::show_install_plugin_hint, this);
+    this->q->Bind(EVT_PREVIEW_ONLY_MODE_HINT, &priv::show_preview_only_hint, this);
 
     view3D = new View3D(q, bed, &model, config, &background_process);
     //BBS: use partplater's gcode
@@ -3060,8 +3069,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 //set to 3d tab
                 q->select_view_3D("Preview");
                 wxGetApp().mainframe->select_tab(MainFrame::tpPreview);
-                wxTheApp->CallAfter([]() { wxGetApp().mainframe->enable_tab(MainFrame::tp3DEditor, false);});
-                notification_manager->bbl_show_plateinfo_notification(into_u8(_L("Preview only mode:\nThe loaded file contains gcode only.")));
             }
             else {
                 //set to 3d tab
@@ -5330,6 +5337,22 @@ void Plater::priv::on_filament_color_changed(wxCommandEvent &event)
     q->get_preview_canvas3D()->update_plate_thumbnails();
 }
 
+void Plater::priv::install_network_plugin(wxCommandEvent &event)
+{
+    //
+    return;
+}
+
+void Plater::priv::show_install_plugin_hint(wxCommandEvent &event)
+{
+    notification_manager->bbl_show_plugin_install_notification(into_u8(_L("Network Plugin is not detected. Network related features are unavailable.")));
+}
+
+void Plater::priv::show_preview_only_hint(wxCommandEvent &event)
+{
+    notification_manager->bbl_show_preview_only_notification(into_u8(_L("Preview only mode:\nThe loaded file contains gcode only, Can not enter the Prepare page")));
+}
+
 void Plater::priv::on_right_click(RBtnEvent& evt)
 {
     int obj_idx = get_selected_object_idx();
@@ -6388,8 +6411,8 @@ int Plater::new_project(bool skip_confirm, bool silent)
 
     m_only_gcode = false;
     m_exported_file = false;
-    wxGetApp().mainframe->enable_tab(MainFrame::tp3DEditor);
     get_notification_manager()->bbl_close_plateinfo_notification();
+    get_notification_manager()->bbl_close_preview_only_notification();
 
     if (!silent)
         wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
@@ -6456,10 +6479,8 @@ void Plater::load_project(wxString const& filename2,
 
     m_only_gcode = false;
     m_exported_file = false;
-    wxGetApp().mainframe->enable_tab(MainFrame::tp3DEditor);
     get_notification_manager()->bbl_close_plateinfo_notification();
-
-    wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+    get_notification_manager()->bbl_close_preview_only_notification();
 
     auto path     = into_path(filename);
 
@@ -6495,7 +6516,9 @@ void Plater::load_project(wxString const& filename2,
     if (!m_exported_file) {
         p->select_view("topfront");
         p->camera.requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
+        wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
     }
+
     if (previous_gcode)
         collapse_sidebar(false);
 
@@ -6664,8 +6687,7 @@ void Plater::load_gcode(const wxString& filename)
     wxGetApp().mainframe->select_tab(MainFrame::tpPreview);
     p->set_current_panel(p->preview, true);
     p->get_current_canvas3D()->render();
-    wxTheApp->CallAfter([]() { wxGetApp().mainframe->enable_tab(MainFrame::tp3DEditor, false);});
-    p->notification_manager->bbl_show_plateinfo_notification(into_u8(_L("Preview only mode for gcode file.")));
+    //p->notification_manager->bbl_show_plateinfo_notification(into_u8(_L("Preview only mode for gcode file.")));
 
     current_print.apply(this->model(), wxGetApp().preset_bundle->full_config());
 

@@ -157,7 +157,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 #ifdef __WXOSX__
     set_miniaturizable(GetHandle());
 #endif
-    
+
     //reset developer_mode to false  and user_mode to comAdvanced
     wxGetApp().app_config->set_bool("developer_mode", false);
     if (wxGetApp().app_config->get("user_mode") == "develop") {
@@ -747,6 +747,29 @@ void MainFrame::init_tabpanel()
     m_tabpanel->Hide();
     m_settings_dialog.set_tabpanel(m_tabpanel);
 
+    m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent& e) {
+        int old_sel = e.GetOldSelection();
+        int new_sel = e.GetSelection();
+        if (new_sel == tpMonitor) {
+            if (!wxGetApp().getAgent()) {
+                e.Veto();
+                BOOST_LOG_TRIVIAL(info) << boost::format("skipped tab switch from %1% to %2%, lack of network plugins")%old_sel %new_sel;
+                if (m_plater) {
+                    wxCommandEvent *evt = new wxCommandEvent(EVT_INSTALL_PLUGIN_HINT);
+                    wxQueueEvent(m_plater, evt);
+                }
+            }
+        }
+        else if (new_sel == tp3DEditor) {
+            if (m_plater && (m_plater->only_gcode_mode() || (m_plater->using_exported_file()))) {
+                e.Veto();
+                BOOST_LOG_TRIVIAL(info) << boost::format("skipped tab switch from %1% to %2% in preview mode")%old_sel %new_sel;
+                wxCommandEvent *evt = new wxCommandEvent(EVT_PREVIEW_ONLY_MODE_HINT);
+                wxQueueEvent(m_plater, evt);
+            }
+        }
+    });
+
 #ifdef __WXMSW__
     m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {
 #else
@@ -758,12 +781,11 @@ void MainFrame::init_tabpanel()
         //wxString page_text = m_tabpanel->GetPageText(sel);
         m_last_selected_tab = m_tabpanel->GetSelection();
         if (panel == m_plater) {
-            if (m_with_3dEditor && (sel == tp3DEditor)) {
+            if (sel == tp3DEditor) {
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
                 m_param_panel->OnActivate();
             }
-            else if ((m_with_3dEditor&&(sel == tpPreview))
-                || (!m_with_3dEditor&&(sel == tp3DEditor))){
+            else if (sel == tpPreview) {
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW));
                 m_param_panel->OnActivate();
             }
@@ -774,7 +796,7 @@ void MainFrame::init_tabpanel()
             //monitor
         }
 
-        if (m_with_3dEditor && (sel == tp3DEditor)) {
+        if (sel == tp3DEditor) {
             m_topbar->EnableUndoRedoItems();
         }
         else {
@@ -2232,7 +2254,7 @@ void MainFrame::select_tab(wxPanel* panel)
 //BBS
 void MainFrame::jump_to_monitor(std::string dev_id)
 {
-    m_tabpanel->SetSelection(m_with_3dEditor? tpMonitor:(tpMonitor-1));
+    m_tabpanel->SetSelection(tpMonitor);
     ((MonitorPanel*)m_monitor)->select_machine(dev_id);
 }
 
@@ -2271,42 +2293,10 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
     select(false);
 }
 
-void MainFrame::enable_tab(size_t tab, bool enabled)
-{
-    if (tab != tp3DEditor)
-        //currently only support 3dEditor
-        return;
-
-    if ((enabled && m_with_3dEditor) || (!enabled && !m_with_3dEditor))
-        //already done
-        return;
-
-    Freeze();
-    if (enabled) {
-        int sel = m_tabpanel->GetSelection();
-        m_tabpanel->InsertPage(tab, m_plater, _L("Prepare"), std::string("tab_3d_active"), std::string("tab_3d_active"));
-        if (sel >= tab)
-            m_tabpanel->SetSelection(sel + 1);
-    }
-    else {
-        int sel = m_tabpanel->GetSelection();
-        m_tabpanel->RemovePage(tab);
-        if (sel >= tab)
-            m_tabpanel->SetSelection(sel - 1);
-    }
-    m_with_3dEditor = enabled;
-    m_plater->Show();
-    m_tabpanel->Show();
-    Thaw();
-}
-
 void MainFrame::request_select_tab(TabPosition pos)
 {
-    int position = pos;
-    if ((!m_with_3dEditor)&&(pos >= tpPreview))
-        position = (int)pos -1;
     wxCommandEvent* evt = new wxCommandEvent(EVT_SELECT_TAB);
-    evt->SetInt(position);
+    evt->SetInt(pos);
     wxQueueEvent(this, evt);
 }
 

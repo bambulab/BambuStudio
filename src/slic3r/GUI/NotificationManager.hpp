@@ -131,6 +131,9 @@ enum class NotificationType
 	BBLGcodeOverlap,
 	//BBL: sequence print info
 	BBLSeqPrintInfo,
+	//BBL: plugin install hint
+	BBLPluginInstallHint,
+	BBLPreviewOnlyMode,
 };
 
 class NotificationManager
@@ -269,6 +272,14 @@ public:
 	//BBS--plateinfo
     void bbl_show_plateinfo_notification(const std::string &text);
     void bbl_close_plateinfo_notification();
+
+    //BBS--preview only mode
+    void bbl_show_preview_only_notification(const std::string &text);
+    void bbl_close_preview_only_notification();
+
+    //BBS--PluginInstallHint
+    void bbl_show_plugin_install_notification(const std::string &text);
+    void bbl_close_plugin_install_notification();
 
 	//BBS--Objects Info
 	void bbl_show_objectsinfo_notification(const std::string &text, bool is_warning, bool is_hidden);
