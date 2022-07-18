@@ -1956,7 +1956,7 @@ void SelectMachineDialog::set_default()
             if (!dev_manager) return;
             MachineObject *obj_ = dev_manager->get_selected_machine();
 
-            if (obj_ && obj_->is_support_ams_mapping()) {
+            if (obj_ && obj_->is_support_ams_mapping() && !m_mapping_popup.IsShown()) {
                 wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
                 pos.y += item->GetRect().height;
                 m_mapping_popup.Position(pos, wxSize(0, 0));

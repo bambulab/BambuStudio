@@ -48,11 +48,12 @@ wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
 
 void MaterialItem::msw_rescale() {}
 
-void MaterialItem::set_ams_info(wxColour col, wxString txt) 
+void MaterialItem::set_ams_info(wxColour col, wxString txt)
 {
-    m_ams_coloul = col;
-    m_ams_name = txt;
-    Refresh();
+    auto need_refresh = false;
+    if (m_ams_coloul != col) { m_ams_coloul = col; need_refresh = true;}
+    if (m_ams_name != txt) {m_ams_name   = txt;need_refresh = true;}
+    if (need_refresh) { Refresh();}
 }
 
 void MaterialItem::on_selected()
@@ -114,7 +115,7 @@ void MaterialItem::render(wxDC &dc)
      dc.SetTextForeground(material_name_colour);
 
 
-     if (dc.GetTextExtent(m_material_name).x > GetSize().x) {
+     if (dc.GetTextExtent(m_material_name).x > GetSize().x - 10) {
          dc.SetFont(::Label::Body_10);
          auto name       = m_material_name.substr(0, 3) + "." + m_material_name.substr(m_material_name.length() - 1);
          m_material_name = name;
@@ -122,7 +123,7 @@ void MaterialItem::render(wxDC &dc)
 
 
      auto material_txt_size = dc.GetTextExtent(m_material_name);
-     dc.DrawText(m_material_name, wxPoint((MATERIAL_ITEM_SIZE.x - material_txt_size.x) / 2, FromDIP(3)));
+     dc.DrawText(m_material_name, wxPoint((MATERIAL_ITEM_SIZE.x - material_txt_size.x) / 2, FromDIP(4)));
 
      //mapping num
      dc.SetFont(::Label::Body_10);
@@ -137,7 +138,7 @@ void MaterialItem::render(wxDC &dc)
      }
      
      auto mapping_txt_size = dc.GetTextExtent(mapping_txt);
-     dc.DrawText(mapping_txt, wxPoint((MATERIAL_ITEM_SIZE.x - mapping_txt_size.x) / 2, FromDIP(2) + material_txt_size.y ));
+     dc.DrawText(mapping_txt, wxPoint((MATERIAL_ITEM_SIZE.x - mapping_txt_size.x) / 2, material_txt_size.y + FromDIP(3)));
 }
 
 void MaterialItem::doRender(wxDC &dc) 
@@ -158,7 +159,7 @@ void MaterialItem::doRender(wxDC &dc)
     dc.DrawRectangle(FromDIP(3), FromDIP(10), MATERIAL_ITEM_SIZE.x - FromDIP(6), FromDIP(8));
 
     //border
-    if (m_material_coloul == *wxWHITE) {
+    if (m_material_coloul == *wxWHITE || m_ams_coloul == *wxWHITE) {
         dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRoundedRectangle(3, 3, MATERIAL_ITEM_SIZE.x -6, MATERIAL_ITEM_SIZE.y - 6, 5);
