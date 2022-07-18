@@ -13,7 +13,7 @@
 
 #define USE_LOCAL_SOCKET_BIND 0
 
-#define DISCONNECT_TIMEOUT      10000.f     // milliseconds
+#define DISCONNECT_TIMEOUT      30000.f     // milliseconds
 #define PUSHINFO_TIMEOUT        15000.f     // milliseconds
 #define REQUEST_PUSH_MIN_TIME    3000.f     // milliseconds
 
@@ -535,6 +535,7 @@ public:
     void set_print_state(std::string status);
 
     bool is_connected();
+    bool is_connecting();
     void set_online_state(bool on_off);
     bool is_online() { return m_is_online; }
     bool is_info_ready();

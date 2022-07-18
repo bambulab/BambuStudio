@@ -404,7 +404,10 @@ void MonitorPanel::update_all()
         return;
     }
 
-    if (!obj->is_connected()) {
+    if (obj->is_connecting()) {
+        show_status(MONITOR_CONNECTING);
+        return;
+    } else if (!obj->is_connected()) {
         int server_status = 0;
         // only disconnected server in cloud mode
         if (obj->connection_type() != "lan") {
@@ -503,8 +506,15 @@ void MonitorPanel::show_status(int status)
         else
             m_connection_info->SetLabel(_L("Failed to connect to the printer"));
         m_connection_info->Show();
-    }else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) {
+        m_connection_info->SetBackgroundColor(wxColour(255, 111, 0));
+        m_connection_info->SetBorderColor(wxColour(255, 111, 0));
+    } else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) {
         m_connection_info->Hide();
+    } else if ((status & (int) MonitorStatus::MONITOR_CONNECTING) != 0) {
+        m_connection_info->SetLabel(_L("Connecting..."));
+        m_connection_info->SetBackgroundColor(wxColour(0, 174, 66));
+        m_connection_info->SetBorderColor(wxColour(0, 174, 66));
+        m_connection_info->Show();
     }
 
     Freeze();
@@ -515,11 +525,14 @@ void MonitorPanel::show_status(int status)
         m_status_info_panel->show_status(status);
         m_tabpanel->Refresh();
         m_tabpanel->Layout();
-    } else if (((status & (int)MonitorStatus::MONITOR_NORMAL) != 0) ||
-        ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0) ||
-        ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
+    } else if (((status & (int)MonitorStatus::MONITOR_NORMAL) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0)
+        || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0)
         ) {
-        if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)) {
+        if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0)
+            || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
+            || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0)) {
             m_side_tools->set_current_printer_signal(WifiSignal::NONE);
             set_default();
         }

@@ -36,11 +36,12 @@ namespace Slic3r {
 namespace GUI {
 
 enum MonitorStatus {
-    MONITOR_UNKNOWN = 0,
-    MONITOR_NORMAL = 1 << 1,
-    MONITOR_NO_PRINTER = 1 << 2,
-    MONITOR_DISCONNECTED = 1 << 3,
+    MONITOR_UNKNOWN             = 0,
+    MONITOR_NORMAL              = 1 << 1,
+    MONITOR_NO_PRINTER          = 1 << 2,
+    MONITOR_DISCONNECTED        = 1 << 3,
     MONITOR_DISCONNECTED_SERVER = 1 << 4,
+    MONITOR_CONNECTING          = 1 << 5,
 };
 
 class StatusBasePanel : public wxScrolledWindow

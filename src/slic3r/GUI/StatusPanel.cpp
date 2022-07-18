@@ -2097,7 +2097,10 @@ void StatusPanel::show_status(int status)
     if (last_status == status) return;
     last_status = status;
 
-    if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)) {
+    if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0)
+        || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0)
+        ) {
         m_text_tasklist_caption->SetForegroundColour(DISCONNECT_TEXT_COL);
         show_printing_status(false, false);
         m_calibration_btn->Disable();

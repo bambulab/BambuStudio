@@ -1492,6 +1492,11 @@ bool MachineObject::is_connected()
     return true;
 }
 
+bool MachineObject::is_connecting()
+{
+    return is_connected() && m_push_count == 0;
+}
+
 void MachineObject::set_online_state(bool on_off)
 {
     m_is_online = on_off;
