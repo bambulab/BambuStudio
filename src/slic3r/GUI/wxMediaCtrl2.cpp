@@ -35,7 +35,7 @@ void wxMediaCtrl2::Stop() { wxMediaCtrl::Stop(); }
 
 wxSize wxMediaCtrl2::GetVideoSize() const
 {
-    return m_imp->GetVideoSize();
+    return m_imp ? m_imp->GetVideoSize() : wxSize(0, 0);
 }
 
 wxSize wxMediaCtrl2::DoGetBestSize() const
