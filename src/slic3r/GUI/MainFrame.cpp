@@ -2475,6 +2475,12 @@ void MainFrame::load_url(wxString url)
     wxQueueEvent(this, evt);
 }
 
+void MainFrame::refresh_plugin_tips()
+{
+    if (m_webview != nullptr)
+        m_webview->ShowNetpluginTip();
+}
+
 void MainFrame::RunScript(wxString js)
 {
     if (m_webview != nullptr)

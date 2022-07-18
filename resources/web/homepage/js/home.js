@@ -42,6 +42,20 @@ function HandleStudio( pVal )
 		
 		GotoMenu(strName);
 	}
+	else if( strCmd=="network_plugin_installtip" )
+	{
+		let nShow=pVal["show"]*1;
+		
+	    if(nShow==1)
+		{
+			$("#NoPluginTip").show();
+			$("#NoPluginTip").css("display","flex");
+		}
+		else
+		{
+			$("#NoPluginTip").hide();
+		}
+	}	
 }
 
 function GotoMenu( strMenu )
@@ -190,6 +204,15 @@ function OnLogOut()
 	tSend['command']="homepage_logout";
 	
 	SendWXMessage( JSON.stringify(tSend) );	
+}
+
+function BeginDownloadNetworkPlugin()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="begin_network_plugin_download";
+	
+	SendWXMessage( JSON.stringify(tSend) );		
 }
 
 window.postMessage = HandleStudio

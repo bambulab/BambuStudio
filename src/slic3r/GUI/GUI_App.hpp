@@ -187,6 +187,7 @@ public:
 class GUI_App : public wxApp
 {
 public:
+    typedef function<int(int status, int percent, bool& cancel)> InstallProgressFn;
     //BBS: remove GCodeViewer as seperate APP logic
     enum class EAppMode : unsigned char
     {
@@ -242,9 +243,12 @@ private:
 
     //BBS
     bool m_is_closing {false};
-    Slic3r::DeviceManager* m_device_manager;
+    Slic3r::DeviceManager* m_device_manager { nullptr };
     NetworkAgent* m_agent { nullptr };
     std::vector<std::string> need_delete_presets;   // store setting ids of preset
+    bool m_networking_compatible { false };
+    bool m_networking_need_update { false };
+    bool m_networking_cancel_update { false };
 
     VersionInfo version_info;
 
@@ -336,7 +340,7 @@ public:
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
 
     void            ShowUserGuide();
-    void            ShowDailyTip();
+    void            ShowDownNetPluginDlg();
     void            ShowUserLogin();
     void            ShowOnlyFilament();
     //BBS
@@ -485,9 +489,19 @@ public:
     void            associate_files(std::wstring extend);
     void            disassociate_files(std::wstring extend);
 #endif // __WXMSW__
+    std::string     get_plugin_url(std::string country_code);
+    int             download_plugin(InstallProgressFn pro_fn = nullptr, bool is_sync = false);
+    int             install_plugin(InstallProgressFn pro_fn = nullptr);
+    std::string     get_http_url(std::string country_code);
+    bool            is_compatibility_version();
+    bool            check_networking_version();
+    void            cancel_networking_install();
+    void            restart_networking();
 
 private:
+    int             updating_bambu_networking();
     bool            on_init_inner();
+    bool            on_init_network();
     void            init_networking_callbacks();
     void            init_app_config();
     //BBS set extra header for http request

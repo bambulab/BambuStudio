@@ -221,8 +221,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Monitor.hpp
     GUI/WebViewDialog.cpp
     GUI/WebViewDialog.hpp
-    GUI/WebDailytipDialog.hpp
-    GUI/WebDailytipDialog.cpp
+    GUI/WebDownPluginDlg.hpp
+    GUI/WebDownPluginDlg.cpp
     GUI/WebGuideDialog.hpp
     GUI/WebGuideDialog.cpp
     GUI/WebUserLoginDialog.cpp

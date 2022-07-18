@@ -11,16 +11,24 @@
 #include "NetworkAgent.hpp"
 
 
+
 using namespace BBL;
 
 namespace Slic3r {
 
+#define BAMBU_SOURCE_LIBRARY "BambuSource"
+
 #if defined(_MSC_VER) || defined(_WIN32)
 static HMODULE netwoking_module = NULL;
+static HMODULE source_module = NULL;
 #else
 static void* netwoking_module = NULL;
+static void* source_module = NULL;
 #endif
 
+
+func_check_debug_consistent         NetworkAgent::check_debug_consistent_ptr = nullptr;
+func_get_version                    NetworkAgent::get_version_ptr = nullptr;
 func_create_agent                   NetworkAgent::create_agent_ptr = nullptr;
 func_destroy_agent                  NetworkAgent::destroy_agent_ptr = nullptr;
 func_init_log                       NetworkAgent::init_log_ptr = nullptr;
@@ -103,36 +111,49 @@ int NetworkAgent::initialize_network_module()
 {
     //int ret = -1;
     std::string library;
+    auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
 
     //first load the library
 #if defined(_MSC_VER) || defined(_WIN32)
-    library = std::string(BAMBU_NETWORK_LIBRARY) + ".dll";
+    library = plugin_folder.string() + "/" + std::string(BAMBU_NETWORK_LIBRARY) + ".dll";
     wchar_t lib_wstr[128];
     memset(lib_wstr, 0, sizeof(lib_wstr));
     ::MultiByteToWideChar(CP_UTF8, NULL, library.c_str(), strlen(library.c_str())+1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
     netwoking_module = LoadLibrary(lib_wstr);
-#elif defined(__WXMAC__)
-    std::string resource_dir = resources_dir();
-    library = resource_dir + "/../Library/"+ std::string("lib") + BAMBU_NETWORK_LIBRARY + ".dylib";
+    if (!netwoking_module) {
+        library = std::string(BAMBU_NETWORK_LIBRARY) + ".dll";
+        memset(lib_wstr, 0, sizeof(lib_wstr));
+        ::MultiByteToWideChar(CP_UTF8, NULL, library.c_str(), strlen(library.c_str()) + 1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
+        netwoking_module = LoadLibrary(lib_wstr);
+    }
+#else
+    #if defined(__WXMAC__)
+    library = plugin_folder.string() + "/" + std::string("lib") + std::string(BAMBU_NETWORK_LIBRARY) + ".dylib";
+    #else
+    library = plugin_folder.string() + "/" + std::string("lib") + std::string(BAMBU_NETWORK_LIBRARY) + ".so";
+    #endif
     printf("loading network module at %s\n", library.c_str());
     netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
     if (!netwoking_module) {
+        #if defined(__WXMAC__)
         library = std::string("lib") + BAMBU_NETWORK_LIBRARY + ".dylib";
+        #else
+        library = std::string("lib") + BAMBU_NETWORK_LIBRARY + ".so";
+        #endif
         netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
     }
     printf("after dlopen, network_module is %p\n", netwoking_module);
-#else
-    library = std::string("lib") + BAMBU_NETWORK_LIBRARY + ".so";
-    netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
 #endif
 
     if (!netwoking_module) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", can not Load Library for %1%")%library;
         return -1;
     }
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", successfully loaded library %1%")%library;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", successfully loaded library %1%, module %2%")%library %netwoking_module;
 
     //load the functions
+    check_debug_consistent_ptr        =  reinterpret_cast<func_check_debug_consistent>(get_network_function("bambu_network_check_debug_consistent"));
+    get_version_ptr                   =  reinterpret_cast<func_get_version>(get_network_function("bambu_network_get_version"));
     create_agent_ptr                  =  reinterpret_cast<func_create_agent>(get_network_function("bambu_network_create_agent"));
     destroy_agent_ptr                 =  reinterpret_cast<func_destroy_agent>(get_network_function("bambu_network_destroy_agent"));
     init_log_ptr                      =  reinterpret_cast<func_init_log>(get_network_function("bambu_network_init_log"));
@@ -196,6 +217,140 @@ int NetworkAgent::initialize_network_module()
     return 0;
 }
 
+int NetworkAgent::unload_network_module()
+{
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", network module %1%")%netwoking_module;
+#if defined(_MSC_VER) || defined(_WIN32)
+    if (netwoking_module) {
+        FreeLibrary(netwoking_module);
+        netwoking_module = NULL;
+    }
+    if (source_module) {
+        FreeLibrary(source_module);
+        source_module = NULL;
+    }
+#else
+    if (netwoking_module) {
+        dlclose(netwoking_module);
+        netwoking_module = NULL;
+    }
+    if (source_module) {
+        dlclose(source_module);
+        source_module = NULL;
+    }
+#endif
+
+    check_debug_consistent_ptr        =  nullptr;
+    get_version_ptr                   =  nullptr;
+    create_agent_ptr                  =  nullptr;
+    destroy_agent_ptr                 =  nullptr;
+    init_log_ptr                      =  nullptr;
+    set_config_dir_ptr                =  nullptr;
+    set_cert_file_ptr                 =  nullptr;
+    set_country_code_ptr              =  nullptr;
+    start_ptr                         =  nullptr;
+    set_on_ssdp_msg_fn_ptr            =  nullptr;
+    set_on_user_login_fn_ptr          =  nullptr;
+    set_on_printer_connected_fn_ptr   =  nullptr;
+    set_on_server_connected_fn_ptr    =  nullptr;
+    set_on_http_error_fn_ptr          =  nullptr;
+    set_get_country_code_fn_ptr       =  nullptr;
+    set_on_message_fn_ptr             =  nullptr;
+    set_on_local_connect_fn_ptr       =  nullptr;
+    set_on_local_message_fn_ptr       =  nullptr;
+    connect_server_ptr                =  nullptr;
+    is_server_connected_ptr           =  nullptr;
+    refresh_connection_ptr            =  nullptr;
+    start_subscribe_ptr               =  nullptr;
+    stop_subscribe_ptr                =  nullptr;
+    send_message_ptr                  =  nullptr;
+    connect_printer_ptr               =  nullptr;
+    disconnect_printer_ptr            =  nullptr;
+    send_message_to_printer_ptr       =  nullptr;
+    start_discovery_ptr               =  nullptr;
+    change_user_ptr                   =  nullptr;
+    is_user_login_ptr                 =  nullptr;
+    user_logout_ptr                   =  nullptr;
+    get_user_id_ptr                   =  nullptr;
+    get_user_name_ptr                 =  nullptr;
+    get_user_avatar_ptr               =  nullptr;
+    get_user_nickanme_ptr             =  nullptr;
+    build_login_cmd_ptr               =  nullptr;
+    build_logout_cmd_ptr              =  nullptr;
+    build_login_info_ptr              =  nullptr;
+    bind_ptr                          =  nullptr;
+    unbind_ptr                        =  nullptr;
+    get_bambulab_host_ptr             =  nullptr;
+    get_user_selected_machine_ptr     =  nullptr;
+    set_user_selected_machine_ptr     =  nullptr;
+    start_print_ptr                   =  nullptr;
+    start_local_print_with_record_ptr =  nullptr;
+    start_local_print_ptr             =  nullptr;
+    get_user_presets_ptr              =  nullptr;
+    request_setting_id_ptr            =  nullptr;
+    put_setting_ptr                   =  nullptr;
+    get_setting_list_ptr              =  nullptr;
+    delete_setting_ptr                =  nullptr;
+    get_studio_info_url_ptr           =  nullptr;
+    set_extra_http_header_ptr         =  nullptr;
+    check_user_task_report_ptr        =  nullptr;
+    get_user_print_info_ptr           =  nullptr;
+    get_printer_firmware_ptr          =  nullptr;
+    get_task_plate_index_ptr          =  nullptr;
+    get_slice_info_ptr                =  nullptr;
+    query_bind_status_ptr             =  nullptr;
+    modify_printer_name_ptr           =  nullptr;
+    get_camera_url_ptr                =  nullptr;
+
+    return 0;
+}
+
+#if defined(_MSC_VER) || defined(_WIN32)
+HMODULE NetworkAgent::get_bambu_source_entry()
+#else
+void* NetworkAgent::get_bambu_source_entry()
+#endif
+{
+    if ((source_module) || (!netwoking_module))
+        return source_module;
+
+    //int ret = -1;
+    std::string library;
+    auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
+#if defined(_MSC_VER) || defined(_WIN32)
+    wchar_t lib_wstr[128];
+
+    //goto load bambu source
+    library = plugin_folder.string() + "/" + std::string(BAMBU_SOURCE_LIBRARY) + ".dll";
+    memset(lib_wstr, 0, sizeof(lib_wstr));
+    ::MultiByteToWideChar(CP_UTF8, NULL, library.c_str(), strlen(library.c_str())+1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
+    source_module = LoadLibrary(lib_wstr);
+    if (!source_module) {
+        library = std::string(BAMBU_SOURCE_LIBRARY) + ".dll";
+        memset(lib_wstr, 0, sizeof(lib_wstr));
+        ::MultiByteToWideChar(CP_UTF8, NULL, library.c_str(), strlen(library.c_str()) + 1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
+        source_module = LoadLibrary(lib_wstr);
+    }
+#else
+#if defined(__WXMAC__)
+    library = plugin_folder.string() + "/" + std::string("lib") + std::string(BAMBU_SOURCE_LIBRARY) + ".dylib";
+#else
+    library = plugin_folder.string() + "/" + std::string("lib") + std::string(BAMBU_SOURCE_LIBRARY) + ".so";
+#endif
+    source_module = dlopen( library.c_str(), RTLD_LAZY);
+    if (!source_module) {
+#if defined(__WXMAC__)
+        library = std::string("lib") + BAMBU_SOURCE_LIBRARY + ".dylib";
+#else
+        library = std::string("lib") + BAMBU_SOURCE_LIBRARY + ".so";
+#endif
+        source_module = dlopen( library.c_str(), RTLD_LAZY);
+    }
+#endif
+
+    return source_module;
+}
+
 void* NetworkAgent::get_network_function(const char* name)
 {
     void* function = nullptr;
@@ -213,6 +368,28 @@ void* NetworkAgent::get_network_function(const char* name)
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", can not find function %1%")%name;
     }
     return function;
+}
+
+std::string NetworkAgent::get_version()
+{
+    bool consistent = true;
+    //check the debug consistent first
+    if (check_debug_consistent_ptr) {
+#if defined(NDEBUG)
+        consistent = check_debug_consistent_ptr(false);
+#else
+        consistent = check_debug_consistent_ptr(true);
+#endif
+    }
+    if (!consistent) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", inconsistent library，return 00.00.00.00!");
+        return "00.00.00.00";
+    }
+    if (get_version_ptr) {
+        return get_version_ptr();
+    }
+    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", get_version not supported，return 00.00.00.00!");
+    return "00.00.00.00";
 }
 
 int NetworkAgent::init_log()

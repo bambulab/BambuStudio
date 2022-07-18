@@ -1,6 +1,8 @@
 #include "PrinterFileSystem.h"
 #include "libslic3r/Utils.hpp"
 
+#include "../../Utils/NetworkAgent.hpp"
+
 #include <boost/algorithm/hex.hpp>
 #include <boost/uuid/detail/md5.hpp>
 
@@ -323,7 +325,7 @@ void PrinterFileSystem::DeleteFilesContinue()
     req["delete"] = arr;
     m_task_flags |= FF_DELETED;
     SendRequest<Void>(
-        FILE_DEL, req, nullptr, 
+        FILE_DEL, req, nullptr,
         [indexes, names, this](int, Void const &) {
             // TODO:
             for (size_t i = indexes.size() - 1; i >= 0; --i)
@@ -723,7 +725,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
         if (c) c(result, r, nullptr);
     }
     m_messages.clear();
-    while (true) { 
+    while (true) {
         while (m_stopped) {
             if (m_session.owner == nullptr)
                 return;
@@ -800,25 +802,22 @@ StaticBambuLib &StaticBambuLib::get()
 {
     static StaticBambuLib lib;
     // first load the library
-#if defined(_MSC_VER) || defined(_WIN32)
-    module = LoadLibrary(L"BambuSource.dll");
-#elif defined(__WXMAC__)
-    module = dlopen("libBambuSource.dylib", RTLD_LAZY);
-#else
-    module = dlopen("libBambuSource.so", RTLD_LAZY);
-#endif
+
+    if (!module) {
+        module = Slic3r::NetworkAgent::get_bambu_source_entry();
+    }
 
     if (!module) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", can not Load Library";
     }
-    
+
     GET_FUNC(Bambu_Open);
     GET_FUNC(Bambu_StartStream);
     GET_FUNC(Bambu_SendMessage);
     GET_FUNC(Bambu_ReadSample);
     GET_FUNC(Bambu_Close);
     GET_FUNC(Bambu_FreeLogMsg);
-    
+
     if (!lib.Bambu_Open)
         lib.Bambu_Open = Fake_Bambu_Open;
     return lib;

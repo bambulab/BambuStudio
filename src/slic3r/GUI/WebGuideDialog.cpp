@@ -23,7 +23,9 @@
 #include "MainFrame.hpp"
 #include <boost/dll.hpp>
 #include <slic3r/GUI/Widgets/WebView.hpp>
-
+#include <slic3r/Utils/Http.hpp>
+#include <libslic3r/miniz_extension.hpp>
+#include <libslic3r/Utils.hpp>
 
 using namespace nlohmann;
 
@@ -38,6 +40,7 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
     // INI
     m_SectionName = "firstguide";
     PrivacyUse    = true;
+    InstallNetplugin = false;
 
     m_MainPtr = pGUI;
 
@@ -350,7 +353,9 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             }
 
             this->EndModal(wxID_OK);
-            //this->Close();
+  
+            if (InstallNetplugin) 
+                GUI::wxGetApp().CallAfter([this] { GUI::wxGetApp().ShowDownNetPluginDlg(); });
 
             if (bLogin)
                 GUI::wxGetApp().CallAfter([this] { login(); });
@@ -360,6 +365,14 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             this->Close();
         } else if (strCmd == "save_region") {
             m_Region = j["region"];
+        } 
+        else if (strCmd == "network_plugin_install") {
+            std::string sAction = j["data"]["action"];
+
+            if (sAction == "yes")
+                InstallNetplugin = true;
+            else
+                InstallNetplugin = false;
         }
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);
@@ -912,8 +925,10 @@ int GuideFrame::LoadProfile()
         //----region
         m_Region = wxGetApp().app_config->get("region");
         m_ProfileJson["region"] = m_Region;
-
-        }
+                                                                          
+        m_ProfileJson["network_plugin_install"] = wxGetApp().app_config->get("app","installed_networking");
+        m_ProfileJson["network_plugin_compability"] = wxGetApp().is_compatibility_version() ? "1" : "0";
+    }
     catch (std::exception &e) {
         //wxLogMessage("GUIDE: load_profile_error  %s ", e.what());
         // wxMessageBox(e.what(), "", MB_OK);
@@ -1157,6 +1172,30 @@ bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)
     }
 
     return true;
+}
+
+int GuideFrame::DownloadPlugin()
+{
+    return wxGetApp().download_plugin(
+        [this](int status, int percent, bool& cancel) {
+            return ShowPluginStatus(status, percent, cancel);
+        }
+    , false);
+}
+
+int GuideFrame::InstallPlugin()
+{
+    return wxGetApp().install_plugin(
+        [this](int status, int percent, bool &cancel) {
+            return ShowPluginStatus(status, percent, cancel);
+        }
+    );
+}
+
+int GuideFrame::ShowPluginStatus(int status, int percent, bool& cancel)
+{
+    //TODO
+    return 0;
 }
 
 

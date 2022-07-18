@@ -1028,12 +1028,12 @@ bool MachineObject::has_sdcard()
     return camera_has_sdcard;
 }
 
-bool MachineObject::has_timelapse() 
-{ 
+bool MachineObject::has_timelapse()
+{
     return camera_timelapse;
 }
 
-bool MachineObject::has_recording() 
+bool MachineObject::has_recording()
 {
     return camera_recording;
 }
@@ -1700,7 +1700,7 @@ int MachineObject::parse_json(std::string payload)
                             } catch(...) {}
                         }
                     }
-                    if (jj.contains("project_id") 
+                    if (jj.contains("project_id")
                         && jj.contains("profile_id")
                         && jj.contains("subtask_id")
                         ){
@@ -1729,11 +1729,11 @@ int MachineObject::parse_json(std::string payload)
                             curr_task->task_progress = mc_print_percent;
                             curr_task->printing_status = print_status;
                             curr_task->task_id = jj["subtask_id"].get<std::string>();
-                            
+
                         }
                     }
 #pragma endregion
-                    
+
 #pragma region status
                     /* temperature */
                     if (jj.contains("bed_temper")) {
@@ -1858,7 +1858,7 @@ int MachineObject::parse_json(std::string payload)
                         ;
                     }
 #pragma endregion
-                    
+
 #pragma region upgrade
                     try {
                         if (jj.contains("upgrade_state")) {
@@ -1949,7 +1949,7 @@ int MachineObject::parse_json(std::string payload)
                     catch (...) {
                         ;
                     }
-#pragma endregion            
+#pragma endregion
 
 #pragma region hms
                     // parse hms msg
@@ -2491,6 +2491,10 @@ DeviceManager::~DeviceManager()
     userMachineList.clear();
 }
 
+void DeviceManager::set_agent(NetworkAgent* agent)
+{
+    m_agent = agent;
+}
 
 void DeviceManager::on_machine_alive(std::string json_str)
 {

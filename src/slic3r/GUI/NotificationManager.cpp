@@ -2050,7 +2050,7 @@ size_t NotificationManager::get_notification_count() const
 
 void NotificationManager::bbl_show_plateinfo_notification(const std::string &text)
 {
-    NotificationData data{NotificationType::BBLPlateInfo, NotificationLevel::PrintInfoNotificationLevel, 86400 * 10, text};
+    NotificationData data{NotificationType::BBLPlateInfo, NotificationLevel::PrintInfoNotificationLevel, BBL_NOTICE_MAX_INTERVAL, text};
 
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::BBLPlateInfo) {
@@ -2108,7 +2108,7 @@ void NotificationManager::bbl_show_objectsinfo_notification(const std::string &t
         };
         hyper_text =  _u8L(" (Repair)");
     }
-    NotificationData data{NotificationType::BBLObjectInfo, NotificationLevel::PrintInfoNotificationLevel, 86400 * 10, text, hyper_text, callback};
+    NotificationData data{NotificationType::BBLObjectInfo, NotificationLevel::PrintInfoNotificationLevel, BBL_NOTICE_MAX_INTERVAL, text, hyper_text, callback};
     if (is_warning)
         data.use_warn_color = true;
 
@@ -2137,7 +2137,7 @@ void NotificationManager::bbl_close_objectsinfo_notification()
 
 void NotificationManager::bbl_show_seqprintinfo_notification(const std::string &text)
 {
-    NotificationData data{NotificationType::BBLSeqPrintInfo, NotificationLevel::PrintInfoNotificationLevel, 86400 * 10, text};
+    NotificationData data{NotificationType::BBLSeqPrintInfo, NotificationLevel::PrintInfoNotificationLevel, BBL_NOTICE_MAX_INTERVAL, text};
 
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::BBLSeqPrintInfo) {
@@ -2279,7 +2279,7 @@ void NotificationManager::bbl_show_sole_text_notification(NotificationType sType
     default:
 		nlevel = NotificationLevel::PrintInfoNotificationLevel;
 
-		if (autohide == false) nHideTime = 86400 * 10;
+		if (autohide == false) nHideTime = BBL_NOTICE_MAX_INTERVAL;
         break;
     }
 

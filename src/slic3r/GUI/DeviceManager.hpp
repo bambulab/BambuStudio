@@ -574,6 +574,7 @@ private:
 public:
     DeviceManager(NetworkAgent* agent = nullptr);
     ~DeviceManager();
+    void set_agent(NetworkAgent* agent);
 
     std::mutex listMutex;
     std::string selected_machine;                               /* dev_id */

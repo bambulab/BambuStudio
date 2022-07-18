@@ -302,6 +302,7 @@ public:
 
     //BBS
     void        load_url(wxString url);
+    void        refresh_plugin_tips();
     void RunScript(wxString js);
 
     // BBS. Replace title bar and menu bar with top bar.

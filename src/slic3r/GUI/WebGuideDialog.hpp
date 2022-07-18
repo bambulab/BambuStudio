@@ -34,6 +34,14 @@
 
 namespace Slic3r { namespace GUI {
 
+enum PluginInstallStatus {
+    InstallStatusNormal             = 0,
+    InstallStatusDownloadFailed     = 1,
+    InstallStatusDownloadCompleted  = 2,
+    InstallStatusUnzipFailed        = 3,
+    InstallStatusInstallCompleted   = 4,
+};
+
 class GuideFrame : public wxDialog
 {
 public:
@@ -87,6 +95,11 @@ public:
     void        GetStardardFilePath(std::string &FilePath);
     bool LoadFile(std::string jPath, std::string & sContent);
 
+    // install plugin
+    int DownloadPlugin();
+    int InstallPlugin();
+    int ShowPluginStatus(int status, int percent, bool &cancel);
+
 private:
     GUI_App *m_MainPtr;
     AppConfig m_appconfig_new;
@@ -103,6 +116,8 @@ private:
     // User Config
     bool PrivacyUse;
     std::string m_Region;
+
+    bool InstallNetplugin;
 
 #if wxUSE_WEBVIEW_IE
     wxMenuItem *m_script_object_el;

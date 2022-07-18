@@ -55,7 +55,22 @@ var LangText={
 		"t60":"Europe",
 		"t61":"North America",
 		"t62":"Others",
-		"t63":"After changing the region, your account will be logged out. Please log in again later."
+		"t63":"After changing the region, your account will be logged out. Please log in again later.",
+		"t64":"Bambu Network Plugin",
+		"t65":"Sending print job via WLAN",
+		"t66":"Full remote control",
+		"t67":"Monitoring liveview",
+		"t68":"User data synchronization",
+		"t69":"Install Bambu Network Plug-in",
+		"t70":"After installation, Bambu Studio will restart to activate it.",
+		"t71":"Downloading",
+		"t72":"Downloading failed",
+		"t73":"Installation successful. Will restart Bambu Studio in 3 seconds.",
+		"t74":"Restart",
+		"t75":"Bambu Network plug-in Provides the following features:",
+		"t76":"Network plugin not detected. Click ",
+		"t77":"here",
+		"t78":" to install it."
 	},
 	"zh_CN":{
 		"t1":"欢迎使用Bambu Studio",

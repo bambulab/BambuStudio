@@ -11,6 +11,7 @@
 
 #import <Foundation/Foundation.h>
 #import "BambuPlayer/BambuPlayer.h"
+#import "../Utils/NetworkAgent.hpp"
 
 #include <stdlib.h>
 #include <dlfcn.h>
@@ -43,7 +44,8 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent)
     imageView.layer.backgroundColor = color;
     CGColorRelease(color);
     imageView.wantsLayer = YES;
-    auto module = dlopen("libBambuSource.dylib", RTLD_LAZY);
+    //auto module = dlopen("libBambuSource.dylib", RTLD_LAZY);
+    auto module = Slic3r::NetworkAgent::get_bambu_source_entry();
     Class cls = (__bridge Class) dlsym(module, "OBJC_CLASS_$_BambuPlayer");
     if (cls == nullptr) {
         m_error = -2;

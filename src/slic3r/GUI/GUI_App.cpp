@@ -45,6 +45,8 @@
 #include "libslic3r/I18N.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Thread.hpp"
+#include "libslic3r/miniz_extension.hpp"
+#include "libslic3r/Utils.hpp"
 
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
@@ -79,7 +81,7 @@
 #include "Widgets/ProgressDialog.hpp"
 
 //BBS: DailyTip and UserGuide Dialog
-#include "WebDailytipDialog.hpp"
+#include "WebDownPluginDlg.hpp"
 #include "WebGuideDialog.hpp"
 #include "WebUserLoginDialog.hpp"
 #include "ReleaseNote.hpp"
@@ -925,13 +927,6 @@ void GUI_App::post_init()
     if (! this->initialized())
         throw Slic3r::RuntimeError("Calling post_init() while not yet initialized");
 
-    // set Http Header
-    std::map<std::string, std::string> extra_header = get_extra_header();
-    Slic3r::Http::set_extra_headers(extra_header);
-
-    init_networking_callbacks();
-
-
     bool switch_to_3d = false;
     if (!this->init_params->input_files.empty()) {
         switch_to_3d = true;
@@ -1026,6 +1021,18 @@ void GUI_App::post_init()
         plater_->get_notification_manager()->push_hint_notification(true);
 #endif
 
+    if (m_networking_need_update) {
+        //updating networking
+        int ret = updating_bambu_networking();
+        if (!ret) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<":networking plugin updated successfully";
+            restart_networking();
+        }
+        else {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<<":networking plugin updated failed";
+        }
+    }
+
     // The extra CallAfter() is needed because of Mac, where this is the only way
     // to popup a modal dialog on start without screwing combo boxes.
     // This is ugly but I honestly found no better way to do it.
@@ -1037,7 +1044,8 @@ void GUI_App::post_init()
         CallAfter([this] {
             bool cw_showed = this->config_wizard_startup();
 
-            this->preset_updater->sync(preset_bundle);
+            std::string http_url = get_http_url(app_config->get_country_code());
+            this->preset_updater->sync(http_url, preset_bundle);
 
             //BBS: check new version
             this->check_new_version();
@@ -1045,6 +1053,7 @@ void GUI_App::post_init()
     }
 
     if(m_agent) {
+        init_networking_callbacks();
         m_agent->start_discovery(true, false);
     }
 
@@ -1069,20 +1078,332 @@ GUI_App::GUI_App()
 	//, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 	//, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {
-    int load_agent_dll = Slic3r::NetworkAgent::initialize_network_module();
-    if (!load_agent_dll)
-        m_agent = new Slic3r::NetworkAgent();
-
-    m_device_manager = new Slic3r::DeviceManager(m_agent);
-
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
 	this->init_app_config();
+}
 
-    this->init_http_extra_header();
+std::string GUI_App::get_http_url(std::string country_code)
+{
+    std::string url;
+    if (country_code == "US") {
+        url = "https://api.bambulab.com/";
+    }
+    else if (country_code == "CN") {
+        url = "https://api.bambulab.cn/";
+    }
+    else if (country_code == "ENV_CN_DEV") {
+        url = "https://api-dev.bambu-lab.com/";
+    }
+    else if (country_code == "ENV_CN_QA") {
+        url = "https://api-qa.bambu-lab.com/";
+    }
+    else if (country_code == "ENV_CN_PRE") {
+        url = "https://api-pre.bambu-lab.com/";
+    }
+    else {
+        url = "https://api.bambulab.com/";
+    }
+
+    url += "v1/iot-service/api/slicer/resource";
+    return url;
+}
+
+std::string GUI_App::get_plugin_url(std::string country_code)
+{
+    std::string url = get_http_url(country_code);
+    url += (boost::format("?slicer/plugins/cloud=%1%") % SLIC3R_VERSION).str();
+    //url += (boost::format("?slicer/plugins/cloud=%1%") % "01.01.00.00").str();
+    return url;
+}
+
+static std::string decode(std::string const& extra, std::string const& path = {}) {
+    char const* p = extra.data();
+    char const* e = p + extra.length();
+    while (p + 4 < e) {
+        boost::uint16_t len = ((boost::uint16_t)p[2]) | ((boost::uint16_t)p[3] << 8);
+        if (p[0] == '\x75' && p[1] == '\x70' && len >= 5 && p + 4 + len < e && p[4] == '\x01') {
+            return std::string(p + 9, p + 4 + len);
+        }
+        else {
+            p += 4 + len;
+        }
+    }
+    return Slic3r::decode_path(path.c_str());
+}
+
+int GUI_App::download_plugin(InstallProgressFn pro_fn, bool is_sync)
+{
+    int result = 0;
+    // get country_code
+    AppConfig* app_config = wxGetApp().app_config;
+    if (!app_config)
+        return -1;
+
+    m_networking_cancel_update = false;
+    // get temp path
+    fs::path target_file_path = (fs::temp_directory_path() / "network_plugin.zip");
+    fs::path tmp_path = target_file_path;
+    tmp_path += format(".%1%%2%", get_current_pid(), ".tmp");
+
+    // get_url
+    std::string url = get_plugin_url(app_config->get_country_code());
+    std::string download_url;
+    Slic3r::Http http_url = Slic3r::Http::get(url);
+    http_url.on_complete(
+        [&download_url](std::string body, unsigned status) {
+            try {
+                json j = json::parse(body);
+                std::string message = j["message"].get<std::string>();
+
+                if (message == "success") {
+                    json resource =j.at("resources");
+                    if (resource.is_array()) {
+                        for (auto iter = resource.begin(); iter != resource.end(); iter++) {
+                            Semver version;
+                            std::string url;
+                            std::string type;
+                            std::string vendor;
+                            std::string description;
+                            for (auto sub_iter = iter.value().begin(); sub_iter != iter.value().end(); sub_iter++) {
+                                if (boost::iequals(sub_iter.key(),"type")) {
+                                    type = sub_iter.value();
+                                    BOOST_LOG_TRIVIAL(info) << "[BBL Updater]: get version of settings's type, " << sub_iter.value();
+                                }
+                                else if (boost::iequals(sub_iter.key(),"version")) {
+                                    version = *(Semver::parse(sub_iter.value()));
+                                }
+                                else if (boost::iequals(sub_iter.key(),"description")) {
+                                    description = sub_iter.value();
+                                }
+                                else if (boost::iequals(sub_iter.key(),"url")) {
+                                    url = sub_iter.value();
+                                }
+                            }
+                            BOOST_LOG_TRIVIAL(info) << "[download_plugin]: get type "<< type <<", version "<<version.to_string()<<", url " << url;
+                            download_url = url;
+                        }
+                    }
+                }
+                else {
+                    BOOST_LOG_TRIVIAL(info) << "[download_plugin]: get version of plugin failed, body=" << body;
+                }
+            }
+            catch(...) {
+                BOOST_LOG_TRIVIAL(error) << "[download_plugin]: catch unknown exception";
+                ;
+            }
+    }).on_error(
+        [](std::string body, std::string error, unsigned int status) {
+            BOOST_LOG_TRIVIAL(error) << "" << body;
+    }).perform_sync();
+
+    bool cancel = false;
+    if (download_url.empty()) {
+        if (pro_fn) pro_fn(InstallStatusDownloadFailed, 100, cancel);
+        return -1;
+    }
+    else if (pro_fn) {
+        pro_fn(InstallStatusNormal, 5, cancel);
+    }
+
+    if (m_networking_cancel_update || cancel) {
+        BOOST_LOG_TRIVIAL(info) << boost::format("download_plugin: %1%, cancelled by user")%__LINE__;
+        return -1;
+    }
+    BOOST_LOG_TRIVIAL(info) << "download_plugin, get_url = " << download_url;
+
+    // download
+    Slic3r::Http http = Slic3r::Http::get(download_url);
+    http.on_progress(
+        [this, &pro_fn, &result](Slic3r::Http::Progress progress, bool& cancel) {
+            int percent = 0;
+            if (progress.dltotal != 0)
+                percent = progress.dlnow * 50 / progress.dltotal;
+            bool was_cancel = false;
+            if (pro_fn) pro_fn(InstallStatusNormal, percent, was_cancel);
+            cancel = m_networking_cancel_update || was_cancel;
+            if (cancel)
+                result = -1;
+        })
+        .on_complete([&pro_fn, tmp_path, target_file_path](std::string body, unsigned status) {
+            BOOST_LOG_TRIVIAL(info) << "download_plugin, completed";
+            bool cancel = false;
+            int percent = 0;
+            fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
+            file.write(body.c_str(), body.size());
+            file.close();
+            fs::rename(tmp_path, target_file_path);
+            if (pro_fn) pro_fn(InstallStatusDownloadCompleted, 50, cancel);
+            })
+        .on_error([&pro_fn, &result](std::string body, std::string error, unsigned int status) {
+            bool cancel = false;
+            if (pro_fn) pro_fn(InstallStatusDownloadFailed, 100, cancel);
+
+            result = -1;
+        });
+
+    http.perform_sync();
+    return result;
+}
+
+int GUI_App::install_plugin(InstallProgressFn pro_fn)
+{
+    bool cancel = false;
+    std::string target_file_path = (fs::temp_directory_path() / "network_plugin.zip").string();
+    // get plugin folder
+    auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
+    if (!boost::filesystem::exists(plugin_folder)) {
+        boost::filesystem::create_directory(plugin_folder);
+    }
+
+    if (m_networking_cancel_update) {
+        BOOST_LOG_TRIVIAL(info) << boost::format("install_plugin: %1%, cancelled by user")%__LINE__;
+        return -1;
+    }
+    if (pro_fn) {
+        pro_fn(InstallStatusNormal, 50, cancel);
+    }
+    // unzip
+    mz_zip_archive archive;
+    mz_zip_zero_struct(&archive);
+    if (!open_zip_reader(&archive, target_file_path)) {
+        return InstallStatusUnzipFailed;
+    }
+    mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
+    mz_zip_archive_file_stat stat;
+    for (mz_uint i = 0; i < num_entries; i++) {
+        if (m_networking_cancel_update || cancel) {
+            BOOST_LOG_TRIVIAL(info) << boost::format("install_plugin: %1%, cancelled by user")%__LINE__;
+            return -1;
+        }
+        if (mz_zip_reader_file_stat(&archive, i, &stat)) {
+            if (stat.m_uncomp_size > 0) {
+                std::string dest_file;
+                if (stat.m_is_utf8) {
+                    dest_file = stat.m_filename;
+                }
+                else {
+                    std::string extra(1024, 0);
+                    size_t n = mz_zip_reader_get_extra(&archive, stat.m_file_index, extra.data(), extra.size());
+                    dest_file = decode(extra.substr(0, n), stat.m_filename);
+                }
+                auto dest_file_path = boost::filesystem::path(dest_file);
+                dest_file = dest_file_path.filename().string();
+                auto dest_path = boost::filesystem::path(plugin_folder.string() + "/" + dest_file);
+                std::string dest_zip_file = encode_path(dest_path.string().c_str());
+                try {
+                    if (fs::exists(dest_path))
+                        fs::remove(dest_path);
+                    mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from plugin zip %2%\n") % dest_file % stat.m_filename;
+                    if (res == 0) {
+                        mz_zip_error zip_error = mz_zip_get_last_error(&archive);
+                        BOOST_LOG_TRIVIAL(error) << "[install_plugin]Archive read error:" << mz_zip_get_error_string(zip_error) << std::endl;
+                        close_zip_reader(&archive);
+                        if (pro_fn) {
+                            pro_fn(InstallStatusUnzipFailed, 100, cancel);
+                        }
+                        return InstallStatusUnzipFailed;
+                    }
+                    else {
+                        if (pro_fn) {
+                            pro_fn(InstallStatusNormal, 50 + i/num_entries, cancel);
+                        }
+                    }
+                }
+                catch (const std::exception& e)
+                {
+                    // ensure the zip archive is closed and rethrow the exception
+                    close_zip_reader(&archive);
+                    BOOST_LOG_TRIVIAL(error) << "[install_plugin]Archive read exception:"<<e.what();
+                    if (pro_fn) {
+                        pro_fn(InstallStatusUnzipFailed, 100, cancel);
+                    }
+                    return InstallStatusUnzipFailed;
+                }
+            }
+        }
+    }
+
+    close_zip_reader(&archive);
+
+    if (pro_fn)
+        pro_fn(InstallStatusInstallCompleted, 100, cancel);
+    app_config->set_str("app", "installed_networking", "1");
+    return 0;
+}
+
+void GUI_App::restart_networking()
+{
+    on_init_network();
+    if(m_agent) {
+        init_networking_callbacks();
+        m_agent->start_discovery(true, false);
+        if (mainframe)
+            mainframe->refresh_plugin_tips();
+    }
+}
+
+int GUI_App::updating_bambu_networking()
+{
+    int result = 0;
+    ProgressDialog dlg(_L("Downloading Bambu Network plug-in"), "Downloading", 100, nullptr, wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_APP_MODAL);
+    result = download_plugin(
+        [this, &dlg](int state, int percent, bool &cancel) {
+            bool cont = dlg.Update(percent);
+            cancel = !cont;
+            return 0;
+        }
+    , true);
+
+    if (result != 0) {
+        return -1;
+    }
+    result = install_plugin(
+        [this, &dlg](int state, int percent, bool &cancel) {
+            //dlg.Update(percent);
+            bool cont = dlg.Update(percent, _L("Updating Bambu Network plug-in"));
+            cancel = !cont;
+            return 0;
+        }
+    );
+    if (result != 0) {
+        return -1;
+    }
+    return 0;
+}
+
+bool GUI_App::check_networking_version()
+{
+    std::string network_ver = Slic3r::NetworkAgent::get_version();
+    if (!network_ver.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "get_network_agent_version=" << network_ver;
+    }
+    std::string studio_ver = SLIC3R_VERSION;
+    if (network_ver.length() >= 8) {
+        if (network_ver.substr(0,8) == studio_ver.substr(0,8)) {
+            m_networking_compatible = true;
+            return true;
+        }
+    }
+
+    m_networking_compatible = false;
+    return false;
+}
+
+bool GUI_App::is_compatibility_version()
+{
+    return m_networking_compatible;
+}
+
+void GUI_App::cancel_networking_install()
+{
+    m_networking_cancel_update = true;
 }
 
 void GUI_App::init_networking_callbacks()
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": enter, m_agent=%1%")%m_agent;
     if (m_agent) {
         m_agent->set_on_ssdp_msg_fn(
             [this](std::string json_str) {
@@ -1118,7 +1439,7 @@ void GUI_App::init_networking_callbacks()
                             wxGetApp().mainframe->m_debug_tool_dlg->message_arrived(dev_id, msg);
                     }
                 }
-                });
+            });
         };
 
         m_agent->set_on_message_fn(message_arrive_fn);
@@ -1147,6 +1468,7 @@ void GUI_App::init_networking_callbacks()
         };
         m_agent->set_on_local_message_fn(lan_message_arrive_fn);
     }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": exit, m_agent=%1%")%m_agent;
 }
 
 GUI_App::~GUI_App()
@@ -1222,14 +1544,6 @@ void GUI_App::init_app_config()
             if (!boost::filesystem::exists(data_dir_path))
                 boost::filesystem::create_directory(data_dir_path);
             set_data_dir(data_dir);
-
-            //BBS set config dir
-            if (m_agent) {
-                m_agent->set_config_dir(data_dir);
-            }
-            //BBS set cert dir
-            if (m_agent)
-                m_agent->set_cert_file(resources_dir() + "/cert", "slicer_base64.cer");
         #else
             // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
             // https://github.com/prusa3d/PrusaSlicer/issues/2911
@@ -1301,6 +1615,9 @@ std::map<std::string, std::string> GUI_App::get_extra_header()
 void GUI_App::init_http_extra_header()
 {
     std::map<std::string, std::string> extra_headers = get_extra_header();
+
+    Slic3r::Http::set_extra_headers(extra_headers);
+
     if (m_agent)
         m_agent->set_extra_http_header(extra_headers);
 }
@@ -1484,7 +1801,7 @@ bool GUI_App::on_init_inner()
                     false,
                     wxCENTER | wxICON_INFORMATION);
 
-                
+
                 dialog.SetExtendedMessage(extmsg);*/
 
                 UpdateVersionDialog dialog(this->mainframe);
@@ -1539,6 +1856,8 @@ bool GUI_App::on_init_inner()
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(true);
 
+    on_init_network();
+
     //BBS if load user preset failed
     //if (loaded_preset_result != 0) {
         try {
@@ -1551,80 +1870,9 @@ bool GUI_App::on_init_inner()
             show_error(nullptr, ex.what());
         }
     //}
-    
 
-    if (m_agent) {
-        //set callbacks
-        m_agent->set_on_user_login_fn([this](int online_login, bool login) {
-            GUI::wxGetApp().request_user_login(online_login);
-            });
 
-        m_agent->set_on_server_connected_fn([this]() {
-            GUI::wxGetApp().CallAfter([this] {
-                if (m_is_closing) {
-                    return;
-                }
-                m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
-                });
-            });
 
-        m_agent->set_on_printer_connected_fn([this](std::string dev_id) {
-            GUI::wxGetApp().CallAfter([this, dev_id] {
-                if (m_is_closing) {
-                    return;
-                }
-                /* request_pushing */
-                MachineObject* obj = m_device_manager->get_user_machine(dev_id);
-                if (obj) {
-                    obj->command_request_push_all();
-                    obj->command_get_version();
-                }
-                });
-            });
-
-        m_agent->set_get_country_code_fn([this]() {
-            if (app_config)
-                return app_config->get_country_code();
-            return std::string();
-            }
-        );
-
-        m_agent->set_on_local_connect_fn(
-            [this](int state, std::string dev_id, std::string msg) {
-                CallAfter([this, state, dev_id, msg] {
-                    if (m_is_closing) {
-                        return;
-                    }
-                    /* request_pushing */
-                    MachineObject* obj = m_device_manager->get_my_machine(dev_id);
-                    if (obj) {
-                        if (obj->is_lan_mode_printer()) {
-                            if (state == ConnectStatus::ConnectStatusFailed) {
-                                obj->set_access_code("");
-                                wxString text = wxString::Format(_L("Connect %s[SN:%s] failed!"), from_u8(obj->dev_name), obj->dev_id);
-                                MessageDialog msg_dlg(nullptr, text, "", wxAPPLY | wxOK);
-                                if (msg_dlg.ShowModal() == wxOK) {
-                                    return;
-                                }
-                            }
-                            else {
-                                obj->command_request_push_all();
-                                obj->command_get_version();
-                            }
-                        }
-                    }
-
-                    if (mainframe->m_debug_tool_dlg) {
-                        mainframe->m_debug_tool_dlg->on_local_connected(state, dev_id, msg);
-                    }
-                });
-            }
-        );
-
-        std::string country_code = app_config->get_country_code();
-        m_agent->set_country_code(country_code);
-        m_agent->start();
-    }
 
     if (app_config->get("sync_user_preset") == "true") {
         //BBS loading user preset
@@ -1746,6 +1994,133 @@ bool GUI_App::on_init_inner()
     BOOST_LOG_TRIVIAL(info) << "finished the gui app init";
     //BBS: delete splash screen
     delete scrn;
+    return true;
+}
+
+bool GUI_App::on_init_network()
+{
+    int load_agent_dll = Slic3r::NetworkAgent::initialize_network_module();
+    bool create_network_agent = false;
+    if (!load_agent_dll) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll ok";
+        if (check_networking_version()) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, compatibility version";
+            create_network_agent = true;
+        } else {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, version dismatch, need upload network module";
+            if (app_config->get("installed_networking") == "1") {
+                m_networking_need_update = true;
+            }
+        }
+    } else {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll failed";
+        if (app_config->get("intalled_networking") == "1") {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, need upload network module";
+            m_networking_need_update = true;
+        }
+    }
+
+    if (create_network_agent) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", create network agent...");
+        m_agent = new Slic3r::NetworkAgent();
+
+        if (!m_device_manager)
+            m_device_manager = new Slic3r::DeviceManager(m_agent);
+        else
+            m_device_manager->set_agent(m_agent);
+        std::string data_dir = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
+
+        //BBS set config dir
+        if (m_agent) {
+            m_agent->set_config_dir(data_dir);
+        }
+        //BBS set cert dir
+        if (m_agent)
+            m_agent->set_cert_file(resources_dir() + "/cert", "slicer_base64.cer");
+
+        init_http_extra_header();
+
+        if (m_agent) {
+            //set callbacks
+            m_agent->set_on_user_login_fn([this](int online_login, bool login) {
+                GUI::wxGetApp().request_user_login(online_login);
+                });
+
+            m_agent->set_on_server_connected_fn([this]() {
+                GUI::wxGetApp().CallAfter([this] {
+                    if (m_is_closing) {
+                        return;
+                    }
+                    m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
+                    });
+                });
+
+            m_agent->set_on_printer_connected_fn([this](std::string dev_id) {
+                GUI::wxGetApp().CallAfter([this, dev_id] {
+                    if (m_is_closing) {
+                        return;
+                    }
+                    /* request_pushing */
+                    MachineObject* obj = m_device_manager->get_user_machine(dev_id);
+                    if (obj) {
+                        obj->command_request_push_all();
+                        obj->command_get_version();
+                    }
+                    });
+                });
+
+            m_agent->set_get_country_code_fn([this]() {
+                if (app_config)
+                    return app_config->get_country_code();
+                return std::string();
+                }
+            );
+
+            m_agent->set_on_local_connect_fn(
+                [this](int state, std::string dev_id, std::string msg) {
+                    CallAfter([this, state, dev_id, msg] {
+                        if (m_is_closing) {
+                            return;
+                        }
+                        /* request_pushing */
+                        MachineObject* obj = m_device_manager->get_my_machine(dev_id);
+                        if (obj) {
+                            if (obj->is_lan_mode_printer()) {
+                                if (state == ConnectStatus::ConnectStatusFailed) {
+                                    obj->set_access_code("");
+                                    wxString text = wxString::Format(_L("Connect %s[SN:%s] failed!"), from_u8(obj->dev_name), obj->dev_id);
+                                    MessageDialog msg_dlg(nullptr, text, "", wxAPPLY | wxOK);
+                                    if (msg_dlg.ShowModal() == wxOK) {
+                                        return;
+                                    }
+                                }
+                                else {
+                                    obj->command_request_push_all();
+                                    obj->command_get_version();
+                                }
+                            }
+                        }
+
+                        if (mainframe->m_debug_tool_dlg) {
+                            mainframe->m_debug_tool_dlg->on_local_connected(state, dev_id, msg);
+                        }
+                    });
+                }
+            );
+
+            std::string country_code = app_config->get_country_code();
+            m_agent->set_country_code(country_code);
+            m_agent->start();
+        }
+    }
+    else {
+        int result = Slic3r::NetworkAgent::unload_network_module();
+        BOOST_LOG_TRIVIAL(info) << "on_init_network, unload_network_module, result = " << result;
+
+        if (!m_device_manager)
+            m_device_manager = new Slic3r::DeviceManager();
+    }
+
     return true;
 }
 
@@ -2126,12 +2501,11 @@ void GUI_App::ShowUserGuide() {
     }
 }
 
-void GUI_App::ShowDailyTip() {
+void GUI_App::ShowDownNetPluginDlg() {
     // BBS: Dialy Tip Dialog
     try {
-        DailytipFrame TipDlg(this);
-        //if (TipDlg.IsWhetherShow())
-            TipDlg.ShowModal();
+        DownPluginFrame TipDlg(this);
+        TipDlg.ShowModal();
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "", MB_OK);
     }
@@ -2490,6 +2864,9 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     }
                 }
             }
+            else if (command_str.compare("begin_network_plugin_download") == 0) {
+                CallAfter([this] { wxGetApp().ShowDownNetPluginDlg(); });
+            }
         }
     }
     catch (...) {
@@ -2637,8 +3014,9 @@ void GUI_App::check_update(bool show_tips)
     if (version_info.version_str.empty()) return;
     if (version_info.url.empty()) return;
 
-    std::string curr_version = SLIC3R_VERSION;
-    if (version_info.version_str > curr_version) {
+    auto curr_version = Semver::parse(SLIC3R_VERSION);
+    auto remote_version = Semver::parse(version_info.version_str);
+    if (curr_version && remote_version && (*remote_version > *curr_version)) {
         if (version_info.force_upgrade) {
             wxGetApp().app_config->set_bool("force_upgrade", version_info.force_upgrade);
             wxGetApp().app_config->set("upgrade", "force_upgrade", true);
@@ -2659,8 +3037,6 @@ void GUI_App::check_update(bool show_tips)
 
 void GUI_App::check_new_version(bool show_tips)
 {
-    if (!m_agent) return;
-
     std::string platform = "windows";
 
 #ifdef __WINDOWS__
@@ -2677,7 +3053,7 @@ void GUI_App::check_new_version(bool show_tips)
         % VersionInfo::convert_full_version("0.0.0.1")
         ).str();
 
-    std::string url = m_agent->get_studio_info_url() + query_params;
+    std::string url = get_http_url(app_config->get_country_code()) + query_params;
     Slic3r::Http http = Slic3r::Http::get(url);
 
     http.header("accept", "application/json")
@@ -2717,7 +3093,7 @@ void GUI_App::check_new_version(bool show_tips)
         .on_error([this](std::string body, std::string error, unsigned int status) {
             handle_http_error(status, body);
             BOOST_LOG_TRIVIAL(error) << "check new version error" << body;
-        }).perform();
+    }).perform();
 }
 
 

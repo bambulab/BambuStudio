@@ -5340,7 +5340,7 @@ void Plater::priv::on_filament_color_changed(wxCommandEvent &event)
 
 void Plater::priv::install_network_plugin(wxCommandEvent &event)
 {
-    //
+    wxGetApp().ShowDownNetPluginDlg();
     return;
 }
 
