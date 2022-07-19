@@ -2307,6 +2307,7 @@ void PrintObject::remove_bridges_from_contacts(
     Lines overhang_perimeters = to_lines(*overhang_regions);
     auto layer_regions = current_layer->regions();
     Polygons lower_layer_polygons = to_polygons(lower_layer->lslices);
+    const PrintObjectConfig& object_config = current_layer->object()->config();
 
     Polygons all_bridges;
     for (LayerRegion* layerm : layer_regions)
@@ -2323,7 +2324,7 @@ void PrintObject::remove_bridges_from_contacts(
             // since we're dealing with bridges, we can't assume width is larger than spacing,
             // so we take the largest value and also apply safety offset to be ensure no gaps
             // are left in between
-        Flow bridge_flow = layerm->bridging_flow(frPerimeter, g_config_thick_bridges);
+        Flow bridge_flow = layerm->bridging_flow(frPerimeter, object_config.thick_bridges);
         float w = float(std::max(bridge_flow.scaled_width(), bridge_flow.scaled_spacing()));
         for (Polyline& polyline : overhang_perimeters)
             if (polyline.is_straight()) {

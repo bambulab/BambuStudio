@@ -2759,7 +2759,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
     coordf_t z_distance_top = m_slicing_params.gap_support_object;
     // BBS: add extra distance if thick bridge is enabled
     // Note: normal support uses print_z, but tree support uses integer layers, so we need to subtract layer_height
-    if (!m_slicing_params.soluble_interface && g_config_thick_bridges) {
+    if (!m_slicing_params.soluble_interface && m_object_config->thick_bridges) {
         z_distance_top += m_object->layers()[0]->regions()[0]->region().bridging_height_avg(m_object->print()->config()) - layer_height;
     }
     const size_t z_distance_top_layers = round_up_divide(scale_(z_distance_top), scale_(layer_height)) + 1; //Support must always be 1 layer below overhang.
