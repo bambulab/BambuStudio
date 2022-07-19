@@ -75,17 +75,22 @@ void MaterialItem::on_warning()
 
 void MaterialItem::on_normal()
 {
-    m_selected = false;
-    m_warning = false;
-    Refresh();
+    if (m_selected || m_warning) {
+        m_selected = false;
+        m_warning  = false;
+        Refresh();
+    }
 }
-
 
 
 void MaterialItem::paintEvent(wxPaintEvent &evt) 
 {  
     wxPaintDC dc(this);
     render(dc);
+
+    //PrepareDC(buffdc);
+    //PrepareDC(dc);
+    
 }
 
 void MaterialItem::render(wxDC &dc) 
@@ -108,37 +113,34 @@ void MaterialItem::render(wxDC &dc)
     doRender(dc);
 #endif
 
-     //materials name
-     dc.SetFont(::Label::Body_13);
+    // materials name
+    dc.SetFont(::Label::Body_13);
 
-     auto material_name_colour = m_material_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26,0x2E,0x30);
-     dc.SetTextForeground(material_name_colour);
+    auto material_name_colour = m_material_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
+    dc.SetTextForeground(material_name_colour);
 
+    if (dc.GetTextExtent(m_material_name).x > GetSize().x - 10) {
+        dc.SetFont(::Label::Body_10);
+        auto name       = m_material_name.substr(0, 3) + "." + m_material_name.substr(m_material_name.length() - 1);
+        m_material_name = name;
+    }
 
-     if (dc.GetTextExtent(m_material_name).x > GetSize().x - 10) {
-         dc.SetFont(::Label::Body_10);
-         auto name       = m_material_name.substr(0, 3) + "." + m_material_name.substr(m_material_name.length() - 1);
-         m_material_name = name;
-     }
+    auto material_txt_size = dc.GetTextExtent(m_material_name);
+    dc.DrawText(m_material_name, wxPoint((MATERIAL_ITEM_SIZE.x - material_txt_size.x) / 2, FromDIP(4)));
 
+    // mapping num
+    dc.SetFont(::Label::Body_10);
+    dc.SetTextForeground(m_ams_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30));
 
-     auto material_txt_size = dc.GetTextExtent(m_material_name);
-     dc.DrawText(m_material_name, wxPoint((MATERIAL_ITEM_SIZE.x - material_txt_size.x) / 2, FromDIP(4)));
+    wxString mapping_txt = wxEmptyString;
+    if (m_ams_name.empty()) {
+        mapping_txt = "-";
+    } else {
+        mapping_txt = m_ams_name;
+    }
 
-     //mapping num
-     dc.SetFont(::Label::Body_10);
-     dc.SetTextForeground(m_ams_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26,0x2E,0x30));
-
-
-     wxString mapping_txt = wxEmptyString;
-     if (m_ams_name.empty()) {
-         mapping_txt = "-";
-     }else{
-         mapping_txt = m_ams_name;
-     }
-     
-     auto mapping_txt_size = dc.GetTextExtent(mapping_txt);
-     dc.DrawText(mapping_txt, wxPoint((MATERIAL_ITEM_SIZE.x - mapping_txt_size.x) / 2, material_txt_size.y + FromDIP(3)));
+    auto mapping_txt_size = dc.GetTextExtent(mapping_txt);
+    dc.DrawText(mapping_txt, wxPoint((MATERIAL_ITEM_SIZE.x - mapping_txt_size.x) / 2, material_txt_size.y + FromDIP(3)));
 }
 
 void MaterialItem::doRender(wxDC &dc) 

@@ -1316,7 +1316,8 @@ void SelectMachineDialog::show_status(PrintDialogStatus status)
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingByOrder) {
-        update_print_status_msg(wxEmptyString, false, false);
+        wxString msg_text = _L("Printer firmware does not support material = >ams slot mapping.");
+        update_print_status_msg(msg_text, false, false);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     }
@@ -1927,7 +1928,6 @@ void SelectMachineDialog::set_default()
         m_sizer_material->Add(item, 0, wxLEFT | wxRIGHT, FromDIP(5));
 
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {
-            Freeze();
             MaterialHash::iterator iter = m_materialList.begin();
             while (iter != m_materialList.end()) {
                 int           id   = iter->first;
@@ -1939,7 +1939,6 @@ void SelectMachineDialog::set_default()
 
             m_current_filament_id = extruder;
             item->on_selected();
-            Thaw();
         });
 
         item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent &e) {
@@ -1950,7 +1949,8 @@ void SelectMachineDialog::set_default()
             if (!dev_manager) return;
             MachineObject *obj_ = dev_manager->get_selected_machine();
 
-            if (obj_ && obj_->is_support_ams_mapping() && !m_mapping_popup.IsShown()) {
+            if (obj_ && obj_->is_support_ams_mapping()) {
+                if (m_mapping_popup.IsShown()) return;
                 wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
                 pos.y += item->GetRect().height;
                 m_mapping_popup.Position(pos, wxSize(0, 0));
