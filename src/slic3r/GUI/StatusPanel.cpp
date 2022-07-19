@@ -653,6 +653,7 @@ void StatusBasePanel::reset_temp_misc_control()
     m_tempCtrl_bed->GetTextCtrl()->SetLabel(TEMP_BLANK_STR);
     m_tempCtrl_frame->SetLabel(TEMP_BLANK_STR);
     m_tempCtrl_frame->GetTextCtrl()->SetLabel(TEMP_BLANK_STR);
+    m_button_unload->Show(); 
 
     m_tempCtrl_nozzle->Enable(true);
     m_tempCtrl_frame->Enable(true);
@@ -1267,12 +1268,6 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
 
     m_tempCtrl_frame->SetCurrTemp(obj->chamber_temp);
     m_tempCtrl_frame->SetTagTemp(obj->chamber_temp);
-}
-
-void StatusPanel::show_unload_ctrl() 
-{ 
-    m_button_unload->Show(); 
-    m_button_unload->GetParent()->Layout();
 }
 
 void StatusPanel::update_misc_ctrl(MachineObject *obj)
