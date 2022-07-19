@@ -39,8 +39,7 @@ PrinterFileSystem::PrinterFileSystem()
 }
 
 PrinterFileSystem::~PrinterFileSystem()
-{
-}
+{ m_recv_thread.detach(); }
 
 void PrinterFileSystem::SetFileType(FileType type)
 {
@@ -274,13 +273,14 @@ void PrinterFileSystem::SetUrl(std::string const &url)
 void PrinterFileSystem::Stop(bool quit)
 {
     boost::unique_lock l(m_mutex);
-    if (m_stopped) return;
-    m_stopped = true;
     if (quit) {
         m_session.owner = nullptr;
         // let the thread delete this
         m_callbacks.push_back([thiz = shared_from_this()](int result, json const &, unsigned char const *) { (void) thiz; });
+    } else if (m_stopped) {
+        return;
     }
+    m_stopped = true;
     m_cond.notify_all();
 }
 
