@@ -2364,8 +2364,52 @@ void PrintObject::remove_bridges_from_contacts(
         // remove the entire bridges and only support the unsupported edges
         //FIXME the brided regions are already collected as layerm->bridged. Use it?
         for (const Surface& surface : layerm->fill_surfaces.surfaces)
-            if (surface.surface_type == stBottomBridge && surface.bridge_angle != -1)
-                polygons_append(bridges, surface.expolygon);
+            if (surface.surface_type == stBottomBridge && surface.bridge_angle != -1) {
+                auto bbox      = get_extents(surface.expolygon);
+                auto bbox_size = bbox.size();
+                if (bbox_size[0] < max_bridge_length || bbox_size[1] < max_bridge_length)
+                    polygons_append(bridges, surface.expolygon);
+                else {
+                    if (break_bridge) {
+                        Polygons holes;
+                        int      x0 = bbox.min.x();
+                        int      x1 = bbox.max.x();
+                        int      y0 = bbox.min.y();
+                        int      y1 = bbox.max.y();         
+                        const int grid_lw = int(w); // grid line width
+                        
+#if 1
+                        if (fabs(surface.bridge_angle-0)<fabs(surface.bridge_angle-M_PI_2)) {
+                            int step = bbox_size(0) / round(bbox_size(0) / max_bridge_length);
+                            for (int x = x0 + step; x < x1; x += step) {
+                                Polygon poly;
+                                poly.points = {Point(x - grid_lw, y0), Point(x + grid_lw, y0), Point(x + grid_lw, y1), Point(x - grid_lw, y1)};
+                                holes.emplace_back(poly);
+                            }
+                        } else {
+                            int step = bbox_size(1) / round(bbox_size(1) / max_bridge_length);
+                            for (int y = y0 + step; y < y1; y += step) {
+                                Polygon poly;
+                                poly.points = {Point(x0, y - grid_lw), Point(x0, y + grid_lw), Point(x1, y + grid_lw), Point(x1, y - grid_lw)};
+                                holes.emplace_back(poly);
+                            }
+                        }
+#else
+                        int stepx = bbox_size(0) / round(bbox_size(0) / max_bridge_length);
+                        int stepy  = bbox_size(1) / round(bbox_size(1) / max_bridge_length);
+                        for (int x = x0 + stepx; x < x1; x += stepx)
+                            for (int y = y0 + stepy; y < y1; y += stepy) {
+                                Polygon poly;
+                                poly.points = {Point(x-grid_lw, y - grid_lw), Point(x+grid_lw, y - grid_lw), Point(x+grid_lw, y + grid_lw), Point(x-grid_lw, y + grid_lw)};
+                                holes.emplace_back(poly);
+                            }
+
+#endif
+                        auto expoly = diff_ex(surface.expolygon, holes);
+                        polygons_append(bridges, expoly);
+                    }
+                }
+            }
         //FIXME add the gap filled areas. Extrude the gaps with a bridge flow?
         // Remove the unsupported ends of the bridges from the bridged areas.
         //FIXME add supports at regular intervals to support long bridges!
