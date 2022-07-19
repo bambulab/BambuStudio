@@ -26,7 +26,7 @@ TempInput::TempInput()
                    std::make_pair(*wxWHITE, (int) StateColor::Normal))
     , label_color(std::make_pair(wxColour(0xAC,0xAC,0xAC), (int) StateColor::Disabled),std::make_pair(0x323A3D, (int) StateColor::Normal))
     , text_color(std::make_pair(wxColour(0xAC,0xAC,0xAC), (int) StateColor::Disabled), std::make_pair(0x6B6B6B, (int) StateColor::Normal))
-    , background_color(std::make_pair(wxColour(0xAC, 0xAC, 0xAC), (int) StateColor::Disabled),
+    , background_color(std::make_pair(*wxWHITE, (int) StateColor::Disabled),
                        std::make_pair(*wxWHITE, (int) StateColor::Normal))
 {
     hover  = false;
@@ -430,7 +430,7 @@ void TempInput::render(wxDC &dc)
     labelSize = dc.GetMultiLineTextExtent(wxWindow::GetLabel());
     
     if (!IsEnabled()) {
-        dc.SetTextForeground(background_color.colorForStates((int) StateColor::Disabled));
+        dc.SetTextForeground(wxColour(0xAC, 0xAC, 0xAC));
         dc.SetTextBackground(background_color.colorForStates((int) StateColor::Disabled));
     } 
     else {
