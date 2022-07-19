@@ -1096,41 +1096,6 @@ void GUI_App::init_networking_callbacks()
             }
         );
 
-        //set callbacks
-        m_agent->set_on_user_login_fn([this](int online_login, bool login) {
-            GUI::wxGetApp().request_user_login(online_login);
-            });
-
-        m_agent->set_on_server_connected_fn([this]() {
-            GUI::wxGetApp().CallAfter([this] {
-                if (m_is_closing) {
-                    return;
-                }
-                m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
-                });
-            });
-
-        m_agent->set_on_printer_connected_fn([this](std::string dev_id) {
-            GUI::wxGetApp().CallAfter([this, dev_id] {
-                if (m_is_closing) {
-                    return;
-                }
-                /* request_pushing */
-                MachineObject* obj = m_device_manager->get_user_machine(dev_id);
-                if (obj) {
-                    obj->command_request_push_all();
-                    obj->command_get_version();
-                }
-                });
-            });
-
-        m_agent->set_get_country_code_fn([this]() {
-            if (app_config)
-                return app_config->get_country_code();
-            return std::string();
-            }
-        );
-
         m_agent->set_on_http_error_fn([this](unsigned int status, std::string body) {
             this->handle_http_error(status, body);
             });
@@ -1180,38 +1145,6 @@ void GUI_App::init_networking_callbacks()
                 });
         };
         m_agent->set_on_local_message_fn(lan_message_arrive_fn);
-
-
-        m_agent->set_on_local_connect_fn(
-            [this](int state, std::string dev_id, std::string msg) {
-                CallAfter([this, state, dev_id, msg] {
-                    if (m_is_closing) {
-                        return;
-                    }
-                    /* request_pushing */
-                    MachineObject* obj = m_device_manager->get_my_machine(dev_id);
-                    if (obj) {
-                        if (obj->is_lan_mode_printer()) {
-                            if (state == ConnectStatus::ConnectStatusFailed) {
-                                obj->set_access_code("");
-                                wxString text = wxString::Format(_L("Connect %s[SN:%s] failed!"), from_u8(obj->dev_name), obj->dev_id);
-                                MessageDialog msg_dlg(nullptr, text, "", wxAPPLY | wxOK);
-                                if (msg_dlg.ShowModal() == wxOK) {
-                                    return;
-                                }
-                            } else {
-                                obj->command_request_push_all();
-                                obj->command_get_version();
-                            }
-                        }
-                    }
-
-                    if (mainframe->m_debug_tool_dlg) {
-                        mainframe->m_debug_tool_dlg->on_local_connected(state, dev_id, msg);
-                    }
-                    });
-            }
-        );
     }
 }
 
@@ -1602,12 +1535,6 @@ bool GUI_App::on_init_inner()
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(true);
 
-    if (m_agent) {
-        std::string country_code = app_config->get_country_code();
-        m_agent->set_country_code(country_code);
-        m_agent->start();
-    }
-
     //BBS if load user preset failed
     //if (loaded_preset_result != 0) {
         try {
@@ -1620,7 +1547,81 @@ bool GUI_App::on_init_inner()
             show_error(nullptr, ex.what());
         }
     //}
-    //
+    
+
+    if (m_agent) {
+        //set callbacks
+        m_agent->set_on_user_login_fn([this](int online_login, bool login) {
+            GUI::wxGetApp().request_user_login(online_login);
+            });
+
+        m_agent->set_on_server_connected_fn([this]() {
+            GUI::wxGetApp().CallAfter([this] {
+                if (m_is_closing) {
+                    return;
+                }
+                m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
+                });
+            });
+
+        m_agent->set_on_printer_connected_fn([this](std::string dev_id) {
+            GUI::wxGetApp().CallAfter([this, dev_id] {
+                if (m_is_closing) {
+                    return;
+                }
+                /* request_pushing */
+                MachineObject* obj = m_device_manager->get_user_machine(dev_id);
+                if (obj) {
+                    obj->command_request_push_all();
+                    obj->command_get_version();
+                }
+                });
+            });
+
+        m_agent->set_get_country_code_fn([this]() {
+            if (app_config)
+                return app_config->get_country_code();
+            return std::string();
+            }
+        );
+
+        m_agent->set_on_local_connect_fn(
+            [this](int state, std::string dev_id, std::string msg) {
+                CallAfter([this, state, dev_id, msg] {
+                    if (m_is_closing) {
+                        return;
+                    }
+                    /* request_pushing */
+                    MachineObject* obj = m_device_manager->get_my_machine(dev_id);
+                    if (obj) {
+                        if (obj->is_lan_mode_printer()) {
+                            if (state == ConnectStatus::ConnectStatusFailed) {
+                                obj->set_access_code("");
+                                wxString text = wxString::Format(_L("Connect %s[SN:%s] failed!"), from_u8(obj->dev_name), obj->dev_id);
+                                MessageDialog msg_dlg(nullptr, text, "", wxAPPLY | wxOK);
+                                if (msg_dlg.ShowModal() == wxOK) {
+                                    return;
+                                }
+                            }
+                            else {
+                                obj->command_request_push_all();
+                                obj->command_get_version();
+                            }
+                        }
+                    }
+
+                    if (mainframe->m_debug_tool_dlg) {
+                        mainframe->m_debug_tool_dlg->on_local_connected(state, dev_id, msg);
+                    }
+                });
+            }
+        );
+
+        std::string country_code = app_config->get_country_code();
+        m_agent->set_country_code(country_code);
+        m_agent->start();
+    }
+
     if (app_config->get("sync_user_preset") == "true") {
         //BBS loading user preset
         BOOST_LOG_TRIVIAL(info) << "Loading user presets...";

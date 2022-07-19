@@ -1545,10 +1545,12 @@ void StatusPanel::update_subtask(MachineObject *obj)
             m_button_abort->Enable(false);
             m_button_pause_resume->Enable(false);
             m_button_pause_resume->SetLabel(_L("Pause"));
-            wxString prepare_text = wxString::Format(_L("Preparing the print job"));
+            wxString prepare_text = wxString::Format(_L("Downloading..."));
+            if (obj->gcode_file_prepare_percent >= 0 && obj->gcode_file_prepare_percent <= 100)
+                prepare_text += wxString::Format("(%d%%)", obj->gcode_file_prepare_percent);
             m_printing_stage_value->SetLabelText(prepare_text);
-            m_gauge_progress->SetValue(obj->gcode_file_prepare_percent);
-            m_staticText_progress_percent->SetLabelText(wxString::Format("%d%%", obj->gcode_file_prepare_percent));
+            m_gauge_progress->SetValue(0);
+            m_staticText_progress_percent->SetLabelText(NA_STR);
             m_staticText_progress_left->SetLabel(NA_STR);
             m_staticText_progress_left->SetLabelText(NA_STR);
             wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));

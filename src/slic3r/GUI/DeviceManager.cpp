@@ -2819,7 +2819,7 @@ void DeviceManager::update_user_machine_list_info()
 {
     if (!m_agent) return;
 
-    BOOST_LOG_TRIVIAL(trace) << "update_user_machine_list_info";
+    BOOST_LOG_TRIVIAL(info) << "update_user_machine_list_info";
     unsigned int http_code;
     std::string body;
     int result = m_agent->get_user_print_info(&http_code, &body);

@@ -335,7 +335,7 @@ void MonitorPanel::on_size(wxSizeEvent &event)
 
     // update wifi signal image
     int wifi_signal_val = 0;
-    if (!obj->is_connected()) {
+    if (!obj->is_connected() || obj->is_connecting()) {
         m_side_tools->set_current_printer_signal(WifiSignal::NONE);
     } else {
         if (!obj->wifi_signal.empty() && boost::ends_with(obj->wifi_signal, "dBm")) {
