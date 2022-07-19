@@ -1805,6 +1805,7 @@ struct Plater::priv
     // Sets m_bed.m_polygon to limit the object placement.
     //BBS: add bed exclude area
     void set_bed_shape(const Pointfs& shape, const Pointfs& exclude_areas, const double printable_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false);
+    bool can_add_timelapse_wt() const;
 
     bool can_delete() const;
     bool can_delete_all() const;
@@ -2993,7 +2994,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         }
 
         tolal_model_count += model_idx;
-        
+
 
         if (one_by_one) {
             // BBS: add load_old_project logic
@@ -5893,6 +5894,16 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_ar
         partplate_list.reset_size(max.x() - min.x(), max.y() - min.y(), z);
         partplate_list.set_shapes(shape, exclude_areas, custom_texture, height_to_lid, height_to_rod);
     }
+}
+
+bool Plater::priv::can_add_timelapse_wt() const {
+    const DynamicPrintConfig &dconfig = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    const ConfigOption* option = dconfig.option("timelapse_no_toolhead");
+    bool timelapse_enabled = option?option->getBool():false;
+
+    PartPlate* curr_plate = q->get_partplate_list().get_curr_plate();
+
+    return timelapse_enabled && curr_plate->can_add_timelapse_object();
 }
 
 bool Plater::priv::can_delete() const
@@ -9792,6 +9803,7 @@ void Plater::show_status_message(std::string s)
     BOOST_LOG_TRIVIAL(trace) << "show_status_message:" << s;
 }
 
+bool Plater::can_add_timelapse_wt() const { return p->can_add_timelapse_wt(); } // BBS
 bool Plater::can_delete() const { return p->can_delete(); }
 bool Plater::can_delete_all() const { return p->can_delete_all(); }
 bool Plater::can_add_model() const { return !is_background_process_slicing(); }

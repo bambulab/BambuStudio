@@ -421,6 +421,7 @@ public:
 
     //BBS:
     void fill_color(int extruder_id);
+    bool can_add_timelapse_wt() const;
 
     bool can_delete() const;
     bool can_delete_all() const;

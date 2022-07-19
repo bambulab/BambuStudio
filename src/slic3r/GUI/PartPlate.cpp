@@ -1635,6 +1635,33 @@ void PartPlate::move_instances_to(PartPlate& left_plate, PartPlate& right_plate,
 	return;
 }
 
+//can add timelapse object
+bool PartPlate::can_add_timelapse_object()
+{
+	bool result = true;
+
+	if (obj_to_instance_set.size() == 0)
+		return false;
+
+	for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
+	{
+		int obj_id = it->first;
+
+		if (obj_id >= m_model->objects.size())
+			continue;
+
+		ModelObject* object = m_model->objects[obj_id];
+
+		if (object->is_timelapse_wipe_tower)
+		{
+			result = false;
+			break;
+		}
+	}
+
+	return result;
+}
+
 void PartPlate::generate_logo_polygon(ExPolygon &logo_polygon)
 {
 	if (m_shape.size() == 4)

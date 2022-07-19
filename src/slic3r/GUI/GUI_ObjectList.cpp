@@ -2038,12 +2038,15 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
     new_object->translate(-bb.center());
 
     if (is_timelapse_wt) {
-        new_object->instances[0]->set_offset( Vec3d(80.0, 230.0, -new_object->origin_translation.z()) );
         new_object->is_timelapse_wipe_tower = true;
         auto   curr_plate    = wxGetApp().plater()->get_partplate_list().get_curr_plate();
         int    highest_extruder = 0;
         double max_height = curr_plate->estimate_timelapse_wipe_tower_height(&highest_extruder);
         new_object->scale(1, 1, max_height / new_object->bounding_box().size()[2]);
+
+        // move to garbage bin of curr plate
+        auto offset = curr_plate->get_origin() + Vec3d(80.0, 230.0, -new_object->origin_translation.z());
+        new_object->instances[0]->set_offset(offset);
 
         new_object->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
         new_object->config.set_key_value("top_shell_layers", new ConfigOptionInt(0));

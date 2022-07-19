@@ -279,6 +279,9 @@ public:
     //move instances to left or right PartPlate
     void move_instances_to(PartPlate& left_plate, PartPlate& right_plate, BoundingBoxf3* bounding_box = nullptr);
 
+    //can add timelapse object
+    bool can_add_timelapse_object();
+
     /*rendering related functions*/
     const Pointfs& get_shape() const { return m_shape; }
     bool set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Vec2d position, float height_to_lid, float height_to_rod);
