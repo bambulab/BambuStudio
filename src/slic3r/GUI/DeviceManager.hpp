@@ -244,7 +244,13 @@ public:
 #define UpgradeFlashFailed      -3
 #define UpgradePrinting         -4
 
-
+// calc distance map
+struct DisValue {
+    int  tray_id;
+    float distance;
+    bool  is_same_color = true;
+    bool  is_type_match = true;
+};
 
 class MachineObject
 {

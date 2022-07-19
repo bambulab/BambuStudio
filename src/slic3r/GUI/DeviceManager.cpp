@@ -591,7 +591,6 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
 
     // tray_index : tray_color
     std::map<int, FilamentInfo> tray_filaments;
-
     for (auto ams = amsList.begin(); ams != amsList.end(); ams++) {
         for (auto tray = ams->second->trayList.begin(); tray != ams->second->trayList.end(); tray++) {
             int ams_id = atoi(ams->first.c_str());
@@ -635,6 +634,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
 
     // is_support_ams_mapping
     if (!is_support_ams_mapping()) {
+        BOOST_LOG_TRIVIAL(info) << "ams_mapping: do not support, use order mapping";
         for (int i = 0; i < filaments.size(); i++) {
             FilamentInfo info;
             if (i < tray_info_list.size()) {
@@ -651,29 +651,38 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
         return 0;
     }
 
-    // calc distance map
-    struct DisValue {
-        int  tray_id;
-        float distance;
-        bool  is_same_color = true;
-        bool  is_type_match = true;
-    };
+    char buffer[256];
     std::vector<std::vector<DisValue>> distance_map;
+
+    // print title
+    ::sprintf(buffer, "F(id)");
+    std::string line = std::string(buffer);
+    for (auto tray = tray_filaments.begin(); tray != tray_filaments.end(); tray++) {
+        ::sprintf(buffer, "   AMS%02d", tray->second.id+1);
+        line += std::string(buffer);
+    }
+    BOOST_LOG_TRIVIAL(info) << "ams_mapping_distance:" << line;
+
     for (int i = 0; i < filaments.size(); i++) {
         std::vector<DisValue> rol;
+        ::sprintf(buffer, "F(%02d)", filaments[i].id+1);
+        line = std::string(buffer);
         for (auto tray = tray_filaments.begin(); tray != tray_filaments.end(); tray++) {
             DisValue val;
-            val.tray_id = tray->first;
+            val.tray_id = tray->second.id;
             wxColour c = wxColour(filaments[i].color);
             val.distance = calc_color_distance(c, AmsTray::decode_color(tray->second.color));
-            //val.is_same_color = val.distance < MAPPING_COLOR_THRESHOLD;
             if (filaments[i].type != tray->second.type) {
+                val.distance = 999999;
                 val.is_type_match = false;
             } else {
                 val.is_type_match = true;
             }
+            ::sprintf(buffer, "  %6.0f", val.distance);
+            line += std::string(buffer);
             rol.push_back(val);
         }
+        BOOST_LOG_TRIVIAL(info) << "ams_mapping_distance:" << line;
         distance_map.push_back(rol);
     }
 
@@ -684,6 +693,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
         info.tray_id = -1;
         result.push_back(info);
     }
+
     std::set<int> picked_src;
     std::set<int> picked_tar;
     for (int k = 0; k < distance_map.size(); k++) {
@@ -694,8 +704,9 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
             if (picked_src.find(i) != picked_src.end())
                 continue;
             for (int j = 0; j < distance_map[i].size(); j++) {
-                if (picked_tar.find(j) == picked_tar.end()
-                    && distance_map[i][j].is_same_color
+                if (picked_tar.find(j) != picked_tar.end())
+                    continue;
+                if (distance_map[i][j].is_same_color
                     && distance_map[i][j].is_type_match) {
                     if (min_val > distance_map[i][j].distance) {
                         min_val = distance_map[i][j].distance;
@@ -708,25 +719,31 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
         if (picked_src_idx >= 0 && picked_tar_idx >= 0) {
             auto tray = tray_filaments.find(distance_map[k][picked_tar_idx].tray_id);
             if (tray != tray_filaments.end()) {
-                result[picked_src_idx].tray_id = tray->first;
-                result[picked_src_idx].color = tray->second.color;
-                result[picked_src_idx].type = tray->second.type;
-                BOOST_LOG_TRIVIAL(trace) << "tray_id = " << tray->first << ", distance = " << distance_map[k][picked_tar_idx].distance;
+                result[picked_src_idx].tray_id  = tray->first;
+                result[picked_src_idx].color    = tray->second.color;
+                result[picked_src_idx].type     = tray->second.type;
+                result[picked_src_idx].distance = tray->second.distance;
             }
             else {
                 FilamentInfo info;
                 info.tray_id = -1;
             }
-            picked_tar.insert(picked_tar_idx);
+            ::sprintf(buffer, "ams_mapping, picked F(%02d) AMS(%02d), distance=%6.0f", picked_src_idx+1, picked_tar_idx+1,
+                distance_map[picked_src_idx][picked_tar_idx].distance);
+            BOOST_LOG_TRIVIAL(info) << std::string(buffer);
             picked_src.insert(picked_src_idx);
+            picked_tar.insert(picked_tar_idx);
         }
     }
+
+    std::vector<FilamentInfo> cache_map_result = result;
 
     //check ams mapping result
     if (is_valid_mapping_result(result)) {
         return 0;
     }
 
+    reset_mapping_result(result);
     try {
         // try to use ordering ams mapping
         bool order_mapping_result = true;
@@ -750,13 +767,21 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
         }
 
         //check order mapping result
-        if (!is_valid_mapping_result(result)) {
-            reset_mapping_result(result);
-            return -1;
+        if (is_valid_mapping_result(result)) {
+            return 0;
         }
     } catch(...) {
         reset_mapping_result(result);
         return -1;
+    }
+
+    // try to match some color
+    reset_mapping_result(result);
+    result = cache_map_result;
+    for (auto it = result.begin(); it != result.end(); it++) {
+        if (it->distance >= 6000) {
+            it->tray_id = -1;
+        }
     }
 
     return 0;
@@ -779,6 +804,7 @@ void MachineObject::reset_mapping_result(std::vector<FilamentInfo>& result)
 {
     for (int i = 0; i < result.size(); i++) {
         result[i].tray_id = -1;
+        result[i].distance = 99999;
     }
 }
 

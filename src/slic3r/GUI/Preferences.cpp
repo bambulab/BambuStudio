@@ -244,12 +244,12 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
             return;
         } else {
             NetworkAgent *agent  = wxGetApp().getAgent();
+            wxGetApp().request_user_logout();
             AppConfig *             config = GUI::wxGetApp().app_config;
             if (agent) {
                 agent->set_country_code(area);
                 config->set("region", region.ToStdString());
             }
-            wxGetApp().request_user_logout();
             EndModal(wxID_CANCEL);
         }
 

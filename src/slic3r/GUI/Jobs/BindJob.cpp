@@ -103,7 +103,7 @@ void BindJob::process()
                 msg = _L("Logging in");
             }
             if (code != 0) {
-                msg = login_failed_str + wxString::Format("(code=%d,info=%s)", code, info);
+                msg = _L("Login failed") + wxString::Format("(code=%d,info=%s)", code, info);
             }
             update_status(curr_percent, msg);
         }

@@ -1050,9 +1050,10 @@ void SelectMachineDialog::finish_mode()
     Fit();
 }
 
-void SelectMachineDialog::sync_ams_mapping_result()
+
+void SelectMachineDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &result)
 {
-    for (auto f = m_ams_mapping_result.begin(); f != m_ams_mapping_result.end(); f++) {
+    for (auto f = result.begin(); f != result.end(); f++) {
         BOOST_LOG_TRIVIAL(trace) << "ams_mapping f id = " << f->id << ", tray_id = " << f->tray_id << ", color = " << f->color << ", type = " << f->type;
 
         MaterialHash::iterator iter = m_materialList.begin();
@@ -1086,13 +1087,35 @@ void SelectMachineDialog::sync_ams_mapping_result()
     }
 }
 
+void print_ams_mapping_result(std::vector<FilamentInfo>& result)
+{
+    if (result.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "print_ams_mapping_result: empty";
+    }
+
+    char buffer[256];
+    for (int i = 0; i < result.size(); i++) {
+        ::sprintf(buffer, "print_ams_mapping: F(%02d) -> A(%02d)", result[i].id+1, result[i].tray_id+1);
+        BOOST_LOG_TRIVIAL(info) << std::string(buffer);
+    }
+}
+
 bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
 {
     if (!obj_) return false;
 
     // try color and type mapping
     int result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result);
-    if (result == 0) sync_ams_mapping_result();
+    if (result == 0) {
+        print_ams_mapping_result(m_ams_mapping_result);
+        std::string ams_array;
+        if (get_ams_mapping_result(ams_array))
+            BOOST_LOG_TRIVIAL(info) << "ams_mapping_array=" << ams_array;
+        else
+            BOOST_LOG_TRIVIAL(info) << "ams_mapping_array=[]";
+        sync_ams_mapping_result(m_ams_mapping_result);
+    }
+
     return obj_->is_valid_mapping_result(m_ams_mapping_result);
 }
 
@@ -1284,7 +1307,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status)
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNeedUpgradingAms) {
-        wxString msg_text = _L("The firmware versions of printer and AMS are too low.Please update to the latest version before sending the print job");
+        wxString msg_text = _L("Printer firmware does not support material = >ams slot mapping.");
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
@@ -1483,7 +1506,7 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
     auto selection_data = evt.GetString();
     auto selection_data_arr = wxSplit(selection_data.ToStdString(), '|');
 
-    BOOST_LOG_TRIVIAL(trace) << "The ams mapping selection result: data is " << selection_data;
+    BOOST_LOG_TRIVIAL(info) << "The ams mapping selection result: data is " << selection_data;
 
     if (selection_data_arr.size() == 5) {
          for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
@@ -1549,19 +1572,9 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
 
     option_list = dev->get_my_machine_list();
 
-    // local lan machine
-    /*std::map<std::string, MachineObject*> local_machine_list = dev->get_local_machine_list();
-    for (auto it = local_machine_list.begin(); it != local_machine_list.end(); it++) {
-        if (it->second->is_lan_mode_printer()) {
-            if (option_list.find(it->first) == option_list.end()) {
-                option_list.insert(std::make_pair(it->first, it->second));
-            }
-        }
-    }*/
-
     // same machine only appear once
     for (auto it = option_list.begin(); it != option_list.end(); it++) {
-        if (it->second && it->second->is_online()) {
+        if (it->second && (it->second->is_online() || it->second->is_connected())) {
             machine_list.push_back(it->second->dev_name);
         }
     }
@@ -1585,6 +1598,7 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
     if (obj) {
         m_printer_last_select = obj->dev_id;
     }
+
     if (m_list.size() > 0) {
         // select a default machine
         if (m_printer_last_select.empty()) {
@@ -1721,6 +1735,11 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     // do ams mapping if no ams result
     if (m_ams_mapping_result.empty()) {
         do_ams_mapping(obj_);
+    }
+
+    if (!obj_->is_support_ams_mapping()) {
+        show_status(PrintDialogStatus::PrintStatusNeedUpgradingAms);
+        return;
     }
 
     if (m_ams_mapping_res) {

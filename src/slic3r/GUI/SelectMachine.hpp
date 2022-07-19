@@ -324,7 +324,7 @@ public:
     void      sending_mode();
     void      finish_mode();
 
-	void      sync_ams_mapping_result();
+	void      sync_ams_mapping_result(std::vector<FilamentInfo>& result);
     bool      do_ams_mapping(MachineObject *obj_);
     bool      get_ams_mapping_result(std::string &mapping_array_str);
     void      prepare(int print_plate_idx);

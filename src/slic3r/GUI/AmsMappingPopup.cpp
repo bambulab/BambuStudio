@@ -241,8 +241,6 @@ void AmsMapingPopup::update_ams_data(std::map<std::string, Ams*> amsList)
 
             td.id = ams_indx * AMS_TOTAL_COUNT + atoi(tray_data->id.c_str());
 
-            BOOST_LOG_TRIVIAL(trace) << "ams_mapping ams data ==type==" << tray_data->type << "==colour=="<<tray_data->color << "==trayid=="<<tray_data->id.c_str() << "==ftrayid=="<<td.id;
-
             if (!tray_data->is_exists) {
                 td.type = EMPTY;
             } else {

@@ -2376,6 +2376,7 @@ void GUI_App::request_user_logout()
 {
     if (m_agent) {
         m_agent->user_logout();
+        m_agent->set_user_selected_machine("");
         /* delete old user settings */
         m_device_manager->clean_user_info();
         GUI::wxGetApp().remove_user_presets();
