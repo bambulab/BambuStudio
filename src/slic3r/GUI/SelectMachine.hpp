@@ -256,7 +256,7 @@ private:
     int m_print_plate_idx;
 
     std::string m_printer_last_select;
-    PrintDialogStatus m_print_status;
+    PrintDialogStatus m_print_status { PrintStatusInit };
 
     std::vector<wxString>               m_bedtype_list;
     std::map<std::string, ::CheckBox *> m_checkbox_list;

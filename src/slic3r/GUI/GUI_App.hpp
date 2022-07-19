@@ -491,6 +491,7 @@ private:
     void            init_networking_callbacks();
     void            init_app_config();
     //BBS set extra header for http request
+    std::map<std::string, std::string> get_extra_header();
     void            init_http_extra_header();
     bool            check_older_app_config(Semver current_version, bool backup);
     void            copy_older_config();

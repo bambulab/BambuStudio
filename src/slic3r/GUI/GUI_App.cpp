@@ -967,6 +967,13 @@ void GUI_App::post_init()
     if (! this->initialized())
         throw Slic3r::RuntimeError("Calling post_init() while not yet initialized");
 
+    // set Http Header
+    std::map<std::string, std::string> extra_header = get_extra_header();
+    Slic3r::Http::set_extra_headers(extra_header);
+
+    init_networking_callbacks();
+
+
     bool switch_to_3d = false;
     if (!this->init_params->input_files.empty()) {
         switch_to_3d = true;
@@ -1122,12 +1129,9 @@ GUI_App::GUI_App()
 
     m_device_manager = new Slic3r::DeviceManager(m_agent);
 
-    init_networking_callbacks();
-
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
 	this->init_app_config();
 
-    //BBS
     this->init_http_extra_header();
 }
 
@@ -1392,8 +1396,7 @@ void GUI_App::copy_older_config()
     preset_bundle->copy_files(m_older_data_dir_path);
 }
 
-//BBS
-void GUI_App::init_http_extra_header()
+std::map<std::string, std::string> GUI_App::get_extra_header()
 {
     std::map<std::string, std::string> extra_headers;
     extra_headers.insert(std::make_pair("X-BBL-Client-Type", "slicer"));
@@ -1409,9 +1412,16 @@ void GUI_App::init_http_extra_header()
     wxGetOsVersion(&major, &minor, &micro);
     std::string os_version = (boost::format("%1%.%2%.%3%") % major % minor % micro).str();
     extra_headers.insert(std::make_pair("X-BBL-OS-Version", os_version));
-    extra_headers.insert(std::make_pair("X-BBL-Device-ID", app_config->get("slicer_uuid")));
+    if (app_config)
+        extra_headers.insert(std::make_pair("X-BBL-Device-ID", app_config->get("slicer_uuid")));
     extra_headers.insert(std::make_pair("X-BBL-Language", convert_studio_language_to_api(app_config->get("language"))));
+    return extra_headers;
+}
 
+//BBS
+void GUI_App::init_http_extra_header()
+{
+    std::map<std::string, std::string> extra_headers = get_extra_header();
     if (m_agent)
         m_agent->set_extra_http_header(extra_headers);
 }
@@ -2676,7 +2686,8 @@ void GUI_App::check_update(bool show_tips)
     if (version_info.version_str.empty()) return;
     if (version_info.url.empty()) return;
 
-    if (version_info.compare(SLIC3R_VERSION) > 0) {
+    std::string curr_version = SLIC3R_VERSION;
+    if (version_info.version_str > curr_version) {
         if (version_info.force_upgrade) {
             wxGetApp().app_config->set_bool("force_upgrade", version_info.force_upgrade);
             wxGetApp().app_config->set("upgrade", "force_upgrade", true);

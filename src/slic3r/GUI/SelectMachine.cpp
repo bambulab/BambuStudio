@@ -1216,7 +1216,8 @@ void SelectMachineDialog::update_print_status_msg(wxString msg, bool is_warning,
 
 void SelectMachineDialog::show_status(PrintDialogStatus status)
 {
-    BOOST_LOG_TRIVIAL(trace) << "select_machine_dialog: show_status = " << status;
+    if (m_print_status != status)
+        BOOST_LOG_TRIVIAL(info) << "select_machine_dialog: show_status = " << status;
     m_print_status = status;
 
     // m_comboBox_printer
@@ -1425,10 +1426,8 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         m_print_job->task_ams_mapping = ams_mapping_array;
     else
         m_print_job->task_ams_mapping = "";
-    
-    if (obj_->has_sdcard()) {
-        m_print_job->has_sdcard = obj_->has_sdcard();
-    }
+
+    m_print_job->has_sdcard = obj_->has_sdcard();
     
     if (obj_->is_only_support_cloud_print()) {
         m_print_job->cloud_print_only = true;
@@ -1712,12 +1711,6 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     // no ams
     if (!obj_->has_ams()) {
         show_status(PrintDialogStatus::PrintStatusReadingFinished);
-        return;
-    }
-
-    if (!obj_->is_support_ams_mapping()) {
-        do_ams_mapping(obj_);
-        show_status(PrintDialogStatus::PrintStatusAmsMappingByOrder);
         return;
     }
 
