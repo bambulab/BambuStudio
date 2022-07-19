@@ -18,6 +18,9 @@
 
 #include <boost/algorithm/string.hpp>
 
+#define MAX_NUM 9999.99
+#define MAX_SIZE "9999.99"
+
 namespace Slic3r
 {
 namespace GUI
@@ -578,9 +581,10 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     else
         original_position = this->m_new_position;
     Vec3d display_position = m_buffered_position;
+
     // Rotation
     Vec3d rotation   = this->m_buffered_rotation;
-    float unit_size  = max_unit_size(2, display_position, display_position, "move") + space_size;;
+    float unit_size = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
     int   index      = 1;
     int   index_unit = 1;
 
@@ -613,6 +617,12 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     ImGui::BBLInputDouble(label_values[0][2], &display_position[2], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
     imgui_wrapper->text(this->m_new_unit_string);
+
+    for (int i = 0;i<display_position.size();i++)
+    {
+        if (display_position[i] > MAX_NUM)display_position[i] = MAX_NUM;
+    }
+
     m_buffered_position = display_position;
     update(current_active_id, "position", original_position, m_buffered_position);
     // the init position values are not zero, won't add reset button
@@ -687,7 +697,8 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     Vec3d display_position = m_buffered_position;
     // Rotation
     Vec3d rotation   = this->m_buffered_rotation;
-    float unit_size  = max_unit_size(2, rotation, rotation, "rotate") + space_size * 2;
+
+    float unit_size = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
     int   index      = 1;
     int   index_unit = 1;
 
@@ -804,12 +815,12 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
 
     Vec3d display_position = m_buffered_position;
 
-    float unit_size = max_unit_size(2, scale, display_size, "scale") + space_size;
+    float unit_size = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
     bool imperial_units = this->m_imperial_units;
 
     int index      = 2;
     int index_unit = 1;
-    
+
     ImGui::PushItemWidth(caption_max);
     ImGui::Dummy(ImVec2(caption_max, -1));
     //imgui_wrapper->text(_L(" "));
@@ -841,8 +852,6 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     ImGui::BBLInputDouble(label_scale_values[0][2], &scale[2], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + (++index_unit) *unit_size + (++index) * space_size);
     imgui_wrapper->text(_L("%"));
-    m_buffered_scale = scale;
-
 
     if (m_show_clear_scale) {
         ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size + end_text_size);
@@ -852,7 +861,6 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
         ImGui::SameLine(caption_max + 3 * unit_size + 5 * space_size + end_text_size);
         ImGui::InvisibleButton("", ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()));
     }
-
 
     //Size
     Vec3d original_size;
@@ -877,6 +885,12 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     ImGui::BBLInputDouble(label_scale_values[1][2], &display_size[2], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + (++index_unit) *unit_size + (++index) * space_size);
     imgui_wrapper->text(this->m_new_unit_string);
+
+    for (int i = 0;i<display_size.size();i++)
+    {
+        if (display_size[i] > MAX_NUM || scale[i]> MAX_NUM)display_size[i] = MAX_NUM;
+    }
+    m_buffered_scale = scale;
     m_buffered_size = display_size;
     int size_sel = update(current_active_id, "size", original_size, m_buffered_size);
     ImGui::PopStyleVar(1);
