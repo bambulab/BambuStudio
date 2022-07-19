@@ -870,7 +870,7 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
                     wxGetApp().request_user_logout();
                     agent->set_country_code(country_code);
                 }
-                wxMessageBox(_L("Swith cloud environment, Please login again!"));
+                wxMessageBox(_L("Switch cloud environment, Please login again!"));
             }
 
             // bbs  backup

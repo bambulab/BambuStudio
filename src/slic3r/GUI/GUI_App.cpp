@@ -663,49 +663,6 @@ bool static check_old_linux_datadir(const wxString& app_name) {
 }
 #endif
 
-
-#ifdef _WIN32
-static bool run_updater_win()
-{
-    // find updater exe
-    boost::filesystem::path path_updater = boost::dll::program_location().parent_path() / "prusaslicer-updater.exe";
-    if (boost::filesystem::exists(path_updater)) {
-        // Using quoted string as mentioned in CreateProcessW docs, silent execution parameter.
-        std::wstring wcmd = L"\"" + path_updater.wstring() + L"\" /silent";
-
-        // additional information
-        STARTUPINFOW si;
-        PROCESS_INFORMATION pi;
-
-        // set the size of the structures
-        ZeroMemory(&si, sizeof(si));
-        si.cb = sizeof(si);
-        ZeroMemory(&pi, sizeof(pi));
-
-        // start the program up
-        if (CreateProcessW(NULL,   // the path
-            wcmd.data(),    // Command line
-            NULL,           // Process handle not inheritable
-            NULL,           // Thread handle not inheritable
-            FALSE,          // Set handle inheritance to FALSE
-            0,              // No creation flags
-            NULL,           // Use parent's environment block
-            NULL,           // Use parent's starting directory
-            &si,            // Pointer to STARTUPINFO structure
-            &pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
-        )) {
-            // Close process and thread handles.
-            CloseHandle(pi.hProcess);
-            CloseHandle(pi.hThread);
-            return true;
-        } else {
-            BOOST_LOG_TRIVIAL(error) << "Failed to start prusaslicer-updater.exe with command " << wcmd;
-        }
-    }
-    return false;
-}
-#endif //_WIN32
-
 struct FileWildcards {
     std::string_view              title;
     std::vector<std::string_view> file_extensions;
@@ -1080,18 +1037,6 @@ void GUI_App::post_init()
             bool cw_showed = this->config_wizard_startup();
 
             this->preset_updater->sync(preset_bundle);
-            if (! cw_showed) {
-                // The CallAfter is needed as well, without it, GL extensions did not show.
-                // Also, we only want to show this when the wizard does not, so the new user
-                // sees something else than "we want something" on the first start.
-                show_send_system_info_dialog_if_needed();
-            }
-        #ifdef _WIN32
-            // Run external updater on Windows if version check is enabled.
-            if (this->preset_updater->version_check_enabled() && ! run_updater_win())
-                // "prusaslicer-updater.exe" was not started, run our own update check.
-        #endif // _WIN32
-                this->preset_updater->slic3r_update_notify();
 
             //BBS: check new version
             this->check_new_version();

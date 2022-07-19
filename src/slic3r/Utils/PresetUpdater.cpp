@@ -401,6 +401,7 @@ void PresetUpdater::priv::sync_version() const
 // Version string must contain release version on first line. Follows non-mandatory alpha / beta releases on following lines (alpha=2.0.0-alpha1).
 void PresetUpdater::priv::parse_version_string(const std::string& body) const
 {
+#if 0
 	// release version
 	std::string version;
 	const auto first_nl_pos = body.find_first_of("\n\r");
@@ -464,6 +465,8 @@ void PresetUpdater::priv::parse_version_string(const std::string& body) const
 		evt->SetString(GUI::from_u8(version));
 		GUI::wxGetApp().QueueEvent(evt);
 	}
+#endif
+    return;
 }
 
 //BBS: refine the Preset Updater logic
@@ -475,7 +478,7 @@ void PresetUpdater::priv::sync_resources(std::map<std::string, Resource> &resour
 
     NetworkAgent* m_agent = GUI::wxGetApp().getAgent();
     if (!m_agent) {
-        BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: can not get account manager";
+        BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: can not get NetworkAgent";
         return;
     }
 
@@ -616,7 +619,7 @@ void PresetUpdater::priv::sync_config(const VendorMap vendors)
 
     NetworkAgent* agent = GUI::wxGetApp().getAgent();
     if (!agent) {
-        BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: can not get account manager";
+        BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: can not get NetworkAgent";
         return;
     }
 
