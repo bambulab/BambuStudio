@@ -153,11 +153,13 @@ public:
     wxColour        wx_color;
     bool            is_bbl;
     bool            is_exists = false;
+    int             hold_count = 0;
 
     AmsRoadPosition road_position;
     AmsStep         step_state;
     AmsRfidState    rfid_state;
 
+    void set_hold_count() { hold_count = 3; }
     void update_color_from_str(std::string color);
     wxColour get_color();
 
@@ -353,6 +355,7 @@ public:
     // parse amsStatusMain and ams_status_sub
     void _parse_ams_status(int ams_status);
     bool has_ams() { return ams_exist_bits != 0; }
+    bool is_U0_firmware();
     bool is_support_ams_mapping();
     bool is_only_support_cloud_print();
     static bool is_support_ams_mapping_version(std::string module, std::string version);

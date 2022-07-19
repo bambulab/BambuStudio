@@ -490,6 +490,7 @@ void SelectMachinePopup::update_other_devices()
         MachineObjectPanel* op = nullptr;
         if (i < m_other_list_machine_panel.size()) {
             op = m_other_list_machine_panel[i]->mPanel;
+            op->Show();
         } else {
             op = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
             MachinePanel* mpanel = new MachinePanel();

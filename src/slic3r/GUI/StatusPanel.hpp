@@ -30,7 +30,8 @@
 
 class StepIndicator;
 
-#define COMMAND_TIMEOUT         3
+#define COMMAND_TIMEOUT_U0      15
+#define COMMAND_TIMEOUT         5
 
 namespace Slic3r {
 namespace GUI {
@@ -324,6 +325,8 @@ public:
 
     void set_default();
     void show_status(int status);
+
+    void set_hold_count(int& count);
 
     void msw_rescale();
 };

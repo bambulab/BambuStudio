@@ -456,6 +456,16 @@ void MachineObject::_parse_ams_status(int ams_status)
     BOOST_LOG_TRIVIAL(trace) << "ams_debug: main = " << ams_status_main_int << ", sub = " << ams_status_sub;
 }
 
+bool MachineObject::is_U0_firmware()
+{
+    auto ota_ver_it = module_vers.find("ota");
+    if (ota_ver_it != module_vers.end()) {
+        if (ota_ver_it->second.sw_ver.compare("00.01.04.00") < 0)
+            return true;
+    }
+    return false;
+}
+
 bool MachineObject::is_support_ams_mapping()
 {
     AppConfig* config = Slic3r::GUI::wxGetApp().app_config;
@@ -2069,6 +2079,12 @@ int MachineObject::parse_json(std::string payload)
                                             curr_tray = tray_iter->second;
                                         }
                                         if (!curr_tray) continue;
+
+                                        if (curr_tray->hold_count > 0) {
+                                            curr_tray->hold_count--;
+                                            continue;
+                                        }
+
                                         curr_tray->id = (*tray_it)["id"].get<std::string>();
                                         if (tray_it->contains("tag_uid"))
                                             curr_tray->tag_uid          = (*tray_it)["tag_uid"].get<std::string>();
@@ -2203,6 +2219,8 @@ int MachineObject::parse_json(std::string payload)
                                 tray_it->second->type = jj["tray_type"].get<std::string>();
                                 tray_it->second->color = jj["tray_color"].get<std::string>();
                                 tray_it->second->setting_id = jj["tray_info_idx"].get<std::string>();
+                                // delay update
+                                tray_it->second->set_hold_count();
                             } else {
                                 BOOST_LOG_TRIVIAL(warning) << "ams_filament_setting, can not find in trayList, tray_id=" << tray_id;
                             }
@@ -2510,6 +2528,11 @@ void DeviceManager::on_machine_alive(std::string json_str)
             obj->wifi_signal = printer_signal;
             obj->dev_connection_type = connect_type;
             obj->bind_state = bind_state;
+
+            // U0 firmware
+            if (obj->dev_connection_type.empty() && obj->bind_state.empty())
+                obj->bind_state = "free";
+
             BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery:: Update Machine Info, printer_sn = " << dev_id << ", signal = " << printer_signal;
             obj->last_alive = Slic3r::Utils::get_current_time_utc();
             obj->m_is_online = true;

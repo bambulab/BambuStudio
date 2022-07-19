@@ -1702,7 +1702,7 @@ void StatusPanel::on_set_bed_temp()
     try {
         long bed_temp;
         if (str.ToLong(&bed_temp) && obj) {
-            m_temp_bed_timeout = COMMAND_TIMEOUT;
+            set_hold_count(m_temp_bed_timeout);
             obj->command_set_bed(bed_temp);
         }
     } catch (...) {
@@ -1716,7 +1716,7 @@ void StatusPanel::on_set_nozzle_temp()
     try {
         long nozzle_temp;
         if (str.ToLong(&nozzle_temp) && obj) {
-            m_temp_nozzle_timeout = COMMAND_TIMEOUT;
+            set_hold_count(m_temp_nozzle_timeout);
             obj->command_set_nozzle(nozzle_temp);
         }
     } catch (...) {
@@ -1914,7 +1914,7 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
     step->Bind(EVT_STEP_CHANGED, [this](auto &e) {
         this->speed_lvl        = e.GetInt() + 1;
         if (obj) {
-            this-> speed_lvl_timeout = COMMAND_TIMEOUT;
+            set_hold_count(this->speed_lvl_timeout);
             obj->command_set_printing_speed((PrintingSpeedLevel)this->speed_lvl);
         }
     });
@@ -1938,11 +1938,11 @@ void StatusPanel::on_printing_fan_switch(wxCommandEvent &event)
     if (value) {
         obj->command_control_fan(MachineObject::FanType::BIG_COOLING_FAN, true);
         m_switch_printing_fan->SetValue(true);
-        m_switch_printing_fan_timeout = COMMAND_TIMEOUT;
+        set_hold_count(this->m_switch_printing_fan_timeout);
     } else {
         obj->command_control_fan(MachineObject::FanType::BIG_COOLING_FAN, false);
         m_switch_printing_fan->SetValue(false);
-        m_switch_printing_fan_timeout = COMMAND_TIMEOUT;
+        set_hold_count(this->m_switch_printing_fan_timeout);
     }
 }
 
@@ -1955,11 +1955,11 @@ void StatusPanel::on_nozzle_fan_switch(wxCommandEvent &event)
     if (value) {
         obj->command_control_fan(MachineObject::FanType::COOLING_FAN, true);
         m_switch_nozzle_fan->SetValue(true);
-        m_switch_nozzle_fan_timeout = COMMAND_TIMEOUT;
+        set_hold_count(this->m_switch_nozzle_fan_timeout);
     } else {
         obj->command_control_fan(MachineObject::FanType::COOLING_FAN, false);
         m_switch_nozzle_fan->SetValue(false);
-        m_switch_nozzle_fan_timeout = COMMAND_TIMEOUT;
+        set_hold_count(this->m_switch_nozzle_fan_timeout);
     }
 }
 void StatusPanel::on_lamp_switch(wxCommandEvent &event)
@@ -1971,11 +1971,11 @@ void StatusPanel::on_lamp_switch(wxCommandEvent &event)
     if (value) {
         m_switch_lamp->SetValue(true);
         // do not update when timeout > 0
-        m_switch_lamp_timeout = COMMAND_TIMEOUT;
+        set_hold_count(this->m_switch_lamp_timeout);
         obj->command_set_chamber_light(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_ON);
     } else {
         m_switch_lamp->SetValue(false);
-        m_switch_lamp_timeout = COMMAND_TIMEOUT;
+        set_hold_count(this->m_switch_lamp_timeout);
         obj->command_set_chamber_light(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_OFF);
     }
 }
@@ -2105,6 +2105,16 @@ void StatusPanel::show_status(int status)
         show_printing_status(true, true);
         m_calibration_btn->Disable();
     }
+}
+
+void StatusPanel::set_hold_count(int& count)
+{
+    if (obj) {
+        if (obj->is_U0_firmware()) {
+        count = COMMAND_TIMEOUT_U0;
+        }
+    }
+    count = COMMAND_TIMEOUT;
 }
 
 void StatusPanel::msw_rescale()
