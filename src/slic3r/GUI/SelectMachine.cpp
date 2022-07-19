@@ -1050,47 +1050,49 @@ void SelectMachineDialog::finish_mode()
     Fit();
 }
 
+void SelectMachineDialog::sync_ams_mapping_result()
+{
+    for (auto f = m_ams_mapping_result.begin(); f != m_ams_mapping_result.end(); f++) {
+        BOOST_LOG_TRIVIAL(trace) << "ams_mapping f id = " << f->id << ", tray_id = " << f->tray_id << ", color = " << f->color << ", type = " << f->type;
+
+        MaterialHash::iterator iter = m_materialList.begin();
+        while (iter != m_materialList.end()) {
+            int           id   = iter->second->id;
+            Material *    item = iter->second;
+            MaterialItem *m    = item->item;
+
+            if (f->id == id) {
+                wxString ams_id;
+                wxColour ams_col;
+
+                if (f->tray_id >= 0) {
+                    ams_id = wxString::Format("%02d", f->tray_id + 1);
+                } else {
+                    ams_id = "-";
+                }
+
+                if (!f->color.empty()) {
+                    ams_col = AmsTray::decode_color(f->color);
+                } else {
+                    // default color
+                    ams_col = wxColour(0x6B, 0x6B, 0x6B);
+                }
+
+                m->set_ams_info(ams_col, ams_id);
+                break;
+            }
+            iter++;
+        }
+    }
+}
+
 bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
 {
     if (!obj_) return false;
 
     // try color and type mapping
     int result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result);
-    if (result == 0) {
-        for (auto f = m_ams_mapping_result.begin(); f != m_ams_mapping_result.end(); f++) {
-            BOOST_LOG_TRIVIAL(trace) << "ams_mapping f id = " << f->id << ", tray_id = " << f->tray_id << ", color = " << f->color << ", type = " << f->type;
-
-            MaterialHash::iterator iter = m_materialList.begin();
-            while (iter != m_materialList.end()) {
-                int           id = iter->second->id;
-                Material* item = iter->second;
-                MaterialItem* m = item->item;
-
-                if (f->id == id) {
-                    wxString ams_id;
-                    wxColour ams_col;
-
-                    if (f->tray_id >= 0) {
-                        ams_id = wxString::Format("%02d", f->tray_id + 1);
-                    } else {
-                        ams_id = "-";
-                    }
-
-                    if (!f->color.empty()) {
-                        ams_col = AmsTray::decode_color(f->color);
-                    } else {
-                        // default color
-                        ams_col = wxColour(0x6B, 0x6B, 0x6B);
-                    }
-
-                    m->set_ams_info(ams_col, ams_id);
-                    break;
-                }
-                iter++;
-            }
-        }
-    }
-
+    if (result == 0) sync_ams_mapping_result();
     return obj_->is_valid_mapping_result(m_ams_mapping_result);
 }
 
@@ -1478,18 +1480,19 @@ void SelectMachineDialog::on_refresh(wxCommandEvent &event)
 
 void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
 {
-    for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
-        if (m_ams_mapping_result[i].id == m_current_filament_id) {
-            m_ams_mapping_result[i].tray_id = evt.GetInt();
-        }
-    }
-
     auto selection_data = evt.GetString();
     auto selection_data_arr = wxSplit(selection_data.ToStdString(), '|');
 
-    BOOST_LOG_TRIVIAL(trace) << "ams mapping selection result: id is " << selection_data_arr[3];
+    BOOST_LOG_TRIVIAL(trace) << "The ams mapping selection result: data is " << selection_data;
 
-    if (selection_data_arr.size() == 4) {
+    if (selection_data_arr.size() == 5) {
+         for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
+            if (m_ams_mapping_result[i].id == wxAtoi(selection_data_arr[4])) {
+                m_ams_mapping_result[i].tray_id = evt.GetInt();
+            }
+            BOOST_LOG_TRIVIAL(trace) << "The ams mapping result: id is " << m_ams_mapping_result[i].id << "tray_id is " << m_ams_mapping_result[i].tray_id;
+         }
+
         MaterialHash::iterator iter = m_materialList.begin();
         while (iter != m_materialList.end()) {
             Material*        item = iter->second;
@@ -1924,7 +1927,7 @@ void SelectMachineDialog::set_default()
         auto          colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2]);
         if (extruder >= materials.size() || extruder < 0)
             continue;
-        MaterialItem *item       = new MaterialItem(this, colour_rgb, _L(materials[extruder]));
+        MaterialItem *item = new MaterialItem(this, colour_rgb, _L(materials[extruder]));
         m_sizer_material->Add(item, 0, wxLEFT | wxRIGHT, FromDIP(5));
 
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {
@@ -1956,6 +1959,7 @@ void SelectMachineDialog::set_default()
                 m_mapping_popup.Position(pos, wxSize(0, 0));
 
                 if (obj_ && obj_->has_ams()) {
+                    m_mapping_popup.set_current_filament_id(extruder);
                     m_mapping_popup.update_ams_data(obj_->amsList);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
                     m_mapping_popup.Popup();

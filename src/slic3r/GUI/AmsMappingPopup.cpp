@@ -309,7 +309,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
                 if (!is_match_material(tray_data[i].id, tray_data[i].name)) return;
                 wxCommandEvent event(EVT_SET_FINISH_MAPPING);
                 event.SetInt(tray_data[i].id);
-                wxString param = wxString::Format("%d|%d|%d|%02d", tray_data[i].colour.Red(), tray_data[i].colour.Green(), tray_data[i].colour.Blue(), tray_data[i].id + 1);
+                wxString param = wxString::Format("%d|%d|%d|%02d|%d", tray_data[i].colour.Red(), tray_data[i].colour.Green(), tray_data[i].colour.Blue(), tray_data[i].id + 1, m_current_filament_id);
                 event.SetString(param);
                 event.SetEventObject(this->GetParent());
                 wxPostEvent(this->GetParent(), event);
@@ -327,7 +327,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
             m_filament_name->Bind(wxEVT_BUTTON, [this, tray_data, i](wxCommandEvent &e) {
                 wxCommandEvent event(EVT_SET_FINISH_MAPPING);
                 event.SetInt(tray_data[i].id);
-                wxString param = wxString::Format("%d|%d|%d|%02d", 0x6B, 0x6B, 0x6B, tray_data[i].id + 1);
+                wxString param = wxString::Format("%d|%d|%d|%02d|%d", 0x6B, 0x6B, 0x6B, tray_data[i].id + 1, m_current_filament_id);
                 event.SetString(param);
                 event.SetEventObject(this->GetParent());
                 wxPostEvent(this->GetParent(), event);
@@ -344,7 +344,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
              m_filament_name->Bind(wxEVT_BUTTON, [this, tray_data, i](wxCommandEvent &e) {
                 wxCommandEvent event(EVT_SET_FINISH_MAPPING);
                 event.SetInt(tray_data[i].id);
-                wxString param = wxString::Format("%d|%d|%d|%02d", 0x6B, 0x6B, 0x6B, tray_data[i].id + 1);
+                wxString param = wxString::Format("%d|%d|%d|%02d|%d", 0x6B, 0x6B, 0x6B, tray_data[i].id + 1, m_current_filament_id);
                 event.SetString(param);
                 event.SetEventObject(this->GetParent());
                 wxPostEvent(this->GetParent(), event);

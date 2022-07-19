@@ -324,7 +324,8 @@ public:
     void      sending_mode();
     void      finish_mode();
 
-    bool      do_ams_mapping(MachineObject* obj_);
+	void      sync_ams_mapping_result();
+    bool      do_ams_mapping(MachineObject *obj_);
     bool      get_ams_mapping_result(std::string &mapping_array_str);
     void      prepare(int print_plate_idx);
     void      show_status(PrintDialogStatus status);

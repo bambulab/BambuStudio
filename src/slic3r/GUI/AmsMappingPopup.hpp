@@ -94,6 +94,7 @@ public:
     std::vector<std::string> m_materials_list;
     std::vector<wxBoxSizer*>  m_amsmapping_sizer_list;
 
+    int         m_current_filament_id;
     std::string m_tag_material;
     wxBoxSizer *m_sizer_main{nullptr}; 
 
@@ -101,6 +102,8 @@ public:
     void         set_tag_texture(std::string texture);
     void         update_ams_data(std::map<std::string, Ams *> amsList);
     void         add_ams_mapping(std::vector<TrayData> tray_data);
+    void         set_current_filament_id(int id){m_current_filament_id = id;};
+    int          get_current_filament_id(){return m_current_filament_id;};
     bool         is_match_material(int id, std::string material);
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
