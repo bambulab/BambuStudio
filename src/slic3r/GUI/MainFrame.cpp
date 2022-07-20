@@ -1808,20 +1808,20 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(editMenu, wxID_ANY, _L("Deselect all") + "\tEsc",
             _L("Deselects all objects"), [this](wxCommandEvent&) { m_plater->deselect_all(); },
             "", nullptr, [this](){return can_deselect(); }, this);
-        editMenu->AppendSeparator();
-        append_menu_check_item(editMenu, wxID_ANY, _L("Show Model Mesh(TODO)"),
-            _L("Display triangles of models"), [this](wxCommandEvent& evt) {
-                wxGetApp().app_config->set_bool("show_model_mesh", evt.GetInt() == 1);
-            }, nullptr, [this]() {return can_select(); }, [this]() { return wxGetApp().app_config->get("show_model_mesh").compare("true") == 0; }, this);
-        append_menu_check_item(editMenu, wxID_ANY, _L("Show Model Shadow(TODO)"), _L("Display shadow of objects"),
-            [this](wxCommandEvent& evt) {
-                wxGetApp().app_config->set_bool("show_model_shadow", evt.GetInt() == 1);
-            }, nullptr, [this]() {return can_select(); }, [this]() { return wxGetApp().app_config->get("show_model_shadow").compare("true") == 0; }, this);
-        editMenu->AppendSeparator();
-        append_menu_check_item(editMenu, wxID_ANY, _L("Show Printable Box(TODO)"), _L("Display printable box"),
-            [this](wxCommandEvent& evt) {
-                wxGetApp().app_config->set_bool("show_printable_box", evt.GetInt() == 1);
-            }, nullptr, [this]() {return can_select(); }, [this]() { return wxGetApp().app_config->get("show_printable_box").compare("true") == 0; }, this);
+        //editMenu->AppendSeparator();
+        //append_menu_check_item(editMenu, wxID_ANY, _L("Show Model Mesh(TODO)"),
+        //    _L("Display triangles of models"), [this](wxCommandEvent& evt) {
+        //        wxGetApp().app_config->set_bool("show_model_mesh", evt.GetInt() == 1);
+        //    }, nullptr, [this]() {return can_select(); }, [this]() { return wxGetApp().app_config->get("show_model_mesh").compare("true") == 0; }, this);
+        //append_menu_check_item(editMenu, wxID_ANY, _L("Show Model Shadow(TODO)"), _L("Display shadow of objects"),
+        //    [this](wxCommandEvent& evt) {
+        //        wxGetApp().app_config->set_bool("show_model_shadow", evt.GetInt() == 1);
+        //    }, nullptr, [this]() {return can_select(); }, [this]() { return wxGetApp().app_config->get("show_model_shadow").compare("true") == 0; }, this);
+        //editMenu->AppendSeparator();
+        //append_menu_check_item(editMenu, wxID_ANY, _L("Show Printable Box(TODO)"), _L("Display printable box"),
+        //    [this](wxCommandEvent& evt) {
+        //        wxGetApp().app_config->set_bool("show_printable_box", evt.GetInt() == 1);
+        //    }, nullptr, [this]() {return can_select(); }, [this]() { return wxGetApp().app_config->get("show_printable_box").compare("true") == 0; }, this);
     }
 
     // BBS
