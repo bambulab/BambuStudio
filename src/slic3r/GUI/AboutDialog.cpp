@@ -80,7 +80,7 @@ CopyrightsDialog::CopyrightsDialog()
 
     SetSizer(sizer);
     sizer->SetSizeHints(this);
-
+    CenterOnParent();
 }
 
 void CopyrightsDialog::fill_entries()
@@ -346,6 +346,7 @@ AboutDialog::AboutDialog()
     m_panel->Layout();
 	SetSizer(main_sizer);
 	main_sizer->SetSizeHints(this);
+    CenterOnParent();
 }
 
 void AboutDialog::on_dpi_changed(const wxRect &suggested_rect)
