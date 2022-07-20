@@ -33,7 +33,7 @@ wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *paren
     m_title->SetForegroundColour(DESIGN_GRAY800_COLOR);
     m_title->SetFont(::Label::Head_13);
     m_title->Wrap(-1);
-    m_title->SetToolTip(tooltip);
+    //m_title->SetToolTip(tooltip);
 
     auto m_line = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_line->SetBackgroundColour(DESIGN_GRAY400_COLOR);
