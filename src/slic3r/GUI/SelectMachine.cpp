@@ -1310,7 +1310,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status)
     } else if (status == PrintDialogStatus::PrintStatusNeedUpgradingAms) {
         wxString msg_text = _L("Printer firmware does not support material = >ams slot mapping.");
         update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
+        Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingSuccess){
         wxString msg_text = _L("Filaments to AMS slots mappings have been established. You can click a filament above to change its mapping AMS slot");

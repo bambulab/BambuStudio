@@ -4077,7 +4077,10 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
                     m_plate_list[i]->get_print((PrintBase **) &print, nullptr, nullptr);
                     if (print) {
                         const PrintStatistics &ps = print->print_statistics();
-                        if (ps.total_weight != 0.0) { plate_data_item->gcode_weight = wxString::Format("%.2f", ps.total_weight).ToStdString(); }
+                        if (ps.total_weight != 0.0) {
+							CNumericLocalesSetter locales_setter;
+							plate_data_item->gcode_weight =wxString::Format("%.2f", ps.total_weight).ToStdString();
+						}
                     } else {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("print is null!");
                     }
