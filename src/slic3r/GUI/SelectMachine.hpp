@@ -348,9 +348,13 @@ protected:
     wxButton *                   m_button_cancel{nullptr};
     AmsMapingPopup               m_mapping_popup{nullptr};
 
+    std::string                  m_print_info;
     int                          timeout_count = 0;
-    bool                        is_timeout();
-    void                        reset_timeout();
+    bool                         is_timeout();
+    void                         reset_timeout();
+    void                         update_user_printer();
+    void                         reset_ams_material();
+    void                         update_show_status();
 
     wxTimer *m_refresh_timer;
 
@@ -369,6 +373,7 @@ protected:
     void                     Enable_Refresh_Button(bool en);
     void                     Enable_Send_Button(bool en);
     void                     on_dpi_changed(const wxRect &suggested_rect) override;
+    void                     update_user_machine_list();
     wxImage *                LoadImageFromBlob(const unsigned char *data, int size);
     std::vector<std::string> sort_string(std::vector<std::string> strArray);
 };

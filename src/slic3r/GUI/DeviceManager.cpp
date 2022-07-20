@@ -647,15 +647,8 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
         BOOST_LOG_TRIVIAL(info) << "ams_mapping: do not support, use order mapping";
         for (int i = 0; i < filaments.size(); i++) {
             FilamentInfo info;
-            if (i < tray_info_list.size()) {
-                info.id = filaments[i].id;
-                info.tray_id = filaments[i].id;
-                info.color = tray_info_list[i].color;
-                info.type = tray_info_list[i].type;
-            } else {
-                info.id = filaments[i].id;
-                info.tray_id = -1;
-            }
+            info.id = filaments[i].id;
+            info.tray_id = -1;
             result.push_back(info);
         }
         return 0;
