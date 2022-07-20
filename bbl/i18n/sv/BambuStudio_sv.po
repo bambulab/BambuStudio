@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-15 10:25+0800\n"
+"POT-Creation-Date: 2022-07-20 14:27+0800\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -446,11 +446,12 @@ msgstr "Konfigurationen laddas"
 msgid "Click to download new version in default browser: %s"
 msgstr "Tryck på ladda ner ny version ifrån standard webbläsaren: %s"
 
-msgid "New version of Bambu Studio"
-msgstr "Ny version av Bambu Studio"
-
 msgid "The Bambu Studio needs an upgrade"
 msgstr "Bambu Studio behöver uppdateras"
+
+#, c-format, boost-format
+msgid "Connect %s[SN:%s] failed!"
+msgstr ""
 
 msgid "Loading user presets..."
 msgstr "Laddar användar inställningarna..."
@@ -473,13 +474,13 @@ msgstr "Välj en eller flera filer (3mf/step/stl/obj/amf):"
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "Välj en fil (.gcode/.gco/.g/.ngc/ngc):"
 
-msgid "Login information expired. Please login again."
-msgstr "Inloggningsinformationen har löpt ut. Logga in igen."
-
 msgid ""
 "The version of Bambu studio is too low and needs to be updated to the latest "
 "version before it can be used normally"
 msgstr ""
+
+msgid "Login information expired. Please login again."
+msgstr "Inloggningsinformationen har löpt ut. Logga in igen."
 
 msgid "This is the newest version."
 msgstr "Det är den senaste versionen."
@@ -995,12 +996,8 @@ msgstr "Linje typ"
 msgid "No printer"
 msgstr "Ingen skrivare"
 
-msgid ""
-"Heat the nozzle to target \n"
-"temperature"
+msgid "Heat the nozzle to target temperature"
 msgstr ""
-"Värm nozzel till vald \n"
-"temperatur"
 
 msgid "Cut filament"
 msgstr "Skär filament"
@@ -1008,12 +1005,8 @@ msgstr "Skär filament"
 msgid "Pull back current filament"
 msgstr "Reversera nuvarande filament"
 
-msgid ""
-"Push new filament \n"
-"into extruder"
+msgid "Push new filament into extruder"
 msgstr ""
-"Mata nytt filament\n"
-"till extrudern"
 
 msgid "Purge old filament"
 msgstr ""
@@ -1031,7 +1024,7 @@ msgid "Load Filament"
 msgstr "Ladda Filament"
 
 msgid "Unload Filament"
-msgstr ""
+msgstr "Unload"
 
 msgid "Tips"
 msgstr "Tips"
@@ -1086,9 +1079,6 @@ msgid ""
 msgstr ""
 "Placering misslyckades. Avvikelser hittades när objektets geometri "
 "bearbetades."
-
-msgid "Arranging"
-msgstr ""
 
 msgid "Arranging canceled."
 msgstr "Placering avbruten."
@@ -1193,11 +1183,20 @@ msgstr ""
 msgid "Sending print job through cloud service"
 msgstr ""
 
+msgid "Service Unavailable"
+msgstr ""
+
+msgid "Unkown Error."
+msgstr ""
+
 msgid "Sending print configuration"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Successfully sent.Will automatically jump to the device page in %s s"
+msgid "Successfully sent. Will automatically jump to the device page in %s s"
+msgstr ""
+
+msgid "An SD card needs to be inserted before printing via LAN."
 msgstr ""
 
 msgid "Portions copyright"
@@ -1230,6 +1229,28 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "About %s"
+msgstr ""
+
+msgid ""
+"Bambu Studio is based on PrusaSlicer by PrusaResearch and SuperSlicer by "
+"Merill(supermerill)."
+msgstr ""
+
+msgid "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
+msgstr ""
+
+msgid ""
+"Slic3r was created by Alessandro Ranellucci with the help of many other "
+"contributors."
+msgstr ""
+
+msgid "Bambu Studio also referenced some ideas from Cura by Ultimaker."
+msgstr ""
+
+msgid ""
+"There many parts of the software that come from community contributions, so "
+"we're unable to list them one-by-one, and instead, they'll be attributed in "
+"the corresponding code comments."
 msgstr ""
 
 msgid "Colour"
@@ -1689,6 +1710,9 @@ msgstr "Verifikation misslyckade."
 msgid "Update failed."
 msgstr "Uppdatering misslyckades."
 
+msgid "Failed to start printing job"
+msgstr ""
+
 msgid "N/A"
 msgstr "N/A"
 
@@ -2003,6 +2027,9 @@ msgstr "Kalibrerings Flöde"
 msgid "Start Calibration"
 msgstr "Starta Kalibrering"
 
+msgid "Completed"
+msgstr ""
+
 msgid "Calibrating"
 msgstr "Kalibrerar"
 
@@ -2194,6 +2221,12 @@ msgstr "Exportera Alla Objekt som STL"
 msgid "Export current Sliced file"
 msgstr "Exportera nuvarande Beredda fil"
 
+msgid "Export G-code"
+msgstr "Exportera G-kod"
+
+msgid "Export current plate as G-code"
+msgstr ""
+
 msgid "Export"
 msgstr "Exportera"
 
@@ -2338,7 +2371,7 @@ msgstr "Filament Inställningar"
 
 msgid ""
 "Do you want to synchronize your personal data from Bambu Cloud? \n"
-"Contains the following information:\n"
+"It contains the following information:\n"
 "1. The Process presets\n"
 "2. The Filament presets\n"
 "3. The Printer presets\n"
@@ -2439,6 +2472,9 @@ msgstr "Felsöknings Information"
 msgid "Printing List"
 msgstr "Utskrifts Lista"
 
+msgid "Downloading..."
+msgstr ""
+
 msgid "Resume"
 msgstr "Återuppta"
 
@@ -2466,14 +2502,14 @@ msgstr "Uppdatera"
 msgid "HMS"
 msgstr "HMS"
 
-msgid "Please upgrade your printer first"
-msgstr ""
-
 msgid "Failed to connect to the server"
 msgstr "Uppkoppling till servern misslyckades"
 
 msgid "Failed to connect to the printer"
 msgstr "Uppkoppling till printern misslyckades"
+
+msgid "Connecting..."
+msgstr ""
 
 msgid "OK"
 msgstr "OK"
@@ -2585,6 +2621,9 @@ msgstr "Exportering OK."
 
 msgid " (Repair)"
 msgstr " (Reparera)"
+
+msgid " Click here to install it."
+msgstr ""
 
 msgid "WARNING:"
 msgstr "VARNING:"
@@ -2785,11 +2824,6 @@ msgstr "Ladda dessa filer som ett enkelt objekt med multipla delar?\n"
 msgid "Object with multiple parts was detected"
 msgstr "Ett objekt med multipla delar har upptäckts"
 
-msgid ""
-"Preview only mode:\n"
-"The loaded file contains gcode only."
-msgstr ""
-
 msgid "The file does not contain any geometry data."
 msgstr ""
 
@@ -2827,6 +2861,15 @@ msgstr "Bereder plattan %d"
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Lös berednings felen och publicera igen."
 
+msgid ""
+"Network Plug-in is not detected. Network related features are unavailable."
+msgstr ""
+
+msgid ""
+"Preview only mode:\n"
+"The loaded file contains gcode only, Can not enter the Prepare page"
+msgstr ""
+
 msgid "Some presets are modified."
 msgstr "Några inställningar har ändrats."
 
@@ -2846,9 +2889,6 @@ msgstr "Skapar nytt projekt"
 
 msgid "Load project"
 msgstr "Ladda projekt"
-
-msgid "Preview only mode for gcode file."
-msgstr ""
 
 msgid "The selected file"
 msgstr "Den valda filen"
@@ -2907,9 +2947,6 @@ msgid ""
 msgstr ""
 "Skriv ut per Objekt:\n"
 "Rekommenderar att auto-placering för att undvika kollisioner under utskrift."
-
-msgid "Export G-code"
-msgstr "Exportera G-kod"
 
 msgid "Send G-code"
 msgstr "Skicka G-kod"
@@ -3128,8 +3165,8 @@ msgstr "spara felsöknings knappen"
 msgid "DEBUG settings have saved successfully!"
 msgstr "FELSÖKNINGS inställningarna har sparats!"
 
-msgid "Swith cloud environment, Please login again!"
-msgstr "Byte av moln miljö, Logga in igen!"
+msgid "Switch cloud environment, Please login again!"
+msgstr ""
 
 msgid "System presets"
 msgstr "Systemets förinställningar"
@@ -3272,6 +3309,9 @@ msgstr "Andra Enheter"
 msgid "Input access code"
 msgstr ""
 
+msgid "Log out successful."
+msgstr "Utloggning lyckades."
+
 msgid "Busy"
 msgstr ""
 
@@ -3324,9 +3364,7 @@ msgstr ""
 msgid "The printer is busy on other print job"
 msgstr ""
 
-msgid ""
-"The firmware versions of printer and AMS are too low.Please update to the "
-"latest version before sending the print job"
+msgid "Printer firmware does not support material = >ams slot mapping."
 msgstr ""
 
 msgid ""
@@ -3365,9 +3403,6 @@ msgstr "Logga in först."
 
 msgid "There was a problem connecting to the printer. Please try again."
 msgstr "Problem uppstod vid sammankoppling till skrivaren. Försök igen."
-
-msgid "Log out successful."
-msgstr "Utloggning lyckades."
 
 msgid "Failed to log out."
 msgstr "Utloggning misslyckades."
@@ -3431,8 +3466,8 @@ msgstr ""
 msgid "Special mode"
 msgstr "Special läge"
 
-msgid "Output file"
-msgstr "Utdatafil"
+msgid "G-code output"
+msgstr ""
 
 msgid "Frequent"
 msgstr "Återkommande"
@@ -4733,6 +4768,18 @@ msgstr ""
 "support. Bridges/Bryggor kan vanligtvis skrivas ut utan support om de inte "
 "är för långa avstånd"
 
+msgid "Thick bridges"
+msgstr ""
+
+msgid "Layers and Perimeters"
+msgstr ""
+
+msgid ""
+"If enabled, bridges are more reliable, can bridge longer distances, but may "
+"look worse. If disabled, bridges look better but are reliable just for "
+"shorter bridged distances."
+msgstr ""
+
 msgid "Max bridge length"
 msgstr ""
 
@@ -5441,10 +5488,9 @@ msgstr "Minska ifyllnads retraktionen"
 
 msgid ""
 "Don't retract when the travel is in infill area absolutely. That means the "
-"oozing can't been seen"
+"oozing can't been seen. This can reduce times of retraction for complex "
+"model and save printing time, but make slicing and G-code generating slower"
 msgstr ""
-"Detta inaktiverar retraktion när rörelsen är helt inom ett ifyllnads området "
-"och det inte kan läcka filament"
 
 msgid "Enable"
 msgstr "Aktivera"
@@ -6226,6 +6272,36 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid "New version of Bambu Studio"
+#~ msgstr "Ny version av Bambu Studio"
+
+#~ msgid ""
+#~ "Heat the nozzle to target \n"
+#~ "temperature"
+#~ msgstr ""
+#~ "Värm nozzel till vald \n"
+#~ "temperatur"
+
+#~ msgid ""
+#~ "Push new filament \n"
+#~ "into extruder"
+#~ msgstr ""
+#~ "Mata nytt filament\n"
+#~ "till extrudern"
+
+#~ msgid "Swith cloud environment, Please login again!"
+#~ msgstr "Byte av moln miljö, Logga in igen!"
+
+#~ msgid "Output file"
+#~ msgstr "Utdatafil"
+
+#~ msgid ""
+#~ "Don't retract when the travel is in infill area absolutely. That means "
+#~ "the oozing can't been seen"
+#~ msgstr ""
+#~ "Detta inaktiverar retraktion när rörelsen är helt inom ett ifyllnads "
+#~ "området och det inte kan läcka filament"
 
 #~ msgid "Fix model through cloud"
 #~ msgstr "Fixa modell genom molnet"

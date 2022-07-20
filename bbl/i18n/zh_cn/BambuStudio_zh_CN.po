@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-14 17:34+0800\n"
+"POT-Creation-Date: 2022-07-20 14:27+0800\n"
 "PO-Revision-Date: 2022-07-13 21:50+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -445,11 +445,12 @@ msgstr "正在加载配置"
 msgid "Click to download new version in default browser: %s"
 msgstr "在默认浏览器中点击下载最新版本: %s"
 
-msgid "New version of Bambu Studio"
-msgstr "新版本的Bambu Studio"
-
 msgid "The Bambu Studio needs an upgrade"
 msgstr "Bambu Studio需要进行升级"
+
+#, c-format, boost-format
+msgid "Connect %s[SN:%s] failed!"
+msgstr ""
 
 msgid "Loading user presets..."
 msgstr "正在加载用户预设..."
@@ -472,13 +473,13 @@ msgstr "选择一个或多个文件（3mf/step/stl/obj/amf）："
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "选择一个文件（gcode/.gco/.g/.ngc/ngc）："
 
-msgid "Login information expired. Please login again."
-msgstr "登录信息过期。请重新登录。"
-
 msgid ""
 "The version of Bambu studio is too low and needs to be updated to the latest "
 "version before it can be used normally"
 msgstr "Bambu Studio版本过低，需要更新到最新版本方可正常使用"
+
+msgid "Login information expired. Please login again."
+msgstr "登录信息过期。请重新登录。"
 
 msgid "This is the newest version."
 msgstr "已经是最新版本。"
@@ -618,12 +619,6 @@ msgstr "重命名"
 
 msgid "Fix model"
 msgstr "修复模型"
-
-msgid "Fix model through cloud"
-msgstr "通过云端修复模型"
-
-msgid "Fix model locally"
-msgstr "本地修复模型"
 
 msgid "Export as STL"
 msgstr "导出为 STL"
@@ -919,9 +914,6 @@ msgstr[0] "以下模型对象修复失败"
 msgid "Repairing was canceled"
 msgstr "修复被取消"
 
-msgid "Repair finished"
-msgstr "修复已完成"
-
 msgid "Additional process preset"
 msgstr "附加工艺预设"
 
@@ -967,9 +959,6 @@ msgstr "内墙速度"
 msgid "Plate"
 msgstr "盘"
 
-msgid "Module"
-msgstr "模块"
-
 msgid "Brim"
 msgstr "Brim"
 
@@ -988,9 +977,7 @@ msgstr "走线类型"
 msgid "No printer"
 msgstr "无打印机"
 
-msgid ""
-"Heat the nozzle to target \n"
-"temperature"
+msgid "Heat the nozzle to target temperature"
 msgstr "加热喷嘴到目标温度"
 
 msgid "Cut filament"
@@ -999,9 +986,7 @@ msgstr "切断耗材丝"
 msgid "Pull back current filament"
 msgstr "抽回当前耗材丝"
 
-msgid ""
-"Push new filament \n"
-"into extruder"
+msgid "Push new filament into extruder"
 msgstr "送出新的耗材丝到挤出机"
 
 msgid "Purge old filament"
@@ -1106,6 +1091,9 @@ msgstr ""
 msgid "Orienting..."
 msgstr "自动朝向中..."
 
+msgid "Orienting"
+msgstr "自动朝向中..."
+
 msgid "Error! Unable to create thread!"
 msgstr "发生错误，无法创建线程。"
 
@@ -1168,12 +1156,21 @@ msgstr "正在通过局域网发送打印任务"
 msgid "Sending print job through cloud service"
 msgstr "正在通过云端服务发送打印任务"
 
+msgid "Service Unavailable"
+msgstr ""
+
+msgid "Unkown Error."
+msgstr ""
+
 msgid "Sending print configuration"
 msgstr "正在发送打印配置"
 
 #, c-format, boost-format
-msgid "Successfully sent.Will automatically jump to the device page in %s s"
-msgstr "已发送完成，即将自动跳转到设备页面 (%s 秒）"
+msgid "Successfully sent. Will automatically jump to the device page in %s s"
+msgstr ""
+
+msgid "An SD card needs to be inserted before printing via LAN."
+msgstr ""
 
 msgid "Portions copyright"
 msgstr "部分版权"
@@ -1208,6 +1205,32 @@ msgstr "本软件使用开源组件，其版权和其他所有权属于各自的
 #, c-format, boost-format
 msgid "About %s"
 msgstr "关于 %s"
+
+msgid ""
+"Bambu Studio is based on PrusaSlicer by PrusaResearch and SuperSlicer by "
+"Merill(supermerill)."
+msgstr ""
+"Bambu Studio是以PrusaResearch的PrusaSlicer和Merill的"
+"SuperSlicer（supermerill）为基础的。"
+
+msgid "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
+msgstr "MerillPrusasicle最初是以Alessandro Ranellucci为基础的Slic3r。"
+
+msgid ""
+"Slic3r was created by Alessandro Ranellucci with the help of many other "
+"contributors."
+msgstr "Slic3r是由Alessandro Ranellucci和许多其他贡献者的帮助下创建的。"
+
+msgid "Bambu Studio also referenced some ideas from Cura by Ultimaker."
+msgstr "Bambu Studio还引入了Ultimaker从Cura提出的一些想法。"
+
+msgid ""
+"There many parts of the software that come from community contributions, so "
+"we're unable to list them one-by-one, and instead, they'll be attributed in "
+"the corresponding code comments."
+msgstr ""
+"软件中的很多部分都来自于社区贡献,因此，我们无法逐一列出他们，相反的，他们将被"
+"注释于相应的代码中。"
 
 msgid "Colour"
 msgstr "颜色"
@@ -1655,6 +1678,9 @@ msgstr "验证失败。"
 msgid "Update failed."
 msgstr "更新失败。"
 
+msgid "Failed to start printing job"
+msgstr ""
+
 msgid "N/A"
 msgstr "N/A"
 
@@ -1972,6 +1998,9 @@ msgstr "校准流程"
 msgid "Start Calibration"
 msgstr "开始校准"
 
+msgid "Completed"
+msgstr ""
+
 msgid "Calibrating"
 msgstr "校准中"
 
@@ -2165,6 +2194,12 @@ msgstr "导出所有对象为STL"
 msgid "Export current Sliced file"
 msgstr "导出当前已切片的文件"
 
+msgid "Export G-code"
+msgstr "导出 G-code"
+
+msgid "Export current plate as G-code"
+msgstr "导出当前盘的G-code"
+
 msgid "Export"
 msgstr "导出"
 
@@ -2309,15 +2344,15 @@ msgstr "打印丝设置"
 
 msgid ""
 "Do you want to synchronize your personal data from Bambu Cloud? \n"
-"Contains the following information:\n"
+"It contains the following information:\n"
 "1. The Process presets\n"
 "2. The Filament presets\n"
 "3. The Printer presets\n"
 msgstr ""
-"是否从Bambu云同步您的个人数据？\n"
-"包含以下信息：\n"
+"想从Bambu 云同步你的个人数据吗?\n"
+"包含如下信息:\n"
 "1. 工艺预设\n"
-"2. 耗材丝预设\n"
+"2. 打印丝预设\n"
 "3. 打印机预设\n"
 
 msgid "Synchronization"
@@ -2415,6 +2450,9 @@ msgstr "调试信息"
 msgid "Printing List"
 msgstr "项目切片"
 
+msgid "Downloading..."
+msgstr ""
+
 msgid "Resume"
 msgstr "继续"
 
@@ -2442,14 +2480,14 @@ msgstr "固件更新"
 msgid "HMS"
 msgstr ""
 
-msgid "Please upgrade your printer first"
-msgstr "请先升级打印机固件"
-
 msgid "Failed to connect to the server"
 msgstr "无法连接服务器"
 
 msgid "Failed to connect to the printer"
 msgstr "无法连接打印机"
+
+msgid "Connecting..."
+msgstr ""
 
 msgid "OK"
 msgstr "确认"
@@ -2559,6 +2597,9 @@ msgstr "导出成功."
 
 msgid " (Repair)"
 msgstr "（修复）"
+
+msgid " Click here to install it."
+msgstr ""
 
 msgid "WARNING:"
 msgstr "警告："
@@ -2753,11 +2794,6 @@ msgstr "将这些文件加载为一个多零件对象？\n"
 msgid "Object with multiple parts was detected"
 msgstr "检测到多零件对象"
 
-msgid ""
-"Preview only mode:\n"
-"The loaded file contains gcode only."
-msgstr ""
-
 msgid "The file does not contain any geometry data."
 msgstr "此文件不包含任何几何数据。"
 
@@ -2795,6 +2831,15 @@ msgstr "正在切片盘%d"
 msgid "Please resolve the slicing errors and publish again."
 msgstr "请解决切片错误后再重新发布。"
 
+msgid ""
+"Network Plug-in is not detected. Network related features are unavailable."
+msgstr "未检测到网络插件。网络相关功能不可用。"
+
+msgid ""
+"Preview only mode:\n"
+"The loaded file contains gcode only, Can not enter the Prepare page"
+msgstr ""
+
 msgid "Some presets are modified."
 msgstr "预设已被修改。"
 
@@ -2811,9 +2856,6 @@ msgstr "创建新项目"
 
 msgid "Load project"
 msgstr "加载项目"
-
-msgid "Preview only mode for gcode file."
-msgstr ""
 
 msgid "The selected file"
 msgstr "已选择的文件"
@@ -2872,9 +2914,6 @@ msgid ""
 msgstr ""
 "逐件打印：\n"
 "建议使用自动摆盘避免打印时发生碰撞。"
-
-msgid "Export G-code"
-msgstr "导出 G-code"
 
 msgid "Send G-code"
 msgstr "发送 G 代码"
@@ -3093,7 +3132,7 @@ msgstr "保存调试设置"
 msgid "DEBUG settings have saved successfully!"
 msgstr "DEBUG模式生效!"
 
-msgid "Swith cloud environment, Please login again!"
+msgid "Switch cloud environment, Please login again!"
 msgstr "切换云环境，请重新登录!"
 
 msgid "System presets"
@@ -3234,6 +3273,9 @@ msgstr "其他设备"
 msgid "Input access code"
 msgstr "输入访问码"
 
+msgid "Log out successful."
+msgstr "登出成功。"
+
 msgid "Busy"
 msgstr "忙碌"
 
@@ -3274,7 +3316,7 @@ msgid "Synchronizing device information"
 msgstr "正在同步设备信息"
 
 msgid "Synchronizing device information time out"
-msgstr "同步设备信息超时，请重试"
+msgstr "同步设备信息超时"
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "设备升级中，无法发送打印任务"
@@ -3286,10 +3328,8 @@ msgstr "打印机正在执行指令，请在其结束后重新发起打印"
 msgid "The printer is busy on other print job"
 msgstr "打印机正在执行其他打印任务"
 
-msgid ""
-"The firmware versions of printer and AMS are too low.Please update to the "
-"latest version before sending the print job"
-msgstr "打印机和AMS固件版本过低，请更新到最新版本方可发送打印"
+msgid "Printer firmware does not support material = >ams slot mapping."
+msgstr "打印机固件不支持材料=>AMS槽位映射"
 
 msgid ""
 "Filaments to AMS slots mappings have been established. You can click a "
@@ -3329,9 +3369,6 @@ msgstr "请先登录。"
 
 msgid "There was a problem connecting to the printer. Please try again."
 msgstr "连接打印机时发生错误。 请重试。"
-
-msgid "Log out successful."
-msgstr "登出成功。"
 
 msgid "Failed to log out."
 msgstr "登出失败。"
@@ -3394,8 +3431,8 @@ msgstr "换料冲刷选项"
 msgid "Special mode"
 msgstr "特殊模式"
 
-msgid "Output file"
-msgstr "输出文件"
+msgid "G-code output"
+msgstr "G-code 输出"
 
 msgid "Frequent"
 msgstr "常用"
@@ -4034,6 +4071,9 @@ msgstr "修复的3mf文件不包含任何零件"
 msgid "Repaired 3mf file contains more than one volume"
 msgstr "已修复的3mf文件包含多个零件"
 
+msgid "Repair finished"
+msgstr "修复已完成"
+
 msgid "Repair canceled"
 msgstr "修复被取消"
 
@@ -4624,6 +4664,18 @@ msgid ""
 msgstr ""
 "不对整个桥接面进行支撑，否则支撑体会很大。不是很长的桥接通常可以无支撑直接打"
 "印。"
+
+msgid "Thick bridges"
+msgstr "桥接面大层高"
+
+msgid "Layers and Perimeters"
+msgstr ""
+
+msgid ""
+"If enabled, bridges are more reliable, can bridge longer distances, but may "
+"look worse. If disabled, bridges look better but are reliable just for "
+"shorter bridged distances."
+msgstr ""
 
 msgid "Max bridge length"
 msgstr "最大桥接长度"
@@ -5274,8 +5326,11 @@ msgstr "减小填充回抽"
 
 msgid ""
 "Don't retract when the travel is in infill area absolutely. That means the "
-"oozing can't been seen"
-msgstr "当完全在填充区域内部空驶时不会抽，即便渗出滴料也是不可见的。"
+"oozing can't been seen. This can reduce times of retraction for complex "
+"model and save printing time, but make slicing and G-code generating slower"
+msgstr ""
+"当空驶完全在填充区域内时不触发回抽。这意味着即使漏料也是不可见的。对于复杂模"
+"型，该设置能够减少回抽次数以及打印时长，但是会造成G-code生成变慢"
 
 msgid "Enable"
 msgstr "开启"
@@ -5470,7 +5525,7 @@ msgstr ""
 "印。最后生成的打印件没有接缝。"
 
 msgid "Timelapse without toolhead"
-msgstr ""
+msgstr "无挤出头延时摄影"
 
 msgid ""
 "Record timelapse video of printing without showing toolhead. In this mode "
@@ -6007,6 +6062,77 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid ""
+#~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
+#~ "It ontains the following information:\n"
+#~ "1. The Process presets\n"
+#~ "2. The Filament presets\n"
+#~ "3. The Printer presets\n"
+#~ msgstr ""
+#~ "想从Bambu 云同步你的个人数据吗?\n"
+#~ "包含如下信息:\n"
+#~ "1. 工艺预设\n"
+#~ "2. 打印丝预设\n"
+#~ "3. 打印机预设\n"
+
+#~ msgid "New version of Bambu Studio"
+#~ msgstr "新版本的Bambu Studio"
+
+#~ msgid "Fix model through cloud"
+#~ msgstr "通过云端修复模型"
+
+#~ msgid "Fix model locally"
+#~ msgstr "本地修复模型"
+
+#~ msgid "Module"
+#~ msgstr "模块"
+
+#~ msgid ""
+#~ "Heat the nozzle to target \n"
+#~ "temperature"
+#~ msgstr "加热喷嘴到目标温度"
+
+#~ msgid ""
+#~ "Push new filament \n"
+#~ "into extruder"
+#~ msgstr "送出新的耗材丝到挤出机"
+
+#, c-format, boost-format
+#~ msgid "Successfully sent.Will automatically jump to the device page in %s s"
+#~ msgstr "已发送完成，即将自动跳转到设备页面 (%s 秒）"
+
+#~ msgid ""
+#~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
+#~ "Contains the following information:\n"
+#~ "1. The Process presets\n"
+#~ "2. The Filament presets\n"
+#~ "3. The Printer presets\n"
+#~ msgstr ""
+#~ "是否从Bambu云同步您的个人数据？\n"
+#~ "包含以下信息：\n"
+#~ "1. 工艺预设\n"
+#~ "2. 耗材丝预设\n"
+#~ "3. 打印机预设\n"
+
+#~ msgid "Please upgrade your printer first"
+#~ msgstr "请先升级打印机固件"
+
+#~ msgid "Swith cloud environment, Please login again!"
+#~ msgstr "切换云环境，请重新登录!"
+
+#~ msgid ""
+#~ "The firmware versions of printer and AMS are too low.Please update to the "
+#~ "latest version before sending the print job"
+#~ msgstr "打印机和AMS固件版本过低，请更新到最新版本方可发送打印"
+
+#~ msgid "Output file"
+#~ msgstr "输出文件"
+
+#~ msgid ""
+#~ "Don't retract when the travel is in infill area absolutely. That means "
+#~ "the oozing can't been seen"
+#~ msgstr "当完全在填充区域内部空驶时不会抽，即便渗出滴料也是不可见的。"
 
 #~ msgid "⌥+Mouse wheel"
 #~ msgstr "⌥+鼠标滚轮"
@@ -7061,9 +7187,6 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ "again!"
 #~ msgstr "已完成自动摆放，但是有未被摆到盘内的项，可在减小间距后重试。"
 
-#~ msgid "Orienting"
-#~ msgstr "自动朝向中..."
-
 #~ msgid "The Config is not compatible, can not load!"
 #~ msgstr "该配置不兼容，无法被加载"
 
@@ -7172,9 +7295,6 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ msgstr ""
 #~ "该盘处于锁定状态，\n"
 #~ "无法对其进行自动朝向"
-
-#~ msgid "Export current plate as G-code"
-#~ msgstr "导出当前盘的G-code"
 
 #~ msgid "Choose the position"
 #~ msgstr "选择AMS料仓"
@@ -7403,9 +7523,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "Wall around the support"
 #~ msgstr "支撑外壁"
-
-#~ msgid "Thick bridges"
-#~ msgstr "桥接面大层高"
 
 #~ msgid ""
 #~ "If enabled, bridges may look worse but can cover longer distance. If "

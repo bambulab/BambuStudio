@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-14 17:34+0800\n"
+"POT-Creation-Date: 2022-07-20 14:27+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -457,11 +457,12 @@ msgid "Click to download new version in default browser: %s"
 msgstr ""
 "Haga clic para descargar la nueva versión en el navegador por defecto: %s"
 
-msgid "New version of Bambu Studio"
-msgstr "Nueva versión de Bambu Studio"
-
 msgid "The Bambu Studio needs an upgrade"
 msgstr "Bambu Studio necesita una actualización"
+
+#, c-format, boost-format
+msgid "Connect %s[SN:%s] failed!"
+msgstr ""
 
 msgid "Loading user presets..."
 msgstr "Cargando los preajustes del usuario..."
@@ -484,13 +485,13 @@ msgstr "Elija uno o varios archivos (3mf/step/stl/obj/amf):"
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "Elija un archivo (gcode/.gco/.g/.ngc/ngc):"
 
-msgid "Login information expired. Please login again."
-msgstr "Los datos de acceso han caducado. Por favor, inicie sesión de nuevo."
-
 msgid ""
 "The version of Bambu studio is too low and needs to be updated to the latest "
 "version before it can be used normally"
 msgstr ""
+
+msgid "Login information expired. Please login again."
+msgstr "Los datos de acceso han caducado. Por favor, inicie sesión de nuevo."
 
 msgid "This is the newest version."
 msgstr "Esta es la versión más reciente."
@@ -630,12 +631,6 @@ msgstr "Renombrar"
 
 msgid "Fix model"
 msgstr "Fijar el modelo"
-
-msgid "Fix model through cloud"
-msgstr "Fijar el modelo a través de la nube"
-
-msgid "Fix model locally"
-msgstr "Fijar el modelo localmente"
 
 msgid "Export as STL"
 msgstr "Exportar como STL"
@@ -948,9 +943,6 @@ msgstr[1] "No se han podido reparar los siguientes objetos del modelo"
 msgid "Repairing was canceled"
 msgstr "La reparación fue cancelada"
 
-msgid "Repair finished"
-msgstr "Reparación terminada"
-
 msgid "Additional process preset"
 msgstr "Proceso adicional preestablecido"
 
@@ -997,9 +989,6 @@ msgstr "Velocidad de la pared interior"
 msgid "Plate"
 msgstr "Placa"
 
-msgid "Module"
-msgstr "Módulo"
-
 msgid "Brim"
 msgstr "Balsa"
 
@@ -1018,12 +1007,8 @@ msgstr "Tipo de línea"
 msgid "No printer"
 msgstr "Sin impresión"
 
-msgid ""
-"Heat the nozzle to target \n"
-"temperature"
+msgid "Heat the nozzle to target temperature"
 msgstr ""
-"Calentar la boquilla a la temperatura deseada \n"
-"temperatura"
 
 msgid "Cut filament"
 msgstr "Cortar filamento"
@@ -1031,12 +1016,8 @@ msgstr "Cortar filamento"
 msgid "Pull back current filament"
 msgstr "Extraer el filamento actual"
 
-msgid ""
-"Push new filament \n"
-"into extruder"
+msgid "Push new filament into extruder"
 msgstr ""
-"Empujar el nuevo filamento \n"
-"en el extrusor"
 
 msgid "Purge old filament"
 msgstr ""
@@ -1054,7 +1035,7 @@ msgid "Load Filament"
 msgstr "Cargar"
 
 msgid "Unload Filament"
-msgstr ""
+msgstr "Unload"
 
 msgid "Tips"
 msgstr "Consejos"
@@ -1151,6 +1132,9 @@ msgstr ""
 msgid "Orienting..."
 msgstr "Orientando..."
 
+msgid "Orienting"
+msgstr ""
+
 msgid "Error! Unable to create thread!"
 msgstr "¡Error! No se ha podido crear el proceso."
 
@@ -1213,11 +1197,20 @@ msgstr ""
 msgid "Sending print job through cloud service"
 msgstr ""
 
+msgid "Service Unavailable"
+msgstr ""
+
+msgid "Unkown Error."
+msgstr ""
+
 msgid "Sending print configuration"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Successfully sent.Will automatically jump to the device page in %s s"
+msgid "Successfully sent. Will automatically jump to the device page in %s s"
+msgstr ""
+
+msgid "An SD card needs to be inserted before printing via LAN."
 msgstr ""
 
 msgid "Portions copyright"
@@ -1251,6 +1244,28 @@ msgstr ""
 #, c-format, boost-format
 msgid "About %s"
 msgstr "Acerca de %s"
+
+msgid ""
+"Bambu Studio is based on PrusaSlicer by PrusaResearch and SuperSlicer by "
+"Merill(supermerill)."
+msgstr ""
+
+msgid "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
+msgstr ""
+
+msgid ""
+"Slic3r was created by Alessandro Ranellucci with the help of many other "
+"contributors."
+msgstr ""
+
+msgid "Bambu Studio also referenced some ideas from Cura by Ultimaker."
+msgstr ""
+
+msgid ""
+"There many parts of the software that come from community contributions, so "
+"we're unable to list them one-by-one, and instead, they'll be attributed in "
+"the corresponding code comments."
+msgstr ""
 
 msgid "Colour"
 msgstr ""
@@ -1722,6 +1737,9 @@ msgstr "Verificación fallida."
 msgid "Update failed."
 msgstr "Actualización fallida."
 
+msgid "Failed to start printing job"
+msgstr ""
+
 msgid "N/A"
 msgstr "N/A"
 
@@ -2037,6 +2055,9 @@ msgstr "Calibración del flujo"
 msgid "Start Calibration"
 msgstr "Iniciar Calibración"
 
+msgid "Completed"
+msgstr "Completado"
+
 msgid "Calibrating"
 msgstr "Calibrando"
 
@@ -2228,6 +2249,12 @@ msgstr "Exportar todos los objetos como STL"
 msgid "Export current Sliced file"
 msgstr "Exportar el archivo rebanado actual"
 
+msgid "Export G-code"
+msgstr "Exportar código G"
+
+msgid "Export current plate as G-code"
+msgstr "Exportar plataforma actual como código G"
+
 msgid "Export"
 msgstr "Exportar"
 
@@ -2372,7 +2399,7 @@ msgstr "Configuración del filamento"
 
 msgid ""
 "Do you want to synchronize your personal data from Bambu Cloud? \n"
-"Contains the following information:\n"
+"It contains the following information:\n"
 "1. The Process presets\n"
 "2. The Filament presets\n"
 "3. The Printer presets\n"
@@ -2473,6 +2500,9 @@ msgstr "Información de Depuración"
 msgid "Printing List"
 msgstr "Imprimiendo Lista"
 
+msgid "Downloading..."
+msgstr ""
+
 msgid "Resume"
 msgstr "Reanudar"
 
@@ -2501,14 +2531,14 @@ msgstr "Actualizar"
 msgid "HMS"
 msgstr "HMS"
 
-msgid "Please upgrade your printer first"
-msgstr ""
-
 msgid "Failed to connect to the server"
 msgstr "No se ha podido conectar con el servidor"
 
 msgid "Failed to connect to the printer"
 msgstr "No se ha podido conectar a la impresora"
+
+msgid "Connecting..."
+msgstr ""
 
 msgid "OK"
 msgstr "OK"
@@ -2620,6 +2650,9 @@ msgstr "Exportación correcta."
 
 msgid " (Repair)"
 msgstr " (Reparación)"
+
+msgid " Click here to install it."
+msgstr ""
 
 msgid "WARNING:"
 msgstr "AVISO:"
@@ -2830,11 +2863,6 @@ msgstr "¿Cargar estos archivos como un objeto único con múltiples partes?\n"
 msgid "Object with multiple parts was detected"
 msgstr "Se ha detectado un objeto con varias partes"
 
-msgid ""
-"Preview only mode:\n"
-"The loaded file contains gcode only."
-msgstr ""
-
 msgid "The file does not contain any geometry data."
 msgstr ""
 
@@ -2872,6 +2900,15 @@ msgstr "Placa de corte %d"
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Por favor, resuelve los errores de corte y publica de nuevo."
 
+msgid ""
+"Network Plug-in is not detected. Network related features are unavailable."
+msgstr ""
+
+msgid ""
+"Preview only mode:\n"
+"The loaded file contains gcode only, Can not enter the Prepare page"
+msgstr ""
+
 msgid "Some presets are modified."
 msgstr "Algunos preajustes se modifican."
 
@@ -2892,9 +2929,6 @@ msgstr "Creando un nuevo proyecto"
 
 msgid "Load project"
 msgstr "Carga de Proyecto"
-
-msgid "Preview only mode for gcode file."
-msgstr ""
 
 msgid "The selected file"
 msgstr "El archivo seleccionado"
@@ -2954,9 +2988,6 @@ msgid ""
 msgstr ""
 "Imprimir por objeto: \n"
 "Sugiere utilizar el auto-posicionamiento para evitar colisiones al imprimir."
-
-msgid "Export G-code"
-msgstr "Exportar código G"
 
 msgid "Send G-code"
 msgstr "Enviar código G"
@@ -3185,8 +3216,8 @@ msgstr "guardar los ajustes de depuración"
 msgid "DEBUG settings have saved successfully!"
 msgstr "¡Los ajustes de depuración se han guardado con éxito!"
 
-msgid "Swith cloud environment, Please login again!"
-msgstr "Cambiar el entorno de la nube, ¡Por favor, inicie sesión de nuevo!"
+msgid "Switch cloud environment, Please login again!"
+msgstr ""
 
 msgid "System presets"
 msgstr "Ajustes del sistema"
@@ -3331,6 +3362,9 @@ msgstr "Otro dispositivo"
 msgid "Input access code"
 msgstr ""
 
+msgid "Log out successful."
+msgstr "Cierre de sesión con éxito."
+
 msgid "Busy"
 msgstr ""
 
@@ -3383,9 +3417,7 @@ msgstr ""
 msgid "The printer is busy on other print job"
 msgstr ""
 
-msgid ""
-"The firmware versions of printer and AMS are too low.Please update to the "
-"latest version before sending the print job"
+msgid "Printer firmware does not support material = >ams slot mapping."
 msgstr ""
 
 msgid ""
@@ -3426,9 +3458,6 @@ msgid "There was a problem connecting to the printer. Please try again."
 msgstr ""
 "Ha habido un problema de conexión con la impresora. Por favor, inténtelo de "
 "nuevo."
-
-msgid "Log out successful."
-msgstr "Cierre de sesión con éxito."
 
 msgid "Failed to log out."
 msgstr "No se ha podido cerrar la sesión."
@@ -3493,8 +3522,8 @@ msgstr ""
 msgid "Special mode"
 msgstr "Modo especial"
 
-msgid "Output file"
-msgstr "Archivo de salida"
+msgid "G-code output"
+msgstr ""
 
 msgid "Frequent"
 msgstr "Frecuente"
@@ -4162,6 +4191,9 @@ msgstr "El archivo 3mf reparado no contiene ningún volumen"
 msgid "Repaired 3mf file contains more than one volume"
 msgstr "El archivo 3mf reparado contiene más de un volumen"
 
+msgid "Repair finished"
+msgstr "Reparación terminada"
+
 msgid "Repair canceled"
 msgstr "Reparación cancelada"
 
@@ -4818,6 +4850,21 @@ msgid ""
 msgstr ""
 "No apoye todo el área del puente que hace el apoyo muy grande. El puente "
 "normalmente puede imprimirse directamente sin soporte si no es muy largo"
+
+msgid "Thick bridges"
+msgstr "Puentes gruesos"
+
+msgid "Layers and Perimeters"
+msgstr "Capas y Perímetros"
+
+msgid ""
+"If enabled, bridges are more reliable, can bridge longer distances, but may "
+"look worse. If disabled, bridges look better but are reliable just for "
+"shorter bridged distances."
+msgstr ""
+"Si están activados, los puentes serán más fiables, pueden salvar distancias "
+"más largas, pero pueden tener peor aspecto. Si se desactiva, los puentes se "
+"verán mejor pero son fiables sólo para distancias de puente más cortas."
 
 msgid "Max bridge length"
 msgstr "Distancia máxima de puentes"
@@ -5544,10 +5591,9 @@ msgstr "Reducir la retracción del relleno"
 
 msgid ""
 "Don't retract when the travel is in infill area absolutely. That means the "
-"oozing can't been seen"
+"oozing can't been seen. This can reduce times of retraction for complex "
+"model and save printing time, but make slicing and G-code generating slower"
 msgstr ""
-"No se repliegue cuando el recorrido esté en zona de relleno absolutamente. "
-"Eso significa que el rezago no puede ser visto"
 
 msgid "Enable"
 msgstr "Habilitar"
@@ -6349,6 +6395,45 @@ msgstr "Soporte: arreglar huecos en la capa %d"
 msgid "Support: propagate branches at layer %d"
 msgstr "Soporte: propagar ramas en la capa %d"
 
+#~ msgid "New version of Bambu Studio"
+#~ msgstr "Nueva versión de Bambu Studio"
+
+#~ msgid "Fix model through cloud"
+#~ msgstr "Fijar el modelo a través de la nube"
+
+#~ msgid "Fix model locally"
+#~ msgstr "Fijar el modelo localmente"
+
+#~ msgid "Module"
+#~ msgstr "Módulo"
+
+#~ msgid ""
+#~ "Heat the nozzle to target \n"
+#~ "temperature"
+#~ msgstr ""
+#~ "Calentar la boquilla a la temperatura deseada \n"
+#~ "temperatura"
+
+#~ msgid ""
+#~ "Push new filament \n"
+#~ "into extruder"
+#~ msgstr ""
+#~ "Empujar el nuevo filamento \n"
+#~ "en el extrusor"
+
+#~ msgid "Swith cloud environment, Please login again!"
+#~ msgstr "Cambiar el entorno de la nube, ¡Por favor, inicie sesión de nuevo!"
+
+#~ msgid "Output file"
+#~ msgstr "Archivo de salida"
+
+#~ msgid ""
+#~ "Don't retract when the travel is in infill area absolutely. That means "
+#~ "the oozing can't been seen"
+#~ msgstr ""
+#~ "No se repliegue cuando el recorrido esté en zona de relleno "
+#~ "absolutamente. Eso significa que el rezago no puede ser visto"
+
 #~ msgid "Mouse wheel"
 #~ msgstr "Rueda del ratón"
 
@@ -6905,9 +6990,6 @@ msgstr "Soporte: propagar ramas en la capa %d"
 #~ msgid "Gizmo-Rotate"
 #~ msgstr "Gizmo-Rotar"
 
-#~ msgid "Export current plate as G-code"
-#~ msgstr "Exportar plataforma actual como código G"
-
 #~ msgid "Box"
 #~ msgstr "Caja"
 
@@ -6962,9 +7044,6 @@ msgstr "Soporte: propagar ramas en la capa %d"
 
 #~ msgid "mm/s or %"
 #~ msgstr "mm/s o %"
-
-#~ msgid "Thick bridges"
-#~ msgstr "Puentes gruesos"
 
 #~ msgid "Default color"
 #~ msgstr "Color predeterminado"
@@ -9305,9 +9384,6 @@ msgstr "Soporte: propagar ramas en la capa %d"
 #~ msgid "Fill gaps"
 #~ msgstr "Rellenar huecos"
 
-#~ msgid "Layers and Perimeters"
-#~ msgstr "Capas y Perímetros"
-
 #~ msgid ""
 #~ "Enables filling of gaps between perimeters and between the inner most "
 #~ "perimeters and infill."
@@ -10093,16 +10169,6 @@ msgstr "Soporte: propagar ramas en la capa %d"
 #~ "Temperatura de la boquilla para las capas después de la primera. Ajusta "
 #~ "esto a cero para deshabilitar los comandos de control de temperatura en "
 #~ "el código G de salida."
-
-#~ msgid ""
-#~ "If enabled, bridges are more reliable, can bridge longer distances, but "
-#~ "may look worse. If disabled, bridges look better but are reliable just "
-#~ "for shorter bridged distances."
-#~ msgstr ""
-#~ "Si están activados, los puentes serán más fiables, pueden salvar "
-#~ "distancias más largas, pero pueden tener peor aspecto. Si se desactiva, "
-#~ "los puentes se verán mejor pero son fiables sólo para distancias de "
-#~ "puente más cortas."
 
 #~ msgid ""
 #~ "Detect single-width walls (parts where two extrusions don't fit and we "
@@ -12227,9 +12293,6 @@ msgstr "Soporte: propagar ramas en la capa %d"
 
 #~ msgid "Cancelled"
 #~ msgstr "Cancelado"
-
-#~ msgid "Completed"
-#~ msgstr "Completado"
 
 #~ msgid "Error uploading to print host:"
 #~ msgstr "Error al cargar a la impresora:"
