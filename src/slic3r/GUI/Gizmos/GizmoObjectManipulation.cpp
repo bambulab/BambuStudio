@@ -683,7 +683,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     };
 
     float space_size    = imgui_wrapper->get_style_scaling() * 8;
-    float position_size = imgui_wrapper->calc_text_size(_L("Position")).x + space_size;
+    float position_size = imgui_wrapper->calc_text_size(_L("Rotation")).x + space_size;
     float World_size    = imgui_wrapper->calc_text_size(_L("World coordinates")).x + space_size;
     float caption_max   = std::max(position_size, World_size) + 2 * space_size;
     float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
@@ -805,7 +805,9 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     };
 
     float space_size = imgui_wrapper->get_style_scaling() * 8;
-    float caption_max = imgui_wrapper->calc_text_size(_L("Position:")).x + space_size;
+    float scale_size = imgui_wrapper->calc_text_size(_L("Scale")).x + space_size;
+    float size_len = imgui_wrapper->calc_text_size(_L("Size")).x + space_size;
+    float caption_max = std::max(scale_size, size_len) + 2 * space_size;
     float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
     ImGui::AlignTextToFramePadding();
     unsigned int current_active_id = ImGui::GetActiveID();
