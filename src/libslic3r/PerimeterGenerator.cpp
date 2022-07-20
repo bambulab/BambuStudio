@@ -700,9 +700,8 @@ void PerimeterGenerator::process()
                 offset2_ex(gaps, - float(max / 2.), float(max / 2. + ClipperSafetyOffset)));
             ThickPolylines polylines;
             for (ExPolygon& ex : gaps_ex) {
-                //BBS: medial axis algorithm can't handle duplicated points in expolygon.
-                //Use DP simplify to avoid duplicated points and accelerate medial-axis calculation as well.
-                ex.douglas_peucker(SCALED_RESOLUTION);
+                //BBS: Use DP simplify to avoid duplicated points and accelerate medial-axis calculation as well.
+                ex.douglas_peucker(surface_simplify_resolution);
                 ex.medial_axis(max, min, &polylines);
             }
 
