@@ -1819,8 +1819,26 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
 void StatusPanel::on_ams_refresh_rfid(wxCommandEvent &event)
 {
     if (obj) {
-        std::string tray_id = event.GetString().ToStdString();
-        obj->command_ams_refresh_rfid(tray_id);
+        std::string curr_ams_id = m_ams_control->GetCurentAms();
+        std::string curr_can_id = event.GetString().ToStdString();
+
+        std::map<std::string, Ams *>::iterator it = obj->amsList.find(curr_ams_id);
+        if (it == obj->amsList.end()) {
+            BOOST_LOG_TRIVIAL(trace) << "ams: find " << curr_ams_id << " failed";
+            return;
+        }
+        auto tray_it = it->second->trayList.find(curr_can_id);
+        if (tray_it == it->second->trayList.end()) {
+            BOOST_LOG_TRIVIAL(trace) << "ams: find " << curr_can_id << " failed";
+            return;
+        }
+
+        try {
+            int tray_index = atoi(curr_ams_id.c_str()) * 4 + atoi(tray_it->second->id.c_str());
+            obj->command_ams_refresh_rfid(std::to_string(tray_index));
+        } catch (...) {
+            ;
+        }
     }
 }
 
