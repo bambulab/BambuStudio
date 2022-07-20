@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-20 14:27+0800\n"
-"PO-Revision-Date: 2022-07-13 21:50+0800\n"
+"POT-Creation-Date: 2022-07-20 16:37+0800\n"
+"PO-Revision-Date: 2022-07-20 16:21+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -450,7 +450,7 @@ msgstr "Bambu Studio需要进行升级"
 
 #, c-format, boost-format
 msgid "Connect %s[SN:%s] failed!"
-msgstr ""
+msgstr "连接 %s[SN:%s]失败."
 
 msgid "Loading user presets..."
 msgstr "正在加载用户预设..."
@@ -1148,7 +1148,7 @@ msgid "Failed uploading print file"
 msgstr "打印任务上传失败"
 
 msgid "Wrong Access code"
-msgstr ""
+msgstr "访问码错误"
 
 msgid "Sending print job over LAN"
 msgstr "正在通过局域网发送打印任务"
@@ -1157,20 +1157,20 @@ msgid "Sending print job through cloud service"
 msgstr "正在通过云端服务发送打印任务"
 
 msgid "Service Unavailable"
-msgstr ""
+msgstr "服务不可用"
 
 msgid "Unkown Error."
-msgstr ""
+msgstr "未知错误"
 
 msgid "Sending print configuration"
 msgstr "正在发送打印配置"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the device page in %s s"
-msgstr ""
+msgstr "已发送完成，即将自动跳转到设备页面（%s秒）"
 
 msgid "An SD card needs to be inserted before printing via LAN."
-msgstr ""
+msgstr "需要插入SD卡后方可发送局域网打印"
 
 msgid "Portions copyright"
 msgstr "部分版权"
@@ -1210,8 +1210,8 @@ msgid ""
 "Bambu Studio is based on PrusaSlicer by PrusaResearch and SuperSlicer by "
 "Merill(supermerill)."
 msgstr ""
-"Bambu Studio是以PrusaResearch的PrusaSlicer和Merill的"
-"SuperSlicer（supermerill）为基础的。"
+"Bambu Studio是以PrusaResearch的PrusaSlicer和Merill的SuperSlicer"
+"（supermerill）为基础的。"
 
 msgid "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
 msgstr "MerillPrusasicle最初是以Alessandro Ranellucci为基础的Slic3r。"
@@ -1679,7 +1679,7 @@ msgid "Update failed."
 msgstr "更新失败。"
 
 msgid "Failed to start printing job"
-msgstr ""
+msgstr "发起打印任务失败"
 
 msgid "N/A"
 msgstr "N/A"
@@ -1999,7 +1999,7 @@ msgid "Start Calibration"
 msgstr "开始校准"
 
 msgid "Completed"
-msgstr ""
+msgstr "已完成"
 
 msgid "Calibrating"
 msgstr "校准中"
@@ -2451,7 +2451,7 @@ msgid "Printing List"
 msgstr "项目切片"
 
 msgid "Downloading..."
-msgstr ""
+msgstr "下载中..."
 
 msgid "Resume"
 msgstr "继续"
@@ -2487,7 +2487,7 @@ msgid "Failed to connect to the printer"
 msgstr "无法连接打印机"
 
 msgid "Connecting..."
-msgstr ""
+msgstr "连接中..."
 
 msgid "OK"
 msgstr "确认"
@@ -4666,7 +4666,7 @@ msgstr ""
 "印。"
 
 msgid "Thick bridges"
-msgstr "桥接面大层高"
+msgstr "厚桥"
 
 msgid "Layers and Perimeters"
 msgstr ""
@@ -6098,7 +6098,6 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ "into extruder"
 #~ msgstr "送出新的耗材丝到挤出机"
 
-#, c-format, boost-format
 #~ msgid "Successfully sent.Will automatically jump to the device page in %s s"
 #~ msgstr "已发送完成，即将自动跳转到设备页面 (%s 秒）"
 
