@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-15 10:25+0800\n"
+"POT-Creation-Date: 2022-07-14 17:34+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -629,6 +629,12 @@ msgstr "Umbenennen"
 msgid "Fix model"
 msgstr "Modell reparieren"
 
+msgid "Fix model through cloud"
+msgstr "Modell durch die Cloud reparieren"
+
+msgid "Fix model locally"
+msgstr "Modell lokal reparieren"
+
 msgid "Export as STL"
 msgstr "Als STL exportieren"
 
@@ -946,6 +952,9 @@ msgstr[1] "Reparatur der folgenden Modellobjekte fehlgeschlagen"
 msgid "Repairing was canceled"
 msgstr "Reparieren wurde abgebrochen"
 
+msgid "Repair finished"
+msgstr "Reparatur abgeschlossen"
+
 msgid "Additional process preset"
 msgstr "Zusätzliche Prozessvoreinstellung"
 
@@ -992,6 +1001,9 @@ msgstr "Geschwindigkeit der inneren Wände"
 
 msgid "Plate"
 msgstr "Druckplatte"
+
+msgid "Module"
+msgstr "Modul"
 
 msgid "Brim"
 msgstr "Umrandung"
@@ -1101,9 +1113,6 @@ msgstr ""
 "Anordnen fehlgeschlagen. Bei der Verarbeitung von Objektgeometrien wurden "
 "einige Ausnahmen gefunden."
 
-msgid "Arranging"
-msgstr "Anordnen"
-
 msgid "Arranging canceled."
 msgstr "Anordnen abgebrochen."
 
@@ -1142,9 +1151,6 @@ msgstr ""
 
 msgid "Orienting..."
 msgstr "Ausrichten..."
-
-msgid "Orienting"
-msgstr ""
 
 msgid "Error! Unable to create thread!"
 msgstr "Fehler! Thema kann nicht erstellt werden!"
@@ -4169,9 +4175,6 @@ msgstr "Reparierte 3mf-Datei enthält kein Volumen"
 msgid "Repaired 3mf file contains more than one volume"
 msgstr "Reparierte 3mf-Datei enthält mehr als ein Volumen"
 
-msgid "Repair finished"
-msgstr "Reparatur abgeschlossen"
-
 msgid "Repair canceled"
 msgstr "Reparatur abgebrochen"
 
@@ -6359,18 +6362,6 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
-
-#~ msgid "Fix model through cloud"
-#~ msgstr "Modell durch die Cloud reparieren"
-
-#~ msgid "Fix model locally"
-#~ msgstr "Modell lokal reparieren"
-
-#~ msgid "Lightning"
-#~ msgstr "Lightning"
-
-#~ msgid "Module"
-#~ msgstr "Modul"
 
 #~ msgid "Mouse wheel"
 #~ msgstr "Mausrad"
@@ -9244,6 +9235,9 @@ msgstr ""
 
 #~ msgid "Support Cubic"
 #~ msgstr "Stütz kubisch"
+
+#~ msgid "Lightning"
+#~ msgstr "Lightning"
 
 #~ msgid ""
 #~ "This is the acceleration your printer will use for first layer. Set zero "
@@ -17122,6 +17116,9 @@ msgstr ""
 
 #~ msgid "Selection-Add from list"
 #~ msgstr "Auswahl aus Liste hinzufügen"
+
+#~ msgid "Arranging"
+#~ msgstr "Anordnen"
 
 #~ msgid "Open project STL/OBJ/AMF/3MF with config, clear plater"
 #~ msgstr "Öffne Projekt STL/OBJ/AMF/3MF mit Konfiguration, Druckplatte leeren"

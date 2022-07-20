@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-15 10:25+0800\n"
+"POT-Creation-Date: 2022-07-14 17:34+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -631,6 +631,12 @@ msgstr "Renombrar"
 msgid "Fix model"
 msgstr "Fijar el modelo"
 
+msgid "Fix model through cloud"
+msgstr "Fijar el modelo a través de la nube"
+
+msgid "Fix model locally"
+msgstr "Fijar el modelo localmente"
+
 msgid "Export as STL"
 msgstr "Exportar como STL"
 
@@ -942,6 +948,9 @@ msgstr[1] "No se han podido reparar los siguientes objetos del modelo"
 msgid "Repairing was canceled"
 msgstr "La reparación fue cancelada"
 
+msgid "Repair finished"
+msgstr "Reparación terminada"
+
 msgid "Additional process preset"
 msgstr "Proceso adicional preestablecido"
 
@@ -987,6 +996,9 @@ msgstr "Velocidad de la pared interior"
 
 msgid "Plate"
 msgstr "Placa"
+
+msgid "Module"
+msgstr "Módulo"
 
 msgid "Brim"
 msgstr "Balsa"
@@ -1100,9 +1112,6 @@ msgstr ""
 "El posicionamiento ha fallado. Se han encontrado algunas excepciones al "
 "procesar las geometrías de los objetos."
 
-msgid "Arranging"
-msgstr "Organizando"
-
 msgid "Arranging canceled."
 msgstr "Ordenamiento cancelado."
 
@@ -1141,9 +1150,6 @@ msgstr ""
 
 msgid "Orienting..."
 msgstr "Orientando..."
-
-msgid "Orienting"
-msgstr ""
 
 msgid "Error! Unable to create thread!"
 msgstr "¡Error! No se ha podido crear el proceso."
@@ -4156,9 +4162,6 @@ msgstr "El archivo 3mf reparado no contiene ningún volumen"
 msgid "Repaired 3mf file contains more than one volume"
 msgstr "El archivo 3mf reparado contiene más de un volumen"
 
-msgid "Repair finished"
-msgstr "Reparación terminada"
-
 msgid "Repair canceled"
 msgstr "Reparación cancelada"
 
@@ -6345,18 +6348,6 @@ msgstr "Soporte: arreglar huecos en la capa %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Soporte: propagar ramas en la capa %d"
-
-#~ msgid "Fix model through cloud"
-#~ msgstr "Fijar el modelo a través de la nube"
-
-#~ msgid "Fix model locally"
-#~ msgstr "Fijar el modelo localmente"
-
-#~ msgid "Lightning"
-#~ msgstr "Lightning"
-
-#~ msgid "Module"
-#~ msgstr "Módulo"
 
 #~ msgid "Mouse wheel"
 #~ msgstr "Rueda del ratón"
@@ -9242,6 +9233,9 @@ msgstr "Soporte: propagar ramas en la capa %d"
 
 #~ msgid "Support Cubic"
 #~ msgstr "Soporte Cúbico"
+
+#~ msgid "Lightning"
+#~ msgstr "Lightning"
 
 #~ msgid ""
 #~ "This is the acceleration your printer will use for first layer. Set zero "
@@ -17019,6 +17013,9 @@ msgstr "Soporte: propagar ramas en la capa %d"
 
 #~ msgid "Selection-Add from list"
 #~ msgstr "Selección-Añadir de la lista"
+
+#~ msgid "Arranging"
+#~ msgstr "Organizando"
 
 #~ msgid "Open project STL/OBJ/AMF/3MF with config, clear plater"
 #~ msgstr ""

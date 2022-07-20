@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-15 10:25+0800\n"
+"POT-Creation-Date: 2022-07-14 17:34+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -625,6 +625,12 @@ msgstr "Rename"
 msgid "Fix model"
 msgstr "Fix Model"
 
+msgid "Fix model through cloud"
+msgstr "Fix model through cloud"
+
+msgid "Fix model locally"
+msgstr "Fix model locally"
+
 msgid "Export as STL"
 msgstr "Export as STL"
 
@@ -927,6 +933,9 @@ msgstr[1] "Failed to repair folowing model objects"
 msgid "Repairing was canceled"
 msgstr "Repairing was canceled"
 
+msgid "Repair finished"
+msgstr "Repair finished"
+
 msgid "Additional process preset"
 msgstr "Additional process preset"
 
@@ -972,6 +981,9 @@ msgstr "Inner wall speed"
 
 msgid "Plate"
 msgstr "Plate"
+
+msgid "Module"
+msgstr "Module"
 
 msgid "Brim"
 msgstr "Brim"
@@ -1082,9 +1094,6 @@ msgid ""
 msgstr ""
 "Arrange failed. Found some exceptions when processing object geometries."
 
-msgid "Arranging"
-msgstr ""
-
 msgid "Arranging canceled."
 msgstr "Arranging canceled."
 
@@ -1126,9 +1135,6 @@ msgstr ""
 
 msgid "Orienting..."
 msgstr "Orienting..."
-
-msgid "Orienting"
-msgstr ""
 
 msgid "Error! Unable to create thread!"
 msgstr "Error. Unable to create thread."
@@ -4151,9 +4157,6 @@ msgstr "The repaired 3mf file does not contain any volume."
 msgid "Repaired 3mf file contains more than one volume"
 msgstr "The repaired 3mf file contains more than one volume."
 
-msgid "Repair finished"
-msgstr "Repair finished"
-
 msgid "Repair canceled"
 msgstr "Repair canceled"
 
@@ -6319,15 +6322,6 @@ msgstr "Support: fix holes at layer %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
-
-#~ msgid "Fix model through cloud"
-#~ msgstr "Fix model through cloud"
-
-#~ msgid "Fix model locally"
-#~ msgstr "Fix model locally"
-
-#~ msgid "Module"
-#~ msgstr "Module"
 
 #~ msgid "Ctrl + Left mouse button"
 #~ msgstr "Ctrl + Left mouse button"

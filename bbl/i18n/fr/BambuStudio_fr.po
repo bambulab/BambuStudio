@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-15 10:25+0800\n"
+"POT-Creation-Date: 2022-07-14 17:34+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -635,6 +635,12 @@ msgstr "Renommer"
 msgid "Fix model"
 msgstr "Fix Model"
 
+msgid "Fix model through cloud"
+msgstr "Correction du modèle via le cloud"
+
+msgid "Fix model locally"
+msgstr "Corriger le modèle localement"
+
 msgid "Export as STL"
 msgstr "Exporter en STL"
 
@@ -945,6 +951,9 @@ msgstr[1] ""
 msgid "Repairing was canceled"
 msgstr "La réparation a été annulée"
 
+msgid "Repair finished"
+msgstr "Réparation terminée"
+
 msgid "Additional process preset"
 msgstr "Préréglage de processus supplémentaire"
 
@@ -991,6 +1000,9 @@ msgstr "Vitesse de la paroi intérieure"
 
 msgid "Plate"
 msgstr "Plaque"
+
+msgid "Module"
+msgstr "Module"
 
 msgid "Brim"
 msgstr "Bord"
@@ -1099,9 +1111,6 @@ msgstr ""
 "Échec de l'arrangement. Trouvé quelques exceptions lors du traitement des "
 "géométries d'objets."
 
-msgid "Arranging"
-msgstr ""
-
 msgid "Arranging canceled."
 msgstr "Arrangement annulé."
 
@@ -1139,9 +1148,6 @@ msgstr ""
 
 msgid "Orienting..."
 msgstr "Orienter..."
-
-msgid "Orienting"
-msgstr ""
 
 msgid "Error! Unable to create thread!"
 msgstr "Erreur! Impossible de créer le fil !"
@@ -4137,9 +4143,6 @@ msgstr "Le fichier 3mf réparé ne contient aucun volume"
 msgid "Repaired 3mf file contains more than one volume"
 msgstr "Le fichier 3mf réparé contient plus d'un volume"
 
-msgid "Repair finished"
-msgstr "Réparation terminée"
-
 msgid "Repair canceled"
 msgstr "Réparation annulée"
 
@@ -6343,15 +6346,6 @@ msgstr ""
 msgid "Support: propagate branches at layer %d"
 msgstr ""
 
-#~ msgid "Fix model through cloud"
-#~ msgstr "Correction du modèle via le cloud"
-
-#~ msgid "Fix model locally"
-#~ msgstr "Corriger le modèle localement"
-
-#~ msgid "Module"
-#~ msgstr "Module"
-
 #~ msgid "Shift + Any arrow"
 #~ msgstr "Maj + n'importe quelle flèche"
 
@@ -6430,6 +6424,7 @@ msgstr ""
 #~ msgid "Filter tiny patch"
 #~ msgstr "Filtrer le petit patch"
 
+#, boost-format
 #~ msgid "Process %1% / 100"
 #~ msgstr "Processus %1% / 100"
 
@@ -6442,6 +6437,7 @@ msgstr ""
 #~ msgid "Reset All"
 #~ msgstr "Effacer tout"
 
+#, c-format, boost-format
 #~ msgid "Object %s has zero size and can't be arranged."
 #~ msgstr "L'objet %s a une taille nulle et ne peut pas être organisé."
 
@@ -6553,6 +6549,7 @@ msgstr ""
 #~ msgid "downloading project ..."
 #~ msgstr "projet de téléchargement..."
 
+#, c-format, boost-format
 #~ msgid "Project downloaded %d%%"
 #~ msgstr "Projet téléchargé %d%%"
 
@@ -6565,18 +6562,22 @@ msgstr ""
 #~ msgid "Preparing to upload your project..."
 #~ msgstr "Préparation du téléchargement de votre projet..."
 
+#, c-format, boost-format
 #~ msgid "get_des,err:code=%u,msg=%s"
 #~ msgstr "get_des,err:code=%u,msg=%s"
 
+#, c-format, boost-format
 #~ msgid "req_proj,err:code=%u,msg=%s"
 #~ msgstr "req_proj,err:code=%u,msg=%s"
 
+#, c-format, boost-format
 #~ msgid "req_prof,err:code=%u,msg=%s"
 #~ msgstr "req_prof,err:code=%u,msg=%s"
 
 #~ msgid "Uploading..."
 #~ msgstr "Téléchargement..."
 
+#, c-format, boost-format
 #~ msgid "Uploading %d%%, remaining time %s"
 #~ msgstr "Téléchargement de %d%%, temps restant %s"
 
@@ -6674,6 +6675,7 @@ msgstr ""
 #~ msgid "Unable to get system certificate."
 #~ msgstr "Impossible d'obtenir le certificat système."
 
+#, boost-format
 #~ msgid "use system SSL certificate: %1%"
 #~ msgstr "utiliser le certificat SSL du système : %1%"
 
@@ -6715,6 +6717,7 @@ msgstr ""
 #~ "Échec du téléchargement de la tâche d'impression. La vérification de Md5 "
 #~ "a échoué, veuillez réessayer."
 
+#, c-format, boost-format
 #~ msgid ""
 #~ "\n"
 #~ "upload,err:code=%u,msg=%s"
@@ -6726,23 +6729,28 @@ msgstr ""
 #~ msgid "The print job has been sent to your printer."
 #~ msgstr "Le travail d'impression a été envoyé à votre imprimante."
 
+#, c-format, boost-format
 #~ msgid "Invalid plate index %d"
 #~ msgstr "Index de plaque non valide %d"
 
+#, c-format, boost-format
 #~ msgid "Plate %d"
 #~ msgstr "Assiette %d"
 
+#, c-format, boost-format
 #~ msgid "%s"
 #~ msgstr "%s"
 
 #~ msgid "Start printing..."
 #~ msgstr "Lancer l'impression..."
 
+#, boost-format
 #~ msgid "%1% is too close to others, there will be collisions when printing."
 #~ msgstr ""
 #~ "%1% est trop proche des autres, il y aura des collisions lors de "
 #~ "l'impression."
 
+#, boost-format
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to others, there will be collisions when printing."
@@ -6750,11 +6758,13 @@ msgstr ""
 #~ "%1% est trop proche des autres, il y aura des collisions lors de "
 #~ "l'impression."
 
+#, boost-format
 #~ msgid "%1% is too tall, there will be collisions when printing."
 #~ msgstr ""
 #~ "\n"
 #~ "%1% est trop grand, il y aura des collisions lors de l'impression."
 
+#, boost-format
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too tall, there will be collisions when printing."
@@ -7099,6 +7109,7 @@ msgstr ""
 #~ "This determines the XY separation between an object and its support. It’s "
 #~ "relative to outer wall line width if expressed as a percentage."
 
+#, qt-format
 #~ msgid ""
 #~ "Failed to save gcode file\n"
 #~ "Error message: %1%"
