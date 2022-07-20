@@ -121,12 +121,11 @@ void MaterialItem::render(wxDC &dc)
 
     if (dc.GetTextExtent(m_material_name).x > GetSize().x - 10) {
         dc.SetFont(::Label::Body_10);
-        auto name       = m_material_name.substr(0, 3) + "." + m_material_name.substr(m_material_name.length() - 1);
-        m_material_name = name;
+
     }
 
     auto material_txt_size = dc.GetTextExtent(m_material_name);
-    dc.DrawText(m_material_name, wxPoint((MATERIAL_ITEM_SIZE.x - material_txt_size.x) / 2, FromDIP(4)));
+    dc.DrawText(m_material_name, wxPoint((MATERIAL_ITEM_SIZE.x - material_txt_size.x) / 2, (FromDIP(22) - material_txt_size.y) / 2));
 
     // mapping num
     dc.SetFont(::Label::Body_10);
@@ -140,7 +139,7 @@ void MaterialItem::render(wxDC &dc)
     }
 
     auto mapping_txt_size = dc.GetTextExtent(mapping_txt);
-    dc.DrawText(mapping_txt, wxPoint((MATERIAL_ITEM_SIZE.x - mapping_txt_size.x) / 2, material_txt_size.y + FromDIP(3)));
+    dc.DrawText(mapping_txt, wxPoint((MATERIAL_ITEM_SIZE.x - mapping_txt_size.x) / 2, FromDIP(20) + (FromDIP(14) - mapping_txt_size.y) / 2));
 }
 
 void MaterialItem::doRender(wxDC &dc) 
@@ -148,36 +147,33 @@ void MaterialItem::doRender(wxDC &dc)
     //top
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(m_material_coloul));
-    dc.DrawRoundedRectangle(FromDIP(3), FromDIP(3), MATERIAL_ITEM_SIZE.x - FromDIP(6), MATERIAL_ITEM_SIZE.y / 2, 5);
+    dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(18), 5);
     
     //bottom
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(wxColour(m_ams_coloul)));
-    dc.DrawRoundedRectangle(FromDIP(3), MATERIAL_ITEM_SIZE.y / 2 - FromDIP(2), MATERIAL_ITEM_SIZE.x - FromDIP(6), MATERIAL_ITEM_SIZE.y / 2, 5);
+    dc.DrawRoundedRectangle(FromDIP(1), FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(16), 5);
 
-    //middle
+    ////middle
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(m_material_coloul));
-    dc.DrawRectangle(FromDIP(3), FromDIP(10), MATERIAL_ITEM_SIZE.x - FromDIP(6), FromDIP(8));
+    dc.DrawRectangle(FromDIP(1), FromDIP(11), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(8));
 
-    //border
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.SetBrush(wxBrush(m_ams_coloul));
+    dc.DrawRectangle(FromDIP(1), FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(8));
+
+    ////border
     if (m_material_coloul == *wxWHITE || m_ams_coloul == *wxWHITE) {
         dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(3, 3, MATERIAL_ITEM_SIZE.x -6, MATERIAL_ITEM_SIZE.y - 6, 5);
+        dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y, 5);
     }
-
 
     if (m_selected) {
         dc.SetPen(wxColour(0x00, 0xAE, 0x42));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 2, MATERIAL_ITEM_SIZE.y - 2, 5);
-    }
-
-    if (m_warning) {
-        dc.SetPen(wxColour(0xFF, 0x6F, 0x00));
-        dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 2, MATERIAL_ITEM_SIZE.y - 2, 5);
+        dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y, 5);
     }
 }
 

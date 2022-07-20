@@ -776,15 +776,10 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 
-    m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
-
-    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(22));
-
     m_panel_image = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_panel_image->SetBackgroundColour(m_colour_def_color);
 
     sizer_thumbnail = new wxBoxSizer(wxVERTICAL);
-    //m_staticbitmap  = new wxStaticBitmap(m_image, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize);
     m_thumbnailPanel = new ThumbnailPanel(m_panel_image);
     m_thumbnailPanel->SetSize(wxSize(FromDIP(256), FromDIP(256)));
     m_thumbnailPanel->SetMinSize(wxSize(FromDIP(256), FromDIP(256)));
@@ -792,10 +787,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     sizer_thumbnail->Add(m_thumbnailPanel, 0, wxEXPAND, 0);
     m_panel_image->SetSizer(sizer_thumbnail);
     m_panel_image->Layout();
-
-    m_sizer_main->Add(m_panel_image, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT);
-
-    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
 
     wxBoxSizer *m_sizer_basic        = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *m_sizer_basic_weight = new wxBoxSizer(wxHORIZONTAL);
@@ -813,26 +804,16 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_stext_weight = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
     m_sizer_basic_time->Add(m_stext_weight, 0, wxALL, FromDIP(5));
     m_sizer_basic->Add(m_sizer_basic_time, 0, wxALIGN_CENTER, 0);
-    m_sizer_main->Add(m_sizer_basic, 0, wxALIGN_CENTER, 0);
 
-    m_sizer_material = new wxGridSizer(0, 6, 0, 0);
-    m_sizer_main->Add(m_sizer_material, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(80));
+    m_sizer_material = new wxGridSizer(0, 4, 0, 0);
 
     m_statictext_ams_msg = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
     m_statictext_ams_msg->SetFont(::Label::Body_13);
     m_statictext_ams_msg->Hide();
 
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
-    m_sizer_main->Add(m_statictext_ams_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
-
     m_line_materia = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_line_materia->SetForegroundColour(wxColour(238, 238, 238));
     m_line_materia->SetBackgroundColour(wxColour(238, 238, 238));
-
-    m_sizer_main->Add(m_line_materia, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
-
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
 
     wxBoxSizer *m_sizer_printer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -845,12 +826,12 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_printer->Add(m_stext_printer_title, 0, wxALL | wxLEFT, FromDIP(5));
     m_sizer_printer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(12));
 
-    m_comboBox_printer = new ::ComboBox(this, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
+    m_comboBox_printer = new ::ComboBox(this, wxID_ANY, L(""), wxDefaultPosition, wxSize(FromDIP(250), -1), 0, nullptr, wxCB_READONLY);
     m_comboBox_printer->Bind(wxEVT_COMBOBOX, &SelectMachineDialog::on_selection_changed, this);
 
     m_sizer_printer->Add(m_comboBox_printer, 1, wxEXPAND | wxRIGHT, FromDIP(5));
     btn_bg_enable = StateColor(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+                               std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
     m_button_refresh = new Button(this, _L("Refresh"));
     m_button_refresh->SetBackgroundColor(btn_bg_enable);
@@ -862,19 +843,13 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_button_refresh->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_refresh, this);
     m_sizer_printer->Add(m_button_refresh, 0, wxALL | wxLEFT, FromDIP(5));
 
-    m_sizer_main->Add(m_sizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(5));
-
-
     m_statictext_printer_msg = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
     m_statictext_printer_msg->SetFont(::Label::Body_13);
     m_statictext_printer_msg->Hide();
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
-    m_sizer_main->Add(m_statictext_printer_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(20));
+
     m_sizer_select = new wxGridSizer(1, 2, 0, 0);
-    select_bed           = create_item_checkbox(_L("Bed Leveling"), this, _L("Bed Leveling"), "bed_leveling");
-    select_flow          = create_item_checkbox(_L("Flow Calibration"), this, _L("Flow Calibration"), "flow_cali");
+    select_bed     = create_item_checkbox(_L("Bed Leveling"), this, _L("Bed Leveling"), "bed_leveling");
+    select_flow    = create_item_checkbox(_L("Flow Calibration"), this, _L("Flow Calibration"), "flow_cali");
 
 
     select_bed->Show(true);
@@ -883,18 +858,12 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_select->Add(select_bed);
     m_sizer_select->Add(select_flow);
 
-    m_sizer_main->Add(m_sizer_select, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(40));
-
-
     // line schedule
     m_line_schedule = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_schedule->SetBackgroundColour(wxColour(238, 238, 238));
-    m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(12));
-    m_sizer_main->Add(m_line_schedule, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(25));
 
     m_sizer_bottom = new wxBoxSizer(wxVERTICAL);
     m_simplebook   = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, SELECT_MACHINE_DIALOG_SIMBOOK_SIZE, 0);
-    m_sizer_main->Add(m_simplebook, 0, wxALIGN_CENTER_HORIZONTAL, 0);
 
     // perpare mode
     m_panel_prepare = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -950,13 +919,33 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_finish->Fit(m_panel_finish);
     m_simplebook->AddPage(m_panel_finish, wxEmptyString, false);
 
-    m_sizer_main->Add(m_sizer_bottom, 0, wxALIGN_CENTER_HORIZONTAL);
-    m_sizer_main->Add(0, 0, 0, wxEXPAND|wxTOP, FromDIP(15));
-
     // bind
     Bind(EVT_UPDATE_USER_MACHINE_LIST, &SelectMachineDialog::update_printer_combobox, this);
     Bind(EVT_PRINT_JOB_CANCEL, &SelectMachineDialog::on_print_job_cancel, this);
     Bind(EVT_SET_FINISH_MAPPING, &SelectMachineDialog::on_set_finish_mapping, this);
+
+    m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(22));
+    m_sizer_main->Add(m_panel_image, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
+    m_sizer_main->Add(m_sizer_basic, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_main->Add(m_sizer_material, 0, wxALIGN_CENTER_HORIZONTAL);
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
+    m_sizer_main->Add(m_statictext_ams_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
+    m_sizer_main->Add(m_line_materia, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
+    m_sizer_main->Add(m_sizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(5));
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
+    m_sizer_main->Add(m_statictext_printer_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(20));
+    m_sizer_main->Add(m_sizer_select, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(40));
+    m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(12));
+    m_sizer_main->Add(m_line_schedule, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
+    m_sizer_main->Add(m_simplebook, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_main->Add(m_sizer_bottom, 0, wxALIGN_CENTER_HORIZONTAL);
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(15));
 
     SetSizer(m_sizer_main);
     Layout();
@@ -965,7 +954,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     init_bind();
     init_timer();
-     //CenterOnParent();
+    // CenterOnParent();
     Centre(wxBOTH);
 }
 
@@ -1960,7 +1949,7 @@ void SelectMachineDialog::set_default()
         if (extruder >= materials.size() || extruder < 0)
             continue;
         MaterialItem *item = new MaterialItem(this, colour_rgb, _L(materials[extruder]));
-        m_sizer_material->Add(item, 0, wxLEFT | wxRIGHT, FromDIP(5));
+        m_sizer_material->Add(item, 0, wxALL, FromDIP(4));
 
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {
             MaterialHash::iterator iter = m_materialList.begin();
@@ -2012,6 +2001,16 @@ void SelectMachineDialog::set_default()
             info.color = colour_rgb.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
             m_filaments.push_back(info);
         }
+    }
+
+    if (extruders.size() <= 4) {
+        m_sizer_material->SetCols(extruders.size()); 
+        Layout();
+        Fit();
+    } else {
+        m_sizer_material->SetCols(4);
+        Layout();
+        Fit();
     }
 
     reset_ams_material();

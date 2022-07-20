@@ -35,6 +35,7 @@ wxFont Label::Body_14 = Label::sysFont(14, false);
 wxFont Label::Body_13 = Label::sysFont(13, false);
 wxFont Label::Body_12 = Label::sysFont(12, false);
 wxFont Label::Body_10 = Label::sysFont(10, false);
+wxFont Label::Body_9 = Label::sysFont(9, false);
 
 wxSize Label::split_lines(wxDC &dc, int width, const wxString &text, wxString &multiline_text)
 {
