@@ -1139,6 +1139,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, bool is_sync)
     if (!app_config)
         return -1;
 
+    BOOST_LOG_TRIVIAL(info) << "[download_plugin]: enter";
     m_networking_cancel_update = false;
     // get temp path
     fs::path target_file_path = (fs::temp_directory_path() / "network_plugin.zip");
@@ -1149,6 +1150,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, bool is_sync)
     std::string url = get_plugin_url(app_config->get_country_code());
     std::string download_url;
     Slic3r::Http http_url = Slic3r::Http::get(url);
+    BOOST_LOG_TRIVIAL(info) << "[download_plugin]: check the plugin from "<<url;
     http_url.on_complete(
         [&download_url](std::string body, unsigned status) {
             try {
@@ -1199,6 +1201,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, bool is_sync)
 
     bool cancel = false;
     if (download_url.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "[download_plugin]: no availaible plugin found for this app version: "<< SLIC3R_VERSION;
         if (pro_fn) pro_fn(InstallStatusDownloadFailed, 100, cancel);
         return -1;
     }
@@ -2014,7 +2017,7 @@ bool GUI_App::on_init_network()
         }
     } else {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll failed";
-        if (app_config->get("intalled_networking") == "1") {
+        if (app_config->get("installed_networking") == "1") {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, need upload network module";
             m_networking_need_update = true;
         }
