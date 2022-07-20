@@ -1619,8 +1619,6 @@ void GUI_App::init_http_extra_header()
 {
     std::map<std::string, std::string> extra_headers = get_extra_header();
 
-    Slic3r::Http::set_extra_headers(extra_headers);
-
     if (m_agent)
         m_agent->set_extra_http_header(extra_headers);
 }
@@ -1675,6 +1673,9 @@ bool GUI_App::on_init_inner()
     //BBS set crash log folder
     CBaseException::set_log_folder(data_dir());
 #endif
+
+    std::map<std::string, std::string> extra_headers = get_extra_header();
+    Slic3r::Http::set_extra_headers(extra_headers);
 
     //BBS start http log
     if (m_agent) {
