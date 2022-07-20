@@ -341,6 +341,10 @@ public:
     // Get a layer approximately at print_z.
     const Layer*	get_layer_at_printz(coordf_t print_z, coordf_t epsilon) const;
     Layer*			get_layer_at_printz(coordf_t print_z, coordf_t epsilon);
+    // BBS
+    const Layer*    get_layer_at_bottomz(coordf_t bottom_z, coordf_t epsilon) const;
+    Layer*          get_layer_at_bottomz(coordf_t bottom_z, coordf_t epsilon);
+
     // Get the first layer approximately bellow print_z.
     const Layer*	get_first_layer_bellow_printz(coordf_t print_z, coordf_t epsilon) const;
 

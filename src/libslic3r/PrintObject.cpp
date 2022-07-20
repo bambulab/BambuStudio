@@ -2772,4 +2772,20 @@ const Layer *PrintObject::get_first_layer_bellow_printz(coordf_t print_z, coordf
     return (it == m_layers.begin()) ? nullptr : *(--it);
 }
 
+// BBS
+const Layer* PrintObject::get_layer_at_bottomz(coordf_t bottom_z, coordf_t epsilon) const {
+    coordf_t limit_upper = bottom_z + epsilon;
+    coordf_t limit_lower = bottom_z - epsilon;
+
+    for (const Layer* layer : m_layers) {
+        if (layer->bottom_z() > limit_lower)
+            return layer->bottom_z() < limit_upper ? layer : nullptr;
+    }
+
+    return nullptr;
+}
+
+Layer* PrintObject::get_layer_at_bottomz(coordf_t bottom_z, coordf_t epsilon) { return const_cast<Layer*>(std::as_const(*this).get_layer_at_bottomz(bottom_z, epsilon)); }
+
+
 } // namespace Slic3r
