@@ -501,7 +501,7 @@ AuFolderPanel::AuFolderPanel(wxWindow *parent, AuxiliaryFolderType type, wxWindo
     m_button_add = new Button(m_scrolledWindow, _L("Add"), "auxiliary_add_file", 12, 12);
     m_button_add->SetBackgroundColor(btn_bg_white);
     m_button_add->SetBorderColor(btn_bd_white);
-    m_button_add->SetMinSize(wxSize(FromDIP(80), FromDIP(24)));
+    m_button_add->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_add->SetCornerRadius(12);
     m_button_add->SetFont(Label::Body_14);
     // m_button_add->Bind(wxEVT_LEFT_UP, &AuxiliaryPanel::on_add, this);
@@ -563,7 +563,7 @@ void AuFolderPanel::update(std::vector<fs::path> paths)
 
 void AuFolderPanel::msw_rescale() 
 {
-    m_button_add->SetMinSize(wxSize(FromDIP(80), FromDIP(24)));
+    m_button_add->SetMinSize(wxSize(-1, FromDIP(24)));
     for (auto i = 0; i < m_aufiles_list.GetCount(); i++) {
         AuFiles *aufile = m_aufiles_list[i];
         aufile->file->msw_rescale();
