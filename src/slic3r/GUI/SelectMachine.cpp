@@ -1015,6 +1015,7 @@ void SelectMachineDialog::update_select_layout(PRINTER_TYPE type)
 
 void SelectMachineDialog::prepare_mode()
 {
+    m_status_bar->reset();
     if (m_simplebook->GetSelection() != 0) {
         m_simplebook->SetSelection(0);
         Layout();
@@ -1647,6 +1648,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
 void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 {
     /* reset timeout and reading printer info */
+    m_status_bar->reset();
     timeout_count      = 0;
     m_ams_mapping_res  = false;
     ams_mapping_valid  = false;

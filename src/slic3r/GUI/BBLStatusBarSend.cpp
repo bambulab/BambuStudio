@@ -221,6 +221,7 @@ void BBLStatusBarSend::reset()
     set_status_text("");
     m_was_cancelled = false;
     set_progress(0);
+    set_percent_text(wxString::Format("%d%%", 0));
 }
 
 
