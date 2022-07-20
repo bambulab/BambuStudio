@@ -272,18 +272,36 @@ AboutDialog::AboutDialog()
     text_list.push_back(_L("There many parts of the software that come from community contributions, so we're unable to list them one-by-one, and instead, they'll be attributed in the corresponding code comments."));
 
     text_sizer->Add( 0, 0, 0, wxTOP, FromDIP(33));
+    bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
     for (int i = 0; i < text_list.size(); i++)
     {
-        auto staticText = new wxStaticText( this, wxID_ANY, wxEmptyString,wxDefaultPosition,wxDefaultSize, wxALIGN_LEFT );
+        auto staticText = new wxStaticText( this, wxID_ANY, wxEmptyString,wxDefaultPosition,wxSize(FromDIP(520), -1), wxALIGN_LEFT );
         staticText->SetForegroundColour(wxColour(107, 107, 107));
-        staticText->SetLabel(text_list[i]);
         staticText->SetFont(Label::Body_12);
+        if (is_zh) {
+            wxString find_txt = "";
+            wxString count_txt = "";
+            for (auto  o = 0; o < text_list[i].length(); o++) {
+                auto size = staticText->GetTextExtent(count_txt);
+                if (size.x < FromDIP(516)) {
+                    find_txt += text_list[i][o];
+                    count_txt += text_list[i][o];
+                } else {
+                    find_txt += std::string("\n") + text_list[i][o];
+                    count_txt = text_list[i][o];
+                }
+            }
+            staticText->SetLabel(find_txt);
+        } else {
+            staticText->SetLabel(text_list[i]);
+        }
+
         staticText->Wrap(FromDIP(520));
         staticText->SetMinSize(wxSize(FromDIP(520), -1));
-        text_sizer->Add( staticText, 0, wxALL, FromDIP(3));
+        text_sizer->Add( staticText, 0, wxUP | wxDOWN, FromDIP(3));
     }
 
-    text_sizer_horiz->Add(text_sizer, 0, wxALL,0);
+    text_sizer_horiz->Add(text_sizer, 1, wxALL,0);
     ver_sizer->Add(text_sizer_horiz, 0, wxALL,0);
     ver_sizer->Add( 0, 0, 0, wxTOP, FromDIP(43));
 
@@ -343,9 +361,9 @@ AboutDialog::AboutDialog()
     ver_sizer->Add( 0, 0, 0, wxTOP, FromDIP(30));
     button_portions->Bind(wxEVT_BUTTON, &AboutDialog::onCopyrightBtn, this);
 
-    m_panel->Layout();
 	SetSizer(main_sizer);
-	main_sizer->SetSizeHints(this);
+    Layout();
+    Fit();
     CenterOnParent();
 }
 
