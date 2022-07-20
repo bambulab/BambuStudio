@@ -446,6 +446,9 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
 std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std::function<void()> &throw_if_canceled)
 {
     std::string error_msg;//BBS
+
+    if (layers.size() == 0) return error_msg;
+
     // Collect layers with slicing errors.
     // These layers will be fixed in parallel.
     std::vector<size_t> buggy_layers;
