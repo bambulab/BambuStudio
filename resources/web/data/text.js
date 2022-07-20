@@ -65,7 +65,7 @@ var LangText={
 		"t70":"After installation, Bambu Studio will restart to activate it.",
 		"t71":"Downloading",
 		"t72":"Downloading failed",
-		"t73":"Installation successful. Will restart Bambu Studio in 3 seconds.",
+		"t73":"Installation successful.",
 		"t74":"Restart",
 		"t75":"Bambu Network plug-in Provides the following features:",
 		"t76":"Network plugin not detected. Click ",
@@ -128,7 +128,22 @@ var LangText={
 		"t60":"欧洲",
 		"t61":"北美",
 		"t62":"其他",
-		"t63":"切换区域后，你的账号会被登出。稍后请重新登录。"
+		"t63":"切换区域后，你的账号会被登出。稍后请重新登录。",
+        "t64":"Bambu网络插件",
+		"t65":"通过WLAN发送打印任务",
+		"t66":"强大的远程控制功能",
+		"t67":"视频监控",
+		"t68":"用户数据同步",
+		"t69":"安装Bambu网络插件",
+		"t70":"安装完成后，Bambu Studio将会重启。",
+		"t71":"正在下载",
+		"t72":"下载失败",
+		"t73":"安装成功。",
+		"t74":"重启",
+		"t75":"Bambu网络插件提供以下功能：",
+		"t76":"没有发现网络插件，请",
+		"t77":"下载",
+		"t78":"并安装。"	
 	}
 };
 

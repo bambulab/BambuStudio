@@ -235,7 +235,6 @@ function SortUI()
 	if(SelectNumber==0)
 		ChooseDefaultFilament();
 	
-	
 	//--If Need Install Network Plugin
 	if(m_ProfileItem["network_plugin_install"]!='1' || (m_ProfileItem["network_plugin_install"]=='1' && m_ProfileItem["network_plugin_compability"]=='0') )
 	{

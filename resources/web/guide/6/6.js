@@ -5,8 +5,13 @@ function OnInit()
 	//let strInput=JSON.stringify(cData);
 	//HandleStudio(strInput);
 	
-	TranslatePage();
+//	let tVal={};
+//	tVal['status']=4;
+//	tVal['percent']=30;
+//	
+//	HandStatusPercent(tVal);
 	
+	TranslatePage();
 	SendDownloadCmd();
 }
 
@@ -34,7 +39,7 @@ function HandleStudio( pVal )
 
 function HandStatusPercent( pVal )
 {
-	let nStatus=pVal['status'];
+	let nStatus=pVal['status']*1;
 	let nPercent=pVal['percent'];
 	
 	if(nStatus==0)
@@ -68,7 +73,7 @@ function HandStatusPercent( pVal )
 		$('#CancelBtn').hide();
 		$('#RestartBtn').show();
 		
-		pTimer=setInterval("RunInverse()",1000);
+		//pTimer=setInterval("RunInverse()",1000);
 	}
 	
 	TranslatePage();
