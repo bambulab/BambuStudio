@@ -22,7 +22,8 @@
 #include <mutex>
 #include <stack>
 
-#define BBL_HAS_FIRST_PAGE 1
+#define BBL_HAS_FIRST_PAGE          1
+#define STUDIO_INACTIVE_TIMEOUT     15*60*1000
 
 class wxMenuItem;
 class wxMenuBar;
@@ -362,6 +363,12 @@ public:
     void            handle_http_error(unsigned int status, std::string body);
     void            on_http_error(wxCommandEvent &evt);
     void            on_user_login(wxCommandEvent &evt);
+
+    // BBS
+    bool            is_studio_active();
+    void            reset_to_active();
+    bool            m_studio_active = true;
+    std::chrono::system_clock::time_point  last_active_point;
 
     void            check_update(bool show_tips);
     void            check_new_version(bool show_tips = false);

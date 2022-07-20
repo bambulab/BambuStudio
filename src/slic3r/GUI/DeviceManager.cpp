@@ -1590,9 +1590,10 @@ int MachineObject::parse_json(std::string payload)
         if (j_pre.contains("print")) {
             if (j_pre["print"].contains("command")) {
                 if (j_pre["print"]["command"].get<std::string>() == "push_status") {
-                    m_push_count++;
                     if (j_pre["print"].contains("msg")) {
                         if (j_pre["print"]["msg"].get<int>() == 0) {           //all message
+                            BOOST_LOG_TRIVIAL(trace) << "static: get push_all msg";
+                            m_push_count++;
                             print_json.diff2all_base_reset(j_pre);
                         } else if (j_pre["print"]["msg"].get<int>() == 1) {    //diff message
                             if (print_json.diff2all(j_pre, j) == 0) {
@@ -1626,11 +1627,16 @@ int MachineObject::parse_json(std::string payload)
             json jj = j["print"];
             if (jj.contains("command")) {
                 if (jj["command"].get<std::string>() == "push_status") {
+                    
                     last_push_time = std::chrono::system_clock::now();
 #pragma region printing
+                    // U0 firmware
                     if (jj.contains("print_type")) {
                         print_type = jj["print_type"].get<std::string>();
+                    } else {
+                        m_push_count++;
                     }
+
                     if (jj.contains("mc_remaining_time")) {
                         if (jj["mc_remaining_time"].is_string())
                             mc_left_time = stoi(j["print"]["mc_remaining_time"].get<std::string>()) * 60;
@@ -2681,7 +2687,7 @@ void DeviceManager::clean_user_info()
 
 bool DeviceManager::set_selected_machine(std::string dev_id)
 {
-    BOOST_LOG_TRIVIAL(trace) << "set_selected_machine=" << dev_id;
+    BOOST_LOG_TRIVIAL(info) << "set_selected_machine=" << dev_id;
     auto my_machine_list = get_my_machine_list();
     auto it = my_machine_list.find(dev_id);
     if (it != my_machine_list.end()) {
@@ -2693,7 +2699,7 @@ bool DeviceManager::set_selected_machine(std::string dev_id)
             if (m_agent) {
                 if (it->second->connection_type() != "lan" || it->second->connection_type().empty()) {
                     if (m_agent->get_user_selected_machine() != dev_id) {
-                        BOOST_LOG_TRIVIAL(trace) << "set_selected_machine: same dev_id = " << dev_id;
+                        BOOST_LOG_TRIVIAL(info) << "set_selected_machine: same dev_id = " << dev_id;
                         m_agent->set_user_selected_machine(dev_id);
                         it->second->reset();
                     } else {

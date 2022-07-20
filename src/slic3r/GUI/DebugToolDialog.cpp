@@ -1312,19 +1312,11 @@ bool DebugToolDialog::Show(bool show)
 {
     NetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
     if (show) {
-        if (agent) {
-            //agent->start_discovery(true, true);
-            agent->start_subscribe("debug");
-        }
         m_timer->Stop();
         m_timer->SetOwner(this);
         m_timer->Start(10000);
     }
     else {
-        if (agent) {
-            //agent->start_discovery(true, false);
-            agent->stop_subscribe("debug");
-        }
         m_timer->Stop();
     }
 

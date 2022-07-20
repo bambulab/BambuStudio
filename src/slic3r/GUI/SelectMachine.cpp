@@ -459,6 +459,7 @@ wxWindow *SelectMachinePopup::create_title_panel(wxString text)
 void SelectMachinePopup::on_timer(wxTimerEvent &event)
 {
     BOOST_LOG_TRIVIAL(trace) << "SelectMachinePopup on_timer";
+    wxGetApp().reset_to_active();
     wxCommandEvent user_event(EVT_UPDATE_USER_MACHINE_LIST);
     user_event.SetEventObject(this);
     wxPostEvent(this, user_event);
@@ -1653,6 +1654,7 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
 
 void SelectMachineDialog::on_timer(wxTimerEvent &event)
 {
+    wxGetApp().reset_to_active();
     update_show_status();
 }
 
@@ -2035,6 +2037,7 @@ bool SelectMachineDialog::Show(bool show)
 
     // set default value when show this dialog
     if (show) {
+        wxGetApp().reset_to_active();
         set_default();
         update_user_machine_list();
     }
@@ -2045,12 +2048,6 @@ bool SelectMachineDialog::Show(bool show)
             agent->start_subscribe("send_print");
         else
             agent->stop_subscribe("send_print");
-
-        /*if (show) {
-            agent->start_discovery(true, true);
-        } else {
-            agent->start_discovery(true, false);
-        }*/
     }
 
     if (show) {

@@ -610,8 +610,6 @@ public:
     // get alive machine
     std::map<std::string, MachineObject*> get_local_machine_list();
     void load_last_machine();
-
-    void check_alive();
 };
 
 } // namespace Slic3r

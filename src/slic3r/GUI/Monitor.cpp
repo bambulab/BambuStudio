@@ -381,6 +381,7 @@ void MonitorPanel::update_all()
     }
 
     if (obj) {
+        wxGetApp().reset_to_active();
         if (obj->connection_type() != last_conn_type) {
             last_conn_type = obj->connection_type();
         }
@@ -459,15 +460,9 @@ bool MonitorPanel::Show(bool show)
                 obj->reset_update_time();
             }
         }
-
-        if (m_agent)
-            m_agent->start_subscribe("monitor");
-    }
-    else {
+    } else {
         m_refresh_timer->Stop();
         m_status_info_panel->m_media_play_ctrl->SetMachineObject(nullptr);
-        if (m_agent)
-            m_agent->stop_subscribe("monitor");
     }
     return wxPanel::Show(show);
 }

@@ -1053,7 +1053,18 @@ void GUI_App::post_init()
     }
 
     if(m_agent) {
-        init_networking_callbacks();
+        m_agent->set_on_ssdp_msg_fn(
+            [this](std::string json_str) {
+                GUI::wxGetApp().CallAfter([this, json_str] {
+                    if (m_is_closing) {
+                        return;
+                    }
+                    if (m_device_manager) {
+                        m_device_manager->on_machine_alive(json_str);
+                    }
+                    });
+            }
+        );
         m_agent->start_discovery(true, false);
     }
 
@@ -1084,8 +1095,11 @@ GUI_App::GUI_App()
 	//, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
-	this->init_app_config();
+    this->init_app_config();
+
+    reset_to_active();
 }
+
 
 std::string GUI_App::get_http_url(std::string country_code)
 {
@@ -1350,6 +1364,18 @@ void GUI_App::restart_networking()
     on_init_network();
     if(m_agent) {
         init_networking_callbacks();
+        m_agent->set_on_ssdp_msg_fn(
+            [this](std::string json_str) {
+                GUI::wxGetApp().CallAfter([this, json_str] {
+                    if (m_is_closing) {
+                        return;
+                    }
+                    if (m_device_manager) {
+                        m_device_manager->on_machine_alive(json_str);
+                    }
+                    });
+            }
+        );
         m_agent->start_discovery(true, false);
         if (mainframe)
             mainframe->refresh_plugin_tips();
@@ -1420,16 +1446,70 @@ void GUI_App::init_networking_callbacks()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": enter, m_agent=%1%")%m_agent;
     if (m_agent) {
-        m_agent->set_on_ssdp_msg_fn(
-            [this](std::string json_str) {
-                GUI::wxGetApp().CallAfter([this, json_str] {
+        //set callbacks
+        m_agent->set_on_user_login_fn([this](int online_login, bool login) {
+            GUI::wxGetApp().request_user_login(online_login);
+            });
+
+        m_agent->set_on_server_connected_fn([this]() {
+            GUI::wxGetApp().CallAfter([this] {
+                if (m_is_closing) {
+                    return;
+                }
+                m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
+                });
+            });
+
+        m_agent->set_on_printer_connected_fn([this](std::string dev_id) {
+            GUI::wxGetApp().CallAfter([this, dev_id] {
+                if (m_is_closing) {
+                    return;
+                }
+                /* request_pushing */
+                MachineObject* obj = m_device_manager->get_user_machine(dev_id);
+                if (obj) {
+                    obj->command_request_push_all();
+                    obj->command_get_version();
+                }
+                });
+            });
+
+        m_agent->set_get_country_code_fn([this]() {
+            if (app_config)
+                return app_config->get_country_code();
+            return std::string();
+            }
+        );
+
+        m_agent->set_on_local_connect_fn(
+            [this](int state, std::string dev_id, std::string msg) {
+                CallAfter([this, state, dev_id, msg] {
                     if (m_is_closing) {
                         return;
                     }
-                    if (m_device_manager) {
-                        m_device_manager->on_machine_alive(json_str);
+                    /* request_pushing */
+                    MachineObject* obj = m_device_manager->get_my_machine(dev_id);
+                    if (obj) {
+                        if (obj->is_lan_mode_printer()) {
+                            if (state == ConnectStatus::ConnectStatusFailed) {
+                                obj->set_access_code("");
+                                wxString text = wxString::Format(_L("Connect %s[SN:%s] failed!"), from_u8(obj->dev_name), obj->dev_id);
+                                MessageDialog msg_dlg(nullptr, text, "", wxAPPLY | wxOK);
+                                if (msg_dlg.ShowModal() == wxOK) {
+                                    return;
+                                }
+                            }
+                            else {
+                                obj->command_request_push_all();
+                                obj->command_get_version();
+                            }
+                        }
                     }
-                });
+
+                    if (mainframe->m_debug_tool_dlg) {
+                        mainframe->m_debug_tool_dlg->on_local_connected(state, dev_id, msg);
+                    }
+                    });
             }
         );
 
@@ -1688,11 +1768,6 @@ bool GUI_App::on_init_inner()
 
     std::map<std::string, std::string> extra_headers = get_extra_header();
     Slic3r::Http::set_extra_headers(extra_headers);
-
-    //BBS start http log
-    if (m_agent) {
-        m_agent->init_log();
-    }
 
     // Verify resources path
     const wxString resources_dir = from_u8(Slic3r::resources_dir());
@@ -1977,6 +2052,19 @@ bool GUI_App::on_init_inner()
 
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
+        bool curr_studio_active = this->is_studio_active();
+        if (m_studio_active != curr_studio_active) {
+            if (curr_studio_active) {
+                BOOST_LOG_TRIVIAL(info) << "studio is active, start to subscribe";
+                m_agent->start_subscribe("app");
+            } else {
+                BOOST_LOG_TRIVIAL(info) << "studio is inactive, stop to subscribe";
+                m_agent->stop_subscribe("app");
+            }
+            m_studio_active = curr_studio_active;
+        }
+
+
         if (! plater_)
             return;
 
@@ -2054,76 +2142,15 @@ bool GUI_App::on_init_network()
         if (m_agent)
             m_agent->set_cert_file(resources_dir() + "/cert", "slicer_base64.cer");
 
+        //BBS start http log
+        if (m_agent) {
+            m_agent->init_log();
+        }
+
         init_http_extra_header();
 
         if (m_agent) {
-            //set callbacks
-            m_agent->set_on_user_login_fn([this](int online_login, bool login) {
-                GUI::wxGetApp().request_user_login(online_login);
-                });
-
-            m_agent->set_on_server_connected_fn([this]() {
-                GUI::wxGetApp().CallAfter([this] {
-                    if (m_is_closing) {
-                        return;
-                    }
-                    m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
-                    });
-                });
-
-            m_agent->set_on_printer_connected_fn([this](std::string dev_id) {
-                GUI::wxGetApp().CallAfter([this, dev_id] {
-                    if (m_is_closing) {
-                        return;
-                    }
-                    /* request_pushing */
-                    MachineObject* obj = m_device_manager->get_user_machine(dev_id);
-                    if (obj) {
-                        obj->command_request_push_all();
-                        obj->command_get_version();
-                    }
-                    });
-                });
-
-            m_agent->set_get_country_code_fn([this]() {
-                if (app_config)
-                    return app_config->get_country_code();
-                return std::string();
-                }
-            );
-
-            m_agent->set_on_local_connect_fn(
-                [this](int state, std::string dev_id, std::string msg) {
-                    CallAfter([this, state, dev_id, msg] {
-                        if (m_is_closing) {
-                            return;
-                        }
-                        /* request_pushing */
-                        MachineObject* obj = m_device_manager->get_my_machine(dev_id);
-                        if (obj) {
-                            if (obj->is_lan_mode_printer()) {
-                                if (state == ConnectStatus::ConnectStatusFailed) {
-                                    obj->set_access_code("");
-                                    wxString text = wxString::Format(_L("Connect %s[SN:%s] failed!"), from_u8(obj->dev_name), obj->dev_id);
-                                    MessageDialog msg_dlg(nullptr, text, "", wxAPPLY | wxOK);
-                                    if (msg_dlg.ShowModal() == wxOK) {
-                                        return;
-                                    }
-                                }
-                                else {
-                                    obj->command_request_push_all();
-                                    obj->command_get_version();
-                                }
-                            }
-                        }
-
-                        if (mainframe->m_debug_tool_dlg) {
-                            mainframe->m_debug_tool_dlg->on_local_connected(state, dev_id, msg);
-                        }
-                    });
-                }
-            );
-
+            init_networking_callbacks();
             std::string country_code = app_config->get_country_code();
             m_agent->set_country_code(country_code);
             m_agent->start();
@@ -3023,6 +3050,21 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
     GUI::wxGetApp().preset_bundle->update_user_presets_directory(user_id);
     if (online_login)
         GUI::wxGetApp().mainframe->show_sync_dialog();
+}
+
+bool GUI_App::is_studio_active()
+{
+    auto curr_time = std::chrono::system_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_active_point);
+    if (diff.count() < STUDIO_INACTIVE_TIMEOUT) {
+        return true;
+    }
+    return false;
+}
+
+void GUI_App::reset_to_active()
+{
+    last_active_point = std::chrono::system_clock::now();
 }
 
 void GUI_App::check_update(bool show_tips)
