@@ -707,21 +707,14 @@ void AuxiliaryPanel::init_tabpanel()
     m_tabpanel->SetBackgroundColour(*wxWHITE);
     m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent &e) { ; });
 
-#if !BBL_RELEASE_TO_PUBLIC
     m_designer_panel = new DesignerPanel(m_tabpanel, AuxiliaryFolderType::DESIGNER);
-#endif
-
     m_pictures_panel          = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::MODEL_PICTURE);
     m_bill_of_materials_panel = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::BILL_OF_MATERIALS);
     m_assembly_panel          = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::ASSEMBLY_GUIDE);
     m_others_panel            = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::OTHERS);
 
-#if !BBL_RELEASE_TO_PUBLIC
     m_tabpanel->AddPage(m_designer_panel, _L("Basic Info"), "", true);
     m_tabpanel->AddPage(m_pictures_panel, _L("Pictures"), "", false);
-#else
-    m_tabpanel->AddPage(m_pictures_panel, _L("Pictures"), "", true);
-#endif
     m_tabpanel->AddPage(m_bill_of_materials_panel, _L("Bill of Materials"), "", false);
     m_tabpanel->AddPage(m_assembly_panel, _L("Assembly Guide"), "", false);
     m_tabpanel->AddPage(m_others_panel, _L("Others"), "", false);
@@ -743,9 +736,7 @@ void AuxiliaryPanel::msw_rescale() {
     m_bill_of_materials_panel->msw_rescale();
     m_assembly_panel->msw_rescale();
     m_others_panel->msw_rescale();
-#if !BBL_RELEASE_TO_PUBLIC
     m_designer_panel->msw_rescale();
-#endif
 }
 
 void AuxiliaryPanel::on_size(wxSizeEvent &event)
@@ -897,9 +888,7 @@ void AuxiliaryPanel::Reload(wxString aux_path)
             fs::create_directory(folder_path.ToStdWstring());
         }
         update_all_panel();
-        #if !BBL_RELEASE_TO_PUBLIC
         m_designer_panel->update_info();
-        #endif
         return;
     }
 
@@ -947,9 +936,7 @@ void AuxiliaryPanel::Reload(wxString aux_path)
 
     update_all_panel();
     update_all_cover();
-    #if !BBL_RELEASE_TO_PUBLIC
     m_designer_panel->update_info();
-    #endif
 }
 
 void AuxiliaryPanel::update_all_panel()
