@@ -15,7 +15,7 @@
 
 #define DISCONNECT_TIMEOUT      30000.f     // milliseconds
 #define PUSHINFO_TIMEOUT        15000.f     // milliseconds
-#define REQUEST_PUSH_MIN_TIME    3000.f     // milliseconds
+#define REQUEST_PUSH_MIN_TIME   15000.f     // milliseconds
 
 #define FILAMENT_MAX_TEMP       300
 #define FILAMENT_DEF_TEMP       220
