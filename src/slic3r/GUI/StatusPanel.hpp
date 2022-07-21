@@ -45,6 +45,22 @@ enum MonitorStatus {
     MONITOR_CONNECTING          = 1 << 5,
 };
 
+enum CameraRecordingStatus {
+    RECORDING_NONE,
+    RECORDING_OFF_NORMAL,
+    RECORDING_OFF_HOVER,
+    RECORDING_ON_NORMAL,
+    RECORDING_ON_HOVER,
+};
+
+enum CameraTimelapseStatus {
+    TIMELAPSE_NONE,
+    TIMELAPSE_OFF_NORMAL,
+    TIMELAPSE_OFF_HOVER,
+    TIMELAPSE_ON_NORMAL,
+    TIMELAPSE_ON_HOVER,
+};
+
 class StatusBasePanel : public wxScrolledWindow
 {
 protected:
@@ -63,11 +79,14 @@ protected:
     wxBitmap m_bitmap_fan_off;
     wxBitmap m_bitmap_extruder;
 
+    CameraRecordingStatus m_state_recording{CameraRecordingStatus::RECORDING_NONE};
+    CameraTimelapseStatus m_state_timelapse{CameraTimelapseStatus::TIMELAPSE_NONE};
+
+
+    CameraItem *m_timelapse_button;
+    CameraItem *m_recording_button;
+
     wxBitmap m_bitmap_camera;
-    wxBitmap m_bitmap_timelapse_on;
-    wxBitmap m_bitmap_timelapse_off;
-    wxBitmap m_bitmap_recording_on;
-    wxBitmap m_bitmap_recording_off;
     wxBitmap m_bitmap_sdcard_state;
 
     /* title panel */
@@ -81,10 +100,7 @@ protected:
     SwitchButton *  m_bmToggleBtn_timelapse;
 
     wxStaticBitmap *m_bitmap_camera_img;
-    wxStaticBitmap *m_bitmap_timelapse_off_img;
-    wxStaticBitmap *m_bitmap_timelapse_on_img;
-    wxStaticBitmap *m_bitmap_recording_off_img;
-    wxStaticBitmap *m_bitmap_recording_on_img;
+    wxStaticBitmap *m_bitmap_recording_img;
     wxStaticBitmap *m_bitmap_sdcard_img;
 
 
@@ -275,7 +291,8 @@ protected:
     void on_nozzle_fan_switch(wxCommandEvent &event);
     void on_thumbnail_enter(wxMouseEvent &event);
     void on_thumbnail_leave(wxMouseEvent &event);
-    void on_camera_enter(wxMouseEvent& event);
+    void on_switch_recording(wxMouseEvent &event);
+    void on_camera_enter(wxMouseEvent &event);
     void on_camera_leave(wxMouseEvent& event);
     void on_auto_leveling(wxCommandEvent &event);
     void on_xyz_abs(wxCommandEvent &event);
@@ -330,8 +347,6 @@ public:
 
     void msw_rescale();
 };
-
-
 }
 }
 #endif
