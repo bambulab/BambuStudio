@@ -1057,6 +1057,11 @@ void GUI_App::post_init()
         m_agent->start_discovery(true, false);
     }
 
+    //update the plugin tips
+    CallAfter([this] {
+            mainframe->refresh_plugin_tips();
+        });
+
     BOOST_LOG_TRIVIAL(info) << "finished post_init";
 //BBS: remove the single instance currently
 /*#ifdef _WIN32
@@ -1111,7 +1116,10 @@ std::string GUI_App::get_http_url(std::string country_code)
 std::string GUI_App::get_plugin_url(std::string country_code)
 {
     std::string url = get_http_url(country_code);
-    url += (boost::format("?slicer/plugins/cloud=%1%") % SLIC3R_VERSION).str();
+
+    std::string curr_version = SLIC3R_VERSION;
+    std::string using_version = curr_version.substr(0, 9) + "00";
+    url += (boost::format("?slicer/plugins/cloud=%1%") % using_version).str();
     //url += (boost::format("?slicer/plugins/cloud=%1%") % "01.01.00.00").str();
     return url;
 }
@@ -1338,6 +1346,7 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn)
 
 void GUI_App::restart_networking()
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format("enter, mainframe %1%")%mainframe;
     on_init_network();
     if(m_agent) {
         init_networking_callbacks();
@@ -1345,6 +1354,7 @@ void GUI_App::restart_networking()
         if (mainframe)
             mainframe->refresh_plugin_tips();
     }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format("exit, m_agent=%1%")%m_agent;
 }
 
 int GUI_App::updating_bambu_networking()
@@ -1396,12 +1406,14 @@ bool GUI_App::check_networking_version()
 
 bool GUI_App::is_compatibility_version()
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": m_networking_compatible=%1%")%m_networking_compatible;
     return m_networking_compatible;
 }
 
 void GUI_App::cancel_networking_install()
 {
     m_networking_cancel_update = true;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": plugin install cancelled!");
 }
 
 void GUI_App::init_networking_callbacks()

@@ -430,6 +430,8 @@ void WebViewPanel::ShowNetpluginTip()
     int nShow = 0;
     if (!bValid) nShow = 1;
 
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": bValid=%1%, nShow=%2%")%bValid %nShow;
+
     json m_Res           = json::object();
     m_Res["command"]     = "network_plugin_installtip";
     m_Res["sequence_id"] = "10001";
@@ -505,9 +507,6 @@ void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
             wxLogMessage("%s", "Document loaded; url='" + evt.GetURL() + "'");
     }
     UpdateState();
-
-    //network plugin
-    ShowNetpluginTip();
 }
 
 void WebViewPanel::OnTitleChanged(wxWebViewEvent &evt)
