@@ -120,12 +120,12 @@ int NetworkAgent::initialize_network_module()
     memset(lib_wstr, 0, sizeof(lib_wstr));
     ::MultiByteToWideChar(CP_UTF8, NULL, library.c_str(), strlen(library.c_str())+1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
     netwoking_module = LoadLibrary(lib_wstr);
-    if (!netwoking_module) {
+    /*if (!netwoking_module) {
         library = std::string(BAMBU_NETWORK_LIBRARY) + ".dll";
         memset(lib_wstr, 0, sizeof(lib_wstr));
         ::MultiByteToWideChar(CP_UTF8, NULL, library.c_str(), strlen(library.c_str()) + 1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
         netwoking_module = LoadLibrary(lib_wstr);
-    }
+    }*/
 #else
     #if defined(__WXMAC__)
     library = plugin_folder.string() + "/" + std::string("lib") + std::string(BAMBU_NETWORK_LIBRARY) + ".dylib";
@@ -134,14 +134,14 @@ int NetworkAgent::initialize_network_module()
     #endif
     printf("loading network module at %s\n", library.c_str());
     netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
-    if (!netwoking_module) {
+    /*if (!netwoking_module) {
         #if defined(__WXMAC__)
         library = std::string("lib") + BAMBU_NETWORK_LIBRARY + ".dylib";
         #else
         library = std::string("lib") + BAMBU_NETWORK_LIBRARY + ".so";
         #endif
         netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
-    }
+    }*/
     printf("after dlopen, network_module is %p\n", netwoking_module);
 #endif
 
@@ -325,12 +325,12 @@ void* NetworkAgent::get_bambu_source_entry()
     memset(lib_wstr, 0, sizeof(lib_wstr));
     ::MultiByteToWideChar(CP_UTF8, NULL, library.c_str(), strlen(library.c_str())+1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
     source_module = LoadLibrary(lib_wstr);
-    if (!source_module) {
+    /*if (!source_module) {
         library = std::string(BAMBU_SOURCE_LIBRARY) + ".dll";
         memset(lib_wstr, 0, sizeof(lib_wstr));
         ::MultiByteToWideChar(CP_UTF8, NULL, library.c_str(), strlen(library.c_str()) + 1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
         source_module = LoadLibrary(lib_wstr);
-    }
+    }*/
 #else
 #if defined(__WXMAC__)
     library = plugin_folder.string() + "/" + std::string("lib") + std::string(BAMBU_SOURCE_LIBRARY) + ".dylib";
@@ -338,14 +338,14 @@ void* NetworkAgent::get_bambu_source_entry()
     library = plugin_folder.string() + "/" + std::string("lib") + std::string(BAMBU_SOURCE_LIBRARY) + ".so";
 #endif
     source_module = dlopen( library.c_str(), RTLD_LAZY);
-    if (!source_module) {
+    /*if (!source_module) {
 #if defined(__WXMAC__)
         library = std::string("lib") + BAMBU_SOURCE_LIBRARY + ".dylib";
 #else
         library = std::string("lib") + BAMBU_SOURCE_LIBRARY + ".so";
 #endif
         source_module = dlopen( library.c_str(), RTLD_LAZY);
-    }
+    }*/
 #endif
 
     return source_module;
