@@ -341,6 +341,7 @@ public:
     };
 
     int  avg_node_per_layer = 0;
+    float nodes_angle       = 0;
     bool            has_sharp_tail;
 private:
     /*!

@@ -661,6 +661,8 @@ void TreeSupport::detect_object_overhangs()
 
     // Create Tree Support Layers
     m_object->clear_tree_support_layers();
+    m_object->clear_tree_support_preview_cache();
+
     create_tree_support_layers();
     m_ts_data = m_object->alloc_tree_support_preview_cache();
 
@@ -1828,16 +1830,15 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
     // Use square support if there are too many nodes per layer because circle support needs much longer time to compute
     // Hower circle support can be printed faster, so we prefer circle for fewer nodes case.
-    const bool SQUARE_SUPPORT = avg_node_per_layer > 100;    
+    const bool SQUARE_SUPPORT = avg_node_per_layer > 200;    
     const int  CIRCLE_RESOLUTION = SQUARE_SUPPORT ? 4 : 100; // The number of vertices in each circle.
 
-    BOOST_LOG_TRIVIAL(info) << "avg_node_per_layer=" << avg_node_per_layer << ", SQUARE_SUPPORT=" << SQUARE_SUPPORT;
 
     for (unsigned int i = 0; i < CIRCLE_RESOLUTION; i++)
     {
         double angle;
         if (SQUARE_SUPPORT)
-            angle = (double) i / CIRCLE_RESOLUTION * TAU + PI / 4.0;
+            angle = (double) i / CIRCLE_RESOLUTION * TAU + PI / 4.0 + nodes_angle;
         else
             angle = (double) i / CIRCLE_RESOLUTION * TAU;
         branch_circle.append(Point(cos(angle) * branch_radius_scaled, sin(angle) * branch_radius_scaled));
@@ -1854,7 +1855,6 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     }
 
     // generate areas
-    const coordf_t circle_side_length = 2 * branch_radius * sin(M_PI / CIRCLE_RESOLUTION); //Side length of a regular polygon.
     const coordf_t layer_height = config.layer_height.value;
     const size_t   top_interface_layers = config.support_interface_top_layers.value;
     const size_t   bottom_interface_layers = config.support_interface_bottom_layers.value;
@@ -2293,6 +2293,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                 next_node->distance_to_top++;
                 next_node->support_roof_layers_below--;
                 next_node->print_z -= m_object->get_layer(layer_nr)->height;
+                next_node->to_buildplate = !is_inside_ex(m_ts_data->m_layer_outlines[layer_nr], next_node->position);
                 contact_nodes[layer_nr - 1].emplace_back(next_node);
             }
         }
@@ -2326,10 +2327,6 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
         for (Node* p_node : layer_contact_nodes)
         {
             const Node& node = *p_node;
-            if (node.type == ePolygon) {
-                // polygon node do not merge or move
-                continue;
-            }
 
             if (support_on_buildplate_only && !node.to_buildplate) //Can't rest on model and unable to reach the build plate. Then we must drop the node and leave parts unsupported.
             {
@@ -2339,6 +2336,10 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
             if (node.to_buildplate || parts.empty()) //It's outside, so make it go towards the build plate.
             {
                 nodes_per_part[0][node.position] = p_node;
+                continue;
+            }
+            if (node.type == ePolygon) {
+                // polygon node do not merge or move
                 continue;
             }
             /* Find which part this node is located in and group the nodes in
@@ -2887,7 +2888,26 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
             contact_nodes[layer_nr], {}, "init_contact_points", { "overhang","outlines","" });
 #endif
     }
-    if (nonempty_layers != 0) avg_node_per_layer = all_nodes.size() / nonempty_layers;
+    int nNodes = all_nodes.size();
+    avg_node_per_layer = nodes_angle = 0;
+    if (nNodes > 0) {
+        avg_node_per_layer = nNodes / nonempty_layers;
+        // get orientation of nodes by line fitting
+        // line: y=kx+b, where
+        //       k=tan(nodes_angle)=(n\sum{xy}-\sum{x}\sum{y})/(n\sum{x^2}-\sum{x}^2)
+        float mx = 0, my = 0, mxy = 0, mx2 = 0;
+        for (auto &pt : all_nodes) {
+            float x = unscale_(pt(0));
+            float y = unscale_(pt(1));
+            mx += x;
+            my += y;
+            mxy += x * y;
+            mx2 += x * x;
+        }
+        nodes_angle = atan2(nNodes * mxy - mx * my, nNodes * mx2 - SQ(mx));
+        
+        BOOST_LOG_TRIVIAL(info) << "avg_node_per_layer=" << avg_node_per_layer << ", nodes_angle=" << nodes_angle;
+    }
 }
 
 void TreeSupport::insert_dropped_node(std::vector<Node*>& nodes_layer, Node* p_node)

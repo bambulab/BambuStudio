@@ -165,7 +165,6 @@ class ConstSupportLayerPtrsAdaptor : public ConstVectorOfPtrsAdaptor<SupportLaye
 
 // BBS
 typedef std::vector<TreeSupportLayer*>        TreeSupportLayerPtrs;
-typedef std::vector<const TreeSupportLayer*>  ConstTreeSupportLayerPtrs;
 class ConstTreeSupportLayerPtrsAdaptor : public ConstVectorOfPtrsAdaptor<TreeSupportLayer> {
     friend PrintObject;
     ConstTreeSupportLayerPtrsAdaptor(const TreeSupportLayerPtrs* data) : ConstVectorOfPtrsAdaptor<TreeSupportLayer>(data) {}
@@ -359,6 +358,7 @@ public:
     void  clear_tree_support_layers();
     size_t tree_support_layer_count() const { return m_tree_support_layers.size(); }
     std::shared_ptr<TreeSupportData> alloc_tree_support_preview_cache();
+    void clear_tree_support_preview_cache() { m_tree_support_preview_cache.reset(); }
 
     size_t          support_layer_count() const { return m_support_layers.size(); }
     void            clear_support_layers();

@@ -566,7 +566,7 @@ void PrintObject::clear_tree_support_layers()
 
 std::shared_ptr<TreeSupportData> PrintObject::alloc_tree_support_preview_cache()
 {
-    if (m_tree_support_preview_cache == nullptr) {
+    if (!m_tree_support_preview_cache) {
         const coordf_t layer_height = m_config.layer_height.value;
         const coordf_t xy_distance = m_config.support_object_xy_distance.value;
         const double angle = m_config.tree_support_branch_angle.value * M_PI / 180.;
@@ -2376,18 +2376,18 @@ void PrintObject::remove_bridges_from_contacts(
                         int      x1 = bbox.max.x();
                         int      y0 = bbox.min.y();
                         int      y1 = bbox.max.y();         
-                        const int grid_lw = int(w); // grid line width
+                        const int grid_lw = int(w/2); // grid line width
                         
 #if 1
                         if (fabs(surface.bridge_angle-0)<fabs(surface.bridge_angle-M_PI_2)) {
-                            int step = bbox_size(0) / round(bbox_size(0) / max_bridge_length);
+                            int step = bbox_size(0) / ceil(bbox_size(0) / max_bridge_length);
                             for (int x = x0 + step; x < x1; x += step) {
                                 Polygon poly;
                                 poly.points = {Point(x - grid_lw, y0), Point(x + grid_lw, y0), Point(x + grid_lw, y1), Point(x - grid_lw, y1)};
                                 holes.emplace_back(poly);
                             }
                         } else {
-                            int step = bbox_size(1) / round(bbox_size(1) / max_bridge_length);
+                            int step = bbox_size(1) / ceil(bbox_size(1) / max_bridge_length);
                             for (int y = y0 + step; y < y1; y += step) {
                                 Polygon poly;
                                 poly.points = {Point(x0, y - grid_lw), Point(x0, y + grid_lw), Point(x1, y + grid_lw), Point(x1, y - grid_lw)};
@@ -2395,8 +2395,8 @@ void PrintObject::remove_bridges_from_contacts(
                             }
                         }
 #else
-                        int stepx = bbox_size(0) / round(bbox_size(0) / max_bridge_length);
-                        int stepy  = bbox_size(1) / round(bbox_size(1) / max_bridge_length);
+                        int stepx = bbox_size(0) / ceil(bbox_size(0) / max_bridge_length);
+                        int stepy  = bbox_size(1) / ceil(bbox_size(1) / max_bridge_length);
                         for (int x = x0 + stepx; x < x1; x += stepx)
                             for (int y = y0 + stepy; y < y1; y += stepy) {
                                 Polygon poly;
