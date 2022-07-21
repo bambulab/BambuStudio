@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-20 16:37+0800\n"
-"PO-Revision-Date: 2022-07-20 16:21+0800\n"
+"POT-Creation-Date: 2022-07-21 12:04+0800\n"
+"PO-Revision-Date: 2022-07-21 12:22+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.1\n"
+"X-Generator: Poedit 3.0.1\n"
 
 msgid "Supports Painting"
 msgstr "支撑绘制"
@@ -423,6 +423,16 @@ msgstr "严重错误"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "Bambu Studio捕捉到一个未处理的异常：%1%"
 
+msgid "Downloading Bambu Network plug-in"
+msgstr "正在下载Bambu网络插件"
+
+msgid "Updating Bambu Network plug-in"
+msgstr "正在更新Bambu网络插件"
+
+#, c-format, boost-format
+msgid "Connect %s[SN:%s] failed!"
+msgstr "连接 %s[SN:%s]失败."
+
 msgid ""
 "BambuStudio configuration file may be corrupted and is not abled to be "
 "parsed.Please delete the file and try again."
@@ -447,10 +457,6 @@ msgstr "在默认浏览器中点击下载最新版本: %s"
 
 msgid "The Bambu Studio needs an upgrade"
 msgstr "Bambu Studio需要进行升级"
-
-#, c-format, boost-format
-msgid "Connect %s[SN:%s] failed!"
-msgstr "连接 %s[SN:%s]失败."
 
 msgid "Loading user presets..."
 msgstr "正在加载用户预设..."
@@ -1210,8 +1216,8 @@ msgid ""
 "Bambu Studio is based on PrusaSlicer by PrusaResearch and SuperSlicer by "
 "Merill(supermerill)."
 msgstr ""
-"Bambu Studio是以PrusaResearch的PrusaSlicer和Merill的SuperSlicer"
-"（supermerill）为基础的。"
+"Bambu Studio是以PrusaResearch的PrusaSlicer和Merill的"
+"SuperSlicer（supermerill）为基础的。"
 
 msgid "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
 msgstr "MerillPrusasicle最初是以Alessandro Ranellucci为基础的Slic3r。"
@@ -1528,6 +1534,8 @@ msgid ""
 "by right-click the empty position of build plate and choose \"Add Primitive"
 "\"->\"Timelapse Wipe Tower\".\n"
 msgstr ""
+"在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
+"右键单击构建板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。\n"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -1972,11 +1980,12 @@ msgid "Only the object being edit is visible."
 msgstr "只有正在编辑的对象是可见的。"
 
 msgid ""
-"An object is layed over the boundary of plate.\n"
-"Please solve the problem by moving it totally inside or outside plate."
+"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"Please solve the problem by moving it totally on or off the plate, and "
+"confirming that the height is within the build volume."
 msgstr ""
-"检测到有对象放置在盘的边界。\n"
-"请把它整体移动到盘内或盘外以解决此问题。"
+"对象被放置在构建板的边界上或超过高度限制。\n"
+"请通过将其完全移动到构建板内或构建板外，并确认高度在构建空间以内来解决问题。"
 
 msgid "Calibration"
 msgstr "校准"
@@ -2256,24 +2265,6 @@ msgstr "取消所有选中"
 
 msgid "Deselects all objects"
 msgstr "取消所有选中"
-
-msgid "Show Model Mesh(TODO)"
-msgstr "显示模型网格"
-
-msgid "Display triangles of models"
-msgstr "显示模型面片"
-
-msgid "Show Model Shadow(TODO)"
-msgstr "显示模型阴影"
-
-msgid "Display shadow of objects"
-msgstr "显示对象阴影"
-
-msgid "Show Printable Box(TODO)"
-msgstr "显示打印区边界"
-
-msgid "Display printable box"
-msgstr "显示打印区边界"
 
 msgid "Use Perspective View"
 msgstr "使用透视视角"
@@ -2669,7 +2660,7 @@ msgid "Advance"
 msgstr "高级"
 
 msgid "Compare presets"
-msgstr "配置集比较"
+msgstr "比较预设"
 
 msgid "View all object's settings"
 msgstr "查看所有对象的配置"
@@ -4669,13 +4660,15 @@ msgid "Thick bridges"
 msgstr "厚桥"
 
 msgid "Layers and Perimeters"
-msgstr ""
+msgstr "层和墙"
 
 msgid ""
 "If enabled, bridges are more reliable, can bridge longer distances, but may "
 "look worse. If disabled, bridges look better but are reliable just for "
 "shorter bridged distances."
 msgstr ""
+"如果启用，桥接会更可靠，可以桥接更长的距离，但可能看起来更糟。如果关闭，桥梁"
+"看起来更好，但只适用于较短的桥接距离。"
 
 msgid "Max bridge length"
 msgstr "最大桥接长度"
@@ -5525,7 +5518,7 @@ msgstr ""
 "印。最后生成的打印件没有接缝。"
 
 msgid "Timelapse without toolhead"
-msgstr "无挤出头延时摄影"
+msgstr "无工具头延时摄影"
 
 msgid ""
 "Record timelapse video of printing without showing toolhead. In this mode "
@@ -5533,6 +5526,8 @@ msgid ""
 "snapshot is taken with the chamber camera. When printing finishes a "
 "timelapse video is composed of all the snapshots."
 msgstr ""
+"录制打印的延时摄影视频，但不显示工具头。在该模式下，工具头会在换层时停靠在吐"
+"料槽附近，然后用内置相机拍摄快照。打印完成后，把所有快照组成延时摄影视频。"
 
 msgid "Temperature variation"
 msgstr "软化温度"
@@ -6062,6 +6057,31 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid ""
+#~ "An object is layed over the boundary of plate.\n"
+#~ "Please solve the problem by moving it totally inside or outside plate."
+#~ msgstr ""
+#~ "检测到有对象放置在盘的边界。\n"
+#~ "请把它整体移动到盘内或盘外以解决此问题。"
+
+#~ msgid "Show Model Mesh(TODO)"
+#~ msgstr "显示模型网格"
+
+#~ msgid "Display triangles of models"
+#~ msgstr "显示模型面片"
+
+#~ msgid "Show Model Shadow(TODO)"
+#~ msgstr "显示模型阴影"
+
+#~ msgid "Display shadow of objects"
+#~ msgstr "显示对象阴影"
+
+#~ msgid "Show Printable Box(TODO)"
+#~ msgstr "显示打印区边界"
+
+#~ msgid "Display printable box"
+#~ msgstr "显示打印区边界"
 
 #~ msgid ""
 #~ "Do you want to synchronize your personal data from Bambu Cloud? \n"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-20 16:37+0800\n"
+"POT-Creation-Date: 2022-07-21 12:04+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -427,6 +427,16 @@ msgstr "Kritiskt fel"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "Bambu Studio har ett ohanterat undantag: %1%"
 
+msgid "Downloading Bambu Network plug-in"
+msgstr ""
+
+msgid "Updating Bambu Network plug-in"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Connect %s[SN:%s] failed!"
+msgstr ""
+
 msgid ""
 "BambuStudio configuration file may be corrupted and is not abled to be "
 "parsed.Please delete the file and try again."
@@ -454,10 +464,6 @@ msgstr "Tryck på ladda ner ny version ifrån standard webbläsaren: %s"
 
 msgid "The Bambu Studio needs an upgrade"
 msgstr "Bambu Studio behöver uppdateras"
-
-#, c-format, boost-format
-msgid "Connect %s[SN:%s] failed!"
-msgstr ""
 
 msgid "Loading user presets..."
 msgstr "Laddar användar inställningarna..."
@@ -2009,11 +2015,10 @@ msgid "Only the object being edit is visible."
 msgstr "Bara objektet som editeras är synligt."
 
 msgid ""
-"An object is layed over the boundary of plate.\n"
-"Please solve the problem by moving it totally inside or outside plate."
+"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"Please solve the problem by moving it totally on or off the plate, and "
+"confirming that the height is within the build volume."
 msgstr ""
-"Ett objekt är placerad över byggplattans begränsningar.\n"
-"Flytta objektet så det är helt inom eller utom byggplattans begränsningar."
 
 msgid "Calibration"
 msgstr "Kalibrering"
@@ -2289,24 +2294,6 @@ msgstr "Avmarkera allt"
 
 msgid "Deselects all objects"
 msgstr "Avmarkera alla objekt"
-
-msgid "Show Model Mesh(TODO)"
-msgstr "Visa Modell Mesh(TODO)"
-
-msgid "Display triangles of models"
-msgstr "Visa trianglar från modellerna"
-
-msgid "Show Model Shadow(TODO)"
-msgstr "Visa Modell Skuggor(TODO)"
-
-msgid "Display shadow of objects"
-msgstr "Visa skuggor från objektet"
-
-msgid "Show Printable Box(TODO)"
-msgstr "Visa Utskriftbar Box(TODO)"
-
-msgid "Display printable box"
-msgstr "Visa utskriftbar box"
 
 msgid "Use Perspective View"
 msgstr "Använd Perspektiv Vy"
@@ -5861,8 +5848,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
-"(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för "
+"lösligt(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"
@@ -6278,6 +6265,31 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid ""
+#~ "An object is layed over the boundary of plate.\n"
+#~ "Please solve the problem by moving it totally inside or outside plate."
+#~ msgstr ""
+#~ "Ett objekt är placerad över byggplattans begränsningar.\n"
+#~ "Flytta objektet så det är helt inom eller utom byggplattans begränsningar."
+
+#~ msgid "Show Model Mesh(TODO)"
+#~ msgstr "Visa Modell Mesh(TODO)"
+
+#~ msgid "Display triangles of models"
+#~ msgstr "Visa trianglar från modellerna"
+
+#~ msgid "Show Model Shadow(TODO)"
+#~ msgstr "Visa Modell Skuggor(TODO)"
+
+#~ msgid "Display shadow of objects"
+#~ msgstr "Visa skuggor från objektet"
+
+#~ msgid "Show Printable Box(TODO)"
+#~ msgstr "Visa Utskriftbar Box(TODO)"
+
+#~ msgid "Display printable box"
+#~ msgstr "Visa utskriftbar box"
 
 #~ msgid "New version of Bambu Studio"
 #~ msgstr "Ny version av Bambu Studio"

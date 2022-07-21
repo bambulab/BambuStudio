@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-20 16:37+0800\n"
+"POT-Creation-Date: 2022-07-21 12:04+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -419,6 +419,16 @@ msgstr ""
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr ""
 
+msgid "Downloading Bambu Network plug-in"
+msgstr ""
+
+msgid "Updating Bambu Network plug-in"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Connect %s[SN:%s] failed!"
+msgstr ""
+
 msgid ""
 "BambuStudio configuration file may be corrupted and is not abled to be "
 "parsed.Please delete the file and try again."
@@ -441,10 +451,6 @@ msgid "Click to download new version in default browser: %s"
 msgstr ""
 
 msgid "The Bambu Studio needs an upgrade"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Connect %s[SN:%s] failed!"
 msgstr ""
 
 msgid "Loading user presets..."
@@ -1905,8 +1911,9 @@ msgid "Only the object being edit is visible."
 msgstr ""
 
 msgid ""
-"An object is layed over the boundary of plate.\n"
-"Please solve the problem by moving it totally inside or outside plate."
+"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"Please solve the problem by moving it totally on or off the plate, and "
+"confirming that the height is within the build volume."
 msgstr ""
 
 msgid "Calibration"
@@ -2182,24 +2189,6 @@ msgid "Deselect all"
 msgstr ""
 
 msgid "Deselects all objects"
-msgstr ""
-
-msgid "Show Model Mesh(TODO)"
-msgstr ""
-
-msgid "Display triangles of models"
-msgstr ""
-
-msgid "Show Model Shadow(TODO)"
-msgstr ""
-
-msgid "Display shadow of objects"
-msgstr ""
-
-msgid "Show Printable Box(TODO)"
-msgstr ""
-
-msgid "Display printable box"
 msgstr ""
 
 msgid "Use Perspective View"

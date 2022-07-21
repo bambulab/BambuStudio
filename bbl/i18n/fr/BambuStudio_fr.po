@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-20 16:37+0800\n"
+"POT-Creation-Date: 2022-07-21 12:04+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -435,6 +435,16 @@ msgstr "Erreur critique"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "BambuStudio a reçu une exception non gérée : %1%"
 
+msgid "Downloading Bambu Network plug-in"
+msgstr ""
+
+msgid "Updating Bambu Network plug-in"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Connect %s[SN:%s] failed!"
+msgstr ""
+
 msgid ""
 "BambuStudio configuration file may be corrupted and is not abled to be "
 "parsed.Please delete the file and try again."
@@ -462,10 +472,6 @@ msgstr ""
 
 msgid "The Bambu Studio needs an upgrade"
 msgstr "Le Bambu Studio a besoin d'une mise à niveau"
-
-#, c-format, boost-format
-msgid "Connect %s[SN:%s] failed!"
-msgstr ""
 
 msgid "Loading user presets..."
 msgstr "Chargement des préréglages utilisateur..."
@@ -2012,11 +2018,10 @@ msgid "Only the object being edit is visible."
 msgstr "Seul l'objet en cours d'édition est visible."
 
 msgid ""
-"An object is layed over the boundary of plate.\n"
-"Please solve the problem by moving it totally inside or outside plate."
+"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"Please solve the problem by moving it totally on or off the plate, and "
+"confirming that the height is within the build volume."
 msgstr ""
-"Un objet est posé sur la limite de la plaque. Veuillez résoudre le problème "
-"en le déplaçant totalement à l'intérieur ou à l'extérieur de la plaque."
 
 msgid "Calibration"
 msgstr "Étalonnage"
@@ -2293,24 +2298,6 @@ msgstr "Tout déselectionner"
 
 msgid "Deselects all objects"
 msgstr "Désélectionne tous les objets"
-
-msgid "Show Model Mesh(TODO)"
-msgstr "Afficher le maillage du modèle (TODO)"
-
-msgid "Display triangles of models"
-msgstr "Afficher les triangles des modèles"
-
-msgid "Show Model Shadow(TODO)"
-msgstr "Afficher l'ombre du modèle (TODO)"
-
-msgid "Display shadow of objects"
-msgstr "Afficher l'ombre des objets"
-
-msgid "Show Printable Box(TODO)"
-msgstr "Afficher la boîte imprimable (TODO)"
-
-msgid "Display printable box"
-msgstr "Afficher la boîte imprimable"
 
 msgid "Use Perspective View"
 msgstr "Utiliser la vue en perspective"
@@ -6392,6 +6379,32 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid ""
+#~ "An object is layed over the boundary of plate.\n"
+#~ "Please solve the problem by moving it totally inside or outside plate."
+#~ msgstr ""
+#~ "Un objet est posé sur la limite de la plaque. Veuillez résoudre le "
+#~ "problème en le déplaçant totalement à l'intérieur ou à l'extérieur de la "
+#~ "plaque."
+
+#~ msgid "Show Model Mesh(TODO)"
+#~ msgstr "Afficher le maillage du modèle (TODO)"
+
+#~ msgid "Display triangles of models"
+#~ msgstr "Afficher les triangles des modèles"
+
+#~ msgid "Show Model Shadow(TODO)"
+#~ msgstr "Afficher l'ombre du modèle (TODO)"
+
+#~ msgid "Display shadow of objects"
+#~ msgstr "Afficher l'ombre des objets"
+
+#~ msgid "Show Printable Box(TODO)"
+#~ msgstr "Afficher la boîte imprimable (TODO)"
+
+#~ msgid "Display printable box"
+#~ msgstr "Afficher la boîte imprimable"
 
 #~ msgid "New version of Bambu Studio"
 #~ msgstr "Nouvelle version de Bambu Studio"

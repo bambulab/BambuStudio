@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-20 16:37+0800\n"
+"POT-Creation-Date: 2022-07-21 12:04+0800\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -424,6 +424,16 @@ msgstr "Kritische fout"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "Er is een onbekende uitzondering opgetreden in BambuStudio : %1%"
 
+msgid "Downloading Bambu Network plug-in"
+msgstr ""
+
+msgid "Updating Bambu Network plug-in"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Connect %s[SN:%s] failed!"
+msgstr ""
+
 msgid ""
 "BambuStudio configuration file may be corrupted and is not abled to be "
 "parsed.Please delete the file and try again."
@@ -452,10 +462,6 @@ msgstr ""
 
 msgid "The Bambu Studio needs an upgrade"
 msgstr "Bambu Studio heeft een upgrade nodig"
-
-#, c-format, boost-format
-msgid "Connect %s[SN:%s] failed!"
-msgstr ""
 
 msgid "Loading user presets..."
 msgstr "Gebruikersinstellingen worden geladen..."
@@ -2033,12 +2039,10 @@ msgid "Only the object being edit is visible."
 msgstr "Alleen het object waaraan gewerkt wordt is zichtbaar."
 
 msgid ""
-"An object is layed over the boundary of plate.\n"
-"Please solve the problem by moving it totally inside or outside plate."
+"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"Please solve the problem by moving it totally on or off the plate, and "
+"confirming that the height is within the build volume."
 msgstr ""
-"Er bevindt zich een object buiten de grenzen van de printplaat.\n"
-"Los dit probleem op door het object geheel binnen of buiten de printplaat te "
-"plaatsen."
 
 msgid "Calibration"
 msgstr "Kalibratie"
@@ -2314,24 +2318,6 @@ msgstr "Alles deselecteren"
 
 msgid "Deselects all objects"
 msgstr "Alle objecten deselecteren"
-
-msgid "Show Model Mesh(TODO)"
-msgstr "Toon model mesh(TODO)"
-
-msgid "Display triangles of models"
-msgstr "Toon de driehoeken van modellen"
-
-msgid "Show Model Shadow(TODO)"
-msgstr "Toon schaduw van het model"
-
-msgid "Display shadow of objects"
-msgstr "Toon de schaduw van objecten"
-
-msgid "Show Printable Box(TODO)"
-msgstr "Toon printbare uimte(TODO)"
-
-msgid "Display printable box"
-msgstr "Toon printbare box"
 
 msgid "Use Perspective View"
 msgstr "Perspectiefweergave gebruiken"
@@ -6438,6 +6424,32 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid ""
+#~ "An object is layed over the boundary of plate.\n"
+#~ "Please solve the problem by moving it totally inside or outside plate."
+#~ msgstr ""
+#~ "Er bevindt zich een object buiten de grenzen van de printplaat.\n"
+#~ "Los dit probleem op door het object geheel binnen of buiten de printplaat "
+#~ "te plaatsen."
+
+#~ msgid "Show Model Mesh(TODO)"
+#~ msgstr "Toon model mesh(TODO)"
+
+#~ msgid "Display triangles of models"
+#~ msgstr "Toon de driehoeken van modellen"
+
+#~ msgid "Show Model Shadow(TODO)"
+#~ msgstr "Toon schaduw van het model"
+
+#~ msgid "Display shadow of objects"
+#~ msgstr "Toon de schaduw van objecten"
+
+#~ msgid "Show Printable Box(TODO)"
+#~ msgstr "Toon printbare uimte(TODO)"
+
+#~ msgid "Display printable box"
+#~ msgstr "Toon printbare box"
 
 #~ msgid "New version of Bambu Studio"
 #~ msgstr "Nieuwe versie van Bambu Studio"
