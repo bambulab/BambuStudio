@@ -507,6 +507,7 @@ void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
             wxLogMessage("%s", "Document loaded; url='" + evt.GetURL() + "'");
     }
     UpdateState();
+    ShowNetpluginTip();
 }
 
 void WebViewPanel::OnTitleChanged(wxWebViewEvent &evt)

@@ -1239,13 +1239,17 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, bool is_sync)
 
     // download
     Slic3r::Http http = Slic3r::Http::get(download_url);
+    int reported_percent = 0;
     http.on_progress(
-        [this, &pro_fn, &result](Slic3r::Http::Progress progress, bool& cancel) {
+        [this, &pro_fn, &result, &reported_percent](Slic3r::Http::Progress progress, bool& cancel) {
             int percent = 0;
             if (progress.dltotal != 0)
                 percent = progress.dlnow * 50 / progress.dltotal;
             bool was_cancel = false;
-            if (pro_fn) pro_fn(InstallStatusNormal, percent, was_cancel);
+            if (pro_fn && ((percent - reported_percent) >= 10)) {
+                pro_fn(InstallStatusNormal, percent, was_cancel);
+                reported_percent = percent;
+            }
             cancel = m_networking_cancel_update || was_cancel;
             if (cancel)
                 result = -1;
