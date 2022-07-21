@@ -134,14 +134,15 @@ int NetworkAgent::initialize_network_module()
     #endif
     printf("loading network module at %s\n", library.c_str());
     netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
-    /*if (!netwoking_module) {
-        #if defined(__WXMAC__)
+    if (!netwoking_module) {
+        /*#if defined(__WXMAC__)
         library = std::string("lib") + BAMBU_NETWORK_LIBRARY + ".dylib";
         #else
         library = std::string("lib") + BAMBU_NETWORK_LIBRARY + ".so";
-        #endif
-        netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
-    }*/
+        #endif*/
+        //netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", error, dlerror is %1%")%dlerror();
+    }
     printf("after dlopen, network_module is %p\n", netwoking_module);
 #endif
 
