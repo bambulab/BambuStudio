@@ -357,14 +357,10 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     Fit();
 
     const wxSize min_size = wxGetApp().get_min_size(); //wxSize(76*wxGetApp().em_unit(), 49*wxGetApp().em_unit());
-#ifdef __APPLE__
-    // Using SetMinSize() on Mac messes up the window position in some cases
-    // cf. https://groups.google.com/forum/#!topic/wx-users/yUKPBBfXWO0
-    SetSize(min_size/*wxSize(760, 490)*/);
-#else
+
     SetMinSize(min_size/*wxSize(760, 490)*/);
     SetSize(wxSize(FromDIP(1200), FromDIP(800)));
-#endif
+
     Layout();
 
     update_title();
