@@ -74,6 +74,7 @@
 #include "SendSystemInfoDialog.hpp"
 #include "ParamsDialog.hpp"
 #include "KBShortcutsDialog.hpp"
+#include "DownloadProgressDialog.hpp"
 
 #include "BitmapCache.hpp"
 #include "Notebook.hpp"
@@ -1157,7 +1158,7 @@ static std::string decode(std::string const& extra, std::string const& path = {}
     return Slic3r::decode_path(path.c_str());
 }
 
-int GUI_App::download_plugin(InstallProgressFn pro_fn, bool is_sync)
+int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 {
     int result = 0;
     // get country_code
@@ -1176,7 +1177,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, bool is_sync)
     std::string url = get_plugin_url(app_config->get_country_code());
     std::string download_url;
     Slic3r::Http http_url = Slic3r::Http::get(url);
-    BOOST_LOG_TRIVIAL(info) << "[download_plugin]: check the plugin from "<<url;
+    BOOST_LOG_TRIVIAL(info) << "[download_plugin]: check the plugin from " << url;
     http_url.on_complete(
         [&download_url](std::string body, unsigned status) {
             try {
@@ -1184,7 +1185,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, bool is_sync)
                 std::string message = j["message"].get<std::string>();
 
                 if (message == "success") {
-                    json resource =j.at("resources");
+                    json resource = j.at("resources");
                     if (resource.is_array()) {
                         for (auto iter = resource.begin(); iter != resource.end(); iter++) {
                             Semver version;
@@ -1193,21 +1194,21 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, bool is_sync)
                             std::string vendor;
                             std::string description;
                             for (auto sub_iter = iter.value().begin(); sub_iter != iter.value().end(); sub_iter++) {
-                                if (boost::iequals(sub_iter.key(),"type")) {
+                                if (boost::iequals(sub_iter.key(), "type")) {
                                     type = sub_iter.value();
                                     BOOST_LOG_TRIVIAL(info) << "[BBL Updater]: get version of settings's type, " << sub_iter.value();
                                 }
-                                else if (boost::iequals(sub_iter.key(),"version")) {
+                                else if (boost::iequals(sub_iter.key(), "version")) {
                                     version = *(Semver::parse(sub_iter.value()));
                                 }
-                                else if (boost::iequals(sub_iter.key(),"description")) {
+                                else if (boost::iequals(sub_iter.key(), "description")) {
                                     description = sub_iter.value();
                                 }
-                                else if (boost::iequals(sub_iter.key(),"url")) {
+                                else if (boost::iequals(sub_iter.key(), "url")) {
                                     url = sub_iter.value();
                                 }
                             }
-                            BOOST_LOG_TRIVIAL(info) << "[download_plugin]: get type "<< type <<", version "<<version.to_string()<<", url " << url;
+                            BOOST_LOG_TRIVIAL(info) << "[download_plugin]: get type " << type << ", version " << version.to_string() << ", url " << url;
                             download_url = url;
                         }
                     }
@@ -1216,19 +1217,19 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, bool is_sync)
                     BOOST_LOG_TRIVIAL(info) << "[download_plugin]: get version of plugin failed, body=" << body;
                 }
             }
-            catch(...) {
+            catch (...) {
                 BOOST_LOG_TRIVIAL(error) << "[download_plugin]: catch unknown exception";
                 ;
             }
-    }).on_error(
-        [](std::string body, std::string error, unsigned int status) {
-            BOOST_LOG_TRIVIAL(error) << "" << body;
-    }).perform_sync();
+        }).on_error(
+            [](std::string body, std::string error, unsigned int status) {
+                BOOST_LOG_TRIVIAL(error) << "" << body;
+        }).perform_sync();
 
     bool cancel = false;
     if (download_url.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "[download_plugin]: no availaible plugin found for this app version: "<< SLIC3R_VERSION;
-        if (pro_fn) pro_fn(InstallStatusDownloadFailed, 100, cancel);
+        BOOST_LOG_TRIVIAL(info) << "[download_plugin]: no availaible plugin found for this app version: " << SLIC3R_VERSION;
+        if (pro_fn) pro_fn(InstallStatusDownloadFailed, 0, cancel);
         return -1;
     }
     else if (pro_fn) {
@@ -1236,7 +1237,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, bool is_sync)
     }
 
     if (m_networking_cancel_update || cancel) {
-        BOOST_LOG_TRIVIAL(info) << boost::format("download_plugin: %1%, cancelled by user")%__LINE__;
+        BOOST_LOG_TRIVIAL(info) << boost::format("download_plugin: %1%, cancelled by user") % __LINE__;
         return -1;
     }
     BOOST_LOG_TRIVIAL(info) << "download_plugin, get_url = " << download_url;
@@ -1245,7 +1246,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, bool is_sync)
     Slic3r::Http http = Slic3r::Http::get(download_url);
     int reported_percent = 0;
     http.on_progress(
-        [this, &pro_fn, &result, &reported_percent](Slic3r::Http::Progress progress, bool& cancel) {
+        [this, &pro_fn, cancel_fn, &result, &reported_percent](Slic3r::Http::Progress progress, bool& cancel) {
             int percent = 0;
             if (progress.dltotal != 0)
                 percent = progress.dlnow * 50 / progress.dltotal;
@@ -1255,6 +1256,10 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, bool is_sync)
                 reported_percent = percent;
             }
             cancel = m_networking_cancel_update || was_cancel;
+            if (cancel_fn)
+                if (cancel_fn())
+                    cancel = true;
+
             if (cancel)
                 result = -1;
         })
@@ -1266,11 +1271,11 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, bool is_sync)
             file.write(body.c_str(), body.size());
             file.close();
             fs::rename(tmp_path, target_file_path);
-            if (pro_fn) pro_fn(InstallStatusDownloadCompleted, 50, cancel);
+            if (pro_fn) pro_fn(InstallStatusDownloadCompleted, 80, cancel);
             })
         .on_error([&pro_fn, &result](std::string body, std::string error, unsigned int status) {
             bool cancel = false;
-            if (pro_fn) pro_fn(InstallStatusDownloadFailed, 100, cancel);
+            if (pro_fn) pro_fn(InstallStatusDownloadFailed, 0, cancel);
 
             result = -1;
         });
@@ -1279,7 +1284,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, bool is_sync)
     return result;
 }
 
-int GUI_App::install_plugin(InstallProgressFn pro_fn)
+int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 {
     bool cancel = false;
     std::string target_file_path = (fs::temp_directory_path() / "network_plugin.zip").string();
@@ -1334,7 +1339,7 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn)
                         BOOST_LOG_TRIVIAL(error) << "[install_plugin]Archive read error:" << mz_zip_get_error_string(zip_error) << std::endl;
                         close_zip_reader(&archive);
                         if (pro_fn) {
-                            pro_fn(InstallStatusUnzipFailed, 100, cancel);
+                            pro_fn(InstallStatusUnzipFailed, 0, cancel);
                         }
                         return InstallStatusUnzipFailed;
                     }
@@ -1350,7 +1355,7 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn)
                     close_zip_reader(&archive);
                     BOOST_LOG_TRIVIAL(error) << "[install_plugin]Archive read exception:"<<e.what();
                     if (pro_fn) {
-                        pro_fn(InstallStatusUnzipFailed, 100, cancel);
+                        pro_fn(InstallStatusUnzipFailed, 0, cancel);
                     }
                     return InstallStatusUnzipFailed;
                 }
@@ -1393,30 +1398,8 @@ void GUI_App::restart_networking()
 
 int GUI_App::updating_bambu_networking()
 {
-    int result = 0;
-    ProgressDialog dlg(_L("Downloading Bambu Network plug-in"), "Downloading", 100, nullptr, wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_APP_MODAL);
-    result = download_plugin(
-        [this, &dlg](int state, int percent, bool &cancel) {
-            bool cont = dlg.Update(percent);
-            cancel = !cont;
-            return 0;
-        }
-    , true);
-
-    if (result != 0) {
-        return -1;
-    }
-    result = install_plugin(
-        [this, &dlg](int state, int percent, bool &cancel) {
-            //dlg.Update(percent);
-            bool cont = dlg.Update(percent, _L("Updating Bambu Network plug-in"));
-            cancel = !cont;
-            return 0;
-        }
-    );
-    if (result != 0) {
-        return -1;
-    }
+    DownloadProgressDialog dlg(_L("Downloading Bambu Network plug-in"));
+    dlg.ShowModal();
     return 0;
 }
 
@@ -2577,15 +2560,13 @@ void GUI_App::ShowUserGuide() {
 }
 
 void GUI_App::ShowDownNetPluginDlg() {
-    // BBS: Dialy Tip Dialog
     try {
-        DownPluginFrame TipDlg(this);
-        TipDlg.ShowModal();
+        DownloadProgressDialog dlg(_L("Downloading Bambu Network plug-in"));
+        dlg.ShowModal();
     } catch (std::exception &e) {
-        // wxMessageBox(e.what(), "", MB_OK);
+        ;
     }
 }
-
 
 void GUI_App::ShowUserLogin()
 {

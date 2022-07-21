@@ -1180,7 +1180,7 @@ int GuideFrame::DownloadPlugin()
         [this](int status, int percent, bool& cancel) {
             return ShowPluginStatus(status, percent, cancel);
         }
-    , false);
+    , nullptr);
 }
 
 int GuideFrame::InstallPlugin()

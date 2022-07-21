@@ -309,7 +309,7 @@ void DownPluginFrame::OnScriptResponseMessage(wxCommandEvent &WXUNUSED(evt))
 
 int DownPluginFrame::DownloadPlugin()
 {
-    return wxGetApp().download_plugin([this](int status, int percent, bool &cancel) { return ShowPluginStatus(status, percent, cancel); }, false);
+    return wxGetApp().download_plugin([this](int status, int percent, bool &cancel) { return ShowPluginStatus(status, percent, cancel); }, nullptr);
 }
 
 int DownPluginFrame::InstallPlugin()

@@ -34,14 +34,6 @@
 
 namespace Slic3r { namespace GUI {
 
-enum PluginInstallStatus {
-    InstallStatusNormal             = 0,
-    InstallStatusDownloadFailed     = 1,
-    InstallStatusDownloadCompleted  = 2,
-    InstallStatusUnzipFailed        = 3,
-    InstallStatusInstallCompleted   = 4,
-};
-
 class GuideFrame : public wxDialog
 {
 public:

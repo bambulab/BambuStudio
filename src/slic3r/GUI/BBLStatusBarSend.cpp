@@ -35,10 +35,10 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     m_prog = new wxGauge(m_self, wxID_ANY, 100, wxDefaultPosition, wxSize(-1, m_self->FromDIP(6)), wxGA_HORIZONTAL);
     m_prog->SetValue(0);
 
-    block_left = new wxWindow(m_prog, wxID_ANY, wxPoint(0, 0), wxSize(2, m_prog->GetSize().GetHeight() * 2));
-    block_left->SetBackgroundColour(wxColour(255, 255, 255));
-    block_right = new wxWindow(m_prog, wxID_ANY, wxPoint(m_prog->GetSize().GetWidth() - 2, 0), wxSize(2, m_prog->GetSize().GetHeight() * 2));
-    block_right->SetBackgroundColour(wxColour(255, 255, 255));
+  /*  block_left = new wxWindow(m_prog, wxID_ANY, wxPoint(0, 0), wxSize(2, m_prog->GetSize().GetHeight() * 2));
+      block_left->SetBackgroundColour(wxColour(255, 255, 255));
+      block_right = new wxWindow(m_prog, wxID_ANY, wxPoint(m_prog->GetSize().GetWidth() - 2, 0), wxSize(2, m_prog->GetSize().GetHeight() * 2));
+      block_right->SetBackgroundColour(wxColour(255, 255, 255));*/
 
     m_sizer_bottom->Add(m_prog, 1, wxALIGN_CENTER, 0);
 
@@ -47,9 +47,10 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     m_cancelbutton->SetTextColor(wxColour(107, 107, 107));
     m_cancelbutton->SetBackgroundColor(wxColour(255, 255, 255));
     m_cancelbutton->SetCornerRadius(12);
-    m_cancelbutton->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) {
+    m_cancelbutton->Bind(wxEVT_BUTTON, 
+        [this](wxCommandEvent &evt) {
         m_was_cancelled = true;
-        if (m_cancel_cb_fina) 
+        if (m_cancel_cb_fina)
             m_cancel_cb_fina();
     });
 
@@ -75,8 +76,8 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
 
 void BBLStatusBarSend::set_prog_block()
 {
-    block_left->SetPosition(wxPoint(0, 0));
-    block_right->SetPosition(wxPoint(m_prog->GetSize().GetWidth() - 2, 0));
+    //block_left->SetPosition(wxPoint(0, 0));
+    //block_right->SetPosition(wxPoint(m_prog->GetSize().GetWidth() - 2, 0));
 }
 
 int BBLStatusBarSend::get_progress() const
@@ -86,7 +87,7 @@ int BBLStatusBarSend::get_progress() const
 
 void BBLStatusBarSend::set_progress(int val)
 {
-    set_prog_block();
+    //set_prog_block();
 
     if(val < 0)
         return;
@@ -194,7 +195,7 @@ void BBLStatusBarSend::set_status_text(const char *txt)
 }
 
 void BBLStatusBarSend::msw_rescale() { 
-    set_prog_block();
+    //set_prog_block();
     m_cancelbutton->SetMinSize(wxSize(m_self->FromDIP(56), m_self->FromDIP(24)));
 }
 
@@ -240,6 +241,11 @@ void BBLStatusBarSend::hide_cancel_button()
 {
     m_sizer->Hide(m_cancelbutton);
     m_sizer->Layout();
+}
+
+void BBLStatusBarSend::change_button_label(wxString name) 
+{
+    m_cancelbutton->SetLabel(name);
 }
 
 }

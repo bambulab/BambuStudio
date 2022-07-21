@@ -248,8 +248,8 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
             AppConfig *             config = GUI::wxGetApp().app_config;
             if (agent) {
                 agent->set_country_code(area);
-                config->set("region", region.ToStdString());
             }
+            config->set("region", region.ToStdString());
             EndModal(wxID_CANCEL);
         }
 

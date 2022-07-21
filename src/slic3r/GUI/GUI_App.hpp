@@ -11,6 +11,7 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "slic3r/GUI/WebViewDialog.hpp"
+#include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -188,7 +189,7 @@ public:
 class GUI_App : public wxApp
 {
 public:
-    typedef function<int(int status, int percent, bool& cancel)> InstallProgressFn;
+    
     //BBS: remove GCodeViewer as seperate APP logic
     enum class EAppMode : unsigned char
     {
@@ -250,6 +251,7 @@ private:
     bool m_networking_compatible { false };
     bool m_networking_need_update { false };
     bool m_networking_cancel_update { false };
+    std::shared_ptr<UpgradeNetworkJob> m_upgrade_network_job;
 
     VersionInfo version_info;
 
@@ -498,8 +500,8 @@ public:
     void            disassociate_files(std::wstring extend);
 #endif // __WXMSW__
     std::string     get_plugin_url(std::string country_code);
-    int             download_plugin(InstallProgressFn pro_fn = nullptr, bool is_sync = false);
-    int             install_plugin(InstallProgressFn pro_fn = nullptr);
+    int             download_plugin(InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
+    int             install_plugin(InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
     std::string     get_http_url(std::string country_code);
     bool            is_compatibility_version();
     bool            check_networking_version();
