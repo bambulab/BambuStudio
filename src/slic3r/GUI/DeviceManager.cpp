@@ -10,7 +10,7 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "MsgDialog.hpp"
 #include "Plater.hpp"
-
+#include "GUI_App.hpp"
 #include "nlohmann/json.hpp"
 #include <thread>
 #include <mutex>
@@ -24,7 +24,6 @@
 using namespace nlohmann;
 
 namespace pt = boost::property_tree;
-
 
 const int PRINTING_STAGE_COUNT = 20;
 std::string PRINTING_STAGE_STR[PRINTING_STAGE_COUNT] = {
@@ -2185,8 +2184,6 @@ int MachineObject::parse_json(std::string payload)
                     }
 #pragma endregion
 
-
-
                 } else if (jj["command"].get<std::string>() == "gcode_line") {
                     //ack of gcode_line
                     BOOST_LOG_TRIVIAL(info) << "parse_json, ack of gcode_line = " << j.dump(4);
@@ -2198,8 +2195,7 @@ int MachineObject::parse_json(std::string payload)
                         result = jj["result"].get<std::string>();
                         if (result == "FAIL") {
                             wxString text = _L("Failed to start printing job");
-                            Slic3r::GUI::MessageDialog msg_dlg(nullptr, text, "", wxAPPLY | wxOK);
-                            msg_dlg.ShowModal();
+                            GUI::wxGetApp().show_dialog(text);
                         }
                     }
                 } else if (jj["command"].get<std::string>() == "ams_filament_setting") {

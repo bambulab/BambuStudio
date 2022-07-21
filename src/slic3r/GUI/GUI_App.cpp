@@ -1081,6 +1081,10 @@ void GUI_App::post_init()
 #endif //WIN32*/
 }
 
+wxDEFINE_EVENT(EVT_ENTER_FORCE_UPGRADE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SHOW_NO_NEW_VERSION, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SHOW_DIALOG, wxCommandEvent);
+
 IMPLEMENT_APP(GUI_App)
 
 //BBS: remove GCodeViewer as seperate APP logic
@@ -1946,6 +1950,22 @@ bool GUI_App::on_init_inner()
                      wxGetApp().mainframe->Close(true);
                 }
             });
+
+        Bind(EVT_SHOW_NO_NEW_VERSION, [this](const wxCommandEvent& evt) {
+            wxString msg = _L("This is the newest version.");
+            InfoDialog dlg(nullptr, _L("Info"), msg);
+            dlg.ShowModal();
+        });
+
+        Bind(EVT_SHOW_DIALOG, [this](const wxCommandEvent& evt) {
+            /*wxString msg = evt.GetString();
+            InfoDialog dlg(this->mainframe, _L("Info"), msg);
+            dlg.ShowModal();*/
+
+            wxString text = evt.GetString();
+            Slic3r::GUI::MessageDialog msg_dlg(this->mainframe, text, "", wxAPPLY | wxOK);
+            msg_dlg.ShowModal();
+        });
     }
     else {
 #ifdef __WXMSW__
@@ -3184,9 +3204,15 @@ void GUI_App::enter_force_upgrade()
 
 void GUI_App::no_new_version()
 {
-    wxString msg = _L("This is the newest version.");
-    InfoDialog dlg(nullptr, _L("Info"), msg);
-    dlg.ShowModal();
+    wxCommandEvent* evt = new wxCommandEvent(EVT_SHOW_NO_NEW_VERSION);
+    GUI::wxGetApp().QueueEvent(evt);
+}
+
+void GUI_App::show_dialog(wxString msg)
+{
+    wxCommandEvent* evt = new wxCommandEvent(EVT_SHOW_DIALOG);
+    evt->SetString(msg);
+    GUI::wxGetApp().QueueEvent(evt);
 }
 
 void GUI_App::reload_settings()
@@ -3310,6 +3336,8 @@ void GUI_App::sync_preset(Preset* preset)
 
 void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 {
+    if (!m_agent) return;
+
     // has already start sync
     if (enable_sync)
         return;

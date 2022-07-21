@@ -375,6 +375,7 @@ public:
     void            request_new_version();
     void            enter_force_upgrade();
     void            no_new_version();
+    void            show_dialog(wxString msg);
     void            reload_settings();
     void            remove_user_presets();
     void            sync_preset(Preset* preset);
