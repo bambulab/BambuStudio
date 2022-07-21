@@ -1044,10 +1044,10 @@ int MachineObject::command_request_push_all()
     auto curr_time = std::chrono::system_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_request_push);
     if (diff.count() < REQUEST_PUSH_MIN_TIME) {
-        BOOST_LOG_TRIVIAL(trace) << "command_request_push_all: send request too fast";
+        BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all: send request too fast, dev_id=" << dev_id;
         return -1;
     } else {
-        BOOST_LOG_TRIVIAL(trace) << "command_request_push_all";
+        BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all, dev_id=" << dev_id;
         last_request_push = std::chrono::system_clock::now();
     }
     json j;
@@ -1592,7 +1592,7 @@ int MachineObject::parse_json(std::string payload)
                 if (j_pre["print"]["command"].get<std::string>() == "push_status") {
                     if (j_pre["print"].contains("msg")) {
                         if (j_pre["print"]["msg"].get<int>() == 0) {           //all message
-                            BOOST_LOG_TRIVIAL(trace) << "static: get push_all msg";
+                            BOOST_LOG_TRIVIAL(trace) << "static: get push_all msg, dev_id=" << dev_id;
                             m_push_count++;
                             print_json.diff2all_base_reset(j_pre);
                         } else if (j_pre["print"]["msg"].get<int>() == 1) {    //diff message
@@ -1627,14 +1627,12 @@ int MachineObject::parse_json(std::string payload)
             json jj = j["print"];
             if (jj.contains("command")) {
                 if (jj["command"].get<std::string>() == "push_status") {
-                    
+                    m_push_count++;
                     last_push_time = std::chrono::system_clock::now();
 #pragma region printing
                     // U0 firmware
                     if (jj.contains("print_type")) {
                         print_type = jj["print_type"].get<std::string>();
-                    } else {
-                        m_push_count++;
                     }
 
                     if (jj.contains("mc_remaining_time")) {
@@ -2699,7 +2697,7 @@ bool DeviceManager::set_selected_machine(std::string dev_id)
             if (m_agent) {
                 if (it->second->connection_type() != "lan" || it->second->connection_type().empty()) {
                     if (m_agent->get_user_selected_machine() != dev_id) {
-                        BOOST_LOG_TRIVIAL(info) << "set_selected_machine: same dev_id = " << dev_id;
+                        BOOST_LOG_TRIVIAL(info) << "static: set_selected_machine: same dev_id = " << dev_id;
                         m_agent->set_user_selected_machine(dev_id);
                         it->second->reset();
                     } else {

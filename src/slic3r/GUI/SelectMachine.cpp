@@ -254,14 +254,7 @@ void MachineObjectPanel::on_mouse_leave(wxMouseEvent &evt)
 void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
 {
     if (m_is_my_devices) {
-        if (m_info->has_access_right() && m_info->is_avaliable()) {
-            m_info->connect();
-        } else {
-            wxCommandEvent event(EVT_CONNECT_LAN_PRINT);
-            event.SetEventObject(this);
-            wxPostEvent(this, event);
-        }
-       
+        // show edit
         if (m_show_edit) {
             auto edit_left   = GetSize().x - m_unbind_img.GetSize().x - 6 - m_edit_name_img.GetSize().x - 6;
             auto edit_right  = edit_left + m_edit_name_img.GetSize().x;
@@ -274,7 +267,6 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
                 return;
             }
         }
-
         if (m_show_bind) {
             auto left   = GetSize().x - m_unbind_img.GetSize().x - 6;
             auto right  = left + m_unbind_img.GetSize().x;
@@ -294,22 +286,26 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
             }
             return;
         }
-    } else {
-        
         if (m_info->is_lan_mode_printer()) {
-            if (!m_info->has_access_right()) {
+            if (m_info->has_access_right() && m_info->is_avaliable()) {
+                wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
+            } else {
                 wxCommandEvent event(EVT_CONNECT_LAN_PRINT);
                 event.SetEventObject(this);
                 wxPostEvent(this, event);
-            } else {
-                ;
             }
         } else {
-            if (wxGetApp().is_user_login()) {
-                wxCommandEvent event(EVT_BIND_MACHINE);
-                event.SetEventObject(this);
-                wxPostEvent(this, event);
-            }
+            wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
+        }
+    } else {
+        if (m_info->is_lan_mode_printer()) {
+            wxCommandEvent event(EVT_CONNECT_LAN_PRINT);
+            event.SetEventObject(this);
+            wxPostEvent(this, event);
+        } else {
+            wxCommandEvent event(EVT_BIND_MACHINE);
+            event.SetEventObject(this);
+            wxPostEvent(this, event);
         }
         
     }
@@ -603,7 +599,8 @@ void SelectMachinePopup::update_user_devices()
                     op->set_printer_state(PrinterState::LOCK);
                 }
             }
-            op->Bind(EVT_UNBIND_MACHINE, [this, mobj](wxCommandEvent& e) {
+            op->Bind(EVT_UNBIND_MACHINE, [this, dev, mobj](wxCommandEvent& e) {
+                dev->set_selected_machine("");
                 mobj->set_access_code("");
                 MessageDialog msg_wingow(nullptr, _L("Log out successful."), "", wxAPPLY | wxOK);
                 if (msg_wingow.ShowModal() == wxOK) { return; }

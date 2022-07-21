@@ -1456,6 +1456,7 @@ void GUI_App::init_networking_callbacks()
                 if (m_is_closing) {
                     return;
                 }
+                BOOST_LOG_TRIVIAL(trace) << "static: server connected";
                 m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
                 });
             });
@@ -1491,17 +1492,18 @@ void GUI_App::init_networking_callbacks()
                     MachineObject* obj = m_device_manager->get_my_machine(dev_id);
                     if (obj) {
                         if (obj->is_lan_mode_printer()) {
-                            if (state == ConnectStatus::ConnectStatusFailed) {
+                            if (state == ConnectStatus::ConnectStatusOk) {
+                                obj->command_request_push_all();
+                                obj->command_get_version();
+                            } else if (state == ConnectStatus::ConnectStatusFailed || ConnectStatus::ConnectStatusLost) {
                                 obj->set_access_code("");
                                 wxString text = wxString::Format(_L("Connect %s[SN:%s] failed!"), from_u8(obj->dev_name), obj->dev_id);
                                 MessageDialog msg_dlg(nullptr, text, "", wxAPPLY | wxOK);
                                 if (msg_dlg.ShowModal() == wxOK) {
                                     return;
                                 }
-                            }
-                            else {
-                                obj->command_request_push_all();
-                                obj->command_get_version();
+                            } else {
+                                BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = " << state;
                             }
                         }
                     }
@@ -1545,7 +1547,11 @@ void GUI_App::init_networking_callbacks()
                     return;
                 }
 
-                MachineObject* obj = m_device_manager->get_local_machine(dev_id);
+                MachineObject* obj = m_device_manager->get_my_machine(dev_id);
+                if (!obj) {
+                    obj = m_device_manager->get_local_machine(dev_id);
+                }
+
                 if (obj) {
                     obj->parse_json(msg);
 
