@@ -2056,10 +2056,12 @@ bool GUI_App::on_init_inner()
         if (m_studio_active != curr_studio_active) {
             if (curr_studio_active) {
                 BOOST_LOG_TRIVIAL(info) << "studio is active, start to subscribe";
-                m_agent->start_subscribe("app");
+                if (m_agent)
+                    m_agent->start_subscribe("app");
             } else {
                 BOOST_LOG_TRIVIAL(info) << "studio is inactive, stop to subscribe";
-                m_agent->stop_subscribe("app");
+                if (m_agent)
+                    m_agent->stop_subscribe("app");
             }
             m_studio_active = curr_studio_active;
         }
