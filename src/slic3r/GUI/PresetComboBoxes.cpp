@@ -233,6 +233,9 @@ int PresetComboBox::update_ams_color()
     new_cfg.set_key_value("filament_colour", colors);
     cfg->apply(new_cfg);
     wxGetApp().plater()->on_config_change(new_cfg);
+    //trigger the filament color changed
+    wxCommandEvent *evt = new wxCommandEvent(EVT_FILAMENT_COLOR_CHANGED);
+    wxQueueEvent(wxGetApp().plater(), evt);
     return idx;
 }
 
