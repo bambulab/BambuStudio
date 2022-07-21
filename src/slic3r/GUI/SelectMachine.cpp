@@ -1697,7 +1697,7 @@ void SelectMachineDialog::update_show_status()
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!agent) return;
     if (!dev) return;
-    MachineObject* obj_ = dev->get_user_machine(m_printer_last_select);
+    MachineObject* obj_ = dev->get_my_machine(m_printer_last_select);
     if (!obj_) {
         if (agent) {
             if (agent->is_user_login()) {

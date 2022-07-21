@@ -1471,7 +1471,7 @@ void GUI_App::init_networking_callbacks()
                     return;
                 }
                 /* request_pushing */
-                MachineObject* obj = m_device_manager->get_user_machine(dev_id);
+                MachineObject* obj = m_device_manager->get_my_machine(dev_id);
                 if (obj) {
                     obj->command_request_push_all();
                     obj->command_get_version();
@@ -3058,6 +3058,7 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
     dev->update_user_machine_list_info();
+    dev->set_selected_machine(m_agent->get_user_selected_machine());
 
     GUI::wxGetApp().preset_bundle->update_user_presets_directory(user_id);
     if (online_login)
