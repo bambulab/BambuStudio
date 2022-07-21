@@ -855,26 +855,13 @@ double configBrimWidthByVolumeGroups(double adhension, double maxSpeed, const st
 }
 
 //BBS: create all brims
-static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObjectPtrs& top_level_objects_with_brim,
+static ExPolygons outer_inner_brim_area(const Print& print,
     const float no_brim_offset, std::map<ObjectID, ExPolygons>& brimAreaMap,
     std::map<ObjectID, ExPolygons>& supportBrimAreaMap,
     std::vector<std::pair<ObjectID, unsigned int>>& objPrintVec,
     std::vector<unsigned int>& printExtruders)
 {
-    std::unordered_set<size_t> top_level_objects_idx;
-    top_level_objects_idx.reserve(top_level_objects_with_brim.size());
-    for (const PrintObject* object : top_level_objects_with_brim)
-        top_level_objects_idx.insert(object->id().id);
-
     unsigned int support_material_extruder = printExtruders.front() + 1;
-    auto allExtruders = print.extruders();
-    if (print.has_support_material()) {
-        assert(top_level_objects_with_brim.front()->config().support_filament >= 0);
-        if (top_level_objects_with_brim.front()->config().support_filament > 0)
-            support_material_extruder = top_level_objects_with_brim.front()->config().support_filament;
-        allExtruders.push_back(support_material_extruder - 1);
-        sort_remove_duplicates(allExtruders);
-    }
 
     ExPolygons brim_area;
     ExPolygons no_brim_area;
@@ -898,7 +885,6 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
             float              brim_offset = scale_(object->config().brim_object_gap.value);
             double             flowWidth = print.brim_flow().scaled_spacing() * SCALING_FACTOR;
             float              brim_width = scale_(floor(object->config().brim_width.value / flowWidth / 2) * flowWidth * 2);
-            const bool         top_outer_brim = top_level_objects_idx.find(object->id().id) != top_level_objects_idx.end();
             const float        scaled_flow_width = print.brim_flow().scaled_spacing();
             const float        scaled_additional_brim_width = scale_(floor(5 / flowWidth / 2) * flowWidth * 2);
             const float        scaled_half_min_adh_length = scale_(1.1);
@@ -988,8 +974,13 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
                 if (brimAreaMap.find(object->id()) != brimAreaMap.end())
                     expolygons_append(brim_area, brimAreaMap[object->id()]);
             }
-            if ((print.config().print_sequence == PrintSequence::ByObject) && top_level_objects_with_brim.front()->config().support_filament == 0)
-                support_material_extruder = objectWithExtruder.second;
+            support_material_extruder = object->config().support_filament;
+            if (support_material_extruder == 0 && object->has_support_material()) {
+                if (print.config().print_sequence == PrintSequence::ByObject)
+                    support_material_extruder = objectWithExtruder.second;
+                else
+                    support_material_extruder = printExtruders.front() + 1;
+            }
             if (support_material_extruder == extruderNo && brimToWrite.at(object->id()).sup) {
                 if (!object->support_layers().empty()) {
                     for (const Polygon& support_contour : object->support_layers().front()->support_fills.polygons_covered_by_spacing()) {
@@ -1629,10 +1620,7 @@ void make_brim(const Print& print, PrintTryCancel try_cancel, Polygons& islands_
     std::map<ObjectID, ExPolygons> supportBrimAreaMap;
     Flow                 flow = print.brim_flow();
     const auto           scaled_resolution = scaled<double>(print.config().resolution.value);
-    std::vector<ExPolygons> bottom_layers_expolygons = get_print_bottom_layers_expolygons(print);
-    ConstPrintObjectPtrs    top_level_objects_with_brim = get_top_level_objects_with_brim(print, bottom_layers_expolygons);
-    Polygons                islands = top_level_outer_brim_islands(top_level_objects_with_brim, scaled_resolution);
-    ExPolygons           islands_area_ex = outer_inner_brim_area(print, top_level_objects_with_brim,
+    ExPolygons           islands_area_ex = outer_inner_brim_area(print,
         float(flow.scaled_spacing()), brimAreaMap, supportBrimAreaMap, objPrintVec, printExtruders);
 
     // BBS: Find boundingbox of the first layer
