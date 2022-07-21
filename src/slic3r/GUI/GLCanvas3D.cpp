@@ -1349,7 +1349,12 @@ void GLCanvas3D::render(bool only_init)
             right_margin = SLIDER_RIGHT_MARGIN;
             bottom_margin = SLIDER_BOTTOM_MARGIN;
         }
-        wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width(), bottom_margin, right_margin);
+        #if ENABLE_RETINA_GL
+            float sc = m_retina_helper->get_scale_factor();
+            wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width(), bottom_margin * sc, right_margin);
+        #else
+            wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width(), bottom_margin, right_margin);
+        #endif
     }
 
     wxGetApp().imgui()->render();
