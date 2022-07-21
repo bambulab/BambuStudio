@@ -303,7 +303,6 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     m_sizer_advanced->Add(info_str, 0, wxEXPAND | wxLEFT, TEXT_BEG_PADDING);
     m_sizer_advanced->AddSpacer(BTN_SIZE.y);
 
-#if !BBL_RELEASE_TO_PUBLIC
     // BBS: for tunning flush volumes
     {
         wxBoxSizer* param_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -321,7 +320,6 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         
         m_sizer_advanced->Add(param_sizer, 0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, 10);
     }
-#endif
 
     m_page_advanced->Hide(); 
 
