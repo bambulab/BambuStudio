@@ -6,7 +6,7 @@ function OnInit()
 	//HandleStudio(strInput);
 	
 //	let tVal={};
-//	tVal['status']=4;
+//	tVal['status']=3;
 //	tVal['percent']=30;
 //	
 //	HandStatusPercent(tVal);
@@ -50,7 +50,7 @@ function HandStatusPercent( pVal )
 		
 		$('#PercentTip').css("width",nPercent+'%');
 	}
-	else if(nStatus==1 || nStatus==3)
+	else if(nStatus==1)
 	{
 		//下载失败 或 解压缩补丁包失败
 		$('#DownStepText').attr("tid","t72");
@@ -62,7 +62,17 @@ function HandStatusPercent( pVal )
 		//下载完成
 		$('#PercentTip').css("width",100+'%');
 		
-		SendInstallPluginCmd();
+		setTimeout("SendInstallPluginCmd()",100);
+	}
+	else if(nStatus==3)
+	{
+		//解压缩补丁包失败
+		$('#DownArea').hide();
+		$("#InstallFailedTip").show();
+		
+		$('#CancelBtn').hide();
+		$('#RestartBtn').hide();
+		$('#CloseBtn').show();		
 	}
 	else if(nStatus==4)
 	{
@@ -71,6 +81,7 @@ function HandStatusPercent( pVal )
 		$('#DownSuccessTip').show();
 		
 		$('#CancelBtn').hide();
+		$('#CloseBtn').hide();	
 		$('#RestartBtn').show();
 		
 		//pTimer=setInterval("RunInverse()",1000);
@@ -137,5 +148,20 @@ function RestartBambuStudio()
 	SendWXMessage( JSON.stringify(tSend) );	
 }
 
+function CloseDownDialog()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="close_download_dialog";
+	
+	SendWXMessage( JSON.stringify(tSend) );		
+}
 
-
+function OpenPluginFolder()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="open_plugin_folder";
+	
+	SendWXMessage( JSON.stringify(tSend) );		
+}

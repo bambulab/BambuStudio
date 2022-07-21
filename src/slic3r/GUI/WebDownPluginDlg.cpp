@@ -31,7 +31,7 @@ using namespace nlohmann;
 
 namespace Slic3r { namespace GUI {
 
-DownPluginFrame::DownPluginFrame(GUI_App *pGUI) : wxDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "BambuStudio"), m_appconfig_new()
+DownPluginFrame::DownPluginFrame(GUI_App *pGUI) : wxDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "Bambu Studio"), m_appconfig_new()
 {
     // INI
     m_MainPtr = pGUI;
@@ -218,6 +218,14 @@ void DownPluginFrame::OnScriptMessage(wxWebViewEvent &evt)
             wxGetApp().restart_networking();
             this->EndModal(wxID_OK);
             this->Close();
+        } 
+        else if (strCmd == "close_download_dialog") {
+            this->EndModal(wxID_OK);
+            this->Close();
+        } 
+        else if (strCmd == "open_plugin_folder") {
+            auto plugin_folder = (boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins").make_preferred().string();
+            desktop_open_any_folder(plugin_folder);
         }
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);

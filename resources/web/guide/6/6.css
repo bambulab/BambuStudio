@@ -7,7 +7,19 @@
 
 html,body
 {
+	font-size: 14px;
 	height:100%;
+}
+
+.LinkBtn
+{
+	color: #1200FF;	
+	cursor: pointer;
+}
+
+.LinkBtn:hover
+{
+	text-decoration:underline;
 }
 
 .Btn_Green
@@ -33,6 +45,7 @@ html,body
 {
 	height: 60%;
 	display: flex;
+	flex-direction: column;
 	justify-content: center;
 	align-items: center;
 }
@@ -90,6 +103,12 @@ html,body
 	text-align: center;
 }
 
+#InstallFailedTip
+{
+	display:none;
+	height: auto;
+}
+
 
 /*------Btn Area------*/
 
@@ -107,6 +126,11 @@ html,body
 }
 
 #RestartBtn
+{
+	display: none;
+}
+
+#CloseBtn
 {
 	display: none;
 }

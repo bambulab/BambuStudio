@@ -437,7 +437,7 @@ void WebViewPanel::ShowNetpluginTip()
     m_Res["sequence_id"] = "10001";
     m_Res["show"]        = nShow;
 
-    wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
+    wxString strJS = wxString::Format("window.postMessage(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
 
     RunScript(strJS);
 }

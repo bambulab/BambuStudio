@@ -70,7 +70,15 @@ var LangText={
 		"t75":"Bambu Network plug-in Provides the following features:",
 		"t76":"Network plugin not detected. Click ",
 		"t77":"here",
-		"t78":" to install it."
+		"t78":" to install it.",
+		"t79":"Failed to install plug-in. ",
+		"t80":"Try the following steps:",
+		"t81":"1, Click ",
+		"t82":" to open the plug-in directory",
+		"t83":"2, Close all open Bambu Studio",
+		"t84":"3, Delete all files under the plug-in directory",
+		"t85":"4, Reopen Bambu studio and install the plug-in again",
+		"t86":"Close"
 	},
 	"zh_CN":{
 		"t1":"欢迎使用Bambu Studio",
@@ -143,7 +151,15 @@ var LangText={
 		"t75":"Bambu网络插件提供以下功能：",
 		"t76":"没有发现网络插件，请",
 		"t77":"下载",
-		"t78":"并安装。"	
+		"t78":"并安装。",
+        "t79":"安装插件失败。",
+		"t80":"请尝试如下步骤：",
+		"t81":"1, 点击",
+		"t82":"打开插件所在目录",
+		"t83":"2, 关闭所有Bambu Studio",
+		"t84":"3, 删除插件所在目录下的所有文件",
+		"t85":"4, 重新启动Bambu Studio并尝试安装插件",
+		"t86":"关闭"
 	}
 };
 

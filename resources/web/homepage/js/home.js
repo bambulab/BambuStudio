@@ -215,4 +215,4 @@ function BeginDownloadNetworkPlugin()
 	SendWXMessage( JSON.stringify(tSend) );		
 }
 
-window.postMessage = HandleStudio
+window.postMessage = HandleStudio;
