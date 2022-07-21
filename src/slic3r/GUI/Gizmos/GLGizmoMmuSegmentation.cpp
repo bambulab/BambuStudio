@@ -404,7 +404,15 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         // draw filament background
         ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoTooltip;
         if (m_selected_extruder_idx != extruder_idx) flags |= ImGuiColorEditFlags_NoBorder;
-        bool color_picked = ImGui::ColorButton(color_label.c_str(), color_vec, flags, button_size);
+        #ifdef __APPLE__
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+            bool color_picked = ImGui::ColorButton(color_label.c_str(), color_vec, flags, button_size);
+            ImGui::PopStyleVar(1);
+            ImGui::PopStyleColor(1);
+        #else
+            bool color_picked = ImGui::ColorButton(color_label.c_str(), color_vec, flags, button_size);
+        #endif
         color_button_high = ImGui::GetCursorPos().y - color_button - 2.0;
         if (color_picked) { m_selected_extruder_idx = extruder_idx; }
 
