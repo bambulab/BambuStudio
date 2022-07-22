@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-22 09:48+0800\n"
+"POT-Creation-Date: 2022-07-22 13:25+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -51,7 +51,7 @@ msgstr ""
 msgid "Highlight overhang areas"
 msgstr ""
 
-msgid "Fragment filter"
+msgid "Gap fill"
 msgstr ""
 
 msgid "Perform"
@@ -84,7 +84,7 @@ msgstr ""
 msgid "Fill"
 msgstr ""
 
-msgid "Fragment Filter"
+msgid "Gap Fill"
 msgstr ""
 
 msgid "Highlight faces according to overhang angle."
@@ -232,13 +232,10 @@ msgstr ""
 msgid "°"
 msgstr ""
 
-msgid "Position:"
+msgid "Size"
 msgstr ""
 
 msgid "%"
-msgstr ""
-
-msgid "Size"
 msgstr ""
 
 msgid "uniform scale"
@@ -1296,9 +1293,6 @@ msgstr ""
 msgid "File"
 msgstr ""
 
-msgid "Finish"
-msgstr ""
-
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
 "program"
@@ -2332,6 +2326,9 @@ msgid "Close"
 msgstr ""
 
 msgid "Monitoring"
+msgstr ""
+
+msgid "Record monitor video"
 msgstr ""
 
 msgid "Printing Progress"

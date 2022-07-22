@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-22 09:48+0800\n"
-"PO-Revision-Date: 2022-07-21 12:22+0800\n"
+"POT-Creation-Date: 2022-07-22 13:25+0800\n"
+"PO-Revision-Date: 2022-07-22 13:28+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -50,8 +50,8 @@ msgstr "擦除所有绘制"
 msgid "Highlight overhang areas"
 msgstr "高亮悬空区域"
 
-msgid "Fragment filter"
-msgstr "碎片过滤器"
+msgid "Gap fill"
+msgstr "缝隙填充"
 
 msgid "Perform"
 msgstr "执行"
@@ -83,8 +83,8 @@ msgstr "球"
 msgid "Fill"
 msgstr "填充"
 
-msgid "Fragment Filter"
-msgstr "碎片过滤器"
+msgid "Gap Fill"
+msgstr "缝隙填充"
 
 msgid "Highlight faces according to overhang angle."
 msgstr "根据当前设置的悬空角度来高亮片面。"
@@ -232,14 +232,11 @@ msgstr "世界坐标"
 msgid "°"
 msgstr "°"
 
-msgid "Position:"
-msgstr "位置："
+msgid "Size"
+msgstr "大小"
 
 msgid "%"
 msgstr "%"
-
-msgid "Size"
-msgstr "大小"
 
 msgid "uniform scale"
 msgstr "等比例缩放"
@@ -1317,9 +1314,6 @@ msgstr "AMS不会在启动时自动读取耗材丝信息。它会使用上次关
 
 msgid "File"
 msgstr "文件"
-
-msgid "Finish"
-msgstr ""
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -2414,6 +2408,9 @@ msgstr "关闭"
 msgid "Monitoring"
 msgstr "实时视频"
 
+msgid "Record monitor video"
+msgstr "录制监控视频"
+
 msgid "Printing Progress"
 msgstr "打印进度"
 
@@ -2602,7 +2599,7 @@ msgid " (Repair)"
 msgstr "（修复）"
 
 msgid " Click here to install it."
-msgstr ""
+msgstr "点击此处安装"
 
 msgid "WARNING:"
 msgstr "警告："
@@ -2842,6 +2839,8 @@ msgid ""
 "Preview only mode:\n"
 "The loaded file contains gcode only, Can not enter the Prepare page"
 msgstr ""
+"仅预览模式：\n"
+"被加载的文件仅包含G-Code，不支持进入准备页面"
 
 msgid "Some presets are modified."
 msgstr "预设已被修改。"
@@ -2885,10 +2884,10 @@ msgid "Only one G-code file can be opened at the same time."
 msgstr "只能同时打开一个G-code文件。"
 
 msgid "Can not add models when in preview mode!"
-msgstr ""
+msgstr "在预览模式不允许添加模型"
 
 msgid "Add Models"
-msgstr ""
+msgstr "添加模型"
 
 msgid "All objects will be removed, continue?"
 msgstr "即将删除所有对象，是否继续？"
@@ -6069,6 +6068,15 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Fragment filter"
+#~ msgstr "碎片过滤器"
+
+#~ msgid "Fragment Filter"
+#~ msgstr "碎片过滤器"
+
+#~ msgid "Position:"
+#~ msgstr "位置："
 
 #~ msgid "Updating Bambu Network plug-in"
 #~ msgstr "正在更新Bambu网络插件"

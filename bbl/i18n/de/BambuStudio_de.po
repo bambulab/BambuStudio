@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-22 09:48+0800\n"
+"POT-Creation-Date: 2022-07-22 13:25+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -43,8 +43,8 @@ msgstr "Alles gemalte löschen"
 msgid "Highlight overhang areas"
 msgstr "Bereiche mit Überhang hervorheben"
 
-msgid "Fragment filter"
-msgstr "Fragment filter"
+msgid "Gap fill"
+msgstr ""
 
 msgid "Perform"
 msgstr "Ausführen"
@@ -76,8 +76,8 @@ msgstr "Kugel"
 msgid "Fill"
 msgstr "Fill"
 
-msgid "Fragment Filter"
-msgstr "Fragment Filter"
+msgid "Gap Fill"
+msgstr ""
 
 msgid "Highlight faces according to overhang angle."
 msgstr "Markieren der Flächen entsprechend dem Überhangwinkel."
@@ -227,14 +227,11 @@ msgstr "Weltkoordinaten"
 msgid "°"
 msgstr "°"
 
-msgid "Position:"
-msgstr "Position:"
+msgid "Size"
+msgstr "Größe"
 
 msgid "%"
 msgstr "%"
-
-msgid "Size"
-msgstr "Größe"
 
 msgid "uniform scale"
 msgstr "einheitliche Skala"
@@ -1371,9 +1368,6 @@ msgstr ""
 msgid "File"
 msgstr "Datei"
 
-msgid "Finish"
-msgstr ""
-
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
 "program"
@@ -2493,6 +2487,9 @@ msgstr "Schließen"
 
 msgid "Monitoring"
 msgstr "Überwachung"
+
+msgid "Record monitor video"
+msgstr ""
 
 msgid "Printing Progress"
 msgstr "Druckprozess"
@@ -6473,6 +6470,15 @@ msgstr "Support: fix holes at layer %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
+
+#~ msgid "Fragment filter"
+#~ msgstr "Fragment filter"
+
+#~ msgid "Fragment Filter"
+#~ msgstr "Fragment Filter"
+
+#~ msgid "Position:"
+#~ msgstr "Position:"
 
 #~ msgid "Alt + Mouse wheel"
 #~ msgstr "Alt + Mausrad"
