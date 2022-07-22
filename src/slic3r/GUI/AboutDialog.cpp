@@ -277,13 +277,14 @@ AboutDialog::AboutDialog()
     {
         auto staticText = new wxStaticText( this, wxID_ANY, wxEmptyString,wxDefaultPosition,wxSize(FromDIP(520), -1), wxALIGN_LEFT );
         staticText->SetForegroundColour(wxColour(107, 107, 107));
+        staticText->SetMinSize(wxSize(FromDIP(520), -1));
         staticText->SetFont(Label::Body_12);
         if (is_zh) {
             wxString find_txt = "";
             wxString count_txt = "";
             for (auto  o = 0; o < text_list[i].length(); o++) {
                 auto size = staticText->GetTextExtent(count_txt);
-                if (size.x < FromDIP(516)) {
+                if (size.x < FromDIP(506)) {
                     find_txt += text_list[i][o];
                     count_txt += text_list[i][o];
                 } else {
@@ -294,10 +295,9 @@ AboutDialog::AboutDialog()
             staticText->SetLabel(find_txt);
         } else {
             staticText->SetLabel(text_list[i]);
+            staticText->Wrap(FromDIP(520));
         }
 
-        staticText->Wrap(FromDIP(520));
-        staticText->SetMinSize(wxSize(FromDIP(520), -1));
         text_sizer->Add( staticText, 0, wxUP | wxDOWN, FromDIP(3));
     }
 
