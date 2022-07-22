@@ -2186,10 +2186,10 @@ int MachineObject::parse_json(std::string payload)
 
                 } else if (jj["command"].get<std::string>() == "gcode_line") {
                     //ack of gcode_line
-                    BOOST_LOG_TRIVIAL(info) << "parse_json, ack of gcode_line = " << j.dump(4);
+                    BOOST_LOG_TRIVIAL(debug) << "parse_json, ack of gcode_line = " << j.dump(4);
                 } else if (jj["command"].get<std::string>() == "project_file") {
                     //ack of project file
-                    BOOST_LOG_TRIVIAL(info) << "parse_json, ack of project_file = " << j.dump(4);
+                    BOOST_LOG_TRIVIAL(debug) << "parse_json, ack of project_file = " << j.dump(4);
                     std::string result;
                     if (jj.contains("result")) {
                         result = jj["result"].get<std::string>();
@@ -2530,7 +2530,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
             if (obj->dev_connection_type.empty() && obj->bind_state.empty())
                 obj->bind_state = "free";
 
-            BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery:: Update Machine Info, printer_sn = " << dev_id << ", signal = " << printer_signal;
+            BOOST_LOG_TRIVIAL(debug) << "SsdpDiscovery:: Update Machine Info, printer_sn = " << dev_id << ", signal = " << printer_signal;
             obj->last_alive = Slic3r::Utils::get_current_time_utc();
             obj->m_is_online = true;
         }
@@ -2550,7 +2550,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
             localMachineList.insert(std::make_pair(dev_id, obj));
 
 
-            BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery::New Machine, ip = " << dev_ip << ", printer_name= " << dev_name << ", printer_type = " << printer_type_str << ", signal = " << printer_signal;
+            BOOST_LOG_TRIVIAL(debug) << "SsdpDiscovery::New Machine, ip = " << dev_ip << ", printer_name= " << dev_name << ", printer_type = " << printer_type_str << ", signal = " << printer_signal;
         }
     }
     catch (...) {
@@ -2839,7 +2839,7 @@ void DeviceManager::update_user_machine_list_info()
 {
     if (!m_agent) return;
 
-    BOOST_LOG_TRIVIAL(info) << "update_user_machine_list_info";
+    BOOST_LOG_TRIVIAL(debug) << "update_user_machine_list_info";
     unsigned int http_code;
     std::string body;
     int result = m_agent->get_user_print_info(&http_code, &body);

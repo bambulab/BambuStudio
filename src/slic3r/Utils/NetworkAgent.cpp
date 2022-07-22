@@ -915,7 +915,7 @@ int NetworkAgent::check_user_task_report(int* task_id, bool* printable)
     int ret = 0;
     if (network_agent && check_user_task_report_ptr) {
         ret = check_user_task_report_ptr(network_agent, task_id, printable);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, task_id=%3%, printable=%4%")%network_agent %ret %(*task_id) %(*printable);
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, task_id=%3%, printable=%4%")%network_agent %ret %(*task_id) %(*printable);
     }
     return ret;
 }
@@ -925,7 +925,7 @@ int NetworkAgent::get_user_print_info(unsigned int* http_code, std::string* http
     int ret = 0;
     if (network_agent && get_user_print_info_ptr) {
         ret = get_user_print_info_ptr(network_agent, http_code, http_body);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, http_code=%3%, http_body=%4%")%network_agent %ret %(*http_code) %(*http_body);
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, http_code=%3%, http_body=%4%")%network_agent %ret %(*http_code) %(*http_body);
     }
     return ret;
 }
@@ -935,7 +935,7 @@ int NetworkAgent::get_printer_firmware(std::string dev_id, unsigned* http_code, 
     int ret = 0;
     if (network_agent && get_printer_firmware_ptr) {
         ret = get_printer_firmware_ptr(network_agent, dev_id, http_code, http_body);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, http_code=%4%, http_body=%5%")
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, http_code=%4%, http_body=%5%")
                 %network_agent %ret %dev_id %(*http_code) %(*http_body);
     }
     return ret;
@@ -957,7 +957,7 @@ int NetworkAgent::get_slice_info(std::string project_id, std::string profile_id,
     int ret;
     if (network_agent && get_slice_info_ptr) {
         ret = get_slice_info_ptr(network_agent, project_id, profile_id, plate_index, slice_json);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, project_id=%2%, profile_id=%3%, plate_index=%4%, slice_json=%5%")
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, project_id=%2%, profile_id=%3%, plate_index=%4%, slice_json=%5%")
                 %network_agent %project_id %profile_id %plate_index %(*slice_json);
     }
     return ret;
