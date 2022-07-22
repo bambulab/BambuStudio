@@ -102,7 +102,8 @@ protected:
 
     wxStaticBitmap *m_bitmap_camera_img;
     wxStaticBitmap *m_bitmap_recording_img;
-    wxStaticBitmap *m_bitmap_sdcard_img;
+    wxStaticBitmap *m_bitmap_sdcard_on_img;
+    wxStaticBitmap *m_bitmap_sdcard_off_img;
 
 
     wxMediaCtrl2 *  m_media_ctrl;
