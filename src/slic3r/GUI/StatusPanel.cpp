@@ -1536,7 +1536,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
 
     if (obj->is_system_printing()) {
         reset_printing_values();
-    } else if (obj->is_in_printing() || obj->is_printing_finished()) {
+    } else if (obj->is_in_printing() || obj->print_status == "FINISH") {
         if (obj->is_in_prepare()) {
             m_button_abort->Enable(false);
             m_button_pause_resume->Enable(false);
