@@ -413,6 +413,8 @@ Sidebar::Sidebar(Plater *parent)
     // As a result we can see the empty block at the bottom of the sidebar
     // But if we set this value to 5, layout will be better
     p->scrolled->SetScrollRate(0, 5);
+    p->scrolled->SetBackgroundColour(*wxWHITE);
+
 
     SetFont(wxGetApp().normal_font());
 #ifndef __APPLE__
@@ -435,11 +437,8 @@ Sidebar::Sidebar(Plater *parent)
     wxColour active_text = wxColour(0, 0, 0);
     wxColour static_line_col = wxColour(166, 169, 170);
 
-    bool is_msw = false;
 #ifdef __WINDOWS__
     p->scrolled->SetDoubleBuffered(true);
-
-    is_msw = true;
 #endif //__WINDOWS__
 
     // add printer
