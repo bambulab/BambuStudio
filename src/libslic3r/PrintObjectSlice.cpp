@@ -761,13 +761,12 @@ bool doesVolumeIntersect(VolumeSlices& vs1, VolumeSlices& vs2)
 }
 
 //BBS: grouping the volumes of an object according to their connection relationship
-bool groupingVolumes(std::vector<VolumeSlices> objSliceByVolume, std::vector<groupedVolumeSlices>& groups)
+bool groupingVolumes(std::vector<VolumeSlices> objSliceByVolume, std::vector<groupedVolumeSlices>& groups, double resolution)
 {
     int existGroups = 0;
     std::vector<int> groupIndex(objSliceByVolume.size(), -1);
 
     double offsetValue = 0.4 / SCALING_FACTOR;
-    double resolution = 0.0125 / SCALING_FACTOR;
 
     for (int i = 0; i != objSliceByVolume.size(); ++i) {
         for (int j = 0; j != objSliceByVolume[i].slices.size(); ++j) {
@@ -844,6 +843,24 @@ std::vector<VolumeSlices> findPartVolumes(const std::vector<VolumeSlices>& objSl
     return outPut;
 }
 
+bool applyNegtiveVolumes(ModelVolumePtrs model_volumes, const std::vector<VolumeSlices>& objSliceByVolume, std::vector<groupedVolumeSlices>& groups, double resolution) {
+    ExPolygons negTotal;
+    for (const auto& vs : objSliceByVolume) {
+        for (const auto& mv : model_volumes) {
+            if (vs.volume_id == mv->id() && mv->is_negative_volume()) {
+                if (vs.slices.size() > 0) {
+                    append(negTotal, vs.slices.front());
+                }
+            }
+        }
+    }
+
+    for (auto& g : groups) {
+        g.slices = diff_ex(g.slices, negTotal);
+        for (ExPolygon& poly_ex : g.slices)
+            poly_ex.douglas_peucker(resolution);
+    }
+}
 // 1) Decides Z positions of the layers,
 // 2) Initializes layers and their regions
 // 3) Slices the object meshes
@@ -887,9 +904,10 @@ void PrintObject::slice_volumes()
     }
 
     //BBS: "model_part" volumes are grouded according to their connections
+    const auto           scaled_resolution = scaled<double>(print->config().resolution.value);
     std::vector<VolumeSlices> objSliceByVolumeParts = findPartVolumes(objSliceByVolume, this->model_object()->volumes);
-    groupingVolumes(objSliceByVolumeParts, firstLayerObjSliceByGroups);
-
+    groupingVolumes(objSliceByVolumeParts, firstLayerObjSliceByGroups, scaled_resolution);
+    applyNegtiveVolumes(this->model_object()->volumes, objSliceByVolume, firstLayerObjSliceByGroups, scaled_resolution);
 
     std::vector<std::vector<ExPolygons>> region_slices = slices_to_regions(this->model_object()->volumes, *m_shared_regions, slice_zs,
         std::move(objSliceByVolume),
