@@ -4554,13 +4554,13 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                         m_support_params.interface_angle + interface_angle_delta;
 
                 // BBS
-                bool has_top_interface = (m_object_config->support_interface_top_layers.value > 0 && &layer_ex == &top_contact_layer);
-                if (has_top_interface && angle_of_biggest_bridge >= 0.f) {
+                bool can_adjust_top_interface_angle = (m_object_config->support_interface_top_layers.value > 1 && &layer_ex == &top_contact_layer);
+                if (can_adjust_top_interface_angle && angle_of_biggest_bridge >= 0.f) {
                     int bridge_degree = (int)Geometry::rad2deg(angle_of_biggest_bridge);
                     int support_intf_degree = (int)Geometry::rad2deg(filler_interface->angle);
                     int max_included_degree = 0;
-                    int step = 45;
-                    for (int add_on_degree = 0; add_on_degree < 360; add_on_degree += step) {
+                    int step = 90;
+                    for (int add_on_degree = 0; add_on_degree < 180; add_on_degree += step) {
                         int degree_to_try = support_intf_degree + add_on_degree;
                         int included_degree = calc_included_angle_degree(bridge_degree, degree_to_try);
                         if (included_degree > max_included_degree) {
