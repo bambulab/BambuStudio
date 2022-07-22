@@ -170,7 +170,8 @@ void StatusBasePanel::init_bitmaps()
     m_thumbnail_sdcard       = create_scaled_bitmap("monitor_sdcard_thumbnail", nullptr, 120);
     //m_bitmap_camera          = create_scaled_bitmap("monitor_camera", nullptr, 18);
     m_bitmap_extruder        = *cache.load_png("monitor_extruder", FromDIP(28), FromDIP(70), false, false);
-    m_bitmap_sdcard_state    = create_scaled_bitmap("sdcard_state", nullptr, 16);
+    m_bitmap_sdcard_state_on    = create_scaled_bitmap("sdcard_state_on", nullptr, 16);
+    m_bitmap_sdcard_state_off    = create_scaled_bitmap("sdcard_state_off", nullptr, 16);
 }
 
 wxBoxSizer *StatusBasePanel::create_monitoring_page()
@@ -207,12 +208,8 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     //m_bitmap_camera_img->SetMinSize(wxSize(FromDIP(32), FromDIP(18)));
     //bSizer_monitoring_title->Add(m_bitmap_camera_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
-    m_bitmap_sdcard_img  = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, m_bitmap_sdcard_state, wxDefaultPosition, wxSize(FromDIP(32), FromDIP(16)), 0);
-
-   
+    m_bitmap_sdcard_img  = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, m_bitmap_sdcard_state_off, wxDefaultPosition, wxSize(FromDIP(32), FromDIP(16)), 0);
     m_bitmap_sdcard_img->SetMinSize(wxSize(FromDIP(32), FromDIP(16)));
-
-    m_bitmap_sdcard_img->Hide();
    
     m_timelapse_button = new CameraItem(m_panel_monitoring_title, "timelapse_off_normal", "timelapse_on_normal", "timelapse_off_hover", "timelapse_on_hover");
     m_timelapse_button->SetMinSize(wxSize(32, 24));
@@ -222,9 +219,12 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_recording_button->SetMinSize(wxSize(32, 24));
     m_recording_button->SetBackgroundColour(STATUS_TITLE_BG);
 
+    m_timelapse_button->SetToolTip(_L("Timelapse"));
+    m_recording_button->SetToolTip(_L("Record monitor video"));
+
     bSizer_monitoring_title->Add(m_bitmap_sdcard_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    bSizer_monitoring_title->Add(m_recording_button, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     bSizer_monitoring_title->Add(m_timelapse_button, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    bSizer_monitoring_title->Add(m_recording_button, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     bSizer_monitoring_title->Add(FromDIP(13), 0, 0);
 
@@ -870,13 +870,20 @@ void StatusBasePanel::upodate_camera_state(bool recording, bool timelapse, bool 
 {
 
     //sdcard
-    if (has_sdcard && !m_bitmap_sdcard_img->IsShown()) {
+   /* if (has_sdcard && !m_bitmap_sdcard_img->IsShown()) {
         m_bitmap_sdcard_img->Show();
         m_panel_monitoring_title->Layout();
     }
     if (!has_sdcard && m_bitmap_sdcard_img->IsShown()) {
         m_bitmap_sdcard_img->Hide();
         m_panel_monitoring_title->Layout();
+    }*/
+
+    if (has_sdcard) {
+        m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_on); 
+    }
+    if (!has_sdcard) { 
+        m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_off); 
     }
 
      //recording
@@ -1248,11 +1255,16 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     if (!obj) return;
 
     if (obj->has_ams()) {
-        m_button_unload->Hide();
-        m_button_unload->GetParent()->Layout();
+        if (m_button_unload->IsShown()) {
+            m_button_unload->Hide();
+            m_button_unload->GetParent()->Layout();
+        }
+       
     } else {
-        m_button_unload->Show();
-        m_button_unload->GetParent()->Layout();
+        if (!m_button_unload->IsShown()) {
+            m_button_unload->Show();
+            m_button_unload->GetParent()->Layout();
+        } 
     }
 
     // nozzle fan

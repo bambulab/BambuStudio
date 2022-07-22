@@ -87,7 +87,8 @@ protected:
     CameraItem *m_recording_button;
 
     wxBitmap m_bitmap_camera;
-    wxBitmap m_bitmap_sdcard_state;
+    wxBitmap m_bitmap_sdcard_state_on;
+    wxBitmap m_bitmap_sdcard_state_off;
 
     /* title panel */
     wxPanel *       media_ctrl_panel;
