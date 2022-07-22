@@ -1053,7 +1053,7 @@ void GUI_App::post_init()
         });
     }
 
-    if(m_agent) {
+    if(!m_networking_need_update && m_agent) {
         m_agent->set_on_ssdp_msg_fn(
             [this](std::string json_str) {
                 GUI::wxGetApp().CallAfter([this, json_str] {
