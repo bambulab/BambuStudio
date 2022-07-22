@@ -41,7 +41,9 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     m_status_bar    = std::make_shared<BBLStatusBarSend>(this);
     m_panel_download = m_status_bar->get_panel();
-
+    m_panel_download->SetSize(wxSize(FromDIP(340), -1));
+    m_panel_download->SetMinSize(wxSize(FromDIP(340), -1));
+    m_panel_download->SetMaxSize(wxSize(FromDIP(340), -1));
     m_sizer_main->Add(m_panel_download, 0, wxALIGN_CENTER_VERTICAL|wxALL, FromDIP(20));
     m_sizer_main->Add(0, 0, 1, wxBOTTOM, 10);
 
@@ -57,7 +59,7 @@ bool DownloadProgressDialog::Show(bool show)
         m_upgrade_job = std::make_shared<UpgradeNetworkJob>(m_status_bar);
         m_upgrade_job->set_event_handle(this);
         Bind(EVT_UPGRADE_NETWORK_SUCCESS, [this](wxCommandEvent& evt) {
-            m_status_bar->change_button_label(_L("Finish"));
+            m_status_bar->change_button_label(_L("Finished"));
             wxGetApp().restart_networking();
             m_status_bar->set_cancel_callback_fina(
                 [this]() {
@@ -66,8 +68,11 @@ bool DownloadProgressDialog::Show(bool show)
             );
         });
         m_status_bar->set_cancel_callback_fina([this]() {
-            if (m_upgrade_job)
+            if (m_upgrade_job) {
                 m_upgrade_job->cancel();
+                //EndModal(wxID_CLOSE);
+            }
+                
         });
         m_upgrade_job->start();
     }

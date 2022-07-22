@@ -76,6 +76,9 @@ void UpgradeNetworkJob::process()
     
     if (was_canceled()) {
         update_status(0, _L("Cancelled"));
+        wxCommandEvent event(wxEVT_CLOSE_WINDOW);
+        event.SetEventObject(m_event_handle);
+        wxPostEvent(m_event_handle, event);
         return;
     }
 
@@ -89,6 +92,9 @@ void UpgradeNetworkJob::process()
 
     if (was_canceled()) {
         update_status(0, _L("Cancelled"));
+        wxCommandEvent event(wxEVT_CLOSE_WINDOW);
+        event.SetEventObject(m_event_handle);
+        wxPostEvent(m_event_handle, event);
         return;
     }
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-21 16:27+0800\n"
+"POT-Creation-Date: 2022-07-22 09:48+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -422,9 +422,6 @@ msgstr ""
 msgid "Downloading Bambu Network plug-in"
 msgstr ""
 
-msgid "Updating Bambu Network plug-in"
-msgstr ""
-
 #, possible-c-format, possible-boost-format
 msgid "Connect %s[SN:%s] failed!"
 msgstr ""
@@ -451,6 +448,12 @@ msgid "Click to download new version in default browser: %s"
 msgstr ""
 
 msgid "The Bambu Studio needs an upgrade"
+msgstr ""
+
+msgid "This is the newest version."
+msgstr ""
+
+msgid "Info"
 msgstr ""
 
 msgid "Loading user presets..."
@@ -480,12 +483,6 @@ msgid ""
 msgstr ""
 
 msgid "Login information expired. Please login again."
-msgstr ""
-
-msgid "This is the newest version."
-msgstr ""
-
-msgid "Info"
 msgstr ""
 
 msgid "Loading"
@@ -1170,6 +1167,21 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr ""
 
+msgid "Downloading"
+msgstr ""
+
+msgid "Download failed"
+msgstr ""
+
+msgid "Cancelled"
+msgstr ""
+
+msgid "Finished"
+msgstr ""
+
+msgid "Installing"
+msgstr ""
+
 msgid "Portions copyright"
 msgstr ""
 
@@ -1282,6 +1294,9 @@ msgid ""
 msgstr ""
 
 msgid "File"
+msgstr ""
+
+msgid "Finish"
 msgstr ""
 
 msgid ""
@@ -1967,9 +1982,6 @@ msgid "Waiting"
 msgstr ""
 
 msgid "Sending"
-msgstr ""
-
-msgid "Finished"
 msgstr ""
 
 msgid "Please fill report first."

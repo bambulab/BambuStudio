@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-21 16:27+0800\n"
+"POT-Creation-Date: 2022-07-22 09:48+0800\n"
 "PO-Revision-Date: 2022-07-21 12:22+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -426,9 +426,6 @@ msgstr "Bambu Studio捕捉到一个未处理的异常：%1%"
 msgid "Downloading Bambu Network plug-in"
 msgstr "正在下载Bambu网络插件"
 
-msgid "Updating Bambu Network plug-in"
-msgstr "正在更新Bambu网络插件"
-
 #, c-format, boost-format
 msgid "Connect %s[SN:%s] failed!"
 msgstr "连接 %s[SN:%s]失败."
@@ -458,6 +455,12 @@ msgstr "在默认浏览器中点击下载最新版本: %s"
 msgid "The Bambu Studio needs an upgrade"
 msgstr "Bambu Studio需要进行升级"
 
+msgid "This is the newest version."
+msgstr "已经是最新版本。"
+
+msgid "Info"
+msgstr "信息"
+
 msgid "Loading user presets..."
 msgstr "正在加载用户预设..."
 
@@ -486,12 +489,6 @@ msgstr "Bambu Studio版本过低，需要更新到最新版本方可正常使用
 
 msgid "Login information expired. Please login again."
 msgstr "登录信息过期。请重新登录。"
-
-msgid "This is the newest version."
-msgstr "已经是最新版本。"
-
-msgid "Info"
-msgstr "信息"
 
 msgid "Loading"
 msgstr "载入中"
@@ -1178,6 +1175,21 @@ msgstr "已发送完成，即将自动跳转到设备页面（%s秒）"
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "需要插入SD卡后方可发送局域网打印"
 
+msgid "Downloading"
+msgstr "下载中"
+
+msgid "Download failed"
+msgstr "下载失败"
+
+msgid "Cancelled"
+msgstr "已取消"
+
+msgid "Finished"
+msgstr "完成"
+
+msgid "Installing"
+msgstr "安装中"
+
 msgid "Portions copyright"
 msgstr "部分版权"
 
@@ -1305,6 +1317,9 @@ msgstr "AMS不会在启动时自动读取耗材丝信息。它会使用上次关
 
 msgid "File"
 msgstr "文件"
+
+msgid "Finish"
+msgstr ""
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -2043,9 +2058,6 @@ msgstr "等待中"
 
 msgid "Sending"
 msgstr "发送中"
-
-msgid "Finished"
-msgstr "完成"
 
 msgid "Please fill report first."
 msgstr "请先填写报告。"
@@ -6057,6 +6069,9 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Updating Bambu Network plug-in"
+#~ msgstr "正在更新Bambu网络插件"
 
 #~ msgid ""
 #~ "An object is layed over the boundary of plate.\n"

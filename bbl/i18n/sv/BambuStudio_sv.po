@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-21 16:27+0800\n"
+"POT-Creation-Date: 2022-07-22 09:48+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -425,9 +425,6 @@ msgstr "Bambu Studio har ett ohanterat undantag: %1%"
 msgid "Downloading Bambu Network plug-in"
 msgstr ""
 
-msgid "Updating Bambu Network plug-in"
-msgstr ""
-
 #, c-format, boost-format
 msgid "Connect %s[SN:%s] failed!"
 msgstr ""
@@ -460,6 +457,12 @@ msgstr "Tryck på ladda ner ny version ifrån standard webbläsaren: %s"
 msgid "The Bambu Studio needs an upgrade"
 msgstr "Bambu Studio behöver uppdateras"
 
+msgid "This is the newest version."
+msgstr "Det är den senaste versionen."
+
+msgid "Info"
+msgstr "Info"
+
 msgid "Loading user presets..."
 msgstr "Laddar användar inställningarna..."
 
@@ -490,12 +493,6 @@ msgstr ""
 
 msgid "Login information expired. Please login again."
 msgstr "Inloggningsinformationen har löpt ut. Logga in igen."
-
-msgid "This is the newest version."
-msgstr "Det är den senaste versionen."
-
-msgid "Info"
-msgstr "Info"
 
 msgid "Loading"
 msgstr "Laddar"
@@ -1208,6 +1205,21 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr ""
 
+msgid "Downloading"
+msgstr ""
+
+msgid "Download failed"
+msgstr ""
+
+msgid "Cancelled"
+msgstr ""
+
+msgid "Finished"
+msgstr "Finished"
+
+msgid "Installing"
+msgstr ""
+
 msgid "Portions copyright"
 msgstr "License Info"
 
@@ -1339,6 +1351,9 @@ msgstr ""
 
 msgid "File"
 msgstr "Fil"
+
+msgid "Finish"
+msgstr ""
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -2092,9 +2107,6 @@ msgstr "Waiting"
 
 msgid "Sending"
 msgstr "Sending"
-
-msgid "Finished"
-msgstr "Finished"
 
 msgid "Please fill report first."
 msgstr "Fyll i rapporten först."
