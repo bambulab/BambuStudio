@@ -2040,14 +2040,6 @@ bool SelectMachineDialog::Show(bool show)
         update_user_machine_list();
     }
 
-    NetworkAgent *agent = Slic3r::GUI::wxGetApp().getAgent();
-    if (agent) {
-        if (show)
-            agent->start_subscribe("send_print");
-        else
-            agent->stop_subscribe("send_print");
-    }
-
     if (show) {
         m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
     } else {
