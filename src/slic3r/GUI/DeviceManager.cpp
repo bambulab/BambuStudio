@@ -1009,7 +1009,10 @@ PrintingSpeedLevel MachineObject::_parse_printing_speed_lvl(int lvl)
 
 bool MachineObject::is_sdcard_printing()
 {
-    if (can_abort() && obj_subtask_id.compare("0") == 0 && profile_id_ == "0" && project_id_ == "0")
+    if (can_abort()
+        && (obj_subtask_id.compare("0") == 0 || obj_subtask_id.empty())
+        && (profile_id_ == "0" || profile_id_.empty())
+        && (project_id_ == "0" || project_id_.empty()))
         return true;
     else
         return false;
