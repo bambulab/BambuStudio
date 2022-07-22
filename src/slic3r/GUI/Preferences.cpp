@@ -472,7 +472,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
         if (param == "sync_user_preset") {
             bool sync = app_config->get("sync_user_preset") == "true" ? true : false;
             if (sync) {
-                wxGetApp().start_sync_user_preset();
+                wxGetApp().start_sync_user_preset(true);
             } else {
                 wxGetApp().stop_sync_user_preset();
             }
