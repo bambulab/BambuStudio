@@ -823,7 +823,7 @@ bool groupingVolumes(std::vector<VolumeSlices> objSliceByVolume, std::vector<gro
         }
 
         // the slices of a group should be unioned
-        gvs.slices = offset_ex(union_ex(gvs.slices), -offsetValue);       
+        gvs.slices = offset_ex(union_ex(gvs.slices), -offsetValue);
         for (ExPolygon& poly_ex : gvs.slices)
             poly_ex.douglas_peucker(resolution);
 
@@ -843,7 +843,7 @@ std::vector<VolumeSlices> findPartVolumes(const std::vector<VolumeSlices>& objSl
     return outPut;
 }
 
-bool applyNegtiveVolumes(ModelVolumePtrs model_volumes, const std::vector<VolumeSlices>& objSliceByVolume, std::vector<groupedVolumeSlices>& groups, double resolution) {
+void applyNegtiveVolumes(ModelVolumePtrs model_volumes, const std::vector<VolumeSlices>& objSliceByVolume, std::vector<groupedVolumeSlices>& groups, double resolution) {
     ExPolygons negTotal;
     for (const auto& vs : objSliceByVolume) {
         for (const auto& mv : model_volumes) {
