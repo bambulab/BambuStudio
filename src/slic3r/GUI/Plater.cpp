@@ -447,7 +447,7 @@ Sidebar::Sidebar(Plater *parent)
         // 1.1 create title bar resources
         p->m_panel_printer_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE);
         p->m_panel_printer_title->SetBackgroundColor(title_bg);
-        p->m_panel_printer_title->SetBackgroundColor(0xF1F1F1);
+        p->m_panel_printer_title->SetBackgroundColor2(0xF1F1F1);
 
         p->m_printer_icon = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "printer");
         p->m_text_printer_settings = new wxStaticText(p->m_panel_printer_title, wxID_ANY, _L("Printer"), wxDefaultPosition, wxDefaultSize, 0);
@@ -518,7 +518,6 @@ Sidebar::Sidebar(Plater *parent)
         bed_type_title->Wrap(-1);
         bed_type_title->SetFont(Label::Body_14);
         m_bed_type_list = new ComboBox(p->m_panel_printer_content, wxID_ANY, wxString(""), wxDefaultPosition, {-1, FromDIP(30)}, 0, nullptr, wxCB_READONLY);
-        DynamicPrintConfig& config = wxGetApp().preset_bundle->project_config;
         const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
         if (bed_type_def && bed_type_def->enum_keys_map) {
             for (auto item : *bed_type_def->enum_keys_map)
@@ -539,7 +538,7 @@ Sidebar::Sidebar(Plater *parent)
     // add filament title
     p->m_panel_filament_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE);
     p->m_panel_filament_title->SetBackgroundColor(title_bg);
-    p->m_panel_filament_title->SetBackgroundColor(0xF1F1F1);
+    p->m_panel_filament_title->SetBackgroundColor2(0xF1F1F1);
 
     wxBoxSizer* bSizer39;
     bSizer39 = new wxBoxSizer( wxHORIZONTAL );
