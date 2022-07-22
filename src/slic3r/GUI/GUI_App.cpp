@@ -1399,6 +1399,8 @@ void GUI_App::restart_networking()
         m_agent->start_discovery(true, false);
         if (mainframe)
             mainframe->refresh_plugin_tips();
+        if (plater_)
+            plater_->get_notification_manager()->bbl_close_plugin_install_notification();
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format("exit, m_agent=%1%")%m_agent;
 }
