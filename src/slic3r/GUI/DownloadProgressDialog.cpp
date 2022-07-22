@@ -68,7 +68,8 @@ bool DownloadProgressDialog::Show(bool show)
                 }
             );
         });
-        Bind(EVT_UPGRADE_NETWORK_FAILED, [this]() {
+
+        Bind(EVT_UPGRADE_NETWORK_FAILED, [this](wxCommandEvent& evt) {
             m_status_bar->change_button_label(_L("Close"));
             m_status_bar->set_progress(0);
             m_status_bar->set_cancel_callback_fina(

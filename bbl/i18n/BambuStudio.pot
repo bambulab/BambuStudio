@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-22 17:27+0800\n"
+"POT-Creation-Date: 2022-07-22 18:39+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1296,6 +1296,9 @@ msgstr ""
 msgid "File"
 msgstr ""
 
+msgid "Close"
+msgstr ""
+
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
 "program"
@@ -1969,36 +1972,6 @@ msgid ""
 "on the printer, as shown in the figure:"
 msgstr ""
 
-msgid "Creating"
-msgstr ""
-
-msgid "Uploading"
-msgstr ""
-
-msgid "Waiting"
-msgstr ""
-
-msgid "Sending"
-msgstr ""
-
-msgid "Finished"
-msgstr ""
-
-msgid "Please fill report first."
-msgstr ""
-
-msgid "Unable to create zip file"
-msgstr ""
-
-msgid "Enter a search term"
-msgstr ""
-
-msgid "Online"
-msgstr ""
-
-msgid "Offline"
-msgstr ""
-
 msgid "Application is closing"
 msgstr ""
 
@@ -2018,9 +1991,6 @@ msgid "Device"
 msgstr ""
 
 msgid "Project"
-msgstr ""
-
-msgid "Debug"
 msgstr ""
 
 msgid "Slice"
@@ -2326,9 +2296,6 @@ msgid "Options:"
 msgstr ""
 
 msgid "Swap Y/Z axes"
-msgstr ""
-
-msgid "Close"
 msgstr ""
 
 msgid "Camera"
@@ -3186,6 +3153,12 @@ msgstr ""
 
 #, possible-boost-format
 msgid "Simply switch to \"%1%\""
+msgstr ""
+
+msgid "Online"
+msgstr ""
+
+msgid "Offline"
 msgstr ""
 
 msgid "My Device"

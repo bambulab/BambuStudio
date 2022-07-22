@@ -9,6 +9,7 @@ namespace GUI {
 
 wxDEFINE_EVENT(EVT_UPGRADE_UPDATE_MESSAGE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPGRADE_NETWORK_SUCCESS, wxCommandEvent);
+wxDEFINE_EVENT(EVT_UPGRADE_NETWORK_FAILED, wxCommandEvent);
 
 
 UpgradeNetworkJob::UpgradeNetworkJob(std::shared_ptr<ProgressIndicator> pri)

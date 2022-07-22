@@ -2,13 +2,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-22 17:27+0800\n"
+"POT-Creation-Date: 2022-07-22 18:39+0800\n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Localazy (https://localazy.com)\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
+"X-Generator: Poedit 3.1\n"
 
 msgid "Supports Painting"
 msgstr "Onderteuning (Support) tekenen"
@@ -1040,7 +1043,7 @@ msgid "Click the pencil icon to edit the filament."
 msgstr "Klik op het potlood icoon om het filament aan te passen."
 
 msgid "Load Filament"
-msgstr "Filament laden"
+msgstr "Load"
 
 msgid "Unload Filament"
 msgstr "Unload"
@@ -1372,6 +1375,9 @@ msgstr ""
 
 msgid "File"
 msgstr "Bestand"
+
+msgid "Close"
+msgstr "Sluiten"
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -2123,36 +2129,6 @@ msgstr ""
 "You can find it in \"Settings > Network > Connection code\"\n"
 "on the printer, as shown in the figure:"
 
-msgid "Creating"
-msgstr "Creating"
-
-msgid "Uploading"
-msgstr "Uploading"
-
-msgid "Waiting"
-msgstr "Waiting"
-
-msgid "Sending"
-msgstr "Sending"
-
-msgid "Finished"
-msgstr "Finished"
-
-msgid "Please fill report first."
-msgstr "Gelieve eerst het rapport in te vullen."
-
-msgid "Unable to create zip file"
-msgstr "Unable to create zip file"
-
-msgid "Enter a search term"
-msgstr "Enter a search term"
-
-msgid "Online"
-msgstr "Online"
-
-msgid "Offline"
-msgstr "Offline"
-
 msgid "Application is closing"
 msgstr "De toepassing wordt afgesloten"
 
@@ -2173,9 +2149,6 @@ msgstr "Device"
 
 msgid "Project"
 msgstr "Project"
-
-msgid "Debug"
-msgstr "Debuggen"
 
 msgid "Slice"
 msgstr "Slice"
@@ -2481,9 +2454,6 @@ msgstr "Opties:"
 
 msgid "Swap Y/Z axes"
 msgstr "Wissel Y/Z assen om"
-
-msgid "Close"
-msgstr "Sluiten"
 
 msgid "Camera"
 msgstr ""
@@ -3396,6 +3366,12 @@ msgstr ""
 #, boost-format
 msgid "Simply switch to \"%1%\""
 msgstr "Schakel eenvoudig over naar \"%1%\""
+
+msgid "Online"
+msgstr "Online"
+
+msgid "Offline"
+msgstr "Offline"
 
 msgid "My Device"
 msgstr "Mijn apparaat"
@@ -6504,6 +6480,33 @@ msgstr "Support: fix holes at layer %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
+
+#~ msgid "Creating"
+#~ msgstr "Creating"
+
+#~ msgid "Uploading"
+#~ msgstr "Uploading"
+
+#~ msgid "Waiting"
+#~ msgstr "Waiting"
+
+#~ msgid "Sending"
+#~ msgstr "Sending"
+
+#~ msgid "Finished"
+#~ msgstr "Finished"
+
+#~ msgid "Please fill report first."
+#~ msgstr "Gelieve eerst het rapport in te vullen."
+
+#~ msgid "Unable to create zip file"
+#~ msgstr "Unable to create zip file"
+
+#~ msgid "Enter a search term"
+#~ msgstr "Enter a search term"
+
+#~ msgid "Debug"
+#~ msgstr "Debuggen"
 
 #~ msgid "Monitoring"
 #~ msgstr "Monitoren"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-22 17:27+0800\n"
+"POT-Creation-Date: 2022-07-22 18:39+0800\n"
 "PO-Revision-Date: 2022-07-22 13:28+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1228,8 +1228,8 @@ msgid ""
 "Bambu Studio is based on PrusaSlicer by PrusaResearch and SuperSlicer by "
 "Merill(supermerill)."
 msgstr ""
-"Bambu Studio是以PrusaResearch的PrusaSlicer和Merill的"
-"SuperSlicer（supermerill）为基础的。"
+"Bambu Studio是以PrusaResearch的PrusaSlicer和Merill的SuperSlicer"
+"（supermerill）为基础的。"
 
 msgid "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
 msgstr "MerillPrusasicle最初是以Alessandro Ranellucci为基础的Slic3r。"
@@ -1317,6 +1317,9 @@ msgstr "AMS不会在启动时自动读取耗材丝信息。它会使用上次关
 
 msgid "File"
 msgstr "文件"
+
+msgid "Close"
+msgstr "关闭"
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -2044,36 +2047,6 @@ msgstr ""
 "你可以在打印机“设置->网络->连接->访问码\"\n"
 "查看，如下图所示："
 
-msgid "Creating"
-msgstr "正在创建"
-
-msgid "Uploading"
-msgstr "正在上传"
-
-msgid "Waiting"
-msgstr "等待中"
-
-msgid "Sending"
-msgstr "发送中"
-
-msgid "Finished"
-msgstr "完成"
-
-msgid "Please fill report first."
-msgstr "请先填写报告。"
-
-msgid "Unable to create zip file"
-msgstr "无法创建zip压缩文件"
-
-msgid "Enter a search term"
-msgstr "输入搜索内容"
-
-msgid "Online"
-msgstr "在线"
-
-msgid "Offline"
-msgstr "离线"
-
 msgid "Application is closing"
 msgstr "正在关闭应用程序"
 
@@ -2094,9 +2067,6 @@ msgstr "设备"
 
 msgid "Project"
 msgstr "项目"
-
-msgid "Debug"
-msgstr "调试"
 
 msgid "Slice"
 msgstr "切片"
@@ -2407,9 +2377,6 @@ msgstr "选项："
 
 msgid "Swap Y/Z axes"
 msgstr "交换Y/Z轴"
-
-msgid "Close"
-msgstr "关闭"
 
 msgid "Camera"
 msgstr "摄像机"
@@ -3271,6 +3238,12 @@ msgstr "为“%1%”，添加“%2%”为一个新预设"
 #, boost-format
 msgid "Simply switch to \"%1%\""
 msgstr "直接切换到“%1%”"
+
+msgid "Online"
+msgstr "在线"
+
+msgid "Offline"
+msgstr "离线"
 
 msgid "My Device"
 msgstr "我的设备"
@@ -6074,6 +6047,33 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Creating"
+#~ msgstr "正在创建"
+
+#~ msgid "Uploading"
+#~ msgstr "正在上传"
+
+#~ msgid "Waiting"
+#~ msgstr "等待中"
+
+#~ msgid "Sending"
+#~ msgstr "发送中"
+
+#~ msgid "Finished"
+#~ msgstr "完成"
+
+#~ msgid "Please fill report first."
+#~ msgstr "请先填写报告。"
+
+#~ msgid "Unable to create zip file"
+#~ msgstr "无法创建zip压缩文件"
+
+#~ msgid "Enter a search term"
+#~ msgstr "输入搜索内容"
+
+#~ msgid "Debug"
+#~ msgstr "调试"
 
 #~ msgid "Monitoring"
 #~ msgstr "实时视频"

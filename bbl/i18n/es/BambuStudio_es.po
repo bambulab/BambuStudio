@@ -2,13 +2,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-22 17:27+0800\n"
+"POT-Creation-Date: 2022-07-22 18:39+0800\n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Localazy (https://localazy.com)\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
+"X-Generator: Poedit 3.1\n"
 
 msgid "Supports Painting"
 msgstr "Pintando Soportes"
@@ -1033,7 +1036,7 @@ msgid "Click the pencil icon to edit the filament."
 msgstr "Haga clic en el icono del lápiz para editar el filamento."
 
 msgid "Load Filament"
-msgstr "Cargar filamento"
+msgstr "Load"
 
 msgid "Unload Filament"
 msgstr "Unload"
@@ -1365,6 +1368,9 @@ msgstr ""
 
 msgid "File"
 msgstr "Archivo"
+
+msgid "Close"
+msgstr "Cerrar"
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -2120,36 +2126,6 @@ msgstr ""
 "You can find it in \"Settings > Network > Connection code\"\n"
 "on the printer, as shown in the figure:"
 
-msgid "Creating"
-msgstr "Creando"
-
-msgid "Uploading"
-msgstr "Subiendo"
-
-msgid "Waiting"
-msgstr "Esperando"
-
-msgid "Sending"
-msgstr "Enviando"
-
-msgid "Finished"
-msgstr "Terminado"
-
-msgid "Please fill report first."
-msgstr "Por favor, rellene primero el informe."
-
-msgid "Unable to create zip file"
-msgstr "Unable to create zip file"
-
-msgid "Enter a search term"
-msgstr "Teclea un término de búsqueda"
-
-msgid "Online"
-msgstr "En línea"
-
-msgid "Offline"
-msgstr "Fuera de línea"
-
 msgid "Application is closing"
 msgstr "La aplicación se está cerrando"
 
@@ -2170,9 +2146,6 @@ msgstr "Device"
 
 msgid "Project"
 msgstr "Proyecto"
-
-msgid "Debug"
-msgstr "Depurar"
 
 msgid "Slice"
 msgstr "Laminar"
@@ -2478,9 +2451,6 @@ msgstr "Opciones:"
 
 msgid "Swap Y/Z axes"
 msgstr "Intercambiar los ejes Y/Z"
-
-msgid "Close"
-msgstr "Cerrar"
 
 msgid "Camera"
 msgstr ""
@@ -3378,6 +3348,12 @@ msgstr "Para \"%1%\", añada \"%2%\" como un nuevo preajuste"
 #, boost-format
 msgid "Simply switch to \"%1%\""
 msgstr "Simplemente cambia a \"%1%\""
+
+msgid "Online"
+msgstr "En línea"
+
+msgid "Offline"
+msgstr "Fuera de línea"
 
 msgid "My Device"
 msgstr "Mi dispositivo"
@@ -6455,6 +6431,33 @@ msgstr "Soporte: arreglar huecos en la capa %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Soporte: propagar ramas en la capa %d"
+
+#~ msgid "Creating"
+#~ msgstr "Creando"
+
+#~ msgid "Uploading"
+#~ msgstr "Subiendo"
+
+#~ msgid "Waiting"
+#~ msgstr "Esperando"
+
+#~ msgid "Sending"
+#~ msgstr "Enviando"
+
+#~ msgid "Finished"
+#~ msgstr "Terminado"
+
+#~ msgid "Please fill report first."
+#~ msgstr "Por favor, rellene primero el informe."
+
+#~ msgid "Unable to create zip file"
+#~ msgstr "Unable to create zip file"
+
+#~ msgid "Enter a search term"
+#~ msgstr "Teclea un término de búsqueda"
+
+#~ msgid "Debug"
+#~ msgstr "Depurar"
 
 #~ msgid "Monitoring"
 #~ msgstr "Monitorizando"

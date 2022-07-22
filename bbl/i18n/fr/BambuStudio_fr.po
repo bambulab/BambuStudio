@@ -2,13 +2,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-22 17:27+0800\n"
+"POT-Creation-Date: 2022-07-22 18:39+0800\n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Localazy (https://localazy.com)\n"
 "Plural-Forms: nplurals=2; plural=(n==0 || n==1) ? 0 : 1;\n"
+"X-Generator: Poedit 3.1\n"
 
 msgid "Supports Painting"
 msgstr "Prend en charge la peinture"
@@ -815,11 +818,13 @@ msgstr "Nom"
 msgid "%1$d error repaired"
 msgid_plural "%1$d errors repaired"
 msgstr[0] "%1$d erreur réparée"
+msgstr[1] ""
 
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold edge."
 msgid_plural "Error: %1$d non-manifold edges."
 msgstr[0] "Erreur : %1$d arête non multiple."
+msgstr[1] ""
 
 msgid "Remaining errors"
 msgstr "Erreurs restantes"
@@ -828,6 +833,7 @@ msgstr "Erreurs restantes"
 msgid "%1$d non-manifold edge"
 msgid_plural "%1$d non-manifold edges"
 msgstr[0] "%1$d arête non multiple"
+msgstr[1] ""
 
 msgid "Right click the icon to fix model object"
 msgstr "Cliquez avec le bouton droit sur l'icône pour fixer l'objet modèle"
@@ -932,10 +938,12 @@ msgstr "Réparer l'objet modèle"
 msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
 msgstr[0] "L'objet modèle suivant a été réparé"
+msgstr[1] ""
 
 msgid "Failed to repair folowing model object"
 msgid_plural "Failed to repair folowing model objects"
 msgstr[0] "Échec de la réparation de l'objet modèle suivant"
+msgstr[1] ""
 
 msgid "Repairing was canceled"
 msgstr "La réparation a été annulée"
@@ -1030,7 +1038,7 @@ msgid "Click the pencil icon to edit the filament."
 msgstr "Cliquez sur l'icône du crayon pour modifier le filament."
 
 msgid "Load Filament"
-msgstr "Charger le filament"
+msgstr "Load"
 
 msgid "Unload Filament"
 msgstr "Unload"
@@ -1361,6 +1369,9 @@ msgstr ""
 
 msgid "File"
 msgstr "Dossier"
+
+msgid "Close"
+msgstr "Fermer"
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -2097,36 +2108,6 @@ msgstr ""
 "You can find it in \"Settings > Network > Connection code\"\n"
 "on the printer, as shown in the figure:"
 
-msgid "Creating"
-msgstr "Creating"
-
-msgid "Uploading"
-msgstr "Téléchargement"
-
-msgid "Waiting"
-msgstr "Waiting"
-
-msgid "Sending"
-msgstr "Sending"
-
-msgid "Finished"
-msgstr "Terminé"
-
-msgid "Please fill report first."
-msgstr "Veuillez d'abord remplir le rapport."
-
-msgid "Unable to create zip file"
-msgstr "Unable to create zip file"
-
-msgid "Enter a search term"
-msgstr "Entrer un terme de recherche"
-
-msgid "Online"
-msgstr "En ligne"
-
-msgid "Offline"
-msgstr "Hors ligne"
-
 msgid "Application is closing"
 msgstr "L'application se ferme"
 
@@ -2148,9 +2129,6 @@ msgstr "Device"
 
 msgid "Project"
 msgstr "Projet"
-
-msgid "Debug"
-msgstr "Déboguer"
 
 msgid "Slice"
 msgstr "Découper"
@@ -2457,9 +2435,6 @@ msgstr "Options :"
 msgid "Swap Y/Z axes"
 msgstr "Permuter les axes Y/Z"
 
-msgid "Close"
-msgstr "Fermer"
-
 msgid "Camera"
 msgstr ""
 
@@ -2623,11 +2598,13 @@ msgstr "Ouvrir un répertoire."
 msgid "%1$d Object has custom supports."
 msgid_plural "%1$d Objects have custom supports."
 msgstr[0] "L'objet %1$d a des supports personnalisés."
+msgstr[1] ""
 
 #, c-format, boost-format
 msgid "%1$d Object has color painting."
 msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$d L'objet est peint en couleur."
+msgstr[1] ""
 
 msgid "Slice ok."
 msgstr "Slice complete"
@@ -3355,6 +3332,12 @@ msgstr "Pour \"%1%\", ajoutez \"%2%\" comme nouveau préréglage"
 msgid "Simply switch to \"%1%\""
 msgstr "Passez simplement à \"%1%\""
 
+msgid "Online"
+msgstr "En ligne"
+
+msgid "Offline"
+msgstr "Hors ligne"
+
 msgid "My Device"
 msgstr "Mon appareil"
 
@@ -3549,6 +3532,7 @@ msgstr[0] ""
 "La ligne suivante %s contient des mots clés réservés. Veuillez le supprimer, "
 "ou il battra la visualisation du code G et l'estimation du temps "
 "d'impression."
+msgstr[1] ""
 
 msgid "Reserved keywords found"
 msgstr "Mots clés réservés trouvés"
@@ -3714,6 +3698,7 @@ msgstr "Détaché"
 msgid "Following preset will be deleted too."
 msgid_plural "Following presets will be deleted too."
 msgstr[0] "Le préréglage suivant sera également supprimé."
+msgstr[1] ""
 
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
@@ -6449,6 +6434,33 @@ msgstr "Support: fix holes at layer %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
+
+#~ msgid "Creating"
+#~ msgstr "Creating"
+
+#~ msgid "Uploading"
+#~ msgstr "Téléchargement"
+
+#~ msgid "Waiting"
+#~ msgstr "Waiting"
+
+#~ msgid "Sending"
+#~ msgstr "Sending"
+
+#~ msgid "Finished"
+#~ msgstr "Terminé"
+
+#~ msgid "Please fill report first."
+#~ msgstr "Veuillez d'abord remplir le rapport."
+
+#~ msgid "Unable to create zip file"
+#~ msgstr "Unable to create zip file"
+
+#~ msgid "Enter a search term"
+#~ msgstr "Entrer un terme de recherche"
+
+#~ msgid "Debug"
+#~ msgstr "Déboguer"
 
 #~ msgid "Monitoring"
 #~ msgstr "Surveillance"
