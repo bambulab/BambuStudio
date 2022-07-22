@@ -22,6 +22,13 @@ void wxMediaCtrl2::Load(wxURI url)
         wxPostEvent(this, event);
         return;
     }
+
+    auto hModExe = LoadLibrary(NULL);
+    auto NvOptimusEnablement = (DWORD *) GetProcAddress(hModExe, "NvOptimusEnablement");
+    auto AmdPowerXpressRequestHighPerformance = (int *) GetProcAddress(hModExe, "AmdPowerXpressRequestHighPerformance");
+    if (NvOptimusEnablement) *NvOptimusEnablement = 0;
+    if (AmdPowerXpressRequestHighPerformance) *AmdPowerXpressRequestHighPerformance = 0;
+
     url = wxURI(url.BuildURI().append("&hwnd=").append(
         boost::lexical_cast<std::string>(GetHandle())));
 #endif
