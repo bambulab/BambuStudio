@@ -3316,6 +3316,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
         std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
         if (with_progress_dlg) {
             ProgressDialog dlg(_L("Loading"), "", 100, this->mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
+            dlg.Update(0, _L("Loading user preset"));
             m_agent->get_setting_list(version,
                             [this, &dlg](int percent){
                                 dlg.Update(percent, _L("Loading user preset"));
