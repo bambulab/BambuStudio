@@ -49,6 +49,7 @@ public:
 
 wxDECLARE_EVENT(EVT_UPGRADE_UPDATE_MESSAGE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPGRADE_NETWORK_SUCCESS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_UPGRADE_NETWORK_FAILED, wxCommandEvent);
 
 }} // namespace Slic3r::GUI
 

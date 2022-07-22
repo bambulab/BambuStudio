@@ -84,6 +84,9 @@ void UpgradeNetworkJob::process()
 
     if (result < 0) {
         update_status(curr_percent, _L("Download failed"));
+        wxCommandEvent event(EVT_UPGRADE_NETWORK_FAILED);
+        event.SetEventObject(m_event_handle);
+        wxPostEvent(m_event_handle, event);
         return;
     }
 
@@ -105,6 +108,9 @@ void UpgradeNetworkJob::process()
 
     if (result != 0) {
         update_status(curr_percent, _L("Install failed"));
+        wxCommandEvent event(EVT_UPGRADE_NETWORK_FAILED);
+        event.SetEventObject(m_event_handle);
+        wxPostEvent(m_event_handle, event);
         return;
     }
 

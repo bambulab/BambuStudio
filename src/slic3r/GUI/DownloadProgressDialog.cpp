@@ -58,6 +58,7 @@ bool DownloadProgressDialog::Show(bool show)
     if (show) {
         m_upgrade_job = std::make_shared<UpgradeNetworkJob>(m_status_bar);
         m_upgrade_job->set_event_handle(this);
+        m_status_bar->set_progress(0);
         Bind(EVT_UPGRADE_NETWORK_SUCCESS, [this](wxCommandEvent& evt) {
             m_status_bar->change_button_label(_L("Finish"));
             wxGetApp().restart_networking();
@@ -67,6 +68,16 @@ bool DownloadProgressDialog::Show(bool show)
                 }
             );
         });
+        Bind(EVT_UPGRADE_NETWORK_FAILED, [this]() {
+            m_status_bar->change_button_label(_L("Close"));
+            m_status_bar->set_progress(0);
+            m_status_bar->set_cancel_callback_fina(
+                [this]() {
+                    this->Close();
+                }
+            );
+        });
+
         m_status_bar->set_cancel_callback_fina([this]() {
             if (m_upgrade_job) {
                 m_upgrade_job->cancel();
