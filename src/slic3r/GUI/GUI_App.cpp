@@ -1027,7 +1027,7 @@ void GUI_App::post_init()
         int ret = updating_bambu_networking();
         if (!ret) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<":networking plugin updated successfully";
-            restart_networking();
+            //restart_networking();
         }
         else {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__<<":networking plugin updated failed";
