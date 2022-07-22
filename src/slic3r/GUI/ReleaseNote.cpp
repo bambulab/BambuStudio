@@ -148,12 +148,20 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_butto_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_butto_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
 
+    m_butto_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        EndModal(wxID_YES);
+    });
+
     auto m_button_cancel = new Button(this, _L("Cancel"));
     m_button_cancel->SetBackgroundColor(*wxWHITE);
     m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
     m_button_cancel->SetFont(Label::Body_12);
     m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+
+    m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
+        EndModal(wxID_NO); 
+    });
 
     sizer_button->Add(0, 0, 1, wxEXPAND, 5);
     sizer_button->Add(m_butto_ok, 0, wxALL, 5);
