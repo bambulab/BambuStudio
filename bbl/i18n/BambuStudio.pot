@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-22 13:25+0800\n"
+"POT-Creation-Date: 2022-07-22 17:09+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1173,7 +1173,7 @@ msgstr ""
 msgid "Cancelled"
 msgstr ""
 
-msgid "Finished"
+msgid "Finish"
 msgstr ""
 
 msgid "Installing"
@@ -1978,6 +1978,9 @@ msgstr ""
 msgid "Sending"
 msgstr ""
 
+msgid "Finished"
+msgstr ""
+
 msgid "Please fill report first."
 msgstr ""
 
@@ -2325,10 +2328,10 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-msgid "Monitoring"
+msgid "Camera"
 msgstr ""
 
-msgid "Record monitor video"
+msgid "Video"
 msgstr ""
 
 msgid "Printing Progress"

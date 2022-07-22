@@ -184,7 +184,7 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     wxBoxSizer *bSizer_monitoring_title;
     bSizer_monitoring_title = new wxBoxSizer(wxHORIZONTAL);
 
-    m_staticText_monitoring = new wxStaticText(m_panel_monitoring_title, wxID_ANY, _L("Monitoring"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    m_staticText_monitoring = new wxStaticText(m_panel_monitoring_title, wxID_ANY, _L("Camera"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
     m_staticText_monitoring->Wrap(-1);
     m_staticText_monitoring->SetFont(PAGE_TITLE_FONT);
     m_staticText_monitoring->SetForegroundColour(PAGE_TITLE_FONT_COL);
@@ -223,7 +223,7 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_recording_button->SetBackgroundColour(STATUS_TITLE_BG);
 
     m_timelapse_button->SetToolTip(_L("Timelapse"));
-    m_recording_button->SetToolTip(_L("Record monitor video"));
+    m_recording_button->SetToolTip(_L("Video"));
 
     bSizer_monitoring_title->Add(m_bitmap_sdcard_off_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     bSizer_monitoring_title->Add(m_bitmap_sdcard_on_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-22 13:25+0800\n"
+"POT-Creation-Date: 2022-07-22 17:09+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1225,8 +1225,8 @@ msgstr ""
 msgid "Cancelled"
 msgstr ""
 
-msgid "Finished"
-msgstr "Terminado"
+msgid "Finish"
+msgstr ""
 
 msgid "Installing"
 msgstr ""
@@ -2129,6 +2129,9 @@ msgstr "Esperando"
 msgid "Sending"
 msgstr "Enviando"
 
+msgid "Finished"
+msgstr "Terminado"
+
 msgid "Please fill report first."
 msgstr "Por favor, rellene primero el informe."
 
@@ -2476,10 +2479,10 @@ msgstr "Intercambiar los ejes Y/Z"
 msgid "Close"
 msgstr "Cerrar"
 
-msgid "Monitoring"
-msgstr "Monitorizando"
+msgid "Camera"
+msgstr ""
 
-msgid "Record monitor video"
+msgid "Video"
 msgstr ""
 
 msgid "Printing Progress"
@@ -6449,6 +6452,9 @@ msgstr "Soporte: arreglar huecos en la capa %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Soporte: propagar ramas en la capa %d"
+
+#~ msgid "Monitoring"
+#~ msgstr "Monitorizando"
 
 #~ msgid "Fragment filter"
 #~ msgstr "Fragment filter"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-22 13:25+0800\n"
+"POT-Creation-Date: 2022-07-22 17:09+0800\n"
 "PO-Revision-Date: 2022-07-22 13:28+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1181,7 +1181,7 @@ msgstr "下载失败"
 msgid "Cancelled"
 msgstr "已取消"
 
-msgid "Finished"
+msgid "Finish"
 msgstr "完成"
 
 msgid "Installing"
@@ -2053,6 +2053,9 @@ msgstr "等待中"
 msgid "Sending"
 msgstr "发送中"
 
+msgid "Finished"
+msgstr "完成"
+
 msgid "Please fill report first."
 msgstr "请先填写报告。"
 
@@ -2405,11 +2408,11 @@ msgstr "交换Y/Z轴"
 msgid "Close"
 msgstr "关闭"
 
-msgid "Monitoring"
-msgstr "实时视频"
+msgid "Camera"
+msgstr "摄像机"
 
-msgid "Record monitor video"
-msgstr "录制监控视频"
+msgid "Video"
+msgstr "录像"
 
 msgid "Printing Progress"
 msgstr "打印进度"
@@ -6068,6 +6071,12 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Monitoring"
+#~ msgstr "实时视频"
+
+#~ msgid "Record monitor video"
+#~ msgstr "录制监控视频"
 
 #~ msgid "Fragment filter"
 #~ msgstr "碎片过滤器"

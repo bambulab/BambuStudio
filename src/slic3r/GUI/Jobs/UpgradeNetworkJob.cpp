@@ -84,7 +84,7 @@ void UpgradeNetworkJob::process()
 
     wxGetApp().install_plugin([this](int state, int percent, bool&cancel) {
         if (state == InstallStatusInstallCompleted) {
-            update_status(percent, _L("Finished"));
+            update_status(percent, _L("Finish"));
         } else {
             update_status(percent, _L("Installing"));
         }

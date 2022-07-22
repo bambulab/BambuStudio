@@ -59,7 +59,7 @@ bool DownloadProgressDialog::Show(bool show)
         m_upgrade_job = std::make_shared<UpgradeNetworkJob>(m_status_bar);
         m_upgrade_job->set_event_handle(this);
         Bind(EVT_UPGRADE_NETWORK_SUCCESS, [this](wxCommandEvent& evt) {
-            m_status_bar->change_button_label(_L("Finished"));
+            m_status_bar->change_button_label(_L("Finish"));
             wxGetApp().restart_networking();
             m_status_bar->set_cancel_callback_fina(
                 [this]() {
