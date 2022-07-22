@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-22 17:09+0800\n"
+"POT-Creation-Date: 2022-07-22 17:27+0800\n"
 "PO-Revision-Date: 2022-07-22 13:28+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1186,6 +1186,9 @@ msgstr "完成"
 
 msgid "Installing"
 msgstr "安装中"
+
+msgid "Install failed"
+msgstr "安装失败"
 
 msgid "Portions copyright"
 msgstr "部分版权"

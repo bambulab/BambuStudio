@@ -307,7 +307,6 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
             event.SetEventObject(this);
             wxPostEvent(this, event);
         }
-        
     }
 
 }

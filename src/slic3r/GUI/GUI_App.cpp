@@ -1222,11 +1222,18 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
                 ;
             }
         }).on_error(
-            [](std::string body, std::string error, unsigned int status) {
+            [&result](std::string body, std::string error, unsigned int status) {
                 BOOST_LOG_TRIVIAL(error) << "" << body;
+                result = -1;
         }).perform_sync();
 
     bool cancel = false;
+    if (result < 0) {
+        if (pro_fn) pro_fn(InstallStatusDownloadFailed, 0, cancel);
+        return result;
+    }
+
+    
     if (download_url.empty()) {
         BOOST_LOG_TRIVIAL(info) << "[download_plugin]: no availaible plugin found for this app version: " << SLIC3R_VERSION;
         if (pro_fn) pro_fn(InstallStatusDownloadFailed, 0, cancel);
@@ -1276,10 +1283,8 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
         .on_error([&pro_fn, &result](std::string body, std::string error, unsigned int status) {
             bool cancel = false;
             if (pro_fn) pro_fn(InstallStatusDownloadFailed, 0, cancel);
-
             result = -1;
         });
-
     http.perform_sync();
     return result;
 }
@@ -1305,8 +1310,10 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
     mz_zip_archive archive;
     mz_zip_zero_struct(&archive);
     if (!open_zip_reader(&archive, target_file_path)) {
+        if (pro_fn) pro_fn(InstallStatusDownloadFailed, 0, cancel);
         return InstallStatusUnzipFailed;
     }
+
     mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
     mz_zip_archive_file_stat stat;
     for (mz_uint i = 0; i < num_entries; i++) {

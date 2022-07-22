@@ -61,9 +61,9 @@ void UpgradeNetworkJob::process()
     auto cancel_fn = [this]() {
         return was_canceled();
     };
-
-    wxGetApp().download_plugin(
-        [this](int state, int percent, bool &cancel) {
+    int curr_percent = 0;
+    result = wxGetApp().download_plugin(
+        [this, &curr_percent](int state, int percent, bool &cancel) {
             if (state == InstallStatusNormal) {
                 update_status(percent, _L("Downloading"));
             } else if (state == InstallStatusDownloadFailed) {
@@ -71,8 +71,8 @@ void UpgradeNetworkJob::process()
             } else {
                 update_status(percent, _L("Downloading"));
             }
+            curr_percent = percent;
         }, cancel_fn);
-
     
     if (was_canceled()) {
         update_status(0, _L("Cancelled"));
@@ -82,7 +82,12 @@ void UpgradeNetworkJob::process()
         return;
     }
 
-    wxGetApp().install_plugin([this](int state, int percent, bool&cancel) {
+    if (result < 0) {
+        update_status(curr_percent, _L("Download failed"));
+        return;
+    }
+
+    result = wxGetApp().install_plugin([this](int state, int percent, bool&cancel) {
         if (state == InstallStatusInstallCompleted) {
             update_status(percent, _L("Finish"));
         } else {
@@ -95,6 +100,11 @@ void UpgradeNetworkJob::process()
         wxCommandEvent event(wxEVT_CLOSE_WINDOW);
         event.SetEventObject(m_event_handle);
         wxPostEvent(m_event_handle, event);
+        return;
+    }
+
+    if (result != 0) {
+        update_status(curr_percent, _L("Install failed"));
         return;
     }
 
