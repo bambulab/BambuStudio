@@ -1,13 +1,7 @@
 #!/bin/bash
 
-# Our sysctl call may be run as normal user,
-# but /sbin is not always in normal users' PATH.
-if [[ -f /sbin/sysctl && -x /sbin/sysctl ]]; then sysctl_bin=/sbin/sysctl
-else sysctl_bin=sysctl  # If not found in sbin, hope
-fi
-
-export ROOT=`pwd`
-export NCORES=`"$sysctl_bin" -n hw.ncpu`
+export ROOT=$(echo $ROOT | grep . || pwd)
+export NCORES=`nproc --all`
 
 while getopts ":ih" opt; do
   case ${opt} in
@@ -37,7 +31,7 @@ echo -n "[9/9] Generating Linux app..."
     cp -Rf ../resources package/resources
     cp -f src/@SLIC3R_APP_CMD@ package/bin/@SLIC3R_APP_CMD@
     # remove unneeded po from resources
-    find package/resources/localization -name "*.po" -type f -delete
+    ## find package/resources/localization -name "*.po" -type f -delete ## FIXME: DD - do we need this?
 
     # create bin
     echo -e '#!/bin/bash\nDIR=$(readlink -f "$0" | xargs dirname)\nexport LD_LIBRARY_PATH="$DIR/bin"\nexec "$DIR/bin/@SLIC3R_APP_CMD@" "$@"' >@SLIC3R_APP_CMD@
