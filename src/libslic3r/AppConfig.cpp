@@ -528,13 +528,14 @@ std::string AppConfig::load()
 
 void AppConfig::save()
 {
+#ifdef WIN32 // Doesn't work correctly on Linux, if we change OUTPUT_NAME and SLIC3R_APP_CMD to bambustudio_main, get_current_thread_name returns "bambustudio_mai"
     {
         // Returns "undefined" if the thread naming functionality is not supported by the operating system.
         std::optional<std::string> current_thread_name = get_current_thread_name();
         if (current_thread_name && *current_thread_name != "bambustudio_main")
             throw CriticalException("Calling AppConfig::save() from a worker thread!");
     }
-
+#endif
     // The config is first written to a file with a PID suffix and then moved
     // to avoid race conditions with multiple instances of Slic3r
     const auto path = config_path();
