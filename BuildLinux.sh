@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e # exit on first error
 
 export ROOT=`pwd`
 export NCORES=`nproc --all`
@@ -60,11 +61,18 @@ then
     mkdir build
 fi
 
+# Addtional Dev packages for BambuStudio 
+export REQUIRED_DEV_PACKAGES="libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev"
+# libwebkit2gtk-4.1-dev ??
+export DEV_PACKAGES_COUNT=$(echo ${REQUIRED_DEV_PACKAGES} | wc -w)
+if [ $(dpkg --get-selections | grep -E "$(echo ${REQUIRED_DEV_PACKAGES} | tr ' ' '|')" | wc -l) -lt ${DEV_PACKAGES_COUNT} ]; then
+    sudo apt install -y ${REQUIRED_DEV_PACKAGES} git cmake
+fi
 
 if [[ -n "$UPDATE_LIB" ]]
 then
     echo -n -e "Updating linux ...\n"
-    hwclock -s
+    # hwclock -s # DeftDawg: Why does SuperSlicer want to do this?
     apt update
     if [[ -z "$FOUND_GTK3" ]]
     then
@@ -89,8 +97,8 @@ then
     exit 0
 fi
 
-FOUND_GTK2_DEV=$(dpkg -l libgtk* | grep gtk2.0-dev)
-FOUND_GTK3_DEV=$(dpkg -l libgtk* | grep gtk-3-dev)
+FOUND_GTK2_DEV=$(dpkg -l libgtk* | grep gtk2.0-dev || echo '')
+FOUND_GTK3_DEV=$(dpkg -l libgtk* | grep gtk-3-dev || echo '')
 echo "FOUND_GTK2=$FOUND_GTK2)"
 if [[ -z "$FOUND_GTK2_DEV" ]]
 then
@@ -151,22 +159,23 @@ then
         echo "[4/9] Building dependencies..."
         make -j$NCORES
         echo "done"
-        
-        # rename wxscintilla
-        echo "[5/9] Renaming wxscintilla library..."
-        pushd destdir/usr/local/lib
-            if [[ -z "$FOUND_GTK3_DEV" ]]
-            then
-                cp libwxscintilla-3.1.a libwx_gtk2u_scintilla-3.1.a
-            else
-                cp libwxscintilla-3.1.a libwx_gtk3u_scintilla-3.1.a
-            fi
-        popd
-        echo "done"
-        
+
+        # rename wxscintilla # TODO: DeftDawg: Does BambuStudio need this?
+        # echo "[5/9] Renaming wxscintilla library..."
+        # pushd destdir/usr/local/lib
+        #     if [[ -z "$FOUND_GTK3_DEV" ]]
+        #     then
+        #         cp libwxscintilla-3.1.a libwx_gtk2u_scintilla-3.1.a
+        #     else
+        #         cp libwxscintilla-3.1.a libwx_gtk3u_scintilla-3.1.a
+        #     fi
+        # popd
+        # echo "done"
+
+        # FIXME: only clean deps if compiling succeeds; otherwise reruns waste tonnes of time!
         # clean deps
-        echo "[6/9] Cleaning dependencies..."
-        rm -rf dep_*
+        # echo "[6/9] Cleaning dependencies..."
+        # rm -rf dep_*
     popd
     echo "done"
 fi
@@ -191,10 +200,10 @@ then
         
         # make Slic3r
         echo "[8/9] Building Slic3r..."
-        make -j$NCORES Slic3r
+        make -j$NCORES BambuStudio # Slic3r
 
         # make .mo
-        make gettext_po_to_mo
+        # make gettext_po_to_mo # FIXME: DeftDawg: complains about msgfmt not existing even in SuperSlicer, did this ever work?
     
     popd
     echo "done"
