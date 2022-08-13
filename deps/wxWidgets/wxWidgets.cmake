@@ -1,4 +1,8 @@
-set(_wx_git_tag v3.1.5)
+# set(_wx_git_tag v3.1.5) # Does not link -ldep-name-NOTFOUND (see deps/build/dep_wxWidgets-prefix/src/dep_wxWidgets-build/wx-config --libs all | grep NOTFOUND)
+# set(_wx_git_tag v3.1.4-patched) # Links, but Bambu's slic3r_gui depends on wxWebView methods in >=3.1.5 like SetUserAgent
+# set(_wx_git_tag v3.1.6) # wx includes nanosvg, which creates link conflicts (multiple definition) with slic3r which also uses nanosvg, wx nanosvg can't be disabled
+# set(_wx_git_tag v3.1.7) # wx includes nanosvg, which creates link conflicts ( multiple definition) with slic3r which also uses nanosvg, segfaults if nanosvg disabled
+set(_wx_git_tag v3.2.0) # Starts, but gives unhandled AppConfig::Save() exception
 
 set(_wx_toolkit "")
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -18,7 +22,8 @@ endif ()
 bambustudio_add_cmake_project(wxWidgets
     GIT_REPOSITORY "https://github.com/wxWidgets/wxWidgets"
     GIT_TAG ${_wx_git_tag}
-    PATCH_COMMAND ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wxWidget-fix.patch
+    # PATCH_COMMAND ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wxWidget-fix.patch
+
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} dep_TIFF dep_JPEG
     CMAKE_ARGS
         -DwxBUILD_PRECOMP=ON
@@ -45,6 +50,7 @@ bambustudio_add_cmake_project(wxWidgets
         -DwxUSE_LIBJPEG=sys
         -DwxUSE_LIBTIFF=sys
         -DwxUSE_EXPAT=sys
+        -DwxUSE_NANOSVG=OFF # Required for wx >=3.1.7 # TODO: refactor to use /src/nanosvg for wx and libSlic3r_gui
 )
 
 if (MSVC)
