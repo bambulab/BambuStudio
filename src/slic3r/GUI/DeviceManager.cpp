@@ -105,6 +105,44 @@ wxString get_stage_string(int stage)
 
 namespace Slic3r {
 
+bool DeviceManager::func_support_table[PRINTER_3DPrinter_MAX][FUNC_MAX] = {
+    // PRINTER_3DPrinter_UKNOWN
+    {
+        true,       // FUNC_MONITORING
+        true,       // FUNC_TIMELAPSE
+        true,       // FUNC_FIRSTLAYER_INSPECT
+        true        // FUNC_SPAGHETTI
+    },
+    // PRINTER_3DPrinter_NONE
+    {
+        true,       // FUNC_MONITORING
+        true,       // FUNC_TIMELAPSE
+        true,       // FUNC_FIRSTLAYER_INSPECT
+        true        // FUNC_SPAGHETTI
+    },
+    // PRINTER_3DPrinter_X1_Carbon
+    {
+        true,       // FUNC_MONITORING
+        true,       // FUNC_TIMELAPSE
+        true,       // FUNC_FIRSTLAYER_INSPECT
+        true        // FUNC_SPAGHETTI
+    },
+    // PRINTER_3DPrinter_X1
+    {
+        true,       // FUNC_MONITORING
+        true,       // FUNC_TIMELAPSE
+        true,       // FUNC_FIRSTLAYER_INSPECT
+        true        // FUNC_SPAGHETTI
+    },
+    // PRINTER_3DPrinter_P1
+    {
+        false,       // FUNC_MONITORING
+        false,       // FUNC_TIMELAPSE
+        false,       // FUNC_FIRSTLAYER_INSPECT
+        false        // FUNC_SPAGHETTI
+    }
+};
+
 /* Common Functions */
 void split_string(std::string s, std::vector<std::string>& v) {
 
@@ -1693,6 +1731,16 @@ bool MachineObject::is_info_ready()
         return true;
     }
     return false;
+}
+
+bool MachineObject::is_function_supported(PrinterFunction func)
+{
+    if (printer_type < PRINTER_3DPrinter_MAX && func < FUNC_MAX)
+        return DeviceManager::func_support_table[(int)printer_type][func];
+    else {
+        BOOST_LOG_TRIVIAL(warning) << "printer_type or printer_func is unspported: " << printer_type << ", " << func;
+        return true;
+    }
 }
 
 int MachineObject::publish_json(std::string json_str, int qos)

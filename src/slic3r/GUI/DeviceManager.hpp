@@ -36,11 +36,12 @@ wxString get_stage_string(int stage);
 namespace Slic3r {
 
 enum PRINTER_TYPE {
-    PRINTER_3DPrinter_UKNOWN,
+    PRINTER_3DPrinter_UKNOWN = 0,
     PRINTER_3DPrinter_NONE,
     PRINTER_3DPrinter_X1_Carbon,    // BL-P001
     PRINTER_3DPrinter_X1,           // BL-P002
     PRINTER_3DPrinter_P1,           // BL-P003
+    PRINTER_3DPrinter_MAX,
 };
 
 enum PRINTING_STAGE {
@@ -60,6 +61,14 @@ enum PRINTING_STAGE {
     PRINTING_STAGE_TOOHEAD_HOMING,
     PRINTING_STAGE_NOZZLE_TIP_CLEANING,
     PRINTING_STAGE_COUNT
+};
+
+enum PrinterFunction {
+    FUNC_MONITORING = 0,
+    FUNC_TIMELAPSE,
+    FUNC_FIRSTLAYER_INSPECT,
+    FUNC_SPAGHETTI,
+    FUNC_MAX
 };
 
 
@@ -571,6 +580,7 @@ public:
     void set_online_state(bool on_off);
     bool is_online() { return m_is_online; }
     bool is_info_ready();
+    bool is_function_supported(PrinterFunction func);
 
 
     /* Msg for display MsgFn */
@@ -633,6 +643,9 @@ public:
     // get alive machine
     std::map<std::string, MachineObject*> get_local_machine_list();
     void load_last_machine();
+
+    // static
+    static bool func_support_table[PRINTER_3DPrinter_MAX][FUNC_MAX];
 };
 
 } // namespace Slic3r
