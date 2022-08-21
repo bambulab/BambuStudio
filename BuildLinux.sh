@@ -66,7 +66,7 @@ export REQUIRED_DEV_PACKAGES="libmspack-dev libgstreamerd-3-dev libsecret-1-dev 
 # libwebkit2gtk-4.1-dev ??
 export DEV_PACKAGES_COUNT=$(echo ${REQUIRED_DEV_PACKAGES} | wc -w)
 if [ $(dpkg --get-selections | grep -E "$(echo ${REQUIRED_DEV_PACKAGES} | tr ' ' '|')" | wc -l) -lt ${DEV_PACKAGES_COUNT} ]; then
-    sudo apt install -y ${REQUIRED_DEV_PACKAGES} git cmake wget
+    sudo apt install -y ${REQUIRED_DEV_PACKAGES} git cmake wget file
 fi
 
 #FIXME: require root for -u option

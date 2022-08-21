@@ -2,7 +2,7 @@
 # build:
 # sudo podman build . -t bambu-studio
 # download built AppImage
-# sudo podman run -it --rm localhost/bambu-studio /bin/bash -c 'tar -c $(find build | grep ubu64.AppImage | head -1)' | tar -x
+# sudo podman run -it --rm localhost/bambu-studio /bin/bash -c 'tar -c $(find build | grep ubu64.AppImage | head -1)' | tar -xv
 #
 # Debugging: sudo podman run -it localhost/bambu-studio /bin/bash
 

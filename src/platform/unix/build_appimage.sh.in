@@ -25,6 +25,6 @@ MimeType=model/stl;application/vnd.ms-3mfdocument;application/prs.wavefront-obj;
 EOF
 
 
-../appimagetool.AppImage .
+../appimagetool.AppImage . $([ ! -z "${container}" ] && echo '--appimage-extract-and-run')
 mv @SLIC3R_APP_KEY@-x86_64.AppImage ${APP_IMAGE}
 chmod +x ${APP_IMAGE}
