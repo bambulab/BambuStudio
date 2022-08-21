@@ -1,10 +1,10 @@
 # Build Bambu Slicer in a container
-# build:
-# sudo podman build . -t bambu-studio
-# download built AppImage
-# sudo podman run -it --rm localhost/bambu-studio /bin/bash -c 'tar -c $(find build | grep ubu64.AppImage | head -1)' | tar -xv
 #
-# Debugging: sudo podman run -it localhost/bambu-studio /bin/bash
+# Build an AppImage:
+# rm -rf build; sudo podman build .. -t bambu-studio  &&  sudo podman run --rm localhost/bambu-studio /bin/bash -c 'tar -c $(find build | grep ubu64.AppImage | head -1)' | tar -xv
+#
+# Troubleshooting:
+# sudo podman run -it localhost/bambu-studio /bin/bash
 
 FROM docker.io/ubuntu:kinetic
 LABEL maintainer "DeftDawg <DeftDawg@gmail.com>"
@@ -40,4 +40,5 @@ RUN ./BuildLinux.sh -d
 RUN ./BuildLinux.sh -s
 
 # Build AppImage
+ENV container podman
 RUN ./BuildLinux.sh -i
