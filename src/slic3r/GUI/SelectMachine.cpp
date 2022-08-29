@@ -1025,7 +1025,10 @@ void SelectMachineDialog::update_select_layout(PRINTER_TYPE type)
     } else if (type == PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon) {
         select_bed->Show();
         select_flow->Show();
-    } else if (type == PRINTER_TYPE::PRINTER_3DPrinter_P1) {
+    } else if (type == PRINTER_TYPE::PRINTER_3DPrinter_C11) {
+        select_bed->Show();
+        select_flow->Show(false);
+    } else if (type == PRINTER_TYPE::PRINTER_3DPrinter_C12) {
         select_bed->Show();
         select_flow->Show(false);
     } else if (type == PRINTER_TYPE::PRINTER_3DPrinter_NONE) {

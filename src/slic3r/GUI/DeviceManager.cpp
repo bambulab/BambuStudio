@@ -134,7 +134,14 @@ bool DeviceManager::func_support_table[PRINTER_3DPrinter_MAX][FUNC_MAX] = {
         true,       // FUNC_FIRSTLAYER_INSPECT
         true        // FUNC_SPAGHETTI
     },
-    // PRINTER_3DPrinter_P1
+    // PRINTER_3DPrinter_C11
+    {
+        false,       // FUNC_MONITORING
+        false,       // FUNC_TIMELAPSE
+        false,       // FUNC_FIRSTLAYER_INSPECT
+        false        // FUNC_SPAGHETTI
+    },
+    // PRINTER_3DPrinter_C12
     {
         false,       // FUNC_MONITORING
         false,       // FUNC_TIMELAPSE
@@ -300,11 +307,19 @@ wxString HMSItem::get_hms_msg_level_str(HMSMessageLevel level)
 PRINTER_TYPE MachineObject::parse_printer_type(std::string type_str)
 {
     if (type_str.compare("3DPrinter-P1") == 0) {
-        return PRINTER_TYPE::PRINTER_3DPrinter_P1;
+        return PRINTER_TYPE::PRINTER_3DPrinter_C12;
+    } else if (type_str.compare("BL-P003") == 0) {
+        return PRINTER_TYPE::PRINTER_3DPrinter_C12;
     } else if (type_str.compare("3DPrinter-X1") == 0) {
         return PRINTER_TYPE::PRINTER_3DPrinter_X1;
     } else if (type_str.compare("3DPrinter-X1-Carbon") == 0) {
         return PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon;
+    } else if (type_str.compare("BL-P001") == 0) {
+        return PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon;
+    } else if (type_str.compare("C11") == 0) {
+        return PRINTER_TYPE::PRINTER_3DPrinter_C11;
+    } else if (type_str.compare("C12") == 0) {
+        return PRINTER_TYPE::PRINTER_3DPrinter_C12;
     }
 
     BOOST_LOG_TRIVIAL(trace) << "unknown printer type: " << type_str;
@@ -313,8 +328,10 @@ PRINTER_TYPE MachineObject::parse_printer_type(std::string type_str)
 
 PRINTER_TYPE MachineObject::parse_iot_printer_type(std::string type_str)
 {
-    if (type_str.compare("BL-P003") == 0) {
-        return PRINTER_TYPE::PRINTER_3DPrinter_P1;
+    if (type_str.compare("C11") == 0) {
+        return PRINTER_TYPE::PRINTER_3DPrinter_C11;
+    } else if (type_str.compare("C12") == 0) {
+        return PRINTER_TYPE::PRINTER_3DPrinter_C12;
     } else if (type_str.compare("BL-P002") == 0) {
         return PRINTER_TYPE::PRINTER_3DPrinter_X1;
     } else if (type_str.compare("BL-P001") == 0) {
@@ -332,8 +349,10 @@ PRINTER_TYPE MachineObject::parse_preset_printer_type(std::string type_str)
 
 std::string MachineObject::get_preset_printer_model_name(PRINTER_TYPE printer_type)
 {
-    if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_P1) {
-        return "Bambu Lab P1";
+    if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_C12) {
+        return "Bambu Lab C12";
+    } else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_C11) {
+        return "Bambu Lab C11";
     } else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1) {
         return "Bambu Lab X1";
     } else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon) {
@@ -343,12 +362,27 @@ std::string MachineObject::get_preset_printer_model_name(PRINTER_TYPE printer_ty
     }
 }
 
-
+std::string MachineObject::get_dev_model_name(PRINTER_TYPE printer_type)
+{
+    if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_C11) {
+        return "C11";
+    } else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_C12) {
+        return "C12";
+    } else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1) {
+        return "BL-P002";
+    } else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon) {
+        return "BL-P001";
+    } else {
+        return "";
+    }
+}
 
 wxString MachineObject::get_printer_type_display_str()
 {
-    if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_P1)
-        return "Bambu Lab P1";
+    if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_C12)
+        return "Bambu Lab C12";
+    else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_C11)
+        return "Bambu Lab C11";
     else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1)
         return "Bambu Lab X1";
     else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon)
@@ -371,17 +405,6 @@ bool MachineObject::is_lan_mode_printer()
     if (connection_type() == "lan")
         return true;
     return result;
-}
-
-std::string MachineObject::get_printer_type_string()
-{
-    if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_P1)
-        return "3DPrinter-P1";
-    else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1)
-        return "3DPrinter-X1";
-    else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon)
-        return "3DPrinter-X1-Carbon";
-    return "3DPrinter";
 }
 
 MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip)

@@ -40,7 +40,8 @@ enum PRINTER_TYPE {
     PRINTER_3DPrinter_NONE,
     PRINTER_3DPrinter_X1_Carbon,    // BL-P001
     PRINTER_3DPrinter_X1,           // BL-P002
-    PRINTER_3DPrinter_P1,           // BL-P003
+    PRINTER_3DPrinter_C11,
+    PRINTER_3DPrinter_C12,
     PRINTER_3DPrinter_MAX,
 };
 
@@ -332,7 +333,6 @@ public:
     void set_access_code(std::string code);
     bool is_lan_mode_printer();
     PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
-    std::string get_printer_type_string();
     wxString get_printer_type_display_str();
 
     std::string product_name;       // set by iot service, get /user/print
