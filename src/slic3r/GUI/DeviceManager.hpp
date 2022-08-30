@@ -7,6 +7,7 @@
 #include <memory>
 #include <chrono>
 #include <boost/thread.hpp>
+#include "nlohmann/json.hpp"
 #include "libslic3r/ProjectTask.hpp"
 #include "slic3r/Utils/json_diff.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
@@ -32,18 +33,9 @@ inline int correct_filament_temperature(int filament_temp)
 
 wxString get_stage_string(int stage);
 
+using namespace nlohmann;
 
 namespace Slic3r {
-
-enum PRINTER_TYPE {
-    PRINTER_3DPrinter_UKNOWN = 0,
-    PRINTER_3DPrinter_NONE,
-    PRINTER_3DPrinter_X1_Carbon,    // BL-P001
-    PRINTER_3DPrinter_X1,           // BL-P002
-    PRINTER_3DPrinter_C11,
-    PRINTER_3DPrinter_C12,
-    PRINTER_3DPrinter_MAX,
-};
 
 enum PRINTING_STAGE {
     PRINTING_STAGE_PRINTING = 0,
@@ -67,8 +59,12 @@ enum PRINTING_STAGE {
 enum PrinterFunction {
     FUNC_MONITORING = 0,
     FUNC_TIMELAPSE,
+    FUNC_RECORDING,
     FUNC_FIRSTLAYER_INSPECT,
     FUNC_SPAGHETTI,
+    FUNC_FLOW_CALIBRATION,
+    FUNC_AUTO_LEVELING,
+    FUNC_CHAMBER_TEMP,
     FUNC_MAX
 };
 
@@ -311,10 +307,8 @@ public:
 
     /* static members and functions */
     static inline int m_sequence_id = 20000;
-    static PRINTER_TYPE parse_printer_type(std::string type_str);
-    static PRINTER_TYPE parse_iot_printer_type(std::string type_str);
-    static PRINTER_TYPE parse_preset_printer_type(std::string type_str);
-    static std::string get_preset_printer_model_name(PRINTER_TYPE printer_type);
+    static std::string parse_printer_type(std::string type_str);
+    static std::string get_preset_printer_model_name(std::string printer_type);
     static bool is_bbl_filament(std::string tag_uid);
 
     typedef std::function<void()> UploadedFn;
@@ -332,7 +326,8 @@ public:
     bool has_access_right() { return !access_code.empty(); }
     void set_access_code(std::string code);
     bool is_lan_mode_printer();
-    PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
+    //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
+    std::string printer_type;       /* model_id */
     wxString get_printer_type_display_str();
 
     std::string product_name;       // set by iot service, get /user/print
@@ -647,8 +642,12 @@ public:
     std::map<std::string, MachineObject*> get_local_machine_list();
     void load_last_machine();
 
-    // static
-    static bool func_support_table[PRINTER_3DPrinter_MAX][FUNC_MAX];
+    static json function_table;
+    static std::string parse_printer_type(std::string type_str);
+    static std::string get_printer_display_name(std::string type_str);
+    static bool is_function_supported(std::string type_str, std::string function_name);
+
+    static bool load_functional_config(std::string config_file);
 };
 
 } // namespace Slic3r
