@@ -362,21 +362,6 @@ std::string MachineObject::get_preset_printer_model_name(PRINTER_TYPE printer_ty
     }
 }
 
-std::string MachineObject::get_dev_model_name(PRINTER_TYPE printer_type)
-{
-    if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_C11) {
-        return "C11";
-    } else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_C12) {
-        return "C12";
-    } else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1) {
-        return "BL-P002";
-    } else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon) {
-        return "BL-P001";
-    } else {
-        return "";
-    }
-}
-
 wxString MachineObject::get_printer_type_display_str()
 {
     if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_C12)
