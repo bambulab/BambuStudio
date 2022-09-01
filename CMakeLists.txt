@@ -445,6 +445,14 @@ if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_CURL)
     endif()
 endif()
 
+IF(APPLE)
+    # Fix linking on libfreetype error for MacOS
+    find_package(Freetype REQUIRED)
+    get_filename_component(FREETYPE_LIBRARY_DIR ${FREETYPE_LIBRARIES} DIRECTORY)
+    LINK_DIRECTORIES(${FREETYPE_LIBRARY_DIR})
+    message("FREETYPE_LIBRARIES ${FREETYPE_LIBRARY_DIR}")
+ENDIF()
+
 ## OPTIONAL packages
 
 # Find eigen3 or use bundled version
