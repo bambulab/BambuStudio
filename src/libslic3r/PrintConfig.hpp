@@ -134,6 +134,12 @@ enum BrimType {
     btOuterAndInner,
 };
 
+enum TimelapseType {
+    tlClose,
+    tlSmooth,
+    tlTraditional
+};
+
 enum DraftShield {
     dsDisabled, dsLimited, dsEnabled
 };
@@ -241,6 +247,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SeamPosition)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLADisplayOrientation)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLAPillarConnectionMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BrimType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(TimelapseType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BedType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(DraftShield)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
@@ -580,6 +587,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               raft_first_layer_expansion))
     ((ConfigOptionInt,                 raft_layers))
     ((ConfigOptionEnum<SeamPosition>,  seam_position))
+    ((ConfigOptionFloat,               slice_closing_radius))
     ((ConfigOptionBool,                enable_support))
     // Automatic supports (generated based on support_threshold_angle).
     ((ConfigOptionEnum<SupportType>,   support_type))
@@ -861,7 +869,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     // BBS: not in any preset, calculated before slicing
     ((ConfigOptionBool,               has_prime_tower))
     ((ConfigOptionFloat,              nozzle_volume))
-    ((ConfigOptionBool,               timelapse_no_toolhead))
+    ((ConfigOptionEnum<TimelapseType>,    timelapse_type))
 
 )
 
@@ -886,6 +894,8 @@ PRINT_CONFIG_CLASS_DEFINE(
 
     //Number of the layers needed for the exposure time fade [3;20]
     ((ConfigOptionInt,  faded_layers))/*= 10*/
+
+    ((ConfigOptionFloat, slice_closing_radius))
 
     // Enabling or disabling support creation
     ((ConfigOptionBool,  supports_enable))

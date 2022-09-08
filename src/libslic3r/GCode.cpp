@@ -2504,6 +2504,14 @@ GCode::LayerResult GCode::process_layer(
             gcode += "; open powerlost recovery\n";
             gcode += "M1003 S1\n";
         }
+        // BBS: open first layer inspection at second layer
+        if (print.config().scan_first_layer.value) {
+            // BBS: retract first to avoid droping when scan model
+            gcode += this->retract();
+            gcode += "M976 S1 P1 ; scan model before printing 2nd layer\n";
+            gcode += "M400 P100\n";
+            gcode += this->unretract();
+        }
 
         //BBS:  reset acceleration at sencond layer
         if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
@@ -3024,18 +3032,6 @@ GCode::LayerResult GCode::process_layer(
 
     file.write(gcode);
 #endif
-
-    // BBS: scan model after print first layer
-    // Note: for sequential printing, every object will have this
-    if (print.config().scan_first_layer.value) {
-        if (first_layer) {
-            //BBS: retract first to avoid droping when scan model
-            gcode += this->retract();
-            gcode += "M976 S1 P1 ; scan model after print first layer\n";
-            gcode += "M400 P100\n";
-            gcode += this->unretract();
-        }
-    }
 
     BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z <<
     log_memory_info();
@@ -3836,8 +3832,8 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction)
     if (m_writer.extruder() == nullptr)
         return gcode;
 
-    // wipe (if it's enabled for this extruder and we have a stored wipe path)
-    if (EXTRUDER_CONFIG(wipe) && m_wipe.has_path()) {
+    // wipe (if it's enabled for this extruder and we have a stored wipe path and no-zero wipe distance)
+    if (EXTRUDER_CONFIG(wipe) && m_wipe.has_path() && scale_(EXTRUDER_CONFIG(wipe_distance)) > SCALED_EPSILON) {
         gcode += toolchange ? m_writer.retract_for_toolchange(true) : m_writer.retract(true);
         gcode += m_wipe.wipe(*this, toolchange, is_last_retraction);
     }
