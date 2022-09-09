@@ -204,10 +204,10 @@ MonitorPanel::~MonitorPanel()
 #if !BBL_RELEASE_TO_PUBLIC
     m_media_file_panel = new MediaFilePanel(m_tabpanel);
     m_tabpanel->AddPage(m_media_file_panel, _L("Media"), "", false);
+#endif
 
     m_upgrade_panel = new UpgradePanel(m_tabpanel);
     m_tabpanel->AddPage(m_upgrade_panel, _L("Update"), "", false);
-#endif
 
     m_hms_panel = new HMSPanel(m_tabpanel);
     m_tabpanel->AddPage(m_hms_panel, _L("HMS"),"", false);
@@ -261,8 +261,8 @@ void MonitorPanel::msw_rescale()
     m_status_info_panel->msw_rescale();
 #if !BBL_RELEASE_TO_PUBLIC
     m_media_file_panel->Rescale();
-    m_upgrade_panel->msw_rescale();
 #endif
+    m_upgrade_panel->msw_rescale();
     m_hms_panel->msw_rescale();
 
     m_connection_info->SetCornerRadius(0);
@@ -405,10 +405,7 @@ void MonitorPanel::update_all()
     }
 
     m_status_info_panel->obj = obj;
-#if !BBL_RELEASE_TO_PUBLIC
     m_upgrade_panel->update(obj);
-#endif
-
     
     m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
 #if !BBL_RELEASE_TO_PUBLIC
@@ -447,11 +444,10 @@ void MonitorPanel::update_all()
     if (m_hms_panel->IsShown()) {
         m_hms_panel->update(obj);
     }
-#if !BBL_RELEASE_TO_PUBLIC
+
     if (m_upgrade_panel->IsShown()) {
         m_upgrade_panel->update(obj);
     }
-#endif
 }
 
 bool MonitorPanel::Show(bool show)
@@ -518,9 +514,8 @@ void MonitorPanel::show_status(int status)
         m_connection_info->Show();
         m_connection_info->SetBackgroundColor(wxColour(255, 111, 0));
         m_connection_info->SetBorderColor(wxColour(255, 111, 0));
-#if !BBL_RELEASE_TO_PUBLIC
         m_upgrade_panel->update(nullptr);
-#endif
+
     } else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) {
         m_connection_info->Hide();
     } else if ((status & (int) MonitorStatus::MONITOR_CONNECTING) != 0) {
@@ -538,9 +533,7 @@ void MonitorPanel::show_status(int status)
         m_status_info_panel->show_status(status);
         m_tabpanel->Refresh();
         m_tabpanel->Layout();
-#if !BBL_RELEASE_TO_PUBLIC
         m_upgrade_panel->update(nullptr);
-#endif
     } else if (((status & (int)MonitorStatus::MONITOR_NORMAL) != 0)
         || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0)
         || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
