@@ -1569,10 +1569,6 @@ void PrintObject::bridge_over_infill()
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         const PrintRegion &region = this->printing_region(region_id);
 
-        // skip bridging in case there are no voids
-        if (region.config().sparse_infill_density.value == 100)
-            continue;
-
 		for (LayerPtrs::iterator layer_it = m_layers.begin(); layer_it != m_layers.end(); ++ layer_it) {
             // skip first layer
 			if (layer_it == m_layers.begin())
@@ -1582,6 +1578,19 @@ void PrintObject::bridge_over_infill()
             LayerRegion *layerm      = layer->m_regions[region_id];
             //BBS: enable thick bridge for internal bridge only
             Flow         bridge_flow = layerm->bridging_flow(frSolidInfill, true);
+
+            // Minimum width of a void for the extrusion above to be treated as a bridge.
+            // Scaled based on layer height, with a 3mm void at 0.2mm layer height as the baseline).
+            const float min_void_width = float(bridge_flow.scaled_width()) * 3.f * layerm->m_layer->height / 0.2;
+
+            // Skip bridging if the infill voids are small enough.
+            const float fill_density = region.config().sparse_infill_density.value / 100.0;
+            if (fill_density > 0.0) {
+                // Estimate the infill void width from infill density and extrusion width.
+                const float infill_extrusion_width = layerm->flow(frInfill).scaled_width();
+                if (min_void_width > (infill_extrusion_width / fill_density - infill_extrusion_width))
+                    continue;
+            }
 
             // extract the stInternalSolid surfaces that might be transformed into bridges
             Polygons internal_solid;
@@ -1615,10 +1624,7 @@ void PrintObject::bridge_over_infill()
                 //FIXME Vojtech: The offset2 function is not a geometric offset,
                 // therefore it may create 1) gaps, and 2) sharp corners, which are outside the original contour.
                 // The gaps will be filled by a separate region, which makes the infill less stable and it takes longer.
-                {
-                    float min_width = float(bridge_flow.scaled_width()) * 3.f;
-                    to_bridge_pp = opening(to_bridge_pp, min_width);
-                }
+                to_bridge_pp = opening(to_bridge_pp, min_void_width);
 
                 if (to_bridge_pp.empty()) continue;
 
@@ -2005,11 +2011,10 @@ void PrintObject::discover_horizontal_shells()
 #if 0
             if (region_config.solid_infill_every_layers.value > 0 && region_config.sparse_infill_density.value > 0 &&
                 (i % region_config.solid_infill_every_layers) == 0) {
-                // Insert a solid internal layer. Mark stInternal surfaces as stInternalSolid or stInternalBridge.
-                SurfaceType type = (region_config.sparse_infill_density == 100 || region_config.solid_infill_every_layers == 1) ? stInternalSolid : stInternalBridge;
+                // Insert a solid internal layer.
                 for (Surface &surface : layerm->fill_surfaces.surfaces)
                     if (surface.surface_type == stInternal)
-                        surface.surface_type = type;
+                        surface.surface_type = stInternalSolid;
             }
 #endif
 
