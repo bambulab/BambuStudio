@@ -62,6 +62,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
     static std::unordered_set<std::string> steps_gcode = {
         //BBS
         "additional_cooling_fan_speed",
+        "external_perimeter_fan",
+        "external_perimeter_fan_speed",
         "reduce_crossing_wall",
         "max_travel_detour_distance",
         "printable_area",

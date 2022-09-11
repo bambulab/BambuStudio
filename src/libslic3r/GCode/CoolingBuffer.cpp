@@ -722,7 +722,11 @@ std::string CoolingBuffer::apply_layer_cooldown(
     new_gcode.reserve(gcode.size() * 2);
     bool overhang_fan_control= false;
     int  overhang_fan_speed   = 0;
-    auto change_extruder_set_fan = [ this, layer_id, layer_time, &new_gcode, &overhang_fan_control, &overhang_fan_speed]() {
+    bool external_perimeter_fan = false;
+    int  external_perimeter_fan_speed = 0;
+    bool in_external_perimeter = false;
+    auto change_extruder_set_fan = [ this, layer_id, layer_time, &new_gcode, &overhang_fan_control, &overhang_fan_speed, &external_perimeter_fan, &external_perimeter_fan_speed, &in_external_perimeter]() {
+        in_external_perimeter = false;
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_current_extruder)
         int fan_min_speed = EXTRUDER_CONFIG(fan_min_speed);
         int fan_speed_new = EXTRUDER_CONFIG(reduce_fan_stop_start_freq) ? fan_min_speed : 0;
@@ -737,6 +741,8 @@ std::string CoolingBuffer::apply_layer_cooldown(
             close_fan_the_first_x_layers = 1;
         }
         if (int(layer_id) >= close_fan_the_first_x_layers) {
+            external_perimeter_fan = EXTRUDER_CONFIG(external_perimeter_fan);
+            external_perimeter_fan_speed = EXTRUDER_CONFIG(external_perimeter_fan_speed);
             int   fan_max_speed             = EXTRUDER_CONFIG(fan_max_speed);
             float slow_down_layer_time = float(EXTRUDER_CONFIG(slow_down_layer_time));
             float fan_cooling_layer_time      = float(EXTRUDER_CONFIG(fan_cooling_layer_time));
@@ -751,6 +757,9 @@ std::string CoolingBuffer::apply_layer_cooldown(
                     double t = (layer_time - slow_down_layer_time) / (fan_cooling_layer_time - slow_down_layer_time);
                     fan_speed_new = int(floor(t * fan_min_speed + (1. - t) * fan_max_speed) + 0.5);
                 }
+            // Use the higher of the adjusted speeds if both external perimeter and automatic cooling are enabled.
+            if (external_perimeter_fan && fan_speed_new > external_perimeter_fan_speed)
+                external_perimeter_fan_speed = fan_speed_new;
             //}
             overhang_fan_speed   = EXTRUDER_CONFIG(overhang_fan_speed);
             if (int(layer_id) >= close_fan_the_first_x_layers && int(layer_id) + 1 < full_fan_speed_layer) {
@@ -758,6 +767,7 @@ std::string CoolingBuffer::apply_layer_cooldown(
                 float factor = float(int(layer_id + 1) - close_fan_the_first_x_layers) / float(full_fan_speed_layer - close_fan_the_first_x_layers);
                 fan_speed_new    = std::clamp(int(float(fan_speed_new) * factor + 0.5f), 0, 255);
                 overhang_fan_speed = std::clamp(int(float(overhang_fan_speed) * factor + 0.5f), 0, 255);
+                external_perimeter_fan_speed = std::clamp(int(float(external_perimeter_fan_speed) * factor + 0.5f), 0, 255);
             }
 #undef EXTRUDER_CONFIG
             overhang_fan_control= overhang_fan_speed > fan_speed_new;
@@ -766,6 +776,7 @@ std::string CoolingBuffer::apply_layer_cooldown(
             overhang_fan_speed   = 0;
             fan_speed_new      = 0;
             additional_fan_speed_new = 0;
+            external_perimeter_fan_speed = 0;
         }
         if (fan_speed_new != m_fan_speed) {
             m_fan_speed = fan_speed_new;
@@ -786,6 +797,14 @@ std::string CoolingBuffer::apply_layer_cooldown(
     for (const CoolingLine *line : lines) {
         const char *line_start  = gcode.c_str() + line->line_start;
         const char *line_end    = gcode.c_str() + line->line_end;
+        // Adjust the fan speed for external perimeters only when the setting is enabled and we would need to adjust the speed.
+        bool adjust_fan_speed_on_external_perimeter = !!external_perimeter_fan_speed && m_fan_speed != external_perimeter_fan_speed;
+
+        if (adjust_fan_speed_on_external_perimeter) {
+            bool prev_in_external_perimeter = in_external_perimeter;
+            in_external_perimeter = line->type & CoolingLine::TYPE_EXTERNAL_PERIMETER;
+            adjust_fan_speed_on_external_perimeter = in_external_perimeter != prev_in_external_perimeter;
+        }
         if (line_start > pos)
             new_gcode.append(pos, line_start - pos);
         if (line->type & CoolingLine::TYPE_SET_TOOL) {
@@ -813,8 +832,11 @@ std::string CoolingBuffer::apply_layer_cooldown(
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
         }
         else if (line->type & CoolingLine::TYPE_EXTRUDE_END) {
-            // Just remove this comment.
+            if (adjust_fan_speed_on_external_perimeter)
+                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
         } else if (line->type & (CoolingLine::TYPE_ADJUSTABLE | CoolingLine::TYPE_EXTERNAL_PERIMETER | CoolingLine::TYPE_WIPE | CoolingLine::TYPE_HAS_F)) {
+            if (adjust_fan_speed_on_external_perimeter)
+                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, external_perimeter_fan_speed);
             // Find the start of a comment, or roll to the end of line.
             const char *end = line_start;
             for (; end < line_end && *end != ';'; ++ end);

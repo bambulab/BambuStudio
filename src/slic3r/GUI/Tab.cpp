@@ -2537,6 +2537,8 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("fan_max_speed"));
         line.append_option(optgroup->get_option("slow_down_layer_time"));
         optgroup->append_line(line);
+        optgroup->append_single_option_line("external_perimeter_fan");
+        optgroup->append_single_option_line("external_perimeter_fan_speed");
         optgroup->append_single_option_line("reduce_fan_stop_start_freq");
         optgroup->append_single_option_line("slow_down_for_layer_cooling", "auto-cooling");
         optgroup->append_single_option_line("slow_down_min_speed");
@@ -2648,6 +2650,9 @@ void TabFilament::toggle_options()
         bool has_enable_overhang_bridge_fan = m_config->opt_bool("enable_overhang_bridge_fan", 0);
         for (auto el : { "overhang_fan_speed", "overhang_fan_threshold" })
             toggle_option(el, has_enable_overhang_bridge_fan);
+
+        bool has_external_perimeter_fan = m_config->opt_bool("external_perimeter_fan", 0);
+        toggle_option("external_perimeter_fan_speed", has_external_perimeter_fan);
     }
 
     if (m_active_page->title() == "Setting Overrides")

@@ -1294,6 +1294,23 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(true));
 
+    def = this->add("external_perimeter_fan", coBools);
+    def->label = L("External perimeter fan");
+    def->tooltip = L("Use a seperate fan speed for external perimeters (visible ones). "
+                     "External perimeters can benefit from higher fan speed to improve surface finish, "
+                     "while internal perimeters, infill, etc. benefit from lower fan speed to improve layer adhesion.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBools{ false });
+
+    def = this->add("external_perimeter_fan_speed", coInts);
+    def->label = L("External perimeter fan speed");
+    def->tooltip = L("Fan speed for external perimeters.");
+    def->sidetext = L("%");
+    def->min = 0;
+    def->max = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInts{ 20 });
+
     def = this->add("gcode_flavor", coEnum);
     def->label = L("G-code flavor");
     def->tooltip = L("What kind of gcode the printer is compatible with");
