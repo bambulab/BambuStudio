@@ -17,6 +17,8 @@ static const wxColour TEXT_LIGHT_GRAY = wxColour(107, 107, 107);
 namespace Slic3r {
 namespace GUI {
 
+wxDEFINE_EVENT(EVT_PUBLISH_JOB_CANCEL, wxCommandEvent);
+
 static wxString PUBLISH_STEP_STRING[STEP_COUNT] = {
     _L("Slice all plate to obtain time and filament estimation"),
     _L("Packing project data into 3mf file"),
@@ -74,10 +76,8 @@ PublishDialog::PublishDialog(Plater *plater)
 
     m_progress_sizer->Add(FromDIP(20), 0, 0, wxEXPAND | wxALL, 0);
 
-    m_progress = new ProgressBar(this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize);
-    m_progress->SetHeight(FromDIP(8));
-    m_progress->SetFont(Label::Head_10);
-    m_progress_sizer->Add(m_progress, 1, wxALIGN_CENTER_VERTICAL | wxALL, 0);
+    m_status_bar = std::make_shared<BBLStatusBarSend>(this);
+    m_progress_sizer->Add(m_status_bar->get_panel(), 1, wxALIGN_CENTER_VERTICAL | wxALL, 0);
     
     m_progress_sizer->Add(FromDIP(20), 0, 0, wxEXPAND, 0);
 
@@ -96,6 +96,7 @@ PublishDialog::PublishDialog(Plater *plater)
     m_btn_cancel->SetSize(wxSize(FromDIP(60), FromDIP(20)));
     m_btn_cancel->SetMinSize(wxSize(FromDIP(60), FromDIP(20)));
     m_btn_cancel->SetCornerRadius(FromDIP(10));
+    m_btn_cancel->Hide();
 
     m_progress_sizer->Add(FromDIP(20), 0, 0, wxEXPAND | wxALL, 0);
 
@@ -124,20 +125,48 @@ PublishDialog::PublishDialog(Plater *plater)
 
     this->Centre(wxBOTH);
 
-    m_btn_cancel->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-            this->cancel();
-        });
+    Bind(EVT_PUBLISH_JOB_CANCEL, &PublishDialog::on_publish_job_cancel, this);
 
     Bind(wxEVT_CLOSE_WINDOW, &PublishDialog::on_close, this);
+}
+
+void PublishDialog::on_publish_job_cancel(wxCommandEvent &evt)
+{
+    this->cancel();
 }
 
 void PublishDialog::cancel()
 {
     m_was_cancelled = true;
-    m_btn_cancel->Enable(false);
     m_text_progress->SetLabelText(_L("Publish was cancelled"));
-    wxCloseEvent evt;
-    this->on_close(evt);
+    this->EndModal(wxID_OK);
+}
+
+void PublishDialog::start_publish(PublishParams &params)
+{
+    m_status_bar->set_cancel_callback_fina([this]() {
+        BOOST_LOG_TRIVIAL(info) << "print_job: enter canceled";
+        if (m_publish_job) {
+            if (m_publish_job->is_running()) {
+                BOOST_LOG_TRIVIAL(info) << "print_job: canceled";
+                m_publish_job->cancel();
+            }
+            m_publish_job->join();
+        }
+        m_was_cancelled = true;
+        wxCommandEvent* event = new wxCommandEvent(EVT_PUBLISH_JOB_CANCEL);
+        wxQueueEvent(this, event);
+        });
+
+    m_publish_job = std::make_shared<PublishJob>(m_status_bar, m_plater);
+
+    m_publish_job->publish_params.project_3mf_file = params.project_3mf_file;
+    m_publish_job->publish_params.preset_name = params.preset_name;
+    m_publish_job->publish_params.project_model_id = params.project_model_id;
+    m_publish_job->publish_params.project_name = params.project_name;
+
+    m_publish_job->start();
+    BOOST_LOG_TRIVIAL(info) << "publish_job: start publish job";
 }
 
 void PublishDialog::start_slicing()
@@ -153,8 +182,9 @@ bool PublishDialog::UpdateStatus(wxString &msg, int percent, bool yield)
 {
     if (m_was_cancelled) return false;
 
-    if (percent >= 0)
-        m_progress->SetValue(percent);
+    if (percent >= 0) {
+        m_status_bar->set_progress(percent);
+    }
     m_text_progress->SetLabelText(msg);
 
     if (yield)
@@ -175,25 +205,26 @@ void PublishDialog::SetPublishStep(PublishStep step, bool yield, int percent)
     m_publish_steps->SelectItem((int)step);
     if (step == PublishStep::STEP_SLICING) {
         m_text_progress->SetLabelText(_L("Slicing Plate 1"));
-        if (percent > 0)
-            m_progress->SetValue(percent);
-        else
-            m_progress->SetValue(0);
+        if (percent > 0) {
+            m_status_bar->set_progress(percent);
+        } else {
+            m_status_bar->set_progress(0);
+        }
     } else if (step == PublishStep::STEP_PACKING) {
         m_text_progress->SetLabelText(_L("Packing data to 3mf"));
         if (percent > 0)
-            m_progress->SetValue(percent);
+            m_status_bar->set_progress(percent);
         else
-            m_progress->SetValue(70);
+            m_status_bar->set_progress(75);
     } else if (step == PublishStep::STEP_UPLOADING) {
         m_text_progress->SetLabelText(_L("Packing data to 3mf"));
         if (percent > 0)
-            m_progress->SetValue(percent);
+            m_status_bar->set_progress(percent);
         else
-            m_progress->SetValue(85);
+            m_status_bar->set_progress(85);
     } else if (step == PublishStep::STEP_FILL_INFO) {
         m_text_progress->SetLabelText(_L("Jump to webpage"));
-        m_progress->SetValue(100);
+        m_status_bar->set_progress(100);
     }
 
     if (yield)

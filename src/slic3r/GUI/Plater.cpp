@@ -148,6 +148,7 @@ wxDEFINE_EVENT(EVT_PUBLISH,                         wxCommandEvent);
 // BBS: backup & restore
 wxDEFINE_EVENT(EVT_RESTORE_PROJECT,                 wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_FINISHED,                  wxCommandEvent);
+wxDEFINE_EVENT(EVT_PUBLISH_FINISHED,                wxCommandEvent);
 //BBS: repair model
 wxDEFINE_EVENT(EVT_REPAIR_MODEL,                    wxCommandEvent);
 wxDEFINE_EVENT(EVT_FILAMENT_COLOR_CHANGED,          wxCommandEvent);
@@ -2202,6 +2203,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
         q->Bind(EVT_IMPORT_MODEL_ID, &priv::on_action_request_model_id, this);
         q->Bind(EVT_PRINT_FINISHED, [q](wxCommandEvent &evt) { q->print_job_finished(evt); });
+        q->Bind(EVT_PUBLISH_FINISHED, [q](wxCommandEvent &evt) { q->publish_job_finished(evt);});
         //q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
     }
 
@@ -5986,6 +5988,11 @@ int Plater::get_print_finished_event()
     return EVT_PRINT_FINISHED;
 }
 
+int Plater::get_publish_finished_event()
+{
+    return EVT_PUBLISH_FINISHED;
+}
+
 void Plater::priv::set_current_canvas_as_dirty()
 {
     if (current_panel == view3D)
@@ -8652,6 +8659,58 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
 
 void Plater::publish_project()
 {
+    BOOST_LOG_TRIVIAL(info) << "publish: publish_project";
+
+    bool cont = true, skip;
+    bool cont_dlg = true;
+    int percent = 0;
+    bool upload_finish = false;
+    bool publish_project = true;
+    std::string design_id;
+
+    // upload project first and publish
+    wxString msg;
+
+    if (!p->m_is_publishing || p->m_publish_dlg->was_cancelled()) return;
+
+    // export 3mf to temp folder
+    p->m_publish_dlg->SetPublishStep(PublishStep::STEP_PACKING, true);
+
+    boost::filesystem::path temp_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
+    boost::uuids::uuid uuid = boost::uuids::random_generator()();
+    std::string unique = to_string(uuid).substr(0, 6);
+    temp_path /= (boost::format("%1%_%2%.3mf") % std::string(p->get_project_name().mb_str(wxConvUTF8)) % unique).str();
+    BOOST_LOG_TRIVIAL(debug) << "publish_project: export to temp 3mf: " << temp_path.string();
+
+    int result = export_3mf(temp_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode, -1,
+        [this](int export_stage, int current, int total, bool& cancel) {
+            bool skip = false;
+            wxString msg = "";
+            p->m_publish_dlg->Pulse(msg, skip);
+            cancel = skip;
+        });
+
+    if (result < 0) {
+        BOOST_LOG_TRIVIAL(debug) << "publish_project: result = " << result;
+        msg = _L("preparing, export 3mf failed!");
+        //dlg.Update(percent, msg);
+        p->m_publish_dlg->UpdateStatus(msg);
+        return;
+    }
+
+    if (!p->m_is_publishing || p->m_publish_dlg->was_cancelled()) return;
+
+    /* create project and uploading */
+    p->m_publish_dlg->SetPublishStep(PublishStep::STEP_UPLOADING, true);
+
+    PublishParams params;
+    params.project_name = std::string(p->get_project_name().mb_str(wxConvUTF8));
+    params.project_3mf_file = temp_path.string();
+    params.project_model_id = p->project.project_model_id;
+    params.preset_name = wxGetApp().preset_bundle->prints.get_edited_preset().name;
+
+    p->m_publish_dlg->start_publish(params);
+
     return;
 }
 
@@ -8922,6 +8981,12 @@ void Plater::print_job_finished(wxCommandEvent &evt)
 
     p->hide_select_machine_dlg();
     p->main_frame->request_select_tab(MainFrame::TabPosition::tpMonitor);
+}
+
+void Plater::publish_job_finished(wxCommandEvent &evt)
+{
+    p->m_publish_dlg->EndModal(wxID_OK);
+    GUI::wxGetApp().load_url(evt.GetString());
 }
 
 // Called when the Eject button is pressed.

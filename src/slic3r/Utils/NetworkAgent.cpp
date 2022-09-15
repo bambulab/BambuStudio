@@ -88,6 +88,7 @@ func_get_slice_info                 NetworkAgent::get_slice_info_ptr = nullptr;
 func_query_bind_status              NetworkAgent::query_bind_status_ptr = nullptr;
 func_modify_printer_name            NetworkAgent::modify_printer_name_ptr = nullptr;
 func_get_camera_url                 NetworkAgent::get_camera_url_ptr = nullptr;
+func_start_pubilsh                  NetworkAgent::start_publish_ptr = nullptr;
 
 
 NetworkAgent::NetworkAgent()
@@ -220,6 +221,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     query_bind_status_ptr             =  reinterpret_cast<func_query_bind_status>(get_network_function("bambu_network_query_bind_status"));
     modify_printer_name_ptr           =  reinterpret_cast<func_modify_printer_name>(get_network_function("bambu_network_modify_printer_name"));
     get_camera_url_ptr                =  reinterpret_cast<func_get_camera_url>(get_network_function("bambu_network_get_camera_url"));
+    start_publish_ptr                 =  reinterpret_cast<func_start_pubilsh>(get_network_function("bambu_network_start_publish"));
 
     return 0;
 }
@@ -308,6 +310,7 @@ int NetworkAgent::unload_network_module()
     query_bind_status_ptr             =  nullptr;
     modify_printer_name_ptr           =  nullptr;
     get_camera_url_ptr                =  nullptr;
+    start_publish_ptr                 =  nullptr;
 
     return 0;
 }
@@ -998,6 +1001,17 @@ int NetworkAgent::get_camera_url(std::string dev_id, std::function<void(std::str
         ret = get_camera_url_ptr(network_agent, dev_id, callback);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%")%network_agent %ret %dev_id;
+    }
+    return ret;
+}
+
+int NetworkAgent::start_publish(PublishParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string *out)
+{
+    int ret = 0;
+    if (network_agent && start_publish_ptr) {
+        ret = start_publish_ptr(network_agent, params, update_fn, cancel_fn, out);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
     }
     return ret;
 }
