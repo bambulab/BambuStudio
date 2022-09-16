@@ -333,7 +333,7 @@ public:
     //BBS jump to nonitor after print job finished
     void print_job_finished(wxCommandEvent &evt);
     void publish_job_finished(wxCommandEvent &evt);
-	//void eject_drive();
+	void eject_drive();
 
     void take_snapshot(const std::string &snapshot_name);
     //void take_snapshot(const wxString &snapshot_name);
