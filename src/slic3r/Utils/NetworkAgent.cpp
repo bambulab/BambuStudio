@@ -80,6 +80,7 @@ func_get_setting_list               NetworkAgent::get_setting_list_ptr = nullptr
 func_delete_setting                 NetworkAgent::delete_setting_ptr = nullptr;
 func_get_studio_info_url            NetworkAgent::get_studio_info_url_ptr = nullptr;
 func_set_extra_http_header          NetworkAgent::set_extra_http_header_ptr = nullptr;
+func_get_my_message                 NetworkAgent::get_my_message_ptr = nullptr;
 func_check_user_task_report         NetworkAgent::check_user_task_report_ptr = nullptr;
 func_get_user_print_info            NetworkAgent::get_user_print_info_ptr = nullptr;
 func_get_printer_firmware           NetworkAgent::get_printer_firmware_ptr = nullptr;
@@ -213,6 +214,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     delete_setting_ptr                =  reinterpret_cast<func_delete_setting>(get_network_function("bambu_network_delete_setting"));
     get_studio_info_url_ptr           =  reinterpret_cast<func_get_studio_info_url>(get_network_function("bambu_network_get_studio_info_url"));
     set_extra_http_header_ptr         =  reinterpret_cast<func_set_extra_http_header>(get_network_function("bambu_network_set_extra_http_header"));
+    get_my_message_ptr                =  reinterpret_cast<func_get_my_message>(get_network_function("bambu_network_get_my_message"));
     check_user_task_report_ptr        =  reinterpret_cast<func_check_user_task_report>(get_network_function("bambu_network_check_user_task_report"));
     get_user_print_info_ptr           =  reinterpret_cast<func_get_user_print_info>(get_network_function("bambu_network_get_user_print_info"));
     get_printer_firmware_ptr          =  reinterpret_cast<func_get_printer_firmware>(get_network_function("bambu_network_get_printer_firmware"));
@@ -302,6 +304,7 @@ int NetworkAgent::unload_network_module()
     delete_setting_ptr                =  nullptr;
     get_studio_info_url_ptr           =  nullptr;
     set_extra_http_header_ptr         =  nullptr;
+    get_my_message_ptr                =  nullptr;
     check_user_task_report_ptr        =  nullptr;
     get_user_print_info_ptr           =  nullptr;
     get_printer_firmware_ptr          =  nullptr;
@@ -915,6 +918,17 @@ int NetworkAgent::set_extra_http_header(std::map<std::string, std::string> extra
         ret = set_extra_http_header_ptr(network_agent, extra_headers);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, extra_headers count=%3%")%network_agent %ret %extra_headers.size() ;
+    }
+    return ret;
+}
+
+int NetworkAgent::get_my_message(int type, int after, int limit, unsigned int* http_code, std::string* http_body)
+{
+    int ret = 0;
+    if (network_agent && get_my_message_ptr) {
+        ret = get_my_message_ptr(network_agent, type, after, limit, http_code, http_body);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
     }
     return ret;
 }
