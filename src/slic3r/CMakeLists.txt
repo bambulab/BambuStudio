@@ -301,8 +301,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/ProgressIndicator.hpp
     GUI/Jobs/PrintJob.hpp
     GUI/Jobs/PrintJob.cpp
-    GUI/Jobs/PublishJob.hpp
-    GUI/Jobs/PublishJob.cpp
     GUI/Jobs/BindJob.hpp
     GUI/Jobs/BindJob.cpp
     GUI/Jobs/NotificationProgressIndicator.hpp

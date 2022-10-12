@@ -334,7 +334,7 @@ public:
     //BBS jump to nonitor after print job finished
     void print_job_finished(wxCommandEvent &evt);
     void publish_job_finished(wxCommandEvent &evt);
-	void eject_drive();
+    void eject_drive();
 
     void take_snapshot(const std::string &snapshot_name);
     //void take_snapshot(const wxString &snapshot_name);
@@ -397,7 +397,6 @@ public:
     //BBS: add print job releated functions
     void get_print_job_data(PrintPrepareData* data);
     int get_print_finished_event();
-    int get_publish_finished_event();
 
     void set_current_canvas_as_dirty();
     void unbind_canvas_event_handlers();

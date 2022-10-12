@@ -18,10 +18,7 @@
 #include <wx/dialog.h>
 #include "wxExtensions.hpp"
 #include "Plater.hpp"
-#include "Jobs/PublishJob.hpp"
 #include "Widgets/StepCtrl.hpp"
-#include "BBLStatusBar.hpp"
-#include "BBLStatusBarSend.hpp"
 #include "Widgets/ProgressDialog.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/ProgressBar.hpp"
@@ -49,22 +46,18 @@ public:
     void start_slicing();
     void reset();
     bool was_cancelled() { return m_was_cancelled; }
-    void on_publish_job_cancel(wxCommandEvent& evt);
     void cancel();
-    void start_publish(PublishParams &params);
 
 protected:
     wxPanel*     m_step_panel;
     ::StepIndicator *m_publish_steps;
     wxStaticText *m_text_note;
     wxStaticText *m_text_progress;
-    std::shared_ptr<BBLStatusBarSend> m_status_bar;
+    ProgressBar  *m_progress;
     Button*       m_btn_cancel;
     wxStaticText *m_text_errors;
     Plater *      m_plater{nullptr};
     bool          m_was_cancelled { false };
-
-    std::shared_ptr<PublishJob> m_publish_job;
 
     wxBoxSizer* create_publish_step_sizer();
     void on_close(wxCloseEvent &event);
