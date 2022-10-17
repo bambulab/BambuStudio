@@ -509,9 +509,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             return;
         }
         if (evt.CmdDown() && evt.GetKeyCode() == 'Q') { wxPostEvent(this, wxCloseEvent(wxEVT_CLOSE_WINDOW)); return;}
-        if (evt.CmdDown() && evt.RawControlDown() && evt.GetKeyCode() == 'F') { 
+        if (evt.CmdDown() && evt.RawControlDown() && evt.GetKeyCode() == 'F') {
             EnableFullScreenView(true);
-            if (IsFullScreen()) { 
+            if (IsFullScreen()) {
                 ShowFullScreen(false);
             } else {
                 ShowFullScreen(true);
@@ -527,7 +527,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 #ifdef __APPLE__
         if (evt.CmdDown() && evt.GetKeyCode() == ',')
 #else
-        if (evt.CmdDown() && evt.GetKeyCode() == 'P') 
+        if (evt.CmdDown() && evt.GetKeyCode() == 'P')
 #endif
         {
             PreferencesDialog dlg(this);
@@ -787,10 +787,10 @@ void MainFrame::shutdown()
 
 void MainFrame::update_title()
 {
-    return; 
+    return;
 }
 
-void MainFrame::update_title_colour_after_set_title() 
+void MainFrame::update_title_colour_after_set_title()
 {
 #ifdef __APPLE__
     set_title_colour_after_set_title(GetHandle());
@@ -1222,7 +1222,7 @@ bool MainFrame::can_deselect() const
 
 bool MainFrame::can_delete() const
 {
-    return (m_plater != nullptr) && (m_tabpanel->GetSelection() == TabPosition::tp3DEditor) && !m_plater->is_selection_empty(); 
+    return (m_plater != nullptr) && (m_tabpanel->GetSelection() == TabPosition::tp3DEditor) && !m_plater->is_selection_empty();
 }
 
 bool MainFrame::can_delete_all() const
@@ -1292,7 +1292,7 @@ wxBoxSizer* MainFrame::create_side_tools()
         else if (m_print_select == eUploadGcode)
             wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_UPLOAD_GCODE));
         else if (m_print_select == eExportSlicedFile)
-            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE)); 
+            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE));
         else if (m_print_select == eSendToPrinter)
             wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_TO_PRINTER));
     });
@@ -1908,9 +1908,9 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(false); }, "menu_export_gcode", nullptr,
             [this]() {return can_export_gcode(); }, this);
         append_menu_item(
-            export_menu, wxID_ANY, _L("Export &Configs") + dots /* + "\tCtrl+E"*/, _L("Export current configuration to files"), 
+            export_menu, wxID_ANY, _L("Export &Configs") + dots /* + "\tCtrl+E"*/, _L("Export current configuration to files"),
             [this](wxCommandEvent &) { export_config(); },
-            "menu_export_config", nullptr, 
+            "menu_export_config", nullptr,
             []() { return true; }, this);
 
         append_submenu(fileMenu, export_menu, wxID_ANY, _L("Export"), "");
@@ -2072,6 +2072,11 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); }, this,
             [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
 
+        viewMenu->AppendSeparator();
+        append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Wireframe") + "\tCtrl+Shift+Enter", _L("Show wireframes in 3D scene"),
+            [this](wxCommandEvent&) { m_plater->toggle_show_wireframe(); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
+            [this]() { return m_plater->is_wireframe_enabled(); }, [this]() { return m_plater->is_show_wireframe(); }, this);
+
         //viewMenu->AppendSeparator();
         ////BBS orthogonal view
         //append_menu_check_item(viewMenu, wxID_ANY, _L("Show Edges(TODO)"), _L("Show Edges"),
@@ -2211,7 +2216,7 @@ void MainFrame::init_menubar_as_editor()
     // Help menu
     auto helpMenu = generate_help_menu();
 
-        
+
 #ifndef __APPLE__
     m_topbar->SetFileMenu(fileMenu);
     if (editMenu)
@@ -2219,7 +2224,7 @@ void MainFrame::init_menubar_as_editor()
     if (viewMenu)
         m_topbar->AddDropDownSubMenu(viewMenu, _L("View"));
     //BBS add Preference
-    
+
     append_menu_item(
         m_topbar->GetTopMenu(), wxID_ANY, _L("Preferences") + "\tCtrl+P", _L(""),
         [this](wxCommandEvent &) {
@@ -2403,7 +2408,7 @@ void MainFrame::export_config()
             }, false);
             if (!files.empty())
                 m_last_config = from_u8(files.back());
-            MessageDialog dlg(this, wxString::Format(_L_PLURAL("There is %d config exported. (Only non-system configs)", 
+            MessageDialog dlg(this, wxString::Format(_L_PLURAL("There is %d config exported. (Only non-system configs)",
                 "There are %d configs exported. (Only non-system configs)", files.size()), files.size()),
                               _L("Export result"), wxOK);
             dlg.ShowModal();
@@ -2443,7 +2448,7 @@ void MainFrame::load_config_file()
         wxGetApp().app_config->update_config_dir(get_dir_name(cfiles.back()));
         wxGetApp().load_current_presets();
     }
-    MessageDialog dlg2(this, wxString::Format(_L_PLURAL("There is %d config imported. (Only non-system and compatible configs)", 
+    MessageDialog dlg2(this, wxString::Format(_L_PLURAL("There is %d config imported. (Only non-system and compatible configs)",
         "There are %d configs imported. (Only non-system and compatible configs)", cfiles.size()), cfiles.size()),
                         _L("Import result"), wxOK);
     dlg2.ShowModal();
