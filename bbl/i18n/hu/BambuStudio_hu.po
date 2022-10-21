@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-19 09:33+0800\n"
+"POT-Creation-Date: 2022-10-21 14:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1341,6 +1341,22 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "A LAN-on keresztüli nyomtatáshoz helyezz be egy SD kártyát."
 
+msgid "Sending gcode file over LAN"
+msgstr ""
+
+msgid "Sending gcode file through cloud service"
+msgstr ""
+
+msgid "Sending gcode file to sdcard"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Successfully sent. Close current page in %s s"
+msgstr ""
+
+msgid "An SD card needs to be inserted before sending to printer."
+msgstr ""
+
 msgid "Downloading"
 msgstr "Letöltés"
 
@@ -2349,9 +2365,6 @@ msgstr "Projekt"
 msgid "Slice"
 msgstr "Szeletelés"
 
-msgid "Send and Print"
-msgstr ""
-
 msgid "Slice all"
 msgstr "Összes szeletelése"
 
@@ -2363,9 +2376,6 @@ msgstr "Összes nyomtatása"
 
 msgid "Export G-code file"
 msgstr ""
-
-msgid "Send"
-msgstr "Küldés"
 
 msgid "Export sliced file"
 msgstr "Szeletelt fájl exportálása"
@@ -2784,6 +2794,10 @@ msgstr "Loading file list..."
 
 msgid "No files"
 msgstr "No files"
+
+#, c-format, boost-format
+msgid "File '%s' was lost! Please download it again."
+msgstr ""
 
 msgid "Download waiting..."
 msgstr ""
@@ -3854,6 +3868,9 @@ msgstr "Bambu Engineering Plate"
 msgid "Bamabu High Temperature Plate"
 msgstr "Bambu High Temperature Plate"
 
+msgid "Send print job to"
+msgstr "Nyomtatási feladat küldése"
+
 msgid "Refresh"
 msgstr "Frissítés"
 
@@ -3863,8 +3880,8 @@ msgstr "Asztalszintezés"
 msgid "Flow Calibration"
 msgstr "Anyagáramlás kalibráció"
 
-msgid "Can't connect to the printer"
-msgstr ""
+msgid "Send"
+msgstr "Küldés"
 
 msgid "send completed"
 msgstr "küldés befejezve"
@@ -4769,7 +4786,7 @@ msgstr ""
 msgid "Version:"
 msgstr ""
 
-msgid "Upgrade firmware"
+msgid "Update firmware"
 msgstr ""
 
 msgid "Printing"
@@ -4781,13 +4798,13 @@ msgstr ""
 msgid "Latest version"
 msgstr ""
 
-msgid "Upgrading"
+msgid "Updating"
 msgstr ""
 
-msgid "Upgrading failed"
+msgid "Updating failed"
 msgstr ""
 
-msgid "Upgrading successful"
+msgid "Updating successful"
 msgstr ""
 
 msgid ""
@@ -5193,6 +5210,12 @@ msgid ""
 "Unprintable area in XY plane. For example, X1 Series printers use the front "
 "left corner to cut filament during filament change. The area is expressed as "
 "polygon by points in following format: \"XxY, XxY, ...\""
+msgstr ""
+
+msgid "Bed custom texture"
+msgstr ""
+
+msgid "Bed custom model"
 msgstr ""
 
 msgid "Elephant foot compensation"
@@ -7364,9 +7387,6 @@ msgstr ""
 
 #~ msgid "Open"
 #~ msgstr "Open"
-
-#~ msgid "Send print job to"
-#~ msgstr "Nyomtatási feladat küldése"
 
 #~ msgid ""
 #~ "%1% is too close to exclusion area, there will be collisions when "

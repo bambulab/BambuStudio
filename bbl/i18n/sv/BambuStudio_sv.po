@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-19 09:33+0800\n"
+"POT-Creation-Date: 2022-10-21 14:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1328,6 +1328,22 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr ""
 
+msgid "Sending gcode file over LAN"
+msgstr ""
+
+msgid "Sending gcode file through cloud service"
+msgstr ""
+
+msgid "Sending gcode file to sdcard"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Successfully sent. Close current page in %s s"
+msgstr ""
+
+msgid "An SD card needs to be inserted before sending to printer."
+msgstr ""
+
 msgid "Downloading"
 msgstr "Laddar ner"
 
@@ -2320,9 +2336,6 @@ msgstr "Projekt"
 msgid "Slice"
 msgstr "Bered"
 
-msgid "Send and Print"
-msgstr ""
-
 msgid "Slice all"
 msgstr "Bered allt"
 
@@ -2334,9 +2347,6 @@ msgstr "Skriv ut allt"
 
 msgid "Export G-code file"
 msgstr ""
-
-msgid "Send"
-msgstr "Skicka"
 
 msgid "Export sliced file"
 msgstr "Exportera beredd fil"
@@ -2750,6 +2760,10 @@ msgstr "Laddar fil lista..."
 
 msgid "No files"
 msgstr "Inga filer"
+
+#, c-format, boost-format
+msgid "File '%s' was lost! Please download it again."
+msgstr ""
 
 msgid "Download waiting..."
 msgstr ""
@@ -3811,6 +3825,9 @@ msgstr "Bambu Engineering Plate"
 msgid "Bamabu High Temperature Plate"
 msgstr "Bambu High Temperature Plate"
 
+msgid "Send print job to"
+msgstr "Skicka utskriftsjobb till"
+
 msgid "Refresh"
 msgstr "Uppdatera"
 
@@ -3820,8 +3837,8 @@ msgstr "Justering av Byggplattan"
 msgid "Flow Calibration"
 msgstr "Flödes Kalibrering"
 
-msgid "Can't connect to the printer"
-msgstr ""
+msgid "Send"
+msgstr "Skicka"
 
 msgid "send completed"
 msgstr "Skicka komplett"
@@ -4720,7 +4737,7 @@ msgstr ""
 msgid "Version:"
 msgstr ""
 
-msgid "Upgrade firmware"
+msgid "Update firmware"
 msgstr ""
 
 msgid "Printing"
@@ -4732,13 +4749,13 @@ msgstr ""
 msgid "Latest version"
 msgstr ""
 
-msgid "Upgrading"
+msgid "Updating"
 msgstr ""
 
-msgid "Upgrading failed"
+msgid "Updating failed"
 msgstr ""
 
-msgid "Upgrading successful"
+msgid "Updating successful"
 msgstr ""
 
 msgid ""
@@ -5134,6 +5151,12 @@ msgid ""
 "Unprintable area in XY plane. For example, X1 Series printers use the front "
 "left corner to cut filament during filament change. The area is expressed as "
 "polygon by points in following format: \"XxY, XxY, ...\""
+msgstr ""
+
+msgid "Bed custom texture"
+msgstr ""
+
+msgid "Bed custom model"
 msgstr ""
 
 msgid "Elephant foot compensation"
@@ -6674,8 +6697,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
-"(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för "
+"lösligt(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"
@@ -7277,9 +7300,6 @@ msgstr ""
 
 #~ msgid "Open"
 #~ msgstr "Öppna"
-
-#~ msgid "Send print job to"
-#~ msgstr "Skicka utskriftsjobb till"
 
 #~ msgid ""
 #~ "%1% is too close to exclusion area, there will be collisions when "

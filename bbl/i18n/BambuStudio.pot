@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-19 09:33+0800\n"
+"POT-Creation-Date: 2022-10-21 14:33+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1283,6 +1283,22 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr ""
 
+msgid "Sending gcode file over LAN"
+msgstr ""
+
+msgid "Sending gcode file through cloud service"
+msgstr ""
+
+msgid "Sending gcode file to sdcard"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Successfully sent. Close current page in %s s"
+msgstr ""
+
+msgid "An SD card needs to be inserted before sending to printer."
+msgstr ""
+
 msgid "Downloading"
 msgstr ""
 
@@ -2196,9 +2212,6 @@ msgstr ""
 msgid "Slice"
 msgstr ""
 
-msgid "Send and Print"
-msgstr ""
-
 msgid "Slice all"
 msgstr ""
 
@@ -2209,9 +2222,6 @@ msgid "Print all"
 msgstr ""
 
 msgid "Export G-code file"
-msgstr ""
-
-msgid "Send"
 msgstr ""
 
 msgid "Export sliced file"
@@ -2625,6 +2635,10 @@ msgid "Loading file list..."
 msgstr ""
 
 msgid "No files"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "File '%s' was lost! Please download it again."
 msgstr ""
 
 msgid "Download waiting..."
@@ -3671,6 +3685,9 @@ msgstr ""
 msgid "Bamabu High Temperature Plate"
 msgstr ""
 
+msgid "Send print job to"
+msgstr ""
+
 msgid "Refresh"
 msgstr ""
 
@@ -3680,7 +3697,7 @@ msgstr ""
 msgid "Flow Calibration"
 msgstr ""
 
-msgid "Can't connect to the printer"
+msgid "Send"
 msgstr ""
 
 msgid "send completed"
@@ -4528,7 +4545,7 @@ msgstr ""
 msgid "Version:"
 msgstr ""
 
-msgid "Upgrade firmware"
+msgid "Update firmware"
 msgstr ""
 
 msgid "Printing"
@@ -4540,13 +4557,13 @@ msgstr ""
 msgid "Latest version"
 msgstr ""
 
-msgid "Upgrading"
+msgid "Updating"
 msgstr ""
 
-msgid "Upgrading failed"
+msgid "Updating failed"
 msgstr ""
 
-msgid "Upgrading successful"
+msgid "Updating successful"
 msgstr ""
 
 msgid ""
@@ -4923,6 +4940,12 @@ msgid ""
 "Unprintable area in XY plane. For example, X1 Series printers use the front "
 "left corner to cut filament during filament change. The area is expressed as "
 "polygon by points in following format: \"XxY, XxY, ...\""
+msgstr ""
+
+msgid "Bed custom texture"
+msgstr ""
+
+msgid "Bed custom model"
 msgstr ""
 
 msgid "Elephant foot compensation"
