@@ -1110,9 +1110,10 @@ void PresetUpdater::sync(std::string http_url, std::string language, PresetBundl
 		if (p->cancel)
 			return;
 		this->p->sync_config(http_url, std::move(vendors));
-		if (p->cancel)
-			return;
-        this->p->sync_tooltip(http_url, language);
+		//if (p->cancel)
+		//	return;
+        //remove the tooltip currently
+        //this->p->sync_tooltip(http_url, language);
     });
 }
 

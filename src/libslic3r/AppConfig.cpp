@@ -288,7 +288,7 @@ void AppConfig::set_defaults()
     if (get("backup_interval").empty()) {
         set("backup_interval", "10");
     }
-    
+
     if (get("curr_bed_type").empty()) {
         set("curr_bed_type", "0");
     }
@@ -533,8 +533,11 @@ void AppConfig::save()
     {
         // Returns "undefined" if the thread naming functionality is not supported by the operating system.
         std::optional<std::string> current_thread_name = get_current_thread_name();
-        if (current_thread_name && *current_thread_name != "bambustu_main")
+        if (current_thread_name && *current_thread_name != "bambustu_main") {
+            if (current_thread_name)
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__<<", current_thread_name is " << *current_thread_name;
             throw CriticalException("Calling AppConfig::save() from a worker thread!");
+        }
     }
 
     // The config is first written to a file with a PID suffix and then moved
