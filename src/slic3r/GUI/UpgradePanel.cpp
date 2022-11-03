@@ -659,30 +659,26 @@ void MachineInfoPanel::upgrade_firmware_internal() {
 
 void MachineInfoPanel::on_upgrade_firmware(wxCommandEvent &event)
 {
-    SecondaryCheckDialog* confirm_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Update firmware"));
-    confirm_dlg->update_text(_L("Are you sure you want to update? This will take about 10 minutes. Do not turn off the power while the printer is updating."));
-    confirm_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent &e) {
+    SecondaryCheckDialog confirm_dlg(this->GetParent(), wxID_ANY, _L("Update firmware"));
+    confirm_dlg.update_text(_L("Are you sure you want to update? This will take about 10 minutes. Do not turn off the power while the printer is updating."));
+    confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent &e) {
         if (m_obj) {
             m_obj->command_upgrade_confirm();
         }
     });
-    if (confirm_dlg->ShowModal()) {
-        delete confirm_dlg;
-    }
+    confirm_dlg.ShowModal();
 }
 
 void MachineInfoPanel::on_consisitency_upgrade_firmware(wxCommandEvent &event)
 {
-    SecondaryCheckDialog* confirm_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Update firmware"));
-    confirm_dlg->update_text(_L("Are you sure you want to update? This will take about 10 minutes. Do not turn off the power while the printer is updating."));
-    confirm_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent &e) {
+    SecondaryCheckDialog confirm_dlg(this->GetParent(), wxID_ANY, _L("Update firmware"));
+    confirm_dlg.update_text(_L("Are you sure you want to update? This will take about 10 minutes. Do not turn off the power while the printer is updating."));
+    confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent &e) {
         if (m_obj) {
             m_obj->command_consistency_upgrade_confirm();
         }
     });
-    if (confirm_dlg->ShowModal()) {
-        delete confirm_dlg;
-    }
+    confirm_dlg.ShowModal();
 }
 
 void MachineInfoPanel::on_show_release_note(wxMouseEvent &event) 
@@ -797,14 +793,16 @@ void UpgradePanel::update(MachineObject *obj)
     if (m_obj && m_show_forced_hint) {
         if (m_obj->upgrade_force_upgrade) {
             m_show_forced_hint = false;   //lock hint
-            SecondaryCheckDialog*  force_dlg = new SecondaryCheckDialog(m_scrolledWindow, wxID_ANY, _L("Update firmware"));
-            force_dlg->update_text(_L(
+            SecondaryCheckDialog force_dlg(m_scrolledWindow, wxID_ANY, _L("Update firmware"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_CANCEL, wxDefaultPosition, wxDefaultSize, wxPD_APP_MODAL);
+            force_dlg.update_text(_L(
                 "An important update was detected and needs to be run before printing can continue. Do you want to update now? You can also update later from 'Upgrade firmware'."
             ));
-            force_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, &MachineInfoPanel::on_upgrade_firmware, m_push_upgrade_panel);
-            if (force_dlg->ShowModal()) {
-                delete force_dlg;
-            }
+            force_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
+                if (m_obj) {
+                    m_obj->command_upgrade_confirm();
+                }
+            });
+            force_dlg.ShowModal();
         }
     }
 
@@ -816,14 +814,16 @@ void UpgradePanel::update(MachineObject *obj)
     if (m_obj && m_show_consistency_hint) {
         if (m_obj->upgrade_consistency_request) {
             m_show_consistency_hint = false;
-            SecondaryCheckDialog*  consistency_dlg = new SecondaryCheckDialog(m_scrolledWindow, wxID_ANY, _L("Update firmware"));
-            consistency_dlg->update_text(_L(
+            SecondaryCheckDialog consistency_dlg(m_scrolledWindow, wxID_ANY, _L("Update firmware"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_CANCEL, wxDefaultPosition, wxDefaultSize, wxPD_APP_MODAL);
+            consistency_dlg.update_text(_L(
                 "The firmware version is abnormal. Repairing and updating are required before printing. Do you want to update now? You can also update later on printer or update next time starting the studio."
             ));
-            consistency_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, &MachineInfoPanel::on_consisitency_upgrade_firmware, m_push_upgrade_panel);
-            if (consistency_dlg->ShowModal()) {
-                delete consistency_dlg;
-            }
+            consistency_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
+                if (m_obj) {
+                    m_obj->command_consistency_upgrade_confirm();
+                }
+            });
+            consistency_dlg.ShowModal();
 	    }
     }
 
