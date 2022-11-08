@@ -6056,6 +6056,7 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
     auto                   print = this->background_process.m_fff_print;
     bboxdata.is_seq_print = (print->config().print_sequence == PrintSequence::ByObject);
     bboxdata.first_extruder = print->get_tool_ordering().first_extruder();
+    bboxdata.bed_type       = bed_type_to_gcode_string(print->config().curr_bed_type.value);
     // get nozzle diameter
     auto opt_nozzle_diameters = print->config().option<ConfigOptionFloats>("nozzle_diameter");
     if (opt_nozzle_diameters != nullptr)
@@ -9684,7 +9685,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     if ( seq_print && view3d_canvas && view3d_canvas->is_initialized()  && view3d_canvas->is_rendering_enabled() ) {
         NotificationManager *notify_manager = get_notification_manager();
         if (seq_print->value == PrintSequence::ByObject) {
-            std::string info_text = L("Print By Object: \nSuggest to use auto-arrange to avoid collisions when printing.");
+            std::string info_text = _u8L("Print By Object: \nSuggest to use auto-arrange to avoid collisions when printing.");
             notify_manager->bbl_show_seqprintinfo_notification(info_text);
             //always show label when switch to sequence print
             if (print_sequence_changed)
