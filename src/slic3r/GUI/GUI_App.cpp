@@ -2454,8 +2454,8 @@ void GUI_App::copy_network_if_available()
 #else
     network_library = cache_folder.string() + "/libbambu_networking.so";
     player_library = cache_folder.string() + "/libBambuSource.so";
-    network_library_dst = plugin_folder.string() + "/libbambu_networking.dylib";
-    player_library_dst = plugin_folder.string() + "/libBambuSource.dylib";
+    network_library_dst = plugin_folder.string() + "/libbambu_networking.so";
+    player_library_dst = plugin_folder.string() + "/libBambuSource.so";
 #endif
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": checking network_library " << network_library << ", player_library " << player_library;
