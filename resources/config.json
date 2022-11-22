@@ -17,8 +17,8 @@
                 "FUNC_PRINT_WITHOUT_SD": false,
                 "FUNC_ALTER_RESOLUTION": false,
                 "FUNC_AUTO_SWITCH_FILAMENT": false,
-                "FUNC_CHAMBER_FAN" : false
-            },
+                "FUNC_EXTRUSION_CALI": true,
+                "FUNC_CHAMBER_FAN" : false            },
             "camera_resolution":["720p"],
             "bed_temperature_limit": 100,
             "model_id": "C11",
@@ -28,6 +28,7 @@
         {
             "display_name": "Bambu Lab X1",
             "func": {
+                "FUNC_EXTRUSION_CALI": false,
                 "FUNC_LOCAL_TUNNEL": false
             },
             "camera_resolution":["720p","1080p"],
@@ -38,6 +39,7 @@
         {
             "display_name": "Bambu Lab X1 Carbon",
             "func": {
+                "FUNC_EXTRUSION_CALI": false,
                 "FUNC_LOCAL_TUNNEL": false
             },
             "model_id": "BL-P001",
