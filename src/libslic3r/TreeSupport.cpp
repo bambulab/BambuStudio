@@ -1953,7 +1953,8 @@ ExPolygons avoid_object_remove_extra_small_parts(ExPolygons &expolys, const ExPo
 void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_nodes)
 {
     const PrintObjectConfig &config = m_object->config();
-    bool has_brim = m_object->print()->has_brim();
+    const Print* print = m_object->print();
+    bool has_brim = print->has_brim();
     bool has_infill = config.support_base_pattern.value != smpNone && config.support_base_pattern != smpDefault;
     int bottom_gap_layers = round(m_slicing_params.gap_object_support / m_slicing_params.layer_height);
     const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
@@ -1978,7 +1979,6 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
     // Performance optimization. Only generate lslices for brim and skirt.
     size_t brim_skirt_layers = has_brim ? 1 : 0;
-    const Print* print = m_object->print();
     const PrintConfig& print_config = print->config();
     for (const PrintObject* object : print->objects())
     {
@@ -2255,7 +2255,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 #endif
             }
 
-            generator = std::make_unique<FillLightning::Generator>(m_object, contours, overhangs, support_density);
+            generator = std::make_unique<FillLightning::Generator>(m_object, contours, overhangs, []() {}, support_density);
         }
 
         else if (!has_infill) {
