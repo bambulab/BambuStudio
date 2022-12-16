@@ -2057,10 +2057,10 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
                     const Node& node = *p_node;
                     ExPolygon area;
-                    // 直接从overhang多边形生成，如果�?
-                    // 1) 是混合支撑里的普通部分，
-                    // 2) 启用了顶部接触层�?
-                    // 3) 是顶部空�?
+                    // Generated directly from overhang polygons, if
+                    // 1) It is a common part of a mixed support
+                    // 2) Top contact layer is enabled
+                    // 3) Top is empty
                     if (node.type == ePolygon || (top_interface_layers>0 &&node.support_roof_layers_below > 0) || node.distance_to_top<0) {
                         if (node.overhang->contour.size() > 100 || node.overhang->holes.size()>1)
                             area = *node.overhang;
