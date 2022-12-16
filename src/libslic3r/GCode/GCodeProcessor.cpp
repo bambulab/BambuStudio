@@ -14,6 +14,7 @@
 
 #include <float.h>
 #include <assert.h>
+#include <regex>
 
 #if __has_include(<charconv>)
     #include <charconv>
@@ -57,11 +58,29 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER"
 };
 
+const std::vector<std::string> GCodeProcessor::Reserved_Tags_compatible = {
+    "TYPE:",
+    "WIPE_START",
+    "WIPE_END",
+    "HEIGHT:",
+    "WIDTH:",
+    "LAYER_CHANGE",
+    "COLOR_CHANGE",
+    "PAUSE_PRINT",
+    "CUSTOM_GCODE",
+    "_GP_FIRST_LINE_M73_PLACEHOLDER",
+    "_GP_LAST_LINE_M73_PLACEHOLDER",
+    "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER"
+};
+
+
 const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
 const std::string GCodeProcessor::Flush_End_Tag = " FLUSH_END";
 
 const float GCodeProcessor::Wipe_Width = 0.05f;
 const float GCodeProcessor::Wipe_Height = 0.05f;
+
+bool GCodeProcessor::s_IsBBLPrinter = true;
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
 const std::string GCodeProcessor::Mm3_Per_Mm_Tag = "MM3_PER_MM:";
@@ -454,12 +473,16 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                     PrintEstimatedStatistics::ETimeMode mode = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
                     if (mode == PrintEstimatedStatistics::ETimeMode::Normal || machine.enabled) {
                         char buf[128];
+<<<<<<< HEAD
                         //sprintf(buf, "; estimated printing time (%s mode) = %s\n",
                         //    (mode == PrintEstimatedStatistics::ETimeMode::Normal) ? "normal" : "silent",
                         //    get_time_dhms(machine.time).c_str());
                         sprintf(buf, "; model printing time: %s; total estimated time: %s\n",
                                 get_time_dhms(machine.time - machine.roles_time[ExtrusionRole::erCustom]).c_str(),
                                 get_time_dhms(machine.time).c_str());
+=======
+                        sprintf(buf, "; estimated printing time: %s\n", get_time_dhms(machine.time).c_str());
+>>>>>>> c06190b79c0ba8861ab387da9f68c5ca6d1adb15
                         ret += buf;
                     }
                 }
@@ -815,11 +838,12 @@ bool GCodeProcessor::contains_reserved_tag(const std::string& gcode, std::string
     bool ret = false;
 
     GCodeReader parser;
-    parser.parse_buffer(gcode, [&ret, &found_tag](GCodeReader& parser, const GCodeReader::GCodeLine& line) {
+    auto& _tags = s_IsBBLPrinter ? Reserved_Tags : Reserved_Tags_compatible;
+    parser.parse_buffer(gcode, [&ret, &found_tag, _tags](GCodeReader& parser, const GCodeReader::GCodeLine& line) {
         std::string comment = line.raw();
         if (comment.length() > 2 && comment.front() == ';') {
             comment = comment.substr(1);
-            for (const std::string& s : Reserved_Tags) {
+            for (const std::string& s : _tags) {
                 if (boost::starts_with(comment, s)) {
                     ret = true;
                     found_tag = comment;
@@ -842,11 +866,12 @@ bool GCodeProcessor::contains_reserved_tags(const std::string& gcode, unsigned i
     CNumericLocalesSetter locales_setter;
 
     GCodeReader parser;
-    parser.parse_buffer(gcode, [&ret, &found_tag, max_count](GCodeReader& parser, const GCodeReader::GCodeLine& line) {
+    auto& _tags = s_IsBBLPrinter ? Reserved_Tags : Reserved_Tags_compatible;
+    parser.parse_buffer(gcode, [&ret, &found_tag, max_count, _tags](GCodeReader& parser, const GCodeReader::GCodeLine& line) {
         std::string comment = line.raw();
         if (comment.length() > 2 && comment.front() == ';') {
             comment = comment.substr(1);
-            for (const std::string& s : Reserved_Tags) {
+            for (const std::string& s : _tags) {
                 if (boost::starts_with(comment, s)) {
                     ret = true;
                     found_tag.push_back(comment);
@@ -900,11 +925,16 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_result.filament_vitrification_temperature[i] = static_cast<float>(config.temperature_vitrification.get_at(i));
     }
 
-    if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware) {
+    if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfKlipper || m_flavor == gcfRepRapFirmware) {
         m_time_processor.machine_limits = reinterpret_cast<const MachineEnvelopeConfig&>(config);
         if (m_flavor == gcfMarlinLegacy) {
             // Legacy Marlin does not have separate travel acceleration, it uses the 'extruding' value instead.
             m_time_processor.machine_limits.machine_max_acceleration_travel = m_time_processor.machine_limits.machine_max_acceleration_extruding;
+        }
+        if (m_flavor == gcfRepRapFirmware) {
+            // RRF does not support setting min feedrates. Set them to zero.
+            m_time_processor.machine_limits.machine_min_travel_rate.values.assign(m_time_processor.machine_limits.machine_min_travel_rate.size(), 0.);
+            m_time_processor.machine_limits.machine_min_extruding_rate.values.assign(m_time_processor.machine_limits.machine_min_extruding_rate.size(), 0.);
         }
     }
 
@@ -1091,7 +1121,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     if (machine_unload_filament_time != nullptr)
         m_time_processor.filament_unload_times = static_cast<float>(machine_unload_filament_time->value);
 
-    if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware) {
+    if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfKlipper) {
         const ConfigOptionFloats* machine_max_acceleration_x = config.option<ConfigOptionFloats>("machine_max_acceleration_x");
         if (machine_max_acceleration_x != nullptr)
             m_time_processor.machine_limits.machine_max_acceleration_x.values = machine_max_acceleration_x->values;
@@ -1603,6 +1633,15 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line, bool
     m_start_position = m_end_position;
 
     const std::string_view cmd = line.cmd();
+    if (m_flavor == gcfKlipper)
+    {
+        if (boost::iequals(cmd, "SET_VELOCITY_LIMIT"))
+        {
+            process_SET_VELOCITY_LIMIT(line);
+            return;
+        }
+    }
+
     if (cmd.length() > 1) {
         // process command lines
         switch (cmd[0])
@@ -3550,7 +3589,7 @@ void GCodeProcessor::process_M203(const GCodeReader::GCodeLine& line)
 
     // see http://reprap.org/wiki/G-code#M203:_Set_maximum_feedrate
     // http://smoothieware.org/supported-g-codes
-    float factor = (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfSmoothie) ? 1.0f : MMMIN_TO_MMSEC;
+    float factor = (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfSmoothie || m_flavor == gcfKlipper) ? 1.0f : MMMIN_TO_MMSEC;
 
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
         if (static_cast<PrintEstimatedStatistics::ETimeMode>(i) == PrintEstimatedStatistics::ETimeMode::Normal ||
@@ -3627,6 +3666,54 @@ void GCodeProcessor::process_M205(const GCodeReader::GCodeLine& line)
                 set_option_value(m_time_processor.machine_limits.machine_min_travel_rate, i, value);
         }
     }
+}
+
+void GCodeProcessor::process_SET_VELOCITY_LIMIT(const GCodeReader::GCodeLine& line)
+{
+    // handle SQUARE_CORNER_VELOCITY
+    std::regex pattern("\\sSQUARE_CORNER_VELOCITY\\s*=\\s*([0-9]*\\.*[0-9]*)");
+    std::smatch matches;
+    if (std::regex_search(line.raw(), matches, pattern) && matches.size() == 2) {
+        float _jerk = 0;
+        try
+        {
+            _jerk = std::stof(matches[1]);
+        }
+        catch (...){}
+        for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
+            set_option_value(m_time_processor.machine_limits.machine_max_jerk_x, i, _jerk);
+            set_option_value(m_time_processor.machine_limits.machine_max_jerk_y, i, _jerk);
+        }
+    }
+
+    pattern = std::regex("\\sACCEL\\s*=\\s*([0-9]*\\.*[0-9]*)");
+    if (std::regex_search(line.raw(), matches, pattern) && matches.size() == 2) {
+        float _accl = 0;
+        try
+        {
+            _accl = std::stof(matches[1]);
+        }
+        catch (...) {}
+        for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
+            set_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), _accl);
+            set_travel_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), _accl);
+        }
+    }
+
+    pattern = std::regex("\\sVELOCITY\\s*=\\s*([0-9]*\\.*[0-9]*)");
+    if (std::regex_search(line.raw(), matches, pattern) && matches.size() == 2) {
+        float _speed = 0;
+        try
+        {
+            _speed = std::stof(matches[1]);
+        }
+        catch (...) {}
+        for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
+                set_option_value(m_time_processor.machine_limits.machine_max_speed_x, i, _speed);
+                set_option_value(m_time_processor.machine_limits.machine_max_speed_y, i, _speed);
+        }
+    }
+
 }
 
 void GCodeProcessor::process_M221(const GCodeReader::GCodeLine& line)

@@ -1,6 +1,10 @@
 {
     "name": "Creality",
+<<<<<<< HEAD
     "version": "01.04.00.00",
+=======
+    "version": "01.02.01.04",
+>>>>>>> c06190b79c0ba8861ab387da9f68c5ca6d1adb15
     "force_update": "0",
     "description": "Creality configurations",
     "machine_model_list": [

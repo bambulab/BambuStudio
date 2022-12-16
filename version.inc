@@ -10,4 +10,9 @@ endif()
 if(NOT DEFINED BBL_INTERNAL_TESTING)
 set(BBL_INTERNAL_TESTING "1")
 endif()
+<<<<<<< HEAD
 set(SLIC3R_VERSION "01.04.00.17")
+=======
+set(SLIC3R_VERSION "01.03.01.01")
+set(SoftFever_VERSION "1.3.4")
+>>>>>>> c06190b79c0ba8861ab387da9f68c5ca6d1adb15

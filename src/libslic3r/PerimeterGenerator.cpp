@@ -681,6 +681,8 @@ void PerimeterGenerator::process_classic()
     for (const Surface &surface : this->slices->surfaces) {
         // detect how many perimeters must be generated for this island
         int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1;  // 0-indexed loops
+        if (this->layer_id == 0 && this->config->only_one_wall_first_layer)
+            loop_number = 0;
         //BBS: set the topmost layer to be one wall
         if (loop_number > 0 && config->only_one_wall_top && this->upper_slices == nullptr)
             loop_number = 0;
@@ -946,18 +948,37 @@ void PerimeterGenerator::process_classic()
             }
             // at this point, all loops should be in contours[0]
             ExtrusionEntityCollection entities = traverse_loops(*this, contours.front(), thin_walls);
+
             // if brim will be printed, reverse the order of perimeters so that
             // we continue inwards after having finished the brim
             // TODO: add test for perimeter order
-            bool is_outer_wall_first = 
+            bool is_outer_wall_first =
                 this->print_config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
-                this->print_config->wall_infill_order == WallInfillOrder::InfillOuterInner;
+                this->print_config->wall_infill_order == WallInfillOrder::InfillOuterInner || 
+                this->print_config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill;
             if (is_outer_wall_first ||
                 //BBS: always print outer wall first when there indeed has brim.
                 (this->layer_id == 0 &&
-                 this->object_config->brim_type == BrimType::btOuterOnly &&
-                 this->object_config->brim_width.value > 0))
-                entities.reverse();
+                    this->object_config->brim_type == BrimType::btOuterOnly &&
+                    this->object_config->brim_width.value > 0))
+            {
+                if (this->print_config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill) {
+                    if (entities.entities.size() > 1) {
+                        std::vector<int> extPs;
+                        for (int i = 0; i < entities.entities.size(); ++i) {
+                            if (entities.entities[i]->role() == erExternalPerimeter)
+                                extPs.push_back(i);
+                        }
+                        for (int i = 0; i < extPs.size(); ++i) {
+                            if (extPs[i] == 0 || (i > 0 && extPs[i] - 1 == extPs[i - 1]))
+                                continue;
+                            std::swap(entities.entities[extPs[i]], entities.entities[extPs[i] - 1]);
+                        }
+                    }
+                }
+                else
+                    entities.reverse();
+            }
             // append perimeters for this slice as a collection
             if (! entities.empty())
                 this->loops->append(entities);
@@ -994,6 +1015,15 @@ void PerimeterGenerator::process_classic()
                 ++ irun;
             }
 #endif
+            // SoftFever: don't filter out tiny gap fills for first and top layer. So that the print looks better :)
+            if (this->layer_id != 0 && this->upper_slices != nullptr)
+            {
+                polylines.erase(std::remove_if(polylines.begin(), polylines.end(),
+                    [&](const ThickPolyline& p) {
+                        return p.length() < scale_(config->filter_out_gap_fill.value);
+                    }), polylines.end());
+            }
+
 
             if (! polylines.empty()) {
 				ExtrusionEntityCollection gap_fill;
@@ -1007,7 +1037,8 @@ void PerimeterGenerator::process_classic()
                 //FIXME Vojtech: This grows by a rounded extrusion width, not by line spacing,
                 // therefore it may cover the area, but no the volume.
                 last = diff_ex(last, gap_fill.polygons_covered_by_width(10.f));
-				this->gap_fill->append(std::move(gap_fill.entities));
+                this->gap_fill->append(std::move(gap_fill.entities));
+
 			}
         }
 

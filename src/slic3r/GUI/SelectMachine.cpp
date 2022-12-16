@@ -398,7 +398,7 @@ SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
     m_scrolledWindow->Layout();
     m_sizxer_scrolledWindow->Fit(m_scrolledWindow);
 
-#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
+#if defined(__WINDOWS__)
 	m_sizer_search_bar = new wxBoxSizer(wxVERTICAL);
 	m_search_bar = new wxSearchCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
 	m_search_bar->ShowSearchButton( true );
@@ -572,7 +572,7 @@ void SelectMachinePopup::update_other_devices()
         if (i < m_other_list_machine_panel.size()) {
             op = m_other_list_machine_panel[i]->mPanel;
             op->Show();
-#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
+#if defined(__WINDOWS__)
 			if (!search_for_printer(mobj)) {
 				op->Hide();
 			}
@@ -702,7 +702,7 @@ void SelectMachinePopup::update_user_devices()
         if (i < m_user_list_machine_panel.size()) {
             op = m_user_list_machine_panel[i]->mPanel;
             op->Show();
-#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
+#if defined(__WINDOWS__)
 			if (!search_for_printer(mobj)) {
 				op->Hide();
 			}

@@ -505,7 +505,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool have_perimeters = config->opt_int("wall_loops") > 0;
     for (auto el : { "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",
                     "seam_position", "wall_infill_order", "outer_wall_line_width",
-                    "inner_wall_speed", "outer_wall_speed" })
+                    "inner_wall_speed", "outer_wall_speed", "small_perimeter_speed", "small_perimeter_threshold" })
         toggle_field(el, have_perimeters);
 
     bool have_infill = config->option<ConfigOptionPercent>("sparse_infill_density")->value > 0;
@@ -522,8 +522,13 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : { "top_surface_pattern", "bottom_surface_pattern", "solid_infill_filament"})
         toggle_field(el, has_solid_infill);
 
+<<<<<<< HEAD
     for (auto el : { "infill_direction", "sparse_infill_line_width", "bridge_angle",
                     "sparse_infill_speed", "bridge_speed" })
+=======
+    for (auto el : { "infill_direction", "sparse_infill_line_width",
+                    "sparse_infill_speed", "bridge_speed", "bridge_angle" })
+>>>>>>> c06190b79c0ba8861ab387da9f68c5ca6d1adb15
         toggle_field(el, have_infill || has_solid_infill);
 
     toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_solid_infill);
@@ -537,8 +542,17 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     bool have_default_acceleration = config->opt_float("default_acceleration") > 0;
     //BBS
+<<<<<<< HEAD
     for (auto el : { "initial_layer_acceleration", "outer_wall_acceleration", "top_surface_acceleration" })
+=======
+    for (auto el : { "outer_wall_acceleration", "inner_wall_acceleration", "initial_layer_acceleration", "top_surface_acceleration","travel_acceleration" })
+>>>>>>> c06190b79c0ba8861ab387da9f68c5ca6d1adb15
         toggle_field(el, have_default_acceleration);
+
+    bool have_default_jerk = config->opt_float("default_jerk") > 0;
+
+    for (auto el : { "outer_wall_jerk", "inner_wall_jerk", "initial_layer_jerk", "top_surface_jerk","travel_jerk" })
+        toggle_field(el, have_default_jerk);
 
     bool have_skirt = config->opt_int("skirt_loops") > 0;
     toggle_field("skirt_height", have_skirt && config->opt_enum<DraftShield>("draft_shield") != dsEnabled);

@@ -360,6 +360,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     std::string height = ImGui::ColorMarkerStart + _u8L("Height: ") + ImGui::ColorMarkerEnd;
     std::string width = ImGui::ColorMarkerStart + _u8L("Width: ") + ImGui::ColorMarkerEnd;
     std::string speed = ImGui::ColorMarkerStart + _u8L("Speed: ") + ImGui::ColorMarkerEnd;
+    std::string fan = ImGui::ColorMarkerStart + _u8L("Fan: ") + ImGui::ColorMarkerEnd;
     std::string flow = ImGui::ColorMarkerStart + _u8L("Flow: ") + ImGui::ColorMarkerEnd;
     std::string fanspeed = ImGui::ColorMarkerStart + _u8L("Fan Speed: ") + ImGui::ColorMarkerEnd;
     std::string temperature = ImGui::ColorMarkerStart + _u8L("Temperature: ") + ImGui::ColorMarkerEnd;
@@ -403,6 +404,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
             imgui.text(buf);
             break;
         }
+<<<<<<< HEAD
         case EViewType::Feedrate: {
             ImGui::SameLine(window_padding + item_size + item_spacing);
             sprintf(buf, "%s%.0f", speed.c_str(), it->feedrate);
@@ -410,6 +412,8 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
             imgui.text(buf);
             break;
         }
+=======
+>>>>>>> c06190b79c0ba8861ab387da9f68c5ca6d1adb15
         case EViewType::VolumetricRate: {
             ImGui::SameLine(window_padding + item_size + item_spacing);
             sprintf(buf, "%s%.2f", flow.c_str(), it->volumetric_rate());
@@ -431,7 +435,29 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
             imgui.text(buf);
             break;
         }
+        case EViewType::FanSpeed:
+            sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            ImGui::SameLine(window_padding + item_size + item_spacing);
+            sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            sprintf(buf, "%s%.3f", z.c_str(), position.z());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            ImGui::SameLine(window_padding + item_size + item_spacing);
+            sprintf(buf, "%s%d", fan.c_str(), int(it->fan_speed + 0.5));
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+            break;
+            
+        case EViewType::Feedrate:
         default:
+<<<<<<< HEAD
             break;
         }
     }
@@ -446,6 +472,26 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         ImGui::SameLine();
         sprintf(buf, "%s%.3f", z.c_str(), position.z());
         imgui.text(buf);
+=======
+            sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            ImGui::SameLine(window_padding + item_size + item_spacing);
+            sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            sprintf(buf, "%s%.3f", z.c_str(), position.z());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            ImGui::SameLine(window_padding + item_size + item_spacing);
+            sprintf(buf, "%s%.2f", speed.c_str(), it->feedrate);
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+            
+>>>>>>> c06190b79c0ba8861ab387da9f68c5ca6d1adb15
     }
 
     // force extra frame to automatically update window size
@@ -895,9 +941,13 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
     view_type_items.push_back(EViewType::VolumetricRate);
     view_type_items.push_back(EViewType::FanSpeed);
     view_type_items.push_back(EViewType::Temperature);
+<<<<<<< HEAD
     if (mode == ConfigOptionMode::comDevelop) {
         view_type_items.push_back(EViewType::Tool);
     }
+=======
+    view_type_items.push_back(EViewType::Tool);
+>>>>>>> c06190b79c0ba8861ab387da9f68c5ca6d1adb15
 
     for (int i = 0; i < view_type_items.size(); i++) {
         view_type_items_str.push_back(get_view_type_string(view_type_items[i]));

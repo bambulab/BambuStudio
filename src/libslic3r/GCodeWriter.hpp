@@ -11,12 +11,6 @@
 
 namespace Slic3r {
 
-enum class LiftType {
-    NormalLift,
-    LazyLift,
-    SpiralLift
-};
-
 class GCodeWriter {
 public:
     GCodeConfig config;
@@ -26,6 +20,7 @@ public:
         multiple_extruders(false), m_extruder(nullptr),
         m_single_extruder_multi_material(false),
         m_last_acceleration(0), m_max_acceleration(0),
+        m_last_jerk(0), m_max_jerk(0),
         /*m_last_bed_temperature(0), */m_last_bed_temperature_reached(true),
         m_lifted(0),
         m_to_lift(0),
@@ -50,6 +45,8 @@ public:
     std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1) const;
     std::string set_bed_temperature(int temperature, bool wait = false);
     std::string set_acceleration(unsigned int acceleration);
+    std::string set_jerk_xy(unsigned int jerk);
+    std::string set_pressure_advance(double pa) const;
     std::string reset_e(bool force = false);
     std::string update_progress(unsigned int num, unsigned int tot, bool allow_100 = false) const;
     // return false if this extruder was already selected
@@ -93,6 +90,10 @@ public:
     bool is_current_position_clear() const { return m_is_current_pos_clear; };
     //BBS:
     static const bool full_gcode_comment;
+    
+    //SoftFever
+    void set_is_bbl_machine(bool bval) {m_is_bbl_printers = bval;}
+    const bool is_bbl_printers() const {return m_is_bbl_printers;}
 
 private:
 	// Extruders are sorted by their ID, so that binary search is possible.
@@ -103,6 +104,13 @@ private:
     // Limit for setting the acceleration, to respect the machine limits set for the Marlin firmware.
     // If set to zero, the limit is not in action.
     unsigned int    m_max_acceleration;
+    unsigned int    m_max_jerk;
+    unsigned int    m_last_jerk;
+
+    unsigned int  m_travel_acceleration;
+    unsigned int  m_travel_jerk;
+
+
     //BBS
     unsigned int    m_last_additional_fan_speed;
     int             m_last_bed_temperature;
@@ -123,7 +131,10 @@ private:
 
     //Radian threshold of slope for lazy lift and spiral lift;
     static const double slope_threshold;
-
+    
+    //SoftFever
+    bool            m_is_bbl_printers = false;
+    
     std::string _travel_to_z(double z, const std::string &comment);
     std::string _spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment);
     std::string _retract(double length, double restart_extra, const std::string &comment);

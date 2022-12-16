@@ -656,6 +656,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "brim_type"
             // BBS: brim generation depends on printing speed
             || opt_key == "outer_wall_speed"
+            || opt_key == "small_perimeter_speed"
+            || opt_key == "small_perimeter_threshold"
             || opt_key == "sparse_infill_speed"
             || opt_key == "inner_wall_speed"
             || opt_key == "support_speed"
@@ -674,11 +676,13 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (
                opt_key == "wall_loops"
             || opt_key == "only_one_wall_top"
+            || opt_key == "only_one_wall_first_layer"
             || opt_key == "initial_layer_line_width"
             || opt_key == "inner_wall_line_width"
             || opt_key == "infill_wall_overlap") {
             steps.emplace_back(posPerimeters);
-        } else if (opt_key == "gap_infill_speed") {
+        } else if (opt_key == "gap_infill_speed"
+            || opt_key == "filter_out_gap_fill" ) {
             // Return true if gap-fill speed has changed from zero value to non-zero or from non-zero value to zero.
             auto is_gap_fill_changed_state_due_to_speed = [&opt_key, &old_config, &new_config]() -> bool {
                 if (opt_key == "gap_infill_speed") {
@@ -692,9 +696,9 @@ bool PrintObject::invalidate_state_by_config_options(
             };
 
             // Filtering of unprintable regions in multi-material segmentation depends on if gap-fill is enabled or not.
-            // So step posSlice is invalidated when gap-fill was enabled/disabled by option "gap_fill_enabled" or by
+            // So step posSlice is invalidated when gap-fill was enabled/disabled by option "filter_out_gap_fill" or by
             // changing "gap_infill_speed" to force recomputation of the multi-material segmentation.
-            if (this->is_mm_painted() && (opt_key == "gap_infill_speed" && is_gap_fill_changed_state_due_to_speed()))
+            if (this->is_mm_painted() && (opt_key == "filter_out_gap_fill" && (opt_key == "gap_infill_speed" && is_gap_fill_changed_state_due_to_speed())))
                 steps.emplace_back(posSlice);
             steps.emplace_back(posPerimeters);
         } else if (
@@ -770,16 +774,21 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "sparse_infill_filament"
             || opt_key == "solid_infill_filament"
             || opt_key == "sparse_infill_line_width"
+<<<<<<< HEAD
             || opt_key == "ensure_vertical_shell_thickness"
             || opt_key == "bridge_angle"
             //BBS
             || opt_key == "internal_bridge_support_thickness") {
+=======
+            || opt_key == "infill_direction"
+            || opt_key == "bridge_angle") {
+>>>>>>> c06190b79c0ba8861ab387da9f68c5ca6d1adb15
             steps.emplace_back(posPrepareInfill);
         } else if (
                opt_key == "top_surface_pattern"
             || opt_key == "bottom_surface_pattern"
             || opt_key == "external_fill_link_max_length"
-            || opt_key == "infill_direction"
+            || opt_key == "sparse_infill_pattern"
             || opt_key == "top_surface_line_width"
             || opt_key == "initial_layer_line_width") {
             steps.emplace_back(posInfill);
@@ -846,6 +855,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "overhang_4_4_speed"
             || opt_key == "bridge_speed"
             || opt_key == "outer_wall_speed"
+            || opt_key == "small_perimeter_speed"
+            || opt_key == "small_perimeter_threshold"
             || opt_key == "sparse_infill_speed"
             || opt_key == "inner_wall_speed"
             || opt_key == "internal_solid_infill_speed"

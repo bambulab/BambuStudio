@@ -76,6 +76,7 @@ wxDEFINE_EVENT(EVT_UPDATE_PRESET_CB, SimpleEvent);
 // BBS: backup
 wxDEFINE_EVENT(EVT_BACKUP_POST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_LOAD_URL, wxCommandEvent);
+wxDEFINE_EVENT(EVT_LOAD_PRINTER_URL, wxCommandEvent);
 
 enum class ERescaleTarget
 {
@@ -861,7 +862,9 @@ void MainFrame::init_tabpanel()
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent& e) {
         int old_sel = e.GetOldSelection();
         int new_sel = e.GetSelection();
-        if (new_sel == tpMonitor) {
+        if (wxGetApp().preset_bundle &&
+            wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle) &&
+            new_sel == tpMonitor) {
             if (!wxGetApp().getAgent()) {
                 e.Veto();
                 BOOST_LOG_TRIVIAL(info) << boost::format("skipped tab switch from %1% to %2%, lack of network plugins")%old_sel %new_sel;
@@ -950,6 +953,14 @@ void MainFrame::init_tabpanel()
     m_monitor->SetBackgroundColour(*wxWHITE);
     m_tabpanel->AddPage(m_monitor, _L("Device"), std::string("tab_monitor_active"), std::string("tab_monitor_active"));
 
+    m_printer_view = new PrinterWebView(m_tabpanel);
+    Bind(EVT_LOAD_PRINTER_URL, [this](wxCommandEvent &evt) {
+        wxString url = evt.GetString();
+        //select_tab(MainFrame::tpMonitor);
+        m_printer_view->load_url(url);
+    });
+    m_printer_view->Hide();
+
     m_auxiliary = new AuxiliaryPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_auxiliary->SetBackgroundColour(*wxWHITE);
     m_tabpanel->AddPage(m_auxiliary, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"));
@@ -968,6 +979,7 @@ void MainFrame::init_tabpanel()
     }
 }
 
+<<<<<<< HEAD
 bool MainFrame::preview_only_hint()
 {
     if (m_plater && (m_plater->only_gcode_mode() || (m_plater->using_exported_file()))) {
@@ -995,6 +1007,36 @@ bool MainFrame::preview_only_hint()
     return true;
 }
 
+=======
+    // SoftFever
+void MainFrame::show_device(bool bBBLPrinter) {
+  if (m_tabpanel->GetPage(3) != m_monitor &&
+      m_tabpanel->GetPage(3) != m_printer_view) {
+    BOOST_LOG_TRIVIAL(error) << "Failed to find device tab";
+    return;
+  }
+  if (bBBLPrinter) {
+    if (m_tabpanel->GetPage(3) != m_monitor) {
+      m_tabpanel->RemovePage(3);
+      m_tabpanel->InsertPage(3, m_monitor, _L("Device"),
+                             std::string("tab_monitor_active"),
+                             std::string("tab_monitor_active"));
+    }
+  } else {
+    if (m_tabpanel->GetPage(3) != m_printer_view) {
+      m_tabpanel->RemovePage(3);
+      m_tabpanel->InsertPage(3, m_printer_view, _L("Device"),
+                          std::string("tab_monitor_active"),
+                          std::string("tab_monitor_active"));
+        m_printer_view->Show();
+    }
+  }
+
+
+}
+
+
+>>>>>>> c06190b79c0ba8861ab387da9f68c5ca6d1adb15
 #ifdef WIN32
 void MainFrame::register_win32_callbacks()
 {
@@ -3065,6 +3107,13 @@ void MainFrame::load_url(wxString url)
     wxQueueEvent(this, evt);
 }
 
+void MainFrame::load_printer_url(wxString url)
+{
+    BOOST_LOG_TRIVIAL(trace) << "load_printer_url:" << url;
+    auto evt = new wxCommandEvent(EVT_LOAD_PRINTER_URL, this->GetId());
+    evt->SetString(url);
+    wxQueueEvent(this, evt);
+}
 void MainFrame::refresh_plugin_tips()
 {
     if (m_webview != nullptr)

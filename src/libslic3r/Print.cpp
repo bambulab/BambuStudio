@@ -73,7 +73,9 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         //BBS: add bed_exclude_area
         "bed_exclude_area",
         "before_layer_change_gcode",
-        "enable_overhang_bridge_fan"
+        "enable_pressure_advance",
+        "pressure_advance",
+        "enable_overhang_bridge_fan",
         "overhang_fan_speed",
         "overhang_fan_threshold",
         "slow_down_for_layer_cooling",
@@ -97,9 +99,12 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_diameter",
         "filament_density",
         "filament_cost",
+        "outer_wall_acceleration",
+        "inner_wall_acceleration",
         "initial_layer_acceleration",
         "outer_wall_acceleration",
         "top_surface_acceleration",
+        "travel_acceleration",
         // BBS
         "cool_plate_temp_initial_layer",
         "eng_plate_temp_initial_layer",
@@ -132,13 +137,19 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_start_gcode",
         "change_filament_gcode",
         "wipe",
+        "z_lift_type",
         // BBS
         "wipe_distance",
         "curr_bed_type",
         "nozzle_volume",
+<<<<<<< HEAD
         "nozzle_hrc",
         "required_nozzle_HRC",
         "upward_compatible_machine"
+=======
+        "chamber_temperature",
+        "thumbnails"
+>>>>>>> c06190b79c0ba8861ab387da9f68c5ca6d1adb15
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -175,6 +186,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         } else if (
                opt_key == "print_sequence"
             || opt_key == "filament_type"
+            || opt_key == "chamber_temperature"
             || opt_key == "nozzle_temperature_initial_layer"
             || opt_key == "filament_minimal_purge_on_wipe_tower"
             || opt_key == "filament_max_volumetric_speed"
@@ -1106,6 +1118,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     }
 
 
+<<<<<<< HEAD
     const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
     assert(bed_type_def != nullptr);
 
@@ -1134,6 +1147,30 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             }
         }
     }
+=======
+//    const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
+//    assert(bed_type_def != nullptr);
+//
+//    const t_config_enum_values* bed_type_keys_map = bed_type_def->enum_keys_map;
+//    for (unsigned int extruder_id : extruders) {
+//        const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key(m_config.curr_bed_type));
+//        for (unsigned int extruder_id : extruders) {
+//            int curr_bed_temp = bed_temp_opt->get_at(extruder_id);
+//            if (curr_bed_temp == 0 && bed_type_keys_map != nullptr) {
+//                std::string bed_type_name;
+//                for (auto item : *bed_type_keys_map) {
+//                    if (item.second == m_config.curr_bed_type) {
+//                        bed_type_name = item.first;
+//                        break;
+//                    }
+//                }
+//
+//                return { format(L("Plate %d: %s does not support filament %s.\n"), this->get_plate_index() + 1,
+//                                L(bed_type_name), extruder_id + 1) };
+//            }
+//        }
+//    }
+>>>>>>> c06190b79c0ba8861ab387da9f68c5ca6d1adb15
 
     return {};
 }

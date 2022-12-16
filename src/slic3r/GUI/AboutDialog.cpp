@@ -240,12 +240,17 @@ AboutDialog::AboutDialog()
     // version
     {
         vesizer->Add(0, FromDIP(165), 1, wxEXPAND, FromDIP(5));
+<<<<<<< HEAD
         auto version_text = GUI_App::format_display_version();
 #if BBL_INTERNAL_TESTING
         auto version_string = _L("Internal Version") + " " + std::string(version_text);
 #else
         auto version_string = _L("Version") + " " + std::string(version_text);
 #endif
+=======
+
+        auto version_string = _L("SoftFever Version") + " " + std::string(SoftFever_VERSION);
+>>>>>>> c06190b79c0ba8861ab387da9f68c5ca6d1adb15
         wxStaticText* version = new wxStaticText(this, wxID_ANY, version_string.c_str(), wxDefaultPosition, wxDefaultSize);
         wxFont version_font = GetFont();
         #ifdef __WXMSW__

@@ -32,8 +32,8 @@
 namespace Slic3r {
 
 enum GCodeFlavor : unsigned char {
-    gcfMarlinLegacy, gcfRepRapSprinter, gcfRepRapFirmware, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlinFirmware, gcfSailfish, gcfMach3, gcfMachinekit,
-    gcfSmoothie, gcfNoExtrusion,
+    gcfMarlinLegacy, gcfKlipper, gcfRepRapFirmware, gcfRepRapSprinter, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlinFirmware, gcfSailfish, gcfMach3, gcfMachinekit,
+    gcfSmoothie, gcfNoExtrusion
 };
 
 enum class FuzzySkinType {
@@ -71,6 +71,7 @@ enum class WallInfillOrder {
     OuterInnerInfill,
     InfillInnerOuter,
     InfillOuterInner,
+    InnerOuterInnerInfill,
     Count,
 };
 //BBS
@@ -112,6 +113,12 @@ enum SupportType {
 
 enum SeamPosition {
     spNearest, spAligned, spRear, spRandom
+};
+
+enum LiftType {
+    NormalLift,
+    SpiralLift,
+    LazyLift
 };
 
 enum SLAMaterial {
@@ -682,17 +689,26 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                bridge_angle))
     ((ConfigOptionFloat,                bridge_flow))
     ((ConfigOptionFloat,                bridge_speed))
+<<<<<<< HEAD
     ((ConfigOptionBool,                 ensure_vertical_shell_thickness))
+=======
+    ((ConfigOptionFloat,                bridge_angle))
+>>>>>>> c06190b79c0ba8861ab387da9f68c5ca6d1adb15
     ((ConfigOptionEnum<InfillPattern>,  top_surface_pattern))
+    ((ConfigOptionFloat,                top_solid_infill_flow_ratio))
+    ((ConfigOptionFloat,                bottom_solid_infill_flow_ratio))
     ((ConfigOptionEnum<InfillPattern>,  bottom_surface_pattern))
     ((ConfigOptionFloat,                outer_wall_line_width))
     ((ConfigOptionFloat,                outer_wall_speed))
+    ((ConfigOptionFloatOrPercent,       small_perimeter_speed))
+    ((ConfigOptionFloat,                small_perimeter_threshold))
     ((ConfigOptionFloat,                infill_direction))
     ((ConfigOptionPercent,              sparse_infill_density))
     ((ConfigOptionEnum<InfillPattern>,  sparse_infill_pattern))
     ((ConfigOptionEnum<FuzzySkinType>,  fuzzy_skin))
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))
+    ((ConfigOptionFloat,                 filter_out_gap_fill))
     ((ConfigOptionFloat,                gap_infill_speed))
     ((ConfigOptionInt,                  sparse_infill_filament))
     ((ConfigOptionFloat,                sparse_infill_line_width))
@@ -729,6 +745,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                overhang_3_4_speed))
     ((ConfigOptionFloat,                overhang_4_4_speed))
     ((ConfigOptionBool,                 only_one_wall_top))
+    ((ConfigOptionBool,                 only_one_wall_first_layer))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -772,6 +789,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              machine_end_gcode))
     ((ConfigOptionStrings,             filament_end_gcode))
     ((ConfigOptionFloats,              filament_flow_ratio))
+    ((ConfigOptionBools,               enable_pressure_advance))
+    ((ConfigOptionFloats,              pressure_advance))
     ((ConfigOptionFloats,              filament_diameter))
     ((ConfigOptionFloats,              filament_density))
     ((ConfigOptionStrings,             filament_type))
@@ -800,6 +819,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              retraction_length))
     ((ConfigOptionFloats,              retract_length_toolchange))
     ((ConfigOptionFloats,              z_hop))
+    ((ConfigOptionEnum<LiftType>,     z_lift_type))
     ((ConfigOptionFloats,              retract_restart_extra))
     ((ConfigOptionFloats,              retract_restart_extra_toolchange))
     ((ConfigOptionFloats,              retraction_speed))
@@ -817,6 +837,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<NozzleType>,    nozzle_type))
     ((ConfigOptionInt,                 nozzle_hrc))
     ((ConfigOptionBool,                auxiliary_fan))
+
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.
@@ -856,14 +877,24 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionStrings,            extruder_colour))
     ((ConfigOptionPoints,             extruder_offset))
     ((ConfigOptionBools,              reduce_fan_stop_start_freq))
-    ((ConfigOptionInts,               fan_cooling_layer_time))
+    ((ConfigOptionFloats,             fan_cooling_layer_time))
     ((ConfigOptionStrings,            filament_colour))
+    ((ConfigOptionFloat,              outer_wall_acceleration))
+    ((ConfigOptionFloat,              inner_wall_acceleration))
     ((ConfigOptionFloat,              top_surface_acceleration))
     ((ConfigOptionFloat,              outer_wall_acceleration))
     ((ConfigOptionFloat,              initial_layer_acceleration))
+    ((ConfigOptionFloat,              travel_acceleration))
     ((ConfigOptionFloat,              initial_layer_line_width))
     ((ConfigOptionFloat,              initial_layer_print_height))
     ((ConfigOptionFloat,              initial_layer_speed))
+    ((ConfigOptionFloat,              default_jerk))
+    ((ConfigOptionFloat,              outer_wall_jerk))
+    ((ConfigOptionFloat,              inner_wall_jerk))
+    ((ConfigOptionFloat,              top_surface_jerk))
+    ((ConfigOptionFloat,              initial_layer_jerk))
+    ((ConfigOptionFloat,              travel_jerk))
+
     //BBS
     ((ConfigOptionFloat,              initial_layer_infill_speed))
     ((ConfigOptionInts,               nozzle_temperature_initial_layer))
@@ -886,10 +917,11 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              skirt_distance))
     ((ConfigOptionInt,                skirt_height))
     ((ConfigOptionInt,                skirt_loops))
-    ((ConfigOptionInts,               slow_down_layer_time))
+    ((ConfigOptionFloats,             slow_down_layer_time))
     ((ConfigOptionBool,               spiral_mode))
     ((ConfigOptionInt,                standby_temperature_delta))
     ((ConfigOptionInts,               nozzle_temperature))
+    ((ConfigOptionInt ,               chamber_temperature))
     ((ConfigOptionBools,              wipe))
     // BBS
     ((ConfigOptionInts,               bed_temperature_difference))
@@ -917,8 +949,12 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               has_prime_tower))
     ((ConfigOptionFloat,              nozzle_volume))
     ((ConfigOptionEnum<TimelapseType>,    timelapse_type))
+<<<<<<< HEAD
     // BBS: move from PrintObjectConfig
     ((ConfigOptionBool, independent_support_layer_height))
+=======
+    ((ConfigOptionPoints,              thumbnails))
+>>>>>>> c06190b79c0ba8861ab387da9f68c5ca6d1adb15
 )
 
 // This object is mapped to Perl as Slic3r::Config::Full.
@@ -1286,7 +1322,12 @@ public:
     const ConfigOption*         option(const t_config_option_key &opt_key) const { return m_data.option(opt_key); }
     int                         opt_int(const t_config_option_key &opt_key) const { return m_data.opt_int(opt_key); }
     int                         extruder() const { return opt_int("extruder"); }
-    double                      opt_float(const t_config_option_key &opt_key) const { return m_data.opt_float(opt_key); }
+    double opt_float(const t_config_option_key &opt_key) const {
+      return m_data.opt_float(opt_key);
+    }
+    double get_abs_value(const t_config_option_key &opt_key) const {
+      return m_data.get_abs_value(opt_key);
+    }
     std::string                 opt_serialize(const t_config_option_key &opt_key) const { return m_data.opt_serialize(opt_key); }
 
     // Return an optional timestamp of this object.

@@ -751,10 +751,16 @@ Sidebar::Sidebar(Plater *parent)
                 std::vector<float> extruders = dlg.get_extruders();
                 (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
                 (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values = std::vector<double>(extruders.begin(), extruders.end());
+<<<<<<< HEAD
                 (project_config.option<ConfigOptionFloat>("flush_multiplier"))->set(new ConfigOptionFloat(dlg.get_flush_multiplier()));
 
                 wxGetApp().app_config->set("flush_multiplier", std::to_string(dlg.get_flush_multiplier()));
                 wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+=======
+// #if !BBL_RELEASE_TO_PUBLIC
+                (project_config.option<ConfigOptionFloat>("flush_multiplier"))->set(new ConfigOptionFloat(dlg.get_flush_multiplier()));
+// #endif
+>>>>>>> c06190b79c0ba8861ab387da9f68c5ca6d1adb15
 
                 wxGetApp().plater()->update_project_dirty_from_presets();
                 wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
@@ -1014,17 +1020,34 @@ void Sidebar::update_all_preset_comboboxes()
 
     bool is_bbl_preset = preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle);
 
+    auto p_mainframe = wxGetApp().mainframe;
+
+    p_mainframe->show_device(is_bbl_preset);
     if (is_bbl_preset) {
         //only show connection button for not-BBL printer
         connection_btn->Hide();
         //only show sync-ams button for BBL printer
         ams_btn->Show();
         //update print button default value for bbl or third-party printer
-        wxGetApp().mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
+        p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
+        m_bed_type_list->Enable();
+
+
     } else {
         connection_btn->Show();
         ams_btn->Hide();
-        wxGetApp().mainframe->set_print_button_to_default(MainFrame::PrintSelectType::eSendGcode);
+        p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::eSendGcode);
+        wxString host_url = preset_bundle.printers.get_edited_preset().config.opt_string("print_host");
+        if(!host_url.empty()) 
+        {
+            if(!host_url.Lower().starts_with("http"))
+                host_url = wxString::Format("http://%s",host_url);
+
+            p_mainframe->load_printer_url(host_url);
+        }
+
+        m_bed_type_list->SelectAndNotify(btPEI);
+        m_bed_type_list->Disable();
     }
 
     // Update the print choosers to only contain the compatible presets, update the dirty flags.
@@ -1041,6 +1064,8 @@ void Sidebar::update_all_preset_comboboxes()
 
     if (p->combo_printer)
         p->combo_printer->update();
+
+    p_mainframe->m_tabpanel->SetSelection(p_mainframe->m_tabpanel->GetSelection());
 }
 
 void Sidebar::update_presets(Preset::Type preset_type)
@@ -2666,7 +2691,10 @@ void Plater::setPrintSpeedTable(GlobalSpeedMap &printSpeedMap) {
         if (printSpeedMap.supportSpeed > printSpeedMap.maxSpeed)
             printSpeedMap.maxSpeed = printSpeedMap.supportSpeed;
     }
+    if (config.has("small_perimeter_speed")) {
+        printSpeedMap.smallPerimeterSpeed = config.get_abs_value("small_perimeter_speed");
 
+<<<<<<< HEAD
 
     auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
     auto print_config = print.config();
@@ -2683,6 +2711,14 @@ void Plater::setPrintSpeedTable(GlobalSpeedMap &printSpeedMap) {
         }
     }
     printSpeedMap.bed_poly = diff({ printSpeedMap.bed_poly }, exclude_polys)[0];
+=======
+        if (printSpeedMap.smallPerimeterSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.smallPerimeterSpeed;
+    }
+    /*        "inner_wall_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
+        "top_surface_speed", "support_speed", "support_object_xy_distance", "support_interface_speed",
+        "bridge_speed", "gap_infill_speed", "travel_speed", "initial_layer_speed"*/
+>>>>>>> c06190b79c0ba8861ab387da9f68c5ca6d1adb15
 }
 
 // find temperature of heatend and bed and matierial of an given extruder
@@ -4464,7 +4500,7 @@ void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_remova
     if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
         return;
 
-    show_warning_dialog = true;
+    show_warning_dialog = false;
     if (! output_path.empty()) {
         background_process.schedule_export(output_path.string(), output_path_on_removable_media);
         notification_manager->push_delayed_notification(NotificationType::ExportOngoing, []() {return true; }, 1000, 0);
@@ -4496,7 +4532,7 @@ void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_remova
     if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
         return;
 
-    show_warning_dialog = true;
+    show_warning_dialog = false;
     if (! output_path.empty()) {
         background_process.schedule_export(output_path.string(), output_path_on_removable_media);
         notification_manager->push_delayed_notification(NotificationType::ExportOngoing, []() {return true; }, 1000, 0);
@@ -8979,7 +9015,7 @@ void Plater::export_gcode(bool prefer_removable)
         unsigned int state = this->p->update_restart_background_process(false, false);
         if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
             return;
-        default_output_file = this->p->background_process.output_filepath_for_project(into_path(get_project_filename(".3mf")));
+        default_output_file = this->p->background_process.output_filepath_for_project("");
     } catch (const Slic3r::PlaceholderParserError &ex) {
         // Show the error with monospaced font.
         show_error(this, ex.what(), true);
@@ -9721,7 +9757,7 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool up
         unsigned int state = this->p->update_restart_background_process(false, false);
         if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
             return;
-        default_output_file = this->p->background_process.output_filepath_for_project(into_path(get_project_filename(".3mf")));
+        default_output_file = this->p->background_process.output_filepath_for_project("");
     } catch (const Slic3r::PlaceholderParserError& ex) {
         // Show the error with monospaced font.
         show_error(this, ex.what(), true);
@@ -9739,7 +9775,7 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool up
         upload_job.printhost->get_groups(groups);
     }
 
-    PrintHostSendDialog dlg(default_output_file, upload_job.printhost->get_post_upload_actions(), groups, upload_only);
+    PrintHostSendDialog dlg(default_output_file, upload_job.printhost->get_post_upload_actions(), groups);
     if (dlg.ShowModal() == wxID_OK) {
         upload_job.upload_data.upload_path = dlg.filename();
         upload_job.upload_data.post_action = dlg.post_action();
