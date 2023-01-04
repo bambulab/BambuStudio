@@ -37,6 +37,7 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_GET_USER_INFO                 -28
 
 
+
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 #define BAMBU_NETWORK_AGENT_VERSION         "01.04.01.01"
@@ -128,6 +129,7 @@ struct PrintParams {
 
     /* access options */
     std::string     dev_ip;
+    bool            use_ssl;
     std::string     username;
     std::string     password;
 
