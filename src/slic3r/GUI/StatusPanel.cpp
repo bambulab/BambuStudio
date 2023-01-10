@@ -71,8 +71,9 @@ static wxColour TEXT_LIGHT_FONT_COL  = wxColour(107, 107, 107);
 #define TASK_BUTTON_SIZE (wxSize(FromDIP(48), FromDIP(24)))
 #define TASK_BUTTON_SIZE2 (wxSize(-1, FromDIP(24)))
 #define Z_BUTTON_SIZE (wxSize(FromDIP(52), FromDIP(52)))
-#define MISC_BUTTON_SIZE (wxSize(FromDIP(68), FromDIP(55)))
-#define MISC_BUTTON_3FAN_SIZE (wxSize(FromDIP(45), FromDIP(55)))
+#define MISC_BUTTON_PANEL_SIZE (wxSize(FromDIP(136), FromDIP(55)))
+#define MISC_BUTTON_SIZE (wxSize(FromDIP(66), FromDIP(51)))
+#define MISC_BUTTON_3FAN_SIZE (wxSize(FromDIP(44), FromDIP(51)))
 #define TEMP_CTRL_MIN_SIZE (wxSize(FromDIP(122), FromDIP(52)))
 #define AXIS_MIN_SIZE (wxSize(FromDIP(220), FromDIP(220)))
 #define EXTRUDER_IMAGE_SIZE (wxSize(FromDIP(48), FromDIP(76)))
@@ -772,50 +773,84 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     line->SetLineColour(STATIC_BOX_LINE_COL);
     sizer->Add(line, 0, wxEXPAND | wxLEFT | wxRIGHT, 12);
 
-    line_sizer          = new wxBoxSizer(wxHORIZONTAL);
-    m_switch_nozzle_fan = new FanSwitchButton(parent, m_bitmap_fan_on, m_bitmap_fan_off);
+    m_fan_panel = new StaticBox(parent);
+    m_fan_panel->SetMinSize(MISC_BUTTON_PANEL_SIZE);
+    m_fan_panel->SetMaxSize(MISC_BUTTON_PANEL_SIZE);
+    m_fan_panel->SetBackgroundColor(*wxWHITE);
+    m_fan_panel->SetBorderWidth(0);
+    m_fan_panel->SetCornerRadius(0);
+
+    auto fan_line_sizer          = new wxBoxSizer(wxHORIZONTAL);
+    m_switch_nozzle_fan = new FanSwitchButton(m_fan_panel, m_bitmap_fan_on, m_bitmap_fan_off);
     m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_3FAN_SIZE);
     m_switch_nozzle_fan->SetMaxSize(MISC_BUTTON_3FAN_SIZE);
     m_switch_nozzle_fan->SetValue(false);
     m_switch_nozzle_fan->SetLabels(_L("Part"), _L("Part"));
-    m_switch_nozzle_fan->SetPadding(FromDIP(3));
-    m_switch_nozzle_fan->SetBorderWidth(FromDIP(2));
+    m_switch_nozzle_fan->SetPadding(FromDIP(1));
+    m_switch_nozzle_fan->SetBorderWidth(0);
+    m_switch_nozzle_fan->SetCornerRadius(0);
     m_switch_nozzle_fan->SetFont(::Label::Body_10);
     m_switch_nozzle_fan->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_FAN_TEXT_COL, (int) StateColor::Normal)));
 
-    
-    line = new StaticLine(parent, true);
-    line->SetLineColour(STATIC_BOX_LINE_COL);
-    
+    m_switch_nozzle_fan->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
+        m_fan_panel->SetBackgroundColor(wxColour(0, 174, 66));
+    });
 
-    m_switch_printing_fan = new FanSwitchButton(parent, m_bitmap_fan_on, m_bitmap_fan_off);
+    m_switch_nozzle_fan->Bind(wxEVT_LEAVE_WINDOW, [this, parent](auto& e) {
+        m_fan_panel->SetBackgroundColor(parent->GetBackgroundColour());
+    });
+
+    m_switch_printing_fan = new FanSwitchButton(m_fan_panel, m_bitmap_fan_on, m_bitmap_fan_off);
     m_switch_printing_fan->SetValue(false);
     m_switch_printing_fan->SetMinSize(MISC_BUTTON_3FAN_SIZE);
     m_switch_printing_fan->SetMaxSize(MISC_BUTTON_3FAN_SIZE);
-    m_switch_printing_fan->SetPadding(FromDIP(3));
-    m_switch_printing_fan->SetBorderWidth(FromDIP(2));
+    m_switch_printing_fan->SetPadding(FromDIP(1));
+    m_switch_printing_fan->SetBorderWidth(0);
+    m_switch_printing_fan->SetCornerRadius(0);
     m_switch_printing_fan->SetFont(::Label::Body_10);
     m_switch_printing_fan->SetLabels(_L("Aux"), _L("Aux"));
     m_switch_printing_fan->SetTextColor(
         StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_FAN_TEXT_COL, (int) StateColor::Normal)));
 
-    m_switch_cham_fan = new FanSwitchButton(parent, m_bitmap_fan_on, m_bitmap_fan_off);
+    m_switch_printing_fan->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
+        m_fan_panel->SetBackgroundColor(wxColour(0, 174, 66));
+    });
+
+    m_switch_printing_fan->Bind(wxEVT_LEAVE_WINDOW, [this, parent](auto& e) {
+        m_fan_panel->SetBackgroundColor(parent->GetBackgroundColour());
+    });
+
+    m_switch_cham_fan = new FanSwitchButton(m_fan_panel, m_bitmap_fan_on, m_bitmap_fan_off);
     m_switch_cham_fan->SetValue(false);
     m_switch_cham_fan->SetMinSize(MISC_BUTTON_3FAN_SIZE);
     m_switch_cham_fan->SetMaxSize(MISC_BUTTON_3FAN_SIZE);
-    m_switch_cham_fan->SetPadding(FromDIP(3));
-    m_switch_cham_fan->SetBorderWidth(FromDIP(2));
+    m_switch_cham_fan->SetPadding(FromDIP(1));
+    m_switch_cham_fan->SetBorderWidth(0);
+    m_switch_cham_fan->SetCornerRadius(0);
     m_switch_cham_fan->SetFont(::Label::Body_10);
     m_switch_cham_fan->SetLabels(_L("Cham"), _L("Cham"));
     m_switch_cham_fan->SetTextColor(
         StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int)StateColor::Disabled), std::make_pair(NORMAL_FAN_TEXT_COL, (int)StateColor::Normal)));
 
-    line_sizer->Add(m_switch_nozzle_fan, 1, wxALIGN_CENTER | wxALL, 0);
-    //line_sizer->Add(line, 0, wxEXPAND | wxTOP | wxBOTTOM, 4);
-    line_sizer->Add(m_switch_printing_fan, 1, wxALIGN_CENTER | wxALL, 0);
-    line_sizer->Add(m_switch_cham_fan, 1, wxALIGN_CENTER | wxALL, 0);
+    m_switch_cham_fan->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
+        m_fan_panel->SetBackgroundColor(wxColour(0, 174, 66));
+    });
 
-    sizer->Add(line_sizer, 0, wxEXPAND, FromDIP(5));
+    m_switch_cham_fan->Bind(wxEVT_LEAVE_WINDOW, [this, parent](auto& e) {
+        m_fan_panel->SetBackgroundColor(parent->GetBackgroundColour());
+    });
+
+    fan_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(2));
+    fan_line_sizer->Add(m_switch_nozzle_fan, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM , FromDIP(2));
+    fan_line_sizer->Add(m_switch_printing_fan, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(2));
+    fan_line_sizer->Add(m_switch_cham_fan, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM , FromDIP(2));
+    fan_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(2));
+
+    m_fan_panel->SetSizer(fan_line_sizer);
+    m_fan_panel->Layout();
+    m_fan_panel->Fit();
+    sizer->Add(m_fan_panel, 0, wxEXPAND, FromDIP(5));
+
 
     return sizer;
 }
@@ -1143,7 +1178,7 @@ void StatusPanel::update_camera_state(MachineObject* obj)
 
 StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
     : StatusBasePanel(parent, id, pos, size, style)
-    , m_fan_control_popup(FanControlPopup(this))
+    , m_fan_control_popup(new FanControlPopup(this))
 {
     create_tasklist_info();
     update_tasklist_info();
@@ -1719,14 +1754,19 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     if (m_current_support_cham_fan != is_suppt_cham_fun) {
         if (is_suppt_cham_fun) {
             m_switch_cham_fan->Show();
+            m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_3FAN_SIZE);
             m_switch_nozzle_fan->SetMaxSize(MISC_BUTTON_3FAN_SIZE);
+            m_switch_printing_fan->SetMinSize(MISC_BUTTON_3FAN_SIZE);
             m_switch_printing_fan->SetMaxSize(MISC_BUTTON_3FAN_SIZE);
         }
         else {
             m_switch_cham_fan->Hide();
+            m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_SIZE);
             m_switch_nozzle_fan->SetMaxSize(MISC_BUTTON_SIZE);
+            m_switch_printing_fan->SetMinSize(MISC_BUTTON_SIZE);
             m_switch_printing_fan->SetMaxSize(MISC_BUTTON_SIZE);
         }
+
         m_misc_ctrl_sizer->Layout();
     }
 
@@ -1737,7 +1777,9 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         int speed = round(obj->cooling_fan_speed / float(25.5));
         m_switch_nozzle_fan->SetValue(speed > 0 ? true : false);
         m_switch_nozzle_fan->setFanValue(speed * 10);
-        m_fan_control_popup.update_fan_data(MachineObject::FanType::COOLING_FAN, obj);
+        if (m_fan_control_popup) {
+            m_fan_control_popup->update_fan_data(MachineObject::FanType::COOLING_FAN, obj);
+        }
     }
 
     // printing fan
@@ -1747,7 +1789,9 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         int speed = round(obj->big_fan1_speed / float(25.5));
         m_switch_printing_fan->SetValue(speed > 0 ? true : false);
         m_switch_printing_fan->setFanValue(speed * 10);
-        m_fan_control_popup.update_fan_data(MachineObject::FanType::BIG_COOLING_FAN, obj);
+        if (m_fan_control_popup) {
+            m_fan_control_popup->update_fan_data(MachineObject::FanType::BIG_COOLING_FAN, obj);
+        }
     }
 
     // cham fan
@@ -1757,7 +1801,9 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         int speed = round(obj->big_fan2_speed / float(25.5));
         m_switch_cham_fan->SetValue(speed > 0 ? true : false);
         m_switch_cham_fan->setFanValue(speed * 10);
-        m_fan_control_popup.update_fan_data(MachineObject::FanType::CHAMBER_FAN, obj);
+        if (m_fan_control_popup) {
+            m_fan_control_popup->update_fan_data(MachineObject::FanType::CHAMBER_FAN, obj);
+        }
     }
 
     bool light_on = obj->chamber_light != MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_OFF;
@@ -2698,10 +2744,28 @@ void StatusPanel::on_printing_fan_switch(wxCommandEvent &event)
 
 void StatusPanel::on_nozzle_fan_switch(wxCommandEvent &event)
 {
+   
+
+    m_fan_control_popup->Destroy();
+    m_fan_control_popup = new FanControlPopup(this);
     auto pos = m_switch_nozzle_fan->GetScreenPosition();
     pos.y = pos.y + m_switch_nozzle_fan->GetSize().y;
-    m_fan_control_popup.SetPosition(pos);
-    m_fan_control_popup.Popup();
+    
+
+
+    int display_idx = wxDisplay::GetFromWindow(this);
+    auto display = wxDisplay(display_idx).GetClientArea();
+   
+
+    wxSize screenSize = wxSize(display.GetWidth(), display.GetHeight());
+    auto fan_popup_size = m_fan_control_popup->GetSize();
+
+    if (screenSize.y - fan_popup_size.y < FromDIP(300)) {
+        pos.x += FromDIP(50);
+        pos.y = (screenSize.y - fan_popup_size.y) / 2;
+    }
+    m_fan_control_popup->SetPosition(pos);
+    m_fan_control_popup->Popup();
     
 
 
@@ -2812,7 +2876,9 @@ void StatusPanel::on_camera_enter(wxMouseEvent& event)
         wxWindow* ctrl = (wxWindow*)event.GetEventObject();
         wxPoint   pos = ctrl->ClientToScreen(wxPoint(0, 0));
         wxSize    sz = ctrl->GetSize();
-        m_camera_popup->Position(pos, wxSize(sz.x, sz.y));
+        pos.x += sz.x;
+        pos.y += sz.y;
+        m_camera_popup->SetPosition(pos);
         m_camera_popup->update(m_media_play_ctrl->IsStreaming());
         m_camera_popup->Popup();
     }

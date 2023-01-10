@@ -847,6 +847,7 @@ public:
 
     void select_all();
     void deselect_all();
+    void set_selected_visible(bool visible);
     void delete_selected();
     void ensure_on_bed(unsigned int object_idx, bool allow_negative_z);
 
@@ -893,6 +894,7 @@ public:
     void on_gesture(wxGestureEvent& evt);
     void on_paint(wxPaintEvent& evt);
     void on_set_focus(wxFocusEvent& evt);
+    void force_set_focus();
 
     Size get_canvas_size() const;
     Vec2d get_local_mouse_position() const;

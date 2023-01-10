@@ -35,7 +35,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     m_button_play = new Button(this, "", "media_play", wxBORDER_NONE);
     m_button_play->SetCanFocus(false);
 
-    m_label_status = new Label(this, "", LB_HYPERLINK);
+    m_label_status = new Label(this, "");
     m_label_status->SetForegroundColour(wxColour("#2C2C2E"));
 
     m_button_play->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) { TogglePlay(); });
@@ -110,8 +110,8 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     }
     if (m_last_state != MEDIASTATE_IDLE)
         Stop();
-    if (m_next_retry.IsValid())
-        Play();
+    if (m_next_retry.IsValid()) // Try open 2 seconds later, to avoid state conflict
+        m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2 * m_failed_retry);
     else
         SetStatus("", false);
 }
@@ -140,8 +140,10 @@ void MediaPlayCtrl::Play()
     m_button_play->SetIcon("media_stop");
     SetStatus(_L("Initializing..."));
 
+    NetworkAgent *agent = wxGetApp().getAgent();
+    std::string  agent_version = agent ? agent->get_version() : "";
     if (!m_lan_ip.empty() && (!m_lan_mode || !m_lan_passwd.empty())) {
-        m_url        = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
+        m_url        = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd + "&device=" + m_machine + "&version=" + agent_version;
         m_last_state = MEDIASTATE_LOADING;
         SetStatus(_L("Loading..."));
         if (wxGetApp().app_config->get("dump_video") == "true") {
@@ -176,9 +178,12 @@ void MediaPlayCtrl::Play()
         return;
     }
 
-    NetworkAgent* agent = wxGetApp().getAgent();
     if (agent) {
-        agent->get_camera_url(m_machine, [this, m = m_machine](std::string url) {
+        agent->get_camera_url(m_machine, [this, m = m_machine, v = agent_version](std::string url) {
+            if (boost::algorithm::starts_with(url, "bambu:///")) {
+                url += "&device=" + m;
+                url += "&version=" + v;
+            }
             BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl camera_url: " << url << ", machine: " << m_machine;
             CallAfter([this, m, url] {
                 if (m != m_machine) return;
@@ -297,8 +302,12 @@ void MediaPlayCtrl::ToggleStream()
     }
     NetworkAgent *agent = wxGetApp().getAgent();
     if (!agent) return;
-    agent->get_camera_url(m_machine, [this, m = m_machine](std::string url) {
-            BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
+    agent->get_camera_url(m_machine, [this, m = m_machine, v = agent->get_version()](std::string url) {
+        if (boost::algorithm::starts_with(url, "bambu:///")) {
+            url += "&device=" + m;
+            url += "&version=" + v;
+        }
+        BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
         CallAfter([this, m, url] {
             if (m != m_machine) return;
             if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
@@ -309,12 +318,54 @@ void MediaPlayCtrl::ToggleStream()
             }
             std::string             file_url = data_dir() + "/cameratools/url.txt";
             boost::nowide::ofstream file(file_url);
-            auto                    url2 = encode_path((url + "&device=" + m).c_str());
+            auto                    url2 = encode_path(url.c_str());
             file.write(url2.c_str(), url2.size());
             file.close();
             m_streaming = true;
         });
     });
+}
+
+void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
+{
+    auto last_state = m_last_state;
+    auto state      = m_media_ctrl->GetState();
+    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: " << state << ", last_state: " << last_state;
+    if ((int) state < 0) return;
+    {
+        boost::unique_lock lock(m_mutex);
+        if (!m_tasks.empty()) {
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: skip when task not finished";
+            return;
+        }
+    }
+    if ((last_state == MEDIASTATE_IDLE || last_state == MEDIASTATE_INITIALIZING) && state == wxMEDIASTATE_STOPPED) { return; }
+    if ((last_state == wxMEDIASTATE_PAUSED || last_state == wxMEDIASTATE_PLAYING) && state == wxMEDIASTATE_STOPPED) {
+        m_failed_code = m_media_ctrl->GetLastError();
+        Stop();
+        return;
+    }
+    if (last_state == MEDIASTATE_LOADING && state == wxMEDIASTATE_STOPPED) {
+        wxSize size = m_media_ctrl->GetVideoSize();
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: size: " << size.x << "x" << size.y;
+        m_failed_code = m_media_ctrl->GetLastError();
+        if (size.GetWidth() > 1000) {
+            m_last_state = state;
+            SetStatus(_L("Playing..."), false);
+            m_failed_retry = 0;
+            m_failed_code  = 0;
+            boost::unique_lock lock(m_mutex);
+            m_tasks.push_back("<play>");
+            m_cond.notify_all();
+        } else if (event.GetId()) {
+            Stop();
+            if (m_failed_code == 0)
+                m_failed_code = 2;
+            SetStatus(_L("Load failed [%d]!"));
+        }
+    } else {
+        m_last_state = state;
+    }
 }
 
 void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
@@ -358,7 +409,9 @@ void MediaPlayCtrl::media_proc()
             break;
         }
         else if (url == "<stop>") {
+            BOOST_LOG_TRIVIAL(info) <<  "MediaPlayCtrl: start stop";
             m_media_ctrl->Stop();
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: end stop";
         }
         else if (url == "<exit>") {
             break;
@@ -378,14 +431,6 @@ void MediaPlayCtrl::media_proc()
         m_media_ctrl->GetEventHandler()->AddPendingEvent(theEvent);
     }
 }
-
-#ifdef __WIN32__
-struct detach_process
-    : public ::boost::process::detail::windows::handler_base_ext
-{
-    template<class Executor> void on_setup(Executor &exec) const { exec.creation_flags |= ::boost::winapi::CREATE_NO_WINDOW_; }
-};
-#endif
 
 bool MediaPlayCtrl::start_stream_service(bool *need_install)
 {
@@ -424,16 +469,16 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
         std::string file_dll2 = data_dir() + "/plugins/BambuSource.dll";
         if (!boost::filesystem::exists(file_dll) || boost::filesystem::last_write_time(file_dll) != boost::filesystem::last_write_time(file_dll2))
             boost::filesystem::copy_file(file_dll2, file_dll, boost::filesystem::copy_option::overwrite_if_exists);
-        boost::process::child process_source(file_source, file_url2.data().AsInternal(), boost::process::std_out > intermediate, detach_process(),
-                                             boost::process::start_dir(start_dir), boost::process::limit_handles);
-        boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::std_in < intermediate, detach_process(), boost::process::limit_handles);
+        boost::process::child process_source(file_source, file_url2.data().AsInternal(), boost::process::start_dir(start_dir), boost::process::windows::create_no_window, 
+                                             boost::process::std_out > intermediate, boost::process::limit_handles);
+        boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::windows::create_no_window, 
+                                             boost::process::std_in < intermediate, boost::process::limit_handles);
 #else
         boost::filesystem::permissions(file_source, boost::filesystem::owner_exe | boost::filesystem::add_perms);
         boost::filesystem::permissions(file_ffmpeg, boost::filesystem::owner_exe | boost::filesystem::add_perms);
-        // TODO: limit_handles has bugs on posix
-        boost::process::child process_source(file_source, file_url2.data().AsInternal(), boost::process::std_out > intermediate, 
-                                             boost::process::start_dir(start_dir));
-        boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::std_in < intermediate);
+        boost::process::child process_source(file_source, file_url2.data().AsInternal(), boost::process::start_dir(start_dir), 
+                                             boost::process::std_out > intermediate, boost::process::limit_handles);
+        boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::std_in < intermediate, boost::process::limit_handles);
 #endif
         process_source.detach();
         process_ffmpeg.detach();
@@ -490,52 +535,6 @@ bool MediaPlayCtrl::get_stream_url(std::string *url)
     ::close(shm);
 #endif
     return url == nullptr;
-}
-
-void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
-{
-    auto last_state = m_last_state;
-    auto state = m_media_ctrl->GetState();
-    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: " << state << ", last_state: " << last_state;
-    if ((int) state < 0)
-        return;
-    {
-        boost::unique_lock lock(m_mutex);
-        if (!m_tasks.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: skip when task not finished";
-            return;
-        }
-    }
-    if ((last_state == MEDIASTATE_IDLE || last_state == MEDIASTATE_INITIALIZING) && state == wxMEDIASTATE_STOPPED) {
-        return;
-    }
-    if ((last_state == wxMEDIASTATE_PAUSED || last_state == wxMEDIASTATE_PLAYING)  &&
-        state == wxMEDIASTATE_STOPPED) {
-        m_failed_code = m_media_ctrl->GetLastError();
-        Stop();
-        return;
-    }
-    if (last_state == MEDIASTATE_LOADING && state == wxMEDIASTATE_STOPPED) {
-        wxSize size = m_media_ctrl->GetVideoSize();
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: size: " << size.x << "x" << size.y;
-        m_failed_code = m_media_ctrl->GetLastError();
-        if (size.GetWidth() > 1000) {
-            m_last_state = state;
-            SetStatus(_L("Playing..."), false);
-            m_failed_retry = 0;
-            boost::unique_lock lock(m_mutex);
-            m_tasks.push_back("<play>");
-            m_cond.notify_all();
-        }
-        else if (event.GetId()) {
-            Stop();
-            if (m_failed_code == 0)
-                m_failed_code = 2;
-            SetStatus(_L("Load failed [%d]!"));
-        }
-    } else {
-        m_last_state = state;
-    }
 }
 
 }}

@@ -258,6 +258,13 @@ AboutDialog::AboutDialog()
         version->SetForegroundColour(wxColour("#FFFFFD"));
         version->SetBackgroundColour(wxColour("#00AF42"));
         vesizer->Add(version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
+#if BBL_INTERNAL_TESTING
+        wxString build_time = wxString::Format("Build Time: %s", std::string(SLIC3R_BUILD_TIME));
+        wxStaticText* build_time_text = new wxStaticText(this, wxID_ANY, build_time, wxDefaultPosition, wxDefaultSize);
+        build_time_text->SetForegroundColour(wxColour("#FFFFFE"));
+        build_time_text->SetBackgroundColour(wxColour("#00AF42"));
+        vesizer->Add(build_time_text, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
+#endif
         vesizer->Add(0, 0, 1, wxEXPAND, FromDIP(5));
     }
 
@@ -313,7 +320,7 @@ AboutDialog::AboutDialog()
     copyright_hor_sizer->Add(copyright_ver_sizer, 0, wxALL,5);
     copyright_hor_sizer->Add( 0, 0, 0, wxLEFT, FromDIP(120));
 
-    wxStaticText *html_text = new wxStaticText(this, wxID_ANY, "Copyright(C) 2021-2022 Bambu Lab", wxDefaultPosition, wxDefaultSize);
+    wxStaticText *html_text = new wxStaticText(this, wxID_ANY, "Copyright(C) 2021-2023 Lunkuo All Rights Reserved", wxDefaultPosition, wxDefaultSize);
     html_text->SetForegroundColour(wxColour(107, 107, 107));
 
     copyright_ver_sizer->Add(html_text, 0, wxALL , 0);

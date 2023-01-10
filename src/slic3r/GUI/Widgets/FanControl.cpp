@@ -155,13 +155,13 @@ void Fan::doRender(wxDC& dc)
 
     //fan val
     dc.SetTextForeground(DRAW_TEXT_COLOUR);
-    dc.SetFont(::Label::Head_14);
+    dc.SetFont(::Label::Head_13);
     auto speeds = wxString::Format("%d%%", m_current_speeds * 10);
-    dc.DrawText(speeds, (size.x - dc.GetTextExtent(speeds).x) / 2, size.y - dc.GetTextExtent(speeds).y - FromDIP(10));
+    dc.DrawText(speeds, (size.x - dc.GetTextExtent(speeds).x) / 2 + FromDIP(2), size.y - dc.GetTextExtent(speeds).y - FromDIP(5));
 
     //rpm
-    dc.SetFont(::Label::Body_13);
-    dc.DrawText(rpm, (size.x - dc.GetTextExtent(rpm).x) / 2, size.y - dc.GetTextExtent(rpm).y);
+    //dc.SetFont(::Label::Body_13);
+    //dc.DrawText(rpm, (size.x - dc.GetTextExtent(rpm).x) / 2, size.y - dc.GetTextExtent(rpm).y);
 }
 
 void Fan::msw_rescale() {
@@ -303,9 +303,9 @@ void FanOperate::doRender(wxDC& dc)
     //txt
     dc.SetFont(::Label::Body_12);
     dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(0x898989)));
-    wxString text = wxString::Format("%d%%", m_current_speeds * 10);
+    wxString text = wxString::Format("%d%%", 10);
     wxSize text_size = dc.GetTextExtent(text);
-    dc.DrawText(text, wxPoint(left_fir + (left_fir- text_size.x) / 2, (size.y- text_size.y) / 2 + 2));
+    dc.DrawText(text, wxPoint(left_fir + (left_fir- text_size.x) / 2, (size.y- text_size.y) / 2));
 }
 
 void FanOperate::msw_rescale() {

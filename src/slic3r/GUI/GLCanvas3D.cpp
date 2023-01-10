@@ -2030,6 +2030,16 @@ void GLCanvas3D::deselect_all()
     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
 }
 
+void GLCanvas3D::set_selected_visible(bool visible)
+{
+    for (unsigned int i : m_selection.get_volume_idxs()) {
+        GLVolume* volume = const_cast<GLVolume*>(m_selection.get_volume(i));
+        volume->visible = visible;
+        volume->color[3] = visible ? 1.f : GLVolume::MODEL_HIDDEN_COL[3];
+        volume->render_color[3] = volume->color[3];
+    }
+}
+
 void GLCanvas3D::delete_selected()
 {
     m_selection.erase();
@@ -2521,8 +2531,12 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         auto timelapse_type = dconfig.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
         bool timelapse_enabled = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
 
-        if ((timelapse_enabled && wt) || (filaments_count > 1 && wt && co != nullptr && co->value != PrintSequence::ByObject)) {
+        if (wt && (timelapse_enabled || filaments_count > 1)) {
             for (int plate_id = 0; plate_id < n_plates; plate_id++) {
+                // If print ByObject and there is only one object in the plate, the wipe tower is allowed to be generated.
+                if (co != nullptr && co->value == PrintSequence::ByObject && ppl.get_plate(plate_id)->printable_instance_size() != 1)
+                    continue;
+
                 DynamicPrintConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
                 float x = dynamic_cast<const ConfigOptionFloats*>(proj_cfg.option("wipe_tower_x"))->get_at(plate_id);
                 float y = dynamic_cast<const ConfigOptionFloats*>(proj_cfg.option("wipe_tower_y"))->get_at(plate_id);
@@ -3267,7 +3281,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     // m_canvas->HandleAsNavigationKey(evt);   // XXX: Doesn't work in some cases / on Linux
                     //post_event(SimpleEvent(EVT_GLCANVAS_TAB));
                 }
-                else if (keyCode == WXK_TAB && evt.ShiftDown() && ! wxGetApp().is_gcode_viewer()) {
+                else if (keyCode == WXK_TAB && evt.ShiftDown() && !evt.ControlDown() && ! wxGetApp().is_gcode_viewer()) {
                     // Collapse side-panel with Shift+Tab
                     post_event(SimpleEvent(EVT_GLCANVAS_COLLAPSE_SIDEBAR));
                 }
@@ -3516,6 +3530,28 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     if (m_gizmos.on_mouse_wheel(evt))
         return;
 
+    if (m_canvas_type == CanvasAssembleView && (evt.AltDown() || evt.CmdDown())) {
+        float rotation = (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta();
+        if (evt.AltDown()) {
+            auto clp_dist = m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position();
+            clp_dist = rotation < 0.f
+                ? std::max(0., clp_dist - 0.01)
+                : std::min(1., clp_dist + 0.01);
+            m_gizmos.m_assemble_view_data->model_objects_clipper()->set_position(clp_dist, true);
+        }
+        else if (evt.CmdDown()) {
+            m_explosion_ratio = rotation < 0.f
+                ? std::max(1., m_explosion_ratio - 0.01)
+                : std::min(3., m_explosion_ratio + 0.01);
+            if (m_explosion_ratio != GLVolume::explosion_ratio) {
+                for (GLVolume* volume : m_volumes.volumes) {
+                    volume->set_bounding_boxes_as_dirty();
+                }
+                GLVolume::explosion_ratio = m_explosion_ratio;
+            }
+        }
+        return;
+    }
     // Calculate the zoom delta and apply it to the current zoom factor
 #ifdef SUPPORT_REVERSE_MOUSE_ZOOM
     double direction_factor = (wxGetApp().app_config->get("reverse_mouse_wheel_zoom") == "1") ? -1.0 : 1.0;
@@ -4221,6 +4257,10 @@ void GLCanvas3D::on_paint(wxPaintEvent& evt)
         // Call render directly, so it gets initialized immediately, not from On Idle handler.
         this->render();
 }
+
+void GLCanvas3D::force_set_focus() { 
+    m_canvas->SetFocus(); 
+};
 
 void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
 {
@@ -6557,7 +6597,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                     return true;
                 }
                 }, with_outline);
-            if (m_canvas_type == CanvasAssembleView) {
+            if (m_canvas_type == CanvasAssembleView && m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position() > 0) {
                 const GLGizmosManager& gm = get_gizmos_manager();
                 shader->stop_using();
                 gm.render_painter_assemble_view();
@@ -6598,12 +6638,14 @@ void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
         }
         layers_slider->set_as_dirty(false);
         post_event(SimpleEvent(EVT_GLCANVAS_UPDATE));
+        m_gcode_viewer.update_marker_curr_move();
     }
 
     if (moves_slider->is_dirty()) {
         moves_slider->set_as_dirty(false);
         m_gcode_viewer.update_sequential_view_current((moves_slider->GetLowerValueD() - 1.0), static_cast<unsigned int>(moves_slider->GetHigherValueD() - 1.0));
         post_event(SimpleEvent(EVT_GLCANVAS_UPDATE));
+        m_gcode_viewer.update_marker_curr_move();
     }
 }
 

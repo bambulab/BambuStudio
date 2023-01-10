@@ -1834,6 +1834,7 @@ int CLI::run(int argc, char **argv)
                     }*/
                     DynamicPrintConfig new_print_config = m_print_config;
                     new_print_config.apply(*part_plate->config());
+                    new_print_config.apply(m_extra_config, true);
                     print->apply(model, new_print_config);
                     StringObjectException warning;
                     auto err = print->validate(&warning);
@@ -2603,7 +2604,7 @@ extern "C" {
             argv_ptrs[i] = argv_narrow[i].data();
 
 //BBS: register default exception handler
-#if 1
+#if BBL_RELEASE_TO_PUBLIC
         SET_DEFULTER_HANDLER();
 #else
         AddVectoredExceptionHandler(1, CBaseException::UnhandledExceptionFilter);

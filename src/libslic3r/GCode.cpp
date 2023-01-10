@@ -608,7 +608,7 @@ bool GCode::gcode_label_objects = false;
 std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject& object)
 {
     std::vector<GCode::LayerToPrint> layers_to_print;
-    layers_to_print.reserve(object.layers().size() + object.support_layers().size() + object.tree_support_layers().size());
+    layers_to_print.reserve(object.layers().size() + object.support_layers().size());
 
     /*
     // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
@@ -631,9 +631,8 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
     // Pair the object layers with the support layers by z.
     size_t idx_object_layer = 0;
     size_t idx_support_layer = 0;
-    size_t idx_tree_support_layer = 0;
     const LayerToPrint* last_extrusion_layer = nullptr;
-    while (idx_object_layer < object.layers().size() || idx_support_layer < object.support_layers().size() || idx_tree_support_layer < object.tree_support_layers().size()) {
+    while (idx_object_layer < object.layers().size() || idx_support_layer < object.support_layers().size()) {
         LayerToPrint layer_to_print;
         double print_z_min = std::numeric_limits<double>::max();
         if (idx_object_layer < object.layers().size()) {
@@ -646,11 +645,6 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
             print_z_min = std::min(print_z_min, layer_to_print.support_layer->print_z);
         }
 
-        if (idx_tree_support_layer < object.tree_support_layers().size()) {
-            layer_to_print.tree_support_layer = object.tree_support_layers()[idx_tree_support_layer++];
-            print_z_min = std::min(print_z_min, layer_to_print.tree_support_layer->print_z);
-        }
-
         if (layer_to_print.object_layer && layer_to_print.object_layer->print_z > print_z_min + EPSILON) {
             layer_to_print.object_layer = nullptr;
             --idx_object_layer;
@@ -661,17 +655,11 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
             --idx_support_layer;
         }
 
-        if (layer_to_print.tree_support_layer && layer_to_print.tree_support_layer->print_z > print_z_min + EPSILON) {
-            layer_to_print.tree_support_layer = nullptr;
-            --idx_tree_support_layer;
-        }
-
         layer_to_print.original_object = &object;
         layers_to_print.push_back(layer_to_print);
 
         bool has_extrusions = (layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
-            || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions()
-            || (layer_to_print.tree_support_layer && layer_to_print.tree_support_layer->has_extrusions()));
+            || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions());
 
         // Check that there are extrusions on the very first layer. The case with empty
         // first layer may result in skirt/brim in the air and maybe other issues.
@@ -683,13 +671,12 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
         // In case there are extrusions on this layer, check there is a layer to lay it on.
         if ((layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
             // Allow empty support layers, as the support generator may produce no extrusions for non-empty support regions.
-            || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)
-            || (layer_to_print.tree_support_layer)) {
+            || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)) {
             double top_cd = object.config().support_top_z_distance;
             //double bottom_cd = object.config().support_bottom_z_distance == 0. ? top_cd : object.config().support_bottom_z_distance;
             double bottom_cd = top_cd;
 
-            double extra_gap = ((layer_to_print.support_layer || layer_to_print.tree_support_layer) ? bottom_cd : top_cd);
+            double extra_gap = (layer_to_print.support_layer ? bottom_cd : top_cd);
 
             double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
                 + layer_to_print.layer()->height
@@ -897,6 +884,9 @@ namespace DoExport {
 void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb)
 {
     PROFILE_CLEAR();
+
+    // BBS
+    m_curr_print = print;
 
     CNumericLocalesSetter locales_setter;
 
@@ -1316,8 +1306,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             zs.reserve(zs.size() + object->layers().size() + object->support_layers().size());
             for (auto layer : object->layers())
                 zs.push_back(layer->print_z);
-            for (auto layer : object->support_layers())
-                zs.push_back(layer->print_z);
+            for (auto layer : object->support_layers()) zs.push_back(layer->print_z);
         }
         std::sort(zs.begin(), zs.end());
         m_layer_count = (unsigned int)(std::unique(zs.begin(), zs.end()) - zs.begin());
@@ -1346,6 +1335,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write_format("; %s\n", Slic3r::header_slic3r_generated().c_str());
     //BBS: total estimated printing time
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Estimated_Printing_Time_Placeholder).c_str());
+    //BBS: total layer number
+    file.write_format("; total layer number: %d\n", m_layer_count);
     file.write_format("; HEADER_BLOCK_END\n\n");
 
     //BBS: write global config at the beginning of gcode file because printer need these config information
@@ -1423,6 +1414,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // We don't allow switching of extruders per layer by Model::custom_gcode_per_print_z in sequential mode.
         // Use the extruder IDs collected from Regions.
         this->set_extruders(print.extruders());
+
+        has_wipe_tower = print.has_wipe_tower() && tool_ordering.has_wipe_tower();
     } else {
         // Find tool ordering for all the objects at once, and the initial extruder ID.
         // If the tool ordering has been pre-calculated by Print class for wipe tower already, reuse it.
@@ -1483,10 +1476,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_placeholder_parser.set("has_wipe_tower", has_wipe_tower);
     //m_placeholder_parser.set("has_single_extruder_multi_material_priming", has_wipe_tower && print.config().single_extruder_multi_material_priming);
     m_placeholder_parser.set("total_toolchanges", std::max(0, print.wipe_tower_data().number_of_toolchanges)); // Check for negative toolchanges (single extruder mode) and set to 0 (no tool change).
+    Vec2f plate_offset = m_writer.get_xy_offset();
     {
         BoundingBoxf bbox(print.config().printable_area.values);
-        m_placeholder_parser.set("print_bed_min",  new ConfigOptionFloats({ bbox.min.x(), bbox.min.y() }));
-        m_placeholder_parser.set("print_bed_max",  new ConfigOptionFloats({ bbox.max.x(), bbox.max.y() }));
+        m_placeholder_parser.set("print_bed_min", new ConfigOptionFloats({ bbox.min.x() - plate_offset.x(), bbox.min.y() - plate_offset.y() }));
+        m_placeholder_parser.set("print_bed_max", new ConfigOptionFloats({ bbox.max.x() - plate_offset.x(), bbox.max.y() - plate_offset.y() }));
         m_placeholder_parser.set("print_bed_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
     }
     {
@@ -1501,8 +1495,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             pts->values.emplace_back(unscale(pt));
         BoundingBoxf bbox(pts->values);
         m_placeholder_parser.set("first_layer_print_convex_hull", pts.release());
-        m_placeholder_parser.set("first_layer_print_min",  new ConfigOptionFloats({ bbox.min.x(), bbox.min.y() }));
-        m_placeholder_parser.set("first_layer_print_max",  new ConfigOptionFloats({ bbox.max.x(), bbox.max.y() }));
+        m_placeholder_parser.set("first_layer_print_min", new ConfigOptionFloats({bbox.min.x() - plate_offset.x(), bbox.min.y() - plate_offset.y()}));
+        m_placeholder_parser.set("first_layer_print_max", new ConfigOptionFloats({bbox.max.x() - plate_offset.x(), bbox.max.y() - plate_offset.y()}));
         m_placeholder_parser.set("first_layer_print_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
     }
 
@@ -1595,7 +1589,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         file.write("M981 S1 P20000 ;open spaghetti detector\n");
 
     // Do all objects for each layer.
-    if (print.config().print_sequence == PrintSequence::ByObject) {
+    if (print.config().print_sequence == PrintSequence::ByObject && !has_wipe_tower) {
         size_t finished_objects = 0;
         const PrintObject *prev_object = (*print_object_instance_sequential_active)->print_object;
         for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++ print_object_instance_sequential_active) {
@@ -2371,7 +2365,6 @@ GCode::LayerResult GCode::process_layer(
     // First object, support and raft layer, if available.
     const Layer         *object_layer  = nullptr;
     const SupportLayer  *support_layer = nullptr;
-    const TreeSupportLayer* tree_support_layer = nullptr;
     const SupportLayer  *raft_layer    = nullptr;
     for (const LayerToPrint &l : layers) {
         if (l.object_layer && ! object_layer)
@@ -2382,16 +2375,6 @@ GCode::LayerResult GCode::process_layer(
             if (! raft_layer && support_layer->id() < support_layer->object()->slicing_parameters().raft_layers())
                 raft_layer = support_layer;
         }
-
-        if (l.tree_support_layer) {
-            if (!tree_support_layer)
-                tree_support_layer = l.tree_support_layer;
-            // BBS: to be checked.
-#if 0
-            if (!raft_layer && tree_support_layer->id() < tree_support_layer->object()->slicing_parameters().raft_layers())
-                raft_layer = tree_support_layer;
-#endif
-        }
     }
 
     const Layer* layer_ptr = nullptr;
@@ -2399,8 +2382,6 @@ GCode::LayerResult GCode::process_layer(
         layer_ptr = object_layer;
     else if (support_layer != nullptr)
         layer_ptr = support_layer;
-    else
-        layer_ptr = tree_support_layer;
     const Layer& layer = *layer_ptr;
     GCode::LayerResult   result { {}, layer.id(), false, last_layer };
     if (layer_tools.extruders.empty())
@@ -2421,7 +2402,7 @@ GCode::LayerResult GCode::process_layer(
     // Check whether it is possible to apply the spiral vase logic for this layer.
     // Just a reminder: A spiral vase mode is allowed for a single object, single material print only.
     m_enable_loop_clipping = true;
-    if (m_spiral_vase && layers.size() == 1 && support_layer == nullptr && tree_support_layer == nullptr) {
+    if (m_spiral_vase && layers.size() == 1 && support_layer == nullptr) {
         bool enable = (layer.id() > 0 || !print.has_brim()) && (layer.id() >= (size_t)print.config().skirt_height.value && ! print.has_infinite_skirt());
         if (enable) {
             for (const LayerRegion *layer_region : layer.regions())
@@ -2628,90 +2609,6 @@ GCode::LayerResult GCode::process_layer(
             }
         }
 
-        // BBS
-        if (layer_to_print.tree_support_layer != nullptr) {
-            const TreeSupportLayer& tree_support_layer = *layer_to_print.tree_support_layer;
-            const PrintObject& object = *layer_to_print.original_object;
-            if (!tree_support_layer.support_fills.entities.empty()) {
-                ExtrusionRole   role = tree_support_layer.support_fills.role();
-                bool            has_support = role == erMixed || role == erSupportMaterial || role == erSupportTransition;
-                bool            has_interface = role == erMixed || role == erSupportMaterialInterface;
-                // Extruder ID of the support base. -1 if "don't care".
-                unsigned int    support_extruder = object.config().support_filament.value - 1;
-                // Shall the support be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
-                bool            support_dontcare = object.config().support_filament.value == 0;
-                // Extruder ID of the support interface. -1 if "don't care".
-                unsigned int    interface_extruder = object.config().support_interface_filament.value - 1;
-                // Shall the support interface be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
-                bool            interface_dontcare = object.config().support_interface_filament.value == 0;
-
-                // BBS: apply wiping overridden extruders
-                WipingExtrusions& wiping_extrusions = const_cast<LayerTools&>(layer_tools).wiping_extrusions();
-                if (support_dontcare) {
-                    int extruder_override = wiping_extrusions.get_support_extruder_overrides(&object);
-                    if (extruder_override >= 0) {
-                        support_extruder = extruder_override;
-                        support_dontcare = false;
-                    }
-                }
-
-                if (interface_dontcare) {
-                    int extruder_override = wiping_extrusions.get_support_interface_extruder_overrides(&object);
-                    if (extruder_override >= 0) {
-                        interface_extruder = extruder_override;
-                        interface_dontcare = false;
-                    }
-                }
-
-                // BBS: try to print support base with a filament other than interface filament
-                if (support_dontcare && !interface_dontcare) {
-                    unsigned int dontcare_extruder = first_extruder_id;
-                    for (unsigned int extruder_id : layer_tools.extruders) {
-                        if (print.config().filament_soluble.get_at(extruder_id)) continue;
-
-                        if (extruder_id == interface_extruder) continue;
-
-                        dontcare_extruder = extruder_id;
-                        break;
-                    }
-
-                    if (support_dontcare) support_extruder = dontcare_extruder;
-                }
-                else if (support_dontcare || interface_dontcare) {
-                    // Some support will be printed with "don't care" material, preferably non-soluble.
-                    // Is the current extruder assigned a soluble filament?
-                    unsigned int dontcare_extruder = first_extruder_id;
-                    if (print.config().filament_soluble.get_at(dontcare_extruder)) {
-                        // The last extruder printed on the previous layer extrudes soluble filament.
-                        // Try to find a non-soluble extruder on the same layer.
-                        for (unsigned int extruder_id : layer_tools.extruders)
-                            if (!print.config().filament_soluble.get_at(extruder_id)) {
-                                dontcare_extruder = extruder_id;
-                                break;
-                            }
-                    }
-
-                    if (support_dontcare)
-                        support_extruder = dontcare_extruder;
-                    if (interface_dontcare)
-                        interface_extruder = dontcare_extruder;
-                }
-                // Both the support and the support interface are printed with the same extruder, therefore
-                // the interface may be interleaved with the support base.
-                bool single_extruder = !has_support || support_extruder == interface_extruder;
-
-                // Assign an extruder to the base.
-                ObjectByExtruder& obj = object_by_extruder(by_extruder, has_support ? support_extruder : interface_extruder, &layer_to_print - layers.data(), layers.size());
-                obj.support = &tree_support_layer.support_fills;
-                obj.support_extrusion_role = single_extruder ? erMixed : erSupportMaterial;
-                if (!single_extruder && has_interface) {
-                    ObjectByExtruder& obj_interface = object_by_extruder(by_extruder, interface_extruder, &layer_to_print - layers.data(), layers.size());
-                    obj_interface.support = &tree_support_layer.support_fills;
-                    obj_interface.support_extrusion_role = erSupportMaterialInterface;
-                }
-            }
-        }
-
         if (layer_to_print.object_layer != nullptr) {
             const Layer &layer = *layer_to_print.object_layer;
             // We now define a strategy for building perimeters and fills. The separation
@@ -2862,8 +2759,9 @@ GCode::LayerResult GCode::process_layer(
         // BBS: ordering instances by extruder
         std::vector<InstanceToPrint> instances_to_print;
         bool has_prime_tower = print.config().enable_prime_tower
-            && print.config().print_sequence == PrintSequence::ByLayer
-            && print.extruders().size() > 1;
+            && print.extruders().size() > 1
+            && (print.config().print_sequence == PrintSequence::ByLayer
+                || (print.config().print_sequence == PrintSequence::ByObject && print.objects().size() == 1));
         if (has_prime_tower) {
             int plate_idx = print.get_plate_index();
             Point wt_pos(print.config().wipe_tower_x.get_at(plate_idx), print.config().wipe_tower_y.get_at(plate_idx));
@@ -2930,12 +2828,7 @@ GCode::LayerResult GCode::process_layer(
                 m_last_obj_copy = this_object_copy;
                 this->set_origin(unscale(offset));
                 if (instance_to_print.object_by_extruder.support != nullptr) {
-                    if (layers[instance_to_print.layer_id].support_layer) {
-                        m_layer = layers[instance_to_print.layer_id].support_layer;
-                    }
-                    else {
-                        m_layer = layers[instance_to_print.layer_id].tree_support_layer;
-                    }
+                    m_layer = layers[instance_to_print.layer_id].support_layer;
                     m_object_layer_over_raft = false;
 
                     //BBS: print supports' brims first
@@ -3125,8 +3018,11 @@ std::string GCode::change_layer(coordf_t print_z, bool lazy_raise)
     //BBS
     //coordf_t z = print_z + m_config.z_offset.value;  // in unscaled coordinates
     coordf_t z = print_z;  // in unscaled coordinates
-    if (EXTRUDER_CONFIG(retract_when_changing_layer) && m_writer.will_move_z(z))
-        gcode += this->retract();
+    if (EXTRUDER_CONFIG(retract_when_changing_layer) && m_writer.will_move_z(z)) {
+        LiftType lift_type = this->to_lift_type(m_config.z_hop_type);
+        //BBS: force to use SpiralLift when change layer if lift type is auto
+        gcode += this->retract(false, false, m_config.z_hop_type == ZHopType::zhtAuto? LiftType::SpiralLift : lift_type);
+    }
 
     if (!lazy_raise) {
         std::ostringstream comment;
@@ -3767,7 +3663,8 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     Polyline travel { this->last_pos(), point };
 
     // check whether a straight travel move would need retraction
-    bool needs_retraction             = this->needs_retraction(travel, role);
+    LiftType lift_type = LiftType::SpiralLift;
+    bool needs_retraction = this->needs_retraction(travel, role, lift_type);
     // check whether wipe could be disabled without causing visible stringing
     bool could_be_wipe_disabled       = false;
     // Save state of use_external_mp_once for the case that will be needed to call twice m_avoid_crossing_perimeters.travel_to.
@@ -3777,12 +3674,19 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     // multi-hop travel path inside the configuration space
     if (needs_retraction
         && m_config.reduce_crossing_wall
-        && ! m_avoid_crossing_perimeters.disabled_once()) {
+        && ! m_avoid_crossing_perimeters.disabled_once()
+        //BBS: don't generate detour travel paths when current position is unclear
+        && m_writer.is_current_position_clear()) {
         travel = m_avoid_crossing_perimeters.travel_to(*this, point, &could_be_wipe_disabled);
         // check again whether the new travel path still needs a retraction
-        needs_retraction = this->needs_retraction(travel, role);
+        needs_retraction = this->needs_retraction(travel, role, lift_type);
         //if (needs_retraction && m_layer_index > 1) exit(0);
     }
+
+    if (lift_type == LiftType::LazyLift)
+        printf("lazy lift\n");
+    else if (lift_type == LiftType::SpiralLift)
+        printf("spiral lift\n");
 
     // Re-allow reduce_crossing_wall for the next travel moves
     m_avoid_crossing_perimeters.reset_once_modifiers();
@@ -3794,7 +3698,7 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
             m_wipe.reset_path();
 
         Point last_post_before_retract = this->last_pos();
-        gcode += this->retract();
+        gcode += this->retract(false, false, lift_type);
         // When "Wipe while retracting" is enabled, then extruder moves to another position, and travel from this position can cross perimeters.
         // Because of it, it is necessary to call avoid crossing perimeters again with new starting point after calling retraction()
         // FIXME Lukas H.: Try to predict if this second calling of avoid crossing perimeters will be needed or not. It could save computations.
@@ -3829,36 +3733,102 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     return gcode;
 }
 
-bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
+//BBS
+LiftType GCode::to_lift_type(ZHopType z_hop_type) {
+    switch (z_hop_type)
+    {
+    case ZHopType::zhtNormal:
+        return LiftType::NormalLift;
+    case ZHopType::zhtSlope:
+        return LiftType::LazyLift;
+    case ZHopType::zhtSpiral:
+        return LiftType::SpiralLift;
+    default:
+        // if no corresponding lift type, use normal lift
+        return LiftType::NormalLift;
+    }
+};
+
+bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftType& lift_type)
 {
     if (travel.length() < scale_(EXTRUDER_CONFIG(retraction_minimum_travel))) {
         // skip retraction if the move is shorter than the configured threshold
         return false;
     }
 
+    auto is_through_overhang = [this](const Polyline& travel) {
+        const float protect_z_scaled = scale_(0.4);
+        std::pair<float, float> z_range;
+        z_range.second = m_layer ? m_layer->print_z : 0.f;
+        z_range.first = std::max(0.f, z_range.second - protect_z_scaled);
+        for (auto object : m_curr_print->objects()) {
+            BoundingBox obj_bbox = object->bounding_box();
+            BoundingBox travel_bbox = get_extents(travel);
+            obj_bbox.offset(scale_(EPSILON));
+            if (!obj_bbox.overlap(travel_bbox))
+                continue;
+
+            for (auto layer : object->layers()) {
+                if (layer->print_z < z_range.first)
+                    continue;
+
+                if (layer->print_z > z_range.second + EPSILON)
+                    break;
+
+                for (ExPolygon& overhang : layer->loverhangs) {
+                    if (overhang.contains(travel))
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    };
+
+    float max_z_hop = 0.f;
+    for (int i = 0; i < m_config.z_hop.size(); i++)
+        max_z_hop = std::max(max_z_hop, (float)m_config.z_hop.get_at(i));
+    float travel_len_thresh = max_z_hop / tan(GCodeWriter::slope_threshold);
+    float accum_len = 0.f;
+    Polyline clipped_travel;
+    for (auto line : travel.lines()) {
+        if (accum_len + line.length() > travel_len_thresh + EPSILON) {
+            Point end_pnt = line.a + line.normal() * (travel_len_thresh - accum_len);
+            clipped_travel.append(Polyline(line.a, end_pnt));
+            break;
+        }
+        else {
+            clipped_travel.append(Polyline(line.a, line.b));
+            accum_len += line.length();
+        }
+    }
+
     //BBS: force to retract when leave from external perimeter for a long travel
     //Better way is judging whether the travel move direction is same with last extrusion move.
-    if (is_perimeter(m_last_processor_extrusion_role) && m_last_processor_extrusion_role != erPerimeter)
+    if (is_perimeter(m_last_processor_extrusion_role) && m_last_processor_extrusion_role != erPerimeter) {
+        if (m_config.z_hop_type == ZHopType::zhtAuto) {
+            lift_type = is_through_overhang(clipped_travel) ? LiftType::SpiralLift : LiftType::LazyLift;
+        }
+        else {
+            lift_type = to_lift_type(m_config.z_hop_type);
+        }
         return true;
+    }
 
     if (role == erSupportMaterial || role == erSupportTransition) {
         const SupportLayer* support_layer = dynamic_cast<const SupportLayer*>(m_layer);
-
         //FIXME support_layer->support_islands.contains should use some search structure!
         if (support_layer != NULL && support_layer->support_islands.contains(travel))
             // skip retraction if this is a travel move inside a support material island
             //FIXME not retracting over a long path may cause oozing, which in turn may result in missing material
             // at the end of the extrusion path!
             return false;
-
         //reduce the retractions in lightning infills for tree support
-        const TreeSupportLayer* ts_layer = dynamic_cast<const TreeSupportLayer*>(m_layer);
-        if (ts_layer != NULL)
-            for (auto& area : ts_layer->base_areas)
-                if(area.contains(travel))
+        if (support_layer != NULL && support_layer->support_type==stInnerTree)
+            for (auto &area : support_layer->base_areas)
+                if (area.contains(travel))
                     return false;
     }
-
     //BBS: need retract when long moving to print perimeter to avoid dropping of material
     if (!is_perimeter(role) && m_config.reduce_infill_retraction && m_layer != nullptr &&
         m_config.sparse_infill_density.value > 0 && m_layer->any_internal_region_slice_contains(travel))
@@ -3868,10 +3838,16 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
         return false;
 
     // retract if reduce_infill_retraction is disabled or doesn't apply when role is perimeter
+    if (m_config.z_hop_type == ZHopType::zhtAuto) {
+        lift_type = is_through_overhang(clipped_travel) ? LiftType::SpiralLift : LiftType::LazyLift;
+    }
+    else {
+        lift_type = to_lift_type(m_config.z_hop_type);
+    }
     return true;
 }
 
-std::string GCode::retract(bool toolchange, bool is_last_retraction)
+std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType lift_type)
 {
     std::string gcode;
 
@@ -3895,7 +3871,7 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction)
     if (m_writer.extruder()->retraction_length() > 0) {
         // BBS: don't do lazy_lift when enable spiral vase
         size_t extruder_id = m_writer.extruder()->id();
-        gcode += m_writer.lift(!m_spiral_vase ?  LiftType::SpiralLift : LiftType::NormalLift);
+        gcode += m_writer.lift(!m_spiral_vase ? lift_type : LiftType::NormalLift);
     }
 
     return gcode;

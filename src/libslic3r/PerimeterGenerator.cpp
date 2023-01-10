@@ -270,14 +270,15 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // get non 100% overhang paths by intersecting this loop with the grown lower slices
             Polylines remain_polines;
 
-            if (perimeter_generator.config->enable_overhang_speed) {
+            //BBS: don't calculate overhang degree when enable fuzzy skin. It's unmeaning
+            if (perimeter_generator.config->enable_overhang_speed && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None) {
                 for (auto it = lower_polygons_series->begin();
                     it != lower_polygons_series->end(); it++)
                 {
 
                     Polylines inside_polines = (it == lower_polygons_series->begin()) ?
                         intersection_pl({ polygon }, it->second) :
-                        intersection_pl_2(remain_polines, it->second);
+                        intersection_pl(remain_polines, it->second);
                     extrusion_paths_append(
                         paths,
                         std::move(inside_polines),
@@ -290,7 +291,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
 
                     remain_polines = (it == lower_polygons_series->begin()) ?
                         diff_pl({ polygon }, it->second) :
-                        diff_pl_2(remain_polines, it->second);
+                        diff_pl(remain_polines, it->second);
 
                     if (remain_polines.size() == 0)
                         break;

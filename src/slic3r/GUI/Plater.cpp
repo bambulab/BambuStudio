@@ -240,8 +240,10 @@ SlicedInfo::SlicedInfo(wxWindow *parent) :
 
     auto init_info_label = [this, parent, grid_sizer](wxString text_label) {
         auto *text = new wxStaticText(parent, wxID_ANY, text_label);
+        text->SetForegroundColour(*wxBLACK);
         text->SetFont(wxGetApp().small_font());
         auto info_label = new wxStaticText(parent, wxID_ANY, "N/A");
+        info_label->SetForegroundColour(*wxBLACK);
         info_label->SetFont(wxGetApp().small_font());
         grid_sizer->Add(text, 0);
         grid_sizer->Add(info_label, 0);
@@ -1659,6 +1661,8 @@ struct Plater::priv
     bool m_is_slicing {false};
     bool m_is_publishing {false};
     int m_cur_slice_plate;
+
+    bool m_need_update{false};
     //BBS: add popup object table logic
     //ObjectTableDialog* m_popup_table{ nullptr };
 
@@ -1770,6 +1774,10 @@ struct Plater::priv
     priv(Plater *q, MainFrame *main_frame);
     ~priv();
 
+    bool need_update() const { return m_need_update; }
+    void set_need_update(bool need_update) { m_need_update = need_update; }
+
+    void set_plater_dirty(bool is_dirty) { dirty_state.set_plater_dirty(is_dirty); }
     bool is_project_dirty() const { return dirty_state.is_dirty(); }
     bool is_presets_dirty() const { return dirty_state.is_presets_dirty(); }
     void update_project_dirty_from_presets()
@@ -1830,7 +1838,7 @@ struct Plater::priv
     bool is_view3D_layers_editing_enabled() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_layers_editing_enabled(); }
 
     void set_current_canvas_as_dirty();
-    GLCanvas3D* get_current_canvas3D();
+    GLCanvas3D* get_current_canvas3D(bool exclude_preview = false);
     void unbind_canvas_event_handlers();
     void reset_canvas_volumes();
 
@@ -2392,7 +2400,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             preview->on_tick_changed(tick_event_type);
 
             // BBS set to invalid state only
-            if (tick_event_type == Type::ToolChange || tick_event_type == Type::Custom || tick_event_type == Type::Template) {
+            if (tick_event_type == Type::ToolChange || tick_event_type == Type::Custom || tick_event_type == Type::Template || tick_event_type == Type::PausePrint) {
                 PartPlate *plate = this->q->get_partplate_list().get_curr_plate();
                 if (plate) {
                     plate->update_slice_result_valid_state(false);
@@ -2401,6 +2409,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
             // update slice and print button
             wxGetApp().mainframe->update_slice_print_status(MainFrame::SlicePrintEventType::eEventSliceUpdate, true, false);
+            set_need_update(true);
         });
     }
     if (wxGetApp().is_gcode_viewer())
@@ -3061,8 +3070,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         }
                     } else if (load_config && (file_version > app_version)) {
                         if (config_substitutions.unrecogized_keys.size() > 0) {
-                            wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:\n"),
+                            wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:"),
                                                              file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
+                            text += "\n";
                             bool     first = true;
                             // std::string context = into_u8(text);
                             wxString context = text;
@@ -3081,8 +3091,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         else {
                             //if the minor version is not matched
                             if (file_version.min() != app_version.min()) {
-                                wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your software.\n"),
+                                wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your software."),
                                                  file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
+                                text += "\n";
                                 show_info(q, text, _L("Newer 3mf version"));
                             }
                         }
@@ -4980,8 +4991,7 @@ void Plater::priv::reload_from_disk()
                                                old_volume->get_transformation().get_matrix_no_offset() * old_volume->source.transform.get_matrix_no_offset());
                 new_volume->translate(new_volume->get_transformation().get_matrix_no_offset() * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
 #else
-                new_volume->set_transformation(Geometry::assemble_transform(old_volume->source.transform.get_offset()) * old_volume->get_transformation().get_matrix(true) *
-                                               old_volume->source.transform.get_matrix(true));
+                new_volume->set_transformation(old_volume->get_transformation());
                 new_volume->translate(new_volume->get_transformation().get_matrix(true) * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
 #endif // ENABLE_WORLD_COORDINATE
                 new_volume->source.object_idx = old_volume->source.object_idx;
@@ -6585,11 +6595,11 @@ void Plater::priv::set_current_canvas_as_dirty()
         assemble_view->set_as_dirty();
 }
 
-GLCanvas3D* Plater::priv::get_current_canvas3D()
+GLCanvas3D* Plater::priv::get_current_canvas3D(bool exclude_preview)
 {
     if (current_panel == view3D)
         return view3D->get_canvas3d();
-    else if (current_panel == preview)
+    else if (!exclude_preview && (current_panel == preview))
         return preview->get_canvas3d();
     else if (current_panel == assemble_view)
         return assemble_view->get_canvas3d();
@@ -7382,6 +7392,7 @@ bool Plater::Show(bool show)
 
 bool Plater::is_project_dirty() const { return p->is_project_dirty(); }
 bool Plater::is_presets_dirty() const { return p->is_presets_dirty(); }
+void Plater::set_plater_dirty(bool is_dirty) { p->set_plater_dirty(is_dirty); }
 void Plater::update_project_dirty_from_presets() { p->update_project_dirty_from_presets(); }
 int  Plater::save_project_if_dirty(const wxString& reason) { return p->save_project_if_dirty(reason); }
 void Plater::reset_project_dirty_after_save() { p->reset_project_dirty_after_save(); }
@@ -7444,7 +7455,12 @@ int Plater::new_project(bool skip_confirm, bool silent)
 
     Model m;
     model().load_from(m); // new id avoid same path name
+
+    //select first plate
     get_partplate_list().select_plate(0);
+    SimpleEvent event(EVT_GLCANVAS_PLATE_SELECT);
+    p->on_plate_selected(event);
+
     p->load_auxiliary_files();
     wxGetApp().app_config->update_last_backup_dir(model().get_backup_path());
 
@@ -7590,15 +7606,15 @@ int Plater::save_project(bool saveAs)
 //BBS import model by model id
 void Plater::import_model_id(const std::string& download_info)
 {
-    std::string download_url = "";
-    std::string filename = "";
+    std::string download_url = wxGetApp().get_download_model_url();
+    std::string filename = wxGetApp().get_download_model_name();
 
-    auto selection_data_arr = wxSplit(download_info, '|');
+    /* auto selection_data_arr = wxSplit(download_info, '|');
 
-    if (selection_data_arr.size() == 2) {
-        download_url = selection_data_arr[0].ToStdString();
-        filename = selection_data_arr[1].ToStdString();
-    }
+     if (selection_data_arr.size() == 2) {
+         download_url = selection_data_arr[0].ToStdString();
+         filename = selection_data_arr[1].ToStdString();
+     }*/
 
 
     bool download_ok = false;
@@ -7775,10 +7791,9 @@ void Plater::download_project(const wxString& project_id)
     return;
 }
 
-void Plater::request_model_download(std::string url, std::string filename)
+void Plater::request_model_download()
 {
     wxCommandEvent* event = new wxCommandEvent(EVT_IMPORT_MODEL_ID);
-    event->SetString(wxString::Format("%s|%s", wxString(url), wxString(filename)));
     wxQueueEvent(this, event);
 }
 
@@ -8629,7 +8644,17 @@ void Plater::add_file()
     }
 }
 
-void Plater::update() { p->update(); }
+void Plater::update(bool conside_update_flag)
+{
+    if (conside_update_flag) {
+        if (need_update()) {
+            p->update();
+            p->set_need_update(false);
+        }
+    }
+    else
+        p->update();
+}
 
 void Plater::object_list_changed() { p->object_list_changed(); }
 
@@ -8722,6 +8747,18 @@ void Plater::delete_all_objects_from_model()
 {
     p->delete_all_objects_from_model();
 }
+
+void Plater::set_selected_visible(bool visible)
+{
+    if (p->get_curr_selection().is_empty())
+        return;
+
+    Plater::TakeSnapshot snapshot(this, "Set Selected Objects Visible in AssembleView");
+    p->m_ui_jobs.cancel_all();
+
+    p->get_current_canvas3D()->set_selected_visible(visible);
+}
+
 
 void Plater::remove_selected()
 {
@@ -10263,9 +10300,9 @@ GLCanvas3D* Plater::get_assmeble_canvas3D()
     return nullptr;
 }
 
-GLCanvas3D* Plater::get_current_canvas3D()
+GLCanvas3D* Plater::get_current_canvas3D(bool exclude_preview)
 {
-    return p->get_current_canvas3D();
+    return p->get_current_canvas3D(exclude_preview);
 }
 
 void Plater::arrange()
@@ -10825,6 +10862,10 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
     {
         //select plate
         ret = p->partplate_list.select_plate(plate_index);
+        if (!ret) {
+            SimpleEvent event(EVT_GLCANVAS_PLATE_SELECT);
+            p->on_plate_selected(event);
+        }
         if ((!ret)&&(p->background_process.can_switch_print()))
         {
             //select successfully
@@ -10949,8 +10990,13 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             PartPlate* curr_plate = p->partplate_list.get_curr_plate();
             dlg.sync_bed_type(curr_plate->get_bed_type(false));
             dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index](wxCommandEvent& e) {
+                PartPlate *curr_plate   = p->partplate_list.get_curr_plate();
+                BedType    old_bed_type = curr_plate->get_bed_type(false);
                 auto type = (BedType)(e.GetInt());
-                p->partplate_list.get_curr_plate()->set_bed_type(type);
+                if (old_bed_type != type) {
+                    curr_plate->set_bed_type(type);
+                    set_plater_dirty(true);
+                }
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select bed type %1% for plate %2% at plate side")%type %plate_index;
                 });
             dlg.ShowModal();
@@ -11094,13 +11140,15 @@ void Plater::show_object_info()
     wxString info_manifold;
     int non_manifold_edges = 0;
     auto mesh_errors = p->sidebar->obj_list()->get_mesh_errors_info(&info_manifold, &non_manifold_edges);
-    info_text += into_u8(info_manifold);
 
     #ifndef __WINDOWS__
     if (non_manifold_edges > 0) {
-        info_text += into_u8("\n" + _L("Tips:") + "\n" +_L("\"Fix Model\" feature is currently only on Windows. Please repair the model on Bambu Studio(windows) or CAD softwares."));
+        info_manifold += into_u8("\n" + _L("Tips:") + "\n" +_L("\"Fix Model\" feature is currently only on Windows. Please repair the model on Bambu Studio(windows) or CAD softwares."));
     }
     #endif //APPLE & LINUX
+
+    info_manifold = "<Error>" + info_manifold + "</Error>";
+    info_text += into_u8(info_manifold);
     notify_manager->bbl_show_objectsinfo_notification(info_text, is_windows10()&&(non_manifold_edges > 0), !(p->current_panel == p->view3D));
 }
 
@@ -11122,7 +11170,8 @@ void Plater::post_process_string_object_exception(StringObjectException &err)
                         break;
                     }
                 }
-                err.string = format(L("Plate %d: %s does not support filament %s (%s).\n"), err.params[0], err.params[1], err.params[2], filament_name);
+                err.string = format(_L("Plate %d: %s does not support filament %s (%s)."), err.params[0], err.params[1], err.params[2], filament_name);
+                err.string += "\n";
             }
         } catch (...) {
             ;
@@ -11352,6 +11401,16 @@ bool Plater::PopupMenu(wxMenu *menu, const wxPoint& pos)
 void Plater::bring_instance_forward()
 {
     p->bring_instance_forward();
+}
+
+bool Plater::need_update() const
+{
+    return p->need_update();
+}
+
+void Plater::set_need_update(bool need_update)
+{
+    p->set_need_update(need_update);
 }
 
 // BBS

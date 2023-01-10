@@ -2064,7 +2064,7 @@ bool GUI_App::on_init_inner()
             }
         }
         for (auto d : dialogStack)
-            d->EndModal(wxID_CANCEL);
+            d->EndModal(wxID_ABORT);
     });
 
     std::map<std::string, std::string> extra_headers = get_extra_header();
@@ -2332,6 +2332,8 @@ bool GUI_App::on_init_inner()
 
     if (app_config->get("sync_user_preset") == "true" && m_agent && m_agent->is_user_login()) {
         enable_user_preset_folder(true);
+    } else {
+        enable_user_preset_folder(false);
     }
 
     // BBS if load user preset failed
@@ -2352,8 +2354,9 @@ bool GUI_App::on_init_inner()
 
     if (app_config->get("sync_user_preset") == "true") {
         //BBS loading user preset
-        BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
-        scrn->SetText(_L("Loading user presets..."));
+        // Always async, not such startup step
+        //BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
+        //scrn->SetText(_L("Loading user presets..."));
         if (m_agent) {
             start_sync_user_preset();
         }
@@ -3337,12 +3340,9 @@ void GUI_App::request_user_logout()
 
         m_agent->user_logout();
         m_agent->set_user_selected_machine("");
-        BOOST_LOG_TRIVIAL(info) << "preset_folder: set to empty, user_logout";
-        enable_user_preset_folder(false);
         /* delete old user settings */
         m_device_manager->clean_user_info();
         GUI::wxGetApp().sidebar().load_ams_list({});
-        GUI::wxGetApp().remove_user_presets();
         GUI::wxGetApp().stop_sync_user_preset();
 
 #ifdef __WINDOWS__
@@ -3573,7 +3573,7 @@ void GUI_App::request_model_download(std::string url, std::string filename)
     if (!check_login()) return;
 
     if (plater_) {
-        plater_->request_model_download(url, filename);
+        plater_->request_model_download();
     }
 }
 
@@ -3892,14 +3892,15 @@ void GUI_App::reload_settings()
     }
 }
 
-//BBS reload when login
+//BBS reload when logout
 void GUI_App::remove_user_presets()
 {
     if (preset_bundle && m_agent) {
         preset_bundle->remove_users_preset(*app_config);
 
-        std::string user_id = m_agent->get_user_id();
-        preset_bundle->remove_user_presets_directory(user_id);
+        // Not remove user preset cache
+        //std::string user_id = m_agent->get_user_id();
+        //preset_bundle->remove_user_presets_directory(user_id);
 
         //update ui
         mainframe->update_side_preset_ui();
@@ -4013,9 +4014,9 @@ void GUI_App::sync_preset(Preset* preset)
     }
 }
 
-void GUI_App::start_sync_user_preset(bool with_progress_dlg)
+void GUI_App::start_sync_user_preset(bool load_immediately, bool with_progress_dlg)
 {
-    if (!m_agent) return;
+    if (!m_agent || !m_agent->is_user_login()) return;
 
     enable_user_preset_folder(true);
 
@@ -4023,32 +4024,51 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
     if (enable_sync)
         return;
 
-    if (m_agent->is_user_login()) {
-        // get setting list, update setting list
-        std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
-        if (with_progress_dlg) {
-            ProgressDialog dlg(_L("Loading"), "", 100, this->mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
-            dlg.Update(0, _L("Loading user preset"));
-            m_agent->get_setting_list(version,
-                            [this, &dlg](int percent){
-                                dlg.Update(percent, _L("Loading user preset"));
-                            },
-                            [this, &dlg]() {
-                                dlg.GetValue();
-                                bool cont = dlg.Update(dlg.GetValue(), _L("Loading user preset"));
-                                return !cont;
-                            });
-        } else {
-            m_agent->get_setting_list(version);
-        }
-        GUI::wxGetApp().reload_settings();
+    if (load_immediately) {
+        preset_bundle->load_user_presets(m_agent->get_user_id(), ForwardCompatibilitySubstitutionRule::Enable);
+        mainframe->update_side_preset_ui();
+    }
+
+    ProgressFn progressFn;
+    WasCancelledFn cancelFn;
+    std::function<void()> finishFn;
+
+    if (with_progress_dlg) {
+        auto dlg = new ProgressDialog(_L("Loading"), "", 100, this->mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
+        dlg->Update(0, _L("Loading user preset"));
+        progressFn = [this, dlg](int percent) {
+            CallAfter([=]{
+                dlg->Update(percent, _L("Loading user preset"));
+            });
+        };
+        cancelFn = [dlg]() {
+            return dlg->WasCanceled();
+        };
+        finishFn = [this, dlg] {
+            CallAfter([=]{
+                dlg->Destroy();
+                reload_settings();
+            });
+        };
+    }
+    else {
+        finishFn = [this] {
+            CallAfter([=] {
+                reload_settings();
+            });
+        };
     }
 
     BOOST_LOG_TRIVIAL(info) << "start_sync_service...";
     //BBS
     enable_sync = true;
     m_sync_update_thread = Slic3r::create_thread(
-        [this] {
+        [this, progressFn, cancelFn, finishFn] {
+            // get setting list, update setting list
+            std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
+            m_agent->get_setting_list(version, progressFn, cancelFn);
+            finishFn();
+
             int count = 0, sync_count = 0;
             std::vector<Preset> presets_to_sync;
             while (enable_sync) {
@@ -4109,6 +4129,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 
 void GUI_App::stop_sync_user_preset()
 {
+    remove_user_presets();
     enable_user_preset_folder(false);
 
     if (!enable_sync)
@@ -4533,6 +4554,26 @@ void GUI_App::update_mode()
     //BBS plater()->update_menus();
 
     plater()->canvas3D()->update_gizmos_on_off_state();
+}
+
+void GUI_App::show_ip_address_enter_dialog()
+{
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    if (!dev->get_selected_machine()) return;
+    auto obj = dev->get_selected_machine();
+    InputIpAddressDialog dlg(nullptr, from_u8(dev->get_selected_machine()->dev_name));
+    dlg.Bind(EVT_ENTER_IP_ADDRESS, [this, obj](wxCommandEvent& e) {
+        auto ip_address = e.GetString();
+        BOOST_LOG_TRIVIAL(info) << "User enter IP address is " << ip_address;
+        if (!ip_address.empty()) {
+            wxGetApp().app_config->set_str("ip_address", obj->dev_id, ip_address.ToStdString());
+            wxGetApp().app_config->save();
+            obj->dev_ip = ip_address.ToStdString();
+        }
+
+        });
+    dlg.ShowModal();
 }
 
 //void GUI_App::add_config_menu(wxMenuBar *menu)

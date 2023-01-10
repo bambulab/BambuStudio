@@ -545,7 +545,7 @@ void PartPlate::render_logo(bool bottom) const
 
 			//canvas.request_extra_frame();
 		}
-		
+
 		if (m_vbo_id == 0) {
 			unsigned int* vbo_id_ptr = const_cast<unsigned int*>(&m_vbo_id);
 			glsafe(::glGenBuffers(1, vbo_id_ptr));
@@ -567,7 +567,7 @@ void PartPlate::render_logo(bool bottom) const
 			if (part.buffer && part.buffer->get_vertices_count() > 0
 				//&& part.vbo_id != 0
 				) {
-				if (part.offset.x() != m_origin.x() || part.offset.y() != m_origin.y()) {	
+				if (part.offset.x() != m_origin.x() || part.offset.y() != m_origin.y()) {
 					part.offset = Vec2d(m_origin.x(), m_origin.y());
 					part.update_buffer();
 				}
@@ -1136,7 +1136,7 @@ void PartPlate::release_opengl_resource()
 	}
 }
 
-std::vector<int> PartPlate::get_extruders() const
+std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 {
 	std::vector<int> plate_extruders;
 	// if gcode.3mf file
@@ -1192,6 +1192,13 @@ std::vector<int> PartPlate::get_extruders() const
 			plate_extruders.push_back(glb_support_extr);
 	}
 
+	if (conside_custom_gcode) {
+        for (auto item : m_model->custom_gcode_per_print_z.gcodes) {
+        if (item.type == CustomGCode::Type::ToolChange)
+            plate_extruders.push_back(item.extruder);
+        }
+    }
+
 	std::sort(plate_extruders.begin(), plate_extruders.end());
 	auto it_end = std::unique(plate_extruders.begin(), plate_extruders.end());
 	plate_extruders.resize(std::distance(plate_extruders.begin(), it_end));
@@ -1223,7 +1230,7 @@ std::vector<int> PartPlate::get_used_extruders()
 Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double wipe_volume) const
 {
 	Vec3d wipe_tower_size;
-	std::vector<int> plate_extruders = get_extruders();
+	std::vector<int> plate_extruders = get_extruders(true);
 	double layer_height = 0.08f; // hard code layer height
 	double max_height = 0.f;
 	wipe_tower_size.setZero();
@@ -1720,6 +1727,26 @@ void PartPlate::update_object_index(int obj_idx_removed, int obj_idx_max)
 	instance_outside_set.clear();
 	instance_outside_set = temp_set;
 
+}
+
+int PartPlate::printable_instance_size()
+{
+    int size = 0;
+    for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it) {
+        int obj_id      = it->first;
+        int instance_id = it->second;
+
+        if (obj_id >= m_model->objects.size())
+			continue;
+
+        ModelObject *  object   = m_model->objects[obj_id];
+        ModelInstance *instance = object->instances[instance_id];
+
+        if ((instance->printable) && (instance_outside_set.find(std::pair(obj_id, instance_id)) == instance_outside_set.end())) {
+            size++;
+        }
+    }
+    return size;
 }
 
 //whether it is has printable instances
@@ -2993,7 +3020,7 @@ int PartPlateList::select_plate(int index)
 	if (m_intialized && m_plater) {
 		Vec2d pos = compute_shape_position(index, m_plate_cols);
         m_plater->set_bed_position(pos);
-		wxQueueEvent(m_plater, new SimpleEvent(EVT_GLCANVAS_PLATE_SELECT));
+		//wxQueueEvent(m_plater, new SimpleEvent(EVT_GLCANVAS_PLATE_SELECT));
 	}
 
 	return 0;
@@ -4421,7 +4448,7 @@ void PartPlateList::BedTextureInfo::TexturePart::update_buffer()
 	rectangle.push_back(Vec2d(x+w, y+h));
 	rectangle.push_back(Vec2d(x, y+h));
 	ExPolygon poly;
-	
+
 	for (int i = 0; i < 4; i++) {
 		const Vec2d & p = rectangle[i];
 		for (auto& p : rectangle) {

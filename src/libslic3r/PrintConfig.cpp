@@ -292,6 +292,14 @@ static t_config_enum_values s_keys_map_PerimeterGeneratorType{
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PerimeterGeneratorType)
 
+static const t_config_enum_values s_keys_map_ZHopType = {
+    { "Auto Lift",          zhtAuto },
+    { "Normal Lift",        zhtNormal },
+    { "Slope Lift",         zhtSlope },
+    { "Spiral Lift",        zhtSpiral }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ZHopType)
+
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
     for (std::pair<const t_config_option_key, ConfigOptionDef> &kvp : options)
@@ -2127,6 +2135,21 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloats { 0.4 });
 
+    def = this->add("z_hop_type", coEnum);
+    def->label = L("Z Hop Type");
+    def->tooltip = L("");
+    def->enum_keys_map = &ConfigOptionEnum<ZHopType>::get_enum_values();
+    def->enum_values.push_back("auto");
+    def->enum_values.push_back("normal");
+    def->enum_values.push_back("slope");
+    def->enum_values.push_back("spiral");
+    def->enum_labels.push_back(L("Auto"));
+    def->enum_labels.push_back(L("Normal"));
+    def->enum_labels.push_back(L("Slope"));
+    def->enum_labels.push_back(L("Spiral"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum{ ZHopType::zhtSpiral });
+
     def = this->add("retract_restart_extra", coFloats);
     //def->label = L("Extra length on restart");
     def->label = "Extra length on restart";
@@ -2883,7 +2906,7 @@ void PrintConfigDef::init_fff_params()
     //def->sidetext = L("mm");
     def->mode = comDevelop;
     // BBS: change data type to floats to add partplate logic
-    def->set_default_value(new ConfigOptionFloats{ 240. });
+    def->set_default_value(new ConfigOptionFloats{ 220. });
 
     def = this->add("prime_tower_width", coFloat);
     def->label = L("Width");
@@ -4035,7 +4058,7 @@ void DynamicPrintConfig::normalize_fdm_1()
     return;
 }
 
-t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int used_filaments)
+t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int num_objects, int used_filaments)
 {
     t_config_option_keys changed_keys;
     ConfigOptionBool* ept_opt = this->option<ConfigOptionBool>("enable_prime_tower");
@@ -4046,7 +4069,7 @@ t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int used_filaments)
 
         ConfigOptionEnum<TimelapseType>* timelapse_opt = this->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
         bool is_smooth_timelapse = timelapse_opt != nullptr && timelapse_opt->value == TimelapseType::tlSmooth;
-        if (!is_smooth_timelapse && (used_filaments == 1 || ps_opt->value == PrintSequence::ByObject)) {
+        if (!is_smooth_timelapse && (used_filaments == 1 || (ps_opt->value == PrintSequence::ByObject && num_objects > 1))) {
             if (ept_opt->value) {
                 ept_opt->value = false;
                 changed_keys.push_back("enable_prime_tower");

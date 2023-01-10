@@ -151,6 +151,7 @@ protected:
 
     /* TempInput */
     wxBoxSizer *    m_misc_ctrl_sizer;
+    StaticBox*      m_fan_panel; 
     TempInput *     m_tempCtrl_nozzle;
     int             m_temp_nozzle_timeout {0};
     StaticLine *    m_line_nozzle;
@@ -272,7 +273,7 @@ protected:
     SecondaryCheckDialog* abort_dlg = nullptr;
     SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
     SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
-    FanControlPopup m_fan_control_popup{nullptr};
+    FanControlPopup* m_fan_control_popup{nullptr};
 
     wxString     m_request_url;
     bool         m_start_loading_thumbnail = false;

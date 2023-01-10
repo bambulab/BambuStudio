@@ -402,11 +402,12 @@ void GLGizmosManager::update_data()
     enable_grabber(Rotate, 0, !is_wipe_tower);
     enable_grabber(Rotate, 1, !is_wipe_tower);
 
-    bool enable_scale_xyz = selection.is_single_full_instance() || selection.is_single_volume() || selection.is_single_modifier();
-    for (unsigned int i = 0; i < 6; ++i)
-    {
-        enable_grabber(Scale, i, enable_scale_xyz);
-    }
+    // BBS: when select multiple objects, uniform scale can be deselected, display the 0-5 grabbers
+    //bool enable_scale_xyz = selection.is_single_full_instance() || selection.is_single_volume() || selection.is_single_modifier();
+    //for (unsigned int i = 0; i < 6; ++i)
+    //{
+    //    enable_grabber(Scale, i, enable_scale_xyz);
+    //}
 
     if (m_common_gizmos_data) {
         m_common_gizmos_data->update(get_current()
@@ -836,8 +837,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             //if (evt.AltDown())
             //    transformation_type.set_independent();
             selection.scale(get_scale(), transformation_type);
-            //if (control_down)
-            //    selection.translate(get_scale_offset(), true);
+            if (control_down && m_gizmos[m_current].get()->get_hover_id() < 6)
+                selection.translate(get_scale_offset(), true);
             // BBS
             //wxGetApp().obj_manipul()->set_dirty();
             break;
@@ -1501,7 +1502,7 @@ void GLGizmosManager::update_on_off_state(const Vec2d& mouse_pos)
     if (idx != Undefined && m_gizmos[idx]->is_activable() && m_hover == idx) {
         activate_gizmo(m_current == idx ? Undefined : (EType)idx);
         // BBS
-        wxGetApp().obj_list()->select_object_item((EType)idx <= Scale);
+        wxGetApp().obj_list()->select_object_item((EType) idx <= Scale || (EType) idx == Text);
     }
 }
 

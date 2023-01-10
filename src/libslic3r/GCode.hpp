@@ -201,10 +201,9 @@ public:
     // public, so that it could be accessed by free helper functions from GCode.cpp
     struct LayerToPrint
     {
-        LayerToPrint() : object_layer(nullptr), support_layer(nullptr), tree_support_layer(nullptr), original_object(nullptr) {}
+        LayerToPrint() : object_layer(nullptr), support_layer(nullptr), original_object(nullptr) {}
         const Layer* 		object_layer;
         const SupportLayer* support_layer;
-        const TreeSupportLayer* tree_support_layer;
         const PrintObject*  original_object; //BBS: used for shared object logic
         const Layer* 		layer()   const
         {
@@ -213,9 +212,6 @@ public:
 
             if (support_layer != nullptr)
                 return support_layer;
-
-            if (tree_support_layer != nullptr)
-                return tree_support_layer;
 
             return nullptr;
         }
@@ -238,10 +234,6 @@ public:
                 count++;
             }
 
-            if (tree_support_layer != nullptr) {
-                sum_z += tree_support_layer->print_z;
-                count++;
-            }
             return sum_z / count;
         }
     };
@@ -403,8 +395,11 @@ private:
     std::string     extrude_support(const ExtrusionEntityCollection &support_fills);
 
     std::string     travel_to(const Point &point, ExtrusionRole role, std::string comment);
-    bool            needs_retraction(const Polyline &travel, ExtrusionRole role = erNone);
-    std::string     retract(bool toolchange = false, bool is_last_retraction = false);
+    // BBS
+    LiftType to_lift_type(ZHopType z_hop_type);
+    // BBS: detect lift type in needs_retraction
+    bool            needs_retraction(const Polyline& travel, ExtrusionRole role, LiftType& lift_type);
+    std::string     retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::SpiralLift);
     std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
     std::string     set_extruder(unsigned int extruder_id, double print_z);
     std::set<ObjectID>              m_objsWithBrim; // indicates the objs with brim
@@ -485,6 +480,7 @@ private:
     GCodeProcessor m_processor;
 
     // BBS
+    Print* m_curr_print = nullptr;
     unsigned int m_toolchange_count;
     coordf_t m_nominal_z;
     bool m_need_change_layer_lift_z = false;

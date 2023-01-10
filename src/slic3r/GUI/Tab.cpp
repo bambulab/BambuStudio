@@ -1495,7 +1495,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 void Tab::show_timelapse_warning_dialog() {
     if (!m_is_timelapse_wipe_tower_already_prompted) {
         wxString      msg_text = _(L("When recording timelapse without toolhead, it is recommended to add a \"Timelapse Wipe Tower\" \n"
-                                "by right-click the empty position of build plate and choose \"Add Primitive\"->\"Timelapse Wipe Tower\".\n"));
+                                "by right-click the empty position of build plate and choose \"Add Primitive\"->\"Timelapse Wipe Tower\"."));
+        msg_text += "\n";
         MessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
         dialog.ShowModal();
         m_is_timelapse_wipe_tower_already_prompted = true;
@@ -1941,6 +1942,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Raft"), L"param_raft");
         optgroup->append_single_option_line("raft_layers");
+        optgroup->append_single_option_line("raft_contact_distance");
         optgroup->append_single_option_line("raft_first_layer_density");
         optgroup->append_single_option_line("raft_first_layer_expansion");
 
@@ -2554,7 +2556,7 @@ void TabFilament::build()
             DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
 
             update_dirty();
-            if (opt_key == "cool_plate_temp" || opt_key == "cool_plate_temp_initial_layer") {
+            /*if (opt_key == "cool_plate_temp" || opt_key == "cool_plate_temp_initial_layer") {
                 m_config_manipulation.check_bed_temperature_difference(BedType::btPC, &filament_config);
             }
             else if (opt_key == "eng_plate_temp" || opt_key == "eng_plate_temp_initial_layer") {
@@ -2566,7 +2568,7 @@ void TabFilament::build()
             else if (opt_key == "textured_plate_temp" || opt_key == "textured_plate_temp_initial_layer") {
                 m_config_manipulation.check_bed_temperature_difference(BedType::btPTE, &filament_config);
             }
-            else if (opt_key == "nozzle_temperature") {
+            else */if (opt_key == "nozzle_temperature") {
                 m_config_manipulation.check_nozzle_temperature_range(&filament_config);
             }
             else if (opt_key == "nozzle_temperature_initial_layer") {
@@ -3319,6 +3321,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup = page->new_optgroup(L("Retraction"), L"param_retraction");
             optgroup->append_single_option_line("retraction_length", "", extruder_idx);
             optgroup->append_single_option_line("z_hop", "", extruder_idx);
+            optgroup->append_single_option_line("z_hop_type", "");
             optgroup->append_single_option_line("retraction_speed", "", extruder_idx);
             optgroup->append_single_option_line("deretraction_speed", "", extruder_idx);
             //optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
@@ -3936,9 +3939,9 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
         try {
             //BBS delete preset
             Preset &current_preset = m_presets->get_selected_preset();
-            current_preset.sync_info = "delete";
             if (!current_preset.setting_id.empty()) {
                 BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
+                m_presets->set_sync_info_and_save(current_preset.name, current_preset.setting_id, "delete");
                 wxGetApp().delete_preset_from_cloud(current_preset.setting_id);
             }
             BOOST_LOG_TRIVIAL(info) << boost::format("will delete current preset...");
@@ -4555,14 +4558,6 @@ void Tab::delete_preset()
     // delete selected preset from printers and printer, if it's needed
     if (m_type == Preset::TYPE_PRINTER && !physical_printers.empty())
         physical_printers.delete_preset_from_printers(current_preset.name);
-
-    //BBS delete preset
-    //will delete in select_preset
-    current_preset.sync_info = "delete";
-    if (!current_preset.setting_id.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
-        wxGetApp().delete_preset_from_cloud(current_preset.setting_id);
-    }
 
     // Select will handle of the preset dependencies, of saving & closing the depending profiles, and
     // finally of deleting the preset.

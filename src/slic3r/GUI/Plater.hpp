@@ -187,6 +187,7 @@ public:
 
     bool is_project_dirty() const;
     bool is_presets_dirty() const;
+    void set_plater_dirty(bool is_dirty);
     void update_project_dirty_from_presets();
     int  save_project_if_dirty(const wxString& reason);
     void reset_project_dirty_after_save();
@@ -210,7 +211,7 @@ public:
     //BBS download project by project id
     void import_model_id(const std::string& download_info);
     void download_project(const wxString& project_id);
-    void request_model_download(std::string url, std::string filename);
+    void request_model_download();
     void request_download_project(std::string project_id);
     // BBS: check snapshot
     bool up_to_date(bool saved, bool backup);
@@ -256,7 +257,7 @@ public:
 
     const wxString& get_last_loaded_gcode() const { return m_last_loaded_gcode; }
 
-    void update();
+    void update(bool conside_update_flag = false);
     //BBS
     void object_list_changed();
     void stop_jobs();
@@ -294,6 +295,7 @@ public:
     void trigger_restore_project(int skip_confirm = 0);
     void delete_object_from_model(size_t obj_idx, bool refresh_immediately = true); // BBS support refresh immediately
     void delete_all_objects_from_model(); //BBS delete all objects from model
+    void set_selected_visible(bool visible);
     void remove_selected();
     void increase_instances(size_t num = 1);
     void decrease_instances(size_t num = 1);
@@ -402,7 +404,7 @@ public:
     bool is_single_full_object_selection() const;
     GLCanvas3D* canvas3D();
     const GLCanvas3D * canvas3D() const;
-    GLCanvas3D* get_current_canvas3D();
+    GLCanvas3D* get_current_canvas3D(bool exclude_preview = false);
     GLCanvas3D* get_view3D_canvas3D();
     GLCanvas3D* get_preview_canvas3D();
     GLCanvas3D* get_assmeble_canvas3D();
@@ -557,6 +559,9 @@ public:
     void init_notification_manager();
 
     void bring_instance_forward();
+
+    bool need_update() const;
+    void set_need_update(bool need_update);
 
     // ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots

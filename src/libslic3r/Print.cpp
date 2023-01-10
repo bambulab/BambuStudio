@@ -224,6 +224,9 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             osteps.emplace_back(posSimplifyPath);
             osteps.emplace_back(posSimplifySupportPath);
             steps.emplace_back(psSkirtBrim);
+        }
+        else if (opt_key == "z_hop_type") {
+            osteps.emplace_back(posDetectOverhangsForLift);
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             //FIXME invalidate all steps of all objects as well?
@@ -327,10 +330,18 @@ std::vector<unsigned int> Print::support_material_extruders() const
 }
 
 // returns 0-based indices of used extruders
-std::vector<unsigned int> Print::extruders() const
+std::vector<unsigned int> Print::extruders(bool conside_custom_gcode) const
 {
     std::vector<unsigned int> extruders = this->object_extruders();
     append(extruders, this->support_material_extruders());
+
+    if (conside_custom_gcode) {
+        for (auto item : m_model.custom_gcode_per_print_z.gcodes) {
+        if (item.type == CustomGCode::Type::ToolChange)
+            extruders.push_back((unsigned int)item.extruder);
+        }
+    }
+
     sort_remove_duplicates(extruders);
     return extruders;
 }
@@ -750,14 +761,14 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
         convex_hulls_temp.push_back(convex_hull);
         if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
             if (warning) {
-                warning->string = inst->model_instance->get_object()->name + L(" is too close to others, there may be collisions when printing.\n");
+                warning->string = inst->model_instance->get_object()->name + L(" is too close to others, there may be collisions when printing.") + "\n";
                 warning->object = inst->model_instance->get_object();
             }
         }
         if (!intersection(exclude_polys, convex_hull).empty()) {
-            return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.\n"), inst->model_instance->get_object()};
+            return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.") + "\n", inst->model_instance->get_object()};
             /*if (warning) {
-                warning->string = inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.\n");
+                warning->string = inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.") + "\n";
                 warning->object = inst->model_instance->get_object();
             }*/
         }
@@ -1124,7 +1135,8 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 }
 
                 StringObjectException except;
-                except.string = format(L("Plate %d: %s does not support filament %s\n"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
+                except.string = format(L("Plate %d: %s does not support filament %s"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
+                except.string += "\n";
                 except.type   = STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE;
                 except.params.push_back(std::to_string(this->get_plate_index() + 1));
                 except.params.push_back(L(bed_type_name));
@@ -1275,7 +1287,6 @@ void  PrintObject::clear_shared_object()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, clear previous shared object data %2%")%this %m_shared_object;
         m_layers.clear();
         m_support_layers.clear();
-        m_tree_support_layers.clear();
 
         m_shared_object = nullptr;
 
@@ -1288,7 +1299,6 @@ void  PrintObject::copy_layers_from_shared_object()
     if (m_shared_object) {
         m_layers.clear();
         m_support_layers.clear();
-        m_tree_support_layers.clear();
 
         firstLayerObjSliceByVolume.clear();
         firstLayerObjSliceByGroups.clear();
@@ -1296,7 +1306,6 @@ void  PrintObject::copy_layers_from_shared_object()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, copied layers from object %2%")%this%m_shared_object;
         m_layers = m_shared_object->layers();
         m_support_layers = m_shared_object->support_layers();
-        m_tree_support_layers = m_shared_object->tree_support_layers();
 
         firstLayerObjSliceByVolume = m_shared_object->firstLayerObjSlice();
         firstLayerObjSliceByGroups = m_shared_object->firstLayerObjGroups();
@@ -1626,6 +1635,17 @@ void Print::process(bool use_cache)
         }
     }
 
+    // BBS
+    for (PrintObject* obj : m_objects) {
+        if (need_slicing_objects.count(obj) != 0) {
+            obj->detect_overhangs_for_lift();
+        }
+        else {
+            if (obj->set_started(posDetectOverhangsForLift))
+                obj->set_done(posDetectOverhangsForLift);
+        }
+    }
+
     BOOST_LOG_TRIVIAL(info) << "Slicing process finished." << log_memory_info();
 }
 
@@ -1696,13 +1716,6 @@ void Print::_make_skirt()
         for (const SupportLayer *layer : object->support_layers()) {
             if (layer->print_z > skirt_height_z)
                 break;
-            layer->support_fills.collect_points(object_points);
-        }
-        // BBS
-        for (const TreeSupportLayer* layer : object->m_tree_support_layers) {
-            if (layer->print_z > skirt_height_z)
-                break;
-
             layer->support_fills.collect_points(object_points);
         }
 
@@ -1851,12 +1864,12 @@ Polygons Print::first_layer_islands() const
         Polygons object_islands;
         for (ExPolygon &expoly : object->m_layers.front()->lslices)
             object_islands.push_back(expoly.contour);
-        if (! object->support_layers().empty())
-            object->support_layers().front()->support_fills.polygons_covered_by_spacing(object_islands, float(SCALED_EPSILON));
-        if (! object->tree_support_layers().empty()) {
-            ExPolygons& expolys_first_layer = object->m_tree_support_layers.front()->lslices;
-            for (ExPolygon &expoly : expolys_first_layer) {
-                object_islands.push_back(expoly.contour);
+        if (!object->support_layers().empty()) {
+            if (object->support_layers().front()->support_type==stInnerNormal)
+                object->support_layers().front()->support_fills.polygons_covered_by_spacing(object_islands, float(SCALED_EPSILON));
+            else if(object->support_layers().front()->support_type==stInnerTree) {
+                ExPolygons &expolys_first_layer = object->m_support_layers.front()->lslices;
+                for (ExPolygon &expoly : expolys_first_layer) { object_islands.push_back(expoly.contour); }
             }
         }
         islands.reserve(islands.size() + object_islands.size() * object->instances().size());
@@ -2207,7 +2220,7 @@ std::string PrintStatistics::finalize_output_path(const std::string &path_in) co
 #define JSON_SUPPORT_LAYER_ISLANDS                  "support_islands"
 #define JSON_SUPPORT_LAYER_FILLS                    "support_fills"
 #define JSON_SUPPORT_LAYER_INTERFACE_ID             "interface_id"
-
+#define JSON_SUPPORT_LAYER_TYPE                     "support_type"
 
 #define JSON_LAYER_REGION_CONFIG_HASH             "config_hash"
 #define JSON_LAYER_REGION_SLICES                  "slices"
@@ -2838,6 +2851,7 @@ void extract_layer(const json& layer_json, Layer& layer) {
 void extract_support_layer(const json& support_layer_json, SupportLayer& support_layer) {
     extract_layer(support_layer_json, support_layer);
 
+    support_layer.support_type = support_layer_json[JSON_SUPPORT_LAYER_TYPE];
     //support_islands
     int islands_count = support_layer_json[JSON_SUPPORT_LAYER_ISLANDS].size();
     for (int islands_index = 0; islands_index < islands_count; islands_index++)
@@ -2859,27 +2873,6 @@ void extract_support_layer(const json& support_layer_json, SupportLayer& support
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": error parsing fills found at support_layer %1%, print_z %2%")%support_layer.id() %support_layer.print_z;
             char error_buf[1024];
             ::sprintf(error_buf, "Error while parsing fills at support_layer %d, print_z %f", support_layer.id(), support_layer.print_z);
-            throw Slic3r::FileIOError(error_buf);
-        }
-    }
-
-    return;
-}
-
-void extract_tree_support_layer(const json& tree_support_layer_json, TreeSupportLayer& tree_support_layer) {
-    extract_layer(tree_support_layer_json, tree_support_layer);
-
-    //support_fills
-    tree_support_layer.support_fills.no_sort = tree_support_layer_json[JSON_SUPPORT_LAYER_FILLS][JSON_EXTRUSION_NO_SORT];
-    int treesupport_fills_entities_count = tree_support_layer_json[JSON_SUPPORT_LAYER_FILLS][JSON_EXTRUSION_ENTITIES].size();
-    for (int treesupport_fills_entities_index = 0; treesupport_fills_entities_index < treesupport_fills_entities_count; treesupport_fills_entities_index++)
-    {
-        const json& extrusion_entity_json =  tree_support_layer_json[JSON_SUPPORT_LAYER_FILLS][JSON_EXTRUSION_ENTITIES][treesupport_fills_entities_index];
-        bool ret = convert_extrusion_from_json(extrusion_entity_json, tree_support_layer.support_fills);
-        if (!ret) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": error parsing fills found at tree_support_layer %1%, print_z %2%")%tree_support_layer.id() %tree_support_layer.print_z;
-            char error_buf[1024];
-            ::sprintf(error_buf, "Error while parsing fills at tree_support_layer %d, print_z %f", tree_support_layer.id(), tree_support_layer.print_z);
             throw Slic3r::FileIOError(error_buf);
         }
     }
@@ -2952,7 +2945,7 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
         std::string file_name = directory +"/obj_"+std::to_string(arrange_order)+".json";
 
         try {
-            json root_json, layers_json = json::array(), support_layers_json = json::array(), tree_support_layers_json = json::array();
+            json root_json, layers_json = json::array(), support_layers_json = json::array();
 
             root_json[JSON_OBJECT_NAME] = model_obj->name;
             root_json[JSON_ARRANGE_ORDER] = arrange_order;
@@ -2997,6 +2990,7 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
                         convert_layer_to_json(support_layer_json, support_layer);
 
                         support_layer_json[JSON_SUPPORT_LAYER_INTERFACE_ID] = support_layer->interface_id();
+                        support_layer_json[JSON_SUPPORT_LAYER_TYPE] = support_layer->support_type;
 
                         //support_islands
                         for (const ExPolygon& support_island : support_layer->support_islands.expolygons) {
@@ -3060,136 +3054,6 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
             } // for each layer*/
             root_json[JSON_SUPPORT_LAYERS] = std::move(support_layers_json);
 
-            //export the tree support layers
-            std::vector<json> tree_support_layers_json_vector(obj->tree_support_layer_count());
-            tbb::parallel_for(
-                tbb::blocked_range<size_t>(0, obj->tree_support_layer_count()),
-                [&tree_support_layers_json_vector, obj, convert_layer_to_json](const tbb::blocked_range<size_t>& tree_support_layer_range) {
-                    for (size_t ts_layer_index = tree_support_layer_range.begin(); ts_layer_index < tree_support_layer_range.end(); ++ ts_layer_index) {
-                        const TreeSupportLayer *tree_support_layer = obj->get_tree_support_layer(ts_layer_index);
-                        json treesupport_layer_json, treesupport_fills_json, treesupportfills_entities_json = json::array();
-                        //json overhang_areas_json = json::array(), roof_areas_json = json::array(), roof_1st_layer_json = json::array(), floor_areas_json = json::array(), base_areas_json = json::array();
-
-                        convert_layer_to_json(treesupport_layer_json, tree_support_layer);
-
-                        //tree_support_fills
-                        treesupport_fills_json[JSON_EXTRUSION_NO_SORT] = tree_support_layer->support_fills.no_sort;
-                        treesupport_fills_json[JSON_EXTRUSION_ENTITY_TYPE] = JSON_EXTRUSION_TYPE_COLLECTION;
-                        for (const ExtrusionEntity* extrusion_entity : tree_support_layer->support_fills.entities) {
-                            json treesupportfill_entity_json, treesupportfill_entity_paths_json = json::array();
-                            bool ret = convert_extrusion_to_json(treesupportfill_entity_json, treesupportfill_entity_paths_json, extrusion_entity);
-                            if (!ret)
-                                continue;
-
-                            treesupportfills_entities_json.push_back(std::move(treesupportfill_entity_json));
-                        }
-                        treesupport_fills_json[JSON_EXTRUSION_ENTITIES] = std::move(treesupportfills_entities_json);
-                        treesupport_layer_json[JSON_SUPPORT_LAYER_FILLS] = std::move(treesupport_fills_json);
-
-                        //following data are not needed in the later stage
-                        //overhang_areas
-                        /*for (const ExPolygon& overhang_area : tree_support_layer->overhang_areas) {
-                            json overhang_area_json = overhang_area;
-                            overhang_areas_json.push_back(std::move(overhang_area_json));
-                        }
-                        treesupport_layer_json["overhang_areas"] = std::move(overhang_areas_json);
-
-                         //roof_areas
-                        for (const ExPolygon& roof_area : tree_support_layer->roof_areas) {
-                            json roof_area_json = roof_area;
-                            roof_areas_json.push_back(std::move(roof_area_json));
-                        }
-                        treesupport_layer_json["roof_areas"] = std::move(roof_areas_json);
-
-                         //roof_1st_layer
-                        for (const ExPolygon& layer_poly : tree_support_layer->roof_1st_layer) {
-                            json layer_poly_json = layer_poly;
-                            roof_1st_layer_json.push_back(std::move(layer_poly_json));
-                        }
-                        treesupport_layer_json["roof_1st_layer"] = std::move(roof_1st_layer_json);
-
-                         //floor_areas
-                        for (const ExPolygon& floor_area : tree_support_layer->floor_areas) {
-                            json floor_area_json = floor_area;
-                            floor_areas_json.push_back(std::move(floor_area_json));
-                        }
-                        treesupport_layer_json["floor_areas"] = std::move(floor_areas_json);
-
-                         //base_areas
-                        for (const ExPolygon& base_area : tree_support_layer->base_areas) {
-                            json base_area_json = base_area;
-                            base_areas_json.push_back(std::move(base_area_json));
-                        }
-                        treesupport_layer_json["base_areas"] = std::move(base_areas_json);*/
-
-                        tree_support_layers_json_vector[ts_layer_index] = std::move(treesupport_layer_json);
-                    }
-                }
-            );
-            for (int ts_index = 0; ts_index < tree_support_layers_json_vector.size(); ts_index++) {
-                tree_support_layers_json.push_back(std::move(tree_support_layers_json_vector[ts_index]));
-            }
-            tree_support_layers_json_vector.clear();
-#if 0
-            for (const TreeSupportLayer *tree_support_layer : obj->tree_support_layers()) {
-                json treesupport_layer_json, treesupport_fills_json, treesupportfills_entities_json = json::array();
-                json overhang_areas_json = json::array(), roof_areas_json = json::array(), roof_1st_layer_json = json::array(), floor_areas_json = json::array(), base_areas_json = json::array();
-
-                convert_layer_to_json(treesupport_layer_json, tree_support_layer);
-
-                //tree_support_fills
-                treesupport_fills_json[JSON_EXTRUSION_NO_SORT] = tree_support_layer->support_fills.no_sort;
-                treesupport_fills_json[JSON_EXTRUSION_ENTITY_TYPE] = JSON_EXTRUSION_TYPE_COLLECTION;
-                for (const ExtrusionEntity* extrusion_entity : tree_support_layer->support_fills.entities) {
-                    json treesupportfill_entity_json, treesupportfill_entity_paths_json = json::array();
-                    bool ret = convert_extrusion_to_json(treesupportfill_entity_json, treesupportfill_entity_paths_json, extrusion_entity);
-                    if (!ret)
-                        continue;
-
-                    treesupportfills_entities_json.push_back(std::move(treesupportfill_entity_json));
-                }
-                treesupport_fills_json[JSON_EXTRUSION_ENTITIES] = std::move(treesupportfills_entities_json);
-                treesupport_layer_json[JSON_SUPPORT_LAYER_FILLS] = std::move(treesupport_fills_json);
-
-                //overhang_areas
-                /*for (const ExPolygon& overhang_area : tree_support_layer->overhang_areas) {
-                    json overhang_area_json = overhang_area;
-                    overhang_areas_json.push_back(std::move(overhang_area_json));
-                }
-                treesupport_layer_json["overhang_areas"] = std::move(overhang_areas_json);
-
-                 //roof_areas
-                for (const ExPolygon& roof_area : tree_support_layer->roof_areas) {
-                    json roof_area_json = roof_area;
-                    roof_areas_json.push_back(std::move(roof_area_json));
-                }
-                treesupport_layer_json["roof_areas"] = std::move(roof_areas_json);
-
-                 //roof_1st_layer
-                for (const ExPolygon& layer_poly : tree_support_layer->roof_1st_layer) {
-                    json layer_poly_json = layer_poly;
-                    roof_1st_layer_json.push_back(std::move(layer_poly_json));
-                }
-                treesupport_layer_json["roof_1st_layer"] = std::move(roof_1st_layer_json);
-
-                 //floor_areas
-                for (const ExPolygon& floor_area : tree_support_layer->floor_areas) {
-                    json floor_area_json = floor_area;
-                    floor_areas_json.push_back(std::move(floor_area_json));
-                }
-                treesupport_layer_json["floor_areas"] = std::move(floor_areas_json);
-
-                 //base_areas
-                for (const ExPolygon& base_area : tree_support_layer->base_areas) {
-                    json base_area_json = base_area;
-                    base_areas_json.push_back(std::move(base_area_json));
-                }
-                treesupport_layer_json["base_areas"] = std::move(base_areas_json);*/
-
-                tree_support_layers_json.push_back(std::move(treesupport_layer_json));
-            } // for each layer
-#endif
-            root_json[JSON_TREE_SUPPORT_LAYERS] = std::move(tree_support_layers_json);
 
             filename_vector.push_back(file_name);
             json_vector.push_back(std::move(root_json));
@@ -3268,7 +3132,6 @@ int Print::load_cached_data(const std::string& directory)
 
         obj->clear_layers();
         obj->clear_support_layers();
-        obj->clear_tree_support_layers();
 
         int arrange_order = model_instance->arrange_order;
         if (arrange_order <= 0) {
@@ -3320,13 +3183,12 @@ int Print::load_cached_data(const std::string& directory)
 
             std::string name = root_json.at(JSON_OBJECT_NAME);
             int order = root_json.at(JSON_ARRANGE_ORDER);
-            int layer_count = 0, support_layer_count = 0, treesupport_layer_count = 0;
+            int layer_count = 0, support_layer_count = 0;
 
             layer_count = root_json[JSON_LAYERS].size();
             support_layer_count = root_json[JSON_SUPPORT_LAYERS].size();
-            treesupport_layer_count = root_json[JSON_TREE_SUPPORT_LAYERS].size();
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(":will load %1%, arrange_order %2%, layer_count %3%, support_layer_count %4%, treesupport_layer_count %5%")%name %order %layer_count %support_layer_count %treesupport_layer_count;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(":will load %1%, arrange_order %2%, layer_count %3%, support_layer_count %4%")%name %order %layer_count %support_layer_count;
 
             Layer* previous_layer = NULL;
             //create layer and layer regions
@@ -3403,35 +3265,6 @@ int Print::load_cached_data(const std::string& directory)
                         const json& layer_json = root_json[JSON_SUPPORT_LAYERS][layer_index];
                         SupportLayer* support_layer = obj->get_support_layer(layer_index);
                         extract_support_layer(layer_json, *support_layer);
-                    }
-                }
-            );
-
-            //tree support layers
-            Layer* previous_tree_support_layer = NULL;
-            //create tree_support_layers
-            for (int index = 0; index < treesupport_layer_count; index++)
-            {
-                json& layer_json = root_json[JSON_TREE_SUPPORT_LAYERS][index];
-                TreeSupportLayer* new_tree_support_layer = obj->add_tree_support_layer(layer_json[JSON_LAYER_ID], layer_json[JSON_LAYER_HEIGHT], layer_json[JSON_LAYER_PRINT_Z], layer_json[JSON_LAYER_SLICE_Z]);
-                if (!new_tree_support_layer) {
-                    BOOST_LOG_TRIVIAL(error) <<__FUNCTION__<< boost::format(":add_support_layer failed, out of memory");
-                    return CLI_OUT_OF_MEMORY;
-                }
-                if (previous_tree_support_layer) {
-                    previous_tree_support_layer->upper_layer = new_tree_support_layer;
-                    new_tree_support_layer->lower_layer = previous_tree_support_layer;
-                }
-                previous_tree_support_layer = new_tree_support_layer;
-            }
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": finished load support_layers, start to load treesupport_layers.");
-            tbb::parallel_for(
-                tbb::blocked_range<size_t>(0, obj->tree_support_layer_count()),
-                [&root_json, &obj](const tbb::blocked_range<size_t>& tree_support_layer_range) {
-                    for (size_t layer_index = tree_support_layer_range.begin(); layer_index < tree_support_layer_range.end(); ++ layer_index) {
-                        const json& layer_json = root_json[JSON_TREE_SUPPORT_LAYERS][layer_index];
-                        TreeSupportLayer* tree_support_layer = obj->get_tree_support_layer(layer_index);
-                        extract_tree_support_layer(layer_json, *tree_support_layer);
                     }
                 }
             );

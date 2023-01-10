@@ -385,9 +385,9 @@ void Preview::sys_color_changed()
 
 void Preview::on_tick_changed(Type type)
 {
-    if (type == Type::PausePrint) {
-        m_schedule_background_process();
-    }
+    //if (type == Type::PausePrint) {
+    //    m_schedule_background_process();
+    //}
     m_keep_current_preview_type = false;
     reload_print(false);
 }
@@ -485,8 +485,7 @@ void Preview::update_layers_slider_mode()
         // check if whole model uses just only one extruder
         if (!plate_extruders.empty()) {
             //const int extruder = objects[0]->config.has("extruder") ? objects[0]->config.option("extruder")->getInt() : 0;
-            const int extruder = plate_extruders[0];
-            only_extruder = extruder;
+            only_extruder = plate_extruders[0];
         //    auto is_one_extruder_printed_model = [objects, extruder]() {
         //        for (ModelObject *object : objects) {
         //            if (object->config.has("extruder") && object->config.option("extruder")->getInt() != extruder) /*return false*/;

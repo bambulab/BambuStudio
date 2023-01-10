@@ -258,7 +258,7 @@ public:
 
     Vec3d get_origin() { return m_origin; }
     Vec3d estimate_wipe_tower_size(const double w, const double wipe_volume) const;
-    std::vector<int> get_extruders() const;
+    std::vector<int> get_extruders(bool conside_custom_gcode = false) const;
     std::vector<int> get_used_extruders();
 
     /* instance related operations*/
@@ -291,6 +291,8 @@ public:
 
     //whether it is empty
     bool empty() { return obj_to_instance_set.empty(); }
+
+    int printable_instance_size();
 
     //whether it is has printable instances
     bool has_printable_instances();

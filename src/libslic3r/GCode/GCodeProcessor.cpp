@@ -1394,7 +1394,22 @@ void GCodeProcessor::finalize(bool post_process)
     m_used_filaments.process_caches(this);
 
     update_estimated_times_stats();
+    auto time_mode = m_result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)];
 
+    auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [](const std::pair<ExtrusionRole, float>& item) { return erCustom == item.first; });
+    auto prepare_time = (it != time_mode.roles_times.end()) ? it->second : 0.0f;
+
+    //update times for results
+    for (size_t i = 0; i < m_result.moves.size(); i++) {
+        //field layer_duration contains the layer id for the move in which the layer_duration has to be set.
+        size_t layer_id = size_t(m_result.moves[i].layer_duration);
+        std::vector<float>& layer_times = m_result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].layers_times;
+        if (layer_times.size() > layer_id - 1 && layer_id > 0)
+            m_result.moves[i].layer_duration = layer_id == 1 ? std::max(0.f,layer_times[layer_id - 1] - prepare_time) : layer_times[layer_id - 1];
+        else
+            m_result.moves[i].layer_duration = 0;
+    }
+    
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     std::cout << "\n";
     m_mm3_per_mm_compare.output();
@@ -3804,6 +3819,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         m_fan_speed,
         m_extruder_temps[m_extruder_id],
         static_cast<float>(m_result.moves.size()),
+        static_cast<float>(m_layer_id), //layer_duration: set later
         //BBS: add arc move related data
         path_type,
         Vec3f(m_arc_center(0, 0) + m_x_offset, m_arc_center(1, 0) + m_y_offset, m_arc_center(2, 0)) + m_extruder_offsets[m_extruder_id],

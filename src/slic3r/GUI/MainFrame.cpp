@@ -692,6 +692,8 @@ void MainFrame::update_layout()
         {
             // jump to 3deditor under preview_only mode
             if (evt.GetId() == tp3DEditor){
+                m_plater->update(true);
+
                 if (!preview_only_hint())
                     return;
             }
@@ -1319,9 +1321,9 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_slice_select = eSlicePlate;
     m_print_select = ePrintPlate;
 
-    m_slice_btn = new SideButton(this, _L("Slice"), "");
+    m_slice_btn = new SideButton(this, _L("Slice plate"), "");
     m_slice_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
-    m_print_btn = new SideButton(this, _L("Print"), "");
+    m_print_btn = new SideButton(this, _L("Print plate"), "");
     m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
 
     update_side_button_style();
@@ -3125,7 +3127,7 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
                         "It contains the following information:\n"
                         "1. The Process presets\n"
                         "2. The Filament presets\n"
-                        "3. The Printer presets\n"),
+                        "3. The Printer presets"),
                     _L("Synchronization"),
                     wxCENTER |
                     wxYES_DEFAULT | wxYES_NO |
@@ -3137,7 +3139,7 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
     {
         case wxID_YES: {
             wxGetApp().app_config->set_bool("sync_user_preset", true);
-            wxGetApp().start_sync_user_preset(true);
+            wxGetApp().start_sync_user_preset(true, true);
             break;
         }
         case wxID_NO:
