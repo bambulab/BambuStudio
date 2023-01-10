@@ -6728,7 +6728,7 @@ msgstr "Faible densité de remplissage"
 
 #, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
-msgstr "Densité du remplissage clairsemé interne, 100% signifie solide partout"
+msgstr "Densité du remplissage interne, 100% signifie solide partout"
 
 msgid "Sparse infill pattern"
 msgstr "Modèle de remplissage clairsemé"
