@@ -17,8 +17,7 @@
                 "FUNC_PRINT_WITHOUT_SD": false,
                 "FUNC_ALTER_RESOLUTION": false,
                 "FUNC_AUTO_SWITCH_FILAMENT": false,
-                "FUNC_CHAMBER_FAN" : false,
-                "FUNC_SEND_TO_SDCARD": false
+                "FUNC_CHAMBER_FAN" : false
             },
             "camera_resolution":["720p"],
             "bed_temperature_limit": 100,
