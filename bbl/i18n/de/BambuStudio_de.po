@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-24 13:01+0800\n"
+"POT-Creation-Date: 2023-01-12 11:04+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -41,10 +41,10 @@ msgid "Block supports"
 msgstr "Support blockieren"
 
 msgid "Shift + Left mouse button"
-msgstr "Gross + Linke Maustaste"
+msgstr "Shift + Linke Maustaste"
 
 msgid "Erase"
-msgstr "löschen"
+msgstr "Löschen"
 
 msgid "Erase all painting"
 msgstr "Alles gemalte löschen"
@@ -117,7 +117,7 @@ msgid "Pen shape"
 msgstr "Pinselform"
 
 msgid "Paint"
-msgstr "malen"
+msgstr "Malen"
 
 msgid "Key 1~9"
 msgstr "Schlüssel 1~9"
@@ -141,7 +141,7 @@ msgid "Smart fill"
 msgstr "Intelligentes Füllen"
 
 msgid "Bucket fill"
-msgstr "Eimerfüllung"
+msgstr "Flächenfüllung"
 
 msgid "Height range"
 msgstr "Höhenreichweite"
@@ -265,10 +265,10 @@ msgid "Keep lower part"
 msgstr "Unteren Teil behalten"
 
 msgid "Cut to parts"
-msgstr "Zu Teilen schneiden"
+msgstr "In Einzelteile schneiden"
 
 msgid "Auto Segment"
-msgstr "Automatische segmentierung"
+msgstr "Automatische Segmentierung"
 
 msgid "Perform cut"
 msgstr "Schnitt ausführen"
@@ -327,7 +327,7 @@ msgid "%d triangles"
 msgstr "%d Dreiecke"
 
 msgid "Show wireframe"
-msgstr "Drahtgitter anzeigen"
+msgstr "Gittermodell anzeigen"
 
 #, boost-format
 msgid "%1%"
@@ -435,8 +435,8 @@ msgid ""
 "BambuStudio will terminate because of running out of memory.It may be a bug. "
 "It will be appreciated if you report the issue to our team."
 msgstr ""
-"BambuStudio wird wegen Speichermangels beendet, was ein Fehler sein kann. Es "
-"wird geschätzt, wenn Sie das Problem an unser Team berichten."
+"BambuStudio wird wegen Speichermangels beendet, was ein Fehler sein kann. "
+"Unser Team würde sich über einen Fehlerbericht freuen."
 
 msgid "Fatal error"
 msgstr "Fataler Fehler"
@@ -444,9 +444,7 @@ msgstr "Fataler Fehler"
 msgid ""
 "BambuStudio will terminate because of a localization error. It will be "
 "appreciated if you report the specific scenario this issue happened."
-msgstr ""
-"BambuStudio wird aufgrund eines Lokalisierungsfehlers beendet. Es wird "
-"geschätzt, wenn Sie das spezifische Szenario dieses Problems berichten."
+msgstr "BambuStudio wird aufgrund eines Lokalisierungsfehlers beendet."
 
 msgid "Critical error"
 msgstr "Kritischer Fehler"
@@ -470,7 +468,7 @@ msgid ""
 "parsed.Please delete the file and try again."
 msgstr ""
 "Die BambuStudio-Konfigurationsdatei ist möglicherweise beschädigt und kann "
-"nicht gegliedert werden. Bitte löschen Sie die Datei und versuchen Sie es "
+"nicht geladen werden. Bitte löschen Sie die Datei und versuchen Sie es "
 "erneut."
 
 #, c-format, boost-format
@@ -482,7 +480,7 @@ msgstr ""
 "Möchten Sie fortfahren?"
 
 msgid "Remember my choice"
-msgstr "meine Auswahl merken"
+msgstr "Meine Auswahl merken"
 
 msgid "Loading configuration"
 msgstr "Lade Konfiguration"
@@ -490,7 +488,8 @@ msgstr "Lade Konfiguration"
 #, c-format, boost-format
 msgid "Click to download new version in default browser: %s"
 msgstr ""
-"Klicken Sie hier, um die neue Version im Standardbrowser herunterzuladen: %s"
+"Klicken Sie hier, um die aktuelle Version im Standardbrowser "
+"herunterzuladen: %s"
 
 msgid "The Bambu Studio needs an upgrade"
 msgstr "Bambu Studio benötigt ein Upgrade"
@@ -502,7 +501,7 @@ msgid "Info"
 msgstr "Infos"
 
 msgid "Loading user presets..."
-msgstr "Nutzervoreistellungen laden..."
+msgstr "Nutzervoreinstellungen laden..."
 
 msgid "Rebuild"
 msgstr "Neubauen"
@@ -622,7 +621,7 @@ msgid "Bottom Minimum Shell Thickness"
 msgstr "Minimale Dicke der unteren Schichten"
 
 msgid "Ironing"
-msgstr "glätten"
+msgstr "Glätten"
 
 msgid "Fuzzy Skin"
 msgstr "Fuzzy Skin"
@@ -728,13 +727,13 @@ msgid "Filament %d"
 msgstr "Filament %d"
 
 msgid "active"
-msgstr "aktiv"
+msgstr "Aktiv"
 
 msgid "Scale to build volume"
 msgstr "Auf Druckvolumen skalieren"
 
 msgid "Scale an object to fit the build volume"
-msgstr "Objekt skalieren, dass es in den Druckraum passt"
+msgstr "Objekt so skalieren, dass es in den Druckraum passt"
 
 msgid "Flush Options"
 msgstr ""
@@ -886,7 +885,7 @@ msgid "Set Filament for selected items"
 msgstr "Filament für ausgewählte Elemente festlegen"
 
 msgid "current"
-msgstr "aktuell"
+msgstr "Ausgewählt"
 
 msgid "Set Unprintable"
 msgstr "Undruckbar machen"
@@ -895,7 +894,7 @@ msgid "Set Printable"
 msgstr "Druckbar machen"
 
 msgid "Unlock"
-msgstr "Aufmachen"
+msgstr "Entsperren"
 
 msgid "Lock"
 msgstr "Schließen"
@@ -1193,14 +1192,26 @@ msgstr "?"
 msgid "Empty"
 msgstr "Leer"
 
-msgid "Click the pencil icon to edit the filament."
-msgstr "Das Stift-Symbol drücken um das Filament zu bearbeiten."
+msgid "AMS"
+msgstr "AMS"
+
+msgid "NO AMS"
+msgstr ""
+
+msgid "Cali"
+msgstr ""
+
+msgid "Calibration of extrusion"
+msgstr ""
 
 msgid "Load Filament"
 msgstr "Laden"
 
 msgid "Unload Filament"
 msgstr "Entladen"
+
+msgid "Ext Spool"
+msgstr ""
 
 msgid "Tips"
 msgstr "Tipps"
@@ -1417,6 +1428,9 @@ msgstr ""
 msgid "Please log out and login to the printer again."
 msgstr ""
 
+msgid "Failed uploading print file. Please enter ip address again."
+msgstr ""
+
 msgid "Downloading"
 msgstr ""
 
@@ -1496,6 +1510,12 @@ msgstr ""
 msgid "AMS Materials Setting"
 msgstr ""
 
+msgid "Confirm"
+msgstr "Bestätigen"
+
+msgid "Close"
+msgstr "Schließen"
+
 msgid "Colour"
 msgstr "Farbe"
 
@@ -1520,11 +1540,87 @@ msgstr "SN"
 msgid "Setting AMS slot information while printing is not supported"
 msgstr ""
 
-msgid "Confirm"
-msgstr "Bestätigen"
+msgid "Factors of dynamic flow cali"
+msgstr ""
 
-msgid "Close"
-msgstr "Schließen"
+msgid "Factor K"
+msgstr ""
+
+msgid "Factor N"
+msgstr ""
+
+msgid "Please input a valid value (K in 0~0.5)"
+msgstr ""
+
+msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
+msgstr ""
+
+msgid "Dynamic flow calibration"
+msgstr ""
+
+msgid ""
+"The nozzle temp and max volumetric speed will affect the calibration "
+"results. Please fill in the same values as the actual printing. They can be "
+"auto-filled by selecting a filament preset."
+msgstr ""
+
+msgid "Nozzle Diameter"
+msgstr ""
+
+msgid "Bed Type"
+msgstr ""
+
+msgid "Nozzle temperature"
+msgstr "Druckdüsentemperatur"
+
+msgid "Bed Temperature"
+msgstr ""
+
+msgid "Max volumetric speed"
+msgstr "Maximale Volumengeschwindigkeit"
+
+msgid "\\u2103"
+msgstr ""
+
+msgid "Bed temperature"
+msgstr "Druckbetttemperatur"
+
+msgid "mm\\u00B3"
+msgstr ""
+
+msgid "Start calibration"
+msgstr ""
+
+msgid "Next"
+msgstr ""
+
+msgid ""
+"Calibration completed. Please select the factors according to the left "
+"figure and fill them in the input boxes."
+msgstr ""
+
+msgid "Save"
+msgstr "Speichern"
+
+msgid "Last Step"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Calibrating... %d%%"
+msgstr ""
+
+msgid "Calibration completed"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s does not support %s"
+msgstr ""
+
+msgid "Dynamic flow Calibration"
+msgstr ""
+
+msgid "Step"
+msgstr ""
 
 msgid "AMS Slots"
 msgstr ""
@@ -1545,6 +1641,29 @@ msgstr ""
 msgid "Print with the filament mounted on the back of chassis"
 msgstr ""
 
+msgid "Cabin humidity"
+msgstr ""
+
+msgid ""
+"Green represents that AMS humidity is normal, orange and red represent that "
+"humidity is too high.(Lower the better)"
+msgstr ""
+
+msgid "Desiccant status"
+msgstr ""
+
+msgid ""
+"Desiccant status lower than two bars indicates that desiccant can be "
+"inactive. Please change the desiccant.(Higher the better)"
+msgstr ""
+
+msgid ""
+"Note: When the lid is open or the desiccant pack is changed, it can take "
+"hours or a night to absorb the moisture. Low temperatures also slow down the "
+"process. During this time, the indicator may not represent the chamber "
+"accurately."
+msgstr ""
+
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
 msgstr ""
@@ -1556,6 +1675,18 @@ msgid "AMS slot used for this filament"
 msgstr ""
 
 msgid "Click to select AMS slot manually"
+msgstr ""
+
+msgid "Do not Enable AMS"
+msgstr ""
+
+msgid "Print using materials mounted on the back of the case"
+msgstr ""
+
+msgid "Print with filaments in ams"
+msgstr ""
+
+msgid "Print with filaments mounted on the back of the chassis"
 msgstr ""
 
 msgid "AMS Settings"
@@ -1918,7 +2049,7 @@ msgstr ""
 
 msgid ""
 "Arachne engine only works when overhang slowing down is disabled.\n"
-"This may cause decline in the quality of overhang surface when print fastly\n"
+"This may cause decline in the quality of overhang surface when print fastly"
 msgstr ""
 
 msgid ""
@@ -1970,7 +2101,7 @@ msgstr "Das %1%-Infill-Muster unterstützt keine 100%% Dichte."
 msgid ""
 "Switch to rectilinear pattern?\n"
 "Yes - switch to rectilinear pattern automaticlly\n"
-"No  - reset density to default non 100% value automaticlly\n"
+"No  - reset density to default non 100% value automaticlly"
 msgstr ""
 
 msgid "Auto bed leveling"
@@ -2041,9 +2172,6 @@ msgstr "MC"
 
 msgid "MainBoard"
 msgstr "Mainboard"
-
-msgid "AMS"
-msgstr "AMS"
 
 msgid "TH"
 msgstr "TH"
@@ -2576,7 +2704,7 @@ msgid "Export all sliced file"
 msgstr ""
 
 msgid "Print all"
-msgstr "Alle drucken"
+msgstr "Alle Druckplatten drucken"
 
 msgid "Send all"
 msgstr ""
@@ -2891,7 +3019,7 @@ msgid ""
 "It contains the following information:\n"
 "1. The Process presets\n"
 "2. The Filament presets\n"
-"3. The Printer presets\n"
+"3. The Printer presets"
 msgstr ""
 
 msgid "Synchronization"
@@ -3095,6 +3223,9 @@ msgstr "Stop"
 msgid "0"
 msgstr ""
 
+msgid "Layers: N/A"
+msgstr ""
+
 msgid "Clean"
 msgstr ""
 
@@ -3158,6 +3289,14 @@ msgstr "Herunterladen..."
 msgid "Cloud Slicing..."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Layers: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Layers: %d/%d"
+msgstr ""
+
 msgid "Please heat the nozzle to above 170 degree before loading filament."
 msgstr ""
 
@@ -3165,6 +3304,9 @@ msgid "Still unload"
 msgstr ""
 
 msgid "Still load"
+msgstr ""
+
+msgid "Please select an AMS slot before calibration"
 msgstr ""
 
 msgid ""
@@ -3237,6 +3379,37 @@ msgstr "%s Information"
 
 msgid "Skip"
 msgstr "Überspringen"
+
+msgid "Unable to connect printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Cannot detect the LAN IP address of %s. Are %s and Bambu Studio in the same "
+"LAN?"
+msgstr ""
+
+msgid ""
+"Failed to connect to the printer through LAN. Please enter the correct "
+"printer IP address and access code."
+msgstr ""
+
+msgid "IP"
+msgstr ""
+
+msgid "Access Code"
+msgstr ""
+
+msgid ""
+"Note : The location of IP and access code on the machine is as follows :"
+msgstr ""
+
+msgid ""
+"X1 General Settings - Network Settings in the side bar of X1 main screen"
+msgstr ""
+
+msgid "P1P General Settings - WLAN in the sidebar of the main screen"
+msgstr ""
 
 msgid "3D Mouse disconnected."
 msgstr "3D-Maus nicht angeschlossen."
@@ -3550,10 +3723,8 @@ msgstr ""
 #, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Found following keys "
-"unrecognized:\n"
+"unrecognized:"
 msgstr ""
-"Die Version %s von 3mf ist neuer als die Version %s von %s, folgende "
-"Schlüssel wurden nicht erkannt:\n"
 
 msgid "You'd better upgrade your software.\n"
 msgstr "Sie sollten Ihre Software aktualisieren.\n"
@@ -3561,11 +3732,11 @@ msgstr "Sie sollten Ihre Software aktualisieren.\n"
 msgid "Newer 3mf version"
 msgstr "Neuere 3mf-Version"
 
-#, fuzzy, c-format, boost-format
+#, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software.\n"
-msgstr "\n"
+"software."
+msgstr ""
 
 msgid "The 3mf is not compatible, load geometry data only!"
 msgstr ""
@@ -3764,9 +3935,6 @@ msgstr ""
 "Das aktuelle Projekt hat ungespeicherte Änderungen, speichern Sie es, bevor "
 "Sie fortfahren?"
 
-msgid "Save"
-msgstr "Speichern"
-
 msgid "Number of copies:"
 msgstr "Anzahl der Kopien:"
 
@@ -3846,9 +4014,9 @@ msgid ""
 "on Bambu Studio(windows) or CAD softwares."
 msgstr ""
 
-#, fuzzy, c-format, boost-format
-msgid "Plate %d: %s does not support filament %s (%s).\n"
-msgstr "\n"
+#, c-format, boost-format
+msgid "Plate %d: %s does not support filament %s (%s)."
+msgstr ""
 
 msgid "Switching the language requires application restart.\n"
 msgstr "Der Wechsel der Sprache erfordert einen Neustart der Anwendung.\n"
@@ -4340,13 +4508,13 @@ msgstr ""
 
 msgid ""
 "Please check the following infomation and click Confirm to continue sending "
-"print:\n"
+"print:"
 msgstr ""
 
 msgid ""
 "The printer type used to generate G-code is not the same type as the "
 "currently selected physical printer. It is recommend to re-slice by "
-"selecting the same printer type.\n"
+"selecting the same printer type."
 msgstr ""
 
 #, c-format, boost-format
@@ -4448,7 +4616,7 @@ msgstr ""
 msgid ""
 "We have added an experimental style \"Tree Slim\" that features smaller "
 "support volume but weaker strength.\n"
-"We recommand using it with: 0 interface layers, 0 top distance, 2 walls."
+"We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
 msgstr ""
 
 msgid ""
@@ -4458,22 +4626,22 @@ msgid ""
 msgstr ""
 
 msgid ""
-"For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommand the following "
-"settings: at least 2 interface layers, at least 0.1 top z distance or using "
-"support materials on interface."
+"For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the following "
+"settings: at least 2 interface layers, at least 0.1mm top z distance or "
+"using support materials on interface."
 msgstr ""
 
 msgid ""
-"When using support material for the support interface, We recommand the "
+"When using support material for the support interface, We recommend the "
 "following settings:\n"
-"0 top distance, 0 interface spacing, concentric pattern."
+"0 top z distance, 0 interface spacing, concentric pattern."
 msgstr ""
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
 "by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\".\n"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid "Line width"
@@ -5567,11 +5735,10 @@ msgstr ""
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% ist zu hoch und es kommt zu Kollisionen."
 
-msgid " is too close to others, there may be collisions when printing.\n"
+msgid " is too close to others, there may be collisions when printing."
 msgstr ""
 
-msgid ""
-" is too close to exclusion area, there may be collisions when printing.\n"
+msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr ""
 
 msgid "Prime Tower"
@@ -5673,9 +5840,9 @@ msgstr ""
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "Schichthöhe kann Druckdüsendurchmesser nicht überschreiten"
 
-#, fuzzy, c-format, boost-format
-msgid "Plate %d: %s does not support filament %s\n"
-msgstr "\n"
+#, c-format, boost-format
+msgid "Plate %d: %s does not support filament %s"
+msgstr ""
 
 msgid "Generating skirt & brim"
 msgstr "Erzeugen von Schürze und Rand (skirt & brim)"
@@ -5827,9 +5994,6 @@ msgstr ""
 
 msgid "°C"
 msgstr "°C"
-
-msgid "Bed temperature"
-msgstr "Druckbetttemperatur"
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
@@ -6337,9 +6501,6 @@ msgid ""
 "Minimum HRC of nozzle required to print the filament. Zero means no checking "
 "of nozzle's HRC."
 msgstr ""
-
-msgid "Max volumetric speed"
-msgstr "Maximale Volumengeschwindigkeit"
 
 msgid ""
 "This setting stands for how much volume of filament can be melted and "
@@ -7361,7 +7522,7 @@ msgid ""
 "Style and shape of the support. For normal support, projecting the supports "
 "into a regular grid will create more stable supports (default), while snug "
 "support towers will save material and reduce object scarring.\n"
-"For tree support, tight style will merge branches more aggressively and save "
+"For tree support, slim style will merge branches more aggressively and save "
 "a lot of material (default), while hybrid style will create similar "
 "structure to normal support under large flat overhangs."
 msgstr ""
@@ -7432,21 +7593,14 @@ msgstr "Diese Einstellung gibt die Anzahl der Wände um den Baumsupport an"
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Druckdüsentemperatur für Schichten nach der ersten Schicht"
 
-msgid "Nozzle temperature"
-msgstr "Druckdüsentemperatur"
-
 msgid "Bed temperature difference"
 msgstr "Druckbetttemperaturdifferenz"
 
 msgid ""
-"Do not recommand bed temperature of other layer to be lower than initial "
+"Do not recommend bed temperature of other layer to be lower than initial "
 "layer for more than this threshold. Too low bed temperature of other layer "
 "may cause the model broken free from build plate"
 msgstr ""
-"Es wird nicht empfohlen, die Druckbetttemperatur der anderen Schicht über "
-"diesen Grenzwert hinaus unter die der ersten Schicht zu setzen. Eine zu "
-"niedrige Druckbetttemperatur der anderen Schicht kann dazu führen, dass sich "
-"das Modell von der Druckplatte löst"
 
 msgid "Detect thin wall"
 msgstr "Dünne Wand erkennen"
@@ -8075,6 +8229,12 @@ msgstr ""
 #~ "Lösen Sie das Problem, indem Sie es vollständig innerhalb oder außerhalb "
 #~ "der Druckplatte verschieben."
 
+#~ msgid ""
+#~ "Arachne engine only works when overhang slowing down is disabled.\n"
+#~ "This may cause decline in the quality of overhang surface when print "
+#~ "fastly\n"
+#~ msgstr "\n"
+
 #~ msgid "Auto arrange"
 #~ msgstr "Automatische Anordnung"
 
@@ -8115,6 +8275,9 @@ msgstr ""
 #~ "Anordnung verwendet, um Kollisionen zu vermeiden, wenn Objekt für Objekt "
 #~ "gedruckt wird"
 
+#~ msgid "Click the pencil icon to edit the filament."
+#~ msgstr "Das Stift-Symbol drücken um das Filament zu bearbeiten."
+
 #~ msgid "Color Print"
 #~ msgstr "Farbdruck"
 
@@ -8149,6 +8312,16 @@ msgstr ""
 #~ msgstr "Dreiecke der Modelle anzeigen"
 
 #~ msgid ""
+#~ "Do not recommand bed temperature of other layer to be lower than initial "
+#~ "layer for more than this threshold. Too low bed temperature of other "
+#~ "layer may cause the model broken free from build plate"
+#~ msgstr ""
+#~ "Es wird nicht empfohlen, die Druckbetttemperatur der anderen Schicht über "
+#~ "diesen Grenzwert hinaus unter die der ersten Schicht zu setzen. Eine zu "
+#~ "niedrige Druckbetttemperatur der anderen Schicht kann dazu führen, dass "
+#~ "sich das Modell von der Druckplatte löst"
+
+#~ msgid ""
 #~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
 #~ "Contains the following information:\n"
 #~ "1. The Process presets\n"
@@ -8161,6 +8334,14 @@ msgstr ""
 #~ "1. Prozess-Voreinstellungen\n"
 #~ "2. Filament-Voreinstellungen\n"
 #~ "3. Drucker-Voreinstellungen\n"
+
+#~ msgid ""
+#~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
+#~ "It contains the following information:\n"
+#~ "1. The Process presets\n"
+#~ "2. The Filament presets\n"
+#~ "3. The Printer presets\n"
+#~ msgstr "\n"
 
 #~ msgid ""
 #~ "Don't retract when the travel is in infill area absolutely. That means "
@@ -8355,8 +8536,19 @@ msgstr ""
 #~ msgid "Per object edit"
 #~ msgstr "Je Objekt bearbeiten"
 
+#~ msgid "Plate %d: %s does not support filament %s\n"
+#~ msgstr "\n"
+
 #~ msgid "Plate %d: %s does not support filament %s.\n"
 #~ msgstr "Druckplatte %d: %s unterstützt kein Filament %s.\n"
+
+#~ msgid "Plate %d: %s does not support filament %s (%s).\n"
+#~ msgstr "\n"
+
+#~ msgid ""
+#~ "Please check the following infomation and click Confirm to continue "
+#~ "sending print:\n"
+#~ msgstr "\n"
 
 #~ msgid "Please fill report first."
 #~ msgstr "Bitte füllen Sie zuerst den Bericht aus."
@@ -8489,6 +8681,12 @@ msgstr ""
 #~ "die Supportschicht von einem anderen Filament gedruckt wird"
 
 #~ msgid ""
+#~ "Switch to rectilinear pattern?\n"
+#~ "Yes - switch to rectilinear pattern automaticlly\n"
+#~ "No  - reset density to default non 100% value automaticlly\n"
+#~ msgstr "\n"
+
+#~ msgid ""
 #~ "Switch to zig-zag pattern?\n"
 #~ "Yes - switch to zig-zag pattern automaticlly\n"
 #~ "No  - reset density to default non 100% value automaticlly\n"
@@ -8501,6 +8699,18 @@ msgstr ""
 #~ msgid "Swith cloud environment, Please login again!"
 #~ msgstr "Cloud-Umgebung wechseln, bitte erneut anmelden!"
 
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
+#~ "unrecognized:\n"
+#~ msgstr ""
+#~ "Die Version %s von 3mf ist neuer als die Version %s von %s, folgende "
+#~ "Schlüssel wurden nicht erkannt:\n"
+
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
+#~ "your software.\n"
+#~ msgstr "\n"
+
 #~ msgid "The Config is not compatible and can not be loaded."
 #~ msgstr ""
 #~ "Die Konfiguration ist nicht kompatibel und kann nicht geladen werden."
@@ -8509,8 +8719,8 @@ msgstr ""
 #~ "The firmware versions of printer and AMS are too low.Please update to the "
 #~ "latest version before sending the print job"
 #~ msgstr ""
-#~ "Die Firmware-Versionen von Drucker und AMS sind zu niedrig. Bitte "
-#~ "aktualisieren Sie auf die neueste Version, bevor Sie den Druckauftrag "
+#~ "Die Firmware-Versionen von Drucker und AMS sind veraltet. Bitte "
+#~ "aktualisieren Sie auf die aktuelle Version, bevor Sie den Druckauftrag "
 #~ "senden"
 
 #~ msgid ""
@@ -8522,6 +8732,12 @@ msgstr ""
 #~ "Ich habe versucht, es zu reparieren, aber vielleicht möchten Sie die "
 #~ "Ergebnisse überprüfen oder die Eingabedatei reparieren und es erneut "
 #~ "versuchen."
+
+#~ msgid ""
+#~ "The printer type used to generate G-code is not the same type as the "
+#~ "currently selected physical printer. It is recommend to re-slice by "
+#~ "selecting the same printer type.\n"
+#~ msgstr "\n"
 
 #~ msgid ""
 #~ "This object will be used to purge the nozzle after a filament change to "
@@ -8571,6 +8787,13 @@ msgstr ""
 #~ msgstr "Warten"
 
 #~ msgid ""
+#~ "When recording timelapse without toolhead, it is recommended to add a "
+#~ "\"Timelapse Wipe Tower\" \n"
+#~ "by right-click the empty position of build plate and choose \"Add "
+#~ "Primitive\"->\"Timelapse Wipe Tower\".\n"
+#~ msgstr "\n"
+
+#~ msgid ""
 #~ "You have changed some preset settings. \n"
 #~ "Would you like to keep these changed settings after switching preset?"
 #~ msgstr ""
@@ -8585,9 +8808,16 @@ msgstr ""
 #~ msgstr " Objekt:"
 
 #~ msgid ""
+#~ " is too close to exclusion area, there may be collisions when printing.\n"
+#~ msgstr "\n"
+
+#~ msgid ""
 #~ " is too close to exclusion area, there will be collisions when printing.\n"
 #~ msgstr ""
 #~ " ist zu nahe am Sperrbereich, es kommt beim Drucken zu Kollisionen.\n"
+
+#~ msgid " is too close to others, there may be collisions when printing.\n"
+#~ msgstr "\n"
 
 #~ msgid " is too close to others, there will be collisions when printing.\n"
 #~ msgstr " zu nahe an anderen, es kommt beim Drucken zu Kollisionen.\n"
