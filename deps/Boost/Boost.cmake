@@ -128,8 +128,7 @@ ExternalProject_Add(
     URL_HASH SHA256=f22143b5528e081123c3c5ed437e92f648fe69748e95fa6e2bd41484e2986cc3
     DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/Boost
     CONFIGURE_COMMAND "${_bootstrap_cmd}"
-    PATCH_COMMAND ${_patch_command}
-    PATCH_COMMAND git init && ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-Boost-fix.patch
+    PATCH_COMMAND ${_patch_command} && git init && ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-Boost-fix.patch
     BUILD_COMMAND "${_build_cmd}"
     BUILD_IN_SOURCE    ON
     INSTALL_COMMAND "${_install_cmd}"
