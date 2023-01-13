@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-12 11:04+0800\n"
+"POT-Creation-Date: 2023-01-13 20:05+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1512,13 +1512,13 @@ msgstr ""
 msgid "Max volumetric speed"
 msgstr ""
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr ""
 
-msgid "mm\\u00B3"
+msgid "mm³"
 msgstr ""
 
 msgid "Start calibration"
@@ -1528,14 +1528,18 @@ msgid "Next"
 msgstr ""
 
 msgid ""
-"Calibration completed. Please select the factors according to the left "
-"figure and fill them in the input boxes."
+"Calibration completed. Please find the most uniform extrusion line on your "
+"hot bed like the picture below, and fill the value on its left side into the "
+"factor K input box."
 msgstr ""
 
 msgid "Save"
 msgstr ""
 
 msgid "Last Step"
+msgstr ""
+
+msgid "Example"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -1578,16 +1582,17 @@ msgid "Cabin humidity"
 msgstr ""
 
 msgid ""
-"Green represents that AMS humidity is normal, orange and red represent that "
-"humidity is too high.(Lower the better)"
+"Green means that AMS humidity is normal, orange represent humidity is high, "
+"red represent humidity is too high.(Hygrometer: lower the better, The bars: "
+"higher the better)"
 msgstr ""
 
 msgid "Desiccant status"
 msgstr ""
 
 msgid ""
-"Desiccant status lower than two bars indicates that desiccant can be "
-"inactive. Please change the desiccant.(Higher the better)"
+"A desiccant status lower than two bars indicates that desiccant may be "
+"inactive. Please change the desiccant. (Higher is better)"
 msgstr ""
 
 msgid ""
@@ -2537,10 +2542,10 @@ msgstr ""
 msgid "Export G-code file"
 msgstr ""
 
-msgid "Send"
+msgid "Print plate"
 msgstr ""
 
-msgid "Print plate"
+msgid "Send"
 msgstr ""
 
 msgid "Export plate sliced file"
@@ -3152,6 +3157,9 @@ msgstr ""
 msgid "Still load"
 msgstr ""
 
+msgid "AMS settings are not supported for external spool"
+msgstr ""
+
 msgid "Please select an AMS slot before calibration"
 msgstr ""
 
@@ -3227,12 +3235,6 @@ msgid "Skip"
 msgstr ""
 
 msgid "Unable to connect printer"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid ""
-"Cannot detect the LAN IP address of %s. Are %s and Bambu Studio in the same "
-"LAN?"
 msgstr ""
 
 msgid ""
@@ -4302,6 +4304,9 @@ msgid ""
 msgstr ""
 
 msgid "Cannot send the print job for empty plate"
+msgstr ""
+
+msgid "This printer does not support printing all plates"
 msgstr ""
 
 msgid "Errors"
@@ -6128,9 +6133,6 @@ msgid "mm³/s"
 msgstr ""
 
 msgid "Minimal purge on wipe tower"
-msgstr ""
-
-msgid "mm³"
 msgstr ""
 
 msgid "Filament load time"

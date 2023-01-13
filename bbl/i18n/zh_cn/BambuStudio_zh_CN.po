@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-12 11:04+0800\n"
-"PO-Revision-Date: 2023-01-13 16:27+0800\n"
+"POT-Creation-Date: 2023-01-13 20:05+0800\n"
+"PO-Revision-Date: 2023-01-13 19:43+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.2.2\n"
+"X-Generator: Poedit 3.1.1\n"
 
 msgid "Supports Painting"
 msgstr "支撑绘制"
@@ -1528,14 +1528,14 @@ msgstr "热床温度"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm\\u00B3"
-msgstr ""
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "开始"
@@ -1544,15 +1544,19 @@ msgid "Next"
 msgstr "下一步"
 
 msgid ""
-"Calibration completed. Please select the factors according to the left "
-"figure and fill them in the input boxes."
-msgstr "标定完成。请按照左图展示的方式选择流量补偿系数，并填写到输入框中。"
+"Calibration completed. Please find the most uniform extrusion line on your "
+"hot bed like the picture below, and fill the value on its left side into the "
+"factor K input box."
+msgstr ""
 
 msgid "Save"
 msgstr "保存"
 
 msgid "Last Step"
 msgstr "上一步"
+
+msgid "Example"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Calibrating... %d%%"
@@ -1591,20 +1595,21 @@ msgid "Print with the filament mounted on the back of chassis"
 msgstr "使用机箱背后挂载的材料打印"
 
 msgid "Cabin humidity"
-msgstr ""
+msgstr "机舱湿度"
 
 msgid ""
-"Green represents that AMS humidity is normal, orange and red represent that "
-"humidity is too high.(Lower the better)"
-msgstr ""
+"Green means that AMS humidity is normal, orange represent humidity is high, "
+"red represent humidity is too high.(Hygrometer: lower the better, The bars: "
+"higher the better)"
+msgstr "绿色表示 AMS 湿度正常，橙色和红色表示湿度过高（湿度条越低越好）"
 
 msgid "Desiccant status"
-msgstr ""
+msgstr "干燥机状态"
 
 msgid ""
-"Desiccant status lower than two bars indicates that desiccant can be "
-"inactive. Please change the desiccant.(Higher the better)"
-msgstr ""
+"A desiccant status lower than two bars indicates that desiccant may be "
+"inactive. Please change the desiccant. (Higher is better)"
+msgstr "干燥剂状态低于两格表示干燥剂可能不活跃。请更换干燥剂。(格数越高越好)"
 
 msgid ""
 "Note: When the lid is open or the desiccant pack is changed, it can take "
@@ -1612,6 +1617,8 @@ msgid ""
 "process. During this time, the indicator may not represent the chamber "
 "accurately."
 msgstr ""
+"注意： 打开盖子或更换干燥剂包时，可能需要数小时或一夜才能吸收水分。低温环境会"
+"减慢这个过程。在此期间，指示器可能无法准确代表腔室。"
 
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
@@ -2617,11 +2624,11 @@ msgstr "切片单盘"
 msgid "Export G-code file"
 msgstr "导出G-code文件"
 
-msgid "Send"
-msgstr "发送"
-
 msgid "Print plate"
 msgstr "打印单盘"
+
+msgid "Send"
+msgstr "发送"
 
 msgid "Export plate sliced file"
 msgstr "导出单盘切片文件"
@@ -3242,6 +3249,9 @@ msgstr "继续退料"
 msgid "Still load"
 msgstr "继续进料"
 
+msgid "AMS settings are not supported for external spool"
+msgstr ""
+
 msgid "Please select an AMS slot before calibration"
 msgstr "请在标定前选择一个AMS槽位"
 
@@ -3318,14 +3328,6 @@ msgstr "跳过"
 
 msgid "Unable to connect printer"
 msgstr "无法连接打印机"
-
-#, c-format, boost-format
-msgid ""
-"Cannot detect the LAN IP address of %s. Are %s and Bambu Studio in the same "
-"LAN?"
-msgstr ""
-"无法检测到打印机%s 在局域网中的的IP地址。%s 和 Bambu Studio在同一个局域网内"
-"吗？"
 
 msgid ""
 "Failed to connect to the printer through LAN. Please enter the correct "
@@ -4415,6 +4417,9 @@ msgstr "需要更新打印机固件后，才能将打印任务发送到打印机
 msgid "Cannot send the print job for empty plate"
 msgstr "无法为空盘发送打印任务"
 
+msgid "This printer does not support printing all plates"
+msgstr ""
+
 msgid "Errors"
 msgstr "错误"
 
@@ -4555,8 +4560,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid "Line width"
@@ -6308,9 +6313,6 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
 
-msgid "mm³"
-msgstr "mm³"
-
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"
 
@@ -7971,6 +7973,19 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid ""
+#~ "Calibration completed. Please select the factors according to the left "
+#~ "figure and fill them in the input boxes."
+#~ msgstr "标定完成。请按照左图展示的方式选择流量补偿系数，并填写到输入框中。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Cannot detect the LAN IP address of %s. Are %s and Bambu Studio in the "
+#~ "same LAN?"
+#~ msgstr ""
+#~ "无法检测到打印机%s 在局域网中的的IP地址。%s 和 Bambu Studio在同一个局域网"
+#~ "内吗？"
 
 #~ msgid "Click the pencil icon to edit the filament."
 #~ msgstr "点击铅笔图标编辑耗材丝。"
@@ -11601,8 +11616,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host "
-#~ "upload\""
+#~ "You have the following presets with saved options for \"Print Host upload"
+#~ "\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""
