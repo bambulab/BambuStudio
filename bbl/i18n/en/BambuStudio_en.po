@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-13 20:05+0800\n"
+"POT-Creation-Date: 2023-01-16 11:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1173,7 +1173,7 @@ msgstr "Empty"
 msgid "AMS"
 msgstr "AMS"
 
-msgid "NO AMS"
+msgid "AMS not connected"
 msgstr ""
 
 msgid "Cali"
@@ -1553,14 +1553,14 @@ msgstr ""
 msgid "Max volumetric speed"
 msgstr "Max volumetric speed"
 
-msgid "℃"
+msgid "\\u2103"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "Bed temperature"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr ""
 
 msgid "Start calibration"
 msgstr "Start"
@@ -6407,6 +6407,9 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Minimal purge on wipe tower"
+
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Filament load time"
