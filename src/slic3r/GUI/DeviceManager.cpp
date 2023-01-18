@@ -1348,7 +1348,9 @@ void MachineObject::parse_version_func()
         }
     } else if (printer_type == "C11") {
         local_use_ssl = true;
-        is_support_send_to_sdcard = ota_version->second.sw_ver.compare("01.02.00.00") >= 0;
+        if (ota_version != module_vers.end()) {
+            is_support_send_to_sdcard = ota_version->second.sw_ver.compare("01.02.00.00") >= 0;
+        }
     }
 }
 
