@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-16 11:21+0800\n"
+"POT-Creation-Date: 2023-01-18 19:53+0800\n"
 "PO-Revision-Date: 2023-01-16 11:26+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1528,14 +1528,14 @@ msgstr "热床温度"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm\\u00B3"
-msgstr ""
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "开始"
@@ -2981,6 +2981,9 @@ msgstr "初始化失败（不支持局域网模式的视频连接）"
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr "初始化失败（在局域网模式中不可访问）！"
 
+msgid "Printer is busy downloading, Please wait for the downloading to finish."
+msgstr "打印机正忙于下载，请等待下载完成。"
+
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "初始化失败（未找到打印机的局域网地址）！"
 
@@ -3000,6 +3003,9 @@ msgstr "已停止 [%d]!"
 
 msgid "Stopped."
 msgstr "已经停止。"
+
+msgid "LAN Connection Failed (Failed to start liveview)"
+msgstr "LAN连接失败 (无法启动liveview)"
 
 msgid ""
 "Virtual Camera Tools is required for this task!\n"
@@ -3327,31 +3333,6 @@ msgstr "%s 信息"
 
 msgid "Skip"
 msgstr "跳过"
-
-msgid "Unable to connect printer"
-msgstr "无法连接打印机"
-
-msgid ""
-"Failed to connect to the printer through LAN. Please enter the correct "
-"printer IP address and access code."
-msgstr "无法通过局域网连接打印机，请输入正确的IP地址和访问码。"
-
-msgid "IP"
-msgstr ""
-
-msgid "Access Code"
-msgstr "访问码"
-
-msgid ""
-"Note : The location of IP and access code on the machine is as follows :"
-msgstr "提示: IP地址和访问码在机器上的位置如下:"
-
-msgid ""
-"X1 General Settings - Network Settings in the side bar of X1 main screen"
-msgstr ""
-
-msgid "P1P General Settings - WLAN in the sidebar of the main screen"
-msgstr ""
 
 msgid "3D Mouse disconnected."
 msgstr "3D鼠标断连。"
@@ -4420,7 +4401,7 @@ msgid "Cannot send the print job for empty plate"
 msgstr "无法为空盘发送打印任务"
 
 msgid "This printer does not support printing all plates"
-msgstr ""
+msgstr "此打印机类型不支持打印所有盘"
 
 msgid "Errors"
 msgstr "错误"
@@ -4562,8 +4543,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid "Line width"
@@ -5301,6 +5282,29 @@ msgstr "新版本的Bambu Studio"
 
 msgid "Don't remind me of this version again"
 msgstr "此版本不再提示"
+
+msgid "LAN Connection Failed (Sending print file)"
+msgstr "LAN连接失败 (发送打印文件)"
+
+msgid "Step 1. please confirm Bambu Studio and your printer are in same LAN."
+msgstr "步骤1. 请确认Bambu Studio和您的打印机在同一局域网中。"
+
+msgid ""
+"Step 2. if the IP and Access Code below are different from the actual values "
+"on your printer,please correct them."
+msgstr "步骤2. 如果下面的IP和访问码与打印机上的实际值不同，请更正它们。"
+
+msgid "IP"
+msgstr ""
+
+msgid "Access Code"
+msgstr "访问码"
+
+msgid "Where to find your printer's IP and Access Code?"
+msgstr "在哪里可以找到打印机的IP和访问码?"
+
+msgid "Error: IP or Access Code are not correct"
+msgstr "错误：IP或访问码不正确"
 
 msgid "Model:"
 msgstr "型号："
@@ -6314,9 +6318,6 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"
@@ -7978,6 +7979,18 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Unable to connect printer"
+#~ msgstr "无法连接打印机"
+
+#~ msgid ""
+#~ "Failed to connect to the printer through LAN. Please enter the correct "
+#~ "printer IP address and access code."
+#~ msgstr "无法通过局域网连接打印机，请输入正确的IP地址和访问码。"
+
+#~ msgid ""
+#~ "Note : The location of IP and access code on the machine is as follows :"
+#~ msgstr "提示: IP地址和访问码在机器上的位置如下:"
 
 #~ msgid "NO AMS"
 #~ msgstr "无AMS"
@@ -11623,8 +11636,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host "
-#~ "upload\""
+#~ "You have the following presets with saved options for \"Print Host upload"
+#~ "\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""

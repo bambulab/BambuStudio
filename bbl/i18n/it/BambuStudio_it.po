@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-16 11:21+0800\n"
+"POT-Creation-Date: 2023-01-18 19:53+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1551,14 +1551,14 @@ msgstr ""
 msgid "Max volumetric speed"
 msgstr "Massima velocità volumetrica"
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "Temperatura piano"
 
-msgid "mm\\u00B3"
-msgstr ""
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr ""
@@ -3008,6 +3008,9 @@ msgstr ""
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr ""
 
+msgid "Printer is busy downloading, Please wait for the downloading to finish."
+msgstr ""
+
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr ""
 
@@ -3027,6 +3030,9 @@ msgstr ""
 
 msgid "Stopped."
 msgstr "Stopped."
+
+msgid "LAN Connection Failed (Failed to start liveview)"
+msgstr ""
 
 msgid ""
 "Virtual Camera Tools is required for this task!\n"
@@ -3347,31 +3353,6 @@ msgstr "%s informazioni"
 
 msgid "Skip"
 msgstr "Skip"
-
-msgid "Unable to connect printer"
-msgstr ""
-
-msgid ""
-"Failed to connect to the printer through LAN. Please enter the correct "
-"printer IP address and access code."
-msgstr ""
-
-msgid "IP"
-msgstr ""
-
-msgid "Access Code"
-msgstr ""
-
-msgid ""
-"Note : The location of IP and access code on the machine is as follows :"
-msgstr ""
-
-msgid ""
-"X1 General Settings - Network Settings in the side bar of X1 main screen"
-msgstr ""
-
-msgid "P1P General Settings - WLAN in the sidebar of the main screen"
-msgstr ""
 
 msgid "3D Mouse disconnected."
 msgstr "Mouse 3D disconnesso."
@@ -5345,6 +5326,29 @@ msgstr "New version of Bambu Studio"
 msgid "Don't remind me of this version again"
 msgstr ""
 
+msgid "LAN Connection Failed (Sending print file)"
+msgstr ""
+
+msgid "Step 1. please confirm Bambu Studio and your printer are in same LAN."
+msgstr ""
+
+msgid ""
+"Step 2. if the IP and Access Code below are different from the actual values "
+"on your printer,please correct them."
+msgstr ""
+
+msgid "IP"
+msgstr ""
+
+msgid "Access Code"
+msgstr ""
+
+msgid "Where to find your printer's IP and Access Code?"
+msgstr ""
+
+msgid "Error: IP or Access Code are not correct"
+msgstr ""
+
 msgid "Model:"
 msgstr ""
 
@@ -6407,9 +6411,6 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Spurgo minimo sulla torre di pulitura"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Durata caricamento filamento"
