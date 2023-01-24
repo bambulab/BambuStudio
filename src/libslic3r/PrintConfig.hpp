@@ -154,8 +154,8 @@ enum BrimType {
     btOuterAndInner,
 };
 
-enum TimelapseType {
-    tlTraditional,
+enum TimelapseType : int {
+    tlTraditional = 0,
     tlSmooth
 };
 
