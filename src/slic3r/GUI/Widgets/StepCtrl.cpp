@@ -48,6 +48,8 @@ void StepCtrlBase::SelectItem(int item)
 
 void StepCtrlBase::Idle() 
 { 
+    if (step == -1)
+        return;
     step = -1; 
     sendStepCtrlEvent();
     Refresh();

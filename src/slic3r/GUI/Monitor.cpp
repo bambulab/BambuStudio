@@ -284,16 +284,11 @@ void MonitorPanel::select_machine(std::string machine_sn)
 void MonitorPanel::on_update_all(wxMouseEvent &event)
 {
     update_all();
-    Layout();
-    Refresh();
 }
 
  void MonitorPanel::on_timer(wxTimerEvent& event)
 {
     update_all();
-
-    Layout();
-    Refresh();
 }
 
  void MonitorPanel::on_select_printer(wxCommandEvent& event)
@@ -342,7 +337,7 @@ void MonitorPanel::on_size(wxSizeEvent &event)
     Refresh();
 }
 
- void MonitorPanel::update_status(MachineObject* obj)
+void MonitorPanel::update_status(MachineObject* obj)
 {
     if (!obj) return;
 
@@ -379,6 +374,9 @@ void MonitorPanel::on_size(wxSizeEvent &event)
 
 void MonitorPanel::update_all()
 {
+    bool did_update = false;
+    bool dev_changed = false;
+
     NetworkAgent* m_agent = wxGetApp().getAgent();
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev)
@@ -413,14 +411,26 @@ void MonitorPanel::update_all()
         }
     }
 
+    if (m_status_info_panel->obj != obj) {
+        dev_changed = true;
+    }
     m_status_info_panel->obj = obj;
-    m_upgrade_panel->update(obj);
+    if ((obj && obj->display_dirty_upgrade) || dev_changed) {
+        m_upgrade_panel->update(obj);
+        obj->display_dirty_upgrade = false;
+        did_update = true;
+    }
 
-    
-    m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
-    m_media_file_panel->SetMachineObject(obj);
+    if (dev_changed) {
+        m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
+        m_media_file_panel->SetMachineObject(obj);
+    }
 
-    update_status(obj);
+    if ((obj && obj->display_dirty_signal) || dev_changed) {
+        update_status(obj);
+        obj->display_dirty_signal = false;
+        did_update = true;
+    }
     
     if (!obj) {
         show_status((int)MONITOR_NO_PRINTER);
@@ -445,18 +455,52 @@ void MonitorPanel::update_all()
     show_status(MONITOR_NORMAL);
 
 
-    if (m_status_info_panel->IsShown()) {
+    if (m_status_info_panel->IsShown() && (
+          obj->display_dirty_printer ||
+          obj->display_dirty_ams ||
+          obj->display_dirty_temp ||
+          obj->display_dirty_fan ||
+          obj->display_dirty_light ||
+          obj->display_dirty_subtask ||
+          obj->display_dirty_print_error ||
+          obj->display_dirty_speed ||
+          obj->display_dirty_stage ||
+          obj->display_dirty_ipcam ||
+          obj->display_dirty_xcam)) {
         m_status_info_panel->update(obj);
+        obj->display_dirty_printer = false;
+        obj->display_dirty_ams = false;
+        obj->display_dirty_temp = false;
+        obj->display_dirty_fan = false;
+        obj->display_dirty_light = false;
+        obj->display_dirty_subtask = false;
+        obj->display_dirty_print_error = false;
+        obj->display_dirty_speed = false;
+        obj->display_dirty_stage = false;
+        obj->display_dirty_ipcam = false;
+        obj->display_dirty_xcam = false;
+        did_update = true;
     }
 
-    if (m_hms_panel->IsShown()) {
+    if (m_hms_panel->IsShown() && obj->display_dirty_hms_list) {
         m_hms_panel->update(obj);
+        did_update = true;
+        obj->display_dirty_hms_list = false;
     }
 #if !BBL_RELEASE_TO_PUBLIC
-    if (m_upgrade_panel->IsShown()) {
+    if (m_upgrade_panel->IsShown() && obj->display_dirty_upgrade) {
         m_upgrade_panel->update(obj);
+        obj->display_dirty_upgrade = false;
+        did_update = true;
     }
 #endif
+    if (did_update) {
+        Layout();
+        /* Calling Refresh() here is a big hammer, and ideally, individual
+         * widget should be doing it.  If uncommenting this fixes something,
+         * then really a widget needs to be fixed!  */
+        // Refresh();
+    }
 }
 
 bool MonitorPanel::Show(bool show)

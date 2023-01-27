@@ -2326,38 +2326,45 @@ int MachineObject::parse_json(std::string payload)
                     }
 
                     if (jj.contains("mc_remaining_time")) {
+                        display_dirty_subtask = 1;
                         if (jj["mc_remaining_time"].is_string())
                             mc_left_time = stoi(j["print"]["mc_remaining_time"].get<std::string>()) * 60;
                         else if (jj["mc_remaining_time"].is_number_integer())
                             mc_left_time = j["print"]["mc_remaining_time"].get<int>() * 60;
                     }
                     if (jj.contains("mc_percent")) {
+                        display_dirty_subtask = 1;
                         if (jj["mc_percent"].is_string())
                             mc_print_percent = stoi(j["print"]["mc_percent"].get<std::string>());
                         else if (jj["mc_percent"].is_number_integer())
                             mc_print_percent = j["print"]["mc_percent"].get<int>();
                     }
                     if (jj.contains("mc_print_sub_stage")) {
+                        display_dirty_subtask = 1;
                         if (jj["mc_print_sub_stage"].is_number_integer())
                             mc_print_sub_stage = j["print"]["mc_print_sub_stage"].get<int>();
                     }
                     /* printing */
                     if (jj.contains("mc_print_stage")) {
+                        display_dirty_subtask = 1;
                         if (jj["mc_print_stage"].is_string())
                             mc_print_stage = atoi(jj["mc_print_stage"].get<std::string>().c_str());
                         if (jj["mc_print_stage"].is_number())
                             mc_print_stage = jj["mc_print_stage"].get<int>();
                     }
                     if (jj.contains("mc_print_error_code")) {
+                        display_dirty_subtask = 1;
                         if (jj["mc_print_error_code"].is_number())
                             mc_print_error_code = jj["mc_print_error_code"].get<int>();
 
                     }
                     if (jj.contains("mc_print_line_number")) {
+                        display_dirty_subtask = 1;
                         if (jj["mc_print_line_number"].is_string() && !jj["mc_print_line_number"].is_null())
                             mc_print_line_number = atoi(jj["mc_print_line_number"].get<std::string>().c_str());
                     }
                     if (jj.contains("print_error")) {
+                        display_dirty_print_error = 1;
                         if (jj["print_error"].is_number())
                             print_error = jj["print_error"].get<int>();
                     }
@@ -2369,6 +2376,7 @@ int MachineObject::parse_json(std::string payload)
                     try {
                         if (jj.contains("online")) {
                             if (jj["online"].contains("ahb")) {
+                                display_dirty_ams = true;
                                 if (jj["online"]["ahb"].get<bool>()) {
                                     online_ahb = true;
                                 } else {
@@ -2376,6 +2384,7 @@ int MachineObject::parse_json(std::string payload)
                                 }
                             }
                             if (jj["online"].contains("rfid")) {
+                                display_dirty_ams = true;
                                 if (jj["online"]["rfid"].get<bool>()) {
                                     online_rfid = true;
                                 } else {
@@ -2399,16 +2408,20 @@ int MachineObject::parse_json(std::string payload)
 
 #pragma region print_task
                     if (jj.contains("printer_type")) {
+                        display_dirty_printer = true;
                         printer_type = parse_printer_type(jj["printer_type"].get<std::string>());
                     }
 
                     if (jj.contains("subtask_name")) {
+                        display_dirty_subtask = true;
                         subtask_name = jj["subtask_name"].get<std::string>();
                     }
                     if (jj.contains("layer_num")) {
+                        display_dirty_subtask = true;
                         curr_layer = jj["layer_num"].get<int>();
                     }
                     if (jj.contains("total_layer_num")) {
+                        display_dirty_subtask = true;
                         total_layers = jj["total_layer_num"].get<int>();
                         if (total_layers == 0)
                             is_support_layer_num = false;
@@ -2419,16 +2432,21 @@ int MachineObject::parse_json(std::string payload)
                     }
 
                     if (jj.contains("gcode_state")) {
+                        display_dirty_subtask = true;
                         this->set_print_state(jj["gcode_state"].get<std::string>());
                     }
 
                     if (jj.contains("task_id")) {
+                        display_dirty_subtask = true;
                         this->task_id_ = jj["task_id"].get<std::string>();
                     }
 
-                    if (jj.contains("gcode_file"))
+                    if (jj.contains("gcode_file")) {
+                        display_dirty_subtask = true;
                         this->m_gcode_file = jj["gcode_file"].get<std::string>();
+                    }
                     if (jj.contains("gcode_file_prepare_percent")) {
+                        display_dirty_subtask = true;
                         std::string percent_str = jj["gcode_file_prepare_percent"].get<std::string>();
                         if (!percent_str.empty()) {
                             try{
@@ -2440,6 +2458,7 @@ int MachineObject::parse_json(std::string payload)
                         && jj.contains("profile_id")
                         && jj.contains("subtask_id")
                         ){
+                        display_dirty_subtask = true;
                         obj_subtask_id = jj["subtask_id"].get<std::string>();
 
                         int plate_index = -1;
@@ -2476,44 +2495,57 @@ int MachineObject::parse_json(std::string payload)
                     /* temperature */
                     if (jj.contains("bed_temper")) {
                         if (jj["bed_temper"].is_number()) {
+                            display_dirty_temp = true;
                             bed_temp = jj["bed_temper"].get<float>();
                         }
                     }
                     if (jj.contains("bed_target_temper")) {
                         if (jj["bed_target_temper"].is_number()) {
+                            display_dirty_temp = true;
                             bed_temp_target = jj["bed_target_temper"].get<float>();
                         }
                     }
                     if (jj.contains("frame_temper")) {
                         if (jj["frame_temper"].is_number()) {
+                            display_dirty_temp = true;
                             frame_temp = jj["frame_temper"].get<float>();
                         }
                     }
                     if (jj.contains("nozzle_temper")) {
                         if (jj["nozzle_temper"].is_number()) {
+                            display_dirty_temp = true;
                             nozzle_temp = jj["nozzle_temper"].get<float>();
                         }
                     }
                     if (jj.contains("nozzle_target_temper")) {
                         if (jj["nozzle_target_temper"].is_number()) {
+                            display_dirty_temp = true;
                             nozzle_temp_target = jj["nozzle_target_temper"].get<float>();
                         }
                     }
                     if (jj.contains("chamber_temper")) {
                         if (jj["chamber_temper"].is_number()) {
+                            display_dirty_temp = true;
                             chamber_temp = jj["chamber_temper"].get<float>();
                         }
                     }
                     /* signals */
-                    if (jj.contains("link_th_state"))
+                    if (jj.contains("link_th_state")) {
+                        display_dirty_signal = true;
                         link_th = jj["link_th_state"].get<std::string>();
-                    if (jj.contains("link_ams_state"))
+                    }
+                    if (jj.contains("link_ams_state")) {
+                        display_dirty_signal = true;
                         link_ams = jj["link_ams_state"].get<std::string>();
-                    if (jj.contains("wifi_signal"))
+                    }
+                    if (jj.contains("wifi_signal")) {
+                        display_dirty_signal = true;
                         wifi_signal = jj["wifi_signal"].get<std::string>();
+                    }
 
                     /* cooling */
                     if (jj.contains("fan_gear")) {
+                        display_dirty_fan = true;
                         fan_gear = jj["fan_gear"].get<std::uint32_t>();
                         big_fan2_speed = (int)((fan_gear & 0x00FF0000) >> 16);
                         big_fan1_speed = (int)((fan_gear & 0x0000FF00) >> 8);
@@ -2521,6 +2553,7 @@ int MachineObject::parse_json(std::string payload)
                     }
                     else {
                         if (jj.contains("cooling_fan_speed")) {
+                            display_dirty_fan = true;
                             cooling_fan_speed = stoi(jj["cooling_fan_speed"].get<std::string>());
                             cooling_fan_speed = round( floor(cooling_fan_speed / float(1.5)) * float(25.5) );
                         }
@@ -2529,6 +2562,7 @@ int MachineObject::parse_json(std::string payload)
                         }
 
                         if (jj.contains("big_fan1_speed")) {
+                            display_dirty_fan = true;
                             big_fan1_speed = stoi(jj["big_fan1_speed"].get<std::string>());
                             big_fan1_speed = round( floor(big_fan1_speed / float(1.5)) * float(25.5) );
                         }
@@ -2537,6 +2571,7 @@ int MachineObject::parse_json(std::string payload)
                         }
 
                         if (jj.contains("big_fan2_speed")) {
+                            display_dirty_fan = true;
                             big_fan2_speed = stoi(jj["big_fan2_speed"].get<std::string>());
                             big_fan2_speed = round( floor(big_fan2_speed / float(1.5)) * float(25.5) );
                         }
@@ -2546,15 +2581,18 @@ int MachineObject::parse_json(std::string payload)
                     }
 
                     if (jj.contains("heatbreak_fan_speed")) {
+                        display_dirty_fan = true;
                         heatbreak_fan_speed = stoi(jj["heatbreak_fan_speed"].get<std::string>());
                     }
                     
                     /* parse speed */
                     try {
                         if (jj.contains("spd_lvl")) {
+                            display_dirty_speed = true;
                             printing_speed_lvl = (PrintingSpeedLevel)jj["spd_lvl"].get<int>();
                         }
                         if (jj.contains("spd_mag")) {
+                            display_dirty_speed = true;
                             printing_speed_mag = jj["spd_mag"].get<int>();
                         }
                     }
@@ -2564,6 +2602,7 @@ int MachineObject::parse_json(std::string payload)
 
                     try {
                         if (jj.contains("stg")) {
+                            display_dirty_stage = true;
                             stage_list_info.clear();
                             if (jj["stg"].is_array()) {
                                 for (auto it = jj["stg"].begin(); it != jj["stg"].end(); it++) {
@@ -2574,6 +2613,7 @@ int MachineObject::parse_json(std::string payload)
                             }
                         }
                         if (jj.contains("stg_cur")) {
+                            display_dirty_stage = true;
                             stage_curr = jj["stg_cur"].get<int>();
                         }
                     }
@@ -2597,6 +2637,7 @@ int MachineObject::parse_json(std::string payload)
                     try {
                         if (jj.contains("lights_report") && jj["lights_report"].is_array()) {
                             for (auto it = jj["lights_report"].begin(); it != jj["lights_report"].end(); it++) {
+                                display_dirty_light = true;
                                 if ((*it)["node"].get<std::string>().compare("chamber_light") == 0)
                                     chamber_light = light_effect_parse((*it)["mode"].get<std::string>());
                                 if ((*it)["node"].get<std::string>().compare("work_light") == 0)
@@ -2627,6 +2668,7 @@ int MachineObject::parse_json(std::string payload)
 #pragma region upgrade
                     try {
                         if (jj.contains("upgrade_state")) {
+                            display_dirty_upgrade = true;
                             if (jj["upgrade_state"].contains("status"))
                                 upgrade_status = jj["upgrade_state"]["status"].get<std::string>();
                             if (jj["upgrade_state"].contains("progress")) {
@@ -2722,6 +2764,7 @@ int MachineObject::parse_json(std::string payload)
                                 if (camera_recording_hold_count > 0)
                                     camera_recording_hold_count--;
                                 else {
+                                    display_dirty_ipcam = true;
                                     if (jj["ipcam"]["ipcam_record"].get<std::string>() == "enable") {
                                         camera_recording_when_printing = true;
                                     }
@@ -2734,6 +2777,7 @@ int MachineObject::parse_json(std::string payload)
                                 if (camera_timelapse_hold_count > 0)
                                     camera_timelapse_hold_count--;
                                 else {
+                                    display_dirty_ipcam = true;
                                     if (jj["ipcam"]["timelapse"].get<std::string>() == "enable") {
                                         camera_timelapse = true;
                                     }
@@ -2743,6 +2787,7 @@ int MachineObject::parse_json(std::string payload)
                                 }
                             }
                             if (jj["ipcam"].contains("ipcam_dev")) {
+                                display_dirty_ipcam = true;
                                 if (jj["ipcam"]["ipcam_dev"].get<std::string>() == "1") {
                                     has_ipcam = true;
                                 } else {
@@ -2753,6 +2798,7 @@ int MachineObject::parse_json(std::string payload)
                                 if (camera_resolution_hold_count > 0)
                                     camera_resolution_hold_count--;
                                 else {
+                                    display_dirty_ipcam = true;
                                     camera_resolution = jj["ipcam"]["resolution"].get<std::string>();
                                 }
                             }
@@ -2767,6 +2813,7 @@ int MachineObject::parse_json(std::string payload)
                             if (xcam_ai_monitoring_hold_count > 0)
                                 xcam_ai_monitoring_hold_count--;
                             else {
+                                display_dirty_xcam = true;
                                 if (jj["xcam"].contains("printing_monitor")) {
                                     // new protocol
                                     xcam_ai_monitoring = jj["xcam"]["printing_monitor"].get<bool>();
@@ -2788,6 +2835,7 @@ int MachineObject::parse_json(std::string payload)
                             if (xcam_first_layer_hold_count > 0)
                                 xcam_first_layer_hold_count--;
                             else {
+                                display_dirty_xcam = true;
                                 if (jj["xcam"].contains("first_layer_inspector")) {
                                     xcam_first_layer_inspector = jj["xcam"]["first_layer_inspector"].get<bool>();
                                 }
@@ -2796,6 +2844,7 @@ int MachineObject::parse_json(std::string payload)
                             if (xcam_buildplate_marker_hold_count > 0)
                                 xcam_buildplate_marker_hold_count--;
                             else {
+                                display_dirty_xcam = true;
                                 if (jj["xcam"].contains("buildplate_marker_detector")) {
                                     xcam_buildplate_marker_detector = jj["xcam"]["buildplate_marker_detector"].get<bool>();
                                     is_xcam_buildplate_supported = true;
@@ -2813,8 +2862,9 @@ int MachineObject::parse_json(std::string payload)
 #pragma region hms
                     // parse hms msg
                     try {
-                        hms_list.clear();
                         if (jj.contains("hms")) {
+                            display_dirty_hms_list = true;
+                            hms_list.clear();
                             if (jj["hms"].is_array()) {
                                 for (auto it = jj["hms"].begin(); it != jj["hms"].end(); it++) {
                                     HMSItem item;
@@ -2838,6 +2888,7 @@ int MachineObject::parse_json(std::string payload)
                     /* ams status */
                     try {
                         if (jj.contains("ams_status")) {
+                            display_dirty_ams = true;
                             int ams_status = jj["ams_status"].get<int>();
                             this->_parse_ams_status(ams_status);
                         }
@@ -2847,6 +2898,7 @@ int MachineObject::parse_json(std::string payload)
                     }
 
                     if (jj.contains("ams")) {
+                        display_dirty_ams = true;
                         if (jj["ams"].contains("ams")) {
                             long int last_ams_exist_bits = ams_exist_bits;
                             long int last_tray_exist_bits = tray_exist_bits;
@@ -3118,6 +3170,7 @@ int MachineObject::parse_json(std::string payload)
                     /* vitrual tray*/
                     try {
                         if (jj.contains("vt_tray")) {
+                            display_dirty_ams = true;
                             if (jj["vt_tray"].contains("id"))
                                 vt_tray.id = jj["vt_tray"]["id"].get<std::string>();
                             auto curr_time = std::chrono::system_clock::now();
@@ -3158,6 +3211,7 @@ int MachineObject::parse_json(std::string payload)
                     ams_version = -1;
 
                     if (jj["ams_id"].is_number()) {
+                        display_dirty_ams = true;
                         int ams_id = jj["ams_id"].get<int>();
                         auto ams_it = amsList.find(std::to_string(ams_id));
                         if (ams_it != amsList.end()) {
@@ -3444,6 +3498,7 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                     } catch(...) {
                         ;
                     }
+                    this->display_dirty_subtask = true;
                 }
             });
     }

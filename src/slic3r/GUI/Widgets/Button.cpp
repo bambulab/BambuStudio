@@ -60,6 +60,8 @@ bool Button::Create(wxWindow* parent, wxString text, wxString icon, long style, 
 
 void Button::SetLabel(const wxString& label)
 {
+    if (GetLabel() == label)
+        return;
     wxWindow::SetLabel(label);
     messureSize();
     Refresh();
@@ -68,11 +70,15 @@ void Button::SetLabel(const wxString& label)
 void Button::SetIcon(const wxString& icon)
 {
     if (!icon.IsEmpty()) {
+        if (this->active_icon.name() == icon.ToStdString())
+            return;
         //BBS set button icon default size to 20
         this->active_icon = ScalableBitmap(this, icon.ToStdString(), this->active_icon.px_cnt());
     }
     else
     {
+        if (this->inactive_icon.name() == "")
+            return;
         this->active_icon = ScalableBitmap();
     }
     Refresh();
@@ -81,9 +87,13 @@ void Button::SetIcon(const wxString& icon)
 void Button::SetInactiveIcon(const wxString &icon)
 {
     if (!icon.IsEmpty()) {
+        if (this->inactive_icon.name() == icon.ToStdString())
+            return;
         // BBS set button icon default size to 20
         this->inactive_icon = ScalableBitmap(this, icon.ToStdString(), this->active_icon.px_cnt());
     } else {
+        if (this->inactive_icon.name() == "")
+            return;
         this->inactive_icon = ScalableBitmap();
     }
     Refresh();

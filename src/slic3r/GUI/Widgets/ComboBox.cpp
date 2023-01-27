@@ -67,9 +67,10 @@ int ComboBox::GetSelection() const { return drop.GetSelection(); }
 
 void ComboBox::SetSelection(int n)
 {
+    int oldselection = drop.selection;
     drop.SetSelection(n);
     SetLabel(drop.GetValue());
-    if (drop.selection >= 0)
+    if (drop.selection >= 0 && drop.selection != oldselection)
         SetIcon(icons[drop.selection]);
 }
 

@@ -48,8 +48,10 @@ ImageSwitchButton::ImageSwitchButton(wxWindow *parent, ScalableBitmap &img_on, S
 
 void ImageSwitchButton::SetLabels(wxString const &lbl_on, wxString const &lbl_off)
 {
-	labels[0] = lbl_on;
-	labels[1] = lbl_off;
+    if (labels[0] == lbl_on && labels[1] == lbl_off)
+        return;
+    labels[0] = lbl_on;
+    labels[1] = lbl_off;
     auto fina_txt = GetValue() ? labels[0] : labels[1];
     SetToolTip(fina_txt);
     messureSize();
@@ -74,6 +76,8 @@ void ImageSwitchButton::SetTextColor(StateColor const &color)
 
 void ImageSwitchButton::SetValue(bool value)
 {
+    if (m_on_off == value)
+        return;
     m_on_off = value;
     messureSize();
     Refresh();
@@ -234,6 +238,8 @@ void FanSwitchButton::SetTextColor(StateColor const& color)
 
 void FanSwitchButton::SetValue(bool value)
 {
+    if (m_on_off == value)
+        return;
     m_on_off = value;
     messureSize();
     Refresh();
@@ -323,6 +329,8 @@ void FanSwitchButton::Rescale()
 
 void FanSwitchButton::setFanValue(int val)
 {
+    if (m_speed == val)
+        return;
     m_speed = val;
     Refresh();
 }

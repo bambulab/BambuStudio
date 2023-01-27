@@ -952,6 +952,9 @@ void ScalableButton::SetBitmap_(const ScalableBitmap& bmp)
 
 bool ScalableButton::SetBitmap_(const std::string& bmp_name)
 {
+    if (m_current_icon_name == bmp_name)
+        return true;
+
     m_current_icon_name = bmp_name;
     if (m_current_icon_name.empty())
         return false;

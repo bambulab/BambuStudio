@@ -101,8 +101,11 @@ void ProgressBar::Disable(wxString text)
 
 void ProgressBar::SetValue(int step) 
 { 
+    bool was_disable = m_disable;
     m_disable = false;
     SetProgress(step);
+    if (was_disable)
+        Refresh();
 }
 
 void ProgressBar::Reset() 
@@ -113,9 +116,10 @@ void ProgressBar::Reset()
 
 void ProgressBar::SetProgress(int step)
 { 
+    bool was_disable = m_disable;
     m_disable = false;
     if (step < 0) return;
-    //if (step == m_step) return;
+    if (step == m_step && !was_disable) return;
     m_step = step;
     Refresh();
 }

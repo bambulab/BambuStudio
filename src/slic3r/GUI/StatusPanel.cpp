@@ -1075,6 +1075,8 @@ void StatusBasePanel::show_ams_group(bool show, bool support_virtual_tray)
 void StatusPanel::update_camera_state(MachineObject* obj)
 {
     if (!obj) return;
+    
+    bool did_change = false;
 
     //m_bitmap_sdcard_abnormal_img->SetToolTip(_L("SD Card Abnormal"));
     //sdcard
@@ -1093,6 +1095,7 @@ void StatusPanel::update_camera_state(MachineObject* obj)
             m_bitmap_sdcard_img->SetToolTip(_L("SD Card"));
         }
         m_last_sdcard = (int)obj->get_sdcard_state();
+        did_change = true;
     }
 
     //recording
@@ -1104,12 +1107,17 @@ void StatusPanel::update_camera_state(MachineObject* obj)
                 m_bitmap_recording_img->SetBitmap(m_bitmap_recording_off.bmp());
             }
             m_last_recording = obj->is_recording() ? 1 : 0;
+            did_change = true;
         }
-        if (!m_bitmap_recording_img->IsShown())
+        if (!m_bitmap_recording_img->IsShown()) {
             m_bitmap_recording_img->Show();
+            did_change = true;
+        }
     } else {
-        if (m_bitmap_recording_img->IsShown())
+        if (m_bitmap_recording_img->IsShown()) {
             m_bitmap_recording_img->Hide();
+            did_change = true;
+        }
     }
     
     //timelapse
@@ -1121,12 +1129,17 @@ void StatusPanel::update_camera_state(MachineObject* obj)
                 m_bitmap_timelapse_img->SetBitmap(m_bitmap_timelapse_off.bmp());
             }
             m_last_timelapse = obj->is_timelapse() ? 1 : 0;
+            did_change = true;
         }
-        if (!m_bitmap_timelapse_img->IsShown())
+        if (!m_bitmap_timelapse_img->IsShown()) {
             m_bitmap_timelapse_img->Show();
+            did_change = true;
+        }
     } else {
-        if (m_bitmap_timelapse_img->IsShown())
+        if (m_bitmap_timelapse_img->IsShown()) {
             m_bitmap_timelapse_img->Hide();
+            did_change = true;
+        }
     }
     
     //vcamera
@@ -1138,12 +1151,17 @@ void StatusPanel::update_camera_state(MachineObject* obj)
                 m_bitmap_vcamera_img->SetBitmap(m_bitmap_vcamera_off.bmp());
             }
             m_last_vcamera = m_media_play_ctrl->IsStreaming() ? 1 : 0;
+            did_change = true;
         }
-        if (!m_bitmap_vcamera_img->IsShown())
+        if (!m_bitmap_vcamera_img->IsShown()) {
             m_bitmap_vcamera_img->Show();
+            did_change = true;
+        }
     } else {
-        if (m_bitmap_vcamera_img->IsShown())
+        if (m_bitmap_vcamera_img->IsShown()) {
             m_bitmap_vcamera_img->Hide();
+            did_change = true;
+        }
     }
 
     //camera setting
@@ -1152,7 +1170,9 @@ void StatusPanel::update_camera_state(MachineObject* obj)
         m_camera_popup->update(show_vcamera);
     }
 
-    m_panel_monitoring_title->Layout();
+    if (did_change) {
+        m_panel_monitoring_title->Layout();
+    }
 }
 
 StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
@@ -1449,10 +1469,11 @@ void StatusPanel::update(MachineObject *obj)
 {
     if (!obj) return;
 
-    m_project_task_panel->Freeze();
-    update_subtask(obj);
-    m_project_task_panel->Thaw();
-
+    if (obj->display_dirty_subtask) {
+        m_project_task_panel->Freeze();
+        update_subtask(obj);
+        m_project_task_panel->Thaw();
+    }
 
     m_machine_ctrl_panel->Freeze();
 
@@ -1461,12 +1482,16 @@ void StatusPanel::update(MachineObject *obj)
     else
         show_printing_status();
 
-    update_temp_ctrl(obj);
+    if (obj->display_dirty_temp) {
+        update_temp_ctrl(obj);
+    }
     update_misc_ctrl(obj);
 
     // BBS hide tasklist info
     // update_tasklist(obj);
-    update_ams(obj);
+    if (obj->display_dirty_ams) {
+        update_ams(obj);
+    }
 
     update_cali(obj);
 
@@ -1540,7 +1565,9 @@ void StatusPanel::update(MachineObject *obj)
              m_print_connect_types[obj->dev_id] = obj->dev_connection_type;
         }
        
-        update_error_message();
+        if (obj->display_dirty_print_error || obj->display_dirty_hms_list) {
+            update_error_message();
+        }
     }
 
     update_camera_state(obj);

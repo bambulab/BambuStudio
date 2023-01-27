@@ -178,7 +178,7 @@ void AMSrefresh::on_timer(wxTimerEvent &event)
     //} else {
     //    m_rotation_angle++;
     //}
-    Refresh();
+    //Refresh();
 }
 
 void AMSrefresh::PlayLoading()
@@ -306,12 +306,16 @@ Description:AMSextruder
 **************************************************/
 void AMSextruderImage::TurnOn(wxColour col) 
 {
+    if (m_colour == col)
+        return;
     m_colour  = col;
     Refresh();
 }
 
 void AMSextruderImage::TurnOff() 
 {
+    if (m_colour == AMS_EXTRUDER_DEF_COLOUR)
+        return;
     m_colour = AMS_EXTRUDER_DEF_COLOUR;
     Refresh();
 }
@@ -762,6 +766,10 @@ void AMSLib::doRender(wxDC &dc)
 
 void AMSLib::Update(Caninfo info, bool refresh)
 {
+    if (m_info.material_colour == info.material_colour &&
+        m_info.material_remain == info.material_remain &&
+        m_info.material_state == info.material_state)
+        return;
     m_info = info;
     Layout();
     if (refresh) Refresh();
@@ -847,6 +855,10 @@ void AMSRoad::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const 
 
 void AMSRoad::Update(AMSinfo amsinfo, Caninfo info, int canindex, int maxcan)
 {
+    /* for now, all that the road renders is humidity, so we don't have to
+     * implement equality on AMSinfo or Caninfo...  */
+    if (m_amsinfo.ams_humidity == amsinfo.ams_humidity && m_canindex == canindex)
+        return;
     m_amsinfo = amsinfo;
     m_info     = info;
     m_canindex = canindex;

@@ -161,13 +161,13 @@ wxString TempInput::erasePending(wxString &str)
 
 void TempInput::SetTagTemp(int temp)
 {
-    text_ctrl->SetValue(wxString::Format("%d", temp));
-    messureSize();
-    Refresh();
+    SetTagTemp(wxString::Format("%d", temp));
 }
 
 void TempInput::SetTagTemp(wxString temp) 
 { 
+    if (text_ctrl->GetValue() == temp)
+        return;
     text_ctrl->SetValue(temp);
     messureSize();
     Refresh();
@@ -175,11 +175,13 @@ void TempInput::SetTagTemp(wxString temp)
 
 void TempInput::SetCurrTemp(int temp) 
 { 
-    SetLabel(wxString::Format("%d", temp)); 
+    SetCurrTemp(wxString::Format("%d", temp)); 
 }
 
 void TempInput::SetCurrTemp(wxString temp) 
 {
+    if (temp == GetLabel())
+        return;
     SetLabel(temp);
 }
 
@@ -244,12 +246,16 @@ void TempInput::Warning(bool warn, WarningType type)
 
 void TempInput::SetIconActive()
 {
+    if (actice)
+        return;
     actice = true;
     Refresh();
 }
 
 void TempInput::SetIconNormal()
 {
+    if (!actice)
+        return;
     actice = false;
     Refresh();
 }

@@ -493,13 +493,17 @@ public:
     bool is_mapping_exceed_filament(std::vector<FilamentInfo>& result, int &exceed_index);
     void reset_mapping_result(std::vector<FilamentInfo>& result);
 
+    bool   display_dirty_printer = true;
+
     /*online*/
+    bool   display_dirty_ams = true;
     bool   online_rfid;
     bool   online_ahb;
     int    online_version = -1;
     int    last_online_version = -1;
 
     /* temperature */
+    bool   display_dirty_temp = true;
     float  nozzle_temp;
     float  nozzle_temp_target;
     float  bed_temp;
@@ -508,6 +512,7 @@ public:
     float  frame_temp;
 
     /* cooling */
+    bool    display_dirty_fan = true;
     int     heatbreak_fan_speed = 0;
     int     cooling_fan_speed = 0;
     int     big_fan1_speed = 0;
@@ -515,17 +520,20 @@ public:
     uint32_t fan_gear       = 0;
 
     /* signals */
+    bool display_dirty_signal = true;
     std::string wifi_signal;
     std::string link_th;
     std::string link_ams;
 
     /* lights */
+    bool display_dirty_light = true;
     LIGHT_EFFECT chamber_light;
     LIGHT_EFFECT work_light;
     std::string light_effect_str(LIGHT_EFFECT effect);
     LIGHT_EFFECT light_effect_parse(std::string effect_str);
 
     /* upgrade */
+    bool display_dirty_upgrade = true;
     bool upgrade_force_upgrade { false };
     bool upgrade_new_version { false };
     bool upgrade_consistency_request { false };
@@ -561,6 +569,7 @@ public:
     float   nozzle { 0.0f };        // default is 0.0f as initial value
     bool    is_220V_voltage { false };
 
+    bool    display_dirty_subtask = 1;
     int     mc_print_stage;
     int     mc_print_sub_stage;
     int     mc_print_error_code;
@@ -571,11 +580,14 @@ public:
     int     home_flag;
     int     hw_switch_state;
     bool    is_system_printing();
+    
+    bool    display_dirty_print_error = true;
     int     print_error;
     int     curr_layer = 0;
     int     total_layers = 0;
     bool    is_support_layer_num { false };
 
+    bool display_dirty_stage = true;
     std::vector<int> stage_list_info;
     int stage_curr = 0;
     int m_push_count = 0;
@@ -598,12 +610,14 @@ public:
     /* printing status */
     std::string print_status;      /* enum string: FINISH, RUNNING, PAUSE, INIT, FAILED */
     std::string iot_print_status;  /* iot */
+    bool display_dirty_speed = true;
     PrintingSpeedLevel printing_speed_lvl;
     int                printing_speed_mag = 100;
     PrintingSpeedLevel _parse_printing_speed_lvl(int lvl);
     int get_bed_temperature_limit();
 
     /* camera */
+    bool display_dirty_ipcam = true;
     bool has_ipcam { false };
     bool camera_recording { false };
     bool camera_recording_when_printing { false };
@@ -615,6 +629,7 @@ public:
     bool xcam_first_layer_inspector { false };
     int  xcam_first_layer_hold_count = 0;
 
+    bool display_dirty_xcam = true;
     bool xcam_ai_monitoring{ false };
     int  xcam_ai_monitoring_hold_count = 0;
     std::string xcam_ai_monitoring_sensitivity;
@@ -637,6 +652,7 @@ public:
     bool is_support_send_to_sdcard { true };
 
     /* HMS */
+    bool display_dirty_hms_list = true;
     std::vector<HMSItem>    hms_list;
 
     /* machine mqtt apis */

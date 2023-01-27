@@ -88,6 +88,8 @@ void TextInput::SetCornerRadius(double radius)
 
 void TextInput::SetLabel(const wxString& label)
 {
+    if (label == GetLabel())
+        return;
     wxWindow::SetLabel(label);
     messureSize();
     Refresh();

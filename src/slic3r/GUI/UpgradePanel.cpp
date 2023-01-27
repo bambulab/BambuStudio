@@ -431,11 +431,15 @@ void MachineInfoPanel::update_version_text(MachineObject* obj)
 void MachineInfoPanel::update_ams_ext(MachineObject *obj)
 {
     bool has_hub_model = false;
+    bool did_change = false;
 
     //hub
-    if (!obj->online_ahb || obj->module_vers.find("ahb") == obj->module_vers.end()) 
-        m_ahb_panel->Hide();
-    else {
+    if (!obj->online_ahb || obj->module_vers.find("ahb") == obj->module_vers.end()) {
+        if (m_ahb_panel->IsShown()) {
+            did_change = true;
+            m_ahb_panel->Hide();
+        }
+    } else {
         has_hub_model = true;
         show_ams(true);
 
@@ -444,7 +448,10 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
             amspanel->Hide();
         }
 
-        m_ahb_panel->Show();
+        if (!m_ahb_panel->IsShown()) {
+            did_change = true;
+            m_ahb_panel->Show();
+        }
 
         wxString hub_sn = "-";
         if (!obj->module_vers.find("ahb")->second.sn.empty()) {
@@ -507,23 +514,35 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
             }
         }
 
-        m_ahb_panel->m_staticText_ams_sn_val->SetLabelText(hub_sn);
-        m_ahb_panel->m_staticText_ams_ver_val->SetLabelText(hub_ver);
+        if (m_ahb_panel->m_staticText_ams_sn_val->GetLabelText() != hub_sn) {
+            did_change = true;
+            m_ahb_panel->m_staticText_ams_sn_val->SetLabelText(hub_sn);
+        }
+        if (m_ahb_panel->m_staticText_ams_ver_val->GetLabelText() != hub_ver) {
+            did_change = true;
+            m_ahb_panel->m_staticText_ams_ver_val->SetLabelText(hub_ver);
+        }
     }
 
     //ams
     if (obj->ams_exist_bits != 0) {
+        if (!m_last_ams_show) {
+            did_change = true;
+        }
         show_ams(true);
         std::map<int, MachineObject::ModuleVersionInfo> ver_list = obj->get_ams_version();
 
         AmsPanelHash::iterator iter = m_amspanel_list.begin();
 
+        int n_ams_shown_prev = 0;
         for (auto i = 0; i < m_amspanel_list.GetCount(); i++) {
             AmsPanel *amspanel = m_amspanel_list[i];
-             amspanel->Hide();
+            n_ams_shown_prev += amspanel->IsShown() ? 1 : 0;
+            amspanel->Hide();
         }
 
 
+        int n_ams_now_shown = 0;
         auto ams_index = 0;
         for (std::map<std::string, Ams *>::iterator iter = obj->amsList.begin(); iter != obj->amsList.end(); iter++) {
             wxString ams_name;
@@ -532,6 +551,7 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
 
             AmsPanel *amspanel = m_amspanel_list[ams_index];
             amspanel->Show();
+            n_ams_now_shown++;
 
 
             auto it = ver_list.find(atoi(iter->first.c_str()));
@@ -606,22 +626,41 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
                 }
             }
 
-            amspanel->m_staticText_ams->SetLabelText(ams_name);
-            amspanel->m_staticText_ams_sn_val->SetLabelText(ams_sn);
-            amspanel->m_staticText_ams_ver_val->SetLabelText(ams_ver);
+            if (amspanel->m_staticText_ams->GetLabelText() != ams_name) {
+                amspanel->m_staticText_ams->SetLabelText(ams_name);
+                did_change = true;
+            }
+            if (amspanel->m_staticText_ams_sn_val->GetLabelText() != ams_sn) {
+                amspanel->m_staticText_ams_sn_val->SetLabelText(ams_sn);
+                did_change = true;
+            }
+            if (amspanel->m_staticText_ams_ver_val->GetLabelText() != ams_ver) {
+                amspanel->m_staticText_ams_ver_val->SetLabelText(ams_ver);
+                did_change = true;
+            }
 
             ams_index++;
         }
+        if (n_ams_shown_prev != n_ams_now_shown) {
+            did_change = true;
+        }
     } else {
-        if (!has_hub_model) { show_ams(false); }
-        
+        if (!has_hub_model) {
+            if (m_last_ams_show != false) {
+                did_change = true;
+            }
+            show_ams(false);
+        }
     }
 
     //ext
     auto ext_module = obj->module_vers.find("ext");
-    if (ext_module == obj->module_vers.end())
+    if (ext_module == obj->module_vers.end()) {
+        if (m_last_ext_show != false) {
+            did_change = true;
+        }
         show_ext(false);
-    else {
+    } else {
         wxString sn_text = ext_module->second.sn;
         sn_text = sn_text.MakeUpper();
         wxString ext_ver = "";
@@ -642,14 +681,25 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
         }
 
         // set sn and version
-        m_ext_panel->m_staticText_ext_sn_val->SetLabelText(sn_text);
-        m_ext_panel->m_staticText_ext_ver_val->SetLabelText(ext_ver);
+        if (m_ext_panel->m_staticText_ext_sn_val->GetLabelText() != sn_text) {
+            did_change = true;
+            m_ext_panel->m_staticText_ext_sn_val->SetLabelText(sn_text);
+        }
+        if (m_ext_panel->m_staticText_ext_ver_val->GetLabelText() != ext_ver) {
+            did_change = true;
+            m_ext_panel->m_staticText_ext_ver_val->SetLabelText(ext_ver);
+        }
         
+        if (!m_last_ext_show) {
+            did_change = true;
+        }
         show_ext(true);
     }
 
-    this->Layout();
-    this->Fit();
+    if (did_change) {
+        this->Layout();
+        this->Fit();
+    }
 }
 
 void MachineInfoPanel::show_status(int status, std::string upgrade_status_str)
