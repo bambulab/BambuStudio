@@ -226,7 +226,7 @@ then
         
         # make Slic3r
         echo "[8/9] Building Slic3r..."
-        make -j$NCORES BambuStudio # Slic3r
+        make -j$NCORES BambuStudio bambu_source # Slic3r
 
         # make .mo
         # make gettext_po_to_mo # FIXME: DeftDawg: complains about msgfmt not existing even in SuperSlicer, did this ever work?

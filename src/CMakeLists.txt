@@ -270,3 +270,8 @@ if (WIN32)
 else ()
     install(TARGETS BambuStudio RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif ()
+
+if (UNIX)
+    add_executable(bambu_source bambu_source.c)
+    install(TARGETS bambu_source RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()

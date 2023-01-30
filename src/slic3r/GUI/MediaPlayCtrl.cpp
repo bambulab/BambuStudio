@@ -17,6 +17,7 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #else
+#include <boost/dll.hpp>
 #include <sys/mman.h>
 #include <sys/stat.h>        /* For mode constants */
 #include <fcntl.h>           /* For O_* constants */
@@ -275,6 +276,12 @@ void MediaPlayCtrl::ToggleStream()
         bool need_install = false;
         if (!start_stream_service(&need_install)) {
             if (!need_install) return;
+#ifdef __LINUX__
+            (void) MessageDialog(this->GetParent(),
+                                 _L("This system does not have ffmpeg installed, which is required for Go Live to work.  Install it through your package manager, then try again."),
+                                 _L("Info"), wxOK).ShowModal();
+            return;
+#else
             auto res = MessageDialog(this->GetParent(), _L("Virtual Camera Tools is required for this task!\nDo you want to install them?"), _L("Info"),
                                     wxOK | wxCANCEL).ShowModal();
             if (res == wxID_OK) {
@@ -302,6 +309,7 @@ void MediaPlayCtrl::ToggleStream()
                 dlg.ShowModal();
             }
             return;
+#endif
         }
     }
     if (!url.empty() && wxGetApp().app_config->get("not_show_vcamera_stop_prev") != "1") {
@@ -456,10 +464,19 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
     std::string file_source = data_dir() + "\\cameratools\\bambu_source.exe";
     std::string file_ffmpeg = data_dir() + "\\cameratools\\ffmpeg.exe";
     std::string file_ff_cfg = data_dir() + "\\cameratools\\ffmpeg.cfg";
-#else
+#elif defined(__APPLE__)
     std::string file_source = data_dir() + "/cameratools/bambu_source";
     std::string file_ffmpeg = data_dir() + "/cameratools/ffmpeg";
     std::string file_ff_cfg = data_dir() + "/cameratools/ffmpeg.cfg";
+#else /* Linux */
+    std::string file_source = (boost::filesystem::canonical(boost::dll::program_location()).parent_path() / "bambu_source").make_preferred().string();
+    std::string file_ffmpeg = boost::process::search_path("ffmpeg").make_preferred().string();
+    std::string file_ff_cfg = resources_dir() + "/cameratools/ffmpeg.cfg";
+    
+    if (!boost::filesystem::exists(data_dir() + "/cameratools")) {
+        /* even though no bundle has been downloaded, we still need to have a place for url.txt to land */
+        boost::filesystem::create_directory(data_dir() + "/cameratools");
+    }
 #endif
     if (!boost::filesystem::exists(file_source) || !boost::filesystem::exists(file_ffmpeg) || !boost::filesystem::exists(file_ff_cfg)) {
         if (need_install) *need_install = true;
@@ -491,11 +508,21 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
                                              boost::process::start_dir(start_dir), boost::process::limit_handles);
         boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::std_in < intermediate, detach_process(), boost::process::limit_handles);
 #else
+#ifndef __LINUX__
         boost::filesystem::permissions(file_source, boost::filesystem::owner_exe | boost::filesystem::add_perms);
         boost::filesystem::permissions(file_ffmpeg, boost::filesystem::owner_exe | boost::filesystem::add_perms);
+#endif
+
         // TODO: limit_handles has bugs on posix
         boost::process::child process_source(file_source, file_url2.data().AsInternal(), boost::process::std_out > intermediate, 
-                                             boost::process::start_dir(start_dir));
+#ifdef __LINUX__
+                                             boost::process::env["LD_LIBRARY_PATH"] = (data_dir() + "/plugins"),
+                                             boost::process::start_dir(boost::filesystem::path(resources_dir()) / "cameratools")
+#else
+                                             boost::process::start_dir(start_dir)
+#endif
+                                             );
+
         boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::std_in < intermediate);
 #endif
         process_source.detach();
