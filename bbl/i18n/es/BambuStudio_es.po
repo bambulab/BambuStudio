@@ -874,7 +874,7 @@ msgid "Edit Process Settings"
 msgstr "Editar configuración del proceso"
 
 msgid "Edit in Parameter Table"
-msgstr "Edtiar en tabla de parámetros"
+msgstr "Editar en tabla de parámetros"
 
 msgid "Edit print parameters for a single object"
 msgstr "Editar los parámetros de impresión de un solo objeto"
