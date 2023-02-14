@@ -13,13 +13,9 @@
 #include <boost/process.hpp>
 #ifdef __WIN32__
 #include <boost/process/windows.hpp>
-#elif __APPLE__
+#else
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#else
-#include <sys/mman.h>
-#include <sys/stat.h>        /* For mode constants */
-#include <fcntl.h>           /* For O_* constants */
 #endif
 
 namespace Slic3r {
@@ -31,6 +27,9 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
 {
     SetBackgroundColour(*wxWHITE);
     m_media_ctrl->Bind(wxEVT_MEDIA_STATECHANGED, &MediaPlayCtrl::onStateChanged, this);
+#if wxUSE_GSTREAMER_PLAYER
+    m_media_ctrl->Bind(wxEVT_MEDIA_LOADED, &MediaPlayCtrl::onStateChanged, this);
+#endif
 
     m_button_play = new Button(this, "", "media_play", wxBORDER_NONE);
     m_button_play->SetCanFocus(false);
@@ -85,17 +84,19 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_camera_exists = obj->has_ipcam;
         m_lan_mode      = obj->is_lan_mode_printer();
         m_lan_ip       = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->dev_ip : "";
-        m_lan_passwd    = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->access_code : "";
+        m_lan_passwd    = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->get_access_code() : "";
         m_tutk_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
+        m_device_busy   = obj->is_in_prepare();
     } else {
         m_camera_exists = false;
         m_lan_mode = false;
         m_lan_ip.clear();
         m_lan_passwd.clear();
         m_tutk_support = true;
+        m_device_busy = false;
     }
     if (machine == m_machine) {
-        if (m_last_state == MEDIASTATE_IDLE && m_next_retry.IsValid() && wxDateTime::Now() >= m_next_retry)
+        if (m_last_state == MEDIASTATE_IDLE)
             Play();
         return;
     }
@@ -118,21 +119,20 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
 
 void MediaPlayCtrl::Play()
 {
-    if (!m_next_retry.IsValid())
+    if (!m_next_retry.IsValid() || wxDateTime::Now() < m_next_retry)
         return;
     if (!IsShownOnScreen())
         return;
     if (m_last_state != MEDIASTATE_IDLE) {
         return;
     }
+    m_failed_code = 0;
     if (m_machine.empty()) {
-        Stop();
-        SetStatus(_L("Initialize failed (No Device)!"));
+        Stop(_L("Initialize failed (No Device)!"));
         return;
     }
     if (!m_camera_exists) {
-        Stop();
-        SetStatus(_L("Initialize failed (No Camera Device)!"));
+        Stop(_L("Initialize failed (No Camera Device)!"));
         return;
     }
 
@@ -142,7 +142,7 @@ void MediaPlayCtrl::Play()
 
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
-    if (!m_lan_ip.empty() && (!m_lan_mode || !m_lan_passwd.empty())) {
+    if (!m_lan_ip.empty() && (!m_lan_mode || !m_lan_passwd.empty()) && !m_device_busy) {
         m_url        = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd + "&device=" + m_machine + "&version=" + agent_version;
         m_last_state = MEDIASTATE_LOADING;
         SetStatus(_L("Loading..."));
@@ -163,16 +163,21 @@ void MediaPlayCtrl::Play()
     }
 
     if (m_lan_mode) {
-        Stop();
-        SetStatus(m_lan_passwd.empty() 
+        m_failed_code = 1;
+        Stop(m_lan_passwd.empty() 
             ? _L("Initialize failed (Not supported with LAN-only mode)!") 
             : _L("Initialize failed (Not accessible in LAN-only mode)!"));
         return;
     }
     
     if (!m_tutk_support) { // not support tutk
-        Stop();
-        SetStatus(m_lan_ip.empty() 
+        if (m_device_busy) {
+            Stop(_L("Printer is busy downloading, Please wait for the downloading to finish."));
+            m_failed_retry = 0;
+            return;
+        }
+        m_failed_code = 1;
+        Stop(m_lan_ip.empty() 
             ? _L("Initialize failed (Missing LAN ip of printer)!") 
             : _L("Initialize failed (Not supported by printer)!"));
         return;
@@ -211,7 +216,7 @@ void MediaPlayCtrl::Play()
     }
 }
 
-void MediaPlayCtrl::Stop()
+void MediaPlayCtrl::Stop(wxString const &msg)
 {
     if (m_last_state != MEDIASTATE_IDLE) {
         m_media_ctrl->InvalidateBestSize();
@@ -220,14 +225,26 @@ void MediaPlayCtrl::Stop()
         m_tasks.push_back("<stop>");
         m_cond.notify_all();
         m_last_state = MEDIASTATE_IDLE;
-        if (m_failed_code)
+        if (!msg.IsEmpty())
+            SetStatus(msg, false);
+        else if (m_failed_code)
             SetStatus(_L("Stopped [%d]!"), true);
         else
             SetStatus(_L("Stopped."), false);
         if (m_failed_code >= 100) // not keep retry on local error
             m_next_retry = wxDateTime();
+    } else if (!msg.IsEmpty()) {
+        SetStatus(msg, false);
     }
     ++m_failed_retry;
+    if (m_failed_code != 0 && !m_tutk_support && m_failed_retry > 1) {
+        m_next_retry = wxDateTime(); // stop retry
+        if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to start liveview)"))) {
+            m_failed_retry = 0;
+            m_next_retry   = wxDateTime::Now();
+            return;
+        }
+    }
     if (m_next_retry.IsValid())
         m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(5 * m_failed_retry);
 }
@@ -345,11 +362,11 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
         Stop();
         return;
     }
-    if (last_state == MEDIASTATE_LOADING && state == wxMEDIASTATE_STOPPED) {
+    if (last_state == MEDIASTATE_LOADING && (state == wxMEDIASTATE_STOPPED || state == wxMEDIASTATE_PAUSED || event.GetEventType() == wxEVT_MEDIA_LOADED)) {
         wxSize size = m_media_ctrl->GetVideoSize();
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: size: " << size.x << "x" << size.y;
         m_failed_code = m_media_ctrl->GetLastError();
-        if (size.GetWidth() > 1000) {
+        if (size.GetWidth() > 1000 || (event.GetEventType() == wxEVT_MEDIA_LOADED)) {
             m_last_state = state;
             SetStatus(_L("Playing..."), false);
             m_failed_retry = 0;
@@ -393,6 +410,7 @@ void MediaPlayCtrl::on_show_hide(wxShowEvent &evt)
 {
     evt.Skip();
     if (m_isBeingDeleted) return;
+    m_failed_retry = 0;
     IsShownOnScreen() ? Play() : Stop();
 }
 
@@ -503,7 +521,7 @@ bool MediaPlayCtrl::get_stream_url(std::string *url)
         }
     }
     CloseHandle(shm);
-#elif __APPLE__
+#else
     std::string file_url = data_dir() + "/cameratools/url.txt";
     key_t key = ::ftok(file_url.c_str(), 1000);
     int shm = ::shmget(key, 1024, 0);
@@ -521,18 +539,6 @@ bool MediaPlayCtrl::get_stream_url(std::string *url)
             url = nullptr;
         }
     }
-#else
-    int shm = ::shm_open("bambu_stream_url", O_RDONLY, 0);
-    if (shm == -1) return false;
-    if (url) {
-        char *addr = (char *) ::mmap(nullptr, 1024, PROT_READ, MAP_SHARED, shm, 0);
-        if (addr != MAP_FAILED) {
-            *url = addr;
-            ::munmap(addr, 1024);
-            url = nullptr;
-        }
-    }
-    ::close(shm);
 #endif
     return url == nullptr;
 }

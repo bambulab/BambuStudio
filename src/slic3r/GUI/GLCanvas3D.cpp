@@ -1706,6 +1706,9 @@ float GLCanvas3D::get_collapse_toolbar_height()
     return collapse_toolbar.is_enabled() ? collapse_toolbar.get_height() : 0;
 }
 
+bool GLCanvas3D::make_current_for_postinit() {
+    return _set_current();
+}
 
 void GLCanvas3D::render(bool only_init)
 {
@@ -2378,8 +2381,21 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             }
         }
         for (int temp_idx = vol_idx; temp_idx < m_volumes.volumes.size() && !update_object_list; temp_idx++) {
-            if (!m_volumes.volumes[temp_idx]->is_wipe_tower)
+            // Volumes in m_volumes might not exist anymore, so we cannot
+            // directly check if they are is_wipe_towers, for which we do
+            // not want to update the object list.  Instead, we do a kind of
+            // slow thing of seeing if they were in the deleted list, and if
+            // so, if they were a wipe tower.
+            bool was_deleted_wipe_tower = false;
+            for (int del_idx = 0; del_idx < deleted_wipe_towers.size(); del_idx++) {
+                if (deleted_wipe_towers[del_idx].volume_idx == temp_idx) {
+                    was_deleted_wipe_tower = true;
+                    break;
+                }
+            }
+            if (!was_deleted_wipe_tower) {
                 update_object_list = true;
+            }
         }
         for (int temp_idx = vol_idx; temp_idx < glvolumes_new.size() && !update_object_list; temp_idx++) {
             if (!glvolumes_new[temp_idx]->is_wipe_tower)
@@ -4258,8 +4274,8 @@ void GLCanvas3D::on_paint(wxPaintEvent& evt)
         this->render();
 }
 
-void GLCanvas3D::force_set_focus() { 
-    m_canvas->SetFocus(); 
+void GLCanvas3D::force_set_focus() {
+    m_canvas->SetFocus();
 };
 
 void GLCanvas3D::on_set_focus(wxFocusEvent& evt)

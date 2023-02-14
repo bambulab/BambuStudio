@@ -18,6 +18,7 @@ static wxString file_over_size_str          = _L("The print file exceeds the max
 static wxString print_canceled_str          = _L("Task canceled");
 static wxString upload_failed_str           = _L("Failed uploading print file");
 static wxString upload_login_failed_str     = _L("Wrong Access code");
+static wxString upload_no_space_left_str    = _L("No space left on Printer SD card");
 
 
 static wxString sending_over_lan_str = _L("Sending gcode file over LAN");
@@ -33,6 +34,13 @@ SendJob::SendJob(std::shared_ptr<ProgressIndicator> pri, Plater* plater, std::st
 void SendJob::prepare()
 {
     m_plater->get_print_job_data(&job_data);
+    if (&job_data) {
+        std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
+        auto check_access_code_path = temp_file.c_str();
+        BOOST_LOG_TRIVIAL(trace) << "sned_job: check_access_code_path = " << check_access_code_path;
+        job_data._temp_path = fs::path(check_access_code_path);
+    }
+    
 }
 
 void SendJob::on_exception(const std::exception_ptr &eptr)
@@ -104,11 +112,43 @@ inline std::string get_transform_string(int bytes)
 
 void SendJob::process()
 {
-    /* display info */
+    BBL::PrintParams params;
     wxString msg;
     int curr_percent = 10;
     NetworkAgent* m_agent = wxGetApp().getAgent();
     AppConfig* config = wxGetApp().app_config;
+    int result = -1;
+    unsigned int http_code;
+    std::string http_body;
+
+
+   
+   
+    // local print access
+    params.dev_ip = m_dev_ip;
+    params.username = "bblp";
+    params.password = m_access_code;
+    params.use_ssl = m_local_use_ssl;
+
+    // check access code and ip address
+    if (m_is_check_mode) {
+        params.dev_id = m_dev_id;
+        params.project_name = "verify_job";
+        params.filename = job_data._temp_path.string();
+        params.connection_type = this->connection_type;
+
+        result = m_agent->start_send_gcode_to_sdcard(params, nullptr, nullptr);
+        if (result != 0) {
+            BOOST_LOG_TRIVIAL(error) << "access code is invalid";
+            m_enter_ip_address_fun_fail();
+        }
+        else {
+            m_enter_ip_address_fun_success();
+        }
+        m_job_finished = true;
+        return;
+    }
+    /* display info */
 
     if (this->connection_type == "lan") {
         msg = _L("Sending gcode file over LAN");
@@ -116,10 +156,6 @@ void SendJob::process()
     else {
         msg = _L("Sending gcode file through cloud service");
     }
-
-    int result = -1;
-    unsigned int http_code;
-    std::string http_body;
 
     int total_plate_num = m_plater->get_partplate_list().get_plate_count();
 
@@ -148,7 +184,6 @@ void SendJob::process()
     else if (job_data.plate_idx == PLATE_CURRENT_IDX)
         curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
 
-    BBL::PrintParams params;
     params.dev_id = m_dev_id;
     params.project_name = m_project_name + ".gcode.3mf";
     params.preset_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
@@ -279,9 +314,11 @@ void SendJob::process()
     }
 
     if (result < 0) {
-        if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
+        if (result == BAMBU_NETWORK_ERR_NO_SPACE_LEFT_ON_DEVICE) {
+            msg_text = upload_no_space_left_str;
+        } else if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
             msg_text = upload_login_failed_str;
-        } if (result == BAMBU_NETWORK_ERR_FILE_NOT_EXIST) {
+        } else if (result == BAMBU_NETWORK_ERR_FILE_NOT_EXIST) {
             msg_text = file_is_not_exists_str;
         } else if (result == BAMBU_NETWORK_ERR_FILE_OVER_SIZE) {
             msg_text = file_over_size_str;
@@ -313,7 +350,6 @@ void SendJob::process()
 
         if (result == BAMBU_NETWORK_ERR_WRONG_IP_ADDRESS) {
             msg_text = _L("Failed uploading print file. Please enter ip address again.");
-            m_enter_ip_address_fun();
         }
             
         update_status(curr_percent, msg_text);
@@ -332,11 +368,15 @@ void SendJob::on_success(std::function<void()> success)
 	m_success_fun = success;
 }
 
-void SendJob::on_enter_ip_address(std::function<void()> success)
+void SendJob::on_check_ip_address_fail(std::function<void()> func)
 {
-    m_enter_ip_address_fun = success;
+    m_enter_ip_address_fun_fail = func;
 }
 
+void SendJob::on_check_ip_address_success(std::function<void()> func)
+{
+    m_enter_ip_address_fun_success = func;
+}
 
 
 void SendJob::finalize() {

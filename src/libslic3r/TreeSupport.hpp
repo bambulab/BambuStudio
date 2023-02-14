@@ -125,11 +125,6 @@ private:
      */
     const ExPolygons& calculate_avoidance(const RadiusLayerPair& key) const;
 
-    /*!
-     * \brief Polygons representing the limits of the printable area of the
-     * machine
-     */
-    ExPolygon m_machine_border;
 
 public:
     bool is_slim = false;
@@ -206,9 +201,9 @@ public:
      * \param storage The data storage where the mesh data is gotten from and
      * where the resulting support areas are stored.
      */
-    void generate_support_areas();
+    void generate();
 
-    void detect_object_overhangs();
+    void detect_overhangs();
 
     enum NodeType {
         eCircle,
@@ -372,6 +367,9 @@ public:
     int  avg_node_per_layer = 0;
     float nodes_angle       = 0;
     bool  has_overhangs = false;
+    bool  has_sharp_tails = false;
+    bool  has_cantilever = false;
+    SupportType support_type;
 
     std::unique_ptr<FillLightning::Generator> generator;
     std::unordered_map<double, size_t> printZ_to_lightninglayer;
@@ -398,6 +396,12 @@ private:
     bool  is_slim                            = false;
     bool  with_infill                        = false;
 
+
+    /*!
+     * \brief Polygons representing the limits of the printable area of the
+     * machine
+     */
+    ExPolygon m_machine_border;
 
     /*!
      * \brief Draws circles around each node of the tree into the final support.

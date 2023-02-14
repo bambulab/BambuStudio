@@ -110,8 +110,6 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         auto language_name = vlist[i]->Description;
 
         if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CHINESE_SIMPLIFIED)) {
-            //language_name = _L(vlist[i]->Description);
-            //language_name = _L("Chinese (Simplified)");
             language_name = wxString::FromUTF8("\xe4\xb8\xad\xe6\x96\x87\x28\xe7\xae\x80\xe4\xbd\x93\x29");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_SPANISH)) {
@@ -131,6 +129,9 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_HUNGARIAN)) {
             language_name = wxString::FromUTF8("Magyar");
+        }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_JAPANESE)) {
+            language_name = wxString::FromUTF8("\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E");
         }
 
         if (app_config->get(param) == vlist[i]->CanonicalName) {
@@ -790,7 +791,9 @@ wxWindow* PreferencesDialog::create_general_page()
         wxLANGUAGE_SPANISH,
         wxLANGUAGE_SWEDISH,
         wxLANGUAGE_DUTCH,
-        wxLANGUAGE_HUNGARIAN };
+        wxLANGUAGE_HUNGARIAN,
+        wxLANGUAGE_JAPANESE
+    };
 
     auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
     std::vector<const wxLanguageInfo *> language_infos;
@@ -954,9 +957,10 @@ void PreferencesDialog::create_shortcuts_page()
     sizer_page->Fit(page);
 }
 
-wxBoxSizer* PreferencesDialog::create_debug_page()
+wxWindow* PreferencesDialog::create_debug_page()
 {
-    //wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
+    auto page = new wxWindow(m_scrolledWindow, wxID_ANY);
+    page->SetBackgroundColour(*wxWHITE);
 
     m_developer_mode_def  = app_config->get("developer_mode");
     m_dump_video_def      = app_config->get("dump_video");
@@ -965,19 +969,19 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
 
     wxBoxSizer *bSizer = new wxBoxSizer(wxVERTICAL);
 
-    auto title_develop_mode   = create_item_title(_L("Develop mode"), m_scrolledWindow, _L("Develop mode"));
-    auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), m_scrolledWindow, _L("Develop mode"), 50, "developer_mode");
-    auto item_dump_video      = create_item_checkbox(_L("Dump video"), m_scrolledWindow, _L("Dump video"), 50, "dump_video");
+    auto title_develop_mode   = create_item_title(_L("Develop mode"), page, _L("Develop mode"));
+    auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
+    auto item_dump_video      = create_item_checkbox(_L("Dump video"), page, _L("Dump video"), 50, "dump_video");
 
-    auto title_log_level = create_item_title(_L("Log Level"), m_scrolledWindow, _L("Log Level"));
+    auto title_log_level = create_item_title(_L("Log Level"), page, _L("Log Level"));
     auto log_level_list  = std::vector<wxString>{_L("fatal"), _L("error"), _L("warning"), _L("info"), _L("debug"), _L("trace")};
-    auto loglevel_combox = create_item_loglevel_combobox(_L("Log Level"), m_scrolledWindow, _L("Log Level"), log_level_list);
+    auto loglevel_combox = create_item_loglevel_combobox(_L("Log Level"), page, _L("Log Level"), log_level_list);
 
-    auto title_host = create_item_title(_L("Host Setting"), m_scrolledWindow, _L("Host Setting"));
-    auto radio1     = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), m_scrolledWindow, wxEmptyString, 50, 1, "dev_host");
-    auto radio2     = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), m_scrolledWindow, wxEmptyString, 50, 1, "qa_host");
-    auto radio3     = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"), m_scrolledWindow, wxEmptyString, 50, 1, "pre_host");
-    auto radio4     = create_item_radiobox(_L("Product host"), m_scrolledWindow, wxEmptyString, 50, 1, "product_host");
+    auto title_host = create_item_title(_L("Host Setting"), page, _L("Host Setting"));
+    auto radio1     = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), page, wxEmptyString, 50, 1, "dev_host");
+    auto radio2     = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), page, wxEmptyString, 50, 1, "qa_host");
+    auto radio3     = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"), page, wxEmptyString, 50, 1, "pre_host");
+    auto radio4     = create_item_radiobox(_L("Product host"), page, wxEmptyString, 50, 1, "product_host");
 
     if (m_iot_environment_def == ENV_DEV_HOST) {
         on_select_radio("dev_host");
@@ -995,7 +999,7 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
         std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Normal));
     StateColor btn_bd_white(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
 
-    Button* debug_button = new Button(m_scrolledWindow, _L("debug save button"));
+    Button* debug_button = new Button(page, _L("debug save button"));
     debug_button->SetBackgroundColor(btn_bg_white);
     debug_button->SetBorderColor(btn_bd_white);
     debug_button->SetFont(Label::Body_13);
@@ -1064,7 +1068,9 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
                     wxGetApp().request_user_logout();
                     agent->set_country_code(country_code);
                 }
-                wxMessageBox(_L("Switch cloud environment, Please login again!"));
+                ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Warning"), ConfirmBeforeSendDialog::ButtonStyle::ONLY_CONFIRM);
+                confirm_dlg.update_text(_L("Switch cloud environment, Please login again!"));
+                confirm_dlg.on_show();
             }
 
             // bbs  backup
@@ -1099,7 +1105,11 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
     bSizer->Add(radio3, 0, wxEXPAND | wxTOP, FromDIP(3));
     bSizer->Add(radio4, 0, wxEXPAND | wxTOP, FromDIP(3));
     bSizer->Add(debug_button, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(15));
-    return bSizer;
+
+    page->SetSizer(bSizer);
+    page->Layout();
+    bSizer->Fit(page);
+    return page;
 }
 
 void PreferencesDialog::on_select_radio(std::string param)

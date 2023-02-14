@@ -39,6 +39,7 @@
 #include <wx/textctrl.h>
 #include <wx/splash.h>
 #include <wx/fontutil.h>
+#include <wx/glcanvas.h>
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
@@ -1016,25 +1017,31 @@ void GUI_App::post_init()
         mainframe->select_tab(size_t(MainFrame::tp3DEditor));
         plater_->select_view_3D("3D");
         //BBS init the opengl resource here
-        Size canvas_size = plater_->canvas3D()->get_canvas_size();
-        wxGetApp().imgui()->set_display_size(static_cast<float>(canvas_size.get_width()), static_cast<float>(canvas_size.get_height()));
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to init opengl";
-        wxGetApp().init_opengl();
+#ifdef __linux__
+        if (plater_->canvas3D()->get_wxglcanvas()->IsShownOnScreen()&&plater_->canvas3D()->make_current_for_postinit()) {
+#endif
+            Size canvas_size = plater_->canvas3D()->get_canvas_size();
+            wxGetApp().imgui()->set_display_size(static_cast<float>(canvas_size.get_width()), static_cast<float>(canvas_size.get_height()));
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to init opengl";
+            wxGetApp().init_opengl();
 
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init opengl";
-        plater_->canvas3D()->init();
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init opengl";
+            plater_->canvas3D()->init();
 
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init canvas3D";
-        wxGetApp().imgui()->new_frame();
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init canvas3D";
+            wxGetApp().imgui()->new_frame();
 
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init imgui frame";
-        plater_->canvas3D()->enable_render(true);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init imgui frame";
+            plater_->canvas3D()->enable_render(true);
 
-        if (!slow_bootup) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to render a first frame for test";
-            plater_->canvas3D()->render(false);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished rendering a first frame for test";
+            if (!slow_bootup) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to render a first frame for test";
+                plater_->canvas3D()->render(false);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished rendering a first frame for test";
+            }
+#ifdef __linux__
         }
+#endif
         if (is_editor())
             mainframe->select_tab(size_t(0));
         mainframe->Thaw();
@@ -2326,6 +2333,8 @@ bool GUI_App::on_init_inner()
     preset_bundle->set_default_suppressed(true);
 
     Bind(EVT_USER_LOGIN, &GUI_App::on_user_login, this);
+
+    Bind(EVT_SHOW_IP_DIALOG, &GUI_App::show_ip_address_enter_dialog_handler, this);
 
     copy_network_if_available();
     on_init_network();
@@ -4105,12 +4114,13 @@ void GUI_App::start_sync_user_preset(bool load_immediately, bool with_progress_d
                         unsigned int http_code = 200;
 
                         /* get list witch need to be deleted*/
-                        std::vector<string>& delete_cache_presets = get_delete_cache_presets();
+                        std::vector<string> delete_cache_presets = get_delete_cache_presets_lock();
                         for (auto it = delete_cache_presets.begin(); it != delete_cache_presets.end();) {
                             if ((*it).empty()) continue;
                             std::string del_setting_id = *it;
                             int result = m_agent->delete_setting(del_setting_id);
                             if (result == 0) {
+                                preset_deleted_from_cloud(del_setting_id);
                                 it = delete_cache_presets.erase(it);
                                 BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: delete success! setting id = " << del_setting_id;
                             }
@@ -4336,7 +4346,8 @@ bool GUI_App::load_language(wxString language, bool initial)
                         {"fr", wxString::FromUTF8("\x46\x72\x61\x6E\xC3\xA7\x61\x69\x73")},
                         {"it", wxString::FromUTF8("\x49\x74\x61\x6C\x69\x61\x6E\x6F")},
                         {"ru", wxString::FromUTF8("\xD1\x80\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB8\xD0\xB9")},
-                        {"hu", wxString::FromUTF8("Magyar")}
+                        {"hu", wxString::FromUTF8("Magyar")},
+                        {"ja", wxString::FromUTF8("\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E")}
                     };
                     for (auto l : language_descptions) {
                         const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(l.first);
@@ -4441,7 +4452,9 @@ bool GUI_App::load_language(wxString language, bool initial)
             wxLANGUAGE_SPANISH,
             wxLANGUAGE_SWEDISH,
             wxLANGUAGE_DUTCH,
-            wxLANGUAGE_HUNGARIAN};
+            wxLANGUAGE_HUNGARIAN,
+            wxLANGUAGE_JAPANESE
+        };
         std::string cur_language = app_config->get("language");
         if (cur_language != "") {
             //cleanup the language wrongly set before
@@ -4556,24 +4569,52 @@ void GUI_App::update_mode()
     plater()->canvas3D()->update_gizmos_on_off_state();
 }
 
-void GUI_App::show_ip_address_enter_dialog()
+void GUI_App::show_ip_address_enter_dialog(wxString title)
+{
+    auto evt = new wxCommandEvent(EVT_SHOW_IP_DIALOG);
+    evt->SetString(title);
+    wxQueueEvent(this, evt);
+}
+
+bool GUI_App::show_modal_ip_address_enter_dialog(wxString title)
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) return;
-    if (!dev->get_selected_machine()) return;
+    if (!dev) return false;
+    if (!dev->get_selected_machine()) return false;
     auto obj = dev->get_selected_machine();
-    InputIpAddressDialog dlg(nullptr, from_u8(dev->get_selected_machine()->dev_name));
-    dlg.Bind(EVT_ENTER_IP_ADDRESS, [this, obj](wxCommandEvent& e) {
-        auto ip_address = e.GetString();
-        BOOST_LOG_TRIVIAL(info) << "User enter IP address is " << ip_address;
-        if (!ip_address.empty()) {
-            wxGetApp().app_config->set_str("ip_address", obj->dev_id, ip_address.ToStdString());
-            wxGetApp().app_config->save();
-            obj->dev_ip = ip_address.ToStdString();
-        }
 
-        });
-    dlg.ShowModal();
+    InputIpAddressDialog dlg(nullptr);
+    dlg.set_machine_obj(obj);
+    if (!title.empty()) dlg.update_title(title);
+
+    dlg.Bind(EVT_ENTER_IP_ADDRESS, [this, obj](wxCommandEvent& e) {
+        auto selection_data_arr = wxSplit(e.GetString().ToStdString(), '|');
+
+        if (selection_data_arr.size() == 2) {
+            auto ip_address = selection_data_arr[0];
+            auto access_code = selection_data_arr[1];
+
+            BOOST_LOG_TRIVIAL(info) << "User enter IP address is " << ip_address;
+            if (!ip_address.empty()) {
+                wxGetApp().app_config->set_str("ip_address", obj->dev_id, ip_address.ToStdString());
+                wxGetApp().app_config->save();
+
+                obj->dev_ip = ip_address.ToStdString();
+                obj->set_user_access_code(access_code.ToStdString());
+            }
+        }
+    });
+
+    if (dlg.ShowModal() == wxID_YES) {
+        return true;
+    }
+    return false;
+}
+
+void  GUI_App::show_ip_address_enter_dialog_handler(wxCommandEvent& evt)
+{
+    wxString title = evt.GetString();
+    show_modal_ip_address_enter_dialog(title);
 }
 
 //void GUI_App::add_config_menu(wxMenuBar *menu)
@@ -5010,14 +5051,29 @@ void GUI_App::load_current_presets(bool active_preset_combox/*= false*/, bool ch
         }
 }
 
-std::vector<std::string>& GUI_App::get_delete_cache_presets()
+static std::mutex mutex_delete_cache_presets;
+
+std::vector<std::string> & GUI_App::get_delete_cache_presets()
 {
+    return need_delete_presets;
+}
+
+std::vector<std::string> GUI_App::get_delete_cache_presets_lock()
+{
+    std::scoped_lock l(mutex_delete_cache_presets);
     return need_delete_presets;
 }
 
 void GUI_App::delete_preset_from_cloud(std::string setting_id)
 {
+    std::scoped_lock l(mutex_delete_cache_presets);
     need_delete_presets.push_back(setting_id);
+}
+
+void GUI_App::preset_deleted_from_cloud(std::string setting_id)
+{
+    std::scoped_lock l(mutex_delete_cache_presets);
+    need_delete_presets.erase(std::remove(need_delete_presets.begin(), need_delete_presets.end(), setting_id), need_delete_presets.end());
 }
 
 bool GUI_App::OnExceptionInMainLoop()

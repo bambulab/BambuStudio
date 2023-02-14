@@ -71,6 +71,7 @@ namespace GUI {
 wxDEFINE_EVENT(EVT_SELECT_TAB, wxCommandEvent);
 wxDEFINE_EVENT(EVT_HTTP_ERROR, wxCommandEvent);
 wxDEFINE_EVENT(EVT_USER_LOGIN, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SHOW_IP_DIALOG, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_PRESET_CB, SimpleEvent);
 
 // BBS: backup
@@ -192,8 +193,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     panel_topbar->SetSizer(sizer_tobar);
     panel_topbar->Layout();
 #endif
-
-
 
     //wxAuiToolBar* toolbar = new wxAuiToolBar();
 /*
@@ -1228,10 +1227,6 @@ bool MainFrame::can_send_gcode() const
 {
     if (m_plater && !m_plater->model().objects.empty())
     {
-        // BBL printer presets
-        if (!wxGetApp().preset_bundle->printers.get_edited_preset().is_custom_defined())
-            return false;
-
         auto cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
         if (const auto *print_host_opt = cfg.option<ConfigOptionString>("print_host"); print_host_opt)
             return !print_host_opt->value.empty();
@@ -1416,7 +1411,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_print_option_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
             SidePopup* p = new SidePopup(this);
-	    
+
             if (wxGetApp().preset_bundle
                 && !wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle)) {
                 // ThirdParty Buttons
@@ -1444,7 +1439,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                     });
 
                 // upload only
-                SideButton* upload_gcode_btn = new SideButton(p, _L("Send"), "");
+                /*SideButton* upload_gcode_btn = new SideButton(p, _L("Send"), "");
                 upload_gcode_btn->SetCornerRadius(0);
                 upload_gcode_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Send"));
@@ -1453,10 +1448,10 @@ wxBoxSizer* MainFrame::create_side_tools()
                     m_print_btn->Enable(m_print_enable);
                     this->Layout();
                     p->Dismiss();
-                    });
+                    });*/
 
                 p->append_button(send_gcode_btn);
-                p->append_button(upload_gcode_btn);
+                //p->append_button(upload_gcode_btn);
                 p->append_button(export_gcode_btn);
             }
             else {
@@ -1503,15 +1498,15 @@ wxBoxSizer* MainFrame::create_side_tools()
                     });
 
                 SideButton* send_to_printer_all_btn = new SideButton(p, _L("Send all"), "");
-                    send_to_printer_all_btn->SetCornerRadius(0);
-                    send_to_printer_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-                        m_print_btn->SetLabel(_L("Send all"));
-                        m_print_select = eSendToPrinterAll;
-                        m_print_enable = get_enable_print_status();
-                        m_print_btn->Enable(m_print_enable);
-                        this->Layout();
-                        p->Dismiss();
-                        });
+                send_to_printer_all_btn->SetCornerRadius(0);
+                send_to_printer_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                    m_print_btn->SetLabel(_L("Send all"));
+                    m_print_select = eSendToPrinterAll;
+                    m_print_enable = get_enable_print_status();
+                    m_print_btn->Enable(m_print_enable);
+                    this->Layout();
+                    p->Dismiss();
+                    });
 
                 export_sliced_file_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Export plate sliced file"));
@@ -2583,8 +2578,8 @@ struct ConfigsOverwriteConfirmDialog : MessageDialog
 {
     ConfigsOverwriteConfirmDialog(wxWindow *parent, wxString name, bool exported)
         : MessageDialog(parent,
-                        wxString::Format(exported ? _("A file exists with the same name: %s, do you wan't to override it.") :
-                                                  _("A config exists with the same name: %s, do you wan't to override it."),
+                        wxString::Format(exported ? _L("A file exists with the same name: %s, do you want to override it.") :
+                                                  _L("A config exists with the same name: %s, do you want to override it."),
                                          name),
                         _L(exported ? "Overwrite file" : "Overwrite config"),
                         wxYES_NO | wxNO_DEFAULT)
@@ -2918,7 +2913,7 @@ void MainFrame::set_print_button_to_default(PrintSelectType select_type)
         m_print_btn->SetLabel(_L("Print"));
         m_print_select = eSendGcode;
         if (m_print_enable)
-            m_print_enable = get_enable_print_status();
+            m_print_enable = get_enable_print_status() && can_send_gcode();
         m_print_btn->Enable(m_print_enable);
         this->Layout();
     } else {

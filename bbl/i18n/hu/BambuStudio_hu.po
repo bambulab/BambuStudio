@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-26 16:59+0800\n"
+"POT-Creation-Date: 2023-01-29 16:37+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -381,6 +381,9 @@ msgstr ""
 msgid "Add"
 msgstr "Hozzáadás"
 
+msgid "Modify"
+msgstr ""
+
 msgid "Notice"
 msgstr "Megjegyzés"
 
@@ -499,9 +502,6 @@ msgstr "Ez a legújabb verzió."
 
 msgid "Info"
 msgstr "Infó"
-
-msgid "Loading user presets..."
-msgstr "Felhasználói beállítások betöltése..."
 
 msgid "Rebuild"
 msgstr "Újraindítás"
@@ -659,6 +659,12 @@ msgstr "Támasz kényszerítő hozzáadása"
 msgid "Select settings"
 msgstr "Beállítások kiválasztása"
 
+msgid "Hide"
+msgstr ""
+
+msgid "Show"
+msgstr ""
+
 msgid "Delete"
 msgstr "Törlés"
 
@@ -746,6 +752,9 @@ msgstr "Öblítés ebbe a tárgyba"
 
 msgid "Flush into objects' support"
 msgstr "Öblítés a tárgyak támaszába"
+
+msgid "Edit in Parameter Table"
+msgstr ""
 
 msgid "Convert from inch"
 msgstr "Átváltás hüvelykről"
@@ -870,9 +879,6 @@ msgid "Center"
 msgstr ""
 
 msgid "Edit Process Settings"
-msgstr ""
-
-msgid "Edit in Parameter Table"
 msgstr ""
 
 msgid "Edit print parameters for a single object"
@@ -1140,9 +1146,6 @@ msgstr ""
 msgid "Please enter the layer number"
 msgstr ""
 
-msgid "Jump to Layer"
-msgstr ""
-
 msgid "Add Pause"
 msgstr ""
 
@@ -1150,6 +1153,9 @@ msgid "Add Custom G-code"
 msgstr ""
 
 msgid "Add Custom Template"
+msgstr ""
+
+msgid "Jump to Layer"
 msgstr ""
 
 msgid "Filament "
@@ -1185,14 +1191,26 @@ msgstr "?"
 msgid "Empty"
 msgstr "Üres"
 
-msgid "Click the pencil icon to edit the filament."
-msgstr "Kattints a ceruza ikonra a filament szerkesztéséhez."
+msgid "AMS"
+msgstr "AMS"
+
+msgid "AMS not connected"
+msgstr ""
+
+msgid "Cali"
+msgstr ""
+
+msgid "Calibration of extrusion"
+msgstr ""
 
 msgid "Load Filament"
 msgstr "Filament betöltés"
 
 msgid "Unload Filament"
 msgstr "Filament kitöltése"
+
+msgid "Ext Spool"
+msgstr ""
 
 msgid "Tips"
 msgstr "Tippek"
@@ -1409,6 +1427,9 @@ msgstr ""
 msgid "Please log out and login to the printer again."
 msgstr ""
 
+msgid "Failed uploading print file. Please enter ip address again."
+msgstr ""
+
 msgid "Downloading"
 msgstr "Letöltés"
 
@@ -1497,6 +1518,12 @@ msgstr ""
 msgid "AMS Materials Setting"
 msgstr ""
 
+msgid "Confirm"
+msgstr "Megerősítés"
+
+msgid "Close"
+msgstr "Bezárás"
+
 msgid "Colour"
 msgstr "Szín"
 
@@ -1524,11 +1551,91 @@ msgstr "SN"
 msgid "Setting AMS slot information while printing is not supported"
 msgstr ""
 
-msgid "Confirm"
-msgstr "Megerősítés"
+msgid "Factors of dynamic flow cali"
+msgstr ""
 
-msgid "Close"
-msgstr "Bezárás"
+msgid "Factor K"
+msgstr ""
+
+msgid "Factor N"
+msgstr ""
+
+msgid "Please input a valid value (K in 0~0.5)"
+msgstr ""
+
+msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
+msgstr ""
+
+msgid "Dynamic flow calibration"
+msgstr ""
+
+msgid ""
+"The nozzle temp and max volumetric speed will affect the calibration "
+"results. Please fill in the same values as the actual printing. They can be "
+"auto-filled by selecting a filament preset."
+msgstr ""
+
+msgid "Nozzle Diameter"
+msgstr ""
+
+msgid "Bed Type"
+msgstr ""
+
+msgid "Nozzle temperature"
+msgstr "Fúvóka hőmérséklet"
+
+msgid "Bed Temperature"
+msgstr ""
+
+msgid "Max volumetric speed"
+msgstr "Max. volumetrikus sebesség"
+
+msgid "℃"
+msgstr ""
+
+msgid "Bed temperature"
+msgstr "Asztalhőmérséklet"
+
+msgid "mm³"
+msgstr "mm³"
+
+msgid "Start calibration"
+msgstr "Start"
+
+msgid "Next"
+msgstr ""
+
+msgid ""
+"Calibration completed. Please find the most uniform extrusion line on your "
+"hot bed like the picture below, and fill the value on its left side into the "
+"factor K input box."
+msgstr ""
+
+msgid "Save"
+msgstr "Mentés"
+
+msgid "Last Step"
+msgstr "Back"
+
+msgid "Example"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Calibrating... %d%%"
+msgstr ""
+
+msgid "Calibration completed"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s does not support %s"
+msgstr ""
+
+msgid "Dynamic flow Calibration"
+msgstr ""
+
+msgid "Step"
+msgstr ""
 
 msgid "AMS Slots"
 msgstr ""
@@ -1549,6 +1656,29 @@ msgstr ""
 msgid "Print with the filament mounted on the back of chassis"
 msgstr ""
 
+msgid "Cabin humidity"
+msgstr ""
+
+msgid ""
+"Green means that AMS humidity is normal, orange represent humidity is high, "
+"red represent humidity is too high.(Hygrometer: lower the better.)"
+msgstr ""
+
+msgid "Desiccant status"
+msgstr ""
+
+msgid ""
+"A desiccant status lower than two bars indicates that desiccant may be "
+"inactive. Please change the desiccant.(The bars: higher the better.)"
+msgstr ""
+
+msgid ""
+"Note: When the lid is open or the desiccant pack is changed, it can take "
+"hours or a night to absorb the moisture. Low temperatures also slow down the "
+"process. During this time, the indicator may not represent the chamber "
+"accurately."
+msgstr ""
+
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
 msgstr ""
@@ -1560,6 +1690,18 @@ msgid "AMS slot used for this filament"
 msgstr ""
 
 msgid "Click to select AMS slot manually"
+msgstr ""
+
+msgid "Do not Enable AMS"
+msgstr ""
+
+msgid "Print using materials mounted on the back of the case"
+msgstr ""
+
+msgid "Print with filaments in ams"
+msgstr ""
+
+msgid "Print with filaments mounted on the back of the chassis"
 msgstr ""
 
 msgid "AMS Settings"
@@ -1908,7 +2050,7 @@ msgstr ""
 
 msgid ""
 "Arachne engine only works when overhang slowing down is disabled.\n"
-"This may cause decline in the quality of overhang surface when print fastly\n"
+"This may cause decline in the quality of overhang surface when print fastly"
 msgstr ""
 
 msgid ""
@@ -1960,7 +2102,7 @@ msgstr "%1% kitöltési mintázat nem támogatja a 100%%-os kitöltés."
 msgid ""
 "Switch to rectilinear pattern?\n"
 "Yes - switch to rectilinear pattern automaticlly\n"
-"No  - reset density to default non 100% value automaticlly\n"
+"No  - reset density to default non 100% value automaticlly"
 msgstr ""
 
 msgid "Auto bed leveling"
@@ -2031,9 +2173,6 @@ msgstr "MC"
 
 msgid "MainBoard"
 msgstr "MainBoard"
-
-msgid "AMS"
-msgstr "AMS"
 
 msgid "TH"
 msgstr "TH"
@@ -2126,6 +2265,12 @@ msgstr "Anyagáramlás"
 msgid "Tool"
 msgstr "Szerszám"
 
+msgid "Layer Time"
+msgstr ""
+
+msgid "Layer Time (log)"
+msgstr ""
+
 msgid "Height: "
 msgstr ""
 
@@ -2136,6 +2281,12 @@ msgid "Speed: "
 msgstr ""
 
 msgid "Flow: "
+msgstr ""
+
+msgid "Layer Time: "
+msgstr ""
+
+msgid "Layer Time(log): "
 msgstr ""
 
 msgid "Fan Speed: "
@@ -2545,23 +2696,20 @@ msgstr "Nem"
 msgid " will be closed before creating a new model. Do you want to continue?"
 msgstr ""
 
-msgid "Slice"
-msgstr "Szeletelés"
+msgid "Slice plate"
+msgstr "Tálca szeletelése"
+
+msgid "Print plate"
+msgstr ""
 
 msgid "Slice all"
 msgstr "Összes szeletelése"
-
-msgid "Slice plate"
-msgstr "Tálca szeletelése"
 
 msgid "Export G-code file"
 msgstr ""
 
 msgid "Send"
 msgstr "Küldés"
-
-msgid "Print plate"
-msgstr ""
 
 msgid "Export plate sliced file"
 msgstr ""
@@ -2885,13 +3033,8 @@ msgid ""
 "It contains the following information:\n"
 "1. The Process presets\n"
 "2. The Filament presets\n"
-"3. The Printer presets\n"
+"3. The Printer presets"
 msgstr ""
-"Szeretnéd szinkronizálni személyes adataidat a Bambu Cloudból?\n"
-"Ezek az adatok a következő információkat tartalmazzák:\n"
-"1. Folyamat beállítások\n"
-"2. Filament beállítások\n"
-"3. Nyomtató beállítások\n"
 
 msgid "Synchronization"
 msgstr "Szinkronizálás"
@@ -2914,6 +3057,9 @@ msgstr ""
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr ""
 
+msgid "Printer is busy downloading, Please wait for the downloading to finish."
+msgstr ""
+
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr ""
 
@@ -2933,6 +3079,9 @@ msgstr ""
 
 msgid "Stopped."
 msgstr "Megállítva."
+
+msgid "LAN Connection Failed (Failed to start liveview)"
+msgstr ""
 
 msgid ""
 "Virtual Camera Tools is required for this task!\n"
@@ -3094,7 +3243,10 @@ msgstr "Állj"
 msgid "0"
 msgstr ""
 
-msgid "Clean"
+msgid "Layers: N/A"
+msgstr ""
+
+msgid "Clear"
 msgstr ""
 
 msgid "Control"
@@ -3157,6 +3309,14 @@ msgstr "Letöltés..."
 msgid "Cloud Slicing..."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Layers: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Layers: %d/%d"
+msgstr ""
+
 msgid "Please heat the nozzle to above 170 degree before loading filament."
 msgstr ""
 
@@ -3164,6 +3324,12 @@ msgid "Still unload"
 msgstr ""
 
 msgid "Still load"
+msgstr ""
+
+msgid "AMS settings are not supported for external spool"
+msgstr ""
+
+msgid "Please select an AMS slot before calibration"
 msgstr ""
 
 msgid ""
@@ -3548,10 +3714,8 @@ msgstr ""
 #, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Found following keys "
-"unrecognized:\n"
+"unrecognized:"
 msgstr ""
-"A 3mf fájl %s verziója újabb, mint a(z) %s verziója %s, a következő "
-"ismeretlen kulcsokat találtuk:\n"
 
 msgid "You'd better upgrade your software.\n"
 msgstr "Jobb lenne, ha frissítenéd a szoftvert.\n"
@@ -3559,11 +3723,11 @@ msgstr "Jobb lenne, ha frissítenéd a szoftvert.\n"
 msgid "Newer 3mf version"
 msgstr "Újabb 3mf verzió"
 
-#, fuzzy, c-format, boost-format
+#, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software.\n"
-msgstr "\n"
+"software."
+msgstr ""
 
 msgid "The 3mf is not compatible, load geometry data only!"
 msgstr ""
@@ -3762,9 +3926,6 @@ msgstr ""
 "Az aktuális projektben el nem mentett módosítások vannak, mentsük el a "
 "folytatás előtt?"
 
-msgid "Save"
-msgstr "Mentés"
-
 msgid "Number of copies:"
 msgstr "Másolatok száma:"
 
@@ -3843,9 +4004,9 @@ msgid ""
 "on Bambu Studio(windows) or CAD softwares."
 msgstr ""
 
-#, fuzzy, c-format, boost-format
-msgid "Plate %d: %s does not support filament %s (%s).\n"
-msgstr "\n"
+#, c-format, boost-format
+msgid "Plate %d: %s does not support filament %s (%s)."
+msgstr ""
 
 msgid "Switching the language requires application restart.\n"
 msgstr "A nyelvváltáshoz az alkalmazás újraindítása szükséges.\n"
@@ -4322,18 +4483,21 @@ msgstr ""
 msgid "Cannot send the print job for empty plate"
 msgstr ""
 
+msgid "This printer does not support printing all plates"
+msgstr ""
+
 msgid "Errors"
 msgstr ""
 
 msgid ""
 "Please check the following infomation and click Confirm to continue sending "
-"print:\n"
+"print:"
 msgstr ""
 
 msgid ""
 "The printer type used to generate G-code is not the same type as the "
 "currently selected physical printer. It is recommend to re-slice by "
-"selecting the same printer type.\n"
+"selecting the same printer type."
 msgstr ""
 
 #, c-format, boost-format
@@ -4457,7 +4621,7 @@ msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
 "by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\".\n"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid "Line width"
@@ -4928,23 +5092,20 @@ msgstr "Nincs elérhető frissítés."
 msgid "The configuration is up to date."
 msgstr "A konfiguráció naprakész."
 
-msgid "Flushing volumes for filament change"
-msgstr "Filament csere tiszítási mennyisége"
-
 msgid "Auto-Calc"
 msgstr "Automatikus számítás"
 
-msgid "Flushing volume (mm³) for each filament pair."
-msgstr "Egyes filamentpárok tiszítási mennyisége (mm³)."
+msgid "Flushing volumes for filament change"
+msgstr "Filament csere tiszítási mennyisége"
 
 msgid "Multiplier"
 msgstr ""
 
-msgid "Actual Volume = Flushing Volume * Multiplier"
-msgstr ""
+msgid "Flushing volume (mm³) for each filament pair."
+msgstr "Egyes filamentpárok tiszítási mennyisége (mm³)."
 
 #, c-format, boost-format
-msgid "Suggestion: Actual Volume in range [%d, %d]"
+msgid "Suggestion: Flushing Volume in range [%d, %d]"
 msgstr ""
 
 #, c-format, boost-format
@@ -5229,6 +5390,30 @@ msgid "New version of Bambu Studio"
 msgstr "A Bambu Studio új verziója"
 
 msgid "Don't remind me of this version again"
+msgstr ""
+
+msgid "LAN Connection Failed (Sending print file)"
+msgstr ""
+
+msgid ""
+"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+msgstr ""
+
+msgid ""
+"Step 2, if the IP and Access Code below are different from the actual values "
+"on your printer, please correct them."
+msgstr ""
+
+msgid "IP"
+msgstr ""
+
+msgid "Access Code"
+msgstr ""
+
+msgid "Where to find your printer's IP and Access Code?"
+msgstr ""
+
+msgid "Error: IP or Access Code are not correct"
 msgstr ""
 
 msgid "Model:"
@@ -5539,11 +5724,10 @@ msgstr ""
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% túl magas, a nyomtatás során előfordulhatnak ütközések."
 
-msgid " is too close to others, there may be collisions when printing.\n"
+msgid " is too close to others, there may be collisions when printing."
 msgstr ""
 
-msgid ""
-" is too close to exclusion area, there may be collisions when printing.\n"
+msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr ""
 
 msgid "Prime Tower"
@@ -5645,9 +5829,9 @@ msgstr ""
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "A rétegmagasság nem lehet nagyobb a fúvóka átmérőjénél."
 
-#, fuzzy, c-format, boost-format
-msgid "Plate %d: %s does not support filament %s\n"
-msgstr "\n"
+#, c-format, boost-format
+msgid "Plate %d: %s does not support filament %s"
+msgstr ""
 
 msgid "Generating skirt & brim"
 msgstr "Szoknya & perem generálása"
@@ -5797,9 +5981,6 @@ msgstr ""
 
 msgid "°C"
 msgstr "°C"
-
-msgid "Bed temperature"
-msgstr "Asztalhőmérséklet"
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
@@ -6199,6 +6380,9 @@ msgstr "kitöltés/belső/külső"
 msgid "infill/outer/inner"
 msgstr "kitöltés/külső/belső"
 
+msgid "inner-outer-inner/infill"
+msgstr ""
+
 msgid "Height to rod"
 msgstr "Magasság a rúdig"
 
@@ -6302,9 +6486,6 @@ msgid ""
 "of nozzle's HRC."
 msgstr ""
 
-msgid "Max volumetric speed"
-msgstr "Max. volumetrikus sebesség"
-
 msgid ""
 "This setting stands for how much volume of filament can be melted and "
 "extruded per second. Printing speed is limited by max volumetric speed, in "
@@ -6316,9 +6497,6 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Minimális tisztítás a törlőtoronyban"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Filament betöltési idő"
@@ -6885,6 +7063,12 @@ msgstr "Fúvóka térfogata"
 msgid "Volume of nozzle between the cutter and the end of nozzle"
 msgstr "A fúvóka térfogata a filamentvágó és a fúvóka vége között"
 
+msgid "Start end points"
+msgstr ""
+
+msgid "The start and end points which is from cutter area to garbage can."
+msgstr ""
+
 msgid "Reduce infill retraction"
 msgstr "Csökkentett visszahúzás kitöltésnél"
 
@@ -7025,6 +7209,15 @@ msgstr ""
 "nyomtatott tárgy között rés keletkezzen. Ez megakadályozza, hogy a fúvóka "
 "nagyobb mozgás közben a tárgynak ütközzön. A Z tengely emelésekor használt "
 "körkörös mozgás megelőzheti a szálazást."
+
+msgid "Z Hop Type"
+msgstr ""
+
+msgid "Slope"
+msgstr ""
+
+msgid "Spiral"
+msgstr ""
 
 msgid "Retraction Speed"
 msgstr "Visszahúzás sebessége"
@@ -7404,9 +7597,6 @@ msgstr "Ez a beállítás határozza meg a falak számát a fa támasz körül."
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Fúvóka hőmérséklete az első réteg után"
 
-msgid "Nozzle temperature"
-msgstr "Fúvóka hőmérséklet"
-
 msgid "Bed temperature difference"
 msgstr "Asztalhőmérséklet különbség"
 
@@ -7674,6 +7864,9 @@ msgstr ""
 msgid "Load cached slicing data from directory"
 msgstr ""
 
+msgid "Slice"
+msgstr "Szeletelés"
+
 msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
 msgstr "Tálcák szeletelése: 0 - összes tálca, i - i tálca, egyéb - érvénytelen"
 
@@ -7761,6 +7954,9 @@ msgstr "Kitöltési területek generálása"
 
 msgid "Generating infill toolpath"
 msgstr "Kitöltési szerszámút generálás"
+
+msgid "Detect overhangs for auto-lift"
+msgstr ""
 
 msgid "Generating support"
 msgstr "Támaszok generálása"
@@ -8007,16 +8203,6 @@ msgid ""
 msgstr ""
 
 #~ msgid ""
-#~ "Do not recommand bed temperature of other layer to be lower than initial "
-#~ "layer for more than this threshold. Too low bed temperature of other "
-#~ "layer may cause the model broken free from build plate"
-#~ msgstr ""
-#~ "Nem ajánlott, hogy a kezdőréteget követő többi réteg asztalhőmérséklete "
-#~ "alacsonyabb legyen ennél a küszöbértéknél. Ha a többi rétegnél túl "
-#~ "alacsony asztalhőmérsékletet használsz, előfordulhat, hogy a tárgy "
-#~ "leválik a tálcáról nyomtatás közben"
-
-#~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
 #~ "printing."
@@ -8045,6 +8231,12 @@ msgstr ""
 #~ "Egy tárgy a tálcán kívülre került, vagy túllépi a magassághatárt.\n"
 #~ "Kérjük, orvosold a problémát a tárgy tálcára helyezésével vagy a tálcáról "
 #~ "való eltávolításával és a tárgy magasságának ellenőrzésével."
+
+#~ msgid ""
+#~ "Arachne engine only works when overhang slowing down is disabled.\n"
+#~ "This may cause decline in the quality of overhang surface when print "
+#~ "fastly\n"
+#~ msgstr "\n"
 
 #~ msgid "Auto arrange"
 #~ msgstr "Automatikus elrendezés"
@@ -8088,6 +8280,9 @@ msgstr ""
 #~ "elrendezéshez használatos az ütközések elkerülése érdekében, amikor "
 #~ "objektumonként nyomtatsz"
 
+#~ msgid "Click the pencil icon to edit the filament."
+#~ msgstr "Kattints a ceruza ikonra a filament szerkesztéséhez."
+
 #~ msgid "Color Print"
 #~ msgstr "Színes nyomtatás"
 
@@ -8122,6 +8317,16 @@ msgstr ""
 #~ msgstr "Modell háromszögeinek megjelenítése"
 
 #~ msgid ""
+#~ "Do not recommand bed temperature of other layer to be lower than initial "
+#~ "layer for more than this threshold. Too low bed temperature of other "
+#~ "layer may cause the model broken free from build plate"
+#~ msgstr ""
+#~ "Nem ajánlott, hogy a kezdőréteget követő többi réteg asztalhőmérséklete "
+#~ "alacsonyabb legyen ennél a küszöbértéknél. Ha a többi rétegnél túl "
+#~ "alacsony asztalhőmérsékletet használsz, előfordulhat, hogy a tárgy "
+#~ "leválik a tálcáról nyomtatás közben"
+
+#~ msgid ""
 #~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
 #~ "Contains the following information:\n"
 #~ "1. The Process presets\n"
@@ -8130,6 +8335,19 @@ msgstr ""
 #~ msgstr ""
 #~ "Szinkronizálni szeretnéd személyes adataid a Bambu Cloud-ból? \n"
 #~ "A következő információkat tartalmazza:\n"
+#~ "1. Folyamat beállítások\n"
+#~ "2. Filament beállítások\n"
+#~ "3. Nyomtató beállítások\n"
+
+#~ msgid ""
+#~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
+#~ "It contains the following information:\n"
+#~ "1. The Process presets\n"
+#~ "2. The Filament presets\n"
+#~ "3. The Printer presets\n"
+#~ msgstr ""
+#~ "Szeretnéd szinkronizálni személyes adataidat a Bambu Cloudból?\n"
+#~ "Ezek az adatok a következő információkat tartalmazzák:\n"
 #~ "1. Folyamat beállítások\n"
 #~ "2. Filament beállítások\n"
 #~ "3. Nyomtató beállítások\n"
@@ -8285,6 +8503,9 @@ msgstr ""
 #~ msgid "Line type"
 #~ msgstr "Vonal típusa"
 
+#~ msgid "Loading user presets..."
+#~ msgstr "Felhasználói beállítások betöltése..."
+
 #~ msgid "Management"
 #~ msgstr "Management"
 
@@ -8334,8 +8555,19 @@ msgstr ""
 #~ msgid "Per object edit"
 #~ msgstr "Szerkesztés objektumonként"
 
+#~ msgid "Plate %d: %s does not support filament %s\n"
+#~ msgstr "\n"
+
 #~ msgid "Plate %d: %s does not support filament %s.\n"
 #~ msgstr "%d. tálca: %s nem használható %s filamenttel.\n"
+
+#~ msgid "Plate %d: %s does not support filament %s (%s).\n"
+#~ msgstr "\n"
+
+#~ msgid ""
+#~ "Please check the following infomation and click Confirm to continue "
+#~ "sending print:\n"
+#~ msgstr "\n"
 
 #~ msgid "Please fill report first."
 #~ msgstr "Kérjük, először töltsd ki a riportot."
@@ -8474,6 +8706,12 @@ msgstr ""
 #~ "anyagú filamentet használsz támaszként."
 
 #~ msgid ""
+#~ "Switch to rectilinear pattern?\n"
+#~ "Yes - switch to rectilinear pattern automaticlly\n"
+#~ "No  - reset density to default non 100% value automaticlly\n"
+#~ msgstr "\n"
+
+#~ msgid ""
 #~ "Switch to zig-zag pattern?\n"
 #~ "Yes - switch to zig-zag pattern automaticlly\n"
 #~ "No  - reset density to default non 100% value automaticlly\n"
@@ -8485,6 +8723,18 @@ msgstr ""
 
 #~ msgid "Swith cloud environment, Please login again!"
 #~ msgstr "Felhőkörnyezet váltása, kérjük, jelentkezz be újra!"
+
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
+#~ "unrecognized:\n"
+#~ msgstr ""
+#~ "A 3mf fájl %s verziója újabb, mint a(z) %s verziója %s, a következő "
+#~ "ismeretlen kulcsokat találtuk:\n"
+
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
+#~ "your software.\n"
+#~ msgstr "\n"
 
 #~ msgid "The Config is not compatible and can not be loaded."
 #~ msgstr "A konfiguráció nem kompatibilis és nem tölthető be!"
@@ -8504,6 +8754,12 @@ msgstr ""
 #~ "A modellnek átfedésben lévő vagy egymást metsző elemei vannak. "
 #~ "Megkíséreltük a javítást, azonban javasoljuk az eredmények ellenőrzését "
 #~ "vagy a bemeneti fájl javítását és az újbóli próbálkozást."
+
+#~ msgid ""
+#~ "The printer type used to generate G-code is not the same type as the "
+#~ "currently selected physical printer. It is recommend to re-slice by "
+#~ "selecting the same printer type.\n"
+#~ msgstr "\n"
 
 #~ msgid ""
 #~ "This object will be used to purge the nozzle after a filament change to "
@@ -8555,6 +8811,13 @@ msgstr ""
 #~ msgstr "Várakozás"
 
 #~ msgid ""
+#~ "When recording timelapse without toolhead, it is recommended to add a "
+#~ "\"Timelapse Wipe Tower\" \n"
+#~ "by right-click the empty position of build plate and choose \"Add "
+#~ "Primitive\"->\"Timelapse Wipe Tower\".\n"
+#~ msgstr "\n"
+
+#~ msgid ""
 #~ "You have changed some preset settings. \n"
 #~ "Would you like to keep these changed settings after switching preset?"
 #~ msgstr ""
@@ -8569,10 +8832,17 @@ msgstr ""
 #~ msgstr " Objektum:"
 
 #~ msgid ""
+#~ " is too close to exclusion area, there may be collisions when printing.\n"
+#~ msgstr "\n"
+
+#~ msgid ""
 #~ " is too close to exclusion area, there will be collisions when printing.\n"
 #~ msgstr ""
 #~ " túl közel van a tiltott területhez, a nyomtatás során előfordulhatnak "
 #~ "ütközések.\n"
+
+#~ msgid " is too close to others, there may be collisions when printing.\n"
+#~ msgstr "\n"
 
 #~ msgid " is too close to others, there will be collisions when printing.\n"
 #~ msgstr ""

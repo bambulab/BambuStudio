@@ -19,6 +19,7 @@
 #include "Calibration.hpp"
 #include "PrintOptionsDialog.hpp"
 #include "AMSMaterialsSetting.hpp"
+#include "ExtrusionCalibration.hpp"
 #include "ReleaseNote.hpp"
 #include "Widgets/SwitchButton.hpp"
 #include "Widgets/AxisCtrlButton.hpp"
@@ -113,7 +114,7 @@ protected:
 
     wxStaticText*   m_staticText_consumption_of_time;
     wxStaticText *  m_staticText_consumption_of_weight;
-    wxStaticText *  m_staticText_monitoring;
+    Label *         m_staticText_monitoring;
     wxStaticText *  m_staticText_timelapse;
     SwitchButton *  m_bmToggleBtn_timelapse;
 
@@ -129,7 +130,7 @@ protected:
     wxMediaCtrl2 *  m_media_ctrl;
     MediaPlayCtrl * m_media_play_ctrl;
 
-    wxStaticText *  m_staticText_printing;
+    Label *         m_staticText_printing;
     wxStaticBitmap *m_bitmap_thumbnail;
     wxStaticText *  m_staticText_subtask_value;
     wxStaticText *  m_printing_stage_value;
@@ -137,6 +138,7 @@ protected:
     wxStaticText *  m_staticText_progress_percent;
     wxStaticText *  m_staticText_progress_percent_icon;
     wxStaticText *  m_staticText_progress_left;
+    wxStaticText *  m_staticText_layers;
     Button *        m_button_report;
     ScalableButton *m_button_pause_resume;
     ScalableButton *m_button_abort;
@@ -144,7 +146,7 @@ protected:
 
     wxStaticText *  m_text_tasklist_caption;
 
-    wxStaticText *  m_staticText_control;
+    Label *  m_staticText_control;
     ImageSwitchButton *m_switch_lamp;
     int               m_switch_lamp_timeout{0};
     ImageSwitchButton *m_switch_speed;
@@ -251,7 +253,7 @@ public:
     wxBoxSizer *create_ams_group(wxWindow *parent);
     wxBoxSizer *create_settings_group(wxWindow *parent);
 
-    void show_ams_group(bool show = true);
+    void show_ams_group(bool show = true, bool support_virtual_tray = true);
 };
 
 
@@ -269,11 +271,14 @@ protected:
     PrintOptionsDialog*  print_options_dlg { nullptr };
     CalibrationDialog*   calibration_dlg {nullptr};
     AMSMaterialsSetting *m_filament_setting_dlg{nullptr};
+
     SecondaryCheckDialog* m_print_error_dlg = nullptr;
     SecondaryCheckDialog* abort_dlg = nullptr;
     SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
     SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
     FanControlPopup* m_fan_control_popup{nullptr};
+
+    ExtrusionCalibration *m_extrusion_cali_dlg{nullptr};
 
     wxString     m_request_url;
     bool         m_start_loading_thumbnail = false;
@@ -335,6 +340,8 @@ protected:
     void on_ams_unload(SimpleEvent &event);
     void on_ams_setting_click(SimpleEvent &event);
     void on_filament_edit(wxCommandEvent &event);
+    void on_ext_spool_edit(wxCommandEvent &event);
+    void on_filament_extrusion_cali(wxCommandEvent &event);
     void on_ams_refresh_rfid(wxCommandEvent &event);
     void on_ams_selected(wxCommandEvent &event);
     void on_ams_guide(wxCommandEvent &event);
@@ -373,6 +380,7 @@ protected:
     void update_misc_ctrl(MachineObject *obj);
     void update_ams(MachineObject* obj);
     void update_extruder_status(MachineObject* obj);
+    void update_ams_control_state(std::string ams_id, bool is_support_virtual_tray);
     void update_cali(MachineObject* obj);
 
     void reset_printing_values();

@@ -148,7 +148,8 @@ static t_config_enum_values s_keys_map_WallInfillOrder {
     { "inner wall/outer wall/infill",     int(WallInfillOrder::InnerOuterInfill) },
     { "outer wall/inner wall/infill",     int(WallInfillOrder::OuterInnerInfill) },
     { "infill/inner wall/outer wall",     int(WallInfillOrder::InfillInnerOuter) },
-    { "infill/outer wall/inner wall",     int(WallInfillOrder::InfillOuterInner) }
+    { "infill/outer wall/inner wall",     int(WallInfillOrder::InfillOuterInner) },
+    { "inner-outer-inner wall/infill",     int(WallInfillOrder::InnerOuterInnerInfill)}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WallInfillOrder)
 
@@ -1015,10 +1016,12 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("outer wall/inner wall/infill");
     def->enum_values.push_back("infill/inner wall/outer wall");
     def->enum_values.push_back("infill/outer wall/inner wall");
+    def->enum_values.push_back("inner-outer-inner wall/infill");
     def->enum_labels.push_back(L("inner/outer/infill"));
     def->enum_labels.push_back(L("outer/inner/infill"));
     def->enum_labels.push_back(L("infill/inner/outer"));
     def->enum_labels.push_back(L("infill/outer/inner"));
+    def->enum_labels.push_back(L("inner-outer-inner/infill"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<WallInfillOrder>(WallInfillOrder::InnerOuterInfill));
 
@@ -1901,6 +1904,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Diameter of nozzle");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
+    def->max = 1.0;
     def->set_default_value(new ConfigOptionFloats { 0.4 });
 
     def = this->add("host_type", coEnum);
@@ -1933,6 +1937,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->readonly = true;
     def->set_default_value(new ConfigOptionFloat { 0.0 });
+
+    def = this->add("start_end_points", coPoints);
+    def->label = L("Start end points");
+    def->tooltip  = L("The start and end points which is from cutter area to garbage can.");
+    def->mode     = comDevelop;
+    def->readonly = true;
+    // start and end point is from the change_filament_gcode
+    def->set_default_value(new ConfigOptionPoints{Vec2d(30, -3), Vec2d(54, 245)});
 
     def = this->add("reduce_infill_retraction", coBool);
     def->label = L("Reduce infill retraction");
@@ -2139,10 +2151,10 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Z Hop Type");
     def->tooltip = L("");
     def->enum_keys_map = &ConfigOptionEnum<ZHopType>::get_enum_values();
-    def->enum_values.push_back("auto");
-    def->enum_values.push_back("normal");
-    def->enum_values.push_back("slope");
-    def->enum_values.push_back("spiral");
+    def->enum_values.push_back("Auto Lift");
+    def->enum_values.push_back("Normal Lift");
+    def->enum_values.push_back("Slope Lift");
+    def->enum_values.push_back("Spiral Lift");
     def->enum_labels.push_back(L("Auto"));
     def->enum_labels.push_back(L("Normal"));
     def->enum_labels.push_back(L("Slope"));
@@ -2210,11 +2222,11 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(2));
 
     def = this->add("skirt_height", coInt);
-    //def->label = L("Skirt height");
-    def->label = "Skirt height";
-    //def->tooltip = L("How many layers of skirt. Usually only one layer");
+    def->label = L("Skirt height");
+    //def->label = "Skirt height";
+    def->tooltip = L("How many layers of skirt. Usually only one layer");
     def->sidetext = L("layers");
-    def->mode = comDevelop;
+    def->mode = comSimple;
     def->max = 10000;
     def->set_default_value(new ConfigOptionInt(1));
 
@@ -4781,6 +4793,26 @@ Points get_bed_shape(const PrintConfig &cfg)
 
 Points get_bed_shape(const SLAPrinterConfig &cfg) { return to_points(cfg.printable_area.values); }
 
+Polygon get_bed_shape_with_excluded_area(const PrintConfig& cfg)
+{
+    Polygon bed_poly;
+    bed_poly.points = get_bed_shape(cfg);
+
+    Points excluse_area_points = to_points(cfg.bed_exclude_area.values);
+    Polygons exclude_polys;
+    Polygon exclude_poly;
+    for (int i = 0; i < excluse_area_points.size(); i++) {
+        auto pt = excluse_area_points[i];
+        exclude_poly.points.emplace_back(pt);
+        if (i % 4 == 3) {  // exclude areas are always rectangle
+            exclude_polys.push_back(exclude_poly);
+            exclude_poly.points.clear();
+        }
+    }
+    auto tmp = diff({ bed_poly }, exclude_polys);
+    if (!tmp.empty()) bed_poly = tmp[0];
+    return bed_poly;
+}
 } // namespace Slic3r
 
 #include <cereal/types/polymorphic.hpp>

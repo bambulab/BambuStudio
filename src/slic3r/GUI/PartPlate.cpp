@@ -1152,6 +1152,7 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 	int glb_support_intf_extr = glb_config.opt_int("support_interface_filament");
 	int glb_support_extr = glb_config.opt_int("support_filament");
 	bool glb_support = glb_config.opt_bool("enable_support");
+    glb_support |= glb_config.opt_int("raft_layers") > 0;
 
 	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
 		if (!contain_instance_totally(obj_idx, 0))
@@ -1165,8 +1166,13 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 
 		bool obj_support = false;
 		const ConfigOption* obj_support_opt = mo->config.option("enable_support");
-		if (obj_support_opt != nullptr)
-			obj_support = obj_support_opt->getBool();
+        const ConfigOption *obj_raft_opt    = mo->config.option("raft_layers");
+		if (obj_support_opt != nullptr || obj_raft_opt != nullptr) {
+            if (obj_support_opt != nullptr)
+				obj_support = obj_support_opt->getBool();
+            if (obj_raft_opt != nullptr)
+				obj_support |= obj_raft_opt->getInt() > 0;
+        }
 		else
 			obj_support = glb_support;
 
@@ -4273,8 +4279,8 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 				plate_data_item->objects_and_instances.emplace_back(it->first, it->second);
 		}
 
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<boost::format(": plate %1%, gcode_filename=%2%, with_slice_info=%3%, slice_valid %4%")
-			%i %m_plate_list[i]->m_gcode_result->filename % with_slice_info %m_plate_list[i]->is_slice_result_valid();
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<boost::format(": plate %1%, gcode_filename=%2%, with_slice_info=%3%, slice_valid %4%, object item count %5%.")
+			%i %m_plate_list[i]->m_gcode_result->filename % with_slice_info %m_plate_list[i]->is_slice_result_valid()%plate_data_item->objects_and_instances.size();
 
 		if (with_slice_info) {
 			if (m_plate_list[i]->get_slice_result() && m_plate_list[i]->is_slice_result_valid()) {

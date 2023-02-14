@@ -361,13 +361,13 @@ void ObjectList::create_objects_ctrl()
         colFilament, m_columns_width[colFilament] * em, wxALIGN_CENTER_HORIZONTAL, 0));
 
     // BBS
-    AppendBitmapColumn("  ", colSupportPaint, wxDATAVIEW_CELL_INERT, m_columns_width[colSupportPaint] * em,
+    AppendBitmapColumn(" ", colSupportPaint, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colSupportPaint] * em,
         wxALIGN_CENTER_HORIZONTAL, 0);
-    AppendBitmapColumn("  ", colColorPaint, wxDATAVIEW_CELL_INERT, m_columns_width[colColorPaint] * em,
+    AppendBitmapColumn(" ", colColorPaint, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colColorPaint] * em,
         wxALIGN_CENTER_HORIZONTAL, 0);
 
     // column ItemEditing of the view control:
-    AppendBitmapColumn("  ", colEditing, wxDATAVIEW_CELL_INERT, m_columns_width[colEditing] * em,
+    AppendBitmapColumn(" ", colEditing, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colEditing] * em,
         wxALIGN_CENTER_HORIZONTAL, 0);
 
     //for (int cn = colName; cn < colCount; cn++) {
@@ -1923,11 +1923,9 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
         ModelVolume* new_volume = model_object.add_volume(std::move(mesh), type);
         new_volume->name = boost::filesystem::path(input_file).filename().string();
 
-        // adjust the position according to the bounding box
-        const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
-        new_volume->set_transformation(Geometry::Transformation::volume_to_bed_transformation(v->get_instance_transformation(), mesh_bb));
-        auto offset = Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - v->get_instance_offset();
-        new_volume->set_offset(v->get_instance_transformation().get_matrix(true).inverse() * offset);
+        // BBS: object_mesh.get_init_shift() keep the relative position
+        TriangleMesh object_mesh = model_object.volumes[0]->mesh();
+        new_volume->set_offset(new_volume->mesh().get_init_shift() - object_mesh.get_init_shift());
 
         // set a default extruder value, since user can't add it manually
         // BBS
@@ -4713,6 +4711,7 @@ void ObjectList::fix_through_netfabb()
 
         plater->changed_mesh(obj_idx);
 
+        object(obj_idx)->ensure_on_bed();
         plater->get_partplate_list().notify_instance_update(obj_idx, 0);
         plater->sidebar().obj_list()->update_plate_values_for_items();
 
@@ -4723,8 +4722,6 @@ void ObjectList::fix_through_netfabb()
 
         update_item_error_icon(obj_idx, vol_idx);
         update_info_items(obj_idx);
-
-        object(obj_idx)->ensure_on_bed();
 
         return true;
     };
@@ -4859,15 +4856,45 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
 #else
     event.Veto(); // Not edit with NSTableView's text
     auto col = event.GetColumn();
+    auto item = event.GetItem();
     if (col == colPrint) {
         toggle_printable_state();
+        return;
+    } else if (col == colSupportPaint) {
+        ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+        if (node->HasSupportPainting()) {
+            GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
+            if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::FdmSupports)
+                gizmos_mgr.open_gizmo(GLGizmosManager::EType::FdmSupports);
+            else
+                gizmos_mgr.reset_all_states();
+        }
+        return;
+    }
+    else if (col == colColorPaint) {
+        ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+        if (node->HasColorPainting()) {
+            GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
+            if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::MmuSegmentation)
+                gizmos_mgr.open_gizmo(GLGizmosManager::EType::MmuSegmentation);
+            else
+                gizmos_mgr.reset_all_states();
+        }
+        return;
+    }
+    else if (col == colEditing) {
+        //show_context_menu(evt_context_menu);
+        int obj_idx, vol_idx;
+
+        get_selected_item_indexes(obj_idx, vol_idx, item);
+        //wxGetApp().plater()->PopupObjectTable(obj_idx, vol_idx, mouse_pos);
+        dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab(vol_idx >= 0))->reset_model_config();
         return;
     }
     if (col != colFilament && col != colName)
         return;
     auto column = GetColumn(col);
     const auto renderer = column->GetRenderer();
-    auto item = event.GetItem();
     if (!renderer->GetEditorCtrl()) {
         renderer->StartEditing(item, GetItemRect(item, column));
         if (col == colName) // TODO: for colName editing, disable shortcuts

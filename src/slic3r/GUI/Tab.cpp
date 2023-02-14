@@ -1402,7 +1402,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     // reload scene to update timelapse wipe tower
     if (opt_key == "timelapse_type") {
         bool wipe_tower_enabled = m_config->option<ConfigOptionBool>("enable_prime_tower")->value;
-        if (!wipe_tower_enabled && boost::any_cast<int>(value) == int(TimelapseType::tlSmooth)) {
+        if (!wipe_tower_enabled && boost::any_cast<int>(value) == (int)TimelapseType::tlSmooth) {
             MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"),
                               _L("Warning"), wxICON_WARNING | wxYES | wxNO);
             if (dlg.ShowModal() == wxID_YES) {
@@ -1979,6 +1979,7 @@ void TabPrint::build()
     page = add_options_page(L("Others"), "advanced");
         optgroup = page->new_optgroup(L("Bed adhension"), L"param_adhension");
         optgroup->append_single_option_line("skirt_loops");
+        optgroup->append_single_option_line("skirt_height");
         optgroup->append_single_option_line("skirt_distance");
         //optgroup->append_single_option_line("draft_shield");
         optgroup->append_single_option_line("brim_type", "auto-brim");
@@ -3521,9 +3522,6 @@ void TabPrinter::toggle_options()
         for (auto el : vec)
             toggle_option(el, retraction, i);
 
-        // retract lift above / below only applies if using retract lift
-        vec.resize(0);
-
         // some options only apply when not using firmware retraction
         vec.resize(0);
         vec = { "retraction_speed", "deretraction_speed", "retract_before_wipe", "retract_restart_extra", "wipe", "wipe_distance" };
@@ -3547,8 +3545,11 @@ void TabPrinter::toggle_options()
             || m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlinFirmware);
         bool silent_mode = m_config->opt_bool("silent_mode");
         int  max_field = silent_mode ? 2 : 1;
-        //BBS: limits of BBL printer can't be edited.
-    	for (const std::string &opt : Preset::machine_limits_options())
+        //BBS: limits of BBL printer can't be edited, except jerk.
+        for (const std::string& opt : { "machine_max_acceleration_extruding", "machine_max_acceleration_retracting", "machine_max_acceleration_travel",
+            "machine_max_acceleration_x", "machine_max_acceleration_y", "machine_max_acceleration_z", "machine_max_acceleration_e",
+            "machine_max_speed_x", "machine_max_speed_y", "machine_max_speed_z", "machine_max_speed_e",
+            "machine_min_extruding_rate", "machine_min_travel_rate" })
             for (int i = 0; i < max_field; ++ i)
 	            toggle_option(opt, !is_BBL_printer, i);
     }

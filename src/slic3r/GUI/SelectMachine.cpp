@@ -92,6 +92,8 @@ std::string get_print_status_info(PrintDialogStatus status)
         return "PrintStatusNoSdcard";
     case PrintStatusTimelapseNoSdcard:
         return "PrintStatusTimelapseNoSdcard";
+    case PrintStatusNotSupportedPrintAll:
+        return "PrintStatusNotSupportedPrintAll";
     }
     return "unknown";
 }
@@ -1873,6 +1875,11 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusNotSupportedPrintAll) {
+        wxString msg_text = _L("This printer does not support printing all plates");
+        update_print_status_msg(msg_text, true, true);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
     }
 }
 
@@ -1910,6 +1917,9 @@ void SelectMachineDialog::init_timer()
 
 void SelectMachineDialog::on_cancel(wxCloseEvent &event)
 {
+    if (m_mapping_popup.IsShown())
+        m_mapping_popup.Dismiss();
+
     if (m_print_job) {
         if (m_print_job->is_running()) {
             m_print_job->cancel();
@@ -1978,6 +1988,12 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             }
         }
         else {
+            wxString error_info = Plater::get_slice_warning_string(warning);
+            if (error_info.IsEmpty()) {
+                error_info = wxString::Format("%s\n", warning.msg);
+                confirm_text.push_back(error_info + "\n");
+            } else
+                confirm_text.push_back(error_info + "\n");
             has_slice_warnings = true;
         }
     }
@@ -2134,7 +2150,7 @@ void SelectMachineDialog::on_ok()
 
     m_print_job                = std::make_shared<PrintJob>(m_status_bar, m_plater, m_printer_last_select);
     m_print_job->m_dev_ip      = obj_->dev_ip;
-    m_print_job->m_access_code   = obj_->access_code;
+    m_print_job->m_access_code   = obj_->get_access_code();
     m_print_job->m_local_use_ssl = obj_->local_use_ssl;
     m_print_job->connection_type = obj_->connection_type();
     m_print_job->set_project_name(m_current_project_name.utf8_string());
@@ -2148,10 +2164,6 @@ void SelectMachineDialog::on_ok()
     }
 
     m_print_job->has_sdcard = obj_->has_sdcard();
-
-    if (obj_->is_only_support_cloud_print()) {
-        m_print_job->cloud_print_only = true;
-    }
 
 
     bool timelapse_option = select_timelapse->IsShown() ? m_checkbox_list["timelapse"]->GetValue() : true;
@@ -2612,6 +2624,12 @@ void SelectMachineDialog::update_show_status()
 
     reset_timeout();
     update_ams_check(obj_);
+
+    if (!obj_->is_function_supported(PrinterFunction::FUNC_PRINT_ALL) && m_print_plate_idx == PLATE_ALL_IDX) {
+        show_status(PrintDialogStatus::PrintStatusNotSupportedPrintAll);
+        return;
+    }
+
 
     // do ams mapping if no ams result
     if (obj_->has_ams() && m_ams_mapping_result.empty()) {

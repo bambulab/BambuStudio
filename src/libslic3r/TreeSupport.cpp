@@ -699,16 +699,26 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
                                                   ipConcentric :
                                                   (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
     m_support_params.support_extrusion_width = m_object_config->support_line_width.value > 0 ? m_object_config->support_line_width : m_object_config->line_width;
-    is_slim                                  = is_tree_slim(m_object_config->support_type, m_object_config->support_style);
+    support_type                             = m_object_config->support_type;
+    is_slim                                  = is_tree_slim(support_type, m_object_config->support_style);
     MAX_BRANCH_RADIUS                        = is_slim ? 5.0 : 10.0;
     tree_support_branch_diameter_angle       = 5.0;//is_slim ? 10.0 : 5.0;
     // by default tree support needs no infill, unless it's tree hybrid which contains normal nodes.
     with_infill                              = support_pattern != smpNone && support_pattern != smpDefault;
+    const PrintConfig& print_config = m_object->print()->config();
+    m_machine_border.contour = get_bed_shape_with_excluded_area(print_config);
+    Vec3d plate_offset       = m_object->print()->get_plate_origin();
+    // align with the centered object in current plate (may not be the 1st plate, so need to add the plate offset)
+    m_machine_border.translate(Point(scale_(plate_offset(0)), scale_(plate_offset(1))) - m_object->instances().front().shift);
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
+    SVG svg("SVG/machine_boarder.svg", m_object->bounding_box());
+    if (svg.is_opened()) svg.draw(m_machine_border, "yellow");
+#endif
 }
 
 
 #define SUPPORT_SURFACES_OFFSET_PARAMETERS ClipperLib::jtSquare, 0.
-void TreeSupport::detect_object_overhangs()
+void TreeSupport::detect_overhangs()
 {
     // overhangs are already detected
     if (m_object->support_layer_count() >= m_object->layer_count())
@@ -719,12 +729,11 @@ void TreeSupport::detect_object_overhangs()
     m_object->clear_tree_support_preview_cache();
 
     create_tree_support_layers();
-    m_ts_data = m_object->alloc_tree_support_preview_cache();
-    m_ts_data->is_slim = is_slim;
+
 
     const PrintObjectConfig& config = m_object->config();
-    SupportType stype = config.support_type.value;
-    const coordf_t radius_sample_resolution = m_ts_data->m_radius_sample_resolution;
+    SupportType stype = support_type;
+    const coordf_t radius_sample_resolution = g_config_tree_support_collision_resolution;
     const coordf_t extrusion_width = config.line_width.value;
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     const coordf_t max_bridge_length = scale_(config.max_bridge_length.value);
@@ -983,6 +992,9 @@ void TreeSupport::detect_object_overhangs()
                         layer->sharp_tails.push_back(expoly);
                         layer->sharp_tails_height.insert({ &expoly, accum_height });
                         append(overhang_areas, overhang);
+
+                        if (!overhang.empty())
+                            has_sharp_tails = true;
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
                         SVG svg(get_svg_filename(std::to_string(layer->print_z), "sharp_tail"), m_object->bounding_box());
                         if (svg.is_opened()) svg.draw(overhang, "yellow");
@@ -1148,8 +1160,8 @@ void TreeSupport::detect_object_overhangs()
             break;
 
         SupportLayer* ts_layer = m_object->get_support_layer(layer_nr + m_raft_layers);
+        auto layer = m_object->get_layer(layer_nr);
         if (support_critical_regions_only) {
-            auto layer = m_object->get_layer(layer_nr);
             auto lower_layer = layer->lower_layer;
             if (lower_layer == nullptr)
                 ts_layer->overhang_areas = layer->sharp_tails;
@@ -1181,6 +1193,7 @@ void TreeSupport::detect_object_overhangs()
         }
 
         if (!ts_layer->overhang_areas.empty()) has_overhangs = true;
+        if (!layer->cantilevers.empty()) has_cantilever = true;
     }
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
@@ -1486,7 +1499,7 @@ void TreeSupport::generate_toolpaths()
         filler_interface->spacing = support_extrusion_width;
 
         FillParams fill_params;
-        fill_params.density = interface_density;
+        fill_params.density     = object_config.raft_first_layer_density * 0.01;
         fill_params.dont_adjust = true;
 
         fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(offset_ex(raft_areas, scale_(expand_offset))),
@@ -1596,14 +1609,13 @@ void TreeSupport::generate_toolpaths()
                         // base_areas
                         filler_support->spacing = support_flow.spacing();
                         Flow flow               = (layer_id == 0 && m_raft_layers == 0) ? m_object->print()->brim_flow() : support_flow;
-                        if (area_group.dist_to_top < 10 && !with_infill && m_object_config->support_style!=smsTreeHybrid) {
+                        if (layer_id>0 && area_group.dist_to_top < 10 && !with_infill && m_object_config->support_style!=smsTreeHybrid) {
                             if (area_group.dist_to_top < 5)  // 1 wall at the top <5mm
                                 make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly, 1, flow, erSupportMaterial);
                             else // at least 2 walls for range [5,10)
                                 make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly, std::max(wall_count, size_t(2)), flow, erSupportMaterial);
 
-                        } else {
-                            if (with_infill && layer_id > 0 && m_support_params.base_fill_pattern != ipLightning) {
+                        } else if (layer_id > 0 && with_infill && m_support_params.base_fill_pattern != ipLightning) {
                                 filler_support->angle = Geometry::deg2rad(object_config.support_angle.value);
 
                                 // allow infill-only mode if support is thick enough
@@ -1614,11 +1626,12 @@ void TreeSupport::generate_toolpaths()
                                     make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object->print(), poly, std::max(size_t(1), wall_count), flow,
                                                               erSupportMaterial, filler_support.get(), support_density);
                                 }
-                            } else {
-                                make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly,
-                                                              layer_id > 0 ? wall_count : std::numeric_limits<size_t>::max(), flow, erSupportMaterial);
-                            }
                         }
+                        else {
+                            make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly,
+                                layer_id > 0 ? wall_count : std::numeric_limits<size_t>::max(), flow, erSupportMaterial);
+                        }
+                        
                     }
                 }
                 if (m_support_params.base_fill_pattern == ipLightning)
@@ -1887,7 +1900,7 @@ Polygons TreeSupport::contact_nodes_to_polygon(const std::vector<Node*>& contact
 }
 
 
-void TreeSupport::generate_support_areas()
+void TreeSupport::generate()
 {
     bool tree_support_enable = m_object_config->enable_support.value && is_tree(m_object_config->support_type.value);
     if (!tree_support_enable)
@@ -1900,8 +1913,13 @@ void TreeSupport::generate_support_areas()
     // Generate overhang areas
     profiler.stage_start(STAGE_DETECT_OVERHANGS);
     m_object->print()->set_status(55, _L("Support: detect overhangs"));
-    detect_object_overhangs();
+    detect_overhangs();
     profiler.stage_finish(STAGE_DETECT_OVERHANGS);
+
+    if (!has_overhangs) return;
+
+    m_ts_data = m_object->alloc_tree_support_preview_cache();
+    m_ts_data->is_slim = is_slim;
 
     // Generate contact points of tree support
     profiler.stage_start(STAGE_GENERATE_CONTACT_NODES);
@@ -2202,18 +2220,20 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 //roof_areas = std::move(diff_ex(roof_areas, avoid_region_interface));
                 //roof_1st_layer = std::move(diff_ex(roof_1st_layer, avoid_region_interface));
                 roof_areas = avoid_object_remove_extra_small_parts(roof_areas, avoid_region_interface);
+                roof_areas = intersection_ex(roof_areas, m_machine_border);
                 roof_1st_layer = avoid_object_remove_extra_small_parts(roof_1st_layer, avoid_region_interface);
 
                 // roof_1st_layer and roof_areas may intersect, so need to subtract roof_areas from roof_1st_layer
                 roof_1st_layer = std::move(diff_ex(roof_1st_layer, roof_areas));
+                roof_1st_layer = intersection_ex(roof_1st_layer, m_machine_border);
 
                 // let supports touch objects when brim is on
                 auto avoid_region = m_ts_data->get_collision((layer_nr == 0 && has_brim) ? config.brim_object_gap : m_ts_data->m_xy_distance, layer_nr);
-                // base_areas = std::move(diff_ex(base_areas, avoid_region));
                 base_areas = avoid_object_remove_extra_small_parts(base_areas, avoid_region);
                 base_areas = std::move(diff_ex(base_areas, roof_areas));
                 base_areas = std::move(diff_ex(base_areas, roof_1st_layer));
                 base_areas = std::move(diff_ex(base_areas, roof_gap_areas));
+                base_areas = intersection_ex(base_areas, m_machine_border);
 
                 if (SQUARE_SUPPORT) {
                     // simplify support contours
@@ -3313,7 +3333,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
     const auto center = bounding_box_middle(bounding_box);
     const auto sin_angle = std::sin(rotate_angle);
     const auto cos_angle = std::cos(rotate_angle);
-    const auto rotated_dims = Point(
+    const Point rotated_dims = Point(
         bounding_box_size(0) * cos_angle + bounding_box_size(1) * sin_angle,
         bounding_box_size(0) * sin_angle + bounding_box_size(1) * cos_angle) / 2;
 
@@ -3496,16 +3516,6 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
         
         BOOST_LOG_TRIVIAL(info) << "avg_node_per_layer=" << avg_node_per_layer << ", nodes_angle=" << nodes_angle;
     }
-#ifdef SUPPORT_TREE_DEBUG_TO_SVG
-    std::ofstream contact_nodes_out;
-    contact_nodes_out.open("./SVG/contact_nodes.txt");
-    if (contact_nodes_out.is_open()) {
-        for (int i = 0; i < contact_nodes.size(); i++) {
-            if (!contact_nodes[i].empty())
-                contact_nodes_out << i << std::endl;
-        }
-    }
-#endif // SUPPORT_TREE_DEBUG_TO_SVG
 }
 
 void TreeSupport::insert_dropped_node(std::vector<Node*>& nodes_layer, Node* p_node)
