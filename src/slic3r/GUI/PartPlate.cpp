@@ -133,7 +133,7 @@ void PartPlate::init()
 	m_print = nullptr;
 }
 
-BedType PartPlate::get_bed_type(bool check_global/*= true*/) const
+BedType PartPlate::get_bed_type() const
 {
 	std::string bed_type_key = "curr_bed_type";
 
@@ -141,32 +141,26 @@ BedType PartPlate::get_bed_type(bool check_global/*= true*/) const
 	assert(m_plater != nullptr);
 	if (m_config.has(bed_type_key)) {
 		BedType bed_type = m_config.opt_enum<BedType>(bed_type_key);
-		if (bed_type != btDefault)
-			return bed_type;
+		return bed_type;
 	}
 
-	if (!check_global)
-		return btDefault;
-
-	if (m_plater) {
-		// In GUI mode
-		DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
-		if (proj_cfg.has(bed_type_key))
-			return proj_cfg.opt_enum<BedType>(bed_type_key);
-	}
-
-	return BedType::btPC;
+	return btDefault;
 }
 
 void PartPlate::set_bed_type(BedType bed_type)
 {
-	std::string bed_type_key = "curr_bed_type";
+    std::string bed_type_key = "curr_bed_type";
 
-	// should be called in GUI context
-	assert(m_plater != nullptr);
+    // should be called in GUI context
+    assert(m_plater != nullptr);
 
     // update slice state
     BedType old_real_bed_type = get_bed_type();
+    if (old_real_bed_type == btDefault) {
+        DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
+        if (proj_cfg.has(bed_type_key))
+            old_real_bed_type = proj_cfg.opt_enum<BedType>(bed_type_key);
+    }
     BedType new_real_bed_type = bed_type;
     if (bed_type == BedType::btDefault) {
         DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
@@ -177,18 +171,74 @@ void PartPlate::set_bed_type(BedType bed_type)
         update_slice_result_valid_state(false);
     }
 
-	if (bed_type == BedType::btDefault)
-		m_config.erase(bed_type_key);
-	else
-		m_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
-
-	if (m_plater)
-        m_plater->update_project_dirty_from_presets();
+    if (bed_type == BedType::btDefault)
+        m_config.erase(bed_type_key);
+    else
+        m_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
 }
 
 void PartPlate::reset_bed_type()
 {
-	m_config.erase("curr_bed_type");
+    m_config.erase("curr_bed_type");
+}
+
+void PartPlate::set_print_seq(PrintSequence print_seq)
+{
+    std::string print_seq_key = "print_sequence";
+
+    // should be called in GUI context
+    assert(m_plater != nullptr);
+
+    // update slice state
+    PrintSequence old_real_print_seq = get_print_seq();
+    if (old_real_print_seq == PrintSequence::ByDefault) {
+        auto curr_preset_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        if (curr_preset_config.has(print_seq_key))
+            old_real_print_seq = curr_preset_config.option<ConfigOptionEnum<PrintSequence>>(print_seq_key)->value;
+    }
+
+    PrintSequence new_real_print_seq = print_seq;
+
+    if (print_seq == PrintSequence::ByDefault) {
+        auto curr_preset_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        if (curr_preset_config.has(print_seq_key))
+            new_real_print_seq = curr_preset_config.option<ConfigOptionEnum<PrintSequence>>(print_seq_key)->value;
+    }
+
+    if (old_real_print_seq != new_real_print_seq) {
+        update_slice_result_valid_state(false);
+    }
+
+    //print_seq_same_global = same_global;
+    if (print_seq == PrintSequence::ByDefault)
+        m_config.erase(print_seq_key);
+    else
+        m_config.set_key_value(print_seq_key, new ConfigOptionEnum<PrintSequence>(print_seq));
+}
+
+PrintSequence PartPlate::get_print_seq() const
+{
+    std::string print_seq_key = "print_sequence";
+
+    // should be called in GUI context
+    assert(m_plater != nullptr);
+
+    if (m_config.has(print_seq_key)) {
+        PrintSequence print_seq = m_config.opt_enum<PrintSequence>(print_seq_key);
+        return print_seq;
+    }
+
+    return PrintSequence::ByDefault;
+}
+
+PrintSequence PartPlate::get_real_print_seq() const
+{
+    PrintSequence curr_plate_seq = get_print_seq();
+    if (curr_plate_seq == PrintSequence::ByDefault) {
+        auto curr_preset_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        if (curr_preset_config.has("print_sequence")) curr_plate_seq = curr_preset_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
+    }
+    return curr_plate_seq;
 }
 
 bool PartPlate::valid_instance(int obj_id, int instance_id)
@@ -561,7 +611,13 @@ void PartPlate::render_logo(bool bottom) const
 	m_partplate_list->load_bedtype_textures();
 
 	// btDefault should be skipped
-	int bed_type_idx = (int)get_bed_type();
+	auto curr_bed_type = get_bed_type();
+	if (curr_bed_type == btDefault) {
+        DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
+        if (proj_cfg.has(std::string("curr_bed_type")))
+            curr_bed_type = proj_cfg.opt_enum<BedType>(std::string("curr_bed_type"));
+	}
+	int bed_type_idx = (int)curr_bed_type;
 	for (auto &part : m_partplate_list->bed_texture_info[bed_type_idx].parts) {
 		if (part.texture) {
 			if (part.buffer && part.buffer->get_vertices_count() > 0
@@ -739,18 +795,18 @@ void PartPlate::render_icons(bool bottom, int hover_id) const
                 render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_lockopen_texture, m_lock_vbo_id);
         }
 
-        if (m_partplate_list->render_bedtype_setting) {
+        if (m_partplate_list->render_plate_settings) {
             if (hover_id == 5) {
-                if (get_bed_type(false) == BedType::btDefault)
-					render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_hovered_texture, m_bedtype_vbo_id);
+                if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault)
+                    render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_hovered_texture, m_plate_settings_vbo_id);
                 else
-					render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_changed_hovered_texture, m_bedtype_vbo_id);
+                    render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_changed_hovered_texture, m_plate_settings_vbo_id);
             }
             else {
-                if (get_bed_type(false) == BedType::btDefault)
-					render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_texture, m_bedtype_vbo_id);
+                if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault)
+                    render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_texture, m_plate_settings_vbo_id);
                 else
-					render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_changed_texture, m_bedtype_vbo_id);
+                    render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_changed_texture, m_plate_settings_vbo_id);
             }
         }
 
@@ -1088,8 +1144,8 @@ void PartPlate::on_render_for_picking() const {
 	m_grabber_color[1] = color[1];
 	m_grabber_color[2] = color[2];
 	m_grabber_color[3] = color[3];
-    if (m_partplate_list->render_bedtype_setting)
-        render_rectangle_for_picking(m_bedtype_icon, m_grabber_color);
+    if (m_partplate_list->render_plate_settings)
+        render_rectangle_for_picking(m_plate_settings_icon, m_grabber_color);
 }
 
 std::array<float, 4> PartPlate::picking_color_component(int idx) const
@@ -1126,9 +1182,9 @@ void PartPlate::release_opengl_resource()
 		glsafe(::glDeleteBuffers(1, &m_lock_vbo_id));
 		m_lock_vbo_id = 0;
 	}
-	if (m_bedtype_vbo_id > 0) {
-		glsafe(::glDeleteBuffers(1, &m_bedtype_vbo_id));
-		m_bedtype_vbo_id = 0;
+	if (m_plate_settings_vbo_id > 0) {
+		glsafe(::glDeleteBuffers(1, &m_plate_settings_vbo_id));
+		m_plate_settings_vbo_id = 0;
 	}
 	if (m_plate_idx_vbo_id > 0) {
 		glsafe(::glDeleteBuffers(1, &m_plate_idx_vbo_id));
@@ -1199,11 +1255,14 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 	}
 
 	if (conside_custom_gcode) {
-        for (auto item : m_model->custom_gcode_per_print_z.gcodes) {
-        if (item.type == CustomGCode::Type::ToolChange)
-            plate_extruders.push_back(item.extruder);
-        }
-    }
+		//BBS
+		if (m_model->plates_custom_gcodes.find(m_plate_index) != m_model->plates_custom_gcodes.end()) {
+			for (auto item : m_model->plates_custom_gcodes.at(m_plate_index).gcodes) {
+				if (item.type == CustomGCode::Type::ToolChange)
+					plate_extruders.push_back(item.extruder);
+			}
+		}
+	}
 
 	std::sort(plate_extruders.begin(), plate_extruders.end());
 	auto it_end = std::unique(plate_extruders.begin(), plate_extruders.end());
@@ -1686,6 +1745,29 @@ int PartPlate::remove_instance(int obj_id, int instance_id)
 	return result;
 }
 
+//translate instance on the plate
+void PartPlate::translate_all_instance(Vec3d position)
+{
+    for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
+    {
+        int obj_id = it->first;
+        int instance_id = it->second;
+
+        if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
+        {
+            ModelObject* object = m_model->objects[obj_id];
+            if ((instance_id >= 0) && (instance_id < object->instances.size()))
+            {
+                ModelInstance* instance = object->instances[instance_id];
+                const Vec3d& offset =  instance->get_offset();
+                instance->set_offset(offset + position);
+            }
+        }
+    }
+    return;
+}
+
+
 //update instance exclude state
 void PartPlate::update_instance_exclude_status(int obj_id, int instance_id, BoundingBoxf3* bounding_box)
 {
@@ -1950,17 +2032,27 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 
 bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Vec2d position, float height_to_lid, float height_to_rod)
 {
-	if ((m_shape == shape)&&(m_exclude_area == exclude_areas)
+	Pointfs new_shape, new_exclude_areas;
+
+	for (const Vec2d& p : shape) {
+		new_shape.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
+	}
+
+	for (const Vec2d& p : exclude_areas) {
+		new_exclude_areas.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
+	}
+	if ((m_shape == new_shape)&&(m_exclude_area == new_exclude_areas)
 		&&(m_height_to_lid == height_to_lid)&&(m_height_to_rod == height_to_rod)) {
-		BOOST_LOG_TRIVIAL(trace) << "PartPlate same shape";
+		BOOST_LOG_TRIVIAL(info) << "PartPlate same shape, skip directly";
 		return false;
 	}
+
 	m_height_to_lid =  height_to_lid;
 	m_height_to_rod =  height_to_rod;
 
-	if ((m_shape != shape) || (m_exclude_area != exclude_areas))
+	if ((m_shape != new_shape) || (m_exclude_area != new_exclude_areas))
 	{
-		m_shape.clear();
+		/*m_shape.clear();
 		for (const Vec2d& p : shape) {
 			m_shape.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
 		}
@@ -1968,7 +2060,9 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		m_exclude_area.clear();
 		for (const Vec2d& p : exclude_areas) {
 			m_exclude_area.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
-		}
+		}*/
+		m_shape = std::move(new_shape);
+		m_exclude_area = std::move(new_exclude_areas);
 
 		calc_bounding_boxes();
 
@@ -2003,7 +2097,7 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		calc_vertex_for_icons(1, m_orient_icon);
 		calc_vertex_for_icons(2, m_arrange_icon);
 		calc_vertex_for_icons(3, m_lock_icon);
-		calc_vertex_for_icons(4, m_bedtype_icon);
+		calc_vertex_for_icons(4, m_plate_settings_icon);
 		//calc_vertex_for_number(0, (m_plate_index < 9), m_plate_idx_icon);
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
 	}
@@ -2221,10 +2315,13 @@ int PartPlate::load_gcode_from_file(const std::string& filename)
 	int ret = 0;
 
 	// process gcode
-	m_print->apply(*m_model, wxGetApp().preset_bundle->full_config());
+	DynamicPrintConfig full_config = wxGetApp().preset_bundle->full_config();
+	full_config.apply(m_config, true);
+	m_print->apply(*m_model, full_config);
 	//BBS: need to apply two times, for after the first apply, the m_print got its object,
 	//which will affect the config when new_full_config.normalize_fdm(used_filaments);
-	m_print->apply(*m_model, wxGetApp().preset_bundle->full_config());
+	m_print->apply(*m_model, full_config);
+
 	// BBS: use backup path to save temp gcode
     // auto path = get_tmp_gcode_path();
     // if (boost::filesystem::exists(boost::filesystem::path(path))) {
@@ -2405,6 +2502,23 @@ Vec3d PartPlateList::compute_origin(int i, int cols)
 	return origin;
 }
 
+//compute the origin for printable plate with index i using new width
+Vec3d PartPlateList::compute_origin_using_new_size(int i, int new_width, int new_depth)
+{
+	Vec3d origin;
+	int row, col;
+
+	row = i / m_plate_cols;
+	col = i % m_plate_cols;
+
+	origin(0) = col * (new_width * (1. + LOGICAL_PART_PLATE_GAP));
+	origin(1) = -row * (new_depth * (1. + LOGICAL_PART_PLATE_GAP));
+	origin(2) = 0;
+
+	return origin;
+}
+
+
 //compute the origin for printable plate with index i
 Vec3d PartPlateList::compute_origin_for_unprintable()
 {
@@ -2522,32 +2636,32 @@ void PartPlateList::generate_icon_textures()
 
 	//if (m_bedtype_texture.get_id() == 0)
 	{
-		file_name = path + (m_is_dark ? "plate_set_bedtype_dark.svg" : "plate_set_bedtype.svg");
-		if (!m_bedtype_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+		file_name = path + (m_is_dark ? "plate_settings_dark.svg" : "plate_settings.svg");
+		if (!m_plate_settings_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 		}
 	}
 
 	//if (m_bedtype_changed_texture.get_id() == 0)
 	{
-		file_name = path + (m_is_dark ? "plate_set_bedtype_changed_dark.svg" : "plate_set_bedtype_changed.svg");
-		if (!m_bedtype_changed_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+		file_name = path + (m_is_dark ? "plate_settings_changed_dark.svg" : "plate_settings_changed.svg");
+		if (!m_plate_settings_changed_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 		}
 	}
 
 	//if (m_bedtype_hovered_texture.get_id() == 0)
 	{
-		file_name = path + (m_is_dark ? "plate_set_bedtype_hover_dark.svg" : "plate_set_bedtype_hover.svg");
-		if (!m_bedtype_hovered_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+		file_name = path + (m_is_dark ? "plate_settings_hover_dark.svg" : "plate_settings_hover.svg");
+		if (!m_plate_settings_hovered_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 		}
 	}
 
 	//if (m_bedtype_changed_hovered_texture.get_id() == 0)
 	{
-		file_name = path + (m_is_dark ? "plate_set_bedtype_changed_hover_dark.svg" : "plate_set_bedtype_changed_hover.svg");
-		if (!m_bedtype_changed_hovered_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+		file_name = path + (m_is_dark ? "plate_settings_changed_hover_dark.svg" : "plate_settings_changed_hover.svg");
+		if (!m_plate_settings_changed_hovered_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 		}
 	}
@@ -2608,10 +2722,10 @@ void PartPlateList::release_icon_textures()
 	m_locked_hovered_texture.reset();
 	m_lockopen_texture.reset();
 	m_lockopen_hovered_texture.reset();
-	m_bedtype_texture.reset();
-	m_bedtype_changed_texture.reset();
-	m_bedtype_hovered_texture.reset();
-	m_bedtype_changed_hovered_texture.reset();
+	m_plate_settings_texture.reset();
+	m_plate_settings_texture.reset();
+	m_plate_settings_texture.reset();
+	m_plate_settings_hovered_texture.reset();
 
 	for (int i = 0;i < MAX_PLATE_COUNT; i++) {
 		m_idx_textures[i].reset();
@@ -2636,7 +2750,7 @@ void PartPlateList::release_icon_textures()
 }
 
 //this may be happened after machine changed
-void PartPlateList::reset_size(int width, int depth, int height)
+void PartPlateList::reset_size(int width, int depth, int height, bool reload_objects, bool update_shapes)
 {
 	Vec3d origin1, origin2;
 
@@ -2648,7 +2762,13 @@ void PartPlateList::reset_size(int width, int depth, int height)
 		m_plate_depth = depth;
 		m_plate_height = height;
 		update_all_plates_pos_and_size(false, false);
-		reload_all_objects();
+		if (update_shapes) {
+			set_shapes(m_shape, m_exclude_areas, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
+		}
+		if (reload_objects)
+			reload_all_objects();
+		else
+			clear(false, false, false, -1);
 	}
 
 	return;
@@ -3000,6 +3120,25 @@ PartPlate* PartPlateList::get_selected_plate()
 	return m_plate_list[m_current_plate];
 }
 
+std::vector<PartPlate*> PartPlateList::get_nonempty_plate_list()
+{
+	std::vector<PartPlate*> nonempty_plate_list;
+	for (auto plate : m_plate_list){
+		if (plate->get_extruders().size() != 0) {
+			nonempty_plate_list.push_back(plate);
+		}
+	}
+	return nonempty_plate_list;
+}
+
+std::vector<const GCodeProcessorResult*> PartPlateList::get_nonempty_plates_slice_results() {
+	std::vector<const GCodeProcessorResult*> nonempty_plates_slice_result;
+	for (auto plate : get_nonempty_plate_list()) {
+		nonempty_plates_slice_result.push_back(plate->get_slice_result());
+	}
+	return nonempty_plates_slice_result;
+}
+
 //select plate
 int PartPlateList::select_plate(int index)
 {
@@ -3021,6 +3160,10 @@ int PartPlateList::select_plate(int index)
 
 	m_current_plate = index;
 	m_plate_list[m_current_plate]->set_selected();
+
+	//BBS
+	if(m_model)
+		m_model->curr_plate_index = index;
 
 	//BBS update bed origin
 	if (m_intialized && m_plater) {
@@ -3919,10 +4062,10 @@ void PartPlateList::render_for_picking_pass()
 	return 0;
 }*/
 
-void PartPlateList::set_render_option(bool bedtype_texture, bool bedtype_setting)
+void PartPlateList::set_render_option(bool bedtype_texture, bool plate_settings)
 {
-	render_bedtype_logo		= bedtype_texture;
-    render_bedtype_setting = bedtype_setting;
+    render_bedtype_logo = bedtype_texture;
+    render_plate_settings = plate_settings;
 }
 
 int PartPlateList::select_plate_by_obj(int obj_index, int instance_index)

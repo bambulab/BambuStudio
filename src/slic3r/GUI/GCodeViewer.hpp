@@ -408,7 +408,7 @@ class GCodeViewer
                 min = std::min(min, value);
                 max = std::max(max, value);
             }
-            void reset(bool log = false) { min = FLT_MAX; max = -FLT_MAX; count = 0; log_scale = false; log_scale = log; }
+            void reset(bool log = false) { min = FLT_MAX; max = -FLT_MAX; count = 0; log_scale = log; }
 
             float step_size() const;
             Color get_color_at(float value) const;
@@ -432,7 +432,6 @@ class GCodeViewer
             Range temperature;
             // Color mapping by layer time.
             Range layer_duration;
-            Range layer_duration_log;
             void reset() {
                 height.reset();
                 width.reset();
@@ -440,8 +439,7 @@ class GCodeViewer
                 fan_speed.reset();
                 volumetric_rate.reset();
                 temperature.reset();
-                layer_duration.reset();
-                layer_duration_log.reset(true);
+                layer_duration.reset(true);
             }
         };
 
@@ -721,7 +719,6 @@ public:
         ColorPrint,
         FilamentId,
         LayerTime,
-        LayerTimeLog,
         Count
     };
 
@@ -808,6 +805,8 @@ public:
     void reset_shell();
     void load_shells(const Print& print, bool initialized, bool force_previewing = false);
     void set_shells_on_preview(bool is_previewing) { m_shells.previewing = is_previewing; }
+    //BBS: add all plates filament statistics
+    void render_all_plates_stats(const std::vector<const GCodeProcessorResult*>& gcode_result_list, bool show = true) const;
     //BBS: GUI refactor: add canvas width and height
     void render(int canvas_width, int canvas_height, int right_margin);
     //BBS

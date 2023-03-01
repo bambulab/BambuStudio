@@ -11,8 +11,10 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "slic3r/GUI/WebViewDialog.hpp"
+#include "slic3r/GUI/WebUserLoginDialog.hpp"
 #include "slic3r/GUI/HMS.hpp"
 #include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
+#include "slic3r/GUI/HttpServer.hpp"
 #include "../Utils/PrintHost.hpp"
 
 #include <wx/app.h>
@@ -274,7 +276,11 @@ private:
     bool m_networking_cancel_update { false };
     std::shared_ptr<UpgradeNetworkJob> m_upgrade_network_job;
 
+    // login widget
+    ZUserLogin*     login_dlg { nullptr };
+
     VersionInfo version_info;
+    VersionInfo privacy_version_info;
     static std::string version_display;
     HMSQuery    *hms_query { nullptr };
 
@@ -283,7 +289,9 @@ private:
     bool             m_is_dark_mode{ false };
     bool             m_adding_script_handler { false };
     bool             m_side_popup_status{false};
+    HttpServer       m_http_server;
 public:
+    void            check_filaments_in_blacklist(std::string tag_supplier, std::string tag_material, bool& in_blacklist, std::string& action, std::string& info);
     std::string     get_local_models_path();
     bool            OnInit() override;
     bool            initialized() const { return m_initialized; }
@@ -380,7 +388,7 @@ public:
     wxString transition_tridid(int trid_id);
     void            ShowUserGuide();
     void            ShowDownNetPluginDlg();
-    void            ShowUserLogin();
+    void            ShowUserLogin(bool show = true);
     void            ShowOnlyFilament();
     //BBS
     void            request_login(bool show_user_info = false);
@@ -388,7 +396,8 @@ public:
     void            get_login_info();
     bool            is_user_login();
 
-    void            request_user_login(int online_login);
+    void            request_user_login(int online_login = 0);
+    void            request_user_handle(int online_login = 0);
     void            request_user_logout();
     int             request_user_unbind(std::string dev_id);
     std::string     handle_web_request(std::string cmd);
@@ -401,7 +410,9 @@ public:
 
     void            handle_http_error(unsigned int status, std::string body);
     void            on_http_error(wxCommandEvent &evt);
+    void            on_set_selected_machine(wxCommandEvent& evt);
     void            on_user_login(wxCommandEvent &evt);
+    void            on_user_login_handle(wxCommandEvent& evt);
     void            enable_user_preset_folder(bool enable);
 
     // BBS
@@ -423,6 +434,14 @@ public:
     void            sync_preset(Preset* preset);
     void            start_sync_user_preset(bool load_immediately = false, bool with_progress_dlg = false);
     void            stop_sync_user_preset();
+    void            start_http_server();
+    void            stop_http_server();
+
+    void            on_show_check_privacy_dlg(int online_login = 0);
+    void            show_check_privacy_dlg(wxCommandEvent& evt);
+    void            on_check_privacy_update(wxCommandEvent &evt);
+    bool            check_privacy_update();
+    void            check_privacy_version(int online_login = 0);
 
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 
@@ -583,6 +602,7 @@ private:
     //BBS set extra header for http request
     std::map<std::string, std::string> get_extra_header();
     void            init_http_extra_header();
+    void            update_http_extra_header();
     bool            check_older_app_config(Semver current_version, bool backup);
     void            copy_older_config();
     void            window_pos_save(wxTopLevelWindow* window, const std::string &name);

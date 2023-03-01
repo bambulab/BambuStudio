@@ -123,7 +123,7 @@ public:
     void on_filaments_change(size_t num_filaments);
     // BBS
     void on_bed_type_change(BedType bed_type);
-    void load_ams_list(std::map<std::string, Ams *> const &list);
+    void load_ams_list(std::string const & device, std::map<std::string, Ams *> const &list);
     void sync_ams_list();
 
     ObjectList*             obj_list();
@@ -381,6 +381,7 @@ public:
     // BBS
     void on_bed_type_change(BedType bed_type);
     bool update_filament_colors_in_full_config();
+    void config_change_notification(const DynamicPrintConfig &config, const std::string& key);
     void on_config_change(const DynamicPrintConfig &config);
     void force_filament_colors_update();
     void force_print_bed_update();
@@ -445,6 +446,10 @@ public:
 
     //BBS:
     void fill_color(int extruder_id);
+
+    //BBS:
+    void edit_text();
+    bool can_edit_text() const;
 
     bool can_delete() const;
     bool can_delete_all() const;

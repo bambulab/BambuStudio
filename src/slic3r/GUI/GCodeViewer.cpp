@@ -77,8 +77,6 @@ static std::string get_view_type_string(GCodeViewer::EViewType view_type)
         return _u8L("Filament");
     else if (view_type == GCodeViewer::EViewType::LayerTime)
         return _u8L("Layer Time");
-    else if (view_type == GCodeViewer::EViewType::LayerTimeLog)
-        return _u8L("Layer Time (log)");
     return "";
 }
 
@@ -282,12 +280,13 @@ float GCodeViewer::Extrusions::Range::get_value_at_step(int step) const {
     if (!log_scale)
         return min + static_cast<float>(step) * step_size();
     else
+    // calculate log-average
     {
         float min_range = min;
         if (min_range == 0)
             min_range = 0.0001f;
         float step_size = std::log(max / min_range) / (static_cast<float>(Range_Colors.size()) - 1.0f);
-        return std::log(min) + static_cast<float>(step) * step_size;
+        return std::exp(std::log(min) + static_cast<float>(step) * step_size);
     }
 }
 GCodeViewer::SequentialRangeCap::~SequentialRangeCap() {
@@ -380,7 +379,6 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     std::string speed = ImGui::ColorMarkerStart + _u8L("Speed: ") + ImGui::ColorMarkerEnd;
     std::string flow = ImGui::ColorMarkerStart + _u8L("Flow: ") + ImGui::ColorMarkerEnd;
     std::string layer_time = ImGui::ColorMarkerStart + _u8L("Layer Time: ") + ImGui::ColorMarkerEnd;
-    std::string layer_time_log = ImGui::ColorMarkerStart + _u8L("Layer Time(log): ") + ImGui::ColorMarkerEnd;
     std::string fanspeed = ImGui::ColorMarkerStart + _u8L("Fan Speed: ") + ImGui::ColorMarkerEnd;
     std::string temperature = ImGui::ColorMarkerStart + _u8L("Temperature: ") + ImGui::ColorMarkerEnd;
     const float item_size = imgui.calc_text_size("X: 000.000  ").x;
@@ -394,7 +392,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     if (view_type == EViewType::FeatureType || view_type == EViewType::ColorPrint)
         show_extra_text = false;
     // Feedrate and LayerTime shall always show extra text
-    else if (view_type == EViewType::Feedrate || view_type == EViewType::LayerTime || view_type == EViewType::LayerTimeLog)
+    else if (view_type == EViewType::Feedrate || view_type == EViewType::LayerTime)
         show_extra_text = true;
     if (show_extra_text)
     {
@@ -457,13 +455,6 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         case EViewType::LayerTime:{
             ImGui::SameLine(window_padding + item_size + item_spacing);
             sprintf(buf, "%s%.1f", layer_time.c_str(), m_curr_move.layer_duration);
-            ImGui::PushItemWidth(item_size);
-            imgui.text(buf);
-            break;
-        }
-        case EViewType::LayerTimeLog: {
-            ImGui::SameLine(window_padding + item_size + item_spacing);
-            sprintf(buf, "%s%.1f", layer_time_log.c_str(), std::log(m_curr_move.layer_duration));
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
@@ -932,7 +923,6 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
     view_type_items.push_back(EViewType::Width);
     view_type_items.push_back(EViewType::VolumetricRate);
     view_type_items.push_back(EViewType::LayerTime);
-    view_type_items.push_back(EViewType::LayerTimeLog);
     view_type_items.push_back(EViewType::FanSpeed);
     view_type_items.push_back(EViewType::Temperature);
     if (mode == ConfigOptionMode::comDevelop) {
@@ -1172,7 +1162,6 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
             
             if (curr.layer_duration > 0.f) {
                 m_extrusions.ranges.layer_duration.update_from(curr.layer_duration);
-                m_extrusions.ranges.layer_duration_log.update_from(curr.layer_duration);
             }
             [[fallthrough]];
         }
@@ -1287,7 +1276,7 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
         m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
         m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
         //BBS fixed buttom margin. m_moves_slider.pos_y
-        m_sequential_view.render(legend_height, canvas_width - right_margin * m_scale, canvas_height - bottom_margin * m_scale, m_view_type);
+        m_sequential_view.render(legend_height, canvas_width, canvas_height - bottom_margin * m_scale, m_view_type);
     }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
@@ -3082,6 +3071,13 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
 	}
     m_plater_extruder = plater_extruder;
 
+    // replace layers for spiral vase mode
+    if (!gcode_result.spiral_vase_layers.empty()) {
+        m_layers.reset();
+        for (const auto& layer : gcode_result.spiral_vase_layers) {
+            m_layers.append(layer.first, { layer.second.first, layer.second.second });
+        }
+    }
 
     // set layers z range
     if (!m_layers.empty())
@@ -3249,7 +3245,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         case EViewType::FanSpeed:       { color = m_extrusions.ranges.fan_speed.get_color_at(path.fan_speed); break; }
         case EViewType::Temperature:    { color = m_extrusions.ranges.temperature.get_color_at(path.temperature); break; }
         case EViewType::LayerTime:      { color = m_extrusions.ranges.layer_duration.get_color_at(path.layer_time); break; }
-        case EViewType::LayerTimeLog:   { color = m_extrusions.ranges.layer_duration_log.get_color_at(path.layer_time); break; }
         case EViewType::VolumetricRate: { color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate); break; }
         case EViewType::Tool:           { color = m_tools.m_tool_colors[path.extruder_id]; break; }
         case EViewType::ColorPrint:     {
@@ -4123,6 +4118,214 @@ void GCodeViewer::render_shells()
 //    glsafe(::glDepthMask(GL_TRUE));
 }
 
+//BBS
+void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessorResult*>& gcode_result_list, bool show /*= true*/) const {
+    if (!show)
+        return;
+    for (auto gcode_result : gcode_result_list) {
+        if (gcode_result->moves.size() == 0)
+            return;
+    }
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0, 10.0 * m_scale));
+    ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(1.0f, 1.0f, 1.0f, 0.6f));
+    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.42f, 0.42f, 0.42f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(340.f * m_scale * imgui.scaled(1.0f / 15.0f), 0));
+
+    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), 0, ImVec2(0.5f, 0.5f));
+    ImGui::Begin(_L("Statistics of All Plates").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+    std::vector<float> filament_diameters = gcode_result_list.front()->filament_diameters;
+    std::vector<float> filament_densities = gcode_result_list.front()->filament_densities;
+    std::vector<Color> filament_colors = decode_colors(wxGetApp().plater()->get_extruder_colors_from_plater_config(gcode_result_list.back()));
+
+    bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+    float window_padding = 4.0f * m_scale;
+    const float icon_size = ImGui::GetTextLineHeight() * 0.7;
+    std::vector<float> offsets;
+    std::map<int, double> volume_of_extruders_all_plates; // map<extruder_idx, volume>
+    std::map<int, double> flushed_volume_of_extruders_all_plates; // map<extruder_idx, flushed volume>
+    std::vector<double> model_used_filaments_m_all_plates;
+    std::vector<double> model_used_filaments_g_all_plates;
+    std::vector<double> flushed_filaments_m_all_plates;
+    std::vector<double> flushed_filaments_g_all_plates;
+    float total_time_all_plates = 0.0f;
+    bool show_detailed_statistics_page = false;
+
+    auto max_width = [](const std::vector<std::string>& items, const std::string& title, float extra_size = 0.0f) {
+        float ret = ImGui::CalcTextSize(title.c_str()).x;
+        for (const std::string& item : items) {
+            ret = std::max(ret, extra_size + ImGui::CalcTextSize(item.c_str()).x);
+        }
+        return ret;
+    };
+    auto calculate_offsets = [max_width, window_padding](const std::vector<std::pair<std::string, std::vector<::string>>>& title_columns, float extra_size = 0.0f) {
+        const ImGuiStyle& style = ImGui::GetStyle();
+        std::vector<float> offsets;
+        offsets.push_back(max_width(title_columns[0].second, title_columns[0].first, extra_size) + 3.0f * style.ItemSpacing.x + style.WindowPadding.x);
+        for (size_t i = 1; i < title_columns.size() - 1; i++)
+            offsets.push_back(offsets.back() + max_width(title_columns[i].second, title_columns[i].first) + style.ItemSpacing.x);
+        if (title_columns.back().first == _u8L("Display"))
+            offsets.back() = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x - ImGui::GetFrameHeight() / 2 - 2 * window_padding;
+
+        float average_col_width = ImGui::GetWindowWidth() / static_cast<float>(title_columns.size());
+        std::vector<float> ret;
+        ret.push_back(0);
+        for (size_t i = 1; i < title_columns.size(); i++) {
+            ret.push_back(std::max(offsets[i - 1], i * average_col_width));
+        }
+
+        return ret;
+    };
+    auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, this](const Color& color, const std::vector<std::pair<std::string, float>>& columns_offsets)
+    {
+        // render icon
+        ImVec2 pos = ImVec2(ImGui::GetCursorScreenPos().x + window_padding * 3, ImGui::GetCursorScreenPos().y);
+
+        draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 3.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 1.0f * m_scale },
+            ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(20.0 * m_scale, 6.0 * m_scale));
+
+        // render selectable
+        ImGui::Dummy({ 0.0, 0.0 });
+        ImGui::SameLine();
+
+        // render column item
+        {
+            float dummy_size = ImGui::GetStyle().ItemSpacing.x + icon_size;
+            ImGui::SameLine(dummy_size);
+            imgui.text(columns_offsets[0].first);
+
+            for (auto i = 1; i < columns_offsets.size(); i++) {
+                ImGui::SameLine(columns_offsets[i].second);
+                imgui.text(columns_offsets[i].first);
+            }
+        }
+
+        ImGui::PopStyleVar(1);
+    };
+    auto append_headers = [&imgui](const std::vector<std::pair<std::string, float>>& title_offsets) {
+        for (size_t i = 0; i < title_offsets.size(); i++) {
+            ImGui::SameLine(title_offsets[i].second);
+            imgui.bold_text(title_offsets[i].first);
+        }
+        ImGui::Separator();
+    };
+    auto get_used_filament_from_volume = [this, imperial_units, &filament_diameters, &filament_densities](double volume, int extruder_id) {
+        double koef = imperial_units ? 1.0 / GizmoObjectManipulation::in_to_mm : 0.001;
+        std::pair<double, double> ret = { koef * volume / (PI * sqr(0.5 * filament_diameters[extruder_id])),
+                                            volume * filament_densities[extruder_id] * 0.001 };
+        return ret;
+    };
+
+    ImGui::Dummy({ window_padding, window_padding });
+    ImGui::SameLine();
+    // title and item data
+    {
+        PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+        for (auto plate : plate_list.get_nonempty_plate_list())
+        {
+            auto plate_print_statistics = plate->get_slice_result()->print_statistics;
+            auto plate_extruders = plate->get_extruders(true);
+            for (size_t extruder_id : plate_extruders) {
+                extruder_id -= 1;
+                if (plate_print_statistics.volumes_per_extruder.find(extruder_id) == plate_print_statistics.volumes_per_extruder.end())
+                    continue;
+                double volume = plate_print_statistics.volumes_per_extruder.at(extruder_id);
+                volume_of_extruders_all_plates[extruder_id] += volume;
+                if (plate_print_statistics.flush_per_filament.find(extruder_id) == plate_print_statistics.flush_per_filament.end())
+                    flushed_volume_of_extruders_all_plates[extruder_id] = 0;
+                else {
+                    double flushed_volume = plate_print_statistics.flush_per_filament.at(extruder_id);
+                    flushed_volume_of_extruders_all_plates[extruder_id] += flushed_volume;
+                }
+            }
+            const PrintEstimatedStatistics::Mode& plate_time_mode = plate_print_statistics.modes[static_cast<size_t>(m_time_estimate_mode)];
+            total_time_all_plates += plate_time_mode.time;
+        }
+
+        for (auto it = volume_of_extruders_all_plates.begin(); it != volume_of_extruders_all_plates.end(); it++) {
+            auto [model_used_filament_m, model_used_filament_g] = get_used_filament_from_volume(it->second, it->first);
+            model_used_filaments_m_all_plates.push_back(model_used_filament_m);
+            model_used_filaments_g_all_plates.push_back(model_used_filament_g);
+        }
+        for (auto it = flushed_volume_of_extruders_all_plates.begin(); it != flushed_volume_of_extruders_all_plates.end(); it++) {
+            auto [flushed_filament_m, flushed_filament_g] = get_used_filament_from_volume(it->second, it->first);
+            if (flushed_filament_m != 0.0 || flushed_filament_g != 0.0)
+                show_detailed_statistics_page = true;
+            flushed_filaments_m_all_plates.push_back(flushed_filament_m);
+            flushed_filaments_g_all_plates.push_back(flushed_filament_g);
+        }
+
+        char buff[64];
+        double longest_str = 0.0;
+        for (auto i : model_used_filaments_g_all_plates) {
+            if (i > longest_str)
+                longest_str = i;
+        }
+        ::sprintf(buff, "%.2f", longest_str);
+        offsets = calculate_offsets({ {_u8L("Filament"), {""}}, {_u8L("Model"), {buff}}, {_u8L("Flushed"), {buff}}, /*{_u8L("Tower"), total_filaments},*/ {_u8L("Total"), {buff}} }, icon_size);
+
+        if (!show_detailed_statistics_page)
+            append_headers({ {_u8L("Filament"), offsets[0]}, {_u8L("Model"), offsets[2]} });
+        else
+            append_headers({ {_u8L("Filament"), offsets[0]}, {_u8L("Model"), offsets[1]}, {_u8L("Flushed"), offsets[2]}, /*{_u8L("Tower"), offsets[3]},*/ {_u8L("Total"), offsets[3]} });// to add Tower
+    }
+
+    // item
+    {
+        size_t i = 0;
+        for (auto it = volume_of_extruders_all_plates.begin(); it != volume_of_extruders_all_plates.end(); it++) {
+            if (i < model_used_filaments_m_all_plates.size() && i < model_used_filaments_g_all_plates.size()) {
+                std::vector<std::pair<std::string, float>> columns_offsets;
+                columns_offsets.push_back({ std::to_string(it->first + 1), offsets[0] });
+
+                char buf[64];
+                if (show_detailed_statistics_page) {
+                    ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", model_used_filaments_m_all_plates[i], model_used_filaments_g_all_plates[i]);
+                    columns_offsets.push_back({ buf, offsets[1] });
+
+                    ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", flushed_filaments_m_all_plates[i], flushed_filaments_g_all_plates[i]);
+                    columns_offsets.push_back({ buf, offsets[2] });
+
+                    ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", model_used_filaments_m_all_plates[i] + flushed_filaments_m_all_plates[i], model_used_filaments_g_all_plates[i] + flushed_filaments_g_all_plates[i]);
+                    columns_offsets.push_back({ buf, offsets[3] });
+                }
+                else {
+                    ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", model_used_filaments_m_all_plates[i], model_used_filaments_g_all_plates[i]);
+                    columns_offsets.push_back({ buf, offsets[2] });
+                }
+
+                append_item(filament_colors[it->first], columns_offsets);
+            }
+            i++;
+        }
+
+        ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
+        imgui.title(_u8L("Total Time Estimation"));
+
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
+        imgui.text(_u8L("Total time") + ":");
+        ImGui::SameLine();
+        imgui.text(short_time(get_time_dhms(total_time_all_plates)));
+    }
+    ImGui::End();
+    ImGui::PopStyleColor(6);
+    ImGui::PopStyleVar(3);
+    return;
+}
+
 void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canvas_height, int right_margin)
 {
     if (!m_legend_enabled)
@@ -4386,6 +4589,14 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         return std::make_pair(it->second.first * koef, it->second.second);
     };
 
+    // get used filament (meters and grams) from used volume in respect to the active extruder
+    auto get_used_filament_from_volume = [this, imperial_units](double volume, int extruder_id) {
+        double koef = imperial_units ? 1.0 / GizmoObjectManipulation::in_to_mm : 0.001;
+        std::pair<double, double> ret = { koef * volume / (PI * sqr(0.5 * m_filament_diameters[extruder_id])),
+                                          volume * m_filament_densities[extruder_id] * 0.001 };
+        return ret;
+    };
+
     //BBS display Color Scheme
     ImGui::Dummy({ window_padding, window_padding });
     ImGui::Dummy({ window_padding, window_padding });
@@ -4465,13 +4676,6 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     double koef = imperial_units ? GizmoObjectManipulation::in_to_mm : 1000.0;
     double unit_conver = imperial_units ? GizmoObjectManipulation::oz_to_g : 1;
 
-    // get used filament (meters and grams) from used volume in respect to the active extruder
-    auto get_used_filament_from_volume = [this, imperial_units](double volume, int extruder_id) {
-        double koef = imperial_units ? 1.0 / GizmoObjectManipulation::in_to_mm : 0.001;
-        std::pair<double, double> ret = { koef * volume / (PI * sqr(0.5 * m_filament_diameters[extruder_id])),
-                                          volume * m_filament_densities[extruder_id] * 0.001 };
-        return ret;
-    };
 
     // extrusion paths section -> title
     ImGui::Dummy({ window_padding, window_padding });
@@ -4525,8 +4729,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     case EViewType::FanSpeed:       { imgui.title(_u8L("Fan Speed (%)")); break; }
     case EViewType::Temperature:    { imgui.title(_u8L("Temperature (°C)")); break; }
     case EViewType::VolumetricRate: { imgui.title(_u8L("Volumetric flow rate (mm³/s)")); break; }
-    case EViewType::LayerTime:      { imgui.title(_u8L("Layer Time")); break; }
-    case EViewType::LayerTimeLog:   { imgui.title(_u8L("Layer Time (log)")); break; }
+    case EViewType::LayerTime:      { imgui.title(_u8L("Layer Time (s)")); break; }
 
     case EViewType::Tool:
     {
@@ -4682,7 +4885,6 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     case EViewType::FanSpeed:       { append_range(m_extrusions.ranges.fan_speed, 0); break; }
     case EViewType::Temperature:    { append_range(m_extrusions.ranges.temperature, 0); break; }
     case EViewType::LayerTime:      { append_range(m_extrusions.ranges.layer_duration, 1); break; }
-    case EViewType::LayerTimeLog:   { append_range(m_extrusions.ranges.layer_duration_log, 1); break; }
     case EViewType::VolumetricRate: { append_range(m_extrusions.ranges.volumetric_rate, 2); break; }
     case EViewType::Tool:
     {
@@ -4698,7 +4900,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     }
     case EViewType::ColorPrint:
     {
-        const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().is_editor() ? wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes : m_custom_gcode_per_print_z;
+        //BBS: replace model custom gcode with current plate custom gcode
+        const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().is_editor() ? wxGetApp().plater()->model().get_curr_plate_custom_gcodes().gcodes : m_custom_gcode_per_print_z;
         size_t total_items = 1;
         for (size_t extruder_id : m_extruder_ids) {
             total_items += color_print_ranges(extruder_id, custom_gcode_per_print_z).size();
@@ -4752,13 +4955,13 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
                         char buf[64];
                         if (show_flushed_filaments) {
-                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f g" : "%.2f m\n%.2f g", model_used_filaments_m[i], model_used_filaments_g[i]);
+                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", model_used_filaments_m[i], model_used_filaments_g[i]);
                             columns_offsets.push_back({ buf, offsets[1] });
 
-                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f g" : "%.2f m\n%.2f g", flushed_filaments_m[i], flushed_filaments_g[i]);
+                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", flushed_filaments_m[i], flushed_filaments_g[i]);
                             columns_offsets.push_back({ buf, offsets[2] });
 
-                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f g" : "%.2f m\n%.2f g", model_used_filaments_m[i] + flushed_filaments_m[i], model_used_filaments_g[i] + flushed_filaments_g[i]);
+                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", model_used_filaments_m[i] + flushed_filaments_m[i], model_used_filaments_g[i] + flushed_filaments_g[i]);
                             columns_offsets.push_back({ buf, offsets[3] });
                         }
                         else {
@@ -4880,7 +5083,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         auto generate_partial_times = [this, get_used_filament_from_volume](const TimesList& times, const std::vector<double>& used_filaments) {
             PartialTimes items;
 
-            std::vector<CustomGCode::Item> custom_gcode_per_print_z = wxGetApp().is_editor() ? wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes : m_custom_gcode_per_print_z;
+            //BBS: replace model custom gcode with current plate custom gcode
+            std::vector<CustomGCode::Item> custom_gcode_per_print_z = wxGetApp().is_editor() ? wxGetApp().plater()->model().get_curr_plate_custom_gcodes().gcodes : m_custom_gcode_per_print_z;
             std::vector<Color> last_color(m_extruders_count);
             for (size_t i = 0; i < m_extruders_count; ++i) {
                 last_color[i] = m_tools.m_tool_colors[i];
@@ -5294,16 +5498,16 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         }
         default : { assert(false); break; }
         }
+    }
 
-        if (m_view_type == EViewType::ColorPrint) {
-            ImGui::Spacing();
-            ImGui::Dummy({ window_padding, window_padding });
-            ImGui::SameLine();
-            offsets = calculate_offsets({ { _u8L("Options"), { ""}}, { _u8L("Display"), {""}} }, icon_size);
-            append_headers({ {_u8L("Options"), offsets[0] }, { _u8L("Display"), offsets[1]} });
-            for (auto item : options_items)
-                append_option_item(item, offsets);
-        }
+    if (m_view_type == EViewType::ColorPrint) {
+        ImGui::Spacing();
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
+        offsets = calculate_offsets({ { _u8L("Options"), { ""}}, { _u8L("Display"), {""}} }, icon_size);
+        append_headers({ {_u8L("Options"), offsets[0] }, { _u8L("Display"), offsets[1]} });
+        for (auto item : options_items)
+            append_option_item(item, offsets);
     }
 
     legend_height = ImGui::GetCurrentWindow()->Size.y;

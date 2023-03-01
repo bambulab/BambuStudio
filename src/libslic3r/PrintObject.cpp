@@ -431,9 +431,6 @@ void PrintObject::detect_overhangs_for_lift()
 
         this->clear_overhangs_for_lift();
 
-        if (m_print->config().z_hop_type != ZHopType::zhtAuto)
-            return;
-
         tbb::spin_mutex layer_storage_mutex;
         tbb::parallel_for(tbb::blocked_range<size_t>(num_raft_layers + 1, num_layers),
             [this, min_overlap](const tbb::blocked_range<size_t>& range)
@@ -723,7 +720,14 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_top_z_distance"
             || opt_key == "support_bottom_z_distance"
             || opt_key == "xy_hole_compensation"
-            || opt_key == "xy_contour_compensation") {
+            || opt_key == "xy_contour_compensation"
+            //BBS: [Arthur] the following params affect bottomBridge surface type detection
+            || opt_key == "support_type"
+            || opt_key == "bridge_no_support"
+            || opt_key == "max_bridge_length"
+            || opt_key == "support_interface_top_layers"
+            || opt_key == "support_critical_regions_only"
+            ) {
             steps.emplace_back(posSlice);
         } else if (opt_key == "enable_support") {
             steps.emplace_back(posSupportMaterial);
@@ -767,9 +771,23 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "tree_support_branch_angle"
             || opt_key == "tree_support_wall_count") {
             steps.emplace_back(posSupportMaterial);
-        } else if (opt_key == "bottom_shell_layers") {
+        } else if (
+               opt_key == "bottom_shell_layers"
+            || opt_key == "top_shell_layers") {
+            
             steps.emplace_back(posPrepareInfill);
-            if (m_print->config().spiral_mode) {
+
+            const auto *old_shell_layers = old_config.option<ConfigOptionInt>(opt_key);
+            const auto *new_shell_layers = new_config.option<ConfigOptionInt>(opt_key);
+            assert(old_shell_layers && new_shell_layers);
+
+            bool value_changed = (old_shell_layers->value == 0 && new_shell_layers->value > 0) ||
+                                 (old_shell_layers->value > 0 && new_shell_layers->value == 0);
+
+            if (value_changed && this->object_extruders().size() > 1) {
+                steps.emplace_back(posSlice);
+            }               
+            else if (m_print->config().spiral_mode && opt_key == "bottom_shell_layers") {
                 // Changing the number of bottom layers when a spiral vase is enabled requires re-slicing the object again.
                 // Otherwise, holes in the bottom layers could be filled, as is reported in GH #5528.
                 steps.emplace_back(posSlice);
@@ -778,7 +796,6 @@ bool PrintObject::invalidate_state_by_config_options(
                opt_key == "interface_shells"
             || opt_key == "infill_combination"
             || opt_key == "bottom_shell_thickness"
-            || opt_key == "top_shell_layers"
             || opt_key == "top_shell_thickness"
             || opt_key == "minimum_sparse_infill_area"
             || opt_key == "sparse_infill_filament"
@@ -970,9 +987,17 @@ void PrintObject::detect_surfaces_type()
             [this, region_id, interface_shells, &surfaces_new](const tbb::blocked_range<size_t>& range) {
                 // If we have soluble support material, don't bridge. The overhang will be squished against a soluble layer separating
                 // the support from the print.
-                SurfaceType surface_type_bottom_other =
-                    (this->has_support() && m_config.support_top_z_distance.value == 0) ?
-                    stBottom : stBottomBridge;
+                // BBS: the above logic only applys for normal(auto) support. Complete logic:
+                // 1. has support, top z distance=0 (soluble material), auto support
+                // 2. for normal(auto), bridge_no_support is off
+                // 3. for tree(auto), interface top layers=0, max bridge length=0, support_critical_regions_only=false (only in this way the bridge is fully supported)
+                bool bottom_is_fully_supported = this->has_support() && m_config.support_top_z_distance.value == 0 && is_auto(m_config.support_type.value);
+                if (m_config.support_type.value == stNormalAuto)
+                    bottom_is_fully_supported &= !m_config.bridge_no_support.value;
+                else if (m_config.support_type.value == stTreeAuto) {
+                    bottom_is_fully_supported &= (m_config.support_interface_top_layers.value > 0 && m_config.max_bridge_length.value == 0 && m_config.support_critical_regions_only.value==false);
+                }
+                SurfaceType surface_type_bottom_other = bottom_is_fully_supported ? stBottom : stBottomBridge;
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                     m_print->throw_if_canceled();
                     // BOOST_LOG_TRIVIAL(trace) << "Detecting solid surfaces for region " << region_id << " and layer " << layer->print_z;
@@ -2829,10 +2854,6 @@ static void project_triangles_to_slabs(ConstLayerPtrsAdaptor layers, const index
 void PrintObject::project_and_append_custom_facets(
         bool seam, EnforcerBlockerType type, std::vector<Polygons>& out) const
 {
-    // BBS: Approve adding enforcer support on vertical faces
-    SlabSlicingConfig config;
-    config.isVertical = type == EnforcerBlockerType::ENFORCER ? true : false;
-
     for (const ModelVolume* mv : this->model_object()->volumes)
         if (mv->is_model_part()) {
             const indexed_triangle_set custom_facets = seam
@@ -2846,7 +2867,7 @@ void PrintObject::project_and_append_custom_facets(
                 else {
                     std::vector<Polygons> projected;
                     // Support blockers or enforcers. Project downward facing painted areas upwards to their respective slicing plane.
-                    slice_mesh_slabs(custom_facets, zs_from_layers(this->layers()), this->trafo_centered() * mv->get_matrix(), nullptr, &projected, [](){}, config);
+                    slice_mesh_slabs(custom_facets, zs_from_layers(this->layers()), this->trafo_centered() * mv->get_matrix(), nullptr, &projected, [](){});
                     // Merge these projections with the output, layer by layer.
                     assert(! projected.empty());
                     assert(out.empty() || out.size() == projected.size());

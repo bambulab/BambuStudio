@@ -3,9 +3,13 @@
 
 #include <wx/dcgraph.h>
 
+#ifdef __WXGTK__
+#include <gtk/gtk.h>
+#endif
+
 wxDEFINE_EVENT(EVT_DISMISS, wxCommandEvent);
 
-BEGIN_EVENT_TABLE(DropDown, wxPopupTransientWindow)
+BEGIN_EVENT_TABLE(DropDown, PopupWindow)
 
 EVT_LEFT_DOWN(DropDown::mouseDown)
 EVT_LEFT_UP(DropDown::mouseReleased)
@@ -50,7 +54,7 @@ DropDown::DropDown(wxWindow *             parent,
 void DropDown::Create(wxWindow *     parent,
          long           style)
 {
-    wxPopupTransientWindow::Create(parent, wxPU_CONTAINS_CONTROLS);
+    PopupWindow::Create(parent, wxPU_CONTAINS_CONTROLS);
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     SetBackgroundColour(*wxWHITE);
     state_handler.attach({&border_color, &text_color, &selector_border_color, &selector_background_color});
@@ -62,7 +66,7 @@ void DropDown::Create(wxWindow *     parent,
     // BBS set default font
     SetFont(Label::Body_14);
 #ifdef __WXOSX__
-    // wxPopupTransientWindow releases mouse on idle, which may cause various problems,
+    // PopupWindow releases mouse on idle, which may cause various problems,
     //  such as losting mouse move, and dismissing soon on first LEFT_DOWN event.
     Bind(wxEVT_IDLE, [] (wxIdleEvent & evt) {});
 #endif
@@ -343,6 +347,10 @@ void DropDown::messureSize()
     szContent.y *= std::min((size_t)15, texts.size());
     szContent.y += texts.size() > 15 ? rowSize.y / 2 : 0;
     wxWindow::SetSize(szContent);
+#ifdef __WXGTK__
+    // Gtk has a wrapper window for popup widget
+    gtk_window_resize (GTK_WINDOW (m_widget), szContent.x, szContent.y);
+#endif
     need_sync = false;
 }
 

@@ -12,9 +12,9 @@
 namespace Slic3r {
 namespace GUI {
 
-wxIMPLEMENT_CLASS(CameraPopup, wxPopupTransientWindow);
+wxIMPLEMENT_CLASS(CameraPopup, PopupWindow);
 
-wxBEGIN_EVENT_TABLE(CameraPopup, wxPopupTransientWindow)
+wxBEGIN_EVENT_TABLE(CameraPopup, PopupWindow)
     EVT_MOUSE_EVENTS(CameraPopup::OnMouse )
     EVT_SIZE(CameraPopup::OnSize)
     EVT_SET_FOCUS(CameraPopup::OnSetFocus )
@@ -24,10 +24,12 @@ wxEND_EVENT_TABLE()
 wxDEFINE_EVENT(EVT_VCAMERA_SWITCH, wxMouseEvent);
 wxDEFINE_EVENT(EVT_SDCARD_ABSENT_HINT, wxCommandEvent);
 
+#define CAMERAPOPUP_CLICK_INTERVAL 20
+
 const wxColour TEXT_COL = wxColour(43, 52, 54);
 
 CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
-   : wxPopupTransientWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS),
+   : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS),
     m_obj(obj)
 {
 #ifdef __WINDOWS__
@@ -121,6 +123,10 @@ CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
     m_panel->Bind(wxEVT_LEFT_UP, &CameraPopup::OnLeftUp, this);
     #endif //APPLE
 
+    this->Bind(wxEVT_TIMER, &CameraPopup::stop_interval, this);
+    m_interval_timer = new wxTimer();
+    m_interval_timer->SetOwner(this);
+
     check_func_supported();
     wxGetApp().UpdateDarkUIWin(this);
 }
@@ -157,7 +163,9 @@ void CameraPopup::Popup(wxWindow *WXUNUSED(focus))
     wxSize win_size = this->GetSize();
     curr_position.x -= win_size.x;
     this->SetPosition(curr_position);
-    wxPopupTransientWindow::Popup();
+
+    if (!m_is_in_interval)
+        PopupWindow::Popup();
 }
 
 wxWindow* CameraPopup::create_item_radiobox(wxString title, wxWindow* parent, wxString tooltip, int padding_left)
@@ -339,7 +347,7 @@ void CameraPopup::rescale()
     m_panel->Layout();
     main_sizer->Fit(m_panel);
     SetClientSize(m_panel->GetSize());
-    wxPopupTransientWindow::Update();
+    PopupWindow::Update();
 }
 
 void CameraPopup::OnLeftUp(wxMouseEvent &event)
@@ -388,18 +396,31 @@ void CameraPopup::OnLeftUp(wxMouseEvent &event)
     }
 }
 
+void CameraPopup::start_interval()
+{
+    m_interval_timer->Start(CAMERAPOPUP_CLICK_INTERVAL);
+    m_is_in_interval = true;
+}
+
+void CameraPopup::stop_interval(wxTimerEvent& event)
+{
+    m_is_in_interval = false;
+    m_interval_timer->Stop();
+}
+
 void CameraPopup::OnDismiss() {
-    wxPopupTransientWindow::OnDismiss();
+    PopupWindow::OnDismiss();
+    this->start_interval();
 }
 
 bool CameraPopup::ProcessLeftDown(wxMouseEvent &event)
 {
-    return wxPopupTransientWindow::ProcessLeftDown(event);
+    return PopupWindow::ProcessLeftDown(event);
 }
 
 bool CameraPopup::Show(bool show)
 {
-    return wxPopupTransientWindow::Show(show);
+    return PopupWindow::Show(show);
 }
 
 void CameraPopup::OnSize(wxSizeEvent &event)

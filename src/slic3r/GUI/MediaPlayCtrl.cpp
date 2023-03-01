@@ -86,7 +86,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_lan_ip       = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->dev_ip : "";
         m_lan_passwd    = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->get_access_code() : "";
         m_tutk_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
-        m_device_busy   = obj->is_in_prepare();
+        m_device_busy   = obj->is_in_prepare() || obj->is_in_upgrading();
     } else {
         m_camera_exists = false;
         m_lan_mode = false;
@@ -237,14 +237,16 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         SetStatus(msg, false);
     }
     ++m_failed_retry;
-    if (m_failed_code != 0 && !m_tutk_support && m_failed_retry > 1) {
+    if (m_failed_code != 0 && !m_tutk_support && (m_failed_retry > 1 || m_user_triggered)) {
         m_next_retry = wxDateTime(); // stop retry
         if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to start liveview)"))) {
             m_failed_retry = 0;
+            m_user_triggered = true;
             m_next_retry   = wxDateTime::Now();
             return;
         }
     }
+    m_user_triggered = false;
     if (m_next_retry.IsValid())
         m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(5 * m_failed_retry);
 }
@@ -256,6 +258,7 @@ void MediaPlayCtrl::TogglePlay()
         Stop();
     } else {
         m_failed_retry = 0;
+        m_user_triggered = true;
         m_next_retry   = wxDateTime::Now();
         Play();
     }

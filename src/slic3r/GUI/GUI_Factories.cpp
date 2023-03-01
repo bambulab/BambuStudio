@@ -458,6 +458,19 @@ void MenuFactory::append_menu_item_delete(wxMenu* menu)
 #endif
 }
 
+void MenuFactory::append_menu_item_edit_text(wxMenu *menu)
+{
+#ifdef __WINDOWS__
+    append_menu_item(
+        menu, wxID_ANY, _L("Edit Text"), "", [](wxCommandEvent &) { plater()->edit_text(); }, "", nullptr,
+        []() { return plater()->can_edit_text(); }, m_parent);
+#else
+    append_menu_item(
+        menu, wxID_ANY, _L("Edit Text"), "", [](wxCommandEvent &) { plater()->edit_text(); }, "", nullptr,
+        []() { return plater()->can_edit_text(); }, m_parent);
+#endif
+}
+
 wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType type) {
     auto sub_menu = new wxMenu;
 
@@ -1072,6 +1085,7 @@ void MenuFactory::create_bbl_part_menu()
     wxMenu* menu = &m_part_menu;
 
     append_menu_item_delete(menu);
+    append_menu_item_edit_text(menu);
     append_menu_item_fix_through_netfabb(menu);
     append_menu_item_simplify(menu);
     append_menu_item_center(menu);
@@ -1543,7 +1557,7 @@ void MenuFactory::append_menu_item_set_printable(wxMenu* menu)
         }
     }
 
-    wxString menu_text = all_printable ? L("Set Unprintable") : _L("Set Printable");
+    wxString menu_text = all_printable ? _L("Set Unprintable") : _L("Set Printable");
     append_menu_item(menu, wxID_ANY, menu_text, "", [this, all_printable](wxCommandEvent&) {
         Selection& selection = plater()->canvas3D()->get_selection();
         selection.set_printable(!all_printable);

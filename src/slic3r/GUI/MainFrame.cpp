@@ -71,8 +71,14 @@ namespace GUI {
 wxDEFINE_EVENT(EVT_SELECT_TAB, wxCommandEvent);
 wxDEFINE_EVENT(EVT_HTTP_ERROR, wxCommandEvent);
 wxDEFINE_EVENT(EVT_USER_LOGIN, wxCommandEvent);
+wxDEFINE_EVENT(EVT_USER_LOGIN_HANDLE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_CHECK_PRIVACY_VER, wxCommandEvent);
+wxDEFINE_EVENT(EVT_CHECK_PRIVACY_SHOW, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SHOW_IP_DIALOG, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SET_SELECTED_MACHINE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_PRESET_CB, SimpleEvent);
+
+
 
 // BBS: backup
 wxDEFINE_EVENT(EVT_BACKUP_POST, wxCommandEvent);
@@ -520,7 +526,19 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             }
             return;}
 #endif
-        if (evt.CmdDown() && evt.GetKeyCode() == 'J') { m_printhost_queue_dlg->Show(); return; }
+        if (evt.CmdDown() && evt.GetKeyCode() == 'R') { if (m_slice_enable) { wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE)); this->m_tabpanel->SetSelection(tpPreview); } return; }
+        if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'G') {
+            m_plater->apply_background_progress();
+            m_print_enable = get_enable_print_status();
+            m_print_btn->Enable(m_print_enable);
+            if (m_print_enable) {
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
+            }
+            evt.Skip();
+            return;
+        }
+        else if (evt.CmdDown() && evt.GetKeyCode() == 'G') { if (can_export_gcode()) { wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE)); } evt.Skip(); return; }
+        if (evt.CmdDown() && evt.GetKeyCode() == 'J') { m_printhost_queue_dlg->Show(); return; }    
         if (evt.CmdDown() && evt.GetKeyCode() == 'N') { m_plater->new_project(); return;}
         if (evt.CmdDown() && evt.GetKeyCode() == 'O') { m_plater->load_project(); return;}
         if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'S') { if (can_save_as()) m_plater->save_project(true); return;}
@@ -940,6 +958,7 @@ void MainFrame::init_tabpanel()
     }
 
     m_plater = new Plater(this, this);
+    m_plater->SetBackgroundColour(*wxWHITE);
     m_plater->Hide();
 
     wxGetApp().plater_ = m_plater;
@@ -979,11 +998,9 @@ bool MainFrame::preview_only_hint()
             preview_only_to_editor = true;
         });
         confirm_dlg.update_btn_label(_L("Yes"), _L("No"));
-        auto filename = wxString((m_plater->get_preview_only_filename()).c_str(), wxConvUTF8);
-        //if size of filename is beyond limit
-        auto format_filename = confirm_dlg.format_text(filename, FromDIP(240));
+        auto filename = m_plater->get_preview_only_filename();
 
-        confirm_dlg.update_text(format_filename + _L(" will be closed before creating a new model. Do you want to continue?"));
+        confirm_dlg.update_text(filename + " " + _L("will be closed before creating a new model. Do you want to continue?"));
         confirm_dlg.on_show();
         if (preview_only_to_editor) {
             m_plater->new_project();
@@ -2072,12 +2089,12 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_core_3mf(); }, "menu_export_sliced_file", nullptr,
             [this](){return can_export_model(); }, this);
         // BBS export .gcode.3mf
-        append_menu_item(export_menu, wxID_ANY, _L("Export plate sliced file") + dots/* + "\tCtrl+G"*/, _L("Export current sliced file"),
+        append_menu_item(export_menu, wxID_ANY, _L("Export plate sliced file") + dots + "\tCtrl+G", _L("Export current sliced file"),
             [this](wxCommandEvent&) { if (m_plater) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE)); }, "menu_export_sliced_file", nullptr,
             [this](){return can_export_gcode(); }, this);
 
         append_menu_item(export_menu, wxID_ANY, _L("Export all plate sliced file") + dots/* + "\tCtrl+G"*/, _L("Export all plate sliced file"),
-            [this](wxCommandEvent&) { if (m_plater) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE)); }, "menu_export_sliced_file", nullptr,
+            [this](wxCommandEvent&) { if (m_plater) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_ALL_SLICED_FILE)); }, "menu_export_sliced_file", nullptr,
             [this]() {return can_export_all_gcode(); }, this);
 
         append_menu_item(export_menu, wxID_ANY, _L("Export G-code") + dots/* + "\tCtrl+G"*/, _L("Export current plate as G-code"),

@@ -90,7 +90,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     // give safe value in case there is no start_end_points in config
     std::vector<Vec2d> out_points;
     out_points.emplace_back(Vec2d(54, 0));
-    out_points.emplace_back(Vec2d(54, 120));
+    out_points.emplace_back(Vec2d(54, 0));
     out_points.emplace_back(Vec2d(54, 245));
 
     // get the start_end_points from config (20, -3) (54, 245)
@@ -195,7 +195,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         out_point_3 = Vec2d(new_path, end_y_position);
     } else {
         out_point_1 = Vec2d(new_path, 0);
-        out_point_2 = Vec2d(new_path, end_y_position / 2);
+        out_point_2 = Vec2d(new_path, 0);
         out_point_3 = Vec2d(new_path, end_y_position);
     }
 
@@ -1406,7 +1406,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // modifies m_silent_time_estimator_enabled
     DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled);
-
     // resets analyzer's tracking data
     m_last_height  = 0.f;
     m_last_layer_z = 0.f;
@@ -1539,6 +1538,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // For a print by objects, find the 1st printing object.
     ToolOrdering tool_ordering;
     unsigned int initial_extruder_id = (unsigned int)-1;
+    //BBS: first non-support filament extruder
+    unsigned int initial_non_support_extruder_id;
     unsigned int final_extruder_id   = (unsigned int)-1;
     bool         has_wipe_tower      = false;
     std::vector<const PrintInstance*> 					print_object_instances_ordering;
@@ -1551,8 +1552,33 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         print_object_instance_sequential_active = print_object_instances_ordering.begin();
         for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++ print_object_instance_sequential_active) {
             tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
-            if ((initial_extruder_id = tool_ordering.first_extruder()) != static_cast<unsigned int>(-1))
+            if ((initial_extruder_id = tool_ordering.first_extruder()) != static_cast<unsigned int>(-1)) {
+                //BBS: try to find the non-support filament extruder if is multi color and initial_extruder is support filament
+                initial_non_support_extruder_id = initial_extruder_id;
+                if (tool_ordering.all_extruders().size() > 1 && print.config().filament_is_support.get_at(initial_extruder_id)) {
+                    bool has_non_support_filament = false;
+                    for (unsigned int extruder : tool_ordering.all_extruders()) {
+                        if (!print.config().filament_is_support.get_at(extruder)) {
+                            has_non_support_filament = true;
+                            break;
+                        }
+                    }
+                    //BBS: find the non-support filament extruder of object
+                    if (has_non_support_filament)
+                        for (LayerTools layer_tools : tool_ordering.layer_tools()) {
+                            if (!layer_tools.has_object)
+                                continue;
+                            for (unsigned int extruder : layer_tools.extruders) {
+                                if (print.config().filament_is_support.get_at(extruder))
+                                    continue;
+                                initial_non_support_extruder_id = extruder;
+                                break;
+                            }
+                        }
+                }
+
                 break;
+            }
         }
         if (initial_extruder_id == static_cast<unsigned int>(-1))
             // No object to print was found, cancel the G-code export.
@@ -1581,6 +1607,32 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 #else
         initial_extruder_id = tool_ordering.first_extruder();
 #endif
+        //BBS: try to find the non-support filament extruder if is multi color and initial_extruder is support filament
+        if (initial_extruder_id != static_cast<unsigned int>(-1)) {
+            initial_non_support_extruder_id = initial_extruder_id;
+            if (tool_ordering.all_extruders().size() > 1 && print.config().filament_is_support.get_at(initial_extruder_id)) {
+                bool has_non_support_filament = false;
+                for (unsigned int extruder : tool_ordering.all_extruders()) {
+                    if (!print.config().filament_is_support.get_at(extruder)) {
+                        has_non_support_filament = true;
+                        break;
+                    }
+                }
+                //BBS: find the non-support filament extruder of object
+                if (has_non_support_filament)
+                    for (LayerTools layer_tools : tool_ordering.layer_tools()) {
+                        if (!layer_tools.has_object)
+                            continue;
+                        for (unsigned int extruder : layer_tools.extruders) {
+                            if (print.config().filament_is_support.get_at(extruder))
+                                continue;
+                            initial_non_support_extruder_id = extruder;
+                            break;
+                        }
+                    }
+            }
+        }
+
         // In non-sequential print, the printing extruders may have been modified by the extruder switches stored in Model::custom_gcode_per_print_z.
         // Therefore initialize the printing extruders from there.
         this->set_extruders(tool_ordering.all_extruders());
@@ -1590,6 +1642,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (initial_extruder_id == (unsigned int)-1) {
         // Nothing to print!
         initial_extruder_id = 0;
+        initial_non_support_extruder_id = 0;
         final_extruder_id   = 0;
     } else {
         final_extruder_id = tool_ordering.last_extruder();
@@ -1613,6 +1666,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // Let the start-up script prime the 1st printing tool.
     m_placeholder_parser.set("initial_tool", initial_extruder_id);
     m_placeholder_parser.set("initial_extruder", initial_extruder_id);
+    //BBS
+    m_placeholder_parser.set("initial_no_support_tool", initial_non_support_extruder_id);
+    m_placeholder_parser.set("initial_no_support_extruder", initial_non_support_extruder_id);
     m_placeholder_parser.set("current_extruder", initial_extruder_id);
     //Set variable for total layer count so it can be used in custom gcode.
     m_placeholder_parser.set("total_layer_count", m_layer_count);
@@ -1660,13 +1716,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
         //BBS: calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
         {
-            float filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_extruder_id);
+            float filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_non_support_extruder_id);
             float outer_wall_line_width = print.default_region_config().outer_wall_line_width.value;
             if (outer_wall_line_width == 0.0) {
                 float default_line_width = print.default_object_config().line_width.value;
-                outer_wall_line_width = default_line_width == 0.0 ? m_config.nozzle_diameter.get_at(initial_extruder_id) : default_line_width;
+                outer_wall_line_width = default_line_width == 0.0 ? m_config.nozzle_diameter.get_at(initial_non_support_extruder_id) : default_line_width;
             }
-            Flow outer_wall_flow = Flow(outer_wall_line_width, m_config.layer_height, m_config.nozzle_diameter.get_at(initial_extruder_id));
+            Flow outer_wall_flow = Flow(outer_wall_line_width, m_config.layer_height, m_config.nozzle_diameter.get_at(initial_non_support_extruder_id));
             float outer_wall_speed = print.default_region_config().outer_wall_speed.value;
             float outer_wall_volumetric_speed = outer_wall_speed * outer_wall_flow.mm3_per_mm();
             if (outer_wall_volumetric_speed > filament_max_volumetric_speed)
@@ -1742,6 +1798,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     //BBS: open spaghetti detector
     // if (print.config().spaghetti_detector.value)
+    if (print.is_BBL_Printer())
         file.write("M981 S1 P20000 ;open spaghetti detector\n");
 
     // Do all objects for each layer.
@@ -1806,7 +1863,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             this->process_layers(print, tool_ordering, collect_layers_to_print(object), *print_object_instance_sequential_active - object.instances().data(), file, prime_extruder);
             //BBS: close powerlost recovery
             {
-                if (m_second_layer_things_done) {
+                if (m_second_layer_things_done && print.is_BBL_Printer()) {
                     file.write("; close powerlost recovery\n");
                     file.write("M1003 S0\n");
                 }
@@ -1877,7 +1934,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         this->process_layers(print, tool_ordering, print_object_instances_ordering, layers_to_print, file);
         //BBS: close powerlost recovery
         {
-            if (m_second_layer_things_done) {
+            if (m_second_layer_things_done && print.is_BBL_Printer()) {
                 file.write("; close powerlost recovery\n");
                 file.write("M1003 S0\n");
             }
@@ -1900,7 +1957,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     //BBS: close spaghetti detector
     //Note: M981 is also used to tell xcam the last layer is finished, so we need always send it even if spaghetti option is disabled.
     //if (print.config().spaghetti_detector.value)
-    file.write("M981 S0 P20000 ; close spaghetti detector\n");
+    if (print.is_BBL_Printer())
+        file.write("M981 S0 P20000 ; close spaghetti detector\n");
 
     // adds tag for processor
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
@@ -2629,8 +2687,10 @@ GCode::LayerResult GCode::process_layer(
     if (! first_layer && ! m_second_layer_things_done) {
         //BBS: open powerlost recovery
         {
-            gcode += "; open powerlost recovery\n";
-            gcode += "M1003 S1\n";
+            if (print.is_BBL_Printer()) {
+                gcode += "; open powerlost recovery\n";
+                gcode += "M1003 S1\n";
+            }
         }
         // BBS: open first layer inspection at second layer
         if (print.config().scan_first_layer.value) {
@@ -3175,9 +3235,9 @@ std::string GCode::change_layer(coordf_t print_z, bool lazy_raise)
     //coordf_t z = print_z + m_config.z_offset.value;  // in unscaled coordinates
     coordf_t z = print_z;  // in unscaled coordinates
     if (EXTRUDER_CONFIG(retract_when_changing_layer) && m_writer.will_move_z(z)) {
-        LiftType lift_type = this->to_lift_type(m_config.z_hop_type);
+        LiftType lift_type = this->to_lift_type(ZHopType(EXTRUDER_CONFIG(z_hop_types)));
         //BBS: force to use SpiralLift when change layer if lift type is auto
-        gcode += this->retract(false, false, m_config.z_hop_type == ZHopType::zhtAuto? LiftType::SpiralLift : lift_type);
+        gcode += this->retract(false, false, ZHopType(EXTRUDER_CONFIG(z_hop_types)) == ZHopType::zhtAuto ? LiftType::SpiralLift : lift_type);
     }
 
     if (!lazy_raise) {
@@ -3287,44 +3347,45 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         }
     }
 
-    // make a little move inwards before leaving loop
-    if (paths.back().role() == erExternalPerimeter && m_layer != NULL && m_config.wall_loops.value > 1 && paths.front().size() >= 2 && paths.back().polyline.points.size() >= 3) {
-        // detect angle between last and first segment
-        // the side depends on the original winding order of the polygon (left for contours, right for holes)
-        //FIXME improve the algorithm in case the loop is tiny.
-        //FIXME improve the algorithm in case the loop is split into segments with a low number of points (see the Point b query).
-        Point a = paths.front().polyline.points[1];  // second point
-        Point b = *(paths.back().polyline.points.end()-3);       // second to last point
-        if (was_clockwise) {
-            // swap points
-            Point c = a; a = b; b = c;
-        }
+    //BBS. move the travel path before wipe to improve the seam
+    //// make a little move inwards before leaving loop
+    //if (paths.back().role() == erExternalPerimeter && m_layer != NULL && m_config.wall_loops.value > 1 && paths.front().size() >= 2 && paths.back().polyline.points.size() >= 3) {
+    //    // detect angle between last and first segment
+    //    // the side depends on the original winding order of the polygon (left for contours, right for holes)
+    //    //FIXME improve the algorithm in case the loop is tiny.
+    //    //FIXME improve the algorithm in case the loop is split into segments with a low number of points (see the Point b query).
+    //    Point a = paths.front().polyline.points[1];  // second point
+    //    Point b = *(paths.back().polyline.points.end()-3);       // second to last point
+    //    if (was_clockwise) {
+    //        // swap points
+    //        Point c = a; a = b; b = c;
+    //    }
 
-        double angle = paths.front().first_point().ccw_angle(a, b) / 3;
+    //    double angle = paths.front().first_point().ccw_angle(a, b) / 3;
 
-        // turn left if contour, turn right if hole
-        if (was_clockwise) angle *= -1;
+    //    // turn left if contour, turn right if hole
+    //    if (was_clockwise) angle *= -1;
 
-        // create the destination point along the first segment and rotate it
-        // we make sure we don't exceed the segment length because we don't know
-        // the rotation of the second segment so we might cross the object boundary
-        Vec2d  p1 = paths.front().polyline.points.front().cast<double>();
-        Vec2d  p2 = paths.front().polyline.points[1].cast<double>();
-        Vec2d  v  = p2 - p1;
-        double nd = scale_(EXTRUDER_CONFIG(nozzle_diameter));
-        double l2 = v.squaredNorm();
-        // Shift by no more than a nozzle diameter.
-        //FIXME Hiding the seams will not work nicely for very densely discretized contours!
-        //BBS. shorten the travel distant before the wipe path
-        double threshold = 0.2;
-        Point  pt = (p1 + v * threshold).cast<coord_t>();
-        if (nd * nd < l2)
-            pt = (p1 + threshold * v * (nd / sqrt(l2))).cast<coord_t>();
-        //Point pt = ((nd * nd >= l2) ? (p1+v*0.4): (p1 + 0.2 * v * (nd / sqrt(l2)))).cast<coord_t>();
-        pt.rotate(angle, paths.front().polyline.points.front());
-        // generate the travel move
-        gcode += m_writer.travel_to_xy(this->point_to_gcode(pt), "move inwards before travel");
-    }
+    //    // create the destination point along the first segment and rotate it
+    //    // we make sure we don't exceed the segment length because we don't know
+    //    // the rotation of the second segment so we might cross the object boundary
+    //    Vec2d  p1 = paths.front().polyline.points.front().cast<double>();
+    //    Vec2d  p2 = paths.front().polyline.points[1].cast<double>();
+    //    Vec2d  v  = p2 - p1;
+    //    double nd = scale_(EXTRUDER_CONFIG(nozzle_diameter));
+    //    double l2 = v.squaredNorm();
+    //    // Shift by no more than a nozzle diameter.
+    //    //FIXME Hiding the seams will not work nicely for very densely discretized contours!
+    //    //BBS. shorten the travel distant before the wipe path
+    //    double threshold = 0.2;
+    //    Point  pt = (p1 + v * threshold).cast<coord_t>();
+    //    if (nd * nd < l2)
+    //        pt = (p1 + threshold * v * (nd / sqrt(l2))).cast<coord_t>();
+    //    //Point pt = ((nd * nd >= l2) ? (p1+v*0.4): (p1 + 0.2 * v * (nd / sqrt(l2)))).cast<coord_t>();
+    //    pt.rotate(angle, paths.front().polyline.points.front());
+    //    // generate the travel move
+    //    gcode += m_writer.travel_to_xy(this->point_to_gcode(pt), "move inwards before travel");
+    //}
 
     return gcode;
 }
@@ -3876,7 +3937,7 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         for (size_t i = 1; i < travel.size(); ++ i) {
             // BBS. Process lazy layer change, but don't do lazy layer change when enable spiral vase
             Vec3d curr_pos = m_writer.get_position();
-            if (i == travel.size() - 1 && !m_spiral_vase) {
+            if (i == 1 && !m_spiral_vase) {
                 Vec2d dest2d = this->point_to_gcode(travel.points[i]);
                 Vec3d dest3d(dest2d(0), dest2d(1), m_nominal_z);
                 gcode += m_writer.travel_to_xyz(dest3d, comment);
@@ -3890,8 +3951,8 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
 }
 
 //BBS
-LiftType GCode::to_lift_type(ZHopType z_hop_type) {
-    switch (z_hop_type)
+LiftType GCode::to_lift_type(ZHopType z_hop_types) {
+    switch (z_hop_types)
     {
     case ZHopType::zhtNormal:
         return LiftType::NormalLift;
@@ -3962,11 +4023,11 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
     //BBS: force to retract when leave from external perimeter for a long travel
     //Better way is judging whether the travel move direction is same with last extrusion move.
     if (is_perimeter(m_last_processor_extrusion_role) && m_last_processor_extrusion_role != erPerimeter) {
-        if (m_config.z_hop_type == ZHopType::zhtAuto) {
+        if (ZHopType(EXTRUDER_CONFIG(z_hop_types)) == ZHopType::zhtAuto) {
             lift_type = is_through_overhang(clipped_travel) ? LiftType::SpiralLift : LiftType::LazyLift;
         }
         else {
-            lift_type = to_lift_type(m_config.z_hop_type);
+            lift_type = to_lift_type(ZHopType(EXTRUDER_CONFIG(z_hop_types)));
         }
         return true;
     }
@@ -3994,11 +4055,11 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
         return false;
 
     // retract if reduce_infill_retraction is disabled or doesn't apply when role is perimeter
-    if (m_config.z_hop_type == ZHopType::zhtAuto) {
+    if (ZHopType(EXTRUDER_CONFIG(z_hop_types)) == ZHopType::zhtAuto) {
         lift_type = is_through_overhang(clipped_travel) ? LiftType::SpiralLift : LiftType::LazyLift;
     }
     else {
-        lift_type = to_lift_type(m_config.z_hop_type);
+        lift_type = to_lift_type(ZHopType(EXTRUDER_CONFIG(z_hop_types)));
     }
     return true;
 }

@@ -537,6 +537,8 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(std::string user, For
         errors_cummulative += err.what();
     }
     if (!errors_cummulative.empty()) throw Slic3r::RuntimeError(errors_cummulative);
+    this->update_multi_material_filament_presets();
+    this->update_compatible(PresetSelectCompatibleType::Never);
     return PresetsConfigSubstitutions();
 }
 
@@ -930,6 +932,8 @@ void PresetBundle::remove_users_preset(AppConfig &config, std::map<std::string, 
         filaments.select_preset_by_name(selected_filament_name, false);
     }
 
+    update_compatible(PresetSelectCompatibleType::Always);
+
     /* set selected preset */
     for (size_t i = 0; i < filament_presets.size(); ++i)
     {
@@ -1293,7 +1297,7 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     this->filament_presets = { filaments.get_selected_preset_name() };
     for (unsigned int i = 1; i < 1000; ++ i) {
         char name[64];
-        sprintf(name, "filament_%u", i);
+        sprintf(name, "filament_%02u", i);
         if (! config.has("presets", name))
             break;
         this->filament_presets.emplace_back(remove_ini_suffix(config.get("presets", name)));
@@ -1301,8 +1305,9 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     std::vector<std::string> filament_colors;
     if (config.has("presets", "filament_colors")) {
         boost::algorithm::split(filament_colors, config.get("presets", "filament_colors"), boost::algorithm::is_any_of(","));
-        project_config.option<ConfigOptionStrings>("filament_colour")->values = filament_colors;
     }
+    filament_colors.resize(filament_presets.size());
+    project_config.option<ConfigOptionStrings>("filament_colour")->values = filament_colors;
     std::vector<std::string> matrix;
     if (config.has("presets", "flush_volumes_matrix")) {
         boost::algorithm::split(matrix, config.get("presets", "flush_volumes_matrix"), boost::algorithm::is_any_of("|"));
@@ -1371,7 +1376,8 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set("presets", PRESET_FILAMENT_NAME,     filament_presets.front());
     for (unsigned i = 1; i < filament_presets.size(); ++i) {
         char name[64];
-        sprintf(name, "filament_%u", i);
+        assert(!filament_presets[i].empty());
+        sprintf(name, "filament_%02u", i);
         config.set("presets", name, filament_presets[i]);
     }
     CNumericLocalesSetter locales_setter;
@@ -1427,6 +1433,13 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
     for (auto &ams : filament_ams_list) {
         auto filament_id = ams.opt_string("filament_id", 0u);
         auto filament_color = ams.opt_string("filament_colour", 0u);
+        auto filament_changed = !ams.has("filament_changed") || ams.opt_bool("filament_changed");
+        if (filament_id.empty()) continue;
+        if (!filament_changed && this->filament_presets.size() > filament_presets.size()) {
+            filament_presets.push_back(this->filament_presets[filament_presets.size()]);
+            filament_colors.push_back(filament_color);
+            continue;
+        }
         auto iter = std::find_if(filaments.begin(), filaments.end(), [&filament_id](auto &f) { return f.is_compatible && f.is_system && f.filament_id == filament_id; });
         if (iter == filaments.end()) {
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
@@ -3496,9 +3509,9 @@ std::vector<std::string> PresetBundle::export_current_configs(const std::string 
         std::string file = path + "/" + preset->name + ".json";
         if (boost::filesystem::exists(file) && overwrite < 2) {
             overwrite = override_confirm(preset->name);
-            if (overwrite == 0 || overwrite == 2)
-                continue;
         }
+        if (overwrite == 0 || overwrite == 2)
+            continue;
         preset->config.save_to_json(file, preset->name, "", preset->version.to_string());
         result.push_back(file);
     }

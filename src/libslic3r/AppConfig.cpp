@@ -257,6 +257,10 @@ void AppConfig::set_defaults()
         set("mouse_supported", "mouse left/mouse middle/mouse right");
     }
 
+    if (get("privacy_version").empty()) {
+        set("privacy_version", "00.00.00.00");
+    }
+
     if (get("rotate_view").empty()) {
         set("rotate_view", "none/mouse left");
     }
@@ -462,8 +466,11 @@ std::string AppConfig::load()
                         for(auto& element: iter.value()) {
                             if (idx == 0)
                                 m_storage[it.key()]["filament"] = element;
-                            else
-                                m_storage[it.key()]["filament_" + std::to_string(idx)] = element;
+                            else {
+                                auto n = std::to_string(idx);
+                                if (n.length() == 1) n = "0" + n;
+                                m_storage[it.key()]["filament_" + n] = element;
+                            }
                             idx++;
                         }
                     } else {

@@ -41,7 +41,7 @@ namespace BBL {
 
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
-#define BAMBU_NETWORK_AGENT_VERSION         "01.05.00.03"
+#define BAMBU_NETWORK_AGENT_VERSION         "01.05.00.08"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -120,6 +120,7 @@ struct PrintParams {
     std::string     filename;
     std::string     config_filename;
     int             plate_index;
+    std::string     ftp_folder;
     std::string     ftp_file;
     std::string     ftp_file_md5;
     std::string     ams_mapping;

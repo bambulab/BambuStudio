@@ -1416,6 +1416,13 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
+    // BBS set support style to default when support type changes
+    if (opt_key == "support_type") {
+        DynamicPrintConfig new_conf = *m_config;
+        new_conf.set_key_value("support_style", new ConfigOptionEnum<SupportMaterialStyle>(smsDefault));
+        m_config_manipulation.apply(m_config, &new_conf);
+    }
+
     // BBS popup a message to ask the user to set optimum parameters for tree support
     if (opt_key == "support_type" || opt_key == "support_style") {
         if (is_tree_slim(m_config->opt_enum<SupportType>("support_type"), m_config->opt_enum<SupportMaterialStyle>("support_style")) &&
@@ -2061,6 +2068,27 @@ void TabPrint::toggle_options()
     if (!m_active_page) return;
 
     m_config_manipulation.toggle_print_fff_options(m_config, m_type < Preset::TYPE_COUNT);
+
+    Field *field = m_active_page->get_field("support_style");
+    auto   support_type = m_config->opt_enum<SupportType>("support_type");
+    if (auto choice = dynamic_cast<Choice*>(field)) {
+        auto def = print_config_def.get("support_style");
+        std::vector<int> enum_set_normal = {0, 1, 2};
+        std::vector<int> enum_set_tree   = {0, 3, 4, 5};
+        auto &           set             = is_tree(support_type) ? enum_set_tree : enum_set_normal;
+        auto &           opt             = const_cast<ConfigOptionDef &>(field->m_opt);
+        auto             cb              = dynamic_cast<ComboBox *>(choice->window);
+        auto             n               = cb->GetValue();
+        opt.enum_values.clear();
+        opt.enum_labels.clear();
+        cb->Clear();
+        for (auto i : set) {
+            opt.enum_values.push_back(def->enum_values[i]);
+            opt.enum_labels.push_back(def->enum_labels[i]);
+            cb->Append(_(def->enum_labels[i]));
+        }
+        cb->SetValue(n);
+    }
 }
 
 void TabPrint::update()
@@ -2433,6 +2461,7 @@ void TabFilament::add_filament_overrides_page()
 
     for (const std::string opt_key : {  "filament_retraction_length",
                                         "filament_z_hop",
+                                        "filament_z_hop_types",
                                         "filament_retraction_speed",
                                         "filament_deretraction_speed",
                                         //"filament_retract_restart_extra",
@@ -2464,6 +2493,7 @@ void TabFilament::update_filament_overrides_page()
 
     std::vector<std::string> opt_keys = {   "filament_retraction_length",
                                             "filament_z_hop",
+                                            "filament_z_hop_types",
                                             "filament_retraction_speed",
                                             "filament_deretraction_speed",
                                             //"filament_retract_restart_extra",
@@ -3322,7 +3352,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup = page->new_optgroup(L("Retraction"), L"param_retraction");
             optgroup->append_single_option_line("retraction_length", "", extruder_idx);
             optgroup->append_single_option_line("z_hop", "", extruder_idx);
-            optgroup->append_single_option_line("z_hop_type", "");
+            optgroup->append_single_option_line("z_hop_types", "", extruder_idx);
             optgroup->append_single_option_line("retraction_speed", "", extruder_idx);
             optgroup->append_single_option_line("deretraction_speed", "", extruder_idx);
             //optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
