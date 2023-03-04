@@ -8239,14 +8239,19 @@ bool CLI::setup(int argc, char **argv)
         for (const t_optiondef_map::value_type &optdef : *options)
             m_config.option(optdef.first, true);
 
-    //set_data_dir(m_config.opt_string("datadir"));
-
     //FIXME Validating at this stage most likely does not make sense, as the config is not fully initialized yet.
     if (!validity.empty()) {
         boost::nowide::cerr << "Params in command line error: "<< std::endl;
         for (std::map<std::string, std::string>::iterator it=validity.begin(); it!=validity.end(); ++it)
             boost::nowide::cerr << it->first <<": "<< it->second << std::endl;
         return false;
+    }
+
+    // Set custom configuration storage location if invoked with --datadir argument.
+    if (m_config.has("datadir") && !m_config.opt_string("datadir").empty()) {
+        // Don't validate existence or create it right now, should be done in GUI_App::init_app_config(), same as for default data dir.
+        // We do want to store the full path in native format because that's how all other sources of the global data_dir are stored.
+        set_data_dir(boost::filesystem::absolute(m_config.opt_string("datadir")).make_preferred().string());
     }
 
     return true;
