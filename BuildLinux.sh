@@ -189,7 +189,8 @@ then
         
         # make deps
         echo "[4/9] Building dependencies..."
-        make -j$NCORES
+        #make -j$NCORES
+        make -j2
         echo "done"
 
         # rename wxscintilla # TODO: DeftDawg: Does BambuStudio need this?
