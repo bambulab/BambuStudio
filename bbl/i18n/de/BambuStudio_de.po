@@ -1341,7 +1341,7 @@ msgid "Layer height"
 msgstr "Schichthöhe"
 
 msgid "Wall loops"
-msgstr "Wandschleifen"
+msgstr "Wandlinien"
 
 msgid "Infill density(%)"
 msgstr "Füllungdichte(%)"
@@ -8459,7 +8459,7 @@ msgid "This setting determines the initial diameter of support nodes."
 msgstr "Diese Einstellung bestimmt den Anfangsdurchmesser der Stützknoten."
 
 msgid "Tree support wall loops"
-msgstr "Wandschleifen für Baumstützen"
+msgstr "Wandlinien für Baumstützen"
 
 msgid "This setting specify the count of walls around tree support"
 msgstr "Diese Einstellung gibt die Anzahl der Wände um die Baumstütze an."
