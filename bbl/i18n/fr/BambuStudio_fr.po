@@ -2014,10 +2014,10 @@ msgid "Note: When the lid is open or the desiccant pack is changed, it can take 
 msgstr "Remarque : Lorsque le couvercle est ouvert ou que le sachet déshydrateur est remplacé, cela peut prendre plusieurs heures ou une nuit pour absorber l'humidité. Les basses températures ralentissent également le processus. Pendant ce temps, l'indicateur peut ne pas représenter l'état avec précision."
 
 msgid "Config which AMS slot should be used for a filament used in the print job"
-msgstr "Configurer le ou les emplacements utilisés dans l'AMS pour un ou des filaments utilisés pour cette impression"
+msgstr "Configuration du ou des emplacements utilisés dans l'AMS pour le ou les filaments utilisés pour cette impression"
 
 msgid "Filament used in this print job"
-msgstr "Filament utilisé dans cette tâche d'impression"
+msgstr "Filament utilisé pour cette tâche d'impression"
 
 msgid "AMS slot used for this filament"
 msgstr "Emplacement utilisé dans l'AMS pour ce filament"
@@ -4882,7 +4882,7 @@ msgid "Bed Leveling"
 msgstr "Nivellement"
 
 msgid "Flow Dynamics Calibration"
-msgstr "Calibration dynamique du débit"
+msgstr "Calibration du débit"
 
 msgid "Can't connect to the printer"
 msgstr "Échec de la connexion à l'imprimante"
@@ -4928,7 +4928,7 @@ msgid "Filament exceeds the number of AMS slots. Please update the printer firmw
 msgstr "Le filament dépasse le nombre d'emplacements de l'AMS. Veuillez mettre à jour le firmware de l'imprimante pour prendre en charge l'affectation des emplacements dans l'AMS."
 
 msgid "Filaments to AMS slots mappings have been established. You can click a filament above to change its mapping AMS slot"
-msgstr "L'affectation des filaments aux emplacements de l'AMS a été réalisée. Vous pouvez cliquer sur un filament ci-dessus pour modifier son emplacement correspondant à celui dans l'AMS"
+msgstr "L'affectation des filaments aux emplacements de l'AMS a été réalisée. Vous pouvez cliquer sur un filament ci-dessus pour modifier son emplacement correspondant à celui dans l'AMS."
 
 msgid "Please click each filament above to specify its mapping AMS slot before sending the print job"
 msgstr "Veuillez cliquer sur chaque filament ci-dessus pour indiquer son emplacement dans l'AMS avant d'envoyer la tâche d'impression"
@@ -8510,10 +8510,10 @@ msgstr ""
 "- Différentes marques et familles de filaments (Marque = Bambu, Famille = Basique, Mat)"
 
 msgid "Error desc"
-msgstr "Description de l'erreur"
+msgstr "Description"
 
 msgid "Extra info"
-msgstr "informations supplémentaires"
+msgstr "Informations"
 
 msgid "Record Factor"
 msgstr "Enregistrer le facteur"
