@@ -217,7 +217,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
         return res;
     };
 
-    auto operate_button = [this](const wxString& label, bool enable) {
+    auto operate_button = [this](const wxString &label, bool enable) {
         if (!enable) {
             ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
             if (m_is_dark_mode) {
@@ -254,7 +254,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     ImGui::PopStyleVar();
 
     ImGui::AlignTextToFramePadding();
-    wxString cap_str1 = m_operation_mode != MeshBooleanOperation::Difference ? _u8L("Part 1") : _u8L("Subtract from");
+    std::string cap_str1 = m_operation_mode != MeshBooleanOperation::Difference ? _u8L("Part 1") : _u8L("Subtract from");
     m_imgui->text(cap_str1);
     ImGui::SameLine(max_cap_length);
     wxString select_src_str = m_src.mv ? "1 " + _u8L("selected") : _u8L("Select");
@@ -282,7 +282,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     }
 
     ImGui::AlignTextToFramePadding();
-    wxString cap_str2 = m_operation_mode != MeshBooleanOperation::Difference ? _u8L("Part 2") : _u8L("Subtract with");
+    std::string cap_str2 = m_operation_mode != MeshBooleanOperation::Difference ? _u8L("Part 2") : _u8L("Subtract with");
     m_imgui->text(cap_str2);
     ImGui::SameLine(max_cap_length);
     wxString select_tool_str = m_tool.mv ? "1 " + _u8L("selected") : _u8L("Select");
@@ -312,7 +312,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     bool enable_button = m_src.mv && m_tool.mv;
     if (m_operation_mode == MeshBooleanOperation::Union)
     {
-        if (operate_button(_u8L("Union") + "##btn", enable_button)) {
+        if (operate_button(_L("Union") + "##btn", enable_button)) {
             TriangleMesh temp_src_mesh = m_src.mv->mesh();
             temp_src_mesh.transform(m_src.trafo);
             TriangleMesh temp_tool_mesh = m_tool.mv->mesh();
@@ -329,8 +329,8 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
         }
     }
     else if (m_operation_mode == MeshBooleanOperation::Difference) {
-        m_imgui->bbl_checkbox(_u8L("Delete input"), m_diff_delete_input);
-        if (operate_button(_u8L("Difference") + "##btn", enable_button)) {
+        m_imgui->bbl_checkbox(_L("Delete input"), m_diff_delete_input);
+        if (operate_button(_L("Difference") + "##btn", enable_button)) {
             TriangleMesh temp_src_mesh = m_src.mv->mesh();
             temp_src_mesh.transform(m_src.trafo);
             TriangleMesh temp_tool_mesh = m_tool.mv->mesh();
@@ -347,8 +347,8 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
         }
     }
     else if (m_operation_mode == MeshBooleanOperation::Intersection){
-        m_imgui->bbl_checkbox(_u8L("Delete input"), m_inter_delete_input);
-        if (operate_button(_u8L("Intersection") + "##btn", enable_button)) {
+        m_imgui->bbl_checkbox(_L("Delete input"), m_inter_delete_input);
+        if (operate_button(_L("Intersection") + "##btn", enable_button)) {
             TriangleMesh temp_src_mesh = m_src.mv->mesh();
             temp_src_mesh.transform(m_src.trafo);
             TriangleMesh temp_tool_mesh = m_tool.mv->mesh();
