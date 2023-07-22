@@ -18,6 +18,58 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
+msgid "Mesh Boolean"
+msgstr ""
+
+msgid "Union"
+msgstr ""
+
+msgid "Part 1"
+msgstr ""
+
+msgid "Part 2"
+msgstr ""
+
+msgid "Difference"
+msgstr ""
+
+msgid "Subtract from"
+msgstr ""
+
+msgid "Subtract with"
+msgstr ""
+
+msgid "Delete input"
+msgstr ""
+
+msgid "Intersection"
+msgstr ""
+
+msgid "selected"
+msgstr ""
+
+msgid "Physical Printer"
+msgstr ""
+
+msgid "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate."
+msgstr ""
+
+msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
+msgstr ""
+
+msgid "Open CA certificate file"
+msgstr ""
+
+#, c-format, boost-format
+msgid "On this system, %s uses HTTPS certificates from the system Certificate Store or Keychain."
+msgstr ""
+
+msgid "To use a custom CA file, please import your CA file into Certificate Store / Keychain."
+msgstr ""
+
+msgid "Extra length on restart"
+msgstr ""
+
 msgid "Supports Painting"
 msgstr ""
 
