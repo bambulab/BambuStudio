@@ -1700,8 +1700,8 @@
             "sub_path": "machine/fdm_machine_common.json"
         },
         {
-            "name": "fdm_bbl_3dp_001_common",
-            "sub_path": "machine/fdm_bbl_3dp_001_common.json"
+            "name": "fdm_bbl_machine_common",
+            "sub_path": "machine/fdm_bbl_machine_common.json"
         },
         {
             "name": "Bambu Lab X1 Carbon 0.4 nozzle",
