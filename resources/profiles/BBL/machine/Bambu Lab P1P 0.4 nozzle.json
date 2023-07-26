@@ -4,7 +4,7 @@
     "name": "Bambu Lab P1P 0.4 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_bbl_3dp_001_common",
+    "inherits": "fdm_bbl_machine_common",
     "nozzle_diameter": [
         "0.4"
     ],
