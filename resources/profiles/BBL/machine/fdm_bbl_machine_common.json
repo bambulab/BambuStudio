@@ -1,7 +1,7 @@
 {
     "type": "machine",
-    "name": "fdm_bbl_3dp_001_common",
     "from": "system",
+    "name": "fdm_bbl_machine_common",
     "instantiation": "false",
     "printable_area": [
         "0x0",

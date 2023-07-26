@@ -4,7 +4,7 @@
   "name": "Bambu Lab P1S 0.4 nozzle",
   "from": "system",
   "instantiation": "true",
-  "inherits": "fdm_bbl_3dp_001_common",
+  "inherits": "fdm_bbl_machine_common",
   "printer_model": "Bambu Lab P1S",
   "default_filament_profile": [
       "Bambu PLA Basic @BBL X1C"
