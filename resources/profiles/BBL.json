@@ -1704,10 +1704,6 @@
     ],
     "machine_list": [
         {
-            "name": "fdm_machine_common",
-            "sub_path": "machine/fdm_machine_common.json"
-        },
-        {
             "name": "fdm_bbl_machine_common",
             "sub_path": "machine/fdm_bbl_machine_common.json"
         },
