@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "setting_id": "GPGP_Anker_003",
+    "setting_id": "GP_Anker_003",
     "name": "0.15mm Optimal @Anker",
     "from": "system",
     "instantiation": "true",
