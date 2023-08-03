@@ -1,6 +1,6 @@
 {
     "type": "machine",
-    "setting_id": "GM_Anker_001",
+    "setting_id": "GM_Anker_000",
     "name": "Anker M5 0.4 nozzle",
     "from": "system",
     "instantiation": "true",
