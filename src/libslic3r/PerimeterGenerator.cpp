@@ -1408,7 +1408,7 @@ void PerimeterGenerator::process_arachne()
                 infill_contour = diff_ex(infill_contour, bridge_area);
             }
             //BBS: filter small area and extend top surface a bit to hide the wall line
-            double min_width_top_surface = std::max(double(ext_perimeter_spacing / 4 + 10), 2*double(perimeter_width / 4));
+            double min_width_top_surface = std::max(double(ext_perimeter_spacing / 4 + 10), 2.0 * double(perimeter_width / 4));
             infill_contour = offset2_ex(infill_contour, -min_width_top_surface, min_width_top_surface + perimeter_width);
 
             //BBS: get the inner surface that not export to top
