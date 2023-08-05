@@ -1018,7 +1018,7 @@ void PerimeterGenerator::process_classic()
                     else
                         offset_top_surface = 0;
                     //don't takes into account too thin areas
-                    double min_width_top_surface = std::max(double(ext_perimeter_spacing / 2 + 10), 2.0 * (double(perimeter_width)));
+                    double min_width_top_surface = std::max(double(ext_perimeter_spacing / 2 + 10), 3.0 * (double(perimeter_width)));
 
                     //BBS: get boungding box of last
                     BoundingBox last_box   = get_extents(last);
