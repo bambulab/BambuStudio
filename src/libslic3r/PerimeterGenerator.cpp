@@ -666,8 +666,8 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                     }
 
                     BoundingBox extrusion_bboxs = get_extents(be_clipped);
-                    extrusion_bboxs.offset(SCALED_EPSILON + scale_(it.first));
-                    Polygons lower_slcier_chopped=ClipperUtils::clip_clipper_polygons_with_subject_bbox(*perimeter_generator.lower_slices, extrusion_bboxs);
+                    //ExPolygons lower_slcier_chopped = *perimeter_generator.lower_slices;
+                    Polygons lower_slcier_chopped=ClipperUtils::clip_clipper_polygons_with_subject_bbox(*perimeter_generator.lower_slices, extrusion_bboxs, true);
 
                     double start_pos = -it.first * 0.5;
                     double end_pos   = 0.5 * it.first;
@@ -1423,14 +1423,14 @@ void PerimeterGenerator::process_arachne()
             remain_loops = int(perimeters_inner.size()) - 1;
 
             //BBS: set wall's perporsity
-            for (int perimeter_idx = 0; perimeter_idx < perimeters_inner.size(); perimeter_idx++) {
-                if (perimeters_inner[perimeter_idx].empty())
-                    continue;
+            if (!perimeters.empty()) {
+                for (int perimeter_idx = 0; perimeter_idx < perimeters_inner.size(); perimeter_idx++) {
+                    if (perimeters_inner[perimeter_idx].empty()) continue;
 
-                for (Arachne::ExtrusionLine &wall : perimeters_inner[perimeter_idx]) {
-                    //BBS: 0 means outer wall
-                    wall.inset_idx++;
-                    wall.is_odd = !wall.is_odd;
+                    for (Arachne::ExtrusionLine &wall : perimeters_inner[perimeter_idx]) {
+                        // BBS: 0 means outer wall
+                        wall.inset_idx++;
+                    }
                 }
             }
             perimeters.insert(perimeters.end(), perimeters_inner.begin(), perimeters_inner.end());
