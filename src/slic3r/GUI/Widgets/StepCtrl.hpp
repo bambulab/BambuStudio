@@ -53,8 +53,7 @@ public:
     void Idle();
 
     wxString GetItemText(unsigned int item) const;
-    int      GetItemUseText(wxString txt) const;
-    void     SetItemText(unsigned int item, wxString const& value);
+    void     SetItemText(unsigned int item, wxString const &value);
 
 private:
     // some useful events
