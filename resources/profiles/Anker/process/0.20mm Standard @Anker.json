@@ -1,7 +1,7 @@
 {
     "type": "process",
-    "setting_id": "GP_Anker_005",
-    "name": "0.20mm Normal @Anker",
+    "setting_id": "GP_Anker_000",
+    "name": "0.20mm Standard @Anker",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_process_common",
