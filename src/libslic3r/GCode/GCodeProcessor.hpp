@@ -253,7 +253,8 @@ namespace Slic3r {
             First_Line_M73_Placeholder,
             Last_Line_M73_Placeholder,
             Estimated_Printing_Time_Placeholder,
-            Total_Layer_Number_Placeholder
+            Total_Layer_Number_Placeholder,
+            Estimated_Printing_Time_Moonraker_Compatible_Placeholder // SL
         };
 
         static const std::string& reserved_tag(ETags tag) { return Reserved_Tags[static_cast<unsigned char>(tag)]; }

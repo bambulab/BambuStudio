@@ -1563,9 +1563,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     }
 
     //BBS: add plate id into thumbnail render logic
-    //DoExport::export_thumbnails_to_file(thumbnail_cb, print.get_plate_index(), THUMBNAIL_SIZE,
-    //    [&file](const char* sz) { file.write(sz); },
-    //    [&print]() { print.throw_if_canceled(); });
+    //SL 
+    if ( ! print.is_BBL_Printer() ){
+        DoExport::export_thumbnails_to_file(thumbnail_cb, print.get_plate_index(), THUMBNAIL_SIZE,
+            [&file](const char* sz) { file.write(sz); },
+            [&print]() { print.throw_if_canceled(); });
+    }
 
 
     // Write some terse information on the slicing parameters.
@@ -2121,6 +2124,29 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     //file.write_format("; total filament cost = %.2lf\n", print.m_print_statistics.total_cost);
     //if (print.m_print_statistics.total_toolchanges > 0)
     //	file.write_format("; total filament change = %i\n", print.m_print_statistics.total_toolchanges);
+
+    // SL write moonraker compat metdata to the bottom
+    if ( ! print.is_BBL_Printer() ){
+        // keys from Moonraker PrusaSlicer parsing -- https://github.com/Arksine/moonraker/blob/master/moonraker/components/file_manager/metadata.py
+        file.write_format("; first_layer_height = %.3f\n", print.config().initial_layer_print_height.value);
+        file.write_format("; layer_height = %s\n", print.full_print_config().opt_serialize("layer_height").c_str());
+        file.write_format("; filament used [mm] = %.2lf\n", print.m_print_statistics.total_used_filament);
+        file.write_format("; total filament used [g] = %.2lf\n", print.m_print_statistics.total_weight);
+        file.write_format("; filament_type = %s\n", print.config().filament_type.get_at(0).c_str());
+        file.write_format("; filament_settings_id = %s\n", print.full_print_config().opt_serialize("filament_settings_id").c_str());
+        file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Estimated_Printing_Time_Moonraker_Compatible_Placeholder).c_str());
+        file.write_format("; first_layer_temperature = %d\n", print.config().nozzle_temperature_initial_layer.get_at(0));
+        file.write_format("; first_layer_bed_temperature = %d\n", get_bed_temperature(0, true, print.config().curr_bed_type));
+        file.write_format("; chamber_temperature = %d\n", print.config().chamber_temperatures.get_at(0));
+        file.write_format("; nozzle_diameter = %.3f\n", print.config().nozzle_diameter.get_at(0));
+        file.write_format("; total layers count = %i\n", m_layer_count);
+
+        // others from OrcaSlicer     
+        file.write_format("; total filament cost = %.2lf\n", print.m_print_statistics.total_cost);
+        if (print.m_print_statistics.total_toolchanges > 0)
+            file.write_format("; total filament change = %i\n", print.m_print_statistics.total_toolchanges);
+        file.write_format("; bed_shape = %s\n", print.full_print_config().opt_serialize("printable_area").c_str());
+    }
 
     print.throw_if_canceled();
 }

@@ -8,7 +8,7 @@
 namespace Slic3r {
 
 //BBS: thumbnail_size in gcode file
-static std::vector<Vec2d> THUMBNAIL_SIZE = { Vec2d(50, 50) };
+static std::vector<Vec2d> THUMBNAIL_SIZE = { Vec2d(300, 300) }; // SL change image size
 
 struct ThumbnailData
 {

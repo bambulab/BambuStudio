@@ -57,7 +57,8 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     "_GP_FIRST_LINE_M73_PLACEHOLDER",
     "_GP_LAST_LINE_M73_PLACEHOLDER",
     "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER",
-    "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER"
+    "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER",
+    "_GP_ESTIMATED_PRINTING_TIME_MOONRAKER_COMPATIBLE_PLACEHOLDER"
 };
 
 const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
@@ -476,6 +477,18 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                         sprintf(buf, "; model printing time: %s; total estimated time: %s\n",
                                 get_time_dhms(machine.time - machine.prepare_time).c_str(),
                                 get_time_dhms(machine.time).c_str());
+                        ret += buf;
+                    }
+                }
+            }
+            //SL: add moonraker compat estimated time tag 
+            else if (line == reserved_tag(ETags::Estimated_Printing_Time_Moonraker_Compatible_Placeholder)) {
+                for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
+                    const TimeMachine& machine = machines[i];
+                    PrintEstimatedStatistics::ETimeMode mode = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
+                    if (mode == PrintEstimatedStatistics::ETimeMode::Normal || machine.enabled) {
+                        char buf[128];
+                        sprintf(buf, "; estimated printing time (normal mode) = %s\n", get_time_dhms(machine.time).c_str());
                         ret += buf;
                     }
                 }
