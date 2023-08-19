@@ -9676,34 +9676,34 @@ msgid "This OBJ file couldn't be read because it's empty."
 msgstr "Diese OBJ-Datei konnte nicht gelesen werden, da sie leer ist."
 
 msgid "Flow Rate Calibration"
-msgstr ""
+msgstr "Kalibrierung der Durchflussrate"
 
 msgid "Max Volumetric Speed Calibration"
-msgstr ""
+msgstr "Kalibrierung der maximalen volumetrischen Geschwindigkeit"
 
 msgid "Manage Result"
-msgstr ""
+msgstr "Ergebnis verwalten"
 
 msgid "Manual Calibration"
-msgstr ""
+msgstr "Manuelle Kalibrierung"
 
 msgid "Result can be read by human eyes."
-msgstr ""
+msgstr "Das Ergebnis kann mit dem Auge abgelesen werden."
 
 msgid "Auto-Calibration"
-msgstr ""
+msgstr "Auto-Kalibrierung"
 
 msgid "We would use Lidar to read the calibration result"
-msgstr ""
+msgstr "Wir würden Lidar verwenden, um das Kalibrierungsergebnis abzulesen"
 
 msgid "Prev"
 msgstr ""
 
 msgid "Recalibration"
-msgstr ""
+msgstr "Re-Kalibrierung"
 
 msgid "Calibrate"
-msgstr ""
+msgstr "Kalibrierung"
 
 msgid "Finish"
 msgstr "Fertig"
@@ -9712,7 +9712,7 @@ msgid "Wiki"
 msgstr ""
 
 msgid "How to use calibration result?"
-msgstr ""
+msgstr "Wie wird das Kalibrierungsergebnis verwendet?"
 
 msgid ""
 "You could change the Flow Dynamics Calibration Factor in material editing"
@@ -9724,7 +9724,7 @@ msgid ""
 msgstr ""
 
 msgid "Calibration not supported"
-msgstr ""
+msgstr "Kalibrierung nicht unterstützt"
 
 msgid "Flow Dynamics"
 msgstr ""
@@ -9736,60 +9736,60 @@ msgid "Max Volumetric Speed"
 msgstr ""
 
 msgid "Please enter the name you want to save to printer."
-msgstr ""
+msgstr "Bitte geben Sie den Namen ein, den Sie auf dem Drucker speichern möchten."
 
 msgid "The name cannot exceed 40 characters."
-msgstr ""
+msgstr "Der Name darf nicht länger als 40 Zeichen sein."
 
 msgid "The name cannot be empty."
-msgstr ""
+msgstr "Der Name darf nicht leer sein."
 
 #, boost-format
 msgid "The selected preset: %1% is not found."
-msgstr ""
+msgstr "Die ausgewählte Voreinstellung: %1% wurde nicht gefunden."
 
 msgid "The name cannot be the same as the system preset name."
-msgstr ""
+msgstr "Der Name kann nicht mit dem Namen der Systemvoreinstellung identisch sein."
 
 msgid "The name is the same as another existing preset name"
-msgstr ""
+msgstr "Der Name ist derselbe wie ein anderer vorhandener Voreinstellungsname"
 
 msgid "create new preset failed."
-msgstr ""
+msgstr "Neue Voreinstellung erstellen ist fehlgeschlagen."
 
 msgid ""
 "Are you sure to cancel the current calibration and return to the home page?"
 msgstr ""
 
 msgid "No Printer Connected!"
-msgstr ""
+msgstr "Es ist kein Drucker verbunden!"
 
 msgid "Printer is not connected yet."
-msgstr ""
+msgstr "Der Drucker ist noch nicht verbunden."
 
 msgid "Please select filament to calibrate."
-msgstr ""
+msgstr "Bitte wählen Sie das zu kalibrierende Filament aus."
 
 msgid "Connecting to printer..."
-msgstr ""
+msgstr "Verbinden mit dem Drucker..."
 
 msgid "The failed test result has been dropped."
-msgstr ""
+msgstr "Das Ergebnis des nicht bestandenen Tests wurde gelöscht."
 
 msgid "Flow Dynamics Calibration result has been saved to the printer"
-msgstr ""
+msgstr "Flow Dynamics Kalibrierungsergebnis wurde auf dem Drucker gespeichert"
 
 msgid "Internal Error"
-msgstr ""
+msgstr "Interner Fehler"
 
 msgid "Please select at least one filament for calibration"
-msgstr ""
+msgstr "Bitte wählen Sie mindestens ein Filament für die Kalibrierung aus"
 
 msgid "Flow rate calibration result has been saved to preset"
 msgstr ""
 
 msgid "The input value size must be 3."
-msgstr ""
+msgstr "Die Größe des Eingabewerts muss 3 betragen."
 
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr ""
@@ -9798,15 +9798,7 @@ msgid "When do you need Flow Dynamics Calibration"
 msgstr ""
 
 msgid ""
-"We now have added the auto-calibration for different filaments, which is "
-"fully automated and the result will be saved into the printer for future "
-"use. You only need to do the calibration in the following limited cases:\n"
-"1. If you introduce a new filament of different brands/models or the "
-"filament is damp;\n"
-"2. if the nozzle is worn out or replaced with a new one;\n"
-"3. If the max volumetric speed or print temperature is changed in the "
-"filament setting."
-msgstr ""
+""
 
 msgid "About this calibration"
 msgstr ""
