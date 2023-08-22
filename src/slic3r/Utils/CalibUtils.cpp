@@ -378,12 +378,13 @@ void CalibUtils::calib_flowrate(int pass, const CalibInfo& calib_info, std::stri
     first_layer_height        = std::max(first_layer_height, layer_height);
 
     float zscale = (first_layer_height + 6 * layer_height) / 1.4;
+    for (auto _obj : model.objects) _obj->scale(1, 1, zscale);
     // only enlarge
-    if (xyScale > 1.2) {
-        for (auto _obj : model.objects) _obj->scale(xyScale, xyScale, zscale);
-    } else {
-        for (auto _obj : model.objects) _obj->scale(1, 1, zscale);
-    }
+    //if (xyScale > 1.2) {
+    //    for (auto _obj : model.objects) _obj->scale(xyScale, xyScale, zscale);
+    //} else {
+    //    for (auto _obj : model.objects) _obj->scale(1, 1, zscale);
+    //}
 
     Flow   infill_flow                   = Flow(nozzle_diameter * 1.2f, layer_height, nozzle_diameter);
     double filament_max_volumetric_speed = filament_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
@@ -983,6 +984,18 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, std::string &error_m
     print_job->has_sdcard = obj_->has_sdcard();
     print_job->set_print_config(MachineBedTypeString[bed_type], true, false, false, false, true);
     print_job->set_print_job_finished_event(wxGetApp().plater()->get_send_calibration_finished_event(), print_job->m_project_name);
+
+    {  // record the print job
+        json j;
+        j["print"]["cali_type"]       = calib_info.params.mode;
+        j["print"]["flow_ratio_mode"] = flow_ratio_mode;
+        j["print"]["tray_id"]         = calib_info.select_ams;
+        j["print"]["dev_id"]          = calib_info.dev_id;
+        j["print"]["start"]           = calib_info.params.start;
+        j["print"]["end"]             = calib_info.params.end;
+        j["print"]["step"]            = calib_info.params.step;
+        BOOST_LOG_TRIVIAL(trace) << "send_cali_job: " << j.dump();
+    }
 
     print_job->start();
 }

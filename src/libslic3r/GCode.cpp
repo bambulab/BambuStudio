@@ -586,7 +586,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             gcode += gcodegen.writer().set_pressure_advance(gcodegen.config().pressure_advance.get_at(new_extruder_id));
 
         // A phony move to the end position at the wipe tower.
-        gcodegen.writer().travel_to_xy(end_pos.cast<double>());
+        gcodegen.writer().travel_to_xy((end_pos + plate_origin_2d).cast<double>());
         gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, end_pos + plate_origin_2d));
         if (!is_approx(z, current_z)) {
             gcode += gcodegen.writer().retract();
@@ -1527,8 +1527,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     //BBS: total layer number
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Layer_Number_Placeholder).c_str());
     //BBS: judge whether support skipping, if yes, list all label_object_id with sorted order here
-    if (print.extruders(true).size() == 1 &&                  //Don't support multi-color
-        print.num_object_instances() <= g_max_label_object && //Don't support too many objects on one plate
+    if (print.num_object_instances() <= g_max_label_object && //Don't support too many objects on one plate
         print.calib_params().mode == CalibMode::Calib_None) { //Don't support skipping in cali mode
         m_enable_label_object = true;
         m_label_objects_ids.clear();
@@ -1891,7 +1890,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             gcode += m_writer.set_jerk_xy(jerk);
         }
 
-        calib_pressure_advance pa_test(this);
+        CalibPressureAdvanceLine pa_test(this);
         double                 filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_extruder_id);
         Flow                   pattern_line                  = Flow(pa_test.line_width(), 0.2, m_config.nozzle_diameter.get_at(0));
         auto                   fast_speed = std::min(print.default_region_config().outer_wall_speed.value, filament_max_volumetric_speed / pattern_line.mm3_per_mm());
