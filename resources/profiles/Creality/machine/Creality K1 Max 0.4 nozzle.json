@@ -1,0 +1,28 @@
+{
+  "type": "machine",
+  "setting_id": "GM_CREALITY_000",
+  "name": "Creality K1 Max 0.4 nozzle",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "fdm_creality_common",
+  "printer_model": "Creality K1 Max",
+  "default_filament_profile": [
+    "Generic PLA @Creality"
+  ],
+  "default_print_profile": "0.20mm Standard @Creality K1 Max 0.4",
+  "extruder_type": [
+    "Direct Drive"
+  ],
+  "nozzle_diameter": [
+    "0.4"
+  ],
+  "printable_area": [
+    "0x0",
+    "300x0",
+    "300x300",
+    "0x300"
+  ],
+  "printable_height": "300",
+  "nozzle_type": "undefine",
+  "auxiliary_fan": "1"
+}
