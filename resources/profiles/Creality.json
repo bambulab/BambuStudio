@@ -51,6 +51,10 @@
         {
             "name": "Creality CR-6 Max",
             "sub_path": "machine/Creality CR-6 Max.json"
+        },
+        {
+            "name": "Creality K1 Max",
+            "sub_path": "machine/Creality K1 Max.json"
         }
     ],
     "process_list": [
@@ -249,7 +253,15 @@
         {
             "name": "0.20mm Normal @Creality CR-6 0.6",
             "sub_path": "process/0.20mm Normal @Creality CR-6 0.6.json"
-        }
+        },
+        {
+            "name": "0.20mm Standard @Creality K1 max 0.4",
+            "sub_path": "process/0.20mm Standard @Creality K1 max 0.4.json"
+        },
+        {
+            "name": "0.20mm Quality @Creality K1 max 0.4",
+            "sub_path": "process/0.20mm Quality @Creality K1 max 0.4.json"
+        }	
     ],
     "filament_list": [
         {
@@ -291,7 +303,11 @@
         {
             "name": "Generic PLA @Creality CR-6",
             "sub_path": "filament/Generic PLA @Creality CR-6.json"
-        }
+        },
+        {
+            "name": "Hyper PLA @Creality K1 max",
+            "sub_path": "filament/Hyper PLA @Creality K1 max.json"
+        }	
     ],
     "machine_list": [
         {
@@ -373,6 +389,10 @@
         {
             "name": "Creality CR-6 Max 0.8 nozzle",
             "sub_path": "machine/Creality CR-6 Max 0.8 nozzle.json"
-        }
+        },
+        {
+            "name": "Creality K1 Max 0.4 nozzle",
+            "sub_path": "machine/Creality K1 Max 0.4 nozzle.json"
+        }	
     ]
 }
