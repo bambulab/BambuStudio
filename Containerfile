@@ -46,7 +46,7 @@ RUN apt-get update && apt-get install  -y \
     libgstreamer1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-base1.0-dev libgstreamerd-3-dev \
     libmspack-dev \
     libosmesa6-dev \
-    libssl-dev libcurl4-openssl-dev libsecret-1-dev \
+    libssl3-dev libcurl4-openssl-dev libsecret-1-dev \
     libudev-dev \
     curl \
     wget \
