@@ -398,7 +398,7 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
                 ImGui::PushStyleColor(ImGuiCol_Text, ImColor(144, 144, 144, (int)(255 * m_fade_opacity)).Value);
 
                 button_text = ImGui::CollapseArrowIcon;
-                imgui.button((_L("Collapse") + button_text));
+                imgui.button(_L("Collapse") + button_text);
                 ImVec2 collapse_btn_size = ImGui::CalcTextSize((_u8L("Collapse")).c_str());
                 collapse_btn_size.x += button_size.x / 2.0f;
                 if (ImGui::IsMouseHoveringRect(btn_pos, btn_pos + collapse_btn_size, true))
@@ -425,12 +425,12 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
 
                 // for bold font text, split text and icon-font button
                 imgui.push_bold_font();
-                imgui.button((_L("Daily Tips")));
+                imgui.button(_L("Daily Tips"));
                 imgui.pop_bold_font();
                 ImVec2 expand_btn_size = ImGui::CalcTextSize((_u8L("Daily Tips")).c_str());
                 ImGui::SetCursorScreenPos(ImVec2(btn_pos.x + expand_btn_size.x + ImGui::CalcTextSize(" ").x, btn_pos.y));
                 button_text = ImGui::ExpandArrowIcon;
-                imgui.button(button_text.c_str());
+                imgui.button(button_text);
                 expand_btn_size.x += 19.0f * scale;
                 if (ImGui::IsMouseHoveringRect(btn_pos, btn_pos + expand_btn_size, true))
                 {
@@ -484,7 +484,7 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
                 retrieve_data_from_hint_database(HintDataNavigation::Prev);
         }
         ImGui::PushStyleColor(ImGuiCol_Text, button_text_color.Value);// for icon-font button
-        imgui.button(button_text.c_str());
+        imgui.button(button_text);
         ImGui::PopStyleColor();
 
         // next button
@@ -499,7 +499,7 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
                 retrieve_data_from_hint_database(HintDataNavigation::Next);
         }
         ImGui::PushStyleColor(ImGuiCol_Text, button_text_color.Value);// for icon-font button
-        imgui.button(button_text.c_str());
+        imgui.button(button_text);
         ImGui::PopStyleColor();
 
         ImGui::PopStyleColor(4);
