@@ -1073,7 +1073,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     auto m_input_tip_area = new wxBoxSizer(wxHORIZONTAL);
     auto m_input_area = new wxBoxSizer(wxHORIZONTAL);
 
-    m_tips_ip = new Label(this, _L("IP"));
+    m_tips_ip = new Label(this, "IP");
     m_tips_ip->SetMinSize(wxSize(FromDIP(168), -1));
     m_tips_ip->SetMaxSize(wxSize(FromDIP(168), -1));
 

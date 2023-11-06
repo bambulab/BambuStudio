@@ -2051,8 +2051,8 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     };
 
     m_imgui->text(_L("After cut") + ": ");
-    render_part_action_line( _L("A"), "##upper", m_keep_upper, m_place_on_cut_upper, m_rotate_upper);
-    render_part_action_line( _L("B"), "##lower", m_keep_lower, m_place_on_cut_lower, m_rotate_lower);
+    render_part_action_line( "A", "##upper", m_keep_upper, m_place_on_cut_upper, m_rotate_upper);
+    render_part_action_line( "B", "##lower", m_keep_lower, m_place_on_cut_lower, m_rotate_lower);
 
     m_imgui->disabled_begin(has_connectors || m_cut_mode == CutMode::cutTongueAndGroove);
     m_imgui->bbl_checkbox(_L("Cut to parts"), m_cut_to_parts);

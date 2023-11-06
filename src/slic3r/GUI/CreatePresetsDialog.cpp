@@ -1745,7 +1745,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_bed_size_item(wxWindow *parent)
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     wxBoxSizer *  length_sizer          = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *static_length_text = new wxStaticText(parent, wxID_ANY, _L("X"), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_length_text = new wxStaticText(parent, wxID_ANY, "X", wxDefaultPosition, wxDefaultSize);
     static_length_text->SetMinSize(ORIGIN_TEXT_SIZE);
     static_length_text->SetSize(ORIGIN_TEXT_SIZE);
     length_sizer->Add(static_length_text, 0, wxEXPAND | wxALL, 0);
@@ -1758,7 +1758,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_bed_size_item(wxWindow *parent)
     horizontal_sizer->Add(length_input_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     wxBoxSizer *  width_sizer      = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *static_width_text = new wxStaticText(parent, wxID_ANY, _L("Y"), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_width_text = new wxStaticText(parent, wxID_ANY, "Y", wxDefaultPosition, wxDefaultSize);
     static_width_text->SetMinSize(ORIGIN_TEXT_SIZE);
     static_width_text->SetSize(ORIGIN_TEXT_SIZE);
     width_sizer->Add(static_width_text, 0, wxEXPAND | wxALL, 0);
@@ -1784,7 +1784,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_origin_item(wxWindow *parent)
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     wxBoxSizer *  length_sizer       = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *static_origin_x_text = new wxStaticText(parent, wxID_ANY, _L("X"), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_origin_x_text = new wxStaticText(parent, wxID_ANY, "X", wxDefaultPosition, wxDefaultSize);
     static_origin_x_text->SetMinSize(ORIGIN_TEXT_SIZE);
     static_origin_x_text->SetSize(ORIGIN_TEXT_SIZE);
     length_sizer->Add(static_origin_x_text, 0, wxEXPAND | wxALL, 0);
@@ -1797,7 +1797,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_origin_item(wxWindow *parent)
     horizontal_sizer->Add(length_input_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     wxBoxSizer *  width_sizer       = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *static_origin_y_text = new wxStaticText(parent, wxID_ANY, _L("Y"), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_origin_y_text = new wxStaticText(parent, wxID_ANY, "Y", wxDefaultPosition, wxDefaultSize);
     static_origin_y_text->SetMinSize(ORIGIN_TEXT_SIZE);
     static_origin_y_text->SetSize(ORIGIN_TEXT_SIZE);
     width_sizer->Add(static_origin_y_text, 0, wxEXPAND | wxALL, 0);

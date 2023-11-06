@@ -562,7 +562,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
         "Value 0 means the filament does not support to print on the Cool Plate");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->full_label = L("Bed temperature");
     def->min = 0;
     def->max = 120;
@@ -572,7 +572,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
         "Value 0 means the filament does not support to print on the Engineering Plate");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->full_label = L("Bed temperature");
     def->min = 0;
     def->max = 120;
@@ -582,7 +582,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
         "Value 0 means the filament does not support to print on the High Temp Plate");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->full_label = L("Bed temperature");
     def->min = 0;
     def->max = 120;
@@ -592,7 +592,7 @@ void PrintConfigDef::init_fff_params()
     def->label      = L("Other layers");
     def->tooltip    = L("Bed temperature for layers except the initial one. "
                      "Value 0 means the filament does not support to print on the Textured PEI Plate");
-    def->sidetext   = L("°C");
+    def->sidetext   = "°C";
     def->full_label = L("Bed temperature");
     def->min        = 0;
     def->max        = 120;
@@ -603,7 +603,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
         "Value 0 means the filament does not support to print on the Cool Plate");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->min = 0;
     def->max = 120;
     def->set_default_value(new ConfigOptionInts{ 35 });
@@ -613,7 +613,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
         "Value 0 means the filament does not support to print on the Engineering Plate");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->min = 0;
     def->max = 120;
     def->set_default_value(new ConfigOptionInts{ 45 });
@@ -623,7 +623,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
         "Value 0 means the filament does not support to print on the High Temp Plate");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->min = 0;
     def->max = 120;
     def->set_default_value(new ConfigOptionInts{ 45 });
@@ -633,7 +633,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip    = L("Bed temperature of the initial layer. "
                      "Value 0 means the filament does not support to print on the Textured PEI Plate");
-    def->sidetext   = L("°C");
+    def->sidetext   = "°C";
     def->min        = 0;
     def->max        = 120;
     def->set_default_value(new ConfigOptionInts{45});
@@ -711,7 +711,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Fan speed for overhang");
     def->tooltip = L("Force part cooling fan to be this speed when printing bridge or overhang wall which has large overhang degree. "
                      "Forcing cooling for overhang and bridge can get better quality for these part");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 0;
     def->max = 100;
     def->mode = comAdvanced;
@@ -793,7 +793,7 @@ void PrintConfigDef::init_fff_params()
     def          = this->add("top_area_threshold", coPercent);
     def->label   = L("Top area threshold");
     def->tooltip = L("This factor affects the acreage of top area. The small the number the big the top area.");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min     = 0;
     def->max     = 500;
     def->mode    = comDevelop;
@@ -986,7 +986,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("default_acceleration", coFloat);
     def->label = L("Normal printing");
     def->tooltip = L("The default acceleration of both normal printing and travel except initial layer");
-    def->sidetext = L("mm/s²");
+    def->sidetext = "mm/s²";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(500.0));
@@ -1012,7 +1012,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("during_print_exhaust_fan_speed", coInts);
     def->label   = L("Fan speed");
     def->tooltip=L("Speed of exhuast fan during printing.This speed will overwrite the speed in filament custom gcode");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min=0;
     def->max=100;
     def->mode = comSimple;
@@ -1020,7 +1020,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("complete_print_exhaust_fan_speed", coInts);
     def->label = L("Fan speed");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->tooltip=L("Speed of exhuast fan after printing completes");
     def->min=0;
     def->max=100;
@@ -1491,7 +1491,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Sparse infill density");
     def->category = L("Strength");
     def->tooltip = L("Density of internal sparse infill, 100% means solid throughout");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 0;
     def->max = 100;
     def->set_default_value(new ConfigOptionPercent(20));
@@ -1540,7 +1540,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("top_surface_acceleration", coFloat);
     def->label = L("Top surface");
     def->tooltip = L("Acceleration of top surface infill. Using a lower value may improve top surface quality");
-    def->sidetext = L("mm/s²");
+    def->sidetext = "mm/s²";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(500));
@@ -1548,7 +1548,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("outer_wall_acceleration", coFloat);
     def->label = L("Outer wall");
     def->tooltip = L("Acceleration of outer wall. Using a lower value can improve quality");
-    def->sidetext = L("mm/s²");
+    def->sidetext = "mm/s²";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(500));
@@ -1556,7 +1556,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("inner_wall_acceleration", coFloat);
     def->label = L("Inner wall");
     def->tooltip = L("Acceleration of inner walls. 0 means using normal printing acceleration");
-    def->sidetext = L("mm/s²");
+    def->sidetext = "mm/s²";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
@@ -1573,7 +1573,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("initial_layer_acceleration", coFloat);
     def->label = L("Initial layer");
     def->tooltip = L("Acceleration of initial layer. Using a lower value can improve build plate adhensive");
-    def->sidetext = L("mm/s²");
+    def->sidetext = "mm/s²";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(300));
@@ -1587,7 +1587,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("accel_to_decel_factor", coPercent);
     def->label = L("accel_to_decel");
     def->tooltip = L("Klipper's max_accel_to_decel will be adjusted to this percent of acceleration");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 1;
     def->max = 100;
     def->mode = comAdvanced;
@@ -1694,7 +1694,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Initial layer");
     def->full_label = L("Initial layer nozzle temperature");
     def->tooltip = L("Nozzle temperature to print initial layer when using this filament");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 200 });
@@ -1824,10 +1824,10 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("hbot");
     def->enum_values.push_back("delta");
     def->enum_labels.push_back(L("Undefine"));
-    def->enum_labels.push_back(L("CoreXY"));
-    def->enum_labels.push_back(L("I3"));
-    def->enum_labels.push_back(L("Hbot"));
-    def->enum_labels.push_back(L("Delta"));
+    def->enum_labels.push_back("CoreXY");
+    def->enum_labels.push_back("I3");
+    def->enum_labels.push_back("Hbot");
+    def->enum_labels.push_back("Delta");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionEnum<PrinterStructure>(psUndefine));
 
@@ -1983,7 +1983,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Infill/Wall overlap");
     def->category = L("Strength");
     def->tooltip = L("Infill area is enlarged slightly to overlap with wall for better bonding. The percentage value is relative to line width of sparse infill");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->ratio_over = "inner_wall_line_width";
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(15));
@@ -2077,7 +2077,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("The amount of material to extrude during ironing. Relative to flow of normal layer height. "
                      "Too high value results in overextrusion on the surface");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->ratio_over = "layer_height";
     def->min = 0;
     def->max = 100;
@@ -2202,7 +2202,7 @@ void PrintConfigDef::init_fff_params()
             (void)L("Maximum acceleration of the Y axis");
             (void)L("Maximum acceleration of the Z axis");
             (void)L("Maximum acceleration of the E axis");
-            def->sidetext = L("mm/s²");
+            def->sidetext = "mm/s²";
             def->min = 0;
             def->mode = comSimple;
             def->set_default_value(new ConfigOptionFloats(axis.max_acceleration));
@@ -2254,7 +2254,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Maximum acceleration for extruding (M204 P)");
     //                 "Marlin (legacy) firmware flavor will use this also "
     //                 "as travel acceleration (M204 T).");
-    def->sidetext = L("mm/s²");
+    def->sidetext = "mm/s²";
     def->min = 0;
     def->readonly = false;
     def->mode = comSimple;
@@ -2266,7 +2266,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Maximum acceleration for retracting");
     def->category = L("Machine limits");
     def->tooltip = L("Maximum acceleration for retracting (M204 R)");
-    def->sidetext = L("mm/s²");
+    def->sidetext = "mm/s²";
     def->min = 0;
     def->readonly = false;
     def->mode = comSimple;
@@ -2277,7 +2277,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Maximum acceleration for travel");
     def->category = L("Machine limits");
     def->tooltip = L("Maximum acceleration for travel (M204 T)");
-    def->sidetext = L("mm/s²");
+    def->sidetext = "mm/s²";
     def->min = 0;
     def->readonly = true;
     def->mode = comDevelop;
@@ -2287,7 +2287,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Fan speed");
     def->tooltip = L("Part cooling fan speed may be increased when auto cooling is enabled. "
                      "This is the maximum speed limitation of part cooling fan");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 0;
     def->max = 100;
     def->mode = comSimple;
@@ -2329,7 +2329,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("fan_min_speed", coInts);
     def->label = L("Fan speed");
     def->tooltip = L("Minimum speed for part cooling fan");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 0;
     def->max = 100;
     def->mode = comSimple;
@@ -2339,7 +2339,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Fan speed");
     def->tooltip = L("Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed during printing except the first several layers "
                      "which is defined by no cooling layers");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 0;
     def->max = 100;
     def->mode = comSimple;
@@ -2538,7 +2538,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Initial layer density");
     def->category = L("Support");
     def->tooltip = L("Density of the first raft or support layer");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 10;
     def->max = 100;
     def->mode = comAdvanced;
@@ -2584,7 +2584,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("retract_before_wipe", coPercents);
     def->label = L("Retract amount before wipe");
     def->tooltip = L("The length of fast retraction before wipe, relative to retraction length");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercents { 100 });
 
@@ -2721,7 +2721,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("seam_gap", coPercent);
     def->label = L("Seam gap");
     def->tooltip = L("In order to reduce the visibility of the seam in a closed loop extrusion, the loop is interrupted and shortened by a specified amount.\n" "This amount as a percentage of the current extruder diameter. The default value for this parameter is 15");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 0;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionPercent(15));
@@ -2729,7 +2729,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("wipe_speed", coPercent);
     def->label = L("Wipe speed");
     def->tooltip = L("The wipe speed is determined by the speed setting specified in this configuration." "If the value is expressed as a percentage (e.g. 80%), it will be calculated based on the travel speed setting above." "The default value for this parameter is 80%");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 0.01;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionPercent(80));
@@ -3297,7 +3297,7 @@ void PrintConfigDef::init_fff_params()
                     "At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,"
                     "the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
                     );
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->full_label = L("Chamber temperature");
     def->min = 0;
     def->max = 60;
@@ -3306,7 +3306,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("nozzle_temperature", coInts);
     def->label = L("Other layers");
     def->tooltip = L("Nozzle temperature for layers after the initial one");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->full_label = L("Nozzle temperature");
     def->min = 0;
     def->max = max_temp;
@@ -3315,7 +3315,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("nozzle_temperature_range_low", coInts);
     def->label = L("Min");
     //def->tooltip = "";
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 190 });
@@ -3323,7 +3323,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("nozzle_temperature_range_high", coInts);
     def->label = L("Max");
     //def->tooltip = "";
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 240 });
@@ -3589,7 +3589,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("When transitioning between different numbers of walls as the part becomes "
         "thinner, a certain amount of space is allotted to split or join the wall segments. "
         "It's expressed as a percentage over nozzle diameter");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->mode = comAdvanced;
     def->min = 0;
     def->set_default_value(new ConfigOptionPercent(100));
@@ -3604,7 +3604,7 @@ void PrintConfigDef::init_fff_params()
         "starts/stops and travel time. However, large extrusion width variation can lead to "
         "under- or overextrusion problems. "
         "It's expressed as a percentage over nozzle diameter");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->mode = comAdvanced;
     def->min = 0;
     def->set_default_value(new ConfigOptionPercent(25));
@@ -3638,7 +3638,7 @@ void PrintConfigDef::init_fff_params()
         "not be printed, while features thicker than the Minimum feature size will be widened to "
         "the Minimum wall width. "
         "It's expressed as a percentage over nozzle diameter");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->mode = comAdvanced;
     def->min = 0;
     def->set_default_value(new ConfigOptionPercent(25));
@@ -3650,7 +3650,7 @@ void PrintConfigDef::init_fff_params()
         "of the model. If the Minimum wall width is thinner than the thickness of the feature,"
         " the wall will become as thick as the feature itself. "
         "It's expressed as a percentage over nozzle diameter");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->mode = comAdvanced;
     def->min = 0;
     def->set_default_value(new ConfigOptionPercent(85));
