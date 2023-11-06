@@ -1224,7 +1224,7 @@ SlaGizmoHelpDialog::SlaGizmoHelpDialog()
     shortcuts.push_back(std::make_pair(wxString("Shift+")+_L("Drag"), _L("Select by rectangle")));
     shortcuts.push_back(std::make_pair(alt+_(L("Drag")),              _L("Deselect by rectangle")));
     shortcuts.push_back(std::make_pair(ctrl+"A",                      _L("Select all points")));
-    shortcuts.push_back(std::make_pair("Delete",                      _L("Remove selected points")));
+    shortcuts.push_back(std::make_pair(_L("Delete"),                  _L("Remove selected points")));
     shortcuts.push_back(std::make_pair(ctrl+_L("Mouse wheel"),        _L("Move clipping plane")));
     shortcuts.push_back(std::make_pair("R",                           _L("Reset clipping plane")));
     shortcuts.push_back(std::make_pair("Enter",                       _L("Apply changes")));

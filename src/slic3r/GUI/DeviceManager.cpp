@@ -335,15 +335,15 @@ wxString HMSItem::get_module_name(ModuleID module_id)
     switch (module_id)
     {
     case MODULE_MC:
-        return _L("MC");
+        return "MC";
     case MODULE_MAINBOARD:
-        return _L("MainBoard");
+        return "MainBoard";
     case MODULE_AMS:
-        return _L("AMS");
+        return "AMS";
     case MODULE_TH:
-        return _L("TH");
+        return "TH";
     case MODULE_XCAM:
-        return _L("XCam");
+        return "XCam";
     default:
         wxString text = _L("Unknown") + wxString::Format("0x%x", (unsigned)module_id);
         return text;

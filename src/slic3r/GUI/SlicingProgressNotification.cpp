@@ -452,7 +452,7 @@ void Slic3r::GUI::NotificationManager::SlicingProgressNotification::render_cance
 			if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 				on_cancel_button();
 		}
-		imgui.button(button_text.c_str());
+		imgui.button(button_text);
 
 		ImGui::PopStyleColor(5);
 	}
@@ -481,7 +481,7 @@ void NotificationManager::SlicingProgressNotification::render_close_button(const
 			if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 				close();
 		}
-		imgui.button(button_text.c_str());
+		imgui.button(button_text);
 
 		ImGui::PopStyleColor(5);
 	}
