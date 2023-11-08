@@ -954,10 +954,12 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
         bool need_delete_cache = false;
         Semver current_semver = curr_version;
         Semver cached_semver = cached_version;
+        Semver current_plugin_semver = plugin_version;
 
         int curent_patch_cc = current_semver.patch()/100;
         int cached_patch_cc = cached_semver.patch()/100;
         int curent_patch_dd = current_semver.patch()%100;
+        int curent_plugin_patch_dd = current_plugin_semver.patch()%100;
         int cached_patch_dd = cached_semver.patch()%100;
         if ((cached_semver.maj() != current_semver.maj())
             || (cached_semver.min() != current_semver.min())
@@ -966,7 +968,7 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
             need_delete_cache = true;
             BOOST_LOG_TRIVIAL(info) << boost::format("cached plugins version %1% not match with current %2%")%cached_version%curr_version;
         }
-        else if (cached_patch_dd <= curent_patch_dd) {
+        else if (cached_patch_dd <= curent_plugin_patch_dd) {
             need_delete_cache = true;
             BOOST_LOG_TRIVIAL(info) << boost::format("cached plugins version %1% not newer than current %2%")%cached_version%curr_version;
         }
