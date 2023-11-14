@@ -67,6 +67,8 @@ private:
     SwitchButton* m_switch_recording;
     wxStaticText* m_text_vcamera;
     SwitchButton* m_switch_vcamera;
+    wxStaticText* m_text_liveview_retry;
+    SwitchButton* m_switch_liveview_retry;
     wxStaticText* m_text_resolution;
     wxWindow* m_resolution_options[RESOLUTION_OPTIONS_NUM];
     wxScrolledWindow *m_panel;
