@@ -1,44 +1,36 @@
 {
     "type": "machine",
-    "name": "Bambu Lab X1E 0.4 nozzle",
-    "inherits": "fdm_bbl_3dp_001_common",
     "from": "system",
+    "inherits": "fdm_bbl_machine_common",
     "setting_id": "GM026",
+    "name": "Bambu Lab X1E 0.4 nozzle",
     "instantiation": "true",
-    "nozzle_diameter": [
-        "0.4"
-    ],
-    "nozzle_type": "stainless_steel",
-    "auxiliary_fan": "0",
-    "min_layer_height": [
-        "0.08"
-    ],
-    "max_layer_height": [
-        "0.28"
-    ],
-    "retraction_length": [
-        "0.8"
-    ],
     "printer_model": "Bambu Lab X1E",
     "printer_variant": "0.4",
-    "bed_exclude_area": [
-        "0x0",
-        "18x0",
-        "18x28",
-        "0x28"
-    ],
+    "auxiliary_fan": "1",
     "default_filament_profile": [
         "Bambu PLA Basic @BBL X1C"
     ],
     "default_print_profile": "0.20mm Standard @BBL X1C",
-    "machine_load_filament_time": "29",
-    "machine_unload_filament_time": "28",
+    "max_layer_height": [
+        "0.28"
+    ],
+    "min_layer_height": [
+        "0.08"
+    ],
+    "nozzle_diameter": [
+        "0.4"
+    ],
+    "nozzle_type": "stainless_steel",
+    "retraction_length": [
+        "0.8"
+    ],
     "scan_first_layer": "1",
     "support_air_filtration": "1",
     "support_chamber_temp_control": "1",
     "upward_compatible_machine": [
-        "Bambu Lab P1S 0.4 nozzle",
         "Bambu Lab P1P 0.4 nozzle",
+        "Bambu Lab P1S 0.4 nozzle",
         "Bambu Lab X1 0.4 nozzle",
         "Bambu Lab X1 Carbon 0.4 nozzle"
     ],

@@ -1,13 +1,10 @@
 {
     "type": "machine",
-    "name": "Bambu Lab X1E 0.8 nozzle",
-    "inherits": "Bambu Lab X1E 0.4 nozzle",
     "from": "system",
+    "inherits": "Bambu Lab X1E 0.4 nozzle",
     "setting_id": "GM028",
+    "name": "Bambu Lab X1E 0.8 nozzle",
     "instantiation": "true",
-    "nozzle_diameter": [
-        "0.8"
-    ],
     "printer_model": "Bambu Lab X1E",
     "printer_variant": "0.8",
     "default_filament_profile": [
@@ -20,15 +17,19 @@
     "min_layer_height": [
         "0.16"
     ],
+    "nozzle_diameter": [
+        "0.8"
+    ],
     "retract_length_toolchange": [
         "3"
     ],
+    "nozzle_type": "stainless_steel",
     "retraction_length": [
         "3"
     ],
     "upward_compatible_machine": [
-        "Bambu Lab P1S 0.8 nozzle",
         "Bambu Lab P1P 0.8 nozzle",
+        "Bambu Lab P1S 0.8 nozzle",
         "Bambu Lab X1 0.8 nozzle",
         "Bambu Lab X1 Carbon 0.8 nozzle"
     ],
