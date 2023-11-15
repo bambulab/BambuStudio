@@ -1,7 +1,7 @@
 {
     "type": "machine",
     "name": "Bambu Lab A1 mini 0.4 nozzle",
-    "inherits": "fdm_bbl_3dp_001_common",
+    "inherits": "fdm_bbl_machine_common",
     "from": "system",
     "setting_id": "GM020",
     "instantiation": "true",
@@ -39,6 +39,7 @@
     ],
     "machine_unload_filament_time": "34",
     "nozzle_type": "stainless_steel",
+    "extruder_clearance_height_to_lid": "90",
     "nozzle_volume": "32",
     "printable_area": [
         "0x0",
@@ -49,6 +50,15 @@
     "printable_height": "180",
     "retract_lift_below":[
         "179"
+    ],
+    "min_layer_height": [
+        "0.08"
+    ],
+    "max_layer_height": [
+        "0.28"
+    ],
+    "retraction_length": [
+        "0.8"
     ],
     "printer_structure": "i3",
     "scan_first_layer": "0",

@@ -7,10 +7,11 @@
     "instantiation": "true",
     "printer_model": "Bambu Lab P1S",
     "printer_variant": "0.2",
-    "upward_compatible_machine":[
+    "upward_compatible_machine": [
         "Bambu Lab P1P 0.2 nozzle",
         "Bambu Lab X1 0.2 nozzle",
-        "Bambu Lab X1 Carbon 0.2 nozzle"
+        "Bambu Lab X1 Carbon 0.2 nozzle",
+        "Bambu Lab X1E 0.2 nozzle"
     ],
     "default_print_profile": "0.10mm Standard @BBL P1P 0.2 nozzle",
     "default_filament_profile": [
