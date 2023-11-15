@@ -5,13 +5,9 @@
     "instantiation": "false",
     "printer_technology": "FFF",
     "printer_settings_id": "",
-    "printer_variant": "0.4",
     "upward_compatible_machine": [],
     "silent_mode": "0",
-    "default_print_profile": "0.16mm Optimal @BBL X1C",
-    "default_filament_profile": [
-        "Bambu PLA Basic @BBL X1C"
-    ],
+    "default_filament_profile": [],
     "printable_area": [
         "0x0",
         "256x0",
@@ -25,17 +21,19 @@
         "0x28"
     ],
     "printable_height": "250",
+    "best_object_pos":"0.5x0.5",
     "gcode_flavor": "marlin",
     "scan_first_layer": "0",
+    "printer_structure": "corexy",
     "machine_load_filament_time": "29",
     "machine_unload_filament_time": "28",
     "extruder_clearance_radius": "57",
     "extruder_clearance_max_radius": "68",
     "extruder_clearance_height_to_rod": "36",
     "extruder_clearance_height_to_lid": "90",
-    "nozzle_type": "stainless_steel",
-    "nozzle_hrc": "20",
-    "auxiliary_fan": "0",
+    "retract_lift_below":[
+        "249"
+    ],
     "machine_max_speed_x": [
         "500",
         "200"
@@ -96,16 +94,9 @@
         "2.5",
         "2.5"
     ],
-    "nozzle_diameter": [
-        "0.4"
-    ],
+
     "nozzle_volume": "107",
-    "min_layer_height": [
-        "0.08"
-    ],
-    "max_layer_height": [
-        "0.28"
-    ],
+
     "extruder_offset": [
         "0x2"
     ],
@@ -121,9 +112,7 @@
         "0",
         "0"
     ],
-    "retraction_length": [
-        "0.8"
-    ],
+
     "retract_restart_extra": [
         "0"
     ],
@@ -160,6 +149,8 @@
     "retract_restart_extra_toolchange": [
         "0"
     ],
+    "support_air_filtration": "0",
+    "support_chamber_temp_control": "0",
     "machine_start_gcode": "G0 Z20 F9000\nG92 E0; G1 E-10 F1200\nG28\nM970 Q1 A10 B10 C130 K0\nM970 Q1 A10 B131 C250 K1\nM974 Q1 S1 P0\nM970 Q0 A10 B10 C130 H20 K0\nM970 Q0 A10 B131 C250 K1\nM974 Q0 S1 P0\nM220 S100 ;Reset Feedrate\nM221 S100 ;Reset Flowrate\nG29 ;Home\nG90;\nG92 E0 ;Reset Extruder \nG1 Z2.0 F3000 ;Move Z Axis up \nG1 X10.1 Y20 Z0.28 F5000.0 ;Move to start position\nM109 S205;\nG1 X10.1 Y200.0 Z0.28 F1500.0 E15 ;Draw the first line\nG1 X10.4 Y200.0 Z0.28 F5000.0 ;Move to side a little\nG1 X10.4 Y20 Z0.28 F1500.0 E30 ;Draw the second line\nG92 E0 ;Reset Extruder \nG1 X110 Y110 Z2.0 F3000 ;Move Z Axis up",
     "machine_end_gcode": ";===== date: 20230428 =====================\nM400 ; wait for buffer to clear\nG92 E0 ; zero the extruder\nG1 E-0.8 F1800 ; retract\nG1 Z{max_layer_z + 0.5} F900 ; lower z a little\nG1 X65 Y245 F12000 ; move to safe pos \nG1 Y265 F3000\n\nG1 X65 Y245 F12000\nG1 Y265 F3000\nM140 S0 ; turn off bed\nM106 S0 ; turn off fan\nM106 P2 S0 ; turn off remote part cooling fan\nM106 P3 S0 ; turn off chamber cooling fan\n\nG1 X100 F12000 ; wipe\n; pull back filament to AMS\nM620 S255\nG1 X20 Y50 F12000\nG1 Y-3\nT255\nG1 X65 F12000\nG1 Y265\nG1 X100 F12000 ; wipe\nM621 S255\nM104 S0 ; turn off hotend\n\nM622.1 S1 ; for prev firware, default turned on\nM1002 judge_flag timelapse_record_flag\nM622 J1\n    M400 ; wait all motion done\n    M991 S0 P-1 ;end smooth timelapse at safe pos\n    M400 S3 ;wait for last picture to be taken\nM623; end of \"timelapse_record_flag\"\n\nM400 ; wait all motion done\nM17 S\nM17 Z0.4 ; lower z motor current to reduce impact if there is something in the bottom\n{if (max_layer_z + 100.0) < 250}\n    G1 Z{max_layer_z + 100.0} F600\n    G1 Z{max_layer_z +98.0}\n{else}\n    G1 Z250 F600\n    G1 Z248\n{endif}\nM400 P100\nM17 R ; restore z current\n\nG90\nG1 X128 Y250 F3600\n\nM220 S100  ; Reset feedrate magnitude\nM201.2 K1.0 ; Reset acc magnitude\nM73.2   R1.0 ;Reset left time magnitude\nM1002 set_gcode_claim_speed_level : 0\n\nM17 X0.8 Y0.8 Z0.5 ; lower motor current to 45% power\n",
     "layer_change_gcode": "; layer num/total_layer_count: {layer_num+1}/[total_layer_count]\nM622.1 S1 ; for prev firware, default turned on\nM1002 judge_flag timelapse_record_flag\nM622 J1\n{if timelapse_type == 0} ; timelapse without wipe tower\nM971 S11 C10 O0\n{elsif timelapse_type == 1} ; timelapse with wipe tower\nG92 E0\nG1 E-[retraction_length] F1800\nG17\nG2 Z{layer_z + 0.4} I0.86 J0.86 P1 F20000 ; spiral lift a little\nG1 X65 Y245 F20000 ; move to safe pos\nG17\nG2 Z{layer_z} I0.86 J0.86 P1 F20000\nG1 Y265 F3000\nM400 P300\nM971 S11 C10 O0\nG92 E0\nG1 E[retraction_length] F300\nG1 X100 F5000\nG1 Y255 F20000\n{endif}\nM623\n; update layer progress\nM73 L{layer_num+1}\nM991 S0 P{layer_num} ;notify layer change",
