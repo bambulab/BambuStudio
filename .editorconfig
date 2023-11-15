@@ -1,0 +1,7 @@
+# top-most EditorConfig file
+root = true
+
+# Indentation override for all JSON under profiles directory
+[resources/profiles/**.json]
+indent_style = space
+indent_size = 4
