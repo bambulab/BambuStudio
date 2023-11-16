@@ -1,7 +1,7 @@
 {
     "type": "machine",
     "from": "system",
-    "name": "fdm_bbl_machine_common",
+    "name": "Machine Common Bambu Lab",
     "instantiation": "false",
     "printer_settings_id": "",
     "printer_structure": "corexy",

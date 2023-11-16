@@ -1696,8 +1696,8 @@
     ],
     "machine_list": [
         {
-            "name": "fdm_bbl_machine_common",
-            "sub_path": "machine/fdm_bbl_machine_common.json"
+            "name": "Machine Common Bambu Lab",
+            "sub_path": "machine/Machine Common Bambu Lab.json"
         },
         {
             "name": "Bambu Lab X1 Carbon 0.4 nozzle",
