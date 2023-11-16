@@ -7,27 +7,27 @@
     "machine_model_list": [
         {
             "name": "Bambu Lab X1 Carbon",
-            "sub_path": "machine/Bambu Lab X1 Carbon.json"
+            "sub_path": "machine/model/Bambu Lab X1 Carbon.json"
         },
         {
             "name": "Bambu Lab X1",
-            "sub_path": "machine/Bambu Lab X1.json"
+            "sub_path": "machine/model/Bambu Lab X1.json"
         },
         {
             "name": "Bambu Lab P1P",
-            "sub_path": "machine/Bambu Lab P1P.json"
+            "sub_path": "machine/model/Bambu Lab P1P.json"
         },
         {
             "name": "Bambu Lab P1S",
-            "sub_path": "machine/Bambu Lab P1S.json"
+            "sub_path": "machine/model/Bambu Lab P1S.json"
         },
         {
             "name": "Bambu Lab A1 mini",
-            "sub_path": "machine/Bambu Lab A1 mini.json"
+            "sub_path": "machine/model/Bambu Lab A1 mini.json"
         },
         {
             "name": "Bambu Lab X1E",
-            "sub_path": "machine/Bambu Lab X1E.json"
+            "sub_path": "machine/model/Bambu Lab X1E.json"
         }
     ],
     "process_list": [

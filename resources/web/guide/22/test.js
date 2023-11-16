@@ -313,7 +313,7 @@ var cData={
 			"model": "Bambu Lab X1",
 			"nozzle_diameter": "0.4",
 			"nozzle_selected": "0.4",
-			"sub_path": "machine/Bambu Lab X1.json",
+			"sub_path": "machine/model/Bambu Lab X1.json",
 			"vendor": "BBL"
 		}
 	],
