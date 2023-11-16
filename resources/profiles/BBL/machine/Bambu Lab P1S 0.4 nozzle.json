@@ -1,7 +1,7 @@
 {
     "type": "machine",
     "from": "system",
-    "inherits": "fdm_bbl_machine_common",
+    "inherits": "Machine Common Bambu Lab",
     "setting_id": "GM014",
     "name": "Bambu Lab P1S 0.4 nozzle",
     "instantiation": "true",
