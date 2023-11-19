@@ -1,10 +1,9 @@
 {
     "type": "machine",
-    "from": "system",
-    "inherits": "Machine Common Bambu Lab",
+    "inherits": "BBL Machine Common",
+    "instantiation": "false",
     "name": "Bambu Lab P1P",
     "printer_model": "Bambu Lab P1P",
-    "instantiation": "false",
     "auxiliary_fan": "0",
     "default_filament_profile": [
         "Bambu PLA Basic @BBL X1"

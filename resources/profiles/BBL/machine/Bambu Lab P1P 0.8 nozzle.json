@@ -1,26 +1,27 @@
 {
     "type": "machine",
-    "from": "system",
     "inherits": "Bambu Lab P1P",
     "setting_id": "GM012",
-    "name": "Bambu Lab P1P 0.8 nozzle",
     "instantiation": "true",
+    "name": "Bambu Lab P1P 0.8 nozzle",
+    "printer_model": "Bambu Lab P1P",
     "printer_variant": "0.8",
-    "default_print_profile": "0.40mm Standard @BBL P1P 0.8 nozzle",
-    "max_layer_height": [
-        "0.56"
-    ],
-    "min_layer_height": [
-        "0.16"
-    ],
     "nozzle_diameter": [
         "0.8"
     ],
     "nozzle_type": "hardened_steel",
-    "retract_length_toolchange": [
-        "3"
+    "auxiliary_fan": "0",
+    "default_print_profile": "0.40mm Standard @BBL P1P 0.8 nozzle",
+    "min_layer_height": [
+        "0.16"
+    ],
+    "max_layer_height": [
+        "0.56"
     ],
     "retraction_length": [
+        "3"
+    ],
+    "retract_length_toolchange": [
         "3"
     ],
     "upward_compatible_machine": [
