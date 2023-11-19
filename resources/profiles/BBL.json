@@ -714,10 +714,6 @@
             "sub_path": "filament/Bambu PLA Basic @BBL X1C 0.2 nozzle.json"
         },
         {
-            "name": "Bambu PLA Basic @BBL X1C 0.8 nozzle",
-            "sub_path": "filament/Bambu PLA Basic @BBL X1C 0.8 nozzle.json"
-        },
-        {
             "name": "Bambu PLA Basic @BBL X1",
             "sub_path": "filament/Bambu PLA Basic @BBL X1.json"
         },

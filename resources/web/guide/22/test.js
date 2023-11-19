@@ -72,14 +72,6 @@ var cData={
 			"type": "PLA",
 			"vendor": "Bambu Lab"
 		},
-		"Bambu PLA Basic @BBL X1C 0.8 nozzle": {
-			"models": "[Bambu Lab X1 Carbon++0.8]",
-			"name": "Bambu PLA Basic @BBL X1C 0.8 nozzle",
-			"selected": 1,
-			"sub_path": "filament/Bambu PLA Basic @BBL X1C 0.8 nozzle.json",
-			"type": "PLA",
-			"vendor": "Bambu Lab"
-		},
 		"Bambu PLA Matte @BBL X1": {
 			"models": "[Bambu Lab X1++0.4]",
 			"name": "Bambu PLA Matte @BBL X1",
