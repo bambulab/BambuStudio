@@ -1696,8 +1696,8 @@
     ],
     "machine_list": [
         {
-            "name": "Machine Common Bambu Lab",
-            "sub_path": "machine/Machine Common Bambu Lab.json"
+            "name": "BBL Machine Common",
+            "sub_path": "machine/BBL Machine Common.json"
         },
         {
             "name": "Bambu Lab X1 Carbon",
