@@ -3,31 +3,31 @@
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
     "version": "01.08.00.04",
     "force_update": "0",
-    "description": "the initial version of BBL configurations",
+    "description": "Bambu Lab Printers configurations",
     "machine_model_list": [
         {
             "name": "Bambu Lab X1 Carbon",
-            "sub_path": "machine/Bambu Lab X1 Carbon.json"
+            "sub_path": "machine/model/Bambu Lab X1 Carbon.json"
         },
         {
             "name": "Bambu Lab X1",
-            "sub_path": "machine/Bambu Lab X1.json"
+            "sub_path": "machine/model/Bambu Lab X1.json"
         },
         {
             "name": "Bambu Lab P1P",
-            "sub_path": "machine/Bambu Lab P1P.json"
+            "sub_path": "machine/model/Bambu Lab P1P.json"
         },
         {
             "name": "Bambu Lab P1S",
-            "sub_path": "machine/Bambu Lab P1S.json"
+            "sub_path": "machine/model/Bambu Lab P1S.json"
         },
         {
             "name": "Bambu Lab A1 mini",
-            "sub_path": "machine/Bambu Lab A1 mini.json"
+            "sub_path": "machine/model/Bambu Lab A1 mini.json"
         },
         {
             "name": "Bambu Lab X1E",
-            "sub_path": "machine/Bambu Lab X1E.json"
+            "sub_path": "machine/model/Bambu Lab X1E.json"
         }
     ],
     "process_list": [
@@ -712,10 +712,6 @@
         {
             "name": "Bambu PLA Basic @BBL X1C 0.2 nozzle",
             "sub_path": "filament/Bambu PLA Basic @BBL X1C 0.2 nozzle.json"
-        },
-        {
-            "name": "Bambu PLA Basic @BBL X1C 0.8 nozzle",
-            "sub_path": "filament/Bambu PLA Basic @BBL X1C 0.8 nozzle.json"
         },
         {
             "name": "Bambu PLA Basic @BBL X1",
@@ -1696,36 +1692,16 @@
     ],
     "machine_list": [
         {
-            "name": "fdm_machine_common",
-            "sub_path": "machine/fdm_machine_common.json"
+            "name": "BBL Machine Common",
+            "sub_path": "machine/BBL Machine Common.json"
         },
         {
-            "name": "fdm_bbl_3dp_001_common",
-            "sub_path": "machine/fdm_bbl_3dp_001_common.json"
+            "name": "Bambu Lab X1 Carbon",
+            "sub_path": "machine/Bambu Lab X1 Carbon.json"
         },
         {
             "name": "Bambu Lab X1 Carbon 0.4 nozzle",
             "sub_path": "machine/Bambu Lab X1 Carbon 0.4 nozzle.json"
-        },
-        {
-            "name": "Bambu Lab X1 0.4 nozzle",
-            "sub_path": "machine/Bambu Lab X1 0.4 nozzle.json"
-        },
-        {
-            "name": "Bambu Lab P1P 0.4 nozzle",
-            "sub_path": "machine/Bambu Lab P1P 0.4 nozzle.json"
-        },
-        {
-            "name": "Bambu Lab P1S 0.4 nozzle",
-            "sub_path": "machine/Bambu Lab P1S 0.4 nozzle.json"
-        },
-        {
-            "name": "Bambu Lab A1 mini 0.4 nozzle",
-            "sub_path": "machine/Bambu Lab A1 mini 0.4 nozzle.json"
-        },
-        {
-            "name": "Bambu Lab X1E 0.4 nozzle",
-            "sub_path": "machine/Bambu Lab X1E 0.4 nozzle.json"
         },
         {
             "name": "Bambu Lab X1 Carbon 0.2 nozzle",
@@ -1740,16 +1716,32 @@
             "sub_path": "machine/Bambu Lab X1 Carbon 0.8 nozzle.json"
         },
         {
+            "name": "Bambu Lab X1",
+            "sub_path": "machine/Bambu Lab X1.json"
+        },
+        {
+            "name": "Bambu Lab X1 0.4 nozzle",
+            "sub_path": "machine/Bambu Lab X1 0.4 nozzle.json"
+        },
+        {
             "name": "Bambu Lab X1 0.2 nozzle",
             "sub_path": "machine/Bambu Lab X1 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab X1 0.6 nozzle",
+            "sub_path": "machine/Bambu Lab X1 0.6 nozzle.json"
         },
         {
             "name": "Bambu Lab X1 0.8 nozzle",
             "sub_path": "machine/Bambu Lab X1 0.8 nozzle.json"
         },
         {
-            "name": "Bambu Lab X1 0.6 nozzle",
-            "sub_path": "machine/Bambu Lab X1 0.6 nozzle.json"
+            "name": "Bambu Lab P1P",
+            "sub_path": "machine/Bambu Lab P1P.json"
+        },
+        {
+            "name": "Bambu Lab P1P 0.4 nozzle",
+            "sub_path": "machine/Bambu Lab P1P 0.4 nozzle.json"
         },
         {
             "name": "Bambu Lab P1P 0.2 nozzle",
@@ -1764,6 +1756,14 @@
             "sub_path": "machine/Bambu Lab P1P 0.8 nozzle.json"
         },
         {
+            "name": "Bambu Lab P1S",
+            "sub_path": "machine/Bambu Lab P1S.json"
+        },
+        {
+            "name": "Bambu Lab P1S 0.4 nozzle",
+            "sub_path": "machine/Bambu Lab P1S 0.4 nozzle.json"
+        },
+        {
             "name": "Bambu Lab P1S 0.2 nozzle",
             "sub_path": "machine/Bambu Lab P1S 0.2 nozzle.json"
         },
@@ -1776,6 +1776,14 @@
             "sub_path": "machine/Bambu Lab P1S 0.8 nozzle.json"
         },
         {
+            "name": "Bambu Lab A1 mini",
+            "sub_path": "machine/Bambu Lab A1 mini.json"
+        },
+        {
+            "name": "Bambu Lab A1 mini 0.4 nozzle",
+            "sub_path": "machine/Bambu Lab A1 mini 0.4 nozzle.json"
+        },
+        {
             "name": "Bambu Lab A1 mini 0.2 nozzle",
             "sub_path": "machine/Bambu Lab A1 mini 0.2 nozzle.json"
         },
@@ -1786,6 +1794,14 @@
         {
             "name": "Bambu Lab A1 mini 0.8 nozzle",
             "sub_path": "machine/Bambu Lab A1 mini 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab X1E",
+            "sub_path": "machine/Bambu Lab X1E.json"
+        },
+        {
+            "name": "Bambu Lab X1E 0.4 nozzle",
+            "sub_path": "machine/Bambu Lab X1E 0.4 nozzle.json"
         },
         {
             "name": "Bambu Lab X1E 0.2 nozzle",

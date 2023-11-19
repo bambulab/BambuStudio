@@ -1,26 +1,25 @@
 {
     "type": "machine",
-    "name": "Bambu Lab P1S 0.6 nozzle",
-    "inherits": "Bambu Lab P1S 0.4 nozzle",
-    "from": "system",
+    "inherits": "Bambu Lab P1S",
     "setting_id": "GM016",
     "instantiation": "true",
+    "name": "Bambu Lab P1S 0.6 nozzle",
+    "printer_model": "Bambu Lab P1S",
+    "printer_variant": "0.6",
     "nozzle_diameter": [
         "0.6"
     ],
-    "printer_model": "Bambu Lab P1S",
-    "printer_variant": "0.6",
+    "nozzle_type": "hardened_steel",
     "default_filament_profile": [
         "Bambu PLA Basic @BBL X1C"
     ],
     "default_print_profile": "0.30mm Standard @BBL X1C 0.6 nozzle",
-    "max_layer_height": [
-        "0.42"
-    ],
     "min_layer_height": [
         "0.12"
     ],
-    "nozzle_type": "hardened_steel",
+    "max_layer_height": [
+        "0.42"
+    ],
     "retraction_length": [
         "1.4"
     ],

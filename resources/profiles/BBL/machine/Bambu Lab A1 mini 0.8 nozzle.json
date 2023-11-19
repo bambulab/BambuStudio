@@ -1,30 +1,26 @@
 {
     "type": "machine",
-    "name": "Bambu Lab A1 mini 0.8 nozzle",
-    "inherits": "Bambu Lab A1 mini 0.4 nozzle",
-    "from": "system",
+    "inherits": "Bambu Lab A1 mini",
     "setting_id": "GM023",
     "instantiation": "true",
+    "name": "Bambu Lab A1 mini 0.8 nozzle",
+    "printer_model": "Bambu Lab A1 mini",
+    "printer_variant": "0.8",
     "nozzle_diameter": [
         "0.8"
     ],
-    "printer_model": "Bambu Lab A1 mini",
-    "printer_variant": "0.8",
-    "default_filament_profile": [
-        "Bambu PLA Basic @BBL A1M"
-    ],
+    "nozzle_type": "hardened_steel",
     "default_print_profile": "0.40mm Standard @BBL A1M 0.8 nozzle",
-    "max_layer_height": [
-        "0.56"
-    ],
     "min_layer_height": [
         "0.16"
     ],
-    "nozzle_type": "hardened_steel",
-    "retract_length_toolchange": [
-        "3"
+    "max_layer_height": [
+        "0.56"
     ],
     "retraction_length": [
+        "3"
+    ],
+    "retract_length_toolchange": [
         "3"
     ],
     "upward_compatible_machine": [
