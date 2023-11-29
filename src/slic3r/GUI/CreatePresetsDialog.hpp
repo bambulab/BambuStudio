@@ -118,7 +118,7 @@ protected:
     wxBoxSizer *create_hot_bed_svg_item(wxWindow *parent);
     wxBoxSizer *create_max_print_height_item(wxWindow *parent);
     wxBoxSizer *create_page1_btns_item(wxWindow *parent);
-    //Improt Presets Page2
+    //Import Presets Page2
     void create_printer_page2(wxWindow *parent);
     wxBoxSizer *create_printer_preset_item(wxWindow *parent);
     wxBoxSizer *create_presets_item(wxWindow *parent);

@@ -11231,7 +11231,7 @@ msgstr "Створити на основі поточного принтера"
 msgid "wiki"
 msgstr "вікі"
 
-msgid "Improt Preset"
+msgid "Import Preset"
 msgstr "Імпортувати налаштування"
 
 msgid "Create Type"
